@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3 2003/07/23 06:57:53 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.1 2003/08/04 01:04:43 marka Exp $
  */
 
 #include <config.h>
@@ -138,6 +138,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 #ifdef OPENSSL
 	RETERR(dst__openssl_init());
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #endif
@@ -697,6 +698,7 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 
 	switch (key->key_alg) {
 		case DST_ALG_RSAMD5:
+		case DST_ALG_RSASHA1:
 			*n = (key->key_size + 7) / 8;
 			break;
 		case DST_ALG_DSA:
@@ -726,6 +728,7 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 			*n = (key->key_size + 7) / 8;
 			break;
 		case DST_ALG_RSAMD5:
+		case DST_ALG_RSASHA1:
 		case DST_ALG_DSA:
 		case DST_ALG_HMACMD5:
 		default:

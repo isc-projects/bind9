@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.4.2.1 2001/12/19 01:29:35 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.4.2.1.8.1 2003/08/04 01:04:44 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -364,7 +364,8 @@ openssldsa_fromfile(dst_key_t *key, const char *filename) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, filename, mctx, &priv);
+	ret = dst__privstruct_parsefile(key, DST_ALG_DSA, filename, mctx,
+					&priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

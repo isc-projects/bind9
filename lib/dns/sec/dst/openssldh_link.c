@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.38.2.2 2001/12/19 01:29:34 marka Exp $
+ * $Id: openssldh_link.c,v 1.38.2.2.8.1 2003/08/04 01:04:44 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -443,7 +443,8 @@ openssldh_fromfile(dst_key_t *key, const char *filename) {
 	mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, filename, mctx, &priv);
+	ret = dst__privstruct_parsefile(key, DST_ALG_DH, filename, mctx,
+					&priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

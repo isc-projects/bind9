@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11 2003/07/30 01:04:15 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.1 2003/08/04 01:04:42 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -270,13 +270,14 @@ static const char decdigits[] = "0123456789";
 	{ 254, "OID", 0}, \
 	{ 0, NULL, 0}
 
-/* RFC2535 section 7 */
+/* RFC2535 section 7, RFC3110 */
 
 #define SECALGNAMES \
 	{ 1, "RSAMD5", 0 }, \
 	{ 2, "DH", 0 }, \
 	{ 3, "DSA", 0 }, \
 	{ 4, "ECC", 0 }, \
+	{ 5, "RSASHA1", 0 }, \
 	{ 252, "INDIRECT", 0 }, \
 	{ 253, "PRIVATEDNS", 0 }, \
 	{ 254, "PRIVATEOID", 0 }, \

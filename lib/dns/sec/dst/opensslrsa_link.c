@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.12.2.4 2003/07/24 06:18:42 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.12.2.4.2.1 2003/08/04 01:04:44 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -44,6 +44,8 @@ static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 static isc_result_t
 opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	UNUSED(key);
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
+		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx;
@@ -64,6 +66,9 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 static void
 opensslrsa_destroyctx(dst_context_t *dctx) {
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
+		dctx->key->key_alg == DST_ALG_RSASHA1);
+
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx = dctx->opaque;
 
@@ -84,6 +89,9 @@ opensslrsa_destroyctx(dst_context_t *dctx) {
 
 static isc_result_t
 opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
+		dctx->key->key_alg == DST_ALG_RSASHA1);
+
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx = dctx->opaque;
 		isc_md5_update(md5ctx, data->base, data->length);
@@ -105,6 +113,9 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	int status;
 	int type;
 	unsigned int digestlen;
+
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
+		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 	isc_buffer_availableregion(sig, &r);
 
@@ -143,6 +154,9 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	int status = 0;
 	int type;
 	unsigned int digestlen;
+
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
+		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx = dctx->opaque;
@@ -428,7 +442,8 @@ opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, filename, mctx, &priv);
+	ret = dst__privstruct_parsefile(key, DST_ALG_RSA, filename, mctx,
+					&priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
