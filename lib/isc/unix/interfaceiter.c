@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.28 2002/10/24 03:52:34 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.29 2002/10/28 02:16:21 marka Exp $ */
 
 #include <config.h>
 
@@ -92,14 +92,14 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 			 * we only consider unicast link-local addresses.
 			 */
 			if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
-				u_int16_t zone;
+				isc_uint16_t zone;
 
 				memcpy(&zone, &sa6->sin6_addr.s6_addr[2],
 				       sizeof(zone));
 				zone = ntohs(zone);
 				if (zone != 0) { /* the zone ID is embedded */
 					isc_netaddr_setzone(dst,
-							    (u_int32_t)zone);
+							    (isc_uint32_t)zone);
 					dst->type.in6.s6_addr[2] = 0;
 					dst->type.in6.s6_addr[3] = 0;
 				}
