@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.131.2.1 2001/01/09 22:31:20 bwelling Exp $ */
+/* $Id: dig.c,v 1.131.2.2 2001/02/15 23:39:41 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -708,6 +708,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			strncpy(fixeddomain, value, sizeof(fixeddomain));
 			fixeddomain[sizeof(fixeddomain)-1]=0;
+			usesearch = state;
 			break;
 		default:
 			goto invalid_option;
