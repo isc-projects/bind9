@@ -1,5 +1,5 @@
 
- 914.	[bug]		Gobal 'server' statements were rejected when
+ 914.	[bug]		Global 'server' statements were rejected when
 			using views, even though they were accepted
 			in 9.1. [RT #1368]
 
