@@ -183,10 +183,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_getalsonotify(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
-			result = dns_zone_setnotifyalso(zone, iplist->ips,
+			result = dns_zone_setalsonotify(zone, iplist->ips,
 						        iplist->nextidx);
 		else
-			result = dns_zone_setnotifyalso(zone, NULL, 0);
+			result = dns_zone_setalsonotify(zone, NULL, 0);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
@@ -345,10 +345,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_getalsonotify(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
-			result = dns_zone_setnotifyalso(zone, iplist->ips,
+			result = dns_zone_setalsonotify(zone, iplist->ips,
 						        iplist->nextidx);
 		else
-			result = dns_zone_setnotifyalso(zone, NULL, 0);
+			result = dns_zone_setalsonotify(zone, NULL, 0);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 

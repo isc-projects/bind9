@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.126 2000/05/25 05:13:19 gson Exp $ */
+/* $Id: zone.c,v 1.127 2000/05/25 15:34:23 gson Exp $ */
 
 #include <config.h>
 
@@ -398,7 +398,7 @@ zone_free(dns_zone_t *zone) {
 		dns_db_detach(&zone->db);
 	dns_zone_cleardbargs(zone);
 	dns_zone_setmasters(zone, NULL, 0);
-	dns_zone_setnotifyalso(zone, NULL, 0);
+	dns_zone_setalsonotify(zone, NULL, 0);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
@@ -1224,7 +1224,7 @@ dns_zone_getxfrsource6(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
+dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		       isc_uint32_t count)
 {
 	isc_sockaddr_t *new;

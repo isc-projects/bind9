@@ -363,7 +363,7 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
  */
 
 isc_result_t
-dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
+dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		       isc_uint32_t count);
 /*
  *	Set the list of additional servers to be notified when
