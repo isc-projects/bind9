@@ -20,22 +20,16 @@
 #include <isc/assertions.h>
 #include <isc/lfsr.h>
 
+/*
+ * Any LFSR added to this table needs to have a large period.
+ * Entries should be added from longest bit state to smallest bit state.
+ */
 isc_lfsr_t isc_lfsr_standard[] = {
-	/* 32-bit, x^31 + x^6 + x^4 + x^2 + x + 1 */
-	{ 0, 32, (1 << 31) | (1 << 6) | (1 << 4) | (1 << 2) | (1 << 1) | 1 },
-
-	/* 32-bit, x^31 + x^6 + x^2 + x + 1 */
-	{ 0, 32, (1 << 31) | (1 << 6) | (1 << 2) | (1 << 1) | 1 },
-
-	/* 30-bit, x^29 + x^6 + x^3 + 1 */
-	{ 0, 30, (1 << 29) | (1 << 5) | (1 << 3) | 1 },
-
-	/* 19-bit, x^18 + x^4 + x + 1 */
-	{ 0, 19, (1 << 18) | (1 << 4) | (1 << 1) | 1 },
-
-	/* 13-bit, x^12 + x^3 + x^2 + 1 */
-	{ 0, 13, (1 << 12) | (1 << 3) | (1 << 2) | 1 },
-
+	{ 0, 32, 0x80000057U },	/* 32-bit, x^31 + x^6 + x^4 + x^2 + x + 1 */
+	{ 0, 32, 0x80000047U },	/* 32-bit, x^31 + x^6 + x^2 + x + 1 */
+	{ 0, 30, 0x20000029U },	/* 30-bit, x^29 + x^6 + x^3 + 1 */
+	{ 0, 19, 0x00040013U },	/* 19-bit, x^18 + x^4 + x + 1 */
+	{ 0, 13, 0x0000100dU },	/* 13-bit, x^12 + x^3 + x^2 + 1 */
 	{ 0, 0, 0}
 };
 
