@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.16 2002/01/23 01:51:16 marka Exp $ */
+/* $Id: check.c,v 1.17 2002/02/06 05:58:06 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/result.h>
 #include <isc/symtab.h>
@@ -29,6 +30,7 @@
 #include <isc/region.h>
 
 #include <dns/rdataclass.h>
+#include <dns/fixedname.h>
 
 #include <isccfg/cfg.h>
 
@@ -127,6 +129,8 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	isc_result_t tresult;
 	unsigned int i;
 	dns_rdataclass_t zclass;
+	dns_fixedname_t fixedname;
+	isc_buffer_t b;
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE },
@@ -226,17 +230,33 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 
 	/*
 	 * Look for an already existing zone.
+	 * We need to make this cannonical as isc_symtab_define()
+	 * deals with strings.
 	 */
-	symvalue.as_pointer = NULL;
-	tresult = isc_symtab_define(symtab, zname,
-				    ztype == HINTZONE ? 1 : 2,
-				    symvalue, isc_symexists_reject);
-	if (tresult == ISC_R_EXISTS) {
+	dns_fixedname_init(&fixedname);
+	isc_buffer_init(&b, zname, strlen(zname));
+	isc_buffer_add(&b, strlen(zname));
+	result = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
+				   dns_rootname, ISC_TRUE, NULL);
+	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-			    "zone '%s': already exists ", zname);
+			    "zone '%s': is not a valid name", zname);
 		result = ISC_R_FAILURE;
-	} else if (tresult != ISC_R_SUCCESS)
-		return (tresult);
+	} else {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(dns_fixedname_name(&fixedname),
+				namebuf, sizeof(namebuf));
+		symvalue.as_pointer = NULL;
+		tresult = isc_symtab_define(symtab, namebuf,
+					    ztype == HINTZONE ? 1 : 2,
+					    symvalue, isc_symexists_reject);
+		if (tresult == ISC_R_EXISTS) {
+			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+				    "zone '%s': already exists ", zname);
+			result = ISC_R_FAILURE;
+		} else if (tresult != ISC_R_SUCCESS)
+			return (tresult);
+	}
 
 	/*
 	 * Look for inappropriate options for the given zone type.
