@@ -1,6 +1,3 @@
-1072.	[bug]		The TCP client quota could be exceeded when
-			recursion occurred. [RT #1937]
-
 1191.   [bug]           A dynamic update removing the last non-apex name in
 			a secure zone would fail. [RT #2399]
 
@@ -102,6 +99,13 @@
 1123.	[bug]		dig +[no]fail did not match description. [RT #2052]
 
 1109.	[bug]		nsupdate accepted illegal ttl values.
+
+1081.	[bug]		Multicast queries were incorrectly identified
+			based on the source address, not the destination
+			address.
+
+1072.	[bug]		The TCP client quota could be exceeded when
+			recursion occurred. [RT #1937]
 
 1071.	[bug]		Sockets listening for TCP DNS connections
 			specified an excessive listen backlog. [RT #1937]
