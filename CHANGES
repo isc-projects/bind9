@@ -1,3 +1,5 @@
+1120.	[bug]		dig only accept valid abbreviations of +options.
+
 1109.	[bug]		nsupdate accepted illegal ttl values.
 
 1108.	[bug]		On Win32 rndc was hanging when named was not running.
