@@ -1,3 +1,5 @@
+1708.	[placeholder]	rt12376
+
 1707.	[contrib]	sdb/ldap updated to version 1.0-beta.
 
 1706.	[bug]		'rndc stop' failed to cause zones to be flushed
