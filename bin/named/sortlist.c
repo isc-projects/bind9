@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.c,v 1.5.12.1 2003/08/07 05:29:46 marka Exp $ */
+/* $Id: sortlist.c,v 1.5.12.2 2003/08/07 05:34:34 marka Exp $ */
 
 #include <config.h>
 
@@ -69,19 +69,28 @@ ns_sortlist_setup(dns_acl_t *acl, isc_netaddr_t *clientaddr, void **argp) {
 					 &matched_elt)) {
 			if (order_elt != NULL) {
 				if (order_elt->type ==
-				    dns_aclelementtype_nestedacl)
+				    dns_aclelementtype_nestedacl) {
 					*argp = order_elt->u.nestedacl;
-				else if (order_elt->type ==
-					 dns_aclelementtype_localhost &&
-					 ns_g_server->aclenv.localhost != NULL)
+					return (NS_SORTLISTTYPE_2ELEMENT);
+				} else if (order_elt->type ==
+					   dns_aclelementtype_localhost &&
+					   ns_g_server->aclenv.localhost != NULL) {
 					*argp = ns_g_server->aclenv.localhost;
-				else if (order_elt->type ==
-					 dns_aclelementtype_localnets &&
-					 ns_g_server->aclenv.localnets != NULL)
+					return (NS_SORTLISTTYPE_2ELEMENT);
+				} else if (order_elt->type ==
+					   dns_aclelementtype_localnets &&
+					   ns_g_server->aclenv.localnets != NULL) {
 					*argp = ns_g_server->aclenv.localnets;
-				else
-					goto dont_sort;
-				return (NS_SORTLISTTYPE_2ELEMENT);
+					return (NS_SORTLISTTYPE_2ELEMENT);
+				} else {
+					/*
+					 * BIND 8 allows a bare IP prefix as
+					 * the 2nd element of a 2-element
+					 * sortlist statement.
+					 */
+					*argp = order_elt;
+					return (NS_SORTLISTTYPE_1ELEMENT);
+				}
 			} else {
 				INSIST(matched_elt != NULL);
 				*argp = matched_elt;
