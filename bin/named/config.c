@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.38 2003/02/26 02:03:57 marka Exp $ */
+/* $Id: config.c,v 1.39 2003/02/26 06:04:02 marka Exp $ */
 
 #include <config.h>
 
@@ -333,12 +333,40 @@ ns_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 	*addrsp = NULL;
 }
 
+static isc_result_t
+get_masters_def(cfg_obj_t *cctx, char *name, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *masters = NULL;
+	cfg_listelt_t *elt;
+
+	result = cfg_map_get(cctx, "masters", &masters);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	for (elt = cfg_list_first(masters);
+	     elt != NULL;
+	     elt = cfg_list_next(elt)) {
+		cfg_obj_t *list;
+		const char *listname;
+
+		list = cfg_listelt_value(elt);
+		listname = cfg_obj_asstring(cfg_tuple_get(list, "name"));
+
+		if (strcasecmp(listname, name) == 0) {
+			*ret = list;
+			return (ISC_R_SUCCESS);
+		}
+	}
+	return (ISC_R_NOTFOUND);
+}
+
 isc_result_t
 ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			  isc_sockaddr_t **addrsp, dns_name_t ***keysp,
 			  isc_uint32_t *countp)
 {
-	isc_uint32_t count, i = 0;
+	isc_uint32_t addrcount = 0, keycount = 0, i = 0;
+	isc_uint32_t listcount = 0, l = 0, j;
+	isc_uint32_t stackcount = 0, pushed = 0;
 	isc_result_t result;
 	cfg_listelt_t *element;
 	cfg_obj_t *addrlist;
@@ -347,12 +375,18 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 	dns_fixedname_t fname;
 	isc_sockaddr_t *addrs = NULL;
 	dns_name_t **keys = NULL;
+	char **lists = NULL;
+	struct {
+		cfg_listelt_t *element;
+		in_port_t port;
+	} *stack = NULL;
 
-	INSIST(addrsp != NULL && *addrsp == NULL);
+	REQUIRE(addrsp != NULL && *addrsp == NULL);
+	REQUIRE(keysp != NULL && *keysp == NULL);
+	REQUIRE(countp != NULL);
 
+ newlist:
 	addrlist = cfg_tuple_get(list, "addresses");
-	count = ns_config_listcount(addrlist);
-
 	portobj = cfg_tuple_get(list, "port");
 	if (cfg_obj_isuint32(portobj)) {
 		isc_uint32_t val = cfg_obj_asuint32(portobj);
@@ -370,35 +404,126 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 
 	result = ISC_R_NOMEMORY;
 
-	addrs = isc_mem_get(mctx, count * sizeof(isc_sockaddr_t));
-	if (addrs == NULL)
-		goto cleanup;
-
-	keys = isc_mem_get(mctx, count * sizeof(dns_name_t *));
-	if (keys == NULL)
-		goto cleanup;
-
-	for (element = cfg_list_first(addrlist);
+	element = cfg_list_first(addrlist);
+ resume:
+	for ( ;
 	     element != NULL;
-	     element = cfg_list_next(element), i++)
+	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *addr;
 		cfg_obj_t *key;
 		char *keystr;
 		isc_buffer_t b;
 
-		INSIST(i < count);
-
-		addr = cfg_tuple_get(cfg_listelt_value(element), "sockaddr");
+		addr = cfg_tuple_get(cfg_listelt_value(element),
+				     "masterselement");
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
+
+		if (!cfg_obj_issockaddr(addr)) {
+			char *listname = cfg_obj_asstring(addr);
+			isc_result_t tresult;
+
+			/* Grow lists? */
+			if (listcount == l) {
+				void * new;
+				isc_uint32_t newlen = listcount + 16;
+				size_t newsize, oldsize;
+
+				newsize = newlen * sizeof(*lists);
+				oldsize = listcount * sizeof(*lists);
+				new = isc_mem_get(mctx, newsize);
+				if (new == NULL)
+					goto cleanup;
+				if (listcount != 0) {
+					memcpy(new, lists, oldsize);
+					isc_mem_put(mctx, lists, oldsize);
+				}
+				lists = new;
+				listcount = newlen;
+			}
+			/* Seen? */
+			for (j = 0; j < l; j++)
+				if (strcasecmp(lists[j], listname) == 0)
+					break;
+			if (j < l)
+				continue;
+			tresult = get_masters_def(config, listname, &list);
+			if (tresult == ISC_R_NOTFOUND) {
+				cfg_obj_log(addr, ns_g_lctx, ISC_LOG_ERROR,
+                                    "masters \"%s\" not found", listname);
+
+				result = tresult;
+				goto cleanup;
+			}
+			if (tresult != ISC_R_SUCCESS)
+				goto cleanup;
+			lists[l++] = listname;
+			/* Grow stack? */
+			if (stackcount == pushed) {
+				void * new;
+				isc_uint32_t newlen = stackcount + 16;
+				size_t newsize, oldsize;
+
+				newsize = newlen * sizeof(*stack);
+				oldsize = stackcount * sizeof(*stack);
+				new = isc_mem_get(mctx, newsize);
+				if (new == NULL)
+					goto cleanup;
+				if (stackcount != 0) {
+					memcpy(new, stack, oldsize);
+					isc_mem_put(mctx, stack, oldsize);
+				}
+				stack = new;
+				stackcount = newlen;
+			}
+			/*
+			 * We want to resume processing this list on the
+			 * next element.
+			 */
+			stack[pushed].element = cfg_list_next(element);
+			stack[pushed].port = port;
+			pushed++;
+			goto newlist;
+		}
+
+		if (i == addrcount) {
+			void * new;
+			isc_uint32_t newlen = addrcount + 16;
+			size_t newsize, oldsize;
+
+			newsize = newlen * sizeof(isc_sockaddr_t);
+			oldsize = addrcount * sizeof(isc_sockaddr_t);
+			new = isc_mem_get(mctx, newsize);
+			if (new == NULL)
+				goto cleanup;
+			if (addrcount != 0) {
+				memcpy(new, addrs, oldsize);
+				isc_mem_put(mctx, addrs, oldsize);
+			}
+			addrs = new;
+			addrcount = newlen;
+
+			newsize = newlen * sizeof(dns_name_t *);
+			oldsize = keycount * sizeof(dns_name_t *);
+			new = isc_mem_get(mctx, newsize);
+			if (new == NULL)
+				goto cleanup;
+			if (keycount != 0) {
+				memcpy(new, keys, newsize);
+				isc_mem_put(mctx, keys, newsize);
+			}
+			keys = new;
+			keycount = newlen;
+		}
 
 		addrs[i] = *cfg_obj_assockaddr(addr);
 		if (isc_sockaddr_getport(&addrs[i]) == 0)
 			isc_sockaddr_setport(&addrs[i], port);
-
 		keys[i] = NULL;
-		if (!cfg_obj_isstring(key))
+		if (!cfg_obj_isstring(key)) {
+			i++;
 			continue;
+		}
 		keys[i] = isc_mem_get(mctx, sizeof(dns_name_t));
 		if (keys[i] == NULL)
 			goto cleanup;
@@ -416,20 +541,62 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 				      keys[i]);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		i++;
 	}
-	INSIST(i == count);
+	if (pushed != 0) {
+		pushed--;
+		element = stack[pushed].element;
+		port = stack[pushed].port;
+		goto resume;
+	}
+	if (i < addrcount) {
+		void * new;
+		size_t newsize, oldsize;
+
+		newsize = i * sizeof(isc_sockaddr_t);
+		oldsize = addrcount * sizeof(isc_sockaddr_t);
+		if (i != 0) {
+			new = isc_mem_get(mctx, newsize);
+			if (new == NULL)
+				goto cleanup;
+			memcpy(new, addrs, newsize);
+			isc_mem_put(mctx, addrs, oldsize);
+		} else
+			new = NULL;
+		addrs = new;
+		addrcount = i;
+
+		newsize = i * sizeof(dns_name_t *);
+		oldsize = keycount * sizeof(dns_name_t *);
+		if (i != 0) {
+			new = isc_mem_get(mctx, newsize);
+			if (new == NULL)
+				goto cleanup;
+			memcpy(new, keys,  newsize);
+			isc_mem_put(mctx, keys, oldsize);
+		} else
+			new = NULL;
+		keys = new;
+		keycount = i;
+	}
+
+	if (lists != NULL)
+		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
+	if (stack != NULL)
+		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+	
+	INSIST(keycount == addrcount);
 
 	*addrsp = addrs;
 	*keysp = keys;
-	*countp = count;
+	*countp = addrcount;
 
 	return (ISC_R_SUCCESS);
 
  cleanup:
 	if (addrs != NULL)
-		isc_mem_put(mctx, addrs, count * sizeof(isc_sockaddr_t));
+		isc_mem_put(mctx, addrs, addrcount * sizeof(isc_sockaddr_t));
 	if (keys != NULL) {
-		unsigned int j;
 		for (j = 0; j <= i; j++) {
 			if (keys[j] == NULL)
 				continue;
@@ -437,8 +604,12 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 				dns_name_free(keys[j], mctx);
 			isc_mem_put(mctx, keys[j], sizeof(dns_name_t));
 		}
-		isc_mem_put(mctx, keys, count * sizeof(dns_name_t *));
+		isc_mem_put(mctx, keys, keycount * sizeof(dns_name_t *));
 	}
+	if (lists != NULL)
+		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
+	if (stack != NULL)
+		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
 	return (result);
 }
 

@@ -1,3 +1,6 @@
+1443.	[func]		Masters lists can now be specified and referenced
+			in zone masters clauses and other masters lists.
+
 1442.	[func]		New fuctions for manipulating port lists:
 			dns_portlist_create(), dns_portlist_add(),
 			dns_portlist_remove(), dns_portlist_match(),

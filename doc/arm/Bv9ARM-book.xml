@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.216 2003/02/26 05:05:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.217 2003/02/26 06:04:03 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2023,6 +2023,11 @@ authentication and authorization using TSIG.</para></entry>
 the log messages are sent.</para></entry>
           </row>
           <row rowsep = "0">
+            <entry colname = "1"><para><command>masters</command></para></entry>
+            <entry colname = "2"><para>defines a named masters list for
+inclusion in stub and slave zone masters clauses.</para></entry>
+          </row>
+          <row rowsep = "0">
             <entry colname = "1"><para><command>options</command></para></entry>
             <entry colname = "2"><para>controls global server configuration
 options and sets defaults for other statements.</para></entry>
@@ -2680,6 +2685,17 @@ which are appended to relative names in queries.</para>
 <filename>/etc/resolv.conf</filename>.  It indicates the minimum
 number of dots in a relative domain name that should result in an
 exact match lookup before search path elements are appended.</para>
+</sect2>
+<sect2>
+      <title><command>masters</command> Statement Grammar</title>
+<programlisting>
+<command>masters</command> <replaceable>name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> } ; 
+</programlisting>
+</sect2>
+<sect2>
+      <title><command>masters</command> Statement Definition and Usage </title>
+<para><command>masters</command> lists allow for a common set of masters
+to be easily used by multiple stub and slave zones.
 </sect2>
 <sect2>
 <title><command>options</command> Statement Grammar</title>
@@ -4407,7 +4423,7 @@ Statement Grammar</title>
     <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
     <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional>; <optional>...</optional> } ; </optional>
+    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional> ) ; <optional>...</optional> } ; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>
@@ -4451,6 +4467,7 @@ it.</para></entry>
 <entry colname = "2"><para>A slave zone is a replica of a master
 zone. The <command>masters</command> list specifies one or more IP addresses
 of master servers that the slave contacts to update its copy of the zone.
+Masters list elements can also be names of other masters lists.
 By default, transfers are made from port 53 on the servers; this can
 be changed for all servers by specifying a port number before the
 list of IP addresses, or on a per-server basis after the IP address.

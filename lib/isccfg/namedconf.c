@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.17 2003/02/26 05:05:16 marka Exp $ */
+/* $Id: namedconf.c,v 1.18 2003/02/26 06:04:03 marka Exp $ */
 
 #include <config.h>
 
@@ -69,8 +69,7 @@ doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_bracketed_aml;
-static cfg_type_t cfg_type_bracketed_namesockaddrlist;
-static cfg_type_t cfg_type_bracketed_sockaddrkeylist;
+static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
 static cfg_type_t cfg_type_bracketed_sockaddrlist;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
@@ -81,8 +80,8 @@ static cfg_type_t cfg_type_logfile;
 static cfg_type_t cfg_type_logging;
 static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_lwres;
+static cfg_type_t cfg_type_masterselement;
 static cfg_type_t cfg_type_nameportiplist;
-static cfg_type_t cfg_type_namesockaddr;
 static cfg_type_t cfg_type_negated;
 static cfg_type_t cfg_type_notifytype;
 static cfg_type_t cfg_type_optional_class;
@@ -140,38 +139,48 @@ static cfg_tuplefielddef_t acl_fields[] = {
 static cfg_type_t cfg_type_acl = {
 	"acl", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, acl_fields };
 
+/* masters */
+static cfg_tuplefielddef_t masters_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "port", &cfg_type_optional_port, 0 },
+	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_masters = {
+	"masters", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, masters_fields };
 
 /*
  * "sockaddrkeylist", a list of socket addresses with optional keys
  * and an optional default port, as used in the masters option.
  * E.g.,
- *   "port 1234 { 10.0.0.1 key foo; 1::2 port 69; }"
+ *   "port 1234 { mymasters; 10.0.0.1 key foo; 1::2 port 69; }"
  */
 
-static cfg_tuplefielddef_t sockaddrkey_fields[] = {
-	{ "sockaddr", &cfg_type_sockaddr, 0 },
+static cfg_tuplefielddef_t namesockaddrkey_fields[] = {
+	{ "masterselement", &cfg_type_masterselement, 0 },
 	{ "key", &cfg_type_optional_keyref, 0 },
 	{ NULL, NULL, 0 },
 };
 
-static cfg_type_t cfg_type_sockaddrkey = {
-	"sockaddrkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
-	sockaddrkey_fields
+static cfg_type_t cfg_type_namesockaddrkey = {
+	"namesockaddrkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
+	namesockaddrkey_fields
 };
 
-static cfg_type_t cfg_type_bracketed_sockaddrkeylist = {
-	"bracketed_sockaddrkeylist", cfg_parse_bracketed_list,
-	cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_sockaddrkey
+static cfg_type_t cfg_type_bracketed_namesockaddrkeylist = {
+	"bracketed_namesockaddrkeylist", cfg_parse_bracketed_list,
+	cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_namesockaddrkey
 };
 
-static cfg_tuplefielddef_t sockaddrkeylist_fields[] = {
+static cfg_tuplefielddef_t namesockaddrkeylist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "addresses", &cfg_type_bracketed_sockaddrkeylist, 0 },
+	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
-static cfg_type_t cfg_type_sockaddrkeylist = {
+static cfg_type_t cfg_type_namesockaddrkeylist = {
 	"sockaddrkeylist", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
-	sockaddrkeylist_fields
+	namesockaddrkeylist_fields
 };
 
 /*
@@ -526,6 +535,7 @@ namedconf_clauses[] = {
 	{ "options", &cfg_type_options, 0 },
 	{ "controls", &cfg_type_controls, CFG_CLAUSEFLAG_MULTI },
 	{ "acl", &cfg_type_acl, CFG_CLAUSEFLAG_MULTI },
+	{ "masters", &cfg_type_masters, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
 	{ "lwres", &cfg_type_lwres, CFG_CLAUSEFLAG_MULTI },
@@ -702,7 +712,7 @@ zone_only_clauses[] = {
 	{ "file", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "masters", &cfg_type_sockaddrkeylist, 0 },
+	{ "masters", &cfg_type_namesockaddrkeylist, 0 },
 	{ "pubkey", &cfg_type_pubkey,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "update-policy", &cfg_type_updatepolicy, 0 },
@@ -1676,7 +1686,7 @@ static cfg_type_t cfg_type_nameport = {
 };
 
 static void
-doc_namesockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
+doc_sockaddrnameport(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
 	cfg_print_chars(pctx, "( ", 2);
 	cfg_print_cstr(pctx, "<quoted_string>");
@@ -1694,7 +1704,8 @@ doc_namesockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 }
 
 static isc_result_t
-parse_namesockaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
+parse_sockaddrnameport(cfg_parser_t *pctx, const cfg_type_t *type,
+		       cfg_obj_t **ret)
 {
         isc_result_t result;
 	cfg_obj_t *obj = NULL;
@@ -1719,7 +1730,7 @@ parse_namesockaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		}
 	} else {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
-			     "expected IP match list element");
+			     "expected IP address or hostname");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
  cleanup:
@@ -1727,29 +1738,79 @@ parse_namesockaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 	return (result);
 }
 
-static cfg_type_t cfg_type_namesockaddr = {
-	"namesockaddr_element", parse_namesockaddr, NULL, doc_namesockaddr,
-	NULL, NULL
+static cfg_type_t cfg_type_sockaddrnameport = {
+	"sockaddrnameport_element", parse_sockaddrnameport, NULL,
+	 doc_sockaddrnameport, NULL, NULL
 };
 
-static cfg_type_t cfg_type_bracketed_namesockaddrlist = {
-	"bracketed_namesockaddrlist", cfg_parse_bracketed_list,
+static cfg_type_t cfg_type_bracketed_sockaddrnameportlist = {
+	"bracketed_sockaddrnameportlist", cfg_parse_bracketed_list,
 	cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_namesockaddr
+	&cfg_rep_list, &cfg_type_sockaddrnameport
 };
 
 /*
- * A list of socket addresses or named with an optional default port,
+ * A list of socket addresses or name with an optional default port,
  * as used in the dual-stack-servers option.  E.g.,
  * "port 1234 { dual-stack-servers.net; 10.0.0.1; 1::2 port 69; }"
  */
 static cfg_tuplefielddef_t nameportiplist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "addresses", &cfg_type_bracketed_namesockaddrlist, 0 },
+	{ "addresses", &cfg_type_bracketed_sockaddrnameportlist, 0 },
 	{ NULL, NULL, 0 }
 };
 
 static cfg_type_t cfg_type_nameportiplist = {
 	"nameportiplist", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
 	&cfg_rep_tuple, nameportiplist_fields
+};
+
+/*
+ * masters element.
+ */
+
+static void
+doc_masterselement(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_chars(pctx, "( ", 2);
+	cfg_print_cstr(pctx, "<masters>");
+	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, "<ipv4_address>");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, "<ipv6_address>");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_chars(pctx, " )", 2);
+}
+
+static isc_result_t
+parse_masterselement(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret)
+{
+        isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, CFG_LEXOPT_QSTRING));
+	if (pctx->token.type == isc_tokentype_string ||
+	    pctx->token.type == isc_tokentype_qstring) {
+		if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V6OK))
+			CHECK(cfg_parse_sockaddr(pctx, &cfg_type_sockaddr, ret));
+		else
+			CHECK(cfg_parse_astring(pctx, &cfg_type_astring, ret));
+	} else {
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+			     "expected IP address or masters name");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+ cleanup:
+	CLEANUP_OBJ(obj);	
+	return (result);
+}
+
+static cfg_type_t cfg_type_masterselement = {
+	"masters_element", parse_masterselement, NULL,
+	 doc_masterselement, NULL, NULL
 };

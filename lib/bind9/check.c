@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.34 2003/01/16 03:59:24 marka Exp $ */
+/* $Id: check.c,v 1.35 2003/02/26 06:04:03 marka Exp $ */
 
 #include <config.h>
 
@@ -282,6 +282,126 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	return (result);
 }
 
+static isc_result_t
+get_masters_def(cfg_obj_t *cctx, char *name, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *masters = NULL;
+	cfg_listelt_t *elt;
+
+	result = cfg_map_get(cctx, "masters", &masters);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	for (elt = cfg_list_first(masters);
+	     elt != NULL;
+	     elt = cfg_list_next(elt)) {
+		cfg_obj_t *list;
+		const char *listname;
+
+		list = cfg_listelt_value(elt);
+		listname = cfg_obj_asstring(cfg_tuple_get(list, "name"));
+
+		if (strcasecmp(listname, name) == 0) {
+			*ret = list;
+			return (ISC_R_SUCCESS);
+		}
+	}
+	return (ISC_R_NOTFOUND);
+}
+
+static isc_result_t
+validate_masters(cfg_obj_t *obj, cfg_obj_t *config, isc_uint32_t *countp,
+		 isc_log_t *logctx, isc_mem_t *mctx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	isc_uint32_t count = 0;
+	isc_symtab_t *symtab = NULL;
+	isc_symvalue_t symvalue;
+	cfg_listelt_t *element;
+	cfg_listelt_t **stack = NULL;
+	isc_uint32_t stackcount = 0, pushed = 0;
+	cfg_obj_t *list;
+
+	REQUIRE(countp != NULL);
+	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE, &symtab);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+ newlist:
+	list = cfg_tuple_get(obj, "addresses");
+	element = cfg_list_first(list);
+ resume:	
+	for ( ;
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		char *listname;
+		cfg_obj_t *addr;
+		cfg_obj_t *key;
+
+		addr = cfg_tuple_get(cfg_listelt_value(element),
+				     "masterselement");
+		key = cfg_tuple_get(cfg_listelt_value(element), "key");
+
+		if (cfg_obj_issockaddr(addr)) {
+			count++;
+			continue;
+		}
+		if (!cfg_obj_isvoid(key)) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "unexpected token '%s'",
+				    cfg_obj_asstring(key));
+			if (result == ISC_R_SUCCESS)
+				result = ISC_R_FAILURE;
+		}
+		listname = cfg_obj_asstring(addr);
+		symvalue.as_pointer = addr;
+		tresult = isc_symtab_define(symtab, listname, 1, symvalue,
+					    isc_symexists_reject);
+		if (tresult == ISC_R_EXISTS)
+			continue;
+		tresult = get_masters_def(config, listname, &obj);
+		if (tresult != ISC_R_SUCCESS) {
+			if (result == ISC_R_SUCCESS)
+				result = tresult;
+			cfg_obj_log(addr, logctx, ISC_LOG_ERROR,
+				    "unable to find masters list '%s'",
+				    listname);
+			continue;
+		}
+		/* Grow stack? */
+		if (stackcount == pushed) {
+			void * new;
+			isc_uint32_t newlen = stackcount + 16;
+			size_t newsize, oldsize;
+
+			newsize = newlen * sizeof(*stack);
+			oldsize = stackcount * sizeof(*stack);
+			new = isc_mem_get(mctx, newsize);
+			if (new == NULL)
+				goto cleanup;
+			if (stackcount != 0) {
+				memcpy(new, stack, oldsize);
+				isc_mem_put(mctx, stack, oldsize);
+			}
+			stack = new;
+			stackcount = newlen;
+		}
+		stack[pushed++] = cfg_list_next(element);
+		goto newlist;
+	}
+	if (pushed != 0) {
+		element = stack[--pushed];
+		goto resume;
+	}
+ cleanup:
+	if (stack != NULL)
+		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+	isc_symtab_destroy(&symtab);
+	*countp = count;
+	return (result);
+}
+
 #define MASTERZONE	1
 #define SLAVEZONE	2
 #define STUBZONE	4
@@ -294,7 +414,7 @@ typedef struct {
 } optionstable;
 
 static isc_result_t
-check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
+check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	       dns_rdataclass_t defclass, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *zname;
@@ -302,7 +422,6 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	unsigned int ztype;
 	cfg_obj_t *zoptions;
 	cfg_obj_t *obj = NULL;
-	cfg_obj_t *addrlist = NULL;
 	isc_symvalue_t symvalue;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
@@ -486,8 +605,12 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 				    zname);
 			result = ISC_R_FAILURE;
 		} else {
-			addrlist = cfg_tuple_get(obj, "addresses");
-			if (cfg_list_first(addrlist) == NULL) {
+			isc_uint32_t count;
+			tresult = validate_masters(obj, config, &count,
+						   logctx, mctx);
+			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
+				result = tresult;
+			if (tresult == ISC_R_SUCCESS && count == 0) {
 				cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 					    "zone '%s': empty 'masters' entry",
 					    zname);
@@ -706,7 +829,8 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 		isc_result_t tresult;
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
-		tresult = check_zoneconf(zone, symtab, vclass, logctx, mctx);
+		tresult = check_zoneconf(zone, config, symtab, vclass,
+					 logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
@@ -930,6 +1054,44 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 					cfg_obj_log(acl2, logctx, ISC_LOG_ERROR,
 						    "attempt to redefine "
 						    "acl '%s' previous "
+						    "definition: %s:%u",
+						     name, file, line);
+					result = ISC_R_FAILURE;
+				}
+			}
+		}
+	}
+
+        tresult = cfg_map_get(config, "kal", &acls);
+        if (tresult == ISC_R_SUCCESS) {
+		cfg_listelt_t *elt;
+		cfg_listelt_t *elt2;
+		const char *aclname;
+
+		for (elt = cfg_list_first(acls);
+		     elt != NULL;
+		     elt = cfg_list_next(elt)) {
+			cfg_obj_t *acl = cfg_listelt_value(elt);
+
+			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
+
+			for (elt2 = cfg_list_next(elt);
+			     elt2 != NULL;
+			     elt2 = cfg_list_next(elt2)) {
+				cfg_obj_t *acl2 = cfg_listelt_value(elt2);
+				const char *name;
+				name = cfg_obj_asstring(cfg_tuple_get(acl2,
+								      "name"));
+				if (strcasecmp(aclname, name) == 0) {
+					const char *file = cfg_obj_file(acl);
+					unsigned int line = cfg_obj_line(acl);
+
+					if (file == NULL)
+						file = "<unknown file>";
+
+					cfg_obj_log(acl2, logctx, ISC_LOG_ERROR,
+						    "attempt to redefine "
+						    "kal '%s' previous "
 						    "definition: %s:%u",
 						     name, file, line);
 					result = ISC_R_FAILURE;
