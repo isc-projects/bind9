@@ -6,6 +6,8 @@
    prohibited.
  */
 
+#include <stddef.h>		/* Required for NULL. */
+
 #include "global.h"
 #include "bsafe2.h"
 #include "bmempool.h"
@@ -43,7 +45,7 @@ B_MemoryPool *memoryPool;
      */
     if (allocedData->object != NULL_PTR) {
       if (allocedData->DeleteFunction !=
-          (B_MEMORY_POOL_DELETE_FUNCTION)NULL_PTR)
+          (B_MEMORY_POOL_DELETE_FUNCTION)NULL)
         /* There is a destroy function, so call. */
         (*allocedData->DeleteFunction) (allocedData->object);
       else {
@@ -111,7 +113,7 @@ unsigned int size;
   int status;
   
   if ((status = B_MemoryPoolAdoptHelper
-       (memoryPool, *data, size, (B_MEMORY_POOL_DELETE_FUNCTION)NULL_PTR))
+       (memoryPool, *data, size, (B_MEMORY_POOL_DELETE_FUNCTION)NULL))
       != 0) {
     T_memset (*data, 0, size);
     T_free (*data);
@@ -232,7 +234,7 @@ POINTER *object;
   if ((allocedData = B_MemoryPoolFindAllocedObject (memoryPool, *object))
       != (B_ALLOCED_DATA *)NULL_PTR) {
     if (allocedData->DeleteFunction !=
-        (B_MEMORY_POOL_DELETE_FUNCTION)NULL_PTR)
+        (B_MEMORY_POOL_DELETE_FUNCTION)NULL)
       /* There is a destroy function, so call. */
       (*allocedData->DeleteFunction) (allocedData->object);
     else {
