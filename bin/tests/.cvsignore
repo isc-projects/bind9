@@ -3,5 +3,6 @@ name_test
 rwlock_test
 mem_test
 sock_test
+sym_test
 task_test
 timer_test

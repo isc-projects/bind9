@@ -17,6 +17,7 @@ LIBS =		../../lib/dns/libdns.a \
 TARGETS =	name_test \
 		rwlock_test \
 		sock_test \
+		sym_test \
 		task_test \
 		timer_test
 
@@ -30,6 +31,9 @@ rwlock_test: rwlock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 
 sock_test: sock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ sock_test.o ${LIBS}
+
+sym_test: sym_test.o ../../lib/isc/libisc.a
+	${CC} -o $@ sym_test.o ${LIBS}
 
 task_test: task_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ task_test.o ${LIBS}
