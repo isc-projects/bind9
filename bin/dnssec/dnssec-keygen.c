@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.59 2001/11/15 19:44:52 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.60 2002/01/21 10:13:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -79,7 +79,7 @@ usage(void) {
 		"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
 		"(default: AUTHCONF)\n");
 	fprintf(stderr, "    -p <protocol>: "
-	       "default: 2 [email] for USER, 3 [dnssec] otherwise\n");
+	       "default: 3 [dnssec]\n");
 	fprintf(stderr, "    -s <strength> strength value this key signs DNS "
 		"records with (default: 0)\n");
 	fprintf(stderr, "    -r <randomdev>: a file containing random data\n");
@@ -270,12 +270,8 @@ main(int argc, char **argv) {
 
 	flags |= signatory;
 
-	if (protocol == -1) {
-		if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_USER)
-			protocol = DNS_KEYPROTO_EMAIL;
-		else
-			protocol = DNS_KEYPROTO_DNSSEC;
-	}
+	if (protocol == -1)
+		protocol = DNS_KEYPROTO_DNSSEC;
 
 	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
 		if (size > 0)
