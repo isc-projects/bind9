@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.33 2000/08/01 01:27:53 tale Exp $
+ * $Id: openssl_link.c,v 1.34 2000/08/08 16:13:39 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -307,6 +307,7 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	r.base += p_bytes;
 
 	isc_buffer_remainingregion(data, &r);
+	r.length = 1 + ISC_SHA1_DIGESTLENGTH + 3 * p_bytes;
 	key->key_id = dst_region_computeid(&r);
 	key->key_size = p_bytes * 8;
 

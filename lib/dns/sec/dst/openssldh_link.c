@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.27 2000/08/01 01:27:54 tale Exp $
+ * $Id: openssldh_link.c,v 1.28 2000/08/08 16:13:40 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -369,6 +369,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	r.base += publen;
 
 	isc_buffer_remainingregion(data, &r);
+	r.length = plen + glen + publen + 6;
 	key->key_id = dst_region_computeid(&r);
 	key->key_size = BN_num_bits(dh->p);
 
