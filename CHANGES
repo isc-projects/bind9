@@ -1,3 +1,6 @@
+1200.	[bug]		Log 'errno' that we are unable to convert to
+			isc_result_t. [RT #2404]
+
 1199.	[doc]		ARM reference to RFC 2157 should have been RFC 1918.
 			[RT #2436]
 

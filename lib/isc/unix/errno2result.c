@@ -15,11 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.8 2001/06/15 22:07:49 gson Exp $ */
+/* $Id: errno2result.c,v 1.9 2002/02/11 05:11:06 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/result.h>
+#include <isc/strerror.h>
+#include <isc/util.h>
 
 #include "errno2result.h"
 
@@ -31,6 +33,8 @@
  */
 isc_result_t
 isc__errno2result(int posixerrno) {
+	char strbuf[ISC_STRERRORSIZE];
+
 	switch (posixerrno) {
 	case ENOTDIR:
 	case ELOOP:
@@ -97,6 +101,11 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_ADDRINUSE);
 #endif
 	default:
+		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "unable to convert errno "
+				 "to isc_result: %d: %s",
+				 posixerrno, strbuf);
 		/*
 		 * XXXDCL would be nice if perhaps this function could
 		 * return the system's error string, so the caller
