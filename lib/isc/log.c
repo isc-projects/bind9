@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.31 2000/05/16 03:37:37 tale Exp $ */
+/* $Id: log.c,v 1.32 2000/05/18 17:20:15 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1147,7 +1147,6 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	int syslog_level;
 	char time_string[64];
 	char level_string[24];
-	char pid_string[sizeof("[99999]")];
 	struct stat statbuf;
 	isc_boolean_t matched = ISC_FALSE;
 	isc_boolean_t printtime, printtag;
@@ -1159,6 +1158,10 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
+	REQUIRE(category != NULL && category->id < lctx->category_count);
+	REQUIRE(module != NULL && module->id < lctx->module_count);
+	REQUIRE(level != ISC_LOG_DYNAMIC);
+	REQUIRE(format != NULL);
 
 	/*
 	 * Programs can use libraries that use this logging code without
@@ -1188,14 +1191,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	       (lctx->logconfig->dynamic && level <= lctx->debug_level)))
 		return;
 
-	REQUIRE(category != NULL && category->id < lctx->category_count);
-	REQUIRE(module != NULL && module->id < lctx->module_count);
-	REQUIRE(level != ISC_LOG_DYNAMIC);
-	REQUIRE(format != NULL);
-
 	time_string[0]  = '\0';
 	level_string[0] = '\0';
-	pid_string[0]   = '\0';
 	lctx->buffer[0] = '\0';
 
 	LOCK(&lctx->lock);
@@ -1257,14 +1254,15 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
 		    time_string[0] == '\0') {
+			time_t now;
+
 			result = isc_time_now(&time);
+			if (result == ISC_R_SUCCESS)
+				result = isc_time_secondsastimet(&time, &now);
 
 			if (result == ISC_R_SUCCESS) {
-				time_t now;
 				unsigned int len;
 				struct tm *timeptr;
-
-				now = isc_time_seconds(&time);
 
 				timeptr = localtime(&now);
 				/*
@@ -1329,13 +1327,18 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				 * which fall within the duplicate_interval
 				 * range.
 				 */
-				if (isc_time_now(&oldest) != ISC_R_SUCCESS)
+				if (isc_time_now(&oldest) != ISC_R_SUCCESS ||
+				    isc_time_subtract(&oldest, &interval,
+						      &oldest) !=
+				    ISC_R_SUCCESS)
+					/*
+					 * Can't effectively do the checking
+					 * without having a valid time.
+					 */
 					message = NULL;
 				else
-					isc_time_subtract(&oldest, &interval,
-							  &oldest);
+					message =ISC_LIST_HEAD(lctx->messages);
 
-				message = ISC_LIST_HEAD(lctx->messages);
 				while (message != NULL) {
 					if (isc_time_compare(&message->time,
 							     &oldest) < 0) {
