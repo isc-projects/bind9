@@ -30,6 +30,9 @@
 #include <dns/view.h>
 
 #include <named/client.h>
+#include <named/query.h>
+#include <named/update.h>
+#include <named/xfrin.h>
 #include <named/globals.h>
 
 #include "../../isc/util.h"		/* XXX */
@@ -415,7 +418,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	result = dns_message_parse(client->message, buffer);
+	result = dns_message_parse(client->message, buffer, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_error(client, result);
 		return;
@@ -453,6 +456,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	case dns_opcode_query:
 		CTRACE("query");
 		ns_query_start(client);
+		break;
+	case dns_opcode_update:
+		CTRACE("update");
+		ns_update_start(client);
+		break;
+	case dns_opcode_notify:
+		CTRACE("notify");
+		xfrin_test(client->view->dbtable); /* XXX for testing only */
+		ns_client_next(client, DNS_R_SUCCESS);
 		break;
 	case dns_opcode_iquery:
 		CTRACE("iquery");
