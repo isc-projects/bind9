@@ -115,7 +115,8 @@ typedef struct dns_dbmethods {
 					dns_rdatatype_t type,
 					dns_rdatatype_t covers,
 					isc_stdtime_t now,
-					dns_rdataset_t *rdataset);
+					dns_rdataset_t *rdataset,
+					dns_rdataset_t *sigrdataset);
 	dns_result_t	(*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					isc_stdtime_t now,
@@ -802,7 +803,8 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
 dns_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    dns_rdatatype_t type, dns_rdatatype_t covers,
-		    isc_stdtime_t now, dns_rdataset_t *rdataset);
+		    isc_stdtime_t now, dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset);
 /*
  * Search for an rdataset of type 'type' at 'node' that are in version
  * 'version' of 'db'.  If found, make 'rdataset' refer to it.
@@ -811,9 +813,9 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	If 'version' is NULL, then the current version will be used.
  *
- *	This routine is not suitable for use in building responses to
- *	ordinary DNS queries; clients which wish to do that should use
- *	dns_db_find() instead.
+ *	Care must be used when using this routine to build a DNS response:
+ *	'node' should have been found with dns_db_find(), not
+ *	dns_db_findnode().  No glue checking is done.
  *
  *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after
@@ -826,6 +828,8 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	'node' is a valid node.
  *
  *	'rdataset' is a valid, disassociated rdataset.
+ *
+ *	'sigrdataset' is a valid, disassociated rdataset, or it is NULL.
  *
  *	If 'covers' != 0, 'type' must be SIG.
  *

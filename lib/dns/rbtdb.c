@@ -2569,15 +2569,16 @@ createiterator(dns_db_t *db, isc_boolean_t relative_names,
 static dns_result_t
 zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		  dns_rdatatype_t type, dns_rdatatype_t covers,
-		  isc_stdtime_t now, dns_rdataset_t *rdataset)
+		  isc_stdtime_t now, dns_rdataset_t *rdataset,
+		  dns_rdataset_t *sigrdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	rdatasetheader_t *header;
+	rdatasetheader_t *header, *found, *foundsig;
 	rbtdb_serial_t serial;
 	rbtdb_version_t *rbtversion = version;
 	isc_boolean_t close_version = ISC_FALSE;
-	rbtdb_rdatatype_t matchtype;
+	rbtdb_rdatatype_t matchtype, sigmatchtype;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(type != dns_rdatatype_any);
@@ -2587,38 +2588,62 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		close_version = ISC_TRUE;
 	}
 	serial = rbtversion->serial;
+	now = 0;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
+	found = NULL;
+	foundsig = NULL;
 	matchtype = RBTDB_RDATATYPE_VALUE(type, covers);
+	if (covers == 0)
+		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, type);
+	else
+		sigmatchtype = 0;
+
 	for (header = rbtnode->data; header != NULL; header = header->next) {
-		if (header->type == matchtype) {
-			do {
-				if (header->serial <= serial &&
-				    !IGNORE(header)) {
-					/*
-					 * Is this a "this rdataset doesn't
-					 * exist" record?
-					 */
-					if ((header->attributes &
-					     RDATASET_ATTR_NONEXISTENT) != 0)
-						header = NULL;
+		do {
+			if (header->serial <= serial &&
+			    !IGNORE(header)) {
+				/*
+				 * Is this a "this rdataset doesn't
+				 * exist" record?
+				 */
+				if ((header->attributes &
+				     RDATASET_ATTR_NONEXISTENT) != 0)
+					header = NULL;
+				break;
+			} else
+				header = header->down;
+		} while (header != NULL);
+		if (header != NULL) {
+			/*
+			 * We have an active, extant rdataset.  If it's a
+			 * type we're looking for, remember it.
+			 */
+			if (header->type == matchtype) {
+				found = header;
+				if (foundsig != NULL)
 					break;
-				} else
-					header = header->down;
-			} while (header != NULL);
-			break;
+			} else if (header->type == sigmatchtype) {
+				foundsig = header;
+				if (found != NULL)
+					break;
+			}
 		}
 	}
-	if (header != NULL)
-		bind_rdataset(rbtdb, rbtnode, header, now, rdataset);
+	if (found != NULL) {
+		bind_rdataset(rbtdb, rbtnode, found, now, rdataset);
+		if (foundsig != NULL)
+			bind_rdataset(rbtdb, rbtnode, foundsig, now,
+				      sigrdataset);
+	}
 
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	if (close_version)
 		closeversion(db, (dns_dbversion_t **)(&rbtversion), ISC_FALSE);
 
-	if (header == NULL)
+	if (found == NULL)
 		return (DNS_R_NOTFOUND);
 
 	return (DNS_R_SUCCESS);
@@ -2627,12 +2652,13 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 static dns_result_t
 cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   dns_rdatatype_t type, dns_rdatatype_t covers,
-		   isc_stdtime_t now, dns_rdataset_t *rdataset)
+		   isc_stdtime_t now, dns_rdataset_t *rdataset,
+		   dns_rdataset_t *sigrdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	rdatasetheader_t *header, *header_next, *found;
-	rbtdb_rdatatype_t matchtype;
+	rdatasetheader_t *header, *header_next, *found, *foundsig;
+	rbtdb_rdatatype_t matchtype, sigmatchtype;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(type != dns_rdatatype_any);
@@ -2650,7 +2676,13 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	found = NULL;
+	foundsig = NULL;
 	matchtype = RBTDB_RDATATYPE_VALUE(type, covers);
+	if (covers == 0)
+		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, type);
+	else
+		sigmatchtype = 0;
+
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (header->ttl <= now) {
@@ -2666,10 +2698,18 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			   (header->attributes & RDATASET_ATTR_NONEXISTENT) ==
 			   0) {
 			found = header;
+		} else if (header->type == sigmatchtype &&
+			   (header->attributes & RDATASET_ATTR_NONEXISTENT) ==
+			   0) {
+			foundsig = header;
 		}
 	}
-	if (found != NULL)
+	if (found != NULL) {
 		bind_rdataset(rbtdb, rbtnode, found, now, rdataset);
+		if (foundsig != NULL)
+			bind_rdataset(rbtdb, rbtnode, foundsig, now,
+				      sigrdataset);
+	}
 
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 

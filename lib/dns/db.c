@@ -451,7 +451,8 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
 dns_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    dns_rdatatype_t type, dns_rdatatype_t covers,
-		    isc_stdtime_t now, dns_rdataset_t *rdataset)
+		    isc_stdtime_t now, dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset)
 {
 	/*
 	 * Search for an rdataset of type 'type' at 'node' that are in version
@@ -464,9 +465,12 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(rdataset->methods == NULL);
 	REQUIRE(covers == 0 || type == dns_rdatatype_sig);
 	REQUIRE(type != dns_rdatatype_any);
+	REQUIRE(sigrdataset == NULL ||
+		(DNS_RDATASET_VALID(sigrdataset) &&
+		 sigrdataset->methods == NULL));
 
 	return ((db->methods->findrdataset)(db, node, version, type, covers,
-					    now, rdataset));
+					    now, rdataset, sigrdataset));
 }
 
 dns_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.3 1999/09/03 20:59:50 brister Exp $ */
+ /* $Id: zone.c,v 1.4 1999/09/08 01:09:48 halley Exp $ */
 
 #include <config.h>
 
@@ -499,7 +499,8 @@ dns_zone_load(dns_zone_t *zone) {
 		dns_rdataset_init(&rdataset);
 		result = dns_db_findrdataset(zone->top, node, version,
 					     dns_rdatatype_ns,
-					     dns_rdatatype_none, 0, &rdataset);
+					     dns_rdatatype_none, 0, &rdataset,
+					     NULL);
 		if (result == DNS_R_SUCCESS) {
 			result = dns_rdataset_first(&rdataset);
 			while (result == DNS_R_SUCCESS) {
@@ -511,7 +512,8 @@ dns_zone_load(dns_zone_t *zone) {
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_db_findrdataset(zone->top, node, version,
 					     dns_rdatatype_soa,
-					     dns_rdatatype_none, 0, &rdataset);
+					     dns_rdatatype_none, 0, &rdataset,
+					     NULL);
 
 		if (result == DNS_R_SUCCESS) {
 			result = dns_rdataset_first(&rdataset);
@@ -605,7 +607,8 @@ dns_zone_checkservers(dns_zone_t *zone) {
 		dns_rdataset_init(&rdataset);
 		result = dns_db_findrdataset(zone->top, node, version,
 					     dns_rdatatype_ns,
-					     dns_rdatatype_none, 0, &rdataset);
+					     dns_rdatatype_none, 0, &rdataset,
+					     NULL);
 		if (result == DNS_R_SUCCESS) {
 			result = dns_rdataset_first(&rdataset);
 			while (result == DNS_R_SUCCESS) {
@@ -1593,7 +1596,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	dns_rdataset_init(&nsrdset);
 	result = dns_db_findrdataset(zone->top, node, version,
 				     dns_rdatatype_ns,
-				     dns_rdatatype_none, 0, &nsrdset);
+				     dns_rdatatype_none, 0, &nsrdset, NULL);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup2;
 	

@@ -2182,8 +2182,9 @@ t_dns_db_findnode_1(char **av) {
 		dns_db_currentversion(db, &cversionp);
 		dns_rdataset_init(&rdataset);
 	
-		dns_result = dns_db_findrdataset(db, nodep, cversionp, rdatatype, 0,
-						 0, &rdataset);
+		dns_result = dns_db_findrdataset(db, nodep, cversionp,
+						 rdatatype, 0,
+						 0, &rdataset, NULL);
 		if (dns_result == DNS_R_SUCCESS) {
 			dns_rdataset_disassociate(&rdataset);
 			result = T_PASS;

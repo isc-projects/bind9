@@ -238,7 +238,7 @@ find_keys(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name,
 	*nkeys = 0;
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_key, 0, 0,
-				     &rdataset);
+				     &rdataset, NULL);
 	check_result(result, "dns_db_findrdataset()");
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first()");

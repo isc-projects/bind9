@@ -124,7 +124,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0,
-				     (isc_stdtime_t) 0, &rdataset);
+				     (isc_stdtime_t) 0, &rdataset, NULL);
  	if (result != DNS_R_SUCCESS)
 		goto freenode;
 	
@@ -165,7 +165,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0,
-				     (isc_stdtime_t) 0, &rdataset);
+				     (isc_stdtime_t) 0, &rdataset, NULL);
  	if (result != DNS_R_SUCCESS)
 		goto freenode;
 	
