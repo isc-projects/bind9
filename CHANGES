@@ -1,3 +1,7 @@
+ 260.	[bug]		Running named as a non-root user failed on Linux
+			kernels new enough to support retaining capabilities
+			after setuid().
+
  259.	[func]		New random-device and random-seed-file statements
 			for global options block of named.conf. Both accept
 			a single string argument.

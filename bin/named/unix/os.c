@@ -38,6 +38,7 @@ static char *pidfile = NULL;
 #ifdef HAVE_LINUXTHREADS
 static pid_t mainpid = 0;
 static isc_boolean_t non_root_caps = ISC_FALSE;
+static isc_boolean_t non_root = ISC_FALSE;
 #endif
 
 #ifdef HAVE_LINUX_CAPABILITY_H
@@ -66,7 +67,7 @@ linux_setcaps(unsigned int caps) {
 	struct __user_cap_header_struct caphead;
 	struct __user_cap_data_struct cap;
 
-	if (getuid() != 0 && !non_root_caps)
+	if ((getuid() != 0 && !non_root_caps) || non_root)
 		return;
 
 	memset(&caphead, 0, sizeof caphead);
@@ -153,8 +154,11 @@ linux_keepcaps(void) {
 		if (errno != EINVAL)
 			ns_main_earlyfatal("prctl() failed: %s",
 					   strerror(errno));
-	} else
+	} else {
 		non_root_caps = ISC_TRUE;
+		if (getuid() != 0)
+			non_root = ISC_TRUE;
+	}
 }
 #endif
 
