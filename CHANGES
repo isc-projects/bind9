@@ -25,10 +25,25 @@
 			the type and class of the CNAME dns_rdata_t,
 			causing random failures.
 
+ 320.	[func]		Multiple rndc changes: parses an rndc.conf file,
+			uses authentication to talk to named, command
+			line syntax changed.  This will all be described
+			in the ARM.
+
+ 319.	[func]		The named.conf "controls" statement is now used
+			to configure the OMAPI command channel.
+
+ 317.	[func]		Use callbacks from libomapi to determine if a
+			new connection is valid, and if a key requested
+			to be used with that connection is valid.
+
  316.	[bug]		Generate a warning if we detect an unexpected <eof>
 			but treat as <eol><eof>.
 
  315.	[bug]		Handle non-empty blanks lines. (RT #163)
+
+ 314.	[func]		The named.conf controls statement can now have 
+			more than one key specified for the inet clause.
 
  313.	[bug]		When parsing resolv.conf, don't terminate on an
 			error.	Instead, parse as much as possible, but
@@ -42,6 +57,20 @@
  311.	[bug]		lwres_conf_parse failed when the first line of
 			resolv.conf was empty or a comment.
 
+ 310.	[func]		Changes to named.conf "controls" statement (inet
+			subtype only)
+
+			  - support "keys" clause
+
+				controls {
+				   inet * port 1024
+					allow { any; } keys { "foo"; }
+				}
+
+			  - allow "port xxx" to be left out of statement,
+			    in which case it defaults to omapi's default port
+			    of 953.
+ 
  309.	[bug]		When sending a referral, the server did not look
 			for name server addresses as glue in the zone
 			holding the NS RRset in the case where this zone

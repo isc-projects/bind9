@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: private.h,v 1.21 2000/06/23 21:28:31 tale Exp $ */
+/* $Id: private.h,v 1.21.2.1 2000/07/11 17:23:24 gson Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -242,6 +242,15 @@ struct omapi_protocol {
 	isc_region_t			signature_in;
 	isc_buffer_t			*signature_out;
 	isc_result_t			verify_result;
+	/*
+	 * A callback to find out whether a requested key is valid on
+	 * the connection, and the arg the caller wants to help it decide.
+	 * Only gets set on the server side.
+	 */
+	isc_boolean_t	 ((*verify_key)(const char *name,
+					unsigned int algorithm,
+					void *key_arg));
+	void *				verify_key_arg;
 };
 
 /*****

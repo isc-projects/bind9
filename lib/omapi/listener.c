@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.26 2000/06/23 22:28:22 tale Exp $ */
+/* $Id: listener.c,v 1.26.2.1 2000/07/11 17:23:20 gson Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -39,7 +39,11 @@ typedef struct omapi_listener_object {
 	isc_mutex_t mutex;
 	isc_task_t *task;
 	isc_socket_t *socket;	/* Listening socket. */
-	dns_acl_t *acl;
+	isc_boolean_t (*verify_connection)(isc_sockaddr_t *sockaddr,
+					   void *connect_arg);
+	isc_boolean_t (*verify_key)(const char *name, unsigned int algorithm,
+				    void *key_arg);
+	void *callback_arg;
 	/*
 	 * Locked by mutex.
 	 */
@@ -73,20 +77,18 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *ibuffer = NULL;
 	isc_buffer_t *obuffer = NULL;
 	isc_task_t *connection_task = NULL;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	isc_sockaddr_t sockaddr;
-	isc_netaddr_t netaddr;
 	omapi_connection_t *connection = NULL;
-	omapi_object_t *protocol = NULL;
+	omapi_protocol_t *protocol = NULL;
 	omapi_listener_t *listener;
-	int match;
 
 	/*
 	 * XXXDCL audit error handling
 	 */
 
 	result = ((isc_socket_newconnev_t *)event)->result;
-	socket = ((isc_socket_newconnev_t *)event)->newsocket;
+	sock = ((isc_socket_newconnev_t *)event)->newsocket;
 	listener = (omapi_listener_t *)event->ev_arg;
 
 	/*
@@ -151,21 +153,14 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Is the connection from a valid host?
 	 */
-	result = isc_socket_getpeername(socket, &sockaddr);
-
-	if (result == ISC_R_SUCCESS) {
-		isc_netaddr_fromsockaddr(&netaddr, &sockaddr);
-
-		result = dns_acl_match(&netaddr, NULL, listener->acl,
-				       NULL, &match, NULL);
-	}
-
-	if (result != ISC_R_SUCCESS || match <= 0) {
+	result = isc_socket_getpeername(sock, &sockaddr);
+	if (result != ISC_R_SUCCESS ||
+	    !listener->verify_connection(&sockaddr, listener->callback_arg)) {
 		/*
 		 * Permission denied.  Close the connection.
 		 * XXXDCL isc_log_write an error.
 		 */
-		isc_socket_detach(&socket);
+		isc_socket_detach(&sock);
 
 		return;
 	}
@@ -198,7 +193,7 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 
 	connection->task = connection_task;
 	connection->state = omapi_connection_connected;
-	connection->socket = socket;
+	connection->socket = sock;
 	connection->is_client = ISC_FALSE;
 
 	ISC_LIST_INIT(connection->input_buffers);
@@ -211,10 +206,18 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	 * connection.
 	 */
 	protocol = NULL;
-	result = omapi_object_create(&protocol, omapi_type_protocol,
+	result = omapi_object_create((omapi_object_t **)&protocol,
+				     omapi_type_protocol,
 				     sizeof(omapi_protocol_t));
 	if (result != ISC_R_SUCCESS)
 		goto free_connection_object;
+
+
+	/*
+	 * Hand off the key verification information to the protocol object.
+	 */
+	protocol->verify_key = listener->verify_key;
+	protocol->verify_key_arg = listener->callback_arg;
 
 	/*
 	 * Tie the protocol object bidirectionally to the connection
@@ -274,15 +277,21 @@ free_task:
 }
 
 isc_result_t
-omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
-		      dns_acl_t *acl, unsigned int backlog,
-		      isc_taskaction_t destroy_action, void *destroy_arg)
+omapi_listener_listen(omapi_object_t *manager, isc_sockaddr_t *addr,
+		      isc_boolean_t ((*verify_connection)
+				     (isc_sockaddr_t *incoming,
+				      void *connect_arg)),
+		      isc_boolean_t ((*verify_key)
+				     (const char *name,
+				      unsigned int algorithm,
+				      void *key_arg)),
+		      isc_taskaction_t destroy_action, void *arg)
 {
 	isc_result_t result;
 	isc_task_t *task;
 	omapi_listener_t *listener;
 
-	REQUIRE(caller != NULL);
+	REQUIRE(manager != NULL);
 	REQUIRE(addr != NULL && isc_sockaddr_getport(addr) != 0);
 
 	task = NULL;
@@ -321,14 +330,13 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
 		/*
 		 * Now tell the kernel to listen for connections.
 		 */
-		result = isc_socket_listen(listener->socket, backlog);
+		result = isc_socket_listen(listener->socket, 0);
 
 	if (result == ISC_R_SUCCESS) {
 		/*
 		 * Queue up the first accept event.  The listener object
 		 * will be passed to listener_accept() when it is called.
 		 */
-		dns_acl_attach(acl, &listener->acl);
 		listener->listening = ISC_TRUE;
 		result = isc_socket_accept(listener->socket, task,
 					   listener_accept, listener);
@@ -338,16 +346,18 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
 		/*
 		 * Tie the listener object to the calling object.
 		 */
-		OBJECT_REF(&caller->outer, listener);
-		OBJECT_REF(&listener->inner, caller);
+		OBJECT_REF(&manager->outer, listener);
+		OBJECT_REF(&listener->inner, manager);
 
 		/*
-		 * The callback is not set until here because it should
+		 * The destroy action is not set until here because it should
 		 * only be called if the listener was successfully set up.
 		 */
 		listener->destroy_action = destroy_action;
-		listener->destroy_arg = destroy_arg;
-
+		listener->destroy_arg = arg;
+		listener->verify_connection = verify_connection;
+		listener->verify_key = verify_key;
+		listener->callback_arg = arg;
 
 	} else {
 		/*
@@ -430,9 +440,6 @@ listener_destroy(omapi_object_t *listener) {
 
 	if (l->socket != NULL)
 		isc_socket_detach(&l->socket);
-
-	if (l->acl != NULL)
-		dns_acl_detach(&l->acl);
 }
 
 static isc_result_t

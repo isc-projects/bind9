@@ -15,10 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.7 2000/06/22 21:49:49 tale Exp $ */
+/* $Id: omapi.h,v 1.7.2.1 2000/07/11 17:23:07 gson Exp $ */
 
 #ifndef NAMED_OMAPI_H
 #define NAMED_OMAPI_H 1
+
+#include <dns/aclconf.h>
+#include <dns/confctx.h>
 
 #include <omapi/omapi.h>
 
@@ -37,6 +40,10 @@ isc_result_t
 ns_omapi_init(void);
 
 isc_result_t
-ns_omapi_listen(omapi_object_t **managerp);
+ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
+		   dns_aclconfctx_t *aclconfctx);
+
+void
+ns_omapi_shutdown(isc_boolean_t exiting);
 
 #endif /* NAMED_OMAPI_H */

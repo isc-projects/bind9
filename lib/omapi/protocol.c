@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.28 2000/06/23 21:36:57 tale Exp $ */
+/* $Id: protocol.c,v 1.28.2.1 2000/07/11 17:23:21 gson Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -197,11 +197,17 @@ send_intro(omapi_object_t *h, unsigned int ver) {
  */
 isc_result_t
 omapi_protocol_listen(omapi_object_t *manager, isc_sockaddr_t *addr,
-		      dns_acl_t *acl, int max,
-		      isc_taskaction_t destroy_action, void *destroy_arg)
+		      isc_boolean_t ((*verify_connection)
+				     (isc_sockaddr_t *incoming,
+				      void *connect_arg)),
+		      isc_boolean_t ((*verify_key)
+				     (const char *name,
+				      unsigned int algorithm,
+				      void *key_arg)),
+		      isc_taskaction_t destroy_action, void *arg)
 {
-	return (omapi_listener_listen((omapi_object_t *)manager, addr,
-				      acl, max, destroy_action, destroy_arg));
+	return (omapi_listener_listen(manager, addr, verify_connection,
+				      verify_key, destroy_action, arg));
 }
 
 isc_result_t
@@ -712,6 +718,20 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 	 */
 	if (p->authname != NULL && p->algorithm != 0) {
 		unsigned int sigsize;
+
+		/*
+		 * Verifying the key through a callback is (currently) only
+		 * done by the server.
+		 * XXXDCL the client should have some way of checking whether
+		 * what is being set is what it asked for.
+		 */
+		if (p->verify_key != NULL &&
+		    !p->verify_key(p->authname, p->algorithm,
+				   p->verify_key_arg))
+			return (ISC_R_NOPERM);
+
+		if (p->key != NULL)
+			dst_key_free(&p->key);
 
 		result = auth_makekey(p->authname, p->algorithm, &p->key);
 

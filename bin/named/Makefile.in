@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.49.2.1 2000/06/28 02:56:24 tale Exp $
+# $Id: Makefile.in,v 1.49.2.2 2000/07/11 17:23:01 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -50,7 +50,7 @@ TARGETS =	named lwresd
 
 OBJS =		client.@O@ interfacemgr.@O@ listenlist.@O@ \
 		log.@O@ logconf.@O@ main.@O@ notify.@O@ omapi.@O@ \
-		query.@O@ server.@O@ update.@O@ xfrout.@O@ \
+		omapiconf.@O@ query.@O@ server.@O@ update.@O@ xfrout.@O@ \
 		lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
 		lwdgnba.@O@ lwdnoop.@O@
 
@@ -58,7 +58,7 @@ UOBJS =		unix/os.@O@
 
 SRCS =		client.c interfacemgr.c listenlist.c \
 		log.c logconf.c main.c notify.c omapi.c \
-		query.c server.c update.c xfrout.c \
+		omapiconf.c query.c server.c update.c xfrout.c \
 		lwresd.c lwdclient.c lwderror.c lwdgabn.c \
 		lwdgnba.c lwdnoop.c
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.12.2.2 2000/06/28 16:13:46 tale Exp $ */
+/* $Id: rndc.c,v 1.12.2.3 2000/07/11 17:23:10 gson Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -40,7 +40,8 @@
 #include <named/omapi.h>
 
 static const char *progname;
-static const char *conffile = "/etc/rndc.conf";
+static const char *conffile = RNDC_SYSCONFDIR "/rndc.conf";
+static const char *version = VERSION;
 
 static isc_boolean_t verbose;
 static isc_mem_t *mctx;
@@ -224,14 +225,10 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	return (result);
 }
 
-/*
- * XXXDCL
- * Usage: %s [-c config] [-s server] [-p port] [-m] command [command ...]\n\
- */
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-p port] [-m] server command [command ...]\n\
+Usage: %s [-c config] [-s server] [-p port] [-y key] command [command ...]\n\
 \n\
 command is one of the following for named:\n\
 \n\
@@ -245,8 +242,9 @@ command is one of the following for named:\n\
   *stop		Stop the server.\n\
   *restart	Restart the server.\n\
 \n\
-* == not yet implemented\n",
-		progname);
+* == not yet implemented\n\
+Version: %s\n",
+		progname, version);
 }
 
 #undef DO
@@ -264,14 +262,11 @@ command is one of the following for named:\n\
 int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
-#ifdef notyet /* XXXDCL no authentication in 9.0.0 */
 	isc_entropy_t *entropy = NULL;
-#endif
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	omapi_object_t *omapimgr = NULL;
-#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
 	dns_c_ndcctx_t *config = NULL;
 	dns_c_ndcopts_t *configopts = NULL;
 	dns_c_ndcserver_t *server = NULL;
@@ -279,14 +274,11 @@ main(int argc, char **argv) {
 	dns_c_kdef_t *key = NULL;
 	const char *keyname = NULL;
 	const char *secret = NULL;
-#endif /* notyet */
 	char *command;
 	const char *servername = NULL;
 	const char *host = NULL;
 	unsigned int port = NS_OMAPI_PORT;
-#ifdef notyet /* XXXDCL */
 	unsigned int algorithm;
-#endif
 	int ch;
 
 	progname = strrchr(*argv, '/');
@@ -295,14 +287,14 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
-	/*
-	 * XXXDCL "c:mp:s:v"
-	 */
-
-	while ((ch = isc_commandline_parse(argc, argv, "mp:v")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:vy:")) != -1) {
 		switch (ch) {
 		case 'c':
 			conffile = isc_commandline_argument;
+			break;
+
+		case 'M':
+			isc_mem_debugging = ISC_TRUE;
 			break;
 
 		case 'm':
@@ -329,6 +321,10 @@ main(int argc, char **argv) {
 			verbose = ISC_TRUE;
 			break;
 
+		case 'y':
+			keyname = isc_commandline_argument;
+			break;
+
 		case '?':
 			usage();
 			exit(1);
@@ -344,26 +340,19 @@ main(int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	/*
-	 * XXXDCL change to 1 after 9.0.0.
-	 */
-	if (argc < 2) {
+	if (argc < 1) {
 		usage();
 		exit(1);
 	}
-
-	servername = *argv;
-	argc--;
 
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 	DO("create socket manager", isc_socketmgr_create(mctx, &socketmgr));
 	DO("create task manager", isc_taskmgr_create(mctx, 1, 0, &taskmgr));
 
-#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
 	DO("create entropy pool", isc_entropy_create(mctx, &entropy));
 	/* XXXDCL probably should use ISC_ENTROPY_GOOD.  talk with graff. */
 	DO("initialize digital signatures",
-	   dst_lib_init(mctx, entropy, ISC_ENTROPY_BLOCKING));
+	   dst_lib_init(mctx, entropy, NULL));
 
 	DO(conffile, dns_c_ndcparseconf(conffile, mctx, &config));
 
@@ -380,7 +369,12 @@ main(int argc, char **argv) {
 		exit (1);
 	}
 
-	if (server != NULL)
+	/*
+	 * Look for the name of the key to use.
+	 */
+	if (keyname != NULL)
+		;		/* Was set on command line, do nothing. */
+	else if (server != NULL)
 		DO("get key for server", dns_c_ndcserver_getkey(server,
 								&keyname));
 	else if (configopts != NULL)
@@ -392,6 +386,9 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 
+	/*
+	 * Get the key's definition.
+	 */
 	DO("get config key list", dns_c_ndcctx_getkeys(config, &keys));
 	DO("get key definition", dns_c_kdeflist_find(keys, keyname, &key));
 
@@ -410,7 +407,6 @@ main(int argc, char **argv) {
 
 	if (server != NULL)
 		(void)dns_c_ndcserver_gethost(server, &host);
-#endif /* notyet */
 
 	if (host == NULL)
 		host = servername;
@@ -435,27 +431,23 @@ main(int argc, char **argv) {
 	ndc_g_ndc.refcnt = 1;
 	ndc_g_ndc.type = ndc_type;
 
-#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
 	DO("register local authenticator",
 	   omapi_auth_register(keyname, secret, algorithm));
-#endif /* notyet */
 
 	DO("create protocol manager", omapi_object_create(&omapimgr, NULL, 0));
 
 	DO("connect", omapi_protocol_connect(omapimgr, host, (in_port_t)port,
 					     NULL));
 
-#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
 	DO("send remote authenticator",
 	   omapi_auth_use(omapimgr, keyname, algorithm));
-#endif /* notyet */
 
 	/*
 	 * Preload the waitresult as successful.
 	 */
 	ndc_g_ndc.waitresult = ISC_R_SUCCESS;
 
-	while ((command = *++argv) != NULL &&
+	while ((command = *argv++) != NULL &&
 	       result == ISC_R_SUCCESS &&
 	       ndc_g_ndc.waitresult == ISC_R_SUCCESS) {
 
@@ -504,8 +496,8 @@ main(int argc, char **argv) {
 				isc_result_totext(ndc_g_ndc.waitresult));
 
 		else
-			fprintf(stdout, "%s: %s command successful\n",
-				progname, command);
+			printf("%s: %s command successful\n",
+			       progname, command);
 	}
 
 	notify("command loop done");
@@ -524,13 +516,12 @@ main(int argc, char **argv) {
 		omapi_object_dereference(&omapimgr);
 	}
 
+	dns_c_ndcctx_destroy(&config);
+
 	omapi_lib_destroy();
 
-
-#ifdef notyet /* XXXDCL no authentication in 9.0.0. */
 	dst_lib_destroy();
 	isc_entropy_detach(&entropy);
-#endif /* notyet */
 
 	isc_socketmgr_destroy(&socketmgr);
 	isc_taskmgr_destroy(&taskmgr);
