@@ -1,3 +1,7 @@
+1033.	[bug]		Don't imply that we support a opcode that we don't
+			when we don't have a matching view or cannot
+			determine the class.
+
 1032.	[func]		hostname.bind/txt/chaos now returns the name of
 			the machine hosting the nameserver.  This is useful
 			in diagnosing problems with anycast servers.
