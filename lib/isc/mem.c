@@ -668,7 +668,7 @@ mempool_release(isc_mempool_t *mpctx, unsigned int n)
 	INSIST(mpctx->items != NULL);
 	item = mpctx->items;
 	for (count = 0 ; count < n ; count++) {
-		item = ((element *)item)->next;
+		item = item->next;
 		INSIST(item != NULL);
 	}
 
@@ -678,7 +678,7 @@ mempool_release(isc_mempool_t *mpctx, unsigned int n)
 	 */
 	LOCK(&mctx->lock);
 	do {
-		next = ((element *)item)->next;
+		next = item->next;
 		mem_putunlocked(mctx, item, mpctx->size);
 		INSIST(mpctx->freecount > 0);
 		mpctx->freecount--;
@@ -708,7 +708,7 @@ mempool_releaseall(isc_mempool_t *mpctx)
 	item = mpctx->items;
 
 	do {
-		next = ((element *)item)->next;
+		next = item->next;
 		mem_putunlocked(mctx, item, mpctx->size);
 		INSIST(mpctx->freecount > 0);
 		mpctx->freecount--;
