@@ -58,6 +58,7 @@
 #include <isc/boolean.h>
 #include <isc/mem.h>
 #include <isc/lang.h>
+#include <isc/ondestroy.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>

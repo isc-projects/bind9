@@ -27,8 +27,6 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
-#include <isc/ondestroy.h>
-
 ISC_LANG_BEGINDECLS
 
 typedef void * (*isc_memalloc_t)(void *, size_t);
