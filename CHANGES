@@ -1,3 +1,6 @@
+1734.	[cleanup]	'rndc-confgen -a -t' remove extra '/' in path.
+			[RT #12588]
+
 1726.	[port]		aix5: add support for aix5.
 
 1723.	[cleanup]	Silence compiler warnings from t_tasks.c. [RT #12493]
