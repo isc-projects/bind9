@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.201 2001/02/17 02:16:14 gson Exp $ */
+/* $Id: resolver.c,v 1.202 2001/02/18 21:19:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3796,7 +3796,7 @@ answer_response(fetchctx_t *fctx) {
 						 * qname fixed name.
 						 *
 						 * Although we check for
-						 * failure of the concatenate
+						 * failure of the copy
 						 * operation, in practice it
 						 * should never fail since
 						 * we already know that the
