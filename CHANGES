@@ -4,6 +4,9 @@
  687.	[bug]		Only say we have IPv6, with sufficent functionality,
 			if it has actually been tested.  [RT #586]
 
+ 685.	[bug]		nslookup should use the search list/domain options
+			from resolv.conf by default. [RT #405, #630]
+
  684.	[bug]		Memory leak with view forwarders. [RT #656]
 
  683.	[bug]		File descriptor leak in isc_lex_openfile().

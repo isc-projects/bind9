@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.69.2.2 2001/01/16 18:20:11 gson Exp $ */
+/* $Id: nslookup.c,v 1.69.2.3 2001/01/17 19:37:37 gson Exp $ */
 
 #include <config.h>
 
@@ -856,6 +856,7 @@ static void
 parse_args(int argc, char **argv) {
 	isc_boolean_t have_lookup = ISC_FALSE;
 
+	usesearch = ISC_TRUE;
 	for (argc--, argv++; argc > 0; argc--, argv++) {
 		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
