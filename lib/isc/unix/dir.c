@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.3 1999/09/28 03:37:36 tale Exp $ */
+/* $Id: dir.c,v 1.4 1999/10/01 01:12:04 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -93,7 +93,8 @@ isc_dir_read(isc_dir_t *dir) {
 	/*
 	 * Make sure that the space for the name is long enough. 
 	 */
-	INSIST(sizeof(dir->entry.name) > strlen(entry->d_name));
+	if (sizeof(dir->entry.name) <= strlen(entry->d_name))
+	    return (ISC_R_UNEXPECTED);
 
 	strcpy(dir->entry.name, entry->d_name);
 

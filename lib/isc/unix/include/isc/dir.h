@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.1 1999/09/23 17:31:59 tale Exp $ */
+/* $Id: dir.h,v 1.2 1999/10/01 01:12:04 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -32,13 +32,23 @@
 ISC_LANG_BEGINDECLS
 
 typedef struct {
-	char 		name[NAME_MAX];
+	/*
+	 * Ideally, this should be NAME_MAX, but AIX does not define it by
+	 * default and dynamically allocating the space based on pathconf()
+	 * complicates things undesirably, as does adding special conditionals
+	 * just for AIX.  So a comfortably sized buffer is chosen instead.
+	 */
+	char 		name[256];
 	unsigned int	length;
 } isc_direntry_t;
 
 typedef struct {
 	int		magic;
-	char		dirname[PATH_MAX];
+	/*
+	 * As with isc_direntry_t->name, making this "right" for all systems
+	 * is slightly problematic because AIX does not define PATH_MAX.
+	 */
+	char		dirname[1024];
 	isc_direntry_t	entry;
 	DIR *		handle;
 } isc_dir_t;
