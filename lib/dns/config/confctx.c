@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.43 2000/04/04 20:58:51 tale Exp $ */
+/* $Id: confctx.c,v 1.44 2000/04/05 15:14:23 brister Exp $ */
 
 #include <config.h>
 
@@ -259,7 +259,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if ((dns_c_ctx_getauthnxdomain(cfg, &bval)) == ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getauthnxdomain(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "the default for auth-nxdomain is now 'no'");
@@ -353,6 +353,15 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "sortlist is not yet implemented.");
+	}
+
+
+	if (dns_c_ctx_getallowupdateforwarding(cfg, &ipml) != ISC_R_NOTFOUND) {
+		dns_c_ipmatchlist_detach(&ipml);
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "allow-update-forwarding is not "
+			      "yet implemented.");
 	}
 
 
@@ -640,42 +649,42 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	
 	REQUIRE(DNS_C_CONFOPT_VALID(options));
 
-#define PRINT_INTEGER(field, name)					\
-	if (options->field != NULL) {					\
+#define PRINT_INTEGER(FIELD, NAME)					\
+	if (options->FIELD != NULL) {					\
 		dns_c_printtabs(fp, indent + 1);			\
-		fprintf(fp, "%s %d;\n",name,(int)*options->field);	\
+		fprintf(fp, "%s %d;\n",NAME,(int)*options->FIELD);	\
 	}
 	
-#define PRINT_AS_MINUTES(field, name)				\
-	if (options->field != NULL) {				\
+#define PRINT_AS_MINUTES(FIELD, NAME)				\
+	if (options->FIELD != NULL) {				\
 		dns_c_printtabs(fp, indent + 1);		\
-		fprintf(fp, "%s %lu;\n",name,			\
-			(unsigned long)(*options->field / 60));	\
+		fprintf(fp, "%s %lu;\n",NAME,			\
+			(unsigned long)(*options->FIELD / 60));	\
 	}
 
-#define PRINT_AS_BOOLEAN(field, name)				\
-	if (options->field != NULL) {				\
+#define PRINT_AS_BOOLEAN(FIELD, NAME)				\
+	if (options->FIELD != NULL) {				\
 		dns_c_printtabs(fp, indent + 1);		\
-		fprintf(fp, "%s %s;\n",name,			\
-			(*options->field ? "true" : "false"));	\
+		fprintf(fp, "%s %s;\n",NAME,			\
+			(*options->FIELD ? "true" : "false"));	\
 	}
 
-#define PRINT_AS_SIZE_CLAUSE(field, name)				\
-	if (options->field != NULL) {					\
+#define PRINT_AS_SIZE_CLAUSE(FIELD, NAME)				\
+	if (options->FIELD != NULL) {					\
 		dns_c_printtabs(fp, indent + 1);			\
-		fprintf(fp, "%s ",name);				\
-		if (*options->field == DNS_C_SIZE_SPEC_DEFAULT) {	\
+		fprintf(fp, "%s ",NAME);				\
+		if (*options->FIELD == DNS_C_SIZE_SPEC_DEFAULT) {	\
 			fprintf(fp, "default");				\
 		} else {						\
-			dns_c_printinunits(fp, *options->field);	\
+			dns_c_printinunits(fp, *options->FIELD);	\
 		}							\
 		fprintf(fp, ";\n");					\
 	}
 
-#define PRINT_CHAR_P(field, name)					\
-	if (options->field != NULL) {					\
+#define PRINT_CHAR_P(FIELD, NAME)					\
+	if (options->FIELD != NULL) {					\
 		dns_c_printtabs(fp, indent + 1);			\
-		fprintf(fp, "%s \"%s\";\n", name, options->field);	\
+		fprintf(fp, "%s \"%s\";\n", NAME, options->FIELD);	\
 	}
 	
 #define PRINT_IPANDPORT(FIELD, NAME)				\
@@ -713,12 +722,12 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	}
 		
 
-#define PRINT_IPMLIST(FIELD, NAME)				\
-	if (options->FIELD != NULL) {				\
-		dns_c_printtabs(fp, indent + 1);		\
-		fprintf(fp, NAME " ");				\
-		dns_c_ipmatchlist_print(fp, 2, options->FIELD);	\
-		fprintf(fp, ";\n");				\
+#define PRINT_IPMLIST(FIELD, NAME)					 \
+	if (options->FIELD != NULL) {					 \
+		dns_c_printtabs(fp, indent + 1);			 \
+		fprintf(fp, NAME " ");					 \
+		dns_c_ipmatchlist_print(fp, indent + 2, options->FIELD); \
+		fprintf(fp, ";\n");					 \
 	}
 
 
@@ -805,6 +814,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_IPMLIST(blackhole, "blackhole");
 	PRINT_IPMLIST(topology, "topology");
 	PRINT_IPMLIST(sortlist, "sortlist");
+	PRINT_IPMLIST(allowupdateforwarding, "allow-update-forwarding");
 	
 	if (options->listens != NULL) {
 		dns_c_lstnlist_print(fp, indent + 1,
@@ -841,7 +851,11 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 #undef PRINT_AS_BOOLEAN
 #undef PRINT_AS_SIZE_CLAUSE
 #undef PRINT_CHAR_P
-
+#undef PRINT_IPMLIST
+#undef PRINT_IPANDPORT
+#undef PRINT_IP	
+#undef PRINT_CHECKNAME
+	
 }
 
 void
@@ -1265,6 +1279,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->blackhole = NULL;
 	opts->topology = NULL;
 	opts->sortlist = NULL;
+	opts->allowupdateforwarding = NULL;
 	
 	opts->listens = NULL;
 	opts->ordering = NULL;
@@ -1294,21 +1309,21 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 
 #define FREEFIELD(FIELD)					\
-	if (options->FIELD != NULL) {				\
+	do { if (options->FIELD != NULL) {			\
 		isc_mem_put(options->mem, options->FIELD,	\
 			    sizeof (*options->FIELD));		\
 		options->FIELD = NULL;				\
-	}
+	} } while (0)
 
 #define FREESTRING(FIELD)					\
-	if (options->FIELD != NULL) {				\
+        do { if (options->FIELD != NULL) {			\
 		isc_mem_free(options->mem, options->FIELD);	\
-	}
+	} } while (0)
 
 #define FREEIPMLIST(FIELD)						\
-	if (options->FIELD != NULL) {					\
+	do { if (options->FIELD != NULL) {				\
 		(void)dns_c_ipmatchlist_detach(&options->FIELD);	\
-	}
+	} } while (0)
 	
 	
 
@@ -1388,6 +1403,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEIPMLIST(blackhole);
 	FREEIPMLIST(topology);
 	FREEIPMLIST(sortlist);
+	FREEIPMLIST(allowupdateforwarding);
 	
 	result = ISC_R_SUCCESS;
 
@@ -1805,7 +1821,75 @@ dns_c_ctx_unsetchecknames(dns_c_ctx_t *cfg,
 
 
 
+#define SETIPMLIST(FUNCNAME, FIELDNAME)					    \
+isc_result_t								    \
+PVT_CONCAT(dns_c_ctx_set, FUNCNAME)(dns_c_ctx_t *cfg, 	isc_boolean_t copy, \
+				    dns_c_ipmatchlist_t *newval)	    \
+{									    \
+	isc_result_t res;						    \
+									    \
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));				    \
+									    \
+	res = make_options(cfg);					    \
+	if (res != ISC_R_SUCCESS) {					    \
+		return (res);						    \
+	}								    \
+									    \
+	REQUIRE(newval != NULL);					    \
+									    \
+	res = cfg_set_ipmatchlist(cfg->options, &cfg->options->FIELDNAME,   \
+				  newval, copy);			    \
+									    \
+	return (res);							    \
+}
 
+#define GETIPMLIST(FUNC, FIELD)						\
+isc_result_t								\
+PVT_CONCAT(dns_c_ctx_get, FUNC)(dns_c_ctx_t *cfg,			\
+				dns_c_ipmatchlist_t **retval)		\
+{									\
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));				\
+									\
+	if (cfg->options == NULL) {					\
+		return (ISC_R_NOTFOUND);				\
+	}								\
+									\
+	REQUIRE(retval != NULL);					\
+									\
+	return (cfg_get_ipmatchlist(cfg->options, cfg->options->FIELD,	\
+				    retval));				\
+}
+
+#define UNSETIPMLIST(FUNC, FIELD)			\
+isc_result_t						\
+PVT_CONCAT(dns_c_ctx_unset, FUNC)(dns_c_ctx_t *cfg)	\
+{							\
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));		\
+							\
+	if (cfg->options == NULL) {			\
+		return (ISC_R_NOTFOUND);		\
+	}						\
+							\
+	dns_c_ipmatchlist_detach(&cfg->options->FIELD);	\
+							\
+	return (ISC_R_SUCCESS);				\
+}
+
+
+SETIPMLIST(queryacl, queryacl)
+UNSETIPMLIST(queryacl, queryacl)
+GETIPMLIST(queryacl, queryacl)
+
+SETIPMLIST(allowupdateforwarding, allowupdateforwarding)
+UNSETIPMLIST(allowupdateforwarding, allowupdateforwarding)
+GETIPMLIST(allowupdateforwarding, allowupdateforwarding)
+
+	
+	
+
+
+
+#if 0
 
 
 isc_result_t
@@ -1828,6 +1912,25 @@ dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 	return (res);
 }
+
+
+isc_result_t
+dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(list != NULL);
+
+	return (cfg_get_ipmatchlist(cfg->options, cfg->options->queryacl,
+				    list));
+}
+
+
+#endif
 
 
 isc_result_t
@@ -2127,22 +2230,6 @@ dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg,
 }
 
 
-
-
-isc_result_t
-dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
-{
-	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
-
-	if (cfg->options == NULL) {
-		return (ISC_R_NOTFOUND);
-	}
-	
-	REQUIRE(list != NULL);
-
-	return (cfg_get_ipmatchlist(cfg->options, cfg->options->queryacl,
-				    list));
-}
 
 
 isc_result_t
