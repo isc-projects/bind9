@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.172 2001/03/30 17:27:29 halley Exp $ */
+/* $Id: adb.c,v 1.173 2001/04/10 00:18:27 gson Exp $ */
 
 /*
  * Implementation notes
@@ -2583,7 +2583,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		if (NXDOMAIN_RESULT(result))
 			goto fetch;
 
-	    aaaa:
 		result = dbfind_name(adbname, now, dns_rdatatype_aaaa);
 		if (result == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
