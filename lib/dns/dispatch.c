@@ -204,6 +204,8 @@ hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id)
 	ret = id;
 	ret &= disp->qid_mask;
 
+	INSIST(ret < disp->qid_hashsize);
+
 	return (ret);
 }
 
@@ -214,13 +216,13 @@ hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id)
 static dns_messageid_t
 randomid(dns_dispatch_t *disp)
 {
-	disp->qid_state++;
+	disp->qid_state += 7;
 
 	return ((dns_messageid_t)disp->qid_state);
 }
 
 /*
- * Called when refcount reaches 0 at any time.
+ * Called when refcount reaches 0 (and safe to destroy)
  */
 static void
 destroy(dns_dispatch_t *disp)
@@ -254,7 +256,7 @@ destroy(dns_dispatch_t *disp)
 	isc_mempool_destroy(&disp->bpool);
 	isc_mempool_destroy(&disp->epool);
 	isc_mem_put(disp->mctx, disp->qid_table,
-		    disp->qid_hashsize * sizeof(void *));
+		    disp->qid_hashsize * sizeof(dns_displist_t));
 
 	isc_mem_put(disp->mctx, disp, sizeof(dns_dispatch_t));
 }
@@ -271,6 +273,9 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 	while (res != NULL) {
 		if ((res->id == id) && isc_sockaddr_equal(dest, &res->host))
 			return (res);
+		printf("lengths (%d, %d), ids (%d, %d)\n",
+		       dest->length, res->host.length,
+		       res->id, id);
 		res = ISC_LIST_NEXT(res, link);
 	}
 
@@ -465,6 +470,9 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
  		/* response */
 		bucket = hash(disp, &ev->address, id);
 		resp = bucket_search(disp, &ev->address, id, bucket);
+		printf("Search for response in bucket %d: %s\n",
+		       bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
+
 		if (resp == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto restart;
@@ -817,6 +825,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	ISC_LINK_INIT(res, link);
 	ISC_LIST_APPEND(disp->qid_table[bucket], res, link);
 
+	printf("Inserted response into bucket %d\n", bucket);
+
 	startrecv(disp);
 
 	UNLOCK(&disp->lock);
@@ -1142,4 +1152,12 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ev->buffer.base = NULL;
 	ev->buffer.length = 0;
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
+}
+
+isc_socket_t *
+dns_dispatch_getsocket(dns_dispatch_t *disp)
+{
+	REQUIRE(VALID_DISPATCH(disp));
+
+	return (disp->socket);
 }

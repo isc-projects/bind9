@@ -263,6 +263,12 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
  *	< mumble >
  */
 
+isc_socket_t *
+dns_dispatch_getsocket(dns_dispatch_t *disp);
+/*
+ * Return the socket associated with this dispatcher
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DISPATCH_H */
