@@ -35,6 +35,9 @@
 #define MZ_MAINT_IXFR_BASE_BIT		3
 #define MZ_MAX_IXFR_LOG_BIT		4
 #define MZ_FORWARD_BIT			5
+#define MZ_MAX_TRANS_TIME_OUT_BIT	6
+#define MZ_MAX_TRANS_IDLE_OUT_BIT	7
+
 
 
 /*
@@ -2899,16 +2902,16 @@ master_zone_print(FILE *fp, int indent,
 		fprintf(fp, "ixfr-tmp-file \"%s\";\n", mzone->ixfr_tmp);
 	}
 
-	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_OUT_BIT, &mzone->setflags)) {
+	if (DNS_C_CHECKBIT(MZ_MAX_TRANS_IDLE_OUT_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-idle-out %d;\n",
-			mzone->max_trans_idle_out);
+			mzone->max_trans_idle_out / 60);
 	}
 
-	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_OUT_BIT, &mzone->setflags)) {
+	if (DNS_C_CHECKBIT(MZ_MAX_TRANS_TIME_OUT_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-time-out %d;\n",
-			mzone->max_trans_time_out);
+			mzone->max_trans_time_out / 60);
 	}
 	
 	if (mzone->pubkeylist != NULL) {
@@ -3010,25 +3013,25 @@ slave_zone_print(FILE *fp, int indent,
 	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_IN_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-time-in %d;\n",
-			szone->max_trans_time_in);
+			szone->max_trans_time_in / 60);
 	}
 	
 	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-time-out %d;\n",
-			szone->max_trans_time_out);
+			szone->max_trans_time_out / 60);
 	}
 	
 	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_IN_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-idle-in %d;\n",
-			szone->max_trans_idle_in);
+			szone->max_trans_idle_in / 60);
 	}
 	
 	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_OUT_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-idle-out %d;\n",
-			szone->max_trans_idle_out);
+			szone->max_trans_idle_out / 60);
 	}
 	
 	if (DNS_C_CHECKBIT(SZ_NOTIFY_BIT, &szone->setflags)) {
@@ -3132,13 +3135,13 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_IN_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-idle-in %d;\n",
-			tzone->max_trans_idle_in);
+			tzone->max_trans_idle_in / 60);
 	}
 	
 	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_IN_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-time-in %d;\n",
-			tzone->max_trans_time_in);
+			tzone->max_trans_time_in / 60);
 	}
 	
 	if (tzone->pubkeylist != NULL) {
