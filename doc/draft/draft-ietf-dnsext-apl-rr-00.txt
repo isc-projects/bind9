@@ -1,9 +1,11 @@
+
 INTERNET-DRAFT                                                Peter Koch
-Expires: April 2000                               Universitaet Bielefeld
-Updates: RFC 1035                                           October 1999
+Expires: September 2000                           Universitaet Bielefeld
+Updates: RFC 1035                                             March 2000
 
           A DNS RR Type for Lists of Address Prefixes (APL RR)
-                    draft-ietf-dnsind-apl-rr-03.txt
+                    draft-ietf-dnsext-apl-rr-00.txt
+
 
 Status of this Memo
 
@@ -45,14 +47,18 @@ Abstract
    Domain names herein are for explanatory purposes only and should not
    be expected to lead to useful information in real life [RFC2606].
 
-Koch                       Expires April 2000                   [Page 1]
 
-INTERNET-DRAFT                 DNS APL RR                   October 1999
+
+
+Koch                     Expires September 2000                 [Page 1]
+
+INTERNET-DRAFT                 DNS APL RR                     March 2000
+
 
 2. Background
 
    The Domain Name System [RFC1034], [RFC1035] provides a mechanism to
-   assign addresses and other internet infrastructure elements to
+   associate addresses and other internet infrastructure elements with
    hierarchically built domain names. Various types of resource records
    have been defined, especially those for IPv4 and IPv6 [RFC1886]
    addresses.  In [RFC1101] a method is described to publish information
@@ -82,6 +88,7 @@ INTERNET-DRAFT                 DNS APL RR                   October 1999
       |                                                               |
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
+
       ADDRESSFAMILY     16 bit unsigned value as assigned by IANA
                         (see IANA Considerations)
       PREFIX            8 bit unsigned binary coded prefix length.
@@ -94,11 +101,15 @@ INTERNET-DRAFT                 DNS APL RR                   October 1999
                         family dependent part (7 bit unsigned).
       AFDPART           address family dependent part. See below.
 
+
    This document defines the AFDPARTs for address families 1 (IPv4) and
 
-Koch                       Expires April 2000                   [Page 2]
 
-INTERNET-DRAFT                 DNS APL RR                   October 1999
+
+Koch                     Expires September 2000                 [Page 2]
+
+INTERNET-DRAFT                 DNS APL RR                     March 2000
+
 
    2 (IPv6).  Future revisions may deal with additional address
    families.
@@ -149,9 +160,12 @@ INTERNET-DRAFT                 DNS APL RR                   October 1999
 
 5.2. Textual Representation of IPv6 Addresses
 
-Koch                       Expires April 2000                   [Page 3]
 
-INTERNET-DRAFT                 DNS APL RR                   October 1999
+
+Koch                     Expires September 2000                 [Page 3]
+
+INTERNET-DRAFT                 DNS APL RR                     March 2000
+
 
    The representation of an IPv6 address in the <address> part of an
    <apstring> follows [RFC2373], section 2.2. Legal values for <prefix>
@@ -194,17 +208,22 @@ INTERNET-DRAFT                 DNS APL RR                   October 1999
     o how to deal with APL RR list elements which belong to other
       address families, including those not yet defined
 
+    o the exact semantics of list elements negated by the "!" character
+
+
    Possible applications include the publication of address ranges
    similar to [RFC1101], description of zones built following [RFC2317]
    and in-band access control to limit general access or zone transfer
    (AXFR) availability for zone data held in DNS servers.
 
+
+
+Koch                     Expires September 2000                 [Page 4]
+
+INTERNET-DRAFT                 DNS APL RR                     March 2000
+
+
    The specification of particular application scenarios is out of the
-
-Koch                       Expires April 2000                   [Page 4]
-
-INTERNET-DRAFT                 DNS APL RR                   October 1999
-
    scope of this document.
 
 8. Examples
@@ -242,20 +261,29 @@ INTERNET-DRAFT                 DNS APL RR                   October 1999
 
 10. IANA Considerations
 
+   This section is to be interpreted as following [RFC2434].
+
    This document does not define any new namespaces. It uses the 16 bit
    identifiers for address families maintained by IANA in
    ftp://ftp.iana.org/in-notes/iana/assignments/address-family-numbers.
 
+   IANA is asked to assign a numeric RR type value for APL.
+
 11. Acknowledgements
+
+
+
+
+Koch                     Expires September 2000                 [Page 5]
+
+INTERNET-DRAFT                 DNS APL RR                     March 2000
+
 
    The author would like to thank Mark Andrews for his review and
    constructive comments.
 
 12. References
 
-Koch                       Expires April 2000                   [Page 5]
-
-INTERNET-DRAFT                 DNS APL RR                   October 1999
 
    [RFC1034]   Mockapetris,P., "Domain Names - Concepts and Facilities",
                RFC 1034, STD 13, November 1987
@@ -281,6 +309,10 @@ INTERNET-DRAFT                 DNS APL RR                   October 1999
    [RFC2373]   Hinden,R., Deering,S., "IP Version 6 Addressing
                Architecture", RFC 2373, July 1998
 
+   [RFC2434]   Narten,T., Alvestrand,H., "Guidelines for Writing an IANA
+               Considerations Section in RFCs", RFC 2434, BCP 26, October
+               1998
+
    [RFC2535]   Eastlake,D., "Domain Name System Security Extensions", RFC
                2535, March 1999
 
@@ -291,15 +323,67 @@ INTERNET-DRAFT                 DNS APL RR                   October 1999
                "Secret Key Transaction Signatures for DNS (TSIG)",
                <draft-ietf-dnsind-tsig-XX.txt>, work in progress
 
+
 13. Author's Address
 
    Peter Koch
+
+
+
+Koch                     Expires September 2000                 [Page 6]
+
+INTERNET-DRAFT                 DNS APL RR                     March 2000
+
+
    Universitaet Bielefeld
    Technische Fakultaet
-   Postfach 10 01 31
-   D-33501 Bielefeld
+   D-33594 Bielefeld
    Germany
    +49 521 106 2902
    <pk@TechFak.Uni-Bielefeld.DE>
 
-Koch                       Expires April 2000                   [Page 6]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Koch                     Expires September 2000                 [Page 7]
