@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.20 2001/01/09 21:43:34 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.21 2001/01/22 22:12:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -754,6 +754,7 @@ main(void) {
 	test_getrrsetbyname("e.example1.", 1, 1, 1, 1, 1);
 	test_getrrsetbyname("e.example1.", 1, 255, 1, 1, 0);
 	test_getrrsetbyname("e.example1.", 1, 24, 1, 0, 1);
+	test_getrrsetbyname("", 1, 1, 0, 0, 0);
 
 	if (fails == 0)
 		printf("I:ok\n");
