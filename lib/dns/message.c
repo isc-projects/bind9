@@ -682,11 +682,15 @@ findname(dns_name_t **foundname, dns_name_t *target, dns_namelist_t *section)
 	return (DNS_R_NOTFOUND);
 }
 
-static dns_result_t
-findtype(dns_rdataset_t **rdataset, dns_name_t *name, dns_rdatatype_t type,
-	 dns_rdatatype_t covers)
+dns_result_t
+dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
+		     dns_rdatatype_t covers, dns_rdataset_t **rdataset)
 {
 	dns_rdataset_t *curr;
+
+	if (rdataset != NULL) {
+		REQUIRE(*rdataset == NULL);
+	}
 
 	for (curr = ISC_LIST_TAIL(name->list) ;
 	     curr != NULL ;
@@ -890,7 +894,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		/*
 		 * Can't ask the same question twice.
 		 */
-		result = findtype(NULL, name, rdtype, 0);
+		result = dns_message_findtype(name, rdtype, 0, NULL);
 		if (result == DNS_R_SUCCESS)
 			return (DNS_R_FORMERR);
 
@@ -1091,8 +1095,11 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (preserve_order || msg->opcode == dns_opcode_update ||
 		    skip_search)
 			result = DNS_R_NOTFOUND;
-		else
-			result = findtype(&rdataset, name, rdtype, covers);
+		else {
+			rdataset = NULL;
+			result = dns_message_findtype(name, rdtype, covers,
+						      &rdataset);
+		}
 
 		/*
 		 * If we found an rdataset that matches, we need to
@@ -1602,7 +1609,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	if (type == dns_rdatatype_any)
 		return (DNS_R_SUCCESS);
 
-	result = findtype(rdataset, foundname, type, covers);
+	result = dns_message_findtype(foundname, type, covers, rdataset);
 	if (result == DNS_R_NOTFOUND)
 		return (DNS_R_NXRDATASET);
 

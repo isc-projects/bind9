@@ -495,6 +495,23 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *				   type does not.
  */
 
+dns_result_t
+dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
+		     dns_rdatatype_t covers, dns_rdataset_t **rdataset);
+/*
+ * Search the name for the specified type.  If it is found, *rdataset is
+ * filled in with a pointer to that rdataset.
+ *
+ * Requires:
+ *	if '**rdataset' is non-NULL, *rdataset needs to be NULL.
+ *
+ *	'type' be a valid type, and NOT dns_rdatatype_any.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- all is well.
+ *	DNS_R_NOTFOUND		-- the desired type does not exist.
+ */
+
 void
 dns_message_movename(dns_message_t *msg, dns_name_t *name,
 		     dns_section_t fromsection,
