@@ -587,7 +587,6 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 
 	INSIST(e->lock_bucket == DNS_ADB_INVALIDBUCKET);
 	INSIST(e->refcnt == 0);
-	INSIST(ISC_LIST_EMPTY(e->zoneinfo));
 	INSIST(!ISC_LINK_LINKED(e, link));
 
 	e->magic = 0;
