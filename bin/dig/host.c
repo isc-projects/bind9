@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.68 2001/07/26 03:15:06 mayer Exp $ */
+/* $Id: host.c,v 1.69 2001/07/26 20:21:40 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -38,10 +38,6 @@
 #include <dns/rdatatype.h>
 
 #include <dig/dig.h>
-
-#ifndef ISC_PLATFORM_NONSTDHERRNO
-extern int h_errno;
-#endif
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;

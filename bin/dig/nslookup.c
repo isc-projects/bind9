@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.84 2001/07/26 03:15:07 mayer Exp $ */
+/* $Id: nslookup.c,v 1.85 2001/07/26 20:26:09 gson Exp $ */
 
 #include <config.h>
 
@@ -42,10 +42,6 @@
 #include <dns/byaddr.h>
 
 #include <dig/dig.h>
-
-#ifndef ISC_PLATFORM_NONSTDHERRNO
-extern int h_errno;
-#endif
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
