@@ -13,3 +13,10 @@ a			A	10.0.0.1
 b			A	10.0.0.2
 d			A	10.0.0.4
 z			A	10.0.0.26
+
+private			NS	ns.private
+ns.private		A	10.53.0.2
+
+insecure		NS	ns.insecure
+ns.insecure		A	10.53.0.2
+

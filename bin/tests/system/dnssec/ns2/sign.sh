@@ -51,4 +51,14 @@ cat $infile $keyname.key >$zonefile
 
 $SIGNER -o $zone $zonefile
 
+# Sign the privately secure file
 
+privzone=private.secure.example.
+privinfile=private.secure.example.db.in
+privzonefile=private.secure.example.db
+
+privkeyname=`$KEYGEN -a RSA -b 768 -n zone $privzone`
+
+cat $privinfile $privkeyname.key >$privzonefile
+
+$SIGNER -o $privzone $privzonefile
