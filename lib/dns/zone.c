@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.112 2000/05/12 10:21:06 marka Exp $ */
+/* $Id: zone.c,v 1.113 2000/05/14 20:01:25 gson Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
+#include <dns/peer.h>
 #include <dns/rcode.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -43,6 +44,7 @@
 #include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/ssu.h>
+#include <dns/tsig.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
 
@@ -139,6 +141,16 @@ struct dns_zone {
 	isc_event_t		ctlevent;
 	dns_ssutable_t		*ssutable;
 	dns_view_t		*view;
+	/*
+	 * Zones in certain states such as "waiting for zone transfer" 
+	 * or "zone transfer in progress" are kept on per-state linked lists
+	 * in the zone manager using the 'statelink' field.  The 'statelist'
+	 * field points at the list the zone is currently on.  It the zone
+	 * is not on any such list, statelist is NULL.
+	 */
+	ISC_LINK(dns_zone_t)	statelink;	
+	dns_zonelist_t	        *statelist;
+	
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -175,12 +187,13 @@ struct dns_zonemgr {
 	isc_rwlock_t		rwlock;
 	isc_rwlock_t		conflock;
 	/* Locked by rwlock. */
-	ISC_LIST(dns_zone_t)	zones;
+	dns_zonelist_t		zones;
+	dns_zonelist_t		waiting_for_xfrin;
+	dns_zonelist_t		xfrin_in_progress;
+	
 	/* Locked by conflock. */
 	int			transfersin;
 	int			transfersperns;
-	/* Contains its own lock. */
-	dns_xfrinlist_t		transferlist;
 };
 
 /*
@@ -202,7 +215,7 @@ static void cancel_refresh(dns_zone_t *);
 
 static void zone_log(dns_zone_t *zone, const char *, int, const char *msg,
 		     ...);
-static void dns_zone_transfer_in(dns_zone_t *zone);
+static void queue_xfrin(dns_zone_t *zone);
 static isc_result_t dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx,
 				   char **s);
 static void zone_unload(dns_zone_t *zone);
@@ -231,7 +244,10 @@ static isc_result_t notify_createmessage(dns_zone_t *zone,
 static void notify_done(isc_task_t *task, isc_event_t *event);
 static void notify_send_toaddr(isc_task_t *task, isc_event_t *event);
 static isc_result_t zone_dump(dns_zone_t *);
-
+static void got_transfer_quota(isc_task_t *task, isc_event_t *event);
+static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone);
+static void zmgr_resume_xfrs(dns_zonemgr_t *zmgr);
+     
 #define PRINT_ZONE_REF(zone) \
 	do { \
 		char *s = NULL; \
@@ -331,6 +347,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->diff_on_reload = ISC_FALSE;
 	zone->ssutable = NULL;
 	zone->view = NULL;
+	ISC_LINK_INIT(zone, statelink);
+	zone->statelist = NULL;
+	
 	zone->magic = ZONE_MAGIC;
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
@@ -349,7 +368,6 @@ zone_free(dns_zone_t *zone) {
 	zone->flags |= DNS_ZONE_F_EXITING;
 	UNLOCK(&zone->lock);
 
-
 	/*
 	 * Managed objects.  Order is important.
 	 */
@@ -365,8 +383,10 @@ zone_free(dns_zone_t *zone) {
 		isc_task_detach(&zone->task);
 	if (zone->zmgr)
 		dns_zonemgr_releasezone(zone->zmgr, zone);
+	
+	INSIST(zone->statelist == NULL);
 
-	/* unmanaged objects */
+	/* Unmanaged objects */
 	if (zone->dbname != NULL)
 		isc_mem_free(zone->mctx, zone->dbname);
 	zone->dbname = NULL;
@@ -1635,9 +1655,9 @@ notify_send_queue(notify_t *notify) {
 	isc_result_t result;
 
 	e = isc_event_allocate(notify->mctx, NULL,
-					   DNS_EVENT_NOTIFYSENDTOADDR,
-					   notify_send_toaddr,
-					   notify, sizeof(isc_event_t));
+			       DNS_EVENT_NOTIFYSENDTOADDR,
+			       notify_send_toaddr,
+			       notify, sizeof(isc_event_t));
 	if (e == NULL)
 		return (ISC_R_NOMEMORY);
 	e->ev_arg = notify;
@@ -1885,7 +1905,7 @@ dns_zone_notify(dns_zone_t *zone) {
 
 static void
 refresh_callback(isc_task_t *task, isc_event_t *event) {
-	char me[] = "refresh_callback";
+	const char me[] = "refresh_callback";
 	dns_requestevent_t *revent = (dns_requestevent_t *)event;
 	dns_zone_t *zone;
 	dns_message_t *msg = NULL;
@@ -2045,7 +2065,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
  tcp_transfer:
 		isc_event_free(&event);
 		dns_request_destroy(&zone->request);
-		dns_zone_transfer_in(zone);
+		queue_xfrin(zone);
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
 		dns_zone_uptodate(zone);
 		goto next_master;
@@ -2212,6 +2232,19 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	LOCK(&zone->lock);
 	zone->flags |= DNS_ZONE_F_EXITING;
 	UNLOCK(&zone->lock);
+
+	/*
+	 * If we were waiting for xfrin quota, step out of
+	 * the queue.
+	 */
+	if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
+		RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		ISC_LIST_UNLINK(zone->zmgr->waiting_for_xfrin, zone,
+				statelink);
+		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		zone->statelist = NULL;
+	}
+	
 	if (zone->xfr != NULL)
 		dns_xfrin_shutdown(zone->xfr);
 
@@ -2720,8 +2753,7 @@ dns_zone_getjournalsize(dns_zone_t *zone) {
 }
 
 static void
-zone_log(dns_zone_t *zone, const char *me, int level,
-		  const char *fmt, ...) {
+zone_log(dns_zone_t *zone, const char *me, int level, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
 	char namebuf[1024+32];
@@ -2881,7 +2913,7 @@ record_serial() {
 
 static void
 notify_done(isc_task_t *task, isc_event_t *event) {
-        char me[] = "notify_done";
+        const char me[] = "notify_done";
 	notify_t *notify;
 	dns_zone_t *zone = NULL;
 	
@@ -3113,6 +3145,16 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 		dns_xfrin_detach(&zone->xfr);
 
 	/*
+	 * This transfer finishing freed up a transfer quota slot.
+	 * Let any zones waiting for quota have it.
+	 */
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);	
+	ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
+	zone->statelist = NULL;
+	zmgr_resume_xfrs(zone->zmgr);
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	
+	/*
 	 * Retry with a different server if necessary.
 	 */
 	if (again)
@@ -3134,27 +3176,151 @@ dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table) {
 	zone->ssutable = table;
 }
 
-/***
- ***	Zone manager. 
- ***/
-
 static void
-dns_zone_transfer_in(dns_zone_t *zone) {
-	const char me[] = "dns_zone_transfer_in";
+queue_xfrin(dns_zone_t *zone) {
+	const char me[] = "queue_xfrin";
 	isc_result_t result;
+	dns_zonemgr_t *zmgr = zone->zmgr;
 
 	DNS_ENTER;
 
-	if (zone->masterscnt < 1)
-		return;
+	INSIST(zone->statelist == NULL);
 
-	result = dns_xfrin_create(zone, &zone->masteraddr, zone->mctx,
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);	
+	ISC_LIST_APPEND(zmgr->waiting_for_xfrin, zone, statelink);
+	zone->statelist = &zmgr->waiting_for_xfrin;
+	result = zmgr_start_xfrin_ifquota(zmgr, zone);
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);	
+
+	if (result == ISC_R_QUOTA) {
+		zone_log(zone, me, ISC_LOG_DEBUG(1),
+			 "zone transfer deferred due to quota");
+	} else if (result != ISC_R_SUCCESS) {
+		zone_log(zone, me, ISC_LOG_ERROR,
+			 "starting zone transfer: %s",
+			 isc_result_totext(result));
+	}
+}
+
+/*
+ * Format a human-readable representation of the socket address '*sa'
+ * into the character array 'array', which is of size 'size'.
+ * The resulting string is guaranteed to be null-terminated.
+ */
+static void
+sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
+{
+	isc_result_t result;
+	isc_buffer_t buf;
+
+	isc_buffer_init(&buf, array, size);
+	result = isc_sockaddr_totext(sa, &buf);
+	if (result != ISC_R_SUCCESS) {
+		snprintf(array, size,
+			 "<unknown address, family %u>",
+			 sa->type.sa.sa_family);
+		array[size - 1] = '\0';
+	}
+}
+
+/*
+ * This event callback is called when a zone has received
+ * any necessary zone transfer quota.  This is the time
+ * to go ahead and start the transfer.
+ */
+static void
+got_transfer_quota(isc_task_t *task, isc_event_t *event) {
+	const char me[] = "got_transfer_quota";
+	isc_result_t result;
+	dns_peer_t *peer = NULL;
+	dns_tsigkey_t *tsigkey = NULL;
+	dns_name_t *keyname = NULL;
+	char mastertext[256];
+	dns_rdatatype_t xfrtype;
+	dns_zone_t *zone = event->ev_arg;
+	isc_netaddr_t masterip;
+	
+	UNUSED(task);
+	
+	INSIST(task == zone->task);
+
+	if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_EXITING)) {
+		result = ISC_R_CANCELED;
+		goto cleanup;
+	}
+	
+	sockaddr_format(&zone->masteraddr, mastertext, sizeof(mastertext));
+	
+	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
+	(void)dns_peerlist_peerbyaddr(zone->view->peers,
+				      &masterip, &peer);
+	
+	/*
+	 * Decide whether we should request IXFR or AXFR.
+	 */
+	if (zone->db == NULL) {
+		zone_log(zone, me, ISC_LOG_DEBUG(3), 
+			 "no database exists yet, requesting AXFR of "
+			 "initial version from %s", mastertext);
+		xfrtype = dns_rdatatype_axfr;
+	} else {
+		isc_boolean_t use_ixfr = ISC_TRUE;
+		if (peer != NULL &&
+		    dns_peer_getrequestixfr(peer, &use_ixfr) ==
+		    ISC_R_SUCCESS) {
+			; /* Using peer setting */ 
+		} else {
+			use_ixfr = zone->view->requestixfr;
+		}
+		if (use_ixfr == ISC_FALSE) {
+			zone_log(zone, me, ISC_LOG_DEBUG(3),
+				 "IXFR disabled, requesting AXFR from %s",
+				 mastertext);
+			xfrtype = dns_rdatatype_axfr;			
+		} else {
+			zone_log(zone, me, ISC_LOG_DEBUG(3),
+				 "requesting IXFR form %s",
+				 mastertext);
+			xfrtype = dns_rdatatype_ixfr;
+		}
+	}
+
+	/*
+	 * Determine if we should attempt to sign the request with TSIG.
+	 */
+	if (peer != NULL && dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS) {
+		dns_view_t *view = dns_zone_getview(zone);
+		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
+					  view->statickeys);
+		if (result == ISC_R_NOTFOUND)
+			result = dns_tsigkey_find(&tsigkey, keyname, NULL,
+						  view->dynamickeys);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+			zone_log(zone, me, ISC_LOG_ERROR,
+				 "error getting tsig keys for zone transfer: %s",
+				 isc_result_totext(result));
+			goto cleanup;
+		}
+	}
+
+	result = dns_xfrin_create(zone, xfrtype, &zone->masteraddr,
+				  tsigkey, zone->mctx,
 				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
-				  zone->task,
-				  xfrdone, &zone->xfr);
+				  zone->task, xfrdone, &zone->xfr);
 	if (result != ISC_R_SUCCESS)
 		xfrdone(zone, result);
+
+ cleanup:
+	isc_event_free(&event);
+
+	dns_zone_detach(&zone);
+	return;
+
 }
+
+/***
+ ***	Zone manager. 
+ ***/
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
@@ -3177,6 +3343,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->task = NULL;
 	zmgr->rl = NULL;
 	ISC_LIST_INIT(zmgr->zones);
+	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
+	ISC_LIST_INIT(zmgr->xfrin_in_progress);
 	result = isc_rwlock_init(&zmgr->rwlock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -3197,20 +3365,11 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->transfersin = 10;
 	zmgr->transfersperns = 2;
 	
-	result = dns_xfrinlist_init(&zmgr->transferlist);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_transferlist_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto free_conflock;
-	}
-
 	/* Create the zone task pool. */
 	result = isc_taskpool_create(taskmgr, mctx, 
 				     8 /* XXX */, 0, &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
-		goto free_transferlist;
+		goto free_conflock;
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, 1, &zmgr->task);
@@ -3232,8 +3391,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
  free_task:
 	isc_task_detach(&zmgr->task);
- free_transferlist:
-	dns_xfrinlist_destroy(&zmgr->transferlist);
  free_taskpool:
 	isc_taskpool_destroy(&zmgr->zonetasks);	
  free_conflock:
@@ -3386,13 +3543,143 @@ dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr) {
 	return (zmgr->transfersperns);
 }
 
-dns_xfrinlist_t	*
-dns_zonemgr_gettransferlist(dns_zonemgr_t *zmgr) {
-	return (&zmgr->transferlist);
+/*
+ * Try to start a new incoming zone transfer to fill a quota
+ * slot that was just vacated.
+ *
+ * Requires:
+ *	The zone manager is locked by the caller.
+ */
+static void
+zmgr_resume_xfrs(dns_zonemgr_t *zmgr) {
+	static char me[] = "zmgr_resume_xfrs";
+	dns_zone_t *zone;
+	
+	for (zone = ISC_LIST_HEAD(zmgr->waiting_for_xfrin);
+	     zone != NULL;
+	     zone = ISC_LIST_NEXT(zone, statelink))
+	{
+		isc_result_t result;
+		result = zmgr_start_xfrin_ifquota(zmgr, zone);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * We successfully filled the slot.  We're done.
+			 */
+			break;
+		} else if (result == ISC_R_QUOTA) {
+			/*
+			 * Not enough quota.  This is probably the per-server 
+			 * quota, because we only get called when a unit of 
+			 * global quota has just been freed.  Try the next 
+			 * zone, it may succeed if it uses another master.
+			 */
+			continue;
+		} else {
+			zone_log(zone, me, ISC_LOG_DEBUG(3), 
+				 "starting zone transfer: %s",
+				 isc_result_totext(result));
+			break;
+		}
+	}
+}
+		
+/*
+ * Try to start an incoming zone transfer for 'zone', quota permitting.
+ *
+ * Requires:
+ *	The zone manager is locked by the caller.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	There was enough quota and we attempted to
+ *			start a transfer.  xfrdone() has been or will
+ *			be called.
+ *	ISC_R_QUOTA	Not enough quota.
+ *	Others		Failure.
+ */
+static isc_result_t
+zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
+	dns_peer_t *peer = NULL;
+	isc_netaddr_t masterip;
+	int nxfrsin, nxfrsperns;
+	dns_zone_t *x;
+	int maxtransfersin, maxtransfersperns;
+	isc_event_t *e;
+
+	/*
+	 * Find any configured information about the server we'd
+	 * like to transfer this zone from.
+	 */
+	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
+	(void)dns_peerlist_peerbyaddr(zone->view->peers,
+				      &masterip, &peer);
+
+	/*
+	 * Determine the total maximum number of simultaneous
+	 * transfers allowed, and the maximum for this specific
+	 * master.
+	 */
+	maxtransfersin = zmgr->transfersin;
+	maxtransfersperns = zmgr->transfersperns;
+	if (peer != NULL)
+		(void)dns_peer_gettransfers(peer, &maxtransfersperns);
+
+	/* 
+	 * Count the total number of transfers that are in progress,
+	 * and the number of transfers in progress from this master.
+	 * We linearly scan a list of all transfers; if this turns
+	 * out to be too slow, we could hash on the master address.
+	 */
+	nxfrsin = nxfrsperns = 0;
+	for (x = ISC_LIST_HEAD(zmgr->xfrin_in_progress);
+	     x != NULL;
+	     x = ISC_LIST_NEXT(x, statelink))
+	{
+		isc_netaddr_t xip;
+		isc_netaddr_fromsockaddr(&xip, &x->masteraddr);
+		nxfrsin++;
+		if (isc_netaddr_equal(&xip, &masterip))
+			nxfrsperns++;
+	}
+
+	/* Enforce quota. */
+	if (nxfrsin >= maxtransfersin)
+		return (ISC_R_QUOTA);
+
+	if (nxfrsperns >= maxtransfersperns)
+		return (ISC_R_QUOTA);
+
+	/*
+	 * We have sufficient quota.  Move the zone to the "xfrin_in_progress"
+	 * list and send it an event to let it start the actual transfer in the
+	 * context of its own task.
+	 */
+	e = isc_event_allocate(zmgr->mctx, zmgr,
+			       DNS_EVENT_ZONESTARTXFRIN,
+			       got_transfer_quota, zone,
+			       sizeof(isc_event_t));
+	if (e == NULL)
+		return (ISC_R_NOMEMORY);
+
+	LOCK(&zone->lock);
+	INSIST(zone->statelist == &zmgr->waiting_for_xfrin);
+	ISC_LIST_UNLINK(zmgr->waiting_for_xfrin, zone, statelink);
+	ISC_LIST_APPEND(zmgr->xfrin_in_progress, zone, statelink);
+	zone->statelist = &zmgr->xfrin_in_progress;
+	isc_task_send(zone->task, &e);
+	/*
+	 * Make sure the zone does not go away before it has processed
+	 * the event; in effect, the event is attached to the zone.
+	 * We must use erefs rather than irefs because accesses
+	 * to irefs are not locked.
+	 */
+	zone->erefs++;
+	UNLOCK(&zone->lock);
+	
+	return (ISC_R_SUCCESS);
 }
 
 #if 0
-/* hook for ondestroy notifcation from a database. */
+/* Hook for ondestroy notifcation from a database. */
 
 static void
 dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {

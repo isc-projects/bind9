@@ -96,8 +96,8 @@ typedef isc_uint32_t				dns_ttl_t;
 typedef struct dns_validator			dns_validator_t;
 typedef struct dns_view				dns_view_t;
 typedef ISC_LIST(dns_view_t)			dns_viewlist_t;
-typedef struct dns_xfrinlist			dns_xfrinlist_t;
 typedef struct dns_zone				dns_zone_t;
+typedef ISC_LIST(dns_zone_t)			dns_zonelist_t;
 typedef struct dns_zonemgr			dns_zonemgr_t;
 typedef struct dns_zt				dns_zt_t;
 

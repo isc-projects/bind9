@@ -42,12 +42,6 @@
 /* A transfer in progress.  This is an opaque type. */
 typedef struct dns_xfrin_ctx dns_xfrin_ctx_t;
 
-/* A list of transfers in progress. */
-struct dns_xfrinlist {
-	isc_mutex_t lock;
-	ISC_LIST(dns_xfrin_ctx_t) transfers;
-};
-		 
 /***
  *** Functions
  ***/
@@ -55,7 +49,8 @@ struct dns_xfrinlist {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr, 
+dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
+		 isc_sockaddr_t *masteraddr, dns_tsigkey_t *tsigkey,
 		 isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		 isc_socketmgr_t *socketmgr, isc_task_t *task,
 		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp);
@@ -83,10 +78,6 @@ void dns_xfrin_detach(dns_xfrin_ctx_t **xfrp);
  * (Because there is no attach() method, there can currently 
  * only be one reference).
  */
-
-isc_result_t dns_xfrinlist_init(dns_xfrinlist_t *list);
-
-void dns_xfrinlist_destroy(dns_xfrinlist_t *list);
 
 ISC_LANG_ENDDECLS
 

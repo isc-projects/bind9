@@ -1,3 +1,7 @@
+ 173.   [func]		Keep a queue of zones waiting for zone transfer
+			quota so that a new transfer can be dispatched
+			immediately whenever quota becomes available.
+
  172.   [bug]		$TTL directive was sometimes missing from dumped 
 			master files because totext_ctx_init() failed to
 			initialize ctx->current_ttl_valid.

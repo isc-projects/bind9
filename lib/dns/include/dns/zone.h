@@ -880,9 +880,6 @@ dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, int value);
 int
 dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
 
-dns_xfrinlist_t	*
-dns_zonemgr_gettransferlist(dns_zonemgr_t *zmgr);
-
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZONE_H */
