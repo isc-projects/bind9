@@ -148,5 +148,10 @@ isc_result_t	dns_c_srv_settkeydomain(dns_c_srv_t *server,
 					char *newval);
 isc_result_t	dns_c_srv_gettkeydomain(dns_c_srv_t *server,
 					char **retval);
+isc_result_t	dns_c_srv_getkeys(dns_c_srv_t *server,
+				  dns_c_kidlist_t **retval);
+isc_result_t	dns_c_srv_setkeys(dns_c_srv_t *server,
+				  dns_c_kidlist_t *newval);
+
 
 #endif /* DNS_CONFIG_CONFSERV_H */
