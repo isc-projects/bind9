@@ -1,4 +1,7 @@
 
+ 719.	[bug]		Rapid reloads could trigger an assertion failure.
+			[RT #743]
+
  717.	[bug]		Certain TKEY processing failure modes could
 			reference an uninitialized variable, causing the
 			server to crash. [RT #750]
