@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.1.1.2.2.5 2003/05/12 07:07:13 marka Exp $
+ ***	Version $Id: queryperf.c,v 1.1.1.2.2.5.4.1 2003/10/21 06:24:14 marka Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -180,7 +180,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.1.1.2.2.5 2003/05/12 07:07:13 marka Exp $\n"
+"Version: $Id: queryperf.c,v 1.1.1.2.2.5.4.1 2003/10/21 06:24:14 marka Exp $\n"
 "\n");
 }
 
@@ -923,7 +923,7 @@ update_config(char *config_change_desc) {
 
 	case V_SERVER:
 		if (serverset && (setup_phase == TRUE)) {
-			fprintf(stderr, "Config change overriden by command "
+			fprintf(stderr, "Config change overridden by command "
 			        "line: %s\n", directive);
 			return;
 		}
@@ -935,7 +935,7 @@ update_config(char *config_change_desc) {
 
 	case V_PORT:
 		if (portset && (setup_phase == TRUE)) {
-			fprintf(stderr, "Config change overriden by command "
+			fprintf(stderr, "Config change overridden by command "
 			        "line: %s\n", directive);
 			return;
 		}
@@ -954,7 +954,7 @@ update_config(char *config_change_desc) {
 
 	case V_MAXQUERIES:
 		if (queriesset && (setup_phase == TRUE)) {
-			fprintf(stderr, "Config change overriden by command "
+			fprintf(stderr, "Config change overridden by command "
 			        "line: %s\n", directive);
 			return;
 		}
@@ -970,7 +970,7 @@ update_config(char *config_change_desc) {
 
 	case V_MAXWAIT:
 		if (timeoutset && (setup_phase == TRUE)) {
-			fprintf(stderr, "Config change overriden by command "
+			fprintf(stderr, "Config change overridden by command "
 			        "line: %s\n", directive);
 			return;
 		}

@@ -15,10 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.12.4.2.8.1 2003/08/14 04:12:46 marka Exp $ */
-
-#include <stdlib.h>
-#include <string.h>
+/* $Id: zonetodb.c,v 1.12.4.2.8.2 2003/10/21 06:24:14 marka Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -280,6 +277,5 @@ main(int argc, char **argv) {
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx);
 	closeandexit(0);
-	exit(0);
 	exit(0);
 }
