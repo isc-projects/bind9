@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netscope.h,v 1.2 2002/10/24 03:52:34 marka Exp $ */
+/* $Id: netscope.h,v 1.3 2002/10/28 02:23:54 marka Exp $ */
 
 #ifndef ISC_NETSCOPE_H
 #define ISC_NETSCOPE_H 1
@@ -33,7 +33,7 @@ ISC_LANG_BEGINDECLS
  *	ISC_R_FAILURE: conversion fails
  */
 isc_result_t
-isc_netscope_pton(int af, char *scopename, char *addr, u_int32_t *zoneid);
+isc_netscope_pton(int af, char *scopename, char *addr, isc_uint32_t *zoneid);
 
 ISC_LANG_ENDDECLS
 
