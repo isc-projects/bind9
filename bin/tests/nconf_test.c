@@ -52,6 +52,7 @@ zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap)
 		vname = "no current view";
 	}
 #else
+	(void) view;
 	vname = "foo";
 #endif	
 
