@@ -1,3 +1,6 @@
+1240.	[bug]		It was possible to leak zone references by
+			specifying an incorrect zone to rndc.
+
 1239.	[bug]		Under certain circumstances named could continue to
 			use a name after it had been freed triggering
 			INSIST() failures.  [RT #2614]
