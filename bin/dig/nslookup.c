@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.60 2000/10/23 23:13:20 mws Exp $ */
+/* $Id: nslookup.c,v 1.61 2000/10/25 04:26:16 marka Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	isc_buffer_t *b = NULL;
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char *ptr;
 	char *input;
 
@@ -327,6 +327,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					       (int)isc_buffer_usedlength(b),
 					       (char*)isc_buffer_base(b));
 				}
+				dns_rdata_invalidate(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
@@ -349,7 +350,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	isc_buffer_t *b = NULL;
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char *ptr;
 	char *input;
 
@@ -466,6 +467,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					       (int)isc_buffer_usedlength(b),
 					       (char*)isc_buffer_base(b));
 				}
+				dns_rdata_invalidate(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}

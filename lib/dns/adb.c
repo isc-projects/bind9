@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.155 2000/10/20 02:21:42 marka Exp $ */
+/* $Id: adb.c,v 1.156 2000/10/25 04:26:29 marka Exp $ */
 
 /*
  * Implementation notes
@@ -480,7 +480,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	isc_result_t result;
 	dns_adb_t *adb;
 	dns_adbnamehook_t *nh;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	struct in_addr ina;
 	struct in6_addr in6a;
 	isc_sockaddr_t sockaddr;
@@ -507,6 +507,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	nh = NULL;
 	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
+		dns_rdata_invalidate(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		if (rdtype == dns_rdatatype_a) {
 			INSIST(rdata.length == 4);
@@ -976,7 +977,7 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 	dns_namereln_t namereln;
 	unsigned int nlabels, nbits;
 	int order;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_fixedname_t fixed1, fixed2;
 	dns_name_t *prefix, *new_target;
 

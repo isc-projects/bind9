@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6.c,v 1.16 2000/08/01 01:22:06 tale Exp $ */
+/* $Id: a6.c,v 1.17 2000/10/25 04:26:27 marka Exp $ */
 
 #include <config.h>
 
@@ -42,7 +42,7 @@ static isc_result_t
 foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 	unsigned int oprefixlen)
 {
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	dns_name_t name;
 	dns_rdataset_t child;
@@ -152,6 +152,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 				(a6ctx->address)(a6ctx);
 		}
 	next_a6:
+		dns_rdata_invalidate(&rdata);
 		result = dns_rdataset_next(parent);
 		if (result == ISC_R_SUCCESS) {
 			a6ctx->chains++;

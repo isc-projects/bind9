@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.102 2000/10/16 04:26:08 marka Exp $ */
+/* $Id: xfrin.c,v 1.103 2000/10/25 04:26:53 marka Exp $ */
 
 #include <config.h>
 
@@ -849,7 +849,7 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target)
 
 	CHECK(dns_message_gettemprdata(msg, &rdata));
 	dns_rdata_init(rdata);
-	*rdata = tuple->rdata; /* Struct assignment. */
+	dns_rdata_clone(&tuple->rdata, rdata);
 
 	CHECK(dns_message_gettemprdatalist(msg, &rdl));
 	dns_rdatalist_init(rdl);
@@ -1109,7 +1109,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(rds))
 			{
-				dns_rdata_t rdata;
+				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rds, &rdata);
 				CHECK(xfr_rr(xfr, name, rds->ttl, &rdata));
 			}

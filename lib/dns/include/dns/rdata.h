@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.44 2000/10/24 02:03:33 marka Exp $ */
+/* $Id: rdata.h,v 1.45 2000/10/25 04:26:56 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -125,6 +125,8 @@ struct dns_rdata {
 	ISC_LINK(dns_rdata_t)		link;
 };
 
+#define DNS_RDATA_INIT { NULL, 0, 0, 0, 0, {(void*)(-1), (void *)(-1)}}
+
 #define DNS_RDATA_UPDATE	0x0001		/* update pseudo record */
 
 /*
@@ -163,7 +165,7 @@ dns_rdata_invalidate(dns_rdata_t *rdata);
  */
 
 void
-dns_rdata_clone(dns_rdata_t *src, dns_rdata_t *target);
+dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target);
 /*
  * Clone 'target' from 'src'.
  *

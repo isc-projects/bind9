@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.154 2000/10/20 20:40:46 mws Exp $ */
+/* $Id: message.c,v 1.155 2000/10/25 04:26:38 marka Exp $ */
 
 /***
  *** Imports
@@ -844,24 +844,6 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	unsigned int tries;
 	unsigned int trysize;
 
-	/*
-	 * In dynamic update messages, the rdata can be empty.
-	 */
-	if (msg->opcode == dns_opcode_update && rdatalen == 0) {
-		/*
-		 * When the rdata is empty, the data pointer is never
-		 * dereferenced, but it must still be non-NULL.  Casting
-		 * 1 rather than "" avoids warnings about discarding
-		 * the const attribute of a string, for compilers that
-		 * would warn about such things.
-		 */
-		rdata->data = (unsigned char *)1;
-		rdata->length = 0;
-		rdata->rdclass = rdclass;
-		rdata->type = rdtype;
-		return (ISC_R_SUCCESS);
-	}
-
 	scratch = currentbuffer(msg);
 
 	isc_buffer_setactive(source, rdatalen);
@@ -1070,6 +1052,16 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	return (result);
 }
 
+static isc_boolean_t
+update(dns_section_t section, dns_rdataclass_t rdclass) {
+	if (section == DNS_SECTION_PREREQUISITE)
+		return (ISC_TF(rdclass == dns_rdataclass_any ||
+			rdclass == dns_rdataclass_none));
+		if (section == DNS_SECTION_UPDATE)
+			return (ISC_TF(rdclass == dns_rdataclass_any));
+	return (ISC_FALSE);
+}
+
 static isc_result_t
 getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	   dns_section_t sectionid, unsigned int options)
@@ -1231,7 +1223,26 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-		if (rdtype == dns_rdatatype_tsig)
+		if (msg->opcode == dns_opcode_update &&
+		    update(sectionid, rdclass)) {
+			if (rdatalen != 0) {
+				result = DNS_R_FORMERR;
+				goto cleanup;
+			}
+			/*
+			 * When the rdata is empty, the data pointer is
+			 * never dereferenced, but it must still be non-NULL. 
+			 * Casting 1 rather than "" avoids warnings about
+			 * discarding the const attribute of a string,
+			 * for compilers that would warn about such things.
+			 */
+			rdata->data = (unsigned char *)1;
+			rdata->length = 0;
+			rdata->rdclass = rdclass;
+			rdata->type = rdtype;
+			rdata->flags = DNS_RDATA_UPDATE;
+			result = ISC_R_SUCCESS;
+		} else if (rdtype == dns_rdatatype_tsig)
 			result = getrdata(source, msg, dctx, rdclass,
 					  rdtype, rdatalen, rdata);
 		else
@@ -1240,7 +1251,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		rdata->rdclass = rdclass;
-		if (rdtype == dns_rdatatype_sig && rdata->length > 0) {
+		if (rdtype == dns_rdatatype_sig && rdata->flags == 0) {
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0 &&
 				 sectionid == DNS_SECTION_ADDITIONAL)
@@ -2277,7 +2288,7 @@ dns_message_getopt(dns_message_t *msg) {
 isc_result_t
 dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	/*
 	 * Set the OPT record for 'msg'.
@@ -2434,7 +2445,7 @@ isc_result_t
 dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
 			 isc_buffer_t **querytsig) {
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2557,7 +2568,7 @@ dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer) {
 isc_result_t
 dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(signer != NULL);
@@ -2639,7 +2650,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	if (msg->tsigkey != NULL || msg->tsig != NULL)
 		return (dns_view_checksig(view, &msgb, msg));
 	else {
-		dns_rdata_t rdata;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_sig_t sig;
 		dns_rdataset_t keyset;
 		isc_result_t result;

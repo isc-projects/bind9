@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.60 2000/10/20 13:29:32 marka Exp $ */
+/* $Id: journal.c,v 1.61 2000/10/25 04:26:33 marka Exp $ */
 
 #include <config.h>
 
@@ -127,7 +127,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_name_t *zonename;
 
 	zonename = dns_db_origin(db);
@@ -202,10 +202,9 @@ dns_difftuple_create(isc_mem_t *mctx,
 	t->ttl = ttl;
 
 	memcpy(datap, rdata->data, rdata->length);
+	dns_rdata_init(&t->rdata);
+	dns_rdata_clone(rdata, &t->rdata);
 	t->rdata.data = datap;
-	t->rdata.length = rdata->length;
-	t->rdata.rdclass = rdata->rdclass;
-	t->rdata.type = rdata->type;
 	datap += rdata->length;
 
 	ISC_LINK_INIT(&t->rdata, link);
@@ -592,7 +591,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 
 		dns_rdatalist_t rdl;
 		dns_rdataset_t rds;
-		dns_rdata_t rd;
+		dns_rdata_t rd = DNS_RDATA_INIT;
 
 		result = diff_tuple_tordataset(t, &rd, &rdl, &rds);
 		if (result != ISC_R_SUCCESS) {
@@ -2143,6 +2142,7 @@ read_one_rr(dns_journal_t *j) {
 	 * Parse the rdata.
 	 */
 	isc_buffer_setactive(&j->it.source, rdlen);
+	dns_rdata_invalidate(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass,
 				 rdtype, &j->it.source, &j->it.dctx,
 				 ISC_FALSE, &j->it.target));
@@ -2222,7 +2222,7 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(&rdataset))
 		{
-			dns_rdata_t rdata;
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			result = dns_difftuple_create(diff->mctx, op, name,
 						      rdataset.ttl, &rdata,

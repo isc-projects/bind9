@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.63 2000/09/16 01:12:19 bwelling Exp $
+ * $Id: dst_api.c,v 1.64 2000/10/25 04:26:57 marka Exp $
  */
 
 #include <config.h>
@@ -845,7 +845,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	isc_lex_t *lex = NULL;
 	isc_token_t token;
 	isc_result_t ret;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
 	char *newfilename;
 	isc_textregion_t r;
@@ -959,7 +959,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	char text_array[DST_KEY_MAXSIZE];
 	char class_array[10];
 	isc_result_t ret;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	REQUIRE(VALID_KEY(key));
 

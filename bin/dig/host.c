@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.57 2000/10/23 23:13:19 mws Exp $ */
+/* $Id: host.c,v 1.58 2000/10/25 04:26:14 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -288,7 +288,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 {
 	dns_name_t *name, *print_name;
 	dns_rdataset_t *rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_buffer_t target;
 	isc_result_t result, loopresult;
 	isc_region_t r;
@@ -355,6 +355,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 						rtt = "unknown";
 					say_message(print_name, rtt,
 						    &rdata, query);
+					dns_rdata_invalidate(&rdata);
 					loopresult =
 						dns_rdataset_next(rdataset);
 				}

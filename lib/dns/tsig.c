@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.93 2000/10/12 00:40:51 bwelling Exp $
+ * $Id: tsig.c,v 1.94 2000/10/25 04:26:50 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -415,7 +415,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		 * If this is a response, digest the query signature.
 		 */
 		if (is_response(msg)) {
-			dns_rdata_t querytsigrdata;
+			dns_rdata_t querytsigrdata = DNS_RDATA_INIT;
 
 			ret = dns_rdataset_first(msg->querytsig);
 			if (ret != ISC_R_SUCCESS)
@@ -612,7 +612,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	isc_buffer_t databuf;
 	unsigned char data[32];
 	dns_name_t *keyname;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_stdtime_t now;
 	isc_result_t ret;
 	dns_tsigkey_t *tsigkey;
@@ -661,6 +661,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
+	dns_rdata_invalidate(&rdata);
 	if (is_response(msg)) {
 		ret = dns_rdataset_first(msg->querytsig);
 		if (ret != ISC_R_SUCCESS)
@@ -865,7 +866,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	isc_buffer_t databuf;
 	unsigned char data[32];
 	dns_name_t *keyname;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_stdtime_t now;
 	isc_result_t ret;
 	dns_tsigkey_t *tsigkey;
@@ -896,6 +897,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
+	dns_rdata_invalidate(&rdata);
 
 	/*
 	 * If there is a TSIG in this message, do some checks.

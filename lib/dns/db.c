@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.58 2000/10/18 23:53:21 marka Exp $ */
+/* $Id: db.c,v 1.59 2000/10/25 04:26:31 marka Exp $ */
 
 /***
  *** Imports
@@ -643,7 +643,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_buffer_t buffer;
 
 	REQUIRE(dns_db_iszone(db) || dns_db_isstub(db));
@@ -662,6 +662,8 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
  	if (result != ISC_R_SUCCESS)
 		goto freerdataset;
 	dns_rdataset_current(&rdataset, &rdata);
+	result = dns_rdataset_next(&rdataset);
+	INSIST(result = ISC_R_NOMORE);
 
 	INSIST(rdata.length > 20);
 	isc_buffer_init(&buffer, rdata.data, rdata.length);

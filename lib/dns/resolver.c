@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.173 2000/10/20 02:21:51 marka Exp $ */
+/* $Id: resolver.c,v 1.174 2000/10/25 04:26:49 marka Exp $ */
 
 #include <config.h>
 
@@ -617,6 +617,7 @@ fctx_addopt(dns_message_t *message) {
 	rdata->length = 0;
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatalist->type;
+	rdata->flags = 0;
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
@@ -1299,7 +1300,7 @@ sort_finds(fetchctx_t *fctx) {
 
 static isc_result_t
 fctx_getaddresses(fetchctx_t *fctx) {
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	dns_resolver_t *res;
 	isc_stdtime_t now;
@@ -1463,6 +1464,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 				dns_adb_destroyfind(&find);
 			}
 		}
+		dns_rdata_invalidate(&rdata);
 		dns_rdata_freestruct(&ns);
 		result = dns_rdataset_next(&fctx->nameservers);
 	}
@@ -3093,7 +3095,7 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 static inline isc_result_t
 cname_target(dns_rdataset_t *rdataset, dns_name_t *tname) {
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_cname_t cname;
 
 	result = dns_rdataset_first(rdataset);
@@ -3115,7 +3117,7 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	     dns_fixedname_t *fixeddname)
 {
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int nlabels, nbits;
 	int order;
 	dns_namereln_t namereln;
@@ -3930,7 +3932,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	tsigset = dns_message_gettsig(message, &tsigowner);
 	if (tsigset != NULL) {
 		dns_rdata_any_tsig_t tsig;
-		dns_rdata_t rdata;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		result = dns_rdataset_first(tsigset);
 		if (result != ISC_R_SUCCESS)

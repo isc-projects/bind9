@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.34 2000/09/08 21:47:03 gson Exp $ */
+/* $Id: masterdump.c,v 1.35 2000/10/25 04:26:37 marka Exp $ */
 
 #include <config.h>
 
@@ -417,7 +417,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 * Rdata.
 		 */
 		{
-			dns_rdata_t rdata;
+			dns_rdata_t rdata = DNS_RDATA_INIT;
 			isc_region_t r;
 
 			INDENT_TO(rdata_column);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.74 2000/10/20 02:21:46 marka Exp $ */
+/* $Id: master.c,v 1.75 2000/10/25 04:26:36 marka Exp $ */
 
 #include <config.h>
 
@@ -525,7 +525,7 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 	char *rhsbuf = NULL;
 	dns_fixedname_t ownerfixed;
 	dns_name_t *owner;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatacallbacks_t *callbacks;
 	dns_rdatalist_t rdatalist;
 	dns_rdatatype_t type;
@@ -646,8 +646,10 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 		ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 		result = commit(callbacks, ctx->lex, &head, owner,
 				ctx->top);
+		ISC_LIST_UNLINK(rdatalist.rdata, &rdata, link);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
+		dns_rdata_invalidate(&rdata);
 	}
 	result = ISC_R_SUCCESS;
 	goto cleanup;

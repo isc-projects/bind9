@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.231 2000/10/18 22:13:48 bwelling Exp $ */
+/* $Id: server.c,v 1.232 2000/10/25 04:26:22 marka Exp $ */
 
 #include <config.h>
 
@@ -727,7 +727,7 @@ create_version_zone(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t *view)
 	unsigned char buf[256];
 	isc_region_t r;
 	size_t len;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	static unsigned char origindata[] = "\007version\004bind";
 	dns_name_t origin;
 
@@ -810,7 +810,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 	dns_diff_t diff;
 	isc_constregion_t r;
 	isc_constregion_t cr;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	static const char origindata[] = "\007authors\004bind";
 	dns_name_t origin;
 	int i;
@@ -856,6 +856,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 		CHECK(dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
 					   0, &rdata, &tuple));
 		dns_diff_append(&diff, &tuple);
+		dns_rdata_invalidate(&rdata);
 	}
 
 	CHECK(dns_diff_apply(&diff, db, dbver));

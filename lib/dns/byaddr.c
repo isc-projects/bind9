@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.23 2000/10/17 01:57:41 bwelling Exp $ */
+/* $Id: byaddr.c,v 1.24 2000/10/25 04:26:30 marka Exp $ */
 
 #include <config.h>
 
@@ -128,7 +128,7 @@ static inline isc_result_t
 copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_name_t *name;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	/*
 	 * The caller must be holding the byaddr's lock.
@@ -154,6 +154,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 			return (ISC_R_NOMEMORY);
 		}
 		ISC_LIST_APPEND(byaddr->event->names, name, link);
+		dns_rdata_invalidate(&rdata);
 		result = dns_rdataset_next(rdataset);
 	}
 	if (result == ISC_R_NOMORE)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.239 2000/10/23 00:31:28 marka Exp $ */
+/* $Id: zone.c,v 1.240 2000/10/25 04:26:54 marka Exp $ */
 
 #include <config.h>
 
@@ -1221,7 +1221,7 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_result_t result;
 	unsigned int count;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 
 	dns_rdataset_init(&rdataset);
@@ -1233,12 +1233,14 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	count = 0;
 	result = dns_rdataset_first(&rdataset);
 	while (result == ISC_R_SUCCESS) {
+		dns_rdata_init(&rdata);
 		dns_rdataset_current(&rdataset, &rdata);
 		count++;
 		if (count == 1)
 			dns_rdata_tostruct(&rdata, &soa, NULL);
 
 		result = dns_rdataset_next(&rdataset);
+		dns_rdata_invalidate(&rdata);
 	}
 	dns_rdataset_disassociate(&rdataset);
 
@@ -2376,7 +2378,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	dns_name_t master;
 	dns_rdata_ns_t ns;
 	dns_rdata_soa_t soa;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t nsrdset;
 	dns_rdataset_t soardset;
 	isc_result_t result;
@@ -2464,6 +2466,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&soardset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &soa, NULL);
+		dns_rdata_invalidate(&rdata);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		result = dns_name_dup(&soa.origin, zone->mctx, &master);
@@ -2488,6 +2491,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&nsrdset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
+		dns_rdata_invalidate(&rdata);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		/*
@@ -2546,7 +2550,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	dns_dbnode_t *node = NULL;
 	dns_rdata_ns_t ns;
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	/*
 	 * Extract NS RRset from message.
@@ -2576,6 +2580,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	     result = dns_rdataset_next(nsrdataset)) {
 		dns_rdataset_current(nsrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
+		dns_rdata_invalidate(&rdata);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (!dns_name_issubdomain(&ns.name, name)) {
 			result = dns_rdataset_next(nsrdataset);
@@ -2841,7 +2846,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_t now;
 	char master[ISC_SOCKADDR_FORMATSIZE];
 	dns_rdataset_t *rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	isc_uint32_t serial;
@@ -3528,7 +3533,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	dns_dbversion_t *version = NULL;
 	dns_message_t *message = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	dns_name_t *tempname = NULL;
 	dns_rdata_t *temprdata = NULL;
@@ -3606,7 +3611,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	result = dns_rdataset_first(&rdataset);
 	if (result != ISC_R_SUCCESS)
 		goto soa_cleanup;
-	dns_rdata_init(&rdata);
 	dns_rdataset_current(&rdataset, &rdata);
 	dns_rdata_toregion(&rdata, &r);
 	result = isc_buffer_allocate(zone->mctx, &b, r.length);
@@ -3676,7 +3680,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	unsigned int i;
 	dns_rdata_soa_t soa;
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	isc_stdtime_t now;
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.53 2000/10/07 00:09:20 bwelling Exp $
+ * $Id: dnssec.c,v 1.54 2000/10/25 04:26:32 marka Exp $
  */
 
 
@@ -108,6 +108,7 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	 * Put them in the array.
 	 */
 	do {
+		dns_rdata_init(&data[i]);
 		dns_rdataset_current(set, &data[i++]);
 	} while (dns_rdataset_next(set) == ISC_R_SUCCESS);
 
@@ -451,7 +452,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 			unsigned int *nkeys)
 {
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	dst_key_t *pubkey = NULL;
 	unsigned int count = 0;
@@ -485,6 +486,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 		count++;
  next:
 		dst_key_free(&pubkey);
+		dns_rdata_invalidate(&rdata);
 		result = dns_rdataset_next(&rdataset);
 	}
 	if (result != ISC_R_NOMORE)
@@ -642,7 +644,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 {
 	dns_rdata_sig_t sig;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r, source_r, sig_r, header_r;
 	isc_stdtime_t now;
 	dst_context_t *ctx = NULL;

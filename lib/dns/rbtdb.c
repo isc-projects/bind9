@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.129 2000/10/20 02:21:49 marka Exp $ */
+/* $Id: rbtdb.c,v 1.130 2000/10/25 04:26:43 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3718,7 +3718,7 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 					     NULL, dns_rdatatype_key, 0,
 					     0, &keyset, NULL);
 		if (result == ISC_R_SUCCESS) {
-			dns_rdata_t keyrdata;
+			dns_rdata_t keyrdata = DNS_RDATA_INIT;
 			result = dns_rdataset_first(&keyset);
 			while (result == ISC_R_SUCCESS) {
 				dns_rdataset_current(&keyset, &keyrdata);

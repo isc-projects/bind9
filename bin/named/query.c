@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.139 2000/10/20 02:21:39 marka Exp $ */
+/* $Id: query.c,v 1.140 2000/10/25 04:26:21 marka Exp $ */
 
 #include <config.h>
 
@@ -1565,7 +1565,7 @@ query_addsoa(ns_client_t *client, dns_db_t *db, isc_boolean_t zero_ttl) {
 		 * Extract the SOA MINIMUM.
 		 */
 		dns_rdata_soa_t soa;
-		dns_rdata_t rdata;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		result = dns_rdataset_first(rdataset);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
@@ -2139,7 +2139,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_name_t *fname, *zfname, *tname, *prefix;
 	dns_rdataset_t *rdataset, *trdataset;
 	dns_rdataset_t *sigrdataset, *zrdataset, *zsigrdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t want_restart, authoritative, is_zone;
 	unsigned int qcount, n, nlabels, nbits;
@@ -2728,6 +2728,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			goto cleanup;
 		dns_rdataset_current(trdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
+		dns_rdata_invalidate(&rdata);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_name_init(tname, NULL);
@@ -2774,6 +2775,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			goto cleanup;
 		dns_rdataset_current(trdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dname, NULL);
+		dns_rdata_invalidate(&rdata);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_name_init(tname, NULL);

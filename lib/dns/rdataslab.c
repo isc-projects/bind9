@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.21 2000/10/18 23:53:24 marka Exp $ */
+/* $Id: rdataslab.c,v 1.22 2000/10/25 04:26:48 marka Exp $ */
 
 #include <config.h>
 
@@ -67,6 +67,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	INSIST(result == ISC_R_SUCCESS);
 	for (i = 0; i < nalloc; i++) {
 		INSIST(result == ISC_R_SUCCESS);
+		dns_rdata_init(&rdatas[i]);
 		dns_rdataset_current(rdataset, &rdatas[i]);
 		result = dns_rdataset_next(rdataset);
 	}
@@ -189,18 +190,17 @@ rdata_in_slab(unsigned char *slab, unsigned int reservelen,
 {
 	unsigned int count, i;
 	unsigned char *current;
-	dns_rdata_t trdata;
+	dns_rdata_t trdata = DNS_RDATA_INIT;
 
 	current = slab + reservelen;
 	count = *current++ * 256;
 	count += *current++;
 
-	dns_rdata_init(&trdata);
-
 	for (i = 0; i < count; i++) {
 		rdata_from_slab(&current, rdclass, type, &trdata);
 		if (dns_rdata_compare(&trdata, rdata) == 0)
 			return (ISC_TRUE);
+		dns_rdata_invalidate(&trdata);
 	}
 	return (ISC_FALSE);
 }
@@ -214,7 +214,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	unsigned char *ocurrent, *ostart, *ncurrent, *tstart, *tcurrent;
 	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
 	isc_region_t nregion;
-	dns_rdata_t ordata, nrdata;
+	dns_rdata_t ordata = DNS_RDATA_INIT;
+	dns_rdata_t nrdata = DNS_RDATA_INIT;
 	isc_boolean_t added_something = ISC_FALSE;
 	unsigned int oadded = 0;
 	unsigned int nadded = 0;
@@ -266,6 +267,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		nregion.length = *ncurrent++ * 256;
 		nregion.length += *ncurrent++;
 		nregion.base = ncurrent;
+		dns_rdata_init(&nrdata);
 		dns_rdata_fromregion(&nrdata, rdclass, type, &nregion);
 		if (!rdata_in_slab(oslab, reservelen, rdclass, type, &nrdata))
 		{
@@ -310,6 +312,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	ncurrent = nslab + reservelen + 2;
 	if (ncount > 0) {
 		do {
+			dns_rdata_invalidate(&nrdata);
        			rdata_from_slab(&ncurrent, rdclass, type, &nrdata);
 		} while (rdata_in_slab(oslab, reservelen, rdclass,
 				       type, &nrdata));
@@ -331,6 +334,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 			tcurrent += length;
 			oadded++;
 			if (oadded < ocount) {
+				dns_rdata_invalidate(&ordata);
        				rdata_from_slab(&ocurrent, rdclass, type,
 						&ordata);
 			}
@@ -343,6 +347,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 			nadded++;
 			if (nadded < ncount) {
 				do {
+					dns_rdata_invalidate(&nrdata);
        					rdata_from_slab(&ncurrent, rdclass,
 							type, &nrdata);
 				} while (rdata_in_slab(oslab, reservelen,
@@ -367,7 +372,8 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 {
 	unsigned char *mcurrent, *sstart, *scurrent, *tstart, *tcurrent;
 	unsigned int mcount, scount, rcount ,count, tlength, tcount;
-	dns_rdata_t srdata, mrdata;
+	dns_rdata_t srdata = DNS_RDATA_INIT;
+	dns_rdata_t mrdata = DNS_RDATA_INIT;
 
 	REQUIRE(tslabp != NULL && *tslabp == NULL);
 	REQUIRE(mslab != NULL && sslab != NULL);
@@ -401,6 +407,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		rdata_from_slab(&mcurrent, rdclass, type, &mrdata);
 		scurrent = sstart;
 		for (count = 0; count < scount; count++) {
+			dns_rdata_invalidate(&srdata);
 			rdata_from_slab(&scurrent, rdclass, type, &srdata);
 			if (dns_rdata_compare(&mrdata, &srdata) == 0)
 				break;
@@ -415,6 +422,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		} else
 			rcount++;
 		mcount--;
+		dns_rdata_invalidate(&mrdata);
 	} while (mcount > 0);
 
 	/*
@@ -462,6 +470,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		rdata_from_slab(&mcurrent, rdclass, type, &mrdata);
 		scurrent = sstart;
 		for (count = 0; count < scount; count++) {
+			dns_rdata_invalidate(&srdata);
 			rdata_from_slab(&scurrent, rdclass, type, &srdata);
 			if (dns_rdata_compare(&mrdata, &srdata) == 0)
 				break;
@@ -475,6 +484,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 			memcpy(tcurrent, mrdatabegin, length);
 			tcurrent += length;
 		}
+		dns_rdata_invalidate(&mrdata);
 		mcount--;
 	} while (mcount > 0);
 

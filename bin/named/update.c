@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.69 2000/10/20 22:34:50 gson Exp $ */
+/* $Id: update.c,v 1.70 2000/10/25 04:26:23 marka Exp $ */
 
 #include <config.h>
 
@@ -266,7 +266,8 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
 	{
-		rr_t rr;
+		rr_t rr = { 0, DNS_RDATA_INIT };
+		
 		dns_rdataset_current(rdataset, &rr.rdata);
 		rr.ttl = rdataset->ttl;
 		result = (*ctx->rr_action)(ctx->rr_action_data, &rr);
@@ -407,7 +408,7 @@ foreach_rr(dns_db_t *db,
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset))
 	{
-		rr_t rr;
+		rr_t rr = { 0, DNS_RDATA_INIT };
 		dns_rdataset_current(&rdataset, &rr.rdata);
 		rr.ttl = rdataset.ttl;
 		result = (*rr_action)(rr_action_data, &rr);
@@ -807,7 +808,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(&rdataset))
 			{
-				dns_rdata_t rdata;
+				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(&rdataset, &rdata);
 				result = temp_append(&d_rrs, name, &rdata);
 				if (result != ISC_R_SUCCESS)
@@ -1144,7 +1145,8 @@ static isc_result_t
 namelist_append_name(dns_diff_t *list, dns_name_t *name) {
 	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
-	static dns_rdata_t dummy_rdata = { NULL, 0, 0, 0, 0, { NULL, NULL } };
+	static dns_rdata_t dummy_rdata = { NULL, 0, 0, 0, 0,
+					   { (void*)(-1), (void*)(-1) } };
 	CHECK(dns_difftuple_create(list->mctx, DNS_DIFFOP_EXISTS, name, 0,
 				   &dummy_rdata, &tuple));
 	dns_diff_append(list, &tuple);
@@ -1344,7 +1346,7 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	unsigned char buffer[DNS_NXT_BUFFERSIZE];
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_difftuple_t *tuple = NULL;
 	dns_fixedname_t fixedname;
 	dns_name_t *target;
@@ -1391,7 +1393,7 @@ add_placeholder_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_difftuple_t *tuple = NULL;
 	isc_region_t r;
 	unsigned char data[1] = { 0 }; /* The root domain, no bits. */
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	r.base = data;
 	r.length = sizeof data;
@@ -1430,7 +1432,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t sig_rdata;
+	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	isc_buffer_t buffer;
 	unsigned char data[1024]; /* XXX */
 	unsigned int i;
@@ -1455,6 +1457,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		/* XXX inefficient - will cause dataset merging */
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD, name,
 				    rdataset.ttl, &sig_rdata));
+		dns_rdata_invalidate(&sig_rdata);
 	}
 
  failure:
@@ -1951,7 +1954,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	     result = dns_message_nextname(request, DNS_SECTION_PREREQUISITE))
 	{
 		dns_name_t *name = NULL;
-		dns_rdata_t rdata;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
 		isc_boolean_t flag;
@@ -2060,7 +2063,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
 	{
 		dns_name_t *name = NULL;
-		dns_rdata_t rdata;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
 		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass,
@@ -2145,7 +2148,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
 	{
 		dns_name_t *name = NULL;
-		dns_rdata_t rdata;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
 		isc_boolean_t flag;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.23 2000/08/21 22:17:14 bwelling Exp $ */
+/* $Id: rdatalist.c,v 1.24 2000/10/25 04:26:45 marka Exp $ */
 
 #include <config.h>
 
@@ -121,8 +121,7 @@ isc__rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	list_rdata = rdataset->private2;
 	INSIST(list_rdata != NULL);
 
-	*rdata = *list_rdata;
-	ISC_LINK_INIT(rdata, link);
+	dns_rdata_clone(list_rdata, rdata);
 }
 
 void

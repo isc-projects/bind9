@@ -1,3 +1,11 @@
+ 532.	[func]		Implement DNS UPDATE pseudo records using
+			DNS_RDATA_UPDATE flag.
+
+ 531.	[func]		Rdata really should be initalized before being
+			assigned to (dns_rdata_fromwire(), dns_rdata_fromtext(),
+			dns_rdata_clone(), dns_rdata_fromregion()),
+			check that it is.
+
  530.	[func]		New function dns_rdata_invalidate().
 
  529.	[bug]		521 contained a bug which caused zones to always

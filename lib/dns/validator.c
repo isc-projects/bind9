@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.82 2000/10/07 00:09:28 bwelling Exp $ */
+/* $Id: validator.c,v 1.83 2000/10/25 04:26:52 marka Exp $ */
 
 #include <config.h>
 
@@ -360,7 +360,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		      dns_rdataset_t *nxtset, dns_rdataset_t *signxtset)
 {
 	int order;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 
 	result = dns_rdataset_first(nxtset);
@@ -393,6 +393,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		 * The NXT owner name is less than the nonexistent name.
 		 */
 		result = dns_rdata_tostruct(&rdata, &nxt, NULL);
+		dns_rdata_invalidate(&rdata);
 		INSIST(result == ISC_R_SUCCESS);
 		order = dns_name_compare(val->event->name, &nxt.next);
 		if (order >= 0) {
@@ -592,7 +593,7 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dst_key_t *key = NULL;
 	isc_buffer_t b;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_boolean_t found = ISC_FALSE;
 
 	result = dns_rdataset_first(rdataset);
@@ -614,6 +615,7 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 		if (dst_key_isnullkey(key))
 			found = ISC_TRUE;
 		dst_key_free(&key);
+		dns_rdata_invalidate(&rdata);
 		result = dns_rdataset_next(rdataset);
 	}
 	return (found);
@@ -632,7 +634,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
 {
 	isc_result_t result;
 	isc_buffer_t b;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dst_key_t *oldkey = val->key;
 	isc_boolean_t foundold;
 
@@ -674,6 +676,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
 			}
 		}
 		dst_key_free(&val->key);
+		dns_rdata_invalidate(&rdata);
 		result = dns_rdataset_next(rdataset);
 	} while (result == ISC_R_SUCCESS);
 	if (result == ISC_R_NOMORE)
@@ -857,7 +860,7 @@ issecurityroot(dns_validator_t *val) {
 	dns_rdataset_t *rdataset;
 	isc_mem_t *mctx;
 	dns_keytable_t *secroots;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	dns_keynode_t *keynode, *nextnode;
 	dst_key_t *key, *secrootkey;
@@ -875,6 +878,7 @@ issecurityroot(dns_validator_t *val) {
 		dns_rdataset_current(rdataset, &rdata);
 		key = NULL;
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &key);
+		dns_rdata_invalidate(&rdata);
 		if (result != ISC_R_SUCCESS)
 			 continue;
 		keynode = NULL;
@@ -918,7 +922,7 @@ static inline isc_result_t
 validate(dns_validator_t *val, isc_boolean_t resume) {
 	isc_result_t result;
 	dns_validatorevent_t *event;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	/*
 	 * Caller must be holding the validator lock.
@@ -962,6 +966,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(event->sigrdataset))
 	{
+		dns_rdata_invalidate(&rdata);
 		dns_rdataset_current(event->sigrdataset, &rdata);
 		if (val->siginfo != NULL)
 			isc_mem_put(val->view->mctx, val->siginfo,
@@ -1136,14 +1141,13 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			if (val->event->type == dns_rdatatype_key &&
 			    dns_name_equal(name, val->event->name))
 			{
-				dns_rdata_t nxt;
+				dns_rdata_t nxt = DNS_RDATA_INIT;
 
 				if (rdataset->type != dns_rdatatype_nxt)
 					continue;
 
 				result = dns_rdataset_first(rdataset);
 				INSIST(result == ISC_R_SUCCESS);
-				dns_rdata_init(&nxt);
 				dns_rdataset_current(rdataset, &nxt);
 				if (dns_nxt_typepresent(&nxt,
 							dns_rdatatype_soa))

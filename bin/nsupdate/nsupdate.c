@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.57 2000/10/20 18:31:27 gson Exp $ */
+/* $Id: nsupdate.c,v 1.58 2000/10/25 04:26:26 marka Exp $ */
 
 #include <config.h>
 
@@ -585,7 +585,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 static isc_uint16_t
 parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	    dns_rdatatype_t rdatatype, dns_message_t *msg,
-	    dns_rdata_t **rdatap)
+	    dns_rdata_t *rdata)
 {
 	char *cmdline = *cmdlinep;
 	isc_buffer_t source, *buf = NULL;
@@ -620,7 +620,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 			}
 			result = isc_buffer_allocate(mctx, &buf, bufsz);
 			check_result(result, "isc_buffer_allocate");
-			result = dns_rdata_fromtext(*rdatap, rdataclass,
+			result = dns_rdata_fromtext(rdata, rdataclass,
 						    rdatatype,
 						    lex, rn, ISC_FALSE, buf,
 						    &callbacks);
@@ -631,6 +631,8 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		dns_message_takebuffer(msg, &buf);
 		if (result != ISC_R_SUCCESS)
 			return (STATUS_MORE);
+	} else {
+		rdata->flags = DNS_RDATA_UPDATE;
 	}
 	*cmdlinep = cmdline;
 	return (STATUS_MORE);
@@ -701,7 +703,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 
 	if (isrrset && ispositive) {
 		retval = parse_rdata(&cmdline, rdataclass, rdatatype,
-				     updatemsg, &rdata);
+				     updatemsg, rdata);
 		if (retval != STATUS_MORE)
 			return (retval);
 	}
@@ -895,6 +897,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		if (isdelete) {
 			rdataclass = dns_rdataclass_any;
 			rdatatype = dns_rdatatype_any;
+			rdata->flags = DNS_RDATA_UPDATE;
 			goto doneparsing;
 		} else {
 			fprintf(stderr, "failed to read class or type\n");
@@ -913,6 +916,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			if (isdelete) {
 				rdataclass = dns_rdataclass_any;
 				rdatatype = dns_rdatatype_any;
+				rdata->flags = DNS_RDATA_UPDATE;
 				goto doneparsing;
 			} else {
 				fprintf(stderr, "failed to read type\n");
@@ -930,17 +934,17 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	}
 
 	retval = parse_rdata(&cmdline, rdataclass, rdatatype, updatemsg,
-			     &rdata);
+			     rdata);
 	if (retval != STATUS_MORE)
 		goto failure;
 
 	if (isdelete) {
-		if (rdata->length == 0)
+		if ((rdata->flags & DNS_RDATA_UPDATE) != 0)
 			rdataclass = dns_rdataclass_any;
 		else
 			rdataclass = dns_rdataclass_none;
 	} else {
-		if (rdata->length == 0) {
+		if ((rdata->flags & DNS_RDATA_UPDATE) != 0) {
 			fprintf(stderr, "failed to read rdata\n");
 			goto failure;
 		}

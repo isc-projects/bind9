@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.112 2000/10/24 02:03:32 marka Exp $ */
+/* $Id: rdata.c,v 1.113 2000/10/25 04:26:44 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -330,10 +330,18 @@ dns_rdata_init(dns_rdata_t *rdata) {
 	/* ISC_LIST_INIT(rdata->list); */
 }
 
+#define DNS_RDATA_INITALISED(rdata) \
+	((rdata)->data == NULL && (rdata)->length == 0 && \
+	 (rdata)->rdclass == 0 && (rdata)->type == 0 && (rdata)->flags == 0 && \
+	 !ISC_LINK_LINKED((rdata), link))
+#define DNS_RDATA_VALIDFLAGS(rdata) \
+	(((rdata)->flags & ~DNS_RDATA_UPDATE) == 0)
+
 void
 dns_rdata_invalidate(dns_rdata_t *rdata) {
 
 	REQUIRE(!ISC_LINK_LINKED(rdata, link));
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	rdata->data = NULL;
 	rdata->length = 0;
@@ -342,8 +350,18 @@ dns_rdata_invalidate(dns_rdata_t *rdata) {
 	rdata->flags = 0;
 }
 
+/***
+ ***
+ ***/
+
 void
-dns_rdata_clone(dns_rdata_t *src, dns_rdata_t *target) {
+dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target) {
+
+	REQUIRE(DNS_RDATA_INITALISED(target));
+
+	REQUIRE(DNS_RDATA_VALIDFLAGS(src));
+	REQUIRE(DNS_RDATA_VALIDFLAGS(target));
+
 	target->data = src->data;
 	target->length = src->length;
 	target->rdclass = src->rdclass;
@@ -365,6 +383,8 @@ dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2) {
 	REQUIRE(rdata2 != NULL);
 	REQUIRE(rdata1->data != NULL);
 	REQUIRE(rdata2->data != NULL);
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata1));
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata2));
 
 	if (rdata1->rdclass != rdata2->rdclass)
 		return (rdata1->rdclass < rdata2->rdclass ? -1 : 1);
@@ -395,12 +415,16 @@ dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 {
 
 	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_INITALISED(rdata));
 	REQUIRE(r != NULL);
+
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	rdata->data = r->base;
 	rdata->length = r->length;
 	rdata->rdclass = rdclass;
 	rdata->type = type;
+	rdata->flags = 0;
 }
 
 void
@@ -408,6 +432,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r) {
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(r != NULL);
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	r->base = rdata->data;
 	r->length = rdata->length;
@@ -427,6 +452,10 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_uint32_t activelength;
 
 	REQUIRE(dctx != NULL);
+	if (rdata != NULL) {
+		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+	}
 
 	ss = *source;
 	st = *target;
@@ -477,12 +506,18 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	isc_buffer_t st;
 
 	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	/*
 	 * Some DynDNS meta-RRs have empty rdata.
 	 */
-	if (rdata->length == 0)
+	if ((rdata->flags & DNS_RDATA_UPDATE) != 0) {
+		INSIST(rdata->length == 0);
 		return (ISC_R_SUCCESS);
+	}
+#if 0
+	INSIST(rdata->type == dns_rdatatype_opt || rdata->length != 0);	/* XXXMPA remove */
+#endif
 
 	st = *target;
 
@@ -520,6 +555,11 @@ dns_rdata_fromtextgeneric(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	unsigned long line;
 	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
 	isc_result_t iresult;
+
+	if (rdata != NULL) {
+		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+	}
 
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
@@ -618,6 +658,10 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_result_t iresult;
 
 	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == ISC_TRUE);
+	if (rdata != NULL) {
+		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+	}
 
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
@@ -748,10 +792,13 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 isc_result_t
 dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target)
 {
+	dns_rdata_textctx_t tctx;
+
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+
 	/*
 	 * Set up formatting options for single-line output.
 	 */
-	dns_rdata_textctx_t tctx;
 	tctx.origin = origin;
 	tctx.flags = 0;
 	tctx.width = 60;
@@ -764,10 +811,13 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 		    unsigned int flags, unsigned int width,
 		    char *linebreak, isc_buffer_t *target)
 {
+	dns_rdata_textctx_t tctx;
+
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+
 	/*
 	 * Set up formatting options for formatted output.
 	 */
-	dns_rdata_textctx_t tctx;
 	tctx.origin = origin;
 	tctx.flags = flags;
 	if ((flags & DNS_STYLEFLAG_MULTILINE) != 0) {
@@ -791,6 +841,10 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(source != NULL);
+	if (rdata != NULL) {
+		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+	}
 
 	region.base = (unsigned char *)(target->base) + target->used;
 	st = *target;
@@ -815,6 +869,7 @@ dns_rdata_tostruct(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	TOSTRUCTSWITCH
 
@@ -846,6 +901,7 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(add != NULL);
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	ADDITIONALDATASWITCH
 
@@ -868,6 +924,7 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(digest != NULL);
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	DIGESTSWITCH
 

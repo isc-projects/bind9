@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.122 2000/10/18 22:10:20 gson Exp $ */
+/* $Id: client.c,v 1.123 2000/10/25 04:26:19 marka Exp $ */
 
 #include <config.h>
 
@@ -1010,6 +1010,7 @@ client_addopt(ns_client_t *client) {
 	rdata->length = 0;
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatalist->type;
+	rdata->flags = 0;
 
 #ifdef DNS_OPT_NEWCODES
 	/*

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.39 2000/10/20 02:21:35 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.40 2000/10/25 04:26:17 marka Exp $ */
 
 #include <config.h>
 
@@ -97,7 +97,7 @@ usage(void) {
 static void
 loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 	dst_key_t *key;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	keynode_t *keynode;
 	isc_result_t result;
 
@@ -105,6 +105,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first");
 	for (; result == ISC_R_SUCCESS; result = dns_rdataset_next(rdataset)) {
+		dns_rdata_invalidate(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		key = NULL;
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &key);
@@ -155,7 +156,8 @@ main(int argc, char *argv[]) {
 	dns_dbnode_t *node;
 	dns_dbversion_t *version;
 	dst_key_t *key = NULL;
-	dns_rdata_t *rdata, sigrdata;
+	dns_rdata_t *rdata;
+	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	dns_rdatalist_t sigrdatalist;
 	dns_rdataset_t rdataset, sigrdataset, newsigrdataset;
 	dns_rdata_sig_t sig;
@@ -319,6 +321,7 @@ main(int argc, char *argv[]) {
 			fatal("signature by key '%s' did not verify: %s",
 			      keystr, isc_result_totext(result));
 		}
+		dns_rdata_invalidate(&sigrdata);
 		dns_rdata_freestruct(&sig);
 		result = dns_rdataset_next(&sigrdataset);
 	} while (result == ISC_R_SUCCESS);
@@ -370,7 +373,6 @@ main(int argc, char *argv[]) {
 		data = isc_mem_get(mctx, BUFSIZE);
 		if (data == NULL)
 			fatal("out of memory");
-		dns_rdata_init(rdata);
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dns_dnssec_sign(domain, &rdataset, key,
 					 &starttime, &endtime,

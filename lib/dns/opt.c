@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.3 2000/10/19 23:40:31 gson Exp $ */
+/* $Id: opt.c,v 1.4 2000/10/25 04:26:42 marka Exp $ */
 
 #include <config.h>
 
@@ -46,7 +46,7 @@ optget(dns_optlist_t *optlist, dns_rdataset_t *optset,
        isc_uint16_t code, isc_boolean_t getall)
 {
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int location;
 	isc_region_t rdataregion;
 	isc_buffer_t rdatabuf;

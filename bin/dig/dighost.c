@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.157 2000/10/23 23:13:17 mws Exp $ */
+/* $Id: dighost.c,v 1.158 2000/10/25 04:26:13 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1001,7 +1001,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 	dig_lookup_t *lookup = NULL;
 	dig_server_t *srv = NULL;
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_name_t *name = NULL;
 	isc_result_t result, loopresult;
 	isc_buffer_t *b = NULL;
@@ -1093,6 +1093,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 						 srv, link);
 					isc_buffer_free(&b);
 				}
+				dns_rdata_invalidate(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
@@ -2070,7 +2071,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		    isc_socketevent_t *sevent)
 {
 	dns_rdataset_t *rdataset = NULL;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	isc_buffer_t b;
@@ -2109,6 +2110,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				query->rr_count++;
 				if (query->rr_count >= rr_limit)
 					atlimit = ISC_TRUE;
+				dns_rdata_invalidate(&rdata);
 				dns_rdataset_current(rdataset, &rdata);
 				/*
 				 * If this is the first rr, make sure

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.78 2000/10/20 13:29:30 marka Exp $ */
+/* $Id: xfrout.c,v 1.79 2000/10/25 04:26:25 marka Exp $ */
 
 #include <config.h>
 
@@ -138,6 +138,7 @@ db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	it->rdatasetit = NULL;
+	dns_rdata_init(&it->rdata);
 	dns_rdataset_init(&it->rdataset);
 	dns_fixedname_init(&it->fixedname);
 	INSIST(! dns_rdataset_isassociated(&it->rdataset));
@@ -240,6 +241,7 @@ db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 	REQUIRE(it->result == ISC_R_SUCCESS);
 	*name = dns_fixedname_name(&it->fixedname);
 	*ttl = it->rdataset.ttl;
+	dns_rdata_invalidate(&it->rdata);
 	dns_rdataset_current(&it->rdataset, &it->rdata);
 	*rdata = &it->rdata;
 }
@@ -816,7 +818,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	dns_difftuple_t *current_soa_tuple = NULL;
 	dns_name_t *soa_name;
 	dns_rdataset_t *soa_rdataset;
-	dns_rdata_t soa_rdata;
+	dns_rdata_t soa_rdata = DNS_RDATA_INIT;
 	isc_boolean_t have_soa = ISC_FALSE;
 	const char *mnemonic = NULL;
 	isc_mem_t *mctx = client->mctx;

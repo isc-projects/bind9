@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.50 2000/10/11 17:44:13 mws Exp $ */
+/* $Id: rdataset.c,v 1.51 2000/10/25 04:26:47 marka Exp $ */
 
 #include <config.h>
 
@@ -321,6 +321,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			i = 0;
 			do {
 				INSIST(i < count);
+				dns_rdata_init(&shuffled[i]);
 				dns_rdataset_current(rdataset, &shuffled[i]);
 				i++;
 				result = dns_rdataset_next(rdataset);
@@ -391,8 +392,10 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			 */
 			if (shuffle)
 				rdata = shuffled[i];
-			else
+			else {
+				dns_rdata_init(&rdata);
 				dns_rdataset_current(rdataset, &rdata);
+			}
 			result = dns_rdata_towire(&rdata, cctx, target);
 			if (result != ISC_R_SUCCESS)
 				goto rollback;
@@ -455,6 +458,7 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 		return (result);
 
 	do {
+		dns_rdata_init(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_additionaldata(&rdata, add, arg);
 		if (result == ISC_R_SUCCESS)

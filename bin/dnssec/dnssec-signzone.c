@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.102 2000/10/20 02:21:36 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.103 2000/10/25 04:26:18 marka Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,6 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 {
 	isc_result_t result;
 
-	dns_rdata_init(rdata);
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &endtime,
 				 mctx, b, rdata);
 	isc_entropy_stopcallbacksources(ectx);
@@ -170,7 +169,7 @@ keythatsigned(dns_rdata_sig_t *sig) {
 		key->key = pubkey;
 	key->isdefault = ISC_FALSE;
 	key->position = keycount++;
-	ISC_LIST_APPEND(keylist, key, link);
+	ISC_LIST_APPENDUNSAFE(keylist, key, link);
 	return key;
 }
 
@@ -224,7 +223,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	dns_dbnode_t *node, dns_name_t *name, dns_rdataset_t *set)
 {
 	dns_rdataset_t sigset;
-	dns_rdata_t sigrdata;
+	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	dns_rdata_sig_t sig;
 	signer_key_t *key;
 	isc_result_t result;
@@ -355,7 +354,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 
 		if (resign) {
 			isc_buffer_t b;
-			dns_rdata_t trdata;
+			dns_rdata_t trdata = DNS_RDATA_INIT;
 			unsigned char array[BUFSIZE];
 			char keystr[KEY_FORMATSIZE];
 
@@ -372,6 +371,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			dns_diff_append(diff, &tuple);
 		}
 
+		dns_rdata_invalidate(&sigrdata);
 		dns_rdata_freestruct(&sig);
 		result = dns_rdataset_next(&sigset);
 	}
@@ -386,7 +386,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	while (key != NULL) {
 		if (key->isdefault && !nowsignedby[key->position]) {
 			isc_buffer_t b;
-			dns_rdata_t trdata;
+			dns_rdata_t trdata = DNS_RDATA_INIT;
 			unsigned char array[BUFSIZE];
 			char keystr[KEY_FORMATSIZE];
 
@@ -419,6 +419,7 @@ hasnullkey(dns_rdataset_t *rdataset) {
 	while (result == ISC_R_SUCCESS) {
 		dst_key_t *key = NULL;
 
+		dns_rdata_init(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(dns_rootname,
 						 &rdata, mctx, &key);
@@ -562,7 +563,7 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 	dns_db_t *newdb = NULL;
 	dns_dbnode_t *newnode = NULL;
 	dns_rdataset_t set, sigset;
-	dns_rdata_t sigrdata;
+	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	isc_boolean_t found = ISC_FALSE;
 	dns_rdata_sig_t sig;
@@ -605,6 +606,7 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 			found = ISC_TRUE;
 			break;
 		}
+		dns_rdata_invalidate(&sigrdata);
 	}
 
  failure:
@@ -631,7 +633,7 @@ nxt_setbit(dns_rdataset_t *rdataset, dns_rdatatype_t type) {
 	dns_name_t nxtname;
 	isc_region_t r, r2;
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first()");
@@ -647,7 +649,7 @@ nxt_setbit(dns_rdataset_t *rdataset, dns_rdatatype_t type) {
 static void
 createnullkey(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name) {
 	unsigned char keydata[4];
-	dns_rdata_t keyrdata;
+	dns_rdata_t keyrdata = DNS_RDATA_INIT;
 	dns_rdata_key_t key;
 	dns_diff_t diff;
 	dns_difftuple_t *tuple = NULL;
@@ -938,7 +940,7 @@ minimumttl(dns_db_t *db, dns_dbversion_t *version) {
 	dns_name_t *origin;
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	dns_rdata_t soarr;
+	dns_rdata_t soarr = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	dns_ttl_t ttl;

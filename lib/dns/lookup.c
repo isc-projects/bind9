@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.1 2000/10/17 01:57:42 bwelling Exp $ */
+/* $Id: lookup.c,v 1.2 2000/10/25 04:26:34 marka Exp $ */
 
 #include <config.h>
 
@@ -147,7 +147,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 	isc_boolean_t send_event = ISC_FALSE;
 	dns_name_t *name, *fname, *prefix;
 	dns_fixedname_t foundname, fixed;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int nlabels, nbits;
 	int order;
 	dns_namereln_t namereln;
@@ -220,6 +220,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 				break;
 			dns_rdataset_current(&lookup->rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &cname, NULL);
+			dns_rdata_invalidate(&rdata);
 			if (result != ISC_R_SUCCESS)
 				break;
 			result = dns_name_concatenate(&cname.cname, NULL, name,
@@ -240,6 +241,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 				break;
 			dns_rdataset_current(&lookup->rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &dname, NULL);
+			dns_rdata_invalidate(&rdata);
 			if (result != ISC_R_SUCCESS)
 				break;
 			/*
