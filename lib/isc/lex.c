@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.75 2002/03/11 05:38:27 marka Exp $ */
+/* $Id: lex.c,v 1.76 2003/04/11 07:25:27 marka Exp $ */
 
 #include <config.h>
 
@@ -251,8 +251,7 @@ isc_lex_openstream(isc_lex_t *lex, FILE *stream) {
 
 	REQUIRE(VALID_LEX(lex));
 
-	/* This is safe. */
-	sprintf(name, "stream-%p", stream);
+	snprintf(name, sizeof(name), "stream-%p", stream);
 
 	return (new_source(lex, ISC_TRUE, ISC_FALSE, stream, name));
 }
@@ -267,8 +266,7 @@ isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer) {
 
 	REQUIRE(VALID_LEX(lex));
 
-	/* This is safe. */
-	sprintf(name, "buffer-%p", buffer);
+	snprintf(name, sizeof(name), "buffer-%p", buffer);
 
 	return (new_source(lex, ISC_FALSE, ISC_FALSE, buffer, name));
 }

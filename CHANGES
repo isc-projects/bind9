@@ -1,3 +1,5 @@
+1458.	[cleanup]	sprintf() -> snprintf().
+
 1457.	[port]		Provide strlcat() and strlcpy() for platforms without
 			them.
 

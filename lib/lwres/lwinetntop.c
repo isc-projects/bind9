@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: lwinetntop.c,v 1.10 2001/11/27 01:56:32 gson Exp $";
+	"$Id: lwinetntop.c,v 1.11 2003/04/11 07:25:30 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -83,9 +83,10 @@ static const char *
 inet_ntop4(const unsigned char *src, char *dst, size_t size) {
 	static const char fmt[] = "%u.%u.%u.%u";
 	char tmp[sizeof("255.255.255.255")];
+	size_t len;
 
-	if ((size_t)sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) >= size)
-	{
+	len = snprintf(tmp, sizeof(tmp), fmt, src[0], src[1], src[2], src[3]);
+	if (len >= size) {
 		errno = ENOSPC;
 		return (NULL);
 	}
@@ -170,7 +171,7 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size) {
 			tp += strlen(tp);
 			break;
 		}
-		tp += sprintf(tp, "%x", words[i]);
+		tp += sprintf(tp, "%x", words[i]); /* XXX */
 	}
 	/* Was it a trailing run of 0x00's? */
 	if (best.base != -1 && (best.base + best.len) ==

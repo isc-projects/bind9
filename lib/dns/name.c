@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.138 2003/01/08 04:42:22 marka Exp $ */
+/* $Id: name.c,v 1.139 2003/04/11 07:25:25 marka Exp $ */
 
 #include <config.h>
 
@@ -1221,10 +1221,12 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 						trem--;
 						nlen--;
 					} else {
+						char buf[5];
 						if (trem < 4)
 							return (ISC_R_NOSPACE);
-						sprintf(tdata, "\\%03u",
-							c);
+						snprintf(buf, sizeof(buf),
+							 "\\%03u", c);
+						memcpy(tdata, buf, 4);
 						tdata += 4;
 						trem -= 4;
 						ndata++;

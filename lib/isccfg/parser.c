@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.106 2003/04/10 02:16:11 marka Exp $ */
+/* $Id: parser.c,v 1.107 2003/04/11 07:25:28 marka Exp $ */
 
 #include <config.h>
 
@@ -645,7 +645,8 @@ cfg_obj_asuint64(cfg_obj_t *obj) {
 void
 cfg_print_uint64(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	char buf[32];
-	sprintf(buf, "%" ISC_PRINT_QUADFORMAT "u", obj->value.uint64);
+	snprintf(buf, sizeof(buf), "%" ISC_PRINT_QUADFORMAT "u",
+		 obj->value.uint64);
 	cfg_print_cstr(pctx, buf);
 }
 
@@ -2101,13 +2102,16 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 	static char message[2048];
 	int level = ISC_LOG_ERROR;
 	const char *prep = "";
+	size_t len;
 
 	if (is_warning)
 		level = ISC_LOG_WARNING;
 
-	sprintf(where, "%s:%u: ", current_file(pctx), pctx->line);
+	snprintf(where, sizeof(where), "%s:%u: ",
+		 current_file(pctx), pctx->line);
 
-	if ((unsigned int)vsprintf(message, format, args) >= sizeof(message))
+	len = vsnprintf(message, sizeof(message), format, args);
+	if (len >= sizeof(message))
 		FATAL_ERROR(__FILE__, __LINE__,
 			    "error message would overflow");
 

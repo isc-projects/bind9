@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.22 2002/11/12 19:50:51 marka Exp $ */
+/* $Id: time.c,v 1.23 2003/04/11 07:25:27 marka Exp $ */
 
 #include <config.h>
 
@@ -74,10 +74,10 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 		tm.tm_min++;
 	}
 	tm.tm_sec = (int)t;
-		    /* yy  mm  dd  HH  MM  SS */
-	sprintf(buf, "%04d%02d%02d%02d%02d%02d",
-		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-		tm.tm_hour, tm.tm_min, tm.tm_sec);
+				 /* yyyy  mm  dd  HH  MM  SS */
+	snprintf(buf, sizeof(buf), "%04d%02d%02d%02d%02d%02d",
+		 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+		 tm.tm_hour, tm.tm_min, tm.tm_sec);
 
 	isc_buffer_availableregion(target, &region);
 	l = strlen(buf);

@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.6 2002/03/15 04:54:58 marka Exp $ */
+/* $Id: cc.c,v 1.7 2003/04/11 07:25:28 marka Exp $ */
 
 #include <config.h>
 
@@ -647,7 +647,7 @@ isccc_cc_defineuint32(isccc_sexpr_t *alist, const char *key, isc_uint32_t i)
 	size_t len;
 	isccc_region_t r;
 
-	sprintf(b, "%u", i);
+	snprintf(b, sizeof(b), "%u", i);
 	len = strlen(b);
 	r.rstart = (unsigned char *)b;
 	r.rend = (unsigned char *)b + len;
@@ -792,7 +792,7 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 	key = malloc(len);
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
-	sprintf(key, "%s;%s;%s;%s", _frm, _to, _ser, _tim);
+	snprintf(key, len, "%s;%s;%s;%s", _frm, _to, _ser, _tim);
 	value.as_uinteger = now;
 	result = isccc_symtab_define(symtab, key, ISCCC_SYMTYPE_CCDUP, value,
 				   isccc_symexists_reject);
