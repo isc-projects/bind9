@@ -280,8 +280,6 @@ setup() {
 static void
 cleanup() {
 	destroy_managers();
-	dns_tsig_destroy();
-	dns_tkey_destroy();
 	isc_rwlock_destroy(&ns_g_viewlock);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");

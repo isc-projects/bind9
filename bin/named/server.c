@@ -536,6 +536,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	 */
 	dns_c_ctx_delete(ns_g_lctx, &ns_g_confctx);
 
+	dns_tkey_destroy();
+	dns_tsig_destroy();
+
 	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 
 	isc_task_detach(&server_task);
