@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.1 2001/03/29 06:31:56 marka Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.2 2001/04/02 09:40:56 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -848,7 +848,7 @@ encode_bitsring(const char **bp, const char *end, char **labelp,
 			break;
 		default:
 			if (afterslash) {
-				if (!isdigit(c))
+				if (!isdigit(c&0xff))
 					return(EINVAL);
 				if (beg_blen == NULL) {
 					
@@ -859,7 +859,7 @@ encode_bitsring(const char **bp, const char *end, char **labelp,
 					beg_blen = cp;
 				}
 			} else {
-				if (!isxdigit(c))
+				if (!isxdigit(c&0xff))
 					return(EINVAL);
 				value <<= 4;
 				value += digitvalue[(int)c];

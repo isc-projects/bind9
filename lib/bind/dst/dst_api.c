@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.1 2001/03/29 06:31:31 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.2 2001/04/02 09:42:20 marka Exp $";
 #endif
 
 /*
@@ -557,7 +557,7 @@ dst_s_read_public_key(const char *in_name, const u_int16_t in_id, int in_alg)
 	enckey[--len] = '\0';
 
 	/* remove leading spaces */
-	for (notspace = (char *) enckey; isspace(*notspace); len--)
+	for (notspace = (char *) enckey; isspace((*notspace)&0xff); len--)
 		notspace++;
 
 	dlen = b64_pton(notspace, deckey, sizeof(deckey));
