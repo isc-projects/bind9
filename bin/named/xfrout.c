@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.50 2000/03/29 19:01:47 halley Exp $ */
+/* $Id: xfrout.c,v 1.51 2000/04/04 19:14:05 gson Exp $ */
 
 #include <config.h>
 
@@ -81,9 +81,10 @@
 #define FAILC(code, msg) \
 	do {							\
 		result = (code);				\
-		isc_log_write(XFROUT_PROTOCOL_LOGARGS,		\
-			      "bad zone transfer request: %s (%s)", \
-		      	      msg, isc_result_totext(code));	\
+		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, \
+			   NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO, \
+			   "bad zone transfer request: %s (%s)", \
+		      	   msg, isc_result_totext(code));	\
 		goto failure;					\
 	} while (0)
 
@@ -268,7 +269,11 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	/* Get rid of final newline. */
 	INSIST(buf.used >= 1 && ((char *) buf.base)[buf.used-1] == '\n');
 	buf.used--;
-	
+
+	/*
+	 * We could use xfrout_log(), but that would produce
+	 * very long lines with a repetitive prefix.
+	 */
 	if (result == DNS_R_SUCCESS) {
 		isc_buffer_used(&buf, &r);
 		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
@@ -770,6 +775,10 @@ static void xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg);
 static void xfrout_maybe_destroy(xfrout_ctx_t *xfr);
 static void xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
 static void xfrout_client_shutdown(void *arg, isc_result_t result);
+static void xfrout_log1(ns_client_t *client, dns_name_t *zonename,
+			int level, const char *fmt, ...);
+static void xfrout_log(xfrout_ctx_t *xfr, unsigned int level,
+		       const char *fmt, ...);
 
 /**************************************************************************/
 
@@ -812,15 +821,16 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		break;
 	}
 	
-	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "got %s request", mnemonic);
-
+	ns_client_log(client,
+		      DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT, ISC_LOG_DEBUG(6),
+		      "%s request", mnemonic);
 	/*
 	 * Apply quota.
 	 */
 	result = isc_quota_attach(&ns_g_server->xfroutquota, &quota);
 	if (result != DNS_R_SUCCESS) {
 		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
-			      "zone transfer request denied: %s",
+			      "%s request denied: %s", mnemonic,
 			      isc_result_totext(result));
 		goto failure;
 	}
@@ -841,30 +851,26 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	question_class = question_rdataset->rdclass;
 	INSIST(question_rdataset->type == reqtype);
 	if (ISC_LIST_NEXT(question_rdataset, link) != NULL)
-		FAILC(DNS_R_FORMERR,
-		      "multiple questions in AXFR/IXFR request");
+		FAILC(DNS_R_FORMERR, "multiple questions");
 	result = dns_message_nextname(request, DNS_SECTION_QUESTION);
 	if (result != DNS_R_NOMORE)
-		FAILC(DNS_R_FORMERR,
-		      "multiple questions in AXFR/IXFR request");
+		FAILC(DNS_R_FORMERR, "multiple questions");
 
 	result = dns_zt_find(client->view->zonetable, question_name, NULL, &zone);
 	if (result != DNS_R_SUCCESS)
-		FAILC(DNS_R_NOTAUTH,
-		      "AXFR/IXFR requested for non-authoritative zone");
+		FAILC(DNS_R_NOTAUTH, "non-authoritative zone");
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
 	case dns_zone_slave:
 		break;	/* Master and slave zones are OK for transfer. */
 	default:
-		FAILC(DNS_R_NOTAUTH,
-		      "AXFR/IXFR requested for non-authoritative zone"); 
+		FAILC(DNS_R_NOTAUTH, "non-authoritative zone"); 
 	}
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &ver);
 
-	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "%s question section OK",
-		      mnemonic);
+	xfrout_log1(client, question_name, ISC_LOG_DEBUG(6), 
+		    "%s question section OK", mnemonic);
 
 	/*
 	 * Check the authority section.  Look for a SOA record with
@@ -907,8 +913,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	if (result != DNS_R_NOMORE)
 		CHECK(result);
 
-	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "%s authority section OK",
-		      mnemonic);
+	xfrout_log1(client, question_name, ISC_LOG_DEBUG(6), 
+		    "%s authority section OK", mnemonic);
 
 	/* Decide whether to allow this transfer. */
 	CHECK(ns_client_checkacl(client, "zone transfer", 
@@ -979,9 +985,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 					      &data_stream);
 		if (result == ISC_R_NOTFOUND ||
 		    result == DNS_R_RANGE) {
-			isc_log_write(XFROUT_DEBUG_LOGARGS(4),
-				      "IXFR version not in journal, "
-				      "falling back to AXFR");
+			xfrout_log1(client, question_name, ISC_LOG_DEBUG(4), 
+				    "IXFR version not in journal, "
+				    "falling back to AXFR");
 			goto axfr_fallback;
 		}
 		CHECK(result);
@@ -1049,14 +1055,11 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	if (xfr != NULL) {
 		xfrout_fail(xfr, result, "setting up zone transfer");
 	} else if (result != DNS_R_SUCCESS) {
-		isc_log_write(XFROUT_DEBUG_LOGARGS(3),
-			      "zone transfer setup failed"); 
+		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT,
+			      ISC_LOG_DEBUG(3), "zone transfer setup failed"); 
 		ns_client_error(client, result);
 	}
 }
-
-
-
 
 static isc_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
@@ -1275,10 +1278,9 @@ sendstream(xfrout_ctx_t *xfr)
 			 * slave.
 			 */
 			if (n_rrs == 0) {
-				isc_log_write(XFROUT_COMMON_LOGARGS,
-					      ISC_LOG_WARNING,
-					      "RR too large for zone transfer "
-					      "(%d bytes)", size);
+				xfrout_log(xfr, ISC_LOG_WARNING, 
+					   "RR too large for zone transfer "
+					   "(%d bytes)", size);
 				/* XXX DNS_R_RRTOOLARGE? */
 				result = ISC_R_NOSPACE;
 				goto failure;
@@ -1345,17 +1347,17 @@ sendstream(xfrout_ctx_t *xfr)
 		isc_buffer_putuint16(&xfr->txlenbuf, used.length);
 		region.base = xfr->txlenbuf.base;
 		region.length = 2 + used.length;
-		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
-			      "sending zone transfer TCP message of %d bytes",
-			      used.length);
+		xfrout_log(xfr, ISC_LOG_DEBUG(8), 
+			   "sending TCP message of %d bytes",
+			   used.length);
 		CHECK(isc_socket_send(xfr->client->tcpsocket, /* XXX */
 				      &region, xfr->client->task,
 				      xfrout_senddone,
 				      xfr));
 		xfr->sends++;
 	} else {
-		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
-			      "sending IXFR UDP response");
+		xfrout_log(xfr, ISC_LOG_DEBUG(8),
+			   "sending IXFR UDP response");
 		/* XXX kludge */
 		dns_message_destroy(&xfr->client->message);
 		xfr->client->message = msg;
@@ -1445,8 +1447,8 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 		sendstream(xfr);
 	} else {
 		/* End of zone transfer stream. */
-		isc_log_write(XFROUT_DEBUG_LOGARGS(6),
-			      "end of outgoing zone transfer");
+		xfrout_log(xfr, ISC_LOG_DEBUG(6),
+			   "end of transfer");
 		ns_client_next(xfr->client, DNS_R_SUCCESS);
 		xfrout_ctx_destroy(&xfr);
 	}
@@ -1456,9 +1458,8 @@ static void
 xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg)
 {
 	xfr->shuttingdown = ISC_TRUE;
-	isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_ERROR,
-		      "outgoing zone transfer: %s: %s",
-		      msg, isc_result_totext(result));
+	xfrout_log(xfr, ISC_LOG_ERROR, "%s: %s",
+		   msg, isc_result_totext(result));
 	xfrout_maybe_destroy(xfr);
 }
 
@@ -1483,4 +1484,59 @@ xfrout_client_shutdown(void *arg, isc_result_t result)
 {
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) arg;
 	xfrout_fail(xfr, result, "aborted");
+}
+
+/*
+ * Log outgoing zone transfer messages in a format like
+ * <client>: transfer of <zone>: <message> 
+ */
+static void
+xfrout_logv(ns_client_t *client, dns_name_t *zonename, int level,
+	    const char *fmt, va_list ap)
+{
+	isc_buffer_t znbuf;
+	char znmem[1024];
+	isc_result_t result;
+	char msgmem[2048];
+	isc_boolean_t omit_final_dot = ISC_TRUE;
+
+	if (dns_name_equal(zonename, dns_rootname))
+		omit_final_dot = ISC_FALSE;
+
+	isc_buffer_init(&znbuf, znmem, sizeof(znmem), ISC_BUFFERTYPE_TEXT);
+	result = dns_name_totext(zonename, omit_final_dot, &znbuf);
+	if (result != DNS_R_SUCCESS) {
+		isc_buffer_clear(&znbuf);
+		isc_buffer_putmem(&znbuf, (unsigned char *)"<UNKNOWN>",
+				  strlen("<UNKNOWN>"));
+	}
+	
+	vsnprintf(msgmem, sizeof(msgmem), fmt, ap);
+
+	ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,
+		      NS_LOGMODULE_XFER_OUT, level,
+		      "transfer of '%.*s': %s", znbuf.used, znbuf.base,
+		      msgmem);
+}
+
+/* Logging function for use when a xfrout_ctx_t has not yet been created. */
+
+static void
+xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level, const char *fmt, ...)
+{
+        va_list ap;
+	va_start(ap, fmt);
+	xfrout_logv(client, zonename, level, fmt, ap);
+	va_end(ap);
+}
+
+/* Logging function for use when there is a xfrout_ctx_t. */
+
+static void
+xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...)
+{
+        va_list ap;
+	va_start(ap, fmt);
+	xfrout_logv(xfr->client, xfr->qname, level, fmt, ap);
+	va_end(ap);
 }

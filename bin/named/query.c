@@ -1720,7 +1720,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		if (result == ISC_R_SUCCESS)
 			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
 				      "no more recursive clients: %s",
 				      isc_result_totext(result));
@@ -2663,7 +2663,7 @@ log_query(ns_client_t *client) {
 			return;
 	}
 	isc_buffer_used(&b, &r);
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
 		      ISC_LOG_DEBUG(1), "query: %.*s",
 		      (int)r.length, (char *)r.base);
 }
