@@ -534,19 +534,17 @@ query_getdb(ns_client_t *client, dns_name_t *name, unsigned int options,
 			 * the NS_QUERYATTR_QUERYOK attribute is now valid.
 			 */
 			client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
-		} else {
-			/*
-			 * Remember the result of the ACL check so we
-			 * don't have to check again.
-			 */
-			if (result == ISC_R_SUCCESS)
-				dbversion->queryok = ISC_TRUE;
-			else
-				dbversion->queryok = ISC_FALSE;
-		}
+		} 
 	} else
 		result = ISC_R_SUCCESS;
 
+	/*
+	 * Remember the result of the ACL check so we
+	 * don't have to check again.
+	 */
+	if (dbversion != NULL && result == ISC_R_SUCCESS)
+		dbversion->queryok = ISC_TRUE;
+		
 	return (result);
 }
 
