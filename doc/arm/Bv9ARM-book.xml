@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72 2000/12/20 03:36:18 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.73 2000/12/29 20:40:35 gson Exp $ -->
 
 <book>
 
@@ -19,7 +19,7 @@
     <title>Scope of Document</title>
 
     <para>The Berkeley Internet Name Domain (<acronym>BIND</acronym>) implements an
-    Internet nameserver for a number of operating systems. This
+    domain name server for a number of operating systems. This
     document provides basic information about the installation and
     care of the Internet Software Consortium (<acronym>ISC</acronym>) <acronym>BIND</acronym> version 9
     software package for system administrators.</para>
@@ -34,7 +34,8 @@
     <acronym>BIND</acronym> 9 software. The task-oriented section is followed by
     <emphasis>Section 4</emphasis>, which contains more advanced
     concepts that the system administrator may need for implementing
-    certain options. Section 5 describes the <acronym>BIND</acronym> 9 lightweight
+    certain options. <emphasis>Section 5</emphasis>
+    describes the <acronym>BIND</acronym> 9 lightweight
     resolver.  The contents of <emphasis>Section 6</emphasis> are
     organized as in a reference manual to aid in the ongoing
     maintenance of the software. <emphasis>Section 7
@@ -70,7 +71,7 @@ describe:</emphasis></para></entry>
               <entry colname = "1" colsep = "1" rowsep = "1">
 <para>a pathname, filename, URL, hostname,
 mailing list name, or new term or concept</para></entry>
-              <entry colname = "2" rowsep = "1"><para><filename>Italic</filename></para></entry>
+              <entry colname = "2" rowsep = "1"><para><filename>Fixed width</filename></para></entry>
             </row>
             <row rowsep = "0">
               <entry colname = "1" colsep = "1" rowsep = "1"><para>literal user
@@ -78,13 +79,8 @@ input</para></entry>
               <entry colname = "2" rowsep = "1"><para><userinput>Fixed Width Bold</userinput></para></entry>
             </row>
             <row rowsep = "0">
-              <entry colname = "1" colsep = "1" rowsep = "1"><para>variable user
-input</para></entry>
-              <entry colname = "2" rowsep = "1"><para><optional>Fixed Width Italic</optional></para></entry>
-            </row>
-            <row rowsep = "0">
               <entry colname = "1" colsep = "1"><para>program output</para></entry>
-              <entry colname = "2"><para><computeroutput>Fixed Width Bold</computeroutput></para></entry>
+              <entry colname = "2"><para><computeroutput>Fixed Width</computeroutput></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -104,212 +100,258 @@ describe:</emphasis></para></entry>
             </row>
             <row rowsep = "0">
               <entry colname = "1" colsep = "1" rowsep = "1"><para>keywords</para></entry>
-              <entry colname = "2" rowsep = "1"><para><literal>Sans Serif Bold</literal></para></entry>
+              <entry colname = "2" rowsep = "1"><para><literal>Fixed Width</literal></para></entry>
             </row>
             <row rowsep = "0">
               <entry colname = "1" colsep = "1" rowsep = "1"><para>variables</para></entry>
-              <entry colname = "2" rowsep = "1"><para><varname>Sans Serif Italic</varname></para></entry>
+              <entry colname = "2" rowsep = "1"><para><varname>Fixed Width</varname></para></entry>
             </row>
-<row rowsep = "0">
-<entry colname = "1" colsep = "1" rowsep = "1"><para>"meta-syntactic"
-information (within brackets when optional)</para></entry>
-<entry colname = "2" rowsep = "1"><para><optional>Fixed Width Italic</optional></para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1" colsep = "1" rowsep = "1"><para>Command line
-input</para></entry>
-<entry colname = "2" rowsep = "1"><para><userinput>Fixed Width Bold</userinput></para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1" colsep = "1" rowsep = "1"><para>Program output</para></entry>
-                <entry colname = "2" rowsep = "1"><para><computeroutput>Fixed Width</computeroutput></para></entry>
-</row>
 <row rowsep = "0">
 <entry colname = "1" colsep = "1"><para>Optional input</para></entry>
                 <entry colname = "2"><para><optional>Text is enclosed in square brackets</optional></para></entry>
 </row>
 </tbody>
 </tgroup></informaltable></para></sect1>
-<sect1><title>Discussion of Domain Name System (<acronym>DNS</acronym>) Basics and
-<acronym>BIND</acronym></title>
+<sect1><title>The Domain Name System (<acronym>DNS</acronym>)</title>
 <para>The purpose of this document is to explain the installation
-and basic upkeep of the <acronym>BIND</acronym> software package, and we begin by reviewing
-the fundamentals of the domain naming system as they relate to <acronym>BIND</acronym>.
-<acronym>BIND</acronym> consists of a <emphasis>nameserver</emphasis> (or "daemon")
-called <command>named</command> and a <command>resolver</command> library.
-The <acronym>BIND</acronym> server runs in the background, servicing queries on a well
-known network port. The standard port for the User Datagram Protocol
-(UDP) and Transmission Control Protocol (TCP), usually port 53,
-is specified in <filename>/etc/services</filename>.
-The <emphasis>resolver</emphasis> is a set of routines residing
-in a system library that provides the interface that programs can
-use to access the domain name services.</para>
-<sect2><title>Nameservers</title>
-<para>A nameserver (NS) is a program that stores information about
-named resources and responds to queries from programs called <emphasis>resolvers</emphasis> which
-act as client processes. The basic function of an NS is to provide
-information about network objects by answering queries.</para>
-<para>With the nameserver, the network can be broken into a hierarchy
-of domains. The name space is organized as a tree according to organizational
-or administrative boundaries. Each node of the tree, called a domain,
-is given a label. The name of the domain is the concatenation of
-all the labels of the domains from the root to the current domain.
-This is represented in written form as a string of labels listed
-from right to left and separated by dots. A label need only be unique
-within its domain. The whole name space is partitioned into areas
-called <emphasis>zones</emphasis>, each starting at a domain and
-extending down to the leaf domains or to domains where other zones
-start. Zones usually represent administrative boundaries. For example,
-a domain name for a host at the company <emphasis>Example, Inc.</emphasis> would
-be:</para>
-<para><systemitem class="systemname">ourhost.example.com</systemitem></para>
-<para>where <systemitem class="systemname">com</systemitem> is the top level domain to which
-<systemitem class="systemname">ourhost.example.com</systemitem> belongs, 
-<systemitem class="systemname">example</systemitem> is
-a subdomain of <systemitem class="systemname">com</systemitem>, and
-<systemitem class="systemname">ourhost</systemitem> is the
+and upkeep of the <acronym>BIND</acronym> software package, and we
+begin by reviewing the fundamentals of the Domain Name System
+(<acronym>DNS</acronym>) as they relate to <acronym>BIND</acronym>.
+</para>
+
+<sect2>
+<title>DNS Fundamentals</title>
+
+<para>The Domain Name System (DNS) is the hierarchical, distributed
+database.  It stores information for mapping Internet host names to IP
+addresses and vice versa, mail routing information, and other data
+used by Internet applications.</para>
+
+<para>Clients look up information in the DNS by calling a
+<emphasis>resolver</emphasis> library, which sends queries to one or
+more <emphasis>name servers</emphasis> and interprets the responses.
+The <acronym>BIND 9</acronym> software distribution contains both a 
+name server and a resolver library.</para>
+
+</sect2><sect2>
+<title>Domains and Domain Names</title>
+
+<para>The data stored in the DNS is identified by <emphasis>domain
+names</emphasis> that are organized as a tree according to
+organizational or administrative boundaries. Each node of the tree,
+called a <emphasis>domain</emphasis>, is given a label. The domain name of the
+node is the concatenation of all the labels on the path from the
+node to the <emphasis>root</emphasis> node.  This is represented
+in written form as a string of labels listed from right to left and
+separated by dots. A label need only be unique within its parent
+domain.</para>
+
+<para>For example, a domain name for a host at the
+company <emphasis>Example, Inc.</emphasis> could be
+<literal>mail.example.net</literal>,
+were <literal>com</literal> is the
+top level domain to which
+<literal>ourhost.example.com</literal> belongs,
+<literal>example</literal> is
+a subdomain of <literal>com</literal>, and
+<literal>ourhost</literal> is the
 name of the host.</para>
-<para>The specifications for the domain nameserver are defined in
-the RFC 1034, RFC 1035 and RFC 974. These documents can be found
-in
-<filename>/usr/src/etc/named/doc</filename> in 4.4BSD or are available
-via File Transfer Protocol (FTP) from
-<ulink url="ftp://www.isi.edu/in-notes/">ftp://www.isi.edu/in-notes/</ulink>
-or via the Web at <ulink url="http://www.ietf.org/rfc/">http://www.ietf.org/rfc/</ulink>.
-(See Appendix C for complete information on finding and retrieving
-RFCs.) It is also recommended that you read the related man pages:
-<command>named</command> and <command>resolver</command>.</para></sect2>
-<sect2><title>Types of Zones</title>
+
+<para>For administrative purposes, the name space is partitioned into
+areas called <emphasis>zones</emphasis>, each starting at a node and
+extending down to the leaf nodes or to nodes where other zones start.
+The data for each zone is stored in a <emphasis>name
+server</emphasis>, which answers queries about the zone using the
+<emphasis>DNS protocol</emphasis>.
+</para>
+
+<para>The data associated with each domain name is stored in the
+form of <emphasis>resource records</emphasis> (<acronym>RR</acronym>s).
+Some of the supported resource record types are described in
+<xref linkend="types_of_resource_records_and_when_to_use_them"/>.</para>
+
+<para>For more detailed information about the design of the DNS and
+the DNS protocol, please refer to the standards documents listed in
+<xref linkend="rfcs"/>.</para>
+</sect2>
+
+<sect2><title>Zones</title>
+<para>To properly operate a name server, it is important to understand
+the difference between a <emphasis>zone</emphasis>
+and a <emphasis>domain</emphasis>.</para>
+
 <para>As we stated previously, a zone is a point of delegation in
-the <acronym>DNS</acronym> tree. A zone consists of those contiguous parts of the domain
-tree for which a domain server has complete information and over which
+the <acronym>DNS</acronym> tree. A zone consists of
+those contiguous parts of the domain
+tree for which a a name server has complete information and over which
 it has authority. It contains all domain names from a certain point
 downward in the domain tree except those which are delegated to
-other zones. A delegation point has one or more NS records in the
+other zones. A delegation point is marked by one or more
+<emphasis>NS records</emphasis> in the
 parent zone, which should be matched by equivalent NS records at
 the root of the delegated zone.</para>
-<para>To properly operate a nameserver, it is important to understand
-the difference between a <emphasis>zone</emphasis> and a <emphasis>domain</emphasis>.</para>
-<para>For instance, consider the <systemitem class="systemname">example.com</systemitem> domain
-which includes names such as <systemitem class="systemname">host.aaa.example.com</systemitem>
-and <systemitem class="systemname">host.bbb.example.com</systemitem> even
-though the <systemitem class="systemname">example.com</systemitem>
-zone includes only delegations for the
-<systemitem class="systemname">aaa.example.com</systemitem>
-and <systemitem class="systemname">bbb.example.com</systemitem> zones.
-A zone can map exactly to a single domain, but could also include
-only part of a domain, the rest of which could be delegated to other
-nameservers. Every name in the <acronym>DNS</acronym> tree is a <emphasis>domain</emphasis>,
-even if it is <emphasis>terminal</emphasis>, that is, has no <emphasis>subdomains</emphasis>.
-Every subdomain is a domain and every domain except the root is
-also a subdomain. The terminology is not intuitive and we suggest
-that you read RFCs 1033, 1034 and 1035 to gain a complete understanding
-of this difficult and subtle topic.</para>
-<para>Though <acronym>BIND</acronym> is a Domain Nameserver, it deals primarily in
-terms of zones. The master and slave declarations in the <filename>named.conf</filename> file
-specify zones, not domains. When you ask some other site if it is willing
-to be a slave server for your <emphasis>domain</emphasis>, you are
+
+<para>For instance, consider the <literal>example.com</literal>
+domain which includes names
+such as <literal>host.aaa.example.com</literal> and
+<literal>host.bbb.example.com</literal> even though
+the <literal>example.com</literal> zone includes
+only delegations for the <literal>aaa.example.com</literal> and
+<literal>bbb.example.com</literal> zones.  A zone can map
+exactly to a single domain, but could also include only part of a
+domain, the rest of which could be delegated to other
+name servers. Every name in the <acronym>DNS</acronym> tree is a
+<emphasis>domain</emphasis>, even if it is
+<emphasis>terminal</emphasis>, that is, has no
+<emphasis>subdomains</emphasis>.  Every subdomain is a domain and
+every domain except the root is also a subdomain. The terminology is
+not intuitive and we suggest that you read RFCs 1033, 1034 and 1035 to
+gain a complete understanding of this difficult and subtle
+topic.</para>
+
+<para>Though <acronym>BIND</acronym> is called a "domain name server",
+it deals primarily in terms of zones. The master and slave
+declarations in the <filename>named.conf</filename> file specify
+zones, not domains. When you ask some other site if it is willing to
+be a slave server for your <emphasis>domain</emphasis>, you are
 actually asking for slave service for some collection of zones.</para>
-<para>Each zone will have one <emphasis>primary master</emphasis> (also
-called <emphasis>primary</emphasis>) server which loads the zone
-contents from some local file edited by humans or perhaps generated
-mechanically from some other local file which is edited by humans.
-There there will be some number of <emphasis>slave</emphasis> (also
-called <emphasis>secondary) </emphasis>servers, which load the zone
-contents using the <acronym>DNS</acronym> protocol (that is, the secondary servers
-will contact the primary and fetch the zone data using TCP). This
-set of servers &mdash; the primary and all of its secondaries &mdash; should be
-listed in the NS records in the parent zone and will constitute a <emphasis>delegation</emphasis>.
-This set of servers must also be listed in the zone file itself,
-usually under the <command>@</command> name which indicates the <emphasis>top
-level</emphasis> or <emphasis>root</emphasis> of the current zone.
-You can list servers in the zone's top-level <command>@</command> NS
+</sect2>
+
+<sect2><title>Authoritative Name Servers</title>
+
+<para>Each zone is served by at least
+one <emphasis>authoritative name server</emphasis>,
+which contains the complete data for the zone.
+To make the DNS tolerant of server and network failures,
+most zones have two or more authoritative servers.
+</para>
+
+<para>Responses from authoritative servers have the the "authoritative
+answer" (AA) bit set in the response packets.  This makes them 
+easy to identify when debugging DNS configurations using tools like
+<command>dig</command> (<xref linkend="diagnostic_tools"/>).</para>
+
+<sect3><title>The Primary Master</title>
+
+<para>
+The authoritative server where the master copy of the zone data is maintained is
+called the <emphasis>primary master</emphasis> server, or simply the
+<emphasis>primary</emphasis>.  It loads the zone contents from some
+local file edited by humans or perhaps generated mechanically from
+some other local file which is edited by humans.  This file is called
+the <emphasis>zone file</emphasis> or <emphasis>master file</emphasis>.</para>
+</sect3>
+
+<sect3><title>Slave Servers</title>
+<para>The other authoritative servers, the <emphasis>slave</emphasis>
+servers (also known as <emphasis>secondary</emphasis> servers) load
+the zone contents from another server using a replication process
+known as a <emphasis>zone transfer</emphasis>.  Typically the data are
+transferred directly from the primary master, but it is also possible
+to transfer it from another slave.  In other words, a slave server
+may itself act as a master to a subordinate slave server.</para>
+</sect3>
+
+<sect3><title>Stealth Servers</title>
+
+<para>Usually all of the zone's authoritative servers are listed in 
+NS records in the parent zone.  These NS records constitute
+a <emphasis>delegation</emphasis> of the zone from the parent.
+The authoritative servers are also listed in the zone file itself,
+at the <emphasis>top level</emphasis> or <emphasis>apex</emphasis>
+of the zone.  You can list servers in the zone's top-level NS
 records that are not in the parent's NS delegation, but you cannot
-list servers in the parent's delegation that are not present in
-the zone's <command>@</command>.</para>
-<para>Any servers listed in the NS records must be configured as <emphasis>authoritative</emphasis> for
-the zone. A server is authoritative for a zone when it has been
-configured to answer questions for that zone with authority, which
-it does by setting the "authoritative answer" (AA) bit in reply
-packets. A server may be authoritative for more than one zone. The
-authoritative data for a zone is composed of all of the Resource
-Records (RRs) &mdash; the data associated with names in a tree-structured
-name space &mdash; attached to all of the nodes from the top node of the
-zone down to leaf nodes or nodes above cuts around the bottom edge
-of the zone.</para>
-<para>Adding a zone as a type master or type slave will tell the
-server to answer questions for the zone authoritatively. If the
-server is able to load the zone into memory without any errors it
-will set the AA bit when it replies to queries for the zone. See
-RFCs 1034 and 1035 for more information about the AA bit.</para></sect2>
-<sect2><title>Servers</title>
-<para>A <acronym>DNS</acronym> server can be master for some zones and slave for others
-or can be only a master, or only a slave, or can serve no zones
-and just answer queries via its <emphasis>cache</emphasis>. Master
-servers are often also called <emphasis>primaries</emphasis> and
-slave servers are often also called <emphasis>secondaries</emphasis>.
-Both master/primary and slave/secondary servers are authoritative
-for a zone.</para>
-<para>All servers keep data in their cache until the data expires,
-based on a Time To Live (TTL) field which is maintained for all
-resource records.</para>
-<sect3><title>Master Server</title>
-<para>The <emphasis>primary master server</emphasis> is the ultimate
-source of information about a domain. The primary master is an authoritative
-server configured to be the source of zone transfer for one or more
-secondary servers. The primary master server obtains data for the
-zone from a file on disk.</para></sect3>
-<sect3><title>Slave Server </title>
-<para>A <emphasis>slave server</emphasis>, also called a <emphasis>secondary
-server</emphasis>, is an authoritative server that uses zone transfers from
-the primary master server to retrieve the zone data. Optionally,
-the slave server obtains zone data from a cache on disk. Slave servers
-provide necessary redundancy. All secondary/slave servers are named
-in the NS RRs for the zone.</para></sect3>
-<sect3><title>Caching Only Server</title>
-<para>Some servers are <emphasis>caching only servers</emphasis>.
-This means that the server caches the information that it receives
-and uses it until the data expires. A caching only server is a server
-that is not authoritative for any zone. This server services queries
-and asks other servers, who have the authority, for the information
-it needs.</para></sect3>
-<sect3><title>Forwarding Server</title>
-<para>Instead of interacting with the nameservers for the root and
-other domains, a <emphasis>forwarding server</emphasis> always forwards
-queries it cannot satisfy from its authoritative data or cache to
-a fixed list of other servers. The forwarded queries are also known
-as <emphasis>recursive queries</emphasis>, the same type as a client would
-send to a server. There may be one or more servers forwarded to,
+list servers in the parent's delegation that are not present at
+the zone's top level.</para>
+
+<para>A <emphasis>stealth server</emphasis> is a server that is
+authoritative for a zone but is not listed in that zone's NS
+records.  Stealth servers can be used for keeping a local copy of a
+zone to speed up access to the zone's records or to make sure that the
+zone is available even if all the "official" servers for the zone are
+inaccessible.</para>
+
+<para>A configuration where the primary master server itself is a
+stealth server is often referred to as a "hidden primary"
+configuration.  One use for this configuration is when the primary master
+is behind a firewall and therefore unable to communicate directly
+with the outside world.</para>
+
+</sect3>
+
+</sect2>
+<sect2>
+
+<title>Caching Name Servers</title>
+
+<para>The resolver libraries provided by most operating systems are 
+<emphasis>stub resolvers</emphasis>, meaning that they are not capable of
+performing the full DNS resolution process by themselves by talking
+directly to the authoritative servers.  Instead, they rely on a local
+name server to perform the resolution on their behalf.  Such a server
+is called a <emphasis>recursive</emphasis> name server; it performs
+<emphasis>recursive lookups</emphasis> for local clients.</para>
+
+<para>To improve performance, recursive servers cache the results of
+the lookups they perform.  Since the processes of recursion and
+caching are intimately connected, the terms
+<emphasis>recursive server</emphasis> and
+<emphasis>caching server</emphasis> are often used synonymously.</para>
+
+<para>The length of time for which a record may be retained in
+in the cache of a caching name server is controlled by the 
+Time To Live (TTL) field associated with each resource record.
+</para>
+
+<sect3><title>Forwarding</title>
+
+<para>Even a caching name server does not necessarily perform
+the complete recursive lookup itself.  Instead, it can
+<emphasis>forward</emphasis> some or all of the queries
+that it cannot satisfy from its cache to another caching name server,
+commonly referred to as a <emphasis>forwarder</emphasis>.
+</para>
+
+<para>There may be one or more forwarders,
 and they are queried in turn until the list is exhausted or an answer
-is found. A forwarding server is typically used when you do not
-wish all the servers at a given site to interact with the rest of
+is found. Forwarders are typically used when you do not
+wish all the servers at a given site to interact directly with the rest of
 the Internet servers. A typical scenario would involve a number
 of internal <acronym>DNS</acronym> servers and an Internet firewall. Servers unable
 to pass packets through the firewall would forward to the server
 that can do it, and that server would query the Internet <acronym>DNS</acronym> servers
 on the internal server's behalf. An added benefit of using the forwarding
 feature is that the central machine develops a much more complete
-cache of information that all the workstations can take advantage
+cache of information that all the clients can take advantage
 of.</para>
-<para>There is no prohibition against declaring a server to be a
-forwarder even though it has master and/or slave zones as well;
-the effect will still be that anything in the local server's cache
-or zones will be answered, and anything else will be forwarded using
-the forwarders list.</para></sect3>
-<sect3><title>Stealth Server</title>
-<para>A <emphasis>stealth server</emphasis> is a server that answers
-authoritatively for a zone, but is not listed in that zone's NS
-records. Stealth servers can be used as a way to centralize distribution
-of a zone, without having to edit the zone on a remote nameserver.
-Where the master file for a zone resides on a stealth server in
-this way, it is often referred to as a "hidden primary" configuration.
-Stealth servers can also be a way to keep a local copy of a zone
-for rapid access to the zone's records, even if all "official" nameservers
-for the zone are inaccessible.</para>
-      </sect3>
+</sect3>
+
+</sect2>
+
+<sect2><title>Name Servers in Multiple Roles</title>
+
+<para>The <acronym>BIND</acronym> name server can simultaneously act as
+a master for some zones, a slave for other zones, and as a caching
+(recursive) server for a set of local clients.</para>
+
+<para>However, since the functions of authoritative name service
+and caching/recursive name service are logically separate, it is
+often advantageous to run them on separate server machines.
+
+A server that only provides authoritative name service
+(an <emphasis>authoritative-only</emphasis> server) can run with
+recursion disabled, improving reliability and security.
+
+A server that is not authoritative for any zones and only provides
+recursive service to local
+clients (a <emphasis>caching-only</emphasis> server)
+does not need to be reachable from the Internet at large and can
+be placed inside a firewall.</para>
+
     </sect2>
   </sect1>
-  </chapter>
+
+</chapter>
 
   <chapter id="ch02"><title><acronym>BIND</acronym> Resource Requirements</title>
 <sect1><title>Hardware requirements</title>
@@ -523,8 +565,8 @@ of the time:</para>
     slave will check to see that its version of the zone is the
     current version and, if not, initiate a transfer.</para> <para><acronym>DNS</acronym>
     Notify is fully documented in RFC 1996. See also the description
-    of the zone option <command>also-notify</command>, see <xref
-    linkend="zone_transfers"/>. For more information about
+    of the zone option <command>also-notify</command>, see
+    <xref linkend="zone_transfers"/>. For more information about
     <command>notify</command>, see <xref
     linkend="boolean_options"/>.</para>
 
@@ -537,11 +579,11 @@ of the time:</para>
 and monitoring tools available to the system administrator for controlling
 and debugging the nameserver daemon. We describe several in this
 section </para>
-      <sect3>
+      <sect3 id="diagnostic_tools">
         <title>Diagnostic Tools</title>
         <variablelist>
           <varlistentry>
-            <term><command>dig</command></term>
+            <term id="dig"><command>dig</command></term>
             <listitem>
               <para>The domain information groper (<command>dig</command>) is
 a command line tool that can be used to gather information from
@@ -619,29 +661,6 @@ behavior, we do not recommend the use of <command>nslookup</command>.
 Use <command>dig</command> instead.</para>
             </listitem>
           </varlistentry>
-	  <varlistentry id="named-checkconf" xreflabel="Named Configuration Checking application">
-            <term><command>named-checkconf</command></term>
-            <listitem>
-	      <para>Checks the syntax of <filename>named.conf</filename>.</para>
-              <cmdsynopsis label="Usage">
-                <command>named-checkconf</command>
-                <arg><replaceable>filename</replaceable></arg>
-              </cmdsynopsis>
-            </listitem>
-	  </varlistentry>
-	  <varlistentry id="named-checkzone" xreflabel="Zone Checking application">
-            <term><command>named-checkzone</command></term>
-            <listitem>
-	      <para>Performs syntax and consistency checks on a individual zone.</para>
-              <cmdsynopsis label="Usage">
-                <command>named-checkzone</command>
-                <arg>-dq</arg>
-                <arg>-c <replaceable>class</replaceable></arg>
-                <arg choice="plain"><replaceable>zone</replaceable></arg>
-                <arg><replaceable>filename</replaceable></arg>
-              </cmdsynopsis>
-            </listitem>
-	  </varlistentry>
         </variablelist>
       </sect3>
       <sect3 id="admin_tools">
@@ -649,6 +668,29 @@ Use <command>dig</command> instead.</para>
         <para>Administrative tools play an integral part in the management
 of a server.</para>
         <variablelist>
+	  <varlistentry id="check-conf" xreflabel="Named Configuration Checking application">
+            <term><command>check-conf</command></term>
+            <listitem>
+	      <para>Performs syntax consistancy checks on <filename>named.conf</filename>.</para>
+              <cmdsynopsis label="Usage">
+                <command>check-conf</command>
+                <arg><replaceable>filename</replaceable></arg>
+              </cmdsynopsis>
+            </listitem>
+	  </varlistentry>
+	  <varlistentry id="check-zone" xreflabel="Zone Checking application">
+            <term><command>check-zone</command></term>
+            <listitem>
+	      <para>Perform consistancy checks on a individual zone.</para>
+              <cmdsynopsis label="Usage">
+                <command>check-zone</command>
+                <arg>-dq</arg>
+                <arg>-c <replaceable>class</replaceable></arg>
+                <arg choice="plain"><replaceable>zone</replaceable></arg>
+                <arg><replaceable>filename</replaceable></arg>
+              </cmdsynopsis>
+            </listitem>
+	  </varlistentry>
           <varlistentry id="rndc" xreflabel="Remote Name Daemon Control application">
             <term><command>rndc</command></term>
             <listitem>
@@ -697,15 +739,6 @@ of a server.</para>
 <row rowsep = "0">
 <entry colname = "1"><para><userinput>querylog</userinput></para></entry>
 <entry colname = "2"><para>Toggle query logging.</para></entry>
-</row>
-
-<row rowsep = "0">
-<entry colname = "1"><para><userinput>dumpdb</userinput></para></entry>
-<entry colname = "2"><para>Dump the current contents of the cache
-(or caches if there are multiple views) into the file named by the
-<command>dump-file</command> option
-(by default, <filename>named_dump.db</filename>).
-</para></entry>
 </row>
 
 <row rowsep = "0">
@@ -959,22 +992,22 @@ filtering on the network.</para>
 <para>If everything has been set properly, <emphasis>Example, Inc.</emphasis>'s
 internal clients will now be able to:</para>
 <itemizedlist><listitem>
-        <simpara>Look up any hostnames in the <systemitem class="systemname">site1</systemitem> and 
-<systemitem class="systemname">site2.example.com</systemitem> zones.</simpara></listitem>
+        <simpara>Look up any hostnames in the <literal>site1</literal> and 
+<literal>site2.example.com</literal> zones.</simpara></listitem>
 <listitem>
-        <simpara>Look up any hostnames in the <systemitem class="systemname">site1.internal</systemitem> and 
-<systemitem class="systemname">site2.internal</systemitem> domains.</simpara></listitem>
+        <simpara>Look up any hostnames in the <literal>site1.internal</literal> and 
+<literal>site2.internal</literal> domains.</simpara></listitem>
 <listitem>
         <simpara>Look up any hostnames on the Internet.</simpara></listitem>
 <listitem>
         <simpara>Exchange mail with internal AND external people.</simpara></listitem></itemizedlist>
 <para>Hosts on the Internet will be able to:</para>
 <itemizedlist><listitem>
-        <simpara>Look up any hostnames in the <systemitem class="systemname">site1</systemitem> and 
-<systemitem class="systemname">site2.example.com</systemitem> zones.</simpara></listitem>
+        <simpara>Look up any hostnames in the <literal>site1</literal> and 
+<literal>site2.example.com</literal> zones.</simpara></listitem>
 <listitem>
-        <simpara>Exchange mail with anyone in the <systemitem class="systemname">site1</systemitem> and 
-<systemitem class="systemname">site2.example.com</systemitem> zones.</simpara></listitem></itemizedlist>
+        <simpara>Exchange mail with anyone in the <literal>site1</literal> and 
+<literal>site2.example.com</literal> zones.</simpara></listitem></itemizedlist>
 
     <para>Here is an example configuration for the setup we just
     described above. Note that this is only configuration information;
@@ -1503,8 +1536,8 @@ $ORIGIN example2.net.
 company		3600	IN	A6	0 1234:5678:90ab:fffa::
 </programlisting>
 
-        <para>When <systemitem
-        class="systemname">host.example.com</systemitem> is looked up,
+        <para>When <literal
+       >host.example.com</literal> is looked up,
         the resolver (in the resolver daemon or caching name server)
         will find two partial A6 records, and will use the additional
         name to find the remainder of the data.</para>
@@ -1576,8 +1609,8 @@ $ORIGIN \[x3ffe805002011860/64].ip6.arpa.
       need to be maintained.</para>
 
       <para>For example, consider a host which has two providers
-      (<systemitem class="systemname">example.net</systemitem> and
-      <systemitem class="systemname">example2.net</systemitem>) and
+      (<literal>example.net</literal> and
+      <literal>example2.net</literal>) and
       therefore two IPv6 addresses.  Since the host chooses its own 64
       bit host address portion, the provider address is the only part
       that changes:</para>
@@ -1595,7 +1628,7 @@ ipv6net2		A6	0	6666:5555:4::
 </programlisting>
 
 <para>This sets up forward lookups.  To handle the reverse lookups,
-the provider <systemitem class="systemname">example.net</systemitem>
+the provider <literal>example.net</literal>
 would have:</para>
 
 <programlisting>
@@ -1603,15 +1636,15 @@ $ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
 \[xdddd/16]		DNAME		ipv6-rev.example.com.
 </programlisting>
 
-      <para>and <systemitem
-      class="systemname">example2.net</systemitem> would have:</para>
+      <para>and <literal
+     >example2.net</literal> would have:</para>
 
 <programlisting>
 $ORIGIN \[x666655550004/48].ip6.arpa.
 \[x0001/16]		DNAME		ipv6-rev.example.com.
 </programlisting>
 
-      <para><systemitem class="systemname">example.com</systemitem>
+      <para><literal>example.com</literal>
       needs only one zone file to handle both of these reverse
       mappings:</para>
 
@@ -1646,7 +1679,7 @@ address can be overriden by <command>lwserver</command> lines in
 <filename>/etc/resolv.conf</filename>.
 The daemon will try to find the answer to the questions "what are the
 addresses for host
-<systemitem class="systemname">foo.example.com</systemitem>?" and "what are
+<literal>foo.example.com</literal>?" and "what are
 the names for IPv4 address 10.1.2.3?"</para>
 <para>The daemon currently only looks in the DNS, but in the future
 it may use other sources such as <filename>/etc/hosts</filename>,
@@ -1698,7 +1731,7 @@ defined by the <command>acl</command> statement.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>domain_name</varname></para></entry>
 <entry colname = "2"><para>A quoted string which will be used as
-a DNS name, for example "<systemitem class="systemname">my.test.domain</systemitem>".</para></entry>
+a DNS name, for example "<literal>my.test.domain</literal>".</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>dotted_decimal</varname></para></entry>
@@ -3410,7 +3443,7 @@ order.</para></entry>
 };
 </programlisting>
 <para>will cause any responses for type A records in class IN that
-have "<systemitem class="systemname">host.example.com</systemitem>" as a suffix, to always be returned
+have "<literal>host.example.com</literal>" as a suffix, to always be returned
 in random order. All other records are returned in cyclic order.</para>
 <para>If multiple <command>rrset-order</command> statements appear,
 they are not combined-the last one applies.</para>
@@ -3753,7 +3786,7 @@ recommended, since it often speeds server start-up and eliminates
 a needless waste of bandwidth. Note that for large numbers (in the
 tens or hundreds of thousands) of zones per server, it is best to
 use a two level naming scheme for zone file names. For example,
-a slave server for the zone <systemitem class="systemname">example.com</systemitem> might place
+a slave server for the zone <literal>example.com</literal> might place
 the zone contents into a file called
 <filename>ex/example.com</filename> where <filename>ex/</filename> is
 just the first two letters of the zone name. (Most operating systems
@@ -3805,12 +3838,9 @@ Classes other than IN have no built-in defaults hints.</para></entry>
 </tbody>
 </tgroup></informaltable></sect3>
 <sect3><title>Class</title>
-<para>In general <command>class</command> can now be omitted from
-a <command>zone's</command> definition.
-It is now inherited for the enclosing <command>view</command> or if
-there is no explicit <command>view</command>, from the default 
-<command>view</command> which is <literal>IN</literal>
-(for <varname>Internet</varname>).</para>
+<para>The zone's name may optionally be followed by a class. If
+a class is not specified, class <literal>IN</literal> (for <varname>Internet</varname>),
+is assumed. This is correct for the vast majority of cases.</para>
 <para>The <literal>hesiod</literal> class is
 named for an information service from MIT's Project Athena. It is
 used to share information about various systems databases, such
@@ -4410,7 +4440,7 @@ domain names.</para>
 </row>
 </tbody>
 </tgroup></informaltable>
-<para>This example shows two addresses for <systemitem class="systemname">XX.LCS.MIT.EDU</systemitem>,
+<para>This example shows two addresses for <literal>XX.LCS.MIT.EDU</literal>,
 each of a different class.</para></sect3></sect2>
 <sect2><title>Discussion of MX Records</title>
 <para>As described above, domain servers store information as a
@@ -4479,8 +4509,9 @@ pointed to by the CNAME.</para>
 </row>
 </tbody>
 </tgroup></informaltable><para>For example:</para>
-<para>Mail delivery will be attempted to <systemitem class="systemname">mail.example.com</systemitem> and <systemitem class="systemname">mail2.example.com</systemitem> (in
-any order), and if neither of those succeed, delivery to <systemitem class="systemname">mail.backup.org</systemitem> will
+<para>Mail delivery will be attempted to <literal>mail.example.com</literal> and
+<literal>mail2.example.com</literal> (in
+any order), and if neither of those succeed, delivery to <literal>mail.backup.org</literal> will
 be attempted.</para></sect2>
 <sect2 id="Setting_TTLs"><title>Setting TTLs</title>
 <para>The time to live of the RR field is a 32 bit integer represented
@@ -4769,8 +4800,7 @@ all.</para>
 
       <para>The best solution to solving installation and
       configuration issues is to take preventative measures by setting
-      up logging files beforehand (see the sample configurations in
-      <xref linkend="sample_configuration"/>). The log files provide a
+      up logging files beforehand. The log files provide a
       source of hints and information that can be used to figure out
       what went wrong and how to fix the problem.</para>
 
@@ -5068,8 +5098,9 @@ series of technical notes. The standards themselves are defined
 by the Internet Engineering Task Force (IETF) and the Internet Engineering
 Steering Group (IESG). RFCs can be obtained online via FTP at 
 <ulink url="ftp://www.isi.edu/in-notes/">ftp://www.isi.edu/in-notes/RFC<replaceable>xxx</replaceable>.txt</ulink> (where <replaceable>xxx</replaceable> is
-the number of the RFC). RFCs are also available via the Web at <ulink
-                                                                      url="http://www.ietf.org/rfc/">http://www.ietf.org/rfc/</ulink>.</para>
+the number of the RFC). RFCs are also available via the Web at
+<ulink url="http://www.ietf.org/rfc/">http://www.ietf.org/rfc/</ulink>.
+</para>
       <bibliography>
         <bibliodiv>
           <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
