@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.16 2001/01/09 21:57:17 bwelling Exp $ */
+/* $Id: netaddr.h,v 1.17 2001/02/02 02:48:47 gson Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -93,6 +93,18 @@ isc_netaddr_fromin(isc_netaddr_t *netaddr, const struct in_addr *ina);
 
 void
 isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6);
+
+void
+isc_netaddr_any(isc_netaddr_t *netaddr);
+/*
+ * Return the IPv4 wildcard address.
+ */
+
+void
+isc_netaddr_any6(isc_netaddr_t *netaddr);
+/*
+ * Return the IPv6 wildcard address.
+ */
 
 isc_boolean_t
 isc_netaddr_ismulticast(isc_netaddr_t *na);

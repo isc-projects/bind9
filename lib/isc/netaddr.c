@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.14 2001/01/09 21:56:18 bwelling Exp $ */
+/* $Id: netaddr.c,v 1.15 2001/02/02 02:48:46 gson Exp $ */
 
 #include <config.h>
 
@@ -230,6 +230,20 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
         default:
                 INSIST(0);
         }
+}
+
+void
+isc_netaddr_any(isc_netaddr_t *netaddr) {
+	memset(netaddr, 0, sizeof *netaddr);
+	netaddr->family = AF_INET;
+	netaddr->type.in.s_addr = INADDR_ANY;
+}
+
+void
+isc_netaddr_any6(isc_netaddr_t *netaddr) {
+	memset(netaddr, 0, sizeof *netaddr);
+	netaddr->family = AF_INET6;
+	netaddr->type.in6 = in6addr_any;
 }
 
 isc_boolean_t

@@ -1,3 +1,7 @@
+
+ 724.	[func]		New libisc functions isc_netaddr_any(),
+			isc_netaddr_any6().
+
  723.	[bug]		Referrals whose NS RRs had a 0 TTL caused the resolver
 			to return DNS_R_SERVFAIL.  [RT #783]
 
