@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.2 2003/08/19 02:53:57 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.3 2003/08/27 01:39:25 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <dns/events.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/portlist.h>
 #include <dns/tcpmsg.h>
 #include <dns/types.h>
 
@@ -55,6 +56,7 @@ struct dns_dispatchmgr {
 	unsigned int			magic;
 	isc_mem_t		       *mctx;
 	dns_acl_t		       *blackhole;
+	dns_portlist_t		       *portlist;
 
 	/* Locked by "lock". */
 	isc_mutex_t			lock;
@@ -986,6 +988,9 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 	if (mgr->blackhole != NULL)
 		dns_acl_detach(&mgr->blackhole);
 
+	if (mgr->portlist != NULL)
+		dns_portlist_detach(&mgr->portlist);
+
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mctx);
 }
@@ -1038,6 +1043,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	isc_mem_attach(mctx, &mgr->mctx);
 
 	mgr->blackhole = NULL;
+	mgr->portlist = NULL;
 
 	result = isc_mutex_init(&mgr->lock);
 	if (result != ISC_R_SUCCESS)
@@ -1131,6 +1137,23 @@ dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr) {
 	return (mgr->blackhole);
 }
 
+void
+dns_dispatchmgr_setblackportlist(dns_dispatchmgr_t *mgr,
+				 dns_portlist_t *portlist)
+{
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	if (mgr->portlist != NULL)
+		dns_portlist_detach(&mgr->portlist);
+	if (portlist != NULL)
+		dns_portlist_attach(portlist, &mgr->portlist);
+}
+
+dns_portlist_t *
+dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	return (mgr->portlist);
+}
+
 static isc_result_t
 dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr,
 			unsigned int buffersize, unsigned int maxbuffers,
@@ -1215,16 +1238,63 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 		destroy_mgr(&mgr);
 }
 
+static isc_boolean_t
+blacklisted(dns_dispatchmgr_t *mgr, isc_socket_t *sock) {
+	isc_sockaddr_t sockaddr;
+	isc_result_t result;
+
+	if (mgr->portlist == NULL)
+		return (ISC_FALSE);
+
+	result = isc_socket_getsockname(sock, &sockaddr);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	if (mgr->portlist != NULL &&
+	    dns_portlist_match(mgr->portlist, isc_sockaddr_pf(&sockaddr),
+			       isc_sockaddr_getport(&sockaddr)))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
 
 #define ATTRMATCH(_a1, _a2, _mask) (((_a1) & (_mask)) == ((_a2) & (_mask)))
 
 static isc_boolean_t
 local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
+	isc_sockaddr_t sockaddr;
+	isc_result_t result;
 
 	if (addr == NULL)
 		return (ISC_TRUE);
 
-	return (isc_sockaddr_equal(&disp->local, addr));
+	/*
+	 * Don't match wildcard ports against newly blacklisted ports.
+	 */
+	if (disp->mgr->portlist != NULL &&
+	    isc_sockaddr_getport(addr) == 0 &&
+	    isc_sockaddr_getport(&disp->local) == 0 &&
+	    blacklisted(disp->mgr, disp->socket))
+		return (ISC_FALSE);
+
+	/*
+	 * Check if we match the binding <address,port>.
+	 * Wildcard ports match/fail here.
+	 */
+	if (isc_sockaddr_equal(&disp->local, addr))
+		return (ISC_TRUE);
+	if (isc_sockaddr_getport(addr) == 0)
+		return (ISC_FALSE);
+
+	/*
+	 * Check if we match a bound wildcard port <address,port>.
+	 */
+	if (!isc_sockaddr_eqaddr(&disp->local, addr))
+		return (ISC_FALSE);
+	result = isc_socket_getsockname(disp->socket, &sockaddr);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	return (isc_sockaddr_equal(&disp->local, &sockaddr));
 }
 
 /*
@@ -1635,9 +1705,20 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	/*
+	 * This assumes that the IP stack will *not* quickly reallocate
+	 * the same port.  If it does continually reallocate the same port
+	 * then we need a mechanism to hold all the blacklisted sockets
+	 * until we find a usable socket.
+	 */
+ getsocket:
 	result = create_socket(sockmgr, localaddr, &sock);
 	if (result != ISC_R_SUCCESS)
 		goto deallocate_dispatch;
+	if (isc_sockaddr_getport(localaddr) == 0 && blacklisted(mgr, sock)) {
+		isc_socket_detach(&sock);
+		goto getsocket;
+	}
 
 	disp->socktype = isc_sockettype_udp;
 	disp->socket = sock;

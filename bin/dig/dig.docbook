@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.2 2003/08/14 06:40:30 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.3 2003/08/27 01:39:22 marka Exp $ -->
 
 <refentry>
 
@@ -153,7 +153,8 @@ ANY, A, MX, SIG, etc.
 <para>
 The <option>-b</option> option sets the source IP address of the query
 to <parameter>address</parameter>.  This must be a valid address on
-one of the host's network interfaces.
+one of the host's network interfaces or "0.0.0.0" or "::".  An optional port
+may be specified by appending "#&lt;port&gt;"
 </para>
 
 <para>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.8 2003/08/15 02:00:32 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.9 2003/08/27 01:39:22 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -994,6 +994,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	char textname[MXNAME];
 	struct in_addr in4;
 	struct in6_addr in6;
+	in_port_t srcport;
+	char *hash;
 
 	cmd = option[0];
 	if (strlen(option) > 1U) {
@@ -1029,12 +1031,24 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		goto invalid_option;
 	switch (cmd) {
 	case 'b':
+		hash = index(value, '#');
+		if (hash != NULL) {
+			srcport = (in_port_t) parse_uint(hash + 1,
+						         "port number", MAXPORT);
+			*hash = '\0';
+		} else
+			srcport = 0;
 		if (have_ipv6 && inet_pton(AF_INET6, value, &in6) == 1)
-			isc_sockaddr_fromin6(&bind_address, &in6, 0);
+			isc_sockaddr_fromin6(&bind_address, &in6, srcport);
 		else if (have_ipv4 && inet_pton(AF_INET, value, &in4) == 1)
-			isc_sockaddr_fromin(&bind_address, &in4, 0);
-		else
+			isc_sockaddr_fromin(&bind_address, &in4, srcport);
+		else {
+			if (hash != NULL)
+				*hash = '#';
 			fatal("invalid address %s", value);
+		}
+		if (hash != NULL)
+			*hash = '#';
 		specified_source = ISC_TRUE;
 		return (value_from_next);
 	case 'c':
