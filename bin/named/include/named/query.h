@@ -25,6 +25,12 @@
 
 #include <named/types.h>
 
+typedef struct ns_dbversion {
+	dns_db_t			*db;
+	dns_dbversion_t			*version;
+	ISC_LINK(struct ns_dbversion)	link;
+} ns_dbversion_t;
+
 struct ns_query {
 	unsigned int			attributes;
 	dns_name_t *			qname;
@@ -33,6 +39,8 @@ struct ns_query {
 	ISC_LIST(isc_dynbuffer_t)	namebufs;
 	ISC_LIST(dns_name_t)		tmpnames;
 	ISC_LIST(dns_rdataset_t)	tmprdatasets;
+	ISC_LIST(ns_dbversion_t)	activeversions;
+	ISC_LIST(ns_dbversion_t)	freeversions;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x01

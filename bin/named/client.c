@@ -404,6 +404,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	CTRACE("request");
 
 	client->state = ns_clientstate_working;
+	if (isc_stdtime_get(&client->requesttime) != ISC_R_SUCCESS)
+		client->requesttime = 0;
 
 	if (result != ISC_R_SUCCESS) {
 		if (TCP_CLIENT(client))

@@ -19,6 +19,7 @@
 #define NS_CLIENT_H 1
 
 #include <isc/types.h>
+#include <isc/stdtime.h>
 #include <isc/buffer.h>
 
 #include <dns/types.h>
@@ -64,6 +65,7 @@ struct ns_client {
 	isc_mempool_t *			sendbufs;
 	void				(*next)(ns_client_t *, isc_result_t);
 	ns_query_t			query;
+	isc_stdtime_t			requesttime;
 	ISC_LINK(struct ns_client)	link;
 };
 

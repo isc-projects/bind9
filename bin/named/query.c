@@ -50,6 +50,42 @@
 static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_dynbuffer_t *dbuf, *dbuf_next;
+	ns_dbversion_t *dbversion, *dbversion_next;
+	unsigned int i;
+
+
+	/*
+	 * Cleanup any active versions.
+	 */
+	for (dbversion = ISC_LIST_HEAD(client->query.activeversions);
+	     dbversion != NULL;
+	     dbversion = dbversion_next) {
+		dbversion_next = ISC_LIST_NEXT(dbversion, link);
+		dns_db_closeversion(dbversion->db, &dbversion->version,
+				    ISC_FALSE);
+		dns_db_detach(&dbversion->db);
+		ISC_LIST_APPEND(client->query.freeversions, dbversion, link);
+	}
+	ISC_LIST_INIT(client->query.activeversions);
+
+	/*
+	 * Clean up free versions.
+	 */
+	for (dbversion = ISC_LIST_HEAD(client->query.freeversions), i = 0;
+	     dbversion != NULL;
+	     dbversion = dbversion_next, i++) {
+		dbversion_next = ISC_LIST_NEXT(dbversion, link);
+		/*
+		 * If we're not freeing everything, we keep the first three
+		 * dbversions structures around.
+		 */
+		if (i > 3 || everything) {
+			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
+					link);
+			isc_mem_put(client->mctx, dbversion,
+				    sizeof *dbversion);
+		}
+	}
 
 	for (dbuf = ISC_LIST_HEAD(client->query.namebufs);
 	     dbuf != NULL;
@@ -88,8 +124,6 @@ static inline isc_result_t
 query_newnamebuf(ns_client_t *client) {
 	isc_dynbuffer_t *dbuf;
 	isc_result_t result;
-
-	REQUIRE(NS_CLIENT_VALID(client));
 
 	dbuf = NULL;
 	result = isc_dynbuffer_allocate(client->mctx, &dbuf, 1024,
@@ -201,11 +235,94 @@ query_newrdataset(ns_client_t *client) {
 	return (rdataset);
 }
 
+static inline isc_result_t
+query_newdbversion(ns_client_t *client, unsigned int n) {
+	unsigned int i;
+	ns_dbversion_t *dbversion;
+
+	for (i = 0; i < n; i++) {
+		dbversion = isc_mem_get(client->mctx, sizeof *dbversion);
+		if (dbversion != NULL) {
+			dbversion->db = NULL;
+			dbversion->version = NULL;
+			ISC_LIST_APPEND(client->query.freeversions, dbversion,
+					link);
+		} else {
+			/*
+			 * We only return ISC_R_NOMEMORY if we couldn't
+			 * allocate anything.
+			 */
+			if (i == 0)
+				return (ISC_R_NOMEMORY);
+			else
+				return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static inline ns_dbversion_t *
+query_getdbversion(ns_client_t *client) {
+	isc_result_t result;
+	ns_dbversion_t *dbversion;
+
+	if (ISC_LIST_EMPTY(client->query.freeversions)) {
+		result = query_newdbversion(client, 1);
+		if (result != ISC_R_SUCCESS)
+			return (NULL);
+	}
+	dbversion = ISC_LIST_HEAD(client->query.freeversions);
+	INSIST(dbversion != NULL);
+	ISC_LIST_UNLINK(client->query.freeversions, dbversion, link);
+	
+	return (dbversion);
+}
+
 isc_result_t
 ns_query_init(ns_client_t *client) {
+	isc_result_t result;
+
 	ISC_LIST_INIT(client->query.namebufs);
+	ISC_LIST_INIT(client->query.activeversions);
+	ISC_LIST_INIT(client->query.freeversions);
 	query_reset(client, ISC_FALSE);
+	result = query_newdbversion(client, 3);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	return (query_newnamebuf(client));
+}
+
+static inline dns_dbversion_t *
+query_findversion(ns_client_t *client, dns_db_t *db) {
+	ns_dbversion_t *dbversion;
+
+	/*
+	 * We may already have done a query related to this
+	 * database.  If so, we must be sure to make subsequent
+	 * queries from the same version.
+	 */
+	for (dbversion = ISC_LIST_HEAD(client->query.activeversions);
+	     dbversion != NULL;
+	     dbversion = ISC_LIST_NEXT(dbversion, link)) {
+		if (dbversion->db == db)
+			break;
+	}	
+	if (dbversion == NULL) {
+		/*
+		 * This is a new zone for this query.  Add it to
+		 * the active list.
+		 */
+		dbversion = query_getdbversion(client);
+		if (dbversion == NULL)
+			return (NULL);
+		dns_db_attach(db, &dbversion->db);
+		dns_db_currentversion(db, &dbversion->version);
+		ISC_LIST_APPEND(client->query.activeversions,
+				dbversion, link);
+	}
+	
+	return (dbversion->version);
 }
 
 static isc_result_t
@@ -219,6 +336,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	dns_section_t section;
 	isc_dynbuffer_t *dbuf;
 	isc_buffer_t b;
+	dns_dbversion_t *version;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(type != dns_rdatatype_any);
@@ -236,6 +354,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	fname = NULL;
 	rdataset = NULL;
 	db = NULL;
+	version = NULL;
 	node = NULL;
 
 	/*
@@ -257,11 +376,20 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		goto cleanup;
 
 	/*
+	 * Get the current version of this database.
+	 */
+	if (dns_db_iszone(db)) {
+		version = query_findversion(client, db);
+		if (version == NULL)
+			goto cleanup;
+	}
+
+	/*
 	 * Now look for an answer in the database.
 	 */
 	node = NULL;
-	result = dns_db_find(db, name, NULL, type, client->query.dboptions,
-			     0, &node, fname, rdataset);
+	result = dns_db_find(db, name, version, type, client->query.dboptions,
+			     client->requesttime, &node, fname, rdataset);
 	switch (result) {
 	case DNS_R_SUCCESS:
 	case DNS_R_GLUE:
@@ -534,6 +662,7 @@ query_find(ns_client_t *client) {
 	isc_buffer_t b;
 	isc_result_t result, eresult;
 	dns_fixedname_t fixed;
+	dns_dbversion_t *version;
 
 	/*	
 	 * One-time initialization.
@@ -550,6 +679,7 @@ query_find(ns_client_t *client) {
 	rdataset = NULL;
 	node = NULL;
 	db = NULL;
+	version = NULL;
 
 	if (client->view->cachedb == NULL ||
 	    client->view->resolver == NULL) {
@@ -593,8 +723,18 @@ query_find(ns_client_t *client) {
 	}
 
 	is_zone = dns_db_iszone(db);
-	if (is_zone)
+	if (is_zone) {
 		auth = ISC_TRUE;
+
+		/*
+		 * Get the current version of this database.
+		 */
+		version = query_findversion(client, db);
+		if (version == NULL) {
+			QUERY_ERROR(DNS_R_SERVFAIL);
+			goto cleanup;
+		}
+	}
 
 	/*
 	 * Find the first unanswered type in the question section.
@@ -658,8 +798,8 @@ query_find(ns_client_t *client) {
 	/*
 	 * Now look for an answer in the database.
 	 */
-	result = dns_db_find(db, client->query.qname, NULL, type, 0, 0, &node,
-			     fname, rdataset);
+	result = dns_db_find(db, client->query.qname, version, type, 0,
+			     client->requesttime, &node, fname, rdataset);
 	switch (result) {
 	case DNS_R_SUCCESS:
 	case DNS_R_ZONECUT:
