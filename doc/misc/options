@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.36 2000/08/30 19:20:50 gson Exp $
+$Id: options,v 1.37 2000/10/18 22:16:06 bwelling Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -132,8 +132,8 @@ trusted-keys						    Yes
 zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   type master;						    Yes
   file path_name;					    Yes
-  [ forward ( only | first ); ]				    No
-  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
+  [ forward ( only | first ); ]				    Yes
+  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    No
   [ allow-update { address_match_list }; ]		    Yes@
   [ update-policy ... ]					    Yes*
@@ -154,8 +154,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ file path_name; ]					    Yes
   [ ixfr-base  path_name; ]				    Obsolete
   masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
-  [ forward ( only | first ); ]				    No
-  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
+  [ forward ( only | first ); ]				    Yes
+  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    No
   [ allow-update { address_match_list }; ]		    Obsolete
   [ allow-update-forwarding { address_match_list }; ]	    No*
@@ -177,8 +177,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   type stub;						    Yes
   [ file path_name; ]					    Yes
   masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
-  [ forward ( only | first ); ]				    No
-  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
+  [ forward ( only | first ); ]				    Yes
+  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    No
   [ allow-update { address_match_list }; ]		    Obsolete
   [ allow-update-forwarding { address_match_list }; ]	    No*
@@ -195,7 +195,9 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
 };
 
 zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
-  type forward;						    No
+  type forward;						    Yes
+  [ forward ( only | first ); ]				    Yes
+  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
 };
 
 zone "." [ ( in | hs | hesiod | chaos ) ] {
