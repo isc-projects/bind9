@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.72.2.7 2000/07/28 23:39:21 gson Exp $
+ * $Id: tsig.c,v 1.72.2.8 2000/08/01 15:06:22 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -133,8 +133,6 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	tkey->refs = 0;
 
 	if (length > 0) {
-		dns_tsigkey_t *tmp = NULL;
-
 		isc_buffer_init(&b, secret, length);
 		isc_buffer_add(&b, length);
 		ret = dst_key_frombuffer(name, alg,
