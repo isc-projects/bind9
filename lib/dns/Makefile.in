@@ -12,7 +12,7 @@ CINCLUDES =	-I${srcdir}/../isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		name.o result.o version.o
+OBJS =		name.o rdataset.o result.o version.o
 
 SUBDIRS =	include
 TARGETS =	timestamp
