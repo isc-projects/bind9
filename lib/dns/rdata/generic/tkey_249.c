@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.17 1999/10/07 21:49:38 bwelling Exp $ */
+ /* $Id: tkey_249.c,v 1.18 1999/10/08 21:45:01 tale Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -31,6 +31,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_rcode_t rcode;
 	dns_name_t name;
 	isc_buffer_t buffer;
+	long i;
 	char *e;
 
 	REQUIRE(type == 249);
@@ -65,11 +66,12 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (dns_rcode_fromtext(&rcode, &token.value.as_textregion)
 				!= DNS_R_SUCCESS) {
-		rcode = strtol(token.value.as_pointer, &e, 10);
+		i = strtol(token.value.as_pointer, &e, 10);
 		if (*e != 0)
 			return (DNS_R_UNKNOWN);
-		if (rcode > 0xffff)
+		if (i < 0 || i > 0xffff)
 			return (DNS_R_RANGE);
+		rcode = (dns_rcode_t)i;
 	}
 	RETERR(uint16_tobuffer(rcode, target));
 
@@ -138,7 +140,7 @@ totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* Error */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	if (dns_rcode_totext(n, target) == DNS_R_SUCCESS)
+	if (dns_rcode_totext((dns_rcode_t)n, target) == DNS_R_SUCCESS)
 		RETERR(str_totext(" ", target));
 	else {
 		sprintf(buf, "%lu ", n);
