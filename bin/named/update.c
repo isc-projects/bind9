@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.93 2002/01/21 11:00:11 bwelling Exp $ */
+/* $Id: update.c,v 1.94 2002/01/22 16:05:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2344,9 +2344,19 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				}
 				soa_serial_changed = ISC_TRUE;
 			}
-			
-			update_log(client, zone,
-				   LOGLEVEL_PROTOCOL, "adding an RR");
+
+			if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {
+				char namestr[DNS_NAME_FORMATSIZE];
+				char typestr[DNS_RDATATYPE_FORMATSIZE];
+				dns_name_format(name, namestr,
+						sizeof(namestr));
+				dns_rdatatype_format(rdata.type, typestr,
+						     sizeof(typestr));
+				update_log(client, zone,
+					   LOGLEVEL_PROTOCOL,
+					   "adding an RR at '%s' %s",
+					   namestr, typestr);
+			}
 
 			/* Prepare the affected RRset for the addition. */
 			{
@@ -2376,9 +2386,17 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			}
 		} else if (update_class == dns_rdataclass_any) {
 			if (rdata.type == dns_rdatatype_any) {
-				update_log(client, zone,
-					   LOGLEVEL_PROTOCOL,
-					   "delete all rrsets from a name");
+				if (isc_log_wouldlog(ns_g_lctx,
+						     LOGLEVEL_PROTOCOL))
+				{
+					char namestr[DNS_NAME_FORMATSIZE];
+					dns_name_format(name, namestr,
+							sizeof(namestr));
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "delete all rrsets from "
+						   "name '%s'");
+				}
 				if (dns_name_equal(name, zonename)) {
 					CHECK(delete_if(type_not_soa_nor_ns_p,
 							db, ver, name,
@@ -2398,9 +2416,21 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					   "or NS records ignored");
 				continue;
 			} else {
-				update_log(client, zone,
-					   LOGLEVEL_PROTOCOL,
-					   "deleting an rrset");
+				if (isc_log_wouldlog(ns_g_lctx,
+						     LOGLEVEL_PROTOCOL))
+				{
+					char namestr[DNS_NAME_FORMATSIZE];
+					char typestr[DNS_RDATATYPE_FORMATSIZE];
+					dns_name_format(name, namestr,
+							sizeof(namestr));
+					dns_rdatatype_format(rdata.type,
+							     typestr,
+							     sizeof(typestr));
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "deleting rrset at '%s' %s",
+						   namestr, typestr);
+				}
 				CHECK(delete_if(true_p, db, ver, name,
 						rdata.type, covers, &rdata,
 						&diff));
