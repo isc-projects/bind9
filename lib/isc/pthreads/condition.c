@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.26 2001/01/04 00:28:19 bwelling Exp $ */
+/* $Id: condition.c,v 1.27 2001/01/04 23:38:36 neild Exp $ */
 
 #include <config.h>
 
@@ -49,7 +49,11 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	ts.tv_nsec = (long)isc_time_nanoseconds(t);
 
 	do {
+#if ISC_MUTEX_PROFILE
+		presult = pthread_cond_timedwait(c, m->mutex, &ts);
+#else
 		presult = pthread_cond_timedwait(c, m, &ts);
+#endif
 		if (presult == 0)
 			return (ISC_R_SUCCESS);
 		if (presult == ETIMEDOUT)
