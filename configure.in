@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.321 $)
+AC_REVISION($Revision: 1.322 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -257,8 +257,9 @@ AC_SUBST(ISC_PLATFORM_HAVELIFCONF)
 #
 case $ac_cv_header_unistd_h in
 yes)
-AC_MSG_CHECKING(if unistd.h defines fd_set)
+AC_MSG_CHECKING(if unistd.h or sys/types.h defines fd_set)
 AC_TRY_COMPILE([
+#include <sys/types.h> /* Ultrix */
 #include <unistd.h>],
 [fd_set read_set; return (0);],
 	[AC_MSG_RESULT(yes)
