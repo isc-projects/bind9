@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.h,v 1.9 2000/02/03 23:43:18 halley Exp $ */
+/* $Id: nsap-ptr_23.h,v 1.10 2000/03/17 18:18:28 gson Exp $ */
 
- /* RFC 1348 */
+/* RFC 1348.  Obsoleted in RFC 1706 - use PTR instead. */
 
 typedef struct dns_rdata_in_nsap_ptr {
 	dns_rdatacommon_t	common;

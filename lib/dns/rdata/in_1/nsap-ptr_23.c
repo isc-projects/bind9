@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.c,v 1.13 2000/02/03 23:43:18 halley Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.14 2000/03/17 18:18:27 gson Exp $ */
 
- /* RFC 1348 */
+/* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
+
+/* RFC 1348.  Obsoleted in RFC 1706 - use PTR instead. */
 
 #ifndef RDATA_IN_1_NSAP_PTR_23_C
 #define RDATA_IN_1_NSAP_PTR_23_C
@@ -139,8 +141,8 @@ fromstruct_in_nsap_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 23);
 	REQUIRE(rdclass == 1);
 
-	source = source;
-	target = target;
+	UNUSED(source);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -151,8 +153,8 @@ tostruct_in_nsap_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -170,8 +172,8 @@ additionaldata_in_nsap_ptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }
