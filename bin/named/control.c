@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.16 2002/09/10 04:45:52 marka Exp $ */
+/* $Id: control.c,v 1.17 2002/09/10 05:07:56 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/app.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <isccc/alist.h>
