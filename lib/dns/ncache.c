@@ -104,6 +104,13 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	char *data[4096];
 
 	/*
+	 * Convert the authority data from 'message' into a negative cache
+	 * rdataset, and store it in 'cache' at 'node'.
+	 */
+
+	REQUIRE(message != NULL);
+
+	/*
 	 * We assume that all data in the authority section has been
 	 * validated by the caller.
 	 */
@@ -193,9 +200,125 @@ isc_result_t
 dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 		  isc_buffer_t *target, unsigned int *countp)
 {
+	dns_rdata_t rdata;
+	isc_result_t result;
+	isc_region_t remaining, tremaining;
+	isc_buffer_t source, savedbuffer, rdlen;
+	dns_name_t name;
+	dns_rdatatype_t type;
+	unsigned int i, rcount, count;
+
+	/*
+	 * Convert the negative caching rdataset 'rdataset' to wire format,
+	 * compressing names as specified in 'cctx', and storing the result in
+	 * 'target'.
+	 */
+
 	REQUIRE(rdataset->type == 0);
 
+	result = dns_rdataset_first(rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_current(rdataset, &rdata);
+	INSIST(dns_rdataset_next(rdataset) == ISC_R_NOMORE);
+	isc_buffer_init(&source, rdata.data, rdata.length,
+			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_add(&source, rdata.length);
 	
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	savedbuffer = *target;
+
+	count = 0;
+	do {
+		dns_name_init(&name, NULL);
+		isc_buffer_remaining(&source, &remaining);
+		dns_name_fromregion(&name, &remaining);
+		INSIST(remaining.length >= name.length);
+		isc_buffer_forward(&source, name.length);
+		remaining.length -= name.length;
+
+		INSIST(remaining.length >= 4);
+		type = isc_buffer_getuint16(&source);
+		rcount = isc_buffer_getuint16(&source);
+
+		for (i = 0; i < rcount; i++) {
+			/*
+			 * Get the length of this rdata and set up an
+			 * rdata structure for it.
+			 */
+			isc_buffer_remaining(&source, &remaining);
+			INSIST(remaining.length >= 2);
+			dns_rdata_init(&rdata);
+			rdata.length = isc_buffer_getuint16(&source);
+			isc_buffer_remaining(&source, &remaining);
+			rdata.data = remaining.base;
+			rdata.type = type;
+			rdata.rdclass = rdataset->rdclass;
+			INSIST(remaining.length >= rdata.length);
+			isc_buffer_forward(&source, rdata.length);
+
+			/*
+			 * Write the name.
+			 */
+			result = dns_name_towire(&name, cctx, target);
+			if (result != DNS_R_SUCCESS)
+				goto rollback;
+
+			/*
+			 * See if we have space for type, class, ttl, and
+			 * rdata length.  Write the type, class, and ttl.
+			 */
+			isc_buffer_remaining(target, &tremaining);
+			if (tremaining.length < 10) {
+				result = ISC_R_NOSPACE;
+				goto rollback;
+			}
+			isc_buffer_putuint16(target, type);
+			isc_buffer_putuint16(target, rdataset->rdclass);
+			isc_buffer_putuint32(target, rdataset->ttl);
+
+			/*
+			 * Save space for rdata length.
+			 */
+			rdlen = *target;
+			isc_buffer_add(target, 2);
+			
+			/*
+			 * Write the rdata.
+			 */
+			result = dns_compress_localinit(cctx, &name, target);
+			if (result != DNS_R_SUCCESS)
+				goto rollback;
+
+			result = dns_rdata_towire(&rdata, cctx, target);
+			dns_compress_localinvalidate(cctx);
+			if (result != DNS_R_SUCCESS)
+				goto rollback;
+
+			/*
+			 * Set the rdata length field to the compressed
+			 * length.
+			 */
+			isc_buffer_putuint16(&rdlen,
+					     target->used - rdlen.used - 2);
+
+			count++;
+		}
+		isc_buffer_remaining(&source, &remaining);
+	} while (remaining.length > 0);
+
+	*countp = count;
+		
+	return (ISC_R_SUCCESS);
+
+ rollback:
+	dns_compress_rollback(cctx, savedbuffer.used);
+	*countp = 0;
+	*target = savedbuffer;
+
+	return (result);
 }
