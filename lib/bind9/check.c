@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.12 2003/08/14 05:56:08 marka Exp $ */
+/* $Id: check.c,v 1.37.6.13 2003/08/26 03:24:09 marka Exp $ */
 
 #include <config.h>
 
@@ -139,6 +139,66 @@ check_order(cfg_obj_t *options, isc_log_t *logctx) {
 		tresult = check_orderent(cfg_listelt_value(element), logctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
+	}
+	return (result);
+}
+
+static isc_result_t
+check_dual_stack(cfg_obj_t *options, isc_log_t *logctx) {
+	cfg_listelt_t *element;
+	cfg_obj_t *alternates = NULL;
+	cfg_obj_t *value;
+	cfg_obj_t *obj;
+	char *str;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_buffer_t buffer;
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+
+	(void)cfg_map_get(options, "dual-stack-servers", &alternates);
+
+	if (alternates == NULL)
+		return (ISC_R_SUCCESS);
+
+	obj = cfg_tuple_get(alternates, "port");
+	if (cfg_obj_isuint32(obj)) {
+		isc_uint32_t val = cfg_obj_asuint32(obj);
+		if (val > ISC_UINT16_MAX) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "port '%u' out of range", val);
+			result = ISC_R_FAILURE;
+		}
+	}
+	obj = cfg_tuple_get(alternates, "addresses");
+	for (element = cfg_list_first(obj);
+	     element != NULL;
+	     element = cfg_list_next(element)) {
+		value = cfg_listelt_value(element);
+		if (cfg_obj_issockaddr(value))
+			continue;
+		obj = cfg_tuple_get(value, "name");
+		str = cfg_obj_asstring(obj);
+		isc_buffer_init(&buffer, str, strlen(str));
+		isc_buffer_add(&buffer, strlen(str));
+		dns_fixedname_init(&fixed);
+		name = dns_fixedname_name(&fixed);
+		tresult = dns_name_fromtext(name, &buffer, dns_rootname,
+					   ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "bad name '%s'", str);
+			result = ISC_R_FAILURE;
+		}
+		obj = cfg_tuple_get(value, "port");
+		if (cfg_obj_isuint32(obj)) {
+			isc_uint32_t val = cfg_obj_asuint32(obj);
+			if (val > ISC_UINT16_MAX) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "port '%u' out of range", val);
+				result = ISC_R_FAILURE;
+			}
+		}
 	}
 	return (result);
 }
@@ -697,6 +757,19 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 		if (check_forward(vconfig, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
+	/*
+	 * Check that dual-stack-servers is reasonable.
+	 */
+	if (vconfig == NULL) {
+		cfg_obj_t *options = NULL;
+		(void)cfg_map_get(config, "options", &options);
+		if (options != NULL)
+			if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
+				result = ISC_R_FAILURE;
+	} else {
+		if (check_dual_stack(vconfig, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+	}
 
 	/*
 	 * Check that rrset-order is reasonable.
@@ -754,6 +827,10 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "view", &views);
+
+	if (views != NULL && options != NULL)
+		if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
 
 	if (views == NULL) {
 		if (check_viewconf(config, NULL, dns_rdataclass_in,

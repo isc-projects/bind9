@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.25 2003/08/25 04:16:16 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.26 2003/08/26 03:24:07 marka Exp $ */
 
 #include <config.h>
 
@@ -137,6 +137,10 @@ ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
 static isc_result_t
 configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 		  cfg_obj_t *forwarders, cfg_obj_t *forwardtype);
+
+static isc_result_t
+configure_alternates(cfg_obj_t *config, dns_view_t *view,
+		     cfg_obj_t *alternates);
 
 static isc_result_t
 configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
@@ -582,6 +586,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cfg_obj_t *voptions = NULL;
 	cfg_obj_t *forwardtype;
 	cfg_obj_t *forwarders;
+	cfg_obj_t *alternates;
 	cfg_obj_t *zonelist;
 	cfg_obj_t *obj;
 	cfg_listelt_t *element;
@@ -791,6 +796,14 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (forwarders != NULL)
 		CHECK(configure_forward(config, view, dns_rootname, 
 					forwarders, forwardtype));
+
+	/*
+	 * Dual Stack Servers.
+	 */
+	alternates = NULL;
+	(void)ns_config_get(maps, "dual-stack-servers", &alternates);
+	if (alternates != NULL)
+		CHECK(configure_alternates(config, view, alternates));
 
 	/*
 	 * We have default hints for class IN if we need them.
@@ -1028,6 +1041,91 @@ configure_hints(dns_view_t *view, const char *filename) {
 		dns_db_detach(&db);
 	}
 
+	return (result);
+}
+
+static isc_result_t
+configure_alternates(cfg_obj_t *config, dns_view_t *view,
+		     cfg_obj_t *alternates)
+{
+	cfg_obj_t *portobj;
+	cfg_obj_t *addresses;
+	cfg_listelt_t *element;
+	isc_result_t result = ISC_R_SUCCESS;
+	in_port_t port;
+
+	/*
+	 * Determine which port to send requests to.
+	 */
+	if (ns_g_lwresdonly && ns_g_port != 0)
+		port = ns_g_port;
+	else
+		CHECKM(ns_config_getport(config, &port), "port");
+
+	if (alternates != NULL) {
+		portobj = cfg_tuple_get(alternates, "port");
+		if (cfg_obj_isuint32(portobj)) {
+			isc_uint32_t val = cfg_obj_asuint32(portobj);
+			if (val > ISC_UINT16_MAX) {
+				cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
+					    "port '%u' out of range", val);
+				return (ISC_R_RANGE);
+			}
+			port = (in_port_t) val;
+		}
+	}
+
+	addresses = NULL;
+	if (alternates != NULL)
+		addresses = cfg_tuple_get(alternates, "addresses");
+
+	for (element = cfg_list_first(addresses);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *alternate = cfg_listelt_value(element);
+		isc_sockaddr_t sa;
+
+		if (!cfg_obj_issockaddr(alternate)) {
+			dns_fixedname_t fixed;
+			dns_name_t *name;
+			char *str = cfg_obj_asstring(cfg_tuple_get(alternate,
+								   "name"));
+			isc_buffer_t buffer;
+			in_port_t myport = port;
+
+			isc_buffer_init(&buffer, str, strlen(str));
+			isc_buffer_add(&buffer, strlen(str));
+			dns_fixedname_init(&fixed);
+			name = dns_fixedname_name(&fixed);
+			CHECK(dns_name_fromtext(name, &buffer, dns_rootname,
+						ISC_FALSE, NULL));
+
+			portobj = cfg_tuple_get(alternates, "port");
+			if (cfg_obj_isuint32(portobj)) {
+				isc_uint32_t val = cfg_obj_asuint32(portobj);
+				if (val > ISC_UINT16_MAX) {
+					cfg_obj_log(portobj, ns_g_lctx,
+						    ISC_LOG_ERROR,
+						    "port '%u' out of range",
+						     val);
+					return (ISC_R_RANGE);
+				}
+				myport = (in_port_t) val;
+			}
+			CHECK(dns_resolver_addalternate(view->resolver, NULL,
+							name, myport));
+			continue;
+		}
+
+		sa = *cfg_obj_assockaddr(alternate);
+		if (isc_sockaddr_getport(&sa) == 0)
+			isc_sockaddr_setport(&sa, port);
+		CHECK(dns_resolver_addalternate(view->resolver, &sa,
+						NULL, 0));
+	}
+
+ cleanup:
 	return (result);
 }
 

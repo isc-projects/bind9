@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.3.2.2.4.1 2003/08/22 06:24:24 marka Exp $ */
+/* $Id: net.c,v 1.3.2.2.4.2 2003/08/26 03:24:13 marka Exp $ */
 
 #include <config.h>
 
@@ -233,4 +233,32 @@ isc_net_probe_ipv6only(void) {
 #endif
 #endif
 	return (ipv6only_result);
+}
+
+void
+isc_net_disableipv4(void) {
+	initialize();
+	if (ipv4_result == ISC_R_SUCCESS)
+		ipv4_result = ISC_R_DISABLED;
+}
+
+void
+isc_net_disableipv6(void) {
+	initialize();
+	if (ipv6_result == ISC_R_SUCCESS)
+		ipv6_result = ISC_R_DISABLED;
+}
+
+void
+isc_net_enableipv4(void) {
+	initialize();
+	if (ipv4_result == ISC_R_DISABLED)
+		ipv4_result = ISC_R_SUCCESS;
+}
+
+void
+isc_net_enableipv6(void) {
+	initialize();
+	if (ipv6_result == ISC_R_DISABLED)
+		ipv6_result = ISC_R_SUCCESS;
 }

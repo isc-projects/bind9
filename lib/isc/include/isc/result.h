@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.57.2.2 2002/03/26 00:55:09 marka Exp $ */
+/* $Id: result.h,v 1.57.2.2.8.1 2003/08/26 03:24:12 marka Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -79,12 +79,13 @@
 #define ISC_R_INPROGRESS		53	/* operation in progress */
 #define ISC_R_CONNECTIONRESET		54	/* connection reset */
 #define ISC_R_SOFTQUOTA			55	/* soft quota reached */
-#define ISC_R_BADNUMBER			56	/* not a valid number */ 
+#define ISC_R_BADNUMBER			56	/* not a valid number */
+#define ISC_R_DISABLED			57	/* disabled */
 
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			57
+#define ISC_R_NRESULTS 			58
 
 ISC_LANG_BEGINDECLS
 

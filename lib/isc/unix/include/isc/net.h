@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.31.2.2.10.3 2003/08/22 06:24:23 marka Exp $ */
+/* $Id: net.h,v 1.31.2.2.10.4 2003/08/26 03:24:13 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -245,6 +245,7 @@ isc_net_probeipv4(void);
  *
  *	ISC_R_SUCCESS		IPv4 is supported.
  *	ISC_R_NOTFOUND		IPv4 is not supported.
+ *	ISC_R_DISABLED		IPv4 is disabled.
  *	ISC_R_UNEXPECTED
  */
 
@@ -257,6 +258,7 @@ isc_net_probeipv6(void);
  *
  *	ISC_R_SUCCESS		IPv6 is supported.
  *	ISC_R_NOTFOUND		IPv6 is not supported.
+ *	ISC_R_DISABLED		IPv6 is disabled.
  *	ISC_R_UNEXPECTED
  */
 
@@ -271,6 +273,18 @@ isc_net_probe_ipv6only(void);
  *	ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
  *	ISC_R_UNEXPECTED
  */
+
+void
+isc_net_disableipv4(void);
+
+void
+isc_net_disableipv6(void);
+
+void
+isc_net_enableipv4(void);
+
+void
+isc_net_enableipv6(void);
 
 #ifdef ISC_PLATFORM_NEEDNTOP
 const char *

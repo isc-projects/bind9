@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.5 2003/08/14 03:22:36 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.6 2003/08/26 03:24:07 marka Exp $ */
 
 #include <config.h>
 
@@ -297,14 +297,30 @@ static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
+	isc_boolean_t disable6 = ISC_FALSE;
+	isc_boolean_t disable4 = ISC_FALSE;
 
 	save_command_line(argc, argv);
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:C:d:fgi:ln:N:p:P:st:u:vx:")) !=
-	       -1) {
+				     "46c:C:d:fgi:ln:N:p:P:st:u:vx:")) != -1) {
 		switch (ch) {
+		case '4':
+			if (disable4)
+				ns_main_earlyfatal("cannot specify -4 and -6");
+			if (isc_net_probeipv4() != ISC_R_SUCCESS)
+				ns_main_earlyfatal("IPv4 not supported by OS");
+			isc_net_disableipv6();
+			disable6 = ISC_TRUE;
+			break;
+		case '6':
+			if (disable6)
+				ns_main_earlyfatal("cannot specify -4 and -6");
+			if (isc_net_probeipv6() != ISC_R_SUCCESS)
+				ns_main_earlyfatal("IPv6 not supported by OS");				isc_net_disableipv4();
+			disable4 = ISC_TRUE;
+			break;
 		case 'c':
 			ns_g_conffile = isc_commandline_argument;
 			lwresd_g_conffile = isc_commandline_argument;

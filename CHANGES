@@ -6,6 +6,10 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1412.	[func]		You can now specify servers to be tried if a nameserver
+			has IPv6 address and you only support IPv4 or the
+			reverse. See dual-stack-servers.
+
 1405.	[func]		Use arc4random() if available.
 
 1403.	[func]		dnssec-signzone, dnssec-keygen, dnssec-makekeyset
