@@ -1,0 +1,1525 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="Adobe FrameMaker 5.5/HTML Export Filter">
+<LINK REL="STYLESHEET" HREF="BV9ARM.css">
+<TITLE> Section 4.	Advanced Concepts</TITLE></HEAD>
+<BODY BGCOLOR="#ffffff">
+<OL>
+<H1 CLASS="1Level">
+<A NAME="pgfId=997350">
+ </A>
+Section 4.	Advanced Concepts</H1>
+</OL>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997351">
+ </A>
+4.1	Dynamic Update</H3>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997352">
+ </A>
+Dynamic update is the term used for the ability under certain specified conditions to add, modify or delete records or RRsets in the master zone files. Dynamic update is fully described in RFC 2136.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997353">
+ </A>
+Dynamic update is enabled by including an <CODE CLASS="Program-Process">
+allow-update{}</CODE>
+ clause in the zone declaration. You should allow as few hosts as possible to update your DNS because there is no per-RR security. If a client is authorized to update your DNS, it can do anything with the zone file, including deleting most of the contents or replacing records with different ones. For this reason, many sites delegate a zone which can be dynamically updated, rather than allowing their uppermost domain to be dynamic.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997354">
+ </A>
+Once a zone has been made dynamic, changes can no longer be made by hand without stopping BIND, editing the zone and then restarting BIND. This is to prevent an update being lost, either by the zone file being changed by hand and overwritten immediately by a dynamic update without being reread, or having a handwritten zone file overwrite a dynamic update that has occurred while the zone file was being hand-edited.</P>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997356">
+ </A>
+4.1.1	<A NAME="19780">
+ </A>
+Incremental Transfer (IXFR)</H4>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997357">
+ </A>
+If dynamic update is enabled, and incremental transfer (IXFR) is also enabled, BIND will maintain a list of changes for secondary servers to transfer, instead of having to transfer the entire zone file.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997358">
+ </A>
+IXFR is enabled globally by giving a filename for <CODE CLASS="Program-Process">
+ixfr-base</CODE>
+ and <CODE CLASS="Program-Process">
+ixfr-tmp-file</CODE>
+, and <CODE CLASS="Program-Process">
+maintain-ixfr-base true</CODE>
+. A server statement with the <CODE CLASS="Program-Process">
+use-ixfr</CODE>
+ option set to <CODE CLASS="Program-Process">
+true</CODE>
+ will then enable incremental transfers to that server.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997359">
+ </A>
+IXFR can only track changes made to the zone with dynamic update - no changes can be made by editing the zone file, even with the stop-start procedure above.</P>
+</DIV>
+</DIV>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997360">
+ </A>
+4.2	Split DNS</H3>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997361">
+ </A>
+Setting up different views, or visibility, of DNS space to internal , as opposed to external, resolvers is usually referred to as a &quot;Split DNS&quot; or &quot;Split Brain DNS&quot; setup. There are several reasons an organization would want to set its DNS up this way.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997362">
+ </A>
+One common reason for setting up a DNS system this way is to hide &quot;internal&quot; DNS information from &quot;external&quot; clients on the Internet. There is some debate as to whether or not this is actually useful. Internal DNS information leaks out in many ways (via e-mail headers, for example) and most savvy &quot;attackers&quot; can find the information they need using  other means.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997363">
+ </A>
+Another common reason for setting up a Split DNS system is to allow internal networks that are behind filters or RFC1918 space (reserved IP space, as documented in RFC 1918) to resolve DNS on the Internet. Split DNS can also be used to allow mail from outside back in to the internal network.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997364">
+ </A>
+Here is an example of a split DNS setup:</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997365">
+ </A>
+Let's say a company named <EM CLASS="Emphasis">
+Example, Inc.</EM>
+ (example.com) has several corporate sites that have an internal network with reserved IP space and an external DMZ (the demilitarized zone, or &quot;outside&quot; section of a network) that is available to the public.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997366">
+ </A>
+<EM CLASS="Emphasis">
+Example, Inc.</EM>
+ wants its internal clients to be able to resolve external hostnames and to exchange mail with people on the outside. The company also wants its internal resolvers to have access to certain internal-only zones that are not available at all outside of the internal network.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997367">
+ </A>
+In order to accomplish this, the company will set up two sets of nameservers. One set will be on the inside network (in the reserved IP space) and the other set will be on bastion hosts, which are &quot;proxy&quot; hosts that can talk to both sides of its network, in the DMZ.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997368">
+ </A>
+The internal servers will be configured to forward all queries, except queries for <EM CLASS="Emphasis">
+site1.example</EM>
+, <EM CLASS="Emphasis">
+site2.example</EM>
+, <EM CLASS="Emphasis">
+site1.example.com</EM>
+, and <EM CLASS="Emphasis">
+site2.example.com</EM>
+, to the servers in the DMZ. These internal servers will have complete sets of information for <EM CLASS="Emphasis">
+site1.example.com</EM>
+, <EM CLASS="Emphasis">
+site2.example.com</EM>
+,<EM CLASS="Emphasis">
+ site1.internal</EM>
+, and <EM CLASS="Emphasis">
+site2.internal</EM>
+.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997369">
+ </A>
+To protect the <EM CLASS="Emphasis">
+site1.internal</EM>
+ and<EM CLASS="Emphasis">
+ site2.internal</EM>
+ domains, the internal nameservers must be configured to disallow all queries to these domains from any external hosts, including the bastion hosts.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997370">
+ </A>
+The external servers, which are on the bastion hosts, will be configured to serve the &quot;public&quot; version of the <EM CLASS="Emphasis">
+site1</EM>
+ and <EM CLASS="Emphasis">
+site2.example.com</EM>
+ zones. This could include things such as the host records for public servers (<EM CLASS="Emphasis">
+www.example.com</EM>
+, <EM CLASS="Emphasis">
+ftp.example.com</EM>
+), and mail exchanger records (<EM CLASS="Emphasis">
+a.mx.example.com</EM>
+ and <EM CLASS="Emphasis">
+b.mx.example.com</EM>
+).</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997371">
+ </A>
+In addition, the public <EM CLASS="Emphasis">
+site1</EM>
+ and <EM CLASS="Emphasis">
+site2 .example.com</EM>
+ zones should have special MX records that contain wildcard (*) records pointing to the bastion hosts. This is needed because external mail servers do not have any other way of looking up how to deliver mail to those internal hosts. With the wildcard records, the mail will be delivered to the bastion host, which can then forward it on to internal hosts.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997372">
+ </A>
+Here's an example of a wildcard MX record:</P>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997373"> </A>
+*   IN MX 10 external1.example.com.</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997374">
+ </A>
+Now that they accept mail on behalf of anything in the internal network, the bastion hosts will need to know how to deliver mail to internal hosts. In order for this to work properly, the resolvers on the bastion hosts will need to be configured to point to the internal nameservers for DNS resolution.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997375">
+ </A>
+Queries for internal hostnames will be answered by the internal servers, and queries for external hostnames will be forwarded back out to the DNS servers on the bastion hosts.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997376">
+ </A>
+In order for all this to work properly, internal clients will need to be configured to query <EM CLASS="Emphasis">
+only</EM>
+ the internal nameservers for DNS queries. This could also be enforced via selective filtering on the network.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997377">
+ </A>
+If everything has been set properly, <EM CLASS="Emphasis">
+Example, Inc.</EM>
+'s internal clients will now be able to:</P>
+<UL>
+<LI CLASS="2Level-bullet1">
+<A NAME="pgfId=997378">
+ </A>
+Look up any hostnames in the <EM CLASS="Emphasis">
+site1</EM>
+ and <EM CLASS="Emphasis">
+site2 .example.com</EM>
+ zones.</LI>
+<LI CLASS="2Level-bullet2">
+<A NAME="pgfId=997379">
+ </A>
+Look up any hostnames in the <EM CLASS="Emphasis">
+site1.internal</EM>
+ and <EM CLASS="Emphasis">
+site2.internal</EM>
+ domains.</LI>
+<LI CLASS="2Level-bullet2">
+<A NAME="pgfId=997380">
+ </A>
+Look up any hostnames on the Internet.</LI>
+<LI CLASS="2Level-bullet2">
+<A NAME="pgfId=997381">
+ </A>
+Exchange mail with internal AND external people.</LI>
+</UL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997382">
+ </A>
+Hosts on the Internet will be able to:</P>
+<UL>
+<LI CLASS="2Level-bullet1">
+<A NAME="pgfId=997383">
+ </A>
+Look up any hostnames in the <EM CLASS="Emphasis">
+site1</EM>
+ and <EM CLASS="Emphasis">
+site2 .example.com </EM>
+zones.</LI>
+<LI CLASS="2Level-bullet2">
+<A NAME="pgfId=997384">
+ </A>
+Exchange mail with anyone in the <EM CLASS="Emphasis">
+site1</EM>
+ and <EM CLASS="Emphasis">
+site2 .example.com</EM>
+ zones.</LI>
+</UL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997385">
+ </A>
+Here is an example configuration for the setup we just described above. Note that this is only configuration information; see <A HREF="BV9ARM.3.html#30164" CLASS="XRef">
+Sample Configuration and Logging</A>
+ for information on how to configure your zone files.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997389">
+ </A>
+Internal DNS server config:</P>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997390"> </A>
+acl internals { 172.16.72.0/24; 192.168.1.0/24; }; acl externals { bastion-ips-go-here; };
+options {
+    ...
+    ...
+    forward only;
+    forwarders { externals; };             // forward to external servers
+    allow-transfer { none; };              // sample allow-transfer (no one)
+    allow-query { internals; externals; }; // restrict query access
+    allow-recursion { internals; };        // restrict recursion
+    ...
+    ...
+};</PRE>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997402"> </A>
+zone &quot;site1.example.com&quot; {       // sample slave zone
+  type master;
+  file &quot;m/site1.example.com&quot;;
+  forwarders { };                          // do normal iterative resolution (do not forward)
+  allow-query { internals; externals; };
+  allow-transfer { internals; };
+};</PRE>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997409"> </A>
+zone &quot;site2.example.com&quot; {
+  type slave;
+  file &quot;s/site2.example.com&quot;;
+  masters { 172.16.72.3; };
+  forwarders { };
+  allow-query { internals; externals; };
+  allow-transfer { internals; };
+};</PRE>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997417"> </A>
+zone &quot;site1.internal&quot; {
+  type master;
+  file &quot;m/site1.internal&quot;;
+  forwarders { };
+  allow-query { internals; };
+  allow-transfer { internals; }
+};</PRE>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997424"> </A>
+zone &quot;site2.internal&quot; {  type slave;
+  file &quot;s/site2.internal&quot;;
+  masters { 172.16.72.3; };
+  forwarders { };
+  allow-query { internals };
+  allow-transfer { internals; }
+};</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997431">
+ </A>
+External (bastion host) DNS server config:</P>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997432"> </A>
+acl internals { 172.16.72.0/24; 192.168.1.0/24; };
+acl externals { bastion-ips-go-here; };
+options {
+  ...
+  ...
+  allow-transfer { none; };                  // sample allow-transfer (no one)
+  allow-query { internals; externals; };     // restrict query access
+  allow-recursion { internals; externals; }; // restrict recursion
+  ...
+  ...
+};</PRE>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997443"> </A>
+zone &quot;site1.example.com&quot; {         // sample slave zone
+  type master;
+  file &quot;m/site1.foo.com&quot;;
+  allow-query { any; };
+  allow-transfer { internals; externals; };
+};</PRE>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997449"> </A>
+zone &quot;site2.example.com&quot; {
+  type slave;
+  file &quot;s/site2.foo.com&quot;;
+  masters { another_bastion_host_maybe; };
+  allow-query { any; };
+  allow-transfer { internals; externals; }
+};</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997456">
+ </A>
+In the resolv.conf (or equivalent) on the bastion host(s):</P>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997457"> </A>
+search ...
+nameserver 172.16.72.2
+nameserver 172.16.72.3
+nameserver 172.16.72.4</PRE>
+</DIV>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997461">
+ </A>
+4.3	TSIG</H3>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997462">
+ </A>
+Information about TSIG in this section was provided by Brian Wellington of TISLabs. This is a short guide to setting up TSIG based transaction security in BIND. It describes changes to the configuration file as well as what changes are required for different features, including the process of creating transaction keys and using transaction signatures with BIND.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997463">
+ </A>
+BIND primarily supports TSIG for server-server communication. This includes zone transfer, notify, and recursive query messages. The resolver bundled with BIND 8.2 has limited support for TSIG, but it is doubtful that support will be integrated into any client applications. There cannot be support for TSIG in stub resolvers, since storing secret keys in <EM CLASS="Emphasis">
+/etc/resolv.conf</EM>
+ is highly insecure.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997464">
+ </A>
+TSIG might be most useful for dynamic update. A primary server for a dynamic zone should use access control to control updates, but IP-based access control is insufficient. Key-based access control is far superior (see <EM CLASS="pathname">
+draft-ietf-dnsind-simple-secure-update-02.txt</EM>
+). The <CODE CLASS="Program-Process">
+nsupdate</CODE>
+ program that is shipped with BIND supports TSIG via the &quot;<CODE CLASS="Program-Process">
+-k</CODE>
+&quot; command line option.</P>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997465">
+ </A>
+4.3.1	Generate Shared Keys for Each Pair of Hosts</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997466">
+ </A>
+A shared secret is generated to be shared between host1 and host2. The key name is chosen to be &quot;host1-host2.&quot;, which is arbitrary. The key name be the same on both hosts.</P>
+<DIV>
+<OL>
+<H5 CLASS="4Level">
+<A NAME="pgfId=997467">
+ </A>
+4.3.1.1	Automatic Generation</H5>
+</OL>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=997468">
+ </A>
+The following command will generate a 128 bit (16 byte) HMAC-MD5 key as described above. Longer keys are better, but shorter keys are easier to read. Note that the maximum key length is 512 bits; keys longer than that will be digested with MD5 to produce a 128 bit key.</P>
+<PRE CLASS="4Level-fixed1"><A NAME="pgfId=997469"> </A>
+src/bin/dnskeygen/dnskeygen -H 128 -h -n host1-host2.</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=997470">
+ </A>
+The key is in the file &quot;Khost1-host2.+157+00000.private&quot;. Nothing actually uses this file, but the base64 encoded string following &quot;Key:&quot; can be extracted:</P>
+<PRE CLASS="4Level-fixed1"><A NAME="pgfId=997471"> </A>
+   La/E5CjG9O+os1jq0a2jdA==</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=997472">
+ </A>
+This string represents a shared secret.</P>
+</DIV>
+<DIV>
+<OL>
+<H5 CLASS="4Level">
+<A NAME="pgfId=997473">
+ </A>
+4.3.1.2	Manual Generation</H5>
+</OL>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=997474">
+ </A>
+The shared secret is simply a random sequence of bits, encoded in base64. Most ASCII strings are valid base64 strings (assuming the length is a multiple of 4 and only valid characters are used), so the shared secret can be manually generated.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=997475">
+ </A>
+Also, a known string can be run through mmencode or a similar program to generate base64 encoded data.</P>
+</DIV>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997476">
+ </A>
+4.3.2	Copying the Shared Secret to Both Machines</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997477">
+ </A>
+This is beyond the scope of DNS. A secure transport mechanism should be used. This could be secure FTP, ssh, telephone, etc.</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997478">
+ </A>
+4.3.3	Informing the Servers of the Key's Existence</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997479">
+ </A>
+Imagine host1 and host 2 are both servers. The following is added to each server's named.conf file:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997480"> </A>
+key host1-host2. {
+algorithm hmac-md5;
+secret &quot;La/E5CjG9O+os1jq0a2jdA==&quot;;
+};</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997484">
+ </A>
+The algorithm, hmac-md5, is the only one supported by BIND. The secret is the one generated above. Since this is a secret, it is recommended that either <CODE CLASS="Program-Process">
+named.conf</CODE>
+ be non-world readable, or the key directive be added to a non-world readable file that's included by named.conf.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997485">
+ </A>
+At this point, the key is recognized. This means that if the server receives a message signed by this key, it can verify the signature. If the signature succeeds, the response is signed by the same key.</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997486">
+ </A>
+4.3.4	Instructing the Server to Use the Key</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997487">
+ </A>
+Since keys are shared between two hosts only, the server must be told when keys are to be used. The following is added to host1's named.conf file, if host2's IP address is 10.1.2.3:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997488"> </A>
+server 10.1.2.3 {
+		keys {host1-host2.;};
+};</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997491">
+ </A>
+Multiple keys may be present, but only the first is used. This directive does not contain any secrets, so it may be in a world-readable file.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997492">
+ </A>
+If host1 sends a message that is a response to that address, the message will be signed with the specified key. host1 will expect any responses to signed messages to be signed with the same key.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997493">
+ </A>
+A similar statement must be present in host2's configuration file (with host1's address) for host2 to sign non-response messages to host1.</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997494">
+ </A>
+4.3.5	TSIG Key Based Access Control</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997495">
+ </A>
+BIND allows IP addresses and ranges to be specified in ACL definitions and <CODE CLASS="Program-Process">
+allow-{query|transfer|update}</CODE>
+ directives. This has been extended to allow TSIG keys also. The above key would be denoted <CODE CLASS="Program-Process">
+key host1-host2</CODE>
+.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997496">
+ </A>
+An example of an allow-update directive would be:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997497"> </A>
+allow-update {key host1-host2.;};</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997498">
+ </A>
+This allows dynamic updates to succeed only if the request was signed by a key named &quot;host1-host2.&quot;</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997499">
+ </A>
+4.3.6	Errors</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997500">
+ </A>
+The processing of TSIG signed messages can result in several errors. If a signed message is sent to a non-TSIG aware server, a FORMERR will be returned, since the server will not understand the record. This is a result of misconfiguration, since the server must be explicitly configured to send a TSIG signed message to a specific server.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997501">
+ </A>
+If a TSIG aware server receives a message signed by an unknown key, the response will be unsigned with the TSIG extended error code set to BADKEY. If a TSIG aware server receives a message with a signature that does not validate, the response will be unsigned with the TSIG extended error code set to BADSIG. If a TSIG aware server receives a message with a time outside of the allowed range, the response will be signed with the TSIG extended error code set to BADTIME, and the time values will be adjusted so that the response can be successfully verified. In any of these cases, the message's rcode is set to NOTAUTH.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997502">
+ </A>
+TSIG verification errors are logged by the server as</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997503"> </A>
+&quot;ns_req: TSIG verify failed - (reason)&quot; </PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997504">
+ </A>
+which is printed at debug level 1.</P>
+</DIV>
+</DIV>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997505">
+ </A>
+4.4	DNSSEC</H3>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997506">
+ </A>
+Cryptographc authentication of DNS information is made possible through the DNS Security (DNSSEC) extension to the domain system. This describes the processing of creating and using DNSSEC signed zones. The zones used in this exercise will be &quot;dnssec.example&quot; and &quot;sub.dnssec.example.&quot;</P>
+<UL>
+<LI CLASS="Subhead2-noBullet">
+<A NAME="pgfId=997507">
+ </A>
+Step 1: Generate zone keys.</LI>
+</UL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997508">
+ </A>
+The following commands generate 640 bit DSA keys to be used as zone keys for the zones:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997509"> </A>
+src/bin/dnskeygen/dnskeygen -D 640 -z -n dnssec.example.
+src/bin/dnskeygen/dnskeygen -D 640 -z -n sub.dnssec.example.</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997511">
+ </A>
+In our example, keys with id 64555 and 39020 were generated.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997512">
+ </A>
+Four files were created on disk:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1007504">
+ </A>
+<CODE CLASS="Program-Process">
+Kdnssec.example.+003+64555.key</CODE>
+ (public key)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1007508">
+ </A>
+<CODE CLASS="Program-Process">
+Kdnssec.example.+003+64555.private</CODE>
+ (private key)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1007505">
+ </A>
+<CODE CLASS="Program-Process">
+Ksub.dnssec.example.+003+39020.key</CODE>
+ (public key)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997516">
+ </A>
+<CODE CLASS="Program-Process">
+Ksub.dnssec.example.+003+39020.private</CODE>
+ (private key)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997517">
+ </A>
+The <CODE CLASS="Program-Process">
+.key</CODE>
+ files contain public keys in DNS RR format, which is base 64. The <CODE CLASS="Program-Process">
+.private</CODE>
+ files contain private keys, with each field encoded in base 64.</P>
+<UL>
+<LI CLASS="Subhead2-noBullet">
+<A NAME="pgfId=997518">
+ </A>
+Step 2: Enter the keys into the zones.</LI>
+</UL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997519">
+ </A>
+The parent zone needs its own key and the child key (as glue). The child zone needs its own key.</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997520"> </A>
+cat Kdnssec.example.+003+64555.key &gt;&gt; zone.dnssec.example
+cat Ksub.dnssec.example.+003+39020.key &gt;&gt; zone.dnssec.example
+cat Ksub.dnssec.example.+003+39020.key &gt;&gt; zone.sub.dnssec.example</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997523">
+ </A>
+Edit the zone files if desired (to move and/or format KEY records, etc.). This is also a good time to add <CODE CLASS="Program-Process">
+$ORIGIN</CODE>
+ directives to the zone files if they aren't present.</P>
+<UL>
+<LI CLASS="Subhead2-noBullet">
+<A NAME="pgfId=997524">
+ </A>
+Step 3: Sign the parent zone.</LI>
+</UL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997525">
+ </A>
+The following command uses the zone.dnssec.example as input and creates the zone.dnssec.example.signed file. The key used is the dsa key for dnssec.example with id 64555 (-ki), and statistics are printed (-st). Parent files are generated for each child zone (-ps), and no global parent file is produced (-no-p1).</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997526"> </A>
+contrib/dns_signer/signer/dnssigner -zi zone.dnssec.example \
+-zo zone.dnssec.example.signed -st -k1 dnssec.example dsa 64555 -ps
+-no-p1</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997528">
+ </A>
+The following files are created:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997529">
+ </A>
+<CODE CLASS="Program-Process">
+zone.dnssec.example.signed</CODE>
+ (signed zone)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997530">
+ </A>
+<CODE CLASS="Program-Process">
+sub.dnssec.example..PARENT</CODE>
+ (parent file for sub.dnssec.example)</P>
+<UL>
+<LI CLASS="Subhead2-noBullet">
+<A NAME="pgfId=997531">
+ </A>
+Step 4: Sign the child zone.</LI>
+</UL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997532">
+ </A>
+The following command is similar to the previous one. The main difference is that the input parent file sub.dnssec.example..PARENT is specified (-pi) in addition to the input zone file; this file was generated by the previous call to the signer. Also, the -ps and -no-p1 options are omitted since there are no child zones of this zone. If this zone had child zones, these options should be present.</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997533"> </A>
+contrib/dns_signer/signer/<CODE CLASS="Program-Process">dnssigner</CODE>
+ -zi zone.sub.dnssec.example \
+-pi sub.dnssec.example..PARENT -zo zone.sub.dnssec.example.signed \
+-st -k1 sub.dnssec.example dsa 39020</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997534">
+ </A>
+The following file is created:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997535">
+ </A>
+<CODE CLASS="Program-Process">
+zone.sub.dnssec.example.signed</CODE>
+ (signed zone)</P>
+<UL>
+<LI CLASS="Subhead2-noBullet">
+<A NAME="pgfId=997536">
+ </A>
+Step 5: Enter the top-level zone key in the named.conf file for the master server.</LI>
+</UL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997537">
+ </A>
+The public key for the top-level signed zone must be present in named.conf, so that the server can verify the data on load (it must be able to traverse a keychain and end at a trusted key). This key is added in a zone pubkey directive (which has a format similar to a KEY record, but not identical). Note that this is not needed for the subzone, as its key is signed by the trusted key in the parent zone.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997538">
+ </A>
+This uses the key from Kdnssec.example.+003+64555.key</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997539"> </A>
+zone &quot;dnssec.example&quot; {
+type master;
+file &quot;zone.dnssec.example.signed&quot;;
+pubkey 16641 3 3 &quot;AuNiWOmzSHwrzLMWv1C1gbKQBNAHwMeX+C0owQkfmdxjoTJvnmbN
+       CdbGM/fnejQhEXsRT5l3NLy0H4UCX3ElGJT49n3nFb2jPuDYbkPh
+       VV4sLfLJzQs/RWeQmQnNFF2HNmwksWlPvUT66k4mqJDtIk60Dio6
+       1PML5sVDMQns7Zukq4aSn4jzRGkbDGhB9S3yzXVMVjYDwlM9frW9
+       Ayt0vqDa0zG+V52YiCSOdFGWJ0bSFa8sTwcp4BEVUt/Kg2Zo4VAy
+       +AeYLcQLb6vDZUX8x/BPByKKptfXirhNPv43xE6vT4xCxYPhvyDk
+       Y7Qlf4W+/sSNNKE7P/JAKmQxxXAVPoXtBpa6&quot;;
+};</PRE>
+<UL>
+<LI CLASS="Subhead2-noBullet">
+<A NAME="pgfId=997550">
+ </A>
+Step 6: Enter the top-level zone key in the named.conf file for any other servers that will trust the key.</LI>
+</UL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997551">
+ </A>
+This uses the same key as above.</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997552"> </A>
+trusted-keys {
+		dnssec.example 16641 3 3
+       &quot;AuNiWOmzSHwrzLMWv1C1gbKQBNAHwMeX+C0owQkfmdxjoTJvnmbN
+       CdbGM/fnejQhEXsRT5l3NLy0H4UCX3ElGJT49n3nFb2jPuDYbkPh
+       VV4sLfLJzQs/RWeQmQnNFF2HNmwksWlPvUT66k4mqJDtIk60Dio6
+       1PML5sVDMQns7Zukq4aSn4jzRGkbDGhB9S3yzXVMVjYDwlM9frW9
+       Ayt0vqDa0zG+V52YiCSOdFGWJ0bSFa8sTwcp4BEVUt/Kg2Zo4VAy
+       +AeYLcQLb6vDZUX8x/BPByKKptfXirhNPv43xE6vT4xCxYPhvyDk
+       Y7Qlf4W+/sSNNKE7P/JAKmQxxXAVPoXtBpa6&quot;;
+}</PRE>
+<UL>
+<LI CLASS="Subhead2-noBullet">
+<A NAME="pgfId=997562">
+ </A>
+Start named.</LI>
+</UL>
+</DIV>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997563">
+ </A>
+4.5	IPv6</H3>
+</OL>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997564">
+ </A>
+4.5.1	IPv6 addresses (A6)</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997565">
+ </A>
+IPv6 addresses are 128-bit identifiers for interfaces and sets of interfaces which were introduced in the DNS to facilitate scalable Internet routing. There are three types of addresses: <EM CLASS="Emphasis">
+Unicast</EM>
+, an identifier for a single interface; <EM CLASS="Emphasis">
+Anycast</EM>
+, an identifier for a set of interfaces; and <EM CLASS="Emphasis">
+Multicast</EM>
+, an identifier for a set of interfaces. Here we describe the global Unicast address scheme. For more information, see RFC 2374.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997566">
+ </A>
+The aggregatable global Unicast address format is as follows:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997628">
+ </A>
+&nbsp;</P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997569">
+ </A>
+3</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997571">
+ </A>
+13</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997573">
+ </A>
+8</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997575">
+ </A>
+24</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997577">
+ </A>
+16</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfontLG">
+<A NAME="pgfId=997579">
+ </A>
+64 bits</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997581">
+ </A>
+FP</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997583">
+ </A>
+TLA ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997585">
+ </A>
+RES</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997587">
+ </A>
+NLA ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997589">
+ </A>
+SLA ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997591">
+ </A>
+Interface ID</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="4">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997593">
+ </A>
+&lt;------- Public Topology -------&gt;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997601">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997603">
+ </A>
+&nbsp;</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997605">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997607">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997609">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997611">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997613">
+ </A>
+&lt;--Site Topology--&gt;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997615">
+ </A>
+&nbsp;</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997617">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997619">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997621">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997623">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997625">
+ </A>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997627">
+ </A>
+&lt;------ Interface Identifier ------&gt;</P>
+</TD>
+</TR>
+</TABLE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997666">
+ </A>
+Where</P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997631">
+ </A>
+FP</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997633">
+ </A>
+=</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997635">
+ </A>
+Format Prefix (001)</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997637">
+ </A>
+TLA ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997639">
+ </A>
+=</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997641">
+ </A>
+Top-Level Aggregation Identifier</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997643">
+ </A>
+RES</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997645">
+ </A>
+=</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997647">
+ </A>
+Reserved for future use</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997649">
+ </A>
+NLA ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997651">
+ </A>
+=</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997653">
+ </A>
+Next-Level Aggregation Identifier</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997655">
+ </A>
+SLA ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997657">
+ </A>
+=</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997659">
+ </A>
+Site-Level Aggregation Identifier</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997661">
+ </A>
+INTERFACE ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997663">
+ </A>
+=</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997665">
+ </A>
+Interface Identifier</P>
+</TD>
+</TR>
+</TABLE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997667">
+ </A>
+The `Public Topology' is provided by the upstream provider or ISP, and (roughly) corresponds to the IPv4 `network' section of the address range. The `Site Topology' is where you can subnet this space, much like subnetting an IPv4 class A or B network into class Cs. The `Interface Identifier' is the address of an individual interface on a given network. (With IPv6, addresses belong to interfaces rather than machines.)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997668">
+ </A>
+The subnetting capability of IPv6 is much more flexible than that of IPv4: subnetting can now be carried out on bit boundaries, in much the same way as Classless InterDomain Routing (CIDR).</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997669">
+ </A>
+The internal structure of the `Public Topology' for an A6 global unicast address consists of:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997687">
+ </A>
+&nbsp;</P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997672">
+ </A>
+3</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997674">
+ </A>
+13</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997676">
+ </A>
+8</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997678">
+ </A>
+24</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997680">
+ </A>
+FP</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997682">
+ </A>
+TLA ID</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997684">
+ </A>
+RES</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997686">
+ </A>
+NLA ID</P>
+</TD>
+</TR>
+</TABLE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997688">
+ </A>
+A 3 bit FP (Format Prefix) of 001 indicates this is a global unicast address. FP lengths for other types of addresses may vary.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997689">
+ </A>
+13 TLA (Top Level Aggregator) bits give the prefix of your top-level IP backbone carrier.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997690">
+ </A>
+8 Reserved bits</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997691">
+ </A>
+24 bits for Next Level Aggregators. This allows organizations with a TLA to hand out portions of their IP space to client organizations, so that the client can then split up the network further by filling in more NLA bits, and hand out IPv6 prefixes to their clients, and so forth.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997692">
+ </A>
+There is no particular structure for the `Site topology' section. Organizations can allocate these bits in any way they desire, in the same way as they would subnet an IPv4 class A (8 bit prefix) network.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997693">
+ </A>
+The Interface identifier must be unique on that network. On ethernet networks, one way to ensure this is to set the address to the first three bytes of the hardware address, `FFFE', then the last three bytes of the hardware address. The lowest significant bit of the first byte should then be complemented. Addresses are written as 32-bit blocks separated with a colon, and leading zeros of a block may be omitted, for example:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997694"> </A>
+3ffe:8050:201:9:a00:20ff:fe81:2b32</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997695">
+ </A>
+IPv6 address specifications are likely to contain long strings of zeros, so the architects have included a shorthand for specifying them. The double colon `::' indicates the longest possible string of zeros that can fit, and can be used only once in an address.</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997696">
+ </A>
+4.5.2	Name to Address Lookup</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997697">
+ </A>
+Forward name lookups (host name to IP address) under IPv6 do not necessarily return the complete IPv6 address of the host. Because the provider-assigned prefix may change, the A6 record can simply specify the locally assigned portion of the name, and refer to the provider for the remainder.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997698">
+ </A>
+A complete IPv6 A6 record that provides the full 128 bit address looks like:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997730">
+ </A>
+&nbsp;</P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="5">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997701">
+ </A>
+$ORIGIN example.com.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997711">
+ </A>
+; NAME</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997713">
+ </A>
+TTL TYPE</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997715">
+ </A>
+BITS IN REFERRAL</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997717">
+ </A>
+ADDRESS</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997719">
+ </A>
+REFERRAL</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997721">
+ </A>
+host.example.com.</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997723">
+ </A>
+1h IN A6</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997725">
+ </A>
+0</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997727">
+ </A>
+3ffe:8050:201:9:a00:20ff:fe81:2b32</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997729">
+ </A>
+.</P>
+</TD>
+</TR>
+</TABLE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997731">
+ </A>
+Note that the number preceding the address is the number of bits to be provided via the referral. This is probably the easiest way to roll out an IPv6 installation, though you may wish to provide a reference to your provider assigned prefix:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997763">
+ </A>
+&nbsp;</P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="5">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997734">
+ </A>
+$ORIGIN example.com.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997744">
+ </A>
+; NAME</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997746">
+ </A>
+TTL TYPE</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997748">
+ </A>
+BITS IN REFERRAL</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997750">
+ </A>
+ADDRESS</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997752">
+ </A>
+REFERRAL</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997754">
+ </A>
+host.example.com.</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997756">
+ </A>
+1h IN A6</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997758">
+ </A>
+48</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997760">
+ </A>
+::9:a00:20ff:fe81:2b32</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997762">
+ </A>
+prefix.example2.com.</P>
+</TD>
+</TR>
+</TABLE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997764">
+ </A>
+Then, in example2.com's zone:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997796">
+ </A>
+&nbsp;</P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="5">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997767">
+ </A>
+$ORIGIN example.com.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997777">
+ </A>
+; NAME</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997779">
+ </A>
+TTL TYPE</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997781">
+ </A>
+BITS IN REFERRAL</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997783">
+ </A>
+ADDRESS</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997785">
+ </A>
+REFERRAL</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997787">
+ </A>
+prefix.example2.com.</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997789">
+ </A>
+1h IN A6</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997791">
+ </A>
+0</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997793">
+ </A>
+3ffe:8050:201::</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody-fixedfont">
+<A NAME="pgfId=997795">
+ </A>
+.</P>
+</TD>
+</TR>
+</TABLE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997797">
+ </A>
+The referral where there are no more bits is to `.', the root zone. Be warned that excessive use of this chaining can lead to extremely poor name resolution for people trying to access your hosts.</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997798">
+ </A>
+4.5.3	Address to Name Lookup</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997799">
+ </A>
+Reverse IPv6 addresses may appear as one or more hex strings, known as &quot;bitstring labels,&quot; each followed by a number of valid bits. A full 128 bits may be specified at the ip6.int top level, or more likely, the provider will delegate you a smaller chunk of addresses for which you will need to supply reverse DNS.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997800">
+ </A>
+The address can be split up along arbitrary boundaries, and is written with hex numbers in forward order, rather than in reverse order as IPv4 PTR records are written. The sections between dot separators are reversed as usual. If the number of valid bits in the hex string is less than the string specifies, it is the <EM CLASS="CharFmt">
+first N bits</EM>
+ that are counted. Thus, \[x2/3] gives a bit pattern of 0010, the first three bits of which, 001, are valid.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997801">
+ </A>
+The address above, then, is:</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997802">
+ </A>
+<CODE CLASS="Program-Process">
+\[x3FFE8050020100090A0020FFFE812B32/128].ip6.int.</CODE>
+ (not divided)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997803">
+ </A>
+<CODE CLASS="Program-Process">
+\[x00090A0020FFFE812B32/80].\[xFFF402801008/45].\[x2/3].ip6.int.</CODE>
+ (divided into FP, TLA/RES/NLA, and local)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997807">
+ </A>
+<CODE CLASS="Program-Process">
+\[x00090A0020FFFE812B32/80].\[x80500201/32].\[xFFF0/13].\[x2/3].ip6.int.</CODE>
+ (divided into FP, TLA, RES/NLA, and local)</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997808">
+ </A>
+These strings are all equivalent. The combined TLA/RES/NLA in the second example bears no resemblance to any string in the address because it is offset by three bits.</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997809">
+ </A>
+4.5.4	Using DNAME for Delegation of IPv6 Reverse Addresses</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997810">
+ </A>
+Delegation of reverse addresses is done through the new DNAME RR. In the example above, where <EM CLASS="Emphasis">
+\[x2/3].ip6.int.</EM>
+ needs to delegate<CODE CLASS="Program-Process">
+ </CODE>
+<EM CLASS="Emphasis">
+\[xFFF0]</EM>
+<CODE CLASS="Program-Process">
+ </CODE>
+to an organization (<EM CLASS="Emphasis">
+example2.com</EM>
+), the domain administrator would insert a line similar to the following in the <EM CLASS="Emphasis">
+\[x2/3].ip6.int.</EM>
+ zone:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997811"> </A>
+$ORIGIN \[x2/3].ip6.int.
+\[xFFF0/13] 1h IN DNAME ip6.example2.com.</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997813">
+ </A>
+<EM CLASS="Emphasis">
+example2.com</EM>
+ would then place into the <EM CLASS="Emphasis">
+ip6 </EM>
+zone:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997814"> </A>
+$ORIGIN ip6.example.com.
+\[x80500201/32] 1h IN DNAME ip6.example.com.</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997816">
+ </A>
+Finally, <EM CLASS="Emphasis">
+example.com </EM>
+needs to include in the <EM CLASS="Emphasis">
+ip6.example.com</EM>
+ zone:</P>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=997817"> </A>
+$ORIGIN ip6.example.com.
+\[x00090A0020FFFE812B32/80] 1h IN PTR host.example.com.</PRE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997819">
+ </A>
+We suggest that the top of your administrative control (<EM CLASS="Emphasis">
+example.com</EM>
+, in this case) provide all the bits required for reverse and forward resolution to allow name resolution even if the network is disconnected from the Internet. This will also allow operation with DNSSEC if you set up a false trusted server for &quot;.&quot; containing only  delegations for your forward and reverse zones directly to the top of your administrative control. This should be signed with a key trusted by all of your clients, equivalent to the real key for &quot;<CODE CLASS="Program-Process">
+.</CODE>
+&quot;. </P>
+<P CLASS="Body">
+<A NAME="pgfId=997347">
+ </A>
+&nbsp;</P>
+<p>Return to <A href="BV9ARM.HTML">BINDv9 Administrator Reference Manual</A> table of contents.</p>
+</DIV>
+</DIV>
+</BODY>
+</HTML>

@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="Adobe FrameMaker 5.5/HTML Export Filter">
+<LINK REL="STYLESHEET" HREF="BV9ARM.css">
+<TITLE> Section 7.	Troubleshooting</TITLE></HEAD>
+<BODY BGCOLOR="#ffffff">
+<OL>
+<H1 CLASS="1Level">
+<A NAME="pgfId=997350">
+ </A>
+Section 7.	Troubleshooting</H1>
+</OL>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997351">
+ </A>
+7.1	Common Log Messages and What They Mean</H3>
+</OL>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997352">
+ </A>
+lame server</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997353"> </A>
+ns named[111]: Lame server on 'www.foo.com' (in 'foo.com'?): [192.168.0.2].53 'ns2.foo.com'</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997354">
+ </A>
+This is a harmless error message. It means that the server at 192.168.0.2 (ns2.foo.com) is listed as a nameserver for &quot;foo.com&quot;, but it doesn't really know anything about foo.com.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997355">
+ </A>
+If this is a zone under your control, check each of the nameservers to ensure that they are configured to answer questions properly.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997356">
+ </A>
+If it's a zone out on the Internet, it would be nice to notify the owners of the domain in question so that they can take a look at it. In practice, though, not many people have time to do this.</P>
+</DIV>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997357">
+ </A>
+bad referral</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997358"> </A>
+ns named[111]: bad referral (other.com !&lt; subdomain.other.com)</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997359">
+ </A>
+This indicates that your nameserver (ns.foo.com) queried the nameserver for foo2.com to find out how to get to subdomain.foo2.com. foo2.com told your nameserver that subdomain.foo2.com was delegated to some other.foo2.com, so your nameserver queried that.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997360">
+ </A>
+someother.foo2.com didn't think that subdomain.foo2.com had been delegated to it, so it referred your server (ns.foo.com) back to the foo2.com nameserver.</P>
+</DIV>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997361">
+ </A>
+not authoritative for</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997362"> </A>
+ns named-xfer[111]: [192.168.0.1] not authoritative for foo.com, SOA query got rcode 0, aa 0, ancount 1, aucount 0</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997363">
+ </A>
+This error usually shows up on a slave server. It indicates that the master server is not answering authoritatively for the zone. This usually happens when the zone is rejected (while named is loading) on the master server. Check the logs on the master server. If ancount -- 0, you may be pointing at the wrong master server for the zone.</P>
+</DIV>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997364">
+ </A>
+rejected zone</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997365"> </A>
+ns named[111]: master zone &quot;foo.com&quot; (IN) rejected due to errors (serial111)</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997366">
+ </A>
+This indicates that the foo.com zone was rejected because of an error in the zone file. Check the lines above this error -- named will usually tell you what it didn't like and where to find it in the zone file.</P>
+</DIV>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997367">
+ </A>
+no NS RRs found</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997368"> </A>
+ns named[111]: Zone &quot;foo.com&quot; (file foo.com.db): no NS RRs found at zonetop</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997369">
+ </A>
+The foo.com.db file is missing NS records at the top of the zone (in the SOA section). Check to make sure they exist and that there is white space (spaces or tabs) in front of them. White spaces matter here.</P>
+</DIV>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997370">
+ </A>
+no default TTL set</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997371"> </A>
+ns named[111]: Zone &quot;foo.com&quot; (file foo.com.db): No default TTL set using SOA minimum instead</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997372">
+ </A>
+You need to add a $TTL to the top of the foo.com.db zone file. See RFC2308, or section 3.2.3, &quot;Setting TTLs&quot; in this document, for information on how to use $TTL.</P>
+</DIV>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997373">
+ </A>
+no root nameserver for class</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997374"> </A>
+findns: No root nameservers for class IN?</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997375">
+ </A>
+Your nameserver is having problems finding the root nameservers. Check your root hints file to make sure it is not corrupted. Also, make sure that your nameserver can reach the Internet.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997376">
+ </A>
+If you are running an internal root nameserver, make sure it's configured properly and is answering queries.</P>
+</DIV>
+<DIV>
+<UL>
+<H6 CLASS="Subhead2">
+<A NAME="pgfId=997377">
+ </A>
+address already in use</H6>
+</UL>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997378"> </A>
+ctl_server: bind: Address already in use</PRE>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997379">
+ </A>
+This usually indicates that another copy of BIND is already running. Verify that you have killed old copies of the daemon.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997380">
+ </A>
+This can also pop up if you originally ran named as &quot;root&quot; and now run it as a regular user. named may have left behind an ndc control socket that is owned by root if it crashed, or was not killed gracefully.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997381">
+ </A>
+This means that the regular user wouldn't be able to delete it, so it would think named is still running. The solution is to remove any ndc sockets in /usr/local/etc, or /var/run, etc.</P>
+</DIV>
+</DIV>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997382">
+ </A>
+7.2	Common Problems</H3>
+</OL>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997383">
+ </A>
+7.2.1	It's not working; how can I figure out what's wrong?</H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997384">
+ </A>
+The best solution to solving installation and configuration issues is to take preventative measures by setting up logging files beforehand (see the sample configurations in <A HREF="BV9ARM.3.html#30164" CLASS="XRef">
+Sample Configuration and Logging</A>
+). The log files provide a source of hints and information that can be used to figure out what went wrong and how to fix the problem.</P>
+</DIV>
+</DIV>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997388">
+ </A>
+7.3	Incrementing and Changing the Serial Number</H3>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997389">
+ </A>
+Zone serial numbers are just numbers--they aren't date related. A lot of people set them to a number that represents a date, usually of the form YYYYMMDDRR. A number of people have been testing these numbers for Y2K compliance and have set the number to the year 2000 to see if it will work. They then try to restore the old serial number. This will cause problems with BIND, because serial numbers are used to indicate that a zone has been updated. If the serial number on the secondary server is lower than the serial number on the primary, the secondary server will attempt to update its copy of the zone.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997390">
+ </A>
+Setting the serial number to a lower number on the primary server than the secondary server means that the secondary will not perform updates to its copy of the zone.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997391">
+ </A>
+The solution to this is to add 2147483647 (2^31-1) to the number, reload the zone and make sure all secondaries have updated to the new zone serial number, then reset the number to what you want it to be, and reload the zone again.</P>
+</DIV>
+<DIV>
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997392">
+ </A>
+7.4	Where Can I Get Help?</H3>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997393">
+ </A>
+The Internet Software Consortium (ISC) offers a wide range of support and service agreements for BIND, DHCP and INN servers. Four levels of premium support are available and each level includes support for all ISC programs, significant discounts on products and training, and a recognized priority on bug fixes and non-funded feature requests. In addition, ISC offers a standard support agreement package which includes services ranging from bug fix announcements to remote support. It also includes training in BIND, DHCP or INN.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997394">
+ </A>
+To discuss arrangements for support, contact
+<A HREF="mailto:clientservices@isc.org">clientservices@isc.org</A>
+or visit the ISC web page at<BR>
+<EM CLASS="URL">
+<A HREF="http://www.isc.org/services/support/">http://www.isc.org/services/support/</A></EM>
+ to read more.</P>
+<P CLASS="Body">
+<A NAME="pgfId=997347">
+ </A>
+&nbsp;</P>
+<p>Return to <A href="BV9ARM.HTML">BINDv9 Administrator Reference Manual</A> table of contents.</p>
+</DIV>
+</BODY>
+</HTML>
