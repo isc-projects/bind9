@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.422 2004/10/26 02:01:19 marka Exp $ */
+/* $Id: zone.c,v 1.423 2004/11/09 22:16:57 marka Exp $ */
 
 #include <config.h>
 
@@ -1489,7 +1489,7 @@ zone_count_ns_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		result = ISC_R_SUCCESS;
 		goto invalidate_rdataset;
 	}
-	else if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto invalidate_rdataset;
 
 	count = 0;
@@ -1525,6 +1525,22 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_soa,
 				     dns_rdatatype_none, 0, &rdataset, NULL);
+	if (result == ISC_R_NOTFOUND) {
+		if (soacount != NULL)
+			*soacount = 0;
+		if (serial != NULL)
+			*serial = 0;
+		if (refresh != NULL)
+			*refresh = 0;
+		if (retry != NULL)
+			*retry = 0;
+		if (expire != NULL)
+			*expire = 0;
+		if (minimum != NULL)
+			*minimum = 0;
+		result = ISC_R_SUCCESS;
+		goto invalidate_rdataset;
+	}
 	if (result != ISC_R_SUCCESS)
 		goto invalidate_rdataset;
 
@@ -5234,9 +5250,14 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "has no NS records");
 			result = DNS_R_BADZONE;
 		}
-	}
-	if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	} else {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			    "retrieving SOA and NS records failed: %s",
+			    dns_result_totext(result));
 		return (result);
+	}
 
 	ver = NULL;
 	dns_db_currentversion(db, &ver);

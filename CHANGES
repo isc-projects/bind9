@@ -1,4 +1,6 @@
-1764.	[placeholder]   rt13009
+1764.	[bug]		dns_zone_replacedb failed to emit a error message
+			if there was no SOA record in the replacment db.
+			[RT #13016]
 
 1763.	[placeholder]	rt13002
 
