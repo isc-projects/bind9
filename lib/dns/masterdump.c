@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.50 2001/04/26 21:17:55 gson Exp $ */
+/* $Id: masterdump.c,v 1.51 2001/06/27 04:30:37 mayer Exp $ */
 
 #include <config.h>
 
@@ -356,7 +356,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	isc_boolean_t first = ISC_TRUE;
 	isc_uint32_t current_ttl;
 	isc_boolean_t current_ttl_valid;
-	int type;
+	dns_rdatatype_t type;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
