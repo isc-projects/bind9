@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.58 2001/08/28 03:58:04 marka Exp $ */
+/* $Id: server.h,v 1.58.2.1 2001/09/04 19:38:46 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -28,6 +28,8 @@
 
 #include <dns/types.h>
 #include <dns/acl.h>
+
+#include <named/types.h>
 
 #define NS_EVENTCLASS		ISC_EVENTCLASS(0x4E43)
 #define NS_EVENT_RELOAD		(NS_EVENTCLASS + 0)
