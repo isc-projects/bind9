@@ -23,18 +23,18 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 
-static void disassociate(dns_rdataset_t *rdatasetp);
-static dns_result_t first(dns_rdataset_t *rdataset);
-static dns_result_t next(dns_rdataset_t *rdataset);
-static void current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
-static void clone(dns_rdataset_t *source, dns_rdataset_t *target);
+static void rdatalist_disassociate(dns_rdataset_t *rdatasetp);
+static dns_result_t rdatalist_first(dns_rdataset_t *rdataset);
+static dns_result_t rdatalist_next(dns_rdataset_t *rdataset);
+static void rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target);
 
 static dns_rdatasetmethods_t methods = {
-	disassociate,
-	first,
-	next,
-	current,
-	clone,
+	rdatalist_disassociate,
+	rdatalist_first,
+	rdatalist_next,
+	rdatalist_current,
+	rdatalist_clone,
 };
 
 dns_result_t
@@ -64,12 +64,12 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 }
 
 static void
-disassociate(dns_rdataset_t *rdataset) {
+rdatalist_disassociate(dns_rdataset_t *rdataset) {
 	(void)rdataset;				/* Keep compiler quiet. */
 }
 
 static dns_result_t
-first(dns_rdataset_t *rdataset) {
+rdatalist_first(dns_rdataset_t *rdataset) {
 	dns_rdatalist_t *rdatalist;
 
 	rdatalist = rdataset->private1;
@@ -82,7 +82,7 @@ first(dns_rdataset_t *rdataset) {
 }
 
 static dns_result_t
-next(dns_rdataset_t *rdataset) {
+rdatalist_next(dns_rdataset_t *rdataset) {
 	dns_rdata_t *rdata;
 
 	rdata = rdataset->private2;
@@ -98,7 +98,7 @@ next(dns_rdataset_t *rdataset) {
 }
 
 static void
-current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	dns_rdata_t *list_rdata;
 
 	list_rdata = rdataset->private2;
@@ -109,7 +109,7 @@ current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 static void
-clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	*target = *source;
 
 	/*
