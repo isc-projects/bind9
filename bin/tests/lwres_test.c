@@ -160,6 +160,7 @@ test_gabn(char *target)
 	lwres_gabnresponse_t *res;
 	int ret;
 	unsigned int i;
+	char outbuf[64];
 
 	res = NULL;
 	ret = lwres_getaddrsbyname(ctx, target,
@@ -176,26 +177,40 @@ test_gabn(char *target)
 		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
 	printf("%u addresses:\n", res->naddrs);
 	for (i = 0 ; i < res->naddrs ; i++) {
-		printf("\tAddr len %u family %08x\n",
-		       res->addrs[i].length, res->addrs[i].family);
+		if (res->addrs[i].family == LWRES_ADDRTYPE_V4)
+			(void)inet_ntop(AF_INET, res->addrs[i].address,
+					outbuf, sizeof(outbuf));
+		else
+			(void)inet_ntop(AF_INET6, res->addrs[i].address,
+					outbuf, sizeof(outbuf));
+		printf("\tAddr len %u family %08x %s\n",
+		       res->addrs[i].length, res->addrs[i].family, outbuf);
 	}
 
 	lwres_gabnresponse_free(ctx, &res);
 }
 
 static void
-test_gnba(char *target)
+test_gnba(char *target, lwres_uint32_t af)
 {
 	lwres_gnbaresponse_t *res;
 	int ret;
 	unsigned int i;
-	struct in_addr in;
+	unsigned char addrbuf[16];
+	unsigned int len;
 
-	in.s_addr = inet_addr(target);
+	if (af == LWRES_ADDRTYPE_V4) {
+		len = 4;
+		ret = inet_pton(AF_INET, target, addrbuf);
+		assert(ret == 1);
+	} else {
+		len = 16;
+		ret = inet_pton(AF_INET6, target, addrbuf);
+		assert(ret == 1);
+	}
 
 	res = NULL;
-	ret = lwres_getnamebyaddr(ctx, LWRES_ADDRTYPE_V4, 4,
-				  (unsigned char *)&in.s_addr, &res);
+	ret = lwres_getnamebyaddr(ctx, af, len, addrbuf, &res);
 	printf("gnba %s ret == %d\n", target, ret);
 	assert(ret == 0);
 	assert(res != NULL);
@@ -256,7 +271,10 @@ main(int argc, char *argv[])
 	test_gabn("notthereatall.flame.org.");
 	test_gabn("alias-05.test.flame.org.");
 	test_gabn("f.root-servers.net.");
-	test_gnba("198.133.199.1");
+	test_gabn("poofball.flame.org.");
+	test_gnba("198.133.199.1", LWRES_ADDRTYPE_V4);
+	test_gnba("204.152.184.79", LWRES_ADDRTYPE_V4);
+	test_gnba("3ffe:8050:201:1860:42::1", LWRES_ADDRTYPE_V6);
 
 	lwres_context_destroy(&ctx);
 
