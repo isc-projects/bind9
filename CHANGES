@@ -1,6 +1,8 @@
 
 	--- 9.3.0rc1 released ---
 
+1662.	[bug]		Change #1658 failed to one use of 'type' to 'keytype'.
+
 1659.	[cleanup]	Cleanup some messages that were referring to KEY vs
 			DNSKEY, NXT vs NSEC and SIG vs RRSIG.
 
