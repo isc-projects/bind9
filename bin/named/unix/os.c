@@ -76,14 +76,16 @@ linux_initialprivs(void) {
 
 	/*
 	 * Drop all privileges except the abilities to bind() to privileged
-	 * ports, set resource limits, and chroot().
+	 * ports and chroot().
 	 */
 
 	caps = 0;
 	caps |= (1 << CAP_NET_BIND_SERVICE);
-	caps |= (1 << CAP_SYS_RESOURCE);
 	caps |= (1 << CAP_SYS_CHROOT);
-
+	/*
+	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not
+	 *      clear it would work right given the way linuxthreads work.
+	 */
 	linux_setcaps(caps);
 }
 
@@ -93,12 +95,11 @@ linux_minprivs(void) {
 
 	/*
 	 * Drop all privileges except the abilities to bind() to privileged
-	 * ports and set resource limits.
+	 * ports.
 	 */
 
 	caps = 0;
 	caps |= (1 << CAP_NET_BIND_SERVICE);
-	caps |= (1 << CAP_SYS_RESOURCE);
 
 	linux_setcaps(caps);
 }
