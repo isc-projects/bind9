@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.3.8.2 2003/08/04 02:04:44 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.3.8.3 2003/08/04 02:09:04 marka Exp $ */
 
 #include <config.h>
 
@@ -79,6 +79,7 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	char classname_in[] = "IN";
 	char *classname = classname_in;
+	const char *workdir = NULL;
 
 	while ((c = isc_commandline_parse(argc, argv, "c:djqst:vw:")) != EOF) {
 		switch (c) {
