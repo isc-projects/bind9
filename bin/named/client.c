@@ -197,6 +197,7 @@ sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
 static void
 client_deactivate(ns_client_t *client) {
 	REQUIRE(NS_CLIENT_VALID(client));
+	
 	if (client->interface)
 		ns_interface_detach(&client->interface);
 
@@ -284,6 +285,7 @@ static void
 set_timeout(ns_client_t *client, unsigned int seconds) {
 	isc_result_t result;
 	isc_interval_t interval;
+	
 	isc_interval_set(&interval, seconds, 0);
 	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
 				 &interval, ISC_FALSE);
@@ -460,13 +462,13 @@ static void
 client_shutdown(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 
-	UNUSED(task);
-
 	REQUIRE(event != NULL);
 	REQUIRE(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
 	client = event->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
+
+	UNUSED(task);
 
 	CTRACE("shutdown");
 
@@ -489,9 +491,9 @@ ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->nreads == 0);
 	INSIST(client->nsends == 0);
 	INSIST(client->lockview == NULL);
-	CTRACE("endrequest");
-
 	INSIST(client->state == NS_CLIENTSTATE_WORKING);
+
+	CTRACE("endrequest");
 
 	if (client->next != NULL) {
 		(client->next)(client);
@@ -550,8 +552,10 @@ ns_client_checkactive(ns_client_t *client) {
 void
 ns_client_next(ns_client_t *client, isc_result_t result) {
 	int newstate;
+	
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->state == NS_CLIENTSTATE_WORKING);
+
 	CTRACE("next");
 	
 	if (result != ISC_R_SUCCESS) {
@@ -1355,6 +1359,7 @@ void
 ns_client_attach(ns_client_t *source, ns_client_t **targetp) {
 	REQUIRE(NS_CLIENT_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
+	
 	source->references++;
 	*targetp = source;
 }
@@ -1362,6 +1367,7 @@ ns_client_attach(ns_client_t *source, ns_client_t **targetp) {
 void
 ns_client_detach(ns_client_t **clientp) {
 	ns_client_t *client = *clientp;
+	
 	client->references--;
 	INSIST(client->references >= 0);
 	*clientp = NULL;
@@ -1376,6 +1382,7 @@ ns_client_shuttingdown(ns_client_t *client) {
 isc_result_t
 ns_client_replace(ns_client_t *client) {
 	isc_result_t result;
+
 	CTRACE("replace");
 
 	result = ns_clientmgr_createclients(client->manager,
@@ -1635,7 +1642,8 @@ void
 ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	   isc_logmodule_t *module, int level, const char *fmt, ...)
 {
-        va_list ap;
+	va_list ap;
+
 	va_start(ap, fmt);
 	ns_client_logv(client, category, module, level, fmt, ap);
 	va_end(ap);
