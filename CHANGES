@@ -1,4 +1,4 @@
-1355.	[tuning]	Reduce the number events / quantum for zone tasks.
+1355.	[tuning]	Reduce the number of events / quantum for zone tasks.
 
 1354.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
 
