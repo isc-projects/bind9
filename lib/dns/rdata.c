@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.15 1999/01/27 13:38:18 marka Exp $ */
+ /* $Id: rdata.c,v 1.16 1999/01/29 07:02:59 halley Exp $ */
 
 #include <config.h>
 
@@ -245,7 +245,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	isc_buffer_t st;
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_token_t token;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
+		ISC_LEXOPT_DNSMULTILINE;
 
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
