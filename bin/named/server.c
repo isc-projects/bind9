@@ -613,6 +613,14 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server, int af,
 	dns_dispatch_t **server_dispatchp;
 	isc_sockaddr_t *server_dispatchaddr;
 
+	/*
+	 * Make compiler happy.
+	 */
+	result = ISC_R_FAILURE;
+	any = NULL;
+	server_dispatchp = NULL;
+	server_dispatchaddr = NULL;
+
 	ina.s_addr = htonl(INADDR_ANY);
 	isc_sockaddr_fromin(&any4, &ina, 0);
 	isc_sockaddr_fromin6(&any6, &in6addr_any, 0);
