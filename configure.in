@@ -1,5 +1,5 @@
 
-AC_REVISION($Revision: 1.15 $)
+AC_REVISION($Revision: 1.16 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -47,20 +47,17 @@ AC_CHECK_LIB(pthread, pthread_create,,
 )
 
 dnl
-dnl The wonderful thing about standards is there are so many to choose from...
+dnl -lxnet buys us one big porting headache...  standards, gotta love 'em.
 dnl
-dnl Under IRIX (6.5 at least) -lxnet buys us nothign but compiler warnings.
+dnl AC_CHECK_LIB(xnet, socket, ,
+dnl    AC_CHECK_LIB(socket, socket)
+dnl    AC_CHECK_LIB(nsl, inet_ntoa)
+dnl )
 dnl
-case "$host" in
-	mips-sgi-irix*)
-		;;
-	*)
-		AC_CHECK_LIB(xnet, socket, ,
-		    AC_CHECK_LIB(socket, socket)
-		    AC_CHECK_LIB(nsl, inet_ntoa)
-		)
-	;;
-esac
+dnl Use this for now, instead:
+dnl
+AC_CHECK_LIB(socket, socket)
+AC_CHECK_LIB(nsl, inet_ntoa)
 
 AC_CHECK_FUNC(inet_ntop, ,
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.o"
