@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.2 2001/01/11 20:51:14 bwelling Exp $ */
+/* $Id: keydelete.c,v 1.3 2001/02/14 00:13:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -156,8 +156,8 @@ main(int argc, char **argv) {
 
 	RUNCHECK(isc_app_start());
 
-	if (argc < 1) {
-		fprintf(stderr, "I: no key to delete");
+	if (argc < 2) {
+		fprintf(stderr, "I: no key to delete\n");
 		exit(-1);
 	}
 	keyname = argv[1];

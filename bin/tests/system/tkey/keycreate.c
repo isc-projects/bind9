@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.3 2001/01/13 00:26:09 bwelling Exp $ */
+/* $Id: keycreate.c,v 1.4 2001/02/14 00:13:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -201,8 +201,8 @@ main(int argc, char *argv[]) {
 
 	RUNCHECK(isc_app_start());
 
-	if (argc < 1) {
-		fprintf(stderr, "I: no DH key provided");
+	if (argc < 2) {
+		fprintf(stderr, "I: no DH key provided\n");
 		exit(-1);
 	}
 	ourkeyname = argv[1];
