@@ -1,6 +1,14 @@
- 306. [bug] 		Reading HMAC-MD5 private key files didn't work.
+ 307.	[bug]		When canceling a query, the resolver didn't check for
+			isc_socket_sendto() calls that did not yet have their
+			completion events posted, so it could (rarely) end up
+			destroying the query context and then want to use
+			it again when the send event posted, triggering an
+			assertion as it tried to cancel an already-canceled
+			query.  (RT #77)
 
- 305. [bug] 		When reloading the server with a config file 
+ 306.	[bug] 		Reading HMAC-MD5 private key files didn't work.
+
+ 305.	[bug] 		When reloading the server with a config file 
 			containing a syntax error, it could catch an
 			assertion failure trying to perform zone
 			maintenance on tentatively created zones whose
@@ -11,7 +19,7 @@
 			are listed in resolv.conf, silently ignore them
 			instead of returning failure.
 
- 303.	[bug]		add additional sanity checks to differentiate a AXFR
+ 303.	[bug]		Add additional sanity checks to differentiate a AXFR
 			response vs a IXFR response. (RT #157)
 
  302.	[bug]		In dig, host, and nslookup, MXNAME should be large 
