@@ -1,6 +1,6 @@
 Name		Status		Whom
 ------------------------------------
-ifiter_getifaddrs testing	jinmei
+ifiter_getifaddrs review	marka
 libbind_clean	open		jinmei
 rt3746		open		marka
 v6source
