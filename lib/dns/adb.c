@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.185 2001/10/25 17:47:16 gson Exp $ */
+/* $Id: adb.c,v 1.186 2001/10/27 00:29:35 gson Exp $ */
 
 /*
  * Implementation notes
@@ -4113,6 +4113,8 @@ water(void *arg, int mark) {
 	isc_interval_t interval;
         
         REQUIRE(DNS_ADB_VALID(adb));
+
+	DP(1, "adb reached %s water mark", overmem ? "high" : "low");
 
 	adb->overmem = overmem;
 	if (overmem) {
