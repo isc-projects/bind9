@@ -67,6 +67,11 @@ static char *text[DNS_R_NRESULTS] = {
 	"up to date",				/* 37 */
 	"tsig verify failure",			/* 38 */
 	"tsig error set in query",		/* 39 */
+	"SIG failed to verify",			/* 40 */
+	"SIG has expired",			/* 41 */
+	"SIG validity period has not begun",	/* 42 */
+	"key is unauthorized to sign data",	/* 43 */
+	"invalid time",				/* 44 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {

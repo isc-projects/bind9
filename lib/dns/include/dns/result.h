@@ -87,8 +87,13 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_UPTODATE			(ISC_RESULTCLASS_DNS + 37)
 #define DNS_R_TSIGVERIFYFAILURE		(ISC_RESULTCLASS_DNS + 38)
 #define DNS_R_TSIGERRORSET		(ISC_RESULTCLASS_DNS + 39)
+#define DNS_R_SIGINVALID		(ISC_RESULTCLASS_DNS + 40)
+#define DNS_R_SIGEXPIRED		(ISC_RESULTCLASS_DNS + 41)
+#define DNS_R_SIGFUTURE			(ISC_RESULTCLASS_DNS + 42)
+#define DNS_R_KEYUNAUTHORIZED		(ISC_RESULTCLASS_DNS + 43)
+#define DNS_R_INVALIDTIME		(ISC_RESULTCLASS_DNS + 44)
 
-#define DNS_R_NRESULTS			40	/* Number of results */
+#define DNS_R_NRESULTS			45	/* Number of results */
 
 /*
  * DNS wire format rcodes
