@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.220 
+# From configure.in Revision: 1.221 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -2131,22 +2131,22 @@ fi
 			echo "configure: warning: linking with PTL2 is highly experimental and not expected to work" 1>&2
 			CC=ptlgcc
 		else
-			echo "$ac_t""mit-pthreads/unproven-pthreads" 1>&6
-
 			if test ! -d $LOCALBASE/pthreads
 			then
-				{ echo "configure: error: no thread library found.
-
-Please install the devel/unproven-pthreads package and rerun configure.
-" 1>&2; exit 1; }
+				echo "$ac_t""none" 1>&6
+				use_threads=false
 			fi
 
-			pkg="$LOCALBASE/pthreads"
-			lib1="-L$pkg/lib -Wl,-R$pkg/lib"
-			lib2="-lpthread -lm -lgcc -lpthread"
-			LIBS="$lib1 $lib2 $LIBS"
-			CPPFLAGS="$CPPFLAGS -I$pkg/include"
-			STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
+			if $use_threads
+			then
+				echo "$ac_t""mit-pthreads/unproven-pthreads" 1>&6
+				pkg="$LOCALBASE/pthreads"
+				lib1="-L$pkg/lib -Wl,-R$pkg/lib"
+				lib2="-lpthread -lm -lgcc -lpthread"
+				LIBS="$lib1 $lib2 $LIBS"
+				CPPFLAGS="$CPPFLAGS -I$pkg/include"
+				STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
+			fi
 		fi
 		;;
 		*)
