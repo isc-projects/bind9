@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.59 1999/08/31 22:08:07 halley Exp $ */
+ /* $Id: rdata.c,v 1.60 1999/09/08 07:35:27 gson Exp $ */
 
 #include <config.h>
 
@@ -1437,4 +1437,19 @@ dns_rdatatype_ismeta(dns_rdatatype_t type) {
 isc_boolean_t
 dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
 	return (ismeta(rdclass, classes));
+}
+
+isc_boolean_t
+dns_rdatatype_isdnssec(dns_rdatatype_t type) {
+	return ((type == dns_rdatatype_sig ||
+		 type == dns_rdatatype_key ||
+		 type == dns_rdatatype_nxt) ?
+		ISC_TRUE : ISC_FALSE);
+}
+
+isc_boolean_t
+dns_rdatatype_iszonecutauth(dns_rdatatype_t type) {
+	return (type == dns_rdatatype_ns ||
+		dns_rdatatype_isdnssec(type) ?
+		ISC_TRUE : ISC_FALSE);
 }
