@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.41 2000/10/31 03:21:40 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.42 2000/10/31 20:09:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -88,9 +88,13 @@ usage(void) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "keyset:\n");
-	fprintf(stderr, "\tfile name of key set to be signed\n");
+	fprintf(stderr, "\tfile with keyset to be signed (keyset-<name>)\n");
 	fprintf(stderr, "keys:\n");
 	fprintf(stderr, "\tkeyfile (Kname+alg+tag)\n");
+
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Output:\n");
+	fprintf(stderr, "\tsigned keyset (signedkey-<name>)\n");
 	exit(0);
 }
 
@@ -401,6 +405,8 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to write database to '%s': %s",
 		      output, isc_result_totext(result));
+
+	printf("%s\n", output);
 
 	dns_rdataset_disassociate(&rdataset);
 	dns_rdataset_disassociate(&newsigrdataset);

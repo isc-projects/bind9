@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.42 2000/10/20 02:21:34 marka Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.43 2000/10/31 20:09:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -89,6 +89,11 @@ usage(void) {
 
 	fprintf(stderr, "keys:\n");
 	fprintf(stderr, "\tkeyfile (Kname+alg+tag)\n");
+
+	fprintf(stderr, "\n");
+
+	fprintf(stderr, "Output:\n");
+	fprintf(stderr, "\tkeyset (keyset-<name>)\n");
 	exit(0);
 }
 
@@ -368,6 +373,8 @@ main(int argc, char *argv[]) {
 		fatal("failed to write database for %s to %s",
 		      domainstr, output);
 	}
+
+	printf("%s\n", output);
 
 	dns_db_detach(&db);
 

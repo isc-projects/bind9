@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.42 2000/09/26 22:11:20 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.43 2000/10/31 20:09:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -63,7 +63,7 @@ usage(void) {
 	printf("    -b key size, in bits:\n");
 	printf("        RSA:\t\t[512..%d]\n", MAX_RSA);
 	printf("        DH:\t\t[128..4096]\n");
-	printf("        DSA:\t\t[512..1024] and dividable by 64\n");
+	printf("        DSA:\t\t[512..1024] and divisible by 64\n");
 	printf("        HMAC-MD5:\t[1..512]\n");
 	printf("    -n nametype: ZONE | HOST | ENTITY | USER\n");
 	printf("    name: owner of the key\n");
@@ -79,6 +79,8 @@ usage(void) {
 	       "(default: 0)\n");
 	printf("    -r randomdev (a file containing random data)\n");
 	printf("    -v verbose level\n");
+	printf("Output:\n");
+	printf("     K<name>+<alg>+<id>.key, K<name>+<alg>+<id>.private\n");
 
 	exit (-1);
 }

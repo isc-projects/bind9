@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.111 2000/10/31 03:21:41 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.112 2000/10/31 20:09:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -81,6 +81,7 @@ static FILE *fp;
 static const dns_master_style_t *masterstyle = &dns_master_style_explicitttl;
 static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
+static const char *directory;
 
 static inline void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
@@ -471,6 +472,11 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 	isc_result_t result;
 
 	isc_buffer_init(&b, filename, sizeof(filename));
+	if (directory != NULL) {
+		isc_buffer_putstr(&b, directory);
+		if (directory[strlen(directory) - 1] != '/')
+			isc_buffer_putstr(&b, "/");
+	}
 	isc_buffer_putstr(&b, prefix);
 	result = dns_name_totext(name, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
@@ -1256,6 +1262,8 @@ usage(void) {
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-c class (IN)\n");
+	fprintf(stderr, "\t-d directory\n");
+	fprintf(stderr, "\t\tdirectory to find signedkey files (.)\n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
@@ -1312,7 +1320,8 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:s:e:i:v:o:f:ahpr:t"))
+	while ((ch = isc_commandline_parse(argc, argv,
+					   "c:s:e:i:v:o:f:ahpr:td:"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
@@ -1364,6 +1373,10 @@ main(int argc, char *argv[]) {
 
 		case 't':
 			printstats = ISC_TRUE;
+			break;
+
+		case 'd':
+			directory = isc_commandline_argument;
 			break;
 
 		case 'h':
@@ -1501,6 +1514,8 @@ main(int argc, char *argv[]) {
 
 	result = isc_stdio_close(fp);
 	check_result(result, "isc_stdio_close");
+
+	printf("%s\n", output);
 
 	dns_db_closeversion(db, &version, ISC_FALSE);
 
