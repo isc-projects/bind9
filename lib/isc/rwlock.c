@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.29 2001/03/08 00:55:13 tale Exp $ */
+/* $Id: rwlock.c,v 1.30 2001/03/08 19:52:13 halley Exp $ */
 
 #include <config.h>
 
@@ -311,8 +311,8 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 }
 
 isc_result_t
-isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	return (isc_rwlock_lock(rwl, type))g;
+isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	return (isc_rwlock_lock(rwl, type));
 }
 
 isc_result_t
