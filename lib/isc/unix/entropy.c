@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.54.2.1 2001/01/09 22:51:10 bwelling Exp $ */
+/* $Id: entropy.c,v 1.54.2.2 2001/02/05 23:31:05 gson Exp $ */
 
 #include <config.h>
 
@@ -60,6 +60,7 @@
  * size of entropy pool in 32-bit words.  This _MUST_ be a power of 2.
  */
 #define RND_POOLWORDS	128
+#define RND_POOLBYTES	(RND_POOLWORDS * 4)
 #define RND_POOLBITS	(RND_POOLWORDS * 32)
 
 /*
@@ -717,7 +718,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 
 		isc_sha1_init(&hash);
 		isc_sha1_update(&hash, (void *)(ent->pool.pool),
-				RND_POOLWORDS * 4);
+				RND_POOLBYTES);
 		isc_sha1_final(&hash, digest);
 
 		/*
@@ -767,7 +768,7 @@ isc_entropypool_init(isc_entropypool_t *pool) {
 	pool->entropy = 0;
 	pool->pseudo = 0;
 	pool->rotate = 0;
-	memset(pool->pool, 0, RND_POOLWORDS);
+	memset(pool->pool, 0, RND_POOLBYTES);
 }
 
 static void
@@ -776,7 +777,7 @@ isc_entropypool_invalidate(isc_entropypool_t *pool) {
 	pool->entropy = 0;
 	pool->pseudo = 0;
 	pool->rotate = 0;
-	memset(pool->pool, 0, RND_POOLWORDS);
+	memset(pool->pool, 0, RND_POOLBYTES);
 }
 
 isc_result_t
