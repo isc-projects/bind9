@@ -328,3 +328,11 @@ running named-checkzone on it.
 	e.g.
 		dig axfr example.com @master-server > tmp
 		named-checkzone example.com tmp
+
+Q: I get error messages like "named.conf:99: unexpected end of input" where
+99 is the last line of named.conf.
+
+A: Some text editors (notepad and wordpad) fail to put a line termination
+indication (e.g. CR/LF) on the last line of a text file.  This can be fixed
+by "adding" a blank line to the end of the file.  Named expects to see EOF
+immediately after EOL and treats text files where this is not met as truncated.
