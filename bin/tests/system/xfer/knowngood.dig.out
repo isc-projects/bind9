@@ -1,4 +1,4 @@
-example.		300	IN	SOA	ns2.example. hostmaster.example. ( 2000042795 20 20 1814400 3600 )
+example.		300	IN	SOA	ns2.example. hostmaster.example. 2000042795 20 20 1814400 3600
 example.		300	IN	NS	ns2.example.
 example.		300	IN	NS	ns3.example.
 *.example.		300	IN	MX	10 mail.example.
@@ -66,10 +66,10 @@ nsap-ptr01.example.	3600	IN	NSAP-PTR foo.
 nsap-ptr01.example.	3600	IN	NSAP-PTR .
 nsap01.example.		3600	IN	NSAP	0x47000580005a0000000001e133ffffff00016100
 nsap02.example.		3600	IN	NSAP	0x47000580005a0000000001e133ffffff00016100
-nxt01.example.		3600	IN	NXT	a.secure.example. ( NS SOA MX SIG KEY LOC NXT )
-nxt02.example.		3600	IN	NXT	. ( NSAP-PTR NXT )
-nxt03.example.		3600	IN	NXT	. ( A )
-nxt04.example.		3600	IN	NXT	. ( 127 )
+nxt01.example.		3600	IN	NXT	a.secure.example. NS SOA MX SIG KEY LOC NXT
+nxt02.example.		3600	IN	NXT	. NSAP-PTR NXT
+nxt03.example.		3600	IN	NXT	. A
+nxt04.example.		3600	IN	NXT	. 127
 ptr01.example.		3600	IN	PTR	example.
 px01.example.		3600	IN	PX	65535 foo. bar.
 px02.example.		3600	IN	PX	65535 . .
@@ -98,8 +98,8 @@ txt12.example.		3600	IN	TXT	"\"foo\""
 u.example.		300	IN	TXT	"txt-not-in-nxt"
 a.u.example.		300	IN	A	73.80.65.49
 b.u.example.		300	IN	A	73.80.65.49
-wks01.example.		3600	IN	WKS	10.0.0.1 6 ( 0 1 2 21 23 )
-wks02.example.		3600	IN	WKS	10.0.0.1 17 ( 0 1 2 53 )
-wks03.example.		3600	IN	WKS	10.0.0.2 6 ( 65535 )
+wks01.example.		3600	IN	WKS	10.0.0.1 6 0 1 2 21 23
+wks02.example.		3600	IN	WKS	10.0.0.1 17 0 1 2 53
+wks03.example.		3600	IN	WKS	10.0.0.2 6 65535
 x2501.example.		3600	IN	X25	"123456789"
-example.		300	IN	SOA	ns2.example. hostmaster.example. ( 2000042795 20 20 1814400 3600 )
+example.		300	IN	SOA	ns2.example. hostmaster.example. 2000042795 20 20 1814400 3600
