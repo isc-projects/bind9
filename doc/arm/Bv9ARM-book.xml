@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.16 2000/10/02 22:21:44 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.17 2000/10/18 18:27:46 gson Exp $ -->
 
 <book>
 
@@ -2392,7 +2392,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> transfers-per-ns <replaceable>number</replaceable>; </optional>
     <optional> transfer-source <replaceable>ip4_addr</replaceable>; </optional>
     <optional> transfer-source-v6 <replaceable>ip6_addr</replaceable>; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable>; <optional> <replaceable>ip_addr</replaceable>; ... </optional> }; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable>; </optional>
     <optional> coresize <replaceable>size_spec</replaceable> ; </optional>
     <optional> datasize <replaceable>size_spec</replaceable> ; </optional>
@@ -3427,7 +3427,7 @@ multiple key entries, each consisting of the key's domain name,
 flags, protocol, algorithm, and the base-64 representation of the
 key data.</para></sect2>
 <sect2><title><command>view</command> Statement Grammar</title>
-<programlisting>view <replaceable>view_name</replaceable> {
+<programlisting>view <replaceable>view_name</replaceable> <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
       <optional> <replaceable>view_option</replaceable>; ...</optional>
       <optional> <replaceable>zone_statement</replaceable>; ...</optional>
@@ -3457,7 +3457,8 @@ is used as a default.  Also, zone options can have default values specified
 in the <command>view</command> statement; these view-specific defaults
 take precedence over those in the <command>options</command> statement. </para>
 <para>Views are class specific.  If no class is given, class IN
-is assumed.</para>
+is assumed.  Note that all non-IN views must contain a hint zone,
+since only the IN class has compiled-in default hints.</para>
 <para>If there are no <command>view</command> statements in the
 config file, a default view that matches any client is automatically
 created in class IN, and any <command>zone</command> statements
@@ -3500,7 +3501,7 @@ Statement Grammar</title>
     <optional> allow-update { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> update-policy { <replaceable>update_policy_rule</replaceable> <optional>...</optional> } ; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> } ; </optional>
-    <optional> also-notify { <optional> <replaceable>ip_addr</replaceable> ; <optional><replaceable>ip_addr</replaceable> ; <optional>...</optional></optional></optional> } ; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>true_or_false</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -3509,7 +3510,7 @@ Statement Grammar</title>
     <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
     <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
     <optional> maintain-ixfr-base <replaceable>true_or_false</replaceable> ; </optional>
-    <optional> masters <optional>port <replaceable>number</replaceable></optional> { <replaceable>ip_addr</replaceable> ; <optional><replaceable>ip_addr</replaceable> ; <optional>...</optional></optional> } ; </optional>
+    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { <replaceable>ip_addr</replaceable> ; <optional><replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional>...</optional></optional> } ; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>
@@ -3540,10 +3541,12 @@ it.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>slave</varname></para></entry>
 <entry colname = "2"><para>A slave zone is a replica of a master
-zone. The masters list specifies one or more IP addresses that the
-slave contacts to update its copy of the zone. If a port is specified,
-the slave then checks to see if the zone is current and zone transfers
-will be done to the port given. If a file is specified, then the
+zone. The <command>masters</command> list specifies one or more IP addresses
+of master servers that the slave contacts to update its copy of the zone.
+By default, transfers are made from port 53 on the servers; this can
+be changed for all servers by specifying a port number before the
+list of IP addresses, or on a per-server basis after the IP address.
+If a file is specified, then the
 replica will be written to this file whenever the zone is changed,
 and reloaded from this file on a server restart. Use of a file is
 recommended, since it often speeds server start-up and eliminates
@@ -3658,7 +3661,9 @@ active for this zone. The set of machines that will receive a
 <literal>DNS NOTIFY</literal> message
 for this zone is made up of all the listed nameservers (other than
 the primary master) for the zone plus any IP addresses specified
-with <command>also-notify</command>.
+with <command>also-notify</command>. A port may be specified
+with each <command>also-notify</command> address to send the notify
+messages to a port other than the default of 53.
 <command>also-notify</command> is not meaningful for stub zones.
 The default is the empty list.</para></entry>
 </row>
