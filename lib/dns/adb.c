@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11 2003/07/25 04:36:45 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.1 2003/08/07 04:47:35 marka Exp $ */
 
 /*
  * Implementation notes
@@ -102,6 +102,8 @@
 
 #define DNS_ADB_INVALIDBUCKET (-1)	/* invalid bucket address */
 
+#define DNS_ADB_MINADBSIZE	(1024*1024)	/* 1 Megabyte */
+
 typedef ISC_LIST(dns_adbname_t) dns_adbnamelist_t;
 typedef struct dns_adbnamehook dns_adbnamehook_t;
 typedef ISC_LIST(dns_adbnamehook_t) dns_adbnamehooklist_t;
@@ -121,6 +123,7 @@ struct dns_adb {
 	isc_timer_t		       *timer;
 	isc_taskmgr_t		       *taskmgr;
 	isc_task_t		       *task;
+	isc_boolean_t			overmem;
 
 	isc_interval_t			tick_interval;
 	int				next_cleanbucket;
@@ -310,7 +313,8 @@ static isc_boolean_t clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
 static void clean_target(dns_adb_t *, dns_name_t *);
 static void clean_finds_at_name(dns_adbname_t *, isc_eventtype_t,
 				unsigned int);
-static isc_boolean_t check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
+static isc_boolean_t check_expire_namehooks(dns_adbname_t *, isc_stdtime_t,
+					    isc_boolean_t);
 static void cancel_fetches_at_name(dns_adbname_t *);
 static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
 				dns_rdatatype_t);
@@ -329,6 +333,7 @@ static inline isc_boolean_t unlink_entry(dns_adb_t *, dns_adbentry_t *);
 static isc_boolean_t kill_name(dns_adbname_t **, isc_eventtype_t);
 static void fetch_callback_a6(isc_task_t *, isc_event_t *);
 static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
+static void water(void *arg, int mark);
 
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
@@ -745,8 +750,11 @@ kill_name(dns_adbname_t **n, isc_eventtype_t ev) {
  * Requires the name's bucket be locked and no entry buckets be locked.
  */
 static isc_boolean_t
-check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now) {
+check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now,
+		       isc_boolean_t overmem)
+{
 	dns_adb_t *adb;
+	isc_boolean_t expire;
 	isc_boolean_t result4 = ISC_FALSE;
 	isc_boolean_t result6 = ISC_FALSE;
 
@@ -754,10 +762,20 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now) {
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
+	if (overmem) {
+		isc_uint32_t val;
+
+		isc_random_get(&val);
+
+		expire = ISC_TF((val % 4) == 0);
+	} else
+		expire = ISC_FALSE;
+
 	/*
 	 * Check to see if we need to remove the v4 addresses
 	 */
-	if (!NAME_FETCH_V4(name) && EXPIRE_OK(name->expire_v4, now)) {
+	if (!NAME_FETCH_V4(name) &&
+	    (expire || EXPIRE_OK(name->expire_v4, now))) {
 		if (NAME_HAS_V4(name)) {
 			DP(DEF_LEVEL, "expiring v4 for name %p", name);
 			result4 = clean_namehooks(adb, &name->v4);
@@ -770,7 +788,8 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now) {
 	/*
 	 * Check to see if we need to remove the v6 addresses
 	 */
-	if (!NAME_FETCH_V6(name) && EXPIRE_OK(name->expire_v6, now)) {
+	if (!NAME_FETCH_V6(name) &&
+	    (expire || EXPIRE_OK(name->expire_v6, now))) {
 		if (NAME_HAS_V6(name)) {
 			DP(DEF_LEVEL, "expiring v6 for name %p", name);
 			result6 = clean_namehooks(adb, &name->v6);
@@ -783,7 +802,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now) {
 	/*
 	 * Check to see if we need to remove the alias target.
 	 */
-	if (EXPIRE_OK(name->expire_target, now)) {
+	if (expire || EXPIRE_OK(name->expire_target, now)) {
 		clean_target(adb, &name->target);
 		name->expire_target = INT_MAX;
 	}
@@ -1189,7 +1208,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			ev->ev_destroy_arg = find;
 
 			DP(DEF_LEVEL,
-			   "Sending event %p to task %p for find %p",
+			   "sending event %p to task %p for find %p",
 			   ev, task, find);
 
 			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
@@ -1989,7 +2008,7 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 }
 
 /*
- * name bucket must be locked; adb may be locked; no other locks held.
+ * Name bucket must be locked; adb may be locked; no other locks held.
  */
 static isc_boolean_t
 check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
@@ -2024,12 +2043,13 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
 }
 
 /*
- * entry bucket must be locked; adb may be locked; no other locks held.
+ * Entry bucket must be locked; adb may be locked; no other locks held.
  */
 static isc_boolean_t
 check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 {
 	dns_adbentry_t *entry;
+	isc_boolean_t expire;
 	isc_boolean_t result = ISC_FALSE;
 
 	INSIST(entryp != NULL && DNS_ADBENTRY_VALID(*entryp));
@@ -2037,7 +2057,17 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 
 	if (entry->refcnt != 0)
 		return (result);
-	if (entry->expires == 0 || entry->expires > now)
+
+	if (adb->overmem) {
+		isc_uint32_t val;
+
+		isc_random_get(&val);
+
+		expire = ISC_TF((val % 4) == 0);
+	} else
+		expire = ISC_FALSE;
+
+	if (entry->expires == 0 || (! expire && entry->expires > now))
 		return (result);
 
 	/*
@@ -2074,7 +2104,7 @@ cleanup_names(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 	while (name != NULL) {
 		next_name = ISC_LIST_NEXT(name, plink);
 		INSIST(result == ISC_FALSE);
-		result = check_expire_namehooks(name, now);
+		result = check_expire_namehooks(name, now, adb->overmem);
 		if (!result)
 			result = check_expire_name(&name, now);
 		name = next_name;
@@ -2110,6 +2140,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev) {
 	dns_adb_t *adb;
 	isc_stdtime_t now;
 	unsigned int i;
+	isc_interval_t interval;
 
 	UNUSED(task);
 
@@ -2147,8 +2178,11 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev) {
 	 * ISC_R_NOMEMORY, but it isn't clear what could be done here
 	 * if either one of those things happened.
 	 */
+	interval = adb->tick_interval;
+	if (adb->overmem)
+		isc_interval_set(&interval, 0, 1);
 	(void)isc_timer_reset(adb->timer, isc_timertype_once, NULL,
-			      &adb->tick_interval, ISC_FALSE);
+			      &interval, ISC_FALSE);
 
 	UNLOCK(&adb->lock);
 
@@ -2180,7 +2214,7 @@ destroy(dns_adb_t *adb) {
 	DESTROYLOCK(&adb->lock);
 	DESTROYLOCK(&adb->mplock);
 
-	isc_mem_put(adb->mctx, adb, sizeof (dns_adb_t));
+	isc_mem_putanddetach(&adb->mctx, adb, sizeof (dns_adb_t));
 }
 
 
@@ -2223,7 +2257,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->af6mp = NULL;
 	adb->task = NULL;
 	adb->timer = NULL;
-	adb->mctx = mem;
+	adb->mctx = NULL;
 	adb->view = view;
 	adb->timermgr = timermgr;
 	adb->taskmgr = taskmgr;
@@ -2233,7 +2267,10 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 		       adb, NULL, NULL);
 	adb->cevent_sent = ISC_FALSE;
 	adb->shutting_down = ISC_FALSE;
+	adb->overmem = ISC_FALSE;
 	ISC_LIST_INIT(adb->whenshutdown);
+
+	isc_mem_attach(mem, &adb->mctx);
 
 	result = isc_mutex_init(&adb->lock);
 	if (result != ISC_R_SUCCESS)
@@ -2311,8 +2348,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
 
-	DP(5,
-	   "Cleaning interval for adb:  "
+	DP(5, "cleaning interval for adb: "
 	   "%u buckets every %u seconds, %u buckets in system, %u cl.interval",
 	   CLEAN_BUCKETS, CLEAN_SECONDS, NBUCKETS, CLEAN_PERIOD);
 
@@ -2359,7 +2395,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
  fail0c:
 	DESTROYLOCK(&adb->lock);
  fail0b:
-	isc_mem_put(mem, adb, sizeof (dns_adb_t));
+	isc_mem_putanddetach(&adb->mctx, adb, sizeof (dns_adb_t));
 
 	return (result);
 }
@@ -2450,6 +2486,7 @@ dns_adb_shutdown(dns_adb_t *adb) {
 
 	if (!adb->shutting_down) {
 		adb->shutting_down = ISC_TRUE;
+		isc_mem_setwater(adb->mctx, water, adb, 0, 0);
 		need_check_exit = shutdown_names(adb);
 		if (!need_check_exit)
 			need_check_exit = shutdown_entries(adb);
@@ -2568,7 +2605,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	/*
 	 * Expire old entries, etc.
 	 */
-	INSIST(check_expire_namehooks(adbname, now) == ISC_FALSE);
+	INSIST(check_expire_namehooks(adbname, now, adb->overmem) == ISC_FALSE);
 
 	/*
 	 * Do we know that the name is an alias?
@@ -2917,7 +2954,7 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 		find->result_v4 = ISC_R_CANCELED;
 		find->result_v6 = ISC_R_CANCELED;
 
-		DP(DEF_LEVEL, "Sending event %p to task %p for find %p",
+		DP(DEF_LEVEL, "sending event %p to task %p for find %p",
 		   ev, task, find);
 
 		isc_task_sendanddetach(&task, (isc_event_t **)&ev);
@@ -3321,7 +3358,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 	case DNS_R_HINT:
 	case ISC_R_SUCCESS:
 		/*
-		 * Start a6 chain follower.  There is no need to poke people
+		 * Start A6 chain follower.  There is no need to poke people
 		 * who might be waiting, since this is call requires there
 		 * are none.
 		 */
@@ -3472,7 +3509,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 		if (address_type == DNS_ADBFIND_INET) {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
-			   "Caching negative entry for A (ttl %u)",
+			   "caching negative entry for A (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v4 = ISC_MIN(name->expire_v4,
 						  dev->rdataset->ttl + now);
@@ -3482,7 +3519,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 				name->fetch_err = FIND_ERR_NXRRSET;
 		} else {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
-			   "Caching negative entry for AAAA (ttl %u)",
+			   "caching negative entry for AAAA (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
@@ -3637,7 +3674,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 		if (NCACHE_RESULT(dev->result)) {
 			dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
-			   "Caching negative entry for A6 (ttl %u)",
+			   "caching negative entry for A6 (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
@@ -3800,7 +3837,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_zone) {
 		goto cleanup;
 
 	adbname->fetch_a = fetch;
-	fetch = NULL;  /* keep us from cleaning this up below */
+	fetch = NULL;  /* Keep us from cleaning this up below. */
 
  cleanup:
 	if (fetch != NULL)
@@ -3842,7 +3879,7 @@ fetch_name_aaaa(dns_adbname_t *adbname) {
 		goto cleanup;
 
 	adbname->fetch_aaaa = fetch;
-	fetch = NULL;  /* keep us from cleaning this up below */
+	fetch = NULL;  /* Keep us from cleaning this up below. */
 
  cleanup:
 	if (fetch != NULL)
@@ -3906,7 +3943,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_zone) {
 		goto cleanup;
 
 	ISC_LIST_APPEND(adbname->fetches_a6, fetch, plink);
-	fetch = NULL;  /* keep us from cleaning this up below */
+	fetch = NULL;  /* Keep us from cleaning this up below. */
 
  cleanup:
 	if (fetch != NULL)
@@ -4107,4 +4144,41 @@ dns_adb_flush(dns_adb_t *adb) {
 #endif
 
 	UNLOCK(&adb->lock);
+}
+
+static void
+water(void *arg, int mark) {
+        dns_adb_t *adb = arg;
+        isc_boolean_t overmem = ISC_TF(mark == ISC_MEM_HIWATER);
+	isc_interval_t interval;
+        
+        REQUIRE(DNS_ADB_VALID(adb));
+
+	DP(1, "adb reached %s water mark", overmem ? "high" : "low");
+
+	adb->overmem = overmem;
+	if (overmem) {
+		isc_interval_set(&interval, 0, 1);
+		(void)isc_timer_reset(adb->timer, isc_timertype_once, NULL,
+				      &interval, ISC_TRUE);
+	}
+}
+
+void
+dns_adb_setadbsize(dns_adb_t *adb, isc_uint32_t size) {
+	isc_uint32_t hiwater;
+	isc_uint32_t lowater;
+
+	INSIST(DNS_ADB_VALID(adb));
+
+	if (size != 0 && size < DNS_ADB_MINADBSIZE)
+		size = DNS_ADB_MINADBSIZE;
+
+	hiwater = size - (size >> 3);   /* Approximately 7/8ths. */
+	lowater = size - (size >> 2);   /* Approximately 3/4ths. */
+
+	if (size == 0 || hiwater == 0 || lowater == 0)
+		isc_mem_setwater(adb->mctx, water, adb, 0, 0);
+	else
+		isc_mem_setwater(adb->mctx, water, adb, hiwater, lowater);
 }

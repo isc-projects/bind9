@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.66.2.5 2003/07/22 04:03:45 marka Exp $ */
+/* $Id: adb.h,v 1.66.2.5.2.1 2003/08/07 04:47:36 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -567,6 +567,19 @@ dns_adb_flush(dns_adb_t *adb);
  *
  * Requires:
  * 	adb is valid.
+ */
+
+void
+dns_adb_setadbsize(dns_adb_t *adb, isc_uint32_t size);
+/*
+ * Set a target memory size.  If memory usage exceeds the target
+ * size entries will be removed before they would have expired on
+ * a random basis.
+ *
+ * If 'size' is 0 then memory usage is unlimited.
+ *
+ * Requires:
+ *	'adb' is valid.
  */
 
 ISC_LANG_ENDDECLS

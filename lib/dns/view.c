@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5 2003/07/25 03:31:43 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.1 2003/08/07 04:47:35 marka Exp $ */
 
 #include <config.h>
 
@@ -470,6 +470,7 @@ dns_view_createresolver(dns_view_t *view,
 {
 	isc_result_t result;
 	isc_event_t *event;
+	isc_mem_t *mctx = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
@@ -492,8 +493,9 @@ dns_view_createresolver(dns_view_t *view,
 	dns_resolver_whenshutdown(view->resolver, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_RESSHUTDOWN;
 
-	result = dns_adb_create(view->mctx, view, timermgr, taskmgr,
-				&view->adb);
+	isc_mem_create(0, 0, &mctx);
+	result = dns_adb_create(mctx, view, timermgr, taskmgr, &view->adb);
+	isc_mem_detach(&mctx);
 	if (result != ISC_R_SUCCESS) {
 		dns_resolver_shutdown(view->resolver);
 		return (result);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.5 2003/08/06 06:03:22 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.6 2003/08/07 04:47:33 marka Exp $ */
 
 #include <config.h>
 
@@ -40,6 +40,7 @@
 
 #include <bind9/check.h>
 
+#include <dns/adb.h>
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
@@ -519,6 +520,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	in_port_t port;
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
+	isc_uint32_t max_adb_size;
 	isc_uint32_t max_cache_size;
 	isc_uint32_t lame_ttl;
 	dns_tsig_keyring_t *ring;
@@ -667,6 +669,36 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		dns_dispatch_detach(&dispatch4);
 	if (dispatch6 != NULL)
 		dns_dispatch_detach(&dispatch6);
+
+	/*
+	 * Set ADB cache size
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "max-adb-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	if (cfg_obj_isstring(obj)) {
+		str = cfg_obj_asstring(obj);
+		INSIST(strcasecmp(str, "unlimited") == 0);
+		max_adb_size = ISC_UINT32_MAX;
+	} else {
+		isc_resourcevalue_t value;
+		value = cfg_obj_asuint64(obj);
+		if (value > ISC_UINT32_MAX) {
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+				    "'max-adb-size "
+				    "%" ISC_PRINT_QUADFORMAT "d' is too large",
+				    value);
+			result = ISC_R_RANGE;
+			goto cleanup;
+		}
+		max_adb_size = (isc_uint32_t)value;
+		if (max_adb_size == 0 && max_cache_size != 0) {
+			max_adb_size = max_cache_size/8;
+			if (max_adb_size == 0)
+				max_adb_size = 1;	/* Force minimum. */
+		}
+	}
+	dns_adb_setadbsize(view->adb, max_adb_size);
 
 	/*
 	 * Set resolver's lame-ttl.

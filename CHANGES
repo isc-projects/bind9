@@ -1,3 +1,6 @@
+1073.	[bug]		The ADB cache cleaning should also be space driven.
+			[RT #1915, #1938]
+
 1067.	[func]		Allow quotas to be soft, isc_quota_soft().
 
 1060.	[func]		Move refresh, stub and notify UDP retry processing
