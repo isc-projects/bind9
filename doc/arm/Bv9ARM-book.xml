@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.10 2001/11/07 19:07:29 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.11 2001/11/29 22:55:52 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2209,12 +2209,20 @@ complete set of local IPv6 addresses for a host.
       used by the <command>rndc</command> utility to send commands to
       and retrieve non-DNS results from a nameserver.</para>
 
-      <para>An <command>inet</command> control channel is a TCP/IP
-      socket accessible to the Internet, created at the specified
+      <para>An <command>inet</command> control channel is a TCP
+      socket listening at the specified
       <command>ip_port</command> on the specified
-      <command>ip_addr</command>.  If no port is specified, port 953
-      is used by default.  "*" cannot be used for
-      <command>ip_port</command>.</para>
+      <command>ip_addr</command>, which can be an IPv4 or IPv6
+      address.  An <command>ip_addr</command>
+      of <literal>*</literal> is interpreted as the IPv4 wildcard
+      address; connections will be accepted on any of the system's
+      IPv4 addresses.  To listen on the IPv6 wildcard address,
+      use an <command>ip_addr</command> of <literal>::</literal>.
+      If you will only use <command>rndc</command> on the local host,
+      using the loopback address (<literal>127.0.0.1</literal>
+      or <literal>::1</literal>) is recommended for maximum
+      security.
+      </para>
 
       <para>The ability to issue commands over the control channel is
       restricted by the <command>allow</command> and
