@@ -1,3 +1,6 @@
+
+	--- 9.2.2-P2 released ---
+
 1509.	[bug]		Hint zones should accept delegation-only.  Forward
 			zone should not accept delegation-only.
 
