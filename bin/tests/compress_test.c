@@ -33,9 +33,13 @@ main(int argc, char *argv[]) {
 	dns_name_t name3;
 	isc_region_t region;
 	int c;
+	int bitstrings = 0;
 
-	while ((c = getopt(argc, argv, "rv")) != -1) {
+	while ((c = getopt(argc, argv, "brv")) != -1) {
 		switch (c) {
+		case 'b':
+			bitstrings++;
+			break;
 		case 'r':
 			raw++;
 			break;
@@ -81,6 +85,12 @@ main(int argc, char *argv[]) {
 	region.base = bit3;
 	region.length = sizeof bit3;
 	dns_name_fromregion(&name3, &region);
+
+	if (bitstrings == 0) {
+		fprintf(stdout, "Bit string tests not performed.");
+		fprintf(stdout, " Awaiting RBT support\n");
+		exit (0);
+	}
 
 	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, bit, sizeof bit);
