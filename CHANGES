@@ -14,6 +14,9 @@
 1325.	[bug]		Document that internal zones are included in the
 			rndc status results.
 
+1315.	[bug]		isc_log_setdebuglevel() needed to lock the log
+			context.
+
 1309.	[port]		See if -ldl is required for OpenSSL? [RT #2672]
 
 1308.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
