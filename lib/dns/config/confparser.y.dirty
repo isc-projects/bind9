@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.1 2000/07/26 18:47:40 mws Exp $ */
+/* $Id: confparser.y.dirty,v 1.2 2000/07/26 23:40:19 mws Exp $ */
 
 #include <config.h>
 
@@ -5081,7 +5081,7 @@ in_addr_list: in_addr_elem L_EOS
 #ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append($1, $2, NULL);
 #else /* NOMINUM_PUBLIC */
-		tmpres = dns_c_iplist_append($1, $2, NULL);
+		tmpres = dns_c_iplist_append($1, $2);
 #endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.h,v 1.24 2000/07/26 18:47:41 mws Exp $ */
+/* $Id: confip.h,v 1.25 2000/07/26 23:40:22 mws Exp $ */
 
 #ifndef DNS_CONFIP_H
 #define DNS_CONFIP_H 1
@@ -240,7 +240,7 @@ isc_result_t dns_c_iplist_append(dns_c_iplist_t *list,
 				 isc_sockaddr_t newaddr, const char *key);
 #else /* NOMINUM_PUBLIC */
 isc_result_t dns_c_iplist_append(dns_c_iplist_t *list,
-				 isc_sockaddr_t newaddr, const char *key);
+				 isc_sockaddr_t newaddr);
 #endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr);

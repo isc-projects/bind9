@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.26 2000/07/20 00:41:50 gson Exp $
+# $Id: Makefile.in,v 1.27 2000/07/26 23:40:08 mws Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -43,6 +43,7 @@ install:: isc-config.sh
 	${INSTALL_PROGRAM} isc-config.sh ${DESTDIR}${bindir}
 
 kit: kitclean
+	sh util/sanitize_all.sh
 	mkdir bind-${VERSION}
 	@(cd bind-${VERSION}; for i in ${DISTFILES}; do ln -s ../$$i $$i; done)
 	mkdir bind-${VERSION}/doc

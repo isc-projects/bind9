@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.29 2000/07/26 18:47:36 mws Exp $ */
+/* $Id: confip.c,v 1.30 2000/07/26 23:40:14 mws Exp $ */
 
 #include <config.h>
 
@@ -822,7 +822,9 @@ dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist) {
 isc_result_t
 dns_c_iplist_detach(dns_c_iplist_t **list) {
 	dns_c_iplist_t *l ;
+#ifndef NOMINUM_PUBLIC
 	unsigned int i;
+#endif /* NOMINUM_PUBLIC */
 	
 
 	REQUIRE(list != NULL);
@@ -958,9 +960,7 @@ void
 dns_c_iplist_printfully(FILE *fp, int indent, isc_boolean_t porttoo,
 			dns_c_iplist_t *list)
 {
-#ifndef NOMINUM_PUBLIC
 	isc_uint32_t i;
-#endif /* NOMINUM_PUBLIC */
 	in_port_t port;
 	in_port_t tmpport;
 	isc_boolean_t athead = ISC_TRUE;
@@ -1136,7 +1136,9 @@ dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr) {
 
 	for ( /* nothing */ ; i < list->nextidx ; i++) {
 		list->ips[i] = list->ips[i + 1];
+#ifndef NOMINUM_PUBLIC
 		list->keys[i] = list->keys[i + 1];
+#endif /* NOMINUM_PUBLIC */
 	}
 
 	return (ISC_R_SUCCESS);

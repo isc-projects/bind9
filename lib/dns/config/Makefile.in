@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.14 2000/07/26 18:47:35 mws Exp $
+# $Id: Makefile.in,v 1.15 2000/07/26 23:40:11 mws Exp $
 
 srcdir		= @srcdir@
 VPATH		= @srcdir@
@@ -77,4 +77,4 @@ confparser.y: confparser.y.dirty
 depend: confparser.c
 
 distclean::
-	rm -f confparser.c confparser_p.h
+	rm -f confparser.c confparser_p.h confparser.y
