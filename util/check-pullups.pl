@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.5 2001/10/18 00:44:32 marka Exp $
+# $Id: check-pullups.pl,v 1.6 2002/01/24 06:23:34 marka Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
@@ -23,7 +23,7 @@
 
 use FileHandle;
 
-$/ = "";
+# $/ = "";
 
 # Read the CHANGES file $fn and return a hash of change
 # texts and categories indexed by change number.
@@ -37,15 +37,25 @@ sub readfile {
 
 	my ($changeid, $category);
 
+	$changeid = "none";
+	$category = "none";
+
 	while (<$fh>) {
-		if (m/---.* released ---/) {
-			next;
-		} elsif (m/^# /) {
-			next;
-		} elsif (m/^\s*(\d+)\.\s+\[(\w+)\]/) {
+		if (m/^\s*(\d+)\.\s+\[(\w+)\]/) {
 			$changeid = $1;
 			$category = $2;
 			# print "*** $1 $2\n";
+		} elsif (m/---.* released ---/) {
+			$changeid = "none";
+			$category = "none";
+			next;
+		} elsif (m/^# /) {
+			$changeid = "none";
+			$category = "none";
+			next;
+		}
+		if ($changeid eq "none") {
+			next;
 		}
 		$changes->{$changeid}->{text} .= $_;
 		$changes->{$changeid}->{category} = $category;
