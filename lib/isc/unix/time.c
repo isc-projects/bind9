@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.37 2001/08/31 21:51:25 gson Exp $ */
+/* $Id: time.c,v 1.38 2001/08/31 21:58:49 gson Exp $ */
 
 #include <config.h>
 
@@ -394,6 +394,8 @@ void
 isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
+
+	REQUIRE(len > 0);
 
 	now = (time_t) t->seconds;
 	strftime(buf, len, "%b %d %X", localtime(&now));
