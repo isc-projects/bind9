@@ -15,11 +15,29 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.35 2001/06/14 14:10:32 gson Exp $
+# $Id: ifconfig.sh,v 1.36 2001/09/26 23:16:26 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
 #
+
+config_guess=""
+for f in ./config.guess ../../../config.guess
+do
+	if test -f $f
+	then
+		config_guess=$f
+	fi
+done
+
+if test "X$config_guess" = "X"
+then
+	echo <<EOF >&2
+$0: must be run from the top level source directory or the
+bin/tests/system directory
+EOF
+	exit 1
+fi
 
 # If running on hp-ux, don't even try to run config.guess.
 # It will try to create a temporary file in the current directory,
@@ -28,7 +46,7 @@
 
 case `uname -a` in
   *HP-UX*) sys=hpux ;;
-  *) sys=`../../../config.guess` ;;
+  *) sys=`$config_guess` ;;
 esac
 
 case "$1" in
