@@ -162,7 +162,14 @@ generate_reply(client_t *client)
 	client->pkt.recvlength = LWRES_RECVLENGTH;
 	client->pkt.authtype = 0; /* XXXMLG */
 	client->pkt.authlength = 0;
-	client->pkt.result = LWRES_R_SUCCESS;
+
+	/*
+	 * If there are no addresses and no aliases, return failure.
+	 */
+	if (client->gabn.naddrs == 0 && client->gabn.naliases == 0)
+		client->pkt.result = LWRES_R_NOTFOUND;
+	else
+		client->pkt.result = LWRES_R_SUCCESS;
 
 	lwres = lwres_gabnresponse_render(cm->lwctx, &client->gabn,
 					  &client->pkt, &lwb);

@@ -151,8 +151,8 @@ mem_free(void *arg, void *mem, size_t size)
 static void
 parse_resolv_conf(isc_mem_t *mem)
 {
-	lwres_conf_t lwc;
 	lwres_context_t *lwctx;
+	lwres_conf_t *lwc;
 	int lwresult;
 	struct in_addr ina;
 	struct in6_addr ina6;
@@ -164,26 +164,27 @@ parse_resolv_conf(isc_mem_t *mem)
 	if (lwresult != LWRES_R_SUCCESS)
 		return;
 
-	lwres_conf_init(lwctx, &lwc);
-
-	lwresult = lwres_conf_parse("/etc/resolv.conf", &lwc);
+	lwresult = lwres_conf_parse(lwctx, "/etc/resolv.conf");
 	if (lwresult != LWRES_R_SUCCESS)
 		goto out;
 
 #if 1
-	lwres_conf_print(stderr, &lwc);
+	lwres_conf_print(lwctx, stderr);
 #endif
+
+	lwc = lwres_conf_get(lwctx);
+	INSIST(lwc != NULL);
 
 	/*
 	 * Run through the list of nameservers, and set them to be our
 	 * forwarders.
 	 */
-	for (i = 0 ; i < lwc.nsnext ; i++) {
-		switch (lwc.nameservers[i].family) {
+	for (i = 0 ; i < lwc->nsnext ; i++) {
+		switch (lwc->nameservers[i].family) {
 		case AF_INET:
 			sa = isc_mem_get(mem, sizeof *sa);
 			INSIST(sa != NULL);
-			memcpy(&ina.s_addr, lwc.nameservers[i].address, 4);
+			memcpy(&ina.s_addr, lwc->nameservers[i].address, 4);
 			isc_sockaddr_fromin(sa, &ina, 53);
 			ISC_LIST_APPEND(forwarders, sa, link);
 			sa = NULL;
@@ -191,7 +192,7 @@ parse_resolv_conf(isc_mem_t *mem)
 		case AF_INET6:
 			sa = isc_mem_get(mem, sizeof *sa);
 			INSIST(sa != NULL);
-			memcpy(&ina6.s6_addr, lwc.nameservers[i].address, 16);
+			memcpy(&ina6.s6_addr, lwc->nameservers[i].address, 16);
 			isc_sockaddr_fromin6(sa, &ina6, 53);
 			ISC_LIST_APPEND(forwarders, sa, link);
 			sa = NULL;
@@ -202,7 +203,7 @@ parse_resolv_conf(isc_mem_t *mem)
 	}
 
  out:
-	lwres_conf_clear(&lwc);
+	lwres_conf_clear(lwctx);
 	lwres_context_destroy(&lwctx);
 }
 

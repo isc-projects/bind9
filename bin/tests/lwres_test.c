@@ -171,6 +171,7 @@ test_gabn(char *target)
 		printf("FAILURE!\n");
 		if (res != NULL)
 			lwres_gabnresponse_free(ctx, &res);
+		return;
 	}
 
 	printf("Returned real name: (%u, %s)\n",
@@ -268,18 +269,35 @@ main(int argc, char *argv[])
 #else
 	ret = lwres_context_create(&ctx, NULL, NULL, NULL);
 #endif
+
 	CHECK(ret, "lwres_context_create");
 
+	ret = lwres_conf_parse(ctx, "/etc/resolv.conf");
+	CHECK(ret, "lwres_conf_parse");
+
+	lwres_conf_print(ctx, stdout);
+
 	test_noop();
-	test_gabn("notthereatall.flame.org.");
-	test_gabn("alias-05.test.flame.org.");
+
+	/*
+	 * The following comments about tests all assume your search path is
+	 *	nominum.com isc.org flame.org
+	 * and ndots is the default of 1.
+	 */
+	test_gabn("alias-05.test"); /* exact, then search. */
 	test_gabn("f.root-servers.net.");
 	test_gabn("poofball.flame.org.");
 	test_gabn("foo.ip6.int.");
+	test_gabn("notthereatall.flame.org");  /* exact, then search (!found)*/
+	test_gabn("shell"); /* search (found in nominum.com), then exact */
+	test_gabn("kechara"); /* search (found in flame.org), then exact */
+	test_gabn("lkasdjlaksjdlkasjdlkasjdlkasjd"); /* search, exact(!found)*/
+
 	test_gnba("198.133.199.1", LWRES_ADDRTYPE_V4);
 	test_gnba("204.152.184.79", LWRES_ADDRTYPE_V4);
 	test_gnba("3ffe:8050:201:1860:42::1", LWRES_ADDRTYPE_V6);
 
+	lwres_conf_clear(ctx);
 	lwres_context_destroy(&ctx);
 
 #ifdef USE_ISC_MEM
