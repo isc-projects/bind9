@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.205 2000/09/08 21:47:01 gson Exp $ */
+/* $Id: zone.c,v 1.206 2000/09/11 04:37:52 marka Exp $ */
 
 #include <config.h>
 
@@ -276,6 +276,7 @@ static void cancel_refresh(dns_zone_t *);
 
 static void zone_log(dns_zone_t *zone, const char *, int, const char *msg,
 		     ...);
+static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...);
 static void queue_xfrin(dns_zone_t *zone);
 static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
@@ -2078,6 +2079,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = NULL;
 	isc_netaddr_t dstip;
 	dns_tsigkey_t *key = NULL;
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
@@ -2112,6 +2114,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	isc_netaddr_fromsockaddr(&dstip, &notify->dst);
 	(void)dns_view_getpeertsig(notify->zone->view, &dstip, &key);
 
+	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
+	notify_log(zone, ISC_LOG_INFO, "sending NOTIFY to %s", addrbuf);
 	result = dns_request_create(notify->zone->view->requestmgr, message,
 				    &notify->dst, 0, key, 15,
 				    notify->zone->task,
@@ -2241,6 +2245,8 @@ dns_zone_notify(dns_zone_t *zone) {
 
 	if (notifytype == dns_notifytype_no)
 		return;
+
+	notify_log(zone, ISC_LOG_INFO, "queuing notifies");
 
 	origin = &zone->origin;
 
@@ -3804,6 +3810,36 @@ dns_zone_getjournalsize(dns_zone_t *zone) {
 }
 
 static void
+notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
+	va_list ap;
+	char message[4096];
+	char namebuf[1024+32];
+	isc_buffer_t buffer;
+	int len;
+	isc_result_t result = ISC_R_FAILURE;
+
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
+
+	isc_buffer_init(&buffer, namebuf, sizeof(namebuf));
+
+	if (dns_name_dynamic(&zone->origin))
+		result = dns_name_totext(&zone->origin, ISC_TRUE, &buffer);
+	if (result != ISC_R_SUCCESS)
+		isc_buffer_putstr(&buffer, "<UNKNOWN>");
+
+	isc_buffer_putstr(&buffer, "/");
+	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
+	len = isc_buffer_usedlength(&buffer);
+
+	va_start(ap, fmt);
+	vsnprintf(message, sizeof message, fmt, ap);
+	va_end(ap);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_NOTIFY, DNS_LOGMODULE_ZONE,
+		      level, "zone %.*s: %s", len, namebuf, message);
+}
+
+static void
 zone_log(dns_zone_t *zone, const char *me, int level, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
@@ -3957,9 +3993,14 @@ dns_zone_getidleout(dns_zone_t *zone) {
 
 static void
 notify_done(isc_task_t *task, isc_event_t *event) {
-        const char me[] = "notify_done";
+	dns_requestevent_t *revent = (dns_requestevent_t *)event;
 	dns_notify_t *notify;
 	dns_zone_t *zone = NULL;
+	isc_result_t result;
+	dns_message_t *message = NULL;
+	isc_buffer_t buf;
+	char rcode[128];
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	UNUSED(task);
 
@@ -3968,7 +4009,27 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == notify->zone->task);
 
 	dns_zone_iattach(notify->zone, &zone);
-	DNS_ENTER;
+	isc_buffer_init(&buf, rcode, sizeof(rcode));
+	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
+
+	result = revent->result;
+	if (result == ISC_R_SUCCESS)
+		result = dns_message_create(zone->mctx,
+					    DNS_MESSAGE_INTENTPARSE, &message);
+	if (result == ISC_R_SUCCESS)
+		result = dns_request_getresponse(revent->request, message,
+						 ISC_TRUE);
+	if (result == ISC_R_SUCCESS)
+		result = dns_rcode_totext(message->rcode, &buf);
+	if (result == ISC_R_SUCCESS)
+		notify_log(zone, ISC_LOG_INFO, "NOTIFY answer from %s: %.*s",
+			   addrbuf, buf.used, rcode);
+	else
+		notify_log(zone, ISC_LOG_INFO, "NOTIFY to %s failed: %s",
+			   addrbuf, dns_result_totext(revent->result));
+	if (message != NULL)
+		dns_message_destroy(&message);
+
 	isc_event_free(&event);
 	LOCK(&zone->lock);
 	notify_destroy(notify);
