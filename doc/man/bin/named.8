@@ -1,0 +1,171 @@
+.\"
+.\" Copyright (C) 2000  Internet Software Consortium.
+.\"
+.\" Permission to use, copy, modify, and distribute this document for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: named.8,v 1.3 2000/07/12 02:07:32 gson Exp $
+.\"
+.Dd Jun 30, 2000
+.Dt NAMED 8
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm named
+.Nd Internet domain name server (DNS)
+.Sh SYNOPSIS
+.Nm named
+.Op Fl c Ar config-file
+.Op Fl d Ar debuglevel
+.Op Fl f g s
+.Op Fl n Ar #cpus
+.Op Fl p Ar port#
+.Op Fl t Ar directory
+.Op Fl u Ar user-id
+.Op Fl x Ar cache-file
+.Sh DESCRIPTION
+.Nm named
+is the ISC implementation of an Internet domain name server.
+See RFCs 1033, 1034, and 1035 for more information on the Internet
+domain name system.
+For historical reasons, the ISC's DNS software is known as BIND -
+Berkeley Internet Name Daemon - because it was originally
+supplied with BSD
+.Ux
+releases.
+.Pp
+Without any arguments,
+.Nm named
+will read the default configuration file
+.Pa /etc/named.conf ,
+read any initial data, and listen for queries.
+It is also possible to use the BIND9 name server
+as a lightweight resolver server
+.Nm lwresd .
+However when operating as a lightweight resolver server,
+.Nm named
+is functionally and logically distinct from a
+conventional name server.
+More information can be found in 
+.Xr lwresd 8 .
+.Pp
+Although some command-line options can be used with
+.Nm named ,
+the name server's behaviour is mainly controlled by its configuration file, 
+.Pa /etc/named.conf .
+Refer to the BIND9 Administrator Reference Manual for further details.
+.Pp
+The options to
+.Nm named
+are as follows:
+.Bl -tag -width Ds
+.It Fl c
+use
+.Ar config-file
+as the configuration file instead of the default,
+.Pa /etc/named.conf .
+.It Fl d
+set the daemon's debug level to
+.Ar debuglevel .
+Debugging traces from
+.Nm named
+become more verbose as the debug level increases.
+.It Fl f
+run
+.Nm named
+in the foreground.
+.It Fl g
+run
+.Nm named
+in the foreground and force all logging to
+.Dv stderr .
+.It Fl n
+create 
+.Ar #cpus
+worker threads to take advantage of multiple CPUs.
+If no option is given,
+.Nm named
+will try to determine the number of CPUs present and create
+one thread per CPU.  If
+.Nm named
+is unable to determine the number of CPUs, a single worker thread
+is created.
+.It Fl p
+listen for queries on  port
+.Ar port#
+instead of the default port number, 53.
+.It Fl s
+write memory usage statistics to
+.Dv stdout
+on exit.
+This option is mainly of interest
+to BIND9 developers and may be removed or changed in a future release.
+.It Fl t
+tells
+.Nm named
+to chroot() to
+.Ar directory
+immediately after reading its config file.
+.It Fl u
+run
+.Nm named
+as UID
+.Ar user-id .
+.Nm named
+will change its UID after it has
+carried out any privileged operations, such as 
+creating sockets that listen on privileged ports.
+.It Fl x
+load data from
+.Ar cache-file .
+into the cache of the default view.
+This option must not be used.
+It is only of interest
+to BIND9 developers and may be removed or changed in a future release.
+.El
+.Sh SIGNALS
+In routine operation, signals should not be used to \*qcontrol\*q the
+name server.
+.Nm rndc
+should be used instead.
+Sending the name server a
+.Dv SIGHUP
+signal forces a reload of the server.
+A
+.Dv SIGINT
+or
+.Dv SIGTERM
+signal can be used to gracefully shut down the server.
+Sending any other signals to the name server
+will have an undefined outcome.
+.\".Sh CONFIGURATION FILE FORMAT
+.\".Nm named 's
+.\"configuration file is too complex to describe in detail here.
+.\"A complete description is provided in the BIND9 Administrator
+.\"Reference Manual.
+.Sh FILES
+.Bl -tag -width  /var/run/named.pid -compact
+.It Pa /etc/named.conf
+default configuration file
+.It Pa /var/run/named.pid
+default process-id file
+.El
+.Sh SEE ALSO
+.Xr RFC1033 ,
+.Xr RFC1034 ,
+.Xr RFC1035 ,
+.Xr named.conf 5 ,
+.Xr zonefile 5 ,
+.Xr rndc 8 ,
+.Xr lwresd 8 ,
+BIND9 Administrator Reference Manual, June 2000.

@@ -1,0 +1,202 @@
+.\"
+.\" Copyright (C) 2000  Internet Software Consortium.
+.\"
+.\" Permission to use, copy, modify, and distribute this document for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: dnssec-makekeyset.8,v 1.4 2000/07/26 00:47:14 bwelling Exp $
+.\"
+.Dd Jun 30, 2000
+.Dt DNSSEC-MAKEKEYSET 8
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm dnssec-makekeyset
+.Nd produce a set of DNSSEC keys
+.Sh SYNOPSIS
+.Nm dnssec-makekeyset
+.Op Fl h
+.Op Fl s Ar start-time
+.Op Fl e Ar end-time
+.Op Fl t Ar TTL
+.Op Fl r Ar randomdev
+.Op Fl v Ar level
+.Ar keyfile ....
+.Sh DESCRIPTION
+.Nm dnssec-makekeyset
+generates a key set from one or more keys created by
+.Xr dnssec-keygen 8 .
+It creates a file containing KEY and SIG records for some zone which
+can then be signed by the zone's parent if the parent zone is
+DNSSEC-aware.
+.Ar keyfile
+should be a key identification string as reported by
+.Xr dnssec-keygen 8 :
+i.e.
+.Ar Knnnn.+aaa+iiiii
+where
+.Ar nnnn
+is the name of the key,
+.Ar aaa
+is the encryption algorithm and
+.Ar iiiii
+is the key identifier.
+Multiple
+.Ar keyfile
+arguments can be supplied when there are several keys to be combined
+by
+.Nm dnssec-makekeyset
+into a key set.
+.Pp
+For any SIG records that are in the key set, the start time when the
+SIG records become valid is specified with the
+.Fl s
+option.
+.Ar start-time
+can either be an absolute or relative date.
+An absolute start time is indicated by a number in YYYYMMDDHHMMSS
+notation: 20000530144500 denotes 14:45:00 UTC on May 30th, 2000.
+A relative start time is supplied when
+.Ar start-time
+is given as +N: N seconds from the current time.
+If no
+.Fl s 
+option is supplied, the current date and time is used for the start
+time of the SIG records.
+.Pp
+The expiry date for the SIG records can be set by the
+.Fl e
+option.
+Note that in this context, the expiry date specifies when the SIG
+records are no longer valid, not when they are deleted from caches on name
+servers.
+.Ar end-date
+also represents an absolute or relative date.
+YYYYMMDDHHMMSS notation is used as before to indicate an absolute date
+and time.
+When
+.Ar end-date
+is +N,
+it indicates that the SIG records will expire in N seconds after their
+start date.
+If
+.Ar end-date
+is written as now+N,
+the SIG records will expire in N seconds after the current time.
+When no expiry date is set for the SIG records,
+.Nm dnssec-makekeyset
+defaults to an expire time of 30 days from the start time of the SIG
+records.
+.Pp
+An alternate source of random data can be specified with the
+.Fl r
+option.
+.Ar randomdev
+is the name of the file to use to obtain random data.
+By default
+.Pa /dev/random
+is used if this device is available.
+If it is not provided by the operating system and no
+.Fl r
+option is used,
+.Nm dnssec-makekeyset
+will prompt the user for input from the keyboard and use the time
+between keystrokes to derive some random data.
+.Pp
+The
+.Fl t
+option is followed by a time-to-live argument
+.Ar TTL
+which indicates the TTL value that will be assigned to the assembled KEY
+and SIG records in the output file.
+.Ar TTL
+is expressed in seconds.
+If no
+.Fl t
+option is provided,
+.Nm dnssec-makekeyset
+prints a warning and uses a default TTL of 3600 seconds.
+.Pp
+The
+.Fl v
+option can be used to make
+.Nm dnssec-makekeyset
+more verbose.
+As the debugging/tracing level
+.Ar level
+increases,
+.Nm dnssec-makekeyset
+generates increasingly detailed reports about what it is doing.
+The default level is zero. 
+.Pp
+The
+.Fl h
+option makes
+.Nm dnssec-makekeyset
+to print a short summary of its options and arguments.
+.Pp
+If
+.Nm dnssec-makekeyset
+is successful, it creates a file name of the form
+.Ar nnnn.keyset .
+This file contains the KEY and SIG records for domain
+.Dv nnnn ,
+the domain name part from the key file identifier produced when
+.Nm dnssec-keygen
+created the domain's public and private keys.
+The
+.Ar .keyset
+file can then be transferred to the DNS administrator of the parent
+zone for them to sign the contents with
+.Xr dnssec-signkey 8 .
+.Sh EXAMPLE
+The following command generates a key set for the DSA key for
+.Dv example.com
+that was shown in the
+.Xr dnssec-keygen 8
+man page.
+The backslash is for typographic reasons and would not be provided on
+the command line when running
+.Nm dnssec-makekeyset .
+.nf
+.Dl # dnssec-makekeyset -t 86400 -s 20000701120000 \e\p 
+.Dl -e +2592000 Kexample.com.+003+26160
+.fi
+.Pp
+.Nm dnssec-makekeyset
+will create a file called
+.Pa example.com.keyset
+containing a SIG and KEY record for
+.Dv example.com.
+These records will have a TTL of 86400 seconds (1 day).
+The SIG record becomes valid at noon UTC on July 1st 2000 and expires
+30 days (2592000 seconds) later.
+.Pp
+The DNS administrator for
+.Dv example.com
+could then send
+.Pa example.com.keyset
+to the DNS administrator for
+.Dv .com
+so that they could sign the resource records in the file.
+This assumes that the
+.Dv .com 
+zone is DNSSEC-aware and the administrators of the two zones have some
+mechanism for authenticating each other and exchanging the keys and
+signatures securely.
+.Sh FILES
+.Pa /dev/random .
+.Sh SEE ALSO
+.Xr RFC2535 ,
+.Xr dnssec-keygen 8 ,
+.Xr dnssec-signkey 8 .

@@ -1,0 +1,166 @@
+.\"
+.\" Copyright (C) 2000  Internet Software Consortium.
+.\"
+.\" Permission to use, copy, modify, and distribute this document for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: lwresd.8,v 1.4 2000/07/17 17:49:25 gson Exp $
+.\"
+.Dd Jun 30, 2000
+.Dt LWRESD 8
+.Os BIND9 9
+.ds vT BIND 9 Programmer's Manual
+.Sh NAME
+.Nm lwresd
+.Nd lightweight resolver daemon
+.Sh SYNOPSIS
+.Nm lwresd
+.Op Fl C Ar config-file
+.Op Fl d Ar debuglevel
+.Op Fl f g s
+.Op Fl i Ar pid-file
+.Op Fl n Ar #cpus
+.Op Fl P Ar query-port#
+.Op Fl p Ar port#
+.Op Fl t Ar directory
+.Op Fl u Ar user-id
+.Sh DESCRIPTION
+.Nm lwresd
+is the daemon providing name lookup services to clients that use
+the BIND 9 lightweight resolver library.
+It is essentially a stripped-down, caching-only name server that
+answers queries using the BIND 9 lightweight resolver protocol 
+rather than the DNS protocol.
+.Pp
+.Nm lwresd
+listens for resolver queries on a UDP port on the IPv4 loopback 
+interface, 127.0.0.1.
+This means that
+.Nm lwresd
+can only be used by processes running on the local machine.
+By default UDP port number 921 is used for lightweight resolver
+requests and responses.
+.Pp
+Incoming lightweight resolver requests are decoded by
+.Nm lwresd
+which then resolves them using the DNS protocol.
+When the DNS lookup completes,
+.Nm lwresd
+encodes the answers from the name servers in the lightweight
+resolver format and returns them to the client that made the original
+request.
+.Pp
+If
+.Pa /etc/resolv.conf
+contains any
+.Sy nameserver
+entries,
+.Nm lwresd
+sends recursive DNS queries to those servers.  This
+is similar to the use of forwarders in a chaching name
+server.  If no
+.Sy nameserver
+entries are  present, or if forwarding fails,
+.Nm lwresd
+resolves the queries autonomously starting at the 
+root name servers, using a compiled-in list of root 
+servers hints.
+.Pp
+The options to
+.Nm lwresd
+are as follows:
+.Bl -tag -width Ds
+.It Fl C
+use
+.Ar config-file
+as the configuration file instead of the default,
+.Pa /etc/resolv.conf .
+.It Fl d
+set the daemon's debug level to
+.Ar debuglevel .
+Debugging traces from
+.Nm lwresd
+become more verbose as the debug level increases.
+.It Fl f
+run
+.Nm lwresd
+in the foreground.
+.It Fl g
+run
+.Nm lwresd
+in the foreground and force all logging to
+.Dv stderr .
+.It Fl i
+write the daemon's process id to
+.Ar pid-file
+instead of the default pathname.
+.It Fl n
+create 
+.Ar #cpus
+worker threads to take advantage of multiple CPUs.
+If no option is given,
+.Nm lwresd
+will try to determine the number of CPUs present and create
+one thread per CPU.  If
+.Nm lwresd
+is unable to determine the number of CPUs, a single worker thread
+is created.
+.It Fl P
+send DNS lookups to port number
+.Ar query-port#
+when querying name servers.
+This provides a way of testing the lightweight resolver daemon with a
+name server that listens for queries on a non-standard port number.
+.It Fl p
+listen for lightweight resolver queries on the loopback interface
+using UDP port
+.Ar port#
+instead of the default port number, 921.
+.It Fl s
+write memory usage statistics to
+.Dv stdout
+on exit.
+This option is only of interest to BIND 9 developers and may be
+removed or changed in a future release.
+.It Fl t
+tells
+.Nm lwresd
+to chroot() to
+.Ar directory
+immediately after reading its configuration file.
+.It Fl u
+run
+.Nm lwresd
+as
+.Ar user-id ,
+which is a user name or numeric id that must be present in the
+password file.
+The lightweight resolver daemon will change its user-id after it has
+carried out any privileged operations, such as writing the process-id
+file or binding a socket to a privileged port (typically any port
+less than 1024).
+.El
+.Sh FILES
+.Bl -tag -width  /var/run/lwresd.pid -compact
+.It Pa /etc/resolv.conf
+default configuration file
+.It Pa /var/run/lwresd.pid
+default process-id file
+.El
+.Sh SEE ALSO
+.Xr named 8 ,
+.Xr lwres 3 .
+.Sh NOTES
+.Nm lwresd
+is a daemon for lightweight resolvers, not a lightweight daemon
+for resolvers.

@@ -1,0 +1,304 @@
+.\"
+.\" Copyright (C) 2000  Internet Software Consortium.
+.\"
+.\" Permission to use, copy, modify, and distribute this document for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: dnssec-keygen.8,v 1.5 2000/07/26 18:52:05 gson Exp $
+.\"
+.Dd Jun 30, 2000
+.Dt DNSSEC-KEYGEN 8
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm dnssec-keygen
+.Nd key generation tool for DNSSEC
+.Sh SYNOPSIS
+.Nm dnssec-keygen
+.Fl a Ar algorithm
+.Fl b Ar keysize
+.Op Fl e
+.Op Fl g Ar generator
+.Op Fl h
+.Fl n Ar nametype
+.Op Fl p Ar protocol-value
+.Op Fl r Ar randomdev
+.Op Fl s Ar strength-value
+.Op Fl t Ar type
+.Op Fl v Ar level
+.Ar name
+.Sh DESCRIPTION
+.Nm dnssec-keygen
+generates keys for DNSSEC, Secure DNS, as defined in RFC2535.
+It also generates keys for use in Transaction Signatures, TSIG, which
+is defined in RFC2845.
+.Pp
+A short summary of the options and arguments to
+.Nm dnssec-keygen
+is printed by the
+.Fl h
+(help) option.
+.Pp
+The
+.Fl a ,
+.Fl b ,
+and
+.Fl n
+options and their arguments must be supplied when generating keys.
+The domain name that the key has to be generated for is given by
+.Ar name .
+.Pp
+The choice of encryption algorithm is selected by the
+.Fl a
+option to
+.Nm dnssec-keygen .
+.Ar algorithm
+must be one of
+.Dv RSAMD5 ,
+.Dv DH ,
+.Dv DSA
+or
+.Dv HMAC-MD5
+to indicate that an RSA, Diffie-Hellman, Digital Signature
+Algorithm or HMAC-MD5 key is required.
+An argument of
+.Dv RSA
+can also be given, which is equivalent to
+.Dv RSAMD5 .
+The argument identifying the encryption algorithm is case-insensitive.
+DNSSEC specifies DSA as a mandatory algorithm and RSA as a recommended one.
+Implementations of TSIG must support HMAC-MD5.
+.Pp
+The number of bits in the key is determined by the
+.Ar keysize
+argument following the
+.Fl b
+option.
+The choice of key size depends on the algorithm that is used.
+RSA keys must be between 512 and 2048 bits.
+Diffie-Hellman keys must be between 128 and 4096 bits.
+For DSA, the key size must be between 512 and 1024 bits and a multiple
+of 64.
+The length of an HMAC-MD5 key can be between 1 and 512 bits.
+.Pp
+The
+.Fl n
+option specifies how the generated key will be used.
+.Ar nametype
+can be either
+.Dv ZONE ,
+.Dv HOST , 
+.Dv ENTITY ,
+or
+.Dv USER
+to indicate that the key will be used for signing a zone, host,
+entity or user respectively.
+In this context
+.Dv HOST
+and
+.Dv ENTITY
+are identical.
+.Ar nametype
+is case-insensitive.
+.Pp
+The
+.Fl e
+option can only be used when generating RSA keys.
+It tells
+.Nm dnssec-keygen
+to use a large exponent.
+When creating Diffie-Hellman keys, the
+.Fl g
+option selects the Diffie-Hellman generator
+.Ar generator
+that is to be used.
+The only supported values value of
+.Ar generator
+are 2 and 5.
+If no Diffie-Hellman generator is supplied, a known prime 
+from RFC2539 will be used if possible; otherwise 2 will be used as the
+generator.
+.Pp
+The
+.Fl p
+option sets the protocol value for the generated key to
+.Ar protocol-value .
+The default is 2 (email) for keys of type
+.Dv USER 
+and 3 (DNSSEC) for all other key types.
+Other possible values for this argument are listed in RFC2535 and its
+successors.
+.Pp
+.Nm dnssec-keygen
+uses random numbers to seed the process
+of generating keys.
+If the system does not have a
+.Pa /dev/random
+device that can be used for generating random numbers,
+.Nm dnssec-keygen
+will prompt for keyboard input and use the time intervals between
+keystrokes to provide randomness.
+The
+.Fl r
+option overrides this behaviour, making 
+.Nm dnssec-keygen
+use
+.Ar randomdev
+as a source of random data.
+.Pp
+The key's strength value can be set with the
+.Fl s
+option.
+The generated key will sign DNS resource records
+with a strength value of
+.Ar strength-value .
+It should be a number between 0 and 15.
+The default strength is zero.
+The key strength field currently has no defined purpose in DNSSEC.
+.Pp
+The
+.Fl t
+option indicates if the key is to be used for authentication or
+confidentiality.
+.Ar type
+can be one of
+.Dv AUTHCONF ,
+.Dv NOAUTHCONF ,
+.Dv NOAUTH 
+or
+.Dv NOCONF .
+The default is
+.Dv AUTHCONF .
+If type is
+.Dv AUTHCONF 
+the key can be used for authentication and confidentialty.
+Setting
+.Ar type 
+to
+.Dv NOAUTHCONF
+indicates that the key cannot be used for authentication or confidentialty.
+A value of
+.Dv NOAUTH
+means the key can be used for confidentiality but not for
+authentication.
+Similarly,
+.Dv NOCONF
+defines that the key cannot be used for confidentiality though it can
+be used for authentication.
+.Pp
+The 
+.Fl v
+option can be used to make
+.Nm dnssec-keygen
+more verbose.
+As the debugging/tracing level
+.Ar level
+increases, 
+.Nm dnssec-keygen
+generates increasingly detailed reports about what it is doing.
+The default level is zero.
+.Sh GENERATED KEYS
+When
+.Nm dnssec-keygen
+completes it prints a string of the form
+.Ar Knnnn.+aaa+iiiii
+on the standard output.
+This is an identification string for the key it has generated.
+These strings can be supplied as arguments to
+.Xr dnssec-makekeyset 8 .
+.Pp
+The
+.Ar nnnn.
+part is the dot-terminated domain name given by
+.Ar name .
+The DNSSEC algorithm identifier is indicated by
+.Ar aaa -
+001 for RSA, 002 for Diffie-Hellman, 003 for DSA or 157 for HMAC-MD5.
+.Ar iiiii
+is a five-digit number identifying the key.
+.Pp
+.Nm dnssec-keygen
+creates two files.
+The file names are adapted from the key identification string above.
+They have names of the form:
+.Ar Knnnn.+aaa+iiiii.key
+and
+.Ar Knnnn.+aaa+iiiii.private .
+These contain the public and private parts of the key respectively.
+The files generated by
+.Nm dnssec-keygen
+obey this naming convention to
+make it easy for the signing tool
+.Xr dnssec-signzone 8
+to identify which file(s) have to be read to find the necessary
+key(s) for generating or validating signatures.
+.Pp
+The
+.Ar .key
+file contains a KEY resource record that can be inserted into a zone file
+with a 
+.Dv $INCLUDE
+statement.
+The private part of the key is in the
+.Ar .private
+file.
+It contains details of the encryption algorithm that was used and any
+relevant parameters: prime number, exponent, modulus, subprime, etc.
+For obvious security reasons, this file does not have general read
+permission.
+The private part of the key is used by
+.Xr dnssec-signzone 8
+to generate signatures and the public part is used to verify the
+signatures.
+Both 
+.Ar .key
+and
+.Ar .private
+key files are generated for symmetric encryption algorithm such as
+HMAC-MD5, even though the public and private key are equivalent.
+.Sh EXAMPLE
+To generate a 768-bit DSA key for the domain
+.Dv example.com ,
+the following command would be issued:
+.Pp
+.Dl # dnssec-keygen -a DSA -b 768 -n ZONE example.com
+.Dl Kexample.com.+003+26160
+.Pp
+.Nm dnssec-keygen
+has printed the key identification string
+.Dv Kexample.com.+003+26160 ,
+indicating a DSA key with identifier 26160.
+It will also have created the files
+.Pa Kexample.com.+003+26160.key 
+and
+.Pa Kexample.com.+003+26160.private
+containing respectively the public and private keys for the generated
+DSA key.
+.Sh FILES
+.Pa /dev/random 
+.Sh SEE ALSO
+.Xr RFC2535,
+.Xr RFC2845,
+.Xr RFC2539,
+.Xr dnssec-makekeyset 8 ,
+.Xr dnssec-signkey 8 ,
+.Xr dnssec-signzone 8 .
+.Sh BUGS
+The naming convention for the public and private key files is a little
+clumsy.
+It won't work for domain names that are longer than 236 characters
+because of the 
+.Ar .+aaa+iiiii.private
+suffix results in filenames that are too long for most
+.Ux
+systems.
