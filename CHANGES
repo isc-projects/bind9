@@ -1,3 +1,5 @@
+ 488.	[bug]		Locks weren't properly destroyed in some cases.
+
  487.	[port]		flockfile() is not defined on all systems.
 
  486.	[bug]		nslookup: "set all" and "server" commands showed
