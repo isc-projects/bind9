@@ -441,7 +441,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 * Configure various server options.
 	 */
 	(void) dns_c_ctx_getrecursion(configctx, &server->recursion);	
-	(void) dns_c_ctx_getauth_nx_domain(configctx, &server->auth_nxdomain);
+	(void) dns_c_ctx_getauthnxdomain(configctx, &server->auth_nxdomain);
 	(void) dns_c_ctx_gettransferformat(configctx, &server->transfer_format);
 	
 	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
