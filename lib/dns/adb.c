@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.162.2.2 2001/01/30 22:26:09 gson Exp $ */
+/* $Id: adb.c,v 1.162.2.3 2001/02/28 21:20:29 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -2432,7 +2432,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
 	int bucket;
-	isc_boolean_t want_event, start_at_root, alias;
+	isc_boolean_t want_event, start_at_root, alias, have_address;
 	isc_result_t result;
 	unsigned int wanted_addresses;
 	unsigned int wanted_fetches;
@@ -2664,8 +2664,13 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	}
 
  fetch:
+	if ((WANT_INET(wanted_addresses) && NAME_HAS_V4(adbname)) ||
+	    (WANT_INET6(wanted_addresses) && NAME_HAS_V6(adbname)))
+		have_address = ISC_TRUE;
+	else
+		have_address = ISC_FALSE;
 	if (wanted_fetches != 0 &&
-	    (!FIND_AVOIDFETCHES(find) || wanted_addresses == wanted_fetches)) {
+	    ! (FIND_AVOIDFETCHES(find) && have_address)) {
 		/*
 		 * We're missing at least one address family.  Either the
 		 * caller hasn't instructed us to avoid fetches, or we don't

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.60.4.1 2001/01/09 22:45:02 bwelling Exp $ */
+/* $Id: adb.h,v 1.60.4.2 2001/02/28 21:20:32 bwelling Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -144,8 +144,12 @@ struct dns_adbfind {
  *	if one will actually be generated.
  *
  * _AVOIDFETCHES:
+ * 	If set, fetches will not be generated unless no addresses are
+ * 	available in any of the address families requested.
  *
  * _STARTATROOT:
+ *	Fetches will start at the root nameservers, instead of the closest
+ *	ancestor.  This is useful for reestablishing glue that has expired.
  *
  * _GLUEOK:
  * _HINTOK:

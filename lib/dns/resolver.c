@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.187.2.7 2001/02/20 21:56:23 gson Exp $ */
+/* $Id: resolver.c,v 1.187.2.8 2001/02/28 21:20:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1422,8 +1422,21 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	 * Normal nameservers.
 	 */
 
-	stdoptions = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT |
-		DNS_ADBFIND_AVOIDFETCHES;
+	stdoptions = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT;
+	if (fctx->restarts == 1) {
+		/*
+		 * To avoid sending out a flood of queries likely to
+		 * result in NXRRSET, we suppress fetches for address
+		 * families we don't have the first time through,
+		 * provided that we have addresses in some family we
+		 * can use.
+		 *
+		 * We don't want to set this option all the time, since
+		 * if fctx->restarts > 1, we've clearly been having trouble
+		 * with the addresses we had, so getting more could help.
+		 */
+		stdoptions |= DNS_ADBFIND_AVOIDFETCHES;
+	}
 	if (res->dispatchv4 != NULL)
 		stdoptions |= DNS_ADBFIND_INET;
 	if (res->dispatchv6 != NULL)
