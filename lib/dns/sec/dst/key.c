@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.5 2001/04/04 02:02:54 bwelling Exp $ */
+/* $Id: key.c,v 1.6 2001/06/27 04:21:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 #include "dst_internal.h"
 
 isc_uint16_t
-dst_region_computeid(const isc_region_t *source, const unsigned int alg) {
+dst_region_computeid(const isc_region_t *source, unsigned int alg) {
 	isc_uint32_t ac;
 	const unsigned char *p;
 	int size;
