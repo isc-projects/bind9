@@ -1,3 +1,7 @@
+#if 1
+#error "Shouldn't be using this file."
+#else
+
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
@@ -155,3 +159,5 @@ isc_result_t	dns_c_srv_setkeys(dns_c_srv_t *server,
 
 
 #endif /* DNS_CONFIG_CONFSERV_H */
+
+#endif

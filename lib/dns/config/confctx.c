@@ -319,7 +319,7 @@ dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **ctx)
 	cfg->acls = NULL;
 	cfg->options = NULL;
 	cfg->zlist = NULL;
-	cfg->servers = NULL;
+	cfg->peers = NULL;
 	cfg->acls = NULL;
 	cfg->keydefs = NULL;
 	cfg->trusted_keys = NULL;
@@ -377,8 +377,8 @@ dns_c_ctx_delete(dns_c_ctx_t **cfg)
 	if (c->controls != NULL)
 		dns_c_ctrllist_delete(&c->controls);
 	
-	if (c->servers != NULL)
-		dns_c_srvlist_delete(&c->servers);
+	if (c->peers != NULL)
+		dns_peerlist_detach(&c->peers);
 	
 	if (c->acls != NULL)
 		dns_c_acltable_delete(&c->acls);
@@ -546,8 +546,8 @@ dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)
 	}
 	
 
-	if (cfg->servers != NULL) {
-		dns_c_srvlist_print(fp, indent, cfg->servers);
+	if (cfg->peers != NULL) {
+		dns_peerlist_print(fp, indent, cfg->peers);
 		fprintf(fp, "\n");
 	}
 }
@@ -811,7 +811,7 @@ dns_c_ctx_channeldefinedp(dns_c_ctx_t *cfg, const char *name)
 
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 	REQUIRE(name != NULL);
-	REQUIRE(strlen(name) > 0);
+	REQUIRE(*name != '\0');
 
 	res = dns_c_logginglist_chanbyname(cfg->logging, name, &chan);
 
@@ -3797,7 +3797,7 @@ dns_c_ctx_keydefinedp(dns_c_ctx_t *ctx, const char *keyname)
 
 	REQUIRE(DNS_C_CONFCTX_VALID(ctx));
 	REQUIRE(keyname != NULL);
-	REQUIRE(strlen(keyname) > 0);
+	REQUIRE(*keyname != '\0');
 	
 	if (ctx->keydefs != NULL) {
 		res = dns_c_kdeflist_find(ctx->keydefs, keyname, &keyid);

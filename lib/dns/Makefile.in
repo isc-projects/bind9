@@ -38,7 +38,7 @@ CONFOBJS =	config/confacl.@O@ config/confcache.@O@ config/confcommon.@O@ \
 		config/conflog.@O@ config/conflsn.@O@ \
 		config/confparser.@O@ config/confresolv.@O@ \
 		config/confrrset.@O@ \
-		config/confserv.@O@ config/confview.@O@ config/confzone.@O@
+		config/confview.@O@ config/confzone.@O@
 
 DSTOBJS =	sec/dst/bsafe_link.@O@ sec/dst/dst_api.@O@ \
 		sec/dst/dst_parse.@O@ sec/dst/hmac_link.@O@ \
@@ -119,7 +119,7 @@ OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ dispatch.@O@ dnssec.@O@ \
 		journal.@O@ keytable.@O@ lib.@O@ log.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
-		name.@O@ ncache.@O@ nxt.@O@ \
+		name.@O@ ncache.@O@ nxt.@O@ peer.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ resolver.@O@ \
 		result.@O@ rootns.@O@ ssu.@O@ \
@@ -134,7 +134,7 @@ SRCS =		a6.c acl.c aclconf.c adb.c byaddr.c \
 		db.c dbiterator.c dbtable.c dispatch.c dnssec.c \
 		journal.c keytable.c lib.c log.c \
 		master.c masterdump.c message.c \
-		name.c ncache.c nxt.c \
+		name.c ncache.c nxt.c peer.c \
 		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c resolver.c \
 		result.c rootns.c ssu.c \

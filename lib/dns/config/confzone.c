@@ -220,7 +220,7 @@ dns_c_zonelist_find(dns_c_zonelist_t *zlist, const char *name,
 
 	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
 	REQUIRE(name != NULL);
-	REQUIRE(strlen(name) > 0);
+	REQUIRE(*name != '\0');
 	REQUIRE(retval != NULL);
 
 	zoneelem = ISC_LIST_HEAD(zlist->zones);
@@ -249,7 +249,7 @@ dns_c_zonelist_rmbyname(dns_c_zonelist_t *zlist,
 
 	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
 	REQUIRE(name != NULL);
-	REQUIRE(strlen(name) > 0);
+	REQUIRE(*name != '\0');
 
 	zoneelem = ISC_LIST_HEAD(zlist->zones);
 	while (zoneelem != NULL) {
@@ -383,7 +383,7 @@ dns_c_zone_new(isc_mem_t *mem,
 
 	REQUIRE(mem != NULL);
 	REQUIRE(name != NULL);
-	REQUIRE(strlen(name) > 0);
+	REQUIRE(*name != '\0');
 
 	newzone = isc_mem_get(mem, sizeof *newzone);
 	if (newzone == NULL) {
@@ -527,7 +527,7 @@ dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile)
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(newfile != NULL);
-	REQUIRE(strlen(newfile) > 0);
+	REQUIRE(*newfile != '\0');
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1029,7 +1029,7 @@ dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval)
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(newval != NULL);
-	REQUIRE(strlen(newval) > 0);
+	REQUIRE(*newval != '\0');
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1083,7 +1083,7 @@ dns_c_zone_setixfrtmp(dns_c_zone_t *zone, const char *newval)
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(newval != NULL);
-	REQUIRE(strlen(newval) > 0);
+	REQUIRE(*newval != '\0');
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:

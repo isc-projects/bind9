@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.43 2000/02/15 18:24:26 gson Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.44 2000/02/24 14:48:19 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -328,9 +328,9 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <text>		any_string
 %type <text>		channel_name
 %type <text>		domain_name
-%type <text>		key_ref
 %type <text>		ordering_name
 %type <text>		secret
+%type <text>		key_value
 
 %type <tformat>		transfer_format
 
@@ -2075,47 +2075,42 @@ category_name: any_string
 
 server_stmt: L_SERVER ip_address
 	{
-		dns_c_srv_t *server;
-		dns_c_srv_t *tmpserver;
-		dns_c_srvlist_t *servers = currcfg->servers;
+		dns_peer_t *peer;
+		dns_peerlist_t *peers = currcfg->peers;
+		isc_netaddr_t netaddr;
+
+		isc_netaddr_fromsockaddr(&netaddr, &$2);
 		
-		if (servers == NULL) {
-			tmpres = dns_c_srvlist_new(currcfg->mem,
-						   &currcfg->servers);
+		if (peers == NULL) {
+			tmpres = dns_peerlist_new(currcfg->mem,
+						  &currcfg->peers);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
-					     "failed to create server list");
+					     "failed to create peer list");
 				YYABORT;
 			}
-			servers = currcfg->servers;
+			peers = currcfg->peers;
 		}
 
 		/*
-		 * Check that this IP hasn't already bee used and if it has 
-		 * remove the old definition.
+		 * Check that this IP hasn't already been used.
 		 */
-		server = ISC_LIST_HEAD(servers->elements);
-		while (server != NULL) {
-			tmpserver = ISC_LIST_NEXT(server, next);
-			if (memcmp(&server->address, &$2,
-				   sizeof(isc_sockaddr_t)) == 0) {
-				parser_error(ISC_TRUE, "redefining server");
-				ISC_LIST_UNLINK(servers->elements,
-						server, next);
-				dns_c_srv_delete(&server);
-				break;
-			}
-			server = tmpserver;
+		tmpres = dns_peerlist_peerbyaddr(peers, &netaddr, &peer);
+		if (tmpres == ISC_R_SUCCESS) {
+			dns_peer_detach(&peer);
+			parser_error(ISC_TRUE, "redefining peer");
+			YYABORT;
 		}
 		
-		tmpres = dns_c_srv_new(currcfg->mem, $2, &server);
+		tmpres = dns_peer_new(currcfg->mem, &netaddr, &peer);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "failed to create server structure");
+				     "failed to create peer structure");
 			YYABORT;
 		}
 
-		ISC_LIST_APPEND(currcfg->servers->elements, server, next);
+		dns_peerlist_addpeer(currcfg->peers, peer);
+		dns_peer_detach(&peer);
 	}
 	L_LBRACE server_info_list L_RBRACE
 	;
@@ -2126,96 +2121,122 @@ server_info_list: server_info L_EOS
 
 server_info: L_BOGUS yea_or_nay
 	{
-		dns_c_srv_t *server;
-		isc_boolean_t tv;
-		
-		INSIST(currcfg->servers != NULL);
-		server = ISC_LIST_TAIL(currcfg->servers->elements);
+		dns_peer_t *peer = NULL;
 
-		INSIST(server != NULL);
+		dns_peerlist_currpeer(currcfg->peers, &peer);
+		INSIST(peer != NULL);
 
-		tmpres = dns_c_srv_getbogus(server, &tv);
-		if (tmpres != ISC_R_NOTFOUND) {
+		tmpres = dns_peer_setbogus(peer, $2);
+		dns_peer_detach(&peer);
+		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining server bogus value");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting server bogus value");
+			YYABORT;
 		}
 		
-		dns_c_srv_setbogus(server, $2);
 	}
 	| L_SUPPORT_IXFR yea_or_nay
 	{
-		dns_c_srv_t *server;
-		isc_boolean_t tv;
+		dns_peer_t *peer = NULL;
 
-		INSIST(currcfg->servers != NULL);
-		server = ISC_LIST_TAIL(currcfg->servers->elements);
+		dns_peerlist_currpeer(currcfg->peers, &peer);
+		INSIST(peer != NULL);
 
-		INSIST(server != NULL);
-
-		tmpres = dns_c_srv_getsupportixfr(server, &tv);
-		if(tmpres != ISC_R_NOTFOUND) {
+		tmpres = dns_peer_setsupportixfr(peer, $2);
+		dns_peer_detach(&peer);
+		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining server support-ixfr value");
+				       "redefining peer support-ixfr value");
+		} else if(tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting peer "
+				     "support-ixfr value");
+			YYABORT;
 		}
-		
-		dns_c_srv_setsupportixfr(server, $2);
 	}
 	| L_TRANSFERS L_INTEGER
 	{
-		dns_c_srv_t *server;
-		isc_int32_t tv;
+		dns_peer_t *peer = NULL;
 
-		INSIST(currcfg->servers != NULL);
-		server = ISC_LIST_TAIL(currcfg->servers->elements);
+		dns_peerlist_currpeer(currcfg->peers, &peer);
+		INSIST(peer != NULL);
 
-		INSIST(server != NULL);
-
-		tmpres = dns_c_srv_gettransfers(server, &tv);
-		if (tmpres != ISC_R_NOTFOUND) {
+		tmpres = dns_peer_settransfers(peer, $2);
+		dns_peer_detach(&peer);
+		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining server transfers value");
+				       "redefining peer transfers value");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting peer transfers value");
+			YYABORT;
 		}
-		
-		dns_c_srv_settransfers(server, $2);
 	}
 	| L_TRANSFER_FORMAT transfer_format
 	{
-		dns_c_srv_t *server;
-		dns_transfer_format_t tv;
-		
-		INSIST(currcfg->servers != NULL);
-		server = ISC_LIST_TAIL(currcfg->servers->elements);
+		dns_peer_t *peer = NULL;
 
-		INSIST(server != NULL);
+		dns_peerlist_currpeer(currcfg->peers, &peer);
+		INSIST(peer != NULL);
 
-		tmpres = dns_c_srv_gettransferformat(server, &tv);
-		if (tmpres != ISC_R_NOTFOUND) {
+		tmpres = dns_peer_settransferformat(peer, $2);
+		dns_peer_detach(&peer);
+		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining server transfer-format "
+				       "redefining peer transfer-format "
 				       "value");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting peer transfer-format "
+				     "value");
+			YYABORT;
+		}
+	}
+	| L_KEYS key_value {
+		dns_peer_t *peer;
+		dns_name_t *name = NULL;
+
+		/* XXX need to validate key exists */
+		
+		dns_peerlist_currpeer(currcfg->peers, &peer);
+		INSIST(peer != NULL);
+
+		tmpres = dns_c_charptoname(peer->mem, $2, &name);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error creating key name value");
+			YYABORT;
 		}
 		
-
-		dns_c_srv_settransferformat(server, $2);
-	}
-	| L_KEYS L_LBRACE {
-		dns_c_srv_t *server;
-
-		INSIST(currcfg->servers != NULL);
-		server = ISC_LIST_TAIL(currcfg->servers->elements);
-		INSIST(server != NULL);
-
-		if (server->keys == NULL) {
-			tmpres = dns_c_kidlist_new(currcfg->mem,
-						   &server->keys);
-			if (tmpres != ISC_R_SUCCESS) {
-				parser_error(ISC_FALSE,
-					     "failed to create keyid_list");
-				YYABORT;
-			}
+		tmpres = dns_peer_setkey(peer, &name);
+		isc_mem_free(memctx, $2);
+		dns_peer_detach(&peer);
+		
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining peer key "
+				       "value");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting peer key value");
+			YYABORT;
 		}
-	} key_list L_RBRACE
+	}
 	;
+
+
+key_value: L_LBRACE any_string maybe_eos L_RBRACE
+	{
+		$$ = $2;
+	}
+	| any_string
+	{
+		$$ = $1;
+	};
+
 
 /*
  * Address Matching
@@ -2503,49 +2524,6 @@ address_name: any_string
  * Keys
  */
 
-key_ref: any_string
-	;
-
-key_list_element: key_ref
-	{
-		dns_c_srv_t *currserver;
-		dns_c_kid_t *keyid;
-
-		INSIST(currcfg->servers != NULL);
-		currserver = ISC_LIST_TAIL(currcfg->servers->elements);
-		INSIST(currserver != NULL);
-
-		INSIST(currserver->keys != NULL);
-
-		if (!dns_c_ctx_keydefinedp(currcfg, $1)) {
-			parser_error(ISC_FALSE,
-				     "server keys key_id (%s) "
-				     "referenced before defined", $1);
-			YYABORT;
-		} else {
-			tmpres = dns_c_kid_new(currserver->keys, $1, &keyid);
-			if (tmpres != ISC_R_SUCCESS) {
-				parser_error(ISC_FALSE,
-					     "failed to create keyid");
-				YYABORT;
-			}
-		}
-
-		isc_mem_free(memctx, $1);
-	}
-	;
-
-
-/*
- * The grammer in the man page implies a semicolon is not required before
- * key_list_elements. We'll support either way.
- */
-maybe_eos: | L_EOS
-	;
-
-key_list: key_list_element maybe_eos
-	| key_list key_list_element maybe_eos
-	;
 
 key_stmt: L_SEC_KEY any_string
 	{
@@ -3689,6 +3667,8 @@ any_string: L_STRING
 	| L_QSTRING
 	;
 
+maybe_eos: | L_EOS ;
+
 %%
 
 static int		intuit_token(const char *string);
@@ -3899,7 +3879,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 
 	REQUIRE(currcfg == NULL);
 	REQUIRE(filename != NULL);
-	REQUIRE(strlen(filename) > 0);
+	REQUIRE(*filename != '\0');
 	REQUIRE(configctx != NULL);
 	INSIST(mylexer == NULL);
 	INSIST(memctx == NULL);

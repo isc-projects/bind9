@@ -171,7 +171,7 @@ dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 	REQUIRE(retval != NULL);
 	REQUIRE(viewname != NULL);
-	REQUIRE(strlen(viewname) > 0);
+	REQUIRE(*viewname != '\0');
 
 	elem = ISC_LIST_HEAD(viewtable->views);
 	while (elem != NULL) {
@@ -219,7 +219,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_c_view_t **newview)
 	
 
 	REQUIRE(name != NULL);
-	REQUIRE(strlen(name) > 0);
+	REQUIRE(*name != '\0');
 	REQUIRE(newview != NULL);
 
 	view = isc_mem_get(mem, sizeof *view);

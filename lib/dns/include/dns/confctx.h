@@ -55,6 +55,7 @@
 #include <isc/int.h>
 #include <isc/list.h>
 
+#include <dns/peer.h>
 #include <dns/confcommon.h>
 #include <dns/confip.h>
 #include <dns/confzone.h>
@@ -64,7 +65,6 @@
 #include <dns/conflsn.h>
 #include <dns/confrrset.h>
 #include <dns/confctl.h>
-#include <dns/confserv.h>
 #include <dns/confview.h>
 #include <dns/confcache.h>
 #include <dns/confresolv.h>
@@ -101,7 +101,7 @@ struct dns_c_ctx
 	dns_c_cache_t	       *cache;
 	dns_c_resolv_t	       *resolver;
 	dns_c_ctrllist_t       *controls;
-	dns_c_srvlist_t	       *servers;
+	dns_peerlist_t	       *peers;
 	dns_c_acltable_t       *acls;
 	dns_c_kdeflist_t       *keydefs;
 	dns_c_zonelist_t       *zlist;

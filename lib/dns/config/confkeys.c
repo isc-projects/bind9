@@ -153,7 +153,7 @@ dns_c_kdeflist_undef(dns_c_kdeflist_t *list, const char *keyid)
 
 	REQUIRE(DNS_C_KDEFLIST_VALID(list));
 	REQUIRE(keyid != NULL);
-	REQUIRE(strlen(keyid) > 0);
+	REQUIRE(*keyid != '\0');
 
 	kd = ISC_LIST_HEAD(list->keydefs);
 	while (kd != NULL) {
@@ -184,7 +184,7 @@ dns_c_kdeflist_find(dns_c_kdeflist_t *list, const char *keyid,
 
 	REQUIRE(DNS_C_KDEFLIST_VALID(list));
 	REQUIRE(keyid != NULL);
-	REQUIRE(strlen(keyid) > 0);
+	REQUIRE(*keyid != '\0');
 
 	kd = ISC_LIST_HEAD(list->keydefs);
 	while (kd != NULL) {
@@ -237,7 +237,7 @@ dns_c_kdef_new(dns_c_kdeflist_t *list, const char *name,
 	REQUIRE(DNS_C_KDEFLIST_VALID(list));
 	REQUIRE(keyid != NULL);
 	REQUIRE(name != NULL);
-	REQUIRE(strlen(name) > 0);
+	REQUIRE(*name != '\0');
 	
 	kd = isc_mem_get(list->mem, sizeof *kd);
 	if (kd == NULL) {
@@ -372,7 +372,7 @@ dns_c_kdef_setalgorithm(dns_c_kdef_t *keydef, const char *algorithm)
 {
 	REQUIRE(DNS_C_KDEF_VALID(keydef));
 	REQUIRE(algorithm != NULL);
-	REQUIRE(strlen(algorithm) > 0);
+	REQUIRE(*algorithm != '\0');
 
 	if (keydef->algorithm != NULL) {
 		isc_mem_free(keydef->mylist->mem, keydef->algorithm);
@@ -393,7 +393,7 @@ dns_c_kdef_setsecret(dns_c_kdef_t *keydef, const char *secret)
 {
 	REQUIRE(DNS_C_KDEF_VALID(keydef));
 	REQUIRE(secret != NULL);
-	REQUIRE(strlen(secret) > 0);
+	REQUIRE(*secret != '\0');
 	
 	if (keydef->secret != NULL) {
 		isc_mem_free(keydef->mylist->mem, keydef->secret);
@@ -490,7 +490,7 @@ dns_c_kidlist_undef(dns_c_kidlist_t *list, const char *keyid)
 
 	REQUIRE(DNS_C_KEYIDLIST_VALID(list));
 	REQUIRE(keyid != NULL);
-	REQUIRE(strlen(keyid) > 0);
+	REQUIRE(*keyid != '\0');
 	
 	dns_c_kidlist_find(list, keyid, &ki);
 	
@@ -513,7 +513,7 @@ dns_c_kidlist_find(dns_c_kidlist_t *list, const char *keyid,
 
 	REQUIRE(DNS_C_KEYIDLIST_VALID(list));
 	REQUIRE(keyid != NULL);
-	REQUIRE(strlen(keyid) > 0);
+	REQUIRE(*keyid != '\0');
 	REQUIRE(retval != NULL);
 	
 	iter = ISC_LIST_HEAD(list->keyids);
@@ -576,7 +576,7 @@ dns_c_kid_new(dns_c_kidlist_t *list, const char *name, dns_c_kid_t **keyid)
 
 	REQUIRE(DNS_C_KEYIDLIST_VALID(list));
 	REQUIRE(name != NULL);
-	REQUIRE(strlen(name) > 0);
+	REQUIRE(*name != '\0');
 	REQUIRE(keyid != NULL);
 	
 	ki = isc_mem_get(list->mem, sizeof *ki);
@@ -743,7 +743,7 @@ dns_c_pklist_rmpubkey(dns_c_pklist_t *list,
 
 	REQUIRE(DNS_C_PKLIST_VALID(list));
 	REQUIRE(key != NULL);
-	REQUIRE(strlen(key) > 0);
+	REQUIRE(*key != '\0');
 
 	r = dns_c_pklist_findpubkey(list, &pk, flags, protocol,
 				    algorithm, key);
@@ -767,7 +767,7 @@ dns_c_pubkey_new(isc_mem_t *mem, isc_int32_t flags,
 
 	REQUIRE(pubkey != NULL);
 	REQUIRE(key != NULL);
-	REQUIRE(strlen(key) > 0);
+	REQUIRE(*key != '\0');
 
 	pkey = isc_mem_get(mem, sizeof *pkey);
 	if (pkey == NULL) {
@@ -1014,9 +1014,9 @@ dns_c_tkey_new(isc_mem_t *mem, const char *domain, isc_int32_t flags,
 	isc_result_t res;
 
 	REQUIRE(domain != NULL);
-	REQUIRE(strlen(domain) > 0);
+	REQUIRE(*domain != '\0');
 	REQUIRE(key != NULL);
-	REQUIRE(strlen(key) > 0);
+	REQUIRE(*key != '\0');
 	REQUIRE(newkey != NULL);
 
 	newk = isc_mem_get(mem, sizeof *newk);

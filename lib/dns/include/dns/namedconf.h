@@ -28,7 +28,7 @@
 #include <dns/conflsn.h>
 #include <dns/confparser.h>
 #include <dns/confrrset.h>
-#include <dns/confserv.h>
 #include <dns/confzone.h>
+#include <dns/peer.h>
 
 #endif

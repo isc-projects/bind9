@@ -1,3 +1,5 @@
+#if 0 /* XXX FILE IS GONE. */
+
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
@@ -412,3 +414,4 @@ dns_c_srv_setkeys(dns_c_srv_t *server, dns_c_kidlist_t *newval)
 }
 
 
+#endif

@@ -153,8 +153,7 @@ dns_c_acltable_getacl(dns_c_acltable_t *table,
 	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	REQUIRE(retval != NULL);
 	REQUIRE(aclname != NULL);
-	REQUIRE(strlen(aclname) > 0);
-
+	REQUIRE(*aclname != '\0');
 
 	elem = ISC_LIST_HEAD(table->acl_list);
 	while (elem != NULL) {
@@ -207,7 +206,7 @@ dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
 	
 	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	REQUIRE(aclname != NULL);
-	REQUIRE(strlen(aclname) > 0);
+	REQUIRE(*aclname != '\0');
 	REQUIRE(newacl != NULL);
 
 	acl = isc_mem_get(table->mem, sizeof *acl);

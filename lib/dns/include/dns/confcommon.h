@@ -309,4 +309,12 @@ void			dns_c_dataclass_tostream(FILE *fp,
 void			dns_c_datatype_tostream(FILE *fp,
 						dns_rdatatype_t rtype);
 
+
+isc_boolean_t		dns_c_netaddrisanyaddr(isc_netaddr_t *inaddr);
+void			dns_c_netaddrprint(FILE *fp, isc_netaddr_t *inaddr);
+isc_result_t		dns_c_charptoname(isc_mem_t *mem, const char *keyval,
+					  dns_name_t **name);
+
+
+
 #endif /* DNS_CONFIG_CONFCOMMON_H */

@@ -421,7 +421,7 @@ dns_c_ipmatch_aclnew(isc_mem_t *mem,
 	REQUIRE(result != NULL);
 	REQUIRE(mem != NULL);
 	REQUIRE(aclname != NULL);
-	REQUIRE(strlen(aclname) > 0);
+	REQUIRE(*aclname != '\0');
 
 	*result = NULL;
 
