@@ -237,7 +237,7 @@ dns_difftuple_create(isc_mem_t *mctx,
 	datap += rdata->length;
 	
 	ISC_LINK_INIT(&t->rdata, link);
-	t->magic = DIFFTUPLE_MAGIC;
+	t->magic = DNS_DIFFTUPLE_MAGIC;
 
 	INSIST(datap == (unsigned char *) t + size);
 
@@ -248,7 +248,7 @@ dns_difftuple_create(isc_mem_t *mctx,
 void
 dns_difftuple_free(dns_difftuple_t **tp) {
 	dns_difftuple_t *t = *tp;
-	REQUIRE(VALID_DIFFTUPLE(t));
+	REQUIRE(DNS_DIFFTUPLE_VALID(t));
 	dns_name_invalidate(&t->name);
 	t->magic = 0;
 	isc_mem_free(t->mctx, t);
@@ -267,13 +267,13 @@ dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff)
 {
 	diff->mctx = mctx;
 	ISC_LIST_INIT(diff->tuples);
-	diff->magic = DIFF_MAGIC;
+	diff->magic = DNS_DIFF_MAGIC;
 }
 
 void
 dns_diff_clear(dns_diff_t *diff) {
 	dns_difftuple_t *t;
-	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DIFF_VALID(diff));
 	while ((t = ISC_LIST_HEAD(diff->tuples)) != NULL) {
 		ISC_LIST_UNLINK(diff->tuples, t, link);
 		dns_difftuple_free(&t);
@@ -295,8 +295,8 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 {
 	dns_difftuple_t *ot, *next_ot;
 
-	REQUIRE(VALID_DIFF(diff));
-	REQUIRE(VALID_DIFFTUPLE(*tuplep));
+	REQUIRE(DNS_DIFF_VALID(diff));
+	REQUIRE(DNS_DIFFTUPLE_VALID(*tuplep));
 
 	/*
 	 * Look for an existing tuple with the same owner name,
@@ -345,7 +345,7 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 	dns_dbnode_t *node = NULL;
 	dns_result_t result;
 	
-	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DIFF_VALID(diff));
 	REQUIRE(DNS_DB_VALID(db));
 	
 	t = ISC_LIST_HEAD(diff->tuples);
@@ -465,7 +465,7 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 	dns_difftuple_t *t;
 	dns_result_t result;
 
-	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DIFF_VALID(diff));
 	
 	t = ISC_LIST_HEAD(diff->tuples);
 	while (t != NULL) {
@@ -524,7 +524,7 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 	unsigned int i;
 	dns_difftuple_t **v;
 	dns_difftuple_t *p;
-	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DIFF_VALID(diff));
 	
 	for (p = ISC_LIST_HEAD(diff->tuples);
 	     p != NULL;
@@ -561,7 +561,7 @@ static dns_result_t
 diff_tuple_tordataset(dns_difftuple_t *t, dns_rdatalist_t *rdl,
 		      dns_rdataset_t *rds)
 {
-	REQUIRE(VALID_DIFFTUPLE(t));
+	REQUIRE(DNS_DIFFTUPLE_VALID(t));
 	REQUIRE(rdl != NULL);
 	REQUIRE(rds != NULL);
 	
@@ -579,7 +579,7 @@ void
 dns_diff_print(dns_diff_t *diff) {
 	dns_result_t result;
 	dns_difftuple_t *t;
-	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DIFF_VALID(diff));
 
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
 	     t = ISC_LIST_NEXT(t, link))
@@ -812,9 +812,9 @@ struct dns_journal {
 	} it;
 };
 
-#define JOURNAL_MAGIC			0x4a4f5552U	/* JOUR. */
-#define VALID_JOURNAL(t)		((t) != NULL && \
-						 (t)->magic == JOURNAL_MAGIC)
+#define DNS_JOURNAL_MAGIC	0x4a4f5552U	/* JOUR. */
+#define DNS_JOURNAL_VALID(t)	((t) != NULL && \
+					 (t)->magic == DNS_JOURNAL_MAGIC)
 
 static void
 journal_pos_decode(journal_rawpos_t *raw, journal_pos_t *cooked)
@@ -1076,7 +1076,7 @@ dns_journal_open(isc_mem_t *mctx, char *filename, isc_boolean_t write,
 	j->fp = fp;
 
 	/* Set magic early so that seek/read can succeed. */
-	j->magic = JOURNAL_MAGIC; 
+	j->magic = DNS_JOURNAL_MAGIC; 
 
 	CHECK(journal_seek(j, 0));
 	CHECK(journal_read(j, &rawheader, sizeof(rawheader)));
@@ -1208,7 +1208,7 @@ static dns_result_t
 journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	dns_result_t result;
 	journal_xhdr_t xhdr;
-	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(DNS_JOURNAL_VALID(j));
 	
 	result = journal_seek(j, pos->offset);
 	if (result != DNS_R_SUCCESS)
@@ -1343,7 +1343,7 @@ static dns_result_t
 journal_find(dns_journal_t *j, isc_uint32_t serial, journal_pos_t *pos) {
 	dns_result_t result;
 	journal_pos_t current_pos;
-	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(DNS_JOURNAL_VALID(j));
 	
 	if (DNS_SERIAL_GT(j->header.begin.serial, serial))
 		return (DNS_R_RANGE);
@@ -1400,7 +1400,7 @@ dns_journal_begin_transaction(dns_journal_t *j) {
 	dns_result_t result;
 	journal_rawxhdr_t hdr;
 		
-	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_WRITE);
 	
 	/*
@@ -1443,7 +1443,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	dns_result_t result;
 	isc_region_t used;
 	
-	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DIFF_VALID(diff));
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
 	
 	printf("writing diff: \n");
@@ -1516,7 +1516,7 @@ dns_result_t
 dns_journal_commit(dns_journal_t *j) {
 	dns_result_t result;
 	journal_rawheader_t rawheader;
-	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
 	
 	/* Perform some basic consistency checks. */
@@ -1623,7 +1623,7 @@ dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff) {
 void
 dns_journal_destroy(dns_journal_t **journalp) {
 	dns_journal_t *j = *journalp;
-	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(DNS_JOURNAL_VALID(j));
 
 	j->it.result = ISC_R_FAILURE;
 	dns_name_invalidate(&j->it.name);
@@ -1663,7 +1663,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	unsigned int n_soa = 0;
 	unsigned int n_put = 0;
 	
-	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(DNS_DB_VALID(db));
 	
 	dns_diff_init(j->mctx, &diff);

@@ -31,6 +31,7 @@
  ***/
 
 #include <isc/types.h>
+
 #include <dns/result.h>
 #include <dns/types.h>
 #include <dns/name.h>
@@ -66,9 +67,10 @@ typedef enum {
 
 typedef struct dns_difftuple dns_difftuple_t;
 
-#define DIFFTUPLE_MAGIC			0x44494654U	/* DIFT. */
-#define VALID_DIFFTUPLE(t)		((t) != NULL && \
-						 (t)->magic == DIFFTUPLE_MAGIC)
+#define DNS_DIFFTUPLE_MAGIC	0x44494654U	/* DIFT. */
+#define DNS_DIFFTUPLE_VALID(t)	((t) != NULL && \
+				 (t)->magic == DNS_DIFFTUPLE_MAGIC)
+
 struct dns_difftuple {
         unsigned int			magic;
 	isc_mem_t			*mctx;
@@ -87,9 +89,10 @@ struct dns_difftuple {
  */
 typedef struct dns_diff dns_diff_t;
 
-#define DIFF_MAGIC			0x44494646U	/* DIFF. */
-#define VALID_DIFF(t)			((t) != NULL && \
-						 (t)->magic == DIFF_MAGIC)
+#define DNS_DIFF_MAGIC		0x44494646U	/* DIFF. */
+#define DNS_DIFF_VALID(t)	((t) != NULL && \
+					 (t)->magic == DNS_DIFF_MAGIC)
+
 struct dns_diff {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
