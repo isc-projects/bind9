@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.157 2000/07/13 00:30:58 bwelling Exp $ */
+/* $Id: zone.c,v 1.158 2000/07/20 19:34:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2310,8 +2310,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
 	result = dns_request_getresponse(revent->request, msg, ISC_FALSE);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		zone_log(zone, me, ISC_LOG_INFO,
+			 "failure in request to %s: %s",
+			 master, dns_result_totext(result));
 		goto next_master;
+	}
 
 	/*
 	 * Unexpected rcode.
