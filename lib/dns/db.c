@@ -328,6 +328,21 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 dns_result_t
+dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		    dns_rdatasetiter_t **iteratorp)
+{
+	/*
+	 * Make '*iteratorp' an rdataset iteratator for all rdatasets at
+	 * 'node' in version 'version' of 'db'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
+
+	return ((db->methods->allrdatasets)(db, node, version, iteratorp));
+}
+
+dns_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   dns_rdataset_t *rdataset)
 {

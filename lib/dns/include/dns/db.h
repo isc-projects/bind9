@@ -98,6 +98,9 @@ typedef struct dns_dbmethods {
 					dns_dbversion_t *version,
 					dns_rdatatype_t type,
 					dns_rdataset_t *rdataset);
+	dns_result_t	(*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
+					dns_dbversion_t *version,
+					dns_rdatasetiter_t **iteratorp);
 	dns_result_t	(*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
 				       dns_dbversion_t *version,
 				       dns_rdataset_t *rdataset);
@@ -522,6 +525,38 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  */
 
 dns_result_t
+dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		    dns_rdatasetiter_t **iteratorp);
+/*
+ * Make '*iteratorp' an rdataset iteratator for all rdatasets at 'node' in
+ * version 'version' of 'db'.
+ *
+ * Notes:
+ *
+ *	If 'version' is NULL, then the current version will be used.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ *	'node' is a valid node.
+ *
+ *	iteratorp != NULL && *iteratorp == NULL
+ *
+ * Ensures:
+ *
+ *	On success, '*iteratorp' is a valid rdataset iterator.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOTFOUND
+ *	
+ *	Other results are possible, depending upon the database
+ *	implementation used.
+ */
+
+dns_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   dns_rdataset_t *rdataset);
 /*
@@ -592,10 +627,6 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *	implementation used.
  */
 
- /*
-  * XXX Need rdataset iterator for ANY queries.
-  */
- 
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DB_H */
