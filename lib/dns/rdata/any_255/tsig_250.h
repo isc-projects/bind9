@@ -15,14 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.h,v 1.14 2000/03/16 21:50:14 gson Exp $ */
+/* $Id: tsig_250.h,v 1.15 2000/03/16 23:13:02 gson Exp $ */
 
 /* draft-ietf-dnsext-tsig-00.txt */
 
-/*
- * Note: dns_rdata_tostruct() sets "signature" to NULL
- * if "siglen" is 0, and "other" to NULL if "otherlen" is 0.
- */
 typedef struct dns_rdata_any_tsig {
 	dns_rdatacommon_t	common;
 	isc_mem_t *		mctx;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.23 2000/03/16 21:50:14 gson Exp $ */
+/* $Id: tsig_250.c,v 1.24 2000/03/16 23:13:02 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -406,17 +406,13 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_consume(&sr, 2);
 
 	/* Signature */
-	if (tsig->siglen > 0) {
-		if (sr.length < tsig->siglen)
-			return (ISC_R_UNEXPECTEDEND);
-		tsig->signature = isc_mem_get(mctx, tsig->siglen);
-		if (tsig->signature == NULL)
-			return (DNS_R_NOMEMORY);
-		memcpy(tsig->signature, sr.base, tsig->siglen);
-		isc_region_consume(&sr, tsig->siglen);
-	}
-	else
-		tsig->signature = NULL;
+	if (sr.length < tsig->siglen)
+		return (ISC_R_UNEXPECTEDEND);
+	tsig->signature = isc_mem_get(mctx, tsig->siglen);
+	if (tsig->signature == NULL)
+		return (DNS_R_NOMEMORY);
+	memcpy(tsig->signature, sr.base, tsig->siglen);
+	isc_region_consume(&sr, tsig->siglen);
 
 	/* Original ID */
 	if (sr.length < 2)
@@ -437,17 +433,13 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_consume(&sr, 2);
 
 	/* Other */
-	if (tsig->otherlen > 0) {
-		if (sr.length < tsig->otherlen)
-			return (ISC_R_UNEXPECTEDEND);
-		tsig->other = isc_mem_get(mctx, tsig->otherlen);
-		if (tsig->other == NULL)
-			return (DNS_R_NOMEMORY);
-		memcpy(tsig->other, sr.base, tsig->otherlen);
-		isc_region_consume(&sr, tsig->otherlen);
-	}
-	else
-		tsig->other = NULL;
+	if (sr.length < tsig->otherlen)
+		return (ISC_R_UNEXPECTEDEND);
+	tsig->other = isc_mem_get(mctx, tsig->otherlen);
+	if (tsig->other == NULL)
+		return (DNS_R_NOMEMORY);
+	memcpy(tsig->other, sr.base, tsig->otherlen);
+	isc_region_consume(&sr, tsig->otherlen);
 
 	return (DNS_R_SUCCESS);
 }
@@ -461,9 +453,9 @@ freestruct_any_tsig(void *source) {
 	REQUIRE(tsig->common.rdtype == 250);
 
 	dns_name_free(&tsig->algorithm, tsig->mctx);	
-	if (tsig->siglen > 0)
+	if (tsig->signature != NULL)
 		isc_mem_put(tsig->mctx, tsig->signature, tsig->siglen);
-	if (tsig->otherlen > 0)
+	if (tsig->other != NULL)
 		isc_mem_put(tsig->mctx, tsig->other, tsig->otherlen);
 }
 
