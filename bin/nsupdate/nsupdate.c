@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.25 2000/07/05 23:42:08 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.26 2000/07/06 19:29:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -528,7 +528,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	isc_buffer_t source;
 	unsigned int dots;
 	isc_boolean_t last;
-	dns_name_t *rn = origin;
+	dns_name_t *rn;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (*word == 0) {
@@ -548,6 +548,10 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	dots = count_dots(word, &last);
 	if (dots > lwconf->ndots || last)
 		rn = dns_rootname;
+	else if (userzone != NULL)
+		rn = userzone;
+	else
+		rn = origin;
 	result = dns_name_fromtext(*namep, &source, rn,
 				   ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext");
@@ -564,6 +568,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	isc_lex_t *lex = NULL;
 	dns_rdatacallbacks_t callbacks;
 	isc_result_t result;
+	dns_name_t *rn;
 
 	while (*cmdline != 0 && isspace((unsigned char)*cmdline))
 		cmdline++;
@@ -580,8 +585,12 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		result = isc_buffer_allocate(mctx, &buf, MXNAME);
 		check_result(result, "isc_buffer_allocate");
 		dns_rdatacallbacks_init_stdio(&callbacks);
+		if (userzone != NULL)
+			rn = userzone;
+		else
+			rn = origin;
 		result = dns_rdata_fromtext(*rdatap, rdataclass, rdatatype, lex,
-					    origin, ISC_FALSE,
+					    rn, ISC_FALSE,
 					    buf, &callbacks);
 		dns_message_takebuffer(msg, &buf);
 		isc_lex_destroy(&lex);
