@@ -36,22 +36,32 @@
 #define UNLOCK(l)
 #endif
 
-#ifndef ISC_MEM_FILL
 	/*
 	 * XXXMPA
-	 * We want this on during development to catch:
+	 * We want ISC_MEM_FILL and ISC_MEM_RECORD on during development to
+	 * catch:
 	 * 1. some reference after free bugs.
 	 * 2. some failure to initalise bugs.
+	 * 3. some double free bugs.
+	 * 4. allow us to find where leaked memory was allocated.
 	 */
+#ifndef ISC_MEM_FILL
 #define ISC_MEM_FILL 1
+#endif
+#ifndef ISC_MEM_RECORD
+#define ISC_MEM_RECORD 1
 #endif
 
 /*
  * Types.
  */
 
-typedef struct {
+typedef struct element {
 	void *			next;
+#if ISC_MEM_RECORD
+	const char *		file;
+	int			line;
+#endif
 } element;
 
 typedef struct {
@@ -78,6 +88,9 @@ struct isc_mem {
 	size_t			mem_target;
 	element **		freelists;
 	element *		basic_blocks;
+#if ISC_MEM_RECORD
+	element **		allocated;
+#endif
 	unsigned char **	basic_table;
 	unsigned int		basic_table_count;
 	unsigned int		basic_table_size;
@@ -110,8 +123,10 @@ struct isc_mempool {
 /* Forward. */
 
 static inline size_t		quantize(size_t);
-static inline void		mem_putunlocked(isc_mem_t *, void *, size_t);
-static inline void *		mem_getunlocked(isc_mem_t *, size_t);
+static inline void		mem_putunlocked(isc_mem_t *, void *, size_t,
+						const char *, int);
+static inline void *		mem_getunlocked(isc_mem_t *, size_t, 
+						const char *, int);
 
 /* Constants. */
 
@@ -133,7 +148,11 @@ quantize(size_t size) {
 	 * byte boundaries.
 	 */
 
+#if ISC_MEM_RECORD
+	temp = size + sizeof(element) + (ALIGNMENT_SIZE - 1);
+#else
 	temp = size + (ALIGNMENT_SIZE - 1);
+#endif
 	return (temp - temp % ALIGNMENT_SIZE); 
 }
 
@@ -164,8 +183,7 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 		free(ctx);
 		return (ISC_R_NOMEMORY);
 	}
-	memset(ctx->freelists, 0,
-	       ctx->max_size * sizeof (element *));
+	memset(ctx->freelists, 0, ctx->max_size * sizeof (element *));
 	ctx->stats = malloc((ctx->max_size+1) * sizeof (struct stats));
 	if (ctx->stats == NULL) {
 		free(ctx->freelists);
@@ -173,6 +191,16 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 		return (ISC_R_NOMEMORY);
 	}
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof (struct stats));
+#if ISC_MEM_RECORD
+	ctx->allocated = malloc((ctx->max_size + 1) * sizeof (element *));
+	if (ctx->allocated == NULL) {
+		free(ctx->freelists);
+		free(ctx->stats);
+		free(ctx);
+		return (ISC_R_NOMEMORY);
+	}
+	memset(ctx->allocated, 0, (ctx->max_size + 1) * sizeof (element *));
+#endif
 	ctx->basic_blocks = NULL;
 	ctx->basic_table = NULL;
 	ctx->basic_table_count = 0;
@@ -182,6 +210,9 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 	if (isc_mutex_init(&ctx->lock) != ISC_R_SUCCESS) {
 		free(ctx->stats);
 		free(ctx->freelists);
+#if ISC_MEM_RECORD
+		free(ctx->allocated);
+#endif
 		free(ctx);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
@@ -197,6 +228,33 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 }
 
 void
+isc_mem_allocated(isc_mem_t *ctx, FILE *file) {
+#if ISC_MEM_RECORD
+	unsigned int i;
+	element *el;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(file != NULL);
+
+	fprintf(file, "Allocated memory:\n");
+	for (i = 0 ; i <= ctx->max_size; i++) {
+		el = ctx->allocated[i];
+		while (el != NULL) {
+			fprintf(file,
+				"bytes %d: address %p: file %s: line %d\n",
+				i, el + 1,
+				(el->file != NULL) ? el->file : "<UNKNOWN>",
+				el->line);
+			el = el->next;
+		}
+	}
+#else
+	ctx = ctx;	/* unused */
+	file = file;	/* unused */
+#endif
+}
+
+void
 isc_mem_destroy(isc_mem_t **ctxp) {
 	unsigned int i;
 	isc_mem_t *ctx;
@@ -204,6 +262,10 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	REQUIRE(ctxp != NULL);
 	ctx = *ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
+
+#if ISC_MEM_RECORD
+	isc_mem_allocated(ctx, stderr);
+#endif
 
 	ctx->magic = 0;
 
@@ -215,6 +277,9 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	for (i = 0; i < ctx->basic_table_count; i++)
 		free(ctx->basic_table[i]);
 	free(ctx->freelists);
+#if ISC_MEM_RECORD
+	free(ctx->allocated);
+#endif
 	free(ctx->stats);
 	free(ctx->basic_table);
 	(void)isc_mutex_destroy(&ctx->lock);
@@ -287,7 +352,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 }
 
 void *
-__isc_mem_get(isc_mem_t *ctx, size_t size)
+__isc_mem_get(isc_mem_t *ctx, size_t size, const char *file, int line)
 {
 	void *ret;
 
@@ -295,17 +360,23 @@ __isc_mem_get(isc_mem_t *ctx, size_t size)
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
-	ret = mem_getunlocked(ctx, size);
+	ret = mem_getunlocked(ctx, size, file, line);
 	UNLOCK(&ctx->lock);
 
 	return (ret);
 }
 
 static inline void *
-mem_getunlocked(isc_mem_t *ctx, size_t size)
+mem_getunlocked(isc_mem_t *ctx, size_t size, const char *file, int line)
 {
 	size_t new_size = quantize(size);
 	void *ret;
+#if ISC_MEM_RECORD
+	element *el;
+#else
+	file = file;
+	line = line;
+#endif
 
 	if (size >= ctx->max_size || new_size >= ctx->max_size) {
 		/* memget() was called on something beyond our upper limit. */
@@ -318,7 +389,15 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 			ctx->total += size;
 			ctx->stats[ctx->max_size].gets++;
 			ctx->stats[ctx->max_size].totalgets++;
+#if ISC_MEM_RECORD
+			el = ret;
+			el->file = file;
+			el->line = line;
+			el->next = ctx->allocated[ctx->max_size];
+			ctx->allocated[ctx->max_size] = el;
+#endif
 		}
+
 		goto done;
 	}
 
@@ -351,11 +430,19 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 		next = curr + new_size;
 		for (i = 0; i < (frags - 1); i++) {
 			((element *)curr)->next = next;
+#if ISC_MEM_RECORD
+			((element *)curr)->file = NULL;
+			((element *)curr)->line = -1;
+#endif
 			curr = next;
 			next += new_size;
 		}
 		/* curr is now pointing at the last block in the array. */
 		((element *)curr)->next = NULL;
+#if ISC_MEM_RECORD
+		((element *)curr)->file = NULL;
+		((element *)curr)->line = -1;
+#endif
 		ctx->freelists[new_size] = new;
 	}
 
@@ -371,10 +458,21 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 	 */
 	ctx->stats[size].gets++;
 	ctx->stats[size].totalgets++;
+#if ISC_MEM_RECORD
+	el = ret;
+	el->file = file;
+	el->line = line;
+	el->next = ctx->allocated[size];
+	ctx->allocated[size] = el;
+#endif
 	ctx->stats[new_size].freefrags--;
 
  done:
 
+#if ISC_MEM_RECORD
+	ret = (element *)ret + 1;
+	new_size -= sizeof(element);
+#endif
 #if ISC_MEM_FILL
 	if (ret != NULL)
 		memset(ret, 0xbe, new_size); /* Mnemonic for "beef". */
@@ -384,27 +482,54 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 }
 
 void
-__isc_mem_put(isc_mem_t *ctx, void *mem, size_t size)
+__isc_mem_put(isc_mem_t *ctx, void *mem, size_t size,
+	      const char *file, int line)
 {
 	REQUIRE(size > 0);
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
-	mem_putunlocked(ctx, mem, size);
+	mem_putunlocked(ctx, mem, size, file, line);
 	UNLOCK(&ctx->lock);
 }
 
 static inline void
-mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
+mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size,
+		const char *file, int line)
 {
 	size_t new_size = quantize(size);
-
-#if ISC_MEM_FILL
-	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
+	element *el;
+#if ISC_MEM_RECORD
+	element *e, *p;
+#else
+	file = file;
+	line = line;
 #endif
 
+#if ISC_MEM_FILL
+	/* Mnemonic for "dead". */
+	memset(mem, 0xde, new_size - sizeof(element));
+#endif
+
+#if ISC_MEM_RECORD
+	mem = (element *)mem - 1;
+#endif
+	el = mem;
 	if (size == ctx->max_size || new_size >= ctx->max_size) {
 		/* memput() called on something beyond our upper limit */
+#if ISC_MEM_RECORD
+		e = ctx->allocated[ctx->max_size];
+		p = NULL;
+		while (e != NULL && e != el) {
+			p = e;
+			e = e->next;
+		}
+		INSIST(e != NULL);
+		if (p == NULL)
+			ctx->allocated[ctx->max_size] = el->next;
+		else
+			p->next = el->next;
+#endif
 		free(mem);
 		INSIST(ctx->stats[ctx->max_size].gets != 0);
 		ctx->stats[ctx->max_size].gets--;
@@ -413,9 +538,28 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 		return;
 	}
 
+#if ISC_MEM_RECORD
+	/* Remove element from allocated list */
+	e = ctx->allocated[size];
+	p = NULL;
+	while (e != NULL && e != el) {
+		p = e;
+		e = e->next;
+	}
+	INSIST(e != NULL);
+	if (p == NULL)
+		ctx->allocated[size] = el->next;
+	else
+		p->next = el->next;
+#endif
+
 	/* The free list uses the "rounded-up" size "new_size": */
-	((element *)mem)->next = ctx->freelists[new_size];
-	ctx->freelists[new_size] = (element *)mem;
+	el->next = ctx->freelists[new_size];
+#if ISC_MEM_RECORD
+	el->file = file;
+	el->line = line;
+#endif
+	ctx->freelists[new_size] = el;
 
 	/* 
 	 * The stats[] uses the _actual_ "size" requested by the
@@ -432,7 +576,7 @@ void *
 __isc_mem_getdebug(isc_mem_t *ctx, size_t size, const char *file, int line) {
 	void *ptr;
 
-	ptr = __isc_mem_get(ctx, size);
+	ptr = __isc_mem_get(ctx, size, file, line);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
 		ctx, (unsigned long)size, ptr);
 	return (ptr);
@@ -444,7 +588,7 @@ __isc_mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
 {
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
 		ctx, ptr, (unsigned long)size);
-	__isc_mem_put(ctx, ptr, size);
+	__isc_mem_put(ctx, ptr, size, file, line);
 }
 
 /*
@@ -719,7 +863,7 @@ mempool_releaseall(isc_mempool_t *mpctx)
 
 	do {
 		next = item->next;
-		mem_putunlocked(mctx, item, mpctx->size);
+		mem_putunlocked(mctx, item, mpctx->size, __FILE__, __LINE__);
 		INSIST(mpctx->freecount > 0);
 		mpctx->freecount--;
 		item = next;
@@ -742,7 +886,8 @@ isc_mempool_create(isc_mem_t *mctx, size_t size,
 	 */
 	LOCK(&mctx->lock);
 
-	mpctx = mem_getunlocked(mctx, sizeof(isc_mempool_t));
+	mpctx = mem_getunlocked(mctx, sizeof(isc_mempool_t),
+				__FILE__, __LINE__);
 	if (mpctx == NULL) {
 		UNLOCK(&mctx->lock);
 		return (ISC_R_NOMEMORY);
@@ -795,7 +940,8 @@ isc_mempool_destroy(isc_mempool_t **mpctxp)
 	
 	mpctx->magic = 0;
 
-	mem_putunlocked(mpctx->mctx, mpctx, sizeof(isc_mempool_t));
+	mem_putunlocked(mpctx->mctx, mpctx, sizeof(isc_mempool_t),
+			__FILE__, __LINE__);
 
 	UNLOCK(&mctx->lock);
 
@@ -838,7 +984,7 @@ __isc_mempool_get(isc_mempool_t *mpctx)
 	 */
 	LOCK(&mctx->lock);
 	for (i = 0 ; i < mpctx->fillcount ; i++) {
-		item = mem_getunlocked(mctx, mpctx->size);
+		item = mem_getunlocked(mctx, mpctx->size, __FILE__, __LINE__);
 		if (item == NULL)
 			break;
 		item->next = mpctx->items;
@@ -879,7 +1025,7 @@ __isc_mempool_put(isc_mempool_t *mpctx, void *mem)
 	 * If our free list is full, return this to the mctx directly.
 	 */
 	if (mpctx->freecount >= mpctx->freemax) {
-		__isc_mem_put(mctx, mem, mpctx->size);
+		__isc_mem_put(mctx, mem, mpctx->size, __FILE__, __LINE__);
 		return;
 	}
 

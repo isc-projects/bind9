@@ -35,16 +35,18 @@ ISC_LANG_BEGINDECLS
 #define isc_mempool_put(c, p)	__isc_mempool_putdebug(c, p, \
 						       __FILE__, __LINE__)
 #else
-#define isc_mem_get		__isc_mem_get
-#define isc_mem_put		__isc_mem_put
+#define isc_mem_get(c, s)	__isc_mem_get(c, s, __FILE__, __LINE__)
+#define isc_mem_put(c, p, s)	__isc_mem_put(c, p, s, __FILE__, __LINE__)
 #define isc_mempool_get		__isc_mempool_get
 #define isc_mempool_put		__isc_mempool_put
 #endif /* ISC_MEM_DEBUG */
 
 isc_result_t			isc_mem_create(size_t, size_t, isc_mem_t **);
 void				isc_mem_destroy(isc_mem_t **);
-void *				__isc_mem_get(isc_mem_t *, size_t);
-void 				__isc_mem_put(isc_mem_t *, void *, size_t);
+void *				__isc_mem_get(isc_mem_t *, size_t,
+					      const char *, int);
+void 				__isc_mem_put(isc_mem_t *, void *, size_t,
+					      const char *, int);
 void *				__isc_mem_getdebug(isc_mem_t *, size_t,
 						   const char *, int);
 void 				__isc_mem_putdebug(isc_mem_t *, void *,
@@ -56,6 +58,7 @@ void				isc_mem_free(isc_mem_t *, void *);
 char *				isc_mem_strdup(isc_mem_t *, const char *);
 void				isc_mem_setquota(isc_mem_t *, size_t);
 size_t				isc_mem_getquota(isc_mem_t *);
+void				isc_mem_allocated(isc_mem_t *, FILE *);
 
 #ifdef ISC_MEMCLUSTER_LEGACY
 
