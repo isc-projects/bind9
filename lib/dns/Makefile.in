@@ -63,12 +63,9 @@ OPENSSLOBJS =	sec/openssl/bn_add.@O@ sec/openssl/bn_asm.@O@ \
 		sec/openssl/dsa_lib.@O@  sec/openssl/dsa_ossl.@O@ \
 		sec/openssl/dsa_sign.@O@ sec/openssl/dsa_vrf.@O@ \
 		sec/openssl/err.@O@ sec/openssl/ex_data.@O@ \
-		sec/openssl/lhash.@O@ sec/openssl/md_rand.@O@ \
-		sec/openssl/mem_dbg.@O@ \
-		sec/openssl/md5_dgst.@O@ sec/openssl/mem.@O@ \
-		sec/openssl/rand_lib.@O@ sec/openssl/sha1_one.@O@ \
-		sec/openssl/sha1dgst.@O@ sec/openssl/stack.@O@ \
-		sec/openssl/th-lock.@O@
+		sec/openssl/lhash.@O@ sec/openssl/mem_dbg.@O@ \
+		sec/openssl/mem.@O@ sec/openssl/rand_lib.@O@ \
+		sec/openssl/stack.@O@ sec/openssl/th-lock.@O@
 
 DNSSAFEOBJS =	sec/dnssafe/ahchdig.@O@ sec/dnssafe/ahchencr.@O@ \
 		sec/dnssafe/ahchgen.@O@ sec/dnssafe/ahchrand.@O@ \

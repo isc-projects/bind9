@@ -63,6 +63,8 @@
 extern "C" {
 #endif
 
+#define NO_RAND
+
 typedef struct rand_meth_st
 	{
 	void (*seed)(const void *buf, int num);
