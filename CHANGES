@@ -11,6 +11,9 @@
 
 1575.	[func]		Log TSIG name on TSIG verify failure. [RT #4404]
 
+1574.	[bug]		Don't attempt to open the controls socket(s) when
+			running tests. [RT #9091]
+
 1573.	[port]		linux: update to libtool 1.5.2 so that
 			"make install DESTDIR=/xx" works with
 			"configure --with-libtool".  [RT #9941]

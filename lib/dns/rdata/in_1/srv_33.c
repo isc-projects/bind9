@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.36.2.1.2.2 2004/02/27 21:45:34 marka Exp $ */
+/* $Id: srv_33.c,v 1.36.2.1.2.3 2004/03/02 01:59:49 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -337,8 +337,8 @@ digest_in_srv(ARGS_DIGEST) {
 static inline isc_boolean_t
 checkowner_in_srv(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == 250);
-	REQUIRE(rdclass == 255);
+	REQUIRE(type == 33);
+	REQUIRE(rdclass == 1);
 
 	UNUSED(name);
 	UNUSED(type);
