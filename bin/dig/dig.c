@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.146 2001/06/11 18:08:15 gson Exp $ */
+/* $Id: dig.c,v 1.147 2001/06/29 06:06:00 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -38,6 +38,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
 #include <dns/rdataclass.h>
+#include <dns/result.h>
 
 #include <dig/dig.h>
 
@@ -1001,6 +1002,11 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			tr.length = strlen(value);
 			result = dns_rdatatype_fromtext(&rdtype,
 						(isc_textregion_t *)&tr);
+			if (result == ISC_R_SUCCESS &&
+			    rdtype == dns_rdatatype_ixfr)
+			{
+				result = DNS_R_UNKNOWN;
+			}
 		}
 		if (result == ISC_R_SUCCESS) {
 			if ((*lookup)->rdtypeset) {
@@ -1218,6 +1224,15 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					tr.length = strlen(rv[0]);
 					result = dns_rdatatype_fromtext(&rdtype,
 						     	(isc_textregion_t *)&tr);
+					if (result == ISC_R_SUCCESS &&
+					    rdtype == dns_rdatatype_ixfr)
+					{
+						result = DNS_R_UNKNOWN;
+						fprintf(stderr, ";; Warning, "
+							"ixfr requires a "
+							"serial number\n");
+						continue;
+					}
 				}
 				if (result == ISC_R_SUCCESS)
 				{

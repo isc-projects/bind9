@@ -1,4 +1,7 @@
 
+ 916.	[bug]		Specifying type ixfr to dig without specifying
+ 			a serial number failed in unexpected ways.
+
  915.	[func]		The named-checkconf and named-checkzone programs
 			now have a '-v' option for printing their version.
 			[RT #1151]
