@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.24.2.2.2.2 2003/08/19 02:58:19 marka Exp $ */
+/* $Id: notify.c,v 1.24.2.2.2.3 2003/08/27 01:28:25 marka Exp $ */
 
 #include <config.h>
 
@@ -76,7 +76,9 @@ ns_notify_start(ns_client_t *client) {
 	dns_name_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;
-	char str[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char tsigbuf[DNS_NAME_FORMATSIZE + sizeof(": TSIG ''")];
+	dns_name_t *tsigname;
 
 	/*
 	 * Interpret the question section.
@@ -105,7 +107,7 @@ ns_notify_start(ns_client_t *client) {
 	if (result != ISC_R_NOMORE) {
 		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section contains multiple RRs");
-		goto failure;
+		goto formerr;
 	}
 
 	/* The one rdataset must be an SOA. */
@@ -115,7 +117,13 @@ ns_notify_start(ns_client_t *client) {
 		goto formerr;
 	}
 
-	dns_name_format(zonename, str, sizeof(str));
+	tsigname = NULL;
+	if (dns_message_gettsig(request, &tsigname) != NULL) {
+		dns_name_format(tsigname, namebuf, sizeof(namebuf));
+		snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s'", namebuf);
+	} else
+		tsigbuf[0] = '\0';
+	dns_name_format(zonename, namebuf, sizeof(namebuf));
 	result = dns_zt_find(client->view->zonetable, zonename, 0, NULL,
 			     &zone);
 	if (result != ISC_R_SUCCESS)
@@ -126,7 +134,7 @@ ns_notify_start(ns_client_t *client) {
 	case dns_zone_slave:
 	case dns_zone_stub:	/* Allow dialup passive to work. */
 		notify_log(client, ISC_LOG_INFO,
-			   "received notify for zone '%s'", str);
+			   "received notify for zone '%s'%s", namebuf, tsigbuf);
 		respond(client, dns_zone_notifyreceive(zone,
 			ns_client_getsockaddr(client), request));
 		break;
@@ -138,8 +146,8 @@ ns_notify_start(ns_client_t *client) {
 
  notauth:
 	notify_log(client, ISC_LOG_NOTICE,
-		   "received notify for zone '%s': not authoritative",
-		   str);
+		   "received notify for zone '%s'%s: not authoritative",
+		   namebuf, tsigbuf);
 	result = DNS_R_NOTAUTH;
 	goto failure;
 
