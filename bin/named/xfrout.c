@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.73 2000/08/09 04:17:49 tale Exp $ */
+/* $Id: xfrout.c,v 1.74 2000/08/23 17:40:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -214,6 +214,9 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
+		it->result = dns_rdataset_first(&it->rdataset);
+		if (it->result != ISC_R_SUCCESS)
+			return (it->result);
 	}
 	return (it->result);
 }
