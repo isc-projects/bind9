@@ -843,6 +843,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 	isc_boolean_t need_fctx_destroy = ISC_FALSE;
 	isc_boolean_t need_resolver_destroy = ISC_FALSE;
 	isc_task_t *etask;
+	isc_mem_t *mctx;
 
 	/*
 	 * XXXRTH  We could make it so that even if all the clients detach
@@ -856,6 +857,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	res = fetch->res;
 	fctx = fetch->private;
+	mctx = res->mctx;
 
 	FTRACE("destroyfetch");
 
@@ -912,7 +914,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 	if (need_resolver_destroy)
 		destroy(res);
 
-	isc_mem_put(res->mctx, fetch, sizeof *fetch);
+	isc_mem_put(mctx, fetch, sizeof *fetch);
 
 	*fetchp = NULL;
 }
