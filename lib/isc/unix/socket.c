@@ -28,13 +28,15 @@
 #include <fcntl.h>
 
 #include <isc/assertions.h>
+#include <isc/buffer.h>
+#include <isc/condition.h>
 #include <isc/error.h>
-#include <isc/thread.h>
+#include <isc/list.h>
 #include <isc/mutex.h>
 #include <isc/net.h>
-#include <isc/condition.h>
+#include <isc/region.h>
 #include <isc/socket.h>
-#include <isc/list.h>
+#include <isc/thread.h>
 
 #include "util.h"
 
@@ -186,6 +188,10 @@ static void internal_connect(isc_task_t *, isc_event_t *);
 static void internal_recv(isc_task_t *, isc_event_t *);
 static void internal_send(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
+static int build_msghdr_send(isc_socketevent_t *, struct msghdr *,
+			     struct iovec *, unsigned int maxiov);
+static int build_msghdr_recv(isc_socketevent_t *, struct msghdr *,
+			     struct iovec *, unsigned int maxiov);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
@@ -285,6 +291,47 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 		return;
 #endif /* ISC_NET_BSD44MSGHDR */
 
+}
+
+/*
+ * Construct an iov array and attach it to the msghdr passed in.  Return
+ * 0 on success, non-zero on failure.  This is the SEND constructor, which
+ * will used the used region of the buffer.
+ *
+ * Nothing can be NULL, and the done event must list at least one buffer
+ * on the buffer linked list for this function to be meaningful.
+ */
+static int
+build_msghdr_send(isc_socketevent_t *dev, struct msghdr *msg,
+		  struct iovec *iov, unsigned int maxiov)
+{
+	unsigned int iovcount;
+	isc_buffer_t *buffer;
+	isc_region_t used;
+
+	iovcount = 0;
+	buffer = ISC_LIST_HEAD(dev->bufferlist);
+
+	for (;;) {
+		if (buffer == NULL)
+			break;
+
+		if (iovcount == maxiov)
+			return (-1);
+
+		isc_buffer_used(buffer, &used);
+		if (used.length > 0) {
+			iov[iovcount].iov_base = (void *)used.base;
+			iov[iovcount].iov_len = used.length;
+			iovcount++;
+		}
+		buffer = ISC_LIST_NEXT(buffer, link);
+	}
+
+	msg->msg_iov = iov;
+	msg->msg_iovlen = iovcount;
+
+	return (0);
 }
 
 /*
@@ -870,7 +917,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 	int cc;
 	size_t read_count;
 	struct msghdr msghdr;
-	struct iovec iov;
+	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
 
 	(void)me;
 
@@ -920,8 +967,8 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		 * we can.
 		 */
 		read_count = dev->region.length - dev->n;
-		iov.iov_base = (void *)(dev->region.base + dev->n);
-		iov.iov_len = read_count;
+		iov[0].iov_base = (void *)(dev->region.base + dev->n);
+		iov[0].iov_len = read_count;
 
 		memset(&msghdr, 0, sizeof (msghdr));
 		if (sock->type == isc_sockettype_udp) {
@@ -933,7 +980,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 			msghdr.msg_namelen = 0;
 			dev->address = sock->address;
 		}
-		msghdr.msg_iov = &iov;
+		msghdr.msg_iov = iov;
 		msghdr.msg_iovlen = 1;
 
 #ifdef ISC_NET_BSD44MSGHDR
@@ -1068,7 +1115,7 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	int cc;
 	size_t write_count;
 	struct msghdr msghdr;
-	struct iovec iov;
+	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
 
 	(void)me;
 
@@ -1121,8 +1168,8 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 		 * we can.
 		 */
 		write_count = dev->region.length - dev->n;
-		iov.iov_base = (void *)(dev->region.base + dev->n);
-		iov.iov_len = write_count;
+		iov[0].iov_base = (void *)(dev->region.base + dev->n);
+		iov[0].iov_len = write_count;
 
 		memset(&msghdr, 0, sizeof (msghdr));
 		if (sock->type == isc_sockettype_udp) {
@@ -1130,7 +1177,7 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 			msghdr.msg_namelen = dev->address.length;
 		}
 
-		msghdr.msg_iov = &iov;
+		msghdr.msg_iov = iov;
 		msghdr.msg_iovlen = 1;
 
 #ifdef ISC_NET_BSD44MSGHDR
@@ -1619,6 +1666,13 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp)
 }
 
 isc_result_t
+isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		 unsigned int minimum,
+		 isc_task_t *task, isc_taskaction_t action, void *arg)
+{
+}
+
+isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		isc_task_t *task, isc_taskaction_t action, void *arg)
 {
@@ -1628,7 +1682,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	int cc;
 	isc_boolean_t was_empty;
 	struct msghdr msghdr;
-	struct iovec iov;
+	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1650,6 +1704,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		return (ISC_R_NOMEMORY);
 	}
 	ISC_LINK_INIT(dev, link);
+	ISC_LIST_INIT(dev->bufferlist);
 
 	/*
 	 * UDP sockets are always partial read
@@ -1675,8 +1730,8 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (!was_empty)
 		goto queue;
 
-	iov.iov_base = (void *)dev->region.base;
-	iov.iov_len = dev->region.length;
+	iov[0].iov_base = (void *)dev->region.base;
+	iov[0].iov_len = dev->region.length;
 
 	memset(&msghdr, 0, sizeof(msghdr));
 	if (sock->type == isc_sockettype_udp) {
@@ -1688,7 +1743,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		msghdr.msg_namelen = 0;
 		dev->address = sock->address;
 	}
-	msghdr.msg_iov = &iov;
+	msghdr.msg_iov = iov;
 	msghdr.msg_iovlen = 1;
 
 #ifdef ISC_NET_BSD44MSGHDR
@@ -1832,7 +1887,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	int cc;
 	isc_boolean_t was_empty;
 	struct msghdr msghdr;
-	struct iovec iov;
+	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1855,6 +1910,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		return (ISC_R_NOMEMORY);
 	}
 	ISC_LINK_INIT(dev, link);
+	ISC_LIST_INIT(dev->bufferlist);
 
 	dev->result = ISC_R_SUCCESS;
 	dev->minimum = region->length;
@@ -1879,8 +1935,8 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	if (!was_empty)
 		goto queue;
 
-	iov.iov_base = (void *)(dev->region.base);
-	iov.iov_len = dev->region.length;
+	iov[0].iov_base = (void *)(dev->region.base);
+	iov[0].iov_len = dev->region.length;
 
 	memset(&msghdr, 0, sizeof (msghdr));
 	if (sock->type == isc_sockettype_udp) {
@@ -1888,7 +1944,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		msghdr.msg_namelen = dev->address.length;
 	}
 
-	msghdr.msg_iov = &iov;
+	msghdr.msg_iov = iov;
 	msghdr.msg_iovlen = 1;
 
 #ifdef ISC_NET_BSD44MSGHDR
@@ -2530,6 +2586,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 		return (ISC_R_NOMEMORY);
 	}
 	ISC_LINK_INIT(dev, link);
+	ISC_LIST_INIT(dev->bufferlist);
 
 	dev->result = ISC_R_SUCCESS;
 	dev->attributes = 0;
@@ -2593,6 +2650,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 		return (ISC_R_NOMEMORY);
 	}
 	ISC_LINK_INIT(dev, link);
+	ISC_LIST_INIT(dev->bufferlist);
 
 	dev->result = ISC_R_SUCCESS;
 	dev->attributes = 0;

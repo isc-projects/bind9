@@ -61,15 +61,26 @@
 
 #include <isc/lang.h>
 #include <isc/boolean.h>
+#include <isc/buffer.h>
 #include <isc/result.h>
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/task.h>
 #include <isc/region.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/sockaddr.h>
 
 ISC_LANG_BEGINDECLS
+
+/***
+ *** Constants
+ ***/
+
+/*
+ * Maximum number of buffers in a scatter/gather read/write
+ */
+#define ISC_SOCKET_MAXSCATTERGATHER	8
 
 /***
  *** Types
@@ -84,7 +95,9 @@ struct isc_socketevent {
 	isc_result_t		result;		/* OK, EOF, whatever else */
 	unsigned int		minimum;	/* minimum i/o for event */
 	unsigned int		n;		/* bytes read or written */
-	isc_region_t		region;		/* the region info */
+	unsigned int		offset;		/* offset into buffer list */
+	isc_region_t		region;		/* for single-buffer i/o */
+	ISC_LIST(isc_buffer_t)	bufferlist;	/* list of buffers */
 	isc_sockaddr_t		address;	/* source address */
 };
 

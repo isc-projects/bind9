@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.6 1999/09/01 18:56:18 bwelling Exp $
+ * $Id: tsig.c,v 1.7 1999/09/02 02:10:43 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -166,7 +166,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_rdata_any_tsig_t *tsig;
 	unsigned char data[128];
 	isc_buffer_t databuf, sigbuf, rdatabuf;
-	isc_dynbuffer_t *dynbuf;
+	isc_buffer_t *dynbuf;
 	dns_name_t *owner;
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *datalist;
@@ -356,7 +356,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	tries = 0;
 	dynbuf = ISC_LIST_TAIL(msg->scratchpad);
 	INSIST(dynbuf != NULL);
-	rdatabuf = dynbuf->buffer;
+	rdatabuf = *dynbuf;
 	while (tries < 2) {
 		ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 					   dns_rdatatype_tsig, tsig, &rdatabuf);
@@ -365,12 +365,12 @@ dns_tsig_sign(dns_message_t *msg) {
 		else if (ret == ISC_R_NOSPACE) {
 			if (++tries == 2)
 				return (ISC_R_NOMEMORY);
-			ret = isc_dynbuffer_allocate(msg->mctx, &dynbuf, 512,
-						     ISC_BUFFERTYPE_BINARY);
+			ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
+						  ISC_BUFFERTYPE_BINARY);
 			if (ret != ISC_R_SUCCESS)
 				goto cleanup_signature;
 			ISC_LIST_APPEND(msg->scratchpad, dynbuf, link);
-			rdatabuf = dynbuf->buffer;
+			rdatabuf = *dynbuf;
 		}
 		else
 			goto cleanup_signature;

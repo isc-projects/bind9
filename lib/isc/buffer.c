@@ -23,17 +23,14 @@
 #include <isc/buffer.h>
 
 #define BUFFER_MAGIC			0x42756621U	/* Buf!. */
-#define DYNBUFFER_MAGIC			0x64427566U	/* dBuf. */
 
 #define VALID_BUFFER(b)			((b) != NULL && \
 					 (b)->magic == BUFFER_MAGIC)
 
-#define VALID_DYNBUFFER(b)		((b) != NULL && \
-					 (b)->magic == DYNBUFFER_MAGIC)
-
 void
 isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
-		unsigned int type) {
+		unsigned int type)
+{
 	/*
 	 * Make 'b' refer to the 'length'-byte region starting at base.
 	 */
@@ -47,6 +44,8 @@ isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
 	b->used = 0;
 	b->current = 0;
 	b->active = 0;
+	b->mctx = NULL;
+	ISC_LINK_INIT(b, link);
 }
 
 void
@@ -56,6 +55,8 @@ isc_buffer_invalidate(isc_buffer_t *b) {
 	 */
 
 	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(!ISC_LINK_LINKED(b, link));
+	REQUIRE(b->mctx == NULL);
 	
 	b->magic = 0;
 	b->type = 0;
@@ -390,23 +391,21 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 }
 
 isc_result_t
-isc_dynbuffer_allocate(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer,
-		       unsigned int length, unsigned int type)
+isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
+		    unsigned int length, unsigned int type)
 {
-	isc_dynbuffer_t *dbuf;
+	isc_buffer_t *dbuf;
 
 	REQUIRE(dynbuffer != NULL);
 	REQUIRE(*dynbuffer == NULL);
 
-	dbuf = isc_mem_get(mctx, length + sizeof(isc_dynbuffer_t));
+	dbuf = isc_mem_get(mctx, length + sizeof(isc_buffer_t));
 	if (dbuf == NULL)
 		return (ISC_R_NOMEMORY);
 
-	dbuf->magic = DYNBUFFER_MAGIC;
-	ISC_LINK_INIT(dbuf, link);
-	isc_buffer_init(&dbuf->buffer,
-			((unsigned char *)dbuf) + sizeof(isc_dynbuffer_t),
+	isc_buffer_init(dbuf, ((unsigned char *)dbuf) + sizeof(isc_buffer_t),
 			length, type);
+	dbuf->mctx = mctx;
 
 	*dynbuffer = dbuf;
 
@@ -414,28 +413,23 @@ isc_dynbuffer_allocate(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer,
 }
 
 void
-isc_dynbuffer_reset(isc_dynbuffer_t *dynbuffer)
-{
-	REQUIRE(VALID_DYNBUFFER(dynbuffer));
-
-	isc_buffer_clear(&dynbuffer->buffer);
-}
-
-void
-isc_dynbuffer_free(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer)
+isc_buffer_free(isc_buffer_t **dynbuffer)
 {
 	unsigned int real_length;
-	isc_dynbuffer_t *dbuf;
+	isc_buffer_t *dbuf;
+	isc_mem_t *mctx;
 
 	REQUIRE(dynbuffer != NULL);
-	REQUIRE(VALID_DYNBUFFER(*dynbuffer));
+	REQUIRE(VALID_BUFFER(*dynbuffer));
+	REQUIRE((*dynbuffer)->mctx != NULL);
 
 	dbuf = *dynbuffer;
 	*dynbuffer = NULL;	/* destroy external reference */
 
-	real_length = dbuf->buffer.length + sizeof(isc_dynbuffer_t);
-	isc_buffer_invalidate(&dbuf->buffer);
-	dbuf->magic = 0;
+	real_length = dbuf->length + sizeof(isc_buffer_t);
+	mctx = dbuf->mctx;
+	dbuf->mctx = NULL;
+	isc_buffer_invalidate(dbuf);
 
 	isc_mem_put(mctx, dbuf, real_length);
 }

@@ -164,10 +164,10 @@ static inline dns_result_t
 newbuffer(dns_message_t *msg, unsigned int size)
 {
 	isc_result_t result;
-	isc_dynbuffer_t *dynbuf;
+	isc_buffer_t *dynbuf;
 
 	dynbuf = NULL;
-	result = isc_dynbuffer_allocate(msg->mctx, &dynbuf, size,
+	result = isc_buffer_allocate(msg->mctx, &dynbuf, size,
 					ISC_BUFFERTYPE_BINARY);
 	if (result != ISC_R_SUCCESS)
 		return (DNS_R_NOMEMORY);
@@ -179,12 +179,12 @@ newbuffer(dns_message_t *msg, unsigned int size)
 static inline isc_buffer_t *
 currentbuffer(dns_message_t *msg)
 {
-	isc_dynbuffer_t *dynbuf;
+	isc_buffer_t *dynbuf;
 
 	dynbuf = ISC_LIST_TAIL(msg->scratchpad);
 	INSIST(dynbuf != NULL);
 
-	return (&dynbuf->buffer);
+	return (dynbuf);
 }
 
 static inline void
@@ -409,7 +409,7 @@ static void
 msgreset(dns_message_t *msg, isc_boolean_t everything)
 {
 	dns_msgblock_t *msgblock, *next_msgblock;
-	isc_dynbuffer_t *dynbuf, *next_dynbuf;
+	isc_buffer_t *dynbuf, *next_dynbuf;
 	dns_rdataset_t *rds;
 	dns_name_t *name;
 	dns_rdata_t *rdata;
@@ -454,13 +454,13 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 	dynbuf = ISC_LIST_HEAD(msg->scratchpad);
 	INSIST(dynbuf != NULL);
 	if (!everything) {
-		isc_dynbuffer_reset(dynbuf);
+		isc_buffer_clear(dynbuf);
 		dynbuf = ISC_LIST_NEXT(dynbuf, link);
 	}
 	while (dynbuf != NULL) {
 		next_dynbuf = ISC_LIST_NEXT(dynbuf, link);
 		ISC_LIST_UNLINK(msg->scratchpad, dynbuf, link);
-		isc_dynbuffer_free(msg->mctx, &dynbuf);
+		isc_buffer_free(&dynbuf);
 		dynbuf = next_dynbuf;
 	}
 
@@ -550,7 +550,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	dns_message_t *m;
 	isc_result_t iresult;
 	dns_msgblock_t *msgblock;
-	isc_dynbuffer_t *dynbuf;
+	isc_buffer_t *dynbuf;
 	unsigned int i;
 
 	REQUIRE(mctx != NULL);
@@ -580,8 +580,8 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	ISC_LIST_INIT(m->freerdatalist);
 
 	dynbuf = NULL;
-	iresult = isc_dynbuffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE,
-					 ISC_BUFFERTYPE_BINARY);
+	iresult = isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE,
+				      ISC_BUFFERTYPE_BINARY);
 	if (iresult != ISC_R_SUCCESS)
 		goto cleanup1;
 	ISC_LIST_APPEND(m->scratchpad, dynbuf, link);
@@ -629,7 +629,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	msgblock_free(mctx, msgblock, sizeof(dns_name_t));
  cleanup2:
 	dynbuf = ISC_LIST_HEAD(m->scratchpad);
-	isc_dynbuffer_free(mctx, &dynbuf);
+	isc_buffer_free(&dynbuf);
  cleanup1:
 	m->magic = 0;
 	isc_mem_put(mctx, m, sizeof(dns_message_t));

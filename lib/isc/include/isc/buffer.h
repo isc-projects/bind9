@@ -125,38 +125,31 @@ ISC_LANG_BEGINDECLS
  * discouraged from directly manipulating the structure.
  */
 
-typedef struct isc_buffer {
-	unsigned int	magic;
-	unsigned int	type;
-	void *		base;
+typedef struct isc_buffer isc_buffer_t;
+struct isc_buffer {
+	unsigned int		magic;
+	unsigned int		type;
+	void		       *base;
 	/* The following integers are byte offsets from 'base'. */
-	unsigned int	length;
-	unsigned int	used;
-	unsigned int 	current;
-	unsigned int 	active;
-} isc_buffer_t;
+	unsigned int		length;
+	unsigned int		used;
+	unsigned int 		current;
+	unsigned int 		active;
+	/* linkable */
+	ISC_LINK(isc_buffer_t)	link;
+	/* private internal elements */
+	isc_mem_t	       *mctx;
+};
 
-/*
- * A handy thing to have, linkable buffers with built-in storage.  These
- * are allocated and freed with the isc_dynbuffer_alloc() and _free()
- * functions below.  These function should _ALWAYS_ be used to create these
- * dynbuffers.  The link is initialized on allocation and is solely for the
- * caller to use.
- */
-typedef struct isc_dynbuffer isc_dynbuffer_t;
-struct isc_dynbuffer {
-	unsigned int			magic;
-	isc_buffer_t			buffer;
-	ISC_LINK(isc_dynbuffer_t)	link;
-};  /* variable sized */
+typedef ISC_LIST(isc_buffer_t) isc_bufferlist_t;
 
 /***
  *** Functions
  ***/
 
 isc_result_t
-isc_dynbuffer_allocate(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer,
-		       unsigned int length, unsigned int type);
+isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
+		    unsigned int length, unsigned int type);
 /*
  * Allocate a dynamic linkable buffer which has "length" bytes in the
  * data region.
@@ -169,17 +162,13 @@ isc_dynbuffer_allocate(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer,
  * Returns:
  *	ISC_R_SUCCESS		- success
  *	ISC_R_NOMEMORY		- no memory available
+ *
+ * Note:
+ *	Changing the buffer's length field is not permitted.
  */
 
 void
-isc_dynbuffer_reset(isc_dynbuffer_t *dynbuffer);
-/*
- * Reset the dynamic buffer to the initial state
- */
-
-
-void
-isc_dynbuffer_free(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer);
+isc_buffer_free(isc_buffer_t **dynbuffer);
 /*
  * Release resources allocated for a dynamic buffer.
  *
@@ -188,11 +177,10 @@ isc_dynbuffer_free(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer);
  *
  *	"*dynbuffer" is a valid dynamic buffer.
  *
- *	"mctx" is valid.
- *
  * Ensures:
  *	"*dynbuffer" will be NULL on return, and all memory associated with
- *	the dynamic buffer is returned to memory context "mctx".
+ *	the dynamic buffer is returned to the memory context used in
+ *	isc_buffer_allocate().
  */
 
 void

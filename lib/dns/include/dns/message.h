@@ -130,7 +130,7 @@ struct dns_message {
 	dns_compress_t			cctx;
 
 	isc_mem_t		       *mctx;
-	ISC_LIST(isc_dynbuffer_t)	scratchpad;
+	isc_bufferlist_t		scratchpad;
 	ISC_LIST(dns_msgblock_t)	names;
 	ISC_LIST(dns_msgblock_t)	rdatas;
 	ISC_LIST(dns_msgblock_t)	rdatasets;

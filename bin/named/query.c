@@ -50,7 +50,7 @@
 
 static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
-	isc_dynbuffer_t *dbuf, *dbuf_next;
+	isc_buffer_t *dbuf, *dbuf_next;
 	ns_dbversion_t *dbversion, *dbversion_next;
 	unsigned int i;
 
@@ -97,7 +97,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 		dbuf_next = ISC_LIST_NEXT(dbuf, link);
 		if (dbuf_next != NULL || everything) {
 			ISC_LIST_UNLINK(client->query.namebufs, dbuf, link);
-			isc_dynbuffer_free(client->mctx, &dbuf);
+			isc_buffer_free(&dbuf);
 		}
 	}
 	/*
@@ -126,7 +126,7 @@ ns_query_free(ns_client_t *client) {
 
 static inline isc_result_t
 query_newnamebuf(ns_client_t *client) {
-	isc_dynbuffer_t *dbuf;
+	isc_buffer_t *dbuf;
 	isc_result_t result;
 
 	/*
@@ -134,8 +134,8 @@ query_newnamebuf(ns_client_t *client) {
 	 */
 
 	dbuf = NULL;
-	result = isc_dynbuffer_allocate(client->mctx, &dbuf, 1024,
-					ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(client->mctx, &dbuf, 1024,
+				     ISC_BUFFERTYPE_BINARY);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	ISC_LIST_APPEND(client->query.namebufs, dbuf, link);
@@ -143,9 +143,9 @@ query_newnamebuf(ns_client_t *client) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_dynbuffer_t *
+static inline isc_buffer_t *
 query_getnamebuf(ns_client_t *client) {
-	isc_dynbuffer_t *dbuf;
+	isc_buffer_t *dbuf;
 	isc_result_t result;
 	isc_region_t r;
 
@@ -162,20 +162,20 @@ query_getnamebuf(ns_client_t *client) {
 
 	dbuf = ISC_LIST_TAIL(client->query.namebufs);
 	INSIST(dbuf != NULL);
-	isc_buffer_available(&dbuf->buffer, &r);
+	isc_buffer_available(dbuf, &r);
 	if (r.length < 255) {
 		result = query_newnamebuf(client);
 		if (result != ISC_R_SUCCESS)
 			return (NULL);
 		dbuf = ISC_LIST_TAIL(client->query.namebufs);
-		isc_buffer_available(&dbuf->buffer, &r);
+		isc_buffer_available(dbuf, &r);
 		INSIST(r.length >= 255);
 	}
 	return (dbuf);
 }
 
 static inline void
-query_keepname(ns_client_t *client, dns_name_t *name, isc_dynbuffer_t *dbuf) {
+query_keepname(ns_client_t *client, dns_name_t *name, isc_buffer_t *dbuf) {
 	isc_region_t r;
 
 	/*
@@ -186,7 +186,7 @@ query_keepname(ns_client_t *client, dns_name_t *name, isc_dynbuffer_t *dbuf) {
 	REQUIRE((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED) != 0);
 
 	dns_name_toregion(name, &r);
-	isc_buffer_add(&dbuf->buffer, r.length);
+	isc_buffer_add(dbuf, r.length);
 	dns_name_setbuffer(name, NULL);
 	client->query.attributes &= ~NS_QUERYATTR_NAMEBUFUSED;
 }
@@ -211,7 +211,7 @@ query_releasename(ns_client_t *client, dns_name_t **namep) {
 }
 
 static inline dns_name_t *
-query_newname(ns_client_t *client, isc_dynbuffer_t *dbuf,
+query_newname(ns_client_t *client, isc_buffer_t *dbuf,
 	      isc_buffer_t *nbuf)
 {
 	dns_name_t *name;
@@ -227,7 +227,7 @@ query_newname(ns_client_t *client, isc_dynbuffer_t *dbuf,
 			return (NULL);
 	} else
 		ISC_LIST_UNLINK(client->query.tmpnames, name, link);
-	isc_buffer_available(&dbuf->buffer, &r);
+	isc_buffer_available(dbuf, &r);
 	isc_buffer_init(nbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
 	dns_name_init(name, NULL);
 	dns_name_setbuffer(name, nbuf);
@@ -353,7 +353,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	dns_name_t *fname, *mname;
 	dns_rdataset_t *rdataset, *sigrdataset;
 	dns_section_t section;
-	isc_dynbuffer_t *dbuf;
+	isc_buffer_t *dbuf;
 	isc_buffer_t b;
 	dns_dbversion_t *version;
 
@@ -544,7 +544,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 static inline void
 query_addrrset(ns_client_t *client, dns_name_t **namep,
 	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
-	       isc_dynbuffer_t *dbuf, dns_section_t section)
+	       isc_buffer_t *dbuf, dns_section_t section)
 {
 	dns_name_t *name, *mname;
 	dns_rdataset_t *rdataset, *mrdataset, *sigrdataset;
@@ -767,7 +767,7 @@ query_find(ns_client_t *client) {
 	unsigned int restarts, qcount, n, nlabels, nbits;
 	dns_namereln_t namereln;
 	int order;
-	isc_dynbuffer_t *dbuf;
+	isc_buffer_t *dbuf;
 	isc_region_t r;
 	isc_buffer_t b;
 	isc_result_t result, eresult;
