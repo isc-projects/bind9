@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.47 2001/08/16 06:19:56 marka Exp $ */
+/* $Id: config.h.in,v 1.48 2001/08/30 04:33:17 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -173,3 +173,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
+
+/* Define if you have strerror in the C library. */
+#undef HAVE_STRERROR

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294 $)
+AC_REVISION($Revision: 1.295 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -198,7 +198,7 @@ AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/sysct
 
 AC_C_CONST
 AC_C_INLINE
-AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME),)
+AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
@@ -1345,6 +1345,7 @@ AC_CHECK_FUNC(vsnprintf,
 	 ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"])
 AC_SUBST(ISC_PLATFORM_NEEDSTRSEP)
 AC_SUBST(ISC_PLATFORM_NEEDVSNPRINTF)
+AC_CHECK_FUNC(strerror, AC_DEFINE(HAVE_STRERROR))
 
 AC_SUBST(ISC_EXTRA_OBJS)
 AC_SUBST(ISC_EXTRA_SRCS)
