@@ -519,7 +519,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, result);
 		return;
 	}
-	INSIST((client->message->flags & DNS_MESSAGEFLAG_QR) == 0);
+
+	/*
+	 * We expect a query, not a response.  Unexpected UDP responses
+	 * are discarded early by the dispatcher, but TCP responses
+	 * bypass the dispatcher and must be discarded here.
+	 */
+	if ((client->message->flags & DNS_MESSAGEFLAG_QR) != 0) {
+		CTRACE("unexpected response");
+		ns_client_next(client, DNS_R_FORMERR);
+		return;
+	}
 
 	/*
 	 * Deal with EDNS.
