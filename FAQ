@@ -217,7 +217,9 @@ A: This is usually the result of the firewall configuration stopping
 the queries and / or the replies.
 
 
-Q: When using views I get the wrong version of the zone.
+Q: How can I make a server a slave for both an internal and
+an external view at the same time?  When I tried, both views
+on the slave were transfered from the same view on the master.
 
 A: You will need to give the master and slave multiple IP addresses and
 use those to make sure you reach the correct view on the other machine.
