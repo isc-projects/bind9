@@ -158,6 +158,9 @@ omapi_message_create(omapi_object_t **message);
 void
 omapi_message_register(omapi_object_t *message);
 
+void
+omapi_message_unregister(omapi_object_t *message);
+
 isc_result_t
 omapi_message_send(omapi_object_t *message, omapi_object_t *protocol);
 
