@@ -633,16 +633,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				    ns_g_socketmgr, &ns_g_server->zonemgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_zoneemgr_create() failed: %s",
-				 isc_result_totext(result));
-		/* XXX cleanup */
-		return;
-	}
-
 	result = ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				     &server->clientmgr);
 	if (result != ISC_R_SUCCESS) {
@@ -698,8 +688,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	ns_clientmgr_destroy(&server->clientmgr);
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
-	dns_zonemgr_destroy(&server->zonemgr);
-
+	dns_zonemgr_shutdown(server->zonemgr);
+	
 	isc_task_detach(&server->task);
 	
 	isc_event_free(&event);
@@ -757,6 +747,16 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
 
+	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
+				    ns_g_socketmgr, &server->zonemgr);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "ns_zonemgr_create() failed: %s",
+				 isc_result_totext(result));
+		/* XXX cleanup */
+		return (result);
+	}
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 	return (ISC_R_SUCCESS);
@@ -775,6 +775,9 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 
+	dns_zonemgr_destroy(&server->zonemgr);
+	server->zonemgr = NULL;
+	
 	dns_db_detach(&server->roothints);
 	
 	isc_rwlock_destroy(&server->viewlock);
