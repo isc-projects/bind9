@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64.12.3 2003/08/20 07:13:05 marka Exp $ */
+/* $Id: timer.c,v 1.64.12.4 2003/08/21 02:05:47 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/condition.h>
 #include <isc/heap.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
@@ -183,6 +184,31 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	 * run thread, or explicitly setting the value in the manager.
 	 */
 #ifdef ISC_PLATFORM_USETHREADS
+
+	/*
+	 * This is a temporary (probably) hack to fix a bug on tru64 5.1
+	 * and 5.1a.  Sometimes, pthread_cond_timedwait() doesn't actually
+	 * return when the time expires, so here, we check to see if
+	 * we're 15 seconds or more behind, and if we are, we signal
+	 * the dispatcher.  This isn't such a bad idea as a general purpose
+	 * watchdog, so perhaps we should just leave it in here.
+	 */
+	if (signal_ok) {
+		isc_interval_t fifteen;
+		isc_time_t then;
+
+		isc_interval_set(&fifteen, 15, 0);
+		isc_time_add(&manager->due, &fifteen, &then);
+
+		if (isc_time_compare(&then, now) < 0) {
+			SIGNAL(&manager->wakeup);
+			signal_ok = ISC_FALSE;
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_TIMER, ISC_LOG_WARNING,
+				      "*** POKED TIMER ***");
+		}
+	}
+		
 	if (timer->index == 1 && signal_ok) {
 		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
 				      ISC_MSG_SIGNALSCHED,
@@ -659,12 +685,11 @@ run(void *uap) {
 
 		if (manager->nscheduled > 0) {
 			XTRACETIME2(isc_msgcat_get(isc_msgcat,
-						  ISC_MSGSET_GENERAL,
-						  ISC_MSG_WAITUNTIL,
-						  "waituntil"),
-				   manager->due, now);
-			result = WAITUNTIL(&manager->wakeup, &manager->lock,
-					   &manager->due);
+						   ISC_MSGSET_GENERAL,
+						   ISC_MSG_WAITUNTIL,
+						   "waituntil"),
+				    manager->due, now);
+			result = WAITUNTIL(&manager->wakeup, &manager->lock, &manager->due);
 			INSIST(result == ISC_R_SUCCESS ||
 			       result == ISC_R_TIMEDOUT);
 		} else {
