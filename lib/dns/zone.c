@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.305 2001/02/11 02:23:12 marka Exp $ */
+/* $Id: zone.c,v 1.306 2001/02/12 03:03:40 marka Exp $ */
 
 #include <config.h>
 
@@ -177,7 +177,7 @@ struct dns_zone {
 	isc_sockaddr_t	 	notifysrc6;
 	isc_sockaddr_t	 	xfrsource4;
 	isc_sockaddr_t	 	xfrsource6;
-	dns_xfrin_ctx_t		*xfr;
+	dns_xfrin_ctx_t		*xfr;		/* task locked */
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
 	dns_acl_t		*forward_acl;
@@ -3604,7 +3604,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *) event->ev_arg;
 	isc_result_t result;
 	isc_boolean_t free_needed;
-	dns_xfrin_ctx_t *xfr = NULL;
 
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3635,10 +3634,13 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	}
 
-	LOCK_ZONE(zone);
+	/*
+	 * In task context, no locking required.  See zone_xfrdone().
+	 */
 	if (zone->xfr != NULL)
-		dns_xfrin_attach(zone->xfr, &xfr);
+		dns_xfrin_shutdown(zone->xfr);
 
+	LOCK_ZONE(zone);
 	if (zone->request != NULL) {
 		dns_request_cancel(zone->request);
 	}
@@ -3668,12 +3670,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SHUTDOWN);
 	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
-	if (xfr != NULL) {
-		dns_xfrin_shutdown(xfr);
-		LOCK_ZONE(zone);
-		dns_xfrin_detach(&xfr);
-		UNLOCK_ZONE(zone);
-	}
 	if (free_needed)
 		zone_free(zone);
 }
