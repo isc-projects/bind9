@@ -10,6 +10,9 @@
  680.	[bug]		dns_rdata_fromstruct() mishandled options bigger
 			than 255 octets.
 
+ 652.	[bug]		zone_saveunique() did not report the new name.
+			[RT #668]
+
  650.	[bug]		SIG(0) records were being generated and verified
 			incorrectly. [RT #606]
 
