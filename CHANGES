@@ -1,3 +1,5 @@
+1114.	[port]		Ignore more accept() errors. [RT #2021]
+
 1082.	[bug]		The -g option to named incorrectly caused logging
 			to be sent to syslog in addition to stderr.
 			[RT #1974]
@@ -70,6 +72,9 @@
 			INSIST() failure. [RT #1034]
 
  938.	[port]		AIX 4.3.2 namespace clash on "struct token".
+
+ 934.	[port]		Deal with systems where accept() spuriously returns
+			ECONNRESET.
 
  929.	[bug]		RUNTIME_CHECK() used inappropriately in named.conf
 			parser.

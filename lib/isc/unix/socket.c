@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.178.2.8 2001/09/19 02:36:34 marka Exp $ */
+/* $Id: socket.c,v 1.178.2.9 2001/11/10 15:26:59 marka Exp $ */
 
 #include <config.h>
 
@@ -1665,28 +1665,53 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	/*
 	 * Try to accept the new connection.  If the accept fails with
 	 * EAGAIN or EINTR, simply poke the watcher to watch this socket
-	 * again.
+	 * again.  Also ignore ECONNRESET, which has been reported to
+	 * be spuriously returned on Linux 2.2.19 although it is not
+	 * a documented error for accept().  ECONNABORTED has been
+	 * reported for Solaris 8.  The rest are thrown in not because
+	 * we have seen them but because they are ignored by other
+	 * deamons such as BIND 8 and Apache.
 	 */
+
 	addrlen = sizeof dev->newsocket->address.type;
 	memset(&dev->newsocket->address.type.sa, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
 	if (fd < 0) {
-		if (! SOFT_ERROR(errno)) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal_accept: accept() %s: %s",
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED,
-							"failed"),
-					 strerror(errno));
-			fd = -1;
-			result = ISC_R_UNEXPECTED;
-		} else {
+		if (SOFT_ERROR(errno)) {
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
 			return;
 		}
+		switch (errno) {
+		case ECONNRESET:
+		case ECONNABORTED:
+		case EHOSTUNREACH:
+		case EHOSTDOWN:
+		case ENETUNREACH:
+		case ENETDOWN:
+		case ECONNREFUSED:
+#ifdef EPROTO
+		case EPROTO:
+#endif
+#ifdef ENONET
+		case ENONET:
+#endif
+			select_poke(sock->manager, sock->fd);
+			UNLOCK(&sock->lock);
+			return;
+		default:
+			break;
+		}
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "internal_accept: accept() %s: %s",
+				 isc_msgcat_get(isc_msgcat,
+						ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED,
+						"failed"),
+				 strerror(errno));
+		fd = -1;
+		result = ISC_R_UNEXPECTED;
 	} else if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "internal_accept(): "
