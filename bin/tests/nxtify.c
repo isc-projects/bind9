@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxtify.c,v 1.15 2000/08/01 01:13:07 tale Exp $ */
+/* $Id: nxtify.c,v 1.16 2000/09/15 21:40:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -170,7 +170,7 @@ nxtify(char *filename) {
 			target = NULL;	/* Make compiler happy. */
 			fatal("db iteration failed");
 		}
-		dns_buildnxt(db, wversion, node, target, 3600); /* XXX BEW */
+		dns_nxt_build(db, wversion, node, target, 3600); /* XXX BEW */
 		dns_db_detachnode(db, &node);
 		node = nextnode;
 	}
