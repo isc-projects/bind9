@@ -34,12 +34,6 @@ ISC_LANG_BEGINDECLS
 typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 
-/*
- * Define to 0 to remove the names from memory pools.  This will save
- * about 16 bytes per pool.
- */
-#define ISC_MEMPOOL_NAMES 1
-
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
