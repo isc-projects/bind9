@@ -89,9 +89,10 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 		return;
 	isc_buffer_usedregion(&buf1, &r1);
 	isc_buffer_usedregion(&buf2, &r2);
-	match = (r1.length == r2.length &&
-		 memcmp(r1.base, r2.base, r1.length) == 0);
-	printf("compare(%d): %s\n", dst_key_alg(key), match ? "true" : "false");
+	match = ISC_TF(r1.length == r2.length &&
+		       memcmp(r1.base, r2.base, r1.length) == 0);
+	printf("compare(%d): %s\n", dst_key_alg(key),
+	       match ? "true" : "false");
 	dst_key_free(&newkey);
 }
 
@@ -192,7 +193,7 @@ generate(int alg, isc_mem_t *mctx) {
 }
 
 static void
-get_random() {
+get_random(void) {
 	unsigned char data[25];
 	isc_buffer_t databuf;
 	isc_result_t ret;
@@ -207,7 +208,7 @@ get_random() {
 }
 
 int
-main() {
+main(void) {
 	isc_mem_t *mctx = NULL;
 
 	isc_mem_create(0, 0, &mctx);
@@ -219,7 +220,8 @@ main() {
 	dst_result_register();
 
 	io("test.", 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
-	io("test.", 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
+	io("test.", 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	   mctx);
 
 	io("test.", 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 	io("test.", 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
