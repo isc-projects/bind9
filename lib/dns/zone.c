@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.296 2001/01/11 20:31:31 gson Exp $ */
+/* $Id: zone.c,v 1.297 2001/01/17 00:16:20 gson Exp $ */
 
 #include <config.h>
 
@@ -5752,7 +5752,7 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	zone_log(zone, me, ISC_LOG_INFO, "saved \"%s\" as \"%s\"",
+	zone_log(zone, me, ISC_LOG_INFO, "saved '%s' as '%s'",
 		 path, buf);
 
  cleanup:
