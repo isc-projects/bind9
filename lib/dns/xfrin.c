@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.2 2003/08/22 03:22:33 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.3 2003/08/27 02:13:48 marka Exp $ */
 
 #include <config.h>
 
@@ -185,6 +185,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
 	     isc_sockaddr_t *masteraddr,
+	     isc_sockaddr_t *sourceaddr,
 	     dns_tsigkey_t *tsigkey,
 	     dns_xfrin_ctx_t **xfrp);
 
@@ -573,6 +574,31 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 isc_socketmgr_t *socketmgr, isc_task_t *task,
 		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp)
 {
+	isc_sockaddr_t sourceaddr;
+
+	switch (isc_sockaddr_pf(masteraddr)) {
+	case PF_INET:
+		sourceaddr = *dns_zone_getxfrsource4(zone);
+		break;
+	case PF_INET6:
+		sourceaddr = *dns_zone_getxfrsource6(zone);
+		break;
+	default:
+		INSIST(0);
+	}
+
+	return(dns_xfrin_create2(zone, xfrtype, masteraddr, &sourceaddr,
+				 tsigkey, mctx, timermgr, socketmgr,
+				 task, done, xfrp));
+}
+
+isc_result_t
+dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
+		  isc_sockaddr_t *masteraddr, isc_sockaddr_t *sourceaddr,
+		  dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
+		  isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
+		  isc_task_t *task, dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp)
+{
 	dns_name_t *zonename = dns_zone_getorigin(zone);
 	dns_xfrin_ctx_t *xfr;
 	isc_result_t result;
@@ -584,7 +610,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	CHECK(xfrin_create(mctx, zone, db, task, timermgr, socketmgr, zonename,
 			   dns_zone_getclass(zone), xfrtype, masteraddr,
-			   tsigkey, &xfr));
+			   sourceaddr, tsigkey, &xfr));
 
 	CHECK(xfrin_start(xfr));
 
@@ -700,6 +726,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
 	     isc_sockaddr_t *masteraddr,
+	     isc_sockaddr_t *sourceaddr,
 	     dns_tsigkey_t *tsigkey,
 	     dns_xfrin_ctx_t **xfrp)
 {
@@ -777,16 +804,8 @@ xfrin_create(isc_mem_t *mctx,
 
 	xfr->masteraddr = *masteraddr;
 
-	switch (isc_sockaddr_pf(masteraddr)) {
-	case PF_INET:
-		xfr->sourceaddr = *dns_zone_getxfrsource4(zone);
-		break;
-	case PF_INET6:
-		xfr->sourceaddr = *dns_zone_getxfrsource6(zone);
-		break;
-	default:
-		INSIST(0);
-	}
+	INSIST(isc_sockaddr_pf(masteraddr) == isc_sockaddr_pf(sourceaddr));
+	xfr->sourceaddr = *sourceaddr;
 	isc_sockaddr_setport(&xfr->sourceaddr, 0);
 
 	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
@@ -850,6 +869,8 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 	isc_result_t evresult = cev->result;
 	isc_result_t result;
+	char sourcetext[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddr_t sockaddr;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -865,7 +886,12 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	CHECK(evresult);
-	xfrin_log(xfr, ISC_LOG_DEBUG(3), "connected");
+	result = isc_socket_getsockname(xfr->socket, &sockaddr);
+	if (result == ISC_R_SUCCESS) {
+		isc_sockaddr_format(&sockaddr, sourcetext, sizeof(sourcetext));
+	} else
+		strcpy(sourcetext, "<UNKNOWN>");
+	xfrin_log(xfr, ISC_LOG_INFO, "connected using %s", sourcetext);
 
 	dns_tcpmsg_init(xfr->mctx, xfr->socket, &xfr->tcpmsg);
 	xfr->tcpmsg_valid = ISC_TRUE;

@@ -6,6 +6,20 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1446.	[func]		Implemented undocumented alternate transfer sources
+			from BIND 8.  See use-alt-transfer-source,
+			alt-transfer-source-v4 and alt-transfer-source-v6.
+
+			SECURITY: use-alt-transfer-source is ENABLED unless
+			you are using views.  This may caues a security risk
+			resulting in accidental disclosure of wrong zone
+			content if the master supplying different source
+			content based on IP address.  If you are not certian
+			ISC recommends setting use-alt-transfer-source no;
+
+1444.	[func]		dns_view_findzonecut2() allows you to specify if the
+			cache should be searched for zonecuts.
+
 1443.	[func]		Masters lists can now be specified and referenced
 			in zone masters clauses and other masters lists.
 
