@@ -8,6 +8,10 @@
 1756.	[func]		named-checkconf now checks the logging configuration.
 			[RT #12352]
 
+1754.	[bug]		We wern't always attempting to query the parent
+			server for the DS records at the zone cut.
+			[RT #12774]
+
 1753.	[bug]		Don't serve a slave zone which has no NS records.
 			[RT #12894]
 

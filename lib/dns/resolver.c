@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.13 2004/11/10 21:47:50 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.14 2004/11/10 21:57:40 marka Exp $ */
 
 #include <config.h>
 
@@ -5413,13 +5413,16 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				return;
 			}
 			findoptions = 0;
+			if (dns_rdatatype_atparent(fctx->type))
+				findoptions |= DNS_DBFIND_NOEXACT;
 			if ((options & DNS_FETCHOPT_UNSHARED) == 0)
 				name = &fctx->name;
 			else
 				name = &fctx->domain;
 			result = dns_view_findzonecut(fctx->res->view,
 						      name, fname,
-						      now, 0, ISC_TRUE,
+						      now, findoptions,
+						      ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS) {
