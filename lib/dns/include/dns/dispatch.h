@@ -1,18 +1,18 @@
-#ifndef DNS_SOCKET_H
-#define DNS_SOCKET_H 1
+#ifndef DNS_DISPATCH_H
+#define DNS_DISPATCH_H 1
 
 /*****
  ***** Module Info
  *****/
 
 /*
- * DNS Socket Management
+ * DNS Dispatch Management
  *
- * 	Shared UDP and single-use TCP sockets for queries and responses.
+ * 	Shared UDP and single-use TCP dispatches for queries and responses.
  *
  * MP:
  *
- *     	All locking is performed internally to each socket.
+ *     	All locking is performed internally to each dispatch.
  *
  * Reliability:
  *
@@ -41,7 +41,7 @@
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_SOCKETEVENT_RECV	(ISC_EVENTCLASS_DNS + 1) /* XXXMLG */
+#define DNS_DISPATCHEVENT_RECV	(ISC_EVENTCLASS_DNS + 1) /* XXXMLG */
 
 /*
  * This event is sent to a task when a response (or request) comes in.
@@ -59,8 +59,8 @@ ISC_LANG_BEGINDECLS
  * The "free" routine for this event will clean up itself as well as
  * any buffer space allocated from common pools.
  */
-typedef struct dns_socketevent dns_socketevent_t;
-struct dns_socketevent_t {
+typedef struct dns_dispatchevent dns_dispatchevent_t;
+struct dns_dispatchevent_t {
 	ISC_EVENT_COMMON(dns_sockevent_t);	/* standard event common */
 	dns_result_t		result;		/* result code */
 	isc_int16_t		id;		/* message id */
@@ -70,44 +70,25 @@ struct dns_socketevent_t {
 };
 
 /*
- * Private attributes of events (will be in socket.c)
+ * Private attributes of events
  */
-#define DNS_SOCKETATTR_MPOOL		0x00010000 /* allocated via mpool */
+#define DNS_DISPATCHATTR_MPOOL		0x00010000 /* allocated via mpool */
 
 /*
  * Public attributes of events
  */
-#define DNS_SOCKETATTR_TCP		0x00000001 /* is TCP */
-#define DNS_SOCKETATTR_UDP		0x00000002 /* is UDP */
-
-/*
- * Private structure (will be in socket.c)
- */
-typedef struct dns_socket dns_socket_t;
-struct dns_socket {
-	unsigned int		magic;		/* magic */
-	isc_mem_t	       *mctx;		/* memory context */
-	isc_task_t	       *task;		/* internal task */
-	isc_socket_t	       *socket;		/* isc socket attached to */
-	unsigned int		buffersize;	/* size of each buffer */
-
-	isc_mutex_t		lock;		/* locks all below */
-	unsigned int		refcount;	/* number of users */
-	isc_mempool_t	       *epool;		/* memory pool for events */
-	isc_mempool_t	       *bpool;		/* memory pool for buffers */
-	dns_restable_t		restable;	/* response table */
-	ISC_LIST(dns_sockevent_t) rq_handlers;	/* request handler list */
-};
+#define DNS_DISPATCHATTR_TCP		0x00000001 /* is TCP */
+#define DNS_DISPATCHATTR_UDP		0x00000002 /* is UDP */
 
 dns_result_t
-dns_socket_create(isc_mem_t *mctx, isc_socket_t *sock, isc_taskmgr_t *taskmgr,
-		  unsigned int maxbuffersize, unsigned int copythresh,
-		  unsigned int maxbuffers, unsigned int maxrequests,
-		  dns_socket_t **dsock);
+dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
+		    unsigned int maxbuffersize, unsigned int copythresh,
+		    unsigned int maxbuffers, unsigned int maxrequests,
+		    dns_dispatch_t **dsock);
 /*
- * Create a new dns_socket and attach it to the provided isc_socket_t.
+ * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
- * For all sockets, "maxbuffersize" is the maximum packet size we will
+ * For all dispatches, "maxbuffersize" is the maximum packet size we will
  * accept.  For UDP packets, "copythresh" is the minimum size a packet
  * needs to be before a copy is performed into a smaller, exactly sized
  * buffer.  "copythresh" is ignored for TCP packets, which always get an
@@ -137,10 +118,10 @@ dns_socket_create(isc_mem_t *mctx, isc_socket_t *sock, isc_taskmgr_t *taskmgr,
  */
 
 void
-dns_socket_destroy(dns_socket_t **dsock);
+dns_dispatch_destroy(dns_dispatch_t **dsock);
 /*
- * Destroys socket.  All buffers and other bits must be returned to the
- * socket before this is called.
+ * Destroys dispatch.  All buffers and other bits must be returned to the
+ * dispatch before this is called.
  *
  * Requires:
  *	< mumble >
@@ -153,15 +134,15 @@ dns_socket_destroy(dns_socket_t **dsock);
  */
 
 dns_result_t
-dns_socket_addresponse(dns_socket_t *dsock, isc_sockaddr_t *dest,
-		       isc_uint16_t *id, isc_task_t *task,
-		       isc_taskaction_t action, void *arg);
+dns_dispatch_addresponse(dns_dispatch_t *dsock, isc_sockaddr_t *dest,
+			 isc_task_t *task, isc_taskaction_t action, void *arg,
+			 isc_uint16_t *id);
 /*
- * Add a response entry for this socket.
+ * Add a response entry for this dispatch.
  *
  * "*id" is filled in with the assigned message ID.
  *
- * Events are generated each time a packet comes in until the socket's quota
+ * Events are generated each time a packet comes in until the dispatch's quota
  * maximum is reached.
  *
  * Requires:
@@ -177,11 +158,12 @@ dns_socket_addresponse(dns_socket_t *dsock, isc_sockaddr_t *dest,
  */
 
 dns_result_t
-dns_socket_removeresponse(dns_socket_t *dsock, dns_socketevent_t **sockevent,
-			  isc_sockaddr_t *dest, isc_uint16_t id);
+dns_dispatch_removeresponse(dns_dispatch_t *dsock,
+			    dns_dispatchevent_t **sockevent,
+			    isc_sockaddr_t *dest, isc_uint16_t id);
 /*
  * Stops the flow of responses for the provided id and destination.
- * If "sockevent" is non-NULL, the socket event and associated buffer is
+ * If "sockevent" is non-NULL, the dispatch event and associated buffer is
  * also returned to the system.
  *
  * Requires:
@@ -195,8 +177,8 @@ dns_socket_removeresponse(dns_socket_t *dsock, dns_socketevent_t **sockevent,
  */
 
 dns_result_t
-dns_socket_addrequest(dns_socket_t *dsock,
-		      isc_task_t *task, isc_taskaction_t action, void *arg);
+dns_dispatch_addrequest(dns_dispatch_t *dsock,
+			isc_task_t *task, isc_taskaction_t action, void *arg);
 /*
  * Aranges for a one-shot request handler.  Only one request will ever be
  * handled per call to this function.  (Or should this be automatically
@@ -213,11 +195,12 @@ dns_socket_addrequest(dns_socket_t *dsock,
  */
 
 dns_result_t
-dns_socket_removerequest(dns_socket_t *dsock,
-			 isc_task_t *task, isc_taskaction_t action, void *arg);
+dns_dispatch_removerequest(dns_dispatch_t *dsock,
+			   isc_task_t *task, isc_taskaction_t action,
+			   void *arg);
 /*
  * Stops the flow of responses for the provided id and destination.
- * If "sockevent" is non-NULL, the socket event and associated buffer is
+ * If "sockevent" is non-NULL, the dispatch event and associated buffer is
  * also returned to the system.
  *
  * Requires:
@@ -231,9 +214,9 @@ dns_socket_removerequest(dns_socket_t *dsock,
  */
 
 void
-dns_socket_freeevent(dns_socket_t *dsock, dns_socketevent_t **sockevent);
+dns_dispatch_freeevent(dns_dispatch_t *dsock, dns_dispatchevent_t **sockevent);
 /*
- * Return a socketevent and associated buffer to the socket.  This needs
+ * Return a dispatchevent and associated buffer to the dispatch.  This needs
  * to be called if more events are desired but a particular event is fully
  * processed, and the associated buffer is no longer needed.
  *
@@ -249,4 +232,4 @@ dns_socket_freeevent(dns_socket_t *dsock, dns_socketevent_t **sockevent);
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_SOCKET_H */
+#endif /* DNS_DISPATCH_H */
