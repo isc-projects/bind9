@@ -2466,7 +2466,7 @@ dns_name_split(dns_name_t *name,
 					 * by the right shift.
 					 */
 					if (len > 0)
-						*dst++ &=
+						*dst++ |=
 							(*src >> (8 - mod)) &
 							~(0xFF << mod);
 				}
