@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.6 2003/08/11 05:28:18 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.7 2003/08/11 05:46:35 marka Exp $ */
 
 #include <config.h>
 
@@ -2253,6 +2253,7 @@ dump_done(void *arg, isc_result_t result) {
 			switch (tresult) {
 			case ISC_R_SUCCESS:
 			case ISC_R_NOSPACE:
+			case ISC_R_NOTFOUND:
 				dns_zone_log(zone, ISC_LOG_DEBUG(3),
 					     "dns_journal_compact: %s",
 					     dns_result_totext(tresult));
@@ -3437,7 +3438,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
 		if (zone->masterfile != NULL) {
 			result = isc_file_settime(zone->masterfile, &now);
-			if (result != ISC_R_SUCCESS)
+			/* Someone removed the file from underneath us! */
+			if (result == ISC_R_FILENOTFOUND) {
+				LOCK_ZONE(zone);
+				zone_needdump(zone, DNS_DUMP_DELAY);
+				UNLOCK_ZONE(zone);
+			} else if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "refresh: could not set file "
 					     "modification time of '%s': %s",
@@ -4002,6 +4008,13 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		    	if (isc_time_isepoch(&next) ||
 			    isc_time_compare(&zone->expiretime, &next) < 0)
 				next = zone->expiretime;
+		}
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
+			INSIST(!isc_time_isepoch(&zone->dumptime));
+		    	if (isc_time_isepoch(&next) ||
+			    isc_time_compare(&zone->dumptime, &next) < 0)
+				next = zone->dumptime;
 		}
 		break;
 
@@ -4918,7 +4931,11 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			    zone->masterfile != NULL)
 				result = isc_file_settime(zone->masterfile,
 							  &now);
-			if (result != ISC_R_SUCCESS)
+			/* Someone removed the file from underneath us! */
+			if (result == ISC_R_FILENOTFOUND &&
+			    zone->masterfile != NULL)
+				zone_needdump(zone, DNS_DUMP_DELAY);
+			else if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transfer: could not set file "
 					     "modification time of '%s': %s",
