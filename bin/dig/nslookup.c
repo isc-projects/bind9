@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20.2.4 2000/08/07 23:56:33 gson Exp $ */
+/* $Id: nslookup.c,v 1.20.2.5 2000/08/15 19:20:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,7 @@ static const char *rtypetext[] = {
 	"afsdb = ",			/* 18 */
 	"x25 address = ",		/* 19 */
 	"isdn address = ",		/* 20 */
-	"rt = "				/* 21 */
+	"rt = ",			/* 21 */
 	"nsap = ",			/* 22 */
 	"nsap_ptr = ",			/* 23 */
 	"signature = ",			/* 24 */
