@@ -54,7 +54,7 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#ifdef LWRES_PLATFORM_HAVENETINET6IN6H
+#ifdef LWRES_PLATFORM_NEEDNETINET6IN6H
 #include <netinet6/in6.h>
 #endif
 
@@ -72,10 +72,13 @@
 #include <lwres/ipv6.h>
 #endif
 
-const char *lwres_net_ntop(int af, const void *src, char *dst, size_t size);
+const char *
+lwres_net_ntop(int af, const void *src, char *dst, size_t size);
 
-int lwres_net_pton(int af, const char *src, void *dst);
+int
+lwres_net_pton(int af, const char *src, void *dst);
 
-int lwres_net_aton(const char *cp, struct in_addr *addr);
+int
+lwres_net_aton(const char *cp, struct in_addr *addr);
 
 #endif /* LWRES_NET_H */

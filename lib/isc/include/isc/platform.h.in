@@ -27,9 +27,10 @@
  ***/
 
 /*
- * Define if this system has the <netinet6/in6.h> header file.
+ * Define if this system needs the <netinet6/in6.h> header file included
+ * to support in6_pkinfo (pretty much only BSD/OS).
  */
-@ISC_PLATFORM_HAVENETINET6IN6H@
+@ISC_PLATFORM_NEEDNETINET6IN6H@
 
 /*
  * If sockaddrs on this system have an sa_len field, ISC_PLATFORM_HAVESALEN

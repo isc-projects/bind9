@@ -73,8 +73,8 @@
 
 #include <netinet/in.h>		/* Contractual promise. */
 #include <arpa/inet.h>		/* Contractual promise. */
-#ifdef ISC_PLATFORM_HAVENETINET6IN6H
-#include <netinet6/in6.h>	/* Contractual promise. */
+#ifdef ISC_PLATFORM_NEEDNETINET6IN6H
+#include <netinet6/in6.h>	/* Required for in6_pktinfo. */
 #endif
 
 #include <isc/types.h>

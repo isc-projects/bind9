@@ -29,7 +29,7 @@
 /*
  * Define if this system has the <netinet6/in6.h> header file.
  */
-@LWRES_PLATFORM_HAVENETINET6IN6H@
+@LWRES_PLATFORM_NEEDNETINET6IN6H@
 
 /*
  * If sockaddrs on this system have an sa_len field, LWRES_PLATFORM_HAVESALEN
