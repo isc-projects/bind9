@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.23 2000/07/05 22:03:42 gson Exp $ */
+/* $Id: os.c,v 1.24 2000/07/07 22:10:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -43,8 +43,7 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
 static isc_boolean_t non_root = ISC_FALSE;
 #endif
 
-static isc_boolean_t runas_uid_set = ISC_FALSE;
-static uid_t runas_uid = 0;
+static struct passwd *runas_pw = NULL;
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
@@ -264,33 +263,22 @@ ns_os_chroot(const char *root) {
 
 void
 ns_os_inituserinfo(const char *username) {
-	struct passwd *pw;
-
 	if (username == NULL || getuid() != 0)
 		return;
 
 	if (all_digits(username))
-		pw = getpwuid((uid_t)atoi(username));
+		runas_pw = getpwuid((uid_t)atoi(username));
 	else
-		pw = getpwnam(username);
+		runas_pw = getpwnam(username);
 	endpwent();
 
-	if (pw == NULL)
+	if (runas_pw == NULL)
 		ns_main_earlyfatal("user '%s' unknown", username);
-
-	if (initgroups(pw->pw_name, pw->pw_gid) < 0)
-		ns_main_earlyfatal("initgroups(): %s", strerror(errno));
-
-	if (setgid(pw->pw_gid) < 0)
-		ns_main_earlyfatal("setgid(): %s", strerror(errno));
-
-	runas_uid = pw->pw_uid;
-	runas_uid_set = ISC_TRUE;
 }
 
 void
 ns_os_changeuser(void) {
-	if (!runas_uid_set)
+	if (runas_pw == NULL)
 		return;
 
 #ifdef HAVE_LINUXTHREADS
@@ -299,7 +287,13 @@ ns_os_changeuser(void) {
 		   "-u not supported on Linux kernels older than 2.3.99-pre3");
 #endif	
 
-	if (setuid(runas_uid) < 0)
+	if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0)
+		ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+
+	if (setgid(runas_pw->pw_gid) < 0)
+		ns_main_earlyfatal("setgid(): %s", strerror(errno));
+
+	if (setuid(runas_pw->pw_uid) < 0)
 		ns_main_earlyfatal("setuid(): %s", strerror(errno));
 }
 
