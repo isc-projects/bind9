@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.93 2000/05/20 01:05:50 explorer Exp $ */
+/* $Id: rdata.c,v 1.94 2000/05/24 02:45:08 tale Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -741,12 +741,19 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
  */
 isc_result_t
 dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
+	unsigned int attrs;
 
+	/*
+	 * Note: attrs is set and then used in the bit test with RESERVED
+	 * because testing "(flags & RESERVED) != 0" generates
+	 * warnings on IRIX about how the test always has the same value		* because it is all constants.
+	 */
 #define COMPARE(string, flags, type) \
 	if (((sizeof(string) - 1) == source->length) \
 	    && (strcasecmp(source->base, string) == 0)) { \
 		*classp = type; \
-		if ((flags & RESERVED) != 0) \
+		attrs = flags; \
+		if ((attrs & RESERVED) != 0) \
 			return (ISC_R_NOTIMPLEMENTED); \
 		return (ISC_R_SUCCESS); \
 	}
@@ -768,7 +775,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		COMPARE("none", META, dns_rdataclass_none);
 		break;
 	case 'r':
-		COMPARE("reserved0", META, dns_rdataclass_reserved0);
+		COMPARE("reserved0", META|RESERVED, dns_rdataclass_reserved0);
 		break;
 	}
 
@@ -779,7 +786,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
-	char buf[sizeof "RDCLASS4294967296"];
+	char buf[sizeof("RDCLASS4294967296")];
 
 	switch (rdclass) {
 	case dns_rdataclass_any:
