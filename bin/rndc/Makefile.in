@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.31 2001/08/03 22:03:10 gson Exp $
+# $Id: Makefile.in,v 1.32 2001/08/28 17:29:34 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -49,9 +49,9 @@ SUBDIRS =	unix
 
 TARGETS =	rndc rndc-confgen
 
-MANPAGES =	rndc.8 rndc.conf.5
+MANPAGES =	rndc.8 rndc-confgen.8 rndc.conf.5
 
-HTMLPAGES =	rndc.html rndc.conf.html
+HTMLPAGES =	rndc.html rndc-confgen.html rndc.conf.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
