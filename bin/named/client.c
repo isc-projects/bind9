@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.187 2001/10/12 23:54:03 gson Exp $ */
+/* $Id: client.c,v 1.188 2001/10/13 00:44:24 gson Exp $ */
 
 #include <config.h>
 
@@ -735,7 +735,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	}
 
 	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0 &&
-	    (client->attributes |= NS_CLIENTATTR_MULTICAST) == 0)
+	    (client->attributes & NS_CLIENTATTR_MULTICAST) == 0)
 		pktinfo = &client->pktinfo;
 	else
 		pktinfo = NULL;
