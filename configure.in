@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.141 $)
+AC_REVISION($Revision: 1.142 $)
 
 AC_PREREQ(2.13)
 
@@ -333,7 +333,7 @@ MKDEPCC="$CC"
 MKDEPCFLAGS="-M"
 IRIX_DNSSEC_WARNINGS_HACK=""
 if test "X$GCC" = "Xyes"; then
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes"
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings"
 	case "$host" in
 		*-freebsd*)
 			CC="$CC -pthread"
