@@ -55,7 +55,8 @@ typedef struct dig_server dig_server_t;
 typedef struct dig_searchlist dig_searchlist_t;
 
 struct dig_lookup {
-	isc_boolean_t pending, /* Pending a successful answer */
+	isc_boolean_t
+	        pending, /* Pending a successful answer */
 		waiting_connect,
 		doing_xfr,
 		ns_search_only,
@@ -65,7 +66,14 @@ struct dig_lookup {
 		aaonly,
 		trace,
 		trace_root,
-		defname;
+		defname,
+		tcp_mode,
+		comments,
+		stats,
+		section_question,
+		section_answer,
+		section_authority,
+		section_additional;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */
@@ -88,12 +96,6 @@ struct dig_lookup {
 	int retries;
 	int nsfound;
 	isc_uint16_t udpsize;
-	isc_boolean_t comments,
-		stats,
-		section_question,
-		section_answer,
-		section_authority,
-		section_additional;
 };
 
 struct dig_query {
@@ -143,9 +145,9 @@ istype(char *text) ;
 void
 setup_lookup(dig_lookup_t *lookup);
 void
-do_lookup_udp (dig_lookup_t *lookup);
+do_lookup(dig_lookup_t *lookup);
 void
-do_lookup_tcp (dig_lookup_t *lookup);
+start_lookup (void);
 void
 send_udp(dig_lookup_t *lookup);
 int
@@ -156,19 +158,19 @@ void
 setup_system(void);
 void
 free_lists(int exitcode);
+dig_lookup_t
+*requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
 
 /* Routines needed in dig.c and host.c */
-void
-parse_args(isc_boolean_t is_batchfile, int argc, char **argv) ;
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) ;
-void
-check_next_lookup (dig_lookup_t *lookup);
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query);
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup);
+void
+dighost_shutdown(void);
 
 ISC_LANG_ENDDECLS
 

@@ -36,8 +36,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t tcp_mode,
-	have_ipv6, show_details;
+extern isc_boolean_t have_ipv6, show_details;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -57,7 +56,8 @@ extern int exitcode;
 
 isc_boolean_t short_form=ISC_TRUE,
 	filter=ISC_FALSE,
-	showallsoa=ISC_FALSE;
+	showallsoa=ISC_FALSE,
+	tcpmode = ISC_FALSE;
 
 static char *opcodetext[] = {
 	"QUERY",
@@ -142,48 +142,6 @@ static char *rtypetext[] = {
 	"has 40 record",       		/* 40 */
 	"has optional information"};	/* 41 */
 
-void
-check_next_lookup(dig_lookup_t *lookup) {
-	dig_lookup_t *next;
-	dig_query_t *query;
-	isc_boolean_t still_working=ISC_FALSE;
-	
-	debug("In check_next_lookup", stderr);
-	for (query = ISC_LIST_HEAD(lookup->q);
-	     query != NULL;
-	     query = ISC_LIST_NEXT(query, link)) {
-		if (query->working) {
-			debug("Still have a worker.", stderr);
-			still_working=ISC_TRUE;
-		}
-	}
-	if (still_working)
-		return;
-
-	next = ISC_LIST_NEXT(lookup, link);
-	debug ("Have %d retries left for %s\n",
-	       lookup->retries, lookup->textname);
-	if ((next == NULL)&&((lookup->retries <= 1)
-			     ||tcp_mode || !lookup->pending)) {
-		debug("Shutting Down.", stderr);
-		isc_app_shutdown();
-		return;
-	}
-	
-	if (tcp_mode) {
-		setup_lookup(next);
-		do_lookup_tcp(next);
-	} else {
-		if ((lookup->retries > 1) && (lookup->pending)) {
-			lookup->retries --;
-			send_udp(lookup);
-		} else {
-			ENSURE (next != NULL);
-			setup_lookup(next);
-			do_lookup_udp(next);
-		}
-	}
-}
 
 static void
 show_usage() {
@@ -205,6 +163,11 @@ show_usage() {
 "       -W specifies how long to wait for a reply\n", stderr);
 	exit (exitcode);
 }				
+
+void
+dighost_shutdown(void) {
+	isc_app_shutdown();
+}
 
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query) {
@@ -507,7 +470,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	return (result);
 }
 
-void
+static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_boolean_t have_host=ISC_FALSE,
 		recursion=ISC_TRUE,
@@ -527,7 +490,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	       != EOF) {
 		switch (c) {
 		case 'l':
-			tcp_mode = ISC_TRUE;
+			tcpmode = ISC_TRUE;
 			xfr_mode = ISC_TRUE;
 			filter = ISC_TRUE;
 			strcpy (querytype, "axfr");
@@ -565,7 +528,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				tries = 1;
 			break;
 		case 'T':
-			tcp_mode = ISC_TRUE;
+			tcpmode = ISC_TRUE;
 			break;
 		case 'C':
 			debug ("Showing all SOA's");
@@ -653,6 +616,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->nsfound = 0;
 	lookup->trace = showallsoa;
 	lookup->trace_root = ISC_FALSE;
+	lookup->tcp_mode = tcpmode;
 	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;
@@ -662,7 +626,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
-	dig_lookup_t *lookup = NULL;
 #ifdef TWIDDLE
 	FILE *fp;
 	int i, p;
@@ -688,12 +651,7 @@ main(int argc, char **argv) {
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
-	lookup = ISC_LIST_HEAD(lookup_list);
-	setup_lookup(lookup);
-	if (tcp_mode)
-		do_lookup_tcp(lookup);
-	else
-		do_lookup_udp(lookup);
+	start_lookup();
 	isc_app_run();
 	free_lists(0);
 	return (0);

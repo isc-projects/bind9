@@ -36,7 +36,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t tcp_mode, have_ipv6, show_details,
+extern isc_boolean_t have_ipv6, show_details,
 	usesearch, trace, qr;
 extern in_port_t port;
 extern unsigned int timeout;
@@ -67,7 +67,7 @@ isc_boolean_t have_host = ISC_FALSE, identify = ISC_FALSE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
-	defname = ISC_TRUE, aaonly = ISC_FALSE;
+	defname = ISC_TRUE, aaonly = ISC_FALSE, tcpmode = ISC_FALSE;
 
 
 static char *opcodetext[] = {
@@ -156,46 +156,8 @@ show_usage() {
 }				
 
 void
-check_next_lookup(dig_lookup_t *lookup) {
-	dig_lookup_t *next;
-	dig_query_t *query;
-	isc_boolean_t still_working=ISC_FALSE;
-	
-	debug("In check_next_lookup", stderr);
-	for (query = ISC_LIST_HEAD(lookup->q);
-	     query != NULL;
-	     query = ISC_LIST_NEXT(query, link)) {
-		if (query->working) {
-			debug("Still have a worker.", stderr);
-			still_working=ISC_TRUE;
-		}
-	}
-	if (still_working)
-		return;
-
-	next = ISC_LIST_NEXT(lookup, link);
-	debug ("Have %d retries left for %s\n",
-	       lookup->retries, lookup->textname);
-	if ((next == NULL)&&((lookup->retries <= 1)
-			     ||tcp_mode || !lookup->pending)) {
-		debug("Shutting Down.", stderr);
-		isc_app_shutdown();
-		return;
-	}
-	
-	if (tcp_mode) {
-		setup_lookup(next);
-		do_lookup_tcp(next);
-	} else {
-		if ((lookup->retries > 1) && (lookup->pending)) {
-			lookup->retries --;
-			send_udp(lookup);
-		} else {
-			ENSURE (next != NULL);
-			setup_lookup(next);
-			do_lookup_udp(next);
-		}
-	}
+dighost_shutdown(void) {
+	isc_app_shutdown();
 }
 
 void
@@ -564,7 +526,7 @@ reorder_args(int argc, char *argv[]) {
  * syntax of dig is quite a bit different from that which can be described
  * that routine.  There is a portability issue here.
  */
-void
+static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	dig_server_t *srv = NULL;
 	dig_lookup_t *lookup = NULL;
@@ -601,16 +563,16 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 		} else if ((strcmp(rv[0], "+vc") == 0)
 			   && (!is_batchfile)) {
-			tcp_mode = ISC_TRUE;
+			tcpmode = ISC_TRUE;
 		} else if ((strcmp(rv[0], "+novc") == 0)
 			   && (!is_batchfile)) {
-			tcp_mode = ISC_FALSE;
+			tcpmode = ISC_FALSE;
 		} else if ((strcmp(rv[0], "+tcp") == 0)
 			   && (!is_batchfile)) {
-			tcp_mode = ISC_TRUE;
+			tcpmode = ISC_TRUE;
 		} else if ((strcmp(rv[0], "+notcp") == 0)
 			   && (!is_batchfile)) {
-			tcp_mode = ISC_FALSE;
+			tcpmode = ISC_FALSE;
 		} else if (strncmp(rv[0], "+domain=", 8) == 0) {
 			strncpy (fixeddomain, &rv[0][8], MXNAME);
 		} else if (strncmp(rv[0], "+sea", 4) == 0) {
@@ -844,6 +806,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->udpsize = bufsize;
 			lookup->nsfound = 0;
 			lookup->comments = comments;
+			lookup->tcp_mode = tcpmode;
 			lookup->stats = stats;
 			lookup->section_question = section_question;
 			lookup->section_answer = section_answer;
@@ -900,6 +863,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->udpsize = bufsize;
 			lookup->nsfound = 0;
 			lookup->comments = comments;
+			lookup->tcp_mode = tcpmode;
 			lookup->stats = stats;
 			lookup->section_question = section_question;
 			lookup->section_answer = section_answer;
@@ -966,6 +930,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->udpsize = bufsize;
 		lookup->nsfound = 0;
 		lookup->comments = comments;
+		lookup->tcp_mode = tcpmode;
 		lookup->stats = stats;
 		lookup->section_question = section_question;
 		lookup->section_answer = section_answer;
@@ -983,7 +948,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
-	dig_lookup_t *lookup = NULL;
 #ifdef TWIDDLE
 	FILE *fp;
 	int i, p;
@@ -1009,12 +973,7 @@ main(int argc, char **argv) {
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
-	lookup = ISC_LIST_HEAD(lookup_list);
-	setup_lookup(lookup);
-	if (tcp_mode)
-		do_lookup_tcp(lookup);
-	else
-		do_lookup_udp(lookup);
+	start_lookup();
 	isc_app_run();
 	free_lists(0);
 	return (0);
