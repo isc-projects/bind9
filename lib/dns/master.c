@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.104 2001/02/01 21:29:40 marka Exp $ */
+/* $Id: master.c,v 1.105 2001/02/07 13:24:19 marka Exp $ */
 
 #include <config.h>
 
@@ -688,6 +688,7 @@ load(dns_loadctx_t **ctxp) {
 	isc_boolean_t finish_origin = ISC_FALSE;
 	isc_boolean_t finish_include = ISC_FALSE;
 	isc_boolean_t read_till_eol = ISC_FALSE;
+	isc_boolean_t expect_eol = ISC_FALSE;
 	isc_boolean_t initialws;
 	char *include_file = NULL;
 	isc_token_t token;
@@ -720,7 +721,6 @@ load(dns_loadctx_t **ctxp) {
 	char *gtype = NULL;
 	char *rhs = NULL;
 
-
 	ctx = *ctxp;
 	REQUIRE(DNS_LCTX_VALID(ctx));
 	callbacks = ctx->callbacks;
@@ -743,7 +743,8 @@ load(dns_loadctx_t **ctxp) {
 
 	do {
 		initialws = ISC_FALSE;
-		GETTOKEN(ctx->lex, ISC_LEXOPT_INITIALWS, &token, ISC_TRUE);
+		GETTOKEN(ctx->lex, expect_eol ? 0 : ISC_LEXOPT_INITIALWS,
+			 &token, ISC_TRUE);
 
 		if (token.type == isc_tokentype_eof) {
 			if (read_till_eol)
@@ -762,15 +763,28 @@ load(dns_loadctx_t **ctxp) {
 				CTX_COPYVAR(ctx, *ctxp, result);
 				dns_loadctx_detach(&ctx);
 				ctx = *ctxp;
-				read_till_eol = ISC_TRUE;
+				expect_eol = ISC_TRUE;
 				continue;
 			}
 			done = ISC_TRUE;
 			continue;
 		}
 
+		if (token.type != isc_tokentype_eol && expect_eol) {
+			result = DNS_R_EXTRATOKEN;
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				LOGIT(result);
+				expect_eol = ISC_FALSE;
+				read_till_eol = ISC_TRUE;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto log_and_cleanup;
+		}
+
 		if (token.type == isc_tokentype_eol) {
 			read_till_eol = ISC_FALSE;
+			expect_eol = ISC_FALSE;
 			continue;		/* blank line */
 		}
 
@@ -795,7 +809,7 @@ load(dns_loadctx_t **ctxp) {
 			if (strcasecmp(token.value.as_pointer,
 				       "$ORIGIN") == 0) {
 				GETTOKEN(ctx->lex, 0, &token, ISC_FALSE);
-				read_till_eol = ISC_TRUE;
+				expect_eol = ISC_TRUE;
 				finish_origin = ISC_TRUE;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$TTL") == 0) {
@@ -821,7 +835,7 @@ load(dns_loadctx_t **ctxp) {
 				}
 				ctx->default_ttl = ctx->ttl;
 				ctx->default_ttl_known = ISC_TRUE;
-				read_till_eol = ISC_TRUE;
+				expect_eol = ISC_TRUE;
 				continue;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$INCLUDE") == 0) {
@@ -918,7 +932,7 @@ load(dns_loadctx_t **ctxp) {
 					dump_time = current_time;
 				}
 				ttl_offset = current_time - dump_time;
-				read_till_eol = ISC_TRUE;
+				expect_eol = ISC_TRUE;
 				continue;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$GENERATE") == 0) {
@@ -990,7 +1004,7 @@ load(dns_loadctx_t **ctxp) {
 					SETRESULT(ctx, result);
 				} else if (result != ISC_R_SUCCESS)
 					goto insist_and_cleanup;
-				read_till_eol = ISC_TRUE;
+				expect_eol = ISC_TRUE;
 				continue;
 			} else if (strncasecmp(token.value.as_pointer,
 					       "$", 1) == 0) {

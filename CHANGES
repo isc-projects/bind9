@@ -1,3 +1,5 @@
+ 728.	[bug]		Fix comment processing on master file directives.
+			[RT# 757]
 
  727.	[port]		Work around OS bug where accept() succeeds but
 			fails to fill in the peer address of the accepted
