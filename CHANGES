@@ -1,3 +1,7 @@
+
+ 781.	[func]		Avoid error packet loops by dropping duplicate FORMERR
+			responses. [RT #1006]
+
  780.	[bug]		Error handling code dealing with out of memory or
 			other rare errors could lead to assertion failures
 			when calling functions on unitialized names. [RT #1065]

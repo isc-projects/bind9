@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.159 2001/03/12 22:27:14 bwelling Exp $ */
+/* $Id: client.c,v 1.160 2001/03/19 20:52:19 gson Exp $ */
 
 #include <config.h>
 
@@ -950,6 +950,33 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		}
 	}
 	message->rcode = rcode;
+
+	/*
+	 * FORMERR loop avoidance:  If we sent a FORMERR message
+	 * with the same ID to the same client less than two
+	 * seconds ago, assume that we are in an infinite error 
+	 * packet dialog with a server for some protocol whose 
+	 * error responses look enough like DNS queries to
+	 * elicit a FORMERR response.  Drop a packet to break
+	 * the loop.
+	 */
+	if (rcode == dns_rcode_formerr) {
+		if (isc_sockaddr_equal(&client->peeraddr,
+				       &client->formerrcache.addr) &&
+		    message->id == client->formerrcache.id &&
+		    client->requesttime - client->formerrcache.time < 2) {
+			/* Drop packet. */
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
+				      "possible error packet loop, "
+				      "FORMERR dropped");
+			ns_client_next(client, result);
+			return;
+		}
+		client->formerrcache.addr = client->peeraddr;
+		client->formerrcache.time = client->requesttime;
+		client->formerrcache.id = message->id;
+	}
 	ns_client_send(client);
 }
 
@@ -1618,6 +1645,13 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	ISC_EVENT_INIT(&client->ctlevent, sizeof(client->ctlevent), 0, NULL,
 		       NS_EVENT_CLIENTCONTROL, client_start, client, client,
 		       NULL, NULL);
+	/*
+	 * Initialize FORMERR cache to sentinel value that will not match
+	 * any actual FORMERR response.
+	 */
+	isc_sockaddr_any(&client->formerrcache.addr);
+	client->formerrcache.time = 0;
+	client->formerrcache.id = 0;
 	ISC_LINK_INIT(client, link);
 	client->list = NULL;
 

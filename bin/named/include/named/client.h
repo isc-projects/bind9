@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.56 2001/03/11 06:19:39 marka Exp $ */
+/* $Id: client.h,v 1.57 2001/03/19 20:52:21 gson Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -133,6 +133,17 @@ struct ns_client {
 	isc_boolean_t		peeraddr_valid;
 	struct in6_pktinfo	pktinfo;
 	isc_event_t		ctlevent;
+	/*
+	 * Information about recent FORMERR response(s), for
+	 * FORMERR loop avoidance.  This is separate for each
+	 * client object rather than global only to avoid
+	 * the need for locking.
+	 */
+	struct {
+		isc_sockaddr_t		addr;
+		isc_stdtime_t		time;
+		dns_messageid_t		id;
+	} formerrcache;
 	ISC_LINK(ns_client_t)	link;
 	/*
 	 * The list 'link' is part of, or NULL if not on any list.
