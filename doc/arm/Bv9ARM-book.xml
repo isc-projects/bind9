@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.1 2001/01/05 23:44:54 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.2 2001/01/09 19:05:56 gson Exp $ -->
 
 <book>
 
@@ -4052,7 +4052,7 @@ same as the name in the name field.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>subdomain</varname></para></entry>
 <entry colname = "2"><para>Matches when the updated name is a subdomain
-of the name in the name field.</para></entry>
+of the name in the name field (which includes the name itself).</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>wildcard</varname></para></entry>
