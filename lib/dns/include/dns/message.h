@@ -24,6 +24,7 @@
 
 #include <isc/mem.h>
 #include <isc/buffer.h>
+#include <isc/bufferlist.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
