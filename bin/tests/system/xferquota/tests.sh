@@ -17,7 +17,7 @@
 
 echo "S:`date`"
 echo "T:system_xferquota:1"
-echo "A:A test to determine online speed of domain name transfers"
+echo "A:A test to determine online speed of zone transfers"
 
 #
 # Perform tests
@@ -42,11 +42,11 @@ while [ $count != 300 ]; do
 	ticks=`expr $ticks + 1`
 	seconds=`expr $ticks \* 1`
 	if [ $ticks = 60 ]; then
-		echo "Took too long to load domains."
+		echo "Took too long to load zones"
 		exit 1
 	fi
 	count=`cat ns2/zone*.bk | grep xyzzy | wc -l`
-	echo "I:Have $count domains up in $seconds seconds"
+	echo "I:Have $count zones up in $seconds seconds"
 done
 
 status=0;
