@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.187 2001/10/27 00:32:31 gson Exp $ */
+/* $Id: adb.c,v 1.188 2001/11/05 20:02:41 gson Exp $ */
 
 /*
  * Implementation notes
@@ -1981,7 +1981,7 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 }
 
 /*
- * name bucket must be locked; adb may be locked; no other locks held.
+ * Name bucket must be locked; adb may be locked; no other locks held.
  */
 static void
 check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
@@ -2014,7 +2014,7 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
 }
 
 /*
- * entry bucket must be locked; adb may be locked; no other locks held.
+ * Entry bucket must be locked; adb may be locked; no other locks held.
  */
 static void
 check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
@@ -3307,7 +3307,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 	case DNS_R_HINT:
 	case ISC_R_SUCCESS:
 		/*
-		 * Start a6 chain follower.  There is no need to poke people
+		 * Start A6 chain follower.  There is no need to poke people
 		 * who might be waiting, since this is call requires there
 		 * are none.
 		 */
@@ -3799,7 +3799,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 		goto cleanup;
 
 	adbname->fetch_a = fetch;
-	fetch = NULL;  /* keep us from cleaning this up below */
+	fetch = NULL;  /* Keep us from cleaning this up below. */
 
  cleanup:
 	if (fetch != NULL)
@@ -3844,7 +3844,7 @@ fetch_name_aaaa(dns_adbname_t *adbname) {
 		goto cleanup;
 
 	adbname->fetch_aaaa = fetch;
-	fetch = NULL;  /* keep us from cleaning this up below */
+	fetch = NULL;  /* Keep us from cleaning this up below. */
 
  cleanup:
 	if (fetch != NULL)
@@ -3907,7 +3907,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 		goto cleanup;
 
 	ISC_LIST_APPEND(adbname->fetches_a6, fetch, plink);
-	fetch = NULL;  /* keep us from cleaning this up below */
+	fetch = NULL;  /* Keep us from cleaning this up below. */
 
  cleanup:
 	if (fetch != NULL)
