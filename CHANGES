@@ -1,3 +1,6 @@
+1619.	[bug]		Missing ISC_LIST_UNLINK in end_reserved_dispatches().
+			[RT# 11118]
+
 1618.	[bug]		Fencepost errors in dns_name_ishostname() and
 			dns_name_ismailbox() could trigger a INSIST().
 
