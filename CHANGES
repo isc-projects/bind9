@@ -25,6 +25,8 @@
 1776.   [port]   	Solaris 2.9: fix broken IN6ADDR_ANY_INIT and
                         IN6ADDR_LOOPBACK_INIT macros.
 
+1775.	[bug]		Only compile getnetent_r.c when threaded. [RT #13205]
+
 1774.	[port]		Aix: Silence compiler warnings / build failures.
 			[RT #13154]
 
