@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.158 2001/04/20 14:35:04 tale Exp $ */
+/* $Id: rbtdb.c,v 1.159 2001/04/20 21:22:09 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4616,11 +4616,12 @@ static inline void
 dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
 	dns_rbtnode_t *node = rbtdbiter->node;
-	isc_mutex_t *lock = &rbtdb->node_locks[node->locknum].lock;
+	isc_mutex_t *lock;
 
 	if (node == NULL)
 		return;
 
+	lock = &rbtdb->node_locks[node->locknum].lock;
 	LOCK(lock);
 	INSIST(rbtdbiter->node->references > 0);
 	if (--node->references == 0)
