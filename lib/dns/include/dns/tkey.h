@@ -36,15 +36,22 @@ ISC_LANG_BEGINDECLS
 #define DNS_TKEYMODE_RESOLVERASSIGNED		4
 #define DNS_TKEYMODE_DELETE			5
 
+struct dns_tkey_ctx {
+	dst_key_t *dhkey;
+	dns_name_t *domain;
+	isc_mem_t *mctx;
+};
+
 isc_result_t
-dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx);
+dns_tkey_init(dns_c_ctx_t *cfg, isc_mem_t *mctx, dns_tkey_ctx_t **tctx);
 /*
  *	Obtains TKEY configuration information, including default DH key
  *	and default domain from the configuration, if it's not NULL.
  *
  * 	Requires:
- *		'lctx' is not NULL
  *		'mctx' is not NULL
+ *		'tctx' is not NULL
+ *		'*tctx' is NULL
  *
  *	Returns
  *		ISC_R_SUCCESS
@@ -53,19 +60,26 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx);
  */
 
 void
-dns_tkey_destroy(void);
+dns_tkey_destroy(dns_tkey_ctx_t **tctx);
 /*
- *      Frees all data associated with the TKEY subsystem
+ *      Frees all data associated with the TKEY context
+ *
+ * 	Requires:
+ *		'tctx' is not NULL
+ *		'*tctx' is not NULL
  */
 
 isc_result_t
-dns_tkey_processquery(dns_message_t *msg);
+dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
+		      dns_tsig_keyring_t *ring);
 /*
  *	Processes a query containing a TKEY record, adding or deleting TSIG
  *	keys if necessary, and modifies the message to contain the response.
  *
  *	Requires:
  *		'msg' is a valid message
+ *		'tctx' is a valid TKEY context
+ *		'ring' is a valid TSIG keyring
  *
  *	Returns
  *		ISC_R_SUCCESS	msg was updated (the TKEY operation succeeded,
@@ -117,7 +131,8 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
 
 isc_result_t
 dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-                           dst_key_t *key, dns_tsigkey_t **outkey);
+                           dst_key_t *key, isc_buffer_t *nonce,
+			   dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring);
 /*
  *	Processes a response to a query containing a TKEY that was
  *	designed to generate a shared secret using a Diffie-Hellman key
@@ -129,6 +144,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
  *		'rmsg' is a valid message (the response)
  *		'key' is a valid Diffie Hellman dst key
  *		'outkey' is either NULL or a pointer to NULL
+ *		'ring' is not NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS	the shared key was successfully added
@@ -137,7 +153,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
  */
 
 isc_result_t
-dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg);
+dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
+			       dns_tsig_keyring_t *ring);
 /*
  *	Processes a response to a query containing a TKEY that was
  *	designed to delete a shared secret.  If the query was successful,
@@ -146,6 +163,7 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg);
  *	Requires:
  *		'qmsg' is a valid message (the query)
  *		'rmsg' is a valid message (the response)
+ *		'ring' is not NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS	the shared key was successfully deleted

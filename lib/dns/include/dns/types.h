@@ -78,6 +78,8 @@ typedef struct dns_dispatch			dns_dispatch_t;
 typedef struct dns_dispentry			dns_dispentry_t;
 typedef struct dns_dispatchevent		dns_dispatchevent_t;
 typedef struct dns_tsigkey			dns_tsigkey_t;
+typedef struct dns_tsig_keyring			dns_tsig_keyring_t;
+typedef struct dns_tkey_ctx			dns_tkey_ctx_t;
 typedef struct dns_view				dns_view_t;
 typedef ISC_LIST(dns_view_t)			dns_viewlist_t;
 typedef struct dns_zone				dns_zone_t;

@@ -190,6 +190,7 @@ struct dns_message {
 	ISC_LIST(dns_rdata_t)		freerdata;
 	ISC_LIST(dns_rdatalist_t)	freerdatalist;
 
+	dns_tsig_keyring_t	       *ring;
 	dns_rcode_t			tsigstatus;
 	dns_rcode_t			querytsigstatus;
 	dns_rdata_any_tsig_t	       *tsig;
@@ -272,9 +273,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * DNS message.
  *
  * OPT records are detected and stored in the pseudo-section "opt".
- * TSIGs are detected and stored in the pseudo-section "tsig".  At detection
- * time, the TSIG is verified (XXX) and the message fails if the TSIG fails
- * to verify.
+ * TSIGs are detected and stored in the pseudo-section "tsig".
  *
  * If 'preserve_order' is true, or if the opcode of the message is UPDATE,
  * a separate dns_name_t object will be created for each RR in the message.
@@ -885,6 +884,26 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer);
  *
  *	DNS_R_SIGNOTVERIFIEDYET	- the message was signed by a SIG(0), but
  *				  the signature has not been verified yet
+ */
+
+isc_result_t
+dns_message_checksig(dns_message_t *msg, dns_view_t *view);
+/*
+ * If this message was signed, verify the signature.
+ *
+ * Requires:
+ *
+ *	msg is a valid parsed message.
+ *	view is a valid view
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		- the message was unsigned, or the message
+ *				  was signed correctly.
+ *
+ *	DNS_R_EXPECTEDTSIG	- A TSIG was expected, but not seen
+ *	DNS_R_UNEXPECTEDTSIG	- A TSIG was seen but not expected
+ *	DNS_R_TSIGVERIFYFAILURE - The TSIG failed to verify
  */
 
 ISC_LANG_ENDDECLS

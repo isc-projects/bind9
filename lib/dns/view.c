@@ -33,9 +33,11 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
+#include <dns/message.h>
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
+#include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -106,6 +108,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->task = NULL;
 	view->references = 1;
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN);
+	view->statickeys = NULL;
+	view->dynamickeys = NULL;
+	result = dns_tsig_init(NULL, view->mctx, &view->dynamickeys);
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
 		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown,
@@ -346,6 +351,20 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
 	REQUIRE(dns_db_iszone(hints));
 
 	dns_db_attach(hints, &view->hints);
+}
+
+void
+dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
+
+	/*
+	 * Set the view's static TSIG keyring
+	 */
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->statickeys == NULL);
+	REQUIRE(ring != NULL);
+
+	view->statickeys = ring;
 }
 
 isc_result_t
@@ -783,3 +802,14 @@ dns_view_load(dns_view_t *view) {
 
 	dns_zt_load(view->zonetable);
 }
+
+isc_result_t
+dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(source != NULL);
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+
+	return dns_tsig_verify(source, msg, view->statickeys,
+			       view->dynamickeys);
+}
+

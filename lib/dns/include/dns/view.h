@@ -88,6 +88,8 @@ struct dns_view {
 	isc_task_t *			task;
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
+	dns_tsig_keyring_t *		statickeys;
+	dns_tsig_keyring_t *		dynamickeys;
 	/* Locked by lock. */
 	unsigned int			references;
 	unsigned int			attributes;
@@ -225,6 +227,26 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints);
  *
  *     	The hints database of 'view' is 'hints'.
  */
+
+void
+dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
+/*
+ * Set the view's static TSIG keys
+ *
+ * Requires:
+ *
+ *      'view' is a valid, unfrozen view, whose static TSIG keyring has not
+ *	been set.
+ *
+ *      'ring' is a valid TSIG keyring
+ *
+ * Ensures:
+ *
+ *      The static TSIG keyring of 'view' is 'ring'.
+ */
+
+
+
 
 isc_result_t
 dns_view_addzone(dns_view_t *view, dns_zone_t *zone);
@@ -419,6 +441,21 @@ dns_view_load(dns_view_t *view);
  * Requires:
  *
  *	'view' is a valid.
+ */
+
+isc_result_t
+dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg);
+/*
+ * Verifies the signature of a message.
+ *
+ * Requires:
+ *
+ *	'view' is a valid view.
+ *	'source' is a valid buffer containing the message
+ *	'msg' is a valid message
+ *
+ * Returns:
+ *	see dns_tsig_verify()
  */
 
 ISC_LANG_ENDDECLS

@@ -20,7 +20,7 @@
 
 #include <isc/types.h>
 #include <isc/lang.h>
-#include <isc/log.h>
+#include <isc/rwlock.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
@@ -37,6 +37,12 @@ extern dns_name_t *dns_tsig_hmacmd5_name;
 
 /* Default fudge value. */
 #define DNS_TSIG_FUDGE			300
+
+struct dns_tsig_keyring {
+	ISC_LIST(dns_tsigkey_t) keys;
+	isc_rwlock_t lock;
+	isc_mem_t *mctx;
+}; 
 
 struct dns_tsigkey {
 	/* Unlocked */
@@ -62,10 +68,11 @@ struct dns_tsigkey {
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
-		   dns_name_t *creator, isc_mem_t *mctx, dns_tsigkey_t **key);
+		   dns_name_t *creator, isc_mem_t *mctx,
+		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
 /*
- *	Creates and saves a tsig key structure.  If key is not NULL, *key
- *	will contain a copy of the key.
+ *	Creates a tsig key structure and saves it in the keyring.  If key is
+ *	not NULL, *key *	will contain a copy of the key.
  *
  *	Requires:
  *		'name' is a valid dns_name_t
@@ -74,6 +81,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *		'length' is an integer greater than 0
  *		'creator' points to a valid dns_name_t or is NULL
  *		'mctx' is a valid memory context
+ *		'ring' is a valid TSIG keyring
  *		'key' or '*key' must be NULL
  *
  *	Returns:
@@ -84,12 +92,13 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  */
 
 void
-dns_tsigkey_free(dns_tsigkey_t **key);
+dns_tsigkey_free(dns_tsigkey_t **key, dns_tsig_keyring_t *ring);
 /*
  *	Frees the tsig key structure pointed to by 'key'.
  *
  *	Requires:
  *		'key' is a valid TSIG key
+ *		'ring' is a valid TSIG keyring containing the key
  */
 
 void
@@ -119,7 +128,8 @@ dns_tsig_sign(dns_message_t *msg);
  */
 
 isc_result_t
-dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg);
+dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
+		dns_tsig_keyring_t *sring, dns_tsig_keyring_t *dring);
 /*
  *	Verifies the TSIG record in this message
  *
@@ -129,6 +139,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg);
  *		'msg->tsigkey' is a valid TSIG key if this is a response
  *		'msg->tsig' is NULL
  *		'msg->querytsig' is not NULL if this is a response
+ *		'sring' is a valid keyring or NULL
+ *		'dring' is a valid keyring or NULL
  *
  *	Returns:
  *		DNS_R_SUCCESS
@@ -141,27 +153,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg);
  */
 
 isc_result_t
-dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
-/*
- *	Verifies the TSIG record in this continuation of a TCP response,
- *	if there is one.
- *
- *	Requires:
- *		'source' is a valid buffer containing the unparsed message
- *		'msg' is a valid message
- *		'msg->tsigkey' is a valid TSIG key
- *		'msg->tsig' is NULL
- *		'msg->querytsig' is not NULL
- *
- *	Returns:
- *		DNS_R_SUCCESS
- *		ISC_R_NOMEMORY
- *		DNS_R_TSIGVERIFYFAILURE - the TSIG failed to verify
- */
-
-isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
-		 dns_name_t *algorithm);
+		 dns_name_t *algorithm, dns_tsig_keyring_t *ring);
 /*
  *	Returns the TSIG key corresponding to this name and (possibly)
  *	algorithm.  Also increments the key's reference counter.
@@ -171,6 +164,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
  *		'*tsigkey' is NULL
  *		'name' is a valid dns_name_t
  *		'algorithm' is a valid dns_name_t or NULL
+ *		'ring' is a valid keyring
  *
  *	Returns:
  *		ISC_R_SUCCESS
@@ -179,15 +173,15 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 
 
 isc_result_t
-dns_tsig_init(isc_log_t *lctx, dns_c_ctx_t *confctx, isc_mem_t *mctx);
+dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx, dns_tsig_keyring_t **ring);
 /*
  *	Initializes the TSIG subsystem.  If confctx is not NULL, any
  *	specified keys are loaded.
  *
  *	Requires:
- *		'lctx' is not NULL
  *		'mctx' is not NULL
-
+ *		'ring' is not NULL, and '*ring' is NULL
+ *
  *	Returns:
  *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY
@@ -195,9 +189,12 @@ dns_tsig_init(isc_log_t *lctx, dns_c_ctx_t *confctx, isc_mem_t *mctx);
 
 
 void
-dns_tsig_destroy(void);
+dns_tsig_destroy(dns_tsig_keyring_t **ring);
 /*
  *	Frees all data associated with the TSIG subsystem
+ *
+ *	Requires:
+ *		'ring' is not NULL
  */
 
 ISC_LANG_ENDDECLS

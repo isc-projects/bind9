@@ -38,6 +38,7 @@
 #include <dns/compress.h>
 #include <dns/tsig.h>
 #include <dns/dnssec.h>
+#include <dns/view.h>
 
 #define DNS_MESSAGE_OPCODE_MASK		0x7800U
 #define DNS_MESSAGE_OPCODE_SHIFT	11
@@ -287,6 +288,7 @@ msginitprivate(dns_message_t *m)
 static inline void
 msginittsig(dns_message_t *m)
 {
+	m->ring = NULL;
 	m->tsigstatus = m->querytsigstatus = dns_rcode_noerror;
 	m->tsig = m->querytsig = NULL;
 	m->tsigkey = NULL;
@@ -455,7 +457,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
         }
 
 	if (msg->tsigkey != NULL) {
-		dns_tsigkey_free(&msg->tsigkey);
+		dns_tsigkey_free(&msg->tsigkey, msg->ring);
 		msg->tsigkey = NULL;
 	}
 
@@ -1317,17 +1319,9 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	if (r.length != 0)
 		return (DNS_R_FORMERR);
 
-	if (msg->tsigkey != NULL ||
-	    !ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG]))
+	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG]) ||
+	    !ISC_LIST_EMPTY(msg->sections[DNS_SECTION_SIG0]))
 	{
-		if (!msg->tcp_continuation)
-			ret = dns_tsig_verify(source, msg);
-		else
-			ret = dns_tsig_verify_tcp(source, msg);
-		if (ret != DNS_R_SUCCESS)
-			return ret;
-	}
-	else if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_SIG0])) {
 		msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
 		if (msg->saved == NULL)
 			return (ISC_R_NOMEMORY);
@@ -2147,4 +2141,22 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 	}
 
 	return (result);
+}
+
+isc_result_t
+dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
+	isc_buffer_t b;
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(view != NULL);
+
+	if (msg->tsigkey == NULL &&
+	    ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG]))
+		return (ISC_R_SUCCESS);
+	if (msg->saved == NULL)
+		return (DNS_R_EXPECTEDTSIG);
+	isc_buffer_init(&b, msg->saved->base, msg->saved->length,
+			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_add(&b, msg->saved->length);
+	return dns_view_checksig(view, &b, msg);
 }
