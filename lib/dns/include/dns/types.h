@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.91 2000/08/01 01:24:53 tale Exp $ */
+/* $Id: types.h,v 1.92 2000/08/15 03:33:52 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -249,6 +249,9 @@ typedef enum {
 /*
  * Functions.
  */
+typedef void
+(*dns_loaddonefunc_t)(void *, isc_result_t);
+
 typedef isc_result_t
 (*dns_addrdatasetfunc_t)(void *, dns_name_t *, dns_rdataset_t *);
 

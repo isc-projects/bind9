@@ -1,3 +1,12 @@
+ 394.	[bug]		Current name was not propagated via $INCLUDE.
+
+ 393.	[func]		Initial answer while loading (awl) support.
+			Entry points: dns_master_loadfileinc(),
+			dns_master_loadstreaminc(), dns_master_loadbufferinc().
+			Note: calls to dns_master_load*inc() should be rate
+			be rate limited so as to not use up all file
+			descriptors.
+
  392.	[func]		Add ISC_R_FAMILYNOSUPPORT.  Returned when OS does
 			not support the given address family requested. 
 

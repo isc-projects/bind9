@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.22 2000/08/01 01:24:19 tale Exp $ */
+/* $Id: master.h,v 1.23 2000/08/15 03:33:51 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -63,6 +63,39 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
 		      dns_rdatacallbacks_t *callbacks,
 		      isc_mem_t *mctx);
 
+isc_result_t
+dns_master_loadfileinc(const char *master_file,
+		       dns_name_t *top,
+		       dns_name_t *origin,
+		       dns_rdataclass_t zclass,
+		       isc_boolean_t age_ttl,
+		       dns_rdatacallbacks_t *callbacks,
+		       isc_task_t *task,
+		       dns_loaddonefunc_t done, void *done_arg,
+		       isc_mem_t *mctx);
+
+isc_result_t
+dns_master_loadstreaminc(FILE *stream,
+			 dns_name_t *top,
+			 dns_name_t *origin,
+			 dns_rdataclass_t zclass,
+			 isc_boolean_t age_ttl,
+			 dns_rdatacallbacks_t *callbacks,
+			 isc_task_t *task,
+			 dns_loaddonefunc_t done, void *done_arg,
+			 isc_mem_t *mctx);
+
+isc_result_t
+dns_master_loadbufferinc(isc_buffer_t *buffer,
+			 dns_name_t *top,
+			 dns_name_t *origin,
+			 dns_rdataclass_t zclass,
+			 isc_boolean_t age_ttl,
+			 dns_rdatacallbacks_t *callbacks,
+			 isc_task_t *task,
+			 dns_loaddonefunc_t done, void *done_arg,
+			 isc_mem_t *mctx);
+
 /*
  * Loads a RFC 1305 master file from a file, stream, or buffer into rdatasets
  * and then calls 'callbacks->commit' to commit the rdatasets.  Rdata memory
@@ -76,6 +109,9 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
  * 'callbacks->commit' is assumed to call 'callbacks->error' or
  * 'callbacks->warn' to generate any error messages required.
  *
+ * 'done' is called with 'done_arg' and a result code when the loading
+ * is completed or has failed if 'done' is non NULL.
+ *
  * Requires:
  *	'master_file' points to a valid string.
  *	'top' points to a valid name.
@@ -83,7 +119,9 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
  *	'callbacks->commit' points to a valid function.
  *	'callbacks->error' points to a valid function.
  *	'callbacks->warn' points to a valid function.
+ *	'callbacks->done' points to a valid function or NULL.
  *	'mctx' points to a valid memory context.
+ *	'task' and 'done' to be NULL or 'task' and 'done' to be valid.
  *
  * Returns:
  *	ISC_R_SUCCESS upon successfully loading the master file.
@@ -94,6 +132,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
  *	DNS_R_NOOWNER failed to specify a ownername.
  *	DNS_R_NOTTL failed to specify a ttl.
  *	DNS_R_BADCLASS record class did not match zone class.
+ *	DNS_R_CONTINUE load still in progress (dns_master_load*inc() only).
  *	Any dns_rdata_fromtext() error code.
  *	Any error code from callbacks->commit().
  */
