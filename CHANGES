@@ -11,7 +11,8 @@
 
 1661.	[placeholder]	rt11582
 
-1660	[placeholder]	rt11595
+1660.	[bug]		win32: connection_reset_fix() was being called
+			unconditionally.  [RT #11595]
 
 1659.	[cleanup]	Cleanup some messages that were referring to KEY vs
 			DNSKEY, NXT vs NSEC and SIG vs RRSIG.
