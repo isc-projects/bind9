@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.221 2001/09/14 21:04:35 gson Exp $ */
+/* $Id: resolver.c,v 1.222 2001/09/17 20:24:13 gson Exp $ */
 
 #include <config.h>
 
@@ -3062,7 +3062,7 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 				maxttl, ardataset);
 	if (result == DNS_R_UNCHANGED) {
 		/*
-		 * The data in the cache is better than the negative cache
+		 * The data in the cache are better than the negative cache
 		 * entry we're trying to add.
 		 */
 		if (ardataset != NULL && ardataset->type == 0) {
