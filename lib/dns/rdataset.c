@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.56 2001/06/05 09:02:13 marka Exp $ */
+/* $Id: rdataset.c,v 1.57 2001/06/05 09:17:21 marka Exp $ */
 
 #include <config.h>
 
@@ -280,7 +280,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	isc_region_t r;
 	isc_result_t result;
 	unsigned int i, count, added;
-	isc_buffer_t savedbuffer, rdlen;
+	isc_buffer_t savedbuffer, rdlen, rrbuffer;
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
 	isc_boolean_t shuffle = ISC_FALSE;
@@ -382,6 +382,8 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 		/*
 		 * Copy out the name, type, class, ttl.
 		 */
+		
+		rrbuffer = *target;
 		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 		result = dns_name_towire(owner_name, cctx, target);
 		if (result != ISC_R_SUCCESS)
@@ -446,6 +448,8 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 
  rollback:
 	if (partial && result == ISC_R_NOSPACE) {
+		INSIST(rrbuffer.used < 65536);
+		dns_compress_rollback(cctx, (isc_uint16_t)rrbuffer.used);
 		*countp += added;
 		return (result);
 	}
