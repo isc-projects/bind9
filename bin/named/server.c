@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.269 2000/12/05 17:23:45 gson Exp $ */
+/* $Id: server.c,v 1.270 2000/12/06 01:21:04 tale Exp $ */
 
 #include <config.h>
 
@@ -2217,7 +2217,7 @@ ns_server_refreshcommand(ns_server_t *server, char *args) {
 
 isc_result_t
 ns_server_togglequerylog(ns_server_t *server) {
-	server->log_queries = ! server->log_queries;
+	server->log_queries = server->log_queries ? ISC_FALSE : ISC_TRUE;
 	
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
