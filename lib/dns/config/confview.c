@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.58 2000/11/28 04:01:21 marka Exp $ */
+/* $Id: confview.c,v 1.59 2000/11/28 05:24:51 marka Exp $ */
 
 #include <config.h>
 
@@ -390,8 +390,7 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 		if (dns_c_view_getfetchglue(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'fetch-glue' is not yet "
-				      "implemented");
+				      "view 'fetch-glue' is obsolete");
 
 		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
@@ -808,7 +807,6 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(max_transfer_time_in, "max-transfer-time-in");
 	PRINT_INT32(max_transfer_idle_in, "max-transfer-idle-in");
 	PRINT_INT32(transfers_per_ns, "transfers-per-ns");
-	PRINT_INT32(serialqueries, "serial-queries");
 #endif
 
 	fprintf(fp, "\n");
@@ -1586,7 +1584,6 @@ BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)
 UINT32_FUNCS(maxtransfertimein, max_transfer_time_in)
 UINT32_FUNCS(maxtransferidlein, max_transfer_idle_in)
 UINT32_FUNCS(transfersperns, transfers_per_ns)
-UINT32_FUNCS(serialqueries, serial_queries)
 
 #endif
 

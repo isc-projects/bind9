@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.66 2000/11/28 03:22:55 marka Exp $ */
+/* $Id: confzone.c,v 1.67 2000/11/28 05:24:53 marka Exp $ */
 
 #include <config.h>
 
@@ -638,8 +638,13 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	const char *checknameserror = "zone '%s': 'check-names' is not yet "
 		"implemented";
 	const char *pubkeyerror = "zone '%s': 'pubkey' is deprecated";
+	const char *maintixfrbase = "zone '%s': 'maintain-ixfr-base' is "
+				    "obsolete";
+	const char *ixfrbase = "zone '%s': 'ixfr-base' is obsolete";
 	dns_severity_t severity;
 	dns_c_pklist_t *pklist = NULL;
+	isc_boolean_t bool;
+	const char *string;
 
 	/*
 	 * Check if zone is diabled. This isn't really a validation, just a
@@ -652,7 +657,6 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 			      ISC_LOG_WARNING, disabledzone,
 			      zone->name);
 	}
-
 
 	/*
 	 * Check for allow-update and update-policy together
@@ -709,6 +713,21 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 
 	/* XXX TODO make sure no 'key' clauses were given on any iplist
 	   except for masters{}; */
+
+	/*
+ 	 * Check for obsolete options.
+	 */
+	if (zone->ztype == dns_c_zone_master ||
+	    zone->ztype == dns_c_zone_slave) {
+		if (dns_c_zone_getmaintixfrbase(zone, &bool) == ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      maintixfrbase, zone->name);
+		if (dns_c_zone_getixfrbase(zone, &string) == ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      ixfrbase, zone->name);
+	}
 
 	return (result);
 }
@@ -2171,19 +2190,22 @@ dns_c_zone_getmaintixfrbase(dns_c_zone_t *zone, isc_boolean_t *retval) {
 	case dns_c_zone_stub:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "stub zones do not have a notify field");
+			      "stub zones do not have a "
+			      "maint_ixfr_base field");
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_hint:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "hint zones do not have a notify field");
+			      "hint zones do not have a "
+			      "maint_ixfr_base field");
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_forward:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "forward zones do not have a notify field");
+			      "forward zones do not have a "
+			      "maint_ixfr_base field");
 		return (ISC_R_FAILURE);
 	}
 

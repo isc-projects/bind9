@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.105 2000/11/28 03:57:17 marka Exp $ */
+/* $Id: confctx.c,v 1.106 2000/11/28 05:24:50 marka Exp $ */
 
 #include <config.h>
 
@@ -346,7 +346,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'named-xfer' is now obsolete");
+			      "option 'named-xfer' is obsolete");
 	}
 
 	if (dns_c_ctx_getdumpfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
@@ -440,7 +440,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getmaxcachesize(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'max-cache-size' is not yet"
+			      "option 'max-cache-size' is not yet "
 			      "implemented");
 	}
 
