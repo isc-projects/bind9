@@ -20,7 +20,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.26 2000/06/27 00:23:44 bwelling Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.27 2000/06/27 00:41:13 bwelling Exp $
  */
 
 #include <config.h>
@@ -568,7 +568,7 @@ lwres_freeaddrinfo(struct addrinfo *ai) {
 	while (ai != NULL) {
 		ai_next = ai->ai_next;
 		if (ai->ai_addr != NULL)
-			free(ai->ai_addr != NULL);
+			free(ai->ai_addr);
 		if (ai->ai_canonname)
 			free(ai->ai_canonname);
 		free(ai);
