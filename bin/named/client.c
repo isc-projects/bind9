@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.12 2003/08/22 05:14:59 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.13 2003/08/22 06:10:23 marka Exp $ */
 
 #include <config.h>
 
@@ -1346,7 +1346,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (client->interface->addr.type.sa.sa_family == AF_INET6) {
 		if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0) {
-			u_int32_t zone = 0;
+			isc_uint32_t zone = 0;
 
 			/*
 			 * XXXJT technically, we should convert the receiving
@@ -1357,7 +1357,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			 * it should cover most typical cases.
 			 */
 			if (IN6_IS_ADDR_LINKLOCAL(&client->pktinfo.ipi6_addr))
-				zone = (u_int32_t)client->pktinfo.ipi6_ifindex;
+				zone = (isc_uint32_t)client->pktinfo.ipi6_ifindex;
 
 			isc_netaddr_fromin6(&destaddr,
 					    &client->pktinfo.ipi6_addr);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20.2.10 2003/08/22 05:15:04 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.11 2003/08/22 06:10:23 marka Exp $ */
 
 #include <config.h>
 
@@ -1668,7 +1668,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 		    strlen(s) <= 127) {
 			char buf[128];
 			char *d; /* zone delimiter */
-			u_int32_t zone = 0; /* scope zone ID */
+			isc_uint32_t zone = 0; /* scope zone ID */
 
 			strcpy(buf, s);
 			d = strchr(buf, '%');
