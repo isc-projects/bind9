@@ -1,3 +1,5 @@
+1800.	[bug]		Changes #1719 allowed a INSIST to be triggered.
+			[RT #13428]
 
 	--- 9.3.1beta1 released ---
 

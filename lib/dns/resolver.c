@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.48 2004/12/03 02:09:33 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.49 2005/01/19 23:38:14 marka Exp $ */
 
 #include <config.h>
 
@@ -4253,11 +4253,11 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 			/*
 			 * A negative response has a SOA record (Type 2) 
 			 * and a optional NS RRset (Type 1) or it has neither
-			 * a SOA or a NS RRset (Type 3) or rcode is NXDOMAIN
-			 * (handled above) in which case the NS RRset is
-			 * allowed (Type 4).
+			 * a SOA or a NS RRset (Type 3, handled above) or
+			 * rcode is NXDOMAIN (handled above) in which case
+			 * the NS RRset is allowed (Type 4).
 			 */
-			if (soa_name != NULL || ns_name == NULL)
+			if (soa_name != NULL)
 				negative_response = ISC_TRUE;
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -5319,6 +5319,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	if ((fctx->res->options & DNS_RESOLVER_CHECKNAMES) != 0)
 		checknames(message);
+
+	/*
+	 * Clear cache bits.
+	 */
+	fctx->attributes &= ~(FCTX_ATTR_WANTNCACHE | FCTX_ATTR_WANTCACHE);
 
 	/*
 	 * Did we get any answers?
