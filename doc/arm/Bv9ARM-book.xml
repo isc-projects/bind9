@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.157 2001/09/08 00:42:46 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.158 2001/09/08 00:45:49 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1009,27 +1009,31 @@ reload the database. </para></entry>
     
 </sect1>
     
-  <sect1 id="incremental_zone_transfers">
-    <title>Incremental Zone Transfers (IXFR)</title>
+<sect1 id="incremental_zone_transfers">
+<title>Incremental Zone Transfers (IXFR)</title>
 
-    <para>The incremental zone transfer (IXFR) protocol is a way for
-    slave servers to transfer only changed data, instead of having to
-    transfer the entire zone. The IXFR protocol is documented in RFC
-    1995. See <xref linkend="proposed_standards"/>.</para>
+<para>The incremental zone transfer (IXFR) protocol is a way for
+slave servers to transfer only changed data, instead of having to
+transfer the entire zone. The IXFR protocol is documented in RFC
+1995. See <xref linkend="proposed_standards"/>.</para>
 
-<para>When acting as a master, <acronym>BIND</acronym> 9 supports IXFR for those zones
+<para>When acting as a master, <acronym>BIND</acronym> 9
+supports IXFR for those zones
 where the necessary change history information is available. These
 include master zones maintained by dynamic update and slave zones
 whose data was obtained by IXFR.  For manually maintained master
-zones and slave zones obtained by performing a full zone transfer
-(AXFR), IXFR is supported only if the option 
+zones, and for slave zones obtained by performing a full zone 
+transfer (AXFR), IXFR is supported only if the option
 <command>ixfr-from-differences</command> is set
-to <userinput>fetch-glue yes</userinput>.
+to <userinput>yes</userinput>.
 </para>
-<para>When acting as a slave, <acronym>BIND</acronym> 9 will attempt to use IXFR unless
+
+<para>When acting as a slave, <acronym>BIND</acronym> 9 will 
+attempt to use IXFR unless
 it is explicitly disabled. For more information about disabling
 IXFR, see the description of the <command>request-ixfr</command> clause
-of the <command>server</command> statement.</para></sect1>
+of the <command>server</command> statement.</para>
+</sect1>
 
 <sect1><title>Split DNS</title>
 <para>Setting up different views, or visibility, of DNS space to
