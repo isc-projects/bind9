@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.34 2004/05/12 02:08:12 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.35 2004/05/17 00:51:16 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -196,7 +196,7 @@ and a <emphasis>domain</emphasis>.</para>
 <para>As we stated previously, a zone is a point of delegation in
 the <acronym>DNS</acronym> tree. A zone consists of
 those contiguous parts of the domain
-tree for which a a name server has complete information and over which
+tree for which a name server has complete information and over which
 it has authority. It contains all domain names from a certain point
 downward in the domain tree except those which are delegated to
 other zones. A delegation point is marked by one or more
