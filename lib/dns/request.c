@@ -501,7 +501,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		isc_sockaddr_any(&bind_any);
-		result = isc_socket_bind(sock, &bind_any);
+		result = isc_socket_bind(socket, &bind_any);
 		if (result != ISC_R_SUCCESS) {
 			isc_socket_detach(&socket);
 			goto cleanup;
