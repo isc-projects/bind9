@@ -377,6 +377,17 @@
 ./bin/tests/system/notify/ns3/root.hint		ZONE	2000
 ./bin/tests/system/notify/setup.sh		SH	2000
 ./bin/tests/system/notify/tests.sh		SH	2000
+./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000
+./bin/tests/system/nsupdate/knowngood.ns1.after	X	2000
+./bin/tests/system/nsupdate/clean.sh		SH	2000
+./bin/tests/system/nsupdate/setup.sh		SH	2000
+./bin/tests/system/nsupdate/tests.sh		SH	2000
+./bin/tests/system/nsupdate/update.scp		X	2000
+./bin/tests/system/nsupdate/update_test.pl	PERL	2000
+./bin/tests/system/nsupdate/ns1/example.orig	ZONE	2000
+./bin/tests/system/nsupdate/ns1/update.orig	ZONE	2000
+./bin/tests/system/nsupdate/ns1/named.conf	CONF-C
+./bin/tests/system/nsupdate/ns2/named.conf	CONF-C
 ./bin/tests/system/run.sh			SH	2000
 ./bin/tests/system/setup.sh			SH	2000
 ./bin/tests/system/start.sh			SH	2000
