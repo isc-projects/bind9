@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.20 2001/01/11 21:12:10 gson Exp $
+# $Id: conf.sh.in,v 1.21 2001/03/08 16:19:35 tale Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -42,8 +42,8 @@ KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-SUBDIRS="dnssec forward glue limits lwresd notify nsupdate resolver \
-    sortlist stub tkey unknown upforwd v6synth views xfer xferquota"
+SUBDIRS="cacheclean dnssec forward glue limits lwresd notify nsupdate \
+    resolver sortlist stub tkey unknown upforwd v6synth views xfer xferquota"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
