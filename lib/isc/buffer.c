@@ -277,6 +277,40 @@ isc_buffer_compact(isc_buffer_t *b) {
 	b->used = length;
 }
 
+isc_uint8_t
+isc_buffer_getuint8(isc_buffer_t *b) {
+	unsigned char *cp;
+	isc_uint8_t result;
+
+	/*
+	 * Read an unsigned 8-bit integer from 'b' and return it.
+	 */
+
+	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(b->used - b->current >= 1);
+
+	cp = b->base;
+	cp += b->current;
+	b->current += 1;
+	result = ((unsigned int)(cp[0]));
+
+	return (result);
+}
+
+void
+isc_buffer_putuint8(isc_buffer_t *b, isc_uint8_t val)
+{
+	unsigned char *cp;
+
+	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(b->used + 1 <= b->length);
+
+	cp = b->base;
+	cp += b->used;
+	b->used += 1;
+	cp[0] = (val & 0x00ff);
+}
+
 isc_uint16_t
 isc_buffer_getuint16(isc_buffer_t *b) {
 	unsigned char *cp;

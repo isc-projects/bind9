@@ -422,6 +422,40 @@ isc_buffer_compact(isc_buffer_t *b);
  *	are those of the remaining region (as it was before the call).
  */
 
+isc_uint8_t
+isc_buffer_getuint8(isc_buffer_t *b);
+/*
+ * Read an unsigned 8-bit integer from 'b' and return it.
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
+ *
+ *	The length of the available region of 'b' is at least 1.
+ *
+ * Ensures:
+ *
+ *	The current pointer in 'b' is advanced by 1.
+ *
+ * Returns:
+ *
+ *	A 8-bit unsigned integer.
+ */
+
+void
+isc_buffer_putuint8(isc_buffer_t *b, isc_uint8_t val);
+/*
+ * Store an unsigned 8-bit integer from 'val' into 'b'.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	The length of the unused region of 'b' is at least 1.
+ *
+ * Ensures:
+ *	The used pointer in 'b' is advanced by 1.
+ */
+
 isc_uint16_t
 isc_buffer_getuint16(isc_buffer_t *b);
 /*
