@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.36 2000/11/14 23:29:49 bwelling Exp $ */
+/* $Id: compress.c,v 1.36.4.1 2001/01/06 01:33:31 gson Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -36,53 +36,48 @@
 #define DCTX_MAGIC	0x44435458U	/* DCTX */
 #define VALID_DCTX(x)	ISC_MAGIC_VALID(x, DCTX_MAGIC)
 
-static void
-free_offset(void *offset, void *mctx);
-
-static isc_boolean_t
-compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
-	      dns_name_t *suffix, isc_uint16_t *offset,
-	      isc_buffer_t *workspace);
-
-static void
-compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
-	     isc_uint16_t offset, isc_boolean_t global16, isc_mem_t *mctx);
-
 /***
  ***	Compression
  ***/
 
 isc_result_t
 dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
-	isc_result_t result;
+	unsigned int i;
 
 	REQUIRE(cctx != NULL);
 	REQUIRE(mctx != NULL);
 
 	cctx->allowed = 0;
-	cctx->rdata = 0;
-	cctx->global16 = ISC_FALSE;
 	cctx->edns = edns;
-	cctx->global = NULL;
-	result = dns_rbt_create(mctx, free_offset, mctx, &cctx->global);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++)
+		cctx->table[i] = NULL;
 	cctx->mctx = mctx;
+	cctx->count = 0;
 	cctx->magic = CCTX_MAGIC;
 	return (ISC_R_SUCCESS);
 }
 
 void
 dns_compress_invalidate(dns_compress_t *cctx) {
+	dns_compressnode_t *node;
+	unsigned int i;
 
 	REQUIRE(VALID_CCTX(cctx));
 
 	cctx->magic = 0;
-	if (cctx->global != NULL)
-		dns_rbt_destroy(&cctx->global);
+	if (cctx->table != NULL) {
+		for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++) {
+			while (cctx->table[i] != NULL) {
+				node = cctx->table[i];
+				cctx->table[i] = cctx->table[i]->next;
+				if (node->count < DNS_COMPRESS_INITIALNODES)
+					continue;
+				isc_mem_put(cctx->mctx, node,
+					    sizeof(dns_compressnode_t));
+			}
+		}
+	}
 	cctx->allowed = 0;
-	cctx->rdata = 0;
-	cctx->global16 = ISC_FALSE;
 	cctx->edns = -1;
 }
 
@@ -105,89 +100,137 @@ dns_compress_getedns(dns_compress_t *cctx) {
 	return (cctx->edns);
 }
 
+/*
+ * Find the longest match of name in the table.
+ * If match is found return ISC_TRUE. prefix, suffix and offset are updated.
+ * If no match is found return ISC_FALSE.
+ */
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 			dns_name_t *prefix, dns_name_t *suffix,
-			isc_uint16_t *offset, isc_buffer_t *workspace)
+			isc_uint16_t *offset)
 {
+	dns_name_t tname, nname;
+	dns_compressnode_t *node = NULL;
+	unsigned int labels, hash, n;
+
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
 	REQUIRE(offset != NULL);
 
-	return (compress_find(cctx->global, name, prefix, suffix, offset,
-			      workspace));
+	labels = dns_name_countlabels(name);
+	INSIST(labels > 0);
+
+	dns_name_init(&tname, NULL);
+	dns_name_init(&nname, NULL);
+
+	for (n = 0; n < labels - 1; n++) {
+		dns_name_getlabelsequence(name, n, labels - n, &tname);
+		hash = dns_name_hash(&tname, ISC_FALSE) %
+		       DNS_COMPRESS_TABLESIZE;
+		for (node = cctx->table[hash]; node != NULL; node = node->next)
+		{
+			dns_name_fromregion(&nname, &node->r);
+			if (dns_name_equal(&nname, &tname))
+				break;
+		}
+		if (node != NULL)
+			break;
+	}
+
+	/*
+	 * If node == NULL, we found no match at all.
+	 */
+	if (node == NULL)
+		return (ISC_FALSE);
+
+	dns_name_clone(&tname, suffix);
+	dns_name_getlabelsequence(name, 0, n, prefix);
+	*offset = node->offset;
+	return (ISC_TRUE);
 }
 
 void
-dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
-		 dns_name_t *suffix, isc_uint16_t offset)
+dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
+		 isc_uint16_t offset)
 {
-	REQUIRE(VALID_CCTX(cctx));
+	dns_name_t tname, nname;
+	dns_label_t label;
+	unsigned int start;
+	unsigned int n;
+	unsigned int count;
+	unsigned int hash;
+	dns_compressnode_t *node;
 
-	compress_add(cctx->global, prefix, suffix, offset,
-		     cctx->global16, cctx->mctx);
+	REQUIRE(VALID_CCTX(cctx));
+	REQUIRE(dns_name_isabsolute(name));
+
+	dns_name_init(&tname, NULL);
+	dns_name_init(&nname, NULL);
+
+	n = dns_name_countlabels(name);
+	count = dns_name_countlabels(prefix);
+	if (dns_name_isabsolute(prefix))
+		count--;
+	start = 0;
+	while (count > 0) {
+		if (offset >= 0x4000)
+			break;
+		dns_name_getlabelsequence(name, start, n, &tname);
+		hash = dns_name_hash(&tname, ISC_FALSE) %
+		       DNS_COMPRESS_TABLESIZE;
+		/*
+		 * Look for the name in the hash bucket.  If it's there,
+		 * we're done.
+		 */
+		for (node = cctx->table[hash]; node != NULL; node = node->next)
+		{
+			dns_name_fromregion(&nname, &node->r);
+			if (dns_name_equal(&nname, &tname))
+				return;
+		}
+		/*
+		 * It's not there.  Create a new node and add it.
+		 */
+		if (cctx->count < DNS_COMPRESS_INITIALNODES)
+			node = &cctx->initialnodes[cctx->count];
+		else {
+			node = isc_mem_get(cctx->mctx,
+					   sizeof(dns_compressnode_t));
+			if (node == NULL)
+				return;
+		}
+		node->count = cctx->count++;
+		node->offset = offset;
+		dns_name_toregion(&tname, &node->r);
+		node->next = cctx->table[hash];
+		cctx->table[hash] = node;
+		dns_name_getlabel(&tname, 0, &label);
+		offset += label.length;
+		start++;
+		n--;
+		count--;
+	}
 }
 
 void
 dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
-	dns_rbtnode_t *node;
-	dns_fixedname_t foundfixed;
-	dns_fixedname_t fullfixed;
-	dns_fixedname_t originfixed;
-	dns_name_t *foundname;
-	dns_name_t *fullname;
-	dns_name_t *origin;
-	dns_rbtnodechain_t chain;
-	isc_result_t result;
+	unsigned int i;
+	dns_compressnode_t *node;
 
 	REQUIRE(VALID_CCTX(cctx));
 
-	/*
-	 * Initalise things.
-	 */
-	dns_fixedname_init(&foundfixed);
-	foundname = dns_fixedname_name(&foundfixed);
-	dns_fixedname_init(&fullfixed);
-	fullname = dns_fixedname_name(&fullfixed);
-	dns_fixedname_init(&originfixed);
-	origin = dns_fixedname_name(&originfixed);
-	dns_rbtnodechain_init(&chain, cctx->mctx);
-
- again:
-	result = dns_rbtnodechain_first(&chain, cctx->global, foundname,
-					origin);
-
-	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
-		result = dns_rbtnodechain_current(&chain, foundname,
-						  origin, &node);
-
-		if (result != ISC_R_SUCCESS)
-			break;
-
-		if (node->data != NULL &&
-		    (*(isc_uint16_t*)node->data >= offset)) {
-			result = dns_name_concatenate(foundname,
-					dns_name_isabsolute(foundname) ?
-						      NULL : origin,
-						      fullname, NULL);
-
-			if (result != ISC_R_SUCCESS)
-				break;
-
-			result = dns_rbt_deletename(cctx->global, fullname,
-						    ISC_FALSE);
-			if (result != ISC_R_SUCCESS)
-				break;
-			/*
-			 * If the delete is successful the chain is broken.
-			 */
-			dns_rbtnodechain_reset(&chain);
-			goto again;
+	for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++) {
+		node = cctx->table[i];
+		while (node != NULL && node->offset >= offset) {
+			cctx->table[i] = node->next;
+			if (node->count >= DNS_COMPRESS_INITIALNODES)
+				isc_mem_put(cctx->mctx, node,
+					    sizeof(dns_compressnode_t));
+			cctx->count--;
+			node = cctx->table[i];
 		}
-
-		result = dns_rbtnodechain_next(&chain, foundname, origin);
 	}
-	dns_rbtnodechain_invalidate(&chain);
 }
 
 /***
@@ -204,7 +247,6 @@ dns_decompress_init(dns_decompress_t *dctx, int edns,
 	dctx->allowed = DNS_COMPRESS_NONE;
 	dctx->edns = edns;
 	dctx->type = type;
-	dctx->rdata = 0;
 	dctx->magic = DCTX_MAGIC;
 }
 
@@ -256,183 +298,4 @@ dns_decompress_type(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	return (dctx->type);
-}
-
-/***
- ***	Private
- ***/
-
-static void
-free_offset(void *offset, void *mctx) {
-	REQUIRE(offset != NULL);
-	REQUIRE(mctx != NULL);
-	isc_mem_put(mctx, offset, sizeof(isc_uint16_t));
-}
-
-/*
- *	Add the labels in prefix to RBT.
- */
-static void
-compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
-	     isc_uint16_t offset, isc_boolean_t global16, isc_mem_t *mctx)
-{
-
-	dns_name_t name;
-	dns_name_t full;
-	dns_label_t label;
-	unsigned int count;
-	unsigned int start;
-	unsigned int n;
-	isc_uint16_t *data;
-	isc_result_t result;
-	unsigned char buffer[255];
-	isc_buffer_t target;
-	dns_offsets_t offsets;
-
-	count = dns_name_countlabels(prefix);
-	if (dns_name_isabsolute(prefix))
-		count--;
-	start = 0;
-	dns_name_init(&full, offsets);
-	dns_name_init(&name, NULL);
-	isc_buffer_init(&target, buffer, sizeof(buffer));
-	result = dns_name_concatenate(prefix, suffix, &full, &target);
-	if (result != ISC_R_SUCCESS)
-		return;
-	n = dns_name_countlabels(&full);
-	while (count > 0) {
-		if (offset >= 16384 && !global16)
-			break;
-		dns_name_getlabelsequence(&full, start, n, &name);
-		data = isc_mem_get(mctx, sizeof *data);
-		if (data == NULL)
-			return;
-		*data = offset;
-		result = dns_rbt_addname(root, &name, data);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, data, sizeof *data);
-			return;
-		}
-		dns_name_getlabel(&name, 0, &label);
-		offset += label.length;
-		start++;
-		n--;
-		count--;
-	}
-}
-
-/*
- *	Find the longest match of name in root.
- *	If match is found return ISC_TRUE. prefix, suffix and offset
- *	are updated.
- *	If no match is found return ISC_FALSE.
- */
-
-static isc_boolean_t
-compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
-	      dns_name_t *suffix, isc_uint16_t *offset,
-	      isc_buffer_t *workspace)
-{
-	dns_fixedname_t found;
-	dns_name_t *foundname;
-	dns_name_t tmpprefix;
-	dns_name_t tmpsuffix;
-	isc_result_t result;
-	isc_uint16_t *data = NULL;
-	dns_label_t foundlabel;
-	dns_label_t namelabel;
-	unsigned int foundlabels;
-	unsigned int namelabels;
-	unsigned int foundbits;
-	unsigned int namebits;
-	unsigned int bits;
-	unsigned int prefixlen;
-	unsigned int j;
-	unsigned char buf[2 + 256/8];	/* size of biggest bit label */
-	dns_bitlabel_t bit;
-	isc_region_t region;
-
-	dns_fixedname_init(&found);
-	foundname = dns_fixedname_name(&found);
-	/*
-	 * Getting rid of the offsets table for foundname improves
-	 * perfomance, since the offsets table is not needed and maintaining
-	 * it has costs.
-	 */
-	foundname->offsets = NULL;
-	result = dns_rbt_findname(root, name, 0, foundname, (void *)&data);
-	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
-		return (ISC_FALSE);
-	if (data == NULL)		/* root label */
-		return (ISC_FALSE);
-	/*
-	 * Do we have to do bit string processing?
-	 */
-	dns_name_getlabel(foundname, 0, &foundlabel);
-	foundlabels = dns_name_countlabels(foundname);
-	INSIST(foundlabels > 1);	/* root labels are not added to tree */
-	namelabels = dns_name_countlabels(name);
-	if (dns_label_type(&foundlabel) == dns_labeltype_bitstring) {
-		dns_name_getlabel(name, namelabels - foundlabels, &namelabel);
-		INSIST(dns_label_type(&namelabel) == dns_labeltype_bitstring);
-		foundbits = dns_label_countbits(&foundlabel);
-		namebits = dns_label_countbits(&namelabel);
-	} else
-		namebits = foundbits = 0;
-
-	if (namebits == foundbits) {
-		INSIST(namelabels >= foundlabels);
-		prefixlen = namelabels - foundlabels;
-		if (prefixlen == 0) {
-			prefix->length = 0;
-			prefix->labels = 0;
-		} else
-			dns_name_getlabelsequence(name, 0, prefixlen, prefix);
-		result = dns_name_concatenate(NULL, foundname, suffix,
-					     workspace);
-		if (result != ISC_R_SUCCESS)
-			return (ISC_FALSE);
-		*offset = *data;
-		return (ISC_TRUE);
-	}
-	/*
-	 * At this stage we have a bit string label to split in two.
-	 * There is potentially a prefix before this label and definitly
-	 * a suffix after it (if only the root).
-	 */
-	INSIST(result == DNS_R_PARTIALMATCH);
-	result = dns_name_concatenate(NULL, foundname, suffix, workspace);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
-	prefixlen = namelabels - foundlabels;
-	dns_name_init(&tmpprefix, NULL);
-	dns_name_init(&tmpsuffix, NULL);
-	if (prefixlen != 0) {
-		dns_name_getlabelsequence(name, 0, prefixlen, &tmpprefix);
-	}
-	INSIST(namebits > foundbits);
-	bits = namebits - foundbits;
-	j = 0;
-	memset(buf, 0, sizeof buf);
-	INSIST((bits / 8 + 1) < sizeof buf);
-	/*
-	 * Copy least significant bits.
-	 */
-	while (j < bits) {
-		bit = dns_label_getbit(&namelabel, foundbits + j);
-		if (bit)
-			buf[2 + j / 8] |= (1 << (7 - (j % 8)));
-		j++;
-	}
-	buf[0] = DNS_LABELTYPE_BITSTRING;
-	buf[1] = j;
-	region.base = buf;
-	region.length = 2 + (j + 7) / 8;
-	dns_name_fromregion(&tmpsuffix, &region);
-	result = dns_name_concatenate(&tmpprefix, &tmpsuffix, prefix,
-				      workspace);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
-	*offset = *data;
-	return (ISC_TRUE);
 }

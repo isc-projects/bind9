@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.110 2000/12/28 00:42:55 bwelling Exp $ */
+/* $Id: name.c,v 1.110.2.1 2001/01/06 01:33:32 gson Exp $ */
 
 #include <config.h>
 
@@ -2385,8 +2385,6 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t gp, gs;
 	isc_boolean_t gf;
 	isc_uint16_t go;
-	unsigned char gb[257];
-	isc_buffer_t gws;
 	dns_offsets_t po, so, clo;
 	dns_name_t clname;
 
@@ -2409,14 +2407,13 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 	}
 	dns_name_init(&gp, po);
 	dns_name_init(&gs, so);
-	isc_buffer_init(&gws, gb, sizeof (gb));
 
 	offset = target->used;	/*XXX*/
 
 	methods = dns_compress_getmethods(cctx);
 
-	if ((methods & DNS_COMPRESS_GLOBAL) != 0)
-		gf = dns_compress_findglobal(cctx, name, &gp, &gs, &go, &gws);
+	if ((methods & DNS_COMPRESS_GLOBAL14) != 0)
+		gf = dns_compress_findglobal(cctx, name, &gp, &gs, &go);
 	else
 		gf = ISC_FALSE;
 
@@ -2444,14 +2441,14 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint16(target, go);
 		if (gp.length != 0)
-			dns_compress_add(cctx, &gp, &gs, offset);
+			dns_compress_add(cctx, name, &gp, offset);
 	} else {
 		if (target->length - target->used < name->length)
 			return (ISC_R_NOSPACE);
 		(void)memcpy((unsigned char *)target->base + target->used,
 			     name->ndata, (size_t)name->length);
 		isc_buffer_add(target, name->length);
-		dns_compress_add(cctx, name, NULL, offset);
+		dns_compress_add(cctx, name, name, offset);
 	}
 	return (ISC_R_SUCCESS);
 }

@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.20 2000/12/28 00:42:56 bwelling Exp $ */
+/* $Id: compress.h,v 1.20.2.1 2001/01/06 01:33:34 gson Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
 
 #include <isc/lang.h>
+#include <isc/region.h>
 
 #include <dns/types.h>
 
@@ -28,28 +29,34 @@ ISC_LANG_BEGINDECLS
 
 #define DNS_COMPRESS_NONE		0x00	/* no compression */
 #define DNS_COMPRESS_GLOBAL14		0x01	/* "normal" compression. */
-#define DNS_COMPRESS_GLOBAL		0x01	/* all global comp. */
-/*
- * Synonymous with DNS_COMPRESS_GLOBAL.  A genuine difference existed when
- * local compression was an IETF draft, but that draft has been retired without
- * becoming a standard.  Numerous bits of code referred to DNS_COMPRESS_ALL
- * already, and rather than change them all, the DNS_COMPRESS_ALL definition
- * was left in, but no longer refers to local compression.
- */
-#define DNS_COMPRESS_ALL		0x03	/* all compression. */
+#define DNS_COMPRESS_ALL		0x01	/* all compression. */
 
 /*
  *	Direct manipulation of the structures is strongly discouraged.
  */
 
+#define DNS_COMPRESS_TABLESIZE 64
+#define DNS_COMPRESS_INITIALNODES 16
+
+typedef struct dns_compressnode dns_compressnode_t;
+
+struct dns_compressnode {
+	isc_region_t		r;
+	isc_uint16_t		offset;
+	isc_uint16_t		count;
+	dns_compressnode_t	*next;
+};
+
 struct dns_compress {
-	unsigned int	magic;			/* Magic number. */
-	unsigned int	allowed;		/* Allowed methods. */
-	unsigned int	rdata;			/* Start of local rdata. */
-	isc_boolean_t	global16;		/* 16 bit offsets allowed. */
-	int		edns;			/* Edns version or -1. */
-	dns_rbt_t	*global;		/* Global RBT. */
-	isc_mem_t	*mctx;			/* Memeory context. */
+	unsigned int		magic;		/* Magic number. */
+	unsigned int		allowed;	/* Allowed methods. */
+	int			edns;		/* Edns version or -1. */
+	/* Global compression table. */
+	dns_compressnode_t	*table[DNS_COMPRESS_TABLESIZE];
+	/* Preallocated nodes for the table. */
+	dns_compressnode_t	initialnodes[DNS_COMPRESS_INITIALNODES];
+	isc_uint16_t		count;		/* Number of nodes. */
+	isc_mem_t		*mctx;		/* Memory context. */
 };
 
 typedef enum {
@@ -61,7 +68,6 @@ typedef enum {
 struct dns_decompress {
 	unsigned int		magic;		/* Magic number. */
 	unsigned int		allowed;	/* Allowed methods. */
-	unsigned int		rdata;		/* Start of local rdata. */
 	int			edns;		/* Edns version or -1. */
 	dns_decompresstype_t	type;		/* Strict checking */
 };
@@ -73,9 +79,9 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx);
  *
  *	Requires:
  *		'cctx' is a valid dns_compress_t structure.
- *		'mctx' is a initalised memory context.
+ *		'mctx' is an initialized memory context.
  *	Ensures:
- *		cctx->global is initalised.
+ *		cctx->global is initialized.
  *
  *	Returns:
  *		ISC_R_SUCCESS
@@ -87,10 +93,9 @@ dns_compress_invalidate(dns_compress_t *cctx);
 
 /*
  *	Invalidate the compression structure pointed to by cctx.
- *	Destroys 'cctx->glocal' and 'cctx->local' RBT.
  *
  *	Requires:
- *		'cctx' to be initalised.
+ *		'cctx' to be initialized.
  */
 
 void
@@ -100,7 +105,7 @@ dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed);
  *	Sets allowed compression methods.
  *
  *	Requires:
- *		'cctx' to be initalised.
+ *		'cctx' to be initialized.
  */
 
 unsigned int
@@ -110,7 +115,7 @@ dns_compress_getmethods(dns_compress_t *cctx);
  *	Gets allowed compression methods.
  *
  *	Requires:
- *		'cctx' to be initalised.
+ *		'cctx' to be initialized.
  *
  *	Returns:
  *		allowed compression bitmap.
@@ -123,7 +128,7 @@ dns_compress_getedns(dns_compress_t *cctx);
  *	Gets edns value.
  *
  *	Requires:
- *		'cctx' to be initalised.
+ *		'cctx' to be initialized.
  *
  *	Returns:
  *		-1 .. 255
@@ -132,19 +137,16 @@ dns_compress_getedns(dns_compress_t *cctx);
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 			dns_name_t *prefix, dns_name_t *suffix,
-			isc_uint16_t *offset, isc_buffer_t *workspace);
+			isc_uint16_t *offset);
 /*
- *	Finds longest possible match of 'name' in the global compression
- *	RBT.  Workspace needs to be large enough to hold 'name' when split
- *	in two (length->name + 3).
+ *	Finds longest possible match of 'name' in the global compression table.
  *
  *	Requires:
- *		'cctx' to be initalised.
+ *		'cctx' to be initialized.
  *		'name' to be a absolute name.
- *		'prefix' to be initalised.
- *		'suffix' to be initalised.
+ *		'prefix' to be initialized.
+ *		'suffix' to be initialized.
  *		'offset' to point it a isc_uint16_t.
- *		'workspace' to be initalised.
  *
  *	Ensures:
  *		'prefix', 'suffix' and 'offset' are valid if ISC_TRUE is
@@ -155,27 +157,26 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
  */
 
 void
-dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
-		 dns_name_t *suffix, isc_uint16_t offset);
+dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
+		 isc_uint16_t offset);
 /*
- *	Add compression pointers for labels in prefix to RBT's.
- *	If 'prefix' is absolute 'suffix' must be NULL otherwise
- *	suffix must be absolute.
+ *	Add compression pointers for name to the compression table,
+ *	not replacing existing pointers.
  *
  *	Requires:
- *		'cctx' initalised
- *		'prefix' to be initalised
- *		'suffix' to be initalised or NULL
+ *		'cctx' initialized
+ *		'name' must be initialized and absolute, and must remain
+ *		valid until the message compression is complete.
  */
 
 void
 dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset);
 
 /*
- *	Remove any compression pointers from global RBT >= offset.
+ *	Remove any compression pointers from global table >= offset.
  *
  *	Requires:
- *		'cctx' is initalised.
+ *		'cctx' is initialized.
  */
 
 void
@@ -197,7 +198,7 @@ dns_decompress_invalidate(dns_decompress_t *dctx);
  *	Invalidates 'dctx'.
  *
  *	Requires:
- *		'dctx' to be initalised
+ *		'dctx' to be initialized
  */
 
 void
@@ -207,7 +208,7 @@ dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed);
  *	Sets 'dctx->allowed' to 'allowed'.
  *
  *	Requires:
- *		'dctx' to be initalised
+ *		'dctx' to be initialized
  */
 
 unsigned int
@@ -217,7 +218,7 @@ dns_decompress_getmethods(dns_decompress_t *dctx);
  *	Returns 'dctx->allowed'
  *
  *	Requires:
- *		'dctx' to be initalised
+ *		'dctx' to be initialized
  */
 
 int
@@ -227,7 +228,7 @@ dns_decompress_edns(dns_decompress_t *dctx);
  *	Returns 'dctx->edns'
  *
  *	Requires:
- *		'dctx' to be initalised
+ *		'dctx' to be initialized
  */
 
 dns_decompresstype_t
@@ -237,7 +238,7 @@ dns_decompress_type(dns_decompress_t *dctx);
  *	Returns 'dctx->type'
  *
  *	Requires:
- *		'dctx' to be initalised
+ *		'dctx' to be initialized
  */
 
 ISC_LANG_ENDDECLS
