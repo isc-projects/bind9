@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.3 2001/02/16 18:49:27 halley Exp $
+# $Id: Makefile.in,v 1.4 2001/05/09 03:12:08 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,6 +21,45 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_RULES@
 
+MANOBJS = Bv9ARM.html
+
 distclean::
 	rm -f catalog gendvi.sh genhtml.sh genpdf.sh validate.sh
 	rm -f nominum-docbook-html.dsl nominum-docbook-print.dsl
+
+doc man:: ${MANOBJS}
+
+docclean manclean maintainer-clean::
+	rm -f *.html
+
+Bv9ARM.html: Bv9ARM-book.xml
+	@JADE@ -v \
+	    -c @SGMLDIR@/catalog \
+	    -t sgml \
+	    -d ./nominum-docbook-html.dsl \
+	    @SGMLDIR@/docbook/dsssl/modular/dtds/decls/xml.dcl \
+	     ./Bv9ARM-book.xml
+
+Bv9ARM-book.dvi: Bv9ARM-book.pdf
+	@JADE@ -v \
+	     -d ./nominum-docbook-print.dsl \
+	     -t tex \
+	     @SGMLDIR@/docbook/dsssl/modular/dtds/decls/xml.dcl \
+	     ./Bv9ARM-book.xml
+	rm Bv9ARM-book.aux Bv9ARM-book.dvi Bv9ARM-book.log
+	@TEX@ "&jadetex" ./Bv9ARM-book.tex
+	@TEX@ "&jadetex" ./Bv9ARM-book.tex
+	@TEX@ "&jadetex" ./Bv9ARM-book.tex
+
+Bv9ARM-book.pdf: Bv9ARM-book.xml
+	@JADE@ -v \
+	    -c @SGMLDIR@/catalog \
+	    -d ./nominum-docbook-print.dsl \
+	    -t tex \
+	    @SGMLDIR@/docbook/dsssl/modular/dtds/decls/xml.dcl \
+	     ./Bv9ARM-book.xml
+	rm Bv9ARM-book.aux Bv9ARM-book.pdf Bv9ARM-book.log
+	@PDFTEX@ "&pdfjadetex" ./Bv9ARM-book.tex
+	@PDFTEX@ "&pdfjadetex" ./Bv9ARM-book.tex
+	@PDFTEX@ "&pdfjadetex" ./Bv9ARM-book.tex
+

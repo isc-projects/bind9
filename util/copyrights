@@ -888,9 +888,6 @@
 ./doc/arm/Makefile.in				MAKE	2001
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001
 ./doc/arm/catalog.in				X	2000,2001
-./doc/arm/gendvi.sh.in				SH	2001
-./doc/arm/genhtml.sh.in				SH	2000,2001
-./doc/arm/genpdf.sh.in				SH	2001
 ./doc/arm/isc.color.gif				X	2000,2001
 ./doc/arm/nominum-docbook-html.dsl.in		X	2000,2001
 ./doc/arm/nominum-docbook-print.dsl.in		X	2001
