@@ -1,3 +1,5 @@
+1019.	[bug]		The value of the lame-ttl option was limited to 18000
+			seconds, not 1800 seconds as documented. [RT #1803]
 
 1017.	[bug]		When specifying TSIG keys to dig and nsupdate using
 			the -k option, they must be HMAC-MD5 keys.  [RT #1810]
