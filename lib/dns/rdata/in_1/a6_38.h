@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.h,v 1.4 1999/02/15 05:44:21 marka Exp $ */
+ /* $Id: a6_38.h,v 1.5 1999/02/16 22:42:31 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -138,7 +138,8 @@ totext_in_a6(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 static dns_result_t
 fromwire_in_a6(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+	      isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_region_t sr;
 	unsigned char prefixlen;
 	unsigned char octets;
@@ -239,7 +240,8 @@ compare_in_a6(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_in_a6(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		 isc_buffer_t *target)
+{
 
 	REQUIRE(type == 1);
 	REQUIRE(class == 1);

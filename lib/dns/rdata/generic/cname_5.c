@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cname_5.c,v 1.7 1999/02/15 05:44:16 marka Exp $ */
+ /* $Id: cname_5.c,v 1.8 1999/02/16 22:42:24 marka Exp $ */
 
 #ifndef RDATA_GENERIC_CNAME_5_H
 #define RDATA_GENERIC_CNAME_5_H
@@ -23,12 +23,14 @@
 static dns_result_t
 fromtext_cname(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
-	       isc_boolean_t downcase, isc_buffer_t *target) {
+	       isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
 
 	REQUIRE(type == 5);
+
 	class = class;	/*unused*/
 	
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
@@ -63,10 +65,12 @@ totext_cname(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 static dns_result_t
 fromwire_cname(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
-	       isc_boolean_t downcase, isc_buffer_t *target) {
+	       isc_boolean_t downcase, isc_buffer_t *target)
+{
 	dns_name_t name;
 
 	REQUIRE(type == 5);
+
 	class = class;	/*unused*/
 
 	dns_name_init(&name, NULL);
@@ -112,7 +116,8 @@ compare_cname(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_cname(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		 isc_buffer_t *target)
+{
 
 	REQUIRE(type == 5);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.h,v 1.2 1999/02/15 05:44:15 marka Exp $ */
+ /* $Id: afsdb_18.h,v 1.3 1999/02/16 22:42:23 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -25,7 +25,8 @@
 static dns_result_t
 fromtext_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
 	   isc_lex_t *lexer, dns_name_t *origin,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+	   isc_boolean_t downcase, isc_buffer_t *target) 
+{
 	isc_token_t token;
 	isc_buffer_t buffer;
 	dns_name_t name;
@@ -52,21 +53,21 @@ totext_afsdb(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_region_t region;
-	char buf[sizeof "64000"];
+	char buf[sizeof "64000 "];
 	isc_boolean_t sub;
 	unsigned int num;
 
 
 	REQUIRE(rdata->type == 18);
+
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 
 	dns_rdata_toregion(rdata, &region);
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
-	sprintf(buf, "%u", num);
+	sprintf(buf, "%u ", num);
 	RETERR(str_totext(buf, target));
-	RETERR(str_totext(" ", target));
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, origin, &prefix);
 	return(dns_name_totext(&prefix, sub, target));
@@ -74,8 +75,9 @@ totext_afsdb(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 static dns_result_t
 fromwire_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
-	   isc_buffer_t *source, dns_decompress_t *dctx,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+	       isc_buffer_t *source, dns_decompress_t *dctx,
+	       isc_boolean_t downcase, isc_buffer_t *target)
+{
 	dns_name_t name;
 	isc_region_t sr;
 	isc_region_t tr;
@@ -153,7 +155,8 @@ compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_afsdb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		 isc_buffer_t *target)
+{
 
 	REQUIRE(type == 18);
 	

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.c,v 1.2 1999/02/15 05:44:19 marka Exp $ */
+ /* $Id: rt_21.c,v 1.3 1999/02/16 22:42:29 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -25,7 +25,8 @@
 static dns_result_t
 fromtext_rt(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
-	    isc_boolean_t downcase, isc_buffer_t *target) {
+	    isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -75,7 +76,8 @@ totext_rt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 static dns_result_t
 fromwire_rt(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_buffer_t *source, dns_decompress_t *dctx,
-	    isc_boolean_t downcase, isc_buffer_t *target) {
+	    isc_boolean_t downcase, isc_buffer_t *target)
+{
         dns_name_t name;
 	isc_region_t sregion;
 	isc_region_t tregion;
@@ -152,7 +154,8 @@ compare_rt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_rt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	      isc_buffer_t *target)
+{
 
 	REQUIRE(type == 21);
 

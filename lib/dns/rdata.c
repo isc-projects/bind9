@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999 Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.34 1999/02/16 02:54:17 marka Exp $ */
+ /* $Id: rdata.c,v 1.35 1999/02/16 22:42:23 marka Exp $ */
 
 #include <config.h>
 
@@ -27,11 +27,11 @@
 #include <isc/lex.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/region.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/rdata.h>
-#include <dns/region.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/rcode.h>
@@ -159,7 +159,7 @@ static const char octdigits[] = "01234567";
 	{ 0, NULL, 0}
 
 
-struct tbl {
+static struct tbl {
 	unsigned int	value;
 	char	*name;
 	int	flags;
@@ -224,9 +224,9 @@ dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
  ***/
 
 void
-dns_rdata_fromregion(dns_rdata_t *rdata,
-			  dns_rdataclass_t class, dns_rdatatype_t type,
-			  isc_region_t *r) {
+dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t class,
+		     dns_rdatatype_t type, isc_region_t *r)
+{
 			  
 	REQUIRE(rdata != NULL);
 	REQUIRE(r != NULL);
@@ -248,12 +248,11 @@ dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r) {
 }
 
 dns_result_t
-dns_rdata_fromwire(dns_rdata_t *rdata,
-		   dns_rdataclass_t class, dns_rdatatype_t type,
-		   isc_buffer_t *source,
-		   dns_decompress_t *dctx,
-		   isc_boolean_t downcase,
-		   isc_buffer_t *target) {
+dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t class,
+		   dns_rdatatype_t type, isc_buffer_t *source,
+		   dns_decompress_t *dctx, isc_boolean_t downcase,
+		   isc_buffer_t *target)
+{
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t ss;
@@ -266,6 +265,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata,
 
 	ss = *source;
 	st = *target;
+	/* XXX */
 	region.base = (unsigned char *)(target->base) + target->used;
 
 	FROMWIRESWITCH
@@ -291,7 +291,8 @@ dns_rdata_fromwire(dns_rdata_t *rdata,
 
 dns_result_t
 dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
-	         isc_buffer_t *target) {
+	         isc_buffer_t *target)
+{
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_region_t tr;
@@ -313,12 +314,11 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 }
 
 dns_result_t
-dns_rdata_fromtext(dns_rdata_t *rdata,
-		   dns_rdataclass_t class, dns_rdatatype_t type,
-		   isc_lex_t *lexer, dns_name_t *origin,
-		   isc_boolean_t downcase,
-		   isc_buffer_t *target,
-		   dns_rdatacallbacks_t *callbacks) {
+dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t class,
+		   dns_rdatatype_t type, isc_lex_t *lexer,
+		   dns_name_t *origin, isc_boolean_t downcase,
+		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
+{
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
@@ -428,10 +428,10 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 }
 
 dns_result_t
-dns_rdata_fromstruct(dns_rdata_t *rdata,
-		     dns_rdataclass_t class, dns_rdatatype_t type,
-		     void *source,
-		     isc_buffer_t *target) {
+dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t class,
+		     dns_rdatatype_t type, void *source,
+		     isc_buffer_t *target)
+{
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_buffer_t st;
 	isc_region_t region;
@@ -659,7 +659,7 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 
 	n = *sp++;
 
-	INSIST(n + 1 <= source->length);
+	REQUIRE(n + 1 <= source->length);
 
 	if (tl < 1)
 		return (DNS_R_NOSPACE);
@@ -835,7 +835,8 @@ uint16_fromregion(isc_region_t *region) {
 
 static dns_result_t
 gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
-	 isc_boolean_t eol) {
+	 isc_boolean_t eol)
+{
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 			       ISC_LEXOPT_DNSMULTILINE;
 	isc_result_t result;

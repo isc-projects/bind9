@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mf_4.c,v 1.7 1999/02/15 05:44:17 marka Exp $ */
+ /* $Id: mf_4.c,v 1.8 1999/02/16 22:42:26 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MF_4_H
 #define RDATA_GENERIC_MF_4_H
@@ -23,7 +23,8 @@
 static dns_result_t
 fromtext_mf(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
-	    isc_boolean_t downcase, isc_buffer_t *target) {
+	    isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -62,7 +63,8 @@ totext_mf(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 static dns_result_t
 fromwire_mf(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_buffer_t *source, dns_decompress_t *dctx,
-	    isc_boolean_t downcase, isc_buffer_t *target) {
+	    isc_boolean_t downcase, isc_buffer_t *target)
+{
         dns_name_t name;
 
 	REQUIRE(type == 4);
@@ -112,7 +114,8 @@ compare_mf(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_mf(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	      isc_buffer_t *target)
+{
 
 	REQUIRE(type == 4);
 

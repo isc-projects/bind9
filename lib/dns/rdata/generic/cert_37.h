@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.h,v 1.4 1999/02/05 00:05:46 marka Exp $ */
+ /* $Id: cert_37.h,v 1.5 1999/02/16 22:42:24 marka Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -61,7 +61,8 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	n = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0) {
-		RETERR(dns_secalg_fromtext(&secalg, &token.value.as_textregion));
+		RETERR(dns_secalg_fromtext(&secalg,
+					   &token.value.as_textregion));
 	} else {
 		if (n < 0 || n > 0xff)
 			return (DNS_R_RANGE);
@@ -75,7 +76,7 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 static dns_result_t
 totext_cert(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t sr;
-	char buf[sizeof "64000"];
+	char buf[sizeof "64000 "];
 	unsigned int n;
 
 	REQUIRE(rdata->type == 37);
@@ -93,9 +94,8 @@ totext_cert(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	/* key tag */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u", n);
+	sprintf(buf, "%u ", n);
 	RETERR(str_totext(buf, target));
-	RETERR(str_totext(" ", target));
 
 	/* algorithm */
 	RETERR(dns_secalg_totext(sr.base[0], target));
@@ -155,7 +155,8 @@ compare_cert(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_cert(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		isc_buffer_t *target)
+{
 
 	REQUIRE(type == 37);
 	

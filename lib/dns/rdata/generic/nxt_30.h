@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.h,v 1.4 1999/02/15 05:44:18 marka Exp $ */
+ /* $Id: nxt_30.h,v 1.5 1999/02/16 22:42:28 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -24,8 +24,9 @@
 
 static dns_result_t
 fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
-	   isc_lex_t *lexer, dns_name_t *origin,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+	     isc_lex_t *lexer, dns_name_t *origin,
+	     isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -117,8 +118,9 @@ totext_nxt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 static dns_result_t
 fromwire_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
-	   isc_buffer_t *source, dns_decompress_t *dctx,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+	     isc_buffer_t *source, dns_decompress_t *dctx,
+	     isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_region_t sr;
 	dns_name_t name;
 
@@ -180,7 +182,8 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_nxt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	       isc_buffer_t *target)
+{
 
 	REQUIRE(type == 30);
 

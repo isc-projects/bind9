@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.5 1999/02/09 07:52:31 marka Exp $ */
+ /* $Id: aaaa_28.c,v 1.6 1999/02/16 22:42:31 marka Exp $ */
 
  /* RFC 1886 */
 
@@ -34,8 +34,9 @@
 
 static dns_result_t
 fromtext_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type,
-	      isc_lex_t *lexer, dns_name_t *origin,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+		 isc_lex_t *lexer, dns_name_t *origin,
+		 isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	unsigned char addr[16];
 	isc_region_t region;
@@ -79,8 +80,9 @@ totext_in_aaaa(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 static dns_result_t
 fromwire_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type,
-	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+		 isc_buffer_t *source, dns_decompress_t *dctx,
+		 isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_region_t sregion;
 	isc_region_t tregion;
 
@@ -139,7 +141,8 @@ compare_in_aaaa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		   isc_buffer_t *target)
+{
 
 	REQUIRE(type == 1);
 	REQUIRE(class == 1);

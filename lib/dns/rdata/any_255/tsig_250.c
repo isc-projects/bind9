@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.4 1999/02/15 05:44:15 marka Exp $ */
+ /* $Id: tsig_250.c,v 1.5 1999/02/16 22:42:23 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -273,7 +273,8 @@ compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
-		    void *source, isc_buffer_t *target) {
+		    void *source, isc_buffer_t *target)
+{
 
 	REQUIRE(type == 250);
 	REQUIRE(class == 255);

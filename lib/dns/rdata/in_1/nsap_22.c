@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.1 1999/01/27 13:38:21 marka Exp $ */
+ /* $Id: nsap_22.c,v 1.2 1999/02/16 22:42:32 marka Exp $ */
 
  /* RFC 1706 */
 
@@ -94,8 +94,9 @@ totext_in_nsap(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 static dns_result_t
 fromwire_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type,
-	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+		 isc_buffer_t *source, dns_decompress_t *dctx,
+		 isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_region_t region;
 
 	REQUIRE(type == 22);
@@ -140,7 +141,8 @@ compare_in_nsap(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		   isc_buffer_t *target)
+{
 
 	REQUIRE(type == 22);
 	REQUIRE(class == 1);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.h,v 1.2 1999/02/15 05:44:21 marka Exp $ */
+ /* $Id: naptr_35.h,v 1.3 1999/02/16 22:42:32 marka Exp $ */
 
  /* RFC 2168 */
 
@@ -24,8 +24,8 @@
 
 static dns_result_t
 fromtext_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
-		isc_lex_t *lexer, dns_name_t *origin,
-		isc_boolean_t downcase, isc_buffer_t *target)
+		  isc_lex_t *lexer, dns_name_t *origin,
+		  isc_boolean_t downcase, isc_buffer_t *target)
 {
 	isc_token_t token;
 	dns_name_t name;
@@ -113,8 +113,8 @@ totext_in_naptr(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 static dns_result_t
 fromwire_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
-		isc_buffer_t *source, dns_decompress_t *dctx,
-		isc_boolean_t downcase, isc_buffer_t *target)
+		  isc_buffer_t *source, dns_decompress_t *dctx,
+		  isc_boolean_t downcase, isc_buffer_t *target)
 {
         dns_name_t name;
 	isc_region_t sr;
@@ -230,8 +230,8 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-		  isc_buffer_t *target)
+fromstruct_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
+		    void *source, isc_buffer_t *target)
 {
 
 	REQUIRE(type == 35);

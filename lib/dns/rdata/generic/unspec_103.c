@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: unspec_103.c,v 1.1 1999/02/03 06:00:51 marka Exp $ */
+ /* $Id: unspec_103.c,v 1.2 1999/02/16 22:42:30 marka Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_H
 #define RDATA_GENERIC_UNSPEC_103_H
@@ -89,7 +89,8 @@ compare_unspec(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_unspec(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		  isc_buffer_t *target)
+{
 
 	REQUIRE(type == 103);
 

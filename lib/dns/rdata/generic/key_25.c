@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.2 1999/02/04 00:03:29 marka Exp $ */
+ /* $Id: key_25.c,v 1.3 1999/02/16 22:42:25 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -24,8 +24,9 @@
 
 static dns_result_t
 fromtext_key(dns_rdataclass_t class, dns_rdatatype_t type,
-	   isc_lex_t *lexer, dns_name_t *origin,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+	     isc_lex_t *lexer, dns_name_t *origin,
+	     isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	unsigned char c; 
 	unsigned int flags;
@@ -102,8 +103,9 @@ totext_key(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 static dns_result_t
 fromwire_key(dns_rdataclass_t class, dns_rdatatype_t type,
-	   isc_buffer_t *source, dns_decompress_t *dctx,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+	     isc_buffer_t *source, dns_decompress_t *dctx,
+	     isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_region_t sr;
 
 	REQUIRE(type == 25);
@@ -148,7 +150,8 @@ compare_key(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_key(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	       isc_buffer_t *target)
+{
 
 	REQUIRE(type == 25);
 	

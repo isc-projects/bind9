@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.h,v 1.11 1999/02/09 07:58:57 marka Exp $ */
+ /* $Id: a_1.h,v 1.12 1999/02/16 22:42:31 marka Exp $ */
 
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
@@ -33,7 +33,8 @@
 static dns_result_t
 fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+	      isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	struct in_addr addr;
 	isc_region_t region;
@@ -78,7 +79,8 @@ totext_in_a(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 static dns_result_t
 fromwire_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+	      isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_region_t sregion;
 	isc_region_t tregion;
 
@@ -137,7 +139,8 @@ compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_in_a(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	        isc_buffer_t *target)
+{
 
 	REQUIRE(type == 1);
 	REQUIRE(class == 1);

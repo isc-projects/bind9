@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.h,v 1.8 1999/01/22 05:02:44 marka Exp $ */
+ /* $Id: hinfo_13.h,v 1.9 1999/02/16 22:42:25 marka Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_H
 #define RDATA_GENERIC_HINFO_13_H
@@ -23,7 +23,8 @@
 static dns_result_t
 fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
-	       isc_boolean_t downcase, isc_buffer_t *target) {
+	       isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	int i;
 
@@ -58,7 +59,8 @@ totext_hinfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 static dns_result_t
 fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
-	       isc_boolean_t downcase, isc_buffer_t *target) {
+	       isc_boolean_t downcase, isc_buffer_t *target)
+{
 
 	REQUIRE(type == 13);
 
@@ -96,7 +98,8 @@ compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+		 isc_buffer_t *target)
+{
 
 	REQUIRE(type == 13);
 

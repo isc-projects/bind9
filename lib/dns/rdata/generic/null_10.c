@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.5 1999/01/22 05:02:47 marka Exp $ */
+ /* $Id: null_10.c,v 1.6 1999/02/16 22:42:28 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_H
 #define RDATA_GENERIC_NULL_10_H
@@ -23,7 +23,8 @@
 static dns_result_t
 fromtext_null(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+	      isc_boolean_t downcase, isc_buffer_t *target)
+{
 
 	REQUIRE(type == 10);
 
@@ -53,7 +54,8 @@ totext_null(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 static dns_result_t
 fromwire_null(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target) {
+	      isc_boolean_t downcase, isc_buffer_t *target)
+{
 
 	REQUIRE(type == 10);
 
@@ -89,7 +91,8 @@ compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_null(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	        isc_buffer_t *target)
+{
 
 	REQUIRE(type == 10);
 

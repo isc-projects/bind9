@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.h,v 1.1 1999/01/22 05:02:49 marka Exp $ */
+ /* $Id: x25_19.h,v 1.2 1999/02/16 22:42:31 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -26,8 +26,9 @@
 
 static dns_result_t
 fromtext_x25(dns_rdataclass_t class, dns_rdatatype_t type,
-	       isc_lex_t *lexer, dns_name_t *origin,
-	       isc_boolean_t downcase, isc_buffer_t *target) {
+	     isc_lex_t *lexer, dns_name_t *origin,
+	     isc_boolean_t downcase, isc_buffer_t *target)
+{
 	isc_token_t token;
 	unsigned int i;
 
@@ -59,8 +60,9 @@ totext_x25(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 static dns_result_t
 fromwire_x25(dns_rdataclass_t class, dns_rdatatype_t type,
-	       isc_buffer_t *source, dns_decompress_t *dctx,
-	       isc_boolean_t downcase, isc_buffer_t *target) {
+	     isc_buffer_t *source, dns_decompress_t *dctx,
+	     isc_boolean_t downcase, isc_buffer_t *target)
+{
 
 	REQUIRE(type == 19);
 
@@ -103,7 +105,8 @@ compare_x25(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static dns_result_t
 fromstruct_x25(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	       isc_buffer_t *target)
+{
 
 	REQUIRE(type == 19);
 
