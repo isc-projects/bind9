@@ -3,7 +3,8 @@
 			returned without first pausing the iterator, which
 			could cause deadlock. [RT #998]
 
- 777.	[placeholder]
+ 777.	[bug]		An empty forwarders list in a zone failed to override
+			global forwarders. [RT #995]
 
  776.	[func]		Improved error reporting in denied messages. [RT #252]
 
