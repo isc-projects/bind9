@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.92 2002/02/20 03:33:43 marka Exp $ */
+/* $Id: rndc.c,v 1.93 2002/09/12 04:17:21 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -117,6 +117,7 @@ command is one of the following:\n\
   flushname name [view]\n\
 		Flush the give name from the server's cache(s)\n\
   status	Display status of the server.\n\
+  recursing	Dump the queries that are currently recursing (named.recursing)\n\
   *restart	Restart the server.\n\
 \n\
 * == not yet implemented\n\
