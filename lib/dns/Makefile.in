@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.99 2000/08/24 22:15:29 bwelling Exp $
+# $Id: Makefile.in,v 1.100 2000/08/28 23:04:51 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -43,10 +43,10 @@ CONFOBJS =	config/confacl.@O@ config/confcache.@O@ config/confcommon.@O@ \
 		config/confview.@O@ config/confzone.@O@
 
 DSTOBJS =	sec/dst/bsafe_link.@O@ sec/dst/dst_api.@O@ \
-		sec/dst/dst_parse.@O@ sec/dst/hmac_link.@O@ \
-		sec/dst/openssl_link.@O@ sec/dst/openssldh_link.@O@ \
-		sec/dst/gssapi_link.@O@ \
-		sec/dst/dst_result.@O@ sec/dst/dst_lib.@O@
+		sec/dst/dst_lib.@O@ sec/dst/dst_parse.@O@ \
+		sec/dst/dst_result.@O@ sec/dst/gssapi_link.@O@ \
+		sec/dst/hmac_link.@O@ sec/dst/openssl_link.@O@ \
+		sec/dst/openssldh_link.@O@
 
 OPENSSLOBJS =	sec/openssl/bn_add.@O@ sec/openssl/bn_asm.@O@ \
 		sec/openssl/bn_ctx.@O@ sec/openssl/bn_div.@O@ \
