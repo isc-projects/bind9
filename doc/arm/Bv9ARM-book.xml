@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.195 2002/03/11 06:27:07 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.196 2002/04/16 07:18:46 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3467,7 +3467,7 @@ synthetic responses to IPv6 queries as described in
 receive zone transfers from the server. <command>allow-transfer</command> may
 also be specified in the <command>zone</command> statement, in which
 case it overrides the <command>options allow-transfer</command> statement.
-If not specified, the default is to allow transfers from all hosts.</para>
+If not specified, the default is to allow transfers to all hosts.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>blackhole</command></term>
