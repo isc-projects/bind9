@@ -118,7 +118,7 @@ msgblock_internalget(dns_msgblock_t *block, unsigned int sizeof_type)
 {
 	void *ptr;
 
-	if (block->remaining == 0)
+	if (block == NULL || block->remaining == 0)
 		return (NULL);
 
 	block->remaining--;
