@@ -1,3 +1,6 @@
+
+	--- 9.3.0beta3 released ---
+
 1624.	[bug]		zonemgr_putio() call should be locked. [RT# 11163]
 
 1623.	[bug]		A serial number of zero was being displayed in the
