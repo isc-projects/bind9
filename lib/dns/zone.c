@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.15 2000/11/13 20:18:23 bwelling Exp $ */
+/* $Id: zone.c,v 1.152.2.16 2000/12/04 18:57:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -602,6 +602,28 @@ dns_zone_getjournal(dns_zone_t *zone) {
 	return (zone->journal);
 }
 
+/*
+ * Return true iff the zone is "dynamic", in the sense that the zone's
+ * master file (if any) is written by the server, rather than being
+ * updated manually and read by the server.
+ *
+ * This is true for slave zones, stub zones, and zones that allow
+ * dynamic updates either by having an update policy ("ssutable")
+ * or an "allow-update" ACL with a value other than exactly "{ none; }".
+ */
+static isc_boolean_t
+zone_isdynamic(dns_zone_t *zone) {
+	return (ISC_TF(zone->type == dns_zone_slave ||
+	       zone->type == dns_zone_stub ||
+	       zone->ssutable != NULL ||
+	       (zone->update_acl != NULL &&
+	       ! (zone->update_acl->length == 0 && 
+		  zone->update_acl->elements[0].negative == ISC_TRUE &&
+		  zone->update_acl->elements[0].type ==
+		  	dns_aclelementtype_any))));
+}
+
+
 isc_result_t
 dns_zone_load(dns_zone_t *zone) {
 	const char me[] = "dns_zone_load";
@@ -629,6 +651,16 @@ dns_zone_load(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
+	if (zone->db != NULL && zone_isdynamic(zone)) {
+		/*
+		 * This is a slave, stub, or dynamically updated
+		 * zone being reloaded.  Do nothing - the database
+		 * we already have is guaranteed to be up-to-date.
+		 */
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+		
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "start");
 
 	/*
@@ -3671,13 +3703,22 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			 */
 			(void)isc_time_now(&zone->loadtime);
 		}
-		if (zone->journal != NULL) {
+
+		if (dump && zone->journal != NULL) {
+			/*
+			 * The in-memory database just changed, and because 'dump'
+			 * is set, it didn't change by being loaded from disk.
+			 * Also, we have not journalled diffs for this change.
+			 * Therefore, the on-disk journal is missing the deltas
+			 * for this change and must be considered invalid.
+			 */
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "removing journal file");
 			(void)remove(zone->journal);
 		}
 	}
+	
 	dns_db_closeversion(db, &ver, ISC_FALSE);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
