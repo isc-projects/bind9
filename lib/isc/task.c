@@ -435,6 +435,9 @@ isc_task_destroy(isc_task_t *taskp) {
  ***/
 
 static isc_threadresult_t
+#ifdef _WIN32
+WINAPI
+#endif
 run(void *uap) {
 	isc_taskmgr_t manager = uap;
 	isc_task_t task;
