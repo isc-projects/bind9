@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision
+# From configure.in Revision: 1.246 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5201,29 +5201,40 @@ done
 
 
 #
-# Look for SGML files.  NetBSD has them under /usr/pkg/share 
-# (if installed), FreeBSD has them under /usr/local/share.
+# Look for SGML files.  The location varies; so far we
+# have seen:
+#
+# 	NetBSD 	/usr/pkg/share/docbook/dsssl/modular/
+# 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
+#	Linux	/usr/local/share/dsssl/docbook/
 #
 
 SGMLDIR=""
+SGMLSTYLEDIR=""
 
 echo $ac_n "checking for SGML files""... $ac_c" 1>&6
-echo "configure:5212: checking for SGML files" >&5
+echo "configure:5217: checking for SGML files" >&5
 for d in /usr/pkg/share/sgml /usr/local/share/sgml 
 do
-	if test -f $d/docbook/dsssl/modular/html/docbook.dsl
-	then
-		SGMLDIR=$d
-		echo "$ac_t""in $SGMLDIR" 1>&6
-		break
-	fi
+	for s in docbook/dsssl/modular dsssl/docbook
+	do
+		if test -f $d/$s/html/docbook.dsl
+		then
+			SGMLDIR=$d
+			SGMLSTYLEDIR=$d/$s
+			echo "$ac_t""in $SGMLSTYLEDIR" 1>&6
+			break
+		fi
+	done
 done
 
 if test "X$SGMLDIR" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
 	SGMLDIR=/usr/local/share/sgml
+	SGMLSTYLEDIR=/usr/local/share/docbook/dsssl/modular
 fi
+
 
 
 
@@ -5233,7 +5244,7 @@ fi
 XGMLDIR=""
 
 echo $ac_n "checking for XML files""... $ac_c" 1>&6
-echo "configure:5237: checking for XML files" >&5
+echo "configure:5248: checking for XML files" >&5
 for d in /usr/pkg/share/xml /usr/local/share/xml
 do
 	if test -f $d/dtd/docbook/docbookx.dtd
@@ -5608,6 +5619,7 @@ s%@JADE@%$JADE%g
 s%@TEX@%$TEX%g
 s%@PDFTEX@%$PDFTEX%g
 s%@SGMLDIR@%$SGMLDIR%g
+s%@SGMLSTYLEDIR@%$SGMLSTYLEDIR%g
 s%@XMLDIR@%$XMLDIR%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
 s%@BIND9_ISC_BUILDINCLUDE@%$BIND9_ISC_BUILDINCLUDE%g

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.245 $)
+AC_REVISION($Revision: 1.246 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1354,30 +1354,41 @@ AC_PATH_PROGS(PDFTEX, pdftex)
 AC_SUBST(PDFTEX)
 
 #
-# Look for SGML files.  NetBSD has them under /usr/pkg/share 
-# (if installed), FreeBSD has them under /usr/local/share.
+# Look for SGML files.  The location varies; so far we
+# have seen:
+#
+# 	NetBSD 	/usr/pkg/share/docbook/dsssl/modular/
+# 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
+#	Linux	/usr/local/share/dsssl/docbook/
 #
 
 SGMLDIR=""
+SGMLSTYLEDIR=""
 
 AC_MSG_CHECKING(for SGML files)
 for d in /usr/pkg/share/sgml /usr/local/share/sgml 
 do
-	if test -f $d/docbook/dsssl/modular/html/docbook.dsl
-	then
-		SGMLDIR=$d
-		AC_MSG_RESULT(in $SGMLDIR)
-		break
-	fi
+	for s in docbook/dsssl/modular dsssl/docbook
+	do
+		if test -f $d/$s/html/docbook.dsl
+		then
+			SGMLDIR=$d
+			SGMLSTYLEDIR=$d/$s
+			AC_MSG_RESULT(in $SGMLSTYLEDIR)
+			break
+		fi
+	done
 done
 
 if test "X$SGMLDIR" = "X"
 then
 	AC_MSG_RESULT("not found");
 	SGMLDIR=/usr/local/share/sgml
+	SGMLSTYLEDIR=/usr/local/share/docbook/dsssl/modular
 fi
 
 AC_SUBST(SGMLDIR)
+AC_SUBST(SGMLSTYLEDIR)
 
 #
 # Look for XML files.

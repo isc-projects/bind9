@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.32 2001/03/29 01:02:18 gson Exp $
+# $Id: rules.in,v 1.33 2001/03/29 22:54:20 gson Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -181,7 +181,7 @@ INSTALL_DATA =		@INSTALL_DATA@
 
 SHARESGML = @SGMLDIR@
 OPENJADE = @JADE@
-HTMLSTYLE = ${SHARESGML}/dsssl/docbook/html/docbook.dsl
+HTMLSTYLE = @SGMLSTYLEDIR@/html/docbook.dsl
 DOCBOOK2X = ${SHARESGML}/docbook2X
 ONSGMLS = onsgmls
 SGMLSPL = sgmlspl
