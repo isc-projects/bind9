@@ -56,9 +56,11 @@
  * [including the GNU Public Licence.]
  */
 
-#include <stdio.h>
 #ifdef USE_MD5 /* Added by ogud@tis.com 1998/1/26 */
+#include <port_before.h>
+#include <stdio.h>
 #include "md5_locl.h"
+#include <port_after.h>
 
 const char *MD5_version="MD5 part of SSLeay 0.8.1 19-Jul-1997";
 
