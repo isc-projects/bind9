@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.37 2000/04/19 18:32:26 explorer Exp $ */
+/* $Id: gen.c,v 1.38 2000/04/19 18:33:09 explorer Exp $ */
 
 #include <config.h>
 
@@ -163,10 +163,8 @@ upper(char *s) {
 	b = buf[buf_to_use];
 	memset(b, 0, 256);
 
-	while ((c = (*s++) & 0xff)) {
-		
+	while ((c = (*s++) & 0xff))
 		*b++ = islower(c) ? toupper(c) : c;
-	}
 	*b = '\0';
 	return (buf[buf_to_use]);
 }
