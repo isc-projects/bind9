@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bind_registry.h,v 1.4 2001/07/09 21:34:41 gson Exp $ */
+/* $Id: bind_registry.h,v 1.5 2001/09/25 01:41:43 mayer Exp $ */
 
 #ifndef ISC_BINDREGISTRY_H
 #define ISC_BINDREGISTRY_H
@@ -36,6 +36,10 @@
 #define BIND_MESSAGE_SUBKEY	\
 	"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\named"
 #define BIND_MESSAGE_NAME	"named"
+
+#define BIND_SERVICE_SUBKEY	\
+	"SYSTEM\\CurrentControlSet\\Services\\named"
+
 
 #define BIND_CONFIGFILE		0
 #define BIND_DEBUGLEVEL		1
