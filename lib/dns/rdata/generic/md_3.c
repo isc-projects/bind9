@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: md_3.c,v 1.21 2000/02/03 23:43:01 halley Exp $ */
+/* $Id: md_3.c,v 1.22 2000/03/16 01:44:08 bwelling Exp $ */
+
+/* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
 #ifndef RDATA_GENERIC_MD_3_C
 #define RDATA_GENERIC_MD_3_C
@@ -29,9 +31,9 @@ fromtext_md(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	REQUIRE(type == 3);
-
 	rdclass = rdclass;	/*unused*/
+
+	REQUIRE(type == 3);
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
@@ -60,8 +62,8 @@ totext_md(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	dns_name_fromregion(&name, &region);
 
 	sub = name_prefix(&name, tctx->origin, &prefix);
-		
-	return(dns_name_totext(&prefix, sub, target));
+
+	return (dns_name_totext(&prefix, sub, target));
 }
 
 static inline isc_result_t
@@ -71,15 +73,15 @@ fromwire_md(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
         dns_name_t name;
 
-	REQUIRE(type == 3);
-
 	rdclass = rdclass;	/*unused*/
+
+	REQUIRE(type == 3);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 	else
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-        
+
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
@@ -130,24 +132,21 @@ static inline isc_result_t
 fromstruct_md(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
+	rdclass = rdclass;	/*unused*/
+	source = source;	/*unused*/
+	target = target;	/*unused*/
 
 	REQUIRE(type == 3);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
 tostruct_md(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	target = target;	/*unused*/
+	mctx = mctx;		/*unused*/
 
 	REQUIRE(rdata->type == 3);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
