@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.18 2001/01/04 22:37:37 neild Exp $ */
+/* $Id: mutex.h,v 1.19 2001/01/04 22:39:33 neild Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -34,7 +34,7 @@
  * waiting to obtain the lock.
  */
 #ifndef ISC_MUTEX_PROFILE
-#define ISC_MUTEX_PROFILE 1
+#define ISC_MUTEX_PROFILE 0
 #endif
 
 #if ISC_MUTEX_PROFILE
