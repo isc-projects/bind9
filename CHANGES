@@ -1,3 +1,6 @@
+1842.	[port]		cmsg_len() could produce incorrect results on
+			some platform. [RT #13744]
+
 1840.	[func]		dnssec-signzone can now randomize signature end times
 			(dnssec-signzone -j jitter). [RT #13609]
 
