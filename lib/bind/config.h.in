@@ -1,3 +1,4 @@
+#undef _SOCKADDR_LEN
 #undef HAVE_FCNTL_H
 #undef HAVE_PATHS_H
 #undef HAVE_SYS_TIMERS_H
