@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.255 $)
+AC_REVISION($Revision: 1.256 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1477,7 +1477,7 @@ do
 	done
 done
 NOM_PATH_FILE(HTMLSTYLE, html/docbook.dsl, $stylepath)
-NOM_PATH_FILE(PRINTTYLE, print/docbook.dsl, $stylepath)
+NOM_PATH_FILE(PRINTSTYLE, print/docbook.dsl, $stylepath)
 
 #
 # Look for XML declarations
