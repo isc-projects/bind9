@@ -1,34 +1,34 @@
-1364.	[func]		Use response times to select forwarders.
+1367.	[func]		Use response times to select forwarders.
 
-1363.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
+1366.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
 
-1362.	[func]		"localhost" and "localnet" acls now include IPv6
+1365.	[func]		"localhost" and "localnet" acls now include IPv6
 			addresses / prefixes.
 
-1361.	[func]		Log file name when unable to open memory statistics
+1364.	[func]		Log file name when unable to open memory statistics
 			and dump database files. [RT# 3437]
 
-1360.	[func]		Listen-on-v6 now supports specific addresses.
+1363.	[func]		Listen-on-v6 now supports specific addresses.
 
-1359.	[bug]		remove IF_RUNNING test when scanning interfaces.
+1362.	[bug]		remove IF_RUNNING test when scanning interfaces.
 
-1358.	[func]		log the reason for rejecting a server when resolving
+1361.	[func]		log the reason for rejecting a server when resolving
 			queries.
 
-1357.	[bug]		--enable-libbind would fail when not built in the
+1360.	[bug]		--enable-libbind would fail when not built in the
 			source tree for certain OS's.
 
-1356.	[security]	Support patches OpenSSL libraries.
+1359.	[security]	Support patches OpenSSL libraries.
 			http://www.cert.org/advisories/CA-2002-23.html
 
-1355.	[bug]		It was possible to trigger a INSIST when debugging
+1358.	[bug]		It was possible to trigger a INSIST when debugging
 			large dynamic updates. [RT #3390]
 
-1354.	[bug]		nsupdate was extremely wasteful of memory.
+1357.	[bug]		nsupdate was extremely wasteful of memory.
 
-1355.	[tuning]	Reduce the number of events / quantum for zone tasks.
+1356.	[tuning]	Reduce the number of events / quantum for zone tasks.
 
-1354.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
+1355.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
 
 1354.	[doc]		lwres man pages had illegal nroff.
 
@@ -1418,6 +1418,8 @@
  910.	[port]		Some pre-RFC2133 IPv6 implementations do not define
 			IN6ADDR_ANY_INIT. [RT #1416]
 
+ 909.	[placeholder]
+
  908.	[func]		New program, rndc-confgen, to simplify setting up rndc.
 
  907.	[func]		The ability to get entropy from either the
@@ -1499,6 +1501,46 @@
 
  887.	[port]		Detect broken compilers that can't call static
 			functions from inline functions. [RT #1212]
+
+ 886.	[placeholder]
+
+ 885.	[placeholder]
+
+ 884.	[placeholder]
+
+ 883.	[placeholder]
+
+ 882.	[placeholder]
+
+ 881.	[placeholder]
+
+ 880.	[placeholder]
+
+ 879.	[placeholder]
+
+ 878.	[placeholder]
+
+ 877.	[placeholder]
+
+ 876.	[placeholder]
+
+ 875.	[placeholder]
+
+ 874.	[placeholder]
+
+ 873.	[placeholder]
+
+ 872.	[placeholder]
+
+ 871.	[placeholder]
+
+ 870.	[placeholder]
+
+ 869.	[placeholder]
+
+ 868.	[placeholder]
+
+ 867.	[placeholder]
 
  866.	[func]		Close debug only file channels when debug is set to
 			zero. [RT #1246]
@@ -2307,6 +2349,8 @@
 			to be non-null.	 Also 'done' will not be called if
 			dns_master_load*inc() fails immediately. [RT #565]
 
+ 619.	[placeholder]
+ 
  618.	[bug]		Queries to a signed zone could sometimes cause
 			an assertion failure.
 
@@ -2539,6 +2583,8 @@
 
  548.	[func]		The lexer now ungets tokens more correctly.
 
+ 547.	[placeholder]
+
  546.	[func]		Option 'lame-ttl' is now implemented.
 
  545.	[func]		Name limit and counting options removed from dig;
@@ -2563,6 +2609,8 @@
  539.	[func]		Support the blackhole option.
 
  538.	[bug]		fix buffer overruns by 1 in lwres_getnameinfo().
+
+ 537.	[placeholder]
 
  536.	[func]		Use transfer-source{-v6} when sending refresh queries.
 			Transfer-source{-v6} now take a optional port
@@ -3136,6 +3184,8 @@
  365.	[bug]		nsupdate -k leaked memory.
 
  364.	[func]		Added additional-from-{cache,auth}
+
+ 363.	[placeholder]
 
  362.	[bug]		rndc no longer aborts if the configuration file is
 			missing an options statement. [RT #209]
@@ -4269,7 +4319,7 @@
 			caller find the most-enclosing superdomain of
 			a name.
 
-  63	[func]		Generate NOTIFY messages.
+  63.	[func]		Generate NOTIFY messages.
 
   62.	[func]		Add UDP refresh support.
 
