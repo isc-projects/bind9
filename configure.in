@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.238 $)
+AC_REVISION($Revision: 1.239 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -727,12 +727,14 @@ case $use_libtool in
 		AM_PROG_LIBTOOL
 		O=lo
 		A=la
+		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
 		;;
 	*)
 		O=o
 		A=a
 		LIBTOOL=
 		AC_SUBST(LIBTOOL)
+		LIBTOOL_MKDEP_SED=
 		;;
 esac
 
@@ -745,6 +747,7 @@ SA=a
 AC_SUBST(O)
 AC_SUBST(A)
 AC_SUBST(SA)
+AC_SUBST(LIBTOOL_MKDEP_SED)
 
 #
 # Here begins a very long section to determine the system's networking

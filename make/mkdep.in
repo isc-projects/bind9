@@ -114,6 +114,7 @@ else
     @MKDEPCC@ @MKDEPCFLAGS@ $* |
     sed "
 	s; \./; ;g
+	@LIBTOOL_MKDEP_SED@
 	$SED" |
     awk '{
 	if ($1 != prev) {
