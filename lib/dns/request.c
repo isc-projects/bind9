@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.56 2001/02/13 02:49:05 gson Exp $ */
+/* $Id: request.c,v 1.57 2001/02/13 21:06:25 gson Exp $ */
 
 #include <config.h>
 
@@ -1047,7 +1047,7 @@ dns_request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
-	if (!request->canceling) {
+	if (!request->canceling && !DNS_REQUEST_CANCELED(request)) {
 		isc_event_t *ev =  &request->ctlevent;
 		isc_task_send(request->event->ev_sender, &ev);
 		request->canceling = ISC_TRUE;
