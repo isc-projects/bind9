@@ -111,7 +111,7 @@
 		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
 			      "dynamic update failed: %s (%s)",	\
 		      	      msg, isc_result_totext(code));	\
-		if (code != ISC_R_SUCCESS) goto failure;	\
+		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 /*
@@ -125,7 +125,7 @@
 		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
 			      "dynamic update error: %s: %s", 	\
 			      msg, isc_result_totext(code));	\
-		if (code != ISC_R_SUCCESS) goto failure;	\
+		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 /**************************************************************************/

@@ -93,7 +93,7 @@
 		isc_log_write(NOTIFY_PROTOCOL_LOGARGS,		\
 			      "notify failed: %s (%s)",	\
 		      	      msg, isc_result_totext(code));	\
-		if (code != ISC_R_SUCCESS) goto failure;	\
+		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 /*
@@ -107,7 +107,7 @@
 		isc_log_write(NOTIFY_PROTOCOL_LOGARGS,		\
 			      "notify error: %s: %s", 	\
 			      msg, isc_result_totext(code));	\
-		if (code != ISC_R_SUCCESS) goto failure;	\
+		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 /**************************************************************************/
