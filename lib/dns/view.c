@@ -92,6 +92,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
 	view->references = 1;
+	ISC_LINK_INIT(view, link);
 	view->magic = DNS_VIEW_MAGIC;
 	
 	*viewp = view;
