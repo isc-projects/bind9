@@ -63,12 +63,12 @@ ISC_LANG_BEGINDECLS
  ***** Types
  *****/
 
-typedef struct dns_fixedname {
-	dns_name_t	name;
-	dns_offsets_t	offsets;
-	isc_buffer_t	buffer;
-	unsigned char	data[255];
-} dns_fixedname_t;
+struct dns_fixedname {
+	dns_name_t			name;
+	dns_offsets_t			offsets;
+	isc_buffer_t			buffer;
+	unsigned char			data[255];
+};
 
 #define dns_fixedname_init(fn) \
 	do { \
@@ -80,6 +80,8 @@ typedef struct dns_fixedname {
 
 #define dns_fixedname_invalidate(fn) \
 	dns_name_invalidate(&((fn)->name))
+
+#define dns_fixedname_name(fn)		(&((fn)->name))
 
 ISC_LANG_ENDDECLS
 
