@@ -1,3 +1,7 @@
+ 268.	[doc]		A plain text version of the Administrator 
+			Reference Manual is now included in the distribution,
+			as doc/arm/Bv9ARM.txt.
+
  267.	[func]		Nsupdate is now provided in the distribution.
 
  266.	[bug]		zone.c:save_nsrrset() node was not initalised.
