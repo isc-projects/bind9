@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.300 2001/03/08 00:55:47 bwelling Exp $ */
+/* $Id: server.c,v 1.301 2001/03/08 01:38:39 tale Exp $ */
 
 #include <config.h>
 
@@ -611,11 +611,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		}
 		max_cache_size = (isc_uint32_t)value;
 	}
-
-	/*
-	 * XXX remove once rbt is fixed
-	 */
-	max_cache_size = 0;
 	dns_cache_setcachesize(cache, max_cache_size);
 
 	dns_cache_detach(&cache);
@@ -813,8 +808,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
  * Create the special view that handles queries under "bind. CH".
  */
 static isc_result_t
-create_bind_view(dns_view_t **viewp)
-{
+create_bind_view(dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
