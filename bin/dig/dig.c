@@ -236,13 +236,12 @@ static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 	     isc_buffer_t *buf, dig_query_t *query)
 {
-	dns_name_t *name, *print_name;
+	dns_name_t *name;
 	dns_rdataset_t *rdataset;
 	isc_buffer_t target;
 	isc_result_t result, loopresult;
 	dns_name_t empty_name;
 	char t[4096];
-	isc_boolean_t first;
 	dns_rdata_t rdata;
 	
 	UNUSED (flags);
@@ -259,8 +258,6 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
 
 		isc_buffer_init(&target, t, sizeof(t));
-		first = ISC_TRUE;
-		print_name = name;
 
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;

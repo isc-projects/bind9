@@ -1106,11 +1106,6 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			}
 			isc_socket_cancel(q->sock, task,
 					  ISC_SOCKCANCEL_ALL);
-#ifdef 0
-			isc_socket_detach(&q->sock);
-			sockcount--;
-			debug ("Socket = %d",sockcount);
-#endif
 		}
 	}
 	ENSURE(lookup->timer != NULL);
