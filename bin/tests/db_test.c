@@ -365,6 +365,8 @@ main(int argc, char *argv[]) {
 	isc_boolean_t quiet = ISC_FALSE;
 	isc_boolean_t time_lookups = ISC_FALSE;
 	isc_boolean_t found_as;
+	isc_boolean_t find_zonecut = ISC_FALSE;
+	isc_boolean_t noexact_zonecut = ISC_FALSE;
 	int i, v;
 	dns_rdatasetiter_t *rdsiter;
 	char t1[256];
@@ -373,7 +375,7 @@ main(int argc, char *argv[]) {
 	isc_region_t r1, r2;
 	dns_fixedname_t foundname;
 	dns_name_t *fname;
-	unsigned int options = 0;
+	unsigned int options = 0, zcoptions;
 	isc_time_t start, finish;
 	char *origintext;
 	dbinfo *dbi;
@@ -710,6 +712,22 @@ main(int argc, char *argv[]) {
 				       "now searching all databases\n");
 			}
 			continue;
+		} else if (strcmp(s, "!ZC") == 0) {
+			if (find_zonecut)
+				find_zonecut = ISC_FALSE;
+			else
+				find_zonecut = ISC_TRUE;
+			printf("find_zonecut = %s\n",
+			       find_zonecut ? "TRUE" : "FALSE");
+			continue;
+		} else if (strcmp(s, "!NZ") == 0) {
+			if (noexact_zonecut)
+				noexact_zonecut = ISC_FALSE;
+			else
+				noexact_zonecut = ISC_TRUE;
+			printf("noexact_zonecut = %s\n",
+			       noexact_zonecut ? "TRUE" : "FALSE");
+			continue;
 		}
 
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
@@ -723,8 +741,12 @@ main(int argc, char *argv[]) {
 		}
 
 		if (dbi == NULL) {
+			zcoptions = 0;
+			if (noexact_zonecut)
+				zcoptions |= DNS_DBTABLEFIND_NOEXACT;
 			db = NULL;
-			result = dns_dbtable_find(dbtable, &name, &db);
+			result = dns_dbtable_find(dbtable, &name, zcoptions,
+						  &db);
 			if (result != ISC_R_SUCCESS &&
 			    result != DNS_R_PARTIALMATCH) {
 				if (!quiet) {
@@ -751,8 +773,20 @@ main(int argc, char *argv[]) {
 		node = NULL;
 		dns_rdataset_init(&rdataset);
 		dns_rdataset_init(&sigrdataset);
-		result = dns_db_find(db, &name, version, type, options, 0,
-				     &node, fname, &rdataset, &sigrdataset);
+
+		if (find_zonecut && dns_db_iscache(db)) {
+			zcoptions = options;
+			if (noexact_zonecut)
+				zcoptions |= DNS_DBFIND_NOEXACT;
+			result = dns_db_findzonecut(db, &name, zcoptions,
+						    0, &node, fname,
+						    &rdataset, &sigrdataset);
+		} else {
+			result = dns_db_find(db, &name, version, type,
+					     options, 0, &node, fname,
+					     &rdataset, &sigrdataset);
+		}
+
 		if (!quiet) {
 			if (dbi != NULL)
 				printf("\n");
