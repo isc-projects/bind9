@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.8 2000/08/08 23:04:55 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.9 2000/08/11 00:20:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3312,10 +3312,10 @@ address_name: any_string
 			tmpres = dns_c_acltable_getacl(currcfg->acls,
 						       $1, &acl);
 			if (tmpres == ISC_R_NOTFOUND) {
-				parser_warning(ISC_FALSE,
-					       "undefined acl '%s' "
-					       "referenced", $1);
-				elem = NULL;
+				parser_error(ISC_FALSE,
+					     "undefined acl '%s' "
+					     "referenced", $1);
+				YYABORT;
 			} else {
 				tmpres = dns_c_ipmatch_aclnew(currcfg->mem,
 							      &elem, $1);
