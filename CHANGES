@@ -7,12 +7,15 @@
  460.	[bug]		Much of the DNSSEC code only worked with class IN.
 
  459.	[bug]		Nslookup processed the "set" command incorrectly.
+			[No RT assigned]
 
  458.	[bug]		Nslookup didn't properly check class and type values.
+			[RT #305]
 
  457.	[bug]		Dig/host/hslookup didn't properly handle connect
 			timeouts in certain situations, causing an 
 			unnecessary warning message to be printed.
+			[No RT assigned]
 
  456.	[bug]		Stub zones were not resetting the refresh and expire
 			counters, loadtime or clearing the DNS_ZONE_REFRESH
