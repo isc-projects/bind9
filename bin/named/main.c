@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.130 2003/07/25 02:22:23 marka Exp $ */
+/* $Id: main.c,v 1.131 2003/09/24 23:20:54 marka Exp $ */
 
 #include <config.h>
 
@@ -510,7 +510,6 @@ static void
 destroy_managers(void) {
 	ns_lwresd_shutdown();
 
-	isc_hash_destroy();
 	isc_entropy_detach(&ns_g_entropy);
 	/*
 	 * isc_taskmgr_destroy() will block until all tasks have exited,
@@ -518,6 +517,13 @@ destroy_managers(void) {
 	isc_taskmgr_destroy(&ns_g_taskmgr);
 	isc_timermgr_destroy(&ns_g_timermgr);
 	isc_socketmgr_destroy(&ns_g_socketmgr);
+
+	/*
+	 * isc_hash_destroy() cannot be called as long as a resolver may be
+	 * running.  Calling this after isc_taskmgr_destroy() ensures the
+	 * call is safe.
+	 */
+	isc_hash_destroy();
 }
 
 static void
