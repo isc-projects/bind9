@@ -148,6 +148,19 @@ dns_db_iszone(dns_db_t *db) {
 	return (ISC_FALSE);
 }
 
+isc_boolean_t
+dns_db_issecure(dns_db_t *db) {
+
+	/*
+	 * Is 'db' secure?
+	 */
+	
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
+
+	return ((db->methods->issecure)(db));
+}
+
 dns_name_t *
 dns_db_origin(dns_db_t *db) {
 	/*

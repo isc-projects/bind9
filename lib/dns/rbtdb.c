@@ -3367,6 +3367,22 @@ delete_callback(void *data, void *arg) {
 	}
 }
 
+static isc_boolean_t
+issecure(dns_db_t *db) {
+	dns_rbtdb_t *rbtdb;
+	isc_boolean_t secure;
+
+	rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	secure = rbtdb->secure;
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+
+	return (secure);
+}
+
 static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
@@ -3388,7 +3404,8 @@ static dns_dbmethods_t zone_methods = {
 	allrdatasets,
 	addrdataset,
 	subtractrdataset,
-	deleterdataset
+	deleterdataset,
+	issecure
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -3412,7 +3429,8 @@ static dns_dbmethods_t cache_methods = {
 	allrdatasets,
 	addrdataset,
 	subtractrdataset,
-	deleterdataset
+	deleterdataset,
+	issecure
 };
 
 dns_result_t

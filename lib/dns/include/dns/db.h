@@ -133,6 +133,7 @@ typedef struct dns_dbmethods {
 	dns_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
 					  dns_rdatatype_t type);
+	isc_boolean_t	(*issecure)(dns_db_t *db);
 } dns_dbmethods_t;
 
 #define DNS_DB_MAGIC			0x444E5344U		/* DNSD. */
@@ -281,6 +282,20 @@ dns_db_iszone(dns_db_t *db);
  * Returns:
  *	ISC_TRUE	'db' has zone semantics
  *	ISC_FALSE	otherwise
+ */
+
+isc_boolean_t
+dns_db_issecure(dns_db_t *db);
+/*
+ * Is 'db' secure?
+ *
+ * Requires:
+ *
+ *	'db' is a valid database with zone semantics.
+ *
+ * Returns:
+ *	ISC_TRUE	'db' is secure.
+ *	ISC_FALSE	'db' is not secure.
  */
 
 dns_name_t *
