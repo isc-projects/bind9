@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.48 2001/03/19 22:34:12 bwelling Exp $ */
+/* $Id: parser.c,v 1.49 2001/03/21 19:01:36 gson Exp $ */
 
 #include <config.h>
 
@@ -2325,6 +2325,7 @@ parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 			} else if (result == ISC_R_SUCCESS) {
 				parser_error(pctx, LOG_NEAR, "'%s' redefined",
 					     clause->name);
+				result = ISC_R_EXISTS;
 				goto cleanup;
 			} else {
 				parser_error(pctx, LOG_NEAR,
