@@ -1,3 +1,7 @@
+ 485.	[func]		When dig had more than one server to query, it would
+			send all of the messages at the same time.  Add
+			rate limiting of the transmitted messages.
+
  484.	[bug]		When the server was reloaded after removing addresses 
 			from the named.conf "listen-on" statement, sockets
 			were still listening on the removed addresses due
