@@ -1016,7 +1016,8 @@ dns_name_clone(dns_name_t *source, dns_name_t *target) {
 	target->length = source->length;
 	target->labels = source->labels;
 	target->attributes = source->attributes &
-		~(DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC);
+		~(DNS_NAMEATTR_READONLY | DNS_NAMEATTR_DYNAMIC |
+		  DNS_NAMEATTR_DYNOFFSETS);
 	if (target->offsets != NULL && source->labels > 0) {
 		if (source->offsets != NULL)
 			memcpy(target->offsets, source->offsets,
@@ -2900,7 +2901,54 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	target->attributes = DNS_NAMEATTR_DYNAMIC;
 	if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
 		target->attributes |= DNS_NAMEATTR_ABSOLUTE;
-	if (target->offsets != NULL)
+	if (target->offsets != NULL) {
+		if (source->offsets != NULL)
+			memcpy(target->offsets, source->offsets,
+			       source->labels);
+		else
+			set_offsets(target, target->offsets, ISC_FALSE,
+				    ISC_FALSE, ISC_FALSE);
+	}
+
+	return (DNS_R_SUCCESS);
+}
+
+isc_result_t
+dns_name_dupwithoffsets(dns_name_t *source, isc_mem_t *mctx,
+			dns_name_t *target)
+{
+	/*
+	 * Make 'target' a read-only dynamically allocated copy of 'source'.
+	 * 'target' will also have a dynamically allocated offsets table.
+	 */
+
+	REQUIRE(VALID_NAME(source));
+	REQUIRE(source->length > 0);
+	REQUIRE(VALID_NAME(target));
+	REQUIRE(BINDABLE(target));
+	REQUIRE(target->offsets == NULL);
+
+	/*
+	 * Make 'target' empty in case of failure.
+	 */
+	MAKE_EMPTY(target);
+
+	target->ndata = isc_mem_get(mctx, source->length + source->labels);
+	if (target->ndata == NULL)
+		return (DNS_R_NOMEMORY);
+
+	memcpy(target->ndata, source->ndata, source->length);
+
+	target->length = source->length;
+	target->labels = source->labels;
+	target->attributes = DNS_NAMEATTR_DYNAMIC | DNS_NAMEATTR_DYNOFFSETS |
+		DNS_NAMEATTR_READONLY;
+	if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
+		target->attributes |= DNS_NAMEATTR_ABSOLUTE;
+	target->offsets = target->ndata + source->length;
+	if (source->offsets != NULL)
+		memcpy(target->offsets, source->offsets, source->labels);
+	else
 		set_offsets(target, target->offsets, ISC_FALSE, ISC_FALSE,
 			    ISC_FALSE);
 
@@ -2909,6 +2957,8 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 void
 dns_name_free(dns_name_t *name, isc_mem_t *mctx) {
+	size_t size;
+
 	/*
 	 * Free 'name'.
 	 */
@@ -2916,7 +2966,10 @@ dns_name_free(dns_name_t *name, isc_mem_t *mctx) {
 	REQUIRE(VALID_NAME(name));
 	REQUIRE((name->attributes & DNS_NAMEATTR_DYNAMIC) != 0);
 
-	isc_mem_put(mctx, name->ndata, name->length);
+	size = name->length;
+	if ((name->attributes & DNS_NAMEATTR_DYNOFFSETS) != 0)
+		size += name->labels;
+	isc_mem_put(mctx, name->ndata, size);
 	dns_name_invalidate(name);
 }
 
