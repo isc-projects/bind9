@@ -3,6 +3,9 @@
 1330.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #3157]
 
+1326.	[bug]		Badly encoded LOC record when the size, horizontal
+			precision or vertical precision was 0.1m.
+
 1325.	[bug]		Document that internal zones are included in the
 			rndc status results.
 
