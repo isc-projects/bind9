@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.18 2000/05/05 05:49:44 marka Exp $ */
+/* $Id: gpos_27.c,v 1.19 2000/05/19 13:05:51 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -142,6 +142,7 @@ tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	gpos->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&gpos->common, link);
 
+	dns_rdata_toregion(rdata, &region);
 	gpos->long_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	if (gpos->long_len != 0) {
