@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.40 2000/05/08 14:35:38 tale Exp $ */
+/* $Id: confzone.c,v 1.41 2000/05/13 19:46:26 tale Exp $ */
 
 #include <config.h>
 
@@ -91,11 +91,17 @@
 
 typedef enum { zones_preopts, zones_postopts, zones_all } zone_print_type;
 
-static isc_result_t master_zone_init(dns_c_masterzone_t *mzone);
-static isc_result_t slave_zone_init(dns_c_slavezone_t *szone);
-static isc_result_t stub_zone_init(dns_c_stubzone_t *szone);
-static isc_result_t hint_zone_init(dns_c_hintzone_t *hzone);
-static isc_result_t forward_zone_init(dns_c_forwardzone_t *fzone);
+static void
+master_zone_init(dns_c_masterzone_t *mzone);
+static void
+slave_zone_init(dns_c_slavezone_t *szone);
+static void
+stub_zone_init(dns_c_stubzone_t *szone);
+static void
+hint_zone_init(dns_c_hintzone_t *hzone);
+static void
+forward_zone_init(dns_c_forwardzone_t *fzone);
+
 static isc_result_t zone_delete(dns_c_zone_t **zone);
 static isc_result_t master_zone_clear(isc_mem_t *mem,
 				      dns_c_masterzone_t *mzone);
@@ -442,7 +448,6 @@ dns_c_zone_new(isc_mem_t *mem,
 	       dns_c_zone_t **zone)
 {
 	dns_c_zone_t *newzone;
-	isc_result_t res;
 
 	REQUIRE(mem != NULL);
 	REQUIRE(name != NULL);
@@ -468,23 +473,23 @@ dns_c_zone_new(isc_mem_t *mem,
 	
 	switch (ztype) {
 	case dns_c_zone_master:
-		res = master_zone_init(&newzone->u.mzone);
+		master_zone_init(&newzone->u.mzone);
 		break;
 		
 	case dns_c_zone_slave:
-		res = slave_zone_init(&newzone->u.szone);
+		slave_zone_init(&newzone->u.szone);
 		break;
 
 	case dns_c_zone_stub:
-		res = stub_zone_init(&newzone->u.tzone);
+		stub_zone_init(&newzone->u.tzone);
 		break;
 		
 	case dns_c_zone_hint:
-		res = hint_zone_init(&newzone->u.hzone);
+		hint_zone_init(&newzone->u.hzone);
 		break;
 		
 	case dns_c_zone_forward:
-		res = forward_zone_init(&newzone->u.fzone);
+		forward_zone_init(&newzone->u.fzone);
 		break;
 	}
 	
@@ -3580,7 +3585,7 @@ forward_zone_print(FILE *fp, int indent, dns_c_forwardzone_t *fzone) {
 	}
 }
 
-static isc_result_t
+static void
 master_zone_init(dns_c_masterzone_t *mzone) {
 	REQUIRE(mzone != NULL);
 	
@@ -3597,11 +3602,9 @@ master_zone_init(dns_c_masterzone_t *mzone) {
 	mzone->forwarders = NULL;
 
 	memset(&mzone->setflags, 0x0, sizeof (mzone->setflags));
-
-	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 slave_zone_init(dns_c_slavezone_t *szone) {
 	REQUIRE(szone != NULL);
 
@@ -3618,11 +3621,9 @@ slave_zone_init(dns_c_slavezone_t *szone) {
 	szone->forwarders = NULL;
 
 	memset(&szone->setflags, 0x0, sizeof (szone->setflags));
-
-	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 stub_zone_init(dns_c_stubzone_t *tzone) {
 	REQUIRE(tzone != NULL);
 
@@ -3636,29 +3637,23 @@ stub_zone_init(dns_c_stubzone_t *tzone) {
 	tzone->forwarders = NULL;
 
 	memset(&tzone->setflags, 0x0, sizeof (tzone->setflags));
-
-	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 hint_zone_init(dns_c_hintzone_t *hzone) {
 	REQUIRE(hzone != NULL);
 
 	hzone->file = NULL;
 	hzone->pubkeylist = NULL;
 	memset(&hzone->setflags, 0x0, sizeof (hzone->setflags));
-
-	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 forward_zone_init(dns_c_forwardzone_t *fzone) {
 	REQUIRE(fzone != NULL);
 
 	fzone->forwarders = NULL;
 	memset(&fzone->setflags, 0x0, sizeof (fzone->setflags));
-
-	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
