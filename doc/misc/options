@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: options,v 1.29 2000/06/22 21:54:12 tale Exp $
+$Id: options,v 1.29.2.1 2000/07/11 01:15:38 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -111,7 +111,7 @@ key							    Yes
 
 logging							    Yes
 
-controls						    No
+controls						    Yes
 
 server ip_addr {
   [ bogus yes_or_no; ]					    No
