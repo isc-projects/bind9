@@ -90,7 +90,7 @@ create_view(isc_mem_t *mctx) {
 	 * XXXMLG hardwired number of tasks.
 	 */
 	result = dns_view_createresolver(view, taskmgr, 16, sockmgr,
-					 timermgr, dispatchmgr, 0, NULL, NULL);
+					 timermgr, 0, dispatchmgr, NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
