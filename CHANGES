@@ -1,3 +1,15 @@
+ 289.	[cleanup]	dig is now installed in $bindir instead of $sbindir.
+			host is now installed in $bindir.  (Be sure to remove
+			any $sbindir/dig from a previous release.)
+
+ 288.	[func]		rndc is now installed by "make install" into $sbindir.
+
+ 287.	[bug]		rndc now works again as "rndc 127.1 reload" (for
+			only that task).  Parsing its configuration file and
+			using digital signatures for authentication has been
+			disabled until named supports the "controls" statment,
+			post-9.0.0.
+
  286.	[bug]		On Solaris 2, when named inherited a signal state 
 			where SIGHUP had the SIG_IGN action, SIGHUP would
 			be ignored rather than causing the server to reload
