@@ -57,7 +57,7 @@
  * for us to continue if they fail.
  */
 
-#if 0
+#ifdef ISC_UTIL_TRACEON
 #define ISC_UTIL_TRACE(a) a
 #include <stdio.h>
 #else
@@ -99,12 +99,12 @@
 	isc_condition_waituntil((cvp), (lp), (tp))
 
 #define RWLOCK(lp, t) do { \
-	ISC_UTIL_TRACE(fprintf(stderr, "RWLOCK %p, %d\n", (lp), (t))); \
+	ISC_UTIL_TRACE(fprintf(stderr, "RWLOCK %p, %d %s %d\n", (lp), (t), __FILE__, __LINE__)); \
 	RUNTIME_CHECK(isc_rwlock_lock((lp), (t)) == ISC_R_SUCCESS); \
-	ISC_UTIL_TRACE(fprintf(stderr, "RWLOCKED %p, %d\n", (lp), (t))); \
+	ISC_UTIL_TRACE(fprintf(stderr, "RWLOCKED %p, %d %s %d\n", (lp), (t), __FILE__, __LINE__)); \
 	} while (0)
 #define RWUNLOCK(lp, t) do { \
-	ISC_UTIL_TRACE(fprintf(stderr, "RWUNLOCK %p, %d\n", (lp), (t))); \
+	ISC_UTIL_TRACE(fprintf(stderr, "RWUNLOCK %p, %d %s %d\n", (lp), (t), __FILE__, __LINE__)); \
 	RUNTIME_CHECK(isc_rwlock_unlock((lp), (t)) == ISC_R_SUCCESS); \
 	} while (0)
 
