@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.57 2000/08/14 03:50:59 gson Exp $ */
+/* $Id: zoneconf.c,v 1.58 2000/08/14 21:47:42 gson Exp $ */
 
 #include <config.h>
 
@@ -233,14 +233,16 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_zone_setoption(zone, DNS_ZONEOPT_DIALUP, boolean);
 
 #ifndef NOMINUM_PUBLIC
-	result = dns_c_zone_getmaxnames(czone, &uintval);
-	if (result != ISC_R_SUCCESS && cview != NULL)
-		result = dns_c_view_getmaxnames(cview, &uintval);
-	if (result != ISC_R_SUCCESS)
-		result = dns_c_ctx_getmaxnames(cctx, &uintval);
-	if (result != ISC_R_SUCCESS)
-		uintval = 0;
-	dns_zone_setmaxnames(zone, uintval);
+	if (czone->ztype != dns_c_zone_stub) {
+		result = dns_c_zone_getmaxnames(czone, &uintval);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getmaxnames(cview, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getmaxnames(cctx, &uintval);
+		if (result != ISC_R_SUCCESS)
+			uintval = 0;
+		dns_zone_setmaxnames(zone, uintval);
+	}
 #endif /* NOMINUM_PUBLIC */
 
 	/*
