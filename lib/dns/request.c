@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.59 2001/04/16 18:50:32 bwelling Exp $ */
+/* $Id: request.c,v 1.60 2001/04/16 21:14:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -728,7 +728,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	}
 	requestmgr_attach(requestmgr, &request->requestmgr);
 	request->hash = mgr_gethash(requestmgr);
-	request->magic = REQUEST_MAGIC;
 	ISC_LIST_APPEND(requestmgr->requests, request, link);
 	UNLOCK(&requestmgr->lock);
 
@@ -889,7 +888,6 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	}
 	requestmgr_attach(requestmgr, &request->requestmgr);
 	request->hash = mgr_gethash(requestmgr);
-	request->magic = REQUEST_MAGIC;
 	ISC_LIST_APPEND(requestmgr->requests, request, link);
 	UNLOCK(&requestmgr->lock);
 
