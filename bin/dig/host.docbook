@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.5 2004/03/05 04:57:30 marka Exp $ -->
+<!-- $Id: host.docbook,v 1.5.18.1 2004/04/13 01:30:33 marka Exp $ -->
 
 <refentry>
 
@@ -44,6 +44,8 @@
   <arg><option>-R <replaceable class="parameter">number</replaceable></option></arg>
   <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
   <arg><option>-W <replaceable class="parameter">wait</replaceable></option></arg>
+  <arg><option>-4</option></arg>
+  <arg><option>-6</option></arg>
   <arg choice=req>name</arg>
   <arg choice=opt>server</arg>
 </cmdsynopsis>
@@ -152,6 +154,12 @@ By default <command>host</command> uses UDP when making queries.  The
 <option>-T</option> option makes it use a TCP connection when querying
 the name server.  TCP will be automatically selected for queries that
 require it, such as zone transfer (AXFR) requests.
+</para>
+
+<para>
+The <option>-4</option> option forces <command>host</command> to only
+use IPv4 query transport.  The <option>-6</option> option forces
+<command>host</command> to only use IPv6 query transport.
 </para>
 
 <para>
