@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.6 2000/06/22 23:11:09 tale Exp $ */
+/* $Id: lwtest.c,v 1.6.2.1 2000/06/28 01:01:34 gson Exp $ */
 
 #include <config.h>
 
@@ -26,11 +26,12 @@
 #include <isc/net.h>
 
 #include <lwres/lwres.h>
+#include <lwres/netdb.h>
 
 static int fails = 0;
 
 static void
-CHECK(int val, const char *msg) {
+CHECK(lwres_result_t val, const char *msg) {
 	if (val != 0) {
 		printf("I:%s returned %d\n", msg, val);
 		exit(1);
@@ -44,7 +45,7 @@ static lwres_context_t *ctx;
 
 static void
 test_noop(void) {
-	int ret;
+	lwres_result_t ret;
 	lwres_lwpacket_t pkt, pkt2;
 	lwres_nooprequest_t nooprequest, *nooprequest2;
 	lwres_noopresponse_t noopresponse, *noopresponse2;
@@ -212,6 +213,128 @@ test_gnba(const char *target, lwres_uint32_t af, lwres_result_t expected,
 		lwres_gnbaresponse_free(ctx, &res);
 }
 
+static void
+test_gethostbyname(const char *name, const char *address) {
+	struct hostent *hp;
+	unsigned char addrbuf[16];
+	int ret;
+
+	hp = gethostbyname(name);
+	if (hp == NULL) {
+		if (address == NULL && h_errno == HOST_NOT_FOUND)
+			return;
+		else if (h_errno != HOST_NOT_FOUND) {
+			printf("I:gethostbyname(%s) failed: %s\n", 
+			       name, hstrerror(h_errno));
+			fails++;
+			return;
+		} else {
+			printf("I:gethostbyname(%s) returned not found\n",
+			       name);
+			fails++;
+			return;
+		}
+	} else {
+		ret = inet_pton(AF_INET, address, addrbuf);
+		assert(ret == 1);
+		if (memcmp(hp->h_addr_list[0], addrbuf, hp->h_length) != 0) {
+			char outbuf[16];
+			(void)inet_ntop(AF_INET, hp->h_addr_list[0],
+					outbuf, sizeof(outbuf));
+			printf("I:gethostbyname(%s) returned %s, expected %s\n",
+			       name, outbuf, address);
+			fails++;
+			return;
+		}
+	}
+}
+static void
+test_gethostbyname2(const char *name, const char *address, int af) {
+	struct hostent *hp;
+	unsigned char addrbuf[16];
+	int len, ret;
+
+	hp = gethostbyname2(name, af);
+	if (hp == NULL) {
+		if (address == NULL && h_errno == HOST_NOT_FOUND)
+			return;
+		else if (h_errno != HOST_NOT_FOUND) {
+			printf("I:gethostbyname(%s) failed: %s\n", 
+			       name, hstrerror(h_errno));
+			fails++;
+			return;
+		} else {
+			printf("I:gethostbyname(%s) returned not found\n",
+			       name);
+			fails++;
+			return;
+		}
+	} else {
+		if (af == AF_INET)
+			len = 4;
+		else
+			len = 16;
+		ret = inet_pton(af, address, addrbuf);
+		assert(ret == 1);
+		if (hp->h_addrtype != af) {
+			printf("I:gethostbyname(%s) returned wrong family\n",
+			       name);
+			fails++;
+			return;
+		}
+		if (len != hp->h_length ||
+		    memcmp(hp->h_addr_list[0], addrbuf, hp->h_length) != 0)
+		{
+			char outbuf[16];
+			(void)inet_ntop(AF_INET, hp->h_addr_list[0],
+					outbuf, sizeof(outbuf));
+			printf("I:gethostbyname(%s) returned %s, expected %s\n",
+			       name, outbuf, address);
+			fails++;
+			return;
+		}
+	}
+}
+
+static void
+test_gethostbyaddr(const char *address, int af, const char *name) {
+	struct hostent *hp;
+	unsigned char addrbuf[16];
+	int len, ret;
+
+	if (af == AF_INET)
+		len = 4;
+	else
+		len = 16;
+	ret = inet_pton(af, address, addrbuf);
+	assert(ret == 1);
+
+	hp = gethostbyaddr(addrbuf, len, af);
+
+	if (hp == NULL) {
+		if (name == NULL && h_errno == HOST_NOT_FOUND)
+			return;
+		else if (h_errno != HOST_NOT_FOUND) {
+			printf("I:gethostbyaddr(%s) failed: %s\n", 
+			       address, hstrerror(h_errno));
+			fails++;
+			return;
+		} else {
+			printf("I:gethostbyaddr(%s) returned not found\n",
+			       address);
+			fails++;
+			return;
+		}
+	} else {
+		if (strcmp(hp->h_name, name) != 0) {
+			printf("I:gethostbyname(%s) returned %s, expected %s\n",
+			       address, hp->h_name, name);
+			fails++;
+			return;
+		}
+	}
+}
+
 int
 main(void) {
 	lwres_result_t ret;
@@ -273,6 +396,22 @@ main(void) {
 		  LWRES_ADDRTYPE_V6, LWRES_R_SUCCESS, "bitstring.example");
 	test_gnba("1123:4567:89ab:cdef:0123:4567:89ab:cde0",
 		  LWRES_ADDRTYPE_V6, LWRES_R_NOTFOUND, NULL);
+
+	test_gethostbyname("a.example1.", "10.0.1.1");
+	test_gethostbyname("q.example1.", NULL);
+
+	test_gethostbyname2("a.example1.", "10.0.1.1", AF_INET);
+	test_gethostbyname2("b.example1.",
+			    "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+			    AF_INET6);
+	test_gethostbyname2("q.example1.", NULL, AF_INET);
+
+	test_gethostbyaddr("10.10.10.1", AF_INET, "ipv4.example");
+	test_gethostbyaddr("10.10.10.17", AF_INET, NULL);
+	test_gethostbyaddr("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
+			   AF_INET6, "nibble.example");
+	test_gethostbyaddr("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
+			   AF_INET6, "bitstring.example");
 
 	return (fails);
 }
