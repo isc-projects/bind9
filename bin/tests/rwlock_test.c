@@ -89,7 +89,7 @@ main(int argc, char *argv[]) {
 			INSIST(isc_thread_create(run1, dupname, &workers[i]) ==
 			       ISC_R_SUCCESS);
 		else
-			INSIST(isc_thread_create(run1, dupname, &workers[i]) ==
+			INSIST(isc_thread_create(run2, dupname, &workers[i]) ==
 			       ISC_R_SUCCESS);
 	}
 
