@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.10 2004/04/15 07:03:50 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.11 2004/05/06 03:19:40 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -943,7 +943,7 @@ internal_next(isc_interfaceiter_t *iter) {
 #endif
 #ifdef HAVE_TRUCLUSTER
 	if (!iter->clua_done) {
-		clua_result = clua_getaliasaddress(&intr->clua_sa,
+		clua_result = clua_getaliasaddress(&iter->clua_sa,
 						   &iter->clua_context);
 		if (clua_result != CLUA_SUCCESS)
 			iter->clua_done = ISC_TRUE;
@@ -983,7 +983,7 @@ void internal_first(isc_interfaceiter_t *iter) {
 #endif
 #ifdef HAVE_TRUCLUSTER
 	iter->clua_context = 0;
-	clua_result = clua_getaliasaddress(&intr->clua_sa,
+	clua_result = clua_getaliasaddress(&iter->clua_sa,
 					   &iter->clua_context);
 	iter->clua_done = ISC_TF(clua_result != CLUA_SUCCESS);
 #endif
