@@ -1,8 +1,4 @@
 %{
-#if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.3 1999/09/13 19:02:02 halley Exp $";
-#endif /* not lint */
-
 /*
  * Copyright (c) 1996-1999 by Internet Software Consortium.
  *
@@ -20,7 +16,10 @@ static char rcsid[] = "$Id: confparser.y,v 1.3 1999/09/13 19:02:02 halley Exp $"
  * SOFTWARE.
  */
 
- 
+#if !defined(lint) && !defined(SABER)
+static char rcsid[] = "$Id: confparser.y,v 1.4 1999/09/15 23:56:24 explorer Exp $";
+#endif /* not lint */
+
 #include <config.h>
 
 #include <stdarg.h>

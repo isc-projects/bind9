@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999 Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: time.c,v 1.1 1999/06/08 10:35:06 gson Exp $ */
+ /* $Id: time.c,v 1.2 1999/09/15 23:57:41 explorer Exp $ */
 
 #include <config.h>
 

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 1999  Internet Software Consortium.
  * 
@@ -15,7 +14,6 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
-
 
 #include	<ctype.h>
 #include	<errno.h>

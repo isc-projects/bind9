@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
