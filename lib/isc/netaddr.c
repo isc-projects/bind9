@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.32 2005/02/23 01:06:37 marka Exp $ */
+/* $Id: netaddr.c,v 1.33 2005/03/16 20:15:08 marka Exp $ */
 
 #include <config.h>
 
@@ -146,7 +146,9 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 		alen = strlen(netaddr->type.un);
 		if (alen > isc_buffer_availablelength(target))
 			return (ISC_R_NOSPACE);
-		isc_buffer_putmem(target, netaddr->type.un, alen);
+		isc_buffer_putmem(target,
+				  (const unsigned char *)(netaddr->type.un),
+				  alen);
 		return (ISC_R_SUCCESS);
 #endif
 	default:
