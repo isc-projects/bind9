@@ -77,31 +77,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 		     dns_message_t *message, unsigned int options,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
 		     dns_validator_t **validatorp);
-/*
- * Create a validator object for validating that 'rdataset', owned 
- * by  'name', is correctly signed by 'sigrdataset', or that 'message'
- * is a correctly signed negative response.
- *
- * Requires:
- * 	'name', 'rdataset', and 'sigrdataset' are valid,
- *	and 'message' is NULL, or
- *
- * 	'name', 'rdataset', and 'sigrdataset' are NULL,
- *	and 'message' is valid.
- *
- *	...
- *
- * Ensures:
- *	If ISC_R_SUCCESS is returned,
- *
- *		'*validatorp' points to a valid validator object,
- *
- * 		The validator object has started validating, and
- *
- *		A completion event with the given 'action' and 'arg' will
- * 		eventually be sent to 'task'.
- * 	
- */
 
 void
 dns_validator_cancel(dns_validator_t *validator);
