@@ -2524,8 +2524,7 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 	result = dns_rbt_findnode(search.rbtdb->tree, name, foundname, &node,
 				  &search.chain, ISC_TRUE, NULL, &search);
 
-	if (result == DNS_R_PARTIALMATCH ||
-	    ((options & DNS_DBFIND_ONLYANCESTORS) != 0)) {
+	if (result == DNS_R_PARTIALMATCH) {
 	find_ns:
 		result = find_deepest_zonecut(&search, node, nodep, foundname,
 					      rdataset, sigrdataset);
@@ -2988,7 +2987,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
-    rdatasetheader_t *newheader, isc_boolean_t merge, isc_boolean_t loading,
+    rdatasetheader_t *newheader, unsigned int options, isc_boolean_t loading,
     dns_rdataset_t *addedrdataset, isc_stdtime_t now)
 {
 	rbtdb_changed_t *changed = NULL;
@@ -2998,7 +2997,9 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	isc_boolean_t force = ISC_FALSE;
 	isc_boolean_t header_nx;
 	isc_boolean_t newheader_nx;
+	isc_boolean_t merge;
 	dns_rdatatype_t nxtype, rdtype, covers;
+	dns_trust_t trust;
 
 	/*
 	 * Add an rdatasetheader_t to a node.
@@ -3007,6 +3008,16 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	/*
 	 * Caller must be holding the node lock.
 	 */
+
+	if ((options & DNS_DBADD_MERGE) != 0)
+		merge = ISC_TRUE;
+	else
+		merge = ISC_FALSE;
+
+	if ((options & DNS_DBADD_FORCE) != 0)
+		trust = dns_trust_authsecure;
+	else
+		trust = newheader->trust;
 
 	if (rbtversion != NULL && !loading) {
 		/*
@@ -3070,7 +3081,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				/*
 				 * Found one.
 				 */
-				if (newheader->trust < topheader->trust) {
+				if (trust < topheader->trust) {
 					/*
 					 * The NXDOMAIN is more trusted.
 					 */
@@ -3129,7 +3140,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * Trying to add an rdataset with lower trust to a cache DB
 		 * has no effect, provided that the cache data isn't stale.
 		 */
-		if (rbtversion == NULL && newheader->trust < header->trust &&
+		if (rbtversion == NULL && trust < header->trust &&
 		    (header->ttl > now || header_nx)) {
 			free_rdataset(rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
@@ -3158,10 +3169,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			merged = NULL;
 			if (newheader->ttl != header->ttl)
 				force = ISC_TRUE;
-			/*
-			 * XXXRTH we're going to have to deal with signatures
-			 * somehow here...
-			 */
 			result = dns_rdataslab_merge(
 					     (unsigned char *)header,
 					     (unsigned char *)newheader,
@@ -3279,7 +3286,7 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 static isc_result_t
 addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	    isc_stdtime_t now, dns_rdataset_t *rdataset, isc_boolean_t merge,
+	    isc_stdtime_t now, dns_rdataset_t *rdataset, unsigned int options,
 	    dns_rdataset_t *addedrdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -3332,7 +3339,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
-	result = add(rbtdb, rbtnode, rbtversion, newheader, merge, ISC_FALSE,
+	result = add(rbtdb, rbtnode, rbtversion, newheader, options, ISC_FALSE,
 		     addedrdataset, now);
 	if (result == DNS_R_SUCCESS && delegating)
 		rbtnode->find_callback = 1;
@@ -3499,7 +3506,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
-	result = add(rbtdb, rbtnode, rbtversion, newheader, ISC_FALSE,
+	result = add(rbtdb, rbtnode, rbtversion, newheader, 0,
 		     ISC_FALSE, NULL, 0);
 
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
@@ -3573,8 +3580,8 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
 
-	result = add(rbtdb, node, rbtdb->current_version, newheader, ISC_TRUE,
-		     ISC_TRUE, NULL, 0);
+	result = add(rbtdb, node, rbtdb->current_version, newheader,
+		     DNS_DBADD_MERGE, ISC_TRUE, NULL, 0);
 	if (result == DNS_R_SUCCESS &&
 	    delegating_type(rbtdb, node, rdataset->type))
 		node->find_callback = 1;

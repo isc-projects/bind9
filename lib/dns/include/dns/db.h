@@ -131,7 +131,7 @@ typedef struct dns_dbmethods {
 				       dns_dbversion_t *version,
 				       isc_stdtime_t now,
 				       dns_rdataset_t *rdataset,
-				       isc_boolean_t merge,
+				       unsigned int options,
 				       dns_rdataset_t *addedrdataset);
 	isc_result_t	(*subtractrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					    dns_dbversion_t *version,
@@ -177,9 +177,10 @@ struct dns_db {
 #define DNS_DBFIND_PENDINGOK		0x08
 
 /*
- * Options that can be specified for dns_db_findzonecut().
+ * Options that can be specified for dns_db_addrdataset().
  */
-#define DNS_DBFIND_ONLYANCESTORS	0x08
+#define DNS_DBADD_MERGE			0x01
+#define DNS_DBADD_FORCE			0x02
 
 /*****
  ***** Methods
@@ -969,24 +970,29 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 isc_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   isc_stdtime_t now, dns_rdataset_t *rdataset,
-		   isc_boolean_t merge, dns_rdataset_t *addedrdataset);
+		   unsigned int options, dns_rdataset_t *addedrdataset);
 /*
  * Add 'rdataset' to 'node' in version 'version' of 'db'.
  *
  * Notes:
  *
- *	If the database has zone semantics, 'merge' is ISC_TRUE, and an
- *	rdataset of the same type as 'rdataset' already exists at 'node',
- *	then the contents of 'rdataset' will be merged with the existing
- *	rdataset.  If merge is ISC_FALSE, then rdataset will replace any
- *	existing rdataset of the same type.
+ *	If the database has zone semantics, the DNS_DBADD_MERGE option is set,
+ *	and an rdataset of the same type as 'rdataset' already exists at
+ *	'node' then the contents of 'rdataset' will be merged with the existing
+ *	rdataset.  If the option is not set, then rdataset will replace any
+ *	existing rdataset of the same type.  If not merging and the
+ *	DNS_DBADD_FORCE option is set, then the data will update the database
+ *	without regard to trust levels.  If not forcing the data, then the
+ *	rdataset will only be added if its trust level is >= the trust level of
+ *	any existing rdataset.  Forcing is only meaningful for cache databases.
  *
  *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
  *	a cache database, then the added rdataset will expire no later than
  *	now + rdataset->ttl.
  *
  *	If 'addedrdataset' is not NULL, then it will be attached to the
- *	resulting new rdataset in the database.
+ *	resulting new rdataset in the database, or to the existing data if
+ *	the existing data was better.
  *
  * Requires:
  *
@@ -1003,7 +1009,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	read-write version, or the database has cache semantics
  *	and version is NULL.
  *
- *	If the database has cache semantics, 'merge' must be ISC_FALSE.
+ *	If the database has cache semantics, the DNS_DBADD_MERGE option must
+ *	not be set.
  *
  * Returns:
  *
