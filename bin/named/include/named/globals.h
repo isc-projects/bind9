@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.50 2000/11/14 23:59:21 tale Exp $ */
+/* $Id: globals.h,v 1.51 2000/12/12 23:05:57 bwelling Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -102,11 +102,6 @@ EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
 EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
 							     "/run/lwresd.pid");
 EXTERN const char *		ns_g_username		INIT(NULL);
-
-/*
- * XXX  Temporary.
- */
-EXTERN const char *		ns_g_cachefile		INIT(NULL);
 
 #undef EXTERN
 #undef INIT

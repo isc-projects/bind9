@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.271 2000/12/12 21:33:10 bwelling Exp $ */
+/* $Id: server.c,v 1.272 2000/12/12 23:05:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -496,17 +496,6 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_cache_detach(&cache);
 
 	/*
-	 * XXXRTH  Temporary support for loading cache contents.
-	 */
-	if (ns_g_cachefile != NULL) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
-			      "loading cache '%s'", ns_g_cachefile);
-		/* DNS_R_SEENINCLUDE should be impossible here. */
-		CHECK(dns_db_load(view->cachedb, ns_g_cachefile));
-	}
-
-	/*
 	 * Resolver.
 	 *
 	 * XXXRTH  Hardwired number of tasks.
@@ -731,6 +720,13 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (view->cachefile != NULL)
 			isc_mem_free(view->mctx, view->cachefile);
 		view->cachefile = p;
+		if (view->cachefile != NULL) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+				      "loading cache '%s'", view->cachefile);
+			/* DNS_R_SEENINCLUDE should be impossible here. */
+			CHECK(dns_db_load(view->cachedb, view->cachefile));
+		}
 	}
 
 	result = ISC_R_SUCCESS;
