@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.39 2000/05/15 21:14:27 tale Exp $ */
+/* $Id: sig_24.c,v 1.40 2000/05/19 02:03:56 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -466,7 +466,7 @@ tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_name_init(&signer, NULL);
 	dns_name_fromregion(&signer, &sr);
 	dns_name_init(&sig->signer, NULL);
-	RETERR(dns_name_dup(&signer, mctx, &sig->signer));
+	RETERR(name_duporclone(&signer, mctx, &sig->signer));
 	isc_region_consume(&sr, name_length(&sig->signer));
 
 	/*
