@@ -107,8 +107,8 @@
 #define CLEAN_SECONDS		1
 #endif
 
-#define FREE_ITEMS		16	/* free count for memory pools */
-#define FILL_COUNT		 8	/* fill count for memory pools */
+#define FREE_ITEMS		64	/* free count for memory pools */
+#define FILL_COUNT		16	/* fill count for memory pools */
 
 #define DNS_ADB_INVALIDBUCKET (-1)	/* invalid bucket address */
 
