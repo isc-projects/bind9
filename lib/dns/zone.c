@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.301 2001/01/30 02:50:48 bwelling Exp $ */
+/* $Id: zone.c,v 1.302 2001/01/31 05:22:55 marka Exp $ */
 
 #include <config.h>
 
@@ -890,6 +890,11 @@ dns_zone_load(dns_zone_t *zone) {
 	isc_stdtime_get(&now);
 
 	INSIST(zone->type != dns_zone_none);
+
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING)) {
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
 
 	if (zone->db != NULL && zone->masterfile == NULL) {
 		/*
