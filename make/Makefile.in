@@ -23,4 +23,4 @@ TARGETS=
 @BIND9_MAKE_RULES@
 
 distclean::
-	rm -f rules mkdep
+	rm -f rules mkdep includes
