@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.57 2000/11/13 21:33:53 bwelling Exp $ */
+/* $Id: dig.h,v 1.58 2000/11/21 20:55:00 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -39,6 +39,12 @@
 #define COMMSIZE 0xffff
 #define RESOLVCONF "/etc/resolv.conf"
 #define OUTPUTBUF 32767
+#define MAXRRLIMIT 0xffffffff
+#define MAXTIMEOUT 0xffff
+#define MAXTRIES 0xffff
+#define MAXNDOTS 0xffff
+#define MAXPORT 0xffff
+#define MAXSERIAL 0xffffffff
 
 /*
  * Default timeout values
