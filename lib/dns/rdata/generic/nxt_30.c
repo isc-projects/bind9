@@ -15,11 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.53 2002/01/21 01:07:21 marka Exp $ */
+/* $Id: nxt_30.c,v 1.54 2002/01/31 01:50:45 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
-/* RFC 2065 */
+/* RFC 2535 */
 
 #ifndef RDATA_GENERIC_NXT_30_C
 #define RDATA_GENERIC_NXT_30_C
