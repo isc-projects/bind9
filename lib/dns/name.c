@@ -167,8 +167,8 @@ do { \
  */
 struct dns_constname {
 	dns_name_t name;
-	char const_ndata[2];
-	char const_offsets[1];
+	unsigned char const_ndata[2];
+	unsigned char const_offsets[1];
 };
 
 static struct dns_constname root = {
