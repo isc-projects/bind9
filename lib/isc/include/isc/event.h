@@ -52,6 +52,11 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 	void *				destroy_arg; \
 	ISC_LINK(ltype)			link
 
+/*
+ * Attributes matching a mask of 0x000000ff are reserved for the task library's
+ * definition.  Attributes of 0xffffff00 may be used by the application
+ * or non-ISC libraries.
+ */
 #define ISC_EVENTATTR_NOPURGE		0x00000001
 
 #define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
