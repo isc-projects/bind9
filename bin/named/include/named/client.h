@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.53 2001/02/14 03:50:07 gson Exp $ */
+/* $Id: client.h,v 1.54 2001/02/15 23:42:54 gson Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -89,7 +89,6 @@ struct ns_client {
 	ns_clientmgr_t *	manager;
 	int			state;
 	int			newstate;
-	isc_boolean_t		disconnect;
 	int			naccepts;
 	int			nreads;
 	int			nsends;
