@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.1 1999/10/26 15:39:58 bwelling Exp $
+ * $Id: tkey.c,v 1.2 1999/10/26 17:25:07 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -54,7 +54,7 @@
 
 #define dns_tsigerror_badalg 21
 
-#define RETERR(x) { \
+#define RETERR(x) do { \
 	result = (x); \
 	if (result != ISC_R_SUCCESS) \
 		goto failure; \
@@ -82,8 +82,8 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	result = dns_c_ctx_gettkeydhkey(lctx, cfg, &s, &n);
 	if (result == ISC_R_NOTFOUND)
 		return ISC_R_SUCCESS;
-	RETERR(result = dst_key_fromfile(s, n, DNS_KEYALG_DH, DST_TYPE_PRIVATE,
-					 mctx, &tkey_dhkey));
+	RETERR(dst_key_fromfile(s, n, DNS_KEYALG_DH, DST_TYPE_PRIVATE,
+				mctx, &tkey_dhkey));
 	s = NULL;
 	RETERR(dns_c_ctx_gettkeydomain(lctx, cfg, &s));
 	tkey_domain = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
@@ -126,7 +126,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	dns_rdataset_t *newset = NULL;
 	isc_buffer_t *tmprdatabuf = NULL, *tmpnamebuf = NULL;
 
-	RETERR(result = dns_message_gettemprdata(msg, &newrdata));
+	RETERR(dns_message_gettemprdata(msg, &newrdata));
 
 	dns_rdata_toregion(rdata, &r);
 	RETERR(isc_buffer_allocate(msg->mctx, &tmprdatabuf, r.length,
@@ -189,7 +189,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	dst_key_t *pubkey = NULL;
 	isc_buffer_t ourkeybuf, ournamein, ournameout, *secret = NULL;
 	isc_region_t r, ourkeyr;
-	u_int32_t ourttl;
+	isc_uint32_t ourttl;
 	unsigned char keydata[DST_KEY_MAXSIZE];
 	unsigned char namedata[1024];
 	dns_tsigkey_t *tsigkey;
