@@ -1,6 +1,6 @@
 
  491.	[bug]		nsupdate would segfault when sending certain
-			prerequisites with empty RDATA. [RT #357]
+			prerequisites with empty RDATA. [RT #356]
 
  490.	[func]		When a slave/stub zone has not yet successfully
 			obtained an SOA containing the zone's configured
