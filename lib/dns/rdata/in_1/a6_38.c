@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.20 2000/02/03 23:43:16 halley Exp $ */
+ /* $Id: a6_38.c,v 1.21 2000/03/19 03:15:49 brister Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -124,7 +124,7 @@ totext_in_a6(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
 	sub = name_prefix(&name, tctx->origin, &prefix);
-	return(dns_name_totext(&prefix, sub, target));
+	return (dns_name_totext(&prefix, sub, target));
 }
 
 static inline isc_result_t
@@ -279,7 +279,7 @@ fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	RETERR(mem_tobuffer(target, &prefixlen, 1));
 
 	if (a6->prefixlen != 128) {
-
+		/* XXX fix this! */
 	}
 
 	octets = 16 - prefixlen / 8;
@@ -288,19 +288,21 @@ fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_in_a6(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_in_a6(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
 
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_in_a6(void *source) {
+freestruct_in_a6(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
@@ -319,7 +321,8 @@ additionaldata_in_a6(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_in_a6(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_in_a6(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r1, r2;
 	unsigned char prefixlen, octets;
 	isc_result_t result;
