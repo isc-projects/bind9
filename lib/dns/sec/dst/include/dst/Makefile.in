@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	dst.h
+HEADERS =	dst.h lib.h result.h
 
 SUBDIRS =
 TARGETS =
