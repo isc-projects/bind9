@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.8 2001/01/09 21:56:12 bwelling Exp $ */
+/* $Id: lib.c,v 1.8.12.1 2003/10/07 03:28:33 marka Exp $ */
 
 #include <config.h>
 
@@ -30,7 +30,7 @@
  *** Globals
  ***/
 
-isc_msgcat_t *			isc_msgcat = NULL;
+LIBISC_EXTERNAL_DATA isc_msgcat_t *		isc_msgcat = NULL;
 
 
 /***

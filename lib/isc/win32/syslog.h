@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.h,v 1.3 2001/07/09 21:06:20 gson Exp $ */
+/* $Id: syslog.h,v 1.3.14.1 2003/10/07 03:28:39 marka Exp $ */
 
 #ifndef _SYSLOG_H
 #define _SYSLOG_H
@@ -66,6 +66,8 @@ ModifyLogLevel(int level);
 void
 InitNTLogging(FILE *, int);
 
+void
+NTReportError(const char *, const char *);
 /*
  * Include the event codes required for logging.
  */

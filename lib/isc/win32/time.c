@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.24.2.3.10.1 2003/08/12 05:34:06 marka Exp $ */
+/* $Id: time.c,v 1.24.2.3.10.2 2003/10/07 03:28:40 marka Exp $ */
 
 #include <config.h>
 
@@ -48,14 +48,14 @@
  ***/
 
 static isc_time_t epoch = { { 0, 0 } };
-isc_time_t *isc_time_epoch = &epoch;
+LIBISC_EXTERNAL_DATA isc_time_t *isc_time_epoch = &epoch;
 
 /***
  *** Intervals
  ***/
 
 static isc_interval_t zero_interval = { 0 };
-isc_interval_t *isc_interval_zero = &zero_interval;
+LIBISC_EXTERNAL_DATA isc_interval_t *isc_interval_zero = &zero_interval;
 
 void
 isc_interval_set(isc_interval_t *i, unsigned int seconds,
@@ -69,7 +69,7 @@ isc_interval_set(isc_interval_t *i, unsigned int seconds,
 }
 
 isc_boolean_t
-isc_interval_iszero(isc_interval_t *i) {
+isc_interval_iszero(const isc_interval_t *i) {
 	REQUIRE(i != NULL);
 	if (i->interval == 0)
 		return (ISC_TRUE);
@@ -86,7 +86,7 @@ isc_time_settoepoch(isc_time_t *t) {
 }
 
 isc_boolean_t
-isc_time_isepoch(isc_time_t *t) {
+isc_time_isepoch(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 
 	if (t->absolute.dwLowDateTime == 0 &&
@@ -106,7 +106,7 @@ isc_time_now(isc_time_t *t) {
 }
 
 isc_result_t
-isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
+isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL);
@@ -129,14 +129,15 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 }
 
 int
-isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
+isc_time_compare(const isc_time_t *t1, const isc_time_t *t2) {
 	REQUIRE(t1 != NULL && t2 != NULL);
 
 	return ((int)CompareFileTime(&t1->absolute, &t2->absolute));
 }
 
 isc_result_t
-isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
+isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result)
+{
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
@@ -156,7 +157,8 @@ isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 }
 
 isc_result_t
-isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
+isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
+		  isc_time_t *result) {
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
@@ -176,7 +178,7 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 }
 
 isc_uint64_t
-isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
+isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	ULARGE_INTEGER i1, i2;
 	LONGLONG i3;
 
@@ -199,7 +201,7 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 }
 
 isc_uint32_t
-isc_time_nanoseconds(isc_time_t *t) {
+isc_time_nanoseconds(const isc_time_t *t) {
 	SYSTEMTIME st;
 
 	/*
@@ -217,20 +219,20 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	SYSTEMTIME st;
 	char DateBuf[50];
 	char TimeBuf[50];
-
+	
 	static const char badtime[] = "99-Bad-9999 99:99:99.999";
 	
 	REQUIRE(len > 0);
 	if (FileTimeToLocalFileTime(&t->absolute, &localft) &&
-	    FileTimeToSystemTime(&localft, &st))
-	{
-		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "dd-MMM-yyyy".
+	    FileTimeToSystemTime(&localft, &st)) {
+		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "dd-MMM-yyyy",
 			      DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOTIMEMARKER|
 			      TIME_FORCE24HOURFORMAT, &st, NULL, TimeBuf, 50);
-
+		
 		snprintf(buf, len, "%s %s.%03u", DateBuf, TimeBuf,
 			 st.wMilliseconds);
+		
 	} else
 		snprintf(buf, len, badtime);
 }

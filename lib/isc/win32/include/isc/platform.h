@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.5 2001/07/26 03:15:15 mayer Exp $ */
+/* $Id: platform.h,v 1.5.12.1 2003/10/07 03:28:41 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -56,27 +56,33 @@
  */
 
 #ifdef LIBISC_EXPORTS
-#define LIBISC_EXTERNAL_DATA __declspec( dllexport )
+#define LIBISC_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBISC_EXTERNAL_DATA __declspec( dllimport ) 
+#define LIBISC_EXTERNAL_DATA __declspec(dllimport) 
 #endif
 
 #ifdef LIBISCCFG_EXPORTS
-#define LIBISCCFG_EXTERNAL_DATA __declspec( dllexport )
+#define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBISCCFG_EXTERNAL_DATA __declspec( dllimport ) 
+#define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport) 
 #endif
 
 #ifdef LIBISCCC_EXPORTS
-#define LIBISCCC_EXTERNAL_DATA __declspec( dllexport )
+#define LIBISCCC_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBISCCC_EXTERNAL_DATA __declspec( dllimport ) 
+#define LIBISCCC_EXTERNAL_DATA __declspec(dllimport) 
 #endif
 
 #ifdef LIBDNS_EXPORTS
-#define LIBDNS_EXTERNAL_DATA __declspec( dllexport )
+#define LIBDNS_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBDNS_EXTERNAL_DATA __declspec( dllimport )
+#define LIBDNS_EXTERNAL_DATA __declspec(dllimport)
+#endif
+
+#ifdef LIBBIND9_EXPORTS
+#define LIBBIND9_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBBIND9_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
 #endif /* ISC_PLATFORM_H */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.21.12.2 2003/08/11 05:28:21 marka Exp $ */
+/* $Id: util.h,v 1.21.12.3 2003/10/07 03:28:36 marka Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -175,9 +175,6 @@
 #define DESTROYMUTEXBLOCK(bp, n) \
 	RUNTIME_CHECK(isc_mutexblock_destroy((bp), (n)) == ISC_R_SUCCESS)
 
-#define DESTROYMUTEXBLOCK(bp, n) \
-	RUNTIME_CHECK(isc_mutexblock_destroy((bp), (n)) == ISC_R_SUCCESS)
-
 /*
  * List Macros.
  */
@@ -219,11 +216,6 @@
 #define UNEXPECTED_ERROR		isc_error_unexpected
 #define FATAL_ERROR			isc_error_fatal
 #define RUNTIME_CHECK(cond)		ISC_ERROR_RUNTIMECHECK(cond)
-
-/*
- * Time
- */
-#define TIME_NOW(tp) 	RUNTIME_CHECK(isc_time_now((tp)) == ISC_R_SUCCESS)
 
 /*
  * Time

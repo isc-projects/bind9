@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.3.2.2.4.2 2003/08/26 03:24:13 marka Exp $ */
+/* $Id: net.c,v 1.3.2.2.4.3 2003/10/07 03:28:39 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/once.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -43,22 +44,26 @@ static isc_result_t
 try_proto(int domain) {
 	SOCKET s;
 	isc_result_t result = ISC_R_SUCCESS;
+	char strbuf[ISC_STRERRORSIZE];
+	int errval;
 
 	s = socket(domain, SOCK_STREAM, 0);
 	if (s == INVALID_SOCKET) {
-		switch (WSAGetLastError()) {
+		errval = WSAGetLastError();
+		switch (errval) {
 		case WSAEAFNOSUPPORT:
 		case WSAEPROTONOSUPPORT:
 		case WSAEINVAL:
 			return (ISC_R_NOTFOUND);
 		default:
+			isc__strerror(errval, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() %s: %s",
 					 isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_GENERAL,
 							ISC_MSG_FAILED,
 							"failed"),
-					 strerror(errno));
+					 strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 	}
@@ -146,7 +151,8 @@ isc_net_probeipv6(void) {
 static void
 try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
-	int s, on;
+	SOCKET s;
+	int on;
 	char strbuf[ISC_STRERRORSIZE];
 #endif
 	isc_result_t result;
@@ -163,7 +169,7 @@ try_ipv6only(void) {
 #else
 	/* check for TCP sockets */
 	s = socket(PF_INET6, SOCK_STREAM, 0);
-	if (s == -1) {
+	if (s == INVALID_SOCKET) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
@@ -186,7 +192,7 @@ try_ipv6only(void) {
 
 	/* check for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
-	if (s == -1) {
+	if (s == INVALID_SOCKET) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",

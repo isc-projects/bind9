@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.17.12.1 2003/08/14 04:25:09 marka Exp $ */
+/* $Id: ipv6.h,v 1.17.12.2 2003/10/07 03:28:34 marka Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
@@ -75,8 +75,8 @@ struct in6_addr {
 #define IN6ADDR_ANY_INIT 	{{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}}
 #define IN6ADDR_LOOPBACK_INIT 	{{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}}
 
-extern const struct in6_addr in6addr_any;
-extern const struct in6_addr in6addr_loopback;
+LIBISC_EXTERNAL_DATA extern const struct in6_addr in6addr_any;
+LIBISC_EXTERNAL_DATA extern const struct in6_addr in6addr_loopback;
 
 struct sockaddr_in6 {
 #ifdef ISC_PLATFORM_HAVESALEN

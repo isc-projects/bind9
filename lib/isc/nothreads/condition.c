@@ -15,18 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.4 2001/04/13 02:26:30 tale Exp $ */
+/* $Id: condition.c,v 1.4.12.1 2003/10/07 03:28:36 marka Exp $ */
 
-/*
- * This file intentionally left blank.
- */
+#include <isc/util.h>
 
-/*
- * Well, not completely.  The stupid hack below shuts up compilers
- * from complaining about an empty file.
- */
-static void
-isc_condition_nothreads(void) {
-	isc_condition_nothreads();
-}
-
+EMPTY_TRANSLATION_UNIT

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.4.12.1 2003/09/11 00:18:16 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.4.12.2 2003/10/07 03:28:39 marka Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -35,9 +35,9 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/strerror.h>
 #include <isc/types.h>
 #include <isc/util.h>
-#include "errno2result.h"
 
 /* Common utility functions */
 
@@ -101,6 +101,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 
 isc_result_t
 isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
+	char strbuf[ISC_STRERRORSIZE]; 
 	isc_interfaceiter_t *iter;
 	isc_result_t result;
 	int error;
@@ -122,9 +123,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * SIO_GET_INTERFACE_LIST WSAIoctl on.
 	 */
 	if ((iter->socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		error = WSAGetLastError();
+		isc__strerror(error, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "making interface scan socket: %s",
-				 strerror(errno));
+				"making interface scan socket: %s",
+				strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto socket_failure;
 	}
@@ -144,15 +147,15 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 		if (WSAIoctl(iter->socket, SIO_GET_INTERFACE_LIST,
 			     0, 0, iter->buf, iter->bufsize,
-			     &bytesReturned, 0, 0)
-		    == SOCKET_ERROR)
+			     &bytesReturned, 0, 0) == SOCKET_ERROR)
 		{
 			error = WSAGetLastError();
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
+				isc__strerror(error, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-					     "get interface configuration: %s",
-						 NTstrerror(error));
+						"get interface configuration: %s",
+						strbuf);
 				result = ISC_R_UNEXPECTED;
 				goto ioctl_failure;
 			}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.3.12.1 2003/09/24 03:47:20 marka Exp $ */
+/* $Id: syslog.c,v 1.3.12.2 2003/10/07 03:28:39 marka Exp $ */
 
 #include <config.h>
 
@@ -159,4 +159,23 @@ InitNTLogging(FILE *stream, int debug) {
 	log_stream = stream;
 	ModifyLogLevel(debug);
 }
+/*
+ * This function is for reporting errors to the application
+ * event log in case the regular syslog is not available
+ * mainly during startup. It should not be used under normal
+ * circumstances.
+ */
+void
+NTReportError(const char *name, const char *str) {
+	HANDLE hNTAppLog = NULL;
+	const char *buf[1];
 
+	buf[0] = str;
+
+	hNTAppLog = RegisterEventSource(NULL, name);
+
+	ReportEvent(hNTAppLog, EVENTLOG_ERROR_TYPE, 0,
+		    BIND_ERR_MSG, NULL, 1, 0, buf, NULL);
+
+	DeregisterEventSource(hNTAppLog);
+}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.3.2.2.2.4 2003/09/24 03:47:17 marka Exp $ */
+/* $Id: entropy.c,v 1.3.2.2.2.5 2003/10/07 03:28:32 marka Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -384,7 +384,7 @@ estimate_entropy(sample_queue_t *sq, isc_uint32_t t) {
 
 	/*
 	 * If the time counter has overflowed, calculate the real difference.
-	 * If it has not, it is simplier.
+	 * If it has not, it is simpler.
 	 */
 	if (t < sq->last_time)
 		delta = UINT_MAX - sq->last_time + t;

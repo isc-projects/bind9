@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.48.2.1.2.5 2003/09/11 00:18:14 marka Exp $ */
+/* $Id: sockaddr.c,v 1.48.2.1.2.6 2003/10/07 03:28:34 marka Exp $ */
 
 #include <config.h>
 
@@ -184,6 +184,7 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	const struct in6_addr *in6;
 
 	REQUIRE(sockaddr != NULL);
+
 	switch (sockaddr->type.sa.sa_family) {
 	case AF_INET:
 		s = (const unsigned char *)&sockaddr->type.sin.sin_addr;
@@ -204,8 +205,8 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	default:
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 isc_msgcat_get(isc_msgcat,
-					        ISC_MSGSET_SOCKADDR,
-				       		ISC_MSG_UNKNOWNFAMILY,
+						ISC_MSGSET_SOCKADDR,
+						ISC_MSG_UNKNOWNFAMILY,
 						"unknown address family: %d"),
 					     (int)sockaddr->type.sa.sa_family);
 		s = (const unsigned char *)&sockaddr->type;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.35.12.2 2003/08/14 04:25:09 marka Exp $ */
+/* $Id: sockaddr.h,v 1.35.12.3 2003/10/07 03:28:36 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -64,6 +64,9 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
 /*
  * Return a hash value for the socket address 'sockaddr'.  If 'address_only'
  * is ISC_TRUE, the hash value will not depend on the port.
+ *
+ * IPv6 addresses containing mapped IPv4 addresses generate the same hash
+ * value as the equivalent IPv4 address.
  */
 
 void

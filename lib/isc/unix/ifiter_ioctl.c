@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.4 2003/09/24 03:47:18 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.5 2003/10/07 03:28:37 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
  * See netintro(4).
  */
-#ifdefined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
+
+#if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
 #ifdef ISC_PLATFORM_HAVEIF_LADDRCONF
 #define lifc_len iflc_len
 #define lifc_buf iflc_buf
@@ -44,8 +45,6 @@
 #define LIFREQ lifreq
 #endif
 #endif
-
-
 
 #define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'T')
 #define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
@@ -97,6 +96,7 @@ getbuf4(isc_interfaceiter_t *iter) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	iter->bufsize = IFCONF_BUFSIZE_INITIAL;
+
 	for (;;) {
 		iter->buf = isc_mem_get(iter->mctx, iter->bufsize);
 		if (iter->buf == NULL)
@@ -116,10 +116,10 @@ getbuf4(isc_interfaceiter_t *iter) {
 				isc__strerror(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 isc_msgcat_get(isc_msgcat,
-						        ISC_MSGSET_IFITERIOCTL,
-						        ISC_MSG_GETIFCONFIG,
-						        "get interface "
-						        "configuration: %s"),
+							ISC_MSGSET_IFITERIOCTL,
+							ISC_MSG_GETIFCONFIG,
+							"get interface "
+							"configuration: %s"),
 						 strbuf);
 				goto unexpected;
 			}
@@ -143,7 +143,11 @@ getbuf4(isc_interfaceiter_t *iter) {
 		if (iter->bufsize >= IFCONF_BUFSIZE_MAX) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_IFITERIOCTL,								ISC_MSG_BUFFERMAX,								"get interface "								"configuration: "								"maximum buffer "
+							ISC_MSGSET_IFITERIOCTL,
+							ISC_MSG_BUFFERMAX,
+							"get interface "
+							"configuration: "
+							"maximum buffer "
 							"size exceeded"));
 			goto unexpected;
 		}
@@ -686,21 +690,6 @@ internal_current6(isc_interfaceiter_t *iter) {
 	}
 
 	/*
-	 * If the interface does not have a address ignore it.
-	 */
-	switch (family) {
-	case AF_INET:
-		if (iter->current.address.type.in.s_addr == htonl(INADDR_ANY))
-			return (ISC_R_IGNORE);
-		break;
-	case AF_INET6:
-		if (memcmp(&iter->current.address.type.in6, &in6addr_any,
-			   sizeof(in6addr_any)) == 0)
-			return (ISC_R_IGNORE);
-		break;
-	}
-
-	/*
 	 * Get interface flags.
 	 */
 
@@ -805,9 +794,9 @@ internal_current6(isc_interfaceiter_t *iter) {
 		iter->current.netmask.family = family;
 		for (i = 0; i < lifreq.lifr_addrlen; i += 8) {
 			bits = lifreq.lifr_addrlen - i;
-			bits = (bits < 8 ) ? (8-bits) : 0;
-			iter->current.netmask.type.in6.s6_addr[i/8] =
-				 (~0 << bits) &0xff;
+			bits = (bits < 8) ? (8 - bits) : 0;
+			iter->current.netmask.type.in6.s6_addr[i / 8] =
+				(~0 << bits) & 0xff;
 		}
 #endif
 		break;

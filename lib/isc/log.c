@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.8.2.5 2003/08/27 07:22:36 marka Exp $ */
+/* $Id: log.c,v 1.70.2.8.2.6 2003/10/07 03:28:33 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -36,7 +36,6 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
-#include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -298,9 +297,6 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 	} else
 		result = ISC_R_NOMEMORY;
-
-	if (result == ISC_R_SUCCESS)
-		result = sync_channellist(lcfg);
 
 	if (result == ISC_R_SUCCESS)
 		result = sync_channellist(lcfg);
@@ -1047,10 +1043,6 @@ isc_log_closefilelogs(isc_log_t *lctx) {
  **** Internal functions
  ****/
 
-/*
- * This would ideally be part of isc_log_registercategories(), except then
- * that function would have to return isc_result_t instead of void.
- */
 static isc_result_t
 assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	      const isc_logmodule_t *module, isc_logchannel_t *channel)

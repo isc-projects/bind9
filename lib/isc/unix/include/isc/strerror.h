@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.h,v 1.2 2001/08/31 05:57:58 marka Exp $ */
+/* $Id: strerror.h,v 1.2.12.1 2003/10/07 03:28:37 marka Exp $ */
 
 #ifndef ISC_STRERROR_H
 #define ISC_STRERROR_H
@@ -30,12 +30,11 @@ ISC_LANG_BEGINDECLS
 
 /*
  * Provide a thread safe wrapper to strerrror().
- * 'buf' is always returned.
  *
  * Requires:
  * 	'buf' to be non NULL.
  */
-char *
+void
 isc__strerror(int num, char *buf, size_t bufsize);
 
 ISC_LANG_ENDDECLS
