@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.54 2000/08/01 01:22:24 tale Exp $ */
+/* $Id: gen.c,v 1.55 2000/11/07 23:44:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -629,7 +629,7 @@ main(int argc, char **argv) {
 		for (i = 0 ; i <= 255 ; i++) {
 			ttn = &typenames[i];
 			if (ttn->typename[0] == 0) {
-				printf("\t{ \"RRTYPE%d\", "
+				printf("\t{ \"TYPE%d\", "
 				       "DNS_RDATATYPEATTR_UNKNOWN"
 				       "}%s\n", i, PRINT_COMMA(i));
 			} else {

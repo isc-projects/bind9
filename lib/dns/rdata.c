@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.116 2000/10/31 03:21:57 marka Exp $ */
+/* $Id: rdata.c,v 1.117 2000/11/07 23:44:33 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1114,10 +1114,10 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
-	char buf[sizeof "RRTYPE4294967296"];
+	char buf[sizeof "TYPE4294967296"];
 
 	if (type > 255) {
-		sprintf(buf, "RRTYPE%u", type);
+		sprintf(buf, "TYPE%u", type);
 		return (str_totext(buf, target));
 	}
 
