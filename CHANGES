@@ -1,4 +1,7 @@
 
+ 822.	[bug]		Sending nxrrset prerequisites would crash nsupdate.
+ 			[RT #1248]
+
 	--- 9.1.2 released ---
 
 	--- 9.1.2rc1 released ---
