@@ -60,7 +60,7 @@
 ISC_LANG_BEGINDECLS
 
 typedef struct dns_rdatasetmethods {
-	dns_result_t		(*disassociate)(dns_rdataset_t *rdataset);
+	void			(*disassociate)(dns_rdataset_t *rdataset);
 	dns_result_t		(*first)(dns_rdataset_t *rdataset);
 	dns_result_t		(*next)(dns_rdataset_t *rdataset);
 	void			(*current)(dns_rdataset_t *rdataset,
@@ -106,7 +106,8 @@ struct dns_rdataset {
 	void *				private5;
 };
 
-#define DNS_RDATASETATTR_RENDERED	0x0001		/* used by message.c */
+#define DNS_RDATASETATTR_QUESTION	0x0001
+#define DNS_RDATASETATTR_RENDERED	0x0002		/* used by message.c */
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
@@ -147,7 +148,23 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset);
  *
  * Ensures:
  *	'rdataset' is a valid, disassociated rdataset.
- *	
+ */
+
+void
+dns_rdataset_makequestion(dns_rdataset_t *rdataset, dns_rdataclass_t rdclass,
+			  dns_rdatatype_t type);
+/*
+ * Make 'rdataset' a valid, associated, question rdataset, with a
+ * question class of 'rdclass' and type 'type'.
+ *
+ * Notes:
+ *	Question rdatasets have a class and type, but no rdata.
+ *
+ * Requires:
+ *	'rdataset' is a valid, disassociated rdataset.
+ *
+ * Ensures:
+ *	'rdataset' is a valid, associated, question rdataset.
  */
 
 dns_result_t
@@ -222,7 +239,6 @@ dns_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
-		    isc_boolean_t no_rdata_or_ttl,
 		    isc_buffer_t *target,
 		    unsigned int *countp);
 /*
@@ -231,10 +247,6 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *
  * Notes:
  *	The rdata cursor position will be changed.
- *
- *	The no_rdata_or_ttl should normally be ISC_FALSE.  If it is ISC_TRUE
- *	the ttl and rdata fields are not printed.  This is mainly for use
- *	in the question section.
  *
  *	The number of RRs added to target will be added to *countp.
  *

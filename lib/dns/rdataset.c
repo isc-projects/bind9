@@ -101,6 +101,53 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->private5 = NULL;
 }
 
+static void
+question_disassociate(dns_rdataset_t *rdataset) {
+	(void)rdataset;
+}
+
+static dns_result_t
+question_cursor(dns_rdataset_t *rdataset) {
+	(void)rdataset;
+	return (DNS_R_NOMORE);
+}
+
+static void
+question_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+	/*
+	 * This routine should never be called.
+	 */
+	(void)rdataset;
+	(void)rdata;
+	REQUIRE(0);
+}
+
+static dns_rdatasetmethods_t question_methods = {
+	question_disassociate,
+	question_cursor,
+	question_cursor,
+	question_current
+};
+
+void
+dns_rdataset_makequestion(dns_rdataset_t *rdataset, dns_rdataclass_t rdclass,
+			  dns_rdatatype_t type)
+{
+
+	/*
+	 * Make 'rdataset' a valid, associated, question rdataset, with a
+	 * question class of 'rdclass' and type 'type'.
+	 */
+
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods == NULL);
+
+	rdataset->methods = &question_methods;
+	rdataset->rdclass = rdclass;
+	rdataset->type = type;
+	rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
+}
+
 dns_result_t
 dns_rdataset_first(dns_rdataset_t *rdataset) {
 
@@ -144,7 +191,6 @@ dns_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
-		    isc_boolean_t no_rdata_or_ttl,
 		    isc_buffer_t *target,
 		    unsigned int *countp)
 {
@@ -155,6 +201,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	isc_buffer_t st;
 	isc_buffer_t rdlen;
 	unsigned int headlen;
+	isc_boolean_t question = ISC_FALSE;
 
 	/*
 	 * Convert 'rdataset' to wire format, compressing names as specified
@@ -162,13 +209,15 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	result = dns_rdataset_first(rdataset);
-	if (no_rdata_or_ttl) {
-		REQUIRE(result == DNS_R_NOMORE);
-	} else {
-		REQUIRE(result == DNS_R_SUCCESS);
-	}
 	REQUIRE(countp != NULL);
+
+	if ((rdataset->attributes & DNS_RDATASETATTR_QUESTION) != 0)
+		question = ISC_TRUE;
+	else {
+		result = dns_rdataset_first(rdataset);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
 
 	count = 0;
 	do {
@@ -188,7 +237,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			return (result);
 		}
 		headlen = sizeof(dns_rdataclass_t) + sizeof(dns_rdatatype_t);
-		if (!no_rdata_or_ttl)
+		if (!question)
 			headlen += sizeof(dns_ttl_t)
 				+ 2;  /* XXX 2 for rdata len */
 		isc_buffer_available(target, &r);
@@ -200,7 +249,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		}
 		isc_buffer_putuint16(target, rdataset->type);
 		isc_buffer_putuint16(target, rdataset->rdclass);
-		if (!no_rdata_or_ttl) {
+		if (!question) {
 			isc_buffer_putuint32(target, rdataset->ttl);
 
 			/*
