@@ -1,5 +1,3 @@
- 686.   [bug]		dig and nslookup can now be properly aborted during
-			blocking operations. [RT #568]
 
 	--- 9.1.1rc5 released ---
 
@@ -17,6 +15,9 @@
  772.	[bug]		Owner names could be incorrectly omitted from cache
 			dumps in the presence of negative caching entries.
 			[RT #991]
+
+ 686.   [bug]		dig and nslookup can now be properly aborted during
+			blocking operations. [RT #568]
 
 	--- 9.1.1rc4 released ---
 
