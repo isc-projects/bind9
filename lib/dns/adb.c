@@ -110,6 +110,8 @@ struct dns_adb {
 struct dns_adbname {
 	unsigned int			magic;
 	dns_name_t			name;
+	isc_boolean_t			partial_results;
+	isc_stdtime_t			expire_time;
 	ISC_LIST(dns_adbnamehook_t)	namehooks;
 	ISC_LIST(dns_adbnamehook_t)	in_progress;
 	ISC_LIST(dns_adbhandle_t)	handles;
@@ -140,7 +142,7 @@ struct dns_adbzoneinfo {
 	unsigned int			magic;
 
 	dns_name_t			zone;
-	unsigned int			lame_timer;
+	isc_stdtime_t			lame_timer;
 
 	ISC_LINK(dns_adbzoneinfo_t)	link;
 };
@@ -167,7 +169,7 @@ struct dns_adbentry {
 /*
  * Internal functions (and prototypes).
  */
-static inline dns_adbname_t *new_adbname(dns_adb_t *);
+static inline dns_adbname_t *new_adbname(dns_adb_t *, dns_name_t *);
 static inline void free_adbname(dns_adb_t *, dns_adbname_t **);
 static inline dns_adbnamehook_t *new_adbnamehook(dns_adb_t *,
 						 dns_adbentry_t *);
@@ -196,10 +198,11 @@ static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
 static inline void dec_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
-static inline void violate_locking_hierarchy(isc_mutex_t *have,
-					     isc_mutex_t *want);
+static inline void violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
 static void clean_namehooks_at_name(dns_adb_t *, dns_adbname_t *);
 static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
+static isc_result_t construct_name(dns_adb_t *, dns_adbhandle_t *,
+				   dns_name_t *, dns_adbname_t *, int);
 
 static inline void
 violate_locking_hierarchy(isc_mutex_t *have, isc_mutex_t *want)
@@ -441,7 +444,7 @@ dec_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock)
 }
 
 static inline dns_adbname_t *
-new_adbname(dns_adb_t *adb)
+new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 {
 	dns_adbname_t *name;
 
@@ -449,8 +452,15 @@ new_adbname(dns_adb_t *adb)
 	if (name == NULL)
 		return (NULL);
 
-	name->magic = DNS_ADBNAME_MAGIC;
 	dns_name_init(&name->name, NULL);
+	if (dns_name_dup(dnsname, adb->mctx, &name->name) != ISC_R_SUCCESS) {
+		isc_mempool_put(adb->nmp, name);
+		return (NULL);
+	}
+
+	name->magic = DNS_ADBNAME_MAGIC;
+	name->partial_results = ISC_FALSE;
+	name->expire_time = 0;
 	ISC_LIST_INIT(name->namehooks);
 	ISC_LIST_INIT(name->in_progress);
 	ISC_LIST_INIT(name->handles);
@@ -762,38 +772,84 @@ find_entry_and_lock(dns_adb_t *adb, isc_sockaddr_t *addr, int *bucketp)
 	return (NULL);
 }
 
+/*
+ * Entry bucket MUST be locked!
+ */
+static isc_boolean_t
+entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone)
+{
+	dns_adbzoneinfo_t *zi, *next_zi;
+	isc_stdtime_t now;
+	isc_boolean_t is_bad;
+
+	if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
+		return (ISC_FALSE);  /* XXXMLG: assume ok if this fails? */
+
+	is_bad = ISC_FALSE;
+
+	zi = ISC_LIST_HEAD(entry->zoneinfo);
+	if (zi == NULL)
+		return (ISC_FALSE);
+	while (zi != NULL) {
+		next_zi = ISC_LIST_NEXT(zi, link);
+
+		/*
+		 * Has the entry expired?
+		 */
+		if (zi->lame_timer < now) {
+			ISC_LIST_UNLINK(entry->zoneinfo, zi, link);
+			free_adbzoneinfo(adb, &zi);
+		}
+
+		if (zi != NULL && !is_bad)
+			if (dns_name_equal(zone, &zi->zone))
+				is_bad = ISC_TRUE;
+
+		zi = next_zi;
+	}
+	
+	return (is_bad);
+}
+
 static void
 copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
-		   dns_adbname_t *name)
+		   dns_adbname_t *name, dns_name_t *zone)
 {
 	dns_adbnamehook_t *namehook;
 	dns_adbaddrinfo_t *addrinfo;
+	int bucket;
 
 	handle->query_pending = ISC_FALSE;
 	handle->result = ISC_R_UNEXPECTED;
+	bucket = DNS_ADB_INVALIDBUCKET;
 
 	namehook = ISC_LIST_HEAD(name->namehooks);
 	while (namehook != NULL) {
-		if (namehook->entry->lock_bucket == DNS_ADB_INVALIDBUCKET) {
-			handle->query_pending = ISC_TRUE;
-		} else {
-			/* XXX check for expired entries, zoneinfo */
-			addrinfo = new_adbaddrinfo(adb, namehook->entry);
-			if (addrinfo == NULL) {
-				handle->result = ISC_R_NOMEMORY;
-				return;
-			}
-			/*
-			 * Found a valid entry.  Add it to the handle's list.
-			 */
-			inc_entry_refcnt(adb, namehook->entry, ISC_TRUE);
-			ISC_LIST_APPEND(handle->list, addrinfo, link);
+		bucket = namehook->entry->lock_bucket;
+		LOCK(&adb->entrylocks[bucket]);
+		if (entry_is_bad_for_zone(adb, namehook->entry, zone))
+			goto next;
+		addrinfo = new_adbaddrinfo(adb, namehook->entry);
+		if (addrinfo == NULL) {
+			handle->result = ISC_R_NOMEMORY;
+			goto out;
 		}
-
+		/*
+		 * Found a valid entry.  Add it to the handle's list.
+		 */
+		inc_entry_refcnt(adb, namehook->entry, ISC_FALSE);
+		ISC_LIST_APPEND(handle->list, addrinfo, link);
+		addrinfo = NULL;
+	next:
+		UNLOCK(&adb->entrylocks[bucket]);
+		bucket = DNS_ADB_INVALIDBUCKET;
 		namehook = ISC_LIST_NEXT(namehook, link);
 	}
 
 	handle->result = ISC_R_SUCCESS; /* all were copied */
+ out:
+	if (bucket != DNS_ADB_INVALIDBUCKET)
+		UNLOCK(&adb->entrylocks[bucket]);
 }
 
 static void
@@ -1028,9 +1084,8 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	bucket = DNS_ADB_INVALIDBUCKET;
 	adbname = find_name_and_lock(adb, name, &bucket);
 	if (adb->name_sd[bucket]) {
-			free_adbhandle(adb, &handle);
 			result = ISC_R_SHUTTINGDOWN;
-			goto out;
+			goto fail;
 	}		
 
 	/*
@@ -1039,20 +1094,20 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * ISC_R_NOMEMORY, otherwise copy out what we can and set the
 	 * missing_data bit in the header.
 	 */
+ again:
 	if (adbname != NULL) {
-		copy_namehook_list(adb, handle, adbname);
+		copy_namehook_list(adb, handle, adbname, zone);
 		if (handle->result == ISC_R_NOMEMORY
 		    && ISC_LIST_EMPTY(handle->list)) {
-			free_adbhandle(adb, &handle);
 			result = ISC_R_NOMEMORY;
-			goto out;
+			goto fail;
 		}
 
 		/*
 		 * Attach to the name's query list if there are queries
 		 * already running.
 		 */
-		if (handle->query_pending && task != NULL) {
+		if (!ISC_LIST_EMPTY(adbname->in_progress) && (task != NULL)) {
 			handle->adbname = adbname;
 			handle->name_bucket = bucket;
 			ISC_LIST_APPEND(adbname->handles, handle, link);
@@ -1076,13 +1131,47 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * and look in the database for details.  If the database has
 	 * nothing useful, start a fetch if we can.
 	 */
+	adbname = new_adbname(adb, name);
+	if (adbname == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto fail;
+	}
 
 	/*
-	 * Temporary XXX
+	 * Try to populate the name from the database and/or start fetches.
+	 * If this function returns ISC_R_SUCCESS at least ONE new bit
+	 * of data was added, and/or fetches were started.  If nothing new
+	 * can ever be found it will return DNS_R_NOMEMORY more than likely.
 	 */
-	result = ISC_R_UNEXPECTED;
+	result = construct_name(adb, handle, name, adbname, bucket);
+	if (result == ISC_R_SUCCESS) {
+		ISC_LIST_PREPEND(adb->names[bucket], adbname, link);
+		adb->name_refcnt[bucket]++;
+		goto again;
+	}
+
+	/*
+	 * If anything other than success is returned, free the name
+	 * (since it will have nothing useful in it) and return via the
+	 * failure return.
+	 */
+	free_adbname(adb, &adbname);
+
+ fail:
 	free_adbhandle(adb, &handle);
 
+	/*
+	 * If the name isn't on a list it means we allocated it here, and it
+	 * should be killed.
+	 */
+	if (!ISC_LINK_LINKED(adbname, link))
+		free_adbname(adb, &adbname);
+
+	/*
+	 * "goto out" if the handle will be returned to the caller.  This
+	 * is a non-fatal return, since it will give the caller a handle
+	 * at the very least.
+	 */
  out:
 	if (handle != NULL) {
 		*handlep = handle;
@@ -1194,15 +1283,12 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 	name_bucket = DNS_ADB_INVALIDBUCKET;
 	name = find_name_and_lock(adb, host, &name_bucket);
 	if (name == NULL) {
-		name = new_adbname(adb);
+		name = new_adbname(adb, host);
 		if (name == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto out;
 		}
 		free_name = ISC_TRUE;
-		result = dns_name_dup(host, adb->mctx, &name->name);
-		if (result != ISC_R_SUCCESS)
-			goto out;
 	}
 
 	/*
@@ -1306,9 +1392,9 @@ dns_adb_done(dns_adb_t *adb, dns_adbhandle_t **handlep)
 	bucket = handle->name_bucket;
 	if (bucket == DNS_ADB_INVALIDBUCKET)
 		goto cleanup;
+
 	/*
-	 * Try to lock the name bucket.  If this fails, unlock the handle,
-	 * lock the name bucket, and then lock the handle again.
+	 * We need to get the adbname's lock to unlink the handle.
 	 */
 	violate_locking_hierarchy(&handle->lock, &adb->namelocks[bucket]);
 	bucket = handle->name_bucket;
@@ -1542,3 +1628,70 @@ print_handle_list(FILE *f, dns_adbname_t *name)
 		handle = ISC_LIST_NEXT(handle, link);
 	}
 }
+
+/*
+ * On entry, "bucket" refers to a locked name bucket, "handle" is not NULL,
+ * and "name" is the name we are looking for.  We will allocate an adbname
+ * and return a pointer to it in *adbnamep.
+ *
+ * If we return ISC_R_SUCCESS, the new name will have been allocated, and
+ * perhaps some namehooks will have been filled in with valid entries, and
+ * perhaps some fetches have been started.
+ */
+static isc_result_t
+construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
+	       dns_adbname_t *adbname, int bucket)
+{
+	dns_adbentry_t *entry;
+	dns_adbnamehook_t *nh;
+	isc_result_t result;
+	int addr_bucket;
+	isc_boolean_t return_success;
+
+	INSIST(DNS_ADB_VALID(adb));
+	INSIST(DNS_ADBHANDLE_VALID(handle));
+	INSIST(name != NULL);
+	INSIST(DNS_ADBNAME_VALID(adbname));
+	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
+
+	result = ISC_R_UNEXPECTED;
+	addr_bucket = DNS_ADB_INVALIDBUCKET;
+	return_success = ISC_FALSE;
+
+	/*
+	 * Allocate an entry and a namehook, but don't string them up
+	 * anywhere yet.  If we need more, we will have to get more later.
+	 * These are the first two that cannot fail or else we are broken.
+	 * Later ones can fail, but it is still bad to have that happen.
+	 */
+	entry = new_adbentry(adb);
+	if (entry == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto fail;
+	}
+	nh = new_adbnamehook(adb, NULL);
+	if (nh == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto fail;
+	}
+
+	/*
+	 * Look up the A record in the database, the cache, or in glue.
+	 * If it isn't found in any of these, we will have to start a
+	 * fetch for it.
+	 */
+
+ fail:
+	if (entry != NULL)
+		free_adbentry(adb, &entry);
+	if (nh != NULL)
+		free_adbnamehook(adb, &nh);
+
+	if (return_success)
+		return (ISC_R_SUCCESS);
+	adbname->partial_results = ISC_TRUE;
+	return (result);
+}
+
+#if 0
+#endif

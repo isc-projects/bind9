@@ -82,6 +82,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/stdtime.h>
 #include <isc/task.h>
 
 #include <dns/rdataset.h>
