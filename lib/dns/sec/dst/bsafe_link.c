@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.31 2000/06/12 18:05:09 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.32 2000/06/22 21:19:13 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
@@ -309,6 +309,7 @@ dnssafersa_generate(dst_key_t *key, int exp) {
 	int exponent_len = 0;
 	RSA_Key *rsa;
 	unsigned char randomSeed[256];
+	int entropylen;
 	isc_buffer_t b;
 	A_RSA_KEY *pub = NULL;
 	isc_result_t ret;
@@ -392,11 +393,12 @@ dnssafersa_generate(dst_key_t *key, int exp) {
 	if (B_RandomInit(randomAlgorithm, CHOOSER, NULL_SURRENDER) != 0)
 		do_fail(ISC_R_NOMEMORY);
 
-	ret = dst__entropy_getdata(randomSeed, sizeof(randomSeed), ISC_FALSE);
+	entropylen = ISC_MIN(sizeof(randomSeed), 2 * key->key_size / 8);
+	ret = dst__entropy_getdata(randomSeed, entropylen, ISC_FALSE);
 	if (ret != ISC_R_SUCCESS)
 		goto fail;
 
-	if (B_RandomUpdate(randomAlgorithm, randomSeed, sizeof(randomSeed),
+	if (B_RandomUpdate(randomAlgorithm, randomSeed, entropylen,
 			   NULL_SURRENDER) != 0)
 		do_fail(ISC_R_NOMEMORY);
 
