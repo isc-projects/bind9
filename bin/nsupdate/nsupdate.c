@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.120 2002/08/06 03:21:59 marka Exp $ */
+/* $Id: nsupdate.c,v 1.121 2002/11/12 23:58:13 explorer Exp $ */
 
 #include <config.h>
 
@@ -135,6 +135,9 @@ static isc_boolean_t interactive = ISC_TRUE;
 static isc_boolean_t seenerror = ISC_FALSE;
 static const dns_master_style_t *style;
 static int requests = 0;
+static unsigned int timeout = 300;
+static unsigned int udp_timeout = 3;
+static unsigned int udp_retries = 3;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -594,7 +597,8 @@ parse_args(int argc, char **argv) {
 	isc_result_t result;
 
 	debug("parse_args");
-	while ((ch = isc_commandline_parse(argc, argv, "dDMy:vk:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "dDMy:vk:r:t:u:")) != -1)
+	{
 		switch (ch) {
 		case 'd':
 			debugging = ISC_TRUE;
@@ -618,6 +622,34 @@ parse_args(int argc, char **argv) {
 			break;
 		case 'k':
 			keyfile = isc_commandline_argument;
+			break;
+		case 't':
+			result = isc_parse_uint32(&timeout,
+						  isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "bad timeout '%s'\n",						isc_commandline_argument);
+				exit(1);
+			}
+			if (timeout == 0)
+				timeout = ULONG_MAX;
+			break;
+		case 'u':
+			result = isc_parse_uint32(&udp_timeout,
+						  isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "bad udp timeout '%s'\n",						isc_commandline_argument);
+				exit(1);
+			}
+			if (udp_timeout == 0)
+				udp_timeout = ULONG_MAX;
+			break;
+		case 'r':
+			result = isc_parse_uint32(&udp_retries,
+						  isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "bad udp retries '%s'\n",						isc_commandline_argument);
+				exit(1);
+			}
 			break;
 		default:
 			fprintf(stderr, "%s: invalid argument -%c\n",
@@ -1022,8 +1054,8 @@ evaluate_key(char *cmdline) {
 	if (tsigkey != NULL)
 		dns_tsigkey_detach(&tsigkey);
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
-                                    secret, secretlen, ISC_TRUE, NULL, 0, 0,
-                                    mctx, NULL, &tsigkey);
+				    secret, secretlen, ISC_TRUE, NULL, 0, 0,
+				    mctx, NULL, &tsigkey);
 	isc_mem_free(mctx, secret);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s %s: %s\n",
@@ -1468,11 +1500,11 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 		isc_sockaddr_format(master, addrbuf, sizeof(addrbuf));
 		fprintf(stderr, "Sending update to %s\n", addrbuf);
 	}
-	result = dns_request_createvia(requestmgr, updatemsg, srcaddr,
-				       master, options, tsigkey,
-				       FIND_TIMEOUT, global_task,
-				       update_completed, NULL, &request);
-	check_result(result, "dns_request_createvia");
+	result = dns_request_createvia3(requestmgr, updatemsg, srcaddr,
+					master, options, tsigkey, timeout,
+					udp_timeout, udp_retries, global_task,
+					update_completed, NULL, &request);
+	check_result(result, "dns_request_createvia3");
 
 	if (debugging)
 		show_message(updatemsg);
@@ -1713,9 +1745,10 @@ sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 		fatal("out of memory");
 	reqinfo->msg = msg;
 	reqinfo->addr = destaddr;
-	result = dns_request_createvia(requestmgr, msg, srcaddr, destaddr,
-				       0, NULL, FIND_TIMEOUT, global_task,
-				       recvsoa, reqinfo, request);
+	result = dns_request_createvia3(requestmgr, msg, srcaddr, destaddr,
+					0, NULL, FIND_TIMEOUT * 20,
+					FIND_TIMEOUT, 3, global_task, recvsoa,
+					reqinfo, request);
 	check_result(result, "dns_request_createvia");
 	requests++;
 }
