@@ -1,4 +1,8 @@
 
+ 829.	[bug]		The DNS_R_ZONECUT result code is only meaningful
+			for secure zone databases.  Queries at zone cut points
+			in non-secure zones should always return a delegation.
+
  828.	[bug]		The errno value from recvfrom() could be overwritten
 			by logging code. [RT #1293]
 
