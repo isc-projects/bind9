@@ -2503,6 +2503,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		}
 	}
 
+	/* XXX implement */
 	if (how & ISC_SOCKCANCEL_CONNECT) {
 	}
 

@@ -19,7 +19,7 @@ LIBS =		${DEPLIBS} \
 
 TARGETS =	named
 
-OBJS =		server.o wire_test.o
+OBJS =		server.o udpclient.o wire_test.o
 
 @BIND9_MAKE_RULES@
 
@@ -30,4 +30,4 @@ named: ${OBJS} ${DEPLIBS}
 	${CC} -o $@ ${OBJS} ${LIBS}
 
 clean distclean::
-	rm -f ${TARGETS} $.o
+	rm -f ${TARGETS}

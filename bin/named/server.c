@@ -46,169 +46,20 @@
 
 #include <arpa/inet.h>
 
+#include "udpclient.h"
+
 isc_mem_t *mctx = NULL;
-
-#define INPUT_BUFFER_SIZE (64 * 1024)	/* 64k */
-
-typedef struct {
-	char name[16];		/* socket human-printable name */
-	char *buf;		/* input buffer */
-	isc_mem_t *mctx;	/* memory context used to allocate */
-} client_ctx_t;
-
-static client_ctx_t *client_ctx_allocate(isc_mem_t *mctx);
-static void client_ctx_free(client_ctx_t *ctx);
-
-static void my_send(isc_task_t *task, isc_event_t *event);
-static void udp_recv(isc_task_t *task, isc_event_t *event);
-
-static client_ctx_t *
-client_ctx_allocate(isc_mem_t *mctx)
-{
-	client_ctx_t *ctx;
-
-	ctx = isc_mem_get(mctx, sizeof(client_ctx_t));
-	if (ctx == NULL)
-		return (NULL);
-
-	ctx->buf = isc_mem_get(mctx, INPUT_BUFFER_SIZE);
-	if (ctx->buf == NULL) {
-		isc_mem_put(mctx, ctx, sizeof(client_ctx_t));
-		return (NULL);
-	}
-
-	ctx->name[0] = '\0';
-	ctx->mctx = mctx;
-
-	return (ctx);
-}
-
-static void
-client_ctx_free(client_ctx_t *ctx)
-{
-	isc_mem_put(ctx->mctx, ctx->buf, INPUT_BUFFER_SIZE);
-	isc_mem_put(ctx->mctx, ctx, sizeof(client_ctx_t));
-}
-
-typedef struct dns_message {
-	unsigned int		id;
-	unsigned int		flags;
-	unsigned int		qcount;
-	unsigned int		ancount;
-	unsigned int		aucount;
-	unsigned int		adcount;
-	dns_namelist_t		question;
-	dns_namelist_t		answer;
-	dns_namelist_t		authority;
-	dns_namelist_t		additional;
-} dns_message_t; /* XXX Should be common? */
-
-/*
- * XXX These is in wire_test.c right now.
- */
-void getmessage(dns_message_t *message, isc_buffer_t *source,
-		isc_buffer_t *target);
-dns_result_t printmessage(dns_message_t *message);
-
-static void
-dump_packet(char *buf, u_int len)
-{
-	extern dns_decompress_t dctx;
-	char t[5000]; /* XXX */
-	dns_message_t message;
-	dns_result_t result;
-	isc_buffer_t source, target;
-
-	dctx.allowed = DNS_COMPRESS_GLOBAL14;
-	dns_name_init(&dctx.owner_name, NULL);
-
-	isc_buffer_init(&source, buf, len, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_add(&source, len);
-	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
-
-	getmessage(&message, &source, &target);
-	result = printmessage(&message);
-	if (result != DNS_R_SUCCESS)
-		printf("printmessage() failed: %s\n",
-		       dns_result_totext(result));
-}
-
-static void
-udp_recv(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *sock;
-	isc_socketevent_t *dev;
-	client_ctx_t *ctx;
-
-	sock = event->sender;
-	dev = (isc_socketevent_t *)event;
-	ctx = (client_ctx_t *)(event->arg);
-
-	printf("Task %s (sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->arg), sock,
-	       dev->region.base, dev->region.length,
-	       dev->n, dev->result);
-	printf("\tFrom: %s port %d\n",
-	       inet_ntoa(dev->address.type.sin.sin_addr),
-	       ntohs(dev->address.type.sin.sin_port));
-
-	if (dev->result != ISC_R_SUCCESS) {
-		isc_socket_detach(&sock);
-
-		client_ctx_free(ctx);
-
-		isc_event_free(&event);
-
-		/* destroy task */
-
-		return;
-	}
-
-	/*
-	 * Call the dump routine to print this baby out
-	 */
-	dump_packet(ctx->buf, dev->n);
-
-	isc_socket_recv(sock, &dev->region, ISC_FALSE,
-			task, udp_recv, event->arg);
-
-	isc_mem_stats(ctx->mctx, stdout);
-
-	isc_event_free(&event);
-}
-
-static void
-my_send(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *sock;
-	isc_socketevent_t *dev;
-
-	sock = event->sender;
-	dev = (isc_socketevent_t *)event;
-
-	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->arg), task, sock,
-	       dev->region.base, dev->region.length,
-	       dev->n, dev->result);
-
-	isc_mem_put(event->mctx, dev->region.base, dev->region.length);
-
-	isc_event_free(&event);
-}
 
 int
 main(int argc, char *argv[])
 {
 	isc_taskmgr_t *manager = NULL;
-	isc_task_t **tasks;
 	unsigned int workers;
 	isc_socketmgr_t *socketmgr;
 	isc_socket_t *so1;
 	isc_sockaddr_t sockaddr;
 	unsigned int addrlen;
-	client_ctx_t **ctxs;
-	unsigned int i;
-	isc_region_t region;
+	udp_listener_t *l;
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(5544);
@@ -221,11 +72,6 @@ main(int argc, char *argv[])
 	printf("%d workers\n", workers);
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-
-	tasks = isc_mem_get(mctx, sizeof(isc_task_t *) * workers);
-	RUNTIME_CHECK(tasks != NULL);
-	ctxs = isc_mem_get(mctx, sizeof(client_ctx_t *) * workers);
-	RUNTIME_CHECK(ctxs != NULL);
 
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
@@ -246,30 +92,9 @@ main(int argc, char *argv[])
 	RUNTIME_CHECK(isc_socket_bind(so1, &sockaddr,
 				      (int)addrlen) == ISC_R_SUCCESS);
 
-	/*
-	 * Create all the listening tasks and set up the initial read.
-	 */
-	for (i = 0 ; i < workers ; i++) {
-		tasks[i] = NULL;
-		RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &tasks[i])
-			      == ISC_R_SUCCESS);
-
-		/*
-		 * Allocate client context and set its name.
-		 */
-		ctxs[i] = client_ctx_allocate(mctx);
-		RUNTIME_CHECK(ctxs[i] != NULL);
-		region.length = INPUT_BUFFER_SIZE;
-		region.base = ctxs[i]->buf;
-
-		sprintf(ctxs[i]->name, "%u", i);
-
-		printf("recv started for task %s\n", ctxs[i]->name);
-		RUNTIME_CHECK(isc_socket_recv(so1, &region,
-					      ISC_FALSE, tasks[i],
-					      udp_recv, ctxs[i])
-			      == ISC_R_SUCCESS);
-	}
+	l = udp_listener_allocate(mctx, workers);
+	RUNTIME_CHECK(udp_listener_start(l, so1, manager, workers,
+					 workers, 0) == ISC_R_SUCCESS);
 
 	isc_mem_stats(mctx, stdout);
 
