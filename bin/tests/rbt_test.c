@@ -24,6 +24,7 @@
 #include <isc/boolean.h>
 
 #include <dns/rbt.h>
+#include <dns/fixedname.h>
 
 char *progname;
 isc_mem_t *mctx;
@@ -109,10 +110,12 @@ print_data(void *data) {
 void
 main (int argc, char **argv) {
 	char *command, *arg, *whitespace, buffer[1024];
-	dns_name_t *name;
+	dns_name_t *name, *foundname;
+	dns_fixedname_t fixedname;
 	dns_rbt_t *rbt;
 	int length, ch;
 	isc_boolean_t show_final_mem = ISC_FALSE;
+	isc_buffer_t textname;
 	isc_result_t result;
 	void *data;
 
@@ -210,8 +213,14 @@ main (int argc, char **argv) {
 				if (name != NULL) {
 					printf("searching for name %s ... ",
 					       arg);
+
+					dns_fixedname_init(&fixedname);
+					foundname =
+						dns_fixedname_name(&fixedname);
 					data = NULL;
+
 					result = dns_rbt_findname(rbt, name,
+								  foundname,
 								  &data);
 					switch (result) {
 					case DNS_R_SUCCESS:
@@ -222,7 +231,17 @@ main (int argc, char **argv) {
 					case DNS_R_PARTIALMATCH:
 						printf("found parent: ");
 						print_data(data);
-						putchar('\n');
+
+						isc_buffer_init(&textname,
+							buffer, 255,
+							ISC_BUFFERTYPE_TEXT);
+						dns_name_totext(foundname,
+								ISC_FALSE,
+								&textname);
+						printf("\n\t(foundname: %.*s)\n",
+						       (int)textname.used,
+						       (char *)textname.base);
+
 						break;
 					case DNS_R_NOTFOUND:
 						printf("NOT FOUND!\n");
