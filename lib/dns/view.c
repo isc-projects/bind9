@@ -24,17 +24,16 @@
 #include <isc/mem.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
-#include <isc/rwlock.h>
 
 #include <dns/types.h>
 #include <dns/dbtable.h>
 #include <dns/db.h>
+#include <dns/fixedname.h>
+#include <dns/rdataset.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
 
 #include "../isc/util.h"		/* XXXRTH */
-
-#define FROZEN(v)		(((v)->attributes & DNS_VIEWATTR_FROZEN) != 0)
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
@@ -80,8 +79,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 	view->resolver = NULL;
 	view->mctx = mctx;
 	view->rdclass = rdclass;
+	view->frozen = ISC_FALSE;
 	view->references = 1;
-	view->attributes = 0;
 	view->magic = DNS_VIEW_MAGIC;
 	
 	*viewp = view;
@@ -102,6 +101,11 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 
 void
 dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
+
+	/*
+	 * Attach '*targetp' to 'source'.
+	 */
+
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
@@ -135,6 +139,10 @@ dns_view_detach(dns_view_t **viewp) {
 	dns_view_t *view;
 	isc_boolean_t need_destroy = ISC_FALSE;
 
+	/*
+	 * Detach '*viewp' from its view.
+	 */
+
 	REQUIRE(viewp != NULL);
 	view = *viewp;
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -156,8 +164,13 @@ dns_view_detach(dns_view_t **viewp) {
 
 void
 dns_view_setresolver(dns_view_t *view, dns_resolver_t *resolver) {
+
+	/*
+	 * Set the view's resolver.
+	 */
+
 	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!FROZEN(view));
+	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 	
 	view->resolver = resolver;
@@ -165,25 +178,177 @@ dns_view_setresolver(dns_view_t *view, dns_resolver_t *resolver) {
 
 void
 dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb) {
+
+	/*
+	 * Set the view's cache database.
+	 */
+
+	/*
+	 * WARNING!  THIS ROUTINE WILL BE REPLACED WITH dns_view_setcache()
+	 * WHEN WE HAVE INTEGRATED CACHE OBJECT SUPPORT INTO THE LIBRARY.
+	 */
+
 	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!FROZEN(view));
+	REQUIRE(!view->frozen);
 	REQUIRE(view->cachedb == NULL);
+	REQUIRE(dns_db_iscache(cachedb));
 
 	dns_db_attach(cachedb, &view->cachedb);
 }
 
 isc_result_t
-dns_view_addzone(dns_view_t *view, dns_db_t *db) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!FROZEN(view));
+dns_view_addzonedb(dns_view_t *view, dns_db_t *db) {
+	isc_result_t result;
 
-	return (dns_dbtable_add(view->dbtable, db));
+	/*
+	 * Add zone database 'db' to 'view'.
+	 */
+
+	/*
+	 * WARNING!  THIS ROUTINE WILL BE REPLACED WITH dns_view_addzone()
+	 * WHEN WE HAVE INTEGRATED ZONE OBJECT SUPPORT INTO THE LIBRARY.
+	 */
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(dns_db_iszone(db));
+	REQUIRE(!view->frozen);
+
+	result = dns_dbtable_add(view->dbtable, db);
+
+	return (result);
 }
 
 void
 dns_view_freeze(dns_view_t *view) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!FROZEN(view));
+	
+	/*
+	 * Freeze view.
+	 */
 
-	view->attributes |= DNS_VIEWATTR_FROZEN;
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+
+	view->frozen = ISC_TRUE;
+}
+
+isc_result_t
+dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+	      isc_stdtime_t now, unsigned int options,
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	isc_result_t result;
+	dns_fixedname_t foundname;
+	dns_db_t *db;
+	dns_dbversion_t *version;
+	isc_boolean_t is_zone;
+	dns_rdataset_t zrdataset, zsigrdataset;
+
+	/*
+	 * Find an rdataset whose owner name is 'name', and whose type is
+	 * 'type'.
+	 */
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->frozen);
+	REQUIRE(type != dns_rdatatype_any && type != dns_rdatatype_sig);
+
+	/*
+	 * Initialize.
+	 */
+	dns_rdataset_init(&zrdataset);
+	dns_rdataset_init(&zsigrdataset);
+
+	/*
+	 * Find a database to answer the query.
+	 */
+	db = NULL;
+	result = dns_dbtable_find(view->dbtable, name, &db);
+	if (result == ISC_R_NOTFOUND && view->cachedb != NULL)
+		dns_db_attach(view->cachedb, &db);
+	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+		goto cleanup;
+
+	is_zone = dns_db_iszone(db);
+
+ db_find:
+	/*
+	 * Now look for an answer in the database.
+	 */
+	dns_fixedname_init(&foundname);
+	result = dns_db_find(db, name, NULL, type, options,
+			     now, NULL, dns_fixedname_name(&foundname),
+			     rdataset, sigrdataset);
+
+	if (result == DNS_R_DELEGATION ||
+	    result == DNS_R_NOTFOUND ||
+	    result == DNS_R_NXGLUE) {
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		if (sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+		if (is_zone) {
+			if (view->cachedb != NULL) {
+				/*
+				 * Either the answer is in the cache, or we
+				 * don't know it.
+				 */
+				is_zone = ISC_FALSE;
+				version = NULL;
+				dns_db_detach(&db);
+				dns_db_attach(view->cachedb, &db);
+				goto db_find;
+			}
+		} else {
+			/*
+			 * We don't have the data in the cache.  If we've got
+			 * glue from the zone, use it.
+			 */
+			if (zrdataset.methods != NULL) {
+				dns_rdataset_clone(&zrdataset, rdataset);
+				if (zsigrdataset.methods != NULL)
+					dns_rdataset_clone(&zsigrdataset,
+							   sigrdataset);
+				result = DNS_R_GLUE;
+				goto cleanup;
+			}
+		}
+		/*
+		 * We don't know the answer.
+		 */
+		result = DNS_R_NOTFOUND;
+	} else if (result == DNS_R_GLUE) {
+		if (view->cachedb != NULL) {
+			/*
+			 * We found an answer, but the cache may be better.
+			 * Remember what we've got and go look in the cache.
+			 */
+			is_zone = ISC_FALSE;
+			version = NULL;
+			dns_rdataset_clone(rdataset, &zrdataset);
+			dns_rdataset_disassociate(rdataset);
+			if (sigrdataset->methods != NULL) {
+				dns_rdataset_clone(sigrdataset, &zsigrdataset);
+				dns_rdataset_disassociate(sigrdataset);
+			}
+			dns_db_detach(&db);
+			dns_db_attach(view->cachedb, &db);
+			goto db_find;
+		}
+		/*
+		 * Otherwise, the glue is the best answer.
+		 */
+		result = ISC_R_SUCCESS;
+	} else if (result != ISC_R_SUCCESS)
+		result = DNS_R_NOTFOUND;
+
+ cleanup:
+	if (zrdataset.methods != NULL) {
+		dns_rdataset_disassociate(&zrdataset);
+		if (zsigrdataset.methods != NULL)
+			dns_rdataset_disassociate(&zsigrdataset);
+	}
+	if (db != NULL)
+		dns_db_detach(&db);
+
+	return (result);
 }
