@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.16 2000/08/17 02:04:17 bwelling Exp $
+# $Id: Makefile.in,v 1.17 2000/08/28 22:54:39 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -33,13 +33,13 @@ CWARNINGS =
 LIBS =		@LIBS@
 
 # Alphabetically
-OBJS =		bsafe_link.@O@ dst_api.@O@ dst_parse.@O@ hmac_link.@O@ \
-		openssl_link.@O@ openssldh_link.@O@ gssapi_link.@O@ \
-		dst_result.@O@ dst_lib.@O@
+OBJS =		bsafe_link.@O@ dst_api.@O@ dst_lib.@O@ dst_parse.@O@ \
+		dst_result.@O@ gssapi_link.@O@ hmac_link.@O@ \
+		openssl_link.@O@ openssldh_link.@O@
 
-SRCS =		bsafe_link.c dst_api.c dst_parse.c hmac_link.c \
-		openssl_link.c openssldh_link.c gssapi_link.c \
-		dst_result.c dst_lib.c
+SRCS =		bsafe_link.c dst_api.c dst_lib.c dst_parse.c \
+		dst_result.c gssapi_link.c hmac_link.c \
+		openssl_link.c openssldh_link.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
