@@ -1,3 +1,4 @@
+ 913.	[bug]		More max-cache-size tuning.
 
  912.	[bug]		Attempts to set the 'additional-from-cache' or
 			'additional-from-auth' option to 'no' in a
