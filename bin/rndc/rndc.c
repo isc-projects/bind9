@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.12.2.5 2000/07/12 01:18:55 gson Exp $ */
+/* $Id: rndc.c,v 1.12.2.6 2000/08/02 20:59:13 gson Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -361,7 +361,7 @@ main(int argc, char **argv) {
 
 	(void)dns_c_ndcctx_getoptions(config, &configopts);
 
-	if (servername == NULL)
+	if (servername == NULL && configopts != NULL)
 		result = dns_c_ndcopts_getdefserver(configopts, &servername);
 
 	if (servername != NULL)
@@ -369,7 +369,7 @@ main(int argc, char **argv) {
 	else {
 		fprintf(stderr, "%s: no server specified and no default\n",
 			progname);
-		exit (1);
+		exit(1);
 	}
 
 	/*
