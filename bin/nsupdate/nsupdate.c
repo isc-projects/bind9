@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.55 2000/10/06 18:58:30 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.56 2000/10/19 16:31:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -873,7 +873,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		if (*endp != '\0') {
 			fprintf(stderr, "ttl '%s' is not numeric\n", word);
 			goto failure;
-		} else if (ttl < 1 || ttl > TTL_MAX || errno == ERANGE) {
+		} else if (ttl < 0 || ttl > TTL_MAX || errno == ERANGE) {
 			/*
 			 * The errno test is needed to catch when strtol()
 			 * overflows on a platform where sizeof(int) ==

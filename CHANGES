@@ -1,3 +1,6 @@
+ 526.	[bug]		nsupdate incorrectly refused to add RRs with a TTL
+			of 0.
+
  525.	[func]		New arguement 'exact' for dns_db_subtractrdataset(),
 			and dns_rdataslab_subtract() requesting that the RR's
 			must exist prior to deletion.  DNS_R_NOTEXACT is
