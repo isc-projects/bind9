@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.33 2002/07/03 06:25:32 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.34 2002/08/16 00:05:57 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -441,9 +441,6 @@ internal_current4(isc_interfaceiter_t *iter) {
 		return (ISC_R_IGNORE);
 	}
 
-	if ((ifreq.ifr_flags & IFF_RUNNING) == 0)
-		return (ISC_R_IGNORE);
-
 	if ((ifreq.ifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
@@ -612,9 +609,6 @@ internal_current6(isc_interfaceiter_t *iter) {
 				 lifreq.lifr_name, strbuf);
 		return (ISC_R_IGNORE);
 	}
-
-	if ((lifreq.lifr_flags & IFF_RUNNING) == 0)
-		return (ISC_R_IGNORE);
 
 	if ((lifreq.lifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
