@@ -25,7 +25,8 @@
 
 1537.	[placeholder]	rt9989
 
-1536.	[placeholder]	rt9998
+1536.	[bug]		Windows socket code failed to log a error description
+			when returning ISC_R_UNEXPECTED. [RT #9998]
 
 1535.	[bug]		When parsing APL records it was possible to silently
 			accept out of range ADDRESSFAMILY values. [RT# 9979]
