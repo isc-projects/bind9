@@ -547,7 +547,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		 */
 		result = DNS_R_NOTFOUND;
 	} else if (result == DNS_R_GLUE) {
-		if (USECACHE(client)) {
+		if (USECACHE(client) && RECURSIONOK(client)) {
 			/*
 			 * We found an answer, but the cache may be better.
 			 * Remember what we've got and go look in the cache.
@@ -784,7 +784,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			}
 		}
 	} else if (result == DNS_R_GLUE) {
-		if (USECACHE(client)) {
+		if (USECACHE(client) && RECURSIONOK(client)) {
 			/*
 			 * We found an answer, but the cache may be
 			 * better.  Remember what we've got and go look in
@@ -2062,10 +2062,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			/*
 			 * We're authoritative for an ancestor of QNAME.
 			 */
-			if (!USECACHE(client)) {
+			if (!USECACHE(client) || !RECURSIONOK(client)) {
 				/*
-				 * We don't have a cache, so this is the best
+				 * If we don't have a cache, this is the best
 				 * answer.
+				 *
+				 * If the client is making a nonrecursive
+				 * query we always give out the authoritative
+				 * delegation.  This way even if we get
+				 * junk in our cache, we won't fail in our
+				 * role as the delegating authority if another
+				 * nameserver asks us about a delegated
+				 * subzone.
 				 *
 				 * We enable the retrieval of glue for this
 				 * database by setting client->query.gluedb.
