@@ -20,7 +20,7 @@
 >host</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "></HEAD
 ><BODY
 CLASS="REFENTRY"
@@ -224,17 +224,20 @@ CLASS="PARAMETER"
 ><I
 >name</I
 ></TT
->.  The argument is provided for
-compatibility with older implemementations.  This option is equivalent
-to making a query of type AXFR.</P
+>.  Transfer the zone printing out the NS, PTR
+and address records (A/AAAA).  If combined with <TT
+CLASS="OPTION"
+>-a</TT
+>
+all records will be printed.  </P
 ><P
 >The <TT
 CLASS="OPTION"
->-n</TT
+>-i</TT
 >
 option specifies that reverse lookups of IPv6 addresses should
-use the IP6.INT domain and "nibble" labels as defined in RFC1886.
-The default is to use IP6.ARPA and binary labels as defined in RFC2874.</P
+use the IP6.INT domain as defined in RFC1886.
+The default is to use IP6.ARPA.</P
 ><P
 >The <TT
 CLASS="OPTION"
@@ -359,7 +362,9 @@ address or colon-delimited IPv6 address, <B
 CLASS="COMMAND"
 >host</B
 > will
-query for PTR records.</P
+query for PTR records.  If a query type of IXFR is chosen the starting
+serial number can be specified by appending an equal followed by the
+starting serial number (e.g. -t IXFR=12345678).</P
 ><P
 >The time to wait for a reply can be controlled through the
 <TT
@@ -402,7 +407,7 @@ value for an integer quantity.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN105"
+NAME="AEN106"
 ></A
 ><H2
 >FILES</H2
@@ -415,7 +420,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN109"
+NAME="AEN110"
 ></A
 ><H2
 >SEE ALSO</H2

@@ -61,14 +61,14 @@ output.
 .PP
 List mode is selected by the \fB-l\fR option. This makes
 \fBhost\fR perform a zone transfer for zone
-\fIname\fR. The argument is provided for
-compatibility with older implemementations. This option is equivalent
-to making a query of type AXFR.
+\fIname\fR. Transfer the zone printing out the NS, PTR
+and address records (A/AAAA). If combined with \fB-a\fR
+all records will be printed. 
 .PP
-The \fB-n\fR
+The \fB-i\fR
 option specifies that reverse lookups of IPv6 addresses should
-use the IP6.INT domain and "nibble" labels as defined in RFC1886.
-The default is to use IP6.ARPA and binary labels as defined in RFC2874.
+use the IP6.INT domain as defined in RFC1886.
+The default is to use IP6.ARPA.
 .PP
 The \fB-N\fR option sets the number of dots that have to be
 in \fIname\fR for it to be considered absolute. The
@@ -109,7 +109,9 @@ type. By default it looks for A records, but if the
 \fB-C\fR option was given, queries will be made for SOA
 records, and if \fIname\fR is a dotted-decimal IPv4
 address or colon-delimited IPv6 address, \fBhost\fR will
-query for PTR records.
+query for PTR records. If a query type of IXFR is chosen the starting
+serial number can be specified by appending an equal followed by the
+starting serial number (e.g. -t IXFR=12345678).
 .PP
 The time to wait for a reply can be controlled through the
 \fB-W\fR and \fB-w\fR options. The
