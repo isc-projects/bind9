@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.17 2000/05/10 17:57:53 ogud Exp $ */
+/* $Id: dnssec-keygen.c,v 1.18 2000/05/15 21:06:41 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
+#include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/mem.h>
 #include <isc/region.h>
@@ -43,7 +44,7 @@ int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	char		*prog, *endp;
-	dst_key_t	*key, *old_keyp;
+	dst_key_t	*key, *oldkey;
 	char		*name = NULL;
 	isc_uint16_t	flags = 0;
 	dns_secalg_t	alg;
@@ -53,6 +54,8 @@ main(int argc, char **argv) {
 	int		protocol = -1, size = -1, signatory = 0;
 	isc_result_t	ret;
 	isc_textregion_t r;
+	char		filename[255];
+	isc_buffer_t	buf;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -122,7 +125,7 @@ main(int argc, char **argv) {
 		case 'h':
 			usage(prog);
 		default:
-			printf("invalid argument -%c\n", ch);
+			fprintf(stderr, "keygen: invalid argument -%c\n", ch);
 			usage(prog);
 		} 
 	}
@@ -226,10 +229,11 @@ main(int argc, char **argv) {
 	strcpy(name, argv[isc_commandline_index]);
 	if (name[strlen(name) - 1] != '.') {
 		strcat(name, ".");
-		printf("** Added a trailing dot to fully qualify the name\n");
+		fprintf(stderr,
+			"keygen: added a trailing dot to fully qualify "
+			"the name\n");
 	}
 
-	printf("Generating %d bit %s key for %s\n", size, algname, name);
 	switch(alg) {
 	case DNS_KEYALG_RSA:
 		param = rsa_exp;
@@ -243,62 +247,61 @@ main(int argc, char **argv) {
 		break;
 	}
 
+	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
+		null_key = ISC_TRUE;
+
+	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 	dst_result_register();
+
 	do { 
 		conflict = ISC_FALSE; 
+		oldkey = NULL;
 
 		/* generate the key */
 		ret = dst_key_generate(name, alg, size, param, flags, protocol,
 				       mctx, &key);
 
 		if (ret != ISC_R_SUCCESS) {
-			printf("Failed to generate key: %s\n", 
-			       dst_result_totext(ret));
+			fprintf(stderr, "keygen: failed to generate key: %s\n", 
+				dst_result_totext(ret));
 			exit(-1);
 		}
 		
-		/* now try to read a key with same name, alg and id from file
-		 * if there is one we must continue generating a new one 
-		 * unless we were asked to generate a null-key.
+		/*
+		 * Try to read a key with the same name, alg and id from disk.
+		 * If there is one we must continue generating a new one 
+		 * unless we were asked to generate a null key, in which
+		 * case we return failure.
 		 */
-		if ((dst_key_flags(key) & DNS_KEYFLAG_TYPEMASK) ==DNS_KEYTYPE_NOKEY)
-			null_key = ISC_TRUE;
-		else if (dst_key_id(key) == 0) { 
-			/* non null key can not have id == 0 */
+		ret = dst_key_fromfile(name, dst_key_id(key), alg, 
+				       DST_TYPE_PRIVATE, mctx, &oldkey);
+		/* do not overwrite an existing key  */
+		if (ret == ISC_R_SUCCESS) {
+			dst_key_free(oldkey);
 			conflict = ISC_TRUE;
+			if (null_key)
+				break;
 		}
-		else { 
-				
-			ret = dst_key_fromfile( name, dst_key_id(key), alg, 
-					DST_TYPE_PRIVATE, mctx, &old_keyp);
-		/* we are not allowed to overwrite an existing key  */
-			if (ret == ISC_R_SUCCESS) {
-
-				printf("Detected conflict %d\n", dst_key_id(key));
-				if (ret == ISC_R_SUCCESS)
-					dst_key_free(old_keyp);
-				conflict = ISC_TRUE;
-			}
-		}
-		if (conflict == ISC_TRUE && null_key == ISC_FALSE)
-			/* non-null keys can not have id == 0 */
+		if (conflict == ISC_TRUE)
 			dst_key_free(key);
 
-	} while ((conflict == ISC_TRUE) && (null_key == ISC_FALSE));
+	} while (conflict == ISC_TRUE);
 
+	if (conflict)
+		die("Attempting to generate a null key when a key with id 0 "
+		    "already exists\n");
 
-	if (conflict == ISC_FALSE) { /* write file */
-		ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE);
-		if (ret != ISC_R_SUCCESS) {
-			printf("Failed to write key %s(%d)\n", name, 
-			       dst_key_id(key));
-			exit(-1); 
-		}
-
-		printf("Generated %d bit key %s: id=%d alg=%d flags=%d\n\n", 
-		       size, name, dst_key_id(key), dst_key_alg(key), 
-		       dst_key_flags(key));
+	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE);
+	if (ret != ISC_R_SUCCESS) {
+		fprintf(stderr, "keygen: failed to write key %s(%d)\n", name, 
+			dst_key_id(key));
+		exit(-1); 
 	}
+
+	isc_buffer_clear(&buf);
+	ret = dst_key_buildfilename(key, 0, &buf);
+	filename[isc_buffer_usedlength(&buf)] = 0;
+	printf("%s\n", filename);
 	isc_mem_free(mctx, name);
 	isc_mem_free(mctx, algname);
 	isc_mem_free(mctx, nametype);
@@ -318,7 +321,7 @@ dsa_size_ok(int size) {
 
 static void
 die(char *str) {
-	printf("%s\n", str);
+	fprintf(stderr, "keygen: %s\n", str);
 	exit(-1);
 }
 
