@@ -330,7 +330,7 @@ dns_c_view_delete(isc_log_t *lctx,
 {
 	dns_c_view_t *view;
 	
-	REQUIRE(view != NULL);
+	REQUIRE(viewptr != NULL);
 
 	if (*viewptr == NULL) {
 		return (ISC_R_SUCCESS);
