@@ -50,8 +50,6 @@ static void		print_log_facility(FILE *fp,
 					   int value);
 static void		print_log_severity(FILE *fp,
 					   dns_c_logseverity_t severity);
-static void		print_log_category(FILE *fp,
-					   dns_c_category_t category);
 static isc_boolean_t	logginglist_empty(dns_c_logginglist_t *ll);
 
 
@@ -184,7 +182,7 @@ logginglist_empty(dns_c_logginglist_t *ll)
 	logchan = ISC_LIST_HEAD(ll->channels);
 	while (logchan != NULL) {
 		if (!logchan->predefined) {
-			return ISC_TRUE;
+			return ISC_FALSE;
 		}
 		
 		logchan = ISC_LIST_NEXT(logchan, next);
@@ -313,7 +311,7 @@ dns_c_logginglist_addcategory(dns_c_logginglist_t *list,
 	/* Remove old category defintion if there. */
 	tmpcat = ISC_LIST_HEAD(list->categories);
 	while (tmpcat != NULL) {
-		if (newcat->category == tmpcat->category) {
+		if (strcmp(newcat->catname,tmpcat->catname) == 0) {
 			existed = ISC_TRUE;
 			predefined = tmpcat->predefined;
 			
@@ -417,22 +415,32 @@ dns_c_logginglist_catbyname(dns_c_logginglist_t *list,
 			    const char *name,
 			    dns_c_logcat_t **cat)
 {
-	dns_c_category_t cattype;
-	isc_result_t res;
+	dns_c_logcat_t *logc;
 
 	REQUIRE(DNS_C_LOGLIST_VALID(list));
 	REQUIRE(name != NULL);
 	REQUIRE(*name != '\0');
 	REQUIRE(cat != NULL);
 
-	res = dns_c_string2category(name, &cattype);
-	if (res != ISC_R_SUCCESS) {
-		return (ISC_R_FAILURE);
+	logc = ISC_LIST_HEAD(list->categories);
+	while (logc != NULL) {
+		if (strcmp(logc->catname, name) == 0) {
+			break;
+		}
+
+		logc = ISC_LIST_NEXT(logc, next);
 	}
 
-	return (dns_c_logginglist_catbytype(list, cattype, cat));
+	if (logc == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		*cat = logc;
+		return (ISC_R_SUCCESS);
+	}
 }
 
+
+#if 0
 
 isc_result_t
 dns_c_logginglist_catbytype(dns_c_logginglist_t *list,
@@ -460,6 +468,8 @@ dns_c_logginglist_catbytype(dns_c_logginglist_t *list,
 		return (ISC_R_SUCCESS);
 	}
 }
+
+#endif
 
 
 /* ************************************************************************ */
@@ -1089,7 +1099,7 @@ dns_c_logchan_getpredef(dns_c_logchan_t *channel, isc_boolean_t *retval)
  * Logging category
  */
 isc_result_t
-dns_c_logcat_new(isc_mem_t *mem, dns_c_category_t cat, dns_c_logcat_t **newlc)
+dns_c_logcat_new(isc_mem_t *mem, const char *name, dns_c_logcat_t **newlc)
 {
 	dns_c_logcat_t *newc;
 	unsigned int i;
@@ -1103,7 +1113,7 @@ dns_c_logcat_new(isc_mem_t *mem, dns_c_category_t cat, dns_c_logcat_t **newlc)
 
 	newc->magic = DNS_C_LOGCAT_MAGIC;
 	newc->mem = mem;
-	newc->category = cat;
+	newc->catname = isc_mem_strdup(mem, name);
 	newc->cnames_len = 2;
 	newc->nextcname = 0;
 	newc->predefined = ISC_FALSE;
@@ -1145,6 +1155,7 @@ dns_c_logcat_delete(dns_c_logcat_t **logcat)
 	}
 
 	logc->magic = 0;
+	isc_mem_free(logc->mem, logc->catname);
 	isc_mem_put(logc->mem, logc->channel_names,
 		    sizeof (char *) * logc->cnames_len);
 	isc_mem_put(logc->mem, logc, sizeof *logc);
@@ -1165,7 +1176,7 @@ dns_c_logcat_copy(isc_mem_t *mem, dns_c_logcat_t **dest, dns_c_logcat_t *src)
 	REQUIRE(dest != NULL);
 	REQUIRE(DNS_C_LOGCAT_VALID(src));
 
-	res = dns_c_logcat_new(mem, src->category, &newc);
+	res = dns_c_logcat_new(mem, src->catname, &newc);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
@@ -1196,9 +1207,7 @@ dns_c_logcat_print(FILE *fp, int indent, dns_c_logcat_t *logcat,
 	}
 	
 	dns_c_printtabs(fp, indent);
-	fprintf(fp, "category ");
-	print_log_category(fp, logcat->category);
-	fprintf(fp, " {\n");
+	fprintf(fp, "category %s {\n", logcat->catname);
 
 	for (i = 0 ; i < logcat->nextcname ; i++) {
 		dns_c_printtabs(fp, indent + 1);
@@ -1334,12 +1343,4 @@ print_log_severity(FILE *fp, dns_c_logseverity_t severity)
 	fputs(dns_c_logseverity2string(severity, ISC_TRUE), fp);
 }
 
-
-static void
-print_log_category(FILE *fp, dns_c_category_t category)
-{
-	REQUIRE(fp != NULL);
-
-	fputs(dns_c_category2string(category, ISC_TRUE), fp);
-}
 
