@@ -184,7 +184,7 @@ static void
 nxtify(char *filename) {
 	isc_result_t result;
 	dns_db_t *db;
-	dns_dbversion_t *cversion, *wversion;
+	dns_dbversion_t *wversion;
 	dns_dbnode_t *node, *nextnode;
 	char *origintext;
 	dns_fixedname_t fname, fnextname;
@@ -216,8 +216,6 @@ nxtify(char *filename) {
 	check_result(result, "dns_db_create()");
 	result = dns_db_load(db, filename);
 	check_result(result, "dns_db_load()");
-	cversion = NULL;
-	dns_db_currentversion(db, &cversion);
 	wversion = NULL;
 	result = dns_db_newversion(db, &wversion);
 	check_result(result, "dns_db_newversion()");
@@ -251,7 +249,6 @@ nxtify(char *filename) {
 	/*
 	 * XXXRTH  For now, we don't increment the SOA serial.
 	 */
-	dns_db_closeversion(db, &cversion, ISC_FALSE);
 	dns_db_closeversion(db, &wversion, ISC_TRUE);
 	len = strlen(filename);
 	if (len + 4 + 1 > sizeof newfilename)
