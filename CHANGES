@@ -1,3 +1,6 @@
+1176.	[doc]		allow-v6-synthesis is only performed for clients
+			that are supplied recursive service.  [RT #2260]
+
 1175.	[bug]		named-checkzone and named-checkconf failed to call
 			dns_result_register() at startup which could
 			result in runtime exceptions when printing
