@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.36 2000/09/02 01:15:24 bwelling Exp $ */
+/* $Id: dst.h,v 1.37 2000/09/08 14:23:49 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -516,9 +516,10 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
  */
 
 isc_uint16_t
-dst_region_computeid(const isc_region_t *source);
+dst_region_computeid(const isc_region_t *source, const unsigned int alg);
 /*
- * Computes the key id of the key stored in the provided region.
+ * Computes the key id of the key stored in the provided region with the
+ * given algorithm.
  *
  * Requires:
  * 	"source" contains a valid, non-NULL region.

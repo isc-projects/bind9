@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.60 2000/09/02 01:15:21 bwelling Exp $
+ * $Id: dst_api.c,v 1.61 2000/09/08 14:23:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -355,10 +355,7 @@ dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	result = read_public_key(filename, mctx, &pubkey);
-
-	if (result == ISC_R_NOTFOUND)
-		return (DST_R_INVALIDPUBLICKEY);
-	else if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	if (type == DST_TYPE_PUBLIC ||
@@ -756,18 +753,21 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 }
 
 isc_uint16_t
-dst_region_computeid(const isc_region_t *source) {
+dst_region_computeid(const isc_region_t *source, const unsigned int alg) {
 	isc_uint32_t ac;
 	const unsigned char *p;
 	int size;
 
 	REQUIRE(source != NULL);
 
-	if (source->length == 0)
+	if (source->length < 4)
 		return (0);
 
 	p = source->base;
 	size = source->length;
+
+	if (alg == DST_ALG_RSAMD5)
+		return ((p[size - 3] << 8) + p[size - 2]);
 
 	for (ac = 0; size > 1; size -= 2, p += 2)
 		ac += ((*p) << 8) + *(p + 1);
@@ -865,11 +865,8 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 		goto cleanup;
 
 	ret = isc_lex_openfile(lex, newfilename);
-	if (ret != ISC_R_SUCCESS) {
-		if (ret == ISC_R_FILENOTFOUND)
-			ret = ISC_R_NOTFOUND;
+	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
-	}
 
 #define NEXTTOKEN(lex, opt, token) { \
 	ret = isc_lex_gettoken(lex, opt, token); \

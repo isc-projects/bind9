@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.44 2000/08/16 00:30:54 bwelling Exp $
+ * $Id: hmac_link.c,v 1.45 2000/09/08 14:23:47 bwelling Exp $
  */
 
 #include <config.h>
@@ -212,7 +212,7 @@ hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	r.base = hkey->key;
 	r.length = keylen;
-	key->key_id = dst_region_computeid(&r);
+	key->key_id = dst_region_computeid(&r, key->key_alg);
 	key->key_size = keylen * 8;
 	key->opaque = hkey;
 

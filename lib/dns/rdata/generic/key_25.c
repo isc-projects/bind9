@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.30 2000/08/10 01:59:39 bwelling Exp $ */
+/* $Id: key_25.c,v 1.31 2000/09/08 14:23:43 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -70,6 +70,7 @@ totext_key(ARGS_TOTEXT) {
 	isc_region_t sr;
 	char buf[sizeof "64000"];
 	unsigned int flags;
+	unsigned char algorithm;
 
 	REQUIRE(rdata->type == 25);
 
@@ -89,7 +90,8 @@ totext_key(ARGS_TOTEXT) {
 	RETERR(str_totext(" ", target));
 
 	/* algorithm */
-	sprintf(buf, "%u", sr.base[0]);
+	algorithm = sr.base[0];
+	sprintf(buf, "%u", algorithm);
 	isc_region_consume(&sr, 1);
 	RETERR(str_totext(buf, target));
 
@@ -111,7 +113,7 @@ totext_key(ARGS_TOTEXT) {
 
 		RETERR(str_totext(" ; key id = ", target));
 		dns_rdata_toregion(rdata, &tmpr);
-		sprintf(buf, "%u", dst_region_computeid(&tmpr));
+		sprintf(buf, "%u", dst_region_computeid(&tmpr, algorithm));
 		RETERR(str_totext(buf, target));
 	}
 	return (ISC_R_SUCCESS);
