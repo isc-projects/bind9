@@ -1,4 +1,7 @@
 
+ 413.	[bug]		Notify could attempt to use the zone database after
+			it had been unloaded. [RT#267]
+
 	--- 9.0.0rc5 released ---
 
  411.	[bug]		A typo in the HS A code caused an assertion failure.

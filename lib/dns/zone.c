@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.8 2000/08/25 17:30:39 gson Exp $ */
+/* $Id: zone.c,v 1.152.2.9 2000/08/31 16:40:19 gson Exp $ */
 
 #include <config.h>
 
@@ -1424,6 +1424,9 @@ zone_expire(dns_zone_t *zone) {
 	/*
 	 * 'zone' locked by caller.
 	 */
+
+	zone_log(zone, "zone_expire", ISC_LOG_WARNING, "expired");
+	
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
 		result = zone_dump(zone);
 		if (result != ISC_R_SUCCESS)
@@ -1779,7 +1782,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_zone_iattach(notify->zone, &zone);
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ||
 	    DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING) ||
-	    zone->view->requestmgr == NULL) {
+	    zone->view->requestmgr == NULL ||
+	    zone->db == NULL) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
