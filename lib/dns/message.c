@@ -953,11 +953,12 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (msg->opcode != dns_opcode_update
 		    && rdtype != dns_rdatatype_tsig
 		    && rdtype != dns_rdatatype_opt
+		    && rdtype != dns_rdatatype_key /* XXX in a TKEY query */
 		    && msg->rdclass != rdclass)
 			return (DNS_R_FORMERR);
 
 		/*
-		 * Special type handling for TSIG and OPT.
+		 * Special type handling for TSIG, OPT, and TKEY.
 		 */
 		if (rdtype == dns_rdatatype_tsig) {
 			/*
@@ -985,6 +986,13 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				return (DNS_R_FORMERR);
 			skip_name_search = ISC_TRUE;
 			skip_type_search = ISC_TRUE;
+		} else if (rdtype == dns_rdatatype_tkey) {
+			/*
+			 * A TKEY must be in the additional section.
+			 * Its class is ignored.
+			 */
+			if (sectionid != DNS_SECTION_ADDITIONAL)
+				return (DNS_R_FORMERR);
 		}
 		
 		/*
