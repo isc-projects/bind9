@@ -268,10 +268,10 @@ const char *CRYPTO_get_lock_name(int type);
 int CRYPTO_add_lock(int *pointer,int amount,int type, const char *file,
 		    int line);
 
-void CRYPTO_set_mem_functions(char *(*m)(),char *(*r)(), void (*free_func)());
-void CRYPTO_get_mem_functions(char *(**m)(),char *(**r)(), void (**f)());
-void CRYPTO_set_locked_mem_functions(char *(*m)(), void (*free_func)());
-void CRYPTO_get_locked_mem_functions(char *(**m)(), void (**f)());
+void CRYPTO_set_mem_functions(void *(*m)(),void *(*r)(), void (*free_func)());
+void CRYPTO_get_mem_functions(void *(**m)(),void *(**r)(), void (**f)());
+void CRYPTO_set_locked_mem_functions(void *(*m)(), void (*free_func)());
+void CRYPTO_get_locked_mem_functions(void *(**m)(), void (**f)());
 
 void *CRYPTO_malloc_locked(int num);
 void CRYPTO_free_locked(void *);

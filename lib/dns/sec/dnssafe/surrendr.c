@@ -8,6 +8,7 @@
 
 #include "global.h"
 #include "algae.h"
+#include "surrendr.h"
 
 /* Returns 0, AE_CANCEL.
  */

@@ -93,6 +93,7 @@ void BN_RECP_CTX_free(BN_RECP_CTX *recp)
 
 int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
 	{
+	ctx = ctx; /* BEW - quiet the compiler */
 	BN_copy(&(recp->N),d);
 	BN_zero(&(recp->Nr));
 	recp->num_bits=BN_num_bits(d);

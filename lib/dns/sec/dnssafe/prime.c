@@ -30,7 +30,7 @@ A_SURRENDER_CTX *surrenderContext;
     u2[MAX_RSA_MODULUS_WORDS], u3[MAX_RSA_MODULUS_WORDS],
     u4[MAX_RSA_MODULUS_WORDS];
   char sieve[1000];
-  int status;
+  int status = 0;
   unsigned int i, r, s, testResult;
   
   do {
