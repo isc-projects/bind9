@@ -40,7 +40,7 @@ LIBS =		@LIBS@
 SUBDIRS = db dst master mem names rbt sockaddr tasks timers
 
 # Alphabetically
-TARGETS =	keygen keysettool keysigner signer
+TARGETS =	
 
 XTARGETS =	adb_test \
 		byaddr_test \
@@ -90,9 +90,6 @@ SRCS =		adb_test.c \
 		gxba_test.c \
 		gxbn_test.c \
 		inter_test.c \
-		keygen.c \
-		keysettool.c \
-		keysigner.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
@@ -113,7 +110,6 @@ SRCS =		adb_test.c \
 		sdig.c \
 		serial_test.c \
 		shutdown_test.c \
-		signer.c \
 		sock_test.c \
 		sym_test.c \
 		task_test.c \
@@ -137,22 +133,6 @@ sdig: sdig.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 nxtify: nxtify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nxtify.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-signer: signer.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ signer.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-keygen: keygen.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keygen.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-keysettool: keysettool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keysettool.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-keysigner: keysigner.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keysigner.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 byaddr_test: byaddr_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

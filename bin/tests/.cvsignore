@@ -13,9 +13,6 @@ gxba_test
 gxbn_test
 headerdep_test.sh
 inter_test
-keygen
-keysettool
-keysigner
 lex_test
 lfsr_test
 log_test
@@ -37,7 +34,6 @@ rwlock_test
 sdig
 serial_test
 shutdown_test
-signer
 sock_test
 sym_test
 t_journal
