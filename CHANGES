@@ -1,3 +1,5 @@
+ 640.	[bug]		Memory leak in error path could cause
+			"mpctx->allocated == 0" failure. [RT #584]
 
  639.	[bug]		Reading entropy from the keyboard would sometimes fail.
 			[RT #591]

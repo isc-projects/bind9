@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.162 2000/12/16 02:30:58 bwelling Exp $ */
+/* $Id: query.c,v 1.163 2000/12/27 23:01:25 marka Exp $ */
 
 #include <config.h>
 
@@ -2912,8 +2912,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		result = dns_rdataset_first(trdataset);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			dns_message_puttempname(client->message, &tname);
 			goto cleanup;
+		}
 		dns_rdataset_current(trdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
 		dns_rdata_reset(&rdata);
@@ -2963,13 +2965,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		result = dns_rdataset_first(trdataset);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			dns_message_puttempname(client->message, &tname);
 			goto cleanup;
+		}
 		dns_rdataset_current(trdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dname, NULL);
 		dns_rdata_reset(&rdata);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			dns_message_puttempname(client->message, &tname);
 			goto cleanup;
+		}
 		dns_name_init(tname, NULL);
 		dns_name_clone(&dname.dname, tname);
 		dns_rdata_freestruct(&dname);
@@ -2980,15 +2986,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		prefix = dns_fixedname_name(&fixed);
 		result = dns_name_split(client->query.qname, nlabels, nbits,
 					prefix, NULL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			dns_message_puttempname(client->message, &tname);
 			goto cleanup;
+		}
 		INSIST(fname == NULL);
 		dbuf = query_getnamebuf(client);
-		if (dbuf == NULL)
+		if (dbuf == NULL) {
+			dns_message_puttempname(client->message, &tname);
 			goto cleanup;
+		}
 		fname = query_newname(client, dbuf, &b);
-		if (fname == NULL)
+		if (fname == NULL) {
+			dns_message_puttempname(client->message, &tname);
 			goto cleanup;
+		}
 		result = dns_name_concatenate(prefix, tname, fname, NULL);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(client->message, &tname);
