@@ -81,11 +81,11 @@
 #endif
 
 /*
- * If this system needs the IPv6 structure definitions, ISC_NET_NEEDIPV6
- * will be defined, and the structure definintions will be included.
+ * If this system needs the IPv6 structure definitions, ISC_NET_HAVEIPV6
+ * will not be defined, and the structure definintions will be included.
  */
-@ISC_NET_NEEDIPV6@
-#ifdef ISC_NET_NEEDIPV6
+@ISC_NET_HAVEIPV6@
+#ifndef ISC_NET_HAVEIPV6
 #include <isc/ipv6.h>
 #endif
 
