@@ -1,3 +1,6 @@
+ 672.	[bug]		The wrong time was in the "time signed" field when
+			replying with BADTIME error.
+
  671.	[bug]		The message code was failing to parse a message with
 			no question section and a TSIG record. [RT #628]
 
