@@ -31,7 +31,7 @@
 #endif
 
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.4 1998/08/18 19:28:28 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.5 1998/09/16 21:38:08 halley Exp $";
 #endif /* not lint */
 
 /*
@@ -56,26 +56,16 @@ struct stats {
 	unsigned long		freefrags;
 };
 
-#ifdef MEMCLUSTER_RANGES
-typedef struct range {
-	unsigned char *		first;
-	unsigned char *		last;
-	struct range *		next;
-} range;
-#endif
-	
 struct mem_context {
 	size_t			max_size;
 	size_t			mem_target;
 	memcluster_element **	freelists;
 	memcluster_element *	basic_blocks;
-#ifdef MEMCLUSTER_RANGES
-	range *			ranges;
-	range *			freeranges;
-#else
+	unsigned char **	basic_table;
+	unsigned int		basic_table_count;
+	unsigned int		basic_table_size;
 	unsigned char *		lowest;
 	unsigned char *		highest;
-#endif
 	struct stats *		stats;
 	os_mutex_t		mutex;
 };
@@ -93,6 +83,7 @@ static size_t			quantize(size_t);
 #define DEF_MEM_TARGET		4096
 #define ALIGNMENT_SIZE		sizeof (void *)
 #define NUM_BASIC_BLOCKS	64			/* must be > 1 */
+#define TABLE_INCREMENT		1024
 
 #ifdef MULTITHREADED
 #define LOCK_CONTEXT(ctx)	INSIST(os_mutex_lock(&(ctx)->mutex))
@@ -155,6 +146,9 @@ mem_context_create(size_t init_max_size, size_t target_size,
 	}
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof (struct stats));
 	ctx->basic_blocks = NULL;
+	ctx->basic_table = NULL;
+	ctx->basic_table_count = 0;
+	ctx->basic_table_size = 0;
 	ctx->lowest = NULL;
 	ctx->highest = NULL;
 	if (!os_mutex_init(&ctx->mutex)) {
@@ -169,11 +163,78 @@ mem_context_create(size_t init_max_size, size_t target_size,
 
 void
 mem_context_destroy(mem_context_t *ctxp) {
-	REQUIRE(ctxp != NULL);
+	unsigned int i;
+	mem_context_t ctx;
 
-	/* XXX Free Basic Blocks. XXX */
+	REQUIRE(ctxp != NULL);
+	ctx = *ctxp;
+
+	for (i = 0; i <= ctx->max_size; i++)
+		INSIST(ctx->stats[i].gets == 0);
+
+	for (i = 0; i < ctx->basic_table_count; i++)
+		free(ctx->basic_table[i]);
+
+	free(ctx->freelists);
+	free(ctx->stats);
+	free(ctx->basic_table);
+	(void)os_mutex_destroy(&ctx->mutex);
+	free(ctx);
 
 	*ctxp = NULL;
+}
+
+static void
+more_basic_blocks(mem_context_t ctx) {
+	void *new;
+	unsigned char *curr, *next;
+	unsigned char *first, *last;
+	unsigned char **table;
+	unsigned int table_size;
+	int i;
+
+	/* Require: we hold the context lock. */
+
+	if (ctx->basic_table_count <= ctx->basic_table_size) {
+		table_size = ctx->basic_table_size + TABLE_INCREMENT;
+		table = malloc(table_size * sizeof (unsigned char *));
+		if (table == NULL)
+			return;
+		memcpy(table, ctx->basic_table,
+		       ctx->basic_table_size * sizeof (unsigned char *));
+		free(ctx->basic_table);
+		ctx->basic_table = table;
+		ctx->basic_table_size = table_size;
+	} else
+		table = NULL;
+
+	new = malloc(NUM_BASIC_BLOCKS * ctx->mem_target);
+	if (new == NULL) {
+		if (table != NULL)
+			free(table);
+		return;
+	}
+	ctx->basic_table[ctx->basic_table_count] = new;
+	ctx->basic_table_count++;
+	curr = new;
+	next = curr + ctx->mem_target;
+	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
+		((memcluster_element *)curr)->next = next;
+		curr = next;
+		next += ctx->mem_target;
+	}
+	/*
+	 * curr is now pointing at the last block in the
+	 * array.
+	 */
+	((memcluster_element *)curr)->next = NULL;
+	first = new;
+	last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
+	if (first < ctx->lowest || ctx->lowest == NULL)
+		ctx->lowest = first;
+	if (last > ctx->highest)
+		ctx->highest = last;
+	ctx->basic_blocks = new;
 }
 
 void *
@@ -205,66 +266,13 @@ __mem_get(mem_context_t ctx, size_t size) {
 		size_t total_size;
 		void *new;
 		unsigned char *curr, *next;
-		unsigned char *first;
-#ifdef MEMCLUSTER_RANGES
-		range *r;
-#else
-		unsigned char *last;
-#endif
 
 		if (ctx->basic_blocks == NULL) {
-			new = malloc(NUM_BASIC_BLOCKS * ctx->mem_target);
-			if (new == NULL) {
+			more_basic_blocks(ctx);
+			if (ctx->basic_blocks == NULL) {
 				ret = NULL;
 				goto done;
 			}
-			curr = new;
-			next = curr + ctx->mem_target;
-			for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
-				((memcluster_element *)curr)->next = next;
-				curr = next;
-				next += ctx->mem_target;
-			}
-			/*
-			 * curr is now pointing at the last block in the
-			 * array.
-			 */
-			((memcluster_element *)curr)->next = NULL;
-			first = new;
-#ifdef MEMCLUSTER_RANGES
-			if (ctx->freeranges == NULL) {
-				int nsize = quantize(sizeof(range));
-				new = ((memcluster_element *)new)->next;
-				curr = first;
-				next = curr + nsize;
-				frags = ctx->mem_target / nsize;
-				for (i = 0; i < (frags - 1); i++) {
-					((range *)curr)->next = (range *)next;
-					curr = next;
-					next += nsize;
-				}
-				/*
-				 * curr is now pointing at the last block in
-				 * the array.
-				 */
-				((range *)curr)->next = NULL;
-				ctx->freeranges = (range *)first;
-			}
-			r = ctx->freeranges;
-			ctx->freeranges = r->next;
-			r->first = first;
-			r->last = r->first +
-				NUM_BASIC_BLOCKS * ctx->mem_target - 1;
-			r->next = ctx->ranges;
-			ctx->ranges = r;
-#else
-			last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
-			if (first < ctx->lowest || ctx->lowest == NULL)
-				ctx->lowest = first;
-			if (last > ctx->highest)
-				ctx->highest = last;
-#endif
-			ctx->basic_blocks = new;
 		}
 		total_size = ctx->mem_target;
 		new = ctx->basic_blocks;
@@ -393,25 +401,12 @@ int
 mem_valid(mem_context_t ctx, void *ptr) {
 	unsigned char *cp = ptr;
 	int ret;
-#ifdef MEMCLUSTER_RANGES
-	range *r;
-#endif
 
 	LOCK_CONTEXT(ctx);
 
 	ret = 0;
-#ifdef MEMCLUSTER_RANGES
-	/* should use a tree for this... */
-	for (r = ctx->ranges; r != NULL; r = r->next) {
-		if (cp >= r->first && cp <= r->last) {
-			ret = 1;
-			break;
-		}
-	}
-#else
 	if (ctx->lowest != NULL && cp >= ctx->lowest && cp <= ctx->highest)
 		ret = 1;
-#endif
 
 	UNLOCK_CONTEXT(ctx);
 
