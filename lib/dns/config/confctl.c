@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.26 2000/07/12 15:36:09 brister Exp $ */
+/* $Id: confctl.c,v 1.27 2000/07/12 16:17:38 gson Exp $ */
 
 #include <config.h>
 
@@ -137,18 +137,18 @@ dns_c_ctrl_validate(dns_c_ctrl_t *ctrl)
 	if (ctrl->control_type == dns_c_unix_control) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "unix sockets are not not implmented for"
-			      " control channels");
+			      "type 'unix' control channels are "
+			      "not implemented");
 	} else if (ctrl->keyidlist == NULL) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "the KEYS clause of an INET control "
-			      "channel must be used");
+			      "type 'inet' control channel has no 'keys' "
+			      "clause; control channel will be disabled");
 	} else if (dns_c_kidlist_keycount(ctrl->keyidlist) == 0) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "the KEYS clause of an INET control "
-			      "channel must not be empty");
+			      "type 'inet' control channel has no keys; "
+			      "control channel will be disabled");
 	}
 
 	return (result);
