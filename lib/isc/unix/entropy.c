@@ -316,7 +316,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
  */
 static void
 fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
-	isc_uint32_t added, desired;
+	isc_uint32_t added;
 	isc_entropysource_t *source;
 
 	REQUIRE(VALID_ENTROPY(ent));
@@ -374,6 +374,8 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 * others are always drained.
 	 */
 
+	printf("Waiting for %u bytes...\n", needed);
+
  again:
 	source = ISC_LIST_HEAD(ent->sources);
 	added = 0;
@@ -396,6 +398,8 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		if (wait_for_sources(ent) > 0)
 			goto again;
 	}
+
+	printf("Got %u bytes...\n", added);
 
 	/*
 	 * Adjust counts.
@@ -506,18 +510,13 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 			unsigned int needcount;
 
 			fillcount = ISC_MAX(remain * 8, count * 8);
-			needcount = ISC_MAX(count * 8,
-					    RND_ENTROPY_THRESHOLD * 8);
+			needcount = RND_ENTROPY_THRESHOLD * 8;
 
 			fillpool(ent, fillcount, blocking);
 
-			if (!partial && !blocking)
+			if (!partial)
 				if (ent->pool.entropy < needcount)
 					goto zeroize;
-			if (blocking
-			    && (ent->pool.entropy
-				< RND_ENTROPY_THRESHOLD * 8))
-			    goto zeroize;
 		} else {
 			/*
 			 * If we've extracted half our pool size in bits
