@@ -1,3 +1,6 @@
+ 111.   [cleanup]       <isc/rwlock.h> does not need <isc/result.h> or
+                        <isc/mutex.h>.
+
  110.   [cleanup]       <isc/result.h> does not need <isc/boolean.h> or
                         <isc/list.h>.
 
