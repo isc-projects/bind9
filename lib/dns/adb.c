@@ -29,6 +29,7 @@
 
 #include <isc/assertions.h>
 #include <isc/mutex.h>
+#include <isc/mutexblock.h>
 #include <isc/event.h>
 
 #include <dns/address.h>
@@ -363,6 +364,28 @@ find_entry_and_lock(dns_adb_t *adb, isc_sockaddr_t *addr, int *bucketp)
 	return (NULL);
 }
 
+static void
+destroy(dns_adb_t *adb)
+{
+	adb->magic = 0;
+
+	isc_mempool_destroy(&adb->nmp);
+	isc_mempool_destroy(&adb->nhmp);
+	isc_mempool_destroy(&adb->zimp);
+	isc_mempool_destroy(&adb->emp);
+	isc_mempool_destroy(&adb->ahmp);
+	isc_mempool_destroy(&adb->aimp);
+
+	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
+	isc_mutexblock_destroy(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
+
+	isc_mutex_destroy(&adb->lock);
+	isc_mutex_destroy(&adb->mplock);
+
+	isc_mem_put(adb->mctx, adb, sizeof (dns_adb_t));
+}
+
+
 /*
  * Public functions.
  */
@@ -401,38 +424,19 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb)
 		goto fail1;
 
 	/*
-	 * Initialize the bucket locks for names.  While here, initialize
-	 * the list heads, too.
+	 * Initialize the bucket locks for names and elements.
+	 * May as well initialize the list heads, too.
 	 */
-	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++) {
+	result = isc_mutexblock_init(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
+	if (result != ISC_R_SUCCESS)
+		goto fail1;
+	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++)
 		ISC_LIST_INIT(adb->names[i]);
-		result = isc_mutex_init(&adb->namelocks[i]);
-		if (result != ISC_R_SUCCESS) {
-			i--;
-			while (i >= 0) {
-				isc_mutex_destroy(&adb->namelocks[i]);
-				i--;
-			}
-			goto fail1;
-		}
-	}
-
-	/*
-	 * Initialize the bucket locks for names.  While here, initialize
-	 * the list heads, too.
-	 */
-	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++) {
+	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++)
 		ISC_LIST_INIT(adb->entries[i]);
-		result = isc_mutex_init(&adb->entrylocks[i]);
-		if (result != ISC_R_SUCCESS) {
-			i--;
-			while (i >= 0) {
-				isc_mutex_destroy(&adb->entrylocks[i]);
-				i--;
-			}
-			goto fail2;
-		}
-	}
+	result = isc_mutexblock_init(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
+	if (result != ISC_R_SUCCESS)
+		goto fail2;
 
 	/*
 	 * Memory pools
@@ -468,12 +472,10 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb)
 	return (ISC_R_SUCCESS);
 
  fail3: /* clean up entrylocks */
-	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++)
-		isc_mutex_destroy(&adb->entrylocks[i]);
+	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
 
  fail2: /* clean up namelocks */
-	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++)
-		isc_mutex_destroy(&adb->namelocks[i]);
+	isc_mutexblock_destroy(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
 
  fail1: /* clean up only allocated memory */
 	if (adb->nmp != NULL)
@@ -501,7 +503,6 @@ void
 dns_adb_destroy(dns_adb_t **adbx)
 {
 	dns_adb_t *adb;
-	int i;
 
 	REQUIRE(adbx != NULL && DNS_ADB_VALID(*adbx));
 
@@ -512,28 +513,12 @@ dns_adb_destroy(dns_adb_t **adbx)
 	 * XXX Need to wait here until the adb is fully shut down.
 	 */
 
-	adb->magic = 0;
+	/*
+	 * If all lists are empty, destroy the memory used by this
+	 * adb.  XXX Need to implement this.
+	 */
 
-	isc_mempool_destroy(&adb->nmp);
-	isc_mempool_destroy(&adb->nhmp);
-	isc_mempool_destroy(&adb->zimp);
-	isc_mempool_destroy(&adb->emp);
-	isc_mempool_destroy(&adb->ahmp);
-	isc_mempool_destroy(&adb->aimp);
-
-	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++)
-		isc_mutex_destroy(&adb->entrylocks[i]);
-
-	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++)
-		isc_mutex_destroy(&adb->namelocks[i]);
-
-	isc_mutex_destroy(&adb->lock);
-	isc_mutex_destroy(&adb->mplock);
-
-	isc_mem_put(adb->mctx, adb, sizeof (dns_adb_t));
-	
-
-	INSIST(1 == 0);
+	destroy(adb);
 }
 
 isc_result_t
