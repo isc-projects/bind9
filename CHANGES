@@ -1,3 +1,6 @@
+1463.	[bug]		dns_rdata_from{wire,struct}() failed to catch bad
+			NXT bit maps. [RT #5577]
+
 1462.	[bug]		parse_sizeval() failed to check the token type.
 			[RT #5586]
 
