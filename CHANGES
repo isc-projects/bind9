@@ -5,6 +5,9 @@
 			xfrout_ctx_destroy() being called with a
 			partially initialized structure.
 			
+1603.	[bug]		nsupdate: set interactive based on isatty().
+			[RT# 10929]
+
 1455.   [bug]           <netaddr> missing from server grammar in
                         doc/misc/options. [RT #5616]
 
