@@ -72,7 +72,7 @@ typedef isc_result_t (*isc_entropystart_t)(isc_entropy_t *ent,
 					   void *arg);
 typedef isc_result_t (*isc_entropyget_t)(isc_entropy_t *ent,
 					 isc_entropysource_t *source,
-					 void *arg, unsigned int entropy);
+					 void *arg);
 typedef void (*isc_entropystop_t)(isc_entropy_t *ent,
 				  isc_entropysource_t *source,
 				  void *arg);
@@ -184,7 +184,7 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 void
 isc_entropy_stopcallbacksources(isc_entropy_t *ent);
 
-void
+isc_result_t
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 		      isc_uint32_t extra);
 /*
