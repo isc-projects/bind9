@@ -7,8 +7,8 @@
 DNSEXT Working Group                                        Levon Esibov
 INTERNET-DRAFT                                             Bernard Aboba
 Category: Standards Track                                    Dave Thaler
-<draft-ietf-dnsext-mdns-22.txt>                                Microsoft
-23 July 2003
+<draft-ietf-dnsext-mdns-24.txt>                                Microsoft
+27 September 2003
 
 
               Linklocal Multicast Name Resolution (LLMNR)
@@ -61,7 +61,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 1]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
 Table of Contents
@@ -80,23 +80,23 @@ Table of Contents
    2.8       Use of the authority and additional sections ....    9
 3.     Usage model ...........................................    9
    3.1       Unqualified names ...............................   10
-   3.2       LLMNR configuration .............................   10
+   3.2       LLMNR configuration .............................   11
 4.     Conflict resolution ...................................   12
    4.1       Considerations for multiple interfaces ..........   13
    4.2       API issues ......................................   15
 5.     Security considerations ...............................   15
    5.1       Scope restriction ...............................   16
-   5.2       Usage restriction ...............................   16
+   5.2       Usage restriction ...............................   17
    5.3       Cache and port separation .......................   17
-   5.4       Authentication ..................................   17
-6.     IANA considerations ...................................   17
-7.     Normative References ..................................   18
-8.     Informative References ................................   18
-Acknowledgments ..............................................   19
-Authors' Addresses ...........................................   19
-Intellectual Property Statement ..............................   20
-Full Copyright Statement .....................................   20
-
+   5.4       Authentication ..................................   18
+6.     IANA considerations ...................................   18
+7.     References ............................................   18
+   7.1       Normative References ............................   18
+   7.2       Informative References ..........................   19
+Acknowledgments ..............................................   20
+Authors' Addresses ...........................................   20
+Intellectual Property Statement ..............................   21
+Full Copyright Statement .....................................   21
 
 
 
@@ -121,7 +121,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 2]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
 1.  Introduction
@@ -147,21 +147,22 @@ described in Section 2.3.
 
 Propagation of LLMNR packets on the local link is considered sufficient
 to enable name resolution in small networks.  The assumption is that if
-a network has a home gateway, then the network is able to provide DNS
-server configuration and a DNS server is available that is authoritative
-for the names of local hosts and can support dynamic DNS.  Configuration
-issues are discussed in Section 3.2.
+a network has a gateway, then the network is able to provide DNS server
+configuration.   Configuration issues are discussed in Section 3.2.
 
-In the future, LLMNR may be defined to support greater than link-scope
-multicast.  This would occur if LLMNR deployment is successful, the
-assumption that LLMNR is not needed on multiple links proves incorrect,
-and multicast routing becomes ubiquitous.  For example, it is not clear
-that this assumption will be valid in large ad hoc networking scenarios.
+In the future, it may be desirable to consider use of multicast name
+resolution with multicast scopes beyond the link-scope.  This could
+occur if LLMNR deployment is successful, the need for multicast name
+resolution beyond the link-scope, or multicast routing becomes
+ubiquitous.  For example, expanded support for multicast name resolution
+might be required for mobile ad-hoc networking scenarios, or where no
+DNS server is available that is authoritative for the names of local
+hosts, and can support dynamic DNS, such as in wireless hotspots.
 
 Once we have experience in LLMNR deployment in terms of administrative
-issues, usability and impact on the network it will be possible to
+issues, usability and impact on the network, it will be possible to
 reevaluate which multicast scopes are appropriate for use with multicast
-name resolution mechanisms.
+name resolution.
 
 Service discovery in general, as well as discovery of DNS servers using
 LLMNR in particular, is outside of the scope of this document, as is
@@ -171,7 +172,6 @@ name resolution over non-multicast capable media.
 
 In this document, several words are used to signify the requirements of
 the specification.  These words are often capitalized.  The key words
-"MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD
 
 
 
@@ -181,33 +181,34 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 3]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
+"MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD
 NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC2119].
 
 1.2.  Terminology
 
-Responder      A host that listens to LLMNR queries, and responds to
-               those for which it is authoritative.
+Responder A host that listens to LLMNR queries, and responds to those
+          for which it is authoritative.
 
-Sender         A host that sends an LLMNR query.  Typically a host is
-               configured as both a sender and a responder.  However, a
-               host may be configured as a sender, but not a responder
-               or as a responder, but not a sender.
+Sender    A host that sends an LLMNR query.  Typically a host is
+          configured as both a sender and a responder.  However, a host
+          may be configured as a sender, but not a responder or as a
+          responder, but not a sender.
 
 Routable address
-               An address other than a Link-Local address.  This
-               includes globally routable addresses, as well as private
-               addresses.
+          An address other than a Link-Local address.  This includes
+          globally routable addresses, as well as private addresses.
 
 2.  Name resolution using LLMNR
 
 A typical sequence of events for LLMNR usage is as follows:
 
 [1] A sender needs to resolve a query for a name "host.example.com",
-    so it sends an LLMNR query to the link-scope multicast address.
+    so it sends an LLMNR query to the link-scope multicast address(es)
+    defined in Section 2.4.
 
 [2] A responder responds to this query only if it is authoritative
     for the domain name "host.example.com".  The responder sends
@@ -225,13 +226,12 @@ sections that follow.
 
 A sender sends an LLMNR query for any legal resource record  type (e.g.
 A/AAAA, SRV, PTR, etc.) to the link-scope multicast address.  As
-described in Section 2.3, a sender may also send a unicast query. An
-LLMNR sender MAY send a request for any name.
+described in Section 2.3, a sender may also send a unicast query.
+Section 3 describes the circumstances in which LLMNR queries may be
+sent.
 
 The RD (Recursion Desired) bit MUST NOT be set in a query.  If a
 responder receives a query with the header containing RD set bit, the
-responder MUST ignore the RD bit.
-
 
 
 
@@ -241,8 +241,10 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 4]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
+
+responder MUST ignore the RD bit.
 
 The sender MUST anticipate receiving no replies to some LLMNR queries,
 in the event that no responders are available within the link-scope or
@@ -255,10 +257,11 @@ empty answer section).
 2.2.  Responder behavior
 
 A responder MUST listen on UDP port TBD on the link-scope multicast
-address(es) and on UDP and TCP port TBD on the unicast address(es) that
-could be set as the source address(es) when the responder responds to
-the LLMNR query.  A host configured as a responder MUST act as a sender
-to verify the uniqueness of names as described in Section 4.
+address(es) defined in Section 2.4 and on UDP and TCP port TBD on the
+unicast address(es) that could be set as the source address(es) when the
+responder responds to the LLMNR query.  A host configured as a responder
+MUST act as a sender to verify the uniqueness of names as described in
+Section 4.
 
 Responders MUST NOT respond to LLMNR queries for names they are not
 authoritative for.  Responders SHOULD respond to LLMNR queries for names
@@ -289,9 +292,6 @@ the branches delegated into separate zones.  Contrary to conventional
 DNS terminology, an LLMNR responder is authoritative only for the zone
 root.
 
-For example the host "host.example.com." is not authoritative for the
-name "child.host.example.com." unless the host is configured with
-multiple names, including "host.example.com."  and
 
 
 
@@ -301,9 +301,12 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 5]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
+For example the host "host.example.com." is not authoritative for the
+name "child.host.example.com." unless the host is configured with
+multiple names, including "host.example.com."  and
 "child.host.example.com.".  As a result, "host" cannot reply to a query
 for "child" with NXDOMAIN.  The purpose of limiting the name authority
 scope of a responder is to prevent complications that could be caused by
@@ -339,7 +342,8 @@ Unicast queries SHOULD be sent when:
   a.  A sender repeats a query after it received a response
       with the TC bit set to the previous LLMNR multicast query, or
 
-  b.  The sender queries for a PTR RR.
+  b.  The sender queries for a PTR RR of a fully formed IP address
+      within the "in-addr.arpa" or "ip6.arpa" zones.
 
 If a TC (truncation) bit is set in the response, then the sender MAY use
 the response if it contains all necessary information, or the sender MAY
@@ -348,10 +352,6 @@ address of the responder.  The RA (Recursion Available) bit in the
 header of the response MUST NOT be set.  If the RA bit is set in the
 response header, the sender MUST ignore the RA bit.
 
-Unicast LLMNR queries SHOULD be sent using TCP.  Responses to TCP
-unicast LLMNR queries MUST be sent using TCP,  using the same connection
-as the query.  If the sender of a TCP query receives a response not
-using TCP, the response MUST be silently discarded.  Unicast UDP queries
 
 
 
@@ -361,9 +361,13 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 6]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
+Unicast LLMNR queries SHOULD be sent using TCP.  Responses to TCP
+unicast LLMNR queries MUST be sent using TCP,  using the same connection
+as the query.  If the sender of a TCP query receives a response not
+using TCP, the response MUST be silently discarded.  Unicast UDP queries
 MAY be responded to with an empty answer section and the TC bit set, so
 as to require the sender to resend the query using TCP.  Senders MUST
 support sending TCP queries, and Responders MUST support listening for
@@ -390,28 +394,24 @@ behavior described in Section 2.6.
 IPv4 administratively scoped multicast usage is specified in
 "Administratively Scoped IP Multicast" [RFC2365].  The IPv4 link-scope
 multicast address a given responder listens to, and to which a sender
-sends queries, is 224.0.0.251.  The IPv6 link-scope multicast address a
-given responder listens to, and to which a sender sends all queries, is
-TBD.
+sends queries, is TBD.  The IPv6 link-scope multicast address a given
+responder listens to, and to which a sender sends all queries, is TBD.
 
 2.5.  Off-link detection
 
-The source address of LLMNR queries and responses MUST be "on link".
-The destination address of an LLMNR query MUST be a link-scope multicast
-address or an "on link" unicast address; the destination address of an
-LLMNR response MUST be an "on link" unicast address.  On receiving an
-LLMNR query, the responder MUST check whether it was sent to the LLMNR
-multicast address; if it was sent to another multicast address, then the
+A sender MUST select a source address for LLMNR queries that is "on
+link".  The destination address of an LLMNR query MUST be a link-scope
+multicast address or an "on link" unicast address.
+
+A responder MUST select a source address for responses that is "on
+link".  The destination address of an LLMNR response MUST be an "on
+link" unicast address.  On receiving an LLMNR query, the responder MUST
+check whether it was sent to a LLMNR multicast addresses defined in
+Section 2.4.  If it was sent to another multicast address, then the
 query MUST be silently discarded.
 
 For IPv4, an "on link" address is defined as a link-local address or an
-address whose prefix belongs to a subnet on the local link; for IPv6
-[RFC2460] an "on link" address is either a link-local address, defined
-in [RFC2373], or an address whose prefix belongs to a subnet on the
-local link.  A sender SHOULD prefer RRs including reachable addresses
-where RRs involving both reachable and unreachable addresses are
-returned in response to a query.
-
+address whose prefix belongs to a subnet on the local link.  For IPv6
 
 
 
@@ -421,8 +421,14 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 7]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
+
+[RFC2460] an "on link" address is either a link-local address, defined
+in [RFC2373], or an address whose prefix belongs to a subnet on the
+local link.  A sender SHOULD prefer RRs including reachable addresses
+where RRs involving both reachable and unreachable addresses are
+returned in response to a query.
 
 In composing LLMNR queries, the sender MUST set the Hop Limit field in
 the IPv6 header and the TTL field in IPv4 header of the response to one
@@ -450,28 +456,22 @@ Implementation note:
 2.6.  Retransmissions
 
 In order to avoid synchronization, LLMNR queries and responses are
-delayed by a time uniformly distributed between 0 and 200 ms.
+delayed by a time randomly selected from the interval 0 to 200 ms.
 
 If an LLMNR query sent over UDP is not resolved within the timeout
 interval (LLMNR_TIMEOUT), then a sender MAY repeat the transmission of
 the query in order to assure that it was received by a host capable of
-responding to it.  Since a multicast query sender cannot know beforehand
-whether it will receive no response, one response, or more than one
-response, it SHOULD wait for LLMNR_TIMEOUT in order to collect all
-possible responses, rather than considering the multicast query answered
-after the first response is received. A unicast query sender considers
-the query answered after the first response is received, so that it only
-waits for LLMNR_TIMEOUT if no response has been received.
+responding to it.  Retransmission of UDP queries SHOULD NOT be attempted
+more than 3 times.  Where LLMNR queries are sent using TCP,
+retransmission is handled by the transport layer.
 
-LLMNR implementations SHOULD dynamically estimate the timeout value
-(LLMNR_TIMEOUT) based on the last response received, on a per-interface
-basis. The algorithms described in [RFC2988] are suggested, with a
-minimum timeout value of 300 ms.  Retransmission of UDP queries SHOULD
-NOT be attempted more than 3 times.  Where LLMNR queries are sent using
-TCP, retransmission is handled by the transport layer.
-
-
-
+Since a multicast query sender cannot know beforehand whether it will
+receive no response, one response, or more than one response, it SHOULD
+wait for LLMNR_TIMEOUT in order to collect all possible responses,
+rather than considering the multicast query answered after the first
+response is received. A unicast query sender considers the query
+answered after the first response is received, so that it only waits for
+LLMNR_TIMEOUT if no response has been received.
 
 
 
@@ -481,15 +481,26 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 8]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
+
+LLMNR implementations SHOULD dynamically estimate the timeout value
+(LLMNR_TIMEOUT) based on the last response received for a query, on a
+per-interface basis.  The algorithms described in [RFC2988] are
+suggested (including exponential backoff).  Smaller values of
+RTOinitial, RTOmin and RTOmax MAY be used. Recommended values are
+RTOinitial=1 second, RTOmin=200ms, RTOmax=20 seconds.
 
 2.7.  DNS TTL
 
 The responder should use a pre-configured TTL value in the records
-returned in the LLMNR query response.  Due to the TTL minimalization
-necessary when caching an RRset, all TTLs in an RRset MUST be set to the
-same value.
+returned in the LLMNR query response.  A default value of 0 is
+recommended in highly dynamic environments (such as mobile ad-hoc
+networks).  In less dynamic environments, LLMNR traffic can be reduced
+by setting the TTL to a higher value.
+
+Due to the TTL minimalization necessary when caching an RRset, all TTLs
+in an RRset MUST be set to the same value.
 
 2.8.  Use of the authority and additional sections
 
@@ -503,7 +514,7 @@ responses.
 
 Responders SHOULD insert an SOA record into the authority section of a
 negative response, to facilitate negative caching as specified in
-RFC2308.  The owner name of of this SOA record MUST be equal to the
+[RFC2308].  The owner name of of this SOA record MUST be equal to the
 query name.
 
 Responders SHOULD NOT perform DNS additional section processing.
@@ -515,22 +526,11 @@ negative caching.
 3.  Usage model
 
 LLMNR is a peer-to-peer name resolution protocol that is not intended as
-a replacement for DNS.  By default, LLMNR requests SHOULD be sent only
+a replacement for DNS. By default, LLMNR requests SHOULD be sent only
 when no manual or automatic DNS configuration has been performed, when
 DNS servers do not respond, or when they respond to a query with RCODE=3
-(Authoritative Name Error) or RCODE=0, and an empty answer section.
-
-As noted in [DNSPerf], even when DNS servers are configured, a
-significant fraction of DNS queries do not receive a response, or result
-in negative responses due to missing inverse mappings or NS records that
-point to nonexistent or inappropriate hosts.  Given this, support for
-LLMNR as a secondary name resolution mechanism has the potential to
-result in a large number of inappropriate queries without the following
-additional restrictions:
-
-[1] If a DNS query does not receive a response, prior to falling
-    back to LLMNR, the query SHOULD be retransmitted at least
-    once.
+(Authoritative Name Error) or RCODE=0, and an empty answer section.  An
+LLMNR sender may send a request for any name.
 
 
 
@@ -541,57 +541,57 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 9]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
-[2] Where a DNS server is configured, by default a sender
-    SHOULD send LLMNR queries only for names that are either
-    unqualified or exist within the default domain. Where no
-    DNS server is configured, an LLMNR query MAY be sent for
-    any name.
+As noted in [DNSPerf], even when DNS servers are configured, a
+significant fraction of DNS queries do not receive a response, or result
+in negative responses due to missing inverse mappings or NS records that
+point to nonexistent or inappropriate hosts. Given this, support for
+LLMNR as a secondary name resolution mechanism has the potential to
+result in a large number of inappropriate queries without the following
+additional restrictions:
 
-[3] A responder with both link-local and routable addresses
-    MUST respond to LLMNR queries for A/AAAA RRs only with
-    routable address(es).  This encourages use of routable
-    address(es) for establishment of new connections.
+[1] If a DNS query does not receive a response, prior to falling
+    back to LLMNR, the query SHOULD be retransmitted at least
+    once.
 
-[4] A sender SHOULD send LLMNR queries for PTR RRs
+[2] A sender SHOULD send LLMNR queries for PTR RRs
     via unicast, as specified in Section 2.3.
 
-RRs returned in LLMNR responses MUST only include values that are valid
-on the local interface, such as IPv4 or IPv6 addresses valid on the
-local link or names defended using the mechanism described in Section 4.
-In particular:
+It is the responsibility of the responder to ensure that RRs returned in
+LLMNR responses MUST only include values that are valid on the local
+interface, such as IPv4 or IPv6 addresses valid on the local link or
+names defended using the mechanism described in Section 4.  In
+particular:
 
 [1] If a link-scope IPv6 address is returned in a AAAA RR, that
     address MUST be valid on the local link over which LLMNR is
     used.
 
-[2] If an IPv4 address is returned, it must be reachable through
+[2] If an IPv4 address is returned, it MUST be reachable through
     the link over which LLMNR is used.
 
 [3] If a name is returned (for example in a CNAME, MX
     or SRV RR), the name MUST be valid on the local interface.
 
+Routable addresses MUST be included first in the response, if available.
+This encourages use of routable address(es) for establishment of new
+connections.
+
 3.1.  Unqualified names
 
-The same host MAY use LLMNR queries for the resolution of unqualified
-host names, and conventional DNS queries for resolution of other DNS
-names.
-
-If a name is not qualified and does not end in a trailing dot, for the
-purposes of LLMNR, the implicit search order is as follows:
+If a name is not qualified, for the purposes of LLMNR the implicit
+search order is as follows:
 
 [1]  Request the name with the current domain appended.
-[2]  Request just the name.
+[2]  Request the name with the root domain (".") appended.
 
-This is the behavior suggested by [RFC1536].  LLMNR uses this technique
-to resolve unqualified host names.
+This is the behavior suggested by [RFC1536].
 
-3.2.  LLMNR configuration
 
-LLMNR usage MAY be configured manually or automatically on a per
-interface basis.  By default, LLMNR Responders SHOULD be enabled on all
+
+
 
 
 
@@ -601,9 +601,13 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 10]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
+3.2.  LLMNR configuration
+
+LLMNR usage MAY be configured manually or automatically on a per
+interface basis.  By default, LLMNR Responders SHOULD be enabled on all
 interfaces, at all times.
 
 Since IPv4 and IPv6 utilize distinct configuration mechanisms, it is
@@ -622,24 +626,25 @@ enabling linklocal name resolution over IPv6.
 
 Where a DHCPv4 server is available but not a DHCPv6 server [DHCPv6DNS],
 IPv6-only hosts may not be configured with a DNS server.  Where there is
-no DNS server authoritative for the names of hosts on the local network
-or the authoritative DNS server does not support dynamic client update
-over IPv6 or DHCPv6-based dynamic update, hosts on the home network will
-not be able to dynamically register or resolve the names of local IPv6
-hosts.  For example, if the configured DNS server responds to AAAA RR
-queries sent over IPv4 or IPv6 with an authoritative name error
-(RCODE=3), then it will not be possible to resolve the names of
-IPv6-only hosts.  In this situation, LLMNR over IPv6 can be used for
-local name resolution.
+no DNS server authoritative for the name of a host or the authoritative
+DNS server does not support dynamic client update over IPv6 or
+DHCPv6-based dynamic update, then an IPv6-only host will not be able to
+do DNS dynamic update, and other hosts will not be able to resolve its
+name.
+
+For example, if the configured DNS server responds to AAAA RR queries
+sent over IPv4 or IPv6 with an authoritative name error (RCODE=3), then
+it will not be possible to resolve the names of IPv6-only hosts.  In
+this situation, LLMNR over IPv6 can be used for local name resolution.
 
 Similarly, if a DHCPv4 server is available providing DNS server
-configuration, and the DNS server authoritative for the A RRs of local
-hosts also supports either dynamic client update over  IPv4 or
-DHCPv4-based dynamic update, then resolution of the names of local IPv4
-hosts can be provided over IPv4 without LLMNR.  However,  if there is no
-DNS server authoritative for the names of local hosts, or the
-authoritative DNS server does not support dynamic update, then LLMNR may
-prove useful in enabling linklocal name resoltion over IPv4.
+configuration, and DNS server(s) exist which are authoritative for the A
+RRs of local hosts and support either dynamic client update over IPv4 or
+DHCPv4-based dynamic update, then the names of local IPv4 hosts can be
+resolved over IPv4 without LLMNR.  However,  if no DNS server is
+authoritative for the names of local hosts, or the authoritative DNS
+server(s) do not support dynamic update, then LLMNR enables linklocal
+name resolution over IPv4.
 
 Where DHCPv4 or DHCPv6 is implemented, DHCP options can be used to
 configure LLMNR on an interface.  The LLMNR Enable Option, described in
@@ -647,11 +652,6 @@ configure LLMNR on an interface.  The LLMNR Enable Option, described in
 on an interface.  The LLMNR Enable Option does not determine whether or
 in which order DNS itself is used for name resolution.  The order in
 which various name resolution mechanisms should be used can be specified
-using the Name Service Search Option for DHCP [RFC2937].
-
-It is possible that DNS configuration mechanisms will go in and out of
-service.  In these circumstances, it is possible for hosts within an
-administrative domain to be inconsistent in their DNS configuration.
 
 
 
@@ -661,8 +661,14 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 11]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
+
+using the Name Service Search Option for DHCP [RFC2937].
+
+It is possible that DNS configuration mechanisms will go in and out of
+service.  In these circumstances, it is possible for hosts within an
+administrative domain to be inconsistent in their DNS configuration.
 
 For example, where DHCP is used for configuring DNS servers, one or more
 DHCP servers can fail.  As a result, hosts configured prior to the
@@ -677,7 +683,7 @@ LLMNR even once the outage is repaired.  Since LLMNR only enables
 linklocal name resolution, this represents an unnecessary degradation in
 capabilities.  As a result, it is recommended that hosts without a
 configured DNS server periodically attempt to obtain DNS configuration.
-A default retry interval of two (2) minutes is RECOMMENDED.
+A default retry interval of one (1) minute is RECOMMENDED.
 
 4.  Conflict resolution
 
@@ -685,7 +691,8 @@ The sender MUST anticipate receiving multiple replies to the same LLMNR
 query, in the event that several LLMNR enabled computers receive the
 query and respond with valid answers.  When this occurs, the responses
 MAY first be concatenated, and then treated in the same manner that
-multiple RRs received from the same DNS server would.
+multiple RRs received from the same DNS server would; the sender
+perceives no inherent conflict in the receipt of multiple responses.
 
 There are some scenarios when multiple responders MAY respond to the
 same query.  There are other scenarios when only one responder MAY
@@ -705,13 +712,6 @@ Every responder that responds to an LLMNR query AND includes a UNIQUE
 record in the response:
 
    1.  MUST verify that there is no other host within the scope of the
-       LLMNR query propagation that can return a resource record
-       for the same name, type and class.
-   2.  MUST NOT include a UNIQUE resource record in the
-       response without having verified its uniqueness.
-
-Where a host is configured to respond to LLMNR queries on more than one
-interface, each interface should have its own independent LLMNR cache.
 
 
 
@@ -721,13 +721,20 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 12]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
+       LLMNR query propagation that can return a resource record
+       for the same name, type and class.
+   2.  MUST NOT include a UNIQUE resource record in the
+       response without having verified its uniqueness.
+
+Where a host is configured to issue LLMNR queries on more than one
+interface, each interface should have its own independent LLMNR cache.
 For each UNIQUE resource record in a given interface's configuration,
 the host MUST verify resource record uniqueness on that interface.  To
 accomplish this, the host MUST send an LLMNR query for each UNIQUE
-resource record.
+resource record, as described in Section 2.6.
 
 By default, a host SHOULD be configured to behave as though all RRs are
 UNIQUE.  Uniqueness verification is carried out when the host:
@@ -735,13 +742,9 @@ UNIQUE.  Uniqueness verification is carried out when the host:
   - starts up or is rebooted
   - wakes from sleep (if the network interface was inactive during sleep)
   - is configured to respond to the LLMNR queries on an interface
+    enabled for transmission and reception of IP traffic
   - is configured to respond to the LLMNR queries using additional
     UNIQUE resource records
-  - detects that an interface is connected and is usable
-    (e.g. an IEEE 802 hardware link-state change indicating that a
-    cable was attached or that an association has occurred with a
-    wireless base station and that any required authentication has
-    completed)
 
 When a host that owns a UNIQUE record receives an LLMNR query for that
 record, the host MUST respond.  After the client receives a response, it
@@ -769,9 +772,6 @@ configured to respond to the same name.
 
 A multi-homed host may elect to configure LLMNR on only one of its
 active interfaces.  In many situations this will be adequate.  However,
-should a host need to configure LLMNR on more than one of its active
-interfaces, there are some additional precautions it MUST take.
-Implementers who are not planning to support LLMNR on multiple
 
 
 
@@ -781,9 +781,12 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 13]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
+should a host need to configure LLMNR on more than one of its active
+interfaces, there are some additional precautions it MUST take.
+Implementers who are not planning to support LLMNR on multiple
 interfaces simultaneously may skip this section.
 
 A multi-homed host checks the uniqueness of UNIQUE records as described
@@ -823,15 +826,12 @@ both interfaces.
 Host myhost cannot distinguish between the situation shown in Figure 2,
 and that shown in Figure 3 where no conflict exists.
 
-             [A]
-            |   |
-        -----   -----
-            |   |
-           [myhost]
 
-   Figure 3.  Multiple paths to same host
 
-This illustrates that the proposed name conflict resolution mechanism
+
+
+
+
 
 
 
@@ -841,9 +841,18 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 14]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
+             [A]
+            |   |
+        -----   -----
+            |   |
+           [myhost]
+
+   Figure 3.  Multiple paths to same host
+
+This illustrates that the proposed name conflict resolution mechanism
 does not support detection or resolution of conflicts between hosts on
 different links.  This problem can also occur with unicast DNS when a
 multi-homed host is connected to two different networks with separated
@@ -872,24 +881,15 @@ successfully with any address in the list.
 
 5.  Security Considerations
 
-LLMNR is by nature a peer-to-peer name resolution protocol.  It is
+LLMNR is by nature a peer-to-peer name resolution protocol. It is
 therefore inherently more vulnerable than DNS, since existing DNS
-security mechanisms are difficult to apply to LLMNR and an attacker only
-needs to be misconfigured to answer an LLMNR query with incorrect
-information.
+security mechanisms are difficult to apply to LLMNR. While tools exist
+to alllow an attacker to spoof a response to a DNS query, spoofing a
+response to an LLMNR query is easier since the query is sent to a link-
+scope multicast address, which can propagate to multiple switch ports.
 
 In order to address the security vulnerabilities, the following
 mechanisms are contemplated:
-
-[1]  Scope restrictions.
-
-[2]  Usage restrictions.
-
-[3]  Cache and port separation.
-
-[4]  Authentication.
-
-These techniques are described in the following sections.
 
 
 
@@ -901,57 +901,57 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 15]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
+
+[1]  Scope restrictions.
+
+[2]  Usage restrictions.
+
+[3]  Cache and port separation.
+
+[4]  Authentication.
+
+These techniques are described in the following sections.
 
 5.1.  Scope restriction
 
 With LLMNR it is possible that hosts will allocate conflicting names for
 a period of time, or that attackers will attempt to deny service to
-other hosts by allocating the same name.  Such attacks also allow hosts
+other hosts by allocating the same name. Such attacks also allow hosts
 to receive packets destined for other hosts.
 
 Since LLMNR is typically deployed in situations where no trust model can
 be assumed, it is likely that LLMNR queries and responses will be
-unauthenticated.  In the absence of authentication, LLMNR reduces the
+unauthenticated. In the absence of authentication, LLMNR reduces the
 exposure to such threats by utilizing queries sent to a link-scope
 multicast address, as well as setting the TTL (IPv4) or Hop Limit (IPv6)
 fields to one (1) on both queries and responses.
 
+A TTL of one (1) was chosen so as to limit the likelihood that LLMNR can
+be used to launch denial of service attacks. For example, were the TTL
+of an LLMNR Response to be set to a value larger than one (1), an
+attacker could send a large volume of queries from a spoofed source
+address, causing an off-link target to be deluged with responses.
+
+Utilizing a TTL of one (1) in LLMNR responses ensures that they will not
+be forwarded off-link. Using a TTL of one (1) to set up a TCP connection
+in order to send a unicast LLMNR query reduces the likelihood of both
+denial of service attacks and spoofed responses.  Checking that an LLMNR
+query is sent to a link-scope multicast address should prevent spoofing
+of multicast queries by off-link attackers.
+
 While this limits the ability of off-link attackers to spoof LLMNR
-queries and responses, it does not eliminate it.   For example, it is
+queries and responses, it does not eliminate it. For example, it is
 possible for an attacker to spoof a response to a frequent query (such
-as an A/AAAA query for a popular Internet host), and using a TTL or Hop
-Limit field larger than one (1), for the forged response to reach the
-LLMNR sender.  There also are scenarios such as public "hotspots" where
-attackers can be present on the same link.
+as an A/AAAA query for a popular Internet host), and by using a TTL or
+Hop Limit field larger than one (1), for the forged response to reach
+the LLMNR sender. There also are scenarios such as public "hotspots"
+where attackers can be present on the same link.
 
 These threats are most serious in wireless networks such as 802.11,
 since attackers on a wired network will require physical access to the
 home network, while wireless attackers may reside outside the home.
-Link-layer security can be of assistance against these threats if it is
-available.
-
-5.2.  Usage restriction
-
-As noted in Section 3, LLMNR is intended for usage in a limited set of
-scenarios.
-
-If an interface has been configured via any automatic configuration
-mechanism which is able to supply DNS configuration information, then
-LLMNR SHOULD NOT be used as the primary name resolution mechanism on
-that interface, although it MAY be used as a name resolution mechanism
-of last resort.
-
-Note: enabling LLMNR for use in situations where a DNS server has been
-configured will result in upgraded hosts changing their default behavior
-without a simultaneous update to configuration information.  Where this
-is considered undesirable, LLMNR SHOULD NOT be enabled by default, so
-that hosts will neither listen on the link-scope multicast address, nor
-will it send queries to that address.
-
-Use of LLMNR as a name resolution mechanism increases security
-vulnerabilities.  For example, if an LLMNR query is sent whenever a DNS
 
 
 
@@ -961,28 +961,69 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 16]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
-server does not respond in a timely way, then an attacker can execute a
-denial of service attack on the DNS server(s) and then poison the LLMNR
-cache by responding to the resulting LLMNR queries with incorrect
-information.
+Link-layer security can be of assistance against these threats if it is
+available.
+
+5.2.  Usage restriction
+
+As noted in Section 3, LLMNR is intended for usage in a limited set of
+scenarios.
+
+While LLMNR can be used to resolve any name, if an interface has been
+configured with DNS server address(es), then LLMNR SHOULD NOT be used as
+the primary name resolution mechanism on that interface, although it MAY
+be used as a name resolution mechanism of last resort.
+
+If an LLMNR query is sent whenever a DNS server does not respond in a
+timely way, then an attacker can poison the LLMNR cache by responding to
+the query with incorrect information.  To some extent, these
+vulnerabilities exist today, since DNS response spoofing tools are
+available that can allow an attacker to respond to a query more quickly
+than a distant DNS server.
+
+Since LLMNR queries are sent and responded to on the local-link, an
+attacker will need to respond more quickly to provide its own response
+prior to arrival of the response from a legitimate responder. If an
+LLMNR query is sent for an off-link host, spoofing a response in a
+timely way is not difficult, since a legitimate response will never be
+received.
 
 The vulnerability is more serious if LLMNR is given higher priority than
-DNS among the enabled name resolution mechanisms.  In such a
+DNS among the enabled name resolution mechanisms. In such a
 configuration, a denial of service attack on the DNS server would not be
 necessary in order to poison the LLMNR cache, since LLMNR queries would
-be sent even when the DNS server is available.  In addition, the LLMNR
+be sent even when the DNS server is available. In addition, the LLMNR
 cache, once poisoned, would take precedence over the DNS cache,
-eliminating the benefits of cache separation.  As a result, LLMNR is
-best thought of as a name resolution mechanism of last resort.
+eliminating the benefits of cache separation. As a result, LLMNR is only
+used as a name resolution mechanism of last resort.
+
+Note: enabling LLMNR for use in situations where a DNS server has been
+configured will result in upgraded hosts changing their default behavior
+without a simultaneous update to configuration information. Where this
+is considered undesirable, LLMNR SHOULD NOT be enabled by default, so
+that hosts will neither listen on the link-scope multicast address, nor
+will they send queries to that address.
 
 5.3.  Cache and port separation
 
 In order to prevent responses to LLMNR queries from polluting the DNS
 cache, LLMNR implementations MUST use a distinct, isolated cache for
-LLMNR on each interface.  The use of separate caches is most effective
+LLMNR on each interface. The use of separate caches is most effective
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 17]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                27 September 2003
+
+
 when LLMNR is used as a name resolution mechanism of last resort, since
 this minimizes the opportunities for poisoning the LLMNR cache, and
 decreases reliance on it.
@@ -1005,72 +1046,31 @@ hosts.
 This specification does not create any new name spaces for IANA
 administration.  LLMNR requires allocation of a port TBD for both TCP
 and UDP.  Assignment of the same port for both transports is requested.
-LLMNR utilizes a link-scope multicast IPv4 address (224.0.0.251) that
-has been previously allocated to LLMNR by IANA.  It also requires
-allocation of a link-scope multicast IPv6 address.
+LLMNR requires allocation of a link-scope multicast IPv4 address as well
+as a link-scope multicast IPv6 address TBD.
 
+7.  References
 
+7.1.  Normative References
 
+[RFC1035] Mockapetris, P., "Domain Names - Implementation and
+          Specification", RFC 1035, November 1987.
 
+[RFC1321] Rivest, R., "The MD5 Message-Digest Algorithm", RFC 1321,
+          April 1992.
 
+[RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
+          Requirement Levels", BCP 14, RFC 2119, March 1997.
 
+[RFC2308] Andrews, M., "Negative Caching of DNS Queries (DNS NCACHE)",
+          RFC 2308, March 1998.
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 17]
+[RFC2365] Meyer, D., "Administratively Scoped IP Multicast", BCP 23, RFC
+          2365, July 1998.
 
+[RFC2373] Hinden, R. and S. Deering, "IP Version 6 Addressing
+          Architecture", RFC 2373, July 1998.
 
-
-
-
-INTERNET-DRAFT                    LLMNR                     23 July 2003
-
-
-7.  Normative References
-
-[RFC1035]      Mockapetris, P., "Domain Names - Implementation and
-               Specification", RFC 1035, November 1987.
-
-[RFC1321]      Rivest, R., "The MD5 Message-Digest Algorithm", RFC 1321,
-               April 1992.
-
-[RFC2119]      Bradner, S., "Key words for use in RFCs to Indicate
-               Requirement Levels", BCP 14, RFC 2119, March 1997.
-
-[RFC2136]      Vixie, P., et al., "Dynamic Updates in the Domain Name
-               System (DNS UPDATE)", RFC 2136, April 1997.
-
-[RFC2365]      Meyer, D., "Administratively Scoped IP Multicast", BCP
-               23, RFC 2365, July 1998.
-
-[RFC2373]      Hinden, R. and S. Deering, "IP Version 6 Addressing
-               Architecture", RFC 2373, July 1998.
-
-[RFC2460]      Deering, S. and R. Hinden, "Internet Protocol, Version 6
-               (IPv6) Specification", RFC 2460, December 1998.
-
-[RFC2535]      Eastlake, D., "Domain Name System Security Extensions",
-               RFC 2535, March 1999.
-
-[RFC2988]      Paxson, V. and M. Allman, "Computing TCP's Retransmission
-               Timer", RFC 2988, November 2000.
-
-8.  Informative References
-
-[RFC1536]      Kumar, A., et. al., "DNS Implementation Errors and
-               Suggested Fixes", RFC 1536, October 1993.
-
-[RFC2292]      Stevens, W. and M. Thomas, "Advanced Sockets API for
-               IPv6", RFC 2292, February 1998.
-
-[RFC2434]      Alvestrand, H. and T. Narten, "Guidelines for Writing an
-               IANA Considerations Section in RFCs", BCP 26, RFC 2434,
-               October 1998.
-
-[RFC2553]      Gilligan, R., Thomson, S., Bound, J. and W. Stevens,
-               "Basic Socket Interface Extensions for IPv6", RFC 2553,
-               March 1999.
-
-[RFC2937]      Smith, C., "The Name Service Search Option for DHCP", RFC
-               2937, September 2000.
 
 
 
@@ -1081,34 +1081,79 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 18]
 
 
 
-INTERNET-DRAFT                    LLMNR                     23 July 2003
+INTERNET-DRAFT                    LLMNR                27 September 2003
 
 
-[DHCPv6DNS]    Droms, R., "A Guide to Implementing Stateless DHCPv6
-               Service", Internet draft (work in progress), draft-droms-
-               dhcpv6-stateless-guide-01.txt, October 2002.
+[RFC2434] Alvestrand, H. and T. Narten, "Guidelines for Writing an IANA
+          Considerations Section in RFCs", BCP 26, RFC 2434, October
+          1998.
 
-[DNSPerf]      Jung, J., et al., "DNS Performance and the Effectiveness
-               of Caching", IEEE/ACM Transactions on Networking, Volume
-               10, Number 5, pp. 589, October 2002.
+[RFC2460] Deering, S. and R. Hinden, "Internet Protocol, Version 6
+          (IPv6) Specification", RFC 2460, December 1998.
 
-[DNSDisc]      Durand, A., Hagino, I. and D. Thaler, "Well known site
-               local unicast addresses to communicate with recursive DNS
-               servers", Internet draft (work in progress), draft-ietf-
-               ipv6-dns-discovery-07.txt, October 2002.
+[RFC2535] Eastlake, D., "Domain Name System Security Extensions", RFC
+          2535, March 1999.
 
-[IPV4Link]     Cheshire, S., Aboba, B. and E. Guttman, "Dynamic
-               Configuration of IPv4 Link-Local Addresses", Internet
-               draft (work in progress), draft-ietf-zeroconf-
-               ipv4-linklocal-08.txt, June 2003.
+[RFC2988] Paxson, V. and M. Allman, "Computing TCP's Retransmission
+          Timer", RFC 2988, November 2000.
 
-[LLMNREnable]  Guttman, E., "DHCP LLMNR Enable Option", Internet draft
-               (work in progress), draft-guttman-mdns-enable-02.txt,
-               April 2002.
+7.2.  Informative References
 
-[NodeInfo]     Crawford, M., "IPv6 Node Information Queries", Internet
-               draft (work in progress), draft-ietf-ipn-gwg-icmp-name-
-               lookups-09.txt, May 2002.
+[RFC1536] Kumar, A., et. al., "DNS Implementation Errors and Suggested
+          Fixes", RFC 1536, October 1993.
+
+[RFC2136] Vixie, P., et al., "Dynamic Updates in the Domain Name System
+          (DNS UPDATE)", RFC 2136, April 1997.
+
+[RFC2292] Stevens, W. and M. Thomas, "Advanced Sockets API for IPv6",
+          RFC 2292, February 1998.
+
+[RFC2553] Gilligan, R., Thomson, S., Bound, J. and W. Stevens, "Basic
+          Socket Interface Extensions for IPv6", RFC 2553, March 1999.
+
+[RFC2937] Smith, C., "The Name Service Search Option for DHCP", RFC
+          2937, September 2000.
+
+[DHCPv6DNS]
+          Droms, R., "A Guide to Implementing Stateless DHCPv6 Service",
+          Internet draft (work in progress), draft-droms-
+          dhcpv6-stateless-guide-01.txt, October 2002.
+
+[DNSPerf] Jung, J., et al., "DNS Performance and the Effectiveness of
+          Caching", IEEE/ACM Transactions on Networking, Volume 10,
+          Number 5, pp. 589, October 2002.
+
+[DNSDisc] Durand, A., Hagino, I. and D. Thaler, "Well known site local
+          unicast addresses to communicate with recursive DNS servers",
+          Internet draft (work in progress), draft-ietf-ipv6-dns-
+          discovery-07.txt, October 2002.
+
+[IPV4Link]
+          Cheshire, S., Aboba, B. and E. Guttman, "Dynamic Configuration
+          of IPv4 Link-Local Addresses", Internet draft (work in
+          progress), draft-ietf-zeroconf-ipv4-linklocal-10.txt, October
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 19]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                27 September 2003
+
+
+          2003.
+
+[LLMNREnable]
+          Guttman, E., "DHCP LLMNR Enable Option", Internet draft (work
+          in progress), draft-guttman-mdns-enable-02.txt, April 2002.
+
+[NodeInfo]
+          Crawford, M., "IPv6 Node Information Queries", Internet draft
+          (work in progress), draft-ietf-ipn-gwg-icmp-name-
+          lookups-09.txt, May 2002.
 
 Acknowledgments
 
@@ -1131,19 +1176,6 @@ Redmond, WA 98052
 
 EMail: levone@microsoft.com
 
-
-
-
-
-Esibov, Aboba & Thaler       Standards Track                   [Page 19]
-
-
-
-
-
-INTERNET-DRAFT                    LLMNR                     23 July 2003
-
-
 Bernard Aboba
 Microsoft Corporation
 One Microsoft Way
@@ -1159,6 +1191,18 @@ Redmond, WA 98052
 
 Phone: +1 425 703 8835
 EMail: dthaler@microsoft.com
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 20]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                27 September 2003
+
 
 Intellectual Property Statement
 
@@ -1192,18 +1236,6 @@ distributed, in whole or in part, without restriction of any kind,
 provided that the above copyright notice and this paragraph are included
 on all such copies and derivative works.  However, this document itself
 may not be modified in any way, such as by removing the copyright notice
-
-
-
-Esibov, Aboba & Thaler       Standards Track                   [Page 20]
-
-
-
-
-
-INTERNET-DRAFT                    LLMNR                     23 July 2003
-
-
 or references to the Internet Society or other Internet organizations,
 except as needed for the purpose of developing Internet standards in
 which case the procedures for copyrights defined in the Internet
@@ -1217,6 +1249,21 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
 INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
 WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+
+
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 21]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                27 September 2003
+
+
 Open Issues
 
 Open issues with this specification are tracked on the following web
@@ -1226,8 +1273,8 @@ http://www.drizzle.com/~aboba/DNSEXT/llmnrissues.html
 
 Expiration Date
 
-This memo is filed as <draft-ietf-dnsext-mdns-22.txt>,  and  expires
-January 22, 2004.
+This memo is filed as <draft-ietf-dnsext-mdns-24.txt>,  and  expires
+February 22, 2004.
 
 
 
@@ -1255,6 +1302,19 @@ January 22, 2004.
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 21]
+
+
+
+
+
+
+
+
+
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 22]
 
 
