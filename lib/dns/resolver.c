@@ -262,6 +262,12 @@ static void resquery_response(isc_task_t *task, isc_event_t *event);
 static void resquery_connected(isc_task_t *task, isc_event_t *event);
 static void fctx_try(fetchctx_t *fctx);
 static isc_boolean_t fctx_destroy(fetchctx_t *fctx);
+static isc_result_t ncache_adderesult(dns_message_t *message,
+				      dns_db_t *cache, dns_dbnode_t *node,
+				      dns_rdatatype_t covers,
+				      isc_stdtime_t now,
+				      dns_rdataset_t *ardataset,
+				      isc_result_t *eresultp);
 
 static inline isc_result_t
 fctx_starttimer(fetchctx_t *fctx) {
@@ -2093,6 +2099,7 @@ static void
 maybe_destroy(fetchctx_t *fctx) {
 	unsigned int bucketnum;
 	isc_boolean_t bucket_empty = ISC_FALSE;
+	dns_resolver_t *res = fctx->res;
 	
 	REQUIRE(SHUTTINGDOWN(fctx));
 
@@ -2100,18 +2107,22 @@ maybe_destroy(fetchctx_t *fctx) {
 		return;
 
 	bucketnum = fctx->bucketnum;
-	LOCK(&fctx->res->buckets[bucketnum].lock);
+	LOCK(&res->buckets[bucketnum].lock);
 	if (fctx->references == 0)
 		bucket_empty = fctx_destroy(fctx);
-	UNLOCK(&fctx->res->buckets[bucketnum].lock);
+	UNLOCK(&res->buckets[bucketnum].lock);
 
 	if (bucket_empty)
-		empty_bucket(fctx->res);
+		empty_bucket(res);
 }
 
+/*
+ * The validator has finished.
+ */
 static void
 validated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t eresult = ISC_R_SUCCESS;
 	isc_stdtime_t now;
         fetchctx_t *fctx;
         dns_validatorevent_t *vevent;
@@ -2168,9 +2179,26 @@ validated(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (vevent->rdataset == NULL) {
-		FCTXTRACE("negative validation result handling "
-			  "is not yet implemented");
-		result = ISC_R_NOTIMPLEMENTED;
+		dns_rdatatype_t covers;
+		FCTXTRACE("nonexistence validation OK");
+
+		if (fctx->rmessage->rcode == dns_rcode_nxdomain)
+			covers = dns_rdatatype_any;
+		else
+			covers = fctx->type;
+
+		result = dns_db_findnode(fctx->res->view->cachedb,
+					 vevent->name, ISC_TRUE, &node);
+		if (result != ISC_R_SUCCESS)
+			goto respond;
+		
+		result = ncache_adderesult(fctx->rmessage,
+					   fctx->res->view->cachedb, node,
+					   covers, now, ardataset, &eresult);
+		if (result != ISC_R_SUCCESS)
+			goto respond;			
+
+		fctx->attributes |= FCTX_ATTR_HAVEANSWER;		
 		goto respond;
 	}
 
@@ -2211,7 +2239,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
  respond:
 	if (hevent != NULL) {
-		hevent->result = result;
+		hevent->result = eresult;
 		dns_name_concatenate(vevent->name, NULL,
 		     dns_fixedname_name(&hevent->foundname), NULL);
 		dns_db_attach(fctx->res->view->cachedb, &hevent->db);
@@ -2506,6 +2534,55 @@ cache_message(fetchctx_t *fctx, isc_stdtime_t now) {
 	return (result);
 }
 
+/*
+ * Do what dns_ncache_add() does, and then compute an appropriate eresult.
+ */
+static isc_result_t
+ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
+		  dns_rdatatype_t covers, isc_stdtime_t now,
+		  dns_rdataset_t *ardataset,
+		  isc_result_t *eresultp)
+{
+	isc_result_t result;
+	result = dns_ncache_add(message, cache, node, covers, now, ardataset);
+	if (result == DNS_R_UNCHANGED) {
+		/*
+		 * The data in the cache is better than the negative cache
+		 * entry we're trying to add.
+		 */
+		if (ardataset != NULL && ardataset->type == 0) {
+			/*
+			 * The cache data is also a negative cache
+			 * entry.
+			 */
+			if (ardataset->covers == dns_rdatatype_any)
+				*eresultp = DNS_R_NCACHENXDOMAIN;
+			else
+				*eresultp = DNS_R_NCACHENXRRSET;
+			result = ISC_R_SUCCESS;
+		} else {
+			/*
+			 * Either we don't care about the nature of the
+			 * cache rdataset (because no fetch is interested
+			 * in the outcome), or the cache rdataset is not
+			 * a negative cache entry.  Whichever case it is,
+			 * we can return success. 
+			 *
+			 * XXXRTH  There's a CNAME/DNAME problem here.
+			 */
+			*eresultp = ISC_R_SUCCESS;
+			result = ISC_R_SUCCESS;
+		}
+	} else if (result == ISC_R_SUCCESS) {
+		if (covers == dns_rdatatype_any)
+			*eresultp = DNS_R_NCACHENXDOMAIN;
+		else
+			*eresultp = DNS_R_NCACHENXRRSET;
+	}
+
+	return (result);
+}
+
 static inline isc_result_t
 ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	isc_result_t result, eresult;
@@ -2575,44 +2652,12 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 				 &node);
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
-	result = dns_ncache_add(fctx->rmessage, res->view->cachedb, node,
-				covers, now, ardataset);
-	if (result == DNS_R_UNCHANGED) {
-		/*
-		 * The data in the cache is better than the negative cache
-		 * entry we're trying to add.
-		 */
-		if (ardataset != NULL && ardataset->type == 0) {
-			/*
-			 * The cache data is also a negative cache
-			 * entry.
-			 */
-			if (ardataset->covers == dns_rdatatype_any)
-				eresult = DNS_R_NCACHENXDOMAIN;
-			else
-				eresult = DNS_R_NCACHENXRRSET;
-			result = ISC_R_SUCCESS;
-		} else {
-			/*
-			 * Either we don't care about the nature of the
-			 * cache rdataset (because no fetch is interested
-			 * in the outcome), or the cache rdataset is not
-			 * a negative cache entry.  Whichever case it is,
-			 * we can return success.  In the latter case,
-			 * 'eresult' is already set correctly.
-			 *
-			 * XXXRTH  There's a CNAME/DNAME problem here.
-			 */
-			result = ISC_R_SUCCESS;
-		}
-	} else if (result == ISC_R_SUCCESS) {
-		if (covers == dns_rdatatype_any)
-			eresult = DNS_R_NCACHENXDOMAIN;
-		else
-			eresult = DNS_R_NCACHENXRRSET;
-	} else
-		goto unlock;
 
+	result = ncache_adderesult(fctx->rmessage, res->view->cachedb, node,
+				   covers, now, ardataset, &eresult);
+	if (result != ISC_R_SUCCESS)
+		goto unlock;	
+	
 	if (!HAVE_ANSWER(fctx)) {
 		fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 		if (event != NULL) {
@@ -3335,7 +3380,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t truncated;
 	dns_message_t *message;
 	fetchctx_t *fctx;
-	dns_rdatatype_t covers;
 	dns_name_t *fname;
 	dns_fixedname_t foundname;
 	isc_stdtime_t now;
@@ -3359,7 +3403,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	get_nameservers = ISC_FALSE;
 	resend = ISC_FALSE;
 	truncated = ISC_FALSE;
-	covers = 0;
 	finish = NULL;
 
 	/*
@@ -3671,10 +3714,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * also cause work to be queued to the DNSSEC validator.
 	 */
 	if (WANTNCACHE(fctx)) {
+		dns_rdatatype_t covers;
 		if (message->rcode == dns_rcode_nxdomain)
 			covers = dns_rdatatype_any;
 		else
 			covers = fctx->type;
+
 		/*
 		 * Cache any negative cache entries in the message.
 		 */
