@@ -47,7 +47,7 @@ then
 fi
 
 # Start name servers running
-sh start.sh $test
+sh start.sh $test || exit 1
 
 sleep 10
 
