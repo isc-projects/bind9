@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: includes.in,v 1.14 2001/03/27 00:53:56 bwelling Exp $
+# $Id: includes.in,v 1.15 2001/07/10 19:59:03 gson Exp $
 
 # Search for machine-generated header files in the build tree,
 # and for normal headers in the source tree (${top_srcdir}).
@@ -38,6 +38,7 @@ DNS_INCLUDES = @BIND9_DNS_BUILDINCLUDE@ \
 	-I${top_srcdir}/lib/dns/sec/dst/include
 
 LWRES_INCLUDES = @BIND9_LWRES_BUILDINCLUDE@ \
+	-I${top_srcdir}/lib/lwres/unix/include \
 	-I${top_srcdir}/lib/lwres/include
 
 TEST_INCLUDES = \
