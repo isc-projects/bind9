@@ -1,3 +1,5 @@
+ 735.	[support]	Add BIND 4 migration notes.
+
  734.	[bug]		An attempt to re-lock the zone lock could occur if
 			the server was shutdown during a zone tranfer.
 			[RT #830]
