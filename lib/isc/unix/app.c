@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.31 2000/11/29 01:27:08 gson Exp $ */
+/* $Id: app.c,v 1.32 2000/11/29 01:50:49 gson Exp $ */
 
 #include <config.h>
 
@@ -323,7 +323,17 @@ evloop() {
  * is set by isc_condition_signal().
  */
 
+/*
+ * True iff we are currently executing in the recursive
+ * event loop.
+ */
 static isc_boolean_t in_recursive_evloop = ISC_FALSE;
+
+/*
+ * True iff we are exiting the event loop as the result of
+ * a call to isc_condition_signal() rather than a shutdown
+ * or reload.
+ */
 static isc_boolean_t signalled = ISC_FALSE;
 
 isc_result_t
@@ -486,7 +496,9 @@ isc_app_run(void) {
 
 	(void)isc__taskmgr_dispatch();
 
-	evloop();
+	result = evloop();
+	if (result != ISC_R_SUCCESS)
+		return (result)
 
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
