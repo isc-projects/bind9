@@ -1,5 +1,9 @@
 1787.	[port]		HPUX: both "cc" and "gcc" need -Wl,+vnocompatwarnings.
 
+1786.	[port]		AIX: libt_api needs to be taught to look for
+			T_testlist in the main executable (--with-libtool).
+			[RT #13239]
+
 1785.	[bug]		libbind9.la/libbind9.so needs to link against
 			libisc.la/libisc.so.
 
