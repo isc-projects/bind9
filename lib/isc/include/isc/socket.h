@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.4 1998/11/10 11:37:54 explorer Exp $ */
+/* $Id: socket.h,v 1.5 1998/11/11 00:43:14 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -410,6 +410,10 @@ isc_socket_recv(isc_socket_t socket, isc_region_t region,
 isc_result_t
 isc_socket_send(isc_socket_t socket, isc_region_t region,
 		isc_task_t task, isc_taskaction_t action, void *arg);
+isc_result_t
+isc_socket_sendto(isc_socket_t socket, isc_region_t region,
+		  isc_task_t task, isc_taskaction_t action, void *arg,
+		  isc_sockaddr_t address, int addrlength);
 /*
  * Send the contents of 'region' to the socket's peer.
  *

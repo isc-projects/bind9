@@ -41,10 +41,32 @@ my_shutdown(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
+my_send(isc_task_t task, isc_event_t event)
+{
+	isc_socket_t sock;
+	isc_socketevent_t dev;
+
+	sock = event->sender;
+	dev = (isc_socketevent_t)event;
+
+	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
+	       (char *)(event->arg), task, sock,
+	       dev->region.base, dev->region.length,
+	       dev->n, dev->result);
+
+	isc_mem_put(event->mctx, dev->region.base, dev->region.length);
+
+	isc_event_free(&event);
+
+	return (0);
+}
+static isc_boolean_t
 my_recv(isc_task_t task, isc_event_t event)
 {
 	isc_socket_t sock;
 	isc_socketevent_t dev;
+	struct isc_region region;
+	char buf[1024];
 
 	sock = event->sender;
 	dev = (isc_socketevent_t)event;
@@ -59,11 +81,23 @@ my_recv(isc_task_t task, isc_event_t event)
 
 		isc_event_free(&event);
 
-		return (1);
+		return (0);
 	}
+
+	/*
+	 * Echo the data back
+	 */
+	region = dev->region;
+	region.base[20] = 0;
+	snprintf(buf, sizeof buf, "Received: %s\r\n", region.base);
+	region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
+	region.length = strlen(buf) + 1;
+	strcpy(region.base, buf);  /* strcpy is safe */
+	isc_socket_send(sock, &region, task, my_send, event->arg);
 
 	isc_socket_recv(sock, &dev->region, ISC_FALSE,
 			task, my_recv, event->arg);
+
 
 	isc_event_free(&event);
 
@@ -75,7 +109,7 @@ my_listen(isc_task_t task, isc_event_t event)
 {
 	char *name = event->arg;
 	isc_socket_newconnev_t dev;
-	isc_region_t region;
+	struct isc_region region;
 
 	dev = (isc_socket_newconnev_t)event;
 
@@ -89,16 +123,13 @@ my_listen(isc_task_t task, isc_event_t event)
 		 */
 		isc_socket_accept(event->sender, task, my_listen, event->arg);
 
-		region = isc_mem_get(event->mctx, sizeof(*region));
-		INSIST(region != NULL);
-
-		region->base = isc_mem_get(event->mctx, 21);
-		region->length = 20;
+		region.base = isc_mem_get(event->mctx, 21);
+		region.length = 20;
 
 		/*
 		 * queue up a read on this socket
 		 */
-		isc_socket_recv(dev->newsocket, region, ISC_FALSE,
+		isc_socket_recv(dev->newsocket, &region, ISC_FALSE,
 				task, my_recv, event->arg);
 	} else {
 		/*
