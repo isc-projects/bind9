@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.30 2000/09/28 21:31:07 bwelling Exp $ */
+/* $Id: app.c,v 1.31 2000/11/29 01:27:08 gson Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 
 #include <isc/app.h>
 #include <isc/boolean.h>
+#include <isc/condition.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/platform.h>
@@ -261,6 +262,110 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	return (result);
 }
 
+#ifndef ISC_PLATFORM_USETHREADS
+/*
+ * Event loop for nonthreaded programs.
+ */
+static isc_result_t
+evloop() {
+	isc_result_t result;
+	while (!want_shutdown) {
+		int n;
+		isc_time_t when, now;
+		struct timeval tv, *tvp;
+		fd_set readfds, writefds;
+		int maxfd;
+		isc_boolean_t readytasks;
+
+		readytasks = isc__taskmgr_ready();
+		if (readytasks) {
+			tv.tv_sec = 0;
+			tv.tv_usec = 0;
+			tvp = &tv;
+		} else {
+			result = isc__timermgr_nextevent(&when);
+			if (result != ISC_R_SUCCESS)
+				tvp = NULL;
+			else {
+				isc_uint64_t us;
+
+				(void)isc_time_now(&now);
+				us = isc_time_microdiff(&when, &now);
+				tv.tv_sec = us / 1000000;
+				tv.tv_usec = us % 1000000;
+				tvp = &tv;
+			}
+		}
+
+		isc__socketmgr_getfdsets(&readfds, &writefds, &maxfd);
+		n = select(maxfd, &readfds, &writefds, NULL, tvp);
+
+		(void)isc__timermgr_dispatch();
+		if (n > 0)
+			(void)isc__socketmgr_dispatch(&readfds, &writefds,
+						      maxfd);
+		(void)isc__taskmgr_dispatch();
+
+		if (want_reload) {
+			want_reload = ISC_FALSE;
+			return (ISC_R_RELOAD);
+		}
+	}
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * This is a gross hack to support waiting for condition
+ * variables in nonthreaded programs in a limited way;
+ * see lib/isc/nothreads/include/isc/condition.h.
+ * We implement isc_condition_wait() by entering the
+ * event loop recursively until the want_shutdown flag
+ * is set by isc_condition_signal().
+ */
+
+static isc_boolean_t in_recursive_evloop = ISC_FALSE;
+static isc_boolean_t signalled = ISC_FALSE;
+
+isc_result_t
+isc__nothread_wait_hack(isc_condition_t *cp, isc_mutex_t *mp) {
+	isc_result_t result;
+	
+	UNUSED(cp);
+	UNUSED(mp);
+	
+	INSIST(!in_recursive_evloop);
+	in_recursive_evloop = ISC_TRUE;
+
+	INSIST(*mp == 1); /* Mutex must be locked on entry. */
+	--*mp;
+	
+	result = evloop();
+	if (result == ISC_R_RELOAD)
+		want_reload = ISC_TRUE;
+	if (signalled) {
+		want_shutdown = ISC_FALSE;
+		signalled = ISC_FALSE;
+	}
+
+	++*mp;
+	in_recursive_evloop = ISC_FALSE;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc__nothread_signal_hack(isc_condition_t *cp) {
+
+	UNUSED(cp);
+	
+	INSIST(in_recursive_evloop);
+
+	want_shutdown = ISC_TRUE;
+	signalled = ISC_TRUE;
+	return (ISC_R_SUCCESS);
+}
+	
+#endif /* ISC_PLATFORM_USETHREADS */
+
 isc_result_t
 isc_app_run(void) {
 	int result;
@@ -381,48 +486,8 @@ isc_app_run(void) {
 
 	(void)isc__taskmgr_dispatch();
 
-	while (!want_shutdown) {
-		int n;
-		isc_time_t when, now;
-		struct timeval tv, *tvp;
-		fd_set readfds, writefds;
-		int maxfd;
-		isc_boolean_t readytasks;
+	evloop();
 
-		readytasks = isc__taskmgr_ready();
-		if (readytasks) {
-			tv.tv_sec = 0;
-			tv.tv_usec = 0;
-			tvp = &tv;
-		} else {
-			result = isc__timermgr_nextevent(&when);
-			if (result != ISC_R_SUCCESS)
-				tvp = NULL;
-			else {
-				isc_uint64_t us;
-
-				(void)isc_time_now(&now);
-				us = isc_time_microdiff(&when, &now);
-				tv.tv_sec = us / 1000000;
-				tv.tv_usec = us % 1000000;
-				tvp = &tv;
-			}
-		}
-
-		isc__socketmgr_getfdsets(&readfds, &writefds, &maxfd);
-		n = select(maxfd, &readfds, &writefds, NULL, tvp);
-
-		(void)isc__timermgr_dispatch();
-		if (n > 0)
-			(void)isc__socketmgr_dispatch(&readfds, &writefds,
-						      maxfd);
-		(void)isc__taskmgr_dispatch();
-
-		if (want_reload) {
-			want_reload = ISC_FALSE;
-			return (ISC_R_RELOAD);
-		}
-	}
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
 

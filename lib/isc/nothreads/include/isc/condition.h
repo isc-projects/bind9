@@ -15,33 +15,45 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.h,v 1.1 2000/08/28 23:16:50 bwelling Exp $ */
+/* $Id: condition.h,v 1.2 2000/11/29 01:27:09 gson Exp $ */
+
+/*
+ * This provides a limited subset of the isc_condition_t
+ * functionality for use by single-threaded programs that
+ * need to block waiting for events.   Only a single
+ * call to isc_condition_wait() may be blocked at any given
+ * time, and the _waituntil and _broadcast functions are not
+ * supported.  This is intended primarily for use by the omapi
+ * library, and may go away once omapi goes away.  Use for
+ * other purposes is strongly discouraged.
+ */
 
 #ifndef ISC_CONDITION_H
 #define ISC_CONDITION_H 1
 
-/*
- * This file is a placeholder.
- */
+#include <isc/mutex.h>
 
 typedef int isc_condition_t;
 
+isc_result_t isc__nothread_wait_hack(isc_condition_t *cp, isc_mutex_t *mp);
+isc_result_t isc__nothread_signal_hack(isc_condition_t *cp);
+
 #define isc_condition_init(cp) \
-	((void)(cp), ISC_R_NOTIMPLEMENTED)
+	(*(cp) = 0, ISC_R_SUCCESS)
 
 #define isc_condition_wait(cp, mp) \
-	((void)(cp), (void)(mp), ISC_R_NOTIMPLEMENTED)
+	isc__nothread_wait_hack(cp, mp)
 
 #define isc_condition_waituntil(cp, mp, tp) \
 	((void)(cp), (void)(mp), (void)(tp), ISC_R_NOTIMPLEMENTED)
 
 #define isc_condition_signal(cp) \
-	((void)(cp), ISC_R_NOTIMPLEMENTED)
+	isc__nothread_signal_hack(cp)
 
 #define isc_condition_broadcast(cp) \
 	((void)(cp), ISC_R_NOTIMPLEMENTED)
 
 #define isc_condition_destroy(cp) \
-	((void)(cp), ISC_R_NOTIMPLEMENTED)
+	(*(cp) == 0 ? (*(cp) = -1, ISC_R_SUCCESS) : ISC_R_UNEXPECTED)
 
 #endif /* ISC_CONDITION_H */
