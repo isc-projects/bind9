@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1 2000/09/16 01:12:21 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.2 2000/09/25 23:19:39 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -340,70 +340,87 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 static isc_result_t
 opensslrsa_tofile(const dst_key_t *key, const char *directory) {
-	int cnt = 0;
+	int i;
 	RSA *rsa;
 	dst_private_t priv;
-	unsigned char bufs[8][128];
+	unsigned char *bufs[8];
+	isc_result_t result;
 
 	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
 
 	rsa = (RSA *) key->opaque;
 
-	priv.elements[cnt].tag = TAG_RSA_MODULUS;
-	priv.elements[cnt].length = BN_num_bytes(rsa->n);
-	BN_bn2bin(rsa->n, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	for (i = 0; i < 8; i++) {
+		bufs[i] = isc_mem_get(key->mctx, BN_num_bytes(rsa->n));
+		if (bufs[i] == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto fail;
+		}
+	}
 
-	priv.elements[cnt].tag = TAG_RSA_PUBLICEXPONENT;
-	priv.elements[cnt].length = BN_num_bytes(rsa->e);
-	BN_bn2bin(rsa->e, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	i = 0;
 
-	priv.elements[cnt].tag = TAG_RSA_PRIVATEEXPONENT;
-	priv.elements[cnt].length = BN_num_bytes(rsa->d);
-	BN_bn2bin(rsa->d, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_RSA_MODULUS;
+	priv.elements[i].length = BN_num_bytes(rsa->n);
+	BN_bn2bin(rsa->n, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.elements[cnt].tag = TAG_RSA_PRIME1;
-	priv.elements[cnt].length = BN_num_bytes(rsa->p);
-	BN_bn2bin(rsa->p, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_RSA_PUBLICEXPONENT;
+	priv.elements[i].length = BN_num_bytes(rsa->e);
+	BN_bn2bin(rsa->e, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.elements[cnt].tag = TAG_RSA_PRIME2;
-	priv.elements[cnt].length = BN_num_bytes(rsa->q);
-	BN_bn2bin(rsa->q, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_RSA_PRIVATEEXPONENT;
+	priv.elements[i].length = BN_num_bytes(rsa->d);
+	BN_bn2bin(rsa->d, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.elements[cnt].tag = TAG_RSA_EXPONENT1;
-	priv.elements[cnt].length = BN_num_bytes(rsa->dmp1);
-	BN_bn2bin(rsa->dmp1, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_RSA_PRIME1;
+	priv.elements[i].length = BN_num_bytes(rsa->p);
+	BN_bn2bin(rsa->p, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.elements[cnt].tag = TAG_RSA_EXPONENT2;
-	priv.elements[cnt].length = BN_num_bytes(rsa->dmq1);
-	BN_bn2bin(rsa->dmq1, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_RSA_PRIME2;
+	priv.elements[i].length = BN_num_bytes(rsa->q);
+	BN_bn2bin(rsa->q, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.elements[cnt].tag = TAG_RSA_COEFFICIENT;
-	priv.elements[cnt].length = BN_num_bytes(rsa->iqmp);
-	BN_bn2bin(rsa->iqmp, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_RSA_EXPONENT1;
+	priv.elements[i].length = BN_num_bytes(rsa->dmp1);
+	BN_bn2bin(rsa->dmp1, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.nelements = cnt;
-	return (dst__privstruct_writefile(key, &priv, directory));
+	priv.elements[i].tag = TAG_RSA_EXPONENT2;
+	priv.elements[i].length = BN_num_bytes(rsa->dmq1);
+	BN_bn2bin(rsa->dmq1, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
+
+	priv.elements[i].tag = TAG_RSA_COEFFICIENT;
+	priv.elements[i].length = BN_num_bytes(rsa->iqmp);
+	BN_bn2bin(rsa->iqmp, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
+
+	priv.nelements = i;
+	result =  dst__privstruct_writefile(key, &priv, directory);
+ fail:
+	for (i = 0; i < 8; i++)
+		if (bufs[i] != NULL)
+			isc_mem_put(key->mctx, bufs[i], BN_num_bytes(rsa->n));
+	return (result);
 }
 
 static isc_result_t
-opensslrsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
+opensslrsa_fromfile(dst_key_t *key, const isc_uint16_t id,
+		    const char *filename)
 {
 	dst_private_t priv;
 	isc_result_t ret;
