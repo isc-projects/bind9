@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.248 2000/11/14 21:30:24 gson Exp $ */
+/* $Id: server.c,v 1.249 2000/11/15 00:19:49 tale Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,8 @@
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/lex.h>
+#include <isc/print.h>
+#include <isc/resource.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -1355,6 +1357,41 @@ ns_server_zeroglobal(ns_server_t *serv) {
 		serv->globalcount[i]=0;
 }
 
+#define SETLIMIT(cfgvar, resource, description) \
+	if (dns_c_ctx_get ## cfgvar(cctx, &resource) == ISC_R_SUCCESS) {      \
+		if (resource == DNS_C_SIZE_SPEC_DEFAULT)		      \
+			value = ns_g_init ## resource;			      \
+		else if (resource == DNS_C_SIZE_SPEC_UNLIM)		      \
+			value = ISC_RESOURCE_UNLIMITED;			      \
+		else							      \
+			value = resource;				      \
+		result = isc_resource_setlimit(isc_resource_ ## resource,     \
+					       value);			      \
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,	      \
+			      NS_LOGMODULE_SERVER,			      \
+			      result == ISC_R_SUCCESS ?			      \
+			      	ISC_LOG_DEBUG(1) : ISC_LOG_WARNING,	      \
+			      "set maximum" description "to %"		      \
+			      ISC_PRINT_QUADFORMAT "d: %s", value,	      \
+			      result == ISC_R_SUCCESS			      \
+			      	? "succeeded" : strerror(errno));	      \
+	}
+
+static void
+set_limits(dns_c_ctx_t *cctx) {
+	isc_uint32_t stacksize;
+	isc_uint32_t datasize;
+	isc_uint32_t coresize;
+	isc_uint32_t openfiles;
+	isc_resourcevalue_t value;
+	isc_result_t result;
+
+	SETLIMIT(stacksize, stacksize, "stack size");
+	SETLIMIT(datasize, datasize, "data size");
+	SETLIMIT(coresize, coresize, "core size");
+	SETLIMIT(files, openfiles, "open files");
+}
+
 static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
@@ -1417,6 +1454,11 @@ load_configuration(const char *filename, ns_server_t *server,
 		result = ns_lwresd_parseresolvconf(ns_g_mctx, &cctx);
 	}
 	CHECK(result);
+
+	/*
+	 * Set process limits, which (usually) needs to be done as root.
+	 */
+	set_limits(cctx);
 
 	/*
 	 * Configure various server options.
