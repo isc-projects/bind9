@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 1996-2000 by Internet Software Consortium.
- *
+ * Copyright (C) 1996-2000  Internet Software Consortium.
+ * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
  * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: lwinetntop.c,v 1.2 2000/05/24 05:09:53 tale Exp $";
+	"$Id: lwinetntop.c,v 1.3 2000/06/21 22:20:15 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>

@@ -1,7 +1,18 @@
 /*
- * Issues to be discussed:
- * - Return values.  There seems to be no standard for return value (RFC2553)
- *   but INRIA implementation returns EAI_xxx defined for getaddrinfo().
+ * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
  */
 
 /*
@@ -37,6 +48,13 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * XXX
+ * Issues to be discussed:
+ * - Return values.  There seems to be no standard for return value (RFC2553)
+ *   but INRIA implementation returns EAI_xxx defined for getaddrinfo().
+ */
+
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -60,9 +78,11 @@ static struct afd {
 	size_t a_addrlen;
 	size_t a_socklen;
 } afdl [] = {
-	/* first entry is linked last... */
-	{AF_INET, sizeof(struct in_addr), sizeof(struct sockaddr_in)},
-	{AF_INET6, sizeof(struct in6_addr), sizeof(struct sockaddr_in6)},
+	/*
+	 * First entry is linked last...
+	 */
+	{ AF_INET, sizeof(struct in_addr), sizeof(struct sockaddr_in) },
+	{ AF_INET6, sizeof(struct in6_addr), sizeof(struct sockaddr_in6) },
 	{0, 0, 0},
 };
 
@@ -185,7 +205,9 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 #endif
 
 	if (host == NULL || hostlen == 0) {
-		/* what should we do? */
+		/*
+		 * What should we do?
+		 */
 	} else if (flags & NI_NUMERICHOST) {
 		if (lwres_net_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
 		    == NULL)
@@ -198,7 +220,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 #if 0
 			if ((flags & NI_NUMERICSCOPE) == 0) {
 				/*
-				 * vendors may want to add support for
+				 * Vendors may want to add support for
 				 * non-numeric scope identifier.
 				 */
 				stringscope = foo;
