@@ -72,7 +72,8 @@
 1792.	[func]		New zone option "notify-delay".  Specify a minimum
 			delay between sets of NOTIFY messages.
 
-1791.	[placeholder]	rt13230
+1791.	[bug]		'host -t a' still printed out AAAA and MX records.
+			[RT #13230]
 
 1790.	[cleanup]	Move lib/dns/sec/dst up into lib/dns.  This should
 			allow parallel make to succeed.

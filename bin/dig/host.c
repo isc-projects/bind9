@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.99 2004/11/10 22:04:25 marka Exp $ */
+/* $Id: host.c,v 1.100 2005/03/14 23:36:04 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -580,6 +580,7 @@ pre_parse_args(int argc, char **argv) {
 		}
 	}
 	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_index = 1;
 }
 
 static void
@@ -648,6 +649,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			} else
 				list_type = rdtype;
 			list_addresses = ISC_FALSE;
+			default_lookups = ISC_FALSE;
 			break;
 		case 'c':
 			tr.base = isc_commandline_argument;
