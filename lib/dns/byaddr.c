@@ -221,8 +221,9 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 				 * Launch a fetch.
 				 */
 				result = start_fetch(byaddr);
-				if (result == ISC_R_SUCCESS)
-					goto done;
+				if (result != ISC_R_SUCCESS)
+					send_event = ISC_TRUE;
+				goto done;
 			}
 		} else {
 			result = event->result;
