@@ -7,7 +7,8 @@
 
 1704.	[placeholder]	rt12321
 
-1703.	[placeholder]	rt12322
+1703.	[bug]		named would loop sending NOTIFY messages when it
+			failed to receive a response. [RT #12322]
 
 1702.	[bug]		also-notify should not be applied to builtin zones.
 			[RT #12323]
