@@ -285,14 +285,75 @@ NAME="AEN62"
 CLASS="FUNCTION"
 >lwres_getrrsetbyname()</TT
 >
-returns zero on success or an error code if an error occurs.  The defined
-error codes are ERRSET_NOMEMORY (memory could not be allocated),
-ERRSET_INVAL (a parameter is invalid) and ERRSET_FAIL (other failure).</P
+returns zero on success, and one of the following error
+codes if an error occurred:
+<P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><TT
+CLASS="CONSTANT"
+>ERRSET_NONAME</TT
+></DT
+><DD
+><P
+>the name does not exist</P
+></DD
+><DT
+><TT
+CLASS="CONSTANT"
+>ERRSET_NODATA</TT
+></DT
+><DD
+><P
+>the name exists, but does not have data of the desired type</P
+></DD
+><DT
+><TT
+CLASS="CONSTANT"
+>ERRSET_NOMEMORY</TT
+></DT
+><DD
+><P
+>memory could not be allocated</P
+></DD
+><DT
+><TT
+CLASS="CONSTANT"
+>ERRSET_INVAL</TT
+></DT
+><DD
+><P
+>a parameter is invalid</P
+></DD
+><DT
+><TT
+CLASS="CONSTANT"
+>ERRSET_FAIL</TT
+></DT
+><DD
+><P
+>other failure</P
+></DD
+><DT
+><TT
+CLASS="CONSTANT"
+></TT
+></DT
+><DD
+><P
+></P
+></DD
+></DL
+></DIV
+>&#13;</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN66"
+NAME="AEN97"
 ></A
 ><H2
 >SEE ALSO</H2

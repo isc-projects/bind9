@@ -118,9 +118,25 @@ created by a call to
 .SH "RETURN VALUES"
 .PP
 \fBlwres_getrrsetbyname()\fR
-returns zero on success or an error code if an error occurs. The defined
-error codes are ERRSET_NOMEMORY (memory could not be allocated),
-ERRSET_INVAL (a parameter is invalid) and ERRSET_FAIL (other failure).
+returns zero on success, and one of the following error
+codes if an error occurred:
+.TP
+\fBERRSET_NONAME\fR
+the name does not exist
+.TP
+\fBERRSET_NODATA\fR
+the name exists, but does not have data of the desired type
+.TP
+\fBERRSET_NOMEMORY\fR
+memory could not be allocated
+.TP
+\fBERRSET_INVAL\fR
+a parameter is invalid
+.TP
+\fBERRSET_FAIL\fR
+other failure
+.TP
+\fB\fR
 .SH "SEE ALSO"
 .PP
 \fBlwres\fR(3).
