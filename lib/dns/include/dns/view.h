@@ -85,8 +85,12 @@ struct dns_view {
 	dns_rbt_t *			secroots;
 	isc_mutex_t			lock;
 	isc_boolean_t			frozen;
+	isc_task_t *			task;
+	isc_event_t			resevent;
+	isc_event_t			adbevent;
 	/* Locked by lock. */
 	unsigned int			references;
+	unsigned int			attributes;
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view)	link;
 };
@@ -94,6 +98,9 @@ struct dns_view {
 #define DNS_VIEW_MAGIC			0x56696577	/* View. */
 #define DNS_VIEW_VALID(view)		((view) != NULL && \
 					 (view)->magic == DNS_VIEW_MAGIC)
+
+#define DNS_VIEWATTR_RESSHUTDOWN	0x01
+#define DNS_VIEWATTR_ADBSHUTDOWN	0x02
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,

@@ -29,6 +29,7 @@
 #include <dns/adb.h>
 #include <dns/dbtable.h>
 #include <dns/db.h>
+#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
@@ -36,6 +37,12 @@
 #include <dns/view.h>
 
 #include "../isc/util.h"		/* XXXRTH */
+
+#define RESSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_RESSHUTDOWN) != 0)
+#define ADBSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
+
+static void resolver_shutdown(isc_task_t *task, isc_event_t *event);
+static void adb_shutdown(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
@@ -93,8 +100,16 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->mctx = mctx;
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
+	view->task = NULL;
 	view->references = 1;
+	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN);
 	ISC_LINK_INIT(view, link);
+	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
+		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown,
+		       view, NULL, NULL, NULL);
+	ISC_EVENT_INIT(&view->adbevent, sizeof view->adbevent, 0, NULL,
+		       DNS_EVENT_VIEWADBSHUTDOWN, adb_shutdown,
+		       view, NULL, NULL, NULL);
 	view->magic = DNS_VIEW_MAGIC;
 	
 	*viewp = view;
@@ -140,11 +155,16 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 static inline void
 destroy(dns_view_t *view) {
 	REQUIRE(!ISC_LINK_LINKED(view, link));
+	REQUIRE(view->references == 0);
+	REQUIRE(RESSHUTDOWN(view));
+	REQUIRE(ADBSHUTDOWN(view));
 
 	if (view->adb != NULL)
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
+	if (view->task != NULL)
+		isc_task_detach(&view->task);
 	if (view->hints != NULL)
 		dns_db_detach(&view->hints);
 	if (view->cachedb != NULL)
@@ -156,10 +176,22 @@ destroy(dns_view_t *view) {
 	isc_mem_put(view->mctx, view, sizeof *view);
 }
 
+static isc_boolean_t
+all_done(dns_view_t *view) {
+	/*
+	 * Caller must be holding the view lock.
+	 */
+
+	if (view->references == 0 && RESSHUTDOWN(view) && ADBSHUTDOWN(view))
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
+}
+
 void
 dns_view_detach(dns_view_t **viewp) {
 	dns_view_t *view;
-	isc_boolean_t need_destroy = ISC_FALSE;
+	isc_boolean_t done = ISC_FALSE;
 
 	/*
 	 * Detach '*viewp' from its view.
@@ -173,14 +205,62 @@ dns_view_detach(dns_view_t **viewp) {
 
 	INSIST(view->references > 0);
 	view->references--;
-	if (view->references == 0)
-		need_destroy = ISC_TRUE;
-
+	if (view->references == 0) {
+		if (!RESSHUTDOWN(view))
+			dns_resolver_shutdown(view->resolver);
+		if (!ADBSHUTDOWN(view))
+			dns_adb_shutdown(view->adb);
+		done = all_done(view);
+	}
 	UNLOCK(&view->lock);
 
 	*viewp = NULL;
 
-	if (need_destroy)
+	if (done)
+		destroy(view);
+}
+
+static void
+resolver_shutdown(isc_task_t *task, isc_event_t *event) {
+	dns_view_t *view = event->arg;
+	isc_boolean_t done;
+	
+	REQUIRE(event->type == DNS_EVENT_VIEWRESSHUTDOWN);
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->task == task);
+
+	LOCK(&view->lock);
+
+	view->attributes |= DNS_VIEWATTR_RESSHUTDOWN;
+	done = all_done(view);
+
+	UNLOCK(&view->lock);
+
+	isc_event_free(&event);
+
+	if (done)
+		destroy(view);
+}
+
+static void
+adb_shutdown(isc_task_t *task, isc_event_t *event) {
+	dns_view_t *view = event->arg;
+	isc_boolean_t done;
+	
+	REQUIRE(event->type == DNS_EVENT_VIEWADBSHUTDOWN);
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->task == task);
+
+	LOCK(&view->lock);
+
+	view->attributes |= DNS_VIEWATTR_ADBSHUTDOWN;
+	done = all_done(view);
+
+	UNLOCK(&view->lock);
+
+	isc_event_free(&event);
+
+	if (done)
 		destroy(view);
 }
 
@@ -192,6 +272,7 @@ dns_view_createresolver(dns_view_t *view,
 			dns_dispatch_t *dispatch)
 {
 	isc_result_t result;
+	isc_event_t *event;
 
 	/*
 	 * Create a resolver and address database for the view.
@@ -200,17 +281,32 @@ dns_view_createresolver(dns_view_t *view,
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
-	
-	result = dns_resolver_create(view, taskmgr, ntasks, socketmgr,
-				     timermgr, dispatch, &view->resolver);
+
+	result = isc_task_create(taskmgr, view->mctx, 0, &view->task);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	result = dns_resolver_create(view, taskmgr, ntasks, socketmgr,
+				     timermgr, dispatch, &view->resolver);
+	if (result != ISC_R_SUCCESS) {
+		isc_task_detach(&view->task);
+		return (result);
+	}
+	event = &view->resevent;
+	dns_resolver_whenshutdown(view->resolver, view->task, &event);
+	view->attributes &= ~DNS_VIEWATTR_RESSHUTDOWN;
+
 	result = dns_adb_create(view->mctx, view, timermgr, taskmgr,
 				&view->adb);
-	if (result != ISC_R_SUCCESS)
-		dns_resolver_detach(&view->resolver);
+	if (result != ISC_R_SUCCESS) {
+		dns_resolver_shutdown(view->resolver);
+		return (result);
+	}
+	event = &view->adbevent;
+	dns_adb_whenshutdown(view->adb, view->task, &event);
+	view->attributes &= ~DNS_VIEWATTR_ADBSHUTDOWN;
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 void
