@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.102 2000/07/27 19:06:10 mws Exp $ */
+/* $Id: dighost.c,v 1.103 2000/07/27 23:52:29 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -104,7 +104,6 @@ dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
 isc_entropy_t *entp = NULL;
 isc_mempool_t *commctx = NULL;
-extern isc_boolean_t isc_mem_debugging;
 isc_boolean_t debugging = ISC_FALSE;
 char *progname = NULL;
 isc_mutex_t lookup_lock;
@@ -2419,7 +2418,7 @@ destroy_libs(void) {
 	}
 
 	isc_mutex_destroy(&lookup_lock);
-	if (isc_mem_debugging)
+	if (isc_mem_debugging != 0)
 		isc_mem_stats(mctx, stderr);
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);	

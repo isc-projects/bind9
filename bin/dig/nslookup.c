@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.27 2000/07/27 09:36:30 tale Exp $ */
+/* $Id: nslookup.c,v 1.28 2000/07/27 23:52:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -907,7 +907,7 @@ main(int argc, char **argv) {
 		debug ("freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
         }
-	if (isc_mem_debugging)
+	if (isc_mem_debugging != 0)
 		isc_mem_stats(mctx, stderr);
 	isc_app_finish();
 	if (mctx != NULL)
