@@ -1,4 +1,8 @@
+
  911.	[bug]		Fail gracefully with multiple hint zones. [RT #1433]
+
+ 910.	[port]		Some pre-RFC2133 IPv6 implementations do not define
+			IN6ADDR_ANY_INIT. [RT #1416]
 
 	--- 9.1.3rc2 released ---
 
