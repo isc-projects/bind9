@@ -6,7 +6,7 @@ zonefile=example.db
 
 keyname=`$KEYGEN -a RSA -b 768 -n zone $zone`
 
-tag=`echo $keykname | sed -n 's/^.*\+\([0-9][0-9]*\)$/\1/p'`
+tag=`echo $keyname | sed -n 's/^.*\+\([0-9][0-9]*\)$/\1/p'`
 
 echo "key=$keyname, tag=$tag"
 
@@ -14,23 +14,24 @@ echo "key=$keyname, tag=$tag"
 # sign it, and pass it back
 
 ( cd ../ns3 && sh sign.sh )
+
 cp ../ns3/secure.example.keyset .
-/local/bind9/bin/tests/keysigner -v 9 secure.example.keyset example./$tag/001
+
+$KEYSIGNER -v 9 secure.example.keyset $keyname
+
 # This will leave two copies of the child's zone key in the signed db file;
 # that shouldn't cause any problems.
 cat secure.example.signedkey >>../ns3/secure.example.db.signed
 
-pubkeyfile="$keyname.key"
+$KEYSETTOOL $keyname
 
-$KEYSETTOOL $zone $tag/001
-
-cat $infile $pubkeyfile >$zonefile
+cat $infile $keyname.key >$zonefile
 
 $SIGNER -v 1 -o $zone $zonefile
 
 # Configure the resolving server with a trusted key.
 
-cat $pubkeyfile | perl -n -e '
+cat $keyname.key | perl -n -e '
 my ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
 my $key = join("", @rest);
 print <<EOF
