@@ -27,6 +27,7 @@
 #include <string.h>
 
 #include <lwres/lwres.h>
+#include <lwres/net.h>
 #include <lwres/netdb.h>	/* XXX #include <netdb.h> */
 
 #include "assert_p.h"
@@ -37,6 +38,8 @@
 #ifndef IN6ADDRSZ
 #define IN6ADDRSZ 16
 #endif
+
+const struct in6_addr lwres_in6addr_any = IN6ADDR_ANY_INIT;
 
 #ifndef IN6_IS_ADDR_V4COMPAT
 static const unsigned char in6addr_compat[12] = {
@@ -102,8 +105,8 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		}
 
 	/* Check for literal address. */
-	if ((v4 = inet_pton(AF_INET, name, &in4)) != 1)
-		v6 = inet_pton(AF_INET6, name, &in6);
+	if ((v4 = lwres_net_pton(AF_INET, name, &in4)) != 1)
+		v6 = lwres_net_pton(AF_INET6, name, &in6);
 
 	/* Impossible combination? */
 	 
@@ -259,7 +262,8 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	/*
 	 * Lookup IPv6 address.
 	 */
-	if (memcmp((struct in6_addr *)src, &in6addr_any, IN6ADDRSZ) == 0) {
+	if (memcmp((struct in6_addr *)src, &lwres_in6addr_any,
+		   IN6ADDRSZ) == 0) {
 		*error_num = HOST_NOT_FOUND;
 		return (NULL);
 	}
@@ -432,7 +436,8 @@ scan_interfaces(int *have_v4, int *have_v6) {
 				memcpy(&in6,
 				       &((struct sockaddr_in6 *)
 				       &ifreq.ifr_addr)->sin6_addr, sizeof in6);
-				if (memcmp(&in6, &in6addr_any, sizeof in6) == 0)
+				if (memcmp(&in6, &lwres_in6addr_any,
+					   sizeof in6) == 0)
 					break;
 				n = ioctl(s, SIOCGIFFLAGS, (char *)&ifreq);
 				if (n < 0)

@@ -44,9 +44,11 @@
 
 #include <config.h>
 
+#include <stdio.h>
 #include <string.h>
 
 #include <lwres/lwres.h>
+#include <lwres/net.h>
 #include <lwres/netdb.h>
 
 #include "assert_p.h"
@@ -143,7 +145,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		/* Caller does not want service. */
 	} else if ((flags & NI_NUMERICSERV) != 0 ||
 		   (sp = getservbyport(port, proto)) == NULL) {
-		snprintf(numserv, sizeof(numserv), "%d", ntohs(port));
+		sprintf(numserv, "%d", ntohs(port));
 		if ((strlen(numserv) + 1) > servlen)
 			ERR(ENI_MEMORY);
 		strcpy(serv, numserv);
@@ -175,7 +177,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	if (host == NULL || hostlen == 0) {
 		/* what should we do? */
 	} else if (flags & NI_NUMERICHOST) {
-		if (inet_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
+		if (lwres_net_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
 		    == NULL)
 			ERR(ENI_SYSTEM);
 		if (strlen(numaddr) > hostlen)
@@ -209,7 +211,8 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		} else {
 			if (flags & NI_NAMEREQD)
 				ERR(ENI_NOHOSTNAME);
-			if (inet_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
+			if (lwres_net_ntop(afd->a_af, addr, numaddr,
+					   sizeof(numaddr))
 			    == NULL)
 				ERR(ENI_NOHOSTNAME);
 			if ((strlen(numaddr) + 1) > hostlen)

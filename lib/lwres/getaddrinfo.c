@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.11 2000/02/03 21:54:08 marka Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.12 2000/02/04 06:03:28 halley Exp $
  */
 
 
@@ -22,6 +22,7 @@
 #include <resolv.h>
 
 #include <lwres/lwres.h>
+#include <lwres/net.h>
 #include <lwres/netdb.h>	/* XXX #include <netdb.h> */
 
 #define SA(addr)	((struct sockaddr *)(addr))
@@ -215,7 +216,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 		char nbuf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx00")];
 		int addrsize, addroff;
 
-		if (inet_aton(hostname, (struct in_addr *)abuf)) {
+		if (lwres_net_aton(hostname, (struct in_addr *)abuf)) {
 			if (family == AF_INET6) {
 				/* Convert to a V4 mapped address */
 				struct in6_addr *a6 = (struct in6_addr *)abuf;
@@ -229,7 +230,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			family = AF_INET;
 			goto common;
 
-		} else if (inet_pton(AF_INET6, hostname, abuf)) {
+		} else if (lwres_net_pton(AF_INET6, hostname, abuf)) {
 			if (family && family != AF_INET6)
 				return (EAI_NONAME);
 		inet6_addr:
@@ -245,7 +246,8 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			SIN(ai->ai_addr)->sin_port = port;
 			memcpy((char *)ai->ai_addr + addroff, abuf, addrsize);
 			if (flags & AI_CANONNAME) {
-				inet_ntop(family, abuf, nbuf, sizeof(nbuf));
+				lwres_net_ntop(family, abuf, nbuf,
+					       sizeof(nbuf));
 				ai->ai_canonname = strdup(nbuf);
 			}
 			goto done;
