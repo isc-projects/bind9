@@ -71,7 +71,6 @@ struct isc_task {
 	unsigned int			magic;
 	isc_taskmgr_t *			manager;
 	isc_mutex_t			lock;
-	isc_mem_t *			mctx;
 	/* Locked by task lock. */
 	task_state_t			state;
 	unsigned int			references;
@@ -176,7 +175,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	task->quantum = quantum;
 	task->flags = 0;
 #ifdef ISC_TASK_NAMES
-	task->name[0] = '\0';
+	memset(task->name, 0, sizeof task->name);
 	task->tag = NULL;
 #endif
 	INIT_LINK(task, link);
