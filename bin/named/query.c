@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.256 2004/03/05 04:57:48 marka Exp $ */
+/* $Id: query.c,v 1.257 2004/03/10 02:19:52 marka Exp $ */
 
 #include <config.h>
 
@@ -1547,7 +1547,7 @@ query_addns(ns_client_t *client, dns_db_t *db) {
 
 static inline isc_result_t
 query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
-		   dns_ttl_t ttl, dns_name_t **anamep, dns_rdatatype_t type)
+		   dns_trust_t trust, dns_name_t **anamep, dns_rdatatype_t type)
 {
 	dns_rdataset_t *rdataset;
 	dns_rdatalist_t *rdatalist;
@@ -1583,7 +1583,7 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	rdatalist->type = type;
 	rdatalist->covers = 0;
 	rdatalist->rdclass = client->message->rdclass;
-	rdatalist->ttl = ttl;
+	rdatalist->ttl = 0;
 
 	dns_name_toregion(tname, &r);
 	rdata->data = r.base;
@@ -1595,6 +1595,7 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
 		      == ISC_R_SUCCESS);
+	rdataset->trust = trust;
 
 	query_addrrset(client, anamep, &rdataset, NULL, NULL,
 		       DNS_SECTION_ANSWER);
@@ -3076,7 +3077,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 */
 		dns_name_init(tname, NULL);
 		(void)query_addcnamelike(client, client->query.qname, fname,
-					 0, &tname, dns_rdatatype_cname);
+					 trdataset->trust, &tname,
+					 dns_rdatatype_cname);
 		if (tname != NULL)
 			dns_message_puttempname(client->message, &tname);
 		/*

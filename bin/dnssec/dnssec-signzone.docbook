@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.9 2004/03/05 04:57:41 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.10 2004/03/10 02:19:51 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -45,6 +45,7 @@
       <arg><option>-g</option></arg>
       <arg><option>-h</option></arg>
       <arg><option>-k <replaceable class="parameter">key</replaceable></option></arg>
+      <arg><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">nthreads</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
@@ -101,6 +102,16 @@
 	  <para>
 	       Treat specified key as a key signing key ignoring any
 	       key flags.  This option may be specified multiple times.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-l <replaceable class="parameter">domain</replaceable></term>
+	<listitem>
+	  <para>
+		Generate a DLV set in addition to the key (DNSKEY) and DS sets.
+		The domain is appended to the name of the records.
 	  </para>
 	</listitem>
       </varlistentry>

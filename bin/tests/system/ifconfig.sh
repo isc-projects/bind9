@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.44 2004/03/05 04:59:12 marka Exp $
+# $Id: ifconfig.sh,v 1.45 2004/03/10 02:19:52 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -46,7 +46,7 @@ fi
 
 case `uname -a` in
   *HP-UX*) sys=hpux ;;
-  *) sys=`$config_guess` ;;
+  *) sys=`sh $config_guess` ;;
 esac
 
 case "$2" in

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.416 2004/03/05 04:57:48 marka Exp $ */
+/* $Id: server.c,v 1.417 2004/03/10 02:19:52 marka Exp $ */
 
 #include <config.h>
 
@@ -1118,9 +1118,23 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	view->provideixfr = cfg_obj_asboolean(obj);
 			
 	obj = NULL;
-	result = ns_config_get(maps, "enable-dnssec", &obj);
+	result = ns_config_get(maps, "dnssec-enable", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->enablednssec = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-lookaside", &obj);
+	if (result == ISC_R_SUCCESS) {
+		const char *dlv;
+		isc_buffer_t b;
+		dlv = cfg_obj_asstring(obj);
+		isc_buffer_init(&b, dlv, strlen(dlv));
+		isc_buffer_add(&b, strlen(dlv));
+		CHECK(dns_name_fromtext(dns_fixedname_name(&view->dlv_fixed),
+					&b, dns_rootname, ISC_TRUE, NULL));
+		view->dlv = dns_fixedname_name(&view->dlv_fixed);
+	} else
+		view->dlv = NULL;
 
 	/*
 	 * For now, there is only one kind of trusted keys, the

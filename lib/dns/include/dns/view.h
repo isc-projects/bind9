@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.90 2004/03/05 05:09:47 marka Exp $ */
+/* $Id: view.h,v 1.91 2004/03/10 02:19:56 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -71,6 +71,7 @@
 #include <isc/stdtime.h>
 
 #include <dns/acl.h>
+#include <dns/fixedname.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -124,6 +125,8 @@ struct dns_view {
 	isc_boolean_t			rootdelonly;
 	dns_namelist_t *		rootexclude;
 	isc_boolean_t			checknames;
+	dns_name_t *			dlv;
+	dns_fixedname_t			dlv_fixed;
 
 	/*
 	 * Configurable data for server use only,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.45 2004/03/05 04:57:46 marka Exp $ */
+/* $Id: config.c,v 1.46 2004/03/10 02:19:52 marka Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,7 @@ options {\n\
 	check-names master fail;\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
-	enable-dnssec no; /* Make yes for 9.4. */ \n\
+	dnssec-enable no; /* Make yes for 9.4. */ \n\
 \n\
 	/* zone */\n\
 	allow-query {any;};\n\

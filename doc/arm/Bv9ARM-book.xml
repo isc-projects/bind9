@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.239 2004/03/05 10:53:24 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.240 2004/03/10 02:19:55 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2757,7 +2757,8 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> enable-dnssec <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-lookaside <replaceable>domain</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>domain_name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ) ; ... }; </optional>
@@ -2978,6 +2979,17 @@ Disable the specified DNSSEC algorithms at and below the specified name.
 Multiple <command>disable-algorithms</command> statements are allowed.
 Only the most specific will be applied.
 </para></listitem></varlistentry>
+
+<varlistentry><term><command>dnssec-lookaside</command></term>
+<listitem><para>
+When set <command>dnssec-lookaside</command> provides the
+validator with an alternate method to validate DNSKEY records at the
+top of a zone.  When set the domain specified by
+<command>dnssec-lookaside</command> is appended to DNSKEY's
+name and a DLV record is looked up.  If the DLV record validates
+a DNSKEY (similarly to the way a DS record does) the DNSKEY RRset is deemed to be trusted.
+</para></listitem></varlistentry>
+
 </variablelist>
 
 <sect3 id="boolean_options"><title>Boolean Options</title>
@@ -3339,7 +3351,7 @@ when the serial number on the master is less than what named currently
 has.  The default is <userinput>no</userinput>.
 </para></listitem></varlistentry>
 
-<varlistentry><term><command>enable-dnssec</command></term>
+<varlistentry><term><command>dnssec-enable</command></term>
 <listitem>
 <para>
 Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>

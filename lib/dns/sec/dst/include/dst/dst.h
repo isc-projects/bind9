@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.46 2004/03/05 05:10:38 marka Exp $ */
+/* $Id: dst.h,v 1.47 2004/03/10 02:19:58 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -63,6 +63,7 @@ typedef struct dst_context 	dst_context_t;
 #define DST_KEY_MAXTEXTSIZE	2048
 
 /* 'Type' for dst_read_key() */
+#define DST_TYPE_KEY		0x1000000	/* KEY key */
 #define DST_TYPE_PRIVATE	0x2000000
 #define DST_TYPE_PUBLIC		0x4000000
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.29 2004/03/05 05:12:22 marka Exp $ */
+/* $Id: namedconf.c,v 1.30 2004/03/10 02:19:58 marka Exp $ */
 
 #include <config.h>
 
@@ -691,7 +691,8 @@ view_clauses[] = {
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "disable-algorithms", &cfg_type_disablealgorithm,
 	  CFG_CLAUSEFLAG_MULTI },
-	{ "enable-dnssec", &cfg_type_boolean, 0 },
+	{ "dnssec-enable", &cfg_type_boolean, 0 },
+	{ "dnssec-lookaside", &cfg_type_astring, 0 },
 	{ NULL, NULL, 0 }
 };
 
