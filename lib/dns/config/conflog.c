@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: conflog.c,v 1.14 2000/05/08 14:35:29 tale Exp $ */
+/* $Id: conflog.c,v 1.15 2000/05/08 18:42:38 brister Exp $ */
 
 #include <config.h>
 
@@ -161,6 +161,8 @@ dns_c_logginglist_copy(isc_mem_t *mem,
 		ISC_LIST_APPEND(newl->categories, tmplogcat, next);
 		logcat = ISC_LIST_NEXT(logcat, next);
 	}
+
+	*dest = newl;
 
 	return (ISC_R_SUCCESS);
 }
@@ -1160,6 +1162,8 @@ dns_c_logcat_copy(isc_mem_t *mem, dns_c_logcat_t **dest, dns_c_logcat_t *src) {
 			return (res);
 		}
 	}
+
+	*dest = newc;
 
 	return (ISC_R_SUCCESS);
 }
