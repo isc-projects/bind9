@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.2 2000/11/17 22:01:45 bwelling Exp $ */
+/* $Id: zonetodb.c,v 1.3 2000/11/17 23:12:11 bwelling Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -62,11 +62,28 @@ check_result(isc_result_t result, const char *message) {
 	}
 }
 
+/*
+ * Canonicalize a string before writing it to the database.
+ * "dest" must be an array of at least size 2*strlen(source) + 1.
+ */
+static void
+canonicalize(const char *source, char *dest) {
+	while (*source != 0) {
+		if (*source == '\\' || *source == '\'')
+			*dest++ = '\\';
+		*dest++ = *source++;
+	}
+	*dest++ = 0;
+}
+
 void
 addrdata(dns_name_t *name, dns_rdata_t *rdata) {
 	unsigned char namearray[DNS_NAME_MAXTEXT + 1];
+	unsigned char canonnamearray[2 * DNS_NAME_MAXTEXT + 1];
 	unsigned char typearray[20];
+	unsigned char canontypearray[40];
 	unsigned char dataarray[2048];
+	unsigned char canondataarray[4096];
 	isc_buffer_t b;
 	isc_result_t result;
 	PGresult *res;
@@ -75,21 +92,24 @@ addrdata(dns_name_t *name, dns_rdata_t *rdata) {
 	result = dns_name_totext(name, ISC_TRUE, &b);
 	check_result(result, "dns_name_totext");
 	namearray[isc_buffer_usedlength(&b)] = 0;
+	canonicalize(namearray, canonnamearray);
 	
 	isc_buffer_init(&b, typearray, sizeof(typearray) - 1);
 	result = dns_rdatatype_totext(rdata->type, &b);
 	check_result(result, "dns_rdatatype_totext");
 	typearray[isc_buffer_usedlength(&b)] = 0;
+	canonicalize(typearray, canontypearray);
 
 	isc_buffer_init(&b, dataarray, sizeof(dataarray) - 1);
 	result = dns_rdata_totext(rdata, NULL, &b);
 	check_result(result, "dns_rdata_totext");
 	dataarray[isc_buffer_usedlength(&b)] = 0;
+	canonicalize(dataarray, canondataarray);
 	
 	snprintf(str, sizeof(str),
 		 "INSERT INTO %s (NAME, RDTYPE, RDATA)"
 		 " VALUES ('%s', '%s', '%s')",
-		 dbtable, namearray, typearray, dataarray);
+		 dbtable, canonnamearray, canontypearray, canondataarray);
 	printf("%s\n", str);
 	res = PQexec(conn, str);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {

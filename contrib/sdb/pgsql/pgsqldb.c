@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.2 2000/11/17 22:01:42 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.3 2000/11/17 23:12:10 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include <pgsql/libpq-fe.h>
 
@@ -51,6 +52,20 @@ struct dbinfo {
 };
 
 /*
+ *  * Canonicalize a string before writing it to the database.
+ *   * "dest" must be an array of at least size 2*strlen(source) + 1.
+ *    */
+static void
+canonicalize(const char *source, char *dest) {
+	while (*source != 0) {
+		if (*source == '\\' || *source == '\'')
+			*dest++ = '\\';
+		*dest++ = *source++;
+	}
+	*dest++ = 0;
+}       
+
+/*
  * This database operates on absolute names.
  *
  * Queries are converted into SQL queries and issued synchronously.  Errors
@@ -64,13 +79,19 @@ pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 	struct dbinfo *dbi = dbdata;
 	PGresult *res;
 	char str[1500];
+	char *canonname;
 	int i;
 
 	UNUSED(zone);
 
+	canonname = isc_mem_get(ns_g_mctx, strlen(name) * 2 + 1);
+	if (canonname == NULL)
+		return (ISC_R_NOMEMORY);
+	canonicalize(name, canonname);
 	snprintf(str, sizeof(str),
 		 "SELECT RDTYPE,RDATA FROM \"%s\" WHERE "
-		 "lower(NAME) = lower('%s')", dbi->table, name);
+		 "lower(NAME) = lower('%s')", dbi->table, canonname);
+	isc_mem_put(ns_g_mctx, canonname, strlen(name) * 2 + 1);
 	res = PQexec(dbi->conn, str);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK ) {
 		PQclear(res);
