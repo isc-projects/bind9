@@ -45,17 +45,16 @@ BIND 9
 
 
 
-BIND 9.1.2rc1
+BIND 9.1.2
 
-	BIND 9.1.2rc1 is a release candidate for BIND 9.1.2.
-	It contains fixes for a number of bugs in BIND 9.1.1
-	but no new features.
+	BIND 9.1.2 is a maintenance release, containing fixes for
+	a number of bugs in 9.1.1 but no new features.
 
 	DNSSEC users should note that DNSSEC validation involving
 	algorithms other than RSA will not interoperate between
-	9.1.2rc1 and older versions of BIND 9, because the older
-	versions use an incorrect formula for calculating key tags
-	of non-RSA keys.
+	this version of BIND and version 9.1.1 or older, because the
+	older versions use an incorrect formula for calculating key
+	tags of non-RSA keys.
 
 	Features introduced in 9.1.0 included:
 
