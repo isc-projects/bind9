@@ -2318,7 +2318,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 			next = ISC_LIST_NEXT(dev, link);
 
 			if ((task == NULL) || (task == current_task))
-				send_recvdone_event(sock, &task, &dev,
+				send_recvdone_event(sock, &current_task, &dev,
 						    ISC_R_CANCELED, 1);
 			dev = next;
 		}
@@ -2337,7 +2337,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 			next = ISC_LIST_NEXT(dev, link);
 
 			if ((task == NULL) || (task == current_task))
-				send_senddone_event(sock, &task, &dev,
+				send_senddone_event(sock, &current_task, &dev,
 						    ISC_R_CANCELED, 1);
 			dev = next;
 		}
