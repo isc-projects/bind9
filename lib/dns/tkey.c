@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.13 1999/11/05 16:53:47 bwelling Exp $
+ * $Id: tkey.c,v 1.14 1999/11/05 20:19:24 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -125,7 +125,8 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 
 void
 dns_tkey_destroy(void) {
-	REQUIRE(tkey_mctx != NULL);
+	if (tkey_mctx == NULL)
+		return;
 	if (tkey_dhkey != NULL)
 		dst_key_free(tkey_dhkey);
 	if (tkey_domain != NULL)

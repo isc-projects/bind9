@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.31 1999/11/03 16:52:28 bwelling Exp $
+ * $Id: tsig.c,v 1.32 1999/11/05 20:19:24 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -1102,6 +1102,8 @@ dns_tsig_init(isc_log_t *lctx, dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 
 void
 dns_tsig_destroy() {
+	if (tsig_mctx == NULL)
+		return;
 	while (!ISC_LIST_EMPTY(tsigkeys)) {
 		dns_tsigkey_t *key = ISC_LIST_HEAD(tsigkeys);
 		key->refs = 0;
