@@ -66,6 +66,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 
 	if (bevent->result != ISC_R_SUCCESS) {
 		dns_byaddr_destroy(&client->byaddr);
+		isc_event_free(&event);
 
 		if (client->options & DNS_BYADDROPT_IPV6NIBBLE) {
 			error_pkt_send(client, LWRES_R_FAILURE);
@@ -75,7 +76,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 		client->options |= DNS_BYADDROPT_IPV6NIBBLE;
 		
 		start_byaddr(client);
-		goto out;
+		return;
 	}
 
 	name = ISC_LIST_HEAD(bevent->names);
