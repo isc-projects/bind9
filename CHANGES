@@ -7,6 +7,10 @@
 1576.	[bug]		Race condition in dns_dispatch_addresponse().
 			[RT# 10272]
 
+1573.	[port]		linux: update to libtool 1.5.2 so that
+			"make install DESTDIR=/xx" works with
+			"configure --with-libtool".  [RT #9941]
+
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 
 1566.	[port]		Support for the cmsg framework on Solaris and HP/UX.

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.5 $)
+AC_REVISION($Revision: 1.83.2.6 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -720,6 +720,9 @@ case $use_libtool in
 		O=lo
 		A=la
 		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+		LIBTOOL_MODE_COMPILE='--mode=compile'
+		LIBTOOL_MODE_INSTALL='--mode=install'
+		LIBTOOL_MODE_LINK='--mode=link'
 		;;
 	*)
 		O=o
@@ -727,6 +730,9 @@ case $use_libtool in
 		LIBTOOL=
 		AC_SUBST(LIBTOOL)
 		LIBTOOL_MKDEP_SED=
+		LIBTOOL_MODE_COMPILE=
+		LIBTOOL_MODE_INSTALL=
+		LIBTOOL_MODE_LINK=
 		;;
 esac
 
@@ -740,6 +746,9 @@ AC_SUBST(O)
 AC_SUBST(A)
 AC_SUBST(SA)
 AC_SUBST(LIBTOOL_MKDEP_SED)
+AC_SUBST(LIBTOOL_MODE_COMPILE)
+AC_SUBST(LIBTOOL_MODE_INSTALL)
+AC_SUBST(LIBTOOL_MODE_LINK)
 
 #
 # Here begins a very long section to determine the system's networking

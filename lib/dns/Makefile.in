@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.126.2.6 2004/01/14 03:37:12 marka Exp $
+# $Id: Makefile.in,v 1.126.2.7 2004/02/24 02:32:16 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -88,7 +88,7 @@ DEPENDEXTRA =	./gen -F include/dns/rdatastruct.h \
 @BIND9_MAKE_RULES@
 
 version.@O@: version.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DLIBINTERFACE=${LIBINTERFACE} \
 		-DLIBREVISION=${LIBREVISION} \
@@ -100,7 +100,7 @@ libdns.@SA@: ${OBJS}
 	${RANLIB} $@
 
 libdns.la: ${OBJS}
-	${LIBTOOL} --mode=link \
+	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} -o libdns.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${ISCLIBS} @DNS_OPENSSL_LIBS@ ${LIBS}
@@ -110,7 +110,7 @@ libdstcypto.@SA@: ${OPENSSLOBJS}
 	${RANLIB} $@
 
 libdstcypto.la: ${OPENSSLOBJS}
-	${LIBTOOL} --mode=link \
+	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} -o $@ -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OPENSSLOBJS} ${LIBS}
@@ -120,7 +120,7 @@ libdstgssapi.@SA@: ${GSSAPIOBJS}
 	${RANLIB} $@
 
 libdstgssapi.la: ${GSSAPIOBJS}
-	${LIBTOOL} --mode=link \
+	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} -o $@ -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${GSSAPIOBJS} ${LIBS}
@@ -132,7 +132,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} libdns.@A@ ${DESTDIR}${libdir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libdns.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f libdns.@A@ timestamp
