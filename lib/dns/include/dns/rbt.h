@@ -31,17 +31,29 @@
 
 typedef struct dns_rbt dns_rbt_t;
 
-/* These should add up to 30 */
+/* These should add up to 31 */
 
-#define DNS_RBT_LOCKLENGTH			10
+#define DNS_RBT_LOCKLENGTH			11
 #define DNS_RBT_REFLENGTH			20
 
 typedef struct dns_rbt_node {
 	struct dns_rbt_node *left;
 	struct dns_rbt_node *right;
 	struct dns_rbt_node *down;
+	/*
+	 * We'd like to find a better place for the single bit of color	
+	 * information.  We can't pack it into the bitfield below, however,
+	 * because it's not covered by the node lock, and changing a single
+	 * bit in a bitfield is going to require a read-modify-write of a
+	 * word.  This read-modify-write would include bits covered by a
+	 * lock we don't hold, and thus violate locking.
+	 */
+	unsigned int color;
+	/*
+	 * These values are used in the RBT DB implementation.  The appropriate
+	 * node lock must be held before accessing them.
+	 */
 	void *data;
-	unsigned int color:1;
 	unsigned int dirty:1;
 	unsigned int locknum:DNS_RBT_LOCKLENGTH;
 	unsigned int references:DNS_RBT_REFLENGTH;
