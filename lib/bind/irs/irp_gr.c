@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: irp_gr.c,v 1.1 2001/03/29 06:31:48 marka Exp $";
+static const char rcsid[] = "$Id: irp_gr.c,v 1.2 2001/05/25 03:32:38 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* extern */
@@ -396,6 +396,9 @@ free_group(struct group *gr) {
 
 	for (p = gr->gr_mem ; p != NULL && *p != NULL ; p++)
 		free(*p);
+
+	if (gr->gr_mem)
+		free(gr->gr_mem);
 
 	if (p != NULL)
 		free(p);

@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: gen_gr.c,v 1.1 2001/03/29 06:31:43 marka Exp $";
+static const char rcsid[] = "$Id: gen_gr.c,v 1.2 2001/05/25 03:32:40 marka Exp $";
 #endif
 
 /* Imports */
@@ -372,15 +372,18 @@ grmerge(struct irs_gr *this, const struct group *src, int preserve) {
 		/* No work to do. */
 		return;
 	}
-	cp = realloc(pvt->membuf, pvt->membufsize + n);
+	cp = realloc(pvt->membuf, (preserve ? pvt->membufsize : 0) + n);
 	if (!cp) {
 		/* No harm done, no work done. */
 		return;
 	}
 	memadj = cp - pvt->membuf;
 	pvt->membuf = cp;
-	cp += pvt->membufsize;
-	pvt->membufsize += n;
+	if (preserve) {
+		cp += pvt->membufsize;
+		pvt->membufsize += n;
+	} else
+		pvt->membufsize = n;
 
 	/*
 	 * Add new elements.
