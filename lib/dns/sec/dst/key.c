@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.3 2001/01/24 02:22:57 bwelling Exp $ */
+/* $Id: key.c,v 1.4 2001/03/04 18:38:13 bwelling Exp $ */
+
+#include <config.h>
 
 #include <stdlib.h>
 
