@@ -1,4 +1,4 @@
- 806.	[bug]		DNS_R_SEENINCLUDE was failing to propogate back up
+ 806.	[bug]		DNS_R_SEENINCLUDE was failing to propagate back up
 			the calling stack to the zone maintence level.
 
  805.	[bug]		When using "forward only", missing root hints should
