@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.29 2000/05/08 16:12:27 tale Exp $ */
+ /* $Id: a6_38.c,v 1.30 2000/05/13 22:07:57 tale Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -275,6 +275,11 @@ fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	}
 
 	octets = 16 - prefixlen / 8;
+
+	/*
+	 * XXXDCL shut up IRIX compiler until this function is finished.
+	 */
+	UNUSED(octets);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
