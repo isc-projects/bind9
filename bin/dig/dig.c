@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.89 2000/09/12 22:18:42 gson Exp $ */
+/* $Id: dig.c,v 1.90 2000/09/12 23:23:49 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -960,7 +960,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			show_usage();
 			exit(1);
 		} else if (strcmp(rv[0], "-memdebug") == 0) {
-			isc_mem_debugging = ISC_TRUE;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 		} else if (strcmp(rv[0], "-debug") == 0) {
 			debugging = ISC_TRUE;
 		} else if ((strncmp(rv[0], "-x", 2) == 0) &&
