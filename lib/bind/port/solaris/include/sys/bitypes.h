@@ -23,7 +23,7 @@
 	 * not possible for a machine/compiler combination.
 	 */
 
-#ifdef SOLARIS_BITTYPES
+#ifdef NEED_SOLARIS_BITTYPES
 	typedef /*signed*/ char            int8_t;
 	typedef short                     int16_t;
 	typedef int                       int32_t;
