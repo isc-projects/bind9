@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.78.2.1 2001/01/09 22:49:25 bwelling Exp $ */
+/* $Id: task.c,v 1.78.2.2 2001/02/07 22:36:20 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1083,6 +1083,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		manager_free(manager);
 		return (ISC_R_NOTHREADS);
 	}
+	isc_thread_setconcurrency(workers);
 #else /* ISC_PLATFORM_USETHREADS */
 	manager->refs = 0;
 	taskmgr = manager;

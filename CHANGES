@@ -1,6 +1,8 @@
 
 	--- 9.1.1rc1 released ---
 
+ 729.	[port]		pthread_setconcurrency() needs to be called on Solaris.
+
  727.	[port]		Work around OS bug where accept() succeeds but
 			fails to fill in the peer address of the accepted
 			connection, by treating it as an error rather than
