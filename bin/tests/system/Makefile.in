@@ -19,20 +19,14 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
-test: xfer_test dnssec_test xferquota_test notify_test views_test
+test: dnssec_test notify_test stub_test views_test xfer_test xferquota_test
 
-clean distclean:: xfer_test_clean dnssec_test_clean xferquota_test_clean \
-	notify_test_clean views_test_clean
+clean distclean:: dnssec_test_clean notify_test_clean stub_test_clean \
+		  views_test_clean xfer_test_clean xferquota_test_clean
 
 installdirs:
 
 install::
-
-xfer_test:
-	sh ./run.sh xfer
-
-xferquota_test:
-	sh ./run.sh xferquota
 
 dnssec_test:
 	sh ./run.sh dnssec
@@ -40,17 +34,20 @@ dnssec_test:
 notify_test:
 	sh ./run.sh notify
 
+stub_test:
+	sh ./run.sh stub
+
 views_test:
 	sh ./run.sh views
 
+xfer_test:
+	sh ./run.sh xfer
+
+xferquota_test:
+	sh ./run.sh xferquota
+
 distclean::
 	rm -f conf.sh
-
-xfer_test_clean:
-	sh ./clean.sh xfer
-
-xferquota_test_clean:
-	sh ./clean.sh xferquota
 
 dnssec_test_clean:
 	sh ./clean.sh dnssec
@@ -58,6 +55,14 @@ dnssec_test_clean:
 notify_test_clean:
 	sh ./clean.sh notify
 
+stub_test_clean:
+	sh ./clean.sh stub
+
 views_test_clean:
 	sh ./clean.sh views
 
+xfer_test_clean:
+	sh ./clean.sh xfer
+
+xferquota_test_clean:
+	sh ./clean.sh xferquota
