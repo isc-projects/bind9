@@ -12,8 +12,8 @@ CDEFINES =
 CWARNINGS =
 
 OBJS =		assertions.o buffer.o error.o heap.o lex.o mem.o result.o \
-		rwlock.o socket.o symtab.o task.o timer.o version.o \
-		unix/time.o \
+		rwlock.o symtab.o task.o timer.o version.o \
+		unix/time.o unix/socket.o \
 		pthreads/condition.o
 
 SUBDIRS =	include unix pthreads
