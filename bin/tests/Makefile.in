@@ -48,6 +48,7 @@ TARGETS =	adb_test \
 		name_test \
 		nconf_test \
 		nxtify \
+		ratelimiter_test \
 		rbt_test \
 		rdata_test \
 		rwlock_test \
@@ -78,6 +79,7 @@ SRCS =		adb_test.c \
 		nconf_test.c \
 		nxtify.c \
 		printmsg.c \
+		ratelimiter_test.c \
 		rbt_test.c \
 		rdata_test.c \
 		rwlock_test.c \
@@ -151,6 +153,10 @@ shutdown_test: shutdown_test.@O@ ${ISCDEPLIBS}
 timer_test: timer_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ timer_test.@O@ \
 		${ISCLIBS} ${LIBS}
+
+ratelimiter_test: ratelimiter_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ratelimiter_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 rbt_test: rbt_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rbt_test.@O@ \
