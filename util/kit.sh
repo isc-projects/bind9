@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.20.2.1 2001/10/19 01:23:23 marka Exp $
+# $Id: kit.sh,v 1.20.2.1.10.1 2003/10/22 04:44:37 marka Exp $
 
 # Make a release kit
 #
@@ -28,17 +28,33 @@
 #   (e.g., sh kit.sh snapshot /tmp/bindkit
 #
 
+arg=-r
 case $# in
-    2) tag=$1; tmpdir=$2 ;;
-    *) echo "usage: sh kit.sh cvstag tmpdir" >&2
+    3)
+	case "$1" in
+	snapshot) ;;
+	*) echo "usage: sh kit.sh [snapshot] cvstag tmpdir" >&2
+	   exit 1
+	   ;;
+	esac
+	snapshot=true;
+	releasetag=$2
+	tag=$2
+	tmpdir=$3
+	;;
+    2)
+	tag=$1
+	tmpdir=$2
+	case $tag in
+	    snapshot) tag=HEAD; snapshot=true ; releasetag="" ;;
+	    *) snapshot=false ;;
+	esac
+	;;
+    *) echo "usage: sh kit.sh [snapshot] cvstag tmpdir" >&2
        exit 1
        ;;
 esac
 
-case $tag in
-    snapshot) tag="HEAD"; snapshot=true ;;
-    *) snapshot=false ;;
-esac
 
 
 test -d $tmpdir ||
@@ -55,10 +71,13 @@ cvs checkout -p -r $tag bind9/version >version.tmp
 
 if $snapshot
 then
-    dstamp=`date +'%Y%m%d'`
-
+    set `date -u +'%Y%m%d%H%M%S %Y/%m/%d %H:%M:%S UTC'`
+    dstamp=$1
     RELEASETYPE=s
-    RELEASEVER=$dstamp
+    RELEASEVER=${dstamp}${releasetag}
+    shift
+    tag="$@"
+    arg=-D
 fi
 
 version=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
@@ -72,7 +91,7 @@ test ! -d $topdir || {
     exit 1
 }
 
-cvs -Q export -r $tag -d $topdir bind9
+cvs -Q export $arg "$tag" -d $topdir bind9
 
 cd $topdir || exit 1
 
@@ -86,8 +105,6 @@ RELEASETYPE=$RELEASETYPE
 RELEASEVER=$RELEASEVER
 EOF
 fi
-
-sh util/sanitize_all.sh
 
 # Omit some files and directories from the kit.
 #
@@ -108,6 +125,6 @@ cd .. || exit 1
 
 kit=$topdir.tar.gz
 
-gtar -c -z -f $kit $topdir
+tar -c -f - $topdir | gzip > $kit
 
 echo "done, kit is in `pwd`/$kit"

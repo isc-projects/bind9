@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makeversion.pl,v 1.4 2001/07/27 17:25:23 gson Exp $ 
+# $Id: makeversion.pl,v 1.4.12.1 2003/10/22 04:44:37 marka Exp $ 
 
 # This script takes the version information from the version file located
 # at the root of the source tree and the api files in each library directory
@@ -24,12 +24,14 @@
 # This program was written by PDM. danny.mayer@nominum.com 1-Jul-2001.
 
 # List of directories with version files
-@dirlist = ("isc","dns","isccc","isccfg","lwres");
+@dirlist = ("isc","dns","isccc","isccfg","lwres","bind9");
 $LibMacros{"isc"} = "LIBISC_EXPORTS";
 $LibMacros{"dns"} = "LIBDNS_EXPORTS";
 $LibMacros{"isccc"} = "LIBISCCC_EXPORTS";
 $LibMacros{"isccfg"} = "LIBISCCFG_EXPORTS";
 $LibMacros{"lwres"} = "LIBLWRES_EXPORTS";
+$LibMacros{"bind9"} = "LIBBIND9_EXPORTS";
+
 
 @VersionNames = ("LIBINTERFACE", "LIBREVISION", "LIBAGE");
 $versionfile = "versions.h";
