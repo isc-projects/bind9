@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.21 2000/04/06 09:35:36 brister Exp $ */
+/* $Id: confcommon.c,v 1.22 2000/04/07 17:40:40 brister Exp $ */
 
 #include <config.h>
 
@@ -610,7 +610,7 @@ dns_c_need_quote(const char *string)
 		
 void
 dns_c_peerlist_print(FILE *fp, int indent,
-		   dns_peerlist_t *servers)
+		     dns_peerlist_t *servers)
 {
 	dns_peer_t *server;
 	

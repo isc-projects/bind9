@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.46 2000/04/06 20:10:56 brister Exp $ */
+/* $Id: confctx.c,v 1.47 2000/04/07 17:40:40 brister Exp $ */
 
 #include <config.h>
 
@@ -692,7 +692,54 @@ dns_c_ctx_getcurrview(dns_c_ctx_t *cfg)
 	return (cfg->currview);
 }
 
+
+
+isc_result_t
+dns_c_ctx_getpeerlist(dns_c_ctx_t *cfg, dns_peerlist_t **retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
 	
+	if (cfg->peers == NULL) {
+		*retval = NULL;
+		return (ISC_R_NOTFOUND);
+	} else {
+		dns_peerlist_attach(cfg->peers, retval);
+		return (ISC_R_SUCCESS);
+	}
+}
+
+
+isc_result_t
+dns_c_ctx_unsetpeerlist(dns_c_ctx_t *cfg)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->peers != NULL) {
+		dns_peerlist_detach(&cfg->peers);
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_FAILURE);
+	}
+}
+	
+
+isc_result_t
+dns_c_ctx_setpeerlist(dns_c_ctx_t *cfg, dns_peerlist_t *newval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->peers != NULL) {
+		dns_peerlist_detach(&cfg->peers);
+	}
+
+	dns_peerlist_attach(newval, &cfg->peers);
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
 
 void
 dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)

@@ -239,6 +239,15 @@ isc_result_t	dns_c_ctx_getoptions(dns_c_ctx_t *cfg,
 				     dns_c_options_t **options);
 isc_result_t	dns_c_ctx_unsetoptions(dns_c_ctx_t *cfg);
 
+/* detach when done with retval */
+isc_result_t	dns_c_ctx_getpeerlist(dns_c_ctx_t *cfg,
+				      dns_peerlist_t **retval);
+/* cfg will attach to newval */
+isc_result_t	dns_c_ctx_setpeerlist(dns_c_ctx_t *cfg,
+				      dns_peerlist_t *newval);
+isc_result_t	dns_c_ctx_unsetpeerlist(dns_c_ctx_t *cfg);
+
+
 
 isc_result_t    dns_c_ctx_getcontrols(dns_c_ctx_t *cfg,
                                       dns_c_ctrllist_t **ctrls);

@@ -149,6 +149,7 @@ struct dns_c_view
 	dns_transfer_format_t  *transfer_format;
 
 	dns_c_kdeflist_t       *keydefs;
+	dns_peerlist_t	       *peerlist;
 
 #if 0	
 	/*
@@ -437,6 +438,15 @@ isc_result_t dns_c_view_getkeydefs(dns_c_view_t *view,
 isc_result_t dns_c_view_setkeydefs(dns_c_view_t *view,
 				   dns_c_kdeflist_t *newval);
 isc_result_t dns_c_view_unsetkeydefs(dns_c_view_t *view);
+
+
+/* detach when done with retval */
+isc_result_t	dns_c_view_getpeerlist(dns_c_view_t *cfg,
+				       dns_peerlist_t **retval);
+/* cfg will attach to newval */
+isc_result_t	dns_c_view_setpeerlist(dns_c_view_t *cfg,
+				      dns_peerlist_t *newval);
+isc_result_t	dns_c_view_unsetpeerlist(dns_c_view_t *cfg);
 
 
 

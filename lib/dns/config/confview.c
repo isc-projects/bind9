@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.20 2000/04/07 13:35:06 brister Exp $ */
+/* $Id: confview.c,v 1.21 2000/04/07 17:40:42 brister Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <dns/confview.h>
 #include <dns/confzone.h>
 #include <dns/log.h>
+#include <dns/peer.h>
 
 #include "confpvt.h"
 
@@ -504,6 +505,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 
 	view->transfer_format = NULL;
 	view->keydefs = NULL;
+	view->peerlist = NULL;
 	
 #if 0
 	view->max_transfer_time_in = NULL;
@@ -675,7 +677,11 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view)
 	if (view->keydefs != NULL) {
 		dns_c_kdeflist_print(fp, indent + 1, view->keydefs);
 	}
-	
+
+	if (view->peerlist != NULL) {
+		dns_c_peerlist_print(fp, indent + 1, view->peerlist);
+	}
+
 
 #if 0	
 	PRINT_INT32(max_transfer_time_in, "max-transfer-time-in");
@@ -778,6 +784,7 @@ dns_c_view_delete(dns_c_view_t **viewptr)
 	FREEFIELD(transfer_format);
 
 	dns_c_view_unsetkeydefs(view);
+	dns_c_view_unsetpeerlist(view);
 
 #if 0	
 	FREEFIELD(max_transfer_time_in);
@@ -1199,6 +1206,57 @@ dns_c_view_unsetkeydefs(dns_c_view_t *view)
 		return (ISC_R_NOTFOUND);
 	}
 }
+
+
+/*
+**
+*/
+
+isc_result_t
+dns_c_view_getpeerlist(dns_c_view_t *view, dns_peerlist_t **retval)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(retval != NULL);
+	
+	if (view->peerlist == NULL) {
+		*retval = NULL;
+		return (ISC_R_NOTFOUND);
+	} else {
+		dns_peerlist_attach(view->peerlist, retval);
+		return (ISC_R_SUCCESS);
+	}
+}
+
+
+isc_result_t
+dns_c_view_unsetpeerlist(dns_c_view_t *view)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+
+	if (view->peerlist != NULL) {
+		dns_peerlist_detach(&view->peerlist);
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_FAILURE);
+	}
+}
+	
+
+isc_result_t
+dns_c_view_setpeerlist(dns_c_view_t *view, dns_peerlist_t *newval)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+
+	if (view->peerlist != NULL) {
+		dns_peerlist_detach(&view->peerlist);
+	}
+
+	dns_peerlist_attach(newval, &view->peerlist);
+
+	return (ISC_R_SUCCESS);
+}
+
+
 
 
 

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.61 2000/04/07 13:35:05 brister Exp $ */
+/* $Id: confparser.y,v 1.62 2000/04/07 17:40:41 brister Exp $ */
 
 #include <config.h>
 
@@ -115,6 +115,9 @@ static void             parser_complain(isc_boolean_t is_warning,
 static isc_boolean_t    unit_to_uint32(char *in, isc_uint32_t *out);
 static char *		token_to_keyword(int token);
 static void             yyerror(const char *);
+static dns_peerlist_t	*currentPeerList(dns_c_ctx_t *cfg,
+					 isc_boolean_t createIfNeeded);
+ 
 
 /* returns true if (base * mult) would be too big.*/
 static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
@@ -2193,22 +2196,11 @@ category_name: any_string
 
 server_stmt: L_SERVER ip_address
 	{
-		dns_peer_t *peer;
-		dns_peerlist_t *peers = currcfg->peers;
 		isc_netaddr_t netaddr;
+		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peers = currentPeerList(currcfg, ISC_TRUE);
 
 		isc_netaddr_fromsockaddr(&netaddr, &$2);
-		
-		if (peers == NULL) {
-			tmpres = dns_peerlist_new(currcfg->mem,
-						  &currcfg->peers);
-			if (tmpres != ISC_R_SUCCESS) {
-				parser_error(ISC_FALSE,
-					     "failed to create peer list");
-				YYABORT;
-			}
-			peers = currcfg->peers;
-		}
 
 		/*
 		 * Check that this IP hasn't already been used.
@@ -2227,7 +2219,8 @@ server_stmt: L_SERVER ip_address
 			YYABORT;
 		}
 
-		dns_peerlist_addpeer(currcfg->peers, peer);
+		dns_peerlist_addpeer(peers, peer);
+		dns_peerlist_detach(&peers);
 		dns_peer_detach(&peer);
 	}
 	L_LBRACE server_info_list L_RBRACE
@@ -2240,12 +2233,18 @@ server_info_list: server_info L_EOS
 server_info: L_BOGUS yea_or_nay
 	{
 		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
 
-		dns_peerlist_currpeer(currcfg->peers, &peer);
+		REQUIRE(peerlist != NULL);
+		
+		dns_peerlist_currpeer(peerlist, &peer);
+
 		INSIST(peer != NULL);
 
 		tmpres = dns_peer_setbogus(peer, $2);
 		dns_peer_detach(&peer);
+		dns_peerlist_detach(&peerlist);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining server bogus value");
@@ -2262,12 +2261,18 @@ server_info: L_BOGUS yea_or_nay
 		 * Backwards compatibility, equivalent to request-ixfr.
 		 */
 		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
 
-		dns_peerlist_currpeer(currcfg->peers, &peer);
+		REQUIRE(peerlist != NULL);
+		
+		dns_peerlist_currpeer(peerlist, &peer);
+
 		INSIST(peer != NULL);
 
 		tmpres = dns_peer_setrequestixfr(peer, $2);
 		dns_peer_detach(&peer);
+		dns_peerlist_detach(&peerlist);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining peer request-ixfr value");
@@ -2281,12 +2286,18 @@ server_info: L_BOGUS yea_or_nay
 	| L_PROVIDE_IXFR yea_or_nay
 	{
 		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
 
-		dns_peerlist_currpeer(currcfg->peers, &peer);
+		REQUIRE(peerlist != NULL);
+		
+		dns_peerlist_currpeer(peerlist, &peer);
+
 		INSIST(peer != NULL);
 
 		tmpres = dns_peer_setprovideixfr(peer, $2);
 		dns_peer_detach(&peer);
+		dns_peerlist_detach(&peerlist);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining peer provide-ixfr value");
@@ -2300,12 +2311,18 @@ server_info: L_BOGUS yea_or_nay
 	| L_REQUEST_IXFR yea_or_nay
 	{
 		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
 
-		dns_peerlist_currpeer(currcfg->peers, &peer);
+		REQUIRE(peerlist != NULL);
+		
+		dns_peerlist_currpeer(peerlist, &peer);
+
 		INSIST(peer != NULL);
 
 		tmpres = dns_peer_setrequestixfr(peer, $2);
 		dns_peer_detach(&peer);
+		dns_peerlist_detach(&peerlist);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining peer request-ixfr value");
@@ -2319,12 +2336,18 @@ server_info: L_BOGUS yea_or_nay
 	| L_TRANSFERS L_INTEGER
 	{
 		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
 
-		dns_peerlist_currpeer(currcfg->peers, &peer);
+		REQUIRE(peerlist != NULL);
+		
+		dns_peerlist_currpeer(peerlist, &peer);
+
 		INSIST(peer != NULL);
 
 		tmpres = dns_peer_settransfers(peer, $2);
 		dns_peer_detach(&peer);
+		dns_peerlist_detach(&peerlist);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining peer transfers value");
@@ -2337,12 +2360,18 @@ server_info: L_BOGUS yea_or_nay
 	| L_TRANSFER_FORMAT transfer_format
 	{
 		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
 
-		dns_peerlist_currpeer(currcfg->peers, &peer);
+		REQUIRE(peerlist != NULL);
+		
+		dns_peerlist_currpeer(peerlist, &peer);
+
 		INSIST(peer != NULL);
 
 		tmpres = dns_peer_settransferformat(peer, $2);
 		dns_peer_detach(&peer);
+		dns_peerlist_detach(&peerlist);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining peer transfer-format "
@@ -2355,14 +2384,18 @@ server_info: L_BOGUS yea_or_nay
 		}
 	}
 	| L_KEYS key_value {
-		dns_peer_t *peer = NULL;
 		dns_name_t *name = NULL;
+		dns_peer_t *peer = NULL;
+		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+
+		REQUIRE(peerlist != NULL);
+		
+		dns_peerlist_currpeer(peerlist, &peer);
+
+		INSIST(peer != NULL);
 
 		/* XXX need to validate key exists */
 		
-		dns_peerlist_currpeer(currcfg->peers, &peer);
-		INSIST(peer != NULL);
-
 		tmpres = dns_c_charptoname(peer->mem, $2, &name);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
@@ -2373,6 +2406,7 @@ server_info: L_BOGUS yea_or_nay
 		tmpres = dns_peer_setkey(peer, &name);
 		isc_mem_free(memctx, $2);
 		dns_peer_detach(&peer);
+		dns_peerlist_detach(&peerlist);
 		
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
@@ -3319,6 +3353,7 @@ view_option: L_FORWARD zone_forward_opt
 	}
 	| key_stmt
         | zone_stmt
+	| server_stmt
 	;
 
 
@@ -5266,3 +5301,45 @@ is_ip4addr(const char *string, struct in_addr *addr)
 	}
 	return ISC_TRUE;
 }
+
+
+
+static dns_peerlist_t *
+currentPeerList(dns_c_ctx_t *cfg, isc_boolean_t createIfNeeded)
+{
+	dns_peerlist_t *peers = NULL;
+	dns_c_view_t *view = NULL;
+	isc_result_t result;
+
+	view = dns_c_ctx_getcurrview(cfg);
+
+	if (view == NULL) {
+		result = dns_c_ctx_getpeerlist(cfg, &peers);
+	} else {
+		result = dns_c_view_getpeerlist(view, &peers);
+	}
+	
+	if (result == ISC_R_NOTFOUND && createIfNeeded) {
+		result = dns_peerlist_new(currcfg->mem, &peers);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "failed to create peer list");
+			return NULL;
+		}
+
+		if (view == NULL) {
+			dns_c_ctx_setpeerlist(currcfg, peers);
+		} else {
+			dns_c_view_setpeerlist(view, peers);
+		}
+	} else if (result == ISC_R_NOTFOUND) {
+		/* nothing */
+	} else if (result != ISC_R_SUCCESS) {
+		REQUIRE(result == ISC_R_SUCCESS);
+	}
+		
+	return peers;
+}
+
+	
+	
+	
