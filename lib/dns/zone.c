@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.257 2000/11/22 19:56:18 gson Exp $ */
+/* $Id: zone.c,v 1.258 2000/11/22 23:06:55 gson Exp $ */
 
 #include <config.h>
 
@@ -853,16 +853,16 @@ dns_zone_getjournal(dns_zone_t *zone) {
  * dynamic updates either by having an update policy ("ssutable")
  * or an "allow-update" ACL with a value other than exactly "{ none; }".
  */
-isc_boolean_t
+static isc_boolean_t
 zone_isdynamic(dns_zone_t *zone) {
 	return (ISC_TF(zone->type == dns_zone_slave ||
 	       zone->type == dns_zone_stub ||
 	       zone->ssutable != NULL ||
-	       zone->update_acl != NULL &&
+	       (zone->update_acl != NULL &&
 	       ! (zone->update_acl->length == 0 && 
 		  zone->update_acl->elements[0].negative == ISC_TRUE &&
 		  zone->update_acl->elements[0].type ==
-		  	dns_aclelementtype_any)));
+		  	dns_aclelementtype_any))));
 }
 
 
