@@ -206,12 +206,9 @@ Documentation
 	doc/arm directory.
 
 	Some of the programs in the BIND 9 distribution have man pages
-	under the doc/man directory.  In particular, the command line
-	options of "named" are documented in doc/man/bind/named.8.
+	in their directories.  In particular, the command line
+	options of "named" are documented in /bin/named/named.8.
 	There is now also a set of man pages for the lwres library.
-
-	The man pages are currently not installed automatically by
-	"make install".
 
 	If you are upgrading from BIND 8, please read the migration
 	notes in doc/misc/migration.  If you are upgrading from
