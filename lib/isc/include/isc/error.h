@@ -20,6 +20,7 @@
 
 #include <stdarg.h>
 
+#include <isc/formatcheck.h>
 #include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
@@ -28,12 +29,18 @@ typedef void (*isc_errorcallback_t)(const char *, int, const char *, va_list);
 
 void
 isc_error_setunexpected(isc_errorcallback_t);
+
 void
 isc_error_setfatal(isc_errorcallback_t);
+
 void
-isc_error_unexpected(const char *, int, const char *, ...);
+isc_error_unexpected(const char *, int, const char *, ...)
+     ISC_FORMAT_PRINTF(3, 4);
+
 void
-isc_error_fatal(const char *, int, const char *, ...);
+isc_error_fatal(const char *, int, const char *, ...)
+     ISC_FORMAT_PRINTF(3, 4);
+
 void
 isc_error_runtimecheck(const char *, int, const char *);
 
