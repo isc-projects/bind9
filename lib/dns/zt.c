@@ -182,8 +182,8 @@ dns_zt_detach(dns_zt_t **ztp) {
 	if (destroy) {
 		dns_rbt_destroy(&zt->table);
 		isc_rwlock_destroy(&zt->rwlock);
-		isc_mem_put(zt->mctx, zt, sizeof *zt);
 		zt->magic = 0;
+		isc_mem_put(zt->mctx, zt, sizeof *zt);
 	}
 
 	*ztp = NULL;
