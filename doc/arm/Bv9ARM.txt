@@ -1,3 +1,5 @@
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
                 BIND version 9
             Administrator Reference Manual

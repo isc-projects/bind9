@@ -1,3 +1,5 @@
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
 The test setup for the DNSSEC tests has a secure root.
 
