@@ -43,6 +43,10 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
+BIND 9.2.2-P3
+
+	Fix a false positive with delegation-only.
+
 BIND 9.2.2-P2
 
 	Fix problems identified with delegation-only.
