@@ -1,3 +1,6 @@
+1338.	[func]		IPv6 synthesis is now performed for IP6.ARPA bit
+			string queries.
+
 1337.	[func]		IPv6 synthesis is now performed for both IP6.ARPA
 			and IP6.INT nibble queries.
 

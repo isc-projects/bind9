@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.228 2002/07/24 07:02:50 marka Exp $ */
+/* $Id: query.c,v 1.229 2002/07/24 11:53:52 marka Exp $ */
 
 #include <config.h>
 
@@ -154,6 +154,12 @@ synth_rev_byaddrdone_bitstring(isc_task_t *task, isc_event_t *event);
 
 static void
 synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent);
+
+static isc_result_t
+nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na);
+
+static isc_result_t
+bitstring2netaddr(dns_name_t *name, isc_netaddr_t *na);
 
 /*
  * Increment query statistics counters.
@@ -3566,6 +3572,17 @@ ns_query_start(ns_client_t *client) {
 				synth_rev_start(qclient);
 				return;
 			}
+			/* bitstring label + "ip6" + "arpa" + root */
+			if (dns_name_countlabels(client->query.qname) == 4 &&
+			     dns_name_issubdomain(client->query.qname,
+					          &ip6arpa_name) &&
+			    bitstring2netaddr(client->query.qname,
+				   &client->query.synth.na) == ISC_R_SUCCESS) {
+				qclient= NULL;
+				ns_client_attach(client, &qclient);
+				synth_rev_start(qclient);
+				return;
+			}
 		}
 	}
 
@@ -3860,6 +3877,21 @@ nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na) {
 	}
 	isc_netaddr_fromin6(na, &ina6);
 	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+bitstring2netaddr(dns_name_t *name, isc_netaddr_t *na) {
+	struct in6_addr ina6;
+	isc_region_t label;
+
+	dns_name_getlabel(name, 0, &label);
+	if (label.length != 18 ||
+	    label.base[0] != DNS_LABELTYPE_BITSTRING ||
+	    label.base[1] != 128)
+		return (ISC_R_FAILURE);
+	memcpy(ina6.s6_addr, &label.base[2], 16);
+	isc_netaddr_fromin6(na, &ina6);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 /*
