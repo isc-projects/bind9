@@ -122,6 +122,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.qname = NULL;
 	client->query.origqname = NULL;
 	client->query.dboptions = 0;
+	client->query.gluedb = NULL;
 }
 
 static void
@@ -366,6 +367,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	dns_fixedname_t foundname;
 	dns_db_t *db;
 	dns_dbversion_t *version;
+	unsigned int dboptions;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -391,7 +393,10 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	 * Now look for an answer in the database.
 	 */
 	dns_fixedname_init(&foundname);
-	result = dns_db_find(db, name, version, type, client->query.dboptions,
+	dboptions = client->query.dboptions;
+	if (db == client->query.gluedb)
+		dboptions |= DNS_DBFIND_GLUEOK;
+	result = dns_db_find(db, name, version, type, dboptions,
 			     client->requesttime, NULL,
 			     dns_fixedname_name(&foundname),
 			     rdataset, sigrdataset);
@@ -443,6 +448,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	isc_buffer_t *dbuf;
 	isc_buffer_t b;
 	dns_dbversion_t *version;
+	unsigned int dboptions;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(type != dns_rdatatype_any);
@@ -497,7 +503,10 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	 * Now look for an answer in the database.
 	 */
 	node = NULL;
-	result = dns_db_find(db, name, version, type, client->query.dboptions,
+	dboptions = client->query.dboptions;
+	if (db == client->query.gluedb)
+		dboptions |= DNS_DBFIND_GLUEOK;
+	result = dns_db_find(db, name, version, type, dboptions,
 			     client->requesttime, &node, fname, rdataset,
 			     sigrdataset);
 	switch (result) {
@@ -1002,7 +1011,6 @@ query_find(ns_client_t *client) {
 	isc_result_t result, eresult;
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
-	unsigned int dboptions;
 
 	/*	
 	 * One-time initialization.
@@ -1176,15 +1184,14 @@ query_find(ns_client_t *client) {
 				 * We don't have a cache, so this is the best
 				 * answer.
 				 *
-				 * We enable the retrieval of glue so we can
-				 * put it into the additional data section.
+				 * We enable the retrieval of glue for this
+				 * database by setting client->query.gluedb.
 				 */
-				dboptions = client->query.dboptions;
-				client->query.dboptions |= DNS_DBFIND_GLUEOK;
+				client->query.gluedb = db;
 				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset, dbuf,
 					       DNS_SECTION_AUTHORITY);
-				client->query.dboptions = dboptions;
+				client->query.gluedb = NULL;
 			} else {
 				/*
 				 * We might have a better answer or delegation
