@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.3 2001/08/03 05:56:15 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.4 2001/08/03 22:12:42 gson Exp $ */
 
 #include <config.h>
 
@@ -276,7 +276,7 @@ main(int argc, char **argv) {
 			fprintf(stderr, "isc_mem_get(%d) failed\n", len);
 			goto cleanup;
 		}
-		snprintf(buf, len, "%s" "/" "%s", chrootdir, keyfile);
+		snprintf(buf, len, "%s/%s", chrootdir, keyfile);
 		fd = safe_create(buf);
 		if (fd == NULL) {
 			fprintf(stderr, "unable to create \"%s\"\n",
