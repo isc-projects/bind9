@@ -4,7 +4,8 @@
 
 1763.	[placeholder]	rt13002
 
-1762.	[placeholder]	rt12995
+1762.	[bug]		isc_interfaceiter_create() could return ISC_R_SUCCESS
+			even when it failed. [RT #12995]
 
 1761.	[placeholder]	rt12971
 
