@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.73 2001/01/24 07:12:56 marka Exp $ */
+/* $Id: journal.c,v 1.74 2001/05/17 18:14:36 gson Exp $ */
 
 #include <config.h>
 
@@ -99,8 +99,7 @@ dns_soa_getserial(dns_rdata_t *rdata) {
 	 * would involve a lot of unnecessary work (like
 	 * building domain names and allocating temporary memory)
 	 * when all we really want to do is to change 32 bits of
-	 * fixed-sized data.  Besides, fromstruct_soa() is not
-	 * implemented yet.
+	 * fixed-sized data.
 	 */
 	INSIST(rdata->length > 20);
 	return (decode_uint32(rdata->data + rdata->length - 20));
