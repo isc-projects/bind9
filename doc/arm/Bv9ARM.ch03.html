@@ -131,8 +131,6 @@ options {
      pid-file "named.pid";              // Put pid file in working dir
      allow-query { "corpnets"; };
 };
-// Root server hints
-zone "." { type hint; file "root.hint"; };
 // Provide a reverse mapping for the loopback address 127.0.0.1
 zone "0.0.127.in-addr.arpa" {
      type master;
@@ -167,8 +165,6 @@ CLASS="programlisting"
      allow-query { any; };              // This is the default
      recursion no;                      // Do not provide recursive service
 };
-// Root server hints
-zone "." { type hint; file "root.hint"; };
 
 // Provide a reverse mapping for the loopback address 127.0.0.1
 zone "0.0.127.in-addr.arpa" {
