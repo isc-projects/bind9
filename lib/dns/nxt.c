@@ -183,8 +183,7 @@ dns_nxt_typepresent(dns_rdata_t *nxt, dns_rdatatype_t type) {
 	nxt_bits = ((unsigned char *)r.base) + r2.length;
 	nxt_bits_length = r.length - r2.length;
 	INSIST(nxt_bits_length >= 4);
-	byte = type >> 3;
-	if (byte > nxt_bits_length)
+	if (type >= nxt_bits_length * 8)
 		return (ISC_FALSE);
 	else
 		return (ISC_TF(bit_isset(nxt_bits, type)));
