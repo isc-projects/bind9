@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.41 2004/04/15 23:40:26 marka Exp $ */
+/* $Id: resolver.h,v 1.42 2005/03/04 03:53:22 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -414,6 +414,12 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
  * This checks if the algorithm has been disabled via
  * dns_resolver_disable_algorithm() then the underlying
  * crypto libraries if not specifically disabled.
+ */
+
+isc_boolean_t
+dns_resolver_digest_supported(dns_resolver_t *resolver, unsigned int digest_type);
+/*
+ * Is this digest type supported.
  */
 
 void

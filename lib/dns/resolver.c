@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.303 2005/02/08 23:51:31 marka Exp $ */
+/* $Id: resolver.c,v 1.304 2005/03/04 03:53:21 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/ds.h>
 #include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
@@ -6518,6 +6519,13 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
 	if (found)
 		return (ISC_FALSE);
 	return (dst_algorithm_supported(alg));
+}
+
+isc_boolean_t
+dns_resolver_digest_supported(dns_resolver_t *resolver, unsigned int digest) {
+
+	UNUSED(resolver);
+	return (dns_ds_digest_supported(digest));
 }
 
 void
