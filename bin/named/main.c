@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.83 2000/09/07 21:54:37 explorer Exp $ */
+/* $Id: main.c,v 1.84 2000/09/16 01:41:34 gson Exp $ */
 
 #include <config.h>
 
@@ -315,12 +315,28 @@ parse_command_line(int argc, char *argv[]) {
 
 	save_command_line(argc, argv);
 
+	/*
+	 * See if we should run as lwresd.
+	 */
 	s = strrchr(argv[0], '/');
 	if (s == NULL)
 		s = argv[0];
 	else
 		s++;
 	if (strcmp(s, "lwresd") == 0) {
+		lwresd_only = ISC_TRUE;
+		parse_lwresd_command_line(argc, argv);
+		return;
+	}
+
+	/*
+	 * An alternative method of invoking lwresd.  This is needed
+	 * in libtoolized build trees, as the libtool-generated
+	 * "named" script does not preserve argv[0].
+	 */
+	if (argc >= 2 && strcmp(argv[1], "-l") == 0) {
+		argc--;
+		argv++;
 		lwresd_only = ISC_TRUE;
 		parse_lwresd_command_line(argc, argv);
 		return;
