@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.39 2000/01/27 00:56:10 gson Exp $ */
+ /* $Id: xfrout.c,v 1.40 2000/01/31 23:12:35 gson Exp $ */
 
 #include <config.h>
 
@@ -1413,6 +1413,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	xfr->sends--;
 	INSIST(xfr->sends == 0);
+	(void) isc_timer_touch(xfr->timer);
 	if (xfr->shuttingdown == ISC_TRUE) {
 		xfrout_maybe_destroy(xfr);
 	} else if (evresult != ISC_R_SUCCESS) {
