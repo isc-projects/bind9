@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+#define MEMDEBUG
+
 #include <config.h>
 
 #include <errno.h>
@@ -273,7 +275,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_t b;
 	
 #ifdef DEBUG
-	printf ("Setting up for looking up %s\n",lookup->textname);
+	fprintf (stderr,"Setting up for looking up %s\n",lookup->textname);
 #endif
 	len=strlen(lookup->textname);
 	isc_buffer_init (&b, lookup->textname, len,
@@ -380,7 +382,7 @@ cancel_lookup (dig_lookup_t *lookup) {
 	dig_query_t *query;
 
 #ifdef DEBUG
-	puts ("Cancelling all queries");
+	fputs ("Cancelling all queries",stderr);
 #endif
 	if (!lookup->pending)
 		return;
@@ -444,7 +446,7 @@ tcp_length_done (isc_task_t *task, isc_event_t *event) {
 	UNUSED (task);
 
 #ifdef DEBUG
-	puts ("In tcp_length_done");
+	fputs ("In tcp_length_done",stderr);
 #endif
 	REQUIRE (event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	sevent = (isc_socketevent_t *)event;	
@@ -492,7 +494,7 @@ tcp_length_done (isc_task_t *task, isc_event_t *event) {
 				   query);
 	check_result (result, "isc_socket_recvv");
 #ifdef DEBUG
-	printf ("Resubmitted recv request with length %d\n",length);
+	fprintf (stderr,"Resubmitted recv request with length %d\n",length);
 #endif
 	isc_event_free (&event);
 }
@@ -503,7 +505,8 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 
 	if (!query->lookup->pending) {
 #ifdef DEBUG
-		puts ("Ignoring launch_next_query because !pending.");
+		fputs ("Ignoring launch_next_query because !pending.",
+		       stderr);
 #endif
 		isc_socket_detach (&query->sock);
 		query->working = ISC_FALSE;
@@ -526,7 +529,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	check_result (result, "isc_socket_recvv");
 	sendcount++;
 #ifdef DEBUG
-	puts ("Sending a request.");
+	fputs ("Sending a request.",stderr);
 #endif
 	result = isc_socket_sendv(query->sock, &query->sendlist, task,
 				  send_done, query);
@@ -555,7 +558,7 @@ connect_done (isc_task_t *task, isc_event_t *event) {
 	query->waiting_connect = ISC_FALSE;
 
 #ifdef DEBUG
-	puts ("In connect_done.");
+	fputs ("In connect_done.",stderr);
 #endif
 	if (sevent->result != ISC_R_SUCCESS) {
 		result = isc_buffer_allocate(mctx, &b, 256,
@@ -588,12 +591,12 @@ msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
 				       0, &name, NULL);
 	if (result == ISC_R_SUCCESS) {
 #ifdef DEBUG
-		puts ("Found SOA");
+		fputs ("Found SOA",stderr);
 #endif
 		return (ISC_TRUE);
 	} else {
 #ifdef DEBUG
-		printf ("Didn't find SOA, result=%d:%s\n",
+		fprintf (stderr,"Didn't find SOA, result=%d:%s\n",
 			result, dns_result_totext(result));
 #endif
 		return (ISC_FALSE);
@@ -616,7 +619,7 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 
 	sendcount--;
 #ifdef DEBUG
-	printf ("In recv_done, counter down to %d\n",sendcount);
+	fprintf (stderr,"In recv_done, counter down to %d\n",sendcount);
 #endif
 	REQUIRE (event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	sevent = (isc_socketevent_t *)event;
@@ -624,7 +627,7 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 
 	if (!query->lookup->pending) {
 #ifdef DEBUG
-		printf ("No longer pending.  Got %s\n",
+		fprintf (stderr,"No longer pending.  Got %s\n",
 			isc_result_totext (sevent->result));
 #endif
 		query->working = ISC_FALSE;
@@ -656,7 +659,7 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 		}
 #ifdef DEBUG
 		if (query->lookup->pending)
-			puts ("Still pending.");
+			fputs ("Still pending.",stderr);
 #endif
 		if (query->lookup->doing_xfr) {
 			if (!query->first_soa_rcvd) {
@@ -730,8 +733,8 @@ get_address(char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
 	else {
 		he = gethostbyname(hostname);
 		if (he == NULL)
-			fatal("gethostbyname() failed, h_errno = %d",
-			      h_errno);
+			fatal("Couldn't look up your server host %s.  errno=%d",
+			      hostname, h_errno);
 		INSIST(he->h_addrtype == AF_INET);
 		isc_sockaddr_fromin(sockaddr,
 				    (struct in_addr *)(he->h_addr_list[0]),
@@ -745,7 +748,7 @@ do_lookup_tcp (dig_lookup_t *lookup) {
 	isc_result_t result;
 
 #ifdef DEBUG
-	puts ("Starting a TCP lookup");
+	fputs ("Starting a TCP lookup",stderr);
 #endif
 	lookup->pending = ISC_TRUE;
 	isc_interval_set (&lookup->interval, timeout, 0);
@@ -780,7 +783,7 @@ do_lookup_udp (dig_lookup_t *lookup) {
 	isc_result_t result;
 
 #ifdef DEBUG
-	puts ("Starting a UDP lookup.");
+	fputs ("Starting a UDP lookup.",stderr);
 #endif
 	lookup->pending = ISC_TRUE;
 	isc_interval_set (&lookup->interval, timeout, 0);
@@ -808,7 +811,7 @@ do_lookup_udp (dig_lookup_t *lookup) {
 		check_result (result, "isc_socket_recvv");
 		sendcount++;
 #ifdef DEBUG
-		printf ("Sent count number %d\n",sendcount);
+		fprintf (stderr,"Sent count number %d\n",sendcount);
 #endif
 		ISC_LIST_ENQUEUE (query->sendlist, &lookup->sendbuf, link);
 		result = isc_socket_sendtov(query->sock, &query->sendlist,

@@ -128,14 +128,14 @@ check_next_lookup (dig_lookup_t *lookup) {
 	isc_boolean_t still_working=ISC_FALSE;
 	
 #ifdef DEBUG
-	puts ("In check_next_lookup");
+	fputs ("In check_next_lookup",stderr);
 #endif
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
 #ifdef DEBUG
-			puts ("Still have a worker.");
+			fputs ("Still have a worker.",stderr);
 #endif
 			still_working=ISC_TRUE;
 		}
@@ -146,7 +146,7 @@ check_next_lookup (dig_lookup_t *lookup) {
 	next = ISC_LIST_NEXT (lookup, link);
 	if (next == NULL) {
 #ifdef DEBUG
-		puts ("Shutting Down.");
+		fputs ("Shutting Down.",stderr);
 #endif
 		isc_app_shutdown();
 		return;
@@ -430,7 +430,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 			strncat (lookup->textname, "in-addr.arpa.", MXNAME);
 #ifdef DEBUG
-			printf ("Looking up %s\n",lookup->textname);
+			fprintf (stderr,"Looking up %s\n",lookup->textname);
 #endif
 			strcpy (lookup->rttext, "ptr");
 			strcpy (lookup->rctext, "in");
@@ -478,7 +478,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			have_host = ISC_TRUE;
 #ifdef DEBUG
-			printf ("Looking up %s\n",lookup->textname);
+			fprintf (stderr,"Looking up %s\n",lookup->textname);
 #endif
 		}
 	}
@@ -498,7 +498,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			bargc--;
 			bargv[0]="dig";
 #ifdef DEBUG
-			printf ("Parsing %d:%s\n",bargc,bargv[1]);
+			fprintf (stderr,"Parsing %d:%s\n",bargc,bargv[1]);
 #endif
 			parse_args(ISC_TRUE, bargc, (char**)bargv);
 		}
