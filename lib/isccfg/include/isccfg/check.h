@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.1 2001/03/01 23:46:49 bwelling Exp $ */
+/* $Id: check.h,v 1.2 2001/03/02 00:49:31 bwelling Exp $ */
 
 #ifndef ISCCFG_CHECK_H
 #define ISCCFG_CHECK_H 1
@@ -26,7 +26,7 @@
 
 ISC_LANG_BEGINDECLS
 
-static isc_result_t
+isc_result_t
 cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx);
 /*
  * Check the syntactic validity of a configuration parse tree generated from
