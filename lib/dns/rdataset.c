@@ -157,10 +157,19 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	do {
 		if (first) {
 			common_start = target->used;
-			result = dns_name_totext(owner_name, omit_final_dot,
-						 target);
-			if (result != DNS_R_SUCCESS)
-				return (result);
+			/*
+			 * The caller might want to give us an empty owner
+			 * name (e.g. if they are outputting into a master
+			 * file and this rdataset has the same name as the
+			 * previous one.)
+			 */
+			if (dns_name_countlabels(owner_name) != 0) {
+				result = dns_name_totext(owner_name,
+							 omit_final_dot,
+							 target);
+				if (result != DNS_R_SUCCESS)
+					return (result);
+			}
 			common_length = target->used - common_start;
 			common = (char *)target->base + common_start;
 			if (common_length >= 16) {
