@@ -182,6 +182,8 @@ isc_result_t	dns_c_ipmatch_aclnew(isc_mem_t *mem,
 isc_result_t	dns_c_ipmatchkey_new(isc_mem_t *mem,
 				     dns_c_ipmatchelement_t **result,
 				     const char *key);
+isc_result_t	dns_c_ipmatchany_new(isc_mem_t *mem,
+				     dns_c_ipmatchelement_t **result); 
 isc_result_t	dns_c_ipmatchlocalhost_new(isc_mem_t *mem,
 					   dns_c_ipmatchelement_t **result); 
 isc_result_t	dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
