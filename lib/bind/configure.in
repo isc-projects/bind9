@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.92 $)
+AC_REVISION($Revision: 1.93 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1075,6 +1075,7 @@ USE_FIONBIO_IOCTL="#undef USE_FIONBIO_IOCTL"
 case "$host" in
 	*aix3.2*)	PORT_DIR="port/aix32";;
 	*aix4*)		PORT_DIR="port/aix4";;
+	*aix5*)		PORT_DIR="port/aix5";;
 	*aux3*)		PORT_DIR="port/aux3";;
 	*-bsdi2*)	PORT_DIR="port/bsdos2";;
 	*-bsdi*)	PORT_DIR="port/bsdos";;
