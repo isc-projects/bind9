@@ -1,3 +1,6 @@
+ 798.	[bug]		nsupdate should be able to reject bad input lines
+			and continue. [RT #1130]
+
  797.	[func]		Issue a warning if the 'directory' option contains
  			a relative path. [RT #269]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.85 2001/03/28 02:42:51 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.86 2001/03/29 23:51:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -747,10 +747,12 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 			bufsz *= 2;
 			isc_lex_destroy(&lex);
 		} while (result == ISC_R_NOSPACE);
-		check_result(result, "dns_rdata_fromtext");
 		dns_message_takebuffer(msg, &buf);
-		if (result != ISC_R_SUCCESS)
-			return (STATUS_MORE);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "invalid rdata format: %s\n",
+				isc_result_totext(result));
+			return (STATUS_SYNTAX);
+		}
 	} else {
 		rdata->flags = DNS_RDATA_UPDATE;
 	}
@@ -787,8 +789,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
 		if (*word == 0) {
 			fprintf(stderr, "failed to read class or type\n");
-			dns_message_puttempname(updatemsg, &name);
-			return (STATUS_SYNTAX);
+			goto failure;
 		}
 		region.base = word;
 		region.length = strlen(word);
@@ -800,17 +801,22 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 			word = nsu_strsep(&cmdline, " \t\r\n");
 			if (*word == 0) {
 				fprintf(stderr, "failed to read type\n");
-				dns_message_puttempname(updatemsg, &name);
-				return (STATUS_SYNTAX);
+				goto failure;
 			}
 			region.base = word;
 			region.length = strlen(word);
 			result = dns_rdatatype_fromtext(&rdatatype, &region);
-			check_result(result, "dns_rdatatype_fromtext");
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "invalid type: %s\n");
+				goto failure;
+			}
 		} else {
 			rdataclass = dns_rdataclass_in;
 			result = dns_rdatatype_fromtext(&rdatatype, &region);
-			check_result(result, "dns_rdatatype_fromtext");
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "invalid type: %s\n");
+				goto failure;
+			}
 		}
 	} else
 		rdatatype = dns_rdatatype_any;
@@ -853,6 +859,11 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_PREREQUISITE);
 	return (STATUS_MORE);
+
+ failure:
+	if (name != NULL)
+		dns_message_puttempname(updatemsg, &name);
+	return (STATUS_SYNTAX);
 }
 
 static isc_uint16_t
