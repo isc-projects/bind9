@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.4 2003/08/20 02:59:06 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.5 2003/08/20 03:23:12 marka Exp $ */
 
 #include <config.h>
 
@@ -493,7 +493,6 @@ do_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 	isc_interfaceiter_t *iter = NULL;
 	isc_boolean_t scan_ipv4 = ISC_FALSE;
 	isc_boolean_t scan_ipv6 = ISC_FALSE;
-	isc_boolean_t setup_ipv6 = ISC_TRUE;
 	isc_result_t result;
 	isc_netaddr_t zero_address, zero_address6;
 	ns_listenelt_t *le;
@@ -518,30 +517,36 @@ do_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 
 	/* A special, but typical case; listen-on-v6 { any; } */
 	/* XXXJT fix when we probe for IPV6_V6ONLY */
-	if (scan_ipv6 == ISC_TRUE &&
-	    (le = ISC_LIST_HEAD(mgr->listenon6->elts)) != NULL &&
-	    listenon_is_ip6_any(le)) {
-		struct in6_addr in6a;
+	if (scan_ipv6 == ISC_TRUE) {
+		for (le = ISC_LIST_HEAD(mgr->listenon6->elts);
+		    le != NULL;
+		    le = ISC_LIST_NEXT(le, link)) {
+			struct in6_addr in6a;
 
-		in6a = in6addr_any;
-		isc_sockaddr_fromin6(&listen_addr, &in6a, le->port);
+			if (!listenon_is_ip6_any(le))
+				continue;
 
-		ifp = find_matching_interface(mgr, &listen_addr);
-		if (ifp != NULL) {
-			ifp->generation = mgr->generation;
-		} else {
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-				      "listening on IPv6 interfaces, port %u",
-				      le->port);
-			result = ns_interface_setup(mgr, &listen_addr,
-						    "<any>", &ifp);
-			if (result == ISC_R_SUCCESS)
-				setup_ipv6 = ISC_FALSE;
-			else
+			in6a = in6addr_any;
+			isc_sockaddr_fromin6(&listen_addr, &in6a, le->port);
+
+			ifp = find_matching_interface(mgr, &listen_addr);
+			if (ifp != NULL) {
+				ifp->generation = mgr->generation;
+			} else {
 				isc_log_write(IFMGR_COMMON_LOGARGS,
-					      ISC_LOG_ERROR,
-					      "listening on all IPv6 "
-					      "interfaces failed");
+					      ISC_LOG_INFO,
+					      "listening on IPv6 "
+					      "interfaces, port %u",
+					      le->port);
+				result = ns_interface_setup(mgr, &listen_addr,
+							    "<any>", &ifp);
+				if (result != ISC_R_SUCCESS)
+					isc_log_write(IFMGR_COMMON_LOGARGS,
+						      ISC_LOG_ERROR,
+						      "listening on all IPv6 "
+						      "interfaces failed");
+				/* Continue. */
+			}
 		}
 	}
 
@@ -628,13 +633,6 @@ do_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 				goto ignore_interface;
 		}
 
-		/*
-		 * If we've made a wildcard AF_INET6 socket, silently skip all
-		 * IPv6 addresses to bind.
-		 */
-		if (family == AF_INET6 && setup_ipv6 == ISC_FALSE)
-			continue;
-
 		ll = (family == AF_INET) ? mgr->listenon4 : mgr->listenon6;
 		for (le = ISC_LIST_HEAD(ll->elts);
 		     le != NULL;
@@ -643,6 +641,10 @@ do_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 			int match;
 			isc_netaddr_t listen_netaddr;
 			isc_sockaddr_t listen_sockaddr;
+
+			/* the case of "any" IPv6 address was already done. */
+			if (family == AF_INET6 && listenon_is_ip6_any(le))
+				continue;
 
 			/*
 			 * Construct a socket address for this IP/port

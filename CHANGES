@@ -1,3 +1,6 @@
+1365.	[func]		"localhost" and "localnet" acls now include IPv6
+			addresses / prefixes.
+
 1364.	[func]		Log file name when unable to open memory statistics
 			and dump database files. [RT# 3437]
 

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.13 2003/08/19 03:11:16 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.14 2003/08/20 03:23:12 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2044,24 +2044,16 @@ Usage</title>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>localhost</command></para></entry>
-<entry colname = "2"><para>Matches the IPv4 addresses of all network
+<entry colname = "2"><para>Matches the IPv4 and IPv6 addresses of all network
 interfaces on the system.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>localnets</command></para></entry>
-<entry colname = "2"><para>Matches any host on an IPv4 network for which
-the system has an interface.</para></entry>
+<entry colname = "2"><para>Matches any host on an IPv4 or IPv6 network
+for which the system has an interface.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
-
-<para>The <command>localhost</command> and <command>localnets</command>
-ACLs do not currently support IPv6 (that is,
-<command>localhost</command> does not match the host's IPv6 addresses,
-and <command>localnets</command> does not match the host's attached
-IPv6 networks) due to the lack of a standard method of determining the
-complete set of local IPv6 addresses for a host.
-</para>
 
 </sect2>
 <sect2>
@@ -3293,24 +3285,25 @@ listen-on port 1234 { !1.2.3.4; 1.2/16; };
 <para>If no <command>listen-on</command> is specified, the
 server will listen on port 53 on all interfaces.</para>
 
-<para>The <command>listen-on-v6</command> option is used to
-specify the ports on which the server will listen for incoming
-queries sent using IPv6.</para>
+<para>By default, the server does not bind a separate socket to each
+IPv6 interface address as it does for IPv4. Instead, it always
+listens on the IPv6 wildcard address.
+However, some particular IPv6 addresses can also be specified,
+in which case the server makes a separate socket for each specified
+address.</para>
 
-<para>The server does not bind a separate socket to each IPv6
-interface address as it does for IPv4. Instead, it always
-listens on the IPv6 wildcard address. Therefore, the only
-values allowed for the <varname>address_match_list</varname>
-argument to the <command>listen-on-v6</command> statement are
-<programlisting>{ any; }</programlisting> and
-<programlisting>{ none;}</programlisting></para>
+<para>Multiple <command>listen-on-v6</command> options can be used.
+For example,</para>
 
-<para>Multiple <command>listen-on-v6</command> options can be
-used to listen on multiple ports:</para>
-
-<programlisting>listen-on-v6 port 53 { any; };
-listen-on-v6 port 1234 { any; };
+<programlisting>listen-on-v6 { any; };
+listen-on-v6 port 1234 { !3ffe::/16; any; };
 </programlisting>
+
+<para>will enable the name server on port 53 for any IPv6 addresses
+(with a single wildcard socket),
+and on port 1234 of IPv6 addresses that is not in the prefix
+3ffe::/16 (with separate sockets for each matched address.)</para>
+
 <para>To make the server not listen on any IPv6 address, use</para>
 <programlisting>listen-on-v6 { none; };
 </programlisting>
