@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.19 2000/08/01 01:12:05 tale Exp $ */
+/* $Id: interfacemgr.h,v 1.20 2000/09/22 00:13:07 gson Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -73,13 +73,13 @@ struct ns_interface {
 	unsigned int		generation;     /* Generation number. */
 	isc_sockaddr_t		addr;           /* Address and port. */
 	char 			name[32];	/* Null terminated. */
-	isc_socket_t *		udpsocket; 	/* UDP socket. */
 	dns_dispatch_t *	udpdispatch;	/* UDP dispatcher. */
 	isc_socket_t *		tcpsocket;	/* TCP socket. */
 	isc_task_t *		task;
 	int			ntcptarget;	/* Desired number of concurrent
 						   TCP accepts */
 	int			ntcpcurrent;	/* Current ditto, locked */
+	ns_clientmgr_t *	clientmgr;	/* Client manager. */
 	ISC_LINK(ns_interface_t) link;
 };
 
@@ -91,7 +91,7 @@ isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		       isc_socketmgr_t *socketmgr,
 		       dns_dispatchmgr_t *dispatchmgr,
-		       ns_clientmgr_t *clientmgr, ns_interfacemgr_t **mgrp);
+		       ns_interfacemgr_t **mgrp);
 /*
  * Create a new interface manager.
  *
@@ -135,14 +135,6 @@ ns_interfacemgr_setlistenon6(ns_interfacemgr_t *mgr, ns_listenlist_t *value);
  * The previous IPv6 listen-on list is freed.
  */
 
-isc_result_t
-ns_interfacemgr_findudpdispatcher(ns_interfacemgr_t *mgr,
-				  isc_sockaddr_t *address,
-				  dns_dispatch_t **dispatchp);
-/*
- * Find a UDP dispatcher matching 'address', if it exists.
- */
-
 dns_aclenv_t *
 ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr);
 
@@ -151,5 +143,12 @@ ns_interface_attach(ns_interface_t *source, ns_interface_t **target);
 
 void
 ns_interface_detach(ns_interface_t **targetp);
+
+void
+ns_interface_shutdown(ns_interface_t *ifp);
+/*
+ * Stop listening for queries on interface 'ifp'.
+ * May safely be called multiple times.
+ */
 
 #endif /* NAMED_INTERFACEMGR_H */

@@ -1,3 +1,8 @@
+ 484.	[bug]		When the server was reloaded after removing addresses 
+			from the named.conf "listen-on" statement, sockets
+			were still listening on the removed addresses due
+			to reference count loops. [RT #325]
+
  483.	[bug]		nslookup: "set all" showed search but it was not
 			settable.
 

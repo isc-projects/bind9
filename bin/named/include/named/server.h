@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.36 2000/09/05 03:35:16 marka Exp $ */
+/* $Id: server.h,v 1.37 2000/09/22 00:13:08 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -55,7 +55,6 @@ struct ns_server {
 	/* Server data structures. */
 	dns_loadmgr_t *		loadmgr;
 	dns_zonemgr_t *		zonemgr;
-	ns_clientmgr_t *	clientmgr;
 	dns_viewlist_t		viewlist;
 	ns_interfacemgr_t *	interfacemgr;
 	dns_db_t *		in_roothints;

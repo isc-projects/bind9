@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.221 2000/09/12 10:08:56 bwelling Exp $ */
+/* $Id: server.c,v 1.222 2000/09/22 00:13:05 gson Exp $ */
 
 #include <config.h>
 
@@ -1618,13 +1618,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 					  &ns_g_dispatchmgr),
 		   "creating dispatch manager");
 
-	CHECKFATAL(ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				       &server->clientmgr),
-		   "creating client manager");
-
 	CHECKFATAL(ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
 					  ns_g_socketmgr, ns_g_dispatchmgr,
-					  server->clientmgr,
 					  &server->interfacemgr),
 		   "creating interface manager");
 
@@ -1664,7 +1659,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_view_detach(&view);
 	}
 
-	ns_clientmgr_destroy(&server->clientmgr);
 	isc_timer_detach(&server->interface_timer);
 
 	ns_interfacemgr_shutdown(server->interfacemgr);
@@ -1710,7 +1704,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	/* Initialize server data structures. */
 	server->loadmgr = NULL;
 	server->zonemgr = NULL;
-	server->clientmgr = NULL;
 	server->interfacemgr = NULL;
 	ISC_LIST_INIT(server->viewlist);
 	server->in_roothints = NULL;

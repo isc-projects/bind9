@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.114 2000/09/18 22:54:08 gson Exp $ */
+/* $Id: client.c,v 1.115 2000/09/22 00:13:03 gson Exp $ */
 
 #include <config.h>
 
@@ -1711,9 +1711,8 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 				break;
 		}
 
-		client->state = NS_CLIENTSTATE_READY;
-
 		ns_interface_attach(ifp, &client->interface);
+		client->state = NS_CLIENTSTATE_READY;
 
 		if (tcp) {
 			client->attributes |= NS_CLIENTATTR_TCP;
