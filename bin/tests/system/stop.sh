@@ -31,11 +31,27 @@ do
      fi
 done
 
+for d in lwresd*
+do
+     pidfile="$d/lwresd.pid"
+     if [ -f $pidfile ]; then
+        kill -TERM `cat $pidfile`
+     fi
+done
+
 sleep 5
 
 for d in ns*
 do
      pidfile="$d/named.pid"
+     if [ -f $pidfile ]; then
+        kill -KILL `cat $pidfile`
+     fi
+done
+
+for d in lwresd*
+do
+     pidfile="$d/lwresd.pid"
      if [ -f $pidfile ]; then
         kill -KILL `cat $pidfile`
      fi

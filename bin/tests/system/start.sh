@@ -55,6 +55,34 @@ do
     )
 done
 
+for d in lwresd*
+do
+    (
+        cd $d
+	rm -f lwresd.run &&
+	if test -f lwresd.pid
+	then
+	    if kill -0 `cat lwresd.pid` 2>/dev/null
+	    then
+		echo "$0: lwresd pid `cat lwresd.pid` still running" >&2
+	        exit 1
+	    else
+		rm -f lwresd.pid
+	    fi
+	fi
+	$LWRESD -C resolv.conf -d 99 -g -i lwresd.pid -p 9210 -P 5300 > lwresd.run 2>&1 &
+	x=1
+	while test ! -f lwresd.pid
+	do
+	    x=`expr $x + 1`
+	    if [ $x = 5 ]; then
+		echo "I: Couldn't start lwresd $d!"
+		exit 1
+	    fi
+	    sleep 1
+        done
+    )
+done
 
 # Make sure all of the servers are up.
 
