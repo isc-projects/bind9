@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.112 2000/07/05 23:10:06 gson Exp $ */
+/* $Id: query.c,v 1.113 2000/07/06 02:27:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1839,7 +1839,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	/*
 	 * Invoke the resolver.
 	 */
-	REQUIRE(nameservers->type == dns_rdatatype_ns);
+	REQUIRE(nameservers == NULL || nameservers->type == dns_rdatatype_ns);
 	REQUIRE(client->query.fetch == NULL);
 
 	rdataset = query_newrdataset(client);
@@ -2334,8 +2334,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				/*
 				 * Recurse!
 				 */
-				result = query_recurse(client, qtype, fname,
-						       rdataset);
+				if (type == dns_rdatatype_key)
+					result = query_recurse(client, qtype,
+							       NULL, NULL);
+				else
+					result = query_recurse(client, qtype,
+							       fname, rdataset);
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
