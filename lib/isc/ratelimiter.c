@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.c,v 1.18.14.1 2003/08/19 02:49:00 marka Exp $ */
+/* $Id: ratelimiter.c,v 1.18.14.2 2003/08/20 06:43:21 marka Exp $ */
 
 #include <config.h>
 
@@ -27,10 +27,10 @@
 #include <isc/util.h>
 
 typedef enum {
-	isc_ratelimiter_stalled,
-	isc_ratelimiter_ratelimited,
-	isc_ratelimiter_worklimited,
-	isc_ratelimiter_shuttingdown
+	isc_ratelimiter_stalled = 0,
+	isc_ratelimiter_ratelimited = 1,
+	isc_ratelimiter_idle = 2,
+	isc_ratelimiter_shuttingdown = 3
 } isc_ratelimiter_state_t;
 
 struct isc_ratelimiter {
@@ -71,7 +71,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	isc_interval_set(&rl->interval, 0, 0);
 	rl->timer = NULL;
 	rl->pertic = 1;
-	rl->state = isc_ratelimiter_worklimited;
+	rl->state = isc_ratelimiter_idle;
 	ISC_LIST_INIT(rl->pending);
 
 	result = isc_mutex_init(&rl->lock);
@@ -146,7 +146,7 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 		ev->ev_sender = task;
                 ISC_LIST_APPEND(rl->pending, ev, ev_link);
 		*eventp = NULL;
-        } else if (rl->state == isc_ratelimiter_worklimited) {
+        } else if (rl->state == isc_ratelimiter_idle) {
 		result = isc_timer_reset(rl->timer, isc_timertype_ticker, NULL,
 					 &rl->interval, ISC_FALSE);
 		if (result == ISC_R_SUCCESS) {
@@ -193,7 +193,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 						 isc_timertype_inactive,
 						 NULL, NULL, ISC_FALSE);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			rl->state = isc_ratelimiter_worklimited;
+			rl->state = isc_ratelimiter_idle;
 			pertic = 0;	/* Force the loop to exit. */
 		}
 		UNLOCK(&rl->lock);
@@ -289,7 +289,7 @@ isc_ratelimiter_stall(isc_ratelimiter_t *rl) {
 		result = isc_timer_reset(rl->timer, isc_timertype_inactive,
 				 	 NULL, NULL, ISC_FALSE);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	case isc_ratelimiter_worklimited:
+	case isc_ratelimiter_idle:
 	case isc_ratelimiter_stalled:
 		rl->state = isc_ratelimiter_stalled;
 		break;
@@ -315,10 +315,10 @@ isc_ratelimiter_release(isc_ratelimiter_t *rl) {
 			if (result == ISC_R_SUCCESS)
 				rl->state = isc_ratelimiter_ratelimited;
 		} else 
-			rl->state = isc_ratelimiter_worklimited;
+			rl->state = isc_ratelimiter_idle;
 		break;
 	case isc_ratelimiter_ratelimited:
-	case isc_ratelimiter_worklimited:
+	case isc_ratelimiter_idle:
 		break;
 	}
 	UNLOCK(&rl->lock);
