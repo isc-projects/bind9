@@ -1,3 +1,14 @@
+1446.	[func]		Implemented undocumented alternate transfer sources
+			from BIND 8.  See use-alt-transfer-source,
+			alt-transfer-source-v4 and alt-transfer-source-v6.
+
+			SECURITY: use-alt-transfer-source is ENABLED unless
+			you are using views.  This may caues a security risk
+			resulting in accidental disclosure of wrong zone
+			content if the master supplying different source
+			content based on IP address.  If you are not certian
+			ISC recommends setting use-alt-transfer-source no;
+
 1445.	[bug]		DNS_ADBFIND_STARTATROOT broke stub zones.  This has
 			been replaced with DNS_ADBFIND_STARTATZONE which
 			causes the search to start using the closest zone.
