@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.256 2000/11/22 18:58:12 gson Exp $ */
+/* $Id: zone.c,v 1.257 2000/11/22 19:56:18 gson Exp $ */
 
 #include <config.h>
 
@@ -844,6 +844,28 @@ dns_zone_getjournal(dns_zone_t *zone) {
 	return (zone->journal);
 }
 
+/*
+ * Return true iff the zone is "dynamic", in the sense that the zone's
+ * master file (if any) is written by the server, rather than being
+ * updated manually and read by the server.
+ *
+ * This is true for slave zones, stub zones, and zones that allow
+ * dynamic updates either by having an update policy ("ssutable")
+ * or an "allow-update" ACL with a value other than exactly "{ none; }".
+ */
+isc_boolean_t
+zone_isdynamic(dns_zone_t *zone) {
+	return (ISC_TF(zone->type == dns_zone_slave ||
+	       zone->type == dns_zone_stub ||
+	       zone->ssutable != NULL ||
+	       zone->update_acl != NULL &&
+	       ! (zone->update_acl->length == 0 && 
+		  zone->update_acl->elements[0].negative == ISC_TRUE &&
+		  zone->update_acl->elements[0].type ==
+		  	dns_aclelementtype_any)));
+}
+
+
 isc_result_t
 dns_zone_load(dns_zone_t *zone) {
 	const char me[] = "dns_zone_load";
@@ -872,6 +894,16 @@ dns_zone_load(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
+	if (zone->db != NULL && zone_isdynamic(zone)) {
+		/*
+		 * This is a slave, stub, or dynamically updated
+		 * zone being reloaded.  Do nothing - the database
+		 * we already have is guaranteed to be up-to-date.
+		 */
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+		
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "start");
 
 	/*
