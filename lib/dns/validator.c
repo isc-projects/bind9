@@ -229,7 +229,7 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 	 */
 	namereln = dns_name_fullcompare(event->name, &siginfo->signer,
 					&order, &nlabels, &nbits);
-	if (rdataset.type == dns_rdatatype_key &&
+	if (event->rdataset->type == dns_rdatatype_key &&
 	    namereln != dns_namereln_subdomain) {
 		/*
 		 * We don't want a KEY RR to authenticate
