@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.49 2000/04/18 00:18:36 gson Exp $ */
+/* $Id: confctx.c,v 1.50 2000/04/18 00:25:41 gson Exp $ */
 
 #include <config.h>
 
@@ -259,7 +259,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getauthnxdomain(cfg, &bval) == ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "the default for 'auth-nxdomain' option "
+			      "the default for the 'auth-nxdomain' option "
 			      "is now 'no'");
 	}
 

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.65 2000/04/18 00:18:37 gson Exp $ */
+/* $Id: confparser.y,v 1.66 2000/04/18 00:25:40 gson Exp $ */
 
 #include <config.h>
 
@@ -1285,7 +1285,7 @@ ordering_type: /* nothing */
 			tmpres = dns_rdatatype_fromtext(&ty, &reg);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_warning(ISC_TRUE,
-					       "unknown type. Assuming '*'");
+					       "unknown type, assuming '*'");
 				ty = dns_rdatatype_any;
 			}
 		}
@@ -1532,7 +1532,7 @@ yea_or_nay: L_YES
 			$$ = isc_boolean_false;
 		} else {
 			parser_warning(ISC_TRUE,
-				       "number should be 0 or 1; assuming 1");
+				       "number should be 0 or 1, assuming 1");
 			$$ = isc_boolean_true;
 		}
 	}
@@ -3722,7 +3722,7 @@ wild_class_name: any_string
 			tmpres = dns_rdataclass_fromtext(&cl, &reg);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_TRUE,
-					     "unknown class assuming '*'.");
+					     "unknown class, assuming '*'.");
 				cl = dns_rdataclass_any;
 			}
 		}
