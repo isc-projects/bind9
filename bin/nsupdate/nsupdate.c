@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.8 2000/09/18 17:51:38 gson Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.9 2000/09/18 22:29:36 gson Exp $ */
 
 #include <config.h>
 
@@ -1196,7 +1196,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		       addrbuf, isc_result_totext(eresult));
 		if (userserver != NULL)
 			fatal("Couldn't talk to specified nameserver.");
-		else if (ns_inuse++ >= lwconf->nsnext)
+		else if (++ns_inuse >= lwconf->nsnext)
 			fatal("Couldn't talk to any default nameserver.");
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
