@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.3 2000/12/01 18:23:45 gson Exp $
+# $Id: altbuild.sh,v 1.4 2000/12/11 21:33:05 gson Exp $
 
 #
 # "Alternative build" test.
@@ -53,10 +53,11 @@ zcat $kitdir/*.tar.gz | tar xf -
 
 cd $builddir || exit 1
 
-# Test a libtool / separate object dir build.
+# Test a libtool / separate object dir / threadless build.
 
 CFLAGS="-g -DISC_CHECK_NONE -DISC_MEM_FILL=0" \
-    sh $srcdir/bind-*/configure --with-libtool --prefix=$instdir
+    sh $srcdir/bind-*/configure --with-libtool \
+	--disable-threads --prefix=$instdir
 gmake clean
 gmake
 gmake install
