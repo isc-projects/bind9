@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confacl.c,v 1.20 2000/08/01 01:23:14 tale Exp $ */
+/* $Id: confacl.c,v 1.21 2000/11/03 22:56:39 gson Exp $ */
 
 #include <config.h>
 
@@ -212,6 +212,7 @@ dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
 	acl->name = NULL;
 	acl->ipml = NULL;
 	acl->is_special = isspecial;
+	ISC_LINK_INIT(acl, next);
 
 	acl->name = isc_mem_strdup(table->mem, aclname);
 	if (acl->name == NULL) {
