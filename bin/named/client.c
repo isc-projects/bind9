@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.188 2001/10/13 00:44:24 gson Exp $ */
+/* $Id: client.c,v 1.189 2001/10/13 01:10:26 gson Exp $ */
 
 #include <config.h>
 
@@ -1226,6 +1226,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	client->message->rcode = dns_rcode_noerror;
 
+	/* RFC1123 section 6.1.3.2 */
+	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0)
+		client->message->flags &= ~DNS_MESSAGEFLAG_RD;
+
 	/*
 	 * Deal with EDNS.
 	 */
@@ -1296,8 +1300,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 						 &client->interface->addr); 
 			if (allowed(&netaddr, view->matchclients) &&
 			    allowed(&destaddr, view->matchdestinations) &&
-			    !((flags & DNS_MESSAGEFLAG_RD) == 0 &&
-			      view->matchrecursiveonly))
+			    !((client->message->flags & DNS_MESSAGEFLAG_RD)
+			      == 0 && view->matchrecursiveonly))
 			{
 				dns_view_attach(view, &client->view);
 				break;
@@ -1373,15 +1377,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_error(client, sigresult);
 			goto cleanup;
 		}
-	}
-
-	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "multicast request");
-		if ((flags & DNS_MESSAGEFLAG_RD) != 0)
-			ns_client_error(client, notimp ? DNS_R_NOTIMP :
-						         DNS_R_FORMERR);
 	}
 
 	/*

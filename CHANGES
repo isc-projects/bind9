@@ -60,8 +60,8 @@
 			currently do not), respond from a unicast address
 			as specified in RFC 1123. [RT #137]
 
-1034.	[bug]		Multicast queries must not have RD set, RFC 1123.
-			FORMERR those that do.  [RT #137]
+1034.	[bug]		Ignore the RD bit on multicast queries as specified
+			in RFC 1123. [RT #137]
 
 1033.	[bug]		Always respond to requests with an unsupported opcode
 			with NOTIMP, even if we don't have a matching view
