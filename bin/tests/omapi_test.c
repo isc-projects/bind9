@@ -84,7 +84,7 @@ main (int argc, char **argv) {
 				 isc_result_totext(result));
 			exit (1);
 		}
-		result = omapi_protocol_listen(listener, atoi(argv[2]), 1);
+		result = omapi_protocol_listen(listener, atoi(argv[1]), 1);
 		if (result != ISC_R_SUCCESS) {
 			fprintf (stderr, "omapi_listen: %s\n",
 				 isc_result_totext(result));
