@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.112 2005/01/09 23:40:03 marka Exp $ */
+/* $Id: name.h,v 1.113 2005/01/10 23:43:25 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
