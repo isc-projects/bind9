@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.12 2002/07/29 00:35:17 marka Exp $ */
+/* $Id: getaddresses.c,v 1.13 2002/12/20 04:10:03 marka Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -94,6 +94,9 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 #endif
 	}
 	hints.ai_socktype = SOCK_STREAM;
+#ifdef AI_ADDRCONFIG
+ again:
+#endif
 	result = getaddrinfo(hostname, NULL, &hints, &ai);
 	switch (result) {
 	case 0:
@@ -103,6 +106,13 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	case EAI_NODATA:
 #endif
 		return (ISC_R_NOTFOUND);
+#ifdef AI_ADDRCONFIG
+	case EAI_BADFLAGS:
+		if ((hints.ai_flags & AI_ADDRCONFIG) != 0) {
+			hints.ai_flags &= ~AI_ADDRCONFIG;
+			goto again;
+		}
+#endif
 	default:
 		return (ISC_R_FAILURE);
 	}
