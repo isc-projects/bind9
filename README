@@ -45,6 +45,10 @@ BIND 9
 
 
 
+BIND 9.1.3-P1
+
+	A new zone type delegation-only is now supported.
+
 BIND 9.1.3
 
 	BIND 9.1.3 is a maintenance release, containing fixes for
