@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.60 2000/08/22 05:14:49 marka Exp $ */
+/* $Id: zoneconf.c,v 1.61 2000/08/29 03:48:00 marka Exp $ */
 
 #include <config.h>
 
@@ -24,9 +24,9 @@
 #include <isc/util.h>
 
 #include <dns/acl.h>
+#include <dns/ssu.h>
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
-#include <dns/ssu.h>
 
 /*
  * These are BIND9 server defaults, not necessarily identical to the
