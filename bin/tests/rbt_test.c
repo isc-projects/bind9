@@ -15,11 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.33 2000/07/21 21:13:40 gson Exp $ */
+/* $Id: rbt_test.c,v 1.34 2000/07/26 22:42:43 tale Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+
+#define ISC_MEM_TRACKLINES
 
 #include <isc/commandline.h>
 #include <isc/mem.h>
@@ -286,6 +288,11 @@ main(int argc, char **argv) {
 	}
 
 	setbuf(stdout, NULL);
+
+	/*
+	 * So isc_mem_stats() can report any allocation leaks.
+	 */
+	isc_mem_debugging = 2;
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS) {
