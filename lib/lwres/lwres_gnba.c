@@ -56,7 +56,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 
 	pkt->length = buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
-	pkt->flags &= ~LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->pktflags &= ~LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETNAMEBYADDR;
 	pkt->result = 0;
 	pkt->authtype = 0;
@@ -75,7 +75,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	 * Put the length and the data.  We know this will fit because we
 	 * just checked for it.
 	 */
-	lwres_buffer_putuint32(b, req->attributes);
+	lwres_buffer_putuint32(b, req->flags);
 	lwres_buffer_putuint32(b, req->addr.family);
 	lwres_buffer_putuint16(b, req->addr.length);
 	lwres_buffer_putmem(b, req->addr.address, req->addr.length);
@@ -104,7 +104,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	/*
 	 * Calculate packet size.
 	 */
-	payload_length = 4;			       /* attributes */
+	payload_length = 4;			       /* flags */
 	payload_length += 2;			       /* naliases */
 	payload_length += 2 + req->realnamelen + 1;    /* real name encoding */
 	for (x = 0 ; x < req->naliases ; x++)	       /* each alias */
@@ -118,7 +118,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 
 	pkt->length = buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
-	pkt->flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->pktflags |= LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETNAMEBYADDR;
 	pkt->authtype = 0;
 	pkt->authlength = 0;
@@ -131,7 +131,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	}
 
 	INSIST(SPACE_OK(b, payload_length));
-	lwres_buffer_putuint32(b, req->attributes);
+	lwres_buffer_putuint32(b, req->flags);
 
 	/* encode naliases */
 	lwres_buffer_putuint16(b, req->naliases);
@@ -167,7 +167,7 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(b != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
-	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
+	if ((pkt->pktflags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
 		return (LWRES_R_FAILURE);
 
 	gnba = CTXMALLOC(sizeof(lwres_gnbarequest_t));
@@ -177,7 +177,7 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if (!SPACE_REMAINING(b, 4))
 		return (LWRES_R_UNEXPECTEDEND);
 
-	gnba->attributes = lwres_buffer_getuint32(b);
+	gnba->flags = lwres_buffer_getuint32(b);
 
 	ret = lwres_addr_parse(b, &gnba->addr);
 	if (ret != LWRES_R_SUCCESS)
@@ -204,7 +204,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 {
 	int ret;
 	unsigned int x;
-	lwres_uint32_t attributes;
+	lwres_uint32_t flags;
 	lwres_uint16_t naliases;
 	lwres_gnbaresponse_t *gnba;
 
@@ -215,7 +215,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 
 	gnba = NULL;
 
-	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
+	if ((pkt->pktflags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
 		return (LWRES_R_FAILURE);
 
 	/*
@@ -223,7 +223,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	 */
 	if (!SPACE_REMAINING(b, 4 + 2))
 		return (LWRES_R_UNEXPECTEDEND);
-	attributes = lwres_buffer_getuint32(b);
+	flags = lwres_buffer_getuint32(b);
 	naliases = lwres_buffer_getuint16(b);
 
 	gnba = CTXMALLOC(sizeof(lwres_gnbaresponse_t));
@@ -233,7 +233,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	gnba->aliases = NULL;
 	gnba->aliaslen = NULL;
 
-	gnba->attributes = attributes;
+	gnba->flags = flags;
 	gnba->naliases = naliases;
 
 	if (naliases > 0) {

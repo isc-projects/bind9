@@ -123,7 +123,7 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 
 	pkt->length = buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
-	pkt->flags &= ~LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->pktflags &= ~LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETADDRSBYNAME;
 	pkt->result = 0;
 	pkt->authtype = 0;
@@ -139,9 +139,9 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 	INSIST(SPACE_OK(b, payload_length));
 
 	/*
-	 * Attributes.
+	 * Flags.
 	 */
-	lwres_buffer_putuint32(b, req->attributes);
+	lwres_buffer_putuint32(b, req->flags);
 
 	/*
 	 * Address types we'll accept.
@@ -204,7 +204,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 
 	pkt->length = buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
-	pkt->flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->pktflags |= LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETADDRSBYNAME;
 	pkt->authtype = 0;
 	pkt->authlength = 0;
@@ -221,8 +221,8 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	 */
 	INSIST(SPACE_OK(b, payload_length));
 
-	/* Attributes. */
-	lwres_buffer_putuint32(b, req->attributes);
+	/* Flags. */
+	lwres_buffer_putuint32(b, req->flags);
 
 	/* encode naliases and naddrs */
 	lwres_buffer_putuint16(b, req->naliases);
@@ -266,7 +266,7 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	char *name;
 	lwres_gabnrequest_t *gabn;
 	lwres_uint32_t addrtypes;
-	lwres_uint32_t attributes;
+	lwres_uint32_t flags;
 	lwres_uint16_t namelen;
 
 	REQUIRE(ctx != NULL);
@@ -274,13 +274,13 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(b != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
-	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
+	if ((pkt->pktflags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
 		return (LWRES_R_FAILURE);
 
 	if (!SPACE_REMAINING(b, 4 + 4))
 		return (LWRES_R_UNEXPECTEDEND);
 
-	attributes = lwres_buffer_getuint32(b);
+	flags = lwres_buffer_getuint32(b);
 	addrtypes = lwres_buffer_getuint32(b);
 
 	/*
@@ -297,7 +297,7 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if (gabn == NULL)
 		return (LWRES_R_NOMEMORY);
 
-	gabn->attributes = attributes;
+	gabn->flags = flags;
 	gabn->addrtypes = addrtypes;
 	gabn->name = name;
 	gabn->namelen = namelen;
@@ -312,7 +312,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 {
 	lwres_result_t			ret;
 	unsigned int			x;
-	lwres_uint32_t			attributes;
+	lwres_uint32_t			flags;
 	lwres_uint16_t			naliases;
 	lwres_uint16_t			naddrs;
 	lwres_gabnresponse_t	       *gabn;
@@ -326,7 +326,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 
 	gabn = NULL;
 
-	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
+	if ((pkt->pktflags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
 		return (LWRES_R_FAILURE);
 
 	/*
@@ -334,7 +334,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	 */
 	if (!SPACE_REMAINING(b, 4 + 2 + 2))
 		return (LWRES_R_UNEXPECTEDEND);
-	attributes = lwres_buffer_getuint32(b);
+	flags = lwres_buffer_getuint32(b);
 	naliases = lwres_buffer_getuint16(b);
 	naddrs = lwres_buffer_getuint16(b);
 
@@ -346,7 +346,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	LWRES_LIST_INIT(gabn->addrs);
 	gabn->base = NULL;
 
-	gabn->attributes = attributes;
+	gabn->flags = flags;
 	gabn->naliases = naliases;
 	gabn->naddrs = naddrs;
 

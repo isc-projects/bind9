@@ -53,7 +53,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 
 	pkt->length = buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
-	pkt->flags &= ~LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->pktflags &= ~LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_NOOP;
 	pkt->result = 0;
 	pkt->authtype = 0;
@@ -104,7 +104,7 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 
 	pkt->length = buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
-	pkt->flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->pktflags |= LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_NOOP;
 	pkt->authtype = 0;
 	pkt->authlength = 0;
@@ -142,7 +142,7 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(pkt != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
-	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
+	if ((pkt->pktflags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
 		return (LWRES_R_FAILURE);
 
 	req = CTXMALLOC(sizeof(lwres_nooprequest_t));
@@ -189,7 +189,7 @@ lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(pkt != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
-	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
+	if ((pkt->pktflags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
 		return (LWRES_R_FAILURE);
 
 	req = CTXMALLOC(sizeof(lwres_noopresponse_t));

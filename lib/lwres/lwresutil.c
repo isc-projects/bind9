@@ -227,7 +227,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	request.addrtypes = addrtypes;
 	request.name = target_name;
 	request.namelen = target_length;
-	pkt.flags = 0;
+	pkt.pktflags = 0;
 	pkt.serial = serial;
 	pkt.result = 0;
 	pkt.recvlength = LWRES_RECVLENGTH;
@@ -338,7 +338,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 	request.addr.family = addrtype;
 	request.addr.length = addrlen;
 	memcpy(request.addr.address, addr, addrlen);
-	pkt.flags = 0;
+	pkt.pktflags = 0;
 	pkt.serial = serial;
 	pkt.result = 0;
 	pkt.recvlength = LWRES_RECVLENGTH;

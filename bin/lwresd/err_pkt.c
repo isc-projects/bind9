@@ -65,7 +65,7 @@ error_pkt_send(client_t *client, isc_uint32_t _result)
 	 * for sending an error reply.  This is a Good Thing.
 	 */
 	client->pkt.length = LWRES_LWPACKET_LENGTH;
-	client->pkt.flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	client->pkt.pktflags |= LWRES_LWPACKETFLAG_RESPONSE;
 	client->pkt.recvlength = LWRES_RECVLENGTH;
 	client->pkt.authtype = 0; /* XXXMLG */
 	client->pkt.authlength = 0;

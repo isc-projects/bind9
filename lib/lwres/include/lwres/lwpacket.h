@@ -30,7 +30,7 @@ typedef struct lwres_lwpacket lwres_lwpacket_t;
 struct lwres_lwpacket {
 	lwres_uint32_t		length;
 	lwres_uint16_t		version;
-	lwres_uint16_t		flags;
+	lwres_uint16_t		pktflags;
 	lwres_uint32_t		serial;
 	lwres_uint32_t		opcode;
 	lwres_uint32_t		result;

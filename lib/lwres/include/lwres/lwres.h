@@ -90,6 +90,29 @@
 #endif
 
 /*
+ * Flags.
+ *
+ * TRUST* define a two-bit value:
+ *
+ *	TRUSTDEFAULT:  Let the server decide what to do.
+ *
+ *	TRUSTNOTREQUIRED:  DNSSEC (or NIS equavalent) is not required.
+ *
+ *	TRUSTREQUIRED:  DNSSEC (if present) must validate, and the
+ *		daemon the client is talking to must be DNSSEC aware.
+ *
+ *	TRUSTRESERVED:  No not used, reserved for future.
+ *
+ * XXXMLG -- currently not implemented!
+ *
+ */
+#define LWRES_FLAG_TRUSTDEFAULT		0x00000000U
+#deifne LWRES_FLAG_TRUSTNOTREQUIRED	0x00000001U
+#define LWRES_FLAG_TRUSTREQUIRED	0x00000010U
+#define LWRES_FLAG_TRUSTRESERVED	0x00000011U
+#define LWRES_FLAG_TRUSTMASK		0x00000011U  /* mask for the above */
+
+/*
  * no-op
  */
 #define LWRES_OPCODE_NOOP		0x00000000U
@@ -123,7 +146,7 @@ struct lwres_addr {
 
 typedef struct {
 	/* public */
-	lwres_uint32_t			attributes;
+	lwres_uint32_t			flags;
 	lwres_uint32_t			addrtypes;
 	lwres_uint16_t			namelen;
 	char			       *name;
@@ -131,7 +154,7 @@ typedef struct {
 
 typedef struct {
 	/* public */
-	lwres_uint32_t			attributes;
+	lwres_uint32_t			flags;
 	lwres_uint16_t			naliases;
 	lwres_uint16_t			naddrs;
 	char			       *realname;
@@ -150,13 +173,13 @@ typedef struct {
 #define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
 typedef struct {
 	/* public */
-	lwres_uint32_t			attributes;
+	lwres_uint32_t			flags;
 	lwres_addr_t			addr;
 } lwres_gnbarequest_t;
 
 typedef struct {
 	/* public */
-	lwres_uint32_t			attributes;
+	lwres_uint32_t			flags;
 	lwres_uint16_t			naliases;
 	char			       *realname;
 	char			      **aliases;

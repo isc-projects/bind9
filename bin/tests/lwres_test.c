@@ -84,7 +84,7 @@ test_noop(void)
 	lwres_noopresponse_t noopresponse, *noopresponse2;
 	lwres_buffer_t b;
 
-	pkt.flags = 0;
+	pkt.pktflags = 0;
 	pkt.serial = 0x11223344;
 	pkt.recvlength = 0x55667788;
 	pkt.result = 0;
@@ -119,7 +119,7 @@ test_noop(void)
 	b.base = NULL;
 	b.length = 0;
 
-	pkt.flags = 0;
+	pkt.pktflags = 0;
 	pkt.serial = 0x11223344;
 	pkt.recvlength = 0x55667788;
 	pkt.result = 0xdeadbeef;

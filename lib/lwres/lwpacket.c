@@ -40,7 +40,7 @@ lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 
 	lwres_buffer_putuint32(b, pkt->length);
 	lwres_buffer_putuint16(b, pkt->version);
-	lwres_buffer_putuint16(b, pkt->flags);
+	lwres_buffer_putuint16(b, pkt->pktflags);
 	lwres_buffer_putuint32(b, pkt->serial);
 	lwres_buffer_putuint32(b, pkt->opcode);
 	lwres_buffer_putuint32(b, pkt->result);
@@ -67,7 +67,7 @@ lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	if (pkt->length > space)
 		return (LWRES_R_UNEXPECTEDEND);
 	pkt->version = lwres_buffer_getuint16(b);
-	pkt->flags = lwres_buffer_getuint16(b);
+	pkt->pktflags = lwres_buffer_getuint16(b);
 	pkt->serial = lwres_buffer_getuint32(b);
 	pkt->opcode = lwres_buffer_getuint32(b);
 	pkt->result = lwres_buffer_getuint32(b);
