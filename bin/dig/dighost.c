@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.164 2000/11/21 19:05:30 mws Exp $ */
+/* $Id: dighost.c,v 1.165 2000/11/21 20:52:24 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -860,7 +860,7 @@ clear_query(dig_query_t *query) {
 
 	REQUIRE(query != NULL);
 
-	debug("clear_query(%p)",query);
+	debug("clear_query(%p)", query);
 
 	lookup = query->lookup;
 
@@ -1018,7 +1018,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 	INSIST(!free_now);
 
 	debug("followup_lookup()");
-	result = dns_message_firstname(msg,section);
+	result = dns_message_firstname(msg, section);
 
 	if (result != ISC_R_SUCCESS) {
 		debug("firstname returned %s",
@@ -1671,7 +1671,7 @@ send_tcp_connect(dig_query_t *query) {
 				   isc_sockettype_tcp, &query->sock) ;
 	check_result(result, "isc_socket_create");
 	sockcount++;
-	debug("sockcount=%d",sockcount);
+	debug("sockcount=%d", sockcount);
 	if (specified_source)
 		result = isc_socket_bind(query->sock, &bind_address);
 	else {
@@ -1824,7 +1824,7 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 	else {
-		fputs(l->cmdline,stdout);
+		fputs(l->cmdline, stdout);
 		printf(";; connection timed out; no servers could be "
 		       "reached\n");
 		cancel_lookup(l);
@@ -1881,7 +1881,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		l = query->lookup;
 		isc_socket_detach(&query->sock);
 		sockcount--;
-		debug("sockcount=%d",sockcount);
+		debug("sockcount=%d", sockcount);
 		INSIST(sockcount >= 0);
 		isc_event_free(&event);
 		clear_query(query);
@@ -2564,7 +2564,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	       isc_result_totext(sevent->result));
 	isc_socket_detach(&query->sock);
 	sockcount--;
-	debug("sockcount=%d",sockcount);
+	debug("sockcount=%d", sockcount);
 	INSIST(sockcount >= 0);
 	isc_event_free(&event);
 	clear_query(query);
@@ -2673,7 +2673,7 @@ cancel_all(void) {
 		 * way to get the system down now is to just exit out,
 		 * and trust the OS to clean up for us.
 		 */
-		fputs ("Abort.\n",stderr);
+		fputs("Abort.\n", stderr);
 		exit(1);
 	}
 	LOCK_LOOKUP;
@@ -2728,7 +2728,7 @@ destroy_libs(void) {
 		 * way to get the system down now is to just exit out,
 		 * and trust the OS to clean up for us.
 		 */
-		fputs ("Abort.\n",stderr);
+		fputs("Abort.\n", stderr);
 		exit(1);
 	}
 	if (global_task != NULL) {
