@@ -38,8 +38,8 @@
 
 #include <arpa/inet.h>
 
-isc_mem_t *mctx = NULL;
-isc_taskmgr_t *manager = NULL;
+isc_mem_t *mctx;
+isc_taskmgr_t *manager;
 
 static void my_send(isc_task_t *task, isc_event_t *event);
 static void my_recv(isc_task_t *task, isc_event_t *event);
@@ -256,11 +256,11 @@ timeout(isc_task_t *task, isc_event_t *event)
 int
 main(int argc, char *argv[])
 {
-	isc_task_t *t1 = NULL, *t2 = NULL;
-	isc_timermgr_t *timgr = NULL;
-	isc_time_t expires, now;
+	isc_task_t *t1, *t2;
+	isc_timermgr_t *timgr;
+	isc_time_t expires;
 	isc_interval_t interval;
-	isc_timer_t *ti1 = NULL;
+	isc_timer_t *ti1;
 	unsigned int workers;
 	isc_socketmgr_t *socketmgr;
 	isc_socket_t *so1, *so2;
@@ -277,12 +277,28 @@ main(int argc, char *argv[])
 		workers = 2;
 	printf("%d workers\n", workers);
 
+	/*
+	 * EVERYTHING needs a memory context.
+	 */
+	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
+	/*
+	 * The task manager is independent (other than memory context)
+	 */
+	manager = NULL;
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
 
+	/*
+	 * Timer manager depends only on the memory context as well.
+	 */
+	timgr = NULL;
+	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
+
+	t1 = NULL;
 	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t1) == ISC_R_SUCCESS);
+	t2 = NULL;
 	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t2) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t1, my_shutdown, "1") ==
 		      ISC_R_SUCCESS);
@@ -316,6 +332,7 @@ main(int argc, char *argv[])
 					"so1") == ISC_R_SUCCESS);
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, 10, 0);
+	ti1 = NULL;
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, &expires,
 				       &interval, t1, timeout, so1, &ti1) ==
 		      ISC_R_SUCCESS);
