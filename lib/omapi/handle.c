@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.6 2000/01/22 00:17:50 tale Exp $ */
+/* $Id: handle.c,v 1.7 2000/01/31 14:40:08 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -200,12 +200,13 @@ object_gethandle(omapi_handle_t *h, omapi_object_t *o) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
 
+	LOCK(&mutex);
+
 	if (o->handle != 0) {
 		*h = o->handle;
+		UNLOCK(&mutex);
 		return (ISC_R_SUCCESS);
 	}
-
-	RUNTIME_CHECK(isc_mutex_lock(&mutex) == ISC_R_SUCCESS);
 
 	if (toptable == NULL) {
 		toptable = isc_mem_get(omapi_mctx, sizeof(*toptable));
@@ -262,7 +263,7 @@ object_gethandle(omapi_handle_t *h, omapi_object_t *o) {
 	if (result == ISC_R_SUCCESS)
 		*h = next_handle++;
 
-	RUNTIME_CHECK(isc_mutex_unlock(&mutex) == ISC_R_SUCCESS);
+	UNLOCK(&mutex);
 	return (result);
 }
 
@@ -310,5 +311,44 @@ lookup_iterate(omapi_object_t **o, omapi_handle_t h,
 
 isc_result_t
 handle_lookup(omapi_object_t **o, omapi_handle_t h) {
-	return (lookup_iterate(o, h, toptable));
+	isc_result_t result;
+
+	LOCK(&mutex);
+
+	result = lookup_iterate(o, h, toptable);
+
+	UNLOCK(&mutex);
+
+	return (result);
+}
+
+static void
+free_table(omapi_handletable_t **table) {
+	int i;
+
+	if ((*table)->leaf)
+		isc_mem_put(omapi_mctx, *table, sizeof(**table));
+
+	else
+		for (i = 0; i < OMAPI_HANDLETABLE_SIZE; i++)
+			if ((*table)->children[i].table != NULL)
+				free_table(&(*table)->children[i].table);
+			else
+				break;
+
+	*table = NULL;
+}
+
+void
+handle_destroy(void) {
+	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
+
+	LOCK(&mutex);
+
+	if (toptable != NULL)
+		free_table(&toptable);
+
+	UNLOCK(&mutex);
+
+	RUNTIME_CHECK(isc_mutex_destroy(&mutex) == ISC_R_SUCCESS);
 }
