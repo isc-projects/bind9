@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.19 2000/04/07 03:54:44 explorer Exp $ */
+/* $Id: aaaa_28.c,v 1.20 2000/04/27 00:02:48 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -49,7 +49,7 @@ fromtext_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
 		return (DNS_R_BADAAAA);
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < 16)
 		return (ISC_R_NOSPACE);
 	memcpy(region.base, addr, 16);
@@ -69,7 +69,7 @@ totext_in_aaaa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(rdata->length == 16);
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (inet_ntop(AF_INET6, rdata->data,
 		      (char *)region.base, region.length) == NULL)
 		return (ISC_R_NOSPACE);
@@ -92,8 +92,8 @@ fromwire_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
 
-	isc_buffer_active(source, &sregion);
-	isc_buffer_available(target, &tregion);
+	isc_buffer_activeregion(source, &sregion);
+	isc_buffer_availableregion(target, &tregion);
 	if (sregion.length < 16)
 		return (ISC_R_UNEXPECTEDEND);
 	if (tregion.length < 16)
@@ -114,7 +114,7 @@ towire_in_aaaa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < rdata->length)
 		return (ISC_R_NOSPACE);
 	memcpy(region.base, rdata->data, rdata->length);

@@ -84,7 +84,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	dns_rdatacallbacks_init(&callbacks);
 
 	len = strlen(root_ns);
-	isc_buffer_init(&source, root_ns, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, root_ns, len);
 	isc_buffer_add(&source, len);
 
 	result = dns_db_beginload(db, &callbacks.add,

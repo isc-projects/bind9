@@ -438,16 +438,16 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	skip_count = dev->n;
 	while (buffer != NULL) {
 		REQUIRE(ISC_BUFFER_VALID(buffer));
-		if (skip_count < ISC_BUFFER_USEDCOUNT(buffer))
+		if (skip_count < isc_buffer_usedlength(buffer))
 			break;
-		skip_count -= ISC_BUFFER_USEDCOUNT(buffer);
+		skip_count -= isc_buffer_usedlength(buffer);
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 
 	while (buffer != NULL) {
 		INSIST(iovcount < maxiov);
 
-		isc_buffer_used(buffer, &used);
+		isc_buffer_usedregion(buffer, &used);
 
 		if (used.length > 0) {
 			iov[iovcount].iov_base = (void *)(used.base
@@ -555,7 +555,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	 */
 	while (buffer != NULL) {
 		REQUIRE(ISC_BUFFER_VALID(buffer));
-		if (ISC_BUFFER_AVAILABLECOUNT(buffer) != 0)
+		if (isc_buffer_availablelength(buffer) != 0)
 			break;
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
@@ -564,7 +564,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	while (buffer != NULL) {
 		INSIST(iovcount < maxiov);
 
-		isc_buffer_available(buffer, &available);
+		isc_buffer_availableregion(buffer, &available);
 
 		if (available.length > 0) {
 			iov[iovcount].iov_base = (void *)(available.base);
@@ -775,10 +775,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
 	while (buffer != NULL && actual_count > 0) {
 		REQUIRE(ISC_BUFFER_VALID(buffer));
-		if (ISC_BUFFER_AVAILABLECOUNT(buffer) <= actual_count) {
-			actual_count -= ISC_BUFFER_AVAILABLECOUNT(buffer);
+		if (isc_buffer_availablelength(buffer) <= actual_count) {
+			actual_count -= isc_buffer_availablelength(buffer);
 			isc_buffer_add(buffer,
-				       ISC_BUFFER_AVAILABLECOUNT(buffer));
+				       isc_buffer_availablelength(buffer));
 		} else {
 			isc_buffer_add(buffer, actual_count);
 			actual_count = 0;

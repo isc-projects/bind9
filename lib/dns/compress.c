@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.25 2000/04/19 18:23:29 halley Exp $ */
+/* $Id: compress.c,v 1.26 2000/04/27 00:01:21 tale Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -285,8 +285,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 		if (offset >= 16384 && !global16)
 			break;
 		dns_name_getlabelsequence(prefix, start, count, &name);
-		isc_buffer_init(&target, buffer, sizeof buffer,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&target, buffer, sizeof(buffer));
 		result = dns_name_concatenate(&name, suffix, &full, &target);
 		if (result != ISC_R_SUCCESS)
 			return;

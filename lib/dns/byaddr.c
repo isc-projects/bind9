@@ -128,7 +128,7 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 		return (ISC_R_NOTIMPLEMENTED);
 
 	len = (unsigned int)strlen(textname);
-	isc_buffer_init(&buffer, textname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, textname, len);
 	isc_buffer_add(&buffer, len);
 	return (dns_name_fromtext(dns_fixedname_name(&byaddr->name),
 				  &buffer, dns_rootname, ISC_FALSE, NULL));

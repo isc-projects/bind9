@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.14 2000/04/07 03:54:38 explorer Exp $ */
+/* $Id: unspec_103.c,v 1.15 2000/04/27 00:02:44 tale Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -62,7 +62,7 @@ fromwire_unspec(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	rdclass = rdclass;		/*unused*/
 	dctx = dctx;		/*unused*/
 	downcase = downcase;	/*unused*/
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.101 2000/04/26 18:24:15 gson Exp $ */
+/* $Id: zone.c,v 1.102 2000/04/27 00:02:09 tale Exp $ */
 
 #include <config.h>
 
@@ -1090,8 +1090,7 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 			char rcode[128];
 			isc_buffer_t rb;
 
-			isc_buffer_init(&rb, rcode, sizeof rcode,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&rb, rcode, sizeof(rcode));
 			dns_rcode_totext(msg->rcode, &rb);
 			zone_log(zone, me, ISC_LOG_INFO,
 				 "server %s (%s) unexpected rcode = %.*s",
@@ -1108,7 +1107,7 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 		}
 
 		if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
-			zone_log(zone, me, ISC_LOG_INFO,
+			zone_log(zone, me, ISC_LOG_INFO,
 				"server %s (%s) not authorative");
 		}
 		if (state == get_ns) {
@@ -1469,8 +1468,7 @@ dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx, char **s) {
 	REQUIRE(s != NULL && *s == NULL);
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	isc_buffer_init(&tbuf, outbuf, sizeof(outbuf) - 1,
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&tbuf, outbuf, sizeof(outbuf) - 1);
 	if (dns_name_countlabels(&zone->origin) > 0) {
 		result = dns_name_totext(&zone->origin, ISC_FALSE, &tbuf);
 		if (result == ISC_R_SUCCESS)
@@ -2433,8 +2431,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 * if timeout log and next master;
 	 */
 
-	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem),
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem));
 	result = isc_sockaddr_totext(&zone->masteraddr, &masterbuf);
 	if (result == ISC_R_SUCCESS)
 		master = (char *) masterbuf.base;
@@ -2461,7 +2458,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		char rcode[128];
 		isc_buffer_t rb;
 
-		isc_buffer_init(&rb, rcode, sizeof rcode, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&rb, rcode, sizeof(rcode));
 		dns_rcode_totext(msg->rcode, &rb);
 
 		zone_log(zone, me, ISC_LOG_INFO,
@@ -2908,12 +2905,11 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 	dns_rdata_init(&rdata);
 	dns_rdataset_current(&rdataset, &rdata);
 	dns_rdata_toregion(&rdata, &r);
-	result = isc_buffer_allocate(zone->mctx, &b, r.length,
-		 ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(zone->mctx, &b, r.length);
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	isc_buffer_putmem(b, r.base, r.length);
-	isc_buffer_used(b, &r);
+	isc_buffer_usedregion(b, &r);
 	dns_rdata_init(temprdata);
 	dns_rdata_fromregion(temprdata, rdata.rdclass, rdata.type, &r);
 	dns_message_takebuffer(message, &b);
@@ -3244,7 +3240,7 @@ zone_log(dns_zone_t *zone, const char *me, int level,
 	int len;
 	isc_result_t result;
 
-	isc_buffer_init(&buffer, namebuf, sizeof namebuf, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, namebuf, sizeof(namebuf));
 	result = dns_name_totext(&zone->origin, ISC_FALSE, &buffer);
 	if (result != ISC_R_SUCCESS)
 		isc_buffer_putstr(&buffer, "<UNKNOWN>");

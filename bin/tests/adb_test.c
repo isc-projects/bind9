@@ -230,10 +230,9 @@ lookup(char *target)
 	INSIST(target != NULL);
 
 	client = new_client();
-	isc_buffer_init(&t, target, strlen(target), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&t, target, strlen(target));
 	isc_buffer_add(&t, strlen(target));
-	isc_buffer_init(&namebuf, namedata, sizeof namedata,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&namebuf, namedata, sizeof(namedata));
 	dns_name_init(&name, NULL);
 	result = dns_name_fromtext(&name, &t, dns_rootname, ISC_FALSE,
 				   &namebuf);

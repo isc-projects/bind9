@@ -45,7 +45,7 @@ create_name(char *s) {
 
 	length = strlen(s);
 
-	isc_buffer_init(&source, s, length, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, s, length);
 	isc_buffer_add(&source, length);
 
 	/*
@@ -65,7 +65,7 @@ create_name(char *s) {
 	}
 
 	dns_name_init(name, NULL);
-	isc_buffer_init(&target, name + 1, DNSNAMELEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, name + 1, DNSNAMELEN);
 
 	result = dns_name_fromtext(name, &source, dns_rootname,
 				   ISC_FALSE, &target);
@@ -93,7 +93,7 @@ print_name(dns_name_t *name) {
 	isc_buffer_t target;
 	char *buffer[256];
 
-	isc_buffer_init(&target, buffer, sizeof(buffer), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&target, buffer, sizeof(buffer));
 
 	/*
 	 * ISC_FALSE means absolute names have the final dot added.

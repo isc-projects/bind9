@@ -129,7 +129,7 @@ main(int argc, char *argv[]) {
 	if (need_close)
 		fclose(f);
 
-	isc_buffer_init(&source, b, sizeof b, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&source, b, sizeof(b));
 	isc_buffer_add(&source, bp - b);
 
 	message = NULL;

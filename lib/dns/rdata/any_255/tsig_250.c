@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.28 2000/04/14 20:13:48 explorer Exp $ */
+/* $Id: tsig_250.c,v 1.29 2000/04/27 00:02:22 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -45,8 +45,7 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* Algorithm Name */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
@@ -210,7 +209,7 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_init(&name, NULL);
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	/* Time Signed + Fudge */
 	if (sr.length < 8)
 		return (ISC_R_UNEXPECTEDEND);
@@ -313,7 +312,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(dns_name_towire(&tsig->algorithm, &cctx, target));
 	dns_compress_invalidate(&cctx);
 
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 6 + 2 + 2)
 		return (ISC_R_NOSPACE);
 
@@ -330,14 +329,14 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* Signature */
 	if (tsig->siglen > 0) {
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (tr.length < tsig->siglen)
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tsig->signature, tsig->siglen);
 		isc_buffer_add(target, tsig->siglen);
 	}
 
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 2 + 2 + 2)
 		return (ISC_R_NOSPACE);
 
@@ -352,7 +351,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* Other Data */
 	if (tsig->otherlen > 0) {
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (tr.length < tsig->otherlen)
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tsig->other, tsig->otherlen);

@@ -32,16 +32,10 @@
  *** Imports.
  ***/
 
-#include <isc/task.h>
-#include <isc/timer.h>
+#include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
-
-/*****
- ***** Types.
- *****/
-
-typedef struct isc_ratelimiter isc_ratelimiter_t;
 
 /*****
  ***** Functions.

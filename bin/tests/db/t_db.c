@@ -68,7 +68,7 @@ t_create(char *db_type, char *origin, char *class, char *cache,
 
 	dns_fixedname_init(&dns_origin);
 	len = strlen(origin);
-	isc_buffer_init(&origin_buffer, origin, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&origin_buffer, origin, len);
 	isc_buffer_add(&origin_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_origin),
 				&origin_buffer, NULL, ISC_FALSE, NULL);
@@ -172,7 +172,7 @@ t_dns_db_load(char **av) {
 
 	dns_fixedname_init(&dns_findname);
 	len = strlen(findname);
-	isc_buffer_init(&findname_buffer, findname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&findname_buffer, findname, len);
 	isc_buffer_add(&findname_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_findname),
 				&findname_buffer, NULL, ISC_FALSE, NULL);
@@ -281,7 +281,7 @@ t_dns_db_zc_x(char *filename,
 
 	dns_fixedname_init(&dns_origin);
 	len = strlen(origin);
-	isc_buffer_init(&origin_buffer, origin, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&origin_buffer, origin, len);
 	isc_buffer_add(&origin_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_origin),
 				&origin_buffer, NULL, ISC_FALSE, NULL);
@@ -506,7 +506,7 @@ t_dns_db_origin(char **av) {
 	dns_fixedname_init(&dns_dborigin);
 
 	len = strlen(origin);
-	isc_buffer_init(&origin_buffer, origin, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&origin_buffer, origin, len);
 	isc_buffer_add(&origin_buffer, len);
 
 	dns_result = dns_db_load(db, filename);
@@ -621,11 +621,10 @@ t_dns_db_class(char **av) {
 	}
 
 	db_rdataclass = dns_db_class(db);
-	if (db_rdataclass == rdataclass) {
+	if (db_rdataclass == rdataclass)
 		result = T_PASS;
-	}
 	else {
-		isc_buffer_init(&isc_buffer, buf, CLASSBUFLEN, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&isc_buffer, buf, CLASSBUFLEN);
 		dns_rdataclass_totext(db_rdataclass, &isc_buffer);
 		t_info("dns_db_class returned %.*s, expected %s\n",
 			isc_buffer.used, isc_buffer.base, class);
@@ -716,7 +715,7 @@ t_dns_db_currentversion(char **av) {
 
 	dns_fixedname_init(&dns_findname);
 	len = strlen(findname);
-	isc_buffer_init(&findname_buffer, findname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&findname_buffer, findname, len);
 	isc_buffer_add(&findname_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_findname),
 				&findname_buffer, NULL, ISC_FALSE, NULL);
@@ -960,7 +959,7 @@ t_dns_db_newversion(char **av) {
 
 	dns_fixedname_init(&dns_newname);
 	len = strlen(newname);
-	isc_buffer_init(&newname_buffer, newname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&newname_buffer, newname, len);
 	isc_buffer_add(&newname_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_newname),
 				&newname_buffer, NULL, ISC_FALSE, NULL);
@@ -1238,7 +1237,7 @@ t_dns_db_closeversion_1(char **av) {
 
 	dns_fixedname_init(&dns_existingname);
 	len = strlen(existing_name);
-	isc_buffer_init(&name_buffer, existing_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&name_buffer, existing_name, len);
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_existingname),
 			&name_buffer, NULL, ISC_FALSE, NULL);
@@ -1306,7 +1305,7 @@ t_dns_db_closeversion_1(char **av) {
 
 	dns_fixedname_init(&dns_newname);
 	len = strlen(new_name);
-	isc_buffer_init(&name_buffer, new_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&name_buffer, new_name, len);
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_newname),
 				&name_buffer, NULL, ISC_FALSE, NULL);
@@ -1596,7 +1595,7 @@ t_dns_db_closeversion_2(char **av) {
 
 	dns_fixedname_init(&dns_existingname);
 	len = strlen(existing_name);
-	isc_buffer_init(&name_buffer, existing_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&name_buffer, existing_name, len);
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_existingname),
 			&name_buffer, NULL, ISC_FALSE, NULL);
@@ -1664,7 +1663,7 @@ t_dns_db_closeversion_2(char **av) {
 
 	dns_fixedname_init(&dns_newname);
 	len = strlen(new_name);
-	isc_buffer_init(&name_buffer, new_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&name_buffer, new_name, len);
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_newname),
 				&name_buffer, NULL, ISC_FALSE, NULL);
@@ -1974,7 +1973,7 @@ t_dns_db_expirenode(char **av) {
 
 	dns_fixedname_init(&dns_existingname);
 	len = strlen(existing_name);
-	isc_buffer_init(&name_buffer, existing_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&name_buffer, existing_name, len);
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_existingname),
 				&name_buffer, NULL, ISC_FALSE, NULL);
@@ -2178,7 +2177,7 @@ t_dns_db_findnode_1(char **av) {
 	dns_fixedname_init(&dns_name);
 
 	len = strlen(find_name);
-	isc_buffer_init(&name_buffer, find_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&name_buffer, find_name, len);
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_name),
 				&name_buffer, NULL, ISC_FALSE, NULL);
@@ -2313,7 +2312,7 @@ t_dns_db_findnode_2(char **av) {
 
 	/* make sure the name isn't there */
 	len = strlen(newname);
-	isc_buffer_init(&name_buffer, newname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&name_buffer, newname, len);
 	isc_buffer_add(&name_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_name),
 				&name_buffer, NULL, ISC_FALSE, NULL);
@@ -2482,7 +2481,7 @@ t_dns_db_find_x(char **av) {
 
 	dns_fixedname_init(&dns_findname);
 	len = strlen(findname);
-	isc_buffer_init(&findname_buffer, findname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&findname_buffer, findname, len);
 	isc_buffer_add(&findname_buffer, len);
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_findname),
 				&findname_buffer, NULL, ISC_FALSE, NULL);

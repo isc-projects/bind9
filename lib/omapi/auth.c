@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.2 2000/03/14 20:00:37 tale Exp $ */
+/* $Id: auth.c,v 1.3 2000/04/27 00:03:07 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -129,8 +129,7 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 
 		secret_len = strlen(auth->secret);
 
-		isc_buffer_init(&secret, auth->secret, secret_len,
-				ISC_BUFFERTYPE_GENERIC);
+		isc_buffer_init(&secret, auth->secret, secret_len);
 
 		isc_buffer_add(&secret, secret_len);
 

@@ -132,8 +132,7 @@ main(int argc, char *argv[]) {
 		/* get type */
 		if (token.type == isc_tokentype_number) {
 			type = token.value.as_ulong;
-			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf));
 			result = dns_rdatatype_totext(type, &tbuf);
 			fprintf(stdout, "type = %.*s(%d)\n",
 				(int)tbuf.used, (char*)tbuf.base, type);
@@ -163,8 +162,7 @@ main(int argc, char *argv[]) {
 				break;
 		if (token.type == isc_tokentype_number) {
 			class = token.value.as_ulong;
-			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf));
 			result = dns_rdatatype_totext(class, &tbuf);
 			fprintf(stdout, "class = %.*s(%d)\n",
 				(int)tbuf.used, (char*)tbuf.base, class);
@@ -187,8 +185,7 @@ main(int argc, char *argv[]) {
 
 		fflush(stdout);
 		dns_rdata_init(&rdata);
-		isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&dbuf, inbuf, sizeof(inbuf));
 		result = dns_rdata_fromtext(&rdata, class, type, lex,
 					    NULL, ISC_FALSE, &dbuf, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -221,8 +218,7 @@ main(int argc, char *argv[]) {
 					dns_result_totext(result), result);
 				continue;
 			}
-			isc_buffer_init(&wbuf, wirebuf, sizeof(wirebuf),
-					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&wbuf, wirebuf, sizeof(wirebuf));
 			result = dns_rdata_towire(&rdata, &cctx, &wbuf);
 			dns_compress_invalidate(&cctx);
 			if (result != ISC_R_SUCCESS) {
@@ -258,8 +254,7 @@ main(int argc, char *argv[]) {
 
 			isc_buffer_setactive(&wbuf, len);
 			dns_rdata_init(&rdata);
-			isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
-					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&dbuf, inbuf, sizeof(inbuf));
 			dns_decompress_init(&dctx, -1, ISC_FALSE);
 			result = dns_rdata_fromwire(&rdata, class, type, &wbuf,
 						    &dctx, ISC_FALSE, &dbuf);
@@ -287,8 +282,7 @@ main(int argc, char *argv[]) {
 			}
 		}
 
-		isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&tbuf, outbuf, sizeof(outbuf));
 		result = dns_rdata_totext(&rdata, NULL, &tbuf);
 		if (result != ISC_R_SUCCESS)
 			fprintf(stdout, "dns_rdata_totext returned %s(%d)\n",

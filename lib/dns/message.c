@@ -170,8 +170,7 @@ newbuffer(dns_message_t *msg, unsigned int size)
 	isc_buffer_t *dynbuf;
 
 	dynbuf = NULL;
-	result = isc_buffer_allocate(msg->mctx, &dynbuf, size,
-					ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(msg->mctx, &dynbuf, size);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
@@ -577,8 +576,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	isc_mempool_setname(m->rdspool, "msg:rdataset");
 
 	dynbuf = NULL;
-	result = isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE,
-				     ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	ISC_LIST_APPEND(m->scratchpad, dynbuf, link);
@@ -830,7 +828,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		/*
 		 * Parse the name out of this packet.
 		 */
-		isc_buffer_remaining(source, &r);
+		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
 		result = getname(name, source, msg, dctx);
 		if (result != ISC_R_SUCCESS)
@@ -872,7 +870,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		/*
 		 * Get type and class.
 		 */
-		isc_buffer_remaining(source, &r);
+		isc_buffer_remainingregion(source, &r);
 		if (r.length < 4) {
 			result = ISC_R_UNEXPECTEDEND;
 			goto cleanup;
@@ -998,7 +996,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		/*
 		 * Parse the name out of this packet.
 		 */
-		isc_buffer_remaining(source, &r);
+		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
 		result = getname(name, source, msg, dctx);
 		if (result != ISC_R_SUCCESS)
@@ -1009,7 +1007,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * rdatalen bytes remain.  (Some of this is deferred to
 		 * later.)
 		 */
-		isc_buffer_remaining(source, &r);
+		isc_buffer_remainingregion(source, &r);
 		if (r.length < 2 + 2 + 4 + 2) {
 			result = ISC_R_UNEXPECTEDEND;
 			goto cleanup;
@@ -1353,7 +1351,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->header_ok = 0;
 	msg->question_ok = 0;
 
-	isc_buffer_remaining(source, &r);
+	isc_buffer_remainingregion(source, &r);
 	if (r.length < DNS_MESSAGE_HEADERLEN)
 		return (ISC_R_UNEXPECTEDEND);
 
@@ -1401,7 +1399,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	isc_buffer_remaining(source, &r);
+	isc_buffer_remainingregion(source, &r);
 	if (r.length != 0)
 		return (DNS_R_FORMERR);
 
@@ -1409,7 +1407,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
 		if (msg->saved == NULL)
 			return (ISC_R_NOMEMORY);
-		isc_buffer_used(&origsource, &r);
+		isc_buffer_usedregion(&origsource, &r);
 		msg->saved->length = r.length;
 		msg->saved->base = isc_mem_get(msg->mctx, msg->saved->length);
 		if (msg->saved->base == NULL) {
@@ -1444,7 +1442,7 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer)
 	 * Make certain there is enough for at least the header in this
 	 * buffer.
 	 */
-	isc_buffer_available(buffer, &r);
+	isc_buffer_availableregion(buffer, &r);
 	REQUIRE(r.length >= DNS_MESSAGE_HEADERLEN);
 
 	result = dns_compress_init(&msg->cctx, -1, msg->mctx);
@@ -1477,8 +1475,8 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer)
 	 */
 	isc_buffer_clear(buffer);
 
-	isc_buffer_available(buffer, &rn);
-	isc_buffer_used(msg->buffer, &r);
+	isc_buffer_availableregion(buffer, &rn);
+	isc_buffer_usedregion(msg->buffer, &r);
 	REQUIRE(rn.length > r.length);
 
 	/*
@@ -1510,7 +1508,7 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space)
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->buffer != NULL);
 
-	isc_buffer_available(msg->buffer, &r);
+	isc_buffer_availableregion(msg->buffer, &r);
 	if (r.length < (space + msg->reserved))
 		return (ISC_R_NOSPACE);
 
@@ -1667,7 +1665,7 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target)
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 
-	isc_buffer_available(target, &r);
+	isc_buffer_availableregion(target, &r);
 	REQUIRE(r.length >= DNS_MESSAGE_HEADERLEN);
 
 	isc_buffer_putuint16(target, msg->id);
@@ -1759,8 +1757,8 @@ dns_message_renderend(dns_message_t *msg)
 			return (result);
 	}
 
-	isc_buffer_used(msg->buffer, &r);
-	isc_buffer_init(&tmpbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_usedregion(msg->buffer, &r);
+	isc_buffer_init(&tmpbuf, r.base, r.length);
 
 	dns_message_renderheader(msg, &tmpbuf);
 
@@ -2050,7 +2048,7 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 
 	buffer = *source;
 
-	isc_buffer_remaining(&buffer, &r);
+	isc_buffer_remainingregion(&buffer, &r);
 	if (r.length < DNS_MESSAGE_HEADERLEN)
 		return (ISC_R_UNEXPECTEDEND);
 
@@ -2229,8 +2227,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 
 	if (!dns_name_hasbuffer(signer)) {
 		isc_buffer_t *dynbuf = NULL;
-		result = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
-					     ISC_BUFFERTYPE_BINARY);
+		result = isc_buffer_allocate(msg->mctx, &dynbuf, 512);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_name_setbuffer(signer, dynbuf);
@@ -2288,8 +2285,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	if (msg->tsigkey == NULL && msg->tsigset == NULL && msg->sig0 == NULL)
 		return (ISC_R_SUCCESS);
 	INSIST(msg->saved != NULL);
-	isc_buffer_init(&msgb, msg->saved->base, msg->saved->length,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&msgb, msg->saved->base, msg->saved->length);
 	isc_buffer_add(&msgb, msg->saved->length);
 	if (msg->tsigkey != NULL || msg->tsigset != NULL)
 		return (dns_view_checksig(view, &msgb, msg));
@@ -2330,8 +2326,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			dst_key_t *key = NULL;
 
 			dns_rdataset_current(&keyset, &rdata);
-			isc_buffer_init(&b, rdata.data, rdata.length,
-					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&b, rdata.data, rdata.length);
 			isc_buffer_add(&b, rdata.length);
 
 			/*

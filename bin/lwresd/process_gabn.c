@@ -497,8 +497,7 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 	if (result != LWRES_R_SUCCESS)
 		goto out;
 
-	isc_buffer_init(&namebuf, req->name, req->namelen,
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&namebuf, req->name, req->namelen);
 	isc_buffer_add(&namebuf, req->namelen);
 
 	dns_fixedname_init(&client->target_name);

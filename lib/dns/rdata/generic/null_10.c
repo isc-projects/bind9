@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.20 2000/04/07 03:54:26 explorer Exp $ */
+/* $Id: null_10.c,v 1.21 2000/04/27 00:02:33 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -66,7 +66,7 @@ fromwire_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 10);
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.79 2000/04/25 21:11:50 explorer Exp $ */
+/* $Id: rdata.c,v 1.80 2000/04/27 00:01:44 tale Exp $ */
 
 #include <config.h>
 
@@ -75,8 +75,7 @@ static unsigned int 	name_length(dns_name_t *name);
 static isc_result_t	str_totext(char *source, isc_buffer_t *target);
 static isc_boolean_t	buffer_empty(isc_buffer_t *source);
 static void		buffer_fromregion(isc_buffer_t *buffer,
-					  isc_region_t *region,
-					  unsigned int type);
+					  isc_region_t *region);
 static isc_result_t	uint32_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
 static isc_result_t	uint16_tobuffer(isc_uint32_t,
@@ -308,8 +307,6 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_buffer_t st;
 	isc_boolean_t use_default = ISC_FALSE;
 
-	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE(dctx != NULL);
 
 	ss = *source;
@@ -348,13 +345,13 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	isc_buffer_t st;
 
 	REQUIRE(rdata != NULL);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+
 	st = *target;
 
 	TOWIRESWITCH
 	
 	if (use_default) {
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (tr.length < rdata->length) 
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, rdata->data, rdata->length);
@@ -387,9 +384,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	void (*callback)(dns_rdatacallbacks_t *, char *, ...);
 	isc_result_t iresult;
 
-	if (origin != NULL)
-		REQUIRE(dns_name_isabsolute(origin) == ISC_TRUE);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == ISC_TRUE);
 
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
@@ -471,9 +466,8 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_boolean_t use_default = ISC_FALSE;
 	
 	REQUIRE(rdata != NULL);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_TEXT);
-	if (tctx->origin != NULL)
-		REQUIRE(dns_name_isabsolute(tctx->origin) == ISC_TRUE);
+	REQUIRE(tctx->origin == NULL ||
+		dns_name_isabsolute(tctx->origin) == ISC_TRUE);
 
 	/* Some DynDNS meta-RRs have empty rdata. */
 	if (rdata->length == 0)
@@ -530,7 +524,6 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(source != NULL);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
 	region.base = (unsigned char *)(target->base) + target->used;
 	st = *target;
@@ -931,7 +924,7 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 	char *tp;
 	isc_region_t region;
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	sp = source->base;
 	tp = (char *)region.base;
 	tl = region.length;
@@ -983,7 +976,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	int d;
 	int c;
 
-	isc_buffer_available(target, &tregion);
+	isc_buffer_availableregion(target, &tregion);
 	s = source->base;
 	n = source->length;
 	t = tregion.base;
@@ -1040,14 +1033,14 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	isc_buffer_active(source, &sregion);
+	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length == 0)
 		return(ISC_R_UNEXPECTEDEND);
 	n = *sregion.base + 1;
 	if (n > sregion.length)
 		return (ISC_R_UNEXPECTEDEND);
 	
-	isc_buffer_available(target, &tregion);
+	isc_buffer_availableregion(target, &tregion);
 	if (n > tregion.length)
 		return (ISC_R_NOSPACE);
 
@@ -1089,7 +1082,7 @@ str_totext(char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	l = strlen(source);
 
 	if (l > region.length)
@@ -1106,10 +1099,8 @@ buffer_empty(isc_buffer_t *source) {
 }
 
 static void
-buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region,
-		  unsigned int type) {
-
-	isc_buffer_init(buffer, region->base, region->length, type);
+buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region) {
+	isc_buffer_init(buffer, region->base, region->length);
 	isc_buffer_add(buffer, region->length);
 	isc_buffer_setactive(buffer, region->length);
 }
@@ -1118,7 +1109,7 @@ static isc_result_t
 uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < 4)
 		return (ISC_R_NOSPACE);
 	isc_buffer_putuint32(target, value);
@@ -1131,7 +1122,7 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 
 	if (value > 0xffff)
 		return (DNS_R_RANGE);
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < 2)
 		return (ISC_R_NOSPACE);
 	isc_buffer_putuint16(target, (isc_uint16_t)value);
@@ -1144,7 +1135,7 @@ uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 
 	if (value > 0xff)
 		return (DNS_R_RANGE);
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < 1)
 		return (ISC_R_NOSPACE);
 	isc_buffer_putuint8(target, (isc_uint8_t)value);
@@ -1225,7 +1216,7 @@ static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
         if (length > tr.length)
 		return (ISC_R_NOSPACE);
 	memcpy(tr.base, base, length);
@@ -1360,7 +1351,7 @@ putbyte(int c, isc_buffer_t *target, struct state *state) {
 		Crot <<= 1;
 	}
 	Crot += c;
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 1)
 		return (ISC_R_NOSPACE);
 	tr.base[0] = c;
@@ -1432,7 +1423,7 @@ static isc_result_t
 byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 	isc_region_t tr;
 
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	Ceor ^= c;
 	Csum += c;
 	Csum += 1;

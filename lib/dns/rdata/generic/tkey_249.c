@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.25 2000/04/07 03:54:36 explorer Exp $ */
+/* $Id: tkey_249.c,v 1.26 2000/04/27 00:02:41 tale Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -47,8 +47,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* Algorithm */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
@@ -222,7 +221,7 @@ fromwire_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 * Mode: 2
 	 * Error: 2
 	 */
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 12)
 		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 12));
@@ -337,7 +336,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* Key */
 	if (tkey->keylen > 0) {
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (tr.length < tkey->keylen)
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tkey->key, tkey->keylen);
@@ -349,7 +348,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* Other data */
 	if (tkey->otherlen > 0) {
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (tr.length < tkey->otherlen)
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tkey->other, tkey->otherlen);

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.19 2000/04/20 18:27:42 explorer Exp $
+ * $Id: hmac_link.c,v 1.20 2000/04/27 00:02:54 tale Exp $
  */
 
 #include <config.h>
@@ -148,8 +148,7 @@ dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
 		unsigned char digest[MD5_DIGEST_LENGTH];
 		isc_buffer_t b;
 
-		isc_buffer_init(&b, digest, sizeof(digest),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&b, digest, sizeof(digest));
 
 		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
 
@@ -157,7 +156,7 @@ dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
 		r.base = hkey->opad;
 		r.length = HMAC_LEN;
 		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
 		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, sig, mctx));
 	}
@@ -213,8 +212,7 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 		unsigned char digest[MD5_DIGEST_LENGTH];
 		isc_buffer_t b;
 
-		isc_buffer_init(&b, digest, sizeof(digest),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&b, digest, sizeof(digest));
 
 		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
 
@@ -222,7 +220,7 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 		r.base = hkey->opad;
 		r.length = HMAC_LEN;
 		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
 		isc_buffer_clear(&b);
 		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
@@ -271,7 +269,7 @@ dst_hmacmd5_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	hkey = (HMAC_Key *) key->opaque;
 
-	isc_buffer_available(data, &r);
+	isc_buffer_availableregion(data, &r);
 
 	bytes = (key->key_size + 7) / 8;
 	if (r.length < bytes)
@@ -302,7 +300,7 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	isc_region_t r;
 	int i, keylen;
 
-	isc_buffer_remaining(data, &r);
+	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
 		return (ISC_R_SUCCESS);
 
@@ -408,8 +406,7 @@ dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 		DST_RET(ISC_R_NOMEMORY);
 
 	key->opaque = hkey;
-	isc_buffer_init(&b, priv.elements[0].data, priv.elements[0].length,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, priv.elements[0].data, priv.elements[0].length);
 	ret = dst_hmacmd5_from_dns(key, &b, mctx);
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
@@ -464,7 +461,7 @@ dst_hmacmd5_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 	}
 
 	memset(data, 0, HMAC_LEN);
-	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, data, sizeof(data));
 	ret = dst_random_get(bytes, &b);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);

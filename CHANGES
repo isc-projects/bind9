@@ -1,4 +1,39 @@
- 102.   [bug]           Correctly detect inet_aton, inet_pton and inet_ptop
+ 103.   [func]          libisc buffer API changes for <isc/buffer.h>:
+                        Added:
+                                isc_buffer_base(b)          (pointer)
+                                isc_buffer_current(b)       (pointer)
+                                isc_buffer_active(b)        (pointer)
+                                isc_buffer_used(b)          (pointer)
+                                isc_buffer_length(b)            (int)
+                                isc_buffer_usedlength(b)        (int)
+                                isc_buffer_consumedlength(b)    (int)
+                                isc_buffer_remaininglength(b)   (int)
+                                isc_buffer_activelength(b)      (int)
+                                isc_buffer_availablelength(b)   (int)
+                        Removed:
+                                ISC_BUFFER_USEDCOUNT(b)
+                                ISC_BUFFER_AVAILABLECOUNT(b)
+                                isc_buffer_type(b)
+                        Changed names:
+                                isc_buffer_used(b, r) ->
+                                        isc_buffer_usedregion(b, r)
+                                isc_buffer_available(b, r) ->
+                                        isc_buffer_available_region(b, r)
+                                isc_buffer_consumed(b, r) ->
+                                        isc_buffer_consumedregion(b, r)
+                                isc_buffer_active(b, r) ->
+                                        isc_buffer_activeregion(b, r)
+                                isc_buffer_remaining(b, r) ->
+                                        isc_buffer_remainingregion(b, r)
+
+                        Buffer types were removed, so the ISC_BUFFERTYPE_*
+                        macros are no more, and the type argument to
+                        isc_buffer_init and isc_buffer_allocate were removed.
+                        isc_buffer_putstr is now void (instead of isc_result_t)
+                        and requires that the caller ensure that there
+                        is enough available buffer space for the string.
+
+ 102.   [port]          Correctly detect inet_aton, inet_pton and inet_ptop
                         on BSD/OS 4.1.
 
  101.   [cleanup]       Quieted EGCS warnings from lib/isc/print.c.

@@ -171,7 +171,7 @@ say_message(char *host, char *msg, dns_rdata_t *rdata, isc_buffer_t *target) {
 
 	result = dns_rdata_totext( rdata, NULL, target);
 	check_result(result, "dns_rdata_totext");
-	isc_buffer_used(target, &r);
+	isc_buffer_usedregion(target, &r);
 	printf ( "%s %s %.*s\n", host, msg, (int)r.length,
 		 (char *)r.base);
 }				
@@ -212,7 +212,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 		name = NULL;
 		dns_message_currentname(msg, sectionid, &name);
 
-		isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&target, t, sizeof(t));
 		first = ISC_TRUE;
 		print_name = name;
 
@@ -261,7 +261,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 			}
 		}
 		if (!short_form) {
-			isc_buffer_used(&target, &r);
+			isc_buffer_usedregion(&target, &r);
 			if (no_rdata)
 				printf(";%.*s", (int)r.length,
 				       (char *)r.base);
@@ -292,13 +292,13 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 	if (headers) 
 		printf(";; %s SECTION:\n", set_name);
 
-	isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&target, t, sizeof(t));
 
 	result = dns_rdataset_totext(rdataset, owner, ISC_FALSE, ISC_FALSE,
 				     &target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	isc_buffer_used(&target, &r);
+	isc_buffer_usedregion(&target, &r);
 	printf("%.*s", (int)r.length, (char *)r.base);
 
 	return (ISC_R_SUCCESS);
@@ -307,11 +307,9 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 isc_result_t
 printmessage(dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
-	dns_rdataset_t *opt, *tsig;
+	dns_rdataset_t *opt, *tsig = NULL;
 	dns_name_t *tsigname;
-	isc_result_t result;
-
-	result = ISC_R_SUCCESS;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	if (!short_form) {
 		printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
@@ -346,7 +344,8 @@ printmessage(dns_message_t *msg, isc_boolean_t headers) {
 			printf("%scd", did_flag ? " " : "");
 			did_flag = ISC_TRUE;
 		}
-		printf("; QUERY: %u, ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
+		printf("; QUERY: %u, ANSWER: %u, "
+		       "AUTHORITY: %u, ADDITIONAL: %u\n",
 		       msg->counts[DNS_SECTION_QUESTION],
 		       msg->counts[DNS_SECTION_ANSWER],
 		       msg->counts[DNS_SECTION_AUTHORITY],

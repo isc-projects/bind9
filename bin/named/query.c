@@ -203,8 +203,7 @@ query_newnamebuf(ns_client_t *client) {
 	 */
 
 	dbuf = NULL;
-	result = isc_buffer_allocate(client->mctx, &dbuf, 1024,
-				     ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(client->mctx, &dbuf, 1024);
 	if (result != ISC_R_SUCCESS) {
 		CTRACE("query_newnamebuf: isc_buffer_allocate failed: done");
 		return (result);
@@ -237,7 +236,7 @@ query_getnamebuf(ns_client_t *client) {
 
 	dbuf = ISC_LIST_TAIL(client->query.namebufs);
 	INSIST(dbuf != NULL);
-	isc_buffer_available(dbuf, &r);
+	isc_buffer_availableregion(dbuf, &r);
 	if (r.length < 255) {
 		result = query_newnamebuf(client);
 		if (result != ISC_R_SUCCESS) {
@@ -246,7 +245,7 @@ query_getnamebuf(ns_client_t *client) {
 
 		}
 		dbuf = ISC_LIST_TAIL(client->query.namebufs);
-		isc_buffer_available(dbuf, &r);
+		isc_buffer_availableregion(dbuf, &r);
 		INSIST(r.length >= 255);
 	}
 	CTRACE("query_getnamebuf: done");
@@ -308,8 +307,8 @@ query_newname(ns_client_t *client, isc_buffer_t *dbuf,
 		CTRACE("query_newname: dns_message_gettempname failed: done");
 		return (NULL);
 	}
-	isc_buffer_available(dbuf, &r);
-	isc_buffer_init(nbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_availableregion(dbuf, &r);
+	isc_buffer_init(nbuf, r.base, r.length);
 	dns_name_init(name, NULL);
 	dns_name_setbuffer(name, nbuf);
 	client->query.attributes |= NS_QUERYATTR_NAMEBUFUSED;
@@ -2792,12 +2791,11 @@ log_query(ns_client_t *client) {
 
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
 	
-	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, (unsigned char *)text, sizeof(text));
 	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
 	     rdataset != NULL;
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-		isc_buffer_available(&b, &r);
+		isc_buffer_availableregion(&b, &r);
 		if (r.length < 1)
 			return;
 		*r.base = ' ';
@@ -2805,7 +2803,7 @@ log_query(ns_client_t *client) {
 		if (dns_rdatatype_totext(rdataset->type, &b) != ISC_R_SUCCESS)
 			return;
 	}
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
 		      ISC_LOG_DEBUG(1), "query: %s%.*s", namebuf,
 		      (int)r.length, (char *)r.base);

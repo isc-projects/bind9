@@ -186,7 +186,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 		ntabs = 0;
 
 	if (ntabs > 0) {
-		isc_buffer_available(target, &r);
+		isc_buffer_availableregion(target, &r);
 		if (r.length < (unsigned) ntabs)
 			return (ISC_R_NOSPACE);
 		p = r.base;
@@ -207,7 +207,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 	nspaces = to - from;
 	INSIST(nspaces >= 0);
 
-	isc_buffer_available(target, &r);
+	isc_buffer_availableregion(target, &r);
 	if (r.length < (unsigned) nspaces)
 		return (ISC_R_NOSPACE);
 	p = r.base;
@@ -243,10 +243,9 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 		unsigned int col = 0;
 
 		isc_buffer_init(&buf, ctx->linebreak_buf,
-				sizeof(ctx->linebreak_buf),
-				ISC_BUFFERTYPE_TEXT);
+				sizeof(ctx->linebreak_buf));
 		
-		isc_buffer_available(&buf, &r);
+		isc_buffer_availableregion(&buf, &r);
 		if (r.length < 1)
 			return (DNS_R_TEXTTOOLONG);
 		r.base[0] = '\n';
@@ -266,7 +265,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		
-		isc_buffer_available(&buf, &r);
+		isc_buffer_availableregion(&buf, &r);
 		if (r.length < 1)
 			return (DNS_R_TEXTTOOLONG);
 		r.base[0] = '\0';
@@ -346,7 +345,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			INDENT_TO(ttl_column);
 			length = sprintf(ttlbuf, "%u", rdataset->ttl);
 			INSIST(length <= sizeof ttlbuf);
-			isc_buffer_available(target, &r);
+			isc_buffer_availableregion(target, &r);
 			if (r.length < length)
 				return (ISC_R_NOSPACE);
 			memcpy(r.base, ttlbuf, length);
@@ -404,7 +403,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 						   ctx->linebreak,
 						   target));
 
-			isc_buffer_available(target, &r);
+			isc_buffer_availableregion(target, &r);
 			if (r.length < 1)
 				return (ISC_R_NOSPACE);
 			r.base[0] = '\n';
@@ -485,7 +484,7 @@ question_totext(dns_rdataset_t *rdataset,
 		column += (target->used - type_start);
 	}
 
-	isc_buffer_available(target, &r);
+	isc_buffer_availableregion(target, &r);
 	if (r.length < 1)
 		return (ISC_R_NOSPACE);
 	r.base[0] = '\n';
@@ -562,7 +561,7 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 				result = dns_ttl_totext(rdataset->ttl,
 							ISC_TRUE, buffer);
 				INSIST(result == ISC_R_SUCCESS);
-				isc_buffer_used(buffer, &r);
+				isc_buffer_usedregion(buffer, &r);
 				fprintf(f, "$TTL %u\t; %.*s\n", rdataset->ttl,
 					(int) r.length, (char *) r.base);
 			} else {
@@ -592,14 +591,13 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 		newmem = isc_mem_get(mctx, newlength);
 		if (newmem == NULL)
 			return (ISC_R_NOMEMORY);
-		isc_buffer_init(buffer, newmem, newlength,
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(buffer, newmem, newlength);
 	}
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/* Write the buffer contents to the master file. */
-	isc_buffer_used(buffer, &r);
+	isc_buffer_usedregion(buffer, &r);
 	nwritten = fwrite(r.base, 1, (size_t) r.length, f);
 
 	if (nwritten != (size_t) r.length) {
@@ -698,8 +696,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 	if (bufmem == NULL)
 		return (ISC_R_NOMEMORY);
 	
-	isc_buffer_init(&buffer, bufmem, initial_buffer_length,
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
 	/*
 	 * If the database has cache semantics, output an RFC2540
@@ -711,7 +708,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 	if (dns_db_iscache(db)) {
 		result = dns_time32_totext(now, &buffer);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		isc_buffer_used(&buffer, &r);
+		isc_buffer_usedregion(&buffer, &r);
 		fprintf(f, "$DATE %.*s\n", (int) r.length, (char *) r.base);
 	}
 
@@ -738,7 +735,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			isc_buffer_clear(&buffer);
 			result = dns_name_totext(origin, ISC_FALSE, &buffer);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_buffer_used(&buffer, &r);
+			isc_buffer_usedregion(&buffer, &r);
 			fprintf(f, "$ORIGIN %.*s\n", (int) r.length,
 				(char *) r.base);
 			if ((ctx.style.flags & DNS_STYLEFLAG_REL_DATA) != 0)

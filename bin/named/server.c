@@ -172,7 +172,7 @@ base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target)
 	isc_lex_t *lex = NULL;
 	isc_boolean_t isopen = ISC_FALSE;
 	
-	isc_buffer_init(&source, cstr, strlen(cstr), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, cstr, strlen(cstr));
 	isc_buffer_add(&source, strlen(cstr));
 	CHECK(isc_lex_create(mctx, 256, &lex));
 	CHECK(isc_lex_openbuffer(lex, &source));
@@ -252,14 +252,12 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 			keystruct.protocol = proto;
 			keystruct.algorithm = alg;
 			
-			isc_buffer_init(&keydatabuf, keydata, sizeof(keydata),
-					ISC_BUFFERTYPE_BINARY);
-			isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata),
-					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
+			isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 			
 			CHECK(base64_cstring_tobuffer(mctx, ckey->pubkey->key,
 						      &keydatabuf));
-			isc_buffer_used(&keydatabuf, &r);
+			isc_buffer_usedregion(&keydatabuf, &r);
 			keystruct.datalen = r.length;
 			keystruct.data = r.base;
 			
@@ -716,8 +714,7 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	corigin = NULL;
 	/* XXX casting away const */
 	CHECK(dns_c_zone_getname(czone, (const char **) &corigin));
-	isc_buffer_init(&buffer, corigin, strlen(corigin),
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, corigin, strlen(corigin));
 	isc_buffer_add(&buffer, strlen(corigin));
 	dns_fixedname_init(&fixorigin);
 	CHECK(dns_name_fromtext(dns_fixedname_name(&fixorigin),

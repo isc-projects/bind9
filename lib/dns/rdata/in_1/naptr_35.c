@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.20 2000/04/07 03:54:46 explorer Exp $ */
+/* $Id: naptr_35.c,v 1.21 2000/04/27 00:02:48 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -61,8 +61,7 @@ fromtext_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* replacement */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }
@@ -137,7 +136,7 @@ fromwire_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         dns_name_init(&name, NULL);
 
 	/* order, preference */
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 4)
 		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 4));

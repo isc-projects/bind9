@@ -83,8 +83,7 @@ setup(char *zonename, char *filename, char *classname) {
 
 	dns_zone_settype(zone, zonetype);
 
-	isc_buffer_init(&buffer, zonename, strlen(zonename),
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, zonename, strlen(zonename));
 	isc_buffer_add(&buffer, strlen(zonename));
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
@@ -125,10 +124,10 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
         isc_result_t result;
         isc_region_t r;
 
-        isc_buffer_init(&text, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+        isc_buffer_init(&text, t, sizeof(t));
         result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
 				     &text);
-        isc_buffer_used(&text, &r);
+        isc_buffer_usedregion(&text, &r);
         if (result == ISC_R_SUCCESS)
                 printf("%.*s", (int)r.length, (char *)r.base);
         else
@@ -186,8 +185,7 @@ query(void) {
 		if (strlen(buf) == 0)
 			continue;
 		dns_fixedname_init(&name);
-		isc_buffer_init(&buffer, buf, strlen(buf),
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&buffer, buf, strlen(buf));
 		isc_buffer_add(&buffer, strlen(buf));
 		result = dns_name_fromtext(dns_fixedname_name(&name),
 				  &buffer, dns_rootname, ISC_FALSE, NULL);

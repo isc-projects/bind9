@@ -67,9 +67,9 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
 		goto failure;
 	}
 	dns_name_init(tctx->domain, NULL);
-	isc_buffer_init(&b, s, strlen(s), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, s, strlen(s));
 	isc_buffer_add(&b, strlen(s));
-	isc_buffer_init(&namebuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&namebuf, data, sizeof(data));
 	RETERR(dns_name_fromtext(&domain, &b, dns_rootname, ISC_FALSE,
 				 &namebuf));
 	RETERR(dns_name_dup(&domain, mctx, tctx->domain));

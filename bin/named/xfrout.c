@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.58 2000/04/19 18:26:22 halley Exp $ */
+/* $Id: xfrout.c,v 1.59 2000/04/27 00:00:40 tale Exp $ */
 
 #include <config.h>
 
@@ -263,7 +263,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	ISC_LIST_APPEND(rdl.rdata, rdata, link);
 	RUNTIME_CHECK(dns_rdatalist_tordataset(&rdl, &rds) == ISC_R_SUCCESS);
 		
-	isc_buffer_init(&buf, mem, sizeof(mem), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buf, mem, sizeof(mem));
 	result = dns_rdataset_totext(&rds, name,
 				     ISC_FALSE, ISC_FALSE, &buf);
 
@@ -276,7 +276,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	 * very long lines with a repetitive prefix.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		isc_buffer_used(&buf, &r);
+		isc_buffer_usedregion(&buf, &r);
 		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
 			      "%.*s", (int) r.length, (char *) r.base);
 	} else {
@@ -1119,7 +1119,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		result = ISC_R_NOMEMORY;
 		goto failure;
 	}
-	isc_buffer_init(&xfr->buf, mem, len, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&xfr->buf, mem, len);
 
 	/*
 	 * Allocate another temporary buffer for the compressed
@@ -1131,9 +1131,8 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		result = ISC_R_NOMEMORY;
 		goto failure;
 	}
-	isc_buffer_init(&xfr->txlenbuf, mem, 2, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&xfr->txbuf, (char *) mem + 2, len - 2,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&xfr->txlenbuf, mem, 2);
+	isc_buffer_init(&xfr->txbuf, (char *) mem + 2, len - 2);
 	xfr->txmem = mem;
 	xfr->txmemlen = len;
 
@@ -1231,7 +1230,7 @@ sendstream(xfrout_ctx_t *xfr)
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 		dns_name_init(qname, NULL);
-		isc_buffer_available(&xfr->buf, &r);
+		isc_buffer_availableregion(&xfr->buf, &r);
 		INSIST(r.length >= xfr->qname->length);
 		r.length = xfr->qname->length;
 		isc_buffer_putmem(&xfr->buf, xfr->qname->ndata,
@@ -1265,7 +1264,7 @@ sendstream(xfrout_ctx_t *xfr)
 		xfr->stream->methods->current(xfr->stream,
 					      &name, &ttl, &rdata);
 		size = name->length + 10 + rdata->length;
-		isc_buffer_available(&xfr->buf, &r);
+		isc_buffer_availableregion(&xfr->buf, &r);
 		if (size >= r.length) {
 			/*
 			 * RR would not fit.  If there are other RRs in the 
@@ -1294,7 +1293,7 @@ sendstream(xfrout_ctx_t *xfr)
 		
 		dns_message_gettempname(msg, &msgname);
 		dns_name_init(msgname, NULL);
-		isc_buffer_available(&xfr->buf, &r);
+		isc_buffer_availableregion(&xfr->buf, &r);
 		INSIST(r.length >= name->length);
 		r.length = name->length;
 		isc_buffer_putmem(&xfr->buf, name->ndata, name->length);
@@ -1304,7 +1303,7 @@ sendstream(xfrout_ctx_t *xfr)
 		isc_buffer_add(&xfr->buf, 10);
 		
 		dns_message_gettemprdata(msg, &msgrdata);
-		isc_buffer_available(&xfr->buf, &r);
+		isc_buffer_availableregion(&xfr->buf, &r);
 		r.length = rdata->length;
 		isc_buffer_putmem(&xfr->buf, rdata->data, rdata->length);
 		dns_rdata_init(msgrdata);
@@ -1345,7 +1344,7 @@ sendstream(xfrout_ctx_t *xfr)
 		CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
 		CHECK(dns_message_renderend(msg));
 		
-		isc_buffer_used(&xfr->txbuf, &used);
+		isc_buffer_usedregion(&xfr->txbuf, &used);
 		isc_buffer_putuint16(&xfr->txlenbuf, used.length);
 		region.base = xfr->txlenbuf.base;
 		region.length = 2 + used.length;

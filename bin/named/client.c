@@ -180,7 +180,7 @@ sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
 {
 	isc_result_t result;
 	isc_buffer_t buf;
-	isc_buffer_init(&buf, array, size, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buf, array, size);
 	result = isc_sockaddr_totext(sa, &buf);
 	if (result != ISC_R_SUCCESS) {
 		strncpy(array, "<unknown address>", size);
@@ -626,16 +626,14 @@ ns_client_send(ns_client_t *client) {
 		/*
 		 * XXXRTH  "tcpbuffer" is a hack to get things working.
 		 */
-		isc_buffer_init(&tcpbuffer, data, SEND_BUFFER_SIZE,
-				ISC_BUFFERTYPE_BINARY);
-		isc_buffer_init(&buffer, data + 2, SEND_BUFFER_SIZE - 2,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&tcpbuffer, data, SEND_BUFFER_SIZE);
+		isc_buffer_init(&buffer, data + 2, SEND_BUFFER_SIZE - 2);
 	} else {
 		if (client->udpsize < SEND_BUFFER_SIZE)
 			bufsize = client->udpsize;
 		else
 			bufsize = SEND_BUFFER_SIZE;
-		isc_buffer_init(&buffer, data, bufsize, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&buffer, data, bufsize);
 	}
 
 	result = dns_message_renderbegin(client->message, &buffer);
@@ -682,14 +680,14 @@ ns_client_send(ns_client_t *client) {
 	if (TCP_CLIENT(client)) {
 		socket = client->tcpsocket;
 		address = NULL;
-		isc_buffer_used(&buffer, &r);
+		isc_buffer_usedregion(&buffer, &r);
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
-		isc_buffer_used(&tcpbuffer, &r);
+		isc_buffer_usedregion(&tcpbuffer, &r);
 	} else {
 		socket = dns_dispatch_getsocket(client->dispatch);
 		address = &client->dispevent->addr;
-		isc_buffer_used(&buffer, &r);
+		isc_buffer_usedregion(&buffer, &r);
 	}
 	CTRACE("sendto");
 	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)

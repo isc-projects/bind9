@@ -111,7 +111,7 @@ rdata_to_siginfo(dns_rdata_t *rdata, dns_siginfo_t *siginfo) {
 
 	REQUIRE(rdata->type == 24);
 
-	isc_buffer_init(&b, rdata->data, rdata->length, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, rdata->data, rdata->length);
 	isc_buffer_add(&b, rdata->length);
 	siginfo->covers = (dns_rdatatype_t)isc_buffer_getuint16(&b);
 	siginfo->algorithm = (dns_secalg_t)isc_buffer_getuint8(&b);
@@ -121,10 +121,10 @@ rdata_to_siginfo(dns_rdata_t *rdata, dns_siginfo_t *siginfo) {
 	siginfo->inception = (isc_stdtime_t)isc_buffer_getuint32(&b);
 	siginfo->tag = (dns_keytag_t)isc_buffer_getuint16(&b);
 	dns_name_init(&siginfo->signer, NULL);
-	isc_buffer_remaining(&b, &r);
+	isc_buffer_remainingregion(&b, &r);
 	dns_name_fromregion(&siginfo->signer, &r);
 	isc_buffer_forward(&b, siginfo->signer.length);
-	isc_buffer_remaining(&b, &siginfo->signature);
+	isc_buffer_remainingregion(&b, &siginfo->signature);
 }
 
 static void
@@ -389,8 +389,7 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 		return (ISC_FALSE);
 	while (result == ISC_R_SUCCESS && !found) {
 		dns_rdataset_current(rdataset, &rdata);
-		isc_buffer_init(&b, rdata.data, rdata.length,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&b, rdata.data, rdata.length);
 		isc_buffer_add(&b, rdata.length);
 		key = NULL;
 		/*
@@ -433,8 +432,7 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 		 * We keep one byte of ntext in reserve so
 		 * we're sure we can NUL terminate.
 		 */
-		isc_buffer_init(&b, ntext, sizeof(ntext) - 1,
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&b, ntext, sizeof(ntext) - 1);
 		result = dns_name_totext(&siginfo->signer, ISC_FALSE, &b);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -444,8 +442,7 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 		 */
 		isc_buffer_putuint8(&b, 0);
 
-		isc_buffer_init(&b, rdata.data, rdata.length,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&b, rdata.data, rdata.length);
 		isc_buffer_add(&b, rdata.length);
 		INSIST(val->key == NULL);
 		result = dst_key_fromdns(ntext, &b, val->view->mctx,
@@ -1205,15 +1202,14 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 		
 		dns_name_format(val->event->name, namebuf, sizeof(namebuf));
 
-		isc_buffer_init(&b, (unsigned char *) typebuf, sizeof(typebuf),
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&b, (unsigned char *)typebuf, sizeof(typebuf));
 		if (dns_rdatatype_totext(val->event->type, &b)
 		    != ISC_R_SUCCESS)
 		{
 			isc_buffer_clear(&b);
 			isc_buffer_putstr(&b, "<bad type>");
 		}
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 		isc_log_write(dns_lctx, category, module, level,
 			      "validating %s %.*s: %s", namebuf,
 			      (int) r.length, (char *) r.base, msgbuf);

@@ -54,13 +54,13 @@ print_name(dns_name_t *name) {
 	isc_region_t r;
 	char s[1000];
 
-	isc_buffer_init(&source, s, sizeof s, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, s, sizeof(s));
 	if (dns_name_countlabels(name) > 0)
 		result = dns_name_totext(name, ISC_FALSE, &source);
 	else
 		result = ISC_R_SUCCESS;
 	if (result == ISC_R_SUCCESS) {
-		isc_buffer_used(&source, &r);
+		isc_buffer_usedregion(&source, &r);
 		if (r.length > 0)
 			printf("%.*s\n", (int)r.length, r.base);
 		else
@@ -127,8 +127,7 @@ main(int argc, char *argv[]) {
 			origin = NULL;
 		else {
 			len = strlen(argv[0]);
-			isc_buffer_init(&source, argv[0], len,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&source, argv[0], len);
 			isc_buffer_add(&source, len);
 			dns_fixedname_init(&oname);
 			origin = &oname.name;
@@ -152,8 +151,7 @@ main(int argc, char *argv[]) {
 			comp = NULL;
 		else {
 			len = strlen(argv[0]);
-			isc_buffer_init(&source, argv[0], len,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&source, argv[0], len);
 			isc_buffer_add(&source, len);
 			dns_fixedname_init(&compname);
 			comp = &compname.name;
@@ -178,7 +176,7 @@ main(int argc, char *argv[]) {
 			s[len - 1] = '\0';
 			len--;
 		}
-		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&source, s, len);
 		isc_buffer_add(&source, len);
 
 		if (len > 0)
@@ -259,13 +257,13 @@ main(int argc, char *argv[]) {
 			} else
 				got_name = ISC_TRUE;
 		}
-		isc_buffer_init(&source, s, sizeof s, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&source, s, sizeof(s));
 		if (dns_name_countlabels(name) > 0)
 			result = dns_name_totext(name, ISC_FALSE, &source);
 		else
 			result = ISC_R_SUCCESS;
 		if (result == ISC_R_SUCCESS) {
-			isc_buffer_used(&source, &r);
+			isc_buffer_usedregion(&source, &r);
 			if (r.length > 0)
 				printf("%.*s\n", (int)r.length, r.base);
 			else
@@ -292,8 +290,7 @@ main(int argc, char *argv[]) {
 				       dns_name_countlabels(down),
 				       r.length);
 			}
-			isc_buffer_init(&source, s, sizeof s,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&source, s, sizeof(s));
 			print_name(down);
 		}
 

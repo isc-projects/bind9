@@ -173,14 +173,12 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 		goto free_task;
 
 	ibuffer = NULL;
-	result = isc_buffer_allocate(omapi_mctx, &ibuffer, OMAPI_BUFFER_SIZE,
-				     ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(omapi_mctx, &ibuffer, OMAPI_BUFFER_SIZE);
 	if (result != ISC_R_SUCCESS)
 		goto free_ibuffer;
 
 	obuffer = NULL;
-	result = isc_buffer_allocate(omapi_mctx, &obuffer, OMAPI_BUFFER_SIZE,
-				     ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(omapi_mctx, &obuffer, OMAPI_BUFFER_SIZE);
 	if (result != ISC_R_SUCCESS)
 		goto free_obuffer;
 

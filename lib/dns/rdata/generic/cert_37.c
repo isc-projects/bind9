@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.22 2000/04/07 03:54:08 explorer Exp $ */
+/* $Id: cert_37.c,v 1.23 2000/04/27 00:02:24 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -112,7 +112,7 @@ fromwire_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(dctx);
 	UNUSED(downcase);
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 5)
 		return (ISC_R_UNEXPECTEDEND);
 

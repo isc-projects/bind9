@@ -713,8 +713,7 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 		if (result == ISC_R_SUCCESS)
 			result = isc_buffer_allocate(omapi_mctx,
 						     &p->signature_out,
-						     sigsize,
-						     ISC_BUFFERTYPE_GENERIC);
+						     sigsize);
 
 		if (result != ISC_R_SUCCESS) {
 			if (p->key != NULL)

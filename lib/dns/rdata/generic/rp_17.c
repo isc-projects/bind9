@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.19 2000/04/07 03:54:32 explorer Exp $ */
+/* $Id: rp_17.c,v 1.20 2000/04/27 00:02:37 tale Exp $ */
 
 /* RFC 1183 */
 
@@ -44,8 +44,7 @@ fromtext_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
 				ISC_FALSE));
 		dns_name_init(&name, NULL);
-		buffer_fromregion(&buffer, &token.value.as_region,
-				  ISC_BUFFERTYPE_TEXT);
+		buffer_fromregion(&buffer, &token.value.as_region);
 		RETERR(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}

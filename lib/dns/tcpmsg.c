@@ -87,8 +87,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 	}
 	XDEBUG(("Allocated %d bytes\n", tcpmsg->size));
 
-	isc_buffer_init(&tcpmsg->buffer, region.base, region.length,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&tcpmsg->buffer, region.base, region.length);
 	result = isc_socket_recv(tcpmsg->sock, &region, 0,
 				 task, recv_message, tcpmsg);
 	if (result != ISC_R_SUCCESS) {

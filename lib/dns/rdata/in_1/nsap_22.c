@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.16 2000/04/07 03:54:48 explorer Exp $ */
+/* $Id: nsap_22.c,v 1.17 2000/04/27 00:02:49 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -110,7 +110,7 @@ fromwire_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(dctx);
 	UNUSED(downcase);
 
-	isc_buffer_active(source, &region);
+	isc_buffer_activeregion(source, &region);
 	if (region.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
 

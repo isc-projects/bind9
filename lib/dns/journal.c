@@ -631,7 +631,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 			goto cleanup;
 		}
  again:
-		isc_buffer_init(&buf, mem, size, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&buf, mem, size);
 		result = dns_rdataset_totext(&rds, &t->name,
 					     ISC_FALSE, ISC_FALSE, &buf);
 
@@ -650,7 +650,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 			goto again;
 		}
 		if (result == ISC_R_SUCCESS) {
-			isc_buffer_used(&buf, &r);
+			isc_buffer_usedregion(&buf, &r);
 			if (file != NULL)
 				fprintf(file, "%s %.*s\n",
 					t->op == DNS_DIFFOP_ADD ?
@@ -1196,8 +1196,8 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	 * wire format RR data.  They will be reallocated
 	 * later.
 	 */
-	isc_buffer_init(&j->it.source, NULL, 0, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&j->it.target, NULL, 0, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&j->it.source, NULL, 0);
+	isc_buffer_init(&j->it.target, NULL, 0);
 	dns_decompress_init(&j->it.dctx, -1, ISC_FALSE);
 
 	j->state =
@@ -1512,7 +1512,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	if (mem == NULL)
 		return (ISC_R_NOMEMORY);
 	
-	isc_buffer_init(&buffer, mem, size, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buffer, mem, size);
 
 	/*
 	 * Pass 2.  Write RRs to buffer.
@@ -1531,11 +1531,11 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 		isc_buffer_putuint32(&buffer, t->ttl);
 		INSIST(t->rdata.length < 65536);
 		isc_buffer_putuint16(&buffer, (isc_uint16_t)t->rdata.length);
-		isc_buffer_available(&buffer, &avail);
+		isc_buffer_availableregion(&buffer, &avail);
 		isc_buffer_putmem(&buffer, t->rdata.data, t->rdata.length);		
 	}
 	
-	isc_buffer_used(&buffer, &used);
+	isc_buffer_usedregion(&buffer, &used);
 	INSIST(used.length == size);
 
 	j->x.pos[1].offset += used.length;
@@ -1722,8 +1722,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	 * wire format transaction data.  They will be reallocated
 	 * later.
 	 */
-	isc_buffer_init(&source, NULL, 0, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&target, NULL, 0, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&source, NULL, 0);
+	isc_buffer_init(&target, NULL, 0);
 
 	/* Create the new database version. */
 	CHECK(dns_db_newversion(db, &ver));
@@ -1872,8 +1872,8 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	 * wire format transaction data.  They will be reallocated
 	 * later.
 	 */
-	isc_buffer_init(&source, NULL, 0, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&target, NULL, 0, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&source, NULL, 0);
+	isc_buffer_init(&target, NULL, 0);
 
 	start_serial = dns_journal_first_serial(j);
 	end_serial = dns_journal_last_serial(j);
@@ -2114,7 +2114,7 @@ read_one_rr(dns_journal_t *j) {
 				&j->it.dctx, ISC_FALSE, &j->it.target));
 
 	/* Check that the RR header is there, and parse it. */
-	isc_buffer_remaining(&j->it.source, &r);
+	isc_buffer_remainingregion(&j->it.source, &r);
 	if (r.length < 10)
 		FAIL(DNS_R_FORMERR);
 	

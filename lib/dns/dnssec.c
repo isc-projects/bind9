@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.28 2000/04/19 20:57:54 bwelling Exp $
+ * $Id: dnssec.c,v 1.29 2000/04/27 00:01:24 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -102,9 +102,9 @@ keyname_to_name(char *keyname, isc_mem_t *mctx, dns_name_t *name) {
 
 	dns_name_init(name, NULL);
 	dns_name_init(&tname, NULL);
-	isc_buffer_init(&src, keyname, strlen(keyname), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&src, keyname, strlen(keyname));
 	isc_buffer_add(&src, strlen(keyname));
-	isc_buffer_init(&dst, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&dst, data, sizeof(data));
 	ret = dns_name_fromtext(&tname, &src, NULL, ISC_TRUE, &dst);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
@@ -171,15 +171,14 @@ dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
 	INSIST(key != NULL);
 	INSIST(*key == NULL);
 
-	isc_buffer_init(&namebuf, namestr, sizeof(namestr) - 1,
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&namebuf, namestr, sizeof(namestr) - 1);
 	ret = dns_name_totext(name, ISC_FALSE, &namebuf);
 	if (ret != ISC_R_SUCCESS)
 		return ret;
-	isc_buffer_used(&namebuf, &r);
+	isc_buffer_usedregion(&namebuf, &r);
 	namestr[r.length] = 0;
 	dns_rdata_toregion(rdata, &r);
-	isc_buffer_init(&b, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, r.base, r.length);
 	isc_buffer_add(&b, r.length);
 	return (dst_key_fromdns(namestr, &b, mctx, key));
 }
@@ -246,13 +245,13 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (sig.signature == NULL)
 		goto cleanup_name;
 
-	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, data, sizeof(data));
 	ret = dns_rdata_fromstruct(NULL, sig.common.rdclass,
 				  sig.common.rdtype, &sig, &b);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
 
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 
 	/* Digest the SIG rdata */
 	r.length -= sig.siglen;
@@ -265,7 +264,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_name_toregion(name, &r);
 
 	/* create an envelope for each rdata: <name|type|class|ttl> */
-	isc_buffer_init(&envbuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&envbuf, data, sizeof(data));
 	memcpy(data, r.base, r.length);
 	isc_buffer_add(&envbuf, r.length);
 	isc_buffer_putuint16(&envbuf, set->type);
@@ -280,7 +279,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	ret = rdataset_to_sortedarray(set, mctx, &rdatas, &nrdatas);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
-	isc_buffer_used(&envbuf, &r);
+	isc_buffer_usedregion(&envbuf, &r);
 
 	for (i = 0; i < nrdatas; i++) {
 		isc_uint16_t len;
@@ -293,11 +292,10 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			goto cleanup_array;
 
 		/* Digest the length of the rdata */
-		isc_buffer_init(&lenbuf, &len, sizeof(len),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&lenbuf, &len, sizeof(len));
 		INSIST(rdatas[i].length < 65536);
 		isc_buffer_putuint16(&lenbuf, (isc_uint16_t)rdatas[i].length);
-		isc_buffer_used(&lenbuf, &lenr);
+		isc_buffer_usedregion(&lenbuf, &lenr);
 		ret = dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &lenr, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
@@ -308,12 +306,11 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			goto cleanup_array;
 	}
 		
-	isc_buffer_init(&sigbuf, sig.signature, sig.siglen,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
 	ret = dst_sign(DST_SIGMODE_FINAL, key, &ctx, NULL, &sigbuf);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_array;
-	isc_buffer_used(&sigbuf, &r);
+	isc_buffer_usedregion(&sigbuf, &r);
 	if (r.length != sig.siglen) {
 		ret = ISC_R_NOSPACE;
 		goto cleanup_array;
@@ -396,7 +393,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		dns_name_toregion(name, &r);
 
 	/* create an envelope for each rdata: <name|type|class|ttl> */
-	isc_buffer_init(&envbuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&envbuf, data, sizeof(data));
 	if (labels - sig.labels > 0) {
 		isc_buffer_putuint8(&envbuf, 1);
 		isc_buffer_putuint8(&envbuf, '*');
@@ -417,7 +414,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	ret = rdataset_to_sortedarray(set, mctx, &rdatas, &nrdatas);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
-	isc_buffer_used(&envbuf, &r);
+	isc_buffer_usedregion(&envbuf, &r);
 
 	for (i = 0; i < nrdatas; i++) {
 		isc_uint16_t len;
@@ -430,11 +427,10 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			goto cleanup_array;
 
 		/* Digest the rdata length */
-		isc_buffer_init(&lenbuf, &len, sizeof(len),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&lenbuf, &len, sizeof(len));
 		INSIST(rdatas[i].length < 65536);
 		isc_buffer_putuint16(&lenbuf, (isc_uint16_t)rdatas[i].length);
-		isc_buffer_used(&lenbuf, &lenr);
+		isc_buffer_usedregion(&lenbuf, &lenr);
 
 		/* Digest the rdata */
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &lenr, NULL);
@@ -572,7 +568,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	sig.siglen = 0;
 	sig.signature = NULL;
 	
-	isc_buffer_init(&databuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&databuf, data, sizeof(data));
 
 	RETERR(dst_sign(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
 
@@ -581,14 +577,13 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 				NULL));
 
 	/* Digest the header */
-	isc_buffer_init(&headerbuf, header, sizeof(header),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&headerbuf, header, sizeof(header));
 	dns_message_renderheader(msg, &headerbuf);
-	isc_buffer_used(&headerbuf, &r);
+	isc_buffer_usedregion(&headerbuf, &r);
 	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
 	/* Digest the remainder of the message */
-	isc_buffer_used(msg->buffer, &r);
+	isc_buffer_usedregion(msg->buffer, &r);
 	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
 	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
@@ -599,7 +594,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	 */
 	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, &databuf));
-	isc_buffer_used(&databuf, &r);
+	isc_buffer_usedregion(&databuf, &r);
 	r.length -= 2;
 	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
@@ -611,15 +606,13 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 		goto failure;
 	}
 
-	isc_buffer_init(&sigbuf, sig.signature, sig.siglen,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
 	RETERR(dst_sign(DST_SIGMODE_FINAL, key, &ctx, NULL, &sigbuf));
 
 	rdata = NULL;
 	RETERR(dns_message_gettemprdata(msg, &rdata));
 	dynbuf = NULL;
-	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024,
-				   ISC_BUFFERTYPE_BINARY));
+	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024));
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, dynbuf));
 
@@ -680,7 +673,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->verify_attempted = 1;
 
-	isc_buffer_used(source, &source_r);
+	isc_buffer_usedregion(source, &source_r);
 
 	RETERR(dns_rdataset_first(msg->sig0));
 	dns_rdataset_current(msg->sig0, &rdata);

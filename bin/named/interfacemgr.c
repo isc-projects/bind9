@@ -74,7 +74,7 @@ sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
 {
 	isc_result_t result;
 	isc_buffer_t buf;
-	isc_buffer_init(&buf, array, size, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buf, array, size);
 	result = isc_sockaddr_totext(sa, &buf);
 	if (result != ISC_R_SUCCESS) {
 		strncpy(array, "<unknown address>", size);

@@ -25,6 +25,7 @@
 #include	<isc/mem.h>
 #include	<isc/buffer.h>
 #include	<isc/error.h>
+#include	<isc/util.h>
 
 #include	<dns/master.h>
 #include	<dns/name.h>
@@ -37,23 +38,23 @@
 #define	BUFLEN		255
 #define	BIGBUFLEN	(64 * 1024)
 
-static isc_result_t	t1_add_callback(void *arg, dns_name_t *owner,
-					dns_rdataset_t *dataset);
-static void		t1(void);
+static isc_result_t
+t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset);
+static void
+t1(void);
 
 isc_mem_t	*T1_mctx;
 char		*Tokens[T_MAXTOKS + 1];
 
 static isc_result_t
 t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
-
 	char buf[BIGBUFLEN];
 	isc_buffer_t target;
 	isc_result_t result;
 	
-	arg = arg;	/*unused*/
+	UNUSED(arg);
 
-	isc_buffer_init(&target, buf, BIGBUFLEN, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&target, buf, BIGBUFLEN);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
 				     &target);
 	if (result != ISC_R_SUCCESS)
@@ -91,11 +92,10 @@ test_master(char *testfile, char *origin, char *class,
 	}
 
 	len = strlen(origin);
-	isc_buffer_init(&source, origin, len,
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, origin, len);
 	isc_buffer_add(&source, len);
 	isc_buffer_setactive(&source, len);
-	isc_buffer_init(&target, name_buf, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, name_buf, BUFLEN);
 	dns_name_init(&dns_origin, NULL);
 	dns_result = dns_name_fromtext(&dns_origin, &source, dns_rootname,
 				   ISC_FALSE, &target);

@@ -69,8 +69,7 @@ done(isc_task_t *task, isc_event_t *event) {
 	       isc_result_totext(bevent->result));
 
 	if (bevent->result == ISC_R_SUCCESS) {
-		isc_buffer_init(&buffer, textname, sizeof textname,
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&buffer, textname, sizeof(textname));
 		for (name = ISC_LIST_HEAD(bevent->names);
 		     name != NULL;
 		     name = ISC_LIST_NEXT(name, link)) {
@@ -81,7 +80,7 @@ done(isc_task_t *task, isc_event_t *event) {
 				       isc_result_totext(result));
 				break;
 			}
-			isc_buffer_used(&buffer, &r);
+			isc_buffer_usedregion(&buffer, &r);
 			printf("%.*s\n", (int)r.length, r.base);
 		}
 	}

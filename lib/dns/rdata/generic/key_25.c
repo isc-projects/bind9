@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.20 2000/04/26 01:41:58 marka Exp $ */
+/* $Id: key_25.c,v 1.21 2000/04/27 00:02:26 tale Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -127,7 +127,7 @@ fromwire_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 25);
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 4)
 		return (ISC_R_UNEXPECTEDEND);
 
@@ -187,7 +187,7 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	/* Data */
 	if (key->datalen > 0) {
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (tr.length < key->datalen)
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, key->data, key->datalen);

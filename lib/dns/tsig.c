@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.51 2000/04/08 04:40:21 bwelling Exp $
+ * $Id: tsig.c,v 1.52 2000/04/27 00:02:01 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -120,19 +120,18 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	else
 		tkey->creator = NULL;
 
-	isc_buffer_init(&nameb, namestr, sizeof(namestr) - 1,
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&nameb, namestr, sizeof(namestr) - 1);
 	ret = dns_name_totext(name, ISC_FALSE, &nameb);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_algorithm;
 
-	isc_buffer_used(&nameb, &r);
+	isc_buffer_usedregion(&nameb, &r);
 	namestr[r.length] = '\0';
 
 	if (length > 0) {
 		dns_tsigkey_t *tmp;
 
-		isc_buffer_init(&b, secret, length, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&b, secret, length);
 		isc_buffer_add(&b, length);
 		ret = dst_key_frombuffer(namestr, alg,
 					 DNS_KEYOWNER_ENTITY,
@@ -301,7 +300,7 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	tsig->originalid = msg->id;
 
-	isc_buffer_init(&databuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&databuf, data, sizeof(data));
 
 	if (is_response(msg))
 		tsig->error = msg->querytsigstatus;
@@ -315,13 +314,13 @@ dns_tsig_sign(dns_message_t *msg) {
 	else {
 		isc_buffer_t otherbuf;
 		tsig->otherlen = 6;
-		tsig->other = (unsigned char *) isc_mem_get(mctx, 6);
+		tsig->other = (unsigned char *)isc_mem_get(mctx,
+							   tsig->otherlen);
 		if (tsig->other == NULL) {
 			ret = ISC_R_NOMEMORY;
 			goto cleanup_other;
 		}
-		isc_buffer_init(&otherbuf, tsig->other, tsig->otherlen = 6,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&otherbuf, tsig->other, tsig->otherlen);
 		isc_buffer_putuint16(&otherbuf,
 				     (isc_uint16_t)(tsig->timesigned >> 32));
 		isc_buffer_putuint32(&otherbuf,
@@ -341,13 +340,13 @@ dns_tsig_sign(dns_message_t *msg) {
 		/* If this is a response, digest the query signature */
 		if (is_response(msg)) {
 			isc_buffer_putuint16(&databuf, msg->querytsig->siglen);
-			isc_buffer_available(&databuf, &r);
+			isc_buffer_availableregion(&databuf, &r);
 			if (r.length < msg->querytsig->siglen)
 				return (ISC_R_NOSPACE);
 			memcpy(r.base, msg->querytsig->signature,
 			       msg->querytsig->siglen);
 			isc_buffer_add(&databuf, msg->querytsig->siglen);
-			isc_buffer_used(&databuf, &r);
+			isc_buffer_usedregion(&databuf, &r);
 			ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r,
 					NULL);
 			if (ret != ISC_R_SUCCESS)
@@ -355,16 +354,15 @@ dns_tsig_sign(dns_message_t *msg) {
 		}
 
 		/* Digest the header */
-		isc_buffer_init(&headerbuf, header, sizeof header,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&headerbuf, header, sizeof(header));
 		dns_message_renderheader(msg, &headerbuf);
-		isc_buffer_used(&headerbuf, &r);
+		isc_buffer_usedregion(&headerbuf, &r);
 		ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_other;
 
 		/* Digest the remainder of the message */
-		isc_buffer_used(msg->buffer, &r);
+		isc_buffer_usedregion(msg->buffer, &r);
 		isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
 		ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r, NULL);
 		if (ret != ISC_R_SUCCESS)
@@ -381,7 +379,7 @@ dns_tsig_sign(dns_message_t *msg) {
 			isc_buffer_clear(&databuf);
 			isc_buffer_putuint16(&databuf, dns_rdataclass_any);
 			isc_buffer_putuint32(&databuf, 0); /* ttl */
-			isc_buffer_used(&databuf, &r);
+			isc_buffer_usedregion(&databuf, &r);
 			ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r,
 				       NULL);
 			if (ret != ISC_R_SUCCESS)
@@ -414,7 +412,7 @@ dns_tsig_sign(dns_message_t *msg) {
 							    0xFFFFFFFF));
 		}
 		isc_buffer_putuint16(&databuf, tsig->fudge);
-		isc_buffer_used(&databuf, &r);
+		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_other;
@@ -425,7 +423,7 @@ dns_tsig_sign(dns_message_t *msg) {
 			isc_buffer_putuint16(&databuf, tsig->error);
 			isc_buffer_putuint16(&databuf, tsig->otherlen);
 
-			isc_buffer_used(&databuf, &r);
+			isc_buffer_usedregion(&databuf, &r);
 			ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r,
 				       NULL);
 			if (ret != ISC_R_SUCCESS)
@@ -453,8 +451,7 @@ dns_tsig_sign(dns_message_t *msg) {
 			goto cleanup_other;
 		}
 
-		isc_buffer_init(&sigbuf, tsig->signature, tsig->siglen,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&sigbuf, tsig->signature, tsig->siglen);
 		ret = dst_sign(DST_SIGMODE_FINAL, key->key, &ctx, NULL,
 			       &sigbuf);
 		if (ret != ISC_R_SUCCESS)
@@ -469,8 +466,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	ret = dns_message_gettemprdata(msg, &rdata);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
-	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
-				  ISC_BUFFERTYPE_BINARY);
+	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
@@ -487,11 +483,10 @@ dns_tsig_sign(dns_message_t *msg) {
 		goto cleanup_dynbuf;
 	dns_name_toregion(&key->name, &r);
 	dynbuf = NULL;
-	ret = isc_buffer_allocate(mctx, &dynbuf, r.length,
-				  ISC_BUFFERTYPE_BINARY);
+	ret = isc_buffer_allocate(mctx, &dynbuf, r.length);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_dynbuf;
-	isc_buffer_available(dynbuf, &r2);
+	isc_buffer_availableregion(dynbuf, &r2);
 	memcpy(r2.base, r.base, r.length);
 	dns_name_init(owner, NULL);
 	dns_name_fromregion(owner, &r2);
@@ -657,10 +652,9 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			goto cleanup_key;
 
 		if (is_response(msg)) {
-			isc_buffer_init(&databuf, data, sizeof(data),
-					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&databuf, data, sizeof(data));
 			isc_buffer_putuint16(&databuf, msg->querytsig->siglen);
-			isc_buffer_used(&databuf, &r);
+			isc_buffer_usedregion(&databuf, &r);
 			ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r,
 					 NULL);
 			if (ret != ISC_R_SUCCESS)
@@ -676,7 +670,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		}
 
 		/* Extract the header */
-		isc_buffer_used(source, &r);
+		isc_buffer_usedregion(source, &r);
 		memcpy(header, r.base, DNS_MESSAGE_HEADERLEN);
 		isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
 
@@ -698,7 +692,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			goto cleanup_key;
 
 		/* Digest all non-TSIG records. */
-		isc_buffer_used(source, &source_r);
+		isc_buffer_usedregion(source, &source_r);
 		r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 		r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
@@ -711,11 +705,10 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
 
-		isc_buffer_init(&databuf, data, sizeof(data),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&databuf, data, sizeof(data));
 		isc_buffer_putuint16(&databuf, tsig->common.rdclass);
 		isc_buffer_putuint32(&databuf, msg->tsigset->ttl);
-		isc_buffer_used(&databuf, &r);
+		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
@@ -734,7 +727,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_putuint16(&databuf, tsig->fudge);
 		isc_buffer_putuint16(&databuf, tsig->error);
 		isc_buffer_putuint16(&databuf, tsig->otherlen);
-		isc_buffer_used(&databuf, &r);
+		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
 
 		if (tsig->otherlen > 0) {
@@ -857,10 +850,9 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_struct;
 
-		isc_buffer_init(&databuf, data, sizeof(data),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&databuf, data, sizeof(data));
 		isc_buffer_putuint16(&databuf, msg->querytsig->siglen);
-		isc_buffer_used(&databuf, &r);
+		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &msg->tsigctx,
 				 &r, NULL);
 		if (ret != ISC_R_SUCCESS)
@@ -876,7 +868,7 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	}
 
 	/* Extract the header */
-	isc_buffer_used(source, &r);
+	isc_buffer_usedregion(source, &r);
 	memcpy(header, r.base, DNS_MESSAGE_HEADERLEN);
 	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
 
@@ -903,7 +895,7 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		goto cleanup_struct;
 
 	/* Digest all non-TSIG records. */
-	isc_buffer_used(source, &source_r);
+	isc_buffer_usedregion(source, &source_r);
 	r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 	if (has_tsig)
 		r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
@@ -915,14 +907,13 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 
 	/* Digest the time signed and fudge */
 	if (has_tsig) {
-		isc_buffer_init(&databuf, data, sizeof(data),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&databuf, data, sizeof(data));
 		isc_buffer_putuint16(&databuf, (isc_uint16_t)(tsig->timesigned
 							      >> 32));
 		isc_buffer_putuint32(&databuf, (isc_uint32_t)(tsig->timesigned
 							      & 0xFFFFFFFF));
 		isc_buffer_putuint16(&databuf, tsig->fudge);
-		isc_buffer_used(&databuf, &r);
+		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &msg->tsigctx, &r,
 				 NULL);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.22 2000/04/07 03:54:37 explorer Exp $ */
+/* $Id: txt_16.c,v 1.23 2000/04/27 00:02:42 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -100,7 +100,7 @@ towire_txt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	UNUSED(cctx);
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < rdata->length)
 		return (ISC_R_NOSPACE);
 

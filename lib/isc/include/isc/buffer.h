@@ -49,6 +49,7 @@
  * is empty.  If the current offset advances beyond the chosen offset, the
  * active region will also be empty.
  *
+ *  /------------entire length---------------\
  *  /----- used region -----\/-- available --\
  *  +----------------------------------------+
  *  | consumed  | remaining |                |
@@ -122,24 +123,22 @@ ISC_LANG_BEGINDECLS
  */
 
 /*
- * Get the length of the used region of buffer "b"
+ * Fundamental buffer elements.  (A through E in the introductory comment.)
  */
-#define ISC_BUFFER_USEDCOUNT(b)		((b)->used)
+#define isc_buffer_base(b)    ((unsigned char *)(b)->base) 	          /*a*/
+#define isc_buffer_current(b) ((unsigned char *)(b)->base + (b)->current) /*b*/
+#define isc_buffer_active(b)  ((unsigned char *)(b)->base + (b)->active)  /*c*/
+#define isc_buffer_used(b)    ((unsigned char *)(b)->base + (b)->used)    /*d*/
+#define isc_buffer_length(b)  ((b)->length)                               /*e*/
 
 /*
- * Get the length of the available region of buffer "b"
+ * Derived lengths.  (Described in the introductory comment.)
  */
-#define ISC_BUFFER_AVAILABLECOUNT(b)	((b)->length - (b)->used)
-
-/***
- *** Types
- ***/
-
-#define ISC_BUFFERTYPE_GENERIC			0
-#define ISC_BUFFERTYPE_BINARY			1
-#define ISC_BUFFERTYPE_TEXT			2
-
-/* Types >= 1024 are reserved for application use. */
+#define isc_buffer_usedlength(b)	((b)->used)		      /* d-a */
+#define isc_buffer_consumedlength(b)	((b)->current)		      /* b-a */
+#define isc_buffer_remaininglength(b)	((b)->used - (b)->current)    /* d-b */
+#define isc_buffer_activelength(b)	((b)->active - (b)->current)  /* c-b */
+#define isc_buffer_availablelength(b)	((b)->length - (b)->used)     /* e-d */
 
 /*
  * Note that the buffer structure is public.  This is principally so buffer
@@ -149,7 +148,6 @@ ISC_LANG_BEGINDECLS
 
 struct isc_buffer {
 	unsigned int		magic;
-	unsigned int		type;
 	void		       *base;
 	/* The following integers are byte offsets from 'base'. */
 	unsigned int		length;
@@ -168,7 +166,7 @@ struct isc_buffer {
 
 isc_result_t
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
-		    unsigned int length, unsigned int type);
+		    unsigned int length);
 /*
  * Allocate a dynamic linkable buffer which has "length" bytes in the
  * data region.
@@ -203,8 +201,7 @@ isc_buffer_free(isc_buffer_t **dynbuffer);
  */
 
 void
-isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
-		unsigned int type);
+isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length);
 /*
  * Make 'b' refer to the 'length'-byte region starting at base.
  *
@@ -229,20 +226,6 @@ isc_buffer_invalidate(isc_buffer_t *b);
  *	calling isc_buffer_init() on it will cause an assertion failure.
  */
 		
-unsigned int
-isc_buffer_type(isc_buffer_t *b);
-/*
- * The type of 'b'.
- *
- * Requires:
- *
- *	'b' is a valid buffer.
- *
- * Returns:
- *
- *	The type of 'b'.
- */
-			
 void
 isc_buffer_region(isc_buffer_t *b, isc_region_t *r);
 /*
@@ -256,7 +239,7 @@ isc_buffer_region(isc_buffer_t *b, isc_region_t *r);
  */
 
 void
-isc_buffer_used(isc_buffer_t *b, isc_region_t *r);
+isc_buffer_usedregion(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the used region of 'b'.
  *
@@ -268,7 +251,7 @@ isc_buffer_used(isc_buffer_t *b, isc_region_t *r);
  */
 
 void
-isc_buffer_available(isc_buffer_t *b, isc_region_t *r);
+isc_buffer_availableregion(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the available region of 'b'.
  *
@@ -321,7 +304,7 @@ isc_buffer_clear(isc_buffer_t *b);
  */
 
 void
-isc_buffer_consumed(isc_buffer_t *b, isc_region_t *r);
+isc_buffer_consumedregion(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the consumed region of 'b'.
  *
@@ -333,7 +316,7 @@ isc_buffer_consumed(isc_buffer_t *b, isc_region_t *r);
  */
 
 void
-isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r);
+isc_buffer_remainingregion(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the remaining region of 'b'.
  *
@@ -345,7 +328,7 @@ isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r);
  */
 
 void
-isc_buffer_active(isc_buffer_t *b, isc_region_t *r);
+isc_buffer_activeregion(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the active region of 'b'.
  *
@@ -547,21 +530,17 @@ isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length);
  *
  */
 
-isc_result_t
+void
 isc_buffer_putstr(isc_buffer_t *b, const char *source);
 /*
- * Copy 'length' bytes of memory at 'base' into 'b'.
+ * Copy 'source' into 'b', not including terminating NUL.
  *
  * Requires:
  *	'b' is a valid buffer.
  *
  *	'source' to be a valid NULL terminated string.
  *
- * Returns:
- *
- *	ISC_R_SUCCESS
- *	ISC_R_NOSPACE			The available region of 'b' is not
- *					big enough.
+ *	strlen(source) <= isc_buffer_available(b)
  */
 
 isc_result_t

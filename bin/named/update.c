@@ -1401,7 +1401,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	unsigned int i;
 
 	dns_rdataset_init(&rdataset);
-	isc_buffer_init(&buffer, data, sizeof data, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buffer, data, sizeof(data));
 
 	/* Get the rdataset to sign. */
 	CHECK(dns_db_findnode(db, name, ISC_FALSE, &node));

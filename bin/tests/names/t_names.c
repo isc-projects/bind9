@@ -260,7 +260,7 @@ getmsg(char *datafile_name, unsigned char *buf, int buflen,
 	}
 
 	*p = '\0';
-	isc_buffer_init(pbuf, buf, cnt, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(pbuf, buf, cnt);
 	isc_buffer_add(pbuf, cnt);
 	return(cnt);
 }
@@ -360,12 +360,12 @@ dname_from_tname(char *name, dns_name_t *dns_name)
 	isc_result_t	result;
 
 	len = strlen(name);
-	isc_buffer_init(&txtbuf, name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&txtbuf, name, len);
 	isc_buffer_add(&txtbuf, len);
 	junk = (unsigned char *) malloc(sizeof(unsigned char) * BUFLEN);
 	binbuf = (isc_buffer_t *)malloc(sizeof(isc_buffer_t));
 	if ((junk != NULL) && (binbuf != NULL)) {
-		isc_buffer_init(binbuf, junk, BUFLEN, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(binbuf, junk, BUFLEN);
 		dns_name_init(dns_name, NULL);
 		dns_name_setbuffer(dns_name, binbuf);
 		result = dns_name_fromtext(dns_name,  &txtbuf,
@@ -659,7 +659,7 @@ t_dns_name_setbuffer() {
 
 	t_assert("dns_name_setbuffer", 1, T_REQUIRED, a5);
 
-	isc_buffer_init(&buffer, junk, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buffer, junk, BUFLEN);
 	dns_name_init(&name, NULL);
 	dns_name_setbuffer(&name, &buffer);
 	if (name.buffer == &buffer)
@@ -684,7 +684,7 @@ t_dns_name_hasbuffer() {
 	t_assert("dns_name_hasbuffer", 1, T_REQUIRED, a6);
 
 	rval = 0;
-	isc_buffer_init(&buffer, junk, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buffer, junk, BUFLEN);
 	dns_name_init(&name, NULL);
 	if (dns_name_hasbuffer(&name) != ISC_FALSE)
 		++rval;
@@ -718,9 +718,9 @@ test_dns_name_isabsolute(char *test_name, isc_boolean_t expected) {
 
 	t_info("testing name %s\n", test_name);
 	len = strlen(test_name);
-	isc_buffer_init(&buf, test_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buf, test_name, len);
 	isc_buffer_add(&buf, len);
-	isc_buffer_init(&binbuf, &junk[0], BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&binbuf, &junk[0], BUFLEN);
 	dns_name_init(&name, NULL);
 	dns_name_setbuffer(&name, &binbuf);
 	result = dns_name_fromtext(&name,  &buf, NULL, ISC_FALSE, NULL);
@@ -1600,10 +1600,8 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 					range, &dns_targetname2);
 
 			/* now convert both targets to text for comparison */
-			isc_buffer_init(&buffer1, junk1,
-						BUFLEN, ISC_BUFFERTYPE_TEXT);
-			isc_buffer_init(&buffer2, junk2,
-						BUFLEN, ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&buffer1, junk1, BUFLEN);
+			isc_buffer_init(&buffer2, junk2, BUFLEN);
 			dns_name_totext(&dns_targetname1, ISC_TRUE, &buffer1);
 			dns_name_totext(&dns_targetname2, ISC_TRUE, &buffer2);
 			if (buffer1.used == buffer2.used) {
@@ -1856,20 +1854,17 @@ test_dns_name_fromtext(char *test_name1, char *test_name2,
 
 	t_info("testing %s %s %s\n", test_name1, test_name2, test_origin);
 
-	isc_buffer_init(&binbuf1, junk1, BUFLEN, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&binbuf2, junk2, BUFLEN, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&binbuf3, junk3, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&binbuf1, junk1, BUFLEN);
+	isc_buffer_init(&binbuf2, junk2, BUFLEN);
+	isc_buffer_init(&binbuf3, junk3, BUFLEN);
 
-	isc_buffer_init(&txtbuf1, test_name1, strlen(test_name1),
-				ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&txtbuf1, test_name1, strlen(test_name1));
 	isc_buffer_add(&txtbuf1, strlen(test_name1));
 
-	isc_buffer_init(&txtbuf2, test_name2, strlen(test_name2),
-				ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&txtbuf2, test_name2, strlen(test_name2));
 	isc_buffer_add(&txtbuf2, strlen(test_name2));
 
-	isc_buffer_init(&txtbuf3, test_origin, strlen(test_origin),
-				ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&txtbuf3, test_origin, strlen(test_origin));
 	isc_buffer_add(&txtbuf3, strlen(test_origin));
 	dns_name_init(&dns_name1, NULL);
 	dns_name_init(&dns_name2, NULL);
@@ -1994,11 +1989,11 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	t_info("testing %s\n", test_name);
 
 	len = strlen(test_name);
-	isc_buffer_init(&buf1, test_name, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buf1, test_name, len);
 	isc_buffer_add(&buf1, len);
 
 	dns_name_init(&dns_name1, NULL);
-	isc_buffer_init(&buf2, junk2, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buf2, junk2, BUFLEN);
 
 	/* out of the data file to dns_name1 */
 	dns_result = dns_name_fromtext(&dns_name1, &buf1, NULL, ISC_FALSE,
@@ -2011,7 +2006,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 
 	/* from dns_name1 into a text buffer */
 	isc_buffer_invalidate(&buf1);
-	isc_buffer_init(&buf1, junk1, BUFLEN, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buf1, junk1, BUFLEN);
 	dns_result = dns_name_totext(&dns_name1, omit_final, &buf1);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_totext failed, result == %s\n",
@@ -2021,7 +2016,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 
 	/* from the text buffer into dns_name2 */
 	dns_name_init(&dns_name2, NULL);
-	isc_buffer_init(&buf3, junk3, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buf3, junk3, BUFLEN);
 	dns_result = dns_name_fromtext(&dns_name2, &buf1,
 				       NULL, ISC_FALSE, &buf3);
 	if (dns_result != ISC_R_SUCCESS) {
@@ -2153,7 +2148,7 @@ test_dns_name_fromwire( char *datafile_name,
 	isc_buffer_setactive(&iscbuf1, len);
 	iscbuf1.current = testname_offset;
 
-	isc_buffer_init(&iscbuf2, buf2, buflen, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&iscbuf2, buf2, buflen);
 	dns_name_init(&dns_name1, NULL);
 	dns_decompress_init(&dctx, -1, ISC_FALSE);
 	dns_decompress_setmethods(&dctx, dc_method);
@@ -2364,12 +2359,13 @@ test_dns_name_towire(	char *testname,
 	dns_compress_setmethods(&cctx, dc_method);
 	dns_name_init(&dns_name, NULL);
 	len = strlen(testname);
-	isc_buffer_init(&iscbuf1, testname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&iscbuf1, testname, len);
 	isc_buffer_add(&iscbuf1, len);
-	isc_buffer_init(&iscbuf2, buf2, BUFLEN, ISC_BUFFERTYPE_BINARY);
-	dns_result = dns_name_fromtext(&dns_name, &iscbuf1, NULL, ISC_FALSE, &iscbuf2);
+	isc_buffer_init(&iscbuf2, buf2, BUFLEN);
+	dns_result = dns_name_fromtext(&dns_name, &iscbuf1, NULL, ISC_FALSE,
+				       &iscbuf2);
 	if (dns_result == ISC_R_SUCCESS) {
-		isc_buffer_init(&iscbuf3, buf3, buflen, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&iscbuf3, buf3, buflen);
 		dns_result = dns_name_towire(&dns_name, &cctx, &iscbuf3);
 		if (dns_result == exp_result) {
 			if (exp_result == ISC_R_SUCCESS) {

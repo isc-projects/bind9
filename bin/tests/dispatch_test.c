@@ -77,7 +77,7 @@ hex_dump(isc_buffer_t *b)
 	unsigned int len;
 	isc_region_t r;
 
-	isc_buffer_remaining(b, &r);
+	isc_buffer_remainingregion(b, &r);
 
 	printf("Buffer %p:  used region base %p, length %d",
 	       b, r.base, r.length);
@@ -136,11 +136,10 @@ start_response(clictx_t *cli, char *query, isc_task_t *task)
 	isc_buffer_t source;
 	isc_region_t region;
 
-	isc_buffer_init(&source, query, strlen(query), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, query, strlen(query));
 	isc_buffer_add(&source, strlen(query));
 	isc_buffer_setactive(&source, strlen(query));
-	isc_buffer_init(&target, namebuf, sizeof(namebuf),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, namebuf, sizeof(namebuf));
 
 	memset(&from, 0, sizeof(from));
 	from.length = sizeof(struct sockaddr_in);
@@ -182,7 +181,7 @@ start_response(clictx_t *cli, char *query, isc_task_t *task)
 	CHECKRESULT(result, "printmessage()");
 
 	isc_buffer_init(&cli->render, cli->render_buffer,
-			sizeof(cli->render_buffer), ISC_BUFFERTYPE_BINARY);
+			sizeof(cli->render_buffer));
 	result = dns_message_renderbegin(msg, &cli->render);
 	CHECKRESULT(result, "dns_message_renderbegin()");
 
@@ -221,7 +220,7 @@ start_response(clictx_t *cli, char *query, isc_task_t *task)
 
 	dns_message_destroy(&msg);
 
-	isc_buffer_used(&cli->render, &region);
+	isc_buffer_usedregion(&cli->render, &region);
 	result = isc_socket_sendto(dns_dispatch_getsocket(disp), &region,
 				   task, send_done, cli->resp, &from, NULL);
 	CHECKRESULT(result, "isc_socket_sendto()");

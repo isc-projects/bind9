@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.8 2000/03/07 19:27:50 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.9 2000/04/27 00:02:56 tale Exp $
  */
 
 #include <config.h>
@@ -136,7 +136,7 @@ dst_openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	dhpriv = (DH *) priv->opaque;
 
 	len = DH_size(dhpriv);
-	isc_buffer_available(secret, &r);
+	isc_buffer_availableregion(secret, &r);
 	if (r.length < len)
 		return (ISC_R_NOSPACE);
 	ret = DH_compute_key(r.base, dhpub->pub_key, dhpriv);
@@ -183,7 +183,7 @@ dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	dh = (DH *) key->opaque;
 
-	isc_buffer_available(data, &r);
+	isc_buffer_availableregion(data, &r);
 
 	if (dh->g == &bn2 && (dh->p == &bn768 || dh->p == &bn1024)) {
 		plen = 1;
@@ -243,7 +243,7 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	mctx = mctx;	/* make the compiler happy */
 
-	isc_buffer_remaining(data, &r);
+	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
 		return (ISC_R_SUCCESS);
 
@@ -340,7 +340,7 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	dh->pub_key = BN_bin2bn(r.base, publen, NULL);
 	r.base += publen;
 
-	isc_buffer_remaining(data, &r);
+	isc_buffer_remainingregion(data, &r);
 	key->key_id = dst_s_id_calc(r.base, plen + glen + publen + 6);
 	key->key_size = BN_num_bits(dh->p);
 
@@ -479,12 +479,11 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) 
 			dh->g = &bn2;
 		}
 	}
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
 	ret = dst_openssldh_to_dns(key, &dns);
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
-	isc_buffer_used(&dns, &r);
+	isc_buffer_usedregion(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
 
 	if (key->key_id != id)
@@ -570,10 +569,9 @@ dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx) {
 
 	key->opaque = dh;
 
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
 	dst_openssldh_to_dns(key, &dns);
-	isc_buffer_used(&dns, &r);
+	isc_buffer_usedregion(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
 
 	return (ISC_R_SUCCESS);

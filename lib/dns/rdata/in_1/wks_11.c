@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.24 2000/04/07 03:54:52 explorer Exp $ */
+/* $Id: wks_11.c,v 1.25 2000/04/27 00:02:51 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -58,7 +58,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* IPv4 dotted quad */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
@@ -130,7 +130,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	REQUIRE(rdata->rdclass == 1);
 
 	dns_rdata_toregion(rdata, &sr);
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	if (inet_ntop(AF_INET, sr.base, (char *)tr.base, tr.length) == NULL)
 		return (ISC_R_NOSPACE);
 	isc_buffer_add(target, strlen((char *)tr.base));
@@ -171,8 +171,8 @@ fromwire_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
 
-	isc_buffer_active(source, &sr);
-	isc_buffer_available(target, &tr);
+	isc_buffer_activeregion(source, &sr);
+	isc_buffer_availableregion(target, &tr);
 
 	if (sr.length < 5)
 		return (ISC_R_UNEXPECTEDEND);

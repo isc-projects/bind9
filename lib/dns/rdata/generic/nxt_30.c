@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.25 2000/04/07 03:54:27 explorer Exp $ */
+/* $Id: nxt_30.c,v 1.26 2000/04/27 00:02:34 tale Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -48,8 +48,7 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* next domain */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
@@ -148,7 +147,7 @@ fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_init(&name, NULL);
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
 	
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	/* XXXRTH  Enforce RFC 2535 length rules if bit 0 is not set. */
 	if (sr.length > 8 * 1024)
 		return (DNS_R_EXTRADATA);

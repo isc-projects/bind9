@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.19 2000/04/17 19:22:43 explorer Exp $ */
+/* $Id: connection.c,v 1.20 2000/04/27 00:03:08 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -522,13 +522,11 @@ connect_toserver(omapi_object_t *protocol, const char *server_name, int port) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = isc_buffer_allocate(omapi_mctx, &ibuffer, OMAPI_BUFFER_SIZE,
-				     ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(omapi_mctx, &ibuffer, OMAPI_BUFFER_SIZE);
 	if (result != ISC_R_SUCCESS)
 		goto free_task;
 
-	result = isc_buffer_allocate(omapi_mctx, &obuffer, OMAPI_BUFFER_SIZE,
-				     ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(omapi_mctx, &obuffer, OMAPI_BUFFER_SIZE);
 	if (result != ISC_R_SUCCESS)
 		goto free_ibuffer;
 
@@ -654,8 +652,7 @@ omapi_connection_putmem(omapi_object_t *c, unsigned char *src,
 		 */
 		buffer = NULL;
 		result = isc_buffer_allocate(omapi_mctx, &buffer,
-					     OMAPI_BUFFER_SIZE,
-					     ISC_BUFFERTYPE_BINARY);
+					     OMAPI_BUFFER_SIZE);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
@@ -672,7 +669,7 @@ omapi_connection_putmem(omapi_object_t *c, unsigned char *src,
 	for (buffer = ISC_LIST_HEAD(bufferlist); len > 0;
 	     buffer = ISC_LIST_NEXT(buffer, link)) {
 
-		space_available = ISC_BUFFER_AVAILABLECOUNT(buffer);
+		space_available = isc_buffer_availablelength(buffer);
 		if (space_available > len)
 			space_available = len;
 
@@ -852,7 +849,7 @@ connection_require(omapi_connection_t *connection, unsigned int bytes) {
 		/*
 		 * Lop off any completely used buffers, except the last one.
 		 */
-		while (ISC_BUFFER_AVAILABLECOUNT(buffer) == 0 &&
+		while (isc_buffer_availablelength(buffer) == 0 &&
 		       buffer != ISC_LIST_TAIL(bufferlist)) {
 
 			ISC_LIST_UNLINK(bufferlist, buffer, link);
@@ -876,8 +873,7 @@ connection_require(omapi_connection_t *connection, unsigned int bytes) {
 
 			buffer = NULL;
 			result = isc_buffer_allocate(omapi_mctx, &buffer,
-						     OMAPI_BUFFER_SIZE,
-						     ISC_BUFFERTYPE_BINARY);
+						     OMAPI_BUFFER_SIZE);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 

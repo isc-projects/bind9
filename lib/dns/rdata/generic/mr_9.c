@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.21 2000/04/07 03:54:23 explorer Exp $ */
+/* $Id: mr_9.c,v 1.22 2000/04/27 00:02:31 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -40,8 +40,7 @@ fromtext_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }

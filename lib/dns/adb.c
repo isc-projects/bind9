@@ -3057,10 +3057,10 @@ print_dns_name(FILE *f, dns_name_t *name)
 
 	INSIST(f != NULL);
 
-	isc_buffer_init(&b, buf, sizeof buf, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, buf, sizeof(buf));
 
 	if (dns_name_totext(name, ISC_FALSE, &b) == ISC_R_SUCCESS) {
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 		fprintf(f, "%.*s", (int)r.length, r.base);
 	}
 }

@@ -69,7 +69,7 @@ hex_dump(isc_buffer_t *b)
 	unsigned int len;
 	isc_region_t r;
 
-	isc_buffer_remaining(b, &r);
+	isc_buffer_remainingregion(b, &r);
 
 	printf("Buffer %p (%p, %d):  used region base %p, length %d",
 	       b, b->base, b->length, r.base, r.length);
@@ -159,12 +159,10 @@ start_response(void)
 
 #define QUESTION "flame.org."
 
-	isc_buffer_init(&source, QUESTION, strlen(QUESTION),
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, QUESTION, strlen(QUESTION));
 	isc_buffer_add(&source, strlen(QUESTION));
 	isc_buffer_setactive(&source, strlen(QUESTION));
-	isc_buffer_init(&target, namebuf, sizeof(namebuf),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, namebuf, sizeof(namebuf));
 
 	memset(&from, 0, sizeof(from));
 	from.length = sizeof(struct sockaddr_in);
@@ -205,8 +203,7 @@ start_response(void)
 	result = printmessage(msg);
 	CHECKRESULT(result, "printmessage()");
 
-	isc_buffer_init(&render, render_buffer, sizeof(render_buffer),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&render, render_buffer, sizeof(render_buffer));
 	result = dns_message_renderbegin(msg, &render);
 	CHECKRESULT(result, "dns_message_renderbegin()");
 
@@ -242,7 +239,7 @@ start_response(void)
 
 	dns_message_destroy(&msg);
 
-	isc_buffer_used(&render, &region);
+	isc_buffer_usedregion(&render, &region);
 	result = isc_socket_send(dns_dispatch_getsocket(disp), &region,
 				   t2, send_done, resp);
 	CHECKRESULT(result, "isc_socket_send()");

@@ -710,12 +710,11 @@ isc_result_t dns_name_fromwire(dns_name_t *name,
  *
  *	'name' is a valid name.
  *
- *	'source' is a valid buffer of type ISC_BUFFERTYPE_BINARY, and the
- *	first byte of the active region should be the first byte of a DNS
- *	wire format domain name.
+ *	'source' is a valid buffer and the first byte of the active
+ *	region should be the first byte of a DNS wire format domain name.
  *
- *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY or 
- *	'target' is NULL and 'name' has a dedicated buffer.
+ *	'target' is a valid buffer or 'target' is NULL and 'name' has
+ *	a dedicated buffer.
  *
  *	'dctx' is a valid decompression context.
  *
@@ -742,8 +741,7 @@ isc_result_t dns_name_fromwire(dns_name_t *name,
  *	Bad Form: Bad compression pointer
  *	Bad Form: Input too short
  *	Resource Limit: Too many compression pointers
- *	Resource Limit: Not enough space in buffer
- */
+ *	Resource Limit: Not enough space in buffer */
 
 isc_result_t dns_name_towire(dns_name_t *name,
 			     dns_compress_t *cctx,
@@ -763,7 +761,7 @@ isc_result_t dns_name_towire(dns_name_t *name,
  *
  *	dns_name_isabsolute(name) == TRUE
  *
- *	target is a valid buffer of type ISC_BUFFERTYPE_BINARY.
+ *	target is a valid buffer.
  *
  *	Any offsets specified in a global compression table are valid
  *	for buffer.
@@ -802,10 +800,10 @@ isc_result_t dns_name_fromtext(dns_name_t *name,
  *
  *	'name' is a valid name.
  *
- *	'source' is a valid buffer of type ISC_BUFFERTYPE_TEXT.
+ *	'source' is a valid buffer.
  *
- *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY or 
- *	'target' is NULL and 'name' has a dedicated buffer.
+ *	'target' is a valid buffer or 'target' is NULL and 'name' has
+ *	a dedicated buffer.
  *
  * Ensures:
  *
@@ -829,8 +827,7 @@ isc_result_t dns_name_fromtext(dns_name_t *name,
  *	DNS_R_BITSTRINGTOOLONG
  *	DNS_R_BADDOTTEDQUAD
  *	ISC_R_NOSPACE
- *	ISC_R_UNEXPECTEDEND
- */
+ *	ISC_R_UNEXPECTEDEND */
 
 isc_result_t dns_name_totext(dns_name_t *name,
 			     isc_boolean_t omit_final_dot,
@@ -846,7 +843,7 @@ isc_result_t dns_name_totext(dns_name_t *name,
  *
  *	'name' is a valid name
  *
- *	'target' is a valid buffer of type ISC_BUFFERTYPE_TEXT
+ *	'target' is a valid buffer.
  *
  *	dns_name_countlabels(name) > 0
  *
@@ -881,15 +878,14 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name,
  *
  *	Otherwise,
  *
- *		'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY, or 
- *		'target' is NULL and 'name' has a dedicated buffer.
+ *		'target' is a valid buffer or 'target' is NULL and
+ *		'name' has a dedicated buffer.
  *
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOSPACE
  *
- *	Note: if source == name, then the result will always be ISC_R_SUCCESS.
- */
+ * Note: if source == name, then the result will always be ISC_R_SUCCESS.  */
 
 isc_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
 				  dns_name_t *name, isc_buffer_t *target);
@@ -904,8 +900,8 @@ isc_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *
  *	'name' is a valid name or NULL.
  *
- *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY, or 
- *	'target' is NULL and 'name' has a dedicated buffer.
+ *	'target' is a valid buffer or 'target' is NULL and 'name' has
+ *	a dedicated buffer.
  *
  *	If 'prefix' is absolute, 'suffix' must be NULL or the empty name.
  *
@@ -921,8 +917,7 @@ isc_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *
  * Returns:
  *	ISC_R_SUCCESS
- *	ISC_R_NOSPACE
- */
+ *	ISC_R_NOSPACE */
 
 isc_result_t
 dns_name_split(dns_name_t *name,

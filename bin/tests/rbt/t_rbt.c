@@ -24,6 +24,7 @@
 #include	<unistd.h>
 
 #include	<isc/boolean.h>
+#include	<isc/util.h>
 
 #include	<dns/rbt.h>
 #include	<dns/fixedname.h>
@@ -72,7 +73,7 @@ dnsname_totext(dns_name_t *name) {
 	static char	buf[BUFLEN];
 	isc_buffer_t	target;
 
-	isc_buffer_init(&target, buf, BUFLEN, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&target, buf, BUFLEN);
 	dns_name_totext(name, ISC_FALSE, &target);
 	*((char *)(target.base) + target.used) = '\0';
 	return(target.base);
@@ -84,7 +85,7 @@ fixedname_totext(dns_fixedname_t *name) {
 	isc_buffer_t	target;
 
 	memset(buf, 0, BUFLEN);
-	isc_buffer_init(&target, buf, BUFLEN, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&target, buf, BUFLEN);
 	dns_name_totext(dns_fixedname_name(name), ISC_FALSE, &target);
 	*((char *)(target.base) + target.used) = '\0';
 	return(target.base);
@@ -98,7 +99,7 @@ print_data(void *data) {
 	isc_buffer_t	target;
 	char		*buffer[DNSNAMELEN];
 
-	isc_buffer_init(&target, buffer, sizeof(buffer), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&target, buffer, sizeof(buffer));
 
 	dns_result = dns_name_totext(data, ISC_FALSE, &target);
 	if (dns_result != ISC_R_SUCCESS) {
@@ -124,7 +125,7 @@ create_name(char *s, isc_mem_t *mctx, dns_name_t **dns_name) {
 
 		length = strlen(s);
 	
-		isc_buffer_init(&source, s, length, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&source, s, length);
 		isc_buffer_add(&source, length);
 	
 		/*
@@ -138,8 +139,7 @@ create_name(char *s, isc_mem_t *mctx, dns_name_t **dns_name) {
 		}
 	
 		dns_name_init(*dns_name, NULL);
-		isc_buffer_init(&target, *dns_name + 1, DNSNAMELEN,
-					ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&target, *dns_name + 1, DNSNAMELEN);
 	
 		result = dns_name_fromtext(*dns_name, &source, dns_rootname,
 					   ISC_FALSE, &target);
@@ -757,7 +757,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	}
 
 	len = strlen(findname);
-	isc_buffer_init(&isc_buffer, findname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&isc_buffer, findname, len);
 	isc_buffer_add(&isc_buffer, len);
 
 	dns_fixedname_init(&dns_foundname);
@@ -1316,7 +1316,7 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	}
 
 	len = strlen(findname);
-	isc_buffer_init(&isc_buffer, findname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&isc_buffer, findname, len);
 	isc_buffer_add(&isc_buffer, len);
 
 	dns_fixedname_init(&dns_foundname);
@@ -1488,7 +1488,7 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 	}
 
 	len = strlen(findname);
-	isc_buffer_init(&isc_buffer, findname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&isc_buffer, findname, len);
 	isc_buffer_add(&isc_buffer, len);
 
 	dns_fixedname_init(&dns_foundname);

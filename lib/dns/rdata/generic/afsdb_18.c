@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.21 2000/04/07 03:54:07 explorer Exp $ */
+/* $Id: afsdb_18.c,v 1.22 2000/04/27 00:02:23 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -46,8 +46,7 @@ fromtext_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* hostname */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }
@@ -98,8 +97,8 @@ fromwire_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	dns_name_init(&name, NULL);
 
-	isc_buffer_active(source, &sr);
-	isc_buffer_available(target, &tr);
+	isc_buffer_activeregion(source, &sr);
+	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 2)
 		return (ISC_R_NOSPACE);
 	if (sr.length < 2)
@@ -124,7 +123,7 @@ towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	else
 		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	dns_rdata_toregion(rdata, &sr);
 	if (tr.length < 2)
 		return (ISC_R_NOSPACE);

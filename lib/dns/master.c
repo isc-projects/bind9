@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.48 2000/04/20 18:47:17 bwelling Exp $ */
+/* $Id: master.c,v 1.49 2000/04/27 00:01:29 tale Exp $ */
 
 #include <config.h>
 
@@ -251,8 +251,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		result = ISC_R_NOMEMORY;
 		goto error_cleanup;
 	}
-	isc_buffer_init(&target, target_mem, target_size,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, target_mem, target_size);
 	target_save = target;
 
 	memset(name_in_use, 0, NBUFS * sizeof(isc_boolean_t));
@@ -417,11 +416,10 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					break;
 			INSIST(new_in_use < NBUFS);
 			isc_buffer_init(&name, &name_buf[new_in_use][0],
-					MAXWIRESZ, ISC_BUFFERTYPE_BINARY);
+					MAXWIRESZ);
 			dns_name_init(&new_name, NULL);
 			isc_buffer_init(&buffer, token.value.as_region.base,
-					token.value.as_region.length,
-					ISC_BUFFERTYPE_TEXT);
+					token.value.as_region.length);
 			isc_buffer_add(&buffer, token.value.as_region.length);
 			isc_buffer_setactive(&buffer,
 					     token.value.as_region.length);
@@ -520,8 +518,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					current_known = ISC_TRUE;
 					current_has_delegation = ISC_FALSE;
 					isc_buffer_init(&target, target_mem,
-							target_size,
-							ISC_BUFFERTYPE_BINARY);
+							target_size);
 				}
 			}
 		} else {
@@ -623,8 +620,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			isc_buffer_t buffer;
 			isc_region_t region;
 
-			isc_buffer_init(&buffer, buf1, sizeof buf1,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&buffer, buf1, sizeof(buf1));
 			result = dns_rdataclass_totext(rdclass, &buffer);
 			if (result != ISC_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -633,10 +629,9 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				result = ISC_R_UNEXPECTED;
 				goto cleanup;
 			}
-			isc_buffer_used(&buffer, &region);
+			isc_buffer_usedregion(&buffer, &region);
 			len1 = region.length;
-			isc_buffer_init(&buffer, buf2, sizeof buf2,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&buffer, buf2, sizeof(buf2));
 			result = dns_rdataclass_totext(zclass, &buffer);
 			if (result != ISC_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -645,7 +640,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				result = ISC_R_UNEXPECTED;
 				goto cleanup;
 			}
-			isc_buffer_used(&buffer, &region);
+			isc_buffer_usedregion(&buffer, &region);
 			len2 = region.length;
 			(*callbacks->error)(callbacks,
 			       "%s: %s:%d: class (%.*s) != zone class (%.*s)",
@@ -790,8 +785,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			glue_in_use = -1;
 			in_glue = ISC_FALSE;
 			current_has_delegation = ISC_FALSE;
-			isc_buffer_init(&target, target_mem, target_size,
-					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&target, target_mem, target_size);
 		}
 	} while (!done);
 	/*

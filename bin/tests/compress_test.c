@@ -136,7 +136,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 		fprintf(stdout, "Allowed = %s\n", s);
 	}
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	isc_buffer_init(&source, buf1, sizeof buf1, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&source, buf1, sizeof(buf1));
 	RUNTIME_CHECK(dns_compress_init(&cctx, -1, mctx) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(dns_name_towire(name1, &cctx, &source) == ISC_R_SUCCESS);
@@ -172,7 +172,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 	}
 
 	isc_buffer_setactive(&source, source.used);
-	isc_buffer_init(&target, buf2, sizeof buf2, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, buf2, sizeof(buf2));
 	dns_decompress_init(&dctx, -1, ISC_TRUE);
 
 	dns_name_init(&name, NULL);

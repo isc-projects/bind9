@@ -46,20 +46,20 @@ use(dst_key_t *key) {
 	isc_buffer_t databuf, sigbuf;
 	isc_region_t datareg, sigreg;
 
-	isc_buffer_init(&sigbuf, sig, sizeof(sig), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&sigbuf, sig, sizeof(sig));
 	/* Advance 1 byte for fun */
 	isc_buffer_add(&sigbuf, 1);
 
-	isc_buffer_init(&databuf, data, strlen(data), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&databuf, data, strlen(data));
 	isc_buffer_add(&databuf, strlen(data));
-	isc_buffer_used(&databuf, &datareg);
+	isc_buffer_usedregion(&databuf, &datareg);
 
 	ret = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
 	printf("sign(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 
 	isc_buffer_forward(&sigbuf, 1);
-	isc_buffer_remaining(&sigbuf, &sigreg);
+	isc_buffer_remainingregion(&sigbuf, &sigreg);
 	ret = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
 	printf("verify(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
@@ -75,7 +75,7 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 	isc_result_t ret;
 	isc_boolean_t match;
 
-	isc_buffer_init(&buf1, buffer1, sizeof(buffer1), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buf1, buffer1, sizeof(buffer1));
 	ret = dst_key_todns(key, &buf1);
 	printf("todns(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
@@ -86,14 +86,14 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 	       isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;
-	isc_buffer_init(&buf2, buffer2, sizeof(buffer2), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buf2, buffer2, sizeof(buffer2));
 	ret = dst_key_todns(newkey, &buf2);
 	printf("todns2(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;
-	isc_buffer_used(&buf1, &r1);
-	isc_buffer_used(&buf2, &r2);
+	isc_buffer_usedregion(&buf1, &r1);
+	isc_buffer_usedregion(&buf2, &r2);
 	match = (r1.length == r2.length &&
 		 memcmp(r1.base, r2.base, r1.length) == 0);
 	printf("compare(%d): %s\n", dst_key_alg(key), match ? "true" : "false");
@@ -150,20 +150,20 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx) {
 	if (ret != 0)
 		return;
 
-	isc_buffer_init(&b1, array1, sizeof(array1), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b1, array1, sizeof(array1));
 	ret = dst_computesecret(key1, key2, &b1);
 	printf("computesecret() returned: %s\n", isc_result_totext(ret));
 	if (ret != 0)
 		return;
 
-	isc_buffer_init(&b2, array2, sizeof(array2), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b2, array2, sizeof(array2));
 	ret = dst_computesecret(key2, key1, &b2);
 	printf("computesecret() returned: %s\n", isc_result_totext(ret));
 	if (ret != 0)
 		return;
 
-	isc_buffer_used(&b1, &r1);
-	isc_buffer_used(&b2, &r2);
+	isc_buffer_usedregion(&b1, &r1);
+	isc_buffer_usedregion(&b2, &r2);
 
 	if (r1.length != r2.length || memcmp(r1.base, r2.base, r1.length) != 0)
 	{
@@ -203,7 +203,7 @@ get_random() {
 	isc_result_t ret;
 	unsigned int i;
 
-	isc_buffer_init(&databuf, data, sizeof data, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&databuf, data, sizeof(data));
 	ret = dst_random_get(sizeof(data), &databuf);
 	printf("random() returned: %s\n", isc_result_totext(ret));
 	for (i = 0; i < sizeof data; i++)

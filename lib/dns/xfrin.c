@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.64 2000/04/17 19:22:29 explorer Exp $ */
+/* $Id: xfrin.c,v 1.65 2000/04/27 00:02:07 tale Exp $ */
 
 #include <config.h>
 
@@ -804,8 +804,7 @@ xfrin_create(isc_mem_t *mctx,
 	}
 	
 	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
-			sizeof(xfr->qbuffer_data),
-			ISC_BUFFERTYPE_BINARY);
+			sizeof(xfr->qbuffer_data));
 
 	xfr->magic = XFRIN_MAGIC;
 	*xfrp = xfr;
@@ -981,7 +980,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	xfr->lasttsig = msg->tsig;
 	msg->tsig = NULL;
 
-	isc_buffer_used(&xfr->qbuffer, &region);
+	isc_buffer_usedregion(&xfr->qbuffer, &region);
 	INSIST(region.length <= 65535);
 
 	length[0] = region.length >> 8;
@@ -1029,7 +1028,7 @@ xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sent request length prefix");
 	CHECK(evresult);
 
-	isc_buffer_used(&xfr->qbuffer, &region);
+	isc_buffer_usedregion(&xfr->qbuffer, &region);
 	CHECK(isc_socket_send(xfr->socket, &region, xfr->task,
 			      xfrin_send_done, xfr));
 	xfr->sends++;
@@ -1317,8 +1316,7 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 
 	dns_name_format(zonename, znbuf, sizeof(znbuf));
 	
-	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem),
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem));
 	result = isc_sockaddr_totext(masteraddr, &masterbuf);
 	if (result != ISC_R_SUCCESS)
 		strcpy(masterbuf.base, "<UNKNOWN>");

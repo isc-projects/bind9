@@ -111,9 +111,9 @@ nametostr(dns_name_t *name) {
 	isc_region_t r;
 	static char data[1025];
 
-	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, data, sizeof(data));
 	dns_name_totext(name, ISC_FALSE, &b);
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return (char *) r.base;
 }
@@ -125,9 +125,9 @@ typetostr(const dns_rdatatype_t type) {
 	isc_region_t r;
 	static char data[10];
 
-	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, data, sizeof(data));
 	dns_rdatatype_totext(type, &b);
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return (char *) r.base;
 }
@@ -139,9 +139,9 @@ algtostr(const dns_secalg_t alg) {
 	isc_region_t r;
 	static char data[10];
 
-	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, data, sizeof(data));
 	dns_secalg_totext(alg, &b);
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return (char *) r.base;
 }
@@ -198,7 +198,7 @@ iszonekey(signer_key_t *key, dns_db_t *db) {
 	isc_buffer_t b;
 	isc_result_t result;
 
-	isc_buffer_init(&b, origin, sizeof(origin), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, origin, sizeof(origin));
 	result = dns_name_totext(dns_db_origin(db), ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
 
@@ -295,8 +295,7 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 	ISC_LIST_APPEND(arraylist, tdata, link); \
 	if (trdata == NULL || tdata == NULL) \
 		check_result(ISC_R_FAILURE, "isc_mem_get"); \
-	isc_buffer_init(&b, tdata->array, sizeof(tdata->array), \
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, tdata->array, sizeof(tdata->array));
 
 /*
  * Signs a set.  Goes through contortions to decide if each SIG should
@@ -882,10 +881,10 @@ loadzone(char *file, char *origin, dns_zone_t **zone) {
 	isc_result_t result;
 
 	len = strlen(origin);
-	isc_buffer_init(&b, origin, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, origin, len);
 	isc_buffer_add(&b, len);
 
-	isc_buffer_init(&b2, namedata, sizeof(namedata), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b2, namedata, sizeof(namedata));
 
 	dns_name_init(&name, NULL);
 	result = dns_name_fromtext(&name, &b, dns_rootname, ISC_FALSE, &b2);

@@ -59,7 +59,7 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 		len = snprintf(tmp, sizeof(tmp), "%u%c", t, s[0]);
 
 	INSIST(len + 1 <= sizeof tmp);
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (len > region.length)
 		return (ISC_R_NOSPACE);
 	memcpy(region.base, tmp, len);
@@ -112,7 +112,7 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
 		 * The unit letter is the last character in the 
 		 * used region of the buffer.
 		 */
-		isc_buffer_used(target, &region);
+		isc_buffer_usedregion(target, &region);
 		region.base[region.length - 1] =
 			toupper(region.base[region.length - 1]);
 	}

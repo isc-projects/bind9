@@ -381,7 +381,7 @@ client_init_gabn(client_t *client)
 	 * Set up the internal buffer to point to the receive region.
 	 */
 	isc_buffer_init(&client->recv_buffer, client->buffer,
-			LWRES_RECVLENGTH, ISC_BUFFERTYPE_TEXT);
+			LWRES_RECVLENGTH);
 }
 
 void
@@ -401,5 +401,5 @@ client_init_gnba(client_t *client)
 	client->gnba.baselen = 0;
 
 	isc_buffer_init(&client->recv_buffer, client->buffer,
-			LWRES_RECVLENGTH, ISC_BUFFERTYPE_TEXT);
+			LWRES_RECVLENGTH);
 }

@@ -454,8 +454,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	/*
 	 * Peek into the buffer to see what we can see.
 	 */
-	isc_buffer_init(&source, ev->region.base, ev->region.length,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&source, ev->region.base, ev->region.length);
 	isc_buffer_add(&source, ev->n);
 	dres = dns_message_peekheader(&source, &id, &flags);
 	if (dres != ISC_R_SUCCESS) {
@@ -514,8 +513,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	 * resp contains the information on the place to send it to.
 	 * Send the event off.
 	 */
-	isc_buffer_init(&rev->buffer, ev->region.base, ev->region.length,
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&rev->buffer, ev->region.base, ev->region.length);
 	isc_buffer_add(&rev->buffer, ev->n);
 	rev->result = ISC_R_SUCCESS;
 	rev->id = id;

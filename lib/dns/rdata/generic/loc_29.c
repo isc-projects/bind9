@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.14 2000/04/07 03:54:16 explorer Exp $ */
+/* $Id: loc_29.c,v 1.15 2000/04/27 00:02:27 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -494,7 +494,7 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 29);
 	
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
 	if (sr.base[0] != 0)
@@ -537,7 +537,7 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* altitiude */
 	/* all values possible */
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, 16);
 	return (mem_tobuffer(target, sr.base, 16));
 }

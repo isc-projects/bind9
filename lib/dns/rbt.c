@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.75 2000/04/24 21:18:16 tale Exp $ */
+/* $Id: rbt.c,v 1.76 2000/04/27 00:01:39 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1901,7 +1901,7 @@ dns_rbt_printnodename(dns_rbtnode_t *node) {
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &r);
 
-	isc_buffer_init(&target, buffer, 255, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&target, buffer, 255);
 
 	/*
 	 * ISC_FALSE means absolute names have the final dot added.

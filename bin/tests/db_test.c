@@ -96,10 +96,10 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	isc_region_t r;
 
-	isc_buffer_init(&text, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&text, t, sizeof(t));
 	result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
 				     &text);
-	isc_buffer_used(&text, &r);
+	isc_buffer_usedregion(&text, &r);
 	if (result == ISC_R_SUCCESS)
 		printf("%.*s", (int)r.length, (char *)r.base);
 	else
@@ -138,7 +138,7 @@ select_db(char *origintext) {
 		return (cache_dbi);
 	}
 	len = strlen(origintext);
-	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, origintext, len);
 	isc_buffer_add(&source, len);
 	dns_fixedname_init(&forigin);
 	origin = dns_fixedname_name(&forigin);
@@ -190,8 +190,7 @@ list(dbinfo *dbi, char *seektext) {
 		if (result == ISC_R_SUCCESS) {
 			if (seektext != NULL) {
 				len = strlen(seektext);
-				isc_buffer_init(&source, seektext, len,
-						ISC_BUFFERTYPE_TEXT);
+				isc_buffer_init(&source, seektext, len);
 				isc_buffer_add(&source, len);
 				dns_fixedname_init(&fseekname);
 				seekname = dns_fixedname_name(&fseekname);
@@ -276,7 +275,7 @@ load(char *filename, char *origintext, isc_boolean_t cache) {
 	dbi->ascending = ascending;
 	
 	len = strlen(origintext);
-	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&source, origintext, len);
 	isc_buffer_add(&source, len);
 	dns_fixedname_init(&forigin);
 	origin = dns_fixedname_name(&forigin);
@@ -730,9 +729,9 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 
-		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&source, s, len);
 		isc_buffer_add(&source, len);
-		isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&target, b, sizeof(b));
 		result = dns_name_fromtext(&name, &source, origin,
 					   ISC_FALSE, &target);
 		if (result != ISC_R_SUCCESS) {
@@ -755,8 +754,7 @@ main(int argc, char *argv[]) {
 				}
 				continue;
 			}
-			isc_buffer_init(&tb1, t1, sizeof t1,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&tb1, t1, sizeof(t1));
 			result = dns_name_totext(dns_db_origin(db), ISC_FALSE,
 						 &tb1);
 			if (result != ISC_R_SUCCESS) {
@@ -765,7 +763,7 @@ main(int argc, char *argv[]) {
 				dns_db_detach(&db);
 				continue;
 			}
-			isc_buffer_used(&tb1, &r1);
+			isc_buffer_usedregion(&tb1, &r1);
 			printf("\ndatabase = %.*s (%s)\n",
 			       (int)r1.length, r1.base,
 			       (dns_db_iszone(db)) ? "zone" : "cache");
@@ -833,10 +831,8 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 		if (found_as && !quiet) {
-			isc_buffer_init(&tb1, t1, sizeof t1,
-					ISC_BUFFERTYPE_TEXT);
-			isc_buffer_init(&tb2, t2, sizeof t2,
-					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&tb1, t1, sizeof(t1));
+			isc_buffer_init(&tb2, t2, sizeof(t2));
 			result = dns_name_totext(&name, ISC_FALSE, &tb1);
 			if (result != ISC_R_SUCCESS) {
 				print_result("", result);
@@ -853,8 +849,8 @@ main(int argc, char *argv[]) {
 					dns_db_detach(&db);
 				continue;
 			}
-			isc_buffer_used(&tb1, &r1);
-			isc_buffer_used(&tb2, &r2);
+			isc_buffer_usedregion(&tb1, &r1);
+			isc_buffer_usedregion(&tb2, &r2);
 			printf("found %.*s as %.*s\n",
 			       (int)r1.length, r1.base,
 			       (int)r2.length, r2.base);

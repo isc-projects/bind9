@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.24 2000/04/07 03:54:25 explorer Exp $ */
+/* $Id: ns_2.c,v 1.25 2000/04/27 00:02:33 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -40,8 +40,7 @@ fromtext_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token,isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }

@@ -768,15 +768,13 @@ resquery_send(resquery_t *query) {
 		/*
 		 * Reserve space for the TCP message length.
 		 */
-		isc_buffer_init(&tcpbuffer, query->data,
-				sizeof query->data, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&tcpbuffer, query->data, sizeof(query->data));
 		isc_buffer_init(&query->buffer, query->data + 2,
-				sizeof query->data - 2,
-				ISC_BUFFERTYPE_BINARY);
+				sizeof(query->data) - 2);
 		buffer = &tcpbuffer;
 	} else {
 		isc_buffer_init(&query->buffer, query->data,
-				sizeof query->data, ISC_BUFFERTYPE_BINARY);
+				sizeof(query->data));
 		buffer = &query->buffer;
 	}
 
@@ -924,7 +922,7 @@ resquery_send(resquery_t *query) {
 	 * of the buffer.
 	 */
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
-		isc_buffer_used(&query->buffer, &r);
+		isc_buffer_usedregion(&query->buffer, &r);
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t)r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
 	}
@@ -940,7 +938,7 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_TCP) == 0)
 		address = query->addrinfo->sockaddr;
-	isc_buffer_used(buffer, &r);
+	isc_buffer_usedregion(buffer, &r);
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
 	 *         prune out these addresses when we get them from the ADB.
@@ -4342,19 +4340,17 @@ log_fetch(dns_name_t *name, dns_rdatatype_t type) {
 	 * XXXRTH  Allow this to be turned on and off...
 	 */
 
-	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
-			ISC_BUFFERTYPE_TEXT);
-	if (dns_name_totext(name, ISC_FALSE, &b) !=
-	    ISC_R_SUCCESS)
+	isc_buffer_init(&b, (unsigned char *)text, sizeof(text));
+	if (dns_name_totext(name, ISC_FALSE, &b) != ISC_R_SUCCESS)
 		return;
-	isc_buffer_available(&b, &r);
+	isc_buffer_availableregion(&b, &r);
 	if (r.length < 1)
 		return;
 	*r.base = ' ';
 	isc_buffer_add(&b, 1);
 	if (dns_rdatatype_totext(type, &b) != ISC_R_SUCCESS)
 		return;
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 	/* XXXRTH  Give them their own category? */
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),

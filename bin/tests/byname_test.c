@@ -107,7 +107,7 @@ print_addresses(dns_adbfind_t *find) {
 	isc_region_t r;
 	char text[1024];
 
-	isc_buffer_init(&b, text, sizeof text, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, text, sizeof(text));
 
 	for (address = ISC_LIST_HEAD(find->list);
 	     address != NULL;
@@ -115,7 +115,7 @@ print_addresses(dns_adbfind_t *find) {
 		isc_buffer_clear(&b);
 		result = isc_sockaddr_totext(address->sockaddr, &b);
 		if (result == ISC_R_SUCCESS) {
-			isc_buffer_used(&b, &r);
+			isc_buffer_usedregion(&b, &r);
 			printf("%.*s\n", (int)r.length, r.base);
 		} else
 			printf("isc_sockaddr_totext() failed: %s\n",
@@ -130,11 +130,11 @@ print_name(dns_name_t *name) {
 	isc_region_t r;
 	char text[1024];
 
-	isc_buffer_init(&b, text, sizeof text, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, text, sizeof(text));
 
 	result = dns_name_totext(name, ISC_FALSE, &b);
 	if (result == ISC_R_SUCCESS) {
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 		printf("%.*s\n", (int)r.length, r.base);
 	} else
 		printf("dns_name_totext() failed: %s\n",
@@ -311,8 +311,7 @@ main(int argc, char *argv[]) {
 
 	printf("name = %s\n", argv[isc_commandline_index]);
 	isc_buffer_init(&b, argv[isc_commandline_index],
-			strlen(argv[isc_commandline_index]),
-			ISC_BUFFERTYPE_TEXT);
+			strlen(argv[isc_commandline_index]));
 	isc_buffer_add(&b, strlen(argv[isc_commandline_index]));
 	dns_fixedname_init(&name);
 	dns_fixedname_init(&target);

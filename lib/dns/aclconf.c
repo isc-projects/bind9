@@ -88,7 +88,7 @@ convert_keyname(char *txtname, isc_mem_t *mctx, dns_name_t *dnsname) {
 	unsigned int keylen;
 
 	keylen = strlen(txtname);
-	isc_buffer_init(&buf, txtname, keylen, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buf, txtname, keylen);
 	isc_buffer_add(&buf, keylen);
 	dns_fixedname_init(&fixname);
 	result = dns_name_fromtext(dns_fixedname_name(&fixname), &buf,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.14 2000/04/07 03:54:40 explorer Exp $ */
+/* $Id: x25_19.c,v 1.15 2000/04/27 00:02:45 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -78,7 +78,7 @@ fromwire_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 19);
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 5)
 		return (DNS_R_FORMERR);
 	return (txt_fromwire(source, target));

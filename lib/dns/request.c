@@ -393,7 +393,7 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 
 	TRACE(("req_send\n"));
 	socket = dns_dispatch_getsocket(request->dispatch);
-	isc_buffer_used(request->query, &r);
+	isc_buffer_usedregion(request->query, &r);
 	return (isc_socket_sendto(socket, &r, task, req_senddone,
 				  request, address, NULL));
 }
@@ -600,8 +600,7 @@ render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
 	/*
 	 * Create buffer able to hold largest possible message.
 	 */
-	result = isc_buffer_allocate(mctx, &buf1, 65535,
-				     ISC_BUFFERTYPE_BINARY);
+	result = isc_buffer_allocate(mctx, &buf1, 65535);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -630,10 +629,9 @@ render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
 	/*
 	 * Copy rendered message to exact sized buffer.
 	 */
-	isc_buffer_used(buf1, &r);
+	isc_buffer_usedregion(buf1, &r);
 	result = isc_buffer_allocate(mctx, &buf2, r.length +
-				     ((r.length > 512) ? 2 : 0),
-				     ISC_BUFFERTYPE_BINARY);
+				     ((r.length > 512) ? 2 : 0));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (r.length > 512) {
@@ -776,9 +774,9 @@ req_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Copy buffer to request.
 	 */
-	isc_buffer_used(&devent->buffer, &r);
-	result = isc_buffer_allocate(request->mctx, &request->answer, r.length,
-				     ISC_BUFFERTYPE_BINARY);
+	isc_buffer_usedregion(&devent->buffer, &r);
+	result = isc_buffer_allocate(request->mctx, &request->answer,
+				     r.length);
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = isc_buffer_copyregion(request->answer, &r);

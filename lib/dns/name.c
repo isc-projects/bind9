@@ -319,9 +319,7 @@ dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer) {
 	 */
 
 	REQUIRE(VALID_NAME(name));
-	REQUIRE((buffer != NULL &&
-		 name->buffer == NULL &&
-		 isc_buffer_type(buffer) == ISC_BUFFERTYPE_BINARY) ||
+	REQUIRE((buffer != NULL && name->buffer == NULL) ||
 		(buffer == NULL));
 
 	name->buffer = buffer;
@@ -1039,7 +1037,7 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 
 	if (name->buffer != NULL) {
 		isc_buffer_clear(name->buffer);
-		isc_buffer_available(name->buffer, &r2);
+		isc_buffer_availableregion(name->buffer, &r2);
 		len = (r->length < r2.length) ? r->length : r2.length;
 		if (len > 255)
 			len = 255;
@@ -1103,12 +1101,12 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	 */
 
 	REQUIRE(VALID_NAME(name));
-	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_TEXT);
+
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
 		isc_buffer_clear(target);
 	}
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+
 	REQUIRE(BINDABLE(name));
 	
 	INIT_OFFSETS(name, offsets, odata);
@@ -1679,7 +1677,6 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	 */
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(name->labels > 0);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_TEXT);
 
 	ndata = name->ndata;
 	nlen = name->length;
@@ -1823,9 +1820,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 }
 
 isc_result_t
-dns_name_downcase(dns_name_t *source, dns_name_t *name,
-		  isc_buffer_t *target)
-{
+dns_name_downcase(dns_name_t *source, dns_name_t *name, isc_buffer_t *target) {
 	unsigned char *sndata, *ndata;
 	unsigned int nlen, count, bytes, labels;
 	isc_buffer_t buffer;
@@ -1838,8 +1833,7 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name,
 	REQUIRE(VALID_NAME(name));
 	if (source == name) {
 		REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
-		isc_buffer_init(&buffer, source->ndata, source->length,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&buffer, source->ndata, source->length);
 		target = &buffer;
 		ndata = source->ndata;
 	} else {
@@ -2128,12 +2122,12 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	 */
 
 	REQUIRE(VALID_NAME(name));
-	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
+
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
 		isc_buffer_clear(target);
 	}
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+
 	REQUIRE(dctx != NULL);
 	REQUIRE(BINDABLE(name));
 
@@ -2302,9 +2296,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 }
 
 isc_result_t
-dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
-		isc_buffer_t *target)
-{
+dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 	unsigned int methods;
 	isc_uint16_t offset;
 	dns_name_t gp, gs;
@@ -2322,7 +2314,6 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(cctx != NULL);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
 	/*
 	 * If 'name' doesn't have an offsets table, make a clone which
@@ -2335,7 +2326,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 	}
 	dns_name_init(&gp, po);
 	dns_name_init(&gs, so);
-	isc_buffer_init(&gws, gb, sizeof gb, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&gws, gb, sizeof (gb));
 
 	offset = target->used;	/*XXX*/
 
@@ -2421,7 +2412,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		target = name->buffer;
 		isc_buffer_clear(name->buffer);
 	}
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+
 	REQUIRE(BINDABLE(name));
 
 	/*
@@ -2556,12 +2547,10 @@ dns_name_split(dns_name_t *name,
 	REQUIRE(prefix == NULL ||
 		(VALID_NAME(prefix) &&
 		 prefix->buffer != NULL &&
-		 isc_buffer_type(prefix->buffer) == ISC_BUFFERTYPE_BINARY &&
 		 BINDABLE(prefix)));
 	REQUIRE(suffix == NULL ||
 		(VALID_NAME(suffix) &&
 		 suffix->buffer != NULL &&
-		 isc_buffer_type(suffix->buffer) == ISC_BUFFERTYPE_BINARY &&
 		 BINDABLE(suffix)));
 
 	/*
@@ -2982,13 +2971,13 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(digest != NULL);
 
 	dns_name_init(&downname, NULL);
-	isc_buffer_init(&buffer, data, sizeof data, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&buffer, data, sizeof(data));
 	
 	result = dns_name_downcase(name, &downname, &buffer);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	
-	isc_buffer_used(&buffer, &r);
+	isc_buffer_usedregion(&buffer, &r);
 	
 	return ((digest)(arg, &r));
 }
@@ -3018,19 +3007,18 @@ dns_name_print(dns_name_t *name, FILE *stream) {
 
 	REQUIRE(VALID_NAME(name));
 
-	isc_buffer_init(&b, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, t, sizeof(t));
 	result = dns_name_totext(name, ISC_FALSE, &b);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 	fprintf(stream, "%.*s", (int)r.length, (char *)r.base);
 
 	return (ISC_R_SUCCESS);
 }
 
 void
-dns_name_format(dns_name_t *name, char *cp, unsigned int size)
-{
+dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 	isc_boolean_t omit_final_dot = ISC_TRUE;
@@ -3040,16 +3028,20 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size)
 	if (dns_name_equal(name, dns_rootname))
 		omit_final_dot = ISC_FALSE;
 
-	/* Leave room for null termination after buffer. */
-	isc_buffer_init(&buf, cp, size - 1, ISC_BUFFERTYPE_TEXT);
+	/*
+	 * Leave room for null termination after buffer.
+	 */
+	isc_buffer_init(&buf, cp, size - 1);
 	result = dns_name_totext(name, omit_final_dot, &buf);
 	if (result == ISC_R_SUCCESS) {
-		/* Null terminate. */
+		/*
+		 * Null terminate.
+		 */
 		isc_region_t r;
-		isc_buffer_used(&buf, &r);
+		isc_buffer_usedregion(&buf, &r);
 		((char *) r.base)[r.length] = '\0';
-	} else {
+
+	} else
 		snprintf(cp, size, "<unknown>");
-	}
 }
 

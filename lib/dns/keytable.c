@@ -204,7 +204,7 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 	keyname = dst_key_name(*keyp);
 	INSIST(keyname != NULL);
 	len = strlen(keyname);
-	isc_buffer_init(&buffer, keyname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, keyname, len);
 	isc_buffer_add(&buffer, len);
 	dns_fixedname_init(&fname);
 	result = dns_name_fromtext(dns_fixedname_name(&fname), &buffer,

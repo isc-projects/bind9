@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.19 2000/04/07 03:54:33 explorer Exp $ */
+/* $Id: rt_21.c,v 1.20 2000/04/27 00:02:37 tale Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -46,8 +46,7 @@ fromtext_rt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }
@@ -98,8 +97,8 @@ fromwire_rt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         
         dns_name_init(&name, NULL);
 
-	isc_buffer_active(source, &sregion);
-	isc_buffer_available(target, &tregion);
+	isc_buffer_activeregion(source, &sregion);
+	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < 2)
 		return (ISC_R_NOSPACE);
 	if (sregion.length < 2)
@@ -124,7 +123,7 @@ towire_rt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	else
 		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	dns_rdata_toregion(rdata, &region);
 	if (tr.length < 2)
 		return (ISC_R_NOSPACE);

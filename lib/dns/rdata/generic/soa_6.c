@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.32 2000/04/07 03:54:35 explorer Exp $ */
+/* $Id: soa_6.c,v 1.33 2000/04/27 00:02:39 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -46,8 +46,7 @@ fromtext_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				ISC_FALSE));
 
 		dns_name_init(&name, NULL);
-		buffer_fromregion(&buffer, &token.value.as_region,
-				  ISC_BUFFERTYPE_TEXT);
+		buffer_fromregion(&buffer, &token.value.as_region);
 		RETERR(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}
@@ -162,8 +161,8 @@ fromwire_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         RETERR(dns_name_fromwire(&mname, source, dctx, downcase, target));
         RETERR(dns_name_fromwire(&rname, source, dctx, downcase, target));
 
-	isc_buffer_active(source, &sregion);
-	isc_buffer_available(target, &tregion);
+	isc_buffer_activeregion(source, &sregion);
+	isc_buffer_availableregion(target, &tregion);
 
 	if (sregion.length < 20)
 		return (ISC_R_UNEXPECTEDEND);
@@ -205,7 +204,7 @@ towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	isc_region_consume(&sregion, name_length(&rname));
 	RETERR(dns_name_towire(&rname, cctx, target));
 
-	isc_buffer_available(target, &tregion);
+	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < 20)
 		return (ISC_R_NOSPACE);
 

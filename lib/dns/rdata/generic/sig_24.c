@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.32 2000/04/07 03:54:34 explorer Exp $ */
+/* $Id: sig_24.c,v 1.33 2000/04/27 00:02:38 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -91,8 +91,7 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* signer */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
@@ -201,7 +200,7 @@ fromwire_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	
 	UNUSED(rdclass);
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	/*
 	 * type covered: 2
 	 * algorithm: 1
@@ -222,7 +221,7 @@ fromwire_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
 
 	/* sig */
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
@@ -347,7 +346,7 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	/* Signature */
 	if (sig->siglen > 0) {
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (tr.length < sig->siglen)
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, sig->signature, sig->siglen);

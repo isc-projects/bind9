@@ -371,7 +371,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		if (!question)
 			headlen += sizeof(dns_ttl_t)
 				+ 2;  /* XXX 2 for rdata len */
-		isc_buffer_available(target, &r);
+		isc_buffer_availableregion(target, &r);
 		if (r.length < headlen) {
 			result = ISC_R_NOSPACE;
 			goto rollback;

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslmd5_link.c,v 1.4 2000/04/20 01:12:27 explorer Exp $
+ * $Id: opensslmd5_link.c,v 1.5 2000/04/27 00:02:58 tale Exp $
  */
 
 #include <config.h>
@@ -81,7 +81,7 @@ dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
 		MD5_Update(ctx, data->base, data->length);
 
 	if (mode & DST_SIGMODE_FINAL) {
-		isc_buffer_available(digest, &r);
+		isc_buffer_availableregion(digest, &r);
 		if (r.length < MD5_DIGEST_LENGTH)
 			return (ISC_R_NOSPACE);
 

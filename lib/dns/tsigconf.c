@@ -50,11 +50,9 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		dns_name_init(&alg, NULL);
 
 		/* Create the key name */
-		isc_buffer_init(&keynamesrc, key->keyid, strlen(key->keyid),
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&keynamesrc, key->keyid, strlen(key->keyid));
 		isc_buffer_add(&keynamesrc, strlen(key->keyid));
-		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata),
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata));
 		ret = dns_name_fromtext(&keyname, &keynamesrc, dns_rootname,
 					ISC_TRUE, &keynamebuf);
 		if (ret != ISC_R_SUCCESS)
@@ -65,11 +63,9 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 			alg = *dns_tsig_hmacmd5_name;
 		else {
 			isc_buffer_init(&algsrc, key->algorithm,
-					strlen(key->algorithm),
-					ISC_BUFFERTYPE_TEXT);
+					strlen(key->algorithm));
 			isc_buffer_add(&algsrc, strlen(key->algorithm));
-			isc_buffer_init(&algbuf, algdata, sizeof(algdata),
-					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&algbuf, algdata, sizeof(algdata));
 			ret = dns_name_fromtext(&alg, &algsrc, dns_rootname,
 						ISC_TRUE, &algbuf);
 			if (ret != ISC_R_SUCCESS)
@@ -86,11 +82,9 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 			ret = ISC_R_NOMEMORY;
 			goto failure;
 		}
-		isc_buffer_init(&secretsrc, key->secret, strlen(key->secret),
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&secretsrc, key->secret, strlen(key->secret));
 		isc_buffer_add(&secretsrc, strlen(key->secret));
-		isc_buffer_init(&secretbuf, secret, secretlen,
-				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&secretbuf, secret, secretlen);
 		ret = isc_lex_create(mctx, strlen(key->secret), &lex);
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
@@ -100,7 +94,7 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		ret = isc_base64_tobuffer(lex, &secretbuf, -1);
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
-		secretlen = ISC_BUFFER_USEDCOUNT(&secretbuf);
+		secretlen = isc_buffer_usedlength(&secretbuf);
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 

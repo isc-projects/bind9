@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.22 2000/04/07 17:40:40 brister Exp $ */
+/* $Id: confcommon.c,v 1.23 2000/04/27 00:02:15 tale Exp $ */
 
 #include <config.h>
 
@@ -163,8 +163,7 @@ static void default_cfgerror(isc_result_t result, const char *fmt,
 
 
 void
-dns_c_printinunits(FILE *fp, isc_uint32_t val)
-{
+dns_c_printinunits(FILE *fp, isc_uint32_t val) {
 	isc_uint32_t one_gig = (1024 * 1024 * 1024);
 	isc_uint32_t one_meg = (1024 * 1024);
 	isc_uint32_t one_k = 1024;
@@ -187,39 +186,35 @@ dns_c_printinunits(FILE *fp, isc_uint32_t val)
 
 
 void
-dns_c_dataclass_tostream(FILE *fp, dns_rdataclass_t rclass)
-{
+dns_c_dataclass_tostream(FILE *fp, dns_rdataclass_t rclass) {
 	char buffer[64];
 	isc_buffer_t sourceb;
 
-	isc_buffer_init(&sourceb, buffer, sizeof buffer,
-			ISC_BUFFERTYPE_GENERIC);
+	isc_buffer_init(&sourceb, buffer, sizeof(buffer));
 	
 	if (dns_rdataclass_totext(rclass, &sourceb) == ISC_R_SUCCESS) {
-		INSIST(sourceb.used + 1 < sizeof buffer);
+		INSIST(sourceb.used + 1 < sizeof(buffer));
 		buffer[sourceb.used] = '\0';
 		fputs(buffer, fp);
 	} else {
-		fprintf(fp, "UNKNOWN-CLASS(%d)",(int) rclass);
+		fprintf(fp, "UNKNOWN-CLASS(%d)", (int)rclass);
 	}
 }
 
 
 void
-dns_c_datatype_tostream(FILE *fp, dns_rdatatype_t rtype)
-{
+dns_c_datatype_tostream(FILE *fp, dns_rdatatype_t rtype) {
 	char buffer[64];
 	isc_buffer_t sourceb;
 
-	isc_buffer_init(&sourceb, buffer, sizeof buffer,
-			ISC_BUFFERTYPE_GENERIC);
+	isc_buffer_init(&sourceb, buffer, sizeof(buffer));
 
 	if (dns_rdatatype_totext(rtype, &sourceb) == ISC_R_SUCCESS) {
 		INSIST(sourceb.used + 1 < sizeof buffer);
 		buffer[sourceb.used] = '\0';
 		fputs(buffer, fp);
 	} else {
-		fprintf(fp, "UNKNOWN-RDATATYPE(%d)",(int) rtype);
+		fprintf(fp, "UNKNOWN-RDATATYPE(%d)", (int)rtype);
 	}
 }
 
@@ -710,13 +705,12 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name)
 	len = strlen(keyval);
 	
 	dns_name_init(&newkey, NULL);
-	res = isc_buffer_allocate(mem, &b1, len + 2,
-				  ISC_BUFFERTYPE_BINARY);
+	res = isc_buffer_allocate(mem, &b1, len + 2);
 	REQUIRE(res == ISC_R_SUCCESS);
 	
 	dns_name_setbuffer(&newkey, b1);
 	
-	isc_buffer_init(&b2, (char *)keyval, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b2, (char *)keyval, len);
 	isc_buffer_add(&b2, len);
 	
 	res = dns_name_fromtext(&newkey, &b2, NULL, ISC_FALSE, NULL);

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.9 1999/10/20 22:14:14 bwelling Exp $
+ * $Id: dst_parse.c,v 1.10 2000/04/27 00:02:54 tale Exp $
  */
 
 #include <config.h>
@@ -293,11 +293,11 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 			error = DST_R_INVALIDPRIVATEKEY;
 			goto fail;
 		}
-		isc_buffer_init(&b, data, MAXFIELDSIZE, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&b, data, MAXFIELDSIZE);
 		ret = isc_base64_tobuffer(lex, &b, -1);
 		if (ret != ISC_R_SUCCESS)
 			goto fail;
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 		priv->elements[n].length = r.length;
 		priv->elements[n].data = r.base;
 
@@ -372,14 +372,13 @@ dst_s_write_private_key_file(const char *name, const int alg,
 
 		r.base = priv->elements[i].data;
 		r.length = priv->elements[i].length;
-		isc_buffer_init(&b, buffer, sizeof(buffer),
-				ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&b, buffer, sizeof(buffer));
 		iret = isc_base64_totext(&r, sizeof(buffer), "", &b);
 		if (iret != ISC_R_SUCCESS) {
 			fclose(fp);
 			return (DST_R_INVALIDPRIVATEKEY);
 		}
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 
 		fprintf(fp, "%s ", s);
 		fwrite(r.base, 1, r.length, fp);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.23 2000/04/07 03:54:20 explorer Exp $ */
+/* $Id: mf_4.c,v 1.24 2000/04/27 00:02:29 tale Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -40,8 +40,7 @@ fromtext_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }

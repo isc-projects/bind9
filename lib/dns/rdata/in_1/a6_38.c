@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.24 2000/04/07 03:54:42 explorer Exp $ */
+ /* $Id: a6_38.c,v 1.25 2000/04/27 00:02:46 tale Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -71,8 +71,7 @@ fromtext_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }
@@ -109,7 +108,7 @@ totext_in_a6(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		memcpy(&addr[octets], sr.base, 16 - octets);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;
-		isc_buffer_available(target, &tr);
+		isc_buffer_availableregion(target, &tr);
 		if (inet_ntop(AF_INET6, addr,
 			      (char *)tr.base, tr.length) == NULL)
 			return (ISC_R_NOSPACE);
@@ -148,7 +147,7 @@ fromwire_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	else
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
-	isc_buffer_active(source, &sr);
+	isc_buffer_activeregion(source, &sr);
 	/* prefix length */
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.9 2000/04/10 21:35:47 gson Exp $ */
+/* $Id: base64.c,v 1.10 2000/04/27 00:02:58 tale Exp $ */
 
 #include <config.h>
 
@@ -167,7 +167,7 @@ str_totext(char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	l = strlen(source);
 
 	if (l > region.length)
@@ -182,7 +182,7 @@ static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
-	isc_buffer_available(target, &tr);
+	isc_buffer_availableregion(target, &tr);
 	if (length > tr.length)
 		return (ISC_R_NOSPACE);
 	memcpy(tr.base, base, length);

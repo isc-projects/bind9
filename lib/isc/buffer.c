@@ -26,9 +26,7 @@
 #include <isc/result.h>
 
 void
-isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
-		unsigned int type)
-{
+isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 	/*
 	 * Make 'b' refer to the 'length'-byte region starting at base.
 	 */
@@ -36,7 +34,6 @@ isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
 	REQUIRE(b != NULL);
 
 	b->magic = ISC_BUFFER_MAGIC;
-	b->type = type;
 	b->base = base;
 	b->length = length;
 	b->used = 0;
@@ -57,23 +54,11 @@ isc_buffer_invalidate(isc_buffer_t *b) {
 	REQUIRE(b->mctx == NULL);
 	
 	b->magic = 0;
-	b->type = 0;
 	b->base = NULL;
 	b->length = 0;
 	b->used = 0;
 	b->current = 0;
 	b->active = 0;
-}
-
-unsigned int
-isc_buffer_type(isc_buffer_t *b) {
-	/*
-	 * The type of 'b'.
-	 */
-
-	REQUIRE(ISC_BUFFER_VALID(b));
-
-	return (b->type);
 }
 
 void
@@ -90,7 +75,7 @@ isc_buffer_region(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_used(isc_buffer_t *b, isc_region_t *r) {
+isc_buffer_usedregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the used region of 'b'.
 	 */
@@ -103,7 +88,7 @@ isc_buffer_used(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_available(isc_buffer_t *b, isc_region_t *r) {
+isc_buffer_availableregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the available region of 'b'.
 	 */
@@ -157,7 +142,7 @@ isc_buffer_clear(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_consumed(isc_buffer_t *b, isc_region_t *r) {
+isc_buffer_consumedregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the consumed region of 'b'.
 	 */
@@ -170,7 +155,7 @@ isc_buffer_consumed(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r) {
+isc_buffer_remainingregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the remaining region of 'b'.
 	 */
@@ -183,7 +168,7 @@ isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_active(isc_buffer_t *b, isc_region_t *r) {
+isc_buffer_activeregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the active region of 'b'.
 	 */
@@ -388,8 +373,7 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 }
 
 void
-isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length)
-{
+isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length) {
 	unsigned char *cp;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
@@ -400,7 +384,7 @@ isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length)
 	b->used += length;
 }	
 
-isc_result_t
+void
 isc_buffer_putstr(isc_buffer_t *b, const char *source) {
         unsigned int l;
 	unsigned char *cp;
@@ -409,14 +393,12 @@ isc_buffer_putstr(isc_buffer_t *b, const char *source) {
 	REQUIRE(source != NULL);
 
 	l = strlen(source);
-	if (l > (b->length - b->used))
-		return (ISC_R_NOSPACE);
 
-	cp = (unsigned char *)b->base + b->used;
+	REQUIRE(l <= isc_buffer_availablelength(b));
+
+	cp = isc_buffer_used(b);
 	memcpy(cp, source, l);
 	b->used += l;
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -439,7 +421,7 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r) {
 
 isc_result_t
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
-		    unsigned int length, unsigned int type)
+		    unsigned int length)
 {
 	isc_buffer_t *dbuf;
 
@@ -451,7 +433,7 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(dbuf, ((unsigned char *)dbuf) + sizeof(isc_buffer_t),
-			length, type);
+			length);
 	dbuf->mctx = mctx;
 
 	*dynbuffer = dbuf;

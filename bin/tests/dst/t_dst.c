@@ -91,10 +91,10 @@ use(dst_key_t *key, isc_result_t exp_result, int *nfails) {
 	isc_buffer_t databuf, sigbuf;
 	isc_region_t datareg, sigreg;
 
-	isc_buffer_init(&sigbuf, sig, sizeof(sig), ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&databuf, data, strlen(data), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&sigbuf, sig, sizeof(sig));
+	isc_buffer_init(&databuf, data, strlen(data));
 	isc_buffer_add(&databuf, strlen(data));
-	isc_buffer_used(&databuf, &datareg);
+	isc_buffer_usedregion(&databuf, &datareg);
 
 	ret = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
 	if (ret != exp_result) {
@@ -106,7 +106,7 @@ use(dst_key_t *key, isc_result_t exp_result, int *nfails) {
 	}
 
 
-	isc_buffer_remaining(&sigbuf, &sigreg);
+	isc_buffer_remainingregion(&sigbuf, &sigreg);
 	ret = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
 	if (ret != exp_result) {
 		t_info("dst_verify(%d) returned (%s) expected (%s)\n",
@@ -204,7 +204,7 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 
 	cleandir(tmp);
 
-	isc_buffer_init(&b1, array1, sizeof(array1), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b1, array1, sizeof(array1));
 	ret = dst_computesecret(key1, key2, &b1);
 	if (ret != 0) {
 		t_info("dst_computesecret() returned: %s\n",
@@ -213,7 +213,7 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 		return;
 	}
 
-	isc_buffer_init(&b2, array2, sizeof(array2), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b2, array2, sizeof(array2));
 	ret = dst_computesecret(key2, key1, &b2);
 	if (ret != 0) {
 		t_info("dst_computesecret() returned: %s\n",
@@ -222,8 +222,8 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 		return;
 	}
 
-	isc_buffer_used(&b1, &r1);
-	isc_buffer_used(&b2, &r2);
+	isc_buffer_usedregion(&b1, &r1);
+	isc_buffer_usedregion(&b2, &r2);
 	if (r1.length != r2.length || memcmp(r1.base, r2.base, r1.length) != 0)
 	{
 		t_info("computed secrets don't match\n");
@@ -330,7 +330,7 @@ get_random(int *nfails) {
 	isc_result_t ret;
 	unsigned int i;
 
-	isc_buffer_init(&databuf1, data1, sizeof(data1), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&databuf1, data1, sizeof(data1));
 	ret = dst_random_get(sizeof(data1), &databuf1);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("random() returned: %s\n", dst_result_totext(ret));
@@ -338,7 +338,7 @@ get_random(int *nfails) {
 		return;
 	}
 
-	isc_buffer_init(&databuf2, data2, sizeof(data2), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&databuf2, data2, sizeof(data2));
 	ret = dst_random_get(sizeof(data2), &databuf2);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("random() returned: %s\n", dst_result_totext(ret));
@@ -640,23 +640,24 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		return;
 	}
 
-	isc_buffer_init(&databuf, data, sb.st_size, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&databuf, data, sb.st_size);
 	isc_buffer_add(&databuf, sb.st_size);
-	isc_buffer_used(&databuf, &datareg);
+	isc_buffer_usedregion(&databuf, &datareg);
 
 #ifdef	NEWSIG
 
 	/*
-	 * if we're generating a signature for the first time,
+	 * If we're generating a signature for the first time,
 	 * sign the data and save the signature to a file
 	 */
 
 	memset(sig, 0, sizeof(sig));
-	isc_buffer_init(&sigbuf, sig, sizeof(sig), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&sigbuf, sig, sizeof(sig));
 
 	isc_result = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("dst_sign(%d) failed %s\n", dst_result_totext(isc_result));
+		t_info("dst_sign(%d) failed %s\n",
+		       dst_result_totext(isc_result));
 		(void) free(data);
 		(void) dst_key_free(key);
 		++*nprobs;
@@ -675,9 +676,11 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 #endif	/* NEWSIG */
 
 	memset(sig, 0, sizeof(sig));
-	isc_buffer_init(&sigbuf, sig, sizeof(sig), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&sigbuf, sig, sizeof(sig));
 
-	/* read precomputed signature from file in a form usable by dst_verify */
+	/*
+	 * Read precomputed signature from file in a form usable by dst_verify.
+	 */
 	rval = sig_fromfile(sigpath, &sigbuf);
 	if (rval != 0) {
 		t_info("sig_fromfile failed\n");
@@ -688,7 +691,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	}
 
 	/* verify that the key signed the data */
-	isc_buffer_remaining(&sigbuf, &sigreg);
+	isc_buffer_remainingregion(&sigbuf, &sigreg);
 
 	exp_res = 0;
 	if (strstr(expected_result, "!"))

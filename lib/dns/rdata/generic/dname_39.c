@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.17 2000/04/07 03:54:10 explorer Exp $ */
+/* $Id: dname_39.c,v 1.18 2000/04/27 00:02:25 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -42,8 +42,7 @@ fromtext_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	
 	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
+	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }

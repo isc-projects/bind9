@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: time.c,v 1.8 2000/04/06 22:02:23 explorer Exp $ */
+/* $Id: time.c,v 1.9 2000/04/27 00:01:58 tale Exp $ */
 
 #include <config.h>
 
@@ -78,7 +78,7 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 		tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	l = strlen(buf);
 
 	if (l > region.length)

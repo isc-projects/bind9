@@ -77,7 +77,7 @@
  * Since the buffer itself exists until the message is destroyed, this sort
  * of code can be written:
  *
- *	buffer = isc_buffer_allocate(mctx, 512, ISC_BUFFERTYPE_BINARY);
+ *	buffer = isc_buffer_allocate(mctx, 512);
  *	name = NULL;
  *	name = dns_message_gettempname(message, &name);
  *	dns_name_init(name, NULL);

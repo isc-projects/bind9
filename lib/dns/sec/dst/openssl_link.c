@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.15 2000/04/05 22:22:51 bwelling Exp $
+ * $Id: openssl_link.c,v 1.16 2000/04/27 00:02:55 tale Exp $
  */
 
 #include <config.h>
@@ -140,7 +140,7 @@ dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
 		DSA_SIG *dsasig;
 		unsigned char digest[SHA_DIGEST_LENGTH];
 
-		isc_buffer_available(sig, &r);
+		isc_buffer_availableregion(sig, &r);
 		if (r.length < SHA_DIGEST_LENGTH * 2 + 1)
 			return (ISC_R_NOSPACE);
 
@@ -278,7 +278,7 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	dsa = (DSA *) key->opaque;
 
-	isc_buffer_available(data, &r);
+	isc_buffer_availableregion(data, &r);
 
 	t = (BN_num_bytes(dsa->p) - 64) / 8;
 	if (t > 8)
@@ -323,7 +323,7 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	mctx = mctx;	/* make the compiler happy */
 
-	isc_buffer_remaining(data, &r);
+	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
 		return (ISC_R_SUCCESS);
 
@@ -355,7 +355,7 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	dsa->pub_key = BN_bin2bn(r.base, p_bytes, NULL);
 	r.base += p_bytes;
 
-	isc_buffer_remaining(data, &r);
+	isc_buffer_remainingregion(data, &r);
 	key->key_id = dst_s_id_calc(r.base,
 				    1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
 	key->key_size = p_bytes * 8;
@@ -487,12 +487,11 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	dst_s_free_private_structure_fields(&priv, mctx);
 
 	key->key_size = BN_num_bits(dsa->p);
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
 	ret = dst_openssl_to_dns(key, &dns);
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
-	isc_buffer_used(&dns, &r);
+	isc_buffer_usedregion(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
 
 	if (key->key_id != id)
@@ -548,8 +547,7 @@ dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 	unused = unused;	/* make the compiler happy */
 	mctx = mctx;		/* make the compiler happy */
 
-	isc_buffer_init(&rand, rand_array, sizeof(rand_array),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&rand, rand_array, sizeof(rand_array));
 	ret = dst_random_get(SHA_DIGEST_LENGTH, &rand);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
@@ -566,10 +564,9 @@ dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 
 	key->opaque = dsa;
 
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
 	dst_openssl_to_dns(key, &dns);
-	isc_buffer_used(&dns, &r);
+	isc_buffer_usedregion(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
 
 	return (ISC_R_SUCCESS);

@@ -73,8 +73,7 @@ struct dns_fixedname {
 #define dns_fixedname_init(fn) \
 	do { \
 		dns_name_init(&((fn)->name), (fn)->offsets); \
-		isc_buffer_init(&((fn)->buffer), (fn)->data, 255, \
-				ISC_BUFFERTYPE_BINARY); \
+		isc_buffer_init(&((fn)->buffer), (fn)->data, 255); \
 		dns_name_setbuffer(&((fn)->name), &((fn)->buffer)); \
 	} while (0)
 

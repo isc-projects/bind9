@@ -18,10 +18,13 @@
 #include <config.h>
 
 #include <isc/assertions.h>
-#include <isc/boolean.h>
 #include <isc/error.h>
+#include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/ratelimiter.h>
+#include <isc/task.h>
 #include <isc/time.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 typedef enum {
@@ -43,11 +46,11 @@ struct isc_ratelimiter {
 
 #define ISC_RATELIMITEREVENT_SHUTDOWN (ISC_EVENTCLASS_RATELIMITER + 1)
 
-static void ratelimiter_tick(isc_task_t *task, isc_event_t *event);
+static void
+ratelimiter_tick(isc_task_t *task, isc_event_t *event);
 
 static void
-ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event)
-{
+ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event) {
 	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
 	UNUSED(task);
 	isc_mutex_destroy(&rl->lock);
@@ -188,8 +191,7 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 }
 
 void
-isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp) 
-{
+isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp) {
 	isc_ratelimiter_t *rl = *ratelimiterp;
 	isc_event_t *ev = &rl->shutdownevent;
 	isc_timer_detach(&rl->timer);

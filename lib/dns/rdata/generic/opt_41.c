@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.8 2000/04/14 20:13:49 explorer Exp $ */
+/* $Id: opt_41.c,v 1.9 2000/04/27 00:02:35 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -78,7 +78,7 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(dctx);
 	UNUSED(downcase);
 
-	isc_buffer_active(source, &sregion);
+	isc_buffer_activeregion(source, &sregion);
 	total = 0;
 	while (sregion.length != 0) {
 		if (sregion.length < 4)
@@ -94,8 +94,8 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		total += length;
 	}
 
-	isc_buffer_active(source, &sregion);
-	isc_buffer_available(target, &tregion);
+	isc_buffer_activeregion(source, &sregion);
+	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < total)
 		return (ISC_R_NOSPACE);
 	memcpy(tregion.base, sregion.base, total);

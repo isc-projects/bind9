@@ -150,7 +150,7 @@ hex_dump(isc_buffer_t *b)
 	unsigned int len;
 	isc_region_t r;
 
-	isc_buffer_remaining(b, &r);
+	isc_buffer_remainingregion(b, &r);
 
 	for (len = 0 ; len < r.length ; len++) {
 		printf("%02x ", r.base[len]);
@@ -292,8 +292,7 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_message_gettempname()");
 	dns_name_init(name, NULL);
 
-	isc_buffer_init(&namebuffer, namedata, sizeof(namedata),
-			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&namebuffer, namedata, sizeof(namedata));
 
 	printf("\n; <<>> sdig <<>>");
 	for (i = 1; i < argc; i++) {
@@ -324,8 +323,7 @@ main(int argc, char *argv[]) {
 			tr.base = argv[0];
 			tr.length = len;
 			if (!have_name) {
-				isc_buffer_init(&b, argv[0], len,
-						ISC_BUFFERTYPE_TEXT);
+				isc_buffer_init(&b, argv[0], len);
 				isc_buffer_add(&b, len);
 				result = dns_name_fromtext(name, &b,
 							   dns_rootname,
@@ -361,7 +359,7 @@ main(int argc, char *argv[]) {
 		message->flags |= DNS_MESSAGEFLAG_RD;
 	dns_message_addname(message, name, DNS_SECTION_QUESTION);
 
-	isc_buffer_init(&b, data, sizeof data, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, data, sizeof(data));
 	result = dns_message_renderbegin(message, &b);
 	check_result(result, "dns_message_renderbegin()");
 	if (edns0)
@@ -380,7 +378,7 @@ main(int argc, char *argv[]) {
 	check_result(result, "isc_socket_create()");
 
 	ISC_LIST_INIT(bufferlist);
-	isc_buffer_init(&b2, data2, sizeof data2, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b2, data2, sizeof data2);
 	ISC_LIST_ENQUEUE(bufferlist, &b2, link);
 	result = isc_socket_recvv(sock, &bufferlist, 1, task, recv_done, NULL);
 	check_result(result, "isc_socket_recvv()");

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.7 2000/04/07 03:54:41 explorer Exp $ */
+/* $Id: a_1.c,v 1.8 2000/04/27 00:02:45 tale Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -47,7 +47,7 @@ fromtext_hs_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	if (inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_BADDOTTEDQUAD);
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < 4)
 		return (ISC_R_NOSPACE);
 	memcpy(region.base, &addr, 4);
@@ -67,7 +67,7 @@ totext_hs_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	UNUSED(tctx);
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (inet_ntop(AF_INET, rdata->data,
 			  (char *)region.base, region.length) == NULL)
 		return (ISC_R_NOSPACE);
@@ -91,8 +91,8 @@ fromwire_hs_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(downcase);
 
 
-	isc_buffer_active(source, &sregion);
-	isc_buffer_available(target, &tregion);
+	isc_buffer_activeregion(source, &sregion);
+	isc_buffer_availableregion(target, &tregion);
 	if (sregion.length < 4)
 		return (ISC_R_UNEXPECTEDEND);
 	if (tregion.length < 4)
@@ -114,7 +114,7 @@ towire_hs_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 
 	UNUSED(cctx);
 
-	isc_buffer_available(target, &region);
+	isc_buffer_availableregion(target, &region);
 	if (region.length < rdata->length)
 		return (ISC_R_NOSPACE);
 	memcpy(region.base, rdata->data, rdata->length);

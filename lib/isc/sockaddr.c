@@ -145,7 +145,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	alen = strlen(abuf);
 	plen = strlen(pbuf);
 
-	isc_buffer_available(target, &avail);
+	isc_buffer_availableregion(target, &avail);
 	if (alen + 1 + plen + 1 > avail.length)
 		return (ISC_R_NOSPACE);
 	    
@@ -154,7 +154,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	isc_buffer_putmem(target, (unsigned char *) pbuf, plen);
 
 	/* Null terminate after used region. */
-	isc_buffer_available(target, &avail);
+	isc_buffer_availableregion(target, &avail);
 	INSIST(avail.length >= 1);
 	avail.base[0] = '\0';
 

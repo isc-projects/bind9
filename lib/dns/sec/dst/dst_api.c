@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.29 2000/04/20 18:27:40 explorer Exp $
+ * $Id: dst_api.c,v 1.30 2000/04/27 00:02:53 tale Exp $
  */
 
 #include <config.h>
@@ -389,7 +389,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
-	isc_buffer_available(target, &r);
+	isc_buffer_availableregion(target, &r);
 	if (r.length < 4)
 		return (ISC_R_NOSPACE);
 	isc_buffer_putuint16(target, (isc_uint16_t)(key->key_flags & 0xffff));
@@ -397,7 +397,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_buffer_putuint8(target, (isc_uint8_t)key->key_alg);
 
 	if (key->key_flags & DNS_KEYFLAG_EXTENDED) {
-		isc_buffer_available(target, &r);
+		isc_buffer_availableregion(target, &r);
 		if (r.length < 2)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint16(target,
@@ -439,7 +439,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 	REQUIRE (mctx != NULL);
 	REQUIRE (keyp != NULL);
 
-	isc_buffer_remaining(source, &r);
+	isc_buffer_remainingregion(source, &r);
 	if (r.length < 4) /* 2 bytes of flags, 1 proto, 1 alg */
 		return (DST_R_INVALIDPUBLICKEY);
 	flags = isc_buffer_getuint16(source);
@@ -450,7 +450,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 		return (DST_R_UNSUPPORTEDALG);
 
 	if (flags & DNS_KEYFLAG_EXTENDED) {
-		isc_buffer_remaining(source, &r);
+		isc_buffer_remainingregion(source, &r);
 		if (r.length < 2)
 			return (DST_R_INVALIDPUBLICKEY);
 		extflags = isc_buffer_getuint16(source);
@@ -831,7 +831,7 @@ dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(target != NULL);
 
-	isc_buffer_available(target, &r);
+	isc_buffer_availableregion(target, &r);
 	if (r.length < wanted)
 		return (ISC_R_NOSPACE);
 
@@ -1033,7 +1033,7 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 	if (strcasecmp(token.value.as_pointer, "KEY") != 0)
 		BADTOKEN();
 	
-	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
 	ret = dns_rdata_fromtext(&rdata, dns_rdataclass_in, dns_rdatatype_key,
 				 lex, NULL, ISC_FALSE, &b, NULL);
 	if (ret != ISC_R_SUCCESS)
@@ -1081,16 +1081,14 @@ write_public_key(const dst_key_t *key) {
 
 	REQUIRE(VALID_KEY(key));
 
-	isc_buffer_init(&keyb, key_array, sizeof(key_array),
-			ISC_BUFFERTYPE_BINARY);
-	isc_buffer_init(&textb, text_array, sizeof(text_array),
-			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&keyb, key_array, sizeof(key_array));
+	isc_buffer_init(&textb, text_array, sizeof(text_array));
 
 	ret = dst_key_todns(key, &keyb);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	isc_buffer_used(&keyb, &r);
+	isc_buffer_usedregion(&keyb, &r);
 	dns_rdata_fromregion(&rdata, dns_rdataclass_in, dns_rdatatype_key, &r);
 
 	dnsret = dns_rdata_totext(&rdata, (dns_name_t *) NULL, &textb);
@@ -1099,7 +1097,7 @@ write_public_key(const dst_key_t *key) {
 
 	dns_rdata_freestruct(&rdata);
 
-	isc_buffer_used(&textb, &r);
+	isc_buffer_usedregion(&textb, &r);
 	
 	/*
 	 * Make the filename.
