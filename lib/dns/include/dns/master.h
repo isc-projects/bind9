@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.31.2.3.2.1 2003/08/04 06:53:23 marka Exp $ */
+/* $Id: master.h,v 1.31.2.3.2.2 2003/08/13 06:19:15 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -74,6 +74,15 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
 		      isc_mem_t *mctx);
 
 isc_result_t
+dns_master_loadlexer(isc_lex_t *lex,
+		     dns_name_t *top,
+		     dns_name_t *origin,
+		     dns_rdataclass_t zclass,
+		     unsigned int options,
+		     dns_rdatacallbacks_t *callbacks,
+		     isc_mem_t *mctx);
+
+isc_result_t
 dns_master_loadfileinc(const char *master_file,
 		       dns_name_t *top,
 		       dns_name_t *origin,
@@ -106,12 +115,23 @@ dns_master_loadbufferinc(isc_buffer_t *buffer,
 			 dns_loaddonefunc_t done, void *done_arg,
 			 dns_loadctx_t **ctxp, isc_mem_t *mctx);
 
+isc_result_t
+dns_master_loadlexerinc(isc_lex_t *lex,
+			dns_name_t *top,
+			dns_name_t *origin,
+			dns_rdataclass_t zclass,
+			unsigned int options,
+			dns_rdatacallbacks_t *callbacks,
+			isc_task_t *task,
+			dns_loaddonefunc_t done, void *done_arg,
+			dns_loadctx_t **ctxp, isc_mem_t *mctx);
+
 /*
- * Loads a RFC 1305 master file from a file, stream, or buffer into rdatasets
- * and then calls 'callbacks->commit' to commit the rdatasets.  Rdata memory
- * belongs to dns_master_load and will be reused / released when the callback
- * completes.  dns_load_master will abort if callbacks->commit returns
- * any value other than ISC_R_SUCCESS.
+ * Loads a RFC 1305 master file from a file, stream, buffer, or existing
+ * lexer into rdatasets and then calls 'callbacks->commit' to commit the
+ * rdatasets.  Rdata memory belongs to dns_master_load and will be
+ * reused / released when the callback completes.  dns_load_master will
+ * abort if callbacks->commit returns any value other than ISC_R_SUCCESS.
  *
  * If 'DNS_MASTER_AGETTL' is set and the master file contains one or more
  * $DATE directives, the TTLs of the data will be aged accordingly.
@@ -125,6 +145,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer,
  *
  * Requires:
  *	'master_file' points to a valid string.
+ *	'lexer' points to a valid lexer.
  *	'top' points to a valid name.
  *	'origin' points to a valid name.
  *	'callbacks->commit' points to a valid function.
