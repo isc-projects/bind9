@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_timers.c,v 1.2.2.5 2004/03/17 01:54:22 marka Exp $";
+static const char rcsid[] = "$Id: ev_timers.c,v 1.2.2.6 2004/03/17 02:33:17 marka Exp $";
 #endif
 
 /* Import. */
@@ -198,7 +198,7 @@ evSetTimer(evContext opaqueCtx,
 #endif
 
 	/* due={0,0} is a magic cookie meaning "now." */
-	if (due.tv_sec == 0 && due.tv_nsec == 0L)
+	if (due.tv_sec == (time_t)0 && due.tv_nsec == 0L)
 		due = evNowTime();
 
 	/* Allocate and fill. */
