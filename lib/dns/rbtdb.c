@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.122 2000/08/31 12:15:11 marka Exp $ */
+/* $Id: rbtdb.c,v 1.123 2000/09/06 02:39:57 explorer Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -166,7 +166,6 @@ typedef struct {
 	rbtdb_version_t *		future_version;
 	rbtdb_versionlist_t		open_versions;
 	isc_boolean_t			overmem;
-	isc_random_t			random;
 	/* Locked by tree_lock. */
 	dns_rbt_t *			tree;
 	isc_boolean_t			secure;
@@ -330,7 +329,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	REQUIRE(EMPTY(rbtdb->open_versions));
 	REQUIRE(rbtdb->future_version == NULL);
 
-	isc_random_invalidate(&rbtdb->random);
 	if (rbtdb->current_version != NULL)
 		isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
 			    sizeof (rbtdb_version_t));
@@ -2736,7 +2734,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 			if (rbtdb->overmem)
 				fprintf(stderr, "overmem stale\n");
 		} else if (rbtdb->overmem) {
-			isc_random_get(&rbtdb->random, &val);
+			isc_random_get(&val);
 			if ((val % 7) == 0) {
 				fprintf(stderr, "overmem expire\n");
 				header->ttl = 0;
@@ -4031,7 +4029,6 @@ dns_rbtdb_create
 	rbtdb->attributes = 0;
 	rbtdb->secure = ISC_FALSE;
 	rbtdb->overmem = ISC_FALSE;
-	isc_random_init(&rbtdb->random);
 
 	/*
 	 * Version Initialization.

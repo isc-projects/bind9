@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.10 2000/08/26 01:23:14 bwelling Exp $ */
+/* $Id: random.c,v 1.11 2000/09/06 02:39:59 explorer Exp $ */
 
 #include <config.h>
 
@@ -28,12 +28,11 @@
 #include <isc/util.h>
 
 static isc_once_t once = ISC_ONCE_INIT;
-static isc_mutex_t rand_lock;
 
 static void
 initialize_rand(void)
 {
-	RUNTIME_CHECK(isc_mutex_init(&rand_lock) == ISC_R_SUCCESS);
+	srand(time(NULL));
 }
 
 static void
@@ -42,75 +41,36 @@ initialize(void)
 	RUNTIME_CHECK(isc_once_do(&once, initialize_rand) == ISC_R_SUCCESS);
 }
 
-isc_result_t
-isc_random_init(isc_random_t *r)
-{
-	REQUIRE(r != NULL);
-
-	r->magic = ISC_RANDOM_MAGIC;
-#if 0
-	return (isc_mutex_init(&r->lock));
-#else
-	return (ISC_R_SUCCESS);
-#endif
-}
-
-isc_result_t
-isc_random_invalidate(isc_random_t *r)
-{
-	isc_result_t result;
-
-	REQUIRE(ISC_RANDOM_VALID(r));
-
-#if 0
-	DESTROYLOCK(&r->lock);
-	result = ISC_R_SUCCESS;
-#else
-	result = ISC_R_SUCCESS;
-#endif
-
-	memset(r, 0, sizeof(isc_random_t));
-
-	return (result);
-}
-
 void
-isc_random_seed(isc_random_t *r, isc_uint32_t seed)
+isc_random_seed(isc_uint32_t seed)
 {
-	REQUIRE(ISC_RANDOM_VALID(r));
-
-	UNUSED(r);
-
 	initialize();
 
-#if 0
-	LOCK(&r->lock);
-#endif
-	LOCK(&rand_lock);
 	srand(seed);
-	UNLOCK(&rand_lock);
-#if 0
-	UNLOCK(&r->lock);
-#endif
 }
 
 void
-isc_random_get(isc_random_t *r, isc_uint32_t *val)
+isc_random_get(isc_uint32_t *val)
 {
-	REQUIRE(ISC_RANDOM_VALID(r));
 	REQUIRE(val != NULL);
 
-	UNUSED(r);
-
 	initialize();
 
-#if 0
-	LOCK(&r->lock);
-#endif
-	LOCK(&rand_lock);
 	*val = rand();
-	UNLOCK(&rand_lock);
-#if 0
-	UNLOCK(&r->lock);
-#endif
+}
+
+isc_uint32_t
+isc_random_jitter(isc_uint32_t max, isc_uint32_t min, isc_uint32_t jitter) {
+	isc_uint32_t val;
+
+	REQUIRE(jitter > 0);
+
+	/*
+	 * Don't allow jitter to be more than max - min.
+	 */
+	if (jitter > max - min)
+		jitter = max - min;
+
+	val = rand() % jitter;
+	return (max - val);
 }

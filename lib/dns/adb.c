@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.149 2000/08/26 02:21:44 explorer Exp $ */
+/* $Id: adb.c,v 1.150 2000/09/06 02:39:56 explorer Exp $ */
 
 /*
  * Implementation notes
@@ -143,8 +143,6 @@ struct dns_adb {
 	isc_mempool_t		       *aimp;	/* dns_adbaddrinfo_t */
 	isc_mempool_t		       *afmp;	/* dns_adbfetch_t */
 	isc_mempool_t		       *af6mp;	/* dns_adbfetch6_t */
-
-	isc_random_t			rand;
 
 	/*
 	 * Bucketized locks and lists for names.
@@ -1405,7 +1403,7 @@ new_adbentry(dns_adb_t *adb) {
 	e->flags = 0;
 	e->edns_level = -1;
 	e->goodness = 0;
-	isc_random_get(&adb->rand, &r);
+	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
 	e->expires = 0;
 	e->avoid_bitstring = 0;
@@ -2141,8 +2139,6 @@ destroy(dns_adb_t *adb) {
 	DESTROYLOCK(&adb->lock);
 	DESTROYLOCK(&adb->mplock);
 
-	isc_random_invalidate(&adb->rand);
-
 	isc_mem_put(adb->mctx, adb, sizeof (dns_adb_t));
 }
 
@@ -2197,10 +2193,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->cevent_sent = ISC_FALSE;
 	adb->shutting_down = ISC_FALSE;
 	ISC_LIST_INIT(adb->whenshutdown);
-
-	result = isc_random_init(&adb->rand);
-	if (result != ISC_R_SUCCESS)
-		goto fail0a;
 
 	result = isc_mutex_init(&adb->lock);
 	if (result != ISC_R_SUCCESS)
@@ -2326,8 +2318,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
  fail0c:
 	DESTROYLOCK(&adb->lock);
  fail0b:
-	isc_random_invalidate(&adb->rand);
- fail0a:
 	isc_mem_put(mem, adb, sizeof (dns_adb_t));
 
 	return (result);

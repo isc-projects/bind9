@@ -1,4 +1,10 @@
 
+ 422.	[func]		get rid of isc_random_t, and make isc_random_get()
+			and isc_random_jitter() use rand() internally
+			instead of local state.  Note that isc_random_*()
+			functions are only for weak, non-critical "randomness"
+			such as timing jitter and such.
+
  421.	[bug]		nslookup would exit when given a blank line as input.
 
  420.	[bug]		nslookup failed to implement the "exit" command.
