@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.180 2001/01/08 23:44:09 gson Exp $ */
+/* $Id: dighost.c,v 1.181 2001/01/08 23:50:34 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -411,7 +411,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew = make_empty_lookup();
 	INSIST(looknew != NULL);
 	strncpy(looknew->textname, lookold-> textname, MXNAME);
-	looknew->textname[MXNAME-1]=0;
+	looknew->textname[MXNAME-1] = 0;
 	looknew->rdtype = lookold->rdtype;
 	looknew->rdclass = lookold->rdclass;
 	looknew->rdtypeset = lookold->rdtypeset;
@@ -651,7 +651,7 @@ setup_system(void) {
 							origin,
 							ptr,
 							MXNAME);
-						search->origin[MXNAME-1]=0;
+						search->origin[MXNAME-1] = 0;
 						ISC_LIST_INITANDAPPEND
 							(search_list,
 							 search,
@@ -674,7 +674,7 @@ setup_system(void) {
 							origin,
 							ptr,
 							MXNAME - 1);
-						search->origin[MXNAME-1]=0;
+						search->origin[MXNAME-1] = 0;
 						ISC_LIST_INITANDPREPEND
 							(search_list,
 							 search,
@@ -803,7 +803,7 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec
 	rdata->data = NULL;
 	rdata->length = 0;
 #ifdef DNS_OPT_NEWCODES_LIVE
-	for (i=0; i<optlist.used; i++)
+	for (i = 0; i < optlist.used; i++)
 		optsize += optlist.attrs[i].value.length + 4;
 	result = isc_buffer_allocate(mctx, &rdatabuf, optsize);
 	check_result(result, "isc_buffer_allocate");
@@ -1297,7 +1297,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				      __FILE__, __LINE__);
 			strncpy(fixedsearch->origin, fixeddomain,
 				sizeof(fixedsearch->origin));
-			fixedsearch->origin[sizeof(fixedsearch->origin)-1]=0;
+			fixedsearch->origin[sizeof(fixedsearch->origin)-1] = 0;
 			lookup->origin = fixedsearch;
 		} else
 			lookup->origin = ISC_LIST_HEAD(search_list);
@@ -1451,7 +1451,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->udpsize > 0 || lookup->dnssec) {
 #else /* DNS_OPT_NEWCODES_LIVE */
 	if (lookup->udpsize > 0 ||  || lookup->dnssec ||
-	    lookup->zonename[0] !=0 || lookup->viewname[0] != 0) {
+	    lookup->zonename[0] != 0 || lookup->viewname[0] != 0) {
 		dns_fixedname_t fname;
 		isc_buffer_t namebuf, *wirebuf = NULL;
 		dns_compress_t cctx;
