@@ -1,3 +1,6 @@
+1369.	[bug]		Adding an NS record as the lexicographically last
+			record in a secure zone didn't work.
+
 1368.	[func]		remove support for bitstring labels.
 
 1367.	[func]		Use response times to select forwarders.

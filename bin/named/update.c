@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.100 2002/06/12 06:29:43 marka Exp $ */
+/* $Id: update.c,v 1.101 2002/08/29 05:40:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1294,6 +1294,8 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 			break;
 		CHECK(namelist_append_name(affected, child));
 	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
  failure:
 	if (dbit != NULL)
 		dns_dbiterator_destroy(&dbit);
