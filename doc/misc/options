@@ -1,294 +1,286 @@
-Copyright (C) 2000, 2001  Internet Software Consortium.
-See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.69 2001/06/14 19:29:33 gson Exp $
-
-This is a summary of the implementation status of the various named.conf
-options in BIND 9.
-
-Legend:
-
-  Yes	    Implemented in this release.
-
-  No	    Not implemented, may be implemented in a later release.
-
-  Obsolete  Obsolete, not applicable to BIND 9, or just evil.
-	    Will not be implemented.
-
-  *	    New in BIND 9.
-
-  +	    The option is now always enabled.
-
-  -	    The option is now always disabled.
-
-  %	    The default value has changed since BIND 8.
-
-  &	    The option has been extended since BIND 8.
-
-  @	    Semantics of certain pathological address match lists, in
-	    particular those involving double negation, have changed.
-	    The new semantics are generally safer.  IPv6 addresses
-	    are supported, but the predefined ACLs "localhost" and
-	    "localnets" match IPv4 addresses only.
-
-  #	    BIND 9 accepts both LF and CRLF as end-of-line markers.
-
-  $	    Stub zones are partially supported.	 They no longer
-	    inject NS records into their parent zones, but can still
-	    be used as a way of forcing a domain to be resolved using
-	    a particular set of name servers.
-
+This is a summary of the named.conf options supported by BIND 9.
 
 options {
-  [ version version_string; ]				    Yes
-  [ directory path_name; ]				    Yes
-  [ named-xfer path_name; ]				    Obsolete
-  [ dump-file path_name; ]				    Yes
-  [ memstatistics-file path_name; ]			    No
-  [ pid-file path_name; ]				    Yes
-  [ statistics-file path_name; ]			    Yes
-  [ auth-nxdomain yes_or_no; ]				    Yes%
-  [ deallocate-on-exit yes_or_no; ]			    Obsolete+
-  [ dialup yes_or_no | notify | notify-passive |
-		       refresh | passive; ]		    Yes&
-  [ fake-iquery yes_or_no; ]				    Obsolete-
-  [ fetch-glue yes_or_no; ]				    Obsolete
-  [ has-old-clients yes_or_no; ]			    Obsolete
-  [ host-statistics yes_or_no; ]			    No
-  [ multiple-cnames yes_or_no; ]			    Obsolete-
-  [ notify yes_or_no | explicit; ]			    Yes&
-  [ recursion yes_or_no; ]				    Yes
-  [ rfc2308-type1 yes_or_no; ]				    No
-  [ use-id-pool yes_or_no; ]				    Obsolete+
-  [ use-ixfr yes_or_no; ]				    Obsolete
-  [ treat-cr-as-space yes_or_no; ]			    Obsolete#
-  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
-  [ forward ( only | first ); ]				    Yes
-  [ forwarders { [ in_addr ; [ in_addr ; ... ] ] }; ]	    Yes
-  [ check-names ... ]					    Obsolete
-  [ allow-notify { address_match_list }; ]		    Yes*
-  [ allow-query { address_match_list }; ]		    Yes@
-  [ allow-transfer { address_match_list }; ]		    Yes@
-  [ allow-recursion { address_match_list }; ]		    Yes@
-  [ blackhole { address_match_list }; ]			    Yes
-  [ listen-on [ port ip_port ] { address_match_list }; ]    Yes@
-  [ listen-on-v6 [ port ip_port ] { address_match_list }; ] Yes*
-  [ query-source ... ]					    Yes
-  [ query-source-v6 ... ]				    Yes*
-  [ lame-ttl number; ]					    Yes
-  [ max-transfer-time-in number; ]			    Yes
-  [ max-transfer-idle-in number; ]			    Yes*
-  [ max-transfer-time-out number; ]			    Yes*
-  [ max-transfer-idle-out number; ]			    Yes*
-  [ max-cache-ttl number; ]				    Yes*
-  [ max-ncache-ttl number; ]				    Yes
-  [ max-cache-size size_spec; ]				    Yes*
-  [ min-roots number; ]					    Obsolete
-  [ serial-queries number; ]				    Obsolete
-  [ serial-query-rate number; ]				    Yes*
-  [ transfer-format ( one-answer | many-answers ); ]	    Yes%
-  [ transfers-in  number; ]				    Yes
-  [ transfers-out number; ]				    Yes
-  [ transfers-per-ns number; ]				    Yes
-  [ transfer-source ...; ]				    Yes
-  [ transfer-source-v6 ...; ]				    Yes*
-  [ notify-source ...; ]				    Yes*
-  [ notify-source-v6 ...; ]				    Yes*
-  [ request-ixfr yes_or_no; ]				    Yes*
-  [ provide-ixfr yes_or_no; ]				    Yes*
-  [ maintain-ixfr-base yes_or_no; ]			    Obsolete
-  [ max-ixfr-log-size number; ]				    Obsolete
-  [ coresize size_spec ; ]				    Yes
-  [ datasize size_spec ; ]				    Yes
-  [ files size_spec ; ]					    Yes
-  [ stacksize size_spec ; ]				    Yes
-  [ cleaning-interval number; ]				    Yes
-  [ heartbeat-interval number; ]			    Yes
-  [ interface-interval number; ]			    Yes
-  [ statistics-interval number; ]			    No
-  [ topology { address_match_list }; ]			    No
-  [ sortlist { address_match_list }; ]			    Yes
-  [ rrset-order { order_spec ; [ order_spec ; ... ] }; ]    No
-  [ recursive-clients number; ]				    Yes*
-  [ tcp-clients number; ]				    Yes*
-  [ tkey-domain ... ]					    Yes*
-  [ tkey-dhkey ... ]					    Yes*
-  [ min-refresh-time number ; ]				    Yes*
-  [ max-refresh-time number ; ]				    Yes*
-  [ min-retry-time number ; ]				    Yes*
-  [ max-retry-time number ; ]				    Yes*
-  [ port number; ]					    Yes*
-  [ sig-validity-interval number; ]			    Yes*
-  [ additional-from-auth yes_or_no; ]			    Yes*
-  [ additional-from-cache yes_or_no; ]			    Yes*
-  [ random-device path_name; ]				    Yes*
-  [ minimal-responses yes_or_no; ]			    Yes*
-  [ match-mapped-addresses yes_or_no; ]			    Yes*
-  [ allow-v6-synthesis { address_match_list }; ]	    Yes
+        blackhole { <address_match_element>; ... };
+        coresize <size>;
+        datasize <size>;
+        deallocate-on-exit <boolean>; // obsolete
+        directory <quoted_string>;
+        dump-file <quoted_string>;
+        fake-iquery <boolean>; // obsolete
+        files <size>;
+        has-old-clients <boolean>; // obsolete
+        heartbeat-interval <integer>;
+        host-statistics <boolean>;
+        interface-interval <integer>;
+        listen-on [ port <integer> ] { <address_match_element>; ... };
+        listen-on-v6 [ port <integer> ] { <address_match_element>; ... };
+        match-mapped-addresses <boolean>;
+        memstatistics-file <quoted_string>;
+        multiple-cnames <boolean>; // obsolete
+        named-xfer <quoted_string>; // obsolete
+        pid-file <quoted_string>;
+        port <integer>;
+        random-device <quoted_string>;
+        recursive-clients <integer>;
+        rrset-order { [ class <string> ] [ type <string> ] [ name
+            <quoted_string> ] <string> <string>; ... };
+        serial-queries <integer>; // obsolete
+        serial-query-rate <integer>;
+        stacksize <size>;
+        statistics-file <quoted_string>;
+        statistics-interval <integer>; // not yet implemented
+        tcp-clients <integer>;
+        tkey-dhkey <quoted_string> <integer>;
+        tkey-gssapi-credential <quoted_string>;
+        tkey-domain <quoted_string>;
+        transfers-per-ns <integer>;
+        transfers-in <integer>;
+        transfers-out <integer>;
+        treat-cr-as-space <boolean>; // obsolete
+        use-id-pool <boolean>; // obsolete
+        use-ixfr <boolean>;
+        version <quoted_string>;
+        allow-notify { <address_match_element>; ... };
+        allow-update-forwarding { <address_match_element>; ... };
+        allow-recursion { <address_match_element>; ... };
+        allow-v6-synthesis { <address_match_element>; ... };
+        sortlist { <address_match_element>; ... };
+        topology { <address_match_element>; ... }; // not implemented
+        auth-nxdomain <boolean>; // default changed
+        minimal-responses <boolean>;
+        recursion <boolean>;
+        provide-ixfr <boolean>;
+        request-ixfr <boolean>;
+        fetch-glue <boolean>; // obsolete
+        rfc2308-type1 <boolean>; // not yet implemented
+        additional-from-auth <boolean>;
+        additional-from-cache <boolean>;
+        query-source <querysource4>;
+        query-source-v6 <querysource6>;
+        notify-source <sockaddr4wild>;
+        notify-source-v6 <v6addrportwild>;
+        cleaning-interval <integer>;
+        min-roots <integer>; // not implemented
+        lame-ttl <integer>;
+        max-ncache-ttl <integer>;
+        max-cache-ttl <integer>;
+        transfer-format <string>;
+        max-cache-size <size>;
+        check-names <string> <string>; // not implemented
+        cache-file <quoted_string>;
+        allow-query { <address_match_element>; ... };
+        allow-transfer { <address_match_element>; ... };
+        notify <notifytype>;
+        also-notify [ port <integer> ] { <sockaddr>; ... };
+        dialup <dialuptype>;
+        forward ( first | only );
+        forwarders [ port <integer> ] { <sockaddr>; ... };
+        maintain-ixfr-base <boolean>;
+        max-ixfr-log-size <size>; // obsolete
+        transfer-source <sockaddr4wild>;
+        transfer-source-v6 <v6addrportwild>;
+        max-transfer-time-in <integer>;
+        max-transfer-time-out <integer>;
+        max-transfer-idle-in <integer>;
+        max-transfer-idle-out <integer>;
+        max-retry-time <integer>;
+        min-retry-time <integer>;
+        max-refresh-time <integer>;
+        min-refresh-time <integer>;
+        sig-validity-interval <integer>;
+        zone-statistics <boolean>;
 };
-
-acl							    Yes@
-
-include							    Yes
-
-key							    Yes
-
-logging							    Yes
 
 controls {
-  [ inet ... ]						    Yes%
-  [ unix ... ]						    Obsolete
+        inet <controls_sockaddr> allow { <address_match_element>; ... } [
+            keys { <string>; ... } ];
+        unix <unsupported>; // not implemented
 };
 
-server ip_addr {
-  [ bogus yes_or_no; ]					    Yes
-  [ request-ixfr yes_or_no; ]				    Yes*
-  [ provide-ixfr yes_or_no; ]				    Yes*
-  [ support-ixfr yes_or_no; ]				    Obsolete
-  [ edns yes_or_no; ]					    Yes*
-  [ transfers number; ]					    Yes
-  [ transfer-format ( one-answer | many-answers ); ]	    Yes%
-  [ keys { key_id [key_id ... ] }; ]			    Yes
+acl <string> { <address_match_element>; ... };
+
+logging {
+        channel {
+                file <logfile>;
+                syslog <optional_facility>;
+                null;
+                stderr;
+                severity <logseverity>;
+                print-time <boolean>;
+                print-severity <boolean>;
+                print-category <boolean>;
+        };
+        category <string> { <string>; ... };
 };
 
-trusted-keys						    Yes
-
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
-  type master;						    Yes
-  file path_name;					    Yes
-  [ forward ( only | first ); ]				    Yes
-  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
-  [ check-names ( warn | fail | ignore ); ]		    Obsolete
-  [ allow-update { address_match_list }; ]		    Yes@
-  [ update-policy ... ]					    Yes*
-  [ allow-query { address_match_list }; ]		    Yes@
-  [ allow-transfer { address_match_list }; ]		    Yes@
-  [ notify-source ...; ]				    Yes*
-  [ notify-source-v6 ...; ]				    Yes*
-  [ dialup yes_or_no | notify; ]			    Yes&
-  [ max-transfer-time-out number; ]			    Yes*
-  [ max-transfer-idle-out number; ]			    Yes*
-  [ notify yes_or_no | explicit; ]			    Yes&
-  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
-  [ ixfr-base  path_name; ]				    Obsolete
-  [ pubkey number number number string; ]		    No
-  [ sig-validity-interval number; ]			    Yes*
-  [ database string ; [string; ... ] ]			    Yes*
-  [ min-refresh-time number ; ]				    Yes*
-  [ max-refresh-time number ; ]				    Yes*
-  [ min-retry-time number ; ]				    Yes*
-  [ max-retry-time number ; ]				    Yes*
+view <string> <optional_class> {
+        match-clients { <address_match_element>; ... };
+        match-destinations { <address_match_element>; ... };
+        match-recursive-only <boolean>;
+        key {
+                algorithm <string>;
+                secret <string>;
+        };
+        zone <string> <optional_class> {
+                type ( master | slave | stub | hint | forward );
+                allow-update { <address_match_element>; ... };
+                allow-update-forwarding { <address_match_element>; ... };
+                file <quoted_string>;
+                ixfr-base <quoted_string>; // obsolete
+                ixfr-tmp-file <quoted_string>; // obsolete
+                masters [ port <integer> ] { <sockaddr> [ key <string> ];
+                    ... };
+                pubkey <integer> <integer> <integer> <quoted_string>; //
+                    obsolete
+                update-policy { ( grant | deny ) <string> ( name |
+                    subdomain | wildcard | self ) <string> <rrtypelist>; ... };
+                database <string>;
+                check-names <string>; // not implemented
+                allow-query { <address_match_element>; ... };
+                allow-transfer { <address_match_element>; ... };
+                notify <notifytype>;
+                also-notify [ port <integer> ] { <sockaddr>; ... };
+                dialup <dialuptype>;
+                forward ( first | only );
+                forwarders [ port <integer> ] { <sockaddr>; ... };
+                maintain-ixfr-base <boolean>;
+                max-ixfr-log-size <size>; // obsolete
+                transfer-source <sockaddr4wild>;
+                transfer-source-v6 <v6addrportwild>;
+                max-transfer-time-in <integer>;
+                max-transfer-time-out <integer>;
+                max-transfer-idle-in <integer>;
+                max-transfer-idle-out <integer>;
+                max-retry-time <integer>;
+                min-retry-time <integer>;
+                max-refresh-time <integer>;
+                min-refresh-time <integer>;
+                sig-validity-interval <integer>;
+                zone-statistics <boolean>;
+        };
+        server {
+                bogus <boolean>;
+                provide-ixfr <boolean>;
+                request-ixfr <boolean>;
+                support-ixfr <boolean>; // obsolete
+                transfers <integer>;
+                transfer-format ( many-answers | one-answer );
+                keys <server_key>;
+                edns <boolean>;
+        };
+        trusted-keys { <string> <integer> <integer> <integer>
+            <quoted_string>; ... };
+        allow-notify { <address_match_element>; ... };
+        allow-update-forwarding { <address_match_element>; ... };
+        allow-recursion { <address_match_element>; ... };
+        allow-v6-synthesis { <address_match_element>; ... };
+        sortlist { <address_match_element>; ... };
+        topology { <address_match_element>; ... }; // not implemented
+        auth-nxdomain <boolean>; // default changed
+        minimal-responses <boolean>;
+        recursion <boolean>;
+        provide-ixfr <boolean>;
+        request-ixfr <boolean>;
+        fetch-glue <boolean>; // obsolete
+        rfc2308-type1 <boolean>; // not yet implemented
+        additional-from-auth <boolean>;
+        additional-from-cache <boolean>;
+        query-source <querysource4>;
+        query-source-v6 <querysource6>;
+        notify-source <sockaddr4wild>;
+        notify-source-v6 <v6addrportwild>;
+        cleaning-interval <integer>;
+        min-roots <integer>; // not implemented
+        lame-ttl <integer>;
+        max-ncache-ttl <integer>;
+        max-cache-ttl <integer>;
+        transfer-format <string>;
+        max-cache-size <size>;
+        check-names <string> <string>; // not implemented
+        cache-file <quoted_string>;
+        allow-query { <address_match_element>; ... };
+        allow-transfer { <address_match_element>; ... };
+        notify <notifytype>;
+        also-notify [ port <integer> ] { <sockaddr>; ... };
+        dialup <dialuptype>;
+        forward ( first | only );
+        forwarders [ port <integer> ] { <sockaddr>; ... };
+        maintain-ixfr-base <boolean>;
+        max-ixfr-log-size <size>; // obsolete
+        transfer-source <sockaddr4wild>;
+        transfer-source-v6 <v6addrportwild>;
+        max-transfer-time-in <integer>;
+        max-transfer-time-out <integer>;
+        max-transfer-idle-in <integer>;
+        max-transfer-idle-out <integer>;
+        max-retry-time <integer>;
+        min-retry-time <integer>;
+        max-refresh-time <integer>;
+        min-refresh-time <integer>;
+        sig-validity-interval <integer>;
+        zone-statistics <boolean>;
 };
 
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
-  type slave;						    Yes
-  [ file path_name; ]					    Yes
-  [ ixfr-base path_name; ]				    Obsolete
-  [ ixfr-tmp-file path_name; ]				    Obsolete
-  masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
-  [ forward ( only | first ); ]				    Yes
-  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
-  [ check-names ( warn | fail | ignore ); ]		    Obsolete
-  [ allow-notify { address_match_list };]		    Yes*
-  [ allow-update-forwarding { address_match_list }; ]	    Yes*
-  [ allow-query { address_match_list }; ]		    Yes@
-  [ allow-transfer { address_match_list }; ]		    Yes@
-  [ transfer-source ...; ]				    Yes
-  [ transfer-source-v6 ...; ]				    Yes*
-  [ notify-source ...; ]				    Yes*
-  [ notify-source-v6 ...; ]				    Yes*
-  [ dialup yes_or_no | notify | notify-passive |
-		       refresh | passive; ]		    Yes&
-  [ max-transfer-time-in number; ]			    Yes
-  [ max-transfer-idle-in number; ]			    Yes*
-  [ max-transfer-time-out number; ]			    Yes*
-  [ max-transfer-idle-out number; ]			    Yes*
-  [ notify yes_or_no | explicit; ]			    Yes&
-  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
-  [ pubkey number number number string; ]		    No
-  [ min-refresh-time number ; ]				    Yes*
-  [ max-refresh-time number ; ]				    Yes*
-  [ min-retry-time number ; ]				    Yes*
-  [ max-retry-time number ; ]				    Yes*
+lwres {
+        listen-on [ port <integer> ] { <sockaddr>; ... };
+        view <string> <optional_class>;
+        search { <string>; ... };
+        ndots <integer>;
 };
 
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
-  type stub;						    Yes$
-  [ file path_name; ]					    Yes
-  masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
-  [ forward ( only | first ); ]				    Yes
-  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
-  [ check-names ( warn | fail | ignore ); ]		    Obsolete
-  [ allow-query { address_match_list }; ]		    Yes@
-  [ allow-transfer { address_match_list }; ]		    Yes@
-  [ transfer-source ...; ]				    Yes
-  [ transfer-source-v6 ...; ]				    Yes*
-  [ dialup yes_or_no | passive | refresh; ]		    Yes%
-  [ max-transfer-time-in number; ]			    Yes
-  [ max-transfer-idle-in number; ]			    Yes*
-  [ pubkey number number number string; ]		    No
-  [ min-refresh-time number ; ]				    Yes*
-  [ max-refresh-time number ; ]				    Yes*
-  [ min-retry-time number ; ]				    Yes*
-  [ max-retry-time number ; ]				    Yes*
+key {
+        algorithm <string>;
+        secret <string>;
 };
 
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
-  type forward;						    Yes
-  [ forward ( only | first ); ]				    Yes
-  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
+zone <string> <optional_class> {
+        type ( master | slave | stub | hint | forward );
+        allow-update { <address_match_element>; ... };
+        allow-update-forwarding { <address_match_element>; ... };
+        file <quoted_string>;
+        ixfr-base <quoted_string>; // obsolete
+        ixfr-tmp-file <quoted_string>; // obsolete
+        masters [ port <integer> ] { <sockaddr> [ key <string> ]; ... };
+        pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
+        update-policy { ( grant | deny ) <string> ( name | subdomain |
+            wildcard | self ) <string> <rrtypelist>; ... };
+        database <string>;
+        check-names <string>; // not implemented
+        allow-query { <address_match_element>; ... };
+        allow-transfer { <address_match_element>; ... };
+        notify <notifytype>;
+        also-notify [ port <integer> ] { <sockaddr>; ... };
+        dialup <dialuptype>;
+        forward ( first | only );
+        forwarders [ port <integer> ] { <sockaddr>; ... };
+        maintain-ixfr-base <boolean>;
+        max-ixfr-log-size <size>; // obsolete
+        transfer-source <sockaddr4wild>;
+        transfer-source-v6 <v6addrportwild>;
+        max-transfer-time-in <integer>;
+        max-transfer-time-out <integer>;
+        max-transfer-idle-in <integer>;
+        max-transfer-idle-out <integer>;
+        max-retry-time <integer>;
+        min-retry-time <integer>;
+        max-refresh-time <integer>;
+        min-refresh-time <integer>;
+        sig-validity-interval <integer>;
+        zone-statistics <boolean>;
 };
 
-zone "." [ ( in | hs | hesiod | chaos ) ] {
-  type hint;						    Yes
-  file path_name;					    Yes
-  [ check-names ( warn | fail | ignore ); ]		    Obsolete
+server {
+        bogus <boolean>;
+        provide-ixfr <boolean>;
+        request-ixfr <boolean>;
+        support-ixfr <boolean>; // obsolete
+        transfers <integer>;
+        transfer-format ( many-answers | one-answer );
+        keys <server_key>;
+        edns <boolean>;
 };
 
-view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
-  match-clients { address_match_list };			    Yes*
-  [ zone ... ]						    Yes
-  [ auth-nxdomain yes_or_no; ]				    Yes
-  [ fetch-glue yes_or_no; ]				    Obsolete
-  [ notify yes_or_no | explicit; ]			    Yes&
-  [ recursion yes_or_no; ]				    Yes
-  [ rfc2308-type1 yes_or_no; ]				    No
-  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
-  [ forward ( only | first ); ]				    Yes
-  [ forwarders { [ in_addr ; [ in_addr ; ... ] ] }; ]	    Yes
-  [ check-names ... ]					    Obsolete
-  [ allow-notify { address_match_list }; ]		    Yes
-  [ allow-query { address_match_list }; ]		    Yes
-  [ allow-transfer { address_match_list }; ]		    Yes
-  [ allow-recursion { address_match_list }; ]		    Yes
-  [ query-source ... ]					    Yes
-  [ query-source-v6 ... ]				    Yes
-  [ lame-ttl number; ]					    Yes
-  [ max-transfer-time-out number; ]			    Yes*
-  [ max-transfer-idle-out number; ]			    Yes*
-  [ max-cache-ttl number; ]				    Yes*
-  [ max-ncache-ttl number; ]				    Yes
-  [ max-cache-size size_spec; ]				    Yes*
-  [ min-roots number; ]					    Obsolete
-  [ transfer-format ( one-answer | many-answers ); ]	    Yes%
-  [ transfer-source ...; ]				    Yes
-  [ transfer-source-v6 ...; ]				    Yes*
-  [ notify-source ...; ]				    Yes*
-  [ notify-source-v6 ...; ]				    Yes*
-  [ request-ixfr yes_or_no; ]				    Yes*
-  [ provide-ixfr yes_or_no;]				    Yes*
-  [ cleaning-interval number; ]				    Yes
-  [ topology { address_match_list }; ]			    No
-  [ sortlist { address_match_list }; ]			    Yes
-  [ rrset-order { order_spec ; [ order_spec ; ... ] }; ]    No
-  [ key ... ]						    Yes
-  [ server ... ]					    Yes
-  [ trusted-keys ... ]					    Yes
-  [ sig-validity-interval number; ]			    Yes*
-  [ min-refresh-time number ; ]				    Yes*
-  [ max-refresh-time number ; ]				    Yes*
-  [ min-retry-time number ; ]				    Yes*
-  [ max-retry-time number ; ]				    Yes*
-  [ minimal-responses yes_or_no; ]			    Yes*
-  [ allow-v6-synthesis { address_match_list }; ]	    Yes
-};
+trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... };
+

@@ -1,4 +1,8 @@
 
+ 946.	[cleanup]	doc/misc/options is now machine-generated from the
+			configuration parser syntax tables, and therefore
+			more likely to be correct.
+
  945.	[func]		Add the new view-specific options
  			"match-destinations" and "match-recursive-only".
 

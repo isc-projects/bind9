@@ -1,4 +1,4 @@
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,17 +13,24 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4 2001/07/26 21:31:11 gson Exp $
-
-# This Makefile is a placeholder.  It exists merely to make
-# sure that its directory gets created in the object directory
-# tree when doing a build using separate object directories.
+# $Id: Makefile.in,v 1.1 2001/07/26 21:31:12 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-SUBDIRS = arm misc
-TARGETS =
-
 @BIND9_MAKE_RULES@
+
+PERL = @PERL@
+
+MANOBJS = options
+
+doc man:: ${MANOBJS}
+
+docclean manclean maintainer-clean::
+	rm -f options
+
+options: 
+	../../bin/tests/cfg_test --named --grammar | \
+		${PERL} ${srcdir}/format-options.pl >options || \
+		rm -f options

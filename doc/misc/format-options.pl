@@ -1,4 +1,6 @@
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+#!/usr/bin/perl
+#
+# Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,17 +15,22 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4 2001/07/26 21:31:11 gson Exp $
+# $Id: format-options.pl,v 1.1 2001/07/26 21:31:12 gson Exp $
 
-# This Makefile is a placeholder.  It exists merely to make
-# sure that its directory gets created in the object directory
-# tree when doing a build using separate object directories.
+print <<END;
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
+This is a summary of the named.conf options supported by 
+this version of BIND 9.
 
-SUBDIRS = arm misc
-TARGETS =
+END
 
-@BIND9_MAKE_RULES@
+# Break long lines
+while (<>) {
+	s/\t/        /g;
+	if (length >= 79) {
+		m!^( *)!;
+		my $indent = $1;
+		s!^(.{0,75}) (.*)$!\1\n$indent    \2!;
+	}
+	print;
+}
