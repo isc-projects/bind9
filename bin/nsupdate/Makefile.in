@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.22 2004/03/05 04:58:15 marka Exp $
+# $Id: Makefile.in,v 1.23 2004/07/20 07:13:34 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -64,7 +64,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 nsupdate@EXEEXT@: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
 

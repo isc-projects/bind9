@@ -6,7 +6,7 @@ LIBS = @LIBS@
 DEFS = @DEFS@
 
 queryperf: queryperf.o $(LIBOBJS)
-	$(CC) $(CFLAGS) $(DEFS) queryperf.o $(LIBOBJS) $(LIBS) -lm -o queryperf
+	$(CC) $(CFLAGS) $(DEFS) $(LDFLAGS) queryperf.o $(LIBOBJS) $(LIBS) -lm -o queryperf
 
 queryperf.o: queryperf.c
 	$(CC) $(CFLAGS) $(DEFS) -c queryperf.c

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.145 2004/04/15 00:32:44 marka Exp $
+# $Id: Makefile.in,v 1.146 2004/07/20 07:13:41 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -107,7 +107,7 @@ libdns.@SA@: ${OBJS}
 
 libdns.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
-		${CC} ${ALL_CFLAGS} -o libdns.la -rpath ${libdir} \
+		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libdns.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
 
@@ -151,7 +151,7 @@ code.h:	gen
 	./gen -s ${srcdir} > code.h
 
 gen: gen.c
-	${CC} ${ALL_CFLAGS} -o $@ ${srcdir}/gen.c ${LIBS}
+	${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ ${srcdir}/gen.c ${LIBS}
 
 rbtdb64.@O@: rbtdb.c
 
