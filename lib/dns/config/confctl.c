@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.30 2000/10/20 13:29:34 marka Exp $ */
+/* $Id: confctl.c,v 1.31 2000/12/06 20:36:00 gson Exp $ */
 
 #include <config.h>
 
@@ -226,6 +226,8 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 
 	ctrl->keyidlist = NULL;
 
+	ISC_LINK_INIT(ctrl, next);
+	
 	*control = ctrl;
 
 	return (ISC_R_SUCCESS);
