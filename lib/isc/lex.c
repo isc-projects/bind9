@@ -64,6 +64,25 @@ struct isc_lex {
 	LIST(struct inputsource)	sources;
 };
 
+static inline isc_result_t
+grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
+	char *new;
+
+	new = isc_mem_get(lex->mctx, lex->max_token * 2 + 1);
+	if (lex == NULL)
+		return (ISC_R_NOMEMORY);
+	memcpy(new, lex->data, lex->max_token + 1);
+	*currp = new + (*currp - lex->data);
+	if (*prevp != NULL)
+		*prevp = new + (*prevp - lex->data);
+	isc_mem_put(lex->mctx, lex->data, lex->max_token + 1);
+	lex->data = new;
+	*remainingp += lex->max_token;
+	lex->max_token *= 2;
+	fprintf(stderr, "max_token now %d\n", lex->max_token);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	isc_lex_t *lex;
@@ -309,6 +328,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	unsigned long ulong;
 	unsigned int saved_options;
 	char *e;
+	isc_result_t result;
 
 	/*
 	 * Get the next token.
@@ -523,12 +543,16 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					state = lexstate_string;
 				}
 			}
-			if (remaining > 0) {
-				*curr++ = c;
-				*curr = '\0';
-				remaining--;
-			} else
-				return (ISC_R_NOSPACE);
+			if (remaining == 0) {
+				result = grow_data(lex, &remaining,
+						   &curr, &prev);
+				if (result != ISC_R_SUCCESS)
+					return (result);
+			}
+			INSIST(remaining > 0);
+			*curr++ = c;
+			*curr = '\0';
+			remaining--;
 			break;
 		case lexstate_string:
 			if ((!escaped &&
@@ -546,12 +570,16 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			if ((options & ISC_LEXOPT_ESCAPE) != 0)
 				escaped = (!escaped && c == '\\') ?
 						ISC_TRUE : ISC_FALSE;
-			if (remaining > 0) {
-				*curr++ = c;
-				*curr = 0;
-				remaining--;
-			} else
-				return (ISC_R_NOSPACE);
+			if (remaining == 0) {
+				result = grow_data(lex, &remaining,
+						   &curr, &prev);
+				if (result != ISC_R_SUCCESS)
+					return (result);
+			}
+			INSIST(remaining > 0);
+			*curr++ = c;
+			*curr = 0;
+			remaining--;
 			break;
 		case lexstate_maybecomment:
 			if (c == '*' &&
@@ -626,13 +654,17 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					escaped = ISC_TRUE;
 				else
 					escaped = ISC_FALSE;
-				if (remaining > 0) {
-					prev = curr;
-					*curr++ = c;
-					*curr = 0;
-					remaining--;
-				} else
-					return (ISC_R_NOSPACE);
+				if (remaining == 0) {
+					result = grow_data(lex, &remaining,
+							   &curr, &prev);
+					if (result != ISC_R_SUCCESS)
+						return (result);
+				}
+				INSIST(remaining > 0);
+				prev = curr;
+				*curr++ = c;
+				*curr = 0;
+				remaining--;
 			}
 			break;
 		default:

@@ -145,7 +145,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp);
 /*
  * Create a lexer.
  *
- * Note: 'max_token' is the number of bytes in the largest token.
+ * 'max_token' is a hint of the number of bytes in the largest token.
  *
  * Requires:
  *	'*lexp' is a valid lexer.
@@ -294,7 +294,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp);
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_UNEXPECTEDEND
- *	ISC_R_NOSPACE
+ *	ISC_R_NOMEMORY
  *
  *	These two results are returned only if their corresponding lexer
  *	options are not set.
