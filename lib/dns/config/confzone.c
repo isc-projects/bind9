@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.42 2000/05/15 12:36:28 brister Exp $ */
+/* $Id: confzone.c,v 1.43 2000/05/18 23:20:19 brister Exp $ */
 
 #include <config.h>
 
@@ -195,63 +195,17 @@ dns_c_zonelist_delete(dns_c_zonelist_t **zlist) {
 isc_result_t
 dns_c_zonelist_checkzones(dns_c_zonelist_t *list) {
 	dns_c_zone_t *zone;
-	dns_c_ipmatchlist_t *ipmlist;
-	dns_c_iplist_t *iplist;
-	dns_ssutable_t *ssutable = NULL;
 	isc_result_t tmpres;
 	isc_result_t result = ISC_R_SUCCESS;
-	const char *autherr = "zone '%s': allow-update is ignored when "
-		"update-policy is also used";
-	const char *nomasterserr = "zone '%s': missing 'masters' entry";
-	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
-	
 
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
 
 	for (zone = dns_c_zonelist_firstzone(list) ;
 	     zone != NULL ;
 	     zone = dns_c_zonelist_nextzone(list, zone)) {
-
-		ipmlist = NULL;
-		ssutable = NULL;
-
-		/*
-		 * Check for allow-update and update-policty together
-		 */
-		if (zone->ztype == dns_c_zone_master) {
-			ipmlist = NULL;
-			tmpres = dns_c_zone_getallowupd(zone, &ipmlist);
-			if (tmpres == ISC_R_SUCCESS) {
-				tmpres = dns_c_zone_getssuauth(zone,
-							       &ssutable);
-				if (tmpres == ISC_R_SUCCESS) {
-					isc_log_write(dns_lctx,
-						      DNS_LOGCATEGORY_CONFIG,
-						      DNS_LOGMODULE_CONFIG,
-						      ISC_LOG_WARNING, autherr,
-						      zone->name);
-					dns_c_zone_unsetallowupd(zone);
-				}
-				dns_c_ipmatchlist_detach(&ipmlist);
-			}
-		} else if (zone->ztype == dns_c_zone_slave) {
-			iplist = NULL;
-			tmpres = dns_c_zone_getmasterips(zone, &iplist);
-			if (tmpres != ISC_R_SUCCESS) {
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_CONFIG,
-					      DNS_LOGMODULE_CONFIG,
-					      ISC_LOG_WARNING, nomasterserr,
-					      zone->name);
-				result = ISC_R_FAILURE;
-			} else if (iplist->nextidx == 0) {
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_CONFIG,
-					      DNS_LOGMODULE_CONFIG,
-					      ISC_LOG_WARNING, emptymasterserr,
-					      zone->name);
-				result = ISC_R_FAILURE;
-			}
+		tmpres = dns_c_zone_validate(zone);
+		if (result == ISC_R_SUCCESS) {
+			result = tmpres;
 		}
 	}
 
@@ -4068,5 +4022,56 @@ dns_c_zone_unsetenabled(dns_c_zone_t *zone)
 }
 	
 
+isc_result_t
+dns_c_zone_validate(dns_c_zone_t *zone)
+{
+	dns_c_ipmatchlist_t *ipmlist = NULL;
+	dns_c_iplist_t *iplist = NULL;
+	dns_ssutable_t *ssutable = NULL;
+	isc_result_t tmpres;
+	isc_result_t result = ISC_R_SUCCESS;
+	const char *autherr = "zone '%s': allow-update is ignored when "
+		"update-policy is also used";
+	const char *nomasterserr = "zone '%s': missing 'masters' entry";
+	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
 
+	/*
+	 * Check for allow-update and update-policty together
+	 */
+	if (zone->ztype == dns_c_zone_master) {
+		tmpres = dns_c_zone_getallowupd(zone, &ipmlist);
+		if (tmpres == ISC_R_SUCCESS) {
+			tmpres = dns_c_zone_getssuauth(zone,
+						       &ssutable);
+			if (tmpres == ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_CONFIG,
+					      DNS_LOGMODULE_CONFIG,
+					      ISC_LOG_WARNING, autherr,
+					      zone->name);
+				dns_c_zone_unsetallowupd(zone);
+			}
+			dns_c_ipmatchlist_detach(&ipmlist);
+		}
+	} else if (zone->ztype == dns_c_zone_slave) {
+		iplist = NULL;
+		tmpres = dns_c_zone_getmasterips(zone, &iplist);
+		if (tmpres != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx,
+				      DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG,
+				      ISC_LOG_WARNING, nomasterserr,
+				      zone->name);
+			result = ISC_R_FAILURE;
+		} else if (iplist->nextidx == 0) {
+			isc_log_write(dns_lctx,
+				      DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG,
+				      ISC_LOG_WARNING, emptymasterserr,
+				      zone->name);
+			result = ISC_R_FAILURE;
+		}
+	}
 
+	return (result);
+}

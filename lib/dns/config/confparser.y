@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.81 2000/05/15 12:36:23 brister Exp $ */
+/* $Id: confparser.y,v 1.82 2000/05/18 23:20:18 brister Exp $ */
 
 #include <config.h>
 
@@ -3981,6 +3981,11 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 
 		if (zone != NULL &&
 		    callbacks != NULL && callbacks->zonecbk != NULL) {
+			tmpres = dns_c_zone_validate(zone);
+			if (tmpres != ISC_R_SUCCESS) {
+				YYABORT;
+			}
+			
 			tmpres = callbacks->zonecbk(currcfg,
 						    zone,
 						    view,
@@ -4581,6 +4586,11 @@ zone_option: L_FILE L_QSTRING
 			parser_error(ISC_FALSE,
 				     "failed to set enable-zone.");
 			YYABORT;
+		}
+
+		if ($2 == ISC_FALSE) {
+			parser_warning(ISC_FALSE, "zone '%s' is disabled",
+				       zone->name);
 		}
 	}
 	| L_DATABASE L_QSTRING

@@ -1,3 +1,7 @@
+ 192.	[bug]		Zone configuration validation is now done at end 
+			of config file parsing, and before loading
+			callbacks.
+
  191.   [func]          Patched to compile on UnixWare 7.x.  This platform
                         is not directly supported by the ISC.
 

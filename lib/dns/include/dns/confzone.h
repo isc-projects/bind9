@@ -468,6 +468,8 @@ isc_result_t
 dns_c_zone_unsetenabled(dns_c_zone_t *zone);
 
 
+isc_result_t
+dns_c_zone_validate(dns_c_zone_t *zone);
 
 
 ISC_LANG_ENDDECLS
