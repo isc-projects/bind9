@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.73 2000/07/20 19:41:41 mws Exp $ */
+/* $Id: dig.c,v 1.74 2000/07/21 21:21:26 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -984,7 +984,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			debug("batch line %s", batchline);
 			bargc = 1;
 			bargv[bargc] = strtok(batchline, " \t\r\n");
-			while ((bargv[bargc] != NULL) && (bargc < 14 )) {
+			while ((bargv[bargc] != NULL) && (bargc < 14)) {
 				bargc++;
 				bargv[bargc] = strtok(NULL, " \t\r\n");
 			}
@@ -1038,7 +1038,7 @@ dighost_shutdown(void) {
 		debug("batch line %s", batchline);
 		bargc = 1;
 		bargv[bargc] = strtok(batchline, " \t\r\n");
-		while ((bargv[bargc] != NULL) && (bargc < 14 )) {
+		while ((bargv[bargc] != NULL) && (bargc < 14)) {
 			bargc++;
 			bargv[bargc] = strtok(NULL, " \t\r\n");
 		}
