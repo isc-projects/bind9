@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.160 2000/07/21 20:10:03 mws Exp $ */
+/* $Id: zone.c,v 1.161 2000/07/21 20:51:44 mws Exp $ */
 
 #include <config.h>
 
@@ -1283,9 +1283,13 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 		zone->masters = NULL;
 	}
 	if (zone->masterkeynames != NULL) {
-		for (i = 0; i < zone->masterscnt; i++)
+		for (i = 0; i < zone->masterscnt; i++) {
 			dns_name_free(zone->masterkeynames[i],
 				      zone->mctx);
+			isc_mem_put(zone->mctx, zone->masterkeynames[i],
+				    sizeof(dns_name_t));
+			zone->masterkeynames[i] = NULL;
+		}
 		isc_mem_put(zone->mctx, zone->masterkeynames,
 			    zone->masterscnt * sizeof *newname);
 		zone->masterkeynames = NULL;
@@ -1318,9 +1322,15 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 			newname[i] = NULL;
 		for (i = 0; i < count; i++) {
 			if (keynames[i] != NULL) {
+				newname[i] = isc_mem_get(zone->mctx,
+							 sizeof(dns_name_t));
+				if (newname[i] == NULL)
+					goto allocfail;
+				dns_name_init(newname[i], NULL);
 				result = dns_name_dup(keynames[i], zone->mctx,
 						      newname[i]);
 				if (result != ISC_R_SUCCESS) {
+				allocfail:
 					for (i = 0; i < count; i++)
 						if (newname[i] != NULL)
 							dns_name_free(
