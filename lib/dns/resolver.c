@@ -267,10 +267,14 @@ static inline isc_result_t
 fctx_starttimer(fetchctx_t *fctx) {
 	/*
 	 * Start the lifetime timer for fctx.
+	 *
+	 * This is also used for stopping the idle timer; in that
+	 * case we must purge events already posted to ensure that
+	 * no further idle events are delivered.
 	 */
 	return (isc_timer_reset(fctx->timer, isc_timertype_once,
 				&fctx->expires, NULL,
-				ISC_FALSE));
+				ISC_TRUE));
 }
 
 static inline void
@@ -629,6 +633,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	INSIST(fctx->validator == NULL); /* Validator needs rmessage. */
 	dns_message_reset(fctx->rmessage, DNS_MESSAGE_INTENTPARSE);
 
 	query = isc_mem_get(res->mctx, sizeof *query);
@@ -1009,6 +1014,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				 
 	isc_event_free(&event);
 }
+
+
 
 static void
 fctx_finddone(isc_task_t *task, isc_event_t *event) {
@@ -1546,6 +1553,7 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(fctx->pending == 0);
 	REQUIRE(fctx->validating == 0);
 	REQUIRE(fctx->references == 0);
+	REQUIRE(fctx->validator == NULL);
 
 	FCTXTRACE("destroy");
 
@@ -2070,6 +2078,35 @@ clone_results(fetchctx_t *fctx) {
 #define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
 #define CHAINING(r)	(((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
 
+
+/*
+ * Destroy '*fctx' if it is ready to be destroyed (i.e., if it has
+ * no references and is no longer waiting for any events).  If this
+ * was the last fctx in the resolver, destroy the resolver.
+ *
+ * Requires:
+ *	'*fctx' is shutting down.
+ */
+static void
+maybe_destroy(fetchctx_t *fctx) {
+	unsigned int bucketnum;
+	isc_boolean_t bucket_empty = ISC_FALSE;
+	
+	REQUIRE(SHUTTINGDOWN(fctx));
+
+	if (fctx->pending != 0 || fctx->validating != 0)
+		return;
+
+	bucketnum = fctx->bucketnum;
+	LOCK(&fctx->res->buckets[bucketnum].lock);
+	if (fctx->references == 0)
+		bucket_empty = fctx_destroy(fctx);
+	UNLOCK(&fctx->res->buckets[bucketnum].lock);
+
+	if (bucket_empty)
+		empty_bucket(fctx->res);
+}
+
 static void
 validated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -2088,25 +2125,32 @@ validated(isc_task_t *task, isc_event_t *event) {
         REQUIRE(VALID_FCTX(fctx));
         REQUIRE(fctx->validating > 0);
 
+        vevent = (dns_validatorevent_t *) event;
+	INSIST(vevent->validator == fctx->validator);
+	
+        fctx->validating--;
+
+	INSIST(fctx->validating == 0);
+	
+	/*
+	 * Destroy the validator early so that we can
+	 * destroy the fctx if necessary.
+	 */
+	dns_validator_destroy(&fctx->validator);
+
         /*
          * If shutting down, ignore the results.  Check to see if we're
          * done waiting for validator completions and ADB pending events; if
          * so, destroy the fctx.
 	 */
 	if (SHUTTINGDOWN(fctx)) {
-		FCTXTRACE("XXX validator shutdown code is still incomplete");
-		goto cleanup;
+		maybe_destroy(fctx);
+		goto cleanup_event;
 	}
 
 	/*
          * We're not shutting down.
-	 *
-	 * XXX This code assumes that the result of a validation is always
-	 * "the answer".  Is it?
          */
-        vevent = (dns_validatorevent_t *) event;
-	INSIST(vevent->validator == fctx->validator);
-
 	FCTXTRACE("received validation completion event");
 
         if (vevent->result != ISC_R_SUCCESS) {
@@ -2119,7 +2163,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 			  "is not yet implemented");
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
-
 	}
 
 	FCTXTRACE("validation OK");
@@ -2170,17 +2213,16 @@ validated(isc_task_t *task, isc_event_t *event) {
 		node = NULL;
 		clone_results(fctx);
 	}
+	result = ISC_R_SUCCESS;
 
  cleanup:
 	if (node != NULL)
 		dns_db_detachnode(fctx->res->view->cachedb, &node);
 
-        isc_event_free(&event);
-
-        fctx->validating--;
-	dns_validator_destroy(&fctx->validator);
-	
 	fctx_done(fctx, result);
+
+ cleanup_event:
+	isc_event_free(&event);
 }
 
 static inline isc_result_t
@@ -3727,7 +3769,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 * All has gone well so far, but we are waiting for the
 		 * DNSSEC validator to validate the answer.
 		 */
+		FCTXTRACE("wait for validator");
 		fctx_cancelqueries(fctx, ISC_TRUE);
+		/*
+		 * We must not retransmit while the validator is working;
+		 * it has references to the current rmessage.
+		 */
 		result = fctx_stopidletimer(fctx);
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
