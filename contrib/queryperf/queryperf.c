@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.4 2002/04/30 00:11:55 marka Exp $
+ ***	Version $Id: queryperf.c,v 1.5 2002/07/22 02:47:24 marka Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -84,6 +84,13 @@ enum directives_enum	{ V_SERVER, V_PORT, V_MAXQUERIES, V_MAXWAIT };
 	28, 252, 253, 254, 255, 255 \
 }
 
+#define RCODE_STRINGS { \
+	"NOERROR", "FORMERR", "SERVFAIL", "NXDOMAIN", \
+	"NOTIMP", "REFUSED", "YXDOMAIN", "YXRRSET", \
+	"NXRRSET", "NOTAUTH", "NOTZONE", "rcode11", \
+	"rcode12", "rcode13", "rcode14", "rcode15" \
+}
+
 /*
  * Data type definitions
  */
@@ -122,6 +129,8 @@ unsigned int run_timelimit;				/* init 0 */
 int serverset = FALSE, portset = FALSE;
 int queriesset = FALSE, timeoutset = FALSE;
 int edns = FALSE, dnssec = FALSE;
+int countrcodes = FALSE;
+int rcodecounts[16] = {0};
 
 int verbose = FALSE;
 
@@ -148,6 +157,8 @@ unsigned int query_status_allocated;			/* init 0 */
 int query_socket;					/* init 0 */
 struct sockaddr_in qaddr;
 
+static char *rcode_strings[] = RCODE_STRINGS;
+
 /*
  * get_uint16:
  *   Get an unsigned short integer from a buffer (in network order)
@@ -169,7 +180,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.4 2002/04/30 00:11:55 marka Exp $\n"
+"Version: $Id: queryperf.c,v 1.5 2002/07/22 02:47:24 marka Exp $\n"
 "\n");
 }
 
@@ -194,6 +205,7 @@ show_usage(void) {
 "  -b set input/output buffer size in kilobytes (default: %d k)\n"
 "  -e enable EDNS 0\n"
 "  -D set the DNSSEC OK bit (implies EDNS)\n"
+"  -c print the number of packets with each rcode\n"
 "  -v verbose: report the RCODE of each response on stdout\n"
 "\n",
 	        DEF_SERVER_TO_QUERY, DEF_SERVER_PORT,
@@ -411,7 +423,7 @@ parse_args(int argc, char **argv) {
 	int c;
 	unsigned int uint_arg_val;
 
-	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:eDv")) != -1) {
+	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:eDcv")) != -1) {
 		switch (c) {
 		case 'q':
 			if (is_uint(optarg, &uint_arg_val) == TRUE) {
@@ -504,6 +516,9 @@ parse_args(int argc, char **argv) {
 		case 'D':
 			dnssec = TRUE;
 			edns = TRUE;
+			break;
+		case 'c':
+			countrcodes = TRUE;
 			break;
 		case 'v':
 			verbose = 1;
@@ -1196,9 +1211,12 @@ register_response(unsigned short int id, unsigned int rcode) {
 			num_queries_outstanding--;
 			found = TRUE;
 			if (status[ct].desc) {
-				printf("> %d %s\n", rcode, status[ct].desc);
+				printf("> %s %s\n", rcode_strings[rcode],
+				       status[ct].desc);
 				free(status[ct].desc);
 			}
+			if (countrcodes)
+				rcodecounts[rcode]++;
 		}
 	}
 
@@ -1354,6 +1372,18 @@ print_statistics(void) {
 	printf("  Queries lost:         %u queries\n", num_queries_timed_out);
 
 	printf("\n");
+
+	if (countrcodes) {
+		unsigned int i;
+
+		for (i = 0; i < 16; i++) {
+			if (rcodecounts[i] == 0)
+				continue;
+			printf("  Returned %8s:    %u queries\n",
+			       rcode_strings[i], rcodecounts[i]);
+		}
+		printf("\n");
+	}
 
 	printf("  Percentage completed: %6.2lf%%\n", per_completed);
 	printf("  Percentage lost:      %6.2lf%%\n", per_lost);

@@ -1,3 +1,6 @@
+1253.	[contrib]	queryperf now reports a summary of returned
+		        rcodes (-c), rcodes are printed in neumonic form (-v).
+			
 1252.	[func]		Report the current serial with periodic commits when
 			rolling forward the journal.
 
