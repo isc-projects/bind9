@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.130 2001/11/30 01:59:11 gson Exp $ */
+/* $Id: master.c,v 1.131 2001/11/30 03:14:50 marka Exp $ */
 
 #include <config.h>
 
@@ -369,10 +369,10 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 	if (lctx->inc != NULL)
 		incctx_destroy(lctx->mctx, lctx->inc);
 
-	if (lctx->lex != NULL) {
-		(void)isc_lex_close(lctx->lex);
+	/* isc_lex_destroy() will close all open streams */
+	if (lctx->lex != NULL)
 		isc_lex_destroy(&lctx->lex);
-	}
+
 	if (lctx->task != NULL)
 		isc_task_detach(&lctx->task);
 	DESTROYLOCK(&lctx->lock);
