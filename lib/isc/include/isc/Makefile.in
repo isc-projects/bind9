@@ -20,8 +20,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_VERSION@
 
 #
-# Only list headers that are to be installed!  Things like util.h, which
-# consists purely of private helper macros, should not be here.
+# Only list headers that are to be installed!
 #
 HEADERS =	assertions.h base64.h boolean.h buffer.h bufferlist.h \
 		commandline.h error.h event.h eventclass.h \
@@ -29,7 +28,7 @@ HEADERS =	assertions.h base64.h boolean.h buffer.h bufferlist.h \
 		list.h magic.h mem.h msgcat.h mutexblock.h netaddr.h \
 		print.h random.h rbtgen.h region.h result.h \
 		resultclass.h rwlock.h serial.h sockaddr.h socket.h str.h \
-		symtab.h task.h timer.h types.h
+		symtab.h task.h timer.h types.h util.h
 
 SUBDIRS =
 TARGETS =

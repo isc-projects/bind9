@@ -20,6 +20,17 @@
 
 #include <isc/error.h>
 
+/*
+ * NOTE:
+ *
+ * This file is not to be included from any <isc/???.h> (or other) library
+ * files.
+ *
+ * Including this file puts several macros in your name space that are
+ * not protected (as all the other ISC functions/macros do) by prepending
+ * ISC_ or isc_ to the name.
+ */
+
 /***
  *** General Macros.
  ***/
