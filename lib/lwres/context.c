@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2000  Internet Software Consortium.
  * 
@@ -25,6 +24,7 @@
 #include <unistd.h>
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/socket.h>
 
 #include <netinet/in.h>
@@ -199,7 +199,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	fd_set emptyfds;
 	struct timeval timeout;
 
-	timeout.tv_sec = LWRES_R_TIMEOUT;
+	timeout.tv_sec = LWRES_DEFAULT_TIMEOUT;
 	timeout.tv_usec = 0;
 
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);
