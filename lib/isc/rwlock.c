@@ -32,14 +32,12 @@
 #ifdef ISC_RWLOCK_TRACE
 static void
 print_lock(char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	printf("%s(%s):  ", operation,
-	       (type == isc_rwlocktype_read ? "read" : "write"));
-	printf("%s, %u active, %u granted",
-	       (rwl->type == isc_rwlocktype_read ? "reading" : "writing"),
-	       rwl->active, rwl->granted);
-	printf(", %u rwaiting, %u wwaiting\n",
-	       rwl->readers_waiting,
-	       rwl->writers_waiting);
+	fprintf(stderr,
+		"%s(%s): %s, %u active, %u granted, %u rwaiting, %u wwaiting\n",
+		operation, (type == isc_rwlocktype_read ? "read" : "write"),
+	        (rwl->type == isc_rwlocktype_read ? "reading" : "writing"),
+	        rwl->active, rwl->granted, rwl->readers_waiting,
+		rwl->writers_waiting);
 }
 #endif
 
@@ -196,11 +194,11 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		}
 	} else {
 		if (rwl->type == isc_rwlocktype_read &&
-		    rwl->writers_waiting == 0 &&
-		    rwl->readers_waiting > 0) {
+		    rwl->writers_waiting == 0) {
 			INSIST(rwl->granted > 0);
 			rwl->granted--;
-			SIGNAL(&rwl->readable);
+			if (rwl->readers_waiting > 0)
+				SIGNAL(&rwl->readable);
 		}
 	}
 
