@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: isdn_20.c,v 1.12 2000/02/03 23:42:59 halley Exp $ */
+/* $Id: isdn_20.c,v 1.13 2000/03/16 00:54:24 bwelling Exp $ */
 
- /* RFC 1183 */
+/* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
+
+/* RFC 1183 */
 
 #ifndef RDATA_GENERIC_ISDN_20_C
 #define RDATA_GENERIC_ISDN_20_C
@@ -29,11 +31,11 @@ fromtext_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_token_t token;
 
-	REQUIRE(type == 20);
-
-	rdclass = rdclass;		/*unused*/
+	rdclass = rdclass;	/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
+
+	REQUIRE(type == 20);
 
 	/* ISDN-address */
 	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
@@ -55,9 +57,9 @@ totext_isdn(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 20);
-
 	tctx = tctx;	/*unused*/
+
+	REQUIRE(rdata->type == 20);
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));
@@ -72,12 +74,11 @@ fromwire_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
+	dctx = dctx;		/* unused */
+	rdclass = rdclass;	/* unused */
+	downcase = downcase;	/* unused */
 
 	REQUIRE(type == 20);
-
-	dctx = dctx;		/* unused */
-	rdclass = rdclass;		/* unused */
-	downcase = downcase;	/* unused */
 
 	RETERR(txt_fromwire(source, target));
 	if (buffer_empty(source))
@@ -87,10 +88,9 @@ fromwire_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 towire_isdn(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+	cctx = cctx;	/*unused*/
 
 	REQUIRE(rdata->type == 20);
-
-	cctx = cctx;	/*unused*/
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -113,24 +113,21 @@ static inline isc_result_t
 fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		isc_buffer_t *target)
 {
+	rdclass = rdclass;	/*unused*/
+	source = source;	/*unused*/
+	target = target;	/*unused*/
 
 	REQUIRE(type == 20);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
 tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	target = target;	/*unused*/
+	mctx = mctx;		/*unused*/
 
 	REQUIRE(rdata->type == 20);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -145,10 +142,10 @@ static inline isc_result_t
 additionaldata_isdn(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
-	REQUIRE(rdata->type == 20);
+	add = add;	/*unused*/
+	arg = arg;	/*unused*/
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 20);
 
 	return (DNS_R_SUCCESS);
 }
