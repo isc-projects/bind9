@@ -1,6 +1,6 @@
 1020.	[bug]		IXFR log messages did not distinguish between
-			true IXFRs, AXFR-style IXFRs, and and mere
-			version polls. [RT #1811]
+			true IXFRs, AXFR-style IXFRs, and mere version
+			polls. [RT #1811]
 
 1019.	[bug]		The value of the lame-ttl option was limited to 18000
 			seconds, not 1800 seconds as documented. [RT #1803]
