@@ -15,7 +15,40 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.43 2002/05/09 09:08:56 marka Exp $ */
+/*
+ * Portions Copyright (c) 1987, 1993
+ *      The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *      This product includes software developed by the University of
+ *      California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/* $Id: file.c,v 1.44 2002/05/22 05:57:17 marka Exp $ */
 
 #include <config.h>
 
@@ -160,33 +193,50 @@ isc_file_template(const char *path, const char *templet, char *buf,
 	return (ISC_R_SUCCESS);
 }
 
+static char alphnum[] =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
 isc_result_t
 isc_file_renameunique(const char *file, char *templet) {
-	int fd = -1;
-	int res = 0;
-	isc_result_t result = ISC_R_SUCCESS;
+	char *x;
+	char *cp;
+	isc_uint32_t which;
 
 	REQUIRE(file != NULL);
 	REQUIRE(templet != NULL);
 
-	fd = mkstemp(templet);
-	if (fd == -1) {
-		result = isc__errno2result(errno);
+	cp = templet;
+	while (*cp != '\0')
+		cp++;
+	if (cp == templet)
+		return (ISC_R_FAILURE);
+
+	x = cp--;
+	while (*cp == 'X' && cp >= templet) {
+		isc_random_get(&which);
+		*cp = alphnum[which % (sizeof(alphnum) - 1)];
+		x = cp--;
 	}
-	if (result == ISC_R_SUCCESS) {
-		res = rename(file, templet);
-		if (res != 0) {
-			result = isc__errno2result(errno);
-			(void)unlink(templet);
+	while (link(file, templet) == -1) {
+		if (errno != EEXIST)
+			return (isc__errno2result(errno));
+		for (cp = x;;) {
+			char *t;
+			if (*cp == '\0')
+				return (ISC_R_FAILURE);
+			t = strchr(alphnum, *cp);
+			if (t == NULL || *++t == '\0')
+				*cp++ = alphnum[0];
+			else {
+				*cp = *t;
+				break;
+			}
 		}
 	}
-	if (fd != -1)
-		(void)close(fd);
-	return (result);
+	(void)unlink(file);
+	return (ISC_R_SUCCESS);
 }
 
-static char alphnum[] =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp) {
@@ -206,6 +256,7 @@ isc_file_openunique(char *templet, FILE **fp) {
 		cp++;
 	if (cp == templet)
 		return (ISC_R_FAILURE);
+
 	x = cp--;
 	while (*cp == 'X' && cp >= templet) {
 		isc_random_get(&which);
