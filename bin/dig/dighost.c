@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.219 2001/07/30 01:09:13 marka Exp $ */
+/* $Id: dighost.c,v 1.220 2001/08/06 05:50:20 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1308,7 +1308,9 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->trace || (lookup->ns_search_only && !lookup->trace_root))
 		lookup->recurse = ISC_FALSE;
 
-	if (lookup->recurse) {
+	if (lookup->recurse &&
+	    lookup->rdtype != dns_rdatatype_axfr &&
+	    lookup->rdtype != dns_rdatatype_ixfr) {
 		debug("recursive query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
 	}

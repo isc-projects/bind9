@@ -1,3 +1,6 @@
+ 954.	[bug]		dig, host, nslookup: AXFR / IXFR are inherently
+			non-recursive, do not set RD.  [RT #1575]
+
  953.	[func]		named.key from change #843 has been replaced by
 			/etc/rndc.key.  Both named and rndc will look for
 			this file and associated key if they are not already
