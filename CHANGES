@@ -1,7 +1,8 @@
 1734.	[cleanup]	'rndc-confgen -a -t' remove extra '/' in path.
 			[RT #12588]
 
-1733.	[placeholder]	rt12658
+1733.	[bug]		Return non-zero exit status on initial load failure.
+			[RT #12658]
 
 1732.	[placeholder]	rt12467
 
