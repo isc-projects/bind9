@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.59 2000/04/06 10:35:25 brister Exp $ */
+/* $Id: confparser.y,v 1.60 2000/04/06 20:12:26 brister Exp $ */
 
 #include <config.h>
 
@@ -800,7 +800,10 @@ option: /* Empty */
 	{
 		if ($3 == NULL)
 			YYABORT;
-		tmpres = dns_c_ctx_setqueryacl(currcfg, ISC_FALSE, $3);
+
+		tmpres = dns_c_ctx_setallowquery(currcfg, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining allow-query list");
@@ -811,7 +814,9 @@ option: /* Empty */
 	}
 	| L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
 	{
-		tmpres = dns_c_ctx_settransferacl(currcfg, ISC_FALSE, $3);
+		tmpres = dns_c_ctx_setallowtransfer(currcfg, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				     "redefining allow-transfer list");
@@ -823,7 +828,9 @@ option: /* Empty */
 	}
 	| L_ALLOW_RECURSION L_LBRACE address_match_list L_RBRACE
 	{
-		tmpres = dns_c_ctx_setrecursionacl(currcfg, ISC_FALSE, $3);
+		tmpres = dns_c_ctx_setallowrecursion(currcfg, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				     "redefining allow-recursion list");
@@ -835,7 +842,9 @@ option: /* Empty */
 	}
 	| L_SORTLIST  L_LBRACE address_match_list L_RBRACE
 	{
-		tmpres = dns_c_ctx_setsortlist(currcfg, ISC_FALSE, $3);
+		tmpres = dns_c_ctx_setsortlist(currcfg, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "redefining sortlist.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -845,7 +854,9 @@ option: /* Empty */
 	}
 	| L_ALSO_NOTIFY L_LBRACE notify_in_addr_list L_RBRACE
 	{
-		tmpres = dns_c_ctx_setalsonotify(currcfg, $3, ISC_FALSE);
+		tmpres = dns_c_ctx_setalsonotify(currcfg, $3);
+ 		dns_c_iplist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "redefining also-notify.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -855,7 +866,9 @@ option: /* Empty */
 	}
 	| L_BLACKHOLE L_LBRACE address_match_list L_RBRACE
 	{
-		tmpres = dns_c_ctx_setblackhole(currcfg, ISC_FALSE, $3);
+		tmpres = dns_c_ctx_setblackhole(currcfg, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "redefining blackhole.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -865,7 +878,9 @@ option: /* Empty */
 	}
 	| L_TOPOLOGY L_LBRACE address_match_list L_RBRACE
 	{
-		tmpres = dns_c_ctx_settopology(currcfg, ISC_FALSE, $3);
+		tmpres = dns_c_ctx_settopology(currcfg, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "redefining topology.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -968,6 +983,16 @@ option: /* Empty */
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set tcp-clients.");
+			YYABORT;
+		}
+	}
+	| L_LAME_TTL L_INTEGER
+	{
+		tmpres = dns_c_ctx_setlamettl(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE, "redefining lame-ttl.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "failed to set lame-ttl.");
 			YYABORT;
 		}
 	}
@@ -1140,6 +1165,22 @@ option: /* Empty */
 			}
 		}
 	} L_LBRACE rrset_ordering_list L_RBRACE
+	| L_ALLOW_UPDATE_FORWARDING L_LBRACE address_match_list L_RBRACE
+	{
+		tmpres = dns_c_ctx_setallowupdateforwarding(currcfg, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining "
+				       "allow-update-forwarding.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set "
+				     "allow-update-forwarding.");
+			YYABORT;
+		}
+	}
 	;
 
 
@@ -2820,7 +2861,7 @@ view_option: L_FORWARD zone_forward_opt
 				     "allow-update-forwarding.");
 			YYABORT;
 		}
-	}
+	}    
 	| L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -3217,6 +3258,22 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_TRANSFER_FORMAT transfer_format
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_settransferformat(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view transfer-format.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view transfer-format.");
+			YYABORT;
+		}
+	}
         | zone_stmt
 	;
 
@@ -3420,24 +3477,6 @@ rdatatype: any_string {
 
 	       
 	
-
-	
-
-
-/*
-  key
-  trusted-keys
-  server
-  options {
-     forwarders
-     blackhole
-     lame-ttl
-     max-ncache-ttl
-     min-roots
-     cleaning-interval
-  }		 
-*/
-		
 /*
  * ACLs
  */
