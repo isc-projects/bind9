@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: release,v 1.8 2000/06/22 21:54:06 tale Exp $
+$Id: release,v 1.9 2000/06/23 03:16:24 tale Exp $
 
 Preparing a bind9 release
 
@@ -63,7 +63,7 @@ release.
 
  - On a system with gcc, run
 
-      util/check-includes.pl
+      find lib -name '*.h' -print | xargs util/check-includes.pl
       util/check-instincludes.sh
 
  - On selected platforms, do more detailed tests:
