@@ -861,45 +861,23 @@ CLASS="replaceable"
 CLASS="command"
 >command</B
 > is one of the following:</P
-><DIV
-CLASS="informaltable"
-><A
-NAME="AEN505"
-></A
 ><P
 ></P
-><TABLE
-CELLPADDING="3"
-BORDER="1"
-CLASS="CALSTABLE"
-><TBODY
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
 ><TT
 CLASS="userinput"
 ><B
 >reload</B
 ></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DT
+><DD
 ><P
 >Reload configuration file and zones.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
+></DD
+><DT
 ><TT
 CLASS="userinput"
 ><B
@@ -908,14 +886,16 @@ CLASS="replaceable"
 ><I
 >zone</I
 ></TT
-> [<SPAN
+>
+       [<SPAN
 CLASS="optional"
 ><TT
 CLASS="replaceable"
 ><I
 >class</I
 ></TT
-> [<SPAN
+>
+	   [<SPAN
 CLASS="optional"
 ><TT
 CLASS="replaceable"
@@ -926,22 +906,12 @@ CLASS="replaceable"
 >]</SPAN
 >]</B
 ></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DT
+><DD
 ><P
 >Reload the given zone.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
+></DD
+><DT
 ><TT
 CLASS="userinput"
 ><B
@@ -950,14 +920,16 @@ CLASS="replaceable"
 ><I
 >zone</I
 ></TT
-> [<SPAN
+>
+       [<SPAN
 CLASS="optional"
 ><TT
 CLASS="replaceable"
 ><I
 >class</I
 ></TT
-> [<SPAN
+>
+           [<SPAN
 CLASS="optional"
 ><TT
 CLASS="replaceable"
@@ -968,109 +940,123 @@ CLASS="replaceable"
 >]</SPAN
 >]</B
 ></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DT
+><DD
 ><P
 >Schedule zone maintenance for the given zone.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
+></DD
+><DT
 ><TT
 CLASS="userinput"
 ><B
 >stats</B
 ></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DT
+><DD
 ><P
 >Write server statistics to the statistics file.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
+></DD
+><DT
 ><TT
 CLASS="userinput"
 ><B
 >querylog</B
 ></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DT
+><DD
 ><P
 >Toggle query logging.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
+>dumpdb</B
+></TT
+></DT
+><DD
 ><P
+>Dump the server's caches to the dump file. </P
+></DD
+><DT
 ><TT
 CLASS="userinput"
 ><B
 >stop</B
 ></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DT
+><DD
 ><P
->Stop the server, making sure any recent changes
-made through dynamic update or IXFR are first saved to the master files
-of the updated zones.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
+>Stop the server,
+   making sure any recent changes
+   made through dynamic update or IXFR are first saved to the master files
+   of the updated zones.</P
+></DD
+><DT
 ><TT
 CLASS="userinput"
 ><B
 >halt</B
 ></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
+></DT
+><DD
 ><P
 >Stop the server immediately.  Recent changes
-made through dynamic update or IXFR are not saved to the master files,
-but will be rolled forward from the journal files when the server
-is restarted.</P
-></TD
-></TR
-></TBODY
-></TABLE
+   made through dynamic update or IXFR are not saved to the master files,
+   but will be rolled forward from the journal files when the server
+   is restarted.</P
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
+>trace</B
+></TT
+></DT
+><DD
 ><P
-></P
+>Increment the servers debugging level by one. </P
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
+>trace <TT
+CLASS="replaceable"
+><I
+>level</I
+></TT
+></B
+></TT
+></DT
+><DD
+><P
+>Sets the server's debugging level to an explicit
+   value.</P
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
+>notrace</B
+></TT
+></DT
+><DD
+><P
+>Sets the server's debugging level to 0.</P
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
+>flush</B
+></TT
+></DT
+><DD
+><P
+>Flushes the server's cache.</P
+></DD
+></DL
 ></DIV
 ><P
 >In <SPAN
@@ -1285,7 +1271,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN613"
+NAME="AEN628"
 >3.4.2. Signals</A
 ></H2
 ><P
@@ -1298,7 +1284,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN617"
+NAME="AEN632"
 ></A
 ><P
 ></P

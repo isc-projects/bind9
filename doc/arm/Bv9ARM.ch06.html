@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3346"
+HREF="Bv9ARM.ch06.html#AEN3373"
 >Zone File</A
 ></DT
 ></DL
@@ -145,7 +145,7 @@ file documentation:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1051"
+NAME="AEN1070"
 ></A
 ><P
 ></P
@@ -740,7 +740,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1214"
+NAME="AEN1233"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -771,7 +771,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1222"
+NAME="AEN1241"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -882,7 +882,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1251"
+NAME="AEN1270"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -901,7 +901,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1256"
+NAME="AEN1275"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -933,7 +933,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1265"
+NAME="AEN1284"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1043,7 +1043,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1289"
+NAME="AEN1308"
 ></A
 ><P
 ></P
@@ -1271,7 +1271,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1358"
+NAME="AEN1377"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1318,7 +1318,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1371"
+NAME="AEN1390"
 ></A
 ><P
 ></P
@@ -1416,7 +1416,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1400"
+NAME="AEN1419"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1431,18 +1431,18 @@ CLASS="command"
    inet ( ip_addr | * ) [<SPAN
 CLASS="optional"
 > port ip_port </SPAN
->] allow <TT
+>] allow { <TT
 CLASS="replaceable"
 ><I
 > address_match_list </I
 ></TT
->
-                keys <TT
+> }
+                keys { <TT
 CLASS="replaceable"
 ><I
 > key_list </I
 ></TT
->;
+> };
    [<SPAN
 CLASS="optional"
 > inet ...; </SPAN
@@ -1455,7 +1455,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1409"
+NAME="AEN1428"
 >6.2.4. <B
 CLASS="command"
 >controls</B
@@ -1560,7 +1560,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1435"
+NAME="AEN1454"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1580,7 +1580,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1440"
+NAME="AEN1459"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1610,7 +1610,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1447"
+NAME="AEN1466"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1644,7 +1644,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1454"
+NAME="AEN1473"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1698,7 +1698,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1466"
+NAME="AEN1485"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1858,7 +1858,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1506"
+NAME="AEN1525"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1920,7 +1920,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1522"
+NAME="AEN1541"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -1963,43 +1963,31 @@ to a disk file.  It can include limitations
 both on how large the file is allowed to become, and how many versions
 of the file will be saved each time the file is opened.</P
 ><P
->The <B
-CLASS="command"
->size</B
-> option for files is simply a hard
-ceiling on log growth. If the file ever exceeds the size, then <B
-CLASS="command"
->named</B
-> will
-not write anything more to it until the file is reopened; exceeding
-the size does not automatically trigger a reopen. The default behavior
-is not to limit the size of the file.</P
-><P
 >If you use the <B
 CLASS="command"
 >versions</B
-> log file option,
-then <B
+> log file option, then
+<B
 CLASS="command"
 >named</B
-> will retain that many backup versions
-of the file by renaming them when opening. For example, if you choose
-to keep 3 old versions of the file <TT
+> will retain that many backup versions of the file by
+renaming them when opening.  For example, if you choose to keep 3 old versions
+of the file <TT
 CLASS="filename"
 >lamers.log</TT
-> then
-just before it is opened <TT
+> then just before it is opened
+<TT
 CLASS="filename"
 >lamers.log.1</TT
-> is renamed
-to <TT
+> is renamed to
+<TT
 CLASS="filename"
 >lamers.log.2</TT
 >, <TT
 CLASS="filename"
 >lamers.log.0</TT
-> is
-renamed to <TT
+> is renamed
+to <TT
 CLASS="filename"
 >lamers.log.1</TT
 >, and <TT
@@ -2009,18 +1997,46 @@ CLASS="filename"
 renamed to <TT
 CLASS="filename"
 >lamers.log.0</TT
->. No rolled versions
-are kept by default; any existing log file is simply appended. The <B
+>.  If a <B
+CLASS="command"
+>size</B
+>
+option is associated with the log file, then renaming is only done when the
+file being opened exceeds the indicated size.  No backup versions are kept by
+default; any existing log file is simply appended.  The
+<B
 CLASS="command"
 >unlimited</B
-> keyword
-is synonymous with <B
+> keyword is synonymous with <B
 CLASS="command"
 >99</B
-> in current <SPAN
+>
+in current <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > releases.</P
+><P
+>The <B
+CLASS="command"
+>size</B
+> option for files is used to limit log
+growth. If the file ever exceeds the size, then <B
+CLASS="command"
+>named</B
+> will
+stop writing to the file unless it has a <B
+CLASS="command"
+>versions</B
+> option
+associated with it.  If backup versions are kept, the files are rolled as
+described above and a new one begun.  If there is no
+<B
+CLASS="command"
+>versions</B
+> option, no more data will be written to the log
+until some out-of-band mechanism removes or truncates the log to less than the
+maximum size.  The default behavior is not to limit the size of the
+file.</P
 ><P
 >Example usage of the <B
 CLASS="command"
@@ -2345,7 +2361,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1624"
+NAME="AEN1646"
 ></A
 ><P
 ></P
@@ -2681,7 +2697,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1725"
+NAME="AEN1747"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2778,7 +2794,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1749"
+NAME="AEN1771"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2852,7 +2868,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1768"
+NAME="AEN1790"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3112,22 +3128,35 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
-> forwarders { [<SPAN
+> forwarders { <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; [<SPAN
 CLASS="optional"
 > <TT
 CLASS="replaceable"
 ><I
->in_addr</I
+>ip_addr</I
 ></TT
-> ; [<SPAN
+> [<SPAN
 CLASS="optional"
-> <TT
+>port <TT
 CLASS="replaceable"
 ><I
->in_addr</I
+>ip_port</I
 ></TT
-> ; ... </SPAN
->] </SPAN
+></SPAN
+>] ; ... </SPAN
 >] }; </SPAN
 >]
     [<SPAN
@@ -3485,8 +3514,7 @@ CLASS="replaceable"
 >ip_port</I
 ></TT
 ></SPAN
->] ; 
-        [<SPAN
+>] ; [<SPAN
 CLASS="optional"
 > <TT
 CLASS="replaceable"
@@ -3763,7 +3791,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1975"
+NAME="AEN2000"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4659,7 +4687,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2249"
+NAME="AEN2274"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4863,7 +4891,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2314"
+NAME="AEN2339"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -4958,7 +4986,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2340"
+NAME="AEN2365"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5371,7 +5399,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2476"
+NAME="AEN2501"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5508,7 +5536,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2528"
+NAME="AEN2553"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><P
@@ -5653,10 +5681,11 @@ CLASS="note"
 CLASS="command"
 >topology</B
 > option
-is not yet implemented in <SPAN
+is not implemented in <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9.</P
+> 9.
+</P
 ></BLOCKQUOTE
 ></DIV
 ></DIV
@@ -5874,7 +5903,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2616"
+NAME="AEN2641"
 ></A
 ><P
 ></P
@@ -6261,7 +6290,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2728"
+NAME="AEN2753"
 ></A
 ><P
 ></P
@@ -6670,7 +6699,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2836"
+NAME="AEN2861"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6745,7 +6774,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2852"
+NAME="AEN2877"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6780,7 +6809,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2860"
+NAME="AEN2885"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6843,7 +6872,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2874"
+NAME="AEN2899"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7143,26 +7172,36 @@ CLASS="constant"
 >]
     [<SPAN
 CLASS="optional"
-> forwarders { [<SPAN
+> forwarders { <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; [<SPAN
 CLASS="optional"
 > <TT
 CLASS="replaceable"
 ><I
 >ip_addr</I
 ></TT
-> ; [<SPAN
+> [<SPAN
 CLASS="optional"
-> <TT
+>port <TT
 CLASS="replaceable"
 ><I
->ip_addr</I
+>ip_port</I
 ></TT
-> ; [<SPAN
-CLASS="optional"
->...</SPAN
->]</SPAN
->]</SPAN
->] } ; </SPAN
+></SPAN
+>] ; ... </SPAN
+>] }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -7463,7 +7502,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3019"
+NAME="AEN3046"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7474,13 +7513,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3022"
+NAME="AEN3049"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3024"
+NAME="AEN3051"
 ></A
 ><P
 ></P
@@ -7718,7 +7757,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3079"
+NAME="AEN3106"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7756,7 +7795,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3089"
+NAME="AEN3116"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8024,9 +8063,9 @@ of the transaction log (journal) file for dynamic update and IXFR.
 CLASS="acronym"
 >BIND</SPAN
 > 9 ignores the option and constructs the name of the journal
-file by appending ".<TT
+file by appending "<TT
 CLASS="filename"
->jnl</TT
+>.jnl</TT
 >" to the name of the
 zone file.</P
 ></DD
@@ -8381,7 +8420,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3316"
+NAME="AEN3343"
 ></A
 ><P
 ></P
@@ -8488,7 +8527,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3346"
+NAME="AEN3373"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8509,7 +8548,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3351"
+NAME="AEN3378"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8532,7 +8571,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3357"
+NAME="AEN3384"
 ></A
 ><P
 ></P
@@ -8643,7 +8682,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3389"
+NAME="AEN3416"
 ></A
 ><P
 ></P
@@ -9020,7 +9059,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3501"
+NAME="AEN3528"
 ></A
 ><P
 ></P
@@ -9072,7 +9111,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3517"
+NAME="AEN3544"
 ></A
 ><P
 ></P
@@ -9249,7 +9288,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3565"
+NAME="AEN3592"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9279,7 +9318,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3572"
+NAME="AEN3599"
 ></A
 ><P
 ></P
@@ -9488,7 +9527,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3638"
+NAME="AEN3665"
 ></A
 ><P
 ></P
@@ -9579,7 +9618,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3666"
+NAME="AEN3693"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9612,7 +9651,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3672"
+NAME="AEN3699"
 ></A
 ><P
 ></P
@@ -9908,7 +9947,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3764"
+NAME="AEN3791"
 ></A
 ><P
 ></P
@@ -9991,7 +10030,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3787"
+NAME="AEN3814"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10015,7 +10054,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3792"
+NAME="AEN3819"
 ></A
 ><P
 ></P
@@ -10095,7 +10134,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3814"
+NAME="AEN3841"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10120,7 +10159,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3821"
+NAME="AEN3848"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10190,7 +10229,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3841"
+NAME="AEN3868"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10272,7 +10311,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3861"
+NAME="AEN3888"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10312,7 +10351,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3872"
+NAME="AEN3899"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10391,7 +10430,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3892"
+NAME="AEN3919"
 ></A
 ><P
 ></P
