@@ -92,6 +92,11 @@ lwres_context_destroy(lwres_context_t **contextp)
 	ctx = *contextp;
 	*contextp = NULL;
 
+	if (ctx->sock != -1) {
+		close(ctx->sock);
+		ctx->sock = -1;
+	}
+
 	CTXFREE(ctx, sizeof(lwres_context_t));
 }
 
