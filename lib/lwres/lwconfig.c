@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.31 2001/04/12 20:23:48 tale Exp $ */
+/* $Id: lwconfig.c,v 1.32 2001/04/12 22:45:12 tale Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -427,28 +427,27 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 
 static lwres_result_t
 lwres_create_addr(const char *buffer, lwres_addr_t *addr, int convert_zero) {
-	unsigned char addrbuff[NS_IN6ADDRSZ];
-	unsigned int len;
+	struct in_addr v4;
+	struct in6_addr v6;
 
-	if (lwres_net_aton(buffer, (struct in_addr *)&addrbuff) == 1) {
+	if (lwres_net_aton(buffer, &v4) == 1) {
 		if (convert_zero) {
 			unsigned char zeroaddress[] = {0, 0, 0, 0};
 			unsigned char loopaddress[] = {127, 0, 0, 1};
-			if (memcmp(addrbuff, zeroaddress, 4) == 0)
-				memcpy(addrbuff, loopaddress, 4);
+			if (memcmp(&v4, zeroaddress, 4) == 0)
+				memcpy(&v4, loopaddress, 4);
 		}
 		addr->family = LWRES_ADDRTYPE_V4;
 		addr->length = NS_INADDRSZ;
-		len = NS_INADDRSZ;
-	} else if (lwres_net_pton(AF_INET6, buffer, &addrbuff) == 1) {
+		memcpy((void *)addr->address, &v4, NS_INADDRSZ);
+
+	} else if (lwres_net_pton(AF_INET6, buffer, &v6) == 1) {
 		addr->family = LWRES_ADDRTYPE_V6;
 		addr->length = NS_IN6ADDRSZ;
-		len = NS_IN6ADDRSZ;
+		memcpy((void *)addr->address, &v6, NS_IN6ADDRSZ);
 	} else {
 		return (LWRES_R_FAILURE); /* Unrecognised format. */
 	}
-
-	memcpy((void *)addr->address, addrbuff, len);
 
 	return (LWRES_R_SUCCESS);
 }
