@@ -119,7 +119,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dynamickeys = NULL;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != DNS_R_SUCCESS)
-		goto cleanup_zt;
+		goto cleanup_secroots;
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
 		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown,
@@ -133,6 +133,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	return (ISC_R_SUCCESS);
 
+ cleanup_secroots:
+	dns_rbt_destroy(&view->secroots);
+	
  cleanup_zt:
 	dns_zt_detach(&view->zonetable);
 
