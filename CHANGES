@@ -1,3 +1,7 @@
+1545.	[bug]		It was possible to leak memory if named was unable to
+			bind to the specified transfer source and TSIG was
+			being used. [RT #10120]
+
 1544.	[placeholder]	rt10147
 
 1543.	[placeholder]	rt10147
