@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.13 1999/10/08 22:24:06 tale Exp $
+ * $Id: dst_api.c,v 1.14 1999/10/14 18:32:49 bwelling Exp $
  */
 
 #include <config.h>
@@ -103,8 +103,8 @@ dst_supported_algorithm(const int alg) {
  *	data		The data to be signed.
  *	sig		The buffer to which the signature will be written.
  * Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t
 dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
@@ -151,8 +151,8 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  *	data		The data to be digested.
  *	sig		The signature.
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 dst_result_t
@@ -188,8 +188,8 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  *      priv            The private key
  *      secret          A buffer into which the secret is written
  * Returns
- *      DST_R_SUCCESS   Success
- *      !DST_R_SUCCESS  Failure
+ *      ISC_R_SUCCESS   Success
+ *      !ISC_R_SUCCESS  Failure
  */
 dst_result_t
 dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
@@ -226,12 +226,12 @@ dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
  *	key		The key to be written.
  *	type		Either DST_PUBLIC or DST_PRIVATE, or both
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t 
 dst_key_tofile(const dst_key_t *key, const int type) {
-	int ret = DST_R_SUCCESS;
+	int ret = ISC_R_SUCCESS;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
@@ -243,14 +243,14 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 		return (DST_R_UNSUPPORTEDTYPE);
 
 	if (type & DST_TYPE_PUBLIC) 
-		if ((ret = write_public_key(key)) != DST_R_SUCCESS)
+		if ((ret = write_public_key(key)) != ISC_R_SUCCESS)
 			return (ret);
 
 	if ((type & DST_TYPE_PRIVATE) &&
 	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
 	{
 		ret = key->func->to_file(key);
-		if (ret != DST_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS)
 			return (ret);
 	}
 
@@ -269,8 +269,8 @@ dst_key_tofile(const dst_key_t *key, const int type) {
  *	mctx	Memory context used to allocate key structure
  *	keyp	Returns the new key
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t
 dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
@@ -292,31 +292,36 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 		return (DST_R_UNSUPPORTEDTYPE);
 
 	ret = read_public_key(name, id, alg, mctx, &pubkey);
-	if (ret != DST_R_SUCCESS)
+	if (ret == ISC_R_NOTFOUND && (type & DST_TYPE_PUBLIC) == 0)
+		key = get_key_struct(name, alg, 0, 0, 0, mctx);
+	else if (ret != ISC_R_SUCCESS)
 		return (ret);
-
-	if (type == DST_TYPE_PUBLIC ||
-	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
-	{
-		*keyp = pubkey;
-		return (DST_R_SUCCESS);
+	else {
+		if (type == DST_TYPE_PUBLIC ||
+		    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) ==
+		     DNS_KEYTYPE_NOKEY)
+		{
+			*keyp = pubkey;
+			return (ISC_R_SUCCESS);
+		}
+	
+		key = get_key_struct(name, pubkey->key_alg, pubkey->key_flags,
+					   pubkey->key_proto, 0, mctx);
+		dst_key_free(pubkey);
 	}
 
-	key = get_key_struct(name, pubkey->key_alg, pubkey->key_flags,
-				   pubkey->key_proto, 0, mctx);
-	dst_key_free(pubkey);
 	if (key == NULL)
 		return (DST_R_NOMEMORY);
 
 	/* Fill in private key and some fields in the general key structure */
 	ret = key->func->from_file(key, id, mctx);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(key);
 		return (ret);
 	}
 
 	*keyp = key;
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -326,8 +331,8 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
  *	key		Key structure to encode.
  *	target		Buffer to write the encoded key into.
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t
 dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
@@ -357,7 +362,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	}
 
 	if (key->opaque == NULL) /* NULL KEY */
-		return (DST_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	return (key->func->to_dns(key, target));
 }
@@ -371,8 +376,8 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
  *	mctx		The memory context used to allocate the key
  *	keyp		Returns the new key
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 dst_result_t
@@ -413,7 +418,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 		return(DST_R_NOMEMORY);
 
 	ret = (*keyp)->func->from_dns(*keyp, source, mctx);
-	if (ret != DST_R_SUCCESS) 
+	if (ret != ISC_R_SUCCESS) 
 		dst_key_free((*keyp));
 	return (ret);
 }
@@ -432,8 +437,8 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
  *	mctx		The memory context used to allocate the key
  *	keyp		Returns the new key
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t
 dst_key_frombuffer(const char *name, const int alg, const int flags,
@@ -456,11 +461,11 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
 		return (DST_R_NOMEMORY);
 
 	ret = (*keyp)->func->from_dns((*keyp), source, mctx);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		dst_key_free((*keyp));
 		return (ret);
 	}
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -471,8 +476,8 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
  *	key		The key
  *	target		The buffer to be written into.
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t 
 dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
@@ -510,8 +515,8 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
  *	keyp	Returns the new key
  *
  *  Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t
 dst_key_generate(const char *name, const int alg, const int bits,
@@ -534,16 +539,16 @@ dst_key_generate(const char *name, const int alg, const int bits,
 
 	if (bits == 0) { /* NULL KEY */
 		(*keyp)->key_flags |= DNS_KEYTYPE_NOKEY;
-		return (DST_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	}
 
 	ret = (*keyp)->func->generate(*keyp, exp, mctx);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(*keyp);
 		return (ret);
 	}
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -734,8 +739,8 @@ dst_secret_size(const dst_key_t *key) {
  *	wanted		the number of random bytes requested 
  *	target		the buffer to store the random data
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t 
 dst_random(const unsigned int wanted, isc_buffer_t *target) {
@@ -752,7 +757,7 @@ dst_random(const unsigned int wanted, isc_buffer_t *target) {
 	RAND_bytes(r.base, wanted);
 	RUNTIME_CHECK(isc_mutex_unlock((&random_lock)) == ISC_R_SUCCESS);
 	isc_buffer_add(target, wanted);
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /***
@@ -836,8 +841,8 @@ get_key_struct(const char *name, const int alg, const int flags,
  *	mctx		The memory context used to allocate the key
  *	keyp		Returns the new key
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -849,13 +854,12 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 	isc_buffer_t b;
 	isc_lex_t *lex = NULL;
 	isc_token_t token;
-	isc_result_t iret;
-	dns_result_t dret, ret;
+	isc_result_t ret;
 	dns_rdata_t rdata;
 	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
 
 	if (dst_s_build_filename(filename, name, id, alg, PUBLIC_KEY,
-				 sizeof(filename)) != DST_R_SUCCESS)
+				 sizeof(filename)) != ISC_R_SUCCESS)
 		return (DST_R_NAMETOOLONG);
 
 	/*
@@ -865,17 +869,20 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 	 */
 
 	/* 1500 should be large enough for any key */
-	iret = isc_lex_create(mctx, 1500, &lex);
-	if (iret != ISC_R_SUCCESS)
+	ret = isc_lex_create(mctx, 1500, &lex);
+	if (ret != ISC_R_SUCCESS)
 		return (DST_R_NOMEMORY);
 
-	iret = isc_lex_openfile(lex, filename);
-	if (iret != ISC_R_SUCCESS)
+	ret = isc_lex_openfile(lex, filename);
+	if (ret != ISC_R_SUCCESS) {
+		if (ret == ISC_R_FAILURE)
+			ret = ISC_R_NOTFOUND;
 		goto cleanup;
+	}
 
 #define NEXTTOKEN(lex, opt, token) { \
-	iret = isc_lex_gettoken(lex, opt, token); \
-	if (iret != ISC_R_SUCCESS) \
+	ret = isc_lex_gettoken(lex, opt, token); \
+	if (ret != ISC_R_SUCCESS) \
 		goto cleanup; \
 	}
 
@@ -902,26 +909,26 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 		goto cleanup;
 	
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf), ISC_BUFFERTYPE_BINARY);
-	dret = dns_rdata_fromtext(&rdata, dns_rdataclass_in, dns_rdatatype_key,
-				  lex, NULL, ISC_FALSE, &b, NULL);
-	if (dret != DNS_R_SUCCESS)
+	ret = dns_rdata_fromtext(&rdata, dns_rdataclass_in, dns_rdatatype_key,
+				 lex, NULL, ISC_FALSE, &b, NULL);
+	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
 
 	ret = dst_key_fromdns(name, &b, mctx, keyp);
-	if (ret != DST_R_SUCCESS || (*keyp)->key_alg != alg)
+	if (ret != ISC_R_SUCCESS || (*keyp)->key_alg != alg)
 		goto cleanup;
 
 	isc_lex_close(lex);
 	isc_lex_destroy(&lex);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
 cleanup:
         if (lex != NULL) {
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
         }
-	return (DST_R_INVALIDPUBLICKEY);
+	return (ret);
 }
 
 
@@ -931,8 +938,8 @@ cleanup:
  *  Parameters
  *	key		A DST key
  *  Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -955,14 +962,14 @@ write_public_key(const dst_key_t *key) {
 			ISC_BUFFERTYPE_TEXT);
 
 	ret = dst_key_todns(key, &keyb);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	isc_buffer_used(&keyb, &r);
 	dns_rdata_fromregion(&rdata, dns_rdataclass_in, dns_rdatatype_key, &r);
 
 	dnsret = dns_rdata_totext(&rdata, (dns_name_t *) NULL, &textb);
-	if (dnsret != DNS_R_SUCCESS)
+	if (dnsret != ISC_R_SUCCESS)
 		return (DST_R_INVALIDPUBLICKEY);
 
 	dns_rdata_freestruct(&rdata);
@@ -987,7 +994,7 @@ write_public_key(const dst_key_t *key) {
 	fwrite(r.base, 1, r.length, fp);
 	fputc('\n', fp);
 	fclose(fp);
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 void *
