@@ -1,4 +1,5 @@
- 947.	[bug]		dns_rdata_soa_t had a badly name element "mname" which
+
+ 947.	[bug]		dns_rdata_soa_t had a badly named element "mname" which
 			was really the RNAME field from RFC1035.  To avoid
 			confusion and silent errors that would occur it ther
 			"origin" and "mname" elements were given their correct
