@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.162 2000/07/21 23:00:31 bwelling Exp $ */
+/* $Id: zone.c,v 1.163 2000/07/21 23:13:58 mws Exp $ */
 
 #include <config.h>
 
@@ -1284,14 +1284,17 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	}
 	if (zone->masterkeynames != NULL) {
 		for (i = 0; i < zone->masterscnt; i++) {
-			dns_name_free(zone->masterkeynames[i],
-				      zone->mctx);
-			isc_mem_put(zone->mctx, zone->masterkeynames[i],
-				    sizeof(dns_name_t));
-			zone->masterkeynames[i] = NULL;
+			if (zone->masterkeynames[i] != NULL) {
+				dns_name_free(zone->masterkeynames[i],
+					      zone->mctx);
+				isc_mem_put(zone->mctx,
+					    zone->masterkeynames[i],
+					    sizeof(dns_name_t));
+				zone->masterkeynames[i] = NULL;
+			}
 		}
 		isc_mem_put(zone->mctx, zone->masterkeynames,
-			    zone->masterscnt * sizeof *newname);
+			    zone->masterscnt * sizeof(dns_name_t *));
 		zone->masterkeynames = NULL;
 	}
 	zone->masterscnt = 0;
@@ -3957,6 +3960,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	dns_rdatatype_t xfrtype;
 	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t masterip;
+	isc_boolean_t gotkey = ISC_FALSE;
+	dns_view_t *view = NULL;
 	
 	UNUSED(task);
 	
@@ -4010,24 +4015,17 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	 */
 	if ((zone->masterkeynames != NULL) &&
 	    (zone->masterkeynames[zone->curmaster] != NULL)) {
-		dns_view_t *view = dns_zone_getview(zone);
+		view = dns_zone_getview(zone);
 		keyname = zone->masterkeynames[zone->curmaster];
-		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
-					  view->statickeys);
-		if (result == ISC_R_NOTFOUND)
-			result = dns_tsigkey_find(&tsigkey, keyname, NULL,
-						  view->dynamickeys);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
-			zone_log(zone, me, ISC_LOG_ERROR,
-				 "error getting tsig keys "
-				 "for zone transfer: %s",
-				 isc_result_totext(result));
-			goto cleanup;
-		}
+		gotkey = ISC_TRUE;
 	}
 	else if (peer != NULL &&
 		 dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS) {
-		dns_view_t *view = dns_zone_getview(zone);
+		view = dns_zone_getview(zone);
+		gotkey = ISC_TRUE;
+	}
+
+	if (gotkey) {
 		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
 					  view->statickeys);
 		if (result == ISC_R_NOTFOUND)

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.44 2000/07/21 18:47:22 mws Exp $ */
+/* $Id: zoneconf.c,v 1.45 2000/07/21 23:13:59 mws Exp $ */
 
 #include <config.h>
 
@@ -267,14 +267,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		iplist = NULL;
 		result = dns_c_zone_getmasterips(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
-#if 0
 			result = dns_zone_setmasterswithkeys(zone,
 							     iplist->ips,
 							     iplist->keys,
 							     iplist->nextidx);
-#endif
-		        result = dns_zone_setmasters(zone, iplist->ips,
-						     iplist->nextidx);
 		else
 			result = dns_zone_setmasters(zone, NULL, 0);
 		RETERR(result);
