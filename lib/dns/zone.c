@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.146 2000/06/15 02:45:47 marka Exp $ */
+/* $Id: zone.c,v 1.147 2000/06/15 16:11:49 gson Exp $ */
 
 #include <config.h>
 
@@ -184,7 +184,7 @@ struct dns_zone {
 struct dns_zonemgr {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
-	int			refs;
+	int			refs; 		/* Locked by rwlock */
 	isc_taskmgr_t *		taskmgr;
 	isc_timermgr_t *	timermgr;
 	isc_socketmgr_t *	socketmgr;
@@ -4095,6 +4095,19 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	if (free_now)
 		zonemgr_free(zmgr);
 	ENSURE(zone->zmgr == NULL);
+}
+
+void
+dns_zonemgr_attach(dns_zonemgr_t *source, dns_zonemgr_t **target) {
+	REQUIRE(DNS_ZONEMGR_VALID(source));
+	REQUIRE(target != NULL && *target == NULL);
+
+	RWLOCK(&source->rwlock, isc_rwlocktype_write);
+	REQUIRE(source->refs > 0);
+	source->refs++;
+	INSIST(source->refs > 0);
+	RWUNLOCK(&source->rwlock, isc_rwlocktype_write);
+	*target = source;
 }
 
 void

@@ -51,7 +51,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
 /*
- *	Creates a new empty zone and attach to it.
+ *	Creates a new empty zone and attach '*zonep' to it.
  *
  * Requires:
  *	'zonep' to point to a NULL pointer.
@@ -178,7 +178,7 @@ dns_zone_load(dns_zone_t *zone);
 void
 dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
 /*
- *	Attach 'zone' to 'target' incrementing its external
+ *	Attach '*target' to 'source' incrementing its external
  * 	reference count.
  *
  * Require:
@@ -200,7 +200,7 @@ dns_zone_detach(dns_zone_t **zonep);
 void
 dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
 /*
- *	Attach 'zone' to 'target' incrementing its internal 
+ *	Attach '*target' to 'source' incrementing its internal 
  * 	reference count.  This is intended for use by operations
  * 	such as zone transfers that need to prevent the zone
  * 	object from being freed but not from shutting down.
@@ -260,7 +260,7 @@ dns_zone_cleardbargs(dns_zone_t *zone);
 isc_result_t
 dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 /*
- * 	Attach the database to '*dbp' if it exists otherwise
+ * 	Attach '*dbp' to the database to if it exists otherwise
  *	return DNS_R_NOTLOADED.
  *
  * Require:
@@ -715,7 +715,7 @@ dns_zone_settask(dns_zone_t *zone, isc_task_t *task);
 void
 dns_zone_gettask(dns_zone_t *zone, isc_task_t **target);
 /*
- * Attach the zone's task to '*target'.
+ * Attach '*target' to the zone's task.
  *
  * Requires:
  *	'zone' to be valid initialised zone.
@@ -918,6 +918,17 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr);
  *	'zmgr' to be a valid zone manager.
  */
 
+void
+dns_zonemgr_attach(dns_zonemgr_t *source, dns_zonemgr_t **target);
+/*
+ *	Attach '*target' to 'source' incrementing its external
+ * 	reference count.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *	'target' to be non NULL and '*target' to be NULL.
+ */
+	
 void
 dns_zonemgr_detach(dns_zonemgr_t **zmgrp);
 /*
