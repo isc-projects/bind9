@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.7 2001/11/05 23:46:21 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.8 2001/11/06 01:40:06 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2517,7 +2517,7 @@ used is described in <xref linkend="the_category_phrase"/>.
 </para>
 
 <programlisting>channel "default_syslog" {
-    syslog daemon;                      // end to syslog's daemon
+    syslog daemon;                      // send to syslog's daemon
                                         // facility
     severity info;                      // only send priority info
                                         // and higher
