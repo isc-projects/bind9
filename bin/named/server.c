@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.267 2000/12/01 23:49:49 gson Exp $ */
+/* $Id: server.c,v 1.269 2000/12/05 17:23:45 gson Exp $ */
 
 #include <config.h>
 
@@ -2287,7 +2287,7 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 isc_result_t
 ns_server_dumpstats(ns_server_t *server) {
 	isc_result_t result;
-	dns_zone_t *zone;
+	dns_zone_t *zone, *next;
 	isc_stdtime_t now;
 	FILE *fp = NULL;
 	int i;
@@ -2307,9 +2307,10 @@ ns_server_dumpstats(ns_server_t *server) {
 			server->querystats[i]);
 	
 	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
+	zone = NULL;
 	for (result = dns_zone_first(server->zonemgr, &zone);
 	     result == ISC_R_SUCCESS;
-	     result = dns_zone_next(zone, &zone))
+	     next = NULL, result = dns_zone_next(zone, &next), zone = next)
 	{
 		isc_uint64_t *zonestats = dns_zone_getstatscounters(zone);
 		if (zonestats != NULL) {

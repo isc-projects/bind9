@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.158 2000/12/02 04:43:21 gson Exp $ */
+/* $Id: query.c,v 1.159 2000/12/05 19:17:32 gson Exp $ */
 
 #include <config.h>
 
@@ -2588,7 +2588,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		INSIST(!is_zone);
 		INSIST(client->view->hints != NULL);
-		count_query(zone, is_zone, dns_statscounter_referral);
 		if (db != NULL)
 			dns_db_detach(&db);
 		dns_db_attach(client->view->hints, &db);
