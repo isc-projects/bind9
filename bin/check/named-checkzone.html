@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.html,v 1.15 2004/08/23 00:05:43 marka Exp $ -->
+<!-- $Id: named-checkzone.html,v 1.16 2005/01/10 06:01:47 marka Exp $ -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
@@ -113,12 +113,18 @@ CLASS="REPLACEABLE"
 >] [<VAR
 CLASS="OPTION"
 >-D</VAR
+>] [<VAR
+CLASS="OPTION"
+>-W <VAR
+CLASS="REPLACEABLE"
+>mode</VAR
+></VAR
 >] {zonename} {filename}</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN46"
+NAME="AEN49"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -142,7 +148,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN52"
+NAME="AEN55"
 ></A
 ><H2
 >OPTIONS</H2
@@ -295,6 +301,26 @@ CLASS="FILENAME"
 	  </P
 ></DD
 ><DT
+>-W <VAR
+CLASS="REPLACEABLE"
+>mode</VAR
+></DT
+><DD
+><P
+>	      Specify whether to check for non-terminal wildcards.
+	      Non-terminal wildcards are almost always the result of a
+	      failure to understand the wildcard matching algorithm (RFC 1034).
+	      Possible modes are <B
+CLASS="COMMAND"
+>"warn"</B
+> (default) and
+	      <B
+CLASS="COMMAND"
+>"ignore"</B
+>.
+	  </P
+></DD
+><DT
 >zonename</DT
 ><DD
 ><P
@@ -314,7 +340,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN125"
+NAME="AEN135"
 ></A
 ><H2
 >RETURN VALUES</H2
@@ -329,7 +355,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN129"
+NAME="AEN139"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -354,7 +380,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN137"
+NAME="AEN147"
 ></A
 ><H2
 >AUTHOR</H2
