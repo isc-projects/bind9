@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.37 2002/02/20 03:34:52 marka Exp $ */
+/* $Id: loc_29.c,v 1.38 2002/06/14 23:40:14 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -321,7 +321,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 		man = m / poweroften[exp];
 		exp += 2;
 	} else {
-		if (cm > 10) {
+		if (cm >= 10) {
 			man = cm / 10;
 			exp = 1;
 		} else {
@@ -373,7 +373,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 				break;
 		man = m / poweroften[exp];
 		exp += 2;
-	} else if (cm > 10) {
+	} else if (cm >= 10) {
 		man = cm / 10;
 		exp = 1;
 	} else  {
@@ -424,7 +424,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 				break;
 		man = m / poweroften[exp];
 		exp += 2;
-	} else if (cm > 10) {
+	} else if (cm >= 10) {
 		man = cm / 10;
 		exp = 1;
 	} else {
