@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.14 2000/12/06 00:30:23 tale Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.15 2000/12/06 01:28:02 tale Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -159,11 +159,13 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		}
 		if (iter->bufsize >= IFCONF_BUFSIZE_MAX) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				isc_msgcat_get(isc_msgcat,
-					       ISC_MSGSET_IFITERIOCTL,
-					       ISC_MSG_BUFFERMAX,
-					       "get interface configuration: "
-					       "maximum buffer size exceeded");
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_IFITERIOCTL,
+							ISC_MSG_BUFFERMAX,
+							"get interface "
+							"configuration: "
+							"maximum buffer "
+							"size exceeded"));
 			result = ISC_R_UNEXPECTED;
 			goto ioctl_failure;
 		}
