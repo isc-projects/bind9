@@ -1014,8 +1014,8 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	isc_mem_put(manager->mctx, sock->cmsg, sock->cmsglen);
 	sock->cmsglen = 0;
 	sock->cmsg = NULL;
-#endif
  err1: /* socket allocated */
+#endif
 	isc_mem_put(manager->mctx, sock, sizeof *sock);
 
 	return (ret);
