@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.158 2000/11/11 02:14:25 gson Exp $ */
+/* $Id: adb.c,v 1.159 2000/12/15 21:06:00 gson Exp $ */
 
 /*
  * Implementation notes
@@ -2901,7 +2901,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f) {
 	 * Lock the adb itself, lock all the name buckets, then lock all
 	 * the entry buckets.  This should put the adb into a state where
 	 * nothing can change, so we can iterate through everything and
-	 * print at our leasure.
+	 * print at our leisure.
 	 */
 
 	LOCK(&adb->lock);
