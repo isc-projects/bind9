@@ -81,7 +81,8 @@ static char *rcodetext[] = {
 };
 
 static isc_result_t
-printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
+printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
+	     isc_boolean_t headers)
 {
 	dns_name_t *name, *print_name;
 	dns_rdataset_t *rdataset;
@@ -98,7 +99,8 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 	else
 		no_rdata = ISC_FALSE;
 
-	printf(";; %s SECTION:\n", section_name);
+	if (headers)
+		printf(";; %s SECTION:\n", section_name);
 
 	dns_name_init(&empty_name, NULL);
 
@@ -134,7 +136,10 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 #endif
 		}
 		isc_buffer_used(&target, &r);
-		printf("%.*s", (int)r.length, (char *)r.base);
+		if (no_rdata)
+			printf(";%.*s", (int)r.length, (char *)r.base);
+		else
+			printf("%.*s", (int)r.length, (char *)r.base);
 
 		result = dns_message_nextname(msg, sectionid);
 		if (result == ISC_R_NOMORE)
@@ -148,7 +153,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 
 static isc_result_t
 printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
-	   char *set_name)
+	   char *set_name, isc_boolean_t headers)
 {
 	isc_buffer_t target;
 	isc_result_t result;
@@ -156,7 +161,8 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 	char t[4096];
 
 	UNUSED(msg);
-	printf(";; %s SECTION:\n", set_name);
+	if (headers) 
+		printf(";; %s SECTION:\n", set_name);
 
 	isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
 
@@ -171,7 +177,7 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 }
 
 isc_result_t
-printmessage(dns_message_t *msg) {
+printmessage(dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	isc_result_t result;
 	dns_rdataset_t *opt, *tsig;
@@ -179,43 +185,45 @@ printmessage(dns_message_t *msg) {
 
 	result = ISC_R_SUCCESS;
 
-	printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
-	       opcodetext[msg->opcode], rcodetext[msg->rcode], msg->id);
-
-	printf(";; flags: ");
-	if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) {
-		printf("qr");
-		did_flag = ISC_TRUE;
+	if (headers) {
+		printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
+		       opcodetext[msg->opcode], rcodetext[msg->rcode],
+		       msg->id);
+		printf(";; flags: ");
+		if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) {
+			printf("qr");
+			did_flag = ISC_TRUE;
+		}
+		if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0) {
+			printf("%saa", did_flag ? " " : "");
+			did_flag = ISC_TRUE;
+		}
+		if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
+			printf("%stc", did_flag ? " " : "");
+			did_flag = ISC_TRUE;
+		}
+		if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0) {
+			printf("%srd", did_flag ? " " : "");
+			did_flag = ISC_TRUE;
+		}
+		if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0) {
+			printf("%sra", did_flag ? " " : "");
+			did_flag = ISC_TRUE;
+		}
+		if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0) {
+			printf("%sad", did_flag ? " " : "");
+			did_flag = ISC_TRUE;
+		}
+		if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0) {
+			printf("%scd", did_flag ? " " : "");
+			did_flag = ISC_TRUE;
+		}
+		printf("; QUERY: %u, ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
+		       msg->counts[DNS_SECTION_QUESTION],
+		       msg->counts[DNS_SECTION_ANSWER],
+		       msg->counts[DNS_SECTION_AUTHORITY],
+		       msg->counts[DNS_SECTION_ADDITIONAL]);
 	}
-	if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0) {
-		printf("%saa", did_flag ? " " : "");
-		did_flag = ISC_TRUE;
-	}
-	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
-		printf("%stc", did_flag ? " " : "");
-		did_flag = ISC_TRUE;
-	}
-	if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0) {
-		printf("%srd", did_flag ? " " : "");
-		did_flag = ISC_TRUE;
-	}
-	if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0) {
-		printf("%sra", did_flag ? " " : "");
-		did_flag = ISC_TRUE;
-	}
-	if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0) {
-		printf("%sad", did_flag ? " " : "");
-		did_flag = ISC_TRUE;
-	}
-	if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0) {
-		printf("%scd", did_flag ? " " : "");
-		did_flag = ISC_TRUE;
-	}
-	printf("; QUERY: %u, ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
-	       msg->counts[DNS_SECTION_QUESTION],
-	       msg->counts[DNS_SECTION_ANSWER],
-	       msg->counts[DNS_SECTION_AUTHORITY],
-	       msg->counts[DNS_SECTION_ADDITIONAL]);
 	opt = dns_message_getopt(msg);
 	if (opt != NULL)
 		printf(";; EDNS: version: %u, udp=%u\n",
@@ -226,39 +234,47 @@ printmessage(dns_message_t *msg) {
 	tsig = dns_message_gettsig(msg, &tsigname);
 	if (tsig != NULL)
 		printf(";; PSEUDOSECTIONS: TSIG\n");
-	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_QUESTION])) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_QUESTION]) &&
+	    headers ) {
 		printf("\n");
-		result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION");
+		result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION",
+				      ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
 	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
-		printf("\n");
-		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER");
+		if (headers)
+			printf("\n");
+		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER",
+				      headers);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY])) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY]) &&
+	    headers ) {
 		printf("\n");
-		result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY");
+		result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY",
+				      ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ADDITIONAL])) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ADDITIONAL]) &&
+	    headers ) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_ADDITIONAL,
-				      "ADDITIONAL");
+				      "ADDITIONAL", ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	if (tsig != NULL) {
+	if ((tsig != NULL) && headers) {
 		printf("\n");
 		result = printrdata(msg, tsig, tsigname,
-				    "PSEUDOSECTION TSIG");
+				    "PSEUDOSECTION TSIG", ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	printf("\n");
+	if (headers)
+		printf("\n");
 
 	return (result);
 }

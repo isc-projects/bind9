@@ -56,8 +56,6 @@ extern int h_errno;
 #include <dig/dig.h>
 #include <dig/printmsg.h>
 
-#define DEBUG
-
 ISC_LIST(dig_lookup_t) lookup_list;
 ISC_LIST(dig_server_t) server_list;
 
@@ -215,6 +213,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->name=NULL;
 			lookup->timer = NULL;
 			lookup->xfr_q = NULL;
+			lookup->doing_xfr = ISC_FALSE;
 			ISC_LIST_INIT(lookup->q);
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			have_host = ISC_TRUE;
@@ -249,6 +248,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->name=NULL;
 		lookup->timer = NULL;
 		lookup->xfr_q = NULL;
+		lookup->doing_xfr = ISC_FALSE;
 		ISC_LIST_INIT(lookup->q);
 		strcpy (lookup->textname,".");
 		strcpy (lookup->rttext, "NS");
@@ -265,7 +265,7 @@ setup_system() {
 	dig_server_t *srv;
 
 	port = 53;
-	timeout = 5;
+	timeout = 10;
 	id = getpid()<<8;
 
 	if (server_list.head == NULL) {
@@ -493,10 +493,16 @@ check_next_lookup (dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
 	
+#ifdef DEBUG
+	puts ("In check_next_lookup");
+#endif
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
+#ifdef DEBUG
+			puts ("Still have a worker.");
+#endif
 			still_working=ISC_TRUE;
 		}
 	}
@@ -554,7 +560,6 @@ connect_timeout (isc_task_t *task, isc_event_t *event) {
 	isc_timer_detach (&lookup->timer);
 	isc_buffer_free (&b);
 	isc_event_free (&event);
-	lookup->pending = ISC_FALSE;
 }
 
 static void
@@ -620,13 +625,13 @@ tcp_length_done (isc_task_t *task, isc_event_t *event) {
 				   query);
 	check_result (result, "isc_socket_recvv");
 #ifdef DEBUG
-	printf ("Resubmitted request with length %d\n",length);
+	printf ("Resubmitted recv request with length %d\n",length);
 #endif
 	isc_event_free (&event);
 }
 
 static void
-launch_next_query(dig_query_t *query) {
+launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_result_t result;
 
 	if (!query->lookup->pending) {
@@ -640,15 +645,22 @@ launch_next_query(dig_query_t *query) {
 		return;
 	}
 
+	isc_buffer_clear(&query->slbuf);
+	isc_buffer_clear(&query->lengthbuf);
 	isc_buffer_putuint16(&query->slbuf, query->lookup->sendbuf.used);
 	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
-	ISC_LIST_ENQUEUE(query->sendlist, &query->lookup->sendbuf, link);
+	if (include_question)
+		ISC_LIST_ENQUEUE(query->sendlist, &query->lookup->sendbuf,
+				 link);
 	ISC_LIST_ENQUEUE(query->lengthlist, &query->lengthbuf, link);
 
 	result = isc_socket_recvv(query->sock, &query->lengthlist, 0, task,
 				  tcp_length_done, query);
 	check_result (result, "isc_socket_recvv");
 	sendcount++;
+#ifdef DEBUG
+	puts ("Sending a request.");
+#endif
 	result = isc_socket_sendv(query->sock, &query->sendlist, task,
 				  send_done, query);
 	check_result (result, "isc_socket_recvv");
@@ -689,27 +701,24 @@ connect_done (isc_task_t *task, isc_event_t *event) {
 			(int)r.length, r.base, query->lookup->textname,
 			isc_result_totext(sevent->result));
 		isc_buffer_free(&b);
-		check_next_lookup(query->lookup);
-		isc_event_free (&event);
-		check_next_lookup(query->lookup);
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
+		check_next_lookup(query->lookup);
+		isc_event_free (&event);
 		return;
 	}
-
-	launch_next_query (query);
 	isc_event_free (&event);
+	launch_next_query (query, ISC_TRUE);
 }
 
 static isc_boolean_t
 msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
 	isc_result_t result;
-	dns_rdataset_t *rd=NULL;
 	dns_name_t *name=NULL;
 
 	result = dns_message_findname (msg, DNS_SECTION_ANSWER,
 				       query->lookup->name, dns_rdatatype_soa,
-				       dns_rdatatype_any, &name, &rd);
+				       0, &name, NULL);
 	if (result == ISC_R_SUCCESS) {
 #ifdef DEBUG
 		puts ("Found SOA");
@@ -717,7 +726,8 @@ msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
 		return (ISC_TRUE);
 	} else {
 #ifdef DEBUG
-		puts ("Didn't find SOA");
+		printf ("Didn't find SOA, result=%d:%s\n",
+			result, dns_result_totext(result));
 #endif
 		return (ISC_FALSE);
 	}
@@ -752,6 +762,7 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 #endif
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
+		cancel_lookup (query->lookup);
 		check_next_lookup(query->lookup);
 		isc_event_free (&event);
 		return;
@@ -769,32 +780,47 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 		check_result (result, "dns_message_parse");
 		if (query->lookup->xfr_q == NULL)
 			query->lookup->xfr_q = query;
-		if (query->lookup->xfr_q == query)
-			printmessage(msg);
-		/* XXXMWS Will need a more complex pending check once
-		   TCP mode comes in and we need to deal with
-		   XFR transfers. */
+		if (query->lookup->xfr_q == query) {
+			if (query->first_soa_rcvd &&
+			    query->lookup->doing_xfr)
+				printmessage(msg, ISC_FALSE);
+			else
+				printmessage (msg, ISC_TRUE);
+		}
 #ifdef DEBUG
 		if (query->lookup->pending)
 			puts ("Still pending.");
 #endif
 		if (query->lookup->doing_xfr) {
-			if (msg_contains_soa(msg,query)) {
-				if (query->first_soa_rcvd) {
-					cancel_lookup (query->lookup);
-					query->lookup->pending = ISC_FALSE;
+			if (!query->first_soa_rcvd) {
+				if (!msg_contains_soa(msg,query)) {
+					puts ("; Transfer failed.  Didn't start with SOA answer.");
 					query->working = ISC_FALSE;
+					check_next_lookup (query->lookup);
+					isc_event_free (&event);
+					return;
 				}
 				else {
 					query->first_soa_rcvd = ISC_TRUE;
-					launch_next_query(query);
+					launch_next_query (query, ISC_FALSE);
 				}
-			} else {
-				launch_next_query(query);
+			} 
+			else {
+				if (msg_contains_soa(msg, query)) {
+					cancel_lookup (query->lookup);
+					query->working = ISC_FALSE;
+					check_next_lookup (query->lookup);
+					isc_event_free (&event);
+					return;
+				}
+				else {
+					launch_next_query (query, ISC_FALSE);
+				}
 			}
 		}
 		else {
-			query->lookup->pending = ISC_FALSE;
+			query->working = ISC_FALSE;
+			cancel_lookup (query->lookup);
 		}
 		if (!query->lookup->pending) {
 			isc_buffer_init (&ab, abspace, MXNAME,

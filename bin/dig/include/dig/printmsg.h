@@ -20,6 +20,6 @@
 
 #include <dns/message.h>
 
-isc_result_t printmessage(dns_message_t *message);
+isc_result_t printmessage(dns_message_t *message, isc_boolean_t headers);
 
 #endif /* TEST_PRINTMSG_H */
