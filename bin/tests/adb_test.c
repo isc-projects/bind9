@@ -78,8 +78,8 @@ static inline void CLOCK(void);
 static inline void CUNLOCK(void);
 void clean_dead_client_list(void);
 
-void lookup(char *name);
-void insert(char *target, char *addr);
+void lookup(char *);
+void insert(char *, char *, dns_ttl_t, isc_stdtime_t);
 
 static void
 check_result(isc_result_t result, char *format, ...)
@@ -314,7 +314,7 @@ destroy_view(void)
 }
 
 void
-insert(char *target, char *addr)
+insert(char *target, char *addr, dns_ttl_t ttl, isc_stdtime_t now)
 {
 	isc_sockaddr_t sockaddr;
 	struct in_addr ina;
@@ -336,7 +336,7 @@ insert(char *target, char *addr)
 
 	ina.s_addr = inet_addr(addr);
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name, &sockaddr);
+	result = dns_adb_insert(adb, &name, &sockaddr, ttl, now);
 	check_result(result, "dns_adb_insert %s -> %s", target, addr);
 	printf("Added %s -> %s\n", target, addr);
 }
@@ -446,11 +446,11 @@ main(int argc, char **argv)
 	/*
 	 * Store this address for this name.
 	 */
-	insert("kechara.flame.org.", "204.152.184.79");
-	insert("moghedien.flame.org.", "204.152.184.97");
-	insert("mailrelay.flame.org.", "204.152.184.79");
-	insert("mailrelay.flame.org.", "204.152.184.97");
-	insert("blackhole.flame.org.", "127.0.0.1");
+	insert("kechara.flame.org.", "204.152.184.79", 10, now);
+	insert("moghedien.flame.org.", "204.152.184.97", 10, now);
+	insert("mailrelay.flame.org.", "204.152.184.79", 10, now);
+	insert("mailrelay.flame.org.", "204.152.184.97", 5, now);
+	insert("blackhole.flame.org.", "127.0.0.1", 0, now);
 
 	/*
 	 * Lock the entire client list here.  This will cause all events

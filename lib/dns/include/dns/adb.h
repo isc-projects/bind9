@@ -306,7 +306,8 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host);
 
 
 isc_result_t
-dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr);
+dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
+	       dns_ttl_t ttl, isc_stdtime_t now);
 /*
  * Insert a host name and address into the database.  A new (blank, no
  * badness) record is inserted.

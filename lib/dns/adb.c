@@ -1313,6 +1313,18 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			goto fail;
 	}
 
+	/*
+	 * Give us a chance to expire this name.
+	 */
+	if (adbname != NULL) {
+		if (adbname->expire_time < now) {
+			printf("Should kill name!\n");
+		}
+	}
+
+	/*
+	 * Still there?
+	 */
 	if (adbname != NULL)
 		goto found;  /* goodness, I hate goto's. */
 
@@ -1477,7 +1489,8 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 }
 
 isc_result_t
-dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
+dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
+	       dns_ttl_t ttl, isc_stdtime_t now)
 {
 	dns_adbname_t *name;
 	isc_boolean_t free_name;
@@ -1487,10 +1500,19 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 	isc_boolean_t free_namehook;
 	int name_bucket, addr_bucket; /* unlock if != DNS_ADB_INVALIDBUCKET */
 	isc_result_t result;
+	isc_stdtime_t expire_time;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(host != NULL);
 	REQUIRE(addr != NULL);
+
+	if (now == 0) {
+		result = isc_stdtime_get(&now);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	expire_time = now + ttl;
 
 	name = NULL;
 	free_name = ISC_FALSE;
@@ -1515,6 +1537,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 			goto out;
 		}
 		free_name = ISC_TRUE;
+		name->expire_time = expire_time;
 	}
 
 	/*
@@ -1576,6 +1599,10 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 	}
 	if (!ISC_LINK_LINKED(entry, link))
 		ISC_LIST_PREPEND(adb->entries[addr_bucket], entry, link);
+
+	if (name->expire_time > expire_time)
+		name->expire_time = expire_time;
+
 	UNLOCK(&adb->namelocks[name_bucket]);
 	name_bucket = DNS_ADB_INVALIDBUCKET;
 	UNLOCK(&adb->entrylocks[addr_bucket]);
@@ -1707,7 +1734,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 			fprintf(f, "name %p\n", name);
 			if (!DNS_ADBNAME_VALID(name))
 				fprintf(f, "\tMAGIC %08x\n", name->magic);
-			fprintf(f, "\t");
+			fprintf(f, "\texpiry %u ", name->expire_time);
 			print_dns_name(f, &name->name);
 			fprintf(f, "\n");
 			print_namehook_list(f, name);
@@ -1889,6 +1916,7 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	struct in_addr ina;
 	isc_sockaddr_t sockaddr;
 	dns_adbentry_t *foundentry;  /* NO CLEAN UP! */
+	isc_stdtime_t expire_time;
 
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(DNS_ADBHANDLE_VALID(handle));
@@ -1902,6 +1930,7 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	result = ISC_R_UNEXPECTED;
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	return_success = ISC_FALSE;
+	expire_time = INT_MAX;
 	nh = NULL;
 
 	use_hints = dns_name_equal(zone, dns_rootname);
@@ -1923,6 +1952,10 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 				result = ISC_R_NOMEMORY;
 				goto fail;
 			}
+
+			if (now + rdataset.ttl < expire_time)
+				expire_time = now + rdataset.ttl;
+
 			dns_rdataset_current(&rdataset, &rdata);
 			INSIST(rdata.length == 4);
 			memcpy(&ina.s_addr, rdata.data, 4);
@@ -1971,6 +2004,8 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
+
+	adbname->expire_time = expire_time;
 
 	if (return_success)
 		return (ISC_R_SUCCESS);
