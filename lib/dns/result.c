@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.93 2001/12/11 20:37:13 marka Exp $ */
+/* $Id: result.c,v 1.94 2002/01/24 09:58:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"not authoritative",		       /* 78 DNS_R_NOTAUTHORITATIVE  */
 	"no valid KEY",		       	       /* 79 DNS_R_NOVALIDKEY	     */
 
-	"obsolete"			       /* 80 DNS_R_OBSOLETE	     */
+	"obsolete",			       /* 80 DNS_R_OBSOLETE	     */
+	"already frozen"		       /* 81 DNS_R_FROZEN	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

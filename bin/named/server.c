@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.368 2002/01/22 22:05:48 bwelling Exp $ */
+/* $Id: server.c,v 1.369 2002/01/24 09:58:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2868,7 +2868,10 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 	}
 
 	if (freeze) {
-		result = dns_zone_flush(zone);
+		if (dns_zone_getupdatedisabled(zone))
+			result = DNS_R_FROZEN;
+		if (result == ISC_R_SUCCESS)
+			result = dns_zone_flush(zone);
 		if (result == ISC_R_SUCCESS) {
 			journal = dns_zone_getjournal(zone);
 			if (journal != NULL)
