@@ -1,3 +1,6 @@
+ 296.	[bug]		"make install" from a separate build directory
+			failed unless configure had been run in the source
+			directory, too.
 
 	--- 9.0.0b5 released ---
 
