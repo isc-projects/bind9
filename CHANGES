@@ -1,5 +1,8 @@
- 473.	[bug]		Prevent dns_request_create: not implemented
-			message when no servers can be reached.
+
+ 473.	[bug]		nsupdate overran the end of the list of name servers
+			when no servers could be reached, typically causing 
+			it to print the error message "dns_request_create:
+			not implemented".
 
  472.	[bug]		Off-by-one error caused isc_time_add() to sometimes
 			produce invalid time values.
