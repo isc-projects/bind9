@@ -1694,9 +1694,22 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	unsigned int options = 0;
 
 	/*
+	 * Set up a new client object to handle incoming queries while
+	 * this one is being resolved.
+	 */
+	result = ns_client_replace(client, &ns_g_server->recursionquota);
+	if (result != ISC_R_SUCCESS) {
+		/* Most likely the quota was full. */
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+			      "no more recursive clients: %s",
+			      isc_result_totext(result));
+		return (result); 
+	}
+
+	/*
 	 * Invoke the resolver.
 	 */
-
 	REQUIRE(nameservers->type == dns_rdatatype_ns);
 	REQUIRE(client->query.fetch == NULL);
 

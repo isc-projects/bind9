@@ -646,11 +646,14 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->recursionacl = NULL;
 	server->transferacl = NULL;
 
+	/* XXX these values are for debugging only */
+	RUNTIME_CHECK(isc_quota_init(&server->xfroutquota, 1) == ISC_R_SUCCESS); 
+	RUNTIME_CHECK(isc_quota_init(&server->tcpquota, 3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_quota_init(&server->recursionquota, 1) == ISC_R_SUCCESS);
+	
 	/* Initialize server data structures. */
 	ISC_LIST_INIT(server->viewlist);
-	result = isc_rwlock_init(&server->viewlock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	RUNTIME_CHECK(isc_rwlock_init(&server->viewlock, 0, 0) == ISC_R_SUCCESS);
 
 	server->interfacemgr = NULL;
 	result = ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
@@ -658,8 +661,9 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 					&server->interfacemgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_interfacemgr_create() failed: %s\n",
+				 "ns_interfacemgr_create() failed: %s",
 				 isc_result_totext(result));
+		/* XXX cleanup */
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -677,7 +681,8 @@ ns_server_destroy(ns_server_t **serverp) {
 	 * The interface manager owns tasks, so we have to destroy it before
 	 * we destroy the task manager.
 	 */
-	ns_interfacemgr_destroy(&server->interfacemgr);
+	ns_interfacemgr_shutdown(server->interfacemgr);
+	ns_interfacemgr_detach(&server->interfacemgr);	
 
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 	isc_rwlock_destroy(&server->viewlock);
@@ -688,6 +693,10 @@ ns_server_destroy(ns_server_t **serverp) {
 		dns_acl_detach(&server->recursionacl);
 	if (server->transferacl != NULL)
 		dns_acl_detach(&server->transferacl);
+
+	isc_quota_destroy(&server->recursionquota);
+	isc_quota_destroy(&server->tcpquota);
+	isc_quota_destroy(&server->xfroutquota);
 	
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));

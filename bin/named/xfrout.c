@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.33 1999/12/23 00:08:23 explorer Exp $ */
+ /* $Id: xfrout.c,v 1.34 2000/01/11 21:18:21 gson Exp $ */
 
 #include <config.h>
 
@@ -804,6 +804,17 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	}
 	
 	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "got %s request", mnemonic);
+
+	/*
+	 * Apply quotas.
+	 */
+	result = ns_client_getquota(client, &ns_g_server->xfroutquota);
+	if (result != DNS_R_SUCCESS) {
+		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
+			      "zone transfer request denied: %s",
+			      isc_result_totext(result));
+		goto failure;
+	}
 
 	/*
 	 * Interpret the question section.

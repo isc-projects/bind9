@@ -42,6 +42,7 @@
 #include <named/server.h>
 #include <named/update.h>
 #include <named/notify.h>
+#include <named/interfacemgr.h>
 
 #define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE
@@ -131,6 +132,8 @@ maybe_free(ns_client_t *client) {
 	}
 	
 	/* We have received our last event. */
+
+	ns_interface_detach(&client->interface);
 	ns_query_free(client);
 	isc_mempool_destroy(&client->sendbufs);
 	isc_timer_detach(&client->timer);
@@ -175,6 +178,12 @@ maybe_free(ns_client_t *client) {
 		
 		UNLOCK(&manager->lock);
 	}
+
+	if (client->quota != NULL) {
+		isc_quota_release(client->quota);
+		client->quota = NULL;
+	}
+		
 	CTRACE("free");
 	client->magic = 0;
 	isc_mem_put(client->mctx, client, sizeof *client);
@@ -234,20 +243,56 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	client->udpsize = 512;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
-
-	if (client->oneshot) {
-		/* XXX should put in "idle client pool" instead. */
-		isc_task_shutdown(client->task);		
-		return;
+	if (client->quota != NULL) {
+		isc_quota_release(client->quota);
+		client->quota = NULL;
+	}
+	if (client->mortal) {
+		/*
+		 * This client object is supposed to die now, but if we
+		 * have fewer client objects than planned due to
+		 * quota exhaustion, don't.
+		 */
+		isc_boolean_t need_another_client = ISC_FALSE;
+		if (TCP_CLIENT(client)) {
+			LOCK(&client->interface->lock);
+			if (client->interface->ntcpcurrent <
+			    client->interface->ntcptarget) 
+				need_another_client = ISC_TRUE;
+			UNLOCK(&client->interface->lock);
+		} else {
+			/*
+			 * The UDP client quota is enforced by making
+			 * requests fail rather than by not listening
+			 * for new ones.  Therefore, there is always a
+			 * full set of UDP clients listening.
+			 */
+		}
+		if (! need_another_client) {
+			/* XXX should put in "idle client pool" instead. */
+			isc_task_shutdown(client->task);		
+			return;
+		}
 	}
 	
 	if (client->dispevent != NULL) {
+		/*
+		 * Give the processed dispatch event back to the dispatch.
+		 * This tells the dispatch that we are ready to receive
+		 * the next event.
+		 */
 		dns_dispatch_freeevent(client->dispatch, client->dispentry,
 				       &client->dispevent);
 	} else if (TCP_CLIENT(client)) {
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			client_read(client);
-		else {
+		} else {
+			/*
+			 * There was an error processing a TCP request.
+			 * It may have have left the connection out of
+			 * sync.  Close the connection and listen for a
+			 * new one.
+			 */
 			if (client->tcpsocket != NULL) {
 				/*
 				 * There should be no outstanding read
@@ -688,9 +733,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if (ra == ISC_TRUE)
 		client->attributes |= NS_CLIENTATTR_RA;
 
-	/* XXX conditionally */
-	(void) ns_client_replace(client);
-	
 	/*
 	 * Dispatch the request.
 	 */
@@ -737,7 +779,7 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 
 static isc_result_t
 client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
-	      ns_client_t **clientp)
+	      ns_interface_t *ifp, ns_client_t **clientp)
 {
 	ns_client_t *client;
 	isc_result_t result;
@@ -809,7 +851,9 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->udpsize = 512;
 	client->next = NULL;
 	dns_name_init(&client->signername, NULL);
-	client->oneshot = ISC_FALSE;
+	client->mortal = ISC_FALSE;
+	client->quota = NULL;
+	client->interface = NULL;
 	ISC_LINK_INIT(client, link);
 
 	/*
@@ -821,6 +865,8 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_sendbufs;
 
+	ns_interface_attach(ifp, &client->interface);
+	
 	CTRACE("create");
 
 	*clientp = client;
@@ -865,6 +911,7 @@ static void
 client_newconn(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client = event->arg;
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
+	isc_result_t result;
 
 	REQUIRE(event->type == ISC_SOCKEVENT_NEWCONN);
 	REQUIRE(NS_CLIENT_VALID(client));
@@ -874,7 +921,12 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->naccepts == 1);
 	client->naccepts--;
-	
+
+	LOCK(&client->interface->lock);
+	INSIST(client->interface->ntcpcurrent > 0);
+	client->interface->ntcpcurrent--;
+	UNLOCK(&client->interface->lock);
+
 	if (client->shuttingdown) {
 		maybe_free(client);
 	} else if (nevent->result == ISC_R_SUCCESS) {
@@ -890,8 +942,13 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		 * telnetting to port 35 (once per CPU) will
 		 * deny service to legititmate TCP clients.
 		 */
-		(void) ns_client_replace(client);
-		
+		result = ns_client_replace(client, &ns_g_server->tcpquota);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
+				      "no more TCP clients: %s",
+				      isc_result_totext(result));
+		}
 		client_read(client);
 	} else {
 		/*
@@ -931,6 +988,9 @@ client_accept(ns_client_t *client) {
 	}
 	INSIST(client->naccepts == 0);
 	client->naccepts++;
+	LOCK(&client->interface->lock);
+	client->interface->ntcpcurrent++;
+	UNLOCK(&client->interface->lock);
 }
 
 void
@@ -951,27 +1011,54 @@ ns_client_unwait(ns_client_t *client) {
 		maybe_free(client);
 }
 
- 
+
 isc_result_t
-ns_client_replace(ns_client_t *client) {
+ns_client_getquota(ns_client_t *client, isc_quota_t *quota) {
+	isc_result_t result;
+	/*
+	 * A client can only use one quota at a time.
+	 * If we are already using a quota, release it.
+	 */
+	if (client->quota != NULL) {
+		isc_quota_release(client->quota);
+		client->quota = NULL;
+	}
+
+	result = isc_quota_reserve(quota);
+	if (result == ISC_R_SUCCESS) {
+		client->quota = quota;
+	} else {
+		return (result);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_client_replace(ns_client_t *client, isc_quota_t *quota) {
 	isc_result_t result;
 	CTRACE("replace");
-	
-	/* XXX Check quota here. */
+	if (quota != NULL) {
+		result = ns_client_getquota(client, quota);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
 
 	if (TCP_CLIENT(client)) {
-		result = ns_clientmgr_accepttcp(client->manager, client->tcplistener, 1);
+		result = ns_clientmgr_accepttcp(client->manager,
+						1, client->interface);
 	} else {
-		result = ns_clientmgr_addtodispatch(client->manager, 1, client->dispatch);
+		result = ns_clientmgr_addtodispatch(client->manager,
+						    1, client->interface);
 	}
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/*
-	 * The new client is ready to listen for new requests, so we
-	 * should refrain from doing so.
+	 * The new client is ready to listen for new requests, therefore we
+	 * should refrain from listening from any more requests when we are
+	 * done with this one.
 	 */
-	client->oneshot = ISC_TRUE;
+	client->mortal = ISC_TRUE;
 
 	return (ISC_R_SUCCESS);
 }
@@ -1060,7 +1147,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 isc_result_t
 ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
-			   dns_dispatch_t *dispatch)
+			   ns_interface_t *ifp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
@@ -1082,11 +1169,12 @@ ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
 	for (i = 0; i < n; i++) {
 		client = NULL;
 		result = client_create(manager, ns_clienttype_basic,
-				       &client);
+				       ifp, &client);
 		if (result != ISC_R_SUCCESS)
 			break;
-		dns_dispatch_attach(dispatch, &client->dispatch);
-		result = dns_dispatch_addrequest(dispatch, client->task,
+		dns_dispatch_attach(ifp->udpdispatch, &client->dispatch);
+		result = dns_dispatch_addrequest(client->dispatch,
+						 client->task,
 						 client_request,
 						 client, &client->dispentry);
 		if (result != ISC_R_SUCCESS) {
@@ -1112,8 +1200,8 @@ ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
 }
 
 isc_result_t
-ns_clientmgr_accepttcp(ns_clientmgr_t *manager, isc_socket_t *socket,
-		       unsigned int n)
+ns_clientmgr_accepttcp(ns_clientmgr_t *manager, unsigned int n,
+		       ns_interface_t *ifp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
@@ -1145,11 +1233,12 @@ ns_clientmgr_accepttcp(ns_clientmgr_t *manager, isc_socket_t *socket,
 
 	for (i = 0; i < n; i++) {
 		client = NULL;
-		result = client_create(manager, ns_clienttype_tcp, &client);
+		result = client_create(manager, ns_clienttype_tcp,
+				       ifp, &client);
 		if (result != ISC_R_SUCCESS)
 			break;
 		client->attributes |= NS_CLIENTATTR_TCP;
-		isc_socket_attach(socket, &client->tcplistener);
+		isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
 		client_accept(client);
 		client->manager = manager;
 		ISC_LIST_APPEND(manager->clients, client, link);

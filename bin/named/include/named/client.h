@@ -21,6 +21,7 @@
 #include <isc/types.h>
 #include <isc/stdtime.h>
 #include <isc/buffer.h>
+#include <isc/quota.h>
 
 #include <dns/name.h>
 #include <dns/types.h>
@@ -69,7 +70,9 @@ struct ns_client {
 	isc_stdtime_t			now;
 	dns_name_t			signername; /* [T]SIG key name */
 	dns_name_t *			signer; /* NULL if not valid sig */
-	isc_boolean_t			oneshot;
+	isc_boolean_t			mortal; /* Die after handling request. */
+	isc_quota_t			*quota;
+	ns_interface_t			*interface;
 	ISC_LINK(struct ns_client)	link;
 };
 
@@ -118,7 +121,11 @@ ns_client_unwait(ns_client_t *client);
  */
 
 isc_result_t
-ns_client_replace(ns_client_t *client);
+ns_client_getquota(ns_client_t *client, isc_quota_t *quota);
+
+
+isc_result_t
+ns_client_replace(ns_client_t *client, isc_quota_t *quota);
 /*
  * Try to replace the current client with a new one, so that the
  * current one can go off and do some lengthy work without
@@ -136,11 +143,19 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp);
 
 isc_result_t
 ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
-			   dns_dispatch_t *dispatch);
-
+			   ns_interface_t *ifp);
+/*
+ * Create up to 'n' UDP clients listening for requests through the
+ * dispatch of interface 'ifp'.
+ */
+       
 isc_result_t
-ns_clientmgr_accepttcp(ns_clientmgr_t *manager, isc_socket_t *socket,
-		       unsigned int n);
+ns_clientmgr_accepttcp(ns_clientmgr_t *manager, unsigned int n,
+		       ns_interface_t *ifp);
+/*
+ * Create up to 'n' TCP clients accepting requests on the
+ * socket of interface 'ifp'.
+ */
 
 isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client);

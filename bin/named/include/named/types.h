@@ -26,6 +26,7 @@ typedef struct ns_client		ns_client_t;
 typedef struct ns_clientmgr		ns_clientmgr_t;
 typedef struct ns_query			ns_query_t;
 typedef struct ns_server 		ns_server_t;
+typedef struct ns_interface 		ns_interface_t;
 typedef struct ns_interfacemgr		ns_interfacemgr_t;
 
 #endif /* NS_TYPES_H */

@@ -57,13 +57,47 @@
 #include <named/types.h>
 
 /***
+ *** Types
+ ***/
+
+#define IFACE_MAGIC		0x493A2D29U	/* I:-). */	
+#define NS_INTERFACE_VALID(t)	((t) != NULL && (t)->magic == IFACE_MAGIC)
+
+struct ns_interface {
+	unsigned int		magic;		/* Magic number. */
+	ns_interfacemgr_t *	mgr;		/* Interface manager. */
+	isc_mutex_t		lock;
+	int			references;	/* Locked */
+	unsigned int		generation;     /* Generation number. */
+	isc_sockaddr_t		addr;           /* Address and port. */
+	isc_socket_t *		udpsocket; 	/* UDP socket. */
+	dns_dispatch_t *	udpdispatch;	/* UDP dispatcher. */
+	isc_socket_t *		tcpsocket;	/* TCP socket. */
+	isc_task_t *		task;
+	int			ntcptarget;	/* Desired # of TCP accepts */
+	int			ntcpcurrent;	/* Current ditto, locked */
+	ISC_LINK(ns_interface_t) link;
+};
+
+/***
  *** Functions
  ***/
+
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		       isc_socketmgr_t *socketmgr, ns_clientmgr_t *clientmgr,
 		       ns_interfacemgr_t **mgrp);
+
+void
+ns_interfacemgr_attach(ns_interfacemgr_t *source,
+		       ns_interfacemgr_t **target);
+
+void 
+ns_interfacemgr_detach(ns_interfacemgr_t **targetp);
+
+void
+ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr);
 
 void
 ns_interfacemgr_scan(ns_interfacemgr_t *mgr);
@@ -79,10 +113,12 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr);
  * in named.conf.
  */
 
+
 void
-ns_interfacemgr_destroy(ns_interfacemgr_t **mgrp);
-/*
- * Destroy the interface manager.  
- */
+ns_interface_attach(ns_interface_t *source,
+		    ns_interface_t **target);
+
+void 
+ns_interface_detach(ns_interface_t **targetp);
 
 #endif /* NS_INTERFACEMGR_H */

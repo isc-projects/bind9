@@ -18,8 +18,9 @@
 #ifndef NS_SERVER_H
 #define NS_SERVER_H 1
 
-#include <isc/types.h>
 #include <isc/log.h>
+#include <isc/types.h>
+#include <isc/quota.h>
 
 #include <dns/types.h>
 
@@ -37,6 +38,9 @@ struct ns_server {
 	dns_acl_t *		queryacl;
 	dns_acl_t *		recursionacl;
 	dns_acl_t *		transferacl;
+	isc_quota_t		xfroutquota;
+	isc_quota_t		tcpquota;
+	isc_quota_t		recursionquota;
 
 	/* Server data structures. */
 	dns_viewlist_t		viewlist;
