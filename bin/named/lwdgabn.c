@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.8 2000/10/28 00:35:57 bwelling Exp $ */
+/* $Id: lwdgabn.c,v 1.9 2000/10/31 22:39:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -572,9 +572,9 @@ ns_lwdclient_processgabn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	if (result != ISC_R_SUCCESS)
 		goto out;
 	ns_lwsearchctx_init(&client->searchctx,
-			    cm->lwresd->search,
+			    cm->listener->manager->search,
 			    dns_fixedname_name(&client->query_name),
-			    cm->lwresd->ndots);
+			    cm->listener->manager->ndots);
 	ns_lwsearchctx_first(&client->searchctx);
 
 	client->find_wanted = req->addrtypes;

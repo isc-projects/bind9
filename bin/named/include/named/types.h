@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.16 2000/10/24 04:25:14 bwelling Exp $ */
+/* $Id: types.h,v 1.17 2000/10/31 22:39:30 bwelling Exp $ */
 
 #ifndef NAMED_TYPES_H
 #define NAMED_TYPES_H 1
@@ -29,6 +29,7 @@ typedef struct ns_server 		ns_server_t;
 typedef struct ns_interface 		ns_interface_t;
 typedef struct ns_interfacemgr		ns_interfacemgr_t;
 typedef struct ns_lwresd		ns_lwresd_t;
+typedef struct ns_lwreslistener		ns_lwreslistener_t;
 typedef struct ns_lwdclient		ns_lwdclient_t;
 typedef struct ns_lwdclientmgr		ns_lwdclientmgr_t;
 typedef struct ns_lwsearchlist		ns_lwsearchlist_t;

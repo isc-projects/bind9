@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.9 2000/10/12 20:45:11 bwelling Exp $ */
+/* $Id: lwdclient.c,v 1.10 2000/10/31 22:39:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -48,21 +48,25 @@ ns_lwdclient_log(int level, const char *format, ...) {
 	va_end(args);
 }
 
-void
-ns_lwdclientmgr_create(ns_lwresd_t *lwresd, unsigned int nclients,
+isc_result_t
+ns_lwdclientmgr_create(ns_lwreslistener_t *listener, unsigned int nclients,
 		    isc_taskmgr_t *taskmgr)
 {
+	ns_lwresd_t *lwresd = listener->manager;
 	ns_lwdclientmgr_t *cm;
 	ns_lwdclient_t *client;
 	unsigned int i;
+	isc_result_t result = ISC_R_FAILURE;
 
 	cm = isc_mem_get(lwresd->mctx, sizeof(ns_lwdclientmgr_t));
 	if (cm == NULL)
-		return;
+		return (ISC_R_NOMEMORY);
 
-	cm->lwresd = lwresd;
+	cm->listener = NULL;
+	ns_lwreslistener_attach(listener, &cm->listener);
 	cm->mctx = lwresd->mctx;
-	cm->sock = lwresd->sock;
+	cm->sock = NULL;
+	isc_socket_attach(listener->sock, &cm->sock);
 	cm->view = lwresd->view;
 	cm->lwctx = NULL;
 	cm->task = NULL;
@@ -92,25 +96,21 @@ ns_lwdclientmgr_create(ns_lwresd_t *lwresd, unsigned int nclients,
 	if (ISC_LIST_EMPTY(cm->idle))
 		goto errout;
 
-	if (isc_task_create(taskmgr, 0, &cm->task) != ISC_R_SUCCESS)
+	result = isc_task_create(taskmgr, 0, &cm->task);
+	if (result != ISC_R_SUCCESS)
 		goto errout;
 
 	/*
 	 * This MUST be last, since there is no way to cancel an onshutdown...
 	 */
-	if (isc_task_onshutdown(cm->task, lwdclientmgr_shutdown_callback, cm)
-	    != ISC_R_SUCCESS)
+	result = isc_task_onshutdown(cm->task, lwdclientmgr_shutdown_callback,
+				     cm);
+	if (result != ISC_R_SUCCESS)
 		goto errout;
 
-	/*
-	 * Nothing between the onshutdown call and the end of this 
-	 * function is allowed to fail without crashing the server
-	 * via INSIST() or REQUIRE().
-	 */
+	ns_lwreslistener_linkcm(listener, cm);
 
-	ISC_LIST_APPEND(lwresd->cmgrs, cm, link);
-
-	return;
+	return (ISC_R_SUCCESS);
 
  errout:
 	client = ISC_LIST_HEAD(cm->idle);
@@ -127,12 +127,13 @@ ns_lwdclientmgr_create(ns_lwresd_t *lwresd, unsigned int nclients,
 		lwres_context_destroy(&cm->lwctx);
 
 	isc_mem_put(lwresd->mctx, cm, sizeof (*cm));
+	return (result);
 }
 
 static void
 lwdclientmgr_destroy(ns_lwdclientmgr_t *cm) {
 	ns_lwdclient_t *client;
-	ns_lwresd_t *lwresd = cm->lwresd;
+	ns_lwreslistener_t *listener;
 
 	if (!SHUTTINGDOWN(cm))
 		return;
@@ -156,16 +157,14 @@ lwdclientmgr_destroy(ns_lwdclientmgr_t *cm) {
 
 	lwres_context_destroy(&cm->lwctx);
 	cm->view = NULL;
-	cm->sock = NULL;
+	isc_socket_detach(&cm->sock);
 	isc_task_detach(&cm->task);
 
-	LOCK(&lwresd->lock);
-	ISC_LIST_UNLINK(lwresd->cmgrs, cm, link);
+	listener = cm->listener;
+	ns_lwreslistener_unlinkcm(listener, cm);
 	ns_lwdclient_log(50, "destroying manager %p", cm);
-	isc_mem_put(lwresd->mctx, cm, sizeof (*cm));
-	UNLOCK(&lwresd->lock);
-
-	ns__lwresd_destroy(lwresd);
+	isc_mem_put(cm->mctx, cm, sizeof (*cm));
+	ns_lwreslistener_detach(&listener);
 }
 
 static void
