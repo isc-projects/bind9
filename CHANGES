@@ -1,3 +1,6 @@
+1134.	[bug]		Multithreaded servers could deadlock in ferror()
+			when reloading zone files. [RT #1951, #1998]
+
 1133.	[bug]		IN6_IS_ADDR_LOOPBACK was not portably defined on
 			platforms without IN6_IS_ADDR_LOOPBACK. [RT #2106]
 
