@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.30 2001/03/08 19:52:13 halley Exp $ */
+/* $Id: rwlock.c,v 1.31 2001/04/17 04:07:38 tale Exp $ */
 
 #include <config.h>
 
@@ -154,7 +154,8 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 				rwl->granted++;
 				done = ISC_TRUE;
 			} else if (nonblock) {
-				return (ISC_R_LOCKBUSY);
+				result = ISC_R_LOCKBUSY;
+				done = ISC_TRUE;
 			} else {
 				skip = ISC_FALSE;
 				rwl->readers_waiting++;
@@ -172,7 +173,8 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 				rwl->granted++;
 				done = ISC_TRUE;
 			} else if (nonblock) {
-				return (ISC_R_LOCKBUSY);
+				result = ISC_R_LOCKBUSY;
+				done = ISC_TRUE;
 			} else {
 				skip = ISC_FALSE;
 				rwl->writers_waiting++;
@@ -189,7 +191,7 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 
 	UNLOCK(&rwl->lock);
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 isc_result_t
