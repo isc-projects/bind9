@@ -76,7 +76,7 @@ isc_buffer_t rootbuf;
 int sendcount=0;
 
 static void
-free_lists();
+free_lists(void);
 
 static void
 hex_dump(isc_buffer_t *b)
@@ -951,7 +951,7 @@ do_lookup_udp (dig_lookup_t *lookup) {
 }
 
 static void
-free_lists() {
+free_lists(void) {
 	void *ptr;
 	dig_lookup_t *l;
 	dig_query_t *q;
