@@ -49,7 +49,7 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_c_ipmatchlist_t *cacl;
 	dns_acl_t *dacl = NULL;
 	result = (*getcacl)(czone, &cacl);
-	if (result == ISC_R_NOTFOUND && getviewcacl != NULL) {
+	if (result == ISC_R_NOTFOUND && getviewcacl != NULL && cview != NULL) {
 		result = (*getviewcacl)(cview, &cacl);
 	}
 	if (result == ISC_R_NOTFOUND && getglobalcacl != NULL) {
