@@ -24,9 +24,7 @@
 
 #include <dns/aml.h>
 #include <dns/fixedname.h>
-#include <dns/journal.h>
 #include <dns/log.h>
-#include <dns/message.h>
 #include <dns/result.h>
 #include <dns/types.h>
 
@@ -38,7 +36,6 @@ dns_aml_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 		     isc_boolean_t default_allow)
 {
 	isc_result_t result;
-	dns_name_t *ok_signer = NULL;
 	int match;
 	dns_c_ipmatchlist_t *aml = NULL;
 
@@ -217,4 +214,3 @@ dns_aml_match(isc_sockaddr_t *reqaddr,
 	*match = 0;
 	return (ISC_R_SUCCESS);
 }
-
