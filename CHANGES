@@ -1,3 +1,6 @@
+ 514.	[func]		Retry refresh and notify queries if they timeout.
+			[RT #388]
+
  513.	[func]		New functionality added to rdnc and server to allow
 			individual zones to be refreshed ore reloaded.
 
