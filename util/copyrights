@@ -283,7 +283,6 @@
 ./bin/tests/names/wire_test7.data		X	1999,2000,2001
 ./bin/tests/names/wire_test8.data		X	1999,2000,2001
 ./bin/tests/names/wire_test9.data		X	1999,2000,2001
-./bin/tests/nconf_test.c			C	1999,2000,2001
 ./bin/tests/ndc.conf				CONF-C	2000,2001
 ./bin/tests/ndcconf_test.c			C	2000,2001
 ./bin/tests/net/.cvsignore			X	2000,2001
