@@ -1,3 +1,6 @@
+
+	--- 9.2.1rc2 released ---
+
 1240.	[bug]		It was possible to leak zone references by
 			specifying an incorrect zone to rndc.
 
@@ -7,8 +10,6 @@
 
 1238.	[bug]		It is possible to lockup the server when shutting down
 			if notifies are being processed. [RT #2591]
-
-	--- 9.2.1rc2 released ---
 
 1237.	[bug]		nslookup: "set q=type" failed.
 
