@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.6 2004/12/29 22:42:57 marka Exp $ */
+/* $Id: acache.c,v 1.7 2005/02/03 02:52:53 jinmei Exp $ */
 
 #include <config.h>
 
@@ -351,6 +351,8 @@ destroy_entry(dns_acacheentry_t *entry) {
 	 * clear_entry() here.
 	 */
 	clear_entry(acache, entry);
+
+	DESTROYLOCK(&entry->lock);
 
 	isc_mem_put(acache->mctx, entry, sizeof(*entry));
 
