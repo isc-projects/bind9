@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.131.2.8 2000/09/11 17:56:07 gson Exp $ */
+/* $Id: message.c,v 1.131.2.9 2000/10/12 00:14:42 mws Exp $ */
 
 /***
  *** Imports
@@ -704,8 +704,10 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	if (msgblock != NULL)
 		msgblock_free(mctx, msgblock, sizeof(dns_rdata_t));
 	dynbuf = ISC_LIST_HEAD(m->scratchpad);
-	if (dynbuf != NULL)
+	if (dynbuf != NULL) {
+		ISC_LIST_UNLINK(m->scratchpad, dynbuf, link);
 		isc_buffer_free(&dynbuf);
+	}
 	if (m->namepool != NULL)
 		isc_mempool_destroy(&m->namepool);
 	if (m->rdspool != NULL)
