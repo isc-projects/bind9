@@ -158,6 +158,12 @@ authoritative servers use this server will be very slow or fail
 completely.  We have contacted the manufacturer of the name server in
 case, and they are working on a solution.
 
+When BIND 9 communicates with a server that does support EDNS0, such
+as another BIND 9 server, responses of up to 4096 bytes may be
+transmitted as a single UDP datagram which is subject to fragmentation
+at the IP level.  If a firewall incorrectly drops IP fragments, it can
+cause resolution to slow down dramatically or fail.
+
 3.2. Zone transfers
 
 Outgoing zone transfers now use the "many-answers" format by default.
@@ -230,4 +236,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.17.2.7 2001/04/25 17:35:20 gson Exp $
+$Id: migration,v 1.17.2.8 2001/05/08 21:46:24 gson Exp $
