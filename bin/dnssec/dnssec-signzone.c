@@ -116,9 +116,10 @@ issigningkey(signer_key_t *key) {
 
 static inline isc_boolean_t
 iszonekey(signer_key_t *key, dns_db_t *db) {
-	return (dns_name_equal(dst_key_name(key->key), dns_db_origin(db)) &&
-		(dst_key_flags(key->key) & DNS_KEYFLAG_OWNERMASK) ==
-		 DNS_KEYOWNER_ZONE);
+	return (ISC_TF(dns_name_equal(dst_key_name(key->key),
+				      dns_db_origin(db)) &&
+		       (dst_key_flags(key->key) & DNS_KEYFLAG_OWNERMASK) ==
+		       DNS_KEYOWNER_ZONE));
 }
 
 /*
