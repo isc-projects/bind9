@@ -77,6 +77,8 @@ static char *text[DNS_R_NRESULTS] = {
 	"unexpected error",			/* 49 */
 };
 
+#define DNS_RESULT_RESULTSET			2
+
 static isc_once_t		once = ISC_ONCE_INIT;
 static isc_msgcat_t *		dns_msgcat = NULL;
 
@@ -86,7 +88,7 @@ initialize_action(void) {
 
 	isc_msgcat_open("libdns.cat", &dns_msgcat);
 	result = isc_result_register(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS,
-				     text, dns_msgcat, 2);
+				     text, dns_msgcat, DNS_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
