@@ -36,6 +36,7 @@
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/sockaddr.h>
+#include <isc/socket.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
