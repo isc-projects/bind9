@@ -27,9 +27,9 @@ ISC_LANG_BEGINDECLS
  *****/
 
 /*
- * An event class is a 16 bit number, the most sigificant bit of which must be
- * zero.  Each class may contain up to 65536 events.  An event type is
- * formed by adding the event number within the class to the class number.
+ * An event class is an unsigned 16 bit number.  Each class may contain up
+ * to 65536 events.  An event type is formed by adding the event number
+ * within the class to the class number.
  */
 
 #define ISC_EVENTCLASS(eclass)		((eclass) << 16)
@@ -45,7 +45,7 @@ ISC_LANG_BEGINDECLS
 #define	ISC_EVENTCLASS_DNS		ISC_EVENTCLASS(4)
 
 /*
- * Event classes >= 1024 and <= 32767 are reserved for application use.
+ * Event classes >= 1024 and <= 65535 are reserved for application use.
  */
 
 ISC_LANG_ENDDECLS
