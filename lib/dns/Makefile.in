@@ -12,10 +12,10 @@ CINCLUDES =	-I${srcdir}/../isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		name.o rbt.o rdata.o rdatalist.o rdataset.o \
+OBJS =		name.o db.o rbt.o rbtdb.o rdata.o rdatalist.o rdataset.o \
 		result.o version.o rdataslab.o master.o
 
-SUBDIRS =	include
+SUBDIRS =	includexo
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h timestamp
 
 @BIND9_MAKE_RULES@
