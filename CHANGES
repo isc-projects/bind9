@@ -1,3 +1,6 @@
+1487.	[compat]	Treat 'allow-update' on slave zones as a warning.
+			[RT #3469]
+
 1488.	[bug]		Don't override trust levels for glue addresses.
 			[RT #5764]
 

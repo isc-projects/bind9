@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.36 2003/03/20 00:43:08 marka Exp $ */
+/* $Id: check.c,v 1.37 2003/07/18 06:00:41 marka Exp $ */
 
 #include <config.h>
 
@@ -586,11 +586,18 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 		    cfg_map_get(zoptions, options[i].name, &obj) ==
 		    ISC_R_SUCCESS)
 		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "option '%s' is not allowed in '%s' "
-				    "zone '%s'",
-				    options[i].name, typestr, zname);
-			result = ISC_R_FAILURE;
+			if (strcmp(options[i].name, "allow-update") != 0 ||
+			    ztype != SLAVEZONE) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "option '%s' is not allowed "
+					    "in '%s' zone '%s'",
+					    options[i].name, typestr, zname);
+					result = ISC_R_FAILURE;
+			} else
+				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+					    "option '%s' is not allowed "
+					    "in '%s' zone '%s'",
+					    options[i].name, typestr, zname);
 		}
 	}
 
