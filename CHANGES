@@ -1,3 +1,6 @@
+1071.	[bug]		Sockets listening for TCP DNS connections
+			specified an excessive listen backlog. [RT #1937]
+
 1070.	[bug]		Copy DNSSEC OK (DO) to response as specified by
 			draft-ietf-dnsext-dnssec-okbit-03.txt.
 

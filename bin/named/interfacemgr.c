@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.64 2001/10/22 03:31:24 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.65 2001/10/25 00:12:07 gson Exp $ */
 
 #include <config.h>
 
@@ -301,7 +301,7 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 				 isc_result_totext(result));
 		goto tcp_bind_failure;
 	}
-	result = isc_socket_listen(ifp->tcpsocket, 0);
+	result = isc_socket_listen(ifp->tcpsocket, 3);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "listening on TCP socket: %s",
