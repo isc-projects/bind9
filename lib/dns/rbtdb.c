@@ -241,16 +241,11 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		 * unlocking then relocking.
 		 */
 		RWLOCK(&rbtdb->tree_lock, locktype);
-		/* XXX rework once we have dns_rbt_addnode() */
-		result = dns_rbt_addname(rbtdb->tree, name, NULL);
-		if (result != DNS_R_SUCCESS) {
+		result = dns_rbt_addnode(rbtdb->tree, name, &node);
+		if (result != DNS_R_SUCCESS && result != DNS_R_EXISTS) {
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
 			return (result);
 		}
-		node = dns_rbt_findnode(rbtdb->tree, name, NULL);
-		INSIST(node != NULL);
-		node->dirty = 0;
-		node->references = 0;
 		dns_rbt_namefromnode(node, &foundname);
 		node->locknum = dns_name_hash(&foundname, ISC_TRUE) %
 			rbtdb->node_lock_count;
@@ -412,16 +407,43 @@ add_rdataset_callback(dns_name_t *name, dns_rdataset_t *rdataset,
 		      void *private)
 {
 	dns_rbtdb_t *rbtdb = private;
-	dns_dbnode_t *node = NULL;
+	dns_rbtnode_t *node = NULL;
 	dns_result_t result;
+	isc_region_t region;
+	rdatasetheader_t *header, *newheader;
 
-	result = findnode((dns_db_t *)rbtdb, name, ISC_TRUE, &node);
+	/*
+	 * This routine does no node locking.  See comments in
+	 * 'load' below for more information on loading and
+	 * locking.
+	 */
+
+	result = dns_rbt_addnode(rbtdb->tree, name, &node);
+	if (result != DNS_R_SUCCESS && result != DNS_R_EXISTS)
+		return (result);
+
+	/*
+	 * The following is basically addrdataset(), with no locking.
+	 */
+
+	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
+					    &region,
+					    sizeof (rdatasetheader_t));
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	result = addrdataset((dns_db_t *)rbtdb, node, NULL, rdataset,
-			     dns_addmode_merge);
-	detachnode((dns_db_t *)rbtdb, &node);
-	return (result);
+	newheader = (rdatasetheader_t *)region.base;
+	newheader->ttl = rdataset->ttl;
+	newheader->type = rdataset->type;
+	newheader->version = 0;			/* XXX version */
+	newheader->prev = NULL;
+
+	header = node->data;
+	newheader->next = header;
+	if (header != NULL)
+		header->prev = newheader;
+	node->data = newheader;
+
+	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
@@ -431,10 +453,36 @@ load(dns_db_t *db, char *filename) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	return (dns_load_master(filename, &rbtdb->common.base,
+	/*
+	 * XXX
+	 *
+	 * For now, there is no locking, since database
+	 * loading is assumed to occur before parallel
+	 * access.  Clearly the database should be empty
+	 * before trying to load it.  Probably need some
+	 * kind of "loaded" flag so we can
+	 *
+	 *	REQUIRE(!rbtdb->loaded);
+	 */
+
+	return (dns_master_load(filename, &rbtdb->common.base,
 				&rbtdb->common.base, rbtdb->common.class,
 				&soacount, &nscount, add_rdataset_callback,
 				rbtdb, rbtdb->common.mctx));
+}
+
+static void
+delete_callback(void *data, void *arg) {
+	dns_rbtdb_t *rbtdb = arg;
+	unsigned int size;
+	rdatasetheader_t *current, *next;
+
+	for (current = data; current != NULL; current = next) {
+		next = current->next;
+		size = dns_rdataslab_size((unsigned char *)current,
+					  sizeof (rdatasetheader_t));
+		isc_mem_put(rbtdb->common.mctx, current, size);
+	}
 }
 
 static dns_dbmethods_t methods = {
@@ -539,10 +587,8 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 
 	/*
 	 * Make the Red-Black Tree.
-	 * XXX NULL should (possibly) be replaced with the method that frees
-	 * the data pointer for a node that is deleted.
 	 */
-	dresult = dns_rbt_create(mctx, NULL, &rbtdb->tree);
+	dresult = dns_rbt_create(mctx, delete_callback, rbtdb, &rbtdb->tree);
 	if (dresult != DNS_R_SUCCESS) {
 		free_rbtdb(rbtdb);
 		return (dresult);
