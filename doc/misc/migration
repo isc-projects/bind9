@@ -56,6 +56,10 @@ immediately after the "logging" statement was read.
 In BIND 9, ACL names are case sensitive.  In BIND 8 they were case
 insensitive.
 
+1.5. Notify messages and Refesh queries
+
+The source address and port for these is now controlled by
+transfer-source rather that query-source.
 
 2. Zone File Compatibility
 
@@ -155,4 +159,4 @@ see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
 details.  Many of the ndc commands are still unimplemented in rndc.
 
 
-$Id: migration,v 1.14 2000/09/18 23:41:20 gson Exp $
+$Id: migration,v 1.15 2000/10/31 05:34:15 marka Exp $

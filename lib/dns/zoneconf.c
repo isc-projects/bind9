@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.63 2000/10/17 07:22:35 marka Exp $ */
+/* $Id: zoneconf.c,v 1.64 2000/10/31 05:34:18 marka Exp $ */
 
 #include <config.h>
 
@@ -360,6 +360,24 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setsigvalidityinterval(zone, uintval);
 	}
 
+	result = dns_c_zone_gettransfersource(czone, &sockaddr);
+	if (result != ISC_R_SUCCESS && cview != NULL)
+		result = dns_c_view_gettransfersource(cview, &sockaddr);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
+	if (result != ISC_R_SUCCESS)
+		sockaddr = sockaddr_any4;
+	dns_zone_setxfrsource4(zone, &sockaddr);
+
+	result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
+	if (result != ISC_R_SUCCESS && cview != NULL)
+		result = dns_c_view_gettransfersourcev6(cview, &sockaddr);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_gettransfersourcev6(cctx, &sockaddr);
+	if (result != ISC_R_SUCCESS)
+		sockaddr = sockaddr_any6;
+	dns_zone_setxfrsource6(zone, &sockaddr);
+
 	/*
 	 * Configure slave functionality.
 	 */
@@ -397,27 +415,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			uintval = DNS_DEFAULT_IDLEIN;
 		dns_zone_setidlein(zone, uintval);
-
-		result = dns_c_zone_gettransfersource(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_gettransfersource(cview,
-							      &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			sockaddr = sockaddr_any4;
-		dns_zone_setxfrsource4(zone, &sockaddr);
-
-		result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_gettransfersourcev6(cview,
-								&sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_gettransfersourcev6(cctx,
-							       &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			sockaddr = sockaddr_any6;
-		dns_zone_setxfrsource6(zone, &sockaddr);
 
 		result = dns_c_zone_getmaxrefreshtime(czone, &uintval);
 		if (result != ISC_R_SUCCESS && cview != NULL)

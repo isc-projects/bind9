@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.243 2000/10/31 03:22:04 marka Exp $ */
+/* $Id: zone.c,v 1.244 2000/10/31 05:34:17 marka Exp $ */
 
 #include <config.h>
 
@@ -2241,6 +2241,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	isc_netaddr_t dstip;
 	dns_tsigkey_t *key = NULL;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddr_t src;
 
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
@@ -2272,11 +2273,27 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
 	notify_log(notify->zone, ISC_LOG_INFO, "sending NOTIFY to %s",
 		   addrbuf);
-	result = dns_request_create(notify->zone->view->requestmgr, message,
-				    &notify->dst, 0, key, 15,
-				    notify->zone->task,
-				    notify_done, notify,
-				    &notify->request);
+	switch (isc_sockaddr_pf(&notify->dst)) {
+	case PF_INET:
+		src = notify->zone->xfrsource4;
+		break;
+	case PF_INET6:
+		src = notify->zone->xfrsource6;
+		break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+	}
+	{	
+		char buf[256];
+		isc_sockaddr_format(&src, buf, sizeof(buf));
+		fprintf(stderr, "notify via %s\n", buf);
+	}
+	result = dns_request_createvia(notify->zone->view->requestmgr, message,
+				       &src, &notify->dst, 0, key, 15,
+				       notify->zone->task,
+				       notify_done, notify,
+				       &notify->request);
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
 	dns_message_destroy(&message);

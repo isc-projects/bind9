@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.20 2000/10/31 01:17:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.21 2000/10/31 05:34:14 marka Exp $ -->
 
 <book>
 
@@ -2968,9 +2968,8 @@ of the <command>server</command> statement.</para></entry>
 <entry colname = "2"><para><command>transfer-source</command> determines
 which local address will be bound to IPv4 TCP connections used to
 fetch zones transferred inbound by the server.  It also determines
-the IPv4 address, and optionaly the UDP port, used for the refresh queries.
-It also determines the IPv4 address used when updates are forwarded.
-If not set, it defaults
+the IPv4 address, and optionaly the UDP port, used for the refresh queries,
+notify messages and when updates are forwarded.  If not set, it defaults
 to a system controlled value which will usually be the address of
 the interface "closest to" the remote end. This address must appear
 in the remote end's <command>allow-transfer</command> option for
@@ -3749,8 +3748,8 @@ on loading and ignores the option.</para></entry>
 <entry colname = "1"><para><command>transfer-source</command></para></entry>
 <entry colname = "2"><para>Determines which local address will be bound
 to the IPv4 TCP connection used to fetch this zone.  It also determines
-the IPv4 address, and optionaly the UDP port, used for the refresh queries.
-It also determines the IPv4 address used when updates are forwarded. If not set,
+the IPv4 address, and optionaly the UDP port, used for the refresh queries,
+notify messages and when updates are forwarded.  If not set,
 it defaults to a system controlled value which will usually be the
 address of the interface "closest to" the remote end. If the remote
 end user is an <command>allow-transfer</command> option for this
