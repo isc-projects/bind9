@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.36 $)
+AC_REVISION($Revision: 1.37 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1491,7 +1491,7 @@ int endhostent_r(struct hostent_data *buffer);
 ], ,
 HOST_R_END_RESULT="#define HOST_R_END_RESULT(x) return (x)"
 HOST_R_END_RETURN="#define HOST_R_END_RETURN int"
-HOST_R_ENT_ARGS="#undef HOST_R_ENT_ARGS struct hostent_data *hdptr"
+HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 ,
 )
 ,
