@@ -803,6 +803,15 @@ load_configuration(const char *filename, ns_server_t *server,
 				     &server->recursionquota, 100);
 
 	/*
+	 * Configure the zone manager.
+	 */
+	{
+ 		isc_int32_t transfersperns = 2;
+		(void) dns_c_ctx_gettransfersperns(configctx, &transfersperns);
+		dns_zonemgr_settransfersperns(server->zonemgr, transfersperns);
+	}
+
+	/*
 	 * Configure the interface manager according to the "listen-on"
 	 * statement.
 	 */

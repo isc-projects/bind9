@@ -821,6 +821,8 @@ dns_zone_getmctx(dns_zone_t *zone);
  * Get the memory context of a zone.
  */
 
+dns_zonemgr_t *dns_zone_getmgr(dns_zone_t *zone);
+
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
@@ -883,6 +885,15 @@ dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, int value);
 
 int
 dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr);
+
+void
+dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, int value);
+
+int
+dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
+
+dns_xfrinlist_t	*
+dns_zonemgr_gettransferlist(dns_zonemgr_t *zmgr);
 
 ISC_LANG_ENDDECLS
 

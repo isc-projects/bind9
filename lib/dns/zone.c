@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.82 2000/02/24 21:40:51 gson Exp $ */
+ /* $Id: zone.c,v 1.83 2000/02/25 00:50:38 gson Exp $ */
 
 #include <config.h>
 
@@ -201,6 +201,8 @@ struct dns_zonemgr {
 	ISC_LIST(dns_zone_t)	zones;
 	/* Maximum locked by conflock. */
 	isc_quota_t		transfersin;
+	int			transfersperns;
+	dns_xfrinlist_t		transferlist;
 };
 
 static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
@@ -1339,7 +1341,12 @@ dns_zone_print(dns_zone_t *zone) {
 
 isc_mem_t *
 dns_zone_getmctx(dns_zone_t *zone) {
-	return zone->mctx;
+	return (zone->mctx);
+}
+
+dns_zonemgr_t *
+dns_zone_getmgr(dns_zone_t *zone) {
+	return (zone->zmgr);
 }
 
 static isc_result_t
@@ -3148,12 +3155,21 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		result = DNS_R_UNEXPECTED;
 		goto free_conflock;
 	}
+	zmgr->transfersperns = 2;
+	result = dns_xfrinlist_init(&zmgr->transferlist);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "dns_transferlist_init() failed: %s",
+				 isc_result_totext(result));
+		result = DNS_R_UNEXPECTED;
+		goto free_transfersin;
+	}
 
 	/* Create the zone task pool. */
 	result = isc_taskpool_create(taskmgr, mctx, 
 				     8 /* XXX */, 0, &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
-		goto free_transfersin;
+		goto free_transferlist;
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, mctx, 1, &zmgr->task);
@@ -3164,6 +3180,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	*zmgrp = zmgr;
 	return (ISC_R_SUCCESS);
 
+ free_transferlist:
+	dns_xfrinlist_destroy(&zmgr->transferlist);
  free_taskpool:
 	isc_taskpool_destroy(&zmgr->zonetasks);	
  free_transfersin:
@@ -3303,6 +3321,21 @@ dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr) {
 	return (zmgr->transfersin.max);
 }
 
+void
+dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, int value) {
+	zmgr->transfersperns = value;
+}
+
+int
+dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr) {
+	return (zmgr->transfersperns);
+}
+
+
+dns_xfrinlist_t	*
+dns_zonemgr_gettransferlist(dns_zonemgr_t *zmgr) {
+	return (&zmgr->transferlist);
+}
 
 #if 0
 /* hook for ondestroy notifcation from a database. */

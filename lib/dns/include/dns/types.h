@@ -101,6 +101,7 @@ typedef struct dns_keytable			dns_keytable_t;
 typedef struct dns_keynode			dns_keynode_t;
 typedef struct dns_peer				dns_peer_t;
 typedef struct dns_peerlist			dns_peerlist_t;
+typedef struct dns_xfrinlist			dns_xfrinlist_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,

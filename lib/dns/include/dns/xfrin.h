@@ -31,14 +31,23 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/mutex.h>
+
 #include <dns/types.h>
 
 /***
  *** Types
  ***/
 
+/* A transfer in progress.  This is an opaque type. */
 typedef struct dns_xfrin_ctx dns_xfrin_ctx_t;
 
+/* A list of transfers in progress. */
+struct dns_xfrinlist {
+	isc_mutex_t lock;
+	ISC_LIST(dns_xfrin_ctx_t) transfers;
+};
+		 
 /***
  *** Functions
  ***/
@@ -74,6 +83,10 @@ void dns_xfrin_detach(dns_xfrin_ctx_t **xfrp);
  * (Because there is no attach() method, there can currently 
  * only be one reference).
  */
+
+isc_result_t dns_xfrinlist_init(dns_xfrinlist_t *list);
+
+void dns_xfrinlist_destroy(dns_xfrinlist_t *list);
 
 ISC_LANG_ENDDECLS
 

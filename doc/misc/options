@@ -71,7 +71,7 @@ options {
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
   [ transfers-in  number; ]				    No
   [ transfers-out number; ]				    Yes
-  [ transfers-per-ns number; ]				    No
+  [ transfers-per-ns number; ]				    Yes
   [ transfer-source ip_addr; ]				    Yes
   [ transfer-source-v6 ip_addr; ]			    Yes*
   [ maintain-ixfr-base yes_or_no; ]			    Obsolete+
@@ -104,7 +104,7 @@ controls                                                    No
 server ip_addr {
   [ bogus yes_or_no; ]					    No
   [ support-ixfr yes_or_no; ]				    Yes
-  [ transfers number; ]					    No
+  [ transfers number; ]					    Yes
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
   [ keys { key_id [key_id ... ] }; ]                        No
 };
