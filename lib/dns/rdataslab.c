@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.2 1999/02/06 00:07:08 halley Exp $ */
+/* $Id: rdataslab.c,v 1.3 1999/04/01 04:00:39 halley Exp $ */
 
 #include <config.h>
 
@@ -122,4 +122,147 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 	}
 	
 	return ((unsigned int)(current - slab));
+}
+
+dns_result_t
+dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
+		    unsigned int reservelen, isc_mem_t *mctx,
+		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
+		    unsigned char **tslabp)
+{
+	unsigned char *ocurrent, *ostart, *ncurrent, *tstart, *tcurrent;
+	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
+	isc_region_t oregion, nregion;
+	dns_rdata_t ordata, nrdata;
+
+	/*
+	 * Merge 'oslab' and 'nslab'.
+	 */
+
+	/*
+	 * XXX  Need parameter to allow "delete rdatasets in nslab" merge,
+	 * or perhaps another merge routine for this purpose.
+	 */
+	   
+	REQUIRE(tslabp != NULL && *tslabp == NULL);
+	REQUIRE(oslab != NULL && nslab != NULL);
+
+	ocurrent = oslab + reservelen;
+	ocount = *ocurrent++ * 256;
+	ocount += *ocurrent++;
+	ostart = ocurrent;
+	ncurrent = nslab + reservelen;
+	ncount = *ncurrent++ * 256;
+	ncount += *ncurrent++;
+	INSIST(ocount > 0 && ncount > 0);
+
+	/*
+	 * Yes, this is inefficient!
+	 */
+
+	/*
+	 * Figure out the length of the old slab's data.
+	 */
+	olength = 0;
+	for (count = 0; count < ocount; count++) {
+		length = *ocurrent++ * 256;
+		length += *ocurrent++;
+		olength += length + 2;
+		ocurrent += length;
+	}
+
+	/*
+	 * Start figuring out the target length and count.
+	 */
+	tlength = reservelen + 2 + olength;
+	tcount = ocount;
+
+	/*
+	 * Add in the length of rdata in the new slab that aren't in
+	 * the old slab.
+	 */
+	do {
+		nregion.length = *ncurrent++ * 256;
+		nregion.length += *ncurrent++;
+		nregion.base = ncurrent;
+		dns_rdata_fromregion(&nrdata, rdclass, type, &nregion);
+		ocurrent = ostart;
+		for (count = 0; count < ocount; count++) {
+			oregion.length = *ocurrent++ * 256;
+			oregion.length += *ocurrent++;
+			oregion.base = ocurrent;
+			dns_rdata_fromregion(&ordata, rdclass, type, &oregion);
+			ocurrent += oregion.length;
+			if (dns_rdata_compare(&ordata, &nrdata) == 0)
+				break;
+		}
+		if (count == ocount) {
+			/*
+			 * This rdata isn't in the old slab.
+			 */
+			tlength += nregion.length + 2;
+			tcount++;
+		}
+		ncurrent += nregion.length;
+		ncount--;
+	} while (ncount > 0);
+
+	/*
+	 * Copy the reserved area from the new slab.
+	 */
+	tstart = isc_mem_get(mctx, tlength);
+	if (tstart == NULL)
+		return (DNS_R_NOMEMORY);
+	memcpy(tstart, nslab, reservelen);
+	tcurrent = tstart + reservelen;
+	
+	/*
+	 * Write the new count.
+	 */
+	*tcurrent++ = (tcount & 0xff00) >> 8;
+	*tcurrent++ = (tcount & 0x00ff);
+
+	/*
+	 * Copy the old slab.
+	 */
+	memcpy(tcurrent, ostart, olength);
+	tcurrent += olength;
+
+	/*
+	 * Copy the new parts of the new slab.
+	 */
+	ncurrent = nslab + reservelen;
+	ncount = *ncurrent++ * 256;
+	ncount += *ncurrent++;
+	do {
+		nregion.length = *ncurrent++ * 256;
+		nregion.length += *ncurrent++;
+		nregion.base = ncurrent;
+		dns_rdata_fromregion(&nrdata, rdclass, type, &nregion);
+		ocurrent = ostart;
+		for (count = 0; count < ocount; count++) {
+			oregion.length = *ocurrent++ * 256;
+			oregion.length += *ocurrent++;
+			oregion.base = ocurrent;
+			dns_rdata_fromregion(&ordata, rdclass, type, &oregion);
+			ocurrent += oregion.length;
+			if (dns_rdata_compare(&ordata, &nrdata) == 0)
+				break;
+		}
+		if (count == ocount) {
+			/*
+			 * This rdata isn't in the old slab.
+			 */
+			*tcurrent++ = (nregion.length & 0xff00) >> 8;
+			*tcurrent++ = (nregion.length & 0x00ff);
+			memcpy(tcurrent, nregion.base, nregion.length);
+			tcurrent += nregion.length;
+		}
+		ncurrent += nregion.length;
+		ncount--;
+	} while (ncount > 0);
+
+	*tslabp = tstart;
+
+	return (DNS_R_SUCCESS);
 }

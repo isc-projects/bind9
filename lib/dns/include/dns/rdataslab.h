@@ -91,6 +91,17 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
  *	The number of bytes in the slab, including the reservelen.
  */
 
+dns_result_t
+dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
+		    unsigned int reservelen, isc_mem_t *mctx,
+		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
+		    unsigned char **tslabp);
+/*
+ * Merge 'oslab' and 'nslab'.
+ *
+ * XXX
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATADLAB_H */
