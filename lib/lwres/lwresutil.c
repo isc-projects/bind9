@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.20 2000/06/27 18:03:52 bwelling Exp $ */
+/* $Id: lwresutil.c,v 1.21 2000/06/27 18:51:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -212,7 +212,6 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		}
 
 		target_length = strlen(name)
-			+ 1
 			+ strlen(ctx->confdata.search[current_suffix])
 			+ 1;
 		if (target_length >= sizeof(target_name)) {
