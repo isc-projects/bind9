@@ -13,7 +13,7 @@
 ; ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 ; SOFTWARE.
 
-; $Id: example1.db,v 1.4 2000/06/22 21:52:10 tale Exp $
+; $Id: example1.db,v 1.5 2000/06/28 21:56:13 bwelling Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -27,7 +27,6 @@ $TTL 300	; 5 minutes
 ns			A	10.53.0.1
 
 a			A	10.0.1.1
-			A	10.0.1.2
 a2			CNAME	a
 a3			CNAME	nowhere
 b			A6	64 ::ffff:ffff:ffff:ffff c
