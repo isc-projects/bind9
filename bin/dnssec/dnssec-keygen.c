@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.66 2004/03/10 02:19:51 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.66.18.1 2004/06/11 01:17:44 marka Exp $ */
 
 #include <config.h>
 
@@ -68,7 +68,7 @@ usage(void) {
 	fprintf(stderr, "        DH:\t\t[128..4096]\n");
 	fprintf(stderr, "        DSA:\t\t[512..1024] and divisible by 64\n");
 	fprintf(stderr, "        HMAC-MD5:\t[1..512]\n");
-	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER\n");
+	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER | OTHER\n");
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -c <class> (default: IN)\n");
@@ -101,7 +101,7 @@ main(int argc, char **argv) {
 	dst_key_t	*key = NULL, *oldkey;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
-	isc_uint16_t	flags = 0;
+	isc_uint16_t	flags = 0, ksk = 0;
 	dns_secalg_t	alg;
 	isc_boolean_t	conflict = ISC_FALSE, null_key = ISC_FALSE;
 	isc_mem_t	*mctx = NULL;
@@ -143,7 +143,7 @@ main(int argc, char **argv) {
 			break;
 		case 'f':
 			if (strcasecmp(isc_commandline_argument, "KSK") == 0)
-				flags |= DNS_KEYFLAG_KSK;
+				ksk = DNS_KEYFLAG_KSK;
 			else
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
@@ -211,17 +211,20 @@ main(int argc, char **argv) {
 
 	if (algname == NULL)
 		fatal("no algorithm was specified");
-	if (strcasecmp(algname, "HMAC-MD5") == 0)
+	if (strcasecmp(algname, "HMAC-MD5") == 0) {
+		options |= DST_TYPE_KEY;
 		alg = DST_ALG_HMACMD5;
-	else {
+	} else {
 		r.base = algname;
 		r.length = strlen(algname);
 		ret = dns_secalg_fromtext(&alg, &r);
 		if (ret != ISC_R_SUCCESS)
 			fatal("unknown algorithm %s", algname);
+		if (alg == DST_ALG_DH)
+			options |= DST_TYPE_KEY;
 	}
 
-	if (type != NULL) {
+	if (type != NULL && (options & DST_TYPE_KEY) != 0) {
 		if (strcasecmp(type, "NOAUTH") == 0)
 			flags |= DNS_KEYTYPE_NOAUTH;
 		else if (strcasecmp(type, "NOCONF") == 0)
@@ -271,20 +274,29 @@ main(int argc, char **argv) {
 		fatal("no nametype specified");
 	if (strcasecmp(nametype, "zone") == 0)
 		flags |= DNS_KEYOWNER_ZONE;
-	else if (strcasecmp(nametype, "host") == 0 ||
-		 strcasecmp(nametype, "entity") == 0)
-		flags |= DNS_KEYOWNER_ENTITY;
-	else if (strcasecmp(nametype, "user") == 0)
-		flags |= DNS_KEYOWNER_USER;
-	else
-		fatal("invalid nametype %s", nametype);
+	else if ((options & DST_TYPE_KEY) != 0)	{ /* KEY */
+		if (strcasecmp(nametype, "host") == 0 ||
+			 strcasecmp(nametype, "entity") == 0)
+			flags |= DNS_KEYOWNER_ENTITY;
+		else if (strcasecmp(nametype, "user") == 0)
+			flags |= DNS_KEYOWNER_USER;
+		else
+			fatal("invalid KEY nametype %s", nametype);
+	} else if (strcasecmp(nametype, "other") != 0) /* DNSKEY */
+		fatal("invalid DNSKEY nametype %s", nametype);
 
 	rdclass = strtoclass(classname);
 
-	flags |= signatory;
+	if ((options & DST_TYPE_KEY) != 0)  /* KEY */
+		flags |= signatory;
+	else if ((flags & DNS_KEYOWNER_ZONE) != 0) /* DNSKEY */
+		flags |= ksk;
 
 	if (protocol == -1)
 		protocol = DNS_KEYPROTO_DNSSEC;
+	else if ((options & DST_TYPE_KEY) == 0 &&
+		 protocol != DNS_KEYPROTO_DNSSEC)
+		fatal("invalid DNSKEY protocol: %d", protocol);
 
 	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
 		if (size > 0)

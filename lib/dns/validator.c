@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.3 2004/05/14 05:07:11 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.4 2004/06/11 01:17:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1593,7 +1593,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 		}
 		if (result != ISC_R_SUCCESS) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "no KEY matching DLV");
+				      "no DNSKEY matching DLV");
 			continue;
 		}
 		
@@ -1628,7 +1628,8 @@ dlv_validatezonekey(dns_validator_t *val) {
 		dns_rdataset_disassociate(&trdataset);
 		if (result == ISC_R_SUCCESS)
 			break;
-		validator_log(val, ISC_LOG_DEBUG(3), "no SIG matching DLV key");
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "no RRSIG matching DLV key");
 	}
 	if (result == ISC_R_SUCCESS) {
 		val->event->rdataset->trust = dns_trust_secure;
@@ -1877,7 +1878,7 @@ validatezonekey(dns_validator_t *val) {
 		}
 		if (result != ISC_R_SUCCESS) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "no KEY matching DS");
+				      "no DNSKEY matching DS");
 			continue;
 		}
 		
@@ -1912,7 +1913,8 @@ validatezonekey(dns_validator_t *val) {
 		dns_rdataset_disassociate(&trdataset);
 		if (result == ISC_R_SUCCESS)
 			break;
-		validator_log(val, ISC_LOG_DEBUG(3), "no SIG matching DS key");
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "no RRSIG matching DS key");
 	}
 	if (result == ISC_R_SUCCESS) {
 		event->rdataset->trust = dns_trust_secure;
@@ -2092,8 +2094,8 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			 * would lead to a query for the zone key, which
 			 * would return a negative answer, which would contain
 			 * an SOA and an NSEC signed by the missing key, which
-			 * would trigger another query for the KEY (since the
-			 * first one is still in progress), and go into an
+			 * would trigger another query for the DNSKEY (since
+			 * the first one is still in progress), and go into an
 			 * infinite loop.  Avoid that.
 			 */
 			if (val->event->type == dns_rdatatype_dnskey &&
