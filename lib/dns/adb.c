@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.151 2000/09/26 22:28:55 explorer Exp $ */
+/* $Id: adb.c,v 1.152 2000/09/29 23:53:05 gson Exp $ */
 
 /*
  * Implementation notes
@@ -2537,7 +2537,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 	/*
 	 * Try to populate the name from the database and/or
-	 * start fetches.
+	 * start fetches.  First try looking for an A record
+	 * in the database.
 	 */
 	if (!NAME_HAS_V4(adbname) && !NAME_FETCH_V4(adbname)
 	    && EXPIRE_OK(adbname->expire_v4, now)
@@ -2568,7 +2569,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * If the name does exist but we didn't get our data, go
 		 * ahead and try a6.
 		 *
-		 * If the result is neigher of these, try a fetch for A.
+		 * If the result is neither of these, try a fetch for A.
 		 */
 		if (NXDOMAIN_RESULT(result))
 			goto fetch;
