@@ -48,6 +48,25 @@ void
 isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
 		     unsigned int port);
 
+void
+isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+		      unsigned int port);
+
+int
+isc_sockaddr_pf(isc_sockaddr_t *sockaddr);
+/*
+ * Get the protocol family of 'sockaddr'.
+ *
+ * Requires:
+ *
+ *	'sockaddr' is a valid sockaddr with an address family of AF_INET
+ *	or AF_INET6.
+ *
+ * Returns:
+ *
+ *	The protocol family of 'sockaddr', e.g. PF_INET or PF_INET6.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKADDR_H */
