@@ -45,7 +45,7 @@ struct task_event {
 	task_eventtype_t		type;
 	task_action_t			action;
 	void *				arg;
-	LINK(struct task_event)	link;
+	LINK(struct task_event)		link;
 };
 
 #define TASK_EVENT_NOP			0
