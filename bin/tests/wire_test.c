@@ -369,10 +369,6 @@ main(int argc, char *argv[]) {
 
 	isc_mem_stats(mctx, stdout);
 
-	for (i = 0 ; i < source.used ; i++)
-		printf("%02x%c ", b[i], (isprint(b[i]) ? b[i] : ' '));
-	printf("\n");
-
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
 	CHECKRESULT(result, "dns_message_create failed");
 

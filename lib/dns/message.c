@@ -50,10 +50,10 @@
  * of various block allocations used within the server.
  */
 #define SCRATCHPAD_SIZE		512
-#define NAME_COUNT		 16
-#define RDATA_COUNT		 32
-#define RDATALIST_COUNT		 32 /* should match RDATASET_COUNT */
-#define RDATASET_COUNT		 32
+#define NAME_COUNT		  8
+#define RDATA_COUNT		  8
+#define RDATALIST_COUNT		  8
+#define RDATASET_COUNT		 RDATALIST_COUNT
 
 /*
  * "helper" type, which consists of a block of some type, and is linkable.
@@ -188,7 +188,6 @@ newname(dns_message_t *msg)
 	if (msg->nextname != NULL) {
 		name = msg->nextname;
 		msg->nextname = NULL;
-		dns_name_init(name, NULL);
 		return (name);
 	}
 
@@ -205,7 +204,6 @@ newname(dns_message_t *msg)
 		name = msgblock_get(msgblock, dns_name_t);
 	}
 
-	dns_name_init(name, NULL);
 	return (name);
 }
 
@@ -610,8 +608,6 @@ findtype(dns_rdataset_t **rdataset, dns_name_t *name, dns_rdatatype_t type)
 
 /*
  * Read a name from buffer "source".
- *
- * Assumes dns_name_init() was already called on this name.
  */
 static dns_result_t
 getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
@@ -630,6 +626,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 
 	tries = 0;
 	while (tries < 2) {
+		dns_name_init(name, NULL);
 		result = dns_name_fromwire(name, source, dctx, ISC_FALSE,
 					   scratch);
 
@@ -957,7 +954,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
 	msg->opcode = ((tmpflags & DNS_MESSAGE_OPCODE_MASK)
 		       >> DNS_MESSAGE_OPCODE_SHIFT);
 	msg->rcode = (tmpflags & DNS_MESSAGE_RCODE_MASK);
-	msg->flags = (tmpflags & ~DNS_MESSAGE_FLAG_MASK);
+	msg->flags = (tmpflags & DNS_MESSAGE_FLAG_MASK);
 	msg->counts[DNS_SECTION_QUESTION] = isc_buffer_getuint16(source);
 	msg->counts[DNS_SECTION_ANSWER] = isc_buffer_getuint16(source);
 	msg->counts[DNS_SECTION_AUTHORITY] = isc_buffer_getuint16(source);
