@@ -1,3 +1,7 @@
+1055.	[func]		Version and hostname queries can now be disabled
+			using "version none;" and "hostname none;",
+			respectively.
+
 1054.	[bug]		On Win32, cfg_categories and cfg_modules need to be
 			exported from the libisccfg DLL.
 

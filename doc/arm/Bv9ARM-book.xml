@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.167 2001/10/16 20:04:40 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.168 2001/10/16 22:18:59 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2736,8 +2736,8 @@ exact match lookup before search path elements are appended.</para>
 statement in the <filename>named.conf</filename> file:</para>
 
 <programlisting>options {
-    <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> version <replaceable>version_string</replaceable>; </optional>
+    <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
@@ -2837,23 +2837,24 @@ be used.</para>
 
 <variablelist>
 
-<varlistentry><term><command>hostname</command></term>
-<listitem><para>This defaults to the hostname of the machine hosting
-the nameserver as found by gethostname().
-Its prime purpose is to be able to identify which of a 
-number of anycast servers is actually answering your queries by sending a
-<command>TXT</command> query for <filename>hostname.bind</filename> in
-class <command>CHAOS</command> to the anycast server and getting back a
-unique name.
-Setting the hostname to a empty string (<userinput>""</userinput>) will
-disable processing of the queries.</para>
-</listitem></varlistentry>
-
 <varlistentry><term><command>version</command></term>
 <listitem><para>The version the server should report
-via a query of name <filename>version.bind</filename> in
-class <command>CHAOS</command>.
-The default is the real version number of this server.</para>
+via a query of the name <filename>version.bind</filename>
+with type <command>TXT</command>, class <command>CHAOS</command>.
+The default is the real version number of this server.
+Specifying <command>version none;</command>
+disables processing of the queries.</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>hostname</command></term>
+<listitem><para>The hostname the server should report via a query of
+the name <filename>hostname.bind</filename>
+with type <command>TXT</command>, class <command>CHAOS</command>.
+This defaults to the hostname of the machine hosting the nameserver as
+found by gethostname().  The primary purpose of such queries is to
+identify which of a group of anycast servers is actually
+answering your queries.  Specifying <command>hostname none;</command>
+disables processing of the queries.</para> 
 </listitem></varlistentry>
 
 <varlistentry><term><command>directory</command></term>

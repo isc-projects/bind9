@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.350 2001/10/16 20:04:36 gson Exp $ */
+/* $Id: server.c,v 1.351 2001/10/16 22:18:58 gson Exp $ */
 
 #include <config.h>
 
@@ -917,6 +917,9 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 
 	result = ns_config_get(maps, "version", &obj);
 	INSIST(result == ISC_R_SUCCESS);
+	if (cfg_obj_isvoid(obj))
+		return (ISC_R_SUCCESS);
+	
 	versiontext = cfg_obj_asstring(obj);
 	len = strlen(versiontext);
 	if (len > 255)
@@ -995,10 +998,10 @@ create_hostname_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 
 	result = ns_config_get(maps, "hostname", &obj);
 	if (result == ISC_R_SUCCESS) {
+		if (cfg_obj_isvoid(obj))
+			return (ISC_R_SUCCESS);
 		hostnametext = cfg_obj_asstring(obj);
 		len = strlen(hostnametext);
-		if (len == 0)
-			return (ISC_R_SUCCESS);
 		if (len > 255)
 			len = 255; /* Silently truncate. */
 		buf[0] = len;

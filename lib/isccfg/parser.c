@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.80 2001/10/16 20:04:41 gson Exp $ */
+/* $Id: parser.c,v 1.81 2001/10/16 22:18:57 gson Exp $ */
 
 #include <config.h>
 
@@ -857,7 +857,7 @@ options_clauses[] = {
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
 	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
-	{ "hostname", &cfg_type_qstring, 0 },
+	{ "hostname", &cfg_type_qstringornone, 0 },
 	{ "interface-interval", &cfg_type_uint32, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
@@ -886,7 +886,7 @@ options_clauses[] = {
 	{ "treat-cr-as-space", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "use-id-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "use-ixfr", &cfg_type_boolean, 0 },
-	{ "version", &cfg_type_qstring, 0 },
+	{ "version", &cfg_type_qstringornone, 0 },
 	{ NULL, NULL, 0 }
 };
 
