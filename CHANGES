@@ -1,4 +1,4 @@
-1342,	[func]		Log remote address with TCP dispatch failures.
+1342.	[func]		Log remote address with TCP dispatch failures.
 
 1341.	[func]		Allow a rate limiter to be stalled.
 
