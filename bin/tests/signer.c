@@ -41,9 +41,11 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
+#include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
+#include <dns/secalg.h>
 #include <dns/nxt.h>
 #include <dns/time.h>
 #include <dns/zone.h>
@@ -71,6 +73,7 @@ struct signer_array_struct {
 ISC_LIST(signer_key_t) keylist;
 isc_stdtime_t start = 0, end = 0, now;
 int cycle = -1;
+int verbose;
 
 static isc_mem_t *mctx = NULL;
 
@@ -90,6 +93,58 @@ check_result(isc_result_t result, char *message) {
 }
 
 static void
+vbprintf(int level, const char *fmt, ...) {
+	va_list ap;
+	if (level > verbose)
+		return;
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+}
+
+/* Not thread-safe! */
+static char *
+nametostr(dns_name_t *name) {
+	isc_buffer_t b;
+	isc_region_t r;
+	static char data[1025];
+
+	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_TEXT);
+	dns_name_totext(name, ISC_FALSE, &b);
+	isc_buffer_used(&b, &r);
+	r.base[r.length] = 0;
+	return (char *) r.base;
+}
+
+/* Not thread-safe! */
+static char *
+typetostr(const dns_rdatatype_t type) {
+	isc_buffer_t b;
+	isc_region_t r;
+	static char data[10];
+
+	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_TEXT);
+	dns_rdatatype_totext(type, &b);
+	isc_buffer_used(&b, &r);
+	r.base[r.length] = 0;
+	return (char *) r.base;
+}
+
+/* Not thread-safe! */
+static char *
+algtostr(const dns_secalg_t alg) {
+	isc_buffer_t b;
+	isc_region_t r;
+	static char data[10];
+
+	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_TEXT);
+	dns_secalg_totext(alg, &b);
+	isc_buffer_used(&b, &r);
+	r.base[r.length] = 0;
+	return (char *) r.base;
+}
+
+static inline void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
 	unsigned int byte, shift, mask;
 
@@ -148,7 +203,7 @@ keythatsigned(dns_rdata_generic_sig_t *sig) {
 	dst_key_t *pubkey = NULL, *privkey = NULL;
 	signer_key_t *key;
 
-	isc_buffer_init(&b, keyname, sizeof(keyname), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, keyname, sizeof(keyname), ISC_BUFFERTYPE_TEXT);
 	result = dns_name_totext(&sig->signer, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
 
@@ -158,6 +213,7 @@ keythatsigned(dns_rdata_generic_sig_t *sig) {
 		    sig->algorithm == dst_key_alg(key->key) &&
 		    strcasecmp(keyname, dst_key_name(key->key)) == 0)
 			return key;
+		key = ISC_LIST_NEXT(key, link);
 	}
 
 	result = dst_key_fromfile(keyname, sig->keyid, sig->algorithm,
@@ -254,6 +310,8 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	}
 	check_result(result, "dns_db_findrdataset()");
 
+	vbprintf(1, "%s/%s:\n", nametostr(name), typetostr(set->type));
+
 	if (!nosigs) {
 		result = dns_rdataset_first(&oldsigset);
 		while (result == ISC_R_SUCCESS) {
@@ -270,12 +328,31 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 			key = keythatsigned(&sig);
 
-			if (sig.timesigned > sig.timeexpire)
-				; /* sig is dropped and not replaced */
+			if (sig.timesigned > sig.timeexpire) {
+				/* sig is dropped and not replaced */
+				vbprintf(2, "\tsig by %s/%s/%d dropped - "
+					 "invalid validity period\n",
+					 nametostr(&sig.signer),
+					 algtostr(sig.algorithm),
+					 sig.keyid);
+			}
 			else if (key == NULL && !future &&
 				 expecttofindkey(&sig.signer, db, version))
-				; /* sig is dropped and not replaced */
+			{
+				/* sig is dropped and not replaced */
+				vbprintf(2, "\tsig by %s/%s/%d dropped - "
+					 "private key not found\n",
+					 nametostr(&sig.signer),
+					 algtostr(sig.algorithm),
+					 sig.keyid);
+			}
 			else if (key == NULL || future) {
+				vbprintf(2, "\tsig by %s/%s/%d %s - "
+					 "key not found\n",
+					 expired ? "retained" : "dropped",
+					 nametostr(&sig.signer),
+					 algtostr(sig.algorithm),
+					 sig.keyid);
 				if (!expired)
 					keep = ISC_TRUE;
 			}
@@ -283,10 +360,23 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				if (!expired &&
 				    setverifies(name, set, key, &oldsigrdata))
 				{
+					vbprintf(2,
+						 "\tsig by %s/%s/%d retained\n",
+						 nametostr(&sig.signer),
+						 algtostr(sig.algorithm),
+						 sig.keyid);
 					keep = ISC_TRUE;
 					wassignedby[sig.algorithm] = ISC_TRUE;
 				}
 				else {
+					vbprintf(2,
+						 "\tsig by %s/%s/%d dropped - ",
+						 "%s\n",
+						 expired ? "expired" :
+							   "failed to verify",
+						 nametostr(&sig.signer),
+						 algtostr(sig.algorithm),
+						 sig.keyid);
 					wassignedby[sig.algorithm] = ISC_TRUE;
 					resign = ISC_TRUE;
 				}
@@ -295,19 +385,42 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				if (!expired &&
 				    setverifies(name, set, key, &oldsigrdata))
 				{
+					vbprintf(2,
+						 "\tsig by %s/%s/%d retained\n",
+						 nametostr(&sig.signer),
+						 algtostr(sig.algorithm),
+						 sig.keyid);
 					keep = ISC_TRUE;
 					wassignedby[sig.algorithm] = ISC_TRUE;
 					nowsignedby[sig.algorithm] = ISC_TRUE;
 				}
 				else {
+					vbprintf(2,
+						 "\tsig by %s/%s/%d dropped - ",
+						 "%s\n",
+						 expired ? "expired" :
+							   "failed to verify",
+						 nametostr(&sig.signer),
+						 algtostr(sig.algorithm),
+						 sig.keyid);
 					wassignedby[sig.algorithm] = ISC_TRUE;
 					if (dst_key_isprivate(key->key))
 						resign = ISC_TRUE;
 				}
 			}
-			else if (!expired)
+			else if (!expired) {
+				vbprintf(2, "sig by %s/%s/%d retained\n",
+					 nametostr(&sig.signer),
+					 algtostr(sig.algorithm),
+					 sig.keyid);
 				keep = ISC_TRUE;
-			/* else sig has expired and we cannot regenerate it */
+			}
+			else {
+				vbprintf(2, "sig by %s/%s/%d expired\n",
+					 nametostr(&sig.signer),
+					 algtostr(sig.algorithm),
+					 sig.keyid);
+			}
 
 			if (keep) {
 				allocbufferandrdata;
@@ -348,6 +461,10 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		{
 			allocbufferandrdata;
 			signwithkey(name, set, trdata, key->key, &b);
+			vbprintf(1, "\tsigning with key %s/%s/%d\n",
+			       dst_key_name(key->key),
+			       algtostr(dst_key_alg(key->key)),
+			       dst_key_id(key->key));
 			ISC_LIST_APPEND(siglist.rdata, trdata, link);
 		}
 		key = ISC_LIST_NEXT(key, link);
@@ -790,7 +907,6 @@ main(int argc, char *argv[]) {
 	char *startstr = NULL, *endstr = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *endp;
-	int verbose = 0;
 	dns_zone_t *zone;
 	dns_db_t *db;
 	dns_dbversion_t *version;
