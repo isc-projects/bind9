@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.149 $)
+AC_REVISION($Revision: 1.150 $)
 
 AC_PREREQ(2.13)
 
@@ -1027,6 +1027,7 @@ AC_OUTPUT(
 	bin/tests/timers/Makefile
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
+	bin/tests/net/Makefile
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh

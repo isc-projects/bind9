@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: netaddr_multicast.c,v 1.1 2000/06/16 22:17:11 explorer Exp $ */
+/* $Id: netaddr_multicast.c,v 1.2 2000/06/16 22:21:13 explorer Exp $ */
 
 #include <isc/string.h>
 #include <isc/types.h>
@@ -44,9 +44,9 @@ static addr_t addrs[] = {
 };
 #define NADDRS (sizeof(addrs) / sizeof(addr_t))
 
-isc_result_t to_netaddr(addr_t *, isc_netaddr_t *);
+static isc_result_t to_netaddr(addr_t *, isc_netaddr_t *);
 
-isc_result_t
+static isc_result_t
 to_netaddr(addr_t *addr, isc_netaddr_t *na) {
 	int r;
 	struct in_addr in;

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.148 
+# From configure.in Revision: 1.149 
 
 
 
@@ -4315,6 +4315,7 @@ trap 'rm -fr `echo "make/rules
 	bin/tests/timers/Makefile
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
+	bin/tests/net/Makefile
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
@@ -4546,6 +4547,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/tests/timers/Makefile
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
+	bin/tests/net/Makefile
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
