@@ -1,3 +1,7 @@
+1219.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
+			via getaddrinfo() (affects dig, host, nslookup, rndc
+			and nsupdate).
+
 1218.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
 			could be left with a trailing "\" after configure
 			has been run.
