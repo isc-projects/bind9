@@ -103,13 +103,14 @@ typedef enum {
 	isc_tokentype_eol = 4,
 	isc_tokentype_eof = 5,
 	isc_tokentype_initialws = 6,
-	isc_tokentype_special = 7,
+	isc_tokentype_special = 7
 } isc_tokentype_t;
 
 typedef union {
 	char				as_char;
 	unsigned long			as_ulong;
 	isc_region_t			as_region;
+	isc_textregion_t		as_textregion;
 	void *				as_pointer;
 } isc_tokenvalue_t;
 
