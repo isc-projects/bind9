@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.1 2001/09/20 23:01:44 marka Exp $ */
+/* $Id: controlconf.c,v 1.28.2.2 2001/09/21 00:28:05 marka Exp $ */
 
 #include <config.h>
 
@@ -332,10 +332,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	conn = event->ev_arg;
 	listener = conn->listener;
 	secret.rstart = NULL;
-
-        /* Is the server shutting down? */
-        if (ns_g_server->task == 0)
-                goto cleanup;
 
 	if (conn->ccmsg.result != ISC_R_SUCCESS) {
 		if (conn->ccmsg.result != ISC_R_CANCELED &&
