@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.30 1999/02/09 08:02:20 marka Exp $ */
+ /* $Id: rdata.c,v 1.31 1999/02/10 03:39:29 halley Exp $ */
 
 #include <config.h>
 
@@ -340,7 +340,6 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	do {
 		name = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
-		if (gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE))
 		if (isc_lex_gettoken(lexer, options, &token)
 		    != ISC_R_SUCCESS) {
 			if (result == DNS_R_SUCCESS)
@@ -799,9 +798,10 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	
 	if (expect == isc_tokentype_qstring)
 		options |= ISC_LEXOPT_QSTRING;
-	if (expect == isc_tokentype_number)
+	else if (expect == isc_tokentype_number)
 		options |= ISC_LEXOPT_NUMBER;
-	switch (result = isc_lex_gettoken(lexer, options, token)) {
+	result = isc_lex_gettoken(lexer, options, token);
+	switch (result) {
 	case ISC_R_SUCCESS:
 		break;
 	case ISC_R_NOSPACE:
@@ -822,9 +822,9 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
                 isc_lex_ungettoken(lexer, token);
                 if (token->type == isc_tokentype_eol ||
                     token->type == isc_tokentype_eof)
-                        return(DNS_R_UNEXPECTEDEND);
+                        return (DNS_R_UNEXPECTEDEND);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "isc_lex_gettoken() returned unexpected token type\n");
+			"isc_lex_gettoken() returned unexpected token type\n");
                 return (DNS_R_UNEXPECTED);
         }
 	return (DNS_R_SUCCESS);
