@@ -417,7 +417,110 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
 	    dns_rdataset_t *rdataset);
 /*
- * XXX TBS.
+ * Find the best match for 'name' and 'type' in version 'version' of 'db'.
+ *
+ * Notes:
+ *
+ *	If type == dns_rdataset_any, then rdataset will not be bound.
+ *
+ *	If 'options' does not have DNS_DBFIND_GLUEOK set, then no glue will
+ *	be returned.  This option is only meaningful for zone databases.
+ *
+ *	To respond to a query for SIG records, the caller should create a
+ *	rdataset iterator and extract the signatures from each rdataset.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ *	type != dns_rdatatype_sig
+ *
+ *	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
+ *
+ *	'foundname' is NULL, or is a valid name with a dedicated buffer.
+ *
+ *	'rdataset' is NULL, or is a valid unassociated rdataset.
+ *
+ * Ensures:
+ *	On a non-error completion:
+ *
+ *		If nodep != NULL, then it is bound to the found node.
+ *
+ *		If foundname != NULL, then it contains the full name of the
+ *		found node.
+ *
+ *		If rdataset != NULL and type != dns_rdatatype_any, then
+ *		rdataset is bound to the found rdataset.
+ *
+ * Returns:
+ *
+ *	Non-error results are:
+ *
+ *		DNS_R_SUCCESS			The desired node and type were
+ *						found.
+ *
+ *		DNS_R_GLUE			The desired node and type were
+ *						found, but are glue.  This
+ *						result can only occur if
+ *						the DNS_DBFIND_GLUEOK option
+ *						is set.  This result can only
+ *						occur if 'db' is a zone
+ *						database.
+ *
+ *		DNS_R_DELEGATION		The data requested is beneath
+ *						a zone cut.  node, foundname,
+ *						and rdataset reference the
+ *						NS RRset of the zone cut.
+ *						If 'db' is a cache database,
+ *						then this is the deepest known
+ *						delegation.
+ *
+ *		DNS_R_ZONECUT			type == dns_rdatatype_any, and
+ *						the desired node is a zonecut.
+ *						The caller must take care not
+ *						to return glue.  This result
+ *						can only occur if 'db' is a
+ *						zone database.
+ *
+ *		DNS_R_DNAME			The data requested is beneath
+ *						a DNAME.  node, foundname,
+ *						and rdataset reference the
+ *						DNAME RRset.
+ *
+ *		DNS_R_CNAME			The rdataset requested was not
+ *						found, but there is a CNAME
+ *						at the desired name.  node,
+ *						foundname, and rdataset
+ *						reference the CNAME RRset.
+ *
+ *		DNS_R_NXDOMAIN			The desired name does not
+ *						exist.
+ *
+ *		DNS_R_NXRDATASET		The desired name exists, but
+ *						the desired type does not.
+ *
+ *		DNS_R_NOTFOUND			The desired name does not
+ *						exist, and no delegation could
+ *						be found.  This result can only
+ *						occur if 'db' is a cache
+ *						database.  The caller should
+ *						use its nameserver(s) of last
+ *						resort (e.g. root hints).
+ *
+ *		XXX There will be a result like DNS_R_WILDCARD for wildcard
+ *		matches.
+ *
+ *	Error results:
+ *
+ *		DNS_R_NOMEMORY
+ *
+ *		DNS_R_BADDB			Data that is required to be
+ *						present in the DB, e.g. an NXT
+ *						record in a secure zone, is not
+ *						present.
+ *
+ *		Other results are possible, and should all be treated as
+ *		errors.
  */
 
 void
