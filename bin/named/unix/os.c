@@ -54,7 +54,7 @@ linux_dropprivs() {
 	 * privileged ports.
 	 */
 
-	caps = CAP_NET_BIND_SERVICE;
+	caps = 1 << CAP_NET_BIND_SERVICE;
 
 	memset(&caphead, 0, sizeof caphead);
 	caphead.version = _LINUX_CAPABILITY_VERSION;
@@ -86,7 +86,7 @@ ns_os_init(void) {
 	setup_syslog();
 
 #ifdef HAVE_LINUX_CAPABILITY_H
-	/* linux_dropprivs(); */
+	linux_dropprivs();
 #endif
 
 	return (ISC_R_SUCCESS);
