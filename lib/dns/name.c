@@ -1724,6 +1724,53 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	return (DNS_R_SUCCESS);
 }
 
+void
+dns_name_downcase(dns_name_t *name) {
+	unsigned char *ndata;
+	unsigned int nlen, count, bytes, labels;
+ 
+	REQUIRE(VALID_NAME(name));
+	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+
+	ndata = name->ndata;
+	nlen = name->length;
+	labels = name->labels;
+
+	while (labels > 0 && nlen > 0) {
+		labels--;
+		count = *ndata++;
+		nlen--;
+		if (count < 64) {
+			INSIST(nlen >= count);
+			while (count > 0) {
+				*ndata = maptolower[(*ndata)];
+				ndata++;
+				nlen--;
+				count--;
+			}
+		} else if (count == DNS_LABELTYPE_BITSTRING) {
+			INSIST(nlen > 0);
+			count = *ndata++;
+			if (count == 0)
+				count = 256;
+			nlen--;
+
+			bytes = count / 8;
+			if (count % 8 != 0)
+				bytes++;
+			INSIST(nlen >= bytes);
+
+			/* Skip this label */
+			nlen -= bytes;
+			ndata += bytes;
+		} else {
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "Unexpected label type %02x", count);
+			/* Does not return. */
+		}
+	}
+}
+
 static void
 set_offsets(dns_name_t *name, unsigned char *offsets, isc_boolean_t set_labels,
 	    isc_boolean_t set_length, isc_boolean_t set_absolute)

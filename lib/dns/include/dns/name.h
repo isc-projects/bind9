@@ -789,6 +789,16 @@ dns_result_t dns_name_totext(dns_name_t *name,
  *	DNS_R_NOSPACE
  */
 
+void
+dns_name_downcase(dns_name_t *name);
+/*
+ * Convert all uppercase letters in name to lowercase.
+ *
+ * Requires:
+ *
+ *	'name' is a valid name that is not read-only.
+ */
+
 dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
 				  dns_name_t *name, isc_buffer_t *target);
 /*
