@@ -387,7 +387,7 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 		return(1);
 	}
 
-	buf = (char *) malloc(((sb.st_size / 2) + 1) * sizeof(unsigned char));
+	buf = (char *) malloc((sb.st_size + 1) * sizeof(unsigned char));
 	if (buf == NULL) {
 		t_info("malloc failed, errno == %d\n", errno);
 		return(1);
