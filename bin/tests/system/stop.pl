@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: stop.pl,v 1.2 2001/02/14 23:57:33 gson Exp $
+# $Id: stop.pl,v 1.3 2001/03/01 02:35:13 gson Exp $
 
 # Framework for stopping test servers
 # Based on the type of server specified, signal the server to stop, wait
@@ -35,6 +35,8 @@ my $usage = "usage: $0 test-directory [server-directory]";
 my $test = $ARGV[0];
 my $server = $ARGV[1];
 
+my $errors = 0;
+    
 if (!$test) {
 	print "$usage\n";
 }
@@ -76,6 +78,8 @@ if ($server) {
 	}
 }
 
+exit($errors ? 1 : 0);
+
 # Subroutines
 
 sub stop_server {
@@ -103,6 +107,7 @@ sub stop_server {
 		if ($result != 1) {
 			print "I:$server died before a SIGTERM was sent\n";
 			unlink $pid_file;
+			$errors++;
 		}
 	}
 }
@@ -128,6 +133,7 @@ sub kill_server {
 		my $result = kill 'KILL', `cat $pid_file`;
 		if ($result != 1) {
 			print "I:$server died before a SIGKILL was sent\n";
+			$errors++;
 		}
 		unlink $pid_file;
 	}
