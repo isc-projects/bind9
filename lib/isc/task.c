@@ -267,7 +267,7 @@ isc_task_detach(isc_task_t *taskp) {
 	*taskp = NULL;
 }
 
-void
+isc_result_t
 isc_task_send(isc_task_t task, isc_event_t *eventp) {
 	isc_boolean_t was_idle = ISC_FALSE;
 	isc_boolean_t discard = ISC_FALSE;
@@ -303,7 +303,7 @@ isc_task_send(isc_task_t task, isc_event_t *eventp) {
 	if (discard) {
 		isc_event_free(&event);
 		*eventp = NULL;
-		return;
+		return (ISC_R_NORESOURCES);
 	}
 
 	if (was_idle) {
@@ -339,6 +339,8 @@ isc_task_send(isc_task_t task, isc_event_t *eventp) {
 	*eventp = NULL;
 
 	XTRACE("sent");
+
+	return (ISC_R_SUCCESS);
 }
 
 unsigned int

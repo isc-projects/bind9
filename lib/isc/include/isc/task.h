@@ -75,7 +75,7 @@ isc_result_t				isc_task_create(isc_taskmgr_t,
 void					isc_task_attach(isc_task_t,
 							isc_task_t *);
 void					isc_task_detach(isc_task_t *);
-void					isc_task_send(isc_task_t, 
+isc_result_t				isc_task_send(isc_task_t, 
 						      isc_event_t *);
 unsigned int				isc_task_purge(isc_task_t, void *,
 						   isc_eventtype_t);
