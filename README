@@ -182,16 +182,13 @@ Building
 
 	We've had successful builds and tests on the following systems:
 
-		AIX 4.3
-		COMPAQ Tru64 UNIX 4.0D
-		COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
-		FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1
-		HP-UX 11.x, x < 11
-		IRIX64 6.5
-		NetBSD 1.5
-		Red Hat Linux 6.0, 6.1, 6.2, 7.0
-		Solaris 2.6, 7, 8
-		Windows NT/W2K
+                COMPAQ Tru64 UNIX 5.1B
+                FreeBSD 4.10, 5.2.1
+                HP-UX 11.11
+                NetBSD 1.5
+                Slackware Linux 8.1
+                Solaris 8, 9, 9 (x86)
+                Windows NT/2000/XP/2003
 
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
