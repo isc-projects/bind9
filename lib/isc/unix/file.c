@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.39 2001/08/30 04:55:36 marka Exp $ */
+/* $Id: file.c,v 1.40 2001/08/30 20:55:37 gson Exp $ */
 
 #include <config.h>
 
@@ -115,7 +115,6 @@ isc_file_settime(const char *file, isc_time_t *time) {
 		return (isc__errno2result(errno));
 
 	return (ISC_R_SUCCESS);
-
 }
 
 #undef TEMPLATE
