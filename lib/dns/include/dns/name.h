@@ -196,9 +196,14 @@ struct dns_name {
 #define DNS_NAMEATTR_ABSOLUTE		0x0001
 #define DNS_NAMEATTR_READONLY		0x0002
 #define DNS_NAMEATTR_DYNAMIC		0x0004
-#define DNS_NAMEATTR_CACHE		0x0008		/* Used by resolver. */
-#define DNS_NAMEATTR_ANSWER		0x0010		/* Used by resolver. */
-#define DNS_NAMEATTR_NCACHE		0x0020		/* used by resolver */
+/*
+ * Attributes below 0x0100 reserved for name.c usage.
+ */
+#define DNS_NAMEATTR_CACHE		0x0100		/* Used by resolver. */
+#define DNS_NAMEATTR_ANSWER		0x0200		/* Used by resolver. */
+#define DNS_NAMEATTR_NCACHE		0x0400		/* Used by resolver. */
+#define DNS_NAMEATTR_CNAME		0x0800		/* Used by message. */
+#define DNS_NAMEATTR_DNAME		0x1000		/* Used by message. */
 
 extern dns_name_t *dns_rootname;
 extern dns_name_t *dns_wildcardname;
