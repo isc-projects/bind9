@@ -4,7 +4,7 @@
 >BIND 9 Configuration Reference</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.64
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3407"
+HREF="Bv9ARM.ch06.html#AEN3451"
 >Zone File</A
 ></DT
 ></DL
@@ -145,7 +145,7 @@ file documentation:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1083"
+NAME="AEN1090"
 ></A
 ><P
 ></P
@@ -740,7 +740,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1246"
+NAME="AEN1253"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -771,7 +771,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1254"
+NAME="AEN1261"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -882,7 +882,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1283"
+NAME="AEN1290"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -901,7 +901,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1288"
+NAME="AEN1295"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -933,7 +933,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1297"
+NAME="AEN1304"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1043,7 +1043,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1321"
+NAME="AEN1328"
 ></A
 ><P
 ></P
@@ -1271,7 +1271,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1390"
+NAME="AEN1397"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1318,7 +1318,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1403"
+NAME="AEN1410"
 ></A
 ><P
 ></P
@@ -1416,7 +1416,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1432"
+NAME="AEN1439"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1455,7 +1455,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1441"
+NAME="controls_statement_definition_and_usage"
 >6.2.4. <B
 CLASS="command"
 >controls</B
@@ -1540,6 +1540,117 @@ HREF="Bv9ARM.ch03.html#admin_tools"
       must be signed by one of its specified keys to
       be honored.</P
 ><P
+>The <B
+CLASS="command"
+>keys</B
+> clause is not strictly required.
+      If it is not present, then a random key will be generated automatically
+      and placed in a file named <TT
+CLASS="filename"
+>named.key</TT
+>, which is
+      usually in <TT
+CLASS="filename"
+>/var/run</TT
+> but will be wherever
+      <TT
+CLASS="varname"
+>localstatedir</TT
+> was specified as when
+      <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> was built.  <TT
+CLASS="filename"
+>named.key</TT
+>
+      contains a complete <TT
+CLASS="filename"
+>rndc.conf</TT
+>-compatible
+      configuration and is used by <B
+CLASS="command"
+>rndc</B
+> when it
+      cannot find its primary configuration file.</P
+><P
+>Similarly, <TT
+CLASS="filename"
+>named.key</TT
+> is generated when
+      no <B
+CLASS="command"
+>controls</B
+> statement is present at all.  In
+      that situation it will configure a control channel to run on
+      127.0.0.1.</P
+><P
+>There are two ways to disable the creation of
+      <TT
+CLASS="filename"
+>named.key</TT
+>.  One is to ensure that all of your
+      <B
+CLASS="command"
+>inet</B
+> control channels have a <B
+CLASS="command"
+>keys</B
+>
+      clause.  The other is to have a <B
+CLASS="command"
+>controls</B
+> statement
+      with no <B
+CLASS="command"
+>inet</B
+> phrases it all.  The latter will
+      prevent the creation of any control channel.</P
+><P
+>The <TT
+CLASS="filename"
+>named.key</TT
+> feature was created to
+      ease the transition of systems from <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> 8,
+      which did not have digital signatures on its command channel messages
+      and thus did not have a <B
+CLASS="command"
+>keys</B
+> clause.  Since
+      it is only intended to allow the backward-compatible usage of
+      <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> 8 configuration files, this feature does not
+      have a high degree of configurability.  You cannot easily change
+      the key name or the size of the secret, so you should make a
+      <TT
+CLASS="filename"
+>rndc.conf</TT
+> with your own key if you wish to change
+      those things.  The <TT
+CLASS="filename"
+>named.key</TT
+> file also has its
+      permissions set such that only the owner of the file (the user that
+      <B
+CLASS="command"
+>named</B
+> is running as) can access it.  If you
+      desire greater flexibility in allowing other users to access
+      <B
+CLASS="command"
+>rndc</B
+> commands then you need to create an
+      <TT
+CLASS="filename"
+>rndc.conf</TT
+> and make it group readable by a group
+      that contains the users who should have access.</P
+><P
 >The UNIX control channel type of <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1560,7 +1671,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1467"
+NAME="AEN1502"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1580,7 +1691,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1472"
+NAME="AEN1507"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1610,7 +1721,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1479"
+NAME="AEN1514"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1644,7 +1755,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1486"
+NAME="AEN1521"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1698,7 +1809,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1498"
+NAME="AEN1533"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1858,7 +1969,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1538"
+NAME="AEN1573"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1892,6 +2003,7 @@ the logging configuration will be:</P
 ><PRE
 CLASS="programlisting"
 >logging {
+     category "unmatched" { "null"; };
      category "default" { "default_syslog"; "default_debug"; };
 };
 </PRE
@@ -1920,7 +2032,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1554"
+NAME="AEN1589"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2362,7 +2474,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1658"
+NAME="AEN1693"
 ></A
 ><P
 ></P
@@ -2574,6 +2686,38 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
+>unmatched</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Messages that named was unable to determine the
+class of or for which there was no matching <B
+CLASS="command"
+>view</B
+>.
+A one line summary is also logged to the <B
+CLASS="command"
+>client</B
+> category.
+This category is best sent to a file or stderr, by default it is sent to
+the <B
+CLASS="command"
+>null</B
+> channel.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
 >network</B
 ></P
 ></TD
@@ -2698,7 +2842,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1759"
+NAME="AEN1803"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2795,7 +2939,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1783"
+NAME="AEN1827"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2869,7 +3013,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1802"
+NAME="AEN1846"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3801,7 +3945,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2014"
+NAME="AEN2058"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4697,7 +4841,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2288"
+NAME="AEN2332"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4901,7 +5045,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2353"
+NAME="AEN2397"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -4996,7 +5140,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2379"
+NAME="AEN2423"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5409,7 +5553,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2515"
+NAME="AEN2559"
 >6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
@@ -5529,7 +5673,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2552"
+NAME="AEN2596"
 >6.2.14.8. Server  Resource Limits</A
 ></H3
 ><P
@@ -5613,7 +5757,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2580"
+NAME="AEN2624"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
@@ -5980,7 +6124,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2668"
+NAME="AEN2712"
 ></A
 ><P
 ></P
@@ -6367,7 +6511,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2780"
+NAME="AEN2824"
 ></A
 ><P
 ></P
@@ -6776,7 +6920,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2888"
+NAME="AEN2932"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6851,7 +6995,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2904"
+NAME="AEN2948"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6886,7 +7030,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2912"
+NAME="AEN2956"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6949,7 +7093,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2926"
+NAME="AEN2970"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7579,7 +7723,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3073"
+NAME="AEN3117"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7590,13 +7734,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3076"
+NAME="AEN3120"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3078"
+NAME="AEN3122"
 ></A
 ><P
 ></P
@@ -7834,7 +7978,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3133"
+NAME="AEN3177"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7872,7 +8016,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3143"
+NAME="AEN3187"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8513,7 +8657,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3377"
+NAME="AEN3421"
 ></A
 ><P
 ></P
@@ -8620,7 +8764,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3407"
+NAME="AEN3451"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8641,7 +8785,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3412"
+NAME="AEN3456"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8664,7 +8808,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3418"
+NAME="AEN3462"
 ></A
 ><P
 ></P
@@ -8775,7 +8919,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3450"
+NAME="AEN3494"
 ></A
 ><P
 ></P
@@ -9152,7 +9296,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3562"
+NAME="AEN3606"
 ></A
 ><P
 ></P
@@ -9204,7 +9348,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3578"
+NAME="AEN3622"
 ></A
 ><P
 ></P
@@ -9381,7 +9525,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3626"
+NAME="AEN3670"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9411,7 +9555,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3633"
+NAME="AEN3677"
 ></A
 ><P
 ></P
@@ -9620,7 +9764,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3699"
+NAME="AEN3743"
 ></A
 ><P
 ></P
@@ -9711,7 +9855,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3727"
+NAME="AEN3771"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9744,7 +9888,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3733"
+NAME="AEN3777"
 ></A
 ><P
 ></P
@@ -10040,7 +10184,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3825"
+NAME="AEN3869"
 ></A
 ><P
 ></P
@@ -10123,7 +10267,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3848"
+NAME="AEN3892"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10147,7 +10291,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3853"
+NAME="AEN3897"
 ></A
 ><P
 ></P
@@ -10227,7 +10371,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3875"
+NAME="AEN3919"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10252,7 +10396,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3882"
+NAME="AEN3926"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10322,7 +10466,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3902"
+NAME="AEN3946"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10404,7 +10548,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3922"
+NAME="AEN3966"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10444,7 +10588,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3933"
+NAME="AEN3977"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10523,7 +10667,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3953"
+NAME="AEN3997"
 ></A
 ><P
 ></P
