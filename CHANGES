@@ -83,7 +83,7 @@
 			were specified in /etc/resolv.conf. [RT #8232]
 
 1553.	[bug]		The windows socket code could stop accepting
-			connections.
+			connections. [RT#10115]
 
 1552.	[bug]		Accept NOTIFY requests from mapped masters if
 			matched-mapped is set. [RT #10049]
