@@ -1,3 +1,15 @@
+
+ 859.	[bug]		Cache cleaning now won't swamp the CPU if there
+			is a persistent overlimit condition.
+
+ 858.	[func]		isc_mem_setwater() no longer requires that when the
+			callback function is non-NULL then its hi_water
+			argument must be greater than its lo_water argument
+			(they can now be equal) or that they be non-zero.
+
+ 857.	[cleanup]	Use ISC_MAGIC() to define all magic numbers for
+			structs, for our friends in EBCDIC-land.
+
  856.	[func]		Allow partial rdatasets to be returned in answer and
 			authority sections to help non-TCP capable clients
 			recover from truncation.  [RT #1301]
