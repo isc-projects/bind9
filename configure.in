@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.242 $)
+AC_REVISION($Revision: 1.243 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1442,7 +1442,7 @@ AC_SUBST_FILE(LIBISC_API)
 LIBISC_API=$srcdir/lib/isc/api
 
 AC_SUBST_FILE(LIBISCCC_API)
-LIBISCCFG_API=$srcdir/lib/isccc/api
+LIBISCCC_API=$srcdir/lib/isccc/api
 
 AC_SUBST_FILE(LIBISCCFG_API)
 LIBISCCFG_API=$srcdir/lib/isccfg/api

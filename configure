@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.242 
+# From configure.in Revision: 1.243 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5291,7 +5291,7 @@ BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEAS
 LIBISC_API=$srcdir/lib/isc/api
 
 
-LIBISCCFG_API=$srcdir/lib/isccc/api
+LIBISCCC_API=$srcdir/lib/isccc/api
 
 
 LIBISCCFG_API=$srcdir/lib/isccfg/api
