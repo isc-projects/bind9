@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32 2001/08/28 17:29:34 gson Exp $
+# $Id: Makefile.in,v 1.32.2.1 2001/09/07 16:46:11 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -93,6 +93,7 @@ install:: rndc installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} rndc ${DESTDIR}${sbindir}
 	${LIBTOOL} ${INSTALL_PROGRAM} rndc-confgen ${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/rndc.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/rndc-confgen.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/rndc.conf.5 ${DESTDIR}${mandir}/man5
 
 clean distclean maintainer-clean::
