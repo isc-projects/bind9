@@ -564,6 +564,8 @@ fctx_addopt(dns_message_t *message) {
 	 */
 	rdata->data = NULL;
 	rdata->length = 0;
+	rdata->rdclass = rdatalist->rdclass;
+	rdata->type = rdatalist->type;
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
