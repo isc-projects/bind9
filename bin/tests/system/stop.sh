@@ -19,6 +19,8 @@
 # Stop name servers.
 #
 
+test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
+
 cd $1
 
 for d in ns*
