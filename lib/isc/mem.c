@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.71 2000/12/06 20:34:34 tale Exp $ */
+/* $Id: mem.c,v 1.72 2000/12/06 23:39:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -846,7 +846,6 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 void
 isc_mem_destroy(isc_mem_t **ctxp) {
 	isc_mem_t *ctx;
-	isc_boolean_t want_destroy = ISC_FALSE;
 
 	/*
 	 * This routine provides legacy support for callers who use mctxs
@@ -860,12 +859,9 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	LOCK(&ctx->lock);
 	REQUIRE(ctx->references == 1);
 	ctx->references--;
-	if (ctx->references == 0)
-		want_destroy = ISC_TRUE;
 	UNLOCK(&ctx->lock);
 
-	if (want_destroy)
-		destroy(ctx);
+	destroy(ctx);
 
 	*ctxp = NULL;
 }
