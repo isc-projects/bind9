@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.115 2000/10/17 00:35:17 mws Exp $ */
+/* $Id: dig.c,v 1.116 2000/10/18 22:11:20 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -161,7 +161,7 @@ show_usage(void) {
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)"
 "\n"
 "                 +[no]fail           (Don't try next server on SERVFAIL)\n"
-"                 +[no]besteffort     (Try and parse even illegal messages)\n"
+"                 +[no]besteffort     (Try to parse even illegal messages)\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
