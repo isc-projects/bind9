@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.23 2000/03/06 21:31:08 bwelling Exp $
+ * $Id: dnssec.c,v 1.24 2000/03/13 19:27:33 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -774,7 +774,7 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 		goto failure;
 	}
 
-	msg->verified_sig0 = 1;
+	msg->verified_sig = 1;
 
 	dns_rdata_freestruct(&sig);
 
@@ -783,6 +783,8 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 failure:
 	if (signeedsfree)
 		dns_rdata_freestruct(&sig);
+
+	msg->verify_attempted = 1;
 
 	return (result);
 }

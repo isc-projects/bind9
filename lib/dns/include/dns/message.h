@@ -169,7 +169,8 @@ struct dns_message {
 	unsigned int			header_ok : 1;
 	unsigned int			question_ok : 1;
 	unsigned int			tcp_continuation : 1;
-	unsigned int			verified_sig0 : 1;
+	unsigned int			verified_sig : 1;
+	unsigned int			verify_attempted : 1;
 
 	unsigned int			opt_reserved;
 	unsigned int			reserved; /* reserved space (render) */

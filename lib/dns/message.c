@@ -312,7 +312,8 @@ msginit(dns_message_t *m)
 	m->header_ok = 0;
 	m->question_ok = 0;
 	m->tcp_continuation = 0;
-	m->verified_sig0 = 0;
+	m->verified_sig = 0;
+	m->verify_attempted = 0;
 }
 
 static inline void
@@ -2124,6 +2125,8 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		dns_name_t *sig0name;
 		dns_rdata_generic_sig_t sig;
 
+		if (msg->verify_attempted == 0)
+			result = DNS_R_NOTVERIFIEDYET;
 		result = dns_message_firstname(msg, DNS_SECTION_SIG0);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOTFOUND);
@@ -2141,19 +2144,19 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		
-		if (msg->sig0status != dns_rcode_noerror)
-			result = DNS_R_SIGINVALID;
-		else if (msg->verified_sig0 == 0)
-			result = DNS_R_NOTVERIFIEDYET;
-		else
+		if (msg->verified_sig && msg->sig0status != dns_rcode_noerror)
 			result = ISC_R_SUCCESS;
+		else
+			result = DNS_R_SIGINVALID;
 		dns_name_toregion(&sig.signer, &r);
 		dns_name_fromregion(signer, &r);
 		dns_rdata_freestruct(&sig);
 	}
 	else {
 		dns_name_t *identity;
-		if (msg->tsigstatus != dns_rcode_noerror)
+		if (msg->verify_attempted == 0)
+			result = DNS_R_NOTVERIFIEDYET;
+		else if (msg->tsigstatus != dns_rcode_noerror)
 			result = DNS_R_TSIGVERIFYFAILURE;
 		else if (msg->tsig->error != dns_rcode_noerror)
 			result = DNS_R_TSIGERRORSET;
