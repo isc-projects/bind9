@@ -21,6 +21,7 @@ CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
 		-I${srcdir}/../../../lib/isc/pthreads/include \
 		-I${srcdir}/../../../lib/isc/include \
 		-I${srcdir}/../../../lib/dns/include \
+		-I../../../lib/dns/include \
 		-I${srcdir}/../../../lib/tests/include
 
 CDEFINES =

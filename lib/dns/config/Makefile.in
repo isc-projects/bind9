@@ -24,7 +24,9 @@ CINCLUDES	= -I${srcdir}/../../isc/unix/include \
 		  -I${srcdir}/../../isc/include \
 		  -I${srcdir}/../include \
 		  -I${srcdir}/.. \
-		  -I.
+		  -I. \
+		  -I../include \
+		  -I../../isc/unix/include
 
 CDEFINES	=
 CWARNINGS	=
@@ -47,7 +49,7 @@ TARGETS		= ${OBJS}
 @BIND9_MAKE_RULES@
 
 ##confparser.c: confparser.y
-##	${YACC} -d confparser.y
+##	${YACC} -d ${srcdir}/confparser.y
 ##	rm -f confparser.c confparser_p.h
 ##	mv y.tab.c confparser.c
 ##	mv y.tab.h confparser_p.h
@@ -55,7 +57,7 @@ TARGETS		= ${OBJS}
 ## This rule is here during development to help debugging. 
 ## Remove and uncomment the rule above before release.
 confparser.c: confparser.y
-	${YACC} -d confparser.y
+	${YACC} -d ${srcdir}/confparser.y
 	rm -f confparser.c confparser_p.h
 	sed -e '/^\#line/d' < y.tab.c > confparser.c
 	rm -f y.tab.c
