@@ -1,3 +1,5 @@
+	--- 9.0.0b4 released ---
+
  253.	[func]		resolv.conf parser now recognises ';' and '#' as
 			comments (anywhere in line, not just as the beginning).
 
