@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.51 1999/07/03 20:57:45 halley Exp $ */
+ /* $Id: rdata.c,v 1.52 1999/07/05 05:50:15 gson Exp $ */
 
 #include <config.h>
 
@@ -919,6 +919,19 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
+static dns_result_t
+uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
+	isc_region_t region;
+
+	if (value > 0xff)
+		return (DNS_R_RANGE);
+	isc_buffer_available(target, &region);
+	if (region.length < 1)
+		return (DNS_R_NOSPACE);
+	isc_buffer_putuint8(target, value);
+	return (DNS_R_SUCCESS);
+}
+
 static isc_uint32_t
 uint32_fromregion(isc_region_t *region) {
 	unsigned long value;
@@ -937,6 +950,14 @@ uint16_fromregion(isc_region_t *region) {
 	REQUIRE(region->length >= 2);
 
 	return ((region->base[0] << 8) | region->base[1]);
+}
+
+static isc_uint8_t
+uint8_fromregion(isc_region_t *region) {
+	
+	REQUIRE(region->length >= 1);
+
+	return (region->base[0]);
 }
 
 static dns_result_t
