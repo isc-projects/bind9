@@ -42,8 +42,14 @@ do
 	    fi
 	fi
 	$NAMED -c named.conf -d 99 -g >named.run 2>&1 &
+	x=1
 	while test ! -f named.pid
 	do
+	    x=`expr $x + 1`
+	    if [ $x = 5 ]; then
+		echo "I: Couldn't start servers!"
+		exit 1
+	    fi
 	    sleep 1
         done
     )

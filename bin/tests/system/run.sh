@@ -29,7 +29,7 @@ shift
 
 test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
 
-test -f /var/run/system_test_ifsetup || { echo "Interfaces not set up." >&2 \
+test -f /var/run/system_test_ifsetup || { echo "I:Interfaces not set up.  Not trying system tests." >&2 \
     ; exit 1; }
 
 # Set up any dynamically generated test data
