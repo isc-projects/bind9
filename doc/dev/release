@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.33 2001/05/09 03:22:52 gson Exp $
+$Id: release,v 1.34 2001/05/24 00:43:57 gson Exp $
 
 Preparing a bind9 release
 
@@ -14,7 +14,9 @@ release.
 
  - Send the new README file to webteam@nominum.com at least 48
    hours prior to the planned release and ask them to prepare
-   the web pages for the new version.
+   the web pages for the new version.  If there have been only
+   minor changes, send context diffs relative to the previous
+   release instead.
 
  - Verify that the file "version" contains the correct version
    number (it should have been incremented after the
@@ -43,8 +45,8 @@ release.
  - Regenerate the documentation by running "make man" (mainline)
    or by running genhtml.sh in doc/arm (9.1 release branch)
    and commit it.  Note that not all machines have the
-   necessary XML tools, but at least trebuchet and Scanner's
-   machine do.
+   necessary XML tools, but at least trebuchet, cuba,
+   and Scanner's machine do.
 
  - Verify that the documents in doc/misc are up-to-date.
 
@@ -170,12 +172,12 @@ release.
  - Sign the distribution files with the ISC signing PGP key
    and fix the permissions on the signature file:
   
-   	pgp -sba bind-9.1.2.tar.gz -u 0x51BAB2ED
-	chmod 644 bind-9.1.2.tar.gz.asc
+   	pgp -sba bind-9.1.3rc1.tar.gz -u 0x51BAB2ED
+	chmod 644 bind-9.1.3rc1.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.1.2.tar.gz.asc bind-9.1.2.tar.gz
+	pgp bind-9.1.3rc1.tar.gz.asc bind-9.1.3rc1.tar.gz
 
    (Look for the words "Good signature" in the output.)
 
@@ -183,7 +185,7 @@ release.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.1.2
+     ver=9.1.3rc1
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver
