@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.255 2002/11/12 23:08:27 explorer Exp $ */
+/* $Id: dighost.c,v 1.256 2003/07/17 07:42:00 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1490,6 +1490,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->first_soa_rcvd = ISC_FALSE;
 		query->second_rr_rcvd = ISC_FALSE;
 		query->first_repeat_rcvd = ISC_FALSE;
+		query->warn_id = ISC_TRUE;
 		query->first_rr_serial = 0;
 		query->second_rr_serial = 0;
 		query->servname = serv->servername;
@@ -1795,14 +1796,15 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			      l->retries);
 			l->retries--;
 			n = requeue_lookup(l, ISC_TRUE);
-			n->origin = query->lookup->origin;
 			cancel_lookup(l);
+			check_next_lookup(l);
 		}
 	} else {
 		fputs(l->cmdline, stdout);
 		printf(";; connection timed out; no servers could be "
 		       "reached\n");
 		cancel_lookup(l);
+		check_next_lookup(l);
 		if (exitcode < 9)
 			exitcode = 9;
 	}
@@ -2098,7 +2100,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					query->second_rr_rcvd = ISC_TRUE;
 					query->second_rr_serial = 0;
 					debug("got the second rr as nonsoa");
-					continue;
+					goto next_rdata;
 				}
 
 				/*
@@ -2282,25 +2284,35 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
  	result = dns_message_peekheader(b, &id, &msgflags);
 	if (result != ISC_R_SUCCESS || l->sendmsg->id != id) {
+		match = ISC_FALSE;
 		if (l->tcp_mode) {
-			if (result == ISC_R_SUCCESS)
-				printf(";; ERROR: ID mismatch: "
-				       "expected ID %u, got %u\n",
-				       l->sendmsg->id, id);
-			else
+			isc_boolean_t fail = ISC_TRUE;
+			if (result == ISC_R_SUCCESS) {
+				if (!query->first_soa_rcvd ||
+				     query->warn_id)
+					printf(";; %s: ID mismatch: "
+					       "expected ID %u, got %u\n",
+					       query->first_soa_rcvd ?
+					       "WARNING" : "ERROR",
+					       l->sendmsg->id, id);
+				if (query->first_soa_rcvd)
+					fail = ISC_FALSE;
+				query->warn_id = ISC_FALSE;
+			} else
 				printf(";; ERROR: short (< header size) message\n");
-			isc_event_free(&event);
-			clear_query(query);
-			check_next_lookup(l);
-			UNLOCK_LOOKUP;
-			return;
-		}
-		if (result == ISC_R_SUCCESS)
+			if (fail) {
+				isc_event_free(&event);
+				clear_query(query);
+				check_next_lookup(l);
+				UNLOCK_LOOKUP;
+				return;
+			}
+			match = ISC_TRUE;
+		} else if (result == ISC_R_SUCCESS)
 			printf(";; Warning: ID mismatch: "
 			       "expected ID %u, got %u\n", l->sendmsg->id, id);
 		else
 			printf(";; Warning: short (< header size) message received\n");
-		match = ISC_FALSE;
 	}
 
 	if (!match) {
