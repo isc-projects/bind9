@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.33 2000/05/12 12:59:27 marka Exp $ */
+/* $Id: mx_15.c,v 1.34 2000/05/13 20:52:13 tale Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -194,12 +194,11 @@ tostruct_mx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_mx(void *source)
-{
+freestruct_mx(void *source) {
 	dns_rdata_mx_t *mx = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(mx->common.rdtype = 15);
+	REQUIRE(mx->common.rdtype == 15);
 
 	if (mx->mctx == NULL)
 		return;
