@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.118 2005/01/11 23:10:04 marka Exp $ */
+/* $Id: zoneconf.c,v 1.119 2005/02/10 05:53:42 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 
+#include <named/client.h>
 #include <named/config.h>
 #include <named/globals.h>
 #include <named/log.h>
@@ -493,6 +494,8 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		RETERR(dns_zone_setnotifysrc6(zone, cfg_obj_assockaddr(obj)));
 		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
+
+		dns_zone_setisself(zone, ns_client_isself, NULL);
 
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-transfer", ac, zone,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.27 2004/04/29 01:37:13 marka Exp $ */
+/* $Id: interfacemgr.h,v 1.28 2005/02/10 05:53:42 marka Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -169,5 +169,8 @@ ns_interface_shutdown(ns_interface_t *ifp);
 
 void
 ns_interfacemgr_dumprecursing(FILE *f, ns_interfacemgr_t *mgr);
+
+isc_boolean_t
+ns_interfacemgr_listeningon(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr);
 
 #endif /* NAMED_INTERFACEMGR_H */

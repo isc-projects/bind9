@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.78 2004/08/10 04:55:39 jinmei Exp $ */
+/* $Id: interfacemgr.c,v 1.79 2005/02/10 05:53:41 marka Exp $ */
 
 #include <config.h>
 
@@ -50,10 +50,14 @@ struct ns_interfacemgr {
 	ns_listenlist_t *	listenon6;
 	dns_aclenv_t		aclenv;		/* Localhost/localnets ACLs */
 	ISC_LIST(ns_interface_t) interfaces;	/* List of interfaces. */
+	ISC_LIST(isc_sockaddr_t) listenon;
 };
 
 static void
 purge_old_interfaces(ns_interfacemgr_t *mgr);
+
+static void
+clearlistenon(ns_interfacemgr_t *mgr);
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
@@ -85,6 +89,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	mgr->listenon6 = NULL;
 	
 	ISC_LIST_INIT(mgr->interfaces);
+	ISC_LIST_INIT(mgr->listenon);
 
 	/*
 	 * The listen-on lists are initially empty.
@@ -117,6 +122,7 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	dns_aclenv_destroy(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
+	clearlistenon(mgr);
 	DESTROYLOCK(&mgr->lock);
 	mgr->magic = 0;
 	isc_mem_put(mgr->mctx, mgr, sizeof(*mgr));
@@ -536,6 +542,43 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 	return (ISC_R_SUCCESS);
 }
 
+static void
+setup_listenon(ns_interfacemgr_t *mgr, isc_interface_t *interface,
+	       in_port_t port)
+{ 
+	isc_sockaddr_t *addr;
+	isc_sockaddr_t *old;
+
+	addr = isc_mem_get(mgr->mctx, sizeof(*addr));
+	if (addr == NULL)
+		return;
+
+	isc_sockaddr_fromnetaddr(addr, &interface->address, port);
+
+	for (old = ISC_LIST_HEAD(mgr->listenon);
+	     old != NULL;
+	     old = ISC_LIST_NEXT(old, link))
+		if (isc_sockaddr_equal(addr, old))
+			break;	
+
+	if (old != NULL)
+		isc_mem_put(mgr->mctx, addr, sizeof(*addr));
+	else
+		ISC_LIST_APPEND(mgr->listenon, addr, link);
+}
+
+static void
+clearlistenon(ns_interfacemgr_t *mgr) {
+	isc_sockaddr_t *old;
+
+	old = ISC_LIST_HEAD(mgr->listenon);
+	while (old != NULL) {
+		ISC_LIST_UNLINK(mgr->listenon, old, link);
+		isc_mem_put(mgr->mctx, old, sizeof(*old));
+		old = ISC_LIST_HEAD(mgr->listenon);
+	}
+}
+
 static isc_result_t
 do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	isc_boolean_t verbose)
@@ -552,6 +595,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	isc_sockaddr_t listen_addr;
 	ns_interface_t *ifp;
 	isc_boolean_t log_explicit = ISC_FALSE;
+	isc_boolean_t dolistenon;
 
 	if (ext_listen != NULL)
 		adjusting = ISC_TRUE;
@@ -642,6 +686,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		result = clearacl(mgr->mctx, &mgr->aclenv.localnets);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_iter;
+		clearlistenon(mgr);
 	}
 
 	for (result = isc_interfaceiter_first(iter);
@@ -687,6 +732,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		}
 
 		ll = (family == AF_INET) ? mgr->listenon4 : mgr->listenon6;
+		dolistenon = ISC_TRUE;
 		for (le = ISC_LIST_HEAD(ll->elts);
 		     le != NULL;
 		     le = ISC_LIST_NEXT(le, link))
@@ -722,6 +768,11 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 					       &match, NULL);
 			if (match <= 0)
 				continue;
+
+			if (adjusting == ISC_FALSE && dolistenon == ISC_TRUE) {
+				setup_listenon(mgr, &interface, le->port);
+				dolistenon = ISC_FALSE;
+			}
 
 			/*
 			 * The case of "any" IPv6 address will require
@@ -908,4 +959,17 @@ ns_interfacemgr_dumprecursing(FILE *f, ns_interfacemgr_t *mgr) {
 		interface = ISC_LIST_NEXT(interface, link);
 	}
 	UNLOCK(&mgr->lock);
+}
+
+isc_boolean_t
+ns_interfacemgr_listeningon(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
+	isc_sockaddr_t *old;
+
+	old = ISC_LIST_HEAD(mgr->listenon);
+	for (old = ISC_LIST_HEAD(mgr->listenon);
+	     old != NULL;
+	     old = ISC_LIST_NEXT(old, link))
+		if (isc_sockaddr_equal(old, addr))
+			return (ISC_TRUE);
+	return (ISC_FALSE);
 }

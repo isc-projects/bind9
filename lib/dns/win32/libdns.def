@@ -659,6 +659,7 @@ dns_zone_setflag
 dns_zone_setforwardacl
 dns_zone_setidlein
 dns_zone_setidleout
+dns_zone_setisself
 dns_zone_setjournal
 dns_zone_setjournalsize
 dns_zone_setkeydirectory

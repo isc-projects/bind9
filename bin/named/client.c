@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.222 2004/09/26 22:34:32 marka Exp $ */
+/* $Id: client.c,v 1.223 2005/02/10 05:53:41 marka Exp $ */
 
 #include <config.h>
 
@@ -1108,6 +1108,64 @@ allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl) {
 	if (result == ISC_R_SUCCESS && match > 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
+}
+
+/*
+ * Callback to see if a non-recursive query coming from 'srcaddr' to
+ * 'destaddr', with optional key 'mykey' for class 'rdclass' would be
+ * delivered to 'myview'.
+ *
+ * We run this unlocked as both the view list and the interface list
+ * are updated when the approprite task has exclusivity.
+ */
+isc_boolean_t
+ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
+		 isc_sockaddr_t *srcaddr, isc_sockaddr_t *dstaddr,
+		 dns_rdataclass_t rdclass, void *arg)
+{
+	dns_view_t *view;
+	dns_tsigkey_t *key;
+	isc_netaddr_t netsrc;
+	isc_netaddr_t netdst;
+
+	UNUSED(arg);
+
+	if (!ns_interfacemgr_listeningon(ns_g_server->interfacemgr, dstaddr))
+		return (ISC_FALSE);
+
+	isc_netaddr_fromsockaddr(&netsrc, srcaddr);
+	isc_netaddr_fromsockaddr(&netdst, dstaddr);
+
+	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		dns_name_t *tsig = NULL;
+
+		if (view->matchrecursiveonly)
+			continue;
+
+		if (rdclass != view->rdclass)
+			continue;
+
+		if (mykey != NULL) {
+			isc_boolean_t match;
+			isc_result_t result;
+
+			tsig = &mykey->name;
+			result = dns_view_gettsig(view, tsig, &key);
+			if (result != ISC_R_SUCCESS)
+				continue;
+			match = dst_key_compare(mykey->key, key->key);
+			dns_tsigkey_detach(&key);
+			if (!match)
+				continue;
+		}
+
+		if (allowed(&netsrc, tsig, view->matchclients) &&
+		    allowed(&netdst, tsig, view->matchdestinations))
+			break;
+	}
+	return (ISC_TF(view == myview));
 }
 
 /*
