@@ -257,7 +257,17 @@ deleting name x.a.vix.com
 vix.com. (black)
 	++ BEG down from vix.com.
 	b (black)
-		y.x.a (black from b)
+		a (black from b)
+			++ BEG down from a
+			x (black)
+				++ BEG down from x
+				y (black)
+					NULL
+					NULL
+				-- END down from x
+				NULL
+				NULL
+			-- END down from a
 			NULL
 			NULL
 		g.h (black from b)
@@ -273,7 +283,17 @@ deleting name c.vix.com
 vix.com. (black)
 	++ BEG down from vix.com.
 	g.h (black)
-		y.x.a (RED from g.h)
+		a (RED from g.h)
+			++ BEG down from a
+			x (black)
+				++ BEG down from x
+				y (black)
+					NULL
+					NULL
+				-- END down from x
+				NULL
+				NULL
+			-- END down from a
 			NULL
 			NULL
 		NULL
@@ -281,7 +301,19 @@ vix.com. (black)
 	NULL
 	NULL
 deleting name y.x.a.vix.com
-g.h.vix.com. (black)
+vix.com. (black)
+	++ BEG down from vix.com.
+	g.h (black)
+		a (RED from g.h)
+			++ BEG down from a
+			x (black)
+				NULL
+				NULL
+			-- END down from a
+			NULL
+			NULL
+		NULL
+	-- END down from vix.com.
 	NULL
 	NULL
 deleting name g.h.vix.com.
@@ -325,7 +357,14 @@ vix.com. (black)
 			-- END down from \[x0/1]
 			NULL
 			NULL
-		NULL
+		a (RED from \[x80/6])
+			++ BEG down from a
+			x (black)
+				NULL
+				NULL
+			-- END down from a
+			NULL
+			NULL
 	-- END down from vix.com.
 	NULL
 	NULL
