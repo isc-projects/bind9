@@ -1,3 +1,5 @@
+ 469.	[bug]		"query-source address * port 53;" now works.
+
  468.	[bug]		dns_master_load*() failed to report file and line
 			number in certain error conditions.
 

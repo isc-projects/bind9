@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.68 2000/09/08 22:02:21 gson Exp $ */
+/* $Id: dispatch.c,v 1.69 2000/09/18 04:50:05 marka Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,20 @@
 #include <dns/tcpmsg.h>
 #include <dns/types.h>
 
+typedef ISC_LIST(dns_dispentry_t)	dns_displist_t;
+
+typedef struct dns_qid {
+	unsigned int	magic;
+	isc_mem_t	*mctx;
+	isc_entropy_t	*entropy;	
+	unsigned int	qid_nbuckets;	/* hash table size */
+	unsigned int	qid_increment;	/* id increment on collision */
+	isc_mutex_t	lock;
+	isc_lfsr_t	qid_lfsr1;	/* state generator info */
+	isc_lfsr_t	qid_lfsr2;	/* state generator info */
+	dns_displist_t	*qid_table;	/* the table itself */
+} dns_qid_t;
+
 struct dns_dispatchmgr {
 	/* Unlocked. */
 	unsigned int			magic;
@@ -46,6 +60,7 @@ struct dns_dispatchmgr {
 	isc_mutex_t			lock;
 	unsigned int			state;
 	ISC_LIST(dns_dispatch_t)	list;
+	dns_qid_t			*qid;
 
 	/* Locked internally. */
 	isc_mutex_t			pool_lock;
@@ -76,8 +91,6 @@ struct dns_dispentry {
 };
 
 #define INVALID_BUCKET		(0xffffdead)
-
-typedef ISC_LIST(dns_dispentry_t)	dns_displist_t;
 
 struct dns_dispatch {
 	/* Unlocked. */
@@ -112,12 +125,11 @@ struct dns_dispatch {
 	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
 	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	dns_tcpmsg_t		tcpmsg;		/* for tcp streams */
-	isc_lfsr_t		qid_lfsr1;	/* state generator info */
-	isc_lfsr_t		qid_lfsr2;	/* state generator info */
-	unsigned int		qid_nbuckets;	/* hash table size */
-	unsigned int		qid_increment;	/* id increment on collision */
-	dns_displist_t	        *qid_table;	/* the table itself */
+	dns_qid_t		*qid;
 };
+
+#define QID_MAGIC		ISC_MAGIC('Q', 'i', 'd', ' ')
+#define VALID_QID(e)		ISC_MAGIC_VALID((e), QID_MAGIC)
 
 #define REQUEST_MAGIC		ISC_MAGIC('D', 'r', 'q', 's')
 #define VALID_REQUEST(e)	ISC_MAGIC_VALID((e), REQUEST_MAGIC)
@@ -131,18 +143,20 @@ struct dns_dispatch {
 #define DNS_DISPATCHMGR_MAGIC	ISC_MAGIC('D', 'M', 'g', 'r')
 #define VALID_DISPATCHMGR(e)	ISC_MAGIC_VALID((e), DNS_DISPATCHMGR_MAGIC)
 
+#define DNS_QID(disp) ((disp)->socktype == isc_sockettype_tcp) ? \
+		       (disp)->qid : (disp)->mgr->qid
 /*
  * Statics.
  */
-static dns_dispentry_t *bucket_search(dns_dispatch_t *, isc_sockaddr_t *,
+static dns_dispentry_t *bucket_search(dns_qid_t *, isc_sockaddr_t *,
 				      dns_messageid_t, unsigned int);
 static isc_boolean_t destroy_disp_ok(dns_dispatch_t *);
 static void destroy_disp(dns_dispatch_t **);
 static void udp_recv(isc_task_t *, isc_event_t *);
 static void tcp_recv(isc_task_t *, isc_event_t *);
 static inline void startrecv(dns_dispatch_t *);
-static isc_uint32_t dns_randomid(dns_dispatch_t *);
-static isc_uint32_t dns_hash(dns_dispatch_t *, isc_sockaddr_t *, isc_uint32_t);
+static isc_uint32_t dns_randomid(dns_qid_t *);
+static isc_uint32_t dns_hash(dns_qid_t *, isc_sockaddr_t *, isc_uint32_t);
 static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
 static void *allocate_udp_buffer(dns_dispatch_t *disp);
 static inline void free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
@@ -150,8 +164,8 @@ static inline dns_dispatchevent_t *allocate_event(dns_dispatch_t *disp);
 static void do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp);
 static void do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp);
 static void do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp);
-static dns_dispentry_t *linear_first(dns_dispatch_t *disp);
-static dns_dispentry_t *linear_next(dns_dispatch_t *disp,
+static dns_dispentry_t *linear_first(dns_qid_t *disp);
+static dns_dispentry_t *linear_next(dns_qid_t *disp,
 				    dns_dispentry_t *resp);
 static void dispatch_free(dns_dispatch_t **dispp);
 static isc_result_t dispatch_createudp(dns_dispatchmgr_t *mgr,
@@ -167,6 +181,10 @@ static isc_result_t dispatch_createudp(dns_dispatchmgr_t *mgr,
 				       dns_dispatch_t **dispp);
 static isc_boolean_t destroy_mgr_ok(dns_dispatchmgr_t *mgr);
 static void destroy_mgr(dns_dispatchmgr_t **mgrp);
+static isc_result_t qid_allocate(isc_mem_t *mctx, unsigned int buckets,
+				 unsigned int increment,
+				 isc_entropy_t *entropy, dns_qid_t **qidp);
+static void qid_destroy(dns_qid_t **qidp);
 
 #define LVL(x) ISC_LOG_DEBUG(x)
 
@@ -241,13 +259,14 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 static void
 reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 {
-	dns_dispatch_t *disp = (dns_dispatch_t *)arg;
-	dns_dispatchmgr_t *mgr = disp->mgr;
+	dns_qid_t *qid = arg;
 	isc_result_t result;
 	isc_uint32_t val;
 
-	if (mgr->entropy != NULL) {
-		result = isc_entropy_getdata(mgr->entropy, &val, sizeof val,
+	REQUIRE(VALID_QID(qid));
+
+	if (qid->entropy != NULL) {
+		result = isc_entropy_getdata(qid->entropy, &val, sizeof val,
 					     NULL, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		lfsr->count = (val & 0x1f) + 32;
@@ -263,10 +282,10 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
  * Return an unpredictable message ID.
  */
 static isc_uint32_t
-dns_randomid(dns_dispatch_t *disp) {
+dns_randomid(dns_qid_t *qid) {
 	isc_uint32_t id;
 
-	id = isc_lfsr_generate32(&disp->qid_lfsr1, &disp->qid_lfsr2);
+	id = isc_lfsr_generate32(&qid->qid_lfsr1, &qid->qid_lfsr2);
 
 	return (id & 0x0000ffffU);
 }
@@ -275,27 +294,27 @@ dns_randomid(dns_dispatch_t *disp) {
  * Return a hash of the destination and message id.
  */
 static isc_uint32_t
-dns_hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, isc_uint32_t id) {
+dns_hash(dns_qid_t *qid, isc_sockaddr_t *dest, isc_uint32_t id) {
 	unsigned int ret;
 
 	ret = isc_sockaddr_hash(dest, ISC_TRUE);
 	ret ^= (id & 0x0000ffff); /* important to mask off garbage bits */
-	ret %= disp->qid_nbuckets;
+	ret %= qid->qid_nbuckets;
 
-	INSIST(ret < disp->qid_nbuckets);
+	INSIST(ret < qid->qid_nbuckets);
 
 	return (ret);
 }
 
 static dns_dispentry_t *
-linear_first(dns_dispatch_t *disp) {
+linear_first(dns_qid_t *qid) {
 	dns_dispentry_t *ret;
 	unsigned int bucket;
 
 	bucket = 0;
 
-	while (bucket < disp->qid_nbuckets) {
-		ret = ISC_LIST_HEAD(disp->qid_table[bucket]);
+	while (bucket < qid->qid_nbuckets) {
+		ret = ISC_LIST_HEAD(qid->qid_table[bucket]);
 		if (ret != NULL)
 			return (ret);
 		bucket++;
@@ -305,7 +324,7 @@ linear_first(dns_dispatch_t *disp) {
 }
 
 static dns_dispentry_t *
-linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp) {
+linear_next(dns_qid_t *qid, dns_dispentry_t *resp) {
 	dns_dispentry_t *ret;
 	unsigned int bucket;
 
@@ -314,8 +333,8 @@ linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		return (ret);
 
 	bucket = resp->bucket;
-	while (bucket < disp->qid_nbuckets) {
-		ret = ISC_LIST_HEAD(disp->qid_table[bucket]);
+	while (bucket < qid->qid_nbuckets) {
+		ret = ISC_LIST_HEAD(qid->qid_table[bucket]);
 		if (ret != NULL)
 			return (ret);
 		bucket++;
@@ -372,14 +391,14 @@ destroy_disp(dns_dispatch_t **dispp) {
 
 
 static dns_dispentry_t *
-bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
+bucket_search(dns_qid_t *qid, isc_sockaddr_t *dest, dns_messageid_t id,
 	      unsigned int bucket)
 {
 	dns_dispentry_t *res;
 
-	REQUIRE(bucket < disp->qid_nbuckets);
+	REQUIRE(bucket < qid->qid_nbuckets);
 
-	res = ISC_LIST_HEAD(disp->qid_table[bucket]);
+	res = ISC_LIST_HEAD(qid->qid_table[bucket]);
 
 	while (res != NULL) {
 		if ((res->id == id) && isc_sockaddr_equal(dest, &res->host))
@@ -481,12 +500,15 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_boolean_t queue_request;
 	isc_boolean_t queue_response;
 	dns_dispatchmgr_t *mgr;
+	dns_qid_t *qid;
+	unsigned char *buf;
 
 	UNUSED(task);
 
 	LOCK(&disp->lock);
 
 	mgr = disp->mgr;
+	qid = mgr->qid;
 
 	dispatch_log(disp, LVL(90),
 		     "got packet: requests %d, buffers %d, recvs %d",
@@ -577,11 +599,16 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto restart;
 		}
+		isc_buffer_init(&rev->buffer, ev->region.base,
+				 ev->region.length);
+		isc_buffer_add(&rev->buffer, ev->n);
 		/* query */
 	} else {
  		/* response */
-		bucket = dns_hash(disp, &ev->address, id);
-		resp = bucket_search(disp, &ev->address, id, bucket);
+		bucket = dns_hash(qid, &ev->address, id);
+		LOCK(&qid->lock);
+		resp = bucket_search(qid, &ev->address, id, bucket);
+		UNLOCK(&qid->lock);
 		dispatch_log(disp, LVL(90),
 			     "search for response in bucket %d: %s",
 			     bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
@@ -589,12 +616,42 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		if (resp == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto restart;
-		}
+		} 
 		queue_response = resp->item_out;
-		rev = allocate_event(disp);
+		rev = allocate_event(resp->disp);
 		if (rev == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto restart;
+		}
+		/*
+		 * The kernel may deliver answers to the "wrong" socket
+		 * if we are using "query-source address * port 53;".
+		 * Fix up resource allocation if this happens.
+		 */
+		if (resp->disp != disp) {
+			if (ev->n > resp->disp->buffersize) {
+				free_event(resp->disp, rev);
+				free_buffer(disp, ev->region.base,
+					    ev->region.length);
+				goto restart;
+			}
+			LOCK(&resp->disp->lock);
+			buf = allocate_udp_buffer(resp->disp);
+			UNLOCK(&resp->disp->lock);
+			if (buf == NULL) {
+				free_event(resp->disp, rev);
+				free_buffer(disp, ev->region.base,
+					    ev->region.length);
+				goto restart;
+			}
+			isc_buffer_init(&rev->buffer, buf,
+					resp->disp->buffersize);
+			isc_buffer_putmem(&rev->buffer, ev->region.base, ev->n);
+			free_buffer(disp, ev->region.base, ev->region.length);
+		} else {
+			isc_buffer_init(&rev->buffer, ev->region.base,
+					 ev->region.length);
+			isc_buffer_add(&rev->buffer, ev->n);
 		}
 	}
 
@@ -603,8 +660,6 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	 * resp contains the information on the place to send it to.
 	 * Send the event off.
 	 */
-	isc_buffer_init(&rev->buffer, ev->region.base, ev->region.length);
-	isc_buffer_add(&rev->buffer, ev->n);
 	rev->result = ISC_R_SUCCESS;
 	rev->id = id;
 	rev->addr = ev->address;
@@ -671,12 +726,14 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_boolean_t killit;
 	isc_boolean_t queue_request;
 	isc_boolean_t queue_response;
+	dns_qid_t *qid;
 
 	UNUSED(task);
 
 	REQUIRE(VALID_DISPATCH(disp));
 
 	mgr = disp->mgr;
+	qid = disp->qid;
 
 	dispatch_log(disp, LVL(90),
 		     "got TCP packet: requests %d, buffers %d, recvs %d",
@@ -788,8 +845,10 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
  		/*
 		 * Response.
 		 */
-		bucket = dns_hash(disp, &tcpmsg->address, id);
-		resp = bucket_search(disp, &tcpmsg->address, id, bucket);
+		bucket = dns_hash(qid, &tcpmsg->address, id);
+		LOCK(&qid->lock);
+		resp = bucket_search(qid, &tcpmsg->address, id, bucket);
+		UNLOCK(&qid->lock);
 		dispatch_log(disp, LVL(90),
 			     "search for response in bucket %d: %s",
 			     bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
@@ -949,6 +1008,8 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 	if (mgr->entropy != NULL)
 		isc_entropy_detach(&mgr->entropy);
+	if (mgr->qid != NULL)
+		qid_destroy(&mgr->qid);
 
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mctx);
@@ -1047,13 +1108,16 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	if (entropy != NULL)
 		isc_entropy_attach(entropy, &mgr->entropy);
 
+	mgr->qid = NULL;
+	result = qid_allocate(mgr->mctx, 16411, 16433, entropy, &mgr->qid);
+	if (result != ISC_R_SUCCESS)
+		goto kill_dpool;
+
 	*mgrp = mgr;
 	return (ISC_R_SUCCESS);
 
-#if 0
  kill_dpool:
 	isc_mempool_destroy(&mgr->dpool);
-#endif
  kill_rpool:
 	isc_mempool_destroy(&mgr->rpool);
  kill_epool:
@@ -1157,6 +1221,83 @@ dispatch_find(dns_dispatchmgr_t *mgr, isc_sockaddr_t *local,
 	return (result);
 }
 
+static isc_result_t
+qid_allocate(isc_mem_t *mctx, unsigned int buckets, unsigned int increment,
+	     isc_entropy_t *entropy, dns_qid_t **qidp)
+{
+	dns_qid_t *qid;
+	unsigned int i;
+
+	REQUIRE(qidp != NULL && *qidp == NULL);
+	qid = isc_mem_get(mctx, sizeof(*qid));
+	if (qid == NULL)
+		return (ISC_R_NOMEMORY);
+
+	qid->qid_table = isc_mem_get(mctx, buckets * sizeof(dns_displist_t));
+	if (qid->qid_table == NULL) {
+		isc_mem_put(mctx, qid, sizeof(*qid));
+		return (ISC_R_NOMEMORY);
+	}
+
+	if (isc_mutex_init(&qid->lock) != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_mutex_init failed");
+		isc_mem_put(mctx, qid->qid_table,
+			    buckets * sizeof(dns_displist_t));
+		isc_mem_put(mctx, qid, sizeof(*qid));
+		return (ISC_R_UNEXPECTED);
+	}
+
+	for (i = 0 ; i < buckets ; i++)
+		ISC_LIST_INIT(qid->qid_table[i]);
+
+	qid->qid_nbuckets = buckets;
+	qid->qid_increment = increment;
+
+	qid->entropy = NULL;
+	if (entropy != NULL)
+		isc_entropy_attach(entropy, &qid->entropy);
+
+	qid->mctx = NULL;
+	isc_mem_attach(mctx, &qid->mctx);
+	qid->magic = QID_MAGIC;
+
+	/*
+	 * Initialize to a 32-bit LFSR.  Both of these are from Applied
+	 * Cryptography.
+	 *
+	 * lfsr1:
+	 *	x^32 + x^7 + x^5 + x^3 + x^2 + x + 1
+	 *
+	 * lfsr2:
+	 *	x^32 + x^7 + x^6 + x^2 + 1
+	 */
+	isc_lfsr_init(&qid->qid_lfsr1, 0, 32, 0x80000057U,
+		      0, reseed_lfsr, qid);
+	isc_lfsr_init(&qid->qid_lfsr2, 0, 32, 0x800000c2U,
+		      0, reseed_lfsr, qid);
+	*qidp = qid;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+qid_destroy(dns_qid_t **qidp) {
+	dns_qid_t *qid;
+
+	REQUIRE(qidp != NULL);
+	qid = *qidp;
+
+	REQUIRE(VALID_QID(qid));
+
+	*qidp = NULL;
+	qid->magic = 0;
+	isc_mem_put(qid->mctx, qid->qid_table,
+		    qid->qid_nbuckets * sizeof(dns_displist_t));
+	if (qid->entropy != NULL)
+		isc_entropy_detach(&qid->entropy);
+	DESTROYLOCK(&qid->lock);
+	isc_mem_putanddetach(&qid->mctx, qid, sizeof(*qid));
+}
+
 /*
  * Allocate and set important limits.
  */
@@ -1164,9 +1305,8 @@ static isc_result_t
 dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int buffersize,
 		  unsigned int maxbuffers, unsigned int maxrequests,
 		  unsigned int buckets, unsigned int increment,
-		  dns_dispatch_t **dispp)
+		  isc_boolean_t need_qid, dns_dispatch_t **dispp)
 {
-	unsigned int i;
 	dns_dispatch_t *disp;
 	isc_result_t res;
 
@@ -1203,21 +1343,16 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int buffersize,
 	disp->shutdown_why = ISC_R_UNEXPECTED;
 	disp->requests = 0;
 	disp->buffers = 0;
+	disp->qid = NULL;
 	ISC_LIST_INIT(disp->rq_handlers);
 	ISC_LIST_INIT(disp->rq_events);
 
-	disp->qid_table = isc_mem_get(mgr->mctx,
-				      buckets * sizeof(dns_displist_t));
-	if (disp->qid_table == NULL) {
-		res = ISC_R_NOMEMORY;
-		goto deallocate;
+	if (need_qid) {
+		res = qid_allocate(mgr->mctx, buckets, increment, mgr->entropy,
+				   &disp->qid);
+		if (res != ISC_R_SUCCESS)
+			goto deallocate;
 	}
-
-	for (i = 0 ; i < buckets ; i++)
-		ISC_LIST_INIT(disp->qid_table[i]);
-
-	disp->qid_nbuckets = buckets;
-	disp->qid_increment = increment;
 
 	if (isc_mutex_init(&disp->lock) != ISC_R_SUCCESS) {
 		res = ISC_R_UNEXPECTED;
@@ -1254,21 +1389,6 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int buffersize,
 		goto kill_bpool;
 	}
 
-	/*
-	 * Initialize to a 32-bit LFSR.  Both of these are from Applied
-	 * Cryptography.
-	 *
-	 * lfsr1:
-	 *	x^32 + x^7 + x^5 + x^3 + x^2 + x + 1
-	 *
-	 * lfsr2:
-	 *	x^32 + x^7 + x^6 + x^2 + 1
-	 */
-	isc_lfsr_init(&disp->qid_lfsr1, 0, 32, 0x80000057U,
-		      0, reseed_lfsr, disp);
-	isc_lfsr_init(&disp->qid_lfsr2, 0, 32, 0x800000c2U,
-		      0, reseed_lfsr, disp);
-
 	disp->magic = DISPATCH_MAGIC;
 
 	*dispp = disp;
@@ -1282,8 +1402,8 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int buffersize,
  kill_lock:
 	DESTROYLOCK(&disp->lock);
  deallocate_qidtable:
-	isc_mem_put(mgr->mctx, disp->qid_table,
-		    disp->qid_nbuckets * sizeof(dns_displist_t));
+	if (disp->qid != NULL)
+		qid_destroy(&disp->qid);
  deallocate:
 	isc_mempool_put(mgr->dpool, disp);
 
@@ -1333,13 +1453,12 @@ dispatch_free(dns_dispatch_t **dispp)
 
 	isc_mempool_destroy(&disp->bpool);
 	DESTROYLOCK(&disp->lock);
-	isc_mem_put(mgr->mctx, disp->qid_table,
-		    disp->qid_nbuckets * sizeof(dns_displist_t));
+	if (disp->qid != NULL)
+		qid_destroy(&disp->qid);
 	disp->mgr = NULL;
 	disp->magic = 0;
 	isc_mempool_put(mgr->dpool, disp);
 }
-
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
@@ -1366,7 +1485,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	 */
 	disp = NULL;
 	result = dispatch_allocate(mgr, buffersize, maxbuffers, maxrequests,
-				   buckets, increment, &disp);
+				   buckets, increment, ISC_TRUE, &disp);
 	if (result != ISC_R_SUCCESS) {
 		UNLOCK(&mgr->lock);
 		return (result);
@@ -1502,7 +1621,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	 */
 	disp = NULL;
 	result = dispatch_allocate(mgr, buffersize, maxbuffers, maxrequests,
-				   buckets, increment, &disp);
+				   buckets, increment, ISC_FALSE, &disp);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -1620,6 +1739,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	dns_messageid_t id;
 	int i;
 	isc_boolean_t ok;
+	dns_qid_t *qid;
 
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(task != NULL);
@@ -1642,18 +1762,21 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	/*
 	 * Try somewhat hard to find an unique ID.
 	 */
-	id = dns_randomid(disp);
-	bucket = dns_hash(disp, dest, id);
+	qid = DNS_QID(disp);
+	LOCK(&qid->lock);
+	id = dns_randomid(qid);
+	bucket = dns_hash(qid, dest, id);
 	ok = ISC_FALSE;
 	for (i = 0 ; i < 64 ; i++) {
-		if (bucket_search(disp, dest, id, bucket) == NULL) {
+		if (bucket_search(qid, dest, id, bucket) == NULL) {
 			ok = ISC_TRUE;
 			break;
 		}
-		id += disp->qid_increment;
+		id += qid->qid_increment;
 		id &= 0x0000ffff;
-		bucket = dns_hash(disp, dest, id);
+		bucket = dns_hash(qid, dest, id);
 	}
+	UNLOCK(&qid->lock);
 
 	if (!ok) {
 		UNLOCK(&disp->lock);
@@ -1680,7 +1803,9 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	ISC_LIST_INIT(res->items);
 	ISC_LINK_INIT(res, link);
 	res->magic = RESPONSE_MAGIC;
-	ISC_LIST_APPEND(disp->qid_table[bucket], res, link);
+	LOCK(&qid->lock);
+	ISC_LIST_APPEND(qid->qid_table[bucket], res, link);
+	UNLOCK(&qid->lock);
 
 	request_log(disp, res, LVL(90),
 		    "attached to task %p", res->task);
@@ -1722,6 +1847,7 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	isc_boolean_t killit;
 	unsigned int n;
 	isc_eventlist_t events;
+	dns_qid_t *qid;
 
 	REQUIRE(resp != NULL);
 	REQUIRE(VALID_RESPONSE(*resp));
@@ -1733,6 +1859,8 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	REQUIRE(VALID_DISPATCH(disp));
 	mgr = disp->mgr;
 	REQUIRE(VALID_DISPATCHMGR(mgr));
+
+	qid = DNS_QID(disp);
 
 	if (sockevent != NULL) {
 		REQUIRE(*sockevent != NULL);
@@ -1758,7 +1886,9 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 
 	bucket = res->bucket;
 
-	ISC_LIST_UNLINK(disp->qid_table[bucket], res, link);
+	LOCK(&qid->lock);
+	ISC_LIST_UNLINK(qid->qid_table[bucket], res, link);
+	UNLOCK(&qid->lock);
 
 	if (ev == NULL && res->item_out) {
 		/*
@@ -2059,9 +2189,12 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 static void
 do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
+	dns_qid_t *qid;
 
 	if (disp->shutdown_out == 1)
 		return;
+
+	qid = DNS_QID(disp);
 
 	/*
 	 * If no target given, find the first request handler.  If
@@ -2083,15 +2216,20 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	 * Search for the first response handler without packets outstanding.
 	 */
 	if (resp == NULL) {
-		resp = linear_first(disp);
-		if (resp == NULL)  /* no first item? */
+		LOCK(&qid->lock);
+		resp = linear_first(qid);
+		if (resp == NULL) {
+			/* no first item? */
+			UNLOCK(&qid->lock);
 			return;
+		}
 		do {
 			if (resp->item_out == ISC_FALSE)
 				break;
 
-			resp = linear_next(disp, resp);
+			resp = linear_next(qid, resp);
 		} while (resp != NULL);
+		UNLOCK(&qid->lock);
 	}
 
 	/*
