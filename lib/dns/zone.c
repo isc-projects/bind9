@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.236 2000/10/17 07:22:34 marka Exp $ */
+/* $Id: zone.c,v 1.237 2000/10/17 20:57:24 mws Exp $ */
 
 #include <config.h>
 
@@ -187,6 +187,12 @@ struct dns_zone {
 	 */
 	ISC_LINK(dns_zone_t)	statelink;
 	dns_zonelist_t		*statelist;
+	/*
+	 * Variables stored in the zone object which are used to hold
+	 * statistical information regarding the zone.
+	 */
+	isc_uint64_t            counters[DNS_ZONE_COUNTSIZE];
+	isc_uint64_t            totals[DNS_ZONE_COUNTSIZE];
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -319,6 +325,17 @@ struct dns_io {
 	isc_event_t	*event;
 };
 
+/*
+ * Names of the zone counters
+ */
+const char *dns_zonecount_names[] = {
+	"SUCCESS",
+	"DELEGATION",
+	"NXRRSET",
+	"NXDOMAIN",
+	"RECURSION",
+        "SERVFAIL" };
+
 static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
 
@@ -406,6 +423,7 @@ isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_zone_t *zone;
+	int i;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(mctx != NULL);
@@ -492,8 +510,11 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->view = NULL;
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
+	for (i = 0; i < DNS_ZONE_COUNTSIZE; i++) {
+		zone->counters[i]=0;
+		zone->totals[i]=0;
+	}
 
-		
 	zone->magic = ZONE_MAGIC;
 
 	/* Must be after magic is set. */
@@ -5470,3 +5491,34 @@ dns_zone_isforced(dns_zone_t *zone) {
 
 	return (DNS_ZONE_FLAG(zone,DNS_ZONEFLG_FORCELOAD));
 }
+
+void
+dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter) {
+	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
+
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	zone->totals[counter]++;
+	zone->counters[counter]++;
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+}
+
+isc_uint64_t
+dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
+
+	return(zone->counters[counter]);
+}
+
+void
+dns_zone_resetcounts(dns_zone_t *zone) {
+	int i;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
+		zone->counters[i]=0;
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+}
+

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.137 2000/10/12 21:51:45 mws Exp $ */
+/* $Id: query.c,v 1.138 2000/10/17 20:57:22 mws Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,11 @@
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
 
+/*
+ * Server-wide counter of queries
+ */
+isc_uint64_t            globalcount[DNS_ZONE_COUNTSIZE];
+
 
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
@@ -100,6 +105,35 @@ query_maybeputqname(ns_client_t *client) {
 					&client->query.qname);
 		client->query.qname = NULL;
 	}
+}
+
+static isc_uint64_t
+query_getglobals(unsigned int counter) {
+	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
+
+	return(globalcount[counter]);
+}
+
+static void
+query_count(dns_zone_t *zone, isc_boolean_t is_zone,
+	    dns_zonecount_t counter)
+{
+	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
+
+	globalcount[counter]++;
+	if (!is_zone || zone == NULL) {
+	isc_log_write(dns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+		      1, "global counter %s set to %ld", 
+		      dns_zonecount_names[counter],
+		      (long)globalcount[counter]);
+		return;
+	}
+	dns_zone_count(zone, counter);
+	isc_log_write(dns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+		      1, "zone counter %s set to %ld, global %ld", 
+		      dns_zonecount_names[counter],
+		      (long)dns_zone_getcounts(zone, counter),
+		      (long)globalcount[counter]);
 }
 
 static inline void
@@ -477,7 +511,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)		
 		goto fail;
 
 	/*
@@ -771,6 +805,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		if (dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 		if (is_zone) {
+			query_count(zone, is_zone, dns_zonecount_delegate);
 			if (USECACHE(client)) {
 				/*
 				 * Either the answer is in the cache, or we
@@ -829,6 +864,13 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			dns_rdataset_disassociate(sigrdataset);
 		result = ISC_R_NOTFOUND;
 	}
+	/*
+	 * If we get here, the result is ISC_R_SUCCESS, and we found the
+	 * answer we were looking for in the zone.  Update the zone's
+	 * query counter.
+	 */
+	if (result == ISC_R_SUCCESS)
+		query_count(zone, is_zone, dns_zonecount_success);
 
  cleanup:
 	if (dns_rdataset_isassociated(&zrdataset)) {
@@ -2158,17 +2200,20 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		dbuf = query_getnamebuf(client);
 		if (dbuf == NULL) {
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
 		fname = query_newname(client, dbuf, &b);
 		if (fname == NULL) {
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
 		tname = dns_fixedname_name(&event->foundname);
 		result = dns_name_concatenate(tname, NULL, fname, NULL);
 		if (result != ISC_R_SUCCESS) {
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
@@ -2191,6 +2236,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	result = query_getdb(client, client->query.qname, 0, &zone, &db,
 			     &version, &is_zone);
 	if (result != ISC_R_SUCCESS) {
+		query_count(NULL, ISC_FALSE, dns_zonecount_failure);
 		if (result == DNS_R_REFUSED)
 			QUERY_ERROR(DNS_R_REFUSED);
 		else
@@ -2232,6 +2278,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		type = qtype;
 	else {
 		CTRACE("find_query: REFUSED: qcount != 1");
+		query_count(zone, is_zone, dns_zonecount_failure);
 		QUERY_ERROR(DNS_R_REFUSED);
 		goto cleanup;
 	}
@@ -2242,6 +2289,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	result = query_checktype(qtype);
 	if (result != ISC_R_SUCCESS) {
 		CTRACE("find_query: non supported query type");
+		query_count(zone, is_zone, dns_zonecount_failure);
 		QUERY_ERROR(result);
 		goto cleanup;
 	}
@@ -2259,6 +2307,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	 */
 	dbuf = query_getnamebuf(client);
 	if (dbuf == NULL) {
+		query_count(zone, is_zone, dns_zonecount_failure);
 		QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
@@ -2266,6 +2315,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	rdataset = query_newrdataset(client);
 	sigrdataset = query_newrdataset(client);
 	if (fname == NULL || rdataset == NULL || sigrdataset == NULL) {
+		query_count(zone, is_zone, dns_zonecount_failure);
 		QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
@@ -2321,6 +2371,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			result = dns_name_concatenate(client->query.qname,
 						      NULL, fname, NULL);
 			if (result != ISC_R_SUCCESS) {
+				query_count(zone, is_zone,
+					    dns_zonecount_failure);
 				QUERY_ERROR(DNS_R_SERVFAIL);
 				goto cleanup;
 			}
@@ -2338,6 +2390,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	CTRACE("query_find: resume");
 	switch (result) {
 	case ISC_R_SUCCESS:
+			query_count(zone, is_zone, dns_zonecount_success);
 		/*
 		 * This case is handled in the main line below.
 		 */
@@ -2369,6 +2422,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		INSIST(!is_zone);
 		INSIST(client->view->hints != NULL);
+		query_count(zone, is_zone, dns_zonecount_delegate);
 		if (db != NULL)
 			dns_db_detach(&db);
 		dns_db_attach(client->view->hints, &db);
@@ -2380,6 +2434,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			 * We can't even find the hints for the root
 			 * nameservers!
 			 */
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
@@ -2479,6 +2534,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				/*
 				 * Recurse!
 				 */
+				query_count(zone, is_zone,
+					    dns_zonecount_recurse);
 				if (type == dns_rdatatype_key)
 					result = query_recurse(client, qtype,
 							       NULL, NULL);
@@ -2488,12 +2545,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
-				else
+				else {
+					query_count(zone, is_zone,
+						       dns_zonecount_failure);
 					QUERY_ERROR(DNS_R_SERVFAIL);
+				}
 			} else {
 				/*
 				 * This is the best answer.
 				 */
+				query_count(zone, is_zone,
+					    dns_zonecount_delegate);
 				client->query.gluedb = zdb;
 				client->query.attributes |=
 					NS_QUERYATTR_CACHEGLUEOK;
@@ -2508,6 +2570,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		goto cleanup;
 	case DNS_R_NXRRSET:
 		INSIST(is_zone);
+		query_count(zone, is_zone, dns_zonecount_nxrrset);
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
 			 * If we've got a NXT record, we need to save the
@@ -2534,6 +2597,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		result = query_addsoa(client, db, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(result);
 			goto cleanup;
 		}
@@ -2550,6 +2614,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
+		query_count(zone, is_zone, dns_zonecount_nxdomain);
 		if (client->query.restarts > 0) {
 			/*
 			 * We hit a dead end following a CNAME or DNAME.
@@ -2588,6 +2653,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		else
 			result = query_addsoa(client, db, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(result);
 			goto cleanup;
 		}
@@ -2607,8 +2673,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		client->message->rcode = dns_rcode_nxdomain;
 		goto cleanup;
 	case DNS_R_NCACHENXDOMAIN:
+		INSIST(!is_zone);
+		query_count(NULL, is_zone, dns_zonecount_nxdomain);
+		goto ncachenxrrset;
 	case DNS_R_NCACHENXRRSET:
 		INSIST(!is_zone);
+		query_count(NULL, is_zone, dns_zonecount_nxrrset);
+	ncachenxrrset:
 		authoritative = ISC_FALSE;
 		/*
 		 * Set message rcode, if required.
@@ -2767,6 +2838,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		/*
 		 * Something has gone wrong.
 		 */
+		query_count(zone, is_zone, dns_zonecount_failure);
 		QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
@@ -2780,6 +2852,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		rdsiter = NULL;
 		result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
@@ -2853,11 +2926,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				/*
 				 * Something went wrong.
 				 */
+				query_count(zone, is_zone,
+					    dns_zonecount_failure);
 				result = DNS_R_SERVFAIL;
 			}
 		}
 		dns_rdatasetiter_destroy(&rdsiter);
 		if (result != ISC_R_NOMORE) {
+			query_count(zone, is_zone, dns_zonecount_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
@@ -3139,3 +3215,5 @@ ns_query_start(ns_client_t *client) {
 	ns_client_attach(client, &qclient);
 	query_find(qclient, NULL);
 }
+
+

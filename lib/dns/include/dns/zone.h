@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.80 2000/10/13 13:45:45 marka Exp $ */
+/* $Id: zone.h,v 1.81 2000/10/17 20:57:26 mws Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -37,6 +37,19 @@ typedef enum {
 	dns_zone_slave,
 	dns_zone_stub
 } dns_zonetype_t;
+
+typedef enum {
+	dns_zonecount_success = 0,  /* Successful lookups */
+	dns_zonecount_delegate = 1, /* Delegation result */
+	dns_zonecount_nxrrset = 2,  /* NXRRSET result */
+	dns_zonecount_nxdomain = 3, /* NXDOMAIN result */
+	dns_zonecount_recurse = 4,  /* Recursion was used */
+	dns_zonecount_failure = 5   /* Some other failure */
+} dns_zonecount_t;
+
+extern const char *dns_zonecount_names[];
+
+#define DNS_ZONE_COUNTSIZE      6
 
 #define DNS_ZONEOPT_SERVERS	0x00000001U	/* perform server checks */
 #define DNS_ZONEOPT_PARENTS	0x00000002U	/* perform parent checks */
@@ -1173,6 +1186,38 @@ dns_zone_isforced(dns_zone_t *zone);
  * Requires:
  *      'zone' to be a valid zone.
  */
+
+void
+dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter);
+/*
+ *      Increment a counter on a zone.
+ *
+ * Requires:
+ *      zone be a valid zone.
+ *      counter be a valid counter ID
+ */
+
+isc_uint64_t
+dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter);
+/*
+ *      Return the value of a counter on a zone.
+ *
+ * Requires:
+ *      zone be a valid zone.
+ *      counter be a valid counter ID
+ */
+
+
+void
+dns_zone_resetcounts(dns_zone_t *zone);
+/*
+ *      Reset the counters on a zone.
+ *
+ * Requires:
+ *      zone be a valid zone.
+ */
+
+extern int dns_zone_countsize;
 
 ISC_LANG_ENDDECLS
 
