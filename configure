@@ -3743,6 +3743,9 @@ LIBISC_API=$srcdir/lib/isc/api
 LIBDNS_API=$srcdir/lib/dns/api
 
 
+LIBLWRES_API=$srcdir/lib/lwres/api
+
+
 LIBOMAPI_API=$srcdir/lib/omapi/api
 
 trap '' 1 2 15
@@ -4011,6 +4014,8 @@ s%@BIND9_VERSION@%%g
 s%@LIBISC_API@%%g
 /@LIBDNS_API@/r $LIBDNS_API
 s%@LIBDNS_API@%%g
+/@LIBLWRES_API@/r $LIBLWRES_API
+s%@LIBLWRES_API@%%g
 /@LIBOMAPI_API@/r $LIBOMAPI_API
 s%@LIBOMAPI_API@%%g
 
