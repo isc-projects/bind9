@@ -77,12 +77,14 @@
  ***/
 
 typedef ISC_LIST(ns_client_t) client_list_t;
-     
+
 struct ns_client {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	ns_clientmgr_t *		manager;
-	isc_boolean_t			shuttingdown;
+	int				state;
+	int				newstate;
+	isc_boolean_t			disconnect;
 	int				naccepts;
 	int				nreads;
 	int				nsends;
@@ -103,7 +105,7 @@ struct ns_client {
 	unsigned char *			sendbuf;
 	dns_rdataset_t *		opt;
 	isc_uint16_t			udpsize;
-	void				(*next)(ns_client_t *, isc_result_t);
+	void				(*next)(ns_client_t *);
 	void				(*shutdown)(void *arg);
 	void 				*shutdown_arg;
 	ns_query_t			query;

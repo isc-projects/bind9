@@ -33,17 +33,31 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/view.h>
-#include <dns/xfrin.h>
 #include <dns/zone.h>
 
-#include <named/globals.h>
 #include <named/client.h>
+#include <named/globals.h>
+#include <named/interfacemgr.h>
 #include <named/log.h>
+#include <named/notify.h>
 #include <named/query.h>
 #include <named/server.h>
 #include <named/update.h>
-#include <named/notify.h>
-#include <named/interfacemgr.h>
+
+/***
+ *** Client
+ ***/
+
+/*
+ * Important note!
+ *
+ * All client state changes, other than that from idle to listening, occur
+ * as a result of events.  This guarantees serialization and avoids the
+ * need for locking.
+ *
+ * If a routine is ever created that allows someone other than the client's
+ * task to change the client, then the client will have to be locked.
+ */
 
 #define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE
@@ -73,52 +87,96 @@ struct ns_clientmgr {
 	/* Locked by lock. */
 	isc_boolean_t			exiting;
 	client_list_t			active; 	/* Active clients */
-	client_list_t 			inactive;	/* Recycling center */
+	client_list_t 			inactive;	/* To be recycled */
 };
 
 #define MANAGER_MAGIC			0x4E53436DU	/* NSCm */
 #define VALID_MANAGER(m)		((m) != NULL && \
 					 (m)->magic == MANAGER_MAGIC)
 
+/*
+ * Client object states.  Ordering is significant: higher-numbered
+ * states are generally "more active", meaning that the client can
+ * have more dynamically allocated data, outstanding events, etc.
+ * In the list below, any such properties listed for state N
+ * also apply to any state > N.
+ *
+ * To force the client into a less active state, set client->newstate
+ * to that state and call exit_check().  This will cause any
+ * activities defined for higher-numbered states to be aborted.
+ */
+
+#define NS_CLIENTSTATE_FREED    0
+/*
+ * The client object no longer exists.
+ */
+
+#define NS_CLIENTSTATE_INACTIVE 1
+/*
+ * The client object exists and has a task and timer.  
+ * Its "query" struct and sendbuf are initialized.
+ * It is on the client manager's list of inactive clients.
+ * It has a message and OPT, both in the reset state.
+ */
+
+#define NS_CLIENTSTATE_READY    2
+/*
+ * The client object is either a TCP or a UDP one, and
+ * it is associated with a network interface.  It is on the
+ * client manager's list of active clients.
+ *
+ * If it is a TCP client object, it has a TCP listener socket
+ * and an outstading TCP listen request.
+ *
+ * If it is a UDP client object, it is associated with a
+ * dispatch and has an outstanding dispatch request.
+ */
+
+#define NS_CLIENTSTATE_READING  3
+/*
+ * The client object is a TCP client object that has received
+ * a connection.  It has a tcpsocket, tcpmsg, TCP quota, and an 
+ * outstanding TCP read request.  This state is not used for
+ * UDP client objects.
+ */
+
+#define NS_CLIENTSTATE_WORKING  4
+/*
+ * The client object has received a request and is working
+ * on it.  It has a view, and it may  have any of a non-reset OPT,
+ * recursion quota, and an outstanding write request.  If it
+ * is a UDP client object, it has a dispatch event.
+ */ 
+
+#define NS_CLIENTSTATE_MAX      9
+/*
+ * Sentinel value used to indicate "no state".  When client->newstate
+ * has this value, we are not attempting to exit the current state.
+ * Must be greater than any valid state.
+ */
+
 
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
 static void clientmgr_destroy(ns_clientmgr_t *manager);
-
-
-/***
- *** Client
- ***/
+static isc_boolean_t exit_check(ns_client_t *client);
+static void ns_client_endrequest(ns_client_t *client);
 
 /*
- * Important note!
+ * Enter the inactive state.
  *
- * All client state changes, other than that from idle to listening, occur
- * as a result of events.  This guarantees serialization and avoids the
- * need for locking.
- *
- * If a routine is ever created that allows someone other than the client's
- * task to change the client, then the client will have to be locked.
- */
-
-static void
-release_quotas(ns_client_t *client) {
-	if (client->tcpquota != NULL)
-		isc_quota_detach(&client->tcpquota);
-	if (client->recursionquota != NULL)
-		isc_quota_detach(&client->recursionquota);
-}
-
-/*
- * Enter an inactive state identical to that of a newly created client.
+ * Requires:
+ *	No requests are outstanding.
  */
 static void
-deactivate(ns_client_t *client)
-{
-	CTRACE("deactivate");
-	
+client_deactivate(ns_client_t *client) {
+	REQUIRE(NS_CLIENT_VALID(client));
 	if (client->interface)
 		ns_interface_detach(&client->interface);
+
+	INSIST(client->naccepts == 0);	
+	if (client->tcplistener != NULL)
+		isc_socket_detach(&client->tcplistener);
 
 	if (client->dispentry != NULL) {
 		dns_dispatchevent_t **deventp;
@@ -130,31 +188,27 @@ deactivate(ns_client_t *client)
 					   &client->dispentry,
 					   deventp);
 	}
-
 	if (client->dispatch != NULL)
 		dns_dispatch_detach(&client->dispatch);
-
-	INSIST(client->naccepts == 0);	
-	if (client->tcplistener != NULL)
-		isc_socket_detach(&client->tcplistener);
-
-	if (client->tcpmsg_valid) {
-		dns_tcpmsg_invalidate(&client->tcpmsg);
-		client->tcpmsg_valid = ISC_FALSE;
-	}
-	if (client->tcpsocket != NULL)
-		isc_socket_detach(&client->tcpsocket);
 	
 	client->attributes = 0;	
 	client->mortal = ISC_FALSE;
+
+	LOCK(&client->manager->lock);
+	ISC_LIST_UNLINK(client->manager->active, client, link);
+	ISC_LIST_APPEND(client->manager->inactive, client, link);
+	client->list = &client->manager->inactive;
+	UNLOCK(&client->manager->lock);
 }
 
 /*
- * Free a client immediately if possible, otherwise start
- * shutting it down and postpone freeing to later.
+ * Clean up a client object and free its memory.
+ * Requires:
+ *   The client is in the inactive state.
  */
+
 static void
-maybe_free(ns_client_t *client) {
+client_free(ns_client_t *client) {
 	isc_boolean_t need_clientmgr_destroy = ISC_FALSE;
 	ns_clientmgr_t *manager = NULL;
 	
@@ -166,40 +220,8 @@ maybe_free(ns_client_t *client) {
 	 * set up.  Thus, we have no outstanding shutdown
 	 * event at this point.
 	 */
-	REQUIRE(client->shuttingdown == ISC_TRUE);
+	REQUIRE(client->state == NS_CLIENTSTATE_INACTIVE);
 
-	if (client->naccepts > 0)
-		isc_socket_cancel(client->tcplistener, client->task,
-				  ISC_SOCKCANCEL_ACCEPT);
-	if (client->nreads > 0)
-		dns_tcpmsg_cancelread(&client->tcpmsg);
-	if (client->nsends > 0) {
-		isc_socket_t *socket;
-		if (TCP_CLIENT(client))
-			socket = client->tcpsocket;
-		else
-			socket = dns_dispatch_getsocket(client->dispatch);
-		isc_socket_cancel(socket, client->task, ISC_SOCKCANCEL_SEND);
-	}
-
-	/*
-	 * We need to detach from the view early, because when shutting
-	 * down the server, resolver shutdown does not begin until
-	 * the view refcount goes to zero. 
-	 */
-	if (client->view != NULL)
-		dns_view_detach(&client->view);
-
-	if (!(client->nreads == 0 && client->naccepts == 0 &&
-	      client->nsends == 0 && client->nwaiting == 0)) {
-		/* Still waiting for events. */
-		return;
-	}
-	
-	/* We have received our last event. */
-
-	deactivate(client);
-	
 	ns_query_free(client);
 	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 	isc_timer_detach(&client->timer);
@@ -218,20 +240,157 @@ maybe_free(ns_client_t *client) {
 		ISC_LIST_UNLINK(*client->list, client, link);
 		client->list = NULL;
 		if (manager->exiting &&
-		    (ISC_LIST_EMPTY(manager->active) &&
-		     ISC_LIST_EMPTY(manager->inactive))) 
-		    need_clientmgr_destroy = ISC_TRUE;
+		    ISC_LIST_EMPTY(manager->active) &&
+		    ISC_LIST_EMPTY(manager->inactive))
+			need_clientmgr_destroy = ISC_TRUE;
 		UNLOCK(&manager->lock);
 	}
 
-	release_quotas(client);
-	
 	CTRACE("free");
 	client->magic = 0;
 	isc_mem_put(client->mctx, client, sizeof *client);
 	
 	if (need_clientmgr_destroy)
 		clientmgr_destroy(manager);
+}
+
+/*
+ * Check for a deactivation or shutdown request and take appropriate
+ * action.  Returns ISC_TRUE if either is in progress; in this case
+ * the caller must no longer use the client object as it may have been
+ * freed.
+ */
+static isc_boolean_t
+exit_check(ns_client_t *client) {
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	if (client->state <= client->newstate)
+		return (ISC_FALSE); /* Business as usual. */
+
+	/*
+	 * We need to detach from the view early when shutting down
+	 * the server to break the following vicious circle:
+	 *
+	 *  - The resolver will not shut down until the view refcount is zero
+	 *  - The view refcount does not go to zero until all clients detach
+	 *  - The client does not detach from the view until nwaiting is zero
+	 *  - nwaiting does not go to zero until the resolver has shut down
+	 *
+	 */
+	if (client->newstate == NS_CLIENTSTATE_FREED && client->view != NULL)
+		dns_view_detach(&client->view);	
+
+	if (client->state == NS_CLIENTSTATE_WORKING) {
+		INSIST(client->newstate <= NS_CLIENTSTATE_READING);
+		/*
+		 * We are trying to abort request processing.
+		 */
+		if (client->nsends > 0) {
+			isc_socket_t *socket;
+			if (TCP_CLIENT(client))
+				socket = client->tcpsocket;
+			else
+				socket =
+				dns_dispatch_getsocket(client->dispatch);
+			isc_socket_cancel(socket, client->task,
+					  ISC_SOCKCANCEL_SEND);
+		}
+		if (! (client->nsends == 0 && client->nwaiting == 0)) {
+			/*
+			 * Still waiting for I/O cancel completion.
+			 * or lingering references.
+			 */
+			return (ISC_TRUE);
+		}
+		/*
+		 * I/O cancel is complete.  Burn down all state
+		 * related to the current request.
+		 */
+		ns_client_endrequest(client);
+
+		client->state = NS_CLIENTSTATE_READING;
+		if (NS_CLIENTSTATE_READING == client->newstate) {
+			client_read(client);
+			client->newstate = NS_CLIENTSTATE_MAX;
+			return (ISC_TRUE); /* We're done. */
+		}
+	}
+
+	if (client->state == NS_CLIENTSTATE_READING) {
+		/*
+		 * We are trying to abort the current TCP connection,
+		 * if any.
+		 */
+		INSIST(client->newstate <= NS_CLIENTSTATE_READY);
+		if (client->nreads > 0)
+			dns_tcpmsg_cancelread(&client->tcpmsg);
+		if (! client->nreads == 0) {
+			/* Still waiting for read cancel completion. */
+			return (ISC_TRUE);
+		}
+
+		if (client->tcpmsg_valid) {
+			dns_tcpmsg_invalidate(&client->tcpmsg);
+			client->tcpmsg_valid = ISC_FALSE;
+		}
+		if (client->tcpsocket != NULL)
+			isc_socket_detach(&client->tcpsocket);
+
+		if (client->tcpquota != NULL)
+			isc_quota_detach(&client->tcpquota);
+		
+		client->state = NS_CLIENTSTATE_READY;
+		if (NS_CLIENTSTATE_READY == client->newstate) {
+			if (TCP_CLIENT(client)) {
+				client_accept(client);
+			} else {
+				/*
+				 * Give the processed dispatch event back to
+				 * the dispatch. This tells the dispatch
+				 * that we are ready to receive the next event.
+				 */
+				dns_dispatch_freeevent(client->dispatch,
+						       client->dispentry,
+						       &client->dispevent);
+			}
+			client->newstate = NS_CLIENTSTATE_MAX;
+			return (ISC_TRUE);
+		}
+	}
+
+	if (client->state == NS_CLIENTSTATE_READY) {
+		INSIST(client->newstate <= NS_CLIENTSTATE_INACTIVE);	    
+		/*
+		 * We are trying to enter the inactive state.
+		 */
+		if (client->naccepts > 0)
+			isc_socket_cancel(client->tcplistener, client->task,
+					  ISC_SOCKCANCEL_ACCEPT);
+		
+		if (! (client->naccepts == 0)) {
+			/* Still waiting for accept cancel completion. */
+			return (ISC_TRUE);
+		}
+		/* Accept cancel is complete. */
+		client_deactivate(client);
+		client->state = NS_CLIENTSTATE_INACTIVE;
+		if (client->state == client->newstate) {
+			client->newstate = NS_CLIENTSTATE_MAX;
+			return (ISC_TRUE); /* We're done. */
+		}
+	}
+
+	if (client->state == NS_CLIENTSTATE_INACTIVE) {
+		INSIST(client->newstate == NS_CLIENTSTATE_FREED);
+		/*
+		 * We are trying to free the client.
+		 */
+		client_free(client);
+		return (ISC_TRUE);
+	}
+
+	INSIST(0);
+	return (ISC_TRUE);
 }
 
 /*
@@ -249,40 +408,30 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("shutdown");
 
-	client->shuttingdown = ISC_TRUE;
-	
 	if (client->shutdown != NULL)
 		(client->shutdown)(client->shutdown_arg);
 
-	maybe_free(client);
-
 	isc_event_free(&event);
+
+	client->newstate = NS_CLIENTSTATE_FREED;
+	(void) exit_check(client);
 }
 
-/*
- * Wrap up after a finished client request and prepare for
- * handling the next one.
- */
-void
-ns_client_next(ns_client_t *client, isc_result_t result) {
 
-	REQUIRE(NS_CLIENT_VALID(client));
-
-	CTRACE("next");
+static void
+ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->naccepts == 0);
 	INSIST(client->nreads == 0);
 	INSIST(client->nsends == 0);
 	INSIST(client->lockview == NULL);
+	CTRACE("endrequest");
+
+	INSIST(client->state == NS_CLIENTSTATE_WORKING);
 
 	if (client->next != NULL) {
-		(client->next)(client, result);
+		(client->next)(client);
 		client->next = NULL;
 	}
-
-	/*
-	 * XXXRTH  If result != ISC_R_SUCCESS:
-	 * 		Log result if there is interest in doing so.
-	 */
 
 	if (client->view != NULL)
 		dns_view_detach(&client->view);
@@ -295,13 +444,15 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	client->udpsize = 512;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
-	release_quotas(client);
+	if (client->recursionquota != NULL)
+		isc_quota_detach(&client->recursionquota);
 
 	if (client->mortal) {
 		/*
-		 * This client object is supposed to die now, but if we
-		 * have fewer client objects than planned due to
-		 * quota exhaustion, don't.
+		 * This client object should normally go inactive
+		 * at this point, but if we have fewer active client 
+		 * objects than  desired due to earlier quota exhaustion,
+		 * keep it active to make up for the shortage.
 		 */
 		isc_boolean_t need_another_client = ISC_FALSE;
 		if (TCP_CLIENT(client)) {
@@ -322,51 +473,40 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 			/*
 			 * We don't need this client object.  Recycle it.
 			 */
-			LOCK(&client->manager->lock);
-			ISC_LIST_UNLINK(client->manager->active, client, link);
-			deactivate(client);
-			ISC_LIST_APPEND(client->manager->inactive, client, link);
-			client->list = &client->manager->inactive;
-			UNLOCK(&client->manager->lock);			
-			return;
-		}
-		client->mortal = ISC_FALSE;
-	}
-
-	if (client->dispevent != NULL) {
-		/*
-		 * Give the processed dispatch event back to the dispatch.
-		 * This tells the dispatch that we are ready to receive
-		 * the next event.
-		 */
-		dns_dispatch_freeevent(client->dispatch, client->dispentry,
-				       &client->dispevent);
-	} else if (TCP_CLIENT(client)) {
-		if (result == ISC_R_SUCCESS) {
-			client_read(client);
-		} else {
-			/*
-			 * There was an error processing a TCP request.
-			 * It may have have left the connection out of
-			 * sync.  Close the connection and listen for a
-			 * new one.
-			 */
-			if (client->tcpsocket != NULL) {
-				/*
-				 * There should be no outstanding read
-				 * request on the TCP socket at this point,
-				 * therefore invalidating the tcpmsg is safe.
-				 */
-				INSIST(client->nreads == 0);
-				INSIST(client->tcpmsg_valid == ISC_TRUE);
-				dns_tcpmsg_invalidate(&client->tcpmsg);
-				client->tcpmsg_valid = ISC_FALSE;
-				isc_socket_detach(&client->tcpsocket);
-			}
-			client_accept(client);
+			if (client->newstate >= NS_CLIENTSTATE_INACTIVE)
+				client->newstate = NS_CLIENTSTATE_INACTIVE;
 		}
 	}
 }
+
+void
+ns_client_next(ns_client_t *client, isc_result_t result) {
+	int newstate;
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(client->state == NS_CLIENTSTATE_WORKING);
+	CTRACE("next");
+	
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "request failed: %s", isc_result_totext(result));
+	}
+
+	/*
+	 * An error processing a TCP request may have left
+	 * the connection out of sync.  To be safe, we always
+	 * sever the connection when result != ISC_R_SUCCESS.
+	 */
+	if (result == ISC_R_SUCCESS && TCP_CLIENT(client))
+		newstate = NS_CLIENTSTATE_READING;
+	else
+		newstate = NS_CLIENTSTATE_READY;
+
+	if (client->newstate > newstate)
+		client->newstate = newstate;
+	(void) exit_check(client);
+}
+
 
 static void
 client_senddone(isc_task_t *task, isc_event_t *event) {
@@ -386,10 +526,8 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	if (client->shuttingdown) {
-		maybe_free(client);
+	if (exit_check(client))
 		return;
-	}
 
 	ns_client_next(client, ISC_R_SUCCESS);
 }
@@ -478,7 +616,7 @@ ns_client_send(ns_client_t *client) {
 		socket = client->tcpsocket;
 		address = NULL;
 		isc_buffer_used(&buffer, &r);
-		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t)r.length);
+		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
 		isc_buffer_used(&tcpbuffer, &r);
 	} else {
@@ -528,12 +666,6 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		 */
 		result = dns_message_reply(message, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
-			/*
-			 * There's no hope of replying to this request.
-			 *
-			 * XXXRTH  Mark this client to that if it is a
-			 * TCP session, the session will be closed.
-			 */
 			ns_client_next(client, result);
 			return;
 		}
@@ -614,6 +746,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->recursionquota == NULL);
 
+	INSIST(client->state ==
+	       TCP_CLIENT(client) ?
+	       NS_CLIENTSTATE_READING :
+	       NS_CLIENTSTATE_READY);
+
 	RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 	dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 	
@@ -634,10 +771,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("request");
 
-	if (client->shuttingdown) {
-		maybe_free(client);
+	if (exit_check(client))
 		goto cleanup_serverlock;
-	}
+	client->state = NS_CLIENTSTATE_WORKING;
 		
 	isc_stdtime_get(&client->requesttime);
 	client->now = client->requesttime;
@@ -848,7 +984,9 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	ns_client_next(client, ISC_R_TIMEDOUT);
+	if (client->newstate > NS_CLIENTSTATE_READY)
+		client->newstate = NS_CLIENTSTATE_READY;
+	(void) exit_check(client);
 }
 
 static isc_result_t
@@ -902,7 +1040,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->magic = NS_CLIENT_MAGIC;
 	client->mctx = manager->mctx;
 	client->manager = NULL;
-	client->shuttingdown = ISC_FALSE;
+	client->state = NS_CLIENTSTATE_INACTIVE;
+	client->newstate = NS_CLIENTSTATE_MAX;
 	client->naccepts = 0;
 	client->nreads = 0;
 	client->nsends = 0;
@@ -967,15 +1106,36 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 static void
 client_read(ns_client_t *client) {
 	isc_result_t result;
-
+#ifdef notyet
+	isc_interval_t interval;
+#endif
+	
 	CTRACE("read");
+
+#ifdef notyet
+	/*
+	 * Set a timeout to limit the amount of time we will wait
+	 * for a request on this TCP connection.
+	 */
+	isc_interval_set(&interval, 2, 0); /* XXX */
+	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
+				 &interval, ISC_FALSE);
+	if (result != ISC_R_SUCCESS)
+		goto fail;
+#endif
 
 	result = dns_tcpmsg_readmessage(&client->tcpmsg, client->task,
 					client_request, client);
 	if (result != ISC_R_SUCCESS)
-		ns_client_next(client, result);
+		goto fail;
+
+	client->state = client->newstate = NS_CLIENTSTATE_READING;
 	INSIST(client->nreads == 0);
 	client->nreads++;
+
+	return;
+ fail:
+	ns_client_next(client, result);	
 }
 
 static void
@@ -988,6 +1148,8 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->task == task);
 
+	INSIST(client->state == NS_CLIENTSTATE_READY);
+	
 	CTRACE("newconn");
 
 	INSIST(client->naccepts == 1);
@@ -1003,9 +1165,10 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	 * check to make sure it gets destroyed.
 	 */
 	client->tcpsocket = nevent->newsocket;
-
-	if (client->shuttingdown) {
-		maybe_free(client);
+	client->state = NS_CLIENTSTATE_READING;
+	
+	if (exit_check(client)) {
+		; 
 	} else if (nevent->result == ISC_R_SUCCESS) {
 		INSIST(client->tcpmsg_valid == ISC_FALSE);
 		dns_tcpmsg_init(client->mctx, client->tcpsocket,
@@ -1079,15 +1242,14 @@ ns_client_wait(ns_client_t *client) {
 
 isc_boolean_t
 ns_client_shuttingdown(ns_client_t *client) {
-	return (client->shuttingdown);
+	return (client->newstate == NS_CLIENTSTATE_FREED);
 }
 
 void
 ns_client_unwait(ns_client_t *client) {
 	client->nwaiting--;
 	INSIST(client->nwaiting >= 0);
-	if (client->shuttingdown)
-		maybe_free(client);
+	(void) exit_check(client);
 }
 
 isc_result_t
@@ -1238,22 +1400,30 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 				break;
 		}
 
+		client->state = NS_CLIENTSTATE_READY;
+		
 		ns_interface_attach(ifp, &client->interface);
 
 		if (tcp) {
 			client->attributes |= NS_CLIENTATTR_TCP;
-			isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
+			isc_socket_attach(ifp->tcpsocket,
+					  &client->tcplistener);
 			client_accept(client);
 		} else {
-			dns_dispatch_attach(ifp->udpdispatch, &client->dispatch);
+			dns_dispatch_attach(ifp->udpdispatch,
+					    &client->dispatch);
 			result = dns_dispatch_addrequest(client->dispatch,
 							 client->task,
 							 client_request,
-							 client, &client->dispentry);
+							 client,
+							 &client->dispentry);
 			if (result != ISC_R_SUCCESS) {
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-					      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-					      "dns_dispatch_addrequest() failed: %s",
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_CLIENT,
+					      ISC_LOG_DEBUG(3),
+					      "dns_dispatch_addrequest() "
+					      "failed: %s",
 					      isc_result_totext(result));
 				isc_task_shutdown(client->task);
 				break;

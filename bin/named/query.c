@@ -183,8 +183,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 }
 
 static void
-query_next(ns_client_t *client, isc_result_t result) {
-	(void)result;
+query_next(ns_client_t *client) {
 	query_reset(client, ISC_FALSE);
 }
 
@@ -1678,11 +1677,10 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		query_putrdataset(client, &devent->rdataset);
 		query_putrdataset(client, &devent->sigrdataset);
 		isc_event_free(&event);
+		ns_client_next(client, ISC_R_CANCELED);
 		/* This may destroy the client. */
 		ns_client_unwait(client);
 	} else {
-		ns_client_unwait(client);
-
 		RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 		dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 		dns_view_attach(client->view, &client->lockview);
@@ -1759,7 +1757,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		 * is shutting down will not be destroyed until all the
 		 * events have been received.
 		 */
-		ns_client_wait(client);
 	} else {
 		query_putrdataset(client, &rdataset);
 		query_putrdataset(client, &sigrdataset);
@@ -2598,9 +2595,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		goto restart;
 	}
 
-	if (eresult != ISC_R_SUCCESS && !PARTIALANSWER(client))
+	if (eresult != ISC_R_SUCCESS && !PARTIALANSWER(client)) {
 		ns_client_error(client, eresult);
-	else if (!RECURSING(client)) {
+		ns_client_unwait(client);
+	} else if (!RECURSING(client)) {
 		/*
 		 * We are done.  Make a final tweak to the AA bit if the
 		 * auth-nxdomain config option says so, then send the
@@ -2611,6 +2609,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			client->message->flags |= DNS_MESSAGEFLAG_AA;
 		
 		ns_client_send(client);
+		ns_client_unwait(client);		
 	}
 	CTRACE("query_find: done");
 }
@@ -2803,5 +2802,6 @@ ns_query_start(ns_client_t *client) {
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AD;
 
+	ns_client_wait(client);
 	query_find(client, NULL);
 }
