@@ -1,3 +1,7 @@
+
+ 730.	[bug]		lwres_getaddrinfo() returns the correct result when
+			it fails to contact a server. [RT #768]
+
  729.	[port]		pthread_setconcurrency() needs to be called on Solaris.
 
  728.	[bug]		Fix comment processing on master file directives.
