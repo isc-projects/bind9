@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.150 2000/11/15 18:12:36 gson Exp $ */
+/* $Id: query.c,v 1.151 2000/11/15 19:35:07 gson Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <dns/message.h>
 #include <dns/opt.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
@@ -3237,36 +3238,23 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 static inline void
 log_query(ns_client_t *client) {
-	isc_buffer_t b;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char text[256];
-	isc_region_t r;
+	char typename[DNS_RDATATYPE_FORMATSIZE];
+	char classname[DNS_RDATACLASS_FORMATSIZE];
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_DEBUG(1);
 
 	if (! isc_log_wouldlog(ns_g_lctx, level))
 		return;
 
-	/* XXXRTH  Allow this to be turned off! */
-
+	rdataset = ISC_LIST_HEAD(client->query.qname->list);
+	INSIST(rdataset != NULL);
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+	dns_rdataclass_format(rdataset->rdclass, classname, sizeof(classname));
+	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
 
-	isc_buffer_init(&b, (unsigned char *)text, sizeof(text));
-	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
-	     rdataset != NULL;
-	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-		isc_buffer_availableregion(&b, &r);
-		if (r.length < 1)
-			return;
-		*r.base = ' ';
-		isc_buffer_add(&b, 1);
-		if (dns_rdatatype_totext(rdataset->type, &b) != ISC_R_SUCCESS)
-			return;
-	}
-	isc_buffer_usedregion(&b, &r);
 	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      level, "query: %s%.*s", namebuf,
-		      (int)r.length, (char *)r.base);
+		      level, "query: %s %s %s", namebuf, classname, typename);
 }
 
 void
