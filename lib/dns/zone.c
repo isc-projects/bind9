@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.188 2000/08/17 16:15:02 gson Exp $ */
+/* $Id: zone.c,v 1.189 2000/08/18 02:34:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -839,8 +839,7 @@ dns_zone_load(dns_zone_t *zone) {
 	case dns_zone_stub:
 		if (soacount != 1) {
 			zone_log(zone, me, ISC_LOG_ERROR,
-				 "has %d SOA record%s", soacount,
-				 (soacount != 0) ? "s" : "");
+				 "has %d SOA records", soacount);
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
