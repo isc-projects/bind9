@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.6 2000/01/11 01:49:22 tale Exp $ */
+/* $Id: connection.c,v 1.7 2000/01/13 06:13:21 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -34,12 +34,6 @@
 #include <isc/netdb.h>
 
 #include <omapi/private.h>
-
-/*
- * Forward declarations.
- */
-void
-connection_send(omapi_connection_object_t *connection);
 
 /*
  * Swiped from bin/tests/sdig.c.
@@ -144,6 +138,12 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	connection->events_pending--;
 
+	/*
+	 * XXXDCL For some reason, a "connection refused" error is not
+	 * being indicated here when it would be expected.  I wonder
+	 * how that error is indicated.
+	 */
+
 	if (connectevent->result != ISC_R_SUCCESS) {
 		abandon_connection(connection, event, connectevent->result);
 		return;
@@ -180,6 +180,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *socket;
 	isc_socketevent_t *socketevent;
 	omapi_connection_object_t *connection;
+	unsigned int original_bytes_needed;
 
 	socket = event->sender;
 	socketevent = (isc_socketevent_t *)event;
@@ -204,21 +205,21 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	connection->in_bytes += socketevent->n;
 
+	original_bytes_needed = connection->bytes_needed;
+
 	while (connection->bytes_needed <= connection->in_bytes &&
 	       connection->bytes_needed > 0)
-		omapi_signal(event->arg, "ready", connection);
+		omapi_signal((omapi_object_t *)connection, "ready",
+			     connection);
 
-#if 0
 	/*
-	 * XXXDCL it may be the case that another recv task should be queued,
-	 * but I haven't thought it through fully.
+	 * Queue up another recv request.  If the bufferlist is empty,
+	 * then, something under omapi_signal already called
+	 * omapi_connection_require and queued the recv (which is
+	 * what emptied the bufferlist).
 	 */
-	if (connection->bytes_needed > 0)
-		isc_socket_recvv(socket, &connection->input_buffers,
-				 connection->bytes_needed -
-				 connection->in_bytes,
-				 task, recv_done, connection);
-#endif
+	if (! ISC_LIST_EMPTY(connection->input_buffers))
+		omapi_connection_require((omapi_object_t *)connection, 0);
 
 	isc_event_free(&event);
 
@@ -243,7 +244,7 @@ send_done(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * XXXDCL I am assuming that partial writes are not done.  I hope this
-	 * does not prove to be incorrect.  But the assumption can be tested ...
+	 * does not prove to be incorrect. But the assumption can be tested ...
 	 */
 	ENSURE(socketevent->n == connection->out_bytes &&
 	       socketevent->n ==
@@ -311,6 +312,7 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	/* XXXDCL Make cleanup better */
 	/*
 	 * Prepare the task that will wait for the connection to be made.
 	 */
@@ -345,12 +347,31 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 		return (result);
 	}
 		
+	connection->is_client = ISC_TRUE;
+
 	connection->task = task;
 
 	ISC_LIST_INIT(connection->input_buffers);
 	ISC_LIST_APPEND(connection->input_buffers, ibuffer, link);
 	ISC_LIST_INIT(connection->output_buffers);
 	ISC_LIST_APPEND(connection->output_buffers, obuffer, link);
+
+	result = isc_mutex_init(&connection->mutex);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = isc_condition_init(&connection->waiter);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * An introductory message is expected from the server.
+	 * It is not necessary to lock the mutex here because there
+	 * will be no recv() tasks that could possibly compete for the
+	 * messages_expected variable, since isc_socket_create has
+	 * not even been called yet.
+	 */
+	connection->messages_expected = 1;
 
 	/*
 	 * Tie the new connection object to the protocol object.
@@ -394,6 +415,8 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 		abandon_connection(connection, NULL, result);
 		return (result);
 	}
+
+	connection->events_pending++;
 
 	return (result);
 }
@@ -481,6 +504,8 @@ omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
 	if (size > connection->in_bytes)
 		return (ISC_R_NOMORE);
 	
+	connection->bytes_needed -= size;
+
 	buffer = ISC_LIST_HEAD(connection->input_buffers);
 
 	/*
@@ -492,7 +517,13 @@ omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
 		if (copy_bytes > size)
 			copy_bytes = size;
 
-		(void)memcpy(dst, buffer->base + buffer->current, copy_bytes);
+		/*
+		 * When dst == NULL, this function is being used to skip
+		 * over uninteresting input.
+		 */
+		if (dst != NULL)
+			(void)memcpy(dst, buffer->base + buffer->current,
+				     copy_bytes);
 
 		isc_buffer_forward(buffer, copy_bytes);
 
@@ -639,21 +670,77 @@ omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
 	/*
 	 * Queue the receive task.
 	 * XXXDCL The "minimum" argument has not been fully thought out.
-	 * It will *probably* work fine in a lockstep protocol, but I
-	 * am not so sure what will happen when 
 	 */
 	isc_socket_recvv(connection->socket, &connection->input_buffers,
 			 connection->bytes_needed - connection->in_bytes,
 			 connection->task, recv_done, connection);
 
+	connection->events_pending++;
+
 	return (OMAPI_R_NOTYET);
+}
+
+/*
+ * This function is meant to pause the client until it has received
+ * a message from the server, either the introductory message or a response
+ * to a message it has sent.  Because the socket library is multithreaded,
+ * those events can happen before omapi_connection_wait is ever called.
+ * So a counter needs to be set for every expected message, and this 
+ * function can only return when that counter is 0.
+ */
+isc_result_t
+omapi_connection_wait(omapi_object_t *object,
+		      omapi_object_t *connection_handle,
+		      isc_time_t *timeout)
+{
+	/*
+	 * 'object' is not really used.
+	 */
+	omapi_connection_object_t *connection;
+	isc_result_t result, wait_result;
+
+	REQUIRE(object != NULL && connection_handle != NULL);
+	REQUIRE(connection_handle->type == omapi_type_connection);
+
+	connection = (omapi_connection_object_t *)connection_handle;
+	/*
+	 * This routine is not valid for server connections.
+	 */
+	REQUIRE(connection->is_client);
+
+	result = isc_mutex_lock(&connection->mutex);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	wait_result = ISC_R_SUCCESS;
+
+	while (connection->messages_expected > 0 &&
+	       wait_result == ISC_R_SUCCESS) {
+		if (timeout == NULL)
+			wait_result = isc_condition_wait(&connection->waiter,
+							 &connection->mutex);
+		else
+			wait_result =
+				isc_condition_waituntil(&connection->waiter,
+							&connection->mutex,
+							timeout);
+	}
+
+	if (wait_result == ISC_R_SUCCESS || wait_result == ISC_R_TIMEDOUT) {
+		result = isc_mutex_unlock(&connection->mutex);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	return (wait_result);
 }
 
 isc_result_t
 omapi_connection_setvalue(omapi_object_t *connection, omapi_object_t *id,
 			  omapi_data_string_t *name, omapi_typed_data_t *value)
 {
-	REQUIRE(connection != NULL && connection->type == omapi_type_connection);
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
 	
 	PASS_SETVALUE(connection);
 }
@@ -662,8 +749,9 @@ isc_result_t
 omapi_connection_getvalue(omapi_object_t *connection, omapi_object_t *id,
 			  omapi_data_string_t *name, omapi_value_t **value)
 {
-	REQUIRE(connection != NULL && connection->type == omapi_type_connection);
-	
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
+
 	PASS_GETVALUE(connection);
 }
 
@@ -673,24 +761,20 @@ omapi_connection_destroy(omapi_object_t *handle, const char *name) {
 
 	REQUIRE(handle != NULL && handle->type == omapi_type_connection);
 
+	(void)name;
+
 	connection = (omapi_connection_object_t *)handle;
 
 	if (connection->state == omapi_connection_connected)
 		omapi_connection_disconnect(handle, OMAPI_FORCE_DISCONNECT);
-
-	/*
-	 * XXXDCL why is the listener object is being referenced?
-	 * does it need to be in the connection structure at all?
-	 */
-	if (connection->listener != NULL)
-		OBJECT_DEREF(&connection->listener, name);
 }
 
 isc_result_t
 omapi_connection_signalhandler(omapi_object_t *connection, const char *name,
 			       va_list ap)
 {
-	REQUIRE(connection != NULL && connection->type == omapi_type_connection);
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
 	
 	PASS_SIGNAL(connection);
 }

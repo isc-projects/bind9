@@ -262,13 +262,16 @@ omapi_signal_in(omapi_object_t *handle, const char *name, ...) {
 
 	if (handle == NULL)
 		return (ISC_R_NOTFOUND);
+
 	va_start(ap, name);
 
-	if (handle->type->signal_handler)
+	if (handle->type->signal_handler != NULL)
 		result = (*(handle->type->signal_handler))(handle, name, ap);
 	else
 		result = ISC_R_NOTFOUND;
+
 	va_end(ap);
+
 	return (result);
 }
 
@@ -459,6 +462,7 @@ omapi_object_create(omapi_object_t **obj, omapi_object_t *id,
 
 	if (type->create == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
+
 	return ((*(type->create))(obj, id));
 }
 
@@ -468,7 +472,7 @@ omapi_object_update(omapi_object_t *obj, omapi_object_t *id,
 {
 	omapi_generic_object_t *gsrc;
 	isc_result_t result;
-	int i;
+	unsigned int i;
 
 	REQUIRE(src != NULL);
 

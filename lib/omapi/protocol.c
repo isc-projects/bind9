@@ -188,6 +188,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	omapi_object_t *c;
 	omapi_message_object_t *m;
 	omapi_message_object_t *om;
+	omapi_connection_object_t *connection;
 	isc_result_t result;
 
 	REQUIRE(po != NULL && po->type == omapi_type_protocol &&
@@ -197,6 +198,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 
 	p = (omapi_protocol_object_t *)po;
 	c = (omapi_object_t *)(po->outer);
+	connection = (omapi_connection_object_t *)c;
 	m = (omapi_message_object_t *)mo;
 	om = (omapi_message_object_t *)omo;
 
@@ -300,9 +302,29 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	/* XXXTL Write the authenticator... */
 
 
-	connection_send((omapi_connection_object_t *)c);
+	/*
+	 * When the client sends a message, it expects a reply.
+	 */
+	if (connection->is_client) {
+		result = isc_mutex_lock(&connection->mutex);
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
+
+		connection->messages_expected++;
+
+		result = isc_mutex_unlock(&connection->mutex);
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
+
+	}
+
+	connection_send(connection);
 
 	return (ISC_R_SUCCESS);
+
+disconnect:
+	omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
+	return (result);
 }
 					  
 isc_result_t
@@ -311,12 +333,14 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 	isc_result_t result;
 	omapi_protocol_object_t *p;
 	omapi_object_t *connection;
+	omapi_connection_object_t *c;
 	isc_uint16_t nlen;
 	isc_uint32_t vlen;
 
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 
 	p = (omapi_protocol_object_t *)h;
+	c = (omapi_connection_object_t *)p->outer;
 
 	/*
 	 * Not a signal we recognize?
@@ -327,6 +351,11 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 	INSIST(p->outer != NULL && p->outer->type == omapi_type_connection);
 
 	connection = p->outer;
+
+	/*
+	 * XXXDCL figure out how come when this function throws
+	 * an error, it is not seen by the main program.
+	 */
 
 	/*
 	 * We get here because we requested that we be woken up after
@@ -360,10 +389,37 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 			return (OMAPI_R_PROTOCOLERROR);
 		}
 
-		result = omapi_signal_in(h->inner, "ready");
-		if (result != ISC_R_SUCCESS)
-			/* XXXDCL disconnect? */
-			return (result);
+		/*
+		 * Signal omapi_connection_wait() to wake up.
+		 * Only do this for the client side.
+		 * XXXDCL duplicated below
+		 */
+		if (c->is_client) {
+			result = isc_mutex_lock(&c->mutex);
+			if (result != ISC_R_SUCCESS)
+				goto disconnect;
+
+			/*
+			 * This is an unsigned int but on the server it will
+			 * count below 0 for each incoming message received.
+			 * But that's ok, because the server doesn't support
+			 * omapi_connection_wait.
+			 */
+			c->messages_expected--;
+
+			result = isc_condition_signal(&c->waiter);
+
+			/*
+			 * Release the lock.  Contrary to what you might think
+			 * from some documentation sources, it is necessary
+			 * to do this for the waiting thread to unblock.
+			 */
+			if (result == ISC_R_SUCCESS)
+				result = isc_mutex_unlock(&c->mutex);
+
+			if (result != ISC_R_SUCCESS)
+				goto disconnect;
+		}
 
 	to_header_wait:
 		/*
@@ -413,11 +469,10 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		/*
 		 * If there was any extra header data, skip over it.
 		 */
-		if (p->header_size > sizeof(omapi_protocol_header_t)) {
-			omapi_connection_copyout(0, connection,
+		if (p->header_size > sizeof(omapi_protocol_header_t))
+			omapi_connection_copyout(NULL, connection,
 					    (p->header_size -
 					     sizeof(omapi_protocol_header_t)));
-		}
 						     
 		/*
 		 * XXXTL must compute partial signature across the preceding
@@ -530,7 +585,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 * Wait for a 32-bit length.
 		 */
 		p->state = omapi_protocol_value_length_wait;
-		if (omapi_connection_require(connection, 4) != ISC_R_SUCCESS)
+		result = omapi_connection_require(connection, 4);
+		if (result != ISC_R_SUCCESS)
 			break;
 
 		/*
@@ -548,9 +604,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		if (vlen == 0)
 			goto insert_new_value;
 
-		result = omapi_data_new(&p->value,
-					      omapi_datatype_data, vlen,
-					      "omapi_protocol_signal_handler");
+		result = omapi_data_new(&p->value, omapi_datatype_data, vlen,
+					"omapi_protocol_signal_handler");
 		if (result != ISC_R_SUCCESS) {
 			omapi_connection_disconnect(connection,
 						    OMAPI_FORCE_DISCONNECT);
@@ -558,7 +613,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		}
 
 		p->state = omapi_protocol_value_wait;
-		if (omapi_connection_require(connection, vlen) != ISC_R_SUCCESS)
+		result = omapi_connection_require(connection, vlen);
+		if (result != ISC_R_SUCCESS)
 			break;
 		/*
 		 * If it's already here, fall through.
@@ -637,13 +693,38 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 	message_done:
 		result = omapi_message_process((omapi_object_t *)p->message,
 					       h);
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
+
+		/*
+		 * Signal omapi_connection_wait() to wake up.
+		 * XXXDCL duplicated from above.
+		 */
+		if (c->is_client) {
+			result = isc_mutex_lock(&c->mutex);
+			if (result != ISC_R_SUCCESS)
+				goto disconnect;
+
+			/*
+			 * This is an unsigned int but on the server it will
+			 * count below 0 for each incoming message received.
+			 * But that's ok, because the server doesn't support
+			 * omapi_connection_wait.
+			 */
+			c->messages_expected--;
+
+			result = isc_condition_signal(&c->waiter);
+			if (result != ISC_R_SUCCESS)
+				goto disconnect;
+
+			result = isc_mutex_unlock(&c->mutex);
+			if (result != ISC_R_SUCCESS)
+				goto disconnect;
 		}
 
 		/* XXXTL unbind the authenticator. */
+
+		/*
+		 * Free the message object.
+		 */
 		OBJECT_DEREF(&p->message, "omapi_protocol_signal_handler");
 
 		/*
@@ -661,6 +742,13 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 	}
 
 	return (ISC_R_SUCCESS);
+
+	/* XXXDCL
+	 * 'goto' could be avoided by wrapping the body in another function.
+	 */
+disconnect:
+	omapi_connection_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+	return (result);
 }
 
 isc_result_t

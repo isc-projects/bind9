@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.5 2000/01/06 23:52:59 tale Exp $ */
+/* $Id: generic.c,v 1.6 2000/01/13 06:13:22 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -53,7 +53,7 @@ omapi_generic_set_value(omapi_object_t *h, omapi_object_t *id,
 	omapi_value_t *new;
 	omapi_value_t **va;
 	int vm_new;
-	int i;
+	unsigned int i;
 	isc_result_t result;
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
@@ -129,12 +129,13 @@ omapi_generic_set_value(omapi_object_t *h, omapi_object_t *id,
 	 * name/value pair if necessary.
 	 */
 	if (g->nvalues == g->va_max) {
-		if (g->va_max != 0)
-			vm_new = 2 * g->va_max;
-		else
-			vm_new = 10;
+		/*
+		 * Increase the maximum number of values by 10.
+		 * 10 is an arbitrary constant.
+		 */
+		vm_new = g->va_max + 10;
 		va = isc_mem_get(omapi_mctx, vm_new * sizeof(*va));
-		if (va != NULL)
+		if (va == NULL)
 			return (ISC_R_NOMEMORY);
 		if (g->va_max != 0) {
 			memcpy(va, g->values, g->va_max * sizeof(*va));
@@ -164,7 +165,7 @@ isc_result_t
 omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
 			omapi_data_string_t *name, omapi_value_t **value)
 {
-	int i;
+	unsigned int i;
 	omapi_generic_object_t *g;
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
@@ -181,7 +182,7 @@ omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
 			 * same as if there were no value that matched
 			 * the specified name, so return ISC_R_NOTFOUND.
 			 */
-			if (g->values[i]->value != NULL)
+			if (g->values[i]->value == NULL)
 				return (ISC_R_NOTFOUND);
 			/*
 			 * Otherwise, return the name/value pair.
@@ -198,7 +199,7 @@ omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
 void
 omapi_generic_destroy(omapi_object_t *h, const char *name) {
 	omapi_generic_object_t *g;
-	int i;
+	unsigned int i;
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
@@ -235,7 +236,7 @@ omapi_generic_stuff_values(omapi_object_t *connection, omapi_object_t *id,
 			   omapi_object_t *h)
 {
 	omapi_generic_object_t *src;
-	int i;
+	unsigned int i;
 	isc_result_t result;
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);

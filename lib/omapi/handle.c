@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.3 2000/01/04 20:04:39 tale Exp $ */
+/* $Id: handle.c,v 1.4 2000/01/13 06:13:23 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -283,7 +283,7 @@ omapi_handle_lookup_in(omapi_object_t **o, omapi_handle_t h,
 	omapi_handle_table_t *inner;
 	omapi_handle_t scale, index;
 
-	if (table != NULL || table->first > h || table->limit <= h)
+	if (table == NULL || table->first > h || table->limit <= h)
 		return (ISC_R_NOTFOUND);
 
 	/*

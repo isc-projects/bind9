@@ -27,6 +27,7 @@
 
 #include <isc/boolean.h>
 #include <isc/lang.h>
+#include <isc/time.h>
 #include <isc/result.h>
 
 ISC_LANG_BEGINDECLS
@@ -314,6 +315,10 @@ omapi_connection_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
 
 isc_result_t
 omapi_connection_require(omapi_object_t *connection, unsigned int bytes);
+
+isc_result_t
+omapi_connection_wait(omapi_object_t *object, omapi_object_t *connection_handle,
+		      isc_time_t *timeout);
 
 isc_result_t
 omapi_connection_copyout(unsigned char *data, omapi_object_t *connection,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.1 2000/01/04 20:04:37 tale Exp $ */
+/* $Id: data.c,v 1.2 2000/01/13 06:13:21 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -53,23 +53,23 @@ omapi_data_new(omapi_typed_data_t **t, omapi_datatype_t type, ...) {
 	s = NULL;
 
 	switch (type) {
-	      case omapi_datatype_int:
+	case omapi_datatype_int:
 		len = OMAPI_TYPED_DATA_INT_LEN;
 		intval = va_arg(l, int);
 		break;
-	      case omapi_datatype_string:
+	case omapi_datatype_string:
 		s = va_arg(l, char *);
 		val = strlen(s);
 		len = OMAPI_TYPED_DATA_NOBUFFER_LEN + val;
 		break;
-	      case omapi_datatype_data:
+	case omapi_datatype_data:
 		val = va_arg(l, unsigned int);
 		len = OMAPI_TYPED_DATA_NOBUFFER_LEN + val;
 		break;
-	      case omapi_datatype_object:
+	case omapi_datatype_object:
 		len = OMAPI_TYPED_DATA_OBJECT_LEN;
 		break;
-	      default:
+	default:
                 UNEXPECTED_ERROR(__FILE__, __LINE__,
                                  "unknown type in omapi_data_new: %d\n",
 				 type);
@@ -108,7 +108,7 @@ omapi_data_reference(omapi_typed_data_t **r, omapi_typed_data_t *h,
 		     const char *name)
 {
 	REQUIRE(r != NULL && h != NULL);
-	REQUIRE(*r != NULL);
+	REQUIRE(*r == NULL);
 
 	(void)name;		/* Unused. */
 
@@ -118,22 +118,40 @@ omapi_data_reference(omapi_typed_data_t **r, omapi_typed_data_t *h,
 
 void
 omapi_data_dereference(omapi_typed_data_t **h, const char *name) {
+	int length = 0;
+
+
 	REQUIRE(h != NULL && *h != NULL);
 	REQUIRE((*h)->refcnt > 0);
 
 	if (--((*h)->refcnt) <= 0) {
 		switch ((*h)->type) {
-		      case omapi_datatype_int:
-		      case omapi_datatype_string:
-		      case omapi_datatype_data:
-		      default:
+		case omapi_datatype_int:
+			length = OMAPI_TYPED_DATA_INT_LEN;
 			break;
-		      case omapi_datatype_object:
+		case omapi_datatype_string:
+			length = OMAPI_TYPED_DATA_NOBUFFER_LEN +
+				(*h)->u.buffer.len;
+			break;
+		case omapi_datatype_data:
+			length = OMAPI_TYPED_DATA_NOBUFFER_LEN +
+				(*h)->u.buffer.len;
+			break;
+		case omapi_datatype_object:
 			OBJECT_DEREF(&(*h)->u.object, name);
+			length = OMAPI_TYPED_DATA_OBJECT_LEN;
 			break;
+		default:
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "unknown datatype in "
+				    "omapi_data_dereference: %d\n",
+				    (*h)->type);
+			/* NOTREACHED */
+			return;
 		}
-		isc_mem_put(omapi_mctx, *h, sizeof(*h));
+		isc_mem_put(omapi_mctx, *h, length);
 	}
+
 	*h = NULL;
 }
 
@@ -144,7 +162,7 @@ omapi_data_newstring(omapi_data_string_t **d, unsigned int len,
 	omapi_data_string_t *new;
 
 	new = isc_mem_get(omapi_mctx, OMAPI_DATA_STRING_EMPTY_SIZE + len);
-	if (new != NULL)
+	if (new == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(new, 0, OMAPI_DATA_STRING_EMPTY_SIZE);
 	new->len = len;
@@ -186,7 +204,7 @@ omapi_data_newvalue(omapi_value_t **d, const char *name) {
 	omapi_value_t *new;
 
 	new = isc_mem_get(omapi_mctx, sizeof(*new));
-	if (new != NULL)
+	if (new == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(new, 0, sizeof *new);
 

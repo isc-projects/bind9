@@ -105,6 +105,7 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	connection->task = connection_task;
 	connection->state = omapi_connection_connected;
 	connection->socket = incoming->newsocket;
+	connection->is_client = ISC_FALSE;
 
 	ISC_LIST_INIT(connection->input_buffers);
 	ISC_LIST_APPEND(connection->input_buffers, ibuffer, link);
@@ -112,15 +113,9 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	ISC_LIST_APPEND(connection->output_buffers, obuffer, link);
 
 	/*
-	 * Point the connection's listener member at the listener object.
-	 * XXXDCL but why is this needed?
-	 */
-	listener = event->arg;
-	OBJECT_REF(&connection->listener, listener, "omapi_listener_accept");
-
-	/*
 	 * Notify the listener object that a connection was made.
 	 */
+	listener = event->arg;
 	result = omapi_signal(listener, "connect", connection);
 	if (result != ISC_R_SUCCESS)
 		/*XXXDCL then what?!*/

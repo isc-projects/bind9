@@ -26,8 +26,10 @@
 
 #include <config.h>
 
+#include <isc/condition.h>
 #include <isc/lang.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/net.h>
 #include <isc/result.h>
 #include <isc/socket.h>
@@ -67,9 +69,12 @@ typedef struct omapi_message_object {
 
 typedef struct omapi_connection_object {
 	OMAPI_OBJECT_PREAMBLE;
+	isc_mutex_t			mutex;
 	isc_socket_t			*socket; /* Connection socket. */
 	isc_task_t			*task;
-	unsigned int			events_pending;
+	unsigned int			events_pending;	/* socket events */
+	unsigned int			messages_expected;
+	isc_condition_t			waiter;	/* omapi_connection_wait() */
 	omapi_connection_state_t	state;
 	isc_sockaddr_t			remote_addr;
 	isc_sockaddr_t			local_addr;
@@ -91,19 +96,30 @@ typedef struct omapi_connection_object {
 	 */
 	isc_uint32_t			out_bytes;
 	isc_bufferlist_t		output_buffers;
+#if 0
 	/*
 	 * Listener that accepted this connection.
 	 * XXXDCL This appears to not be needed.
+	 * ... well, now it is.  but it could just be an isc_boolean_t
+	 * that indicates whether this is a server side connection  or client.
 	 */
 	omapi_object_t *		listener;
+#endif
+	isc_boolean_t			is_client;
 } omapi_connection_object_t;
 
 typedef struct omapi_generic_object {
 	OMAPI_OBJECT_PREAMBLE;
 	omapi_value_t **	values;
-	int			nvalues;
-	int			va_max;
+	unsigned int		nvalues;
+	unsigned int		va_max;
 } omapi_generic_object_t;
+
+typedef struct omapi_waiter_object {
+	OMAPI_OBJECT_PREAMBLE;
+	isc_mutex_t			mutex;
+	isc_condition_t			ready;
+} omapi_waiter_object_t;
 
 /*
  * Everything needs a memory context.  This will likely be made a parameter
