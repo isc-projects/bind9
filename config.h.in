@@ -42,6 +42,9 @@
 /* define on Solaris to get sigwait() to work using pthreads semantics */
 #undef _POSIX_PTHREAD_SEMANTICS
 
+/* define if LinuxThreads is in use */
+#undef HAVE_LINUXTHREADS
+
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 
