@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.79 2001/01/21 21:54:32 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.80 2001/01/22 20:00:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -983,7 +983,6 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_textregion_t region;
 	char *endp;
 	isc_uint16_t retval;
-	isc_boolean_t parsedclass = ISC_FALSE;
 
 	ddebug("update_addordelete()");
 
@@ -1008,17 +1007,24 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	 */
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		if (!isdelete)
+		if (!isdelete) {
 			fprintf(stderr, "failed to read owner ttl\n");
-		else
-			fprintf(stderr, "failed to read class or type \n");
-		goto failure;
+			goto failure;
+		}
+		else {
+			ttl = 0;
+			rdataclass = dns_rdataclass_any;
+			rdatatype = dns_rdatatype_any;
+			rdata->flags = DNS_RDATA_UPDATE;
+			goto doneparsing;
+		}
 	}
 	ttl = strtol(word, &endp, 0);
 	if (*endp != '\0') {
-		if (isdelete)
-			parsedclass = ISC_TRUE;
-		else {
+		if (isdelete) {
+			ttl = 0;
+			goto parseclass;
+		} else {
 			fprintf(stderr, "ttl '%s' is not numeric\n", word);
 			goto failure;
 		}
@@ -1041,8 +1047,8 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	/*
 	 * Read the class or type.
 	 */
-	if (!parsedclass)
-		word = nsu_strsep(&cmdline, " \t\r\n");
+	word = nsu_strsep(&cmdline, " \t\r\n");
+ parseclass:
 	if (*word == 0) {
 		if (isdelete) {
 			rdataclass = dns_rdataclass_any;
