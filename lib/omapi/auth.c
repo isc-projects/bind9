@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.7 2000/05/24 23:13:32 bwelling Exp $ */
+/* $Id: auth.c,v 1.8 2000/06/23 20:03:56 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -309,7 +309,7 @@ omapi_auth_use(omapi_object_t *manager, const char *name,
 
 	if (result == ISC_R_SUCCESS)
 		result = omapi_object_setinteger(generic, "auth-algorithm",
-						 algorithm);
+						 (int)algorithm);
 
 	if (message != NULL)
 		omapi_message_register(message);
