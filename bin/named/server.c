@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: server.c,v 1.203 2000/07/10 22:02:38 tale Exp $ */
+/* $Id: server.c,v 1.204 2000/07/24 18:45:50 gson Exp $ */
 
 #include <config.h>
 
@@ -1149,7 +1149,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	configure_server_quota(cctx, dns_c_ctx_gettcpclients,
 				     &server->tcpquota, 100);
 	configure_server_quota(cctx, dns_c_ctx_getrecursiveclients,
-				     &server->recursionquota, 100);
+				     &server->recursionquota, 1000);
 
 	/*
 	 * Configure the zone manager.
