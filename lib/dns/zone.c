@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.317 2001/04/10 03:05:54 marka Exp $ */
+/* $Id: zone.c,v 1.318 2001/04/10 19:19:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2518,6 +2518,7 @@ zone_notify(dns_zone_t *zone) {
 	isc_boolean_t isqueued;
 	dns_notifytype_t notifytype;
 	unsigned int flags = 0;
+	isc_boolean_t loggednotify = ISC_FALSE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2605,8 +2606,6 @@ zone_notify(dns_zone_t *zone) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup3;
 
-	notify_log(zone, ISC_LOG_INFO, "sending notify (%u)", serial);
-
 	dns_rdataset_init(&nsrdset);
 	result = dns_db_findrdataset(zone->db, node, version,
 				     dns_rdatatype_ns,
@@ -2628,6 +2627,13 @@ zone_notify(dns_zone_t *zone) {
 			result = dns_rdataset_next(&nsrdset);
 			continue;
 		}
+
+		if (!loggednotify) {
+			notify_log(zone, ISC_LOG_INFO, "sending notifies (%u)",
+				   serial);
+			loggednotify = ISC_TRUE;
+		}
+
 		LOCK_ZONE(zone);
 		isqueued = notify_isqueued(zone, &ns.name, NULL);
 		UNLOCK_ZONE(zone);
