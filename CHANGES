@@ -1,7 +1,7 @@
  977.	[bug]		Improve "not at top of zone" error message.
 
- 976.	[func]		named-checkconf will now test load master zone
-			files (-z).  [RT #1468]
+ 976.	[func]		named-checkconf will now test load master zones
+			(named-checkconf -z).  [RT #1468]
 
  975.	[bug]		"max-cache-size default;" as a view option
 			caused an assertion failure.
