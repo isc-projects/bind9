@@ -1103,7 +1103,6 @@ dns_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int priority, unsigned int flags)
 {
-	isc_region_t r;
 	unsigned int used;
 	dns_namelist_t *section;
 	dns_name_t *name, *next_name;
@@ -1125,14 +1124,11 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	name = ISC_LIST_HEAD(*section);
 	if (name == NULL)
 		return (ISC_R_SUCCESS);
+
 	/*
 	 * Shrink the space in the buffer by the reserved amount.
 	 */
 	msg->buffer->length -= msg->reserved;
-
-	printf("---Start rendering section %u, count %u\n",
-	       sectionid, msg->counts[sectionid]);
-
 
 	total = 0;
 	while (name != NULL) {
@@ -1143,8 +1139,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			next_rdataset = ISC_LIST_NEXT(rdataset, link);
 			used = msg->buffer->used;
 
-			printf("Rendering rdataset, used = %u\n", used);
-
 			count = 0;
 			result = dns_rdataset_towire(rdataset, name,
 						     &msg->cctx,
@@ -1152,7 +1146,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 						     msg->buffer, &count);
 
 			total += count;
-			printf("Rendered %u rdata, total %u\n", count, total);
 
 			/*
 			 * If out of space, record stats on what we rendered
@@ -1177,9 +1170,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 	msg->buffer->length += msg->reserved;
 	msg->counts[sectionid] += total;
-
-	printf("Done with section %u, count %u, total rendered %u\n",
-	       sectionid, msg->counts[sectionid], total);
 
 	return (ISC_R_SUCCESS);
 }
