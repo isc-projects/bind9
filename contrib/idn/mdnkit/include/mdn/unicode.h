@@ -1,4 +1,4 @@
-/* $Id: unicode.h,v 1.9 2000/09/27 02:55:37 ishisone Exp $ */
+/* $Id: unicode.h,v 1.10 2001/02/13 08:26:22 ishisone Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -190,4 +190,22 @@ mdn__unicode_tolower(unsigned long c, mdn__unicode_context_t ctx,
 extern mdn__unicode_context_t
 mdn__unicode_getcontext(unsigned long c);
 
-#endif
+/*
+ * Perform case-folding for caseless matching, defined by Unicode
+ * Technical Report #21 "Case Mappings".
+ *
+ * Performs case-folding on the given unicode character 'c' and put
+ * the result into 'v', whose size is specified by 'vlen'.  The actual
+ * number of characters stored in 'v' are returned as '*foldlenp'.  In
+ * case 'c' has no mapping, 'v[0]' will contain 'c', and '*foldlenp'
+ * will be 1.
+ *
+ * Returns:
+ *	mdn_success		-- successfully converted.
+ *	mdn_buffer_overflow	-- 'vlen' is too small.
+ */
+extern mdn_result_t
+mdn__unicode_casefold(unsigned long c, unsigned long *v, size_t vlen,
+		      int *foldlenp);
+
+#endif /* MDN_UNICODE_H */

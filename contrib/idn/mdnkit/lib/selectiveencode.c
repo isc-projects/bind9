@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: selectiveencode.c,v 1.7 2000/09/20 02:47:32 ishisone Exp $";
+static char *rcsid = "$Id: selectiveencode.c,v 1.8 2001/05/31 05:21:38 ishisone Exp $";
 #endif
 
 /*
@@ -68,6 +68,7 @@ static char *rcsid = "$Id: selectiveencode.c,v 1.7 2000/09/20 02:47:32 ishisone 
 #include <mdn/logmacro.h>
 #include <mdn/result.h>
 #include <mdn/utf8.h>
+#include <mdn/selectiveencode.h>
 #include <mdn/debug.h>
 
 static int	is_domain_delimiter(char c);

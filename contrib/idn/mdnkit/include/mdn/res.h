@@ -1,4 +1,4 @@
-/* $Id: res.h,v 1.3 2000/08/23 06:56:58 ishisone Exp $ */
+/* $Id: res.h,v 1.7 2001/04/11 08:16:07 m-kasahr Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -77,127 +77,157 @@
 #include <mdn/resconf.h>
 
 /*
- * Convert from the local codeset string to UCS (UTF-8).
+ * Convert and check the string.
  *
- * 'local_name' is a string containing a domain name encoded in the
- * local codeset or the encoding specified by 'alternate-encoding'
- * directive in the MDN configuration file (mdnres.conf).
- * This function converts it to UCS and stores in
- * the buffer 'ucs_name', which is 'ucs_name_len' bytes long.
+ * This function converts the string `from' to `to', checks `from' or
+ * combination of them, using `actions'.
  *
- * 'conf' is a MDN resolver configuration context created by
- * 'mdn_resconf_create()', or NULL.  If it is NULL, no conversion is
- * performed, and the contents of 'local_name' are copied to 'ucs_name'
- * verbatim.
+ * `actions' is a sequence of characters as follows:
  *
- * Returns:
- *	mdn_success		-- ok.
- *	mdn_buffer_overflow	-- output buffer is too small.
- *	mdn_invalid_encoding	-- input string has invalid byte sequence.
- *	mdn_invalid_name	-- local encoding (codeset) name is invalid.
- *	mdn_failure		-- other failure.
- */
-extern mdn_result_t
-mdn_res_localtoucs(mdn_resconf_t conf, const char *local_name,
-		   char *ucs_name, size_t ucs_name_len);
-
-/*
- * Convert from UCS (UTF-8) string to the local codeset.
- *
- * 'ucs_name' is a string containing a domain name encoded in UTF-8.
- * This function converts it to the local codeset and stores in
- * the buffer 'local_name', which is 'local_name_len' bytes long.
- * If there are any characters which cannot be converted to the local
- * codeset, the 'alternate-encoding' is used instead of the local codeset.
- *
- * 'conf' is a MDN resolver configuration context created by
- * 'mdn_resconf_create()', or NULL.  If it is NULL, no conversion is
- * performed, and the contents of 'local_name' are copied to 'ucs_name'
- * verbatim.
+ *	l	convert the local codeset string to UTF-8.
+ *	L	convert the UTF-8 string to the local codeset.
+ *	d	perform local delimiter mapping.
+ *	M	perfrom TLD based local mapping.
+ *	m	perform the nameprep mapping.
+ *	n	perform nameprep normalization.
+ *	p	check whether the string contains nameprep prohibited
+ *		character.
+ *	N	equivalent to "mnp".
+ *	u	check whether the string contains nameprep unassigned
+ *		codepoint.
+ *	I	convert the UTF-8 string to ACE.
+ *	i	convert the ACE string to UTF-8.
+ *	a	convert the alternative encoded ACE sting to UTF-8.
+ *	A	convert the UTF-8 string to alternative ACE encoding.
  *
  * Returns:
  *	mdn_success		-- ok.
  *	mdn_buffer_overflow	-- output buffer is too small.
  *	mdn_invalid_encoding	-- input string has invalid byte sequence.
  *	mdn_invalid_name	-- local encoding (codeset) name is invalid.
- *	mdn_failure		-- other failure.
+ *	mdn_invalid_action	-- `actions' contains invalid action.
+ *	mdn_invalid_nomemory	-- out of memory.
+ *	mdn_invalid_nomapping	-- no mapping to output codeset.
+ *	mdn_prohibited		-- input string has a prohibited character.
+ *	mdn_failuer		-- other failure.
  */
 extern mdn_result_t
-mdn_res_ucstolocal(mdn_resconf_t conf, const char *ucs_name,
-		   char *local_name, size_t local_name_len);
+mdn_res_nameconv(mdn_resconf_t ctx, const char *actions, const char *from,
+		 char *to, size_t tolen);
 
 /*
- * Normalize UCS string.
- *
- * Perform normalization/canonicalization specified by the configuration
- * context 'conf' on the UTF-8 encoded string 'name', and store the result
- * in 'normalized_name', whose size is 'normalized_name_len' bytes.
- *
- * 'conf' is a MDN resolver configuration context created by
- * 'mdn_resconf_create()', or NULL.  If it is NULL, no normalization is
- * performed, and the contents of 'name' are copied to 'normalized_name'
- * verbatim.
- *
- * Returns:
- *	mdn_success		-- ok.
- *	mdn_buffer_overflow	-- output buffer is too small.
- *	mdn_invalid_encoding	-- input is not a valid UTF-8 string.
- *	mdn_nomemory		-- malloc failed.
+ * Convert the local codeset string to UTF-8.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "l", from, to, tolen);
  */
 extern mdn_result_t
-mdn_res_normalize(mdn_resconf_t conf, const char *name,
-		  char *normalized_name, size_t normalized_name_len);
+mdn_res_localtoucs(mdn_resconf_t ctx, const char *from, char *to,
+		   size_t tolen);
+
+#define mdn_res_localtoucs(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "l", from, to, tolen)
 
 /*
- * Convert from UCS (UTF-8) string to the encoding used in DNS protocol.
- *
- * 'ucs_name' is a string containing a domain name encoded in UTF-8.
- * This function converts it to the encoding used in DNS protocol data
- * (such as RACE), and stores in the buffer 'dns_name', which is
- * 'dns_name_len' bytes long.  Also if ZLD is specified in the configuration
- * file, it is appended to the conversion result.
- *
- * Both the encoding used in DNS protocol and ZLD are specified by 'conf'
- * which is a MDN resolver configuration context.  If 'conf' is NULL,
- * then no conversion is done.
- *
- * Requires:
- *	'ucs_name' must be a FQDN.  Otherwise the conversion result might
- *	not be correct for some DNS protocol encoding (namely UTF-5).
- *
- * Returns:
- *	mdn_success		-- ok.
- *	mdn_buffer_overflow	-- output buffer is too small.
- *	mdn_invalid_encoding	-- input string has invalid byte sequence.
- *	mdn_invalid_name	-- local encoding (codeset) name is invalid.
- *	mdn_failure		-- other failure.
+ * Convert the UTF-8 string to the local codeset.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "L", from, to, tolen);
  */
 extern mdn_result_t
-mdn_res_ucstodns(mdn_resconf_t conf, const char *ucs_name, char *dns_name,
-		 size_t dns_name_len);
+mdn_res_ucstolocal(mdn_resconf_t ctx, const char *from, char *to,
+		   size_t tolen);
+
+#define mdn_res_ucstolocal(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "L", from, to, tolen)
 
 /*
- * Convert from the DNS protocol encoding to UCS (UTF-8).
- *
- * This function converts 'dns_name' whose encoding is the encoding
- * used in DNS protocol data into UTF-8, and stores the result in the
- * buffer 'ucs_name', which is 'ucs_name_len' bytes long.  Also, if
- * 'dns_name' has ZLD specified by 'conf', the ZLD part is removed
- * from 'dns_name' before the conversion.
- *
- * Both the encoding used in DNS protocol and ZLD are specified by 'conf'
- * which is a MDN resolver configuration context.  If 'conf' is NULL,
- * then no conversion is done.
- *
- * Returns:
- *	mdn_success		-- ok.
- *	mdn_buffer_overflow	-- output buffer is too small.
- *	mdn_invalid_encoding	-- input string has invalid byte sequence.
- *	mdn_invalid_name	-- local encoding (codeset) name is invalid.
- *	mdn_failure		-- other failure.
+ * Perform the nameprep mapping.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "m", from, to, tolen);
  */
 extern mdn_result_t
-mdn_res_dnstoucs(mdn_resconf_t conf, const char *dns_name, char *ucs_name,
-		 size_t ucs_name_len);
+mdn_res_map(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
 
-#endif
+#define mdn_res_map(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "m", from, to, tolen)
+
+/*
+ * Perform nameprep normalization.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "n", from, to, tolen);
+ */
+extern mdn_result_t
+mdn_res_normalize(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
+
+#define mdn_res_normalize(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "n", from, to, tolen)
+
+/*
+ * Check whether the string contains nameprep prohibited character.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "p", from, to, tolen);
+ */
+extern mdn_result_t
+mdn_res_prohibitcheck(mdn_resconf_t ctx, const char *from, char *to,
+		      size_t tolen);
+
+#define mdn_res_prohibitcheck(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "p", from, to, tolen)
+
+/*
+ * Check whether the string contains nameprep unassigned character.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "u", from, to, tolen);
+ */
+extern mdn_result_t
+mdn_res_unassignedcheck(mdn_resconf_t ctx, const char *from, char *to,
+			size_t tolen);
+
+#define mdn_res_unassignedcheck(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "u", from, to, tolen)
+
+/*
+ * Perform local delimiter mapping.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "d", from, to, tolen);
+ */
+extern mdn_result_t
+mdn_res_delimitermap(mdn_resconf_t ctx, const char *from, char *to,
+		     size_t tolen);
+
+#define mdn_res_delimitermap(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "d", from, to, tolen)
+
+/*
+ * Perfrom TLD based local mapping.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "M", from, to, tolen);
+ */
+extern mdn_result_t
+mdn_res_localmap(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
+
+#define mdn_res_localmap(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "M", from, to, tolen)
+
+/*
+ * Convert the UTF-8 string to ACE.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "I", from, to, tolen);
+ */
+extern mdn_result_t
+mdn_res_ucstodns(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
+
+#define mdn_res_ucstodns(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "I", from, to, tolen)
+
+/*
+ * Convert the ACE string to UTF-8.
+ * equivalent to:
+ *	mdn_res_nameconv(ctx, "i", from, to, tolen);
+ */
+extern mdn_result_t
+mdn_res_dnstoucs(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
+
+#define mdn_res_dnstoucs(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "i", from, to, tolen)
+
+#endif /* MDN_RES_H */

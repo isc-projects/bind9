@@ -1,9 +1,10 @@
 #ifndef lint
-static char *rcsid = "$Id: mdnconv.c,v 1.20 2000/12/06 09:46:34 m-kasahr Exp $";
+static char *rcsid = "$Id: mdnconv.c,v 1.32 2001/05/18 04:16:28 ishisone Exp $";
 #endif
 
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -70,7 +71,6 @@ static char *rcsid = "$Id: mdnconv.c,v 1.20 2000/12/06 09:46:34 m-kasahr Exp $";
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <errno.h>
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
@@ -79,119 +79,190 @@ static char *rcsid = "$Id: mdnconv.c,v 1.20 2000/12/06 09:46:34 m-kasahr Exp $";
 #include <mdn/result.h>
 #include <mdn/converter.h>
 #include <mdn/normalizer.h>
-#include <mdn/localencoding.h>
 #include <mdn/utf8.h>
 #include <mdn/resconf.h>
+#include <mdn/res.h>
+#include <mdn/util.h>
+#include <mdn/version.h>
 
 #include "util.h"
 
-/* Maxmum number of normalizers */
-#define MAX_NORMALIZER	10
+#define MAX_DELIMITER		10
+#define MAX_LOCALMAPPER		10
+#define MAX_MAPPER		10
+#define MAX_NORMALIZER		10
+#define MAX_CHEKER		10
 
-int			line_number;	/* current input file line number */
-int			flush_every_line = 0; /* pretty obvious */
-mdn_converter_t		conv_in_ctx;	/* input converter */
-mdn_converter_t		conv_out_ctx;	/* output converter */
-mdn_normalizer_t	norm_ctx;	/* normalizer */
+#define FLAG_REVERSE		1
+#define FLAG_DELIMITERMAP	2
+#define FLAG_LOCALMAP		4
+#define FLAG_NAMEPREP		8
+#define FLAG_UNASSIGNCHECK	16
+#define FLAG_SELECTIVE		32
 
-void			errormsg(const char *fmt, ...);
-static int		convert_file(FILE *fp, char *zld, int auto_zld,
-				     int selective);
-static void		usage(char *cmd);
+int		line_number;		/* current input file line number */
+static int	flush_every_line = 0;	/* pretty obvious */
+
+static int		convert_file(mdn_resconf_t conf, FILE *fp, int flags);
+static void		print_usage(char *cmd);
+static void		print_version(void);
+static unsigned long	get_ucs(const char *p);
 
 int
 main(int ac, char **av) {
 	char *cmd = *av;
-	char *normalizer[MAX_NORMALIZER];
-	int nnormalizer = 0;
-	const char *in_code = NULL;
-	const char *out_code = NULL;
+	char *cname;
+	unsigned long delimiters[MAX_DELIMITER];
+	char *localmappers[MAX_LOCALMAPPER];
+	char *mappers[MAX_MAPPER];
+	char *normalizers[MAX_NORMALIZER];
+	char *prohibits[MAX_CHEKER];
+	char *unassigns[MAX_CHEKER];
+	char *nameprep_version = NULL;
+	int ndelimiters = 0;
+	int nlocalmappers = 0;
+	int nmappers = 0;
+	int nnormalizers = 0;
+	int nprohibits = 0;
+	int nunassigns = 0;
+	char *in_code = NULL;
+	char *out_code = NULL;
 	char *resconf_file = NULL;
 	int no_resconf = 0;
-	char zld[256 + 1];
-	int zld_specified = 0;
-	int auto_zld = 0;
 	char *encoding_alias = NULL;
-	int selective = 1;
+	int check_unassigned = 0;
+	int flags = FLAG_LOCALMAP | FLAG_NAMEPREP | FLAG_SELECTIVE;
 	FILE *fp;
+	mdn_result_t r;
 	mdn_resconf_t resconf;
 
 #ifdef HAVE_SETLOCALE
 	(void)setlocale(LC_ALL, "");
 #endif
 
-	zld[0] = '\0';
+	/*
+	 * If the command name begins with 'r', reverse mode is assumed.
+	 */
+	if ((cname = strrchr(cmd, '/')) != NULL)
+		cname++;
+	else
+		cname = cmd;
+	if (cname[0] == 'r')
+		flags |= FLAG_REVERSE;
 
 	ac--;
 	av++;
 	while (ac > 0 && **av == '-') {
 
-#define MUST_HAVE_ARG if (ac < 2) usage(cmd)
-		if (strcmp(*av, "-in") == 0) {
+#define OPT_MATCH(opt) (strcmp(*av, opt) == 0)
+#define MUST_HAVE_ARG if (ac < 2) print_usage(cmd)
+#define APPEND_LIST(array, size, item, what) \
+	if (size >= (sizeof(array) / sizeof(array[0]))) { \
+		errormsg("too many " what "\n"); \
+		exit(1); \
+	} \
+	array[size++] = item; \
+	ac--; av++
+
+		if (OPT_MATCH("-in") || OPT_MATCH("-i")) {
 			MUST_HAVE_ARG;
 			in_code = av[1];
 			ac--;
 			av++;
-		} else if (strcmp(*av, "-out") == 0) {
+		} else if (OPT_MATCH("-out") || OPT_MATCH("-o")) {
 			MUST_HAVE_ARG;
 			out_code = av[1];
 			ac--;
 			av++;
-		} else if (strcmp(*av, "-conf") == 0) {
+		} else if (OPT_MATCH("-conf") || OPT_MATCH("-c")) {
 			MUST_HAVE_ARG;
 			resconf_file = av[1];
 			ac--;
 			av++;
-		} else if (strcmp(*av, "-noconf") == 0) {
+		} else if (OPT_MATCH("-nameprep") || OPT_MATCH("-n")) {
+			MUST_HAVE_ARG;
+			nameprep_version = av[1];
+			ac--;
+			av++;
+		} else if (OPT_MATCH("-noconf") || OPT_MATCH("-C")) {
 			no_resconf = 1;
-		} else if (strcmp(*av, "-zld") == 0) {
+		} else if (OPT_MATCH("-reverse") || OPT_MATCH("-r")) {
+			flags |= FLAG_REVERSE;
+		} else if (OPT_MATCH("-nolocalmap") || OPT_MATCH("-L")) {
+			flags &= ~FLAG_LOCALMAP;
+		} else if (OPT_MATCH("-delimitermap") || OPT_MATCH("-d")) {
+			flags |= FLAG_DELIMITERMAP;
+		} else if (OPT_MATCH("-nonameprep") || OPT_MATCH("-N")) {
+			flags &= ~FLAG_NAMEPREP;
+		} else if (OPT_MATCH("-unassigncheck") || OPT_MATCH("-u")) {
+			flags |= FLAG_UNASSIGNCHECK;
+		} else if (OPT_MATCH("-whole") || OPT_MATCH("-w")) {
+			flags &= ~FLAG_SELECTIVE;
+		} else if (OPT_MATCH("-localmap")) {
 			MUST_HAVE_ARG;
-			canonical_zld(zld, av[1]);
-			zld_specified = 1;
+			APPEND_LIST(localmappers, nlocalmappers, av[1],
+				    "local maps");
+		} else if (OPT_MATCH("-delimiter")) {
+			unsigned long v;
+			MUST_HAVE_ARG;
+			v = get_ucs(av[1]);
+			APPEND_LIST(delimiters, ndelimiters, v,
+				    "delimiter maps");
+		} else if (OPT_MATCH("-map")) {
+			MUST_HAVE_ARG;
+			APPEND_LIST(mappers, nmappers, av[1], "mappers");
+		} else if (OPT_MATCH("-normalize")) {
+			MUST_HAVE_ARG;
+			APPEND_LIST(normalizers, nnormalizers, av[1],
+				    "normalizers");
+		} else if (OPT_MATCH("-prohibit")) {
+			MUST_HAVE_ARG;
+			APPEND_LIST(prohibits, nprohibits, av[1],
+				    "prohibited checkers");
+		} else if (OPT_MATCH("-unassigned")) {
+			MUST_HAVE_ARG;
+			APPEND_LIST(unassigns, nunassigns, av[1],
+				    "unassigned checkers");
+			check_unassigned = 1;
+		} else if (OPT_MATCH("-alias") || OPT_MATCH("-a")) {
+			MUST_HAVE_ARG;
+			encoding_alias = av[1];
 			ac--;
 			av++;
-		} else if (strcmp(*av, "-auto") == 0) {
-			auto_zld = 1;
-		} else if (strcmp(*av, "-normalize") == 0) {
-			MUST_HAVE_ARG;
-			if (nnormalizer >= MAX_NORMALIZER) {
-				errormsg("too many normalizers\n");
-				exit(1);
-			}
-			normalizer[nnormalizer++] = av[1];
-			ac--;
-			av++;
-		} else if (strcmp(*av, "-alias") == 0) {
-			MUST_HAVE_ARG;
-			encoding_alias = *av;
-		} else if (strcmp(*av, "-flush") == 0) {
+		} else if (OPT_MATCH("-flush")) {
 			flush_every_line = 1;
-		} else if (strcmp(*av, "-whole") == 0) {
-			selective = 0;
+		} else if (OPT_MATCH("-version") || OPT_MATCH("-v")) {
+			print_version();
 		} else {
-			usage(cmd);
+			print_usage(cmd);
 		}
+#undef OPT_MATCH
 #undef MUST_HAVE_ARG
+#undef APPEND_LIST
 
 		ac--;
 		av++;
 	}
 
 	if (ac > 1)
-		usage(cmd);
+		print_usage(cmd);
 
-	/*
-	 * Load configuration file.
-	 */
+	/* Initialize. */
+	if ((r = mdn_resconf_initialize()) != mdn_success) {
+		errormsg("error initializing library\n");
+		return (1);
+	}
+
+	/* Create resource context. */
 	resconf = NULL;
-	if (!no_resconf) {
-		mdn_result_t r;
+	if ((r = mdn_resconf_create(&resconf)) != mdn_success) {
+		errormsg("error initilizing configuration parameters\n");
+		return (1);
+	}
 
-		r = mdn_resconf_initialize();
-		if (r == mdn_success)
-			r = mdn_resconf_create(&resconf);
-		if (r == mdn_success)
-			r = mdn_resconf_loadfile(resconf, resconf_file);
+	/* Load configuration file. */
+	if (!no_resconf) {
+		r = mdn_resconf_loadfile(resconf, resconf_file);
 		if (r != mdn_success) {
 			errormsg("error reading configuration file: %s\n",
 				 mdn_result_tostring(r));
@@ -199,55 +270,52 @@ main(int ac, char **av) {
 		}
 	}
 
-	/*
-	 * Get default input/output code.
-	 */
-	if (in_code == NULL)
-		in_code = mdn_localencoding_name();
+	/* Set encoding alias file. */
+	if (encoding_alias != NULL)
+		set_encoding_alias(encoding_alias);
 
-	if (out_code == NULL) {
-		mdn_converter_t c;
-		if (resconf != NULL &&
-		    (c = mdn_resconf_serverconverter(resconf)) != NULL)
-			out_code = mdn_converter_localencoding(c);
+	/* Set input/output codeset. */
+	if (flags & FLAG_REVERSE) {
+		if (in_code != NULL)
+			set_idncode(resconf, in_code);
+		if (out_code != NULL)
+			set_localcode(resconf, out_code);
+	} else {
+		if (in_code != NULL)
+			set_localcode(resconf, in_code);
+		if (out_code != NULL)
+			set_idncode(resconf, out_code);
 	}
 
-	if (in_code == NULL) {
-		errormsg("input codeset must be specified\n");
-		return (1);
-	}
-	if (out_code == NULL) {
-		errormsg("output codeset must be specified\n");
-		return (1);
-	}
+	/* Set delimiter map(s). */
+	if (ndelimiters > 0)
+		set_delimitermapper(resconf, delimiters, ndelimiters);
 
-	/*
-	 * Initialize codeset converter.
-	 */
-	if (!initialize_converter(in_code, out_code, encoding_alias))
-		return (1);
+	/* Set local map(s). */
+	if (nlocalmappers > 0)
+		set_localmapper(resconf, localmappers, nlocalmappers);
 
-	/*
-	 * Initialize normalizer.
-	 */
-	if (nnormalizer == 0 && resconf != NULL)
-		norm_ctx = mdn_resconf_normalizer(resconf);
-	if (norm_ctx == NULL &&
-	    !initialize_normalizer(normalizer, nnormalizer))
-		return (1);
+	/* Set NAMEPREP version. */
+	if (nameprep_version != NULL)
+		set_nameprep(resconf, nameprep_version);
 
-	/*
-	 * Default ZLD.
-	 */
-	if (!zld_specified && resconf != NULL) {
-		const char *conf_zld = mdn_resconf_zld(resconf);
-		if (conf_zld != NULL)
-			canonical_zld(zld, conf_zld);
-	}
+	/* Set NAMEPREP mapper. */
+	if (nmappers > 0)
+		set_mapper(resconf, mappers, nmappers);
 
-	/*
-	 * Open input file.
-	 */
+	/* Set NAMEPREP normalizer. */
+	if (nnormalizers > 0)
+		set_normalizer(resconf, normalizers, nnormalizers);
+
+	/* Set NAMEPREP prohibit checker. */
+	if (nprohibits > 0)
+		set_prohibit_checkers(resconf, prohibits, nprohibits);
+
+	/* Set NAMEPREP unassigned checker. */
+	if (nunassigns > 0)
+		set_unassigned_checkers(resconf, unassigns, nunassigns);
+
+	/* Open input file. */
 	if (ac > 0) {
 		if ((fp = fopen(av[0], "r")) == NULL) {
 			errormsg("cannot open file %s: %s\n",
@@ -258,24 +326,53 @@ main(int ac, char **av) {
 		fp = stdin;
 	}
 
-	/*
-	 * Do the conversion.
-	 */
-	return convert_file(fp, zld, auto_zld, selective);
+	/* Do the conversion. */
+	return convert_file(resconf, fp, flags);
 }
 
 static int
-convert_file(FILE *fp, char *zld, int auto_zld, int selective) {
+convert_file(mdn_resconf_t conf, FILE *fp, int flags) {
 	mdn_result_t r;
 	char line1[1024];
 	char line2[1024];
+	char insn1[10], insn2[10];
 	int nl_trimmed;
 	int ace_hack;
+	mdn_converter_t conv;
 
-	if (mdn_converter_isasciicompatible(conv_in_ctx))
+	/*
+	 * See if the input codeset is an ACE.
+	 */
+	if (flags & FLAG_REVERSE)
+		conv = mdn_resconf_getidnconverter(conf);
+	else
+		conv = mdn_resconf_getlocalconverter(conf);
+	if (conv != NULL && mdn_converter_isasciicompatible(conv))
 		ace_hack = 1;
 	else
 		ace_hack = 0;
+	if (conv != NULL)
+		mdn_converter_destroy(conv);
+
+	if (flags & FLAG_REVERSE) {
+		strcpy(insn1, "i");
+		strcpy(insn2, "L");
+	} else {
+		char *insnp = insn2;
+
+		strcpy(insn1, "l");
+
+		if (flags & FLAG_DELIMITERMAP)
+			*insnp++ = 'd';
+		if (flags & FLAG_LOCALMAP)
+			*insnp++ = 'M';
+		if (flags & FLAG_NAMEPREP)
+			*insnp++ = 'N';
+		if (flags & FLAG_UNASSIGNCHECK)
+			*insnp++ = 'u';
+		*insnp++ = 'I';
+		*insnp = '\0';
+	}
 
 	line_number = 1;
 	while (fgets(line1, sizeof(line1), fp) != NULL) {
@@ -299,10 +396,11 @@ convert_file(FILE *fp, char *zld, int auto_zld, int selective) {
 			/*
 			 * Selectively decode those portions.
 			 */
-			r = selective_decode(line1, line2, 1024);
+			r = selective_decode(conf, insn1, line1, line2,
+					     sizeof(line2));
 		} else {
-			r = mdn_converter_localtoutf8(conv_in_ctx,
-						      line1, line2, 1024);
+			r = mdn_res_nameconv(conf, insn1,
+					     line1, line2, sizeof(line2));
 		}
 		if (r != mdn_success) {
 			errormsg("conversion failed at line %d: %s\n",
@@ -317,17 +415,22 @@ convert_file(FILE *fp, char *zld, int auto_zld, int selective) {
 		}
 
 		/*
-		 * Normalize and convert to the output codeset.
+		 * Perform local mapping and NAMEPREP, and convert to
+		 * the output codeset.
 		 */
-		if (selective) {
-			r = selective_encode(line2, line1, sizeof(line1),
-					     zld, auto_zld);
+		if (flags & FLAG_SELECTIVE) {
+			r = selective_encode(conf, insn2, line2, line1,
+					     sizeof(line1));
 		} else {
-			r = encode_region(line2, line1, sizeof(line1),
-					  zld, auto_zld);
+			r = mdn_res_nameconv(conf, insn2, line2, line1,
+					     sizeof(line1));
 		}
-		if (r != mdn_success)
+		if (r != mdn_success) {
+			errormsg("error in nameprep or output conversion "
+				 "at line %d: %s\n",
+				 line_number, mdn_result_tostring(r));
 			return (1);
+		}
 
 		fputs(line1, stdout);
 		if (nl_trimmed)
@@ -341,37 +444,60 @@ convert_file(FILE *fp, char *zld, int auto_zld, int selective) {
 	return (0);
 }
 
-void
-errormsg(const char *fmt, ...) {
-	va_list args;
+static char *options[] = {
+	"-in INPUT-CODESET   : specifies input codeset name.",
+	"-i INPUT-CODESET    : synonym for -in",
+	"-out OUTPUT-CODESET : specifies output codeset name.",
+	"-o OUTPUT-CODESET   : synonym for -out",
+	"-conf CONF-FILE     : specifies pathname of MDN configuration file.",
+	"-c CONF-FILE        : synonym for -conf",
+	"-noconf             : do not load MDN configuration file.",
+	"-C                  : synonym for -noconf",
+	"-reverse            : specifies reverse conversion.",
+	"                      (i.e. IDN encoding to local encoding)",
+	"-r                  : synonym for -reverse",
+	"-nameprep VERSION   : specifies version name of NAMEPREP.",
+	"-n VERSION          : synonym for -nameprep",
+	"-nonameprep         : do not perform NAMEPREP.",
+	"-N                  : synonym for -nonameprep",
+	"-localmap MAPPING   : specifies local mapping.",
+	"-nolocalmap         : do not perform local mapping.",
+	"-L                  : synonym for -nolocalmap",
+	"-map SCHEME         : specifies mapping scheme.",
+	"-normalize SCHEME   : specifies normalization scheme.",
+	"-prohibit SET       : specifies set of prohibited characters.",
+	"-unassigned SET     : specifies set of unassigned code points.",
+	"-unassigncheck      : perform unassigned codepoint check.",
+	"-u                  : synonym for -unassigncheck",
+	"-delimiter U+XXXX   : specifies local delimiter code point.",
+	"-delimitermap       : perform local delimiter mapping.",
+	"-d                  : synonym for -delimitermap",
+	"-alias alias-file   : specifies codeset alias file.",
+	"-a                  : synonym for -alias",
+	"-flush              : line-buffering mode.",
+	"-whole              : convert the whole region instead of",
+	"                      regions containing non-ascii characters.",
+	"-w                  : synonym for -whole",
+	"-version            : print version number, then exit.",
+	"-v                  : synonym for -version",
+	"",
+	" The following options can be specified multiple times",
+	"   -localmap, -map, -normalize, -prohibit, -unassigned -delimiter",
+	NULL,
+};
 
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
+static void
+print_version() {
+	fprintf(stderr, "mdnconv (mDNkit) version: %s\n"
+		"library version: %s\n",
+		MDNKIT_VERSION,
+		mdn_version_getstring());
+	exit(0);
 }
 
 static void
-usage(char *cmd) {
+print_usage(char *cmd) {
 	int i;
-	static char *options[] = {
-		"-in input-codeset   : specifies input codeset name.",
-		"-out output-codeset : specifies output codeset name.",
-		"-normalize scheme   : specifies normalization scheme.",
-		"                      this option can be specified",
-		"                      multiple times.",
-		"-zld zld            : specifies ZLD to use.",
-		"-auto               : automatically appends ZLD where",
-		"                      seemed appropriate.",
-		"-alias alias-file   : specifies codeset alias file.",
-		"-conf conf-file     : specifies pathname of MDN resolver",
-		"                      configuration file.",
-		"-noconf             : do not load MDN resolver configuration",
-		"                      file.",
-		"-flush              : line-buffering mode.",
-		"-whole              : convert the whole region instead of",
-		"                      regions containing non-ascii characters",
-		NULL,
-	};
 
 	fprintf(stderr, "Usage: %s [options..] [file]\n", cmd);
 
@@ -379,4 +505,22 @@ usage(char *cmd) {
 		fprintf(stderr, "\t%s\n", options[i]);
 
 	exit(1);
+}
+
+static unsigned long
+get_ucs(const char *p) {
+	unsigned long v;
+	char *end;
+
+	/* Skip optional 'U+' */
+	if (strncmp(p, "U+", 2) == 0)
+		p += 2;
+
+	v = strtoul(p, &end, 16);
+	if (*end != '\0') {
+		fprintf(stderr, "invalid UCS code point \"%s\"\n", p);
+		exit(1);
+	}
+
+	return v;
 }

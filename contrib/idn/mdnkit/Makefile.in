@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.34 2001/01/12 00:28:08 ishisone Exp $
+# $Id: Makefile.in,v 1.44 2001/04/17 03:24:09 m-kasahr Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -63,15 +63,9 @@ exec_prefix = @exec_prefix@
 
 PERL = perl
 MKTARPKG = ../util/mktarpkg
+SHELL = @SHELL@
 
-SUBDIRS = include lib dnsproxy man tools
-
-CUR_VERSION  = 1.2.1
-PREV_VERSION = 1.2
-PREV_TAG = REL_1_2
-
-DISTFILE = mdnkit-$(CUR_VERSION)-src
-PATCHFILE = mdnkit-$(PREV_VERSION)-$(CUR_VERSION)-src-patch
+SUBDIRS = include lib mdnsproxy man tools map
 
 all:
 	for d in $(SUBDIRS); do (cd $$d; $(MAKE) all); done
@@ -83,8 +77,8 @@ clean:
 	for d in $(SUBDIRS); do (cd $$d; $(MAKE) clean); done
 
 dist:
-	cd $(srcdir); $(PERL) $(MKTARPKG) --gzip=9 $(DISTFILE)
-
-patch:
-	cd $(srcdir); mkcvspatch --gzip=9 --header=patch.header \
-		--from=$(PREV_TAG) $(PATCHFILE)
+	@v=`sed -ne '/^# *define *MDNKIT_VERSION/s/^.*"\([^"]*\)".*$$/\1/p' \
+		$(srcdir)/include/mdn/version.h`; \
+	echo generate mdnkit-$$v-src.tar.gz; \
+	cd $(srcdir); \
+	$(PERL) $(MKTARPKG) --gzip=9 mdnkit-$$v-src

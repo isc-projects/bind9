@@ -1,5 +1,5 @@
 /* include/config.h.in.  Generated automatically from configure.in by autoheader.  */
-/* $Id: config.h.in,v 1.16 2000/11/17 06:51:36 ishisone Exp $ */
+/* $Id: config.h.in,v 1.30 2001/04/25 06:26:18 m-kasahr Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -67,26 +67,59 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef uid_t
 
-/* Define if your iconv() does not accept "UTF-8" as the codeset name for utf-8. */
-#undef MDN_UTF8_ENCODING_NAME
-
-/* Define if you want ZLD feature compiled in. */
-#undef MDN_SUPPORT_ZLD
-
-/* Define if the prefix of RACE encoding differs from 'bq--'. */
-#undef MDN_RACE_PREFIX
-
-/* Define if the suffix of BRACE encoding differs from '-8q9'. */
-#undef MDN_BRACE_SUFFIX
-
-/* Define if the prefix of LACE encoding differs from 'bq--'. */
-#undef MDN_LACE_PREFIX
-
 /* Define as an appropriate type (ex. int) if your system doesn't have. */
 #undef BOOL
 
+/* Define if the prototype of gethost*_r is glibc flavor. */
+#undef GETHOST_R_GLIBC_FLAVOR
+
+/* Define as the type of the 2nd argument of gethostbyaddr. */
+#undef GHBA_ADDRLEN_T
+
 /* Define if you have the bcopy function.  */
 #undef HAVE_BCOPY
+
+/* Define if you have the dlopen function.  */
+#undef HAVE_DLOPEN
+
+/* Define if you have the dlsym function.  */
+#undef HAVE_DLSYM
+
+/* Define if you have the freeaddrinfo function.  */
+#undef HAVE_FREEADDRINFO
+
+/* Define if you have the freehostent function.  */
+#undef HAVE_FREEHOSTENT
+
+/* Define if you have the getaddrinfo function.  */
+#undef HAVE_GETADDRINFO
+
+/* Define if you have the gethostbyaddr function.  */
+#undef HAVE_GETHOSTBYADDR
+
+/* Define if you have the gethostbyaddr_r function.  */
+#undef HAVE_GETHOSTBYADDR_R
+
+/* Define if you have the gethostbyname function.  */
+#undef HAVE_GETHOSTBYNAME
+
+/* Define if you have the gethostbyname2 function.  */
+#undef HAVE_GETHOSTBYNAME2
+
+/* Define if you have the gethostbyname2_r function.  */
+#undef HAVE_GETHOSTBYNAME2_R
+
+/* Define if you have the gethostbyname_r function.  */
+#undef HAVE_GETHOSTBYNAME_R
+
+/* Define if you have the getipnodebyaddr function.  */
+#undef HAVE_GETIPNODEBYADDR
+
+/* Define if you have the getipnodebyname function.  */
+#undef HAVE_GETIPNODEBYNAME
+
+/* Define if you have the getnameinfo function.  */
+#undef HAVE_GETNAMEINFO
 
 /* Define if you have the memmove function.  */
 #undef HAVE_MEMMOVE
@@ -100,8 +133,17 @@
 /* Define if you have the setvbuf function.  */
 #undef HAVE_SETVBUF
 
+/* Define if you have the syslog function.  */
+#undef HAVE_SYSLOG
+
 /* Define if you have the vsnprintf function.  */
 #undef HAVE_VSNPRINTF
+
+/* Define if you have the <arpa/nameser.h> header file.  */
+#undef HAVE_ARPA_NAMESER_H
+
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
 
 /* Define if you have the <langinfo.h> header file.  */
 #undef HAVE_LANGINFO_H
@@ -109,14 +151,68 @@
 /* Define if you have the <locale.h> header file.  */
 #undef HAVE_LOCALE_H
 
+/* Define if you have the <resolv.h> header file.  */
+#undef HAVE_RESOLV_H
+
 /* Define if you have the <sys/select.h> header file.  */
 #undef HAVE_SYS_SELECT_H
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
 
+/* Define if you have the dl library (-ldl).  */
+#undef HAVE_LIBDL
+
 /* Define if you have the nsl library (-lnsl).  */
 #undef HAVE_LIBNSL
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
+
+/* Define if you want additional ACE converters compiled in. */
+#undef MDN_EXTRA_ACE
+
+/* Define if your iconv() does not accept UTF-8 as the codeset name for utf-8. */
+#undef MDN_UTF8_ENCODING_NAME
+
+/* Define if the prefix of RACE encoding differs from 'bq--'. */
+#undef MDN_RACE_PREFIX
+
+/* Define if the suffix of BRACE encoding differs from '-8q9'. */
+#undef MDN_BRACE_SUFFIX
+
+/* Define if the prefix of LACE encoding differs from 'lq--'. */
+#undef MDN_LACE_PREFIX
+
+/* Define if the prefix of UTF-6 encoding differs from 'wq--'. */
+#undef MDN_UTF6_PREFIX
+
+/* Define if the prefix of DUDE encoding differs from 'dq--'. */
+#undef MDN_DUDE_PREFIX
+
+/* Define if the prefix of AltDUDE encoding differs from 'a---'. */
+#undef MDN_ALTDUDE_PREFIX
+
+/* Define if the suffix of AltDUDE encoding differs from ''. */
+#undef MDN_ALTDUDE_SUFFIX
+
+/* Define if the prefix of AMC-ACE-M encoding differs from ''. */
+#undef MDN_AMCACEM_PREFIX
+
+/* Define if the suffix of AMC-ACE-M encoding differs from '-amc1'. */
+#undef MDN_AMCACEM_SUFFIX
+
+/* Define if the prefix of AMC-ACE-O encoding differs from ''. */
+#undef MDN_AMCACEO_PREFIX
+
+/* Define if the suffix of AMC-ACE-O encoding differs from '-amc2'. */
+#undef MDN_AMCACEO_SUFFIX
+
+/* Define if the prefix of AMC-ACE-R encoding differs from 'amc3-'. */
+#undef MDN_AMCACER_PREFIX
+
+/* Define as the pathname of the shared libc object if your system has one. */
+#undef SOPATH_LIBC
+
+/* Define as the pathname of the shared libnsl object if your system has one. */
+#undef SOPATH_LIBNSL

@@ -1,4 +1,95 @@
-; $Id: NEWS,v 1.8 2000/12/28 02:36:29 ishisone Exp $
+; $Id: NEWS,v 1.22 2001/06/01 01:20:39 ishisone Exp $
+
+Major changes in version 2.1:
+
+* BIND-9 patch is back.  The patch adds encoding conversion and
+  NAMEPREP capability to `dig', `host' and `nslookup'.
+  Since version 2 adopts IDNA, in which all the MDN processing are
+  performed in the application layer before calling the resolver
+  layer, patch to the BIND-9's light-weight resolver found in version
+  1.x are removed.
+
+* Runmdn is back.  The strategy for making resolver MDN-aware has been
+  changed from replacing low-level resolver functions to wrapping
+  resolver API functions, so that it should also work for exotic
+  resolver implementations such as Solaris's.
+
+* Several new ACEs are supported.  These are `AltDUDE', `AMC-ACE-M',
+  `AMC-ACE-O' and  `AMC-ACE-R'.
+
+* `-version' option is added to mdnconv and mdnsproxy.  When the option
+  is specified, the command prints its version number and exits
+  immediately.
+
+* For some of frequently used options, single-character short-cut options
+  are provided for mdnconv.
+
+* The base versions of Squid patch is now 2.4.STABLE1.
+
+* A build problem on NetBSD 1.5 is fixed.
+
+
+Major changes in version 2.0.1:
+
+* A bug in mdnsproxy/Makefile.in is fixed.  Now mdnsproxy 2.X can be
+  built on Solaris.
+
+
+Major changes in version 2.0:
+
+* The MDN library (libmdn) performs domain name preparation (NAMEPREP)
+  according to the current Internet Draft.  Currently nameprep-02 and
+  nameprep-03 are supported.  Also additional local name preparation
+  can be performed before NAMEPREP.  Along with this change, command
+  line options of `mdnconv' are greatly changed.  See the man page
+  mdnconv(1) for more details.
+
+* mDNkit adopts IDNA, which is an architecture for handling
+  multilingual domain names currently being discussed at IETF IDN
+  working group.  MDN library provides new API in accordance with this
+  IDNA, and NAMEPREP.
+
+* The default configuration file name for the MDN Library is changed
+  from `mdnres.conf' to `mdn.conf'.  Note that syntax of the file has
+  some incompatible changes.  See the man page mdn.conf(5).
+
+* dnsproxy is renamed to `mdnsproxy'.  The default configuration file
+  is also renamed from `dnsproxy.conf' to `mdnsproxy.conf', and its
+  syntax is revised.  Unlike dnsproxy which only reads `dnsproxy.conf',
+  mdnsproxy also reads mdn.conf.  The path name of `mdn.conf' can be
+  specified in mdnsproxy.conf.  See mdnsproxy.conf(5) for more details.
+
+* For security reason, default directory where mdnsproxy outputs log
+  files is moved from `/tmp' to `/var/log/mdnsproxy'.  `--with-logdir'
+  option to configure can customize the directory location.
+
+* mdnsproxy can output log messages with syslog.
+
+* DUDE converter is revised and now conforms to -01 draft.
+
+* This release doesn't contain runmdn and bind9 patch.  They are
+  expected to appear again in future versions.
+
+
+Major changes in version 1.3:
+
+* dnsproxy supports access control.  dnsproxy now recognizes
+  `allow-access' and `log-on-denied' entries in a configuration file.
+  See dnsproxy.8 and dnsproxy.conf.sample for more details.
+
+* LACE converter incorporates numeral checks introduced by -01 draft.
+
+* New encoding converters for `DUDE' and `UTF-6' are implemented.
+
+* Whether a given name conforms the host name requirement in STD13 or
+  not is checked more strictly by the MDN library.  A name starting
+  or ending with hypen is not considered as STD13 conformed name, even
+  if the name consists exclusively of alphabets, digits and hypens.
+  
+* The base versions of BIND-9 patch are now 9.0.1 and 9.1.0.
+
+* The base versions of BIND-8 patch is now 8.2.3 only.
+
 
 Major changes in version 1.2.1:
 

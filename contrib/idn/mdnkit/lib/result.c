@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: result.c,v 1.9 2000/09/27 02:55:38 ishisone Exp $";
+static char *rcsid = "$Id: result.c,v 1.10 2001/02/05 09:10:58 ishisone Exp $";
 #endif
 
 /*
@@ -70,12 +70,15 @@ static char *result_string[] = {
 	"syntax error",
 	"invalid name",
 	"invalid message",
+	"invalid action",
+	"invalid code point",
 	"buffer overflow",
 	"no such entry",
 	"out of memory",
 	"no such file",
 	"no mapping to output codeset",
 	"context information required",
+	"prohibited character found",
 	"generic failure",
 };
 

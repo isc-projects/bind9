@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: race.c,v 1.17 2000/12/26 08:17:01 m-kasahr Exp $";
+static char *rcsid = "$Id: race.c,v 1.23 2001/03/07 00:58:52 ishisone Exp $";
 #endif
 
 /*
@@ -73,12 +73,12 @@ static char *rcsid = "$Id: race.c,v 1.17 2000/12/26 08:17:01 m-kasahr Exp $";
 #include <mdn/utf8.h>
 #include <mdn/debug.h>
 #include <mdn/race.h>
+#include <mdn/ace.h>
 #include <mdn/util.h>
 
 #ifndef MDN_RACE_PREFIX
 #define MDN_RACE_PREFIX		"bq--"
 #endif
-#define RACE_PREFIX_LEN		(strlen(MDN_RACE_PREFIX))
 #define RACE_2OCTET_MODE	0xd8
 #define RACE_ESCAPE		0xff
 #define RACE_ESCAPE_2ND		0x99
@@ -104,13 +104,9 @@ static char *rcsid = "$Id: race.c,v 1.17 2000/12/26 08:17:01 m-kasahr Exp $";
 enum {
 	compress_one,	/* all characters are in a single row */
 	compress_two,	/* row 0 and another row */
-	compress_none,	/* nope */
+	compress_none	/* nope */
 };
 
-static mdn_result_t	race_l2u(const char *from, const char *end,
-				 char *to, size_t tolen, size_t *clenp);
-static mdn_result_t	race_u2l(const char *from, const char *end,
-				 char *to, size_t tolen, size_t *clenp);
 static mdn_result_t	race_decode(const char *from, size_t fromlen,
 				    char *to, size_t tolen);
 static mdn_result_t	race_decode_decompress(const char *from,
@@ -124,23 +120,30 @@ static mdn_result_t	race_compress_encode(const unsigned short *p,
 					     char *to, size_t tolen);
 static int		get_compress_mode(unsigned short *p, size_t len);
 
+static mdn__ace_t race_ctx = {
+	mdn__ace_prefix,
+	MDN_RACE_PREFIX,
+	race_encode,
+	race_decode,
+};
+
 /* ARGSUSED */
 mdn_result_t
-mdn__race_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+mdn__race_open(mdn_converter_t ctx, mdn_converter_dir_t dir, void **privdata) {
 	return (mdn_success);
 }
 
 /* ARGSUSED */
 mdn_result_t
-mdn__race_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+mdn__race_close(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir) {
 	return (mdn_success);
 }
 
 mdn_result_t
-mdn__race_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-		    const char *from, char *toorg, size_t tolen)
+mdn__race_convert(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir,
+		  const char *from, char *to, size_t tolen)
 {
-	char *to = toorg;
+	mdn_result_t r;
 
 	assert(ctx != NULL &&
 	       (dir == mdn_converter_l2u || dir == mdn_converter_u2l));
@@ -149,134 +152,13 @@ mdn__race_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 	      dir == mdn_converter_l2u ? "l2u" : "u2l",
 	      mdn_debug_xstring(from, 20)));
 
-	for (;;) {
-		const char *end;
-		size_t convlen;
-		mdn_result_t r;
+	r = mdn__ace_convert(&race_ctx, dir, from, to, tolen);
+	if (r != mdn_success)
+		return (r);
 
-		/*
-		 * Find the end of this component (label).
-		 */
-		if ((end = strchr(from, '.')) == NULL)
-			end = from + strlen(from);
+	DUMP(("mdn__race_convert: \"%s\"\n", mdn_debug_xstring(to, 70)));
 
-		/*
-		 * Convert it.
-		 */
-		if (dir == mdn_converter_l2u)
-			r = race_l2u(from, end, to, tolen, &convlen);
-		else
-			r = race_u2l(from, end, to, tolen, &convlen);
-		if (r != mdn_success)
-			return (r);
-
-		/*
-		 * Copy '.' or NUL.
-		 */
-		if (tolen <= convlen)
-			return (mdn_buffer_overflow);
-
-		to += convlen;
-		*to++ = *end;
-		tolen -= convlen + 1;
-
-		if (*end == '\0')
-			break;
-
-		from = end + 1;
-	}
-
-	DUMP(("mdn__race_convert: \"%s\"\n", mdn_debug_xstring(toorg, 70)));
-
-	return (mdn_success);
-}
-
-static mdn_result_t
-race_l2u(const char *from, const char *end,
-	   char *to, size_t tolen, size_t *clenp) {
-	size_t len = end - from;
-
-	if (len >= RACE_PREFIX_LEN &&
-	    mdn_util_casematch(from, MDN_RACE_PREFIX, RACE_PREFIX_LEN)) {
-		/*
-		 * RACE encoding prefix found.
-		 */
-		mdn_result_t r;
-
-		r = race_decode(from + RACE_PREFIX_LEN,
-				len - RACE_PREFIX_LEN, to, tolen);
-		if (r == mdn_invalid_encoding)
-			goto copy;
-		else if (r != mdn_success)
-			return (r);
-
-		len = strlen(to);
-
-		/*
-		 * RACE doesn't permit encoding a domain name which fits
-		 * the host name requirement [STD13].
-		 */
-		if (mdn_util_domainspan(to, to + len) == to + len)
-			return (mdn_invalid_encoding);
-
-	} else {
-		/*
-		 * Not RACE encoded.  Copy verbatim.
-		 */
-	copy:
-		if (mdn_util_domainspan(from, end) < end) {
-			/* invalid character found */
-			return (mdn_invalid_encoding);
-		}
-
-		if (tolen < len)
-			return (mdn_buffer_overflow);
-
-		(void)memcpy(to, from, len);
-	}
-	*clenp = len;
-	return (mdn_success);
-}
-
-static mdn_result_t
-race_u2l(const char *from, const char *end,
-	   char *to, size_t tolen, size_t *clenp) {
-	size_t len = end - from;
-
-	/*
-	 * See if encoding is necessary.
-	 */
-	if (mdn_util_domainspan(from, end) < end) {
-		/*
-		 * Conversion is necessary.
-		 */
-		mdn_result_t r;
-
-		/* Set prefix. */
-		if (tolen < RACE_PREFIX_LEN)
-			return (mdn_buffer_overflow);
-		(void)memcpy(to, MDN_RACE_PREFIX, RACE_PREFIX_LEN);
-		to += RACE_PREFIX_LEN;
-		tolen -= RACE_PREFIX_LEN;
-
-		r = race_encode(from, len, to, tolen);
-		if (r != mdn_success)
-			return (r);
-
-		len = RACE_PREFIX_LEN + strlen(to);
-	} else {
-		/*
-		 * Conversion is NOT necessary.
-		 * Copy verbatim.
-		 */
-
-		if (tolen < len)
-			return (mdn_buffer_overflow);
-
-		(void)memcpy(to, from, len);
-	}
-	*clenp = len;
-	return (mdn_success);
+	return (r);
 }
 
 static mdn_result_t
@@ -284,7 +166,6 @@ race_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	unsigned short *buf;
 	unsigned short local_buf[RACE_BUF_SIZE];
 	size_t len, reslen;
-	char *reversed_from;
 	mdn_result_t r;
 
 	/*
@@ -322,20 +203,6 @@ race_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 		goto ret;
 	}
 	*(to + reslen) = '\0';
-
-	/*
-	 * Encode the result, and compare the result with `from', in
-	 * order to test whether an input string is encoded correctly.
-	 * If `from' was encoded with wrong compression mode, we return
-	 * `mdn_invalid_encoding'.
-	 */
-	r = race_encode(to, reslen, (char *)buf, fromlen + 1);
-	if (r != mdn_success)
-		goto ret;
-	if (!mdn_util_casematch((char *)buf, from, fromlen)) {
-		r = mdn_invalid_encoding;
-		goto ret;
-	}
 
 ret:
 	if (buf != local_buf)

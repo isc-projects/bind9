@@ -1,0 +1,21 @@
+;
+; EXPORTS in JPNICMDN
+;
+LIBRARY jpnicmdn
+DESCRIPTION "JPNICMDN - mMDNS Wrapper for WinSock by JPNIC"
+EXPORTS
+  mdnPrintf                 @1
+  mdnEncodeWhere            @2
+  mdnCheckDll               @6
+  mdnLogInit                @7
+  mdnLogPrintf              @8
+  mdnConvInit               @10
+  mdnConvDone               @11
+  mdnConvReq                @12
+  mdnConvRsp                @13
+  mdnHookInit               @15
+  mdnHookDone               @16
+  mdnHook                   @17
+  dumpAddr                  @20
+  dumpHost                  @21
+  dumpName                  @22

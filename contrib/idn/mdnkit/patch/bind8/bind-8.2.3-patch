@@ -1,0 +1,2429 @@
+8bit-through patch for bind-8.2.3
+=================================
+
+This is a patch file for ISC BIND 8.2.3 to make it work with
+internationalized domain names.  With this patch you'll get:
+	+ 8bit-clean named
+	+ 8bit-clean resolver (libbind)
+	+ (almost) 8bit-clean nslookup
+
+This patch also contains fixes for incorrect usage of ctype
+macros/functions in the original source code.
+
+To apply this patch, you should go to the top directory of the distribution
+(where you see `src' subdirectory), then invoke `patch' command like this:
+
+	% patch -p0 < this-file
+
+Then follow the instructions described in `src/INSTALL' to compile
+and install.
+
+
+Known bugs
+----------
+
+* The `+domain=...' option of dig doesn't work correctly, whether the
+  given argument is multilingual domain name or not.
+  dig in ISC BIND 8.2.3 without the MDN patch has the same bug.
+
+
+Index: src/bin/addr/addr.c
+diff -c mdn/othersrc/bind8/src/bin/addr/addr.c:1.1.1.1 mdn/othersrc/bind8/src/bin/addr/addr.c:1.2
+*** src/bin/addr/addr.c	Wed May 24 15:35:10 2000
+--- src/bin/addr/addr.c	Mon Jul  3 13:08:49 2000
+***************
+*** 65,71 ****
+  			src++;
+  			continue;
+  		}
+! 		if (isascii(ch) && (isspace(ch) || ispunct(ch))) {
+  			if (digits > 0) {
+  				if (ptr == end)
+  					return (0);
+--- 65,71 ----
+  			src++;
+  			continue;
+  		}
+! 		if (isascii((unsigned char)ch) && (isspace((unsigned char)ch) || ispunct((unsigned char)ch))) {
+  			if (digits > 0) {
+  				if (ptr == end)
+  					return (0);
+***************
+*** 76,85 ****
+  			digits = 0;
+  			continue;
+  		}
+! 		if (!isascii(ch) || !isxdigit(ch))
+  			return (0);
+! 		if (isupper(ch))
+! 			ch = tolower(ch);
+  		/* Clock it in using little endian arithmetic. */
+  		val <<= 4;
+  		val |= (strchr(xdigits, ch) - xdigits);
+--- 76,85 ----
+  			digits = 0;
+  			continue;
+  		}
+! 		if (!isascii((unsigned char)ch) || !isxdigit((unsigned char)ch))
+  			return (0);
+! 		if (isupper((unsigned char)ch))
+! 			ch = tolower((unsigned char)ch);
+  		/* Clock it in using little endian arithmetic. */
+  		val <<= 4;
+  		val |= (strchr(xdigits, ch) - xdigits);
+Index: src/bin/dig/dig.c
+diff -c mdn/othersrc/bind8/src/bin/dig/dig.c:1.1.1.4 mdn/othersrc/bind8/src/bin/dig/dig.c:1.5
+*** src/bin/dig/dig.c	Mon Jan 29 17:22:41 2001
+--- src/bin/dig/dig.c	Mon Jan 29 17:32:27 2001
+***************
+*** 1154,1168 ****
+  				b = 8; p++;
+  				continue;
+  			}
+! 		if (isupper(*p))
+! 			*p = tolower(*p);
+  		if (*p == 'x') {
+  			b = 16; p++;
+  			continue;
+  		}
+! 		if (isdigit(*p)) {
+  			i = *p - '0';
+! 		} else if (isxdigit(*p)) {
+  			i = *p - 'a' + 10;
+  		} else {
+  			fprintf(stderr,
+--- 1154,1168 ----
+  				b = 8; p++;
+  				continue;
+  			}
+! 		if (isupper((unsigned char)*p))
+! 			*p = tolower((unsigned char)*p);
+  		if (*p == 'x') {
+  			b = 16; p++;
+  			continue;
+  		}
+! 		if (isdigit((unsigned char)*p)) {
+  			i = *p - '0';
+! 		} else if (isxdigit((unsigned char)*p)) {
+  			i = *p - 'a' + 10;
+  		} else {
+  			fprintf(stderr,
+***************
+*** 1659,1665 ****
+  			break;
+  		default:
+  			*y++ = l;
+! 			while (!isspace(*l))
+  				l++;
+  			if (*l == '\n')
+  				done++;
+--- 1659,1665 ----
+  			break;
+  		default:
+  			*y++ = l;
+! 			while (!isspace((unsigned char)*l))
+  				l++;
+  			if (*l == '\n')
+  				done++;
+Index: src/bin/dnskeygen/dnskeygen.c
+diff -c mdn/othersrc/bind8/src/bin/dnskeygen/dnskeygen.c:1.1.1.3 mdn/othersrc/bind8/src/bin/dnskeygen/dnskeygen.c:1.4
+*** src/bin/dnskeygen/dnskeygen.c	Mon Jan 29 17:22:42 2001
+--- src/bin/dnskeygen/dnskeygen.c	Mon Jan 29 17:32:27 2001
+***************
+*** 87,100 ****
+  			}
+  			break;
+  		case 'p':
+! 			if (optarg && isdigit(optarg[0]))
+  				protocol = atoi(optarg);
+  			else
+  				usage("-p flag not followed by a number", 0);
+  			break;
+  		case 's':
+  			/* Default: not signatory key */
+! 			if (optarg && isdigit(optarg[0]))
+  				sign_val = (int) atoi(optarg);
+  			else
+  				usage("-s flag requires a value",0);
+--- 87,100 ----
+  			}
+  			break;
+  		case 'p':
+! 			if (optarg && isdigit((unsigned char)optarg[0]))
+  				protocol = atoi(optarg);
+  			else
+  				usage("-p flag not followed by a number", 0);
+  			break;
+  		case 's':
+  			/* Default: not signatory key */
+! 			if (optarg && isdigit((unsigned char)optarg[0]))
+  				sign_val = (int) atoi(optarg);
+  			else
+  				usage("-s flag requires a value",0);
+***************
+*** 112,118 ****
+  			key_type++;
+  			break;
+  		case 'H':
+! 			if (optarg && isdigit(optarg[0]))
+  				size = (int) atoi(optarg);
+  			else
+  				usage("-H flag requires a size",0);
+--- 112,118 ----
+  			key_type++;
+  			break;
+  		case 'H':
+! 			if (optarg && isdigit((unsigned char)optarg[0]))
+  				size = (int) atoi(optarg);
+  			else
+  				usage("-H flag requires a size",0);
+***************
+*** 124,130 ****
+  				      PRINT_SUPPORTED);
+  			break;
+  		case 'R':
+! 			if (optarg && isdigit(optarg[0]))
+  				size = (int) atoi(optarg);
+  			else
+  				usage("-R flag requires a size",0);
+--- 124,130 ----
+  				      PRINT_SUPPORTED);
+  			break;
+  		case 'R':
+! 			if (optarg && isdigit((unsigned char)optarg[0]))
+  				size = (int) atoi(optarg);
+  			else
+  				usage("-R flag requires a size",0);
+***************
+*** 136,142 ****
+  				      PRINT_SUPPORTED);
+  			break;
+  		case 'D':
+! 			if (optarg && isdigit(optarg[0]))
+  				size = (int) atoi(optarg);
+  			else
+  				usage("-D flag requires a size", 0);
+--- 136,142 ----
+  				      PRINT_SUPPORTED);
+  			break;
+  		case 'D':
+! 			if (optarg && isdigit((unsigned char)optarg[0]))
+  				size = (int) atoi(optarg);
+  			else
+  				usage("-D flag requires a size", 0);
+Index: src/bin/irpd/irpd.c
+diff -c mdn/othersrc/bind8/src/bin/irpd/irpd.c:1.1.1.4 mdn/othersrc/bind8/src/bin/irpd/irpd.c:1.5
+*** src/bin/irpd/irpd.c	Mon Jan 29 17:22:42 2001
+--- src/bin/irpd/irpd.c	Mon Jan 29 17:32:27 2001
+***************
+*** 2049,2058 ****
+  
+  	/* count + 1 of the number of runs of non-whitespace. */
+  	for (iswh = 1, i = 1, p = string ; p != NULL && *p ; p++) {
+! 		if (iswh && !isspace(*p)) {
+  			iswh = 0;
+  			i++;
+! 		} else if (!iswh && isspace(*p)) {
+  			iswh = 1;
+  		}
+  	}
+--- 2049,2058 ----
+  
+  	/* count + 1 of the number of runs of non-whitespace. */
+  	for (iswh = 1, i = 1, p = string ; p != NULL && *p ; p++) {
+! 		if (iswh && !isspace((unsigned char)*p)) {
+  			iswh = 0;
+  			i++;
+! 		} else if (!iswh && isspace((unsigned char)*p)) {
+  			iswh = 1;
+  		}
+  	}
+***************
+*** 2073,2079 ****
+  	a->iovlen = i;
+  
+  	for (c = 0, p = string ; p != NULL && *p ; c++) {
+! 		while (isspace(*p)) {
+  			p++;
+  		}
+  
+--- 2073,2079 ----
+  	a->iovlen = i;
+  
+  	for (c = 0, p = string ; p != NULL && *p ; c++) {
+! 		while (isspace((unsigned char)*p)) {
+  			p++;
+  		}
+  
+***************
+*** 2082,2088 ****
+  
+  		iovs[c].iov_base = (void *)p;
+  
+! 		while (*p && !isspace(*p)) {
+  			p++;
+  		}
+  		iovs[c].iov_len = p - (char *)iovs[c].iov_base;
+--- 2082,2088 ----
+  
+  		iovs[c].iov_base = (void *)p;
+  
+! 		while (*p && !isspace((unsigned char)*p)) {
+  			p++;
+  		}
+  		iovs[c].iov_len = p - (char *)iovs[c].iov_base;
+Index: src/bin/named/db_defs.h
+diff -c mdn/othersrc/bind8/src/bin/named/db_defs.h:1.1.1.3 mdn/othersrc/bind8/src/bin/named/db_defs.h:1.4
+*** src/bin/named/db_defs.h	Mon Dec 25 13:48:48 2000
+--- src/bin/named/db_defs.h	Tue Dec 26 14:07:22 2000
+***************
+*** 201,207 ****
+  #define HASHMASK	0x1f
+  #define HASHROTATE(v) \
+  	(((v) << HASHSHIFT) | ((v) >> ((sizeof(v) * 8) - HASHSHIFT)))
+! #define HASHLOWER(c)	((isascii(c) && isupper(c)) ? tolower(c) : (c))
+  #define HASHIMILATE(v,c) ((v) = (HASHROTATE(v)) + (HASHLOWER(c) & HASHMASK))
+  
+  #define TSIG_BUF_SIZE 640
+--- 201,207 ----
+  #define HASHMASK	0x1f
+  #define HASHROTATE(v) \
+  	(((v) << HASHSHIFT) | ((v) >> ((sizeof(v) * 8) - HASHSHIFT)))
+! #define HASHLOWER(c)	((isascii((unsigned char)c) && isupper((unsigned char)c)) ? tolower((unsigned char)c) : (c))
+  #define HASHIMILATE(v,c) ((v) = (HASHROTATE(v)) + (HASHLOWER(c) & HASHMASK))
+  
+  #define TSIG_BUF_SIZE 640
+Index: src/bin/named/db_glue.c
+diff -c mdn/othersrc/bind8/src/bin/named/db_glue.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named/db_glue.c:1.5
+*** src/bin/named/db_glue.c	Mon Jan 29 17:22:43 2001
+--- src/bin/named/db_glue.c	Mon Jan 29 17:32:28 2001
+***************
+*** 315,321 ****
+  get_class(const char *class) {
+  	const struct map *mp;
+  
+! 	if (isdigit(*class))
+  		return (atoi(class));
+  	for (mp = map_class; mp->token != NULL; mp++)
+  		if (strcasecmp(class, mp->token) == 0)
+--- 315,321 ----
+  get_class(const char *class) {
+  	const struct map *mp;
+  
+! 	if (isdigit((unsigned char)*class))
+  		return (atoi(class));
+  	for (mp = map_class; mp->token != NULL; mp++)
+  		if (strcasecmp(class, mp->token) == 0)
+Index: src/bin/named/db_ixfr.c
+diff -c mdn/othersrc/bind8/src/bin/named/db_ixfr.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named/db_ixfr.c:1.5
+*** src/bin/named/db_ixfr.c	Mon Jan 29 17:22:43 2001
+--- src/bin/named/db_ixfr.c	Mon Jan 29 17:32:28 2001
+***************
+*** 543,549 ****
+  			n = 0;
+  			data[0] = '\0';
+  			(void) getword(buf, sizeof buf, fp, 1);
+! 			if (isdigit(buf[0])) {    /* ttl */
+  				if (ns_parse_ttl(buf, &l) < 0) {
+  					err++;
+  					break;
+--- 543,549 ----
+  			n = 0;
+  			data[0] = '\0';
+  			(void) getword(buf, sizeof buf, fp, 1);
+! 			if (isdigit((unsigned char)buf[0])) {    /* ttl */
+  				if (ns_parse_ttl(buf, &l) < 0) {
+  					err++;
+  					break;
+***************
+*** 705,711 ****
+  			case T_RT:
+  				n = 0;
+  				cp = buf;
+! 				while (isdigit(*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				cp = data;
+--- 705,711 ----
+  			case T_RT:
+  				n = 0;
+  				cp = buf;
+! 				while (isdigit((unsigned char)*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				cp = data;
+***************
+*** 730,736 ****
+  				n = 0;
+  				data[0] = '\0';
+  				cp = buf;
+! 				while (isdigit(*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				cp = data;
+  				PUTSHORT((u_int16_t) n, cp);
+--- 730,736 ----
+  				n = 0;
+  				data[0] = '\0';
+  				cp = buf;
+! 				while (isdigit((unsigned char)*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				cp = data;
+  				PUTSHORT((u_int16_t) n, cp);
+Index: src/bin/named/db_load.c
+diff -c mdn/othersrc/bind8/src/bin/named/db_load.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named/db_load.c:1.5
+*** src/bin/named/db_load.c	Mon Jan 29 17:22:44 2001
+--- src/bin/named/db_load.c	Mon Jan 29 17:32:28 2001
+***************
+*** 821,827 ****
+  				n = 0;
+  				cp = buf;
+  				/* Order */
+! 				while (isdigit(*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				if (cp == buf || n > 65535)
+--- 821,827 ----
+  				n = 0;
+  				cp = buf;
+  				/* Order */
+! 				while (isdigit((unsigned char)*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				if (cp == buf || n > 65535)
+***************
+*** 889,895 ****
+  			case ns_t_srv:
+  				n = 0;
+  				cp = buf;
+! 				while (isdigit(*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				if ((cp == buf) || (n > 65535))
+--- 889,895 ----
+  			case ns_t_srv:
+  				n = 0;
+  				cp = buf;
+! 				while (isdigit((unsigned char)*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				if ((cp == buf) || (n > 65535))
+***************
+*** 928,934 ****
+  				n = 0;
+  				data[0] = '\0';
+  				cp = buf;
+! 				while (isdigit(*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				if ((cp == buf) || (n > 65535))
+--- 928,934 ----
+  				n = 0;
+  				data[0] = '\0';
+  				cp = buf;
+! 				while (isdigit((unsigned char)*cp))
+  					n = n * 10 + (*cp++ - '0');
+  				/* catch bad values */
+  				if ((cp == buf) || (n > 65535))
+***************
+*** 1893,1899 ****
+  		wordtouint32_error = 1;
+  	else
+  		while ('\0' != *bufend) {
+! 			if (isspace(*bufend))
+  				bufend++;
+  			else {
+  				wordtouint32_error = 1;
+--- 1893,1899 ----
+  		wordtouint32_error = 1;
+  	else
+  		while ('\0' != *bufend) {
+! 			if (isspace((unsigned char)*bufend))
+  				bufend++;
+  			else {
+  				wordtouint32_error = 1;
+Index: src/bin/named/ns_config.c
+diff -c mdn/othersrc/bind8/src/bin/named/ns_config.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named/ns_config.c:1.5
+*** src/bin/named/ns_config.c	Mon Jan 29 17:22:45 2001
+--- src/bin/named/ns_config.c	Mon Jan 29 17:32:28 2001
+***************
+*** 430,436 ****
+--- 430,440 ----
+  	memset(zp, 0, sizeof (struct zoneinfo));
+  	zp->z_origin = name;
+  	zp->z_class = class;
++ #ifdef NO_8BIT_THRU
+  	zp->z_checknames = not_set;
++ #else
++ 	zp->z_checknames = ignore;
++ #endif
+  	if (server_options->flags & OPTION_MAINTAIN_IXFR_BASE)
+  		 zp->z_maintain_ixfr_base = 1;
+  	else
+Index: src/bin/named/ns_init.c
+diff -c mdn/othersrc/bind8/src/bin/named/ns_init.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named/ns_init.c:1.5
+*** src/bin/named/ns_init.c	Mon Jan 29 17:22:46 2001
+--- src/bin/named/ns_init.c	Mon Jan 29 17:32:28 2001
+***************
+*** 433,439 ****
+--- 433,443 ----
+  	  const char *owner,
+  	  struct in_addr source)
+  {
++ #ifdef NO_8BIT_THRU
+  	enum severity severity = not_set;
++ #else
++ 	enum severity severity = ignore;
++ #endif
+  	int ok = 1;
+  
+  	if (zp != NULL)
+Index: src/bin/named/ns_lexer.c
+diff -c mdn/othersrc/bind8/src/bin/named/ns_lexer.c:1.1.1.3 mdn/othersrc/bind8/src/bin/named/ns_lexer.c:1.4
+*** src/bin/named/ns_lexer.c	Mon Dec 25 13:48:50 2000
+--- src/bin/named/ns_lexer.c	Tue Dec 26 14:07:22 2000
+***************
+*** 65,71 ****
+          int		warnings;
+          int		errors;
+  	u_int		pushback_count;
+! 	char		pushback[LEXER_MAX_PUSHBACK];
+  	struct lexer_file_context *
+  			next;
+  } *LexerFileContext;
+--- 65,71 ----
+          int		warnings;
+          int		errors;
+  	u_int		pushback_count;
+! 	int		pushback[LEXER_MAX_PUSHBACK];
+  	struct lexer_file_context *
+  			next;
+  } *LexerFileContext;
+Index: src/bin/named/ns_main.c
+diff -c mdn/othersrc/bind8/src/bin/named/ns_main.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named/ns_main.c:1.5
+*** src/bin/named/ns_main.c	Mon Jan 29 17:22:47 2001
+--- src/bin/named/ns_main.c	Mon Jan 29 17:32:28 2001
+***************
+*** 2839,2845 ****
+  	if (*s == '\0')
+  		return (0);
+  	while (*s != '\0') {
+! 		if (!isdigit(*s))
+  			return (0);
+  		s++;
+  	}
+--- 2839,2845 ----
+  	if (*s == '\0')
+  		return (0);
+  	while (*s != '\0') {
+! 		if (!isdigit((unsigned char)*s))
+  			return (0);
+  		s++;
+  	}
+Index: src/bin/named/ns_parseutil.c
+diff -c mdn/othersrc/bind8/src/bin/named/ns_parseutil.c:1.1.1.2 mdn/othersrc/bind8/src/bin/named/ns_parseutil.c:1.3
+*** src/bin/named/ns_parseutil.c	Fri Sep  8 13:25:17 2000
+--- src/bin/named/ns_parseutil.c	Fri Sep  8 14:21:52 2000
+***************
+*** 116,123 ****
+  
+  	for (s = key; *s != '\0'; s++) {
+  		c = *s;
+! 		if (isascii(c) && isupper(c))
+! 			c = tolower(c);
+  		h = ( h << 4 ) + c;
+  		if ((g = ( h & 0xf0000000 )) != 0) {
+  			h = h ^ (g >> 24);
+--- 116,123 ----
+  
+  	for (s = key; *s != '\0'; s++) {
+  		c = *s;
+! 		if (isascii((unsigned char)c) && isupper((unsigned char)c))
+! 			c = tolower((unsigned char)c);
+  		h = ( h << 4 ) + c;
+  		if ((g = ( h & 0xf0000000 )) != 0) {
+  			h = h ^ (g >> 24);
+***************
+*** 213,219 ****
+  	for (; (c = *in) != '\0'; in++) {
+  		if (units_done)
+  			return (0);
+! 		if (isdigit(c)) {
+  			result *= 10;
+  			result += (c - '0');
+  		} else {
+--- 213,219 ----
+  	for (; (c = *in) != '\0'; in++) {
+  		if (units_done)
+  			return (0);
+! 		if (isdigit((unsigned char)c)) {
+  			result *= 10;
+  			result += (c - '0');
+  		} else {
+Index: src/bin/named/ns_update.c
+diff -c mdn/othersrc/bind8/src/bin/named/ns_update.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named/ns_update.c:1.5
+*** src/bin/named/ns_update.c	Mon Jan 29 17:22:50 2001
+--- src/bin/named/ns_update.c	Mon Jan 29 17:32:28 2001
+***************
+*** 2354,2360 ****
+  			n = 0;
+  			data[0] = '\0';
+  			(void) getword(buf, sizeof buf, fp, 1);
+! 			if (isdigit(buf[0])) {	/* ttl */
+  				if (ns_parse_ttl(buf, &l) < 0) {
+  					err++;
+  					break;
+--- 2354,2360 ----
+  			n = 0;
+  			data[0] = '\0';
+  			(void) getword(buf, sizeof buf, fp, 1);
+! 			if (isdigit((unsigned char)buf[0])) {	/* ttl */
+  				if (ns_parse_ttl(buf, &l) < 0) {
+  					err++;
+  					break;
+***************
+*** 2523,2529 ****
+  				case T_RT:
+  					n = 0;
+  					cp = buf;
+! 					while (isdigit(*cp))
+  						n = n * 10 + (*cp++ - '0');
+  					/* catch bad values */
+  					cp = data;
+--- 2523,2529 ----
+  				case T_RT:
+  					n = 0;
+  					cp = buf;
+! 					while (isdigit((unsigned char)*cp))
+  						n = n * 10 + (*cp++ - '0');
+  					/* catch bad values */
+  					cp = data;
+***************
+*** 2549,2555 ****
+  					n = 0;
+  					data[0] = '\0';
+  					cp = buf;
+! 					while (isdigit(*cp))
+  						n = n * 10 + (*cp++ - '0');
+  					cp = data;
+  					PUTSHORT((u_int16_t)n, cp);
+--- 2549,2555 ----
+  					n = 0;
+  					data[0] = '\0';
+  					cp = buf;
+! 					while (isdigit((unsigned char)*cp))
+  						n = n * 10 + (*cp++ - '0');
+  					cp = data;
+  					PUTSHORT((u_int16_t)n, cp);
+Index: src/bin/named-xfer/named-xfer.c
+diff -c mdn/othersrc/bind8/src/bin/named-xfer/named-xfer.c:1.1.1.4 mdn/othersrc/bind8/src/bin/named-xfer/named-xfer.c:1.5
+*** src/bin/named-xfer/named-xfer.c	Mon Jan 29 17:22:51 2001
+--- src/bin/named-xfer/named-xfer.c	Mon Jan 29 17:32:28 2001
+***************
+*** 817,823 ****
+  		fgets(buf, sizeof(buf), fp);
+  		buf[strlen(buf)-1] = 0;
+  		cp = buf;
+! 		while (isspace(*cp))
+  			cp++;
+  
+  		secret_len = b64_pton(cp, secret, sizeof(secret));
+--- 817,823 ----
+  		fgets(buf, sizeof(buf), fp);
+  		buf[strlen(buf)-1] = 0;
+  		cp = buf;
+! 		while (isspace((unsigned char)*cp))
+  			cp++;
+  
+  		secret_len = b64_pton(cp, secret, sizeof(secret));
+Index: src/bin/ndc/ndc.c
+diff -c mdn/othersrc/bind8/src/bin/ndc/ndc.c:1.1.1.4 mdn/othersrc/bind8/src/bin/ndc/ndc.c:1.5
+*** src/bin/ndc/ndc.c	Mon Jan 29 17:22:52 2001
+--- src/bin/ndc/ndc.c	Mon Jan 29 17:32:29 2001
+***************
+*** 369,375 ****
+  		long l = 0;
+  		char ch;
+  
+! 		while ((ch = *++cp) != '\0' && ch != '>' && isdigit(ch))
+  			l *= 10, l += (ch - '0');
+  		if (ch == '>') {
+  			*pidp = (pid_t)l;
+--- 369,375 ----
+  		long l = 0;
+  		char ch;
+  
+! 		while ((ch = *++cp) != '\0' && ch != '>' && isdigit((unsigned char)ch))
+  			l *= 10, l += (ch - '0');
+  		if (ch == '>') {
+  			*pidp = (pid_t)l;
+Index: src/bin/nslookup/commands.l
+diff -c mdn/othersrc/bind8/src/bin/nslookup/commands.l:1.1.1.3 mdn/othersrc/bind8/src/bin/nslookup/commands.l:1.6
+*** src/bin/nslookup/commands.l	Mon Jan 29 17:22:52 2001
+--- src/bin/nslookup/commands.l	Mon Jan 29 17:32:29 2001
+***************
+*** 103,113 ****
+  extern void PrintHelp();
+  extern void ViewList(char *);
+  
+! %}
+! WS	[ \t]
+  FLET	[A-Za-z0-9.*\\_]
+  LET	[A-Za-z0-9.*_]
+  NAME	[A-Za-z0-9.*=_/-]
+  %%
+  ^{WS}*server{WS}+{LET}{NAME}*{WS}*$	{
+  					    /*
+--- 103,125 ----
+  extern void PrintHelp();
+  extern void ViewList(char *);
+  
+! #ifdef NO_8BIT_THRU
+! #error "Please change following lexical definitions by hand, and delete me."
+! /*
+!  * Please change following lexical definitions to
+  FLET	[A-Za-z0-9.*\\_]
+  LET	[A-Za-z0-9.*_]
+  NAME	[A-Za-z0-9.*=_/-]
++   by hand. Sorry for your inconvinience.
++  */
++ #endif
++ 
++ %}
++ %p 5000
++ WS	[ \t]
++ FLET	[^ \t\n]
++ LET	[^ \t\n]
++ NAME	[^ \t\n]
+  %%
+  ^{WS}*server{WS}+{LET}{NAME}*{WS}*$	{
+  					    /*
+Index: src/bin/nslookup/main.c
+diff -c mdn/othersrc/bind8/src/bin/nslookup/main.c:1.1.1.4 mdn/othersrc/bind8/src/bin/nslookup/main.c:1.5
+*** src/bin/nslookup/main.c	Mon Jan 29 17:22:52 2001
+--- src/bin/nslookup/main.c	Mon Jan 29 17:32:29 2001
+***************
+*** 441,450 ****
+  {
+      register char *cp;
+  
+!     if (isdigit(host[0])) {
+  	    /* Make sure it has only digits and dots. */
+  	    for (cp = host; *cp; ++cp) {
+! 		if (!isdigit(*cp) && *cp != '.') 
+  		    return FALSE;
+  	    }
+  	    /* If it has a trailing dot, don't treat it as an address. */
+--- 441,450 ----
+  {
+      register char *cp;
+  
+!     if (isdigit((unsigned char)host[0])) {
+  	    /* Make sure it has only digits and dots. */
+  	    for (cp = host; *cp; ++cp) {
+! 		if (!isdigit((unsigned char)*cp) && *cp != '.') 
+  		    return FALSE;
+  	    }
+  	    /* If it has a trailing dot, don't treat it as an address. */
+***************
+*** 888,898 ****
+      int		tmp;
+      int		i;
+  
+!     while (isspace(*option))
+  	++option;
+      if (strncmp (option, "set ", 4) == 0)
+  	option += 4;
+!     while (isspace(*option))
+  	++option;
+  
+      if (*option == 0) {
+--- 888,898 ----
+      int		tmp;
+      int		i;
+  
+!     while (isspace((unsigned char)*option))
+  	++option;
+      if (strncmp (option, "set ", 4) == 0)
+  	option += 4;
+!     while (isspace((unsigned char)*option))
+  	++option;
+  
+      if (*option == 0) {
+Index: src/bin/nslookup/subr.c
+diff -c mdn/othersrc/bind8/src/bin/nslookup/subr.c:1.1.1.2 mdn/othersrc/bind8/src/bin/nslookup/subr.c:1.3
+*** src/bin/nslookup/subr.c	Mon Jan 29 17:22:53 2001
+--- src/bin/nslookup/subr.c	Mon Jan 29 17:32:29 2001
+***************
+*** 513,522 ****
+  	if (dest_size == 0 || dest == NULL || src == NULL)
+  		return 0;
+  	
+! 	for (start = src ; isspace(*start) ; start++)
+  		/* nada */ ;
+  
+!         for (end = start ; *end != '\0' && !isspace(*end) ; end++)
+  		/* nada */ ;
+  
+  	sublen = end - start ;
+--- 513,522 ----
+  	if (dest_size == 0 || dest == NULL || src == NULL)
+  		return 0;
+  	
+! 	for (start = src ; isspace((unsigned char)*start) ; start++)
+  		/* nada */ ;
+  
+!         for (end = start ; *end != '\0' && !isspace((unsigned char)*end) ; end++)
+  		/* nada */ ;
+  
+  	sublen = end - start ;
+***************
+*** 560,582 ****
+  	if (f == NULL || s == NULL)
+  		goto notfound;
+  
+! 	if (isspace(*f)) {
+! 		while (isspace(*f))
+  			f++ ;
+! 		while (isspace(*s))
+  			s++ ;
+  	}
+  	
+  	while (1) {
+! 		if (isspace(*f)) {
+! 			if (!isspace(*s))
+  				goto notfound;
+! 			while(isspace(*s))
+  				s++;
+  			/* any amount of whitespace in the format string
+  			   will match any amount of space in the source
+  			   string. */
+! 			while (isspace(*f))
+  				f++;
+  		} else if (*f == '\0') {
+  			return (s - src);
+--- 560,582 ----
+  	if (f == NULL || s == NULL)
+  		goto notfound;
+  
+! 	if (isspace((unsigned char)*f)) {
+! 		while (isspace((unsigned char)*f))
+  			f++ ;
+! 		while (isspace((unsigned char)*s))
+  			s++ ;
+  	}
+  	
+  	while (1) {
+! 		if (isspace((unsigned char)*f)) {
+! 			if (!isspace((unsigned char)*s))
+  				goto notfound;
+! 			while(isspace((unsigned char)*s))
+  				s++;
+  			/* any amount of whitespace in the format string
+  			   will match any amount of space in the source
+  			   string. */
+! 			while (isspace((unsigned char)*f))
+  				f++;
+  		} else if (*f == '\0') {
+  			return (s - src);
+Index: src/bin/nsupdate/nsupdate.c
+diff -c mdn/othersrc/bind8/src/bin/nsupdate/nsupdate.c:1.1.1.4 mdn/othersrc/bind8/src/bin/nsupdate/nsupdate.c:1.5
+*** src/bin/nsupdate/nsupdate.c	Mon Jan 29 17:22:53 2001
+--- src/bin/nsupdate/nsupdate.c	Mon Jan 29 17:32:29 2001
+***************
+*** 397,403 ****
+  
+  		(void) getword_str(buf2, sizeof buf2, &startp, endp);
+  
+! 		if (isdigit(buf2[0])) { /* ttl */
+  		    r_ttl = strtoul(buf2, 0, 10);
+  		    if (errno == ERANGE && r_ttl == ULONG_MAX) {
+  			fprintf(stderr, "oversized ttl: %s\n", buf2);
+--- 397,403 ----
+  
+  		(void) getword_str(buf2, sizeof buf2, &startp, endp);
+  
+! 		if (isdigit((unsigned char)buf2[0])) { /* ttl */
+  		    r_ttl = strtoul(buf2, 0, 10);
+  		    if (errno == ERANGE && r_ttl == ULONG_MAX) {
+  			fprintf(stderr, "oversized ttl: %s\n", buf2);
+***************
+*** 458,464 ****
+  			 * depending on type
+  			 */
+  			cp = startp;
+! 			while (cp <= endp && isspace(*cp))
+  			    cp++;
+  			r_size = endp - cp + 1;
+  			break;
+--- 458,464 ----
+  			 * depending on type
+  			 */
+  			cp = startp;
+! 			while (cp <= endp && isspace((unsigned char)*cp))
+  			    cp++;
+  			r_size = endp - cp + 1;
+  			break;
+***************
+*** 488,494 ****
+  				}
+  			/* read rdata portion, if specified */
+  			cp = startp;
+! 			while (cp <= endp && isspace(*cp))
+  			    cp++;
+  			r_size = endp - cp + 1;
+  			break;
+--- 488,494 ----
+  				}
+  			/* read rdata portion, if specified */
+  			cp = startp;
+! 			while (cp <= endp && isspace((unsigned char)*cp))
+  			    cp++;
+  			r_size = endp - cp + 1;
+  			break;
+***************
+*** 512,518 ****
+  			}
+  			/* read rdata portion */
+  			cp = startp;
+! 			while (cp < endp && isspace(*cp))
+  			    cp++;
+  			r_size = endp - cp + 1;
+  			if (r_size <= 0) {
+--- 512,518 ----
+  			}
+  			/* read rdata portion */
+  			cp = startp;
+! 			while (cp < endp && isspace((unsigned char)*cp))
+  			    cp++;
+  			r_size = endp - cp + 1;
+  			if (r_size <= 0) {
+***************
+*** 616,622 ****
+   
+          for (cp = buf; *startpp <= endp; ) {
+                  c = **startpp;
+!                 if (isspace(c) || c == '\0') {
+                          if (cp != buf) /* trailing whitespace */
+                                  break;
+                          else { /* leading whitespace */
+--- 616,622 ----
+   
+          for (cp = buf; *startpp <= endp; ) {
+                  c = **startpp;
+!                 if (isspace((unsigned char)c) || c == '\0') {
+                          if (cp != buf) /* trailing whitespace */
+                                  break;
+                          else { /* leading whitespace */
+***************
+*** 649,655 ****
+               while(buf[i] && buf[i] != '"')
+                    i++;
+          } else {
+!              while(isspace(*buf))
+                    i++;
+          }
+          if (i > MAXCHARSTRING) {
+--- 649,655 ----
+               while(buf[i] && buf[i] != '"')
+                    i++;
+          } else {
+!              while(isspace((unsigned char)*buf))
+                    i++;
+          }
+          if (i > MAXCHARSTRING) {
+***************
+*** 667,673 ****
+          memmove(data + 1 + n, buf, i);
+          buf += i + 1;
+          n += i + 1;
+!         while(*buf && isspace(*buf))
+               buf++;
+     } while (nfield < maxfields && *buf);
+  
+--- 667,673 ----
+          memmove(data + 1 + n, buf, i);
+          buf += i + 1;
+          n += i + 1;
+!         while(*buf && isspace((unsigned char)*buf))
+               buf++;
+     } while (nfield < maxfields && *buf);
+  
+Index: src/lib/bsd/mktemp.c
+diff -c mdn/othersrc/bind8/src/lib/bsd/mktemp.c:1.1.1.1 mdn/othersrc/bind8/src/lib/bsd/mktemp.c:1.2
+*** src/lib/bsd/mktemp.c	Wed May 24 15:35:15 2000
+--- src/lib/bsd/mktemp.c	Mon Jul  3 13:09:02 2000
+***************
+*** 140,146 ****
+  			if (*trv == 'z')
+  				*trv++ = 'a';
+  			else {
+! 				if (isdigit(*trv))
+  					*trv = 'a';
+  				else
+  					++*trv;
+--- 140,146 ----
+  			if (*trv == 'z')
+  				*trv++ = 'a';
+  			else {
+! 				if (isdigit((unsigned char)*trv))
+  					*trv = 'a';
+  				else
+  					++*trv;
+Index: src/lib/bsd/strtoul.c
+diff -c mdn/othersrc/bind8/src/lib/bsd/strtoul.c:1.1.1.1 mdn/othersrc/bind8/src/lib/bsd/strtoul.c:1.2
+*** src/lib/bsd/strtoul.c	Wed May 24 15:35:15 2000
+--- src/lib/bsd/strtoul.c	Mon Jul  3 13:09:02 2000
+***************
+*** 71,77 ****
+  	 */
+  	do {
+  		c = *s++;
+! 	} while (isspace(c));
+  	if (c == '-') {
+  		neg = 1;
+  		c = *s++;
+--- 71,77 ----
+  	 */
+  	do {
+  		c = *s++;
+! 	} while (isspace((unsigned char)c));
+  	if (c == '-') {
+  		neg = 1;
+  		c = *s++;
+***************
+*** 88,97 ****
+  	cutoff = (u_long)ULONG_MAX / (u_long)base;
+  	cutlim = (u_long)ULONG_MAX % (u_long)base;
+  	for (acc = 0, any = 0;; c = *s++) {
+! 		if (isdigit(c))
+  			c -= '0';
+! 		else if (isalpha(c))
+! 			c -= isupper(c) ? 'A' - 10 : 'a' - 10;
+  		else
+  			break;
+  		if (c >= base)
+--- 88,97 ----
+  	cutoff = (u_long)ULONG_MAX / (u_long)base;
+  	cutlim = (u_long)ULONG_MAX % (u_long)base;
+  	for (acc = 0, any = 0;; c = *s++) {
+! 		if (isdigit((unsigned char)c))
+  			c -= '0';
+! 		else if (isalpha((unsigned char)c))
+! 			c -= isupper((unsigned char)c) ? 'A' - 10 : 'a' - 10;
+  		else
+  			break;
+  		if (c >= base)
+Index: src/lib/dst/dst_api.c
+diff -c mdn/othersrc/bind8/src/lib/dst/dst_api.c:1.1.1.4 mdn/othersrc/bind8/src/lib/dst/dst_api.c:1.5
+*** src/lib/dst/dst_api.c	Mon Jan 29 17:23:02 2001
+--- src/lib/dst/dst_api.c	Mon Jan 29 17:32:29 2001
+***************
+*** 555,561 ****
+  	enckey[--len] = '\0';
+  
+  	/* remove leading spaces */
+! 	for (notspace = (char *) enckey; isspace(*notspace); len--)
+  		notspace++;
+  
+  	dlen = b64_pton(notspace, deckey, sizeof(deckey));
+--- 555,561 ----
+  	enckey[--len] = '\0';
+  
+  	/* remove leading spaces */
+! 	for (notspace = (char *) enckey; isspace((unsigned char)*notspace); len--)
+  		notspace++;
+  
+  	dlen = b64_pton(notspace, deckey, sizeof(deckey));
+Index: src/lib/inet/inet_addr.c
+diff -c mdn/othersrc/bind8/src/lib/inet/inet_addr.c:1.1.1.1 mdn/othersrc/bind8/src/lib/inet/inet_addr.c:1.2
+*** src/lib/inet/inet_addr.c	Wed May 24 15:35:18 2000
+--- src/lib/inet/inet_addr.c	Mon Jul  3 13:09:05 2000
+***************
+*** 121,127 ****
+  		 * Values are specified as for C:
+  		 * 0x=hex, 0=octal, isdigit=decimal.
+  		 */
+! 		if (!isdigit(c))
+  			return (0);
+  		val = 0; base = 10; digit = 0;
+  		if (c == '0') {
+--- 121,127 ----
+  		 * Values are specified as for C:
+  		 * 0x=hex, 0=octal, isdigit=decimal.
+  		 */
+! 		if (!isdigit((unsigned char)c))
+  			return (0);
+  		val = 0; base = 10; digit = 0;
+  		if (c == '0') {
+***************
+*** 134,148 ****
+  			}
+  		}
+  		for (;;) {
+! 			if (isascii(c) && isdigit(c)) {
+  				if (base == 8 && (c == '8' || c == '9'))
+  					return (0);
+  				val = (val * base) + (c - '0');
+  				c = *++cp;
+  				digit = 1;
+! 			} else if (base == 16 && isascii(c) && isxdigit(c)) {
+  				val = (val << 4) |
+! 					(c + 10 - (islower(c) ? 'a' : 'A'));
+  				c = *++cp;
+  				digit = 1;
+  			} else
+--- 134,148 ----
+  			}
+  		}
+  		for (;;) {
+! 			if (isascii((unsigned char)c) && isdigit((unsigned char)c)) {
+  				if (base == 8 && (c == '8' || c == '9'))
+  					return (0);
+  				val = (val * base) + (c - '0');
+  				c = *++cp;
+  				digit = 1;
+! 			} else if (base == 16 && isascii((unsigned char)c) && isxdigit((unsigned char)c)) {
+  				val = (val << 4) |
+! 					(c + 10 - (islower((unsigned char)c) ? 'a' : 'A'));
+  				c = *++cp;
+  				digit = 1;
+  			} else
+***************
+*** 165,171 ****
+  	/*
+  	 * Check for trailing characters.
+  	 */
+! 	if (c != '\0' && (!isascii(c) || !isspace(c)))
+  		return (0);
+  	/*
+  	 * Did we get a valid digit?
+--- 165,171 ----
+  	/*
+  	 * Check for trailing characters.
+  	 */
+! 	if (c != '\0' && (!isascii((unsigned char)c) || !isspace((unsigned char)c)))
+  		return (0);
+  	/*
+  	 * Did we get a valid digit?
+Index: src/lib/inet/inet_cidr_pton.c
+diff -c mdn/othersrc/bind8/src/lib/inet/inet_cidr_pton.c:1.1.1.2 mdn/othersrc/bind8/src/lib/inet/inet_cidr_pton.c:1.3
+*** src/lib/inet/inet_cidr_pton.c	Mon Jan 29 17:23:03 2001
+--- src/lib/inet/inet_cidr_pton.c	Mon Jan 29 17:32:30 2001
+***************
+*** 80,86 ****
+  	size_t size = 4;
+  
+  	/* Get the mantissa. */
+! 	while (ch = *src++, (isascii(ch) && isdigit(ch))) {
+  		tmp = 0;
+  		do {
+  			n = strchr(digits, ch) - digits;
+--- 80,86 ----
+  	size_t size = 4;
+  
+  	/* Get the mantissa. */
+! 	while (ch = *src++, (isascii((unsigned char)ch) && isdigit((unsigned char)ch))) {
+  		tmp = 0;
+  		do {
+  			n = strchr(digits, ch) - digits;
+***************
+*** 89,95 ****
+  			tmp += n;
+  			if (tmp > 255)
+  				goto enoent;
+! 		} while ((ch = *src++) != '\0' && isascii(ch) && isdigit(ch));
+  		if (size-- == 0)
+  			goto emsgsize;
+  		*dst++ = (u_char) tmp;
+--- 89,95 ----
+  			tmp += n;
+  			if (tmp > 255)
+  				goto enoent;
+! 		} while ((ch = *src++) != '\0' && isascii((unsigned char)ch) && isdigit((unsigned char)ch));
+  		if (size-- == 0)
+  			goto emsgsize;
+  		*dst++ = (u_char) tmp;
+***************
+*** 101,107 ****
+  
+  	/* Get the prefix length if any. */
+  	bits = -1;
+! 	if (ch == '/' && isascii(src[0]) && isdigit(src[0]) && dst > odst) {
+  		/* CIDR width specifier.  Nothing can follow it. */
+  		ch = *src++;	/* Skip over the /. */
+  		bits = 0;
+--- 101,107 ----
+  
+  	/* Get the prefix length if any. */
+  	bits = -1;
+! 	if (ch == '/' && isascii((unsigned char)src[0]) && isdigit((unsigned char)src[0]) && dst > odst) {
+  		/* CIDR width specifier.  Nothing can follow it. */
+  		ch = *src++;	/* Skip over the /. */
+  		bits = 0;
+***************
+*** 110,116 ****
+  			INSIST(n >= 0 && n <= 9);
+  			bits *= 10;
+  			bits += n;
+! 		} while ((ch = *src++) != '\0' && isascii(ch) && isdigit(ch));
+  		if (ch != '\0')
+  			goto enoent;
+  		if (bits > 32)
+--- 110,116 ----
+  			INSIST(n >= 0 && n <= 9);
+  			bits *= 10;
+  			bits += n;
+! 		} while ((ch = *src++) != '\0' && isascii((unsigned char)ch) && isdigit((unsigned char)ch));
+  		if (ch != '\0')
+  			goto enoent;
+  		if (bits > 32)
+Index: src/lib/inet/inet_net_pton.c
+diff -c mdn/othersrc/bind8/src/lib/inet/inet_net_pton.c:1.1.1.1 mdn/othersrc/bind8/src/lib/inet/inet_net_pton.c:1.2
+*** src/lib/inet/inet_net_pton.c	Wed May 24 15:35:18 2000
+--- src/lib/inet/inet_net_pton.c	Mon Jul  3 13:09:06 2000
+***************
+*** 103,117 ****
+  
+  	ch = *src++;
+  	if (ch == '0' && (src[0] == 'x' || src[0] == 'X')
+! 	    && isascii(src[1]) && isxdigit(src[1])) {
+  		/* Hexadecimal: Eat nybble string. */
+  		if (size <= 0)
+  			goto emsgsize;
+  		dirty = 0;
+  		src++;	/* skip x or X. */
+! 		while ((ch = *src++) != '\0' && isascii(ch) && isxdigit(ch)) {
+! 			if (isupper(ch))
+! 				ch = tolower(ch);
+  			n = strchr(xdigits, ch) - xdigits;
+  			INSIST(n >= 0 && n <= 15);
+  			if (dirty == 0)
+--- 103,117 ----
+  
+  	ch = *src++;
+  	if (ch == '0' && (src[0] == 'x' || src[0] == 'X')
+! 	    && isascii((unsigned char)src[1]) && isxdigit((unsigned char)src[1])) {
+  		/* Hexadecimal: Eat nybble string. */
+  		if (size <= 0)
+  			goto emsgsize;
+  		dirty = 0;
+  		src++;	/* skip x or X. */
+! 		while ((ch = *src++) != '\0' && isascii((unsigned char)ch) && isxdigit((unsigned char)ch)) {
+! 			if (isupper((unsigned char)ch))
+! 				ch = tolower((unsigned char)ch);
+  			n = strchr(xdigits, ch) - xdigits;
+  			INSIST(n >= 0 && n <= 15);
+  			if (dirty == 0)
+***************
+*** 130,136 ****
+  				goto emsgsize;
+  			*dst++ = (u_char) (tmp << 4);
+  		}
+! 	} else if (isascii(ch) && isdigit(ch)) {
+  		/* Decimal: eat dotted digit string. */
+  		for (;;) {
+  			tmp = 0;
+--- 130,136 ----
+  				goto emsgsize;
+  			*dst++ = (u_char) (tmp << 4);
+  		}
+! 	} else if (isascii((unsigned char)ch) && isdigit((unsigned char)ch)) {
+  		/* Decimal: eat dotted digit string. */
+  		for (;;) {
+  			tmp = 0;
+***************
+*** 142,148 ****
+  				if (tmp > 255)
+  					goto enoent;
+  			} while ((ch = *src++) != '\0' &&
+! 				 isascii(ch) && isdigit(ch));
+  			if (size-- <= 0)
+  				goto emsgsize;
+  			*dst++ = (u_char) tmp;
+--- 142,148 ----
+  				if (tmp > 255)
+  					goto enoent;
+  			} while ((ch = *src++) != '\0' &&
+! 				 isascii((unsigned char)ch) && isdigit((unsigned char)ch));
+  			if (size-- <= 0)
+  				goto emsgsize;
+  			*dst++ = (u_char) tmp;
+***************
+*** 151,164 ****
+  			if (ch != '.')
+  				goto enoent;
+  			ch = *src++;
+! 			if (!isascii(ch) || !isdigit(ch))
+  				goto enoent;
+  		}
+  	} else
+  		goto enoent;
+  
+  	bits = -1;
+! 	if (ch == '/' && isascii(src[0]) && isdigit(src[0]) && dst > odst) {
+  		/* CIDR width specifier.  Nothing can follow it. */
+  		ch = *src++;	/* Skip over the /. */
+  		bits = 0;
+--- 151,164 ----
+  			if (ch != '.')
+  				goto enoent;
+  			ch = *src++;
+! 			if (!isascii((unsigned char)ch) || !isdigit((unsigned char)ch))
+  				goto enoent;
+  		}
+  	} else
+  		goto enoent;
+  
+  	bits = -1;
+! 	if (ch == '/' && isascii((unsigned char)src[0]) && isdigit((unsigned char)src[0]) && dst > odst) {
+  		/* CIDR width specifier.  Nothing can follow it. */
+  		ch = *src++;	/* Skip over the /. */
+  		bits = 0;
+***************
+*** 167,173 ****
+  			INSIST(n >= 0 && n <= 9);
+  			bits *= 10;
+  			bits += n;
+! 		} while ((ch = *src++) != '\0' && isascii(ch) && isdigit(ch));
+  		if (ch != '\0')
+  			goto enoent;
+  		if (bits > 32)
+--- 167,173 ----
+  			INSIST(n >= 0 && n <= 9);
+  			bits *= 10;
+  			bits += n;
+! 		} while ((ch = *src++) != '\0' && isascii((unsigned char)ch) && isdigit((unsigned char)ch));
+  		if (ch != '\0')
+  			goto enoent;
+  		if (bits > 32)
+Index: src/lib/inet/inet_network.c
+diff -c mdn/othersrc/bind8/src/lib/inet/inet_network.c:1.1.1.1 mdn/othersrc/bind8/src/lib/inet/inet_network.c:1.2
+*** src/lib/inet/inet_network.c	Wed May 24 15:35:18 2000
+--- src/lib/inet/inet_network.c	Mon Jul  3 13:09:06 2000
+***************
+*** 65,71 ****
+  	if (*cp == 'x' || *cp == 'X')
+  		base = 16, cp++;
+  	while ((c = *cp) != 0) {
+! 		if (isdigit(c)) {
+  			if (base == 8 && (c == '8' || c == '9'))
+  				return (INADDR_NONE);
+  			val = (val * base) + (c - '0');
+--- 65,71 ----
+  	if (*cp == 'x' || *cp == 'X')
+  		base = 16, cp++;
+  	while ((c = *cp) != 0) {
+! 		if (isdigit((unsigned char)c)) {
+  			if (base == 8 && (c == '8' || c == '9'))
+  				return (INADDR_NONE);
+  			val = (val * base) + (c - '0');
+***************
+*** 73,80 ****
+  			digit = 1;
+  			continue;
+  		}
+! 		if (base == 16 && isxdigit(c)) {
+! 			val = (val << 4) + (c + 10 - (islower(c) ? 'a' : 'A'));
+  			cp++;
+  			digit = 1;
+  			continue;
+--- 73,80 ----
+  			digit = 1;
+  			continue;
+  		}
+! 		if (base == 16 && isxdigit((unsigned char)c)) {
+! 			val = (val << 4) + (c + 10 - (islower((unsigned char)c) ? 'a' : 'A'));
+  			cp++;
+  			digit = 1;
+  			continue;
+***************
+*** 89,95 ****
+  		*pp++ = val, cp++;
+  		goto again;
+  	}
+! 	if (*cp && !isspace(*cp))
+  		return (INADDR_NONE);
+  	*pp++ = val;
+  	n = pp - parts;
+--- 89,95 ----
+  		*pp++ = val, cp++;
+  		goto again;
+  	}
+! 	if (*cp && !isspace((unsigned char)*cp))
+  		return (INADDR_NONE);
+  	*pp++ = val;
+  	n = pp - parts;
+Index: src/lib/inet/nsap_addr.c
+diff -c mdn/othersrc/bind8/src/lib/inet/nsap_addr.c:1.1.1.1 mdn/othersrc/bind8/src/lib/inet/nsap_addr.c:1.2
+*** src/lib/inet/nsap_addr.c	Wed May 24 15:35:18 2000
+--- src/lib/inet/nsap_addr.c	Mon Jul  3 13:09:06 2000
+***************
+*** 47,62 ****
+  	while ((c = *ascii++) != '\0' && len < (u_int)maxlen) {
+  		if (c == '.' || c == '+' || c == '/')
+  			continue;
+! 		if (!isascii(c))
+  			return (0);
+! 		if (islower(c))
+! 			c = toupper(c);
+! 		if (isxdigit(c)) {
+  			nib = xtob(c);
+  			c = *ascii++;
+  			if (c != '\0') {
+! 				c = toupper(c);
+! 				if (isxdigit(c)) {
+  					*binary++ = (nib << 4) | xtob(c);
+  					len++;
+  				} else
+--- 47,62 ----
+  	while ((c = *ascii++) != '\0' && len < (u_int)maxlen) {
+  		if (c == '.' || c == '+' || c == '/')
+  			continue;
+! 		if (!isascii((unsigned char)c))
+  			return (0);
+! 		if (islower((unsigned char)c))
+! 			c = toupper((unsigned char)c);
+! 		if (isxdigit((unsigned char)c)) {
+  			nib = xtob(c);
+  			c = *ascii++;
+  			if (c != '\0') {
+! 				c = toupper((unsigned char)c);
+! 				if (isxdigit((unsigned char)c)) {
+  					*binary++ = (nib << 4) | xtob(c);
+  					len++;
+  				} else
+Index: src/lib/irs/dns_nw.c
+diff -c mdn/othersrc/bind8/src/lib/irs/dns_nw.c:1.1.1.1 mdn/othersrc/bind8/src/lib/irs/dns_nw.c:1.2
+*** src/lib/irs/dns_nw.c	Wed May 24 15:35:18 2000
+--- src/lib/irs/dns_nw.c	Mon Jul  3 13:09:07 2000
+***************
+*** 539,546 ****
+  
+  	/* Make lower case. */
+  	for (t = name; *t; t++)
+! 		if (isascii(*t) && isupper(*t))
+! 			*t = tolower(*t);
+  
+  	/* Remove trailing dots. */
+  	while (t > name && t[-1] == '.')
+--- 539,546 ----
+  
+  	/* Make lower case. */
+  	for (t = name; *t; t++)
+! 		if (isascii((unsigned char)*t) && isupper((unsigned char)*t))
+! 			*t = tolower((unsigned char)*t);
+  
+  	/* Remove trailing dots. */
+  	while (t > name && t[-1] == '.')
+Index: src/lib/irs/dns_pr.c
+diff -c mdn/othersrc/bind8/src/lib/irs/dns_pr.c:1.1.1.1 mdn/othersrc/bind8/src/lib/irs/dns_pr.c:1.2
+*** src/lib/irs/dns_pr.c	Wed May 24 15:35:18 2000
+--- src/lib/irs/dns_pr.c	Mon Jul  3 13:09:07 2000
+***************
+*** 201,207 ****
+  
+  		/* Skip blank lines. */
+  		p = cp;
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (!*p)
+  			continue;
+--- 201,207 ----
+  
+  		/* Skip blank lines. */
+  		p = cp;
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (!*p)
+  			continue;
+***************
+*** 213,226 ****
+  
+  		p = pvt->prbuf;
+  		pvt->proto.p_name = p;
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (!*p)
+  			continue;
+  		*p++ = '\0';
+  
+  		pvt->proto.p_proto = atoi(p);
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (*p)
+  			*p++ = '\0';
+--- 213,226 ----
+  
+  		p = pvt->prbuf;
+  		pvt->proto.p_name = p;
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (!*p)
+  			continue;
+  		*p++ = '\0';
+  
+  		pvt->proto.p_proto = atoi(p);
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (*p)
+  			*p++ = '\0';
+***************
+*** 237,243 ****
+  				pvt->proto.p_aliases = new;
+  			}
+  			pvt->proto.p_aliases[num++] = p;
+! 			while (*p && !isspace(*p))
+  				p++;
+  			if (*p)
+  				*p++ = '\0';
+--- 237,243 ----
+  				pvt->proto.p_aliases = new;
+  			}
+  			pvt->proto.p_aliases[num++] = p;
+! 			while (*p && !isspace((unsigned char)*p))
+  				p++;
+  			if (*p)
+  				*p++ = '\0';
+Index: src/lib/irs/dns_sv.c
+diff -c mdn/othersrc/bind8/src/lib/irs/dns_sv.c:1.1.1.2 mdn/othersrc/bind8/src/lib/irs/dns_sv.c:1.3
+*** src/lib/irs/dns_sv.c	Fri Sep  8 13:25:25 2000
+--- src/lib/irs/dns_sv.c	Fri Sep  8 14:21:55 2000
+***************
+*** 189,195 ****
+  
+  		/* Check to make sure the protocol matches. */
+  		p = cp;
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (!*p)
+  			continue;
+--- 189,195 ----
+  
+  		/* Check to make sure the protocol matches. */
+  		p = cp;
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (!*p)
+  			continue;
+***************
+*** 197,204 ****
+  		     proto_len = strlen(proto);
+  		     if (strncasecmp(++p, proto, proto_len) != 0)
+  			  continue;
+! 		     if (p[proto_len] && !isspace(p[proto_len]))
+! 			  continue;
+  		}
+  		/* OK, we've got a live one.  Let's parse it for real. */
+  		if (pvt->svbuf)
+--- 197,204 ----
+  		     proto_len = strlen(proto);
+  		     if (strncasecmp(++p, proto, proto_len) != 0)
+  			  continue;
+! 		     if (p[proto_len] && !isspace((unsigned char)p[proto_len]))
+! 		          continue;
+  		}
+  		/* OK, we've got a live one.  Let's parse it for real. */
+  		if (pvt->svbuf)
+***************
+*** 207,227 ****
+  
+  		p = pvt->svbuf;
+  		pvt->serv.s_name = p;
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (!*p)
+  			continue;
+  		*p++ = '\0';
+  
+  		pvt->serv.s_proto = p;
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (!*p)
+  			continue;
+  		*p++ = '\0';
+  
+  		pvt->serv.s_port = htons((u_short) atoi(p));
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (*p)
+  			*p++ = '\0';
+--- 207,227 ----
+  
+  		p = pvt->svbuf;
+  		pvt->serv.s_name = p;
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (!*p)
+  			continue;
+  		*p++ = '\0';
+  
+  		pvt->serv.s_proto = p;
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (!*p)
+  			continue;
+  		*p++ = '\0';
+  
+  		pvt->serv.s_port = htons((u_short) atoi(p));
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (*p)
+  			*p++ = '\0';
+***************
+*** 238,244 ****
+  				pvt->serv.s_aliases = new;
+  			}
+  			pvt->serv.s_aliases[num++] = p;
+! 			while (*p && !isspace(*p))
+  				p++;
+  			if (*p)
+  				*p++ = '\0';
+--- 238,244 ----
+  				pvt->serv.s_aliases = new;
+  			}
+  			pvt->serv.s_aliases[num++] = p;
+! 			while (*p && !isspace((unsigned char)*p))
+  				p++;
+  			if (*p)
+  				*p++ = '\0';
+Index: src/lib/irs/gen.c
+diff -c mdn/othersrc/bind8/src/lib/irs/gen.c:1.1.1.1 mdn/othersrc/bind8/src/lib/irs/gen.c:1.2
+*** src/lib/irs/gen.c	Wed May 24 15:35:18 2000
+--- src/lib/irs/gen.c	Mon Jul  3 13:09:07 2000
+***************
+*** 399,405 ****
+  		char *tmp;
+  		int n;
+  
+! 		for (tmp = line; isascii(*tmp) && isspace(*tmp); tmp++)
+  			(void)NULL;
+  		if (*tmp == '#' || *tmp == '\n' || *tmp == '\0')
+  			continue;
+--- 399,405 ----
+  		char *tmp;
+  		int n;
+  
+! 		for (tmp = line; isascii((unsigned char)*tmp) && isspace((unsigned char)*tmp); tmp++)
+  			(void)NULL;
+  		if (*tmp == '#' || *tmp == '\n' || *tmp == '\0')
+  			continue;
+Index: src/lib/irs/getnetent.c
+diff -c mdn/othersrc/bind8/src/lib/irs/getnetent.c:1.1.1.2 mdn/othersrc/bind8/src/lib/irs/getnetent.c:1.3
+*** src/lib/irs/getnetent.c	Mon Jan 29 17:23:04 2001
+--- src/lib/irs/getnetent.c	Mon Jan 29 17:32:30 2001
+***************
+*** 259,268 ****
+  		RES_SET_H_ERRNO(net_data->res, NETDB_INTERNAL);
+  		return (NULL);
+  	}
+! 	if (!isascii(name[0]) || !isdigit(name[0]))
+  		return (NULL);
+  	for (cp = name; *cp; ++cp)
+! 		if (!isascii(*cp) || (!isdigit(*cp) && *cp != '.'))
+  			return (NULL);
+  	if (*--cp == '.')
+  		return (NULL);
+--- 259,268 ----
+  		RES_SET_H_ERRNO(net_data->res, NETDB_INTERNAL);
+  		return (NULL);
+  	}
+! 	if (!isascii((unsigned char)name[0]) || !isdigit((unsigned char)name[0]))
+  		return (NULL);
+  	for (cp = name; *cp; ++cp)
+! 		if (!isascii((unsigned char)*cp) || (!isdigit((unsigned char)*cp) && *cp != '.'))
+  			return (NULL);
+  	if (*--cp == '.')
+  		return (NULL);
+Index: src/lib/irs/irp.c
+diff -c mdn/othersrc/bind8/src/lib/irs/irp.c:1.1.1.2 mdn/othersrc/bind8/src/lib/irs/irp.c:1.3
+*** src/lib/irs/irp.c	Fri Sep  8 13:25:25 2000
+--- src/lib/irs/irp.c	Fri Sep  8 14:21:55 2000
+***************
+*** 387,395 ****
+  		code = 0;
+  	} else if (text != NULL && textlen > 0) {
+  		p = line;
+! 		while (isspace(*p)) p++;
+! 		while (isdigit(*p)) p++;
+! 		while (isspace(*p)) p++;
+  		strncpy(text, p, textlen - 1);
+  		p[textlen - 1] = '\0';
+  	}
+--- 387,395 ----
+  		code = 0;
+  	} else if (text != NULL && textlen > 0) {
+  		p = line;
+! 		while (isspace((unsigned char)*p)) p++;
+! 		while (isdigit((unsigned char)*p)) p++;
+! 		while (isspace((unsigned char)*p)) p++;
+  		strncpy(text, p, textlen - 1);
+  		p[textlen - 1] = '\0';
+  	}
+Index: src/lib/irs/irpmarshall.c
+diff -c mdn/othersrc/bind8/src/lib/irs/irpmarshall.c:1.1.1.2 mdn/othersrc/bind8/src/lib/irs/irpmarshall.c:1.3
+*** src/lib/irs/irpmarshall.c	Mon Dec 25 13:49:06 2000
+--- src/lib/irs/irpmarshall.c	Tue Dec 26 14:07:24 2000
+***************
+*** 1256,1262 ****
+  	*host = *user = *domain = NULL;
+  
+  	p = buffer;
+! 	while (isspace(*p)) {
+  		p++;
+  	}
+  	if (*p != '(') {
+--- 1256,1262 ----
+  	*host = *user = *domain = NULL;
+  
+  	p = buffer;
+! 	while (isspace((unsigned char)*p)) {
+  		p++;
+  	}
+  	if (*p != '(') {
+***************
+*** 1908,1920 ****
+  static int
+  strcmp_nws(const char *a, const char *b) {
+  	while (*a && *b) {
+! 		if (isspace(*a) && isspace(*b)) {
+  			do {
+  				a++;
+! 			} while (isspace(*a));
+  			do {
+  				b++;
+! 			} while (isspace(*b));
+  		}
+  		if (*a < *b)
+  			return (-1);
+--- 1908,1920 ----
+  static int
+  strcmp_nws(const char *a, const char *b) {
+  	while (*a && *b) {
+! 		if (isspace((unsigned char)*a) && isspace((unsigned char)*b)) {
+  			do {
+  				a++;
+! 			} while (isspace((unsigned char)*a));
+  			do {
+  				b++;
+! 			} while (isspace((unsigned char)*b));
+  		}
+  		if (*a < *b)
+  			return (-1);
+Index: src/lib/irs/nis_pr.c
+diff -c mdn/othersrc/bind8/src/lib/irs/nis_pr.c:1.1.1.1 mdn/othersrc/bind8/src/lib/irs/nis_pr.c:1.2
+*** src/lib/irs/nis_pr.c	Wed May 24 15:35:20 2000
+--- src/lib/irs/nis_pr.c	Mon Jul  3 13:09:08 2000
+***************
+*** 222,228 ****
+  
+  	for (p = pvt->prbuf; *p && *p != '#'; p++)
+  		NULL;
+! 	while (p > pvt->prbuf && isspace(p[-1]))
+  		p--;
+  	*p = '\0';
+  
+--- 222,228 ----
+  
+  	for (p = pvt->prbuf; *p && *p != '#'; p++)
+  		NULL;
+! 	while (p > pvt->prbuf && isspace((unsigned char)p[-1]))
+  		p--;
+  	*p = '\0';
+  
+***************
+*** 230,245 ****
+  	n = m = 0;
+  
+  	pvt->proto.p_name = p;
+! 	while (*p && !isspace(*p))
+  		p++;
+  	if (!*p)
+  		return (NULL);
+  	*p++ = '\0';
+  
+! 	while (*p && isspace(*p))
+  		p++;
+  	pvt->proto.p_proto = atoi(p);
+! 	while (*p && !isspace(*p))
+  		p++;
+  	*p++ = '\0';
+  
+--- 230,245 ----
+  	n = m = 0;
+  
+  	pvt->proto.p_name = p;
+! 	while (*p && !isspace((unsigned char)*p))
+  		p++;
+  	if (!*p)
+  		return (NULL);
+  	*p++ = '\0';
+  
+! 	while (*p && isspace((unsigned char)*p))
+  		p++;
+  	pvt->proto.p_proto = atoi(p);
+! 	while (*p && !isspace((unsigned char)*p))
+  		p++;
+  	*p++ = '\0';
+  
+***************
+*** 255,261 ****
+  			pvt->proto.p_aliases = t;
+  		}
+  		pvt->proto.p_aliases[n++] = p;
+! 		while (*p && !isspace(*p))
+  			p++;
+  		if (*p)
+  			*p++ = '\0';
+--- 255,261 ----
+  			pvt->proto.p_aliases = t;
+  		}
+  		pvt->proto.p_aliases[n++] = p;
+! 		while (*p && !isspace((unsigned char)*p))
+  			p++;
+  		if (*p)
+  			*p++ = '\0';
+Index: src/lib/irs/nis_sv.c
+diff -c mdn/othersrc/bind8/src/lib/irs/nis_sv.c:1.1.1.1 mdn/othersrc/bind8/src/lib/irs/nis_sv.c:1.2
+*** src/lib/irs/nis_sv.c	Wed May 24 15:35:20 2000
+--- src/lib/irs/nis_sv.c	Mon Jul  3 13:09:08 2000
+***************
+*** 242,248 ****
+  	pvt->serv.s_port = htons((u_short) atoi(p));
+  	pvt->serv.s_proto = NULL;
+  	
+! 	while (*p && !isspace(*p))
+  		if (*p++ == '/')
+  			pvt->serv.s_proto = p;
+  	if (!pvt->serv.s_proto)
+--- 242,248 ----
+  	pvt->serv.s_port = htons((u_short) atoi(p));
+  	pvt->serv.s_proto = NULL;
+  	
+! 	while (*p && !isspace((unsigned char)*p))
+  		if (*p++ == '/')
+  			pvt->serv.s_proto = p;
+  	if (!pvt->serv.s_proto)
+Index: src/lib/isc/base64.c
+diff -c mdn/othersrc/bind8/src/lib/isc/base64.c:1.1.1.1 mdn/othersrc/bind8/src/lib/isc/base64.c:1.2
+*** src/lib/isc/base64.c	Wed May 24 15:35:20 2000
+--- src/lib/isc/base64.c	Mon Jul  3 13:09:09 2000
+***************
+*** 210,216 ****
+  	tarindex = 0;
+  
+  	while ((ch = *src++) != '\0') {
+! 		if (isspace(ch))	/* Skip whitespace anywhere. */
+  			continue;
+  
+  		if (ch == Pad64)
+--- 210,216 ----
+  	tarindex = 0;
+  
+  	while ((ch = *src++) != '\0') {
+! 		if (isspace((unsigned char)ch))	/* Skip whitespace anywhere. */
+  			continue;
+  
+  		if (ch == Pad64)
+***************
+*** 280,286 ****
+  		case 2:		/* Valid, means one byte of info */
+  			/* Skip any number of spaces. */
+  			for ((void)NULL; ch != '\0'; ch = *src++)
+! 				if (!isspace(ch))
+  					break;
+  			/* Make sure there is another trailing = sign. */
+  			if (ch != Pad64)
+--- 280,286 ----
+  		case 2:		/* Valid, means one byte of info */
+  			/* Skip any number of spaces. */
+  			for ((void)NULL; ch != '\0'; ch = *src++)
+! 				if (!isspace((unsigned char)ch))
+  					break;
+  			/* Make sure there is another trailing = sign. */
+  			if (ch != Pad64)
+***************
+*** 295,301 ****
+  			 * whitespace after it?
+  			 */
+  			for ((void)NULL; ch != '\0'; ch = *src++)
+! 				if (!isspace(ch))
+  					return (-1);
+  
+  			/*
+--- 295,301 ----
+  			 * whitespace after it?
+  			 */
+  			for ((void)NULL; ch != '\0'; ch = *src++)
+! 				if (!isspace((unsigned char)ch))
+  					return (-1);
+  
+  			/*
+Index: src/lib/isc/ctl_clnt.c
+diff -c mdn/othersrc/bind8/src/lib/isc/ctl_clnt.c:1.1.1.2 mdn/othersrc/bind8/src/lib/isc/ctl_clnt.c:1.3
+*** src/lib/isc/ctl_clnt.c	Mon Dec 25 13:49:07 2000
+--- src/lib/isc/ctl_clnt.c	Tue Dec 26 14:07:24 2000
+***************
+*** 55,62 ****
+  /* Macros. */
+  
+  #define donefunc_p(ctx) ((ctx).donefunc != NULL)
+! #define arpacode_p(line) (isdigit(line[0]) && isdigit(line[1]) && \
+! 			  isdigit(line[2]))
+  #define arpacont_p(line) (line[3] == '-')
+  #define arpadone_p(line) (line[3] == ' ' || line[3] == '\t' || \
+  			  line[3] == '\r' || line[3] == '\0')
+--- 55,62 ----
+  /* Macros. */
+  
+  #define donefunc_p(ctx) ((ctx).donefunc != NULL)
+! #define arpacode_p(line) (isdigit((unsigned char)line[0]) && isdigit((unsigned char)line[1]) && \
+! 			  isdigit((unsigned char)line[2]))
+  #define arpacont_p(line) (line[3] == '-')
+  #define arpadone_p(line) (line[3] == ' ' || line[3] == '\t' || \
+  			  line[3] == '\r' || line[3] == '\0')
+***************
+*** 243,249 ****
+  	memcpy(tran->outbuf.text, cmd, len);
+  	tran->outbuf.used = len;
+  	for (pc = tran->outbuf.text, n = 0; n < tran->outbuf.used; pc++, n++)
+! 		if (!isascii(*pc) || !isprint(*pc))
+  			*pc = '\040';
+  	start_write(ctx);
+  	return (0);
+--- 243,249 ----
+  	memcpy(tran->outbuf.text, cmd, len);
+  	tran->outbuf.used = len;
+  	for (pc = tran->outbuf.text, n = 0; n < tran->outbuf.used; pc++, n++)
+! 		if (!isascii((unsigned char)*pc) || !isprint((unsigned char)*pc))
+  			*pc = '\040';
+  	start_write(ctx);
+  	return (0);
+Index: src/lib/isc/ctl_srvr.c
+diff -c mdn/othersrc/bind8/src/lib/isc/ctl_srvr.c:1.1.1.3 mdn/othersrc/bind8/src/lib/isc/ctl_srvr.c:1.4
+*** src/lib/isc/ctl_srvr.c	Mon Dec 25 13:49:07 2000
+--- src/lib/isc/ctl_srvr.c	Tue Dec 26 14:07:24 2000
+***************
+*** 328,334 ****
+  				     code, (flags & CTL_MORE) != 0 ? '-' : ' ',
+  				     text));
+  	for (pc = sess->outbuf.text, n = 0; n < sess->outbuf.used-2; pc++, n++)
+! 		if (!isascii(*pc) || !isprint(*pc))
+  			*pc = '\040';
+  	*iovp++ = evConsIovec(sess->outbuf.text, sess->outbuf.used);
+  	if (body != NULL) {
+--- 328,334 ----
+  				     code, (flags & CTL_MORE) != 0 ? '-' : ' ',
+  				     text));
+  	for (pc = sess->outbuf.text, n = 0; n < sess->outbuf.used-2; pc++, n++)
+! 		if (!isascii((unsigned char)*pc) || !isprint((unsigned char)*pc))
+  			*pc = '\040';
+  	*iovp++ = evConsIovec(sess->outbuf.text, sess->outbuf.used);
+  	if (body != NULL) {
+Index: src/lib/nameser/ns_date.c
+diff -c mdn/othersrc/bind8/src/lib/nameser/ns_date.c:1.1.1.1 mdn/othersrc/bind8/src/lib/nameser/ns_date.c:1.2
+*** src/lib/nameser/ns_date.c	Wed May 24 15:35:21 2000
+--- src/lib/nameser/ns_date.c	Mon Jul  3 13:09:11 2000
+***************
+*** 116,122 ****
+  	int i;
+  
+  	for (i = 0; i < size; i++) {
+! 		if (!isdigit(buf[i]))
+  			*errp = 1;
+  		result = (result * 10) + buf[i] - '0';
+  	}
+--- 116,122 ----
+  	int i;
+  
+  	for (i = 0; i < size; i++) {
+! 		if (!isdigit((unsigned char)buf[i]))
+  			*errp = 1;
+  		result = (result * 10) + buf[i] - '0';
+  	}
+Index: src/lib/nameser/ns_name.c
+diff -c mdn/othersrc/bind8/src/lib/nameser/ns_name.c:1.1.1.2 mdn/othersrc/bind8/src/lib/nameser/ns_name.c:1.4
+*** src/lib/nameser/ns_name.c	Fri Sep  8 13:25:28 2000
+--- src/lib/nameser/ns_name.c	Fri Dec 22 15:33:28 2000
+***************
+*** 171,179 ****
+--- 171,181 ----
+  				c = n;
+  			}
+  			escaped = 0;
++ #ifdef NO_8BIT_THRU
+  		} else if (c == '\\') {
+  			escaped = 1;
+  			continue;
++ #endif
+  		} else if (c == '.') {
+  			c = (bp - label - 1);
+  			if ((c & NS_CMPRSFLGS) != 0) {	/* Label too big. */
+***************
+*** 270,276 ****
+--- 272,282 ----
+  		}
+  		for ((void)NULL; n > 0; n--) {
+  			c = *cp++;
++ #ifdef NO_8BIT_THRU
+  			if (isupper(c))
++ #else
++ 			if (c < 128 && isupper(c))
++ #endif
+  				*dn++ = tolower(c);
+  			else
+  				*dn++ = c;
+***************
+*** 566,571 ****
+--- 572,578 ----
+   */
+  static int
+  special(int ch) {
++ #ifdef NO_8BIT_THRU
+  	switch (ch) {
+  	case 0x22: /* '"' */
+  	case 0x2E: /* '.' */
+***************
+*** 578,583 ****
+--- 585,593 ----
+  	default:
+  		return (0);
+  	}
++ #else
++ 	return (0);
++ #endif
+  }
+  
+  /*
+***************
+*** 589,595 ****
+--- 599,609 ----
+   */
+  static int
+  printable(int ch) {
++ #ifdef NO_8BIT_THRU
+  	return (ch > 0x20 && ch < 0x7f);
++ #else
++ 	return (1);
++ #endif
+  }
+  
+  /*
+Index: src/lib/nameser/ns_ttl.c
+diff -c mdn/othersrc/bind8/src/lib/nameser/ns_ttl.c:1.1.1.1 mdn/othersrc/bind8/src/lib/nameser/ns_ttl.c:1.2
+*** src/lib/nameser/ns_ttl.c	Wed May 24 15:35:21 2000
+--- src/lib/nameser/ns_ttl.c	Mon Jul  3 13:09:11 2000
+***************
+*** 86,93 ****
+  		int ch;
+  
+  		for (p = odst; (ch = *p) != '\0'; p++)
+! 			if (isascii(ch) && isupper(ch))
+! 				*p = tolower(ch);
+  	}
+  
+  	return (dst - odst);
+--- 86,93 ----
+  		int ch;
+  
+  		for (p = odst; (ch = *p) != '\0'; p++)
+! 			if (isascii((unsigned char)ch) && isupper((unsigned char)ch))
+! 				*p = tolower((unsigned char)ch);
+  	}
+  
+  	return (dst - odst);
+***************
+*** 103,111 ****
+  	digits = 0;
+  	dirty = 0;
+  	while ((ch = *src++) != '\0') {
+! 		if (!isascii(ch) || !isprint(ch))
+  			goto einval;
+! 		if (isdigit(ch)) {
+  			tmp *= 10;
+  			tmp += (ch - '0');
+  			digits++;
+--- 103,111 ----
+  	digits = 0;
+  	dirty = 0;
+  	while ((ch = *src++) != '\0') {
+! 		if (!isascii((unsigned char)ch) || !isprint((unsigned char)ch))
+  			goto einval;
+! 		if (isdigit((unsigned char)ch)) {
+  			tmp *= 10;
+  			tmp += (ch - '0');
+  			digits++;
+***************
+*** 113,120 ****
+  		}
+  		if (digits == 0)
+  			goto einval;
+! 		if (islower(ch))
+! 			ch = toupper(ch);
+  		switch (ch) {
+  		case 'W':  tmp *= 7;
+  		case 'D':  tmp *= 24;
+--- 113,120 ----
+  		}
+  		if (digits == 0)
+  			goto einval;
+! 		if (islower((unsigned char)ch))
+! 			ch = toupper((unsigned char)ch);
+  		switch (ch) {
+  		case 'W':  tmp *= 7;
+  		case 'D':  tmp *= 24;
+Index: src/lib/resolv/res_comp.c
+diff -c mdn/othersrc/bind8/src/lib/resolv/res_comp.c:1.1.1.1 mdn/othersrc/bind8/src/lib/resolv/res_comp.c:1.2
+*** src/lib/resolv/res_comp.c	Wed May 24 15:35:21 2000
+--- src/lib/resolv/res_comp.c	Wed May 24 17:16:22 2000
+***************
+*** 144,156 ****
+--- 144,164 ----
+  #define bslashchar(c) ((c) == 0x5c)
+  #define periodchar(c) ((c) == PERIOD)
+  #define asterchar(c) ((c) == 0x2a)
++ #ifdef NO_8BIT_THRU
+  #define alphachar(c) (((c) >= 0x41 && (c) <= 0x5a) \
+  		   || ((c) >= 0x61 && (c) <= 0x7a))
++ #else
++ #define alphachar(c) (1)
++ #endif
+  #define digitchar(c) ((c) >= 0x30 && (c) <= 0x39)
+  
+  #define borderchar(c) (alphachar(c) || digitchar(c))
+  #define middlechar(c) (borderchar(c) || hyphenchar(c))
++ #ifdef NO_8BIT_THRU
+  #define	domainchar(c) ((c) > 0x20 && (c) < 0x7f)
++ #else
++ #define	domainchar(c) (1)
++ #endif
+  
+  int
+  res_hnok(const char *dn) {
+Index: src/lib/resolv/res_debug.c
+diff -c mdn/othersrc/bind8/src/lib/resolv/res_debug.c:1.1.1.3 mdn/othersrc/bind8/src/lib/resolv/res_debug.c:1.4
+*** src/lib/resolv/res_debug.c	Mon Dec 25 13:49:09 2000
+--- src/lib/resolv/res_debug.c	Tue Dec 26 14:07:25 2000
+***************
+*** 647,660 ****
+  
+  	cp = *strptr;
+  
+! 	while (isdigit(*cp))
+  		mval = mval * 10 + (*cp++ - '0');
+  
+  	if (*cp == '.') {		/* centimeters */
+  		cp++;
+! 		if (isdigit(*cp)) {
+  			cmval = (*cp++ - '0') * 10;
+! 			if (isdigit(*cp)) {
+  				cmval += (*cp++ - '0');
+  			}
+  		}
+--- 647,660 ----
+  
+  	cp = *strptr;
+  
+! 	while (isdigit((unsigned char)*cp))
+  		mval = mval * 10 + (*cp++ - '0');
+  
+  	if (*cp == '.') {		/* centimeters */
+  		cp++;
+! 		if (isdigit((unsigned char)*cp)) {
+  			cmval = (*cp++ - '0') * 10;
+! 			if (isdigit((unsigned char)*cp)) {
+  				cmval += (*cp++ - '0');
+  			}
+  		}
+***************
+*** 688,731 ****
+  
+  	cp = *latlonstrptr;
+  
+! 	while (isdigit(*cp))
+  		deg = deg * 10 + (*cp++ - '0');
+  
+! 	while (isspace(*cp))
+  		cp++;
+  
+! 	if (!(isdigit(*cp)))
+  		goto fndhemi;
+  
+! 	while (isdigit(*cp))
+  		min = min * 10 + (*cp++ - '0');
+  
+! 	while (isspace(*cp))
+  		cp++;
+  
+! 	if (!(isdigit(*cp)))
+  		goto fndhemi;
+  
+! 	while (isdigit(*cp))
+  		secs = secs * 10 + (*cp++ - '0');
+  
+  	if (*cp == '.') {		/* decimal seconds */
+  		cp++;
+! 		if (isdigit(*cp)) {
+  			secsfrac = (*cp++ - '0') * 100;
+! 			if (isdigit(*cp)) {
+  				secsfrac += (*cp++ - '0') * 10;
+! 				if (isdigit(*cp)) {
+  					secsfrac += (*cp++ - '0');
+  				}
+  			}
+  		}
+  	}
+  
+! 	while (!isspace(*cp))	/* if any trailing garbage */
+  		cp++;
+  
+! 	while (isspace(*cp))
+  		cp++;
+  
+   fndhemi:
+--- 688,731 ----
+  
+  	cp = *latlonstrptr;
+  
+! 	while (isdigit((unsigned char)*cp))
+  		deg = deg * 10 + (*cp++ - '0');
+  
+! 	while (isspace((unsigned char)*cp))
+  		cp++;
+  
+! 	if (!(isdigit((unsigned char)*cp)))
+  		goto fndhemi;
+  
+! 	while (isdigit((unsigned char)*cp))
+  		min = min * 10 + (*cp++ - '0');
+  
+! 	while (isspace((unsigned char)*cp))
+  		cp++;
+  
+! 	if (!(isdigit((unsigned char)*cp)))
+  		goto fndhemi;
+  
+! 	while (isdigit((unsigned char)*cp))
+  		secs = secs * 10 + (*cp++ - '0');
+  
+  	if (*cp == '.') {		/* decimal seconds */
+  		cp++;
+! 		if (isdigit((unsigned char)*cp)) {
+  			secsfrac = (*cp++ - '0') * 100;
+! 			if (isdigit((unsigned char)*cp)) {
+  				secsfrac += (*cp++ - '0') * 10;
+! 				if (isdigit((unsigned char)*cp)) {
+  					secsfrac += (*cp++ - '0');
+  				}
+  			}
+  		}
+  	}
+  
+! 	while (!isspace((unsigned char)*cp))	/* if any trailing garbage */
+  		cp++;
+  
+! 	while (isspace((unsigned char)*cp))
+  		cp++;
+  
+   fndhemi:
+***************
+*** 763,772 ****
+  
+  	cp++;			/* skip the hemisphere */
+  
+! 	while (!isspace(*cp))	/* if any trailing garbage */
+  		cp++;
+  
+! 	while (isspace(*cp))	/* move to next field */
+  		cp++;
+  
+  	*latlonstrptr = cp;
+--- 763,772 ----
+  
+  	cp++;			/* skip the hemisphere */
+  
+! 	while (!isspace((unsigned char)*cp))	/* if any trailing garbage */
+  		cp++;
+  
+! 	while (isspace((unsigned char)*cp))	/* move to next field */
+  		cp++;
+  
+  	*latlonstrptr = cp;
+***************
+*** 824,837 ****
+  	if (*cp == '+')
+  		cp++;
+  
+! 	while (isdigit(*cp))
+  		altmeters = altmeters * 10 + (*cp++ - '0');
+  
+  	if (*cp == '.') {		/* decimal meters */
+  		cp++;
+! 		if (isdigit(*cp)) {
+  			altfrac = (*cp++ - '0') * 10;
+! 			if (isdigit(*cp)) {
+  				altfrac += (*cp++ - '0');
+  			}
+  		}
+--- 824,837 ----
+  	if (*cp == '+')
+  		cp++;
+  
+! 	while (isdigit((unsigned char)*cp))
+  		altmeters = altmeters * 10 + (*cp++ - '0');
+  
+  	if (*cp == '.') {		/* decimal meters */
+  		cp++;
+! 		if (isdigit((unsigned char)*cp)) {
+  			altfrac = (*cp++ - '0') * 10;
+! 			if (isdigit((unsigned char)*cp)) {
+  				altfrac += (*cp++ - '0');
+  			}
+  		}
+***************
+*** 839,848 ****
+  
+  	alt = (10000000 + (altsign * (altmeters * 100 + altfrac)));
+  
+! 	while (!isspace(*cp) && (cp < maxcp)) /* if trailing garbage or m */
+  		cp++;
+  
+! 	while (isspace(*cp) && (cp < maxcp))
+  		cp++;
+  
+  	if (cp >= maxcp)
+--- 839,848 ----
+  
+  	alt = (10000000 + (altsign * (altmeters * 100 + altfrac)));
+  
+! 	while (!isspace((unsigned char)*cp) && (cp < maxcp)) /* if trailing garbage or m */
+  		cp++;
+  
+! 	while (isspace((unsigned char)*cp) && (cp < maxcp))
+  		cp++;
+  
+  	if (cp >= maxcp)
+***************
+*** 850,859 ****
+  
+  	siz = precsize_aton(&cp);
+  	
+! 	while (!isspace(*cp) && (cp < maxcp))	/* if trailing garbage or m */
+  		cp++;
+  
+! 	while (isspace(*cp) && (cp < maxcp))
+  		cp++;
+  
+  	if (cp >= maxcp)
+--- 850,859 ----
+  
+  	siz = precsize_aton(&cp);
+  	
+! 	while (!isspace((unsigned char)*cp) && (cp < maxcp))	/* if trailing garbage or m */
+  		cp++;
+  
+! 	while (isspace((unsigned char)*cp) && (cp < maxcp))
+  		cp++;
+  
+  	if (cp >= maxcp)
+***************
+*** 861,870 ****
+  
+  	hp = precsize_aton(&cp);
+  
+! 	while (!isspace(*cp) && (cp < maxcp))	/* if trailing garbage or m */
+  		cp++;
+  
+! 	while (isspace(*cp) && (cp < maxcp))
+  		cp++;
+  
+  	if (cp >= maxcp)
+--- 861,870 ----
+  
+  	hp = precsize_aton(&cp);
+  
+! 	while (!isspace((unsigned char)*cp) && (cp < maxcp))	/* if trailing garbage or m */
+  		cp++;
+  
+! 	while (isspace((unsigned char)*cp) && (cp < maxcp))
+  		cp++;
+  
+  	if (cp >= maxcp)
+Index: src/lib/resolv/res_init.c
+diff -c mdn/othersrc/bind8/src/lib/resolv/res_init.c:1.1.1.3 mdn/othersrc/bind8/src/lib/resolv/res_init.c:1.4
+*** src/lib/resolv/res_init.c	Mon Dec 25 13:49:09 2000
+--- src/lib/resolv/res_init.c	Tue Dec 26 14:07:25 2000
+***************
+*** 307,313 ****
+  			    break;
+  			net = cp;
+  			while (*cp && !ISSORTMASK(*cp) && *cp != ';' &&
+! 			       isascii(*cp) && !isspace(*cp))
+  				cp++;
+  			n = *cp;
+  			*cp = 0;
+--- 307,313 ----
+  			    break;
+  			net = cp;
+  			while (*cp && !ISSORTMASK(*cp) && *cp != ';' &&
+! 			       isascii((unsigned char)*cp) && !isspace((unsigned char)*cp))
+  				cp++;
+  			n = *cp;
+  			*cp = 0;
+***************
+*** 317,323 ****
+  				*cp++ = n;
+  				net = cp;
+  				while (*cp && *cp != ';' &&
+! 					isascii(*cp) && !isspace(*cp))
+  				    cp++;
+  				n = *cp;
+  				*cp = 0;
+--- 317,323 ----
+  				*cp++ = n;
+  				net = cp;
+  				while (*cp && *cp != ';' &&
+! 					isascii((unsigned char)*cp) && !isspace((unsigned char)*cp))
+  				    cp++;
+  				n = *cp;
+  				*cp = 0;
+Index: src/lib/resolv/res_query.c
+diff -c mdn/othersrc/bind8/src/lib/resolv/res_query.c:1.1.1.2 mdn/othersrc/bind8/src/lib/resolv/res_query.c:1.3
+*** src/lib/resolv/res_query.c	Fri Sep  8 13:25:29 2000
+--- src/lib/resolv/res_query.c	Fri Sep  8 14:21:56 2000
+***************
+*** 383,399 ****
+  	setbuf(fp, NULL);
+  	buf[sizeof(buf) - 1] = '\0';
+  	while (fgets(buf, sizeof(buf), fp)) {
+! 		for (cp1 = buf; *cp1 && !isspace(*cp1); ++cp1)
+  			;
+  		if (!*cp1)
+  			break;
+  		*cp1 = '\0';
+  		if (ns_samename(buf, name) == 1) {
+! 			while (isspace(*++cp1))
+  				;
+  			if (!*cp1)
+  				break;
+! 			for (cp2 = cp1 + 1; *cp2 && !isspace(*cp2); ++cp2)
+  				;
+  			*cp2 = '\0';
+  			strncpy(dst, cp1, siz - 1);
+--- 383,399 ----
+  	setbuf(fp, NULL);
+  	buf[sizeof(buf) - 1] = '\0';
+  	while (fgets(buf, sizeof(buf), fp)) {
+! 		for (cp1 = buf; *cp1 && !isspace((unsigned char)*cp1); ++cp1)
+  			;
+  		if (!*cp1)
+  			break;
+  		*cp1 = '\0';
+  		if (ns_samename(buf, name) == 1) {
+! 			while (isspace((unsigned char)*++cp1))
+  				;
+  			if (!*cp1)
+  				break;
+! 			for (cp2 = cp1 + 1; *cp2 && !isspace((unsigned char)*cp2); ++cp2)
+  				;
+  			*cp2 = '\0';
+  			strncpy(dst, cp1, siz - 1);

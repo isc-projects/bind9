@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.11 2000/11/17 06:53:23 ishisone Exp $
+# $Id: Makefile.in,v 1.15 2001/03/28 02:12:37 m-kasahr Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -63,15 +63,15 @@ VPATH = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 
-BINDIR = @bindir@
-LIBDIR = @libdir@
-MANDIR = @mandir@
+bindir = @bindir@
+mandir = @mandir@
 
 CC = @CC@
 RANLIB = @RANLIB@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
 SHELL   = @SHELL@
 LIBTOOL = @LIBTOOL@
 
@@ -87,23 +87,21 @@ OBJS = mdnconv.o util.o
 ICONVLIB = @ICONVLIB@
 MDNLIB = ../../lib/libmdn.la
 
-LIBS = $(MDNLIB) $(ICONVLIB)
-
 all: mdnconv
 
 mdnconv: $(OBJS) $(MDNLIB)
-	$(LIBTOOL) --mode=link $(CC) -o $@ $(OBJS) $(LIBS)
+	$(LIBTOOL) --mode=link $(CC) -o $@ $(OBJS) $(MDNLIB) $(ICONVLIB)
 
 install: install-prog install-man
 
 install-prog: mdnconv
-	[ -d $(BINDIR) ] || mkdir $(BINDIR)
-	$(LIBTOOL) --mode=install $(INSTALL_PROGRAM) mdnconv $(BINDIR)
+	$(MKINSTALLDIRS) $(bindir)
+	$(LIBTOOL) --mode=install $(INSTALL_PROGRAM) mdnconv $(bindir)
 
 install-man:
-	[ -d $(MANDIR) ] || mkdir $(MANDIR)
-	[ -d $(MANDIR)/man1 ] || mkdir $(MANDIR)/man1
-	$(INSTALL_DATA) $(srcdir)/mdnconv.1 $(MANDIR)/man1
+	$(MKINSTALLDIRS) $(mandir)/man1
+	$(INSTALL_DATA) $(srcdir)/mdnconv.1 $(mandir)/man1
 
 clean:
 	rm -f *.o mdnconv *.core core *~
+	rm -fr .libs/

@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# chkconfig: 345 60 10
+# description: This shell script takes care of starting and stopping
+#               mdnsproxy (mDNS proxy server).
+#
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+[ -f /usr/sbin/mdnsproxy ] || exit 0
+
+[ -f /etc/mdnsproxy.conf ] || exit 0
+
+# See how we were called.
+case "$1" in
+  start)
+        # Start daemons.
+        echo -n "Starting mdnsproxy: "
+        daemon mdnsproxy -daemon
+        echo
+        touch /var/lock/subsys/mdnsproxy
+        ;;
+  stop)
+        # Stop daemons.
+        echo -n "Shutting down mdnsproxy: "
+        killproc mdnsproxy
+        echo "done"
+        rm -f /var/lock/subsys/mdnsproxy
+        ;;
+  *)
+        echo "Usage: mdnsproxy {start|stop}"
+        exit 1
+esac
+
+exit 0

@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: brace.c,v 1.11 2000/11/22 06:33:33 m-kasahr Exp $";
+static char *rcsid = "$Id: brace.c,v 1.16 2001/03/07 00:58:51 ishisone Exp $";
 #endif
 
 /*
@@ -73,12 +73,12 @@ static char *rcsid = "$Id: brace.c,v 1.11 2000/11/22 06:33:33 m-kasahr Exp $";
 #include <mdn/utf8.h>
 #include <mdn/debug.h>
 #include <mdn/brace.h>
+#include <mdn/ace.h>
 #include <mdn/util.h>
 
 #ifndef MDN_BRACE_SUFFIX
 #define MDN_BRACE_SUFFIX		"-8q9"
 #endif
-#define BRACE_SUFFIX_LEN	(strlen(MDN_BRACE_SUFFIX))
 #define BRACE_BUF_SIZE		128		/* more than enough */
 #define BRACE_BASE32(n)		(brace_base32[n])
 #define BRACE_RBASE32(c)	(brace_rbase32(c))
@@ -102,10 +102,6 @@ enum {
  */
 static char brace_base32[] = "23456789abcdefghijkmnpqrstuvwxyz";
 
-static mdn_result_t	brace_l2u(const char *from, const char *end,
-				  char *to, size_t tolen, size_t *clenp);
-static mdn_result_t	brace_u2l(const char *from, const char *end,
-				  char *to, size_t tolen, size_t *clenp);
 static mdn_result_t	brace_decode(const char *from, size_t fromlen,
 				     char *to, size_t tolen);
 static mdn_result_t	brace_decode_utf16(const char *from,
@@ -122,23 +118,33 @@ static mdn_result_t	get_encoding_style(unsigned short *p, size_t len,
 					   int *stylep, unsigned short *rowp);
 static int		brace_rbase32(int c);
 
+static mdn__ace_t brace_ctx = {
+	mdn__ace_suffix,
+	MDN_BRACE_SUFFIX,
+	brace_encode,
+	brace_decode,
+};
+
 /* ARGSUSED */
 mdn_result_t
-mdn__brace_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+mdn__brace_open(mdn_converter_t ctx, mdn_converter_dir_t dir,
+		void **privdata) {
 	return (mdn_success);
 }
 
 /* ARGSUSED */
 mdn_result_t
-mdn__brace_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+mdn__brace_close(mdn_converter_t ctx, void *privdata,
+		 mdn_converter_dir_t dir) {
 	return (mdn_success);
 }
 
 mdn_result_t
-mdn__brace_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-		   const char *from, char *toorg, size_t tolen)
+mdn__brace_convert(mdn_converter_t ctx, void *privdata,
+		   mdn_converter_dir_t dir, const char *from, char *to,
+		   size_t tolen)
 {
-	char *to = toorg;
+	mdn_result_t r;
 
 	assert(ctx != NULL &&
 	       (dir == mdn_converter_l2u || dir == mdn_converter_u2l));
@@ -147,128 +153,13 @@ mdn__brace_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 	       dir == mdn_converter_l2u ? "l2u" : "u2l",
 	       mdn_debug_xstring(from, 20)));
 
-	for (;;) {
-		const char *end;
-		size_t convlen;
-		mdn_result_t r;
+	r = mdn__ace_convert(&brace_ctx, dir, from, to, tolen);
+	if (r != mdn_success)
+		return (r);
 
-		/*
-		 * Find the end of this component (label).
-		 */
-		if ((end = strchr(from, '.')) == NULL)
-			end = from + strlen(from);
+	DUMP(("mdn__brace_convert: \"%s\"\n", mdn_debug_xstring(to, 70)));
 
-		/*
-		 * Convert it.
-		 */
-		if (dir == mdn_converter_l2u)
-			r = brace_l2u(from, end, to, tolen, &convlen);
-		else
-			r = brace_u2l(from, end, to, tolen, &convlen);
-		if (r != mdn_success)
-			return (r);
-
-		/*
-		 * Copy '.' or NUL.
-		 */
-		if (tolen <= convlen)
-			return (mdn_buffer_overflow);
-
-		to += convlen;
-		*to++ = *end;
-		tolen -= convlen + 1;
-
-		if (*end == '\0')
-			break;
-
-		from = end + 1;
-	}
-
-	DUMP(("mdn__brace_convert: \"%s\"\n", mdn_debug_xstring(toorg, 70)));
-
-	return (mdn_success);
-}
-
-static mdn_result_t
-brace_l2u(const char *from, const char *end,
-	  char *to, size_t tolen, size_t *clenp) {
-	size_t len = end - from;
-	size_t suflen = BRACE_SUFFIX_LEN;
-
-	if (len >= suflen &&
-	    mdn_util_casematch(end - suflen, MDN_BRACE_SUFFIX, suflen)) {
-		/*
-		 * BRACE encoding suffix found.
-		 */
-		mdn_result_t r;
-
-		r = brace_decode(from, len - suflen, to, tolen);
-		if (r == mdn_invalid_encoding)
-			goto copy;
-		else if (r != mdn_success)
-			return (r);
-
-		len = strlen(to);
-	} else {
-		/*
-		 * Not BRACE encoded.  Copy verbatim.
-		 */
-	copy:
-		if (mdn_util_domainspan(from, end) < end) {
-			/* invalid character found */
-			return (mdn_invalid_encoding);
-		}
-
-		if (tolen < len)
-			return (mdn_buffer_overflow);
-
-		(void)memcpy(to, from, len);
-	}
-	*clenp = len;
-	return (mdn_success);
-}
-
-static mdn_result_t
-brace_u2l(const char *from, const char *end,
-	  char *to, size_t tolen, size_t *clenp) {
-	size_t len = end - from;
-	size_t suflen = BRACE_SUFFIX_LEN;
-
-	/*
-	 * See if encoding is necessary.
-	 */
-	if (mdn_util_domainspan(from, end) < end ||
-	    (len >= suflen &&
-	     mdn_util_casematch(end - suflen, MDN_BRACE_SUFFIX, suflen))) {
-		/*
-		 * Conversion is necessary.
-		 */
-		mdn_result_t r;
-		size_t t;
-
-		r = brace_encode(from, len, to, tolen);
-		if (r != mdn_success)
-			return (r);
-		t = strlen(to);
-
-		/* Append suffix. */
-		if (tolen < t + suflen)
-			return (mdn_buffer_overflow);
-		(void)memcpy(to + t, MDN_BRACE_SUFFIX, suflen);
-
-		len = t + suflen;
-	} else {
-		/*
-		 * Conversion is NOT necessary.
-		 * Copy verbatim.
-		 */
-		if (tolen < len)
-			return (mdn_buffer_overflow);
-
-		(void)memcpy(to, from, len);
-	}
-	*clenp = len;
-	return (mdn_success);
+	return (r);
 }
 
 static mdn_result_t

@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.2 2000/11/14 00:15:35 ishisone Exp $ */
+/* $Id: util.h,v 1.5 2001/04/20 00:45:06 ishisone Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -86,6 +86,16 @@ mdn_util_casematch(const char *s1, const char *s2, size_t n);
  */
 extern const char *
 mdn_util_domainspan(const char *s, const char *end);
+
+/*
+ * Test whether a string is valid domain name defined by STD 13.
+ *
+ * This function sees each character in string 's' until 'end', and
+ * checks if the string is valid as an ASCII domain name that STD 13
+ * defines.  If valid, it returns 1.  Otherwise, it returns 0.
+ */
+extern int
+mdn_util_validstd13(const char *s, const char *end);
 
 /*
  * UTF-8 to UTF-16 conversion and vice versa.

@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: res.c,v 1.5 2000/09/20 02:47:32 ishisone Exp $";
+static char *rcsid = "$Id: res.c,v 1.17 2001/05/15 05:04:00 ishisone Exp $";
 #endif
 
 /*
@@ -71,215 +71,658 @@ static char *rcsid = "$Id: res.c,v 1.5 2000/09/20 02:47:32 ishisone Exp $";
 #include <mdn/logmacro.h>
 #include <mdn/converter.h>
 #include <mdn/normalizer.h>
-#include <mdn/translator.h>
+#include <mdn/checker.h>
+#include <mdn/mapper.h>
+#include <mdn/mapselector.h>
+#include <mdn/delimitermap.h>
 #include <mdn/resconf.h>
 #include <mdn/res.h>
+#include <mdn/util.h>
 #include <mdn/debug.h>
 
+static mdn_result_t	nameconv_l(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_L(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_d(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_M(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_m(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_n(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_p(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_u(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_I(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_i(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_a(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
+static mdn_result_t	nameconv_A(mdn_resconf_t ctx, const char *from,
+				   char *to, size_t tolen);
 static mdn_result_t	copy_verbatim(const char *from, char *to,
 				      size_t tolen);
-static int		contain_invalid_char(const char *name);
 
 mdn_result_t
-mdn_res_localtoucs(mdn_resconf_t conf, const char *local_name,
-		   char *ucs_name, size_t ucs_name_len)
+mdn_res_nameconv(mdn_resconf_t ctx, const char *actions, const char *from,
+		 char *to, size_t tolen)
 {
-	mdn_converter_t conv;
 	mdn_result_t r;
+	size_t fromlen;
+	char *src, *dst;
+	char static_buffers[2][1024];	/* large enough */
+	char *dynamic_buffers[2];
+	size_t dynamic_buflen[2];
+	char actions_buffer[64];	/* large enough */
+	char *ap;
+	size_t dstlen;
+	int idx;
 
-	assert(local_name != NULL && ucs_name != NULL);
+	assert(ctx != NULL && from != NULL && to != NULL);
 
-	TRACE(("mdn_res_localtoucs(local_name=\"%-.20s\")\n", local_name));
+	TRACE(("mdn_res_nameconv(from=\"%s\")\n",
+		mdn_debug_xstring(from, 20)));
 
-	if (conf == NULL)
-		return (copy_verbatim(local_name, ucs_name, ucs_name_len));
+	/*
+	 * Copy `actions' to `actions_buffer' + 2.
+	 * We make two characters space to extend the action `N'.
+	 */
+	if (strlen(actions) + 1 > sizeof(actions_buffer) - 2)
+		return (mdn_invalid_action);
+	strcpy(actions_buffer + 2, actions);
+	ap = actions_buffer + 2;
 
-	if (!contain_invalid_char(local_name) &&
-	    (conv = mdn_resconf_alternateconverter(conf)) != NULL) {
-		TRACE(("mdn_res_localtoucs: trying alternate converter..\n"));
-		r = mdn_converter_convert(conv, mdn_converter_l2u,
-					  local_name, ucs_name, ucs_name_len);
-		if (r == mdn_success)
-			return (r);
+	/*
+	 * Initialize the buffers to use the local
+	 * storage (stack memory).
+	 */
+	dynamic_buffers[0] = NULL;
+	dynamic_buffers[1] = NULL;
+	dynamic_buflen[0] = 0;
+	dynamic_buflen[1] = 0;
+
+	fromlen = strlen(from);
+
+	/*
+	 * Convert.
+	 */
+	src = (void *)from;
+	dstlen = fromlen + 1;
+
+	while (*ap != '\0') {
+		if (*ap == ' ' || *ap == '\t') {
+			ap++;
+			continue;
+		}
+
+		/*
+		 * Choose destination area to restore the result of a mapping.
+		 */
+		if (*ap == 'p' || *ap == 'u') {
+			dst = src;
+		} else if (dstlen <= sizeof(static_buffers[0])) {
+			if (src == static_buffers[0])
+				idx = 1;
+			else
+				idx = 0;
+
+			dst = static_buffers[idx];
+			dstlen = sizeof(static_buffers[0]);
+
+		} else {
+			if (src == dynamic_buffers[0])
+				idx = 1;
+			else
+				idx = 0;
+
+			if (dynamic_buflen[idx] == 0) {
+				dynamic_buffers[idx] = (char *) malloc(dstlen);
+				if (dynamic_buffers[idx] == NULL) {
+					r = mdn_nomemory;
+					goto failure;
+				}
+				dynamic_buflen[idx] = dstlen;
+
+			} else if (dynamic_buflen[idx] < dstlen) {
+				char *newbuf;
+
+				newbuf = realloc(dynamic_buffers[idx], dstlen);
+				if (newbuf == NULL) {
+					r = mdn_nomemory;
+					goto failure;
+				}
+				dynamic_buffers[idx] = newbuf;
+				dynamic_buflen[idx] = dstlen;
+			}
+
+			dst = dynamic_buffers[idx];
+			dstlen = dynamic_buflen[idx];
+		}
+
+		/*
+		 * Determine an action character.
+		 * If the current action is `N', we resolve it into "mnp".
+		 */
+		if (*ap == 'N') {
+			*(ap - 2) = 'm';
+			*(ap - 1) = 'n';
+			*ap = 'p';
+			ap -= 2;
+		}
+
+		/*
+		 * Perform a conversion or check.
+		 * If buffer size is not enough, we double it and try again.
+		 */
+		switch (*ap) {
+		case 'l':
+			r = nameconv_l(ctx, src, dst, dstlen);
+			break;
+		case 'L':
+			r = nameconv_L(ctx, src, dst, dstlen);
+			break;
+		case 'd':
+			r = nameconv_d(ctx, src, dst, dstlen);
+			break;
+		case 'M':
+			r = nameconv_M(ctx, src, dst, dstlen);
+			break;
+		case 'm':
+			r = nameconv_m(ctx, src, dst, dstlen);
+			break;
+		case 'n':
+			r = nameconv_n(ctx, src, dst, dstlen);
+			break;
+		case 'p':
+			r = nameconv_p(ctx, src, dst, dstlen);
+			break;
+		case 'u':
+			r = nameconv_u(ctx, src, dst, dstlen);
+			break;
+		case 'I':
+			r = nameconv_I(ctx, src, dst, dstlen);
+			break;
+		case 'i':
+			r = nameconv_i(ctx, src, dst, dstlen);
+			break;
+		case 'a':
+			r = nameconv_a(ctx, src, dst, dstlen);
+			break;
+		case 'A':
+			r = nameconv_A(ctx, src, dst, dstlen);
+			break;
+		default:
+			r = mdn_invalid_action;
+			break;
+		}
+
+		if (r == mdn_buffer_overflow) {
+			dstlen *= 2;
+			continue;
+		} else if (r != mdn_success)
+			goto failure;
+
+		ap++;
+		src = dst;
 	}
-	
-	if ((conv = mdn_resconf_localconverter(conf)) == NULL)
-		return (copy_verbatim(local_name, ucs_name, ucs_name_len));
 
-	TRACE(("mdn_res_localtoucs: using local converter..\n"));
-	return (mdn_converter_convert(conv, mdn_converter_l2u,
-				      local_name, ucs_name, ucs_name_len));
-}
+	r = copy_verbatim(src, to, tolen);
+	if (r != mdn_success)
+		goto failure;
 
-mdn_result_t
-mdn_res_ucstolocal(mdn_resconf_t conf, const char *ucs_name,
-		   char *local_name, size_t local_name_len)
-{
-	mdn_converter_t conv;
-	mdn_result_t r;
+	return (mdn_success);
 
-	assert(ucs_name != NULL && local_name != NULL);
-
-	TRACE(("mdn_res_ucstolocal(ucs_name=\"%s\")\n",
-	      mdn_debug_xstring(ucs_name, 20)));
-
-	if (conf == NULL ||
-	    (conv = mdn_resconf_localconverter(conf)) == NULL)
-		return (copy_verbatim(ucs_name, local_name, local_name_len));
-
-	r = mdn_converter_convert(conv, mdn_converter_u2l,
-				  ucs_name, local_name, local_name_len);
-
-	if (r == mdn_nomapping &&
-	    (conv = mdn_resconf_alternateconverter(conf)) != NULL) {
-		TRACE(("mdn_res_ucstolocal: switched to alternate converter\n"));
-		r = mdn_converter_convert(conv, mdn_converter_u2l,
-					  ucs_name, local_name,
-					  local_name_len);
-	}
+failure:
+	free(dynamic_buffers[0]);
+	free(dynamic_buffers[1]);
 	return (r);
 }
 
-mdn_result_t
-mdn_res_normalize(mdn_resconf_t conf, const char *name,
-		  char *normalized_name, size_t normalized_name_len)
+static mdn_result_t
+nameconv_l(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
 {
-	mdn_normalizer_t norm;
+	mdn_result_t r;
+	mdn_converter_t local_converter;
+	mdn_converter_t alternate_converter;
 
-	assert(name != NULL && normalized_name != NULL);
+	alternate_converter = mdn_resconf_getalternateconverter(ctx);
+	if (alternate_converter != NULL) {
+		r = mdn_converter_localtoutf8(alternate_converter, from, to,
+					      tolen);
+		mdn_converter_destroy(alternate_converter);
+		if (r == mdn_success && strcmp(from, to) != 0)
+			return (r);
+	}
+	local_converter = mdn_resconf_getlocalconverter(ctx);
+	if (local_converter != NULL) {
+		r = mdn_converter_localtoutf8(local_converter, from, to,
+					      tolen);
+		mdn_converter_destroy(local_converter);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
 
-	TRACE(("mdn_res_normalize(name=\"%s\")\n",
-	      mdn_debug_xstring(name, 20)));
-
-	if (conf == NULL ||
-	    (norm = mdn_resconf_normalizer(conf)) == NULL)
-		return (copy_verbatim(name, normalized_name,
-				      normalized_name_len));
-	return (mdn_normalizer_normalize(norm, name, normalized_name,
-					 normalized_name_len));
+	return (r);
 }
 
-mdn_result_t
-mdn_res_ucstodns(mdn_resconf_t conf, const char *ucs_name, char *dns_name,
-		 size_t dns_name_len)
+static mdn_result_t
+nameconv_L(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
 {
-	mdn_converter_t conv;
 	mdn_result_t r;
-	const char *zld;
+	mdn_converter_t local_converter;
+	mdn_converter_t alternate_converter;
 
-	assert(ucs_name != NULL && dns_name != NULL);
-
-	TRACE(("mdn_res_ucstodns(ucs_name=\"%s\")\n",
-	      mdn_debug_xstring(ucs_name, 20)));
-
-	if (conf == NULL ||
-	    (conv = mdn_resconf_serverconverter(conf)) == NULL ||
-	    !contain_invalid_char(ucs_name))
-		return (copy_verbatim(ucs_name, dns_name, dns_name_len));
-
-	r = mdn_converter_convert(conv, mdn_converter_u2l,
-				  ucs_name, dns_name, dns_name_len);
-	if (r != mdn_success)
+	local_converter = mdn_resconf_getlocalconverter(ctx);
+	if (local_converter != NULL) {
+		r = mdn_converter_utf8tolocal(local_converter, from, to,
+					      tolen);
+		mdn_converter_destroy(local_converter);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
+	if (r != mdn_nomapping)
 		return (r);
 
-	if ((zld = mdn_resconf_zld(conf)) != NULL) {
-		size_t len;
-
-		TRACE(("mdn_res_ucstodns: adding ZLD\n"));
-		len = strlen(dns_name);
-		if (len > 0 && dns_name[len - 1] != '.') {
-			if (len + 1 >= dns_name_len)
-				return (mdn_buffer_overflow);
-			strcpy(dns_name + len, ".");
-			len++;
-		}
-		if (len + strlen(zld) >= dns_name_len)
-			return (mdn_buffer_overflow);
-		(void)strcat(dns_name, zld);
+	alternate_converter = mdn_resconf_getalternateconverter(ctx);
+	if (alternate_converter != NULL) {
+		r = mdn_converter_utf8tolocal(alternate_converter, from, to,
+					      tolen);
+		mdn_converter_destroy(alternate_converter);
 	}
-	return (mdn_success);
+
+	return (r);
 }
 
-mdn_result_t
-mdn_res_dnstoucs(mdn_resconf_t conf, const char *dns_name, char *ucs_name,
-		 size_t ucs_name_len)
+static mdn_result_t
+nameconv_d(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
 {
-	const char *zld;
-	mdn_converter_t conv;
-	char domainbuf[512];
-	int convert;
+	mdn_result_t r;
+	mdn_delimitermap_t delimiter_mapper;
 
-	assert(dns_name != NULL && ucs_name != NULL);
+	delimiter_mapper = mdn_resconf_getdelimitermap(ctx);
+	if (delimiter_mapper != NULL) {
+		r = mdn_delimitermap_map(delimiter_mapper, from, to, tolen);
+		mdn_delimitermap_destroy(delimiter_mapper);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
 
-	TRACE(("mdn_res_dnstoucs(dns_name=\"%s\")\n",
-	      mdn_debug_xstring(dns_name, 20)));
+	return (r);
+}
 
-	if (conf == NULL ||
-	    (conv = mdn_resconf_serverconverter(conf)) == NULL)
-		return (copy_verbatim(dns_name, ucs_name, ucs_name_len));
+static mdn_result_t
+nameconv_M(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_result_t r;
+	mdn_mapselector_t local_mapper;
 
-	if ((zld = mdn_resconf_zld(conf)) != NULL) {
-		if (mdn_translator_matchzld(dns_name, zld)) {
-			/*
-			 * Strip 'zld' from 'dns_name'.
-			 */
-			size_t namelen = strlen(dns_name);
+	local_mapper = mdn_resconf_getlocalmapselector(ctx);
+	if (local_mapper != NULL) {
+		r = mdn_mapselector_map(local_mapper, from, to, tolen);
+		mdn_mapselector_destroy(local_mapper);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
 
-			TRACE(("mdn_res_dnstoucs: ZLD matched\n"));
-			/* 'zld' must end with dot, but 'dns_name' may not. */
-			if (namelen > 0 && dns_name[namelen - 1] != '.')
-				namelen++;
-			namelen -= strlen(zld);
-			if (namelen >= sizeof(domainbuf))
-				return (mdn_invalid_name);
-			(void)strncpy(domainbuf, dns_name, namelen);
-			domainbuf[namelen] = '\0';
-			dns_name = domainbuf;
-			convert = 1;
-		} else if (contain_invalid_char(dns_name)) {
-			TRACE(("mdn_res_dnstoucs: contain invalid char\n"));
-			return (mdn_invalid_name);
-		} else {
-			convert = 0;
+	return (r);
+}
+
+static mdn_result_t
+nameconv_p(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_result_t r;
+	const char *found;
+	mdn_checker_t prohibit_checker;
+
+	prohibit_checker = mdn_resconf_getprohibitchecker(ctx);
+	if (prohibit_checker != NULL) {
+		r = mdn_checker_lookup(prohibit_checker, from, &found);
+		if (found != NULL)
+			r = mdn_prohibited;
+		mdn_checker_destroy(prohibit_checker);
+	} else {
+		r = mdn_success;
+	}
+
+	return (r);
+}
+
+static mdn_result_t
+nameconv_u(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_result_t r;
+	mdn_checker_t unassigned_checker;
+	const char *found;
+
+	unassigned_checker = mdn_resconf_getunassignedchecker(ctx);
+	if (unassigned_checker != NULL) {
+		r = mdn_checker_lookup(unassigned_checker, from, &found);
+		if (found != NULL)
+			r = mdn_prohibited;
+		mdn_checker_destroy(unassigned_checker);
+	} else {
+		r = mdn_success;
+	}
+
+	return (r);
+}
+
+static mdn_result_t
+nameconv_m(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_mapper_t mapper = NULL;
+	mdn_result_t r;
+	size_t fromlen;
+	size_t steplen;
+	char static_buffer[1024];	/* large enough */
+	char *dynamic_buffer = NULL;
+	char *label;
+	char *dot;
+
+	fromlen = strlen(from);
+
+	mapper = mdn_resconf_getmapper(ctx);
+	if (mapper == NULL) {
+		r = copy_verbatim(from, to, tolen);
+		return (r);
+	}
+
+	if (fromlen + 1 > sizeof(static_buffer)) {
+		dynamic_buffer = (char *) malloc(fromlen + 1);
+		if (dynamic_buffer == NULL) {
+			r = mdn_nomemory;
+			goto failure;
 		}
-	} else if (!mdn_converter_isasciicompatible(conv) &&
-		   !contain_invalid_char(dns_name)) {
-		convert = 0;
+		label = dynamic_buffer;
 	} else {
-		convert = 1;
+		label = static_buffer;
 	}
 
-	if (convert) {
-		TRACE(("mdn_res_dnstoucs: convert to ucs\n"));
-		return (mdn_converter_convert(conv, mdn_converter_l2u,
-					      dns_name, ucs_name,
-					      ucs_name_len));
-	} else {
-		return (copy_verbatim(dns_name, ucs_name, ucs_name_len));
+	strcpy(label, from);
+
+	for (;;) {
+		dot = strchr(label, '.');
+		if (dot != NULL)
+			*dot = '\0';
+
+		if (*label == '\0' || mdn_util_validstd13(label, NULL)) {
+			r = copy_verbatim(label, to, tolen);
+		} else {
+			r = mdn_mapper_map(mapper, label, to, tolen);
+		}
+		if (r != mdn_success)
+			goto failure;
+
+		steplen = strlen(to);
+		tolen -= steplen;
+		to += steplen;
+
+		if (dot == NULL)
+			break;
+
+		if (tolen <= 1) {
+			r = mdn_buffer_overflow;
+			return (r);
+		}
+		*to++ = '.';
+		tolen--;
+
+		label = dot + 1;
+		if (*label == '\0')
+			break;
 	}
+
+	/*
+	 * Don't delete the following.  If `from' ends with ".", `to' is
+	 * terminated by this line.
+	 */
+	*to = '\0';
+
+	free(dynamic_buffer);
+	mdn_mapper_destroy(mapper);
+	return (mdn_success);
+
+failure:
+	free(dynamic_buffer);
+	if (mapper != NULL)
+		mdn_mapper_destroy(mapper);
+	return (r);
+}
+
+static mdn_result_t
+nameconv_n(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_normalizer_t normalizer = NULL;
+	mdn_result_t r;
+	size_t fromlen;
+	size_t steplen;
+	char static_buffer[1024];	/* large enough */
+	char *dynamic_buffer = NULL;
+	char *label;
+	char *dot;
+
+	fromlen = strlen(from);
+
+	normalizer = mdn_resconf_getnormalizer(ctx);
+	if (normalizer == NULL) {
+		r = copy_verbatim(from, to, tolen);
+		return (r);
+	}
+
+	if (fromlen + 1 > sizeof(static_buffer)) {
+		dynamic_buffer = (char *) malloc(fromlen + 1);
+		if (dynamic_buffer == NULL) {
+			r = mdn_nomemory;
+			goto failure;
+		}
+		label = dynamic_buffer;
+	} else {
+		label = static_buffer;
+	}
+
+	strcpy(label, from);
+
+	for (;;) {
+		dot = strchr(label, '.');
+		if (dot != NULL)
+			*dot = '\0';
+
+		if (*label == '\0' || mdn_util_validstd13(label, NULL)) {
+			r = copy_verbatim(label, to, tolen);
+		} else {
+			r = mdn_normalizer_normalize(normalizer, label, to,
+				tolen);
+		}
+		if (r != mdn_success)
+			goto failure;
+
+		steplen = strlen(to);
+		tolen -= steplen;
+		to += steplen;
+
+		if (dot == NULL)
+			break;
+
+		if (tolen <= 1) {
+			r = mdn_buffer_overflow;
+			return (r);
+		}
+		*to++ = '.';
+		tolen--;
+
+		label = dot + 1;
+		if (*label == '\0')
+			break;
+	}
+
+	/*
+	 * Don't delete the following.  If `from' ends with ".", `to' is
+	 * terminated by this line.
+	 */
+	*to = '\0';
+
+	free(dynamic_buffer);
+	mdn_normalizer_destroy(normalizer);
+	return (mdn_success);
+
+failure:
+	free(dynamic_buffer);
+	if (normalizer != NULL)
+		mdn_normalizer_destroy(normalizer);
+	return (r);
+}
+
+static mdn_result_t
+nameconv_I(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_result_t r;
+	mdn_converter_t idn_converter;
+
+	idn_converter = mdn_resconf_getidnconverter(ctx);
+	if (idn_converter != NULL) {
+		r = mdn_converter_utf8tolocal(idn_converter, from, to, tolen);
+		mdn_converter_destroy(idn_converter);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
+
+	return (r);
+}
+
+static mdn_result_t
+nameconv_i(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_result_t r;
+	mdn_converter_t idn_converter;
+
+	idn_converter = mdn_resconf_getidnconverter(ctx);
+	if (idn_converter != NULL) {
+		r = mdn_converter_localtoutf8(idn_converter, from, to, tolen);
+		mdn_converter_destroy(idn_converter);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
+
+	return (r);
+}
+
+static mdn_result_t
+nameconv_a(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_result_t r;
+	mdn_converter_t alternate_converter;
+
+	alternate_converter = mdn_resconf_getalternateconverter(ctx);
+	if (alternate_converter != NULL) {
+		r = mdn_converter_localtoutf8(alternate_converter, from, to,
+					      tolen);
+		mdn_converter_destroy(alternate_converter);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
+
+	return (r);
+}
+
+static mdn_result_t
+nameconv_A(mdn_resconf_t ctx, const char *from, char *to, size_t tolen)
+{
+	mdn_result_t r;
+	mdn_converter_t alternate_converter;
+
+	alternate_converter = mdn_resconf_getalternateconverter(ctx);
+	if (alternate_converter != NULL) {
+		r = mdn_converter_utf8tolocal(alternate_converter, from, to,
+					      tolen);
+		mdn_converter_destroy(alternate_converter);
+	} else {
+		r = copy_verbatim(from, to, tolen);
+	}
+
+	return (r);
 }
 
 static mdn_result_t
 copy_verbatim(const char *from, char *to, size_t tolen) {
-	size_t fromlen = strlen(from) + 1;
+	size_t fromlen = strlen(from);
 
-	if (tolen < fromlen)
+	if (fromlen + 1 > tolen)
 		return (mdn_buffer_overflow);
-	(void)memcpy(to, from, fromlen);
+	(void)memcpy(to, from, fromlen + 1);
 	return (mdn_success);
 }
 
-static int
-contain_invalid_char(const char *name) {
-	int c;
+#undef mdn_res_localtoucs
+#undef mdn_res_ucstolocal
+#undef mdn_res_map
+#undef mdn_res_normalize
+#undef mdn_res_prohibitcheck
+#undef mdn_res_unassignedcheck
+#undef mdn_res_delimitermap
+#undef mdn_res_localmap
+#undef mdn_res_ucstodns
+#undef mdn_res_dnstoucs
 
-	while ((c = *name++) != '\0') {
-		if (('a' <= c && c <= 'z') ||
-		    ('A' <= c && c <= 'Z') ||
-		    ('0' <= c && c <= '9') ||
-		    c == '.' || c == '-')
-			continue;	/* valid character */
-		return (1);
-	}
-	return (0);
+mdn_result_t
+mdn_res_localtoucs(mdn_resconf_t ctx, const char *from, char *to,
+		   size_t tolen) {
+	return mdn_res_nameconv(ctx, "l", from, to, tolen);
 }
+
+mdn_result_t
+mdn_res_ucstolocal(mdn_resconf_t ctx, const char *from, char *to,
+		   size_t tolen) {
+	return mdn_res_nameconv(ctx, "L", from, to, tolen);
+}
+
+mdn_result_t
+mdn_res_map(mdn_resconf_t ctx, const char *from, char *to, size_t tolen) {
+	return mdn_res_nameconv(ctx, "m", from, to, tolen);
+}
+
+
+mdn_result_t
+mdn_res_normalize(mdn_resconf_t ctx, const char *from, char *to,
+		  size_t tolen) {
+	return mdn_res_nameconv(ctx, "n", from, to, tolen);
+}
+
+mdn_result_t
+mdn_res_prohibitcheck(mdn_resconf_t ctx, const char *from, char *to,
+		      size_t tolen) {
+	return mdn_res_nameconv(ctx, "p", from, to, tolen);
+}
+
+mdn_result_t
+mdn_res_unassignedcheck(mdn_resconf_t ctx, const char *from, char *to,
+			size_t tolen) {
+	return mdn_res_nameconv(ctx, "u", from, to, tolen);
+}
+
+mdn_result_t
+mdn_res_delimitermap(mdn_resconf_t ctx, const char *from, char *to,
+		     size_t tolen) {
+	return mdn_res_nameconv(ctx, "d", from, to, tolen);
+}
+
+mdn_result_t
+mdn_res_localmap(mdn_resconf_t ctx, const char *from, char *to, size_t tolen) {
+	return mdn_res_nameconv(ctx, "M", from, to, tolen);
+}
+
+mdn_result_t
+mdn_res_ucstodns(mdn_resconf_t ctx, const char *from, char *to,
+		 size_t tolen) {
+	return mdn_res_nameconv(ctx, "I", from, to, tolen);
+}
+
+mdn_result_t
+mdn_res_dnstoucs(mdn_resconf_t ctx, const char *from, char *to,
+		 size_t tolen) {
+	return mdn_res_nameconv(ctx, "i", from, to, tolen);
+}
+

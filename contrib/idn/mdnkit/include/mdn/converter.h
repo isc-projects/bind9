@@ -1,4 +1,4 @@
-/* $Id: converter.h,v 1.13 2000/08/02 02:06:40 ishisone Exp $ */
+/* $Id: converter.h,v 1.15 2001/02/26 09:32:25 m-kasahr Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -113,10 +113,19 @@ mdn_converter_create(const char *name, mdn_converter_t *ctxp,
 		     int flags);
 
 /*
- * Destroy the conversion context created by mdn_converter_create.
+ * Decrement reference count of the converter `ctx' created by
+ * 'mdn_converter_create', if it is still refered by another object.
+ * Otherwise, release all the memory allocated to the converter.
  */
 extern void
 mdn_converter_destroy(mdn_converter_t ctx);
+
+/*
+ * Increment reference count of the converter `ctx' created by
+ * 'mdn_converter_create'.
+ */
+extern void
+mdn_converter_incrref(mdn_converter_t ctx);
 
 /*
  * Convert between local codeset and UTF-8.  Note that each conversion
@@ -207,10 +216,13 @@ mdn_converter_resetalias(void);
  * Conversion operation functions.
  */
 typedef mdn_result_t (*mdn_converter_openproc_t)(mdn_converter_t ctx,
-						 mdn_converter_dir_t dir);
+						 mdn_converter_dir_t dir,
+						 void **privdata);
 typedef mdn_result_t (*mdn_converter_closeproc_t)(mdn_converter_t ctx,
+						  void *privdata,
 						  mdn_converter_dir_t dir);
 typedef mdn_result_t (*mdn_converter_convertproc_t)(mdn_converter_t ctx,
+						    void *privdata,
 						    mdn_converter_dir_t dir,
 						    const char *from,
 						    char *to, size_t tolen);

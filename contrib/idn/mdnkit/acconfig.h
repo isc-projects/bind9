@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.4 2000/11/17 06:51:11 ishisone Exp $ */
+/* $Id: acconfig.h,v 1.8 2001/04/18 02:07:32 ishisone Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -58,20 +58,18 @@
  */
 @TOP@
 
-/* Define if your iconv() does not accept "UTF-8" as the codeset name for utf-8. */
-#undef MDN_UTF8_ENCODING_NAME
-
-/* Define if you want ZLD feature compiled in. */
-#undef MDN_SUPPORT_ZLD
-
-/* Define if the prefix of RACE encoding differs from 'bq--'. */
-#undef MDN_RACE_PREFIX
-
-/* Define if the suffix of BRACE encoding differs from '-8q9'. */
-#undef MDN_BRACE_SUFFIX
-
-/* Define if the prefix of LACE encoding differs from 'bq--'. */
-#undef MDN_LACE_PREFIX
-
 /* Define as an appropriate type (ex. int) if your system doesn't have. */
 #undef BOOL
+
+/* Define if the prototype of gethost*_r is glibc flavor. */
+#undef GETHOST_R_GLIBC_FLAVOR
+
+/* Define as the type of the 2nd argument of gethostbyaddr. */
+#undef GHBA_ADDRLEN_T
+
+@BOTTOM@
+/* Define as the pathname of the shared libc object if your system has one. */
+#undef SOPATH_LIBC
+
+/* Define as the pathname of the shared libnsl object if your system has one. */
+#undef SOPATH_LIBNSL

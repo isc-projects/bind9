@@ -1,9 +1,10 @@
 #ifndef lint
-static char *rcsid = "$Id: msgtrans.c,v 1.22 2000/11/21 02:09:05 ishisone Exp $";
+static char *rcsid = "$Id: msgtrans.c,v 1.24 2001/02/21 05:54:17 m-kasahr Exp $";
 #endif
 
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -72,8 +73,12 @@ static char *rcsid = "$Id: msgtrans.c,v 1.22 2000/11/21 02:09:05 ishisone Exp $"
 #include <errno.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#ifdef HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
+#endif
+#ifdef HAVE_RESOLV_H
 #include <resolv.h>
+#endif
 #endif
 
 #include <mdn/result.h>
@@ -81,12 +86,30 @@ static char *rcsid = "$Id: msgtrans.c,v 1.22 2000/11/21 02:09:05 ishisone Exp $"
 #include <mdn/logmacro.h>
 #include <mdn/converter.h>
 #include <mdn/normalizer.h>
-#include <mdn/translator.h>
-#include <mdn/zldrule.h>
+#include <mdn/res.h>
 #include <mdn/msgheader.h>
 #include <mdn/msgtrans.h>
 #include <mdn/dn.h>
 #include <mdn/debug.h>
+
+/*
+ * Name translation instructions.
+ *
+ * For query, perform
+ *   1. local encoding to UTF-8 conversion
+ *   2. delimiter mapping
+ *   3. local mapping
+ *   4. nameprep
+ *   5. UTF-8 to IDN encoding conversion
+ *
+ * For reply,
+ *   1. IDN encoding to UTF-8 conversion
+ *   2. UTF-8 to local encoding conversion
+ *
+ * See mdn/res.h for the mnemonic.
+ */
+#define INSN_QUERY	"ldMNI"
+#define INSN_REPLY	"iL"
 
 #define DNS_HEADER_SIZE		12
 #define DNAME_SIZE		512
@@ -142,16 +165,16 @@ enum {
 };
 
 typedef struct msgtrans_ctx {
-	const char *in;			/* input message */
-	size_t in_len;			/* length of it */
-	const char *in_ptr;		/* current pointer */
-	size_t in_remain;		/* # of remaining octets */
-	char *out;			/* output (translated) message */
-	char *out_ptr;			/* current pointer */
-	size_t out_remain;		/* # of remaining (available) octets */
-	mdn__dn_t dn_ctx;		/* for compression */
-	int determined;			/* if ZLD/codeset are determined */
-	mdn_msgtrans_param_t *param;	/* translation parameters */
+	char *insn;		/* name translation instruction */
+	const char *in;		/* input message */
+	size_t in_len;		/* length of it */
+	const char *in_ptr;	/* current pointer */
+	size_t in_remain;	/* # of remaining octets */
+	char *out;		/* output (translated) message */
+	char *out_ptr;		/* current pointer */
+	size_t out_remain;	/* # of remaining (available) octets */
+	mdn__dn_t dn_ctx;	/* for compression */
+	mdn_resconf_t conf;	/* translation parameters */
 } msgtrans_ctx_t;
 
 static struct rrformat {
@@ -193,14 +216,14 @@ static mdn_result_t	translate_rdata(msgtrans_ctx_t *ctx,
 					unsigned int rr_type,
 					unsigned int rr_class,
 					unsigned int rr_length);
-static const char	*rdata_format(unsigned int rr_type, unsigned int rr_class);
+static const char	*rdata_format(unsigned int rr_type,
+				      unsigned int rr_class);
 static mdn_result_t	translate_domain(msgtrans_ctx_t *ctx);
-static mdn_result_t	translate_name(mdn_msgtrans_param_t *param,
-				       char *from, char *to, size_t tolen);
-static mdn_result_t	get_domainname(msgtrans_ctx_t *ctx, char *buf, size_t bufsize);
+static mdn_result_t	get_domainname(msgtrans_ctx_t *ctx, char *buf,
+				       size_t bufsize);
 static mdn_result_t	put_domainname(msgtrans_ctx_t *ctx, char *name);
 static void		ctx_init(msgtrans_ctx_t *ctx,
-				 mdn_msgtrans_param_t *param,
+				 mdn_resconf_t conf, mdn_msgheader_t *header,
 				 const char *msg, size_t msglen,
 				 char *outbuf, size_t outbufsize);
 static mdn_result_t	copy_rest(msgtrans_ctx_t *ctx);
@@ -211,20 +234,20 @@ static void		dump_message(const char *title, const char *p,
 
 
 mdn_result_t
-mdn_msgtrans_translate(mdn_msgtrans_param_t *param,
+mdn_msgtrans_translate(mdn_resconf_t conf,
 		       const char *msg, size_t msglen,
 		       char *outbuf, size_t outbufsize, size_t *outmsglenp)
 {
 	mdn_result_t r;
 	msgtrans_ctx_t ctx;
 	mdn_msgheader_t header;
-	int i;
+	int i, n;
 
-	assert(param != NULL && msg != NULL &&
+	assert(conf != NULL && msg != NULL &&
 	       outbuf != NULL && outbufsize > 0 && outmsglenp != NULL);
 
 	TRACE(("mdn_msgtrans_translate(msg=<%s>,msglen=%d)\n",
-	      mdn_debug_hexdata(msg, msglen, 64), msglen));
+	       mdn_debug_hexdata(msg, msglen, 64), msglen));
 
 	if (LOGLEVEL >= mdn_log_level_dump)
 		dump_message("before translation", msg, msglen);
@@ -243,15 +266,15 @@ mdn_msgtrans_translate(mdn_msgtrans_param_t *param,
 	 */
 	if ((r = mdn_msgheader_parse(msg, msglen, &header)) != mdn_success) {
 		WARNING(("mdn_msgtrans_translate: message header "
-			"parsing failed: %s\n",
-			mdn_result_tostring(r)));
+			 "parsing failed: %s\n",
+			 mdn_result_tostring(r)));
 		return (r);
 	}
 
 	/*
 	 * Create translation context.
 	 */
-	ctx_init(&ctx, param, msg, msglen, outbuf, outbufsize);
+	ctx_init(&ctx, conf, &header, msg, msglen, outbuf, outbufsize);
 
 	/*
 	 * We handle only query, notify and update messages.
@@ -278,7 +301,8 @@ mdn_msgtrans_translate(mdn_msgtrans_param_t *param,
 	/*
 	 * Parse question/zone section.
 	 */
-	for (i = 0; i < header.qdcount; i++) {
+	n = header.qdcount;
+	for (i = 0; i < n; i++) {
 		if ((r = translate_question(&ctx)) != mdn_success)
 			return (r);
 	}
@@ -286,9 +310,8 @@ mdn_msgtrans_translate(mdn_msgtrans_param_t *param,
 	/*
 	 * Translate other sections.
 	 */
-	for (i = 0;
-	     i < header.ancount + header.nscount + header.arcount;
-	     i++) {
+	n = header.ancount + header.nscount + header.arcount;
+	for (i = 0; i < n; i++) {
 		if ((r = translate_rr(&ctx)) != mdn_success)
 			return (r);
 	}
@@ -319,41 +342,15 @@ copy_header(msgtrans_ctx_t *ctx) {
 static mdn_result_t
 translate_question(msgtrans_ctx_t *ctx) {
 	mdn_result_t r;
-	mdn_msgtrans_param_t *param;
 	char qname[DNAME_SIZE], qname_translated[DNAME_SIZE];
-
-	param = ctx->param;
 
 	/* Get QNAME. */
 	if ((r = get_domainname(ctx, qname, sizeof(qname))) != mdn_success)
 		return (r);
 
-	if (!ctx->determined) {
-		/*
-		 * Determine ZLD and character set/encoding.
-		 */
-		r = mdn_zldrule_select(param->local_rule, qname,
-				       &param->local_zld,
-				       &param->local_converter);
-		switch (r) {
-		case mdn_success:
-			ctx->determined = 1;
-			break;
-		case mdn_notfound:
-			/*
-			 * No matching ZLD, no default.
-			 */
-			param->local_zld = NULL;
-			param->local_converter = NULL;
-			break;
-		default:
-			return (r);
-		}
-	}
-
 	/* Translate QNAME. */
-	r = translate_name(param, qname, qname_translated,
-			   sizeof(qname_translated));
+	r = mdn_res_nameconv(ctx->conf, ctx->insn, qname,
+			     qname_translated, sizeof(qname_translated));
 	if (r != mdn_success)
 		return (r);
 
@@ -377,8 +374,8 @@ translate_rr(msgtrans_ctx_t *ctx) {
 		return (r);
 
 	/* Translate NAME. */
-	r = translate_name(ctx->param, dname, dname_translated,
-			   sizeof(dname_translated));
+	r = mdn_res_nameconv(ctx->conf, ctx->insn, dname,
+			     dname_translated, sizeof(dname_translated));
 	if (r != mdn_success)
 		return (r);
 
@@ -514,8 +511,8 @@ translate_domain(msgtrans_ctx_t *ctx) {
 		return (r);
 
 	/* Translate NAME. */
-	r = translate_name(ctx->param, dname, dname_translated,
-			   sizeof(dname_translated));
+	r = mdn_res_nameconv(ctx->conf, ctx->insn, dname,
+			     dname_translated, sizeof(dname_translated));
 	if (r != mdn_success)
 		return (r);
 
@@ -523,31 +520,6 @@ translate_domain(msgtrans_ctx_t *ctx) {
 		return (r);
 
 	return (mdn_success);
-}
-
-static mdn_result_t
-translate_name(mdn_msgtrans_param_t *param,
-		     char *from, char *to, size_t tolen)
-{
-	if (param->local_converter == NULL) {
-		/*
-		 * No translation is required.
-		 */
-		size_t fromlen = strlen(from) + 1;
-		if (fromlen > tolen)
-			return (mdn_buffer_overflow);
-		(void)memcpy(to, from, fromlen);
-		return (mdn_success);
-	} else {
-		return (mdn_translator_translate(param->local_converter,
-						 param->local_alt_converter,
-						 param->local_zld,
-						 param->normalizer,
-						 param->target_converter,
-						 param->target_alt_converter,
-						 param->target_zld,
-						 from, to, tolen));
-	}
 }
 
 static mdn_result_t
@@ -579,16 +551,16 @@ put_domainname(msgtrans_ctx_t *ctx, char *name) {
 }
 
 static void
-ctx_init(msgtrans_ctx_t *ctx, mdn_msgtrans_param_t *param,
+ctx_init(msgtrans_ctx_t *ctx, mdn_resconf_t conf, mdn_msgheader_t *header,
 	 const char *msg, size_t msglen, char *outbuf, size_t outbufsize)
 {
+	ctx->insn = (header->qr == 0) ? INSN_QUERY : INSN_REPLY;
 	ctx->in = ctx->in_ptr = msg;
 	ctx->in_len = ctx->in_remain = msglen;
 	ctx->out = ctx->out_ptr = outbuf;
 	ctx->out_remain = outbufsize;
-	ctx->determined = !param->use_local_rule;
-	ctx->param = param;
 	mdn__dn_initcompress(&ctx->dn_ctx, outbuf);
+	ctx->conf = conf;
 }
 
 static mdn_result_t

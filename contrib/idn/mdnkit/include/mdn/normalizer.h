@@ -1,4 +1,4 @@
-/* $Id: normalizer.h,v 1.11 2000/08/23 05:52:40 ishisone Exp $ */
+/* $Id: normalizer.h,v 1.13 2001/02/23 10:36:51 m-kasahr Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -101,11 +101,19 @@ extern mdn_result_t
 mdn_normalizer_create(mdn_normalizer_t *ctxp);
 
 /*
- * Release all the memory allocated for a normalizer created by
- * 'mdn_normalizer_create'.
+ * Decrement reference count of the normalizer `ctx' created by
+ * 'mdn_normalizer_create', if it is still refered by another object.
+ * Otherwise, release all the memory allocated to the normalizer.
  */
 extern void
 mdn_normalizer_destroy(mdn_normalizer_t ctx);
+
+/*
+ * Increment reference count of the normalizer `ctx' created by
+ * 'mdn_normalizer_create'.
+ */
+extern void
+mdn_normalizer_incrref(mdn_normalizer_t ctx);
 
 /*
  * Add a normalization scheme to a normalizer.
@@ -120,6 +128,10 @@ mdn_normalizer_destroy(mdn_normalizer_t ctx);
  */
 extern mdn_result_t
 mdn_normalizer_add(mdn_normalizer_t ctx, const char *scheme_name);
+
+extern mdn_result_t
+mdn_normalizer_addall(mdn_normalizer_t ctx, const char **scheme_names,
+		      int nschemes);
 
 /*
  * Perform normalization(s) defined by a normalizer to the specified string, 

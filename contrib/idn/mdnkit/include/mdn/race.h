@@ -1,4 +1,4 @@
-/* $Id: race.h,v 1.8 2000/10/18 02:15:28 ishisone Exp $ */
+/* $Id: race.h,v 1.9 2001/02/26 09:32:25 m-kasahr Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -63,20 +63,21 @@
 /*
  * RACE Converter.
  *
- * See Internet Draft draft-ietf-idn-race-02.txt for details.
+ * See Internet Draft draft-ietf-idn-race-03.txt for details.
  */
 
 #include <mdn/result.h>
 #include <mdn/converter.h>
 
 extern mdn_result_t
-mdn__race_open(mdn_converter_t ctx, mdn_converter_dir_t dir);
+mdn__race_open(mdn_converter_t ctx, mdn_converter_dir_t dir, void **privdata);
 
 extern mdn_result_t
-mdn__race_close(mdn_converter_t ctx, mdn_converter_dir_t dir);
+mdn__race_close(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir);
 
 extern mdn_result_t
-mdn__race_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-		  const char *from, char *to, size_t tolen);
+mdn__race_convert(mdn_converter_t ctx, void *privdata,
+		  mdn_converter_dir_t dir, const char *from, char *to,
+		  size_t tolen);
 
 #endif /* MDN_RACE_H */

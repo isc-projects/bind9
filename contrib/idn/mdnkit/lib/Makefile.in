@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.24 2000/12/21 01:57:30 ishisone Exp $
+# $Id: Makefile.in,v 1.48 2001/05/22 03:00:23 m-kasahr Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -55,8 +55,9 @@
 #    Conditions hereby agrees and consent to the personal and exclusive
 #    jurisdiction and venue of Tokyo District Court of Japan.
 
-LIB_CURRENT = 4
-LIB_REVISION = 1
+LIB_CURRENT = 7
+LIB_REVISION = 0
+LIB_AGE = 0
 
 .SUFFIXES: .lo
 
@@ -68,21 +69,25 @@ VPATH = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 
-BINDIR = @bindir@
-LIBDIR = @libdir@
-ETCDIR = @sysconfdir@
+libdir = @libdir@
+sysconfdir = @sysconfdir@
+datadir = @datadir@
+mapdir = $(datadir)/mdnkit
+preference = @CONF_PREFERENCE@
+install_conf = @INSTALL_DEFAULT_CONF@
 
 CC = @CC@
 RANLIB = @RANLIB@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
 OPTS =
 INCS = -I$(srcdir)/../include -I../include
-DEFS = -DMDN_RESCONF_DIR="\"$(ETCDIR)\""
+DEFS = -DMDN_RESCONF_DIR="\"$(sysconfdir)\""
 
 CFLAGS = $(OPTS) $(INCS) $(DEFS) @CFLAGS@
 LDFLAGS = @LDFLAGS@
@@ -90,15 +95,31 @@ LDFLAGS = @LDFLAGS@
 ICONVLIB = @ICONVLIB@
 
 SRCS =  \
+	ace.c \
+	altdude.c \
+	amcacem.c \
+	amcaceo.c \
+	amcacer.c \
+	api.c \
 	brace.c \
+	checker.c \
 	converter.c \
 	debug.c \
+	delimitermap.c \
 	dn.c \
+	dude.c \
+	filechecker.c \
+	filemapper.c \
 	lace.c \
 	localencoding.c \
 	log.c \
+	mapper.c \
+	mapselector.c \
 	msgheader.c \
 	msgtrans.c \
+	nameprep.c \
+	nameprep_template.c \
+	nameprepdata.c \
 	normalizer.c \
 	race.c \
 	res.c \
@@ -106,25 +127,41 @@ SRCS =  \
 	result.c \
 	selectiveencode.c \
 	strhash.c \
-	translator.c \
+	ucsmap.c \
+	ucsset.c \
 	unicode.c \
 	unicodedata.c \
 	unormalize.c \
 	utf5.c \
+	utf6.c \
 	utf8.c \
 	util.c \
-	zldrule.c
+	version.c
 
 OBJS =  \
+	ace.lo \
+	altdude.lo \
+	amcacem.lo \
+	amcaceo.lo \
+	amcacer.lo \
+	api.lo \
 	brace.lo \
+	checker.lo \
 	converter.lo \
 	debug.lo \
+	delimitermap.lo \
 	dn.lo \
+	dude.lo \
+	filechecker.lo \
+	filemapper.lo \
 	lace.lo \
 	localencoding.lo \
 	log.lo \
+	mapper.lo \
+	mapselector.lo \
 	msgheader.lo \
 	msgtrans.lo \
+	nameprep.lo \
 	normalizer.lo \
 	race.lo \
 	res.lo \
@@ -132,32 +169,45 @@ OBJS =  \
 	result.lo \
 	selectiveencode.lo \
 	strhash.lo \
-	translator.lo \
+	ucsmap.lo \
+	ucsset.lo \
 	unicode.lo \
 	unormalize.lo \
 	utf5.lo \
+	utf6.lo \
 	utf8.lo \
 	util.lo \
-	zldrule.lo
+	version.lo
 
 LIB = libmdn
 
 .c.lo:
 	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -c $<
 
-all: $(LIB).la
+all: $(LIB).la mdn.conf.sample
 
 $(LIB).la: $(OBJS)
 	$(LIBTOOL) --mode=link $(LD) $(LDFLAGS) -o $@ \
-		-version-info $(LIB_CURRENT):$(LIB_REVISION) \
-		-rpath $(LIBDIR) $(OBJS)
+		-version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE) \
+		-rpath $(libdir) $(OBJS)
 
-install: $(LIB).la
-	[ -d $(LIBDIR) ] || mkdir $(LIBDIR)
-	$(LIBTOOL) $(INSTALL_DATA) $(LIB).la $(LIBDIR)
-	[ -f $(LIBDIR)/$(LIB).a ] && $(RANLIB) $(LIBDIR)/$(LIB).a
-	[ -d $(ETCDIR) ] || mkdir $(ETCDIR)
-	$(INSTALL_DATA) $(srcdir)/mdnres.conf.sample $(ETCDIR)
+mdn.conf.sample: mdn.conf.sample.in
+	sed -e 's%[@]mapdir[@]%$(mapdir)%' \
+	    -e 's%[@]preference[@]%$(preference)%' \
+            -e 's%^#\[$(preference)\] *%%' < $(srcdir)/mdn.conf.sample.in > $@
+
+install: $(LIB).la mdn.conf.sample
+	$(MKINSTALLDIRS) $(libdir)
+	$(LIBTOOL) $(INSTALL_DATA) $(LIB).la $(libdir)
+	-[ -f $(libdir)/$(LIB).a ] && $(RANLIB) $(libdir)/$(LIB).a
+	$(MKINSTALLDIRS) $(sysconfdir)
+	$(INSTALL_DATA) mdn.conf.sample $(sysconfdir)
+	@if [ $(install_conf) = yes -a ! -f $(sysconfdir)/mdn.conf ]; then \
+	    echo "** installing default mdn.conf"; \
+	    $(INSTALL_DATA) mdn.conf.sample $(sysconfdir)/mdn.conf; \
+	fi
 
 clean:
 	rm -f *.o *.lo *.la *.a core *.core *~
+	rm -f mdn.conf.sample
+	rm -fr .libs/

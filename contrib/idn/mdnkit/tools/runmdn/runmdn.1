@@ -1,6 +1,7 @@
-.\" $Id: runmdn.1,v 1.3 2000/09/08 05:58:39 ishisone Exp $
+.\" $Id: runmdn.1,v 1.7 2001/04/23 05:56:27 ishisone Exp $
 .\"
-.\" Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+.\" Copyright (c) 2000,2001 Japan Network Information Center.
+.\" All rights reserved.
 .\"  
 .\" By using this file, you agree to the terms and conditions set forth bellow.
 .\" 
@@ -56,7 +57,7 @@
 .\"    Conditions hereby agrees and consent to the personal and exclusive
 .\"    jurisdiction and venue of Tokyo District Court of Japan.
 .\"
-.TH MDNCONV 1 "July 7, 2000"
+.TH RUNMDN 1 "April 6, 2001"
 .\"
 .SH NAME
 runmdn \- A script to allow applications to use multilingual domain names.
@@ -77,9 +78,9 @@ can handle non-ASCII domain names.  For example, you can do:
 .RE
 .PP
 Before using runmdn, you should set up properties related to
-multilingual DNS by configuring mDNkit's resolver configuration file
-\fBmdnres.conf\fP.
-See mdnres.conf(5) which describes the configuration.
+multilingual DNS by configuring mDNkit's configuration file
+\fBmdn.conf\fP.
+See mdn.conf(5) which describes the configuration.
 .\"
 .SH IMPLEMENTATION
 .B runmdn
@@ -87,7 +88,7 @@ is a small shell script that sets up an environment variable called
 ``LD_PRELOAD'', so that an application dynamically links a shared
 library ``libmdnresolv'' before any other shared libraries.
 .PP
-The library ``libmdnresolv'' provides a special version of some
+The library ``libmdnresolv'' provides a special version of
 resolver functions which implement features for handling multilingual
 domain names.
 .B runmdn
@@ -96,25 +97,29 @@ replaces the following functions with the special version:
 .RS 4
 .nf
 .ft CW
-dn_comp
-dn_expand
-res_hnok
-res_ownok
-res_mailok
-res_dnok
+gethostbyname
+gethostbyname2
+gethostbyaddr
+gethostbyname_r
+gethostbyname2_r
+gethostbyaddr_r
+getipnodebyname
+getipnodebyaddr
+freehostent
+getaddrinfo
+freeaddrinfo
+getnameinfo
 .ft R
 .fi
 .RE
 .PP
-These are the crucial functions in resolver library for multilingual
-domain name processing.
 By overriding them in the standard libraries with the special version
 provided by ``libmdnresolv'',
 .B runmdn
 enables applications to use multilingual domain names.
 .RS 4
 .IP \(bu 2
-Resolver API (such as gethostbyname()) accepts non-ASCII domain names
+These API functions accept non-ASCII domain names
 encoded in the local codeset that the application is using.
 Also the result from these APIs may contain non-ASCII domain names.
 .IP \(bu 2
@@ -125,20 +130,21 @@ automatically, so users/applications need not worry about them.
 .PP
 Properties of multilingual DNS (such as the normalization or the codeset
 used on DNS protocol data) can be configured with the mDNkit's
-resolver configuration file (
-.B mdnres.conf
-).  See mdnres.conf(5) for details.
+configuration file (
+.B mdn.conf
+).  See mdn.conf(5) for details.
 .\"
-.SH "BIND 9"
-.B runmdn
-is designed for BIND4 and BIND8 based resolver libraries.
-Since BIND9 introduces a completely different resolver called ``light-weight
-resolver'', runmdn cannot be used for applications using BIND9 based resolver.
-.PP
-Since mDNkit also contains a patch to BIND9 source which makes BIND9
-multilingual-aware, use the patch to multilingualize your BIND9 based
-resolver.
 .SH NOTE
+By default,
+.B runmdn
+tries to guess the application's local codeset from the application's current
+locale.  However, sometimes it cannot guess the codeset correctly, for example
+if the application does not set the locale appropriately
+by calling `setlocale()'.
+In that case, you can explicitly specify the local codeset by setting an
+environment variable ``MDN_LOCAL_CODESET''.
+See the section ``LOCAL CODESET'' in mdn.conf(5) for details.
+.PP
 The idea of using ``LD_PRELOAD'' to replace some functions in the standard
 library was taken from ``runsocks'' script distributed as part of SOCKS5
 reference implementation.
@@ -154,7 +160,7 @@ setuid programs in any sane systems.  So
 .B runmdn
 does not work for setuid programs such as ping or rsh.
 .PP
-If your system's resolver is an exotic one that does not use
-the functions libmdnresolv provides, you lose.
+If your application uses a function other than the ones runmdn supports for
+name resolution, you lose.
 .SH "SEE ALSO"
-mdnres.conf(5), runsocks(1)
+mdn.conf(5), runsocks(1)

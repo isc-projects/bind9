@@ -1,6 +1,7 @@
-/* $Id: msgtrans.h,v 1.11 2000/11/21 02:09:04 ishisone Exp $ */
+/* $Id: msgtrans.h,v 1.12 2001/02/15 01:15:25 ishisone Exp $ */
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -68,54 +69,13 @@
  */
 
 #include <mdn/result.h>
-#include <mdn/converter.h>
-#include <mdn/normalizer.h>
-#include <mdn/zldrule.h>
-
-/*
- * Translation parameters.
- *
- * 'use_local_rule' determines how local codeset and ZLD should be
- * derived.
- *
- * If 'use_local_rule' is true, 'local_rule' will be used for
- * determining ZLD/codeset.  'mdn_msgtrans_translate' will use
- * the rule to determine the ZLD and codeset, and set 'local_zld'
- * and 'local_converter' properly upon return.
- *
- * Otherwise, 'mdn_msgtrans_translate' will assume that specified
- * domain name is either
- *   + the one having ZLD specified by 'local_zld' and codeset
- *     specified by 'local_converter', or
- *   + the one without ZLD and made of only legitimate characters
- *     (alphabets, digits and hyphens), that is, a non-internationalized
- *     domain name.
- *
- * If 'local_alt_converter' is not NULL, 'mdn_msgtrans_translate' tries
- * converting the specified domain name using it before attempting
- * 'local_conerter'.
- *
- * 'target_conveter' and 'target_zld' together define the ZLD/codeset
- * of the target.  If 'target_alt_converter' is not NULL, then it is
- * used instead of 'target_converter' if the conversion from UTF-8 to
- * the target encoding fails with error 'mdn_nomapping'.
- *
- * 'normalizer' defines the normalization schemes.
- */
-typedef struct mdn_msgtrans_param {
-	int use_local_rule;
-	mdn_zldrule_t local_rule;
-	mdn_converter_t local_converter;
-	mdn_converter_t local_alt_converter;
-	char *local_zld;
-	mdn_converter_t target_converter;
-	mdn_converter_t target_alt_converter;
-	char *target_zld;
-	mdn_normalizer_t normalizer;
-} mdn_msgtrans_param_t;
+#include <mdn/resconf.h>
 
 /*
  * Translate DNS message according to the parameters given.
+ *
+ * The parameters are given by 'resconf', which is created by
+ * 'mdn_resconf_create'.
  *
  * Returns:
  *	mdn_success		-- ok, translated successfully.
@@ -123,7 +83,7 @@ typedef struct mdn_msgtrans_param {
  *	mdn_nomemory		-- malloc failed.
  */
 extern mdn_result_t
-mdn_msgtrans_translate(mdn_msgtrans_param_t *param,
+mdn_msgtrans_translate(mdn_resconf_t resconf,
 		       const char *msg, size_t msglen,
 		       char *outbuf, size_t outbufsize, size_t *outmsglenp);
 

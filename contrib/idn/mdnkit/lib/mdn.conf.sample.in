@@ -1,0 +1,168 @@
+# $Id: mdn.conf.sample.in,v 1.1 2001/06/09 00:30:17 tale Exp $
+#
+# Sample file for mDNkit version 2 resolver configuration file (mdn.conf).
+#
+# [This file is tailored for preference "@preference@".]
+#
+
+#
+# `idn-encoding' entry specifies the encoding name used as the encoding
+# of multilingualized names by resolvers and DNS servers.  Currently, the
+# following encodings are available:
+#
+#	RACE
+#	BRACE
+#	LACE
+#	DUDE
+#	UTF-6
+#	UTF-8
+#	AltDUDE
+#	AMC-ACE-M
+#	AMC-ACE-O
+#	AMC-ACE-R
+#	<codeset names your iconv_open() accepts>
+#
+# syntax)
+#	idn-encoding <encoding>
+#
+idn-encoding RACE
+
+#
+# `nameprep' entry specifies the version of NAMEPREP.
+# mDNkit currently supports the following version:
+#
+#	nameprep-03		-- name preparation scheme described in the
+#				   IETF draft `idn-nameprep-03'
+#	nameprep-02		-- name preparation scheme described in the
+#				   IETF draft `idn-nameprep-02'
+#
+# syntax)
+#	nameprep <nameprep version>
+#
+# This entry and the follwoing four entries have the same effect.
+# 
+#       nameprep-map <nameprep version>
+#       nameprep-normalize <nameprep version>
+#       nameprep-prohibit <nameprep version>
+#	nameprep-unassigned <nameprep version>
+#
+# If both `nameprep' and more-specific entries (i.e. `nameprep-*' entries)
+# are specified, more-specific ones take precedence.
+#
+nameprep nameprep-03
+
+#
+# `nameprep-map' entry specifies the mapping scheme of NAMEPREP process.
+# Avaialable mapping schemes are:
+#
+#	<nameprep version>	-- nameprep version
+#	filemap:<pathname>	-- read mapping rules from a file
+#
+# syntax)
+#	nameprep-map <scheme> ...
+#
+# If multiple schemes are specified, they are applied in turn.
+#
+#nameprep-map nameprep-03
+
+#
+# `nameprep-normalize' entry specifies the normalization scheme of NAMEPREP
+# process.  Avaialable normalization schemes are:
+#
+#	<nameprep version>	-- nameprep version
+#	ascii-lowercase		-- ASCII uppercase letters to lowercase
+#	ascii-uppercase		-- ASCII lowercase letters to uppercase
+#	unicode-lowercase	-- Unicode uppercase letters to lowercase
+#	unicode-uppercase	-- Unicode lowercase letters to uppercase
+#	unicode-foldcase	-- Unicode case-folding.
+#	unicode-form-c		-- Unicode normalization form C
+#	unicode-form-kc		-- Unicode normalization form KC
+#
+# syntax)
+#	nameprep-normalize <scheme> ...
+#
+# If multiple schemes are specified, they are applied in turn.
+#
+#nameprep-normalize nameprep-03
+
+#
+# `nameprep-prohibit' entry specifies the prohibited characters in the
+# NAMEPREP process.  The following sets are recognized.
+#
+#	<nameprep version>	-- nameprep version
+#	fileset:<pathname>	-- read definition from a file.
+#
+# syntax)
+#	nameprep-prohibit <set> ...
+#
+# If multiple sets are specified, they are applied in turn.
+#
+#nameprep-prohibit nameprep-03
+
+#
+# `nameprep-unassigned' entry specifies the unassigned characters in the
+# NAMEPREP process.  The following sets are recognized.
+#
+#	<nameprep version>	-- nameprep version
+#	fileset:<pathname>	-- read definition from a file.
+#
+# syntax)
+#	nameprep-prohibit <set> ...
+#
+# If multiple sets are specified, they are applied in turn.
+#
+#nameprep-unassigned nameprep-03
+
+#
+# `alternate-encoding' entry specifies the alternative encoding to use in
+# case of the conversion from IDN encoding to the application's local
+# encoding fails due to the lack of certain character in the character set
+# of the local encoding.  The alternative encoding must be ASCII compatible
+# encoding (ACE).
+#
+# syntax)
+#	alternate-encoding <encoding>
+#
+alternate-encoding RACE
+
+#
+# `encoding-alias-file' specifies the file which defines encoding name 
+# aliases.
+#
+# syntax)
+#	encoding-alais-file <pathname>
+#
+#encoding-alias-file /some/where/mdnalias.txt
+
+#
+# `local-map' entry specifies TLD (top level domain) based local mapping
+# schemes, which is performed before NAMEPREP.  Available schemes of
+# `local-map' are the same as those of the `nameprep-map' entry.
+# 
+# syntax)
+#	local-map <tld> <scheme> ...
+#
+# If the TLD of the domain name matches <tld>, local mapping specified
+# by <scheme> is performed on the name.  Otherwise no mapping are
+# performed.  Multiple schemes can be specified; they are applied in
+# turn.
+#
+# There are two special <tld>s for specifying a default mapping rule
+# and a mapping rule for local names (domain names containing no
+# dots).  If <tld> is `.', its schemes are applied to domain names
+# whose TLD does not match any TLDs specified in local-map entries.
+# If <tld> is `-', its schemes are applied to domain names which
+# contain no dots.
+# 
+#local-map -	filemap:/some/where/local.map
+#local-map .	filemap:/some/where/default.map
+local-map .jp	filemap:@mapdir@/jp.map
+
+#
+# `delimiter-map' entry specifies local domain name delimiters mapped to
+# `.'.
+#
+# syntax)
+#	delimiter-map <unicode codepoint> ...
+#
+#[jp] delimiter-map U+3002 U+FF0E

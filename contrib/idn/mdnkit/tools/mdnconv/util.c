@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: util.c,v 1.9 2000/12/07 02:35:12 m-kasahr Exp $";
+static char *rcsid = "$Id: util.c,v 1.17 2001/04/16 02:18:15 m-kasahr Exp $";
 #endif
 
 /*
@@ -65,32 +65,23 @@ static char *rcsid = "$Id: util.c,v 1.9 2000/12/07 02:35:12 m-kasahr Exp $";
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
 
-#include <mdn/result.h>
-#include <mdn/converter.h>
-#include <mdn/normalizer.h>
-#include <mdn/localencoding.h>
+#include <mdn/resconf.h>
+#include <mdn/res.h>
 #include <mdn/utf8.h>
 #include <mdn/selectiveencode.h>
-#include <mdn/util.h>
 
 #include "util.h"
 
 extern int		line_number;
-extern mdn_converter_t	conv_in_ctx;
-extern mdn_converter_t	conv_out_ctx;
-extern mdn_normalizer_t	norm_ctx;
-
-extern void		errormsg(const char *fmt, ...);
-
-static int		ascii_tolower(int c);
 
 mdn_result_t
-selective_encode(char *from, char *to, int tolen,
-		 const char *zld, int auto_zld)
+selective_encode(mdn_resconf_t conf, char *insn,
+		 char *from, char *to, int tolen)
 {
 	for (;;) {
 		int len;
@@ -141,7 +132,7 @@ selective_encode(char *from, char *to, int tolen,
 		/*
 		 * Encode the region.
 		 */
-		r = encode_region(region_start, to, tolen, zld, auto_zld);
+		r = mdn_res_nameconv(conf, insn, region_start, to, tolen);
 
 		/*
 		 * Restore character.
@@ -160,135 +151,9 @@ selective_encode(char *from, char *to, int tolen,
 }
 
 mdn_result_t
-encode_region(const char *region, char *to, int tolen,
-	      const char *zld, int auto_zld)
+selective_decode(mdn_resconf_t conf, char *insn,
+		 char *from, char *to, int tolen)
 {
-	int len;
-	mdn_result_t r;
-	int full_domain;
-	int protect_zld;
-	char line[1024];
-		
-	/*
-	 * Perform normalization.
-	 */
-	r = mdn_normalizer_normalize(norm_ctx, region, line, 1024);
-	if (r != mdn_success) {
-		errormsg("normalization failed at line %d: %s\n",
-			 line_number,
-			 mdn_result_tostring(r));
-		return (r);
-	}
-	/*
-	 * This is not necessary if the noramlizer works correctly,
-	 * but just in case..
-	 */
-	if (!mdn_utf8_isvalidstring(line)) {
-		errormsg("normalizer corrupsed line %d\n",
-			 line_number);
-		return (mdn_invalid_encoding);
-	}
-
-	/*
-	 * Now we have normalized string in line.
-	 * See if it ends with '.'.
-	 */
-	len = strlen(line);
-	full_domain = (line[len - 1] == '.');
-
-	/*
-	 * Protect ZLD part (if any) from conversion.
-	 */
-	if ((protect_zld = zld_match(line, zld)) != 0)
-		line[len - strlen(zld)] = '\0';
-
-	/*
-	 * Convert the region to the output encoding.
-	 */
-	r = mdn_converter_utf8tolocal(conv_out_ctx, line, to, tolen);
-	if (r != mdn_success) {
-		errormsg("conversion to %s failed at line %d: %s\n",
-			 mdn_converter_localencoding(conv_out_ctx),
-			 line_number,
-			 mdn_result_tostring(r));
-		return (r);
-	}
-
-	len = strlen(to);
-	to += len;
-	tolen -= len;
-		
-	if ((full_domain && auto_zld) || protect_zld) {
-		/*
-		 * Append ZLD.
-		 */
-		if ((len = strlen(zld)) >= tolen)
-			return (mdn_buffer_overflow);
-		(void)strcpy(to, zld);
-		to += len;
-		tolen -= len;
-	}
-
-	return (mdn_success);
-}
-
-void
-canonical_zld(char *s, const char *zld) {
-	int i;
-	int zlen = strlen(zld);
-
-	if (zlen > 256) {
-		errormsg("ZLD is too long\n");
-		exit(1);
-	}
-
-	/* Remove leading dot. */
-	if (zld[0] == '.') {
-		zld++;
-		zlen--;
-	}
-
-	for (i = 0; i < zlen; i++) {
-		int c = *zld;
-		if (('A' <= c && c <= 'Z') ||
-		    ('a' <= c && c <= 'z') ||
-		    ('0' <= c && c <= '9') ||
-		    c == '.' || c == '-') {
-			*s++ = *zld++;
-		} else {
-			errormsg("ZLD contains illegal character %c\n", c);
-			exit(1);
-		}
-	}
-
-	/* Supply trailing dot, if needed. */
-	if (zlen > 0 && s[-1] != '.')
-		(void)strcpy(s, ".");
-}
-
-int
-zld_match(const char *s, const char *zld) {
-	int slen = strlen(s);
-	int zlen = strlen(zld);
-	int i;
-
-	if (slen < zlen)
-		return (0);
-
-	/* oops, strcasecmp is not a stnadard function. */
-	/* return (strcasecmp(s + slen - zlen, zld) == 0); */
-	s += slen - zlen;
-	for (i = 0; i < zlen; i++) {
-		if (s[i] != zld[i] &&
-		    s[i] != tolower((unsigned char)zld[i]) &&
-		    s[i] != toupper((unsigned char)zld[i]))
-			return (0);
-	}
-	return (1);
-}
-
-mdn_result_t
-selective_decode(char *from, char *to, int tolen) {
 	char *domain_name;
 	char *ignored_chunk;
 	char save;
@@ -366,9 +231,8 @@ selective_decode(char *from, char *to, int tolen) {
 				 */
 				save = *from;
 				*from = '\0';
-				r = mdn_converter_localtoutf8(conv_in_ctx,
-							      domain_name, to,
-							      tolen);
+				r = mdn_res_nameconv(conf, insn,
+						     domain_name, to, tolen);
 				*from = save;
 
 				if (r == mdn_success) {
@@ -408,68 +272,143 @@ selective_decode(char *from, char *to, int tolen) {
 	return (mdn_success);
 }
 
-int
-initialize_converter(const char *in_code, const char *out_code,
-		     const char *encoding_alias)
-{
+void
+set_encoding_alias(const char *encoding_alias) {
 	mdn_result_t r;
 
-	if (encoding_alias != NULL &&
-	    (r = mdn_converter_aliasfile(encoding_alias)) != mdn_success) {
+	if ((r = mdn_converter_aliasfile(encoding_alias)) != mdn_success) {
 		errormsg("cannot read alias file %s: %s\n",
 			 encoding_alias, mdn_result_tostring(r));
-		return (0);
+		exit(1);
 	}
-	if ((r = mdn_converter_initialize()) != mdn_success) {
-		errormsg("converter initialization failed: %s\n",
-			 mdn_result_tostring(r));
-		return (0);
-	}
-	if ((r = mdn_converter_create(in_code, &conv_in_ctx, 0))
-	    != mdn_success) {
-		errormsg("cannot create converter for codeset %s: %s\n",
-			 in_code, mdn_result_tostring(r));
-		return (0);
-	}
-	if ((r = mdn_converter_create(out_code, &conv_out_ctx, 0))
-	    != mdn_success) {
-		errormsg("cannot create converter for codeset %s: %s\n",
-			 out_code, mdn_result_tostring(r));
-		return (0);
-	}
-	return (1);
 }
 
-int
-initialize_normalizer(char **normalizer, int nnormalizer) {
+void
+set_localcode(mdn_resconf_t conf, const char *code) {
 	mdn_result_t r;
-	int i;
 
-	if ((r = mdn_normalizer_initialize()) != mdn_success) {
-		errormsg("normalizer initialization failed: %s\n",
-			 mdn_result_tostring(r));
-		return (0);
+	r = mdn_resconf_setlocalconvertername(conf, code, 0);
+	if (r != mdn_success) {
+		errormsg("cannot create converter for codeset %s: %s\n",
+			 code, mdn_result_tostring(r));
+		exit(1);
 	}
-	if ((r = mdn_normalizer_create(&norm_ctx)) != mdn_success) {
-		errormsg("cannot create normalizer: %s\n",
-			 mdn_result_tostring(r));
-		return (0);
-	}
-	for (i = 0; i < nnormalizer; i++) {
-		if ((r = mdn_normalizer_add(norm_ctx, normalizer[i]))
-		     != mdn_success) {
-			errormsg("cannot add normalizer %s: %s\n",
-				 normalizer[i], mdn_result_tostring(r));
-			return (0);
-		}
-	}
-	return (1);
 }
 
-static int
-ascii_tolower(int c) {
-	if ('A' <= c && c <= 'Z')
-		return (c - 'A' + 'a');
-	else
-		return (c);
+void
+set_idncode(mdn_resconf_t conf, const char *code) {
+	mdn_result_t r;
+
+	r = mdn_resconf_setidnconvertername(conf, code, 0);
+	if (r != mdn_success) {
+		errormsg("cannot create converter for codeset %s: %s\n",
+			 code, mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+set_delimitermapper(mdn_resconf_t conf, unsigned long *delimiters,
+		    int ndelimiters) {
+	mdn_result_t r;
+
+	r = mdn_resconf_addalldelimitermapucs(conf, delimiters, ndelimiters);
+	if (r != mdn_success) {
+		errormsg("cannot add delimiter: %s\n",
+			 mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+set_localmapper(mdn_resconf_t conf, char **mappers, int nmappers) {
+	mdn_result_t r;
+
+	/* Add mapping. */
+	r = mdn_resconf_addalllocalmapselectornames(conf, 
+						    MDN_MAPSELECTOR_DEFAULT,
+						    (const char **)mappers,
+						    nmappers);
+	if (r != mdn_success) {
+		errormsg("cannot add local map: %s\n",
+			 mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+set_nameprep(mdn_resconf_t conf, char *version) {
+	mdn_result_t r;
+
+	r = mdn_resconf_setnameprepversion(conf, version);
+	if (r != mdn_success) {
+		errormsg("error setting nameprep %s: %s\n",
+			 version, mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+set_mapper(mdn_resconf_t conf, char **mappers, int nmappers) {
+	mdn_result_t r;
+
+	/* Configure mapper. */
+	r = mdn_resconf_addallmappernames(conf, (const char **)mappers,
+					  nmappers);
+	if (r != mdn_success) {
+		errormsg("cannot add nameprep map: %s\n",
+			 mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+set_normalizer(mdn_resconf_t conf, char **normalizers, int nnormalizer) {
+	mdn_result_t r;
+
+	r = mdn_resconf_addallnormalizernames(conf,
+					      (const char **)normalizers,
+					      nnormalizer);
+	if (r != mdn_success) {
+		errormsg("cannot add normalizer: %s\n",
+			 mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+set_prohibit_checkers(mdn_resconf_t conf, char **prohibits, int nprohibits) {
+	mdn_result_t r;
+
+	r = mdn_resconf_addallprohibitcheckernames(conf,
+						   (const char **)prohibits,
+						   nprohibits);
+	if (r != mdn_success) {
+		errormsg("cannot add prohibit checker: %s\n",
+			 mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+set_unassigned_checkers(mdn_resconf_t conf, char **unassigns, int nunassigns) {
+	mdn_result_t r;
+
+	r = mdn_resconf_addallunassignedcheckernames(conf,
+						     (const char **)unassigns,
+						     nunassigns);
+	if (r != mdn_success) {
+		errormsg("cannot add unassigned checker: %s\n",
+			 mdn_result_tostring(r));
+		exit(1);
+	}
+}
+
+void
+errormsg(const char *fmt, ...) {
+	va_list args;
+
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	va_end(args);
 }

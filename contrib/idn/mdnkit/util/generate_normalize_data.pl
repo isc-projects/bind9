@@ -1,7 +1,8 @@
 #! /usr/local/bin/perl -w
-# $Id: generate_normalize_data.pl,v 1.4 2000/09/27 02:55:40 ishisone Exp $
+# $Id: generate_normalize_data.pl,v 1.5 2001/02/13 07:34:02 ishisone Exp $
 #
-# Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+# Copyright (c) 2000,2001 Japan Network Information Center.
+# All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
 # 
@@ -59,484 +60,351 @@
 #
 
 # 
-# Generate lib/unicodedata.c from UnicodeData.txt and
-# CompositionExclusions-1.txt, both available from
-# ftp://ftp.unicode.org/Public/UNIDATA/.
-#
-# Usage: generate_normalize_data.pl UnicodeData.txt CompositionExclusions-1.txt
+# Generate lib/unicodedata.c from UnicodeData.txt,
+# CompositionExclusions-1.txt, SpecialCasing.txt and CaseFolding.txt,
+# all of them available from ftp://ftp.unicode.org/Public/UNIDATA/.
 #
 
-package Unicode::UnicodeData;
 use strict;
-use integer;
-use vars qw(@ISA @EXPORT_OK %EXPORT_TAGS);
-use Exporter;
-use Carp;
+use lib qw(.);
 
-@ISA = qw(Exporter);
+use Getopt::Long;
+use UCD;
+use SparseMap;
 
-@EXPORT_OK = qw(code_value character_name general_category
-		canonical_combining_class bidirectional_category
-		character_decomposition_mapping
-		decimal_digit_value digit_value numeric_value
-		mirrored unicode_10_name iso10646_comment_field
-		uppercase_mapping lowercase_mapping
-		titlecase_mapping composition_exclusion
-		specialcasing_source specialcasing_type
-		specialcasing_mapping specialcasing_cond);
+use constant UCS_MAX => 0x110000;
+use constant END_BIT => 0x80000000;
 
-%EXPORT_TAGS =
-    (accessor => [qw(code_value character_name general_category
-		     canonical_combining_class bidirectional_category
-		     character_decomposition_mapping
-		     decimal_digit_value digit_value numeric_value
-		     mirrored unicode_10_name iso10646_comment_field
-		     uppercase_mapping lowercase_mapping
-		     titlecase_mapping composition_exclusion
-		     specialcasing_source specialcasing_type
-		     specialcasing_mapping specialcasing_cond)]);
+my $DECOMP_COMPAT_BIT = 0x8000;
 
-my @unicode_data;
-my @composition_exclusion;
-my %composition_exclusion;
-my @unicode_bycode;
-my %unicode_byname;
-my @specialcasing_data;
+my $CASEMAP_FINAL_BIT = 0x1;
+my $CASEMAP_NONFINAL_BIT = 0x2;
+my $CASEMAP_LAST_BIT = 0x10;
 
-sub CODE {0;}
-sub NAME {1;}
-sub CATEGORY {2;}
-sub CLASS {3;}
-sub BIDIRECTIONAL {4;}
-sub DECOMPOSITION {5;}
-sub DECIMAL {6;}
-sub DIGIT {7;}
-sub NUMERIC {8;}
-sub MIRRORED {9;}
-sub OLDNAME {10;}
-sub COMMENT {11;}
-sub UPPERCASE {12;}
-sub LOWERCASE {13;}
-sub TITLECASE {14;}
-sub EXCLUSION {15;}
+my $LETTER_BIT = 1;
+my $NSPMARK_BIT = 2;
 
-sub code_value ($) {
-    hex((split /;/, $_[0], 2+CODE)[CODE]);
-}
-sub character_name ($) {
-    my $s = (split /;/, $_[0], 2+NAME)[NAME];
-}
-sub general_category ($) {
-    (split /;/, $_[0], 2+CATEGORY)[CATEGORY];
-}
-sub canonical_combining_class ($) {
-    (split /;/, $_[0], 2+CLASS)[CLASS] + 0;
-}
-sub bidirectional_category ($) {
-    (split /;/, $_[0], 2+BIDIRECTIONAL)[BIDIRECTIONAL];
-}
-sub character_decomposition_mapping ($) {
-    dcmap((split /;/, $_[0], 2+DECOMPOSITION)[DECOMPOSITION]);
-}
-sub decimal_digit_value ($) {
-    dvalue((split /;/, $_[0], 2+DECIMAL)[DECIMAL]);
-}
-sub digit_value ($) {
-    dvalue((split /;/, $_[0], 2+DIGIT)[DIGIT]);
-}
-sub numeric_value ($) {
-    dvalue((split /;/, $_[0], 2+NUMERIC)[NUMERIC]);
-}
-sub mirrored ($) {
-    (split /;/, $_[0], 2+MIRRORED)[MIRRORED] eq 'Y';
-}
-sub unicode_10_name ($) {
-    (split /;/, $_[0], 2+OLDNAME)[OLDNAME];
-}
-sub iso10646_comment_field ($) {
-    (split /;/, $_[0], 2+COMMENT)[COMMENT];
-}
-sub uppercase_mapping ($) {
-    ucode((split /;/, $_[0], 2+UPPERCASE)[UPPERCASE]);
-}
-sub lowercase_mapping ($) {
-    ucode((split /;/, $_[0], 2+LOWERCASE)[LOWERCASE]);
-}
-sub titlecase_mapping ($) {
-    ucode((split /;/, $_[0], 2+TITLECASE)[TITLECASE]);
-}
-sub composition_exclusion($) {
-    my $s = shift;
-    return 1 if exists $composition_exclusion{code_value($s)};
-    my @d = character_decomposition_mapping($s);
-    return 0 if @d == 0;	# no decomposition
-    return 1 if @d == 2;	# singleton
-    my $x = bycode($d[1]);
-    defined($x) and canonical_combining_class($x) != 0;	# non-starter
-}
-sub specialcasing_source($) {
-    my $r = shift;
-    $r->[0];
-}
-sub specialcasing_type($) {
-    my $r = shift;
-    $r->[1];
-}
-sub specialcasing_mapping($) {
-    my $r = shift;
-    @{$r->[2]};
-}
-sub specialcasing_cond($) {
-    my $r = shift;
-    $r->[3];
+(my $myid = '$Id: generate_normalize_data.pl,v 1.5 2001/02/13 07:34:02 ishisone Exp $') =~ s/\$([^\$]+)\$/\$-$1-\$/;
+
+my @default_bits = (9, 7, 5);
+#my @default_bits = (7, 7, 7);
+my @canon_class_bits = @default_bits;
+my @decomp_bits = @default_bits;
+my @comp_bits = @default_bits;
+my @folding_bits = @default_bits;
+my @casemap_bits = @default_bits;
+my @casemap_ctx_bits = @default_bits;
+
+my $dir = '.';
+my $unicodedatafile = 'UnicodeData.txt';
+my $exclusionfile = 'CompositionExclusions-1.txt';
+my $specialcasefile = 'SpecialCasing.txt';
+my $casefoldingfile = 'CaseFolding.txt';
+my $verbose;
+
+GetOptions('dir|d=s' => \$dir,
+	   'unicodedata|u=s' => \$unicodedatafile,
+	   'exclude|e=s' => \$exclusionfile,	
+	   'specialcase|s=s' => \$specialcasefile,
+	   'casefold|c=s' => \$casefoldingfile,
+	   'verbose|v' => \$verbose,
+) or usage();
+
+foreach my $r (\$unicodedatafile, \$exclusionfile,
+	       \$specialcasefile, \$casefoldingfile) {
+    $$r = "$dir/$$r" unless $$r =~ m|^/|;
 }
 
-sub list () {
-    init();
-    @unicode_data;
-}
+my %exclusions;
+my %lower_special;
+my %upper_special;
 
-sub specialcasing_list() {
-    specialcasing_init();
-    @specialcasing_data;
-}
+my @decomp_data;
+my @comp_data;
+my @toupper_data;
+my @tolower_data;
+my @folding_data;
 
-sub script_specific_exclusions () {
-    init();
-    @composition_exclusion;
-}
+#
+# Create Mapping/Bitmap objects.
+#
 
-sub bycode ($) {
-    my $code = shift;
-    init_bycode();
-    ${$unicode_bycode[$code]};
-}
+# canonical class
+my $canon_class = SparseMap::Int->new(BITS => [@canon_class_bits],
+				     MAX => UCS_MAX,
+				     MAPALL => 1,
+				     DEFAULT => 0);
 
-sub byname ($) {
-    my $name = shift;
-    init_byname();
-    ${$unicode_byname{$name}};
-}
+# canonical/compatibility decomposition
+my $decomp = SparseMap::Int->new(BITS => [@decomp_bits],
+				 MAX => UCS_MAX,
+				 MAPALL => 1,
+				 DEFAULT => 0);
 
-sub grep (&) {
-    my $prog = shift;
-    init();
-    grep {&$prog} @unicode_data;
-}
+# canonical composition
+my $comp = SparseMap::Int->new(BITS => [@comp_bits],
+			       MAX => UCS_MAX,
+			       MAPALL => 1,
+			       DEFAULT => 0);
 
-sub init_bycode {
-    init();
-    return if @unicode_bycode > 0;
-    $#unicode_bycode = 65535;
-    foreach my $d (@unicode_data) {
-	$unicode_bycode[code_value($d)] = \$d;
-    }
-}
+# uppercase/lowercase
+my $upper = SparseMap::Int->new(BITS => [@casemap_bits],
+			        MAX => UCS_MAX,
+			        MAPALL => 1,
+			        DEFAULT => 0);
+my $lower = SparseMap::Int->new(BITS => [@casemap_bits],
+			        MAX => UCS_MAX,
+			        MAPALL => 1,
+			        DEFAULT => 0);
 
-sub init_byname {
-    init();
-    return if scalar(keys %unicode_byname);
-    keys %unicode_byname = 4000;
-    foreach my $d (@unicode_data) {
-	$unicode_byname{character_name($d)} = \$d;
-    }
-}
+# final/nonfinal context
+my $casemap_ctx = SparseMap::Int->new(BITS => [@casemap_ctx_bits],
+				      MAX => UCS_MAX,
+				      MAPALL => 1,
+				      DEFAULT => 0);
 
-sub init {
-    @unicode_data > 0 or croak "Unicode::UnicodeData: not initialized\n";
-}
+# casefolding
+my $folding = SparseMap::Int->new(BITS => [@folding_bits],
+				  MAX => UCS_MAX,
+				  MAPALL => 1,
+				  DEFAULT => 0);
 
-sub specialcasing_init {
-    @specialcasing_data > 0
-	or croak "Unicode::UnicodeData: not initialized\n";
-}
+#
+# Read datafiles.
+#
 
-sub initialize {
-    my ($data_file, $exclusion_file, $specialcase_file) = @_;
-    local $_;
+read_exclusion_file();
+read_specialcasing_file();
+read_unicodedata_file();
+read_casefolding_file();
 
-    @unicode_data = ();
-    @composition_exclusion = ();
-    %composition_exclusion = ();
-    @specialcasing_data = ();
-
-    open F, $data_file or croak "cannot open $data_file: $!\n";
-    while (<F>) {
-	chomp;
-	push @unicode_data, $_;
-    }
-
-    open F, $exclusion_file or croak "cannot open $exclusion_file: $!\n";
-    while (<F>) {
-	chomp;
-	next if /^#/;
-	next if /^\s*$/;
-	next unless /^([0-9A-Fa-f]+)/;
-	my $n = hex($1);
-	push @composition_exclusion, $n;
-	$composition_exclusion{$n} = 1;
-    }
-
-    open F, $specialcase_file or croak "cannot open $specialcase_file: $!\n";
-    while (<F>) {
-	chomp;
-	last if /\# Locale-sensitive/;	# no locale-dependent mapping
-	next if /^#/;
-	next if /^\s*$/;
-	s/#.*$//;			# remove trailing comment
-	s/\s*;\s*/;/g;			# remove spaces around semicolons
-
-	parse_specialcasing_data($_);
-    }
-}
-
-sub parse_specialcasing_data {
-    my $s = shift;
-    my @a = split /;/, $_;
-    my @cond = ();
-
-    # Check condition.
-    if (defined($a[4])) {
-	if ($a[4] eq 'FINAL' or $a[4] eq 'NON_FINAL') {
-	    push @cond, $a[4];
-	} else {
-	    croak "Unicode::UnicodeData: unknown special casing condition \"$a[4]\"\n";
-	}
-    }
-    if ($a[0] ne $a[1]) {
-	# mapping to lowercase
-	my $src = hex($a[0]);
-	my @dst = map(hex, split ' ', $a[1]);
-	unless (@dst == 1 and @cond == 0 and
-		lowercase_mapping(bycode($src)) == $dst[0]) {
-	    push @specialcasing_data, [$src, 'L', \@dst, @cond];
-	}
-    }
-    if ($a[0] ne $a[3]) {
-	# mapping to uppercase
-	my $src = hex($a[0]);
-	my @dst = map(hex, split ' ', $a[3]);
-	unless (@dst == 1 and @cond == 0 and
-	    uppercase_mapping(bycode($src)) == $dst[0]) {
-	    push @specialcasing_data, [$src, 'U', \@dst, @cond];
-	}
-    }
-}
-
-sub dcmap {
-    my $v = shift;
-    return () if $v eq '';
-    $v =~ /^(?:(<[^>]+>)\s*)?(\S.*)/
-	or die "invalid decomposition mapping \"$v\"";
-    my $tag = $1 || '';
-    ($tag, map {hex($_)} split(' ', $2));
-}
-
-sub ucode {
-    my $v = shift;
-    return undef if $v eq '';
-    hex($v);
-}
-
-sub dvalue {
-    my $v = shift;
-    return undef if $v eq '';
-    $v+0;
-}
-
-#------------------------------------------------------------------------------
-
-package main;
-
-use strict;
-use Data::Dumper;
-
-#use Unicode::UnicodeData qw(:accessor);
-import Unicode::UnicodeData qw(:accessor);
-
-my $canon_class_bits = 11;
-my $decomp_bits = 10;
-my $compose_bits = 11;
-my $casemap_bits = 11;
-my $context_secsize = 512;
-
-(my $myid = '$Id: generate_normalize_data.pl,v 1.4 2000/09/27 02:55:40 ishisone Exp $') =~ s/\$([^\$]+)\$/\$-$1-\$/;
-
-my $unicodedatafile = shift or usage();
-my $exclusionfile = shift or usage();
-my $specialcasefile = shift or usage();
-
-Unicode::UnicodeData::initialize($unicodedatafile, $exclusionfile,
-				 $specialcasefile);
-
-print <<"END";
-/* \$Id\$ */
-/* $myid */
-/*
- * Do not edit this file!
- * This file is generated from UnicodeData.txt and
- * CompositionExclusions-1.txt.
- *
- */
-
-END
-
-# Actual data generation.
-canon_class();
-composition();
-decomposition();
-casemap();
-letter_context();
+print_header();
+print_canon_class();
+print_composition();
+print_decomposition();
+print_casemap();
+print_casemap_context();
+print_casefolding();
 
 exit;
 
 sub usage {
-    die "Usage: $0 unicode-data-file compoisition-exclusion-file special-casing-file\n"
-}
-
-#
-# composition -- generate data for canonical composition
-#
-sub composition {
-    my @comp_data;
-    my $bm = create_bitmap($compose_bits);
-
-    foreach my $r (Unicode::UnicodeData::list) {
-	my ($tag, @map) = character_decomposition_mapping($r);
-	next unless defined($tag) and $tag eq '';
-	next if composition_exclusion($r);
-
-	die "too long decomposition sequence for \"",
-	    character_name($r), "\"\n" if @map != 2;
-
-	push @comp_data, [@map, code_value($r)];
-	set_bitmap($bm, $map[0]);
-    }
-
-    # Hangul composition
-    if (0) {
-	my $lbase = 0x1100;
-	my $lcount = 19;
-	my $sbase = 0xac00;
-	my $scount = 19 * 21 * 28;
-	range_set($bm, $lbase, $lbase + $lcount - 1);
-	range_set($bm, $sbase, $sbase + $scount - 1);
-    }
-
-    my $bitmap_str = sprint_bitmap($bm);
-    my $hash_str = sprint_composition_hash(@comp_data);
-
-    print <<"END";
-
-/*
- * Canonical Composition
- */
-
-#define COMPOSE_BM_SHIFT	(16 - $compose_bits)
-
-static unsigned long compose_bitmap[] = {
-$bitmap_str
-};
-
-static struct composition compose_seq[] = {
-$hash_str
-};
-
+    print STDERR <<"END";
+Usage: $0 [options..]
+  options:
+    -d DIR  directory where Unicode Character Data files resides [./]
+    -u FILE name of the UnicodeData file [UnicodeData.txt]
+    -e FILE name of the CompositionExclusion file [CompositionExclusions-1.txt]
+    -s FILE name of the SpecialCasing file [SpecialCasing.txt]
+    -c FILE name of the CaseFolding file [CaseFolding.txt]
 END
+    exit 1;
 }
 
 #
-# decomposition -- generate data for canonical/compatibility decomposition
+# read_exclusion_file -- read CompositionExclusions-1.txt.
 #
-sub decomposition {
-    my @canon_data;
-    my @canon_buf;
-    my @compat_data;
-    my @compat_buf;
-    my $canon_bm = create_bitmap($decomp_bits);
-    my $compat_bm = create_bitmap($decomp_bits);
+sub read_exclusion_file {
+    open EXCLUDE, $exclusionfile   or die "cannot open $exclusionfile: $!\n";
+    while ($_ = UCD::CompositionExclusions::getline(\*EXCLUDE)) {
+	my %data = UCD::CompositionExclusions::parseline($_);
+	$exclusions{$data{CODE}} = 1;
+    }
+    close EXCLUDE;
+}
 
-    foreach my $r (Unicode::UnicodeData::list) {
-	my ($tag, @map) = character_decomposition_mapping($r);
-	next unless defined $tag;
+#
+# read_specialcasing_file -- read SpecialCasing.txt
+#
+sub read_specialcasing_file {
+    open SPCASE, $specialcasefile or die "cannot open $specialcasefile: $!\n";
+    while ($_ = UCD::SpecialCasing::getline(\*SPCASE)) {
+	my %data = UCD::SpecialCasing::parseline($_);
+	my $code = $data{CODE};
+	my $lower = $data{LOWER};
+	my $upper = $data{UPPER};
+	my $cond = $data{CONDITION} || '';
 
-	my $n = code_value($r);
-	my $is_compat = $tag ne '';
+	next unless $cond eq '' or $cond =~ /^(NON_)?FINAL/;
 
-	if ($is_compat) {
-	    # compatibility decomposition
-	    set_bitmap($compat_bm, $n);
-	    push @compat_data, [$n, scalar(@compat_buf), scalar(@map)];
-	    push @compat_buf, @map;
-	} else {
-	    # canonical composition
-	    set_bitmap($canon_bm, $n);
-	    push @canon_data, [$n, scalar(@canon_buf), scalar(@map)];
-	    push @canon_buf, @map;
+	if (defined $cond && (@$lower > 1 || $lower->[0] != $code)
+	    or @$lower > 1 or $lower->[0] != $code) {
+	    $lower_special{$code} = [$lower, $cond];
+	}
+	if (defined $cond && (@$upper > 1 || $upper->[0] != $code)
+	    or @$upper > 1 or $upper->[0] != $code) {
+	    $upper_special{$code} = [$upper, $cond];
 	}
     }
-    # Compatibility decomposition implies canonical decomposition
-    $compat_bm = or_bitmap($compat_bm, $canon_bm);
+    close SPCASE;
+}
 
-    my $canon_bitmap_str = sprint_bitmap($canon_bm);
-    my $compat_bitmap_str = sprint_bitmap($compat_bm);
-    my $canon_decomp_hash = sprint_decomposition_hash(@canon_data);
-    my $compat_decomp_hash = sprint_decomposition_hash(@compat_data);
-    my $canon_data_str = sprint_decomposition_buf(@canon_buf);
-    my $compat_data_str = sprint_decomposition_buf(@compat_buf);
+#
+# read_unicodedata_file -- read UnicodeData.txt
+#
+sub read_unicodedata_file {
+    open UCD, $unicodedatafile or die "cannot open $unicodedatafile: $!\n";
+
+    @decomp_data = (0);
+    @toupper_data = (0);
+    @tolower_data = (0);
+
+    my @comp_cand;	# canonical composition candidates
+    my %nonstarter;
+
+    while ($_ = UCD::UnicodeData::getline(\*UCD)) {
+	my %data = UCD::UnicodeData::parseline($_);
+	my $code = $data{CODE};
+
+	# combining class
+	if ($data{CLASS} > 0) {
+	    $nonstarter{$code} = 1;
+	    $canon_class->add($code, $data{CLASS});
+	}
+
+	# uppercasing
+	if (exists $upper_special{$code} or defined $data{UPPER}) {
+	    my $offset = @toupper_data;
+	    my @casedata;
+
+	    $upper->add($code, $offset);
+	    if (exists $upper_special{$code}) {
+		push @casedata, $upper_special{$code};
+	    }
+	    if (defined $data{UPPER}) {
+		push @casedata, $data{UPPER};
+	    }
+	    push @toupper_data, casemap_data(@casedata);
+	}
+
+	# lowercasing
+	if (exists $lower_special{$code} or defined $data{LOWER}) {
+	    my $offset = @tolower_data;
+	    my @casedata;
+
+	    $lower->add($code, $offset);
+	    if (exists $lower_special{$code}) {
+		push @casedata, $lower_special{$code};
+	    }
+	    if (defined $data{LOWER}) {
+		push @casedata, $data{LOWER};
+	    }
+	    push @tolower_data, casemap_data(@casedata);
+	}
+
+	# composition/decomposition
+	if ($data{DECOMP}) {
+	    my ($tag, @decomp) = @{$data{DECOMP}};
+	    my $offset = @decomp_data;
+
+	    # composition
+	    if ($tag eq '' and @decomp > 1 and not exists $exclusions{$code}) {
+		# canonical composition candidate
+		push @comp_cand, [$code, @decomp];
+	    }
+
+	    # decomposition
+	    if ($tag ne '') {
+		# compatibility decomposition
+		$offset |= $DECOMP_COMPAT_BIT;
+	    }
+	    $decomp->add($code, $offset);
+	    push @decomp_data, @decomp;
+	    $decomp_data[-1] |= END_BIT;
+
+	}
+
+	# final/nonfinal context
+	if ($data{CATEGORY} =~ /L[ult]/) {
+	    $casemap_ctx->add($code, $LETTER_BIT);
+	} elsif ($data{CATEGORY} eq 'Mn') {
+	    $casemap_ctx->add($code, $NSPMARK_BIT);
+	}
+    }
+    close UCD;
+
+    # Eliminate composition candidates whose decomposition starts with
+    # a non-starter.
+    @comp_cand = grep {not exists $nonstarter{$_->[1]}} @comp_cand;
+
+    @comp_data = ([0, 0, 0]);
+    my $last_code = -1;
+    my $last_offset = @comp_data;
+    for my $r (sort {$a->[1] <=> $b->[1] || $a->[2] <=> $b->[2]} @comp_cand) {
+	if ($r->[1] != $last_code) {
+	    $comp->add($last_code,
+		       ($last_offset | ((@comp_data - $last_offset)<<16)))
+		unless $last_code == -1;
+	    $last_code = $r->[1];
+	    $last_offset = @comp_data;
+	}
+	push @comp_data, $r;
+    }
+    $comp->add($last_code,
+	       ($last_offset | ((@comp_data - $last_offset)<<16)));
+}
+
+sub casemap_data {
+    my @data = @_;
+    my @result = ();
+    while (@data > 0) {
+	my $r = shift @data;
+	my $flag = 0;
+	if (ref $r) {
+	    if ($r->[1] eq 'FINAL') {
+		$flag |= $CASEMAP_FINAL_BIT;
+	    } elsif ($r->[1] eq 'NON_FINAL') {
+		$flag |= $CASEMAP_NONFINAL_BIT;
+	    } elsif ($r->[1] ne '') {
+		die "unknown condition \"", $r->[1], "\"\n";
+	    }
+	}
+	$flag |= $CASEMAP_LAST_BIT if @data == 0;
+	push @result, $flag;
+	push @result, (ref $r) ? @{$r->[0]} : $r;
+	$result[-1] |= END_BIT;
+    }
+    @result;
+}
+
+#
+# read_casefolding_file -- read CaseFolding.txt
+#
+sub read_casefolding_file {
+    open FOLD, $casefoldingfile or die "cannto open $casefoldingfile: $!\n";
+
+    # dummy.
+    @folding_data = (0);
+
+    while ($_ = UCD::CaseFolding::getline(\*FOLD)) {
+	my %data = UCD::CaseFolding::parseline($_);
+
+	$folding->add($data{CODE}, scalar(@folding_data));
+	push @folding_data, @{$data{MAP}};
+	$folding_data[-1] |= END_BIT;
+    }
+    close FOLD;
+}
+
+sub print_header {
     print <<"END";
-
+/* \$Id\$ */
+/* $myid */
 /*
- * Canonical/Compatibility Decomposition
+ * Do not edit this file!
+ * This file is generated from UnicodeData.txt, CompositionExclusions-1.txt,
+ * SpecialCasing.txt and CaseFolding.txt.
  */
-
-#define DECOMPOSE_BM_SHIFT	(16 - $decomp_bits)
-
-static unsigned long canon_decompose_bitmap[] = {
-$canon_bitmap_str
-};
-
-static struct decomposition canon_decompose_seq[] = {
-$canon_decomp_hash
-};
-
-static unicode_t canon_decompose_data[] = {
-$canon_data_str
-};
-
-static unsigned long compat_decompose_bitmap[] = {
-$compat_bitmap_str
-};
-
-static struct decomposition compat_decompose_seq[] = {
-$compat_decomp_hash
-};
-
-static unicode_t compat_decompose_data[] = {
-$compat_data_str
-};
 
 END
 }
 
 #
-# canon_class -- generate data for canonical class
+# print_canon_class -- generate data for canonical class
 #
-sub canon_class {
-    my $bm = create_bitmap($canon_class_bits);
-    my @cldata;
-    my @classes;
-
-    foreach my $r (Unicode::UnicodeData::list) {
-	my $class = canonical_combining_class($r);
-	next unless $class > 0;
-	my $n = code_value($r);
-	set_bitmap($bm, $n);
-	push @cldata, $n, $class;
-    }
-
-    my $bitmap_str = sprint_bitmap($bm);
-    my $canon_hash_str = sprint_canon_class_hash(@cldata);
+sub print_canon_class {
+    $canon_class->fix();
+    print STDERR "** cannon_class\n", $canon_class->stat() if $verbose;
 
     print <<"END";
 
@@ -544,155 +412,141 @@ sub canon_class {
  * Canonical Class
  */
 
-#define CANON_CLASS_BM_SHIFT	(16 - $canon_class_bits)
-
-static unsigned long canon_class_bitmap[] = {
-$bitmap_str
-};
-
-static struct canon_class canon_class[] = {
-$canon_hash_str
-};
-
 END
+    print_bits("CANON_CLASS", @canon_class_bits);
+    print "\n";
+    print $canon_class->cprog(NAME => "canon_class");
 }
 
 #
-# casemap -- generate data for case mapping
+# print_composition -- generate data for canonical composition
 #
-sub casemap {
-    my (@toupper_data, @tolower_data);
-    my $toupper_bm = create_bitmap($casemap_bits);
-    my $tolower_bm = create_bitmap($casemap_bits);
-    my (@special_toupper_data, @special_tolower_data);
-    my @multi_mapping_data = ();
-
-    foreach my $r (Unicode::UnicodeData::list) {
-	if (defined uppercase_mapping($r)) {
-	    my $n = code_value($r);
-	    set_bitmap($toupper_bm, $n);
-	    push @toupper_data, $n, uppercase_mapping($r);
-	}
-	if (defined lowercase_mapping($r)) {
-	    my $n = code_value($r);
-	    set_bitmap($tolower_bm, $n);
-	    push @tolower_data, $n, lowercase_mapping($r);
-	}
-    }
-
-    foreach my $r (Unicode::UnicodeData::specialcasing_list) {
-	my $src = specialcasing_source($r);
-	my $type = specialcasing_type($r);
-	my @dst = specialcasing_mapping($r);
-	my $cond = specialcasing_cond($r);
-	my $dst;
-	my $len;
-
-	$len = scalar(@dst);
-	if ($len == 1) {
-	    $dst = $dst[0];
-	} else {
-	    $dst = scalar(@multi_mapping_data);
-	    push @multi_mapping_data, @dst;
-	}
-	if ($type eq 'L') {
-	    # tolower mapping
-	    set_bitmap($tolower_bm, $src);
-	    push @special_tolower_data, $src, $dst, $len, $cond;
-	} elsif ($type eq 'U') {
-	    # toupper mapping
-	    set_bitmap($toupper_bm, $src);
-	    push @special_toupper_data, $src, $dst, $len, $cond;
-	} else {
-	    die "unknown mapping type \"$type\"\n";
-	}
-    }
-
-    my $toupper_bitmap_str = sprint_bitmap($toupper_bm);
-    my $tolower_bitmap_str = sprint_bitmap($tolower_bm);
-    my $toupper_hash_str = sprint_casemap_hash(@toupper_data);
-    my $tolower_hash_str = sprint_casemap_hash(@tolower_data);
-    my $special_toupper_hash_str =
-	sprint_specialcasemap_hash(@special_toupper_data);
-    my $special_tolower_hash_str =
-	sprint_specialcasemap_hash(@special_tolower_data);
-    my $multichar_mapping_str = sprint_decomposition_buf(@multi_mapping_data);
+sub print_composition {
+    $comp->fix();
+    print STDERR "** composition\n", $comp->stat() if $verbose;
 
     print <<"END";
 
 /*
- * Flags for special case mapping.
+ * Canonical Composition
  */
-#define CMF_MULTICHAR	0x1
-#define CMF_FINAL	0x2
-#define CMF_NONFINAL	0x4
-#define CMF_CTXDEP	(CMF_FINAL|CMF_NONFINAL)
+
+END
+    print_bits("CANON_COMPOSE", @comp_bits);
+    print "\n";
+    print $comp->cprog(NAME => "compose");
+    print <<"END";
+
+static struct composition {
+	unsigned long c2;	/* 2nd character */
+	unsigned long comp;	/* composed character */
+} compose_seq[] = {
+END
+    my $i = 0;
+    foreach my $r (@comp_data) {
+	if ($i % 2 == 0) {
+	    print "\n" if $i != 0;
+	    print "\t";
+	}
+	printf "{ 0x%08x, 0x%08x }, ", $r->[2], $r->[0];
+	$i++;
+    }
+    print "\n};\n\n";
+}
+
+#
+# print_decomposition -- generate data for canonical/compatibility
+# decomposition
+#
+sub print_decomposition {
+    $decomp->fix();
+    print STDERR "** decomposition\n", $decomp->stat() if $verbose;
+
+    print <<"END";
+
+/*
+ * Canonical/Compatibility Decomposition
+ */
+
+END
+    print_bits("DECOMP", @decomp_bits);
+    print "#define DECOMP_COMPAT\t$DECOMP_COMPAT_BIT\n\n";
+
+    print $decomp->cprog(NAME => "decompose");
+
+    print "static unsigned long decompose_seq[] = {\n";
+    print_ulseq(@decomp_data);
+    print "};\n\n";
+}
+
+#
+# print_casemap -- generate data for case mapping
+#
+sub print_casemap {
+    $upper->fix();
+    $lower->fix();
+    print STDERR "** upper mapping\n", $upper->stat() if $verbose;
+    print STDERR "** lower mapping\n", $lower->stat() if $verbose;
+
+    print <<"END";
 
 /*
  * Lowercase <-> Uppercase mapping
  */
 
-#define CASEMAP_BM_SHIFT	(16 - $casemap_bits)
+/*
+ * Flags for special case mapping.
+ */
+#define CMF_FINAL	$CASEMAP_FINAL_BIT
+#define CMF_NONFINAL	$CASEMAP_NONFINAL_BIT
+#define CMF_LAST	$CASEMAP_LAST_BIT
+#define CMF_CTXDEP	(CMF_FINAL|CMF_NONFINAL)
 
-static unsigned long toupper_bitmap[] = {
-$toupper_bitmap_str
-};
-
-static struct casemap toupper_map[] = {
-	/* non-conditional one-to-one mapping */
-$toupper_hash_str
-	/* conditional or one-to-many mapping */
-$special_toupper_hash_str
-};
-
-static unsigned long tolower_bitmap[] = {
-$tolower_bitmap_str
-};
-
-static struct casemap tolower_map[] = {
-	/* non-conditional one-to-one mapping */
-$tolower_hash_str
-	/* conditional or one-to-many mapping */
-$special_tolower_hash_str
-};
-
-static unicode_t multichar_casemap_data[] = {
-$multichar_mapping_str
-};
 END
+    print_bits("CASEMAP", @casemap_bits);
+    print "\n";
+    print $upper->cprog(NAME => "toupper");
+    print $lower->cprog(NAME => "tolower");
+
+    print "static unsigned long toupper_seq[] = {\n";
+    print_ulseq(@toupper_data);
+    print "};\n\n";
+
+    print "static unsigned long tolower_seq[] = {\n";
+    print_ulseq(@tolower_data);
+    print "};\n\n";
 }
 
 #
-# letter_context -- gerarate data for determining context (final/non-final)
+# print_casefolding -- generate data for case folding
 #
-sub letter_context {
-    my @ctx_data = ();
-    my $letter_bit = 1;
-    my $nspmark_bit = 2;
-    foreach my $r (Unicode::UnicodeData::list) {
-	my $cat = general_category($r);
-	if ($cat =~ /L[ult]/) {
-	    push @ctx_data, code_value($r), $letter_bit;
-	} elsif ($cat eq 'Mn') {
-	    push @ctx_data, code_value($r), $nspmark_bit;
-	}
-    }
+sub print_casefolding {
+    $folding->fix();
+    print STDERR "** case folding\n", $folding->stat() if $verbose;
 
-    my @sections;
-    while (@ctx_data >= 2) {
-	my $code = shift @ctx_data;
-	my $type = shift @ctx_data;
-	my $sec_idx = int($code / $context_secsize);
-	my $sec_off = $code % $context_secsize;
+    print <<"END";
 
-	if (!defined $sections[$sec_idx]) {
-	    my $bm = "\0" x ($context_secsize * 2 / 8);
-	    $sections[$sec_idx] = \$bm;
-	}
-	vec(${$sections[$sec_idx]}, $sec_off, 2) = $type;
-    }
+/*
+ * Case Folding
+ */
 
-    my $nsections = 65536 / $context_secsize;
+END
+    print_bits("CASE_FOLDING", @folding_bits);
+    print "\n";
+    print $folding->cprog(NAME => "case_folding");
+
+    print "static unsigned long case_folding_seq[] = {\n";
+    print_ulseq(@folding_data);
+    print "};\n\n";
+}
+
+#
+# print_casemap_context -- gerarate data for determining context
+# (final/non-final)
+#
+sub print_casemap_context {
+    $casemap_ctx->fix();
+    print STDERR "** casemap context\n", $casemap_ctx->stat() if $verbose;
 
     print <<"END";
 
@@ -700,56 +554,16 @@ sub letter_context {
  * Cased characters and non-spacing marks (for casemap context)
  */
 
-#define CTX_BLOCK_SZ	$context_secsize
-#define CTX_CASED	$letter_bit	/* cased character */
-#define CTX_NSM		$nspmark_bit	/* non-spacing mark */
-
 END
 
-    for (my $i = 0; $i < $nsections; $i++) {
-	if (defined $sections[$i]) {
-	    my $bm_str = sprint_rawbitmap(${$sections[$i]});
-	    print <<"END";
-static unsigned long casemap_ctx_section$i\[] = {
-$bm_str
-};
-
-END
-	}
-    }
-
+    print_bits("CASEMAP_CTX", @casemap_ctx_bits);
     print <<"END";
-static unsigned long *casemap_ctx_sections[] = {
-END
 
-    for (my $i = 0; $i < $nsections; $i++) {
-	if (defined $sections[$i]) {
-	    print "\tcasemap_ctx_section$i,\n";
-	} else {
-	    print "\tNULL,\n";
-	}
-    }
-
-    print <<"END";
-};
+#define CTX_CASED	$LETTER_BIT
+#define CTX_NSM		$NSPMARK_BIT
 
 END
-}
-
-sub sprint_canon_class_hash {
-    my $i = 0;
-    my $s = '';
-    while (@_ > 0) {
-	my $code = shift;
-	my $class = shift;
-	if ($i % 4 == 0) {
-	    $s .= "\n" if $i != 0;
-	    $s .= "\t";
-	}
-	$s .= sprintf "{0x%04x, %3d}, ", $code, $class;
-	$i++;
-    }
-    $s;
+    print $casemap_ctx->cprog(NAME => "casemap_ctx");
 }
 
 sub sprint_composition_hash {
@@ -766,145 +580,24 @@ sub sprint_composition_hash {
     $s;
 }
 
-sub sprint_decomposition_hash {
+sub print_bits {
+    my $prefix = shift;
     my $i = 0;
-    my $s = '';
-    foreach my $r (@_) {
-	if ($i % 3 == 0) {
-	    $s .= "\n" if $i != 0;
-	    $s .= "\t";
-	}
-	$s .= sprintf "{0x%04x, %4d, %2d}, ", @{$r};
+    foreach my $bit (@_) {
+	print "#define ${prefix}_BITS_$i\t$bit\n";
 	$i++;
     }
-    $s;
 }
 
-sub sprint_casemap_hash {
+sub print_ulseq {
     my $i = 0;
-    my $s = '';
-    while (@_ > 0) {
-	my $org = shift;
-	my $map = shift;
+    foreach my $v (@_) {
 	if ($i % 4 == 0) {
-	    $s .= "\n" if $i != 0;
-	    $s .= "\t";
+	    print "\n" if $i != 0;
+	    print "\t";
 	}
-	$s .= sprintf "{0x%04x, 0x%04x}, ", $org, $map;
+	printf "0x%08x, ", $v;
 	$i++;
     }
-    $s;
-}
-
-sub sprint_specialcasemap_hash {
-    my $i = 0;
-    my $s = '';
-    while (@_ > 0) {
-	my $src = shift;
-	my $dst = shift;
-	my $len = shift;
-	my $cond = shift;
-	my @flags = ();
-
-	if ($i % 2 == 0) {
-	    $s .= "\n" if $i != 0;
-	    $s .= "\t";
-	}
-	$i++;
-
-	if ($len > 1) {
-	    push @flags, 'CMF_MULTICHAR';
-	}
-	if (defined $cond) {
-	    if ($cond eq 'FINAL') {
-		push @flags, 'CMF_FINAL';
-	    } elsif ($cond eq 'NON_FINAL') {
-		push @flags, 'CMF_NONFINAL';
-	    } else {
-		die "unknown case mapping condition \"$cond\"\n";
-	    }
-	}
-	if ($len > 1) {
-	    $s .= sprintf "{0x%04x, 0x%04x, %s, %d}, ", $src, $dst,
-		(@flags > 0) ? join('|', @flags) : '0', $len;
-	} else {
-	    $s .= sprintf "{0x%04x, 0x%04x, %s}, ", $src, $dst,
-		(@flags > 0) ? join('|', @flags) : '0';
-	}
-    }
-    $s;
-}
-
-sub sprint_decomposition_buf {
-    my $i = 0;
-    my $s = '';
-    foreach my $d (@_) {
-	if ($i % 10 == 0) {
-	    $s .= "\n" if $i != 0;
-	    $s .= "\t";
-	}
-	$s .= sprintf "%5d, ", $d;
-	$i++;
-    }
-    $s;
-}
-
-sub create_bitmap {
-    my $bits = shift;
-    my $shift = 16 - $bits;
-    my $bmlen = 1 << ($bits - 3);
-    my $bitmap = "\0" x $bmlen;
-    [$bitmap, $shift];
-}
-
-sub set_bitmap {
-    my ($bm, $n) = @_;
-    vec($bm->[0], $n >> $bm->[1], 1) = 1;
-}
-
-sub range_set {
-    my ($bm, $start, $end) = @_;
-    my $shift = $bm->[1];
-    $start >>= $shift;
-    $end >>= $shift;
-    vec($bm->[0], $_, 1) = 1 foreach $start .. $end;
-}
-
-sub or_bitmap {
-    my ($bm1, $bm2) = @_;
-    die "incompatible bitmap\n"
-	if length($bm1->[0]) != length($bm2->[0]) or $bm1->[1] != $bm2->[1];
-    my $bitmap = $bm1->[0] | $bm2->[0];
-    [$bitmap, $bm1->[1]];
-}
-
-sub sprint_bitmap {
-    my $bm = shift;
-    my $data = $bm->[0];
-    my $i = 0;
-    my $s = '';
-    foreach my $v (unpack('V*', $data)) {
-	if ($i % 4 == 0) {
-	    $s .= "\n" if $i != 0;
-	    $s .= "\t";
-	}
-	$s .= sprintf "0x%08x, ", $v;
-	$i++;
-    }
-    $s;
-}
-
-sub sprint_rawbitmap {
-    my $data = shift;
-    my $i = 0;
-    my $s = '';
-    foreach my $v (unpack('V*', $data)) {
-	if ($i % 4 == 0) {
-	    $s .= "\n" if $i != 0;
-	    $s .= "\t";
-	}
-	$s .= sprintf "0x%08x, ", $v;
-	$i++;
-    }
-    $s;
+    print "\n";
 }

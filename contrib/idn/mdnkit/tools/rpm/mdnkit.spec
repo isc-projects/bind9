@@ -1,22 +1,25 @@
+%define version 2.1
+
+# official/beta release:
+%define release 1
+%define distrel %{version}
+
+# release candidate:
+#define release rc1
+#define distrel %{version}-%{release}
+
+%define serial 2001052801
+
 %define name mdnkit
-%define version 1.2.1
-%define disttop %{name}-%{version}-src
-%define bind_version 8.2.2-P7
-%define serial 2000122101
+%define distsrc %{name}-%{distrel}-src
 
 Name: %{name}
 Version: %{version}
-Release:  1
+Release: %{release}
 Copyright: distributable
 Group: System Environment/Daemons
-Source: %{disttop}.tar.gz
-#Source10: ftp://ftp.isc.org/isc/bind/src/%{bind_version}/bind-src.tar.gz
-#Source11: ftp://ftp.isc.org/isc/bind/src/%{bind_version}/bind-doc.tar.gz
-#Source12: ftp://ftp.isc.org/isc/bind/src/%{bind_version}/bind-contrib.tar.gz
-#NoSource: 10
-#NoSource: 11
-#NoSource: 12
-#Patch0: mdnkit-1.2-runmdn.patch
+Source: %{distsrc}.tar.gz
+#Source1: mdnsproxy.init
 BuildRoot: /var/tmp/%{name}-root
 Serial: %{serial}
 Summary: multilingual Domain Name evaluation kit (mDNkit/JPNIC)
@@ -36,7 +39,7 @@ The header files and library(libmdn.a) to develop applications
 that use MDN library.
 
 %prep
-%setup -n %{disttop}
+%setup -n %{distsrc}
 #%patch0 -p1 -b .runmdn
 
 %build
@@ -48,7 +51,9 @@ then
   fi
 fi
 
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --sysconfdir=/etc $ICONV
+CFLAGS="$RPM_OPT_FLAGS" ./configure \
+	--prefix=/usr --sysconfdir=/etc \
+	--localstatedir=/var $ICONV
 make
 
 %install
@@ -58,12 +63,15 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
 mkdir -p $RPM_BUILD_ROOT/usr/lib
 mkdir -p $RPM_BUILD_ROOT/usr/include
-mkdir -p $RPM_BUILD_ROOT/var/dnsproxy
+mkdir -p $RPM_BUILD_ROOT/usr/share/mdnkit
+mkdir -p $RPM_BUILD_ROOT/var/mdnsproxy
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
-make prefix=$RPM_BUILD_ROOT/usr ETCDIR=$RPM_BUILD_ROOT/etc install
-# make prefix=$RPM_BUILD_ROOT/usr sysconfdir=$RPM_BUILD_ROOT/etc install
+make prefix=$RPM_BUILD_ROOT/usr sysconfdir=$RPM_BUILD_ROOT/etc \
+	localstatedir=$RPM_BUILD_ROOT/var install
 
-install -c -m 755 tools/rpm/dnsproxy.init $RPM_BUILD_ROOT/etc/rc.d/init.d/dnsproxy
+mv $RPM_BUILD_ROOT/etc/mdn.conf.sample $RPM_BUILD_ROOT/etc/mdn.conf
+mv $RPM_BUILD_ROOT/etc/mdnsproxy.conf.sample $RPM_BUILD_ROOT/etc/mdnsproxy.conf
+install -c -m 755 tools/rpm/mdnsproxy.init $RPM_BUILD_ROOT/etc/rc.d/init.d/mdnsproxy
 
 # devel kit
 #install -c lib/libmdn.a $RPM_BUILD_ROOT/usr/lib
@@ -71,14 +79,28 @@ install -c -m 755 tools/rpm/dnsproxy.init $RPM_BUILD_ROOT/etc/rc.d/init.d/dnspro
 
 # docs
 mkdir rpm_docs
-(cp DISTFILES README.ja README LICENSE.txt ChangeLog rpm_docs)
-cp tools/mdnconv/README.ja rpm_docs/README-mdnconv.ja
+(cp NEWS DISTFILES README.ja README LICENSE.txt ChangeLog rpm_docs)
 cp -r patch rpm_docs
 
 %clean
 rm -fr $RPM_BUILD_ROOT
 
 %changelog
+* Mon May 28 2001 MANABE Takashi <manabe@dsl.gr.jp>
+- include runmdn, libmdnresolv
+
+* Mon Apr  4 2001 Motoyuki Kasahara <m-kasahr@sra.co.jp>
+- 2.1 release
+
+* Mon Apr  4 2001 Motoyuki Kasahara <m-kasahr@sra.co.jp>
+- 2.0.1 release
+
+* Mon Apr  2 2001 MANABE Takashi <manabe@dsl.gr.jp>
+- 2.0 release
+
+* Fri Mar  3 2001 MANABE Takashi <manabe@dsl.gr.jp>
+- 1.3 release
+
 * Mon Dec  6 2000 MANABE Takashi <manabe@dsl.gr.jp>
 - add brace/lace functions to libmdnresolv(mdnkit-1.2-runmdn.patch)
 - include /var/dnsproxy
@@ -99,17 +121,17 @@ rm -fr $RPM_BUILD_ROOT
 
 %files
 %defattr(-, root, root)
-/usr/sbin/dnsproxy
-/var/dnsproxy
+/usr/sbin/mdnsproxy
+/var/mdnsproxy
 /usr/bin/mdnconv
 /usr/bin/runmdn
-/etc/rc.d/init.d/dnsproxy
+/etc/rc.d/init.d/mdnsproxy
 /usr/lib/libmdn.so.*
 /usr/lib/libmdnresolv.so.*
-/usr/lib/libmdnresolv.so
 /usr/lib/libmdnresolv.la
-%attr(0644, root, root) %config(noreplace) /etc/dnsproxy.conf
-%attr(0644, root, root) /etc/mdnres.conf.sample
+/usr/share/mdnkit/*
+%attr(0644, root, root) %config(noreplace) /etc/mdn.conf
+%attr(0644, root, root) %config(noreplace) /etc/mdnsproxy.conf
 %attr(0644, root, man) /usr/man/man1/*
 %attr(0644, root, man) /usr/man/man5/*
 %attr(0644, root, man) /usr/man/man8/*
@@ -122,4 +144,3 @@ rm -fr $RPM_BUILD_ROOT
 /usr/lib/libmdn.so
 /usr/lib/libmdnresolv.a
 /usr/include/mdn/*
-%doc lib/README

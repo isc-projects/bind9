@@ -1,9 +1,10 @@
 #ifndef lint
-static char *rcsid = "$Id: unicode.c,v 1.11 2000/10/16 07:50:53 ishisone Exp $";
+static char *rcsid = "$Id: unicode.c,v 1.13 2001/02/14 02:16:15 ishisone Exp $";
 #endif
 
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -64,27 +65,14 @@ static char *rcsid = "$Id: unicode.c,v 1.11 2000/10/16 07:50:53 ishisone Exp $";
 
 #include <stddef.h>
 #include <stdlib.h>
-#ifdef DEBUG_HASHSTAT
-#include <stdio.h>
-#endif
 
 #include <mdn/result.h>
 #include <mdn/logmacro.h>
 #include <mdn/assert.h>
 #include <mdn/unicode.h>
 
-#ifndef CANON_CLASS_NBUCKETS
-#define CANON_CLASS_NBUCKETS	121
-#endif
-#ifndef COMPOSITION_NBUCKETS
-#define COMPOSITION_NBUCKETS	332
-#endif
-#ifndef DECOMPOSITION_NBUCKETS
-#define DECOMPOSITION_NBUCKETS	731
-#endif
-#ifndef CASEMAP_NBUCKETS
-#define CASEMAP_NBUCKETS	269
-#endif
+#define UCS_MAX		0x10ffff
+#define END_BIT		0x80000000
 
 /*
  * Some constants for Hangul decomposition/composition.
@@ -98,87 +86,46 @@ static char *rcsid = "$Id: unicode.c,v 1.11 2000/10/16 07:50:53 ishisone Exp $";
 #define TCount		28
 #define SLast		(SBase + LCount * VCount * TCount)
 
-typedef unsigned short unicode_t;	/* 16bit unsigned integer is suffice */
-
-struct canon_class {
-	unicode_t c;
-	unsigned short class;
-	struct canon_class *next;
-};
-
-struct composition {
-	unicode_t c1;
-	unicode_t c2;
-	unicode_t composed;
-	struct composition *next;
-};
-
-struct decomposition {
-	unicode_t c;
-	unsigned short offset;
-	unsigned short length;
-	struct decomposition *next;
-};
-
-struct casemap {
-	unicode_t c;
-	unicode_t map;
-	unsigned short flags;
-	unsigned short length;
-	struct casemap *next;
-};
-
 #include "unicodedata.c"
 
 /*
- * Hash tables.
+ * Macro for multi-level index table.
  */
+#define LOOKUPTBL(vprefix, mprefix, v) \
+	DMAP(vprefix)[\
+		IMAP(vprefix)[\
+			IMAP(vprefix)[IDX0(mprefix, v)] + IDX1(mprefix, v)\
+		]\
+	].tbl[IDX2(mprefix, v)]
 
-static struct canon_class	*canon_class_hash[CANON_CLASS_NBUCKETS];
-static struct composition	*composition_hash[COMPOSITION_NBUCKETS];
-static struct decomposition	*canon_decomposition_hash[DECOMPOSITION_NBUCKETS];
-static struct decomposition	*compat_decomposition_hash[DECOMPOSITION_NBUCKETS];
-static struct casemap		*toupper_hash[CASEMAP_NBUCKETS];
-static struct casemap		*tolower_hash[CASEMAP_NBUCKETS];
+#define IDX0(mprefix, v) IDX_0(v, BITS1(mprefix), BITS2(mprefix))
+#define IDX1(mprefix, v) IDX_1(v, BITS1(mprefix), BITS2(mprefix))
+#define IDX2(mprefix, v) IDX_2(v, BITS1(mprefix), BITS2(mprefix))
 
-static int	initialized = 0;
+#define IDX_0(v, bits1, bits2)	((v) >> ((bits1) + (bits2)))
+#define IDX_1(v, bits1, bits2)	(((v) >> (bits2)) & ((1 << (bits1)) - 1))
+#define IDX_2(v, bits1, bits2)	((v) & ((1 << (bits2)) - 1))
+
+#define BITS1(mprefix)	mprefix ## _BITS_1
+#define BITS2(mprefix)	mprefix ## _BITS_2
+
+#define IMAP(vprefix)	vprefix ## _imap
+#define DMAP(vprefix)	vprefix ## _table
 
 static mdn_result_t	casemap(unsigned long c, mdn__unicode_context_t ctx,
 				unsigned long *v, size_t vlen, int *convlenp,
-				unsigned long *bitmap, struct casemap **hash);
-static int		canon_class_hashval(unicode_t c);
-static int		composition_hashval(unicode_t c1, unicode_t c2);
-static int		decomposition_hashval(unicode_t c);
-static int		casemap_hashval(unicode_t c);
-static void		initialize(void);
-
-
-#define CHECKBIT(v, bitmap, shift) \
-	(((bitmap)[((v)>>(shift)) / 32] & (1 << (((v)>>(shift)) & 31))) != 0)
+				int do_uppercase);
 
 int
 mdn__unicode_canonicalclass(unsigned long c) {
-	struct canon_class *hp;
-
 #if 0
 	TRACE(("mdn__unicode_canonicalclass(c=%lx)\n", c));
 #endif
 
-	initialize();
-
-	if (c > 0xffff)
+	if (c > UCS_MAX)
 		return (0);
 
-	if (!CHECKBIT(c, canon_class_bitmap, CANON_CLASS_BM_SHIFT))
-		return (0);
-
-	hp = canon_class_hash[canon_class_hashval((unicode_t)c)];
-	while (hp != NULL) {
-		if (hp->c == c)
-			return (hp->class);
-		hp = hp->next;
-	}
-	return 0;
+	return (LOOKUPTBL(canon_class, CANON_CLASS, c));
 }
 
 mdn_result_t
@@ -186,10 +133,8 @@ mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
 		       unsigned long c, int *decomp_lenp)
 {
 	unsigned long *vorg = v;
-	int h;
-	struct decomposition *hp;
-	unicode_t *base;
-	int i;
+	int seqidx;
+	unsigned long *seq;
 
 	assert(v != NULL && vlen >= 0 && decomp_lenp != NULL);
 
@@ -198,7 +143,8 @@ mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
 	      compat, vlen, c));
 #endif
 
-	initialize();
+	if (c > UCS_MAX)
+		return (mdn_notfound);
 
 	/*
 	 * First, check for Hangul.
@@ -222,69 +168,42 @@ mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
 	}
 
 	/*
-	 * Check bitmap.
+	 * Look up decomposition table.  If no decomposition is defined
+	 * or if it is a compatibility decomosition when canonical
+	 * decomposition requested, return 'mdn_notfound'.
 	 */
-	if (c > 0xffff ||
-	    (compat &&
-	     !CHECKBIT(c, compat_decompose_bitmap, DECOMPOSE_BM_SHIFT)) ||
-	    (!compat &&
-	     !CHECKBIT(c, canon_decompose_bitmap, DECOMPOSE_BM_SHIFT)))
+	seqidx = LOOKUPTBL(decompose, DECOMP, c);
+	if (seqidx == 0 || (compat == 0 && (seqidx & DECOMP_COMPAT) != 0))
 		return (mdn_notfound);
-
+	
 	/*
-	 * Now, C is a decomposition candidate.
-	 * Search the hash tables.
+	 * Copy the decomposed sequence.  The end of the sequence are
+	 * marked with END_BIT.
 	 */
-	h = decomposition_hashval((unicode_t)c);
-
-	/*
-	 * First, look for canonical decomposition.
-	 */
-	base = canon_decompose_data;
-	hp = canon_decomposition_hash[h];
-	while (hp != NULL) {
-		if (hp->c == c)
-			goto found;
-		hp = hp->next;
-	}
-
-	if (!compat)
-		return (mdn_notfound);
-
-	/*
-	 * Then, compatibility decomposition.
-	 */
-	base = compat_decompose_data;
-	hp = compat_decomposition_hash[h];
-	while (hp != NULL) {
-		if (hp->c == c)
-			goto found;
-		hp = hp->next;
-	}
-
-	return (mdn_notfound);
-
-found:
-	/* Do we have enough space? */
-	if (vlen < hp->length)
-		return (mdn_buffer_overflow);
-
-	base += hp->offset;
-	for (i = 0; i < hp->length; i++) {
+	seq = &decompose_seq[seqidx & ~DECOMP_COMPAT];
+	do {
+		unsigned long c;
+		size_t dlen;
 		mdn_result_t r;
-		int len;
+
+		c = *seq & ~END_BIT;
 
 		/* Decompose recursively. */
-		r = mdn__unicode_decompose(compat, v, vlen, base[i], &len);
-
+		r = mdn__unicode_decompose(compat, v, vlen, c, &dlen);
 		if (r == mdn_success) {
-			v += len;
-			vlen -= len;
-		} else {
-			*v++ = base[i];
+			v += dlen;
+			vlen -= dlen;
+		} else if (r == mdn_notfound) {
+			if (vlen < 1)
+				return (mdn_buffer_overflow);
+			*v++ = c;
 			vlen--;
+		} else {
+			return (r);
 		}
-	}
+
+	} while ((*seq++ & END_BIT) == 0);
+	
 	*decomp_lenp = v - vorg;
 
 	return (mdn_success);
@@ -295,16 +214,31 @@ mdn__unicode_iscompositecandidate(unsigned long c) {
 #if 0
 	TRACE(("mdn__unicode_iscompositecandidate(c=%lx)\n", c));
 #endif
-	return (c <= 0xffff &&
-		((LBase <= c && c < LBase + LCount) ||
-		 (SBase <= c && c < SLast) ||
-		 CHECKBIT(c, compose_bitmap, COMPOSE_BM_SHIFT)));
+
+	if (c > UCS_MAX)
+		return (0);
+
+	/* Check for Hangul */
+	if ((LBase <= c && c < LBase + LCount) || (SBase <= c && c < SLast))
+		return (1);
+
+	/*
+	 * Look up composition table.  If there are no composition
+	 * that begins with the given character, it is not a
+	 * composition candidate.
+	 */
+	if (LOOKUPTBL(compose, CANON_COMPOSE, c) == 0)
+		return (0);
+	else
+		return (1);
 }
 
 mdn_result_t
 mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp)
 {
-	struct composition *hp;
+	unsigned long x;
+	int n;
+	int seqidx, lo, hi;
 
 	assert(compp != NULL);
 
@@ -312,7 +246,8 @@ mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp)
 	TRACE(("mdn__unicode_compose(c1=%lx,c2=%lx)\n", c1, c2));
 #endif
 
-	initialize();
+	if (c1 > UCS_MAX || c2 > UCS_MAX)
+		return (mdn_notfound);
 
 	/*
 	 * Check for Hangul.
@@ -336,23 +271,33 @@ mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp)
 	}
 
 	/*
-	 * Check bitmap.
+	 * Look up composition table.  If the result is 0, no composition
+	 * is defined.  Otherwise, upper 16bits of the result contains
+	 * the number of composition that begins with 'c1', and the lower
+	 * 16bits is the offset in 'compose_seq'.
 	 */
-	if (c1 > 0xffff || c2 > 0xffff ||
-	    !CHECKBIT(c1, compose_bitmap, COMPOSE_BM_SHIFT))
+	if ((x = LOOKUPTBL(compose, CANON_COMPOSE, c1)) == 0)
 		return (mdn_notfound);
+	n = x >> 16;
+	seqidx = x & 0xffff;
 
 	/*
-	 * Composition candidate.  Search the hash table.
+	 * The composite sequences are sorted by the 2nd character 'c2'.
+	 * So we can use binary search.
 	 */
-	hp = composition_hash[composition_hashval((unicode_t)c1,
-						  (unicode_t)c2)];
-	while (hp != NULL) {
-		if (hp->c1 == c1 && hp->c2 == c2) {
-			*compp = hp->composed;
+	lo = seqidx;
+	hi = seqidx + n - 1;
+	while (lo <= hi) {
+		int mid = (lo + hi) / 2;
+
+		if (compose_seq[mid].c2 < c2) {
+			lo = mid + 1;
+		} else if (compose_seq[mid].c2 > c2) {
+			hi = mid - 1;
+		} else {
+			*compp = compose_seq[mid].comp;
 			return (mdn_success);
 		}
-		hp = hp->next;
 	}
 	return (mdn_notfound);
 }
@@ -364,9 +309,7 @@ mdn__unicode_toupper(unsigned long c, mdn__unicode_context_t ctx,
 #if 0
 	TRACE(("mdn__unicode_toupper(c=%lx)\n", c));
 #endif
-	initialize();
-	return (casemap(c, ctx, v, vlen, convlenp,
-			toupper_bitmap, toupper_hash));
+	return (casemap(c, ctx, v, vlen, convlenp, 1));
 }
 
 mdn_result_t
@@ -376,61 +319,106 @@ mdn__unicode_tolower(unsigned long c, mdn__unicode_context_t ctx,
 #if 0
 	TRACE(("mdn__unicode_tolower(c=%lx)\n", c));
 #endif
-	initialize();
-	return (casemap(c, ctx, v, vlen, convlenp,
-			tolower_bitmap, tolower_hash));
+	return (casemap(c, ctx, v, vlen, convlenp, 0));
 }
 
 static mdn_result_t
 casemap(unsigned long c, mdn__unicode_context_t ctx,
-	unsigned long *v, size_t vlen, int *convlenp,
-	unsigned long *bitmap, struct casemap **hash)
+	unsigned long *v, size_t vlen, int *convlenp, int do_uppercase)
 {
-	struct casemap *hp;
+	unsigned long *seq;
+	int seqidx;
 
 	if (vlen < 1)
 		return (mdn_buffer_overflow);
 
-	if (c > 0xffff)
-		goto one_to_one;
+	if (c > UCS_MAX)
+		goto nomap;
 
-	if (!CHECKBIT(c, bitmap, CASEMAP_BM_SHIFT))
-		goto one_to_one;
-
-	hp = hash[casemap_hashval((unicode_t)c)];
-	while (hp != NULL) {
-		if (hp->c == c) {
-			if ((hp->flags & CMF_CTXDEP) == 0) {
-			found:
-				if (hp->flags & CMF_MULTICHAR) {
-					int len = hp->length;
-					unicode_t *up;
-
-					if (vlen < hp->length)
-						return (mdn_buffer_overflow);
-					up = multichar_casemap_data +
-						(unsigned int)hp->map;
-					*convlenp = len;
-					while (len-- > 0)
-						*v++ = (unsigned long)*up++;
-					return (mdn_success);
-				} else {
-					c = hp->map;
-					goto one_to_one;
-				}
-			} else if (ctx == mdn__unicode_context_unknown) {
-				return (mdn_context_required);
-			} else if (((hp->flags & CMF_FINAL) &&
-				    ctx == mdn__unicode_context_final) ||
-				   ((hp->flags & CMF_NONFINAL) &&
-				    ctx == mdn__unicode_context_nonfinal)) {
-				goto found;
-			}
-		}
-		hp = hp->next;
+	/*
+	 * Look up toupper/tolower mapping table.
+	 */
+	if (do_uppercase) {
+		seq = toupper_seq;
+		seqidx = LOOKUPTBL(toupper, CASEMAP, c);
+	} else {
+		seq = tolower_seq;
+		seqidx = LOOKUPTBL(tolower, CASEMAP, c);
 	}
 
- one_to_one:
+	/* Zero means there are no mapping. */
+	if (seqidx == 0)
+		goto nomap;
+
+	/*
+	 * There are two kinds of mapping, context-dependent and
+	 * context-independent.  It is possible that both mappings
+	 * are defined for a single character, so we have to loop
+	 * through all the mappings.
+	 */
+	seq += seqidx;
+	for (;;) {
+		int found = 0;
+		unsigned long flags = *seq++;
+
+		if (flags & CMF_CTXDEP) {
+			/*
+			 * This is a context-dependent mapping.
+			 * Check the specified context.
+			 */
+			switch (ctx) {
+			case mdn__unicode_context_final:
+				if (flags & CMF_FINAL)
+					found = 1;
+				break;
+			case mdn__unicode_context_nonfinal:
+				if (flags & CMF_NONFINAL)
+					found = 1;
+				break;
+			default: /* mdn__unicode_context_unknown */
+				/*
+				 * Request context information.
+				 */
+				return (mdn_context_required);
+			}
+		} else {
+			/*
+			 * This is an ordinary, context-independent
+			 * mapping.
+			 */
+			found = 1;
+		}
+
+		if (found) {
+			/*
+			 * Mapping found. Copy it.
+			 */
+			int i = 0;
+
+			do {
+				if (vlen-- < 1)
+					return (mdn_buffer_overflow);
+				*v++ = seq[i] & ~END_BIT;
+			} while ((seq[i++] & END_BIT) == 0);
+
+			*convlenp = i;
+			return (mdn_success);
+		} else {
+			/*
+			 * This entry doesn't match.  Try next etnry.
+			 */
+			if (flags & CMF_LAST) {
+				/* This is the last entry. */
+				break;
+			} else {
+				/* Skip this entry. */
+				while ((*seq++ & END_BIT) == 0)
+					/* do nothing */;
+			}
+		}
+	}
+
+ nomap:
 	*convlenp = 1;
 	*v = c;
 	return (mdn_success);
@@ -438,188 +426,59 @@ casemap(unsigned long c, mdn__unicode_context_t ctx,
 
 mdn__unicode_context_t
 mdn__unicode_getcontext(unsigned long c) {
-	int idx;
-	int offset;
-	unsigned long *bm;
-	int v;
-
 #if 0
 	TRACE(("mdn__unicode_getcontext(c=%lx)\n", c));
 #endif
 
-	if (c > 0xffff) {
+	if (c > UCS_MAX)
 		return (mdn__unicode_context_final);
-	}
-	idx = c / CTX_BLOCK_SZ;
-	offset = c % CTX_BLOCK_SZ;
-	if ((bm = casemap_ctx_sections[idx]) == NULL) {
-		return (mdn__unicode_context_final);
-	}
-	v = (bm[(offset * 2) / 32] >> ((offset * 2) % 32)) & 3;
-	if (v & CTX_NSM)
-		return (mdn__unicode_context_unknown);
-	else if (v & CTX_CASED)
+
+	switch (LOOKUPTBL(casemap_ctx, CASEMAP_CTX, c)) {
+	case CTX_CASED:
 		return (mdn__unicode_context_nonfinal);
-	else
+	case CTX_NSM:
+		return (mdn__unicode_context_unknown);
+	default:
 		return (mdn__unicode_context_final);
+	}
 }
 
-static int
-canon_class_hashval(unicode_t c) {
-	return c % CANON_CLASS_NBUCKETS;
-}
+mdn_result_t
+mdn__unicode_casefold(unsigned long c, unsigned long *v, size_t vlen,
+		      int *foldlenp)
+{
+	unsigned long *vorg = v;
+	int seqidx;
+	unsigned long *seq;
 
-static int
-composition_hashval(unicode_t c1, unicode_t c2) {
-	return (c1 * 11 + c2) % COMPOSITION_NBUCKETS;
-}
+	assert(v != NULL && vlen >= 0 && foldlenp != NULL);
 
-static int
-decomposition_hashval(unicode_t c) {
-	return c % DECOMPOSITION_NBUCKETS;
-}
-
-static int
-casemap_hashval(unicode_t c) {
-	return c % CASEMAP_NBUCKETS;
-}
-
-static void
-initialize(void) {
-	int i;
-
-	if (initialized)
-		return;
-
-#define ARRAYSIZE(var)	(sizeof(var) / sizeof((var)[0]))
-#define INSERT(tbl, h, what) \
-	(what).next = (tbl)[h]; \
-	(tbl)[h] = &(what)
-
-	for (i = 0; i < ARRAYSIZE(canon_class); i++) {
-		int h = canon_class_hashval(canon_class[i].c);
-		INSERT(canon_class_hash, h, canon_class[i]);
-	}
-	for (i = 0; i < ARRAYSIZE(compose_seq); i++) {
-		int h = composition_hashval(compose_seq[i].c1,
-					    compose_seq[i].c2);
-		INSERT(composition_hash, h, compose_seq[i]);
-	}
-	for (i = 0; i < ARRAYSIZE(canon_decompose_seq); i++) {
-		int h = decomposition_hashval(canon_decompose_seq[i].c);
-		INSERT(canon_decomposition_hash, h, canon_decompose_seq[i]);
-	}
-	for (i = 0; i < ARRAYSIZE(compat_decompose_seq); i++) {
-		int h = decomposition_hashval(compat_decompose_seq[i].c);
-		INSERT(compat_decomposition_hash, h, compat_decompose_seq[i]);
-	}
-	for (i = 0; i < ARRAYSIZE(toupper_map); i++) {
-		int h = casemap_hashval(toupper_map[i].c);
-		INSERT(toupper_hash, h, toupper_map[i]);
-	}
-	for (i = 0; i < ARRAYSIZE(tolower_map); i++) {
-		int h = casemap_hashval(tolower_map[i].c);
-		INSERT(tolower_hash, h, tolower_map[i]);
-	}
-#undef ARRAYSIZE
-#undef INSERT
-
-	initialized = 1;
-}
-
-#ifdef DEBUG_HASHSTAT
-
-#define DEFINE_GETLENGTH(name, type) \
-static int				\
-name(type p) {				\
-	int len = 0;			\
-	while (p != NULL) {		\
-		len++;			\
-		p = p->next;		\
-	}				\
-	return (len);			\
-}
-
-DEFINE_GETLENGTH(getlength_canon_class, struct canon_class *)
-DEFINE_GETLENGTH(getlength_composition, struct composition *)
-DEFINE_GETLENGTH(getlength_decomposition, struct decomposition *)
-DEFINE_GETLENGTH(getlength_casemap, struct casemap *)
-
-static void
-print_hash_stat(void) {
-	int i;
-	int len;
-	int total, max;
-
-#define LENGTH(n) total += (n); if ((n) > max) {max = (n);}
-#define PRINT(nb) \
-	printf("\n nbuckets=%d, total=%d, max=%d (avr=%f)\n", \
-	       nb, total, max, (double)total / nb)
-
-#if 1
-	printf("canon_class hash:\n  ");
-	for (i = total = max = 0; i < CANON_CLASS_NBUCKETS; i++) {
-		len = getlength_canon_class(canon_class_hash[i]);
-		LENGTH(len);
-		printf("%d ", len);
-	}
-	PRINT(CANON_CLASS_NBUCKETS);
+#if 0
+	TRACE(("mdn__unicode_casefold(compat=%d,vlen=%d,c=%lx)\n",
+	      compat, vlen, c));
 #endif
 
-#if 1
-	printf("composition hash:\n  ");
-	for (i = total = max = 0; i < COMPOSITION_NBUCKETS; i++) {
-		len = getlength_composition(composition_hash[i]);
-		LENGTH(len);
-		printf("%d ", len);
-	}
-	PRINT(COMPOSITION_NBUCKETS);
-#endif
+	if (c > UCS_MAX)
+		goto nomap;
 
-#if 1
-	printf("canonical decomposition hash:\n  ");
-	for (i = total = max = 0; i < DECOMPOSITION_NBUCKETS; i++) {
-		len = getlength_decomposition(canon_decomposition_hash[i]);
-		LENGTH(len);
-		printf("%d ", len);
-	}
-	PRINT(DECOMPOSITION_NBUCKETS);
-#endif
+	/* Look up case folding table. */
+	if ((seqidx = LOOKUPTBL(case_folding, CASE_FOLDING, c)) == 0)
+		goto nomap;
+	
+	seq = &case_folding_seq[seqidx];
+	do {
+		if (vlen-- < 1)
+			return (mdn_buffer_overflow);
+		*v++ = *seq & ~END_BIT;
+	} while ((*seq++ & END_BIT) == 0);
+	
+	*foldlenp = v - vorg;
 
-#if 1
-	printf("compatibility decomposition hash:\n  ");
-	for (i = total = max = 0; i < DECOMPOSITION_NBUCKETS; i++) {
-		len = getlength_decomposition(compat_decomposition_hash[i]);
-		LENGTH(len);
-		printf("%d ", len);
-	}
-	PRINT(DECOMPOSITION_NBUCKETS);
-#endif
-
-#if 1
-	printf("toupper hash:\n  ");
-	for (i = total = max = 0; i < CASEMAP_NBUCKETS; i++) {
-		len = getlength_casemap(toupper_hash[i]);
-		LENGTH(len);
-		printf("%d ", len);
-	}
-	PRINT(CASEMAP_NBUCKETS);
-#endif
-
-#if 1
-	printf("tolower hash:\n  ");
-	for (i = total = max = 0; i < CASEMAP_NBUCKETS; i++) {
-		len = getlength_casemap(tolower_hash[i]);
-		LENGTH(len);
-		printf("%d ", len);
-	}
-	PRINT(CASEMAP_NBUCKETS);
-#endif
+	return (mdn_success);
+ nomap:
+	if (vlen < 1)
+		return (mdn_buffer_overflow);
+	*foldlenp = 1;
+	*v = c;
+	return (mdn_success);
 }
-
-int
-main(int ac, char **av) {
-	initialize();
-	print_hash_stat();
-}
-#endif /* DEBUG_HASHSTAT */

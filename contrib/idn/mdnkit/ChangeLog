@@ -1,3 +1,874 @@
+2001-06-01
+	* 2.1 release.
+
+	* patch/libiconv/libiconv-1.6.1.patch: created.  this patch fixes
+	a bug in ltconfig included in libiconv-1.6.1 distribution.  similar
+	fix is already incorporated in mDNkit (see 2001-05-21 entry).
+	* DISTFILES: add above file to the distribution list.
+	* README, README.ja: add note for the libiconv patch.
+	* tools/rpm/mdnkit.spec: update for 2.1 release.
+	* include/mdn/version.h: set MDNKIT_VERSION to `2.1'.
+
+2001-05-31
+	* lib/normalizer.c: create a new typedef for the function pointer
+	used in normalizer_unicode_caseconv() with argument prototype
+	so that compiler can detect argument mismatch.
+	* lib/selectiveencode.c, lib/util.c: include <mdn/selectiveencode.h>
+	and <mdn/util.h> respectively, which should obviously have been
+	included.
+	* mdnsproxy/logging.c: make log_strtofacility() static.
+	* mdnsproxy/mdnsproxy.h: add declaration of translate_finish().
+	* mdnsproxy/Makefile.in: remove extra `/' from CONFIG_PATH.  just
+	a cosmetic change.
+
+2001-05-30
+	* lib/normalizer.c: fix a bug in normalizer_unicode_caseconv().
+	It might pass a pointer of incompatible sized object to
+	mdn__unicode_toupper().
+
+2001-05-21
+	* 2.1beta2 release.
+
+	* ltconfig: fix a bug that caused runtime link error in NetBSD 1.5.
+	* include/mdn/version.h: set MDNKIT_VERSION to `2.1beta2'.
+
+	* patch/bind9/bind-9.1.2-patch: created.
+	* DISTFILES: replace patch/bind9/bind-9.1.1-patch with the above
+	file.
+
+2001-05-18
+	* configure.in: fix a bug that makes --with-logdir option ignored.
+	* configure.in: add --with-preference option to specify preference
+	of the default configuration.
+	* configure: rebuilt.
+	* lib/mdn.conf.sample.in: add configuration data for preference "jp".
+	* lib/Makefile.in: tailor mdn.conf.sample to the preference.
+	install default mdn.conf (if not exists) when a preference is
+	specified.
+	* README, README.ja: add description on --with-preference.
+	* tools/mdnconv/mdnconv.c: provide single character options
+	(such as -i) for frequently used ones.
+	* tools/mdnconv/mdnconv.1: list those options.
+	* tools/mdnconv/mdnconv.c: assume -reverse option if the command
+	name begins with `r' (like `rmdnconv').
+
+2001-05-15
+	* man/libmdn.3.in: created.
+	* man/Makefile.in: generate and install libmdn.3 from libmdn.3.in.
+	* DISTFILES: add man/libmdn.3.in to the distribution list.
+	* lib/res.c: make sure convesion actually takes place when 
+	converting from alternate encoding to utf8.
+
+2001-05-10
+	* make.os2, include/config.h.os2, lib/make.os2, mdnsproxy/make.os2:
+	removed, since they are no longer maintained.
+	* win/iconv.dll, win/iconv.h, win/iconv.lib: removed, since
+	it is easy to create them using libiconv and VC++.
+	* DISTFILES: delete above files from the distribution.
+	* win/README.WIN: update description appropriately.
+
+2001-05-07
+	* mdnsproxy/mdnsproxy.8.in: fix typo in FILES.
+	* lib/Makefile.in: ignore exit status of a command sequence
+	combined with `&&' so that `make install' correctly works
+	when `--disable-static' option is specified to `configure'.
+	* wsock/README.txt, wsock/README_j.txt: change `dnsproxy' to
+	`mdnsproxy'.
+
+2001-05-02
+	* patch/squid/squid-2.4.STABLE1-patch: created.
+	* DISTFILES: replace squid-2.3.STABLE3-patch with the above one.
+	* README, README.ja: update squid patch version.
+
+2001-04-26
+	* patch/bind9/bind-9.1.1-patch: clean up and remove unnecessary
+	modifications.
+
+2001-04-24
+	* 2.1beta1 release.
+
+	* lib/mapselector.c: fix TLD-mapping routine so that domain
+	name like `foo.' is not recognized as a local domain name.
+	* lib/mdn.conf.sample.in: revise comments on local-map entry.
+	* man/mdn.conf.5.in: add description on the special
+	TLD patterns `-' and `.' in local-map entry.
+
+	* include/mdn/version.h: Set MDNKIT_VERSION to `2.1beta1'.
+
+	* tools/rpm/mdnkit.spec: Set version to `2.1', and serial to
+	`2001042501'.
+
+2001-04-23
+	* tools/runmdn/runmdn.1: add a note on guessing local codeset.
+
+	* mdnsproxy/proxycnf.h, mdnsproxy/unxmain.c: implement
+	`-version' option.
+	* mdnsproxy/mdnsproxy.8.in: add description of `-version'
+	option.
+
+2001-04-20
+	* include/mdn/version.h, lib/version.c: created.  implement
+	`mdn_version_getstring()'.
+	* include/mdn/util.h, lib/util.c: remove `mdn_get_version()'.
+	* lib/Makefile.in, lib/make.wnt, tools/runmdn/Makefile.in:
+	add `version.c' to the source file list.
+	* tools/mdnconv/mdnconv.c: replace `mdn_get_version()' with
+	`mdn_version_getstring()'.  print both mdnconv's version and
+	library version.
+	* DISTFILES: add `lib/version.c' to the distribution list.
+
+	* wsock/config/mdnconf.tcl: display the name of the program and
+	its version at the top of the window.
+	* wsock/common/convert.c: log the version number if the log level
+	is `info' or higher.
+	* wsock/common/jpnicmdn.h: include <mdn/version.h> for getting
+	version string.
+	* wsock/common/encoding.c: do not create unnecessary registry
+	keys.
+
+	* tools/mdnconv/mdnconv.1: add description on `-version' option.
+
+	* tools/runmdn/stub.h: fix typo.
+	
+	* mdnsproxy/logging.c: fix a bug that mdnsproxy doesn't output 
+	libmdn log message to log file.
+	* mdnsproxy/logging.c: output version information to the log.
+
+	* configure.in: substitute @LIBDL@ to -ldl if libdl exists.
+	* configure: rebuilt.
+	* tools/runmdn/Makefile.in: add @LIBDL@ to the dependency
+	library for libmdnresolv, so that dlopen is available when
+	libmdnresolv is loaded.
+	
+	* README, README.ja: update for version 2.1.
+
+2001-04-19
+	* DISTFILES: Add `patch/bind9/bind-9.1.1-patch'.
+
+	* aclocal.m4: add AC_ACE_PREFIX, AC_ACE_SUFFIX, AC_ACE_SIGNATURE
+	macro for dealing with ACE signature options.
+	* configure.in: use the above macro.  add new options
+	`--with-utf-6-prefix', `--with-dude-prefix', `--with-altdude-prefix',
+	`--with-altdude-suffix', `--with-amc-ace-m-prefix',
+	`--with-amc-ace-m-suffix', `--with-amc-ace-o-prefix',
+	`--with-amc-ace-o-suffix' and `--with-amc-ace-r-prefix'.
+	* README, README.ja: add description for these options.
+	* configure, include/config.h.in: rebuilt.
+
+	* lib/filechecker.c: relax the setfile syntax check so that
+	lines like `XXXX;' becomes valid.
+	* tools/mdnconv/mdnconv.c: fix a bug in parsing `-alias' option.
+
+2001-04-18
+	* configure.in: check the type of the 2nd argument of gethostbyaddr,
+	which is either `int' or `size_t' depending on your system,
+	and define `GHBA_ADDRLEN_T' appropriately.
+	* acconfig.h: add `GHBA_ADDRLEN_T'.
+	* configure, include/config.h.in: rebuilt.
+	* tools/runmdn/resolver.c, tools/runmdn/stub.c, tools/runmdn/stub.h:
+	make use of `GHBA_ADDRLEN_T'.
+
+2001-04-17
+	* lib/converter.c: incorporate AltDUDE, AMC-ACE-{M,O,R} with
+	normal configuration.
+	* lib/mak.wnt: add altdude.c, amcace{m,o,r}.c.
+	* man/mdn.conf.5.in, tools/mdnconv/mdnconv.1,lib/mdn.conf.sample.in:
+	add AltDUDE, AMC-ACE-{M,O,R} to the list of available encodings.
+
+	* include/mdn/version.h.in, include/mdn/version.h: delete
+	`include/mdn/version.h.in' and instead add `include/mdn/version.h'.
+	* DISTFILES: likewise.
+	* configure.in: delete definition of VERSION, PREV_VERSION and
+	PREV_TAG.
+	* Makefile.in: get version number from `include/mdn/version.h',
+	when making a source package.
+	* Makefile.in: delete the `patch' rule.
+
+	* lib/util.c: include <mdn/version.h>.
+	get version number from the cpp macro `MDNKIT_VERSION', not `VERSION'.
+
+	* configure.in: check existance of gethostbyname2_r.  check
+	the flavor of gethostbyXXX_r functions.  define
+	GETHOST_R_GLIBC_FLAVOR if the flavor is glibc.
+	* acconfig.h: add GETHOST_R_GLIBC_FLAVOR.
+	* configure, include/config.h.in: rebuilt.
+	* tools/runmdn/resolver.c, tools/runmdn/stub.c: support glibc
+	style gethostXXX_r functions.
+	* tools/runmdn/runmdn.1: add gethostbyname2_r to the list of
+	functions replaced by runmdn.
+
+	* lib/amcacer.c: change the default ACE signature of AMC-ACE-R
+	from suffix (-amc3) to prefix (amc3-) in order for the converted
+	names not to begin with a hyphen.
+
+	* tools/runmdn/resolver.c: include <errno.h>.
+	* tools/runmdn/stub.c: ditto.
+	* tools/runmdn/stub.h: add declaration of mdn_stub_gethostbyname_r(),
+	mdn_stub_gethostbyname2_r() and mdn_stub_gethostbyaddr_r() for glibc.
+
+2001-04-16
+	* lib/delimitermap.c: not to use the ucsset module to simplify
+	API for the Perl modules.
+
+	* tools/mdnconv/util.c: fix the number of arguments passed to
+	errormsg().
+
+	* configure.in: define VERSION, PREV_VERSION and PREV_TAG.
+	* Makefile.in: refer to @VERSION@, @PREV_VERSION@ and @PREV_TAG@.
+	* lib/util.c, include/mdn/util.h: add mdn_get_version().
+	* tools/mdnconv/mdnconv.c: add `-version' option.
+
+	* include/mdn/version.h.in: new file.
+	* include/mdn/Makefile.in: add version.h to HDRS.
+	* DISTFILES: add include/mdn/version.h.in.
+	* configure.in: add include/mdn/version.h to AC_OUTPUT.
+	* configure.in: get MAJOR_VERSION and MINOR_VERSION from VERSION,
+	and substitute them using AC_SUBST.
+
+2001-04-13
+	* tools/runmdn/resolver.c: increase static buffer size.
+	better error handling.  add comments.
+	* configure.in: use space character for the separator in
+	LD_PRELOAD on linux.
+	* wsock/wsock11/dllstub.c, wsock/wsock20/dllstub.c: disable
+	outputing trace messages unless DEBUG_STUB is defined.
+
+2001-04-11
+	* tools/mdnconv/mdnconv.c: fix a bug in parsing an argument to
+	-delimitermap option.
+
+	* lib/resoconf.c: mdn_resconf_setlocalconverter() rejects NULL
+	encoding name.  fixed.
+
+2001-04-10
+	* tools/runmdn/resolver.c: fix bugs in wrappers for
+	getipnodebyname() and getipnodebyaddr().
+	* tools/mdnconv/mdnconv.c: fix a bug that makes -reverse
+	operation (decoding) sometimes fail.
+
+2001-04-06
+	* include/mdn/amcaceo.h, lib/amcaceo.c: created.  implement
+	"AMC-ACE-O".
+	* DISTFILES: add above new files.
+	* include/mdn/Makefile.in, lib/Makefile.in: ditto.
+	* lib/converter.c: add new converter for "AMC-ACE-O".
+	* lib/amcacer.c: rewrite refpoint update routine so that it's
+	easier to understand.
+	* include/mdn/api.h: fix incorrect comment for mdn_decodename.
+	* mdnsproxy/translate.c: remove obsolete functions.
+	* tools/runmdn/resolver.c: created.  implement resolver API
+	(such as gethostbyname) with MDN capability.
+	* tools/runmdn/stub.c, tools/runmdn/stub.h: created.  provide
+	stub functions for calling orginal resolver API functions.
+	* tools/runmdn/res_comp.c, tools/runmdn/ns_name.c: removed.
+	* tools/runmdn/Makefile.in: change to use above new files.
+	* tools/runmdn/runmdn.1: revised.
+	* configure.in, acconfig.h: add new tests for checking the
+	existance of various resolver functions/libraries.
+	* aclocal.m4: add a new macro to find the pathname of a shared
+	library object.
+	* configure, include/config.h.in: updated.
+	* DISTFILES, tools/Makefile.in: bring back runmdn.
+
+2001-04-04
+	* 2.0.1 release.
+
+	* mdnsproxy/Makefile.in: fix typo.
+	* lib/amcacem.c: fix a bug in computing a reference code point for
+	compression.
+
+	* DISTFILES: rename tools/rpm/dnsproxy.init to
+	tools/rpm/mdnsproxy.init.
+
+2001-03-30
+	* 2.0 release.
+ 
+	* include/mdn/amcacem.h, lib/amcacem.c: created.  implement a
+	new ACE called "AMC-ACE-M".
+	* include/mdn/amcacer.h, lib/amcacer.c: created.  implement a
+	new ACE called "AMC-ACE-R".
+	* DISTFILES: add above new files.
+	* include/mdn/Makefile.in, lib/Makefile.in, tools/runmdn/Makefile.in:
+	add above new files.
+	* lib/converter.c: add new converters for "AMC-ACE-M" and "AMC-ACE-R".
+	
+2001-03-28
+	* Makefile.in, include/mdn/Makefile.in, man/Makefile.in,
+	map/Makefile.in, tools/Makefile.in: define SHELL.
+
+	* include/mdn/Makefile.in, lib/Makefile.in, man/Makefile.in,
+	man/mdn.conf.5.in tools/Makefile.in, tools/mdnconv/Makefile.in:
+	unify variable names for install directory.
+
+	* lib/Makefile.in: generate mdn.conf.sample from mdn.conf.sample.in.
+	* DISTFILES: distribute mdn.conf.sample.in, not mdn.conf.sample.
+
+	* lib/lace.c: Set max run-length to 254.
+	* lib/autdude.c: fix decoding bug.
+
+	* lib/res.c: fix a bug that nameconv("m") cannot map a domain name
+	which ends with ".".
+
+2001-03-27
+	* tools/mdnconv/mdnconv.c: fix help message.
+
+	* mdnsproxy/logging.c: don't reopen syslog when receives SIGHUP.
+
+2001-03-26
+	* 2.0beta3 release.
+
+	* Makefile.in: set CUR_VERSION to 2.0beta3.
+
+	* configure.in: remove --enable-zld option because ZLD is no longer
+	supported, and add --enable-extra-ace option to incorporate
+	undocumented extra ACE converters.
+	* include/mdn/dude.h, lib/dude.c: change slightly to conform to
+	-01 draft.
+	* include/mdn/altdude.h, lib/altdude.c: created.  implement a new
+	ACE called "AltDUDE".
+	* include/mdn/Makefile.in, lib/Makefile.in, tools/runmdn/Makefile.in:
+	add altdude.{c,h,lo}.
+	* DISTFILES: add altdude.{c,h}
+
+2001-03-21
+	* 2.0beta2 release.
+
+	* wsock/wsock11/wsock32.def, wsock/wsock20/ws2_32.def: remove
+	function forwarders.
+	* wsock/wsock11/dllload.c, wsock/wsock20/dllload.c: use explicit
+	link for calling WINSOCK API.
+	* wsock/wsock11/dllstub.c, wsock/wsock20/dllstub.c: created.
+	stub functions for WINSOCK API.
+	* wsock/wsock11/dlldef.h, wsock/wsock11/dllfunc.c,
+	wsock/wsock20/dlldef.h, wsock/wsock20/dllfunc.c: use stub functions
+	for calling original API.
+	* wsock/wsock11/make.wnt, wsock/wsock20/make.wnt: adjust to the
+	above changes.
+	* wsock/common/jpnicmdn.def, wsock/common/jpnicmdn.h,
+	wsock/common/printf.c: add and export mdnLogPrintf().
+	* wsock/README.txt, wsock/README_j.txt: revise for version 2.0.
+
+2001-03-15
+	* mdnsproxy/make.wnt: add acl.c/acl.o.
+	* win/iconv.h, win/iconv.lib, win/iconv.dll: update to version 1.6.
+	* win/README.WIN: revise description.
+	* DISTFILES: add files relating mDN Wrapper, which were temporaly
+	removed form distribution.
+
+	* mdnsproxy/mdnsproxy.conf.sample: fix an erratum in client-encoding.
+
+	* include/mdn/api.h: fix typo in comment.
+
+2001-03-14
+	* wsock/common/convert.c, wsock/wsock11/dllmain.c,
+	wsock/wsock20/dllmain.c: use the new API.
+	* wsock/common/encoding.c: remove functions to access registry
+	entries no longer needed. add a function to get configuration
+	file path.
+	* wsock/common/jpnicmdn.def, wsock/common/jpnicmdn.h,
+	wsock/wsock11/dlldef.h, wsock/wsock20/dlldef.h: remove old
+	definitions.
+	* wsock/config/mdnconv.tcl: update for version 2.0.
+	* make.wnt, mdnsproxy/make.wnt: update for version 2.0.
+	* lib/res.c, lib/resconf.c, mdnsproxy/translate.c: remove
+	inclusion of old header files which no longer exist.
+
+	* mdnsproxy/logging.c, mdnsproxy/translate.c: mdn log level and log
+	handler are set by log_configure(), not by translate_initialize().
+
+	* mdnsproxy/logging.c: Don't use syslog if HAVE_SYSLOG is undefined.
+	* configure.in: add `syslog' to AC_CHECK_FUNCS.
+
+2001-03-13
+	* Makefile.in: set CUR_VERSION to 2.0beta2.
+
+	* configure.in: fix a bug in libiconv check.  add ICONVLIB to
+	LIBS, not to LDFLAGS.
+	* mdnsproxy/Makefile.in, tools/mdnconv/Makefile.in: set LIBS to
+	@LIBS@, MDNLIB to @MDNLIB@ and ICONVLIB to @ICONVLIB@.
+	* README.ja: update for version 2.0.
+	* README: revised.
+
+	* mdnsproxy/logging.c: syslog support.
+	* mdnsproxy/proxycnf.c, mdnsproxy/proxycnf.h: recognize new command
+	`syslog-facility'.
+	* mdnsproxy/mdnsproxy.8.in, mdnsproxy/mdnsproxy.conf.sample: add
+	description of syslog support.
+
+	* include/mdn/resconf.h, lib/resconf.c: delete
+	mdn_resconf_adddelimitermapucs(),
+	mdn_resconf_addlocalmapselectorname(),
+	mdn_resconf_addmappername(),
+	mdn_resconf_addnormalizername(),
+	mdn_resconf_addprohibitcheckername() and
+	mdn_resconf_addunassignedcheckername().	
+
+	* lib/converter.c: converter_iconv_convert() appends reset-state
+	sequence to the output string.
+
+2001-03-09
+	* mdnsproxy/mdnsproxy.conf.sample: fix typo in mdn-conf-file entry.
+
+	* lib/mdn.conf.sample: fix typo in local-map entry.
+
+2001-03-08
+	* 2.0beta1 release.
+
+	* Makefile.in: set CUR_VERSION to 2.0beta1.
+
+	* README: update for version 2.0.
+
+	* lib/converter.c: fix a bug in converter_iconv_close().
+	private data area was disposed twice.
+
+	* map/Makefile.in, map/jp.map: new files.
+	* configure.in: add map/Makefile to AC_OUTPUT.
+	* Makefile.in: add map to SUBDIRS.
+	* DISTFILES: add map/Makefile.in and map/jp.map.
+
+	* DISTFILES: add `man/mdn.conf.5.in', and delete
+	`man/mdnres.conf.5.in'.
+
+	* configure.in: temporary delete `tools/runmdn/Makefile' and
+	`tools/runmdn/runmdn' from AC_OUTPUT.
+
+2001-03-07
+	* lib/ace.c, include/mdn/ace.h: created.
+	* include/mdn/Makefile.in, lib/Makefile.in, tools/runmdn/Makefile.in:
+	add ace.c and ace.h.
+	* lib/brace.c, lib/dude.c, lib/lace.c, lib/race.c, lib/utf6.c:
+	rewrite using ace utility module.
+	* DISTFILES: add ace.c and ace.h.
+	* lib/nameprep_template.c: remove duplicated macro defininition
+	(UNICODE_MAX).
+	* tools/mdnconv/mdnconv.c: avoid assertion fail when libmdn cannot
+	guess the local codeset.
+
+	* mdnsproxy/loggin.c: open a log file before chroot().
+	* mdnsproxy/loggin.c fix a but that log file name specified in the
+	configuration file is ignored.
+
+2001-03-06
+	* man/mdn.conf.5.in, tools/mdnconv/mdnconv.1: add description for
+	`nameprep-03'.
+	* lib/mdn.conf.sample: ditto.
+	* DISTFILES: update for version 2.0 release.  bind9-patch,
+	mDN Wrapper and runmdn are removed (temporary) from the
+	distribution list.
+	* lib/Makefile.in: change install filename from `mdnres.conf.sample'
+	to `mdn.conf.sample'.
+	* lib/brace.c, lib/dude.c, lib/lace.c, lib/race.c, lib/utf6.c:
+	fix behavior for converting null labels.
+	* lib/converter.c: fix bug in calling free().
+	* tools/mdnconv/util.c: include more info in error messages.
+	* tools/Makefile.in: remove runmdn temporary from subdirectory list.
+	
+2001-03-05
+	* man/mdn.conf.5.in: created.
+	* man/mdnres.conf.5.in: removed.
+	* man/Makefile.in: change mdnres.conf -> mdn.conf.
+	* tools/mdnconv/mdnconv.1: updated. existing sections are rewritten
+	according to the new spec, and some new sections are added.
+
+	* DISTFILES: add `mdn.conf.sample' and delete `mdnres.conf.sample'.
+	* lib/mdnres.conf.sample: deleted.
+	* lib/mdn.conf.sample: added.
+	* lib/Makefile.in: install `mdn.conf.sample', not `mdnres.conf.sample'.
+
+	* util/generate_nameprep_data.pl: add a feature of data sharing
+	among nameprep versions.
+	* lib/nameprepdata.c, lib/nameprep.c: add data for nameprep-03.
+	* lib/checker.c, lib/mapper.c, lib/normalizer.c: add `nameprep-03'
+	scheme.
+
+2001-03-01
+	* lib/resconf.c: fix a bug in mdn_resconf_setlocalconvertername().
+
+	* lib/res.c: fix a bug in `n' action of mdn_res_nameconv().
+	The result string is not terminted if the input string is ".".
+
+2001-02-27
+	* lib/Makefile.in, tools/runmdn/Makefile.in: Change library
+	version info from 5:0:1 to 6:0:0.
+
+2001-02-26
+	* lib/res.c: cosmetic changes.  split static function nameconv()
+	to 11 functions, a function per action.
+
+	* lib/resconf.c: mdn_resconf_setidnconvertername() accepts
+	ASCII uncompatible encoding name.
+
+	* lib/converter.h: change the type definition of
+	mdn_converter_openproc_t, mdn_converter_closeproc_t and
+	mdn_converter_convertproc_t.  `privdata' is added to their argument
+	list.
+	* lib/converter.c: conform openproc, closeproc, and convertproc
+	interfaces of the standard converters (iconv, utf5 and none) to
+	those of the converter module.
+	* lib/brace.c, lib/dude.c, lib/lace.c, lib/race.c, lib/utf6.c: ditto.
+
+2001-02-23
+	* tools/mdnconv/mdnconv.c, tools/mdnconv/util.c: add -delimiter, 
+	-delimitermap and -nameprep optinos.
+
+	* lib/nameprep.c, lib/filemapper.c: add functions compatible with
+	mdn_mapper_createproc_t, mdn_mapper_destroyproc_t and 
+	mdn_mapper_mapproct_t.
+	* lib/nameprep.c, lib/filechecker.c: add functions suitable for
+	mdn_checker_createproc_t, mdn_checker_destroyproc_t and 
+	mdn_checker_lookupproct_t.
+
+	* lib/mapselector.c: map_selector_map() didn't get TLD from a given
+	domain name. fixed.
+
+	* mdnsproxy/proxycnf.c: fix typo.
+
+	* lib/checker.c, lib/delimitermap.c, lib/mapper.c,
+	lib/mapselector.c, lib/nameprep.c, lib/normalizer.c: add _addall()
+	functions.
+	* include/mdn/checker.h, include/mdn/delimitermap.h,
+	include/mdn/mapper.h, include/mdn/mapselector.h,
+	include/mdn/normalizer.h: likewise.
+
+	* lib/Makefile.in, mdnxproxy/Makefile.in, tools/mdnconv/Makefile.in,
+	tools/runmdn/Makefile.in: remove .libs at make clean.
+
+	* lib/resconf.c, include/mdn/resconf.h: add set-by-name functions
+	for convinience.
+
+	* lib/res.c: don't perform NAMEPREP against a domain label which
+	conforms STD13.
+
+	* lib/util.c: extend mdn_util_validstd13().
+	If the 2nd argument `end' is NULL, end of the 1st argument is
+	assumed.
+
+2001-02-22
+	* lib/resconf.c, include/mdn/resconf.h: add
+	mdn_resconf_setnameprepversion().
+
+	* lib/Makefile.in: add api.c to SRCS and api.lo to OBJS.
+	* include/mdn/Makefile.in: add api.h to HDRS.
+	* DISTFILES: add lib/api.c, lib/delimitermap.c, lib/filechecker.c,
+	lib/filemapper.c, lib/mapper.c, lib/mapselector.c, lib/nameprep.c,
+	lib/nameprep_template.c, lib/nameprepdata.c, lib/ucsmap.c,
+	lib/ucsset.c, include/mdn/api.h, include/mdn/checker.h, 
+	include/mdn/delimitermap.h, include/mdn/filechecker.h,
+	include/mdn/filemapper.h, include/mdn/mapper.h,
+	include/mdn/mapselector.h, include/mdn/nameprep.h,
+	include/mdn/ucsmap.h, include/mdn/ucsset.h.
+
+	* tools/runmdn/ns_name.c: use api modoule to convert domain name.
+	* tools/runmdn/Makefile.in: add api.lo, checker.lo, delimitermap.lo,
+	mapper.lo and mapselector.lo MDNOBJS.
+
+2001-02-21
+	* fix a bug in command line option parser.
+
+	* lib/msgtrans.c: don't include resolv.h or arpa/nameser.h if system
+	doesn't have it.
+
+2001-02-20
+	* acconfig.h: diet. Description of cpp macro defined in config.h.in
+	is now given by the 3rd argument of AC_DEFINE or AC_DEFINE_UNQUOTED.
+
+	* tools/runmdn/ns_name.c, tools/runmdn/res_comp.c: include config.h.
+	* tools/runmdn/res_comp.c: don't include resolv.h or arpa/nameser.h
+	if system doesn't have it.
+
+	* lib/utf6.c: fix a decoder bug.
+
+2001-02-19
+	* lib/normalizer.c: remove ja-* schemes, and add `nameprep-02' as an
+	alias of `unicode-form-kc'.
+	* lib/filemapper.c, lib/filechecker.c: add partial support of
+	draft-ietf-idn-version-00.txt i.e. allow version specification
+	line at the top of the map/check files.  if those files begin
+	with a line of the form `version=...', ignore the line.
+	* lib/filechecker.c: allow lines that end with semicolons.
+
+	* dnsproxy/proxycnf.c: dnsproxy rejected bind4compat option to
+	`forward'.  Fixed.
+
+	* configure.in: check for a `iconv' function.
+
+	* dnsproxy: the directory name is renamed to `mdnsproxy'.
+
+	* configure.in, Makefile.in, dnsproxy/Makefile.in, 
+	dnsproxy/dnsproxy.8.in, dnsproxy/dnsproxy.conf.sample,
+	dnsproxy/dnsproxy.def, dnsproxy/dnsproxy.h: rename `dnsproxy' to
+	`mdnsproxy'.
+	* dnsproxy/acl.c, dnsproxy/logging.c, dnsproxy/message.c, 
+	* dnsproxy/os2main.c, dnsproxy/proxyconf.c, dnsproxy/translate.c, 
+	* dnsproxy/unxmain.c, dnsproxy/winmain.c, dnsproxy/winserv.c:
+	include `dnsproxy.h' not `mdnsproxy.h'.
+
+	* mdnsproxy/mdnsproxy.8.in, mdnsproxy/mdnsproxy.conf.sample:
+	corresponds to mDNkit-2.0.
+
+	* lib/translator.c, lib/zldrule.c: removed.
+	* lib/Makefile.in: remove translator.c and zldrule.c from SRCS, 
+	translator.lo and zldrule.lo from OBJS.
+	* include/mdn/translator.h, include/mdn/zldrule.h: removed.
+	* include/mdn/Makefile.in: remove translator.h and zldrule.h from
+	HDRS.
+	* tools/runmdn/Makefile.in: remove translator.lo and zldrule.lo from
+	OBJS.
+
+2001-02-16
+	* lib/checker.c: mdn_checker_lookup() doesn't think `.' as prohibited
+	character.
+	* lib/res.c: fix a bug of the nameconv action `L'.
+
+	* configure.in: add `--with-logdir=DIR' option.
+
+	* dnsproxy/Makefile.in: rename variable names; from `SBINDIR' to
+	`sbindir', from `ETCDIR' to `sysconfdir', from `MANDIR' to `mandir'.
+	* dnsproxy/Makefile.in: define `sysconfdir' and `logdir'.
+	* dnsproxy/Makefile.in: delete `CONFIG_PATH'.
+	* dnsproxy/Makefile.in: add `-DLOGDIR=...' option to DEFS.
+	* dnsproxy/Makefile.in: replace `@sysconfdir@' and `@logdir' in
+	dnsproxy.8.in.
+	* dnsproxy/dnsproxy.8.in: use @sysconfdir@ and @logdir@.
+	* dnsproxy/logging.c: default log file is set to LOGDIR/mdnsproxy.conf.
+
+	* dnsproxy/proxycnf.h: define all configuration commands as cpp macros
+	with the prefix KW_.
+	* dnsproxy/proxycnf.h: define all command line options as cpp macros
+	with the prefix CMDOPT_.
+
+	* dnsproxy/dnsproxy.h: include proxycnf.h.
+	* dnsproxy/dnsproxy.h: delete `zld' and `cconverter' from
+	translation_context_t.
+
+	* dnsproxy/proxycnf.c: record line numbers of commands when reading
+	a configuration file.
+	* dnsproxy/proxycnf.c: don't expand $(...) in a configuration file
+	name.
+	* dnsproxy/proxycnf.c: reject obsolete and unknown commands.
+
+	* dnsproxy/translate.c: use the resconf module in libmdn, and
+	and pass the resconf object to mdn_msgtrans_translate() to convert
+	DNS request and query data.
+	* dnsproxy/translate.c: ZLD is no longer supported.
+
+	* include/mdn/Makefile.in: add nameprep.h to HDRS.
+
+2001-02-15
+	* lib/msgtrans.c: re-implement using res and resconf module.
+	also change API.
+	* include/mdn/msgtrans.h: change API.
+	* tools/mdnconv/mdnconv.c, tools/mdnconv/util.c, tools/mdnconv/util.h:
+	re-implement using new res module interface.
+
+	* lib/res.c, include/mdn/res.h: rename the action characters.
+	Now, conversion from UTF-8 to ACE is done by `I', and conversion
+	from ACE to UTF-8 is done by `i'.
+
+	* include/mdn/checker.h: define MDN_CHECKER_PROHIBIT_PREFIX and
+	MDN_CHECKER_UNASSIGNED_PREFIX.
+
+	* lib/resconf.c: update the local converter each time 
+	mdn_resconf_getlocalconverter() is called, if the converter is not
+	set by mdn_resconf_setlocalconverter().
+
+	* lib/res.c: fix a bug in mdn_res_nameconv() that it returns
+	`mdn_invalid_action' for a valid action sequence.
+
+	* dnsproxy/Makefile.in, lib/Makefile.in, man/Makefile.in, 
+	include/mdn/Makefile.in, tools/mdnconv/Makefile.in,
+	tools/runmdn/Makefile.in: use `mkinstalldirs' to create missing
+	install directories.
+	* mkinstalldirs: new file.
+
+2001-02-14
+	* lib/unicode.c: fix typo.
+	* lib/normalizer.c: fix type confliction.
+	* wsock/README.txt, wsock/README_j.txt: remove a notice that
+	uninstallation of older version is needed before installing a
+	new version of mDN Wrapper, since it is not necessary any more.
+	also add a short description of "rewrap all" button.
+
+	* inclde/mdn/resconf.h: define the following macros for backward
+	compatibility; mdn_resconf_localconverter, mdn_resconf_idnconverter,
+	mdn_resconf_getalternateconverter, mdn_resconf_getnormalizer,
+	mdn_resconf_mapper, mdn_resconf_delimitermap,
+	mdn_resconf_localmapselector, mdn_resconf_prohibitchecker and
+	mdn_resconf_unassignedchecker.
+
+	* lib/resconf.c: fix a bug that parse_delimiter_map() might returns
+	incorrect return value.
+
+	* lib/utf6.c: fix a bug that the decoder might cause buffer overflow.
+
+	* lib/race.c, lib/utf6.c: delete comma at end of enumerator list.
+
+	* lib/res.c, include/mdn/res.h: revised for version 2.0.
+
+	* dnsproxy/unxmain.c, dnsproxy/os2main.c: reject unknown command line
+	options.
+
+	* lib/resconf.c: detect unbalanced quotation in configuration.
+
+	* lib/resconf.c: fix a serious bug that cannot read a configuration
+	file without a newline character at end of the file.
+
+	* lib/res.c: in mdn_res_nameconv(), action `l' tries to convert a
+	string using the alternate_encoder, and then tries using the
+	local_converter.
+
+	* configure.in: fix help message.
+
+	* lib/converter.c: register UTF-6.
+	* tools/mdnconv/mdnconv.1: Add UTF-6 to the ACE list.
+	* tools/runmdn/Makefile.in: Support UTF-6.
+
+2001-02-13
+	* util/UCD.pm, util/SparseMap.pm: created.
+	* util/generate_normalize_data.pl: wholly rewritten using above
+	two perl modules.
+	* util/generate_nameprep_data.pl: created.
+	* lib/unicodedata.c: re-generated.
+	* lib/unicode.c: change the basic lookup algorithm so that it should
+	adapt to the forthcoming new unicode standard easily.
+	* lib/unicode.c, include/mdn/unicode.h: implement unicode case
+	folding.
+	* lib/nameprepdata.c: fix a bug.
+	* lib/normalizer.c: add 'unicode-foldcase' normalization scheme.
+
+	* lib/resconf.c, include/mdn/resconf.h: revised for version 2.0.
+
+	* lib/delimitermap.c, include/mdn/delimitermap.h: new flies.
+	* lib/Makefile.in: add `delimitermap.c' to `SRCS'.
+	add `delimitermap.lo' to `OBJS'.
+	* include/mdn/Makefile.in: add `delimitermap.h' to `HDRS'.
+	* include/mdn/api.h, lib/api.c: created.
+	
+2001-02-09
+	* dnsproxy/unxmain.c: fix a bug that 'group-id' entry in the
+	configuration file causes an error, if specified together with
+	'user-id'.
+
+	* dnsproxy/dnsproxy.8.in, dnsproxy/dnsproxy.conf.sample:
+	Use the term `IP prefix' to an IP address followed by a slash
+	and netmask.
+
+	* lib/checker.c, include/mdn/checker.h: new files.
+	* lib/Makefile.in: add `checker.c' to `SRCS'.
+	add `checker.lo' to `OBJS'.
+	* include/mdn/Makefile.in: add `checker.h' to `HDRS'.
+
+2001-02-08
+	* lib/mapper.c, include/mdn/mapper.h: new files.
+	* lib/mapselector.c, include/mdn/mapselector.h: new files.
+	* lib/Makefile.in: add `mapper.c' and `mapselector.c' to `SRCS'.
+	add `mapper.lo' and `mapselector.lo' to `OBJS'.
+	* include/mdn/Makefile.in: add `mapper.h' and `mapselector.h' to
+	`HDRS'.
+
+2001-02-07
+	* lib/filechecker.c, include/mdn/filechecker.h: created.
+	* lib/filemapper.c, include/mdn/filemapper.h: created.
+	* lib/nameprep.c, lib/nameprepdata.c, lib/nameprep_template.c:
+	created.
+	* lib/Makefile.in, include/mdn/Makefile.in, tools/runmdn/Makefile.in:
+	incorporates newly created files above.
+	* dnsproxy/proxycnf.c, dnsproxy/dnsproxy.h: change variable name
+	'restrict' to 'src_restrict', since the next C standard makes
+	'restrict' a keyword, and there are some compilers already
+	implement the new spec.
+
+2001-02-05
+	* lib/converter.c, lib/normalizer.c: reference count support.
+	* include/mdn/converter.h: add the declaration of
+	mdn_converter_incrref().
+	* include/mdn/normalizer.h: add the declaration of
+	mdn_normalizer_incrref().
+	* include/mdn/result.h, lib/result.c : add new result codes
+	* (mdn_invalid_action, mdn_invalid_codepoint and mdn_prohibited).
+	* lib/ucsmap.c, include/mdn/ucsmap.h: created.
+	* lib/ucsset.c, include/mdn/ucsset.h: created.
+	* lib/Makefile.in: add ucsmap.c and ucsset.c.
+	* tools/runmdn/Makefile.in: add ucsmap.lo and ucsset.lo.
+	* include/mdn/Makefile.in: add ucsmap.h and ucsset.h.
+
+2001-02-02
+	* wsock/config/mdnconf.tcl: add `rewrap' button.
+
+2001-02-01
+        * Makefile.in: update for 1.3.
+	* README, README.ja: ditto.
+	* lib/Makefile.in, tools/runmdn/Makefile.in: update library version.
+
+	* patch/bind8/bind-8.2.3-patch: created.
+	* patch/bind8/bind-8.2.2-P7-patch: removed.
+	* patch/bind8/bind-8.2.3-T9B-patch: removed.
+	* patch/bind9/bind-9.1.0-patch: created.
+	* DISTFILES: remove bind-8.2.2-P7-patch and bind-8.2.3-T9B-patch,
+	and then add bind-8.2.3-patch and bind-9.1.0-patch.
+
+2000-12-28
+        * Makefile.in: update for 1.2.1-rc2.
+        * README, README.ja: update for 1.2.1-rc2 release.
+
+2001-01-30
+	* lib/Makefile.in: add `utf6.c' to SRCS.  add `utf6.o' to OBJS.
+	* include/mdn/Makefile.in: add `utf6.h' to HDRS.
+	* lib/utf6.c, include/mdn/utf6.h: new files.
+	* DISTFILES: add lib/utf6.c and include/mdn/utf6.h.
+
+2001-01-29
+	* tools/runmdn/ns_name.c: include resolv.h and arpa/nameser.h only
+	if they exist.
+	* configure.in: add check for resolv.h and arpa/nameser.h.
+	* configure, include/config.h.in: re-generated.
+	* include/mdn/dude.h: add a comment about conformance.
+	
+2001-01-22
+	* lib/brace.c, lib/dude.c, lib/lace.c, lib/race.c: fix a bug that
+	ACE encoders cannot encode a domain name which ends with `.'.
+	* dnsproxy/acl.c: fix a bug of ACL initialization.
+
+2001-01-18
+	* lib/lace.c: catch up with draft-ietf-idn-lace-01.txt.
+
+2001-01-16
+	* dnsproxy/proxycnf.c: rewrite getHostPort(), and define
+	getHostPort2().  They parse `host:port' string more stritctly.
+	* dnsproxy/acl.c: fix error messages.
+	* DISTFILES: add dnsproxy/acl.c.
+	* lib/util.c, include/mdn/util.h: defines mdn_util_validstd13().
+	* lib/brace.c, lib/dude.c, lib/lace.c, lib/race.c: use
+	mdn_util_validstd13() to test whether a domain name conforms STD-13.
+
+2001-01-15
+	* lib/dude.c, include/mdn/dude.h: created.
+	* lib/converter.c: add DUDE encoding.
+	* lib/Makefile.in, include/mdn/Makefile.in: add dude.[ch].
+	* tools/runmdn/Makefile.in: add dude.lo.
+	* DISTFILES: add dude.[ch].
+
+	* dnsproxy/logging.c: log_configure() returns BOOL.
+	* dnsproxy/unxmain.c, dnsproxy/os2main.c, dnsproxy/winmain.c,
+	dnsproxy/winserv.c: exit if a configuration file has an invalid
+	`log-level' line.
+	* dnsproxy/proxycnf.c, dnsproxy/logging.c: fix error and warning
+	messages.
+	
+2001-01-12
+	* dnsproxy/acl.c: new file.
+	* dnsproxy/server.c: add access control feature.
+	* dnsproxy/server.c: sockAccept(), sockRecvTcp() and sockRecvUdp()
+	returns `int', not `BOOL'.  The return value from the functions is
+	SUCESS, FAILURE, or DENIED.
+	* dnsproxy/proxycnf.c: define config_query_log_on_denied().
+	* dnsproxy/dnsproxy.h: add declaration of config_query_log_on_denied(),
+	acl_initialize(), acl_test() and acl_finalize().
+	* dnsproxy/Makefile.in: add `acl.c' to SRCS, and `acl.o' to OBJS.
+	* dnsproxy/dnsproxy.conf.sample: add `allow-access' and `log-on-denied'
+	entires.
+	* dnsproxy/dnsproxy.8.in: likewise.
+
 2001-01-12
 	* Makefile.in: update for 1.2.1.
 	* version 1.2.1 release

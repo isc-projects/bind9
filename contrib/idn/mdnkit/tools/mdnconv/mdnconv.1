@@ -1,6 +1,7 @@
-.\" $Id: mdnconv.1,v 1.11 2000/11/17 07:18:58 ishisone Exp $
+.\" $Id: mdnconv.1,v 1.17 2001/05/18 04:16:27 ishisone Exp $
 .\"
-.\" Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+.\" Copyright (c) 2000,2001 Japan Network Information Center.
+.\" All rights reserved.
 .\"  
 .\" By using this file, you agree to the terms and conditions set forth bellow.
 .\" 
@@ -56,7 +57,7 @@
 .\"    Conditions hereby agrees and consent to the personal and exclusive
 .\"    jurisdiction and venue of Tokyo District Court of Japan.
 .\"
-.TH MDNCONV 1 "June 30, 2000"
+.TH MDNCONV 1 "Mar 3, 2001"
 .\"
 .SH NAME
 mdnconv \- codeset converter for named.conf and zone master files
@@ -68,143 +69,321 @@ mdnconv \- codeset converter for named.conf and zone master files
 .B mdnconv
 is a codeset converter for named configuration files and zone master files.
 .B mdnconv
-performs codeset conversion specified by the command-line arguments,
+performs codeset conversion specified either by the command-line arguments
+or by the configuration file,
 and writes the converted text to stdout.
+.PP
 If file name is specified,
 .B mdnconv
 converts the contents of the file.  Otherwise,
 .B mdnconv
-converts stdin.
+converts
+.IR stdin .
 .PP
+Since
 .B mdnconv
 is specifically designed for converting internatinalized domain names,
-and may not be suitable as a general codeset converter.
+it may not be suitable as a general codeset converter.
+.\"
+.SH "OPERATION MODES"
+.B mdnconv
+has two operation modes.
+.PP
+One is a mode to convert local-encoded domain names to IDN-encoded
+one.  Usually this mode is used for preparing domain names to be
+listed in named configuration files or zone master files.
+In this mode, the following processes are performed in addition to
+the codeset (encoding) conversion.
+.RS 2
+.IP \- 2
+local mapping
+.IP \- 2
+standard domain name preperation (NAMEPREP)
+.RE
+.PP
+Furthermore, delimiter mapping is also performed in case \-delimitermap
+command line option is specified.
+.PP
+The other mode is a reverse convertion, from IDN-encoded domain name to
+local-encoded domain names.
+Since IDN-ecoded names are usually already normalized by local mapping and
+NAMEPREP process, only codeset conversion is performed in this mode.
+.\"
 .SH OPTIONS
+Normally
+.B mdnconv
+reads system's default configuration file (mdn.conf) and perform
+conversion or name preparation according to the parameters specified in
+the file.  You can override the setting in the configuration file by
+various command line options below.
 .TP 4
-\fB\-in\fP \fIin-code\fP
+\fB\-in\fP \fIin-code\fP, \fB\-i\fP \fIin-code\fP
 Specify the codeset name of the input text.
 Any of the following codeset names can be specified.
 .RS 4
 .IP "\(bu" 2
-Codeset names which iconv_open() library function accepts
+Any codeset names which \fIiconv_open()\fP library function accepts
 .IP "\(bu" 2
-``UTF-5''
+\f(CWRACE\fR
 .IP "\(bu" 2
-``RACE''
+\f(CWBRACE\fR
 .IP "\(bu" 2
-``BRACE''
+\f(CWLACE\fR
 .IP "\(bu" 2
-``LACE''
+\f(CWDUDE\fR
+.IP "\(bu" 2
+\f(CWUTF-5\fR
+.IP "\(bu" 2
+\f(CWUTF-6\fR
+.IP "\(bu" 2
+\f(CWAltDUDE\fR
+.IP "\(bu" 2
+\f(CWAMC-ACE-O\fR
+.IP "\(bu" 2
+\f(CWAMC-ACE-M\fR
+.IP "\(bu" 2
+\f(CWAMC-ACE-R\fR
 .IP "\(bu" 2
 Any alias names for the above, defined by the codeset alias file.
 .RE
 .IP "" 4
 If this option is not specified, the default codeset is determined
-from the current locale.
+from the locale in normal conversion mode.
+In reverse conversion mode, the default codeset is the IDN encoding
+specified by the configuration file (``idn-encoding'' entry).
 .TP 4
-\fB\-out\fP \fIout-code\fP
+\fB\-out\fP \fIout-code\fP, \fB\-o\fP \fIout-code\fP
 Specify the codeset name of the output text. \fIout-code\fP can be any
 codeset name that can be specified for 
 .B \-in
 option.
-If this option is not specified, the default is the codeset specified
-in MDN resolver configuration file (``server-encoding'' line).
+.IP "" 4
+If this option is not specified, the default is the IDN encoding
+specified by the configuration file (``idn-encoding'' entry) in
+normal conversion mode.
+In reverse conversion mode, the default codeset is determined from
+the locale.
+.TP 4
+\fB\-conf\fP \fIpath\fP, \fB\-c\fP \fIpath\fP
+Specify the pathname of mDNkit configuration file (``mdn.conf'').
+If not specified, system's default file is used, unless \-noconf
+option is specified.
+.TP 4
+\fB\-noconf\fP, \fB\-C\fP
+Specify that no configuration file is to be used.
+.TP 4
+\fB\-reverse\fP, \fB\-r\fP
+Specify reverse conversion mode.
+.br
+If this option is not specified, the normal conversion mode is used.
+.TP 4
+\fB\-nameprep\fR \fIversion\fR, \fB\-n\fR \fIversion\fR
+Specify the version of NAMEPREP.
+The following is a list of currently available
+.IR version s.
+.RS 4
+.IP \f(CWnameprep-02\fR 4
+Perform NAMEPREP according to the Internet Draft
+``draft-ietf-idn-nameprep-02.txt'' (NAMEPREP-02).
+.IP \f(CWnameprep-03\fR 4
+Perform NAMEPREP according to the Internet Draft
+``draft-ietf-idn-nameprep-03.txt'' (NAMEPREP-03).
+.RE
+.IP "" 4
+This option is a shorthand for specifying the 4 options below.
+.PP
+.RS 8
+.ft CW
+-map 
+.I version
+.br
+-normalize
+.I version
+.br
+-prohibit
+.I version
+.br
+-unassigned
+.I version
+.ft R
+.RE
+.IP "" 4
+This option is only meaningful in the normal conversion mode.
+.TP 4
+\fB\-nonameprep\fR, \fB\-N\fR
+Specify to skip NAMEPREP process in the normal conversion mode.
+.br
+This option is only meaningful in the normal conversion mode.
+.TP 4
+\fB\-map\fR \fImap\fR
+Specify the name of the mapping rule for NAMEPREP mapping process.
+Currently, following
+.IR map s
+are available.
+.RS 4
+.IP \f(CWnameprep-02\fR 4
+Use the list of mappings specified by NAMEPREP-02 draft.
+.IP \f(CWnameprep-03\fR 4
+Use the list of mappings specified by NAMEPREP-03 draft.
+.IP \f(CWfilemap:\fR\fIpath\fR 4
+Use list of mappings specified by mapfile
+.IR path .
+See mdn.conf(5) for the format of a mapfile.
+.RE
+.IP "" 4
+This option can be specified more than once.
+In that case, each mapping will be performed in the order of the
+specification.
+.br
+If neither this option nor ``\-nameprep'' are specified,
+the schemes specified in the configuration file (``nameprep-map'' entry)
+are used.
+.br
+This option is only meaningful in the normal conversion mode.
 .TP 4
 \fB\-normalize\fP \fIscheme\fP
-Perform normalization specified by \fIscheme\fP.
+Specify the normalization scheme for NAMEPREP normalization process.
 Currently, following \fIscheme\fPs are available:
 .RS 4
-.IP ``ascii-uppercase''
+.IP \f(CWascii-uppercase\fR
 ASCII lowercase to uppercase mapping.
-.IP ``ascii-lowercase''
+.IP \f(CWascii-lowercase\fR
 ASCII uppercase to lowercase mapping.
-.IP ``unicode-uppercase''
+.IP \f(CWunicode-uppercase\fR
 Unicode lowercase to uppercase mapping, which is described in
 ``Unicode Technical Report #21: Case Mappings'',
 available from unicode.org.
-.IP ``unicode-lowercase''
+.IP \f(CWunicode-lowercase\fR
 Unicode uppercase to lowercase mapping, according ``Case Mappings''.
-.IP ``unicode-form-c''
+.IP \f(CWunicode-foldcase\fR
+Unicode case-folding for case-less string matching,
+also described in the above document.
+.IP \f(CWunicode-form-c\fR
 Unicode Normlization Form C, which is described in
 ``Unicode Technical Report #15: Unicode Normalization Forms'',
 also available from unicode.org.
-.IP ``unicode-form-kc''
-Perform Unicode Normlization Form KC, also described in the above
+.IP \f(CWunicode-form-kc\fR
+Unicode Normlization Form KC, also described in the above
 document.
-.IP ``ja-compose-voiced-sound''
-Compose Japanese full-width hiragana/katakana character and the following
-(semi) voiced sound mark (dakuten or han-dakuten in Japanese) into a
-single combined letter if such letter exists.
-.IP ``ja-kana-fullwidth''
-Convert Japanese half-width katakana characters (aka ``hankaku katakana'')
-to their corresponding full-width characters.
-.IP ``ja-alnum-halfwidth''
-Convert full-width alphabets, digits and minus sign to half-width.
-.IP ``ja-minus-hack''
-Convert Japanese full-width minus sign (U+2212 ``MINUS SIGN'') to
-``\-'' (U+002D ``HYPHEN-MINUS'').
-.IP ``ja-delimiter-hack''
-Map ``IDEOGRAPHIC FULL STOP'' (U+3002) and ``FULLWIDTH FULL STOP'' (U+FF0E)
-characters to period (``.'') so that these two characters can be used as
-domain component separaters.
-.br
-Note that there is no good reason to use this scheme when you convert
-configuration files or zone files, and its use is strongly
-deprecated.
+.IP \f(CWnameprep-02\fR
+Synonim for ``unicode-form-kc''.
+.IP \f(CWnameprep-03\fR
+Synonim for ``unicode-form-kc''.
 .RE
 .IP "" 4
 This option can be specified more than once.
 In that case, each normalization will be performed in the order of the
 specification.
 .br
-If this option is not specified, the schemes specified in MDN resolver
-configuration file (``normalize'' line) are used.
-.TP 4
-\fB\-zld\fP \fIZLD\fP
-Specify ZLD (zero-level domain) to use.
-If a domain name to be converted ends with the specified ZLD,
-the matching part will not be converted.
-This is important for some codesets such as UTF-5, in order to
-protect ZLD part intact from conversion.
+If neither this option nor ``\-nameprep'' are specified,
+the schemes specified in the configuration file (``nameprep-normalize'' entry)
+are used.
 .br
-If this option is not specified, the default is the one specified
-in MDN resolver configuration file (``server-zld'' line) or empty (no ZLD).
+This option is only meaningful in the normal conversion mode.
 .TP 4
-\fB\-auto\fP
-Automatically append ZLD specified by \-zld option to domain names,
-if they contain non-ASCII character and end with period (``.'').
-By using this option, you don't have to specify ZLD explicitly in
-your zone master file.  It is not perfect though, there are cases
-you have to write ZLD explicitly.  So take care.
+\fB\-prohibit\fR \fIset\fR
+Specify the set of prohibited characters.
+Currently, following
+.IR set s
+are available.
+.RS 4
+.IP \f(CWnameprep-02\fR 4
+Use list of prohibit characters specified by NAMEPREP-02 draft.
+.IP \f(CWnameprep-03\fR 4
+Use list of prohibit characters specified by NAMEPREP-03 draft.
+.IP \f(CWfileset:\fR\fIpath\fR 4
+Use list of characters specified by setfile
+.IR path .
+See mdn.conf(5) for the format of a setfile.
+.RE
+.IP "" 4
+This option can be specified more than once.  In this case, the set of
+prohibited characters is the union of the specified sets.
+.br
+If neither this option nor ``\-nameprep'' is specified,
+list of characters specified by the configuration file
+(``nameprep-prohibit'' entry) is used.
+.br
+This option is only meaningful in the normal conversion mode.
 .TP 4
-\fB\-whole\fP
-Perform normalization and conversion to output codeset for the entire
+\fB\-unassigned\fR \fIset\fR
+Specify the set of unassigned codepoints.
+Currently, following
+.IR set s
+are available.
+.RS 4
+.IP \f(CWnameprep-02\fR 4
+Use the list of unassigned characters specified by NAMEPREP-02 draft.
+.IP \f(CWnameprep-03\fR 4
+Use the list of unassigned characters specified by NAMEPREP-03 draft.
+.IP \f(CWfileset:\fR\fIpath\fR 4
+Use list of characters specified by setfile
+.IR path .
+See mdn.conf(5) for the format of a setfile.
+.RE
+.IP "" 4
+Note that unassigned codepoint checking is not performed
+unless \-unassigncheck option is specified.
+.br
+This option can be specified more than once.  In this case, the set of
+prohibited characters is the union of the specified sets.
+.br
+If neither this option nor ``\-nameprep'' is specified,
+list of characters specified by the configuration file
+(``nameprep-unassigned'' entry) is used.
+.br
+This option is only meaningful in the normal conversion mode.
+.TP 4
+\fB\-unassigncheck\fR, \fB\-u\fR
+Specify unassigned codepoint check should be performed.
+Unassigned codepoint check is disabled by default.
+.br
+This option is only meaningful in the normal conversion mode.
+.TP 4
+\fB\-delimiter\fR \fIcodepoint\fP
+Specify the character to be mapped to domain name delimiter (period).
+This option can be specified more than once in order to specify multiple
+characters.
+.br
+If this option is not specified, characters specified by the
+configuration file (``delimiter-map'') is used.
+.br
+Note that delimiter mapping is not performed unless \-delimitermap option
+is specified.
+.br
+This option is only meaningful in the normal conversion mode.
+.TP 4
+\fB\-delimitermap\fR, \fB\-d\fR
+Specify delimiter mapping should be performed.
+By default, delimiter mapping is disabled.
+.br
+This option is only meaningful in the normal conversion mode.
+.TP 4
+\fB\-whole\fP, \fB\-w\fP
+Perform local mapping, nameprep and conversion to output codeset for the entire
 input text.  If this option is not specified, only non-ASCII characters
-and their surrounding texts will be normalized and converted.
+and their surrounding texts will be processed.
 See ``CONVERSION MECHANISM'' for details.
 .TP 4
-\fB\-alias\fP \fIpath\fP
+\fB\-alias\fP \fIpath\fP, \fB\-a\fP \fIpath\fP
 Specify a codeset alias file.  It is a simple text file, where
 each line has a pair of alias name and real name separated by one
 or more white spaces like below:
 .nf
 .ft CW
 
-    some-alias-codeset-name    real-codeset-name
+    \fIalias-codeset-name\fP    \fIreal-codeset-name\fP
 
-.ft P
+.ft R
 .fi
 Lines starting with ``#'' are treated as comments.
 .TP 4
-\fB\-conf\fP \fIpath\fP
-Specify a MDN resolver configuration file (``mdnres.conf'').
-If not specified, system's default file is used.
-.TP 4
-\fB\-noconf\fP
-Specify that no configuration file is to be used.
-.TP 4
 \fB\-flush\fP
 Force line-buffering mode.
+.TP 4
+\fB\-version\fP, \fB\-v\fP
+Print version information and quit.
+.\"
 .SH CONVERSION MECHANISM
 Here is a brief step-by-step description of how
 .B mdnconv
@@ -213,7 +392,21 @@ does its job.
 .B mdnconv
 reads input text line by line, and converts them from the input codeset
 to UTF-8 encoding.  Basically this conversion is done using iconv() utility,
-but for some special codesets like UTF-5, special converter will be used.
+but for some special codesets like RACE, special converter will be used.
+.br
+Normally the whole line is converted, but if the input codeset is an
+ACE (ASCII-compatible encoding, such as RACE), a special conversion
+prodedure shown below is used:
+.RS 4
+.IP 1) 3
+Find substrings which are valid ASCII domain names (i.e. constructed from
+alphanumeric characters and hyphens) in the line.
+.IP 2) 3
+For each substring found, try converting it to UTF-8.
+.IP 3) 3
+If the conversion succeeds, replace the substring with the conversion
+result. Otherwise, the original substring is retained.
+.RE
 .IP "2. finding where to process" 4
 Then
 .B mdnconv
@@ -222,7 +415,7 @@ and picks them up for further processing.
 .br
 .B mdnconv
 recognizes the character sequence having the following property as
-the internationalized domain name.
+an internationalized domain name.
 .RS 4
 .IP "\(bu" 2
 containing at least one non-ASCII character, and
@@ -252,37 +445,57 @@ the following lines (`#' denotes non-ASCII character).
 .fi
 If \-whole option is specified, this step is skipped and the entire line
 is subject to further processing.
-.IP "3. normalization"
-For each string picked up by the last step, normalization is performed.
-Multiple normalization schemes can be applied. 
-.IP "4. output-side conversion" 4
+.IP "3. delimiter mapping" 4
+For each string picked up by the last step, delimiter mapping is performed.
+That is, substibute certain characters specified as domain name delimiter
+with period.
+.IP "4. local mapping" 4
+Perform local mapping.
+If the local mapping is specified by command line option ``\-localmap'',
+the specified mapping rule is applied.  Otherwise, find the mapping rule
+from the configuration file which matches to the TLD of the name,
+and perform mapping according to the matched rule.
+.IP "5. nameprep" 4
+Perform name preparation (NAMEPREP).  This is a following 3-step process.
+.RS 6
+.nf
+1) Mapping
+2) Normalization
+3) Prohibited/unassigned character checking
+.fi
+.RE
+.IP "6. output-side conversion" 4
 Finally,
 .B mdnconv
-converts the normalized strings from UTF-8 encoding to the output codeset,
-typically UTF-8, UTF-5 or RACE.  And it writes them to stdout together with
-the rest of the line.
+converts the nameprepped strings from UTF-8 encoding to the output codeset.
+And it writes them to stdout together with the rest of the line.
+.PP
+If
+.B mdnconv
+operates in the reverse conversion mode, step 3, 4 and 5 above are skipped.
+.\"
 .SH FILE MANAGEMENT
 Maybe the best way to manage named.conf or zone master files that contains
 internationalized domain name is to keep them in your local codeset so that
-they can be edited with your favorite editor, and generate UTF-8 or
-UTF-5 (or whatever) version using \fBmdnconv\fP.
-
+they can be edited with your favorite editor, and generate a version in
+the IDN encoding using \fBmdnconv\fP.
+.PP
 `make' is a convenient tool for this purpose.
-Suppose the local codeset version has suffix `.lc', and its UTF-8 version
-has suffix `.utf8'.  The following Makefile enables you to generate
-UTF-8 version from local codeset version by just typing `make'.
+Suppose the local codeset version has suffix `.lc', and its ACE version
+has suffix `.ace'.  The following Makefile enables you to generate
+ACE version from local codeset version by just typing `make'.
 .RS 4
 .nf
 .ft CW
 
-\&.SUFFIXES: .lc .utf8
-\&.lc.utf8:
-        mdnconv -in $(LOCALCODE) -out UTF-8 $(MDNCONVOPT) $< > $@
+\&.SUFFIXES: .lc .ace
+\&.lc.ace:
+        mdnconv -in $(LOCALCODE) $(MDNCONVOPT) $< > $@
 
 LOCALCODE = EUC-JP
-MDNCONVOPT = -normalize unicode-form-c
+MDNCONVOPT = 
 
-DESTFILES = db.zone1.utf8 db.zone2.utf8
+DESTFILES = db.zone1.ace db.zone2.ace
 
 all: $(DESTFILES)
 .ft
@@ -290,15 +503,10 @@ all: $(DESTFILES)
 .RE
 .\"
 .SH SEE ALSO
-mdnres.conf(5),
-iconv(3) (if your system has one)
+mdn.conf(5),
+iconv(3)
 .\"
 .SH BUGS
 The automatic input-code selection depends on your system, and sometimes
-it cannot guess or guess wrong.  It is better to explicitly specify it using \-in option.
-.PP
-ZLD handling has some problems.  Especially automatic ZLD supply feature
-(\-auto option) is inherently imperfect and you shouldn't rely on it.
-.PP
-Some mechanism is required to force normalization and output-side conversion
-on ASCII-only domain names.
+it cannot guess or guess wrong.  It is better to explicitly specify it
+using \-in option.

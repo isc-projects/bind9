@@ -1,3 +1,126 @@
+##
+## $Id: aclocal.m4,v 1.5 2001/04/19 07:20:51 ishisone Exp $
+##
+dnl
+dnl AC_ACE_PREFIX(ace-name, default)
+dnl AC_ACE_SUFFIX(ace-name, default)
+dnl AC_ACE_SIGNATURE(ace-name, prefix-default, suffix-default)
+dnl
+define([AC_ACE_PREPARE], [dnl
+undefine([ACE_ID])undefine([ACE_PSYM])undefine([ACE_SSYM])dnl
+define([ACE_ID],translit($1,[A-Z_],[a-z-]))dnl
+define([ACE_PSYM],[MDN_]translit(ACE_ID,[a-z-],[A-Z])[_PREFIX])dnl
+define([ACE_SSYM],[MDN_]translit(ACE_ID,[a-z-],[A-Z])[_SUFFIX])])dnl
+dnl
+AC_DEFUN([AC_ACE_PREFIX],[AC_ACE_PREPARE($1)dnl
+ace_prefix=no
+AC_ARG_WITH(ACE_ID-prefix,
+[  --with-]ACE_ID[-prefix=PREFIX  prefix for $1 encoding [$2]],
+	ace_prefix=$withval)
+case "${ace_prefix}" in
+no)
+    ace_prefix="$2"
+    ;;
+yes)
+    AC_MSG_ERROR([You must specify PREFIX to --with-ACE_ID-prefix option.])
+    ;;
+esac
+if test "${ace_prefix}" != ""; then
+    AC_DEFINE_UNQUOTED(ACE_PSYM, "${ace_prefix}",
+      [Define if the prefix of $1 encoding differs from '$2'.])
+fi
+])
+AC_DEFUN([AC_ACE_SUFFIX],[AC_ACE_PREPARE($1)dnl
+ace_suffix=no
+AC_ARG_WITH(ACE_ID-suffix,
+[  --with-]ACE_ID[-suffix=SUFFIX  suffix for $1 encoding [$2]],
+	ace_suffix=$withval)
+case "${ace_suffix}" in
+no)
+    ace_suffix="$2"
+    ;;
+yes)
+    AC_MSG_ERROR([You must specify SUFFIX to --with-ACE_ID-suffix option.])
+    ;;
+esac
+if test "${ace_suffix}" != ""; then
+    AC_DEFINE_UNQUOTED(ACE_SSYM, "${ace_suffix}",
+      [Define if the suffix of $1 encoding differs from '$2'.])
+fi
+])
+AC_DEFUN([AC_ACE_SIGNATURE],[AC_ACE_PREPARE($1)dnl
+ace_prefix=no
+ace_suffix=no
+AC_ARG_WITH(ACE_ID-prefix,
+[  --with-]ACE_ID[-prefix=PREFIX  prefix for $1 encoding [$2]],
+	ace_prefix=$withval)
+case "${ace_prefix}" in
+no)
+    ace_prefix=""
+    ;;
+yes)
+    AC_MSG_ERROR([You must specify PREFIX to --with-ACE_ID-prefix option.])
+    ;;
+esac
+AC_ARG_WITH(ACE_ID-suffix,
+[  --with-]ACE_ID[-suffix=SUFFIX  suffix for $1 encoding [$3]],
+	ace_suffix=$withval)
+case "${ace_suffix}" in
+no)
+    ace_suffix=""
+    ;;
+yes)
+    AC_MSG_ERROR([You must specify SUFFIX to --with-ACE_ID-suffix option.])
+    ;;
+esac
+if test "${ace_prefix}${ace_suffix}" = ""; then
+    ace_prefix="$2"
+    ace_suffix="$3"
+fi
+if test "${ace_prefix}" != ""; then
+    AC_DEFINE_UNQUOTED(ACE_PSYM, "${ace_prefix}",
+      [Define if the prefix of $1 encoding differs from '$2'.])
+elif test "${ace_suffix}" != ""; then
+    AC_DEFINE_UNQUOTED(ACE_SSYM, "${ace_suffix}",
+      [Define if the suffix of $1 encoding differs from '$3'.])
+fi
+])
+
+AC_DEFUN(AC_FIND_SYSTEM_SHOBJ,[
+AC_MSG_CHECKING(for $1 shared object)
+shobj_name=$1
+shobj_path=
+case "$host" in
+*-hpux*)
+    SOEXT=sl
+    ;;
+*)
+    SOEXT=so
+    ;;
+esac
+for shobj_libdir in /lib /usr/lib; do
+    if test -f $shobj_libdir/$shobj_name.$SOEXT; then
+        shobj_path=$shobj_libdir/$shobj_name.$SOEXT
+    else
+        shobj_path=`ls -r $shobj_libdir/$shobj_name.$SOEXT* 2>/dev/null | head -1`
+	if test "$shobj_path" != "" -a -f "$shobj_path"; then
+	    :
+	else
+	    shobj_path=
+	fi
+    fi
+    if test "$shobj_path" != ""; then
+	AC_MSG_RESULT($shobj_path)
+        shobj_pathsymbol=SOPATH_`echo $shobj_name | tr a-z A-Z`
+	AC_DEFINE_UNQUOTED($shobj_pathsymbol, "$shobj_path")
+	break
+    fi
+done
+if test "$shobj_path" = ""; then
+    AC_MSG_RESULT(no)
+fi
+])dnl
+
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
 ## Originally by Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996

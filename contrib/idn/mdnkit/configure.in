@@ -1,4 +1,4 @@
-dnl $Id: configure.in,v 1.25 2000/11/17 06:51:11 ishisone Exp $
+dnl $Id: configure.in,v 1.47 2001/05/18 04:02:29 ishisone Exp $
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
@@ -61,18 +61,34 @@ AC_INIT(include/mdn/converter.h)
 
 AC_CANONICAL_HOST
 
-zld=no
-AC_ARG_ENABLE(zld,
-[  --enable-zld            enable ZLD support. [default=no]],
-	zld=$enableval)
-case "$zld" in
+logdir=no
+AC_ARG_WITH(logdir,
+[  --with-logdir=DIR       mdnsproxy's log files are in DIR.
+                          [default=LOCALSTATEDIR/mdnsproxy]],
+	logdir=$withval)
+case "$logdir" in
+no)
+    logdir='${localstatedir}/mdnsproxy'
+    ;;
+yes)
+    AC_MSG_ERROR([You must specify DIR to --with-logdir option.])
+    ;;
+esac
+AC_SUBST(logdir)
+
+extraace=no
+AC_ARG_ENABLE(extra-ace,
+[  --enable-extra-ace      enable additional ACE converters. [default=no]],
+	extraace=$enableval)
+case "$extraace" in
 no)
     ;;
 yes)
-    AC_DEFINE(MDN_SUPPORT_ZLD)
+    AC_DEFINE(MDN_EXTRA_ACE, 1,
+	[Define if you want additional ACE converters compiled in.])
     ;;
 *)
-    AC_MSG_ERROR([You must specify yes or no to --enable-zld option.])
+    AC_MSG_ERROR([You must specify yes or no to --enable-extra-ace option.])
     ;;
 esac
 
@@ -87,54 +103,20 @@ yes)
     AC_MSG_ERROR([You must specify NAME to --with-utf8 option.])
     ;;
 *)
-    AC_DEFINE_UNQUOTED(MDN_UTF8_ENCODING_NAME, "$utf8name")
+    AC_DEFINE_UNQUOTED(MDN_UTF8_ENCODING_NAME, "$utf8name",
+	[Define if your iconv() does not accept "UTF-8" as the codeset name for utf-8.])
     ;;
 esac
 
-raceprefix=no
-AC_ARG_WITH(race-prefix,
-[  --with-race-prefix=PREFIX     prefix for RACE encoding [bq--]],
-	raceprefix=$withval)
-case "$raceprefix" in
-no)
-    ;;
-yes)
-    AC_MSG_ERROR([You must specify PREFIX to --with-race-prefix option.])
-    ;;
-*)
-    AC_DEFINE_UNQUOTED(MDN_RACE_PREFIX, "$raceprefix")
-    ;;
-esac
-
-bracesuffix=no
-AC_ARG_WITH(brace-suffix,
-[  --with-brace-suffix=PREFIX     suffix for BRACE encoding [-8q9]],
-	bracesuffix=$withval)
-case "$bracesuffix" in
-no)
-    ;;
-yes)
-    AC_MSG_ERROR([You must specify SUFFIX to --with-brace-suffix option.])
-    ;;
-*)
-    AC_DEFINE_UNQUOTED(MDN_BRACE_SUFFIX, "$bracesuffix")
-    ;;
-esac
-
-laceprefix=no
-AC_ARG_WITH(lace-prefix,
-[  --with-lace-prefix=PREFIX     prefix for LACE encoding [bq--]],
-	laceprefix=$withval)
-case "$laceprefix" in
-no)
-    ;;
-yes)
-    AC_MSG_ERROR([You must specify PREFIX to --with-lace-prefix option.])
-    ;;
-*)
-    AC_DEFINE_UNQUOTED(MDN_LACE_PREFIX, "$laceprefix")
-    ;;
-esac
+AC_ACE_PREFIX(RACE, [bq--])
+AC_ACE_SUFFIX(BRACE, [-8q9])
+AC_ACE_PREFIX(LACE, [lq--])
+AC_ACE_PREFIX(UTF-6, [wq--])
+AC_ACE_PREFIX(DUDE, [dq--])
+AC_ACE_SIGNATURE(AltDUDE, [a---], [])
+AC_ACE_SIGNATURE(AMC-ACE-M, [], [-amc1])
+AC_ACE_SIGNATURE(AMC-ACE-O, [], [-amc2])
+AC_ACE_PREFIX(AMC-ACE-R, [amc3-])
 
 iconv=no
 AC_ARG_WITH(iconv,
@@ -156,7 +138,7 @@ esac
 AC_SUBST(ICONVLIB)
 
 AC_ARG_WITH(iconv-sofile,
-[  --with-iconv-sofile=PATH        shared library file for libiconv []],
+[  --with-iconv-sofile=PATH shared library file for libiconv []],
 	iconv_file=$withval, iconv_file=guess)
 ICONVSOFILE=
 case "$iconv_file" in
@@ -221,12 +203,39 @@ guess)
 esac
 AC_SUBST(ICONVSOFILE)
 
+CONF_PREFERENCE=no
+INSTALL_DEFAULT_CONF=yes
+AC_ARG_WITH(preference,
+[  --with-preference=ARG   change the default configuration to the one
+                          suitable for ARG.],
+	CONF_PREFERENCE=$withval)
+CONF_PREFERENCE=`echo $CONF_PREFERENCE | tr A-Z a-z`
+case "$CONF_PREFERENCE" in
+no)
+    CONF_PREFERENCE=default
+    INSTALL_DEFAULT_CONF=no
+    ;;
+yes)
+    AC_MSG_ERROR([You must specify ARG to --with-preference option.])
+    ;;
+jp)
+    ;;
+*)
+    AC_MSG_ERROR([Unknown ARG for --with-preference option.])
+    ;;
+esac
+AC_SUBST(CONF_PREFERENCE)
+AC_SUBST(INSTALL_DEFAULT_CONF)
+
 dnl Figure out preload stuff.
 PRELOAD_VAR="LD_PRELOAD"
 PRELOAD_SEP=":"
 PRELOAD_LAST=""
 case "$host" in
 *-solaris*)
+    PRELOAD_SEP=" "
+    ;;
+*-linux*)
     PRELOAD_SEP=" "
     ;;
 *-osf*)
@@ -244,7 +253,9 @@ AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(unistd.h locale.h langinfo.h sys/select.h)
+AC_CHECK_HEADERS(unistd.h locale.h langinfo.h resolv.h)
+AC_CHECK_HEADERS(sys/select.h arpa/nameser.h)
+AC_CHECK_HEADERS(dlfcn.h)
 
 dnl Checks for data types.
 AC_TYPE_UID_T
@@ -254,9 +265,93 @@ AC_CHECK_TYPE(BOOL, int)
 dnl Checks for libraries.
 AC_CHECK_LIB(socket, socket)
 AC_CHECK_LIB(nsl, inet_addr)
+AC_CHECK_LIB(dl, dlopen, [
+    LIBS="-ldl $LIBS"
+    LIBDL="-ldl"
+    AC_DEFINE(HAVE_LIBDL, 1)
+    AC_SUBST(LIBDL)
+])
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(vsnprintf setvbuf setlocale nl_langinfo memmove bcopy)
+AC_CHECK_FUNCS(vsnprintf setvbuf setlocale nl_langinfo memmove bcopy syslog)
+AC_CHECK_FUNCS(gethostbyname gethostbyname2 gethostbyaddr)
+AC_CHECK_FUNCS(gethostbyname_r gethostbyname2_r gethostbyaddr_r, find_gethost_r=yes)
+AC_CHECK_FUNCS(getipnodebyname getipnodebyaddr freehostent)
+AC_CHECK_FUNCS(getaddrinfo freeaddrinfo getnameinfo)
+AC_CHECK_FUNCS(dlopen dlsym)
+
+dnl Checks the flavor of gethostbyaddr* functions.
+AC_CACHE_CHECK(flavor of gethostbyaddr, ac_cv_flavor_gethostbyaddr,
+[AC_TRY_RUN(
+[
+#include <stddef.h>
+#include <netdb.h>
+struct hostent *gethostbyaddr(const char *addr, size_t len, int type) {
+    return NULL;
+}
+int main() {
+    (void)gethostbyaddr(NULL, 0, 0);
+    return 0;
+}
+],
+  ac_cv_flavor_gethostbyaddr=standard,
+  ac_cv_flavor_gethostbyaddr=traditional,
+  ac_cv_flavor_gethostbyaddr=traditional)])
+if test "$ac_cv_flavor_gethostbyaddr" = "standard"; then
+    AC_DEFINE(GHBA_ADDRLEN_T, size_t)
+else
+    AC_DEFINE(GHBA_ADDRLEN_T, int)
+fi
+
+dnl Checks the flavor of gethost*_r functions.
+if test "$find_gethost_r" = yes; then
+    AC_CACHE_CHECK(flavor of gethostbyname_r, ac_cv_flavor_gethost_r,
+    [AC_TRY_RUN(
+changequote(<<, >>)dnl
+<<
+#include <stdio.h>
+#include <netdb.h>
+int main()
+{
+    int err = 0;
+    struct hostent hebuf, *hp;
+    char buf[10];
+    /* Try resolving a invalid name using glibc flavor. */
+    (void)gethostbyname_r("@#!", &hebuf, buf, sizeof(buf), &hp, &err);
+    if (err != 0)
+	return 0;	/* glibc flavor */
+    else
+	return 1;	/* Sun flavor */
+}
+>>,
+changequote([, ])dnl
+	ac_cv_flavor_gethost_r=glibc,
+	ac_cv_flavor_gethost_r=sun,
+	ac_cv_flavor_gethost_r=sun)])
+    if test "$ac_cv_flavor_gethost_r" = "glibc"; then
+	AC_DEFINE(GETHOST_R_GLIBC_FLAVOR)
+    fi
+fi
+
+dnl Find system shared object paths.
+AC_FIND_SYSTEM_SHOBJ(libc)
+AC_FIND_SYSTEM_SHOBJ(libnsl)
+
+dnl Checks for iconv library.
+AC_MSG_CHECKING(for iconv)
+saved_LIBS=$LIBS
+LIBS="$LIBS $ICONVLIB"
+AC_TRY_LINK([
+#include <iconv.h>
+], [
+    iconv_t i;
+    i = iconv_open("ISO-8859-1", "UTF-8");
+], [iconv_try_link=yes], [iconv_try_link=no])
+LIBS=$saved_LIBS
+AC_MSG_RESULT($iconv_try_link)
+if test "$iconv_try_link" = no ; then
+    AC_MSG_ERROR(iconv function not available)
+fi
 
 dnl Output.
 AC_CONFIG_HEADER(include/config.h)
@@ -265,10 +360,11 @@ AC_OUTPUT(
 	include/Makefile
 	include/mdn/Makefile
 	lib/Makefile
-	dnsproxy/Makefile
+	mdnsproxy/Makefile
 	man/Makefile
 	tools/Makefile
 	tools/mdnconv/Makefile
 	tools/runmdn/Makefile
 	tools/runmdn/runmdn
+	map/Makefile
 )

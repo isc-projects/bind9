@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.14 2000/12/21 01:57:31 ishisone Exp $
+# $Id: Makefile.in,v 1.32 2001/05/22 03:00:23 m-kasahr Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -55,8 +55,9 @@
 #    Conditions hereby agrees and consent to the personal and exclusive
 #    jurisdiction and venue of Tokyo District Court of Japan.
 
-LIB_CURRENT=4
-LIB_REVISION=1
+LIB_CURRENT=7
+LIB_REVISION=0
+LIB_AGE=0
 
 .SUFFIXES: .lo
 
@@ -76,6 +77,7 @@ INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_DATA = @INSTALL_DATA@
+MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
 SHELL   = @SHELL@
 LIBTOOL = @LIBTOOL@
 
@@ -86,31 +88,48 @@ CFLAGS  = $(INCS) $(OPTS) $(DEFS) @CFLAGS@
 LDFLAGS = @LDFLAGS@
 
 LIB     = libmdnresolv
-OBJS    = res_comp.lo ns_name.lo $(MDNOBJS)
+OBJS    = rtresolver.lo stub.lo  $(MDNOBJS)
 SCRIPT  = runmdn
+LIBDL   = @LIBDL@
 
 MDNDIR  = ../../lib
 MDNOBJS  = \
+	$(MDNDIR)/ace.lo \
+	$(MDNDIR)/altdude.lo \
+	$(MDNDIR)/amcacem.lo \
+	$(MDNDIR)/amcaceo.lo \
+	$(MDNDIR)/amcacer.lo \
+	$(MDNDIR)/api.lo \
 	$(MDNDIR)/brace.lo \
+	$(MDNDIR)/checker.lo \
 	$(MDNDIR)/converter.lo \
 	$(MDNDIR)/debug.lo \
+	$(MDNDIR)/delimitermap.lo \
 	$(MDNDIR)/dn.lo \
+	$(MDNDIR)/dude.lo \
+	$(MDNDIR)/filechecker.lo \
+	$(MDNDIR)/filemapper.lo \
 	$(MDNDIR)/lace.lo \
 	$(MDNDIR)/localencoding.lo \
 	$(MDNDIR)/log.lo \
+	$(MDNDIR)/mapper.lo \
+	$(MDNDIR)/mapselector.lo \
+	$(MDNDIR)/nameprep.lo \
 	$(MDNDIR)/normalizer.lo \
 	$(MDNDIR)/race.lo \
 	$(MDNDIR)/res.lo \
 	$(MDNDIR)/resconf.lo \
 	$(MDNDIR)/result.lo \
 	$(MDNDIR)/strhash.lo \
-	$(MDNDIR)/translator.lo \
+	$(MDNDIR)/ucsmap.lo \
+	$(MDNDIR)/ucsset.lo \
 	$(MDNDIR)/unicode.lo \
 	$(MDNDIR)/unormalize.lo \
 	$(MDNDIR)/utf5.lo \
+	$(MDNDIR)/utf6.lo \
 	$(MDNDIR)/utf8.lo \
 	$(MDNDIR)/util.lo \
-	$(MDNDIR)/zldrule.lo
+	$(MDNDIR)/version.lo
 
 ICONVLIB = @ICONVLIB@
 
@@ -119,28 +138,32 @@ ICONVLIB = @ICONVLIB@
 
 all: $(LIB).la
 
+rtresolver.lo: $(srcdir)/resolver.c
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -DFOR_RUNMDN -o $@ \
+		-I$(srcdir) -c $(srcdir)/resolver.c
+
 $(LIB).la: $(OBJS)
 	$(LIBTOOL) --mode=link $(LD) $(LDFLAGS) -o $@ \
-		-version-info $(LIB_CURRENT):$(LIB_REVISION) \
-		-module -rpath $(libdir) $(OBJS)
+		-version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE) \
+		-module -rpath $(libdir) $(OBJS) $(LIBDL)
 
 install: install-lib install-script install-man
 
 install-script:
-	[ -d $(bindir) ] || mkdir $(bindir)
+	$(MKINSTALLDIRS) $(bindir)
 	$(INSTALL_SCRIPT) $(SCRIPT) $(bindir)
 
-install-lib:
-	[ -d $(libdir) ] || mkdir $(libdir)
-	$(LIBTOOL) --mode=install $(INSTALL_DATA) libmdnresolv.la $(libdir)
+install-lib: $(LIB).la
+	$(MKINSTALLDIRS) $(libdir)
+	$(LIBTOOL) --mode=install $(INSTALL_DATA) $(LIB).la $(libdir)
 
 install-man:
-	[ -d $(mandir) ] || mkdir $(mandir)
-	[ -d $(mandir)/man1 ] || mkdir $(mandir)/man1
+	$(MKINSTALLDIRS) $(mandir)/man1
 	$(INSTALL_DATA) $(srcdir)/runmdn.1 $(mandir)/man1
 
 clean:
 	rm -f *.lo *.la *.o
+	rm -fr .libs/
 
 realclean:
 	rm -f Makefile runmdn config.cache config.log config.status libtool

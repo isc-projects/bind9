@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.4 2000/11/14 00:13:29 ishisone Exp $
+# $Id: Makefile.in,v 1.21 2001/04/16 06:20:25 m-kasahr Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -61,27 +61,41 @@ VPATH = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 
-BINDIR = @bindir@
-LIBDIR = @libdir@
-INCDIR = @includedir@
-MDNINCDIR = $(INCDIR)/mdn
+includedir = @includedir@
+mdnincludedir = $(includedir)/mdn
 
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
+SHELL = @SHELL@
 
 HDRS = \
+	ace.h \
+	altdude.h \
+	amcacem.h \
+	amcaceo.h \
+	amcacer.h \
+	api.h \
 	assert.h \
 	brace.h \
+	checker.h \
 	converter.h \
 	debug.h \
+	delimitermap.h \
+	dude.h \
 	dn.h \
+	filechecker.h \
+	filemapper.h \
 	lace.h \
 	localencoding.h \
 	log.h \
 	logmacro.h \
+	mapper.h \
+	mapselector.h \
 	msgheader.h \
 	msgtrans.h \
+	nameprep.h \
 	normalizer.h \
 	race.h \
 	res.h \
@@ -89,21 +103,22 @@ HDRS = \
 	result.h \
 	selectiveencode.h \
 	strhash.h \
-	translator.h \
+	ucsmap.h \
+	ucsset.h \
 	unicode.h \
 	unormalize.h \
 	utf5.h \
+	utf6.h \
 	utf8.h \
 	util.h \
-	zldrule.h
+	version.h
 
 all:
 
 install:
-	[ -d $(INCDIR) ] || mkdir $(INCDIR)
-	[ -d $(MDNINCDIR) ] || mkdir $(MDNINCDIR)
+	$(MKINSTALLDIRS) $(mdnincludedir)
 	for hdr in $(HDRS); \
-		do $(INSTALL_DATA) $(srcdir)/$$hdr $(MDNINCDIR); done
+		do $(INSTALL_DATA) $(srcdir)/$$hdr $(mdnincludedir); done
 
 clean:
 	rm -f *~

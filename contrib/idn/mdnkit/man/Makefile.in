@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.1 2000/09/08 03:17:31 ishisone Exp $
+# $Id: Makefile.in,v 1.5 2001/05/15 04:44:18 ishisone Exp $
 #
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
@@ -64,27 +64,33 @@ VPATH   = @srcdir@
 prefix  = @prefix@
 exec_prefix = @exec_prefix@
 
-ETCDIR  = @sysconfdir@
-MANDIR = @mandir@
+sysconfdir  = @sysconfdir@
+mandir = @mandir@
 
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
+SHELL = @SHELL@
 
-GEN_FILES = mdnres.conf.5
-MAN5 = mdnres.conf.5
+GEN_FILES = mdn.conf.5 libmdn.3
+MAN3 = libmdn.3
+MAN5 = mdn.conf.5
 
 all: $(GEN_FILES)
 
 install: install-man
 
-install-man:
-	[ -d $(MANDIR) ] || mkdir $(MANDIR)
-	[ -d $(MANDIR)/man5 ] || mkdir $(MANDIR)/man5
-	$(INSTALL_DATA) $(MAN5) $(MANDIR)/man5
+install-man: $(MAN3) $(MAN5)
+	$(MKINSTALLDIRS) $(mandir)/man3
+	$(MKINSTALLDIRS) $(mandir)/man5
+	$(INSTALL_DATA) $(MAN3) $(mandir)/man3
+	$(INSTALL_DATA) $(MAN5) $(mandir)/man5
 
-mdnres.conf.5: mdnres.conf.5.in
-	sed 's%@ETCDIR@%$(ETCDIR)%' < $(srcdir)/mdnres.conf.5.in > $@
+mdn.conf.5: mdn.conf.5.in
+	sed 's%[@]sysconfdir[@]%$(sysconfdir)%' < $(srcdir)/mdn.conf.5.in > $@
+libmdn.3: libmdn.3.in
+	sed 's%[@]sysconfdir[@]%$(sysconfdir)%' < $(srcdir)/libmdn.3.in > $@
 
 clean:
 	rm -f *~ $(GEN_FILES)

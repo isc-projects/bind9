@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: lace.c,v 1.4 2000/11/22 01:52:18 ishisone Exp $";
+static char *rcsid = "$Id: lace.c,v 1.11 2001/03/28 06:37:24 m-kasahr Exp $";
 #endif
 
 /*
@@ -73,24 +73,16 @@ static char *rcsid = "$Id: lace.c,v 1.4 2000/11/22 01:52:18 ishisone Exp $";
 #include <mdn/utf8.h>
 #include <mdn/debug.h>
 #include <mdn/lace.h>
+#include <mdn/ace.h>
 #include <mdn/util.h>
 
-#ifdef DEBUG
-/* Be paranoid. */
-#define PARANOID
-#endif
-
 #ifndef MDN_LACE_PREFIX
-#define MDN_LACE_PREFIX		"bq--"
+#define MDN_LACE_PREFIX		"lq--"
 #endif
-#define LACE_PREFIX_LEN		(strlen(MDN_LACE_PREFIX))
 
+#define LACE_MAX_COMPRESS_LEN	254		/* max run length */
 #define LACE_BUF_SIZE		128		/* more than enough */
 
-static mdn_result_t	lace_l2u(const char *from, const char *end,
-				 char *to, size_t tolen, size_t *clenp);
-static mdn_result_t	lace_u2l(const char *from, const char *end,
-				 char *to, size_t tolen, size_t *clenp);
 static mdn_result_t	lace_decode(const char *from, size_t fromlen,
 				    char *to, size_t tolen);
 static mdn_result_t	lace_decode_utf16(const char *from, size_t fromlen,
@@ -102,23 +94,30 @@ static mdn_result_t	lace_encode_utf16(const unsigned short *p,
 					  int compress);
 static int		is_compress_effective(unsigned short *p, size_t len);
 
+static mdn__ace_t lace_ctx = {
+	mdn__ace_prefix,
+	MDN_LACE_PREFIX,
+	lace_encode,
+	lace_decode,
+};
+
 /* ARGSUSED */
 mdn_result_t
-mdn__lace_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+mdn__lace_open(mdn_converter_t ctx, mdn_converter_dir_t dir, void **privdata) {
 	return (mdn_success);
 }
 
 /* ARGSUSED */
 mdn_result_t
-mdn__lace_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+mdn__lace_close(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir) {
 	return (mdn_success);
 }
 
 mdn_result_t
-mdn__lace_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-		    const char *from, char *toorg, size_t tolen)
+mdn__lace_convert(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir,
+		  const char *from, char *to, size_t tolen)
 {
-	char *to = toorg;
+	mdn_result_t r;
 
 	assert(ctx != NULL &&
 	       (dir == mdn_converter_l2u || dir == mdn_converter_u2l));
@@ -127,128 +126,13 @@ mdn__lace_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 	       dir == mdn_converter_l2u ? "l2u" : "u2l",
 	       mdn_debug_xstring(from, 20)));
 
-	for (;;) {
-		const char *end;
-		size_t convlen;
-		mdn_result_t r;
+	r = mdn__ace_convert(&lace_ctx, dir, from, to, tolen);
+	if (r != mdn_success)
+		return (r);
 
-		/*
-		 * Find the end of this component (label).
-		 */
-		if ((end = strchr(from, '.')) == NULL)
-			end = from + strlen(from);
+	DUMP(("mdn__lace_convert: \"%s\"\n", mdn_debug_xstring(to, 70)));
 
-		/*
-		 * Convert it.
-		 */
-		if (dir == mdn_converter_l2u)
-			r = lace_l2u(from, end, to, tolen, &convlen);
-		else
-			r = lace_u2l(from, end, to, tolen, &convlen);
-		if (r != mdn_success)
-			return (r);
-
-		/*
-		 * Copy '.' or NUL.
-		 */
-		if (tolen <= convlen)
-			return (mdn_buffer_overflow);
-
-		to += convlen;
-		*to++ = *end;
-		tolen -= convlen + 1;
-
-		if (*end == '\0')
-			break;
-
-		from = end + 1;
-	}
-
-	DUMP(("mdn__lace_convert: \"%s\"\n", mdn_debug_xstring(toorg, 70)));
-
-	return (mdn_success);
-}
-
-static mdn_result_t
-lace_l2u(const char *from, const char *end,
-	 char *to, size_t tolen, size_t *clenp)
-{
-	size_t len = end - from;
-	size_t prefix_len = LACE_PREFIX_LEN;
-
-	if (len >= prefix_len &&
-	    mdn_util_casematch(from, MDN_LACE_PREFIX, prefix_len)) {
-		/*
-		 * LACE encoding prefix found.
-		 */
-		mdn_result_t r;
-
-		r = lace_decode(from + prefix_len,
-				len - prefix_len, to, tolen);
-		if (r == mdn_invalid_encoding)
-			goto copy;
-		else if (r != mdn_success)
-			return (r);
-
-		len = strlen(to);
-	} else {
-		/*
-		 * Not LACE encoded.  Copy verbatim.
-		 */
-	copy:
-		if (mdn_util_domainspan(from, end) < end) {
-			/* invalid character found */
-			return (mdn_invalid_encoding);
-		}
-
-		if (tolen < len)
-			return (mdn_buffer_overflow);
-
-		(void)memcpy(to, from, len);
-	}
-	*clenp = len;
-	return (mdn_success);
-}
-
-static mdn_result_t
-lace_u2l(const char *from, const char *end,
-	   char *to, size_t tolen, size_t *clenp) {
-	size_t len = end - from;
-	size_t prefix_len = LACE_PREFIX_LEN;
-
-	/*
-	 * See if encoding is necessary.
-	 */
-	if (mdn_util_domainspan(from, end) < end) {
-		/*
-		 * Conversion is necessary.
-		 */
-		mdn_result_t r;
-
-		/* Set prefix. */
-		if (tolen < prefix_len)
-			return (mdn_buffer_overflow);
-		(void)memcpy(to, MDN_LACE_PREFIX, prefix_len);
-		to += prefix_len;
-		tolen -= prefix_len;
-
-		r = lace_encode(from, len, to, tolen);
-		if (r != mdn_success)
-			return (r);
-
-		len = prefix_len + strlen(to);
-	} else {
-		/*
-		 * Conversion is NOT necessary.
-		 * Copy verbatim.
-		 */
-		if (tolen < len)
-			return (mdn_buffer_overflow);
-
-		(void)memcpy(to, from, len);
-	}
-	*clenp = len;
-	return (mdn_success);
+	return (r);
 }
 
 static mdn_result_t
@@ -261,8 +145,8 @@ lace_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	/*
 	 * Allocate sufficient buffer.
 	 */
-	if (fromlen > LACE_BUF_SIZE) {
-		if ((buf = malloc(sizeof(*buf) * fromlen)) == NULL)
+	if (fromlen + 1 > LACE_BUF_SIZE) {
+		if ((buf = malloc(sizeof(*buf) * (fromlen + 1))) == NULL)
 			return (mdn_nomemory);
 	} else {
 		/* Use local buffer. */
@@ -291,12 +175,21 @@ lace_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 		r = mdn_buffer_overflow;
 		goto ret;
 	}
+	*(to + reslen) = '\0';
 
-	to += reslen;
-	*to = '\0';
-	tolen -= reslen;
-
-	r = mdn_success;
+	/*
+	 * Encode the result, and compare the result with `from', in
+	 * order to test whether an input string is encoded correctly.
+	 * If `from' was encoded with wrong compression mode, we return
+	 * `mdn_invalid_encoding'.
+	 */
+	r = lace_encode(to, reslen, (char *)buf, fromlen + 1);
+	if (r != mdn_success)
+		goto ret;
+	if (!mdn_util_casematch((char *)buf, from, fromlen)) {
+		r = mdn_invalid_encoding;
+		goto ret;
+	}
 
 ret:
 	if (buf != local_buf)
@@ -340,16 +233,17 @@ lace_decode_utf16(const char *from, size_t fromlen,
 			bitlen -= 8;
 		}
 	}
-#ifdef PARANOID
-	/* Check if the padding bits are all zero. */
-	if (bitlen > 0 && (bitbuf & ((1 << bitlen) - 1)) != 0) {
-		WARNING(("mdn__lace_convert: non-zero padding\n"));
-		return (mdn_invalid_encoding);
-	}
-#endif
+
 	len = p - buf;
 
 	if (len == 0)
+		return (mdn_invalid_encoding);
+
+	/*
+	 * The number of unused bits MUST be 4 or less, and all the
+	 * bits MUST be zero.
+	 */
+	if (bitlen >= 5 || (bitbuf & ((1 << bitlen) - 1)) != 0)
 		return (mdn_invalid_encoding);
 
 	/*
@@ -368,16 +262,6 @@ lace_decode_utf16(const char *from, size_t fromlen,
 		for (p = buf + 1, q = buf; len > 0; p += 2, q++, len -= 2) {
 			*q = (p[0] << 8) | p[1];
 		}
-#ifdef PARANOID
-		if (is_compress_effective(buf, q - buf)) {
-			/*
-			 * This string must have been compressed.
-			 */
-			WARNING(("mdn__lace_convert: decoded string is not "
-				 "compressed, though it should be.\n"));
-			return (mdn_invalid_encoding);
-		}
-#endif
 	} else {
 		/*
 		 * Compressed.
@@ -391,6 +275,9 @@ lace_decode_utf16(const char *from, size_t fromlen,
 					return (mdn_invalid_encoding);
 				/* Get COUNT and HIGH. */
 				count = p[0];
+				if (count == 0 ||
+				    count > LACE_MAX_COMPRESS_LEN)
+					return (mdn_invalid_encoding);
 				high = p[1] << 8;
 				p += 2;
 				len -= 2;
@@ -400,16 +287,6 @@ lace_decode_utf16(const char *from, size_t fromlen,
 		}
 		if (count != 0)
 			return (mdn_invalid_encoding);
-#ifdef PARANOID
-		if (!is_compress_effective(buf, q - buf)) {
-			/*
-			 * This string must not have been compressed.
-			 */
-			WARNING(("mdn__lace_convert: decoded string is "
-				 "compressed, though it shouldn't.\n"));
-			return (mdn_invalid_encoding);
-		}
-#endif
 	}
 
 	*lenp = q - buf;
@@ -464,7 +341,7 @@ lace_encode_utf16(const unsigned short *p, size_t len,
 {
 	unsigned long bitbuf = 0;	/* bit stream buffer */
 	int bitlen = 0;			/* # of bits in 'bitbuf' */
-	int compress_count = 0;
+	int count = 0;
 	int i, j;
 
 	if (!compress) {
@@ -485,27 +362,28 @@ lace_encode_utf16(const unsigned short *p, size_t len,
 			bitbuf <<= 5 - (bitlen % 5);	/* padding with zero */
 			bitlen += 5 - (bitlen % 5);
 		} else if (compress) {
-			if (compress_count == 0) {
+			if (count == 0) {
 				/*
 				 * Get the number of consecutive characters
 				 * with the same high byte.
 				 */
 				unsigned short high = p[i] & 0xff00;
 
-				compress_count = 1;
-				for (j = i + 1; j < len; j++) {
+				count = 1;
+				for (j = i + 1;
+				     j < len && count < LACE_MAX_COMPRESS_LEN;
+				     j++) {
 					if ((p[j] & 0xff00) != high)
 						break;
-					compress_count++;
+					count++;
 				}
-				bitbuf = (bitbuf << 16) |
-					(compress_count << 8) |
+				bitbuf = (bitbuf << 16) | (count << 8) |
 					(high >> 8);
 				bitlen += 16;
 			}
 			bitbuf = (bitbuf << 8) | (p[i] & 0xff);
 			bitlen += 8;
-			compress_count--;
+			count--;
 		} else {
 			bitbuf = (bitbuf << 16) | p[i];
 			bitlen += 16;

@@ -1,6 +1,7 @@
-/* $Id: util.h,v 1.3 2000/12/06 09:46:35 m-kasahr Exp $ */
+/* $Id: util.h,v 1.7 2001/02/23 10:36:52 m-kasahr Exp $ */
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -57,15 +58,28 @@
  *    jurisdiction and venue of Tokyo District Court of Japan.
  */
 
-extern mdn_result_t	selective_encode(char *from, char *to, int tolen,
-					 const char *zld, int auto_zld);
-extern mdn_result_t	encode_region(const char *region, char *to, int tolen,
-				      const char *zld, int auto_zld);
-extern void		canonical_zld(char *s, const char *zld);
-extern int		zld_match(const char *s, const char *zld);
-extern mdn_result_t	selective_decode(char *from, char *to, int tolen);
-extern int		initialize_converter(const char *in_code,
-					     const char *out_code,
-					     const char *encoding_alias);
-extern int		initialize_normalizer(char **normalizer,
-					      int nnormalizer);
+extern mdn_result_t	selective_encode(mdn_resconf_t conf, char *insn,
+					 char *from, char *to, int tolen);
+extern mdn_result_t	selective_decode(mdn_resconf_t conf, char *insn,
+					 char *from, char *to, int tolen);
+extern void		set_encoding_alias(const char *encoding_alias);
+extern void		set_localcode(mdn_resconf_t conf, const char *code);
+extern void		set_idncode(mdn_resconf_t conf, const char *code);
+extern void		set_delimitermapper(mdn_resconf_t conf,
+					    unsigned long *delimiters,
+					    int ndelimiters);
+extern void		set_localmapper(mdn_resconf_t conf,
+					char **mappers, int nmappers);
+extern void		set_nameprep(mdn_resconf_t conf, char *version);
+extern void		set_mapper(mdn_resconf_t conf,
+				   char **mappers, int nmappers);
+extern void		set_normalizer(mdn_resconf_t conf,
+				       char **normalizer, int nnormalizer);
+extern void		set_prohibit_checkers(mdn_resconf_t conf,
+					      char **prohibits,
+					      int nprohibits);
+extern void		set_unassigned_checkers(mdn_resconf_t conf,
+						char **unassigns,
+						int nunassigns);
+extern void		errormsg(const char *fmt, ...);
+

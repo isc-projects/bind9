@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: converter.c,v 1.23 2000/11/14 00:13:31 ishisone Exp $";
+static char *rcsid = "$Id: converter.c,v 1.35 2001/04/17 01:35:42 ishisone Exp $";
 #endif
 
 /*
@@ -76,14 +76,23 @@ static char *rcsid = "$Id: converter.c,v 1.23 2000/11/14 00:13:31 ishisone Exp $
 #include <mdn/converter.h>
 #include <mdn/strhash.h>
 #include <mdn/utf8.h>
+#include <mdn/utf6.h>
 #include <mdn/utf5.h>
 #include <mdn/debug.h>
 #include <mdn/race.h>
 #include <mdn/brace.h>
 #include <mdn/lace.h>
+#include <mdn/dude.h>
+#include <mdn/altdude.h>
+#include <mdn/amcacem.h>
+#include <mdn/amcaceo.h>
+#include <mdn/amcacer.h>
 
 #ifndef MDN_UTF8_ENCODING_NAME
 #define MDN_UTF8_ENCODING_NAME "UTF-8"		/* by IANA */
+#endif
+#ifndef MDN_UTF6_ENCODING_NAME
+#define MDN_UTF6_ENCODING_NAME "UTF-6"
 #endif
 #ifndef MDN_UTF5_ENCODING_NAME
 #define MDN_UTF5_ENCODING_NAME "UTF-5"
@@ -96,6 +105,21 @@ static char *rcsid = "$Id: converter.c,v 1.23 2000/11/14 00:13:31 ishisone Exp $
 #endif
 #ifndef MDN_LACE_ENCODING_NAME
 #define MDN_LACE_ENCODING_NAME "LACE"
+#endif
+#ifndef MDN_DUDE_ENCODING_NAME
+#define MDN_DUDE_ENCODING_NAME "DUDE"
+#endif
+#ifndef MDN_ALTDUDE_ENCODING_NAME
+#define MDN_ALTDUDE_ENCODING_NAME "AltDUDE"
+#endif
+#ifndef MDN_AMCACEM_ENCODING_NAME
+#define MDN_AMCACEM_ENCODING_NAME "AMC-ACE-M"
+#endif
+#ifndef MDN_AMCACEO_ENCODING_NAME
+#define MDN_AMCACEO_ENCODING_NAME "AMC-ACE-O"
+#endif
+#ifndef MDN_AMCACER_ENCODING_NAME
+#define MDN_AMCACER_ENCODING_NAME "AMC-ACE-R"
 #endif
 
 #define MAX_RECURSE	20
@@ -112,7 +136,8 @@ struct mdn_converter {
 	converter_ops_t *ops;
 	int flags;
 	int opened[2];
-	iconv_t ictx[2];
+	int reference_count;
+	void *private_data;
 };
 
 static mdn_strhash_t encoding_name_hash;
@@ -128,39 +153,52 @@ static void		free_alias_value(void *value);
 static mdn_result_t	roundtrip_check(mdn_converter_t ctx,
 					mdn_converter_dir_t dir,
 					const char *from, const char *to);
+
 static mdn_result_t	converter_none_open(mdn_converter_t ctx,
-					    mdn_converter_dir_t dir);
+					    mdn_converter_dir_t dir,
+					    void **privdata);
 static mdn_result_t	converter_none_close(mdn_converter_t ctx,
+					     void *privdata,
 					     mdn_converter_dir_t dir);
 static mdn_result_t	converter_none_convert(mdn_converter_t ctx,
+					       void *privdata,
 					       mdn_converter_dir_t dir,
 					       const char *from,
 					       char *to, size_t tolen);
 static mdn_result_t	converter_iconv_open(mdn_converter_t ctx,
-					     mdn_converter_dir_t dir);
+					     mdn_converter_dir_t dir,
+					     void **privdata);
 static mdn_result_t	converter_iconv_close(mdn_converter_t ctx,
+					      void *privdata,
 					      mdn_converter_dir_t dir);
 static mdn_result_t	converter_iconv_convert(mdn_converter_t ctx,
+					        void *privdata,
 						mdn_converter_dir_t dir,
 						const char *from,
 						char *to, size_t tolen);
 static mdn_result_t	converter_utf5_open(mdn_converter_t ctx,
-					    mdn_converter_dir_t dir);
+					    mdn_converter_dir_t dir,
+					    void **privdata);
 static mdn_result_t	converter_utf5_close(mdn_converter_t ctx,
+					     void *privdata,
 					     mdn_converter_dir_t dir);
 static mdn_result_t	converter_utf5_convert(mdn_converter_t ctx,
+					       void *privdata,
 					       mdn_converter_dir_t dir,
 					       const char *from,
 					       char *to, size_t tolen);
 #ifdef DEBUG
 static mdn_result_t	converter_uescape_open(mdn_converter_t ctx,
-					    mdn_converter_dir_t dir);
-static mdn_result_t	converter_uescape_close(mdn_converter_t ctx,
-					     mdn_converter_dir_t dir);
-static mdn_result_t	converter_uescape_convert(mdn_converter_t ctx,
 					       mdn_converter_dir_t dir,
-					       const char *from,
-					       char *to, size_t tolen);
+					       void **privdata);
+static mdn_result_t	converter_uescape_close(mdn_converter_t ctx,
+					        void *privdata,
+					        mdn_converter_dir_t dir);
+static mdn_result_t	converter_uescape_convert(mdn_converter_t ctx,
+						  void *privdata,
+						  mdn_converter_dir_t dir,
+						  const char *from,
+						  char *to, size_t tolen);
 #endif
 
 static converter_ops_t none_converter_ops = {
@@ -230,6 +268,8 @@ mdn_converter_create(const char *name, mdn_converter_t *ctxp, int flags) {
 	ctx->local_encoding_name = (char *)(ctx + 1);
 	(void)strcpy(ctx->local_encoding_name, realname);
 	ctx->flags = flags;
+	ctx->reference_count = 1;
+	ctx->private_data = NULL;
 
 	assert(encoding_name_hash != NULL);
 
@@ -274,7 +314,7 @@ converter_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
 	       (dir == mdn_converter_l2u || dir == mdn_converter_u2l));
 
 	if (!ctx->opened[dir]) {
-		st = (*ctx->ops->open)(ctx, dir);
+		st = (*ctx->ops->open)(ctx, dir, &(ctx->private_data));
 		if (st == mdn_success)
 			ctx->opened[dir] = 1;
 	}
@@ -286,10 +326,27 @@ mdn_converter_destroy(mdn_converter_t ctx) {
 	assert(ctx != NULL);
 
 	TRACE(("mdn_converter_destroy()\n"));
+	TRACE(("mdn_converter_destroy: update reference count (%d->%d)\n",
+	    ctx->reference_count, ctx->reference_count - 1));
 
-	(void)converter_close(ctx, mdn_converter_l2u);
-	(void)converter_close(ctx, mdn_converter_u2l);
-	free(ctx);
+	ctx->reference_count--;
+	if (ctx->reference_count <= 0) {
+		TRACE(("mdn_converter_destroy: the object is destroyed\n"));
+		(void)converter_close(ctx, mdn_converter_l2u);
+		(void)converter_close(ctx, mdn_converter_u2l);
+		free(ctx);
+	}
+}
+
+void
+mdn_converter_incrref(mdn_converter_t ctx) {
+	assert(ctx != NULL);
+
+	TRACE(("mdn_converter_incrref()\n"));
+	TRACE(("mdn_converter_incrref: update reference count (%d->%d)\n",
+	    ctx->reference_count, ctx->reference_count + 1));
+
+	ctx->reference_count++;
 }
 
 static mdn_result_t
@@ -300,7 +357,7 @@ converter_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
 	       (dir == mdn_converter_l2u || dir == mdn_converter_u2l));
 
 	if (ctx->opened[dir]) {
-		st = (*ctx->ops->close)(ctx, dir);
+		st = (*ctx->ops->close)(ctx, ctx->private_data, dir);
 		if (st == mdn_success)
 			ctx->opened[dir] = 0;
 	}
@@ -347,7 +404,7 @@ mdn_converter_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 		return (mdn_success);
 	}
 
-	r = (*ctx->ops->convert)(ctx, dir, from, to, tolen);
+	r = (*ctx->ops->convert)(ctx, ctx->private_data, dir, from, to, tolen);
 	if (r == mdn_success && dir == mdn_converter_u2l &&
 	    (ctx->flags & MDN_CONVERTER_RTCHECK) != 0) {
 		return (roundtrip_check(ctx, dir, from, to));
@@ -422,6 +479,54 @@ register_standard_encoding(void) {
 				   mdn__lace_open,
 				   mdn__lace_close,
 				   mdn__lace_convert,
+				   1);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_DUDE_ENCODING_NAME,
+				   mdn__dude_open,
+				   mdn__dude_close,
+				   mdn__dude_convert,
+				   1);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_UTF6_ENCODING_NAME,
+				   mdn__utf6_open,
+				   mdn__utf6_close,
+				   mdn__utf6_convert,
+				   1);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_ALTDUDE_ENCODING_NAME,
+				   mdn__altdude_open,
+				   mdn__altdude_close,
+				   mdn__altdude_convert,
+				   1);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_AMCACEM_ENCODING_NAME,
+				   mdn__amcacem_open,
+				   mdn__amcacem_close,
+				   mdn__amcacem_convert,
+				   1);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_AMCACEO_ENCODING_NAME,
+				   mdn__amcaceo_open,
+				   mdn__amcaceo_close,
+				   mdn__amcaceo_convert,
+				   1);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_AMCACER_ENCODING_NAME,
+				   mdn__amcacer_open,
+				   mdn__amcacer_close,
+				   mdn__amcacer_convert,
 				   1);
 	if (r != mdn_success)
 		return (r);
@@ -628,20 +733,22 @@ roundtrip_check(mdn_converter_t ctx, mdn_converter_dir_t dir,
 
 /* ARGSUSED */
 static mdn_result_t
-converter_none_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_none_open(mdn_converter_t ctx, mdn_converter_dir_t dir,
+		    void **privdata) {
 	return (mdn_success);
 }
 
 /* ARGSUSED */
 static mdn_result_t
-converter_none_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_none_close(mdn_converter_t ctx, void *privdata,
+		     mdn_converter_dir_t dir) {
 	return (mdn_success);
 }
 
 static mdn_result_t
-converter_none_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-		       const char *from, char *to, size_t tolen)
-{
+converter_none_convert(mdn_converter_t ctx, void *privdata,
+		       mdn_converter_dir_t dir, const char *from, char *to,
+		       size_t tolen) {
 	size_t fromlen;
 
 	assert(ctx != NULL &&
@@ -668,8 +775,18 @@ converter_none_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
  */
 
 static mdn_result_t
-converter_iconv_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_iconv_open(mdn_converter_t ctx, mdn_converter_dir_t dir,
+		     void **privdata) {
 	iconv_t ictx;
+
+	if (*privdata == NULL) {
+		ictx = (iconv_t)(-1);
+		*privdata = malloc(sizeof(iconv_t) * 2);
+		if (*privdata == NULL)
+			return (mdn_nomemory);
+		*((iconv_t *)*privdata) = (iconv_t)(-1);
+		*((iconv_t *)*privdata + 1) = (iconv_t)(-1);
+	}
 
 	if (dir == mdn_converter_l2u) {
 		ictx = iconv_open(MDN_UTF8_ENCODING_NAME,
@@ -678,8 +795,8 @@ converter_iconv_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
 		ictx = iconv_open(ctx->local_encoding_name,
 				  MDN_UTF8_ENCODING_NAME);
 	}
-	ctx->ictx[dir] = ictx;
 	if (ictx == (iconv_t)(-1)) {
+		free(*privdata);
 		switch (errno) {
 		case ENOMEM:
 			return (mdn_nomemory);
@@ -690,23 +807,37 @@ converter_iconv_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
 			return (mdn_failure);
 		}
 	}
+
+	memcpy((iconv_t *)*privdata + dir, &ictx, sizeof(iconv_t));
+
 	return (mdn_success);
 }
 
 static mdn_result_t
-converter_iconv_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_iconv_close(mdn_converter_t ctx, void *privdata,
+		      mdn_converter_dir_t dir) {
+	iconv_t *ictxp;
+
 	assert(ctx != NULL &&
 	       (dir == mdn_converter_l2u || dir == mdn_converter_u2l));
 
-	if (ctx->opened[dir])
-		(void)iconv_close(ctx->ictx[dir]);
+	ictxp = (iconv_t *)privdata;
+	if (ictxp[dir] != (iconv_t)(-1))
+		(void)iconv_close(ictxp[dir]);
+	ictxp[dir] = (iconv_t)(-1);
+	if (ictxp[mdn_converter_l2u] == (iconv_t)(-1) &&
+	    ictxp[mdn_converter_u2l] == (iconv_t)(-1)) {
+		free(privdata);
+	}
+
 	return (mdn_success);
 }
 
 static mdn_result_t
-converter_iconv_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-			 const char *from, char *to, size_t tolen)
-{
+converter_iconv_convert(mdn_converter_t ctx, void *privdata,
+			mdn_converter_dir_t dir, const char *from, char *to,
+			size_t tolen) {
+	iconv_t ictx;
 	char *toorg = to;
 	size_t sz;
 	size_t fromsz;
@@ -732,8 +863,9 @@ converter_iconv_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 	/*
 	 * Reset internal state.
 	 */
+	ictx = ((iconv_t *)privdata)[dir];
 #if 0
-	(void)iconv(ctx->ictx[dir], (const char **)NULL, (size_t *)NULL, 
+	(void)iconv(ictx, (const char **)NULL, (size_t *)NULL, 
 		    (char **)NULL, (size_t *)NULL);
 #else
 	/*
@@ -743,13 +875,12 @@ converter_iconv_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 	 */
 	fromsz = tosz = 0;
 	p = NULL;
-	(void)iconv(ctx->ictx[dir], (const char **)NULL,
-		    &fromsz, &p, &tosz);
+	(void)iconv(ictx, (const char **)NULL, &fromsz, &p, &tosz);
 #endif
 
 	fromsz = strlen(from);
 	tosz = tolen - 1;	/* reserve space for terminating NUL */
-	sz = iconv(ctx->ictx[dir], &from, &fromsz, &to, &tosz);
+	sz = iconv(ictx, &from, &fromsz, &to, &tosz);
 
 	if (sz == (size_t)(-1) || fromsz > 0) {
 		switch (errno) {
@@ -777,16 +908,37 @@ converter_iconv_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 			return (mdn_failure);
 		}
 	}
-	*to = '\0';
 
-	/*
-	 * For local -> utf-8 conversion, check the validity of the
-	 * output string.
-	 */
-	if (dir == mdn_converter_l2u && !mdn_utf8_isvalidstring(toorg)) {
-		WARNING(("mdn_converter_convert: "
-			 "output is not a valid UTF-8 string\n"));
-		return (mdn_invalid_encoding);
+	if (dir == mdn_converter_l2u) {
+		/*
+		 * For local -> utf-8 conversion, check the validity of the
+		 * output string.
+		 */
+		*to = '\0';
+		if (!mdn_utf8_isvalidstring(toorg)) {
+			WARNING(("mdn_converter_convert: "
+				 "output is not a valid UTF-8 string\n"));
+			return (mdn_invalid_encoding);
+		}
+	} else {
+		/*
+		 * For utf-8 -> local conversion, append a sequence of
+		 * state reset.
+		 */
+		fromsz = 0;
+		sz = iconv(ictx, (const char **)NULL, &fromsz, &to, &tosz);
+		if (sz == (size_t)(-1)) {
+			switch (errno) {
+			case EILSEQ:
+			case EINVAL:
+				return (mdn_invalid_encoding);
+			case E2BIG:
+				return (mdn_buffer_overflow);
+			default:
+				return (mdn_failure);
+			}
+		}
+		*to = '\0';
 	}
 
 	return (mdn_success);
@@ -798,20 +950,22 @@ converter_iconv_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
 
 /* ARGSUSED */
 static mdn_result_t
-converter_utf5_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_utf5_open(mdn_converter_t ctx, mdn_converter_dir_t dir,
+		    void **privdata) {
 	return (mdn_success);
 }
 
 /* ARGSUSED */
 static mdn_result_t
-converter_utf5_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_utf5_close(mdn_converter_t ctx, void *privdata, 
+		     mdn_converter_dir_t dir) {
 	return (mdn_success);
 }
 
 static mdn_result_t
-converter_utf5_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-			const char *from, char *to, size_t tolen)
-{
+converter_utf5_convert(mdn_converter_t ctx, void *privdata, 
+		       mdn_converter_dir_t dir, const char *from, char *to,
+		       size_t tolen) {
 	size_t fromlen = strlen(from);
 
 	if (dir == mdn_converter_l2u) {
@@ -881,19 +1035,22 @@ static int	uescape_putwc(char *to, size_t tolen, unsigned long v);
 
 /* ARGSUSED */
 static mdn_result_t
-converter_uescape_open(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_uescape_open(mdn_converter_t ctx, mdn_converter_dir_t dir,
+		       void **privdata) {
 	return (mdn_success);
 }
 
 /* ARGSUSED */
 static mdn_result_t
-converter_uescape_close(mdn_converter_t ctx, mdn_converter_dir_t dir) {
+converter_uescape_close(mdn_converter_t ctx, void *privdata,
+			mdn_converter_dir_t dir) {
 	return (mdn_success);
 }
 
 static mdn_result_t
-converter_uescape_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
-			const char *from, char *to, size_t tolen)
+converter_uescape_convert(mdn_converter_t ctx, void *privdata,
+			  mdn_converter_dir_t dir, const char *from, char *to,
+			  size_t tolen)
 {
 	size_t fromlen = strlen(from);
 

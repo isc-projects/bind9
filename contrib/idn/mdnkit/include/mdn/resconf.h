@@ -1,4 +1,4 @@
-/* $Id: resconf.h,v 1.4 2000/08/23 05:53:23 ishisone Exp $ */
+/* $Id: resconf.h,v 1.12 2001/04/16 02:25:17 m-kasahr Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -67,6 +67,10 @@
 #include <mdn/result.h>
 #include <mdn/converter.h>
 #include <mdn/normalizer.h>
+#include <mdn/checker.h>
+#include <mdn/mapper.h>
+#include <mdn/mapselector.h>
+#include <mdn/delimitermap.h>
 
 /*
  * Configuration type (opaque).
@@ -108,6 +112,12 @@ extern void
 mdn_resconf_destroy(mdn_resconf_t ctx);
 
 /*
+ * Increment reference count of the context created by 'mdn_resconf_create'.
+ */
+extern void
+mdn_resconf_incrref(mdn_resconf_t ctx);
+
+/*
  * Load configuration file.
  *
  * Parse an MDN configuration file whose name is specified by 'file',
@@ -135,10 +145,10 @@ extern char *
 mdn_resconf_defaultfile(void);
 
 /*
- * Get codeset converters.
+ * Get/Set codeset converters.
  *
  *  + for local encoding,
- *  + for DNS protocol encoding,
+ *  + for IDN encoding,
  *  + for alternate encoding (which is used when the string to be converterd
  *    to the local encoding has some characters having no mapping to the
  *    local encoding)
@@ -146,28 +156,159 @@ mdn_resconf_defaultfile(void);
  */
 
 extern mdn_converter_t
-mdn_resconf_localconverter(mdn_resconf_t ctx);
+mdn_resconf_getlocalconverter(mdn_resconf_t ctx);
 
 extern mdn_converter_t
-mdn_resconf_serverconverter(mdn_resconf_t ctx);
+mdn_resconf_getidnconverter(mdn_resconf_t ctx);
 
 extern mdn_converter_t
-mdn_resconf_alternateconverter(mdn_resconf_t ctx);
+mdn_resconf_getalternateconverter(mdn_resconf_t ctx);
+
+extern void
+mdn_resconf_setlocalconverter(mdn_resconf_t ctx,
+			      mdn_converter_t local_converter);
+extern void
+mdn_resconf_setidnconverter(mdn_resconf_t ctx,
+                            mdn_converter_t idn_coverter);
+
+extern void
+mdn_resconf_setalternateconverter(mdn_resconf_t ctx,
+                                  mdn_converter_t alternate_converter);
 
 /*
- * Get Zero-Level-Domain name.
- *
- * If there's no ZLD, NULL will be returned.
- */
-extern const char *
-mdn_resconf_zld(mdn_resconf_t ctx);
-
-/*
- * Get domain name normalizer.
+ * Get/Set domain name normalizer.
  *
  * In case of error, NULL will be returned.
  */
 extern mdn_normalizer_t
-mdn_resconf_normalizer(mdn_resconf_t ctx);
+mdn_resconf_getnormalizer(mdn_resconf_t ctx);
 
-#endif
+extern void
+mdn_resconf_setnormalizer(mdn_resconf_t ctx, mdn_normalizer_t normalizer);
+
+/*
+ * Get/Set domain name mapper.
+ *
+ *  + for nameprep mapping.
+ *  + for TLD based local mapping.
+ *  + for local delimiter mapping.
+ * In case of error, NULL will be returned.
+ */
+extern mdn_mapper_t
+mdn_resconf_getmapper(mdn_resconf_t ctx);
+
+extern mdn_delimitermap_t
+mdn_resconf_getdelimitermap(mdn_resconf_t ctx);
+
+extern mdn_mapselector_t
+mdn_resconf_getlocalmapselector(mdn_resconf_t ctx);
+
+extern void
+mdn_resconf_setmapper(mdn_resconf_t ctx, mdn_mapper_t mapper);
+
+extern void
+mdn_resconf_setdelimitermap(mdn_resconf_t ctx,
+			    mdn_delimitermap_t delimiter_mapper);
+
+extern void
+mdn_resconf_setlocalmapselector(mdn_resconf_t ctx,
+				mdn_mapselector_t map_selector);
+
+/*
+ * Get domain name checker.
+ *
+ *  + for prohibited character checking.
+ *  + for unassigned character checking.
+ * In case of error, NULL will be returned.
+ */
+extern mdn_checker_t
+mdn_resconf_getprohibitchecker(mdn_resconf_t ctx);
+
+extern mdn_checker_t
+mdn_resconf_getunassignedchecker(mdn_resconf_t ctx);
+
+extern void
+mdn_resconf_setprohibitchecker(mdn_resconf_t ctx,
+			       mdn_checker_t prohibit_checker);
+
+extern void
+mdn_resconf_setunassignedchecker(mdn_resconf_t ctx,
+				 mdn_checker_t unassigned_checker);
+
+/*
+ * Set mapper, normalizer, prohibit checker and unassigned checker in
+ * the resconf context to the specified NAMEPREP version.
+ */
+extern mdn_result_t
+mdn_resconf_setalternateconvertername(mdn_resconf_t ctx, const char *name,
+				      int flags);
+
+/*
+ * Set converter, delimitermap, mapper, mapselector, normalizer, checker
+ * by name.
+ */
+extern mdn_result_t
+mdn_resconf_setidnconvertername(mdn_resconf_t ctx, const char *name,
+				int flags);
+
+extern mdn_result_t
+mdn_resconf_setlocalconvertername(mdn_resconf_t ctx, const char *name,
+				  int flags);
+
+extern mdn_result_t
+mdn_resconf_addalldelimitermapucs(mdn_resconf_t ctx, unsigned long *v, int nv);
+
+extern mdn_result_t
+mdn_resconf_addalllocalmapselectornames(mdn_resconf_t ctx, const char *tld,
+					const char **names, int nnames);
+
+extern mdn_result_t
+mdn_resconf_addallmappernames(mdn_resconf_t ctx, const char **names,
+			      int nnames);
+
+extern mdn_result_t
+mdn_resconf_addallnormalizernames(mdn_resconf_t ctx, const char **names,
+				  int nnames);
+
+extern mdn_result_t
+mdn_resconf_addallprohibitcheckernames(mdn_resconf_t ctx, const char **names,
+				       int nnames);
+
+extern mdn_result_t
+mdn_resconf_addallunassignedcheckernames(mdn_resconf_t ctx, const char **names,
+					 int nnames);
+
+extern mdn_result_t
+mdn_resconf_setnameprepversion(mdn_resconf_t ctx, const char *version);
+
+/*
+ * These macros are provided for backward compatibility to mDNkit 1.x.
+ */
+#define mdn_resconf_localconverter(ctx) \
+	mdn_resconf_getlocalconverter(ctx)
+
+#define mdn_resconf_idnconverter(ctx) \
+	mdn_resconf_getidnconverter(ctx)
+
+#define mdn_resconf_alternateconverter(ctx) \
+	mdn_resconf_getalternateconverter(ctx)
+
+#define mdn_resconf_normalizer(ctx) \
+	mdn_resconf_getnormalizer(ctx)
+
+#define mdn_resconf_mapper(ctx) \
+	mdn_resconf_getmapper(ctx)
+
+#define mdn_resconf_delimitermap(ctx) \
+	mdn_resconf_getdelimitermap(ctx)
+
+#define mdn_resconf_localmapselector(ctx) \
+	mdn_resconf_getlocalmapselector(ctx)
+
+#define mdn_resconf_prohibitchecker(ctx) \
+	mdn_resconf_getprohibitchecker(ctx)
+
+#define mdn_resconf_unassignedchecker(ctx) \
+	mdn_resconf_getunassignedchecker(ctx)
+
+#endif /* MDN_RESCONF_H */
