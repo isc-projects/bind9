@@ -1,3 +1,7 @@
+ 445.	[bug]		Doing a 0 bit isc_bitstring_copy() of an lsb0
+			bitstring triggered a REQUIRE statement.  The REQUIRE
+			statement was incorrect. [RT #297]
+
  444.	[func]		"recursion denied" messages are always logged at
 			debug level 1, now, rather than sometimes at ERROR.
 			This silences these warnings in the usual case, where
