@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.5 2000/03/01 22:41:22 gson Exp $ */
+/* $Id: rndc.c,v 1.6 2000/03/14 04:04:24 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -38,7 +38,6 @@ isc_mem_t *mctx;
 
 typedef struct ndc_object {
 	OMAPI_OBJECT_PREAMBLE;
-	int waitresult;
 } ndc_object_t;
 
 static ndc_object_t ndc_g_ndc;
