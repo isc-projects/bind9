@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.34 2000/11/30 21:33:21 gson Exp $ */
+/* $Id: rndc.c,v 1.35 2000/12/01 21:32:02 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -240,10 +240,12 @@ ndc_setvalue(omapi_object_t *handle, omapi_string_t *name,
 	isc_result_t result;
 	char *message;
 */
-	UNUSED(value);
-	
+
 	INSIST(handle == (omapi_object_t *)&ndc_g_ndc);
-	
+
+	UNUSED(value);
+	UNUSED(handle);
+
 	omapi_string_totext(name, &region);
 	notify("ndc_setvalue: %.*s\n", REGION_FMT(&region));
 
