@@ -1,7 +1,7 @@
 aCopyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.52 2001/11/30 00:52:53 gson Exp $
+$Id: release,v 1.53 2002/01/25 05:25:16 marka Exp $
 
 Preparing a bind9 release
 
@@ -32,7 +32,7 @@ release.
    files using the util/check-pullups.pl script.  For example,
    running the script from a mainline tree:
 
-     perl util/check-pullups.pl CHANGES ../9.2/CHANGES
+     perl util/check-pullups.pl CHANGES ../9.2/CHANGES ../9.2/EXCLUDED
 
    This will list all bug fixes on the mainline that are not
    on the 9.2 release branch.
