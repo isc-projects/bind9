@@ -468,6 +468,7 @@ import_a6(void *arg, struct in6_addr *address)
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
+	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	address_added = ISC_FALSE;
 
 	DP(ENTER_LEVEL, "ENTER: import_a6() name %p", name);
