@@ -19,7 +19,7 @@
 			block were not correctly reference counted, causing
 			a memory leak.
 
- 349.	[func]		Processing a query with the CD bit set now works
+ 349.	[bug]		Processing a query with the CD bit set now works
 			as expected.
 
  348.	[func]		New named.conf boolean values 'glue-from-auth' and
