@@ -31,8 +31,8 @@
 1040.	[bug]		Multiple listen-on-v6 options with different ports
 			were not accepted. [RT #1875]
 
-1039.	[bug]		We cached an incorrect negative response if there were
-			CNAMES in the answer section.  [RT#1862]
+1039.	[bug]		Negative responses with CNAMEs in the answer section
+			were cached incorrectly. [RT#1862]
 
 1038.	[bug]		In servers configured with a tkey-domain option,
 			TKEY queries with an owner name other than the root
