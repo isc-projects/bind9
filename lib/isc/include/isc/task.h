@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 #include <isc/list.h>
-#include <isc/memcluster.h>
+#include <isc/mem.h>
 
 #include <isc/boolean.h>
 #include <isc/result.h>

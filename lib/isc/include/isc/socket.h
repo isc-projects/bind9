@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.12 1998/12/10 16:14:05 explorer Exp $ */
+/* $Id: socket.h,v 1.13 1998/12/11 20:36:07 halley Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -50,7 +50,7 @@
 
 #include <isc/task.h>
 #include <isc/region.h>
-#include <isc/memcluster.h>
+#include <isc/mem.h>
 
 #include <netinet/in.h>
 

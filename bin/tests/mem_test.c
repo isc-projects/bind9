@@ -8,7 +8,7 @@
 #endif
 
 #include <isc/assertions.h>
-#include "memcluster.h"
+#include <isc/mem.h>
 
 char *ptr1[50000];
 char *ptr2[50000];

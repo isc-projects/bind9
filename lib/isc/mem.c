@@ -21,18 +21,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "attribute.h"
 #include <isc/assertions.h>
 #include <isc/error.h>
 
-#include <isc/memcluster.h>
+#include <isc/mem.h>
 
 #ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>
 #endif
 
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.9 1998/12/04 20:00:13 halley Exp $";
+static char rcsid[] = "$Id: mem.c,v 1.10 1998/12/11 20:38:46 halley Exp $";
 #endif /* not lint */
 
 /*

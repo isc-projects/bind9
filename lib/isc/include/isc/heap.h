@@ -17,7 +17,7 @@
 
 #include <isc/result.h>
 #include <isc/boolean.h>
-#include <isc/memcluster.h>
+#include <isc/mem.h>
 
 /* 
  * The comparision function returns ISC_TRUE if the first argument has

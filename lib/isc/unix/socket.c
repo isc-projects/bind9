@@ -1,6 +1,4 @@
-/* $Id: socket.c,v 1.19 1998/12/10 16:14:04 explorer Exp $ */
-
-#include "attribute.h"
+/* $Id: socket.c,v 1.20 1998/12/11 20:36:01 halley Exp $ */
 
 #include <errno.h>
 #include <stddef.h>
