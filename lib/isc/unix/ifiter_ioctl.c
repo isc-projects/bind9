@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.41 2003/10/07 03:34:30 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.42 2003/10/16 05:56:25 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -575,7 +575,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	if ((ifreq.ifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
-#ifdef IFF_POINTTOPOINT
+#ifdef IFF_POINTOPOINT
 	if ((ifreq.ifr_flags & IFF_POINTOPOINT) != 0)
 		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
 #endif
@@ -632,7 +632,7 @@ internal_current4(isc_interfaceiter_t *iter) {
  inet:
 	if (family != AF_INET)
 		return (ISC_R_IGNORE);
-#ifdef IFF_POINTTOPOINT
+#ifdef IFF_POINTOPOINT
 	/*
 	 * If the interface is point-to-point, get the destination address.
 	 */
@@ -669,8 +669,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	 * conversion.  It comes from its own macro definition,
 	 * and is really hard to shut up.
 	 */
-	if (ioctl(iter->socket, SIOCGIFNETMASK, (char *)&ifreq)
-	    < 0) {
+	if (ioctl(iter->socket, SIOCGIFNETMASK, (char *)&ifreq) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 			isc_msgcat_get(isc_msgcat,
@@ -764,12 +763,15 @@ internal_current6(isc_interfaceiter_t *iter) {
 	if ((lifreq.lifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
+#ifdef IFF_POINTOPOINT
 	if ((lifreq.lifr_flags & IFF_POINTOPOINT) != 0)
 		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
+#endif
 
 	if ((lifreq.lifr_flags & IFF_LOOPBACK) != 0)
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
 
+#ifdef IFF_POINTOPOINT
 	/*
 	 * If the interface is point-to-point, get the destination address.
 	 */
@@ -795,6 +797,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 			 (struct sockaddr *)&lifreq.lifr_dstaddr,
 			 lifreq.lifr_name);
 	}
+#endif
 
 	/*
 	 * Get the network mask.  Netmask already zeroed.
