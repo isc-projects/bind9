@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.5 2001/11/05 22:50:03 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.6 2001/11/05 22:56:49 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -158,8 +158,8 @@ domain.</para>
 
 <para>For example, a domain name for a host at the
 company <emphasis>Example, Inc.</emphasis> could be
-<literal>mail.example.net</literal>,
-were <literal>com</literal> is the
+<literal>mail.example.com</literal>,
+where <literal>com</literal> is the
 top level domain to which
 <literal>ourhost.example.com</literal> belongs,
 <literal>example</literal> is
