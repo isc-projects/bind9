@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.270 2000/12/05 20:02:34 bwelling Exp $ */
+/* $Id: zone.c,v 1.271 2000/12/06 01:45:59 tale Exp $ */
 
 #include <config.h>
 
@@ -198,7 +198,7 @@ struct dns_zone {
 	isc_uint64_t            *counters;
 };
 
-#define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
+#define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
 	/* XXX MPA these may need to go back into zone.h */
 #define DNS_ZONEFLG_REFRESH	0x00000001U	/* refresh check in progress */
 #define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/* zone need consolidation */
