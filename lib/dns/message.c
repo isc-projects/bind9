@@ -24,6 +24,7 @@
 #include <isc/mem.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
+#include <isc/buffer.h>
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
@@ -48,6 +49,10 @@
 				 && ((s) < DNS_SECTION_MAX))
 #define VALID_SECTION(s)	(((s) >= DNS_SECTION_ANY) \
 				 && ((s) < DNS_SECTION_MAX))
+#define ADD_STRING(b, s)        {if (strlen(s) >= \
+                                   isc_buffer_availablelength(b)) \
+                                       return(ISC_R_NOSPACE); else \
+                                       isc_buffer_putstr(b, s);}
 
 /*
  * This is the size of each individual scratchpad buffer, and the numbers
@@ -59,6 +64,57 @@
 #define RDATA_COUNT		  8
 #define RDATALIST_COUNT		  8
 #define RDATASET_COUNT		 RDATALIST_COUNT
+
+/*
+ * Text representation of the different items, for message_totext
+ * functions.
+ */
+static char *sectiontext[] = {
+	"QUESTION",
+	"ANSWER",
+	"AUTHORITY",
+	"ADDITIONAL"
+};
+
+static char *opcodetext[] = {
+	"QUERY",
+	"IQUERY",
+	"STATUS",
+	"RESERVED3",
+	"NOTIFY",
+	"UPDATE",
+	"RESERVED6",
+	"RESERVED7",
+	"RESERVED8",
+	"RESERVED9",
+	"RESERVED10",
+	"RESERVED11",
+	"RESERVED12",
+	"RESERVED13",
+	"RESERVED14",
+	"RESERVED15"
+};
+
+static char *rcodetext[] = {
+	"NOERROR",
+	"FORMERR",
+	"SERVFAIL",
+	"NXDOMAIN",
+	"NOTIMPL",
+	"REFUSED",
+	"YXDOMAIN",
+	"YXRRSET",
+	"NXRRSET",
+	"NOTAUTH",
+	"NOTZONE",
+	"RESERVED11",
+	"RESERVED12",
+	"RESERVED13",
+	"RESERVED14",
+	"RESERVED15",
+	"BADVERS"
+};
+
 
 /*
  * "helper" type, which consists of a block of some type, and is linkable.
@@ -2317,4 +2373,165 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		dns_rdata_freestruct(&sig);
 		return (result);
 	}
+}
+
+isc_result_t
+dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
+			  isc_boolean_t comments,
+			  isc_boolean_t omit_final_dot,
+			  isc_boolean_t no_rdata_or_ttl,
+			  isc_buffer_t *target) {
+	dns_name_t *name, empty_name;
+	dns_rdataset_t *rdataset;
+	isc_result_t result;
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(target != NULL);
+	REQUIRE(VALID_SECTION(section));
+
+	if (comments) {
+		ADD_STRING(target, ";; ");
+		ADD_STRING(target, sectiontext[section]);
+		ADD_STRING(target, " SECTION:\n");
+	}
+
+	dns_name_init(&empty_name, NULL);
+	result = dns_message_firstname(msg, section);
+	if (result != ISC_R_SUCCESS) {
+		return(result);
+	}
+	do {
+		name = NULL;
+		dns_message_currentname(msg, section, &name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			result = dns_rdataset_first(rdataset);
+			if (result != ISC_R_NOMORE) {
+				if (result != ISC_R_SUCCESS)
+					return(result);
+				result = dns_rdataset_totext(rdataset, name,
+							     omit_final_dot,
+							     no_rdata_or_ttl,
+							     target);
+				if (result != ISC_R_SUCCESS)
+					return(result);
+			}
+		}
+		result = dns_message_nextname(msg, section);
+	} while (result == ISC_R_SUCCESS);
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+	return(result);
+}
+
+isc_result_t
+dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
+		   isc_boolean_t headers, isc_boolean_t omit_final_dot,
+		   isc_boolean_t no_rdata_or_ttl,
+		   isc_buffer_t *target) {
+	char buf[sizeof "1234567890"];
+	dns_rdataset_t *opt;
+	dns_name_t *tsigname;
+	dns_rdataset_t *tsig;
+	isc_result_t result;
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(target != NULL);
+
+	if (headers) {
+		ADD_STRING(target, ";; ->>HEADER<<- opcode: ");
+		ADD_STRING(target, opcodetext[msg->opcode]);
+		ADD_STRING(target, ", status: ");
+		ADD_STRING(target, rcodetext[msg->rcode]);
+		ADD_STRING(target, ", id: ");
+		sprintf(buf, "%6u", msg->id);
+		ADD_STRING(target, buf);
+		ADD_STRING(target, "\n;; flags: ");
+		if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
+			ADD_STRING(target, "qr ");
+		if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0)
+			ADD_STRING(target, "aa ");
+		if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0)
+			ADD_STRING(target, "tc ");
+		if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0)
+			ADD_STRING(target, "rd ");
+		if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0)
+			ADD_STRING(target, "ra ");
+		if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0)
+			ADD_STRING(target, "ad ");
+		if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0)
+			ADD_STRING(target, "cd ");
+		ADD_STRING(target, "\n; QUESTION: ");
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_QUESTION]);
+		ADD_STRING(target, buf);
+		ADD_STRING(target, ", ANSWER: ");
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_ANSWER]);
+		ADD_STRING(target, buf);
+		ADD_STRING(target, ", AUTHORITY: ");
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_AUTHORITY]);
+		ADD_STRING(target, buf);
+		ADD_STRING(target, ", ADDITIONAL: ");
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_ADDITIONAL]);
+		ADD_STRING(target, buf);
+		ADD_STRING(target, "\n");
+		opt = dns_message_getopt(msg);
+		if (opt != NULL) {
+			ADD_STRING(target, ";; EDNS: version: ");
+			sprintf(buf, "%4u",
+				(unsigned int)((opt->ttl &
+						0x00ff0000 >> 16)));
+			ADD_STRING(target, buf);
+			ADD_STRING(target, ", udp=");
+			sprintf(buf, "%7u",
+				(unsigned int)opt->rdclass);
+			ADD_STRING(target, buf);
+		}
+		ADD_STRING(target, "\n");
+		tsigname = NULL;
+		tsig = dns_message_gettsig(msg, &tsigname);
+		if (tsig != NULL)
+			ADD_STRING(target, ";; PSEUDOSECTIONS: TSIG\n");
+	}
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_QUESTION])) {
+		ADD_STRING(target, "\n");
+		result = dns_message_sectiontotext(msg, DNS_SECTION_QUESTION,
+						   comments,
+						   omit_final_dot,
+						   no_rdata_or_ttl,
+						   target);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
+		ADD_STRING(target, "\n");
+		result = dns_message_sectiontotext(msg, DNS_SECTION_ANSWER,
+						   comments,
+						   omit_final_dot,
+						   no_rdata_or_ttl,
+						   target);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY])) {
+		ADD_STRING(target, "\n");
+		result = dns_message_sectiontotext(msg, DNS_SECTION_AUTHORITY,
+						   comments,
+						   omit_final_dot,
+						   no_rdata_or_ttl,
+						   target);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ADDITIONAL])) {
+		ADD_STRING(target, "\n");
+		result = dns_message_sectiontotext(msg, DNS_SECTION_ADDITIONAL,
+						   comments,
+						   omit_final_dot,
+						   no_rdata_or_ttl,
+						   target);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+	return(ISC_R_SUCCESS);
 }

@@ -265,6 +265,85 @@ dns_message_destroy(dns_message_t **msgp);
  */
 
 isc_result_t
+dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
+			  isc_boolean_t comments,
+			  isc_boolean_t omit_final_dot,
+			  isc_boolean_t no_rdata_or_ttl,
+			  isc_buffer_t *target);
+/*
+ * Convert section 'section' of message 'msg' to a cleartext representation
+ *
+ * Notes:
+ *	If 'omit_final_dot' is true, then the final '.' in absolute names
+ *	will not be emitted.
+ *	If 'no_rdata_or_tt;' is true, omit rdata and ttl fields.
+ *	If 'comments' is true, lines beginning with ";;" will be emitted
+ *	indicating section name.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message.
+ *
+ *	'target' is a valid buffer.
+ *
+ *	'section' is a valid section label.
+ *
+ * Ensures:
+ *
+ *	If the result is success:
+ *
+ *		Any bitstring labels are in canonical form.
+ *
+ *		The used space in 'target' is updated.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
+ *	ISC_R_NOMORE
+ *
+ *	Note: On error return, *target may be partially filled with data. 
+*/
+
+isc_result_t
+dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
+		   isc_boolean_t headers, isc_boolean_t omit_final_dot,
+		   isc_boolean_t no_rdata_or_ttl,
+		   isc_buffer_t *target);
+/*
+ * Convert all sections of message 'msg' to a cleartext representation
+ *
+ * Notes:
+ *	If 'omit_final_dot' is true, then the final '.' in absolute names
+ *	will not be emitted.
+ *	If 'no_rdata_or_tt;' is true, omit rdata and ttl fields.
+ *	If 'comments' is true, lines beginning with ";;" will be emitted
+ *	indicating section name.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message.
+ *
+ *	'target' is a valid buffer.
+ *
+ * Ensures:
+ *
+ *	If the result is success:
+ *
+ *		Any bitstring labels are in canonical form.
+ *
+ *		The used space in 'target' is updated.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
+ *	ISC_R_NOMORE
+ *
+ *	Note: On error return, *target may be partially filled with data. 
+*/
+
+isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		  isc_boolean_t preserve_order);
 /*
