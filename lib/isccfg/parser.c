@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.57 2001/06/29 18:36:10 gson Exp $ */
+/* $Id: parser.c,v 1.58 2001/07/02 17:05:46 gson Exp $ */
 
 #include <config.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
+#include <isc/formatcheck.h>
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -374,10 +375,12 @@ cfg_getstringtoken(cfg_parser_t *pctx);
 
 static void
 parser_error(cfg_parser_t *pctx, unsigned int flags,
-				 const char *fmt, ...);
+	     const char *fmt, ...) ISC_FORMAT_PRINTF(3, 4);
+
 static void
 parser_warning(cfg_parser_t *pctx, unsigned int flags,
-	       const char *fmt, ...);
+	       const char *fmt, ...) ISC_FORMAT_PRINTF(3, 4);
+
 static void
 parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 		unsigned int flags, const char *format, va_list args);
