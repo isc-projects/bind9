@@ -72,8 +72,8 @@ BIND 9.0.0rc1
 
 	BIND 9.0.0rc1 is a release candidate for 9.0.0.  It contains
         the final set of features for 9.0.0.  The only changes 
-	expected between 9.0.0rc1 and 9.0.0 are critical bug fixes and
-	updates to the documentation.
+	expected between 9.0.0rc1 and 9.0.0 are fixes to serious bugs
+	and updates to the documentation.
 
 	BIND 9.0.0rc1 and 9.0.0 are aimed at early adopters and those
 	who wish to make use of new 9.0 features, such as IPv6 and
@@ -114,6 +114,8 @@ BIND 9.0.0rc1
 
 
 	There are a few known bugs:
+
+		The nsupdate program is almost completely broken.
 
 		The option "query-source * port 53;" will not work as
 		expected.  Instead of the wildcard address "*", you need 
