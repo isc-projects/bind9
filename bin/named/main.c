@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.93 2000/11/15 02:11:47 tale Exp $ */
+/* $Id: main.c,v 1.94 2000/11/17 22:09:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -490,6 +490,10 @@ setup(void) {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
+	/*
+	 * Add calls to register sdb drivers here.
+	 */
+
 	ns_server_create(ns_g_mctx, &ns_g_server);
 
 	if (!ns_g_lwresdonly) {
@@ -505,6 +509,10 @@ cleanup(void) {
 	destroy_managers();
 
 	ns_server_destroy(&ns_g_server);
+
+	/*
+	 * Add calls to unregister sdb drivers here.
+	 */
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
