@@ -1,3 +1,5 @@
+ 745.	[func]		Report the owner name on when adding a rdataset
+			to the internal database fails while loading.
 
  744.	[bug]		When returning DNS_R_CNAME or DNS_R_DNAME as the
 			result of an ANY or SIG query, the resolver failed

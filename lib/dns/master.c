@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.108 2001/02/14 13:14:50 marka Exp $ */
+/* $Id: master.c,v 1.109 2001/02/19 13:24:04 marka Exp $ */
 
 #include <config.h>
 
@@ -195,16 +195,14 @@ loadctx_destroy(dns_loadctx_t *lctx);
 				ictx->current, lctx->top); \
 		if (MANYERRS(lctx, result)) { \
 			SETRESULT(lctx, result); \
-			LOGIT(result); \
 		} else if (result != ISC_R_SUCCESS) \
-			goto log_and_cleanup; \
+			goto insist_and_cleanup; \
 		result = commit(callbacks, lctx, &glue_list, \
 				ictx->glue, lctx->top); \
 		if (MANYERRS(lctx, result)) { \
 			SETRESULT(lctx, result); \
-			LOGIT(result); \
 		} else if (result != ISC_R_SUCCESS) \
-			goto log_and_cleanup; \
+			goto insist_and_cleanup; \
 		rdcount = 0; \
 		rdlcount = 0; \
 		isc_buffer_init(&target, target_mem, target_size); \
@@ -1131,9 +1129,8 @@ load(dns_loadctx_t **lctxp) {
 						ictx->glue, lctx->top);
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
-					LOGIT(result);
 				} else if (result != ISC_R_SUCCESS)
-					goto log_and_cleanup;
+					goto insist_and_cleanup;
 				if (ictx->glue_in_use != -1)
 					ictx->in_use[ictx->glue_in_use] =
 						ISC_FALSE;
@@ -1169,9 +1166,8 @@ load(dns_loadctx_t **lctxp) {
 							lctx->top);
 					if (MANYERRS(lctx, result)) {
 						SETRESULT(lctx, result);
-						LOGIT(result);
 					} else if (result != ISC_R_SUCCESS)
-						goto log_and_cleanup;
+						goto insist_and_cleanup;
 					rdcount = 0;
 					rdlcount = 0;
 					if (ictx->current_in_use != -1)
@@ -1493,15 +1489,13 @@ load(dns_loadctx_t **lctxp) {
 	result = commit(callbacks, lctx, &current_list, ictx->current, lctx->top);
 	if (MANYERRS(lctx, result)) {
 		SETRESULT(lctx, result);
-		LOGIT(result);
 	} else if (result != ISC_R_SUCCESS)
-		goto log_and_cleanup;
+		goto insist_and_cleanup;
 	result = commit(callbacks, lctx, &glue_list, ictx->glue, lctx->top);
 	if (MANYERRS(lctx, result)) {
 		SETRESULT(lctx, result);
-		LOGIT(result);
 	} else if (result != ISC_R_SUCCESS)
-		goto log_and_cleanup;
+		goto insist_and_cleanup;
 
 	if (!done) {
 		INSIST(lctx->done != NULL && lctx->task != NULL);
@@ -1909,8 +1903,13 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 	isc_result_t result;
 	isc_boolean_t ignore = ISC_FALSE;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	void    (*error)(struct dns_rdatacallbacks *, const char *, ...);
+	void    (*warn)(struct dns_rdatacallbacks *, const char *, ...);
 
 	this = ISC_LIST_HEAD(*head);
+	error = callbacks->error;
+	warn = callbacks->warn;
+
 	if (this == NULL)
 		return (ISC_R_SUCCESS);
 	if (!dns_name_issubdomain(owner, top)) {
@@ -1918,13 +1917,9 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 		/*
 		 * Ignore out-of-zone data.
 		 */
-		(callbacks->warn)(callbacks,
-				  "%s: %s:%lu: "
-				  "ignoring out-of-zone data (%s)",
-				  "dns_master_load",
-				  isc_lex_getsourcename(lctx->lex),
-				  isc_lex_getsourceline(lctx->lex) - 1,
-				  namebuf);
+		(*warn)(callbacks, "%s: %s:%lu: ignoring out-of-zone data (%s)",
+		       "dns_master_load", isc_lex_getsourcename(lctx->lex),
+		       isc_lex_getsourceline(lctx->lex) - 1, namebuf);
 		ignore = ISC_TRUE;
 	}
 	do {
@@ -1935,6 +1930,18 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 			result = ((*callbacks->add)(callbacks->add_private,
 						    owner,
 						    &dataset));
+			if (result == ISC_R_NOMEMORY) {
+				(*error)(callbacks, "dns_master_load: %s",
+					 dns_result_totext(result));
+			} else if (result != ISC_R_SUCCESS) {
+				dns_name_format(owner, namebuf,
+						sizeof(namebuf));
+				(*error)(callbacks, "%s: %s:%lu: %s: %s",
+					 "dns_master_load",
+					 isc_lex_getsourcename(lctx->lex),
+					 isc_lex_getsourceline(lctx->lex) - 1,
+					 namebuf, dns_result_totext(result));
+			}
 			if (MANYERRS(lctx, result))
 				SETRESULT(lctx, result);
 			else if (result != ISC_R_SUCCESS)
