@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.226 2001/10/10 04:11:32 marka Exp $ */
+/* $Id: resolver.c,v 1.227 2001/10/29 19:02:45 gson Exp $ */
 
 #include <config.h>
 
@@ -261,6 +261,7 @@ struct dns_resolver {
 	unsigned int			activebuckets;
 	isc_boolean_t			priming;
 	dns_fetch_t *			primefetch;
+	unsigned int			nfctx;
 };
 
 #define RES_MAGIC			ISC_MAGIC('R', 'e', 's', '!')
@@ -1834,6 +1835,10 @@ fctx_destroy(fetchctx_t *fctx) {
 	dns_adb_detach(&fctx->adb);
 	isc_mem_put(res->mctx, fctx, sizeof *fctx);
 
+	LOCK(&res->lock);
+	res->nfctx--;
+	UNLOCK(&res->lock);
+
 	if (res->buckets[bucketnum].exiting &&
 	    ISC_LIST_EMPTY(res->buckets[bucketnum].fctxs))
 		return (ISC_TRUE);
@@ -2261,6 +2266,10 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->magic = FCTX_MAGIC;
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
+
+	LOCK(&res->lock);
+	res->nfctx++;
+	UNLOCK(&res->lock);
 
 	*fctxp = fctx;
 
@@ -4534,6 +4543,8 @@ destroy(dns_resolver_t *res) {
 
 	RTRACE("destroy");
 
+	INSIST(res->nfctx == 0);
+
 	DESTROYLOCK(&res->lock);
 	for (i = 0; i < res->nbuckets; i++) {
 		INSIST(ISC_LIST_EMPTY(res->buckets[i].fctxs));
@@ -4663,6 +4674,7 @@ dns_resolver_create(dns_view_t *view,
 	ISC_LIST_INIT(res->whenshutdown);
 	res->priming = ISC_FALSE;
 	res->primefetch = NULL;
+	res->nfctx = 0;
 
 	result = isc_mutex_init(&res->lock);
 	if (result != ISC_R_SUCCESS)
@@ -5218,4 +5230,13 @@ void
 dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	resolver->lame_ttl = lame_ttl;
+}
+
+unsigned int
+dns_resolver_nrunning(dns_resolver_t *resolver) {
+	unsigned int n;
+	LOCK(&resolver->lock);
+	n = resolver->nfctx;
+	UNLOCK(&resolver->lock);
+	return (n);
 }

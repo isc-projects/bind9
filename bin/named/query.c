@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.209 2001/10/25 01:50:15 gson Exp $ */
+/* $Id: query.c,v 1.210 2001/10/29 19:02:48 gson Exp $ */
 
 #include <config.h>
 
@@ -2136,6 +2136,9 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 			killoldest = ISC_TRUE;
 			result = ISC_R_SUCCESS;
 		}
+		if (dns_resolver_nrunning(client->view->resolver) >
+		    (unsigned int)ns_g_server->recursionquota.max)
+			result = ISC_R_QUOTA;
 		if (result == ISC_R_SUCCESS &&
 		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 			result = ns_client_replace(client);

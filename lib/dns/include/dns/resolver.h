@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.34 2001/01/09 21:53:22 bwelling Exp $ */
+/* $Id: resolver.h,v 1.35 2001/10/29 19:02:46 gson Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -347,6 +347,16 @@ dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl);
  *
  * Requires:
  *	'resolver' to be valid.
+ */
+
+unsigned int
+dns_resolver_nrunning(dns_resolver_t *resolver);
+/*
+ * Return the number of currently running resolutions in this
+ * resolver.  This is may be less than the number of outstanding
+ * fetches due to multiple identical fetches, or more than the
+ * number of of outstanding fetches due to the fact that resolution
+ * can continue even though a fetch has been canceled.
  */
 
 ISC_LANG_ENDDECLS

@@ -1,3 +1,9 @@
+1077.	[func]		Do not accept further recursive clients when
+			the total number of of recursive lookups being 
+			processed exceeds max-recursive-clients, even
+			if some	of the lookups are internally generated.
+			[RT #1915, #1938]
+
 1076.	[bug]		A badly defined global key could trigger an assertion
 			on load/reload if views were used. [RT #1947]
 
@@ -19,8 +25,7 @@
 1070.	[bug]		Copy DNSSEC OK (DO) to response as specified by
 			draft-ietf-dnsext-dnssec-okbit-03.txt.
 
-1069.	[func]		Kill oldest recursive query when recursive query
-			quota is exhausted.
+1069.	[placeholder]
 
 1068.	[bug]		errno could be overwritten by catgets(). [RT #1921]
 
