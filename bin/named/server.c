@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.286 2001/01/29 07:08:40 marka Exp $ */
+/* $Id: server.c,v 1.287 2001/01/29 17:25:12 halley Exp $ */
 
 #include <config.h>
 
@@ -2073,7 +2073,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->heartbeat_timer = NULL;
 	
 	server->interface_interval = 0;
-	server->hearbeat_interval = 0;
+	server->heartbeat_interval = 0;
 
 	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				      ns_g_socketmgr, &server->zonemgr),
