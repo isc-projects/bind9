@@ -122,6 +122,11 @@ Building
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8
 
+	Additionally, we have unverified reports of success from users
+	of the following systems:
+
+		Slackware Linux 7.0 with 2.4.0-test6 kernel and glibc 2.1.3
+
 	To build, just
 
 		./configure
