@@ -30,6 +30,8 @@
 #include <dns/master.h>
 #include <dns/rdataslab.h>
 #include <dns/rdata.h>
+#include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 
 #ifdef DNS_RBTDB_VERSION64
 #include "rbtdb64.h"
@@ -56,6 +58,8 @@ typedef isc_uint64_t			rbtdb_serial_t;
 typedef isc_uint32_t			rbtdb_serial_t;
 #endif
 
+static const rbtdb_serial_t		max_serial = ~((rbtdb_serial_t)0);
+
 typedef struct rdatasetheader {
 	/* Not locked. */
 	dns_ttl_t			ttl;
@@ -72,7 +76,7 @@ typedef struct rdatasetheader {
 	struct rdatasetheader		*down;
 } rdatasetheader_t;
 
-#define RDATASET_ATTR_NONEXISTENT		0x01
+#define RDATASET_ATTR_NONEXISTENT	0x01
 
 #define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
 
@@ -122,17 +126,35 @@ typedef struct {
 
 #define RBTDB_ATTR_LOADED		0x01
 
-static dns_result_t disassociate(dns_rdataset_t *rdatasetp);
-static dns_result_t first(dns_rdataset_t *rdataset);
-static dns_result_t next(dns_rdataset_t *rdataset);
-static void current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static dns_result_t rdataset_disassociate(dns_rdataset_t *rdatasetp);
+static dns_result_t rdataset_first(dns_rdataset_t *rdataset);
+static dns_result_t rdataset_next(dns_rdataset_t *rdataset);
+static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 
 static dns_rdatasetmethods_t rdataset_methods = {
-	disassociate,
-	first,
-	next,
-	current
+	rdataset_disassociate,
+	rdataset_first,
+	rdataset_next,
+	rdataset_current
 };
+
+static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
+static dns_result_t rdatasetiter_first(dns_rdatasetiter_t *iterator);
+static dns_result_t rdatasetiter_next(dns_rdatasetiter_t *iterator);
+static void rdatasetiter_current(dns_rdatasetiter_t *iterator,
+				 dns_rdataset_t *rdataset);
+
+static dns_rdatasetitermethods_t rdatasetiter_methods = {
+	rdatasetiter_destroy,
+	rdatasetiter_first,
+	rdatasetiter_next,
+	rdatasetiter_current
+};
+
+typedef struct rbtdb_rdatasetiter {
+	dns_rdatasetiter_t		common;
+	rdatasetheader_t *		current;
+} rbtdb_rdatasetiter_t;
 
 /*
  * Locking
@@ -845,12 +867,15 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(type != dns_rdatatype_any);
 
-	if (rbtversion == NULL) {
-		LOCK(&rbtdb->lock);
-		serial = rbtdb->current_serial;
-		UNLOCK(&rbtdb->lock);
+	if ((db->attributes & DNS_DBATTR_CACHE) == 0) {
+		if (rbtversion == NULL) {
+			LOCK(&rbtdb->lock);
+			serial = rbtdb->current_serial;
+			UNLOCK(&rbtdb->lock);
+		} else
+			serial = rbtversion->serial;
 	} else
-		serial = rbtversion->serial;
+		serial = max_serial;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -906,6 +931,55 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	if (header == NULL)
 		return (DNS_R_NOTFOUND);
+
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+	     dns_rdatasetiter_t **iteratorp)
+{
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
+	rbtdb_version_t *rbtversion = version;
+	rbtdb_rdatasetiter_t *iterator;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	iterator = isc_mem_get(rbtdb->common.mctx, sizeof *iterator);
+	if (iterator == NULL)
+		return (DNS_R_NOMEMORY);
+
+	if ((db->attributes & DNS_DBATTR_CACHE) == 0) {
+		LOCK(&rbtdb->lock);
+		if (rbtversion == NULL) {
+			rbtversion = rbtdb->current_version;
+			if (rbtversion->references == 0)
+				PREPEND(rbtdb->open_versions, rbtversion,
+					link);
+		}
+		rbtversion->references++;
+		INSIST(rbtversion->references != 0);
+		UNLOCK(&rbtdb->lock);
+	} else
+		rbtversion = NULL;
+
+	iterator->common.magic = DNS_RDATASETITER_MAGIC;
+	iterator->common.methods = &rdatasetiter_methods;
+	iterator->common.db = db;
+	iterator->common.node = node;
+	iterator->common.version = (dns_dbversion_t *)rbtversion;
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+	
+	INSIST(rbtnode->references > 0);
+	rbtnode->references++;
+	INSIST(rbtnode->references != 0);
+	iterator->current = NULL;
+
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	*iteratorp = (dns_rdatasetiter_t *)iterator;
 
 	return (DNS_R_SUCCESS);
 }
@@ -1159,6 +1233,7 @@ static dns_dbmethods_t methods = {
 	printnode,
 	createiterator,
 	findrdataset,
+	allrdatasets,
 	addrdataset,
 	deleterdataset
 };
@@ -1293,7 +1368,7 @@ dns_rbtdb_create
  */
 
 static dns_result_t
-disassociate(dns_rdataset_t *rdataset) {
+rdataset_disassociate(dns_rdataset_t *rdataset) {
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
 
@@ -1303,7 +1378,7 @@ disassociate(dns_rdataset_t *rdataset) {
 }
 
 static dns_result_t
-first(dns_rdataset_t *rdataset) {
+rdataset_first(dns_rdataset_t *rdataset) {
 	unsigned char *raw = rdataset->private3;
 	unsigned int count;
 
@@ -1326,7 +1401,7 @@ first(dns_rdataset_t *rdataset) {
 }
 
 static dns_result_t
-next(dns_rdataset_t *rdataset) {
+rdataset_next(dns_rdataset_t *rdataset) {
 	unsigned int count;
 	unsigned int length;
 	unsigned char *raw;
@@ -1345,7 +1420,7 @@ next(dns_rdataset_t *rdataset) {
 }
 
 static void
-current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	unsigned char *raw = rdataset->private5;
 	isc_region_t r;
 
@@ -1355,4 +1430,164 @@ current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	raw += 2;
 	r.base = raw;
 	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
+}
+
+
+/*
+ * Rdataset Iterator Methods
+ */
+
+static void
+rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
+	rbtdb_rdatasetiter_t *rbtiterator;
+
+	rbtiterator = (rbtdb_rdatasetiter_t *)(*iteratorp);
+
+	if (rbtiterator->common.version != NULL)
+		closeversion(rbtiterator->common.db,
+			     &rbtiterator->common.version, ISC_FALSE);
+	detachnode(rbtiterator->common.db, &rbtiterator->common.node);
+	isc_mem_put(rbtiterator->common.db->mctx, rbtiterator,
+		    sizeof *rbtiterator);
+	
+	*iteratorp = NULL;
+}
+
+static dns_result_t
+rdatasetiter_first(dns_rdatasetiter_t *iterator) {
+	rbtdb_rdatasetiter_t *rbtiterator = (rbtdb_rdatasetiter_t *)iterator;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(rbtiterator->common.db);
+	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
+	rbtdb_version_t *rbtversion = rbtiterator->common.version;
+	rdatasetheader_t *header, *top_next;
+	rbtdb_serial_t serial;
+
+	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) == 0)
+		serial = rbtversion->serial;
+	else
+		serial = max_serial;
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	for (header = rbtnode->data; header != NULL; header = top_next) {
+		top_next = header->next;
+		do {
+			if (header->serial <= serial) {
+				/*
+				 * Is this a "this rdataset doesn't
+				 * exist" record?
+				 */
+				if ((header->attributes &
+				     RDATASET_ATTR_NONEXISTENT) != 0)
+					header = NULL;
+				break;
+			} else
+				header = header->down;
+		} while (header != NULL);
+		if (header != NULL)
+			break;
+	}
+
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	rbtiterator->current = header;
+
+	if (header == NULL)
+		return (DNS_R_NOMORE);
+
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+rdatasetiter_next(dns_rdatasetiter_t *iterator) {
+	rbtdb_rdatasetiter_t *rbtiterator = (rbtdb_rdatasetiter_t *)iterator;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(rbtiterator->common.db);
+	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
+	rbtdb_version_t *rbtversion = rbtiterator->common.version;
+	rdatasetheader_t *header, *top_next;
+	rbtdb_serial_t serial;
+
+	header = rbtiterator->current;
+	if (header == NULL)
+		return (DNS_R_NOMORE);
+
+	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) == 0)
+		serial = rbtversion->serial;
+	else
+		serial = max_serial;
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	for (header = header->next; header != NULL; header = top_next) {
+		top_next = header->next;
+		do {
+			if (header->serial <= serial) {
+				/*
+				 * Is this a "this rdataset doesn't
+				 * exist" record?
+				 */
+				if ((header->attributes &
+				     RDATASET_ATTR_NONEXISTENT) != 0)
+					header = NULL;
+				break;
+			} else
+				header = header->down;
+		} while (header != NULL);
+		if (header != NULL)
+			break;
+	}
+
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	rbtiterator->current = header;
+
+	if (header == NULL)
+		return (DNS_R_NOMORE);
+
+	return (DNS_R_SUCCESS);
+}
+
+static void
+rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset) {
+	rbtdb_rdatasetiter_t *rbtiterator = (rbtdb_rdatasetiter_t *)iterator;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(rbtiterator->common.db);
+	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
+	rdatasetheader_t *header;
+	unsigned char *raw;
+	unsigned int count;
+
+	header = rbtiterator->current;
+	REQUIRE(header != NULL);
+	
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	INSIST(rbtnode->references > 0);
+	rbtnode->references++;
+	INSIST(rbtnode->references != 0);	/* Catch overflow. */
+
+	rdataset->methods = &rdataset_methods;
+	rdataset->rdclass = rbtdb->common.rdclass;
+	rdataset->type = header->type;
+	rdataset->ttl = header->ttl;
+	rdataset->private1 = rbtdb;
+	rdataset->private2 = rbtnode;
+	raw = (unsigned char *)header + sizeof *header;
+	rdataset->private3 = raw;
+	count = raw[0] * 256 + raw[1];
+	raw += 2;
+	if (count == 0) {
+		rdataset->private4 = (void *)0;
+		rdataset->private5 = NULL;
+	} else {
+		/*
+		 * The private4 field is the number of rdata beyond
+		 * the cursor position, so we decrement the total
+		 * count by one before storing it.
+		 */
+		count--;
+		rdataset->private4 = (void *)count; 
+		rdataset->private5 = raw;
+	}
+
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 }
