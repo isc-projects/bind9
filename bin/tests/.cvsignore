@@ -7,3 +7,4 @@ sym_test
 lex_test
 task_test
 timer_test
+wire_test
