@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.18 2000/04/06 09:46:53 brister Exp $ */
+/* $Id: confview.c,v 1.19 2000/04/06 10:35:26 brister Exp $ */
 
 #include <config.h>
 
@@ -436,7 +436,8 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable)
 /* ***************************************************************** */
 
 isc_result_t
-dns_c_view_new(isc_mem_t *mem, const char *name, dns_c_view_t **newview)
+dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
+	       dns_c_view_t **newview)
 {
 	dns_c_view_t *view;
 
@@ -451,6 +452,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_c_view_t **newview)
 
 	view->magic = DNS_C_VIEW_MAGIC;
 	view->mem = mem;
+	view->viewclass = viewclass;
 
 	view->name = isc_mem_strdup(mem, name);
 	if (view->name == NULL) {
@@ -526,7 +528,14 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view)
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	
 	dns_c_printtabs(fp, indent);
-	fprintf(fp, "view \"%s\" {\n", view->name);
+	fprintf(fp, "view \"%s\"", view->name);
+
+	if (view->viewclass != dns_rdataclass_in) {
+		fputc(' ', fp);
+		dns_c_dataclass_tostream(fp, view->viewclass);
+	}
+
+	fprintf(fp, " {\n");
 
 #define PRINT_IPANDPORT(FIELD, NAME)				\
 	if (view->FIELD != NULL) {				\
@@ -784,6 +793,18 @@ dns_c_view_getname(dns_c_view_t *view, const char **retval)
 	REQUIRE(retval != NULL);
 
 	*retval = view->name;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_view_getviewclass(dns_c_view_t *view, dns_rdataclass_t *retval)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(retval != NULL);
+
+	*retval = view->viewclass;
 
 	return (ISC_R_SUCCESS);
 }

@@ -104,6 +104,8 @@ struct dns_c_view
 	
 	char 		       *name;
 
+	dns_rdataclass_t	viewclass;
+	
 	dns_c_zonelist_t       *zonelist;
 
 	dns_c_forw_t	       *forward;
@@ -186,8 +188,10 @@ isc_result_t	dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable);
 
 
 
-isc_result_t	dns_c_view_new(isc_mem_t *mem,
-			       const char *name, dns_c_view_t **newview);
+isc_result_t	dns_c_view_new(isc_mem_t *mem, const char *name,
+			       dns_rdataclass_t viewclass,
+			       dns_c_view_t **newview);
+
 isc_result_t	dns_c_view_delete(dns_c_view_t **viewptr);
 void		dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view);
 
@@ -199,6 +203,9 @@ isc_result_t	dns_c_view_getzonelist(dns_c_view_t *view,
 				       dns_c_zonelist_t **zonelist);
 isc_result_t	dns_c_view_unsetzonelist(dns_c_view_t *view);
 
+
+isc_result_t	dns_c_view_getviewclass(dns_c_view_t *view,
+					dns_rdataclass_t *retval);
 
 isc_result_t	dns_c_view_getforward(dns_c_view_t *view,
 				     dns_c_forw_t *retval);

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.58 2000/04/06 09:43:12 brister Exp $ */
+/* $Id: confparser.y,v 1.59 2000/04/06 10:35:25 brister Exp $ */
 
 #include <config.h>
 
@@ -337,6 +337,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <rdatatype>	rdatatype
 %type <rdatatypelist>	rdatatype_list
 %type <rrclass>		class_name
+%type <rrclass>		wild_class_name
 %type <rrclass>		optional_class
 %type <severity>	check_names_opt;
 %type <ssu>		grant_stmt
@@ -1206,7 +1207,7 @@ ordering_class: /* nothing */
 	{
 		$$ = dns_rdataclass_any;
 	}
-	| L_CLASS class_name
+	| L_CLASS wild_class_name
 	{
 		$$ = $2;
 	}
@@ -2712,7 +2713,7 @@ secret: L_SECRET any_string L_EOS
  */
 
 
-view_stmt: L_VIEW any_string L_LBRACE 
+view_stmt: L_VIEW any_string optional_class L_LBRACE 
 	{
 		dns_c_view_t *view;
 
@@ -2726,7 +2727,7 @@ view_stmt: L_VIEW any_string L_LBRACE
 			}
 		}
 		
-		tmpres = dns_c_view_new(currcfg->mem, $2, &view);
+		tmpres = dns_c_view_new(currcfg->mem, $2, $3, &view);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to create view %s", $2);
@@ -3573,6 +3574,24 @@ optional_zone_options_list: /* Empty */
 	;
 
 class_name: any_string
+	{
+		isc_textregion_t reg;
+		dns_rdataclass_t cl;
+
+		reg.base = $1;
+		reg.length = strlen($1);
+			
+		tmpres = dns_rdataclass_fromtext(&cl, &reg);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_TRUE, "unknown class.");
+			YYABORT;
+		}
+		
+		isc_mem_free(memctx, $1);
+		$$ = cl;
+	}
+
+wild_class_name: any_string
 	{
 		isc_textregion_t reg;
 		dns_rdataclass_t cl;
