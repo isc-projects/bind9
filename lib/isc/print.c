@@ -297,7 +297,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					length = strlen(buf);
 					if (length < precision)
 						zeropad = precision - length;
-					if (width) {
+					else if (length < width && zero)
+						zeropad = width - length;
+					if (width != 0) {
 						pad = width - length -
 						      zeropad - strlen(head);
 						if (pad < 0)
