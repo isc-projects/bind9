@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.4 2001/10/11 01:07:50 gson Exp $ */
+/* $Id: log.h,v 1.5 2001/10/16 05:28:14 marka Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
@@ -23,8 +23,8 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 
-extern isc_logcategory_t cfg_categories[];
-extern isc_logmodule_t cfg_modules[];
+LIBISCCFG_EXTERNAL_DATA extern isc_logcategory_t cfg_categories[];
+LIBISCCFG_EXTERNAL_DATA extern isc_logmodule_t cfg_modules[];
 
 #define CFG_LOGCATEGORY_CONFIG	(&cfg_categories[0])
 
