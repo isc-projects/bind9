@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.17 2001/04/26 18:19:27 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.18 2001/05/09 02:08:50 gson Exp $ -->
 
 <book>
 
@@ -2310,7 +2310,7 @@ channel "default_debug" {
 					// of "named.run"
 					// if the server is started
 					// with the '-f' option.
-    severity dynamic			// log at the server's
+    severity dynamic;			// log at the server's
 					// current debug level
 };
 channel "default_stderr" {		// writes to stderr
