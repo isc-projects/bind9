@@ -1,10 +1,94 @@
 #!/usr/local/bin/perl -w
 
-if (@ARGV == 0) {
-    die "usage: merge_copyrights <copyrights_database>";
-}
+%file_types = ();
+%file_years = ();
 
-# Build a list of files, and then merge it into the copyrights database.
-# Notice if a file goes away.  If the file isn't in the database, add it
-# with the current year.  Notice if the year a file was last modified
-# is not in the database.
+open(COPYRIGHTS, "<util/copyrights") || die "can't open copyrights: $!";
+while (<COPYRIGHTS>) {
+    chomp;
+    ($file, $type, $years) = split;
+    $file_types{$file} = $type;
+    $file_years{$file} = $years;
+}
+close(COPYRIGHTS);
+
+($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time());
+$year += 1900;
+
+open(FILES, "<util/files") || die "can't open files: $!";
+while (<FILES>) {
+    chomp;
+    if (!$file_types{$_}) {
+	if ($_ =~ /\.[chy]$/) {
+	    $file_types{$_} = "C";
+	} elsif ($_ =~ /\/Makefile\.in$/) {
+	    $file_types{$_} = "SH";
+	} elsif ($_ =~ /\/\.cvsignore$/) {
+	    $file_types{$_} = "X";
+	} else {
+	    $file_types{$_} = "?";
+	}
+        ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+	 $blksize,$blocks)
+	    = stat($_);
+	($sec,$min,$hour,$mday,$mon,$c_year,$wday,$yday,$isdst) =
+	    localtime($ctime);
+	($sec,$min,$hour,$mday,$mon,$m_year,$wday,$yday,$isdst) =
+	    localtime($mtime);
+	$c_year += 1900;
+	$m_year += 1900;
+	if ($m_year != $year || $c_year != $year) {
+	    print "$_: must set copyright year(s) manually\n";
+	    $file_years{$_} = "????";
+	} else {
+	    $file_years{$_} = "$year";
+	}
+	# keep perl from issuing warnings about "used only once"
+	$dev = $ino = $mode = $nlink = $uid = $gid = $rdev = $size = 0;
+	$atime = $blksize = $blocks = 0;
+    } else {
+	if ($file_types{$_} eq "X" || $file_years{$_} eq "????") {
+	    next;
+	}
+	@years = split(/,/, $file_years{$_});
+	$has_current = 0;
+	foreach $fyear (@years) {
+	    if ($fyear == $year) {
+		$has_current = 1;
+	    }
+	}
+	if (!$has_current) {
+	    ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,
+	     $blksize,$blocks)
+		= stat($_);
+	    ($sec,$min,$hour,$mday,$mon,$m_year,$wday,$yday,$isdst) =
+		localtime($mtime);
+	    $m_year += 1900;
+	    if ($m_year == $year) {
+		$file_years{$_} .= ",$year";
+	    }
+	}
+    }
+}
+close(FILES);
+
+open(NEWCOPYRIGHTS, ">util/newcopyrights") ||
+    die "can't open newcopyrights: $!";
+foreach $file (sort(keys(%file_types))) {
+    print NEWCOPYRIGHTS "$file";
+    $len = length($file);
+    if ($len >= 48) {
+	$tabs = 1;
+    } else {
+	$needed = int (48 - $len);
+	$tabs = int ($needed / 8);
+	if ($needed % 8 != 0) {
+	    $tabs++;
+	}
+    }
+    for ($i = 0; $i < $tabs; $i++) {
+	printf NEWCOPYRIGHTS "\t";
+    }
+    printf NEWCOPYRIGHTS "%s\t%s\n", $file_types{$file}, $file_years{$file};
+}
+close(NEWCOPYRIGHTS);
