@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.10 1999/10/25 19:55:06 tale Exp $ */
+/* $Id: log.c,v 1.11 1999/10/31 19:09:23 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -676,7 +676,7 @@ greatest_version(isc_logchannel_t *channel)
 
 
 	isc_dir_init(&dir);
-	result = isc_dir_open(dirname, &dir);
+	result = isc_dir_open(&dir, dirname);
 	if (result != ISC_R_SUCCESS)
 		return (0); /* ... and roll_log will likely report an error. */
 
