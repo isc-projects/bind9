@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2001/09/20 15:17:01 marka Exp $
+# $Id: Makefile.in,v 1.16 2003/10/08 06:36:13 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -24,6 +24,12 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${TEST_INCLUDES}
 CDEFINES =
 CWARNINGS =
+
+ISCLIBS =	../../lib/isc/libisc.@A@
+ISCCCLIBS =	../../lib/isccc/libisccc.@A@
+
+ISCDEPLIBS =	../../lib/isc/libisc.@A@
+ISCCCDEPLIBS =	libisccc.@A@
 
 OBJS =		t_api.@O@
 
@@ -41,7 +47,7 @@ libt_api.@SA@: ${OBJS}
 libt_api.la: ${OBJS}
 	${LIBTOOL} --mode=link \
 		${CC} ${ALL_CFLAGS} -o libt_api.la -rpath ${libdir} \
-		${OBJS} ${LIBS}
+		${OBJS} ${LIBS} ${ISCLIBS}
 
 timestamp: libt_api.@A@
 	touch timestamp
