@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+#ifndef	DNS_RBT_H
+#define	DNS_RBT_H 1
 #include <isc/result.h>
 #include <isc/mem.h>
 
@@ -159,3 +161,5 @@ void dns_rbt_printall(dns_rbt_t *rbt);
 dns_result_t dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 			    void *arg, dns_rbt_t **rbtp);
 void dns_rbt_destroy(dns_rbt_t **rbtp);
+
+#endif
