@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.98 2001/01/09 21:51:13 bwelling Exp $ */
+/* $Id: rbt.c,v 1.99 2001/01/22 20:41:43 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -897,7 +897,25 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 			if (hnode != NULL) {
 				current = hnode;
-				continue;
+				/*
+				 * This is an optimization.  If hashing found
+				 * the right node, the next call to
+				 * dns_name_fullcompare() would obviously
+				 * return _equal or _subdomain.  Determine
+				 * which of those would be the case by
+				 * checking if the full name was hashed.  Then
+				 * make it look like dns_name_fullcompare
+				 * was called and jump to the right place.
+				 */
+				if (tlabels == nlabels) {
+					compared = dns_namereln_equal;
+					break;
+				} else {
+					common_labels = 1;
+					common_bits = 0;
+					compared = dns_namereln_subdomain;
+					goto subdomain;
+				}
 			}
 
 			if (tlabels++ < nlabels)
@@ -942,6 +960,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			 * down pointer and search in the new tree.
 			 */
 			if (compared == dns_namereln_subdomain) {
+		subdomain:
 				/*
 				 * Whack off the current node's common parts
 				 * for the name to search in the next level.
