@@ -135,7 +135,7 @@ Building
 	BIND 9 currently requires a UNIX system with an ANSI C compiler,
 	basic POSIX support, and a good pthreads implementation.
 
-	We've had successful builds and tests on the following systems
+	We've had successful builds and tests on the following systems:
 
 		AIX 4.3
 		COMPAQ Tru64 UNIX 4.0D
@@ -145,6 +145,11 @@ Building
 		NetBSD-current (with "unproven" pthreads, foreground only)
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8 (beta)
+
+        We've also had reports of successful builds on the following
+        systems, though we do not have tested these platforms ourselves:
+
+                COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
 
 	To build, just
 
