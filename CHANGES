@@ -1,3 +1,6 @@
+ 680.	[bug]		dns_rdata_fromstruct() mis-handles options bigger
+			than 255 octets.
+
  679.	[bug]		$INCLUDE could leak memory and file descriptors on
 			reload. [RT #639]
 
