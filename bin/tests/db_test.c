@@ -335,13 +335,14 @@ main(int argc, char *argv[]) {
 	dbinfo *dbi;
 	dns_dbversion_t *version;
 	dns_name_t *origin;
+	size_t memory_quota = 0;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_dbtable_create(mctx, dns_rdataclass_in, &dbtable) ==
 		      DNS_R_SUCCESS);
 
 	strcpy(dbtype, "rbt");
-	while ((ch = getopt(argc, argv, "c:d:t:z:P:gpqvT")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:t:z:P:Q:gpqvT")) != -1) {
 		switch (ch) {
 		case 'c':
 			result = load(optarg, ".", ISC_TRUE);
@@ -363,6 +364,10 @@ main(int argc, char *argv[]) {
 			break;
 		case 'P':
 			pause_every = atoi(optarg);
+			break;
+		case 'Q':
+			memory_quota = atoi(optarg);
+			isc_mem_setquota(mctx, memory_quota);
 			break;
 		case 't':
 			type = atoi(optarg);
