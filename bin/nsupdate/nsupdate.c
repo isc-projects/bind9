@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.3 2000/07/10 17:23:25 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.4 2000/08/02 22:19:06 gson Exp $ */
 
 #include <config.h>
 
@@ -245,6 +245,9 @@ setup_key() {
 	result = dns_tsigkeyring_create(mctx, &keyring);
 	check_result(result, "dns_tsigkeyringcreate");
 
+	dns_fixedname_init(&fkeyname);
+	keyname = dns_fixedname_name(&fkeyname);
+
 	if (keystr != NULL) {
 		isc_buffer_t keynamesrc;
 		char *secretstr;
@@ -258,9 +261,6 @@ setup_key() {
 		if (s == NULL || s == keystr || *s == 0)
 			fatal("key option must specify keyname:secret\n");
 		secretstr = s + 1;
-
-		dns_fixedname_init(&fkeyname);
-		keyname = dns_fixedname_name(&fkeyname);
 
 		isc_buffer_init(&keynamesrc, keystr, s - keystr);
 		isc_buffer_add(&keynamesrc, s - keystr);
@@ -317,7 +317,11 @@ setup_key() {
 				keyfile, isc_result_totext(result));
 			goto failure;
 		}
-		keyname = dst_key_name(dstkey);
+		result = dns_name_concatenate(dst_key_name(dstkey), NULL,
+					      keyname, NULL);
+		check_result(result, "dns_name_concatenate");
+		dst_key_free(&dstkey);
+				    
 	}
 		
 	debug("keycreate");
