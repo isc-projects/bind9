@@ -18,9 +18,8 @@
 #ifndef ISC_INET_H
 #define ISC_INET_H 1
 
-#include <netinet/in.h>
-
 #include <isc/lang.h>
+#include <isc/net.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -32,10 +31,6 @@ ISC_LANG_BEGINDECLS
  * depends on <config.h> being included.  This won't work outside our
  * controlled tree.
  */
-
-#ifdef NEED_AF_INET6
-#define AF_INET6 99
-#endif
 
 #ifdef NEED_INET_NTOP
 const char *isc_inet_ntop(int af, const void *src, char *dst, size_t size);
