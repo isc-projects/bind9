@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.4 2004/06/30 14:14:46 marka Exp $ */
+/* $Id: query.c,v 1.257.18.5 2004/12/21 10:58:56 jinmei Exp $ */
 
 #include <config.h>
 
@@ -91,6 +91,11 @@
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
 #define DNS_GETDB_PARTIAL 0x04U
+
+typedef struct client_additionalctx {
+	ns_client_t *client;
+	dns_rdataset_t *rdataset;
+} client_additionalctx_t;
 
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
@@ -538,37 +543,18 @@ query_findversion(ns_client_t *client, dns_db_t *db,
 }
 
 static inline isc_result_t
-query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
-		unsigned int options, dns_zone_t **zonep, dns_db_t **dbp,
-		dns_dbversion_t **versionp)
+query_validatezonedb(ns_client_t *client, dns_name_t *name,
+		     dns_rdatatype_t qtype, unsigned int options,
+		     dns_zone_t *zone, dns_db_t *db,
+		     dns_dbversion_t **versionp)
 {
 	isc_result_t result;
 	isc_boolean_t check_acl, new_zone;
 	dns_acl_t *queryacl;
 	ns_dbversion_t *dbversion;
-	unsigned int ztoptions;
-	dns_zone_t *zone = NULL;
-	dns_db_t *db = NULL;
-	isc_boolean_t partial = ISC_FALSE;
 
-	REQUIRE(zonep != NULL && *zonep == NULL);
-	REQUIRE(dbp != NULL && *dbp == NULL);
-
-	/*
-	 * Find a zone database to answer the query.
-	 */
-	ztoptions = ((options & DNS_GETDB_NOEXACT) != 0) ?
-		DNS_ZTFIND_NOEXACT : 0;
-
-	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
-			     &zone);
-	if (result == DNS_R_PARTIALMATCH)
-		partial = ISC_TRUE;
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		result = dns_zone_getdb(zone, &db);
-
-	if (result != ISC_R_SUCCESS)		
-		goto fail;
+	REQUIRE(zone != NULL);
+	REQUIRE(db != NULL);
 
 	/*
 	 * This limits our searching to the zone where the first name
@@ -689,17 +675,63 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	 */
 	dbversion->queryok = ISC_TRUE;
 
+	/* Transfer ownership, if necessary. */
+	if (versionp != NULL)
+		*versionp = dbversion->version;
+
+	return (ISC_R_SUCCESS);
+
+ refuse:
+	return (DNS_R_REFUSED);
+
+ fail:
+	return (result);
+}
+
+static inline isc_result_t
+query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
+		unsigned int options, dns_zone_t **zonep, dns_db_t **dbp,
+		dns_dbversion_t **versionp)
+{
+	isc_result_t result;
+	unsigned int ztoptions;
+	dns_zone_t *zone = NULL;
+	dns_db_t *db = NULL;
+	isc_boolean_t partial = ISC_FALSE;
+
+	REQUIRE(zonep != NULL && *zonep == NULL);
+	REQUIRE(dbp != NULL && *dbp == NULL);
+
+	/*
+	 * Find a zone database to answer the query.
+	 */
+	ztoptions = ((options & DNS_GETDB_NOEXACT) != 0) ?
+		DNS_ZTFIND_NOEXACT : 0;
+
+	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
+			     &zone);
+	if (result == DNS_R_PARTIALMATCH)
+		partial = ISC_TRUE;
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+		result = dns_zone_getdb(zone, &db);
+
+	if (result != ISC_R_SUCCESS)		
+		goto fail;
+
+	result = query_validatezonedb(client, name, qtype, options, zone, db,
+				      versionp);
+
+	if (result != ISC_R_SUCCESS)
+		goto fail;
+
 	/* Transfer ownership. */
 	*zonep = zone;
 	*dbp = db;
-	*versionp = dbversion->version;
 
 	if (partial && (options & DNS_GETDB_PARTIAL) != 0)
 		return (DNS_R_PARTIALMATCH);
 	return (ISC_R_SUCCESS);
 
- refuse:
-	result = DNS_R_REFUSED;
  fail:
 	if (zone != NULL)
 		dns_zone_detach(&zone);
@@ -1238,10 +1270,515 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 }
 
 static inline void
+query_discardcache(ns_client_t *client, dns_rdataset_t *rdataset_base,
+		   dns_rdatasetadditional_t additionaltype,
+		   dns_rdatatype_t type, dns_zone_t **zonep, dns_db_t **dbp,
+		   dns_dbversion_t **versionp, dns_dbnode_t **nodep,
+		   dns_name_t *fname)
+{
+	dns_rdataset_t *rdataset;
+
+	while  ((rdataset = ISC_LIST_HEAD(fname->list)) != NULL) {
+		ISC_LIST_UNLINK(fname->list, rdataset, link);
+		query_putrdataset(client, &rdataset);
+	}
+	if (*versionp != NULL)
+		dns_db_closeversion(*dbp, versionp, ISC_FALSE);
+	if (*nodep != NULL)
+		dns_db_detachnode(*dbp, nodep);
+	if (*dbp != NULL)
+		dns_db_detach(dbp);
+	if (*zonep != NULL)
+		dns_zone_detach(zonep);
+	(void)dns_rdataset_putadditional(client->view->acache, rdataset_base,
+					 additionaltype, type);
+}
+
+static inline isc_result_t
+query_iscachevalid(dns_zone_t *zone, dns_db_t *db, dns_db_t *db0,
+		   dns_dbversion_t *version)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_dbversion_t *version_current = NULL;
+	dns_db_t *db_current = db0;
+
+	if (db_current == NULL) {
+		result = dns_zone_getdb(zone, &db_current);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+	dns_db_currentversion(db_current, &version_current);
+	if (db_current != db || version_current != version) {
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
+ cleanup:
+	dns_db_closeversion(db_current, &version_current, ISC_FALSE);
+	if (db0 == NULL && db_current != NULL)
+		dns_db_detach(&db_current);
+	
+	return (result);
+}
+
+static isc_result_t
+query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
+	client_additionalctx_t *additionalctx = arg;
+	dns_rdataset_t *rdataset_base;
+	ns_client_t *client;
+	isc_result_t result, eresult;
+	dns_dbnode_t *node, *cnode;
+	dns_db_t *db, *cdb;
+	dns_name_t *fname, *mname0, cfname;
+	dns_rdataset_t *rdataset, *sigrdataset;
+	dns_rdataset_t *crdataset, *crdataset_next;
+	isc_buffer_t *dbuf;
+	isc_buffer_t b;
+	dns_dbversion_t *version, *cversion;
+	isc_boolean_t added_something, need_addname, needadditionalcache;
+	isc_boolean_t need_sigrrset;
+	dns_zone_t *zone;
+	dns_rdatatype_t type;
+	dns_rdatasetadditional_t additionaltype;
+
+	if (qtype != dns_rdatatype_a) {
+		/*
+		 * This function is optimized for "address" types.  For other
+		 * types, use a generic routine.
+		 * XXX: ideally, this function should be generic enough.
+		 */
+		return (query_addadditional(additionalctx->client,
+					    name, qtype));
+	}
+
+	/*
+	 * Initialization.
+	 */
+	rdataset_base = additionalctx->rdataset;
+	client = additionalctx->client;
+	REQUIRE(NS_CLIENT_VALID(client));
+	eresult = ISC_R_SUCCESS;
+	fname = NULL;
+	rdataset = NULL;
+	sigrdataset = NULL;
+	db = NULL;
+	cdb = NULL;
+	version = NULL;
+	cversion = NULL;
+	node = NULL;
+	cnode = NULL;
+	added_something = ISC_FALSE;
+	need_addname = ISC_FALSE;
+	zone = NULL;
+	needadditionalcache = ISC_FALSE;
+	additionaltype = dns_rdatasetadditional_fromauth;
+	dns_name_init(&cfname, NULL);
+
+	CTRACE("query_addadditional2");
+
+	/*
+	 * We treat type A additional section processing as if it
+	 * were "any address type" additional section processing.
+	 * To avoid multiple lookups, we do an 'any' database
+	 * lookup and iterate over the node.
+	 * XXXJT: this approach can cause a suboptimal result when the cache
+	 * DB only has partial address types and the glue DB has remaining
+	 * ones. 
+	 */
+	type = dns_rdatatype_any;
+
+	/*
+	 * Get some resources.
+	 */
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		goto cleanup;
+	fname = query_newname(client, dbuf, &b);
+	if (fname == NULL)
+		goto cleanup;
+	dns_name_setbuffer(&cfname, &b); /* share the buffer */
+
+	/* Check additional cache */
+	result = dns_rdataset_getadditional(rdataset_base, additionaltype,
+					    type, client->view->acache, &zone,
+					    &cdb, &cversion, &cnode, &cfname,
+					    client->message, client->now);
+	if (result != ISC_R_SUCCESS)
+		goto findauthdb;
+	if (zone == NULL) {
+		CTRACE("query_addadditional2: auth zone not found");
+		goto try_cache;
+	}
+
+	/* Is the cached DB up-to-date? */
+	result = query_iscachevalid(zone, cdb, NULL, cversion);
+	if (result != ISC_R_SUCCESS) {
+		CTRACE("query_addadditional2: old auth additional cache");
+		query_discardcache(client, rdataset_base, additionaltype,
+				   type, &zone, &cdb, &cversion, &cnode,
+				   &cfname);
+		goto findauthdb;
+	}
+
+	if (cnode == NULL) {
+		/*
+		 * We have a negative cache.  We don't have to check the zone
+		 * ACL, since the result (not using this zone) would be same
+		 * regardless of the result.
+		 */
+		CTRACE("query_addadditional2: negative auth additional cache");
+		dns_db_closeversion(cdb, &cversion, ISC_FALSE);
+		dns_db_detach(&cdb);
+		dns_zone_detach(&zone);
+		goto try_cache;
+	}
+
+	result = query_validatezonedb(client, name, qtype, DNS_GETDB_NOLOG,
+				      zone, cdb, NULL);
+	if (result != ISC_R_SUCCESS) {
+		query_discardcache(client, rdataset_base, additionaltype,
+				   type, &zone, &cdb, &cversion, &cnode,
+				   &cfname);
+		goto try_cache;
+	}
+
+	/* We've got an active cache. */
+	CTRACE("query_addadditional2: auth additional cache");
+	dns_db_closeversion(cdb, &cversion, ISC_FALSE);
+	db = cdb;
+	node = cnode;
+	dns_name_clone(&cfname, fname);
+	query_keepname(client, fname, dbuf);
+	goto foundcache;
+
+	/*
+	 * Look for a zone database that might contain authoritative
+	 * additional data.
+	 */
+ findauthdb:
+	result = query_getzonedb(client, name, qtype, DNS_GETDB_NOLOG,
+				 &zone, &db, &version);
+	if (result != ISC_R_SUCCESS) {
+		/* Cache the negative result */
+		(void)dns_rdataset_setadditional(rdataset_base, additionaltype,
+						 type, client->view->acache,
+						 NULL, NULL, NULL, NULL,
+						 NULL);
+		goto try_cache;
+	}
+
+	CTRACE("query_addadditional2: db_find");
+
+	/*
+	 * Since we are looking for authoritative data, we do not set
+	 * the GLUEOK flag.  Glue will be looked for later, but not
+	 * necessarily in the same database.
+	 */
+	node = NULL;
+	result = dns_db_find(db, name, version, type, client->query.dboptions,
+			     client->now, &node, fname, NULL, NULL);
+	if (result == ISC_R_SUCCESS)
+		goto found;
+
+	/* Cache the negative result */
+	(void)dns_rdataset_setadditional(rdataset_base, additionaltype,
+					 type, client->view->acache, zone, db,
+					 version, NULL, fname);
+
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	version = NULL;
+	dns_db_detach(&db);
+
+	/*
+	 * No authoritative data was found.  The cache is our next best bet.
+	 */
+
+ try_cache:
+	additionaltype = dns_rdatasetadditional_fromcache;
+	result = query_getcachedb(client, name, qtype, &db, DNS_GETDB_NOLOG);
+	if (result != ISC_R_SUCCESS)
+		/*
+		 * Most likely the client isn't allowed to query the cache.
+		 */
+		goto try_glue;
+
+	result = dns_db_find(db, name, version, type,  client->query.dboptions,
+			     client->now, &node, fname, NULL, NULL);
+	if (result == ISC_R_SUCCESS)
+		goto found;
+
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	dns_db_detach(&db);
+
+ try_glue:
+	/*
+	 * No cached data was found.  Glue is our last chance.
+	 * RFC1035 sayeth:
+	 *
+	 *	NS records cause both the usual additional section
+	 *	processing to locate a type A record, and, when used
+	 *	in a referral, a special search of the zone in which
+	 *	they reside for glue information.
+	 *
+	 * This is the "special search".  Note that we must search
+	 * the zone where the NS record resides, not the zone it
+	 * points to, and that we only do the search in the delegation
+	 * case (identified by client->query.gluedb being set).
+	 */
+	if (client->query.gluedb == NULL)
+		goto cleanup;
+
+	/*
+	 * Don't poision caches using the bailiwick protection model.
+	 */
+	if (!dns_name_issubdomain(name, dns_db_origin(client->query.gluedb)))
+		goto cleanup;
+
+	/* Check additional cache */
+	additionaltype = dns_rdatasetadditional_fromglue;
+	result = dns_rdataset_getadditional(rdataset_base, additionaltype,
+					    type, client->view->acache, NULL,
+					    &cdb, &cversion, &cnode, &cfname,
+					    client->message, client->now);
+	if (result != ISC_R_SUCCESS)
+		goto findglue;
+
+	result = query_iscachevalid(zone, cdb, client->query.gluedb, cversion);
+	if (result != ISC_R_SUCCESS) {
+		CTRACE("query_addadditional2: old glue additional cache");
+		query_discardcache(client, rdataset_base, additionaltype,
+				   type, &zone, &cdb, &cversion, &cnode,
+				   &cfname);
+		goto findglue;
+	}
+
+	if (cnode == NULL) {
+		/* We have a negative cache. */
+		CTRACE("query_addadditional2: negative glue additional cache");
+		dns_db_closeversion(cdb, &cversion, ISC_FALSE);
+		dns_db_detach(&cdb);
+		goto cleanup;
+	}
+
+	/* Cache hit. */
+	CTRACE("query_addadditional2: glue additional cache");
+	dns_db_closeversion(cdb, &cversion, ISC_FALSE);
+	db = cdb;
+	node = cnode;
+	dns_name_clone(&cfname, fname);
+	query_keepname(client, fname, dbuf);
+	goto foundcache;
+
+ findglue:
+	dns_db_attach(client->query.gluedb, &db);
+	result = dns_db_find(db, name, version, type,
+			     client->query.dboptions | DNS_DBFIND_GLUEOK,
+			     client->now, &node, fname, NULL, NULL);
+	if (!(result == ISC_R_SUCCESS ||
+	      result == DNS_R_ZONECUT ||
+	      result == DNS_R_GLUE)) {
+		/* cache the negative result */
+		(void)dns_rdataset_setadditional(rdataset_base, additionaltype,
+						 type, client->view->acache,
+						 NULL, db, version, NULL,
+						 fname);
+		goto cleanup;
+	}
+
+ found:
+	/*
+	 * We have found a DB node to iterate over from a DB.
+	 * We are going to look for address RRsets (i.e., A and AAAA) in the DB
+	 * node we've just found.  We'll then store the complete information
+	 * in the additional data cache.
+	 */
+	dns_name_clone(fname, &cfname);
+	query_keepname(client, fname, dbuf);
+	needadditionalcache = ISC_TRUE;
+
+	rdataset = query_newrdataset(client);
+	if (rdataset == NULL)
+		goto cleanup;
+	if (WANTDNSSEC(client)) {
+		sigrdataset = query_newrdataset(client);
+		if (sigrdataset == NULL)
+			goto cleanup;
+	}
+
+	/*
+	 * Find A RRset with sig RRset.  Even if we don't find a sig RRset
+	 * for a client using DNSSEC, we'll continue the process to make a
+	 * complete list to be cached.  However, we need to cancel the
+	 * caching when something unexpected happens, in order to avoid
+	 * caching incomplete information.
+	 */
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_a, 0,
+				     client->now, rdataset, sigrdataset);
+	if (result == DNS_R_NCACHENXDOMAIN)
+		goto setcache;
+	if (result == DNS_R_NCACHENXRRSET) {
+		dns_rdataset_disassociate(rdataset);
+		/*
+		 * Negative cache entries don't have sigrdatasets.
+		 */
+		INSIST(sigrdataset == NULL ||
+		       ! dns_rdataset_isassociated(sigrdataset));
+	}
+	if (result == ISC_R_SUCCESS) {
+		/* Remember the result as a cache */
+		ISC_LIST_APPEND(cfname.list, rdataset, link);
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset)) {
+			ISC_LIST_APPEND(cfname.list, sigrdataset,
+					link);
+			sigrdataset =
+				query_newrdataset(client);
+			if (sigrdataset == NULL)
+				needadditionalcache = ISC_FALSE;
+		}
+		rdataset = query_newrdataset(client);
+		if (rdataset == NULL) {
+			/* do not cache incomplete information */
+			goto foundcache;
+		}
+	}
+
+	/* Find AAAA RRset with sig RRset */
+	result = dns_db_findrdataset(db, node, version,
+				     dns_rdatatype_aaaa, 0,
+				     client->now, rdataset,
+				     sigrdataset);
+	/* The NXDOMAIN case should be covered above */
+	INSIST(result != DNS_R_NCACHENXDOMAIN);
+	if (result == DNS_R_NCACHENXRRSET) {
+		dns_rdataset_disassociate(rdataset);
+		/*
+		 * Negative cache entries don't have sigrdatasets.
+		 */
+		INSIST(sigrdataset == NULL ||
+		       ! dns_rdataset_isassociated(sigrdataset));
+	}
+	if (result == ISC_R_SUCCESS) {
+		ISC_LIST_APPEND(cfname.list, rdataset, link);
+		rdataset = NULL;
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset)) {
+			ISC_LIST_APPEND(cfname.list, sigrdataset,
+					link);
+			sigrdataset = NULL;
+		}
+	}
+
+ setcache:
+	/*
+	 * Set the new result in the cache if required.  We do not support
+	 * caching additional data from a cache DB. 
+	 */
+	if (needadditionalcache == ISC_TRUE &&
+	    (additionaltype == dns_rdatasetadditional_fromauth ||
+	     additionaltype == dns_rdatasetadditional_fromglue)) {
+		(void)dns_rdataset_setadditional(rdataset_base, additionaltype,
+						 type, client->view->acache,
+						 zone, db, version, node,
+						 &cfname);
+	}
+
+ foundcache:
+	need_sigrrset = ISC_FALSE;
+	mname0 = NULL;
+	for (crdataset = ISC_LIST_HEAD(cfname.list);
+	     crdataset != NULL;
+	     crdataset = crdataset_next) {
+		dns_name_t *mname;
+
+		crdataset_next = ISC_LIST_NEXT(crdataset, link);
+
+		mname = NULL;
+		if (crdataset->type == dns_rdatatype_a ||
+		    crdataset->type == dns_rdatatype_aaaa) {
+			if (!query_isduplicate(client, fname, crdataset->type,
+					       &mname)) {
+				if (mname != NULL) {
+					/*
+					 * A different type of this name is
+					 * already stored in the additional
+					 * section.  We'll reuse the name.
+					 * Note that this should happen at most
+					 * once.  Otherwise, fname->link could
+					 * leak below.
+					 */
+					INSIST(mname0 == NULL);
+
+					query_releasename(client, &fname);
+					fname = mname;
+					mname0 = mname;
+				} else
+					need_addname = ISC_TRUE;
+				ISC_LIST_UNLINK(cfname.list, crdataset, link);
+				ISC_LIST_APPEND(fname->list, crdataset, link);
+				added_something = ISC_TRUE;
+				need_sigrrset = ISC_TRUE;
+			} else
+				need_sigrrset = ISC_FALSE;
+		} else if (crdataset->type == dns_rdatatype_sig &&
+			   need_sigrrset && WANTDNSSEC(client)) {
+			ISC_LIST_UNLINK(cfname.list, crdataset, link);
+			ISC_LIST_APPEND(fname->list, crdataset, link);
+			added_something = ISC_TRUE; /* just in case */
+			need_sigrrset = ISC_FALSE;
+		}
+	}
+
+	CTRACE("query_addadditional2: addname");
+
+	/*
+	 * If we haven't added anything, then we're done.
+	 */
+	if (!added_something)
+		goto cleanup;
+
+	/*
+	 * We may have added our rdatasets to an existing name, if so, then
+	 * need_addname will be ISC_FALSE.  Whether we used an existing name
+	 * or a new one, we must set fname to NULL to prevent cleanup.
+	 */
+	if (need_addname)
+		dns_message_addname(client->message, fname,
+				    DNS_SECTION_ADDITIONAL);
+	fname = NULL;
+
+ cleanup:
+	CTRACE("query_addadditional2: cleanup");
+
+	if (rdataset != NULL)
+		query_putrdataset(client, &rdataset);
+	if (sigrdataset != NULL)
+		query_putrdataset(client, &sigrdataset);
+	while  ((crdataset = ISC_LIST_HEAD(cfname.list)) != NULL) {
+		ISC_LIST_UNLINK(cfname.list, crdataset, link);
+		query_putrdataset(client, &crdataset);
+	}
+	if (fname != NULL)
+		query_releasename(client, &fname);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+
+	CTRACE("query_addadditional2: done");
+	return (eresult);
+}
+
+static inline void
 query_addrdataset(ns_client_t *client, dns_name_t *fname,
 		  dns_rdataset_t *rdataset)
 {
 	dns_rdatatype_t type = rdataset->type;
+	client_additionalctx_t additionalctx;
 
 	/*
 	 * Add 'rdataset' and any pertinent additional data to
@@ -1264,8 +1801,10 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	 *
 	 * We don't care if dns_rdataset_additionaldata() fails.
 	 */
-	(void)dns_rdataset_additionaldata(rdataset,
-					  query_addadditional, client);
+	additionalctx.client = client;
+	additionalctx.rdataset = rdataset;
+	(void)dns_rdataset_additionaldata(rdataset, query_addadditional2,
+					  &additionalctx);
 	/*
 	 * RFC 2535 section 3.5 says that when NS, SOA, A, or AAAA records
 	 * are retrieved, any KEY RRs for the owner name should be added
@@ -1362,11 +1901,12 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 }
 
 static inline isc_result_t
-query_addsoa(ns_client_t *client, dns_db_t *db, isc_boolean_t zero_ttl) {
-	dns_name_t *name, *fname;
+query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
+	     isc_boolean_t zero_ttl)
+{
+	dns_name_t *name;
 	dns_dbnode_t *node;
 	isc_result_t result, eresult;
-	dns_fixedname_t foundname;
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	dns_rdataset_t **sigrdatasetp = NULL;
 
@@ -1378,8 +1918,6 @@ query_addsoa(ns_client_t *client, dns_db_t *db, isc_boolean_t zero_ttl) {
 	name = NULL;
 	rdataset = NULL;
 	node = NULL;
-	dns_fixedname_init(&foundname);
-	fname = dns_fixedname_name(&foundname);
 
 	/*
 	 * Get resources and make 'name' be the database origin.
@@ -1405,9 +1943,26 @@ query_addsoa(ns_client_t *client, dns_db_t *db, isc_boolean_t zero_ttl) {
 	/*
 	 * Find the SOA.
 	 */
-	result = dns_db_find(db, name, NULL, dns_rdatatype_soa,
-			     client->query.dboptions, 0, &node,
-			     fname, rdataset, sigrdataset);
+	result = dns_db_getsoanode(db, &node);
+	if (result == ISC_R_SUCCESS) {
+		result = dns_db_findrdataset(db, node, version,
+					     dns_rdatatype_soa,
+					     0, client->now, rdataset,
+					     sigrdataset);
+	} else {
+		dns_fixedname_t foundname;
+		dns_name_t *fname;
+
+		dns_fixedname_init(&foundname);
+		fname = dns_fixedname_name(&foundname);
+
+		result = dns_db_find(db, name, version, dns_rdatatype_soa,
+				     client->query.dboptions, 0, &node,
+				     fname, rdataset, sigrdataset);
+
+		if (result == ISC_R_SUCCESS)
+			(void)dns_db_setsoanode(db, node);
+	}
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * This is bad.  We tried to get the SOA RR at the zone top
@@ -1463,7 +2018,7 @@ query_addsoa(ns_client_t *client, dns_db_t *db, isc_boolean_t zero_ttl) {
 }
 
 static inline isc_result_t
-query_addns(ns_client_t *client, dns_db_t *db) {
+query_addns(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version) {
 	dns_name_t *name, *fname;
 	dns_dbnode_t *node;
 	isc_result_t result, eresult;
@@ -1510,13 +2065,25 @@ query_addns(ns_client_t *client, dns_db_t *db) {
 	/*
 	 * Find the NS rdataset.
 	 */
-	CTRACE("query_addns: calling dns_db_find");
-	result = dns_db_find(db, name, NULL, dns_rdatatype_ns,
-			     client->query.dboptions, 0, &node,
-			     fname, rdataset, sigrdataset);
-	CTRACE("query_addns: dns_db_find complete");
+	result = dns_db_getnsnode(db, &node);
+	if (result == ISC_R_SUCCESS) {
+		result = dns_db_findrdataset(db, node, version,
+					     dns_rdatatype_ns,
+					     0, client->now, rdataset,
+					     sigrdataset);
+	} else {
+		CTRACE("query_addns: calling dns_db_find");
+		result = dns_db_find(db, name, NULL, dns_rdatatype_ns,
+				     client->query.dboptions, 0, &node,
+				     fname, rdataset, sigrdataset);
+		CTRACE("query_addns: dns_db_find complete");
+
+		if (result == ISC_R_SUCCESS)
+			(void)dns_db_setnsnode(db, node);
+	}
 	if (result != ISC_R_SUCCESS) {
-		CTRACE("query_addns: dns_db_find failed");
+		CTRACE("query_addns: "
+		       "dns_db_findrdataset or dns_db_find failed");
 		/*
 		 * This is bad.  We tried to get the NS rdataset at the zone
 		 * top and it didn't work!
@@ -2514,7 +3081,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (is_zone)
 		authoritative = ISC_TRUE;
-       
+
 	if (event == NULL && client->query.restarts == 0) {
 		if (is_zone) {
 			dns_zone_attach(zone, &client->query.authzone);
@@ -2838,7 +3405,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Add SOA.
 		 */
-		result = query_addsoa(client, db, ISC_FALSE);
+		result = query_addsoa(client, db, version, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -2879,9 +3446,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * resolver and not have it cached.
 		 */
 		if (qtype == dns_rdatatype_soa)
-			result = query_addsoa(client, db, ISC_TRUE);
+			result = query_addsoa(client, db, version, ISC_TRUE);
 		else
-			result = query_addsoa(client, db, ISC_FALSE);
+			result = query_addsoa(client, db, version, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -3205,7 +3772,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				/*
 				 * Add SOA.
 				 */
-				result = query_addsoa(client, db, ISC_FALSE);
+				result = query_addsoa(client, db, version,
+						      ISC_FALSE);
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_NOMORE;
 			} else {
@@ -3257,7 +3825,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			       qtype == dns_rdatatype_any) &&
 			      dns_name_equal(client->query.qname,
 					     dns_db_origin(db))))
-				(void)query_addns(client, db);
+				(void)query_addns(client, db, version);
 		} else if (qtype != dns_rdatatype_ns) {
 			if (fname != NULL)
 				query_releasename(client, &fname);

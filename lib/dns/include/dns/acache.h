@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.h,v 1.3 2004/12/21 10:54:12 jinmei Exp $ */
+/* $Id: acache.h,v 1.3.2.1 2004/12/21 10:59:00 jinmei Exp $ */
 
 #ifndef DNS_ACACHE_H
 #define DNS_ACACHE_H 1

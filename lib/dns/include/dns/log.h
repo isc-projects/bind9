@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.33 2004/03/05 05:09:43 marka Exp $ */
+/* $Id: log.h,v 1.33.18.1 2004/12/21 10:59:01 jinmei Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -69,6 +69,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_SDB		(&dns_modules[22])
 #define DNS_LOGMODULE_DIFF		(&dns_modules[23])
 #define DNS_LOGMODULE_HINTS		(&dns_modules[24])
+#define DNS_LOGMODULE_ACACHE		(&dns_modules[25])
 
 ISC_LANG_BEGINDECLS
 

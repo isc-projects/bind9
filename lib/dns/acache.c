@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.3 2004/12/21 10:54:11 jinmei Exp $ */
+/* $Id: acache.c,v 1.3.2.1 2004/12/21 10:58:57 jinmei Exp $ */
 
 #include <config.h>
 

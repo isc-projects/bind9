@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.4 2004/05/23 11:09:37 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.5 2004/12/21 10:58:58 jinmei Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -34,6 +34,7 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/acache.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/events.h>
@@ -46,6 +47,8 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdataslab.h>
 #include <dns/result.h>
+#include <dns/view.h>
+#include <dns/zone.h>
 #include <dns/zonekey.h>
 
 #ifdef DNS_RBTDB_VERSION64
@@ -103,6 +106,8 @@ struct noqname {
 	void *	   nsecsig;
 };
 
+typedef struct acachectl acachectl_t;  
+
 typedef struct rdatasetheader {
 	/*
 	 * Locked by the owning node's lock.
@@ -140,6 +145,9 @@ typedef struct rdatasetheader {
 	 * should not be so crucial, no lock is set for the counter for
 	 * performance reasons.
 	 */
+
+	acachectl_t			*additional_auth;
+	acachectl_t			*additional_glue;
 } rdatasetheader_t;
 
 #define RDATASET_ATTR_NONEXISTENT	0x0001
@@ -147,6 +155,19 @@ typedef struct rdatasetheader {
 #define RDATASET_ATTR_IGNORE		0x0004
 #define RDATASET_ATTR_RETAIN		0x0008
 #define RDATASET_ATTR_NXDOMAIN		0x0010
+
+typedef struct acache_cbarg {
+	dns_rdatasetadditional_t	type;
+	unsigned int			count;
+	dns_db_t			*db;
+	dns_dbnode_t			*node;
+	rdatasetheader_t		*header;
+} acache_cbarg_t;
+
+struct acachectl {
+	dns_acacheentry_t		*entry;
+	acache_cbarg_t			*cbarg;
+};
 
 /*
  * XXX
@@ -219,6 +240,8 @@ typedef struct {
 	rbtdb_versionlist_t		open_versions;
 	isc_boolean_t			overmem;
 	isc_task_t *			task;
+	dns_dbnode_t			*soanode;
+	dns_dbnode_t			*nsnode;
 	/* Locked by tree_lock. */
 	dns_rbt_t *			tree;
 	isc_boolean_t			secure;
@@ -264,6 +287,30 @@ static isc_result_t rdataset_getnoqname(dns_rdataset_t *rdataset,
 				        dns_name_t *name,
 					dns_rdataset_t *nsec,
 					dns_rdataset_t *nsecsig);
+static isc_result_t rdataset_getadditional(dns_rdataset_t *rdataset,
+					   dns_rdatasetadditional_t type,
+					   dns_rdatatype_t qtype,
+					   dns_acache_t *acache,
+					   dns_zone_t **zonep,
+					   dns_db_t **dbp,
+					   dns_dbversion_t **versionp,
+					   dns_dbnode_t **nodep,
+					   dns_name_t *fname,
+					   dns_message_t *msg,
+					   isc_stdtime_t now);
+static isc_result_t rdataset_setadditional(dns_rdataset_t *rdataset,
+					   dns_rdatasetadditional_t type,
+					   dns_rdatatype_t qtype,
+					   dns_acache_t *acache,
+					   dns_zone_t *zone,
+					   dns_db_t *db,
+					   dns_dbversion_t *version,
+					   dns_dbnode_t *node,
+					   dns_name_t *fname);
+static isc_result_t rdataset_putadditional(dns_acache_t *acache,
+					   dns_rdataset_t *rdataset,
+					   dns_rdatasetadditional_t type,
+					   dns_rdatatype_t qtype);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
@@ -273,7 +320,10 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_clone,
 	rdataset_count,
 	NULL,
-	rdataset_getnoqname
+	rdataset_getnoqname,
+	rdataset_getadditional,
+	rdataset_setadditional,
+	rdataset_putadditional
 };
 
 static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
@@ -468,6 +518,11 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 
 	/* XXX check for open versions here */
 
+	if (rbtdb->soanode != NULL)
+		dns_db_detachnode((dns_db_t *)rbtdb, &rbtdb->soanode);
+	if (rbtdb->nsnode != NULL)
+		dns_db_detachnode((dns_db_t *)rbtdb, &rbtdb->nsnode);
+
 	/*
 	 * Even though there are no external direct references, there still
 	 * may be nodes in use.
@@ -631,6 +686,35 @@ add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	return (changed);
 }
 
+static void
+free_acachearray(isc_mem_t *mctx, rdatasetheader_t *header,
+		 acachectl_t *array)
+{
+	unsigned int count;
+	unsigned int i;
+	unsigned char *raw;
+
+	/*
+	 * The caller must be holding the corresponding node lock.
+	 */
+
+	if (array == NULL)
+		return;
+
+	raw = (unsigned char *)header + sizeof(*header);
+	count = raw[0] * 256 + raw[1];
+
+	/*
+	 * Sanity check: since an additional cache entry has a reference to
+	 * the original DB node (in the callback arg), there should be no
+	 * acache entries when the node can be freed. 
+	 */
+	for (i = 0; i < count; i++)
+		INSIST(array[i].entry == NULL && array[i].cbarg == NULL);
+
+	isc_mem_put(mctx, array, count * sizeof(acachectl_t));
+}
+
 static inline void
 free_noqname(isc_mem_t *mctx, struct noqname **noqname) {
 
@@ -652,7 +736,10 @@ free_rdataset(isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 
 	if (rdataset->noqname != NULL)
 		free_noqname(mctx, &rdataset->noqname);
-	
+
+	free_acachearray(mctx, rdataset, rdataset->additional_auth);
+	free_acachearray(mctx, rdataset, rdataset->additional_glue);
+
 	if ((rdataset->attributes & RDATASET_ATTR_NONEXISTENT) != 0)
 		size = sizeof(*rdataset);
 	else
@@ -4265,6 +4352,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->noqname = NULL;
 	newheader->count = 0;
 	newheader->trust = rdataset->trust;
+	newheader->additional_auth = NULL;
+	newheader->additional_glue = NULL;
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
 		now = 0;
@@ -4338,6 +4427,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->trust = 0;
 	newheader->noqname = NULL;
 	newheader->count = 0;
+	newheader->additional_auth = NULL;
+	newheader->additional_glue = NULL;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -4390,6 +4481,13 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			 * header, not newheader.
 			 */
 			newheader->serial = rbtversion->serial;
+			/*
+			 * XXXJT: dns_rdataslab_subtract() copied the pointers
+			 * to additional info.  We need to clear these fields
+			 * to avoid having duplicated references.
+			 */
+			newheader->additional_auth = NULL;
+			newheader->additional_glue = NULL;
 		} else if (result == DNS_R_NXRRSET) {
 			/*
 			 * This subtraction would remove all of the rdata;
@@ -4409,6 +4507,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->serial = rbtversion->serial;
 			newheader->noqname = NULL;
 			newheader->count = 0;
+			newheader->additional_auth = NULL;
+			newheader->additional_glue = NULL;
 		} else {
 			free_rdataset(rbtdb->common.mctx, newheader);
 			goto unlock;
@@ -4474,6 +4574,8 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->attributes = RDATASET_ATTR_NONEXISTENT;
 	newheader->trust = 0;
 	newheader->noqname = NULL;
+	newheader->additional_auth = NULL;
+	newheader->additional_glue = NULL;
 	if (rbtversion != NULL)
 		newheader->serial = rbtversion->serial;
 	else
@@ -4556,6 +4658,8 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->serial = 1;
 	newheader->noqname = NULL;
 	newheader->count = 0;
+	newheader->additional_auth = NULL;
+	newheader->additional_glue = NULL;
 
 	result = add(rbtdb, node, rbtdb->current_version, newheader,
 		     DNS_DBADD_MERGE, ISC_TRUE, NULL, 0);
@@ -4755,6 +4859,74 @@ ispersistent(dns_db_t *db) {
 	return (ISC_FALSE);
 }
 
+static isc_result_t
+getsoanode(dns_db_t *db, dns_dbnode_t **nodep) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(nodep != NULL && *nodep == NULL);
+
+	LOCK(&rbtdb->lock);
+	if (rbtdb->soanode != NULL) {
+		attachnode(db, rbtdb->soanode, nodep);
+	} else
+		result = ISC_R_NOTFOUND;
+	UNLOCK(&rbtdb->lock);
+
+	return (result);
+}
+
+static isc_result_t
+setsoanode(dns_db_t *db, dns_dbnode_t *node) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(node != NULL);
+
+	LOCK(&rbtdb->lock);
+	if (rbtdb->soanode != NULL)
+		detachnode(db, &rbtdb->soanode);
+	attachnode(db, node, &rbtdb->soanode);
+	UNLOCK(&rbtdb->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+getnsnode(dns_db_t *db, dns_dbnode_t **nodep) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(nodep != NULL && *nodep == NULL);
+
+	LOCK(&rbtdb->lock);
+	if (rbtdb->nsnode != NULL) {
+		attachnode(db, rbtdb->nsnode, nodep);
+	} else
+		result = ISC_R_NOTFOUND;
+	UNLOCK(&rbtdb->lock);
+
+	return (result);
+}
+
+static isc_result_t
+setnsnode(dns_db_t *db, dns_dbnode_t *node) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(node != NULL);
+
+	LOCK(&rbtdb->lock);
+	if (rbtdb->nsnode != NULL)
+		detachnode(db, &rbtdb->nsnode);
+	attachnode(db, node, &rbtdb->nsnode);
+	UNLOCK(&rbtdb->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
 static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
@@ -4782,7 +4954,11 @@ static dns_dbmethods_t zone_methods = {
 	nodecount,
 	ispersistent,
 	overmem,
-	settask
+	settask,
+	getsoanode,
+	setsoanode,
+	getnsnode,
+	setnsnode
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -4812,7 +4988,11 @@ static dns_dbmethods_t cache_methods = {
 	nodecount,
 	ispersistent,
 	overmem,
-	settask
+	settask,
+	getsoanode,
+	setsoanode,
+	getnsnode,
+	setnsnode
 };
 
 isc_result_t
@@ -5703,4 +5883,347 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 		return (rbtdbiter->result);
 
 	return (dns_name_copy(origin, name, NULL));
+}
+
+/*
+ * Additional cache routines.
+ */
+static isc_result_t
+rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
+		       dns_rdatatype_t qtype, dns_acache_t *acache,
+		       dns_zone_t **zonep, dns_db_t **dbp,
+		       dns_dbversion_t **versionp, dns_dbnode_t **nodep,
+		       dns_name_t *fname, dns_message_t *msg,
+		       isc_stdtime_t now)
+{
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
+	unsigned char *raw = rdataset->private3;
+	unsigned int current_count = rdataset->privateuint4;
+	unsigned int count;
+	rdatasetheader_t *header;
+	isc_mutex_t *nodelock;
+	unsigned int total_count;
+	acachectl_t *acarray;
+	dns_acacheentry_t *entry;
+	isc_result_t result;
+
+	UNUSED(qtype); /* we do not use this value at least for now */
+	UNUSED(acache);
+
+	header = (struct rdatasetheader *)(raw - sizeof(*header));
+
+	total_count = rdataset_count(rdataset);
+	INSIST(total_count > current_count);
+	count = total_count - current_count - 1;
+
+	acarray = NULL;
+
+	nodelock = &rbtdb->node_locks[rbtnode->locknum].lock;
+	LOCK(nodelock);
+
+	switch (type) {
+	case dns_rdatasetadditional_fromauth:
+		acarray = header->additional_auth;
+		break;
+	case dns_rdatasetadditional_fromcache:
+		acarray = NULL;
+		break;
+	case dns_rdatasetadditional_fromglue:
+		acarray = header->additional_glue;
+		break;
+	default:
+		INSIST(0);
+	}
+
+	if (acarray == NULL) {
+		UNLOCK(nodelock);
+		return (ISC_R_NOTFOUND);
+	}
+
+	if (acarray[count].entry == NULL) {
+		UNLOCK(nodelock);
+		return (ISC_R_NOTFOUND);
+	}
+
+	entry = NULL;
+	dns_acache_attachentry(acarray[count].entry, &entry);
+
+	UNLOCK(nodelock);
+
+	result = dns_acache_getentry(entry, zonep, dbp, versionp,
+				     nodep, fname, msg, now);
+
+	dns_acache_detachentry(&entry);
+
+	return (result);
+}
+
+static void
+acache_callback(dns_acacheentry_t *entry, void **arg) {
+	dns_rbtdb_t *rbtdb;
+	dns_rbtnode_t *rbtnode;
+	isc_mutex_t *nodelock;
+	acachectl_t *acarray = NULL;
+	acache_cbarg_t *cbarg;
+	unsigned int count;
+
+	REQUIRE(arg != NULL);
+	cbarg = *arg;
+
+	/*
+	 * The caller must hold the entry lock.
+	 */
+
+	rbtdb = (dns_rbtdb_t *)cbarg->db;
+	rbtnode = (dns_rbtnode_t *)cbarg->node;
+
+	nodelock = &rbtdb->node_locks[rbtnode->locknum].lock;
+	LOCK(nodelock);
+
+	switch (cbarg->type) {
+	case dns_rdatasetadditional_fromauth:
+		acarray = cbarg->header->additional_auth;
+		break;
+	case dns_rdatasetadditional_fromglue:
+		acarray = cbarg->header->additional_glue;
+		break;
+	default:
+		INSIST(0);
+	}
+
+	count = cbarg->count;
+	if (acarray[count].entry == entry)
+		acarray[count].entry = NULL;
+	INSIST(acarray[count].cbarg != NULL);
+	isc_mem_put(rbtdb->common.mctx, acarray[count].cbarg,
+		    sizeof(acache_cbarg_t));
+	acarray[count].cbarg = NULL;
+
+	dns_acache_detachentry(&entry);
+
+	UNLOCK(nodelock);
+
+	dns_db_detachnode((dns_db_t *)rbtdb, (dns_dbnode_t **)&rbtnode);
+	dns_db_detach((dns_db_t **)&rbtdb);
+
+	*arg = NULL;
+}
+
+static void
+acache_cancelentry(isc_mem_t *mctx, dns_acacheentry_t *entry,
+		      acache_cbarg_t **cbargp)
+{
+	acache_cbarg_t *cbarg;
+
+	REQUIRE(mctx != NULL);
+	REQUIRE(entry != NULL);
+	REQUIRE(cbargp != NULL && *cbargp != NULL);
+
+	cbarg = *cbargp;
+
+	dns_acache_cancelentry(entry);
+	dns_db_detachnode(cbarg->db, &cbarg->node);
+	dns_db_detach(&cbarg->db);
+
+	isc_mem_put(mctx, cbarg, sizeof(acache_cbarg_t));
+
+	*cbargp = NULL;
+}
+
+static isc_result_t
+rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
+		       dns_rdatatype_t qtype, dns_acache_t *acache,
+		       dns_zone_t *zone, dns_db_t *db,
+		       dns_dbversion_t *version, dns_dbnode_t *node,
+		       dns_name_t *fname)
+{
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
+	unsigned char *raw = rdataset->private3;
+	unsigned int current_count = rdataset->privateuint4;
+	rdatasetheader_t *header;
+	unsigned int total_count, count;
+	isc_mutex_t *nodelock;
+	isc_mem_t *mctx = rbtdb->common.mctx;
+	isc_result_t result;
+	acachectl_t *acarray;
+	dns_acacheentry_t *newentry, *oldentry = NULL;
+	acache_cbarg_t *newcbarg, *oldcbarg = NULL;
+
+	UNUSED(qtype);
+
+	if (type == dns_rdatasetadditional_fromcache)
+		return (ISC_R_SUCCESS);
+
+	header = (struct rdatasetheader *)(raw - sizeof(*header));
+
+	total_count = rdataset_count(rdataset);
+	INSIST(total_count > current_count);
+	count = total_count - current_count - 1; /* should be private data */
+
+	newcbarg = isc_mem_get(mctx, sizeof(*newcbarg));
+	if (newcbarg == NULL)
+		return (ISC_R_NOMEMORY);
+	newcbarg->type = type;
+	newcbarg->count = count;
+	newcbarg->header = header;
+	newcbarg->db = NULL;
+	dns_db_attach((dns_db_t *)rbtdb, &newcbarg->db);
+	newcbarg->node = NULL;
+	dns_db_attachnode((dns_db_t *)rbtdb, (dns_dbnode_t *)rbtnode,
+			  &newcbarg->node);
+	newentry = NULL;
+	result = dns_acache_createentry(acache, (dns_db_t *)rbtdb,
+					acache_callback, newcbarg, &newentry);
+	if (result != ISC_R_SUCCESS)
+		goto fail;
+	/* Set cache data in the new entry. */
+	result = dns_acache_setentry(acache, newentry, zone, db,
+				     version, node, fname);
+	if (result != ISC_R_SUCCESS)
+		goto fail;
+
+	nodelock = &rbtdb->node_locks[rbtnode->locknum].lock;
+	LOCK(nodelock);
+
+	acarray = NULL;
+	switch (type) {
+	case dns_rdatasetadditional_fromauth:
+		acarray = header->additional_auth;
+		break;
+	case dns_rdatasetadditional_fromglue:
+		acarray = header->additional_glue;
+		break;
+	default:
+		INSIST(0);
+	}
+
+	if (acarray == NULL) {
+		unsigned int i;
+
+		acarray = isc_mem_get(mctx, total_count *
+				      sizeof(acachectl_t));
+
+		if (acarray == NULL) {
+			UNLOCK(nodelock);
+			goto fail;
+		}
+
+		for (i = 0; i < total_count; i++) {
+			acarray[i].entry = NULL;
+			acarray[i].cbarg = NULL;
+		}
+	}
+	switch (type) {
+	case dns_rdatasetadditional_fromauth:
+		header->additional_auth = acarray;
+		break;
+	case dns_rdatasetadditional_fromglue:
+		header->additional_glue = acarray;
+		break;
+	default:
+		INSIST(0);
+	}
+
+	if (acarray[count].entry != NULL) {
+		/*
+		 * Swap the entry.  Delay cleaning-up the old entry since
+		 * it would require a node lock.
+		 */
+		oldentry = acarray[count].entry;
+		INSIST(acarray[count].cbarg != NULL);
+		oldcbarg = acarray[count].cbarg;
+	}
+	acarray[count].entry = newentry;
+	acarray[count].cbarg = newcbarg;
+
+	UNLOCK(nodelock);
+
+	if (oldentry != NULL) {
+		if (oldcbarg != NULL)
+			acache_cancelentry(mctx, oldentry, &oldcbarg); 
+		dns_acache_detachentry(&oldentry);
+	}
+
+	return (ISC_R_SUCCESS);
+
+  fail:
+	if (newentry != NULL) {
+		if (newcbarg != NULL)
+			acache_cancelentry(mctx, newentry, &newcbarg);
+		dns_acache_detachentry(&newentry);
+	}
+
+	return (result);
+}
+
+static isc_result_t
+rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
+		       dns_rdatasetadditional_t type, dns_rdatatype_t qtype)
+{ 
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *rbtnode = rdataset->private2;
+	unsigned char *raw = rdataset->private3;
+	unsigned int current_count = rdataset->privateuint4;
+	rdatasetheader_t *header;
+	isc_mutex_t *nodelock;
+	unsigned int total_count, count;
+	acachectl_t *acarray;
+	dns_acacheentry_t *entry;
+	acache_cbarg_t *cbarg;
+
+	UNUSED(qtype);		/* we do not use this value at least for now */
+	UNUSED(acache);
+
+	if (type == dns_rdatasetadditional_fromcache)
+		return (ISC_R_SUCCESS);
+
+	header = (struct rdatasetheader *)(raw - sizeof(*header));
+
+	total_count = rdataset_count(rdataset);
+	INSIST(total_count > current_count);
+	count = total_count - current_count - 1;
+
+	acarray = NULL;
+	entry = NULL;
+
+	nodelock = &rbtdb->node_locks[rbtnode->locknum].lock;
+	LOCK(nodelock);
+
+	switch (type) {
+	case dns_rdatasetadditional_fromauth:
+		acarray = header->additional_auth;
+		break;
+	case dns_rdatasetadditional_fromglue:
+		acarray = header->additional_glue;
+		break;
+	default:
+		INSIST(0);
+	}
+
+	if (acarray == NULL) {
+		UNLOCK(nodelock);
+		return (ISC_R_NOTFOUND);
+	}
+
+	entry = acarray[count].entry;
+	if (entry == NULL) {
+		UNLOCK(nodelock);
+		return (ISC_R_NOTFOUND);
+	}
+
+	acarray[count].entry = NULL;
+	cbarg = acarray[count].cbarg;
+	acarray[count].cbarg = NULL;
+
+	UNLOCK(nodelock);
+
+	if (entry != NULL) {
+		if(cbarg != NULL)
+			acache_cancelentry(rbtdb->common.mctx, entry, &cbarg);
+		dns_acache_detachentry(&entry);
+	}
+
+	return (ISC_R_SUCCESS);
 }

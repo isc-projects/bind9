@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.126 2004/03/10 02:19:56 marka Exp $ */
+/* $Id: view.c,v 1.126.18.1 2004/12/21 10:58:59 jinmei Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
+#include <dns/acache.h>
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/cache.h>
@@ -120,6 +121,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_trustedkeys;
 	}
 
+	view->acache = NULL;
 	view->cache = NULL;
 	view->cachedb = NULL;
 	view->hints = NULL;
@@ -253,6 +255,8 @@ destroy(dns_view_t *view) {
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
+	if (view->acache != NULL)
+		dns_acache_detach(&view->acache);
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);
 	if (view->task != NULL)
@@ -365,6 +369,8 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
+		if (view->acache != NULL)
+			dns_acache_shutdown(view->acache);
 		if (view->flush)
 			dns_zt_flushanddetach(&view->zonetable);
 		else

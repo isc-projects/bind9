@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.4 2004/10/05 02:52:06 marka Exp $ */
+/* $Id: config.c,v 1.47.18.5 2004/12/21 10:58:56 jinmei Exp $ */
 
 #include <config.h>
 
@@ -125,6 +125,9 @@ options {\n\
 	check-names master fail;\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
+	use-additional-cache true;\n\
+	acache-cleaning-interval 60;\n\
+	max-acache-size 0;\n\
 	dnssec-enable no; /* Make yes for 9.4. */ \n\
 "
 

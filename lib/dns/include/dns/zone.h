@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126.18.1 2004/10/26 02:06:49 marka Exp $ */
+/* $Id: zone.h,v 1.126.18.2 2004/12/21 10:59:02 jinmei Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1430,6 +1430,19 @@ dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata);
  *	DNS_R_SUCCESS		passed checks.
  *	DNS_R_BADOWNERNAME	failed ownername checks.
  *	DNS_R_BADNAME		failed rdata checks.
+ */
+
+void
+dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache);
+/*
+ *	Associate the zone with an additional cache.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *	'acache' to be a non NULL pointer.
+ *
+ * Ensures:
+ *	'zone' will have a reference to 'acache'
  */
 
 ISC_LANG_ENDDECLS

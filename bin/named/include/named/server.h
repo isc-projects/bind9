@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.73.18.1 2004/10/11 05:30:02 marka Exp $ */
+/* $Id: server.h,v 1.73.18.2 2004/12/21 10:58:56 jinmei Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -91,7 +91,8 @@ struct ns_server {
 	ns_controls_t *		controls;	/* Control channels */
 	unsigned int		dispatchgen;
 	ns_dispatchlist_t	dispatches;
-						
+
+	dns_acache_t		*acache;
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')
