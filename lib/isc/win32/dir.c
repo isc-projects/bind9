@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.9 2001/07/06 05:06:11 mayer Exp $ */
+/* $Id: dir.c,v 1.10 2001/07/06 21:47:15 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -242,9 +242,9 @@ isc_dir_chdir(const char *dirname) {
 
 isc_result_t
 isc_dir_chroot(const char *dirname) {
-
 	return (ISC_R_SUCCESS);
 }
+
 isc_result_t
 isc_dir_current(char *dirname, size_t length, isc_boolean_t end_sep) {
 	char *cwd;
