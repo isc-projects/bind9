@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.49.206.2 2004/03/08 21:06:29 marka Exp $ */
+/* $Id: task.h,v 1.49.206.3 2004/03/09 05:21:09 marka Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
