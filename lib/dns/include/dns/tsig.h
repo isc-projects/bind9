@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.25 2000/07/18 00:46:03 bwelling Exp $ */
+/* $Id: tsig.h,v 1.26 2000/07/21 20:53:59 bwelling Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -42,7 +42,7 @@ extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_FUDGE			300
 
 struct dns_tsig_keyring {
-	ISC_LIST(dns_tsigkey_t) keys;
+	dns_rbt_t *keys;
 	isc_rwlock_t lock;
 	isc_mem_t *mctx;
 }; 
@@ -61,10 +61,8 @@ struct dns_tsigkey {
 	dns_tsig_keyring_t	*ring;		/* the enclosing keyring */
 	isc_mutex_t		lock;
 	/* Locked */
-	isc_boolean_t		deleted;	/* has this been deleted? */
 	isc_uint32_t		refs;		/* reference counter */
 	/* Unlocked */
-	ISC_LINK(dns_tsigkey_t)	link;
 };
 
 #define dns_tsigkey_empty(tsigkey) ((tsigkey)->key == NULL)
@@ -116,25 +114,25 @@ dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp);
  */
 
 void
-dns_tsigkey_detach(dns_tsigkey_t **key);
+dns_tsigkey_detach(dns_tsigkey_t **keyp);
 /*
  *	Detaches from the tsig key structure pointed to by '*key'.
  *
  *	Requires:
- *		'key' not NULL and '*key' is a valid TSIG key
+ *		'keyp' is not NULL and '*keyp' is a valid TSIG key
  *
  *	Ensures:
- *		'key' points to NULL
+ *		'keyp' points to NULL
  */
 
 void
 dns_tsigkey_setdeleted(dns_tsigkey_t *key);
 /*
- *	Marks this key as deleted.  It will be deleted when no references
- *	exist.
+ *	Prevents this key from being used again.  It will be deleted when
+ *	no references *	exist.
  *
  *	Requires:
- *		'key' is a valid TSIG key
+ *		'key' is a valid TSIG key on a keyring
  */
 
 isc_result_t
@@ -201,13 +199,13 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 
 
 isc_result_t
-dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring);
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 /*
  *	Create an empty TSIG key ring.
  *
  *	Requires:
  *		'mctx' is not NULL
- *		'ring' is not NULL, and '*ring' is NULL
+ *		'ringp' is not NULL, and '*ringp' is NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS
@@ -216,12 +214,12 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring);
 
 
 void
-dns_tsigkeyring_destroy(dns_tsig_keyring_t **ring);
+dns_tsigkeyring_destroy(dns_tsig_keyring_t **ringp);
 /*
  *	Destroy a TSIG key ring.
  *
  *	Requires:
- *		'ring' is not NULL
+ *		'ringp' is not NULL
  */
 
 ISC_LANG_ENDDECLS
