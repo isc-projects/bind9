@@ -68,50 +68,34 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0b1
+BIND 9.0.0b2
 
-	BIND 9.0.0b1 is the first public release of BIND 9 code.  It will
+	BIND 9.0.0b2 is the second public release of BIND 9 code.  It will
 	be most useful to advanced users working with IPv6 or DNSSEC.
 
-	BIND 9.0.0b1 is not functionally complete, and is not a release
+	BIND 9.0.0b2 is not functionally complete, and is not a release
 	candidate for BIND 9.0.0.  The ISC anticipates a number of additional
 	beta releases between now and May, when BIND 9.0.0 is scheduled to
 	be released.
 
-	The ISC does not recommend using BIND 9.0.0b1 for "production"
+	The ISC does not recommend using BIND 9.0.0b2 for "production"
 	services.
 
-	We hope users of BIND 9.0.0b1 will provide feedback, bug fixes, and
+	We hope users of BIND 9.0.0b2 will provide feedback, bug fixes, and
 	enhancements.  If you are not in a position to do so, it would
 	probably be better to wait until subsequent releases.
 
-	Much of the core technology planned for BIND 9.0.0 is in this beta
-	release.  Some of the highlights are:
+	There have been many changes since beta 1; the highlights are:
 
-		IPv6
+		Many more config file options are now implemented.  See
+		doc/misc/options for a summary of the current implementation
+		status.
 
-			Support for bitstring labels, DNAME, and A6 records.
+		Portability improvements.  In particular, this beta should work
+		much better than beta 1 on FreeBSD 3.4.
 
-			IPv6-aware resolver (follows A6 chains, can use IPv6 to
-			talk to other nameservers).
-
-			The nameserver listens on an IPv6 socket.
-
-		DNSSEC
-
-			All new RR types supported.
-
-			The server generates DNSSEC responses for secure zones.
-
-		EDNS0
-
-			DNS messages using UDP have been limited to 512
-			bytes.  This is too small for DNSSEC replies, whose
-			signature and key records can be large.  EDNS0 allows
-			larger UDP messages to be sent.
-		
-			EDNS0 is understood by the server, and used by the
-			resolver.
+		Bug fixes.  Almost all bugs reported against beta 1 have been
+		fixed.
 
 	Some of the more significant items that will be implemented or
 	enhanced in a future beta are
@@ -125,12 +109,6 @@ BIND 9.0.0b1
 
 			Notify is not yet implemented.
 
-		Configuration File
-
-			Some config file items are not yet implemented.
-			See doc/misc/options for a summary of the current
-			status.
-
 		Selective Forwarding
 
 		Documentation
@@ -138,6 +116,9 @@ BIND 9.0.0b1
 			Future releases will contain a lot more documentation,
 			but a preliminary version of the Administrator's
 			Reference Manual is in the doc/arm subdirectory.
+
+			A detailed CHANGES file like that in BIND 4 and BIND 8
+			will be provided in future betas.
 
 
 Building
