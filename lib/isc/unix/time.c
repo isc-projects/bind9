@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.43 2001/11/30 01:59:48 gson Exp $ */
+/* $Id: time.c,v 1.44 2001/12/17 02:55:05 marka Exp $ */
 
 #include <config.h>
 
@@ -402,7 +402,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t) t->seconds;
-	flen = strftime(buf, len, "%b %d %X", localtime(&now));
+	flen = strftime(buf, len, "%d-%b-%Y %X", localtime(&now));
 	INSIST(flen < len);
 	if (flen != 0)
 		snprintf(buf + flen, len - flen,
