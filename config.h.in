@@ -1,6 +1,6 @@
 /* config.h.in.  Generated automatically from configure.in by autoheader.  */
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.40 2000/12/23 02:45:43 tale Exp $ */
+/* $Id: config.h.in,v 1.40.2.1 2001/02/07 19:26:19 gson Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -75,8 +75,11 @@
 /* define if struct addrinfo exists */
 #undef HAVE_ADDRINFO
 
-/* define is getaddrinfo() exists */
+/* define if getaddrinfo() exists */
 #undef HAVE_GETADDRINFO
+
+/* define if gai_strerror() exists */
+#undef HAVE_GAISTRERROR
 
 /* define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.

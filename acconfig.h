@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.31.2.1 2001/01/09 22:31:06 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.31.2.2 2001/02/07 19:26:16 gson Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -64,8 +64,11 @@
 /* define if struct addrinfo exists */
 #undef HAVE_ADDRINFO
 
-/* define is getaddrinfo() exists */
+/* define if getaddrinfo() exists */
 #undef HAVE_GETADDRINFO
+
+/* define if gai_strerror() exists */
+#undef HAVE_GAISTRERROR
 
 /* define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.

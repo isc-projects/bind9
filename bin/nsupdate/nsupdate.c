@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.75.2.2 2001/01/22 23:15:09 gson Exp $ */
+/* $Id: nsupdate.c,v 1.75.2.3 2001/02/07 19:26:22 gson Exp $ */
 
 #include <config.h>
 
@@ -25,10 +25,6 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#if (!(defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)))
-extern int h_errno;
-#endif
 
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -68,6 +64,18 @@ extern int h_errno;
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
+
+#ifdef HAVE_ADDRINFO
+#ifdef HAVE_GETADDRINFO
+#ifdef HAVE_GAISTRERROR
+#define USE_GETADDRINFO
+#endif
+#endif
+#endif
+
+#ifndef USE_GETADDRINFO
+extern int h_errno;
+#endif
 
 #define MAXCMD (4 * 1024)
 #define INITDATA (32 * 1024)
@@ -537,7 +545,7 @@ static void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
-#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+#ifdef USE_GETADDRINFO
 	struct addrinfo *res = NULL;
 	int result;
 #else
@@ -550,7 +558,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	else if (inet_pton(AF_INET, host, &in4) == 1)
 		isc_sockaddr_fromin(sockaddr, &in4, port);
 	else {
-#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+#ifdef USE_GETADDRINFO
 		result = getaddrinfo(host, NULL, NULL, &res);
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",
