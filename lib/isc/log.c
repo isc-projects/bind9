@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.72 2001/11/30 01:59:34 gson Exp $ */
+/* $Id: log.c,v 1.73 2002/01/09 06:16:10 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -302,9 +302,12 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 		if (lcfgp != NULL)
 			*lcfgp = lcfg;
 
-	} else
+	} else {
+		if (lcfg != NULL)
+			isc_logconfig_destroy(&lcfg);
 		if (lctx != NULL)
 			isc_log_destroy(&lctx);
+	}
 
 	return (result);
 }
@@ -980,6 +983,8 @@ isc_log_settag(isc_logconfig_t *lcfg, const char *tag) {
 	REQUIRE(VALID_CONFIG(lcfg));
 
 	if (tag != NULL && *tag != '\0') {
+		if (lcfg->tag != NULL)
+			isc_mem_free(lcfg->lctx->mctx, lcfg->tag);
 		lcfg->tag = isc_mem_strdup(lcfg->lctx->mctx, tag);
 		if (lcfg->tag == NULL)
 			return (ISC_R_NOMEMORY);
