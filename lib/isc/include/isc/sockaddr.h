@@ -35,6 +35,8 @@ typedef struct isc_sockaddr {
 	ISC_LINK(struct isc_sockaddr)	link;
 } isc_sockaddr_t;
 
+typedef ISC_LIST(struct isc_sockaddr)	isc_sockaddrlist_t;
+
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
 
