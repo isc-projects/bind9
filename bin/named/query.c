@@ -2477,17 +2477,43 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
  * if only one is available.  Is that right?
  */
 
+static inline void
+log_query(ns_client_t *client) {
+	isc_buffer_t b;
+	char text[1024];
+	isc_region_t r;
+	dns_rdataset_t *rdataset;
+
+	/* XXXRTH  Allow this to be turned off! */
+
+	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
+			ISC_BUFFERTYPE_TEXT);
+	if (dns_name_totext(client->query.qname, ISC_TRUE, &b) !=
+	    ISC_R_SUCCESS)
+		return;
+	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
+	     rdataset != NULL;
+	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		isc_buffer_available(&b, &r);
+		if (r.length < 1)
+			return;
+		*r.base = ' ';
+		isc_buffer_add(&b, 1);
+		if (dns_rdatatype_totext(rdataset->type, &b) != ISC_R_SUCCESS)
+			return;
+	}
+	isc_buffer_used(&b, &r);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+		      ISC_LOG_DEBUG(1), "query: %.*s",
+		      (int)r.length, (char *)r.base);
+}
+
 void
 ns_query_start(ns_client_t *client) {
 	isc_result_t result;
 	dns_message_t *message = client->message;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t set_ra = ISC_TRUE;
-#if 0
-	isc_buffer_t b;
-	char text[1024];
-	isc_region_t r;
-#endif
 
 	/*
 	 * Ensure that appropriate cleanups occur.
@@ -2546,29 +2572,7 @@ ns_query_start(ns_client_t *client) {
 		return;
 	}
 
-#if 0
-	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
-			ISC_BUFFERTYPE_TEXT);
-	result = dns_name_totext(client->query.qname, ISC_TRUE, &b);
-	if (result != ISC_R_SUCCESS)
-		goto keep_going;
-	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
-	     rdataset != NULL;
-	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-		isc_buffer_available(&b, &r);
-		if (r.length < 1)
-			goto keep_going;
-		*r.base = ' ';
-		isc_buffer_add(&b, 1);
-		result = dns_rdatatype_totext(rdataset->type, &b);
-		if (result != ISC_R_SUCCESS)
-			goto keep_going;
-	}
-	isc_buffer_used(&b, &r);
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      ISC_LOG_INFO, "XX: %.*s", (int)r.length, (char *)r.base);
- keep_going:
-#endif
+	log_query(client);
 
 	/*
 	 * Check for illegal meta-classes and meta-types in
