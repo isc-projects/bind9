@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.214 2000/09/14 03:55:38 marka Exp $ */
+/* $Id: zone.c,v 1.215 2000/09/20 09:50:34 marka Exp $ */
 
 #include <config.h>
 
@@ -4161,6 +4161,11 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		/*FALLTHROUGH*/
 	case DNS_R_UPTODATE:
 		/*
+		 * Has the zone expired underneath us?
+		 */
+		if (zone->db == NULL)
+			goto same_master;
+		/*
 		 * This is not neccessary if we just performed a AXFR
 		 * however it is necessary for an IXFR / UPTODATE and
 		 * won't hurt with an AXFR.
@@ -4240,6 +4245,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 #endif /* NOMINUM_PUBLIC */
 	default:
 		zone->curmaster++;
+	same_master:
 		if (zone->curmaster >= zone->masterscnt)
 			zone->curmaster = 0;
 		else {
