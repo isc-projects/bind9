@@ -1,4 +1,8 @@
 
+ 931.	[bug]		The controls statement only attempted to verify
+ 			messages using the first key in the key list.
+			(9.2.0a1/a2 only).
+
  930.	[func]		Query performance testing tool added as
 			contrib/queryperf.
 
