@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.38.2.3 2001/03/07 23:33:18 bwelling Exp $ */
+/* $Id: masterdump.c,v 1.38.2.4 2001/10/30 01:56:13 marka Exp $ */
 
 #include <config.h>
 
@@ -616,11 +616,11 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 		if (result != ISC_R_NOSPACE)
 			break;
 
-		isc_mem_put(mctx, buffer->base, buffer->length);
 		newlength = buffer->length * 2;
 		newmem = isc_mem_get(mctx, newlength);
 		if (newmem == NULL)
 			return (ISC_R_NOMEMORY);
+		isc_mem_put(mctx, buffer->base, buffer->length);
 		isc_buffer_init(buffer, newmem, newlength);
 	}
 	if (result != ISC_R_SUCCESS)
