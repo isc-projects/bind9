@@ -1,3 +1,5 @@
+ 462.	[bug]		--disable-ipv6 should work now.
+
  461.	[bug]		Specifying an unknown key in the "keys" clause of the
 			"controls" statement caused a NULL pointer dereference.
 			[RT #316]
