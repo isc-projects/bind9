@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.39.2.2 2002/08/05 06:57:15 marka Exp $ */
+/* $Id: log.h,v 1.39.2.3 2003/05/12 05:29:24 marka Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -61,6 +61,7 @@
 #define ISC_LOG_PRINTTAG	0x0010
 #define ISC_LOG_PRINTALL	0x001F
 #define ISC_LOG_DEBUGONLY	0x1000
+#define ISC_LOG_OPENERR		0x8000		/* internal */
 
 /*
  * Other options.

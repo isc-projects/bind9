@@ -4,6 +4,8 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1389.	[bug]		named could fail to rotate long log files.  [RT #3666]
+
 1388.	[port]		irix: check for sys/sysctl.h and NET_RT_IFLIST before
 			defining HAVE_IFLIST_SYSCTL. [RT #3770]
 
