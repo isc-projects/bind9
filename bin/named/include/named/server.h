@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.70 2002/09/10 04:45:54 marka Exp $ */
+/* $Id: server.h,v 1.71 2003/01/20 05:46:10 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -56,6 +56,9 @@ struct ns_server {
 	char *			version;	/* User-specified version */
 	isc_boolean_t		hostname_set;	/* User has set hostname */
 	char *			hostname;	/* User-specified hostname */
+	/* Use hostname for server id */
+	isc_boolean_t		server_usehostname;
+	char *			server_id;	/* User-specified server id */
 
         /*
 	 * Current ACL environment.  This defines the

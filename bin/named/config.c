@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.34 2002/11/27 09:52:45 marka Exp $ */
+/* $Id: config.c,v 1.35 2003/01/20 05:46:09 marka Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,7 @@ options {\n\
 	rrset-order {order cyclic;};\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
+	server-id none;\n\
 	stacksize default;\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
@@ -165,6 +166,10 @@ view \"_bind\" chaos {\n\
 	zone \"authors.bind\" chaos {\n\
 		type master;\n\
 		database \"_builtin authors\";\n\
+	};\n\
+	zone \"id.server\" chaos {\n\
+		type master;\n\
+		database \"_builtin id\";\n\
 	};\n\
 };\n\
 ";

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.392 2003/01/16 03:59:23 marka Exp $ */
+/* $Id: server.c,v 1.393 2003/01/20 05:46:09 marka Exp $ */
 
 #include <config.h>
 
@@ -2260,6 +2260,18 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	obj = NULL;
+	result = ns_config_get(maps, "server-id", &obj);
+	server->server_usehostname = ISC_FALSE;
+	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
+		server->server_usehostname = ISC_TRUE;
+	} else if (result == ISC_R_SUCCESS) {
+		CHECKM(setoptstring(server, &server->server_id, obj), "strdup");
+	} else {
+		result = setoptstring(server, &server->server_id, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
+
+	obj = NULL;
 	result = ns_config_get(maps, "flush-zones-on-shutdown", &obj);
 	if (result == ISC_R_SUCCESS) {
 		server->flushonshutdown = cfg_obj_asboolean(obj);
@@ -2571,6 +2583,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->hostname = NULL;
 	server->version_set = ISC_FALSE;	
 	server->version = NULL;
+	server->server_usehostname = ISC_FALSE;
+	server->server_id = NULL;
 
 	CHECKFATAL(dns_stats_alloccounters(ns_g_mctx, &server->querystats),
 		   "dns_stats_alloccounters");
@@ -2603,6 +2617,8 @@ ns_server_destroy(ns_server_t **serverp) {
 		isc_mem_free(server->mctx, server->version);
 	if (server->hostname != NULL)
 		isc_mem_free(server->mctx, server->hostname);
+	if (server->server_id != NULL)
+		isc_mem_free(server->mctx, server->server_id);
 
 	dns_zonemgr_detach(&server->zonemgr);
 
