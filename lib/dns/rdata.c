@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.76 2000/04/14 18:36:00 explorer Exp $ */
+/* $Id: rdata.c,v 1.77 2000/04/14 20:13:45 explorer Exp $ */
 
 #include <config.h>
 
@@ -1553,25 +1553,13 @@ dns_rdata_covers(dns_rdata_t *rdata)
 	return (covers_sig(rdata));
 }
 
-static isc_boolean_t
-ismeta(unsigned int code, struct tbl *table)
-{
-	struct tbl *t;
-	REQUIRE(code < 65536);
-	for (t = table; t->name != NULL; t++) {
-		if (code == t->value)
-			return ((t->flags & META) ? ISC_TRUE : ISC_FALSE);
-	}
-	return (ISC_FALSE); /* Unknown, assume non-meta. */
-}
-
 isc_boolean_t
 dns_rdatatype_ismeta(dns_rdatatype_t type)
 {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_META) != 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
-}	
+}
 
 isc_boolean_t
 dns_rdatatype_issingleton(dns_rdatatype_t type)
@@ -1580,12 +1568,39 @@ dns_rdatatype_issingleton(dns_rdatatype_t type)
 	    != 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
-}	
+}
+
+isc_boolean_t
+dns_rdatatype_notquestion(dns_rdatatype_t type)
+{
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_NOTQUESTION)
+	    != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_rdatatype_questiononly(dns_rdatatype_t type)
+{
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_QUESTIONONLY)
+	    != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
 
 isc_boolean_t
 dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
 {
-	return (ismeta(rdclass, classes));
+	struct tbl *t;
+
+	REQUIRE(rdclass < 65536);
+
+	for (t = classes; t->name != NULL; t++) {
+		if (rdclass == t->value)
+			return ((t->flags & META) ? ISC_TRUE : ISC_FALSE);
+	}
+
+	return (ISC_FALSE);  /* assume it is not a meta class */
 }
 
 isc_boolean_t

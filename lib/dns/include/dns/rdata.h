@@ -538,6 +538,28 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
  *	Many other results are possible if not successful.
  */
 
+isc_boolean_t
+dns_rdatatype_questiononly(dns_rdatatype_t type);
+/*
+ * Return true iff rdata of type 'type' can only appear in the question
+ * section of a properly formatted message.
+ *
+ * Requires:
+ * 	'type' is a valid rdata type.
+ *
+ */
+
+isc_boolean_t
+dns_rdatatype_notquestion(dns_rdatatype_t type);
+/*
+ * Return true iff rdata of type 'type' can not appear in the question
+ * section of a properly formatted message.
+ *
+ * Requires:
+ * 	'type' is a valid rdata type.
+ *
+ */
+
 unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 /*
@@ -551,19 +573,23 @@ dns_rdatatype_attributes(dns_rdatatype_t rdtype);
  */
 
 /* only one may exist for a name */
-#define DNS_RDATATYPEATTR_SINGLETON	0x00000001U
+#define DNS_RDATATYPEATTR_SINGLETON		0x00000001U
 /* requires no other data be present */
-#define DNS_RDATATYPEATTR_EXCLUSIVE	0x00000002U
+#define DNS_RDATATYPEATTR_EXCLUSIVE		0x00000002U
 /* Is a meta type */
-#define DNS_RDATATYPEATTR_META		0x00000004U
+#define DNS_RDATATYPEATTR_META			0x00000004U
 /* Is a DNSSEC type, like SIG or NXT */
 #define DNS_RDATATYPEATTR_DNSSEC		0x00000008U
-/* Is a zone cut authority type XXXMLG */
-#define DNS_RDATATYPEATTR_ZONECUTAUTH	0x00000010U
+/* Is a zone cut authority type */
+#define DNS_RDATATYPEATTR_ZONECUTAUTH		0x00000010U
 /* Is reserved (unusable) */
 #define DNS_RDATATYPEATTR_RESERVED		0x00000020U
 /* Is an unknown type */
 #define DNS_RDATATYPEATTR_UNKNOWN		0x00000040U
+/* Is META, and can only be in a question section */
+#define DNS_RDATATYPEATTR_QUESTIONONLY		0x00000080U
+/* is META, and can NOT be in a question section */
+#define DNS_RDATATYPEATTR_NOTQUESTION		0x00000100U
 
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata);

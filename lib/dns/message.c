@@ -890,6 +890,15 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 			result = DNS_R_FORMERR;
 			goto cleanup;
 		}
+
+		/*
+		 * If this is a type that cannot occur in a question section,
+		 * return failure.
+		 */
+		if (dns_rdatatype_notquestion(rdtype)) {
+			result = DNS_R_FORMERR;
+			goto cleanup;
+		}
 		
 		/*
 		 * Can't ask the same question twice.
@@ -1186,6 +1195,15 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    skip_type_search)
 			result = ISC_R_NOTFOUND;
 		else {
+			/*
+			 * If this is a type that can only occur in
+			 * the question section, fail.
+			 */
+			if (dns_rdatatype_questiononly(rdtype)) {
+				result = DNS_R_FORMERR;
+				goto cleanup;
+			}
+
 			rdataset = NULL;
 			result = dns_message_findtype(name, rdtype, covers,
 						      &rdataset);

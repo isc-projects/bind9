@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.33 2000/04/07 03:54:03 explorer Exp $ */
+/* $Id: gen.c,v 1.34 2000/04/14 20:13:43 explorer Exp $ */
 
 #include <config.h>
 
@@ -560,6 +560,9 @@ main(int argc, char **argv) {
 
 #define PRINT_COMMA(x) (x == 255 ? "" : ",")
 
+#define METANOTQUESTION  "DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION"
+#define METAQUESTIONONLY "DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_QUESTIONONLY"
+
 		printf("\ntypedef struct {\n");
 		printf("\tchar *name;\n");
 		printf("\tunsigned int flags;\n");
@@ -613,13 +616,13 @@ main(int argc, char **argv) {
 				break;
 			case 251:
 				printf("\t{ \"IXFR\", "
-				       "DNS_RDATATYPEATTR_META }%s\n",
+				       METANOTQUESTION " }%s\n",
 				       PRINT_COMMA(i));
 				special = 1;
 				break;
 			case 252:
 				printf("\t{ \"AXFR\", "
-				       "DNS_RDATATYPEATTR_META }%s\n",
+				       METANOTQUESTION " }%s\n",
 				       PRINT_COMMA(i));
 				special = 1;
 				break;
@@ -637,7 +640,7 @@ main(int argc, char **argv) {
 				break;
 			case 255:
 				printf("\t{ \"ANY\", "
-				       "DNS_RDATATYPEATTR_META }%s\n",
+				       METAQUESTIONONLY " }%s\n",
 				       PRINT_COMMA(i));
 				special = 1;
 				break;
