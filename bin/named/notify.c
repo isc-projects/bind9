@@ -140,10 +140,7 @@ respond(ns_client_t *client, dns_result_t result) {
         isc_result_t msg_result;
 
 	message = client->message;
-	if (result == DNS_R_SUCCESS)
-		rcode = dns_rcode_noerror;
-	else
-		rcode = dns_result_torcode(result);
+	rcode = dns_result_torcode(result);
 
 	msg_result = dns_message_reply(message, ISC_TRUE);
 	if (msg_result != ISC_R_SUCCESS)

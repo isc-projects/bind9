@@ -1730,8 +1730,7 @@ respond(ns_client_t *client, dns_result_t result) {
 		goto msg_failure;
 	
 	response->id = client->message->id;
-	response->rcode = (result == DNS_R_SUCCESS ?
-		dns_rcode_noerror : dns_result_torcode(result));
+	response->rcode = dns_result_torcode(result));
 	response->flags = client->message->flags;
 	response->flags |= DNS_MESSAGEFLAG_QR;
 	response->opcode = client->message->opcode;

@@ -160,6 +160,9 @@ dns_result_torcode(isc_result_t result) {
 	 * Try to supply an appropriate rcode.
 	 */
 	switch (result) {
+	case ISC_R_SUCCESS:
+		return rcode = dns_rcode_noerror;
+		break;
 	case ISC_R_NOSPACE:
 	case ISC_R_UNEXPECTEDEND:
 	case ISC_R_BADBASE64:
