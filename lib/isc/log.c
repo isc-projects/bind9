@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.48 2000/10/20 02:21:55 marka Exp $ */
+/* $Id: log.c,v 1.49 2000/11/24 01:37:24 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -252,6 +252,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(lctxp != NULL && *lctxp == NULL);
+	REQUIRE(lcfgp == NULL || *lcfgp == NULL);
 
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
 	if (lctx != NULL) {
@@ -304,6 +305,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	isc_logconfig_t *lcfg;
 	isc_logdestination_t destination;
 	isc_result_t result = ISC_R_SUCCESS;
+	int level = ISC_LOG_INFO;
 
 	REQUIRE(lcfgp != NULL && *lcfgp == NULL);
 	REQUIRE(VALID_CONTEXT(lctx));
@@ -315,7 +317,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		lcfg->channellists = NULL;
 		lcfg->channellist_count = 0;
 		lcfg->duplicate_interval = 0;
-		lcfg->highest_level = ISC_LOG_CRITICAL;
+		lcfg->highest_level = level;
 		lcfg->tag = NULL;
 		lcfg->dynamic = ISC_FALSE;
 
@@ -339,7 +341,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	if (result == ISC_R_SUCCESS) {
 		destination.facility = LOG_DAEMON;
 		result = isc_log_createchannel(lcfg, "default_syslog",
-					       ISC_LOG_TOSYSLOG, ISC_LOG_INFO,
+					       ISC_LOG_TOSYSLOG, level,
 					       &destination, 0);
 	}
 
@@ -350,7 +352,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		destination.file.maximum_size = 0;
 		result = isc_log_createchannel(lcfg, "default_stderr",
 					       ISC_LOG_TOFILEDESC,
-					       ISC_LOG_INFO,
+					       level,
 					       &destination,
 					       ISC_LOG_PRINTTIME);
 	}

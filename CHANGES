@@ -1,3 +1,7 @@
+ 576.	[doc]		isc_log_create() description did not match reality.
+
+ 575.	[bug]		isc_log_create() was not setting internal state
+			correctly to reflect the default channels created.
 
  574.	[bug]		TSIG signed queries sent by the resolver would fail to
 			have their responses validated and would leak memory.
