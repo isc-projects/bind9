@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: string.c,v 1.1 2000/01/22 00:17:56 tale Exp $ */
+/* $Id: string.c,v 1.2 2000/01/28 05:22:02 marka Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -80,11 +80,12 @@ omapi_string_stringcmp(omapi_string_t *s1, omapi_string_t *s2) {
 		len = s1->len;
 
 	order = memcmp(s1->value, s2->value, len);
-	if (order == 0)
+	if (order == 0) {
 		if (s1->len > s2->len)
 			order = 1;
 		else if (s1->len < s2->len)
 			order = -1;
+	}
 
 	return (order);
 }
@@ -101,11 +102,12 @@ omapi_string_strcmp(omapi_string_t *s1, const char *s2) {
 		len = slen;
 
 	order = memcmp(s1->value, s2, len);
-	if (order == 0)
+	if (order == 0) {
 		if (s1->len > slen)
 			order = 1;
 		else if (s1->len < slen)
 			order= -1;
+	}
 
 	return (order);
 }
