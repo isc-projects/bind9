@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <sys/time.h>	/* XXX Naughty. */
 
 #include <isc/assertions.h>
 #include <isc/commandline.h>
@@ -33,6 +32,7 @@
 #include <isc/boolean.h>
 #include <isc/region.h>
 #include <isc/list.h>
+#include <isc/time.h>
 #include <isc/result.h>
 
 #include <dns/types.h>
@@ -374,7 +374,7 @@ main(int argc, char *argv[]) {
 	dns_fixedname_t foundname;
 	dns_name_t *fname;
 	unsigned int options = 0;
-	struct timeval start, finish;
+	isc_time_t start, finish;
 	char *origintext;
 	dbinfo *dbi;
 	dns_dbversion_t *version;
@@ -460,8 +460,7 @@ main(int argc, char *argv[]) {
 	version = NULL;
 
 	if (time_lookups) {
-		/* Naughty */
-		(void)gettimeofday(&start, NULL);
+		(void)isc_time_now(&start);
 	}
 
 	while (!done) {
@@ -884,20 +883,14 @@ main(int argc, char *argv[]) {
 	}
 
 	if (time_lookups) {
-		struct timeval interval;
+		isc_uint64_t usec;
 
-		/* Naughty */
-		(void)gettimeofday(&finish, NULL);
-		if (start.tv_usec > finish.tv_usec) {
-			finish.tv_sec--;
-			interval.tv_usec = 1000000 -
-				start.tv_usec + finish.tv_usec;
-		} else
-			interval.tv_usec = finish.tv_usec - start.tv_usec;
-		interval.tv_sec = finish.tv_sec - start.tv_sec;
+		(void)isc_time_now(&finish);
+
+		usec = isc_time_microdiff(&finish, &start);
+
 		printf("elapsed time: %lu.%06lu seconds\n",
-		       (unsigned long)interval.tv_sec,
-		       (unsigned long)interval.tv_usec);
+		       usec / 1000000, usec % 1000000);
 	}
 
 	unload_all();
