@@ -6,7 +6,6 @@
 
 #include <isc/boolean.h>
 #include <isc/mutex.h>
-#include <isc/assertions.h>
 
 typedef pthread_cond_t			os_condition_t;
 #define OS_CONDITION_INITIALIZER	PTHREAD_COND_INITIALIZER

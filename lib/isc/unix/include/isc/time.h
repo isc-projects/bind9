@@ -1,4 +1,8 @@
 
+#ifndef ISC_TIME_H
+#define ISC_TIME_H 1
+
+#include <time.h>
 #include <isc/result.h>
 
 /* 
@@ -63,3 +67,5 @@ os_time_subtract(os_time_t *t1p, os_time_t *t2p, os_time_t *t3p);
  *
  *	*tp1 >= *t2p
  */
+
+#endif /* ISC_TIME_H */

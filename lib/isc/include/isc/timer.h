@@ -95,13 +95,14 @@ timer_create(timer_manager_t manager,
 	     os_time_t absolute,
 	     os_time_t interval,
 	     task_t task,
+	     task_action_t action,
 	     void *arg,
 	     timer_t *timerp);
 /*
  * Create a new 'type' timer managed by 'manager'.  The timers parameters
  * are specified by 'absolute' and 'interval'.  Events will be posted to
- * 'task' and will use 'arg' as the arg value.  The new timer is returned in
- * 'timerp'.
+ * 'task' and when dispatched 'action' will be called with 'arg' as the
+ * arg value.  The new timer is returned in 'timerp'.
  *
  * Notes:
  *
@@ -121,6 +122,8 @@ timer_create(timer_manager_t manager,
  *	'manager' is a valid manager
  *
  *	'task' is a valid task
+ *
+ *	'action' is a valid action
  *
  *	'absolute' and 'idle' may not both be 0
  *

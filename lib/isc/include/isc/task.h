@@ -46,7 +46,7 @@ struct task_event {
 	LINK(struct task_event)		link;
 };
 
-#define TASK_EVENT_NOP			0
+#define TASK_EVENT_ANYEVENT		0
 #define TASK_EVENT_SHUTDOWN		(-1)
 
 typedef LIST(struct task_event)		task_eventlist_t;

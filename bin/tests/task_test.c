@@ -8,13 +8,13 @@
 #include <isc/memcluster.h>
 #include <isc/task.h>
 #include <isc/thread.h>
+#include <isc/result.h>
+#include <isc/timer.h>
 
 mem_context_t mctx = NULL;
 
-/*ARGSUSED*/
 static boolean_t
-my_callback(task_t __attribute__((unused)) task,
-	    task_event_t __attribute__((unused)) event)
+my_callback(task_t task, task_event_t event)
 {
 	int i, j;
 	char *name = event->arg;
@@ -27,57 +27,21 @@ my_callback(task_t __attribute__((unused)) task,
 	return (FALSE);
 }
 
-/*ARGSUSED*/
 static boolean_t
-my_shutdown(task_t __attribute__((unused)) task,
-	    task_event_t __attribute__((unused)) event)
-{
+my_shutdown(task_t task, task_event_t event) {
 	char *name = event->arg;
 
 	printf("shutdown %s\n", name);
 	return (TRUE);
 }
 
-/*ARGSUSED*/
 static boolean_t
-my_tick(task_t __attribute__((unused)) task,
-	task_event_t __attribute__((unused)) event)
+my_tick(task_t task, task_event_t event)
 {
 	char *name = event->arg;
 
 	printf("task %p tick %s\n", task, name);
 	return (FALSE);
-}
-
-void *
-simple_timer_run(void *arg) {
-	task_t task = arg;
-	task_event_t event;
-	int i;
-	
-	for (i = 0; i < 10; i++) {
-		sleep(1);
-		printf("sending timer to %p\n", task);
-		event = task_event_allocate(mctx, simple_timer_run,
-					    2, my_tick, "foo",
-					    sizeof *event);
-		INSIST(event != NULL);
-		(void)task_send_event(task, &event);
-	}
-
-	task_detach(&task);
-	return (NULL);
-}
-
-void
-simple_timer_init(task_t task) {
-	os_thread_t t;
-	task_t task_clone;
-
-	task_clone = NULL;
-	task_attach(task, &task_clone);
-	INSIST(os_thread_create(simple_timer_run, task_clone, &t));
-	(void)os_thread_detach(t);
 }
 
 void
@@ -87,6 +51,9 @@ main(int argc, char *argv[]) {
 	task_t t3 = NULL, t4 = NULL;
 	task_event_t event;
 	unsigned int workers;
+	timer_manager_t timgr;
+	timer_t ti1, ti2;
+	os_time_t absolute, interval;
 
 	if (argc > 1)
 		workers = atoi(argv[1]);
@@ -103,8 +70,19 @@ main(int argc, char *argv[]) {
 	INSIST(task_create(manager, my_shutdown, "3", 0, &t3));
 	INSIST(task_create(manager, my_shutdown, "4", 0, &t4));
 
-	simple_timer_init(t1);
-	simple_timer_init(t2);
+	timgr = NULL;
+	INSIST(timer_manager_create(mctx, &timgr) == ISC_R_SUCCESS);
+	ti1 = NULL;
+	absolute.seconds = 0;
+	absolute.nanoseconds = 0;
+	interval.seconds = 5;
+	interval.nanoseconds = 0;
+	INSIST(timer_create(timgr, timer_type_ticker, absolute, interval,
+			    t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
+	ti2 = NULL;
+	INSIST(timer_create(timgr, timer_type_ticker, absolute, interval,
+			    t2, my_tick, "bar", &ti2) == ISC_R_SUCCESS);
+
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
 	sleep(2);

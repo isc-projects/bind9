@@ -3,6 +3,11 @@
 #include <stdlib.h>
 
 #include <isc/assertions.h>
+#include <isc/unexpect.h>
+#include <isc/thread.h>
+#include <isc/mutex.h>
+#include <isc/condition.h>
+#include <isc/heap.h>
 #include <isc/timer.h>
 
 /*
@@ -12,10 +17,12 @@
  * We INSIST that they succeed since there's no way for us to continue
  * if they fail.
  */
-#define LOCK(lp)		INSIST(os_mutex_lock((lp)))
-#define UNLOCK(lp)		INSIST(os_mutex_unlock((lp)))
-#define BROADCAST(cvp)		INSIST(os_condition_broadcast((cvp)))
-
+#define LOCK(lp)			INSIST(os_mutex_lock((lp)))
+#define UNLOCK(lp)			INSIST(os_mutex_unlock((lp)))
+#define BROADCAST(cvp)			INSIST(os_condition_broadcast((cvp)))
+#define WAIT(cvp, lp)			INSIST(os_condition_wait((cvp), (lp)))
+#define WAITUNTIL(cvp, lp, tp, bp)	INSIST(os_condition_waituntil((cvp), \
+					       (lp), (tp), (bp)))
 
 #define TIMER_MAGIC			0x54494D52U	/* TIMR. */
 #define VALID_TIMER(t)			((t) != NULL && \
@@ -33,8 +40,9 @@ struct timer_t {
 	os_time_t			absolute;
 	os_time_t			interval;
 	task_t				task;
+	task_action_t			action;
 	void *				arg;
-	int				index;
+	unsigned int			index;
 	os_time_t			next_time;
 	LINK(struct timer_t)		link;
 };
@@ -49,14 +57,42 @@ struct timer_manager_t {
 	mem_context_t			mctx;
 	os_mutex_t			lock;
 	/* Locked by manager lock. */
+	boolean_t			done;
 	LIST(struct timer_t)		timers;
+	unsigned int			nscheduled;
 	os_time_t			next_time;
+	os_condition_t			wakeup;
 	os_thread_t			thread;
-	heap_context			heap;
+	heap_t				heap;
 };
 
+
+static boolean_t
+sooner(void *v1, void *v2) {
+	timer_t t1, t2;
+
+	t1 = v1;
+	t2 = v2;
+	REQUIRE(VALID_TIMER(t1));
+	REQUIRE(VALID_TIMER(t2));
+
+	if (os_time_compare(&t1->next_time, &t2->next_time) < 0)
+		return (TRUE);
+	return (FALSE);
+}
+
+static void
+set_index(void *what, unsigned int index) {
+	timer_t timer;
+
+	timer = what;
+	REQUIRE(VALID_TIMER(timer));
+
+	timer->index = index;
+}
+
 static inline void
-schedule(timer_t timer, os_time_t *now, boolean_t first_time) {
+nexttime(timer_t timer, os_time_t *nowp, boolean_t first_time) {
 	/* 
 	 * The caller must ensure locking.
 	 */
@@ -65,19 +101,19 @@ schedule(timer_t timer, os_time_t *now, boolean_t first_time) {
 		if (first_time) {
 			if (timer->absolute.seconds == 0 &&
 			    timer->absolute.nanoseconds == 0)
-				timer->next_time = now;
+				timer->next_time = *nowp;
 			else
 				timer->next_time = timer->absolute;
 		} else
-			os_time_add(&now, &timer->interval, &timer->next_time);
+			os_time_add(nowp, &timer->interval, &timer->next_time);
 	} else {
 		/* Idle timer. */
-		if (os_time_compare(&timer->touched, &now) <= 0) {
+		if (os_time_compare(&timer->touched, nowp) <= 0) {
 			os_time_t idle, remaining;
 
-			os_time_subtract(&now, &timer->touched, &idle);
+			os_time_subtract(nowp, &timer->touched, &idle);
 			if (os_time_compare(&idle, &timer->interval) >= 0) {
-				os_time_add(&now, &timer->interval,
+				os_time_add(nowp, &timer->interval,
 					    &timer->next_time);
 			} else {
 				
@@ -86,24 +122,81 @@ schedule(timer_t timer, os_time_t *now, boolean_t first_time) {
 			/*
 			 * Time touched is in the future!  Make it now.
 			 */
-			timer->touched = now;
-			os_time_add(&now, &timer->interval, &timer->next_time);
+			timer->touched = *nowp;
+			os_time_add(nowp, &timer->interval, &timer->next_time);
 		}
 	}
 }
 
+static inline isc_result
+schedule(timer_t timer, os_time_t *new_nextimep) {
+	isc_result result;
+	timer_manager_t manager;
+
+	/* 
+	 * The caller must ensure locking.
+	 */
+	
+	manager = timer->manager;
+	if (timer->index > 0) {
+		/*
+		 * Already scheduled.
+		 */
+		switch (os_time_compare(new_nextimep, &timer->next_time)) {
+		case -1:
+			heap_increased(manager->heap, timer->index);
+			break;
+		case 1:
+			heap_decreased(manager->heap, timer->index);
+			break;
+		case 0:
+			/* Nothing to do. */
+			break;
+		}
+	} else {
+		result = heap_insert(manager->heap, timer);
+		if (result != ISC_R_SUCCESS) {
+			INSIST(result == ISC_R_NOMEMORY);
+			return (ISC_R_NOMEMORY);
+		}
+		manager->nscheduled++;
+	}
+
+	/*
+	 * If this timer is at the head of the queue, we must wake up the
+	 * run thread so it doesn't sleep too long.
+	 */
+	if (timer->index == 1)
+		BROADCAST(&manager->wakeup);
+
+	return (ISC_R_SUCCESS);
+}
+
 static inline void
-deschedule(timer_t) {
+deschedule(timer_t timer) {
+	boolean_t need_wakeup = FALSE;
+	timer_manager_t manager;
+
 	/* 
 	 * The caller must ensure locking.
 	 */
 
+	manager = timer->manager;
+	if (timer->index > 0) {
+		if (timer->index == 1)
+			need_wakeup = TRUE;
+		heap_delete(manager->heap, timer->index);
+		timer->index = 0;
+		INSIST(manager->nscheduled > 0);
+		manager->nscheduled--;
+		if (need_wakeup)
+			BROADCAST(&manager->wakeup);
+	}
 }
 
 static void
 destroy(timer_t timer) {
 	timer_manager_t manager = timer->manager;
-	isc_result result;
 
 	/*
 	 * The caller must ensure locking.
@@ -126,23 +219,25 @@ destroy(timer_t timer) {
 isc_result
 timer_create(timer_manager_t manager, timer_type_t type,
 	     os_time_t absolute, os_time_t interval,
-	     task_t task, void *arg, timer_t *timerp)
+	     task_t task, task_action_t action, void *arg, timer_t *timerp)
 {
 	timer_t timer;
 	isc_result result;
-	os_time_t now;
+	os_time_t now, next_time;
 
 	/*
 	 * Create a new 'type' timer managed by 'manager'.  The timers
 	 * parameters are specified by 'absolute' and 'interval'.  Events
-	 * will be posted to 'task' and will use 'arg' as the arg value.
-	 * The new timer is returned in 'timerp'.
+	 * will be posted to 'task' and when dispatched 'action' will be
+	 * called with 'arg' as the arg value.  The new timer is returned
+	 * in 'timerp'.
 	 */
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(task != NULL);
-	REQUIRE(!(absolute->seconds == 0 && absolute->nanoseconds == 0 &&
-		  interval->seconds == 0 && interval->nanoseconds == 0));
+	REQUIRE(action != NULL);
+	REQUIRE(!(absolute.seconds == 0 && absolute.nanoseconds == 0 &&
+		  interval.seconds == 0 && interval.nanoseconds == 0));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	/*
@@ -163,13 +258,15 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	timer->magic = TIMER_MAGIC;
 	timer->manager = manager;
 	timer->references = 1;
+	timer->touched = now;
 	timer->type = type;
 	timer->absolute = absolute;
 	timer->interval = interval;
 	timer->task = NULL;
 	task_attach(task, &timer->task);
+	timer->action = action;
 	timer->arg = arg;
-	timer->touched = now;
+	timer->index = 0;
 	if (!os_mutex_init(&timer->lock)) {
 		mem_put(manager->mctx, timer, sizeof *timer);
 		unexpected_error(__FILE__, __LINE__, "os_mutex_init() failed");
@@ -184,7 +281,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	 */
 
 	APPEND(manager->timers, timer, link);
-	result = schedule(timer, &now, TRUE);
+	result = schedule(timer, &next_time);
 
 	UNLOCK(&manager->lock);
 
@@ -198,7 +295,7 @@ isc_result
 timer_reset(timer_t timer, timer_type_t type,
 	    os_time_t absolute, os_time_t interval)
 {
-	os_time_t now;
+	os_time_t now, next_time;
 	timer_manager_t manager;
 	isc_result result;
 
@@ -210,8 +307,8 @@ timer_reset(timer_t timer, timer_type_t type,
 	REQUIRE(VALID_TIMER(timer));
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(!(absolute->seconds == 0 && absolute->nanoseconds == 0 &&
-		  interval->seconds == 0 && interval->nanoseconds == 0));
+	REQUIRE(!(absolute.seconds == 0 && absolute.nanoseconds == 0 &&
+		  interval.seconds == 0 && interval.nanoseconds == 0));
 
 	/*
 	 * Get current time.
@@ -234,7 +331,7 @@ timer_reset(timer_t timer, timer_type_t type,
 	timer->interval = interval;
 	timer->touched = now;
 
-	result = schedule(timer, &now, FALSE);
+	result = schedule(timer, &next_time);
 
 	UNLOCK(&timer->lock);
 	UNLOCK(&manager->lock);
@@ -269,6 +366,8 @@ timer_shutdown(timer_t timer) {
 
 isc_result
 timer_touch(timer_t timer) {
+	isc_result result;
+
 	/*
 	 * Set the last-touched time of 'timer' to the current time.
 	 */
@@ -317,8 +416,9 @@ timer_detach(timer_t *timerp) {
 	 * Detach *timerp from its timer.
 	 */
 
+	REQUIRE(timerp != NULL);
+	timer = *timerp;
 	REQUIRE(VALID_TIMER(timer));
-	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	LOCK(&timer->lock);
 	REQUIRE(timer->references > 0);
@@ -333,53 +433,128 @@ timer_detach(timer_t *timerp) {
 	*timerp = NULL;
 }
 
+static void *
+run(void *uap) {
+	timer_manager_t manager = uap;
+	struct timespec ts;
+	boolean_t timeout;
+
+	LOCK(&manager->lock);
+	while (!manager->done) {
+
+		printf("timer run thread awake\n");
+
+		if (manager->nscheduled > 0) {
+			ts.tv_sec = manager->next_time.seconds;
+			ts.tv_nsec = manager->next_time.nanoseconds;
+
+			timeout = FALSE;
+			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
+				  &timeout);
+		} else {
+			WAIT(&manager->wakeup, &manager->lock);
+			timeout = FALSE;
+		}
+	}
+	UNLOCK(&manager->lock);
+
+	return (NULL);
+}
+
 isc_result
-timer_manager_create(mem_context_t mctx, timer_manager_t *managerp);
-/*
- * Create a timer manager.
- *
- * Notes:
- *
- *	All memory will be allocated in memory context 'mctx'.
- *
- * Requires:
- *
- *	'mctx' is a valid memory context.
- *
- *	'managerp' points to a NULL timer_manager_t.
- *
- * Ensures:
- *
- *	'*managerp' is a valid timer_manager_t.
- *
- * Returns:
- *
- *	Success
- *	No memory
- *	Unexpected error
- */
+timer_manager_create(mem_context_t mctx, timer_manager_t *managerp) {
+	timer_manager_t manager;
+	isc_result result;
+
+	/*
+	 * Create a timer manager.
+	 */
+
+	REQUIRE(managerp != NULL && *managerp == NULL);
+
+	manager = mem_get(mctx, sizeof *manager);
+	if (manager == NULL)
+		return (ISC_R_NOMEMORY);
+	
+	manager->magic = TIMER_MANAGER_MAGIC;
+	manager->mctx = mctx;
+	manager->done = FALSE;
+	INIT_LIST(manager->timers);
+	manager->nscheduled = 0;
+	manager->next_time.seconds = 0;
+	manager->next_time.nanoseconds = 0;
+	manager->heap = NULL;
+	result = heap_create(mctx, sooner, set_index, 0, &manager->heap);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(result == ISC_R_NOMEMORY);
+		mem_put(mctx, manager, sizeof *manager);
+		return (ISC_R_NOMEMORY);
+	}
+	if (!os_mutex_init(&manager->lock)) {
+		heap_destroy(&manager->heap);
+		mem_put(mctx, manager, sizeof *manager);
+		unexpected_error(__FILE__, __LINE__, "os_mutex_init() failed");
+		return (ISC_R_UNEXPECTED);
+	}
+	if (!os_condition_init(&manager->wakeup)) {
+		(void)os_mutex_destroy(&manager->lock);
+		heap_destroy(&manager->heap);
+		mem_put(mctx, manager, sizeof *manager);
+		unexpected_error(__FILE__, __LINE__,
+				 "os_condition_init() failed");
+		return (ISC_R_UNEXPECTED);
+	}
+	if (!os_thread_create(run, manager, &manager->thread)) {
+		(void)os_condition_destroy(&manager->wakeup);
+		(void)os_mutex_destroy(&manager->lock);
+		heap_destroy(&manager->heap);
+		mem_put(mctx, manager, sizeof *manager);
+		unexpected_error(__FILE__, __LINE__,
+				 "os_thread_create() failed");
+		return (ISC_R_UNEXPECTED);
+	}
+
+	*managerp = manager;
+
+	return (ISC_R_SUCCESS);
+}
 
 void
-timer_manager_destroy(timer_manager_t *);
-/*
- * Destroy a timer manager.
- *
- * Notes:
- *	
- *	This routine blocks until there are no timers left in the manager,
- *	so if the caller holds any timer references using the manager, it
- *	must detach them before calling timer_manager_destroy() or it will
- *	block forever.
- *
- * Requires:
- *
- *	'*managerp' is a valid timer_manager_t.
- *
- * Ensures:
- *
- *	*managerp == NULL
- *
- *	All resources used by the manager have been freed.
- */
+timer_manager_destroy(timer_manager_t *managerp) {
+	timer_manager_t manager;
 
-#endif /* ISC_TIMER_H */
+	/*
+	 * Destroy a timer manager.
+	 */
+
+	REQUIRE(managerp != NULL);
+	manager = *managerp;
+	REQUIRE(VALID_MANAGER(manager));
+
+	LOCK(&manager->lock);
+
+	REQUIRE(EMPTY(manager->timers));
+	manager->done = TRUE;
+
+	UNLOCK(&manager->lock);
+
+	BROADCAST(&manager->wakeup);
+
+	/*
+	 * Wait for thread to exit.
+	 */
+	if (!os_thread_join(manager->thread))
+		unexpected_error(__FILE__, __LINE__,
+				 "os_thread_join() failed");
+
+	/*
+	 * Clean up.
+	 */
+	(void)os_condition_destroy(&manager->wakeup);
+	(void)os_mutex_destroy(&manager->lock);
+	heap_destroy(&manager->heap);
+	manager->magic = 0;
+	mem_put(manager->mctx, manager, sizeof *manager);
+
+	*managerp = NULL;
+}
