@@ -1,4 +1,7 @@
 
+ 809.	[bug]		Configuring a non-local address as a transfer-source
+ 			could cause an assertion failure during load.
+
  808.	[func]		Add 'rndc flush' to flush the server's cache.
 
  807.	[bug]		When setting up TCP connections for incoming zone

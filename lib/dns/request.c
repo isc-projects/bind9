@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.58 2001/03/05 21:15:42 bwelling Exp $ */
+/* $Id: request.c,v 1.59 2001/04/16 18:50:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -467,6 +467,7 @@ new_request(isc_mem_t *mctx, dns_request_t **requestp) {
 
 	isc_mem_attach(mctx, &request->mctx);
 
+	request->magic = REQUEST_MAGIC;
 	*requestp = request;
 	return (ISC_R_SUCCESS);
 }
