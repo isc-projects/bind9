@@ -1011,6 +1011,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 		}
 
 	next:
+		; /* some compilers need this here... */
 	} while (!EMPTY(sock->recv_list));
 
  poke:
@@ -1170,6 +1171,7 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 		}
 
 	next:
+		; /* some compilers need this here... */
 	} while (!EMPTY(sock->send_list));
 
  poke:

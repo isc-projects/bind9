@@ -85,7 +85,8 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 
-		isc_mem_put(event->mctx, dev->region.base, dev->region.length);
+		isc_mem_put(event->mctx, dev->region.base,
+			    dev->region.length);
 		isc_event_free(&event);
 
 		sockets_active--;
@@ -99,8 +100,10 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	 */
 	if (strcmp(event->arg, "so2")) {
 		region = dev->region;
-		region.base[20] = 0;
-		snprintf(buf, sizeof buf, "Received: %s\r\n", region.base);
+		strcpy(buf, "\r\nReceived: ");
+		strncat(buf, region.base, region.length);
+		buf[32] = 0;  /* ensure termination */
+		strcat(buf, "\r\n\r\n");
 		region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
 		region.length = strlen(buf) + 1;
 		strcpy(region.base, buf);  /* strcpy is safe */
@@ -210,7 +213,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		 */
 		isc_socket_accept(event->sender, task, my_listen, event->arg);
 
-		region.base = isc_mem_get(event->mctx, 21);
+		region.base = isc_mem_get(event->mctx, 20);
 		region.length = 20;
 
 		/*
