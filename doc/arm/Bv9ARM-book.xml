@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.24 2000/11/03 18:23:21 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.25 2000/11/05 00:29:15 marka Exp $ -->
 
 <book>
 
@@ -4397,10 +4397,23 @@ or start-stop/step. If the first form is used then step is set to
           <entry colname = "2"><para><command>lhs</command> describes the
 owner name of the resource records to be created.      Any single <command>$</command> symbols
 within the <command>lhs</command> side are replaced by the iterator
-value. To get a $ in the output use a double <command>$</command>,
-e.g. <command>$$</command>. If the <command>lhs</command> is not
+value.
+To get a $ in the output you need to escape the <command>$</command>
+using a backslash <command>\</command>,
+e.g. <command>\$</command>. The <command>$</command> may optionally be followed
+by modifiers which change the offset from the interator, field width and base. 
+Modifiers are introduced by a <command>{</command> immediately following the
+<command>$</command> as <command>${offset[,width[,base]]}</command>.
+e.g. <command>${-20,3,d}</command> which subtracts 20 from the current value,
+prints the result as a decimal in a zero padded field of with 3.  Available
+output forms are decimal (<command>d</command>), octal (<command>o</command>)
+and hexadecimal (<command>x</command> or <command>X</command> for uppercase).
+The default modifier is <command>${0,0,d}</command>.
+If the <command>lhs</command> is not
 absolute, the current <command>$ORIGIN</command> is appended to
-the name.</para></entry>
+the name.</para>
+<para>For compatability with earlier versions <command>$$</command> is still
+recognised a indicating a literal $ in the output.</para></entry>
         </row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>type</command></para></entry>
@@ -4415,11 +4428,7 @@ similarly to lhs.</para></entry>
       </tbody>
       </tgroup></informaltable>
       <para>The <command>$GENERATE</command> directive is a <acronym>BIND</acronym> extension
-and not part of the standard zone file format.
-<note>
-          <simpara>It is not yet implemented in <acronym>BIND</acronym> 9.</simpara>
-        </note>
-</para>
+and not part of the standard zone file format.</para>
     </sect2>
   </sect1>
 </chapter>
