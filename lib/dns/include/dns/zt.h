@@ -23,8 +23,6 @@
 #include <isc/mem.h>
 #include <dns/name.h>
 #include <dns/types.h>
-#include <dns/rbt.h>
-
 
 ISC_LANG_BEGINDECLS
 

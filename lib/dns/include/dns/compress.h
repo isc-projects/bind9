@@ -22,7 +22,6 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
-#include <dns/rbt.h>
 
 ISC_LANG_BEGINDECLS
 
