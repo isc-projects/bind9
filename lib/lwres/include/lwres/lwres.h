@@ -28,18 +28,25 @@
  */
 typedef struct lwres_context lwres_context_t;
 
+/*
+ * NO-OP
+ */
 #define LWRES_OPCODE_NOOP		0x00000000U
+
 typedef struct {
 	/* public */
 	isc_uint32_t		result;
+	isc_uint16_t		datalength;
+	unsigned char	       *data;
+	/* private */
 	isc_uint32_t		buflen;
 	void		       *buffer;
 } lwres_noop_t;
 
 /*
- * These are the structure versions of the data passed around via the
- * various functions.  For the wire format of these, see doc/design/lwres
+ * GET ADDRESSES BY NAME
  */
+#define LWRES_OPCODE_GETADDRSBYNAME	0x00010001U
 
 typedef struct {
 	isc_uint32_t		family;
@@ -47,7 +54,6 @@ typedef struct {
 	unsigned char	       *address;
 } lwres_addr_t;
 
-#define LWRES_OPCODE_GETADDRSBYNAME	0x00010001U
 typedef struct {
 	/* public */
 	isc_uint32_t		result;
@@ -62,6 +68,9 @@ typedef struct {
 	/* variable length data follows */
 } lwres_getaddrsbyname_t;
 
+/*
+ * GET NAME BY ADDRESS
+ */
 #define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
 typedef struct {
 	/* public */
@@ -81,10 +90,10 @@ typedef struct {
 ISC_LANG_BEGINDECLS
 
 typedef void *(*lwres_malloc_t)(void *arg, size_t length);
-typedef void (*lwres_free_t)(void *arg, size_t length, void *mem);
+typedef void (*lwres_free_t)(void *arg, void *mem, size_t length);
 
 int
-lwres_getaddrsbyname(lwres_context_t *context,
+lwres_getaddrsbyname(lwres_context_t *ctx,
 		     char *name, isc_uint32_t addrtypes,
 		     lwres_getaddrsbyname_t **structp);
 /*
@@ -92,7 +101,7 @@ lwres_getaddrsbyname(lwres_context_t *context,
  *
  * Requires:
  *
- *	context != NULL, and be a context returned via lwres_contextcreate().
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp == NULL.
  *
@@ -112,14 +121,14 @@ lwres_getaddrsbyname(lwres_context_t *context,
  */
 
 void
-lwres_freegetaddrsbyname(lwres_context_t *context,
+lwres_freegetaddrsbyname(lwres_context_t *ctx,
 			 lwres_getaddrsbyname_t **structp);
 /*
  * Frees any dynamically allocated memory for this structure.
  *
  * Requires:
  *
- *	context != NULL, and be a context returned via lwres_contextcreate().
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp != NULL.
  *
@@ -132,7 +141,15 @@ lwres_freegetaddrsbyname(lwres_context_t *context,
  */
 
 int
-lwres_getnamebyaddr(lwres_context_t *context, isc_uint32_t addrtype,
+lwres_getaddrsbyname_fromstruct(lwres_context_t *ctx,
+				isc_uint8_t *buf, size_t len,
+				lwres_getaddrsbyname_t *gabn);
+/*
+ * XXXMLG document
+ */
+
+int
+lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 		    isc_uint16_t addrlen, unsigned char *addr,
 		    lwres_getnamebyaddr_t **structp);
 /*
@@ -140,7 +157,7 @@ lwres_getnamebyaddr(lwres_context_t *context, isc_uint32_t addrtype,
  *
  * Requires:
  *
- *	context != NULL, and be a context returned via lwres_contextcreate().
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp == NULL.
  *
@@ -159,14 +176,14 @@ lwres_getnamebyaddr(lwres_context_t *context, isc_uint32_t addrtype,
  */
 
 void
-lwres_freegetnamebyaddr(lwres_context_t *context,
+lwres_freegetnamebyaddr(lwres_context_t *ctx,
 			lwres_getnamebyaddr_t **structp);
 /*
  * Frees any dynamically allocated memory for this structure.
  *
  * Requires:
  *
- *	context != NULL, and be a context returned via lwres_contextcreate().
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp != NULL.
  *
@@ -175,39 +192,39 @@ lwres_freegetnamebyaddr(lwres_context_t *context,
  *	*structp == NULL.
  *
  *	All memory allocated by this structure will be returned to the
- *	system via the context's free function.
+ *	system via the ctx's free function.
  */
 
 int
-lwres_noop(lwres_context_t *context, isc_uint16_t datalength, void *data,
-	   lwres_noop_t **structp);
+lwres_noop_render(lwres_context_t *ctx, isc_uint16_t datalength,
+		  void *data, lwres_buffer_t *b);
 /*
- * Transmit a noop to the lw resolver.
+ * Allocate space and render into wire format a noop request packet.
  *
  * Requires:
  *
- *	context != NULL, and be a context returned via lwres_contextcreate().
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
  *
- *	structp != NULL && *structp != NULL.
+ *	b != NULL, and points to a lwres_buffer_t.  The contents of the
+ *	buffer structure will be initialized to contain the wire-format
+ *	noop request packet.
  *
  * Returns:
  *
  *	Returns 0 on success, non-zero on failure.
  *
- *	On successful return, *structp will be non-NULL, and will point to
- *	an allocated structure returning the data requested.  This structure
- *	must be freed using lwres_freenoop() when it is no longer
- *	needed.
+ *	On successful return, *b will contain data about the wire-format
+ *	packet.  It can be transmitted in any way, including lwres_sendblock().
  */
 
 void
-lwres_freenoop(lwres_context_t *context, lwres_noop_t **structp);
+lwres_freenoop(lwres_context_t *ctx, lwres_noop_t **structp);
 /*
  * Frees any dynamically allocated memory for this structure.
  *
  * Requires:
  *
- *	context != NULL, and be a context returned via lwres_contextcreate().
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp != NULL.
  *
@@ -224,7 +241,7 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 		    lwres_malloc_t malloc_function,
 		    lwres_free_t free_function);
 /*
- * Allocated a lwres context.  This is used in all lwres calls.
+ * Allocate a lwres context.  This is used in all lwres calls.
  *
  * Memory management can be replaced here by passing in two functions.
  * If one is non-NULL, they must both be non-NULL.  "arg" is passed to

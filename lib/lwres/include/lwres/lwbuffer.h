@@ -130,6 +130,8 @@ ISC_LANG_BEGINDECLS
  * Get the length of the available region of buffer "b"
  */
 #define LWRES_BUFFER_AVAILABLECOUNT(b)	((b)->length - (b)->used)
+#define LWRES_BUFFER_AVAILABLECHECK(b, bytes)	\
+	(LWRES_BUFFER_AVAILABLECOUNT(b) >= (bytes))
 
 /*
  * Note that the buffer structure is public.  This is principally so buffer

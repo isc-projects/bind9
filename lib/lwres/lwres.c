@@ -29,7 +29,14 @@
 #include <lwres/lwres.h>
 
 static void *lwres_malloc(void *, size_t);
-static void lwres_free(void *, size_t, void *);
+static void lwres_free(void *, void *, size_t);
+
+/*
+ * Helper functions, assuming the context is always called "ctx" in
+ * the scope these functions are called from.
+ */
+#define CTXMALLOC(len)		ctx->malloc(ctx->arg, (len))
+#define CTXFREE(addr, len)	ctx->free(ctx->arg, (addr), (len))
 
 #define LWRES_DEFAULT_TIMEOUT	30	/* 30 seconds for a reply */
 
@@ -39,6 +46,7 @@ static void lwres_free(void *, size_t, void *);
  */
 struct lwres_context {
 	unsigned int		timeout;	/* time to wait for reply */
+	isc_uint32_t		serial;		/* serial number state */
 
 	/*
 	 * Function pointers for allocating memory.
@@ -53,7 +61,7 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 		    lwres_malloc_t malloc_function,
 		    lwres_free_t free_function)
 {
-	lwres_context_t *context;
+	lwres_context_t *ctx;
 
 	/*
 	 * If we were not given anything special to use, use our own
@@ -64,8 +72,8 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 		free_function = lwres_free;
 	}
 
-	context = malloc_function(arg, sizeof(lwres_context_t));
-	if (context == NULL) {
+	ctx = malloc_function(arg, sizeof(lwres_context_t));
+	if (ctx == NULL) {
 		errno = ENOMEM;
 		return (-1);
 	}
@@ -73,26 +81,26 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 	/*
 	 * Set up the context.
 	 */
-	context->malloc = malloc_function;
-	context->free = free_function;
-	context->arg = arg;
+	ctx->malloc = malloc_function;
+	ctx->free = free_function;
+	ctx->arg = arg;
 
-	context->timeout = LWRES_DEFAULT_TIMEOUT;
+	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
+	ctx->serial = (isc_uint32_t)ctx;  /* XXXMLG */
 
-	*contextp = context;
+	*contextp = ctx;
 	return (0);
 }
 
 void
 lwres_freecontext(lwres_context_t **contextp)
 {
-	lwres_context_t *context;
+	lwres_context_t *ctx;
 
-	context = *contextp;
+	ctx = *contextp;
 	*contextp = NULL;
 
-	/* This is always allocated via malloc() for now... */
-	context->free(context->arg, sizeof(lwres_context_t), context);
+	CTXFREE(sizeof(lwres_context_t), ctx);
 }
 
 int
@@ -114,25 +122,69 @@ lwres_freegetaddrsbyname(lwres_context_t *contextp,
 }
 
 int
-lwres_noop(lwres_context_t *context, isc_uint16_t datalength, void *data,
-	   lwres_noop_t **structp)
-{
-}
-
-void
-lwres_freenoop(lwres_context_t *context, lwres_noop_t **structp)
+lwres_getaddrsbyname_fromstruct(lwres_context_t *contextp,
+				isc_uint8_t *buf, size_t len,
+				lwres_getaddrsbyname_t *gabn)
 {
 }
 
 int
-lwres_getnamebyaddr(lwres_context_t *contextp, isc_uint32_t addrtype,
+lwres_noop_render(lwres_context_t *ctx, isc_uint16_t datalength, void *data,
+		  lwres_buffer_t *b)
+{
+	lwres_lwpacket_t pkt;
+	unsigned char *buf;
+	size_t buflen;
+	int ret;
+
+	buflen = sizeof(lwres_lwpacket_t) + sizeof(isc_uint16_t) + datalength;
+	buf = CTXMALLOC(buflen);
+	if (buf == NULL) {
+		errno = ENOMEM;
+		return (-1);
+	}
+	lwres_buffer_init(b, buf, buflen);
+
+	ret = lwres_lwpacket_renderheader(b, &pkt, buflen, 0, ctx->serial++,
+					  LWRES_OPCODE_NOOP, 0, buflen);
+	if (ret != 0) {
+		lwres_buffer_invalidate(b);
+		CTXFREE(buf, buflen);
+		return (ret);
+	}
+
+	if (!LWRES_BUFFER_AVAILABLECHECK(b,
+					 datalength + sizeof(isc_uint16_t))) {
+		CTXFREE(buf, buflen);
+		lwres_buffer_invalidate(b);
+		errno = EOVERFLOW;  /* this is a programmer botch! */
+		return (-1);
+	}
+
+	/*
+	 * Put the length and the data.  We know this will fit because we
+	 * just checked for it.
+	 */
+	lwres_buffer_putuint16(b, datalength);
+	lwres_buffer_putmem(b, data, datalength);
+
+	return (0);
+}
+
+void
+lwres_freenoop(lwres_context_t *ctx, lwres_noop_t **structp)
+{
+}
+
+int
+lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 		    isc_uint16_t addrlen, unsigned char *addr,
 		    lwres_getnamebyaddr_t **structp)
 {
 }
 
 void
-lwres_freegetnamebyaddr(lwres_context_t *contextp,
+lwres_freegetnamebyaddr(lwres_context_t *ctx,
 			lwres_getnamebyaddr_t **structp)
 {
 }
@@ -154,7 +206,7 @@ lwres_malloc(void *arg, size_t len)
 }
 
 static void
-lwres_free(void *arg, size_t len, void *mem)
+lwres_free(void *arg, void *mem, size_t len)
 {
 	(void)arg;
 
