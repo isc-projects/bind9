@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.25 2000/11/23 01:32:44 gson Exp $ */
+/* $Id: log.c,v 1.26 2000/11/25 01:33:11 marka Exp $ */
 
 #include <config.h>
 
@@ -58,7 +58,7 @@ static isc_logmodule_t modules[] = {
 isc_result_t
 ns_log_init(isc_boolean_t safe) {
 	isc_result_t result;
-	isc_logconfig_t *lcfg;
+	isc_logconfig_t *lcfg = NULL;
 
 	ns_g_categories = categories;
 	ns_g_modules = modules;
