@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.11 2000/04/25 17:57:10 bwelling Exp $ */
+/* $Id: keygen.c,v 1.12 2000/04/27 18:24:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,8 @@
 static isc_boolean_t dsa_size_ok(int size);
 static void die(char *str);
 static void usage(char *prog);
+
+static int verbose;
 
 int
 main(int argc, char **argv) {
@@ -66,7 +68,7 @@ main(int argc, char **argv) {
 		usage(prog);
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:eg:n:t:p:s:h")) != -1)
+					   "a:b:eg:n:t:p:s:hv:")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -109,6 +111,13 @@ main(int argc, char **argv) {
 			if (*endp != '\0' || signatory < 0 || signatory > 15)
 				die("-s must be followed by a number [0..15]");
 			break;
+		case 'v':
+			endp = NULL;
+			verbose = strtol(isc_commandline_argument, &endp, 0);
+			if (*endp != '\0')
+				die("-v must be followed by a number");
+			break;
+
 		case 'h':
 			usage(prog);
 		default:
@@ -271,24 +280,26 @@ die(char *str) {
 static void
 usage(char *prog) {
 	printf("Usage:\n");
-	printf ("    %s -a alg -b bits [-f] [-g n] -n nametype [-t type] "
-		"[-p n] [-s n] name\n\n", prog);
+	printf ("    %s [options] name\n\n", prog);
+	printf("Required options:\n");
 	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
 	printf("    -b key size, in bits:\n");
 	printf("        RSA:\t\t[512..1024]\n");
 	printf("        DH:\t\t[128..4096]\n");
 	printf("        DSA:\t\t[512..1024] and a multiple of 64\n");
 	printf("        HMAC-MD5:\t[1..512]\n");
+	printf("    -n nametype: ZONE | HOST | ENTITY | USER\n");
+	printf("    name: owner of the key\n");
+	printf("Other options:\n");
 	printf("    -e use large exponent (RSA only)\n");
 	printf("    -g use specified generator (DH only)\n");
-	printf("    -n nametype: ZONE | HOST | ENTITY | USER\n");
 	printf("    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF\n");
 	printf("        default: AUTHCONF\n");
 	printf("    -p protocol value\n");
 	printf("        default: 2 (email) for User keys, 3 (dnssec) for all others\n");
 	printf("    -s strength value this key signs DNS records with\n");
 	printf("        default: 0\n");
-	printf("    name: owner of the key\n");
+	printf("    -v verbose level\n");
 
 	exit (-1);
 }
