@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.127 2001/09/20 15:16:53 marka Exp $
+# $Id: Makefile.in,v 1.128 2001/10/01 18:54:00 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -31,11 +31,6 @@ CDEFINES =
 CWARNINGS =
 
 LIBS =		@LIBS@
-
-#ifdef DNS_OPT_NEWCODES
-OTHEROBJS = opt.@O@
-OTHERSRCS = opt.c
-#endif /* DNS_OPT_NEWCODES */
 
 # Alphabetically
 

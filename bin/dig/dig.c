@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.167 2001/09/26 00:38:37 gson Exp $ */
+/* $Id: dig.c,v 1.168 2001/10/01 18:53:51 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -884,32 +884,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'v':
-#ifdef DNS_OPT_NEWCODES_LIVE
-		switch (cmd[1]) {
-		default:
-		case 'c': /* vc, and default */
-#endif /* DNS_OPT_NEWCODES_LIVE */
-			if (!is_batchfile)
-				lookup->tcp_mode = state;
-			break;
-#ifdef DNS_OPT_NEWCODES_LIVE
-		case 'i': /* view */
-			if (value == NULL)
-				goto need_value;
-			if (!state)
-				goto invalid_option;
-			strncpy(lookup->viewname, value, MXNAME);
-			break;
-		}
+		if (!is_batchfile)
+			lookup->tcp_mode = state;
 		break;
-	case 'z': /* zone */
-		if (value == NULL)
-			goto need_value;
-		if (!state)
-			goto invalid_option;
-		strncpy(lookup->zonename, value, MXNAME);
-		break;
-#endif /* DNS_OPT_NEWCODES_LIVE */
 	default:
 	invalid_option:
 	need_value:
