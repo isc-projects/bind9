@@ -1,4 +1,7 @@
 
+ 828.	[bug]		The errno value from recvfrom() could be overwritten
+			by logging code. [RT #1293]
+
  827.	[bug]		When an IXFR protocol error occurs, the slave
 			should retry with AXFR.
 

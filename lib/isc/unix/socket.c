@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.198 2001/04/26 23:45:54 gson Exp $ */
+/* $Id: socket.c,v 1.199 2001/05/14 18:20:03 gson Exp $ */
 
 #include <config.h>
 
@@ -861,6 +861,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	size_t actual_count;
 	struct msghdr msghdr;
 	isc_buffer_t *buffer;
+	int recv_errno;
 #if USE_CMSG
 	char cmsg[CMSG_BUF_SIZE];
 #else
@@ -874,9 +875,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 #endif
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
+	recv_errno = errno;
 
 	if (cc < 0) {
-		if (SOFT_ERROR(errno))
+		if (SOFT_ERROR(recv_errno))
 			return (DOIO_SOFT);
 
 		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL))
@@ -884,10 +886,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 				   isc_msgcat, ISC_MSGSET_SOCKET,
 				   ISC_MSG_DOIORECV, 
 				  "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
-				   sock->fd, cc, errno, strerror(errno));
+				   sock->fd, cc, recv_errno, strerror(recv_errno));
 
 #define SOFT_OR_HARD(_system, _isc) \
-	if (errno == _system) { \
+	if (recv_errno == _system) { \
 		if (sock->connected) { \
 			dev->result = _isc; \
 			return (DOIO_HARD); \
@@ -895,7 +897,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		return (DOIO_SOFT); \
 	}
 #define ALWAYS_HARD(_system, _isc) \
-	if (errno == _system) { \
+	if (recv_errno == _system) { \
 		dev->result = _isc; \
 		return (DOIO_HARD); \
 	}
