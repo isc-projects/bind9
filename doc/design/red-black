@@ -126,6 +126,26 @@ rc.vix.com, but not the full name.
 
 No locking is done within the RBT library.  @@@
 
+CHAINS
+
+@@@
+
+When a partial match is made, level_matches is set while the chain
+points to the partial match node that was found.  Then the chain is
+adjusted to point to the DNSSEC predecessor node, which might not even
+be under the same top level domain as the name that was searched for.
+For example, consider a database that had only the names vix.com and
+isc.org.  A search for uu.net would leave the chain pointed to
+vix.com, the DNSSEC predecessor.  Though this might first appear to
+cause level_matches to be bogus because the chain has been unwound and
+sent down another path, note that the partial match node will always
+be in the chain of the predecessor, too --- and often the partial
+match node will be the predecessor itself.  In the vix.com/isc.org
+example, the search for uu.net finds a partial match at ".", which is
+of course also in the path to the vix.com predecessor.  A search for
+www.isc.org would find that isc.org is both the partial match and the
+predecessor.
+
 EXTERNAL PROGRAMMATIC DETAILS
 
 This section details the functions used to interact with the BIND9
@@ -179,7 +199,6 @@ data for that name is returned in the data parameter.  If no data is
 found for the name or a superdomain, *data will remain NULL.
 
 
-
 INTERNAL PROGRAMMATIC DETAILS
 
 This section is mainly relevant to the RBT DB implementation.  It is
@@ -193,8 +212,8 @@ particularly care whether a node has an associated data pointer or
 not, whereas the *name functions do.  The one exception to this is
 that when a PARTIALMATCH is returned for a search, the indicated node
 is the deepest match that has data, rather than just the deepest
-match.  This inconsistency could be addressed by adding another
-parameter to dns_rbt_findnode.
+match.  Even that behavior is selectable, however, using the boolean
+empty_data_ok argument to dns_rbt_findnode.
 
 Each node in the tree of trees is represented by the following structure:
 
@@ -226,3 +245,4 @@ Each node in the tree of trees is represented by the following structure:
           unsigned int references:DNS_RBT_REFLENGTH;
   } dns_rbtnode_t;
 
+@@@
