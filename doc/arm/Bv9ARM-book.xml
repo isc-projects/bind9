@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.121 2001/03/30 18:15:45 halley Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.122 2001/04/11 20:42:29 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -758,6 +758,11 @@ of a server.</para>
 </row>
 
 <row>
+<entry colname = "1"><para><userinput>dumpdb</userinput></para></entry>
+<entry colname = "2"><para>Dump the server's caches to the dump file. </para></entry>
+</row>
+
+<row>
 <entry colname = "1"><para><userinput>stop</userinput></para></entry>
 <entry colname = "2"><para>Stop the server, making sure any recent changes
 made through dynamic update or IXFR are first saved to the master files
@@ -770,6 +775,27 @@ of the updated zones.</para></entry>
 made through dynamic update or IXFR are not saved to the master files,
 but will be rolled forward from the journal files when the server
 is restarted.</para></entry>
+</row>
+
+<row>
+<entry colname = "1"><para><userinput>trace</userinput></para></entry>
+<entry colname = "2"><para>Increment the servers debugging level by one. </para></entry>
+</row>
+
+<row>
+<entry colname = "1"><para><userinput>trace <replaceable>level</replaceable></userinput></para></entry>
+<entry colname = "2"><para>Sets the server's debugging level to an explicit
+value.</para></entry>
+</row>
+
+<row>
+<entry colname = "1"><para><userinput>notrace</userinput></para></entry>
+<entry colname = "2"><para>Sets the server's debugging level to 0.</para></entry>
+</row>
+
+<row>
+<entry colname = "1"><para><userinput>flush</userinput></para></entry>
+<entry colname = "2"><para>Flushes the server's cache.</para></entry>
 </row>
 
 </tbody>
