@@ -205,8 +205,8 @@ typedef struct {
 #define LWRES_ADDRTYPE_V4		0x00000001U	/* ipv4 */
 #define LWRES_ADDRTYPE_V6		0x00000002U	/* ipv6 */
 
-#define LWRES_MAX_ALIASES		8		/* max # of aliases */
-#define LWRES_MAX_ADDRS			32		/* max # of addrs */
+#define LWRES_MAX_ALIASES		16		/* max # of aliases */
+#define LWRES_MAX_ADDRS			64		/* max # of addrs */
 
 LWRES_LANG_BEGINDECLS
 
