@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.22 2003/07/23 06:57:48 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23 2003/07/28 07:03:15 marka Exp $ */
 
 #include <config.h>
 
@@ -957,26 +957,16 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	if ((zone->type == dns_zone_slave || zone->type == dns_zone_stub) &&
 	    (strcmp(zone->db_argv[0], "rbt") == 0 ||
 	     strcmp(zone->db_argv[0], "rbt64") == 0)) {
-		if (zone->masterfile != NULL) {
-			result = isc_file_exists(zone->masterfile);
-		} else {
- start_timers:
+		if (zone->masterfile == NULL ||
+		    !isc_file_exists(zone->masterfile)) {
+			if (zone->masterfile != NULL)
+				dns_zone_log(zone, ISC_LOG_DEBUG(1),
+					     "no master file");
+			zone->refreshtime = now;
 			if (zone->task != NULL)
 				zone_settimer(zone, &now);
 			result = ISC_R_SUCCESS;
 			goto cleanup;
-		}
-		if (result == ISC_R_FILENOTFOUND) {
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "no master file");
-			goto start_timers;
-		} else if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "loading master file %s: %s",
-				     zone->masterfile,
-				     dns_result_totext(result));
-			result = ISC_R_SUCCESS;
-			goto start_timers;
 		}
 	}
 
