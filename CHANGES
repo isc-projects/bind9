@@ -22,6 +22,10 @@
  771.	[cleanup]	TSIG errors related to unsynchronized clocks
 			are logged better. [RT #919]
 
+ 734.	[bug]		An attempt to re-lock the zone lock could occur if
+			the server was shutdown during a zone tranfer.
+			[RT #830]
+
  669.	[bug]		dnssec-keygen now makes the public key file
 			non-world-readable for symmetric keys. [RT #403]
 

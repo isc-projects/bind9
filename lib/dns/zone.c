@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.12 2001/05/14 23:50:49 gson Exp $ */
+/* $Id: zone.c,v 1.283.2.13 2001/05/21 17:50:00 gson Exp $ */
 
 #include <config.h>
 
@@ -175,7 +175,7 @@ struct dns_zone {
 	isc_sockaddr_t	 	notifysrc6;
 	isc_sockaddr_t	 	xfrsource4;
 	isc_sockaddr_t	 	xfrsource6;
-	dns_xfrin_ctx_t		*xfr;
+	dns_xfrin_ctx_t		*xfr;		/* task locked */
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
 	dns_acl_t		*forward_acl;
@@ -3610,10 +3610,13 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 
 
-	LOCK_ZONE(zone);
+	/*
+	 * In task context, no locking required.  See zone_xfrdone().
+	 */
 	if (zone->xfr != NULL)
 		dns_xfrin_shutdown(zone->xfr);
 
+	LOCK_ZONE(zone);
 	if (zone->request != NULL) {
 		dns_request_cancel(zone->request);
 	}
