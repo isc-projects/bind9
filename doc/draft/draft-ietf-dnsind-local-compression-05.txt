@@ -1,14 +1,9 @@
-
-
-
-
 INTERNET-DRAFT                                                Peter Koch
-Expires: August 1999                              Universitaet Bielefeld
-Updates: 1035, 1183, 2065, 2163, 2168                      February 1999
+Expires: December 1999                            Universitaet Bielefeld
+Updates: 1035, 1183, 2163, 2168, 2535                          June 1999
 
             A New Scheme for the Compression of Domain Names
-               draft-ietf-dnsind-local-compression-04.txt
-
+               draft-ietf-dnsind-local-compression-05.txt
 
 Status of this Memo
 
@@ -51,18 +46,15 @@ Abstract
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 
+Koch                     Expires December 1999                  [Page 1]
 
-
-Koch                      Expires August 1999                   [Page 1]
-
-INTERNET-DRAFT              DNS Compression                February 1999
-
+INTERNET-DRAFT              DNS Compression                    June 1999
 
    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in [RFC2119].
 
    Domain names herein are for explanatory purposes only and should not
-   be expected to lead to useful information in real life [TESTTLD].
+   be expected to lead to useful information in real life [RFC2606].
 
 2. Background
 
@@ -107,12 +99,9 @@ INTERNET-DRAFT              DNS Compression                February 1999
    names in the RDATA section of "well known" RR types (those initially
    defined in [RFC1035]), there is no interoperable way of applying
 
+Koch                     Expires December 1999                  [Page 2]
 
-
-Koch                      Expires August 1999                   [Page 2]
-
-INTERNET-DRAFT              DNS Compression                February 1999
-
+INTERNET-DRAFT              DNS Compression                    June 1999
 
    compression to the RDATA section of newer RRs:
 
@@ -163,12 +152,9 @@ INTERNET-DRAFT              DNS Compression                February 1999
       number (starting at 0 for the topmost label, the TLD). This way we
       avoid the need for extra decompression of the owner name during
 
+Koch                     Expires December 1999                  [Page 3]
 
-
-Koch                      Expires August 1999                   [Page 3]
-
-INTERNET-DRAFT              DNS Compression                February 1999
-
+INTERNET-DRAFT              DNS Compression                    June 1999
 
       message composition or decomposition.
 
@@ -194,7 +180,7 @@ Example
    section consisting of two domain names:
 
       ab.foo.example  IN  CNAME  bar.example
-      bar.example     IN  XMPL   ab.foo.example  foo.example
+      bar.example     IN  XMPL   a.foo.example  foo.example
 
    In a message this appears as follows (randomly starting at octet 12):
 
@@ -218,13 +204,9 @@ Example
 
        10 octets skipped (TYPE, CLASS, TTL, RDLENGTH)
 
+Koch                     Expires December 1999                  [Page 4]
 
-
-
-Koch                      Expires August 1999                   [Page 4]
-
-INTERNET-DRAFT              DNS Compression                February 1999
-
+INTERNET-DRAFT              DNS Compression                    June 1999
 
           +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
        38 |           3           |           b           |
@@ -264,7 +246,7 @@ INTERNET-DRAFT              DNS Compression                February 1999
 
 5. Interaction with DNSSEC
 
-   The security extensions to DNS [RFC2065] mandate that domain names in
+   The security extensions to DNS [RFC2535] mandate that domain names in
    RDATA be signed only in expanded, lower case format. For RR types
    using local compression the specification is changed as follows:
 
@@ -275,12 +257,9 @@ INTERNET-DRAFT              DNS Compression                February 1999
 
    This way RR type transparency can be achieved, since domain names in
 
+Koch                     Expires December 1999                  [Page 5]
 
-
-Koch                      Expires August 1999                   [Page 5]
-
-INTERNET-DRAFT              DNS Compression                February 1999
-
+INTERNET-DRAFT              DNS Compression                    June 1999
 
    the RDATA section are treated as arbitrary data and can be cached and
    verified by resolvers not aware of the particular RR type. Old RR
@@ -291,6 +270,13 @@ INTERNET-DRAFT              DNS Compression                February 1999
    part.  Even if a particular query asks for a domain name which could
    be used to compress the RDATA part more efficiently, this MUST NOT be
    done. Otherwise signatures would be invalidated.
+
+   Currently slave servers store zones in text format and re-encode the
+   data into wire format, e.g. after a restart. This encoding must be
+   unique to ensure signature validity. To achieve this, local
+   compression MUST be applied optimally, i.e. every domain name must be
+   compressed as far as possible and each local compression pointer must
+   point to the earliest available target (including the owner).
 
 6. Interaction with Binary Labels
 
@@ -311,7 +297,7 @@ INTERNET-DRAFT              DNS Compression                February 1999
    introduction of binary labels a domain name can consist of up to 1904
    labels (all one-bit labels). This document restricts the possible
    compression targets in an owner name to the topmost 255 labels. This
-   limit was chosen to be consistent with [DNSSEC], section 4.1.
+   limit was chosen to be consistent with [RFC2535], section 4.1.3.
 
 7. Old RR types and deployment
 
@@ -322,7 +308,12 @@ INTERNET-DRAFT              DNS Compression                February 1999
    The following RR types with domain names in the RDATA section have
    been defined since [RFC1035] (Standards Track, Experimental and
    Informational RFCs, ignoring withdrawn types):  RP [RFC1183], AFSDB
-   [RFC1183], RT [RFC1183], SIG [RFC2065], PX [RFC2163], NXT [RFC2065],
+   [RFC1183], RT [RFC1183], SIG [RFC2535], PX [RFC2163], NXT [RFC2535],
+
+Koch                     Expires December 1999                  [Page 6]
+
+INTERNET-DRAFT              DNS Compression                    June 1999
+
    SRV [RFC2052], NAPTR [RFC2168], KX [RFC2230].  Some specifications do
    not mention DNS compression at all, others explicitly suggest it and
    only in part identify interoperability issues.  Only the KX and SRV
@@ -330,14 +321,6 @@ INTERNET-DRAFT              DNS Compression                February 1999
 
    The specification of RP, AFSDB, RT, PX, and NAPTR is hereby changed
    in that domain names in the RDATA section MUST NOT be compressed and
-
-
-
-Koch                      Expires August 1999                   [Page 6]
-
-INTERNET-DRAFT              DNS Compression                February 1999
-
-
    MUST NOT be compression targets.
 
    Local compression MUST NOT be used for owner names and it MUST NOT be
@@ -373,9 +356,12 @@ INTERNET-DRAFT              DNS Compression                February 1999
 
 10. References
 
-
    [RFC1034]     Mockapetris,P., "Domain Names - Concepts and Facilities",
                  RFC 1034, STD 13, November 1987
+
+Koch                     Expires December 1999                  [Page 7]
+
+INTERNET-DRAFT              DNS Compression                    June 1999
 
    [RFC1035]     Mockapetris,P., "Domain Names - Implementation and
                  Specification", RFC 1035, STD 13, November 1987
@@ -386,19 +372,8 @@ INTERNET-DRAFT              DNS Compression                February 1999
    [RFC1183]     Everhart,C., Mamakos,L., Ullmann,R., Mockapetris,P., "New
                  DNS RR Definitions", RFC 1183, October 1990
 
-
-
-
-Koch                      Expires August 1999                   [Page 7]
-
-INTERNET-DRAFT              DNS Compression                February 1999
-
-
    [RFC2052]     Gulbrandsen,A., Vixie,P. "A DNS RR for specifying the
                  location of services (DNS SRV)", RFC 2052, October 1996
-
-   [RFC2065]     Eastlake,D., Kaufman,C. "Domain Name System Security
-                 Extensions" RFC 2065, January 1997
 
    [RFC2119]     Bradner,S., "Key words for use in RFCs to Indicate
                  Requirement Levels", RFC 2119, BCP 14, March 1997
@@ -414,16 +389,17 @@ INTERNET-DRAFT              DNS Compression                February 1999
    [RFC2230]     Atkinson,R., "Key Exchange Delegation Record for the DNS",
                  RFC 2230, November 1997
 
+   [RFC2535]     Eastlake,D., "Domain Name System Security Extensions", RFC
+                 2535, March 1999
+
+   [RFC2606]     Eastlake,D., Panitz,A., "Reserved Top Level DNS Names",
+                 RFC 2606, BCP 32, June 1999
+
    [EDNS0]       Vixie,P., "Extension mechanisms for DNS (EDNS0)", draft-
                  ietf-dnsind-edns0-XX.txt, work in progress
 
    [BINLABELS]   Crawford,M., "Binary Labels in the Domain Name System",
                  draft-ietf-dnsind-binary-labels-XX.txt, work in progress
-
-   [TESTTLD]     Eastlake,D., Panitz,A., "Reserved Top Level DNS Names",
-                 <draft-ietf-dnsind-test-tlds-XX.txt>, work in progress
-
-
 
 11. Author's Address
 
@@ -433,17 +409,12 @@ INTERNET-DRAFT              DNS Compression                February 1999
    Postfach 10 01 31
    D-33501 Bielefeld
    Germany
+
+Koch                     Expires December 1999                  [Page 8]
+
+INTERNET-DRAFT              DNS Compression                    June 1999
+
    +49 521 106 2902
    <pk@TechFak.Uni-Bielefeld.DE>
 
-
-
-
-
-
-
-
-
-
-Koch                      Expires August 1999                   [Page 8]
-
+Koch                     Expires December 1999                  [Page 9]

@@ -1,17 +1,12 @@
-
-
-
    DNSIND Working Group                              Paul Vixie (Ed.) (ISC)
-   INTERNET-DRAFT                              Olafur Gudmundsson (TISLabs)
+   INTERNET-DRAFT                              Olafur Gudmundsson (NAILabs)
                                                   Donald Eastlake 3rd (IBM)
-                                                 Brian Wellington (TISLabs)
-   <draft-ietf-dnsind-tsig-08.txt>                            February 1999
+                                                 Brian Wellington (NAILabs)
+   <draft-ietf-dnsind-tsig-11.txt>                               July 1999
 
    Amends: RFC 1035
 
-
                Secret Key Transaction Signatures for DNS (TSIG)
-
 
    Status of this Memo
 
@@ -34,7 +29,6 @@
       The list of Internet-Draft Shadow Directories can be accessed at
       http://www.ietf.org/shadow.html
 
-
    Abstract
 
       This protocol allows for transaction level authentication using
@@ -46,44 +40,40 @@
       it is expected that a network administrator will statically configure
       name servers and clients using some out of band mechanism such as
       sneaker-net until a secure automated mechanism for key distribution
-
-
-
-   Expires August 1999                                             [Page 1]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
-
       is available.
+
+   Expires January 2000                                            [Page 1]
+
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    1 - Introduction
 
    1.1. The Domain Name System (DNS) [RFC1034, RFC1035] is a replicated
    hierarchical distributed database system that provides information
    fundamental to Internet operations, such as name <=> address translation
-   and mail handling information.  DNS has recently been extended [RFC2065]
+   and mail handling information.  DNS has recently been extended [RFC2535]
    to provide for data origin authentication, and public key distribution,
    all based on public key cryptography and public key based digital
    signatures.  To be practical, this form of security generally requires
    extensive local caching of keys and tracing of authentication through
    multiple keys and signatures to a pre-trusted locally configured key.
 
-   1.2. One difficulty with the [RFC2065] scheme is that common DNS
+   1.2. One difficulty with the [RFC2535] scheme is that common DNS
    implementations include simple ``stub'' resolvers which do not have
    caches.  Such resolvers typically rely on a caching DNS server on
    another host.  It is impractical for these stub resolvers to perform
-   general [RFC2065] authentication and they would naturally depend on
+   general [RFC2535] authentication and they would naturally depend on
    their caching DNS server to perform such services for them.  To do so
    securely requires secure communication of queries and responses.
-   [RFC2065] provides public key transaction signatures to support this but
+   [RFC2535] provides public key transaction signatures to support this but
    such signatures are very expensive computationally to generate.  In
    general, these require the same complex public key logic that is
    impractical for stubs.  This document specifies an efficient secret key
    based transaction signature that avoids these difficulties.
 
-   1.3. A second area where use of straight [RFC2065] public key based
+   1.3. A second area where use of straight [RFC2535] public key based
    mechanisms may be impractical is authenticating dynamic update [RFC2136]
-   requests.  [RFC2065] provides for request signatures but with [RFC2065]
+   requests.  [RFC2535] provides for request signatures but with [RFC2535]
    they, like transaction signatures, require computationally expensive
    public key cryptography and complex authentication logic.  Secure Domain
    Name System Dynamic Update ([RFC2137]) describes how different keys are
@@ -94,18 +84,13 @@
 
    1.4. A further use of this mechanishm is to protect zone transfers.  In
    this case the data covered would be the whole zone transfer including
-   any glue records sent.  The protocol described by [RFC2065] does not
+   any glue records sent.  The protocol described by [RFC2535] does not
    protect glue records and unsigned records unless SIG(0) (transaction
    signature) is used.
 
+   Expires January 2000                                            [Page 2]
 
-
-
-
-   Expires August 1999                                             [Page 2]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    1.5. The signature mechanism proposed in this document uses shared
    secret keys to establish trust relationship between two entities.  Such
@@ -132,8 +117,9 @@
       ERROR = 16 (BADSIG)
       ERROR = 17 (BADKEY)
       ERROR = 18 (BADTIME)
-      ERROR = 19 (BADID)
 
+   1.7. The key words "MUST", "REQUIRED", "SHOULD", "RECOMMENDED",  and
+   "MAY" in this document are to be interpreted as described in [RFC 2119].
 
    2 - TSIG RR Format
 
@@ -146,19 +132,9 @@
    computed to cover a particular DNS transaction and are not DNS RRs in
    the usual sense.
 
+   Expires January 2000                                            [Page 3]
 
-
-
-
-
-
-
-
-
-   Expires August 1999                                             [Page 3]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    2.2 TSIG Calculation
 
@@ -166,10 +142,11 @@
    value in storing or retransmitting them, thus the TSIG RR should be
    discarded once it has been used to authenticate DNS message.  The only
    Message Digest algorithm specified in this document is ``HMAC-MD5'' (see
-   [RFC1321], [RFC2104]).  Other algorithms can be specified at later date.
-   Names and definitions of new algorithms should be registered with IANA.
-   All multi-octet integers in TSIG Record are sent in network byte order
-   (see [RFC1035 2.3.2]).
+   [RFC1321], [RFC2104]).  The ``HMAC-MD5'' algorithm is mandatory to
+   implement for interoperability.  Other algorithms can be specified at a
+   later date.  Names and definitions of new algorithms should be
+   registered with IANA.  All multi-octet integers in TSIG Record are sent
+   in network byte order (see [RFC1035 2.3.2]).
 
    2.3. Record Format
 
@@ -199,24 +176,15 @@
 
       RdLen  (variable)
 
+   Expires January 2000                                            [Page 4]
 
-
-
-
-
-
-
-
-
-   Expires August 1999                                             [Page 4]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
       RDATA
 
              Field Name       Data Type      Notes
-             ------------------------------------------------------------------
+
+------------------------------------------------------------------
              Algorithm Name   domain-name    Name of the algorithm
                                              expressed as a domain name.
              Time Signed      u_int48_t      seconds since 1-Jan-70 UTC.
@@ -227,12 +195,11 @@
              Original ID      u_int16_t      original message ID
              Error            u_int16_t      expanded RCODE covering
                                              signature processing.
-             Other Len        u_int16_t      length, in octets, of Other Data.
+             Other Len        u_int16_t      length, in octets, of Other
+Data.
              Other Data       octet stream   undefined by this protocol.
 
-
    2.4. Example
-
 
       NAME   GW-DENVAX-0042.HOME.VIX.COM.
 
@@ -258,13 +225,9 @@
              Other Len        0
              Other Data       empty
 
+   Expires January 2000                                            [Page 5]
 
-
-
-   Expires August 1999                                             [Page 5]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    3 - Protocol Operation
 
@@ -272,29 +235,34 @@
 
    Once the outgoing message has been constructed, the keyed message digest
    operation can be performed.  The resulting message digest will then be
-   stored in a TSIG which is appended to the additional data section.
-   Appending a transaction signature to an DNS message is not allowed to
-   result in a truncated response; a TCP connection must be used to prevent
-   the truncation.  To force a TCP connection, the server is permitted to
-   return an answer with no data only TSIG attached and TC bit set and
-   RCODE 0 (NOERROR).  The client should at this point retry the request
-   using TCP (per [RFC1035 4.2.2]).
+   stored in a TSIG which is appended to the additional data section (the
+   ARCOUNT is incremented to reflect this).  Appending a transaction
+   signature to an DNS message is not allowed to result in a truncated
+   response; a TCP connection must be used to prevent the truncation.  To
+   force a TCP connection, the server is permitted to return an answer with
+   no data only TSIG attached and TC bit set and RCODE 0 (NOERROR).  The
+   client should at this point retry the request using TCP (per [RFC1035
+   4.2.2]).
 
    3.2. TSIG processing on incoming messages
 
-   Upon receipt of a message with a TSIG RR, the TSIG RR is copied to a
+   If an incoming message contains a TSIG record, it MUST be the last
+   record in the additional section.  Multiple TSIG records are not
+   allowed.  If a TSIG record is prsent in any other position, the packet
+   is dropped and a response with RCODE 1 (should be sent).  Upon receipt
+   of a message with a correctly placed TSIG RR, the TSIG RR is copied to a
    safe location, removed from the DNS Message, and decremented out of the
    DNS Message Headers ARCOUNT.  At this point the keyed message digest
    operation is performed.  If the algorithm name or key name is unknown to
    the recipient, or if the message digests do not match, the whole DNS
-   Message must be discarded.  A response with RCODE 9 (NOTAUTH) should be
-   sent back to the originator with TSIG ERROR 17 (BADKEY), if no key is
-   available to sign this message it must be sent unsigned (Signature Size
-   == 0 and empty signature).  A message to the system operations log
-   should to be generated, to warn the operations staff of a possible
-   security incident in progress.  Care should be taken to ensure that
-   logging of this type of event does not open the system to a denial of
-   service attack.
+   Message must be discarded.  If the message is a query, a response with
+   RCODE 9 (NOTAUTH) should be sent back to the originator with TSIG ERROR
+   17 (BADKEY) or TSIG error 16 (BADSIG).  If no key is available to sign
+   this message it must be sent unsigned (Signature Size == 0 and empty
+   signature).  A message to the system operations log should to be
+   generated, to warn the operations staff of a possible security incident
+   in progress.  Care should be taken to ensure that logging of this type
+   of event does not open the system to a denial of service attack.
 
    3.3. Time values used in TSIG calculations
 
@@ -306,18 +274,15 @@
    their ``on the wire'' format, in the following order: first Time Signed,
    then Fudge.  For example:
 
+   Expires January 2000                                            [Page 6]
+
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
+
    Field Name    Value       Wire Format         Meaning
-   ---------------------------------------------------------------------------
+
+---------------------------------------------------------------------------
    Time Signed   853804800   00 00 32 e4 07 00   Tue Jan 21 00:00:00 1997
    Fudge         300         01 2C               5 minutes
-
-
-
-
-   Expires August 1999                                             [Page 6]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
 
    3.4. TSIG Variables and Coverage
 
@@ -329,9 +294,8 @@
    A whole and complete DNS message in wire format, before the TSIG RR has
    been added to the additional data section and before the DNS Message
    Header's ARCOUNT field has been incremented to contain the TSIG RR.  If
-   the message is of a type that can be forwarded (i.e. update) and the
-   message ID differs from the original message ID, the original message ID
-   is substituted for the message ID.
+   the message ID differs from the original message ID, the original
+   message ID is substituted for the message ID.
 
    3.4.2. TSIG Variables
 
@@ -358,25 +322,20 @@
    case.  The use of label types other than 00 is not defined for this
    specification.
 
+   Expires January 2000                                            [Page 7]
+
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
+
    3.4.3. Request Signature
 
    Response signatures will include the request signature in their digest.
    The request's signature is digested in wire format, including the
    following fields:
 
-
-
-
-   Expires August 1999                                             [Page 7]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
-
    Field              Type           Description
    ---------------------------------------------------------
    Signature Length   u_int16_t      in network byte order
    Signature Data     octet stream   exactly as transmitted
-
 
    3.5. Padding
 
@@ -393,8 +352,7 @@
    Digest components for requests are:
 
       DNS Message (request)
-      TSIG Variables (response)
-
+      TSIG Variables (request)
 
    Note that some older name servers will not accept requests with a
    nonempty additional data section, but clients should only attempt signed
@@ -411,26 +369,17 @@
       DNS Message (response)
       TSIG Variables (response)
 
+   Expires January 2000                                            [Page 8]
 
-
-
-
-
-
-
-
-
-   Expires August 1999                                             [Page 8]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    4.3. TSIG on TSIG Error returns
 
    When a server detects an error in TSIG checks relating to the key or
-   signature, the server should send back an unsigned error message.  If an
-   error is detected that does not relate to the key or signature, the
-   server should send back a signed error message.  Digest components are:
+   signature, the server should send back an unsigned error message
+   (Signature Size == 0 and empty signature).  If an error is detected that
+   does not relate to the key or signature, the server should send back a
+   signed error message.  Digest components are:
 
       Request signature (if the request signature validated)
       DNS Message (response)
@@ -461,29 +410,20 @@
    TSIG check fails, the client MUST close the connection.  If the client
    does not get TSIG frequently enough (as specified above) it SHOULD
    assume the connection has been hijacked and it SHOULD close the
-   connection.  Client should treat this the same way as any other
-   interrupted transfer.
+   connection.  Client should treat this the same way as they would any
+   other interrupted transfer (although the exact behavior is not
+   specified).
 
+   Expires January 2000                                            [Page 9]
 
-
-
-
-
-
-
-
-
-   Expires August 1999                                             [Page 9]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    4.5. Server TSIG checks
 
    Upon receipt of a message, server will check if there is a TSIG RR. If
    one exists, the server is required to return a TSIG RR in the response.
    The server MUST perform the following checks in the following order,
-   check KEY, check ID, check TIME values, check Signature.
+   check KEY, check TIME values, check Signature.
 
    4.5.1. KEY check and error handling
 
@@ -492,15 +432,7 @@
    TSIG ERROR 17 (BADKEY).  This response should be unsigned as specified
    in [4.3].  The server should log the error.
 
-   4.5.2. ID check and error handling
-
-   If the message is has an opcode that may not be forwarded, the ID field
-   in the DNS header is expected to match the Original ID field in the TSIG
-   record.  If this is not the case, the server MUST generate an error
-   response with RCODE 9 (NOTAUTH) and TSIG ERROR 19 (BADID).  The server
-   MUST sign this error response with the same key the client used.
-
-   4.5.3. TIME check and error handling
+   4.5.2. TIME check and error handling
 
    If the server time is outside the time interval specified by the request
    (which is: Time Signed, plus/minus Fudge), the server MUST generate an
@@ -512,24 +444,12 @@
    verification detecting another BADTIME error.  The data signed is
    specified in [4.3].
 
-   4.5.4. Signature check and error handling
+   4.5.3. Signature check and error handling
 
    If TSIG fails to verify, the server MUST generate an error response as
    specified in [4.3] with RCODE of 9 (NOTAUTH) and TSIG ERROR 16 (BADSIG).
    This response should be unsigned as specified in [4.3].  The server
    should log the error.
-
-
-
-
-
-
-
-
-   Expires August 1999                                            [Page 10]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
 
    4.6. Client processing of answer
 
@@ -543,6 +463,11 @@
    response as it was TSIG error as specified in [4.3].  An message
    containing an unsigned TSIG record or a TSIG record which fails
    verification should not be considered an acceptable response; the client
+
+   Expires January 2000                                           [Page 10]
+
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
+
    should log an error and continue to wait for a signed response until the
    request times out.
 
@@ -555,14 +480,7 @@
    should never sign a response with a different key than signed the
    request.
 
-   4.6.2. ID error handling
-
-   If an RCODE on a response is 9 (NOTAUTH), and the response TSIG
-   validates, and the TSIG ERROR is 19 (BADID), this means that for some
-   reason, the server received a forwarded message of a type that should
-   not be forwarded.  This likely indicates a faulty server.
-
-   4.6.3. Time error handling
+   4.6.2. Time error handling
 
    If the response RCODE is 9 (NOTAUTH), and TSIG ERROR is 18 (BADTIME) or
    the TSIG times in request and answer do not overlap, then this is a TIME
@@ -571,20 +489,7 @@
    resolvers MUST NOT adjust any clocks in the client based on BADTIME
    errors, but the server's time in other data field should be logged.
 
-
-
-
-
-
-
-
-
-   Expires August 1999                                            [Page 11]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
-
-   4.6.4. Signature error handling
+   4.6.3. Signature error handling
 
    If the response RCODE is 9 (NOTAUTH) and TSIG ERROR is 16 (BADSIG), this
    is a signature error, and client MAY retry the request with a new
@@ -602,8 +507,12 @@
    TSIG.  If the TSIG passes all checks, the forwarding server has the
    obligation of including a TSIG of his own, to the destination or the
    next forwarder.  If no transaction security is available to the
-   destination and response has the AD flag (see [RFC2065]), the forwarder
+   destination and response has the AD flag (see [RFC2535]), the forwarder
    MUST unset the AD flag before adding the TSIG to the answer.
+
+   Expires January 2000                                           [Page 11]
+
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    5 - Shared Secrets
 
@@ -628,19 +537,10 @@
    be at least as long as the keyed message digest , i.e., 16 bytes for
    HMAC-MD5 or 20 bytes for HMAC-SHA1.
 
-
-
-
-
-   Expires August 1999                                            [Page 12]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
-
    6 - Security Considerations
 
    6.1. The approach specified here is computationally much less expensive
-   than the signatures specified in [RFC2065].  As long as the shared
+   than the signatures specified in [RFC2535].  As long as the shared
    secret key is not compromised, strong authentication is provided for the
    last hop from a local name server to the user resolver.
 
@@ -656,8 +556,12 @@
    source data can come from a compromised zone master or can be corrupted
    during transit from an authentic zone master to some ``caching
    forwarder.''  However, if the server is faithfully performing the full
-   [RFC2065] security checks, then only security checked data will be
+   [RFC2535] security checks, then only security checked data will be
    available to the client.
+
+   Expires January 2000                                           [Page 12]
+
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    7 - IANA Considerations
 
@@ -667,28 +571,6 @@
    Adding new error codes requires an IETF consensus.
 
    IANA must maintain control over the SIG-ALG.REG.INT domain.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   Expires August 1999                                            [Page 13]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
 
    7 - References
 
@@ -705,12 +587,12 @@
               Recommendations for Security,'' RFC 1750, DEC, CyberCash &
               MIT, December 1995.
 
-   [RFC2065]  D. Eastlake , C Kaufman, ``Domain Name System Security
-              Extensions,'' RFC 2065, CyberCash & Iris, January 1997.
-
    [RFC2104]  H. Krawczyk, M. Bellare, R. Canetti, ``HMAC-MD5: Keyed-MD5
               for Message Authentication,'' RFC 2104 , IBM, UCSD & IBM,
               February 1997.
+
+   [RFC2119]  S. Bradner, ``Key words for use in RFCs to Indicate
+              Requirement Levels,'' RFC 2119, Harvard, March 1997
 
    [RFC2136]  P. Vixie (Ed.), S. Thomson, Y. Rekhter, J. Bound ``Dynamic
               Updates in the Domain Name System,'' RFC 2136, ISC & Bellcore
@@ -719,77 +601,27 @@
    [RFC2137]  D. Eastlake 3rd ``Secure Domain Name System Dynamic Update,''
               CyberCash, April 1997.
 
+   [RFC2535]  D. Eastlake, ``Domain Name System Security Extensions,'' RFC
+              2535, IBM, March 1999.
 
+   Expires January 2000                                           [Page 13]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   Expires August 1999                                            [Page 14]
-
-   INTERNET-DRAFT                  DNS TSIG                   February 1999
-
+   INTERNET-DRAFT                  DNS TSIG                       July 1999
 
    9 - Authors' Addresses
 
-
       Paul Vixie                          Olafur Gudmundsson
-         Internet Software Consortium        TIS Labs at Network Associates
+         Internet Software Consortium        NAILabs
          950 Charter Street                  3060 Washington Road, Route 97
          Redwood City, CA 94063              Glenwood, MD 21738
          +1 650 779 7001                     +1 443 259 2389
-         <paul@vix.com>                      <ogud@tislabs.com>
+         <vixie@isc.org>                     <ogud@tislabs.com>
 
       Donald E. Eastlake 3rd              Brian Wellington
-         IBM                                TIS Labs at Network Associates
+         IBM                                NAILabs
          65 Shindegan Hill Road, RR #1      3060 Washington Road, Route 97
          Carmel, NY 10512 USA               Glenwood, MD 21738
-         +1 914 783 7913                    +1 443 259 2369
+         +1 914 784 7913                    +1 443 259 2369
          <dee3@us.ibm.com>                  <bwelling@tislabs.com>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   Expires August 1999                                            [Page 15]
-
+   Expires January 2000                                           [Page 14]

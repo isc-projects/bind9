@@ -1,34 +1,29 @@
-
-
-
-
-
    DNSIND Working Group                                         Paul Vixie
    INTERNET-DRAFT                                                      ISC
-   <draft-dnsind-edns1-02.txt>                               January, 1999
-
+   <draft-ietf-dnsind-edns1-03.txt>                                  June, 1999
 
                           Extensions to DNS (EDNS1)
 
-
    Status of this Memo
 
-      This document is an Internet-Draft.  Internet-Drafts are working
-      documents of the Internet Engineering Task Force (IETF), its areas,
-      and its working groups.  Note that other groups may also distribute
-      working documents as Internet-Drafts.
+      This document is an Internet-Draft and is in full conformance with
+      all provisions of Section 10 of RFC2026.
+
+      Internet-Drafts are working documents of the Internet Engineering
+      Task Force (IETF), its areas, and its working groups.  Note that
+      other groups may also distribute working documents as Internet-
+      Drafts.
 
       Internet-Drafts are draft documents valid for a maximum of six months
       and may be updated, replaced, or obsoleted by other documents at any
       time.  It is inappropriate to use Internet-Drafts as reference
-      material or to cite them other than as ``work in progress.''
+      material or to cite them other than as "work in progress."
 
-      To view the entire list of current Internet-Drafts, please check the
-      "1id-abstracts.txt" listing contained in the Internet-Drafts Shadow
-      Directories on ftp.is.co.za (Africa), ftp.nordu.net (Northern
-      Europe), ftp.nis.garr.it (Southern Europe), munnari.oz.au (Pacific
-      Rim), ftp.ietf.org (US East Coast), or ftp.isi.edu (US West Coast).
+      The list of current Internet-Drafts can be accessed at
+      http://www.ietf.org/ietf/1id-abstracts.txt
 
+      The list of Internet-Draft Shadow Directories can be accessed at
+      http://www.ietf.org/shadow.html.
 
    Abstract
 
@@ -47,14 +42,9 @@
    several new extended label types and message options, and the ability to
    ask multiple questions in a single request.
 
+   Expires December 1999                                           [Page 1]
 
-
-
-
-   Expires July 1999                                               [Page 1]
-
-   INTERNET-DRAFT                    EDNS1                     January 1999
-
+   INTERNET-DRAFT                    EDNS1                        June 1999
 
    2 - Affected Protocol Elements
 
@@ -95,19 +85,9 @@
    3.4. The ``0 0 0 0 1 0'' extended label type will indicate a ``long
    local compression pointer'' as described in [KOCH98].
 
+   Expires December 1999                                           [Page 2]
 
-
-
-
-
-
-
-
-
-   Expires July 1999                                               [Page 2]
-
-   INTERNET-DRAFT                    EDNS1                     January 1999
-
+   INTERNET-DRAFT                    EDNS1                        June 1999
 
    4 - OPT pseudo-RR Flags and Options 4.1. The extended RCODE and flags
    are structured as follows:
@@ -118,7 +98,6 @@
          +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
       2: |MD |FM |RRD|LM |                       Z                       |
          +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-
 
    EXTENDED-RCODE  Forms upper 8 bits of extended 12-bit RCODE.  (As
                    defined by [EDNS0].)
@@ -143,24 +122,26 @@
                    segments of a segmented message.  It is an error for TC
                    to be set on any message of a segmented message.  Any
                    given RR must fit completely within a message, and all
-                   messages will both begin and end on RR boundaries.
+                   messages will both begin and end on RR boundaries.  Each
+                   section in a multipart message must appear in normal
+                   message order, and each section must be complete before
+                   later sections are added.  All segments of a message
+                   must be transmitted contiguously, without interleaving
+                   of other messages.
 
    FM              ``First match'' flag.  Notable only when multiple
                    questions are present.  If set in a request, questions
                    will be processed in wire order and the first question
                    whose answer would have NOERROR AND ANCOUNT>0 is treated
+
+   Expires December 1999                                           [Page 3]
+
+   INTERNET-DRAFT                    EDNS1                        June 1999
+
                    as if it were the only question in the query message.
                    Otherwise, questions can be processed in any order and
                    all possible answer records will be included in the
                    response.  Response FM should be ignored by requestors.
-
-
-
-
-   Expires July 1999                                               [Page 3]
-
-   INTERNET-DRAFT                    EDNS1                     January 1999
-
 
    RRD             ``Recursion really desired'' flag.  Notable only when a
                    request is processed by an intermediate name server
@@ -200,20 +181,15 @@
    Z               Set to zero by senders and ignored by receivers, unless
                    modified in a subsequent specification.
 
+   Expires December 1999                                           [Page 4]
+
+   INTERNET-DRAFT                    EDNS1                        June 1999
+
    5 - Multiple Questions for QUERY
 
    5.1. If QDCOUNT>1, multiple questions are present.  All questions must
    be for the same QNAME and QCLASS; only the QTYPE is allowed to vary.  It
    is an error for QDCOUNT>1 and any QTYPE=ANY or QCLASS=ANY.
-
-
-
-
-
-   Expires July 1999                                               [Page 4]
-
-   INTERNET-DRAFT                    EDNS1                     January 1999
-
 
    5.2. RCODE and AA apply to all RRs in the answer section having the
    QNAME that is shared by all questions in the question section.  AA
@@ -236,8 +212,8 @@
    6 - Acknowledgements
 
    Paul Mockapetris, Mark Andrews, Robert Elz, Don Lewis, Bob Halley,
-   Donald Eastlake, Rob Austein, Matt Crawford, Randy Bush, and Michael
-   Patton were each instrumental in creating this specification.
+   Donald Eastlake, Rob Austein, Matt Crawford, Randy Bush, Michael Patton,
+   and Michael Graff were each instrumental in creating this specification.
 
    7 - References
 
@@ -254,19 +230,12 @@
 
    [KOCH98]   P. Koch, ``A New Scheme for the Compression of Domain
               Names,'' Draft draft-ietf-dnsind-local-compression-XX.txt.
+
+   Expires December 1999                                           [Page 5]
+
+   INTERNET-DRAFT                    EDNS1                        June 1999
+
               IETF DNSIND, March 1998.
-
-
-
-
-
-
-
-
-   Expires July 1999                                               [Page 5]
-
-   INTERNET-DRAFT                    EDNS1                     January 1999
-
 
    8 - Author's Address
 
@@ -275,46 +244,6 @@
                     950 Charter Street
                     Redwood City, CA 94063
                     +1 650 779 7001
-                    <paul@vix.com>
+                    <vixie@isc.org>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   Expires July 1999                                               [Page 6]
-
+   Expires December 1999                                           [Page 6]

@@ -1,12 +1,12 @@
+DNS Working Group                                Donald E. Eastlake, 3rd
+INTERNET-DRAFT                                                       IBM
+Expires December 1999                                          June 1999
 
-INTERNET-DRAFT                                        Local Domain Names
-                                                           November 1998
-                                                        Expires May 1999
+draft-ietf-dnsind-local-names-07.txt
 
 
-
-                            Local DNS Names
-                            ----- --- -----
+                  Local Domain Name System (DNS) Names
+                  ----- ------ ---- ------ ----- -----
 
                          Donald E. Eastlake 3rd
 
@@ -14,12 +14,12 @@ INTERNET-DRAFT                                        Local Domain Names
 
 Status of This Document
 
-   This draft, file name draft-ietf-dnsind-local-names-06.txt, is
-   intended to be become an Informational RFC.  Distribution of this
-   document is unlimited. Comments should be sent to the DNS mailing
-   list <namedroppers@internic.net> or to the author.
+   This draft, file name draft-ietf-dnsind-local-names-07.txt.
+   Distribution of this document is unlimited. Comments should be sent
+   to the DNS mailing list <namedroppers@internic.net> or to the author.
 
-   This document is an Internet-Draft.  Internet-Drafts are working
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.  Internet-Drafts are working
    documents of the Internet Engineering Task Force (IETF), its areas,
    and its working groups.  Note that other groups may also distribute
    working documents as Internet-Drafts.
@@ -29,6 +29,12 @@ Status of This Document
    other documents at any time.  It is not appropriate to use Internet-
    Drafts as reference material or to cite them other than as a
    ``working draft'' or ``work in progress.''
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
 
    To view the entire list of current Internet-Drafts, please check the
    "1id-abstracts.txt" listing contained in the Internet-Drafts Shadow
@@ -40,24 +46,31 @@ Status of This Document
 
 Abstract
 
-   A set of second level domain names are defined under a new top level
-   domain name such that local private DNS zones can be maintained
-   similar to the private IP addresses reserved in [RFC 1918].  These
-   zone locally appear to be part of the global DNS name tree.
-   Additional second level domain names are assigned under this TLD for
-   loopback addresses and IPv6 link and site local addresses.
+   It is increasingly common for their to be "local" domain names which
+   are not intended to be seen from the global Internet.  In some cases
+   this if  for policy reasons, in other cases because they map to IP
+   addresses or other data which is only locally meaningful [RFC 1918,
+   2373].
+
+   A new top level domain (TLD) name (.local) is reserved and a name
+   structure suggested below this TLD such that local private DNS zones
+   can safely be created without fear of conflict if these names should
+   leak out of a private enclave.  It addition, a method of providing
+   DNS service for these names is suggested such that they are
+   maintained privately, similar to the reserved private IP addresses,
 
 
-
-
-
-
-
-
-Donald E. Eastlake 3rd                                          [Page 1]
+D. Eastlake 3rd                                                 [Page 1]
 
 
 INTERNET-DRAFT                                           Local DNS Names
+
+
+   yet locally appear to be part of the global DNS name tree and are
+   reachable by a local resolver with no special knowledge.  Additional
+   second level domain names are assigned under this TLD for IPv6 link
+   and site local addresses and loopback functions.
+
 
 
 Acknowledgments
@@ -71,33 +84,68 @@ Acknowledgments
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D. Eastlake 3rd                                                 [Page 2]
+
+
+INTERNET-DRAFT                                           Local DNS Names
+
+
 Table of Contents
 
       Status of This Document....................................1
       Abstract...................................................1
-
       Acknowledgments............................................2
-      Table of Contents..........................................2
 
-      1. Introduction............................................3
-      2. Local Names Via The .local Top Level Domain.............3
-      2.1 Local DNS Server Specifics.............................6
-      2.2 Local in-addr.arpa Zones...............................7
-      2.3 Name Conflicts.........................................7
-      2.4 Nested Enclaves........................................8
-      3. Other Names in .local...................................8
-      4. Security Considerations.................................8
-      4.1 Strength of Privacy Offered............................8
-      4.2 Interaction with DNSSEC................................9
-      4.3 Network Abuse..........................................9
+      Table of Contents..........................................3
 
-      References................................................10
-      Author's Address..........................................10
-      Expiration and File Name..................................10
+      1. Introduction............................................4
+      2. Local Names Via The .local Top Level Domain.............5
+      2.1 Local DNS Server Specifics.............................7
+      2.2 Local in-addr.arpa Zones...............................8
+      2.3 Name Conflicts.........................................8
+      2.4 Nested Enclaves........................................9
+      3. Other Names in .local...................................9
+      4. Security Considerations.................................9
+      4.1 Strength of Privacy Offered............................9
+      4.2 Interaction with DNSSEC...............................10
 
-      Appendix A: the .local zone...............................11
-
-      Appendix  B: the .in-addr.arpa zone.......................13
+      References................................................11
+      Author's Address..........................................11
+      Expiration and File Name..................................11
 
 
 
@@ -112,7 +160,23 @@ Table of Contents
 
 
 
-Donald E. Eastlake 3rd                                          [Page 2]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D. Eastlake 3rd                                                 [Page 3]
 
 
 INTERNET-DRAFT                                           Local DNS Names
@@ -121,8 +185,8 @@ INTERNET-DRAFT                                           Local DNS Names
 1. Introduction
 
    The global Internet Domain Name System (DNS) is documented in [RFC
-   1034, 1035, 1591] and numerous additional Requests for Comment. It
-   defines a tree of names starting with root, ".", immediately below
+   1034, 1035, 1591, 2606] and numerous additional Requests for Comment.
+   It defines a tree of names starting with root, ".", immediately below
    which are top level domain names such as .com and .us.  Below top
    level domain names there are normally additional levels of names.
 
@@ -133,11 +197,13 @@ INTERNET-DRAFT                                           Local DNS Names
    appeared. In many cases, organizations have hosts or resources that
    they specifically want to reference with DNS names but which they
    also want to be walled off from global access and even from global
-   knowledge of the DNS name.
+   knowledge of the DNS name for the resource.
 
    In the realm of IP addresses, this has been accomplished by reserving
-   three blocks of addresses as documented in [RFC 1918].  Familiarity
-   with the contents of that RFC is assumed.
+   three blocks of IPv4 addresses as documented in [RFC 1918] and by
+   allocating parts of the IPv6 address space for link and site local
+   addresses [RFC 2373].  Familiarity with the contents of these RFCs is
+   assumed.  Addresses in these blocks are not to be globally routed.
 
    In the DNS area, local private names have generally been achieved in
    the past by "splitting" DNS at the enclave boundary, giving different
@@ -145,7 +211,7 @@ INTERNET-DRAFT                                           Local DNS Names
    of the enclave, using different servers for inside and outside, etc.
    as mentioned in [RFC 1918].  Such relatively complex configuration
    diddling is at variance with the simple global tree structure of the
-   initial DNS.
+   initial DNS concept.
 
    This document specifies an alternative approach to achieving the
    effect of local names that is more in tune with the concept of a
@@ -154,12 +220,24 @@ INTERNET-DRAFT                                           Local DNS Names
    continue to work.
 
    [RFC 1918] requires that private IP addresses not be indirectly
-   exposed to the general Internet via DNS records or otherwise.  This
+   exposed to the general Internet via DNS records or otherwise.  By
+   implication, the same would be true of IPv6 local addresses.  This
    RFC provides the recommended way to accomplish such private IP
-   address hiding and carves out an exception thereto for the addresses
-   of the servers for some zones which are children of the .local top
-   level domain name.
+   address hiding and carves out a limited exception thereto for the
+   addresses of the servers for some zones which are children of the
+   .local top level domain name.
 
+
+
+
+
+
+
+
+D. Eastlake 3rd                                                 [Page 4]
+
+
+INTERNET-DRAFT                                           Local DNS Names
 
 
 2. Local Names Via The .local Top Level Domain
@@ -168,14 +246,6 @@ INTERNET-DRAFT                                           Local DNS Names
    second level domains under .local which are served by DNS name
    servers that have private IP addresses.  These server's addresses
    would only be routed within the domain to which the names are local.
-
-
-Donald E. Eastlake 3rd                                          [Page 3]
-
-
-INTERNET-DRAFT                                           Local DNS Names
-
-
    Thus the servers, and the names and resource records inside them,
    would not be directly accessible outside the enclave, if the
    guidelines in this document are followed.
@@ -220,20 +290,20 @@ INTERNET-DRAFT                                           Local DNS Names
                        |  example
                        +---------------------O pubhost6
 
+
+
+D. Eastlake 3rd                                                 [Page 5]
+
+
+INTERNET-DRAFT                                           Local DNS Names
+
+
    Starting at the bottom, pubhost6 is intended to illustrate an
    ordinary host connected to the Internet with domain name
    pubhost6.example.com. Though not indicated in the above diagram,
    every DNS zone is in fact served by at least two hosts (and some but
    substantially more).  The addresses of the servers for the root (.),
    .com, and example.com zones would all be in the public portion of the
-
-
-Donald E. Eastlake 3rd                                          [Page 4]
-
-
-INTERNET-DRAFT                                           Local DNS Names
-
-
    IP address space, i.e., in the space of all unicast IP addresses not
    reserved for private use.
 
@@ -278,18 +348,19 @@ INTERNET-DRAFT                                           Local DNS Names
    that privhost3 and pubhost4 are actually the same physical machine.
    The could be accomplished equally well by storing a single public
    address for that host under both the public and private names or by
+
+
+D. Eastlake 3rd                                                 [Page 6]
+
+
+INTERNET-DRAFT                                           Local DNS Names
+
+
    having the host answer to both a public IP address stored under the
    public name and a private IP address stored under the private name.
    In the later case you could even also store the public address along
    with the private address under the private name.
 
-
-
-
-Donald E. Eastlake 3rd                                          [Page 5]
-
-
-INTERNET-DRAFT                                           Local DNS Names
 
 
 2.1 Local DNS Server Specifics
@@ -336,15 +407,8 @@ INTERNET-DRAFT                                           Local DNS Names
    enclave to private IP addresses which have a different meaning for
    that resolver.
 
-   The Appendix A to this document gives the recommended initial content
-   of the .local zone.
 
-
-
-
-
-
-Donald E. Eastlake 3rd                                          [Page 6]
+D. Eastlake 3rd                                                 [Page 7]
 
 
 INTERNET-DRAFT                                           Local DNS Names
@@ -353,16 +417,14 @@ INTERNET-DRAFT                                           Local DNS Names
 2.2 Local in-addr.arpa Zones
 
    Inverse lookup of local names corresponding to private IP addresses
-   needs to be provided via the in-addr.arpa zone. Appendix B contains
-   recommended additions to the in-addr.arpa zone (or subzones thereof)
-   to accomplish this.  Because of the fixed naming within this zone,
-   different names with different numbers of servers or different
-   addresses can not be provided.  As with the forward .local entries,
-   the actual NS RRs in the servers serving the private portions of the
-   inverse in-addr.arpa will dominate.  When one of these is queried by
-   a resolver, it can provide information on additional servers for that
-   particular subzone in the private IP address portion of the in-
-   addr.arpa tree.
+   needs to be provided via the in-addr.arpa and ip6.int zones.  Because
+   of the fixed naming within this zone, different names with different
+   numbers of servers or different addresses can not be provided.  As
+   with the forward .local entries, the actual NS RRs in the servers
+   serving the private portions of the inverse in-addr.arpa will
+   dominate.  When one of these is queried by a resolver, it can provide
+   information on additional servers for that particular subzone in the
+   private IP address portion of the in-addr.arpa tree.
 
 
 
@@ -381,9 +443,9 @@ INTERNET-DRAFT                                           Local DNS Names
    domain name of the enclave SHOULD always be prefixed to .local.
 
    For example, a company might have
-        host1.company.co.xy
+        host1.company.example
    as a globally accessible host and
-        host2.company.co.xy.b3.local
+        host2.company.example.b3.local
    as a host for internal use only.  The global name could normally be
    resolvable anywhere on the Internet while the local name could not be
    resolved anywhere except within the company enclave.
@@ -394,22 +456,23 @@ INTERNET-DRAFT                                           Local DNS Names
    names, such as host3.  For DNS look up purposes, such a name must be
    expanded into a fully qualified domain name and a "search list" of
    possible suffix qualifications is tried.  If, for example, both
-   host4.school.ac.xy and host4.school.ac.xy.b3.local existed, then a
-   local reference to "host4" would be ambiguous and could lead to
-   either machine depending on the order of qualifications tried.  This
-   order could even be different in different pieces of local software
-   or on different local hosts, resulting in substantial confusion. For
-   this reason, it is strongly recommended that disjoint name sets be
+   host4.school.ac.example and host4.school.ac.example.b3.local existed,
+   then a local reference to "host4" would be ambiguous and could lead
+   to either machine depending on the order of qualifications tried.
+   This order could even be different in different pieces of local
+   software or on different local hosts, resulting in substantial
+   confusion. For this reason, it is strongly recommended that disjoint
+   name sets be used for global and local entity unqualified domain
+   names and that fully qualified domain names be used wherever
 
 
-Donald E. Eastlake 3rd                                          [Page 7]
+D. Eastlake 3rd                                                 [Page 8]
 
 
 INTERNET-DRAFT                                           Local DNS Names
 
 
-   used for global and local entity unqualified domain names and that
-   fully qualified domain names be used wherever practical.
+   practical.
 
 
 
@@ -430,8 +493,11 @@ INTERNET-DRAFT                                           Local DNS Names
    Three additional second level domain names are assigned in the .local
    top level domain for other types of local names.
 
-   In particular, link.local and site.local are reserved for use in
-   qualifying IPv6 link local names and site local names.
+   In particular,
+     link.local and
+     site.local
+   are reserved for use in qualifying IPv6 link local names and site
+   local names.
 
    In addition, loopback.local is assigned and given the loopback
    address.
@@ -441,34 +507,36 @@ INTERNET-DRAFT                                           Local DNS Names
 4. Security Considerations
 
    This section discusses the strength of the privacy offered by using
-   subzones of .local, interactions with DNS security, and possible
-   interaction with network abuse.
+   subzones of .local and interactions with DNS security.
 
 
 
 4.1 Strength of Privacy Offered
 
-   It should be noted that the privacy of the DNS information protected
-   by storing it in servers with private IP addresses is not strong.  It
-   is completely dependent on the integrity of enclave perimeter routing
-   to make these servers inaccessible.  And it may occasionally leak out
-   in any case due to inclusion in email address fields, web pages, and
-   the like, although such leakage should be no worse than current split
-   DNS implementations of DNS data hiding.
+   Local names, as proposed herein, are not intended to be a strong
+   security mechanism.
 
-   Software should not depend on local names being accessible only
-   within a particular enclave as someone could deliberately create the
+   The privacy of the DNS information protected by storing it in servers
+   with private IP addresses is weak.  It is completely dependent on the
+   integrity of enclave perimeter routing to make these servers
+   inaccessible.  And it may occasionally leak out in any case due to
+   inclusion in email address fields, web pages, and the like, although
+   such leakage should be no worse than current split DNS
 
 
-Donald E. Eastlake 3rd                                          [Page 8]
+D. Eastlake 3rd                                                 [Page 9]
 
 
 INTERNET-DRAFT                                           Local DNS Names
 
 
-   same names within a different enclave even if the names incorporate
-   the name of the original enclave in an attempt to avoid such
-   conflicts.
+   implementations of DNS data hiding.
+
+   Software should not depend on local names being accessible only
+   within a particular enclave as someone could deliberately create the
+   same names within a different enclave.  This is true even if, as
+   recommended herein, the names incorporate the domain name of the
+   original enclave in an attempt to avoid such conflicts.
 
 
 
@@ -476,34 +544,14 @@ INTERNET-DRAFT                                           Local DNS Names
 
    Although an enclave may derive some amount of security by virtue of
    its isolation, it will normally be desirable to implement DNS
-   security [draft-ietf-dnssec-secext2-*.txt] within the enclave.  The
-   enclave owner should generate their own keys and sign their subzone
-   of .local.  However, a signed copy of their public key can not be
-   included in the .local zone as it is different for every enclave.
-   Thus, to authenticate the .local subzone contents, it will be
-   necessary to sign the KEY RR at the apex of the local subzone of
-   .local with the .local zone key or another key that is trusted by
-   local resolvers or staticly configure the public key for the .local
-   subzone in local resolvers.
-
-
-
-4.3 Network Abuse
-
-   Use of the defined private server second level domain names under
-   return addresses, or the like, could cause DNS, SMTP, and many other
-   types of references to IP addresses in the [RFC 1918] blocks.  This
-   can occur from within a firewall due to web browsing or email
-   processing of web pages or email from virtually anywhere in the
-   Internet.  However, this is not a new situation as anyone who
-   controls any zone in the DNS, say zone.foo.example, can, although
-   this violates [RFC 1918], create entries therein with arbitrary IP
-   addresses (including multicast and undefined formats).  Then, by
-   using these name entries in email, web links, etc., attempt to cause
-   a variety of spurious protocol connections to those addresses.
-
-   Use of .local at least provides some warning that a name may be not
-   be correctly resolvable.
+   security [RFC 2535] within the enclave.  The enclave owner should
+   generate their own keys and sign their subzone of .local.  However, a
+   signed copy of their public key can not be included in the .local
+   zone as it is different for every enclave.  Thus, to authenticate the
+   .local subzone contents, it will be necessary to sign the KEY RR at
+   the apex of the local subzone of .local with the .local zone key or
+   another key that is trusted by local resolvers or staticly configure
+   the public key for the .local subzone in local resolvers.
 
 
 
@@ -518,7 +566,23 @@ INTERNET-DRAFT                                           Local DNS Names
 
 
 
-Donald E. Eastlake 3rd                                          [Page 9]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D. Eastlake 3rd                                                [Page 10]
 
 
 INTERNET-DRAFT                                           Local DNS Names
@@ -544,8 +608,14 @@ References
    RFC 1958 - B. Carpenter, "Architectural Principles of the Internet",
    06/06/1996.
 
-   draft-ietf-dnssec-secext2-*.txt - D. Eastlake "Domain Name System
-   Security Extensions".
+   RFC 2373 - R. Hinden, S. Deering, "IP Version 6 Addressing
+   Architecture", July 1998
+
+   RFC 2535 - D. Eastlake, "Domain Name System Security Extensions",
+   March 1999.
+
+   RFC 2606 - D. Eastlake, A. Panitz, "Reserved Top Level DNS Names",
+   June 1999.
 
 
 
@@ -553,202 +623,40 @@ Author's Address
 
    Donald E. Eastlake 3rd
    IBM
-   318 Acton Street
-   Carlisle, MA 01741 USA
+   65 Shindegan Hill Road, RR #1
+   Carmel, NY 10512 USA
 
-   Telephone:   +1 978-287-4877
-                +1 914-784-7913
-   FAX:         +1 978-371-7148
+   Telephone:   +1 914-276-2668 (h)
+                +1 914-784-7913 (w)
+   FAX:         +1 914-784-3833 (w)
    EMail:       dee3@us.ibm.com
 
 
 
 Expiration and File Name
 
-   This draft expires May 1999.
+   This draft expires December 1999.
 
-   Its file name is draft-ietf-dnsind-local-names-06.txt.
-
-
+   Its file name is draft-ietf-dnsind-local-names-07.txt.
 
 
-
-
-
-
-Donald E. Eastlake 3rd                                         [Page 10]
+D. Eastlake 3rd                                                [Page 11]
 
 
-INTERNET-DRAFT                                           Local DNS Names
 
 
-Appendix A: the .local zone
 
-   =====   The .local zone suggested initial contents  ====
 
-   local.        IN  SOA  ...  ...  (
-                     1234           ; serial
-                     90000          ; refresh, 25 hours
-                     36000          ; retry, 10 hours
-                     3456000        ; expiry, 40 days
-                     43200 )        ; minimum of 12 hours
-                 NS  ...            ; actual servers for .local zone
-                 NS  ...
-                 ...
 
-   loopback      A      127.0.0.1
-                 AAAA   0::1
-                 MX     100 loopback.local.
 
-   a2.local.     NS     ns1.a2.local.
-                 NS     ns2.a2.local.
-   ns1.a2.local. A      10.1.1.2
-   ns2.a2.local. A      10.1.2.2
 
-   a3.local.     NS     ns1.a3.local.
-                 NS     ns2.a3.local.
-                 NS     ns3.a3.local.
-   ns1.a3.local. A      10.1.1.2
-   ns2.a3.local. A      10.1.2.2
-   ns3.a3.local. A      10.2.1.2
 
-   a4.local.     NS     ns1.a4.local.
-                 NS     ns2.a4.local.
-                 NS     ns3.a4.local.
-                 NS     ns4.a4.local.
-   ns1.a4.local. A      10.1.1.2
-   ns2.a4.local. A      10.1.2.2
-   ns3.a4.local. A      10.2.1.2
-   ns4.a4.local. A      10.128.1.2
 
-   b2.local.     NS     ns1.b2.local.
-                 NS     ns2.b2.local.
-   ns1.b2.local. A      172.16.1.2
-   ns2.b2.local. A      172.16.2.2
 
-   b3.local.     NS     ns1.b3.local.
-                 NS     ns2.b3.local.
-                 NS     ns3.b3.local.
-   ns1.b3.local. A      172.16.1.2
-   ns2.b3.local. A      172.16.2.2
-   ns3.b3.local. A      172.16.128.2
 
 
-Donald E. Eastlake 3rd                                         [Page 11]
-
 
-INTERNET-DRAFT                                           Local DNS Names
 
 
-   c2.local.     NS     ns1.c2.local.
-                 NS     ns2.c2.local.
-   ns1.c2.local. A      192.168.1.2
-   ns2.c2.local. A      192.168.2.2
-
-   c3.local.     NS     ns1.c3.local.
-                 NS     ns2.c3.local.
-                 NS     ns3.c3.local.
-   ns1.c3.local. A      192.168.1.2
-   ns2.c3.local. A      192.168.2.2
-   ns3.c3.local. A      192.168.128.2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Donald E. Eastlake 3rd                                         [Page 12]
-
-
-INTERNET-DRAFT                                           Local DNS Names
-
-
-Appendix  B: the .in-addr.arpa zone
-
-   =====  Auggested additional entries in the in-addr.arpa zone ====
-
-   10.in-addr.arpa.  NS  ns1.a2.local.
-                     NS  ns2.a2.local.
-   ns1.a2.local.     A   10.1.1.2
-   ns2.a2.local.     A   10.1.2.2
-
-   16.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   ns1.b2.local.         A   172.16.1.2    ; one set of glue records
-   ns2.b2.local.         A   172.16.2.2    ;   for all the b2 cases
-   17.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   18.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   19.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   20.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   21.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   22.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   23.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   24.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   25.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   26.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   27.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   28.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   29.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   30.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-   31.172.in-addr.arpa.  NS  ns1.b2.local.
-                         NS  ns2.b2.local.
-
-   168.192.in-addr.arpa.  NS  ns1.c2.local.
-                          NS  ns2.c2.local.
-   ns1.c2.local.          A   192.168.1.2
-   ns2.c2.local.          A   102.168.2.2
-
-
-
-
-Donald E. Eastlake 3rd                                         [Page 13]
+D. Eastlake 3rd                                                [Page 12]
 
