@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.c,v 1.11 2000/02/03 23:42:59 halley Exp $ */
+ /* $Id: gpos_27.c,v 1.12 2000/03/16 01:31:03 brister Exp $ */
 
  /* RFC 1712 */
 
@@ -32,16 +32,16 @@ fromtext_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 27);
 
-	rdclass = rdclass;		/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
 
 	for (i = 0; i < 3 ; i++) {
 		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
 				ISC_FALSE));
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
-	return (DNS_R_SUCCESS);
+	return(DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -53,7 +53,7 @@ totext_gpos(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	REQUIRE(rdata->type == 27);
 
-	tctx = tctx;	/*unused*/
+	UNUSED(tctx);
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -63,7 +63,7 @@ totext_gpos(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 			RETERR(str_totext(" ", target));
 	}
 
-	return (DNS_R_SUCCESS);
+	return(DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -75,27 +75,29 @@ fromwire_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 27);
 
-	dctx = dctx;		/*unused*/
-	rdclass = rdclass;		/*unused*/
-	downcase = downcase;	/*unused*/
+	UNUSED(dctx);
+	UNUSED(rdclass);
+	UNUSED(downcase);
 
 	for (i = 0 ; i < 3; i++)
 		RETERR(txt_fromwire(source, target));
-	return (DNS_R_SUCCESS);
+	return(DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
-towire_gpos(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_gpos(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 
 	REQUIRE(rdata->type == 27);
 
-	cctx = cctx;	/*unused*/
+	UNUSED(cctx);
 
-	return (mem_tobuffer(target, rdata->data, rdata->length));
+	return(mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static inline int
-compare_gpos(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_gpos(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 	
@@ -105,7 +107,7 @@ compare_gpos(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (compare_region(&r1, &r2));
+	return(compare_region(&r1, &r2));
 }
 
 static inline isc_result_t
@@ -115,27 +117,29 @@ fromstruct_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 27);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	source = source;
 	target = target;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return(DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
 
 	REQUIRE(rdata->type == 27);
 
 	target = target;
 	mctx = mctx;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return(DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_gpos(void *source) {
+freestruct_gpos(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/* XXX */
 }
@@ -149,18 +153,19 @@ additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return(DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
-digest_gpos(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_gpos(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 27);
 
 	dns_rdata_toregion(rdata, &r);
 
-	return ((digest)(arg, &r));
+	return((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_GPOS_27_C */
