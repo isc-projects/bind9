@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.4 2001/11/13 01:15:33 gson Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4.10.1 2003/07/31 06:56:49 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -313,6 +314,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	dns_dialuptype_t dialup = dns_dialuptype_no;
 	dns_zonetype_t ztype;
 	int i;
+	isc_int32_t journal_size;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -474,6 +476,30 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		result = ns_config_get(maps, "max-transfer-idle-out", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setidleout(zone, cfg_obj_asuint32(obj) * 60);
+
+		obj = NULL;
+		result =  ns_config_get(maps, "max-journal-size", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setjournalsize(zone, -1);
+		if (cfg_obj_isstring(obj)) {
+			const char *str = cfg_obj_asstring(obj);
+			INSIST(strcasecmp(str, "unlimited") == 0);
+			journal_size = ISC_UINT32_MAX / 2;
+		} else {
+			isc_resourcevalue_t value;
+			value = cfg_obj_asuint64(obj);
+			if (value > ISC_UINT32_MAX / 2) {
+				cfg_obj_log(obj, ns_g_lctx,
+					    ISC_LOG_ERROR,
+					    "'max-journal-size "
+					    "%" ISC_PRINT_QUADFORMAT "d' "
+					    "is too large",
+					    value);
+				RETERR(ISC_R_RANGE);
+			}
+			journal_size = (isc_uint32_t)value;
+		}
+		dns_zone_setjournalsize(zone, journal_size);
 	}
 
 	/*

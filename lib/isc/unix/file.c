@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.38 2001/07/16 18:33:01 gson Exp $ */
+/* $Id: file.c,v 1.38.12.1 2003/07/31 06:56:51 marka Exp $ */
 
 #include <config.h>
 
@@ -115,7 +115,6 @@ isc_file_settime(const char *file, isc_time_t *time) {
 		return (isc__errno2result(errno));
 
 	return (ISC_R_SUCCESS);
-
 }
 
 #undef TEMPLATE
@@ -312,4 +311,13 @@ isc_file_absolutepath(const char *filename, char *path, size_t pathlen) {
 		return (ISC_R_NOSPACE);
 	strcat(path, filename);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_file_truncate(const char *filename, isc_offset_t size) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (truncate(filename, size) < 0) 
+		result = isc__errno2result(errno);
+	return (result);
 }

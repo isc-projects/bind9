@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1 2001/10/15 04:57:51 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.1 2003/07/31 06:56:49 marka Exp $ */
 
 #include <config.h>
 
@@ -71,6 +71,8 @@ static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
      	do { result = (op); 					\
 		if (result != ISC_R_SUCCESS) goto failure; 	\
 	} while (0)
+
+static isc_result_t index_to_disk(dns_journal_t *);
 
 static inline isc_uint32_t
 decode_uint32(unsigned char *p) {
@@ -538,10 +540,9 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 	return (ISC_R_SUCCESS);
 }
 
-
-isc_result_t
-dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
-		 dns_journal_t **journalp) {
+static isc_result_t
+journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
+	     isc_boolean_t create, dns_journal_t **journalp) {
 	FILE *fp = NULL;
 	isc_result_t result;
 	journal_rawheader_t rawheader;
@@ -562,7 +563,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	result = isc_stdio_open(j->filename, write ? "rb+" : "rb", &fp);
 
 	if (result == ISC_R_FILENOTFOUND) {
-		if (write) {
+		if (create) {
 			isc_log_write(JOURNAL_COMMON_LOGARGS,
 				      ISC_LOG_INFO,
 				      "journal file %s does not exist, "
@@ -669,6 +670,12 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	return (result);
 }
 
+isc_result_t
+dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
+		 dns_journal_t **journalp) {
+	return (journal_open(mctx, filename, write, write, journalp));
+}
+
 /*
  * A comparison function defining the sorting order for
  * entries in the IXFR-style journal file.
@@ -728,6 +735,8 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	if (pos->serial == j->header.end.serial)
+		return (ISC_R_NOMORE);
 	/*
 	 * Read the header of the current transaction.
 	 * This will return ISC_R_NOMORE if we are at EOF.
@@ -1104,24 +1113,7 @@ dns_journal_commit(dns_journal_t *j) {
 	 * Convert the index into on-disk format and write
 	 * it to disk.
 	 */
-	if (j->header.index_size != 0) {
-		unsigned int i;
-		unsigned char *p;
-		unsigned int rawbytes;
-
-		rawbytes = j->header.index_size * sizeof(journal_rawpos_t);
-
-		p = j->rawindex;
-		for (i = 0; i < j->header.index_size; i++) {
-			encode_uint32(j->index[i].serial, p);
-			p += 4;
-			encode_uint32(j->index[i].offset, p);
-			p += 4;
-		}
-		INSIST(p == j->rawindex + rawbytes);
-
-		CHECK(journal_write(j, j->rawindex, rawbytes));
-	}
+	CHECK(index_to_disk(j));
 
 	/*
 	 * Commit the header to stable storage.
@@ -1898,11 +1890,228 @@ dns_db_diff(isc_mem_t *mctx,
 	}
 	INSIST(ISC_LIST_EMPTY(diff[0].tuples));
 	INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-	dns_diff_clear(&resultdiff);
 
  failure:
+	dns_diff_clear(&resultdiff);
 	dns_dbiterator_destroy(&dbit[0]);
 	dns_dbiterator_destroy(&dbit[1]);
 	dns_journal_destroy(&journal);
+	return (result);
+}
+
+isc_result_t
+dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
+		    isc_uint32_t target_size)
+{
+	unsigned int i;
+	journal_pos_t best_guess;
+	journal_pos_t current_pos;
+	dns_journal_t *j = NULL;
+	journal_rawheader_t rawheader;
+	unsigned int copy_length;
+	unsigned int len;
+	char *buf = NULL;
+	unsigned int size = 0;
+	isc_result_t result;
+	unsigned int indexend;
+
+	CHECK(journal_open(mctx, filename, ISC_TRUE, ISC_FALSE, &j));
+
+	if (JOURNAL_EMPTY(&j->header)) {
+		dns_journal_destroy(&j);
+		return (ISC_R_SUCCESS);
+	}
+		
+	if (DNS_SERIAL_GT(j->header.begin.serial, serial) ||
+	    DNS_SERIAL_GT(serial, j->header.end.serial)) {
+		dns_journal_destroy(&j);
+		return (ISC_R_RANGE);
+	}
+
+	/*
+	 * Cope with very small target sizes.
+	 */
+	indexend = sizeof(journal_rawheader_t) +
+		   j->header.index_size * sizeof(journal_rawpos_t);
+	if (target_size < indexend * 2)
+		target_size = target_size/2 + indexend;
+
+	/*
+	 * See if there is any work to do.
+	 */
+	if ((isc_uint32_t) j->header.end.offset < target_size) {
+		dns_journal_destroy(&j);
+		return (ISC_R_SUCCESS);
+	}
+	
+	/*
+	 * Remove overhead so space test below can succeed.
+	 */
+	if (target_size >= indexend)
+		target_size -= indexend;
+
+	/*
+	 * Find if we can create enough free space.
+	 */
+	best_guess = j->header.begin;
+	for (i = 0; i < j->header.index_size; i++) {
+		if (POS_VALID(j->index[i]) &&
+		    DNS_SERIAL_GE(serial, j->index[i].serial) &&
+		    ((isc_uint32_t)(j->header.end.offset - j->index[i].offset)
+		     >= target_size / 2) &&
+		    j->index[i].offset > best_guess.offset)
+			best_guess = j->index[i];
+	}
+
+	current_pos = best_guess;
+	while (current_pos.serial != serial) {
+		CHECK(journal_next(j, &current_pos));
+		if (current_pos.serial == j->header.end.serial)
+			break;
+
+		if (DNS_SERIAL_GE(serial, current_pos.serial) &&
+		   ((isc_uint32_t)(j->header.end.offset - current_pos.offset)
+		     >= (target_size / 2)) &&
+		    current_pos.offset > best_guess.offset)
+			best_guess = current_pos;
+		else
+			break;
+	}
+
+	INSIST(best_guess.serial != j->header.end.serial);
+	if (best_guess.serial != serial)
+		CHECK(journal_next(j, &best_guess));
+
+	/*
+	 * Enough space to proceed?
+	 */
+	if ((isc_uint32_t) (j->header.end.offset - best_guess.offset) >
+	     (isc_uint32_t) (best_guess.offset - indexend)) {
+		dns_journal_destroy(&j);
+		return (ISC_R_NOSPACE);
+	}
+
+	copy_length = j->header.end.offset - best_guess.offset;
+
+	/*
+	 * Invalidate entire index, will be rebuilt at end.
+	 */
+	for (i = 0; i < j->header.index_size; i++) {
+		if (POS_VALID(j->index[i]))
+			POS_INVALIDATE(j->index[i]);
+	}
+
+	/*
+	 * Convert the index into on-disk format and write
+	 * it to disk.
+	 */
+	CHECK(index_to_disk(j));
+	CHECK(journal_fsync(j));
+
+	/*
+	 * Update the journal header.
+	 */
+	if (copy_length == 0) {
+		j->header.begin.serial = 0;
+		j->header.end.serial = 0;
+		j->header.begin.offset = 0;
+		j->header.end.offset = 0;
+	} else {
+		j->header.begin = best_guess;
+	}
+	journal_header_encode(&j->header, &rawheader);
+	CHECK(journal_seek(j, 0));
+	CHECK(journal_write(j, &rawheader, sizeof(rawheader)));
+	CHECK(journal_fsync(j));
+
+	if (copy_length != 0) {
+		/*
+		 * Copy best_guess to end into space just freed.
+		 */
+		size = 64*1024;
+		if (copy_length < size)
+			size = copy_length;
+		buf = isc_mem_get(mctx, size);
+		if (buf == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto failure;
+		}
+	
+		for (i = 0; i < copy_length; i += size) {
+			len = (copy_length - i) > size ? size :
+							 (copy_length - i);
+			CHECK(journal_seek(j, best_guess.offset + i));
+			CHECK(journal_read(j, buf, len));
+			CHECK(journal_seek(j, indexend + i));
+			CHECK(journal_write(j, buf, len));
+		}
+
+		CHECK(journal_fsync(j));
+
+		/*
+		 * Compute new header.
+		 */
+		j->header.begin.offset = indexend;
+		j->header.end.offset = indexend + copy_length;
+		/*
+		 * Update the journal header.
+		 */
+		journal_header_encode(&j->header, &rawheader);
+		CHECK(journal_seek(j, 0));
+		CHECK(journal_write(j, &rawheader, sizeof(rawheader)));
+		CHECK(journal_fsync(j));
+
+		/*
+		 * Build new index.
+		 */
+		current_pos = j->header.begin;
+		while (current_pos.serial != j->header.end.serial) {
+			index_add(j, &current_pos);
+			CHECK(journal_next(j, &current_pos));
+		}
+
+		/*
+		 * Write index.
+		 */
+		CHECK(index_to_disk(j));
+		CHECK(journal_fsync(j));
+
+		indexend = j->header.end.offset;
+	}
+	dns_journal_destroy(&j);
+	(void)isc_file_truncate(filename, (isc_offset_t)indexend);
+	result = ISC_R_SUCCESS;
+
+ failure:
+	if (buf != NULL)
+		isc_mem_put(mctx, buf, size);
+	if (j != NULL)
+		dns_journal_destroy(&j);
+	return (result);
+}
+
+static isc_result_t
+index_to_disk(dns_journal_t *j) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (j->header.index_size != 0) {
+		unsigned int i;
+		unsigned char *p;
+		unsigned int rawbytes;
+
+		rawbytes = j->header.index_size * sizeof(journal_rawpos_t);
+
+		p = j->rawindex;
+		for (i = 0; i < j->header.index_size; i++) {
+			encode_uint32(j->index[i].serial, p);
+			p += 4;
+			encode_uint32(j->index[i].offset, p);
+			p += 4;
+		}
+		INSIST(p == j->rawindex + rawbytes);
+
+		CHECK(journal_write(j, j->rawindex, rawbytes));
+	}
+failure:
 	return (result);
 }

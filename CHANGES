@@ -1,3 +1,6 @@
+ 970.	[func]		'max-journal-size' can now be used to set a target
+			size for a journal.
+
  969.	[func]		dig now supports the undocumented dig 8 feature
 			of allowing arbitrary labels, not just dotted
 			decimal quads, with the -x option.  This can be

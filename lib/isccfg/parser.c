@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20 2003/07/23 06:57:55 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.1 2003/07/31 06:56:51 marka Exp $ */
 
 #include <config.h>
 
@@ -926,6 +926,7 @@ zone_clauses[] = {
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
+	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
 	{ "max-transfer-time-in", &cfg_type_uint32, 0 },
 	{ "max-transfer-time-out", &cfg_type_uint32, 0 },
 	{ "max-transfer-idle-in", &cfg_type_uint32, 0 },
