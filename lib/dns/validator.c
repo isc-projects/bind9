@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.65 2000/07/13 23:52:04 bwelling Exp $ */
+/* $Id: validator.c,v 1.66 2000/07/25 01:24:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1271,6 +1271,8 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 	LOCK(&val->lock);
 
 	if (val->event->rdataset != NULL && val->event->sigrdataset != NULL) {
+		isc_result_t saved_result;
+
 		/*
 		 * This looks like a simple validation.  We say "looks like"
 		 * because we don't know if wildcards are involved yet so it
@@ -1283,9 +1285,12 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		if (result == DNS_R_NOVALIDSIG &&
 		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
 		{
+			saved_result = result;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "falling back to insecurity proof");
 			result = proveunsecure(val, ISC_FALSE);
+			if (result == DNS_R_NOTINSECURE)
+				result = saved_result;
 		}
 	} else if (val->event->rdataset != NULL) {
 		/*
