@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137.2.3 2000/07/11 00:06:07 gson Exp $ */
+/* $Id: resolver.c,v 1.137.2.4 2000/07/17 17:15:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3142,12 +3142,23 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	 */
 	if (!negative_response && ns_name != NULL && oqname == NULL) {
 		/*
+		 * We already know ns_name is a subdomain of fctx->domain.
 		 * If ns_name is equal to fctx->domain, we're not making
 		 * progress.  We return DNS_R_FORMERR so that we'll keep
 		 * keep trying other servers.
 		 */
 		if (dns_name_equal(ns_name, &fctx->domain))
 			return (DNS_R_FORMERR);
+
+		/*
+		 * If the referral name is not a parent of the query
+		 * name, consider the responder insane.  
+		 */
+		if (! dns_name_issubdomain(&fctx->name, ns_name)) {
+			FCTXTRACE("referral to non-parent");
+			return (DNS_R_FORMERR);
+		}
+
 		/*
 		 * Mark any additional data related to this rdataset.
 		 * It's important that we do this before we change the
