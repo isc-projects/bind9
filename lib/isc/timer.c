@@ -246,13 +246,23 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	/*
 	 * Get current time.
 	 */
-	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_now() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+	if (type != isc_timertype_inactive) {
+		result = isc_time_now(&now);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_time_now() failed: %s",
+					 isc_result_totext(result));
+			return (ISC_R_UNEXPECTED);
+		}
+	} else {
+		/*
+		 * We don't have to do this, but it keeps the compiler from
+		 * complaining about "now" possibly being used without being
+		 * set, even though it will never actually happen.
+		 */
+		isc_time_settoepoch(&now);
 	}
+
 
 	mctx = isc_task_mem(task);
 	timer = isc_mem_get(mctx, sizeof *timer);
@@ -340,12 +350,21 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	/*
 	 * Get current time.
 	 */
-	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_now() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+	if (type != isc_timertype_inactive) {
+		result = isc_time_now(&now);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_time_now() failed: %s",
+					 isc_result_totext(result));
+			return (ISC_R_UNEXPECTED);
+		}
+	} else {
+		/*
+		 * We don't have to do this, but it keeps the compiler from
+		 * complaining about "now" possibly being used without being
+		 * set, even though it will never actually happen.
+		 */
+		isc_time_settoepoch(&now);
 	}
 
 	manager = timer->manager;
