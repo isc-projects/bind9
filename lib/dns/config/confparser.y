@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.33 2000/01/17 14:41:21 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.34 2000/01/28 01:14:41 gson Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -1153,8 +1153,9 @@ maybe_wild_addr: ip_address
         }
         | L_STRING
         {
-                $$.type.sin.sin_family = AF_INET;
-                $$.type.sin.sin_addr.s_addr = htonl(INADDR_ANY);
+		struct in_addr any;
+		any.s_addr = htonl(INADDR_ANY);
+		isc_sockaddr_fromin(&$$, &any, 0);
 
                 if (strcmp($1, "*") != 0) {
                         parser_error(ISC_TRUE, "Bad ip-address. Using ``*''");
