@@ -181,10 +181,12 @@ printmessage(dns_message_t *msg) {
 	if (msg->counts[DNS_SECTION_TSIG] > 0)
 		printf(";; PSEUDOSECTIONS: TSIG: %u\n",
 		       msg->counts[DNS_SECTION_TSIG]);
-	result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION");
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	printf("\n");
+	if (msg->counts[DNS_SECTION_QUESTION] > 0) {
+		printf("\n");
+		result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION");
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
 	if (msg->counts[DNS_SECTION_ANSWER] > 0) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER");
