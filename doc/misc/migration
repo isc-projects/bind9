@@ -12,7 +12,7 @@ upgrading an existing BIND 8 installation to use BIND 9.
 
 1.1. Unimplemented Options and Changed Defaults
 
-BIND 9.2 supports most, but not all of the named.conf options of BIND 8.
+BIND 9 supports most, but not all of the named.conf options of BIND 8.
 For a complete list of implemented options, see doc/misc/options.
 
 If your named.conf file uses an unimplemented option, named will log a
@@ -217,4 +217,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.34 2001/05/30 23:02:01 bwelling Exp $
+$Id: migration,v 1.35 2001/06/07 17:59:23 gson Exp $
