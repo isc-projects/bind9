@@ -2783,9 +2783,17 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Deal with truncated responses by retrying using TCP.
 	 */
+	if ((message->flags & DNS_MESSAGEFLAG_TC) != 0)
+		truncated = ISC_TRUE;
+		
 	if (truncated) {
-		options |= DNS_FETCHOPT_TCP;
-		resend = ISC_TRUE;
+		if ((options & DNS_FETCHOPT_TCP) != 0) {
+			broken_server = ISC_TRUE;
+			keep_trying = ISC_TRUE;
+		} else {
+			options |= DNS_FETCHOPT_TCP;
+			resend = ISC_TRUE;
+		}
 		goto done;
 	}
 
