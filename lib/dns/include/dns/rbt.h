@@ -595,4 +595,4 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* DNS_RBT_H */
