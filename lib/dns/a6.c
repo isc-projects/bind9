@@ -135,6 +135,13 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 					 * want to call the 'missing'
 					 * function.
 					 *
+					 * Note that we currently require that
+					 * the target of an A6 record is
+					 * a canonical domain name.  If the
+					 * find routine returns DNS_R_CNAME or
+					 * DNS_R_DNAME, we do NOT follow the
+					 * chain.
+					 *
 					 * We do want to clean up...
 					 */
 					maybe_disassociate(&child);
