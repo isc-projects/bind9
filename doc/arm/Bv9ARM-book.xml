@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.64 2000/12/02 00:32:23 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.65 2000/12/02 00:34:39 gson Exp $ -->
 
 <book>
 
@@ -2765,9 +2765,8 @@ in the <command>statistics-file</command>.  See also <xref linkend="statsfile"/>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>use-ixfr</command></para></entry>
-<entry colname = "2"><para></para>The <command>use-ixfr</command> option
-is deprecated in <acronym>BIND</acronym> 9. If
-you need to disable IXFR to a particular server or servers see
+<entry colname = "2"><para></para><emphasis>This option is obsolete</emphasis>.
+If you need to disable IXFR to a particular server or servers see
 the information on the <command>provide-ixfr</command> option
 in <xref linkend="server_statement_definition_and_usage"/>. See also
 <xref linkend="incremental_zone_transfers"/>.</entry>
