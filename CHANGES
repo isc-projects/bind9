@@ -1,6 +1,6 @@
 
  719.	[bug]		Rapid reloads could trigger an assertion failure.
-			[RT #743]
+			[RT #743, #763]
 
  717.	[bug]		Certain TKEY processing failure modes could
 			reference an uninitialized variable, causing the
