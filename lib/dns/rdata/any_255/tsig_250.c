@@ -15,12 +15,15 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.22 2000/02/03 23:43:20 halley Exp $ */
+/* $Id: tsig_250.c,v 1.23 2000/03/16 21:50:14 gson Exp $ */
 
- /* draft-ietf-dnsind-tsig-07.txt */
+/* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
+
+/* draft-ietf-dnsext-tsig-00.txt */
 
 #ifndef RDATA_ANY_255_TSIG_250_C
 #define RDATA_ANY_255_TSIG_250_C
+
 #include <isc/str.h>
 
 static inline isc_result_t
@@ -51,9 +54,9 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
-		return(DNS_R_RANGE);
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer((isc_uint16_t)(sigtime >> 32), target));
-	RETERR(uint32_tobuffer((isc_uint32_t)(sigtime & 0xffffffff), target));
+	RETERR(uint32_tobuffer((isc_uint32_t)(sigtime & 0xffffffffU), target));
 
 	/* Fudge */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -299,9 +302,6 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
 	
-	source = source;
-	target = target;
-
 	tsig = (dns_rdata_any_tsig_t *) source;
 	REQUIRE(tsig->mctx != NULL);
 
@@ -316,8 +316,8 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_NOSPACE);
 
 	/* Time Signed: 48 bits */
-	RETERR(uint16_tobuffer((isc_uint16_t)(tsig->timesigned >> 32),target));
-	RETERR(uint32_tobuffer((isc_uint32_t)(tsig->timesigned & 0xffffffff),
+	RETERR(uint16_tobuffer((isc_uint16_t)(tsig->timesigned >> 32), target));
+	RETERR(uint32_tobuffer((isc_uint32_t)(tsig->timesigned & 0xffffffffU),
 			       target));
 
 	/* Fudge */
@@ -369,9 +369,6 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
 	
-	target = target;
-	mctx = mctx;
-
 	tsig = (dns_rdata_any_tsig_t *) target;
 	tsig->common.rdclass = rdata->rdclass;
 	tsig->common.rdtype = rdata->type;
@@ -477,8 +474,8 @@ additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }
@@ -489,11 +486,10 @@ digest_any_tsig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
 
-	(void)digest;
-	(void)arg;
+	UNUSED(digest);
+	UNUSED(arg);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-
 
 #endif	/* RDATA_ANY_255_TSIG_250_C */
