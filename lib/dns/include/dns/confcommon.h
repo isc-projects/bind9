@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.h,v 1.29 2000/08/01 01:23:49 tale Exp $ */
+/* $Id: confcommon.h,v 1.30 2000/10/19 01:25:38 gson Exp $ */
 
 #ifndef DNS_CONFCOMMON_H
 #define DNS_CONFCOMMON_H 1
@@ -116,7 +116,7 @@ typedef enum {
 	dns_trans_primary,
 	dns_trans_secondary,
 	dns_trans_response
-} dns_c_trans_t ;
+} dns_c_trans_t;
 #define DNS_C_TRANSCOUNT 3	  /* number of items in dns_c_trans_t enum */
 
 
