@@ -44,7 +44,7 @@ print_he(struct hostent *he, int error, const char *fun, const char *name) {
 		 i = 1;
 		 while (*c != NULL) {
 			char buf[128];
-			inet_ntop(he->h_addrtype, c, buf, sizeof (buf));
+			inet_ntop(he->h_addrtype, *c, buf, sizeof (buf));
 			printf("\taddress[%d] = %s\n", i, buf);
 			c++;
 			i++;
