@@ -33,10 +33,7 @@ typedef enum {
 	dns_zone_none,
 	dns_zone_master,
 	dns_zone_slave,
-	dns_zone_hint,
-	dns_zone_stub,
-	dns_zone_cache,
-	dns_zone_forward
+	dns_zone_stub
 } dns_zonetype_t;
 
 #define DNS_ZONE_O_SERVERS	0x00000001U	/* perform server checks */

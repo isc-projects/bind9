@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.127 2000/05/25 15:34:23 gson Exp $ */
+/* $Id: zone.c,v 1.128 2000/05/25 21:05:43 gson Exp $ */
 
 #include <config.h>
 
@@ -581,15 +581,8 @@ dns_zone_validate(dns_zone_t *zone) {
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:
-	case dns_zone_hint:
 		REQUIRE(zone->dbname != NULL);
-		/*FALLTHROUGH*/
-	case dns_zone_forward:
 		REQUIRE(zone->rdclass != dns_rdataclass_none);
-		break;
-	case dns_zone_cache:
-		REQUIRE(zone->rdclass == dns_rdataclass_none);
-		REQUIRE(zone->dbname == NULL);
 		break;
 	}
 
@@ -603,7 +596,6 @@ dns_zone_load(dns_zone_t *zone) {
 	unsigned int nscount = 0;
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_result_t result;
-	isc_boolean_t cache = ISC_FALSE;
 	dns_rdata_soa_t soa;
 	isc_stdtime_t now;
 	isc_time_t loadtime, filetime;
@@ -615,18 +607,12 @@ dns_zone_load(dns_zone_t *zone) {
 	isc_stdtime_get(&now);
 
 	switch (zone->type) {
-	case dns_zone_forward:
 	case dns_zone_none:
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:
-	case dns_zone_hint:
-		cache = ISC_FALSE;
-		break;
-	case dns_zone_cache:
-		cache = ISC_TRUE;
 		break;
 	default:
 		INSIST("bad zone type" == NULL);
@@ -662,7 +648,7 @@ dns_zone_load(dns_zone_t *zone) {
 
 	result = dns_db_create(zone->mctx, zone->db_type,
 			       &zone->origin,
-			       cache, zone->rdclass,
+			       ISC_FALSE, zone->rdclass,
 			       zone->db_argc, zone->db_argv, &db);
 
 	if (result != ISC_R_SUCCESS)
@@ -732,8 +718,6 @@ dns_zone_load(dns_zone_t *zone) {
 	/*
 	 * Master / Slave / Stub zones require both NS and SOA records at
 	 * the top of the zone.
-	 * Hint zones only require NS records.
-	 * Cache zones have no reqirements.
 	 */
 
 	switch (zone->type) {
@@ -777,15 +761,6 @@ dns_zone_load(dns_zone_t *zone) {
 				zone->expiretime = now + zone->retry;
 			zone->refreshtime = now;
 		}
-		break;
-	case dns_zone_hint:
-		if (nscount == 0) {
-			zone_log(zone, me, ISC_LOG_ERROR, "no NS records");
-			result = DNS_R_BADZONE;
-			goto cleanup;
-		}
-		break;
-	case dns_zone_cache:
 		break;
 	default:
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
