@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3249"
+HREF="Bv9ARM.ch06.html#AEN3333"
 >Zone File</A
 ></DT
 ></DL
@@ -2560,6 +2560,25 @@ VALIGN="MIDDLE"
 >Dynamic updates.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>queries</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Queries.</P
+></TD
+></TR
 ></TABLE
 ><P
 ></P
@@ -2571,7 +2590,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1685"
+NAME="AEN1691"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2644,7 +2663,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1703"
+NAME="AEN1709"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2717,7 +2736,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1722"
+NAME="AEN1728"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -2826,7 +2845,7 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
-> statistics <TT
+> zone-statistics <TT
 CLASS="replaceable"
 ><I
 >yes_or_no</I
@@ -3258,6 +3277,40 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> notify-source <TT
+CLASS="replaceable"
+><I
+>ip4_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> notify-source-v6 <TT
+CLASS="replaceable"
+><I
+>ip6_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > also-notify { <TT
 CLASS="replaceable"
 ><I
@@ -3522,6 +3575,24 @@ CLASS="replaceable"
 ></TT
 >; </SPAN
 >]
+    [<SPAN
+CLASS="optional"
+> additional-from-auth <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> additional-from-cache <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> ; </SPAN
+>]
 };
 </PRE
 ></DIV
@@ -3530,7 +3601,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1907"
+NAME="AEN1925"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4490,7 +4561,7 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
->statistics</B
+>zone-statistics</B
 ></P
 ></TD
 ><TD
@@ -4498,12 +4569,17 @@ WIDTH="287"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->If yes, the server will, by default, collect
+>If <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+>, the server will, by default, collect
 statistical data on all zones in the server.  These statistics may be accessed
-using the <B
+using <B
 CLASS="command"
->rndc</B
-> which will dump them to the file listed
+>rndc stats</B
+>, which will dump them to the file listed
 in the <B
 CLASS="command"
 >statistics-file</B
@@ -4600,6 +4676,70 @@ refresh and retry times to the specified values.
 >
 </TD
 ></TR
+><TR
+><TD
+WIDTH="145"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>&#13;<P
+><B
+CLASS="command"
+>additional-from-auth</B
+></P
+>
+<P
+><B
+CLASS="command"
+>additional-from-cache</B
+></P
+>
+</TD
+><TD
+WIDTH="287"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>&#13;These options control the server's behavior when answering queries
+which have additional data, or when following CNAME and DNAME
+chains to provide additional data.
+</P
+><P
+>&#13;When both of these options are set to <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+> 
+(the default) and a
+query is being answered from authoratitive data (a zone
+configured into the server), the additional data section of the
+reply will be filled in using data from other authoratitive zones
+and from the cache.  In some situations this is undesirable, such
+as when there is concern over the correctness of the cache, or in
+in servers where slave zones may be added and modified by
+untrusted third parties.  Also, avoiding
+the search for this additional data will speed up server operations
+at the possible expense of additional queries to resolve what would
+otherwise be provided in the additional section.
+</P
+><P
+>&#13;For example, if a query asks for an MX record for host <TT
+CLASS="literal"
+>foo.example.com</TT
+>,
+and the record found is "<TT
+CLASS="literal"
+>MX 10 mail.example.net</TT
+>", normally the address
+records (A, A6, and AAAA) for <TT
+CLASS="literal"
+>mail.example.net</TT
+> will be provided as well,
+if known.  These options disable this behavior.
+</P
+>
+</TD
+></TR
 ></TABLE
 ><P
 ></P
@@ -4610,7 +4750,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2193"
+NAME="AEN2226"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4981,7 +5121,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2300"
+NAME="AEN2333"
 >6.2.14.5. Interfaces</A
 ></H3
 ><P
@@ -5076,7 +5216,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2326"
+NAME="AEN2359"
 >6.2.14.6. Query Address</A
 ></H3
 ><P
@@ -5532,6 +5672,85 @@ CLASS="command"
 except zone transfers are performed using IPv6.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="168"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>notify-source</B
+></P
+></TD
+><TD
+WIDTH="264"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>notify-source</B
+> determines
+which local address and optionally UDP port, will be used to send NOTIFY
+messages.  If a <B
+CLASS="command"
+>notify-source</B
+> is not specified then
+then the <B
+CLASS="command"
+>transfer-source</B
+> will be used and if that
+is not specified the <B
+CLASS="command"
+>query-source</B
+> will be use.
+This address must appear in the remote end's <B
+CLASS="command"
+>masters</B
+>
+zone clause.
+This statement sets the <B
+CLASS="command"
+>notify-source</B
+> for all zones,
+but can be overridden on a per-zone / per-view basis by including a
+<B
+CLASS="command"
+>notify-source</B
+> statement within the <B
+CLASS="command"
+>zone</B
+>
+/ <B
+CLASS="command"
+>view</B
+> blocks in the configuration file.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="168"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>notify-source-v6</B
+></P
+></TD
+><TD
+WIDTH="264"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>The same as <B
+CLASS="command"
+>notify-source</B
+>,
+except notify messages are sent using IPv6.</P
+></TD
+></TR
 ></TABLE
 ><P
 ></P
@@ -5542,7 +5761,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2452"
+NAME="AEN2507"
 >6.2.14.8. Resource Limits</A
 ></H3
 ><P
@@ -5769,7 +5988,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2518"
+NAME="AEN2573"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -6513,7 +6732,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2707"
+NAME="AEN2762"
 >6.2.14.14. Deprecated Features</A
 ></H3
 ><P
@@ -6790,7 +7009,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2777"
+NAME="AEN2832"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6865,7 +7084,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2793"
+NAME="AEN2848"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6900,7 +7119,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2801"
+NAME="AEN2856"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6939,7 +7158,7 @@ CLASS="replaceable"
 >]
       [<SPAN
 CLASS="optional"
-> statistics <TT
+> zone-statistics <TT
 CLASS="replaceable"
 ><I
 >yes_or_no</I
@@ -6963,7 +7182,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2815"
+NAME="AEN2870"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7463,7 +7682,47 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
-> statistics <TT
+> notify-source (<TT
+CLASS="replaceable"
+><I
+>ip4_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> notify-source-v6 (<TT
+CLASS="replaceable"
+><I
+>ip6_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> zone-statistics <TT
 CLASS="replaceable"
 ><I
 >yes_or_no</I
@@ -7497,7 +7756,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2940"
+NAME="AEN3005"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7508,7 +7767,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2943"
+NAME="AEN3008"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -7732,7 +7991,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3000"
+NAME="AEN3065"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7770,7 +8029,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3010"
+NAME="AEN3075"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
@@ -8285,7 +8544,7 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
->statistics</B
+>zone-statistics</B
 ></P
 ></TD
 ><TD
@@ -8293,9 +8552,17 @@ WIDTH="273"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->If set to yes, the server will keep statistical
-information for all zones in the view, which can be dumped to the
-statistics-file defined in the server options.</P
+>If <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+>, the server will keep statistical
+information for this zone, which can be dumped to the
+<B
+CLASS="command"
+>statistics-file</B
+> defined in the server options.</P
 ></TD
 ></TR
 ><TR
@@ -8375,6 +8642,67 @@ VALIGN="MIDDLE"
 ><P
 >Similar to transfer-source, but for zone transfers
 performed using IPv6.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="159"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>notify-source</B
+></P
+></TD
+><TD
+WIDTH="273"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>notify-source</B
+> determines
+which local address, and optionally UDP port, will be used to send NOTIFY
+messages.  If a <B
+CLASS="command"
+>notify-source</B
+> is not specified then
+then the <B
+CLASS="command"
+>transfer-source</B
+> will be used, if neither
+of these are set then the address and port used will be determined by
+the <B
+CLASS="command"
+>view</B
+> then the <B
+CLASS="command"
+>options</B
+> blocks.
+This address must appear in the remote end's <B
+CLASS="command"
+>masters</B
+>
+zone clause.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="159"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>notify-source-v6</P
+></TD
+><TD
+WIDTH="273"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Similar to notify-source, but notify messages
+are sent using IPv6.</P
 ></TD
 ></TR
 ></TABLE
@@ -8607,7 +8935,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3249"
+NAME="AEN3333"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8628,7 +8956,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3254"
+NAME="AEN3338"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9344,7 +9672,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3468"
+NAME="AEN3552"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9662,7 +9990,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3569"
+NAME="AEN3653"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10061,7 +10389,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3690"
+NAME="AEN3774"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10159,7 +10487,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3717"
+NAME="AEN3801"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10184,7 +10512,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3724"
+NAME="AEN3808"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10254,7 +10582,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3744"
+NAME="AEN3828"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10330,7 +10658,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3763"
+NAME="AEN3847"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10370,7 +10698,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3774"
+NAME="AEN3858"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
