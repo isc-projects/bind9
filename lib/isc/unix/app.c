@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.32 2000/11/29 01:50:49 gson Exp $ */
+/* $Id: app.c,v 1.33 2000/11/29 01:51:54 gson Exp $ */
 
 #include <config.h>
 
@@ -498,7 +498,7 @@ isc_app_run(void) {
 
 	result = evloop();
 	if (result != ISC_R_SUCCESS)
-		return (result)
+		return (result);
 
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
