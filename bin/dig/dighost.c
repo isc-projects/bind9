@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-#define DEBUG
+#define TWIDDLE (random()%4+1)
 
 #include <config.h>
 
@@ -62,6 +62,9 @@ ISC_LIST(dig_server_t) server_list;
 
 isc_boolean_t tcp_mode = ISC_FALSE, recurse = ISC_TRUE, have_ipv6 = ISC_FALSE,
 	free_now = ISC_FALSE;
+#ifdef TWIDDLE
+isc_boolean_t twiddle = ISC_FALSE;
+#endif
 in_port_t port;
 unsigned int timeout;
 isc_mem_t *mctx = NULL;
@@ -180,6 +183,32 @@ istype(char *text) {
 	return ISC_FALSE;
 }
 
+
+#ifdef TWIDDLE
+void
+twiddlebuf(isc_buffer_t buf) {
+	isc_region_t r;
+	int len, pos, bit;
+	unsigned char bitfield;
+	int i, tw;
+
+	hex_dump(&buf);
+	tw=TWIDDLE;
+	printf ("Twiddling %d bits: ",tw);
+	for (i=0;i<tw;i++) {
+		isc_buffer_usedregion (&buf, &r);
+		len = r.length;
+		pos=(int)random();
+		pos = pos%len;
+		bit = (int)random()%8;
+		bitfield = 1 << bit;
+		printf ("%d@%03x ",bit, pos);
+		r.base[pos] ^= bitfield;
+	}
+	puts ("");
+	hex_dump(&buf);
+}
+#endif
 
 static void
 setup_system(void) {
@@ -535,7 +564,7 @@ send_done(isc_task_t *task, isc_event_t *event) {
 
 static void
 cancel_lookup(dig_lookup_t *lookup) {
-	dig_query_t *query;
+	dig_query_t *query=NULL;
 
 	debug("cancel_lookup()");
 	if (!lookup->pending)
@@ -678,9 +707,15 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_buffer_clear(&query->lengthbuf);
 	isc_buffer_putuint16(&query->slbuf, query->lookup->sendbuf.used);
 	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
-	if (include_question)
+	if (include_question) {
+#ifdef TWIDDLE
+		if (twiddle) {
+			twiddlebuf(query->lookup->sendbuf);
+		}
+#endif
 		ISC_LIST_ENQUEUE(query->sendlist, &query->lookup->sendbuf,
 				 link);
+	}
 	ISC_LIST_ENQUEUE(query->lengthlist, &query->lengthbuf, link);
 
 	result = isc_socket_recvv(query->sock, &query->lengthlist, 0, task,
@@ -894,15 +929,17 @@ get_address(char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
 	struct hostent *he;
+	char host[MXNAME];
 
 	debug("get_address()");
 
-	if (have_ipv6 && inet_pton(AF_INET6, hostname, &in6) == 1)
+	sscanf (hostname, "%s", host); /* Force CR, etc... out */
+	if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
 		isc_sockaddr_fromin6(sockaddr, &in6, port);
-	else if (inet_pton(AF_INET, hostname, &in4) == 1)
+	else if (inet_pton(AF_INET, host, &in4) == 1)
 		isc_sockaddr_fromin(sockaddr, &in4, port);
 	else {
-		he = gethostbyname(hostname);
+		he = gethostbyname(host);
 		if (he == NULL)
 		     fatal("Couldn't look up your server host %s.  errno=%d",
 			      hostname, h_errno);
@@ -977,6 +1014,11 @@ do_lookup_udp(dig_lookup_t *lookup) {
 		check_result(result, "isc_socket_recvv");
 		sendcount++;
 		debug("Sent count number %d", sendcount);
+#ifdef TWIDDLE
+		if (twiddle) {
+			twiddlebuf(lookup->sendbuf);
+		}
+#endif
 		ISC_LIST_ENQUEUE(query->sendlist, &lookup->sendbuf, link);
 		debug("Sending a request.");
 		result = isc_socket_sendtov(query->sock, &query->sendlist,
@@ -1055,10 +1097,26 @@ free_lists(void) {
 int
 main(int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
+#ifdef TWIDDLE
+	FILE *fp;
+	int i,p;
+#endif
 
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 
+#ifdef TWIDDLE
+	fp = fopen("/dev/urandom","r");
+	if (fp!=NULL) {
+		fread (&i, sizeof(int), 1, fp);
+		srandom(i);
+	}
+	else {
+		srandom ((int)&main);
+	}
+	p = getpid()%16+8;
+	for (i=0 ; i<p; i++);
+#endif
 	setup_libs();
 	port = 53;
 	timeout = 10;

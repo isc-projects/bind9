@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+#define TWIDDLE
+
 #include <config.h>
 
 #include <errno.h>
@@ -71,6 +73,9 @@ extern dns_name_t rootorg;
 extern char *rootspace[BUFSIZE];
 extern isc_buffer_t rootbuf;
 extern int sendcount;
+#ifdef TWIDDLE
+extern isc_boolean_t twiddle;
+#endif
 
 isc_boolean_t short_form=ISC_FALSE;
 
@@ -394,6 +399,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			recurse = ISC_TRUE;
 		} else if (strncmp(argv[0],"+norec",6) == 0) {
 			recurse = ISC_FALSE;
+#ifdef TWIDDLE
+		} else if (strncmp(argv[0],"+twiddle",6) == 0) {
+			twiddle = ISC_TRUE;
+#endif
 		} else if (strncmp(argv[0],"-f",2) == 0) {
 			if (argv[0][2]!=0) {
 				batchname=&argv[0][2];
