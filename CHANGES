@@ -1,3 +1,8 @@
+1050.	[bug]		Log messages reporting malformed IP addresses in
+			address lists such as that of the forwarders option
+			failed to include the correct error code, file
+			name, and line number. [RT #1890]
+
 1049.	[func]		pid-file "none"; will disable writing a pid file.
 			[RT #1848]
 
