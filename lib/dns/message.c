@@ -1085,7 +1085,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * response.
 			 * Its class is ignored.
 			 */
-			int tkeysection;
+			dns_section_t tkeysection;
+
 			if ((msg->flags & DNS_MESSAGEFLAG_QR) == 0)
 				tkeysection = DNS_SECTION_ADDITIONAL;
 			else
