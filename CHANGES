@@ -5,6 +5,10 @@
 1760.	[bug]		Host / net unreachable was not penalising rtt
 			estimates. [RT #12970]
 
+1754.	[bug]		We wern't always attempting to query the parent
+			server for the DS records at the zone cut.
+			[RT #12774]
+
 1753.	[bug]		Don't serve a slave zone which has no NS records.
 			[RT #12894]
 
