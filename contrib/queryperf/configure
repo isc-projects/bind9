@@ -914,12 +914,13 @@ else
   cat > conftest.$ac_ext <<EOF
 #line 916 "configure"
 #include "confdefs.h"
-#include <sys/socket.h>
+#include <sys/types.h>
+   #include <sys/socket.h>
 int main() {
 socklen_t len = 42; return len;
 ; return 0; }
 EOF
-if { (eval echo configure:923: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:924: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_type_socklen_t=yes
 else
