@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.76 2000/07/24 20:46:55 mws Exp $ */
+/* $Id: dig.c,v 1.77 2000/07/24 23:13:44 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -584,6 +584,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	int rc;
 	char **rv;
 	char *ptr;
+#ifndef NOPOSIX
+	char *homedir;
+	char rcfile[132];
+#endif
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -601,11 +605,16 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		debug("making new lookup");
 		default_lookup = make_empty_lookup();
 
+#ifndef NOPOSIX
 		/*
 		 * Treat .digrc as a special batchfile
-		 * XXXMWS should check $HOME in some portable way
 		 */
-		batchfp = fopen(".digrc", "r");
+		homedir = getenv("HOME");
+		if (homedir != NULL)
+			snprintf(rcfile, 132, "%s/.digrc", homedir);
+		else
+			strcpy(rcfile, ".digrc");
+		batchfp = fopen(rcfile, "r");
 		if (batchfp != NULL) {
 			while (fgets(batchline, sizeof(batchline),
 				     batchfp) != 0) {
@@ -627,6 +636,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			}
 			fclose(batchfp);
 		}
+#endif
 	}
 
 	lookup = default_lookup;
