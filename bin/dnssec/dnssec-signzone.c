@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.1 2003/08/01 23:50:46 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.2 2003/08/08 03:40:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1523,7 +1523,7 @@ main(int argc, char *argv[]) {
 	dns_rdataclass_t rdclass;
 	isc_textregion_t r;
 	isc_task_t **tasks = NULL;
-	masterstyle = &dns_master_style_explicitttl;
+	masterstyle = &dns_master_style_simple;
 
 	check_result(isc_app_start(), "isc_app_start");
 

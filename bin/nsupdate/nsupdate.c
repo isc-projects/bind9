@@ -15,14 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.15 2003/07/25 03:31:42 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.15.2.1 2003/08/08 03:40:07 marka Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
-#include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -66,6 +65,8 @@
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
+
+#include <bind9/getaddresses.h>
 
 #ifdef HAVE_ADDRINFO
 #ifdef HAVE_GETADDRINFO
@@ -571,74 +572,16 @@ setup_system(void) {
 
 static void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
-	struct in_addr in4;
-	struct in6_addr in6;
-#ifdef USE_GETADDRINFO
-	struct addrinfo *res = NULL, hints;
-	int result;
-#else
-	struct hostent *he;
-#endif
+	int count;
+	isc_result_t result;
 
-	ddebug("get_address()");
-
-	/*
-	 * Assume we have v4 if we don't have v6, since setup_libs
-	 * fatal()'s out if we don't have either.
-	 */
-	if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
-		isc_sockaddr_fromin6(sockaddr, &in6, port);
-	else if (inet_pton(AF_INET, host, &in4) == 1)
-		isc_sockaddr_fromin(sockaddr, &in4, port);
-	else {
-#ifdef USE_GETADDRINFO
-		memset(&hints, 0, sizeof(hints));
-		if (!have_ipv6)
-			hints.ai_family = PF_INET;
-		else if (!have_ipv4)
-			hints.ai_family = PF_INET6;
-		else {
-			hints.ai_family = PF_UNSPEC;
-#ifdef AI_ADDRCONFIG
-			hints.ai_flags = AI_ADDRCONFIG;
-#endif
-		}
-		debug ("before getaddrinfo()");
-		isc_app_block();
-#ifdef AI_ADDRCONFIG
- again:
-#endif
-		result = getaddrinfo(host, NULL, &hints, &res);
-#ifdef AI_ADDRCONFIG
-		if (result == EAI_BADFLAGS &&
-		    (hints.ai_flags & AI_ADDRCONFIG) != 0) {
-			hints.ai_flags &= ~AI_ADDRCONFIG;
-			goto again;
-		}
-#endif
-		isc_app_unblock();
-		if (result != 0) {
-			fatal("couldn't find server '%s': %s",
-			      host, gai_strerror(result));
-		}
-		memcpy(&sockaddr->type.sa,res->ai_addr, res->ai_addrlen);
-		sockaddr->length = res->ai_addrlen;
-		isc_sockaddr_setport(sockaddr, port);
-		freeaddrinfo(res);
-#else
-		debug ("before gethostbyname()");
-		isc_app_block();
-		he = gethostbyname(host);
-		isc_app_unblock();
-		if (he == NULL)
-		     fatal("couldn't find server '%s' (h_errno=%d)",
-			   host, h_errno);
-		INSIST(he->h_addrtype == AF_INET);
-		isc_sockaddr_fromin(sockaddr,
-				    (struct in_addr *)(he->h_addr_list[0]),
-				    port);
-#endif
-	}
+	isc_app_block();
+	result = bind9_getaddresses(host, port, sockaddr, 1, &count);
+	isc_app_unblock();
+	if (result != ISC_R_SUCCESS)
+		fatal("couldn't get address for '%s': %s",
+		      host, isc_result_totext(result));
+	INSIST(count == 1);
 }
 
 static void

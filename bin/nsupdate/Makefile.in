@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15.12.1 2003/08/04 04:20:09 marka Exp $
+# $Id: Makefile.in,v 1.15.12.2 2003/08/08 03:40:07 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,22 +23,25 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
+		${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+BIND9LIBS =	../../lib/bind9/libbind9.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
+BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.h,v 1.2 2001/11/15 01:04:06 gson Exp $ */
+/* $Id: getaddresses.h,v 1.2.200.1 2003/08/08 03:40:09 marka Exp $ */
 
 #ifndef BIND9_GETADDRESSES_H
 #define BIND9_GETADDRESSES_H 1

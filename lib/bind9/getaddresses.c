@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.13 2002/12/20 04:10:03 marka Exp $ */
+/* $Id: getaddresses.c,v 1.13.126.1 2003/08/08 03:40:09 marka Exp $ */
 
 #include <config.h>
 #include <string.h>

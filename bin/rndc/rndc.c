@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.1 2003/08/04 02:04:46 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.2 2003/08/08 03:40:08 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -31,7 +31,6 @@
 #include <isc/file.h>
 #include <isc/log.h>
 #include <isc/mem.h>
-#include <isc/netdb.h>
 #include <isc/random.h>
 #include <isc/socket.h>
 #include <isc/stdtime.h>
@@ -51,21 +50,9 @@
 #include <isccc/types.h>
 #include <isccc/util.h>
 
+#include <bind9/getaddresses.h>
+
 #include "util.h"
-
-#ifdef HAVE_ADDRINFO
-#ifdef HAVE_GETADDRINFO
-#ifdef HAVE_GAISTRERROR
-#define USE_GETADDRINFO
-#endif
-#endif
-#endif
-
-#ifndef USE_GETADDRINFO
-#ifndef ISC_PLATFORM_NONSTDHERRNO
-extern int h_errno;
-#endif
-#endif
 
 char *progname;
 isc_boolean_t verbose;
@@ -126,73 +113,15 @@ Version: %s\n",
 
 static void
 get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
-	struct in_addr in4;
-	struct in6_addr in6;
-	isc_boolean_t have_ipv6;
-#ifdef USE_GETADDRINFO
-	struct addrinfo *res = NULL, hints;
-	int result;
-#else
-	struct hostent *he;
-#endif
+	int count;
+	isc_result_t result;
 
-	have_ipv6 = ISC_TF(isc_net_probeipv6() == ISC_R_SUCCESS);
-
-	/*
-	 * Assume we have v4 if we don't have v6, since setup_libs
-	 * fatal()'s out if we don't have either.
-	 */
-	if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
-		isc_sockaddr_fromin6(sockaddr, &in6, port);
-	else if (inet_pton(AF_INET, host, &in4) == 1)
-		isc_sockaddr_fromin(sockaddr, &in4, port);
-	else {
-#ifdef USE_GETADDRINFO
-		memset(&hints, 0, sizeof(hints));
-		if (!have_ipv6)
-			hints.ai_family = PF_INET;
-		else if (isc_net_probeipv4() != ISC_R_SUCCESS)
-			hints.ai_family = PF_INET6;
-		else {
-			hints.ai_family = PF_UNSPEC;
-#ifdef AI_ADDRCONFIG
-			hints.ai_flags = AI_ADDRCONFIG;
-#endif
-		}
-		hints.ai_socktype = SOCK_STREAM;
-		isc_app_block();
-#ifdef AI_ADDRCONFIG
- again:
-#endif
-		result = getaddrinfo(host, NULL, &hints, &res);
-#ifdef AI_ADDRCONFIG
-		if (result == EAI_BADFLAGS &&
-		    (hints.ai_flags & AI_ADDRCONFIG) != 0) {
-			hints.ai_flags &= ~AI_ADDRCONFIG;
-			goto again;
-		}
-#endif
-		isc_app_unblock();
-		if (result != 0)
-			fatal("Couldn't find server '%s': %s",
-			      host, gai_strerror(result));
-		memcpy(&sockaddr->type.sa, res->ai_addr, res->ai_addrlen);
-		sockaddr->length = res->ai_addrlen;
-		isc_sockaddr_setport(sockaddr, port);
-		freeaddrinfo(res);
-#else
-		isc_app_block();
-		he = gethostbyname(host);
-		isc_app_unblock();
-		if (he == NULL)
-			fatal("Couldn't find server '%s' (h_errno=%d)",
-			      host, h_errno);
-		INSIST(he->h_addrtype == AF_INET);
-		isc_sockaddr_fromin(sockaddr,
-				    (struct in_addr *)(he->h_addr_list[0]),
-				    port);
-#endif
-	}
+	result = bind9_getaddresses(host, port, sockaddr, 1, &count);
+	isc_app_unblock();
+	if (result != ISC_R_SUCCESS)
+		fatal("couldn't get address for '%s': %s",
+		      host, isc_result_totext(result));
+	INSIST(count == 1);
 }
 
 static void
