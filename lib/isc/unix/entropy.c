@@ -373,7 +373,7 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 * bytes of randomness.
 	 */
 	if (ent->initialized < 20)
-		needed = ISC_MIN(needed, 20 - ent->initialized);
+		needed = ISC_MAX(needed, 20 - ent->initialized);
 
 	/*
 	 * Poll each file source to see if we can read anything useful from
