@@ -50,7 +50,8 @@ TARGETS =	res_test \
 		master_test \
 		db_test \
 		compress_test \
-		mempool_test
+		mempool_test \
+		dispatch_test
 
 @BIND9_MAKE_RULES@
 
@@ -117,6 +118,10 @@ compress_test: compress_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 mempool_test: mempool_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ mempool_test.o \
 	${ISCLIBS} ${LIBS}
+
+dispatch_test: dispatch_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.o \
+	${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
