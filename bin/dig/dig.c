@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.95 2000/09/21 22:46:34 mws Exp $ */
+/* $Id: dig.c,v 1.96 2000/09/21 23:02:30 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -974,7 +974,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				rv++;
 				rc--;
 			}
-			get_address(address, 0, &bind_address, ISC_FALSE);
+			get_address(address, 0, &bind_address);
 			specified_source = ISC_TRUE;
 		} else if (strncmp(rv[0], "-h", 2) == 0) {
 			show_usage();

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.130 2000/09/21 22:46:36 mws Exp $ */
+/* $Id: dighost.c,v 1.131 2000/09/21 23:02:32 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1475,8 +1475,7 @@ send_tcp_connect(dig_query_t *query) {
 	l = query->lookup;
 	query->waiting_connect = ISC_TRUE;
 	query->lookup->current_query = query;
-	get_address(query->servname, port, &query->sockaddr,
-		    ISC_TRUE);
+	get_address(query->servname, port, &query->sockaddr);
 	
 	if (specified_source &&
 	    (isc_sockaddr_pf(&query->sockaddr) !=
@@ -1549,8 +1548,7 @@ send_udp(dig_query_t *query) {
 	if (!query->recv_made) {
 		/* XXX Check the sense of this, need assertion? */
 		query->waiting_connect = ISC_FALSE;
-		get_address(query->servname, port, &query->sockaddr,
-			    ISC_TRUE);
+		get_address(query->servname, port, &query->sockaddr);
 
 		result = isc_socket_create(socketmgr,
 					   isc_sockaddr_pf(&query->sockaddr),
@@ -2380,8 +2378,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
  * routines, since they may be using a non-DNS system for these lookups.
  */
 void
-get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
-	    isc_boolean_t running) {
+get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
@@ -2400,12 +2397,8 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 	else {
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
 		debug ("before getaddrinfo()");
-		if (running)
-			isc_app_block();
 		is_blocking = ISC_TRUE;
 		result = getaddrinfo(host, NULL, NULL, &res);
-		if (running) 
-			isc_app_unblock();
 		is_blocking = ISC_FALSE;
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",
@@ -2417,12 +2410,8 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 		freeaddrinfo(res);
 #else
 		debug ("before gethostbyname()");
-		if (running)
-			isc_app_block();
 		is_blocking = ISC_TRUE;
 		he = gethostbyname(host);
-		if (running)
-			isc_app_unblock();
 		is_blocking = ISC_FALSE;
 		if (he == NULL)
 		     fatal("Couldn't find server '%s' (h_errno=%d)",

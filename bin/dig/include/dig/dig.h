@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.46 2000/09/21 22:46:39 mws Exp $ */
+/* $Id: dig.h,v 1.47 2000/09/21 23:02:34 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -168,8 +168,7 @@ struct dig_searchlist {
  * Routines in dighost.c.
  */
 void
-get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
-	    isc_boolean_t running);
+get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
 
 void
 fatal(const char *format, ...);
