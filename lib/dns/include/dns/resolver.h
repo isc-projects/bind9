@@ -85,6 +85,7 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_UNSHARED		0x02		/* See below. */
 #define DNS_FETCHOPT_RECURSIVE		0x04		/* Set RD? */
 #define DNS_FETCHOPT_NOEDNS0		0x08		/* Do not use EDNS. */
+#define DNS_FETCHOPT_FORWARDONLY	0x10		/* only use forwarders */
 
 /*
  * XXXRTH  Should this API be made semi-private?  (I.e.
@@ -342,6 +343,9 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp);
  *	*fetchp == NULL.
  */
 
+dns_dispatch_t * dns_resolver_dispatchv4(dns_resolver_t *resolver);
+dns_dispatch_t * dns_resolver_dispatchv6(dns_resolver_t *resolver);
+isc_socketmgr_t * dns_resolver_socketmgr(dns_resolver_t *resolver);
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */

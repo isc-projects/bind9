@@ -4513,3 +4513,21 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 	if (bucket_empty)
 		empty_bucket(res);
 }
+
+dns_dispatch_t *
+dns_resolver_dispatchv4(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->dispatchv4);
+}
+
+dns_dispatch_t *
+dns_resolver_dispatchv6(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->dispatchv6);
+}
+
+isc_socketmgr_t *
+dns_resolver_socketmgr(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->socketmgr);
+}
