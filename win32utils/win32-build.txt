@@ -1,11 +1,11 @@
 Copyright (C) 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: win32-build.txt,v 1.5 2001/08/09 00:33:47 gson Exp $
+$Id: win32-build.txt,v 1.6 2002/11/14 01:36:57 explorer Exp $
 
-       BIND 9.2.0 Beta for Win32 Source Build Instructions.  28-Jul-2001
+       BIND 9.3.0 Beta for Win32 Source Build Instructions.  28-Jul-2001
 
-Building BIND 9.2 on Windows NT/2000 has two prerequisites:
+Building BIND 9.3.x on Windows NT/2000 has two prerequisites:
 1) You need to install Perl for Windows NT/2000. ActiveState
 (http://www.activestate.com/) is the one most people install and use;
 2) OpenSSL (http://www.openssl.org) needs to be downloaded and built
@@ -24,7 +24,7 @@ Step 1: Download and Build OpenSSL
 
 Download and untar the OpenSSL sources from http://www.openssl.org/.
 if you have place the BIND sources in /BIND9 you should place the
-OpenSSL sources in /OpenSSL-0.9.6b. If you place the sources anywhere
+OpenSSL sources in /OpenSSL-0.9.6g. If you place the sources anywhere
 else you will have to edit the libdns.dsp or libdns.mak files to point
 the include directories and the link library location to the correct
 places as well as move the DLL to the BUILD/Release subdirectory.
