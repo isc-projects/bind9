@@ -37,6 +37,7 @@
 
 #if 0
 #define ISC_UTIL_TRACE(a) a
+#include <stdio.h>
 #else
 #define ISC_UTIL_TRACE(a)
 #endif
