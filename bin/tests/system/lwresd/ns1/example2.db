@@ -1,0 +1,14 @@
+$TTL 300	; 5 minutes
+@			IN SOA	mname1. . (
+				2000062001 ; serial
+				20         ; refresh (20 seconds)
+				20         ; retry (20 seconds)
+				1814400    ; expire (3 weeks)
+				3600       ; minimum (1 hour)
+				)
+			NS	ns
+ns			A	10.53.0.1
+
+a			A	10.0.2.1
+b			A6	64 ::ffff:ffff:ffff:ffff c
+c			A6	0 eeee:eeee:eeee:eeee::

@@ -1,0 +1,12 @@
+$TTL 300	; 5 minutes
+@	IN SOA  mname1. . (
+		2000062001	; serial
+		20		; refresh (20 seconds)
+		20		; retry (20 seconds)
+		1814400		; expire (3 weeks)
+		3600		; minimum (1 hour)
+		)
+	NS	ns
+ns	A	10.53.0.1
+
+f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0.f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0	PTR test.example.
