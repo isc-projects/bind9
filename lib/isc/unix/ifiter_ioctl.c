@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.30 2002/07/01 01:08:37 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.31 2002/07/01 23:00:37 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -165,6 +165,7 @@ getbuf6(isc_interfaceiter_t *iter) {
 	return (ISC_R_NOTIMPLEMENTED);
 #else
 	char strbuf[ISC_STRERRORSIZE];
+	isc_result_t result;
 
 	iter->bufsize = IFCONF_BUFSIZE_INITIAL;
 
