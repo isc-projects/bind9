@@ -1,3 +1,5 @@
+ 509.	[func]		Add support for write of zone files on shutdown.
+
  508.	[func]		dns_message_parse() can now do a best-effort
 			attempt, which should allow dig to print more invalid
 			messages.
