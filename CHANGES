@@ -1,3 +1,6 @@
+1210.	[bug]		libbind: getnameinfo() failed to lookup IPv4 mapped /
+			compatible addresses. [RT #2461]
+
 1209.	[bug]		Dig, host, nslookup were not checking the message ids
 			on the responses. [RT #2454]
 
