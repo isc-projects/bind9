@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.224 2002/04/03 05:41:20 marka Exp $ */
+/* $Id: socket.c,v 1.225 2002/04/03 06:44:11 marka Exp $ */
 
 #include <config.h>
 
@@ -2571,18 +2571,22 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 
 	set_dev_address(address, sock, dev);
 	if (pktinfo != NULL) {
-		socket_log(sock, NULL, TRACE, isc_msgcat, ISC_MSGSET_SOCKET,
-			   ISC_MSG_PKTINFOPROVIDED,
-			   "pktinfo structure provided, ifindex %u (set to 0)",
-			   pktinfo->ipi6_ifindex);
-
 		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
 		dev->pktinfo = *pktinfo;
-		/*
-		 * Set the pktinfo index to 0 here, to let the kernel decide
-		 * what interface it should send on.
-		 */
-		dev->pktinfo.ipi6_ifindex = 0;
+
+		if (!isc_sockaddr_issitelocal(address) &&
+		    !isc_sockaddr_islinklocal(address)) {
+			socket_log(sock, NULL, TRACE, isc_msgcat,
+				   ISC_MSGSET_SOCKET, ISC_MSG_PKTINFOPROVIDED,
+				   "pktinfo structure provided, ifindex %u "
+				   "(set to 0)", pktinfo->ipi6_ifindex);
+
+			/*
+			 * Set the pktinfo index to 0 here, to let the
+			 * kernel decide what interface it should send on.
+			 */
+			dev->pktinfo.ipi6_ifindex = 0;
+		}
 	}
 
 	if (sock->type == isc_sockettype_udp)
