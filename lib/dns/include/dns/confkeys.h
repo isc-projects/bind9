@@ -162,6 +162,7 @@ isc_result_t	dns_c_pubkey_delete(isc_log_t *lctx,
 isc_result_t	dns_c_pubkey_copy(isc_log_t *lctx,
 				  isc_mem_t *mem, dns_c_pubkey_t **dest,
 				  dns_c_pubkey_t *src);
+isc_boolean_t	dns_c_pubkey_equal(dns_c_pubkey_t *k1, dns_c_pubkey_t *k2);
 void		dns_c_pubkey_print(isc_log_t *lctx,
 				   FILE *fp, int indent,
 				   dns_c_pubkey_t *pubkey);
