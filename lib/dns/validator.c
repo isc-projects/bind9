@@ -554,7 +554,7 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
  * in 'rdataset'.  If found, build a dst_key_t for it and point
  * val->key at it.
  *
- * XXX does not handle key tag collisions.
+ * If val->key is non-NULL, this returns the next matching key.
  */
 static inline isc_result_t 
 get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
@@ -564,6 +564,15 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 	isc_buffer_t b;
 	dns_rdata_t rdata;
 	char ntext[1024];
+	dst_key_t *oldkey = val->key;
+	isc_boolean_t foundold;
+
+	if (oldkey == NULL)
+		foundold = ISC_TRUE;
+	else {
+		foundold = ISC_FALSE;
+		val->key = NULL;
+	}
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS)
@@ -597,10 +606,17 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 		    (dns_keytag_t)dst_key_id(val->key) &&
 		    dst_key_iszonekey(val->key))
 		{
-			/*
-			 * This is the key we're looking for.
-			 */
-			return (ISC_R_SUCCESS);
+			if (foundold)
+				/*
+				 * This is the key we're looking for.
+				 */
+				return (ISC_R_SUCCESS);
+			else if (dst_key_compare(oldkey, val->key) == ISC_TRUE)
+			{
+				foundold = ISC_TRUE;
+				dst_key_free(oldkey);
+				oldkey = NULL;
+			}
 		}
 		dst_key_free(val->key);
 		val->key = NULL;
@@ -608,6 +624,9 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 	} while (result == ISC_R_SUCCESS);
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_NOTFOUND;
+
+	if (oldkey != NULL)
+		dst_key_free(oldkey);
 
 	return (result);
 }
@@ -676,7 +695,9 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 		/*
 		 * We have an rrset for the given keyname.
 		 */
-		if (rdataset.trust == dns_trust_pending) {
+		if (rdataset.trust == dns_trust_pending &&
+		    dns_rdataset_isassociated(&sigrdataset))
+		{
 			/*
 			 * We know the key but haven't validated it yet.
 			 */
@@ -711,11 +732,20 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			return (DNS_R_WAIT);
-		} else {
+		} else if (rdataset.trust == dns_trust_pending) {
 			/*
-			 * XXXRTH  What should we do if this is an untrusted
-			 *         rdataset?
+			 * Having a pending key with no signature means that
+			 * something is broken.
 			 */
+			result = DNS_R_CONTINUE;
+		} else if (rdataset.trust < dns_trust_secure) {
+			/*
+			 * The key is legitimately insecure.  There's no
+			 * point in even attempting verification.
+			 */
+			val->key = NULL;
+			result = ISC_R_SUCCESS;
+		} else {
 			/*
 			 * See if we've got the key used in the signature.
 			 */
@@ -765,7 +795,8 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 	} else if (result ==  DNS_R_NCACHENXDOMAIN ||
 		   result == DNS_R_NCACHENXRRSET ||
 		   result == DNS_R_NXDOMAIN ||
-		   result == DNS_R_NXRRSET) {
+		   result == DNS_R_NXRRSET)
+	{
 		/*
 		 * This key doesn't exist.
 		 */
@@ -806,9 +837,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		 * We already have a sigrdataset.
 		 */
 		result = ISC_R_SUCCESS;
+		validator_log(val, ISC_LOG_DEBUG(3), "resuming validate");
 	} else {
 		result = dns_rdataset_first(event->sigrdataset);
-		validator_log(val, ISC_LOG_DEBUG(3), "resuming validate");
 	}
 
 	for (;
@@ -838,11 +869,31 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
-		INSIST(val->key != NULL);
 
-		result = dns_dnssec_verify(event->name, event->rdataset,
-					   val->key, ISC_FALSE, val->view->mctx,
-					   &rdata);
+		if (val->key == NULL) {
+			event->rdataset->trust = dns_trust_answer;
+			event->sigrdataset->trust = dns_trust_answer;
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "marking as answer");
+			return (ISC_R_SUCCESS);
+
+		}
+
+		while (result == ISC_R_SUCCESS) {
+			result = dns_dnssec_verify(event->name,
+						   event->rdataset,
+						   val->key, ISC_FALSE,
+						   val->view->mctx, &rdata);
+			if (result == ISC_R_SUCCESS || val->keynode != NULL)
+				break;
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "key failed to verify rdataset");
+			result = get_dst_key(val, val->siginfo,
+					     event->rdataset);
+		};
+		if (result != ISC_R_SUCCESS)
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "failed to verify rdataset");
 		if (val->keynode != NULL)
 			dns_keytable_detachkeynode(val->keytable,
 						   &val->keynode);
@@ -896,8 +947,14 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			val->currentset = NULL;
 			resume = ISC_FALSE;
 		}
-		else
+		else {
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link))
+				rdataset->trust = dns_trust_pending;
+
 			rdataset = ISC_LIST_HEAD(name->list);
+		}
 
 		for (;
 		     rdataset != NULL;
