@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.15 2000/12/06 00:30:06 tale Exp $ */
+/* $Id: print.c,v 1.16 2000/12/26 21:00:41 tale Exp $ */
 
 #include <config.h>
 
@@ -23,15 +23,13 @@
 #include <stdio.h>		/* for sprintf */
 #include <stdlib.h>
 
+#define	ISC__PRINT_SOURCE	/* Used to get the isc_print_* prototypes. */
+
 #include <isc/assertions.h>
+#include <isc/int.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
-#include <isc/platform.h>
 #include <isc/util.h>
-
-#ifndef ISC_PLATFORM_NEEDVSNPRINTF
-#error ISC_PLATFORM_NEEDVSPRINTF needs to be defined to compile this file.
-#endif
 
 /*
  * Return length of string that would have been written if not truncated.
@@ -65,16 +63,16 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	int space;
 	int neg;
 	long long tmpi;
-	unsigned long long tmpui;
+	isc_uint64_t tmpui;
 	unsigned long width;
 	unsigned long precision;
 	unsigned int length;
 	char buf[1024];
-	char *cp;
-	char *save = str;
 	char c;
 	void *v;
-	char *head;
+	char *save = str;
+	const char *cp;
+	const char *head;
 	int count = 0;
 	int pad;
 	int zeropad;
@@ -217,7 +215,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			case 'i':
 			case 'd':
 				if (q)
-					tmpi = va_arg(ap, long long);
+					tmpi = va_arg(ap, isc_int64_t);
 				else if (l)
 					tmpi = va_arg(ap, long int);
 				else
@@ -239,7 +237,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				goto printint;
 			case 'o':
 				if (q)
-					tmpui = va_arg(ap, unsigned long long);
+					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, long int);
 				else
@@ -251,7 +249,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				goto printint;
 			case 'u':
 				if (q)
-					tmpui = va_arg(ap, unsigned long long);
+					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else
@@ -261,7 +259,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				goto printint;
 			case 'x':
 				if (q)
-					tmpui = va_arg(ap, unsigned long long);
+					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else
@@ -276,7 +274,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				goto printint;
 			case 'X':
 				if (q)
-					tmpui = va_arg(ap, unsigned long long);
+					tmpui = va_arg(ap, isc_uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else
@@ -345,7 +343,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				/*
 				 * cp need not be NULL terminated.
 				 */
-				char *tp;
+				const char *tp;
 				unsigned long n;
 
 				n = precision;
@@ -495,7 +493,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			 * MAX 1.7976931348623157E+308
 			 * VAX floating point has a smaller range than IEEE.
 			 *
-			 * precisions > 324 don't make much sence.
+			 * precisions > 324 don't make much sense.
 			 * if we cap the precision at 512 we will not
 			 * overflow buf.
 			 */

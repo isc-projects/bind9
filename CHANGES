@@ -1,4 +1,9 @@
 
+ 637.	[port]		Use isc_u?int64_t instead of (unsigned) long long in
+			lib/isc/print.c.  Also allow lib/isc/print.c to
+			be compiled even if the platform does not need it.
+			[RT #592]
+
  636.	[port]		Shut up MSVC++ about a possible loss of precision
 			in the ISC__BUFFER_PUTUINT*() macros. [RT #592]
 
@@ -24,11 +29,11 @@
  628.	[bug]		If the root hints contained only AAAA addresses,
 			named would be unable to perform resolution.
 
- 627.	[bug]		The EDNS0 blackhole detection code of 324. waited
-			for three retransmissions to each server, which
-			takes much too long when a domain has many name
-			servers and all of them drop EDNS0 queries.  Now
-			we retry without EDNS0 after three consecutive
+ 627.	[bug]		The EDNS0 blackhole detection code of changed 324
+			waited for three retransmissions to each server,
+			which takes much too long when a domain has many
+			name servers and all of them drop EDNS0 queries.
+			Now we retry without EDNS0 after three consecutive
 			timeouts, even if they are all from different
 			servers. [RT #143]
 

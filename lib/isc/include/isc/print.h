@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.h,v 1.11 2000/11/14 23:40:31 tale Exp $ */
+/* $Id: print.h,v 1.12 2000/12/26 21:00:40 tale Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
@@ -27,6 +27,16 @@
 #include <isc/formatcheck.h>    /* Required for ISC_FORMAT_PRINTF() macro. */
 #include <isc/lang.h>
 #include <isc/platform.h>
+
+/*
+ * This block allows lib/isc/print.c to be cleanly compiled even if
+ * the platform does not need it.  The standard Makefile will still
+ * not compile print.c or archive print.o, so this is just to make test
+ * compilation ("make print.o") easier.
+ */
+#if !defined(ISC_PLATFORM_NEEDVSNPRINTF) && define(ISC__PRINT_SOURCE)
+#define ISC_PLATFORM_NEEDVSNPRINTF
+#endif
 
 /***
  *** Macros
