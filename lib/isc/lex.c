@@ -382,7 +382,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		}
 
 		if (lex->comment_ok && !no_comments) {
-			if (c == ';' &&
+			if (!escaped && c == ';' &&
 			    ((lex->comments & ISC_LEXCOMMENT_DNSMASTERFILE)
 			     != 0)) {
 				saved_state = state;
@@ -440,7 +440,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				if ((options & ISC_LEXOPT_EOL) != 0)
 					state = lexstate_crlf;
 			} else if (c == '"' &&
-				   (options & ISC_LEXOPT_QSTRING)) {
+				   (options & ISC_LEXOPT_QSTRING) != 0) {
 				lex->last_was_eol = ISC_FALSE;
 				no_comments = ISC_TRUE;
 				state = lexstate_qstring;
@@ -466,7 +466,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				tokenp->value.as_char = c;
 				done = ISC_TRUE;
 			} else if (isdigit(c) &&
-				   (options & ISC_LEXOPT_NUMBER)) {
+				   (options & ISC_LEXOPT_NUMBER) != 0) {
 				lex->last_was_eol = ISC_FALSE;
 				state = lexstate_number;
 				goto no_read;
@@ -524,8 +524,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				return (ISC_R_NOSPACE);
 			break;
 		case lexstate_string:
-			if (c == ' ' || c == '\t' || c == '\r' || c == '\n' ||
-			    c == EOF || lex->specials[c]) {
+			if ((!escaped &&
+			     (c == ' ' || c == '\t' || lex->specials[c])) ||
+			    c == '\r' || c == '\n' || c == EOF) {
 				INSIST(source->char_count < 2);
 				source->chars[source->char_count++] = c;
 				tokenp->type = isc_tokentype_string;
@@ -535,6 +536,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				done = ISC_TRUE;
 				continue;
 			}
+			if ((options & ISC_LEXOPT_ESCAPE) != 0)
+				escaped = (!escaped && c == '\\') ?
+						ISC_TRUE : ISC_FALSE;
 			if (remaining > 0) {
 				*curr++ = c;
 				*curr = 0;

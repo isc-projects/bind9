@@ -74,6 +74,7 @@ ISC_LANG_BEGINDECLS
 #define ISC_LEXOPT_INITIALWS		0x04	/* Want initial whitespace. */
 #define ISC_LEXOPT_NUMBER		0x08	/* Recognize numbers. */
 #define ISC_LEXOPT_QSTRING		0x10	/* Recognize qstrings. */
+#define ISC_LEXOPT_ESCAPE		0x20	/* Recognize escapes. */
 /*
  * The ISC_LEXOPT_DNSMULTILINE option handles the processing of '(' and ')' in
  * the DNS master file format.  If this option is set, then the
