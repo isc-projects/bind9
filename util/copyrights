@@ -1064,7 +1064,6 @@
 ./util/COPYRIGHT.BRIEF				X	1996,1997,1998,1999,2000
 ./util/COPYRIGHT.NAI				X	1996,1997,1998,1999,2000
 ./util/COPYRIGHT.PORTION			X	1996,1997,1998,1999,2000
-./util/Makefile.in				MAKE	2000
 ./util/check-includes.pl			PERL	2000
 ./util/check-instincludes.sh			SH	2000
 ./util/check-sources.pl				PERL	2000
