@@ -38,6 +38,9 @@
  *
  * It declares ntoh[sl]() and hton[sl]().
  *
+ * It declares inet_aton(), inet_ntop(), and inet_pton() if they are
+ * available on the system.
+ *
  * MP:
  *	No impact.
  *
@@ -84,6 +87,7 @@
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <isc/result.h>
 
