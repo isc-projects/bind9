@@ -29,8 +29,6 @@
 #include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/region.h>
-#include <isc/int.h>
-#include <isc/list.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -56,7 +54,6 @@ typedef isc_uint16_t				dns_rcode_t;
 typedef isc_uint16_t				dns_opcode_t;
 typedef isc_uint16_t				dns_cert_t;
 typedef isc_uint32_t				dns_ttl_t;
-typedef isc_uint64_t				dns_bitset_t;
 typedef struct dns_rdata			dns_rdata_t;
 typedef struct dns_rdatalist			dns_rdatalist_t;
 typedef struct dns_signature			dns_signature_t;
@@ -235,20 +232,6 @@ typedef isc_result_t
 
 typedef void
 (*dns_xfrindone_t)(dns_zone_t *, isc_result_t);
-
-
-#ifndef DNS_SETBIT
-
-/* XXXJAB there must be a better file for these. */
-
-#define DNS_SETBIT(bit, bitset) \
-     (*(bitset) |= ((dns_bitset_t)1 << (bit)))
-#define DNS_CLEARBIT(bit, bitset) \
-     (*(bitset) &= ~((dns_bitset_t)1 << (bit)))
-#define DNS_CHECKBIT(bit, bitset) \
-     ISC_TF((*(bitset) & ((dns_bitset_t)1 << (bit))) == ((dns_bitset_t)1 << (bit)))
-
-#endif
 
 ISC_LANG_ENDDECLS
 

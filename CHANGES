@@ -1,4 +1,8 @@
- 107.   [func]		Add keysigner and keysettool
+ 108.   [cleanup]       DNS_SETBIT/DNS_GETBIT/DNS_CLEARBIT moved from
+                        <dns/types.h> to <dns/bit.h> and renamed to
+                        DNS_BIT_SET/DNS_BIT_GET/DNS_BIT_CLEAR.
+
+ 107.   [func]		Add keysigner and keysettool.
 
  106.   [func]		Allow dnssec verifications to ignore the validity
 			period.  Used by several of the dnssec tools.

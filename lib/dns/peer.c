@@ -25,10 +25,10 @@
 #include <isc/magic.h>
 #include <isc/net.h>
 
+#include <dns/bit.h>
 #include <dns/name.h>
-#include <dns/types.h>
 #include <dns/peer.h>
-
+#include <dns/types.h>
 
 /*
  * Bit positions in the dns_peer_t structure flags field
@@ -39,12 +39,14 @@
 #define PROVIDE_IXFR_BIT		3
 #define REQUEST_IXFR_BIT		4
 
-static isc_result_t dns_peerlist_delete(dns_peerlist_t **list);
-static isc_result_t dns_peer_delete(dns_peer_t **peer);
+static isc_result_t
+dns_peerlist_delete(dns_peerlist_t **list);
+
+static isc_result_t
+dns_peer_delete(dns_peer_t **peer);
 
 isc_result_t
-dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list)
-{
+dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {
 	dns_peerlist_t *l;
 	
 	REQUIRE(list != NULL);
@@ -66,8 +68,7 @@ dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list)
 
 
 void
-dns_peerlist_attach(dns_peerlist_t *source, dns_peerlist_t **target)
-{
+dns_peerlist_attach(dns_peerlist_t *source, dns_peerlist_t **target) {
 	REQUIRE(DNS_PEERLIST_VALID(source));
 	REQUIRE(target != NULL);
 	REQUIRE(*target == NULL);
@@ -79,10 +80,8 @@ dns_peerlist_attach(dns_peerlist_t *source, dns_peerlist_t **target)
 	*target = source;
 }
 
-
 void
-dns_peerlist_detach(dns_peerlist_t **list)
-{
+dns_peerlist_detach(dns_peerlist_t **list) {
 	dns_peerlist_t *plist;
 	
 	REQUIRE(list != NULL);
@@ -102,12 +101,11 @@ dns_peerlist_detach(dns_peerlist_t **list)
 }
 
 static isc_result_t
-dns_peerlist_delete(dns_peerlist_t **list)
-{
+dns_peerlist_delete(dns_peerlist_t **list) {
 	dns_peerlist_t *l;
 	dns_peer_t *server, *stmp;
 	isc_result_t r;
-	
+
 	REQUIRE(list != NULL);
 	REQUIRE(DNS_PEERLIST_VALID(*list));
 	
@@ -135,19 +133,15 @@ dns_peerlist_delete(dns_peerlist_t **list)
 	return (ISC_R_SUCCESS);
 }
 
-
 void
-dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer)
-{
+dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer) {
 	dns_peer_t *p = NULL;
 
 	dns_peer_attach(peer, &p);
 	
 	ISC_LIST_APPEND(peers->elements, peer, next);
 }
-
 	
-
 isc_result_t
 dns_peerlist_peerbyaddr(dns_peerlist_t *servers,
 			isc_netaddr_t *addr, dns_peer_t **retval)
@@ -180,8 +174,7 @@ dns_peerlist_peerbyaddr(dns_peerlist_t *servers,
 
 
 isc_result_t
-dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval)
-{
+dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval) {
 	dns_peer_t *p = NULL;
 
 	p = ISC_LIST_TAIL(peers->elements);
@@ -190,16 +183,9 @@ dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval)
 
 	return (ISC_R_SUCCESS);
 }
-
 	
-
-
-
-
-
 isc_result_t
-dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr)
-{
+dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
 	dns_peer_t *peer;
 	
 	REQUIRE(peerptr != NULL);
@@ -230,8 +216,7 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr)
 }
 
 isc_result_t
-dns_peer_attach(dns_peer_t *source, dns_peer_t **target)
-{
+dns_peer_attach(dns_peer_t *source, dns_peer_t **target) {
 	REQUIRE(DNS_PEER_VALID(source));
 	REQUIRE(target != NULL);
 	REQUIRE(*target == NULL);
@@ -245,10 +230,8 @@ dns_peer_attach(dns_peer_t *source, dns_peer_t **target)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_peer_detach(dns_peer_t **peer)
-{
+dns_peer_detach(dns_peer_t **peer) {
 	dns_peer_t *p;
 	
 	REQUIRE(peer != NULL);
@@ -269,10 +252,8 @@ dns_peer_detach(dns_peer_t **peer)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-dns_peer_delete(dns_peer_t **peer)
-{
+dns_peer_delete(dns_peer_t **peer) {
 	dns_peer_t *p;
 	isc_mem_t *mem;
 	
@@ -299,64 +280,53 @@ dns_peer_delete(dns_peer_t **peer)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval)
-{
+dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_PEER_VALID(peer));
 	
-	existed = DNS_CHECKBIT(BOGUS_BIT, &peer->bitflags);
+	existed = DNS_BIT_CHECK(BOGUS_BIT, &peer->bitflags);
 	
 	peer->bogus = newval;
-	DNS_SETBIT(BOGUS_BIT, &peer->bitflags);
+	DNS_BIT_SET(BOGUS_BIT, &peer->bitflags);
 	
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_peer_getbogus(dns_peer_t *peer,
-		  isc_boolean_t *retval)
-{
+dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 	
-	if (DNS_CHECKBIT(BOGUS_BIT, &peer->bitflags)) {
+	if (DNS_BIT_CHECK(BOGUS_BIT, &peer->bitflags)) {
 		*retval = peer->bogus;
 		return (ISC_R_SUCCESS);
-	} else {
+	} else
 		return (ISC_R_NOTFOUND);
-	}
 }
 
 
 isc_result_t
-dns_peer_setprovideixfr(dns_peer_t *peer,
-			isc_boolean_t newval)
-{
+dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_PEER_VALID(peer));
 	
-	existed = DNS_CHECKBIT(PROVIDE_IXFR_BIT, &peer->bitflags);
+	existed = DNS_BIT_CHECK(PROVIDE_IXFR_BIT, &peer->bitflags);
 	
 	peer->provide_ixfr = newval;
-	DNS_SETBIT(PROVIDE_IXFR_BIT, &peer->bitflags);
+	DNS_BIT_SET(PROVIDE_IXFR_BIT, &peer->bitflags);
 	
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_peer_getprovideixfr(dns_peer_t *peer,
-			isc_boolean_t *retval)
-{
+dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 	
-	if (DNS_CHECKBIT(PROVIDE_IXFR_BIT, &peer->bitflags)) {
+	if (DNS_BIT_CHECK(PROVIDE_IXFR_BIT, &peer->bitflags)) {
 		*retval = peer->provide_ixfr;
 		return (ISC_R_SUCCESS);
 	} else {
@@ -364,65 +334,52 @@ dns_peer_getprovideixfr(dns_peer_t *peer,
 	}
 }
 
-
 isc_result_t
-dns_peer_setrequestixfr(dns_peer_t *peer,
-			isc_boolean_t newval)
-{
+dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_PEER_VALID(peer));
 	
-	existed = DNS_CHECKBIT(REQUEST_IXFR_BIT, &peer->bitflags);
+	existed = DNS_BIT_CHECK(REQUEST_IXFR_BIT, &peer->bitflags);
 	
 	peer->request_ixfr = newval;
-	DNS_SETBIT(REQUEST_IXFR_BIT, &peer->bitflags);
+	DNS_BIT_SET(REQUEST_IXFR_BIT, &peer->bitflags);
 	
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_peer_getrequestixfr(dns_peer_t *peer,
-			isc_boolean_t *retval)
-{
+dns_peer_getrequestixfr(dns_peer_t *peer, isc_boolean_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 	
-	if (DNS_CHECKBIT(REQUEST_IXFR_BIT, &peer->bitflags)) {
+	if (DNS_BIT_CHECK(REQUEST_IXFR_BIT, &peer->bitflags)) {
 		*retval = peer->request_ixfr;
 		return (ISC_R_SUCCESS);
-	} else {
+	} else
 		return (ISC_R_NOTFOUND);
-	}
 }
 
-
 isc_result_t
-dns_peer_settransfers(dns_peer_t *peer,
-		      isc_int32_t newval)
-{
+dns_peer_settransfers(dns_peer_t *peer, isc_int32_t newval) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_PEER_VALID(peer));
 	
-	existed = DNS_CHECKBIT(TRANSFERS_BIT, &peer->bitflags);
+	existed = DNS_BIT_CHECK(TRANSFERS_BIT, &peer->bitflags);
 	
 	peer->transfers = newval;
-	DNS_SETBIT(TRANSFERS_BIT, &peer->bitflags);
+	DNS_BIT_SET(TRANSFERS_BIT, &peer->bitflags);
 	
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_peer_gettransfers(dns_peer_t *peer,
-		      isc_int32_t *retval)
-{
+dns_peer_gettransfers(dns_peer_t *peer, isc_int32_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 	
-	if (DNS_CHECKBIT(TRANSFERS_BIT, &peer->bitflags)) {
+	if (DNS_BIT_CHECK(TRANSFERS_BIT, &peer->bitflags)) {
 		*retval = peer->transfers;
 		return (ISC_R_SUCCESS);
 	} else {
@@ -430,33 +387,27 @@ dns_peer_gettransfers(dns_peer_t *peer,
 	}
 }
 
-
 isc_result_t
-dns_peer_settransferformat(dns_peer_t *peer,
-			   dns_transfer_format_t newval)
-{
+dns_peer_settransferformat(dns_peer_t *peer, dns_transfer_format_t newval) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_PEER_VALID(peer));
 	
-	existed = DNS_CHECKBIT(SERVER_TRANSFER_FORMAT_BIT,
+	existed = DNS_BIT_CHECK(SERVER_TRANSFER_FORMAT_BIT,
 				 &peer->bitflags);
 	
 	peer->transfer_format = newval;
-	DNS_SETBIT(SERVER_TRANSFER_FORMAT_BIT, &peer->bitflags);
+	DNS_BIT_SET(SERVER_TRANSFER_FORMAT_BIT, &peer->bitflags);
 	
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_peer_gettransferformat(dns_peer_t *peer,
-			   dns_transfer_format_t *retval)
-{
+dns_peer_gettransferformat(dns_peer_t *peer, dns_transfer_format_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 	
-	if (DNS_CHECKBIT(SERVER_TRANSFER_FORMAT_BIT, &peer->bitflags)) {
+	if (DNS_BIT_CHECK(SERVER_TRANSFER_FORMAT_BIT, &peer->bitflags)) {
 		*retval = peer->transfer_format;
 		return (ISC_R_SUCCESS);
 	} else {
@@ -464,10 +415,8 @@ dns_peer_gettransferformat(dns_peer_t *peer,
 	}
 }
 
-
 isc_result_t
-dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval)
-{
+dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -478,12 +427,8 @@ dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval)
 	return (peer->key == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
 
-
-
-
 isc_result_t
-dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval)
-{
+dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval) {
 	isc_boolean_t exists = ISC_FALSE;
 
 	if (peer->key != NULL) {
