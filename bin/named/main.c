@@ -30,6 +30,7 @@
 #include <isc/timer.h>
 
 #include <dns/dbtable.h>
+#include <dns/tsig.h>
 #include <dns/result.h>
 
 #include <dst/result.h>
