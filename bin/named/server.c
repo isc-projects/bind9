@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.301 2001/03/08 01:38:39 tale Exp $ */
+/* $Id: server.c,v 1.302 2001/03/09 19:07:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -115,9 +115,8 @@ ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 static isc_result_t
-configure_forward(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
-		  dns_view_t *view, dns_name_t *origin,
-		  cfg_obj_t *forwarders);
+configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
+		  cfg_obj_t *forwarders, cfg_obj_t *forwardtype);
 
 static isc_result_t
 configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
@@ -475,6 +474,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cfg_obj_t *cfgmaps[3];
 	cfg_obj_t *options = NULL;
 	cfg_obj_t *voptions = NULL;
+	cfg_obj_t *forwardtype;
 	cfg_obj_t *forwarders;
 	cfg_obj_t *zonelist;
 	cfg_obj_t *obj;
@@ -645,10 +645,12 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	/*
 	 * Set resolver forwarding policy.
 	 */
+	forwardtype = NULL;
 	forwarders = NULL;
+	(void)ns_config_get(maps, "forward", &forwardtype);
 	(void)ns_config_get(maps, "forwarders", &forwarders);
-	result = configure_forward(config, NULL, vconfig,
-				   view, dns_rootname, forwarders);
+	CHECK(configure_forward(config, view, dns_rootname, forwarders,
+				forwardtype));
 
 	/*
 	 * We have default hints for class IN if we need them.
@@ -1025,12 +1027,9 @@ configure_hints(dns_view_t *view, const char *filename) {
 }
 
 static isc_result_t
-configure_forward(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
-		  dns_view_t *view, dns_name_t *origin, cfg_obj_t *forwarders)
+configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
+		  cfg_obj_t *forwarders, cfg_obj_t *forwardtype)
 {
-	cfg_obj_t *obj;
-	cfg_obj_t *maps[5];
-	cfg_obj_t *options;
 	cfg_obj_t *portobj;
 	cfg_obj_t *faddresses;
 	cfg_listelt_t *element;
@@ -1039,21 +1038,6 @@ configure_forward(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	isc_sockaddr_t *sa;
 	isc_result_t result;
 	in_port_t port;
-	unsigned int i;
-
-	options = NULL;
-	if (config != NULL)
-		(void)cfg_map_get(config, "options", &options);
-
-	i = 0;
-	if (zconfig != NULL)
-		maps[i++] = cfg_tuple_get(zconfig, "options");
-	if (vconfig != NULL)
-		maps[i++] = cfg_tuple_get(vconfig, "options");
-	if (options != NULL)
-		maps[i++] = options;
-	maps[i++] = ns_g_defaults;
-	maps[i++] = NULL;
 
 	/*
 	 * Determine which port to send forwarded requests to.
@@ -1096,21 +1080,24 @@ configure_forward(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		ISC_LIST_APPEND(addresses, sa, link);
 	}
 
-	if (ISC_LIST_EMPTY(addresses))
+	if (ISC_LIST_EMPTY(addresses)) {
+		if (forwardtype != NULL)
+			cfg_obj_log(forwarders, ns_g_lctx, ISC_LOG_WARNING,
+				    "no forwarders seen; disabling "
+				    "forwarding");
 		fwdpolicy = dns_fwdpolicy_none;
-	else
-		fwdpolicy = dns_fwdpolicy_first;
-
-	obj = NULL;
-	result = ns_config_get(maps, "forward", &obj);
-	if (result == ISC_R_SUCCESS) {
-		char *forwardstr = cfg_obj_asstring(obj);
-		if (strcasecmp(forwardstr, "first") == 0)
+	} else {
+		if (forwardtype == NULL)
 			fwdpolicy = dns_fwdpolicy_first;
-		else if (strcasecmp(forwardstr, "only") == 0)
-			fwdpolicy = dns_fwdpolicy_only;
-		else
-			INSIST(0);
+		else {
+			char *forwardstr = cfg_obj_asstring(forwardtype);
+			if (strcasecmp(forwardstr, "first") == 0)
+				fwdpolicy = dns_fwdpolicy_first;
+			else if (strcasecmp(forwardstr, "only") == 0)
+				fwdpolicy = dns_fwdpolicy_only;
+			else
+				INSIST(0);
+		}
 	}
 
 	result = dns_fwdtable_add(view->fwdtable, origin, &addresses,
@@ -1186,6 +1173,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	cfg_obj_t *zoptions = NULL;
 	cfg_obj_t *typeobj = NULL;
 	cfg_obj_t *forwarders = NULL;
+	cfg_obj_t *forwardtype = NULL;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
@@ -1268,11 +1256,13 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	 * the appropriate selective forwarding configuration and return.
 	 */
 	if (strcasecmp(ztypestr, "forward") == 0) {
+		forwardtype = NULL;
 		forwarders = NULL;
 
-		cfg_map_get(zoptions, "forwarders", &forwarders);
-		result = configure_forward(config, zconfig, vconfig,
-					   view, origin, forwarders);
+		(void)cfg_map_get(zoptions, "forward", &forwardtype);
+		(void)cfg_map_get(zoptions, "forwarders", &forwarders);
+		result = configure_forward(config, view, origin, forwarders,
+					   forwardtype);
 		goto cleanup;
 	}
 
@@ -1333,13 +1323,17 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	}
 
 	/*
-	 * If the zone contains 'forward' or 'forwarders' statements,
-	 * configure selective forwarding.
+	 * If the zone contains a 'forwarders' statement, configure
+	 * selective forwarding.
 	 */
 	forwarders = NULL;
-	if (cfg_map_get(zoptions, "forward", &forwarders) == ISC_R_SUCCESS)
-		CHECK(configure_forward(config, zconfig, vconfig,
-					view, origin, forwarders));
+	if (cfg_map_get(zoptions, "forwarders", &forwarders) == ISC_R_SUCCESS)
+	{
+		forwardtype = NULL;
+		cfg_map_get(zoptions, "forward", &forwardtype);
+		CHECK(configure_forward(config, view, origin, forwarders,
+					forwardtype));
+	}
 
 	/*
 	 * Configure the zone.

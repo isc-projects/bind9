@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.8 2001/03/08 00:55:49 bwelling Exp $ */
+/* $Id: check.c,v 1.9 2001/03/09 19:07:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,22 @@
 
 #include <isccfg/cfg.h>
 #include <isccfg/check.h>
+
+static isc_result_t
+check_forward(cfg_obj_t *options, isc_log_t *logctx) {
+	cfg_obj_t *forward = NULL;
+	cfg_obj_t *forwarders = NULL;
+
+	(void)cfg_map_get(options, "forward", &forward);
+	(void)cfg_map_get(options, "forwarders", &forwarders);
+
+	if (forward != NULL && forwarders == NULL) {
+		cfg_obj_log(forward, logctx, ISC_LOG_ERROR,
+			    "no matching 'forwarders' statement");
+		return (ISC_R_FAILURE);
+	}
+	return (ISC_R_SUCCESS);
+}
 
 #define MASTERZONE	1
 #define SLAVEZONE	2
@@ -219,6 +235,12 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 		}
 	}
 
+	/*
+	 * Check that forwarding is reasonable.
+	 */
+	if (check_forward(zoptions, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
+
 	return (result);
 }
 
@@ -231,15 +253,14 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 	cfg_listelt_t *element;
 	isc_symtab_t *symtab = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
-
-	UNUSED(vname);
+	isc_result_t tresult = ISC_R_SUCCESS;
 
 	/*
 	 * Check that all zone statements are syntactically correct and
 	 * there are no duplicate zones.
 	 */
-	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
-	if (result != ISC_R_SUCCESS)
+	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
 	(void)cfg_map_get(vconfig, "zone", &zones);
@@ -259,8 +280,8 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 	 * Check that all key statements are syntactically correct and
 	 * there are no duplicate keys.
 	 */
-	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
-	if (result != ISC_R_SUCCESS)
+	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
 	(void)cfg_map_get(vconfig, "key", &keys);
@@ -273,7 +294,6 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 		cfg_obj_t *algobj = NULL;
 		cfg_obj_t *secretobj = NULL;
 		isc_symvalue_t symvalue;
-		isc_result_t tresult;
 		
 		symvalue.as_pointer = NULL;
 		tresult = isc_symtab_define(symtab, keyname, 1,
@@ -299,6 +319,20 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 
 	isc_symtab_destroy(&symtab);
 
+	/*
+	 * Check that forwarding is reasonable.
+	 */
+	if (strcmp(vname, "_default") == 0) {
+		cfg_obj_t *options = NULL;
+		cfg_map_get(vconfig, "options", &options);
+		if (options != NULL)
+			if (check_forward(options, logctx) != ISC_R_SUCCESS)
+				result = ISC_R_FAILURE;
+	} else {
+		if (check_forward(vconfig, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+	}
+
 	return (result);
 }
 
@@ -310,6 +344,7 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	cfg_obj_t *obj;
 	cfg_listelt_t *velement;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
 
 	(void)cfg_map_get(config, "options", &options);
 
@@ -355,19 +390,20 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 	if (views != NULL && options != NULL) {
 		obj = NULL;
-		result = cfg_map_get(options, "cache-file", &obj);
-		if (result == ISC_R_SUCCESS) {
+		tresult = cfg_map_get(options, "cache-file", &obj);
+		if (tresult == ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'cache-file' cannot be a global "
 				    "option if views are present");
 			result = ISC_R_FAILURE;
 		}
-		result = ISC_R_SUCCESS;
 	}
 
 	if (options != NULL) {
-		isc_result_t tresult;
-
+		/*
+		 * Check that max-cache-size does not have the illegal value
+		 * 'default'.
+		 */
 		obj = NULL;
 		tresult = cfg_map_get(options, "max-cache-size", &obj);
 		if (tresult == ISC_R_SUCCESS &&
