@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.14 2000/08/01 01:30:33 tale Exp $ */
+/* $Id: platform.h.in,v 1.15 2000/08/28 23:51:09 gson Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -114,6 +114,11 @@
  * Defined if sizeof(long long int) == sizeof(long int).
  */
 @ISC_PLATFORM_LONGLONGEQUALLONG@
+
+/*
+ * Defined if we are using threads.
+ */
+@ISC_PLATFORM_USETHREADS@
 
 /*
  * Tell emacs to use C mode for this file.
