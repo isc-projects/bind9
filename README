@@ -97,8 +97,8 @@ BIND 9.0.1
 		like "fcntl(8, F_SETFL, 4): Inappropriate ioctl for
 		device".  This is due to a bug in the FreeBSD
 		/dev/random device.  The bug has been reported
-		to the FreeBSD maintainers.  A similar problem is
-		reported to exist on OpenBSD.
+		to the FreeBSD maintainers.  Versions of OpenBSD
+		prior to 2.8 have a similar problem.
 
 		The configure option --disable-ipv6 is not functional.
 
@@ -125,7 +125,7 @@ Building
 	of the following systems:
 
 		Slackware Linux 7.0 with 2.4.0-test6 kernel and glibc 2.1.3
-		OpenBSD 2.6, 2.8
+		OpenBSD 2.6, 2.8, -current
 
 	To build, just
 
