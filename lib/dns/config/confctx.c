@@ -731,8 +731,8 @@ dns_c_ctx_settkeydomain(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_ctx_settkeydhkey(isc_log_t *lctx,
-		       dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_settkeydhkey(isc_log_t *lctx, dns_c_ctx_t *cfg,
+		       const char *charval, isc_int32_t intval)
 {
 	isc_result_t res;
 	
@@ -742,10 +742,11 @@ dns_c_ctx_settkeydhkey(isc_log_t *lctx,
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	
+
+	cfg->options->tkeydhkeyi = intval;
 	return (cfg_set_string(lctx, cfg->options,
-			       &cfg->options->tkeydhkey,
-			       newval));
+			       &cfg->options->tkeydhkeycp,
+			       charval));
 }
 
 
@@ -1956,13 +1957,16 @@ dns_c_ctx_gettkeydomain(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_ctx_gettkeydhkey(isc_log_t *lctx,
-		       dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_gettkeydhkey(isc_log_t *lctx, dns_c_ctx_t *cfg,
+		       char **charpval, isc_int32_t *intval)
 {
+	isc_result_t res;
+	
 	(void) lctx;
 	
 	REQUIRE(DNS_CONFCTX_VALID(cfg));
-	REQUIRE(retval != NULL);
+	REQUIRE(charpval != NULL);
+	REQUIRE(intval != NULL);
 
 	if (cfg->options == NULL) {
 		return (ISC_R_NOTFOUND);
@@ -1970,9 +1974,15 @@ dns_c_ctx_gettkeydhkey(isc_log_t *lctx,
 	
 	REQUIRE(DNS_CONFOPT_VALID(cfg->options));
 
-	*retval = cfg->options->tkeydhkey;
+	if (cfg->options->tkeydhkeycp == NULL) {
+		res = ISC_R_NOTFOUND;
+	} else {
+		*charpval = cfg->options->tkeydhkeycp;
+		*intval = cfg->options->tkeydhkeyi;
+		res = ISC_R_SUCCESS;
+	}
 
-	return (*retval == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	return (res);
 }
 
 
@@ -2883,7 +2893,8 @@ dns_c_ctx_optionsnew(isc_log_t *lctx,
 	opts->memstats_filename = NULL;
 	opts->named_xfer = NULL;
 	opts->tkeydomain = NULL;
-	opts->tkeydhkey = NULL;
+	opts->tkeydhkeycp = NULL;
+	opts->tkeydhkeyi = 0;
 
 	opts->mem = mem;
 	opts->magic = OPTION_MAGIC;
@@ -2994,8 +3005,8 @@ dns_c_ctx_optionsdelete(isc_log_t *lctx,
 		isc_mem_free(options->mem, options->tkeydomain);
 	}
 	
-	if (options->tkeydhkey != NULL) {
-		isc_mem_free(options->mem, options->tkeydhkey);
+	if (options->tkeydhkeycp != NULL) {
+		isc_mem_free(options->mem, options->tkeydhkeycp);
 	}
 
 	r = dns_c_ipmatchlist_delete(lctx, &options->queryacl);
@@ -3099,8 +3110,13 @@ dns_c_ctx_optionsprint(isc_log_t *lctx,
 	PRINT_CHAR_P(memstats_filename, "memstatistics-file");
 	PRINT_CHAR_P(named_xfer, "named-xfer");
 	PRINT_CHAR_P(tkeydomain, "tkey-domain");
-	PRINT_CHAR_P(tkeydhkey, "tkey-dhkey");
 
+	if (options->tkeydhkeycp != NULL) {
+		dns_c_printtabs(lctx, fp, indent + 1);
+		fprintf(fp, "tkey-dhkey \"%s\" %d ;\n",
+			options->tkeydhkeycp, options->tkeydhkeyi);
+	}
+	
 	PRINT_INTEGER(transfers_in, TRANSFERS_IN_BIT,
 		      "transfers-in", setflags1);
 	PRINT_INTEGER(transfers_per_ns, TRANSFERS_PER_NS_BIT,

@@ -85,8 +85,6 @@ struct dns_c_srv
 	int			transfers;
 	isc_boolean_t		support_ixfr;
 	dns_c_kidlist_t	       *keys;
-	char		       *tkeydomain;
-	char		       *tkeydhkey;
 
 	dns_c_setbits_t		bitflags;
 	
@@ -141,13 +139,5 @@ isc_result_t	dns_c_srv_settkeydomain(isc_log_t *lctx, dns_c_srv_t *server,
 					char *newval);
 isc_result_t	dns_c_srv_gettkeydomain(isc_log_t *lctx, dns_c_srv_t *server,
 					char **retval);
-
-isc_result_t	dns_c_srv_settkeydhkey(isc_log_t *lctx, dns_c_srv_t *server,
-				       char *newval);
-isc_result_t	dns_c_srv_gettkeydhkey(isc_log_t *lctx, dns_c_srv_t *server,
-				       char **retval);
-
-
-
 
 #endif /* DNS_CONFIG_CONFSERV_H */

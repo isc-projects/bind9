@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.13 1999/10/25 10:00:38 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.14 1999/10/26 15:25:36 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -450,9 +450,9 @@ option: /* Empty */
                 
                 isc_mem_free(memctx, $2);
         }
-        | L_TKEY_DHKEY L_QSTRING
+        | L_TKEY_DHKEY L_QSTRING L_INTEGER
         {
-                tmpres = dns_c_ctx_settkeydhkey(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_settkeydhkey(logcontext, currcfg, $2, $3);
                 
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining tkey-dhkey");
@@ -1961,47 +1961,6 @@ server_info: L_BOGUS yea_or_nay
                         }
                 }
         } key_list L_RBRACE
-	| L_TKEY_DOMAIN L_QSTRING
-        {
-		dns_c_srv_t *server;
-
-		INSIST(currcfg->servers != NULL);
-		server = ISC_LIST_TAIL(currcfg->servers->elements);
-		INSIST(server != NULL);
-
-		tmpres = dns_c_srv_settkeydomain(logcontext, server, $2);
-		
-                if (tmpres == ISC_R_EXISTS) {
-                        parser_error(ISC_FALSE, "Redefining tkey-domain");
-                } else if (tmpres != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE,
-				     "set tkey-domain error: %s: %s",
-                                     isc_result_totext(tmpres), $2);
-                        YYABORT;
-                }
-                
-                isc_mem_free(memctx, $2);
-        }
-        | L_TKEY_DHKEY L_QSTRING
-        {
-		dns_c_srv_t *server;
-
-		INSIST(currcfg->servers != NULL);
-		server = ISC_LIST_TAIL(currcfg->servers->elements);
-		INSIST(server != NULL);
-
-		tmpres = dns_c_srv_settkeydhkey(logcontext, server, $2);
-		
-                if (tmpres == ISC_R_EXISTS) {
-                        parser_error(ISC_FALSE, "Redefining tkey-dhkey");
-                } else if (tmpres != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE, "set tkey-dhkey error: %s: %s",
-                                     isc_result_totext(tmpres), $2);
-                        YYABORT;
-                }
-                
-                isc_mem_free(memctx, $2);
-        }
         ;
 
 /*
