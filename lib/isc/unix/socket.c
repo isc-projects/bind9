@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.174 2000/12/06 01:53:38 bwelling Exp $ */
+/* $Id: socket.c,v 1.175 2000/12/19 19:19:45 gson Exp $ */
 
 #include <config.h>
 
@@ -2434,11 +2434,11 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	dev->region = *region;
 	dev->ev_sender = task;
 
-	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 
 	/*
 	 * If the read queue is empty, try to do the I/O right now.
 	 */
+	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 	if (!was_empty)
 		goto queue;
 
