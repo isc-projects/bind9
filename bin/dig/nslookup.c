@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.36 2000/08/26 01:42:25 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.37 2000/09/01 21:54:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -153,15 +153,14 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
-
-	debug("dighost_dhutdown()");
+	debug("dighost_shutdown()");
 	isc_mutex_lock(&lock);
 	busy = ISC_FALSE;
 	debug("signalling out");
 	isc_condition_signal(&cond);
 	isc_mutex_unlock(&lock);
-
 }
+
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	UNUSED(bytes);
@@ -177,7 +176,6 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 	UNUSED(lookup);
 
 }
-
 
 static isc_result_t
 printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
@@ -712,7 +710,6 @@ flush_server_list(void) {
 		ISC_LIST_DEQUEUE(server_list, ps, link);
 		isc_mem_free(mctx, ps);
 	}
-
 }
 
 /*
@@ -908,4 +905,3 @@ main(int argc, char **argv) {
 
 	return (0);
 }
-
