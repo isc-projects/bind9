@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.23 2000/05/15 21:30:44 bwelling Exp $
+ * $Id: openssl_link.c,v 1.24 2000/06/02 18:57:46 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -37,240 +37,201 @@
 #include <openssl/dsa.h>
 #include <openssl/sha.h>
 
-static struct dst_func openssl_functions;
+static isc_result_t openssldsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
-dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
-		 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx);
+openssldsa_createctx(dst_key_t *key, dst_context_t *dctx) {
+	SHA_CTX *ctx;
 
-static isc_result_t
-dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
-		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx);
+	UNUSED(key);
 
-static isc_boolean_t
-dst_openssl_compare(const dst_key_t *key1, const dst_key_t *key2);
-
-static isc_result_t
-dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx);
-
-static isc_boolean_t
-dst_openssl_isprivate(const dst_key_t *key);
+	ctx = isc_mem_get(dctx->mctx, sizeof(SHA_CTX));
+	if (ctx == NULL)
+		return (ISC_R_NOMEMORY);
+	SHA1_Init(ctx);
+	dctx->opaque = ctx;
+	return (ISC_R_SUCCESS);
+}
 
 static void
-dst_openssl_destroy(void *key, isc_mem_t *mctx);
+openssldsa_destroyctx(dst_context_t *dctx) {
+	SHA_CTX *ctx = dctx->opaque;
+
+	isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
+}
 
 static isc_result_t
-dst_openssl_to_dns(const dst_key_t *in_key, isc_buffer_t *data);
+openssldsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
+	SHA_CTX *ctx = dctx->opaque;
 
-static isc_result_t
-dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx);
-
-static isc_result_t
-dst_openssl_to_file(const dst_key_t *key);
-
-static isc_result_t
-dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx);
-
+	SHA1_Update(ctx, data->base, data->length);
+	return (ISC_R_SUCCESS);
+}
+	
 static int
-BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size);
+BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size) {
+	int bytes = size - BN_num_bytes(bn);
+	while (bytes-- > 0)
+		*buf++ = 0;
+	BN_bn2bin(bn, buf);
+	return (size);
+}	
 
-/*
- * dst_s_openssldsa_init()
- * Sets up function pointers for OpenSSL related functions 
- */
-void
-dst_s_openssldsa_init(void) {
-	REQUIRE(dst_t_func[DST_ALG_DSA] == NULL);
-	dst_t_func[DST_ALG_DSA] = &openssl_functions;
-	memset(&openssl_functions, 0, sizeof(struct dst_func));
-	openssl_functions.sign = dst_openssl_sign;
-	openssl_functions.verify = dst_openssl_verify;
-	openssl_functions.computesecret = NULL;
-	openssl_functions.compare = dst_openssl_compare;
-	openssl_functions.paramcompare = NULL;  /* is this useful for DSA? */
-	openssl_functions.generate = dst_openssl_generate;
-	openssl_functions.isprivate = dst_openssl_isprivate;
-	openssl_functions.destroy = dst_openssl_destroy;
-	openssl_functions.to_dns = dst_openssl_to_dns;
-	openssl_functions.from_dns = dst_openssl_from_dns;
-	openssl_functions.to_file = dst_openssl_to_file;
-	openssl_functions.from_file = dst_openssl_from_file;
-	CRYPTO_set_mem_functions(dst_mem_alloc, dst_mem_realloc, dst_mem_free);
-}
-
-/*
- * dst_openssl_sign
- *	Call OpenSSL signing functions to sign a block of data.
- *	There are three steps to signing, INIT (initialize structures), 
- *	UPDATE (hash (more) data), FINAL (generate a signature).  This
- *	routine performs one or more of these steps.
- * Parameters
- *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
- *	key		key to use for signing
- *	context		the context to use for this computation
- *	data		data to be signed
- *	signature	buffer to store signature
- *	mctx		memory context for temporary allocations
- * Returns 
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t
-dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
-		 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
-{
+openssldsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_region_t r;
-	SHA_CTX *ctx = NULL;
-	
-	if (mode & DST_SIGMODE_INIT) { 
-		ctx = (SHA_CTX *) isc_mem_get(mctx, sizeof(SHA_CTX));
-		if (ctx == NULL)
-			return (ISC_R_NOMEMORY);
-	}
-	else if (context != NULL) 
-		ctx = (SHA_CTX *) *context;
-	REQUIRE (ctx != NULL);
+	dst_key_t *key;
+	SHA_CTX *ctx;
+	DSA *dsa;
+	DSA_SIG *dsasig;
+	unsigned char digest[SHA_DIGEST_LENGTH];
 
-	if (mode & DST_SIGMODE_INIT)
-		SHA1_Init(ctx);
+	isc_buffer_availableregion(sig, &r);
+	if (r.length < SHA_DIGEST_LENGTH * 2 + 1)
+		return (ISC_R_NOSPACE);
 
-	if ((mode & DST_SIGMODE_UPDATE))
-		SHA1_Update(ctx, data->base, data->length);
+	ctx = dctx->opaque;
+	key = dctx->key;
+	dsa = key->opaque;
 
-	if (mode & DST_SIGMODE_FINAL) {
-		DSA *dsa;
-		DSA_SIG *dsasig;
-		unsigned char digest[SHA_DIGEST_LENGTH];
+	SHA1_Final(digest, ctx);
 
-		isc_buffer_availableregion(sig, &r);
-		if (r.length < SHA_DIGEST_LENGTH * 2 + 1)
-			return (ISC_R_NOSPACE);
+	dsasig = DSA_do_sign(digest, SHA_DIGEST_LENGTH, dsa);
+	if (dsasig == NULL)
+		return (DST_R_SIGNFAILURE);
 
-		dsa = key->opaque;
-
-		SHA1_Final(digest, ctx);
-		isc_mem_put(mctx, ctx, sizeof(SHA_CTX));
-
-		dsasig = DSA_do_sign(digest, SHA_DIGEST_LENGTH, dsa);
-		if (dsasig == NULL)
-			return (DST_R_SIGNFINALFAILURE);
-
-		*r.base++ = (key->key_size - 512)/64;
-		BN_bn2bin_fixed(dsasig->r, r.base, SHA_DIGEST_LENGTH);
-		r.base += SHA_DIGEST_LENGTH;
-		BN_bn2bin_fixed(dsasig->s, r.base, SHA_DIGEST_LENGTH);
-		r.base += SHA_DIGEST_LENGTH;
-		DSA_SIG_free(dsasig);
-		isc_buffer_add(sig, SHA_DIGEST_LENGTH * 2 + 1);
-	}
-	else
-		*context = ctx;
+	*r.base++ = (key->key_size - 512)/64;
+	BN_bn2bin_fixed(dsasig->r, r.base, SHA_DIGEST_LENGTH);
+	r.base += SHA_DIGEST_LENGTH;
+	BN_bn2bin_fixed(dsasig->s, r.base, SHA_DIGEST_LENGTH);
+	r.base += SHA_DIGEST_LENGTH;
+	DSA_SIG_free(dsasig);
+	isc_buffer_add(sig, SHA_DIGEST_LENGTH * 2 + 1);
 
 	return (ISC_R_SUCCESS);
 }
 
-
-/*
- * dst_openssl_verify 
- *	Calls OpenSSL verification routines.  There are three steps to 
- *	verification, INIT (initialize structures), UPDATE (hash (more) data), 
- *	FINAL (generate a signature).  This routine performs one or more of 
- *	these steps.
- * Parameters
- *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
- *	key		key to use for verifying
- *	context		the context to use for this computation
- *	data		signed data
- *	signature	signature
- *	mctx		memory context for temporary allocations
- * Returns 
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t
-dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
-		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
-{
+openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	int status = 0;
-	SHA_CTX *ctx = NULL;
-	
-	if (mode & DST_SIGMODE_INIT) { 
-		ctx = (SHA_CTX *) isc_mem_get(mctx, sizeof(SHA_CTX));
-		if (ctx == NULL)
-			return (ISC_R_NOMEMORY);
-	}
-	else if (context != NULL) 
-		ctx = (SHA_CTX *) *context;
-	REQUIRE (ctx != NULL);
+	dst_key_t *key;
+	SHA_CTX *ctx;
+	DSA *dsa;
+	DSA_SIG *dsasig;
+	unsigned char digest[SHA_DIGEST_LENGTH];
+	unsigned char *cp = sig->base;
 
-	if (mode & DST_SIGMODE_INIT)
-		SHA1_Init(ctx);
+	ctx = dctx->opaque;
+	key = dctx->key;
+	dsa = key->opaque;
 
-	if ((mode & DST_SIGMODE_UPDATE))
-		SHA1_Update(ctx, data->base, data->length);
+	SHA1_Final(digest, ctx);
 
-	if (mode & DST_SIGMODE_FINAL) {
-		DSA *dsa;
-		DSA_SIG *dsasig;
-		unsigned char digest[SHA_DIGEST_LENGTH];
-		unsigned char *cp = sig->base;
+	if (sig->length < 2 * SHA_DIGEST_LENGTH + 1)
+		return (DST_R_VERIFYFAILURE);
 
-		dsa = key->opaque;
+	cp++;	/* Skip T */
+	dsasig = DSA_SIG_new();
+	dsasig->r = BN_bin2bn(cp, SHA_DIGEST_LENGTH, NULL);
+	cp += SHA_DIGEST_LENGTH;
+	dsasig->s = BN_bin2bn(cp, SHA_DIGEST_LENGTH, NULL);
+	cp += SHA_DIGEST_LENGTH;
 
-		SHA1_Final(digest, ctx);
-		isc_mem_put(mctx, ctx, sizeof(SHA_CTX));
-
-		if (sig->length < 2 * SHA_DIGEST_LENGTH + 1)
-			return (DST_R_VERIFYFINALFAILURE);
-
-		cp++;	/* Skip T */
-		dsasig = DSA_SIG_new();
-		dsasig->r = BN_bin2bn(cp, SHA_DIGEST_LENGTH, NULL);
-		cp += SHA_DIGEST_LENGTH;
-		dsasig->s = BN_bin2bn(cp, SHA_DIGEST_LENGTH, NULL);
-		cp += SHA_DIGEST_LENGTH;
-
-		status = DSA_do_verify(digest, SHA_DIGEST_LENGTH, dsasig, dsa);
-		DSA_SIG_free(dsasig);
-		if (status == 0)
-			return (DST_R_VERIFYFINALFAILURE);
-	}
-	else
-		*context = ctx;
+	status = DSA_do_verify(digest, SHA_DIGEST_LENGTH, dsasig, dsa);
+	DSA_SIG_free(dsasig);
+	if (status == 0)
+		return (DST_R_VERIFYFAILURE);
 
 	return (ISC_R_SUCCESS);
 }
 
-
-/*
- * dst_openssl_isprivate
- *	Is this a private key?
- * Parameters
- *	key		DST KEY structure
- * Returns
- *	ISC_TRUE
- *	ISC_FALSE
- */
 static isc_boolean_t
-dst_openssl_isprivate(const dst_key_t *key) {
+openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
+	int status;
+	DSA *dsa1, *dsa2;
+
+	dsa1 = (DSA *) key1->opaque;
+	dsa2 = (DSA *) key2->opaque;
+
+	if (dsa1 == NULL && dsa2 == NULL) 
+		return (ISC_TRUE);
+	else if (dsa1 == NULL || dsa2 == NULL)
+		return (ISC_FALSE);
+
+	status = BN_cmp(dsa1->p, dsa2->p) ||
+		 BN_cmp(dsa1->q, dsa2->q) ||
+		 BN_cmp(dsa1->g, dsa2->g) ||
+		 BN_cmp(dsa1->pub_key, dsa2->pub_key);
+
+	if (status != 0)
+		return (ISC_FALSE);
+
+	if (dsa1->priv_key != NULL || dsa2->priv_key != NULL) {
+		if (dsa1->priv_key == NULL || dsa2->priv_key == NULL)
+			return (ISC_FALSE);
+		if (BN_cmp(dsa1->priv_key, dsa2->priv_key))
+			return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
+}
+
+static isc_result_t
+openssldsa_generate(dst_key_t *key, int unused) {
+	DSA *dsa;
+	unsigned char dns_array[DST_KEY_MAXSIZE];
+	unsigned char rand_array[SHA_DIGEST_LENGTH];
+	isc_buffer_t dns, rand;
+	isc_result_t result;
+	isc_region_t r;
+
+	UNUSED(unused);
+
+	isc_buffer_init(&rand, rand_array, sizeof(rand_array));
+	result = dst_random_get(SHA_DIGEST_LENGTH, &rand);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	dsa = DSA_generate_parameters(key->key_size, rand_array,
+				      SHA_DIGEST_LENGTH, NULL, NULL,
+				      NULL, NULL);
+
+	if (dsa == NULL)
+		return (ISC_R_NOMEMORY);
+
+	if (DSA_generate_key(dsa) == 0) {
+		DSA_free(dsa);
+		return (ISC_R_NOMEMORY);
+	}
+
+	key->opaque = dsa;
+
+	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
+	result = openssldsa_todns(key, &dns);
+	if (result != ISC_R_SUCCESS) {
+		DSA_free(dsa);
+		return (result);
+	}
+	isc_buffer_usedregion(&dns, &r);
+	key->key_id = dst_s_id_calc(r.base, r.length);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_boolean_t
+openssldsa_isprivate(const dst_key_t *key) {
 	DSA *dsa = (DSA *) key->opaque;
         return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
 }
 
+static void
+openssldsa_destroy(dst_key_t *key) {
+	DSA *dsa = key->opaque;
+	DSA_free(dsa);
+}
 
-/*
- * dst_openssl_to_dns
- *	Converts key from DSA to DNS distribution format
- * Parameters
- *	key		DST KEY structure
- *	data		output data
- * Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 
 static isc_result_t
-dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
+openssldsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	DSA *dsa;
 	isc_region_t r;
 	int dnslen;
@@ -306,22 +267,12 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	return (ISC_R_SUCCESS);
 }
 
-
-/*
- * dst_openssl_from_dns
- *	Converts from a DNS KEY RR format to a DSA KEY. 
- * Parameters
- *	key		Partially filled key structure
- *	data		Buffer containing key in DNS format
- * Return
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t
-dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
+openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	DSA *dsa;
 	isc_region_t r;
 	unsigned int t, p_bytes;
+	isc_mem_t *mctx = key->mctx;
 
 	UNUSED(mctx);
 
@@ -370,17 +321,8 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 }
 
 
-/*
- * dst_openssl_to_file
- *	Encodes a DSA Key into the portable file format.
- * Parameters 
- *	key		DST KEY structure 
- * Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t
-dst_openssl_to_file(const dst_key_t *key) {
+openssldsa_tofile(const dst_key_t *key) {
 	int cnt = 0;
 	DSA *dsa;
 	dst_private_t priv;
@@ -425,21 +367,8 @@ dst_openssl_to_file(const dst_key_t *key) {
 	return (dst_s_write_private_key_file(key, &priv));
 }
 
-
-/*
- * dst_openssl_from_file
- *	Converts contents of a private key file into a private DSA key. 
- * Parameters 
- *	key		Partially filled DSA KEY structure
- *	id		The key id
- *	path		The directory that the file will be read from
- * Return
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
-
 static isc_result_t 
-dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
+openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t dns;
@@ -447,6 +376,7 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	unsigned char dns_array[1024];
 	int i;
 	DSA *dsa = NULL;
+	isc_mem_t *mctx = key->mctx;
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
@@ -488,7 +418,7 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 
 	key->key_size = BN_num_bits(dsa->p);
 	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	ret = dst_openssl_to_dns(key, &dns);
+	ret = openssldsa_todns(key, &dns);
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 	isc_buffer_usedregion(&dns, &r);
@@ -500,124 +430,36 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	return (ISC_R_SUCCESS);
 
  err:
-	key->opaque = NULL;
-	dst_openssl_destroy(dsa, mctx);
+	openssldsa_destroy(key);
 	dst_s_free_private_structure_fields(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
 	return (ret);
 }
 
-/*
- * dst_openssl_destroy
- *	Frees all dynamically allocated structures in key.
- */
-static void
-dst_openssl_destroy(void *key, isc_mem_t *mctx) {
-	DSA *dsa = (DSA *) key;
+static struct dst_func openssldsa_functions = {
+	openssldsa_createctx,
+	openssldsa_destroyctx,
+	openssldsa_adddata,
+	openssldsa_sign,
+	openssldsa_verify,
+	NULL, /* digest */
+	NULL, /* computesecret */
+	openssldsa_compare,
+	NULL, /* paramcompare */
+	openssldsa_generate,
+	openssldsa_isprivate,
+	openssldsa_destroy,
+	openssldsa_todns,
+	openssldsa_fromdns,
+	openssldsa_tofile,
+	openssldsa_fromfile,
+};
 
-	UNUSED(mctx);
-
-	if (dsa == NULL)
-		return;
-
-	DSA_free(dsa);
+void
+dst_s_openssldsa_init(struct dst_func **funcp) {
+	REQUIRE(funcp != NULL && *funcp == NULL);
+	CRYPTO_set_mem_functions(dst_mem_alloc, dst_mem_realloc, dst_mem_free);
+	*funcp = &openssldsa_functions;
 }
-
-
-/*
- *  dst_openssl_generate
- *	Generates unique keys that are hard to predict.
- *  Parameters
- *	key		DST Key structure
- *	unused		algorithm specific data, unused for DSA.
- *	mctx		memory context to allocate key
- *  Return 
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
-
-static isc_result_t
-dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
-	DSA *dsa;
-	unsigned char dns_array[1024];
-	unsigned char rand_array[SHA_DIGEST_LENGTH];
-	isc_buffer_t dns, rand;
-	isc_result_t ret;
-	isc_region_t r;
-
-	UNUSED(unused);
-	UNUSED(mctx);
-
-	isc_buffer_init(&rand, rand_array, sizeof(rand_array));
-	ret = dst_random_get(SHA_DIGEST_LENGTH, &rand);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
-
-	dsa = DSA_generate_parameters(key->key_size, rand_array,
-				      SHA_DIGEST_LENGTH, NULL, NULL,
-				      NULL, NULL);
-
-	if (dsa == NULL)
-		return (ISC_R_NOMEMORY);
-
-	if (DSA_generate_key(dsa) == 0)
-		return (ISC_R_NOMEMORY);
-
-	key->opaque = dsa;
-
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	dst_openssl_to_dns(key, &dns);
-	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_s_id_calc(r.base, r.length);
-
-	return (ISC_R_SUCCESS);
-}
-
-
-/************************************************************************** 
- *  dst_openssl_compare
- *	Compare two keys for equality.
- *  Return
- *	ISC_TRUE	The keys are equal
- *	ISC_FALSE	The keys are not equal
- */
-static isc_boolean_t
-dst_openssl_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	int status;
-	DSA *dsa1, *dsa2;
-
-	dsa1 = (DSA *) key1->opaque;
-	dsa2 = (DSA *) key2->opaque;
-
-	if (dsa1 == NULL && dsa2 == NULL) 
-		return (ISC_TRUE);
-	else if (dsa1 == NULL || dsa2 == NULL)
-		return (ISC_FALSE);
-
-	status = BN_cmp(dsa1->p, dsa2->p) ||
-		 BN_cmp(dsa1->q, dsa2->q) ||
-		 BN_cmp(dsa1->g, dsa2->g) ||
-		 BN_cmp(dsa1->pub_key, dsa2->pub_key);
-
-	if (status != 0)
-		return (ISC_FALSE);
-
-	if (dsa1->priv_key != NULL || dsa2->priv_key != NULL) {
-		if (dsa1->priv_key == NULL || dsa2->priv_key == NULL)
-			return (ISC_FALSE);
-		if (BN_cmp(dsa1->priv_key, dsa2->priv_key))
-			return (ISC_FALSE);
-	}
-	return (ISC_TRUE);
-}
-
-static int
-BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-	while (bytes-- > 0)
-		*buf++ = 0;
-	BN_bn2bin(bn, buf);
-	return (size);
-}	
 
 #endif /* OPENSSL */

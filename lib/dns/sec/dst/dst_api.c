@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.42 2000/06/01 18:26:52 tale Exp $
+ * $Id: dst_api.c,v 1.43 2000/06/02 18:57:40 bwelling Exp $
  */
 
 #include <config.h>
@@ -38,201 +38,141 @@
 
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/types.h>
 #include <dns/keyvalues.h>
 
+#include <dst/result.h>
+
 #include "dst_internal.h"
-#include "dst/result.h"
 
 #include <openssl/rand.h>
 
-#define KEY_MAGIC	0x44535421U	/* DST! */
+#define KEY_MAGIC	0x4453544BU	/* DSTK */
+#define CTX_MAGIC	0x44535443U	/* DSTC */
 
-#define VALID_KEY(key) ((key) != NULL && (key)->magic == KEY_MAGIC)
+#define VALID_KEY(x) ISC_MAGIC_VALID(x, KEY_MAGIC)
+#define VALID_CTX(x) ISC_MAGIC_VALID(x, CTX_MAGIC)
 
-dst_func *dst_t_func[DST_MAX_ALGS];
+static dst_key_t md5key;
+dst_key_t *dst_key_md5 = NULL;
 
+static dst_func *dst_t_func[DST_MAX_ALGS];
 static isc_mem_t *dst_memory_pool = NULL;
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mutex_t random_lock;
 
+
 /* Static functions */
 static void		initialize(void);
-static dst_key_t *	get_key_struct(dns_name_t *name, const int alg,
-				       const int flags, const int protocol,
-				       const int bits, isc_mem_t *mctx);
+static dst_key_t *	get_key_struct(dns_name_t *name,
+				       const unsigned int alg,
+				       const unsigned int flags,
+				       const unsigned int protocol,
+				       const unsigned int bits,
+				       isc_mem_t *mctx);
 static isc_result_t	read_public_key(dns_name_t *name,
-					const isc_uint16_t id, int in_alg,
-					isc_mem_t *mctx, dst_key_t **keyp);
+					const isc_uint16_t id,
+					const unsigned int alg,
+					isc_mem_t *mctx,
+					dst_key_t **keyp);
 static isc_result_t	write_public_key(const dst_key_t *key);
 
-/*
- *  dst_algorithm_supported
- *	This function determines if the crypto system for the specified
- *	algorithm is present.
- *  Parameters
- *	alg		The algorithm to test
- *  Returns
- *	ISC_TRUE	The algorithm is available.
- *	ISC_FALSE	The algorithm is not available.
- */
 isc_boolean_t
-dst_algorithm_supported(const int alg) {
+dst_algorithm_supported(const unsigned int alg) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL)
 		return (ISC_FALSE);
 	return (ISC_TRUE);
 }
 
-/*
- * dst_key_sign
- *	An incremental signing function.  Data is signed in steps.
- *	First the context must be initialized (DST_SIGMODE_INIT).
- *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the signature
- *	itself is created (DST_SIGMODE_FINAL).  This function can be called
- *	once with DST_SIGMODE_ALL set, or it can be called separately 
- *	for each step.  The UPDATE step may be repeated.
- * Parameters
- *	mode		A bit mask specifying operation(s) to be performed.
- *			  DST_SIGMODE_INIT	Initialize digest
- *			  DST_SIGMODE_UPDATE	Add data to digest
- *			  DST_SIGMODE_FINAL	Generate signature
- *			  DST_SIGMODE_ALL	Perform all operations
- *	key		The private key used to sign the data
- *	context		The state of the operation
- *	data		The data to be signed.
- *	sig		The buffer to which the signature will be written.
- * Return
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t
-dst_key_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
-	     isc_region_t *data, isc_buffer_t *sig)
-{
+dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
+	dst_context_t *dctx;
+	isc_result_t result;
+
+	REQUIRE(mctx != NULL);
+	REQUIRE(dctxp != NULL && *dctxp == NULL);
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
-	REQUIRE(VALID_KEY(key));
-	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
 
-	if ((mode & DST_SIGMODE_UPDATE) != 0)
-		REQUIRE(data != NULL && data->base != NULL);
+	dctx = isc_mem_get(mctx, sizeof(dst_context_t));
+	if (dctx == NULL)
+		return (ISC_R_NOMEMORY);
+	dctx->key = key;
+	dctx->mctx = mctx;
+	result = key->func->createctx(key, dctx);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, dctx, sizeof(dst_context_t));
+		return (result);
+	}
+	dctx->magic = CTX_MAGIC;
+	*dctxp = dctx;
+	return (ISC_R_SUCCESS);
+}
 
-	if ((mode & DST_SIGMODE_FINAL) != 0)
-		REQUIRE(sig != NULL);
+void
+dst_context_destroy(dst_context_t **dctxp) {
+	dst_context_t *dctx;
 
-	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
+	REQUIRE(dctxp != NULL && VALID_CTX(*dctxp));
+
+	dctx = *dctxp;
+	dctx->key->func->destroyctx(dctx);
+	dctx->magic = 0;
+	isc_mem_put(dctx->mctx, dctx, sizeof(dst_context_t));
+	*dctxp = NULL;
+}
+
+isc_result_t
+dst_context_adddata(dst_context_t *dctx, const isc_region_t *data) {
+	REQUIRE(VALID_CTX(dctx));
+	REQUIRE(data != NULL);
+
+	return (dctx->key->func->adddata(dctx, data));
+}
+
+isc_result_t
+dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+	REQUIRE(VALID_CTX(dctx));
+	REQUIRE(sig != NULL);
+
+	if (dst_algorithm_supported(dctx->key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
-	if (key->opaque == NULL)
+	if (dctx->key->opaque == NULL)
 		return (DST_R_NULLKEY);
-	if (key->func->sign == NULL)
+	if (dctx->key->func->sign == NULL)
 		return (DST_R_NOTPRIVATEKEY);
 
-	return (key->func->sign(mode, key, (void **)context, data, sig,
-				key->mctx));
+	return (dctx->key->func->sign(dctx, sig));
 }
 
-
-/*
- *  dst_key_verify
- *	An incremental verify function.  Data is verified in steps.
- *	First the context must be initialized (DST_SIGMODE_INIT).
- *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the signature
- *	is verified (DST_SIGMODE_FINAL).  This function can be called
- *	once with DST_SIGMODE_ALL set, or it can be called separately
- *	for each step.  The UPDATE step may be repeated.
- *  Parameters
- *	mode		A bit mask specifying operation(s) to be performed.
- *			  DST_SIGMODE_INIT	Initialize digest
- *			  DST_SIGMODE_UPDATE	Add data to digest
- *			  DST_SIGMODE_FINAL	Verify signature
- *			  DST_SIGMODE_ALL	Perform all operations
- *	key		The public key used to verify the signature.
- *	context		The state of the operation
- *	data		The data to be digested.
- *	sig		The signature.
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
-
 isc_result_t
-dst_key_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
-	       isc_region_t *data, isc_region_t *sig)
-{
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
-	REQUIRE(VALID_KEY(key));
-	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
+dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
+	REQUIRE(VALID_CTX(dctx));
+	REQUIRE(sig != NULL);
 
-	if ((mode & DST_SIGMODE_UPDATE) != 0)
-		REQUIRE(data != NULL && data->base != NULL);
-
-	if ((mode & DST_SIGMODE_FINAL) != 0)
-		REQUIRE(sig != NULL && sig->base != NULL);
-
-	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
+	if (dst_algorithm_supported(dctx->key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
-	if (key->opaque == NULL)
+	if (dctx->key->opaque == NULL)
 		return (DST_R_NULLKEY);
-	if (key->func->verify == NULL)
+	if (dctx->key->func->verify == NULL)
 		return (DST_R_NOTPUBLICKEY);
 
-	return (key->func->verify(mode, key, (void **)context, data, sig,
-				  key->mctx));
+	return (dctx->key->func->verify(dctx, sig));
 }
 
-/*
- *  dst_key_digest
- *	An incremental digest function.  Data is digested in steps.
- *	First the context must be initialized (DST_SIGMODE_INIT).
- *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the digest
- *	is generated (DST_SIGMODE_FINAL).  This function can be called
- *	once with DST_SIGMODE_ALL set, or it can be called separately
- *	for each step.  The UPDATE step may be repeated.
- *  Parameters
- *	mode		A bit mask specifying operation(s) to be performed.
- *			  DST_SIGMODE_INIT	Initialize digest
- *			  DST_SIGMODE_UPDATE	Add data to digest
- *			  DST_SIGMODE_FINAL	Complete digest
- *			  DST_SIGMODE_ALL	Perform all operations
- *	alg		The digest algorithm to use
- *	context		The state of the operation
- *	data		The data to be digested.
- *	sig		The sdigest.
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t
-dst_key_digest(const unsigned int mode, const unsigned int alg,
-	       dst_context_t *context, isc_region_t *data,
-	       isc_buffer_t *digest)
-{
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
-	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
+dst_context_digest(dst_context_t *dctx, isc_buffer_t *digest) {
+	REQUIRE(VALID_CTX(dctx));
+	REQUIRE(digest != NULL);
 
-	if ((mode & DST_SIGMODE_UPDATE) != 0)
-		REQUIRE(data != NULL && data->base != NULL);
-
-	if ((mode & DST_SIGMODE_FINAL) != 0)
-		REQUIRE(digest != NULL);
-
-	if (alg != DST_DIGEST_MD5)
+	if (dst_algorithm_supported(dctx->key->key_alg) == ISC_FALSE)
+		return (DST_R_UNSUPPORTEDALG);
+	if (dctx->key->func->digest == NULL)
 		return (DST_R_UNSUPPORTEDALG);
 
-	return (dst_s_md5(mode, context, data, digest, dst_memory_pool));
+	return (dctx->key->func->digest(dctx, digest));
 }
 
-
-/*
- * dst_key_computesecret
- *	A function to compute a shared secret from two (Diffie-Hellman) keys.
- * Parameters
- *      pub             The public key
- *      priv            The private key
- *      secret          A buffer into which the secret is written
- * Returns
- *      ISC_R_SUCCESS   Success
- *      !ISC_R_SUCCESS  Failure
- */
 isc_result_t
 dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 		  isc_buffer_t *secret) 
@@ -259,21 +199,9 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	return (pub->func->computesecret(pub, priv, secret));
 }
 
-/*
- *  dst_key_tofile
- *	Writes a key to disk.  The key can either be a public or private key.
- *	The public key is written in DNS format and the private key is
- *	written as a set of base64 encoded values.
- *  Parameters
- *	key		The key to be written.
- *	type		Either DST_PUBLIC or DST_PRIVATE, or both
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t 
 dst_key_tofile(const dst_key_t *key, const int type) {
-	int ret = ISC_R_SUCCESS;
+	isc_result_t ret = ISC_R_SUCCESS;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
@@ -291,7 +219,7 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 	if ((type & DST_TYPE_PRIVATE) &&
 	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
 	{
-		ret = key->func->to_file(key);
+		ret = key->func->tofile(key);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 	}
@@ -299,24 +227,10 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 	return (ret);
 }
 
-/*
- *  dst_key_fromfile
- *	Reads a key from disk.  The key can either be a public or private
- *	key, and is specified by name, algorithm, and id.
- *  Parameters
- *	name	The key name.
- *	id	The id of the key.
- *	alg	The algorithm of the key.
- *	type	Either DST_PUBLIC or DST_PRIVATE
- *	mctx	Memory context used to allocate key structure
- *	keyp	Returns the new key
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t
-dst_key_fromfile(dns_name_t *name, const isc_uint16_t id, const int alg,
-		 const int type, isc_mem_t *mctx, dst_key_t **keyp)
+dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
+		 const unsigned int alg, const int type, isc_mem_t *mctx,
+		 dst_key_t **keyp)
 {
 	dst_key_t *key = NULL, *pubkey = NULL;
 	isc_result_t ret;
@@ -357,7 +271,7 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id, const int alg,
 	/*
 	 * Fill in private key and some fields in the general key structure.
 	 */
-	ret = key->func->from_file(key, id, mctx);
+	ret = key->func->fromfile(key, id);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (ret);
@@ -367,16 +281,6 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id, const int alg,
 	return (ISC_R_SUCCESS);
 }
 
-/*
- *  dst_key_todns
- *	Function to encode a public key into DNS KEY format
- *  Parameters
- *	key		Key structure to encode.
- *	target		Buffer to write the encoded key into.
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t
 dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_region_t r;
@@ -407,21 +311,8 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	if (key->opaque == NULL) /* NULL KEY */
 		return (ISC_R_SUCCESS);
 
-	return (key->func->to_dns(key, target));
+	return (key->func->todns(key, target));
 }
-
-/*
- *  dst_key_fromdns
- *	This function converts the contents of a DNS KEY RR into a key
- *  Paramters
- *	name		Name of the new key
- *	source		A buffer containing the KEY RR
- *	mctx		The memory context used to allocate the key
- *	keyp		Returns the new key
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 
 isc_result_t
 dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
@@ -461,7 +352,7 @@ dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	ret = key->func->from_dns(key, source, mctx);
+	ret = key->func->fromdns(key, source);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (ret);
@@ -471,27 +362,10 @@ dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
 	return (ISC_R_SUCCESS);
 }
 
-
-/*
- *  dst_key_frombuffer
- *	Function to convert raw data into a public key.  The raw data format
- *	is basically DNS KEY rdata format.
- *  Parameters
- *	name		The key name
- *	alg		The algorithm
- *	flags		The key's flags
- *	protocol	The key's protocol
- *	source		A buffer containing the key
- *	mctx		The memory context used to allocate the key
- *	keyp		Returns the new key
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t
-dst_key_frombuffer(dns_name_t *name, const int alg, const int flags,
-		   const int protocol, isc_buffer_t *source, isc_mem_t *mctx,
-		   dst_key_t **keyp)
+dst_key_frombuffer(dns_name_t *name, const unsigned int alg,
+		   const unsigned int flags, const unsigned int protocol,
+		   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
 {
 	dst_key_t *key;
 	isc_result_t ret;
@@ -510,7 +384,7 @@ dst_key_frombuffer(dns_name_t *name, const int alg, const int flags,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	ret = key->func->from_dns(key, source, mctx);
+	ret = key->func->fromdns(key, source);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (ret);
@@ -520,17 +394,6 @@ dst_key_frombuffer(dns_name_t *name, const int alg, const int flags,
 	return (ISC_R_SUCCESS);
 }
 
-/*
- *  dst_key_tobuffer
- *	Function to convert a public key into raw data.  The raw data format
- *	is basically DNS KEY rdata format.
- *  Parameters
- *	key		The key
- *	target		The buffer to be written into.
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t 
 dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -540,39 +403,13 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
-	return (key->func->to_dns(key, target));
+	return (key->func->todns(key, target));
 }
 
-/*
- *  dst_key_generate
- *	Generate a public/private keypair.
- *  Parameters
- *	name	Name of the new key.  Used to create key files
- *			K<name>+<alg>+<id>.public
- *			K<name>+<alg>+<id>.private
- *	alg	The algorithm to use
- *	bits	Size of the new key in bits
- *	param	Algorithm specific
- *		RSA: exponent
- *			0	use exponent 3
- *			!0	use Fermat4 (2^16 + 1)
- *		DH: generator
- *			0	default - use well-known prime if bits == 768
- *				or 1024, otherwise use generator 2
- *			!0	use this value as the generator
- *		DSA/HMACMD5: unused
- *	flags	The default value of the DNS Key flags.
- *	protocol Default value of the DNS Key protocol field.
- *	mctx	The memory context used to allocate the key
- *	keyp	Returns the new key
- *
- *  Return
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t
-dst_key_generate(dns_name_t *name, const int alg, const int bits,
-		 const int exp, const int flags, const int protocol,
+dst_key_generate(dns_name_t *name, const unsigned int alg,
+		 const unsigned int bits, const unsigned int param,
+		 const unsigned int flags, const unsigned int protocol,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
 	dst_key_t *key;
@@ -596,7 +433,12 @@ dst_key_generate(dns_name_t *name, const int alg, const int bits,
 		return (ISC_R_SUCCESS);
 	}
 
-	ret = key->func->generate(key, exp, mctx);
+	if (key->func->generate == NULL) {
+		dst_key_free(&key);
+		return (DST_R_UNSUPPORTEDALG);
+	}
+
+	ret = key->func->generate(key, param);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (ret);
@@ -606,15 +448,6 @@ dst_key_generate(dns_name_t *name, const int alg, const int bits,
 	return (ISC_R_SUCCESS);
 }
 
-/*
- *  dst_key_compare
- *	Compares two keys for equality.
- *  Parameters
- *	key1, key2	Two keys to be compared.
- *  Returns
- *	ISC_TRUE	The keys are equal.
- *	ISC_FALSE	The keys are not equal.
- */
 isc_boolean_t
 dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -632,17 +465,7 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	else
 		return (ISC_FALSE);
 }
-/*
- *  dst_key_paramcompare
- *	Compares two keys' parameters for equality.  This is designed to
- *	determine if two (Diffie-Hellman) keys can be used to derive a shared
- *	secret.
- *  Parameters
- *	key1, key2	Two keys whose parameters are to be compared.
- *  Returns
- *	ISC_TRUE	The keys' parameters are equal.
- *	ISC_FALSE	The keys' parameters are not equal.
- */
+
 isc_boolean_t
 dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -661,12 +484,6 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 }
 
-/*
- *  dst_key_free
- *	Release all data structures pointed to by a key structure.
- *  Parameters
- *	keyp	Pointer to key structure to be freed.
- */
 void
 dst_key_free(dst_key_t **keyp) {
 	isc_mem_t *mctx;
@@ -679,7 +496,7 @@ dst_key_free(dst_key_t **keyp) {
 	mctx = key->mctx;
 
 	if (key->opaque != NULL)
-		key->func->destroy(key->opaque, mctx);
+		key->func->destroy(key);
 
 	dns_name_free(key->key_name, mctx);
 	isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
@@ -694,19 +511,19 @@ dst_key_name(const dst_key_t *key) {
 	return (key->key_name);
 }
 
-int
+unsigned int
 dst_key_size(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_size);
 }
 
-int
+unsigned int
 dst_key_proto(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_proto);
 }
 
-int
+unsigned int
 dst_key_alg(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_alg);
@@ -792,7 +609,7 @@ dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out)
 
 isc_result_t
 dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, dns_name_t *name,
-		      isc_uint16_t *id, int *alg, char **suffix)
+		      isc_uint16_t *id, unsigned int *alg, char **suffix)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	char c, str[6], *p, *endp;
@@ -867,17 +684,6 @@ dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * dst_key_sigsize
- *	Computes the maximum size of a signature generated by the given key
- * Parameters
- *	key	The DST key
- *	n 	Stores the number of bytes necessary to hold a signature
- *		with the key.
- * Returns
- *	ISC_R_SUCCESS
- *	DST_R_UNSUPPORTEDALG
- */
 isc_result_t
 dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -894,27 +700,14 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 		case DST_ALG_HMACMD5:
 			*n = 16;
 			break;
-		case DST_ALG_HMACSHA1:
-			*n = 20;
-			break;
 		case DST_ALG_DH:
+		case DST_ALG_MD5:
 		default:
 			return (DST_R_UNSUPPORTEDALG);
 	}
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * dst_secret_size
- *	Computes the maximum size of a shared secret generated by the given key
- * Parameters
- *	key	The DST key
- *	n 	Stores the number of bytes necessary to hold a shared secret
- *		generated by the key.
- * Returns
- *	ISC_R_SUCCESS
- *	DST_R_UNSUPPORTEDALG
- */
 isc_result_t
 dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -928,25 +721,13 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 		case DST_ALG_RSA:
 		case DST_ALG_DSA:
 		case DST_ALG_HMACMD5:
-		case DST_ALG_HMACSHA1:
+		case DST_ALG_MD5:
 		default:
 			return (DST_R_UNSUPPORTEDALG);
 	}
 	return (ISC_R_SUCCESS);
 }
 
-/* 
- * dst_random_get
- *	a random number generator that can generate different levels of
- *	randomness
- * Parameters  
- *	mode		selects the random number generator
- *	wanted		the number of random bytes requested 
- *	target		the buffer to store the random data
- * Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 isc_result_t 
 dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
 	isc_region_t r;
@@ -990,13 +771,23 @@ initialize(void) {
 
 	dst_result_register();
 
-	dst_s_hmacmd5_init();
-#if defined(BSAFE) || defined(DNSSAFE)
-	dst_s_bsafersa_init();
+	dst_s_hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]);
+#ifdef DNSSAFE
+	dst_s_dnssafersa_init(&dst_t_func[DST_ALG_RSA]);
 #endif
 #ifdef OPENSSL
-	dst_s_openssldsa_init();
-	dst_s_openssldh_init();
+	dst_s_openssldsa_init(&dst_t_func[DST_ALG_DSA]);
+	dst_s_openssldh_init(&dst_t_func[DST_ALG_DH]);
+	dst_s_opensslmd5_init(&dst_t_func[DST_ALG_MD5]);
+
+	memset(&md5key, 0, sizeof(dst_key_t));
+	md5key.magic = KEY_MAGIC;
+	md5key.key_name = NULL;
+	md5key.key_alg = DST_ALG_MD5;
+	md5key.mctx = dst_memory_pool;
+	md5key.opaque = NULL;
+	md5key.func = dst_t_func[DST_ALG_MD5];
+	dst_key_md5 = &md5key;
 
 	/*
 	 * Seed the random number generator, if necessary.
@@ -1037,8 +828,9 @@ initialize(void) {
  *	valid pointer	otherwise
  */
 static dst_key_t *
-get_key_struct(dns_name_t *name, const int alg, const int flags,
-	       const int protocol, const int bits, isc_mem_t *mctx)
+get_key_struct(dns_name_t *name, const unsigned int alg,
+	       const unsigned int flags, const unsigned int protocol,
+	       const unsigned int bits, isc_mem_t *mctx)
 {
 	dst_key_t *key; 
 	isc_result_t result;
@@ -1089,7 +881,7 @@ get_key_struct(dns_name_t *name, const int alg, const int flags,
  */
 
 static isc_result_t
-read_public_key(dns_name_t *name, const isc_uint16_t id, int alg,
+read_public_key(dns_name_t *name, const isc_uint16_t id, const unsigned int alg,
 		isc_mem_t *mctx, dst_key_t **keyp)
 {
 	char filename[ISC_DIR_NAMEMAX];

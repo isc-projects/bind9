@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.9 2000/06/01 18:26:54 tale Exp $
+ * $Id: dst_result.c,v 1.10 2000/06/02 18:57:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -38,12 +38,12 @@ static const char *text[DST_R_NRESULTS] = {
 	"key name is too long",			/*  6 */
 	"error occurred writing key to disk",	/*  7 */
 	"invalid algorithm specific parameter",	/*  8 */
-	"sign init failure",			/*  9 */
-	"sign update failure",			/* 10 */
-	"sign final failure",			/* 11 */
-        "verify init failure",			/* 12 */
-	"verify update failure",		/* 13 */
-	"verify final failure",			/* 14 */
+	"UNUSED9",				/*  9 */
+	"UNUSED10",				/* 10 */
+	"sign failure",				/* 11 */
+        "UNUSED12",				/* 12 */
+	"UNUSED13",				/* 13 */
+	"verify failure",			/* 14 */
 	"not a public key",			/* 15 */
 	"not a private key",			/* 16 */
 	"not a key that can compute a secret",	/* 17 */

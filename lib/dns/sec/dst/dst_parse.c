@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.17 2000/06/01 18:26:53 tale Exp $
+ * $Id: dst_parse.c,v 1.18 2000/06/02 18:57:42 bwelling Exp $
  */
 
 #include <config.h>
@@ -47,7 +47,7 @@
 #define HMACMD5_STR "HMAC_MD5"
 
 struct parse_map {
-	int value;
+	const int value;
 	const char *tag;
 };
 
@@ -77,7 +77,7 @@ static struct parse_map map[] = {
 };
 
 static int
-find_value(const char *s, const int alg) {
+find_value(const char *s, const unsigned int alg) {
 	int i;
 
 	for (i = 0; ; i++) {
@@ -156,7 +156,7 @@ check_hmac_md5(const dst_private_t *priv) {
 }
 
 static int
-check_data(const dst_private_t *priv, const int alg) {
+check_data(const dst_private_t *priv, const unsigned int alg) {
 	switch (alg) {
 		case DST_ALG_RSA:
 			return (check_rsa(priv));

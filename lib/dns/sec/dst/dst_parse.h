@@ -28,8 +28,8 @@
 #define MAXFIELDS		12
 
 #define TAG_SHIFT		4
-#define TAG_ALG(tag)		(tag >> TAG_SHIFT)
-#define TAG(alg, off)		((alg << TAG_SHIFT) + off)
+#define TAG_ALG(tag)		((unsigned int)(tag) >> TAG_SHIFT)
+#define TAG(alg, off)		(((alg) << TAG_SHIFT) + (off))
 
 #define RSA_NTAGS		8
 #define TAG_RSA_MODULUS		((DST_ALG_RSA << TAG_SHIFT) + 0)

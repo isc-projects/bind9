@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.28 2000/06/01 02:33:26 bwelling Exp $
+ * $Id: hmac_link.c,v 1.29 2000/06/02 18:57:45 bwelling Exp $
  */
 
 #include <config.h>
@@ -45,226 +45,191 @@
 		return (ret); \
 	} while (0)
 
+static isc_result_t hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data);
+
 typedef struct hmackey {
 	unsigned char ipad[64], opad[64];
 } HMAC_Key;
 
-static struct dst_func hmacmd5_functions;
-
 static isc_result_t
-dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key,
-		 void **context, isc_region_t *data, isc_buffer_t *sig,
-		 isc_mem_t *mctx);
+hmacmd5_createctx(dst_key_t *key, dst_context_t *dctx) {
+	dst_context_t *md5ctx = NULL;
+	HMAC_Key *hkey = key->opaque;
+	isc_region_t r;
+	isc_result_t result;
 
-static isc_result_t
-dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
-		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx);
-
-static isc_boolean_t
-dst_hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2);
-
-static isc_result_t
-dst_hmacmd5_generate(dst_key_t *key, int exp, isc_mem_t *mctx);
-
-static isc_boolean_t
-dst_hmacmd5_isprivate(const dst_key_t *key);
+	result = dst_context_create(DST_KEY_MD5, dctx->mctx, &md5ctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	r.base = hkey->ipad;
+	r.length = HMAC_LEN;
+	result = dst_context_adddata(md5ctx, &r);
+	if (result != ISC_R_SUCCESS) {
+		dst_context_destroy(&md5ctx);
+		return (result);
+	}
+	dctx->opaque = md5ctx;
+	return (ISC_R_SUCCESS);
+}
 
 static void
-dst_hmacmd5_destroy(void *key, isc_mem_t *mctx);
+hmacmd5_destroyctx(dst_context_t *dctx) {
+	dst_context_t *md5ctx = dctx->opaque;
 
-static isc_result_t
-dst_hmacmd5_to_dns(const dst_key_t *in_key, isc_buffer_t *data);
-
-static isc_result_t
-dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx);
-
-static isc_result_t
-dst_hmacmd5_to_file(const dst_key_t *key);
-
-static isc_result_t
-dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx);
-
-/*
- * dst_s_hmacmd5_init()
- * Sets up function pointers for HMAC-MD5 related functions 
- */
-void
-dst_s_hmacmd5_init(void) {
-	REQUIRE(dst_t_func[DST_ALG_HMACMD5] == NULL);
-	dst_t_func[DST_ALG_HMACMD5] = &hmacmd5_functions;
-	memset(&hmacmd5_functions, 0, sizeof(struct dst_func));
-	hmacmd5_functions.sign = dst_hmacmd5_sign;
-	hmacmd5_functions.verify = dst_hmacmd5_verify;
-	hmacmd5_functions.computesecret = NULL;
-	hmacmd5_functions.compare = dst_hmacmd5_compare;
-	hmacmd5_functions.paramcompare = NULL;
-	hmacmd5_functions.generate = dst_hmacmd5_generate;
-	hmacmd5_functions.isprivate = dst_hmacmd5_isprivate;
-	hmacmd5_functions.destroy = dst_hmacmd5_destroy;
-	hmacmd5_functions.to_dns = dst_hmacmd5_to_dns;
-	hmacmd5_functions.from_dns = dst_hmacmd5_from_dns;
-	hmacmd5_functions.to_file = dst_hmacmd5_to_file;
-	hmacmd5_functions.from_file = dst_hmacmd5_from_file;
+	if (md5ctx != NULL)
+		dst_context_destroy(&md5ctx);
 }
 
-/*
- * dst_hmacmd5_sign
- *	Call HMAC-MD5 signing functions to sign a block of data.
- *	There are three steps to signing, INIT (initialize structures), 
- *	UPDATE (hash (more) data), FINAL (generate a signature).  This
- *	routine performs one or more of these steps.
- * Parameters
- *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
- *	key		key to use for signing
- *	context		the context to use for this computation
- *	data		data to be signed
- *	signature	buffer to store signature
- *	mctx		memory context for temporary allocations
- * Returns 
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t
-dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
-		 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
-{
+hmacmd5_adddata(dst_context_t *dctx, const isc_region_t *data) {
+	dst_context_t *md5ctx = dctx->opaque;
+
+	return (dst_context_adddata(md5ctx, data));
+}
+
+static isc_result_t
+hmacmd5_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+	dst_context_t *md5ctx = dctx->opaque;
+	dst_key_t *key = dctx->key;
+	HMAC_Key *hkey = key->opaque;
 	isc_region_t r;
-	isc_result_t ret;
-	void *ctx;
+	isc_result_t result;
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	isc_buffer_t b;
 
-	if ((mode & DST_SIGMODE_ALL) != DST_SIGMODE_ALL)
-		REQUIRE(context != NULL);
-	else
-		context = &ctx;
+	isc_buffer_init(&b, digest, sizeof(digest));
 
-	if (mode & DST_SIGMODE_INIT) {
-		HMAC_Key *hkey = key->opaque;
+	result = dst_context_digest(md5ctx, &b);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dst_context_destroy(&md5ctx);
+	dctx->opaque = NULL;
 
-		r.base = hkey->ipad;
-		r.length = HMAC_LEN;
-		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-	}
-	if (mode & DST_SIGMODE_UPDATE) {
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, data, NULL,
-				 mctx));
-	}
-	if (mode & DST_SIGMODE_FINAL) {
-		HMAC_Key *hkey = key->opaque;
-		unsigned char digest[MD5_DIGEST_LENGTH];
-		isc_buffer_t b;
+	result = dst_context_create(DST_KEY_MD5, dctx->mctx, &md5ctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dctx->opaque = md5ctx;
 
-		isc_buffer_init(&b, digest, sizeof(digest));
+	r.base = hkey->opad;
+	r.length = HMAC_LEN;
+	result = dst_context_adddata(md5ctx, &r);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
-		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
+	isc_buffer_usedregion(&b, &r);
+	result = dst_context_adddata(md5ctx, &r);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
-		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
-		r.base = hkey->opad;
-		r.length = HMAC_LEN;
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-		isc_buffer_usedregion(&b, &r);
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, sig, mctx));
-	}
+	result = dst_context_digest(md5ctx, sig);
+	return (result);
+}
+
+static isc_result_t
+hmacmd5_verify(dst_context_t *dctx, const isc_region_t *sig) {
+	dst_context_t *md5ctx = dctx->opaque;
+	dst_key_t *key = dctx->key;
+	HMAC_Key *hkey = key->opaque;
+	isc_region_t r;
+	isc_result_t result;
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	isc_buffer_t b;
+
+	isc_buffer_init(&b, digest, sizeof(digest));
+
+	result = dst_context_digest(md5ctx, &b);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dst_context_destroy(&md5ctx);
+	dctx->opaque = NULL;
+
+	result = dst_context_create(DST_KEY_MD5, dctx->mctx, &md5ctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dctx->opaque = md5ctx;
+
+	r.base = hkey->opad;
+	r.length = HMAC_LEN;
+	result = dst_context_adddata(md5ctx, &r);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	isc_buffer_usedregion(&b, &r);
+	result = dst_context_adddata(md5ctx, &r);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	isc_buffer_clear(&b);
+	result = dst_context_digest(md5ctx, &b);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	if (memcmp(digest, sig->base, MD5_DIGEST_LENGTH) != 0)
+		return (DST_R_VERIFYFAILURE);
 
 	return (ISC_R_SUCCESS);
 }
 
-
-/*
- * dst_hmacmd5_verify 
- *	Calls HMAC-MD5 verification routines.  There are three steps to 
- *	verification, INIT (initialize structures), UPDATE (hash (more) data), 
- *	FINAL (generate a signature).  This routine performs one or more of 
- *	these steps.
- * Parameters
- *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
- *	key		key to use for verifying
- *	context		the context to use for this computation
- *	data		signed data
- *	signature	signature
- *	mctx		memory context for temporary allocations
- * Returns 
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
-static isc_result_t
-dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
-		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
-{
-	isc_region_t r;
-	isc_result_t ret;
-	void *ctx;
-
-	if ((mode & DST_SIGMODE_ALL) != DST_SIGMODE_ALL)
-		REQUIRE(context != NULL);
-	else
-		context = &ctx;
-
-	if (mode & DST_SIGMODE_INIT) {
-		HMAC_Key *hkey = key->opaque;
-
-		r.base = hkey->ipad;
-		r.length = HMAC_LEN;
-		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-	}
-	if (mode & DST_SIGMODE_UPDATE) {
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, data, NULL,
-				 mctx));
-	}
-	if (mode & DST_SIGMODE_FINAL) {
-		HMAC_Key *hkey = key->opaque;
-		unsigned char digest[MD5_DIGEST_LENGTH];
-		isc_buffer_t b;
-
-		isc_buffer_init(&b, digest, sizeof(digest));
-
-		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
-
-		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
-		r.base = hkey->opad;
-		r.length = HMAC_LEN;
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-		isc_buffer_usedregion(&b, &r);
-		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
-		isc_buffer_clear(&b);
-		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
-
-		if (memcmp(digest, sig->base, MD5_DIGEST_LENGTH) != 0)
-			return (DST_R_VERIFYFINALFAILURE);
-	}
-
-	return (ISC_R_SUCCESS);
-}
-
-/*
- * dst_hmacmd5_isprivate
- *	Is this a private key?  Yes
- * Parameters
- *	key		DST KEY structure
- * Returns
- *	ISC_TRUE
- */
 static isc_boolean_t
-dst_hmacmd5_isprivate(const dst_key_t *key) {
-	UNUSED(key);
+hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
+	HMAC_Key *hkey1, *hkey2;
 
+	hkey1 = (HMAC_Key *)key1->opaque;
+	hkey2 = (HMAC_Key *)key2->opaque;
+
+	if (hkey1 == NULL && hkey2 == NULL) 
+		return (ISC_TRUE);
+	else if (hkey1 == NULL || hkey2 == NULL)
+		return (ISC_FALSE);
+
+	if (memcmp(hkey1->ipad, hkey2->ipad, HMAC_LEN) == 0)
+		return (ISC_TRUE);
+	else
+		return (ISC_FALSE);
+}
+
+static isc_result_t
+hmacmd5_generate(dst_key_t *key, int unused) {
+	isc_buffer_t b;
+	isc_result_t ret;
+	int bytes;
+	unsigned char data[HMAC_LEN];
+
+	UNUSED(unused);
+
+	bytes = (key->key_size + 7) / 8;
+	if (bytes > 64) {
+		bytes = 64;
+		key->key_size = 512;
+	}
+
+	memset(data, 0, HMAC_LEN);
+	isc_buffer_init(&b, data, sizeof(data));
+	ret = dst_random_get(bytes, &b);
+	if (ret != ISC_R_SUCCESS)
+		return (ret);
+
+	ret = hmacmd5_fromdns(key, &b);
+	memset(data, 0, HMAC_LEN);
+
+	return (ret);
+}
+
+static isc_boolean_t
+hmacmd5_isprivate(const dst_key_t *key) {
+	UNUSED(key);
         return (ISC_TRUE);
 }
 
-/*
- * dst_hmacmd5_to_dns
- *	Converts key from HMAC to DNS rdata (raw bytes)
- * Parameters
- *	key		DST KEY structure
- *	data		output data
- * Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
+static void
+hmacmd5_destroy(dst_key_t *key) {
+	HMAC_Key *hkey = key->opaque;
+	memset(hkey, 0, sizeof(HMAC_Key));
+	isc_mem_put(key->mctx, hkey, sizeof(HMAC_Key));
+}
+
 static isc_result_t
-dst_hmacmd5_to_dns(const dst_key_t *key, isc_buffer_t *data) {
+hmacmd5_todns(const dst_key_t *key, isc_buffer_t *data) {
 	HMAC_Key *hkey;
 	isc_region_t r;
 	unsigned int bytes, i;
@@ -287,20 +252,11 @@ dst_hmacmd5_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * dst_hmacmd5_from_dns
- *	Converts from a DNS KEY RR format to an HMAC-MD5 KEY. 
- * Parameters
- *	key		Partially filled key structure
- *	data		Buffer containing key in DNS format
- * Return
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t
-dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
+hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	HMAC_Key *hkey;
 	isc_region_t r;
+	isc_mem_t *mctx = key->mctx;
 	int i, keylen;
 
 	isc_buffer_remainingregion(data, &r);
@@ -345,18 +301,8 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	return (ISC_R_SUCCESS);
 }
 
-
-/*
- * dst_hmacmd5_to_file
- *	Encodes an HMAC-MD5 Key into the portable file format.
- * Parameters 
- *	key		DST KEY structure 
- * Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t
-dst_hmacmd5_to_file(const dst_key_t *key) {
+hmacmd5_tofile(const dst_key_t *key) {
 	int i, cnt = 0;
 	HMAC_Key *hkey;
 	dst_private_t priv;
@@ -379,23 +325,12 @@ dst_hmacmd5_to_file(const dst_key_t *key) {
 	return (dst_s_write_private_key_file(key, &priv));
 }
 
-
-/*
- * dst_hmacmd5_from_file
- *	Converts contents of a private key file into a private HMAC-MD5 key. 
- * Parameters 
- *	key		Partially filled HMAC-MD5 KEY structure
- *	id		The key id
- *	path		The directory that the file will be read from
- * Return
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
 static isc_result_t 
-dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
+hmacmd5_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t b;
+	isc_mem_t *mctx = key->mctx;
 
 	/* read private key file */
 	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
@@ -404,83 +339,34 @@ dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 
 	isc_buffer_init(&b, priv.elements[0].data, priv.elements[0].length);
 	isc_buffer_add(&b, priv.elements[0].length);
-	ret = dst_hmacmd5_from_dns(key, &b, mctx);
 	dst_s_free_private_structure_fields(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
-	return (ret);
+	return (hmacmd5_fromdns(key, &b));
 }
 
-/*
- * dst_hmacmd5_destroy
- *	Frees all dynamically allocated structures in key.
- */
-static void
-dst_hmacmd5_destroy(void *key, isc_mem_t *mctx) {
-	HMAC_Key *hkey = (HMAC_Key *) key;
-	memset(hkey, 0, sizeof(HMAC_Key));
-	isc_mem_put(mctx, hkey, sizeof(HMAC_Key));
+static struct dst_func hmacmd5_functions = {
+	hmacmd5_createctx,
+	hmacmd5_destroyctx,
+	hmacmd5_adddata,
+	hmacmd5_sign,
+	hmacmd5_verify,
+	NULL, /* digest */
+	NULL, /* computesecret */
+	hmacmd5_compare,
+	NULL, /* paramcompare */
+	hmacmd5_generate,
+	hmacmd5_isprivate,
+	hmacmd5_destroy,
+	hmacmd5_todns,
+	hmacmd5_fromdns,
+	hmacmd5_tofile,
+	hmacmd5_fromfile,
+};
+
+void
+dst_s_hmacmd5_init(struct dst_func **funcp) {
+	REQUIRE(funcp != NULL && *funcp == NULL);
+	*funcp = &hmacmd5_functions;
 }
 
-/*
- *  dst_hmacmd5_generate
- *	Creates an HMAC-MD5 key.  If the specified size is more than 512
- *	bits, a key of size 512 is generated.
- *  Parameters
- *	key		DST Key structure
- *	unused		algorithm specific data, unused for HMAC-MD5.
- *	mctx		memory context to allocate key
- *  Return 
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
- */
-static isc_result_t
-dst_hmacmd5_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
-	isc_buffer_t b;
-	isc_result_t ret;
-	int bytes;
-	unsigned char data[HMAC_LEN];
 
-	UNUSED(unused);
-
-	bytes = (key->key_size + 7) / 8;
-	if (bytes > 64) {
-		bytes = 64;
-		key->key_size = 512;
-	}
-
-	memset(data, 0, HMAC_LEN);
-	isc_buffer_init(&b, data, sizeof(data));
-	ret = dst_random_get(bytes, &b);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
-
-	ret = dst_hmacmd5_from_dns(key, &b, mctx);
-	memset(data, 0, HMAC_LEN);
-
-	return (ret);
-}
-
-/************************************************************************** 
- *  dst_hmacmd5_compare
- *	Compare two keys for equality.
- *  Return
- *	ISC_TRUE	The keys are equal
- *	ISC_FALSE	The keys are not equal
- */
-static isc_boolean_t
-dst_hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	HMAC_Key *hkey1, *hkey2;
-
-	hkey1 = (HMAC_Key *)key1->opaque;
-	hkey2 = (HMAC_Key *)key2->opaque;
-
-	if (hkey1 == NULL && hkey2 == NULL) 
-		return (ISC_TRUE);
-	else if (hkey1 == NULL || hkey2 == NULL)
-		return (ISC_FALSE);
-
-	if (memcmp(hkey1->ipad, hkey2->ipad, HMAC_LEN) == 0)
-		return (ISC_TRUE);
-	else
-		return (ISC_FALSE);
-}

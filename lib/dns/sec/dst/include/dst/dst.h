@@ -18,8 +18,8 @@ ISC_LANG_BEGINDECLS
  * to set attributes, new accessor functions will be written.
  */
 
-typedef struct dst_key	dst_key_t;
-typedef void *		dst_context_t;
+typedef struct dst_key		dst_key_t;
+typedef struct dst_context 	dst_context_t;
 
 /* DST algorithm codes */
 #define DST_ALG_UNKNOWN		0
@@ -27,22 +27,10 @@ typedef void *		dst_context_t;
 #define DST_ALG_DH		2
 #define DST_ALG_DSA		3
 #define DST_ALG_HMACMD5		157
-#define DST_ALG_HMACSHA1	158	/* not implemented */
+#define DST_ALG_MD5		158
 #define DST_ALG_PRIVATE		254
 #define DST_ALG_EXPAND		255
-#define DST_MAX_ALGS		DST_ALG_HMACSHA1
-
-/* DST algorithm codes */
-#define DST_DIGEST_MD5		258
-#define DST_DIGEST_SHA1		259
-
-/* 'Mode' passed into dst_sign() and dst_verify() */
-#define DST_SIGMODE_INIT	1	/* initialize digest */
-#define DST_SIGMODE_UPDATE	2	/* add data to digest */
-#define DST_SIGMODE_FINAL	4 	/* generate/verify signature */
-#define DST_SIGMODE_ALL		(DST_SIGMODE_INIT | \
-				 DST_SIGMODE_UPDATE | \
-				 DST_SIGMODE_FINAL)
+#define DST_MAX_ALGS		(DST_ALG_MD5 + 1)
 
 /* A buffer of this size is large enough to hold any key */
 #define DST_KEY_MAXSIZE		1024
@@ -51,93 +39,147 @@ typedef void *		dst_context_t;
 #define DST_TYPE_PRIVATE	0x2000000
 #define DST_TYPE_PUBLIC		0x4000000
 
+extern dst_key_t *dst_key_md5;
+#define DST_KEY_MD5		dst_key_md5
+
 /***
  *** Functions
  ***/
 
 isc_boolean_t
-dst_algorithm_supported(const int alg);
+dst_algorithm_supported(const unsigned int alg);
 /*
- * Check that a given algorithm is supported
+ * Checks that a given algorithm is supported by DST.
+ *
+ * Returns:
+ * 	ISC_TRUE
+ * 	ISC_FALSE
  */
 
 isc_result_t
-dst_key_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
-	     isc_region_t *data, isc_buffer_t *sig);
+dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp);
 /*
- * Sign a block of data.
+ * Creates a context to be used for a sign, verify, or digest operation.
  *
  * Requires:
- *	"mode" is some combination of DST_SIGMODE_INIT, DST_SIGMODE_UPDATE,
- *		and DST_SIGMODE_FINAL.
  *	"key" is a valid key.
- *	"context" contains a value appropriate for the value of "mode".
- *	"data" is a valid region.
+ * 	"mctx" is a valid memory context.
+ * 	dctxp != NULL && *dctxp == NULL
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	ISC_R_NOMEMORY
+ *
+ * Ensures:
+ *	*dctxp will contain a usable context.
+ */
+
+void
+dst_context_destroy(dst_context_t **dctxp);
+/*
+ * Destroys all memory associated with a context.
+ *
+ * Requires:
+ * 	*dctxp != NULL && *dctxp == NULL
+ *
+ * Ensures:
+ *	*dctxp == NULL
+ */
+
+isc_result_t
+dst_context_adddata(dst_context_t *dctx, const isc_region_t *data);
+/*
+ * Incrementally adds data to the context to be used in a sign, verify, or
+ * digest operation.
+ *
+ * Requires:
+ * 	"dctx" is a valid context
+ * 	"data" is a valid region
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	DST_R_SIGNFAILURE
+ * 	all other errors indicate failure
+ */
+
+isc_result_t
+dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig);
+/*
+ * Computes a signature using the data and key stored in the context.
+ *
+ * Requires:
+ * 	"dctx" is a valid context.
  *	"sig" is a valid buffer.
  *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	DST_R_VERIFYFAILURE
+ * 	all other errors indicate failure
+ *
  * Ensures:
- *	All allocated memory will be freed after the FINAL call.  "sig"
- *	will contain a signature if all operations completed successfully.
+ *	"sig" will contain the signature
  */
 
 isc_result_t
-dst_key_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
-	       isc_region_t *data, isc_region_t *sig);
+dst_context_verify(dst_context_t *dctx, isc_region_t *sig);
 /*
- * Verify a signature on a block of data.
+ * Verifies the signature using the data and key stored in the context.
  *
  * Requires:
- *	"mode" is some combination of DST_SIGMODE_INIT, DST_SIGMODE_UPDATE,
- *		and DST_SIGMODE_FINAL.
- *	"key" is a valid key.
- *	"context" contains a value appropriate for the value of "mode".
- *	"data" is a valid region.
+ * 	"dctx" is a valid context.
  *	"sig" is a valid region.
  *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	all other errors indicate failure
+ *
  * Ensures:
- *	All allocated memory will be freed after the FINAL call.
+ *	"sig" will contain the signature
  */
 
 isc_result_t
-dst_key_digest(const unsigned int mode, const unsigned int alg,
-	       dst_context_t *context, isc_region_t *data,
-	       isc_buffer_t *digest);
+dst_context_digest(dst_context_t *dctx, isc_buffer_t *digest);
 /*
- * Digest a block of data.
+ * Digests the data stored in the context.
  *
  * Requires:
- *	"mode" is some combination of DST_SIGMODE_INIT, DST_SIGMODE_UPDATE,
- *		and DST_SIGMODE_FINAL.
- *	"alg" is a valid digest algorithm
- *	"context" contains a value appropriate for the value of "mode".
- *	"data" is a valid region.
- *	"digest" is a valid buffer.
+ * 	"dctx" is a valid context.
+ *	"sig" is a valid buffer.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	all other errors indicate failure
  *
  * Ensures:
- *	All allocated memory will be freed after the FINAL call.  "digest"
- *	will contain a digest if all operations completed successfully.
+ *	"digest" will contain the digest
  */
 
 isc_result_t
 dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 		      isc_buffer_t *secret);
 /*
- * A function to compute a shared secret from two (Diffie-Hellman) keys.
+ * Computes a shared secret from two (Diffie-Hellman) keys.
  *
  * Requires:
  *     "pub" is a valid key that can be used to derive a shared secret
  *     "priv" is a valid private key that can be used to derive a shared secret
  *     "secret" is a valid buffer
  *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
  * Ensures:
  *      If successful, secret will contain the derived shared secret.
  */
 
 isc_result_t
-dst_key_fromfile(dns_name_t *name, const isc_uint16_t id, const int alg,
-		 const int type, isc_mem_t *mctx, dst_key_t **keyp);
+dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
+		 const unsigned int alg, const int type,
+		 isc_mem_t *mctx, dst_key_t **keyp);
 /*
- * Reads a key from permanent storage.
+ * Reads a key from permanent storage.  The key can either be a public or
+ * key, and is specified by name, algorithm, and id.
  *
  * Requires:
  *	"name" is a valid absolute dns name.
@@ -147,6 +189,10 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id, const int alg,
  *	"mctx" is a valid memory context.
  *	"keyp" is not NULL and "*keyp" is NULL.
  *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
  * Ensures:
  *	If successful, *keyp will contain a valid key.
  */
@@ -154,11 +200,17 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id, const int alg,
 isc_result_t
 dst_key_tofile(const dst_key_t *key, const int type);
 /*
- * Writes a key to permanent storage.
+ * Writes a key to permanent storage.  The key can either be a public or
+ * private key.  Public keys are written in DNS format and private keys
+ * are written as a set of base64 encoded values.
  *
  * Requires:
  *	"key" is a valid key.
- *	"type" is either DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or both.
+ *	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
  */
 
 isc_result_t
@@ -172,6 +224,10 @@ dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
  *	"source" is a valid buffer.  There must be at least 4 bytes available.
  *	"mctx" is a valid memory context.
  *	"keyp" is not NULL and "*keyp" is NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
  *
  * Ensures:
  *	If successful, *keyp will contain a valid key, and the consumed
@@ -187,14 +243,18 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target);
  *	"key" is a valid key.
  *	"target" is a valid buffer.  There must be at least 4 bytes unused.
  *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
  * Ensures:
  *	If successful, the used pointer in 'target' is advanced by at least 4.
  */
 
 isc_result_t
-dst_key_frombuffer(dns_name_t *name, const int alg, const int flags,
-		   const int protocol, isc_buffer_t *source, isc_mem_t *mctx,
-		   dst_key_t **keyp);
+dst_key_frombuffer(dns_name_t *name, const unsigned int alg,
+		   const unsigned int flags, const unsigned int protocol,
+		   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Converts a buffer containing DNS KEY RDATA into a DST key.
  *
@@ -204,6 +264,10 @@ dst_key_frombuffer(dns_name_t *name, const int alg, const int flags,
  *	"source" is a valid buffer.
  *	"mctx" is a valid memory context.
  *	"keyp" is not NULL and "*keyp" is NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
  *
  * Ensures:
  *	If successful, *keyp will contain a valid key, and the consumed
@@ -219,22 +283,39 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target);
  *	"key" is a valid key.
  *	"target" is a valid buffer.
  *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
  * Ensures:
  *	If successful, the used pointer in 'target' is advanced.
  */
 
 isc_result_t
-dst_key_generate(dns_name_t *name, const int alg, const int bits,
-		 const int param, const int flags, const int protocol,
+dst_key_generate(dns_name_t *name, const unsigned int alg,
+		 const unsigned int bits, const unsigned int param,
+		 const unsigned int flags, const unsigned int protocol,
 		 isc_mem_t *mctx, dst_key_t **keyp);
 /*
- * Generate a DST key (or keypair)
+ * Generate a DST key (or keypair) with the supplied parameters.  The
+ * interpretation of the "param" field depends on the algorithm:
+ * 	RSA:	exponent
+ * 		0	use exponent 3
+ * 		!0	use Fermat4 (2^16 + 1)
+ * 	DH:	generator
+ * 		0	default - use well known prime if bits == 768 or 1024,
+ * 			otherwise use 2 as the generator.
+ * 		!0	use this value as the generator.
+ * 	DSA:	unused
+ * 	HMACMD5:unused
  *
  * Requires:
  *	"name" is a valid absolute dns name.
- *	"alg" is a supported algorithm
- *	"bits" is a valid key size for the given algorithm
  *	"keyp" is not NULL and "*keyp" is NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
  *
  * Ensures:
  *	If successful, *keyp will contain a valid key.
@@ -248,22 +329,31 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2);
  * Requires:
  *	"key1" is a valid key.
  *	"key2" is a valid key.
+ *
+ * Returns:
+ * 	ISC_TRUE
+ * 	ISC_FALSE
  */
 
 isc_boolean_t
 dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
 /*
- * Compares the parameters of two DST keys.
+ * Compares the parameters of two DST keys.  This is used to determine if
+ * two (Diffie-Hellman) keys can be used to derive a shared secret.
  *
  * Requires:
  *	"key1" is a valid key.
  *	"key2" is a valid key.
+ *
+ * Returns:
+ * 	ISC_TRUE
+ * 	ISC_FALSE
  */
 
 void
 dst_key_free(dst_key_t **keyp);
 /*
- * Free a DST key.
+ * Release all memory associated with the key.
  *
  * Requires:
  *	"keyp" is not NULL and "*keyp" is a valid key.
@@ -282,13 +372,13 @@ dst_key_free(dst_key_t **keyp);
 dns_name_t *
 dst_key_name(const dst_key_t *key);
 
-int
+unsigned int
 dst_key_size(const dst_key_t *key);
 
-int
+unsigned int
 dst_key_proto(const dst_key_t *key);
 
-int
+unsigned int
 dst_key_alg(const dst_key_t *key);
 
 isc_uint32_t
@@ -313,7 +403,7 @@ dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out);
  *
  * Requires:
  *	"key" is a valid key
- *	"type" is either DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or 0
+ *	"type" is either DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or 0 for no suffix.
  *	"out" is a valid buffer
  *
  * Ensures:
@@ -323,7 +413,7 @@ dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out);
 
 isc_result_t
 dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, dns_name_t *name,
-		      isc_uint16_t *id, int *alg, char **suffix);
+		      isc_uint16_t *id, unsigned int *alg, char **suffix);
 /*
  * Parses a dst key filename into its components.
  *
@@ -352,6 +442,9 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n);
  * Returns:
  *	ISC_R_SUCCESS
  *	DST_R_UNSUPPORTEDALG
+ *
+ * Ensures:
+ * 	"n" stores the size of a generated signature
  */
 
 isc_result_t
@@ -366,6 +459,9 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
  * Returns:
  *	ISC_R_SUCCESS
  *	DST_R_UNSUPPORTEDALG
+ *
+ * Ensures:
+ * 	"n" stores the size of a generated shared secret
  */
 
 isc_result_t
@@ -376,9 +472,13 @@ dst_random_get(const unsigned int wanted, isc_buffer_t *data);
  * Requires:
  *	"data" is a valid buffer, with at least "wanted" bytes available.
  *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	any other result indicates failure
+ *
  * Ensures:
- *	<= wanted bytes will be written to "data", and the used pointer will
- *		be advanced.
+ *	"wanted" bytes will be written to "data", and the used pointer will
+ *	be advanced.
  */
 
 ISC_LANG_ENDDECLS
