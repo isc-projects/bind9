@@ -120,6 +120,7 @@ enum {
 	dns_opcode_query = 0,
 	dns_opcode_iquery = 1,
 	dns_opcode_status = 2,
+	dns_opcode_notify = 4,
 	dns_opcode_update = 5		/* dynamic update */
 };
 
