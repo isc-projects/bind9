@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.51 2000/12/07 19:30:26 tale Exp $ */
+/* $Id: log.c,v 1.52 2000/12/07 20:15:55 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1040,7 +1040,7 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 
 	new_item->channel = channel;
 	new_item->module = module;
-	ISC_LIST_PREPENDUNSAFE(lcfg->channellists[category_id],
+	ISC_LIST_INITANDPREPEND(lcfg->channellists[category_id],
 			       new_item, link);
 
 	/*

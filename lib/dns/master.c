@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.85 2000/12/04 04:17:00 marka Exp $ */
+/* $Id: master.c,v 1.86 2000/12/07 20:15:49 marka Exp $ */
 
 #include <config.h>
 
@@ -1329,9 +1329,9 @@ load(dns_loadctx_t **ctxp) {
 			this->ttl = ctx->ttl;
 			ISC_LIST_INIT(this->rdata);
 			if (ctx->glue != NULL)
-				ISC_LIST_PREPENDUNSAFE(glue_list, this, link);
+				ISC_LIST_INITANDPREPEND(glue_list, this, link);
 			else
-				ISC_LIST_PREPENDUNSAFE(current_list, this,
+				ISC_LIST_INITANDPREPEND(current_list, this,
 						       link);
 		} else if (this->ttl != ctx->ttl) {
 			(*callbacks->warn)(callbacks,

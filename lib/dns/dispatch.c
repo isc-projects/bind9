@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.75 2000/11/10 03:08:57 gson Exp $ */
+/* $Id: dispatch.c,v 1.76 2000/12/07 20:15:47 marka Exp $ */
 
 #include <config.h>
 
@@ -2043,7 +2043,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	res->arg = arg;
 	res->item_out = ISC_FALSE;
 	ISC_LIST_INIT(res->items);
-	ISC_LIST_APPENDUNSAFE(disp->rq_handlers, res, link);
+	ISC_LIST_INITANDAPPEND(disp->rq_handlers, res, link);
 
 	request_log(disp, res, LVL(90), "attaching task %p", res->task);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.169 2000/12/07 19:56:04 mws Exp $ */
+/* $Id: dighost.c,v 1.170 2000/12/07 20:15:40 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -649,7 +649,7 @@ setup_system(void) {
 							ptr,
 							MXNAME);
 						search->origin[MXNAME-1]=0;
-						ISC_LIST_APPENDUNSAFE
+						ISC_LIST_INITANDAPPEND
 							(search_list,
 							 search,
 							 link);
@@ -673,7 +673,7 @@ setup_system(void) {
 							ptr,
 							MXNAME - 1);
 						search->origin[MXNAME-1]=0;
-						ISC_LIST_PREPENDUNSAFE
+						ISC_LIST_INITANDPREPEND
 							(search_list,
 							 search,
 							 link);

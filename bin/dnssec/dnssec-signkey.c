@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.43 2000/11/09 18:55:17 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.44 2000/12/07 20:15:44 marka Exp $ */
 
 #include <config.h>
 
@@ -124,7 +124,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 			fatal("out of memory");
 		keynode->key = key;
 		keynode->verified = ISC_FALSE;
-		ISC_LIST_APPENDUNSAFE(keylist, keynode, link);
+		ISC_LIST_INITANDAPPEND(keylist, keynode, link);
 	}
 	if (result != ISC_R_NOMORE)
 		fatal("failure traversing key list");

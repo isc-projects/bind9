@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.184 2000/11/27 19:56:16 halley Exp $ */
+/* $Id: resolver.c,v 1.185 2000/12/07 20:15:51 marka Exp $ */
 
 #include <config.h>
 
@@ -1276,7 +1276,7 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	if (sa == NULL)
 		return;
 	*sa = *address;
-	ISC_LIST_APPENDUNSAFE(fctx->bad, sa, link);
+	ISC_LIST_INITANDAPPEND(fctx->bad, sa, link);
 }
 
 static void

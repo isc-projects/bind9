@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.44 2000/11/09 18:55:16 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.45 2000/12/07 20:15:43 marka Exp $ */
 
 #include <config.h>
 
@@ -286,7 +286,7 @@ main(int argc, char *argv[]) {
 			if (keynode == NULL)
 				fatal("out of memory");
 			keynode->key = zonekey;
-			ISC_LIST_APPENDUNSAFE(keylist, keynode, link);
+			ISC_LIST_INITANDAPPEND(keylist, keynode, link);
 		}
 		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 		if (rdata == NULL)

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.16 2000/12/07 17:52:37 marka Exp $
+ * $Id: ssu.c,v 1.17 2000/12/07 20:15:52 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -212,7 +212,7 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 		rule->types = NULL;
 
 	rule->magic = SSURULEMAGIC;
-	ISC_LIST_APPENDUNSAFE(table->rules, rule, link);
+	ISC_LIST_INITANDAPPEND(table->rules, rule, link);
 
 	return (ISC_R_SUCCESS);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.53 2000/12/06 00:29:58 tale Exp $ */
+/* $Id: lex.c,v 1.54 2000/12/07 20:15:54 marka Exp $ */
 
 #include <config.h>
 
@@ -213,7 +213,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 		return (result);
 	}
 	source->line = 1;
-	ISC_LIST_PREPENDUNSAFE(lex->sources, source, link);
+	ISC_LIST_INITANDPREPEND(lex->sources, source, link);
 
 	return (ISC_R_SUCCESS);
 }
