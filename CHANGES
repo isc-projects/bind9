@@ -14,6 +14,10 @@
 1325.	[bug]		Document that internal zones are included in the
 			rndc status results.
 
+1307.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
+			a rdataset to a zone db in the rbtdb implementation of
+			addrdataset.
+
 1306.	[bug]		dns_name_downcase() enforce requirement that
 			target != NULL or name->buffer != NULL.
 
