@@ -116,6 +116,13 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	
 }
 
+/*
+ * Try to find a key that could have signed 'siginfo' among those
+ * in 'rdataset'.  If found, build a dst_key_t for it and point
+ * val->key at it.
+ *
+ * XXX does not handle key tag collisions.
+ */
 static inline isc_result_t 
 get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 	    dns_rdataset_t *rdataset)
@@ -322,12 +329,17 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 
 	event = val->event;
 
-	if (!resume) {
+	if (resume) {
+		/* We alraedy have a sigrdataset. */
+		result = ISC_R_SUCCESS;
+	} else {
 		result = dns_rdataset_first(event->sigrdataset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
 	}
-	do {
+
+	for (;
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(event->sigrdataset))
+	{
 		dns_rdataset_current(event->sigrdataset, &rdata);
 		rdata_to_siginfo(&rdata, &siginfo);
 		
@@ -339,6 +351,8 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		
 		if (!resume) {
 			result = get_key(val, &siginfo);
+			if (result == DNS_R_CONTINUE)
+				continue; /* Try the next SIG RR. */
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
@@ -348,10 +362,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 					   val->key, val->view->mctx, &rdata);
 		if (result == ISC_R_SUCCESS)
 			return (result);
-
-		result = dns_rdataset_next(event->sigrdataset);
-	} while (result == ISC_R_SUCCESS);
-
+	}
 	return (result);
 }
 
@@ -375,7 +386,7 @@ validator_start(dns_validator_t *val) {
 		result = ISC_R_NOTIMPLEMENTED;
 	}
 
-	if (result != DNS_R_CONTINUE)
+	if (result != DNS_R_WAIT)
 		validator_done(val, result);
 
 	UNLOCK(&val->lock);
