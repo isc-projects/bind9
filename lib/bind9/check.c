@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.7 2003/08/13 05:06:50 marka Exp $ */
+/* $Id: check.c,v 1.37.6.8 2003/08/13 05:41:03 marka Exp $ */
 
 #include <config.h>
 
@@ -26,11 +26,11 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
-#include <isc/region.h>
 
 #include <dns/fixedname.h>
 #include <dns/rdataclass.h>
@@ -253,14 +253,27 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 		key = isc_mem_strdup(mctx, namebuf);
 		if (key == NULL)
 			return (ISC_R_NOMEMORY);
-		symvalue.as_pointer = NULL;
+		symvalue.as_pointer = zconfig;
 		tresult = isc_symtab_define(symtab, key,
 					    ztype == HINTZONE ? 1 : 2,
 					    symvalue, isc_symexists_reject);
 		if (tresult == ISC_R_EXISTS) {
+			const char *file;
+			unsigned int line;
+
+			RUNTIME_CHECK(isc_symtab_lookup(symtab, key,
+					    ztype == HINTZONE ? 1 : 2,
+					    &symvalue) == ISC_R_SUCCESS);
 			isc_mem_free(mctx, key);
+			file = cfg_obj_file(symvalue.as_pointer);
+			line = cfg_obj_line(symvalue.as_pointer);
+
+			if (file == NULL)
+				file = "<unknown file>";
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': already exists ", zname);
+				    "zone '%s': already exists "
+				    "previous definition: %s:%u",
+				    zname, file, line);
 			result = ISC_R_FAILURE;
 		} else if (tresult != ISC_R_SUCCESS) {
 			isc_mem_strdup(mctx, key);
@@ -386,7 +399,7 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 	cfg_obj_t *algobj = NULL;
 	cfg_obj_t *secretobj = NULL;
 	const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
-	
+
 	(void)cfg_map_get(key, "algorithm", &algobj);
 	(void)cfg_map_get(key, "secret", &secretobj);
 	if (secretobj == NULL || algobj == NULL) {
@@ -398,7 +411,7 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 	}
 	return ISC_R_SUCCESS;
 }
-		
+
 static isc_result_t
 check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -471,7 +484,7 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 	}
 	return (result);
 }
-  		
+
 static isc_result_t
 check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 	       dns_rdataclass_t vclass, isc_log_t *logctx, isc_mem_t *mctx)
@@ -527,7 +540,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 		isc_symtab_destroy(&symtab);
 		return (tresult);
 	}
-	
+
 	if (vconfig != NULL) {
 		keys = NULL;
 		(void)cfg_map_get(vconfig, "key", &keys);
@@ -717,11 +730,18 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 				name = cfg_obj_asstring(cfg_tuple_get(acl2,
 								      "name"));
 				if (strcasecmp(aclname, name) == 0) {
+					const char *file = cfg_obj_file(acl);
+					unsigned int line = cfg_obj_line(acl);
+
+					if (file == NULL)
+						file = "<unknown file>";
+
 					cfg_obj_log(acl2, logctx, ISC_LOG_ERROR,
 						    "attempt to redefine "
-						    "acl '%s'", name);
+						    "acl '%s' previous "
+						    "definition: %s:%u",
+						     name, file, line);
 					result = ISC_R_FAILURE;
-					break;
 				}
 			}
 		}
