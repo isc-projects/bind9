@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.73 2000/08/22 17:36:28 gson Exp $ */
+/* $Id: zone.h,v 1.74 2000/09/11 13:26:20 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -978,6 +978,27 @@ void
 dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype);
 /*
  * Sets zone notify method to "notifytype"
+ */
+
+isc_result_t
+dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
+                       dns_updatecallback_t callback, void *callback_arg);
+/*
+ * Forward 'msg' to each master in turn until we get an answer or we
+ * have exausted the list of masters. 'callback' will be called with
+ * ISC_R_SUCCESS if we get an answer and the returned message will be
+ * passed, otherwise a non ISC_R_SUCCESS result code will be passed and
+ * msg will be NULL.
+ *		(callback)(callback_arg, result, answer_message);
+ *
+ * Require:
+ *	'zone' to be valid
+ *	'msg' to be valid.
+ *	'callback' to be non NULL.
+ * Returns:
+ *	ISC_R_SUCCESS if the message has been forwarded,
+ *	ISC_R_NOMEMORY
+ *	Others
  */
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.206 2000/09/11 04:37:52 marka Exp $ */
+/* $Id: zone.c,v 1.207 2000/09/11 13:26:19 marka Exp $ */
 
 #include <config.h>
 
@@ -58,6 +58,7 @@
 #define STUB_MAGIC 0x53747562U		/* Stub */
 #define ZONEMGR_MAGIC 0x5a6d6772U	/* Zmgr */
 #define LOAD_MAGIC ISC_MAGIC('L','o','a','d')
+#define FORWARD_MAGIC ISC_MAGIC('F','o','r','w')
 
 #define DNS_ZONE_VALID(zone) \
 	ISC_MAGIC_VALID(zone, ZONE_MAGIC)
@@ -69,6 +70,8 @@
 	ISC_MAGIC_VALID(stub, ZONEMGR_MAGIC)
 #define DNS_LOAD_VALID(load) \
 	ISC_MAGIC_VALID(load, LOAD_MAGIC)
+#define DNS_FORWARD_VALID(load) \
+	ISC_MAGIC_VALID(load, FORWARD_MAGIC)
 
 
 #define RANGE(a, b, c) (((a) < (b)) ? (b) : ((a) < (c) ? (a) : (c)))
@@ -90,6 +93,7 @@
 typedef struct dns_notify dns_notify_t;
 typedef struct dns_stub dns_stub_t;
 typedef struct dns_load dns_load_t;
+typedef struct dns_forward dns_forward_t;
 
 struct dns_zone {
 	/* Unlocked */
@@ -271,6 +275,21 @@ struct dns_load {
 	dns_rdatacallbacks_t	callbacks;
 };
 
+/*
+ *	Hold forward state.
+ */
+struct dns_forward {
+	isc_int32_t		magic;
+	isc_mem_t		*mctx;
+	dns_zone_t		*zone;
+	isc_buffer_t		*msgbuf;
+	dns_request_t		*request;
+	isc_uint32_t		which;
+	isc_sockaddr_t		addr;
+	dns_updatecallback_t	callback;
+	void 			*callback_arg;
+};
+
 static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
 
@@ -335,6 +354,7 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 		 isc_uint32_t *expire, isc_uint32_t *minimum);
 
 static void zone_freedbargs(dns_zone_t *zone);
+static void forward_callback(isc_task_t *task, isc_event_t *event);
 
 #define ZONE_LOG(x,y) zone_log(zone, me, ISC_LOG_DEBUG(x), y)
 #define DNS_ENTER zone_log(zone, me, ISC_LOG_DEBUG(1), "enter")
@@ -4454,6 +4474,192 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	dns_zone_detach(&zone); /* XXXAG */
 	return;
 
+}
+
+/*
+ * Update forwarding support.
+ */
+
+static void
+forward_destroy(dns_forward_t *forward) {
+
+	forward->magic = 0;
+	if (forward->request)
+		dns_request_destroy(&forward->request);
+	if (forward->msgbuf != NULL)
+		isc_buffer_free(&forward->msgbuf);
+	dns_zone_idetach(&forward->zone);
+	isc_mem_putanddetach(&forward->mctx, forward, sizeof (*forward));
+}
+
+static isc_result_t
+sendtomaster(dns_forward_t *forward) {
+	isc_result_t result;
+
+	LOCK(&forward->zone->lock);
+	if (forward->which >= forward->zone->masterscnt) {
+		UNLOCK(&forward->zone->lock);
+		return (ISC_R_NOMORE);
+	}
+
+	forward->addr = forward->zone->masters[forward->which];
+	/*
+	 * Always use TCP regardless of whether the original update
+	 * used TCP.
+	 * XXX The timeout may but a bit small if we are far down a
+	 * transfer graph and the master has to try several masters.
+	 * XXX should be using xfrsource{4,6}.
+	 */
+	result = dns_request_createraw(forward->zone->view->requestmgr,
+				       forward->msgbuf, NULL, &forward->addr,
+				       DNS_REQUESTOPT_TCP, 15 /* XXX */,
+				       forward->zone->task,
+				       forward_callback, forward,
+				       &forward->request);
+	UNLOCK(&forward->zone->lock);
+	return (result);
+}
+
+static void
+forward_callback(isc_task_t *task, isc_event_t *event) {
+	const char me[] = "forward_callback";
+	dns_requestevent_t *revent = (dns_requestevent_t *)event;
+	dns_message_t *msg = NULL;
+	char master[ISC_SOCKADDR_FORMATSIZE];
+	isc_result_t result;
+	dns_forward_t *forward;
+	dns_zone_t *zone;
+
+	UNUSED(task);
+	
+	forward = revent->ev_arg;
+	INSIST(DNS_FORWARD_VALID(forward));
+	zone = forward->zone;
+	INSIST(DNS_ZONE_VALID(zone));
+	
+	DNS_ENTER;
+	
+	isc_sockaddr_format(&forward->addr, master, sizeof(master));
+
+	if (revent->result != ISC_R_SUCCESS) {
+		zone_log(zone, me, ISC_LOG_INFO, "failure for %s: %s",
+			 master, dns_result_totext(revent->result));
+		goto next_master;
+        }
+
+	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	if (result != ISC_R_SUCCESS)
+		goto next_master;
+
+	result = dns_request_getresponse(revent->request, msg, ISC_TRUE);
+	if (result != ISC_R_SUCCESS)
+		goto next_master;
+
+	switch (msg->rcode) {
+	/*
+	 * Pass these rcodes back to client.
+	 */
+	case dns_rcode_noerror:
+	case dns_rcode_yxdomain:
+	case dns_rcode_yxrrset:
+	case dns_rcode_nxrrset:
+	case dns_rcode_refused:
+	case dns_rcode_nxdomain:
+		break;
+
+	/* These should not occur if the masters/zone are valid. */
+	case dns_rcode_notzone:
+	case dns_rcode_notauth: {
+		char rcode[128];
+		isc_buffer_t rb;
+
+		isc_buffer_init(&rb, rcode, sizeof(rcode));
+		dns_rcode_totext(msg->rcode, &rb);
+		zone_log(zone, me, ISC_LOG_WARNING,
+			 "unexpected response: master %s returned: %.*s",
+			 master, rb.used, rcode);
+		goto next_master;
+	}
+
+	/* Try another server for these rcodes. */
+	case dns_rcode_formerr:
+	case dns_rcode_servfail:
+	case dns_rcode_notimp:
+	case dns_rcode_badvers:
+	default:
+		goto next_master;
+	}
+
+	/* call callback */
+	(forward->callback)(forward->callback_arg, ISC_R_SUCCESS, msg);
+	dns_message_destroy(&msg);
+	dns_request_destroy(&forward->request);
+	forward_destroy(forward);
+	isc_event_free(&event);
+	return;
+
+ next_master:
+	if (msg != NULL)
+		dns_message_destroy(&msg);
+	isc_event_free(&event);
+	forward->which++;
+	dns_request_destroy(&forward->request);
+	result = sendtomaster(forward);
+	if (result != ISC_R_SUCCESS) {
+		/* call callback */
+		zone_log(zone, me, ISC_LOG_DEBUG(3), "exausted forwarder");
+		(forward->callback)(forward->callback_arg, result, NULL);
+		forward_destroy(forward);
+	}
+	isc_event_free(&event);
+}
+
+isc_result_t
+dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
+		       dns_updatecallback_t callback, void *callback_arg)
+{
+	dns_forward_t *forward;
+	isc_result_t result;
+	isc_region_t *mr;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(msg != NULL);
+	REQUIRE(callback != NULL);
+
+	forward = isc_mem_get(zone->mctx, sizeof(*forward));
+	if (forward == NULL)
+		return (ISC_R_NOMEMORY);
+
+	forward->request = NULL;
+	forward->zone = NULL;
+	forward->msgbuf = NULL;
+	forward->which = 0;
+	forward->mctx = 0;
+	forward->callback = callback;
+	forward->callback_arg = callback_arg;
+	forward->magic = FORWARD_MAGIC;
+	
+	mr = dns_message_getrawmessage(msg);
+	if (mr == NULL) {
+		result = ISC_R_UNEXPECTEDEND;
+		goto cleanup;
+	}
+
+	result = isc_buffer_allocate(zone->mctx, &forward->msgbuf, mr->length);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = isc_buffer_copyregion(forward->msgbuf, mr);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	
+	isc_mem_attach(zone->mctx, &forward->mctx);
+	dns_zone_iattach(zone, &forward->zone);
+	result = sendtomaster(forward);
+ cleanup:
+	if (result != ISC_R_SUCCESS) {
+		forward_destroy(forward);
+	}
+	return (result);
 }
 
 /***
