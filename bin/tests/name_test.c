@@ -61,9 +61,10 @@ main(int argc, char *argv[]) {
 	isc_boolean_t concatenate = ISC_FALSE;
 	isc_boolean_t got_name = ISC_FALSE;
 	isc_boolean_t check_absolute = ISC_FALSE;
+	isc_boolean_t check_wildcard = ISC_FALSE;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "acq")) != -1) {
+	while ((ch = getopt(argc, argv, "acqw")) != -1) {
 		switch (ch) {
 		case 'a':
 			check_absolute = ISC_TRUE;
@@ -73,6 +74,9 @@ main(int argc, char *argv[]) {
 			break;
 		case 'q':
 			quiet = ISC_TRUE;
+			break;
+		case 'w':
+			check_wildcard = ISC_TRUE;
 			break;
 		}
 	}
@@ -165,6 +169,12 @@ main(int argc, char *argv[]) {
 			else
 				printf("relative\n");
 		}
+		if (check_wildcard && dns_name_countlabels(name) > 0) {
+			if (dns_name_iswildcard(name))
+				printf("wildcard\n");
+			else
+				printf("not wildcard\n");
+		}
 		dns_name_toregion(name, &r);
 		if (!quiet) {
 			print_wirename(&r);
@@ -187,6 +197,14 @@ main(int argc, char *argv[]) {
 							printf("absolute\n");
 						else
 							printf("relative\n");
+					}
+					if (check_wildcard &&
+					    dns_name_countlabels(name) > 0) {
+						if (dns_name_iswildcard(name))
+							printf("wildcard\n");
+						else
+							printf("not "
+							       "wildcard\n");
 					}
 					dns_name_toregion(name, &r);
 					if (!quiet) {
