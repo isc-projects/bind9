@@ -100,7 +100,9 @@ typedef dns_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 #define DNS_RBT_LEVELBLOCK 254
 
 typedef struct dns_rbtnodechain {
+	unsigned int		magic;
 	isc_mem_t *		mctx;
+	dns_rbtnode_t *		end;
 	dns_rbtnode_t **	ancestors;
 	/*
 	 * ancestor_block avoids doing any memory allocation (a MP
@@ -452,6 +454,24 @@ dns_rbtnodechain_reset(dns_rbtnodechain_t *chain);
  * Ensures:
  *	'chain' is suitable for use, and use no dynamic storage.
  */
+
+dns_rbtnode_t *
+dns_rbtnodechain_current(dns_rbtnodechain_t *chain);
+
+dns_result_t
+dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
+		      dns_name_t *origin);
+dns_result_t
+dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
+		      dns_name_t *origin);
+dns_result_t
+dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
+		       dns_name_t *name, dns_name_t *origin);
+dns_result_t
+dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
+		       dns_name_t *name, dns_name_t *origin);
+void
+dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain);
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.32 1999/04/01 15:57:47 tale Exp $ */
+/* $Id: rbt.c,v 1.33 1999/04/09 15:21:14 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -37,6 +37,10 @@
 
 #define RBT_MAGIC		0x5242542BU /* RBT+. */
 #define VALID_RBT(rbt)		((rbt) != NULL && (rbt)->magic == RBT_MAGIC)
+
+#define CHAIN_MAGIC		0x302d302dU /* 0-0-. */
+#define VALID_CHAIN(chain)	((chain) != NULL && \
+				 (chain)->magic == CHAIN_MAGIC)
 
 struct dns_rbt {
 	unsigned int		magic;
@@ -88,6 +92,9 @@ struct dns_rbt {
 #define MAKE_RED(node)		((node)->color = RED)
 #define MAKE_BLACK(node)	((node)->color = BLACK)
 
+/*
+ * Chain management.
+ */
 #define ADD_ANCESTOR(chain, node) \
 			(chain)->ancestors[(chain)->ancestor_count++] = (node)
 #define ADD_LEVEL(chain, node) \
@@ -125,9 +132,8 @@ dns_name_t
 Name(dns_rbtnode_t *node) {
 	dns_name_t name;
 
-	if (node == NULL)
-		dns_name_init(&name, NULL);
-	else
+	dns_name_init(&name, NULL);
+	if (node != NULL)
 		NODENAME(node, &name);
 
 	return (name);
@@ -253,6 +259,12 @@ get_ancestor_mem(dns_rbtnodechain_t *chain) {
 	return (DNS_R_SUCCESS);
 }
 
+/*
+ * This is used by functions that are popping the chain off their
+ * own stack, and so do not need to have ancestor_maxitems or the
+ * ancestors pointer reset.  Functions that will be reusing a chain
+ * structure need to call dns_rbtnodechain_reset() instead.
+ */
 static inline void
 put_ancestor_mem(dns_rbtnodechain_t *chain) {
 	if (chain->ancestor_maxitems > DNS_RBT_ANCESTORBLOCK)
@@ -631,8 +643,13 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(FAST_ISABSOLUTE(name));
 	REQUIRE(node != NULL && *node == NULL);
+
+	/* 
+	 * If there is a chain it needs to appear to be in a sane state.
+	 */
 	REQUIRE(chain == NULL ||
-		(chain->ancestor_count == 0 && chain->level_count == 0));
+		(VALID_CHAIN(chain) && chain->end == NULL &&
+		 chain->ancestor_count == 0 && chain->level_count == 0));
 
 	dns_name_init(&name1, name1_offsets);
 	dns_name_init(&name2, name2_offsets);
@@ -828,6 +845,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	}
 
 	if (current != NULL) {
+		if (chain != NULL)
+			chain->end = current;
+
 		if (foundname != NULL)
 			result = dns_name_concatenate(current_name,
 						      new_foundname, foundname,
@@ -1691,6 +1711,34 @@ dns_rbt_printall(dns_rbt_t *rbt) {
  * Chain Functions
  */
 
+static inline dns_result_t
+chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
+	   isc_boolean_t include_chain_end)
+{
+	dns_name_t nodename;
+	dns_result_t result;
+	unsigned int i;
+
+	dns_name_init(&nodename, NULL);
+
+	result = DNS_R_SUCCESS;
+
+	for (i = 0; i < chain->level_count; i++) {
+		NODENAME(chain->levels[i], &nodename);
+		result = dns_name_concatenate(&nodename, name, name, NULL);
+
+		if (result != DNS_R_SUCCESS)
+			break;
+	}
+
+	if (result == DNS_R_SUCCESS && include_chain_end) {
+		NODENAME(chain->end, &nodename);
+		result = dns_name_concatenate(&nodename, name, name, NULL);
+	}
+
+	return (result);
+}
+
 void
 dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 	/*
@@ -1700,11 +1748,256 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 	REQUIRE(chain != NULL);
 
 	chain->mctx = mctx;
+	chain->end = NULL;
 	chain->ancestors = chain->ancestor_block;
 	chain->ancestor_count = 0;
 	chain->ancestor_maxitems = DNS_RBT_ANCESTORBLOCK;
 	chain->level_count = 0;
+
+	chain->magic = CHAIN_MAGIC;
 }
+
+dns_rbtnode_t *
+dns_rbtnodechain_current(dns_rbtnodechain_t *chain) {
+	return (chain->end);
+}
+
+dns_result_t
+dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
+		      dns_name_t *origin)
+{
+	dns_rbtnode_t *current, *previous, *predecessor;
+	dns_result_t result = DNS_R_SUCCESS;
+	isc_boolean_t new_origin = ISC_FALSE;
+
+	REQUIRE(VALID_CHAIN(chain) && chain->end != NULL);
+
+	predecessor = NULL;
+
+	current = chain->end;
+
+	if (LEFT(current) != NULL) {
+		ADD_ANCESTOR(chain, current);
+		current = LEFT(current);
+
+		while (RIGHT(current) != NULL) {
+			ADD_ANCESTOR(chain, current);
+			current = RIGHT(current);
+		}
+
+		predecessor = current;
+
+	} else {
+		while (chain->ancestors[chain->ancestor_count - 1] != NULL) {
+			previous = current;
+			current = chain->ancestors[--chain->ancestor_count];
+
+			if (RIGHT(current) == previous) {
+				predecessor = current;
+				break;
+			}
+		}
+	}	
+
+	if (predecessor != NULL) {
+		if (DOWN(predecessor) != NULL) {
+			/*
+			 * The predecessor is really down at least one level.
+			 * Go down and as far right as possible, and repeat
+			 * as long as the rightmost node has a down pointer.
+			 */
+			do {
+				/*
+				 * XXX DCL Need to do something about origins
+				 * here. See whether to go down, and if so
+				 * whether it is truly what Bob calls a
+				 * new origin.
+				 */
+				ADD_ANCESTOR(chain, NULL);
+				ADD_LEVEL(chain, predecessor);
+				predecessor = DOWN(predecessor);
+
+				/* XXX DCL duplicated from above; clever
+				 * way to unduplicate? */
+
+				while (RIGHT(predecessor) != NULL) {
+					ADD_ANCESTOR(chain, predecessor);
+					predecessor = RIGHT(predecessor);
+				}
+			} while (DOWN(predecessor) != NULL);
+
+			/* XXX DCL probably needs work on the concept */
+			/* XXX origin needs to include itself */
+			if (origin != NULL) {
+				result = chain_name(chain, origin, ISC_FALSE);
+				new_origin = ISC_TRUE;
+			}
+
+		}
+
+	} else if (chain->level_count > 0) {
+		/*
+		 * Got to the root of the tree without having traversed
+		 * any right links. Ascend the tree one level.
+		 */
+		predecessor = chain->levels[--chain->level_count];
+		chain->ancestor_count--;
+
+		/* XXX DCL probably needs work on the concept */
+		/* XXX DCL in any event, this is wrong.  the names under
+		 * an origin are supposed to include the origin itself.
+		 * somehow i have to defer the new_origin until after
+		 * this node is returned.
+		 */
+		if (origin && chain->level_count > 0) {
+			result = chain_name(chain, origin, ISC_FALSE);
+			new_origin = ISC_TRUE;
+		}
+	}
+
+	if (result == DNS_R_SUCCESS) {
+		if (predecessor != NULL) {
+			chain->end = predecessor;
+
+			result = chain_name(chain, name, ISC_TRUE);
+
+			if (result == DNS_R_SUCCESS && new_origin)
+				result = DNS_R_NEWORIGIN;
+		} else
+			result = DNS_R_NOMORE;
+	}
+
+	return (result);
+}
+
+dns_result_t
+dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
+		      dns_name_t *origin)
+{
+	dns_rbtnode_t *current, *previous, *successor;
+	dns_result_t result = DNS_R_SUCCESS;
+	isc_boolean_t new_origin = ISC_FALSE;
+
+	REQUIRE(VALID_CHAIN(chain) && chain->end != NULL);
+
+	successor = NULL;
+
+	current = chain->end;
+
+	/*
+	 * XXX Need to do something about origins here -- See whether
+	 * to go down, and if so whether it is a new origin.
+	 */
+	if (DOWN(current) != NULL) {
+		ADD_ANCESTOR(chain, NULL);
+		ADD_LEVEL(chain, current);
+		current = DOWN(current);
+
+		while (LEFT(current) != NULL) {
+			ADD_ANCESTOR(chain, current);
+			current = LEFT(current);
+		}
+
+		successor = current;
+
+	} else if (RIGHT(current) == NULL) {
+		while (chain->ancestors[chain->ancestor_count - 1] != NULL) {
+			previous = current;
+			current = chain->ancestors[--chain->ancestor_count];
+
+			if (LEFT(current) == previous) {
+				successor = current;
+				break;
+			}
+		}
+
+		if (successor == NULL) {
+			/*
+			 * Reached the root without having traversed any
+			 * left pointers, so this level is done.
+			 * Ascend levels through the nodes' down pointers
+			 * until one of those nodes has a right pointer.
+			 * XXX more origin hand-waving here.
+			 */
+			do {
+			       while (chain->ancestors[--chain->ancestor_count]
+				      != NULL)
+				       ; /* Decrement to the level root. */
+
+			       current = chain->levels[--chain->level_count];
+			} while (RIGHT(current) == NULL &&
+				 chain->level_count > 0);
+
+			/* XXX origin needs to include itself */
+			if (origin != NULL) {
+				result = chain_name(chain, origin, ISC_FALSE);
+				new_origin = ISC_TRUE;
+			}
+		}
+	}
+
+	if (successor == NULL && RIGHT(current) != NULL) {
+		ADD_ANCESTOR(chain, current);
+		current = RIGHT(current);
+
+		/* XXX duplicated from above; clever way to do it just once? */
+		while (LEFT(current) != NULL) {
+			ADD_ANCESTOR(chain, current);
+			current = LEFT(current);
+		}
+
+		successor = current;
+	}
+
+	if (result == DNS_R_SUCCESS) {
+		if (successor != NULL) {
+			chain->end = successor;
+
+			/* XXX DCL clean up? */
+			if (DOWN(successor) != NULL && origin != NULL) {
+				result = chain_name(chain, origin, ISC_TRUE);
+				new_origin = ISC_TRUE;
+			}
+
+			if (result == DNS_R_SUCCESS)
+				result = chain_name(chain, name, ISC_TRUE);
+
+			if (result == DNS_R_SUCCESS && new_origin)
+				result = DNS_R_NEWORIGIN;
+
+		} else
+			result = DNS_R_NOMORE;
+	}
+
+	return (result);
+}
+
+dns_result_t
+dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
+		       dns_name_t *name, dns_name_t *origin)
+
+{
+	(void)chain;
+	(void)rbt;
+	(void)name;
+	(void)origin;
+
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
+		       dns_name_t *name, dns_name_t *origin)
+
+{
+	(void)chain;
+	(void)rbt;
+	(void)name;
+	(void)origin;
+
+	return (DNS_R_SUCCESS);
+}
+
 
 void
 dns_rbtnodechain_reset(dns_rbtnodechain_t *chain) {
@@ -1713,11 +2006,24 @@ dns_rbtnodechain_reset(dns_rbtnodechain_t *chain) {
 	 * reinitialize 'chain'.
 	 */
 
-	REQUIRE(chain != NULL);
+	REQUIRE(VALID_CHAIN(chain));
 
 	put_ancestor_mem(chain);
+	chain->end = NULL;
 	chain->ancestors = chain->ancestor_block;
 	chain->ancestor_count = 0;
 	chain->ancestor_maxitems = DNS_RBT_ANCESTORBLOCK;
 	chain->level_count = 0;
+}
+
+void
+dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain) {
+	/*
+	 * Free any dynamic storage associated with 'chain', and then
+	 * invalidate 'chain'.
+	 */
+
+	dns_rbtnodechain_reset(chain);
+
+	chain->magic = 0;
 }
