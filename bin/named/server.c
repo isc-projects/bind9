@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.18 2005/01/14 03:28:01 marka Exp $ */
+/* $Id: server.c,v 1.419.18.19 2005/01/16 23:56:00 marka Exp $ */
 
 #include <config.h>
 
@@ -580,15 +580,14 @@ configure_order(dns_order_t *order, cfg_obj_t *ent) {
 
 static isc_result_t
 configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
-	isc_sockaddr_t *sa;
 	isc_netaddr_t na;
 	dns_peer_t *peer;
 	cfg_obj_t *obj;
 	char *str;
 	isc_result_t result;
+	unsigned int prefixlen;
 
-	sa = cfg_obj_assockaddr(cfg_map_getname(cpeer));
-	isc_netaddr_fromsockaddr(&na, sa);
+	cfg_obj_asnetprefix(cfg_map_getname(cpeer), &na, &prefixlen);
 
 	peer = NULL;
 	result = dns_peer_new(mctx, &na, &peer);
@@ -643,7 +642,7 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
-	if (isc_sockaddr_pf(sa) == AF_INET)
+	if (na.family == AF_INET)
 		(void)cfg_map_get(cpeer, "transfer-source", &obj);
 	else
 		(void)cfg_map_get(cpeer, "transfer-source-v6", &obj);

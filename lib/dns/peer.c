@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.19 2004/03/05 05:09:22 marka Exp $ */
+/* $Id: peer.c,v 1.19.18.1 2005/01/16 23:56:05 marka Exp $ */
 
 #include <config.h>
 
@@ -130,7 +130,20 @@ dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer) {
 
 	dns_peer_attach(peer, &p);
 
-	ISC_LIST_APPEND(peers->elements, peer, next);
+	/*
+	 * More specifics to front of list.
+	 */
+	for (p = ISC_LIST_HEAD(peers->elements);
+	     p != NULL;
+	     p = ISC_LIST_NEXT(p, next))
+		if (p->prefixlen < peer->prefixlen)
+			break;
+
+	if (p != NULL)
+		ISC_LIST_INSERTBEFORE(peers->elements, p, peer, next);
+	else
+		ISC_LIST_APPEND(peers->elements, peer, next);
+		
 }
 
 isc_result_t
@@ -145,7 +158,8 @@ dns_peerlist_peerbyaddr(dns_peerlist_t *servers,
 
 	server = ISC_LIST_HEAD(servers->elements);
 	while (server != NULL) {
-		if (isc_netaddr_equal(addr, &server->address))
+		if (isc_netaddr_eqprefix(addr, &server->address,
+					 server->prefixlen))
 			break;
 
 		server = ISC_LIST_NEXT(server, next);
@@ -176,6 +190,27 @@ dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval) {
 
 isc_result_t
 dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
+	unsigned int prefixlen = 0;
+
+	REQUIRE(peerptr != NULL);
+	switch(addr->family) {
+	case AF_INET:
+		prefixlen = 32;
+		break;
+	case AF_INET6:
+		 prefixlen = 128;
+		break;
+	default:
+		INSIST(0);
+	}
+
+	return (dns_peer_newprefix(mem, addr, prefixlen, peerptr));
+}
+
+isc_result_t
+dns_peer_newprefix(isc_mem_t *mem, isc_netaddr_t *addr, unsigned int prefixlen,
+		   dns_peer_t **peerptr)
+{ 
 	dns_peer_t *peer;
 
 	REQUIRE(peerptr != NULL);
@@ -186,6 +221,7 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
 
 	peer->magic = DNS_PEER_MAGIC;
 	peer->address = *addr;
+	peer->prefixlen = prefixlen;
 	peer->mem = mem;
 	peer->bogus = ISC_FALSE;
 	peer->transfer_format = dns_one_answer;

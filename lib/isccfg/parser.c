@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.112.18.2 2004/07/23 04:12:47 marka Exp $ */
+/* $Id: parser.c,v 1.112.18.3 2005/01/16 23:56:08 marka Exp $ */
 
 #include <config.h>
 
@@ -1358,11 +1358,20 @@ cfg_parse_named_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 
 /*
  * Parse a map identified by a network address.
- * Used for the "server" statement.
+ * Used to be used for the "server" statement.
  */
 isc_result_t
 cfg_parse_addressed_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_any_named_map(pctx, &cfg_type_netaddr, type, ret));
+}
+
+/*
+ * Parse a map identified by a network prefix.
+ * Used for the "server" statement.
+ */
+isc_result_t
+cfg_parse_netprefix_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_any_named_map(pctx, &cfg_type_netprefix, type, ret));
 }
 
 void
@@ -1482,6 +1491,9 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 		cfg_print_chars(pctx, " ", 1);
 	} else if (type->parse == cfg_parse_addressed_map) {
 		cfg_doc_obj(pctx, &cfg_type_netaddr);
+		cfg_print_chars(pctx, " ", 1);
+	} else if (type->parse == cfg_parse_netprefix_map) {
+		cfg_doc_obj(pctx, &cfg_type_netprefix);
 		cfg_print_chars(pctx, " ", 1);
 	}
 	

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.20 2004/03/05 05:09:45 marka Exp $ */
+/* $Id: peer.h,v 1.20.18.1 2005/01/16 23:56:06 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -64,6 +64,7 @@ struct dns_peer {
 	isc_mem_t	       *mem;
 
 	isc_netaddr_t		address;
+	unsigned int		prefixlen;
 	isc_boolean_t		bogus;
 	dns_transfer_format_t	transfer_format;
 	isc_uint32_t		transfers;
@@ -114,6 +115,10 @@ dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval);
 
 isc_result_t
 dns_peer_new(isc_mem_t *mem, isc_netaddr_t *ipaddr, dns_peer_t **peer);
+
+isc_result_t
+dns_peer_newprefix(isc_mem_t *mem, isc_netaddr_t *ipaddr,
+		   unsigned int prefixlen, dns_peer_t **peer);
 
 void
 dns_peer_attach(dns_peer_t *source, dns_peer_t **target);

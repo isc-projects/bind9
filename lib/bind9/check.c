@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.10 2005/01/11 03:55:58 marka Exp $ */
+/* $Id: check.c,v 1.44.18.11 2005/01/16 23:56:04 marka Exp $ */
 
 #include <config.h>
 
@@ -1101,8 +1101,8 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_listelt_t *e1, *e2;
 	cfg_obj_t *v1, *v2;
-	isc_sockaddr_t *s1, *s2;
-	isc_netaddr_t na;
+	isc_netaddr_t n1, n2;
+	unsigned int p1, p2;
 	cfg_obj_t *ts;
 	char buf[128];
 	const char *xfr;
@@ -1110,44 +1110,57 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 
 	for (e1 = cfg_list_first(servers); e1 != NULL; e1 = cfg_list_next(e1)) {
 		v1 = cfg_listelt_value(e1);
-		s1 = cfg_obj_assockaddr(cfg_map_getname(v1));
+		cfg_obj_asnetprefix(cfg_map_getname(v1), &n1, &p1);
+		/*
+		 * Check that unused bits are zero.
+		 */
+		result = isc_netaddr_prefixok(&n1, p1);
+		if (result != ISC_R_SUCCESS) {
+			INSIST(result == ISC_R_FAILURE);
+			isc_buffer_init(&target, buf, sizeof(buf) - 1);
+			RUNTIME_CHECK(isc_netaddr_totext(&n1, &target)
+				      == ISC_R_SUCCESS);
+			buf[isc_buffer_usedlength(&target)] = '\0';
+			cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
+				    "server '%s/%u': invalid prefix "
+				    "(extra bits specified)", buf, p1);
+		}
 		ts = NULL;
-		if (isc_sockaddr_pf(s1) == AF_INET)
+		if (n1.family == AF_INET)
 			xfr = "transfer-source-v6";
 		else
 			xfr = "transfer-source";
 		(void)cfg_map_get(v1, xfr, &ts);
 		if (ts != NULL) {
-			isc_netaddr_fromsockaddr(&na, s1);
 			isc_buffer_init(&target, buf, sizeof(buf) - 1);
-			RUNTIME_CHECK(isc_netaddr_totext(&na, &target)
+			RUNTIME_CHECK(isc_netaddr_totext(&n1, &target)
 				      == ISC_R_SUCCESS);
 			buf[isc_buffer_usedlength(&target)] = '\0';
 			cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
-				    "server '%s': %s not valid", buf, xfr);
+				    "server '%s/%u': %s not valid",
+				    buf, p1, xfr);
 			result = ISC_R_FAILURE;
 		}
 		e2 = e1;
 		while ((e2 = cfg_list_next(e2)) != NULL) {
 			v2 = cfg_listelt_value(e2);
-			s2 = cfg_obj_assockaddr(cfg_map_getname(v2));
-			if (isc_sockaddr_eqaddr(s1, s2)) {
+			cfg_obj_asnetprefix(cfg_map_getname(v2), &n2, &p2);
+			if (p1 == p2 && isc_netaddr_equal(&n1, &n2)) {
 				const char *file = cfg_obj_file(v1);
 				unsigned int line = cfg_obj_line(v1);
 
 				if (file == NULL)
 					file = "<unknown file>";
 
-				isc_netaddr_fromsockaddr(&na, s2);
 				isc_buffer_init(&target, buf, sizeof(buf) - 1);
-				RUNTIME_CHECK(isc_netaddr_totext(&na, &target)
+				RUNTIME_CHECK(isc_netaddr_totext(&n2, &target)
 					      == ISC_R_SUCCESS);
 				buf[isc_buffer_usedlength(&target)] = '\0';
 
 				cfg_obj_log(v2, logctx, ISC_LOG_ERROR,
-					    "server '%s': already exists "
+					    "server '%s/%u': already exists "
 					    "previous definition: %s:%u",
-					    buf, file, line);
+					    buf, p2, file, line);
 				result = ISC_R_FAILURE;
 			}
 		}

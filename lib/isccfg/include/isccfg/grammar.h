@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.4.18.2 2004/11/30 01:18:08 marka Exp $ */
+/* $Id: grammar.h,v 1.4.18.3 2005/01/16 23:56:09 marka Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -376,6 +376,10 @@ cfg_parse_named_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 
 isc_result_t
 cfg_parse_addressed_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
+
+isc_result_t
+cfg_parse_netprefix_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **
+ret);
 
 void
 cfg_print_map(cfg_printer_t *pctx, cfg_obj_t *obj);
