@@ -152,6 +152,55 @@ b
 a
   new origin: .
 vix.com
+checking chain information for vix.com.
+  found exact.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: vix.com.
+      (foundname = vix.com, origin = .)
+checking chain information for zzz.com.
+  name not found.  no data at node.
+  name from dns_rbtnodechain_current: g.h.vix.com.
+      (foundname = g.h, origin = vix.com.)
+checking chain information for 0.vix.com.
+  found parent.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: vix.com.
+      (foundname = vix.com, origin = .)
+checking chain information for d.vix.com.
+  found parent.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: c.vix.com.
+      (foundname = c, origin = vix.com.)
+checking chain information for f.vix.com.
+  found parent.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: c.vix.com.
+      (foundname = c, origin = vix.com.)
+checking chain information for a.e.f.vix.com.
+  found parent.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: c.vix.com.
+      (foundname = c, origin = vix.com.)
+checking chain information for z.e.f.vix.com.
+  found parent.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: q.d.e.f.vix.com.
+      (foundname = q, origin = d.e.f.vix.com.)
+checking chain information for g.vix.com.
+  found parent.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: q.d.e.f.vix.com.
+      (foundname = q, origin = d.e.f.vix.com.)
+checking chain information for i.vix.com.
+  found parent.  no data at node.
+  name from dns_rbt_findnode: vix.com.
+  name from dns_rbtnodechain_current: g.h.vix.com.
+      (foundname = g.h, origin = vix.com.)
+checking chain information for b.c.vix.com.
+  found parent.  data at node: c.vix.com.
+  name from dns_rbt_findnode: c.vix.com.
+  name from dns_rbtnodechain_current: c.vix.com.
+      (foundname = c, origin = vix.com.)
 deleting name d.e.f.vix.com
 vix.com. (black)
 	++ BEG down from vix.com.
@@ -226,6 +275,53 @@ g.h.vix.com. (black)
 	NULL
 	NULL
 deleting name g.h.vix.com.
+adding name \[b100000].vix.com.
+adding name \[b010000].vix.com.
+adding name \[b001000].vix.com.
+adding name \[b000100].vix.com.
+adding name \[b000010].vix.com.
+adding name \[b000001].vix.com.
+vix.com. (black)
+	++ BEG down from vix.com.
+	\[x80/6] (black)
+		\[x0/1] (RED from \[x80/6])
+			++ BEG down from \[x0/1]
+			\[x80/5] (black)
+				\[x0/1] (RED from \[x80/5])
+					++ BEG down from \[x0/1]
+					\[x8/4] (black)
+						\[x0/1] (RED from \[x8/4])
+							++ BEG down from \[x0/1]
+							\[x8/3] (black)
+								\[x0/1] (RED from \[x8/3])
+									++ BEG down from \[x0/1]
+									\[x8/2] (black)
+										\[x4/2] (RED from \[x8/2])
+											NULL
+											NULL
+										NULL
+									-- END down from \[x0/1]
+									NULL
+									NULL
+								NULL
+							-- END down from \[x0/1]
+							NULL
+							NULL
+						NULL
+					-- END down from \[x0/1]
+					NULL
+					NULL
+				NULL
+			-- END down from \[x0/1]
+			NULL
+			NULL
+		NULL
+	-- END down from vix.com.
+	NULL
+	NULL
+searching for name \[b000100].vix.com. ... found exact: \[x10/6].vix.com.
+adding name vix.com.
+deleting name vix.com.
 adding name a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.
 adding name b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.
 b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w. (black)
