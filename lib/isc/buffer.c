@@ -400,7 +400,7 @@ isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length)
 isc_result_t
 isc_buffer_putstr(isc_buffer_t *b, const char *source) {
         unsigned int l;
-	isc_region_t region;
+	unsigned char *cp;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(source != NULL);
@@ -409,8 +409,10 @@ isc_buffer_putstr(isc_buffer_t *b, const char *source) {
 	if (l > (b->length - b->used))
 		return (ISC_R_NOSPACE);
 
-	memcpy(b->base + b->used, source, l);
+	cp = (unsigned char *)b->base + b->used;
+	memcpy(cp, source, l);
 	b->used += l;
+
 	return (ISC_R_SUCCESS);
 }
 
