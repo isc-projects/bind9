@@ -1,3 +1,6 @@
+1449.	[bug]		query_addbestns() didn't handle running out of memory
+			gracefully.
+
 1448.	[bug]		Handle empty wildcards labels.
 
 1447.	[bug]		We were casting (unsigned int) to and from (void *).

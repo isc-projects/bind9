@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.243 2003/02/27 00:19:03 marka Exp $ */
+/* $Id: query.c,v 1.244 2003/02/27 02:11:16 marka Exp $ */
 
 #include <config.h>
 
@@ -1663,7 +1663,9 @@ query_addbestns(ns_client_t *client) {
 			zdb = db;
 			zfname = fname;
 			zrdataset = rdataset;
+			rdataset = NULL;
 			zsigrdataset = sigrdataset;
+			sigrdataset = NULL;
 			dns_db_detachnode(db, &node);
 			version = NULL;
 			db = NULL;
@@ -1724,7 +1726,8 @@ query_addbestns(ns_client_t *client) {
 		       DNS_SECTION_AUTHORITY);
 
  cleanup:
-	query_putrdataset(client, &rdataset);
+	if (rdataset != NULL)
+		query_putrdataset(client, &rdataset);
 	if (sigrdataset != NULL)
 		query_putrdataset(client, &sigrdataset);
 	if (fname != NULL)
@@ -2622,7 +2625,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				zdb = db;
 				zfname = fname;
 				zrdataset = rdataset;
+				rdataset = NULL;
 				zsigrdataset = sigrdataset;
+				sigrdataset = NULL;
 				dns_db_detachnode(db, &node);
 				version = NULL;
 				db = NULL;
@@ -3163,7 +3168,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	/*
 	 * General cleanup.
 	 */
-	query_putrdataset(client, &rdataset);
+	if (rdataset != NULL)
+		query_putrdataset(client, &rdataset);
 	if (sigrdataset != NULL)
 		query_putrdataset(client, &sigrdataset);
 	if (fname != NULL)
