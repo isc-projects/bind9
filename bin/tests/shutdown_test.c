@@ -44,9 +44,10 @@ typedef struct {
 	isc_task_t *	peer;
 } t_info;
 
-#define MAX_TASKS	2
+#define MAX_TASKS	3
 #define T2_SHUTDOWNOK	(ISC_EVENTCLASS(1024) + 0)
 #define T2_SHUTDOWNDONE	(ISC_EVENTCLASS(1024) + 1)
+#define FOO_EVENT	(ISC_EVENTCLASS(1024) + 2)
 
 static t_info			tasks[MAX_TASKS];
 static unsigned int		task_count;
@@ -87,9 +88,14 @@ shutdown_action(isc_task_t *task, isc_event_t *event) {
 					    sizeof *event);
 		RUNTIME_CHECK(nevent != NULL);
 		info->exiting = ISC_TRUE;
-		isc_task_send(info->peer, &nevent);
-		isc_task_detach(&info->peer);
+		isc_task_sendanddetach(&info->peer, &nevent);
 	}
+	isc_event_free(&event);
+}
+
+static void
+foo_event(isc_task_t *task, isc_event_t *event) {
+	printf("task(%p) foo\n", task);
 	isc_event_free(&event);
 }
 
@@ -119,13 +125,21 @@ tick(isc_task_t *task, isc_event_t *event)
 			isc_task_send(info->peer, &nevent);
 			isc_task_detach(&info->peer);
 		}
+	} else if (strcmp(info->name, "foo") == 0) {
+		isc_timer_detach(&info->timer);
+		nevent = isc_event_allocate(info->mctx, info,
+					    FOO_EVENT,
+					    foo_event, task,
+					    sizeof *event);
+		RUNTIME_CHECK(nevent != NULL);
+		isc_task_sendanddetach(&task, &nevent);
 	}
 
 	isc_event_free(&event);
 }
 
 static t_info *
-new_task(isc_mem_t *mctx) {
+new_task(isc_mem_t *mctx, char *name) {
 	t_info *ti;
 	isc_time_t expires;
 	isc_interval_t interval;
@@ -136,7 +150,11 @@ new_task(isc_mem_t *mctx) {
 	ti->task = NULL;
 	ti->timer = NULL;
 	ti->ticks = 0;
-	sprintf(ti->name, "%d", task_count);
+	if (name != NULL) {
+		INSIST(strlen(name) < sizeof ti->name);
+		strcpy(ti->name, name);
+	} else
+		sprintf(ti->name, "%d", task_count);
 	RUNTIME_CHECK(isc_task_create(task_manager, mctx, 0, &ti->task) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(ti->task, shutdown_action, ti) ==
@@ -157,7 +175,8 @@ new_task(isc_mem_t *mctx) {
 int
 main(int argc, char *argv[]) {
 	unsigned int workers;
-	t_info *t1, *t2;
+	t_info *t1, *t2, *t3;
+	isc_task_t *task;
 	isc_mem_t *mctx, *mctx2;
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
@@ -177,12 +196,33 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timer_manager) ==
 		      ISC_R_SUCCESS);
 
-	t1 = new_task(mctx);
-	t2 = new_task(mctx2);
+	t1 = new_task(mctx, NULL);
+	t2 = new_task(mctx2, NULL);
 	isc_task_attach(t2->task, &t1->peer);
 	isc_task_attach(t1->task, &t2->peer);
 	isc_task_allowdone(t1->task, ISC_FALSE);
 	isc_task_allowdone(t2->task, ISC_FALSE);
+
+	/*
+	 * Test run-triggered shutdown.
+	 */
+	t3 = new_task(mctx2, "foo");
+
+	/*
+	 * Test implicit shutdown.
+	 */
+	task = NULL;
+	RUNTIME_CHECK(isc_task_create(task_manager, mctx, 0, &task) ==
+		      ISC_R_SUCCESS);
+	isc_task_detach(&task);
+
+	/*
+	 * Test anti-zombie code.
+	 */
+	RUNTIME_CHECK(isc_task_create(task_manager, mctx, 0, &task) ==
+		      ISC_R_SUCCESS);
+	isc_task_allowdone(task, ISC_FALSE);
+	isc_task_detach(&task);
 
 	RUNTIME_CHECK(isc_app_run() == ISC_R_SUCCESS);
 
