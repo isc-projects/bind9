@@ -387,6 +387,23 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
  *	ISC_R_NOMEMORY		-- could not mark address as lame.
  */
 
+void
+dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		       int goodness_adjustment);
+/*
+ * Increase or decrease the address's goodness value.
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	addr be valid.
+ *
+ * Note:
+ *
+ *	Goodness values are silently clamped to INT_MAX and INT_MIN.
+ */
+
 /*
  * XXX Need functions/macros to:
  *

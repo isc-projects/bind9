@@ -1717,10 +1717,44 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
 	zi->lame_timer = expire_time;
 
 	bucket = addr->entry->lock_bucket;
-
 	LOCK(&adb->entrylocks[bucket]);
 	ISC_LIST_PREPEND(addr->entry->zoneinfo, zi, link);
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	return (ISC_R_SUCCESS);
 }
+
+void
+dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		       int goodness_adjustment)
+{
+	int bucket;
+	int old_goodness, new_goodness;
+
+	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+
+	if (goodness_adjustment == 0)
+		return;
+
+	bucket = addr->entry->lock_bucket;
+	LOCK(&adb->entrylocks[bucket]);
+
+	old_goodness = addr->entry->goodness;
+
+	if (goodness_adjustment > 0) {
+		if (old_goodness > INT_MAX - goodness_adjustment)
+			new_goodness = INT_MAX;
+		else
+			new_goodness = old_goodness + goodness_adjustment;
+	} else {
+		if (old_goodness < INT_MIN - goodness_adjustment)
+			new_goodness = INT_MAX;
+		else
+			new_goodness = old_goodness + goodness_adjustment;
+	}
+
+	addr->entry->goodness = new_goodness;
+
+	UNLOCK(&adb->entrylocks[bucket]);
+}
+
