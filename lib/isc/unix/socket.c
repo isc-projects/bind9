@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.199 2001/05/14 18:20:03 gson Exp $ */
+/* $Id: socket.c,v 1.200 2001/05/14 23:58:33 gson Exp $ */
 
 #include <config.h>
 
@@ -48,6 +48,8 @@
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+
+#include "errno2result.h"
 
 #ifndef ISC_PLATFORM_USETHREADS
 #include "socket_p.h"
@@ -910,7 +912,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 #undef SOFT_OR_HARD
 #undef ALWAYS_HARD
 
-		dev->result = ISC_R_UNEXPECTED;
+		dev->result = isc__errno2result(recv_errno);
 		return (DOIO_HARD);
 	}
 
