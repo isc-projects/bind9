@@ -18,15 +18,15 @@
 #ifndef GENERIC_HINFO_13_H
 #define GENERIC_HINFO_13_H 1
 
-/* $Id: hinfo_13.h,v 1.17 2000/04/29 02:01:37 tale Exp $ */
+/* $Id: hinfo_13.h,v 1.18 2000/05/04 23:50:55 explorer Exp $ */
 
 typedef struct dns_rdata_hinfo {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	char			*cpu;
 	char			*os;
-	isc_int8_t		cpu_len;
-	isc_int8_t		os_len;
+	isc_uint8_t		cpu_len;
+	isc_uint8_t		os_len;
 } dns_rdata_hinfo_t;
 
 #endif /* GENERIC_HINFO_13_H */
