@@ -1,8 +1,7 @@
+DNSEXT Working Group                          Brian Wellington (Nominum)
+INTERNET-DRAFT                                              October 2000
 
-DNSIND Working Group                          Brian Wellington (Nominum)
-INTERNET-DRAFT                                                  May 2000
-
-<draft-ietf-dnsext-signing-auth-01.txt>
+<draft-ietf-dnsext-signing-auth-02.txt>
 
 Updates: RFC 2535
 
@@ -32,10 +31,10 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html
 
-   Comments should be sent to the authors or the DNSIND WG mailing list
-   namedroppers@internic.net.
+   Comments should be sent to the authors or the DNSEXT WG mailing list
+   namedroppers@ops.ietf.org.
 
-   This draft expires on November 12, 2000.
+   This draft expires on April 2, 2000.
 
    Copyright Notice
 
@@ -50,13 +49,17 @@ Abstract
 
 
 
-Expires November 2000                                           [Page 1]
+Expires April 2001                                              [Page 1]
 
-INTERNET-DRAFT          DNSSEC Signing Authority                May 2000
+INTERNET-DRAFT          DNSSEC Signing Authority            October 2000
 
 
    secure resolution process.  Specifically, this affects the
    authorization of keys to sign sets of records.
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in RFC 2119 [RFC2119].
 
 
 1 - Introduction
@@ -91,7 +94,7 @@ necessary.
 SIGs may also be used for transaction security.  In this case, a SIG
 record with a type covered field of 0 is attached to a message, and is
 used to protect message integrity.  This is referred to as a SIG(0)
-[RFC2535].
+[RFC2535, RFC2931].
 
 The following sections define requirements for all of the fields of a
 SIG record.  These requirements MUST be met in order for a DNSSEC
@@ -102,13 +105,9 @@ SIG, there are requirements that it MUST meet.
 
 
 
-
-
-
-
-Expires November 2000                                           [Page 2]
+Expires April 2001                                              [Page 2]
 
-INTERNET-DRAFT          DNSSEC Signing Authority                May 2000
+INTERNET-DRAFT          DNSSEC Signing Authority            October 2000
 
 
 2.1 - Type Covered
@@ -153,18 +152,23 @@ that future algorithms will impose contraints.
 The signer's name field of a data SIG MUST contain the name of the zone
 to which the data and signature belong.  The combination of signer's
 name, key tag, and algorithm MUST identify a zone key if the SIG is to
-be considered material.  This document defines a standard policy for
-DNSSEC validation; local policy may override the standard policy.
+be considered material.  The only exception that the signer's name field
+in a SIG KEY at a zone apex SHOULD contain the parent zone's name,
+unless the KEY set is self-signed.  This document defines a standard
+policy for DNSSEC validation; local policy may override the standard
+policy.
+
+
+
+
+Expires April 2001                                              [Page 3]
+
+INTERNET-DRAFT          DNSSEC Signing Authority            October 2000
+
 
 There are no restrictions on the signer field of a SIG(0) record.  The
 combination of signer's name, key tag, and algorithm MUST identify a key
 if this SIG(0) is to be processed.
-
-
-
-Expires November 2000                                           [Page 3]
-
-INTERNET-DRAFT          DNSSEC Signing Authority                May 2000
 
 
 2.8 - Signature
@@ -210,20 +214,20 @@ otherwise.
 
 The primary reason that RFC 2535 allows host and user keys to generate
 material DNSSEC signatures is to allow dynamic update without online
+
+
+
+Expires April 2001                                              [Page 4]
+
+INTERNET-DRAFT          DNSSEC Signing Authority            October 2000
+
+
 zone keys; that is, avoid storing private keys in an online server.  The
 desire to avoid online signing keys cannot be achieved, though, because
 they are necessary to sign NXT and SOA sets [SSU].  These online zone
 keys can sign any incoming data.  Removing the goal of having no online
 keys removes the reason to allow host and user keys to generate material
-
-
-
-Expires November 2000                                           [Page 4]
-
-INTERNET-DRAFT          DNSSEC Signing Authority                May 2000
-
-
-signatures.  in the DNS.
+signatures.
 
 Limiting material signatures to zone keys simplifies the validation
 process.  The length of the verification chain is bounded by the name's
@@ -266,18 +270,19 @@ The signing KEY record MUST have a protocol value of 3 (DNSSEC) or 255
 MUST NOT trust any signature that it generates.
 
 
+
+
+
+Expires April 2001                                              [Page 5]
+
+INTERNET-DRAFT          DNSSEC Signing Authority            October 2000
+
+
 3.5 - Algorithm Number
 
 The algorithm field MUST be identical to that of the generated SIG
 record, and MUST meet all requirements for an algorithm value in a SIG
 record.
-
-
-
-Expires November 2000                                           [Page 5]
-
-INTERNET-DRAFT          DNSSEC Signing Authority                May 2000
-
 
 4 - Security considerations
 
@@ -308,32 +313,30 @@ informative comments (in alphabetical order):
 [RFC1035]  P. Mockapetris, ``Domain Names - Implementation and
            Specification,'' RFC 1035, ISI, November 1987.
 
+[RFC2119]  S. Bradner, ``Key words for use in RFCs to Indicate
+           Requirement Levels,'' BCP 14, RFC 2119, Harvard, March 1997.
+
 [RFC2136]  P. Vixie (Ed.), S. Thomson, Y. Rekhter, J. Bound ``Dynamic
            Updates in the Domain Name System,'' RFC 2136, ISC & Bellcore
            & Cisco & DEC, April 1997.
 
 [RFC2535]  D. Eastlake, ``Domain Name System Security Extensions,'' RFC
-           2065, IBM, March 1999.
+           2535, IBM, March 1999.
+
+[RFC2931]  D. Eastlake, ``DNS Request and Transaction Signatures (
+           SIG(0)s ),'' RFC 2931, Motorola, September 2000.
+
+
+
+
+Expires April 2001                                              [Page 6]
+
+INTERNET-DRAFT          DNSSEC Signing Authority            October 2000
+
 
 [SSU]      B. Wellington, ``Simple Secure Domain Name System (DNS)
            Dynamic Update,'' draft-ietf-dnsext-simple-secure-
-           update-01.txt, Nominum, May 2000.
-
-
-
-
-
-
-
-
-
-
-
-
-Expires November 2000                                           [Page 6]
-
-INTERNET-DRAFT          DNSSEC Signing Authority                May 2000
-
+           update-02.txt, Nominum, October 2000.
 
 7 - Author's Address
 
@@ -382,9 +385,5 @@ FITNESS FOR A PARTICULAR PURPOSE."
 
 
 
-
-
-
-
-Expires November 2000                                           [Page 7]
+Expires April 2001                                              [Page 7]
 

@@ -1,10 +1,10 @@
-DNSIND Working Group                          Brian Wellington (NAILabs)
-INTERNET-DRAFT                                                  May 2000
+DNSEXT Working Group                          Brian Wellington (Nominum)
+INTERNET-DRAFT                                              October 2000
 
-<draft-ietf-dnsext-simple-secure-update-01.txt>
+<draft-ietf-dnsext-simple-secure-update-02.txt>
 
-Updates: RFC 2535, RFC 2136,
-Replaces: RFC 2137, [update2]
+Updates: RFC 2535, RFC 2136
+Replaces: RFC 2137
 
 
 
@@ -32,10 +32,10 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html
 
-   Comments should be sent to the authors or the DNSIND WG mailing list
-   namedroppers@internic.net.
+   Comments should be sent to the authors or the DNSEXT WG mailing list
+   namedroppers@ops.ietf.org.
 
-   This draft expires on November 12, 2000.
+   This draft expires on April 2, 2000.
 
    Copyright Notice
 
@@ -49,9 +49,9 @@ Abstract
 
 
 
-Expires November 2000                                           [Page 1]
+Expires April 2001                                              [Page 1]
 
-INTERNET-DRAFT            Secure Dynamic Update                 May 2000
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
 
 
    to be flexible and useful while requiring as few changes to the
@@ -59,6 +59,10 @@ INTERNET-DRAFT            Secure Dynamic Update                 May 2000
    message is separate from later DNSSEC validation of the data.  Secure
    communication based on authenticated requests and transactions is
    used to provide authorization.
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in RFC 2119 [RFC2119].
 
 
 1 - Introduction
@@ -71,12 +75,12 @@ the basis for this work.
 Familiarity with the DNS system [RFC1034, RFC1035] and dynamic update
 [RFC2136] is helpful and is assumed by this document.  In addition,
 knowledge of DNS security extensions [RFC2535], SIG(0) transaction
-security [RFC2535], and TSIG transaction security [TSIG] is recommended.
+security [RFC2535, RFC2931], and TSIG transaction security [RFC2845] is
+recommended.
 
-This document updates portions of RFC 2535, in particular section 3.1.2.
-This document obsoletes RFC 2137, an alternate proposal for secure
-dynamic update, due to implementation experience.
-
+This document updates portions of RFC 2535, in particular section 3.1.2,
+and RFC 2136.  This document obsoletes RFC 2137, an alternate proposal
+for secure dynamic update, due to implementation experience.
 
 1.1 - Overview of DNS Dynamic Update
 
@@ -89,26 +93,26 @@ for the zone.  The primary server for a dynamic zone must increment the
 zone SOA serial number when an update occurs or before the next
 retrieval of the SOA.
 
-
 1.2 - Overview of DNS Transaction Security
 
-Exchanges of DNS messages which include TSIG [TSIG] or SIG(0) [RFC2535]
-records allow two DNS entities to authenticate DNS requests and
-responses sent between them.  A TSIG MAC (message authentication code)
-is derived from a shared secret, and a SIG(0) is generated from a
-private key whose public counterpart is stored in DNS.  In both cases, a
-record containing the message signature/MAC is included as the final
-resource record in a DNS message.  Keyed hashes, used in TSIG, are
-inexpensive to calculate and verify.  Public key encryption, as used in
-SIG(0), is more scalable as the public keys are stored in DNS.
+Exchanges of DNS messages which include TSIG [RFC2845] or SIG(0)
+[RFC2535, RFC2931] records allow two DNS entities to authenticate DNS
+requests and responses sent between them.  A TSIG MAC (message
+authentication code) is derived from a shared secret, and a SIG(0) is
+generated from a private key whose public counterpart is stored in DNS.
+In both cases, a record containing the message signature/MAC is included
+as the final resource record in a DNS message.  Keyed hashes, used in
 
 
 
-
-Expires November 2000                                           [Page 2]
+Expires April 2001                                              [Page 2]
 
-INTERNET-DRAFT            Secure Dynamic Update                 May 2000
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
 
+
+TSIG, are inexpensive to calculate and verify.  Public key encryption,
+as used in SIG(0), is more scalable as the public keys are stored in
+DNS.
 
 1.3 - Comparison of data authentication and message authentication
 
@@ -139,7 +143,6 @@ RRset is straightforward, and this signature could be permanently used
 to protect the data, as specified in [RFC2535].  However, if an RRset is
 deleted, there is no data for a SIG to cover.
 
-
 1.4 - Data and message signatures
 
 As specified in [signing-auth], the DNSSEC validation process performed
@@ -152,19 +155,19 @@ authentication of the data itself.
 The primary usefulness of host and user keys, with respect to DNSSEC, is
 to authenticate messages, including dynamic updates.  Thus, host and
 user keys MAY be used to generate SIG(0) records to authenticate updates
-and MAY be used in the TKEY [TKEY] process to generate TSIG shared
+and MAY be used in the TKEY [RFC2930] process to generate TSIG shared
 secrets.  In both cases, no SIG records generated by non-zone keys will
 be used in a DNSSEC validation process unless local policy dictates.
+
+
+
+Expires April 2001                                              [Page 3]
+
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
+
+
 Authentication of data, once it is present in DNS, only involves DNSSEC
 zone keys and signatures generated by them.
-
-
-
-
-Expires November 2000                                           [Page 3]
-
-INTERNET-DRAFT            Secure Dynamic Update                 May 2000
-
 
 1.5 - Signatory strength
 
@@ -199,6 +202,26 @@ server MUST indicate failure by returning a message with RCODE REFUSED.
 Other TSIG, SIG(0), or dynamic update errors are returned as specified
 in the appropriate protocol description.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires April 2001                                              [Page 4]
+
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
+
+
 3 - Policy
 
 All policy is configured by the zone administrator and enforced by the
@@ -213,15 +236,6 @@ sign the update is permitted to perform the requested updates.  By
 default, a principal MUST NOT be permitted to make any changes to zone
 data; any permissions MUST be enabled though configuration.
 
-
-
-
-
-Expires November 2000                                           [Page 4]
-
-INTERNET-DRAFT            Secure Dynamic Update                 May 2000
-
-
 The policy is fully implemented in the primary zone server's
 configuration for several reasons.  This removes limitations imposed by
 encoding policy into a fixed number of bits (such as the KEY RR's
@@ -229,7 +243,6 @@ signatory field).  Policy is only relevant in the server applying it, so
 there is no reason to expose it.  Finally, a change in policy or a new
 type of policy should not affect the DNS protocol or data format, and
 should not cause interoperability failures.
-
 
 3.1 - Standard policies
 
@@ -249,8 +262,23 @@ principal could add, delete, or modify specific record types at certain
 names.  Implementations SHOULD allow per-type access control, and SHOULD
 provide concise representations of all types and all ``user'' types,
 where a user type is defined as one that does not affect the operation
-of DNS itself.
 
+
+
+
+
+
+
+
+
+
+
+Expires April 2001                                              [Page 5]
+
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
+
+
+of DNS itself.
 
 3.1.1 - User types
 
@@ -269,15 +297,6 @@ update to RFC 2136.
 Issues concerning updates of KEY records are discussed in the Security
 Considerations section.
 
-
-
-
-
-Expires November 2000                                           [Page 5]
-
-INTERNET-DRAFT            Secure Dynamic Update                 May 2000
-
-
 3.2 - Additional policies
 
 Users are free to implement any policies.  Policies may be as specific
@@ -286,53 +305,55 @@ the principal or any other characteristics of the signed message.
 
 4 - Interaction with DNSSEC
 
+Although this protocol does not change the way updates to secure zones
+are processed, there are a number of issues that should be clarified.
+
+4.1 - Adding SIGs
 An authorized update request MAY include SIG records with each RRset.
 Since SIG records (except SIG(0) records) MUST NOT be used for
-authentication of the update message, they are not required.  If the
-updated zone is secured, the data affected by an update operation MUST
-be secured by one or more SIG records.  For each RRset, if the update
-includes a valid signature by a zone key, this signature SHOULD be
-reused.  Otherwise, the server MUST generate SIG records with one or
-more zone keys (of which the private components MUST be online).  If
-multiple zone keys are online and an RRset requires a signature, a SIG
-MUST be generated by at least one of the zone keys.
+authentication of the update message, they are not required.
 
-If a principal is authorized to add SIG records and there are SIG
-records in the request, the following rules are applied.  If the SIG was
-generated by a zone key for the relevant zone, verification is attempted
-(the public key must be available if the determination that it is a zone
-key was made).  If successful, the SIG is retained; otherwise, the SIG
-is dropped.  Otherwise, the SIG is retained without verification, since
-it is considered immaterial to the DNSSEC validation process.  The
-server MAY examine SIG records and drop SIGs with a temporal validity
-period in the past.  At the completion of the update process, each
-updated RRset must be signed in accordance with the zone's signing
-policy; the SIGs must either be included in the update or generated by
-the server.
+If a principal is authorized to update SIG records and there are SIG
+records in the update, the SIG records are added without verification.
+The server MAY examine SIG records and drop SIGs with a temporal
+validity period in the past.
 
-The server MUST also, if necessary, generate a new SOA record and new
-NXT records, and sign these with the appropriate zone keys.  NXT records
-are explicitly forbidden.  SOA updates are allowed, since the
-maintenance of SOA parameters is outside of the scope of the DNS
-protocol.
+4.2 - Deleting SIGs
+
+If a principal is authorized to update SIG records and the update
+specifies the deletion of SIG records, the server MAY choose to override
+the authority and refuse the update.  For example, the server may allow
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-Expires November 2000                                           [Page 6]
+Expires April 2001                                              [Page 6]
 
-INTERNET-DRAFT            Secure Dynamic Update                 May 2000
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
 
+
+all SIG records not generated by a zone key to be deleted.
+
+4.3 - Non-explicit updates to SIGs
+
+If the updated zone is secured, the RRset affected by an update
+operation MUST, at the completion of the update, be signed in accordance
+with the zone's signing policy.  This will usually require one or more
+SIG records to be generated by one or more zone keys whose private
+components MUST be online [signing-auth].
+
+When the contents of an RRset are updated, the server MAY delete all
+associated SIG records, since they will no longer be valid.
+
+4.4 - Effects on the zone
+
+If any changes are made, the server MUST, if necessary, generate a new
+SOA record and new NXT records, and sign these with the appropriate zone
+keys.  Changes to NXT records by secure dynamic update are explicitly
+forbidden.  SOA updates are allowed, since the maintenance of SOA
+parameters is outside of the scope of the DNS protocol.
 
 5 - Security considerations
 
@@ -352,12 +373,21 @@ private key, and possibly masquerade as the key owner.
 The author would like to thank the following people for review and
 informative comments (in alphabetical order):
 
+   Harald Alvestrand
    Donald Eastlake
    Olafur Gudmundsson
    Andreas Gustafsson
    Bob Halley
    Stuart Kwan
    Ed Lewis
+
+
+
+
+
+Expires April 2001                                              [Page 7]
+
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
 
 
 7 - References
@@ -376,27 +406,45 @@ informative comments (in alphabetical order):
            2137, CyberCash, April 1997.
 
 [RFC2535]  D. Eastlake, ``Domain Name System Security Extensions,'' RFC
-           2065, IBM, March 1999.
+           2535, IBM, March 1999.
 
-[TSIG]     P. Vixie (Ed.), O. Gudmundsson, D. Eastlake, B. Wellington
-           ``Secret Key Transaction Signatures for DNS (TSIG),'' draft-
-           ietf-dnsext-tsig-00.txt, ISC & NAILabs & IBM & NAILabs, March
-           2000.
+[RFC2845]  P. Vixie, O. Gudmundsson, D. Eastlake, B. Wellington ``Secret
+           Key Transaction Signatures for DNS (TSIG),'' RFC 2845, ISC &
+           NAILabs & Motorola & Nominum, May 2000.
 
+[RFC2930]  D. Eastlake ``Secret Key Establishment for DNS (TKEY RR),''
+           RFC 2930, Motorola, September 2000.
 
-
-Expires November 2000                                           [Page 7]
-
-INTERNET-DRAFT            Secure Dynamic Update                 May 2000
-
-
-[TKEY]     D. Eastlake ``Secret Key Establishment for DNS (TKEY RR),''
-           draft-ietf-dnsext-tkey-02.txt, IBM, April 2000.
+[RFC2931]  D. Eastlake ``DNS Request and Transaction Signatures (
+           SIG(0)s ),'' RFC 2931, Motorola, September 2000.
 
 [signing-auth]
            B. Wellington ``Domain Name System Security (DNSSEC) Signing
-           Authority,'' draft-ietf-dnsext-signing-auth-01.txt, Nominum,
-           May 2000.
+           Authority,'' draft-ietf-dnsext-signing-auth-02.txt, Nominum,
+           October 2000.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires April 2001                                              [Page 8]
+
+INTERNET-DRAFT            Secure Dynamic Update             October 2000
+
 
 8 - Author's Address
 
@@ -441,5 +489,13 @@ FITNESS FOR A PARTICULAR PURPOSE."
 
 
 
-Expires November 2000                                           [Page 8]
+
+
+
+
+
+
+
+
+Expires April 2001                                              [Page 9]
 
