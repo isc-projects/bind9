@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.30 2000/06/21 22:01:14 tale Exp $ */
+/* $Id: connection.c,v 1.31 2000/06/23 21:36:17 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -249,18 +249,18 @@ connection_wait(omapi_connection_t *connection_handle) {
 static void
 connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	omapi_connection_t *connection;
 
 	UNUSED(task);
 
-	socket = event->ev_sender;
+	sock = event->ev_sender;
 	connection = event->ev_arg;
 	result = ((isc_socket_connev_t *)event)->result;
 
 	isc_event_free(&event);
 
-	INSIST(socket == connection->socket && task == connection->task);
+	INSIST(sock == connection->socket && task == connection->task);
 
 	/*
 	 * Acquire the wait_lock before proceeding, to guarantee that
@@ -308,14 +308,14 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *buffer;
 	isc_bufferlist_t bufferlist;
 	isc_result_t result;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	isc_socketevent_t *socketevent;
 	omapi_connection_t *connection;
 	unsigned int bytes_read;
 
 	UNUSED(task);
 	
-	socket = event->ev_sender;
+	sock = event->ev_sender;
 	connection = event->ev_arg;
 	socketevent = (isc_socketevent_t *)event;
 	bufferlist = socketevent->bufferlist;
@@ -324,7 +324,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	INSIST(socket == connection->socket && task == connection->task);
+	INSIST(sock == connection->socket && task == connection->task);
 
 	/*
 	 * Acquire the wait_lock before proceeding, to guarantee that
@@ -396,14 +396,14 @@ static void
 send_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *buffer;
 	isc_bufferlist_t bufferlist;
-	isc_socket_t *socket;
+	isc_socket_t *sock;
 	isc_socketevent_t *socketevent;
 	omapi_connection_t *connection;
 	unsigned int sent_bytes;
 
 	UNUSED(task);
 	
-	socket = event->ev_sender;
+	sock = event->ev_sender;
 	connection = event->ev_arg;
 	socketevent = (isc_socketevent_t *)event;
 	sent_bytes = socketevent->n;
@@ -411,7 +411,7 @@ send_done(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	INSIST(socket == connection->socket && task == connection->task);
+	INSIST(sock == connection->socket && task == connection->task);
 
 	/*
 	 * Check the validity of the assumption that partial
@@ -512,7 +512,9 @@ connection_send(omapi_connection_t *connection) {
  * Make an outgoing connection to an OMAPI server.
  */
 isc_result_t
-connect_toserver(omapi_object_t *protocol, const char *server_name, int port) {
+connect_toserver(omapi_object_t *protocol, const char *server_name,
+		 in_port_t port)
+{
 	isc_result_t result;
 	isc_sockaddr_t sockaddr;
 	isc_buffer_t *ibuffer = NULL, *obuffer = NULL;
