@@ -1,3 +1,6 @@
+1236.	[bug]		dns_rdata{class,type}_fromtext() didn't handle non
+			NULL terminated text regions. [RT #2588]
+
 1232.	[bug]		unix/errno2result() didn't handle EADDRNOTAVAIL.
 
 1231.	[port]		HPUX 11.11 recvmsg() can return spurious EADDRNOTAVAIL.
