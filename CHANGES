@@ -1,8 +1,12 @@
+	--- 9.0.0b5 released ---
+
+ 297.   [bug]           Specifying a key name that wasn't fully qualified
+                        in certain parts of the config file could cause
+                        an assertion failure.
+
  296.	[bug]		"make install" from a separate build directory
 			failed unless configure had been run in the source
 			directory, too.
-
-	--- 9.0.0b5 released ---
 
  295.	[bug]		When invoked with type==CNAME and a message
 			not constructed by dns_message_parse(),

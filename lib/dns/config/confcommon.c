@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.31 2000/06/23 22:30:02 brister Exp $ */
+/* $Id: confcommon.c,v 1.31.2.1 2000/06/30 15:51:46 gson Exp $ */
 
 #include <config.h>
 
@@ -739,7 +739,7 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name) {
 	isc_buffer_init(&b2, keyval, len);
 	isc_buffer_add(&b2, len);
 	
-	res = dns_name_fromtext(&newkey, &b2, NULL, ISC_FALSE, NULL);
+	res = dns_name_fromtext(&newkey, &b2, dns_rootname, ISC_FALSE, NULL);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
