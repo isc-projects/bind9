@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.210 2001/10/29 19:02:48 gson Exp $ */
+/* $Id: query.c,v 1.211 2001/11/07 04:25:12 marka Exp $ */
 
 #include <config.h>
 
@@ -2110,7 +2110,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 {
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
-	unsigned int options;
 
 	inc_stats(client, dns_statscounter_recursion);
 
@@ -2172,13 +2171,10 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 
 	if (client->query.timerset == ISC_FALSE)
 		ns_client_settimeout(client, 60);
-	options = client->query.fetchoptions;
-	if (!client->view->tryedns) 
-		options |= DNS_FETCHOPT_NOEDNS0;
 	result = dns_resolver_createfetch(client->view->resolver,
 					  client->query.qname,
 					  qtype, qdomain, nameservers,
-					  NULL, options,
+					  NULL, client->query.fetchoptions,
 					  client->task,
 					  query_resume, client,
 					  rdataset, sigrdataset,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.188 2001/11/05 20:02:41 gson Exp $ */
+/* $Id: adb.c,v 1.189 2001/11/07 04:25:15 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1612,7 +1612,6 @@ a6missing(dns_a6context_t *a6ctx, dns_name_t *a6name) {
 	dns_adb_t *adb;
 	dns_adbfetch6_t *fetch;
 	isc_result_t result;
-	unsigned int options = 0;
 
 	name = a6ctx->arg;
 	INSIST(DNS_ADBNAME_VALID(name));
@@ -1625,11 +1624,9 @@ a6missing(dns_a6context_t *a6ctx, dns_name_t *a6name) {
 		return;
 	}
 
-	if (!adb->view->tryedns)
-		options |= DNS_FETCHOPT_NOEDNS0;
 	result = dns_resolver_createfetch(adb->view->resolver, a6name,
 					  dns_rdatatype_a6,
-					  NULL, NULL, NULL, options,
+					  NULL, NULL, NULL, 0,
 					  adb->task, fetch_callback_a6,
 					  name, &fetch->rdataset, NULL,
 					  &fetch->fetch);
@@ -3787,8 +3784,6 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 		goto cleanup;
 	}
 
-	if (!adb->view->tryedns)
-		options |= DNS_FETCHOPT_NOEDNS0;
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a,
 					  name, nameservers, NULL, options,
@@ -3816,7 +3811,6 @@ fetch_name_aaaa(dns_adbname_t *adbname) {
 	isc_result_t result;
 	dns_adbfetch_t *fetch;
 	dns_adb_t *adb;
-	unsigned int options = 0;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3832,11 +3826,9 @@ fetch_name_aaaa(dns_adbname_t *adbname) {
 		goto cleanup;
 	}
 
-	if (!adb->view->tryedns)
-		options |= DNS_FETCHOPT_NOEDNS0;
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_aaaa,
-					  NULL, NULL, NULL, options,
+					  NULL, NULL, NULL, 0,
 					  adb->task, fetch_callback,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
@@ -3895,8 +3887,6 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	}
 	fetch->flags |= FETCH_FIRST_A6;
 
-	if (!adb->view->tryedns)
-		options |= DNS_FETCHOPT_NOEDNS0;
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a6,
 					  name, nameservers, NULL, options,

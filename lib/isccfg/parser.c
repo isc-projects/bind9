@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.89 2001/11/07 03:52:20 marka Exp $ */
+/* $Id: parser.c,v 1.90 2001/11/07 04:25:19 marka Exp $ */
 
 #include <config.h>
 
@@ -908,7 +908,6 @@ view_clauses[] = {
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
-	{ "try-edns", &cfg_type_boolean, 0 },
 	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "additional-from-auth", &cfg_type_boolean, 0 },

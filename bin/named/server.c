@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.359 2001/11/07 03:52:16 marka Exp $ */
+/* $Id: server.c,v 1.360 2001/11/07 04:25:13 marka Exp $ */
 
 #include <config.h>
 
@@ -826,11 +826,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",
 				 actx, ns_g_mctx, &view->sortlist));
-
-	obj = NULL;
-	result = ns_config_get(maps, "try-edns", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->tryedns = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = ns_config_get(maps, "request-ixfr", &obj);

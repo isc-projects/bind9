@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.74 2001/08/30 05:52:16 marka Exp $ */
+/* $Id: view.h,v 1.75 2001/11/07 04:25:18 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -113,7 +113,6 @@ struct dns_view {
 	dns_acl_t *			sortlist;
 	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;
-	isc_boolean_t			tryedns;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
