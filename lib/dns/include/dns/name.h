@@ -243,6 +243,16 @@ isc_boolean_t dns_name_isabsolute(dns_name_t *name);
  *	FALSE		The last label in 'name' is not the root label.
  */
 
+unsigned int dns_name_hash(dns_name_t *name);
+/*
+ * Provide a hash value for 'name'.
+ *
+ * Requires:
+ *	'name' is a valid name
+ *
+ * Returns:
+ *	A hash value
+ */
 
 /***
  *** Comparisons

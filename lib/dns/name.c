@@ -294,6 +294,44 @@ dns_name_isabsolute(dns_name_t *name) {
 	return (ISC_FALSE);
 }
 
+unsigned int
+dns_name_hash(dns_name_t *name) {
+	unsigned int length;
+	const char *s;
+	unsigned int h = 0;
+	unsigned int g;
+
+	/*
+	 * Provide a hash value for 'name'.
+	 */
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels == 0)
+		return (0);
+	length = name->length;
+	if (length > 16)
+		length = 16;
+
+	/*
+	 * P. J. Weinberger's hash function, adapted from p. 436 of
+	 * _Compilers: Principles, Techniques, and Tools_, Aho, Sethi
+	 * and Ullman, Addison-Wesley, 1986, ISBN 0-201-10088-6.
+	 */
+
+	s = name->ndata;
+	while (length > 0) {
+		h = ( h << 4 ) + *s;
+		if ((g = ( h & 0xf0000000 )) != 0) {
+			h = h ^ (g >> 24);
+			h = h ^ g;
+		}
+		s++;
+		length--;
+	}
+
+	return (h);
+}
+
 int
 dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	unsigned int l1, l2, l, count1, count2, count;
