@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.9 1999/10/11 15:15:38 bwelling Exp $
+ * $Id: dnssec.c,v 1.10 1999/10/17 21:33:03 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -335,7 +335,8 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		/* Digest the length of the rdata */
 		isc_buffer_init(&lenbuf, &len, sizeof(len),
 				ISC_BUFFERTYPE_BINARY);
-		isc_buffer_putuint16(&lenbuf, rdatas[i].length);
+		INSIST(rdatas[i].length < 65536);
+		isc_buffer_putuint16(&lenbuf, (isc_uint16_t)rdatas[i].length);
 		isc_buffer_used(&lenbuf, &lenr);
 		ret = dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &lenr, NULL);
 		if (ret != ISC_R_SUCCESS)
@@ -472,7 +473,8 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		/* Digest the rdata length */
 		isc_buffer_init(&lenbuf, &len, sizeof(len),
 				ISC_BUFFERTYPE_BINARY);
-		isc_buffer_putuint16(&lenbuf, rdatas[i].length);
+		INSIST(rdatas[i].length < 65536);
+		isc_buffer_putuint16(&lenbuf, (isc_uint16_t)rdatas[i].length);
 		isc_buffer_used(&lenbuf, &lenr);
 
 		/* Digest the rdata */
