@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.81 2000/11/10 03:16:24 gson Exp $ */
+/* $Id: message.h,v 1.82 2000/11/13 20:12:03 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -41,16 +41,8 @@
  * and if sections consume the entire message) and known pseudo-RRs in the
  * additional data section are analyzed and removed.
  *
- * TSIG checking is also done at this layer, and any DNSSEC information should
- * also be performed at this time.
- *
- * If dns_message_fromwire() returns DNS_R_MOREDATA additional
- * message packets are required.  This implies an EDNS message.
- *
- * When going from structure to wire, dns_message_towire() will return
- * DNS_R_MOREDATA if there is more data left in the output buffer that
- * could not be rendered into the exisiting buffer.
- *
+ * TSIG checking is also done at this layer, and any DNSSEC transaction
+ * signatures should also be checked here.
  *
  * Notes on using the gettemp*() and puttemp*() functions:
  *
@@ -91,9 +83,8 @@
  *
  * TODO:
  *
- * XXX Needed:  ways to handle TSIG and DNSSEC, supply TSIG and DNSSEC
- * keys, set and retrieve EDNS information, add rdata to a section,
- * move rdata from one section to another, remove rdata, etc.
+ * XXX Needed:  ways to set and retrieve EDNS information, add rdata to a
+ * section, move rdata from one section to another, remove rdata, etc.
  */
 
 #define DNS_MESSAGEFLAG_QR		0x8000U
