@@ -51,12 +51,17 @@
 			       fetch, fetch->private, (m))
 #define QTRACE(m)	printf("query %p (res %p fctx %p): %s\n", \
 			       query, query->fctx->res, query->fctx, (m))
+#define QTRACERESULT(m, r) \
+	printf("query %p (res %p fctx %p): %s, result = %s\n", \
+	       query, query->fctx->res, query->fctx, (m), \
+	       isc_result_totext((r)))
 #else
 #define RTRACE(m)
 #define RRTRACE(r, m)
 #define FCTXTRACE(m)
 #define FTRACE(m)
 #define QTRACE(m)
+#define QTRACERESULT(m, r)
 #endif
 
 typedef struct fetchctx fetchctx_t;
@@ -207,13 +212,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp) {
 
 	FCTXTRACE("cancelquery");
 
-	/*
-	 * XXXRTH  I don't think that dns_dispatch_removeresponse() will
-	 *         reclaim events posted to this task.  What do we do
-	 *	   about this?  Doing what we're doing now is bad, because
-	 *	   we're destroying the query while there may be outstanding
-	 *	   references to it.
-	 */
 	dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
 				    deventp);
 	ISC_LIST_UNLINK(fctx->queries, query, link);
@@ -248,6 +246,7 @@ fctx_freeaddresses(fetchctx_t *fctx) {
 		next_address = ISC_LIST_NEXT(address, link);
 		isc_mem_put(fctx->res->mctx, address, sizeof *address);
 	}
+	ISC_LIST_INIT(fctx->addresses);
 	fctx->address = NULL;
 }
 
@@ -305,9 +304,7 @@ query_senddone(isc_task_t *task, isc_event_t *event) {
 
 	(void)task;
 
-	QTRACE("senddone");
-	printf("query %p: sendto returned %s\n", query,
-	       isc_result_totext(sevent->result));
+	QTRACERESULT("senddone", sevent->result);
 
 	if (sevent->result != ISC_R_SUCCESS)
 		fctx_cancelquery(&query, NULL);
@@ -560,7 +557,8 @@ fctx_getaddresses(fetchctx_t *fctx) {
 				result = dns_rdataset_next(&rdataset);
 			}
 		}
-		dns_rdataset_disassociate(&rdataset);
+		if (dns_rdataset_isassociated(&rdataset))
+			dns_rdataset_disassociate(&rdataset);
 		result = dns_rdataset_next(&fctx->nameservers);
 	}
 	if (result == DNS_R_NOMORE)
@@ -583,6 +581,8 @@ fctx_try(fetchctx_t *fctx) {
 		fctx->address = ISC_LIST_NEXT(fctx->address, link);
 
 	if (fctx->address == NULL) {
+		fctx_freeaddresses(fctx);
+		fctx_cancelqueries(fctx);
 		result = fctx_getaddresses(fctx);
 		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, result);
@@ -942,30 +942,6 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 
 	return (result);
 }
-
-/*
- * XXXRTH  Cleanup
- */
-#ifdef obsolete
-static void
-fctx_cancel(fetchctx_t *fctx) {
-	isc_result_t iresult;
-
-	FCTXTRACE("cancel");
-
-	if (fctx->state != fetchstate_done) {
-		fctx_cancelqueries(fctx);
-
-		iresult = isc_timer_reset(fctx->timer, isc_timertype_inactive,
-					  NULL, NULL, ISC_TRUE);
-		if (iresult != ISC_R_SUCCESS)
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_timer_reset(): %s",
-					 isc_result_totext(iresult));
-		fctx_done(fctx, DNS_R_CANCELED);
-	}
-}
-#endif
 
 /*
  * Handle Responses
