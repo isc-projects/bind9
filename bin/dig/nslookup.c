@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.91 2001/08/29 18:57:10 gson Exp $ */
+/* $Id: nslookup.c,v 1.92 2001/09/20 19:26:57 gson Exp $ */
 
 #include <config.h>
 
@@ -47,17 +47,12 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, usesearch, qr, debugging;
+extern isc_boolean_t usesearch, debugging;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
-extern dns_messageid_t id;
-extern int sendcount;
-extern int ndots;
 extern int tries;
 extern int lookup_counter;
-extern int exitcode;
-extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern char *progname;
 
