@@ -68,67 +68,12 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0b4
+BIND 9.1.0a1
 
-	BIND 9.0.0b4 is the fourth public release of BIND 9 code.  It will
-	be most useful to advanced users working with IPv6 or DNSSEC.
+	This is an unreleased alpha version of BIND 9.1.0.
 
-	BIND 9.0.0b4 has almost all the functionality of the upcoming
-        9.0.0 release.  It is not a release candidate for BIND 9.0.0.
-        ISC anticipates at least one more beta release between now and 
-	the release of BIND 9.0.0.
-
-	ISC does not recommend using BIND 9.0.0b4 for "production"
-	services.
-
-	We hope users of BIND 9.0.0b4 will provide feedback and bug fixes.
-
-	There have been many changes since beta 3; the highlights are:
-
-		Stub zones have been implemented.
-
-		Additional configuration options have been implemented, 
-		such as "max-cache-ttl" and "max-ncache-ttl".
-
-		More configuration options can be specified separately
-		for each view, including the "key" and "server" statements.
-
-		Numerous bugs have been fixed and the code has been cleaned
-		up.
-
-	There are a few known bugs:
-
-		The option "query-source * port 53;" will not work as
-		expected.  Instead of the wildcard address "*", you need 
-		to use an explicit source IP address.
-
-		On some systems, IPv6 and IPv4 sockets interact in
-		unexpected ways.  For details, see doc/misc/ipv6.
-		If your system supports IPv6 but you do not wish to
-		use it, you can avoid these problems by specifying
-		"listen-on-v6 { none; };" in the named.conf
-		options statement to turn off listening on IPv6
-		sockets.
-
-		There are known problems with thread signal handling 
-		under SunOS 5.6.
-		
-
-	For a detailed list of user-visible changes since beta 3, see
-	the CHANGES file.	
-
-	Some of the more significant items that will be implemented or
-	enhanced in a future beta are
-
-		Selective forwarding
-
-		Documentation
-
-			Future releases will contain a lot more documentation,
-			but a preliminary version of the Administrator's
-			Reference Manual is in the doc/arm subdirectory in
-			HTML format.  A plain text version will be added
-			in a future release.
+	For a detailed list of user-visible changes from
+	previous releases, see the CHANGES file.	
 
 
 Building
@@ -140,17 +85,13 @@ Building
 
 		AIX 4.3
 		COMPAQ Tru64 UNIX 4.0D
+                COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
 		FreeBSD 3.4-STABLE
 		HP-UX 11
 		IRIX64 6.5
-		NetBSD-current (with "unproven" pthreads, foreground only)
+		NetBSD-current (with "unproven" pthreads)
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8 (beta)
-
-        We've also had reports of successful builds on the following
-        systems, though we do not have tested these platforms ourselves:
-
-                COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
 
 	To build, just
 
@@ -260,10 +201,3 @@ Bug Reports and Mailing Lists
 	provided, named will attempt to determine the number of available
 	CPUs and use all of them.
 
-
-Note to Programmers
-	The APIs for the libraries in BIND 9 are not yet frozen.
-	We expect the existing library interfaces in the release to be
-	quite stable, however, and unless we've specifically indicated that
-	an interface is temporary, we don't anticipate major changes in
-	future releases.
