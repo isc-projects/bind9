@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.62 1999/09/17 09:22:39 gson Exp $ */
+ /* $Id: rdata.c,v 1.63 1999/10/17 22:34:16 tale Exp $ */
 
 #include <config.h>
 
@@ -388,7 +388,8 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	}
 	if (result != DNS_R_SUCCESS) {
 		*target = st;
-		dns_compress_rollback(cctx, target->used);
+		INSIST(target->used < 65536);
+		dns_compress_rollback(cctx, (isc_uint16_t)target->used);
 	}
 	return (result);
 }
@@ -957,7 +958,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 		nrem = 255;
 	while (n-- != 0) {
 		c = (*s++)&0xff;
-		if (escape && (d = decvalue(c)) != -1) {
+		if (escape && (d = decvalue((char)c)) != -1) {
 			c = d;
 			if (n == 0)
 				return (DNS_R_SYNTAX);
@@ -1092,7 +1093,7 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_buffer_available(target, &region);
 	if (region.length < 2)
 		return (DNS_R_NOSPACE);
-	isc_buffer_putuint16(target, value);
+	isc_buffer_putuint16(target, (isc_uint16_t)value);
 	return (DNS_R_SUCCESS);
 }
 
@@ -1105,7 +1106,7 @@ uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_buffer_available(target, &region);
 	if (region.length < 1)
 		return (DNS_R_NOSPACE);
-	isc_buffer_putuint8(target, value);
+	isc_buffer_putuint8(target, (isc_uint8_t)value);
 	return (DNS_R_SUCCESS);
 }
 
