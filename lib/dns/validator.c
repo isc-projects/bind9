@@ -854,6 +854,8 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 
 		return (ISC_R_SUCCESS);
 	}
+	validator_log(val, ISC_LOG_DEBUG(3),
+		      "no relevant NXT found");
 	return (result);
 }
 
@@ -1055,6 +1057,10 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 	isc_task_t *tclone;
 	dns_validatorevent_t *event;
 
+	REQUIRE((name != NULL && rdataset != NULL) ||
+		(name == NULL && rdataset == NULL &&
+		 sigrdataset == NULL && message != NULL));
+	REQUIRE(options == 0);
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
 
 	tclone = NULL;
@@ -1123,15 +1129,19 @@ dns_validator_cancel(dns_validator_t *validator) {
 	REQUIRE(VALID_VALIDATOR(validator));
 
 	LOCK(&validator->lock);
+
 	if (validator->event != NULL) {
 		validator->event->result = ISC_R_CANCELED;
 		task = validator->event->ev_sender;
 		validator->event->ev_sender = validator;
 		isc_task_sendanddetach(&task,
 				       (isc_event_t **)&validator->event);
-		/*
-		 * XXXRTH  Do other cancelation stuff here.
-		 */
+
+		if (validator->fetch != NULL)
+			dns_resolver_cancelfetch(validator->fetch);
+
+		if (validator->keyvalidator != NULL)
+			dns_validator_cancel(validator->keyvalidator);
 	}
 	UNLOCK(&validator->lock);
 }
