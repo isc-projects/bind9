@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.67 2002/06/05 02:20:59 marka Exp $ */
+/* $Id: entropy.c,v 1.68 2002/06/20 01:19:51 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -467,7 +467,7 @@ isc_result_t
 isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	int fd;
 	struct stat _stat;
-	isc_boolean_t is_usocket;
+	isc_boolean_t is_usocket = ISC_FALSE;
 	isc_boolean_t is_connected = ISC_FALSE;
 	isc_result_t ret;
 	isc_entropysource_t *source;
@@ -490,17 +490,18 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	 * the program to look at an actual FIFO as its source of
 	 * entropy.
 	 */
-	if ((_stat.st_mode & S_IFMT) == S_IFSOCK
-#ifdef _SOCKET_IS_FIFO
-	     || (_stat.st_mode & S_IFMT) == S_IFIFO
-#endif
-	    ) {
-		fd = socket(PF_UNIX, SOCK_STREAM, 0);
+#if defined(S_ISSOCK)
+	if (S_ISSOCK(_stat.st_mode))
 		is_usocket = ISC_TRUE;
-	} else {
+#endif
+#if defined(S_ISFIFO)
+	if (S_ISFIFO(_stat.st_mode))
+		is_usocket = ISC_TRUE;
+#endif
+	if (is_usocket)
+		fd = socket(PF_UNIX, SOCK_STREAM, 0);
+	else
 		fd = open(fname, O_RDONLY | O_NONBLOCK, 0);
-		is_usocket = ISC_FALSE;
-	}
 
 	if (fd < 0) {
 		ret = isc__errno2result(errno);
