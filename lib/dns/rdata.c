@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.44 1999/05/17 15:30:03 marka Exp $ */
+ /* $Id: rdata.c,v 1.45 1999/05/17 15:40:39 marka Exp $ */
 
 #include <config.h>
 
@@ -725,8 +725,8 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	isc_buffer_available(target, &tregion);
 	s = source->base;
 	n = source->length;
-	t = target->base;
-	nrem = target->length;
+	t = tregion.base;
+	nrem = tregion.length;
 	escape = ISC_FALSE;
 	if (nrem < 1)
 		return (DNS_R_NOSPACE);
