@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.1 2002/07/02 10:15:42 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.2 2002/07/10 04:56:20 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -1078,37 +1078,45 @@ p_secstodate (u_long secs) {
 }
 
 u_int16_t
-res_nametoclass(const char *buf, int *success) {
+res_nametoclass(const char *buf, int *successp) {
 	unsigned long result;
 	char *endptr;
+	int success;
 
-	result = sym_ston(__p_class_syms, buf, success);
+	result = sym_ston(__p_class_syms, buf, &success);
 	if (success)
-		return (result);
+		goto done;
 
 	if (strncasecmp(buf, "CLASS", 5) != 0 ||
 	    !isdigit((unsigned char)buf[5]))
-		return (result);
-	result = strtoul(buf, &endptr, 10);
+		goto done;
+	result = strtoul(buf + 5, &endptr, 10);
 	if (*endptr == '\0' && result <= 0xffff)
-		*success = 1;
+		success = 1;
+ done:
+	if (successp)
+		*successp = success;
 	return (result);
 }
 
 u_int16_t
-res_nametotype(const char *buf, int *success) {
+res_nametotype(const char *buf, int *successp) {
 	unsigned long result;
 	char *endptr;
+	int success;
 
-	result = sym_ston(__p_type_syms, buf, success);
+	result = sym_ston(__p_type_syms, buf, &success);
 	if (success)
-		return (result);
+		goto done;
 
 	if (strncasecmp(buf, "type", 4) != 0 ||
 	    !isdigit((unsigned char)buf[4]))
-		return (result);
-	result = strtoul(buf, &endptr, 10);
+		goto done;
+	result = strtoul(buf + 4, &endptr, 10);
 	if (*endptr == '\0' && result <= 0xffff)
-		*success = 1;
+		success = 1;
+ done:
+	if (successp)
+		*successp = success;
 	return (result);
 }

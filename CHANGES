@@ -31,6 +31,9 @@
 
 1282.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
 
+1278.	[bug]		libbind: res_nametotype() and res_nametoclass() were
+			broken.
+
 1276.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
 
 1275.	[bug]		When verifying that an NXT proves nonexistence, check
