@@ -664,6 +664,15 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 	return (result);
 }
 
+/*
+ * Attempts positive response validation.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	Validation completed successfully
+ *	DNS_R_WAIT	Validation has started but is waiting
+ *			for an event.
+ *	Other return codes are possible and all indicate failure.
+ */
 static inline isc_result_t
 validate(dns_validator_t *val, isc_boolean_t resume) {
 	isc_result_t result;
