@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.95 2000/11/03 02:45:51 bwelling Exp $ */
+/* $Id: confctx.c,v 1.96 2000/11/03 07:15:57 marka Exp $ */
 
 #include <config.h>
 
@@ -382,12 +382,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "option 'deallocate-on-exit' is obsolete");
 	}
 
-	if (dns_c_ctx_getdialup(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'dialup' is not yet implemented");
-	}
-
 	if (dns_c_ctx_getfakeiquery(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
@@ -509,13 +503,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'stacksize' is not yet "
-			      "implemented");
-	}
-
-	if (dns_c_ctx_getheartbeatinterval(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'heartbeat-interval' is not yet "
 			      "implemented");
 	}
 
@@ -1074,7 +1061,13 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(auth_nx_domain, "auth-nxdomain");
 	PRINT_AS_BOOLEAN(multiple_cnames, "multiple-cnames");
 	PRINT_AS_BOOLEAN(use_id_pool, "use-id-pool");
-	PRINT_AS_BOOLEAN(dialup, "dialup");
+	PRINT_IF_EQUAL(dns_dialuptype_no, "no", dialup, "dialup");
+	PRINT_IF_EQUAL(dns_dialuptype_yes, "yes", dialup, "dialup");
+	PRINT_IF_EQUAL(dns_dialuptype_notify, "notify", dialup, "dialup");
+	PRINT_IF_EQUAL(dns_dialuptype_refresh, "refresh", dialup, "dialup");
+	PRINT_IF_EQUAL(dns_dialuptype_passive, "passive", dialup, "dialup");
+	PRINT_IF_EQUAL(dns_dialuptype_notifypassive, "notify-passive",
+		       dialup, "dialup");
 	PRINT_AS_BOOLEAN(rfc2308_type1, "rfc2308-type1");
 	PRINT_AS_BOOLEAN(request_ixfr, "request-ixfr");
 	PRINT_AS_BOOLEAN(provide_ixfr, "provide-ixfr");

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.45 2000/10/31 04:20:54 marka Exp $ */
+/* $Id: confzone.h,v 1.46 2000/11/03 07:16:06 marka Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -103,7 +103,7 @@ struct dns_c_master_zone {
 	dns_ssutable_t	       *ssuauth;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
-	isc_boolean_t		dialup;
+	dns_dialuptype_t	dialup;
 	dns_notifytype_t	notify;
 	dns_c_iplist_t	       *also_notify;
 	char		       *ixfr_base;
@@ -148,7 +148,7 @@ struct dns_c_slave_zone {
 #ifndef NOMINUM_PUBLIC
 	isc_boolean_t		notify_forward;
 #endif /* NOMINUM_PUBLIC */
-	isc_boolean_t		dialup;
+	dns_dialuptype_t	dialup;
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
 	isc_boolean_t		maint_ixfr_base;
@@ -185,7 +185,7 @@ struct dns_c_stub_zone {
 	dns_c_ipmatchlist_t    *allow_update_forwarding;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer; /* should be here??? */
-	isc_boolean_t		dialup;
+	dns_dialuptype_t	dialup;
 	dns_c_pklist_t	       *pubkeylist;
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
@@ -349,8 +349,8 @@ isc_result_t dns_c_zone_getallowtransfer(dns_c_zone_t *zone,
 
 
 isc_result_t dns_c_zone_setdialup(dns_c_zone_t *zone,
-				  isc_boolean_t newval);
-isc_result_t dns_c_zone_getdialup(dns_c_zone_t *zone, isc_boolean_t *retval);
+				  dns_dialuptype_t newval);
+isc_result_t dns_c_zone_getdialup(dns_c_zone_t *zone, dns_dialuptype_t *retval);
 
 #ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_zone_setnotifyforward(dns_c_zone_t *zone,

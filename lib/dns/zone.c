@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.244 2000/10/31 05:34:17 marka Exp $ */
+/* $Id: zone.c,v 1.245 2000/11/03 07:15:50 marka Exp $ */
 
 #include <config.h>
 
@@ -221,6 +221,9 @@ struct dns_zone {
 						 * are still using
 						 * default timer values) */
 #define DNS_ZONEFLG_FORCELOAD   0x00008000U     /* Force a reload */
+#define DNS_ZONEFLG_NOREFRESH	0x00010000U
+#define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
+#define DNS_ZONEFLG_DIALREFRESH	0x00040000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -1712,7 +1715,8 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	switch (zone->type) {
 	case dns_zone_slave:
 	case dns_zone_stub:
-		if (now >= zone->refreshtime)
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
+		    now >= zone->refreshtime)
 			dns_zone_refresh(zone);
 		break;
 	default:
@@ -2284,11 +2288,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	}
-	{	
-		char buf[256];
-		isc_sockaddr_format(&src, buf, sizeof(buf));
-		fprintf(stderr, "notify via %s\n", buf);
-	}
 	result = dns_request_createvia(notify->zone->view->requestmgr, message,
 				       &src, &notify->dst, 0, key, 15,
 				       notify->zone->task,
@@ -2427,7 +2426,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	 * If the zone is dialup we are done as we don't want to send
 	 * the current soa so as to force a refresh query.
 	 */
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DIALUP))
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY))
 		flags |= DNS_NOTIFY_NOSOA;
 
 	/*
@@ -3509,7 +3508,8 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOMASTERS)) {
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOMASTERS) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH)) {
 			INSIST(zone->refreshtime != 0);
 			if (zone->refreshtime < next || next == 0)
 				next = zone->refreshtime;
@@ -3818,7 +3818,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 */
 	if (msg->counts[DNS_SECTION_ANSWER] > 0 &&
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-	    !DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DIALUP)) {
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH)) {
 		result = dns_message_findname(msg, DNS_SECTION_ANSWER,
 					      &zone->origin,
 					      dns_rdatatype_soa,
@@ -3867,12 +3867,9 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		return (ISC_R_SUCCESS);
 	}
 	isc_stdtime_get(&now);
-	zone->refreshtime = now;
 	zone->notifyfrom = *from;
-	zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
-	zone_log(zone, me, ISC_LOG_DEBUG(3), "immediate refresh check queued: %s",
-		 fromtext);
+	dns_zone_refresh(zone);
 	return (ISC_R_SUCCESS);
 }
 
@@ -5580,3 +5577,54 @@ dns_zone_resetcounts(dns_zone_t *zone) {
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 }
 
+void
+dns_zone_dialup(dns_zone_t *zone) {
+	
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone_log(zone, "dns_zone_dialup", ISC_LOG_DEBUG(3),
+		 "notify = %d, refresh = %d",
+		 DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY),
+		 DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH));
+	
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY))
+		dns_zone_notify(zone);
+	if (zone->type != dns_zone_master &&
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
+		dns_zone_refresh(zone);
+}
+
+void
+dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK(&zone->lock);
+	zone->flags &= ~(DNS_ZONEFLG_DIALNOTIFY |
+			 DNS_ZONEFLG_DIALREFRESH |
+			 DNS_ZONEFLG_NOREFRESH);
+	switch (dialup) {
+	case dns_dialuptype_no:
+		break;
+	case dns_dialuptype_yes:
+		zone->flags |=  (DNS_ZONEFLG_DIALNOTIFY |
+				 DNS_ZONEFLG_DIALREFRESH |
+				 DNS_ZONEFLG_NOREFRESH);
+		break;
+	case dns_dialuptype_notify:
+		zone->flags |= DNS_ZONEFLG_DIALNOTIFY;
+		break;
+	case dns_dialuptype_notifypassive:
+		zone->flags |= DNS_ZONEFLG_DIALNOTIFY;
+		zone->flags |= DNS_ZONEFLG_NOREFRESH;
+		break;
+	case dns_dialuptype_refresh:
+		zone->flags |= DNS_ZONEFLG_DIALREFRESH;
+		zone->flags |= DNS_ZONEFLG_NOREFRESH;
+		break;
+	case dns_dialuptype_passive:
+		zone->flags |= DNS_ZONEFLG_NOREFRESH;
+		break;
+	default:
+		INSIST(0);
+	}
+	UNLOCK(&zone->lock);
+}

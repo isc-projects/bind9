@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.64 2000/10/31 05:34:18 marka Exp $ */
+/* $Id: zoneconf.c,v 1.65 2000/11/03 07:15:52 marka Exp $ */
 
 #include <config.h>
 
@@ -174,6 +174,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	char **dbargv;
 	static char default_dbtype[] = "rbt";
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
+	dns_dialuptype_t dialup;
 
 	isc_sockaddr_any(&sockaddr_any4);
 	isc_sockaddr_any6(&sockaddr_any6);
@@ -240,12 +241,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				  dns_zone_clearqueryacl));
 
 	if (czone->ztype != dns_c_zone_hint) {
-		result = dns_c_zone_getdialup(czone, &boolean);
+		result = dns_c_zone_getdialup(czone, &dialup);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getdialup(cview, &dialup);
 		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getdialup(cctx, &boolean);
+			result = dns_c_ctx_getdialup(cctx, &dialup);
 		if (result != ISC_R_SUCCESS)
-			boolean = ISC_FALSE;
-		dns_zone_setoption(zone, DNS_ZONEOPT_DIALUP, boolean);
+			dialup = dns_dialuptype_no;
+		dns_zone_setdialup(zone, dialup);
 	} 
 
 #ifndef NOMINUM_PUBLIC

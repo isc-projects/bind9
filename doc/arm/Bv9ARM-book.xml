@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.21 2000/10/31 05:34:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.22 2000/11/03 07:15:47 marka Exp $ -->
 
 <book>
 
@@ -1732,6 +1732,16 @@ to safely set a really large number.</para></entry>
 The words <userinput>true</userinput> and <userinput>false</userinput> are
 also accepted, as are the numbers <userinput>1</userinput> and <userinput>0</userinput>.</para></entry>
 </row>
+<row rowsep = "0">
+<entry colname = "1"><para><varname>dialup_option</varname></para></entry>
+<entry colname = "2"><para>One of <userinput>yes</userinput>,
+<userinput>no</userinput>, <userinput>notify</userinput>,
+<userinput>notify-passive</userinput>, <userinput>refresh</userinput> or
+<userinput>passive</userinput>.
+When used in a zone <userinput>notify-passive</userinput>,
+<userinput>refresh</userinput> and <userinput>passive</userinput>
+are restricted to slave and stub zones.</para></entry>
+</row>
 </tbody>
 </tgroup></informaltable>
 <sect2 id="address_match_lists"><title>Address Match Lists</title>
@@ -2358,7 +2368,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> statistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> auth-nxdomain <replaceable>yes_or_no</replaceable>; </optional>
     <optional> deallocate-on-exit <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> dialup <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dialup <replaceable>dialup_option</replaceable>; </optional>
     <optional> fake-iquery <replaceable>yes_or_no</replaceable>; </optional>
     <optional> fetch-glue <replaceable>yes_or_no</replaceable>; </optional>
     <optional> has-old-clients <replaceable>yes_or_no</replaceable>; </optional>
@@ -2541,17 +2551,25 @@ to zone type and concentrates the zone maintenance so that it all
 happens in a short interval, once every <command>heartbeat-interval</command> and
 hopefully during the one call. It also suppresses some of the normal
 zone maintenance traffic. The default is <userinput>no</userinput>.</para><para>The <command>dialup</command> option
-may also be specified in the <command>zone</command> statement,
+may also be specified in the <command>view</command> and 
+<command>zone</command> statements,
 in which case it overrides the <command>options dialup</command> statement.</para><para>If
 the zone is a master then the server will send out a NOTIFY request
 to all the slaves. This will trigger the zone serial number check
 in the slave (providing it supports NOTIFY) allowing the slave to
 verify the zone while the connection is active.</para><para>If the
 zone is a slave or stub then the server will suppress the regular
-"zone up to date" queries and only perform them when the
-<command>heartbeat-interval</command> expires.</para><note>
-                    <simpara>Not yet implemented
-in <acronym>BIND</acronym> 9.</simpara></note></entry>
+"zone up to date" (refresh) queries and only perform them when the
+<command>heartbeat-interval</command> expires in addition to sending
+NOTIFY requests.</para><para>Finer control can be achieved by using
+<userinput>notity</userinput> which only sends NOTIFY messages,
+<userinput>notity-passive</userinput> which sends NOTIFY messages and
+suppresses the normal refresh queries, <userinput>refresh</userinput>
+which suppresses normal refresh processing and send refresh queries 
+when the <command>heartbeat-interval</command> expires and
+<userinput>passive</userinput> which just disables normal refresh
+processing.</para>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>fake-iquery</command></para></entry>
@@ -3085,11 +3103,9 @@ If set to 0, no  periodic cleaning will occur.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>heartbeat-interval</command></para></entry>
 <entry colname = "2"><para>The server will perform zone maintenance tasks
-for all zones marked  <command>dialup yes</command> whenever this
+for all zones marked as <command>dialup</command> whenever this
 interval expires. The default is 60 minutes. Reasonable values are up
-to 1 day (1440 minutes). If set to 0, no zone maintenance for these zones will occur.</para><note>
-                    <simpara>Not yet
-implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+to 1 day (1440 minutes). If set to 0, no zone maintenance for these zones will occur.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>interface-interval</command></para></entry>
@@ -3505,7 +3521,7 @@ Statement Grammar</title>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
-    <optional> dialup <replaceable>true_or_false</replaceable> ; </optional>
+    <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> ; <optional> <replaceable>ip_addr</replaceable> ; <optional>...</optional></optional></optional> } ; </optional>
@@ -3679,8 +3695,7 @@ The default is the empty list.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>dialup</command></para></entry>
                 <entry colname = "2"><para>See the description of
-<command>dialup</command> under <xref linkend="boolean_options"/>.
-<note><simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></para></entry>
+<command>dialup</command> under <xref linkend="boolean_options"/>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>forward</command></para></entry>

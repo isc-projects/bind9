@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.82 2000/10/20 15:59:52 halley Exp $ */
+/* $Id: view.c,v 1.83 2000/11/03 07:15:49 marka Exp $ */
 
 #include <config.h>
 
@@ -330,6 +330,19 @@ dns_view_flushanddetach(dns_view_t **viewp) {
 void
 dns_view_detach(dns_view_t **viewp) {
 	view_flushanddetach(viewp, ISC_FALSE);
+}
+
+static isc_result_t
+dialup(dns_zone_t *zone, void *__arg) {
+	UNUSED(__arg);
+	dns_zone_dialup(zone);
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_view_dialup(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
 }
 
 void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.81 2000/10/17 20:57:26 mws Exp $ */
+/* $Id: zone.h,v 1.82 2000/11/03 07:16:09 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -54,8 +54,7 @@ extern const char *dns_zonecount_names[];
 #define DNS_ZONEOPT_SERVERS	0x00000001U	/* perform server checks */
 #define DNS_ZONEOPT_PARENTS	0x00000002U	/* perform parent checks */
 #define DNS_ZONEOPT_CHILDREN	0x00000004U	/* perform child checks */
-#define DNS_ZONEOPT_DIALUP	0x00000008U	/* zone xfr over dialup link */
-#define DNS_ZONEOPT_NOTIFY	0x00000010U	/* perform NOTIFY */
+#define DNS_ZONEOPT_NOTIFY	0x00000008U	/* perform NOTIFY */
 #ifndef NOMINUM_PUBLIC
 /*
  * Nominum specific options build down.
@@ -1216,6 +1215,12 @@ dns_zone_resetcounts(dns_zone_t *zone);
  * Requires:
  *      zone be a valid zone.
  */
+
+void
+dns_zone_dialup(dns_zone_t *zone);
+
+void
+dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
 
 extern int dns_zone_countsize;
 

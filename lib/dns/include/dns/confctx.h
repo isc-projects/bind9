@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.55 2000/10/19 01:26:38 gson Exp $ */
+/* $Id: confctx.h,v 1.56 2000/11/03 07:16:03 marka Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -173,7 +173,7 @@ struct dns_c_options {
 	isc_boolean_t	       *auth_nx_domain;
 	isc_boolean_t	       *multiple_cnames;
 	isc_boolean_t	       *use_id_pool;
-	isc_boolean_t	       *dialup;
+	dns_dialuptype_t       *dialup;
 	isc_boolean_t	       *rfc2308_type1;
 	isc_boolean_t	       *request_ixfr;
 	isc_boolean_t	       *provide_ixfr;
@@ -613,8 +613,8 @@ isc_result_t dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg, isc_boolean_t *retval);
 isc_result_t dns_c_ctx_unsetuseidpool(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval);
-isc_result_t dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval);
+isc_result_t dns_c_ctx_setdialup(dns_c_ctx_t *cfg, dns_dialuptype_t newval);
+isc_result_t dns_c_ctx_getdialup(dns_c_ctx_t *cfg, dns_dialuptype_t *retval);
 isc_result_t dns_c_ctx_unsetdialup(dns_c_ctx_t *cfg);
 
 

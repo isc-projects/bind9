@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.235 2000/11/03 02:45:39 bwelling Exp $ */
+/* $Id: server.c,v 1.236 2000/11/03 07:15:43 marka Exp $ */
 
 #include <config.h>
 
@@ -1264,6 +1264,24 @@ interface_timer_tick(isc_task_t *task, isc_event_t *event) {
 	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
 }
 
+static void
+heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
+	ns_server_t *server = (ns_server_t *) event->ev_arg;
+	dns_view_t *view;
+
+fprintf(stderr, "\n\nHEARTBEAT_TIMER_TICK\n");
+
+	UNUSED(task);
+	isc_event_free(&event);
+	RWLOCK(&server->conflock, isc_rwlocktype_read);
+	view = ISC_LIST_HEAD(server->viewlist);
+	while (view != NULL) {
+		dns_view_dialup(view);
+		view = ISC_LIST_NEXT(view, link);
+	}
+	RWUNLOCK(&server->conflock, isc_rwlocktype_read);
+}
+
 static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
@@ -1280,6 +1298,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_dispatch_t *dispatchv6 = NULL;
 	char *pidfilename;
 	isc_uint32_t interface_interval;
+	isc_uint32_t heartbeat_interval;
 	in_port_t listen_port;
 
 	dns_aclconfctx_init(&aclconfctx);
@@ -1449,6 +1468,24 @@ load_configuration(const char *filename, ns_server_t *server,
 				NULL, &interval, ISC_FALSE);
 	}
 
+	/*
+	 * heartbeat timer
+	 */
+	heartbeat_interval = 3600; /* Default is 1 hour. */
+	(void)dns_c_ctx_getheartbeatinterval(cctx, &heartbeat_interval);
+
+fprintf(stderr, "\n\nHEARTBEAT_INTERVAL = %u\n", heartbeat_interval);
+
+	if (heartbeat_interval == 0) {
+		isc_timer_reset(server->heartbeat_timer,
+				isc_timertype_inactive,
+				NULL, NULL, ISC_TRUE);
+	} else {
+		isc_interval_t interval;
+		isc_interval_set(&interval, heartbeat_interval, 0);
+		isc_timer_reset(server->heartbeat_timer, isc_timertype_ticker,
+				NULL, &interval, ISC_FALSE);
+	}
 	/*
 	 * Configure and freeze all explicit views.  Explicit
 	 * views that have zones were already created at parsing
@@ -1689,6 +1726,12 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				    server, &server->interface_timer),
 		   "creating interface timer");
 
+	CHECKFATAL(isc_timer_create(ns_g_timermgr, isc_timertype_inactive,
+				    NULL, NULL, server->task,
+				    heartbeat_timer_tick,
+				    server, &server->heartbeat_timer),
+		   "creating heartbeat timer");
+
 	if (ns_g_lwresdonly)
 		CHECKFATAL(load_configuration(lwresd_g_conffile, server,
 					      ISC_TRUE),
@@ -1738,6 +1781,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	}
 
 	isc_timer_detach(&server->interface_timer);
+	isc_timer_detach(&server->heartbeat_timer);
 
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);
@@ -1827,6 +1871,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   "isc_app_onrun");
 
 	server->interface_timer = NULL;
+	server->heartbeat_timer = NULL;
 
 	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				      ns_g_socketmgr, &server->zonemgr),

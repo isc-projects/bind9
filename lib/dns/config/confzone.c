@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.61 2000/10/31 04:20:53 marka Exp $ */
+/* $Id: confzone.c,v 1.62 2000/11/03 07:16:01 marka Exp $ */
 
 #include <config.h>
 
@@ -156,6 +156,27 @@ static isc_result_t set_ipmatch_list_field(isc_mem_t *mem,
 					   dns_c_ipmatchlist_t **dest,
 					   dns_c_ipmatchlist_t *src,
 					   isc_boolean_t deepcopy);
+
+static const char *
+dialup_totext(dns_dialuptype_t dialup) {
+	switch (dialup) {
+	case dns_dialuptype_no:
+		return ("no");
+	case dns_dialuptype_yes:
+		return ("yes");
+	case dns_dialuptype_notify:
+		return ("notify");
+	case dns_dialuptype_notifypassive:
+		return ("notify-passive");
+	case dns_dialuptype_refresh:
+		return ("refresh");
+	case dns_dialuptype_passive:
+		return ("passive");
+	default:
+		INSIST(0);
+	}
+	return (NULL);
+};
 
 isc_result_t
 dns_c_zonelist_new(isc_mem_t *mem, dns_c_zonelist_t **zlist) {
@@ -609,10 +630,8 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	const char *disabledzone = "zone '%s': is disabled";
 	const char *checknameserror = "zone '%s': 'check-names' is not yet "
 		"implemented";
-	const char *dialuperror = "zone '%s': 'dialup' is not yet implemented";
 	const char *pubkeyerror = "zone '%s': 'pubkey' is deprecated";
 	dns_severity_t severity;
-	isc_boolean_t tbool;
 	dns_c_pklist_t *pklist = NULL;
 
 	/*
@@ -674,14 +693,6 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      checknameserror, zone->name);
-
-	if (zone->ztype != dns_c_zone_hint &&
-	    zone->ztype != dns_c_zone_forward &&
-	    dns_c_zone_getdialup(zone, &tbool) == ISC_R_SUCCESS &&
-	    tbool == ISC_TRUE)
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      dialuperror, zone->name);
 
 	if (zone->ztype != dns_c_zone_forward &&
 	    dns_c_zone_getpubkeylist(zone, &pklist) == ISC_R_SUCCESS)
@@ -1537,13 +1548,29 @@ dns_c_zone_getallowtransfer(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
  */
 
 isc_result_t
-dns_c_zone_setdialup(dns_c_zone_t *zone, isc_boolean_t newval) {
+dns_c_zone_setdialup(dns_c_zone_t *zone, dns_dialuptype_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
+		switch (newval) {
+		case dns_dialuptype_no:
+		case dns_dialuptype_yes:
+		case dns_dialuptype_notify:
+			break;
+		case dns_dialuptype_notifypassive:
+		case dns_dialuptype_refresh:
+		case dns_dialuptype_passive:
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+				      "non-master dialup option '%s'",
+				      dialup_totext(newval));
+			return (ISC_R_FAILURE);
+		default:
+			INSIST(0);
+		}
 		zone->u.mzone.dialup = newval;
 		existed = DNS_C_CHECKBIT(MZ_DIALUP_BIT,
 					 &zone->u.mzone.setflags);
@@ -1586,7 +1613,7 @@ dns_c_zone_setdialup(dns_c_zone_t *zone, isc_boolean_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getdialup(dns_c_zone_t *zone, isc_boolean_t *retval) {
+dns_c_zone_getdialup(dns_c_zone_t *zone, dns_dialuptype_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -4607,8 +4634,7 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 
 	if (DNS_C_CHECKBIT(MZ_DIALUP_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
-		fprintf(fp, "dialup %s;\n",
-			(mzone->dialup ? "true" : "false"));
+		fprintf(fp, "dialup %s;\n", dialup_totext(mzone->dialup));
 	}
 
 	if (DNS_C_CHECKBIT(MZ_MAINT_IXFR_BASE_BIT, &mzone->setflags)) {
@@ -4904,8 +4930,7 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 
 	if (DNS_C_CHECKBIT(SZ_DIALUP_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
-		fprintf(fp, "dialup %s;\n",
-			(szone->dialup ? "true" : "false"));
+		fprintf(fp, "dialup %s;\n", dialup_totext(szone->dialup));
 	}
 
 	if (DNS_C_CHECKBIT(SZ_NOTIFY_BIT, &szone->setflags)) {
@@ -5061,8 +5086,7 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone) {
 
 	if (DNS_C_CHECKBIT(TZ_DIALUP_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
-		fprintf(fp, "dialup %s;\n",
-			(tzone->dialup ? "true" : "false"));
+		fprintf(fp, "dialup %s;\n", dialup_totext(tzone->dialup));
 	}
 
 	if (DNS_C_CHECKBIT(TZ_MIN_RETRY_TIME_BIT, &tzone->setflags)) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.53 2000/10/05 06:39:24 marka Exp $ */
+/* $Id: view.h,v 1.54 2000/11/03 07:16:08 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -618,6 +618,9 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg);
 
 void
 dns_view_setloadmgr(dns_view_t *view, dns_loadmgr_t *loadmgr);
+
+void
+dns_view_dialup(dns_view_t *view);
 
 ISC_LANG_ENDDECLS
 

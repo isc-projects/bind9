@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.51 2000/10/31 04:20:52 marka Exp $ */
+/* $Id: confview.c,v 1.52 2000/11/03 07:16:00 marka Exp $ */
 
 #include <config.h>
 
@@ -55,6 +55,14 @@
 	SETNOTIFYTYPE(FUNC, FIELD) \
 	GETNOTIFYTYPE(FUNC, FIELD) \
 	UNSETNOTIFYTYPE(FUNC, FIELD)
+
+#define SETDIALUPTYPE(FUNC, FIELD) SETBYTYPE(dns_dialuptype_t, FUNC, FIELD)
+#define GETDIALUPTYPE(FUNC, FIELD) GETBYTYPE(dns_dialuptype_t, FUNC, FIELD)
+#define UNSETDIALUPTYPE(FUNC, FIELD) UNSETBYTYPE(dns_dialuptype_t, FUNC, FIELD)
+#define DIALUPTYPE_FUNCS(FUNC, FIELD) \
+	SETDIALUPTYPE(FUNC, FIELD) \
+	GETDIALUPTYPE(FUNC, FIELD) \
+	UNSETDIALUPTYPE(FUNC, FIELD)
 
 #define SETUINT32(FUNC, FIELD) SETBYTYPE(isc_uint32_t, FUNC, FIELD)
 #define GETUINT32(FUNC, FIELD) GETBYTYPE(isc_uint32_t, FUNC, FIELD)
@@ -619,6 +627,24 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 			fputs("no", fp);			\
 		else						\
 			fputs("explicit", fp);			\
+	}
+
+#define PRINT_AS_DIALUPTYPE(FIELD, NAME)			\
+	if (view->FIELD != NULL) {				\
+		dns_c_printtabs(fp, indent + 1);		\
+		fprintf(fp, "%s ", NAME);			\
+		if (*view->FIELD == dns_dialuptype_yes)		\
+			fputs("yes", fp);			\
+		else if (*view->FIELD == dns_dialuptype_no)	\
+			fputs("no", fp);			\
+		else if (*view->FIELD == dns_dialuptype_notify)	\
+			fputs("notify", fp);			\
+		else if (*view->FIELD == dns_dialuptype_notifypassive)	\
+			fputs("notify-passive", fp);			\
+		else if (*view->FIELD == dns_dialuptype_refresh) \
+			fputs("refresh", fp);			\
+		else						\
+			fputs("passive", fp);			\
 	}
 
 
@@ -1513,6 +1539,7 @@ BOOL_FUNCS(requestixfr, request_ixfr)
 BOOL_FUNCS(fetchglue, fetch_glue)
 
 NOTIFYTYPE_FUNCS(notify, notify)
+DIALUPTYPE_FUNCS(dialup, dialup)
 
 #ifndef NOMINUM_PUBLIC
 BOOL_FUNCS(notifyforward, notify_forward)
