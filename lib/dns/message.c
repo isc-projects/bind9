@@ -692,6 +692,21 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	dns_result_t result;
 	unsigned int tries;
 
+	/*
+	 * In dynamic update messages, the rdata can be empty.
+	 */
+	if (msg->opcode == dns_opcode_update && rdatalen == 0) {
+		/*
+		 * When the rdata is empty, the data pointer is never
+		 * dereferenced, but it must still be non-NULL.
+		 */
+		rdata->data = ""; 
+		rdata->length = 0;
+		rdata->class = rdclass;
+		rdata->type = rdtype;
+		return DNS_R_SUCCESS;
+	}
+	    
 	scratch = currentbuffer(msg);
 
 	isc_buffer_setactive(source, rdatalen);
@@ -983,15 +998,19 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		}
 
 		/*
-		 * Read the rdata from the wire format.
+		 * Read the rdata from the wire format.  Interpret the 
+		 * rdata according to its actual class, even if it had a
+		 * DynDNS meta-class in the packet.  Then put the meta-class
+		 * back into the finished rdata.
 		 */
 		rdata = newrdata(msg);
 		if (rdata == NULL)
 			return (DNS_R_NOMEMORY);
 		result = getrdata(name, source, msg, dctx,
-				  rdclass, rdtype, rdatalen, rdata);
+				  msg->rdclass, rdtype, rdatalen, rdata);
 		if (result != DNS_R_SUCCESS)
 			return (result);
+		rdata->class = rdclass;
 
 		/*
 		 * XXXMLG Perform a totally ugly hack here to pull
