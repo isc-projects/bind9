@@ -76,19 +76,7 @@
 
 #define CONF_MAX_IDENT 1024
 
-#ifdef RESOK
-#undef RESOK
-#endif
-
-#ifdef RESEXISTS
-#undef RESEXISTS
-#endif
-
-#define RESOK (res == ISC_R_SUCCESS)
-#define RESEXISTS (res == ISC_R_EXISTS)
-
-typedef struct 
-{
+typedef struct  {
 	isc_mem_t	       *themem;
 	isc_lex_t	       *thelexer;
 	isc_symtab_t	       *thekeywords;
@@ -108,10 +96,7 @@ typedef struct
 	struct in6_addr		ip6addr;
 } ndcpcontext;
 
-
-
-struct keywordtoken
-{
+struct keywordtoken {
         char *token;
         int yaccval;
 };
@@ -214,17 +199,15 @@ static void syntax_error(ndcpcontext *pctx, isc_uint32_t keyword);
 /* *********************************************************************** */
 
 isc_result_t
-dns_c_ndcctx_new(isc_mem_t *mem, dns_c_ndcctx_t **ctx)
-{
+dns_c_ndcctx_new(isc_mem_t *mem, dns_c_ndcctx_t **ctx) {
 	dns_c_ndcctx_t *newctx;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(*ctx == NULL);
 
 	newctx = isc_mem_get(mem, sizeof *newctx);
-	if (newctx == NULL) {
+	if (newctx == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 	
 	newctx->mem = mem;
 	newctx->magic = DNS_C_NDCCTX_MAGIC;
@@ -237,8 +220,7 @@ dns_c_ndcctx_new(isc_mem_t *mem, dns_c_ndcctx_t **ctx)
 }
 
 isc_result_t
-dns_c_ndcctx_destroy(dns_c_ndcctx_t **ndcctx)
-{
+dns_c_ndcctx_destroy(dns_c_ndcctx_t **ndcctx) {
 	dns_c_ndcctx_t *ctx;
 	isc_mem_t *mem;
 	
@@ -251,65 +233,58 @@ dns_c_ndcctx_destroy(dns_c_ndcctx_t **ndcctx)
 	mem = ctx->mem;
 	ctx->mem = NULL;
 
-	if (ctx->opts != NULL) {
+	if (ctx->opts != NULL)
 		dns_c_ndcopts_destroy(&ctx->opts);
-	}
 
-	if (ctx->servers != NULL) {
+	if (ctx->servers != NULL)
 		dns_c_ndcserverlist_destroy(&ctx->servers);
-	}
 
-	if (ctx->keys != NULL) {
+	if (ctx->keys != NULL)
 		dns_c_kdeflist_delete(&ctx->keys);
-	}
 
 	ctx->magic = 0;
 	isc_mem_put(mem, ctx, sizeof *ctx);
+
+	*ndcctx = NULL;
 
 	return (ISC_R_SUCCESS);
 }
 
 
 void
-dns_c_ndcctx_print(FILE *fp, dns_c_ndcctx_t *ctx)
-{
+dns_c_ndcctx_print(FILE *fp, dns_c_ndcctx_t *ctx) {
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 
-	if (ctx->opts != NULL) {
+	if (ctx->opts != NULL)
 		dns_c_ndcopts_print(fp, ctx->opts);
-	}
 
-	if (ctx->servers != NULL) {
+	if (ctx->servers != NULL)
 		dns_c_ndcserverlist_print(fp, ctx->servers);
-	}
 
-	if (ctx->keys != NULL) {
+	if (ctx->keys != NULL)
 		dns_c_kdeflist_print(fp, 0, ctx->keys);
-	}
 }
 
 
 void
-dns_c_ndcopts_print(FILE *fp, dns_c_ndcopts_t *opts)
-{
+dns_c_ndcopts_print(FILE *fp, dns_c_ndcopts_t *opts) {
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(opts));
 
 	fprintf(fp, "options {\n");
-	if (opts->defserver != NULL) {
+	if (opts->defserver != NULL)
 		fprintf(fp, "\tdefault-server %s;\n", opts->defserver);
-	}
-	if (opts->defkey != NULL) {
+
+	if (opts->defkey != NULL)
 		fprintf(fp, "\tdefault-key %s;\n", opts->defkey);
-	}
+
 	fprintf(fp, "};\n\n\n");
 }
 
 
 void
-dns_c_ndcserverlist_print(FILE *fp, dns_c_ndcserverlist_t *servers)
-{
+dns_c_ndcserverlist_print(FILE *fp, dns_c_ndcserverlist_t *servers) {
 	dns_c_ndcserver_t *server;
 	
 	REQUIRE(DNS_C_NDCSERVERLIST_VALID(servers));
@@ -324,24 +299,20 @@ dns_c_ndcserverlist_print(FILE *fp, dns_c_ndcserverlist_t *servers)
 
 
 void
-dns_c_ndcserver_print(FILE *fp, dns_c_ndcserver_t *server)
-{
+dns_c_ndcserver_print(FILE *fp, dns_c_ndcserver_t *server) {
 	fprintf(fp, "server %s {\n", server->name);
-	if (server->key != NULL) {
+	if (server->key != NULL)
 		fprintf(fp, "\tkey %s;\n", server->key);
-	}
 
-	if (server->host != NULL) {
+	if (server->host != NULL)
 		fprintf(fp, "\thost %s;\n", server->host);
-	}
 
 	fprintf(fp, "};\n\n\n");
 }
 
 
 isc_result_t
-dns_c_ndcctx_setoptions(dns_c_ndcctx_t *ctx, dns_c_ndcopts_t *opts)
-{
+dns_c_ndcctx_setoptions(dns_c_ndcctx_t *ctx, dns_c_ndcopts_t *opts) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
@@ -351,26 +322,30 @@ dns_c_ndcctx_setoptions(dns_c_ndcctx_t *ctx, dns_c_ndcopts_t *opts)
 	
 	ctx->opts = opts;
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcctx_getoptions(dns_c_ndcctx_t *ctx, dns_c_ndcopts_t **opts)
-{
+dns_c_ndcctx_getoptions(dns_c_ndcctx_t *ctx, dns_c_ndcopts_t **opts) {
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(opts != NULL);
 	REQUIRE(*opts == NULL);
 	
 	*opts = ctx->opts;
 
-	return (ctx->opts == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (ctx->opts == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcctx_setservers(dns_c_ndcctx_t *ctx, dns_c_ndcserverlist_t *servers)
-{
+dns_c_ndcctx_setservers(dns_c_ndcctx_t *ctx, dns_c_ndcserverlist_t *servers) {
 	isc_boolean_t existed;
-	
+
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(servers == NULL || DNS_C_NDCSERVERLIST_VALID(servers));
 
@@ -378,59 +353,62 @@ dns_c_ndcctx_setservers(dns_c_ndcctx_t *ctx, dns_c_ndcserverlist_t *servers)
 	
 	ctx->servers = servers;
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcctx_getservers(dns_c_ndcctx_t *ctx, dns_c_ndcserverlist_t **servers)
-{
+dns_c_ndcctx_getservers(dns_c_ndcctx_t *ctx, dns_c_ndcserverlist_t **servers) {
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(servers != NULL);
 	REQUIRE(*servers == NULL);
 	
 	*servers = ctx->servers;
 
-	return (ctx->servers == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (ctx->servers == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcctx_addserver(dns_c_ndcctx_t *ctx, dns_c_ndcserver_t **server)
-{
-	isc_result_t res;
+dns_c_ndcctx_addserver(dns_c_ndcctx_t *ctx, dns_c_ndcserver_t **server) {
+	isc_result_t result;
 	
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(server != NULL);
 	REQUIRE(DNS_C_NDCSERVER_VALID(*server));
 	
 	if (ctx->servers == NULL) {
-		res = dns_c_ndcserverlist_new(ctx->mem, &ctx->servers);
-		if (!RESOK) {
-			return (res);
-		}
+		result = dns_c_ndcserverlist_new(ctx->mem, &ctx->servers);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
-	
+
 	ISC_LIST_APPEND(ctx->servers->list, *server, next);
 	*server = NULL;
 
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_ndcctx_getkeys(dns_c_ndcctx_t *ctx, dns_c_kdeflist_t **keys)
-{
+dns_c_ndcctx_getkeys(dns_c_ndcctx_t *ctx, dns_c_kdeflist_t **keys) {
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(keys != NULL);
 	REQUIRE(*keys == NULL);
 
 	*keys = ctx->keys;
 
-	return (ctx->keys == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (ctx->keys == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcctx_setkeys(dns_c_ndcctx_t *ctx, dns_c_kdeflist_t *keys)
-{
+dns_c_ndcctx_setkeys(dns_c_ndcctx_t *ctx, dns_c_kdeflist_t *keys) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
@@ -440,22 +418,22 @@ dns_c_ndcctx_setkeys(dns_c_ndcctx_t *ctx, dns_c_kdeflist_t *keys)
 	
 	ctx->keys = keys;
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_ndcserverlist_new(isc_mem_t *mem, dns_c_ndcserverlist_t **servers)
-{
+dns_c_ndcserverlist_new(isc_mem_t *mem, dns_c_ndcserverlist_t **servers) {
 	dns_c_ndcserverlist_t *newlist;
 
 	REQUIRE(servers != NULL);
 	REQUIRE(*servers == NULL);
 	
 	newlist = isc_mem_get(mem, sizeof *newlist);
-	if (newlist == NULL) {
+	if (newlist == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	newlist->mem = mem;
 	newlist->magic = DNS_C_NDCSERVERLIST_MAGIC;
@@ -467,8 +445,7 @@ dns_c_ndcserverlist_new(isc_mem_t *mem, dns_c_ndcserverlist_t **servers)
 }
 
 isc_result_t
-dns_c_ndcserverlist_destroy(dns_c_ndcserverlist_t **servers)
-{
+dns_c_ndcserverlist_destroy(dns_c_ndcserverlist_t **servers) {
 	dns_c_ndcserverlist_t *slist;
 	dns_c_ndcserver_t *server;
 	dns_c_ndcserver_t *p;
@@ -497,33 +474,30 @@ dns_c_ndcserverlist_destroy(dns_c_ndcserverlist_t **servers)
 }
 
 dns_c_ndcserver_t *
-dns_c_ndcserverlist_first(dns_c_ndcserverlist_t *servers)
-{
+dns_c_ndcserverlist_first(dns_c_ndcserverlist_t *servers) {
 	REQUIRE(DNS_C_NDCSERVERLIST_VALID(servers));
 	
 	return (ISC_LIST_HEAD(servers->list));
 }
 
 dns_c_ndcserver_t *
-dns_c_ndcserverlist_next(dns_c_ndcserver_t *server)
-{
+dns_c_ndcserverlist_next(dns_c_ndcserver_t *server) {
 	REQUIRE(DNS_C_NDCSERVER_VALID(server));
+
 	return (ISC_LIST_NEXT(server, next));
 }
 
 
 isc_result_t
-dns_c_ndcopts_new(isc_mem_t *mem, dns_c_ndcopts_t **opts)
-{
+dns_c_ndcopts_new(isc_mem_t *mem, dns_c_ndcopts_t **opts) {
 	dns_c_ndcopts_t *newo;
 	
 	REQUIRE(opts != NULL);
 	REQUIRE(*opts == NULL);
 
 	newo = isc_mem_get(mem, sizeof *newo);
-	if (newo == NULL) {
+	if (newo == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	newo->magic = DNS_C_NDCOPTIONS_MAGIC;
 	newo->mem = mem;
@@ -536,8 +510,7 @@ dns_c_ndcopts_new(isc_mem_t *mem, dns_c_ndcopts_t **opts)
 }
 
 isc_result_t
-dns_c_ndcopts_destroy(dns_c_ndcopts_t **opts)
-{
+dns_c_ndcopts_destroy(dns_c_ndcopts_t **opts) {
 	dns_c_ndcopts_t *o;
 	isc_mem_t *mem;
 	
@@ -547,13 +520,11 @@ dns_c_ndcopts_destroy(dns_c_ndcopts_t **opts)
 	
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(o));
 
-	if (o->defserver != NULL) {
+	if (o->defserver != NULL)
 		isc_mem_free(o->mem, o->defserver);
-	}
 
-	if (o->defkey != NULL) {
+	if (o->defkey != NULL)
 		isc_mem_free(o->mem, o->defkey);
-	}
 
 	mem = o->mem;
 	o->mem = NULL;
@@ -566,56 +537,60 @@ dns_c_ndcopts_destroy(dns_c_ndcopts_t **opts)
 	
 		
 isc_result_t
-dns_c_ndcopts_getdefserver(dns_c_ndcopts_t *opts, const char **retval)
-{
+dns_c_ndcopts_getdefserver(dns_c_ndcopts_t *opts, const char **retval) {
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(opts));
 	REQUIRE(retval != NULL);
 	REQUIRE(*retval == NULL);
 
 	*retval = opts->defserver;
 
-	return (opts->defserver == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (opts->defserver == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcopts_getdefkey(dns_c_ndcopts_t *opts, const char **retval)
-{
+dns_c_ndcopts_getdefkey(dns_c_ndcopts_t *opts, const char **retval) {
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(opts));
 	REQUIRE(retval != NULL);
 	REQUIRE(*retval == NULL);
 
 	*retval = opts->defkey;
 
-	return (opts->defkey == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (opts->defkey == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcopts_setdefserver(dns_c_ndcopts_t *opts, const char *newval)
-{
+dns_c_ndcopts_setdefserver(dns_c_ndcopts_t *opts, const char *newval) {
 	isc_boolean_t existed;
-	
+
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(opts));
 	REQUIRE(newval == NULL || *newval != '\0');
 
 	existed = ISC_TF(opts->defserver != NULL);
-	
+
 	if (newval != NULL) {
 		opts->defserver = isc_mem_strdup(opts->mem, newval);
-		if (opts->defserver == NULL) {
+		if (opts->defserver == NULL)
 			return (ISC_R_NOMEMORY);
-		}
-	} else {
-		opts->defserver = NULL;
-	}
 
-	return (ISC_R_SUCCESS);
+	} else
+		opts->defserver = NULL;
+
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcopts_setdefkey(dns_c_ndcopts_t *opts, const char *newval)
-{
+dns_c_ndcopts_setdefkey(dns_c_ndcopts_t *opts, const char *newval) {
 	isc_boolean_t existed;
-	
+
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(opts));
 	REQUIRE(newval == NULL || *newval != '\0');
 
@@ -623,30 +598,30 @@ dns_c_ndcopts_setdefkey(dns_c_ndcopts_t *opts, const char *newval)
 	
 	if (newval != NULL) {
 		opts->defkey = isc_mem_strdup(opts->mem, newval);
-		if (opts->defkey == NULL) {
+		if (opts->defkey == NULL)
 			return (ISC_R_NOMEMORY);
-		}
-	} else {
-		opts->defkey = NULL;
-	}
 
-	return (ISC_R_SUCCESS);
+	} else
+		opts->defkey = NULL;
+
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 
 
 isc_result_t
-dns_c_ndcserver_new(isc_mem_t *mem, dns_c_ndcserver_t **server)
-{
+dns_c_ndcserver_new(isc_mem_t *mem, dns_c_ndcserver_t **server) {
 	dns_c_ndcserver_t *serv = NULL;
 	
 	REQUIRE(server != NULL);
 	REQUIRE(*server == NULL);
 
 	serv = isc_mem_get(mem, sizeof *serv);
-	if (serv == NULL) {
+	if (serv == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	serv->magic = DNS_C_NDCSERVER_MAGIC;
 	serv->mem = mem;
@@ -659,13 +634,9 @@ dns_c_ndcserver_new(isc_mem_t *mem, dns_c_ndcserver_t **server)
 
 	return (ISC_R_SUCCESS);
 }
-
-	
-		
 	
 isc_result_t
-dns_c_ndcserver_destroy(dns_c_ndcserver_t **server)
-{
+dns_c_ndcserver_destroy(dns_c_ndcserver_t **server) {
 	dns_c_ndcserver_t *serv;
 	isc_mem_t *mem;
 	
@@ -674,17 +645,14 @@ dns_c_ndcserver_destroy(dns_c_ndcserver_t **server)
 	serv = *server ;
 	REQUIRE(DNS_C_NDCSERVER_VALID(serv));
 
-	if (serv->name != NULL) {
+	if (serv->name != NULL)
 		isc_mem_free(serv->mem, serv->name);
-	}
 	
-	if (serv->key != NULL) {
+	if (serv->key != NULL)
 		isc_mem_free(serv->mem, serv->key);
-	}
 	
-	if (serv->host != NULL) {
+	if (serv->host != NULL)
 		isc_mem_free(serv->mem, serv->host);
-	}
 
 	mem = serv->mem;
 	serv->mem = NULL;
@@ -697,8 +665,7 @@ dns_c_ndcserver_destroy(dns_c_ndcserver_t **server)
 
 	
 isc_result_t
-dns_c_ndcserver_setkey(dns_c_ndcserver_t *server, const char *val)
-{
+dns_c_ndcserver_setkey(dns_c_ndcserver_t *server, const char *val) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_C_NDCSERVER_VALID(server));
@@ -707,20 +674,20 @@ dns_c_ndcserver_setkey(dns_c_ndcserver_t *server, const char *val)
 
 	if (val != NULL) {
 		server->key = isc_mem_strdup(server->mem, val);
-		if (server->key == NULL) {
+		if (server->key == NULL)
 			return (ISC_R_NOMEMORY);
-		}
-	} else {
-		server->key = NULL;
-	}
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	} else
+		server->key = NULL;
+
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 
-	
 isc_result_t
-dns_c_ndcserver_setname(dns_c_ndcserver_t *server, const char *val)
-{
+dns_c_ndcserver_setname(dns_c_ndcserver_t *server, const char *val) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_C_NDCSERVER_VALID(server));
@@ -729,20 +696,20 @@ dns_c_ndcserver_setname(dns_c_ndcserver_t *server, const char *val)
 
 	if (val != NULL) {
 		server->name = isc_mem_strdup(server->mem, val);
-		if (server->name == NULL) {
+		if (server->name == NULL)
 			return (ISC_R_NOMEMORY);
-		}
-	} else {
-		server->name = NULL;
-	}
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	} else
+		server->name = NULL;
+
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 
-	
 isc_result_t
-dns_c_ndcserver_sethost(dns_c_ndcserver_t *server, const char *val)
-{
+dns_c_ndcserver_sethost(dns_c_ndcserver_t *server, const char *val) {
 	isc_boolean_t existed;
 	
 	REQUIRE(DNS_C_NDCSERVER_VALID(server));
@@ -751,57 +718,60 @@ dns_c_ndcserver_sethost(dns_c_ndcserver_t *server, const char *val)
 
 	if (val != NULL) {
 		server->host = isc_mem_strdup(server->mem, val);
-		if (server->host == NULL) {
+		if (server->host == NULL)
 			return (ISC_R_NOMEMORY);
-		}
-	} else {
-		server->host = NULL;
-	}
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	} else
+		server->host = NULL;
+
+	if (existed)
+		return (ISC_R_EXISTS);
+	else
+		return (ISC_R_SUCCESS);
 }
 	
 isc_result_t
-dns_c_ndcserver_getkey(dns_c_ndcserver_t *server, const char **val)
-{
+dns_c_ndcserver_getkey(dns_c_ndcserver_t *server, const char **val) {
 	REQUIRE(DNS_C_NDCSERVER_VALID(server));
 	REQUIRE(val != NULL);
 	REQUIRE (*val == NULL);
 
 	*val = server->key;
 
-	return (server->key == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (server->key == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-dns_c_ndcserver_gethost(dns_c_ndcserver_t *server,
-					const char **val)
-{
+dns_c_ndcserver_gethost(dns_c_ndcserver_t *server, const char **val) {
 	REQUIRE(DNS_C_NDCSERVER_VALID(server));
 	REQUIRE(val != NULL);
 	REQUIRE (*val == NULL);
 
 	*val = server->host;
 
-	return (server->host == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (server->host == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 
-isc_result_t	dns_c_ndcserver_getname(dns_c_ndcserver_t *server,
-					const char **val)
-{
+isc_result_t
+dns_c_ndcserver_getname(dns_c_ndcserver_t *server, const char **val) {
 	REQUIRE(DNS_C_NDCSERVER_VALID(server));
 	REQUIRE(val != NULL);
 	REQUIRE (*val == NULL);
 
 	*val = server->name;
 
-	return (server->name == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (server->name == NULL)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
-
-
-
-
 
 /* *********************************************************************** */
 /*                       PUBLIC PARSING ROUTINE                            */
@@ -812,19 +782,16 @@ dns_c_ndcparseconf(const char *filename, isc_mem_t *mem,
 		   dns_c_ndcctx_t **ndcctx)
 {
 	ndcpcontext pctx;
-	isc_result_t res;
+	isc_result_t result;
 	dns_c_ndcctx_t *aConfig;
 	
-	res = parser_setup(&pctx, mem, filename);
-	if (!RESOK) goto done;
+	result = parser_setup(&pctx, mem, filename);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 	
-	res = parse_file(&pctx, &aConfig);
-	if (!RESOK) {
-		if (aConfig != NULL) {
-			dns_c_ndcctx_destroy(&aConfig);
-			aConfig = NULL;
-		}
-	}
+	result = parse_file(&pctx, &aConfig);
+	if (result != ISC_R_SUCCESS && aConfig != NULL)
+		dns_c_ndcctx_destroy(&aConfig);
 
  done:
 	if (pctx.thelexer != NULL)
@@ -835,56 +802,50 @@ dns_c_ndcparseconf(const char *filename, isc_mem_t *mem,
 
 	*ndcctx = aConfig;
 	
-	return (res);
+	return (result);
 }
-
-
 
 /* *********************************************************************** */
 /*                      PRIVATE PARSING ROUTINES                           */
 /* *********************************************************************** */
 
-
-
 static isc_result_t
-parse_file(ndcpcontext *pctx, dns_c_ndcctx_t **context)
-{
-	isc_result_t res;
+parse_file(ndcpcontext *pctx, dns_c_ndcctx_t **context) {
+	isc_result_t result;
 	isc_boolean_t done = ISC_FALSE;
 
-	res = dns_c_ndcctx_new(pctx->themem, context);
-	if (!RESOK) {
-		return (res);
-	}
+	result = dns_c_ndcctx_new(pctx->themem, context);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	pctx->thecontext = *context;
 
-	res = getnexttoken(pctx);
-	done = ISC_TF(!RESOK);
+	result = getnexttoken(pctx);
+	done = ISC_TF(result != ISC_R_SUCCESS);
 	
 	while (!done) {
 		switch (pctx->currtok) {
 		case L_END_INPUT:
-			res = ISC_R_SUCCESS;
+			result = ISC_R_SUCCESS;
 			done = ISC_TRUE;
 			break;
 
 		default:
-			res = parse_statement(pctx);
-			if (!RESOK) {
+			result = parse_statement(pctx);
+			if (result != ISC_R_SUCCESS) {
 				done = ISC_TRUE;
 				break;
 			}
 		}
 	}
 
-	return (res);
+	return (result);
 }
 
 static isc_result_t
 parse_statement(ndcpcontext *pctx)
 {
-	isc_result_t res;
+	isc_result_t result;
 	dns_c_ndcctx_t *ctx = pctx->thecontext;
 	dns_c_ndcopts_t *opts = NULL;
 	dns_c_ndcopts_t *tmpopts = NULL;
@@ -893,175 +854,152 @@ parse_statement(ndcpcontext *pctx)
 	
 	switch (pctx->currtok) {
 	case L_OPTIONS:
-		res = parse_options(pctx, &opts);
-		if (RESOK) {
+		result = parse_options(pctx, &opts);
+		if (result == ISC_R_SUCCESS) {
 			(void)dns_c_ndcctx_getoptions(ctx, &tmpopts);
-			res = dns_c_ndcctx_setoptions(ctx, opts);
-			if (RESEXISTS) {
+			result = dns_c_ndcctx_setoptions(ctx, opts);
+			if (result == ISC_R_EXISTS) {
 				parser_warn(pctx, ISC_FALSE,
 					    "redefining `options'");
-				res = ISC_R_SUCCESS;
+				result = ISC_R_SUCCESS;
 				dns_c_ndcopts_destroy(&tmpopts);
-			} else {
-				REQUIRE(tmpopts == NULL);
 			}
+
 			opts = NULL;
 		}
 		break;
 
 	case L_SERVER:
-		res = parse_serverstmt(pctx, &server);
-		if (RESOK) {
-			res = dns_c_ndcctx_addserver(ctx, &server);
-		}
+		result = parse_serverstmt(pctx, &server);
+		if (result == ISC_R_SUCCESS)
+			result = dns_c_ndcctx_addserver(ctx, &server);
 		break;
 
 	case L_KEY:
 		keys = NULL;
-		res = dns_c_ndcctx_getkeys(ctx, &keys);
-		if (res == ISC_R_NOTFOUND) {
-			res = dns_c_kdeflist_new(pctx->themem, &keys);
-			if (!RESOK) {
-				return (res);
-			}
+		result = dns_c_ndcctx_getkeys(ctx, &keys);
+		if (result == ISC_R_NOTFOUND) {
+			result = dns_c_kdeflist_new(pctx->themem, &keys);
+			if (result != ISC_R_SUCCESS)
+				return (result);
 			dns_c_ndcctx_setkeys(ctx, keys);
 		}
 
-		res = parse_keystmt(pctx, keys);
+		result = parse_keystmt(pctx, keys);
 		break;
 		
 	default:
 		syntax_error(pctx, pctx->currtok);
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		break;
 	}
 
-	if (RESOK) {
-		if (!eat_eos(pctx)) {
-			res = ISC_R_FAILURE;
-		}
-	}
+	if (result == ISC_R_SUCCESS)
+		if (!eat_eos(pctx))
+			result = ISC_R_FAILURE;
 
-	if (server != NULL) {
+	if (server != NULL)
 		dns_c_ndcserver_destroy(&server);
-	}
 
-	if (opts != NULL) {
+	if (opts != NULL)
 		dns_c_ndcopts_destroy(&opts);
-	}
 							
-	return (res);
+	return (result);
 }
 
-
 static isc_result_t
-parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts)
-{
-	isc_result_t res;
+parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts) {
+	isc_result_t result;
 	isc_uint32_t option;
 	dns_c_ndcopts_t *newopts = NULL;
 	dns_c_ndcctx_t *cfgctx = pctx->thecontext;
 
 	REQUIRE(DNS_C_NDCCTX_VALID(cfgctx));
 	
-	if (!eat(pctx, L_OPTIONS) || !eat_lbrace(pctx)) {
+	if (!eat(pctx, L_OPTIONS) || !eat_lbrace(pctx))
 		return (ISC_R_FAILURE);
-	}
 
-	res = dns_c_ndcopts_new(cfgctx->mem, &newopts);
-	if (!RESOK) {
-		return (res);
-	}
+	result = dns_c_ndcopts_new(cfgctx->mem, &newopts);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	
-	res = ISC_R_SUCCESS;
-	while (RESOK && pctx->currtok != L_RBRACE) {
+	result = ISC_R_SUCCESS;
+	while (result == ISC_R_SUCCESS && pctx->currtok != L_RBRACE) {
 		option = pctx->currtok;
 
-		if (!eat(pctx, pctx->currtok)) {
+		if (!eat(pctx, pctx->currtok))
 			return (ISC_R_FAILURE);
-		}
 		
 		switch (option) {
 		case L_DEFAULT_SERVER:
-			if (!looking_at_anystring(pctx)) {
-				return (res);
-			}
+			if (!looking_at_anystring(pctx))
+				return (result);
 
-			res = dns_c_ndcopts_setdefserver(newopts,
-							 pctx->tokstr);
-			if (RESOK) {
-				res = getnexttoken(pctx);
-			}
+			result = dns_c_ndcopts_setdefserver(newopts,
+							    pctx->tokstr);
+			if (result == ISC_R_SUCCESS)
+				result = getnexttoken(pctx);
 			
-			if (!RESOK) {
-				return (res);
-			}
+			if (result != ISC_R_SUCCESS)
+				return (result);
 
 			break;
 				
 		case L_DEFAULT_KEY:
-			if (!looking_at_anystring(pctx)) {
-				return (res);
-			}
+			if (!looking_at_anystring(pctx))
+				return (result);
 			
-			res = dns_c_ndcopts_setdefkey(newopts, pctx->tokstr);
+			result = dns_c_ndcopts_setdefkey(newopts,
+							 pctx->tokstr);
 
-			if (RESOK) {
-				res = getnexttoken(pctx);
-			}
+			if (result == ISC_R_SUCCESS)
+				result = getnexttoken(pctx);
 			
-			if (!RESOK) {
-				return (res);
-			}
+			if (result != ISC_R_SUCCESS)
+				return (result);
 			break;
 
 		default:
 			syntax_error(pctx, pctx->currtok);
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			break;
 		}
 
-		
-		if (RESEXISTS) {
+		if (result == ISC_R_EXISTS) {
 			parser_warn(pctx, ISC_FALSE, "redefining %s",
 				    keyword2str(option));
-			res = ISC_R_SUCCESS;
-		} else if (RESOK && !eat_eos(pctx)) {
-			res = ISC_R_FAILURE;
-		}
+			result = ISC_R_SUCCESS;
+
+		} else if (result == ISC_R_SUCCESS && !eat_eos(pctx))
+			result = ISC_R_FAILURE;
 	}
 
-	if (RESOK && !eat_rbrace(pctx)) {
-		res = ISC_R_FAILURE;
-	}
+	if (result == ISC_R_SUCCESS && !eat_rbrace(pctx))
+		result = ISC_R_FAILURE;
 
-	if (RESOK) {
+	if (result == ISC_R_SUCCESS)
 		*opts = newopts;
-	} else {
+	else
 		dns_c_ndcopts_destroy(&newopts);
-	}
 	
-	return (res);
+	return (result);
 }
 
 
 static isc_result_t
-parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
-{
-	isc_result_t res = ISC_R_FAILURE;
+parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server) {
+	isc_result_t result = ISC_R_FAILURE;
 	char *servername = NULL;
 	char *keyname = NULL;
 	char *hostname = NULL;
 	dns_c_ndcserver_t *serv = NULL;
-	
 		
-	if (!eat(pctx, L_SERVER)) {
+	if (!eat(pctx, L_SERVER))
 		return (ISC_R_FAILURE);
-	}
 
-	if (!looking_at_anystring(pctx)) {
-		return (res);
-	} else if (pctx->tokstr[0] == '\0') {
+	if (!looking_at_anystring(pctx))
+		return (result);
+	else if (pctx->tokstr[0] == '\0') {
 		parser_error(pctx, ISC_TRUE,
 			     "zero-length server name is illegal");
 		return (ISC_R_FAILURE);
@@ -1069,14 +1007,14 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
 
 	servername = isc_mem_strdup(pctx->themem, pctx->tokstr);
 	if (servername == NULL) {
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		goto done;
 	}
-	
-	res = getnexttoken(pctx);
 
-	if (!RESOK || !eat(pctx, L_LBRACE)) {
-		res = ISC_R_FAILURE;
+	result = getnexttoken(pctx);
+
+	if (result != ISC_R_SUCCESS || !eat(pctx, L_LBRACE)) {
+		result = ISC_R_FAILURE;
 		goto done;
 	}
 
@@ -1084,14 +1022,14 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
 		isc_int32_t field = pctx->currtok;
 
 		if (!eat(pctx, field)) {
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			goto done;
 		}
 		
 		switch (field) {
 		case L_KEY:
 			if (!looking_at_anystring(pctx)) {
-				res = ISC_R_FAILURE;
+				result = ISC_R_FAILURE;
 				goto done;
 			}
 
@@ -1100,21 +1038,19 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
 					    "multiple `key' definitions");
 				isc_mem_free(pctx->themem, keyname);
 			}
-			keyname = isc_mem_strdup(pctx->themem,
-						 pctx->tokstr);
-			if (keyname == NULL) {
-				res = ISC_R_NOMEMORY;
-			}
+
+			keyname = isc_mem_strdup(pctx->themem, pctx->tokstr);
+			if (keyname == NULL)
+				result = ISC_R_NOMEMORY;
 			
-			if (RESOK) {
-				res = getnexttoken(pctx);
-			}
+			if (result == ISC_R_SUCCESS)
+				result = getnexttoken(pctx);
 			
 			break;
 
 		case L_HOST:
 			if (!looking_at_anystring(pctx)) {
-				res = ISC_R_FAILURE;
+				result = ISC_R_FAILURE;
 				goto done;
 			}
 
@@ -1123,36 +1059,33 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
 					    "multiple `host' definitions");
 				isc_mem_free(pctx->themem, hostname);
 			}
-			hostname = isc_mem_strdup(pctx->themem,
-						  pctx->tokstr);
-			if (hostname == NULL) {
-				res = ISC_R_NOMEMORY;
-			}
+
+			hostname = isc_mem_strdup(pctx->themem, pctx->tokstr);
+			if (hostname == NULL)
+				result = ISC_R_NOMEMORY;
 			
-			if (RESOK) {
-				res = getnexttoken(pctx);
-			}
+			if (result == ISC_R_SUCCESS)
+				result = getnexttoken(pctx);
 			
 			break;
 
 		default:
 			syntax_error(pctx, field);
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			goto done;
 		}
 
-		if (!RESOK) {
+		if (result != ISC_R_SUCCESS)
 			goto done;
-		}
 		
 		if (!eat_eos(pctx)) {
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			goto done;
 		}
 	}
 
 	if (!eat(pctx, L_RBRACE)) {
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		goto done;
 	}
 
@@ -1160,51 +1093,50 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
 
 	if (keyname == NULL) {
 		parser_error(pctx, ISC_FALSE,
-			     "server statement requires a key value");
-		res = ISC_R_FAILURE;
+			     "server statement requiresult a key value");
+		result = ISC_R_FAILURE;
 		goto done;
 	}
 
-	res = dns_c_ndcserver_new(pctx->themem, &serv);
-	if (!RESOK) goto done;
+	result = dns_c_ndcserver_new(pctx->themem, &serv);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
-	res = dns_c_ndcserver_setname(serv, servername);
-	if (!RESOK) goto done;
+	result = dns_c_ndcserver_setname(serv, servername);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 	
-	res = dns_c_ndcserver_setkey(serv, keyname);
-	if (!RESOK) goto done;
+	result = dns_c_ndcserver_setkey(serv, keyname);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
-	res = dns_c_ndcserver_sethost(serv, hostname);
-	if (!RESOK) goto done;
+	result = dns_c_ndcserver_sethost(serv, hostname);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
 	*server = serv;
 	serv = NULL;
 
- done:
-	if (serv != NULL) {
+done:
+	if (serv != NULL)
 		dns_c_ndcserver_destroy(&serv);
-	}
 	
-	if (servername != NULL) {
+	if (servername != NULL)
 		isc_mem_free(pctx->themem, servername);
-	}
 
-	if (keyname != NULL) {
+	if (keyname != NULL)
 		isc_mem_free(pctx->themem, keyname);
-	}
 
-	if (hostname != NULL) {
+	if (hostname != NULL)
 		isc_mem_free(pctx->themem, hostname);
-	}
 
-	return (res);
+	return (result);
 }
 
 
 static isc_result_t
-parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys)
-{
-	isc_result_t res = ISC_R_FAILURE;
+parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
+	isc_result_t result = ISC_R_FAILURE;
 	dns_c_ndcctx_t *ctx = pctx->thecontext;
 	dns_c_kdef_t *key = NULL;
 	isc_mem_t *mem;
@@ -1217,13 +1149,13 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys)
 
 	mem = ctx->mem;
 	
-	if (!eat(pctx, L_KEY)) {
+	if (!eat(pctx, L_KEY))
 		return (ISC_R_FAILURE);
-	}
 
-	if (!looking_at_anystring(pctx)) {
-		return (res);
-	} else if (pctx->tokstr[0] == '\0') {
+	if (!looking_at_anystring(pctx))
+		return (result);
+
+	else if (pctx->tokstr[0] == '\0') {
 		parser_error(pctx, ISC_TRUE,
 			     "zero length key names are illegal.");
 		return (ISC_R_FAILURE);
@@ -1231,12 +1163,13 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys)
 
 	keyname = isc_mem_strdup(pctx->themem, pctx->tokstr);
 
-	res = getnexttoken(pctx);
+	result = getnexttoken(pctx);
 
-	if (!RESOK) goto done;
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
 	if (!eat(pctx, L_LBRACE)) {
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		goto done;
 	}
 
@@ -1244,14 +1177,14 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys)
 		isc_uint32_t field = pctx->currtok;
 
 		if (!eat(pctx, field)) {
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			goto done;
 		}
 
 		switch (field) {
 		case L_ALGORITHM:
 			if (!looking_at_anystring(pctx)) {
-				res = ISC_R_FAILURE;
+				result = ISC_R_FAILURE;
 				goto done;
 			}
 			
@@ -1260,15 +1193,17 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys)
 					    "multiple `algorithm' values.");
 				isc_mem_free(pctx->themem, algorithm);
 			}
-			algorithm = isc_mem_strdup(pctx->themem,
-						   pctx->tokstr);
-			if (algorithm == NULL) res = ISC_R_NOMEMORY;
-			if (RESOK) res = getnexttoken(pctx);
+
+			algorithm = isc_mem_strdup(pctx->themem, pctx->tokstr);
+			if (algorithm == NULL)
+				result = ISC_R_NOMEMORY;
+			if (result == ISC_R_SUCCESS)
+				result = getnexttoken(pctx);
 			break;
 
 		case L_SECRET:
 			if (!looking_at_anystring(pctx)) {
-				res = ISC_R_FAILURE;
+				result = ISC_R_FAILURE;
 				goto done;
 			}
 			
@@ -1277,106 +1212,104 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys)
 					    "multiple `secret' values.");
 				isc_mem_free(pctx->themem, secret);
 			}
+
 			secret = isc_mem_strdup(pctx->themem, pctx->tokstr);
-			if (secret == NULL) res = ISC_R_NOMEMORY;
-			if (RESOK) res = getnexttoken(pctx);
+
+			if (secret == NULL)
+				result = ISC_R_NOMEMORY;
+
+			if (result == ISC_R_SUCCESS)
+				result = getnexttoken(pctx);
 			break;
 
 		default:
 			syntax_error(pctx, field);
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			break;
 		}
 
 		if (!eat_eos(pctx)) {
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			goto done;
 		}
 	}
 
 	if (!eat(pctx, L_RBRACE)) {
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		goto done;
 	}
 
 	if (algorithm == NULL) {
 		parser_error(pctx, ISC_FALSE, "missing `algorithm'");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
+
 	} else if (*algorithm == '\0') {
 		parser_error(pctx, ISC_FALSE, "zero length `algorithm'");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 	}
 	
 	if (secret == NULL) {
 		parser_error(pctx, ISC_FALSE, "missing `secret'");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 	} else if (*secret == '\0') {
 		parser_error(pctx, ISC_FALSE, "zero length `secret'");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 	}
 
-	if (!RESOK) goto done;
+	if (result != ISC_R_SUCCESS)
+		goto done;
 	
-	res = dns_c_kdef_new(keys, keyname, &key);
-	if (!RESOK) goto done;
+	result = dns_c_kdef_new(keys, keyname, &key);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
-	res = dns_c_kdef_setalgorithm(key, algorithm);
-	if (!RESOK) goto done;
+	result = dns_c_kdef_setalgorithm(key, algorithm);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
-	res = dns_c_kdef_setsecret(key, secret);
+	result = dns_c_kdef_setsecret(key, secret);
 
- done:
-	if (keyname != NULL) isc_mem_free(pctx->themem,  keyname);
-	if (algorithm != NULL) isc_mem_free(pctx->themem,  algorithm);
-	if (secret != NULL) isc_mem_free(pctx->themem,  secret);
+done:
+	if (keyname != NULL)
+		isc_mem_free(pctx->themem,  keyname);
 
-	return (res);
+	if (algorithm != NULL)
+		isc_mem_free(pctx->themem,  algorithm);
+
+	if (secret != NULL)
+		isc_mem_free(pctx->themem,  secret);
+
+	return (result);
 }
-
 	
-
 static const char *
-keyword2str(isc_int32_t val)
-{
+keyword2str(isc_int32_t val) {
 	int i;
 
-	for (i = 0 ; keyword_tokens[i].token != NULL ; i++) {
-		if (keyword_tokens[i].yaccval == val) {
+	for (i = 0 ; keyword_tokens[i].token != NULL ; i++)
+		if (keyword_tokens[i].yaccval == val)
 			return (keyword_tokens[i].token);
-		}
-	}
 
-	for (i = 0 ; misc_tokens[i].token != NULL ; i++) {
-		if (misc_tokens[i].yaccval == val) {
+	for (i = 0 ; misc_tokens[i].token != NULL ; i++)
+		if (misc_tokens[i].yaccval == val)
 			return (misc_tokens[i].token);
-		}
-	}
 
-	return "<UNKNOWN KEYWORD VALUE>";
+	return ("<UNKNOWN KEYWORD VALUE>");
 }
 
-
-
-
-
 static isc_boolean_t
-eat(ndcpcontext *pctx, isc_uint32_t token)
-{
+eat(ndcpcontext *pctx, isc_uint32_t token) {
 	isc_boolean_t rval = ISC_FALSE;
 	
-	if (looking_at(pctx, token)) {
-		if (getnexttoken(pctx) == ISC_R_SUCCESS) {
+	if (looking_at(pctx, token))
+		if (getnexttoken(pctx) == ISC_R_SUCCESS)
 			rval = ISC_TRUE;
-		}
-	}
 
 	return (rval);
 }
 
-	
 static isc_boolean_t
-looking_at(ndcpcontext *pctx, isc_uint32_t token)
-{
+looking_at(ndcpcontext *pctx, isc_uint32_t token) {
 	isc_boolean_t rval = ISC_TRUE;
 	
 	if (pctx->currtok != token) {
@@ -1388,10 +1321,8 @@ looking_at(ndcpcontext *pctx, isc_uint32_t token)
 	return (rval);
 }
 
-
 static isc_boolean_t
-looking_at_anystring(ndcpcontext *pctx)
-{
+looking_at_anystring(ndcpcontext *pctx) {
 	if (pctx->currtok != L_STRING && pctx->currtok != L_QSTRING) {
 		parser_error(pctx, ISC_TRUE, "expected a string");
 		return (ISC_FALSE);
@@ -1400,119 +1331,20 @@ looking_at_anystring(ndcpcontext *pctx)
 	return (ISC_TRUE);
 }
 
-
-
 static isc_boolean_t
-eat_lbrace(ndcpcontext *pctx)
-{
+eat_lbrace(ndcpcontext *pctx) {
 	return (eat(pctx, L_LBRACE));
 }
 
-
-
-
 static isc_boolean_t
-eat_rbrace(ndcpcontext *pctx)
-{
+eat_rbrace(ndcpcontext *pctx) {
 	return (eat(pctx, L_RBRACE));
 }
 
-
 static isc_boolean_t
-eat_eos(ndcpcontext *pctx)
-{
+eat_eos(ndcpcontext *pctx) {
 	return (eat(pctx, L_EOS));
 }
-
-
-#if 0
-// 
-// static isc_boolean_t
-// match_token(ndcpcontext *pctx, isc_uint32_t token, isc_boolean_t advance) {
-// 	isc_result_t res;
-// 
-// 	if ((res = getnexttoken(pctx)) != ISC_R_SUCCESS) {
-// 		return (ISC_FALSE);
-// 	}
-// 
-// 	if (pctx->currtok != token) {
-// 		parser_error(pctx, ISC_TRUE, "expected ``%s''",
-// 			     keyword2str(token));
-// 		return (ISC_FALSE);
-// 	}
-// 
-// 	if (advance && ((res = getnexttoken(pctx)) != ISC_R_SUCCESS)) {
-// 		return (ISC_FALSE);
-// 	}
-// 
-// 	return (ISC_TRUE);
-// }
-// 
-// 
-// 	
-// static isc_boolean_t
-// eat_lbrace(ndcpcontext *pctx)
-// {
-// 	return (match_token(pctx, L_LBRACE, ISC_TRUE));
-// }
-// 
-// 
-// static isc_boolean_t
-// eat_rbrace(ndcpcontext *pctx)
-// {
-// 	return (match_token(pctx, L_RBRACE, ISC_TRUE));
-// }
-// 
-// 
-// static isc_boolean_t
-// eat_eos(ndcpcontext *pctx)
-// {
-// 	return (match_token(pctx, L_EOS, ISC_TRUE));
-// }
-// 	
-
-
-
-// #if 0
-// static isc_boolean_t
-// looking_at_boolean(ndcpcontext *pctx, isc_boolean_t *pval)
-// {
-// 	isc_boolean_t rval = ISC_TRUE;
-// 	
-// 	switch (pctx->currtok) {
-// 	case L_YES:
-// 	case L_TRUE:
-// 		*pval = isc_boolean_true;
-// 		break;
-// 
-// 	case L_NO:
-// 	case L_FALSE:
-// 		*pval = isc_boolean_false;
-// 		break;
-// 
-// 	case L_INTEGER:
-// 		if (pctx->intval == 0) {
-// 			*pval = isc_boolean_false;
-// 		} else if (pctx->intval == 1) {
-// 			*pval = isc_boolean_true;
-// 		} else {
-// 			parser_warn(pctx, ISC_TRUE,
-// 				    "number must be 0 or 1. assuming 1");
-// 			*pval = isc_boolean_true;
-// 		}
-// 		break;
-// 
-// 	default:
-// 		parser_error(pctx, ISC_TRUE,
-// 			     "expected a boolean value");
-// 		rval = ISC_FALSE;
-// 	}
-// 
-// 	return (rval);
-// }
-// #endif
-#endif
-
 
 /* ************************************************** */
 /* *************      PRIVATE STUFF      ************ */
@@ -1522,7 +1354,7 @@ eat_eos(ndcpcontext *pctx)
 static isc_result_t
 parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename)
 {
-	isc_result_t res;
+	isc_result_t result;
 	isc_lexspecials_t specials;
         struct keywordtoken *tok;
         isc_symvalue_t symval;
@@ -1544,15 +1376,14 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename)
 	memset(&pctx->ip4addr, 0x0, sizeof pctx->ip4addr);
 	memset(&pctx->ip6addr, 0x0, sizeof pctx->ip6addr);
 
-	res = isc_lex_create(mem, CONF_MAX_IDENT, &pctx->thelexer);
-        if (!RESOK) {
+	result = isc_lex_create(mem, CONF_MAX_IDENT, &pctx->thelexer);
+        if (result != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error creating lexer",
                               "dns_c_parse_namedconf");
 		return (ISC_R_FAILURE);
 	}
-
 
 	memset(specials, 0x0, sizeof specials);
 	
@@ -1563,49 +1394,51 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename)
         isc_lex_setspecials(pctx->thelexer, specials);
 	
         isc_lex_setcomments(pctx->thelexer, (ISC_LEXCOMMENT_C |
-                                      ISC_LEXCOMMENT_CPLUSPLUS |
-                                      ISC_LEXCOMMENT_SHELL));
+					     ISC_LEXCOMMENT_CPLUSPLUS |
+					     ISC_LEXCOMMENT_SHELL));
 
-        res = isc_lex_openfile(pctx->thelexer, (char *)filename) ; /* remove const */
-        if (!RESOK) {
+        result = isc_lex_openfile(pctx->thelexer, (char *)filename);
+        if (result != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error opening file %s.",
                               "dns_c_parse_namedconf", filename);
-		return (res);
+		return (result);
         }
 
-
-	res = isc_symtab_create(mem, 97 /* buckey size: higest prime < 100 */,
-				NULL, NULL, ISC_FALSE, &pctx->thekeywords);
-	if (!RESOK) {
+	/*
+	 * 97 == buckey size: higest prime < 100
+	 */
+	result = isc_symtab_create(mem, 97, NULL, NULL, ISC_FALSE,
+				   &pctx->thekeywords);
+	if (result != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error creating symtab",
                               "dns_c_parse_namedconf", filename);
-		return (res);
+		return (result);
 	}
 
-        /* Stick all the keywords into the main symbol table. */
+        /*
+	 * Stick all the keywords into the main symbol table.
+	 */
         for (tok = &keyword_tokens[0] ; tok->token != NULL ; tok++) {
                 symval.as_integer = tok->yaccval;
-                res = isc_symtab_define(pctx->thekeywords, tok->token,
+                result = isc_symtab_define(pctx->thekeywords, tok->token,
 					KEYWORD_SYM_TYPE, symval,
 					isc_symexists_reject);
-		if (!RESOK) {
+		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 				      "%s: Error installing keyword.",
 				      "dns_c_parse_namedconf");
-			return (res);
+			return (result);
 		}
         }
 
 	return (ISC_R_SUCCESS);
 }
 
-
-	    
 static void
 parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 		ndcpcontext *pctx,
@@ -1619,45 +1452,39 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 
         /*
          * We can't get a trace of the include files we may be nested in
-         * (lex.c has the structures hidden). So we only report the current
+         * (lex.c has the structuresult hidden). So we only report the current
          * file.
          */
-        if (filename == NULL) {
+        if (filename == NULL)
                 filename = "(none)";
-        }
 
-	if (is_warning) {
+	if (is_warning)
 		level = ISC_LOG_WARNING;
-	}
 
         sprintf(where, "%s:%d: ", filename, lineno);
-        if ((unsigned int)vsprintf(message, format, args) >= sizeof message)
-		FATAL_ERROR(__FILE__, __LINE__,
-			    "error message would overflow");
+	vsnprintf(message, sizeof(message), format, args);
 
         if (print_last_token) {
-		if (dns_lctx != NULL) {
+		if (dns_lctx != NULL)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
 				       "%s%s near `%s'", where, message,
 				      pctx->tokstr);
-		} else {
+
+		else
 			fprintf(stderr, "%s%s near `%s'\n", where, message,
 				pctx->tokstr);
-		}
+
         } else {
-		if (dns_lctx != NULL) {
+		if (dns_lctx != NULL)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
 				       "%s%s", where, message);
-		} else {
+
+		else
 			fprintf(stderr, "%s%s\n", where, message);
-		}
         }
 }
-
-
-
 
 /*
  * For reporting items that are semantic, but not syntactic errors
@@ -1676,8 +1503,7 @@ parser_error(ndcpcontext *pctx, isc_boolean_t lasttoken, const char *fmt, ...)
 
 
 static void
-parser_warn(ndcpcontext *pctx, isc_boolean_t lasttoken, const char *fmt, ...)
-{
+parser_warn(ndcpcontext *pctx, isc_boolean_t lasttoken, const char *fmt, ...) {
         va_list args;
 
         va_start(args, fmt);
@@ -1687,77 +1513,72 @@ parser_warn(ndcpcontext *pctx, isc_boolean_t lasttoken, const char *fmt, ...)
 	pctx->warnings++;
 }
 
-
-
 /*
  * Conversion Routines
  */
 
 static isc_boolean_t
-is_ip6addr(const char *string, struct in6_addr *addr)
-{
-        if (inet_pton(AF_INET6, string, addr) != 1) {
-                return ISC_FALSE;
-        }
-        return ISC_TRUE;
+is_ip6addr(const char *string, struct in6_addr *addr) {
+        if (inet_pton(AF_INET6, string, addr) != 1)
+                return (ISC_FALSE);
+
+        return (ISC_TRUE);
 }
 
 
 
 static isc_boolean_t
-is_ip4addr(const char *string, struct in_addr *addr)
-{
+is_ip4addr(const char *string, struct in_addr *addr) {
         char addrbuf[sizeof "xxx.xxx.xxx.xxx" + 1];
         const char *p = string;
         int dots = 0;
         char dot = '.';
 
         while (*p) {
-                if (!isdigit(*p & 0xff) && *p != dot) {
+                if (!isdigit(*p & 0xff) && *p != dot)
                         return (ISC_FALSE);
-                } else if (!isdigit(*p & 0xff)) {
+
+                else if (!isdigit(*p & 0xff))
                         dots++;
-                }
+
                 p++;
         }
 
-        if (dots > 3) {
+        if (dots > 3)
                 return (ISC_FALSE);
-        } else if (dots < 3) {
+
+        else if (dots < 3) {
                 if (dots == 1) {
                         if (strlen(string) + 5 <= sizeof (addrbuf)) {
                                 strcpy(addrbuf, string);
                                 strcat(addrbuf, ".0.0");
-                        } else {
+                        } else
                                 return (ISC_FALSE);
-                        }
+
                 } else if (dots == 2) {
                         if (strlen(string) + 3 <= sizeof (addrbuf)) {
                                 strcpy(addrbuf, string);
                                 strcat(addrbuf, ".0");
-                        } else {
+                        } else
                                 return (ISC_FALSE);
-                        }
+
                 }
-        } else if (strlen(string) < sizeof addrbuf) {
+        } else if (strlen(string) < sizeof addrbuf)
                 strcpy (addrbuf, string);
-        } else {
+
+        else
                 return (ISC_FALSE);
-        }
         
-        if (inet_pton(AF_INET, addrbuf, addr) != 1) {
-                return ISC_FALSE;
-        }
-        return ISC_TRUE;
+        if (inet_pton(AF_INET, addrbuf, addr) != 1)
+                return (ISC_FALSE);
+
+        return (ISC_TRUE);
 }
 
-
-
 static isc_result_t
-getnexttoken(ndcpcontext *pctx)
-{
+getnexttoken(ndcpcontext *pctx) {
         isc_token_t token;
-        isc_result_t res;
+        isc_result_t result;
         isc_symvalue_t keywordtok;
         int options = (ISC_LEXOPT_EOF |
                        ISC_LEXOPT_NUMBER |
@@ -1767,17 +1588,16 @@ getnexttoken(ndcpcontext *pctx)
 	pctx->prevtok = pctx->currtok;
 	strcpy(pctx->prevtokstr, pctx->tokstr);
 	
-        res = isc_lex_gettoken(pctx->thelexer, options, &token);
+        result = isc_lex_gettoken(pctx->thelexer, options, &token);
 
-        switch(res) {
+        switch(result) {
         case ISC_R_SUCCESS:
 		switch (token.type) {
 		case isc_tokentype_unknown:
-			if (pctx->debug_lexer) {
+			if (pctx->debug_lexer)
 				fprintf(stderr, "unknown token\n");
-			}
 
-			res = ISC_R_FAILURE;
+			result = ISC_R_FAILURE;
 			break;
 
 		case isc_tokentype_special:
@@ -1793,29 +1613,28 @@ getnexttoken(ndcpcontext *pctx)
 				tokstr[CONF_MAX_IDENT - 1] = '\0';
 			}
 
-			if (pctx->debug_lexer) {
+			if (pctx->debug_lexer)
 				fprintf(stderr, "lexer token: %s : %s\n",
 					(token.type == isc_tokentype_special ?
 					 "special" : "string"),
 					tokstr);
-			}
 
-			res = isc_symtab_lookup(pctx->thekeywords, tokstr,
-						KEYWORD_SYM_TYPE, &keywordtok);
+			result = isc_symtab_lookup(pctx->thekeywords, tokstr,
+						   KEYWORD_SYM_TYPE,
+						   &keywordtok);
 
-			if (!RESOK) {
+			if (result != ISC_R_SUCCESS) {
 				pctx->currtok = L_STRING;
-				if (is_ip4addr(tokstr, &pctx->ip4addr)) {
+				if (is_ip4addr(tokstr, &pctx->ip4addr))
 					pctx->currtok = L_IP4ADDR;
-				} else if (is_ip6addr(tokstr,
-						      &pctx->ip6addr)) {
+
+				else if (is_ip6addr(tokstr, &pctx->ip6addr))
 					pctx->currtok = L_IP6ADDR;
-				}
-			} else {
+
+			} else
 				pctx->currtok = keywordtok.as_integer;
-			}
 				
-			res = ISC_R_SUCCESS;
+			result = ISC_R_SUCCESS;
 			break;
 		}
 
@@ -1823,12 +1642,11 @@ getnexttoken(ndcpcontext *pctx)
 			pctx->intval = (isc_uint32_t)token.value.as_ulong;
 			pctx->currtok = L_INTEGER;
 			sprintf(pctx->tokstr, "%lu",
-				(unsigned long) pctx->intval);
+				(unsigned long)pctx->intval);
 
-			if(pctx->debug_lexer) {
+			if(pctx->debug_lexer)
 				fprintf(stderr, "lexer token: number : %lu\n",
 					(unsigned long)pctx->intval);
-			}
 
 			break;
 
@@ -1838,58 +1656,58 @@ getnexttoken(ndcpcontext *pctx)
 				CONF_MAX_IDENT);
 			pctx->tokstr[CONF_MAX_IDENT - 1] = '\0';
 			pctx->currtok = L_QSTRING;
-			
-			if (pctx->debug_lexer) {
+
+			if (pctx->debug_lexer)
 				fprintf(stderr,
 					"lexer token: qstring : \"%s\"\n",
 					pctx->tokstr);
-			}
 
 			break;
 
 		case isc_tokentype_eof:
-			res = isc_lex_close(pctx->thelexer);
-			INSIST(res == ISC_R_NOMORE || RESOK);
+			result = isc_lex_close(pctx->thelexer);
+			INSIST(result == ISC_R_NOMORE ||
+			       result == ISC_R_SUCCESS);
 
 			if (isc_lex_getsourcename(pctx->thelexer) == NULL) {
-				/* the only way to tell that we closed the
-				 *  main file and not an included file
+				/*
+				 * The only way to tell that we closed the
+				 * main file and not an included file.
 				 */
-				if (pctx->debug_lexer) {
+				if (pctx->debug_lexer)
 					fprintf(stderr, "lexer token: EOF\n");
-				}
+
 				pctx->currtok = L_END_INPUT;
+
 			} else {
-				if (pctx->debug_lexer) {
+				if (pctx->debug_lexer)
 					fprintf(stderr,
 						"lexer token: EOF (main)\n");
-				}
+
 				pctx->currtok = L_END_INCLUDE;
 			}
-			res = ISC_R_SUCCESS;
+			result = ISC_R_SUCCESS;
 			break;
 
 		case isc_tokentype_initialws:
-			if (pctx->debug_lexer) {
-				fprintf(stderr,
-					"lexer token: initial ws\n");
-			}
-			res = ISC_R_FAILURE;
+			if (pctx->debug_lexer)
+				fprintf(stderr, "lexer token: initial ws\n");
+
+			result = ISC_R_FAILURE;
 			break;
 
 		case isc_tokentype_eol:
-			if (pctx->debug_lexer) {
+			if (pctx->debug_lexer)
 				fprintf(stderr, "lexer token: eol\n");
-			}
-			res = ISC_R_FAILURE;
+
+			result = ISC_R_FAILURE;
 			break;
 
 		case isc_tokentype_nomore:
-			if (pctx->debug_lexer) {
-				fprintf(stderr,
-					"lexer token: nomore\n");
-			}
-			res = ISC_R_FAILURE;
+			if (pctx->debug_lexer)
+				fprintf(stderr, "lexer token: nomore\n");
+
+			result = ISC_R_FAILURE;
 			break;
 		}
 
@@ -1897,38 +1715,35 @@ getnexttoken(ndcpcontext *pctx)
 
 	case ISC_R_EOF:
 		pctx->currtok = 0;
-		res = ISC_R_SUCCESS;
+		result = ISC_R_SUCCESS;
 		break;
 
 	case ISC_R_UNBALANCED:
 		parser_error(pctx, ISC_TRUE, "unbalanced parentheses");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		break;
 
 	case ISC_R_NOSPACE:
 		parser_error(pctx, ISC_TRUE, "token too big.");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		break;
 
 	case ISC_R_UNEXPECTEDEND:
 		parser_error(pctx, ISC_TRUE, "unexpected EOF");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		break;
 
 	default:
 		parser_error(pctx, ISC_TRUE, "unknown lexer error (%d)");
-		res = ISC_R_FAILURE;
+		result = ISC_R_FAILURE;
 		break;
 	}
 		
-	return (res);
+	return (result);
 }
 
-
-
 static void
-syntax_error(ndcpcontext *pctx, isc_uint32_t keyword)
-{
+syntax_error(ndcpcontext *pctx, isc_uint32_t keyword) {
 	parser_error(pctx, ISC_FALSE, "syntax error near ``%s''",
 		     keyword2str(keyword));
 }
