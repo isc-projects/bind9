@@ -348,7 +348,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (cview != NULL)
 		result = dns_c_view_getcleaninterval(cview, &cleaning_interval);
 	if (result != ISC_R_SUCCESS)
-		result = dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);	
+		result = dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);
 	if (result != ISC_R_SUCCESS)
 		cleaning_interval = 3600; /* Default is 1 hour. */
 	dns_cache_setcleaninginterval(cache, cleaning_interval);
@@ -478,7 +478,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	view->transfer_format = dns_one_answer;	
 	(void) dns_c_ctx_gettransferformat(cctx, &view->transfer_format);
 	if (cview != NULL)	
-		(void) dns_c_view_gettransferformat(cview, &view->transfer_format);
+		(void) dns_c_view_gettransferformat(cview,
+						    &view->transfer_format);
 
 	CHECK(configure_view_acl(cview, cctx, actx, ns_g_mctx,
 				 dns_c_view_getallowquery,
