@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.8 1998/11/11 02:05:36 explorer Exp $ */
+/* $Id: socket.c,v 1.9 1998/11/15 11:48:17 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -91,7 +91,7 @@ struct isc_socket {
 	isc_socket_intev_t		riev;
 	isc_socket_intev_t		wiev;
 	struct isc_sockaddr		address;
-	int				addrlength;
+	unsigned int			addrlength;
 };
 
 #define SOCKET_MANAGER_MAGIC		0x494f6d67U	/* IOmg */
@@ -610,7 +610,7 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	isc_socket_newconnev_t dev;
 	isc_socket_ncintev_t iev;
 	struct sockaddr addr;
-	int addrlen;
+	u_int addrlen;
 	int fd;
 
 	sock = ev->sender;
@@ -645,6 +645,7 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	 * EWOULDBLOCK, simply poke the watcher to watch this socket
 	 * again.
 	 */
+	addrlen = sizeof(addr);
 	fd = accept(sock->fd, &addr, &addrlen);
 	if (fd < 0) {
 		if (errno == EWOULDBLOCK) {
@@ -682,6 +683,11 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	XTRACE(("internal_accept: newsock %p, fd %d\n",
 		dev->newsocket, fd));
 
+	sock->addrlength = addrlen;
+	memcpy(&sock->address, &addr, addrlen);
+	dev->addrlength = addrlen;
+	memcpy(&dev->address, &addr, addrlen);
+
 	UNLOCK(&sock->lock);
 
 	/*
@@ -708,6 +714,8 @@ internal_read(isc_task_t task, isc_event_t ev)
 	isc_socket_t sock;
 	int cc;
 	size_t read_count;
+	struct sockaddr addr;
+	u_int addrlen;
 
 	/*
 	 * Find out what socket this is and lock it.
@@ -761,7 +769,21 @@ internal_read(isc_task_t task, isc_event_t ev)
 		 * we can.
 		 */
 		read_count = dev->region.length - dev->n;
-		cc = recv(sock->fd, dev->region.base + dev->n, read_count, 0);
+		if (sock->type == isc_socket_tcp) {
+			cc = recv(sock->fd, dev->region.base + dev->n,
+				  read_count, 0);
+			memcpy(&dev->address, &sock->address,
+			       sock->addrlength);
+			dev->addrlength = sock->addrlength;
+		} else {
+			addrlen = sizeof(addr);
+			cc = recvfrom(sock->fd, dev->region.base + dev->n,
+				      read_count, 0,
+				      (struct sockaddr *)&addr,
+				      &addrlen);
+			memcpy(&dev->address, &addr, addrlen);
+			dev->addrlength = addrlen;
+		}			
 
 		XTRACE(("internal_read:  read(%d) %d\n", sock->fd, cc));
 
@@ -1402,7 +1424,7 @@ isc_socket_send(isc_socket_t sock, isc_region_t region,
 isc_result_t
 isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 		  isc_task_t task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t address, int addrlength)
+		  isc_sockaddr_t address, unsigned int addrlength)
 {
 	isc_socketevent_t ev;
 	isc_socket_intev_t iev;

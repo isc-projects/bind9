@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.5 1998/11/11 00:43:14 explorer Exp $ */
+/* $Id: socket.h,v 1.6 1998/11/15 11:48:21 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -79,13 +79,15 @@ typedef struct isc_socketevent {
 	unsigned int		n;		/* bytes read or written */
 	struct isc_region	region;		/* the region info */
 	struct isc_sockaddr	address;	/* source address */
-	int			addrlength;	/* length of address */
+	unsigned int		addrlength;	/* length of address */
 } *isc_socketevent_t;
 
 typedef struct isc_socket_newconev {
 	struct isc_event	common;
 	isc_socket_t		newsocket;
 	isc_result_t		result;		/* OK, EOF, whatever else */
+	struct isc_sockaddr	address;	/* source address */
+	unsigned int		addrlength;	/* length of address */
 } *isc_socket_newconnev_t;
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
@@ -413,7 +415,7 @@ isc_socket_send(isc_socket_t socket, isc_region_t region,
 isc_result_t
 isc_socket_sendto(isc_socket_t socket, isc_region_t region,
 		  isc_task_t task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t address, int addrlength);
+		  isc_sockaddr_t address, unsigned int addrlength);
 /*
  * Send the contents of 'region' to the socket's peer.
  *

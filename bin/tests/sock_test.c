@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/memcluster.h>
@@ -11,6 +12,10 @@
 #include <isc/thread.h>
 #include <isc/result.h>
 #include <isc/socket.h>
+
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 isc_memctx_t mctx = NULL;
 
@@ -75,6 +80,8 @@ my_recv(isc_task_t task, isc_event_t event)
 	       (char *)(event->arg), sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
+	printf("\tFrom: %s port %d\n", inet_ntoa(dev->address.type.sin.sin_addr),
+	       ntohs(dev->address.type.sin.sin_port));
 
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
@@ -152,7 +159,7 @@ main(int argc, char *argv[])
 	isc_socketmgr_t socketmgr;
 	isc_socket_t so1, so2;
 	struct isc_sockaddr sockaddr;
-	int addrlen;
+	unsigned int addrlen;
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(5544);
