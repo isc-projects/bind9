@@ -274,11 +274,6 @@ setup() {
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("ns_server_init() failed: %s",
 				   isc_result_totext(result));
-
-	result = dns_tsig_init(ns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("dns_tsig_init() failed: %s",
-				   isc_result_totext(result));
 }
 
 static void
