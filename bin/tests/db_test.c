@@ -609,6 +609,15 @@ main(int argc, char *argv[]) {
 			       ((options & DNS_DBFIND_VALIDATEGLUE) != 0) ?
 			       "TRUE" : "FALSE");
 			continue;
+		} else if (strcmp(s, "!WC") == 0) {
+			if ((options & DNS_DBFIND_NOWILD) != 0)
+				options &= ~DNS_DBFIND_NOWILD;
+			else
+				options |= DNS_DBFIND_NOWILD;
+			printf("wildcard matching = %s\n",
+			       ((options & DNS_DBFIND_NOWILD) == 0) ?
+			       "TRUE" : "FALSE");
+			continue;
 		} else if (strcmp(s, "!LS") == 0) {
 			DBI_CHECK(dbi);
 			list(dbi);
