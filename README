@@ -142,6 +142,26 @@ Building
 		./configure
 		make
 
+        Several environment variables that can be set before running
+        configure will affect compilation:
+
+            CC
+                The C compiler to use.  configure tries to figure
+                out the right one for supported systems.
+
+            CFLAGS
+                C compiler flags.  Defaults to include -g and/or -O2
+                as supported by the compiler.
+
+            STD_CINCLUDES
+                System header file directories.  Can be used to specify
+                where add-on thread or IPv6 support is, for example.
+                Defaults to empty string.
+
+            STD_CDEFINES
+                Any additional preprocessor symbols you want defined.
+                Defaults to empty string.
+
 	"make install" will install "named" and the various BIND 9 libraries.
 	By default, installation is into /usr/local, but this can be changed
 	with the "--prefix" option when running "configure".
