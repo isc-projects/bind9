@@ -1,3 +1,7 @@
+ 304.	[bug]		If more than LWRES_CONFMAXNAMESERVERS servers
+			are listed in resolv.conf, silently ignore them
+			instead of returning failure.
+
  303.	[bug]		add additional sanity checks to differentiate a AXFR
 			response vs a IXFR response. (RT #157)
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.16 2000/06/27 00:24:27 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.17 2000/07/03 20:13:12 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -286,7 +286,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 	confdata = &ctx->confdata;
 
 	if (confdata->nsnext == LWRES_CONFMAXNAMESERVERS)
-		return (LWRES_R_FAILURE);
+		return (LWRES_R_SUCCESS);
 
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
