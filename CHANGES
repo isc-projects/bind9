@@ -5,6 +5,8 @@
 			views were never fully configured and lacked
 			an address database.
 
+ 301.	[bug]		Uninitalised pointer in host:printmessage(). (RT #159)
+
  300.	[bug]		Using both <isc/net.h> and <lwres/net.h> didn't work
 			on platforms lacking IPv6 because each included their
 			own ipv6 header file for the missing definitions.  Now

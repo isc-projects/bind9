@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.29.2.1 2000/06/28 19:40:16 gson Exp $ */
+/* $Id: host.c,v 1.29.2.2 2000/07/03 22:11:48 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -408,7 +408,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_rdataset_t *opt, *tsig = NULL;
 	dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_buffer_t *b;
+	isc_buffer_t *b = NULL;
 	isc_region_t r;
 
 	UNUSED (headers);
