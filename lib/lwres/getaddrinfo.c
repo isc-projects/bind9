@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.36 2001/01/09 21:59:16 bwelling Exp $ */
+/* $Id: getaddrinfo.c,v 1.37 2001/01/31 22:06:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -281,7 +281,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 #endif
 
                if (lwres_net_pton(AF_INET, hostname, (struct in_addr *)abuf)
-		   != 0)
+		   == 1)
 	       {
 			if (family == AF_INET6) {
 				/*
@@ -299,7 +299,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			goto common;
 #ifdef LWRES_HAVE_SIN6_SCOPE_ID
 		} else if (ntmp[0] != '\0' &&
-			   lwres_net_pton(AF_INET6, ntmp, abuf) != 0)
+			   lwres_net_pton(AF_INET6, ntmp, abuf) == 1)
 		{
 			if (family && family != AF_INET6)
 				return (EAI_NONAME);
@@ -308,7 +308,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			family = AF_INET6;
 			goto common;
 #endif
-		} else if (lwres_net_pton(AF_INET6, hostname, abuf) != 0) {
+		} else if (lwres_net_pton(AF_INET6, hostname, abuf) == 1) {
 			if (family != 0 && family != AF_INET6)
 				return (EAI_NONAME);
 		inet6_addr:
