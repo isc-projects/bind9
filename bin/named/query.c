@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.250 2004/01/21 15:44:24 marka Exp $ */
+/* $Id: query.c,v 1.251 2004/01/21 15:47:22 marka Exp $ */
 
 #include <config.h>
 
@@ -3478,8 +3478,7 @@ ns_query_start(ns_client_t *client) {
 	 * Set AD.  We must clear it if we add non-validated data to a
 	 * response.
 	 */
-	if (WANTDNSSEC(client))
-		message->flags |= DNS_MESSAGEFLAG_AD;
+	message->flags |= DNS_MESSAGEFLAG_AD;
 
 	qclient = NULL;
 	ns_client_attach(client, &qclient);
