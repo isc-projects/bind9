@@ -18,6 +18,9 @@
 			DNAME, would trigger an INSIST(!search.need_cleanup)
 			assertion. [RT #399]
 
+ 515.	[bug]		The ssu table was not being attached / detached
+			by dns_zone_[sg]etssutable. [RT#397]
+
  511.	[bug]		The message code could throw an assertion on an
 			out of memory failure. [RT #392]
 

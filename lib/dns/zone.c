@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.13 2000/09/21 10:10:05 marka Exp $ */
+/* $Id: zone.c,v 1.152.2.14 2000/10/17 18:48:05 gson Exp $ */
 
 #include <config.h>
 
@@ -3829,14 +3829,23 @@ dns_zone_getssutable(dns_zone_t *zone, dns_ssutable_t **table) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(table != NULL);
 	REQUIRE(*table == NULL);
-	*table = zone->ssutable;
+
+	LOCK(&zone->lock);
+	if (zone->ssutable != NULL)
+		dns_ssutable_attach(zone->ssutable, table);
+	UNLOCK(&zone->lock);
 }
 
 void
 dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(table != NULL);
-	zone->ssutable = table;
+
+	LOCK(&zone->lock);
+	if (zone->ssutable != NULL)
+		dns_ssutable_detach(&zone->ssutable);
+	if (table != NULL)
+		dns_ssutable_attach(table, &zone->ssutable);
+	UNLOCK(&zone->lock);
 }
 
 void

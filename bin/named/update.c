@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: update.c,v 1.58 2000/06/22 21:49:37 tale Exp $ */
+/* $Id: update.c,v 1.58.2.1 2000/10/17 18:48:09 gson Exp $ */
 
 #include <config.h>
 
@@ -2346,6 +2346,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	
 	if (db != NULL)
 		dns_db_detach(&db);
+
+	if (ssutable != NULL)
+		dns_ssutable_detach(&ssutable);
 
 	if (zone != NULL)
 		dns_zone_detach(&zone);

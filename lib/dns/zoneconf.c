@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.43.2.1 2000/07/25 22:47:35 gson Exp $ */
+/* $Id: zoneconf.c,v 1.43.2.2 2000/10/17 18:48:07 gson Exp $ */
 
 #include <config.h>
 
@@ -240,15 +240,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
 
-		dns_zone_getssutable(zone, &ssutable);
-		if (ssutable != NULL)
-			dns_ssutable_detach(&ssutable);
 		result = dns_c_zone_getssuauth(czone, &ssutable);
-		if (result == ISC_R_SUCCESS) {
-			dns_ssutable_t *newssutable = NULL;
-			dns_ssutable_attach(ssutable, &newssutable);
-			dns_zone_setssutable(zone, newssutable);
-		}
+		if (result == ISC_R_SUCCESS)
+			dns_zone_setssutable(zone, ssutable);
 
 		result = dns_c_zone_getsigvalidityinterval(czone, &uintval);
 		if (result != ISC_R_SUCCESS && cview != NULL)
