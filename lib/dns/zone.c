@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.315 2001/03/26 21:33:01 bwelling Exp $ */
+/* $Id: zone.c,v 1.316 2001/03/28 23:36:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2507,6 +2507,7 @@ zone_notify(dns_zone_t *zone) {
 	dns_name_t master;
 	dns_rdata_ns_t ns;
 	dns_rdata_soa_t soa;
+	isc_uint32_t serial = 0;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t nsrdset;
 	dns_rdataset_t soardset;
@@ -2530,8 +2531,6 @@ zone_notify(dns_zone_t *zone) {
 
 	if (notifytype == dns_notifytype_no)
 		return;
-
-	notify_log(zone, ISC_LOG_DEBUG(3), "queueing notifies");
 
 	origin = &zone->origin;
 
@@ -2592,22 +2591,21 @@ zone_notify(dns_zone_t *zone) {
 	 */
 	dns_name_init(&master, NULL);
 	result = dns_rdataset_first(&soardset);
-	while (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&soardset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &soa, NULL);
 		dns_rdata_reset(&rdata);
-		if (result != ISC_R_SUCCESS)
-			continue;
-		result = dns_name_dup(&soa.origin, zone->mctx, &master);
-		if (result != ISC_R_SUCCESS)
-			continue;
-		result = dns_rdataset_next(&soardset);
-		if (result != ISC_R_NOMORE)
-			break;
+		if (result == ISC_R_SUCCESS) {
+			result = dns_name_dup(&soa.origin, zone->mctx,
+					      &master);
+			serial = soa.serial;
+		}
+		dns_rdataset_disassociate(&soardset);
 	}
-	dns_rdataset_disassociate(&soardset);
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup3;
+
+	notify_log(zone, ISC_LOG_INFO, "sending notify (%u)", serial);
 
 	dns_rdataset_init(&nsrdset);
 	result = dns_db_findrdataset(zone->db, node, version,
