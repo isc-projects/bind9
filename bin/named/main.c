@@ -270,22 +270,14 @@ create_managers() {
 
 static void
 destroy_managers(void) {
+	if (ns_g_omapimgr != NULL)
+		omapi_listener_shutdown(ns_g_omapimgr);
 	/*
 	 * isc_taskmgr_destroy() will  block until all tasks have exited,
 	 */
 	isc_taskmgr_destroy(&ns_g_taskmgr);
 	isc_timermgr_destroy(&ns_g_timermgr);
 	isc_socketmgr_destroy(&ns_g_socketmgr);
-
-	if (ns_g_omapimgr != NULL)
-		/*
-		 * XXXDCL This is not fully right yet; it is just
-		 * a quick fix to get things to work with the new
-		 * omapi_listener_shutdown procedure.  I am not sure
-		 * that the server will really wait until listendone
-		 * is called and all of the memory is freed.
-		 */
-		omapi_listener_shutdown(ns_g_omapimgr);
 }
 
 static void
