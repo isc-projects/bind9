@@ -12,6 +12,9 @@
  806.	[bug]		DNS_R_SEENINCLUDE was failing to propagate back up
 			the calling stack to the zone maintence level.
 
+ 771.	[cleanup]	TSIG errors related to unsynchronized clocks
+			are logged better. [RT #919]
+
  669.	[bug]		dnssec-keygen now makes the public key file
 			non-world-readable for symmetric keys. [RT #403]
 

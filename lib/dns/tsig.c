@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.98.4.5 2001/01/22 20:42:29 gson Exp $
+ * $Id: tsig.c,v 1.98.4.6 2001/05/18 21:28:41 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -747,7 +747,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		else
 			tsig_log(msg->tsigkey, 2,
 				 "signature is in the future");
-		return (DNS_R_TSIGVERIFYFAILURE);
+		return (DNS_R_CLOCKSKEW);
 	}
 
 	if (tsig.siglen > 0) {
@@ -876,8 +876,12 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->tsigstatus = dns_rcode_noerror;
 
-	if (tsig.error != dns_rcode_noerror)
-		return (DNS_R_TSIGERRORSET);
+	if (tsig.error != dns_rcode_noerror) {
+		if (tsig.error == dns_tsigerror_badtime)
+			return (DNS_R_CLOCKSKEW);
+		else
+			return (DNS_R_TSIGERRORSET);
+	}
 
 	msg->verified_sig = 1;
 
@@ -964,7 +968,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		isc_stdtime_get(&now);
 		if (abs(now - tsig.timesigned) > tsig.fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;
-			ret = DNS_R_TSIGVERIFYFAILURE;
+			ret = DNS_R_CLOCKSKEW;
 			if (now > tsig.timesigned + tsig.fudge)
 				tsig_log(msg->tsigkey, 2,
 					 "signature has expired");
@@ -1066,9 +1070,12 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		sig_r.base = tsig.signature;
 		sig_r.length = tsig.siglen;
 		if (tsig.siglen == 0) {
-			if (tsig.error != dns_rcode_noerror)
-				ret = DNS_R_TSIGERRORSET;
-			else {
+			if (tsig.error != dns_rcode_noerror) {
+				if (tsig.error == dns_tsigerror_badtime)
+					ret = DNS_R_CLOCKSKEW;
+				else
+					ret = DNS_R_TSIGERRORSET;
+			} else {
 				tsig_log(msg->tsigkey, 2,
 					 "signature is empty");
 				ret = DNS_R_TSIGVERIFYFAILURE;

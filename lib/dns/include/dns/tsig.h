@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.36.4.1 2001/01/09 22:46:24 bwelling Exp $ */
+/* $Id: tsig.h,v 1.36.4.2 2001/05/18 21:28:43 gson Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -188,6 +188,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  *		DNS_R_UNEXPECTEDTSIG - A TSIG was seen but not expected
  *		DNS_R_TSIGERRORSET - the TSIG verified but ->error was set
  *				     and this is a query
+ *		DNS_R_CLOCKSKEW - the TSIG failed to verify because of
+ *				  the time was out of the allowed range.
  *		DNS_R_TSIGVERIFYFAILURE - the TSIG failed to verify
  */
 
