@@ -70,7 +70,9 @@ hexdump(const char *msg, void *base, size_t len) {
 }
 #endif
 
-static char TESTSTRING[] = "This is a test.  This is only a test.  !!!";
+static unsigned char TESTSTRING[] =
+	"This is a test.  This is only a test.  !!!";
+
 static lwres_context_t *ctx;
 
 static void
