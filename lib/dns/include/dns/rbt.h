@@ -46,7 +46,6 @@ typedef struct dns_rbtnode {
 	struct dns_rbtnode *left;
 	struct dns_rbtnode *right;
 	struct dns_rbtnode *down;
-	void *data;
 	/*
 	 * The following bitfields add up to a total bitwidth of 32.
 	 * The range of values necessary for each item is indicated,
@@ -65,6 +64,7 @@ typedef struct dns_rbtnode {
 	 * These values are used in the RBT DB implementation.  The appropriate
 	 * node lock must be held before accessing them.
 	 */
+	void *data;
 	unsigned int dirty:1;
 	unsigned int locknum:DNS_RBT_LOCKLENGTH;
 	unsigned int references:DNS_RBT_REFLENGTH;
