@@ -15,12 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.h,v 1.5 2000/08/01 01:31:15 tale Exp $ */
+/* $Id: errno2result.h,v 1.6 2000/11/14 23:37:10 tale Exp $ */
 
 #ifndef UNIX_ERRNO2RESULT_H
 #define UNIX_ERRNO2RESULT_H 1
 
 /* XXXDCL this should be moved to lib/isc/include/isc/errno2result.h. */
+
+#include <errno.h>		/* Provides errno. */
 
 #include <isc/lang.h>
 #include <isc/types.h>
