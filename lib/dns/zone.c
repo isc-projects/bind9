@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.8 2003/08/13 00:25:52 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.9 2003/08/13 01:41:32 marka Exp $ */
 
 #include <config.h>
 
@@ -157,6 +157,7 @@ struct dns_zone {
 	isc_uint32_t		retry;
 	isc_uint32_t		expire;
 	isc_uint32_t		minimum;
+	char			*keydirectory;
 
 	isc_uint32_t		maxrefresh;
 	isc_uint32_t		minrefresh;
@@ -473,6 +474,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
 	zone->masterfile = NULL;
+	zone->keydirectory = NULL;
 	zone->journalsize = -1;
 	zone->journal = NULL;
 	zone->rdclass = dns_rdataclass_none;
@@ -581,6 +583,9 @@ zone_free(dns_zone_t *zone) {
 	if (zone->masterfile != NULL)
 		isc_mem_free(zone->mctx, zone->masterfile);
 	zone->masterfile = NULL;
+	if (zone->keydirectory != NULL)
+		isc_mem_free(zone->mctx, zone->keydirectory);
+	zone->keydirectory = NULL;
 	zone->journalsize = -1;
 	if (zone->journal != NULL)
 		isc_mem_free(zone->mctx, zone->journal);
@@ -6237,6 +6242,25 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 	UNLOCK_ZONE(zone);
 }
 
+isc_result_t
+dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	result = dns_zone_setstring(zone, &zone->keydirectory, directory);
+	UNLOCK_ZONE(zone);
+
+	return (result);
+}
+
+const char *
+dns_zone_getkeydirectory(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->keydirectory);
+}
 unsigned int
 dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	dns_zone_t *zone;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.1 2003/08/12 07:10:29 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.2 2003/08/13 01:41:34 marka Exp $ */
 
 #include <config.h>
 
@@ -602,6 +602,7 @@ zone_clauses[] = {
 	{ "min-refresh-time", &cfg_type_uint32, 0 },
 	{ "sig-validity-interval", &cfg_type_uint32, 0 },
 	{ "zone-statistics", &cfg_type_boolean, 0 },
+	{ "key-directory", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
 

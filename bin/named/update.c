@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.2 2003/08/12 05:21:06 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.3 2003/08/13 01:41:31 marka Exp $ */
 
 #include <config.h>
 
@@ -1511,14 +1511,16 @@ add_placeholder_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 }
 
 static isc_result_t
-find_zone_keys(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
-	       unsigned int maxkeys, dst_key_t **keys, unsigned int *nkeys)
+find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+	       isc_mem_t *mctx, unsigned int maxkeys,
+	       dst_key_t **keys, unsigned int *nkeys)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
+	const char *directory = dns_zone_getkeydirectory(zone);
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
-	CHECK(dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
-				      mctx, maxkeys, keys, nkeys));
+	CHECK(dns_dnssec_findzonekeys2(db, ver, node, dns_db_origin(db),
+				       directory, mctx, maxkeys, keys, nkeys));
  failure:
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
@@ -1585,9 +1587,9 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * The SIGs generated will be valid for 'sigvalidityinterval' seconds.
  */
 static isc_result_t
-update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
-		  dns_dbversion_t *newver, dns_diff_t *diff,
-		  isc_uint32_t sigvalidityinterval)
+update_signatures(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
+		  dns_dbversion_t *oldver, dns_dbversion_t *newver,
+		  dns_diff_t *diff, isc_uint32_t sigvalidityinterval)
 {
 	isc_result_t result;
 	dns_difftuple_t *t;
@@ -1609,7 +1611,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 	dns_diff_init(mctx, &nxt_diff);
 	dns_diff_init(mctx, &nxt_mindiff);
 
-	result = find_zone_keys(db, newver, mctx,
+	result = find_zone_keys(zone, db, newver, mctx,
 				MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
@@ -2467,7 +2469,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		}
 
 		if (dns_db_issecure(db)) {
-			result = update_signatures(mctx, db, oldver, ver,
+			result = update_signatures(mctx, zone, db, oldver, ver,
 			   &diff, dns_zone_getsigvalidityinterval(zone));
 			if (result != ISC_R_SUCCESS) {
 				update_log(client, zone,

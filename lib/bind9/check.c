@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.4 2003/08/11 05:28:14 marka Exp $ */
+/* $Id: check.c,v 1.37.6.5 2003/08/13 01:41:32 marka Exp $ */
 
 #include <config.h>
 
@@ -168,6 +168,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	{ "pubkey", MASTERZONE | SLAVEZONE | STUBZONE },
 	{ "update-policy", MASTERZONE },
 	{ "database", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "key-directory", MASTERZONE },
 	};
 
 	static optionstable dialups[] = {

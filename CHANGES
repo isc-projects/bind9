@@ -1,3 +1,7 @@
+1181.	[func]		Add the "key-directory" configuration statement,
+			which allows the server to look for online signing
+			keys in alternate directories.
+
 1180.	[func]		dnssec-keygen should always generate keys with
 			protocol 3 (DNSSEC), since it's less confusing
 			that way.

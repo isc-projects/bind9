@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.4.10.3 2003/08/11 05:28:10 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4.10.4 2003/08/13 01:41:32 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/buffer.h>
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
@@ -534,6 +535,20 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setsigvalidityinterval(zone,
 						cfg_obj_asuint32(obj) * 86400);
+
+		obj = NULL;
+		result = ns_config_get(maps, "key-directory", &obj);
+		if (result == ISC_R_SUCCESS) {
+			filename = cfg_obj_asstring(obj);
+			if (!isc_file_isabsolute(filename)) {
+				cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+					    "key-directory '%s' "
+					    "is not absolute", filename);
+				return (ISC_R_FAILURE);
+			}
+			RETERR(dns_zone_setkeydirectory(zone, filename));
+		}
+
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update-forwarding", ac, zone,

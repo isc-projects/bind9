@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.7.4.1 2003/08/02 00:38:58 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.7.4.2 2003/08/13 01:41:34 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1095,6 +1095,34 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first);
  *	'first' points to a valid zone (result ISC_R_SUCCESS) or to NULL
  *	(result ISC_R_NOMORE).
  */
+
+isc_result_t
+dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory);
+/*
+ *	Sets the name of the directory where private keys used for
+ *	online signing of dynamic zones are found.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *
+ * Returns:
+ *	ISC_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ */
+
+const char *
+dns_zone_getkeydirectory(dns_zone_t *zone);
+/*
+ * 	Gets the name of the directory where private keys used for
+ *	online signing of dynamic zones are found.
+ *
+ * Requires:
+ *	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *	Pointer to null-terminated file name, or NULL.
+ */
+
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
