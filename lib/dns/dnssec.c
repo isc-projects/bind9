@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.19 2000/02/10 23:00:48 bwelling Exp $
+ * $Id: dnssec.c,v 1.20 2000/02/23 23:30:28 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -32,7 +32,6 @@
 #include <isc/list.h>
 #include <isc/net.h>
 #include <isc/result.h>
-#include <isc/rwlock.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
 
@@ -50,9 +49,6 @@
 #include <dst/dst.h>
 #include <dst/result.h>
 
-#define TRUSTED_KEY_MAGIC	0x54525354	/* TRST */
-#define VALID_TRUSTED_KEY(x)	((x) != NULL && (x)->magic == TRUSTED_KEY_MAGIC)
-
 #define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
 
 #define RETERR(x) do { \
@@ -62,16 +58,6 @@
 	} while (0)
 
 
-typedef struct dns_trusted_key dns_trusted_key_t;
-
-struct dns_trusted_key {
-        unsigned int                    magic;          /* Magic number. */
-        isc_mem_t                       *mctx;
-        dst_key_t                       *key;           /* Key */
-        dns_name_t                      name;           /* Key name */
-        ISC_LINK(dns_trusted_key_t)     link;
-};
-
 #define TYPE_SIGN 0
 #define TYPE_VERIFY 1
 
@@ -80,11 +66,6 @@ typedef struct digestctx {
 	dst_context_t context;
 	isc_uint8_t type;
 } digestctx_t;
-
-/* XXXBEW If an unsorted list isn't good enough, this can be updated */
-static ISC_LIST(dns_trusted_key_t) trusted_keys;
-static isc_rwlock_t trusted_key_lock;
-
 
 static isc_result_t digest_callback(void *arg, isc_region_t *data);
 static isc_result_t keyname_to_name(char *keyname, isc_mem_t *mctx,
@@ -171,37 +152,6 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	*rdata = data;
 	*nrdata = n;
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_dnssec_add_trusted_key(dst_key_t *key, isc_mem_t *mctx) {
-	dns_trusted_key_t *tkey;
-	isc_result_t ret;
-
-	REQUIRE(key != NULL);
-	REQUIRE(mctx != NULL);
-
-	tkey = isc_mem_get(mctx, sizeof(dns_trusted_key_t));
-	if (tkey == NULL)
-		return (ISC_R_NOMEMORY);
-
-	ret = keyname_to_name(dst_key_name(key), mctx, &tkey->name);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup;
-
-	tkey->mctx = mctx;
-	ISC_LINK_INIT(tkey, link);
-	isc_rwlock_lock(&trusted_key_lock, isc_rwlocktype_write);
-	ISC_LIST_APPEND(trusted_keys, tkey, link);
-	isc_rwlock_unlock(&trusted_key_lock, isc_rwlocktype_write);
-
-	tkey->mctx = mctx;
-	tkey->magic = TRUSTED_KEY_MAGIC;
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	isc_mem_put(mctx, tkey, sizeof(dns_trusted_key_t));
-	return (ret);
 }
 
 isc_result_t
@@ -500,33 +450,6 @@ cleanup_struct:
 	dns_rdata_freestruct(&sig);
 
 	return (ret);
-}
-
-isc_result_t
-dns_dnssec_init() {
-	isc_result_t ret;
-
-        ret = isc_rwlock_init(&trusted_key_lock, 0, 0);
-        if (ret != ISC_R_SUCCESS) {
-                UNEXPECTED_ERROR(__FILE__, __LINE__,
-                                 "isc_rwlock_init() failed: %s",
-                                 isc_result_totext(ret));
-                return (DNS_R_UNEXPECTED);
-        }
-	
-	ISC_LIST_INIT(trusted_keys);
-
-	return (ISC_R_SUCCESS);
-}
-
-void
-dns_dnssec_destroy() {
-	while (!ISC_LIST_EMPTY(trusted_keys)) {
-		dns_trusted_key_t *key = ISC_LIST_HEAD(trusted_keys);
-		isc_mem_t *mctx = key->mctx;
-		dns_name_free(&key->name, mctx);
-		isc_mem_put(mctx, key, sizeof(dns_trusted_key_t));
-	}
 }
 
 #define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \

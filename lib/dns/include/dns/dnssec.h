@@ -29,20 +29,6 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_dnssec_add_trusted_key(dst_key_t *key, isc_mem_t *mctx);
-/*
- *	Adds a key to the set of trusted keys.
- *
- *	Requires:
- *		'key' must be a valid DST_KEY *
- *		'mctx' must be a valid isc_mem_t
- *
- *	Returns:
- *		ISC_R_SUCCESS
- *		ISC_R_NOMEMORY
- */
-
-isc_result_t
 dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
 			dst_key_t **key);
 /*
@@ -117,22 +103,6 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  *			it is not a zone key or its flags prevent
  *			authentication)
  *		DST_R_*
- */
-
-isc_result_t
-dns_dnssec_init(void);
-/*
- *	Initializes the DNSSEC subsystem
- *
- *	Returns:
- *		ISC_R_SUCCESS
- *		ISC_R_UNEXPECTED
- */
-
-void
-dns_dnssec_destroy(void);
-/*
- *	Frees all data associated with the DNSSEC subsystem
  */
 
 isc_result_t
