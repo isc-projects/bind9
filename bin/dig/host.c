@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.32 2000/06/30 14:11:48 mws Exp $ */
+/* $Id: host.c,v 1.33 2000/07/03 05:10:14 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -411,7 +411,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_rdataset_t *opt, *tsig = NULL;
 	dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_buffer_t *b;
+	isc_buffer_t *b = NULL;
 	isc_region_t r;
 
 	UNUSED (headers);
