@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.88 2000/03/21 00:17:15 marka Exp $ */
+/* $Id: zone.c,v 1.89 2000/04/04 19:21:23 halley Exp $ */
 
 #include <config.h>
 
@@ -2475,8 +2475,10 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	/*
 	 * If we are a master zone just succeed.
 	 */
-	if (zone->type == dns_zone_master)
+	if (zone->type == dns_zone_master) {
+		UNLOCK(&zone->lock);
 		return (DNS_R_SUCCESS);
+	}
 
 	for (i = 0; i < zone->masterscnt; i++)
 		if (isc_sockaddr_eqaddr(from, &zone->masters[i]))
@@ -2516,6 +2518,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 				if (isc_serial_le(serial, zone->serial)) {
 					zone_log(zone, me, ISC_LOG_DEBUG(3),
 						 "zone up to date");
+					UNLOCK(&zone->lock);
 					return (DNS_R_SUCCESS);
 				}
 			}
