@@ -1,3 +1,6 @@
+1064.	[bug]		Do not shut down active network interfaces if we
+			are unable to scan the interface list. [RT #1921]
+
 1063.	[bug]		libbind: "make install" was failing on IRIX.
 
 1062.	[bug]		If the control channel listener socket was shut

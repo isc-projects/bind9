@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.2 2001/10/13 03:56:44 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.3 2001/10/22 17:42:05 gson Exp $ */
 
 #include <config.h>
 
@@ -469,14 +469,14 @@ clearacl(isc_mem_t *mctx, dns_acl_t **aclp) {
 	return (ISC_R_SUCCESS);
 }
 
-static void
+static isc_result_t
 do_ipv4(ns_interfacemgr_t *mgr) {
 	isc_interfaceiter_t *iter = NULL;
 	isc_result_t result;
 
 	result = isc_interfaceiter_create(mgr->mctx, &iter);
 	if (result != ISC_R_SUCCESS)
-		return;
+		return (result);
 
 	result = clearacl(mgr->mctx, &mgr->aclenv.localhost);
 	if (result != ISC_R_SUCCESS)
@@ -599,8 +599,11 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "IPv4: interface iteration failed: %s",
 				 isc_result_totext(result));
+	else 
+		result = ISC_R_SUCCESS;
  cleanup_iter:
 	isc_interfaceiter_destroy(&iter);
+	return (result);
 }
 
 static isc_boolean_t
@@ -625,7 +628,7 @@ listenon_is_ip6_any(ns_listenelt_t *elt) {
 	return (ISC_FALSE); /* All others */
 }
 
-static void
+static isc_result_t
 do_ipv6(ns_interfacemgr_t *mgr) {
 	isc_result_t result;
 	ns_interface_t *ifp;
@@ -644,7 +647,7 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 				      ISC_LOG_ERROR,
 				      "bad IPv6 listen-on list: "
 				      "must be 'any' or 'none'");
-			return;
+			return (ISC_R_FAILURE);
 		}
 
 		in6a = in6addr_any;
@@ -668,17 +671,21 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 			}
 		}
 	}
+	return (ISC_R_SUCCESS);
 }
 
 void
 ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
+	isc_boolean_t purge = ISC_TRUE;
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	mgr->generation++;	/* Increment the generation count. */
 
-	if (isc_net_probeipv6() == ISC_R_SUCCESS)
-		do_ipv6(mgr);
+	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
+		if (do_ipv6(mgr) != ISC_R_SUCCESS)
+			purge = ISC_FALSE;
+	}
 #ifdef WANT_IPV6
 	else
 		isc_log_write(IFMGR_COMMON_LOGARGS,
@@ -686,9 +693,10 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 			      "no IPv6 interfaces found");
 #endif
 
-	if (isc_net_probeipv4() == ISC_R_SUCCESS)
-		do_ipv4(mgr);
-	else
+	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
+		if (do_ipv4(mgr) != ISC_R_SUCCESS)
+			purge = ISC_FALSE;
+	} else
 		isc_log_write(IFMGR_COMMON_LOGARGS,
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv4 interfaces found");
@@ -699,7 +707,8 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 	 * how we catch interfaces that go away or change their
 	 * addresses.
 	 */
-	purge_old_interfaces(mgr);
+	if (purge)
+		purge_old_interfaces(mgr);
 
 	/*
 	 * Warn if we are not listening on any interface, unless
