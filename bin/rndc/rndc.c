@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.53 2001/04/11 20:37:39 bwelling Exp $ */
+/* $Id: rndc.c,v 1.54 2001/04/12 20:39:04 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -514,11 +514,11 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 
-	secret.rstart = secretarray;
-	secret.rend = secretarray + sizeof(secretarray);
+	secret.rstart = (unsigned char *)secretarray;
+	secret.rend = (unsigned char *)secretarray + sizeof(secretarray);
 	DO("decode base64 secret", isccc_base64_decode(secretstr, &secret));
 	secret.rend = secret.rstart;
-	secret.rstart = secretarray;
+	secret.rstart = (unsigned char *)secretarray;
 
 	/*
 	 * Find the port to connect to.

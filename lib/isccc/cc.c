@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.3 2001/03/28 23:10:38 bwelling Exp $ */
+/* $Id: cc.c,v 1.4 2001/04/12 20:36:53 tale Exp $ */
 
 #include <config.h>
 
@@ -294,7 +294,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	/*
 	 * Verify.
 	 */
-	if (strcmp(digestb64, isccc_sexpr_tostring(hmd5)) != 0)
+	if (strcmp((char *)digestb64, isccc_sexpr_tostring(hmd5)) != 0)
 		return (ISCCC_R_BADAUTH);
 
 	return (ISC_R_SUCCESS);
@@ -649,8 +649,8 @@ isccc_cc_defineuint32(isccc_sexpr_t *alist, const char *key, isc_uint32_t i)
 
 	sprintf(b, "%u", i);
 	len = strlen(b);
-	r.rstart = b;
-	r.rend = b + len;
+	r.rstart = (unsigned char *)b;
+	r.rend = (unsigned char *)b + len;
 
 	return (isccc_alist_definebinary(alist, key, &r));
 }
