@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: run.sh,v 1.34 2000/11/22 18:31:27 gson Exp $
+# $Id: run.sh,v 1.35 2000/12/06 19:37:19 bwelling Exp $
 
 #
 # Run a system test.
@@ -101,6 +101,7 @@ status=`expr $status + $?`
 if [ $status != 0 ]; then
 	echo "R:FAIL"
 	# Don't clean up - we need the evidence.
+	find . -name core -exec chmod 0644 '{}' \;
 else
 	echo "R:PASS"
 
