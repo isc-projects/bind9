@@ -7,6 +7,9 @@
 #include <isc/result.h>
 
 typedef pthread_t isc_thread_t;
+typedef void * isc_threadresult_t;
+typedef void * isc_threadarg_t;
+typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
 
 /* XXX We could do fancier error handling... */
 
@@ -18,11 +21,11 @@ typedef pthread_t isc_thread_t;
 	((pthread_detach((t)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 
-#define isc_thread_join(t) \
-	((pthread_join((t), NULL) == 0) ? \
+#define isc_thread_join(t, rp) \
+	((pthread_join((t), (rp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 
 #define isc_thread_self \
-	pthread_self
+	(unsigned long)pthread_self
 
 #endif /* ISC_THREAD_H */
