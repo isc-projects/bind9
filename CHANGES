@@ -1,3 +1,6 @@
+1075.	[bug]		Out-of-range network prefix lengths were not
+			reported. [RT #1954]
+
 1074.	[bug]		Running out of memory in dump_rdataset() could
 			cause an assertion failure. [RT #1946]
 

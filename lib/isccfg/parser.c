@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.84 2001/10/25 04:57:46 marka Exp $ */
+/* $Id: parser.c,v 1.85 2001/10/26 19:35:03 gson Exp $ */
 
 #include <config.h>
 
@@ -3002,10 +3002,22 @@ parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	cfg_obj_t *obj = NULL;
 	isc_result_t result;
 	isc_netaddr_t netaddr;
-	unsigned int prefixlen;
+	unsigned int addrlen, prefixlen;
 	UNUSED(type);
 
 	CHECK(get_addr(pctx, V4OK|V4PREFIXOK|V6OK, &netaddr));
+	switch (netaddr.family) {
+	case AF_INET:
+		addrlen = 32;
+		break;
+	case AF_INET6:
+		addrlen = 128;
+		break;
+	default:
+		addrlen = 0;
+		INSIST(0);
+		break;
+	}
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_special &&
 	    pctx->token.value.as_char == '/') {
@@ -3017,19 +3029,13 @@ parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			return (ISC_R_UNEXPECTEDTOKEN);
 		}
 		prefixlen = pctx->token.value.as_ulong;
-	} else {
-		switch (netaddr.family) {
-		case AF_INET:
-			prefixlen = 32;
-			break;
-		case AF_INET6:
-			prefixlen = 128;
-			break;
-		default:
-			prefixlen = 0;
-			INSIST(0);
-			break;
+		if (prefixlen > addrlen) {
+			parser_error(pctx, LOG_NOPREP,
+				     "invalid prefix length");
+			return (ISC_R_RANGE);
 		}
+	} else {
+		prefixlen = addrlen;
 	}
 	CHECK(create_cfgobj(pctx, &cfg_type_netprefix, &obj));
 	obj->value.netprefix.address = netaddr;
