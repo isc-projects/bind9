@@ -502,12 +502,18 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		 * are not ok.
 		 */
 		if (goodonly) {
-			fillpool(ent, remain * 8, blocking);
-			if (!blocking && !partial
-			    && ((ent->pool.entropy < count * 8)
-				|| (ent->pool.entropy
-				    < RND_ENTROPY_THRESHOLD * 8)))
-				goto zeroize;
+			unsigned int fillcount;
+			unsigned int needcount;
+
+			fillcount = ISC_MAX(remain * 8, count * 8);
+			needcount = ISC_MAX(count * 8,
+					    RND_ENTROPY_THRESHOLD * 8);
+
+			fillpool(ent, fillcount, blocking);
+
+			if (!partial && !blocking)
+				if (ent->pool.entropy < needcount)
+					goto zeroize;
 			if (blocking
 			    && (ent->pool.entropy
 				< RND_ENTROPY_THRESHOLD * 8))
