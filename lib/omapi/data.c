@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.14 2000/06/21 22:01:16 tale Exp $ */
+/* $Id: data.c,v 1.15 2000/06/23 20:04:25 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -117,7 +117,7 @@ omapi_data_reference(omapi_data_t **r, omapi_data_t *h) {
 
 void
 omapi_data_dereference(omapi_data_t **h) {
-	int length = 0;
+	unsigned int length = 0;
 
 
 	REQUIRE(h != NULL && *h != NULL);
