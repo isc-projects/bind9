@@ -1,3 +1,5 @@
+1593.	[bug]		rndc should return "unknown command" to unknown
+			commands. [RT# 10642]
 
 	--- 9.3.0beta1 released ---
 
