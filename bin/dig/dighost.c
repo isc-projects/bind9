@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.17 2004/09/16 02:12:16 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.18 2004/09/30 23:58:53 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -4937,7 +4937,7 @@ prove_nx_domain(dns_message_t *msg,
 	dns_rdataset_t  * nsecset = NULL;
 	dns_rdataset_t  * signsecset = NULL ;
 	dns_rdata_t       nsec = DNS_RDATA_INIT;
-	dns_name_t      * nsecname = NULL;
+	dns_name_t      * nsecname;
 	dns_rdata_nsec_t  nsecstruct;
   
 	if ((result = dns_message_firstname(msg, DNS_SECTION_AUTHORITY))
@@ -4948,6 +4948,7 @@ prove_nx_domain(dns_message_t *msg,
 	}
  
 	do {
+		nsecname = NULL;
 		dns_message_currentname(msg, DNS_SECTION_AUTHORITY, &nsecname);
 		nsecset = search_type(nsecname, dns_rdatatype_nsec,
 				      dns_rdatatype_any);
@@ -4993,7 +4994,6 @@ prove_nx_domain(dns_message_t *msg,
 
 			dns_rdata_freestruct(&nsecstruct);
 		}
-		nsecname = NULL;
 	} while (dns_message_nextname(msg, DNS_SECTION_AUTHORITY)
 		 == ISC_R_SUCCESS);
 
