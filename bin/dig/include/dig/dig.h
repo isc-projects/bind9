@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -86,6 +86,29 @@ struct dig_server {
 	char servername[MXNAME];
 	ISC_LINK(dig_server_t) link;
 };
+
+/* Routines in dighost.c */
+void
+fatal(char *format, ...) ;
+isc_boolean_t
+isclass(char *text) ;
+isc_boolean_t
+istype(char *text) ;
+void
+setup_lookup(dig_lookup_t *lookup);
+void
+do_lookup_udp (dig_lookup_t *lookup);
+void
+do_lookup_tcp (dig_lookup_t *lookup);
+
+/* Routines needed in dig.c and host.c */
+void
+parse_args(isc_boolean_t is_batchfile, int argc, char **argv) ;
+isc_result_t
+printmessage(dns_message_t *msg, isc_boolean_t headers) ;
+void
+check_next_lookup (dig_lookup_t *lookup);
+
 
 ISC_LANG_ENDDECLS
 

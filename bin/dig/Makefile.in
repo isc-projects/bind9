@@ -1,4 +1,4 @@
-# Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+# Copyright (C) 2000  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -41,18 +41,21 @@ LIBS =		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =	unix
 
-TARGETS =	dig
+TARGETS =	dig host
 
-OBJS =		dig.@O@ printmsg.@O@
+OBJS =		dighost.@O@ dig.@O@ host.@O@
 
 UOBJS =		
 
-SRCS =		dig.c printmsg.c
+SRCS =		dig.c digmain.c host.c
 
 @BIND9_MAKE_RULES@
 
-dig: ${OBJS} ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
+dig: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dig.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+
+host: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ host.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
