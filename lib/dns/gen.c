@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2002  Internet Software Consortium.
+ * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65.2.3 2003/07/18 00:55:54 marka Exp $ */
+/* $Id: gen.c,v 1.65.2.4 2003/07/22 04:03:41 marka Exp $ */
 
 #include <config.h>
 

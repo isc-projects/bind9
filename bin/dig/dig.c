@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.8 2003/05/12 02:50:15 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.9 2003/07/22 04:03:31 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>

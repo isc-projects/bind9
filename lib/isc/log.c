@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.7 2003/05/20 07:35:49 marka Exp $ */
+/* $Id: log.c,v 1.70.2.8 2003/07/22 04:03:47 marka Exp $ */
 
 /* Principal Authors: DCL */
 

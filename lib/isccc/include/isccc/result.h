@@ -1,6 +1,6 @@
 /*
- * Portions Copyright (C) 2001  Internet Software Consortium.
- * Portions Copyright (C) 2001  Nominum, Inc.
+ * Portions Copyright (C) 2001, 2003  Internet Software Consortium.
+ * Portions Copyright (C) 2001, 2003  Nominum, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.3.2.1 2003/07/17 06:36:47 marka Exp $ */
+/* $Id: result.h,v 1.3.2.2 2003/07/22 04:03:53 marka Exp $ */
 
 #ifndef ISCCC_RESULT_H
 #define ISCCC_RESULT_H 1

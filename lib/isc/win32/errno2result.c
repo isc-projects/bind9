@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.4.2.4 2003/07/09 05:17:49 marka Exp $ */
+/* $Id: errno2result.c,v 1.4.2.5 2003/07/22 04:03:50 marka Exp $ */
 
 #include <config.h>
 

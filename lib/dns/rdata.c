@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2002  Internet Software Consortium.
+ * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.8 2003/07/18 00:55:54 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.9 2003/07/22 04:03:43 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>

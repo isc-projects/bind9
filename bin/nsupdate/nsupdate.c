@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.12 2003/05/15 01:17:55 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.13 2003/07/22 04:03:36 marka Exp $ */
 
 #include <config.h>
 

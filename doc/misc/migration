@@ -1,4 +1,4 @@
-Copyright (C) 2000, 2001  Internet Software Consortium.
+Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
                    BIND 8 to BIND 9 Migration Notes
@@ -243,4 +243,4 @@ necessary, the umask should be set explicitly in the script used to
 start the named process.
 
 
-$Id: migration,v 1.37.2.2 2003/04/22 04:30:06 marka Exp $
+$Id: migration,v 1.37.2.3 2003/07/22 04:03:39 marka Exp $

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.5 2003/05/12 06:11:52 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6 2003/07/22 04:03:40 marka Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.35.2.2 2003/05/12 03:28:43 marka Exp $ */
+/* $Id: acconfig.h,v 1.35.2.3 2003/07/22 04:03:31 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.22.2.2 2003/07/18 02:43:30 marka Exp $ */
+/* $Id: print.c,v 1.22.2.3 2003/07/22 04:03:47 marka Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.9 2003/05/12 07:18:36 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10 2003/07/22 04:03:41 marka Exp $ */
 
 /***
  *** Imports

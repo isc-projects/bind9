@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69.2.4 2003/05/12 05:52:08 marka Exp $
+ * $Id: dnssec.c,v 1.69.2.5 2003/07/22 04:03:41 marka Exp $
  */
 
 

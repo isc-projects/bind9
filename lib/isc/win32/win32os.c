@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002 Internet Software Consortium.
+ * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: win32os.c,v 1.2.176.1 2003/06/24 07:26:34 marka Exp $ */
+/* $Id: win32os.c,v 1.2.176.2 2003/07/22 04:03:51 marka Exp $ */
 
 #include <windows.h>
 

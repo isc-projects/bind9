@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001, 2002  Internet Software Consortium.
+ * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.17 2003/07/18 06:07:25 marka Exp $ */
+/* $Id: check.c,v 1.14.2.18 2003/07/22 04:03:53 marka Exp $ */
 
 #include <config.h>
 

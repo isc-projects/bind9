@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stat.h,v 1.3.2.1 2003/05/12 05:29:24 marka Exp $ */
+/* $Id: stat.h,v 1.3.2.2 2003/07/22 04:03:52 marka Exp $ */
 
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1

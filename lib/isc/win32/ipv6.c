@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.c,v 1.4.2.1 2003/05/24 02:22:37 marka Exp $ */
+/* $Id: ipv6.c,v 1.4.2.2 2003/07/22 04:03:50 marka Exp $ */
 
 #define off_t _off_t
 

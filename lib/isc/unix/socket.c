@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2002  Internet Software Consortium.
+ * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.17 2003/05/14 05:47:24 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.18 2003/07/22 04:03:49 marka Exp $ */
 
 #include <config.h>
 

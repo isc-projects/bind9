@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.33.2.2 2003/07/21 01:28:23 marka Exp $ */
+/* $Id: rwlock.c,v 1.33.2.3 2003/07/22 04:03:48 marka Exp $ */
 
 #include <config.h>
 

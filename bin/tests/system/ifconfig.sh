@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000-2002  Internet Software Consortium.
+# Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.35.2.6 2003/07/01 06:05:37 marka Exp $
+# $Id: ifconfig.sh,v 1.35.2.7 2003/07/22 04:03:38 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.

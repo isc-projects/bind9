@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.41.2.4 2003/05/15 04:52:05 marka Exp $ */
+/* $Id: rdataset.h,v 1.41.2.5 2003/07/22 04:03:45 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1

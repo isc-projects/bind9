@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.23.2.1 2003/05/15 06:34:24 marka Exp $ */
+/* $Id: base64.c,v 1.23.2.2 2003/07/22 04:03:47 marka Exp $ */
 
 #include <config.h>
 
