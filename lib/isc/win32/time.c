@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.28 2001/09/05 04:18:15 mayer Exp $ */
+/* $Id: time.c,v 1.29 2001/09/05 17:22:54 gson Exp $ */
 
 #include <config.h>
 
@@ -69,7 +69,7 @@ isc_interval_set(isc_interval_t *i, unsigned int seconds,
 }
 
 isc_boolean_t
-isc_interval_iszero(isc_interval_t *i) {
+isc_interval_iszero(const isc_interval_t *i) {
 	REQUIRE(i != NULL);
 	if (i->interval == 0)
 		return (ISC_TRUE);
@@ -86,7 +86,7 @@ isc_time_settoepoch(isc_time_t *t) {
 }
 
 isc_boolean_t
-isc_time_isepoch(isc_time_t *t) {
+isc_time_isepoch(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 
 	if (t->absolute.dwLowDateTime == 0 &&
@@ -106,7 +106,7 @@ isc_time_now(isc_time_t *t) {
 }
 
 isc_result_t
-isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
+isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL);
@@ -129,14 +129,15 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 }
 
 int
-isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
+isc_time_compare(const isc_time_t *t1, const isc_time_t *t2) {
 	REQUIRE(t1 != NULL && t2 != NULL);
 
 	return ((int)CompareFileTime(&t1->absolute, &t2->absolute));
 }
 
 isc_result_t
-isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
+isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result)
+{
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
@@ -156,7 +157,8 @@ isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 }
 
 isc_result_t
-isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
+isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
+		  isc_time_t *result) {
 	ULARGE_INTEGER i1;
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
@@ -176,7 +178,7 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 }
 
 isc_uint64_t
-isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
+isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	ULARGE_INTEGER i1, i2;
 	LONGLONG i3;
 
@@ -199,7 +201,7 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 }
 
 isc_uint32_t
-isc_time_nanoseconds(isc_time_t *t) {
+isc_time_nanoseconds(const isc_time_t *t) {
 	SYSTEMTIME st;
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.22 2001/09/01 00:55:27 gson Exp $ */
+/* $Id: time.h,v 1.23 2001/09/05 17:22:55 gson Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -58,7 +58,7 @@ isc_interval_set(isc_interval_t *i,
  */
 
 isc_boolean_t
-isc_interval_iszero(isc_interval_t *i);
+isc_interval_iszero(const isc_interval_t *i);
 /*
  * Returns ISC_TRUE iff. 'i' is the zero interval.
  *
@@ -98,7 +98,7 @@ isc_time_settoepoch(isc_time_t *t);
  */
 
 isc_boolean_t
-isc_time_isepoch(isc_time_t *t);
+isc_time_isepoch(const isc_time_t *t);
 /*
  * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
  *
@@ -127,7 +127,7 @@ isc_time_now(isc_time_t *t);
  */
 
 isc_result_t
-isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i);
+isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i);
 /*
  * Set *t to the current absolute time + i.
  *
@@ -152,7 +152,7 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i);
  */
 
 int
-isc_time_compare(isc_time_t *t1, isc_time_t *t2);
+isc_time_compare(const isc_time_t *t1, const isc_time_t *t2);
 /*
  * Compare the times referenced by 't1' and 't2'
  *
@@ -168,7 +168,7 @@ isc_time_compare(isc_time_t *t1, isc_time_t *t2);
  */
 
 isc_result_t
-isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
+isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result);
 /*
  * Add 'i' to 't', storing the result in 'result'.
  *
@@ -184,7 +184,8 @@ isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
  */
 
 isc_result_t
-isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
+isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
+		  isc_time_t *result);
 /*
  * Subtract 'i' from 't', storing the result in 'result'.
  *
@@ -199,7 +200,7 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
  */
 
 isc_uint64_t
-isc_time_microdiff(isc_time_t *t1, isc_time_t *t2);
+isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2);
 /*
  * Find the difference in milliseconds between time t1 and time t2.
  * t2 is the subtrahend of t1; ie, difference = t1 - t2.
@@ -213,7 +214,7 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2);
  */
 
 isc_uint32_t
-isc_time_nanoseconds(isc_time_t *t);
+isc_time_nanoseconds(const isc_time_t *t);
 /*
  * Return the number of nanoseconds stored in a time structure.
  *
