@@ -22,6 +22,7 @@
 #include <isc/buffer.h>
 
 #include <dns/types.h>
+#include <dns/a6.h>
 
 #include <named/types.h>
 
@@ -36,6 +37,7 @@ struct ns_query {
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
 	unsigned int			dboptions;
+	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;
 	ISC_LIST(dns_name_t)		tmpnames;
 	ISC_LIST(dns_rdataset_t)	tmprdatasets;

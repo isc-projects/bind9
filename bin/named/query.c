@@ -26,6 +26,7 @@
 #include <isc/timer.h>
 #include <isc/event.h>
 
+#include <dns/a6.h>
 #include <dns/db.h>
 #include <dns/dbtable.h>
 #include <dns/dispatch.h>
@@ -47,6 +48,15 @@
 
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)
+
+static isc_result_t
+query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
+		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+
+static inline void
+query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
+		      dns_rdataset_t *sigrdataset);
+
 
 static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
@@ -106,6 +116,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	 */
 	ISC_LIST_INIT(client->query.tmpnames);
 	ISC_LIST_INIT(client->query.tmprdatasets);
+
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK|
 				    NS_QUERYATTR_CACHEOK);
 	client->query.qname = NULL;
@@ -309,6 +320,8 @@ ns_query_init(ns_client_t *client) {
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	dns_a6_init(&client->query.a6ctx, query_simplefind, query_adda6rrset,
+		    NULL, NULL, client);
 	return (query_newnamebuf(client));
 }
 
@@ -343,6 +356,58 @@ query_findversion(ns_client_t *client, dns_db_t *db) {
 	
 	return (dbversion->version);
 }
+
+static isc_result_t
+query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
+		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	ns_client_t *client = arg;
+	isc_result_t result;
+	dns_fixedname_t foundname;
+	dns_db_t *db;
+	dns_dbversion_t *version;
+
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	/*
+	 * Find a database to answer the query.
+	 */
+	db = NULL;
+	result = dns_dbtable_find(client->view->dbtable, name, &db);
+	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+		goto cleanup;
+
+	/*
+	 * Get the current version of this database.
+	 */
+	version = NULL;
+	if (dns_db_iszone(db)) {
+		version = query_findversion(client, db);
+		if (version == NULL)
+			goto cleanup;
+	}
+
+	/*
+	 * Now look for an answer in the database.
+	 */
+	dns_fixedname_init(&foundname);
+	result = dns_db_find(db, name, version, type, client->query.dboptions,
+			     client->requesttime, NULL,
+			     dns_fixedname_name(&foundname),
+			     rdataset, sigrdataset);
+
+ cleanup:
+	if (db != NULL)
+		dns_db_detach(&db);
+
+	if (result == DNS_R_GLUE)
+		result = ISC_R_SUCCESS;
+	else if (result != ISC_R_SUCCESS)
+		result = DNS_R_NOTFOUND;
+
+	return (result);
+}
+
 
 static isc_result_t
 query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
@@ -420,8 +485,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		goto cleanup;
 	}
 
-	query_keepname(client, fname, dbuf);
-
 	/*
 	 * Suppress duplicates.
 	 */
@@ -438,6 +501,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 			goto cleanup;
 		}
 	}
+	query_keepname(client, fname, dbuf);
 	ISC_LIST_APPEND(fname->list, rdataset, link);
 	rdataset = NULL;
 	/*
@@ -464,13 +528,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	 * recursing to add address records, which in turn can cause
 	 * recursion to add KEYs.
 	 */
-	if (type == dns_rdatatype_a || type == dns_rdatatype_aaaa ||
-	    type == dns_rdatatype_a6) {
+	if (type == dns_rdatatype_a || type == dns_rdatatype_aaaa) {
 		/*
 		 * RFC 2535 section 3.5 says that when A or AAAA records are
 		 * retrieved as additional data, any KEY RRs for the owner name
-		 * should be added to the additional data section.  We include
-		 * A6 in the list of types with such treatment.
+		 * should be added to the additional data section.  Note: we
+		 * do NOT include A6 in the list of types with such treatment.
 		 *
 		 * XXXRTH  We should lower the priority here.  Alternatively,
 		 * we could raise the priority of glue records.
@@ -508,6 +571,99 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	return (eresult);
 }
 
+static void
+query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
+		      dns_rdataset_t *sigrdataset)
+{
+	ns_client_t *client = arg;
+	dns_rdataset_t *crdataset, *csigrdataset;
+	isc_buffer_t b, *dbuf;
+	dns_name_t *fname, *mname;
+	dns_section_t section;
+	isc_result_t result;
+
+	/*
+	 * Add an rrset to the additional data section.
+	 */
+
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(rdataset->type == dns_rdatatype_a6);
+
+	/*
+	 * Get some resources...
+	 */
+	fname = NULL;
+	crdataset = NULL;
+	csigrdataset = NULL;
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		goto cleanup;
+	fname = query_newname(client, dbuf, &b);
+	crdataset = query_newrdataset(client);
+	csigrdataset = query_newrdataset(client);
+	if (fname == NULL || crdataset == NULL || csigrdataset == NULL)
+		goto cleanup;
+
+	if (dns_name_concatenate(name, NULL, fname, NULL) != ISC_R_SUCCESS)
+		goto cleanup;
+	dns_rdataset_clone(rdataset, crdataset);
+	if (sigrdataset->methods != NULL)
+		dns_rdataset_clone(sigrdataset, csigrdataset);
+
+	/*
+	 * Suppress duplicates.
+	 */
+	for (section = DNS_SECTION_ANSWER;
+	     section <= DNS_SECTION_ADDITIONAL;
+	     section++) {
+		mname = NULL;
+		result = dns_message_findname(client->message, section,
+					      fname, crdataset->type, 0,
+					      &mname, NULL);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * We've already got this RRset in the response.
+			 */
+			goto cleanup;
+		}
+	}
+	query_keepname(client, fname, dbuf);
+	ISC_LIST_APPEND(fname->list, crdataset, link);
+	crdataset = NULL;
+	/*
+	 * Note: we only add SIGs if we've added the type they cover, so
+	 * we do not need to check if the SIG rdataset is already in the
+	 * response.
+	 */
+	if (csigrdataset->methods != NULL) {
+		ISC_LIST_APPEND(fname->list, csigrdataset, link);
+		csigrdataset = NULL;
+	}
+
+	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
+	fname = NULL;
+
+	/*
+	 * In spite of RFC 2535 section 3.5, we don't currently try to add
+	 * KEY RRs for the A6 records.  It's just too much work.
+	 */
+
+ cleanup:
+	if (csigrdataset != NULL) {
+		if (csigrdataset->methods != NULL)
+			dns_rdataset_disassociate(csigrdataset);
+		ISC_LIST_APPEND(client->query.tmprdatasets, csigrdataset,
+				link);
+	}
+	if (crdataset != NULL) {
+		if (crdataset->methods != NULL)
+			dns_rdataset_disassociate(crdataset);
+		ISC_LIST_APPEND(client->query.tmprdatasets, crdataset, link);
+	}
+	if (fname != NULL)
+		query_releasename(client, &fname);
+}
+
 static inline void
 query_addrdataset(ns_client_t *client, dns_name_t *fname,
 		  dns_rdataset_t *rdataset)
@@ -516,15 +672,21 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 
 	ISC_LIST_APPEND(fname->list, rdataset, link);
 	/*
-	 * We don't care if dns_rdataset_additionaldata() fails.
+	 * Add additional data.
+	 *
+	 * We don't care if dns_a6_foreach or dns_rdataset_additionaldata()
+	 * fail.
 	 */
-	(void)dns_rdataset_additionaldata(rdataset, query_addadditional,
-					  client);
+	if (type == dns_rdatatype_a6)
+		(void)dns_a6_foreach(&client->query.a6ctx, rdataset);
+	else
+		(void)dns_rdataset_additionaldata(rdataset,
+						  query_addadditional, client);
 	/*
 	 * RFC 2535 section 3.5 says that when NS, SOA, A, or AAAA records
 	 * are retrieved, any KEY RRs for the owner name should be added
-	 * to the additional data section.  We include A6 in the list of
-	 * types with such treatment.
+	 * to the additional data section.  Note: we do NOT include A6 in the
+	 * list of types with such treatment.
 	 *
 	 * We don't care if query_additional() fails.
 	 */
@@ -590,7 +752,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 		/*
 		 * We have a signature.  Add it to the response.
 		 */
-		query_addrdataset(client, mname, sigrdataset);
+		ISC_LIST_APPEND(mname->list, rdataset, link);
 		*sigrdatasetp = NULL;
 	}
 }
