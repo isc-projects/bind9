@@ -13,7 +13,6 @@ openssl_stub	open		marka
 chroot		open		marka
 edns_size	open		marka
 rt4347		open		marka
-rt4675		review		explorer
 
 a6_remove	closed
 adb_race	closed		explorer
@@ -43,3 +42,4 @@ rt4425		closed
 rt4463		closed
 rt4764		closed
 rt4802		closed
+rt4675		closed
