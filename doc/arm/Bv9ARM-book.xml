@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.13 2002/01/16 03:47:23 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.14 2002/01/22 05:09:40 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2289,6 +2289,11 @@ installed.
       releases.  If it is present in the controls statement from a
       <acronym>BIND</acronym> 8 configuration file, it is ignored
       and a warning is logged.</para>
+
+<para>
+To disable the command channel, use an empty <command>controls</command>
+statement: <command>controls { };</command>.
+</para>
 
     </sect2>
     <sect2>
