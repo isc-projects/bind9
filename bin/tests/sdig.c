@@ -212,9 +212,6 @@ main(int argc, char *argv[]) {
 	result = isc_socketmgr_create(mctx, &socketmgr);
 	check_result(result, "isc_socketmgr_create()");
 	sock = NULL;
-	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp,
-				   &sock);
-	check_result(result, "isc_socket_create()");
 
 	server = "localhost";
 	port = 5544;
@@ -296,6 +293,10 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_message_renderend()");
 
 	get_address(server, port, &sockaddr);
+
+	result = isc_socket_create(socketmgr, isc_sockaddr_pf(&sockaddr),
+				   isc_sockettype_udp, &sock);
+	check_result(result, "isc_socket_create()");
 
 	isc_buffer_init(&b2, data2, sizeof data2, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_available(&b2, &r);
