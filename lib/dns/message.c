@@ -504,35 +504,13 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 		dns_compress_invalidate(&msg->cctx);
 
 	if (msg->tsig != NULL) {
-		if (msg->from_to_wire == DNS_MESSAGE_INTENTPARSE)
-			dns_rdata_freestruct(msg->tsig);
-		else {
-			if (msg->tsig->signature != NULL)
-				isc_mem_put(msg->mctx, msg->tsig->signature,
-					    msg->tsig->siglen);
-			if (msg->tsig->other != NULL)
-				isc_mem_put(msg->mctx, msg->tsig->other,
-					    msg->tsig->otherlen);
-			dns_name_free(&msg->tsig->algorithm, msg->mctx);
-		}
-		isc_mem_put(msg->mctx, msg->tsig,
-			    sizeof(dns_rdata_any_tsig_t));
+		dns_rdata_freestruct(msg->tsig);
+		isc_mem_put(msg->mctx, msg->tsig, sizeof(dns_rdata_any_tsig_t));
 		msg->tsig = NULL;
 	}
 
 	if (msg->querytsig != NULL) {
-		if (msg->from_to_wire != DNS_MESSAGE_INTENTPARSE)
-			dns_rdata_freestruct(msg->querytsig);
-		else {
-			if (msg->querytsig->signature != NULL)
-				isc_mem_put(msg->mctx,
-					    msg->querytsig->signature,
-					    msg->querytsig->siglen);
-			if (msg->querytsig->other != NULL)
-				isc_mem_put(msg->mctx, msg->querytsig->other,
-					    msg->querytsig->otherlen);
-			dns_name_free(&msg->querytsig->algorithm, msg->mctx);
-		}
+		dns_rdata_freestruct(msg->querytsig);
 		isc_mem_put(msg->mctx, msg->querytsig,
 			    sizeof(dns_rdata_any_tsig_t));
 		msg->querytsig = NULL;

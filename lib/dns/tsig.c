@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.60 2000/05/19 00:29:00 bwelling Exp $
+ * $Id: tsig.c,v 1.61 2000/05/22 23:17:22 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -241,7 +241,7 @@ dns_tsigkey_setdeleted(dns_tsigkey_t *key) {
 isc_result_t
 dns_tsig_sign(dns_message_t *msg) {
 	dns_tsigkey_t *key;
-	dns_rdata_any_tsig_t *tsig;
+	dns_rdata_any_tsig_t tsig;
 	unsigned char data[128];
 	isc_buffer_t databuf, sigbuf;
 	isc_buffer_t *dynbuf;
@@ -254,6 +254,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dst_context_t ctx;
 	isc_mem_t *mctx;
 	isc_result_t ret;
+	isc_boolean_t algfreed = ISC_FALSE;
 
 	REQUIRE(msg != NULL);
 	REQUIRE(VALID_TSIG_KEY(msg->tsigkey));
@@ -270,54 +271,49 @@ dns_tsig_sign(dns_message_t *msg) {
 	mctx = msg->mctx;
 	key = msg->tsigkey;
 
-	tsig = (dns_rdata_any_tsig_t *)
-		isc_mem_get(mctx, sizeof(dns_rdata_any_tsig_t));
-	if (tsig == NULL)
-		return (ISC_R_NOMEMORY);
-	tsig->mctx = mctx;
-	tsig->common.rdclass = dns_rdataclass_any;
-	tsig->common.rdtype = dns_rdatatype_tsig;
-	ISC_LINK_INIT(&tsig->common, link);
-	dns_name_init(&tsig->algorithm, NULL);
-	ret = dns_name_dup(&key->algorithm, mctx, &tsig->algorithm);
+	tsig.mctx = mctx;
+	tsig.common.rdclass = dns_rdataclass_any;
+	tsig.common.rdtype = dns_rdatatype_tsig;
+	ISC_LINK_INIT(&tsig.common, link);
+	dns_name_init(&tsig.algorithm, NULL);
+	ret = dns_name_dup(&key->algorithm, mctx, &tsig.algorithm);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
 
 	isc_stdtime_get(&now);
-	tsig->timesigned = now;
-	tsig->fudge = DNS_TSIG_FUDGE;
+	tsig.timesigned = now;
+	tsig.fudge = DNS_TSIG_FUDGE;
 
-	tsig->originalid = msg->id;
+	tsig.originalid = msg->id;
 
 	isc_buffer_init(&databuf, data, sizeof(data));
 
 	if (is_response(msg))
-		tsig->error = msg->querytsigstatus;
+		tsig.error = msg->querytsigstatus;
 	else
-		tsig->error = dns_rcode_noerror;
+		tsig.error = dns_rcode_noerror;
 
-	if (tsig->error != dns_tsigerror_badtime) {
-		tsig->otherlen = 0;
-		tsig->other = NULL;
+	if (tsig.error != dns_tsigerror_badtime) {
+		tsig.otherlen = 0;
+		tsig.other = NULL;
 	}
 	else {
 		isc_buffer_t otherbuf;
-		tsig->otherlen = 6;
-		tsig->other = (unsigned char *)isc_mem_get(mctx,
-							   tsig->otherlen);
-		if (tsig->other == NULL) {
+		tsig.otherlen = 6;
+		tsig.other = (unsigned char *)isc_mem_get(mctx, tsig.otherlen);
+		if (tsig.other == NULL) {
 			ret = ISC_R_NOMEMORY;
 			goto cleanup_other;
 		}
-		isc_buffer_init(&otherbuf, tsig->other, tsig->otherlen);
+		isc_buffer_init(&otherbuf, tsig.other, tsig.otherlen);
 		isc_buffer_putuint16(&otherbuf,
-				     (isc_uint16_t)(tsig->timesigned >> 32));
+				     (isc_uint16_t)(tsig.timesigned >> 32));
 		isc_buffer_putuint32(&otherbuf,
-				     (isc_uint32_t)(tsig->timesigned &
+				     (isc_uint32_t)(tsig.timesigned &
 						    0xFFFFFFFF));
 		
 	}
-	if (!dns_tsigkey_empty(key) && tsig->error != dns_tsigerror_badsig) {
+	if (!dns_tsigkey_empty(key) && tsig.error != dns_tsigerror_badsig) {
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
 		unsigned int sigsize;
@@ -385,7 +381,7 @@ dns_tsig_sign(dns_message_t *msg) {
 			if (ret != ISC_R_SUCCESS)
 				goto cleanup_other;
 
-			dns_name_toregion(&tsig->algorithm, &r);
+			dns_name_toregion(&tsig.algorithm, &r);
 			ret = dst_key_sign(DST_SIGMODE_UPDATE, key->key, &ctx,
 					   &r, NULL);
 			if (ret != ISC_R_SUCCESS)
@@ -394,12 +390,12 @@ dns_tsig_sign(dns_message_t *msg) {
 		}
 		/* Digest the timesigned and fudge */
 		isc_buffer_clear(&databuf);
-		if (tsig->error != dns_tsigerror_badtime) {
+		if (tsig.error != dns_tsigerror_badtime) {
 			isc_buffer_putuint16(&databuf,
-					     (isc_uint16_t)(tsig->timesigned >>
+					     (isc_uint16_t)(tsig.timesigned >>
 							    32));
 			isc_buffer_putuint32(&databuf,
-					     (isc_uint32_t)(tsig->timesigned &
+					     (isc_uint32_t)(tsig.timesigned &
 							    0xFFFFFFFF));
 		}
 		else {
@@ -411,7 +407,7 @@ dns_tsig_sign(dns_message_t *msg) {
 					     (isc_uint16_t)(querysigned &
 							    0xFFFFFFFF));
 		}
-		isc_buffer_putuint16(&databuf, tsig->fudge);
+		isc_buffer_putuint16(&databuf, tsig.fudge);
 		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_key_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r,
 				   NULL);
@@ -423,8 +419,8 @@ dns_tsig_sign(dns_message_t *msg) {
 			 * Digest the error and other data length.
 			 */
 			isc_buffer_clear(&databuf);
-			isc_buffer_putuint16(&databuf, tsig->error);
-			isc_buffer_putuint16(&databuf, tsig->otherlen);
+			isc_buffer_putuint16(&databuf, tsig.error);
+			isc_buffer_putuint16(&databuf, tsig.otherlen);
 
 			isc_buffer_usedregion(&databuf, &r);
 			ret = dst_key_sign(DST_SIGMODE_UPDATE, key->key, &ctx,
@@ -435,9 +431,9 @@ dns_tsig_sign(dns_message_t *msg) {
 			/*
 			 * Digest the error and other data.
 			 */
-			if (tsig->otherlen > 0) {
-				r.length = tsig->otherlen;
-				r.base = tsig->other;
+			if (tsig.otherlen > 0) {
+				r.length = tsig.otherlen;
+				r.base = tsig.other;
 				ret = dst_key_sign(DST_SIGMODE_UPDATE, key->key,
 					       &ctx, &r, NULL);
 				if (ret != ISC_R_SUCCESS)
@@ -448,23 +444,23 @@ dns_tsig_sign(dns_message_t *msg) {
 		ret = dst_key_sigsize(key->key, &sigsize);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_other;
-		tsig->siglen = sigsize;
-		tsig->signature = (unsigned char *)
-				  isc_mem_get(mctx, tsig->siglen);
-		if (tsig->signature == NULL) {
+		tsig.siglen = sigsize;
+		tsig.signature = (unsigned char *)
+				  isc_mem_get(mctx, tsig.siglen);
+		if (tsig.signature == NULL) {
 			ret = ISC_R_NOMEMORY;
 			goto cleanup_other;
 		}
 
-		isc_buffer_init(&sigbuf, tsig->signature, tsig->siglen);
+		isc_buffer_init(&sigbuf, tsig.signature, tsig.siglen);
 		ret = dst_key_sign(DST_SIGMODE_FINAL, key->key, &ctx, NULL,
 				   &sigbuf);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_signature;
 	}
 	else {
-		tsig->siglen = 0;
-		tsig->signature = NULL;
+		tsig.siglen = 0;
+		tsig.signature = NULL;
 	}
 
 	rdata = NULL;
@@ -475,22 +471,41 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
-				   dns_rdatatype_tsig, tsig, dynbuf);
+				   dns_rdatatype_tsig, &tsig, dynbuf);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_dynbuf;
 
+	if (tsig.signature != NULL) {
+		isc_mem_put(mctx, tsig.signature, tsig.siglen);
+		tsig.signature = NULL;
+	}
+	if (tsig.other != NULL) {
+		isc_mem_put(mctx, tsig.other, tsig.otherlen);
+		tsig.other = NULL;
+	}
+	dns_name_free(&tsig.algorithm, mctx);
+	algfreed = ISC_TRUE;
+
+	msg->tsig = isc_mem_get(mctx, sizeof(dns_rdata_any_tsig_t));
+	if (msg->tsig == NULL) {
+		ret = ISC_R_NOMEMORY;
+		goto cleanup_dynbuf;
+	}
+	ret = dns_rdata_tostruct(rdata, msg->tsig, mctx);
+	if (ret != ISC_R_SUCCESS)
+		goto cleanup_tsig;
+
 	dns_message_takebuffer(msg, &dynbuf);
-	msg->tsig = tsig;
 
 	owner = NULL;
 	ret = dns_message_gettempname(msg, &owner);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
+		goto cleanup_tsig;
 	dns_name_toregion(&key->name, &r);
 	dynbuf = NULL;
 	ret = isc_buffer_allocate(mctx, &dynbuf, r.length);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
+		goto cleanup_tsig;
 	isc_buffer_availableregion(dynbuf, &r2);
 	memcpy(r2.base, r.base, r.length);
 	dns_name_init(owner, NULL);
@@ -500,7 +515,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	datalist = NULL;
 	ret = dns_message_gettemprdatalist(msg, &datalist);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
+		goto cleanup_tsig;
 	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_tsig;
 	datalist->covers = 0;
@@ -510,7 +525,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dataset = NULL;
 	ret = dns_message_gettemprdataset(msg, &dataset);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
+		goto cleanup_tsig;
 	dns_rdataset_init(dataset);
 	dns_rdatalist_tordataset(datalist, dataset);
 	msg->tsigset = dataset;
@@ -518,20 +533,23 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	return (ISC_R_SUCCESS);
 
+cleanup_tsig:
+	dns_rdata_freestruct(msg->tsig);
+	isc_mem_put(mctx, msg->tsig, sizeof *msg->tsig);
 cleanup_dynbuf:
 	if (dynbuf != NULL)
 		isc_buffer_free(&dynbuf);
 cleanup_signature:
-	if (tsig->signature != NULL)
-		isc_mem_put(mctx, tsig->signature, tsig->siglen);
+	if (tsig.signature != NULL)
+		isc_mem_put(mctx, tsig.signature, tsig.siglen);
 cleanup_other:
-	if (tsig->other != NULL)
-		isc_mem_put(mctx, tsig->other, tsig->otherlen);
+	if (tsig.other != NULL)
+		isc_mem_put(mctx, tsig.other, tsig.otherlen);
 cleanup_algorithm:
-	dns_name_free(&tsig->algorithm, mctx);
+	if (!algfreed)
+		dns_name_free(&tsig.algorithm, mctx);
 cleanup_struct:
 	msg->tsig = NULL;
-	isc_mem_put(mctx, tsig, sizeof(dns_rdata_any_tsig_t));
 
 	return (ret);
 }
