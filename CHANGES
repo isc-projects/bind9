@@ -1,3 +1,7 @@
+ 215.	[bug]		Failures at certain points in request processing
+			could cause the assertion INSIST(client->lockview
+			== NULL) to be triggered.
+
  214.   [func]		New public function isc_netaddr_format(), for
 			formatting network addresses in log messages.
 

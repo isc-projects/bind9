@@ -460,7 +460,6 @@ ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->naccepts == 0);
 	INSIST(client->nreads == 0);
 	INSIST(client->nsends == 0);
-	INSIST(client->lockview == NULL);
 	INSIST(client->state == NS_CLIENTSTATE_WORKING);
 
 	CTRACE("endrequest");
@@ -657,6 +656,7 @@ ns_client_send(ns_client_t *client) {
 		goto done;
  renderend:
 	result = dns_message_renderend(client->message);
+
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
@@ -954,7 +954,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * We must attach a separate view reference for this
 	 * purpose instad of using client->view, because
 	 * client->view may or may not be detached at the point
-	 * when whe return from this event handler depending
+	 * when we return from this event handler depending
 	 * on whether the request handler causes ns_client_next()
 	 * to be called or not.
 	 */
