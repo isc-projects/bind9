@@ -77,9 +77,10 @@ typedef struct {
 
 struct isc_entropy {
 	isc_uint32_t			magic;
+	isc_mem_t		       *mctx;
 	isc_mutex_t			lock;
 	unsigned int			refcnt;
-	isc_mem_t		       *mctx;
+	isc_uint32_t			initialized;
 	isc_entropypool_t		pool;
 	ISC_LIST(isc_entropysource_t)	sources;
 };
@@ -368,6 +369,13 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	needed = ISC_MIN(needed, RND_POOLBITS - ent->pool.entropy);
 
 	/*
+	 * But wait!  If we're not yet initialized, we need at least 20
+	 * bytes of randomness.
+	 */
+	if (ent->initialized < 20)
+		needed = ISC_MIN(needed, 20 - ent->initialized);
+
+	/*
 	 * Poll each file source to see if we can read anything useful from
 	 * it.  XXXMLG When where are multiple sources, we should keep a
 	 * record of which one we last used so we can start from it (or the
@@ -411,6 +419,15 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 * Adjust counts.
 	 */
 	subtract_pseudo(ent, added);
+
+	/*
+	 * Mark as initialized if we've added enough data.
+	 */
+	if (ent->initialized < 20) {
+		ent->initialized += added;
+		if (ent->initialized >= 20)
+			ent->initialized = ISC_TRUE;
+	}
 }
 
 static int
@@ -529,6 +546,13 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 			 * since the last refresh, try to refresh here.
 			 */
 			fillpool(ent, 0, ISC_FALSE);
+
+			/*
+			 * If we've not initialized with enough good random
+			 * data, fail.
+			 */
+			if (ent->initialized < 20)
+				goto zeroize;
 		}
 
 		isc_sha1_init(&hash);
@@ -621,6 +645,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	ent->mctx = NULL;
 	isc_mem_attach(mctx, &ent->mctx);
 	ent->refcnt = 1;
+	ent->initialized = 0;
 	ent->magic = ENTROPY_MAGIC;
 
 	isc_entropypool_init(&ent->pool);
@@ -824,6 +849,14 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 		      isc_uint32_t extra)
 {
 	isc_entropy_t *ent;
+
+	/*
+	 * XXXMLG Make warnings go away for the beta4 release.  This
+	 * will be fixed by implementing the function in the next
+	 * release.
+	 */
+	UNUSED(sample);
+	UNUSED(extra);
 
 	REQUIRE(VALID_SOURCE(source));
 	ent = source->ent;
