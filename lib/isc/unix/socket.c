@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.187 2001/01/27 06:41:36 bwelling Exp $ */
+/* $Id: socket.c,v 1.188 2001/02/06 23:04:02 gson Exp $ */
 
 #include <config.h>
 
@@ -1667,6 +1667,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * again.
 	 */
 	addrlen = sizeof dev->newsocket->address.type;
+	memset(&dev->newsocket->address.type.sa, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
 	if (fd < 0) {
@@ -1698,7 +1699,20 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 
 		result = ISC_R_UNEXPECTED;
 	} else {
-		INSIST(dev->newsocket->address.type.sa.sa_family == sock->pf);
+		if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_accept(): "
+					 "accept() returned peer address "
+					 "family %u (expected %u)", 
+					 dev->newsocket->address.
+					 type.sa.sa_family,
+					 sock->pf);
+			(void)close(fd);
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_ACCEPT);
+			UNLOCK(&sock->lock);
+			return;
+		}
 		dev->newsocket->address.length = addrlen;
 		dev->newsocket->pf = sock->pf;
 	}
