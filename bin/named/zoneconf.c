@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.49 2000/07/27 09:46:53 tale Exp $ */
+/* $Id: zoneconf.c,v 1.50 2000/07/31 19:36:48 explorer Exp $ */
 
 #include <config.h>
 
@@ -106,8 +106,8 @@ dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
 }
 
 isc_result_t
-dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, 
-		   dns_c_zone_t *czone, dns_aclconfctx_t *ac, 
+dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
+		   dns_c_zone_t *czone, dns_aclconfctx_t *ac,
 		   dns_zone_t *zone)
 {
 	isc_result_t result;
@@ -123,9 +123,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
 	dns_ssutable_t *ssutable = NULL;
 
-	isc_sockaddr_any(&sockaddr_any4);	
+	isc_sockaddr_any(&sockaddr_any4);
 	isc_sockaddr_any6(&sockaddr_any6);
-	
+
 	/*
 	 * Configure values common to all zone types.
 	 */
