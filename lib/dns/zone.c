@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.215 2000/09/20 09:50:34 marka Exp $ */
+/* $Id: zone.c,v 1.216 2000/09/23 06:27:12 gson Exp $ */
 
 #include <config.h>
 
@@ -904,6 +904,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_stdtime_t now;
 
+	isc_stdtime_get(&now);
+
 	/*
 	 * Initiate zone transfer?  We may need a error code that
 	 * indicates that the "permanent" form does not exist.
@@ -935,7 +937,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		 "number of nodes in database: %u",
 		 dns_db_nodecount(db));
 	zone->loadtime = loadtime;
-	isc_stdtime_get(&now);
 
 	zone_log(zone, me, ISC_LOG_INFO, "loaded");
 
