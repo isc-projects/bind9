@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.20 1999/10/28 19:11:33 gson Exp $ */
+ /* $Id: xfrin.c,v 1.21 1999/10/29 02:12:01 gson Exp $ */
 
 #include <config.h>
 
@@ -51,11 +51,9 @@
 #include <dns/journal.h>
 #include <dns/view.h>
 #include <dns/tsig.h>
+#include <dns/xfrin.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
-
-#include <named/globals.h>
-#include <named/xfrin.h>
 
 /*
  * Incoming AXFR and IXFR.
@@ -167,6 +165,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_db_t *db,
 	     isc_task_t *task,
 	     isc_socketmgr_t *socketmgr,
+	     isc_timermgr_t *timermgr,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
@@ -456,7 +455,10 @@ xfr_rr(xfrin_ctx_t *xfr,
 }
 
 void
-ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
+dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
+		isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
+		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr)
+{
 	dns_name_t *zonename;
 	isc_task_t *task;
 	xfrin_ctx_t *xfr;
@@ -475,7 +477,7 @@ ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
 		CHECK(result);
 
 	task = NULL;
-	RUNTIME_CHECK(isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &task)
+	RUNTIME_CHECK(isc_task_create(taskmgr, mctx, 0, &task)
 		      == DNS_R_SUCCESS);
 	
 	if (db == NULL) {
@@ -486,11 +488,12 @@ ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
 		xfrtype = dns_rdatatype_ixfr;
 	}
 
-	CHECK(xfrin_create(ns_g_mctx,
+	CHECK(xfrin_create(mctx,
 			   zone,
 			   db,
 			   task,
-			   ns_g_socketmgr,
+			   socketmgr,
+			   timermgr,
 			   zonename,
 			   dns_rdataclass_in, xfrtype,
 			   master, key, &xfr));
@@ -535,6 +538,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_db_t *db,
 	     isc_task_t *task,
 	     isc_socketmgr_t *socketmgr,
+	     isc_timermgr_t *timermgr,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
@@ -601,7 +605,7 @@ xfrin_create(isc_mem_t *mctx,
 	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
 
 	isc_interval_set(&interval, 3600, 0); /* XXX */
-	CHECK(isc_timer_create(ns_g_timermgr, isc_timertype_once,
+	CHECK(isc_timer_create(timermgr, isc_timertype_once,
 			       NULL, &interval, task,
 			       xfrin_timeout, xfr, &xfr->timer));
 

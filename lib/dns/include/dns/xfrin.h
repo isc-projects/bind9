@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_XFRIN_H
-#define NS_XFRIN_H 1
+#ifndef DNS_XFRIN_H
+#define DNS_XFRIN_H 1
 
 /*****
  ***** Module Info
@@ -32,6 +32,8 @@
  *** Functions
  ***/
 
-void ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master);
+void dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master, 
+		isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
+		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr);
 
-#endif /* NS_XFRIN_H */
+#endif /* DNS_XFRIN_H */

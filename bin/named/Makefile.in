@@ -38,7 +38,7 @@ SUBDIRS =	unix
 TARGETS =	named
 
 OBJS =		client.@O@ interfacemgr.@O@ log.@O@ main.@O@ query.@O@ \
-		rootns.@O@ server.@O@ update.@O@ xfrin.@O@ xfrout.@O@
+		rootns.@O@ server.@O@ update.@O@ xfrout.@O@
 
 UOBJS =		unix/os.@O@
 

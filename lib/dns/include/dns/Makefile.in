@@ -25,6 +25,7 @@ HEADERS =	adb.h callbacks.h cert.h compress.h db.h dbiterator.h dbtable.h \
 		rcode.h rdata.h rdataclass.h rdatalist.h rdataset.h \
 		rdatasetiter.h rdataslab.h rdatatype.h result.h \
 		secalg.h tcpmsg.h time.h tkey.h tsig.h ttl.h types.h view.h \
+		xfrin.h \
 		confacl.h confcommon.h confctl.h confctx.h confcache.h \
 		confip.h confkeys.h conflog.h conflsn.h confparser.h \
 		confresolv.h confrrset.h confserv.h confzone.h
