@@ -42,6 +42,7 @@
 ./bin/named/include/named/logconf.h		C	1999,2000
 ./bin/named/include/named/lwdclient.h		C	2000
 ./bin/named/include/named/lwresd.h		C	2000
+./bin/named/include/named/lwsearch.h		C	2000
 ./bin/named/include/named/main.h		C	1999,2000
 ./bin/named/include/named/notify.h		C	1999,2000
 ./bin/named/include/named/omapi.h		C	2000
@@ -60,6 +61,7 @@
 ./bin/named/lwdgnba.c				C	2000
 ./bin/named/lwdnoop.c				C	2000
 ./bin/named/lwresd.c				C	2000
+./bin/named/lwsearch.c				C	2000
 ./bin/named/main.c				C	1999,2000
 ./bin/named/named.conf.test			CONF-C	1999,2000
 ./bin/named/notify.c				C	1999,2000
