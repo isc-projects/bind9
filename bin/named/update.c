@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.85 2001/03/11 06:19:37 marka Exp $ */
+/* $Id: update.c,v 1.86 2001/03/12 22:49:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -699,10 +699,10 @@ temp_check_rrset(dns_difftuple_t *a, dns_difftuple_t *b) {
  */
 static int
 temp_order(const void *av, const void *bv) {
-	dns_difftuple_t * const *ap = av;
-	dns_difftuple_t * const *bp = bv;
-	dns_difftuple_t *a = *ap;
-	dns_difftuple_t *b = *bp;
+	dns_difftuple_t const * const *ap = av;
+	dns_difftuple_t const * const *bp = bv;
+	dns_difftuple_t const *a = *ap;
+	dns_difftuple_t const *b = *bp;
 	int r;
 	r = dns_name_compare(&a->name, &b->name);
 	if (r != 0)
