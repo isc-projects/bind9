@@ -58,6 +58,7 @@ XTARGETS =	adb_test \
 		mempool_test \
 		name_test \
 		nconf_test \
+		ndcconf_test \
 		nxtify \
 		omapi_test \
 		ratelimiter_test \
@@ -95,6 +96,7 @@ SRCS =		adb_test.c \
 		mempool_test.c \
 		name_test.c \
 		nconf_test.c \
+		ndcconf_test.c \
 		nxtify.c \
 		omapi_test.c \
 		printmsg.c \
@@ -249,6 +251,10 @@ dispatch_tcp_test: dispatch_tcp_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS
 
 nconf_test: nconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nconf_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+ndcconf_test: ndcconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ndcconf_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 tkey_test: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
