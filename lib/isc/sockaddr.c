@@ -29,7 +29,7 @@
 #include <isc/mem.h>
 
 isc_boolean_t
-isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
+isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
 {
 	REQUIRE(a != NULL && b != NULL);
 
@@ -70,7 +70,7 @@ isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
  * compare just the addresses (ignore ports)
  */
 isc_boolean_t
-isc_sockaddr_eqaddr(isc_sockaddr_t *a, isc_sockaddr_t *b)
+isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
 {
 	REQUIRE(a != NULL && b != NULL);
 
@@ -103,12 +103,12 @@ isc_sockaddr_eqaddr(isc_sockaddr_t *a, isc_sockaddr_t *b)
 }
 
 char *
-isc_sockaddr_totext(isc_sockaddr_t *sockaddr, isc_mem_t *mctx) {
+isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_mem_t *mctx) {
 	char abuf[sizeof "xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255"];
 	char pbuf[sizeof "65000"];
-	struct sockaddr *sa;
-	struct sockaddr_in *sin;
-	struct sockaddr_in6 *sin6;
+	const struct sockaddr *sa;
+	const struct sockaddr_in *sin;
+	const struct sockaddr_in6 *sin6;
 	char *res;
 
 	REQUIRE(sockaddr != NULL);
@@ -138,7 +138,7 @@ isc_sockaddr_totext(isc_sockaddr_t *sockaddr, isc_mem_t *mctx) {
 }
 
 unsigned int
-isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
+isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	unsigned int length;
 	const unsigned char *s;
 	unsigned int h = 0;
@@ -183,7 +183,7 @@ isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 }
 
 void
-isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		    in_port_t port)
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
@@ -198,7 +198,7 @@ isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
 }
 
 void
-isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
+isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, const struct in6_addr *ina6,
 		     in_port_t port)
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
@@ -213,7 +213,7 @@ isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
 }
 
 void
-isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		      in_port_t port)
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
@@ -230,7 +230,7 @@ isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
 }
 
 int
-isc_sockaddr_pf(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_pf(const isc_sockaddr_t *sockaddr) {
 
 	/*
 	 * Get the protocol family of 'sockaddr'.

@@ -35,28 +35,28 @@ typedef struct isc_sockaddr {
 } isc_sockaddr_t;
 
 isc_boolean_t
-isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b);
+isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
 
 isc_boolean_t
-isc_sockaddr_eqaddr(isc_sockaddr_t *a, isc_sockaddr_t *b);
+isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
 
 unsigned int
-isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
+isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
 
 void
-isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		    in_port_t port);
 
 void
-isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
+isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, const struct in6_addr *ina6,
 		     in_port_t port);
 
 void
-isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		      in_port_t port);
 
 int
-isc_sockaddr_pf(isc_sockaddr_t *sockaddr);
+isc_sockaddr_pf(const isc_sockaddr_t *sockaddr);
 /*
  * Get the protocol family of 'sockaddr'.
  *
@@ -71,7 +71,7 @@ isc_sockaddr_pf(isc_sockaddr_t *sockaddr);
  */
 
 char * 
-isc_sockaddr_totext(isc_sockaddr_t *sockaddr, isc_mem_t *mctx);
+isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_mem_t *mctx);
 
 ISC_LANG_ENDDECLS
 
