@@ -1,3 +1,6 @@
+1190.	[func]		Add the "rndc freeze" and"rndc unfreeze" commands.
+			[RT #2394]
+
 1189.	[bug]		On some systems, malloc(0) returns NULL, which
 			could cause the caller to report an out of memory
 			error. [RT #2398]

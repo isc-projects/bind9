@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.359 2002/01/21 11:00:20 bwelling Exp $ */
+/* $Id: zone.c,v 1.360 2002/01/22 22:05:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -185,6 +185,7 @@ struct dns_zone {
 	dns_acl_t		*notify_acl;
 	dns_acl_t		*query_acl;
 	dns_acl_t		*xfr_acl;
+	isc_boolean_t		update_disabled;
 	dns_severity_t		check_names;
 	ISC_LIST(dns_notify_t)	notifies;
 	dns_request_t		*request;
@@ -537,6 +538,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->notify_acl = NULL;
 	zone->query_acl = NULL;
 	zone->xfr_acl = NULL;
+	zone->update_disabled = ISC_FALSE;
 	zone->check_names = dns_severity_ignore;
 	zone->request = NULL;
 	zone->lctx = NULL;
@@ -908,8 +910,8 @@ zone_isdynamic(dns_zone_t *zone) {
 
 	return (ISC_TF(zone->type == dns_zone_slave ||
 		       zone->type == dns_zone_stub ||
-		       zone->ssutable != NULL ||
-		       (zone->update_acl != NULL &&
+		       (!zone->update_disabled && zone->ssutable != NULL) ||
+		       (!zone->update_disabled && zone->update_acl != NULL &&
 			! (zone->update_acl->length == 1 && 
 			   zone->update_acl->elements[0].negative == ISC_TRUE
 			   &&
@@ -4467,6 +4469,19 @@ dns_zone_clearxfracl(dns_zone_t *zone) {
 	if (zone->xfr_acl != NULL)
 		dns_acl_detach(&zone->xfr_acl);
 	UNLOCK_ZONE(zone);
+}
+
+isc_boolean_t
+dns_zone_getupdatedisabled(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->update_disabled);
+
+}
+
+void
+dns_zone_setupdatedisabled(dns_zone_t *zone, isc_boolean_t state) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->update_disabled = state;
 }
 
 void

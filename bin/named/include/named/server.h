@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.63 2001/11/27 04:06:11 marka Exp $ */
+/* $Id: server.h,v 1.64 2002/01/22 22:05:52 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -184,5 +184,11 @@ ns_server_flushname(ns_server_t *server, char *args);
  */
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text);
+
+/*
+ * Enable or disable updates for a zone.
+ */
+isc_result_t
+ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args);
 
 #endif /* NAMED_SERVER_H */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.367 2002/01/04 02:32:04 gson Exp $ */
+/* $Id: server.c,v 1.368 2002/01/22 22:05:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2840,4 +2840,64 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		return (ISC_R_NOSPACE);
 	isc_buffer_add(text, n);
 	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Act on a "freeze" or "unfreeze" command from the command channel.
+ */
+isc_result_t
+ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	dns_zonetype_t type;
+	char classstr[DNS_RDATACLASS_FORMATSIZE];
+	char zonename[DNS_NAME_FORMATSIZE];
+	dns_view_t *view;
+	char *journal;
+	const char *vname, *sep;
+	
+	result = zone_from_args(server, args, &zone);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (zone == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+	type = dns_zone_gettype(zone);
+	if (type != dns_zone_master) {
+		dns_zone_detach(&zone);
+		return (ISC_R_NOTFOUND);
+	}
+
+	if (freeze) {
+		result = dns_zone_flush(zone);
+		if (result == ISC_R_SUCCESS) {
+			journal = dns_zone_getjournal(zone);
+			if (journal != NULL)
+				(void)isc_file_remove(journal);
+		}
+	}
+	if (result == ISC_R_SUCCESS)
+		dns_zone_setupdatedisabled(zone, freeze);
+
+	view = dns_zone_getview(zone);
+	if (strcmp(view->name, "_bind") == 0 ||
+	    strcmp(view->name, "_default") == 0)
+	{
+		vname = "";
+		sep = "";
+	} else {
+		vname = view->name;
+		sep = " ";
+	}
+	dns_rdataclass_format(dns_zone_getclass(zone), classstr,
+			      sizeof(classstr));
+	dns_name_format(dns_zone_getorigin(zone),
+			zonename, sizeof(zonename));
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "%s zone '%s/%s'%s%s: %s",
+		      freeze ? "freezing" : "unfreezing",
+		      zonename, classstr, sep, vname,
+		      isc_result_totext(result));
+	dns_zone_detach(&zone);
+	return (result);
 }
