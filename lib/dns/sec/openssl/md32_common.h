@@ -472,7 +472,8 @@ void HASH_UPDATE (HASH_CTX *c, const void *data_, unsigned long len)
 			}
 		}
 
-	sw=len/HASH_CBLOCK;
+	/* XXXDCL appropriate range has not been checked */
+	sw=(int)(len/HASH_CBLOCK);
 	if (sw > 0)
 		{
 #if defined(HASH_BLOCK_DATA_ORDER_ALIGNED)
@@ -512,9 +513,14 @@ void HASH_UPDATE (HASH_CTX *c, const void *data_, unsigned long len)
 	if (len!=0)
 		{
 		p = c->data;
-		c->num = len;
-		ew=len>>2;	/* words to copy */
-		ec=len&0x03;
+		/*
+		 * XXXDCL appropriate range has not been checked for
+		 * the cast of each of the next two assignments.
+		 */
+		c->num = (int)len;
+		ew=(int)(len>>2);	/* words to copy */
+		/* This cast is ok. */
+		ec=(int)(len&0x03);
 		for (; ew; ew--,p++)
 			{
 			HOST_c2l(data,l); *p=l;
