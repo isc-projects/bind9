@@ -120,9 +120,7 @@ typedef int dns_section_t;
 #define DNS_SECTION_ANSWER		1
 #define DNS_SECTION_AUTHORITY		2
 #define DNS_SECTION_ADDITIONAL		3
-#define DNS_SECTION_TSIG		4 /* pseudo-section */
-#define DNS_SECTION_SIG0		5 /* pseudo-section */
-#define DNS_SECTION_MAX			6
+#define DNS_SECTION_MAX			4
 
 /*
  * Dynamic update names for these sections.
@@ -162,6 +160,8 @@ struct dns_message {
 	dns_namelist_t			sections[DNS_SECTION_MAX];
 	dns_name_t		       *cursors[DNS_SECTION_MAX];
 	dns_rdataset_t		       *opt;
+	dns_rdataset_t		       *sig0;
+	dns_rdataset_t		       *tsigset;
 
 	int				state;
 	unsigned int			from_to_wire : 2;
@@ -193,6 +193,7 @@ struct dns_message {
 
 	dns_rcode_t			tsigstatus;
 	dns_rcode_t			querytsigstatus;
+	dns_name_t		       *tsigname;
 	dns_rdata_any_tsig_t	       *tsig;
 	dns_rdata_any_tsig_t	       *querytsig;
 	dns_tsigkey_t		       *tsigkey;
@@ -845,6 +846,35 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  *	DNS_R_SUCCESS		-- all is well.
  *
  *	DNS_R_NOSPACE		-- there is no space for the OPT record.
+ */
+
+dns_rdataset_t *
+dns_message_gettsig(dns_message_t *msg, dns_name_t **owner);
+/*
+ * Get the TSIG record and owner for 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message.
+ *	'owner' is not NULL, and *owner is NULL.  Contains the owner on return.
+ *
+ * Returns:
+ *
+ *	The TSIG rdataset of 'msg', or NULL if there isn't one.
+ */
+
+dns_rdataset_t *
+dns_message_getsig0(dns_message_t *msg);
+/*
+ * Get the SIG(0) record for 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message.
+ *
+ * Returns:
+ *
+ *	The SIG(0) rdataset of 'msg', or NULL if there isn't one.
  */
 
 void

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.24 2000/03/13 19:27:33 bwelling Exp $
+ * $Id: dnssec.c,v 1.25 2000/03/29 01:32:20 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -200,6 +200,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	unsigned int sigsize;
 
 	REQUIRE(name != NULL);
+	REQUIRE(dns_name_depth(name) <= 255);
 	REQUIRE(set != NULL);
 	REQUIRE(key != NULL);
 	REQUIRE(inception != NULL);
@@ -459,15 +460,6 @@ cleanup_struct:
 #define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \
 			  == DNS_KEYOWNER_ZONE)
 
-#define check_result(op, msg) \
-	do { result = (op); \
-		if (result != DNS_R_SUCCESS) { \
-			fprintf(stderr, "%s: %s\n", msg, \
-				isc_result_totext(result)); \
-			goto failure; \
-		} \
-	} while (0)
-
 isc_result_t
 dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 			dns_dbnode_t *node, dns_name_t *name, isc_mem_t *mctx,
@@ -482,43 +474,37 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 
 	*nkeys = 0;
 	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_key, 0, 0,
-				     &rdataset, NULL);
-	if (result == ISC_R_NOTFOUND)
-		goto failure;
-	check_result(result, "dns_db_findrdataset()");
-	result = dns_rdataset_first(&rdataset);
-	check_result(result, "dns_rdataset_first()");
+	RETERR(dns_db_findrdataset(db, node, ver, dns_rdatatype_key, 0, 0,
+				   &rdataset, NULL));
+	RETERR(dns_rdataset_first(&rdataset));
 	while (result == ISC_R_SUCCESS && count < maxkeys) {
 		pubkey = NULL;
 		dns_rdataset_current(&rdataset, &rdata);
-		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey);
-		check_result(result, "dns_dnssec_keyfromrdata()");
+		RETERR(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
 		if (!is_zone_key(pubkey))
 			goto next;
 		result = dst_key_fromfile(dst_key_name(pubkey),
 					  dst_key_id(pubkey),
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PRIVATE,
-					  mctx, &keys[count++]);
+					  mctx, &keys[count]);
 		if (result == DST_R_INVALIDPRIVATEKEY)
-			count--;
-		else {
-			check_result(result, "dst_key_fromfile()");
-			if (dst_key_flags(keys[count - 1]) & DNS_KEYTYPE_NOAUTH)
-			{
-				dst_key_free(keys[count - 1]);
-				keys[count - 1] = NULL;
-				count--;
-			}
+			goto next;
+		if (result != ISC_R_SUCCESS)
+			goto failure;
+		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
+			dst_key_free(keys[count]);
+			keys[count] = NULL;
+			goto next;
 		}
+		count++;
  next:
 		dst_key_free(pubkey);
 		pubkey = NULL;
 		result = dns_rdataset_next(&rdataset);
 	}
 	if (result != DNS_R_NOMORE)
-		check_result(result, "iteration over zone keys");
+		goto failure;
 	if (count == 0)
 		result = ISC_R_NOTFOUND;
 	else
@@ -541,7 +527,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	isc_buffer_t headerbuf, databuf, sigbuf;
 	unsigned int sigsize;
 	isc_buffer_t *dynbuf;
-	dns_name_t *owner, signer;
+	dns_name_t signer;
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *datalist;
 	dns_rdataset_t *dataset;
@@ -569,7 +555,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	sig.covered = 0;
 	sig.algorithm = dst_key_alg(key);
-	sig.labels = 1; /* the root name */
+	sig.labels = 0; /* the root name */
 	sig.originalttl = 0;
 
 	isc_stdtime_get(&now);
@@ -640,11 +626,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	dns_message_takebuffer(msg, &dynbuf);
 
-	owner = NULL;
-	RETERR(dns_message_gettempname(msg, &owner));
-	dns_name_init(owner, NULL);
-	dns_name_clone(dns_rootname, owner);
-
 	datalist = NULL;
 	RETERR(dns_message_gettemprdatalist(msg, &datalist));
 	datalist->rdclass = dns_rdataclass_any;
@@ -657,8 +638,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	RETERR(dns_message_gettemprdataset(msg, &dataset));
 	dns_rdataset_init(dataset);
 	dns_rdatalist_tordataset(datalist, dataset);
-	ISC_LIST_APPEND(owner->list, dataset, link);
-	dns_message_addname(msg, owner, DNS_SECTION_SIG0);
+	msg->sig0 = dataset;
 
 	return (ISC_R_SUCCESS);
 
@@ -676,8 +656,7 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 	dns_rdata_generic_sig_t sig;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dns_rdata_t rdata;
-	dns_rdataset_t *dataset;
-	dns_name_t tname, *sig0name;
+	dns_name_t tname;
 	isc_region_t r, r2, sig_r, header_r;
 	isc_stdtime_t now;
 	dst_context_t ctx;
@@ -695,23 +674,16 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 
 	mctx = msg->mctx;
 
-	result = dns_message_firstname(msg, DNS_SECTION_SIG0);
-	if (result != ISC_R_SUCCESS) {
-		result = ISC_R_NOTFOUND;
-		goto failure;
-	}
-	sig0name = NULL;
-	dns_message_currentname(msg, DNS_SECTION_SIG0, &sig0name);
-	dataset = NULL;
-	result = dns_message_findtype(sig0name, dns_rdatatype_sig, 0, &dataset);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	RETERR(dns_rdataset_first(dataset));
-	dns_rdataset_current(dataset, &rdata);
+	RETERR(dns_rdataset_first(msg->sig0));
+	dns_rdataset_current(msg->sig0, &rdata);
 
 	RETERR(dns_rdata_tostruct(&rdata, &sig, mctx));
 	signeedsfree = ISC_TRUE;
+
+	if (sig.labels != 0) {
+		result = DNS_R_SIGINVALID;
+		goto failure;
+	}
 
 	isc_stdtime_get(&now);
 	if (sig.timesigned > now) {

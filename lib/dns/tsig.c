@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.48 2000/03/16 23:13:25 bwelling Exp $
+ * $Id: tsig.c,v 1.49 2000/03/29 01:32:21 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -513,8 +513,8 @@ dns_tsig_sign(dns_message_t *msg) {
 		goto cleanup_dynbuf;
 	dns_rdataset_init(dataset);
 	dns_rdatalist_tordataset(datalist, dataset);
-	ISC_LIST_APPEND(owner->list, dataset, link);
-	dns_message_addname(msg, owner, DNS_SECTION_TSIG);
+	msg->tsigset = dataset;
+	msg->tsigname = owner;
 
 	return (ISC_R_SUCCESS);
 
@@ -545,7 +545,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	isc_buffer_t databuf;
 	unsigned char data[32];
 	dns_name_t *keyname;
-	dns_rdataset_t *dataset;
 	dns_rdata_t rdata;
 	isc_stdtime_t now;
 	isc_result_t ret;
@@ -568,7 +567,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		return(dns_tsig_verify_tcp(source, msg));
 
 	/* There should be a TSIG record... */
-	if (ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG]))
+	if (msg->tsigset == NULL)
 		return (DNS_R_EXPECTEDTSIG);
 
 	/*
@@ -586,16 +585,11 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 * TSIG record.
 	 */
 
-	ret = dns_message_firstname(msg, DNS_SECTION_TSIG);
+	keyname = msg->tsigname;
+	ret = dns_rdataset_first(msg->tsigset);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
-	keyname = NULL;
-	dns_message_currentname(msg, DNS_SECTION_TSIG, &keyname);
-	dataset = ISC_LIST_HEAD(keyname->list);
-	ret = dns_rdataset_first(dataset);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
-	dns_rdataset_current(dataset, &rdata);
+	dns_rdataset_current(msg->tsigset, &rdata);
 	tsig = (dns_rdata_any_tsig_t *)
 		isc_mem_get(mctx, sizeof(dns_rdata_any_tsig_t));
 	if (tsig == NULL)
@@ -720,7 +714,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_init(&databuf, data, sizeof(data),
 				ISC_BUFFERTYPE_BINARY);
 		isc_buffer_putuint16(&databuf, tsig->common.rdclass);
-		isc_buffer_putuint32(&databuf, dataset->ttl);
+		isc_buffer_putuint32(&databuf, msg->tsigset->ttl);
 		isc_buffer_used(&databuf, &r);
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
 		if (ret != ISC_R_SUCCESS)
@@ -802,7 +796,6 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	isc_buffer_t databuf;
 	unsigned char data[32];
 	dns_name_t *keyname;
-	dns_rdataset_t *dataset;
 	dns_rdata_t rdata;
 	isc_stdtime_t now;
 	isc_result_t ret;
@@ -822,17 +815,14 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 
 	mctx = msg->mctx;
 
-	ret = dns_message_firstname(msg, DNS_SECTION_TSIG);
-	if (ret == ISC_R_SUCCESS) {
+	if (msg->tsigset != NULL) {
 		has_tsig = ISC_TRUE;
 
-		keyname = NULL;
-		dns_message_currentname(msg, DNS_SECTION_TSIG, &keyname);
-		dataset = ISC_LIST_HEAD(keyname->list);
-		ret = dns_rdataset_first(dataset);
+		keyname = msg->tsigname;
+		ret = dns_rdataset_first(msg->tsigset);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
-		dns_rdataset_current(dataset, &rdata);
+		dns_rdataset_current(msg->tsigset, &rdata);
 		tsig = (dns_rdata_any_tsig_t *)
 			isc_mem_get(mctx, sizeof(dns_rdata_any_tsig_t));
 		if (tsig == NULL)
