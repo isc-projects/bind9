@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.197 2002/09/10 02:01:15 marka Exp $ */
+/* $Id: adb.c,v 1.198 2002/09/12 00:28:52 marka Exp $ */
 
 /*
  * Implementation notes
@@ -3012,7 +3012,7 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug,
 	     zi = ISC_LIST_NEXT(zi, plink)) {
 		fprintf(f, ";\t\t");
 		print_dns_name(f, &zi->zone);
-		fprintf(f, "[lame TTL %d]\n", zi->lame_timer - now);
+		fprintf(f, " [lame TTL %d]\n", zi->lame_timer - now);
 	}
 }
 
