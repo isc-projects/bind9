@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.46 2001/10/18 01:40:56 gson Exp $ */
+/* $Id: cache.c,v 1.47 2001/10/18 01:48:35 gson Exp $ */
 
 #include <config.h>
 
@@ -622,6 +622,10 @@ cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == cleaner->task);
 	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
 
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+		      ISC_LOG_DEBUG(1), "cache cleaning timer fired, "
+		      "cleaner state = %d", cleaner->state);
+
 	if (cleaner->state == cleaner_s_idle)
 		begin_cleaning(cleaner);
 
@@ -641,6 +645,11 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == cleaner->task);
 	INSIST(event->ev_type == DNS_EVENT_CACHEOVERMEM);
 	INSIST(cleaner->overmem_event == NULL);
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+		      ISC_LOG_DEBUG(1), "overmem_cleaning_action called, "
+		      "overmem = %d, state = %d", cleaner->overmem,
+		      cleaner->state);
 
 	if (cleaner->overmem) {
 		if (cleaner->state == cleaner_s_idle)
