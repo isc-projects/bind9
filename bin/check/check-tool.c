@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.13 2004/11/30 01:08:48 marka Exp $ */
+/* $Id: check-tool.c,v 1.14 2005/01/09 23:39:56 marka Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,8 @@ int debug = 0;
 isc_boolean_t nomerge = ISC_TRUE;
 unsigned int zone_options = DNS_ZONEOPT_CHECKNS | 
 			    DNS_ZONEOPT_MANYERRORS |
-			    DNS_ZONEOPT_CHECKNAMES;
+			    DNS_ZONEOPT_CHECKNAMES |
+			    DNS_ZONEOPT_CHECKWILDCARD;
 
 /*
  * This needs to match the list in bin/named/log.c.

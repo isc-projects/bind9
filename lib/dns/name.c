@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.146 2004/09/01 05:13:05 marka Exp $ */
+/* $Id: name.c,v 1.147 2005/01/09 23:40:01 marka Exp $ */
 
 #include <config.h>
 
@@ -382,6 +382,41 @@ dns_name_iswildcard(const dns_name_t *name) {
 			return (ISC_TRUE);
 	}
 
+	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_name_internalwildcard(const dns_name_t *name) {
+	unsigned char *ndata;
+	unsigned int count;
+	unsigned int label;
+
+	/*
+	 * Does 'name' contain a internal wildcard?
+	 */
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
+
+	/*
+	 * Skip first label.
+	 */
+	ndata = name->ndata;
+	count = *ndata++;
+	INSIST(count <= 63);
+	ndata += count;
+	label = 1;
+	/*
+	 * Check all but the last of the remaining labels.
+	 */
+	while (label + 1 < name->labels) {
+		count = *ndata++;
+		INSIST(count <= 63);
+		if (count == 1 && *ndata == '*')
+			return (ISC_TRUE);
+		ndata += count;
+		label++;
+	}
 	return (ISC_FALSE);
 }
 

@@ -1,6 +1,7 @@
 1795.	[placeholder]	rt13396
 
-1794.	[placeholder]	rt13382
+1794.	[func]		Named and named-checkzone can now both check for
+			non-terminal wildcard records.
 
 1793.	[placeholder]	rt13378
 

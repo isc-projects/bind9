@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.128 2004/12/21 10:45:19 jinmei Exp $ */
+/* $Id: zone.h,v 1.129 2005/01/09 23:40:03 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -52,6 +52,7 @@ typedef enum {
 #define DNS_ZONEOPT_USEALTXFRSRC  0x00000400U	/* use alternate transfer sources */
 #define DNS_ZONEOPT_CHECKNAMES	  0x00000800U	/* check-names */
 #define DNS_ZONEOPT_CHECKNAMESFAIL 0x00001000U	/* fatal check-name failures */
+#define DNS_ZONEOPT_CHECKWILDCARD 0x00002000U	/* check for internal wildcards */
 
 #ifndef NOMINUM_PUBLIC
 /*

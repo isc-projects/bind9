@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.111 2004/09/08 00:26:14 marka Exp $ */
+/* $Id: name.h,v 1.112 2005/01/09 23:40:03 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1162,6 +1162,15 @@ isc_boolean_t
 dns_name_ismailbox(const dns_name_t *name);
 /*
  * Return if 'name' is a valid mailbox.  RFC 821.
+ *
+ * Requires:
+ *	'name' to be valid.
+ */
+
+isc_boolean_t
+dns_name_internalwildcard(const dns_name_t *name);
+/*
+ * Return if 'name' contains a internal wildcard name.
  *
  * Requires:
  *	'name' to be valid.
