@@ -432,6 +432,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	isc_socket_t *socket = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx;
+	isc_sockaddr_t bind_any;
 	isc_interval_t interval;
 	dns_messageid_t	id;
 	isc_time_t expires;
@@ -499,6 +500,12 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 					   isc_sockettype_tcp, &socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		isc_sockaddr_any(&bind_any);
+		result = isc_socket_bind(sock, &bind_any);
+		if (result != ISC_R_SUCCESS) {
+			isc_socket_detach(&socket);
+			goto cleanup;
+		}
 		attrs = 0;
 		attrs |= DNS_DISPATCHATTR_TCP;
 		attrs |= DNS_DISPATCHATTR_PRIVATE;
