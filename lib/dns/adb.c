@@ -38,6 +38,7 @@
 #include <isc/event.h>
 
 #include <dns/address.h>
+#include <dns/events.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -183,6 +184,7 @@ static inline dns_adbentry_t *find_entry_and_lock(dns_adb_t *,
 						  isc_sockaddr_t *, int *);
 static void print_dns_name(FILE *, dns_name_t *);
 static void print_namehook_list(FILE *, dns_adbname_t *);
+static void print_handle_list(FILE *, dns_adbname_t *);
 static inline void inc_adb_refcnt(dns_adb_t *, isc_boolean_t);
 static inline void dec_adb_refcnt(dns_adb_t *, isc_boolean_t);
 static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
@@ -807,6 +809,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	dns_adbname_t *adbname;
 	int bucket;
 	isc_result_t result;
+	isc_boolean_t attach_to_task;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	if (task != NULL) {
@@ -817,6 +820,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	REQUIRE(handlep != NULL && *handlep == NULL);
 
 	result = ISC_R_UNEXPECTED;
+	attach_to_task = ISC_FALSE;
 
 	/*
 	 * Look up the name in our internal database.
@@ -842,10 +846,6 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = ISC_R_NOMEMORY;
 		goto out;
 	}
-
-	handle->event.sender = task; /* store it here for a while */
-	handle->event.action = action;
-	handle->event.arg = arg;
 
 	/*
 	 * Look things up in our database first.
@@ -876,6 +876,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			handle->adbname = adbname;
 			handle->name_bucket = bucket;
 			ISC_LIST_APPEND(adbname->handles, handle, link);
+			attach_to_task = ISC_TRUE;
 		} else {
 			/*
 			 * We are done with this name, so release the lock
@@ -903,8 +904,19 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	free_adbhandle(adb, &handle);
 	
  out:
-	if (handle != NULL)
+	if (handle != NULL) {
 		*handlep = handle;
+
+		if (attach_to_task) {
+			isc_task_t *taskp;
+
+			taskp = NULL;
+			isc_task_attach(task, &taskp);
+			handle->event.sender = taskp;
+			handle->event.action = action;
+			handle->event.arg = arg;
+		}
+	}
 
 	if (bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->namelocks[bucket]);
@@ -919,6 +931,7 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 	dns_adbname_t *name;
 	dns_adbentry_t *entry;
 	dns_adbnamehook_t *namehook;
+	dns_adbhandle_t *handle;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(host != NULL);
@@ -946,6 +959,31 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 	/* XXX
 	 * If fetches are running for this name, cancel them all.
 	 */
+	handle = ISC_LIST_HEAD(name->handles);
+	while (handle != NULL) {
+		isc_event_t *ev;
+		isc_task_t *task;
+
+		LOCK(&handle->lock);
+
+		ev = &handle->event;
+		task = ev->sender;
+		ev->sender = handle;
+		ev->type = DNS_EVENT_ADBNAMEDELETED;
+		isc_task_sendanddetach(&task, &ev);
+
+		/*
+		 * Unlink the handle from the name, letting the caller
+		 * call dns_adb_done() on it to clean it up later.
+		 */
+		ISC_LIST_UNLINK(name->handles, handle, link);
+		handle->adbname = NULL;
+		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
+
+		UNLOCK(&handle->lock);
+
+		handle = ISC_LIST_HEAD(name->handles);
+	}
 
 	/*
 	 * Loop through the name and kill any namehooks and entries they
@@ -1227,6 +1265,9 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 			print_dns_name(f, &name->name);
 			fprintf(f, "\n");
 			print_namehook_list(f, name);
+			fprintf(f, "\n");
+			print_handle_list(f, name);
+			fprintf(f, "\n");
 
 			name = ISC_LIST_NEXT(name, link);
 		}
@@ -1286,6 +1327,60 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 	UNLOCK(&adb->lock);
 }
 
+void
+dns_adb_dumphandle(dns_adb_t *adb, dns_adbhandle_t *handle, FILE *f)
+{
+	char tmp[512];
+	const char *tmpp;
+	dns_adbaddrinfo_t *ai;
+	isc_sockaddr_t *sa;
+
+	/*
+	 * Not used currently, in the API Just In Case we
+	 * want to dump out the name and/or entries too.
+	 */
+	(void)adb;
+
+	LOCK(&handle->lock);
+
+	fprintf(f, "Handle %p\n", handle);
+	fprintf(f, "\tquery_pending %d, result %d (%s)\n",
+		handle->query_pending, handle->result,
+		isc_result_totext(handle->result));
+	fprintf(f, "\tname_bucket %d, name %p, event sender %p\n",
+		handle->name_bucket, handle->adbname, handle->event.sender);
+
+	ai = ISC_LIST_HEAD(handle->list);
+	if (ai != NULL)
+		fprintf(f, "\tAddresses:\n");
+	while (ai != NULL) {
+		sa = ai->sockaddr;
+		switch (sa->type.sa.sa_family) {
+		case AF_INET:
+			tmpp = inet_ntop(AF_INET, &sa->type.sin.sin_addr,
+					 tmp, sizeof tmp);
+			break;
+		case AF_INET6:
+			tmpp = inet_ntop(AF_INET6, &sa->type.sin6.sin6_addr,
+					 tmp, sizeof tmp);
+			break;
+		default:
+			tmpp = "UnkFamily";
+		}
+
+		if (tmpp == NULL)
+			tmpp = "CANNOT TRANSLATE ADDRESS!";
+
+		fprintf(f, "\t\tentry %p, flags %08x goodness %d"
+			" srtt %u addr %s\n",
+			ai->entry, ai->flags, ai->goodness, ai->srtt, tmpp);
+
+		ai = ISC_LIST_NEXT(ai, link);
+	}
+
+	UNLOCK(&handle->lock);
+}
+
 static void
 print_dns_name(FILE *f, dns_name_t *name)
 {
@@ -1313,5 +1408,20 @@ print_namehook_list(FILE *f, dns_adbname_t *n)
 	while (nh != NULL) {
 		fprintf(f, "\t\tHook %p -> entry %p\n", nh, nh->entry);
 		nh = ISC_LIST_NEXT(nh, link);
+	}
+}
+
+static void
+print_handle_list(FILE *f, dns_adbname_t *name)
+{
+	dns_adbhandle_t *handle;
+
+	handle = ISC_LIST_HEAD(name->handles);
+	if (handle == NULL)
+		fprintf(f, "\t\tNo handles\n");
+
+	while (handle != NULL) {
+		fprintf(f, "\t\tHandle %p\n", handle);
+		handle = ISC_LIST_NEXT(handle, link);
 	}
 }

@@ -163,10 +163,17 @@ struct dns_adbaddrinfo {
  *
  * This is simply a standard event, with the "type" set to:
  *
- *	DNS_EVENT_MOREADDRESSES   -- another address resolved.
- *	DNS_EVENT_NOMOREADDRESSES -- all pending addresses failed,
- *		       		     were canceled, or otherwise will
- *				     not be usable.
+ *	DNS_EVENT_ADBMOREADDRESSES   -- another address resolved.
+ *	DNS_EVENT_ADBNOMOREADDRESSES -- all pending addresses failed,
+ *					were canceled, or otherwise will
+ *					not be usable.
+ *	DNS_EVENT_ADBCANCELED	     -- The request was canceled by a
+ *					3rd party.
+ *	DNS_EVENT_ADBNAMEDELETED     -- The name was deleted, so this request
+ *					was canceled.
+ *
+ * In each of these cases, the addresses returned by the initial call
+ * to dns_adb_lookup() can still be used until they are no longer needed.
  */
 
 /****
@@ -339,6 +346,20 @@ dns_adb_dump(dns_adb_t *adb, FILE *f);
  * Requires:
  *
  *	adb be valid.
+ *
+ *	f != NULL, and be a file open for writing.
+ */
+
+void
+dns_adb_dumphandle(dns_adb_t *adb, dns_adbhandle_t *handle, FILE *f);
+/*
+ * Dump the data associated with a handle.
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	adbhandle be valid.
  *
  *	f != NULL, and be a file open for writing.
  */

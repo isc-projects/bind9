@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <isc/app.h>
 #include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/error.h>
@@ -37,6 +38,10 @@
 
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;
+
+static void lookup_callback(isc_task_t *, isc_event_t *);
+static void fatal(char *, ...);
+static inline void check_result(isc_result_t, char *);
 
 static void
 fatal(char *format, ...)
@@ -55,6 +60,22 @@ check_result(isc_result_t result, char *msg)
 {
 	if (result != ISC_R_SUCCESS)
 		fatal("%s: %s", msg, isc_result_totext(result));
+}
+
+static void
+lookup_callback(isc_task_t *task, isc_event_t *ev)
+{
+	dns_name_t *name;
+	dns_adbhandle_t *handle;
+
+	printf("Task %p got event %p type %08x from %p, arg %p\n",
+	       task, ev, ev->type, ev->sender, ev->arg);
+
+	name = ev->arg;
+	handle = ev->sender;
+
+	isc_event_free(&ev);
+	isc_app_shutdown();
 }
 
 int
@@ -76,6 +97,8 @@ main(int argc, char **argv)
 	(void)argv;
 
 	dns_result_register();
+	result = isc_app_start();
+	check_result(result, "isc_app_start()");
 
 	/*
 	 * EVERYTHING needs a memory context.
@@ -159,19 +182,17 @@ main(int argc, char **argv)
 	check_result(result, "dns_adb_insert 1.2.3.5");
 	printf("Added 1.2.3.5\n");
 
-	isc_task_detach(&t1);
-	isc_task_detach(&t2);
-
-	dns_adb_dump(adb, stderr);
-
 	/*
 	 * Try to look up a name or two.
 	 */
 	handle = NULL;
-	result = dns_adb_lookup(adb, NULL, NULL, NULL,
+	result = dns_adb_lookup(adb, t2, lookup_callback, &name1,
 				&name1, &name1, &handle);
 	check_result(result, "dns_adb_lookup name1");
 	check_result(handle->result, "handle->result");
+
+	dns_adb_dump(adb, stderr);
+	dns_adb_dumphandle(adb, handle, stderr);
 
 	/*
 	 * delete the names, and kill the adb
@@ -182,8 +203,14 @@ main(int argc, char **argv)
 	check_result(result, "dns_adb_deletename name2");
 
 	dns_adb_dump(adb, stderr);
+	dns_adb_dumphandle(adb, handle, stderr);
+
+	isc_app_run();
 
 	dns_adb_done(adb, &handle);
+
+	isc_task_detach(&t1);
+	isc_task_detach(&t2);
 
 	isc_mem_stats(mctx, stdout);
 	dns_adb_destroy(&adb);
@@ -195,6 +222,8 @@ main(int argc, char **argv)
 
 	isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
+
+	isc_app_finish();
 
 	return (0);
 }
