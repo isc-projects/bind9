@@ -396,6 +396,8 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 
 #define NCACHE_RESULT(r)	((r) == DNS_R_NCACHENXDOMAIN || \
 				 (r) == DNS_R_NCACHENXRRSET)
+#define AUTH_NX(r)		((r) == DNS_R_NXDOMAIN || \
+				 (r) == DNS_R_NXRRSET)
 
 
 static void
@@ -1448,9 +1450,9 @@ a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type, isc_stdtime_t now,
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 	
-	return (dns_view_find(adb->view, a6name, type, now,
-			      DNS_DBFIND_GLUEOK, ISC_FALSE,
-			      rdataset, sigrdataset));
+	return (dns_view_simplefind(adb->view, a6name, type, now,
+				    DNS_DBFIND_GLUEOK, ISC_FALSE,
+				    rdataset, sigrdataset));
 }
 
 /*
@@ -2400,7 +2402,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Listen to negative cache hints, and don't start
 		 * another query.
 		 */
-		if (NCACHE_RESULT(result))
+		if (NCACHE_RESULT(result) || AUTH_NX(result))
 			goto v6;
 
 		wanted_fetches |= DNS_ADBFIND_INET;
@@ -2422,7 +2424,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Listen to negative cache hints, and don't start
 		 * another query.
 		 */
-		if (NCACHE_RESULT(result))
+		if (NCACHE_RESULT(result) || AUTH_NX(result))
 			goto fetch;
 
 		wanted_fetches |= DNS_ADBFIND_INET6;
@@ -3093,9 +3095,9 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 
 	dns_rdataset_init(&rdataset);
 
-	result = dns_view_find(adb->view, &adbname->name, rdtype,
-			       now, DNS_DBFIND_GLUEOK, use_hints,
-			       &rdataset, NULL);
+	result = dns_view_simplefind(adb->view, &adbname->name, rdtype,
+				     now, DNS_DBFIND_GLUEOK, use_hints,
+				     &rdataset, NULL);
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
@@ -3107,6 +3109,27 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		 */
 		result = import_rdataset(adbname, &rdataset, now);
 		break;
+	case DNS_R_NXDOMAIN:
+	case DNS_R_NXRRSET:
+		/*
+		 * We're authoritative and the data doesn't exist.
+		 * Make up a negative cache entry so we don't ask again
+		 * for a while.
+		 *
+		 * XXXRTH  What time should we use?  I'm putting in 30 seconds
+		 * for now.
+		 */
+		if (rdtype == dns_rdatatype_a) {
+			adbname->expire_v4 = now + 30;
+			DP(NCACHE_LEVEL,
+			   "adb name %p: Caching auth negative entry for A",
+			   adbname);
+		} else {
+			DP(NCACHE_LEVEL,
+			   "adb name %p: Caching auth negative entry for AAAA",
+			   adbname);
+			adbname->expire_v6 = now + 30;
+		}
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
 		/*
@@ -3148,9 +3171,9 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 
 	dns_rdataset_init(&rdataset);
 
-	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a6,
-			       now, DNS_DBFIND_GLUEOK, use_hints,
-			       &rdataset, NULL);
+	result = dns_view_simplefind(adb->view, &adbname->name,
+				     dns_rdatatype_a6, now, DNS_DBFIND_GLUEOK,
+				     use_hints, &rdataset, NULL);
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
@@ -3458,7 +3481,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 			 * Listen to negative cache hints, and don't start
 			 * another query.
 			 */
-			if (NCACHE_RESULT(result))
+			if (NCACHE_RESULT(result) || AUTH_NX(result))
 				goto out;
 
 			/*
