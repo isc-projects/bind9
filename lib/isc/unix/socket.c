@@ -421,7 +421,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	if (sock->type == isc_sockettype_udp) {
 		memset(&dev->address, 0, sizeof(dev->address));
 		msg->msg_name = (void *)&dev->address.type.sa;
-		msg->msg_namelen = sizeof(dev->address.type.sa);
+		msg->msg_namelen = sizeof(dev->address.type);
 #ifdef ISC_NET_RECVOVERFLOW
 		/* If needed, steal one iovec for overflow detection. */
 		maxiov--;
