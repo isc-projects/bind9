@@ -1,0 +1,560 @@
+
+
+Network Working Group                                         M. StJohns
+Internet-Draft                                             Nominum, Inc.
+Expires: December 12, 2003                                 June 13, 2003
+
+
+      Using DNSSEC-secured NOTIFY to Trigger Parent Zone Updating
+                     draft-stjohns-secure-notify-00
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups. Note that other
+   groups may also distribute working documents as Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time. It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on December 12, 2003.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
+
+Abstract
+
+   This document describes an extension or revision to the DNS NOTIFY
+   mechanism which would allow a child zone to securely notify a parent
+   zone of the need to update records that appear in the parent zone,
+   but are related to records in the child zone. At this time, the two
+   resource record types are the NS or Name Server record, and the DS or
+   Delegation Signer record.
+
+
+
+
+
+
+
+
+
+
+StJohns                Expires December 12, 2003                [Page 1]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+Table of Contents
+
+   1.    Introduction . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.    General Mechanism  . . . . . . . . . . . . . . . . . . . . .  4
+   2.1   Update Methods . . . . . . . . . . . . . . . . . . . . . . .  5
+   2.1.1 Automatic Update . . . . . . . . . . . . . . . . . . . . . .  5
+   2.1.2 Manual Update  . . . . . . . . . . . . . . . . . . . . . . .  5
+   2.1.3 Parent Pull  . . . . . . . . . . . . . . . . . . . . . . . .  5
+   2.2   Update of Parent DS Records  . . . . . . . . . . . . . . . .  6
+   2.3   Update of Parent NS Records  . . . . . . . . . . . . . . . .  6
+   2.4   Uncommitted Updates  . . . . . . . . . . . . . . . . . . . .  6
+   3.    Parent Zone Secondary Server Update  . . . . . . . . . . . .  6
+   4.    Security Considerations  . . . . . . . . . . . . . . . . . .  7
+         Author's Address . . . . . . . . . . . . . . . . . . . . . .  8
+         Normative References . . . . . . . . . . . . . . . . . . . .  7
+   A.    Discussion: NOTIFY vs UPDATE & Push vs Pull  . . . . . . . .  8
+         Intellectual Property and Copyright Statements . . . . . . .  9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+StJohns                Expires December 12, 2003                [Page 2]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+1. Introduction
+
+   Author's note: "SEP" will be changed to whatever the final version of
+   [SEPFLAG] ends up making it.
+
+   Author's note:  There may be too many options at places in this
+   document.  Prior to any submission for advancement to standard, the
+   intent is reduce each set of choices down to either a single
+   preferred approach, or a preferred choice plus one alternate.
+
+   The orignal DNS NOTIFY RFC [RFC1996] specified a mechanism for a
+   master server of a zone to tell its secondary servers that a zone had
+   changed.  The secondary server could then initiate a transfer from
+   the master server to update its copy of that zone. RFC1996 only
+   specified a notify of a change of an SOA record, and only a
+   notification between primary and secondary servers.
+
+   The original DNS Security (DNSSEC) RFC [RFC2535] specified various
+   mechanisms for securing (i.e. authenticating) the data within the
+   DNS.  It also included mechanisms for signing transactions. [DSREC]
+   specifies a change to RFC2535 which removes the glue KEY record from
+   a parent domain, and replaces it with the Delegation Signer or DS
+   record which points at a KEY record held by a child zone.  The DS
+   record is only present in the parent zone at a delegation point.
+
+   This document specifies a mechanism for a child zone to notify a
+   parent zone (more specifically, the master server of a parent zone)
+   of changes in the child zone which might affect glue information held
+   in the parent.  The transaction signature mechanisms specified in
+   RFC2535 and modified in RFC2931 [RFC2931] are used to provide
+   authentication of the notification.  A notify is triggered by a
+   change to records in the child zone which have or should have related
+   records in the parent.  At this time, these are either the KSK KEY
+   records (a subset of the KEY RRSet)which are represented in the
+   parent by DS records, or records in the child's apex NS RRSet.  Once
+   notified, the parent MAY update its glue information.
+
+   Note that while both parent and child zones may have RRSets of SIG
+   and NXT with the same name, the content of those records in the
+   parent zone is directly related to the content of the parent zone,
+   and not to the child zone and vice versa.
+
+   Glue "A" records could be updated using this mechanism, but may be
+   problematic as not all "A" records covering the glue "NS" records
+   will always reside within the child zone. Specifically, not all names
+   contained in NS records for a zone will be names within the zone.  In
+   fact, best practice requires that a zone be served by at least one
+   server that can be referenced by a name not within that zone.
+
+
+
+StJohns                Expires December 12, 2003                [Page 3]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+2. General Mechanism
+
+   When the primary server of the child zone detects a change in either
+   its set of secure-entry-point (SEP) KEY records or in its set of NS
+   records, it MAY (configuration dependent) send a NOTIFY to the
+   primary (or other designated server) of its parent zone.  The NOTIFY
+   includes the complete set of records which make up the changed RRSet.
+   If more than one type of RRSet has changed, seperate NOTIFYs should
+   be sent for each change, and per RFC1996, no more than one NOTIFY
+   should be outstanding at any time.
+
+   The NOTIFY is protected using a transaction signature SIG(0)RR
+   [RFC2931]. The private key used to form the signature MUST be one of
+   the ones currently used to sign the KEY RRSet in the child zone (e.g.
+   there MUST be a SIG(KEY) record pointing at that key).  If the SEP
+   KEY record associated with this private key is not otherwise included
+   in the NOTIFY message, it SHOULD be included in the additional
+   information section of the NOTIFY message. If the KEY record is not
+   included, there will be a delay in completing the NOTIFY transaction
+   while the receiving parent server retrieves the KEY record from the
+   child.
+
+   If the SIG(0)is missing the server MUST return an error code of ??.
+
+   The receiving server first checks to see if it holds a DS record that
+   maps to the KEY associated with the SIG(0) on the NOTIFY.  If the DS
+   exists AND is signed, the signature over the NOTIFY is validated
+   against the KEY record.  If the DS does not exist, the server MUST
+   return an error code of ??
+
+   If the signature verifies, the NOTIFY message should be considered
+   authentic, and the server then sends the NOTIFY response.  If the
+   signature does not verify, the server MUST return an error code of ??
+
+   The sending server should continue to retry until it gets some
+   response from the parent zone server, or until too many retries.  See
+   RFC1996 for details on general retransmission and retry procedures
+   for NOTIFY. [Author's note:  This may not be sufficient guidance to
+   cover the case where the parent has to retrieve the KEY record from
+   the child.]
+
+   If the policy at the receiving server permits, the data included in
+   the NOTIFY and secured under the signature MUST be considered
+   authentic, and MUST be used as the source data to update the records
+
+
+
+StJohns                Expires December 12, 2003                [Page 4]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+   held by the parent zone.  If policy does not permit acceptance of the
+   data in the NOTIFY, or if data is missing (e.g. if the TC bit is
+   set), the parent server MUST query the child zone to retrieve any
+   missing data (e.g. KEY records, NS records, applicable SIG records).
+   The retrieved data MUST be secured (e.g. the SIG records must verify,
+   and the KEY used to sign the SIG MUST have a signed DS present in the
+   parent zone.)
+
+   At this point, the parent server has enough information to update the
+   records it holds.  How it does it is a matter of policy.
+
+2.1 Update Methods
+
+   Author's note - I personally prefer Automatic or Manual - I think
+   Parent Pull is the wrong model here.
+
+2.1.1 Automatic Update
+
+   In the "Automatic Update" model, the parent server has immediate
+   access to the private keys needed to sign the new records. Once the
+   NOTIFY is verified, and the contents of the new records are checked
+   or generated, the parent zone signs the new records and publishes
+   them.
+
+2.1.2 Manual Update
+
+   In the "Manual Update" model, private keys are either off-line, or
+   require human action to sign the zone, or policy requires someone to
+   check the data before its added to the zone (e.g. for child NS
+   records).  When an update becomes available (e.g. when the parent
+   server verifies and accepts the NOTIFY), the server MUST notify an
+   administrator by email or other appropriate method of the pending
+   action.  It must repeat that notification at a configurable interval
+   (e.g. once a day) until the adminstrator takes action to approve or
+   reject the change.
+
+   Once the changes are approved and signed, the new records are
+   published to the DNS.
+
+2.1.3 Parent Pull
+
+   In the "Parent Pull" model, the child to parent NOTIFY acts like the
+   master to secondary NOTIFY works currently. E.g. the parent takes the
+   NOTIFY as a request to gather data to update its zone.  The parent,
+   on its own schedule, retrieves the NS or KEY records from the child
+   and compares them to what it current has.  If there are differences,
+   the parent copies or generates replacement records (i.e. the DS
+   records which map to the child KEY records), signs them, and
+
+
+
+StJohns                Expires December 12, 2003                [Page 5]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+   publishes them.  As above, this can proceed either manually or
+   automatically.
+
+2.2 Update of Parent DS Records
+
+   The DS records held in the parent zone are derived from the KEY
+   records originated by the child. They are also protected under a key
+   held by the parent zone.  Upon receipt of the NOTIFY indicating a
+   child KEY change, and after any other queries required (e.g. to
+   retrieve copies of the KEY or NS records from the child), the parent
+   forms a new DS RRSet consisting only of DS's which point to the
+   current set of child SEP KEY records. This new DS RRSet, after it is
+   signed, replaces the current DS RRSet held by the parent server in
+   its entirety.
+
+2.3 Update of Parent NS Records
+
+   Since the parent zone's copies of the NS records for the child zone
+   are not signed, it is a simple matter of policy as to whether the
+   update of the NS records requires human intervention, or can be done
+   automatically upon receipt of the NOTIFY.  This should be a
+   configurable item, and the action should default to automatic.
+
+   The parent zone MUST verify the names pointed to by the NS are
+   resolvable, that at least one name points to a server not named in
+   the child zone, and that it has glue A records for any server named
+   in the child zone. [Q:  Does this make sense, or is it better to just
+   trust the child?] If these conditions are not satisfied, the parent
+   server MUST NOT install the new records, and MUST log the problem.
+   It must also return an error code of ??
+
+   The set of glue NS records held by the parent which point to the
+   child MUST be replaced in their entirety by the new set of NS records
+   provided either in the notify, or by retrieval by the parent server
+   from the child.
+
+2.4 Uncommitted Updates
+
+   If a parent zone has a uncommitted update of child information (e.g.
+   because policy requires manual intervention to approve the update),
+   it MUST discard that update upon validated receipt of a new NOTIFY
+   covering the information to be updated.  I.e., if the new NOTIFY
+   covers NS records, discard any previous uncommitted updates to the NS
+   RRSet.
+
+3. Parent Zone Secondary Server Update
+
+   Once the adminstrator of the parent zone has accepted the changes
+
+
+
+StJohns                Expires December 12, 2003                [Page 6]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+   (either automatically, or by specific action), the parent zone
+   records on the primary server MUST be updated, and, if policy allows,
+   the primary SHOULD do a DNS NOTIFY to the secondary servers
+   indicating the change to the NS or DS records.
+
+4. Security Considerations
+
+   The security of this mechanism is directly related to the protection
+   afforded the private keys of the parent and child zones.  Compromise
+   of the child zone keys can result in incorrect information being
+   added to both the parent and child zones.  It could also result in
+   additional denial of service threats to the parent servers in that
+   the servers could be tied up validating and processing bogus (but
+   authenticated) update requests for the compromised child zone.
+
+Normative References
+
+   [DSREC]    Gudmundsson, O., "Delegation Signer Resource Record", ID
+              draft-ietf-dnsext-delegation-signer-14.txt, May 2003,
+              <http://www.ietf.org/internet-drafts/
+              draft-ietf-dnsext-delegation-signer-14.txt>.
+
+   [RFC1996]  Vixie, P., "A Mechanism for Prompt Notification of Zone
+              Changes (DNS NOTIFY)", RFC 1996, August 1996.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC2535]  Eastlake, D., "Domain Name System Security Extensions",
+              RFC 2535, March 1999.
+
+   [RFC2931]  Eastlake, D., "DNS Request and Transaction Signatures (
+              SIG(0)s)", RFC 2931, September 2000.
+
+   [SEPFLAG]  Kolkman, O., "KEY RR Secure Entry Point (SEP) Flag", ID
+              draft-ietf-dnsext-keyrr-key-signing-flag-07.txt, January
+              2003, <http://www.ietf.org/internet-drafts/
+              draft-ietf-dnsext-keyrr-key-signing-flag-07.txt>.
+
+
+
+
+
+
+
+
+
+
+
+
+
+StJohns                Expires December 12, 2003                [Page 7]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+Author's Address
+
+   Michael StJohns
+   Nominum, Inc.
+   2385 Bay Road
+   Redwood City, CA  94063
+   USA
+
+   Phone: +1-301-528-4729
+   EMail: Mike.StJohns@nominum.com
+   URI:   www.nominum.com
+
+Appendix A. Discussion: NOTIFY vs UPDATE & Push vs Pull
+
+   During the pre-publication phase, the author solicited comments on
+   this draft.  One email made two suggestions.  The first was to use
+   UPDATE instead of NOTIFY, the second was if NOTIFY was used then to
+   use the notify/pull model for update rather than the mode proposed
+   here of pushing the data as part of the NOTIFY.
+
+   On the subject of NOTIFY vs UPDATE, neither has exactly the model
+   described here, but NOTIFY comes closer.  UPDATE has semantics that
+   says "please update your copy of something that I own with this
+   information that I've provided."  NOTIFY's semantics are "something's
+   changed that you may care about."  What we really want is
+   "something's changed that I own, that may affect something that you
+   own and here's the data that's changed."  NOTIFY is probably the
+   closest to this meaning.
+
+   On the subject of push vs pull, either of these two models would
+   work, and the pull model (ala the original NOTIFY RFC) should be the
+   fall back if data isn't provided as part of the secured NOTIFY.  If
+   the data is provided and secured (i.e. signed) in the NOTIFY, the
+   parent shouldn't actually have to retrieve data from the child zone
+   (unless the NOTIFY is truncated).  If the NOTIFY isn't signed, then
+   the pull model is the only one that will work, but then there's no
+   point in actually writing this document.  In general, the author
+   would like to minimize the work factor for the parent and keeping
+   track of which child zones need to be polled could be expensive,
+   especially in very large parent zones.  Placing the burden on the
+   child to push data to the parent seems a better choice.
+
+
+
+
+
+
+
+
+
+
+StJohns                Expires December 12, 2003                [Page 8]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+Intellectual Property Statement
+
+   The IETF takes no position regarding the validity or scope of any
+   intellectual property or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; neither does it represent that it
+   has made any effort to identify any such rights. Information on the
+   IETF's procedures with respect to rights in standards-track and
+   standards-related documentation can be found in BCP-11. Copies of
+   claims of rights made available for publication and any assurances of
+   licenses to be made available, or the result of an attempt made to
+   obtain a general license or permission for the use of such
+   proprietary rights by implementors or users of this specification can
+   be obtained from the IETF Secretariat.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights which may cover technology that may be required to practice
+   this standard. Please address the information to the IETF Executive
+   Director.
+
+   The IETF has been notified of intellectual property rights claimed in
+   regard to some or all of the specification contained in this
+   document. For more information consult the online list of claimed
+   rights.
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works. However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assignees.
+
+
+
+StJohns                Expires December 12, 2003                [Page 9]
+
+Internet-Draft               secured-notify                    June 2003
+
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+StJohns                Expires December 12, 2003               [Page 10]
+
