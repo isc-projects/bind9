@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.1 2001/02/13 23:39:50 nelsonm Exp $
+# $Id: start.pl,v 1.2 2001/02/14 23:57:32 gson Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -72,7 +72,7 @@ if ($server) {
 } else {
 	# Determine which servers need to be started for this test.
 	opendir DIR, $testdir;
-	my @files = readdir DIR;
+	my @files = sort readdir DIR;
 	closedir DIR;
 
 	my @ns = grep /^ns[0-9]*$/, @files;

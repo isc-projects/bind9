@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: stop.pl,v 1.1 2001/02/13 23:41:00 nelsonm Exp $
+# $Id: stop.pl,v 1.2 2001/02/14 23:57:33 gson Exp $
 
 # Framework for stopping test servers
 # Based on the type of server specified, signal the server to stop, wait
@@ -59,7 +59,7 @@ if ($server) {
 } else {
 	# Determine which servers need to be stopped for this test.
 	opendir DIR, $testdir;
-	my @files = readdir DIR;
+	my @files = sort readdir DIR;
 	closedir DIR;
 
 	my @ns = grep /^ns[0-9]*$/, @files;
