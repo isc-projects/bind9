@@ -168,16 +168,12 @@ check_next_lookup (dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
 	
-#ifdef DEBUG
-	puts ("In check_next_lookup");
-#endif
+	debug("In check_next_lookup");
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
-#ifdef DEBUG
-			puts ("Still have a worker.");
-#endif
+			debug("Still have a worker.");
 			still_working=ISC_TRUE;
 		}
 	}
@@ -186,9 +182,7 @@ check_next_lookup (dig_lookup_t *lookup) {
 
 	next = ISC_LIST_NEXT (lookup, link);
 	if (next == NULL) {
-#ifdef DEBUG
-		puts ("Shutting Down.");
-#endif
+		debug ("Shutting Down.");
 		isc_app_shutdown();
 		return;
 	}
@@ -470,7 +464,8 @@ void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_boolean_t have_host=ISC_FALSE,
 		recursion=ISC_TRUE,
-		xfr_mode=ISC_FALSE;
+		xfr_mode=ISC_FALSE,
+		nsfind=ISC_FALSE;
 	char hostname[MXNAME];
 	char querytype[32]="";
 	char queryclass[32]="";
@@ -514,13 +509,12 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			tcp_mode = ISC_TRUE;
 			break;
 		case 'C':
-#ifdef DEBUG
-			fputs ("Showing all SOA's\n",stderr);
-#endif
+			debug ("Showing all SOA's");
 			if (querytype[0] == 0)
 				strcpy (querytype, "soa");
 			if (queryclass[0] == 0)
 				strcpy (queryclass, "in");
+			nsfind = ISC_TRUE;
 			showallsoa = ISC_TRUE;
 			break;
 		}
@@ -535,9 +529,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				fatal ("Memory allocation failure.");
 			strncpy(srv->servername,
 				argv[isc_commandline_index+1],MXNAME-1);
-#ifdef DEBUG
-			fprintf (stderr, "Server is %s\n",srv->servername);
-#endif
+			debug("Server is %s",srv->servername);
 			ISC_LIST_APPEND(server_list, srv, link);
 	}
 	

@@ -124,16 +124,12 @@ check_next_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
 	
-#ifdef DEBUG
-	fputs("In check_next_lookup\n",stderr);
-#endif
+	debug("In check_next_lookup",stderr);
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
-#ifdef DEBUG
-			fputs("Still have a worker.\n",stderr);
-#endif
+			debug("Still have a worker.",stderr);
 			still_working=ISC_TRUE;
 		}
 	}
@@ -142,19 +138,15 @@ check_next_lookup(dig_lookup_t *lookup) {
 
 	next = ISC_LIST_NEXT(lookup, link);
 	if (next == NULL) {
-#ifdef DEBUG
-		fputs("Shutting Down.\n",stderr);
-#endif
+		debug("Shutting Down.",stderr);
 		isc_app_shutdown();
 		return;
 	}
 	
 	setup_lookup(next);
-#ifdef NEVER
 	if (tcp_mode)
 		do_lookup_tcp(next);
 	else
-#endif	
 		do_lookup_udp(next);
 
 }
@@ -435,9 +427,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				strncat(lookup->textname, batchline, MXNAME);
 			}
 			strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-#ifdef DEBUG
-			fprintf(stderr,"Looking up %s\n",lookup->textname);
-#endif
+			debug("Looking up %s",lookup->textname);
 			strcpy(lookup->rttext, "ptr");
 			strcpy(lookup->rctext, "in");
 			lookup->namespace[0]=0;
@@ -486,9 +476,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			ISC_LIST_INIT(lookup->q);
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			have_host = ISC_TRUE;
-#ifdef DEBUG
-			fprintf(stderr, "Looking up %s\n", lookup->textname);
-#endif
+			debug("Looking up %s", lookup->textname);
 		}
 	}
 	if (batchname != NULL) {
@@ -506,9 +494,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 			bargc--;
 			bargv[0]="dig";
-#ifdef DEBUG
-			fprintf(stderr,"Parsing %d:%s\n",bargc,bargv[1]);
-#endif
+			debug("Parsing %d:%s",bargc,bargv[1]);
 			parse_args(ISC_TRUE, bargc, (char**)bargv);
 		}
 	}

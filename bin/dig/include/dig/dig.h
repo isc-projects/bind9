@@ -33,7 +33,7 @@
 #define MXNAME 256
 #define MXRD 32
 #define BUFSIZE 512
-#define COMMSIZE 2048
+#define COMMSIZE 65536
 #define RESOLVCONF "/etc/resolv.conf"
 
 ISC_LANG_BEGINDECLS
@@ -95,6 +95,8 @@ struct dig_server {
 /* Routines in dighost.c */
 void
 fatal(char *format, ...) ;
+void
+debug(char *format, ...) ;
 inline void
 check_result(isc_result_t result, char *msg);
 isc_boolean_t
