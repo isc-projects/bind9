@@ -132,6 +132,17 @@ void dns_zt_print(dns_zt_t *zt);
  *	'zt' to be valid.
  */
 
+void
+dns_zt_apply(dns_zt_t *zt, void (*action)(dns_zone_t *, void *), void *uap);
+
+/*
+ * Apply a given 'action' to all zone zones in the table.
+ *
+ * Requires:
+ *	'zt' to be valid.
+ *	'action' to be non NULL.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif
