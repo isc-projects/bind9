@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.92 2001/01/05 03:12:41 marka Exp $ */
+/* $Id: master.c,v 1.93 2001/01/08 23:52:52 marka Exp $ */
 
 #include <config.h>
 
@@ -1008,7 +1008,7 @@ load(dns_loadctx_t **ctxp) {
 			result = dns_name_fromtext(new_name, &buffer,
 					  ctx->origin, ISC_FALSE, NULL);
 			if (result != ISC_R_SUCCESS)
-				goto log_and_cleanup;
+				goto insist_and_cleanup;
 
 			/*
 			 * Finish $ORIGIN / $INCLUDE processing if required.
