@@ -357,6 +357,7 @@ main(int argc, char *argv[]) {
 				   isc_sockettype_udp, &sock);
 	check_result(result, "isc_socket_create()");
 
+	ISC_LIST_INIT(bufferlist);
 	isc_buffer_init(&b2, data2, sizeof data2, ISC_BUFFERTYPE_BINARY);
 	ISC_LIST_ENQUEUE(bufferlist, &b2, link);
 	result = isc_socket_recvv(sock, &bufferlist, 1, task, recv_done, NULL);
