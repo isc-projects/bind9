@@ -6,6 +6,8 @@
 
 1101.	[bug]		Array bounds read error in lwres_gai_strerror.
 
+1093.	[doc]		libbind: miscellaneous nroff fixes.
+
 1092.	[bug]		libbind: get*by*() failed to check if res_init() had
 			been called.
 
