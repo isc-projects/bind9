@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.25 2000/10/19 01:10:24 bwelling Exp $ */
+/* $Id: file.c,v 1.26 2000/10/20 22:09:01 gson Exp $ */
 
 #include <config.h>
 
@@ -121,30 +121,30 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen) {
 }
 
 isc_result_t
-isc_file_template(const char *path, const char *templat, char *buf,
+isc_file_template(const char *path, const char *templet, char *buf,
 			size_t buflen) {
 	char *s;
 
 	REQUIRE(buf != NULL);
 
-	s = strrchr(templat, '/');
+	s = strrchr(templet, '/');
 	if (s != NULL)
-		templat = s + 1;
+		templet = s + 1;
 
 	s = strrchr(path, '/');
 
 	if (s != NULL) {
-		if ((s - path + 1 + strlen(templat) + 1) > buflen)
+		if ((s - path + 1 + strlen(templet) + 1) > buflen)
 			return (ISC_R_NOSPACE);
 
 		strncpy(buf, path, s - path + 1);
 		buf[s - path + 1] = '\0';
-		strcat(buf, templat);
+		strcat(buf, templet);
 	} else {
-		if ((strlen(templat) + 1) > buflen)
+		if ((strlen(templet) + 1) > buflen)
 			return (ISC_R_NOSPACE);
 
-		strcpy(buf, templat);
+		strcpy(buf, templet);
 	}
 
 	return (ISC_R_SUCCESS);

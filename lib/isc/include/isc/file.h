@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.12 2000/10/03 05:45:38 marka Exp $ */
+/* $Id: file.h,v 1.13 2000/10/20 22:09:00 gson Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -172,19 +172,18 @@ isc_file_isabsolute(const char *filename);
  */
 
 isc_result_t
-isc_file_template(const char *path, const char *templat, char *buf,
-                        size_t buflen);
+isc_file_template(const char *path, const char *templet, char *buf,
+		  size_t buflen);
 /*
- * Create a OS specific template using 'path' to define the directory
- * 'templat' to describe the filename and store the result in 'buf'
+ * Create an OS specific template using 'path' to define the directory
+ * 'templet' to describe the filename and store the result in 'buf'
  * such that path can be renamed to buf atomically.
  */
 
 isc_result_t
 isc_file_renameunique(const char *file, char *templet);
-
 /*
- * Rename 'file' using 'templet' as template for the new file name.
+ * Rename 'file' using 'templet' as a template for the new file name.
  */
 
 /*
