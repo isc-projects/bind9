@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.92 2004/12/21 10:45:19 jinmei Exp $ */
+/* $Id: view.h,v 1.93 2005/01/14 03:28:08 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -787,4 +787,12 @@ dns_view_getrootdelonly(dns_view_t *view);
  *	'view' is valid.
  */
 
+isc_result_t
+dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
+/*
+ * Freeze/thaw updates to master zones.
+ *
+ * Requires:
+ *	'view' is valid.
+ */
 #endif /* DNS_VIEW_H */

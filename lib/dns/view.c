@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.128 2004/12/29 23:01:13 marka Exp $ */
+/* $Id: view.c,v 1.129 2005/01/14 03:28:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1347,4 +1347,10 @@ isc_boolean_t
 dns_view_getrootdelonly(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	return (view->rootdelonly);
+}
+
+isc_result_t
+dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	return (dns_zt_freezezones(view->zonetable, value));
 }

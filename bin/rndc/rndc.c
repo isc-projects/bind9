@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.100 2004/10/11 05:30:20 marka Exp $ */
+/* $Id: rndc.c,v 1.101 2005/01/14 03:28:07 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -100,8 +100,10 @@ command is one of the following:\n\
 		Schedule immediate maintenance for a zone.\n\
   retransfer zone [class [view]]\n\
 		Retransfer a single zone without checking serial number.\n\
+  freeze	Suspend updates to all dynamic zones.\n\
   freeze zone [class [view]]\n\
   		Suspend updates to a dynamic zone.\n\
+  thaw		Enable updates to all dynamic zones and reload them.\n\
   thaw zone [class [view]]\n\
   		Enable updates to a frozen dynamic zone and reload it.\n\
   notify zone [class [view]]\n\
