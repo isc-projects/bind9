@@ -1,3 +1,6 @@
+1716.	[doc]		named.conf(5) was being installed in the wrong
+			location.  [RT# 12441]
+
 1715.	[placeholder]	rt11681
 
 1714.	[bug]		dig/host/nslookup were only trying the first
