@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.14 2002/02/19 22:30:05 gson Exp $ */
+/* $Id: check.c,v 1.14.2.15 2002/03/20 20:21:15 marka Exp $ */
 
 #include <config.h>
 
@@ -25,7 +25,9 @@
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/netaddr.h>
 #include <isc/result.h>
+#include <isc/sockaddr.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
 
@@ -392,10 +394,46 @@ freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
 	UNUSED(value);
 	isc_mem_free(userarg, key);
 }
-		
+
+static isc_result_t
+check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_listelt_t *e1, *e2;
+	cfg_obj_t *v1, *v2;
+	isc_sockaddr_t *s1, *s2;
+	isc_netaddr_t na;
+
+	for (e1 = cfg_list_first(servers); e1 != NULL; e1 = cfg_list_next(e1)) {
+		v1 = cfg_listelt_value(e1);
+		s1 = cfg_obj_assockaddr(cfg_map_getname(v1));
+		e2 = e1;
+		while ((e2 = cfg_list_next(e2)) != NULL) {
+			v2 = cfg_listelt_value(e2);
+			s2 = cfg_obj_assockaddr(cfg_map_getname(v2));
+			if (isc_sockaddr_eqaddr(s1, s2)) {
+				isc_buffer_t target;
+				char buf[128];
+
+				isc_netaddr_fromsockaddr(&na, s2);
+				isc_buffer_init(&target, buf, sizeof(buf) - 1);
+				INSIST(isc_netaddr_totext(&na, &target)
+				       == ISC_R_SUCCESS);
+				buf[isc_buffer_usedlength(&target)] = '\0';
+
+				cfg_obj_log(v2, logctx, ISC_LOG_ERROR,
+					    "server '%s': already exists",
+					    buf);
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+	return (result);
+}
+  		
 static isc_result_t
 check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem_t *mctx)
 {
+	cfg_obj_t *servers = NULL;
 	cfg_obj_t *zones = NULL;
 	cfg_obj_t *keys = NULL;
 	cfg_listelt_t *element;
@@ -474,6 +512,14 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem
 			result = ISC_R_FAILURE;
 	}
 
+
+	if (vconfig != NULL) {
+		(void)cfg_map_get(vconfig, "server", &servers);
+		if (servers != NULL &&
+		    check_servers(servers, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+	}
+
 	if (vconfig != NULL)
 		tresult = check_options(vconfig, logctx);
 	else
@@ -488,6 +534,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem
 isc_result_t
 cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	cfg_obj_t *options = NULL;
+	cfg_obj_t *servers = NULL;
 	cfg_obj_t *views = NULL;
 	cfg_obj_t *acls = NULL;
 	cfg_obj_t *obj;
@@ -502,6 +549,11 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 	if (options != NULL &&
 	    check_options(options, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
+
+	(void)cfg_map_get(config, "server", &servers);
+	if (servers != NULL &&
+	    check_servers(servers, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "view", &views);
