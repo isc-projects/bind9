@@ -1,4 +1,13 @@
 
+ 649.	[bug]		It was possible to join to an already running fctx
+			after it had "cloned" its events, but before it sent
+			them.  In this case, the event of the newly joined
+			fetch would not contain the answer, and would
+			trigger the INSIST() in fctx_sendevents().  In
+			BIND 9.0, this bug did not trigger an INSIST(), but
+			caused the fetch to fail with a SERVFAIL result.
+			[RT #588, #597, #605, #607]
+
  646.	[bug]		The UnixWare ISC_PLATFORM_FIXIN6INADDR fix in isc/net.h
 			didn't _cleanly_ fix the problem it was trying to fix.
 
