@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.42 2001/06/27 14:48:21 marka Exp $ */
+/* $Id: cache.c,v 1.43 2001/06/27 20:18:03 tale Exp $ */
 
 #include <config.h>
 
@@ -681,7 +681,6 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	isc_interval_t interval;
 	isc_result_t result;
 	int n_names;
-	isc_stdtime_t now;
 
 	UNUSED(task);
 
@@ -701,8 +700,6 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(DNS_DBITERATOR_VALID(cleaner->iterator));
 
-	isc_stdtime_get(&now);
-
 	while (n_names-- > 0) {
 		dns_dbnode_t *node = NULL;
 
@@ -715,18 +712,6 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 			end_cleaning(cleaner, event);
 			return;
-		}
-
-		result = dns_db_expirenode(cleaner->cache->db, node, now);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "cache cleaner: "
-					 "incremental_cleaning_action() "
-					 "failed: %s",
-					 dns_result_totext(result));
-			/*
-			 * Continue anyway.
-			 */
 		}
 
 		/*
