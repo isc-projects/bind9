@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.168 2002/03/20 22:06:07 marka Exp $ */
+/* $Id: rdata.c,v 1.169 2002/03/20 22:25:58 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1049,7 +1049,7 @@ isc_result_t
 dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 #define COMPARE(string, rdclass) \
 	if (((sizeof(string) - 1) == source->length) \
-	    && (strcasecmp(source->base, string) == 0)) { \
+	    && (strncasecmp(source->base, string, source->length) == 0)) { \
 		*classp = rdclass; \
 		return (ISC_R_SUCCESS); \
 	}
