@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.38 2001/01/17 00:48:54 bwelling Exp $ */
+/* $Id: app.c,v 1.39 2001/01/17 19:48:45 halley Exp $ */
 
 #include <config.h>
 
 #include <sys/types.h>
 
 #include <stddef.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
