@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.63 2000/09/12 13:46:12 bwelling Exp $ */
+/* $Id: mem.c,v 1.64 2000/10/13 05:37:17 marka Exp $ */
 
 #include <config.h>
 
@@ -265,6 +265,15 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 #endif /* ISC_MEM_TRACKLINES */
 
 static inline size_t
+rmsize(size_t size) {
+	/*
+ 	 * round down to ALIGNMENT_SIZE
+	 */
+	size -= (size % ALIGNMENT_SIZE);
+	return (size);
+}
+
+static inline size_t
 quantize(size_t size) {
 	int temp;
 
@@ -451,10 +460,21 @@ more_frags(isc_mem_t *ctx, size_t new_size) {
 	 */
 	curr = new;
 	next = curr + new_size;
+	total_size -= new_size;
 	for (i = 0; i < (frags - 1); i++) {
 		((element *)curr)->next = (element *)next;
 		curr = next;
 		next += new_size;
+		total_size -= new_size;
+	}
+	/*
+	 * Add the remaining fragment of the basic block to a free list.
+	 */
+	total_size = rmsize(total_size);
+	if (total_size > 0) {
+		((element *)next)->next = ctx->freelists[total_size];
+		ctx->freelists[total_size] = (element *)next;
+		ctx->stats[total_size].freefrags++;
 	}
 	/*
 	 * curr is now pointing at the last block in the
@@ -964,7 +984,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 			fprintf(out, "%s%5lu: %11lu gets, %11lu rem",
 				(i == ctx->max_size) ? ">=" : "  ",
 				(unsigned long) i, s->totalgets, s->gets);
-			if (s->blocks != 0)
+			if (s->blocks != 0 || s->freefrags != 0)
 				fprintf(out, " (%lu bl, %lu ff)",
 					s->blocks, s->freefrags);
 			fputc('\n', out);
