@@ -125,8 +125,9 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	       == ISC_R_SUCCESS);
 
 	/*
-	 * Add the new message to the list of known messages.
-	 * XXXDCL Why exactly?
+	 * Add the new message to the list of known messages.  When the
+	 * server's response comes back, the client will verify that
+	 * the response was for a message it really sent.
 	 */
 	omapi_message_register(message);
 
@@ -134,7 +135,15 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * Deliver the message to the server.  The manager's outer object
 	 * is the connection object to the server.
 	 */
-	return (omapi_message_send(message, manager->outer));
+	INSIST(omapi_message_send(message, manager) == ISC_R_SUCCESS);
+
+	/*
+	 * Free the message.
+	 */
+	omapi_message_unregister(message);
+	omapi_object_dereference(&message);
+
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -325,7 +334,6 @@ server_stuffvalues(omapi_object_t *connection, omapi_object_t *handle)
 static void
 do_connect(const char *host, int port) {
 	omapi_object_t *manager;
-	omapi_object_t *connection;
 	omapi_object_t *omapi_client;
 	client_object_t *client;
 
@@ -350,8 +358,6 @@ do_connect(const char *host, int port) {
 
 	INSIST(omapi_protocol_connect(manager, host, port, NULL)
 	       == ISC_R_SUCCESS);
-
-	connection = manager->outer->outer;
 
 	/*
 	 * Create the client's object.
@@ -394,13 +400,13 @@ do_connect(const char *host, int port) {
 	/*
 	 * Close the connection and wait to be disconnected.
 	 */
-	omapi_connection_disconnect(connection, OMAPI_CLEAN_DISCONNECT);
+	omapi_protocol_disconnect(manager, OMAPI_CLEAN_DISCONNECT);
 
 	/*
 	 * Free the protocol manager and client object.
 	 */
-	/*       omapi_object_dereference(&manager); */
-       omapi_object_dereference((omapi_object_t **)&client);
+	omapi_object_dereference(&manager);
+	omapi_object_dereference(&omapi_client);
 }
 
 static void
@@ -434,6 +440,7 @@ do_listen(int port) {
 	 * Initialize the server_object data.
 	 */
 	master_data.type = server_type;
+	master_data.refcnt = 1;
 	master_data.value = 2;
 	master_data.listen.finished = ISC_FALSE;
  
