@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.164 2000/07/22 00:27:40 mws Exp $ */
+/* $Id: zone.c,v 1.165 2000/07/22 00:40:39 mws Exp $ */
 
 #include <config.h>
 
@@ -1270,8 +1270,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE((count == 0) ||
-		(masters != NULL && count != 0));
+	REQUIRE(count == 0 || masters != NULL);
 	if (keynames != NULL) {
 		REQUIRE(count != 0);
 	}
