@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.233 2004/02/17 03:40:22 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.234 2004/02/27 02:08:53 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3522,7 +3522,7 @@ a wildcard IP address (<command>INADDR_ANY</command>) will be used.
 If <command>port</command> is <command>*</command> or is omitted,
 a random unprivileged port will be used, <command>avoid-v4-udp-ports</command>
 and <command>avoid-v6-udp-ports</command> can be used to prevent named
-from selecting certian ports. The defaults are</para>
+from selecting certain ports. The defaults are</para>
 <programlisting>query-source address * port *;
 query-source-v6 address * port *;
 </programlisting>
@@ -3710,10 +3710,11 @@ but applies to notify messages sent to IPv6 addresses.</para>
 <para>
 <command>avoid-v4-udp-ports</command> and <command>avoid-v6-udp-ports</command>
 specify a list of IPv4 and IPv6 UDP ports that will not be used as system
-assigned source ports for UDP sockets.  These lists are expected to be
-used to prevent named using "well known" ports in the system assigned range
-that have become unusable due to wide spread use of acls containing these
-ports.
+assigned source ports for UDP sockets.  These lists prevent named
+from choosing as its random source port a port that is blocked by
+your firewall.  If a query went out with such a source port, the
+answer would not get by the firewall and the name server would have
+to query again.
 </para>
 </sect3>
 
