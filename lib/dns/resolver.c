@@ -518,7 +518,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	 * up doing extra work!
 	 */
 
-	(void)task;
+	UNUSED(task);
 
 	if (sevent->result != ISC_R_SUCCESS)
 		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
@@ -973,7 +973,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 
 	QTRACE("connected");
 
-	(void)task;
+	UNUSED(task);
 
 	/*
 	 * XXXRTH
@@ -1024,7 +1024,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
 
-	(void)task;
+	UNUSED(task);
 
 	FCTXTRACE("finddone");
 
@@ -1591,7 +1591,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(VALID_FCTX(fctx));
 
-	(void)task;	/* Keep compiler quiet. */
+	UNUSED(task);
 
 	FCTXTRACE("timeout");
 
@@ -1660,7 +1660,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 	res = fctx->res;
 	bucketnum = fctx->bucketnum;
-	(void)task;	/* Keep compiler quiet. */
+	UNUSED(task);
 	
 	FCTXTRACE("doshutdown");
 
@@ -1704,7 +1704,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 
 	res = fctx->res;
 	bucketnum = fctx->bucketnum;
-	(void)task;	/* Keep compiler quiet. */
+	UNUSED(task);
 
 	FCTXTRACE("start");
 
@@ -3208,7 +3208,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(event->type == DNS_EVENT_DISPATCH);
 
-	(void)task;
+	UNUSED(task);
 	QTRACE("response");
 
 	(void)isc_timer_touch(fctx->timer);
@@ -3944,7 +3944,7 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 	res = event->arg;
 	REQUIRE(VALID_RESOLVER(res));
 
-	(void)task;
+	UNUSED(task);
 
 	LOCK(&res->lock);
 
@@ -4225,7 +4225,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	isc_boolean_t new_fctx = ISC_FALSE;
 	isc_event_t *event;
 
-	(void)forwarders;
+	UNUSED(forwarders);
 
 	REQUIRE(VALID_RESOLVER(res));
 	REQUIRE(res->frozen);
