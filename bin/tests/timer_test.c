@@ -140,7 +140,8 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 				       
 	isc_interval_set(&interval, 10, 0);
-	isc_time_add(&now, &interval, &expires);
+	RUNTIME_CHECK(isc_time_add(&now, &interval, &expires) ==
+		      ISC_R_SUCCESS);
 	isc_interval_set(&interval, 2, 0);
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, &expires,
 				       &interval, t3, timeout, "3", &ti3) ==
