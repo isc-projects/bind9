@@ -391,55 +391,47 @@ printquestions(dns_namelist_t *section) {
 	}
 }
 
-static void
+static dns_result_t
 printsection(dns_namelist_t *section, char *section_name) {
 	dns_name_t *name;
 	dns_rdatalist_t *rdatalist;
-	dns_rdata_t *rdata;
-	char t[1000];
+	dns_rdataset_t rdataset;
 	isc_buffer_t target;
 	dns_result_t result;
-	char *tabs;
+	isc_region_t r;
+	char t[1000];
 
+	dns_rdataset_init(&rdataset);
 	printf("\n;; %s SECTION:\n", section_name);
 	for (name = ISC_LIST_HEAD(*section);
 	     name != NULL;
 	     name = ISC_LIST_NEXT(name, link)) {
 		isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
-		result = dns_name_totext(name, ISC_FALSE, &target);
-		if (result != DNS_R_SUCCESS) {
-			printf("%s\n", dns_result_totext(result));
-			exit(15);
-		}
 		for (rdatalist = ISC_LIST_HEAD(name->list);
 		     rdatalist != NULL;
 		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			for (rdata = ISC_LIST_HEAD(rdatalist->rdata);
-			     rdata != NULL;
-			     rdata = ISC_LIST_NEXT(rdata, link)) {
-				if (target.used >= 16)
-					tabs = "\t";
-				else if (target.used >= 8)
-					tabs = "\t\t";
-				else
-					tabs = "\t\t\t";
-				printf("%.*s%s%u %u %u\t",
-				       (int)target.used,
-				       (char *)target.base,
-				       tabs,
-				       rdatalist->ttl,
-				       rdatalist->class,
-				       rdatalist->type);
-				printf("\n");
-			}
+			result = dns_rdatalist_tordataset(rdatalist,
+							  &rdataset);
+			if (result != DNS_R_SUCCESS)
+				return (result);
+			result = dns_rdataset_totext(&rdataset, name,
+						     ISC_FALSE, &target);
+			if (result != DNS_R_SUCCESS)
+				return (result);
+			dns_rdataset_disassociate(&rdataset);
 		}
+		isc_buffer_used(&target, &r);
+		printf("%.*s", (int)r.length, (char *)r.base);
 	}
+	
+	return (DNS_R_SUCCESS);
 }
 
-static void
+static dns_result_t
 printmessage(dns_message_t *message) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	unsigned int opcode, rcode;
+	dns_result_t result;
 
 	opcode = (message->flags & DNS_OPCODE_MASK) >> DNS_OPCODE_SHIFT;
 	rcode = message->flags & DNS_RCODE_MASK;
@@ -470,9 +462,15 @@ printmessage(dns_message_t *message) {
 	       message->qcount, message->ancount, message->aucount,
 	       message->adcount);
 	printquestions(&message->question);
-	printsection(&message->answer, "ANSWER");
-	printsection(&message->authority, "AUTHORITY");
-	printsection(&message->additional, "ADDITIONAL");
+	result = printsection(&message->answer, "ANSWER");
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = printsection(&message->authority, "AUTHORITY");
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = printsection(&message->additional, "ADDITIONAL");
+
+	return (result);
 }
 
 int
@@ -488,6 +486,7 @@ main(int argc, char *argv[]) {
 	char s[1000];
 	char t[5000];
 	dns_message_t message;
+	dns_result_t result;
 	
 	if (argc > 1) {
 		f = fopen(argv[1], "r");
@@ -546,7 +545,10 @@ main(int argc, char *argv[]) {
 	isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_BINARY);
 
 	getmessage(&message, &source, &target);
-	printmessage(&message);
+	result = printmessage(&message);
+	if (result != DNS_R_SUCCESS)
+		printf("printmessage() failed: %s\n",
+		       dns_result_totext(result));
 
 	return (0);
 }
