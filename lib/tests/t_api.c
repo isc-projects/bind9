@@ -172,6 +172,8 @@ main(int argc, char **argv)
 
 	/* output time to journal */
 
+	(void) setbuf(stdout, NULL);
+
 	date = t_getdate();
 	t_putinfo("S", date);
 
@@ -214,9 +216,11 @@ main(int argc, char **argv)
 					while (deadpid != T_pid) {
 						deadpid = waitpid(T_pid, &status, 0);
 						if (deadpid == T_pid) {
-							if (WIFSIGNALED(status) && (WTERMSIG(status) == SIGABRT)) {
-								t_info("the test case caused an exception\n");
-								t_result(T_UNRESOLVED);
+							if (WIFSIGNALED(status)) {
+								if (WTERMSIG(status) == SIGABRT) {
+									t_info("the test case caused an exception\n");
+									t_result(T_UNRESOLVED);
+								}
 							}
 						}
 						else if ((deadpid == -1) && (errno == EINTR)) {
