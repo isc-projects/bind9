@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.18 1999/10/28 00:02:08 gson Exp $ */
+ /* $Id: xfrin.c,v 1.19 1999/10/28 01:10:38 gson Exp $ */
 
 #include <config.h>
 
@@ -685,24 +685,29 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	dns_result_t result;
 	isc_region_t region;
 	isc_region_t lregion;
-	dns_rdataset_t qrdataset;
+	dns_rdataset_t *qrdataset = NULL;
 	dns_message_t *msg = NULL;
 	unsigned char length[2];
 	dns_rdatalist_t soardl;
 	dns_rdataset_t soards;
 	dns_difftuple_t *soatuple = NULL;
 	dns_name_t *qname = NULL;
-	
-	dns_rdataset_init(&qrdataset);
-	dns_rdataset_makequestion(&qrdataset, xfr->rdclass, xfr->reqtype);
-	ISC_LIST_INIT(xfr->name.list);
-	ISC_LIST_APPEND(xfr->name.list, &qrdataset, link);
-	
+
+	/* Create the request message */
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
 	msg->tsigkey = xfr->tsigkey;
+
+	/* Create a name for the question section. */
 	dns_message_gettempname(msg, &qname);
 	dns_name_init(qname, NULL);
 	dns_name_clone(&xfr->name, qname);
+
+	/* Formulate the question and attach it to the question name. */
+	dns_message_gettemprdataset(msg, &qrdataset);
+	dns_rdataset_init(qrdataset);
+	dns_rdataset_makequestion(qrdataset, xfr->rdclass, xfr->reqtype);
+	ISC_LIST_APPEND(qname->list, qrdataset, link);
+	
 	dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
 
 	if (xfr->reqtype == dns_rdatatype_ixfr) {
@@ -743,8 +748,7 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	xfr->lasttsig = msg->tsig;
 	msg->tsig = NULL;
 
-	ISC_LIST_UNLINK(xfr->name.list, &qrdataset, link);
-	dns_message_destroy(&msg); /* XXX failure */
+	dns_message_destroy(&msg); /* XXX in failure case, too*/
 	if (soatuple != NULL)
 		dns_difftuple_free(&soatuple);
 
@@ -832,7 +836,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	tcpmsg = ev->sender;
 	isc_event_free(&ev);
 	
-	printf("got tcp message\n");
+	printf("received TCP message of %u bytes\n",
+	       tcpmsg->buffer.used);
 	xfr->recvs--;
 	if (maybe_free(xfr))
 		return;
@@ -904,10 +909,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 		/* Reset msg->tsig so it doesn't get freed */
 		msg->tsig = NULL;
-	}
-	else {
+	} else if (msg->tsigkey != NULL) {
 		xfr->sincetsig++;
-		if (xfr->sincetsig > 100 || xfr->state == XFRST_END) {
+		if (xfr->sincetsig > 100 ||
+		    xfr->nmsg == 0 || xfr->state == XFRST_END)
+		{
 			result = DNS_R_EXPECTEDTSIG;
 			goto failure;
 		}
