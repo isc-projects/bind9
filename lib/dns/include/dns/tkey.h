@@ -15,13 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.12 2000/06/22 21:56:15 tale Exp $ */
+/* $Id: tkey.h,v 1.13 2000/06/23 02:59:38 tale Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
 
 #include <isc/lang.h>
-#include <isc/types.h>
 
 #include <dns/types.h>
 

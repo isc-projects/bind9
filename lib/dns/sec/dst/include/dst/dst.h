@@ -15,13 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.30 2000/06/22 21:56:40 tale Exp $ */
+/* $Id: dst.h,v 1.31 2000/06/23 03:00:30 tale Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
 
 #include <isc/lang.h>
-#include <isc/types.h>
 
 #include <dns/types.h>
 
