@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.16 2000/10/17 07:22:32 marka Exp $ */
+/* $Id: rootns.c,v 1.17 2001/01/05 03:12:42 marka Exp $ */
 
 #include <config.h>
 
@@ -95,16 +95,14 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		 * Load the hints from the specified filename.
 		 */
 		result = dns_master_loadfile(filename, &db->origin,
-					     &db->origin,
-					     db->rdclass, ISC_FALSE,
+					     &db->origin, db->rdclass, 0,
 					     &callbacks, db->mctx);
 	} else if (rdclass == dns_rdataclass_in) {
 		/*
 		 * Default to using the Internet root servers.
 		 */
 		result = dns_master_loadbuffer(&source, &db->origin,
-					       &db->origin,
-					       db->rdclass, ISC_FALSE,
+					       &db->origin, db->rdclass, 0,
 					       &callbacks, db->mctx);
 	} else
 		result = ISC_R_NOTFOUND;

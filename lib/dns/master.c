@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.91 2001/01/05 01:02:47 bwelling Exp $ */
+/* $Id: master.c,v 1.92 2001/01/05 03:12:41 marka Exp $ */
 
 #include <config.h>
 
@@ -95,10 +95,10 @@ struct dns_loadctx {
 	isc_task_t		*task;
 	dns_loaddonefunc_t	done;
 	void			*done_arg;
+	unsigned int		options;
 	isc_boolean_t		ttl_known;
 	isc_boolean_t		default_ttl_known;
 	isc_boolean_t		warn_1035;
-	isc_boolean_t		age_ttl;
 	isc_boolean_t		seen_include;
 	isc_uint32_t		ttl;
 	isc_uint32_t		default_ttl;
@@ -340,7 +340,7 @@ loadctx_destroy(dns_loadctx_t *ctx) {
 }
 
 static isc_result_t
-loadctx_create(isc_mem_t *mctx, isc_boolean_t age_ttl, dns_name_t *top,
+loadctx_create(isc_mem_t *mctx, unsigned int options, dns_name_t *top,
 	       dns_rdataclass_t zclass, dns_name_t *origin,
 	       dns_rdatacallbacks_t *callbacks, isc_task_t *task,
 	       dns_loaddonefunc_t done, void *done_arg,
@@ -391,7 +391,7 @@ loadctx_create(isc_mem_t *mctx, isc_boolean_t age_ttl, dns_name_t *top,
 	ctx->default_ttl_known = ISC_FALSE;
 	ctx->default_ttl = 0;
 	ctx->warn_1035 = ISC_TRUE;	/* XXX Argument? */
-	ctx->age_ttl = age_ttl;
+	ctx->options = options;
 	ctx->seen_include = ISC_FALSE;
 	ctx->zclass = zclass;
 
@@ -1250,7 +1250,7 @@ load(dns_loadctx_t **ctxp) {
 		if (type == dns_rdatatype_ns && ctx->glue == NULL)
 			current_has_delegation = ISC_TRUE;
 
-		if (ctx->age_ttl) {
+		if ((ctx->options & DNS_MASTER_AGETTL) != 0) {
 			/*
 			 * Adjust the TTL for $DATE.  If the RR has already
 			 * expired, ignore it without even parsing the rdata
@@ -1431,7 +1431,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp) {
 
 	ctx->seen_include = ISC_TRUE;
 
-	result = loadctx_create(ctx->mctx, ctx->age_ttl, ctx->top,
+	result = loadctx_create(ctx->mctx, ctx->options, ctx->top,
 				ctx->zclass, origin, ctx->callbacks,
 				ctx->task, ctx->done, ctx->done_arg,
 				&new);
@@ -1476,13 +1476,13 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp) {
 isc_result_t
 dns_master_loadfile(const char *master_file, dns_name_t *top,
 		    dns_name_t *origin,
-		    dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+		    dns_rdataclass_t zclass, unsigned int options,
 		    dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	dns_loadctx_t *ctx = NULL;
 	isc_result_t result;
 
-	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+	result = loadctx_create(mctx, options, top, zclass, origin,
 				callbacks, NULL, NULL, NULL, &ctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -1503,7 +1503,7 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 isc_result_t
 dns_master_loadfilequota(const char *master_file, dns_name_t *top,
 			 dns_name_t *origin, dns_rdataclass_t zclass,
-			 isc_boolean_t age_ttl, 
+			 unsigned int options, 
 			 dns_rdatacallbacks_t *callbacks,
 			 isc_task_t *task, dns_loaddonefunc_t done,
 			 void *done_arg, dns_loadmgr_t *lmgr,
@@ -1517,7 +1517,7 @@ dns_master_loadfilequota(const char *master_file, dns_name_t *top,
 	REQUIRE(DNS_LMGR_VALID(lmgr));
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
-	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+	result = loadctx_create(mctx, options, top, zclass, origin,
 				callbacks, task, done, done_arg, &ctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -1607,7 +1607,7 @@ loadmgr_start(isc_task_t *task, isc_event_t *event) {
 isc_result_t
 dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 		       dns_name_t *origin, dns_rdataclass_t zclass,
-		       isc_boolean_t age_ttl, dns_rdatacallbacks_t *callbacks,
+		       unsigned int options, dns_rdatacallbacks_t *callbacks,
 		       isc_task_t *task, dns_loaddonefunc_t done,
 		       void *done_arg, isc_mem_t *mctx)
 {
@@ -1617,7 +1617,7 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 	REQUIRE(task != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+	result = loadctx_create(mctx, options, top, zclass, origin,
 				callbacks, task, done, done_arg, &ctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -1638,7 +1638,7 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 
 isc_result_t
 dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
-		      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+		      dns_rdataclass_t zclass, unsigned int options,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
@@ -1646,7 +1646,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 	REQUIRE(stream != NULL);
 
-	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+	result = loadctx_create(mctx, options, top, zclass, origin,
 				callbacks, NULL, NULL, NULL, &ctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -1666,7 +1666,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 isc_result_t
 dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
-			 dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+			 dns_rdataclass_t zclass, unsigned int options,
 			 dns_rdatacallbacks_t *callbacks, isc_task_t *task,
 			 dns_loaddonefunc_t done, void *done_arg,
 			 isc_mem_t *mctx)
@@ -1678,7 +1678,7 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	REQUIRE(task != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+	result = loadctx_create(mctx, options, top, zclass, origin,
 				callbacks, task, done, done_arg, &ctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -1700,7 +1700,7 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 isc_result_t
 dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 		      dns_name_t *origin, dns_rdataclass_t zclass,
-		      isc_boolean_t age_ttl,
+		      unsigned int options,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
@@ -1708,7 +1708,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 
 	REQUIRE(buffer != NULL);
 
-	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+	result = loadctx_create(mctx, options, top, zclass, origin,
 				callbacks, NULL, NULL, NULL, &ctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -1729,7 +1729,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 isc_result_t
 dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 			 dns_name_t *origin, dns_rdataclass_t zclass,
-			 isc_boolean_t age_ttl,
+			 unsigned int options,
 			 dns_rdatacallbacks_t *callbacks, isc_task_t *task,
 			 dns_loaddonefunc_t done, void *done_arg,
 			 isc_mem_t *mctx)
@@ -1741,7 +1741,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 	REQUIRE(task != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+	result = loadctx_create(mctx, options, top, zclass, origin,
 				callbacks, task, done, done_arg, &ctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);

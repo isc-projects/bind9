@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.26 2000/12/17 23:43:12 marka Exp $ */
+/* $Id: master.h,v 1.27 2001/01/05 03:12:45 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -30,6 +30,8 @@
 
 #include <dns/types.h>
 
+#define	DNS_MASTER_AGETTL 0x01		/* Age the ttl based on $DATE. */
+
 ISC_LANG_BEGINDECLS
 
 /***
@@ -41,7 +43,7 @@ dns_master_loadfile(const char *master_file,
 		    dns_name_t *top,
 		    dns_name_t *origin,
 		    dns_rdataclass_t zclass,
-		    isc_boolean_t age_ttl,
+		    unsigned int options,
 		    dns_rdatacallbacks_t *callbacks,
 		    isc_mem_t *mctx);
 
@@ -50,7 +52,7 @@ dns_master_loadstream(FILE *stream,
 		      dns_name_t *top,
 		      dns_name_t *origin,
 		      dns_rdataclass_t zclass,
-		      isc_boolean_t age_ttl,
+		      unsigned int options,
 		      dns_rdatacallbacks_t *callbacks,
 		      isc_mem_t *mctx);
 
@@ -59,7 +61,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
 		      dns_name_t *top,
 		      dns_name_t *origin,
 		      dns_rdataclass_t zclass,
-		      isc_boolean_t age_ttl,
+		      unsigned int options,
 		      dns_rdatacallbacks_t *callbacks,
 		      isc_mem_t *mctx);
 
@@ -68,7 +70,7 @@ dns_master_loadfileinc(const char *master_file,
 		       dns_name_t *top,
 		       dns_name_t *origin,
 		       dns_rdataclass_t zclass,
-		       isc_boolean_t age_ttl,
+		       unsigned int options,
 		       dns_rdatacallbacks_t *callbacks,
 		       isc_task_t *task,
 		       dns_loaddonefunc_t done, void *done_arg,
@@ -79,7 +81,7 @@ dns_master_loadstreaminc(FILE *stream,
 			 dns_name_t *top,
 			 dns_name_t *origin,
 			 dns_rdataclass_t zclass,
-			 isc_boolean_t age_ttl,
+			 unsigned int options,
 			 dns_rdatacallbacks_t *callbacks,
 			 isc_task_t *task,
 			 dns_loaddonefunc_t done, void *done_arg,
@@ -90,7 +92,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer,
 			 dns_name_t *top,
 			 dns_name_t *origin,
 			 dns_rdataclass_t zclass,
-			 isc_boolean_t age_ttl,
+			 unsigned int options,
 			 dns_rdatacallbacks_t *callbacks,
 			 isc_task_t *task,
 			 dns_loaddonefunc_t done, void *done_arg,
@@ -99,7 +101,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer,
 isc_result_t
 dns_master_loadfilequota(const char *master_file, dns_name_t *top,
                          dns_name_t *origin, dns_rdataclass_t zclass,
-                         isc_boolean_t age_ttl, dns_rdatacallbacks_t *callbacks,
+                         unsigned int options, dns_rdatacallbacks_t *callbacks,
                          isc_task_t *task, dns_loaddonefunc_t done,
                          void *done_arg, dns_loadmgr_t *lmgr,
                          dns_loadctx_t **ctxp, isc_mem_t *mctx);
@@ -112,7 +114,7 @@ dns_master_loadfilequota(const char *master_file, dns_name_t *top,
  * completes.  dns_load_master will abort if callbacks->commit returns
  * any value other than ISC_R_SUCCESS.
  *
- * If 'age_ttl' is ISC_TRUE and the master file contains one or more
+ * If 'DNS_MASTER_AGETTL' is set and the master file contains one or more
  * $DATE directives, the TTLs of the data will be aged accordingly.
  *
  * 'callbacks->commit' is assumed to call 'callbacks->error' or

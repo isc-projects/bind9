@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.65 2000/12/01 01:22:38 marka Exp $ */
+/* $Id: db.c,v 1.66 2001/01/05 03:12:40 marka Exp $ */
 
 /***
  *** Imports
@@ -303,7 +303,7 @@ isc_result_t
 dns_db_load(dns_db_t *db, const char *filename) {
 	isc_result_t result, eresult;
 	dns_rdatacallbacks_t callbacks;
-	isc_boolean_t age_ttl = ISC_FALSE;
+	unsigned int options = 0;
 
 	/*
 	 * Load master file 'filename' into 'db'.
@@ -312,7 +312,7 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & DNS_DBATTR_CACHE) != 0)
-		age_ttl = ISC_TRUE;
+		options |= DNS_MASTER_AGETTL;
 
 	dns_rdatacallbacks_init(&callbacks);
 
@@ -320,7 +320,7 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_master_loadfile(filename, &db->origin, &db->origin,
-				     db->rdclass, age_ttl,
+				     db->rdclass, options,
 				     &callbacks, db->mctx);
 	eresult = dns_db_endload(db, &callbacks.add_private);
 	/*

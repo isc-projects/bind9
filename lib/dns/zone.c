@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.289 2001/01/05 00:51:04 marka Exp $ */
+/* $Id: zone.c,v 1.290 2001/01/05 03:12:43 marka Exp $ */
 
 #include <config.h>
 
@@ -1003,7 +1003,7 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
-					load->zone->rdclass, ISC_FALSE,
+					load->zone->rdclass, 0,
 					&load->callbacks, task,
 					zone_loaddone, load, load->zone->mctx);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
