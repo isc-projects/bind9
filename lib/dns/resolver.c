@@ -2150,13 +2150,15 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS &&
 	    result != DNS_R_UNCHANGED)
 		goto cleanup;
-	result = dns_db_addrdataset(fctx->res->view->cachedb,
-				    node, NULL, now,
-				    vevent->sigrdataset, 0,
-				    asigrdataset);
-	if (result != ISC_R_SUCCESS &&
-	    result != DNS_R_UNCHANGED)
-		goto cleanup;
+	if (vevent->sigrdataset != NULL) {
+		result = dns_db_addrdataset(fctx->res->view->cachedb,
+					    node, NULL, now,
+					    vevent->sigrdataset, 0,
+					    asigrdataset);
+		if (result != ISC_R_SUCCESS &&
+		    result != DNS_R_UNCHANGED)
+			goto cleanup;
+	}
 	
 	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 	if (hevent != NULL) {
@@ -2289,15 +2291,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					break;
 			}
 			if (sigrdataset == NULL) {
-				if (ANSWER(rdataset)) {
-					/*
-					 * The peer is broken.
-					 */
-					FCTXTRACE("DNSSEC response "
-						  "missing SIG");
-					result = DNS_R_FORMERR;
-					break;
-				} else {
+				if (!ANSWER(rdataset)) {
 					/*
 					 * Ignore non-answer rdatasets that
 					 * are missing signatures.
@@ -2311,22 +2305,27 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			 * pending data.
 			 */
 #ifdef notyet
-			set_ttl(rdataset, sigrdataset);
+			if (sigrdataset != NULL)
+				set_ttl(rdataset, sigrdataset);
 #endif
 			rdataset->trust = dns_trust_pending;
-			sigrdataset->trust = dns_trust_pending;
+			if (sigrdataset != NULL)
+				sigrdataset->trust = dns_trust_pending;
 			result = dns_db_addrdataset(res->view->cachedb,
 						    node, NULL, now,
 						    rdataset, 0, NULL);
 			if (result != ISC_R_SUCCESS &&
 			    result != DNS_R_UNCHANGED)
 				break;
-			result = dns_db_addrdataset(res->view->cachedb,
-						    node, NULL, now,
-						    sigrdataset, 0, NULL);
-			if (result != ISC_R_SUCCESS &&
-			    result != DNS_R_UNCHANGED)
-				break;
+			if (sigrdataset != NULL) {
+				result = dns_db_addrdataset(res->view->cachedb,
+							    node, NULL, now,
+							    sigrdataset, 0,
+							    NULL);
+				if (result != ISC_R_SUCCESS &&
+				    result != DNS_R_UNCHANGED)
+					break;
+			}
 			if (ANSWER(rdataset)) {
 				/*
 				 * XXXRTH  We should probably do this
