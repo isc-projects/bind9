@@ -95,11 +95,12 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 					      "no file name");
 				return (ISC_R_UNEXPECTED);
 			}
-			(void)dns_c_logchan_getversions(cchan, &versions);
+			(void)dns_c_logchan_getversions(cchan,
+						      (unsigned int)&versions);
 			(void)dns_c_logchan_getsize(cchan, &size);
 			dest.file.stream = NULL;
 			dest.file.name = cchan->u.filec.path;
-			dest.file.versions = (int)versions;
+			dest.file.versions = versions;
 			dest.file.maximum_size = size;
 		}
 		break;
