@@ -99,26 +99,81 @@ extern dns_result_t
 printmessage(dns_message_t *);
 
 dns_result_t
-resolve_packet(isc_mem_t *mctx, dns_db_t *, dns_message_t *,
-	       dns_message_t **, isc_buffer_t *);
+resolve_packet(isc_mem_t *mctx, dns_db_t *, dns_message_t *, isc_buffer_t *);
 
 dns_result_t
 resolve_packet(isc_mem_t *mctx, dns_db_t *db, dns_message_t *query,
-	       dns_message_t **reply, isc_buffer_t *target)
+	       isc_buffer_t *target)
 {
 	dns_message_t *message;
 	dns_result_t result;
+	dns_name_t *name;
 
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_RENDER);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	message->id = query->id;
-	message->rcode = 
+	message->rcode = dns_rcode_servfail;
+	message->flags = query->flags;
+	message->flags |= DNS_MESSAGEFLAG_QR;
+
+	/*
+	 * XXX This is a total and disgusting hack.  We need a way to add
+	 * a copy of a rdataset and a name to the new message, but for now
+	 * I'll just steal the one from the existing query message, and
+	 * make certain the query is not destroyed before our message is.
+	 */
+
+	result = dns_message_firstname(query, DNS_SECTION_QUESTION);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	dns_message_currentname(query, DNS_SECTION_QUESTION, &name);
+
+	dns_message_addname(message, name, DNS_SECTION_QUESTION);
 
 	result = printmessage(message);
-	CHECKRESULT(result, "printmessage() failed");
+	INSIST(result == DNS_R_SUCCESS);  /* XXX not in a real server */
+	
+	result = dns_message_renderbegin(message, target);
+	if (result != DNS_R_SUCCESS)
+		return (result);
 
-	return (DNS_R_NOSPACE);
+	result = dns_message_rendersection(message, DNS_SECTION_QUESTION,
+					   0, 0);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	result = dns_message_rendersection(message, DNS_SECTION_ANSWER,
+					   0, 0);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	result = dns_message_rendersection(message, DNS_SECTION_AUTHORITY,
+					   0, 0);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL,
+					   0, 0);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	result = dns_message_rendersection(message, DNS_SECTION_OPT,
+					   0, 0);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	result = dns_message_rendersection(message, DNS_SECTION_TSIG,
+					   0, 0);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	result = dns_message_renderend(message);
+
+	dns_message_destroy(&message);
+
+	return (DNS_R_SUCCESS);
 }
 
 /*
@@ -138,7 +193,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	isc_buffer_t target;
 	dns_result_t result;
 	isc_region_t txr;
-	dns_message_t *message, *reply;
+	dns_message_t *message;
 
 	/*
 	 * Set up the input buffer from the contents of the region passed
@@ -167,11 +222,9 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	}
 
 	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
-	result = resolve_packet(mctx, db, message, &reply, &target);
-	dns_message_destroy(&message);
+	result = resolve_packet(mctx, db, message, &target);
 	if (result != DNS_R_SUCCESS) {
-		if (reply != NULL)
-			dns_message_destroy(&reply);
+		dns_message_destroy(&message);
 		return (result);
 	}
 
@@ -181,7 +234,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	isc_buffer_used(&target, &txr);
 	txr.base = isc_mem_get(mctx, txr.length + reslen);
 	if (txr.base == NULL) {
-		dns_message_destroy(&reply);
+		dns_message_destroy(&message);
 
 		return (DNS_R_NOMEMORY);
 	}
@@ -196,7 +249,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	if (want_stats)
 		isc_mem_stats(mctx, stdout);
 
-	dns_message_destroy(&reply);
+	dns_message_destroy(&message);
 
 	return (DNS_R_SUCCESS);
 }
