@@ -60,5 +60,8 @@ struct sockaddr_in6 {
 };
 #endif  /* HAS_INET6_STRUCTS */
 
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 256
+#endif
 
 #endif
