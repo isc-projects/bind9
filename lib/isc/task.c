@@ -15,6 +15,10 @@
  * SOFTWARE.
  */
 
+/*
+ * Principal Author: Bob Halley
+ */
+
 #include <config.h>
 
 #include <isc/assertions.h>
