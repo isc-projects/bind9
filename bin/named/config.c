@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.3 2001/03/05 11:49:15 tale Exp $ */
+/* $Id: config.c,v 1.4 2001/03/05 13:43:14 tale Exp $ */
 
 #include <config.h>
 
@@ -40,104 +40,104 @@
 #include <named/config.h>
 #include <named/globals.h>
 
-static char defaultconf[] = "
-options {
-#	blackhole {none;};
-	coresize default;
-	datasize default;
-	deallocate-on-exit true;
-#	directory <none>
-	dump-file \"named_dump.db\";
-	fake-iquery no;
-	files default;
-	has-old-clients false;
-	heartbeat-interval 3600;
-	host-statistics no;
-	interface-interval 3600;
-	listen-on {any;};
-	listen-on-v6 {none;};
-	memstatistics-file \"named.memstats\";
-	multiple-cnames no;
-#	named-xfer <obsolete>
-#	pid-file \"" NS_LOCALSTATEDIR "/named.pid\"; /* or /lwresd.pid */
-	port 53;
+static char defaultconf[] = "\
+options {\n\
+#	blackhole {none;};\n\
+	coresize default;\n\
+	datasize default;\n\
+	deallocate-on-exit true;\n\
+#	directory <none>\n\
+	dump-file \"named_dump.db\";\n\
+	fake-iquery no;\n\
+	files default;\n\
+	has-old-clients false;\n\
+	heartbeat-interval 3600;\n\
+	host-statistics no;\n\
+	interface-interval 3600;\n\
+	listen-on {any;};\n\
+	listen-on-v6 {none;};\n\
+	memstatistics-file \"named.memstats\";\n\
+	multiple-cnames no;\n\
+#	named-xfer <obsolete>\n\
+#	pid-file \"" NS_LOCALSTATEDIR "/named.pid\"; /* or /lwresd.pid */\n\
+	port 53;\n\
 "
 #ifdef PATH_RANDOMDEV
-"
-	random-device \"" PATH_RANDOMDEV "\";
+"\
+	random-device \"" PATH_RANDOMDEV "\";\n\
 "
 #endif
-"
-	recursive-clients 1000;
-	rrset-order {order cyclic;};
-	serial-queries 20;
-	stacksize default;
-	statistics-file \"named.stats\";
-	statistics-interval 3600;
-	tcp-clients 100;
-#	tkey-dhkey <none>
-#	tkey-gssapi-credential <none>
-#	tkey-domain <none>
-	transfers-per-ns 2;
-	transfers-in 10;
-	transfers-out 10;
-	treat-cr-as-space true;
-	use-id-pool true;
-	use-ixfr true;
-	version \""VERSION"\";
-
-	/* view */
-	allow-notify {none;};
-	allow-update-forwarding {none;};
-	allow-recursion {any;};
-	allow-v6-synthesis {none;};
-#	sortlist <none>
-#	topology <none>
-	auth-nxdomain false;
-	recursion true;
-	provide-ixfr true;
-	request-ixfr true;
-	fetch-glue no;
-	rfc2308-type1 no;
-	additional-from-auth true;
-	additional-from-cache true;
-	query-source address *;
-	query-source-v6 address *;
-	notify-source *;
-	notify-source-v6 *;
-	cleaning-interval 3600;
-	min-roots 2;
-	lame-ttl 600;
-	max-ncache-ttl 10800; /* 3 hours */
-	max-cache-ttl 604800; /* 1 week */
-	transfer-format many-answers;
-	max-cache-size 0;
-	check-names master ignore;
-	check-names slave ignore;
-	check-names response ignore;
-
-	/* zone */
-	allow-query {any;};
-	allow-transfer {any;};
-	notify yes;
-#	also-notify <none>
-	dialup no;
-#	forward <none>
-#	forwarders <none>
-	maintain-ixfr-base no;
-#	max-ixfr-log-size <obsolete>
-	transfer-source *;
-	transfer-source-v6 *;
-	max-transfer-time-in 7200;
-	max-transfer-time-out 7200;
-	max-transfer-idle-in 3600;
-	max-transfer-idle-out 3600;
-	max-retry-time 1209600; /* 2 weeks */
-	min-retry-time 500;
-	max-refresh-time 2419200; /* 4 weeks */
-	min-refresh-time 300;
-	sig-validity-interval 30; /* days */
-	zone-statistics false;
+"\
+	recursive-clients 1000;\n\
+	rrset-order {order cyclic;};\n\
+	serial-queries 20;\n\
+	stacksize default;\n\
+	statistics-file \"named.stats\";\n\
+	statistics-interval 3600;\n\
+	tcp-clients 100;\n\
+#	tkey-dhkey <none>\n\
+#	tkey-gssapi-credential <none>\n\
+#	tkey-domain <none>\n\
+	transfers-per-ns 2;\n\
+	transfers-in 10;\n\
+	transfers-out 10;\n\
+	treat-cr-as-space true;\n\
+	use-id-pool true;\n\
+	use-ixfr true;\n\
+	version \""VERSION"\";\n\
+\n\
+	/* view */\n\
+	allow-notify {none;};\n\
+	allow-update-forwarding {none;};\n\
+	allow-recursion {any;};\n\
+	allow-v6-synthesis {none;};\n\
+#	sortlist <none>\n\
+#	topology <none>\n\
+	auth-nxdomain false;\n\
+	recursion true;\n\
+	provide-ixfr true;\n\
+	request-ixfr true;\n\
+	fetch-glue no;\n\
+	rfc2308-type1 no;\n\
+	additional-from-auth true;\n\
+	additional-from-cache true;\n\
+	query-source address *;\n\
+	query-source-v6 address *;\n\
+	notify-source *;\n\
+	notify-source-v6 *;\n\
+	cleaning-interval 3600;\n\
+	min-roots 2;\n\
+	lame-ttl 600;\n\
+	max-ncache-ttl 10800; /* 3 hours */\n\
+	max-cache-ttl 604800; /* 1 week */\n\
+	transfer-format many-answers;\n\
+	max-cache-size 0;\n\
+	check-names master ignore;\n\
+	check-names slave ignore;\n\
+	check-names response ignore;\n\
+\n\
+	/* zone */\n\
+	allow-query {any;};\n\
+	allow-transfer {any;};\n\
+	notify yes;\n\
+#	also-notify <none>\n\
+	dialup no;\n\
+#	forward <none>\n\
+#	forwarders <none>\n\
+	maintain-ixfr-base no;\n\
+#	max-ixfr-log-size <obsolete>\n\
+	transfer-source *;\n\
+	transfer-source-v6 *;\n\
+	max-transfer-time-in 7200;\n\
+	max-transfer-time-out 7200;\n\
+	max-transfer-idle-in 3600;\n\
+	max-transfer-idle-out 3600;\n\
+	max-retry-time 1209600; /* 2 weeks */\n\
+	min-retry-time 500;\n\
+	max-refresh-time 2419200; /* 4 weeks */\n\
+	min-refresh-time 300;\n\
+	sig-validity-interval 30; /* days */\n\
+	zone-statistics false;\n\
 };";
 
 isc_result_t
@@ -187,7 +187,7 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t *classp) {
 	return (dns_rdataclass_fromtext(classp, &r));
 }
 
-isc_result_t
+dns_zonetype_t
 ns_config_getzonetype(cfg_obj_t *zonetypeobj) {
 	dns_zonetype_t ztype = dns_zone_none;
 	char *str;
