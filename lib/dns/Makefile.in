@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.110 2000/11/15 00:36:35 gson Exp $
+# $Id: Makefile.in,v 1.111 2000/11/16 01:40:58 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -87,11 +87,6 @@ OPENSSLOBJS =	sec/openssl/a_bitstr.@O@ sec/openssl/a_bytes.@O@ \
 		sec/openssl/stack.@O@ sec/openssl/th-lock.@O@ \
 		sec/openssl/x_sig.@O@ sec/openssl/x_algor.@O@
 
-OTHEROBJS =	
-#ifndef NOMINUM_PUBLIC
-OTHEROBJS =	sdb.@O@
-#endif /* NOMINUM_PUBLIC */
-
 # Alphabetically
 OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
@@ -99,19 +94,14 @@ OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		forward.@O@ journal.@O@ keytable.@O@ lib.@O@ log.@O@ \
 		lookup.@O@ master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nxt.@O@ opt.@O@ peer.@O@ \
-		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
-		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ request.@O@ \
-		resolver.@O@ result.@O@ rootns.@O@ ssu.@O@ \
+		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rbtdbhash.@O@ rdata.@O@ \
+		rdatalist.@O@ rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ \
+		request.@O@ resolver.@O@ result.@O@ rootns.@O@ \
+		sdb.@O@ ssu.@O@ \
 		tcpmsg.@O@ time.@O@ tkey.@O@ \
 		tsig.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zt.@O@ \
-		${OTHEROBJS} ${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
-
-OTHERSRCS =	
-#ifndef NOMINUM_PUBLIC
-OTHERSRCS =	sdb.c
-#endif /* NOMINUM_PUBLIC */
-
+		${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
 
 # Alphabetically
 SRCS =		a6.c acl.c adb.c byaddr.c \
@@ -120,13 +110,13 @@ SRCS =		a6.c acl.c adb.c byaddr.c \
 		forward.c journal.c keytable.c lib.c log.c \
 		lookup.c master.c masterdump.c message.c \
 		name.c ncache.c nxt.c opt.c peer.c \
-		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
-		rdataset.c rdatasetiter.c rdataslab.c request.c \
-		resolver.c result.c rootns.c ssu.c \
+		rbt.c rbtdb.c rbtdb64.c rbtdbhash.c rdata.c \
+		rdatalist.c rdataset.c rdatasetiter.c rdataslab.c \
+		request.c resolver.c result.c rootns.c \
+		sdb.c ssu.c \
 		tcpmsg.c time.c tkey.c \
 		tsig.c ttl.c validator.c \
-		version.c view.c xfrin.c zone.c zt.c \
-		${OTHERSRCS}
+		version.c view.c xfrin.c zone.c zt.c
 
 SUBDIRS =	include sec config
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
