@@ -20,8 +20,6 @@ ensure exclusive access
 Check and revise algorithm for retransmitting w/o EDNS0
 (RT #124 "Cannot resolve heavy.etv.go.com")
 
-RT #222 "Documentation: "recursion no" in a view does not hide cache"
-
 RT #176 "Bind-9.0.0rc1 nit, but affects all other ISC source as well"
 
 Rewrite select ARM chapters, in particular:
