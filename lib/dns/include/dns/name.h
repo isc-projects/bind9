@@ -72,8 +72,7 @@
  *** Imports
  ***/
 
-#include <isc/boolean.h>
-#include <isc/buffer.h>
+#include <isc/types.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
