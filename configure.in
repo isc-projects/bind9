@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.30 $)
+AC_REVISION($Revision: 1.294.2.23.2.31 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -261,6 +261,23 @@ AC_TRY_COMPILE(, [
 
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE(ssize_t, int)
+AC_CHECK_TYPE(socklen_t,
+[AC_DEFINE(ISC_SOCKADDR_LEN_T, socklen_t)],
+[
+AC_TRY_COMPILE(
+[
+#include <sys/types.h>
+#include <sys/socket.h>
+int getsockname(int, struct sockaddr *, size_t *);
+],[],
+[AC_DEFINE(ISC_SOCKADDR_LEN_T, size_t)],
+[AC_DEFINE(ISC_SOCKADDR_LEN_T, int)])
+],
+[
+#include <sys/types.h>
+#include <sys/socket.h>
+])
+AC_SUBST(ISC_SOCKADDR_LEN_T)
 AC_HEADER_TIME
 AC_MSG_CHECKING(for long long)
 AC_TRY_COMPILE([],[long long i = 0; return (0);],

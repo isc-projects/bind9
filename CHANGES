@@ -13,6 +13,12 @@
 1733.	[bug]		Return non-zero exit status on initial load failure.
 			[RT #12658]
 
+1731.	[port]		darwin: relax version test in ifconfig.sh.
+			[RT #12581]
+
+1730.	[port]		Determine the length type used by the socket API.
+			[RT #12581]
+
 1726.	[port]		aix5: add support for aix5.
 
 1724.	[bug]		Look for DNSKEY records with "dig +sigtrace".
