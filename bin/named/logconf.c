@@ -79,7 +79,11 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 		type = ISC_LOG_TOFILE;
 		{
 			const char *path = NULL;
-			isc_uint32_t versions = ISC_LOG_ROLLNEVER; 
+			isc_int32_t versions = ISC_LOG_ROLLNEVER; 
+			/*
+			 * XXXDCL should be isc_offset_t, but that
+			 * is incompatible with dns_c_logchan_getsize.
+			 */
 			isc_uint32_t size = 0;
 			(void)dns_c_logchan_getpath(cchan, &path);
 			if (path == NULL) {
