@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.66 2000/07/20 19:32:57 bwelling Exp $ */
+/* $Id: result.c,v 1.67 2000/07/26 21:31:52 tale Exp $ */
 
 #include <config.h>
 
@@ -26,88 +26,103 @@
 #include <dns/lib.h>
 
 static const char *text[DNS_R_NRESULTS] = {
-	"label too long",			/*  0 */
-	"bad escape",				/*  1 */
-	"bad bitstring",			/*  2 */
-	"bitstring too long",			/*  3 */
-	"empty label",				/*  4 */
-	"bad dotted quad",			/*  5 */
-	"invalid NS owner name (wildcard)",	/*  6 */
-	"unknown class/type",			/*  7 */
-	"bad label type",			/*  8 */
-	"bad compression pointer",		/*  9 */
-	"too many hops",			/* 10 */
-	"disallowed (by application policy)",	/* 11 */
-	"extra input text",			/* 12 */
-	"extra input data",			/* 13 */
-	"text too long",			/* 14 */
-	"not at top of zone",			/* 15 */
-	"syntax error",				/* 16 */
-	"bad checksum",				/* 17 */
-	"bad IPv6 address",			/* 18 */
-	"no owner",				/* 19 */
-	"no ttl",				/* 20 */
-	"bad class",				/* 21 */
-	"name too long",			/* 22 */
-	"partial match",			/* 23 */
-	"new origin",				/* 24 */
-	"unchanged",				/* 25 */
-	"bad ttl",				/* 26 */
-	"more data needed/to be rendered",	/* 27 */
-	"continue",				/* 28 */
-	"delegation",				/* 29 */
-	"glue",					/* 30 */
-	"dname",				/* 31 */
-	"cname",				/* 32 */
-	"bad database",				/* 33 */
-	"zonecut",				/* 34 */
-	"bad zone",				/* 35 */
-	"more data",				/* 36 */
-	"up to date",				/* 37 */
-	"tsig verify failure",			/* 38 */
-	"tsig indicates error",			/* 39 */
-	"SIG failed to verify",			/* 40 */
-	"SIG has expired",			/* 41 */
-	"SIG validity period has not begun",	/* 42 */
-	"key is unauthorized to sign data",	/* 43 */
-	"invalid time",				/* 44 */
-	"expected a TSIG",			/* 45 */
-	"did not expect a TSIG",		/* 46 */
-	"TKEY is unacceptable",			/* 47 */
-	"hint",					/* 48 */
-	"drop",					/* 49 */
-	"zone not loaded",			/* 50 */
-	"ncache nxdomain",			/* 51 */
-	"ncache nxrrset",			/* 52 */
-	"wait",					/* 53 */
-	"not verified yet",			/* 54 */
-	"no identity",				/* 55 */
-	"no journal",				/* 56 */
-	"alias",				/* 57 */
-	"use TCP",				/* 58 */
-	"no valid SIG",				/* 59 */
-	"no valid NXT",				/* 60 */
-	"not insecure"				/* 61 */
+	"label too long",		       /*  0 DNS_R_LABELTOOLONG	     */
+	"bad escape",			       /*  1 DNS_R_BADESCAPE	     */
+	"bad bitstring",		       /*  2 DNS_R_BADBITSTRING	     */
+	"bitstring too long",		       /*  3 DNS_R_BITSTRINGTOOLONG  */
+	"empty label",			       /*  4 DNS_R_EMPTYLABEL	     */
+
+	"bad dotted quad",		       /*  5 DNS_R_BADDOTTEDQUAD     */
+	"invalid NS owner name (wildcard)",    /*  6 DNS_R_INVALIDNS	     */
+	"unknown class/type",		       /*  7 DNS_R_UNKNOWN	     */
+	"bad label type",		       /*  8 DNS_R_BADLABELTYPE	     */
+	"bad compression pointer",	       /*  9 DNS_R_BADPOINTER	     */
+
+	"too many hops",		       /* 10 DNS_R_TOOMANYHOPS	     */
+	"disallowed (by application policy)",  /* 11 DNS_R_DISALLOWED	     */
+	"extra input text",		       /* 12 DNS_R_EXTRATOKEN	     */
+	"extra input data",		       /* 13 DNS_R_EXTRADATA	     */
+	"text too long",		       /* 14 DNS_R_TEXTTOOLONG	     */
+
+	"not at top of zone",		       /* 15 DNS_R_NOTZONETOP	     */
+	"syntax error",			       /* 16 DNS_R_SYNTAX	     */
+	"bad checksum",			       /* 17 DNS_R_BADCKSUM	     */
+	"bad IPv6 address",		       /* 18 DNS_R_BADAAAA	     */
+	"no owner",			       /* 19 DNS_R_NOOWNER	     */
+
+	"no ttl",			       /* 20 DNS_R_NOTTL	     */
+	"bad class",			       /* 21 DNS_R_BADCLASS	     */
+	"name too long",		       /* 22 DNS_R_NAMETOOLONG	     */
+	"partial match",		       /* 23 DNS_R_PARTIALMATCH	     */
+	"new origin",			       /* 24 DNS_R_NEWORIGIN	     */
+
+	"unchanged",			       /* 25 DNS_R_UNCHANGED	     */
+	"bad ttl",			       /* 26 DNS_R_BADTTL	     */
+	"more data needed/to be rendered",     /* 27 DNS_R_NOREDATA	     */
+	"continue",			       /* 28 DNS_R_CONTINUE	     */
+	"delegation",			       /* 29 DNS_R_DELEGATION	     */
+
+	"glue",				       /* 30 DNS_R_GLUE		     */
+	"dname",			       /* 31 DNS_R_DNAME	     */
+	"cname",			       /* 32 DNS_R_CNAME	     */
+	"bad database",			       /* 33 DNS_R_BADDB	     */
+	"zonecut",			       /* 34 DNS_R_ZONECUT	     */
+
+	"bad zone",			       /* 35 DNS_R_BADZONE	     */
+	"more data",			       /* 36 DNS_R_MOREDATA	     */
+	"up to date",			       /* 37 DNS_R_UPTODATE	     */
+	"tsig verify failure",		       /* 38 DNS_R_TSIGVERIFYFAILURE */
+	"tsig indicates error",		       /* 39 DNS_R_TSIGERRORSET	     */
+
+	"SIG failed to verify",		       /* 40 DNS_R_SIGINVALID	     */
+	"SIG has expired",		       /* 41 DNS_R_SIGEXPIRED	     */
+	"SIG validity period has not begun",   /* 42 DNS_R_SIGFUTURE	     */
+	"key is unauthorized to sign data",    /* 43 DNS_R_KEYUNAUTHORIZED   */
+	"invalid time",			       /* 44 DNS_R_INVALIDTIME	     */
+
+	"expected a TSIG",		       /* 45 DNS_R_EXPECTEDTSIG	     */
+	"did not expect a TSIG",	       /* 46 DNS_R_UNEXPECTEDTSIG    */
+	"TKEY is unacceptable",		       /* 47 DNS_R_INVALIDTKEY	     */
+	"hint",				       /* 48 DNS_R_HINT		     */
+	"drop",				       /* 49 DNS_R_DROP		     */
+
+	"zone not loaded",		       /* 50 DNS_R_NOTLOADED	     */
+	"ncache nxdomain",		       /* 51 DNS_R_NCACHENXDOMAIN    */
+	"ncache nxrrset",		       /* 52 DNS_R_NCACHENXRRSET     */
+	"wait",				       /* 53 DNS_R_WAIT		     */
+	"not verified yet",		       /* 54 DNS_R_NOTVERIFIEDYET    */
+
+	"no identity",			       /* 55 DNS_R_NOIDENTITY	     */
+	"no journal",			       /* 56 DNS_R_NOJOURNAL	     */
+	"alias",			       /* 57 DNS_R_ALIAS	     */
+	"use TCP",			       /* 58 DNS_R_USETCP	     */
+	"no valid SIG",			       /* 59 DNS_R_NOVALIDSIG	     */
+
+	"no valid NXT",			       /* 60 DNS_R_NOVALIDNXT	     */
+	"not insecure"			       /* 61 DNS_R_NOTINSECURE	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
-	"NOERROR",				/* 0 */
-	"FORMERR",				/* 1 */
-	"SERVFAIL",				/* 2 */
-	"NXDOMAIN",				/* 3 */
-	"NOTIMP",				/* 4 */
-	"REFUSED",				/* 5 */
-	"YXDOMAIN",				/* 6 */
-	"YXRRSET",				/* 7 */
-	"NXRRSET",				/* 8 */
-	"NOTAUTH",				/* 9 */
-	"NOTZONE",				/* 10 */
-	"<rcode 11>",				/* 11 */
-	"<rcode 12>",				/* 12 */
-	"<rcode 13>",				/* 13 */
-	"<rcode 14>",				/* 14 */
-	"<rcode 15>",				/* 15 */
-	"BADVERS",				/* 16 */
+	"NOERROR",				/*  0 DNS_R_NOEROR	     */
+	"FORMERR",				/*  1 DNS_R_FORMERR	     */
+	"SERVFAIL",				/*  2 DNS_R_SERVFAIL	     */
+	"NXDOMAIN",				/*  3 DNS_R_NXDOMAIN	     */
+	"NOTIMP",				/*  4 DNS_R_NOTIMP	     */
+
+	"REFUSED",				/*  5 DNS_R_REFUSED	     */
+	"YXDOMAIN",				/*  6 DNS_R_YXDOMAIN	     */
+	"YXRRSET",				/*  7 DNS_R_YXRRSET	     */
+	"NXRRSET",				/*  8 DNS_R_NXRRSET	     */
+	"NOTAUTH",				/*  9 DNS_R_NOTAUTH	     */
+
+	"NOTZONE",				/* 10 DNS_R_NOTZONE 	     */
+	"<rcode 11>",				/* 11 has no macro	     */
+	"<rcode 12>",				/* 12 has no macro	     */
+	"<rcode 13>",				/* 13 has no macro	     */
+	"<rcode 14>",				/* 14 has no macro	     */
+
+	"<rcode 15>",				/* 15 has no macro	     */
+	"BADVERS",				/* 16 DNS_R_BADVERS	     */
 };
 
 #define DNS_RESULT_RESULTSET			2
