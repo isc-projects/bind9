@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.10 2001/11/14 06:34:24 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.11 2002/05/22 04:58:30 marka Exp $ -->
 
 <refentry>
 
@@ -313,6 +313,16 @@ completeness.
 <listitem><para>
 Set [do not set] the CD (checking disabled) bit in the query.  This
 requests the server to not perform DNSSEC validation of responses.
+</para></listitem></varlistentry>
+
+<varlistentry><term><option>+[no]cl</option></term>
+<listitem><para>
+Display [do not display] the CLASS when printing the record.
+</para></listitem></varlistentry>
+
+<varlistentry><term><option>+[no]ttlid</option></term>
+<listitem><para>
+Display [do not display] the TTL when printing the record.
 </para></listitem></varlistentry>
 
 <varlistentry><term><option>+[no]recursive</option></term>

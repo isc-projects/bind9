@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.176 2001/12/19 12:16:38 marka Exp $ */
+/* $Id: dig.c,v 1.177 2002/05/22 04:58:29 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -85,7 +85,7 @@ static char domainopt[DNS_NAME_MAXTEXT];
 
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	nibble = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
-	multiline = ISC_FALSE;
+	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -186,6 +186,7 @@ help(void) {
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
+"                 +[no]cl             (Control display of class in records)\n"
 "                 +[no]cmd            (Control display of command line)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]question       (Control display of question)\n"
@@ -195,6 +196,7 @@ help(void) {
 "                 +[no]stats          (Control display of statistics)\n"
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
+"                 +[no]ttlid          (Control display of ttls in records)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
 "                 +[no]qr             (Print question before sending)\n"
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
@@ -356,12 +358,33 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_messagetextflag_t flags;
 	isc_buffer_t *buf = NULL;
 	unsigned int len = OUTPUTBUF;
-	const dns_master_style_t *style;
+	dns_master_style_t *style = NULL;
+	unsigned int styleflags = 0;
 
-	if (multiline)
-		style = &dns_master_style_default;
-	else
-		style = &dns_master_style_debug;
+	styleflags |= DNS_STYLEFLAG_REL_OWNER;
+	if (nottl)
+		styleflags |= DNS_STYLEFLAG_NO_TTL;
+	if (noclass)
+		styleflags |= DNS_STYLEFLAG_NO_CLASS;
+	if (multiline) {
+		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
+		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
+		styleflags |= DNS_STYLEFLAG_REL_DATA;
+		styleflags |= DNS_STYLEFLAG_OMIT_TTL;
+		styleflags |= DNS_STYLEFLAG_TTL;
+		styleflags |= DNS_STYLEFLAG_MULTILINE;
+		styleflags |= DNS_STYLEFLAG_COMMENT;
+	}
+	if (multiline || (nottl && noclass))
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 24, 32, 80, 8, mctx);
+	else if (nottl || noclass)
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 32, 40, 80, 8, mctx);
+	else 
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 32, 40, 48, 80, 8, mctx);
+	check_result(result, "dns_master_stylecreate");
 
 	if (query->lookup->cmdline[0] != 0) {
 		if (!short_form)
@@ -438,7 +461,7 @@ buftoosmall:
 			if (result == ISC_R_SUCCESS)
 				goto repopulate_buffer;
 			else
-				return (result);
+				goto cleanup;
 		}
 		check_result(result,
 		     "dns_message_pseudosectiontotext");
@@ -516,6 +539,10 @@ buftoosmall:
 	printf("%.*s", (int)isc_buffer_usedlength(buf),
 	       (char *)isc_buffer_base(buf));
 	isc_buffer_free(&buf);
+
+cleanup:
+	if (style != NULL)
+		dns_master_styledestroy(&style, mctx);
 	return (result);
 }
 
@@ -718,6 +745,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		case 'd':/* cdflag */
 			FULLCHECK("cdflag");
 			lookup->cdflag = state;
+			break;
+		case 'l': /* cl */
+			FULLCHECK("cl");
+			noclass = !state;
 			break;
 		case 'm': /* cmd */
 			FULLCHECK("cmd");
@@ -923,6 +954,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			default:
 				goto invalid_option;
 			}
+			break;
+		case 't': /* ttlid */
+			FULLCHECK("ttlid");
+			nottl = !state;
 			break;
 		default:
 			goto invalid_option;
