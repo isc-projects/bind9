@@ -15,9 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: dbtable.c,v 1.3 1999/03/18 21:21:31 tale Exp $ */
+/*
+ * $Id: dbtable.c,v 1.4 1999/04/14 02:37:08 halley Exp $
+ */
 
-/* Principal Authors: DCL */
+/*
+ * Principal Author: DCL
+ */
 
 #include <config.h>
 
@@ -26,6 +30,7 @@
 #include "../isc/util.h"
 
 #include <dns/dbtable.h>
+#include <dns/db.h>
 #include <dns/rbt.h>
 
 struct dns_dbtable {
@@ -33,9 +38,10 @@ struct dns_dbtable {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
 	isc_rwlock_t		tree_lock;
-	dns_db_t *		default_db;
+	/* XXXRTH need reference count? */
 	/* Locked by tree_lock. */
 	dns_rbt_t *		rbt;
+	dns_db_t *		default_db;
 };
 
 #define DBTABLE_MAGIC		0x44422D2DU /* DB--. */
@@ -71,6 +77,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_dbtable_t **dbtablep) {
 		return (DNS_R_UNEXPECTED);
 	}
 
+	dbtable->default_db = NULL;
 	dbtable->mctx = mctx;
 	dbtable->magic = DBTABLE_MAGIC;
 
@@ -82,16 +89,21 @@ dns_dbtable_create(isc_mem_t *mctx, dns_dbtable_t **dbtablep) {
 void
 dns_dbtable_destroy(dns_dbtable_t **dbtablep) {
 	dns_dbtable_t *dbtable;
-	isc_rwlocktype_t locktype = isc_rwlocktype_write;
 
 	REQUIRE(dbtablep != NULL);
 	REQUIRE(VALID_DBTABLE(*dbtablep));
 
 	dbtable = *dbtablep;
 
-	RWLOCK(&dbtable->tree_lock, locktype);
+	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
+
+	if (dbtable->default_db != NULL)
+		dns_db_detach(&dbtable->default_db);
+
+	/* XXXRTH Need to detach from all db entries. */
 	dns_rbt_destroy(&dbtable->rbt);
-	RWUNLOCK(&dbtable->tree_lock, locktype);
+
+	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 
 	isc_rwlock_destroy(&dbtable->tree_lock);
 
@@ -103,28 +115,32 @@ dns_dbtable_destroy(dns_dbtable_t **dbtablep) {
 }
 
 dns_result_t
-dns_dbtable_add(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t *db) {
+dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db) {
 	dns_result_t result;
-	isc_rwlocktype_t locktype = isc_rwlocktype_write;
+	dns_db_t *clone;
 
 	REQUIRE(VALID_DBTABLE(dbtable));
 
-	RWLOCK(&dbtable->tree_lock, locktype);
-	result = dns_rbt_addname(dbtable->rbt, name, db);
-	RWUNLOCK(&dbtable->tree_lock, locktype);
+	clone = NULL;
+	dns_db_attach(db, &clone);
+
+	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
+	result = dns_rbt_addname(dbtable->rbt, dns_db_origin(clone), clone);
+	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 
 	return (result);
-
 }
 
 void
-dns_dbtable_remove(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t *db) {
-	dns_db_t *stored_data;
+dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
+	dns_db_t *stored_data = NULL;
 	isc_result_t result;
-	isc_rwlocktype_t locktype = isc_rwlocktype_write;
+	dns_name_t *name;
 
 	REQUIRE(VALID_DBTABLE(dbtable));
 	
+	name = dns_db_origin(db);
+
 	/*
 	 * There is a requirement that the association of name with db
 	 * be verified.  With the current rbt.c this is expensive to do,
@@ -132,65 +148,80 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t *db) {
 	 * deletion is relatively infrequent.
 	 */
 
+	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
+
 	result = dns_rbt_findname(dbtable->rbt, name, NULL,
-				  (void *)&stored_data);
+				  (void **)&stored_data);
 	if (result != DNS_R_SUCCESS)
-		return;
+		goto remove_exit;
 
-        REQUIRE(stored_data == db);
+        INSIST(stored_data == db);
+	dns_db_detach(&stored_data);
 
-	/*
-	 * This test seems redundant, but is necessary to shup up a warning
-	 * about a variable set but not used, if REQUIRE() is turned off.
-	 */
+	dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
 
-	if (db == stored_data) {
-		RWLOCK(&dbtable->tree_lock, locktype);
-		dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
-		RWUNLOCK(&dbtable->tree_lock, locktype);
-	}
+ remove_exit:
+	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 }
 
 void
 dns_dbtable_adddefault(dns_dbtable_t *dbtable, dns_db_t *db) {
 	REQUIRE(VALID_DBTABLE(dbtable));
+	REQUIRE(dbtable->default_db == NULL);
+	REQUIRE(dns_name_compare(dns_db_origin(db), dns_rootname) == 0);
 
-	dbtable->default_db = db;
-}
-
-void
-dns_dbtable_getdefault(dns_dbtable_t *dbtable, dns_db_t **db) {
-	REQUIRE(VALID_DBTABLE(dbtable));
-	REQUIRE(db != NULL && *db == NULL);
-
-	*db = dbtable->default_db;
-}
-
-void
-dns_dbtable_removedefault(dns_dbtable_t *dbtable, dns_db_t *db) {
-	REQUIRE(VALID_DBTABLE(dbtable));
-	REQUIRE(db == dbtable->default_db);
+	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 
 	dbtable->default_db = NULL;
+	dns_db_attach(db, &dbtable->default_db);
+
+	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
+}
+
+void
+dns_dbtable_getdefault(dns_dbtable_t *dbtable, dns_db_t **dbp) {
+	REQUIRE(VALID_DBTABLE(dbtable));
+	REQUIRE(dbp != NULL && *dbp == NULL);
+
+	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
+
+	dns_db_attach(dbtable->default_db, dbp);
+
+	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
+}
+
+void
+dns_dbtable_removedefault(dns_dbtable_t *dbtable) {
+	REQUIRE(VALID_DBTABLE(dbtable));
+
+	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
+
+	dns_db_detach(&dbtable->default_db);
+
+	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 }
 
 dns_result_t
 dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp) {
-	dns_db_t *stored_data;
+	dns_db_t *stored_data = NULL;
 	dns_result_t result;
-	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
-	RWLOCK(&dbtable->tree_lock, locktype);
+	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
+
 	result = dns_rbt_findname(dbtable->rbt, name, NULL,
-				  (void *)&stored_data);
-	RWUNLOCK(&dbtable->tree_lock, locktype);
+				  (void **)&stored_data);
 
 	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		*dbp = stored_data;
-	else
-		*dbp = dbtable->default_db;
+		dns_db_attach(stored_data, dbp);
+	else if (dbtable->default_db != NULL) {
+		dns_db_attach(dbtable->default_db, dbp);
+		result = DNS_R_PARTIALMATCH;
+	} else
+		result = DNS_R_NOTFOUND;
+
+	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
 
 	return (result);
 }
