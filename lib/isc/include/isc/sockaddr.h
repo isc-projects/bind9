@@ -76,11 +76,12 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
 /*
  * Append a text representation of 'sockaddr' to the buffer 'target'.
  * The text will include both the IP address (v4 or v6) and the port.
- * The text is not null terminated.
+ * The text is null terminated, but the terminating null is not
+ * part of the buffer's used region.
  *
  * Returns:
  *	ISC_R_SUCCESS
- *	ISC_R_NOSPACE	The text did not fit.
+ *	ISC_R_NOSPACE	The text or the null termination did not fit.
  */
 
 ISC_LANG_ENDDECLS
