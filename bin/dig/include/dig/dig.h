@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.1 2001/10/04 22:03:42 gson Exp $ */
+/* $Id: dig.h,v 1.71.2.2 2001/10/04 22:21:45 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -193,7 +193,7 @@ void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
 
 isc_result_t
-get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble);
+get_reverse(char *reverse, char *value, isc_boolean_t nibble);
 
 void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
