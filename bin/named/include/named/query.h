@@ -28,14 +28,17 @@
 struct ns_query {
 	unsigned int			attributes;
 	dns_name_t *			qname;
+	dns_name_t *			origqname;
 	unsigned int			dboptions;
 	ISC_LIST(isc_dynbuffer_t)	namebufs;
+	ISC_LIST(dns_name_t)		tmpnames;
+	ISC_LIST(dns_rdataset_t)	tmprdatasets;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x01
 #define NS_QUERYATTR_CACHEOK		0x02
 #define NS_QUERYATTR_PARTIALANSWER	0x04
-#define NS_QUERYATTR_ALIASCHAIN		0x08
+#define NS_QUERYATTR_NAMEBUFUSED	0x08
 
 isc_result_t
 ns_query_init(ns_client_t *client);
