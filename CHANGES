@@ -1,3 +1,6 @@
+1257.	[bug]		--enable-libbind would fail when not built in the
+			source tree for certian OS's.
+
 1256.	[security]	Support patches OpenSSL libraries.
 			http://www.cert.org/advisories/CA-2002-23.html
 
