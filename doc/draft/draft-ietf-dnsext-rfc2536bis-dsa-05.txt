@@ -1,13 +1,14 @@
 
+
 INTERNET-DRAFT                                DSA Information in the DNS
 OBSOLETES: RFC 2536                               Donald E. Eastlake 3rd
                                                    Motorola Laboratories
-Expires: February 2005                                       August 2004
+Expires: September 2005                                       March 2005
 
 
             DSA Keying and Signature Information in the DNS
             --- ------ --- --------- ----------- -- --- ---
-               <draft-ietf-dnsext-rfc2536bis-dsa-04.txt>
+               <draft-ietf-dnsext-rfc2536bis-dsa-05.txt>
                          Donald E. Eastlake 3rd
 
 
@@ -48,7 +49,8 @@ Abstract
 
 Copyright Notice
 
-   Copyright (C) The Internet Society 2004. All Rights Reserved.
+   Copyright (C) The Internet Society 2005. All Rights Reserved.
+
 
 
 
@@ -136,12 +138,12 @@ INTERNET-DRAFT                                DSA Information in the DNS
 2. DSA Keying Information
 
    When DSA public keys are stored in the DNS, the structure of the
-   relevant part of the RDATA part of the RR being used is as shown
-   below.
+   relevant part of the RDATA part of the RR being used is the fields
+   listed below in the order given.
 
    The period of key validity is not included in this data but is
-   indicated separately, for example by an RR which signs and
-   authenticates the RR containing the keying information.
+   indicated separately, for example by an RR such as RRSIG which signs
+   and authenticates the RR containing the keying information.
 
         Field     Size
         -----     ----
@@ -155,10 +157,10 @@ INTERNET-DRAFT                                DSA Information in the DNS
    parameter chosen such that 0 <= T <= 8.  (The meaning if the T octet
    is greater than 8 is reserved and the remainder of the data may have
    a different format in that case.)  Q is a prime number selected at
-   key generation time such that 2**159 < Q < 2**160 so Q is always 20
-   octets long and, as with all other fields, is stored in "big-endian"
-   network order.  P, G, and Y are calculated as directed by the [FIPS
-   186-2] key generation algorithm [Schneier].  P is in the range
+   key generation time such that 2**159 < Q < 2**160. Thus Q is always
+   20 octets long and, as with all other fields, is stored in "big-
+   endian" network order.  P, G, and Y are calculated as directed by the
+   [FIPS 186-2] key generation algorithm [Schneier].  P is in the range
    2**(511+64T) < P < 2**(512+64T) and thus is 64 + 8*T octets long.  G
    and Y are quantities modulo P and so can be up to the same length as
    P and are allocated fixed size fields with the same number of octets
@@ -183,7 +185,8 @@ INTERNET-DRAFT                                DSA Information in the DNS
 
    The portion of the RDATA area used for US Digital Signature Algorithm
    signature information is shown below with fields in the order they
-   occur.
+   are listed and the contents of each multi-octet field in "big-endian"
+   network order.
 
         Field     Size
         -----     ----
@@ -191,8 +194,8 @@ INTERNET-DRAFT                                DSA Information in the DNS
          R        20 octets
          S        20 octets
 
-   The data signed must be determined.  Then the following steps are
-   taken, as specified in [FIPS 186-2], where Q, P, G, and Y are as
+   First, the data signed must be determined.  Then the following steps
+   are taken, as specified in [FIPS 186-2], where Q, P, G, and Y are as
    specified in the public key [Schneier]:
 
         hash = SHA-1 ( data )
@@ -203,7 +206,7 @@ INTERNET-DRAFT                                DSA Information in the DNS
 
         S = ( K**(-1) * (hash + X*R) ) mod Q
 
-   For infromation on the SHA-1 hash function see [FIPS 180-1] and [RFC
+   For information on the SHA-1 hash function see [FIPS 180-1] and [RFC
    3174].
 
    Since Q is 160 bits long, R and S can not be larger than 20 octets,
@@ -224,7 +227,6 @@ INTERNET-DRAFT                                DSA Information in the DNS
    However, signature verification is an order of magnitude slower than
    RSA when the RSA public exponent is chosen to be small, as is
    recommended for some applications.
-
 
 
 D. Eastlake 3rd                                                 [Page 4]
@@ -259,7 +261,7 @@ INTERNET-DRAFT                                DSA Information in the DNS
    available algorithms and key sizes.
 
    DSA assumes the ability to frequently generate high quality random
-   numbers.  See [RFC 1750] for guidance.  DSA is designed so that if
+   numbers.  See [random] for guidance.  DSA is designed so that if
    biased rather than random numbers are used, high bandwidth covert
    channels are possible.  See [Schneier] and more recent research.  The
    leakage of an entire DSA private key in only two DSA signatures has
@@ -280,7 +282,7 @@ INTERNET-DRAFT                                DSA Information in the DNS
 
 Copyright and Disclaimer
 
-   Copyright (C) The Internet Society 2004.  This document is subject to
+   Copyright (C) The Internet Society 2005.  This document is subject to
    the rights, licenses and restrictions contained in BCP 78 and except
    as set forth therein, the authors retain all their rights.
 
@@ -365,14 +367,15 @@ Normative References
 
 Informative References
 
+   [random] - "Randomness Recommendations for Security", D. Eastlake, S.
+   Crocker, J. Schiller, work in progress, draft-eastlake-
+   randomness2-*.txt currently in RFC Editor's queue.
+
    [RFC 1034] - "Domain names - concepts and facilities", P.
    Mockapetris, 11/01/1987.
 
    [RFC 1035] - "Domain names - implementation and specification", P.
    Mockapetris, 11/01/1987.
-
-   [RFC 1750] - "Randomness Recommendations for Security", D. Eastlake,
-   S. Crocker, J. Schiller, December 1994.
 
    [RFC intro] - "DNS Security Introduction and Requirements", R.
    Arends, M. Larson, R. Austein, D. Massey, S. Rose, work in progress,
@@ -400,7 +403,6 @@ Informative References
 
 
 
-
 D. Eastlake 3rd                                                 [Page 7]
 
 
@@ -415,16 +417,16 @@ Authors Address
    Milford, MA 01757 USA
 
    Telephone:   +1-508-786-7554(w)
-                +1-508-634-2066(h)
    EMail:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires in February 2005.
+   This draft expires in September 2005.
 
-   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-04.txt.
+   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-05.txt.
+
 
 
 

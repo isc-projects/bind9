@@ -1,16 +1,15 @@
 
-
 INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 OBSOLETES: RFC 2539                               Donald E. Eastlake 3rd
                                                    Motorola Laboratories
-Expires: February 2005                                       August 2004
+Expires: September 2005                                       March 2005
 
 
 
 
         Storage of Diffie-Hellman Keying Information in the DNS
         ------- -- -------------- ------ ----------- -- --- ---
-               <draft-ietf-dnsext-rfc2539bis-dhk-04.txt>
+               <draft-ietf-dnsext-rfc2539bis-dhk-05.txt>
 
 
 
@@ -51,7 +50,7 @@ Abstract
 
 Copyright
 
-   Copyright (C) The Internet Society 2004.
+   Copyright (C) The Internet Society 2005.
 
 
 
@@ -187,8 +186,8 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    they are encoded as shown below.
 
    The period of key validity is not included in this data but is
-   indicated separately, for example by an RR which signs and
-   authenticates the RR containing the keying information.
+   indicated separately, for example by an RR such as RRSIG which signs
+   and authenticates the RR containing the keying information.
 
                             1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -206,9 +205,9 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
        /  public value (g^i mod p)    (variable length)                |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-   Prime length is length of the Diffie-Hellman prime (p) in bytes if it
-   is 16 or greater.  Prime contains the binary representation of the
-   Diffie-Hellman prime with most significant byte first (i.e., in
+   Prime length is the length of the Diffie-Hellman prime (p) in bytes
+   if it is 16 or greater.  Prime contains the binary representation of
+   the Diffie-Hellman prime with most significant byte first (i.e., in
    network order). If "prime length" field is 1 or 2, then the "prime"
    field is actually an unsigned index into a table of 65,536
    prime/generator pairs and the generator length SHOULD be zero.  See
@@ -240,8 +239,8 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    Current DNS implementations are optimized for small transfers,
    typically less than 512 bytes including DNS overhead.  Larger
    transfers will perform correctly and extensions have been
-   standardized [RFC 2671] to make larger transfers more efficient, it
-   is still advisable at this time to make reasonable efforts to
+   standardized [RFC 2671] to make larger transfers more efficient. But
+   it is still advisable at this time to make reasonable efforts to
    minimize the size of RR sets containing keying information consistent
    with adequate security.
 
@@ -255,11 +254,12 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    Well known prime/generator pairs number 0x0000 through 0x07FF can
    only be assigned by an IETF standards action. [RFC 2539], the
    Proposed Standard predecessor of this document, assigned 0x0001
-   through 0x0002. This document assigns 0x0003.  Pairs number 0s0800
-   through 0xBFFF can be assigned based on RFC documentation.  Pairs
-   number 0xC000 through 0xFFFF are available for private use and are
-   not centrally coordinated. Use of such private pairs outside of a
-   closed environment may result in conflicts and/or security failures.
+   through 0x0002. This document additionally assigns 0x0003.  Pairs
+   number 0s0800 through 0xBFFF can be assigned based on RFC
+   documentation. Pairs number 0xC000 through 0xFFFF are available for
+   private use and are not centrally coordinated. Use of such private
+   pairs outside of a closed environment may result in conflicts and/or
+   security failures.
 
 
 
@@ -275,16 +275,15 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
    In addition, the usual Diffie-Hellman key strength considerations
    apply. (p-1)/2 should also be prime, g should be primitive mod p, p
-   should be "large", etc.  [RFC 2631, Schneier]
+   should be "large", etc. See [RFC 2631, Schneier].
 
 
 
 Copyright and Disclaimer
 
-   Copyright (C) The Internet Society 2004.  This document is subject to
+   Copyright (C) The Internet Society 2005.  This document is subject to
    the rights, licenses and restrictions contained in BCP 78 and except
    as set forth therein, the authors retain all their rights.
-
 
 
 D. Eastlake 3rd                                                 [Page 5]
@@ -400,7 +399,7 @@ Author Address
    155 Beaver Street
    Milford, MA 01757 USA
 
-   Telephone:   +1-508-786-7554 (w)
+   Telephone:   +1-508-786-7554
 
 
 D. Eastlake 3rd                                                 [Page 7]
@@ -409,16 +408,16 @@ D. Eastlake 3rd                                                 [Page 7]
 INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
-                +1-508-634-2066 (h)
    EMail:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires in February 2005.
+   This draft expires in September 2005.
 
-   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-04.txt.
+   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-05.txt.
+
 
 
 
@@ -470,7 +469,8 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 Appendix A: Well known prime/generator pairs
 
    These numbers are copied from the IPSEC effort where the derivation of
-   these values is more fully explained and additional information is available.
+   these values is more fully explained and additional information is
+   available.
    Richard Schroeppel performed all the mathematical and computational
    work for this appendix.
 
@@ -515,7 +515,6 @@ A.2. Well-Known Group 2:  A 1024 bit prime
             FFFFFFFF FFFFFFFF
 
    Generator: Length (32 bit words): 1, Data (hex): 2
-
 
 
 
