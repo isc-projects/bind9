@@ -1263,7 +1263,7 @@
 			the distribution, in doc/man/dnssec.
 
  353.	[bug]		double increment in lwres/gethost.c:copytobuf().
-			(RT# 187)
+			[RT# 187]
 
  352.	[bug]		Race condition in dns_client_t startup could cause
 			an assertion failure.
@@ -1342,7 +1342,7 @@
 
  332.	[func]		New function dns_name_reset().
 
- 331.	[bug]		Only log "recursion denied" if RD is set. (RT #178)
+ 331.	[bug]		Only log "recursion denied" if RD is set. [RT #178]
 
  330.	[bug]		Many debugging messages were partially formatted
 			even when debugging was turned off, causing a
@@ -1406,7 +1406,7 @@
  316.	[bug]		Generate a warning if we detect an unexpected <eof>
 			but treat as <eol><eof>.
 
- 315.	[bug]		Handle non-empty blanks lines. (RT #163)
+ 315.	[bug]		Handle non-empty blanks lines. [RT #163]
 
  314.	[func]		The named.conf controls statement can now have
 			more than one key specified for the inet clause.
@@ -1444,7 +1444,7 @@
 			name server addresses as authoritative data.
 
  308.	[bug]		Treat a SOA record not at top of zone as an error
-			when loading a zone. (RT #154)
+			when loading a zone. [RT #154]
 
  307.	[bug]		When canceling a query, the resolver didn't check for
 			isc_socket_sendto() calls that did not yet have their
@@ -1452,7 +1452,7 @@
 			destroying the query context and then want to use
 			it again when the send event posted, triggering an
 			assertion as it tried to cancel an already-canceled
-			query.	(RT #77)
+			query.	[RT #77]
 
  306.	[bug]		Reading HMAC-MD5 private key files didn't work.
 
@@ -1468,13 +1468,13 @@
 			instead of returning failure.
 
  303.	[bug]		Add additional sanity checks to differentiate a AXFR
-			response vs a IXFR response. (RT #157)
+			response vs a IXFR response. [RT #157]
 
  302.	[bug]		In dig, host, and nslookup, MXNAME should be large
 			enough to hold any legal domain name in presentation
 			format + terminating NULL.
 
- 301.	[bug]		Uninitalised pointer in host:printmessage(). (RT #159)
+ 301.	[bug]		Uninitalised pointer in host:printmessage(). [RT #159]
 
  300.	[bug]		Using both <isc/net.h> and <lwres/net.h> didn't work
 			on platforms lacking IPv6 because each included their
@@ -1647,7 +1647,7 @@
  257.	[bug]		The server detached the last zone manager reference
 			too early, while it could still be in use by queries.
 			This manifested itself as assertion failures during the
-			shutdown process for busy name servers (RT #133).
+			shutdown process for busy name servers [RT #133].
 
  256.	[func]		isc_ratelimiter_t now has attach/detach semantics, and
 			isc_ratelimiter_shutdown guarantees that the rate
