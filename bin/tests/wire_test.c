@@ -171,9 +171,6 @@ main(int argc, char *argv[]) {
 	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL, 0);
 	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL) failed");
 
-	result = dns_message_rendersection(message, DNS_SECTION_TSIG, 0);
-	CHECKRESULT(result, "dns_message_rendersection(TSIG) failed");
-
 	dns_message_renderend(message);
 
 	message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
