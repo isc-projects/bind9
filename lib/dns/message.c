@@ -1441,9 +1441,40 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space)
 	return (DNS_R_SUCCESS);
 }
 
+static inline isc_boolean_t
+wrong_priority(dns_rdataset_t *rds, int pass)
+{
+	int pass_needed;
+
+	/*
+	 * If we are not rendering class IN, this ordering is bogus.
+	 */
+	if (rds->rdclass != dns_rdataclass_in)
+		return (ISC_FALSE);
+
+	switch (rds->type) {
+	case dns_rdatatype_a:
+	case dns_rdatatype_aaaa:
+	case dns_rdatatype_a6:
+		pass_needed = 3;
+		break;
+	case dns_rdatatype_sig:
+	case dns_rdatatype_key:
+		pass_needed = 2;
+		break;
+	default:
+		pass_needed = 1;
+	}
+
+	if (pass_needed >= pass)
+		return (ISC_FALSE);
+
+	return (ISC_TRUE);
+}
+
 dns_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
-			  unsigned int priority, unsigned int options)
+			  unsigned int options)
 {
 	dns_namelist_t *section;
 	dns_name_t *name, *next_name;
@@ -1451,9 +1482,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	unsigned int count, total;
 	dns_result_t result;
 	isc_buffer_t st; /* for rollbacks */
-
-	(void)priority; /* XXXMLG implement */
-	(void)options;  /* XXXMLG implement */
+	int pass;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->buffer != NULL);
@@ -1461,9 +1490,11 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 	section = &msg->sections[sectionid];
 
-	name = ISC_LIST_HEAD(*section);
-	if (name == NULL)
-		return (DNS_R_SUCCESS);
+	if ((sectionid == DNS_SECTION_ADDITIONAL)
+	    && (options & DNS_MESSAGERENDER_ORDERED) == 0)
+		pass = 3;
+	else
+		pass = 1;
 
 	/*
 	 * Shrink the space in the buffer by the reserved amount.
@@ -1471,66 +1502,77 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	msg->buffer->length -= msg->reserved;
 
 	total = 0;
-	while (name != NULL) {
-		next_name = ISC_LIST_NEXT(name, link);
 
-		rdataset = ISC_LIST_HEAD(name->list);
-		while (rdataset != NULL) {
-			next_rdataset = ISC_LIST_NEXT(rdataset, link);
+	do {
+		name = ISC_LIST_HEAD(*section);
+		if (name == NULL)
+			return (DNS_R_SUCCESS);
 
-			if (rdataset->attributes & DNS_RDATASETATTR_RENDERED) {
+		while (name != NULL) {
+			next_name = ISC_LIST_NEXT(name, link);
+
+			rdataset = ISC_LIST_HEAD(name->list);
+			while (rdataset != NULL) {
+				next_rdataset = ISC_LIST_NEXT(rdataset, link);
+
+				if (rdataset->attributes & DNS_RDATASETATTR_RENDERED)
+					goto next;
+
+				if (((options & DNS_MESSAGERENDER_ORDERED) == 0)
+				    && (sectionid == DNS_SECTION_ADDITIONAL)
+				    && wrong_priority(rdataset, pass))
+					goto next;
+
+				st = *(msg->buffer);
+
+				count = 0;
+				result = dns_rdataset_towire(rdataset, name,
+							     &msg->cctx,
+							     msg->buffer, &count);
+
+				total += count;
+
+				/*
+				 * If out of space, record stats on what we rendered
+				 * so far, and return that status.
+				 *
+				 * XXXMLG Need to change this when
+				 * dns_rdataset_towire() can render partial
+				 * sets starting at some arbitary point in the set.
+				 * This will include setting a bit in the
+				 * rdataset to indicate that a partial rendering
+				 * was done, and some state saved somewhere
+				 * (probably in the message struct)
+				 * to indicate where to continue from.
+				 */
+				if (result != DNS_R_SUCCESS) {
+					INSIST(st.used < 65536);
+					dns_compress_rollback(&msg->cctx,
+							      (isc_uint16_t)st.used);
+					*(msg->buffer) = st;  /* rollback */
+					msg->buffer->length += msg->reserved;
+					msg->counts[sectionid] += total;
+					return (result);
+				}
+
+				/*
+				 * If we have rendered pending data, ensure that the
+				 * AD bit is not set.
+				 */
+				if (rdataset->trust == dns_trust_pending &&
+				    (sectionid == DNS_SECTION_ANSWER ||
+				     sectionid == DNS_SECTION_AUTHORITY))
+					msg->flags &= ~DNS_MESSAGEFLAG_AD;
+
+				rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+
+			next:
 				rdataset = next_rdataset;
-				continue;
 			}
 
-			st = *(msg->buffer);
-
-			count = 0;
-			result = dns_rdataset_towire(rdataset, name,
-						     &msg->cctx,
-						     msg->buffer, &count);
-
-			total += count;
-
-			/*
-			 * If out of space, record stats on what we rendered
-			 * so far, and return that status.
-			 *
-			 * XXXMLG Need to change this when
-			 * dns_rdataset_towire() can render partial
-			 * sets starting at some arbitary point in the set.
-			 * This will include setting a bit in the
-			 * rdataset to indicate that a partial rendering
-			 * was done, and some state saved somewhere
-			 * (probably in the message struct)
-			 * to indicate where to continue from.
-			 */
-			if (result != DNS_R_SUCCESS) {
-				INSIST(st.used < 65536);
-				dns_compress_rollback(&msg->cctx,
-						      (isc_uint16_t)st.used);
-				*(msg->buffer) = st;  /* rollback */
-				msg->buffer->length += msg->reserved;
-				msg->counts[sectionid] += total;
-				return (result);
-			}
-
-			/*
-			 * If we have rendered pending data, ensure that the
-			 * AD bit is not set.
-			 */
-			if (rdataset->trust == dns_trust_pending &&
-			    (sectionid == DNS_SECTION_ANSWER ||
-			     sectionid == DNS_SECTION_AUTHORITY))
-				msg->flags &= ~DNS_MESSAGEFLAG_AD;
-
-			rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
-
-			rdataset = next_rdataset;
+			name = next_name;
 		}
-
-		name = next_name;
-	}
+	} while (--pass != 0);
 
 	msg->buffer->length += msg->reserved;
 	msg->counts[sectionid] += total;
@@ -1622,7 +1664,7 @@ dns_message_renderend(dns_message_t *msg)
 		result = dns_tsig_sign(msg);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-		result = dns_message_rendersection(msg, DNS_SECTION_TSIG, 0, 0);
+		result = dns_message_rendersection(msg, DNS_SECTION_TSIG, 0);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
@@ -1631,7 +1673,7 @@ dns_message_renderend(dns_message_t *msg)
 		result = dns_dnssec_signmessage(msg, msg->sig0key);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-		result = dns_message_rendersection(msg, DNS_SECTION_SIG0, 0, 0);
+		result = dns_message_rendersection(msg, DNS_SECTION_SIG0, 0);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}

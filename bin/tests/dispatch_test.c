@@ -188,16 +188,16 @@ start_response(clictx_t *cli, char *query, isc_task_t *task)
 
 	cli->rdataset.attributes |= DNS_RDATASETATTR_QUESTION;
 
-	result = dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0);
 	CHECKRESULT(result, "dns_message_rendersection(QUESTION)");
 
-	result = dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0);
 	CHECKRESULT(result, "dns_message_rendersection(ANSWER)");
 
-	result = dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0);
 	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL)");
 
-	result = dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0);
 	CHECKRESULT(result, "dns_message_rendersection(AUTHORITY)");
 
 	printf("--- adding response\n");

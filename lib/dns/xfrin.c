@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.33 1999/12/13 07:57:36 marka Exp $ */
+ /* $Id: xfrin.c,v 1.34 1999/12/22 03:22:59 explorer Exp $ */
 
 #include <config.h>
 
@@ -690,11 +690,11 @@ static dns_result_t
 render(dns_message_t *msg, isc_buffer_t *buf) {
 	dns_result_t result;
 	CHECK(dns_message_renderbegin(msg, buf));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0, 0));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0, 0));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0, 0));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0, 0));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_TSIG, 0, 0));
+	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
+	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
+	CHECK(dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0));
+	CHECK(dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0));
+	CHECK(dns_message_rendersection(msg, DNS_SECTION_TSIG, 0));
 	CHECK(dns_message_renderend(msg));
 	result = DNS_R_SUCCESS;
  failure:

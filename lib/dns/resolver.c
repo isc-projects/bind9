@@ -750,7 +750,7 @@ resquery_send(resquery_t *query) {
 		goto cleanup_message;
 
 	result = dns_message_rendersection(fctx->qmessage,
-					   DNS_SECTION_QUESTION, 0, 0);
+					   DNS_SECTION_QUESTION, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 
@@ -785,7 +785,7 @@ resquery_send(resquery_t *query) {
 	 */
 
 	result = dns_message_rendersection(fctx->qmessage,
-					   DNS_SECTION_ADDITIONAL, 0, 0);
+					   DNS_SECTION_ADDITIONAL, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 

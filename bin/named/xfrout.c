@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.31 1999/12/21 00:33:17 marka Exp $ */
+ /* $Id: xfrout.c,v 1.32 1999/12/22 03:22:56 explorer Exp $ */
 
 #include <config.h>
 
@@ -1281,10 +1281,8 @@ sendstream(xfrout_ctx_t *xfr)
 
 	if ((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0) {
 		CHECK(dns_message_renderbegin(msg, &xfr->txbuf));
-		CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION,
-						0, 0));
-		CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER,
-						0, 0));
+		CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
+		CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
 		CHECK(dns_message_renderend(msg));
 		
 		isc_buffer_used(&xfr->txbuf, &used);

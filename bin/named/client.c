@@ -323,11 +323,11 @@ ns_client_send(ns_client_t *client) {
 		client->opt = NULL;
 	}
 	result = dns_message_rendersection(client->message,
-					   DNS_SECTION_QUESTION, 0, 0);
+					   DNS_SECTION_QUESTION, 0);
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
-					   DNS_SECTION_ANSWER, 0, 0);
+					   DNS_SECTION_ANSWER, 0);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;
@@ -335,7 +335,7 @@ ns_client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
-					   DNS_SECTION_AUTHORITY, 0, 0);
+					   DNS_SECTION_AUTHORITY, 0);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;
@@ -343,7 +343,7 @@ ns_client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
-					   DNS_SECTION_ADDITIONAL, 0, 0);
+					   DNS_SECTION_ADDITIONAL, 0);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 		goto done;
  renderend:

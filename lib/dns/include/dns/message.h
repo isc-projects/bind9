@@ -138,6 +138,11 @@ typedef int dns_section_t;
 #define DNS_MESSAGE_INTENTPARSE		1 /* parsing messages */
 #define DNS_MESSAGE_INTENTRENDER	2 /* rendering */
 
+/*
+ * Control behavior of rendering
+ */
+#define DNS_MESSAGERENDER_ORDERED	0x0001	/* don't change order */
+
 typedef struct dns_msgblock dns_msgblock_t;
 
 struct dns_message {
@@ -394,7 +399,7 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
 
 dns_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t section,
-			  unsigned int priority, unsigned int options);
+			  unsigned int options);
 /*
  * Render all names, rdatalists, etc from the given section at the
  * specified priority or higher.

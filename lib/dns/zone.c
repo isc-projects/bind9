@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.49 1999/12/16 23:29:06 explorer Exp $ */
+ /* $Id: zone.c,v 1.50 1999/12/22 03:22:59 explorer Exp $ */
 
 #include <config.h>
 
@@ -2274,16 +2274,16 @@ dns_notify(dns_name_t *name, isc_sockaddr_t *addr, dns_rdatatype_t type,
 	result = dns_message_renderbegin(msg, &target);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	result = dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	result = dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	result = dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	result = dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0, 0);
+	result = dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
 

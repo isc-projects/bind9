@@ -355,8 +355,7 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_message_renderbegin()");
 	if (edns0)
 		add_opt(message, (isc_uint16_t)bufsize);
-	result = dns_message_rendersection(message, DNS_SECTION_QUESTION,
-					   0, 0);
+	result = dns_message_rendersection(message, DNS_SECTION_QUESTION, 0);
 	check_result(result, "dns_message_rendersection()");
 	result = dns_message_renderend(message);
 	check_result(result, "dns_message_renderend()");

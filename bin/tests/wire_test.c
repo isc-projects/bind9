@@ -157,24 +157,19 @@ main(int argc, char *argv[]) {
 	result = dns_message_renderbegin(message, &source);
 	CHECKRESULT(result, "dns_message_renderbegin() failed");
 
-	result = dns_message_rendersection(message, DNS_SECTION_QUESTION,
-					   0, 0);
+	result = dns_message_rendersection(message, DNS_SECTION_QUESTION, 0);
 	CHECKRESULT(result, "dns_message_rendersection(QUESTION) failed");
 
-	result = dns_message_rendersection(message, DNS_SECTION_ANSWER,
-					   0, 0);
+	result = dns_message_rendersection(message, DNS_SECTION_ANSWER, 0);
 	CHECKRESULT(result, "dns_message_rendersection(ANSWER) failed");
 
-	result = dns_message_rendersection(message, DNS_SECTION_AUTHORITY,
-					   0, 0);
+	result = dns_message_rendersection(message, DNS_SECTION_AUTHORITY, 0);
 	CHECKRESULT(result, "dns_message_rendersection(AUTHORITY) failed");
 
-	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL,
-					   0, 0);
+	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL, 0);
 	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL) failed");
 
-	result = dns_message_rendersection(message, DNS_SECTION_TSIG,
-					   0, 0);
+	result = dns_message_rendersection(message, DNS_SECTION_TSIG, 0);
 	CHECKRESULT(result, "dns_message_rendersection(TSIG) failed");
 
 	dns_message_renderend(message);

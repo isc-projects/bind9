@@ -189,13 +189,13 @@ buildquery(void) {
 
 	result = dns_message_renderbegin(query, &qbuffer);
 	CHECK("dns_message_renderbegin", result);
-	result = dns_message_rendersection(query, DNS_SECTION_QUESTION, 0, 0);
+	result = dns_message_rendersection(query, DNS_SECTION_QUESTION, 0);
 	CHECK("dns_message_rendersection(question)", result);
-	result = dns_message_rendersection(query, DNS_SECTION_ANSWER, 0, 0);
+	result = dns_message_rendersection(query, DNS_SECTION_ANSWER, 0);
 	CHECK("dns_message_rendersection(answer)", result);
-	result = dns_message_rendersection(query, DNS_SECTION_AUTHORITY, 0, 0);
+	result = dns_message_rendersection(query, DNS_SECTION_AUTHORITY, 0);
 	CHECK("dns_message_rendersection(auth)", result);
-	result = dns_message_rendersection(query, DNS_SECTION_ADDITIONAL, 0, 0);
+	result = dns_message_rendersection(query, DNS_SECTION_ADDITIONAL, 0);
 	CHECK("dns_message_rendersection(add)", result);
 	result = dns_message_renderend(query);
 	CHECK("dns_message_renderend", result);
@@ -229,14 +229,13 @@ buildquery2(void) {
 
 	result = dns_message_renderbegin(query2, &qbuffer);
 	CHECK("dns_message_renderbegin", result);
-	result = dns_message_rendersection(query2, DNS_SECTION_QUESTION, 0, 0);
+	result = dns_message_rendersection(query2, DNS_SECTION_QUESTION, 0);
 	CHECK("dns_message_rendersection(question)", result);
-	result = dns_message_rendersection(query2, DNS_SECTION_ANSWER, 0, 0);
+	result = dns_message_rendersection(query2, DNS_SECTION_ANSWER, 0);
 	CHECK("dns_message_rendersection(answer)", result);
-	result = dns_message_rendersection(query2, DNS_SECTION_AUTHORITY, 0, 0);
+	result = dns_message_rendersection(query2, DNS_SECTION_AUTHORITY, 0);
 	CHECK("dns_message_rendersection(auth)", result);
-	result = dns_message_rendersection(query2, DNS_SECTION_ADDITIONAL,
-					   0, 0);
+	result = dns_message_rendersection(query2, DNS_SECTION_ADDITIONAL, 0);
 	CHECK("dns_message_rendersection(add)", result);
 	result = dns_message_renderend(query2);
 	CHECK("dns_message_renderend", result);
