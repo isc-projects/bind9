@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: inet_aton.c,v 1.1 1999/01/30 04:27:48 explorer Exp $";
+static char rcsid[] = "$Id: inet_aton.c,v 1.2 1999/02/06 01:51:36 halley Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -91,7 +91,7 @@ static char rcsid[] = "$Id: inet_aton.c,v 1.1 1999/01/30 04:27:48 explorer Exp $
  * cannot distinguish between failure and a local broadcast address.
  */
 int
-inet_aton(const char *cp, struct in_addr *addr)
+isc_inet_aton(const char *cp, struct in_addr *addr)
 {
 	unsigned long val;
 	int base, n;
