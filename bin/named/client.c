@@ -161,24 +161,6 @@ static void ns_client_endrequest(ns_client_t *client);
 static void ns_client_checkactive(ns_client_t *client);
 
 /*
- * Format a human-readable representation of the socket address '*sa'
- * into the character array 'array', which is of size 'size'.
- * The resulting string is guaranteed to be null-terminated.
- */
-static void
-sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
-{
-	isc_result_t result;
-	isc_buffer_t buf;
-	isc_buffer_init(&buf, array, size);
-	result = isc_sockaddr_totext(sa, &buf);
-	if (result != ISC_R_SUCCESS) {
-		strncpy(array, "<unknown address>", size);
-		array[size-1] = '\0';
-	}
-}
-
-/*
  * Enter the inactive state.
  *
  * Requires:
@@ -1619,7 +1601,8 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 
 	if (client->peeraddr_valid) {
-		sockaddr_format(&client->peeraddr, peerbuf, sizeof peerbuf);
+		isc_sockaddr_format(&client->peeraddr,
+				    peerbuf, sizeof peerbuf);
 		isc_log_write(ns_g_lctx, category, module, level,
 			      "client %s: %s", peerbuf, msgbuf);
 	} else {

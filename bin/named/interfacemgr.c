@@ -53,23 +53,6 @@ struct ns_interfacemgr {
 static void
 purge_old_interfaces(ns_interfacemgr_t *mgr);
 
-/*
- * Format a human-readable representation of the socket address '*sa'
- * into the character array 'array', which is of size 'size'.
- * The resulting string is guaranteed to be null-terminated.
- */
-static void
-sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
-	isc_result_t result;
-	isc_buffer_t buf;
-	isc_buffer_init(&buf, array, size);
-	result = isc_sockaddr_totext(sa, &buf);
-	if (result != ISC_R_SUCCESS) {
-		strncpy(array, "<unknown address>", size);
-		array[size-1] = '\0';
-	}
-}
-
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		       isc_socketmgr_t *socketmgr,
@@ -472,7 +455,7 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 		if (ifp->generation != mgr->generation) {
 			char sabuf[256];
 			ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
-			sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
+			isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
 			isc_log_write(IFMGR_COMMON_LOGARGS,
 				      ISC_LOG_INFO,
 				      "no longer listening on %s", sabuf);
@@ -580,8 +563,8 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 				ifp->generation = mgr->generation;
 			} else {
 				char sabuf[256];
-				sockaddr_format(&listen_sockaddr,
-						sabuf, sizeof(sabuf));
+				isc_sockaddr_format(&listen_sockaddr,
+						    sabuf, sizeof(sabuf));
 				isc_log_write(IFMGR_COMMON_LOGARGS,
 					      ISC_LOG_INFO,
 					      "listening on IPv4 interface "

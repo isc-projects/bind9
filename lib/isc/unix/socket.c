@@ -219,27 +219,6 @@ static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
 
 #define SOCK_DEAD(s)			((s)->references == 0)
 
-/*
- * Format a human-readable representation of the socket address '*sa'
- * into the character array 'array', which is of size 'size'.
- * The resulting string is guaranteed to be null-terminated.
- */
-static void
-sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
-{
-	isc_result_t result;
-	isc_buffer_t buf;
-
-	isc_buffer_init(&buf, array, size);
-	result = isc_sockaddr_totext(sa, &buf);
-	if (result != ISC_R_SUCCESS) {
-		snprintf(array, size,
-			 "<unknown address, family %u>",
-			 sa->type.sa.sa_family);
-		array[size - 1] = '\0';
-	}
-}
-
 static void
 manager_log(isc_socketmgr_t *sockmgr,
 	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
@@ -273,7 +252,7 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 		isc_log_write(isc_lctx, category, module, level,
 			      "socket %p: %s", sock, msgbuf);
 	} else {
-		sockaddr_format(address, peerbuf, sizeof peerbuf);
+		isc_sockaddr_format(address, peerbuf, sizeof peerbuf);
 		isc_log_write(isc_lctx, category, module, level,
 			      "socket %p %s: %s", sock, peerbuf, msgbuf);
 	}

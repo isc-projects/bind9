@@ -149,25 +149,6 @@ static dns_dispentry_t *linear_next(dns_dispatch_t *disp,
 	DNS_LOGCATEGORY_DISPATCH, DNS_LOGMODULE_DISPATCH, \
 	ISC_LOG_DEBUG(x)
 
-/*
- * Format a human-readable representation of the socket address '*sa'
- * into the character array 'array', which is of size 'size'.
- * The resulting string is guaranteed to be null-terminated.
- */
-static void
-sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
-	isc_result_t result;
-	isc_buffer_t buf;
-
-	isc_buffer_init(&buf, array, size);
-	result = isc_sockaddr_totext(sa, &buf);
-	if (result != ISC_R_SUCCESS) {
-		snprintf(array, size, "<unknown address, family %u>",
-			 sa->type.sa.sa_family);
-		array[size - 1] = '\0';
-	}
-}
-
 static void
 dispatch_log(dns_dispatch_t *disp,
 	     isc_logcategory_t *category, isc_logmodule_t *module, int level,
@@ -198,7 +179,7 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	va_end(ap);
 
 	if (VALID_RESPONSE(resp)) {
-		sockaddr_format(&resp->host, peerbuf, sizeof peerbuf);
+		isc_sockaddr_format(&resp->host, peerbuf, sizeof peerbuf);
 		isc_log_write(dns_lctx, category, module, level,
 			      "dispatch %p request %p %s: %s", disp, resp,
 			      peerbuf, msgbuf);
@@ -1784,7 +1765,7 @@ dns_dispatchmgr_dump(dns_dispatchmgr_t *mgr) {
 
 	disp = ISC_LIST_HEAD(mgr->list);
 	while (disp != NULL) {
-		sockaddr_format(&disp->local, foo, sizeof foo);
+		isc_sockaddr_format(&disp->local, foo, sizeof foo);
 		printf("dispatch %p, addr %s\n", disp, foo);
 		disp = ISC_LIST_NEXT(disp, link);
 	}
