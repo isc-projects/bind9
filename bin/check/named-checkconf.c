@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.12 2001/07/27 17:45:26 gson Exp $ */
+/* $Id: named-checkconf.c,v 1.13 2001/09/04 00:32:30 marka Exp $ */
 
 #include <config.h>
 
@@ -34,9 +34,18 @@
 #include <isccfg/cfg.h>
 #include <isccfg/check.h>
 
+#include <dns/log.h>
+
 #include "check-tool.h"
 
 isc_log_t *logc = NULL;
+
+#define CHECK(r)\
+	do { \
+		result = (r); \
+		if (result != ISC_R_SUCCESS) \
+			goto cleanup; \
+	} while (0)
 
 static void
 usage(void) {
@@ -69,6 +78,105 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+configure_zone(const char *vclass, cfg_obj_t *zconfig, isc_mem_t *mctx) {
+	const char *zclass;
+	const char *zname;
+	const char *zfile;
+	cfg_obj_t *zoptions = NULL;
+	cfg_obj_t *classobj = NULL;
+	cfg_obj_t *typeobj = NULL;
+	cfg_obj_t *fileobj = NULL;
+	cfg_obj_t *dbobj = NULL;
+
+	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
+	classobj = cfg_tuple_get(zconfig, "class");
+        if (!cfg_obj_isstring(classobj))
+                zclass = vclass;
+        else
+		zclass = cfg_obj_asstring(classobj);
+	if (strcasecmp(vclass, zclass) != 0)
+		return (ISC_R_FAILURE);
+	zoptions = cfg_tuple_get(zconfig, "options");
+	cfg_map_get(zoptions, "type", &typeobj);
+	if (typeobj == NULL)
+		return (ISC_R_FAILURE);
+	if (strcasecmp(cfg_obj_asstring(typeobj), "master") != 0)
+		return (ISC_R_SUCCESS);
+        cfg_map_get(zoptions, "database", &dbobj);
+        if (dbobj != NULL)
+                return (ISC_R_SUCCESS);
+	cfg_map_get(zoptions, "file", &fileobj);
+	if (fileobj == NULL)
+		return (ISC_R_FAILURE);
+	zfile = cfg_obj_asstring(fileobj);
+	return(load_zone(mctx, zname, zfile, zclass, NULL));
+}
+
+static isc_result_t
+configure_view(const char *vclass, cfg_obj_t *config, cfg_obj_t *vconfig,
+	       isc_mem_t *mctx)
+{
+	cfg_listelt_t *element;
+	cfg_obj_t *voptions;
+	cfg_obj_t *zonelist;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	voptions = NULL;
+	if (vconfig != NULL)
+		voptions = cfg_tuple_get(vconfig, "options");
+
+	zonelist = NULL;
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "zone", &zonelist);
+	else
+		(void)cfg_map_get(config, "zone", &zonelist);
+
+	for (element = cfg_list_first(zonelist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *zconfig = cfg_listelt_value(element);
+		CHECK(configure_zone(vclass, zconfig, mctx));
+	}
+ cleanup:
+	return (result);
+}
+
+
+static isc_result_t
+load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
+	cfg_listelt_t *element;
+	cfg_obj_t *classobj;
+	cfg_obj_t *views;
+	cfg_obj_t *vconfig;
+	const char *vclass;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	views = NULL;
+
+	(void)cfg_map_get(config, "view", &views);
+	for (element = cfg_list_first(views);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+
+		vclass = "IN";
+		vconfig = cfg_listelt_value(element);
+		if (vconfig != NULL) {
+			classobj = cfg_tuple_get(vconfig, "class");
+			if (cfg_obj_isstring(classobj))
+				vclass = cfg_obj_asstring(classobj);
+		}
+		CHECK(configure_view(vclass, config, vconfig, mctx));
+	}
+
+	if (views == NULL)
+		CHECK(configure_view("IN", config, NULL, mctx));
+ cleanup:
+	return (result);
+}
+
 int
 main(int argc, char **argv) {
 	int c;
@@ -78,9 +186,14 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	int exit_status = 0;
+	isc_boolean_t load_zones = ISC_FALSE;
 
-	while ((c = isc_commandline_parse(argc, argv, "t:v")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "dt:vz")) != EOF) {
 		switch (c) {
+		case 'd':
+			debug++;
+			break;
+
 		case 't':
 			result = isc_dir_chroot(isc_commandline_argument);
 			if (result != ISC_R_SUCCESS) {
@@ -99,6 +212,10 @@ main(int argc, char **argv) {
 		case 'v':
 			printf(VERSION "\n");
 			exit(0);
+
+		case 'z':
+			load_zones = ISC_TRUE;
+			break;
 
 		default:
 			usage();
@@ -125,6 +242,14 @@ main(int argc, char **argv) {
 	result = cfg_check_namedconf(config, logc, mctx);
 	if (result != ISC_R_SUCCESS)
 		exit_status = 1;
+
+	if (load_zones) {
+		dns_log_init(logc);
+                dns_log_setcontext(logc);
+		result = load_zones_fromconfig(config, mctx);
+		if (result != ISC_R_SUCCESS)
+			exit_status = 1;
+	}
 
 	cfg_obj_destroy(parser, &config);
 
