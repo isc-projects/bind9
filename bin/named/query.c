@@ -54,6 +54,9 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	ns_dbversion_t *dbversion, *dbversion_next;
 	unsigned int i;
 
+	/*
+	 * Reset the query state of a client to its default state.
+	 */
 
 	/*
 	 * Cleanup any active versions.
@@ -126,6 +129,10 @@ query_newnamebuf(ns_client_t *client) {
 	isc_dynbuffer_t *dbuf;
 	isc_result_t result;
 
+	/*
+	 * Allocate a name buffer.
+	 */
+
 	dbuf = NULL;
 	result = isc_dynbuffer_allocate(client->mctx, &dbuf, 1024,
 					ISC_BUFFERTYPE_BINARY);
@@ -141,6 +148,11 @@ query_getnamebuf(ns_client_t *client) {
 	isc_dynbuffer_t *dbuf;
 	isc_result_t result;
 	isc_region_t r;
+
+	/*
+	 * Return a name buffer with space for a maximal name, allocating
+	 * a new one if necessary.
+	 */
 
 	if (ISC_LIST_EMPTY(client->query.namebufs)) {
 		result = query_newnamebuf(client);
@@ -183,6 +195,12 @@ static inline void
 query_releasename(ns_client_t *client, dns_name_t **namep) {
 	dns_name_t *name = *namep;
 
+	/*
+	 * 'name' is no longer needed.  Return it to our pool of temporary
+	 * names.  If it is using a name buffer, relinquish its exclusive
+	 * rights on the buffer.
+	 */
+
 	ISC_LIST_APPEND(client->query.tmpnames, name, link);
 	if (dns_name_hasbuffer(name)) {
 		INSIST((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED)
@@ -222,7 +240,7 @@ static inline dns_rdataset_t *
 query_newrdataset(ns_client_t *client) {
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
-	
+
 	rdataset = ISC_LIST_HEAD(client->query.tmprdatasets);
 	if (rdataset == NULL) {
 		result = dns_message_gettemprdataset(client->message,
@@ -333,7 +351,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	dns_dbnode_t *node;
 	dns_db_t *db;
 	dns_name_t *fname, *mname;
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset, *sigrdataset;
 	dns_section_t section;
 	isc_dynbuffer_t *dbuf;
 	isc_buffer_t b;
@@ -354,6 +372,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	eresult = ISC_R_SUCCESS;
 	fname = NULL;
 	rdataset = NULL;
+	sigrdataset = NULL;
 	db = NULL;
 	version = NULL;
 	node = NULL;
@@ -366,7 +385,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		goto cleanup;
 	fname = query_newname(client, dbuf, &b);
 	rdataset = query_newrdataset(client);
-	if (fname == NULL || rdataset == NULL)
+	sigrdataset = query_newrdataset(client);
+	if (fname == NULL || rdataset == NULL || sigrdataset == NULL)
 		goto cleanup;
 
 	/*
@@ -391,7 +411,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	node = NULL;
 	result = dns_db_find(db, name, version, type, client->query.dboptions,
 			     client->requesttime, &node, fname, rdataset,
-			     NULL);
+			     sigrdataset);
 	switch (result) {
 	case DNS_R_SUCCESS:
 	case DNS_R_GLUE:
@@ -410,7 +430,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	     section++) {
 		mname = NULL;
 		result = dns_message_findname(client->message, section,
-					      name, type, 0, &mname, NULL);
+					      fname, type, 0, &mname, NULL);
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We've already got this RRset in the response.
@@ -420,6 +440,15 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	}
 	ISC_LIST_APPEND(fname->list, rdataset, link);
 	rdataset = NULL;
+	/*
+	 * Note: we only add SIGs if we've added the type they cover, so
+	 * we do not need to check if the SIG rdataset is already in the
+	 * response.
+	 */
+	if (sigrdataset->methods != NULL) {
+		ISC_LIST_APPEND(fname->list, sigrdataset, link);
+		sigrdataset = NULL;
+	}
 
 	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
 	fname = NULL;
@@ -459,6 +488,11 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	}
 
  cleanup:
+	if (sigrdataset != NULL) {
+		if (sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+		ISC_LIST_APPEND(client->query.tmprdatasets, sigrdataset, link);
+	}
 	if (rdataset != NULL) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
@@ -603,8 +637,6 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 		/*
 		 * This is bad.  We tried to get the SOA RR at the zone top
 		 * and it didn't work!
-		 *
-		 * The note above about temporary leakage applies here too.
 		 */
 		eresult = DNS_R_SERVFAIL;
 	} else {
@@ -655,6 +687,63 @@ query_checktype(dns_rdatatype_t type) {
 	return (ISC_R_SUCCESS);
 }
 
+static inline void
+query_a6additional(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
+		   dns_dbversion_t *version, dns_name_t *name)
+{
+	dns_name_t *fname, *tname;
+	dns_rdatatype_t type;
+	dns_rdataset_t *rdataset;
+	dns_rdatasetiter_t *rdsiter;
+	isc_result_t result;
+
+	/*
+	 * Doing an A6 query causes type A and type AAAA additional section
+	 * processing for QNAME, which we handle here.
+	 */
+
+	fname = NULL;
+	result = dns_message_gettempname(client->message, &fname);
+	if (result != ISC_R_SUCCESS)
+		return;
+	dns_name_init(fname, NULL);
+	dns_name_clone(name, fname);
+	rdsiter = NULL;
+	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
+	if (result != ISC_R_SUCCESS)
+		return;
+	result = dns_rdatasetiter_first(rdsiter);
+	while (result == ISC_R_SUCCESS) {
+		rdataset = query_newrdataset(client);
+		if (rdataset == NULL)
+			break;
+		dns_rdatasetiter_current(rdsiter, rdataset);
+		type = rdataset->type;
+		if (type == dns_rdatatype_sig)
+			type = rdataset->covers;
+		if (type == dns_rdatatype_a || type == dns_rdatatype_aaaa) {
+			tname = fname;
+			query_addrrset(client, &tname, &rdataset, NULL,
+				       NULL, DNS_SECTION_ADDITIONAL);
+			if (rdataset != NULL) {
+				/*
+				 * We've already got this one.
+				 */
+				dns_rdataset_disassociate(rdataset);
+				ISC_LIST_APPEND(client->query.tmprdatasets,
+						rdataset, link);
+			}
+		} else {
+			/*
+			 * We're not interested in this rdataset.
+			 */
+			dns_rdataset_disassociate(rdataset);
+		}
+		result = dns_rdatasetiter_next(rdsiter);
+	}
+	dns_rdatasetiter_destroy(&rdsiter);
+}
+
 #define MAX_RESTARTS 16
 
 #define QUERY_ERROR(r) \
@@ -674,7 +763,7 @@ query_find(ns_client_t *client) {
 	dns_rdata_t rdata;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t use_cache, recursion_ok, want_restart;
-	isc_boolean_t auth, is_zone;
+	isc_boolean_t auth, is_zone, clear_fname;
 	unsigned int restarts, qcount, n, nlabels, nbits;
 	dns_namereln_t namereln;
 	int order;
@@ -684,6 +773,7 @@ query_find(ns_client_t *client) {
 	isc_result_t result, eresult;
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
+	unsigned int dboptions;
 
 	/*	
 	 * One-time initialization.
@@ -712,6 +802,7 @@ query_find(ns_client_t *client) {
  restart:
 	want_restart = ISC_FALSE;
 	auth = ISC_FALSE;
+	clear_fname = ISC_FALSE;
 
 	/*
 	 * First we must find the right database.
@@ -834,12 +925,19 @@ query_find(ns_client_t *client) {
 			     sigrdataset);
 	switch (result) {
 	case DNS_R_SUCCESS:
+		/*
+		 * This case is handled in the main line below.
+		 */
+		break;
+	case DNS_R_GLUE:
 	case DNS_R_ZONECUT:
 		/*
 		 * These cases are handled in the main line below.
 		 */
+		auth = ISC_FALSE;
 		break;
 	case DNS_R_DELEGATION:
+		auth = ISC_FALSE;
 		if (is_zone) {
 			/*
 			 * We're authoritative for an ancestor of QNAME.
@@ -848,10 +946,16 @@ query_find(ns_client_t *client) {
 				/*
 				 * We don't have a cache, so this is the best
 				 * answer.
+				 *
+				 * We enable the retrieval of glue so we can
+				 * put it into the additional data section.
 				 */
+				dboptions = client->query.dboptions;
+				client->query.dboptions |= DNS_DBFIND_GLUEOK;
 				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset, dbuf,
 					       DNS_SECTION_AUTHORITY);
+				client->query.dboptions = dboptions;
 			} else {
 				/*
 				 * We might have a better answer or delegation
@@ -872,9 +976,6 @@ query_find(ns_client_t *client) {
 			QUERY_ERROR(DNS_R_NOTIMP);
 		}
 		goto cleanup;
-	case DNS_R_GLUE:
-		auth = ISC_FALSE;
-		break;
 	case DNS_R_NXRDATASET:
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
@@ -1103,17 +1204,21 @@ query_find(ns_client_t *client) {
 				query_addrrset(client, &tname, &rdataset, NULL,
 					       dbuf, DNS_SECTION_ANSWER);
 				n++;
+				if (tname == NULL) {
+					clear_fname = ISC_TRUE;
+					/*
+					 * We set dbuf to NULL because we only
+					 * want the query_keepname() call in
+					 * query_addrrset() to be called once.
+					 */
+					dbuf = NULL;
+				}
+
 				/*
 				 * We shouldn't ever fail to add 'rdataset'
 				 * because it's already in the answer.
 				 */
 				INSIST(rdataset == NULL);
-				/*
-				 * We set dbuf to NULL because we only want
-				 * the query_keepname() call in
-				 * query_addrrset() to be called once.
-				 */
-				dbuf = NULL;
 				rdataset = query_newrdataset(client);
 				if (rdataset == NULL)
 					break;
@@ -1126,12 +1231,8 @@ query_find(ns_client_t *client) {
 			result = dns_rdatasetiter_next(rdsiter);
 		}
 		if (n > 0) {
-			/*
-			 * If we added at least one RRset, then we must clear
-			 * fname,  otherwise the cleanup code might cause it
-			 * to be reused.
-			 */
-			fname = NULL;
+			if (clear_fname)
+				fname = NULL;
 		} else {
 			/*
 			 * We didn't match any rdatasets.
@@ -1175,12 +1276,41 @@ query_find(ns_client_t *client) {
 		 * This is the "normal" case -- an ordinary question to which
 		 * we know the answer.
 		 */
-		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
+		tname = fname;
+		query_addrrset(client, &tname, &rdataset, &sigrdataset, dbuf,
 			       DNS_SECTION_ANSWER);
+		if (tname == NULL)
+			clear_fname = ISC_TRUE;
+		
+		/*
+		 * We shouldn't ever fail to add 'rdataset'
+		 * because it's already in the answer.
+		 */
+		INSIST(rdataset == NULL);
+		
 		/*
 		 * Remember that we've answered this question.
 		 */
 		qrdataset->attributes |= DNS_RDATASETATTR_ANSWERED;
+
+		/*
+		 * A6 records cause type A and AAAA additional
+		 * section processign for the QNAME.
+		 */
+		if (qtype == dns_rdatatype_a6) {
+			if (!clear_fname) {
+				/*
+				 * We haven't used fname yet, but we're going
+				 * to need it now.
+				 */
+				query_keepname(client, fname, dbuf);
+				clear_fname = ISC_TRUE;
+			}
+			query_a6additional(client, db, node, version, fname);
+		}
+
+		if (clear_fname)
+			fname = NULL;
 	}
 
 	/*
