@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207 2001/08/16 07:27:48 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.1 2001/09/19 02:37:21 marka Exp $ */
 
 #include <config.h>
 
@@ -918,6 +918,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
 		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
 		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+		SOFT_OR_HARD(EHOSTDOWN, ISC_R_HOSTDOWN);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 
 #undef SOFT_OR_HARD
