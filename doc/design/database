@@ -112,16 +112,16 @@ Database Versioning
 
 Versioning is not available in cache databases.
 
-A zone database has a "current version" which is the version most recently
-committed.  A database has a set of versions open for reading (the
-"open versions").  This set is always non-empty, since the current
-version is always open.  The openversion method opens a read-only
-handle to the current version.  All retrievals using the handle will
-see the database as it was at the time the version was opened,
-regardless of subsequent changes to the database.  It is not possible
-to open a specific version; only the current version may be opened.
-This helps limit the number of prior versions which must be kept in
-the database.
+A zone database has a "current version" which is the version most
+recently committed.  A database has a set of versions open for reading
+(the "open versions").  This set is always non-empty, since the
+current version is always open.  The openversion method opens a
+read-only handle to the current version.  All retrievals using the
+handle will see the database as it was at the time the version was
+opened, regardless of subsequent changes to the database.  It is not
+possible to open a specific version; only the current version may be
+opened.  This helps limit the number of prior versions which must be
+kept in the database.
 
 Each zone update transaction is assigned a new version.  Only one such
 "future version" may be open at any time.  It is the caller's
