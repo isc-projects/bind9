@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2001/07/27 17:45:27 gson Exp $
+# $Id: Makefile.in,v 1.16 2001/09/04 01:12:04 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -64,7 +64,7 @@ named-checkzone.@O@: named-checkzone.c
 
 named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkconf.@O@ \
-	check-tool.@O@ ${ISCCFGLIBS} ${ISCLIBS} ${LIBS}
+	check-tool.@O@ ${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} ${LIBS}
 
 named-checkzone: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkzone.@O@ \
