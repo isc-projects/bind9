@@ -6,8 +6,8 @@
    prohibited.
  */
 
-typedef (*KIT_ADD_INFO) PROTO_LIST ((B_Key *, POINTER));
-typedef (*KIT_MAKE_INFO) PROTO_LIST ((POINTER *, B_Key *));
+typedef int (*KIT_ADD_INFO) PROTO_LIST ((B_Key *, POINTER));
+typedef int (*KIT_MAKE_INFO) PROTO_LIST ((POINTER *, B_Key *));
 
 /* The definition in C++ is:
  class B_KeyInfoType {
