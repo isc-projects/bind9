@@ -310,8 +310,18 @@ load_configuration(const char *filename) {
 	}
 	
 	/*
-	 * XXXRTH  Create default view, if required.
+	 * If we haven't created any views, create a default view for class
+	 * IN.  (We're a caching-only server.)
 	 */
+	if (ISC_LIST_EMPTY(lctx.viewlist)) {
+		view = NULL;
+		result = create_default_view(ns_g_mctx, dns_rdataclass_in,
+					     &view);
+		if (result != ISC_R_SUCCESS)
+			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+					"could not create default view");
+		ISC_LIST_APPEND(lctx.viewlist, view, link);
+	}
 
 	/*
 	 * Freeze the views.
