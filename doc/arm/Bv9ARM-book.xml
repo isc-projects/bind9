@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.104 2001/02/14 22:50:11 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.105 2001/02/16 03:03:08 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2599,9 +2599,9 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> heartbeat-interval <replaceable>number</replaceable>; </optional>
     <optional> interface-interval <replaceable>number</replaceable>; </optional>
     <optional> statistics-interval <replaceable>number</replaceable>; </optional>
-    <optional> topology <optional>{ <replaceable>address_match_list</replaceable> }</optional>; </optional>
-    <optional> sortlist <optional>{ <replaceable>address_match_list</replaceable> }</optional>; </optional>
-    <optional> rrset-order <optional>{ <replaceable>order_spec</replaceable> ; <optional> <replaceable>order_spec</replaceable> ; ... </optional> </optional> }</optional>;
+    <optional> topology { <replaceable>address_match_list</replaceable> }</optional>;
+    <optional> sortlist { <replaceable>address_match_list</replaceable> }</optional>;
+    <optional> rrset-order { <replaceable>order_spec</replaceable> ; <optional> <replaceable>order_spec</replaceable> ; ... </optional> </optional> };
     <optional> lame-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-ncache-ttl <replaceable>number</replaceable>; </optional>
     <optional> max-cache-ttl <replaceable>number</replaceable>; </optional>
@@ -2621,7 +2621,7 @@ statement in the <filename>named.conf</filename> file:</para>
 </programlisting>
 </sect2>
 
-<sect2><title><command>options</command> Statement Definition andUsage</title>
+<sect2><title><command>options</command> Statement Definition and Usage</title>
 
 <para>The <command>options</command> statement sets up global options
 to be used by <acronym>BIND</acronym>. This statement may appear only
