@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.130 2000/06/23 02:07:58 bwelling Exp $ */
+/* $Id: message.c,v 1.131 2000/06/23 20:47:23 mws Exp $ */
 
 /***
  *** Imports
@@ -1114,7 +1114,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * established a class.  Do so now.
 		 */
 		if (msg->state == DNS_SECTION_ANY) {
-			if (rdclass == 0 || rdclass == dns_rdataclass_any) {
+			if ((msg->opcode != dns_opcode_update) && 
+			    (rdclass == 0 || rdclass == dns_rdataclass_any)) {
 				result = DNS_R_FORMERR;
 				goto cleanup;
 			}
