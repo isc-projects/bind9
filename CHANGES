@@ -12,9 +12,9 @@
  639.	[bug]		Reading entropy from the keyboard would sometimes fail.
 			[RT #591]
 
- 638.	[port]		lib/isc/random.c needed to explicitly include
-			time.h explicitly to get a prototype for time() when
-			pthreads was not being used. [RT #592]
+ 638.	[port]		lib/isc/random.c needed to explicitly include time.h
+			to get a prototype for time() when pthreads was not
+			being used. [RT #592]
 
  637.	[port]		Use isc_u?int64_t instead of (unsigned) long long in
 			lib/isc/print.c.  Also allow lib/isc/print.c to
