@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.33 2001/03/01 00:08:58 gson Exp $ */
+/* $Id: parser.c,v 1.34 2001/03/01 03:10:08 gson Exp $ */
 
 #include <config.h>
 
@@ -2383,7 +2383,7 @@ static cfg_type_t cfg_type_controls_allow = {
 static keyword_type_t controls_keys_kw = {
 	"keys", &cfg_type_keylist };
 static cfg_type_t cfg_type_controls_keys = {
-	"controls_keys", parse_keyvalue,
+	"controls_keys", parse_optional_keyvalue,
 	print_keyvalue, &cfg_rep_list, &controls_keys_kw
 };
 
