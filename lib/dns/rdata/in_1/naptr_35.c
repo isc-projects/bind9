@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.27 2000/05/19 02:06:00 marka Exp $ */
+/* $Id: naptr_35.c,v 1.28 2000/05/19 13:28:36 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -377,7 +377,7 @@ tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	naptr->mctx = mctx;
-	return (ISC_R_NOTIMPLEMENTED);
+	return (ISC_R_SUCCESS);
 
  cleanup:
 	if (mctx != NULL && naptr->flags != NULL)
