@@ -1,8 +1,10 @@
+
+	--- 9.1.1-P2 released ---
+
 1499.	[bug]		isc_random need to be seeded better if arc4random()
 			is not used.
 
 1480.	[bug]		Provide replay protection for rndc commands.
-
 
 	--- 9.1.1-P1 released ---
 
