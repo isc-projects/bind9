@@ -30,8 +30,8 @@ DISTFILES =	Makefile.in README \
 
 @BIND9_MAKE_RULES@
 
-distclean:: FORCE
-	rm -f config.cache config.h config.log config.status libtool
+distclean::
+	rm -f config.cache config.h config.log config.status libtool TAGS
 
 cleandir: distclean
 
@@ -44,3 +44,7 @@ kit: kitclean
 
 kitclean: distclean
 	rm -rf bind-${VERSION}
+
+tags:
+	rm -f TAGS
+	find lib bin/named -name "*.[ch]" -print | etags -
