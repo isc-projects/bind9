@@ -132,6 +132,17 @@ struct sockaddr_storage {
 extern const struct in6_addr in6addr_any;
 #endif
 
+/*
+ * IN6_ARE_ADDR_EQUAL and IN6_IS_ADDR_UNSPECIFIED are broken in at least
+ * 2.1.  The macros incorrectly cast away const.
+ */
+#ifdef __GLIBC__
+#if __GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 2)
+#undef IN6_ARE_ADDR_EQUAL
+#undef IN6_IS_ADDR_UNSPECIFIED
+#endif
+#endif
+
 #ifndef IN6_ARE_ADDR_EQUAL
 #define IN6_ARE_ADDR_EQUAL(a,b) \
    (memcmp(&(a)->s6_addr[0], &(b)->s6_addr[0], sizeof(struct in6_addr)) == 0)
