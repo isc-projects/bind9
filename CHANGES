@@ -1,3 +1,7 @@
+ 298.	[bug]		A mutex deadlock occurred during shutdown of the
+			interface manager under certain conditions.
+			Digital Unix systems were the most affected.
+
  297.	[bug]		Specifying a key name that wasn't fully qualified
 			in certain parts of the config file could cause
 			an assertion.
