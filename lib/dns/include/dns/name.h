@@ -195,6 +195,7 @@ struct dns_name {
 
 #define DNS_NAMEATTR_ABSOLUTE		0x0001
 #define DNS_NAMEATTR_READONLY		0x0002
+#define DNS_NAMEATTR_DYNAMIC		0x0004
 
 extern dns_name_t *dns_rootname;
 
@@ -865,6 +866,47 @@ dns_name_split(dns_name_t *name,
  *	DNS_R_NOSPACE	An attempt was made to split a name on a bitlabel
  *			boundary but either 'prefix' or 'suffix' did not
  *			have enough room to receive the split name.
+ */
+
+dns_result_t
+dns_name_dup(dns_name_t *source, isc_mem_t *mctx, unsigned char *offsets,
+	     dns_name_t *target);
+/*
+ * Make 'target' a dynamically allocated copy of 'source'.
+ *
+ * Notes:
+ *
+ *	'target' will be initialized.
+ *
+ *	'offsets' is never required to be non-NULL, but specifying a
+ *	dns_offsets_t for 'offsets' will improve the performance of most
+ *	name operations if the name is used more than once.
+ *
+ * Requires:
+ *
+ *	'source' is a valid non-empty name.
+ *	
+ *	'mctx' is a valid memory context.
+ *
+ *	offsets == NULL or offsets is a dns_offsets_t.
+ *
+ */
+
+void
+dns_name_free(dns_name_t *name, isc_mem_t *mctx);
+/*
+ * Free 'name'.
+ *
+ * Requires:
+ *
+ *	'name' is a valid name created previously in 'mctx' by dns_name_dup().
+ *
+ *	'mctx' is a valid memory context.
+ *
+ * Ensures:
+ *
+ *	All dynamic resources used by 'name' are freed and the name is
+ *	invalidated.
  */
 
 ISC_LANG_ENDDECLS

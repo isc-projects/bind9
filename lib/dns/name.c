@@ -33,8 +33,6 @@
 #define NAME_MAGIC			0x444E536EU	/* DNSn. */
 #define VALID_NAME(n)			((n) != NULL && \
 					 (n)->magic == NAME_MAGIC)
-isc_buffer_t x;
-char xxxx[1024];
 
 typedef enum {
 	ft_init = 0,
@@ -2720,4 +2718,51 @@ dns_name_split(dns_name_t *name,
 	}
 
 	return (result);
+}
+
+dns_result_t
+dns_name_dup(dns_name_t *source, isc_mem_t *mctx, unsigned char *offsets,
+	     dns_name_t *target) {
+	REQUIRE(VALID_NAME(source));
+	REQUIRE(source->length > 0);
+	REQUIRE((target->attributes & DNS_NAMEATTR_READONLY) == 0);
+
+	/*
+	 * Make 'target' a dynamically allocated copy of 'source'.
+	 */
+
+	target->ndata = isc_mem_get(mctx, source->length);
+	if (target->ndata == NULL)
+		return (DNS_R_NOMEMORY);
+
+	memcpy(target->ndata, source->ndata, source->length);
+
+	target->magic = NAME_MAGIC;
+	target->length = source->length;
+	target->labels = source->labels;
+	target->attributes = DNS_NAMEATTR_DYNAMIC | DNS_NAMEATTR_READONLY;
+	if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
+		target->attributes |= DNS_NAMEATTR_ABSOLUTE;
+	target->offsets = offsets;
+	if (offsets != NULL)
+		set_offsets(target, target->offsets, ISC_FALSE, ISC_FALSE,
+			    ISC_FALSE);
+	target->buffer = NULL;
+	ISC_LINK_INIT(target, link);
+	ISC_LIST_INIT(target->list);
+
+	return (DNS_R_SUCCESS);
+}
+
+void
+dns_name_free(dns_name_t *name, isc_mem_t *mctx) {
+	REQUIRE(VALID_NAME(name));
+	REQUIRE((name->attributes & DNS_NAMEATTR_DYNAMIC) != 0);
+
+	/*
+	 * Free 'name'.
+	 */
+
+	isc_mem_put(mctx, name->ndata, name->length);
+	dns_name_invalidate(name);
 }
