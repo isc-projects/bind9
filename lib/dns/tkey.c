@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.60 2001/01/11 04:23:39 bwelling Exp $
+ * $Id: tkey.c,v 1.61 2001/01/11 07:28:30 bwelling Exp $
  */
 
 #include <config.h>
@@ -708,6 +708,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		}
 		if (tctx->domain == NULL) {
 			tkey_log("dns_tkey_processquery: tkey-domain not set");
+			dns_message_takebuffer(msg, &buf);
 			result = DNS_R_REFUSED;
 			goto failure;
 		}
