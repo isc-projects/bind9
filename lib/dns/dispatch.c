@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.106 2001/12/27 05:07:26 marka Exp $ */
+/* $Id: dispatch.c,v 1.107 2002/03/07 00:07:27 marka Exp $ */
 
 #include <config.h>
 
@@ -1223,16 +1223,11 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 
 static isc_boolean_t
 local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
-	in_port_t port;
 
 	if (addr == NULL)
 		return (ISC_TRUE);
 
-	port = isc_sockaddr_getport(addr);
-	if (port == 0)
-		return (isc_sockaddr_eqaddr(&disp->local, addr));
-	else
-		return (isc_sockaddr_equal(&disp->local, addr));
+	return (isc_sockaddr_equal(&disp->local, addr));
 }
 
 /*
