@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.97 2001/11/30 01:59:29 gson Exp $
+ * $Id: dst_api.c,v 1.98 2001/11/30 02:11:04 bwelling Exp $
  */
 
 #include <config.h>
@@ -237,16 +237,22 @@ dst_context_adddata(dst_context_t *dctx, const isc_region_t *data) {
 
 isc_result_t
 dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+	dst_key_t *key;
+
 	REQUIRE(VALID_CTX(dctx));
 	REQUIRE(sig != NULL);
 
-	CHECKALG(dctx->key->key_alg);
-	if (dctx->key->opaque == NULL)
+	key = dctx->key;
+	CHECKALG(key->key_alg);
+	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
-	if (dctx->key->func->sign == NULL)
+	if (key->func->sign == NULL)
+		return (DST_R_NOTPRIVATEKEY);
+	if (key->func->isprivate == NULL ||
+	    key->func->isprivate(key) == ISC_FALSE)
 		return (DST_R_NOTPRIVATEKEY);
 
-	return (dctx->key->func->sign(dctx, sig));
+	return (key->func->sign(dctx, sig));
 }
 
 isc_result_t
