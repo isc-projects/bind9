@@ -1,3 +1,6 @@
+1646.	[bug]		win32: logging file versions didn't work with
+			non-UNC filenames.  [RT#11486]
+
 1645.	[bug]		named could trigger a REQUIRE failure if multiple
 			masters with keys are specified.
 
