@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.67 2001/08/28 03:58:13 marka Exp $ */
+/* $Id: db.h,v 1.67.2.1 2003/10/03 04:03:07 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -598,8 +598,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
  *
  *	'db' is a valid database.
  *
- *	'name' is a valid, non-empty, absolute name that is a subdomain of
- *	the database's origin.  (It need not be a proper subdomain.)
+ *	'name' is a valid, non-empty, absolute name.
  *
  *	nodep != NULL && *nodep == NULL
  *

@@ -1,3 +1,6 @@
+1522.	[bug]		dns_db_findnode() relax the requirements on 'name'.
+			[RT# 9286]
+
 1518.   [bug]           dns_nxt_buildrdata(), and hence dns_nxt_build(),
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.
