@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.19 2000/05/08 14:35:24 tale Exp $ */
+/* $Id: confctl.c,v 1.20 2000/05/13 19:44:53 tale Exp $ */
 
 #include <config.h>
 
@@ -174,7 +174,6 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 isc_result_t
 dns_c_ctrl_delete(dns_c_ctrl_t **control) {
 	isc_result_t res = ISC_R_SUCCESS;
-	isc_result_t rval;
 	isc_mem_t *mem;
 	dns_c_ctrl_t *ctrl;
 	
@@ -201,8 +200,6 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control) {
 		res = ISC_R_SUCCESS;
 		break;
 	}
-
-	rval = res;
 
 	ctrl->magic = 0;
 	
