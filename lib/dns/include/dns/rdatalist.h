@@ -43,6 +43,9 @@
  *	None.
  */
 
+#include <dns/types.h>
+#include <dns/result.h>
+
 /*
  * Clients may use this type directly.
  */
