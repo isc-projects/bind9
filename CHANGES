@@ -1,3 +1,5 @@
+  82.   [cleanup]       <isc/buffer.h> does not need <isc/list.h>.
+
   81.   [cleanup]       <isc/int.h> and <isc/boolean.h> do not need
                         <isc/lang.h>.
 

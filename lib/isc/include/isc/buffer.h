@@ -102,7 +102,6 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/list.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
