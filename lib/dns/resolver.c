@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.253 2002/09/12 04:52:13 marka Exp $ */
+/* $Id: resolver.c,v 1.254 2002/10/15 03:15:28 marka Exp $ */
 
 #include <config.h>
 
@@ -3741,7 +3741,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		 * We already know ns_name is a subdomain of fctx->domain.
 		 * If ns_name is equal to fctx->domain, we're not making
 		 * progress.  We return DNS_R_FORMERR so that we'll keep
-		 * keep trying other servers.
+		 * trying other servers.
 		 */
 		if (dns_name_equal(ns_name, &fctx->domain))
 			return (DNS_R_FORMERR);
