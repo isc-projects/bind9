@@ -23,6 +23,7 @@
 #include <isc/base64.h>
 #include <isc/dir.h>
 #include <isc/lex.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>

@@ -17,6 +17,8 @@
 
 #include <config.h>
 
+#include <isc/string.h>
+
 #include <named/log.h>
 #include <named/logconf.h>
 
@@ -174,5 +176,3 @@ ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog) {
 		isc_logconfig_destroy(&lcctx);
 	return (result);
 }
-
-

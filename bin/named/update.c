@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/util.h>
 
