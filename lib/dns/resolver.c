@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.2 2004/04/16 00:01:41 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.3 2004/04/19 23:41:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1563,7 +1563,7 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 		sep2 = ") ";
 	} else if (reason == DNS_R_UNEXPECTEDOPCODE) {
 		isc_buffer_init(&b, code, sizeof(code) - 1);
-		dns_opcode_totext(fctx->rmessage->opcode, &b);
+		dns_opcode_totext((dns_opcode_t)fctx->rmessage->opcode, &b);
 		code[isc_buffer_usedlength(&b)] = '\0';
 		sep1 = "(";
 		sep2 = ") ";
