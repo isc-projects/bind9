@@ -1904,3 +1904,22 @@ dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer)
 	ISC_LIST_APPEND(msg->cleanup, *buffer, link);
 	*buffer = NULL;
 }
+
+isc_result_t
+dns_message_signer(dns_message_t *msg, dns_name_t **signer) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(signer != NULL);
+	REQUIRE(*signer == NULL);
+	REQUIRE(msg->flags & DNS_MESSAGEFLAG_QR);
+
+	if (msg->tsigkey == NULL || msg->tsig == NULL)
+		return (ISC_R_NOTFOUND);
+	if (msg->tsigkey->generated)
+		return (DNS_R_KEYUNAUTHORIZED);
+	if (msg->tsigstatus != dns_rcode_noerror)
+		return (DNS_R_TSIGVERIFYFAILURE);
+	if (msg->tsig->error != dns_rcode_noerror)
+		return (DNS_R_TSIGERRORSET);
+	*signer = &msg->tsigkey->name;
+	return (ISC_R_SUCCESS);
+}
