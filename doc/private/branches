@@ -16,6 +16,7 @@ rt5044		review		explorer
 rt5041		review		explorer
 ipl		review		explorer	(rt5021)
 rt5066		review		explorer
+rt5106		review		jinmei
 
 a6_remove	closed
 adb_race	closed		explorer
