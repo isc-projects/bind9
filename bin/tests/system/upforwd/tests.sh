@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2000/09/13 07:41:12 marka Exp $ 
+# $Id: tests.sh,v 1.3 2000/11/06 08:33:07 marka Exp $ 
 
 #
 # Perform tests
@@ -32,13 +32,18 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 
 echo "I:fetching second copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
+
+echo "I:fetching third copy of zone before update"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 
 echo "I:comparing pre-update copies to known good data"
-$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns1 || status=1
-$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || status=1
+$PERL ../digcomp.pl knowngood.before dig.out.ns1 || status=1
+$PERL ../digcomp.pl knowngood.before dig.out.ns2 || status=1
+$PERL ../digcomp.pl knowngood.before dig.out.ns3 || status=1
 
-echo "I:updating zone"
+echo "I:updating zone (signed)"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
 $NSUPDATE -y update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K < update.scp > /dev/null
 echo "I:sleeping 15 seconds for server to incorporate changes"
@@ -50,11 +55,39 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 
 echo "I:fetching second copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
+
+echo "I:fetching third copy of zone after update"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 
 echo "I:comparing post-update copies to known good data"
-$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
-$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
+$PERL ../digcomp.pl knowngood.after1 dig.out.ns1 || status=1
+$PERL ../digcomp.pl knowngood.after1 dig.out.ns2 || status=1
+$PERL ../digcomp.pl knowngood.after1 dig.out.ns3 || status=1
+
+echo "I:updating zone (unsigned)"
+# nsupdate will print a ">" prompt to stdout as it gets each input line.
+$NSUPDATE < update.scp2 > /dev/null
+echo "I:sleeping 15 seconds for server to incorporate changes"
+sleep 15
+
+echo "I:fetching first copy of zone after update"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
+	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
+
+echo "I:fetching second copy of zone after update"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
+
+echo "I:fetching third copy of zone after update"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
+
+echo "I:comparing post-update copies to known good data"
+$PERL ../digcomp.pl knowngood.after2 dig.out.ns1 || status=1
+$PERL ../digcomp.pl knowngood.after2 dig.out.ns2 || status=1
+$PERL ../digcomp.pl knowngood.after2 dig.out.ns3 || status=1
 
 echo "I:exit status: $status"
 exit $status

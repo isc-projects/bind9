@@ -1,7 +1,8 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: README,v 1.1 2000/09/08 05:40:44 marka Exp $
+$Id: README,v 1.2 2000/11/06 08:33:06 marka Exp $
 
 ns1 stealth master
 ns2 slave
+ns3 slave

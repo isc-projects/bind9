@@ -13,10 +13,12 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.orig,v 1.1 2000/09/08 05:40:44 marka Exp $
+; $Id: example.orig,v 1.2 2000/11/06 08:33:09 marka Exp $
 
 @	3600	SOA	n1.example. hostmaster.ns1.example. (
 			1 3600 1200 604800 7200 )
 		NS	ns2.example.
+		NS	ns3.example.
 ns1		A	10.53.0.1
 ns2		A	10.53.0.2
+ns3		A	10.53.0.3

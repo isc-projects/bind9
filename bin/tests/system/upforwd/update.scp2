@@ -1,0 +1,4 @@
+server 10.53.0.3 5300
+update add unsigned.example. 600 A 10.10.10.1
+update add unsigned.example. 600 TXT Foo
+
