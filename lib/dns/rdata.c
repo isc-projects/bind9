@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.43 1999/05/17 04:49:38 gson Exp $ */
+ /* $Id: rdata.c,v 1.44 1999/05/17 15:30:03 marka Exp $ */
 
 #include <config.h>
 
@@ -715,15 +715,61 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 static dns_result_t
 txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	isc_region_t tregion;
+	isc_boolean_t escape;
+	unsigned int n, nrem;
+	char *s;
+	unsigned char *t;
+	int d;
+	int c;
 
 	isc_buffer_available(target, &tregion);
-	if (tregion.length < source->length + 1)
+	s = source->base;
+	n = source->length;
+	t = target->base;
+	nrem = target->length;
+	escape = ISC_FALSE;
+	if (nrem < 1)
 		return (DNS_R_NOSPACE);
-	if (source->length > 255)
-		return (DNS_R_TEXTTOLONG);
-	*tregion.base = source->length;
-	memcpy(tregion.base + 1, source->base, source->length);
-	isc_buffer_add(target, source->length + 1);
+	/* Length byte. */
+	nrem--;
+	t++;
+	/* Maximum text string length. */
+	if (nrem > 255)
+		nrem = 255;
+	while (n-- != 0) {
+		c = (*s++)&0xff;
+		if (escape && (d = decvalue(c)) != -1) {
+			c = d;
+			if (n == 0)
+				return (DNS_R_SYNTAX);
+			n--;
+			if ((d = decvalue(*s++)) != -1)
+				c = c * 10 + d;
+			else
+				return (DNS_R_SYNTAX);
+			if (n == 0)
+				return (DNS_R_SYNTAX);
+			n--;
+			if ((d = decvalue(*s++)) != -1)
+				c = c * 10 + d;
+			else
+				return (DNS_R_SYNTAX);
+			if (c > 255)
+				return (DNS_R_SYNTAX);
+		} else if (!escape && c == '\\') {
+			escape = ISC_TRUE;
+			continue;
+		}
+		escape = ISC_FALSE;
+		if (nrem == 0) 
+			return (DNS_R_NOSPACE);
+		*t++ = c;
+		nrem--;
+	}
+	if (escape)
+		return (DNS_R_SYNTAX);
+	*tregion.base = t - tregion.base - 1;
+	isc_buffer_add(target, *tregion.base + 1);
 	return (DNS_R_SUCCESS);
 }
 
