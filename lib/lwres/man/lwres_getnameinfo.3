@@ -24,7 +24,8 @@ lwres_getnameinfo \- lightweight resolver socket address structure to hostname a
 int
 lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host, size_t hostlen, char *serv, size_t servlen, int flags);
 .ad
-\fR.SH "DESCRIPTION"
+\fR
+.SH "DESCRIPTION"
 .PP
 This function is equivalent to the \fBgetnameinfo\fR(3) function defined in RFC2133.
 \fBlwres_getnameinfo()\fR returns the hostname for the
