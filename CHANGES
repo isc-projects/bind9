@@ -7,10 +7,9 @@
 
 1109.	[bug]		nsupdate accepted illegal ttl values.
 
-1108.	[bug]		On Win32 rndc was hanging when named was not running.
-			Fix to look for exceptions in the socket.c select
-			code to catch and report the errors. Miscellaneous
-			error handling cleanup in socket.c. [RT #1870]
+1108.	[bug]		On Win32, rndc was hanging when named was not running
+			due to failure to select for exceptional conditions
+			in select(). [RT #1870]
 
 1107.	[bug]		nsupdate could catch an assertion failure if an
 			invalid domain name was given as the argument to
