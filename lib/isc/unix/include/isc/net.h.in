@@ -52,6 +52,7 @@
  *
  * Standards:
  *	BSD Socket API
+ *	RFC 2553
  */
 
 
@@ -63,5 +64,29 @@
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+
+/*
+ * If sockaddrs on this system have an sa_len field, ISC_NET_HAVESALEN will
+ * be defined.
+ */
+@ISC_NET_HAVESALEN@
+
+/*
+ * If this system needs AF_INET6, ISC_NET_NEEDAFINET6 will be defined.
+ */
+@ISC_NET_NEEDAFINET6@
+#ifdef ISC_NET_NEEDAFINET6
+#define AF_INET6 99
+#define PF_INET6 AF_INET6
+#endif
+
+/*
+ * If this system needs the IPv6 structure definitions, ISC_NET_NEEDIPV6
+ * will be defined, and the structure definintions will be included.
+ */
+@ISC_NET_NEEDIPV6@
+#ifdef ISC_NET_NEEDIPV6
+#include <isc/ipv6.h>
+#endif
 
 #endif /* ISC_NET_H */
