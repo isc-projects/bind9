@@ -1,3 +1,6 @@
+ 147.   [bug]		Changed yacc union size to be smaller for yaccs that
+			put yacc-stack on the real stack.
+
  146.   [cleanup]       More general redundant header file cleanup.  Rather
                         than continuing to itemize every header which changed,
                         this changelog entry just notes that if a header file

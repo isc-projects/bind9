@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.69 2000/04/28 02:05:07 halley Exp $ */
+/* $Id: confparser.y,v 1.70 2000/05/02 17:56:39 brister Exp $ */
 
 #include <config.h>
 
@@ -67,7 +67,7 @@ static isc_mutex_t yacc_mutex;
 
 /* used for holding a list of dns_rdatatype_t on the stack */
 struct confrdtype_s {
-	dns_rdatatype_t types[256];
+	dns_rdatatype_t *types;
 	isc_uint32_t idx;
 };
  
@@ -110,8 +110,10 @@ static isc_lexspecials_t	specials;
  * from this problem as it allocates the parser stack
  * using malloc.
  */
-#define YYMAXDEPTH 20
-#define YYINITDEPTH 20
+
+#define YYMAXDEPTH 200
+#define YYINITDEPTH 200
+
 
 static isc_result_t	tmpres;
 static int		debug_lexer;
@@ -390,11 +392,13 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <ipaddress>	maybe_wild_ip6_only_addr
 %type <ipaddress>	query_source_v4
 %type <ipaddress>	query_source_v6
+%type <ipaddress>	ip_and_port_element
 %type <iplist>		in_addr_list
-%type <iplist>		master_in_addr_list
 %type <iplist>		notify_in_addr_list
 %type <iplist>		opt_in_addr_list
 %type <iplist>		opt_zone_forwarders_list
+%type <iplist>		port_ip_list
+%type <iplist>		ip_and_port_list
 %type <number>		facility_name
 %type <number>		maybe_syslog_facility
 %type <orderclass>	ordering_class
@@ -1495,6 +1499,68 @@ maybe_wild_port: in_port
 	}
 	;
 
+
+port_ip_list: maybe_zero_port L_LBRACE ip_and_port_list L_RBRACE
+	{
+		in_port_t port = $1;
+		dns_c_iplist_t *list = $3;
+		unsigned int i;
+
+		if (port == 0)
+			port = DNS_C_DEFAULTPORT;
+		
+		for (i = 0 ; i < list->nextidx ; i++) {
+			if (isc_sockaddr_getport(&list->ips[i]) == 0) {
+				isc_sockaddr_setport(&list->ips[i], port);
+			}
+		}
+
+		$$ = list;
+	};
+	
+
+ip_and_port_element: ip_address maybe_zero_port
+	{
+		isc_sockaddr_setport(&$1, $2);
+		$$ = $1;
+	};
+
+
+ip_and_port_list: ip_and_port_element L_EOS
+	{
+		dns_c_iplist_t *list;
+
+		tmpres = dns_c_iplist_new(currcfg->mem, 5, &list);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_TRUE,
+				     "failed to create new iplist");
+			YYABORT;
+		}
+
+		tmpres = dns_c_iplist_append(list, $1);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_TRUE,
+				     "failed to append master address");
+			YYABORT;
+		}
+		
+		$$ = list;
+	}
+	| ip_and_port_list ip_and_port_element L_EOS
+	{
+		tmpres = dns_c_iplist_append($1, $2);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_TRUE,
+				     "failed to append master address");
+			YYABORT;
+		}
+
+		$$ = $1;
+	}
+	;
+
+		
+		
 query_source_v6: L_ADDRESS maybe_wild_ip6_only_addr
 	{
 		isc_sockaddr_setport(&$2, 0); /* '0' is wild port  */
@@ -3470,7 +3536,7 @@ zone_ssu_stmt: grant_stmt {
 					      $1.ident, $1.matchtype,
 					      $1.name,
 					      $1.rdatatypes.idx,
-					      &$1.rdatatypes.types[0]);
+					      $1.rdatatypes.types);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "error creating ssu "
@@ -3481,6 +3547,9 @@ zone_ssu_stmt: grant_stmt {
 		dns_name_free($1.ident, memctx);
 		dns_name_free($1.name, memctx);
 
+		isc_mem_put(memctx, $1.rdatatypes.types,
+			    sizeof ($1.rdatatypes.types[0]) * 256);
+		
 		isc_mem_put(memctx, $1.ident, sizeof (*$1.ident));
 		isc_mem_put(memctx, $1.name, sizeof (*$1.name));
 
@@ -3560,6 +3629,11 @@ grant_stmt: grantp any_string grant_match_type any_string rdatatype_list
 				isc_mem_put(memctx, name, sizeof *name);
 			}
 
+			REQUIRE($5.types != NULL);
+			
+			isc_mem_put(memctx, $5.types,
+				    sizeof (dns_rdatatype_t) * 256);
+
 			YYABORT;
 		}
 	};
@@ -3586,6 +3660,7 @@ grant_match_type: L_NAME {
 
 rdatatype_list: /* nothing */
 	{
+		$$.types = isc_mem_get(memctx, sizeof(dns_rdatatype_t) * 256);
 		$$.idx = 0;
 	}
 	| rdatatype_list rdatatype {
@@ -3890,25 +3965,13 @@ zone_option: L_FILE L_QSTRING
 		}
 		isc_mem_free(memctx, $2);
 	}
-	| L_MASTERS maybe_zero_port L_LBRACE master_in_addr_list L_RBRACE
+	| L_MASTERS port_ip_list
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
-
+		
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setmasterport(zone, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_warning(ISC_FALSE,
-				       "redefining zone master's port.");
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set zone master port.");
-			YYABORT;
-		}
-		
-
-		tmpres = dns_c_zone_setmasterips(zone,
-						 $4, ISC_FALSE);
+		tmpres = dns_c_zone_setmasterips(zone, $2, ISC_FALSE);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining zone masters ips.");
@@ -4289,9 +4352,6 @@ zone_option: L_FILE L_QSTRING
 	| zone_update_policy
 	;
 
-
-master_in_addr_list: in_addr_list
-	;
 
 notify_in_addr_list: opt_in_addr_list
 	;
@@ -4785,6 +4845,10 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	}
 
 	callbacks = cbks;
+
+#if 0
+	fprintf(stderr, "uniion size: %d\n", sizeof (YYSTYPE));
+#endif
 	
 	if (yyparse() != 0) {
 		res = ISC_R_FAILURE;
