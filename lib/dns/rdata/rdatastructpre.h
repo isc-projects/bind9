@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatastructpre.h,v 1.10 2000/07/27 09:48:44 tale Exp $ */
+/* $Id: rdatastructpre.h,v 1.11 2000/07/31 20:57:06 tale Exp $ */
 
 #ifndef DNS_RDATASTRUCT_H
 #define DNS_RDATASTRUCT_H 1
@@ -23,6 +23,7 @@
 #include <isc/lang.h>
 #include <isc/sockaddr.h>
 
+#include <dns/name.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
