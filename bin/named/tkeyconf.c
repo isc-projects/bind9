@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.18 2001/03/04 21:21:27 bwelling Exp $ */
+/* $Id: tkeyconf.c,v 1.19 2001/05/06 02:20:29 mayer Exp $ */
 
 #include <config.h>
 
@@ -69,7 +69,7 @@ ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
 		name = dns_fixedname_name(&fname);
 		RETERR(dns_name_fromtext(name, &b, dns_rootname,
 					 ISC_FALSE, NULL));
-		RETERR(dst_key_fromfile(name, n, DNS_KEYALG_DH,
+		RETERR(dst_key_fromfile(name, (dns_keytag_t) n, DNS_KEYALG_DH,
 					DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					NULL, mctx, &tctx->dhkey));
 	}
