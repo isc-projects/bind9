@@ -175,7 +175,7 @@ view <string> <optional_class> {
                 sig-validity-interval <integer>;
                 zone-statistics <boolean>;
         };
-        server {
+        server <netaddr> {
                 bogus <boolean>;
                 provide-ixfr <boolean>;
                 request-ixfr <boolean>;
@@ -297,7 +297,7 @@ zone <string> <optional_class> {
         zone-statistics <boolean>;
 };
 
-server {
+server <netaddr> {
         bogus <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
