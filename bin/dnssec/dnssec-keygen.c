@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.24 2000/05/24 03:16:16 tale Exp $ */
+/* $Id: dnssec-keygen.c,v 1.25 2000/05/24 17:13:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -191,11 +191,6 @@ main(int argc, char **argv) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("-v must be followed by a number");
-			/*
-			 * XXXDCL - shut up IRIX. true, this variable
-			 * isn't used yet.  but it will be.
-			 */
-			UNUSED(verbose);
 			break;
 
 		case 'h':
@@ -359,8 +354,18 @@ main(int argc, char **argv) {
 			if (null_key)
 				break;
 		}
-		if (conflict == ISC_TRUE)
+		if (conflict == ISC_TRUE) {
 			dst_key_free(&key);
+			if (verbose > 0) {
+				isc_buffer_clear(&buf);
+				ret = dst_key_buildfilename(key, 0, &buf);
+				filename[isc_buffer_usedlength(&buf)] = 0;
+				fprintf(stderr,
+					"%s: %s already exists, "
+					"generating a new key\n",
+					PROGRAM, filename);
+			}
+		}
 
 	} while (conflict == ISC_TRUE);
 
