@@ -1,6 +1,6 @@
 %{
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.3 1999/06/08 13:14:44 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.4 1999/06/08 13:27:36 brister Exp $";
 #endif /* not lint */
 
 /*
@@ -1644,7 +1644,7 @@ static struct token class_symbol_tokens[] = {
 
 
 static void undef_symtab_entry(char *key, unsigned int type,
-			       isc_symvalue_t value);
+			       isc_symvalue_t value, void *arg);
 static int token_value(isc_token_t *token, isc_symtab_t *symtable);
 
 
@@ -1828,7 +1828,8 @@ yylex(void)
 
 
 static void
-undef_symtab_entry(char *key, unsigned int type, isc_symvalue_t value)
+undef_symtab_entry(char *key, unsigned int type, isc_symvalue_t value, 
+		void *arg)
 {
 	/* XXX nothing yet */
 }
