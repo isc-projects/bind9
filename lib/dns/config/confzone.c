@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.35 2000/04/05 15:21:07 brister Exp $ */
+/* $Id: confzone.c,v 1.36 2000/04/20 12:43:05 marka Exp $ */
 
 #include <config.h>
 
@@ -2365,13 +2365,13 @@ dns_c_zone_getnotify(dns_c_zone_t *zone,
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		val = zone->u.mzone.notify;
-		bit = MZ_DIALUP_BIT;
+		bit = MZ_NOTIFY_BIT;
 		bits = &zone->u.mzone.setflags;
 		break;
 			
 	case dns_c_zone_slave:
 		val = zone->u.szone.notify;
-		bit = SZ_DIALUP_BIT;
+		bit = SZ_NOTIFY_BIT;
 		bits = &zone->u.szone.setflags;
 		break;
 		
