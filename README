@@ -79,6 +79,11 @@ BIND 9.2.0a2
 	  - A BIND 8 compatible stub resolver library is now
 	    included in lib/bind.
 
+	  - openssl has been removed from the distribution.  This means
+	    that to use DNSSEC, openssl must be installed and the
+	    --with-openssl option must be supplied to configure.  This
+	    does not apply to TSIG, which does not require openssl.
+
 	This distribution also includes a new lightweight stub
 	resolver library and associated resolver daemon that fully
 	support forward and reverse lookups of both IPv4 and IPv6
