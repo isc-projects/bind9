@@ -50,6 +50,8 @@ BIND 9.3.0
 
 	DNSSEC is now DS based.
 	See doc/draft/draft-ietf-dnsext-dnssec-*
+	Note: DNSSEC server support needs to be enabled
+	      options/view { dnssec-enable yes; };
 
 	DNSSEC lookaside validation.
 
