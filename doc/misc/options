@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.54.2.1 2001/01/09 22:43:14 bwelling Exp $
+$Id: options,v 1.54.2.2 2001/01/16 20:45:42 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -32,6 +32,11 @@ Legend:
 	    "localnets" match IPv4 addresses only.
 
   #	    BIND 9 accepts both LF and CRLF as end-of-line markers.
+
+  $	    Stub zones are partially supported.  They no longer
+            inject NS records into their parent zones, but can still
+            be used as a way of forcing a domain to be resolved using
+	    a particular set of name servers.
 
 
 options {
@@ -196,7 +201,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
 };
 
 zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
-  type stub;						    Yes
+  type stub;						    Yes$
   [ file path_name; ]					    Yes
   masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
   [ forward ( only | first ); ]				    Yes
