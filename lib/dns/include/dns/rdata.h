@@ -128,7 +128,7 @@ struct dns_rdata {
 
 /*
  * Context structure for dns_rdata_totext().  Defines
- * the way the rdata part of a master file lines is
+ * the way the rdata part of a master file line is
  * formatted.
  */
 typedef struct dns_rdata_textctx {
@@ -139,7 +139,7 @@ typedef struct dns_rdata_textctx {
 } dns_rdata_textctx_t;
 
 /*
- * Flags affecting rdata formatting.  Flags 0xFFFF0000
+ * Flags affecting rdata formatting style.  Flags 0xFFFF0000
  * are used by masterfile-level formatting and defined elsewhere.
  */
 
