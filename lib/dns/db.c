@@ -375,8 +375,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
-	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)
-		|| version == NULL);
+	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)||
+		((db->attributes & DNS_DBATTR_CACHE) != 0 && version == NULL));
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
