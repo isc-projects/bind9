@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: testsock.pl,v 1.6 2000/06/26 17:53:25 bwelling Exp $
+# $Id: testsock.pl,v 1.7 2000/06/26 23:46:20 mws Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -36,4 +36,5 @@ for ($id = 1 ; $id < 6 ; $id++) {
 	    	or die sprintf("$0: bind(%s, %d): $!\n",
 			       inet_ntoa($addr), $port);
 	close(SOCK);
+	sleep (1);
 }
