@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_test.c,v 1.34.4.1 2001/01/09 22:34:02 bwelling Exp $ */
+/* $Id: tkey_test.c,v 1.34.4.2 2001/01/11 18:31:10 gson Exp $ */
 
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)
@@ -83,6 +83,7 @@ dns_view_t *view = NULL;
 char output[10 * 1024];
 isc_buffer_t outbuf;
 in_port_t port = 53;
+unsigned char qdata1[2048], qdata2[2048], rdata1[2048], rdata2[2048];
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
@@ -214,7 +215,6 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 
 static void
 buildquery(void) {
-	unsigned char qdata[1024], rdata[2048];
 	isc_buffer_t qbuffer;
 	isc_region_t r, inr;
 	isc_result_t result;
@@ -273,7 +273,7 @@ buildquery(void) {
 				       DNS_TSIG_HMACMD5_NAME, nonce, 3600);
 	CHECK("dns_tkey_builddhquery", result);
 
-	isc_buffer_init(&qbuffer, qdata, sizeof(qdata));
+	isc_buffer_init(&qbuffer, qdata1, sizeof(qdata1));
 
 	result = dns_message_renderbegin(query, &qbuffer);
 	CHECK("dns_message_renderbegin", result);
@@ -301,15 +301,14 @@ buildquery(void) {
 	result = isc_socket_sendto(s, &r, task1, senddone, NULL, &address,
 				   NULL);
 	CHECK("isc_socket_sendto", result);
-	inr.base = rdata;
-	inr.length = sizeof(rdata);
+	inr.base = rdata1;
+	inr.length = sizeof(rdata1);
 	result = isc_socket_recv(s, &inr, 1, task1, recvdone, NULL);
 	CHECK("isc_socket_recv", result);
 }
 
 static void
 buildquery2(void) {
-	unsigned char qdata[1024], rdata[2048];
 	isc_buffer_t qbuffer;
 	isc_region_t r, inr;
 	isc_result_t result;
@@ -322,7 +321,7 @@ buildquery2(void) {
 	result = dns_tkey_builddeletequery(query2, tsigkey);
 	CHECK("dns_tkey_builddeletequery", result);
 
-	isc_buffer_init(&qbuffer, qdata, sizeof(qdata));
+	isc_buffer_init(&qbuffer, qdata2, sizeof(qdata2));
 
 	result = dns_message_renderbegin(query2, &qbuffer);
 	CHECK("dns_message_renderbegin", result);
@@ -347,8 +346,8 @@ buildquery2(void) {
 	result = isc_socket_sendto(s, &r, task1, senddone2, NULL, &address,
 				   NULL);
 	CHECK("isc_socket_sendto", result);
-	inr.base = rdata;
-	inr.length = sizeof(rdata);
+	inr.base = rdata2;
+	inr.length = sizeof(rdata2);
 	result = isc_socket_recv(s, &inr, 1, task1, recvdone2, NULL);
 	CHECK("isc_socket_recv", result);
 }
