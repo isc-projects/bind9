@@ -1,3 +1,6 @@
+   9.   [cleanup]	replaced bit-setting code in confctx.c and replaced
+			repeated code with macro calls.
+
    8.   [bug]		Shutdown of incoming zone transfer accessed
 			freed memory.
 
