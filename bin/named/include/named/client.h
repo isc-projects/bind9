@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.60 2001/08/28 03:57:59 marka Exp $ */
+/* $Id: client.h,v 1.60.2.1 2001/11/15 01:24:18 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -72,9 +72,6 @@
 #include <dns/types.h>
 #include <dns/tcpmsg.h>
 #include <dns/fixedname.h>
-#ifdef DNS_OPT_NEWCODES
-#include <dns/opt.h>
-#endif /* DNS_OPT_NEWCODES */
 #include <named/types.h>
 #include <named/query.h>
 
@@ -114,10 +111,6 @@ struct ns_client {
 	dns_rdataset_t *	opt;
 	isc_uint16_t		udpsize;
 	isc_uint16_t		extflags;
-#ifdef DNS_OPT_NEWCODES
-	dns_fixedname_t *       opt_zone;
-        isc_buffer_t *          opt_view;
-#endif /* DNS_OPT_NEWCODES */
 	void			(*next)(ns_client_t *);
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;
@@ -151,14 +144,6 @@ struct ns_client {
 	 */
 	client_list_t		*list;
 };
-
-#ifdef DNS_OPT_NEWCODES
-/*
- * Number of attr fields (opt_zone, opt_view) in above structure.  Used in
- * client_addoptattrs()
- */
-#define CLIENT_NUMATTRS 2
-#endif /* DNS_OPT_NEWCODES */
 
 #define NS_CLIENT_MAGIC			ISC_MAGIC('N','S','C','c')
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
