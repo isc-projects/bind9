@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.64 2000/11/22 21:25:38 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.65 2000/11/22 21:59:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1522,7 +1522,8 @@ cleanup(void) {
 	dns_requestmgr_detach(&requestmgr);
 
 	ddebug("Freeing the dispatchers");
-	dns_dispatch_detach(&dispatchv4);
+	if (have_ipv4)
+		dns_dispatch_detach(&dispatchv4);
 	if (have_ipv6)
 		dns_dispatch_detach(&dispatchv6);
 
