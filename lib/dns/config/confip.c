@@ -751,7 +751,7 @@ dns_c_ipmatchlist_print(isc_log_t *lctx,
 	}
 	
 	dns_c_printtabs(lctx, fp, indent - 1);
-	fprintf(fp, "};\n");
+	fprintf(fp, "}");
 
 	return (ISC_R_SUCCESS);
 }

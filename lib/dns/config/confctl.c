@@ -270,6 +270,7 @@ dns_c_ctrl_print(isc_log_t *lctx,
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 2, iml);
+		fprintf(fp, ";\n");
 	} else {
 		/* The "#" means force a leading zero */
 		fprintf(fp, "unix \"%s\" perm %#o owner %d group %d;\n",

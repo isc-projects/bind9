@@ -259,6 +259,7 @@ dns_c_view_print(isc_log_t *lctx,
 		fprintf(fp, "allow-query ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 2,
 					view->allowquery);
+		fprintf(fp, ";\n");
 	}
 
 	/* XXXJAB rest of view fields */

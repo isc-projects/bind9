@@ -121,6 +121,44 @@ dns_c_srvlist_print(isc_log_t *lctx, FILE *fp, int indent,
 
 
 isc_result_t
+dns_c_srvlist_servbyaddr(isc_log_t *lctx, dns_c_srvlist_t *servers,
+			 isc_sockaddr_t addr, dns_c_srv_t **retval)
+{
+	dns_c_srv_t *server;
+	isc_result_t res;
+
+	(void) lctx;
+	
+	REQUIRE(retval != NULL);
+
+	if (servers == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	server = ISC_LIST_HEAD(servers->elements);
+	while (server != NULL) {
+
+		if (isc_sockaddr_eqaddr(&addr, &server->address)) {
+			break;
+		}
+		
+		server = ISC_LIST_NEXT(server, next);
+	}
+
+	if (server != NULL) {
+		*retval = server;
+		res = ISC_R_SUCCESS;
+	} else {
+		res = ISC_R_NOTFOUND;
+	}
+
+	return (res);
+}
+
+
+
+
+isc_result_t
 dns_c_srv_new(isc_log_t *lctx, isc_mem_t *mem, isc_sockaddr_t addr,
 	      dns_c_srv_t **server)
 {
@@ -143,6 +181,8 @@ dns_c_srv_new(isc_log_t *lctx, isc_mem_t *mem, isc_sockaddr_t addr,
 	serv->transfers = 0;
 	serv->support_ixfr = ISC_FALSE;
 	serv->keys = NULL;
+	serv->tkeydomain = NULL;
+	serv->tkeydhkey = NULL;
 
 	memset(&serv->bitflags, 0x0, sizeof serv->bitflags);
 	
@@ -170,6 +210,14 @@ dns_c_srv_delete(isc_log_t *lctx, dns_c_srv_t **server)
 	mem = serv->mem;
 	serv->mem = NULL;
 	dns_c_kidlist_delete(lctx, &serv->keys);
+
+	if (serv->tkeydomain != NULL) {
+		isc_mem_free(mem, serv->tkeydomain);
+	}
+
+	if (serv->tkeydhkey != NULL) {
+		isc_mem_free(mem, serv->tkeydhkey);
+	}
 
 	isc_mem_put(mem, serv, sizeof *serv);
 
@@ -216,6 +264,16 @@ dns_c_srv_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_srv_t *server)
 
 	if (server->keys != NULL) {
 		dns_c_kidlist_print(lctx, fp, indent + 1, server->keys);
+	}
+
+	if (server->tkeydomain != NULL) {
+		dns_c_printtabs(lctx, fp, indent + 1);
+		fprintf(fp, "tkey-domain \"%s\";\n", server->tkeydomain);
+	}
+	
+	if (server->tkeydhkey != NULL) {
+		dns_c_printtabs(lctx, fp, indent + 1);
+		fprintf(fp, "tkey-dhkey \"%s\";\n", server->tkeydhkey);
 	}
 	
 	dns_c_printtabs(lctx, fp, indent);
@@ -268,7 +326,6 @@ dns_c_srv_setsupportixfr(isc_log_t *lctx, dns_c_srv_t *server,
 
 	return (ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_srv_getsupportixfr(isc_log_t *lctx, dns_c_srv_t *server,
@@ -352,3 +409,110 @@ dns_c_srv_gettransferformat(isc_log_t *lctx, dns_c_srv_t *server,
 		return (ISC_R_NOTFOUND);
 	}
 }
+
+
+isc_result_t
+dns_c_srv_settkeydomain(isc_log_t *lctx, dns_c_srv_t *server,
+			char *newval)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	isc_result_t res = ISC_R_SUCCESS;
+
+	(void) lctx;
+	
+	REQUIRE(server != NULL);
+	
+	if (server->tkeydomain != NULL) {
+		existed = ISC_TRUE;
+		isc_mem_free(server->mem, server->tkeydomain);
+	}
+
+	if (newval != NULL) {
+		server->tkeydomain = isc_mem_strdup(server->mem, newval);
+
+		if (server->tkeydomain == NULL) {
+			res = ISC_R_NOMEMORY;
+		} else if (existed) {
+			res = ISC_R_EXISTS;
+		}
+	} else {
+		server->tkeydomain = NULL;
+		if (existed) {
+			res = ISC_R_EXISTS;
+		}
+	}
+	
+	return (res);
+}
+
+isc_result_t
+dns_c_srv_gettkeydomain(isc_log_t *lctx, dns_c_srv_t *server,
+			char **retval)
+{
+	isc_result_t res;
+
+	(void) lctx;
+	
+	REQUIRE(server != NULL);
+	REQUIRE(retval != NULL);
+
+	if (server->tkeydomain != NULL) {
+		*retval = server->tkeydomain;
+		res = ISC_R_SUCCESS;
+	} else {
+		res = ISC_R_NOTFOUND;
+	}
+
+	return (res);
+}
+
+       
+
+isc_result_t
+dns_c_srv_settkeydhkey(isc_log_t *lctx, dns_c_srv_t *server, char *newval)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	isc_result_t res;
+
+	(void) lctx;
+	
+	if (server->tkeydhkey != NULL) {
+		existed = ISC_TRUE;
+		isc_mem_free(server->mem, server->tkeydhkey);
+	}
+
+	server->tkeydhkey = isc_mem_strdup(server->mem, newval);
+
+	if (server->tkeydhkey == NULL) {
+		res = ISC_R_NOMEMORY;
+	} else if (existed) {
+		res = ISC_R_EXISTS;
+	} else {
+		res = ISC_R_SUCCESS;
+	}
+
+	return (res);
+}
+
+isc_result_t
+dns_c_srv_gettkeydhkey(isc_log_t *lctx, dns_c_srv_t *server, char **retval)
+{
+	isc_result_t res;
+
+	(void) lctx;
+	
+	REQUIRE(server != NULL);
+	REQUIRE(retval != NULL);
+
+	if (server->tkeydhkey != NULL) {
+		*retval = server->tkeydhkey;
+		res = ISC_R_SUCCESS;
+	} else {
+		res = ISC_R_NOTFOUND;
+	}
+
+	return (res);
+}
+
+
+

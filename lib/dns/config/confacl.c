@@ -275,8 +275,9 @@ dns_c_acl_print(isc_log_t *lctx,
 	} else {
 		fprintf(fp, "{\n");
 		dns_c_printtabs(lctx, fp, indent);
-		fprintf(fp, "};");
+		fprintf(fp, "}");
 	}
+	fprintf(fp, ";\n");
 }
 
 

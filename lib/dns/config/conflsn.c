@@ -216,6 +216,7 @@ dns_c_lstnon_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_lstnon_t *lo)
 	}
 
 	dns_c_ipmatchlist_print(lctx, fp, indent + 1, lo->iml);
+	fprintf(fp, ";\n");
 
 	return (ISC_R_SUCCESS);
 }

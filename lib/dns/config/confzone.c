@@ -2509,6 +2509,7 @@ master_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		fprintf(fp, "allow-update ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					mzone->allow_update);
+		fprintf(fp, ";\n");
 	}
 
 	if (mzone->allow_query != NULL &&
@@ -2517,6 +2518,7 @@ master_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		fprintf(fp, "allow-query ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					mzone->allow_query);
+		fprintf(fp, ";\n");
 	}
 
 	if (mzone->allow_transfer != NULL &&
@@ -2525,6 +2527,7 @@ master_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		fprintf(fp, "allow-transfer ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					mzone->allow_transfer);
+		fprintf(fp, ";\n");
 	}
 
 	if (DNS_C_CHECKBIT(MZ_DIALUP_BIT, &mzone->setflags)) {
@@ -2608,6 +2611,7 @@ slave_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		fprintf(fp, "allow-update ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					szone->allow_update);
+		fprintf(fp, ";\n");
 	}
 
 	if (szone->allow_query != NULL &&
@@ -2616,6 +2620,7 @@ slave_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		fprintf(fp, "allow-query ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					szone->allow_query);
+		fprintf(fp, ";\n");
 	}
 
 	if (szone->allow_transfer != NULL &&
@@ -2624,6 +2629,7 @@ slave_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		fprintf(fp, "allow-transfer ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					szone->allow_transfer);
+		fprintf(fp, ";\n");
 	}
 
 	if (DNS_C_CHECKBIT(SZ_TRANSFER_SOURCE_BIT, &szone->setflags)) {
@@ -2694,6 +2700,7 @@ stub_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_stubzone_t *szone)
 		fprintf(fp, "allow-update ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					szone->allow_update);
+		fprintf(fp, ";\n");
 	}
 
 	if (szone->allow_query != NULL &&
@@ -2702,6 +2709,7 @@ stub_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_stubzone_t *szone)
 		fprintf(fp, "allow-query ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					szone->allow_query);
+		fprintf(fp, ";\n");
 	}
 
 	if (szone->allow_transfer != NULL &&
@@ -2710,6 +2718,7 @@ stub_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_stubzone_t *szone)
 		fprintf(fp, "allow-transfer ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					szone->allow_transfer);
+		fprintf(fp, ";\n");
 	}
 
 	if (DNS_C_CHECKBIT(TZ_TRANSFER_SOURCE_BIT, &szone->setflags)) {
