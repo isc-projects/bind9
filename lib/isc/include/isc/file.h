@@ -91,11 +91,15 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen);
  */
 
 isc_result_t
-isc_file_openunique(char *template, FILE **fp);
+isc_file_openunique(char *templet, FILE **fp);
 /*
- * Create and open a file with a unique name based on 'template'.
+ * Create and open a file with a unique name based on 'templet'.
  * 
  * Notes:
+ *	'template' is a reserved work in C++.  If you want to complain
+ *	about the spelling of 'templet', first look it up in the
+ *	Merriam-Webster English dictionary. (http://www.m-w.com/)
+ *
  *	This function works by using the template to generate file names.
  *	The template must be a writable string, as it is modified in place.
  *	Trailing X characters in the file name (full file name on Unix,

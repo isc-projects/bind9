@@ -116,18 +116,18 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen) {
 }
 
 isc_result_t
-isc_file_openunique(char *template, FILE **fp) {
+isc_file_openunique(char *templet, FILE **fp) {
 	int fd;
 	FILE *f;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	REQUIRE(template != NULL);
+	REQUIRE(templet != NULL);
 	REQUIRE(fp != NULL && *fp == NULL);
 
 	/*
 	 * Win32 does not have mkstemp.
 	 */
-	fd = mkstemp(template);
+	fd = mkstemp(templet);
 
 	if (fd == -1)
 		switch (errno) {
@@ -158,7 +158,7 @@ isc_file_openunique(char *template, FILE **fp) {
 			else
 				result = ISC_R_UNEXPECTED;
 
-			(void)remove(template);
+			(void)remove(templet);
 			(void)close(fd);
 
 		} else
