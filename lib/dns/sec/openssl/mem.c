@@ -123,13 +123,14 @@ static unsigned long mem_hash(MEM *a)
 	return(ret);
 	}
 
-static void *(*malloc_locked_func)()=(void *(*)())malloc;
-static void (*free_locked_func)()=(void (*)())free;
-static void *(*malloc_func)()=	(void *(*)())malloc;
-static void *(*realloc_func)()=	(void *(*)())realloc;
-static void (*free_func)()=	(void (*)())free;
+static void *(*malloc_locked_func)(int)=(void *(*)(int))malloc;
+static void (*free_locked_func)(void *)=(void (*)(void *))free;
+static void *(*malloc_func)(int)=	(void *(*)(int))malloc;
+static void *(*realloc_func)(void *, int)= (void *(*)(void *, int))realloc;
+static void (*free_func)(void *)=	(void (*)(void *))free;
 
-void CRYPTO_set_mem_functions(void *(*m)(), void *(*r)(), void (*f)())
+void CRYPTO_set_mem_functions(void *(*m)(int), void *(*r)(void *, int),
+			      void (*f)(void *))
 	{
 	if ((m == NULL) || (r == NULL) || (f == NULL)) return;
 	malloc_func=m;
@@ -139,14 +140,15 @@ void CRYPTO_set_mem_functions(void *(*m)(), void *(*r)(), void (*f)())
 	free_locked_func=f;
 	}
 
-void CRYPTO_set_locked_mem_functions(void *(*m)(), void (*f)())
+void CRYPTO_set_locked_mem_functions(void *(*m)(int), void (*f)(void *))
 	{
 	if ((m == NULL) || (f == NULL)) return;
 	malloc_locked_func=m;
 	free_locked_func=f;
 	}
 
-void CRYPTO_get_mem_functions(void *(**m)(), void *(**r)(), void (**f)())
+void CRYPTO_get_mem_functions(void *(**m)(int), void *(**r)(void *, int),
+			      void (**f)(void *))
 	{
 	if (m != NULL) *m=malloc_func;
 	if (r != NULL) *r=realloc_func;
