@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.99 2000/08/08 21:47:49 bwelling Exp $
+# $Id: Makefile.in,v 1.100 2000/08/10 18:30:18 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -82,8 +82,7 @@ XTARGETS =	adb_test \
 		task_test \
 		timer_test \
 		tkey_test \
-		wire_test \
-		zone2_test
+		wire_test
 
 # Alphabetically
 SRCS =		adb_test.c \
@@ -126,8 +125,7 @@ SRCS =		adb_test.c \
 		timer_test.c \
 		tkey_test.c \
 		wire_test.c \
-		zone_test.c \
-		zone2_test.c
+		zone_test.c
 
 @BIND9_MAKE_RULES@
 
@@ -243,10 +241,6 @@ mempool_test: mempool_test.@O@ ${ISCDEPLIBS}
 serial_test: serial_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ serial_test.@O@ \
 		${ISCLIBS} ${LIBS}
-
-zone2_test: zone2_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone2_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 zone_test: zone_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone_test.@O@ \
