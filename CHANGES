@@ -1,4 +1,7 @@
 
+ 787.	[bug]		The DNSSEC tools failed to downcase domain
+			names when mapping them into file names.
+
 	--- 9.1.1rc6 released ---
 
  785.	[bug]		A race condition in the resolver could cause
