@@ -1,3 +1,7 @@
+1128.	[func]		sdb drivers can now provide RR data in either text
+			or wire format, the latter using the new functions
+			dns_sdb_putrdata() and dns_sdb_putnamedrdata().
+
 1127.	[func]		rndc: If the server to contact has multiple addresses,
 			try all of them.
 

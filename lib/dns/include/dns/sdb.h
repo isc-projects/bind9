@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.13 2001/10/13 01:32:34 gson Exp $ */
+/* $Id: sdb.h,v 1.14 2001/11/15 20:32:05 gson Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -165,17 +165,28 @@ dns_sdb_unregister(dns_sdbimplementation_t **sdbimp);
 isc_result_t
 dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	      const char *data);
+isc_result_t
+dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t type, dns_ttl_t ttl,
+		 const unsigned char *rdata, unsigned int rdlen);
 /*
- * Add a single resource record to the lookup structure to be later
- * parsed into a query response.
+ * Add a single resource record to the lookup structure to be
+ * returned in the query response.  dns_sdb_putrr() takes the
+ * resource record in master file text format as a null-terminated
+ * string, and dns_sdb_putrdata() takes the raw RDATA in
+ * uncompressed wire format.
  */
 
 isc_result_t
 dns_sdb_putnamedrr(dns_sdballnodes_t *allnodes, const char *name,
 		   const char *type, dns_ttl_t ttl, const char *data);
+isc_result_t
+dns_sdb_putnamedrdata(dns_sdballnodes_t *allnodes, const char *name,
+		      dns_rdatatype_t type, dns_ttl_t ttl,
+		      const void *rdata, unsigned int rdlen);
 /*
- * Add a single resource record to the allnodes structure to be later
- * parsed into a zone transfer response.
+ * Add a single resource record to the allnodes structure to be
+ * included in a zone transfer response, in text or wire
+ * format as above.
  */
 
 isc_result_t
