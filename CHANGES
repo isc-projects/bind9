@@ -1,7 +1,17 @@
 
+	--- 9.0.0 released ---
+
  461.	[bug]		Specifying an unknown key in the "keys" clause of the
 			"controls" statement caused a NULL pointer dereference.
 			[RT #316]
+
+ 459.	[bug]		Nslookup processed the "set" command incorrectly.
+
+ 458.	[bug]		Nslookup didn't properly check class and type values.
+
+ 457.	[bug]		Dig/host/hslookup didn't properly handle connect
+			timeouts in certain situations, causing an 
+			unnecessary warning message to be printed.
 
  456.	[bug]		Stub zones were not resetting the refresh and expire
 			counters, loadtime or clearing the DNS_ZONE_REFRESH
