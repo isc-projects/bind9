@@ -41,7 +41,7 @@
    1.2. This document makes use of the EDNS extension mechanisms to add
    several new extended label types and message options, and the ability to
    ask multiple questions in a single request.
-compress
+
    Expires December 1999                                           [Page 1]
 
    INTERNET-DRAFT                    EDNS1                        June 1999
