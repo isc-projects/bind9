@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.3 2001/01/11 18:38:58 gson Exp $ */
+/* $Id: zone.c,v 1.283.2.4 2001/01/11 20:59:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2417,13 +2417,14 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		break;
 	default:
 		result = ISC_R_NOTIMPLEMENTED;
-		goto cleanup;
+		goto cleanup_key;
 	}
 	result = dns_request_createvia(notify->zone->view->requestmgr, message,
 				       &src, &notify->dst, 0, key, 15,
 				       notify->zone->task,
 				       notify_done, notify,
 				       &notify->request);
+ cleanup_key:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
 	dns_message_destroy(&message);
