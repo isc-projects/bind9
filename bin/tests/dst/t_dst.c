@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.41 2000/09/19 19:08:43 bwelling Exp $ */
+/* $Id: t_dst.c,v 1.42 2000/11/15 00:20:34 tale Exp $ */
 
 #include <config.h>
 
@@ -196,14 +196,16 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 
 	ret = isc_file_mktemplate("/tmp/", tmp, sizeof(tmp));
 	if (ret != ISC_R_SUCCESS) {
-		t_info("tmpnam failed %s\n", isc_result_totext(ret));
+		t_info("isc_file_mktemplate failed %s\n",
+		       isc_result_totext(ret));
 		++*nprobs;
 		return;
 	}
 
 	ret = isc_dir_createunique(tmp);
 	if (ret != ISC_R_SUCCESS) {
-		t_info("mkdir failed %s\n", isc_result_totext(ret));
+		t_info("isc_dir_createunique failed %s\n",
+		       isc_result_totext(ret));
 		++*nprobs;
 		return;
 	}
@@ -263,7 +265,6 @@ io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx,
 {
 	dst_key_t	*key = NULL;
 	isc_result_t	ret;
-	int		rval;
 	char		current[PATH_MAX + 1];
 	char		tmp[PATH_MAX + 1];
 	char		*p;
@@ -283,15 +284,16 @@ io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx,
 		return;
 	}
 
-	p = tmpnam(tmp);
-	if (p == NULL) {
-		t_info("tmpnam failed %d\n", errno);
+	ret = isc_file_mktemplate("/tmp/", tmp, sizeof(tmp));
+	if (ret != ISC_R_SUCCESS) {
+		t_info("isc_file_mktemplate failed %s\n",
+		       isc_result_totext(ret));
 		++*nprobs;
 		return;
 	}
 
-	rval = mkdir(tmp, S_IRWXU | S_IRWXG );
-	if (rval != 0) {
+	ret = isc_dir_createunique(tmp);
+	if (ret != ISC_R_SUCCESS) {
 		t_info("mkdir failed %d\n", errno);
 		++*nprobs;
 		return;
