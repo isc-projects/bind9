@@ -20,3 +20,4 @@ compress_test
 t_journal
 mempool_test
 res_test
+dispatch_test
