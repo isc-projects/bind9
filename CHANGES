@@ -7,7 +7,8 @@
 1762.	[bug]		isc_interfaceiter_create() could return ISC_R_SUCCESS
 			even when it failed. [RT #12995]
 
-1761.	[placeholder]	rt12971
+1761.	[bug]		'rndc dumpdb' didn't report unassociated entries.
+			[RT #12971]
 
 1760.	[bug]		Host / net unreachable was not penalising rtt
 			estimates. [RT #12970]
