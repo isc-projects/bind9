@@ -165,6 +165,9 @@ typedef isc_result_t
 typedef isc_result_t
 (*dns_additionaldatafunc_t)(void *, dns_name_t *, dns_rdatatype_t);
 
+typedef isc_result_t
+(*dns_digestfunc_t)(void *, isc_region_t *);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_TYPES_H */
