@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.11 2000/09/11 19:27:49 explorer Exp $ */
+/* $Id: zone.c,v 1.152.2.12 2000/09/14 20:45:16 gson Exp $ */
 
 #include <config.h>
 
@@ -2209,12 +2209,23 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&zone->lock);
 	dns_db_detach(&stub->db);
 
-	if (zone->dbname != NULL)
+	if (zone->dbname != NULL) {
 		dns_zone_dump(zone);
+		(void)isc_time_now(&zone->loadtime);
+	}
 
 	dns_message_destroy(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
+	LOCK(&zone->lock);
+	zone->flags &= ~DNS_ZONEFLG_REFRESH;
+	zone->refreshtime = now + zone->refresh;
+	zone->expiretime = now + zone->expire;
+	zone_log(zone, me, ISC_LOG_DEBUG(20),
+		 "refresh time (%u/%u), now %u",
+		 zone->refreshtime, zone->refresh, now);
+	zone_settimer(zone, now);
+	UNLOCK(&zone->lock);
 	goto free_stub;
 
  next_master:

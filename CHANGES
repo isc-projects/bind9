@@ -1,4 +1,10 @@
 
+ 456.	[bug]		Stub zones were not resetting the refresh and expire
+			counters, loadtime or clearing the DNS_ZONE_REFRESH
+			(refresh in progress) flag upon successful update.
+			This disabled further refreshing of the stub zone,
+			causing it to eventually expire. [RT #300]
+
 	--- 9.0.0rc6 released ---
 
  453.	[bug]		Warn if the obsolete option "maintain-ixfr-base"
