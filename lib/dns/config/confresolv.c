@@ -18,6 +18,8 @@
 #include <config.h>
 
 #include <dns/confresolv.h>
+#include <dns/result.h>
+
 
 #include "confpvt.h"
 

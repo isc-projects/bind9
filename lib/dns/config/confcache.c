@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <dns/confcache.h>
+#include <dns/result.h>
 
 #include "confpvt.h"
 
@@ -29,7 +30,7 @@ dns_c_cache_new(isc_mem_t *mem, dns_c_cache_t **cfgcache)
 
 	/* XXX nothing yet */
 	
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -40,7 +41,7 @@ dns_c_cache_delete(dns_c_cache_t **cfgcache)
 	
 	/* XXX nothin yet */
 
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 		
