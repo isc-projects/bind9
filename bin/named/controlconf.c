@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.15 2001/07/05 17:01:40 gson Exp $ */
+/* $Id: controlconf.c,v 1.16 2001/07/05 18:39:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -187,9 +187,17 @@ maybe_free_connection(controlconnection_t *conn) {
 static void
 shutdown_listener(controllistener_t *listener) {
 	isc_boolean_t destroy = ISC_TRUE;
-	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
-	listener->exiting = ISC_TRUE;
+	if (!listener->exiting) {
+		char socktext[ISC_SOCKADDR_FORMATSIZE];
+
+		isc_sockaddr_format(&listener->address, socktext,
+				    sizeof(socktext));
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
+			      "stopping command channel on %s", socktext);
+		listener->exiting = ISC_TRUE;
+	}
 
 	if (!ISC_LIST_EMPTY(listener->connections)) {
 		controlconnection_t *conn;
@@ -206,10 +214,6 @@ shutdown_listener(controllistener_t *listener) {
 		destroy = ISC_FALSE;
 	}
 
-	isc_sockaddr_format(&listener->address, socktext, sizeof(socktext));
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
-		      "stopping command channel on %s", socktext);
 	if (destroy)
 		free_listener(listener);
 }
