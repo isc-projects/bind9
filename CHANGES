@@ -1,3 +1,9 @@
+1214.	[bug]		Win32: isc_file_renameunique() could leave zero length
+			files behind.
+
+1213.	[func]		Report view associated with client if it is not a
+			standard view (_default or _bind).
+
 1212.	[port]		libbind: 64k answer buffers were causing stack space
 			to be exceeded for certian OS.  Use heap space instead.
 
