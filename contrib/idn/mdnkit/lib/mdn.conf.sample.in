@@ -1,4 +1,4 @@
-# $Id: mdn.conf.sample.in,v 1.1 2001/06/09 00:30:17 tale Exp $
+# $Id: mdn.conf.sample.in,v 1.1.2.1 2002/02/08 12:14:06 marka Exp $
 #
 # Sample file for mDNkit version 2 resolver configuration file (mdn.conf).
 #
@@ -10,16 +10,10 @@
 # of multilingualized names by resolvers and DNS servers.  Currently, the
 # following encodings are available:
 #
-#	RACE
-#	BRACE
-#	LACE
+#	AMC-ACE-Z
 #	DUDE
-#	UTF-6
+#	RACE
 #	UTF-8
-#	AltDUDE
-#	AMC-ACE-M
-#	AMC-ACE-O
-#	AMC-ACE-R
 #	<codeset names your iconv_open() accepts>
 #
 # syntax)
@@ -33,8 +27,10 @@ idn-encoding RACE
 #
 #	nameprep-03		-- name preparation scheme described in the
 #				   IETF draft `idn-nameprep-03'
-#	nameprep-02		-- name preparation scheme described in the
-#				   IETF draft `idn-nameprep-02'
+#	nameprep-05		-- name preparation scheme described in the
+#				   IETF draft `idn-nameprep-05'
+#	nameprep-06		-- name preparation scheme described in the
+#				   IETF draft `idn-nameprep-06'
 #
 # syntax)
 #	nameprep <nameprep version>
@@ -49,7 +45,7 @@ idn-encoding RACE
 # If both `nameprep' and more-specific entries (i.e. `nameprep-*' entries)
 # are specified, more-specific ones take precedence.
 #
-nameprep nameprep-03
+nameprep nameprep-06
 
 #
 # `nameprep-map' entry specifies the mapping scheme of NAMEPREP process.
@@ -63,27 +59,26 @@ nameprep nameprep-03
 #
 # If multiple schemes are specified, they are applied in turn.
 #
-#nameprep-map nameprep-03
+#nameprep-map nameprep-06
 
 #
 # `nameprep-normalize' entry specifies the normalization scheme of NAMEPREP
 # process.  Avaialable normalization schemes are:
 #
 #	<nameprep version>	-- nameprep version
-#	ascii-lowercase		-- ASCII uppercase letters to lowercase
-#	ascii-uppercase		-- ASCII lowercase letters to uppercase
-#	unicode-lowercase	-- Unicode uppercase letters to lowercase
-#	unicode-uppercase	-- Unicode lowercase letters to uppercase
-#	unicode-foldcase	-- Unicode case-folding.
-#	unicode-form-c		-- Unicode normalization form C
 #	unicode-form-kc		-- Unicode normalization form KC
+#				   defined by the latest standard.
+#	unicode-form-kc/3.0.1	-- Unicode normalization form KC
+#				   defined by Unicode 3.0.1.
+#	unicode-form-kc/3.1.0	-- Unicode normalization form KC
+#				   defined by Unicode 3.1.
 #
 # syntax)
 #	nameprep-normalize <scheme> ...
 #
 # If multiple schemes are specified, they are applied in turn.
 #
-#nameprep-normalize nameprep-03
+#nameprep-normalize nameprep-06
 
 #
 # `nameprep-prohibit' entry specifies the prohibited characters in the
@@ -97,7 +92,7 @@ nameprep nameprep-03
 #
 # If multiple sets are specified, they are applied in turn.
 #
-#nameprep-prohibit nameprep-03
+#nameprep-prohibit nameprep-06
 
 #
 # `nameprep-unassigned' entry specifies the unassigned characters in the
@@ -111,19 +106,7 @@ nameprep nameprep-03
 #
 # If multiple sets are specified, they are applied in turn.
 #
-#nameprep-unassigned nameprep-03
-
-#
-# `alternate-encoding' entry specifies the alternative encoding to use in
-# case of the conversion from IDN encoding to the application's local
-# encoding fails due to the lack of certain character in the character set
-# of the local encoding.  The alternative encoding must be ASCII compatible
-# encoding (ACE).
-#
-# syntax)
-#	alternate-encoding <encoding>
-#
-alternate-encoding RACE
+#nameprep-unassigned nameprep-06
 
 #
 # `encoding-alias-file' specifies the file which defines encoding name 

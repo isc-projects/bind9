@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: api.c,v 1.1 2001/06/09 00:30:12 tale Exp $";
+static char *rcsid = "$Id: api.c,v 1.1.2.1 2002/02/08 12:13:46 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: api.c,v 1.1 2001/06/09 00:30:12 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -89,7 +89,7 @@ static struct actiondesc {
 #define ENCODE_MASK \
 	(MDN_LOCALCONV|MDN_IDNCONV|MDN_NAMEPREP|MDN_UNASCHECK|\
 	 MDN_DELIMMAP|MDN_LOCALMAP)
-#define DECODE_MASK (MDN_LOCALCONV|MDN_IDNCONV)
+#define DECODE_MASK (MDN_LOCALCONV|MDN_NAMEPREP|MDN_UNASCHECK|MDN_IDNCONV)
 
 static int initialized;
 static mdn_resconf_t default_conf;
@@ -128,7 +128,7 @@ mdn_encodename(int actions, const char *from, char *to, size_t tolen) {
 
 	TRACE(("mdn_encodename(actions=%s, from=\"%s\")\n",
 	       actions_to_string(actions),
-	       mdn_debug_xstring(from, 30)));
+	       mdn_debug_xstring(from, 256)));
 
 	if (actions & ~ENCODE_MASK) {
 		WARNING(("mdn_encodename: invalid actions 0x%x\n", actions));
@@ -169,7 +169,7 @@ mdn_decodename(int actions, const char *from, char *to, size_t tolen) {
 
 	TRACE(("mdn_decodename(actions=%s, from=\"%s\")\n",
 	       actions_to_string(actions),
-	       mdn_debug_xstring(from, 30)));
+	       mdn_debug_xstring(from, 256)));
 
 	if (actions & ~DECODE_MASK) {
 		WARNING(("mdn_decodename: invalid actions 0x%x\n", actions));
@@ -181,6 +181,14 @@ mdn_decodename(int actions, const char *from, char *to, size_t tolen) {
 
 	if (actions & MDN_IDNCONV)
 		*p++ = 'i';
+	if (actions & MDN_NAMEPREP) {
+		*p++ = '!';
+		*p++ = 'N';
+	}
+	if (actions & MDN_UNASCHECK) {
+		*p++ = '!';
+		*p++ = 'u';
+	}
 	if (actions & MDN_LOCALCONV)
 		*p++ = 'L';
 	*p = '\0';

@@ -1,4 +1,4 @@
-/* $Id: converter.h,v 1.15 2001/02/26 09:32:25 m-kasahr Exp $ */
+/* $Id: converter.h,v 1.1 2002/01/02 02:46:30 marka Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -8,8 +8,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -87,6 +87,13 @@ typedef enum {
  */
 #define MDN_CONVERTER_DELAYEDOPEN	1
 #define MDN_CONVERTER_RTCHECK		2
+
+/*
+ * Encoding types.
+ */
+#define MDN_NONACE			0
+#define MDN_ACE_STRICTCASE		1
+#define MDN_ACE_LOOSECASE		2
 
 /*
  * Initialize module.  Must be called before any other calls of
@@ -167,13 +174,23 @@ extern char *
 mdn_converter_localencoding(mdn_converter_t ctx);
 
 /*
- * Return if this local encoding is a special one that a string in this
- * encoding just looks like an ordinary ASCII string.
- * A few types of encoding designed specially for domain name conversion
- * (such as UTF-5) fall into this category.
+ * Return the encoding type of this local encoding.
  *
  * Returns:
- *	1	-- yes, it is special.
+ *	MDN_NOACE		-- encoding is not ACE.
+ *	MDN_ACE_STRICTCASE	-- encoding is ACE.
+ *				   decoder of this ACE preserve letter case.
+ *	MDN_ACE_LOOSECASE	-- encoding type is ACE.
+ *				   decoder cannot preserve letter case.
+ */
+extern int
+mdn_converter_encodingtype(mdn_converter_t ctx);
+
+/*
+ * Return if this local encoding is ACE (Ascii Compatible Encoding).
+ *
+ * Returns:
+ *	1	-- yes, it is ACE.
  *	0	-- no.
  */
 extern int
@@ -229,8 +246,7 @@ typedef mdn_result_t (*mdn_converter_convertproc_t)(mdn_converter_t ctx,
 
 /*
  * Register a new converter.
- * 'ascii_compatible' is a boolean flag indicating this encoding is
- * an `ascii-compatible encoding'.
+ * 'encoding_type' is a value which mdn_converter_encodingtype() returns.
  *
  * Returns:
  *	mdn_success		-- ok.
@@ -241,6 +257,6 @@ mdn_converter_register(const char *name,
 		       mdn_converter_openproc_t open,
 		       mdn_converter_closeproc_t close,
 		       mdn_converter_convertproc_t convert,
-		       int ascii_compatible);
+		       int encoding_type);
 
 #endif /* MDN_CONVERTER_H */

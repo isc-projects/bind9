@@ -11,8 +11,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -61,7 +61,7 @@
  */
 
 #ifndef lint
-static char *rcsid = "$Id: logging.c,v 1.1 2001/06/09 00:30:35 tale Exp $";
+static char *rcsid = "$Id: logging.c,v 1.1.2.1 2002/02/08 12:14:49 marka Exp $";
 #endif
 
 #include <config.h>
@@ -71,6 +71,10 @@ static char *rcsid = "$Id: logging.c,v 1.1 2001/06/09 00:30:35 tale Exp $";
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #ifdef HAVE_SYSLOG
 #include <syslog.h>
@@ -275,63 +279,64 @@ void	log_turnover(void)
 	timeToTurnOver = 0;
 	log_trace_printf("--- log file turned over\n");
 	log_terminate() ;
+	logFptr = fopen(logFname, "a") ;
     }
 }
 
 /*
- * libmdn_logproc_file - log hander for libmdn
+ * libmdn_logproc - log hander for libmdn
  *	output message to a regular log file.
  */
 static void
-libmdn_logproc_file(int level, const char *buf)
+libmdn_logproc(int level, const char *message)
 {
-    switch (level) {
-    case mdn_log_level_fatal:
-        FATAL((char *)buf);
-        break;
-    case mdn_log_level_warning:
-    case mdn_log_level_info:
-        WARN((char *)buf);
-        break;
-    case mdn_log_level_trace:
-    case mdn_log_level_dump:
-        TRACE((char *)buf);
-        break;
-    }
-}
+    char    buff[512] ;
+    char    *newline;
+    time_t  t;
 
-/*
- * libmdn_logproc_syslog - log hander for libmdn.
- *	output message to syslog.
- */
-static void
-libmdn_logproc_syslog(int level, const char *buf)
-{
+    if (logMode == LOGMODE_SYSLOG) {
 #ifdef HAVE_SYSLOG
-    switch (level) {
-    case mdn_log_level_fatal:
-	syslog(LOG_ERR, "[FATAL] %s", buf);
-	break;
-    case mdn_log_level_error:
-	syslog(LOG_ERR, "[ERROR] %s", buf);
-	break;
-    case mdn_log_level_warning:
-	syslog(LOG_WARNING, "[WARNING] %s", buf);
-	break;
-    case mdn_log_level_info:
-	syslog(LOG_INFO, "[INFO] %s", buf);
-	break;
-    case mdn_log_level_trace:
-	syslog(LOG_DEBUG, "[TRACE] %s", buf);
-	break;
-    case mdn_log_level_dump:
-	syslog(LOG_DEBUG, "[DUMP] %s", buf);
-	break;
-    default:
-	syslog(LOG_NOTICE, "[LEVEL%d] %s", level, buf);
-	break;
-    }
+	switch (level) {
+	case mdn_log_level_fatal:
+	    syslog(LOG_ERR, "[FATAL] %s", message);
+	    break;
+	case mdn_log_level_error:
+	    syslog(LOG_ERR, "[ERROR] %s", message);
+	    break;
+	case mdn_log_level_warning:
+	    syslog(LOG_WARNING, "[WARNING] %s", message);
+	    break;
+	case mdn_log_level_info:
+	    syslog(LOG_INFO, "[INFO] %s", message);
+	    break;
+	case mdn_log_level_trace:
+	    syslog(LOG_DEBUG, "[TRACE] %s", message);
+	    break;
+	case mdn_log_level_dump:
+	    syslog(LOG_DEBUG, "[DUMP] %s", message);
+	    break;
+	default:
+	    syslog(LOG_NOTICE, "[LEVEL%d] %s", level, message);
+	    break;
+	}
 #endif /* HAVE_SYSLOG */
+
+    } else if (logMode == LOGMODE_STDERR) {
+	fputs(message, logFptr) ;
+	fflush(logFptr) ;
+
+    } else if (logFptr != NULL) {
+	t = time(NULL);
+	strcpy(buff, ctime(&t));
+	newline = strchr(buff, '\n');
+	if (newline != NULL)
+	    *newline = '\0';
+
+	fputs(buff, logFptr);
+	fprintf(logFptr, " [%d]: ", (int)getpid());
+	fputs(message, logFptr) ;
+	fflush(logFptr) ;
+    }
 }
 
 /*
@@ -366,6 +371,8 @@ libmdn_string_to_loglevel(char *s)
 static void	log_vprintf(int level, char *fmt, va_list arg_ptr)
 {
     char    buff[512] ;
+    char    *newline;
+    time_t  t;
     
     if (logLevel < level) {
 	return;
@@ -375,14 +382,9 @@ static void	log_vprintf(int level, char *fmt, va_list arg_ptr)
      * format message
      */
      
-    vsprintf(buff, fmt, arg_ptr) ;
-
-#ifdef  DEBUG
-    printf("%s", buff) ;
-    fflush(stdout)    ;
-#endif
-
     if (logMode == LOGMODE_SYSLOG) {
+	vsprintf(buff, fmt, arg_ptr) ;
+
 #ifdef HAVE_SYSLOG
 	switch (level) {
 	case LOGLEVEL_FATAL:
@@ -396,8 +398,21 @@ static void	log_vprintf(int level, char *fmt, va_list arg_ptr)
 	    break;
 	}
 #endif /* HAVE_SYSLOG */
+
+    } else if (logMode == LOGMODE_STDERR) {
+	vfprintf(logFptr, fmt, arg_ptr) ;
+	fflush(logFptr) ;
+
     } else if (logFptr != NULL) {
-	fputs(buff, logFptr) ;
+	t = time(NULL);
+	strcpy(buff, ctime(&t));
+	newline = strchr(buff, '\n');
+	if (newline != NULL)
+	    *newline = '\0';
+
+	fputs(buff, logFptr);
+	fprintf(logFptr, " [%d]: ", (int)getpid());
+	vfprintf(logFptr, fmt, arg_ptr);
 	fflush(logFptr) ;
     }
 
@@ -462,8 +477,9 @@ BOOL    log_configure(int ac, char *av[])
 	}
     }
     if (fn != NULL) {
-	if (strlen(fn) + 1 < sizeof(logFname)) {
-		WARN("log_configure - too long log file name \"%.100s...\"\n",
+	if (strlen(fn) + 1 > sizeof(logFname)) {
+		fprintf(stderr,
+		    "log_configure - too long log file name \"%.100s...\"\n",
 		     fn);
 	    return FALSE;
 	}
@@ -471,7 +487,8 @@ BOOL    log_configure(int ac, char *av[])
 
     } else if (config_query_value(KW_LOG_FILE, &nArgs, &aArgs, &lineNo)) {
 	if (nArgs != 2) {
-	    WARN("log_configure - wrong # of args for \"%s\", line %d\n", 
+	    fprintf(stderr,
+		"log_configure - wrong # of args for \"%s\", line %d\n", 
 		KW_LOG_FILE, lineNo);
 	    return FALSE;
 	}
@@ -482,12 +499,14 @@ BOOL    log_configure(int ac, char *av[])
 	int level ;
 
 	if (nArgs != 2) {
-	    WARN("log_configure - wrong # of args for \"%s\", line %d\n",
+	    fprintf(stderr,
+		"log_configure - wrong # of args for \"%s\", line %d\n",
 		KW_LOG_LEVEL, lineNo);
 	    return FALSE;
 	}
 	if ((level = log_strtolevel(aArgs[1])) < 0) {
-	    WARN("log_configure - invalid log level \"%.100s\", line %d\n",
+	    fprintf(stderr,
+		"log_configure - invalid log level \"%.100s\", line %d\n",
 		aArgs[1], lineNo);
 	    return FALSE;
 	}
@@ -498,12 +517,14 @@ BOOL    log_configure(int ac, char *av[])
 	int level;
 
 	if (nArgs != 2) {
-	    WARN("wrong # of args for \"%s\", line %d\n", KW_MDN_LOG_LEVEL,
+	    fprintf(stderr,
+		"wrong # of args for \"%s\", line %d\n", KW_MDN_LOG_LEVEL,
 		lineNo);
 	    return FALSE;
 	}
 	if ((level = libmdn_string_to_loglevel(aArgs[1])) < 0) {
-	    WARN("unknown mdn log level \"%.100s\", line %d\n", aArgs[1],
+	    fprintf(stderr,
+		"unknown mdn log level \"%.100s\", line %d\n", aArgs[1],
 		lineNo);
 	    return FALSE;
 	}
@@ -514,11 +535,13 @@ BOOL    log_configure(int ac, char *av[])
     if (config_query_value(KW_SYSLOG_FACILITY, &nArgs, &aArgs, &lineNo)
 	== TRUE) {
 	if (nArgs != 2) {
-	    WARN("log_configure - wrong # of args for \"%s\", line %d\n",
+	    fprintf(stderr,
+		"log_configure - wrong # of args for \"%s\", line %d\n",
 		KW_LOG_LEVEL, lineNo);
 	    return FALSE;
 	} else if (!log_strtofacility(aArgs[1], &logFacility)) {
-	    WARN("log_configure - unknown syslog facility \"%.100s\", "
+	    fprintf(stderr,
+		"log_configure - unknown syslog facility \"%.100s\", "
 		"line %d\n", aArgs[1], lineNo);
 	    return FALSE;
 	}
@@ -526,7 +549,7 @@ BOOL    log_configure(int ac, char *av[])
 #endif /* HAVE_SYSLOG */
 
     if (*logFname == '\0') {
-	WARN("log_configure - no logging file specified\n");
+	fprintf(stderr, "log_configure - no logging file specified\n");
         return FALSE;
     }
 
@@ -535,23 +558,27 @@ BOOL    log_configure(int ac, char *av[])
 	logMode = LOGMODE_SYSLOG;
 	logFptr = NULL;
 	openlog("mdnsproxy", LOG_NDELAY | LOG_PID, logFacility);
-	mdn_log_setproc(libmdn_logproc_syslog);
 	syslog(LOG_NOTICE, "** mdnsproxy version %s", mdn_version_getstring());
 #else /* not HAVE_SYSLOG */
-	WARN("log_configure - syslog is unavailable\n");
+	fprintf(stderr, "log_configure - syslog is unavailable\n");
 	return FALSE;
 #endif /* not HAVE_SYSLOG */
+    } else if (strcmp(logFname, "stderr") == 0) {
+	logMode = LOGMODE_STDERR;
+	logFptr = stderr;
     } else {
 	logMode = LOGMODE_FILE;
 	logFptr = fopen(logFname, "a") ;
-	mdn_log_setproc(libmdn_logproc_file);
 	if (logFptr == NULL) {
-	    WARN("log_configure - cannot open, the log file\"%.100s\"\n",
+	    fprintf(stderr,
+		"log_configure - cannot open, the log file\"%.100s\"\n",
 		logFname);
 	    return FALSE;
 	}
-	WARN("** mdnsproxy version %s\n", mdn_version_getstring());
+	fprintf(stderr, "** mdnsproxy version %s\n", mdn_version_getstring());
     }
+
+    mdn_log_setproc(libmdn_logproc);
 
     return TRUE;
 }

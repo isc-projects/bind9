@@ -1,4 +1,4 @@
-# $Id: mdnsproxy.conf.sample,v 1.1 2001/06/09 00:30:35 tale Exp $
+# $Id: mdnsproxy.conf.sample,v 1.1.2.1 2002/02/08 12:14:53 marka Exp $
 #
 # Sample mdnsproxy configuration file 'mdnsproxy.conf'.
 #
@@ -56,11 +56,12 @@ client-encoding Shift_JIS
 
 #
 # 'log-file' entry specifies the pathname of the log file.  If the string
-# `syslog' is given, mdnsproxy will record its events with syslog.
+# `syslog' is given, mdnsproxy will record its events with syslog.  If
+# `stderr' is given, mdnsproxy will record events to standard error.
 #  If the entry is not specified, default log file will be used.
 #
 # syntax)
-#	log-file (<pathname> | syslog)
+#	log-file (<pathname> | syslog | stderr)
 #
 #log-file    /var/log/mdnsproxy.log
 

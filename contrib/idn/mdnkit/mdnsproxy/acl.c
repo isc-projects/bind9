@@ -11,8 +11,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -61,7 +61,7 @@
  */
 
 #ifndef lint
-static char *rcsid = "$Id: acl.c,v 1.1 2001/06/09 00:30:35 tale Exp $";
+static char *rcsid = "$Id: acl.c,v 1.1.2.1 2002/02/08 12:14:48 marka Exp $";
 #endif
 
 #include <config.h>

@@ -1,6 +1,7 @@
-/* $Id: unicode.h,v 1.10 2001/02/13 08:26:22 ishisone Exp $ */
+/* $Id: unicode.h,v 1.1 2002/01/02 02:46:35 marka Exp $ */
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -8,8 +9,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -73,6 +74,11 @@
 #include <mdn/result.h>
 
 /*
+ * A Handle for Unicode versions.
+ */
+typedef struct mdn__unicode_ops *mdn__unicode_version_t;
+
+/*
  * Context information for case conversion.
  */
 typedef enum {
@@ -82,13 +88,33 @@ typedef enum {
 } mdn__unicode_context_t;
 
 /*
+ * Create a handle for a specific Unicode version.
+ * The version number (such as "3.0.1") is specified by 'version' parameter.
+ * If it is NULL, the latest version is used.
+ * The handle is stored in '*versionp', which is used various functions
+ * in this and unormalize modules.
+ *
+ * Returns:
+ *	mdn_success		-- ok.
+ *	mdn_notfound		-- specified version not found.
+ */
+extern mdn_result_t
+mdn__unicode_create(const char *version, mdn__unicode_version_t *versionp);
+
+/*
+ * Close a handle which was created by 'mdn__unicode_create'.
+ */
+extern void
+mdn__unicode_destroy(mdn__unicode_version_t version);
+
+/*
  * Get canonical class.
  *
  * For characters out of unicode range (i.e. above 0xffff), 0 will
  * be returned.
  */
 extern int
-mdn__unicode_canonicalclass(unsigned long c);
+mdn__unicode_canonicalclass(mdn__unicode_version_t version, unsigned long c);
 
 /*
  * Decompose a character.
@@ -109,7 +135,8 @@ mdn__unicode_canonicalclass(unsigned long c);
  *	mdn_buffer_overflow	-- 'vlen' is too small.
  */
 extern mdn_result_t
-mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
+mdn__unicode_decompose(mdn__unicode_version_t version,
+		       int compat, unsigned long *v, size_t vlen,
 		       unsigned long c, int *decomp_lenp);
 
 /*
@@ -126,7 +153,8 @@ mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
  *	mdn_notfound		-- no composition possible.
  */
 extern mdn_result_t
-mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp);
+mdn__unicode_compose(mdn__unicode_version_t version,
+		     unsigned long c1, unsigned long c2, unsigned long *compp);
 
 /*
  * Returns if there may be a canonical composition sequence which starts
@@ -138,7 +166,8 @@ mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp);
  *	0			-- no, there is definitely no such sequences.
  */
 extern int
-mdn__unicode_iscompositecandidate(unsigned long c);
+mdn__unicode_iscompositecandidate(mdn__unicode_version_t version,
+				  unsigned long c);
 
 /*
  * Translate lowercase character to uppercase, and vice versa, according
@@ -166,10 +195,12 @@ mdn__unicode_iscompositecandidate(unsigned long c);
  *	mdn_buffer_overflow	-- 'vlen' is too small.
  */
 extern mdn_result_t
-mdn__unicode_toupper(unsigned long c, mdn__unicode_context_t ctx,
+mdn__unicode_toupper(mdn__unicode_version_t version,
+		     unsigned long c, mdn__unicode_context_t ctx,
 		     unsigned long *v, size_t vlen, int *convlenp);
 extern mdn_result_t
-mdn__unicode_tolower(unsigned long c, mdn__unicode_context_t ctx,
+mdn__unicode_tolower(mdn__unicode_version_t version,
+		     unsigned long c, mdn__unicode_context_t ctx,
 		     unsigned long *v, size_t vlen, int *convlenp);
 
 /*
@@ -188,7 +219,7 @@ mdn__unicode_tolower(unsigned long c, mdn__unicode_context_t ctx,
  *					   try the next character.
  */
 extern mdn__unicode_context_t
-mdn__unicode_getcontext(unsigned long c);
+mdn__unicode_getcontext(mdn__unicode_version_t version, unsigned long c);
 
 /*
  * Perform case-folding for caseless matching, defined by Unicode
@@ -205,7 +236,8 @@ mdn__unicode_getcontext(unsigned long c);
  *	mdn_buffer_overflow	-- 'vlen' is too small.
  */
 extern mdn_result_t
-mdn__unicode_casefold(unsigned long c, unsigned long *v, size_t vlen,
+mdn__unicode_casefold(mdn__unicode_version_t version,
+		      unsigned long c, unsigned long *v, size_t vlen,
 		      int *foldlenp);
 
 #endif /* MDN_UNICODE_H */

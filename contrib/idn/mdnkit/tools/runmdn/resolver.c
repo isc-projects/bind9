@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: resolver.c,v 1.1 2001/06/09 00:30:50 tale Exp $";
+static char *rcsid = "$Id: resolver.c,v 1.1.2.1 2002/02/08 12:15:33 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: resolver.c,v 1.1 2001/06/09 00:30:50 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -593,7 +593,7 @@ ENTRY(gethostbyname2)(const char *name, int af) {
 
 #ifdef HAVE_GETHOSTBYADDR
 struct hostent *
-ENTRY(gethostbyaddr)(const char *addr, GHBA_ADDRLEN_T len, int type) {
+ENTRY(gethostbyaddr)(GHBA_ADDR_T addr, GHBA_ADDRLEN_T len, int type) {
 	static hostbuf_t buf;
 	static struct hostent he;
 	struct hostent *hp;
@@ -727,7 +727,7 @@ ENTRY(gethostbyname2_r)(const char *name, int af, struct hostent *result,
 
 #ifdef HAVE_GETHOSTBYADDR_R
 int
-ENTRY(gethostbyaddr_r)(const char *addr, GHBA_ADDRLEN_T len, int type,
+ENTRY(gethostbyaddr_r)(GHBA_ADDR_T addr, GHBA_ADDRLEN_T len, int type,
 		       struct hostent *result,
 		       char *buffer, size_t buflen,
 		       struct hostent **rp, int *errp)
@@ -830,7 +830,7 @@ ENTRY(gethostbyname_r)(const char *name, struct hostent *result,
 
 #ifdef HAVE_GETHOSTBYADDR_R
 struct hostent *
-ENTRY(gethostbyaddr_r)(const char *addr, GHBA_ADDRLEN_T len, int type,
+ENTRY(gethostbyaddr_r)(GHBA_ADDR_T addr, GHBA_ADDRLEN_T len, int type,
 		       struct hostent *result,
 		       char *buffer, int buflen, int *errp)
 {
@@ -1009,9 +1009,9 @@ ENTRY(freeaddrinfo)(struct addrinfo *aip) {
 
 #ifdef HAVE_GETNAMEINFO
 int
-ENTRY(getnameinfo)(const struct sockaddr *sa, socklen_t salen,
-		   char *host, size_t hostlen, char *serv, size_t servlen,
-		   int flags)
+ENTRY(getnameinfo)(const struct sockaddr *sa, GNI_SALEN_T salen,
+		   char *host, GNI_HOSTLEN_T hostlen, char *serv,
+		   GNI_SERVLEN_T servlen, GNI_FLAGS_T flags)
 {
 	char name[MDN_NAME_SIZE];
 	size_t namelen = sizeof(name);

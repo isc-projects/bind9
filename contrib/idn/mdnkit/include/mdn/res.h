@@ -1,4 +1,4 @@
-/* $Id: res.h,v 1.7 2001/04/11 08:16:07 m-kasahr Exp $ */
+/* $Id: res.h,v 1.1 2002/01/02 02:46:34 marka Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -8,8 +8,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -80,9 +80,9 @@
  * Convert and check the string.
  *
  * This function converts the string `from' to `to', checks `from' or
- * combination of them, using `actions'.
+ * combination of them, using `insn'.
  *
- * `actions' is a sequence of characters as follows:
+ * `insn' is a sequence of characters as follows:
  *
  *	l	convert the local codeset string to UTF-8.
  *	L	convert the UTF-8 string to the local codeset.
@@ -97,28 +97,33 @@
  *		codepoint.
  *	I	convert the UTF-8 string to ACE.
  *	i	convert the ACE string to UTF-8.
- *	a	convert the alternative encoded ACE sting to UTF-8.
- *	A	convert the UTF-8 string to alternative ACE encoding.
+ *	!m	inspect if nameprep mapping has been performed to the
+ *		string.  If hasn't, convert the string to ACE.
+ *	!n	inspect if nameprep normalizaion has been performed
+ *		to the string.  If hasn't, convert the string to ACE.
+ *	!p	search the string for nameprep prohibited character.
+ *		If found, convert the string to ACE.
+ *	!N	equivalent to "!m!n!p".
+ *	!u	search the string for nameprep unassigned codepoint.
+ *		If found, convert the string to ACE.
  *
  * Returns:
  *	mdn_success		-- ok.
  *	mdn_buffer_overflow	-- output buffer is too small.
  *	mdn_invalid_encoding	-- input string has invalid byte sequence.
  *	mdn_invalid_name	-- local encoding (codeset) name is invalid.
- *	mdn_invalid_action	-- `actions' contains invalid action.
+ *	mdn_invalid_action	-- `insn' contains invalid action.
  *	mdn_invalid_nomemory	-- out of memory.
  *	mdn_invalid_nomapping	-- no mapping to output codeset.
  *	mdn_prohibited		-- input string has a prohibited character.
- *	mdn_failuer		-- other failure.
+ *	mdn_failure		-- other failure.
  */
 extern mdn_result_t
-mdn_res_nameconv(mdn_resconf_t ctx, const char *actions, const char *from,
+mdn_res_nameconv(mdn_resconf_t ctx, const char *insn, const char *from,
 		 char *to, size_t tolen);
 
 /*
  * Convert the local codeset string to UTF-8.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "l", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_localtoucs(mdn_resconf_t ctx, const char *from, char *to,
@@ -129,8 +134,6 @@ mdn_res_localtoucs(mdn_resconf_t ctx, const char *from, char *to,
 
 /*
  * Convert the UTF-8 string to the local codeset.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "L", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_ucstolocal(mdn_resconf_t ctx, const char *from, char *to,
@@ -141,8 +144,6 @@ mdn_res_ucstolocal(mdn_resconf_t ctx, const char *from, char *to,
 
 /*
  * Perform the nameprep mapping.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "m", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_map(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
@@ -152,8 +153,6 @@ mdn_res_map(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
 
 /*
  * Perform nameprep normalization.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "n", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_normalize(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
@@ -163,8 +162,6 @@ mdn_res_normalize(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
 
 /*
  * Check whether the string contains nameprep prohibited character.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "p", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_prohibitcheck(mdn_resconf_t ctx, const char *from, char *to,
@@ -174,9 +171,27 @@ mdn_res_prohibitcheck(mdn_resconf_t ctx, const char *from, char *to,
 	mdn_res_nameconv(ctx, "p", from, to, tolen)
 
 /*
+ * NAMEPREP.
+ */
+extern mdn_result_t
+mdn_res_nameprep(mdn_resconf_t ctx, const char *from, char *to,
+		 size_t tolen);
+
+#define mdn_res_nameprep(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "N", from, to, tolen)
+
+/*
+ * NAMEPREP check.
+ */
+extern mdn_result_t
+mdn_res_nameprepcheck(mdn_resconf_t ctx, const char *from, char *to,
+		      size_t tolen);
+
+#define mdn_res_nameprepcheck(ctx, from, to, tolen) \
+	mdn_res_nameconv(ctx, "!N", from, to, tolen)
+
+/*
  * Check whether the string contains nameprep unassigned character.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "u", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_unassignedcheck(mdn_resconf_t ctx, const char *from, char *to,
@@ -187,8 +202,6 @@ mdn_res_unassignedcheck(mdn_resconf_t ctx, const char *from, char *to,
 
 /*
  * Perform local delimiter mapping.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "d", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_delimitermap(mdn_resconf_t ctx, const char *from, char *to,
@@ -199,8 +212,6 @@ mdn_res_delimitermap(mdn_resconf_t ctx, const char *from, char *to,
 
 /*
  * Perfrom TLD based local mapping.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "M", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_localmap(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
@@ -210,8 +221,6 @@ mdn_res_localmap(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
 
 /*
  * Convert the UTF-8 string to ACE.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "I", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_ucstodns(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
@@ -221,8 +230,6 @@ mdn_res_ucstodns(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);
 
 /*
  * Convert the ACE string to UTF-8.
- * equivalent to:
- *	mdn_res_nameconv(ctx, "i", from, to, tolen);
  */
 extern mdn_result_t
 mdn_res_dnstoucs(mdn_resconf_t ctx, const char *from, char *to, size_t tolen);

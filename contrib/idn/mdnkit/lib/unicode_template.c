@@ -1,4 +1,4 @@
-/* $Id: unicode_template.c,v 1.1 2002/02/08 05:40:41 marka Exp $ */
+/* $Id: unicode_template.c,v 1.1.2.1 2002/02/08 12:14:26 marka Exp $ */
 
 /*
  * Copyright (c) 2000,2001 Japan Network Information Center.

@@ -145,7 +145,7 @@ diff -c /dev/null mdn/othersrc/bind9/README.mdnkit:1.9
 + mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
 + 
 + 
-+ ; $Id: bind-9.1.3-patch,v 1.1 2002/02/08 05:41:25 marka Exp $
++ ; $Id: bind-9.1.3-patch,v 1.1.2.1 2002/02/08 12:15:10 marka Exp $
 Index: config.h.in
 diff -c mdn/othersrc/bind9/config.h.in:1.1.1.5 mdn/othersrc/bind9/config.h.in:1.9
 *** config.h.in	Tue Apr 17 14:17:01 2001
@@ -155,7 +155,7 @@ diff -c mdn/othersrc/bind9/config.h.in:1.1.1.5 mdn/othersrc/bind9/config.h.in:1.
    * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
    */
   
-! /* $Id: bind-9.1.3-patch,v 1.1 2002/02/08 05:41:25 marka Exp $ */
+! /* $Id: bind-9.1.3-patch,v 1.1.2.1 2002/02/08 12:15:10 marka Exp $ */
   
   /***
    *** This file is not to be included by any public header files, because
@@ -163,7 +163,7 @@ diff -c mdn/othersrc/bind9/config.h.in:1.1.1.5 mdn/othersrc/bind9/config.h.in:1.
    * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
    */
   
-! /* $Id: bind-9.1.3-patch,v 1.1 2002/02/08 05:41:25 marka Exp $ */
+! /* $Id: bind-9.1.3-patch,v 1.1.2.1 2002/02/08 12:15:10 marka Exp $ */
   
   /***
    *** This file is not to be included by any public header files, because

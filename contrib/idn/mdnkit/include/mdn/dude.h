@@ -1,4 +1,4 @@
-/* $Id: dude.h,v 1.1 2001/06/09 00:29:58 tale Exp $ */
+/* $Id: dude.h,v 1.1.2.1 2002/02/08 12:13:00 marka Exp $ */
 /*
  * Copyright (c) 2000,2001 Japan Network Information Center.
  * All rights reserved.
@@ -9,8 +9,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -64,9 +64,9 @@
 /*
  * DUDE Converter.
  *
- * See Internet Draft draft-ietf-idn-dude-01.txt for details.  Note
+ * See Internet Draft draft-ietf-idn-dude-02.txt for details.  Note
  * that this implementation does not support the optional feature of
- * DUDE, which is "case preservation".  Implementing this feature
+ * DUDE, which is "Mixed-case annotation".  Implementing this feature
  * requires reimplementation of NAMEPREP process of libmdn.
  */
 

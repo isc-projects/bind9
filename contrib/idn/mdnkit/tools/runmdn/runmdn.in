@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: runmdn.in,v 1.8 2000/09/28 01:37:22 ishisone Exp $
+# $Id: runmdn.in,v 1.1 2002/01/02 02:47:04 marka Exp $
 #
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
@@ -57,14 +57,44 @@
 #    Conditions hereby agrees and consent to the personal and exclusive
 #    jurisdiction and venue of Tokyo District Court of Japan.
 
-preload=
+# Parse command line options.
+usage="Usage: `basename $0` [-e local-encoding] command [argument..]"
+while test $# -gt 0; do
+    case "$1" in
+    -e)
+	if test $# -le 1; then
+	    echo $usage 1>&2
+	    exit 1
+	fi
+	MDN_LOCAL_CODESET="$2"
+	export MDN_LOCAL_CODESET
+	shift
+	;;
+    -)
+	break
+	;;
+    -*)
+	echo $usage 1>&2
+	exit 1
+	;;
+    *)
+	break
+	;;
+    esac
+    shift
+done
+if test $# -eq 0; then
+    echo $usage 1>&2
+    exit 1
+fi
 
+# Load library info.
+preload=
 iconv_file=@ICONVSOFILE@
 if test "$iconv_file" != none; then
     preload="$iconv_file@PRELOAD_SEP@"
 fi
 
-# Load library info.
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=`echo @libdir@`

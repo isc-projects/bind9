@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: util.c,v 1.17 2001/04/16 02:18:15 m-kasahr Exp $";
+static char *rcsid = "$Id: util.c,v 1.1 2002/01/02 02:47:02 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: util.c,v 1.17 2001/04/16 02:18:15 m-kasahr Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -168,7 +168,7 @@ selective_decode(mdn_resconf_t conf, char *insn,
 	domain_name = NULL;
 
 	/*
-	 * We ignores a chunk maching to the regular expression:
+	 * We ignore chunks matching to the regular expression:
 	 *    [\-\.][0-9A-Za-z\-\.]*
 	 *
 	 * While `*from' points to a character in such a chunk,
@@ -247,7 +247,6 @@ selective_decode(mdn_resconf_t conf, char *insn,
 				}
 				to += len;
 				tolen -= len;
-
 			}
 
 			/*
@@ -402,6 +401,32 @@ set_unassigned_checkers(mdn_resconf_t conf, char **unassigns, int nunassigns) {
 			 mdn_result_tostring(r));
 		exit(1);
 	}
+}
+
+void
+check_defaultlocalcode(mdn_resconf_t conf, const char *opt) {
+	mdn_converter_t conv = mdn_resconf_getlocalconverter(conf);
+
+	if (conv == NULL) {
+		errormsg("cannot get the default local encoding.\n"
+			 "please specify an appropriate one "
+			 "with `%s' option.\n", opt);
+		exit(1);
+	} else
+		mdn_converter_destroy(conv);
+}
+
+void
+check_defaultidncode(mdn_resconf_t conf, const char *opt) {
+	mdn_converter_t conv = mdn_resconf_getidnconverter(conf);
+
+	if (conv == NULL) {
+		errormsg("cannot get the default IDN encoding.\n"
+			 "please specify an appropriate one "
+			 "with `%s' option.\n", opt);
+		exit(1);
+	} else
+		mdn_converter_destroy(conv);
 }
 
 void

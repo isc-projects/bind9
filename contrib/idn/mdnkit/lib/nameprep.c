@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: nameprep.c,v 1.1 2001/06/09 00:30:19 tale Exp $";
+static char *rcsid = "$Id: nameprep.c,v 1.1.2.1 2002/02/08 12:14:10 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: nameprep.c,v 1.1 2001/06/09 00:30:19 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -79,7 +79,7 @@ static char *rcsid = "$Id: nameprep.c,v 1.1 2001/06/09 00:30:19 tale Exp $";
 /*
  * The latest version.
  */
-#define NAMEPREP_CURRENT	"nameprep-03"
+#define NAMEPREP_CURRENT	"nameprep-05"
 
 /*
  * Load NAMEPREP compiled tables.
@@ -90,16 +90,20 @@ static char *rcsid = "$Id: nameprep.c,v 1.1 2001/06/09 00:30:19 tale Exp $";
  * Define mapping/checking functions for each version of the draft.
  */
 
-#define VERSION id02
-#include "nameprep_template.c"
-#undef VERSION
-
 #define VERSION id03
 #include "nameprep_template.c"
 #undef VERSION
 
-typedef char	*(*nameprep_mapproc)(unsigned long v);
-typedef int	(*nameprep_checkproc)(unsigned long v);
+#define VERSION id05
+#include "nameprep_template.c"
+#undef VERSION
+
+#define VERSION id06
+#include "nameprep_template.c"
+#undef VERSION
+
+typedef const char	*(*nameprep_mapproc)(unsigned long v);
+typedef int		(*nameprep_checkproc)(unsigned long v);
 
 static struct mdn_nameprep {
 	char *version;
@@ -112,8 +116,9 @@ static struct mdn_nameprep {
 	  compose_sym2(nameprep_map_, id), \
 	  compose_sym2(nameprep_prohibited_, id), \
 	  compose_sym2(nameprep_unassigned_, id) }
-	MAKE_NAMEPREP_HANDLE("nameprep-02", id02),
 	MAKE_NAMEPREP_HANDLE("nameprep-03", id03),
+	MAKE_NAMEPREP_HANDLE("nameprep-05", id05),
+	MAKE_NAMEPREP_HANDLE("nameprep-06", id06),
 	{ NULL, NULL, NULL },
 };
 
@@ -170,7 +175,7 @@ mdn_nameprep_map(mdn_nameprep_t handle, const char *from,
 	while (fromlen > 0) {
 		unsigned long v;
 		int w;
-		char *mapped;
+		const char *mapped;
 
 		if ((w = mdn_utf8_getwc(from, fromlen, &v)) == 0)
 			return (mdn_invalid_encoding);

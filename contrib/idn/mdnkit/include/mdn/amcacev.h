@@ -1,4 +1,4 @@
-/* $Id: amcacev.h,v 1.1 2002/02/08 05:38:59 marka Exp $ */
+/* $Id: amcacev.h,v 1.1.2.1 2002/02/08 12:12:47 marka Exp $ */
 /*
  * Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
  *  

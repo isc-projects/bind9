@@ -1,4 +1,4 @@
-/* $Id: mace.h,v 1.1 2002/02/08 05:39:19 marka Exp $ */
+/* $Id: mace.h,v 1.1.2.1 2002/02/08 12:13:09 marka Exp $ */
 /*
  * Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
  *  
