@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.154 $)
+AC_REVISION($Revision: 1.155 $)
 
 AC_PREREQ(2.13)
 
@@ -320,6 +320,11 @@ case "$host" in
 		AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
 		;;
 esac
+
+#
+# Look for sysconf to allow detection of the number of processors.
+#
+AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
 
 #
 # NLS
