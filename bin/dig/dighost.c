@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.226 2001/09/18 18:16:08 bwelling Exp $ */
+/* $Id: dighost.c,v 1.227 2001/09/26 00:38:39 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -336,7 +336,7 @@ make_server(const char *servname) {
 	debug("make_server(%s)", servname);
 	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
 	if (srv == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	strncpy(srv->servername, servname, MXNAME);
 	srv->servername[MXNAME-1] = 0;
@@ -378,7 +378,7 @@ make_empty_lookup(void) {
 
 	looknew = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 	if (looknew == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		       __FILE__, __LINE__);
 	looknew->pending = ISC_TRUE;
 	looknew->textname[0] = 0;
@@ -510,7 +510,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 
 	lookup_counter++;
 	if (lookup_counter > LOOKUP_LIMIT)
-		fatal("Too many lookups");
+		fatal("too many lookups");
 
 	looknew = clone_lookup(lookold, servers);
 	INSIST(looknew != NULL);
@@ -541,7 +541,7 @@ setup_text_key(void) {
 	secretsize = strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);
 	if (secretstore == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	isc_buffer_init(&secretbuf, secretstore, secretsize);
 	result = isc_base64_decodestring(keysecret, &secretbuf);
@@ -603,7 +603,7 @@ make_searchlist_entry(char *domain) {
 	dig_searchlist_t *search;
 	search = isc_mem_allocate(mctx, sizeof(*search));
 	if (search == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	strncpy(search->origin, domain, MXNAME);
 	search->origin[MXNAME-1] = 0;
@@ -1504,7 +1504,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	     serv = ISC_LIST_NEXT(serv, link)) {
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
 		if (query == NULL)
-			fatal("Memory allocation failure in %s:%d",
+			fatal("memory allocation failure in %s:%d",
 			      __FILE__, __LINE__);
 		debug("create query %p linked to lookup %p",
 		       query, lookup);
@@ -2514,7 +2514,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 
 	if (inet_pton(AF_INET6, host, &in6) == 1) {
 		if (!have_ipv6)
-			fatal("Protocol family INET6 not supported '%s'", host);
+			fatal("protocol family INET6 not supported '%s'", host);
 		isc_sockaddr_fromin6(sockaddr, &in6, port);
 	} else if (inet_pton(AF_INET, host, &in4) == 1) {
 		if (have_ipv4)
@@ -2535,7 +2535,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		result = getaddrinfo(host, NULL, &hints, &res);
 		isc_app_unblock();
 		if (result != 0) {
-			fatal("Couldn't find server '%s': %s",
+			fatal("couldn't find server '%s': %s",
 			      host, gai_strerror(result));
 		}
 		memcpy(&sockaddr->type.sa, res->ai_addr, res->ai_addrlen);
@@ -2548,7 +2548,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		he = gethostbyname(host);
 		isc_app_unblock();
 		if (he == NULL)
-			fatal("Couldn't find server '%s' (h_errno=%d)",
+			fatal("couldn't find server '%s' (h_errno=%d)",
 			      host, h_errno);
 		INSIST(he->h_addrtype == AF_INET);
 		isc_sockaddr_fromin(sockaddr,

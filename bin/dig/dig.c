@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.166 2001/09/20 19:11:59 gson Exp $ */
+/* $Id: dig.c,v 1.167 2001/09/26 00:38:37 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1328,7 +1328,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			perror(batchname);
 			if (exitcode < 8)
 				exitcode = 8;
-			fatal("Couldn't open specified batch file");
+			fatal("couldn't open specified batch file");
 		}
 		/* XXX Remove code dup from shutdown code */
 	next_line:
