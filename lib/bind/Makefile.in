@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.8 2001/06/21 08:53:15 marka Exp $
+# $Id: Makefile.in,v 1.9 2001/06/28 17:35:49 bwelling Exp $
 
 DAEMON_OBJS=bsd/daemon.@O@
 STRSEP_OBJS=bsd/strsep.@O@
@@ -102,4 +102,4 @@ timestamp: libbind.@A@
 clean distclean::
 	rm -f libbind.@SA@ libbind.la
 distclean::
-	rm -f config.cache
+	rm -f config.cache config.h config.log config.status
