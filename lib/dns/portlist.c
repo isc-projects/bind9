@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.c,v 1.3 2003/03/20 00:19:55 marka Exp $ */
+/* $Id: portlist.c,v 1.3.72.1 2003/08/27 03:16:21 marka Exp $ */
 
 #include <stdlib.h>
 

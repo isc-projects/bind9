@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.2 2003/04/01 05:18:22 marka Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.2.68.1 2003/08/27 03:16:22 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the getifaddrs(3) library.
