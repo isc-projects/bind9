@@ -415,3 +415,9 @@ information in the chroot area.
 	OSF: /etc/zoneinfo/localtime
 
 	See also tzset(3) and zic(8).
+
+
+Q: I get the error message "named: capset failed: Operation not permitted"
+when starting named.
+
+A: The capset module has not been loaded into the kernel.  See insmod(8).
