@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.71 2000/09/19 01:47:53 gson Exp $ */
+/* $Id: master.c,v 1.72 2000/09/23 01:05:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -162,9 +162,6 @@ grow_rdatalist(int, dns_rdatalist_t *, int, rdatalist_head_t *,
 static dns_rdata_t *
 grow_rdata(int, dns_rdata_t *, int, rdatalist_head_t *, rdatalist_head_t *,
 	   isc_mem_t *);
-
-static isc_boolean_t
-on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 
 static void
 load_quantum(isc_task_t *task, isc_event_t *event);
@@ -1349,19 +1346,8 @@ load(dns_loadctx_t **ctxp) {
 			ctx->ttl = this->ttl;
 		}
 
-		/*
-		 * If the new rdata is not on the list add it.
-		 *
-		 * If the new rdata is on the list do not worry about
-		 * recovering the space it is using in target as it will be
-		 * recovered when we next call commit.  The worst that can
-		 * happen is that we make a few extra calls to commit.
-		 */
-
-		if (!on_list(this, &rdata[rdcount])) {
-			ISC_LIST_APPEND(this->rdata, &rdata[rdcount], link);
-			rdcount++;
-		}
+		ISC_LIST_APPEND(this->rdata, &rdata[rdcount], link);
+		rdcount++;
 
 		/*
 		 * We must have at least 64k as rdlen is 16 bits.
@@ -1969,23 +1955,6 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 		if (dns_name_compare(&name, owner) == 0)
 			return (ISC_TRUE);
 		rdata = ISC_LIST_NEXT(rdata, link);
-	}
-	return (ISC_FALSE);
-}
-
-/*
- * Returns ISC_TRUE if the 'rdata' is already on 'rdatalist'.
- */
-
-static isc_boolean_t
-on_list(dns_rdatalist_t *rdatalist, dns_rdata_t *rdata) {
-	dns_rdata_t *rdata2;
-
-	rdata2 = ISC_LIST_HEAD(rdatalist->rdata);
-	while (rdata2 != NULL) {
-		if (dns_rdata_compare(rdata, rdata2) == 0)
-			return (ISC_TRUE);
-		rdata2 = ISC_LIST_NEXT(rdata2, link);
 	}
 	return (ISC_FALSE);
 }
