@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.47 2000/12/01 21:30:20 gson Exp $ */
+/* $Id: client.h,v 1.48 2000/12/02 04:29:24 gson Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -71,8 +71,9 @@
 #include <dns/types.h>
 #include <dns/tcpmsg.h>
 #include <dns/fixedname.h>
+#ifdef DNS_OPT_NEWCODES
 #include <dns/opt.h>
-
+#endif /* DNS_OPT_NEWCODES */
 #include <named/types.h>
 #include <named/query.h>
 

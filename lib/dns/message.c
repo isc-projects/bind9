@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.160 2000/12/02 04:13:30 gson Exp $ */
+/* $Id: message.c,v 1.161 2000/12/02 04:24:26 gson Exp $ */
 
 /***
  *** Imports
@@ -32,7 +32,9 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#ifdef DNS_OPT_NEWCODES
 #include <dns/opt.h>
+#endif /* DNS_OPT_NEWCODES */
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>

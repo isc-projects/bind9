@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.133 2000/12/02 02:07:37 gson Exp $ */
+/* $Id: client.c,v 1.134 2000/12/02 04:30:08 gson Exp $ */
 
 #include <config.h>
 
@@ -30,7 +30,9 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#ifdef DNS_OPT_NEWCODES
 #include <dns/opt.h>
+#endif /* DNS_OPT_NEWCODES */
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
