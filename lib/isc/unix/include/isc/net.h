@@ -130,13 +130,9 @@ typedef isc_uint16_t in_port_t;
 
 #define ISC__IPADDR(x)	((isc_uint32_t)htonl((isc_uint32_t)(x)))
 
-#ifdef IN_MULTICAST
-#define ISC_IPADDR_ISMULTICAST(i)	IN_MULTICAST(i)
-#else
 #define ISC_IPADDR_ISMULTICAST(i) \
 		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
 		 == ISC__IPADDR(0xe0000000))
-#endif
 
 /***
  *** Functions.
