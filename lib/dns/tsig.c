@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.101 2001/01/09 23:35:29 marka Exp $
+ * $Id: tsig.c,v 1.102 2001/01/11 20:30:51 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -589,7 +589,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	datalist = NULL;
 	ret = dns_message_gettemprdatalist(msg, &datalist);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
+		goto cleanup_owner;
 	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_tsig;
 	datalist->covers = 0;
