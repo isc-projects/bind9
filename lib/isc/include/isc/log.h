@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.23 2000/06/19 18:02:32 bwelling Exp $ */
+/* $Id: log.h,v 1.24 2000/06/19 19:18:45 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -30,12 +30,12 @@
 ISC_LANG_BEGINDECLS
 
 /*
- * fmt is the location of the format string parameter
- * args is the location of the first argument (or 0 for no argument checking)
- * Note: the first parameter is 1, not 0
+ * fmt is the location of the format string parameter.
+ * args is the location of the first argument (or 0 for no argument checking).
+ * Note: the first parameter is 1, not 0.
  */
 #ifdef __GNUC__
-#define ISC_FORMAT_PRINTF(fmt, args) __attribute__((format (printf, fmt, args)))
+#define ISC_FORMAT_PRINTF(fmt, args) __attribute__((format(printf, fmt, args)))
 #else
 #define ISC_FORMAT_PRINTF(fmt, args)
 #endif
