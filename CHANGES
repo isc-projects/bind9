@@ -1,3 +1,7 @@
+ 956.	[bug]		ns_g_autorndcfile changed to ns_g_keyfile
+			in named/win32/os.c due to code changes in
+			change #953. win32 .make file for rndc-confgen
+			updated to add include path for os.h header.
 
 	--- 9.2.0rc1 released ---
 
