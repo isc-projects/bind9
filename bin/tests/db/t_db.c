@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.22 2000/06/22 21:51:03 tale Exp $ */
+/* $Id: t_db.c,v 1.23 2000/07/05 00:35:36 marka Exp $ */
 
 #include <config.h>
 
@@ -156,6 +156,10 @@ t_dns_db_load(char **av) {
 		isc_mem_destroy(&mctx);
 		return(T_FAIL);
 	}
+	if (dns_result != ISC_R_SUCCESS) {
+		result = T_PASS;
+		goto cleanup_db;
+	}
 
 	dns_fixedname_init(&dns_findname);
 	len = strlen(findname);
@@ -217,6 +221,7 @@ t_dns_db_load(char **av) {
 
 	if (dns_db_iszone(db))
 		dns_db_closeversion(db, &versionp, ISC_FALSE);
+ cleanup_db:
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx);
 	return(result);
@@ -2704,6 +2709,19 @@ t24(void) {
 	t_result(result);
 }
 
+static const char *a25 =
+	"A call to dns_db_load(db, filename) returns DNS_R_NOTZONETOP "
+	"when the zone data contains a SOA not at the zone apex.";
+
+static void
+t25(void) {
+	int	result;
+
+	t_assert("dns_db_load", 25, T_REQUIRED, a25);
+	result = t_eval("dns_db_load_soa_not_top", t_dns_db_load, 9); 
+	t_result(result);
+}
+
 testspec_t	T_testlist[] = {
 	{	t1,		"dns_db_load"		},
 	{	t2,		"dns_db_iscache"	},
@@ -2729,5 +2747,6 @@ testspec_t	T_testlist[] = {
 	{	t22,		"dns_db_find"		},
 	{	t23,		"dns_db_find"		},
 	{	t24,		"dns_db_find"		},
+	{	t25,		"dns_db_load"		},
 	{	NULL,		NULL			}
 };
