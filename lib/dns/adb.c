@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.174 2001/04/11 20:37:40 bwelling Exp $ */
+/* $Id: adb.c,v 1.175 2001/04/30 18:27:10 gson Exp $ */
 
 /*
  * Implementation notes
@@ -154,7 +154,7 @@ struct dns_adb {
 	 */
 	dns_adbentrylist_t		entries[NBUCKETS];
 	isc_mutex_t			entrylocks[NBUCKETS];
-	isc_boolean_t			entry_sd[NBUCKETS];
+	isc_boolean_t			entry_sd[NBUCKETS]; /* shutting down */
 	unsigned int			entry_refcnt[NBUCKETS];
 
 	isc_event_t			cevent;
@@ -252,7 +252,15 @@ struct dns_adbentry {
 	unsigned int			flags;
 	unsigned int			srtt;
 	isc_sockaddr_t			sockaddr;
+	
 	isc_stdtime_t			expires;
+	/*
+	 * A nonzero 'expires' field indicates that the entry should
+	 * persist until that time.  This allows entries found
+	 * using dns_adb_findaddrinfo() to persist for a limited time
+	 * even though they are not necessarily associated with a
+	 * name.
+	 */
 
 	ISC_LIST(dns_adbzoneinfo_t)	zoneinfo;
 	ISC_LINK(dns_adbentry_t)	plink;
