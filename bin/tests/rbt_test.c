@@ -93,7 +93,10 @@ print_data(void *data) {
 
 	isc_buffer_init(&target, buffer, sizeof(buffer), ISC_BUFFERTYPE_TEXT);
 
-	dns_name_totext(data, ISC_TRUE, &target);
+	/*
+	 * ISC_FALSE means absolute names have the final dot added.
+	 */
+	dns_name_totext(data, ISC_FALSE, &target);
 
 	printf("%.*s", (int)target.used, (char *)target.base);
 }
