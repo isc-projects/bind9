@@ -26,5 +26,8 @@ DNS_INCLUDES = @BIND9_DNS_BUILDINCLUDE@ \
 OMAPI_INCLUDES = @BIND9_OMAPI_BUILDINCLUDE@ \
 	-I${top_srcdir}/lib/omapi/include
 
+LWRES_INCLUDES = @BIND9_LWRES_BUILDINCLUDE@ \
+	-I${top_srcdir}/lib/lwres/include
+
 TEST_INCLUDES = \
 	-I${top_srcdir}/lib/tests/include

@@ -19,16 +19,18 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${LWRES_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
+LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
+LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 LIBS =		@LIBS@
 
@@ -44,6 +46,7 @@ TARGETS =	adb_test \
 		lex_test \
 		lfsr_test \
 		log_test \
+		lwres_test \
 		master_test \
 		mempool_test \
 		name_test \
@@ -75,6 +78,7 @@ SRCS =		adb_test.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
+		lwres_test.c \
 		master_test.c \
 		mempool_test.c \
 		name_test.c \
@@ -224,6 +228,9 @@ tkey_test: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ tkey_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
+lwres_test: lwres_test.@O@ ${LWRESDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lwres_test.@O@ \
+		${LWRESLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
