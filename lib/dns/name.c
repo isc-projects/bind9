@@ -866,9 +866,10 @@ dns_name_matcheswildcard(dns_name_t *name, dns_name_t *wname) {
 	dns_name_t tname;
 
 	REQUIRE(VALID_NAME(name));
-	REQUIRE(dns_name_countlabels(name) > 0);
+	REQUIRE(name->labels > 0);
 	REQUIRE(VALID_NAME(wname));
-	REQUIRE((labels = dns_name_countlabels(wname)) > 0);
+	labels = wname->labels;
+	REQUIRE(labels > 0);
 	REQUIRE(dns_name_iswildcard(wname));
 
 	dns_name_init(&tname, NULL);
