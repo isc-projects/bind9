@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutexblock.c,v 1.12 2000/08/26 01:31:48 bwelling Exp $ */
+/* $Id: mutexblock.c,v 1.13 2000/08/29 00:25:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,7 @@ isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count) {
 	unsigned int i;
 
 	for (i = 0 ; i < count ; i++) {
-		DESTROYLOCK(&block[i]);
+		result = isc_mutex_destroy(&block[i]);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
