@@ -90,22 +90,110 @@ void 				memstats(FILE *);
 /*
  * Memory pools
  */
-isc_result_t	isc_mempool_create(isc_mem_t *, size_t, isc_mempool_t **);
-void		isc_mempool_destroy(isc_mempool_t **);
+
+/*
+ * Internal (but public) functions.  Don't call these from application
+ * code.  Use isc_mempool_get() and isc_mempool_put() instead.
+ */
 void *		__isc_mempool_get(isc_mempool_t *);
 void 		__isc_mempool_put(isc_mempool_t *, void *);
 void *		__isc_mempool_getdebug(isc_mempool_t *, const char *, int);
 void 		__isc_mempool_putdebug(isc_mempool_t *, void *,
 				       const char *, int);
 
-unsigned int	isc_mempool_getfreemax(isc_mempool_t *);
-void		isc_mempool_setfreemax(isc_mempool_t *, unsigned int);
-unsigned int	isc_mempool_getfreecount(isc_mempool_t *);
-unsigned int	isc_mempool_getmaxalloc(isc_mempool_t *);
-void		isc_mempool_setmaxalloc(isc_mempool_t *, unsigned int);
-unsigned int	isc_mempool_getallocated(isc_mempool_t *);
-unsigned int	isc_mempool_getfillcount(isc_mempool_t *);
-void		isc_mempool_setfillcount(isc_mempool_t *, unsigned int);
+isc_result_t	isc_mempool_create(isc_mem_t *mctx, size_t size,
+				   isc_mempool_t **mpctxp);
+/*
+ * Create a memory pool.
+ *
+ * Requires:
+ *	mctx is a valid memory context.
+ *	size > 0
+ *	mpctxp != NULL and *mpctxp == NULL
+ *
+ * Defaults:
+ *	maxalloc = UINT_MAX
+ *	freemax = 1
+ *	fillcount = 1
+ *
+ * Returns:
+ *	ISC_R_NOMEMORY		-- not enough memory to create pool
+ *	ISC_R_SUCCESS		-- all is well.
+ */
+
+void		isc_mempool_destroy(isc_mempool_t **mpctxp);
+/*
+ * Destroy a memory pool.
+ *
+ * Requires:
+ *	mpctxp is a valid pool.
+ *	The pool has no un"put" allocations outstanding
+ */
+
+
+/*
+ * The following functions get/set various parameters.  Note that due to
+ * the unlocked nature of pools these are potentially random values unless
+ * the imposed externally provided locking protocols are followed.
+ *
+ * Also note that the quota limits will not always take immediate effect.
+ * For instance, setting "maxalloc" to a number larger than the currently
+ * allocated count is permitted.  New allocations will be refused until
+ * the count drops below this threshold.
+ *
+ * All functions require (in addition to other requirements):
+ *	mpctx is a valid memory pool
+ */
+
+unsigned int	isc_mempool_getfreemax(isc_mempool_t *mpctx);
+/*
+ * Returns the maximum allowed size of the free list.
+ */
+
+void		isc_mempool_setfreemax(isc_mempool_t *mpctx,
+				       unsigned int limit);
+/*
+ * Sets the maximum allowed size of the free list.
+ */
+
+unsigned int	isc_mempool_getfreecount(isc_mempool_t *mpctx);
+/*
+ * Returns current size of the free list.
+ */
+
+unsigned int	isc_mempool_getmaxalloc(isc_mempool_t *mpctx);
+/*
+ * Returns the maximum allowed number of allocations.
+ */
+
+void		isc_mempool_setmaxalloc(isc_mempool_t *mpctx,
+					unsigned int limit);
+/*
+ * Sets the maximum allowed number of allocations.
+ *
+ * Additional requirements:
+ *	limit > 0
+ */
+
+unsigned int	isc_mempool_getallocated(isc_mempool_t *mpctx);
+/*
+ * Returns the number of items allocated from this pool.
+ */
+
+unsigned int	isc_mempool_getfillcount(isc_mempool_t *mpctx);
+/*
+ * Returns the number of items allocated as a block from the parent memory
+ * context when the free list is empty.
+ */
+
+void		isc_mempool_setfillcount(isc_mempool_t *mpctx,
+					 unsigned int limit);
+/*
+ * Sets the fillcount.
+ *
+ * Additional requirements:
+ *	limit > 0
+ */
 
 ISC_LANG_ENDDECLS
 

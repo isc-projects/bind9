@@ -717,13 +717,13 @@ mempool_releaseall(isc_mempool_t *mpctx)
 }
 
 isc_result_t
-isc_mempool_create(isc_mem_t *mctx, size_t target_size,
+isc_mempool_create(isc_mem_t *mctx, size_t size,
 		   isc_mempool_t **mpctxp)
 {
 	isc_mempool_t *mpctx;
 
 	REQUIRE(VALID_CONTEXT(mctx));
-	REQUIRE(target_size > 0);
+	REQUIRE(size > 0);
 	REQUIRE(mpctxp != NULL && *mpctxp == NULL);
 
 	/*
@@ -740,7 +740,7 @@ isc_mempool_create(isc_mem_t *mctx, size_t target_size,
 
 	mpctx->magic = MEMPOOL_MAGIC;
 	mpctx->mctx = mctx;
-	mpctx->size = target_size;
+	mpctx->size = size;
 	mpctx->maxalloc = UINT_MAX;
 	mpctx->allocated = 0;
 	mpctx->freecount = 0;
@@ -914,13 +914,6 @@ isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit)
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	mpctx->freemax = limit;
-
-	/*
-	 * XXXMLG Should clamp the count to the maximum number of items we
-	 * should have on our free list.  For now, allow the condition where
-	 * allocated + freecount > maxalloc, but in the future this should
-	 * be prevented.  alos, freecount > freemax should be checked for.
-	 */
 }
 
 unsigned int
