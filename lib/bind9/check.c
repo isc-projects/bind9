@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.35 2003/02/26 06:04:03 marka Exp $ */
+/* $Id: check.c,v 1.36 2003/03/20 00:43:08 marka Exp $ */
 
 #include <config.h>
 
@@ -927,6 +927,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	cfg_obj_t *servers = NULL;
 	cfg_obj_t *views = NULL;
 	cfg_obj_t *acls = NULL;
+	cfg_obj_t *kals = NULL;
 	cfg_obj_t *obj;
 	cfg_listelt_t *velement;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1062,13 +1063,13 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		}
 	}
 
-        tresult = cfg_map_get(config, "kal", &acls);
+        tresult = cfg_map_get(config, "kal", &kals);
         if (tresult == ISC_R_SUCCESS) {
 		cfg_listelt_t *elt;
 		cfg_listelt_t *elt2;
 		const char *aclname;
 
-		for (elt = cfg_list_first(acls);
+		for (elt = cfg_list_first(kals);
 		     elt != NULL;
 		     elt = cfg_list_next(elt)) {
 			cfg_obj_t *acl = cfg_listelt_value(elt);
