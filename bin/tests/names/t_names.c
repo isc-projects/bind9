@@ -856,8 +856,10 @@ dns_namereln_to_text(dns_namereln_t reln) {
 }
 
 static int
-test_dns_name_fullcompare(char *name1, char *name2, dns_namereln_t exp_dns_reln,
-				int exp_order, int exp_nlabels, int exp_nbits) {
+test_dns_name_fullcompare(char *name1, char *name2,
+			  dns_namereln_t exp_dns_reln, int exp_order,
+			  int exp_nlabels, int exp_nbits)
+{
 	int		result;
 	int		nfails;
 	int		order;
@@ -893,12 +895,14 @@ test_dns_name_fullcompare(char *name1, char *name2, dns_namereln_t exp_dns_reln,
 				t_info("expected ordering %d, got %d\n",
 						exp_order, order);
 			}
-			if ((exp_nlabels >= 0) && (nlabels != exp_nlabels)) {
+			if ((exp_nlabels >= 0) &&
+			    (nlabels != (unsigned int)exp_nlabels)) {
 				++nfails;
 				t_info("expecting %d labels, got %d\n",
 						exp_nlabels, nlabels);
 			}
-			if ((exp_nbits >= 0) && (nbits != exp_nbits)) {
+			if ((exp_nbits >= 0) &&
+			    (nbits != (unsigned int)exp_nbits)) {
 				++nfails;
 				t_info("expecting %d bits, got %d\n",
 						exp_nbits, nbits);
@@ -1303,7 +1307,7 @@ test_dns_name_countlabels(char *test_name, int exp_nlabels) {
 	if (dns_result == DNS_R_SUCCESS) {
 		nlabels = dns_name_countlabels(&dns_name);
 			
-		if (nlabels != exp_nlabels) {
+		if (nlabels != (unsigned int)exp_nlabels) {
 			t_info("expected %d, got %d\n", exp_nlabels, nlabels);
 			result = T_FAIL;
 		}
