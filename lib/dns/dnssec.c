@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69.2.5 2003/07/22 04:03:41 marka Exp $
+ * $Id: dnssec.c,v 1.69.2.6 2003/12/11 00:04:20 marka Exp $
  */
 
 
@@ -361,7 +361,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	if (isc_serial_lt(sig.timesigned, sig.timeexpire))
+	if (isc_serial_lt(sig.timeexpire, sig.timesigned))
 		return (DNS_R_SIGINVALID);
 
 	if (!ignoretime) {
