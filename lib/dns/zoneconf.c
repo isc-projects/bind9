@@ -26,6 +26,7 @@
 #include <dns/types.h>
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
+#include <dns/ssu.h>
 
 /* XXX copied from zone.c */
 #define MAX_XFER_TIME (2*3600)	/* Documented default is 2 hours. */
@@ -103,6 +104,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 	in_port_t port;
 	struct in_addr in4addr_any;
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
+	dns_ssutable_t *ssutable;
 
 	in4addr_any.s_addr = htonl(INADDR_ANY);
 	isc_sockaddr_fromin(&sockaddr_any4, &in4addr_any, 0);
@@ -194,6 +196,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 				maxxfr = DNS_DEFAULT_IDLEOUT;
 		}
 		dns_zone_setidleout(zone, maxxfr);
+
+		ssutable = NULL;
+		result = dns_c_zone_getssuauth(czone, &ssutable);
+		if (result == ISC_R_SUCCESS) {
+			dns_ssutable_t *newssutable = NULL;
+			dns_ssutable_attach(ssutable, &newssutable);
+			dns_zone_setssutable(zone, newssutable);
+		}
 
 		break;
 		

@@ -31,13 +31,30 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
  */
 
 void
-dns_ssutable_destroy(dns_ssutable_t **table);
+dns_ssutable_attach(dns_ssutable_t *source, dns_ssutable_t **targetp);
 /*
- *	Destroys a simple-secure-update rule table.  *table is set to NULL.
+ *	Attach '*targetp' to 'source'.
  *
  *	Requires:
- *		'table' is not NULL
- *		'*table' is a valid SSU table
+ *		'source' is a valid SSU table
+ *		'targetp' points to a NULL dns_ssutable_t *.
+ *
+ *	Ensures:
+ *		*targetp is attached to source.
+ */
+
+void
+dns_ssutable_detach(dns_ssutable_t **tablep);
+/*
+ *	Detach '*tablep' from its simple-secure-update rule table.
+ *
+ *	Requires:
+ *		'tablep' points to a valid dns_ssutable_t
+ *
+ *	Ensures:
+ *		*tablep is NULL
+ *		If '*tablep' is the last reference to the SSU table, all
+ *			resources used by the table will be freed.
  */
 
 isc_result_t

@@ -1,5 +1,5 @@
 /*
- * $Id: ssu.c,v 1.5 2000/03/02 20:39:23 brister Exp $
+ * $Id: ssu.c,v 1.6 2000/03/06 19:06:00 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -13,6 +13,8 @@
 #include <isc/magic.h>
 #include <isc/result.h>
 #include <isc/types.h>
+#include <isc/mutex.h>
+#include <isc/util.h>
 
 #include <dns/name.h>
 #include <dns/ssu.h>
@@ -37,34 +39,44 @@ struct dns_ssurule {
 struct dns_ssutable {
 	isc_uint32_t magic;
 	isc_mem_t *mctx;
+	unsigned int references;
+	isc_mutex_t lock;
 	ISC_LIST(dns_ssurule_t) rules;
 };
 
 isc_result_t
-dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table) {
-	REQUIRE(table != NULL && *table == NULL);
+dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
+	isc_result_t result;
+	dns_ssutable_t *table;
+
+	REQUIRE(tablep != NULL && *tablep == NULL);
 	REQUIRE(mctx != NULL);
 
-	*table = isc_mem_get(mctx, sizeof(dns_ssutable_t));
-	if (*table == NULL)
+	table = isc_mem_get(mctx, sizeof(dns_ssutable_t));
+	if (table == NULL)
 		return (ISC_R_NOMEMORY);
-
-	(*table)->mctx = mctx;
-	ISC_LIST_INIT((*table)->rules);
-	(*table)->magic = SSUTABLEMAGIC;
+	result = isc_mutex_init(&table->lock);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, table, sizeof(dns_ssutable_t));
+		return (result);
+	}
+	table->references = 1;
+	table->mctx = mctx;
+	ISC_LIST_INIT(table->rules);
+	table->magic = SSUTABLEMAGIC;
+	*tablep = table;
 	return (ISC_R_SUCCESS);
 }
 
-void
-dns_ssutable_destroy(dns_ssutable_t **table) {
+static inline void
+destroy(dns_ssutable_t *table) {
 	isc_mem_t *mctx;
 
-	REQUIRE(table != NULL);
-	REQUIRE(VALID_SSUTABLE(*table));
+	REQUIRE(VALID_SSUTABLE(table));
 
-	mctx = (*table)->mctx;
-	while (!ISC_LIST_EMPTY((*table)->rules)) {
-		dns_ssurule_t *rule = ISC_LIST_HEAD((*table)->rules);
+	mctx = table->mctx;
+	while (!ISC_LIST_EMPTY(table->rules)) {
+		dns_ssurule_t *rule = ISC_LIST_HEAD(table->rules);
 		if (rule->identity != NULL) {
 			dns_name_free(rule->identity, mctx);
 			isc_mem_put(mctx, rule->identity, sizeof(dns_name_t));
@@ -76,13 +88,51 @@ dns_ssutable_destroy(dns_ssutable_t **table) {
 		if (rule->types != NULL)
 			isc_mem_put(mctx, rule->types,
 				    rule->ntypes * sizeof(dns_rdatatype_t));
-		ISC_LIST_UNLINK((*table)->rules, rule, link);
+		ISC_LIST_UNLINK(table->rules, rule, link);
 		rule->magic = 0;
 		isc_mem_put(mctx, rule, sizeof(dns_ssurule_t));
 	}
-	(*table)->magic = 0;
-	isc_mem_put(mctx, *table, sizeof(dns_ssutable_t));
-	*table = NULL;
+	isc_mutex_destroy(&table->lock);
+	table->magic = 0;
+	isc_mem_put(mctx, table, sizeof(dns_ssutable_t));
+}
+
+void
+dns_ssutable_attach(dns_ssutable_t *source, dns_ssutable_t **targetp) {
+	REQUIRE(VALID_SSUTABLE(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	LOCK(&source->lock);
+
+	INSIST(source->references > 0);
+	source->references++;
+	INSIST(source->references != 0);
+
+	UNLOCK(&source->lock);
+
+	*targetp = source;
+}
+
+void
+dns_ssutable_detach(dns_ssutable_t **tablep) {
+	dns_ssutable_t *table;
+	isc_boolean_t done = ISC_FALSE;
+
+	REQUIRE(tablep != NULL);
+	table = *tablep;
+	REQUIRE(VALID_SSUTABLE(table));
+
+	LOCK(&table->lock);
+
+	INSIST(table->references > 0);
+	if (--table->references == 0)
+		done = ISC_TRUE;
+	UNLOCK(&table->lock);
+
+	*tablep = NULL;
+
+	if (done)
+		destroy(table);
 }
 
 isc_result_t

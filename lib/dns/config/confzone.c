@@ -3770,7 +3770,7 @@ master_zone_clear(isc_mem_t *mem, dns_c_masterzone_t *mzone)
 		dns_c_ipmatchlist_detach(&mzone->allow_update);
 
 	if (mzone->ssuauth != NULL)
-		dns_ssutable_destroy(&mzone->ssuauth);
+		dns_ssutable_detach(&mzone->ssuauth);
 	
 	if (mzone->allow_update_forwarding != NULL)
 		dns_c_ipmatchlist_detach(&mzone->allow_update_forwarding);
@@ -3830,7 +3830,7 @@ slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone)
 		dns_c_ipmatchlist_detach(&szone->allow_update);
 	
 	if (szone->ssuauth != NULL)
-		dns_ssutable_destroy(&szone->ssuauth);
+		dns_ssutable_detach(&szone->ssuauth);
 	
 	if (szone->allow_update_forwarding != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_update_forwarding);
@@ -3875,7 +3875,7 @@ stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
 		dns_c_ipmatchlist_detach(&tzone->allow_update);
 	
 	if (tzone->ssuauth != NULL)
-		dns_ssutable_destroy(&tzone->ssuauth);
+		dns_ssutable_detach(&tzone->ssuauth);
 	
 	if (tzone->allow_update_forwarding != NULL)
 		dns_c_ipmatchlist_detach(&tzone->allow_update_forwarding);

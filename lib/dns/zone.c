@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.84 2000/02/25 17:34:05 gson Exp $ */
+ /* $Id: zone.c,v 1.85 2000/03/06 19:06:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -409,7 +409,7 @@ zone_free(dns_zone_t *zone) {
 	if (dns_name_dynamic(&zone->origin))
 		dns_name_free(&zone->origin, zone->mctx);
 	if (zone->ssutable != NULL)
-		dns_ssutable_destroy(&zone->ssutable);
+		dns_ssutable_detach(&zone->ssutable);
 
 	/* last stuff */
 	isc_mutex_destroy(&zone->lock);
