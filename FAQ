@@ -468,14 +468,14 @@ A: This is the service manager saying that named exited.   You need to
         };
 
 
-Q: I get "transfer of 'example.com/IN' from 192.168.4.12#53: failed while
+Q: I get "transfer of 'example.net/IN' from 192.168.4.12#53: failed while
    receiving responses: permission denied" error messages.
 
 A: These indicate a filesystem permission error preventing named creating /
    renaming the temporary file.  These will usually also have other associated
    error messages like
 
-   "dumping master file: /etc/named/tmp-XXXX5il3sQ: open: permission denied"
+   "dumping master file: sl/tmp-XXXX5il3sQ: open: permission denied"
 
    Named needs write permission on the directory containing the file.  Named
    writes the new cache file to a temporary file then renames it to the name
@@ -485,3 +485,19 @@ A: These indicate a filesystem permission error preventing named creating /
 
    Note file names are relative to the directory specified in options and
    any chroot directory  ([<chroot dir>/][<options dir>]).
+
+   e.g.
+	If named is invoked as "named -t /chroot/DNS" with the following
+	named.conf then "/chroot/DNS/var/named/sl" needs to be writable
+	by the user named is running as.
+
+	options {
+		directory "/var/named";
+	};
+
+	zone "example.net" {
+		type slave;
+		file "sl/example.net";
+		masters { 192.168.4.12; };
+	}
+
