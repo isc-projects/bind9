@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.81 2001/02/05 23:48:25 bwelling Exp $ */
+/* $Id: mem.c,v 1.82 2001/02/09 18:51:18 gson Exp $ */
 
 #include <config.h>
 
@@ -1111,9 +1111,6 @@ isc_mem_preallocate(isc_mem_t *ctx) {
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 }
 
-/*
- * Print the stats[] on the stream "out" with suitable formatting.
- */
 void
 isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	size_t i;
