@@ -18,11 +18,10 @@ updated by IXFR or AXFR.  AXFR provides the entire contents of the new
 zone version, and replaces the entire contents of the database.  IXFR
 and Dynamic Update, although completely different protocols, have the
 same basic database requirements.  They are differential update
-protocols, e.g. "add this record to the records at name 'foo'".  They
-are transactional, and must either succeed or fail completely.
-Changes must not become visible to clients until the transaction has
-committed.  The differential nature of these updates requires
-transaction serialization.
+protocols, e.g. "add this record to the records at name 'foo'".  The
+updates are also atomic, i.e. they must either succeed or fail.
+Changes must not become visible to clients until the update has
+committed.  In short, zone updates are transactional.
 
 Cache updates are done by the server in the ordinary course of
 handling client requests.  Unlike zone updates, cache updates do not
