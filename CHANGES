@@ -1,3 +1,5 @@
+ 933.	[bug]		configure failed doing libbind on platforms not
+			supported by BIND 8.  [RT #1496]
 
 	--- 9.2.0a3 released ---
 
