@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.102 
+# From configure.in Revision: 1.103 
 
 
 
@@ -931,7 +931,7 @@ if test "X$CC" = "X" ; then
 		*-dec-osf*)
 			CC="cc"
 			;;
-		*-sun-solaris*)
+		*-solaris*)
                         # Use Sun's cc if it is available, but watch
                         # out for /usr/ucb/cc; it will never be the right
                         # compiler to use.
@@ -2057,7 +2057,7 @@ esac
 # Make sure we get the right sigwait() semantics...
 #
 case "$host" in
-	*-sun-solaris*)
+	*-solaris*)
 		cat >> confdefs.h <<\EOF
 #define _POSIX_PTHREAD_SEMANTICS 1
 EOF
@@ -2263,7 +2263,7 @@ if test "X$GCC" = "Xyes"; then
 		*-openbsd*)
 			CC="$CC -pthread"
 			;;
-		*-sun-solaris*)
+		*-solaris*)
 			LIBS="$LIBS -lthread"
 			;;
 	esac
@@ -2273,7 +2273,7 @@ else
 			CC="$CC -std -pthread"
 			MKDEPCC="$CC"
 			;;
-		*-sun-solaris*)
+		*-solaris*)
 			CC="$CC -mt"
 			MKDEPCC="$CC"
 			MKDEPCFLAGS="-xM"

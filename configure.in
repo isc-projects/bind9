@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-AC_REVISION($Revision: 1.102 $)
+AC_REVISION($Revision: 1.103 $)
 
 AC_PREREQ(2.13)
 
@@ -112,7 +112,7 @@ if test "X$CC" = "X" ; then
 		*-dec-osf*)
 			CC="cc"
 			;;
-		*-sun-solaris*)
+		*-solaris*)
                         # Use Sun's cc if it is available, but watch
                         # out for /usr/ucb/cc; it will never be the right
                         # compiler to use.
@@ -268,7 +268,7 @@ esac
 # Make sure we get the right sigwait() semantics...
 #
 case "$host" in
-	*-sun-solaris*)
+	*-solaris*)
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 		;;
 esac
@@ -323,7 +323,7 @@ if test "X$GCC" = "Xyes"; then
 		*-openbsd*)
 			CC="$CC -pthread"
 			;;
-		*-sun-solaris*)
+		*-solaris*)
 			LIBS="$LIBS -lthread"
 			;;
 	esac
@@ -333,7 +333,7 @@ else
 			CC="$CC -std -pthread"
 			MKDEPCC="$CC"
 			;;
-		*-sun-solaris*)
+		*-solaris*)
 			CC="$CC -mt"
 			MKDEPCC="$CC"
 			MKDEPCFLAGS="-xM"
