@@ -508,7 +508,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				goto cleanup;
 			}
 			*sa = forwarders->ips[i];
-			isc_sockaddr_setport(sa, 53);
+			isc_sockaddr_setport(sa, port);
 			ISC_LINK_INIT(sa, link);
 			ISC_LIST_APPEND(addresses, sa, link);
 		}
