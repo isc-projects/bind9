@@ -15,16 +15,37 @@
  * SOFTWARE.
  */
 
-#ifndef NS_TYPES_H
-#define NS_TYPES_H 1
+#ifndef NS_ZONECONF_H
+#define NS_ZONECONF_H 1
 
-#include <isc/list.h>
+#include <isc/types.h>
 
-#include <dns/types.h>
+#include <dns/acl.h>
+#include <dns/confacl.h>
+#include <dns/confip.h>
 
-typedef struct ns_client		ns_client_t;
-typedef struct ns_clientmgr		ns_clientmgr_t;
-typedef struct ns_query			ns_query_t;
-typedef struct ns_server 		ns_server_t;
+/*
+ * Create a dns_acl_t from the corresponding configuration data structure,
+ * 'caml'.  References to named ACLs in caml are resolved against the ACL
+ * table in 'cctx'.
+ */
 
-#endif /* NS_TYPES_H */
+dns_result_t dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx,
+				dns_aclconfctx_t *ac,
+				dns_c_zone_t *czone, dns_zone_t *zone);
+/*
+ *	Configure or reconfigure a zone according to the named.conf
+ *      data in 'ctx' and 'czone'.
+ *
+ * Require:
+ *	'lctx' to be initalised or NULL.
+ *	'ctx' to be initalised or NULL.
+ *	'ac' to point to an initialized ns_aclconfctx_t.
+ *	'czone' to be initalised.
+ *	'zone' to be initalised.
+ */
+
+
+ISC_LANG_ENDDECLS
+
+#endif /* NS_ZONECONF_H */

@@ -87,6 +87,8 @@ typedef struct dns_a6context			dns_a6context_t;
 typedef struct dns_rbt				dns_rbt_t;
 typedef struct dns_zt				dns_zt_t;
 typedef struct dns_cache			dns_cache_t;
+typedef struct dns_aclelement 			dns_aclelement_t;
+typedef struct dns_acl 				dns_acl_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,

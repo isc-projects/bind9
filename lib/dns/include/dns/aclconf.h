@@ -15,16 +15,36 @@
  * SOFTWARE.
  */
 
-#ifndef NS_TYPES_H
-#define NS_TYPES_H 1
+#ifndef DNS_ACLCONF_H
+#define DNS_ACLCONF_H 1
 
-#include <isc/list.h>
+#include <dns/acl.h>
+#include <dns/aclconf.h>
+#include <dns/confacl.h>
+#include <dns/confctx.h>
+#include <dns/confip.h>
 
-#include <dns/types.h>
+typedef struct {
+	ISC_LIST(dns_acl_t) named_acl_cache;
+} dns_aclconfctx_t;
 
-typedef struct ns_client		ns_client_t;
-typedef struct ns_clientmgr		ns_clientmgr_t;
-typedef struct ns_query			ns_query_t;
-typedef struct ns_server 		ns_server_t;
+/***
+ *** Functions
+ ***/
 
-#endif /* NS_TYPES_H */
+ISC_LANG_BEGINDECLS
+
+void dns_aclconfctx_init(dns_aclconfctx_t *ctx);
+
+void dns_aclconfctx_destroy(dns_aclconfctx_t *ctx);
+
+isc_result_t
+dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
+		   dns_c_ctx_t *cctx,
+		   dns_aclconfctx_t *ctx,
+		   isc_mem_t *mctx,
+		   dns_acl_t **target);
+
+ISC_LANG_ENDDECLS
+
+#endif /* DNS_ACLCONF_H */

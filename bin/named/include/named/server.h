@@ -21,8 +21,45 @@
 #include <isc/types.h>
 #include <isc/log.h>
 
+#include <dns/types.h>
+
+/*
+ * Name server state.  Better here than in lots of separate global variables.
+ */
+struct ns_server {
+	isc_uint32_t		magic;
+	isc_mem_t *		mctx;
+
+	/* Configurable data. */
+	isc_boolean_t		recursion;
+	isc_boolean_t		auth_nxdomain;
+	dns_transfer_format_t	transfer_format;
+
+	dns_acl_t *		queryacl;
+	dns_acl_t *		recursionacl;
+	dns_acl_t *		transferacl;
+};
+
+#define NS_SERVER_MAGIC			0x53564552	/* SVER */
+#define NS_SERVER_VALID(s)		((s) != NULL && \
+					 (s)->magic == NS_SERVER_MAGIC)
+
 isc_result_t
-ns_server_init(void);
+ns_server_create(isc_mem_t *mctx, ns_server_t **serverp);
+/*
+ * Create a server object with default settings.
+ */
+
+void
+ns_server_destroy(ns_server_t **serverp);
+/*
+ * Destroy a server object, freeing its memory.
+ */
+     
+isc_result_t ns_server_init(void);
+/*
+ * Create the singleton names server object of BIND 9.
+ */
 
 void
 ns_server_fatal(isc_logmodule_t *module, isc_boolean_t want_core,

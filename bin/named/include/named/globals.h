@@ -25,8 +25,8 @@
 #include <dns/types.h>
 #include <dns/confctx.h>
 
-#include <named/types.h>
 #include <named/interfacemgr.h>
+#include <named/types.h>
 
 #undef EXTERN
 #undef INIT
@@ -56,6 +56,8 @@ EXTERN dns_zonemgr_t *		ns_g_zonemgr		INIT(NULL);
 
 EXTERN dns_viewlist_t		ns_g_viewlist;
 EXTERN isc_rwlock_t		ns_g_viewlock;
+
+EXTERN ns_server_t *		ns_g_server		INIT(NULL);
 
 /*
  * Default root nameserver hints.

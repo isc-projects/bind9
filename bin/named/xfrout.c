@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.29 1999/12/16 02:59:32 gson Exp $ */
+ /* $Id: xfrout.c,v 1.30 1999/12/16 23:11:02 gson Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 
-#include <dns/aml.h>
+#include <dns/acl.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
@@ -52,6 +52,7 @@
 #include <named/client.h>
 #include <named/globals.h>
 #include <named/log.h>
+#include <named/server.h>
 #include <named/xfrout.h>
 
 /*
@@ -890,12 +891,11 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		      mnemonic);
 
 	/* Decide whether to allow this transfer. */
-	CHECK(dns_aml_checkrequest(client->signer,
+	CHECK(dns_acl_checkrequest(client->signer,
 				   ns_client_getsockaddr(client),
-				   ns_g_confctx->acls,
 				   "zone transfer", 
 				   dns_zone_getxfracl(zone),
-				   ns_g_confctx->options->transferacl,
+				   ns_g_server->transferacl,
 				   ISC_TRUE));
 
 	/* AXFR over UDP is not possible. */
@@ -1275,7 +1275,7 @@ sendstream(xfrout_ctx_t *xfr)
 		CHECK(result);
 
 		/* XXX per-server, too */
-		if (ns_g_confctx->options->transfer_format == dns_one_answer)
+		if (ns_g_server->transfer_format == dns_one_answer)
 			break;
 	}
 

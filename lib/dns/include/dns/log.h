@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.8 1999/11/30 22:04:56 gson Exp $ */
+/* $Id: log.h,v 1.9 1999/12/16 23:11:06 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -56,7 +56,7 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_ADB		(&dns_modules[12])
 #define DNS_LOGMODULE_XFER_IN		(&dns_modules[13])
 #define DNS_LOGMODULE_XFER_OUT		(&dns_modules[14])
-#define DNS_LOGMODULE_AML		(&dns_modules[15])
+#define DNS_LOGMODULE_ACL		(&dns_modules[15])
 
 dns_result_t
 dns_log_init(isc_log_t *lctx);

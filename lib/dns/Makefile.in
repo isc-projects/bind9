@@ -114,7 +114,8 @@ DNSSAFEOBJS =	sec/dnssafe/ahchdig.@O@ sec/dnssafe/ahchencr.@O@ \
 		sec/dnssafe/seccbce.@O@ sec/dnssafe/surrendr.@O@
 
 # Alphabetically
-OBJS =		a6.@O@ adb.@O@ aml.@O@ cache.@O@ callbacks.@O@ compress.@O@ \
+OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ \
+		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ dispatch.@O@ dnssec.@O@ \
 		journal.@O@ lib.@O@ log.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
@@ -123,11 +124,12 @@ OBJS =		a6.@O@ adb.@O@ aml.@O@ cache.@O@ callbacks.@O@ compress.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ resolver.@O@ \
 		result.@O@ \
 		tcpmsg.@O@ time.@O@ tkey.@O@ tsig.@O@ ttl.@O@ \
-		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zt.@O@ \
+		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zoneconf.@O@ zt.@O@ \
 		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS} ${CONFOBJS}
 
 # Alphabetically
-SRCS =		a6.c adb.c aml.c cache.c callbacks.c compress.c \
+SRCS =		a6.c acl.c aclconf.c adb.c \
+		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c dispatch.c dnssec.c \
 		journal.c lib.c log.c \
 		master.c masterdump.c message.c \
@@ -136,7 +138,7 @@ SRCS =		a6.c adb.c aml.c cache.c callbacks.c compress.c \
 		rdataset.c rdatasetiter.c rdataslab.c resolver.c \
 		result.c \
 		tcpmsg.c time.c tkey.c tsig.c ttl.c \
-		version.c view.c xfrin.c zone.c zt.c
+		version.c view.c xfrin.c zone.c zoneconf.c zt.c
 
 SUBDIRS =	include sec config
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \

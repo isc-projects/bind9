@@ -29,7 +29,7 @@
 #include <isc/util.h>
 
 #include <dns/a6.h>
-#include <dns/aml.h>
+#include <dns/acl.h>
 #include <dns/db.h>
 #include <dns/dbtable.h>
 #include <dns/dispatch.h>
@@ -49,9 +49,12 @@
 
 #include <named/client.h>
 #include <named/globals.h>
-#include <named/query.h>
-#include <named/xfrout.h>
 #include <named/log.h>
+#include <named/query.h>
+#include <named/server.h>
+#include <named/xfrout.h>
+
+#include "../../isc/util.h"		/* XXX */
 
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)
@@ -1693,7 +1696,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
 	dns_zone_t *zone;
-	dns_c_ipmatchlist_t *queryacl;
 
 	/*	
 	 * One-time initialization.
@@ -1817,18 +1819,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		version = NULL;
 
 	/*
-	 * Check the query against the "allow-query" AML.
+	 * Check the query against the "allow-query" AMLs.
+	 * XXX there should also be a per-view one.
 	 */
-	if (is_zone) {
-		queryacl = dns_zone_getqueryacl(zone);
-	} else {
-		queryacl = NULL;
-		(void) dns_c_ctx_getqueryacl(ns_g_confctx, &queryacl);
-	}
-	result = dns_aml_checkrequest(client->signer,
+	result = dns_acl_checkrequest(client->signer,
 				      ns_client_getsockaddr(client),
-				      ns_g_confctx->acls, "query",
-				      queryacl, NULL, ISC_TRUE);
+				      "query",
+				      (is_zone ?
+					       dns_zone_getqueryacl(zone) :
+					       ns_g_server->queryacl),
+				      ns_g_server->queryacl,
+				      ISC_TRUE);
 	if (result != DNS_R_SUCCESS) {
 		QUERY_ERROR(result);
 		goto cleanup;
@@ -2485,14 +2486,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * auth-nxdomain config option says so, then send the
 		 * response.
 		 */
-		if (client->message->rcode == dns_rcode_nxdomain) {
-			/* Note: default was "true" in BIND 8. */
-			isc_boolean_t auth_nxdomain = ISC_FALSE; 
-			(void) dns_c_ctx_getauth_nx_domain(ns_g_confctx,
-							   &auth_nxdomain);
-			if (auth_nxdomain == ISC_TRUE)
-				client->message->flags |= DNS_MESSAGEFLAG_AA;
-		}
+		if (client->message->rcode == dns_rcode_nxdomain &&
+		    ns_g_server->auth_nxdomain == ISC_TRUE)
+			client->message->flags |= DNS_MESSAGEFLAG_AA;
+		
 		ns_client_send(client);
 	}
 }

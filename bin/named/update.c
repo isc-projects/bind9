@@ -28,7 +28,7 @@
 #include <isc/result.h>
 #include <isc/taskpool.h>
 
-#include <dns/aml.h>
+#include <dns/acl.h>
 #include <dns/confip.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -1943,9 +1943,9 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
-	CHECK(dns_aml_checkrequest(client->signer, ns_client_getsockaddr(client),
-				   ns_g_confctx->acls, "update",
-				   dns_zone_getupdateacl(zone),
+	CHECK(dns_acl_checkrequest(client->signer,
+				   ns_client_getsockaddr(client),
+				   "update", dns_zone_getupdateacl(zone),
 				   NULL, ISC_FALSE));
 
 	/* Perform the Update Section Prescan. */

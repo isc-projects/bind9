@@ -36,6 +36,7 @@
 #include <isc/dir.h>
 #include <isc/util.h>
 
+#include <dns/aclconf.h>
 #include <dns/cache.h>
 #include <dns/confparser.h>
 #include <dns/types.h>
@@ -54,6 +55,7 @@
 #include <dns/journal.h>
 #include <dns/view.h>
 #include <dns/zone.h>
+#include <dns/zoneconf.h>
 #include <dns/tsig.h>
 #include <dns/tkey.h>
 
@@ -66,6 +68,7 @@
 typedef struct {
 	isc_mem_t *		mctx;
 	dns_viewlist_t		viewlist;
+	dns_aclconfctx_t	*aclconf;
 } ns_load_t;
 
 static isc_task_t *		server_task;
@@ -305,7 +308,7 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	result = dns_zone_create(&zone, lctx->mctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_zone_copy(ns_g_lctx, ctx, czone, zone);
+	result = dns_zone_configure(ns_g_lctx, ctx, lctx->aclconf, czone, zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -371,16 +374,39 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	return (result);
 }
 
+/* XXX will need error recovery for reconfig */
 static void
-load_configuration(const char *filename) {
+configure_server_acl(dns_c_ctx_t *cctx, dns_aclconfctx_t *actx, isc_mem_t *mctx,
+		     isc_result_t (*getcacl)(dns_c_ctx_t *, dns_c_ipmatchlist_t **),
+			  dns_acl_t **aclp)
+{
+	isc_result_t result;
+	dns_c_ipmatchlist_t *cacl = NULL;
+	if (*aclp != NULL)
+		dns_acl_detach(aclp);
+	(void) (*getcacl)(cctx, &cacl);
+	if (cacl != NULL) {
+		result = dns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
+		if (result != DNS_R_SUCCESS)
+			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+					"server ACL setup failed");
+	}
+}
+
+static void
+load_configuration(const char *filename, ns_server_t *server) {
 	isc_result_t result;
 	ns_load_t lctx;
 	dns_c_cbks_t callbacks;
 	dns_c_ctx_t *configctx, *oconfigctx;
 	dns_view_t *view, *view_next;
 	dns_viewlist_t oviewlist;
+	dns_aclconfctx_t aclconfctx;
+
+	dns_aclconfctx_init(&aclconfctx);
 
 	lctx.mctx = ns_g_mctx;
+	lctx.aclconf = &aclconfctx;
 	ISC_LIST_INIT(lctx.viewlist);
 
 	callbacks.zonecbk = load_zone;
@@ -407,7 +433,23 @@ load_configuration(const char *filename) {
 		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 				"load of '%s' failed", filename);
 	}
+
+	/*
+	 * Configure various server options.
+	 */
+	(void) dns_c_ctx_getrecursion(configctx, &server->recursion);	
+	(void) dns_c_ctx_getauth_nx_domain(configctx, &server->auth_nxdomain);
+	(void) dns_c_ctx_gettransferformat(configctx, &server->transfer_format);
 	
+	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
+			     dns_c_ctx_getqueryacl, &server->queryacl);
+
+	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
+			     dns_c_ctx_getrecursionacl, &server->recursionacl);
+
+	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
+			     dns_c_ctx_gettransferacl, &server->transferacl);
+
 	/*
 	 * If we haven't created any views, create a default view for class
 	 * IN.  (We're a caching-only server.)
@@ -518,16 +560,18 @@ load_configuration(const char *filename) {
 				"dns_tkey_init() failed: %s",
 				isc_result_totext(result));
 	}
+
+	dns_aclconfctx_destroy(&aclconfctx);	
 }
 
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
-	
+	ns_server_t *server = (ns_server_t *) event->arg;
 	(void)task;
 
 	isc_event_free(&event);
 
-	load_configuration(ns_g_conffile);
+	load_configuration(ns_g_conffile, server);
 
 	ns_interfacemgr_scan(ns_g_interfacemgr);
 
@@ -538,7 +582,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 static void
 shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view, *view_next;
-
+	ns_server_t *server = (ns_server_t *) event->arg;
+		
 	(void)task;
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
@@ -570,13 +615,58 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 			     
 	ns_rootns_destroy();
 
+	ns_server_destroy(&server);
+
 	isc_event_free(&event);
 }
 
 isc_result_t
-ns_server_init(void) {
+ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
+	ns_server_t *server = isc_mem_get(mctx, sizeof(*server));
+	if (server == NULL)
+		return (ISC_R_NOMEMORY);
+	server->mctx = mctx;
+
+	/* Initialize. */
+	server->recursion = ISC_TRUE;
+	server->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
+	server->transfer_format = dns_one_answer;
+		
+	server->queryacl = NULL;
+	server->recursionacl = NULL;
+	server->transferacl = NULL;
+
+	server->magic = NS_SERVER_MAGIC;
+	*serverp = server;
+	return (ISC_R_SUCCESS);
+}
+	
+void
+ns_server_destroy(ns_server_t **serverp) {
+	ns_server_t *server = *serverp;
+	REQUIRE(NS_SERVER_VALID(server));
+
+	if (server->queryacl != NULL)
+		dns_acl_detach(&server->queryacl);
+	if (server->recursionacl != NULL)
+		dns_acl_detach(&server->recursionacl);
+	if (server->transferacl != NULL)
+		dns_acl_detach(&server->transferacl);
+	
+	server->magic = 0;
+	isc_mem_put(server->mctx, server, sizeof(*server));
+}
+	
+isc_result_t
+ns_server_init() {
 	isc_result_t result;
 
+	/*
+	 * Create the server object.
+	 */
+	result = ns_server_create(ns_g_mctx, &ns_g_server);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	/*
 	 * Setup default root server hints.
 	 */
@@ -596,10 +686,10 @@ ns_server_init(void) {
 	result = isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server_task);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_rootns;
-	result = isc_task_onshutdown(server_task, shutdown_server, NULL);
+	result = isc_task_onshutdown(server_task, shutdown_server, ns_g_server);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
-	result = isc_app_onrun(ns_g_mctx, server_task, run_server, NULL);
+	result = isc_app_onrun(ns_g_mctx, server_task, run_server, ns_g_server);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
 

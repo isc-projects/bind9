@@ -449,7 +449,7 @@ dns_zone_getxfrsource(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_setqueryacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+void dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
  *	Sets the query acl list for the zone.
  *
@@ -458,7 +458,7 @@ void dns_zone_setqueryacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
  *	'acl' to be initalised.
  */
 
-void dns_zone_setupdateacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+void dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
  *	Sets the update acl list for the zone.
  *
@@ -467,7 +467,7 @@ void dns_zone_setupdateacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
  *	'acl' to be initalised.
  */
 
-void dns_zone_setxfracl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+void dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
 /*
  *	Sets the transfer acl list for the zone.
  *
@@ -476,7 +476,7 @@ void dns_zone_setxfracl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
  *	'acl' to be initalised.
  */
 
-dns_c_ipmatchlist_t * dns_zone_getqueryacl(dns_zone_t *zone);
+dns_acl_t * dns_zone_getqueryacl(dns_zone_t *zone);
 /*
  * 	Returns the current query acl or NULL.
  *
@@ -488,7 +488,7 @@ dns_c_ipmatchlist_t * dns_zone_getqueryacl(dns_zone_t *zone);
  *	NULL
  */
 
-dns_c_ipmatchlist_t * dns_zone_getupdateacl(dns_zone_t *zone);
+dns_acl_t * dns_zone_getupdateacl(dns_zone_t *zone);
 /*
  * 	Returns the current update acl or NULL.
  *
@@ -500,7 +500,7 @@ dns_c_ipmatchlist_t * dns_zone_getupdateacl(dns_zone_t *zone);
  *	NULL
  */
 
-dns_c_ipmatchlist_t * dns_zone_getxfracl(dns_zone_t *zone);
+dns_acl_t * dns_zone_getxfracl(dns_zone_t *zone);
 /*
  * 	Returns the current transfer acl or NULL.
  *
@@ -577,18 +577,6 @@ void dns_zone_setmasterport(dns_zone_t *zone,  isc_uint16_t port);
 isc_uint16_t dns_zone_getmasterport(dns_zone_t *zone);
 
 void dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
-
-dns_result_t dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx,
-			   dns_c_zone_t *czone, dns_zone_t *zone);
-/*
- *	Copy the zone configuration information into the zone structure.
- *
- * Require:
- *	'lctx' to be initalised or NULL.
- *	'ctx' to be initalised or NULL.
- *	'czone' to be initalised.
- *	'zone' to be initalised.
- */
 
 dns_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 				dns_message_t *msg);
@@ -782,6 +770,12 @@ void
 dns_zone_print(dns_zone_t *zone);
 /*
  * test use only
+ */
+
+isc_mem_t *
+dns_zone_getmctx(dns_zone_t *zone);
+/*
+ * Get the memory context of a zone.
  */
 
 isc_result_t
