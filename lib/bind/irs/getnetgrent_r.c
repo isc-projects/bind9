@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.3 2001/06/25 13:22:29 marka Exp $";
+static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.4 2001/07/03 06:47:32 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -116,14 +116,15 @@ copy_protoent(char **machinep, char **userp, char **domainp,
 	*buf = malloc(len);
 	if (*buf == NULL)
 		return(NGR_R_BAD);
+	cp = *buf;
 #else
 	if (len > buflen) {
 		errno = ERANGE;
 		return (NGR_R_BAD);
 	}
+	cp = buf;
 #endif
 
-	cp = buf;
 
 	if (mp != NULL) {
 		n = strlen(mp) + 1;
