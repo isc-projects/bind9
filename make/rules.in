@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.39 2001/07/13 01:38:51 gson Exp $
+# $Id: rules.in,v 1.40 2001/08/29 04:15:03 marka Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -67,7 +67,7 @@ subdirs:
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making all in `pwd`/$$i"; \
 			(cd $$i; ${MAKE} ${MAKEDEFS} all) || exit 1; \
-		fi \
+		fi; \
 	done
 
 install clean distclean maintainer-clean doc docclean man manclean::
@@ -75,7 +75,7 @@ install clean distclean maintainer-clean doc docclean man manclean::
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making $@ in `pwd`/$$i"; \
 			(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
-		fi \
+		fi; \
 	done
 
 ###
@@ -136,7 +136,7 @@ depend:
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making depend in `pwd`/$$i"; \
 			(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
-		fi \
+		fi; \
 	done
 	@if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
 		echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
