@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.106 2000/10/27 20:56:39 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.107 2000/10/27 21:08:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1536,11 +1536,16 @@ main(int argc, char *argv[]) {
 	isc_mem_destroy(&mctx);
 
 	if (printstats) {
-		printf("Number of signatures generated:  %d\n", nsigned);
-		printf("Number of signatures retained:   %d\n", nretained);
-		printf("Number of signatures dropped:    %d\n", ndropped);
-		printf("Number of signatures verified:   %d\n", nverified);
-		printf("Number of signatures unverified: %d\n", nverifyfailed);
+		printf("Signatures generated:               %d\n",
+		       nsigned);
+		printf("Signatures retained:                %d\n",
+		       nretained);
+		printf("Signatures dropped:                 %d\n",
+		       ndropped);
+		printf("Signatures successfully verified:   %d\n",
+		       nverified);
+		printf("Signatures unsuccessfully verified: %d\n",
+		       nverifyfailed);
 	}
 
 	return (0);
