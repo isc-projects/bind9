@@ -1,3 +1,5 @@
+1342,	[func]		Log remote address with TCP dispatch failures.
+
 1341.	[func]		Allow a rate limiter to be stalled.
 
 1340.	[bug]		Delay and spread out the startup refresh load.
