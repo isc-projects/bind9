@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.35 2001/03/24 02:31:41 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.36 2001/04/02 22:52:07 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -144,11 +144,12 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 
 	isc_buffer_init(&b, text, sizeof(text));
 
+	CHECK(buffer_putstr(&b, "options {\n"));
+
 	/*
 	 * Build the list of forwarders.
 	 */
 	if (lwc->nsnext > 0) {
-		CHECK(buffer_putstr(&b, "options {\n"));
 		CHECK(buffer_putstr(&b, "\tforwarders {\n"));
 
 		for (i = 0 ; i < lwc->nsnext ; i++) {
@@ -162,8 +163,54 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 			CHECK(buffer_putstr(&b, ";\n"));
 		}
 		CHECK(buffer_putstr(&b, "\t};\n"));
-		CHECK(buffer_putstr(&b, "};\n\n"));
 	}
+
+	/*
+	 * Build the sortlist
+	 */
+	if (lwc->sortlistnxt > 0) {
+		CHECK(buffer_putstr(&b, "\tsortlist {\n"));
+		CHECK(buffer_putstr(&b, "\t\t{\n"));
+		CHECK(buffer_putstr(&b, "\t\t\tany;\n"));
+		CHECK(buffer_putstr(&b, "\t\t\t{\n"));
+		for (i = 0 ; i < lwc->sortlistnxt; i++) {
+			lwres_addr_t *lwaddr = &lwc->sortlist[i].addr;
+			lwres_addr_t *lwmask = &lwc->sortlist[i].mask;
+			unsigned int mask;
+
+			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, lwmask, 0));
+			isc_netaddr_fromsockaddr(&na, &sa);
+			result = isc_netaddr_masktoprefixlen(&na, &mask);
+			if (result != ISC_R_SUCCESS) {
+				char addrtext[ISC_NETADDR_FORMATSIZE];
+				isc_netaddr_format(&na, addrtext,
+						   sizeof(addrtext));
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_LWRESD,
+					      ISC_LOG_ERROR,
+					      "processing sortlist: '%s' is "
+					      "not a valid netmask",
+					      addrtext);
+				goto cleanup;
+			}
+
+			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, lwaddr, 0));
+			isc_netaddr_fromsockaddr(&na, &sa);
+
+			CHECK(buffer_putstr(&b, "\t\t\t\t"));
+			CHECK(isc_netaddr_totext(&na, &b));
+			snprintf(str, sizeof(str), "%u", mask);
+			CHECK(buffer_putstr(&b, "/"));
+			CHECK(buffer_putstr(&b, str));
+			CHECK(buffer_putstr(&b, ";\n"));
+		}
+		CHECK(buffer_putstr(&b, "\t\t\t};\n"));
+		CHECK(buffer_putstr(&b, "\t\t};\n"));
+		CHECK(buffer_putstr(&b, "\t};\n"));
+	}
+
+	CHECK(buffer_putstr(&b, "};\n\n"));
 
 	CHECK(buffer_putstr(&b, "lwres {\n"));
 
@@ -174,9 +221,9 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 		if (lwc->searchnxt > 0) {
 			CHECK(buffer_putstr(&b, "\tsearch {\n"));
 			for (i = 0; i < lwc->searchnxt; i++) {
-				CHECK(buffer_putstr(&b, "\t\t"));
+				CHECK(buffer_putstr(&b, "\t\t\""));
 				CHECK(buffer_putstr(&b, lwc->search[i]));
-			        CHECK(buffer_putstr(&b, ";\n"));
+			        CHECK(buffer_putstr(&b, "\";\n"));
 			}
 			CHECK(buffer_putstr(&b, "\t};\n"));
 		}
@@ -208,51 +255,6 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 			CHECK(buffer_putstr(&b, ";\n"));
 		}
 		CHECK(buffer_putstr(&b, "\t};\n"));
-	}
-
-	/*
-	 * Build the sortlist
-	 */
-	if (lwc->sortlistnxt > 0) {
-		CHECK(buffer_putstr(&b, "\tsortlist {\n"));
-		CHECK(buffer_putstr(&b, "\t{\n"));
-		CHECK(buffer_putstr(&b, "\t\tany;\n"));
-		CHECK(buffer_putstr(&b, "\t\t{;\n"));
-		for (i = 0 ; i < lwc->sortlistnxt; i++) {
-			lwres_addr_t *lwaddr = &lwc->sortlist[i].addr;
-			lwres_addr_t *lwmask = &lwc->sortlist[i].mask;
-			unsigned int mask;
-
-			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, lwmask, 0));
-			isc_netaddr_fromsockaddr(&na, &sa);
-			result = isc_netaddr_masktoprefixlen(&na, &mask);
-			if (result != ISC_R_SUCCESS) {
-				char addrtext[ISC_NETADDR_FORMATSIZE];
-				isc_netaddr_format(&na, addrtext,
-						   sizeof(addrtext));
-				isc_log_write(ns_g_lctx,
-					      NS_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_LWRESD,
-					      ISC_LOG_ERROR,
-					      "processing sortlist: '%s' is "
-					      "not a valid netmask",
-					      addrtext);
-				goto cleanup;
-			}
-
-			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, lwaddr, 0));
-			isc_netaddr_fromsockaddr(&na, &sa);
-
-			CHECK(buffer_putstr(&b, "\t\t\t"));
-			CHECK(isc_netaddr_totext(&na, &b));
-			snprintf(str, sizeof(str), "%u", mask);
-			CHECK(buffer_putstr(&b, "/"));
-			CHECK(buffer_putstr(&b, str));
-			CHECK(buffer_putstr(&b, ";\n"));
-		}
-		CHECK(buffer_putstr(&b, "\t\t}\n"));
-		CHECK(buffer_putstr(&b, "\t}\n"));
-		CHECK(buffer_putstr(&b, "};\n"));
 	}
 
 	CHECK(buffer_putstr(&b, "};\n"));
