@@ -139,6 +139,7 @@ dns_acl_match(isc_netaddr_t *reqaddr,
 	unsigned int i;
 	int indirectmatch;
 
+	REQUIRE(reqaddr != NULL);
 	REQUIRE(matchelt == NULL || *matchelt == NULL);
 	
 	for (i = 0; i < acl->length; i++) {
@@ -173,6 +174,7 @@ dns_acl_match(isc_netaddr_t *reqaddr,
 			 * "no match".
 			 * That way, a negated indirect ACL will never become 
 			 * a surprise positive match through double negation.
+			 * XXXDCL this should be documented.
 			 */
 			if (indirectmatch > 0)
 				goto matched;
