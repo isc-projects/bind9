@@ -376,6 +376,7 @@ dns_view_createresolver(dns_view_t *view,
 			isc_socketmgr_t *socketmgr,
 			isc_timermgr_t *timermgr,
 			unsigned int options,
+			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4,
 			dns_dispatch_t *dispatchv6)
 {
@@ -396,7 +397,8 @@ dns_view_createresolver(dns_view_t *view,
 	isc_task_setname(view->task, "view", view);
 
 	result = dns_resolver_create(view, taskmgr, ntasks, socketmgr,
-				     timermgr, options, dispatchv4, dispatchv6,
+				     timermgr, options, dispatchmgr,
+				     dispatchv4, dispatchv6,
 				     &view->resolver);
 	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&view->task);
@@ -417,6 +419,7 @@ dns_view_createresolver(dns_view_t *view,
 	view->attributes &= ~DNS_VIEWATTR_ADBSHUTDOWN;
 
 	result = dns_requestmgr_create(view->mctx, timermgr, socketmgr,
+				       dns_resolver_dispatchmgr(view->resolver),
 				       dns_resolver_dispatchv4(view->resolver),
 				       dns_resolver_dispatchv6(view->resolver),
 				       &view->requestmgr);

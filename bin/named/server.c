@@ -356,7 +356,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 */
 	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
 				      ns_g_socketmgr, ns_g_timermgr,
-				      0, dispatchv4, dispatchv6));
+				      0, ns_g_dispatchmgr,
+				      dispatchv4, dispatchv6));
 
 	/*
 	 * Set resolver forwarding policy.
@@ -866,6 +867,7 @@ static isc_result_t
 configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server, int af,
 			     dns_dispatch_t **dispatchp) {
 	isc_result_t result;
+	unsigned int attrs;
 	struct in_addr ina;
 	isc_sockaddr_t sa, any4, any6, *any;
 	isc_socket_t *socket;
@@ -982,10 +984,18 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server, int af,
 			isc_socket_detach(&socket);	
 			return (result);
 		}
-		result = dns_dispatch_create(ns_g_mctx, socket,
+		attrs = 0;
+		attrs = DNS_DISPATCHATTR_UDP;
+		attrs |= DNS_DISPATCHATTR_PRIVATE;
+		if (af == AF_INET)
+			attrs |= DNS_DISPATCHATTR_IPV4;
+		else
+			attrs |= DNS_DISPATCHATTR_IPV6;
+		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+		result = dns_dispatch_create(ns_g_dispatchmgr, socket,
 					     server->task, 4096,
 					     1000, 32768, 16411, 16433, NULL,
-					     server_dispatchp);
+					     attrs, server_dispatchp);
 		/*
 		 * Regardless of whether dns_dispatch_create() succeeded or
 		 * failed, we don't need to keep the reference to the socket.
@@ -1390,7 +1400,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 		   "creating client manager");
 	
 	CHECKFATAL(ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
-					  ns_g_socketmgr, server->clientmgr,
+					  ns_g_socketmgr, ns_g_dispatchmgr,
+					  server->clientmgr,
 					  &server->interfacemgr),
 		   "creating interface manager");
 

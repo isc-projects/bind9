@@ -25,6 +25,8 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/dispatch.h>
+
 #include <dst/result.h>
 
 /*
@@ -258,6 +260,14 @@ create_managers() {
 		return (ISC_R_UNEXPECTED);
 	}
 
+	result = dns_dispatchmgr_create(ns_g_mctx, &ns_g_dispatchmgr);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "dns_dispatchmgr_create() failed: %s",
+				 isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -274,6 +284,7 @@ destroy_managers(void) {
 	isc_taskmgr_destroy(&ns_g_taskmgr);
 	isc_timermgr_destroy(&ns_g_timermgr);
 	isc_socketmgr_destroy(&ns_g_socketmgr);
+	dns_dispatchmgr_destroy(&ns_g_dispatchmgr);
 }
 
 static void

@@ -39,6 +39,7 @@
 EXTERN isc_mem_t *		ns_g_mctx		INIT(NULL);
 EXTERN unsigned int		ns_g_cpus		INIT(1);
 EXTERN isc_taskmgr_t *		ns_g_taskmgr		INIT(NULL);
+EXTERN dns_dispatchmgr_t *	ns_g_dispatchmgr	INIT(NULL);
 /*
  * XXXRTH  We're going to want multiple timer managers eventually.  One
  *         for really short timers, another for client timers, and one

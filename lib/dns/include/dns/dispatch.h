@@ -58,8 +58,6 @@
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_DISPATCHEVENT_RECV	(ISC_EVENTCLASS_DNS + 1) /* XXXMLG */
-
 /*
  * This event is sent to a task when a response (or request) comes in.
  * No part of this structure should ever be modified by the caller,
@@ -102,12 +100,101 @@ struct dns_dispatchmethods {
 };
 typedef struct dns_dispatchmethods dns_dispatchmethods_t;
 
+/*
+ * Attributes for added dispatchers.
+ *
+ * Values with the mask 0xffff0000 are application defined.
+ * Values with the mask 0x0000ffff are library defined.
+ *
+ * Insane values (like setting both TCP and UDP) are not caught.  Don't
+ * do that.
+ *
+ * _PRIVATE
+ *	The dispatcher cannot be shared.
+ *
+ * _TCP, _UDP
+ *	The dispatcher is a TCP or UDP socket.
+ *
+ * _IPV4, _IPV6
+ *	The dispatcher uses an ipv4 or ipv6 socket.
+ *
+ * _REQUEST
+ *	The dispatcher can be used to accept requests.
+ *
+ * _RESPONSE
+ *	The dispatcher can be used to issue queries to other servers, and
+ *	accept replies from them.
+ */
+#define DNS_DISPATCHATTR_PRIVATE	0x00000001U
+#define DNS_DISPATCHATTR_TCP		0x00000002U
+#define DNS_DISPATCHATTR_UDP		0x00000004U
+#define DNS_DISPATCHATTR_IPV4		0x00000008U
+#define DNS_DISPATCHATTR_IPV6		0x00000010U
+#define DNS_DISPATCHATTR_ACCEPTREQUEST	0x00000020U
+#define DNS_DISPATCHATTR_MAKEQUERY	0x00000040U
+
+ISC_LANG_BEGINDECLS
+
 isc_result_t
-dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
-		    unsigned int maxbuffersize,
+dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
+/*
+ * Creates a new dispatchmgr object.
+ *
+ * Requires:
+ *	"mctx" be a valid memory context.
+ *
+ *	mgrp != NULL && *mgrp == NULL
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	-- all ok
+ *
+ *	anything else	-- failure
+ */
+
+
+void
+dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp);
+/*
+ * Destroys the dispatchmgr when it becomes empty.  This could be
+ * immediately.
+ *
+ * Requires:
+ *	mgrp != NULL && *mgrp is a valid dispatchmgr.
+ */
+
+
+isc_result_t
+dns_dispatchmgr_find(dns_dispatchmgr_t *mgr, unsigned int attributes,
+		      unsigned int mask, dns_dispatch_t **dispp);
+/*
+ * Search for a dispatcher that has the attributes specified by
+ *	(attributes & mask)
+ *
+ * Requires:
+ *	"mgr" be a valid dispatchmgr.
+ *
+ *	dispp != NULL && *dispp == NULL.
+ *
+ * Ensures:
+ *	The dispatcher returned into *dispp is attached on behalf of the
+ *	caller.  It is required that the caller detach from it when it is
+ *	no longer needed.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	-- found.
+ *
+ *	ISC_R_NOTFOUND	-- no dispatcher matching the requirements found.
+ *
+ *	anything else	-- failure.
+ */
+
+
+isc_result_t
+dns_dispatch_create(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
+		    isc_task_t *task, unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
 		    unsigned int buckets, unsigned int increment,
-		    dns_dispatchmethods_t *methods,
+		    dns_dispatchmethods_t *methods, unsigned int attributes,
 		    dns_dispatch_t **dispp);
 /*
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
@@ -130,7 +217,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  *
  * Requires:
  *
- *	mctx is a valid memory context.
+ *	mgr is a valid dispatch manager.
  *
  *	sock is a valid.
  *
@@ -148,6 +235,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  *	increment > buckets (and prime)
  */
 
+
 void
 dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
 /*
@@ -163,6 +251,7 @@ dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
  *	< mumble >
  */
 
+
 void
 dns_dispatch_detach(dns_dispatch_t **dispp);
 /*
@@ -177,6 +266,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
  * Returns:
  *	< mumble >
  */
+
 
 isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
@@ -214,6 +304,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
  *				   for this destination.
  */
 
+
 void
 dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 			    dns_dispatchevent_t **sockevent);
@@ -232,6 +323,7 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
  * Returns:
  *	< mumble >
  */
+
 
 isc_result_t
 dns_dispatch_addrequest(dns_dispatch_t *disp,
@@ -252,6 +344,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
  *	< mumble >
  */
 
+
 void
 dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 			   dns_dispatchevent_t **sockevent);
@@ -269,6 +362,7 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
  * Returns:
  *	< mumble >
  */
+
 
 void
 dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
@@ -288,16 +382,53 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
  *	< mumble >
  */
 
+
 isc_socket_t *
 dns_dispatch_getsocket(dns_dispatch_t *disp);
 /*
- * Return the socket associated with this dispatcher
+ * Return the socket associated with this dispatcher.
+ *
+ * Requires:
+ *	< mumble >
+ *
+ * Ensures:
+ *	< mumble >
+ *
+ * Returns:
+ *	< mumble >
  */
+
 
 void
 dns_dispatch_cancel(dns_dispatch_t *disp);
 /*
  * cancel outstanding clients
+ *
+ * Requires:
+ *	< mumble >
+ *
+ * Ensures:
+ *	< mumble >
+ *
+ * Returns:
+ *	< mumble >
+ */
+
+void
+dns_dispatch_changeattributes(dns_dispatch_t *disp,
+			      unsigned int attributes, unsigned int mask);
+/*
+ * Set the bits described by "mask" to the corresponding values in
+ * "attributes".
+ *
+ * Requires:
+ *	< mumble >
+ *
+ * Ensures:
+ *	< mumble >
+ *
+ * Returns:
+ *	< mumble >
  */
 
 ISC_LANG_ENDDECLS

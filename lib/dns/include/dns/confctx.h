@@ -105,8 +105,8 @@ struct dns_c_ctx {
  * statement. If a field is NULL then it has never been set.
  */
 struct dns_c_options {
-	isc_mem_t	       *mem;
 	isc_uint32_t		magic;
+	isc_mem_t	       *mem;
 	
 	char		       *directory;
 	char		       *version;

@@ -87,8 +87,9 @@ struct ns_interface {
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		       isc_socketmgr_t *socketmgr, ns_clientmgr_t *clientmgr,
-		       ns_interfacemgr_t **mgrp);
+		       isc_socketmgr_t *socketmgr,
+		       dns_dispatchmgr_t *dispatchmgr,
+		       ns_clientmgr_t *clientmgr, ns_interfacemgr_t **mgrp);
 
 void
 ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target);

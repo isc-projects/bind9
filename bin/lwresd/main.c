@@ -26,6 +26,7 @@
 
 #include <dns/cache.h>
 #include <dns/db.h>
+#include <dns/dispatch.h>
 #include <dns/log.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
@@ -53,6 +54,7 @@ dns_view_t *view;
 isc_taskmgr_t *taskmgr;
 isc_socketmgr_t *sockmgr;
 isc_timermgr_t *timermgr;
+dns_dispatchmgr_t *dispatchmgr;
 
 isc_sockaddrlist_t forwarders;
 
@@ -88,7 +90,7 @@ create_view(isc_mem_t *mctx) {
 	 * XXXMLG hardwired number of tasks.
 	 */
 	result = dns_view_createresolver(view, taskmgr, 16, sockmgr,
-					 timermgr, 0, NULL, NULL);
+					 timermgr, dispatchmgr, 0, NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
@@ -269,6 +271,13 @@ main(int argc, char **argv) {
 	 */
 	timermgr = NULL;
 	result = isc_timermgr_create(mem, &timermgr);
+	INSIST(result == ISC_R_SUCCESS);
+
+	/*
+	 * Create a dispatch manager.
+	 */
+	dispatchmgr = NULL;
+	result = dns_dispatchmgr_create(mem, &dispatchmgr);
 	INSIST(result == ISC_R_SUCCESS);
 
 	/*

@@ -94,6 +94,7 @@ dns_resolver_create(dns_view_t *view,
 		    isc_socketmgr_t *socketmgr,
 		    isc_timermgr_t *timermgr,
 		    unsigned int options,
+		    dns_dispatchmgr_t *dispatchmgr,
 		    dns_dispatch_t *dispatchv4,
 		    dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp);
@@ -337,6 +338,9 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp);
  *
  *	*fetchp == NULL.
  */
+
+dns_dispatchmgr_t *
+dns_resolver_dispatchmgr(dns_resolver_t *resolver);
 
 dns_dispatch_t *
 dns_resolver_dispatchv4(dns_resolver_t *resolver);

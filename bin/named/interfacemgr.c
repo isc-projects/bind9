@@ -42,6 +42,7 @@ struct ns_interfacemgr {
 	isc_mem_t *		mctx;		/* Memory context. */
 	isc_taskmgr_t *		taskmgr;	/* Task manager. */
 	isc_socketmgr_t *	socketmgr;	/* Socket manager. */
+	dns_dispatchmgr_t *	dispatchmgr;
 	ns_clientmgr_t *	clientmgr;	/* Client manager. */
 	unsigned int		generation;	/* Current generation no. */
 	ns_listenlist_t *	listenon;
@@ -71,8 +72,9 @@ sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		       isc_socketmgr_t *socketmgr, ns_clientmgr_t *clientmgr,
-		       ns_interfacemgr_t **mgrp)
+		       isc_socketmgr_t *socketmgr,
+		       dns_dispatchmgr_t *dispatchmgr,
+		       ns_clientmgr_t *clientmgr, ns_interfacemgr_t **mgrp)
 {
 	isc_result_t result;
 	ns_interfacemgr_t *mgr;
@@ -92,6 +94,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	mgr->mctx = mctx;
 	mgr->taskmgr = taskmgr;
 	mgr->socketmgr = socketmgr;
+	mgr->dispatchmgr = dispatchmgr;
 	mgr->clientmgr = clientmgr;
 	mgr->generation = 1;
 	mgr->listenon = NULL;
@@ -245,6 +248,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 static isc_result_t
 ns_interface_listenudp(ns_interface_t *ifp) {
 	isc_result_t result;
+	unsigned int attrs;
 	
 	/*
 	 * Open a UDP socket.
@@ -266,9 +270,17 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 				 isc_result_totext(result));
 		goto udp_bind_failure;
 	}
-	result = dns_dispatch_create(ifp->mgr->mctx, ifp->udpsocket, ifp->task,
-				     4096, 1000, 32768, 8219, 8237, NULL,
-				     &ifp->udpdispatch);
+	attrs = 0;
+	attrs |= DNS_DISPATCHATTR_UDP;
+	if (isc_sockaddr_pf(&ifp->addr) == AF_INET)
+		attrs |= DNS_DISPATCHATTR_IPV4;
+	else
+		attrs |= DNS_DISPATCHATTR_IPV6;
+	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+	attrs |= DNS_DISPATCHATTR_ACCEPTREQUEST;
+	result = dns_dispatch_create(ifp->mgr->dispatchmgr, ifp->udpsocket,
+				     ifp->task, 4096, 1000, 32768, 8219,
+				     8237, NULL, attrs, &ifp->udpdispatch);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "UDP dns_dispatch_create(): %s",

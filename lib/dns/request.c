@@ -42,37 +42,38 @@ typedef ISC_LIST(dns_request_t) dns_requestlist_t;
 #define DNS_REQUEST_NLOCKS 7
 
 struct dns_requestmgr {
-	isc_int32_t	magic;
-	isc_mutex_t     lock;
-	isc_mem_t	*mctx;
+	isc_int32_t			magic;
+	isc_mutex_t			lock;
+	isc_mem_t		       *mctx;
 
 	/* locked */
-	isc_int32_t	eref;
-	isc_int32_t	iref;
-	isc_timermgr_t	*timermgr;
-	isc_socketmgr_t	*socketmgr;
-	dns_dispatch_t	*dispatchv4;
-	dns_dispatch_t  *dispatchv6;
-	isc_boolean_t	exiting;
-	isc_eventlist_t whenshutdown;
-	unsigned int	hash;
-	isc_mutex_t	locks[DNS_REQUEST_NLOCKS];
-	dns_requestlist_t requests;
+	isc_int32_t			eref;
+	isc_int32_t			iref;
+	isc_timermgr_t		       *timermgr;
+	isc_socketmgr_t		       *socketmgr;
+	dns_dispatchmgr_t	       *dispatchmgr;
+	dns_dispatch_t		       *dispatchv4;
+	dns_dispatch_t		       *dispatchv6;
+	isc_boolean_t			exiting;
+	isc_eventlist_t			whenshutdown;
+	unsigned int			hash;
+	isc_mutex_t			locks[DNS_REQUEST_NLOCKS];
+	dns_requestlist_t 		requests;
 };
 
 struct dns_request {
-	isc_int32_t		magic;
-	unsigned int		hash;
-	isc_mem_t		*mctx;
-	isc_int32_t		flags;
-	ISC_LINK(dns_request_t) link;
-	isc_buffer_t		*query;
-	isc_buffer_t		*answer;
-	dns_requestevent_t	*event;
-	dns_dispatch_t		*dispatch;
-	dns_dispentry_t		*dispentry;
-	isc_timer_t		*timer;
-	dns_requestmgr_t	*requestmgr;
+	isc_int32_t			magic;
+	unsigned int			hash;
+	isc_mem_t		       *mctx;
+	isc_int32_t			flags;
+	ISC_LINK(dns_request_t) 	link;
+	isc_buffer_t		       *query;
+	isc_buffer_t		       *answer;
+	dns_requestevent_t	       *event;
+	dns_dispatch_t		       *dispatch;
+	dns_dispentry_t		       *dispentry;
+	isc_timer_t		       *timer;
+	dns_requestmgr_t	       *requestmgr;
 };
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
@@ -110,6 +111,7 @@ isc_result_t
 dns_requestmgr_create(isc_mem_t *mctx,
 		      isc_timermgr_t *timermgr,
 		      isc_socketmgr_t *socketmgr,
+		      dns_dispatchmgr_t *dispatchmgr,
 		      dns_dispatch_t *dispatchv4,
 		      dns_dispatch_t *dispatchv6,
 		      dns_requestmgr_t **requestmgrp)
@@ -124,6 +126,7 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	REQUIRE(requestmgrp != NULL && *requestmgrp == NULL);
 	REQUIRE(timermgr != NULL);
 	REQUIRE(socketmgr != NULL);
+	REQUIRE(dispatchmgr != NULL);
 	if (dispatchv4 != NULL) {
 		socket = dns_dispatch_getsocket(dispatchv4);
 		REQUIRE(isc_socket_gettype(socket) == isc_sockettype_udp);
@@ -154,6 +157,7 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	}
 	requestmgr->timermgr = timermgr;
 	requestmgr->socketmgr = socketmgr;
+	requestmgr->dispatchmgr = dispatchmgr;
 	requestmgr->dispatchv4 = NULL;
 	if (dispatchv4 != NULL)
 		dns_dispatch_attach(dispatchv4, &requestmgr->dispatchv4);
@@ -419,6 +423,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	isc_interval_t interval;
 	dns_messageid_t	id;
 	isc_time_t expires;
+	unsigned int attrs;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(message != NULL);
@@ -479,8 +484,17 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 					   isc_sockettype_tcp, &socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		result = dns_dispatch_create(mctx, socket, task,
-					     4096, 2, 1, 1, 3, NULL,
+		attrs = 0;
+		attrs |= DNS_DISPATCHATTR_TCP;
+		attrs |= DNS_DISPATCHATTR_PRIVATE;
+		if (isc_sockaddr_pf(address) == AF_INET)
+			attrs |= DNS_DISPATCHATTR_IPV4;
+		else
+			attrs |= DNS_DISPATCHATTR_IPV6;
+		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+		result = dns_dispatch_create(requestmgr->dispatchmgr,
+					     socket, task,
+					     4096, 2, 1, 1, 3, NULL, attrs,
 					     &request->dispatch);
 		isc_socket_detach(&socket);
 		if (result != ISC_R_SUCCESS)

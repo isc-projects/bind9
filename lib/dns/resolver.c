@@ -214,6 +214,7 @@ struct dns_resolver {
 	unsigned int			options;
 	isc_socket_t *			udpsocketv4;
 	isc_socket_t *			udpsocketv6;
+	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatchv4;
 	dns_dispatch_t *		dispatchv6;
 	unsigned int			nbuckets;
@@ -615,6 +616,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_result_t result;
 	resquery_t *query;
 	isc_socket_t *socket;
+	unsigned int attrs;
 
 	FCTXTRACE("query");
 
@@ -659,8 +661,16 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 					   &socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
-		result = dns_dispatch_create(res->mctx, socket, task,
-					     4096, 2, 1, 1, 3, NULL,
+		attrs = 0;
+		attrs |= DNS_DISPATCHATTR_TCP;
+		attrs |= DNS_DISPATCHATTR_PRIVATE;
+		if (isc_sockaddr_pf(addrinfo->sockaddr) == AF_INET)
+			attrs |= DNS_DISPATCHATTR_IPV4;
+		else
+			attrs |= DNS_DISPATCHATTR_IPV6;
+		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+		result = dns_dispatch_create(res->dispatchmgr, socket, task,
+					     4096, 2, 1, 1, 3, NULL, attrs,
 					     &query->dispatch);
 		/*
 		 * Regardless of whether dns_dispatch_create() succeeded or
@@ -3911,6 +3921,7 @@ dns_resolver_create(dns_view_t *view,
 		    isc_socketmgr_t *socketmgr,
 		    isc_timermgr_t *timermgr,
 		    unsigned int options,
+		    dns_dispatchmgr_t *dispatchmgr,
 		    dns_dispatch_t *dispatchv4,
 		    dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp)
@@ -3919,6 +3930,7 @@ dns_resolver_create(dns_view_t *view,
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i, buckets_created = 0;
 	char name[16];
+	unsigned int attrs;
 
 	/*
 	 * Create a resolver.
@@ -3927,6 +3939,7 @@ dns_resolver_create(dns_view_t *view,
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ntasks > 0);
 	REQUIRE(resp != NULL && *resp == NULL);
+	REQUIRE(dispatchmgr != NULL);
 
 	res = isc_mem_get(view->mctx, sizeof *res);
 	if (res == NULL)
@@ -3936,6 +3949,7 @@ dns_resolver_create(dns_view_t *view,
 	res->rdclass = view->rdclass;
 	res->socketmgr = socketmgr;
 	res->timermgr = timermgr;
+	res->dispatchmgr = dispatchmgr;
 	res->view = view;
 	res->options = options;
 
@@ -3972,6 +3986,8 @@ dns_resolver_create(dns_view_t *view,
 	if (dispatchv4 != NULL) {
 		dns_dispatch_attach(dispatchv4, &res->dispatchv4);
 	} else if (isc_net_probeipv4() == ISC_R_SUCCESS) {
+		isc_sockaddr_t saddr;
+
 		/*
 		 * Create an IPv4 UDP socket and a dispatcher for it.
 		 */
@@ -3980,10 +3996,22 @@ dns_resolver_create(dns_view_t *view,
 					   &res->udpsocketv4);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_buckets;
-		result = dns_dispatch_create(res->mctx, res->udpsocketv4,
+		isc_sockaddr_any(&saddr);
+#if 0 /* XXXMLG */
+		result = isc_socket_bind(res->udpsocketv4, &saddr);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_udpsocketv4;
+#endif
+		attrs = 0;
+		attrs |= DNS_DISPATCHATTR_UDP;
+		attrs |= DNS_DISPATCHATTR_PRIVATE;
+		attrs |= DNS_DISPATCHATTR_IPV4;
+		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+		result = dns_dispatch_create(res->dispatchmgr,
+					     res->udpsocketv4,
 					     res->buckets[0].task, 4096,
 					     1000, 32768, 16411, 16433, NULL,
-					     &res->dispatchv4);
+					     attrs, &res->dispatchv4);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocketv4;
 	}
@@ -3996,6 +4024,7 @@ dns_resolver_create(dns_view_t *view,
 	if (dispatchv6 != NULL) {
 		dns_dispatch_attach(dispatchv6, &res->dispatchv6);
 	} else if (isc_net_probeipv6() == ISC_R_SUCCESS) {
+		isc_sockaddr_t saddr;
 		/*
 		 * Create an IPv6 UDP socket and a dispatcher for it.
 		 */
@@ -4004,10 +4033,22 @@ dns_resolver_create(dns_view_t *view,
 					   &res->udpsocketv6);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_dispatchv4;
-		result = dns_dispatch_create(res->mctx, res->udpsocketv6,
+		isc_sockaddr_any6(&saddr);
+#if 0 /* XXXMLG */
+		result = isc_socket_bind(res->udpsocketv6, &saddr);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_udpsocketv6;
+#endif
+		attrs = 0;
+		attrs |= DNS_DISPATCHATTR_UDP;
+		attrs |= DNS_DISPATCHATTR_PRIVATE;
+		attrs |= DNS_DISPATCHATTR_IPV6;
+		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+		result = dns_dispatch_create(res->dispatchmgr,
+					     res->udpsocketv6,
 					     res->buckets[0].task, 4096, 
 					     1000, 32768, 16411, 16433, NULL,
-					     &res->dispatchv6);
+					     attrs, &res->dispatchv6);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocketv6;
 	}
@@ -4591,6 +4632,12 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 
 	if (bucket_empty)
 		empty_bucket(res);
+}
+
+dns_dispatchmgr_t *
+dns_resolver_dispatchmgr(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->dispatchmgr);
 }
 
 dns_dispatch_t *
