@@ -1,3 +1,5 @@
+ 741.	[port]		Support openssl-engine. [RT #709]
+
  740.	[port]		Handle openssl library mismatches slightly better.
 
  739.	[port]		Look for /dev/random in configure, rather than

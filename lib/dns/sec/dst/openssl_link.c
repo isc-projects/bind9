@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.43 2001/02/14 20:26:47 bwelling Exp $
+ * $Id: openssl_link.c,v 1.44 2001/02/14 20:57:15 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -37,10 +37,20 @@
 
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
+#include <openssl/crypto.h>
+
+#ifdef CRYPTO_LOCK_ENGINE
+#include <openssl/engine.h>
+#endif
 
 static RAND_METHOD *rm = NULL;
 static isc_mutex_t *locks = NULL;
 static int nlocks;
+
+#ifdef CRYPTO_LOCK_ENGINE
+static ENGINE *e;
+#endif
+
 
 static int
 entropy_get(unsigned char *buf, int num) {
@@ -96,23 +106,43 @@ dst__openssl_init() {
 	if (locks == NULL)
 		return (ISC_R_NOMEMORY);
 	result = isc_mutexblock_init(locks, nlocks);
-	if (result != ISC_R_SUCCESS) {
-		dst__mem_free(locks);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_mutexalloc;
 	CRYPTO_set_locking_callback(lock_callback);
 	CRYPTO_set_id_callback(id_callback);
 	rm = dst__mem_alloc(sizeof(RAND_METHOD));
-	if (rm == NULL)
-		return (ISC_R_NOMEMORY);
+	if (rm == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup_mutexinit;
+	}
 	rm->seed = NULL;
 	rm->bytes = entropy_get;
 	rm->cleanup = NULL;
 	rm->add = entropy_add;
 	rm->pseudorand = entropy_getpseudo;
 	rm->status = NULL;
+#ifdef CRYPTO_LOCK_ENGINE
+	e = ENGINE_new();
+	if (e == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup_rm;
+	}
+	ENGINE_set_RAND(e, rm);
+	RAND_set_rand_method(e);
+#else
 	RAND_set_rand_method(rm);
+#endif
 	return (ISC_R_SUCCESS);
+
+#ifdef CRYPTO_LOCK_ENGINE
+ cleanup_rm:
+	dst__mem_free(rm);
+#endif
+ cleanup_mutexinit:
+	RUNTIME_CHECK(isc_mutexblock_destroy(locks, nlocks) == ISC_R_SUCCESS);
+ cleanup_mutexalloc:
+	dst__mem_free(locks);
+	return (result);
 }
 
 void
