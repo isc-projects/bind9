@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.46 1999/05/18 17:46:59 bwelling Exp $ */
+ /* $Id: rdata.c,v 1.47 1999/05/27 18:03:40 gson Exp $ */
 
 #include <config.h>
 
@@ -1009,7 +1009,7 @@ time_totext(unsigned long value, isc_buffer_t *target) {
 
 
 	tm.tm_year = 70;
-	while ((secs = year_secs(tm.tm_year + 1900 + 1)) <= t) {
+	while ((secs = year_secs(tm.tm_year + 1900)) <= t) {
 		t -= secs;
 		tm.tm_year++;
 	}
