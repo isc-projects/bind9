@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.102 2000/11/14 20:14:17 gson Exp $ */
+/* $Id: confctx.c,v 1.103 2000/11/15 01:30:12 gson Exp $ */
 
 #include <config.h>
 
@@ -384,7 +384,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getfetchglue(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'fetch-glue' is not yet implemented");
+			      "option 'fetch-glue' is obsolete");
 	}
 
 	if (dns_c_ctx_gethasoldclients(cfg, &bval) != ISC_R_NOTFOUND) {
@@ -440,15 +440,13 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getminroots(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'min-roots' is not yet "
-			      "implemented");
+			      "option 'min-roots' is obsolete");
 	}
 
 	if (dns_c_ctx_getserialqueries(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'serial-queries' is not yet "
-			      "implemented");
+			      "option 'serial-queries' is obsolete");
 	}
 
 	if (dns_c_ctx_getmaintainixfrbase(cfg, &bval) != ISC_R_NOTFOUND) {
@@ -460,8 +458,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getmaxlogsizeixfr(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'max-ixfr-log-size' is not yet "
-			      "implemented");
+			      "option 'max-ixfr-log-size' is obsolete");
 	}
 
 	if (dns_c_ctx_getcoresize(cfg, &uintval) != ISC_R_NOTFOUND) {
