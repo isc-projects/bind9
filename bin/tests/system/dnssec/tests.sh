@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.35 2001/09/19 21:19:48 gson Exp $
+# $Id: tests.sh,v 1.36 2002/01/22 22:27:24 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -303,6 +303,28 @@ grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+echo "I:checking positive validation of dynamic zone ($n)"
+ret=0
+$DIG $DIGOPTS +noauth dynamic.example. SOA @10.53.0.3 > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth dynamic.example. SOA @10.53.0.4 > dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+# XXX why does this fail?
+# grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# Run a minimal update test if possible.  This is really just
+# a regression test for RT #2399; more tests should be added.
+
+if $PERL -e 'use Net::DNS;' 2>/dev/null
+then
+    echo "I:running DNSSEC update test"
+    $PERL dnssec_update_test.pl -s 10.53.0.3 -p 5300 dynamic.example. || status=1
+else
+    echo "I:The DNSSEC update test requires the Net::DNS library." >&2
+fi
 
 echo "I:exit status: $status"
 exit $status

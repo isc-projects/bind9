@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.16 2001/09/17 17:47:18 bwelling Exp $
+# $Id: sign.sh,v 1.17 2002/01/22 22:27:27 gson Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -33,21 +33,16 @@ keyname=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
 ( cd ../ns3 && sh sign.sh )
 
-cp ../ns3/keyset-secure.example. .
+for subdomain in secure bogus
+do
+	cp ../ns3/keyset-$subdomain.example. .
 
-$KEYSIGNER -r $RANDFILE keyset-secure.example. $keyname > /dev/null
+	$KEYSIGNER -r $RANDFILE keyset-$subdomain.example. $keyname > /dev/null
 
-# This will leave two copies of the child's zone key in the signed db file;
-# that shouldn't cause any problems.
-cat signedkey-secure.example. >>../ns3/secure.example.db.signed
-
-cp ../ns3/keyset-bogus.example. .
-
-$KEYSIGNER -r $RANDFILE keyset-bogus.example. $keyname > /dev/null
-
-# This will leave two copies of the child's zone key in the signed db file;
-# that shouldn't cause any problems.
-cat signedkey-bogus.example. >>../ns3/bogus.example.db.signed
+	# This will leave two copies of the child's zone key in the signed db file;
+	# that shouldn't cause any problems.
+	cat signedkey-$subdomain.example. >>../ns3/$subdomain.example.db.signed
+done
 
 $KEYSETTOOL -r $RANDFILE -t 3600 $keyname > /dev/null
 

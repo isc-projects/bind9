@@ -13,7 +13,11 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.db.in,v 1.10 2002/01/22 22:27:25 gson Exp $
+; $Id: dynamic.example.db.in,v 1.1 2002/01/22 22:27:28 gson Exp $
+
+; This has the NS and glue at the apex because testing RT #2399
+; requires we have only one name in the zone at a certain point
+; during the test.
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -23,50 +27,5 @@ $TTL 300	; 5 minutes
 				1814400    ; expire (3 weeks)
 				3600       ; minimum (1 hour)
 				)
-			NS	ns2
-			NS	ns3
-ns2			A	10.53.0.2
-ns3			A	10.53.0.3
-
-a			A	10.0.0.1
-b			A	10.0.0.2
-d			A	10.0.0.4
-
-; Used for testing ANY queries
-foo			TXT	"testing"
-foo			A	10.0.1.0
-
-; Used for testing CNAME queries
-cname1			CNAME	cname1-target
-cname1-target		TXT	"testing cname"
-
-cname2			CNAME	cname2-target
-cname2-target		TXT	"testing cname"
-
-; Used for testing DNAME queries
-dname1			DNAME	dname1-target
-foo.dname1-target	TXT	"testing dname"
-
-dname2			DNAME	dname2-target
-foo.dname2-target	TXT	"testing dname"
-
-; A secure subdomain
-secure			NS	ns.secure
-ns.secure		A	10.53.0.3
-
-; An insecure subdomain
-insecure		NS	ns.insecure
-ns.insecure		A	10.53.0.3
-
-; A secure subdomain we're going to inject bogus data into
-bogus			NS	ns.bogus
-ns.bogus		A	10.53.0.3
-
-; A dynamic secure subdomain
-dynamic			NS	dynamic
-dynamic			A	10.53.0.3
-
-z			A	10.0.0.26
-
-keyless			NS	ns.keyless
-ns.keyless		A	10.53.0.3
+@			NS	@
+@			A	10.53.0.3
