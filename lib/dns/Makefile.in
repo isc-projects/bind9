@@ -13,7 +13,7 @@ CDEFINES =
 CWARNINGS =
 
 OBJS =		name.o rbt.o rdata.o rdatalist.o rdataset.o \
-		result.o version.o
+		result.o version.o rdataslab.o
 
 SUBDIRS =	include
 TARGETS =	timestamp
