@@ -436,7 +436,7 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp) {
 				return (LWRES_R_FAILURE);
 			if (ndots < 0 || ndots > 0xff) /* Out of range. */
 				return (LWRES_R_FAILURE);
-			confdata->ndots = ndots;
+			confdata->ndots = (lwres_uint8_t)ndots;
 		}
 
 		if (delim == EOF || delim == '\n')
