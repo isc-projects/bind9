@@ -332,6 +332,11 @@ void dns_name_fromregion(dns_name_t *name, dns_region_t *r);
 /*
  * Make 'name' refer to region 'r'.
  *
+ * Note:
+ *	If the conversion encounters a root label before the end of the
+ *	region the conversion stops and the length is set to the length
+ *	so far converted.
+ *
  * Requires:
  *	The data in 'r' is a sequence of one or more type 00 or type 01000001
  *	labels.

@@ -115,7 +115,7 @@ static struct dns_name root = { "", 1, 1 };
 
 dns_name_t *dns_rootname = &root;
 
-static void set_offsets(dns_name_t *, dns_boolean_t);
+static void set_offsets(dns_name_t *, dns_boolean_t, dns_boolean_t);
 static void compact(dns_name_t *);
 
 /*
@@ -467,7 +467,7 @@ dns_name_getlabelsequence(dns_name_t *source,
 			source->offsets[first];
 	target->labels = n;
 
-	set_offsets(target, DNS_FALSE);
+	set_offsets(target, DNS_FALSE, DNS_FALSE);
 }
 
 void
@@ -484,7 +484,7 @@ dns_name_fromregion(dns_name_t *name, dns_region_t *r) {
 	name->length = r->length;
 
 	if (r->length > 0)
-		set_offsets(name, DNS_TRUE);
+		set_offsets(name, DNS_TRUE, DNS_TRUE);
 	else
 		name->labels = 0;
 }
@@ -946,7 +946,7 @@ dns_name_fromtext(dns_name_t *name, dns_region_t *source,
 	/*
 	 * We should build the offsets table directly.
 	 */
-	set_offsets(name, DNS_FALSE);
+	set_offsets(name, DNS_FALSE, DNS_FALSE);
 
 	if (saw_bitstring)
 		compact(name);
@@ -1111,7 +1111,8 @@ dns_name_totext(dns_name_t *name, dns_boolean_t omit_final_dot,
 }
 
 static void
-set_offsets(dns_name_t *name, dns_boolean_t set_labels) {
+set_offsets(dns_name_t *name, dns_boolean_t set_labels,
+	    dns_boolean_t set_length) {
 	unsigned int offset, count, nlabels, nrem, n;
 	unsigned char *ndata;
 
@@ -1125,6 +1126,8 @@ set_offsets(dns_name_t *name, dns_boolean_t set_labels) {
 		count = *ndata++;
 		nrem--;
 		offset++;
+		if (count == 0)
+			break;
 		if (count > 63) {
 			INSIST(count == DNS_LABELTYPE_BITSTRING);
 			INSIST(nrem != 0);
@@ -1145,6 +1148,8 @@ set_offsets(dns_name_t *name, dns_boolean_t set_labels) {
 	}
 	if (set_labels)
 		name->labels = nlabels;
+	if (set_length)
+		name->length = offset;
 	INSIST(nlabels == name->labels);
 }
 
@@ -1285,5 +1290,5 @@ compact(dns_name_t *name) {
 			}
 		}
 		n--;
-	};
+	}
 }
