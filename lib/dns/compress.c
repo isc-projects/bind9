@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.26 2000/04/27 00:01:21 tale Exp $ */
+/* $Id: compress.c,v 1.27 2000/04/27 00:08:44 tale Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -34,22 +34,24 @@
 #define DCTX_MAGIC	0x44435458U	/* DCTX */
 #define VALID_DCTX(x)	((x) != NULL && (x)->magic == DCTX_MAGIC)
 
-static void		free_offset(void *offset, void *mctx);
-isc_boolean_t		compress_find(dns_rbt_t *root, dns_name_t *name,
-				      dns_name_t *prefix, dns_name_t *suffix,
-				      isc_uint16_t *offset,
-				      isc_buffer_t *workspace);
-void			compress_add(dns_rbt_t *root, dns_name_t *prefix,
-				     dns_name_t *suffix, isc_uint16_t offset,
-				     isc_boolean_t global16, isc_mem_t *mctx);
+static void
+free_offset(void *offset, void *mctx);
+
+static isc_boolean_t
+compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
+	      dns_name_t *suffix, isc_uint16_t *offset,
+	      isc_buffer_t *workspace);
+
+static void
+compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
+	     isc_uint16_t offset, isc_boolean_t global16, isc_mem_t *mctx);
 
 /***
  ***	Compression
  ***/
 
 isc_result_t
-dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
-{
+dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	isc_result_t result;
 
 	REQUIRE(cctx != NULL);
@@ -259,7 +261,7 @@ free_offset(void *offset, void *mctx) {
 /*
  *	Add the labels in prefix to RBT.
  */
-void
+static void
 compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 	     isc_uint16_t offset, isc_boolean_t global16, isc_mem_t *mctx)
 {
@@ -312,7 +314,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
  *	If no match is found return ISC_FALSE.
  */
 
-isc_boolean_t
+static isc_boolean_t
 compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	      dns_name_t *suffix, isc_uint16_t *offset,
 	      isc_buffer_t *workspace)

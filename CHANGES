@@ -1,3 +1,6 @@
+ 104.   [bug]           Made compress_add and compress_find static to
+                        lib/dns/compress.c.
+
  103.   [func]          libisc buffer API changes for <isc/buffer.h>:
                         Added:
                                 isc_buffer_base(b)          (pointer)
