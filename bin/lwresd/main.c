@@ -30,6 +30,7 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/resolver.h>
 #include <dns/rootns.h>
 #include <dns/log.h>
 
@@ -57,6 +58,8 @@ dns_view_t *view;
 isc_taskmgr_t *taskmgr;
 isc_socketmgr_t *sockmgr;
 isc_timermgr_t *timermgr;
+
+isc_sockaddrlist_t forwarders;
 
 static isc_result_t
 create_view(isc_mem_t *mctx)
@@ -102,8 +105,24 @@ create_view(isc_mem_t *mctx)
 	dns_view_sethints(view, rootdb);
 	dns_db_detach(&rootdb);
 
-	dns_view_freeze(view);
+	/*
+	 * If we have forwarders, set them here.
+	 */
+	if (ISC_LIST_HEAD(forwarders) != NULL) {
+		isc_sockaddr_t *sa;
 
+		dns_resolver_setforwarders(view->resolver, &forwarders);
+		dns_resolver_setfwdpolicy(view->resolver, dns_fwdpolicy_only);
+		sa = ISC_LIST_HEAD(forwarders);
+		while (sa != NULL) {
+			ISC_LIST_UNLINK(forwarders, sa, link);
+			isc_mem_put(mctx, sa, sizeof (*sa));
+			sa = ISC_LIST_HEAD(forwarders);
+		}
+			
+	}
+
+	dns_view_freeze(view);
 
 	return (ISC_R_SUCCESS);
 
@@ -135,6 +154,10 @@ parse_resolv_conf(isc_mem_t *mem)
 	lwres_conf_t lwc;
 	lwres_context_t *lwctx;
 	int lwresult;
+	struct in_addr ina;
+	struct in6_addr ina6;
+	isc_sockaddr_t *sa;
+	int i;
 
 	lwctx = NULL;
 	lwresult = lwres_context_create(&lwctx, mem, mem_alloc, mem_free);
@@ -147,7 +170,36 @@ parse_resolv_conf(isc_mem_t *mem)
 	if (lwresult != LWRES_R_SUCCESS)
 		goto out;
 
+#if 1
 	lwres_conf_print(stderr, &lwc);
+#endif
+
+	/*
+	 * Run through the list of nameservers, and set them to be our
+	 * forwarders.
+	 */
+	for (i = 0 ; i < lwc.nsnext ; i++) {
+		switch (lwc.nameservers[i].family) {
+		case AF_INET:
+			sa = isc_mem_get(mem, sizeof *sa);
+			INSIST(sa != NULL);
+			memcpy(&ina.s_addr, lwc.nameservers[i].address, 4);
+			isc_sockaddr_fromin(sa, &ina, 53);
+			ISC_LIST_APPEND(forwarders, sa, link);
+			sa = NULL;
+			break;
+		case AF_INET6:
+			sa = isc_mem_get(mem, sizeof *sa);
+			INSIST(sa != NULL);
+			memcpy(&ina6.s6_addr, lwc.nameservers[i].address, 16);
+			isc_sockaddr_fromin6(sa, &ina6, 53);
+			ISC_LIST_APPEND(forwarders, sa, link);
+			sa = NULL;
+			break;
+		default:
+			break;
+		}
+	}
 
  out:
 	lwres_conf_clear(&lwc);
@@ -229,12 +281,12 @@ main(int argc, char **argv)
 	/*
 	 * Read resolv.conf to get our forwarders.
 	 */
+	ISC_LIST_INIT(forwarders);
 	parse_resolv_conf(mem);
 
 	/*
 	 * Initialize the DNS bits.  Start by loading our built-in
-	 * root hints.  This should come from a file, eventually.
-	 * XXXMLG
+	 * root hints.
 	 */
 	result = create_view(mem);
 	INSIST(result == ISC_R_SUCCESS);
