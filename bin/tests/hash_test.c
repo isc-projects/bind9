@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.8.2.3 2005/03/16 19:49:18 marka Exp $ */
+/* $Id: hash_test.c,v 1.8.2.4 2005/03/16 19:56:30 marka Exp $ */
 
 #include <config.h>
 
@@ -89,7 +89,7 @@ main(int argc, char **argv) {
 	print_digest(buffer, "hmacmd5", digest, 4);
 
 	s = "what do ya want for nothing?";
-	strcpy(key, "Jefe");
+	strcpy((char *)key, "Jefe");
 	isc_hmacmd5_init(&hmacmd5, key, 4);
 	memcpy(buffer, s, strlen(s));
 	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
