@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.325 $)
+AC_REVISION($Revision: 1.326 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -191,6 +191,17 @@ if test "X$CC" = "X" ; then
 fi
 
 AC_PROG_CC
+
+#
+#	OSF 5.0: recv/send are only avaliable with -D_POSIX_PII_SOCKET or
+#	-D_XOPEN_SOURCE_EXTENDED.
+#
+case "$host" in
+	*-dec-osf*)
+		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
+		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
+		;;
+esac
 
 AC_HEADER_STDC
 
