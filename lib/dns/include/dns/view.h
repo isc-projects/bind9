@@ -301,9 +301,9 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *						or an error occurred.
  */
 
-dns_view_t *
-dns_view_findinlist(dns_viewlist_t *list, const char *name,
-		    dns_rdataclass_t rdclass);
+isc_result_t
+dns_viewlist_find(dns_viewlist_t *list, const char *name,
+		  dns_rdataclass_t rdclass, dns_view_t **viewp);
 /*
  * XXX
  */

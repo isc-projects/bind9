@@ -264,20 +264,17 @@ dns_view_freeze(dns_view_t *view) {
 }
 
 isc_result_t
-dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zone) {
+dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 	isc_result_t result;
-	dns_zone_t *dummy = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	result = dns_zt_find(view->zonetable, name, NULL, &dummy);
+	result = dns_zt_find(view->zonetable, name, NULL, zonep);
 	if (result == DNS_R_PARTIALMATCH) {
-		dns_zone_detach(&dummy);
+		dns_zone_detach(zonep);
 		result = DNS_R_NOTFOUND;
-	} else if (result == DNS_R_SUCCESS) {
-		dns_zone_attach(dummy, zone);
-		dns_zone_detach(&dummy);
 	}
+
 	return (result);
 }
 
@@ -431,18 +428,24 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	return (result);
 }
 
-dns_view_t *
-dns_view_findinlist(dns_viewlist_t *list, const char *name,
-		    dns_rdataclass_t rdclass) {
+isc_result_t
+dns_viewlist_find(dns_viewlist_t *list, const char *name,
+		  dns_rdataclass_t rdclass, dns_view_t **viewp)
+{
 	dns_view_t *view;
 
 	REQUIRE(list != NULL);
 
-	view = ISC_LIST_HEAD(*list);
-	while (view != NULL) {
+	for (view = ISC_LIST_HEAD(*list);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
 		if (strcmp(view->name, name) == 0 && view->rdclass == rdclass)
 			break;
-		view = ISC_LIST_NEXT(view, link);
 	}
-	return (view);
+	if (view == NULL)
+		return (ISC_R_NOTFOUND);
+
+	dns_view_attach(view, viewp);
+
+	return (ISC_R_SUCCESS);
 }
