@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.31 2001/10/11 01:16:18 gson Exp $ */
+/* $Id: log.h,v 1.32 2003/09/17 05:24:43 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -39,6 +39,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGCATEGORY_XFER_OUT	(&dns_categories[7])
 #define DNS_LOGCATEGORY_DISPATCH	(&dns_categories[8])
 #define DNS_LOGCATEGORY_LAME_SERVERS	(&dns_categories[9])
+#define DNS_LOGCATEGORY_DELEGATION_ONLY	(&dns_categories[10])
 
 /* Backwards compatibility. */
 #define DNS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL

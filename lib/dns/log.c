@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.34 2001/10/11 01:16:17 gson Exp $ */
+/* $Id: log.c,v 1.35 2003/09/17 05:24:42 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -40,6 +40,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ "xfer-out",	0 },
 	{ "dispatch",	0 },
 	{ "lame-servers", 0 },
+	{ "delegation-only", 0 },
 	{ NULL, 	0 }
 };
 
