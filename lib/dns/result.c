@@ -55,6 +55,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"new origin",				/* 32 */
 	"unchanged",				/* 33 */
 	"bad ttl",				/* 34 */
+	"more data needed/to be rendered",	/* 35 */
 };
 
 char *
