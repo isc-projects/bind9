@@ -67,6 +67,21 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 	return (result);
 }
 
+isc_result_t
+isc_file_settime(const char *file, isc_time_t *time) {
+	struct timeval times[2];
+
+	REQUIRE(file != NULL && time != NULL);
+
+	times[0].tv_sec = times[1].tv_sec = isc_time_seconds(time);
+	times[0].tv_usec = times[1].tv_usec = isc_time_nanoseconds(time)/1000;
+
+	if (utimes(file, times) < 0)
+		return (isc__errno2result(errno));
+	return (ISC_R_SUCCESS);
+
+}
+
 #undef TEMPLATE
 #define TEMPLATE "tmp-XXXXXXXXXX" /* 14 characters. */
 
