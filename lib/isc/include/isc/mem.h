@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.51 2001/06/05 22:14:20 tale Exp $ */
+/* $Id: mem.h,v 1.52 2001/06/06 21:02:43 bwelling Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -248,7 +248,6 @@ isc_mem_inuse(isc_mem_t *mctx);
  */
 
 void
-
 isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
 		 size_t hiwater, size_t lowater);
 /*
