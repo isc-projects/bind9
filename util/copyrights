@@ -481,6 +481,7 @@
 ./bin/tests/system/stub/tests.sh		SH	2000
 ./bin/tests/system/testsock.pl			PERL	2000
 ./bin/tests/system/upforwd/README		TXT.BRIEF	2000
+./bin/tests/system/upforwd/clean.sh		SH	2000
 ./bin/tests/system/upforwd/knowngood.ns1.after	X	2000
 ./bin/tests/system/upforwd/knowngood.ns1.before	X	2000
 ./bin/tests/system/upforwd/ns1/example.orig	ZONE	2000
