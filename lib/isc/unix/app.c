@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.36.2.3 2001/03/14 06:32:15 bwelling Exp $ */
+/* $Id: app.c,v 1.36.2.4 2001/03/21 00:26:27 gson Exp $ */
 
 #include <config.h>
 
@@ -116,10 +116,8 @@ handle_signal(int sig, void (*handler)(int)) {
 isc_result_t
 isc_app_start(void) {
 	isc_result_t result;
-#ifdef ISC_PLATFORM_USETHREADS
 	int presult;
 	sigset_t sset;
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	/*
 	 * Start an ISC library application.
@@ -214,6 +212,30 @@ isc_app_start(void) {
 	if (presult != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() pthread_sigmask: %s",
+				 strerror(presult));
+		return (ISC_R_UNEXPECTED);
+	}
+#else /* ISC_PLATFORM_USETHREADS */
+	/*
+	 * Unblock SIGHUP, SIGINT, SIGTERM.
+	 *
+	 * If we're not using threads, we need to make sure that SIGHUP,
+	 * SIGINT and SIGTERM are not inherited as blocked from the parent
+	 * process.
+	 */
+	if (sigemptyset(&sset) != 0 ||
+	    sigaddset(&sset, SIGHUP) != 0 ||
+	    sigaddset(&sset, SIGINT) != 0 ||
+	    sigaddset(&sset, SIGTERM) != 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_app_start() sigsetops: %s",
+				 strerror(errno));
+		return (ISC_R_UNEXPECTED);
+	}
+	presult = sigprocmask(SIG_UNBLOCK, &sset, NULL);
+	if (presult != 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_app_start() sigprocmask: %s",
 				 strerror(presult));
 		return (ISC_R_UNEXPECTED);
 	}
