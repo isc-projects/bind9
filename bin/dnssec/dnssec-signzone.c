@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.128 2001/01/12 01:38:21 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.129 2001/01/12 23:36:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -839,8 +839,14 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 		if (result == ISC_R_SUCCESS && childkey) {
 			char namestr[DNS_NAME_FORMATSIZE];
 			dns_name_format(name, namestr, sizeof namestr);
-			fatal("%s has both a signedkey file and KEY "
-			      "records in the zone.  Aborting.", namestr);
+			if (hasnullkey(&keyset)) {
+				fatal("%s has both a signedkey file and "
+				      "null keys in the zone.  Aborting.",
+				      namestr);
+			}
+			vbprintf(2, "child key for %s found\n", namestr);
+			neednullkey = ISC_FALSE;
+			dns_rdataset_disassociate(&keyset);
 		}
 		else if (result == ISC_R_SUCCESS) {
 			if (hasnullkey(&keyset))
