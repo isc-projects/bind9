@@ -1,12 +1,7 @@
 
-
-
-
-
-
-DNSEXT Working Group                       Brian Wellington    (Nominum)
-INTERNET-DRAFT                             Olafur Gudmundsson (NAI Labs)
-<draft-ietf-dnsext-ad-is-secure-01.txt>                     January 2001
+DNSEXT Working Group                                    Brian Wellington
+INTERNET-DRAFT                                        Olafur Gudmundsson
+<draft-ietf-dnsext-ad-is-secure-02.txt>                        June 2001
 
 Updates: RFC 2535
 
@@ -37,7 +32,7 @@ Status of this Memo
    Comments should be sent to the authors or the DNSEXT WG mailing list
    namedroppers@ops.ietf.org
 
-   This draft expires on July 19, 2001.
+   This draft expires on December 18, 2001.
 
    Copyright Notice
 
@@ -55,9 +50,9 @@ Abstract
 
 
 
-Expires July 2001                                               [Page 1]
+Expires December 2001                                           [Page 1]
 
-INTERNET-DRAFT        AD bit set on secure answers          January 2001
+INTERNET-DRAFT        AD bit set on secure answers             June 2001
 
 
 1 - Introduction
@@ -111,14 +106,14 @@ INTERNET-DRAFT        AD bit set on secure answers          January 2001
 
 
 
-Expires July 2001                                               [Page 2]
+Expires December 2001                                           [Page 2]
 
-INTERNET-DRAFT        AD bit set on secure answers          January 2001
+INTERNET-DRAFT        AD bit set on secure answers             June 2001
 
 
-   If the answer section contains any data, the server MUST NOT include
-   data in the authority section that would cause the AD bit to be
-   unset.
+   AD should be set if and only if all RRs in the answer section, and
+   any relevant negative response RRs in the authority section are
+   Authenticated.
 
    The AD bit MUST NOT be set on a response unless all of the RRsets in
    the answer and authority sections are Authenticated.
@@ -161,15 +156,15 @@ References:
 [RFC1035]  P. Mockapetris, ``Domain Names - Implementation and
            Specification'', STD 13, RFC 1035, November 1987.
 
-
 [RFC2535]  D. Eastlake, ``Domain Name System Security Extensions'', RFC
            2535, March 1999.
 
 
 
-Expires July 2001                                               [Page 3]
+
+Expires December 2001                                           [Page 3]
 
-INTERNET-DRAFT        AD bit set on secure answers          January 2001
+INTERNET-DRAFT        AD bit set on secure answers             June 2001
 
 
 [RFC2845]  P. Vixie, O. Gudmundsson, D. Eastlake, B. Wellington,
@@ -183,12 +178,11 @@ INTERNET-DRAFT        AD bit set on secure answers          January 2001
 Authors Addresses
 
       Brian Wellington                        Olafur Gudmundsson
-      Nominum Inc.                            NAI Labs
-      950 Charter Street                      3060 Washington Road (Rt. 97)
-      Redwood City, CA, 94063                 Glenwood, MD, 21738
+      Nominum Inc.
+      950 Charter Street                      3826 Legation Street, NW
+      Redwood City, CA, 94063                 Washington, DC, 20015
       USA                                     USA
-      +1 650 381 6022                         +1 443 259 2389
-      <Brian.Wellington@nominum.com>          <ogud@tislabs.com>
+      <Brian.Wellington@nominum.com>          <ogud@ogud.com>
 
 
 Full Copyright Statement
@@ -223,4 +217,6 @@ Full Copyright Statement
 
 
 
-Expires July 2001                                               [Page 4]
+
+Expires December 2001                                           [Page 4]
+

@@ -5,10 +5,10 @@
 
 Network Working Group                                     A. Gulbrandsen
 Category: INTERNET-DRAFT                                    Trolltech AS
-Obsoletes: 2052                                                 P. Vixie
-draft-ietf-dnsext-rfc2782bis-00.txt         Internet Software Consortium
-November 16, 2000                                              L. Esibov
-Expires: May 16, 2001                                    Microsoft Corp.
+Obsoletes: 2782                                                 P. Vixie
+draft-ietf-dnsext-rfc2782bis-01.txt         Internet Software Consortium
+June 6, 2001                                                   L. Esibov
+Expires: December 6, 2001                                Microsoft Corp.
                                                            
 
 
@@ -35,7 +35,7 @@ Status of this Memo
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
 
 Abstract
 
@@ -63,9 +63,9 @@ Overview and rationale
 
 
 
-Expires May 2001                                                [Page 1]
+Expires December 2001                                           [Page 1]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 Definitions
 
@@ -119,9 +119,9 @@ The format of the SRV RR
 
 
 
-Expires May 2001                                                [Page 2]
+Expires December 2001                                           [Page 2]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
         Some widely used services, notably POP, don't have a single
@@ -175,9 +175,9 @@ INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
 
 
 
-Expires May 2001                                                [Page 3]
+Expires December 2001                                           [Page 3]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
         specified by the SRV RRs, will be contacted. The following
@@ -231,9 +231,9 @@ Domain administrator advice
 
 
 
-Expires May 2001                                                [Page 4]
+Expires December 2001                                           [Page 4]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
         suboptimal) fallback hosts for Telnet, NNTP and other protocols
@@ -287,9 +287,9 @@ The "Weight" field
 
 
 
-Expires May 2001                                                [Page 5]
+Expires December 2001                                           [Page 5]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
    The only way the authors can see of getting a "better" load figure is
@@ -337,15 +337,17 @@ Usage rules
         the reply:
 
             If there is precisely one SRV RR, and its Target is "."
-            (the root domain), abort.
+            (the root domain), abort and do not attempt lookup for
+            QNAME=domain, QCLASS=IN, QTYPE=A.
 
 
 
 
 
-Expires May 2001                                                [Page 6]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+Expires December 2001                                           [Page 6]
+
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
             Else, for all such RR's, build a list of (Priority, Weight,
@@ -399,9 +401,9 @@ Notes:
 
 
 
-Expires May 2001                                                [Page 7]
+Expires December 2001                                           [Page 7]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
    - Future protocols could be designed to use SRV RR lookups as the
@@ -455,9 +457,9 @@ Fictional example
 
 
 
-Expires May 2001                                                [Page 8]
+Expires December 2001                                           [Page 8]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
    In this example, a client of the "foobar" service in the
@@ -483,21 +485,39 @@ IANA Considerations
    The IANA has assigned RR type value 33 to the SRV RR.  No other IANA
    services are required by this document.
 
-Changes from RFC 2052
+Changes from RFC 2782
 
-   This document obsoletes RFC 2052.   The major change from that
-   previous, experimental, version of this specification is that now the
-   protocol and service labels are prepended with an underscore, to
-   lower the probability of an accidental clash with a similar name used
-   for unrelated purposes.  Aside from that, changes are only intended
-   to increase the clarity and completeness of the document. This
-   document especially clarifies the use of the Weight field of the SRV
-   records.
+   This document obsoletes RFC 2782
+   Only editorial clarifications were made to this document. Namely
+
+   - it was clarified that "Weight" subsection refers to real "random
+     number" rather than integer number;
+
+   - it was clarified that the "Name" used in the owner name of the SRV
+     record used in "The format of the SRV RR" section is a "Domain"
+     name;
+
+   - the "QNAME=_service._protocol.target" was replaced by
+     "QNAME=_service._protocol.domain" in "Usage rules" section to
+     eliminate a possibility of confusion with the Target field of the
+     SRV record.
+
+   - client's behavior when response to a query contains a single SRV
+     RR and its Target is "." is clarified in "Usage rules" section.
+
 
 Security Considerations
 
    The authors believe this RR to not cause any new security problems.
    Some problems become more visible, though.
+
+
+
+
+
+Expires December 2001                                           [Page 9]
+
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
    - The ability to specify ports on a fine-grained basis obviously
      changes how a router can filter packets.  It becomes impossible
@@ -510,17 +530,13 @@ Security Considerations
      as servers.  This could lead to denial of service.
 
 
-
-Expires May 2001                                                [Page 9]
-
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
-
-
    - With SRV, DNS spoofers can supply false port numbers, as well as
      host names and addresses.   Because this vulnerability exists
      already, with names and addresses, this is not a new
      vulnerability, merely a slightly extended one, with little
      practical effect.
+
+
 
 References
 
@@ -557,19 +573,9 @@ References
 
 
 
+Expires December 2001                                          [Page 10]
 
-
-
-
-
-
-
-
-
-
-Expires May 2001                                               [Page 10]
-
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
 Acknowledgements
@@ -623,14 +629,14 @@ Authors' Addresses
 
 
 
-Expires May 2001                                               [Page 11]
+Expires December 2001                                          [Page 11]
 
-INTERNET-DRAFT                 DNS SRV RR                 Novemeber 2000
+INTERNET-DRAFT                     DNS SRV RR                  June 2001
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -679,4 +685,4 @@ Acknowledgement
 
 
 
-Expires May 16, 2001                                           [Page 12]
+Expires December 6, 2001                                      [Page 12]

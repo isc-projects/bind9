@@ -1,7 +1,8 @@
+
 Internet Draft                                      Naomasa Maruyama 
-draft-ietf-idn-aceid-01.txt                           Yoshiro Yoneya 
-Dec 11, 2000                                              JPNIC 
-Expires June 11, 2001
+draft-ietf-idn-aceid-02.txt                           Yoshiro Yoneya 
+Jun 19, 2000                                              JPNIC 
+Expires Dec 19, 2001
 
            Proposal for a determining process of ACE identifier
 
@@ -87,14 +88,15 @@ domain name and those which have an ACE suffix identifier candidate at
 the tail of at least one label of the name.  These domain names are
 collectively called "relevant domain names".
 
-    This suspension should be continued until March 1, 2001 00:00:00 UTC.
+    This suspension should be continued until September 1, 2001 
+00:00:00 UTC.
 
 
 2.2 Survey of relevant domain name registration
 
     All registries recognized by ICANN SHOULD conduct a survey about
 relevant domain names registered in their zone, and report, no later
-than February 10, 2001 00:00:00 UTC, all of the ACE identifier
+than August 11, 2001 00:00:00 UTC, all of the ACE identifier
 candidates which are used by relevant domain names.
 
 
@@ -103,7 +105,7 @@ candidates which are used by relevant domain names.
 
     The IDN WG or other organ of IETF or ICANN MUST summarize the
 reports and list ACE identifier candidates that are not reported to be
-used in registered domain names by February 17, 2001 00:00:00 UTC, and
+used in registered domain names by August 18, 2001 00:00:00 UTC, and
 select ten to twenty ACE prefix identifier candidates and ten to
 twenty ACE suffix identifier candidates for ACE identifiers.  Among
 these twenty to forty ACE identifiers, one prefix identifier and one
@@ -111,7 +113,7 @@ suffix identifier will be used for experiments.  Others will be used,
 one by one as ACE standard evolves.
 
     The list of ACE identifiers will be sent to IANA, and will be
-maintained by IANA from February 24, 2001 00:00:00 UTC.  Domain names
+maintained by IANA from August 25, 2001 00:00:00 UTC.  Domain names
 relevant to these identifiers SHOULD NOT be registered in any DNS
 zone, except for registration of multilingual domain names compliant
 to one of future IDN standards.  This new restriction about the domain
@@ -125,13 +127,13 @@ immediately after it receives the list.
 described in section 2.3 SHOULD NOT be registered in any zone of ICANN
 recognized registries except for registration of multilingual domain
 names compliant to one of future IDN standards.  All ICANN recognized
-registries SHOULD implement this restriction no later than March 1,
+registries SHOULD implement this restriction no later than September 1,
 2001 00:00:00 UTC.
 
     Registration for domain names relevant to ACE identifier
 candidates, tentatively suspended by 2.1, but not relevant to ACE
-identifiers selected by section 2.3 MAY be reopened from March 1, 2001
-00:00:00 UTC.
+identifiers selected by section 2.3 MAY be reopened from September 1, 
+2001 00:00:00 UTC.
 
 
 3. Use of an ACE identifier in writing an ACE proposal
