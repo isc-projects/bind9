@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.12 2001/01/09 21:59:04 bwelling Exp $ */
+/* $Id: net.h,v 1.13 2001/07/06 05:51:44 mayer Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -32,9 +32,11 @@
  *
  *		struct in_addr
  *		struct in6_addr
+ *		struct in6_pktinfo
  *		struct sockaddr
  *		struct sockaddr_in
  *		struct sockaddr_in6
+ *		in_port_t
  *
  * It ensures that the AF_ and PF_ macros are defined.
  *
@@ -44,6 +46,9 @@
  *
  * It ensures that INADDR_ANY, IN6ADDR_ANY_INIT, in6addr_any, and
  * in6addr_loopback are available.
+ *
+ * It ensures that IN_MULTICAST() is available to check for multicast
+ * addresses.
  *
  * MP:
  *	No impact.
@@ -63,42 +68,9 @@
  */
 
 /***
- *** Defines.
- ***/
-
-/*
- * If this system has the IPv6 structure definitions, ISC_NET_HAVEIPV6
- * will be defined.
- */
-#undef ISC_NET_HAVEIPV6
-
-/*
- * If this system needs inet_ntop(), ISC_NET_NEEDNTOP will be defined.
- */
-#define ISC_NET_NEEDNTOP 1
-
-/*
- * If this system needs inet_pton(), ISC_NET_NEEDPTON will be defined.
- */
-#define ISC_NET_NEEDPTON 1
-
-/*
- * If this system needs inet_aton(), ISC_NET_NEEDATON will be defined.
- */
-#define ISC_NET_NEEDATON 1
-
-/*
- * If this system needs in_port_t, ISC_NET_NEEDPORTT will be defined.
- */
-#define ISC_NET_NEEDPORTT 1
-
-/***
  *** Imports.
  ***/
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0400	/* Ensures windows.h includes winsock2.h. */
-#endif
+#include <isc/platform.h>
 
 /*
  * Because of some sort of problem in the MS header files, this cannot
@@ -106,33 +78,134 @@
  * windows.h, which then generates an error out of mswsock.h.  _You_
  * figure it out.
  */
-#include <windows.h>
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#endif
+
+/*
+ * Make the number of available sockets large
+ * The number of sockets needed can get large and memory's cheap
+ * This must be defined before winsock2.h gets included as the
+ * macro is used there.
+ */
+
+//#define FD_SETSIZE 16384
+#include <winsock2.h>
 
 #include <sys/types.h>
 
 #include <isc/lang.h>
-#include <isc/result.h>
+#include <isc/types.h>
 
-#ifndef AF_INET6
-#define AF_INET6 99
-#endif
-
-#ifndef PF_INET6
-#define PF_INET6 AF_INET6
-#endif
-
-#ifndef ISC_NET_HAVEIPV6
+#include <ws2tcpip.h>
 #include <isc/ipv6.h>
-#endif
 
+/*
+ * This is here because named client, interfacemgr.c, etc. use the name as
+ * a variable
+ */
+#undef interface 
 /*
  * Ensure type in_port_t is defined.
  */
-#ifdef ISC_NET_NEEDPORTT
-#include <isc/int.h>
-
+#ifdef ISC_PLATFORM_NEEDPORTT
 typedef isc_uint16_t in_port_t;
 #endif
+
+/*
+ * If this system does not have MSG_TRUNC (as returned from recvmsg())
+ * ISC_PLATFORM_RECVOVERFLOW will be defined.  This will enable the MSG_TRUNC
+ * faking code in socket.c.
+ */
+#ifndef MSG_TRUNC
+#define ISC_PLATFORM_RECVOVERFLOW
+#endif
+
+#define ISC__IPADDR(x)	((isc_uint32_t)htonl((isc_uint32_t)(x)))
+
+#define ISC_IPADDR_ISMULTICAST(i) \
+		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
+		 == ISC__IPADDR(0xe0000000))
+
+/*
+ * Fix the FD_SET and FD_CLR Macros to properly cast
+ */
+#undef FD_CLR
+#define FD_CLR(fd, set) do { \
+    u_int __i; \
+    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count ; __i++) { \
+        if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET) fd) { \
+            while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
+                ((fd_set FAR *)(set))->fd_array[__i] = \
+                    ((fd_set FAR *)(set))->fd_array[__i+1]; \
+                __i++; \
+            } \
+            ((fd_set FAR *)(set))->fd_count--; \
+            break; \
+        } \
+    } \
+} while(0)
+
+#undef FD_SET
+#define FD_SET(fd, set) do { \
+    u_int __i; \
+    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
+        if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET)(fd)) { \
+            break; \
+        } \
+    } \
+    if (__i == ((fd_set FAR *)(set))->fd_count) { \
+        if (((fd_set FAR *)(set))->fd_count < FD_SETSIZE) { \
+            ((fd_set FAR *)(set))->fd_array[__i] = (SOCKET)(fd); \
+            ((fd_set FAR *)(set))->fd_count++; \
+        } \
+    } \
+} while(0)
+
+/*
+ * Windows Sockets errors redefined as regular Berkeley error constants.
+ * These are usually commented out in Windows NT to avoid conflicts with errno.h.
+ * Use the WSA constants instead.
+ */
+
+#define EWOULDBLOCK             WSAEWOULDBLOCK
+#define EINPROGRESS             WSAEINPROGRESS
+#define EALREADY                WSAEALREADY
+#define ENOTSOCK                WSAENOTSOCK
+#define EDESTADDRREQ            WSAEDESTADDRREQ
+#define EMSGSIZE                WSAEMSGSIZE
+#define EPROTOTYPE              WSAEPROTOTYPE
+#define ENOPROTOOPT             WSAENOPROTOOPT
+#define EPROTONOSUPPORT         WSAEPROTONOSUPPORT
+#define ESOCKTNOSUPPORT         WSAESOCKTNOSUPPORT
+#define EOPNOTSUPP              WSAEOPNOTSUPP
+#define EPFNOSUPPORT            WSAEPFNOSUPPORT
+#define EAFNOSUPPORT            WSAEAFNOSUPPORT
+#define EADDRINUSE              WSAEADDRINUSE
+#define EADDRNOTAVAIL           WSAEADDRNOTAVAIL
+#define ENETDOWN                WSAENETDOWN
+#define ENETUNREACH             WSAENETUNREACH
+#define ENETRESET               WSAENETRESET
+#define ECONNABORTED            WSAECONNABORTED
+#define ECONNRESET              WSAECONNRESET
+#define ENOBUFS                 WSAENOBUFS
+#define EISCONN                 WSAEISCONN
+#define ENOTCONN                WSAENOTCONN
+#define ESHUTDOWN               WSAESHUTDOWN
+#define ETOOMANYREFS            WSAETOOMANYREFS
+#define ETIMEDOUT               WSAETIMEDOUT
+#define ECONNREFUSED            WSAECONNREFUSED
+#define ELOOP                   WSAELOOP
+//#define ENAMETOOLONG            WSAENAMETOOLONG
+#define EHOSTDOWN               WSAEHOSTDOWN
+#define EHOSTUNREACH            WSAEHOSTUNREACH
+//#define ENOTEMPTY               WSAENOTEMPTY
+#define EPROCLIM                WSAEPROCLIM
+#define EUSERS                  WSAEUSERS
+#define EDQUOT                  WSAEDQUOT
+#define ESTALE                  WSAESTALE
+#define EREMOTE                 WSAEREMOTE
+
 
 /***
  *** Functions.
@@ -164,18 +237,21 @@ isc_net_probeipv6(void);
  *	ISC_R_UNEXPECTED
  */
 
-#ifdef ISC_NET_NEEDNTOP
-const char *isc_net_ntop(int af, const void *src, char *dst, size_t size);
+#ifdef ISC_PLATFORM_NEEDNTOP
+const char *
+isc_net_ntop(int af, const void *src, char *dst, size_t size);
 #define inet_ntop isc_net_ntop
 #endif
 
-#ifdef ISC_NET_NEEDPTON
-int isc_net_pton(int af, const char *src, void *dst);
+#ifdef ISC_PLATFORM_NEEDPTON
+int
+isc_net_pton(int af, const char *src, void *dst);
 #define inet_pton isc_net_pton
 #endif
 
-#ifdef ISC_NET_NEEDATON
-int isc_net_aton(const char *cp, struct in_addr *addr);
+#ifdef ISC_PLATFORM_NEEDATON
+int
+isc_net_aton(const char *cp, struct in_addr *addr);
 #define inet_aton isc_net_aton
 #endif
 
