@@ -36,7 +36,8 @@
 
 1572.	[placeholder]	rt10148
 
-1571.	[placeholder]	rt10208
+1571.	[bug]		rbt:hash_node() could fail leaving the hash table
+			in an inconsistant state.  [RT #10208]
 
 1570.	[placeholder]	rt10202
 
