@@ -19,9 +19,7 @@
 #define ISC_HEAP_H 1
 
 #include <isc/lang.h>
-#include <isc/result.h>
-#include <isc/boolean.h>
-#include <isc/mem.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 

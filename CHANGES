@@ -1,3 +1,6 @@
+  87.   [cleanup]       <isc/heap.h> does not need <isc/boolean.h>,
+                        <isc/mem.h> or <isc/result.h>.
+
   86.   [cleanup]       isc_bufferlist_t moved from <isc/bufferlist.h> to
                         <isc/types.h>.
 
