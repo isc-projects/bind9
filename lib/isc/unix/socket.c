@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.2 1998/11/06 01:45:35 explorer Exp $ */
+/* $Id: socket.c,v 1.3 1998/11/07 02:31:04 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -58,6 +58,9 @@ typedef struct isc_socket_intev {
 	isc_task_t			task;	   /* task to send these to */
 	isc_socketevent_t		done_ev;   /* the done event to post */
 	isc_boolean_t			partial;   /* partial i/o ok */
+	isc_boolean_t			listener;
+	isc_taskaction_t		action;	   /* listen needs this too */
+	void			       *arg;	   /* listen needs this too */
 	LINK(struct isc_socket_intev)	link;
 } *isc_socket_intev_t;
 
@@ -413,15 +416,33 @@ dispatch_write(isc_socket_t sock)
 	isc_task_send(iev->task, &ev);
 }
 
+/*
+ * Dequeue an item off the given socket's read queue, set the result code
+ * in the done event to the one provided, and send it to the task it was
+ * destined for.
+ *
+ * Caller must have the socket locked.
+ */
 static void
 send_done_event(isc_socket_t sock, isc_socket_intev_t *iev,
 		isc_socketevent_t *dev, isc_result_t resultcode)
 {
+	REQUIRE(!EMPTY(sock->read_list));
+	REQUIRE(iev != NULL);
+	REQUIRE(*iev != NULL);
+	REQUIRE(dev != NULL);
+	REQUIRE(*dev != NULL);
+
 	DEQUEUE(sock->read_list, *iev, link);
 	(*dev)->result = resultcode;
 	isc_task_send((*iev)->task, (isc_event_t *)dev);
 	(*iev)->done_ev = NULL;
 	isc_event_free((isc_event_t *)iev);
+}
+
+static isc_boolean_t
+internal_accept(isc_task_t task, isc_event_t ev)
+{
 }
 
 static isc_boolean_t
@@ -443,6 +464,14 @@ internal_read(isc_task_t task, isc_event_t ev)
 	sock->pending_read = ISC_FALSE;
 
 	/*
+	 * Pull the first entry off the list, and look at it.  If it is
+	 * NULL, or not ours, something bad happened.
+	 */
+	iev = HEAD(sock->read_list);
+	INSIST(iev != NULL);
+	INSIST(iev->task == task);
+
+	/*
 	 * Try to do as much I/O as possible on this socket.  There are no
 	 * limits here, currently.  If some sort of quantum read count is
 	 * desired before giving up control, make certain to process markers
@@ -450,8 +479,18 @@ internal_read(isc_task_t task, isc_event_t ev)
 	 */
 	do {
 		iev = HEAD(sock->read_list);
-		INSIST(iev != NULL);
 		dev = iev->done_ev;
+
+		/*
+		 * If dev is null here, there is no done event.  This means
+		 * someone other than us canceled our pending I/O.
+		 * Just ignore this case.
+		 */
+		if (dev == NULL) {
+			DEQUEUE(sock->read_list, iev, link);
+			isc_event_free((isc_event_t *)&iev);
+			continue;
+		}
 
 		/*
 		 * If this is a marker event, post its completion and
@@ -462,6 +501,10 @@ internal_read(isc_task_t task, isc_event_t ev)
 			continue;
 		}
 
+		/*
+		 * It must be a read request.  Try to satisfy it as best
+		 * we can.
+		 */
 		read_count = dev->region.length - dev->n;
 		cc = recv(sock->fd, dev->region.base + dev->n, read_count, 0);
 
@@ -479,7 +522,8 @@ internal_read(isc_task_t task, isc_event_t ev)
 		/*
 		 * read of 0 means the remote end was closed.  Run through
 		 * the event queue and dispatch all the events with an EOF
-		 * result code.
+		 * result code.  This will set the EOF flag in markers as
+		 * well, but that's really ok.
 		 */
 		if (cc == 0) {
 			do {
@@ -867,7 +911,16 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 	iev->task = ntask;
 	iev->partial = partial;
 
-	ENQUEUE(sock->read_list, iev, link);
+	/*
+	 * Enqueue the request.  If the socket was previously not being
+	 * watched, poke the watcher to start paying attention to it.
+	 */
+	if (EMPTY(sock->read_list)) {
+		ENQUEUE(sock->read_list, iev, link);
+		select_poke(sock->manager, sock->fd);
+	} else {
+		ENQUEUE(sock->read_list, iev, link);
+	}
 
 	UNLOCK(&sock->lock);
 
@@ -924,6 +977,9 @@ isc_socket_listen(isc_socket_t sock, int backlog, isc_task_t task,
 {
 	isc_socket_intev_t iev;
 	isc_task_t ntask;
+	isc_socketmgr_t manager;
+
+	manager = sock->manager;
 
 	iev = (isc_socket_intev_t)isc_event_allocate(manager->mctx,
 						     sock,
@@ -935,10 +991,8 @@ isc_socket_listen(isc_socket_t sock, int backlog, isc_task_t task,
 		return (ISC_R_NOMEMORY);
 
 	INIT_LINK(iev, link);
-	isc_task_attach(task, &ntask);
 
 	LOCK(&sock->lock);
-	sock->references++;
 
 	if (listen(sock->fd, backlog) < 0) {
 		isc_event_free((isc_event_t *)&iev);
@@ -949,7 +1003,18 @@ isc_socket_listen(isc_socket_t sock, int backlog, isc_task_t task,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	iev->
+	/*
+	 * Attach to socket and to task
+	 */
+	isc_task_attach(task, &ntask);
+	sock->references++;
+
+	iev->task = ntask;
+	iev->done_ev = NULL;
+	iev->partial = ISC_FALSE;  /* state doesn't really matter */
+	iev->listener = ISC_TRUE;
+	iev->action = action;
+	iev->arg = arg;
 
 	UNLOCK(&sock->lock);
 
