@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.140 2003/07/25 02:22:24 marka Exp $ */
+/* $Id: name.c,v 1.141 2003/10/17 03:46:43 marka Exp $ */
 
 #include <config.h>
 
@@ -1250,7 +1250,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				}
 				count--;
 			}
-		} else { 
+		} else {
 			FATAL_ERROR(__FILE__, __LINE__,
 				    "Unexpected label type %02x", count);
 			/* NOTREACHED */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.209 2003/10/16 05:46:19 marka Exp $ */
+/* $Id: adb.c,v 1.210 2003/10/17 03:46:43 marka Exp $ */
 
 /*
  * Implementation notes
@@ -76,7 +76,7 @@
  *
  * XXXRTH  How many buckets do we need?
  */
-#define NBUCKETS		1009	/* how many buckets for names/addrs */
+#define NBUCKETS	       1009	/* how many buckets for names/addrs */
 
 /*
  * For type 3 negative cache entries, we will remember that the address is
@@ -1844,6 +1844,7 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 
 	if (entry->expires == 0 || (! expire && entry->expires > now))
 		return (result);
+
 	/*
 	 * The entry is not in use.  Delete it.
 	 */
@@ -2505,7 +2506,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			       dns_rdatatype_aaaa) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: "
-			    "started AAAA fetch for name %p",
+			   "started AAAA fetch for name %p",
 			   adbname);
 		}
 	}
@@ -3266,7 +3267,8 @@ fetch_name(dns_adbname_t *adbname,
 
 	options = 0;
 	if (start_at_zone) {
-		DP(50, "fetch_name: starting at zone for %p",
+		DP(ENTER_LEVEL,
+		   "fetch_name: starting at zone for name %p",
 		   adbname);
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);

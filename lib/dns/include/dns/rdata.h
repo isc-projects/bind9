@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.57 2003/09/30 05:56:17 marka Exp $ */
+/* $Id: rdata.h,v 1.58 2003/10/17 03:46:45 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -161,7 +161,7 @@ dns_rdata_reset(dns_rdata_t *rdata);
  * Make 'rdata' empty.
  *
  * Requires:
- *	'rdata' is a previously initaliased rdata and is not linked.
+ *	'rdata' is a previously initialized rdata and is not linked.
  */
 
 void

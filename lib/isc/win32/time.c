@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.35 2001/12/19 03:46:55 mayer Exp $ */
+/* $Id: time.c,v 1.36 2003/10/17 03:46:45 marka Exp $ */
 
 #include <config.h>
 
@@ -225,8 +225,8 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 	if (FileTimeToLocalFileTime(&t->absolute, &localft) &&
 	    FileTimeToSystemTime(&localft, &st)) {
-		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "dd-MMM-yyyy", DateBuf,
-			      50);
+		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "dd-MMM-yyyy",
+			      DateBuf, 50);
 		GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOTIMEMARKER|
 			      TIME_FORCE24HOURFORMAT, &st, NULL, TimeBuf, 50);
 		

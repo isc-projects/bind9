@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.25 2002/10/25 01:02:53 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.26 2003/10/17 03:46:41 marka Exp $ */
 
 #include <config.h>
 
@@ -112,7 +112,7 @@ main(int argc, char **argv) {
 			quiet++;
 			break;
 
-                case 't':
+		case 't':
 			result = isc_dir_chroot(isc_commandline_argument);
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "isc_dir_chroot: %s: %s\n",

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.269 2003/09/30 05:56:13 marka Exp $ */
+/* $Id: resolver.c,v 1.270 2003/10/17 03:46:44 marka Exp $ */
 
 #include <config.h>
 
@@ -548,7 +548,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			if (UNMARKED(addrinfo))
 				dns_adb_adjustsrtt(fctx->adb, addrinfo,
 						   0, factor);
-                for (find = ISC_LIST_HEAD(fctx->altfinds);
+		for (find = ISC_LIST_HEAD(fctx->altfinds);
 		     find != NULL;
 		     find = ISC_LIST_NEXT(find, publink))
 			for (addrinfo = ISC_LIST_HEAD(find->list);
@@ -1737,8 +1737,7 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 			 * And ADB isn't going to send us any events
 			 * either.  This find loses.
 			 */
-			if ((find->options & DNS_ADBFIND_LAMEPRUNED)
-			    != 0) {
+			if ((find->options & DNS_ADBFIND_LAMEPRUNED) != 0) {
 				/*
 				 * The ADB pruned lame servers for
 				 * this name.  Remember that in case
@@ -1803,7 +1802,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 		}
 	}
-	
+
 	while (sa != NULL) {
 		ai = NULL;
 		result = dns_adb_findaddrinfo(fctx->adb,
@@ -2147,7 +2146,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 		if (!UNMARKED(addrinfo))
 			continue;
 		possibly_mark(fctx, addrinfo);
-		if (UNMARKED(addrinfo) && 
+		if (UNMARKED(addrinfo) &&
 		    (faddrinfo == NULL ||
 		     addrinfo->srtt < faddrinfo->srtt)) {
 			if (faddrinfo != NULL)
@@ -4995,11 +4994,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Enforce delegations only zones like NET and COM.
 	 */
-oldcounts[DNS_SECTION_QUESTION] = message->counts[DNS_SECTION_QUESTION];
-oldcounts[DNS_SECTION_ANSWER] = message->counts[DNS_SECTION_ANSWER];
-oldcounts[DNS_SECTION_AUTHORITY] = message->counts[DNS_SECTION_AUTHORITY];
-oldcounts[DNS_SECTION_ADDITIONAL] = message->counts[DNS_SECTION_ADDITIONAL];
-
 	if (!ISFORWARDER(query->addrinfo) &&
 	    dns_view_isdelegationonly(fctx->res->view, &fctx->domain) &&
 	    !dns_name_equal(&fctx->domain, &fctx->name) &&
@@ -5021,14 +5015,8 @@ oldcounts[DNS_SECTION_ADDITIONAL] = message->counts[DNS_SECTION_ADDITIONAL];
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DELEGATION_ONLY,
 			     DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 			     "enforced delegation-only for '%s' (%s/%s/%s) "
-			     "flags=%04x counts(%u,%u,%u,%u) from %s",
-			     domainbuf, namebuf, typebuf, classbuf,
-			     message->flags,
-			     oldcounts[DNS_SECTION_QUESTION],
-			     oldcounts[DNS_SECTION_ANSWER],
-			     oldcounts[DNS_SECTION_AUTHORITY],
-			     oldcounts[DNS_SECTION_ADDITIONAL],
-			     addrbuf);
+			     "from %s",
+			     domainbuf, namebuf, typebuf, classbuf, addrbuf);
 	}
 
 	/*

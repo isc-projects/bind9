@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2002  Internet Software Consortium.
+ * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.180 2003/09/30 05:56:12 marka Exp $ */
+/* $Id: rdata.c,v 1.181 2003/10/17 03:46:43 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -990,7 +990,7 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
 	 */
 	strncpy(buffer, source->base, NUMBERSIZE);
 	INSIST(buffer[source->length] == '\0');
-	
+
 	result = isc_parse_uint32(&n, buffer, 10);
 	if (result == ISC_R_BADNUMBER && hex_allowed)
 		result = isc_parse_uint32(&n, buffer, 16);

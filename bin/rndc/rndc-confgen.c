@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.16 2003/03/03 05:08:56 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.17 2003/10/17 03:46:42 marka Exp $ */
 
 #include <config.h>
 
@@ -101,7 +101,7 @@ write_key_file(const char *keyfile, const char *user,
 		(int)isc_buffer_usedlength(secret),
 		(char *)isc_buffer_base(secret));
 	fflush(fd);
-	if (ferror(fd)) 
+	if (ferror(fd))
 		fatal("write to %s failed\n", keyfile);
 	if (fclose(fd))
 		fatal("fclose(%s) failed\n", keyfile);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.109 2003/09/30 05:56:13 marka Exp $ */
+/* $Id: result.c,v 1.110 2003/10/17 03:46:44 marka Exp $ */
 
 #include <config.h>
 
@@ -131,7 +131,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"unknown flag",			       /* 82 DNS_R_UNKNOWNFLAG	     */
 	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
 	"no valid DS",			       /* 84 DNS_R_NOVALIDDS	     */
-	
+
 	"NS is an address",		       /* 85 DNS_R_NSISADDRESS	     */
 	"received FORMERR",		       /* 86 DNS_R_REMOTEFORMERR     */
 	"truncated TCP response",	       /* 87 DNS_R_TRUNCATEDTCP	     */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.h,v 1.14 2002/08/27 04:53:43 marka Exp $ */
+/* $Id: byaddr.h,v 1.15 2003/10/17 03:46:45 marka Exp $ */
 
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1
@@ -150,7 +150,7 @@ dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 
 isc_result_t
 dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
-			 dns_name_t *name);
+			  dns_name_t *name);
 /*
  * Creates a name that would be used in a PTR query for this address.  The
  * nibble flag indicates that the 'nibble' format is to be used if an IPv6

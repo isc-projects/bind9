@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.69 2003/09/30 05:56:12 marka Exp $ */
+/* $Id: masterdump.c,v 1.70 2003/10/17 03:46:43 marka Exp $ */
 
 #include <config.h>
 
@@ -894,10 +894,10 @@ void
 dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 	dns_dumpctx_t *dctx;
 	isc_boolean_t need_destroy = ISC_FALSE;
-	
+
 	REQUIRE(dctxp != NULL);
 	dctx = *dctxp;
-        REQUIRE(DNS_DCTX_VALID(dctx));
+	REQUIRE(DNS_DCTX_VALID(dctx));
 
 	*dctxp = NULL;
 
@@ -925,11 +925,11 @@ dns_dumpctx_db(dns_dumpctx_t *dctx) {
 
 void
 dns_dumpctx_cancel(dns_dumpctx_t *dctx) {
-        REQUIRE(DNS_DCTX_VALID(dctx));
-         
-        LOCK(&dctx->lock);
-        dctx->canceled = ISC_TRUE; 
-        UNLOCK(&dctx->lock);
+	REQUIRE(DNS_DCTX_VALID(dctx));
+
+	LOCK(&dctx->lock);
+	dctx->canceled = ISC_TRUE;
+	UNLOCK(&dctx->lock);
 }
 
 static isc_result_t
@@ -1002,8 +1002,8 @@ static isc_result_t
 task_send(dns_dumpctx_t *dctx) {
 	isc_event_t *event;
 
-	event = isc_event_allocate(dctx->mctx, NULL, DNS_EVENT_DUMPQUANTUM,
-                                   dump_quantum, dctx, sizeof(*event));
+	event = isc_event_allocate(dctx->mctx, NULL, DNS_EVENT_MASTERQUANTUM,
+				   dump_quantum, dctx, sizeof(*event));
 	if (event == NULL)
 		return (ISC_R_NOMEMORY);
 	isc_task_send(dctx->task, &event);
@@ -1035,7 +1035,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dctx->canceled = ISC_FALSE;
 	dctx->file = NULL;
 	dctx->tmpfile = NULL;
-	
+
 	result = totext_ctx_init(style, &dctx->tctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1049,7 +1049,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dctx->do_date = dns_db_iscache(dctx->db);
 
 	relative = ((dctx->tctx.style.flags & DNS_STYLEFLAG_REL_OWNER) != 0) ?
-			   ISC_TRUE : ISC_FALSE,
+			ISC_TRUE : ISC_FALSE;
 	result = dns_db_createiterator(dctx->db, relative, &dctx->dbiter);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -1067,7 +1067,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	*dctxp = dctx;
 	return (ISC_R_SUCCESS);
 
-cleanup:
+ cleanup:
 	if (dctx->dbiter != NULL)
 		dns_dbiterator_destroy(&dctx->dbiter);
 	if (dctx->db != NULL)
@@ -1115,7 +1115,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 		dctx->first = ISC_FALSE;
 	} else
 		result = ISC_R_SUCCESS;
- 
+
 	nodes = dctx->nodes;
 	while (result == ISC_R_SUCCESS && (dctx->nodes == 0 || nodes--)) {
 		dns_rdatasetiter_t *rdsiter = NULL;
@@ -1155,7 +1155,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 		result = DNS_R_CONTINUE;
 	} else if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-  fail:
+ fail:
 	isc_mem_put(dctx->mctx, buffer.base, buffer.length);
 	return (result);
 }
@@ -1170,7 +1170,7 @@ dns_master_dumptostreaminc(isc_mem_t *mctx, dns_db_t *db,
 {
 	dns_dumpctx_t *dctx = NULL;
 	isc_result_t result;
-	
+
 	REQUIRE(task != NULL);
 	REQUIRE(f != NULL);
 	REQUIRE(done != NULL);
