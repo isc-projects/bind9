@@ -1130,6 +1130,7 @@
 ./lib/isc/nls/msgcat.c				C	1999,2000
 ./lib/isc/nothreads/.cvsignore			X	2000
 ./lib/isc/nothreads/Makefile.in			MAKE	2000
+./lib/isc/nothreads/condition.c			C	2000
 ./lib/isc/nothreads/include/.cvsignore		X	2000
 ./lib/isc/nothreads/include/Makefile.in		MAKE	2000
 ./lib/isc/nothreads/include/isc/.cvsignore	X	2000
