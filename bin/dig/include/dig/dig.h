@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.24 2000/06/21 17:48:32 mws Exp $ */
+/* $Id: dig.h,v 1.25 2000/06/23 02:56:10 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -36,7 +36,7 @@
 #define MXNAME 256
 #define MXRD 32
 #define BUFSIZE 512
-#define COMMSIZE 32767
+#define COMMSIZE 0xffff
 #define RESOLVCONF "/etc/resolv.conf"
 #define OUTPUTBUF 32767
 #define LOOKUP_LIMIT 64
