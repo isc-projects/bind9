@@ -71,7 +71,7 @@ struct signer_array_struct {
 };
 
 ISC_LIST(signer_key_t) keylist;
-isc_stdtime_t start = 0, end = 0, now;
+isc_stdtime_t starttime = 0, endtime = 0, now;
 int cycle = -1;
 int verbose;
 
@@ -165,7 +165,7 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	isc_result_t result;
 
 	dns_rdata_init(rdata);
-	result = dns_dnssec_sign(name, rdataset, key, &start, &end,
+	result = dns_dnssec_sign(name, rdataset, key, &starttime, &endtime,
 				 mctx, b, rdata);
 	check_result(result, "dns_dnssec_sign()");
 #if 0
@@ -477,8 +477,8 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		siglist.rdclass = set->rdclass;
 		siglist.type = dns_rdatatype_sig;
 		siglist.covers = set->type;
-		if (end - start < set->ttl)
-			siglist.ttl = end - start;
+		if (endtime - starttime < set->ttl)
+			siglist.ttl = endtime - starttime;
 		else
 			siglist.ttl = set->ttl;
 		dns_rdataset_init(&sigset);
@@ -975,21 +975,21 @@ main(int argc, char *argv[]) {
 	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
-		start = strtotime(startstr, now, now);
+		starttime = strtotime(startstr, now, now);
 		isc_mem_free(mctx, startstr);
 	}
 	else
-		start = now;
+		starttime = now;
 
 	if (endstr != NULL) {
-		end = strtotime(endstr, now, start);
+		endtime = strtotime(endstr, now, starttime);
 		isc_mem_free(mctx, endstr);
 	}
 	else
-		end = start + (30 * 24 * 60 * 60);
+		endtime = starttime + (30 * 24 * 60 * 60);
 
 	if (cycle == -1) {
-		cycle = (end - start) / 4;
+		cycle = (endtime - starttime) / 4;
 	}
 
 	argc -= isc_commandline_index;
