@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.16 2001/03/26 21:33:05 bwelling Exp $ */
+/* $Id: netaddr.c,v 1.17 2001/04/12 21:23:21 tale Exp $ */
 
 #include <config.h>
 
@@ -260,11 +260,15 @@ isc_netaddr_ismulticast(isc_netaddr_t *na) {
 
 void
 isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s) {
+	isc_netaddr_t *src;
+
+	DE_CONST(s, src);	/* Must come before IN6_IS_ADDR_V4MAPPED. */
+
 	REQUIRE(s->family == AF_INET6);
 	REQUIRE(IN6_IS_ADDR_V4MAPPED(&s->type.in6));
 
-	memset(t, 0, sizeof *t);
+	memset(t, 0, sizeof(*t));
 	t->family = AF_INET;
-	memcpy(&t->type.in, (const char *)&s->type.in6 + 12, 4);
+	memcpy(&t->type.in, (char *)&src->type.in6 + 12, 4);
 	return;
 }
