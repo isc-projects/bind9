@@ -40,18 +40,33 @@ static isc_mutex_t		lock;
 static isc_boolean_t		shutdown_requested = ISC_FALSE;
 static isc_boolean_t		running = ISC_FALSE;
 /*
+ * We assume that 'want_shutdown' can be read and written atomically.
+ */
+static isc_boolean_t		want_shutdown = ISC_FALSE;
+/*
  * We assume that 'want_reload' can be read and written atomically.
  */
 static isc_boolean_t		want_reload = ISC_FALSE;
 
 #ifdef HAVE_LINUXTHREADS
+/*
+ * Linux has sigwait(), but it appears to prevent signal handlers from
+ * running, even if they're not in the set being waited for.  This makes
+ * it impossible to get the default actions for SIGILL, SIGSEGV, etc.
+ * Instead of messing with it, we just use sigsuspend() instead.
+ */
+#undef HAVE_SIGWAIT
+/*
+ * We need to remember which thread is the main thread...
+ */
 static pthread_t		main_thread;
 #endif
 
 #ifndef HAVE_SIGWAIT
 static void
-no_action(int arg) {
+exit_action(int arg) {
         (void)arg;
+	want_shutdown = ISC_TRUE;
 }
 
 static void
@@ -112,16 +127,19 @@ isc_app_start(void) {
 
 #ifndef HAVE_SIGWAIT
 	/*
-	 * Install do-nothing handlers for SIGINT and SIGTERM.
+	 * Install do-nothing handlers for SIGINT, SIGQUIT, and SIGTERM.
 	 *
 	 * We install them now because BSDI 3.1 won't block
 	 * the default actions, regardless of what we do with
 	 * pthread_sigmask().
 	 */
-	result = handle_signal(SIGINT, no_action);
+	result = handle_signal(SIGINT, exit_action);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = handle_signal(SIGTERM, no_action);
+	result = handle_signal(SIGQUIT, exit_action);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = handle_signal(SIGTERM, exit_action);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 #endif
@@ -138,12 +156,14 @@ isc_app_start(void) {
 	 *
 	 * If isc_app_start() is called from the main thread before any other
 	 * threads have been created, then the pthread_sigmask() call below
-	 * will result in all threads having SIGHUP, SIGINT and SIGTERM
-	 * blocked by default.
+	 * will result in all threads having SIGHUP, SIGINT, SIGQUIT and
+	 * SIGTERM blocked by default, ensuring that only the thread that
+	 * calls sigwait() for them will get those signals.
 	 */
 	if (sigemptyset(&sset) != 0 ||
 	    sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 ||
+	    sigaddset(&sset, SIGQUIT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() sigsetops: %s", 
@@ -262,54 +282,47 @@ isc_app_run(void) {
 	 * be made pending and we will get it when we call sigwait().
 	 */
 
+	while (!want_shutdown) {
 #ifdef HAVE_SIGWAIT
-	/*
-	 * Wait for SIGHUP, SIGINT, or SIGTERM.
-	 */
-	if (sigemptyset(&sset) != 0 ||
-#ifdef HAVE_LINUXTHREADS
-	    sigaddset(&sset, SIGABRT) != 0 ||
-#endif
-	    sigaddset(&sset, SIGHUP) != 0 ||
-	    sigaddset(&sset, SIGINT) != 0 ||
-	    sigaddset(&sset, SIGTERM) != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_run() sigsetops: %s", 
-				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
-	}
-	result = sigwait(&sset, &sig);
-	/*
-	 * sigwait() prevents signal handlers from running, so we have
-	 * to check if it was SIGHUP ourselves.
-	 */
-	if (result == 0 && sig == SIGHUP)
-		want_reload = ISC_TRUE;
+		/*
+		 * Wait for SIGHUP, SIGINT, or SIGTERM.
+		 */
+		if (sigemptyset(&sset) != 0 ||
+		    sigaddset(&sset, SIGHUP) != 0 ||
+		    sigaddset(&sset, SIGINT) != 0 ||
+		    sigaddset(&sset, SIGQUIT) != 0 ||
+		    sigaddset(&sset, SIGTERM) != 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_app_run() sigsetops: %s", 
+					 strerror(errno));
+			return (ISC_R_UNEXPECTED);
+		}
+		result = sigwait(&sset, &sig);
+		if (result == 0) {
+			if (sig == SIGINT ||
+			    sig == SIGQUIT ||
+			    sig == SIGTERM)
+				want_shutdown = ISC_TRUE;
+			else if (sig == SIGHUP)
+				want_reload = ISC_TRUE;
+		}
 #else
-	/*
-	 * Block all signals except for SIGHUP, SIGINT, and SIGTERM, and then
-	 * wait for one of them to occur.
-	 */
-	if (sigfillset(&sset) != 0 ||
-	    sigdelset(&sset, SIGHUP) != 0 ||
-	    sigdelset(&sset, SIGINT) != 0 ||
-	    sigdelset(&sset, SIGTERM) != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_run() sigsetops: %s", 
-				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
-	}
-	result = sigsuspend(&sset);
+		/*
+		 * Listen for all signals.
+		 */
+		if (sigemptyset(&sset) != 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_app_run() sigsetops: %s", 
+					 strerror(errno));
+			return (ISC_R_UNEXPECTED);
+		}
+		result = sigsuspend(&sset);
 #endif
 
-	if (want_reload) {
-		/*
-		 * SIGHUP is blocked now (it's only unblocked when we're
-		 * calling sigsuspend()/sigwait()), so there's no race with
-		 * the reload_action signal handler when we clear want_reload.
-		 */
-		want_reload = ISC_FALSE;
-		return (ISC_R_RELOAD);
+		if (want_reload) {
+			want_reload = ISC_FALSE;
+			return (ISC_R_RELOAD);
+		}
 	}
 
 	return (ISC_R_SUCCESS);
