@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdio.c,v 1.2 2001/07/08 05:09:13 mayer Exp $ */
+/* $Id: stdio.c,v 1.3 2001/07/17 20:29:32 gson Exp $ */
 
 #include <config.h>
 

@@ -15,6 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: ipv6.h,v 1.9 2001/07/17 20:29:33 gson Exp $ */
+
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
 

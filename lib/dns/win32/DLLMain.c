@@ -14,7 +14,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Id: DLLMain.c,v 1.2 2001/07/17 19:16:50 gson Exp $ */
+
+/* $Id: DLLMain.c,v 1.3 2001/07/17 20:29:23 gson Exp $ */
 
 #include <windows.h>
 #include <signal.h>

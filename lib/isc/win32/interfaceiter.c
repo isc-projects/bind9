@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.3 2001/07/09 21:06:09 gson Exp $ */
+/* $Id: interfaceiter.c,v 1.4 2001/07/17 20:29:27 gson Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.

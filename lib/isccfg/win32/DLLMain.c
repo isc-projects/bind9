@@ -15,6 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: DLLMain.c,v 1.3 2001/07/17 20:29:36 gson Exp $ */
+
 #include <windows.h>
 #include <signal.h>
 

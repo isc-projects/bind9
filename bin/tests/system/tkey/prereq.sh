@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3 2001/07/13 18:29:00 gson Exp $
+# $Id: prereq.sh,v 1.4 2001/07/17 20:29:20 gson Exp $
 
 if $KEYGEN -a RSA -b 512 -n zone -r $KEYGEN foo > /dev/null 2>&1
 then

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.c,v 1.1 2001/06/22 17:22:26 tale Exp $ */
+/* $Id: util.c,v 1.2 2001/07/17 20:29:18 gson Exp $ */
 
 #include <config.h>
 

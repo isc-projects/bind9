@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.19 2001/07/16 18:33:02 gson Exp $ */
+/* $Id: file.c,v 1.20 2001/07/17 20:29:26 gson Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.4 2001/07/10 06:27:44 mayer Exp $ */
+/* $Id: socket.c,v 1.5 2001/07/17 20:29:31 gson Exp $ */
 
 
 #define MAKE_EXTERNAL 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.1 2001/07/17 06:10:26 mayer Exp $ */
+/* $Id: version.c,v 1.2 2001/07/17 20:29:35 gson Exp $ */
 
 #include <versions.h>
 

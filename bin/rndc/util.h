@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.3 2001/07/02 00:06:22 bwelling Exp $ */
+/* $Id: util.h,v 1.4 2001/07/17 20:29:19 gson Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
