@@ -1,3 +1,7 @@
+  17.	[func]		Do configuration file post-load validation of zones.
+
+  16.	[bug]		put quotes around key names on config file 
+			output to avoid possible keyword clashes.
 
   15.	[func]		Add dns_name_dupwithoffsets().  This function is
 			improves comparison performance for duped names.
