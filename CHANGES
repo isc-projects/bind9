@@ -5,8 +5,8 @@
 
  755.	[bug]		Fix format bugs in zone.c (non-exploitable).
 
- 754.	[bug]		Certain failure returns from sendto() could
-			cause the server to retry the transmission
+ 754.	[bug]		Certain failure conditions sending UDP packets
+			could cause the server to retry the transmission
 			indefinitely. [RT #902]
 
  753.	[bug]		dig, host, and nslookup would fail to contact a
