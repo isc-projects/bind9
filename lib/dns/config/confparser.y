@@ -1,6 +1,6 @@
 %{
 /*
- * Copyright (c) 1996-1999 by Internet Software Consortium.
+ * Copyright (c) 1996-2000 by Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.53 2000/03/21 21:26:21 gson Exp $ */
+/* $Id: confparser.y,v 1.54 2000/03/23 19:35:14 halley Exp $ */
 
 #include <config.h>
 
