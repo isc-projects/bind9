@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.33 2001/09/05 23:15:42 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.34 2001/09/19 23:05:15 gson Exp $ */
 
 #include <config.h>
 
@@ -124,8 +124,8 @@ sig_format(dns_rdata_sig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
 
-	dns_name_format(&sig->signer, namestr, sizeof namestr);
-	alg_format(sig->algorithm, algstr, sizeof algstr);
+	dns_name_format(&sig->signer, namestr, sizeof(namestr));
+	alg_format(sig->algorithm, algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, sig->keyid);
 }
 
@@ -134,8 +134,8 @@ key_format(const dst_key_t *key, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
 
-	dns_name_format(dst_key_name(key), namestr, sizeof namestr);
-	alg_format((dns_secalg_t) dst_key_alg(key), algstr, sizeof algstr);
+	dns_name_format(dst_key_name(key), namestr, sizeof(namestr));
+	alg_format((dns_secalg_t) dst_key_alg(key), algstr, sizeof(algstr));
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
 }
 
@@ -237,7 +237,7 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 		      isc_result_totext(result));
 
 	if (source != NULL) {
-		elt = isc_mem_get(mctx, sizeof *elt);
+		elt = isc_mem_get(mctx, sizeof(*elt));
 		if (elt == NULL)
 			fatal("out of memory");
 		elt->source = source;
@@ -254,7 +254,7 @@ cleanup_entropy(isc_entropy_t **ectx) {
 		source = ISC_LIST_HEAD(sources);
 		ISC_LIST_UNLINK(sources, source, link);
 		isc_entropy_destroysource(&source->source);
-		isc_mem_put(source->mctx, source, sizeof *source);
+		isc_mem_put(source->mctx, source, sizeof(*source));
 	}
 	isc_entropy_detach(ectx);
 }

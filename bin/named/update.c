@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88 2001/05/31 10:37:58 tale Exp $ */
+/* $Id: update.c,v 1.89 2001/09/19 23:08:23 gson Exp $ */
 
 #include <config.h>
 
@@ -172,7 +172,7 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 			      sizeof(classbuf));
 
 	va_start(ap, fmt);
-	vsnprintf(message, sizeof message, fmt, ap);
+	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 
 	ns_client_log(client, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
@@ -1470,7 +1470,7 @@ add_placeholder_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	r.base = data;
-	r.length = sizeof data;
+	r.length = sizeof(data);
 	dns_rdata_fromregion(&rdata, dns_db_class(db), dns_rdatatype_nxt, &r);
 	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, 0,
 				   &rdata, &tuple));

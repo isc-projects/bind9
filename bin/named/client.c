@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.177 2001/09/19 00:02:26 gson Exp $ */
+/* $Id: client.c,v 1.178 2001/09/19 23:08:18 gson Exp $ */
 
 #include <config.h>
 
@@ -277,7 +277,7 @@ client_free(ns_client_t *client) {
 
 	CTRACE("free");
 	client->magic = 0;
-	isc_mem_put(client->mctx, client, sizeof *client);
+	isc_mem_put(client->mctx, client, sizeof(*client));
 
 	if (need_clientmgr_destroy)
 		clientmgr_destroy(manager);
@@ -1638,7 +1638,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
-	client = isc_mem_get(manager->mctx, sizeof *client);
+	client = isc_mem_get(manager->mctx, sizeof(*client));
 	if (client == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -1776,7 +1776,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	isc_task_detach(&client->task);
 
  cleanup_client:
-	isc_mem_put(manager->mctx, client, sizeof *client);
+	isc_mem_put(manager->mctx, client, sizeof(*client));
 
 	return (result);
 }
@@ -2034,7 +2034,7 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 
 	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
-	isc_mem_put(manager->mctx, manager, sizeof *manager);
+	isc_mem_put(manager->mctx, manager, sizeof(*manager));
 }
 
 isc_result_t
@@ -2044,7 +2044,7 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ns_clientmgr_t *manager;
 	isc_result_t result;
 
-	manager = isc_mem_get(mctx, sizeof *manager);
+	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -2067,7 +2067,7 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	return (ISC_R_SUCCESS);
 
  cleanup_manager:
-	isc_mem_put(manager->mctx, manager, sizeof *manager);
+	isc_mem_put(manager->mctx, manager, sizeof(*manager));
 
 	return (result);
 }
@@ -2263,7 +2263,7 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
-	ns_client_name(client, peerbuf, sizeof peerbuf);
+	ns_client_name(client, peerbuf, sizeof(peerbuf));
 
 	isc_log_write(ns_g_lctx, category, module, level,
 		      "client %s: %s", peerbuf, msgbuf);

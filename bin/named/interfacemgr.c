@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.60 2001/09/10 23:03:09 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.61 2001/09/19 23:08:19 gson Exp $ */
 
 #include <config.h>
 
@@ -119,7 +119,7 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	ns_listenlist_detach(&mgr->listenon6);
 	DESTROYLOCK(&mgr->lock);
 	mgr->magic = 0;
-	isc_mem_put(mgr->mctx, mgr, sizeof *mgr);
+	isc_mem_put(mgr->mctx, mgr, sizeof(*mgr));
 }
 
 dns_aclenv_t *

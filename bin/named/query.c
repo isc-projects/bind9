@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.200 2001/09/11 01:21:38 gson Exp $ */
+/* $Id: query.c,v 1.201 2001/09/19 23:08:21 gson Exp $ */
 
 #include <config.h>
 
@@ -224,7 +224,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
 					link);
 			isc_mem_put(client->mctx, dbversion,
-				    sizeof *dbversion);
+				    sizeof(*dbversion));
 		}
 	}
 
@@ -426,7 +426,7 @@ query_newdbversion(ns_client_t *client, unsigned int n) {
 	ns_dbversion_t *dbversion;
 
 	for (i = 0; i < n; i++) {
-		dbversion = isc_mem_get(client->mctx, sizeof *dbversion);
+		dbversion = isc_mem_get(client->mctx, sizeof(*dbversion));
 		if (dbversion != NULL) {
 			dbversion->db = NULL;
 			dbversion->version = NULL;
@@ -620,7 +620,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		result = ns_client_checkaclsilent(client, queryacl, ISC_TRUE);
 		if (log) {
 			char msg[DNS_NAME_FORMATSIZE + DNS_RDATACLASS_FORMATSIZE
-				+ sizeof "query '/'"];
+				+ sizeof("query '/'")];
 			if (result == ISC_R_SUCCESS) {
 				if (isc_log_wouldlog(ns_g_lctx,
 						     ISC_LOG_DEBUG(3)))

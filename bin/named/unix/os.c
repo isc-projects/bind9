@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.49 2001/09/07 00:36:57 marka Exp $ */
+/* $Id: os.c,v 1.50 2001/09/19 23:08:24 gson Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -139,10 +139,10 @@ linux_setcaps(unsigned int caps) {
 	if ((getuid() != 0 && !non_root_caps) || non_root)
 		return;
 
-	memset(&caphead, 0, sizeof caphead);
+	memset(&caphead, 0, sizeof(caphead));
 	caphead.version = _LINUX_CAPABILITY_VERSION;
 	caphead.pid = 0;
-	memset(&cap, 0, sizeof cap);
+	memset(&cap, 0, sizeof(cap));
 	cap.effective = caps;
 	cap.permitted = caps;
 	cap.inheritable = caps;

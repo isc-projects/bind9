@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.53 2001/09/19 21:24:34 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.54 2001/09/19 23:05:13 gson Exp $ */
 
 #include <config.h>
 
@@ -121,7 +121,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 			dst_key_free(&key);
 			continue;
 		}
-		keynode = isc_mem_get(mctx, sizeof (keynode_t));
+		keynode = isc_mem_get(mctx, sizeof(keynode_t));
 		if (keynode == NULL)
 			fatal("out of memory");
 		keynode->key = key;
@@ -324,7 +324,7 @@ main(int argc, char *argv[]) {
 				     0, &rdataset, &sigrdataset);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
-		dns_name_format(domain, domainstr, sizeof domainstr);
+		dns_name_format(domain, domainstr, sizeof(domainstr));
 		fatal("failed to find rdataset '%s KEY': %s",
 		      domainstr, isc_result_totext(result));
 	}
@@ -347,7 +347,7 @@ main(int argc, char *argv[]) {
 					   ISC_TRUE, mctx, &sigrdata);
 		if (result != ISC_R_SUCCESS) {
 			char keystr[KEY_FORMATSIZE];
-			key_format(key, keystr, sizeof keystr);
+			key_format(key, keystr, sizeof(keystr));
 			fatal("signature by key '%s' did not verify: %s",
 			      keystr, isc_result_totext(result));
 		}
@@ -388,7 +388,7 @@ main(int argc, char *argv[]) {
 		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS) {
 			char keystr[KEY_FORMATSIZE];
-			key_format(key, keystr, sizeof keystr);
+			key_format(key, keystr, sizeof(keystr));
 			fatal("key '%s' failed to sign data: %s",
 			      keystr, isc_result_totext(result));
 		}
@@ -397,7 +397,7 @@ main(int argc, char *argv[]) {
 						   ISC_TRUE, mctx, &rdata);
 			if (result != ISC_R_SUCCESS) {
 				char keystr[KEY_FORMATSIZE];
-				key_format(key, keystr, sizeof keystr);
+				key_format(key, keystr, sizeof(keystr));
 				fatal("signature from key '%s' failed to "
 				      "verify: %s",
 				      keystr, isc_result_totext(result));

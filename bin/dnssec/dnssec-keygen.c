@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.52 2001/09/19 00:15:05 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.53 2001/09/19 23:05:11 gson Exp $ */
 
 #include <config.h>
 
@@ -337,8 +337,8 @@ main(int argc, char **argv) {
 		if (ret != ISC_R_SUCCESS) {
 			char namestr[DNS_NAME_FORMATSIZE];
 			char algstr[ALG_FORMATSIZE];
-			dns_name_format(name, namestr, sizeof namestr);
-			alg_format(alg, algstr, sizeof algstr);
+			dns_name_format(name, namestr, sizeof(namestr));
+			alg_format(alg, algstr, sizeof(algstr));
 			fatal("failed to generate key %s/%s: %s\n",
 			      namestr, algstr, dst_result_totext(ret));
 			exit(-1);
@@ -380,7 +380,7 @@ main(int argc, char **argv) {
 	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, NULL);
 	if (ret != ISC_R_SUCCESS) {
 		char keystr[KEY_FORMATSIZE];
-		key_format(key, keystr, sizeof keystr);
+		key_format(key, keystr, sizeof(keystr));
 		fatal("failed to write key %s: %s\n", keystr,
 		      isc_result_totext(ret));
 	}

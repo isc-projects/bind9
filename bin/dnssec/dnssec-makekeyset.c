@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.56 2001/09/19 21:00:35 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.57 2001/09/19 23:05:12 gson Exp $ */
 
 #include <config.h>
 
@@ -239,7 +239,7 @@ main(int argc, char *argv[]) {
 		if (rdclass == 0)
 			rdclass = dst_key_class(key);
 
-		isc_buffer_init(&namebuf, namestr, sizeof namestr);
+		isc_buffer_init(&namebuf, namestr, sizeof(namestr));
 		result = dns_name_tofilenametext(dst_key_name(key),
 						 ISC_FALSE,
 						 &namebuf);
@@ -252,7 +252,7 @@ main(int argc, char *argv[]) {
 			dns_name_copy(dst_key_name(key), domain, NULL);
 		} else if (!dns_name_equal(domain, dst_key_name(key))) {
 			char str[DNS_NAME_FORMATSIZE];
-			dns_name_format(domain, str, sizeof str);
+			dns_name_format(domain, str, sizeof(str));
 			fatal("all keys must have the same owner - %s "
 			      "and %s do not match", str, namestr);
 		}
@@ -276,8 +276,7 @@ main(int argc, char *argv[]) {
 				fatal("failed to read private key %s: %s",
 				      argv[i], isc_result_totext(result));
 			if (!zonekey_on_list(zonekey)) {
-				keynode = isc_mem_get(mctx,
-						      sizeof (keynode_t));
+				keynode = isc_mem_get(mctx, sizeof(keynode_t));
 				if (keynode == NULL)
 					fatal("out of memory");
 				keynode->key = zonekey;
@@ -337,7 +336,7 @@ main(int argc, char *argv[]) {
 		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS) {
 			char keystr[KEY_FORMATSIZE];
-			key_format(keynode->key, keystr, sizeof keystr);
+			key_format(keynode->key, keystr, sizeof(keystr));
 			fatal("failed to sign keyset with key %s: %s",
 			      keystr, isc_result_totext(result));
 		}
@@ -347,7 +346,7 @@ main(int argc, char *argv[]) {
 						   mctx, &rdata);
 			if (result != ISC_R_SUCCESS) {
 				char keystr[KEY_FORMATSIZE];
-				key_format(keynode->key, keystr, sizeof keystr);
+				key_format(keynode->key, keystr, sizeof(keystr));
 				fatal("signature from key '%s' failed to "
 				      "verify: %s",
 				      keystr, isc_result_totext(result));
@@ -370,7 +369,7 @@ main(int argc, char *argv[]) {
 	result = dns_db_dump(db, version, output);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
-		dns_name_format(domain, domainstr, sizeof domainstr);
+		dns_name_format(domain, domainstr, sizeof(domainstr));
 		fatal("failed to write database for %s to %s",
 		      domainstr, output);
 	}
