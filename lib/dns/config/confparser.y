@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.38 2000/02/06 15:07:03 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.39 2000/02/08 20:44:53 halley Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -75,8 +75,7 @@ static isc_lexspecials_t        specials;
 #define CONF_MAX_IDENT 1024
 
 /* This should be sufficient to permit multiple parsers and lexers if needed */
-#define yyparse confyyparse
-#define yylex confyylex
+#define yyparse dns_yyparse
 
 #define YYDEBUG 1 
 
@@ -92,6 +91,8 @@ static void             parser_complain(isc_boolean_t is_warning,
                                         const char *format, va_list args);
 static isc_boolean_t    unit_to_uint32(char *in, isc_uint32_t *out);
 static void             yyerror(const char *);
+static int              yylex(void);
+int                     yyparse(void);
 
 /* returns true if (base * mult) would be too big.*/
 static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
@@ -3665,9 +3666,6 @@ static char *           token_to_text(int token, YYSTYPE lval);
 static int              token_value(isc_token_t *token,
                                     isc_symtab_t *symtable);
 static void             init_action(void);
-
-static int              yylex(void);
-int                     yyparse(void);
 
 static YYSTYPE		lastyylval;
 static int		lasttoken;
