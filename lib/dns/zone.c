@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.216 2000/09/23 06:27:12 gson Exp $ */
+/* $Id: zone.c,v 1.217 2000/09/26 05:08:03 marka Exp $ */
 
 #include <config.h>
 
@@ -59,6 +59,7 @@
 #define ZONEMGR_MAGIC 0x5a6d6772U	/* Zmgr */
 #define LOAD_MAGIC ISC_MAGIC('L','o','a','d')
 #define FORWARD_MAGIC ISC_MAGIC('F','o','r','w')
+#define IO_MAGIC ISC_MAGIC('Z','m','I','O')
 
 #define DNS_ZONE_VALID(zone) \
 	ISC_MAGIC_VALID(zone, ZONE_MAGIC)
@@ -72,6 +73,8 @@
 	ISC_MAGIC_VALID(load, LOAD_MAGIC)
 #define DNS_FORWARD_VALID(load) \
 	ISC_MAGIC_VALID(load, FORWARD_MAGIC)
+#define DNS_IO_VALID(load) \
+	ISC_MAGIC_VALID(load, IO_MAGIC)
 
 
 #define RANGE(a, b, c) (((a) < (b)) ? (b) : ((a) < (c) ? (a) : (c)))
@@ -94,6 +97,8 @@ typedef struct dns_notify dns_notify_t;
 typedef struct dns_stub dns_stub_t;
 typedef struct dns_load dns_load_t;
 typedef struct dns_forward dns_forward_t;
+typedef struct dns_io dns_io_t;
+typedef ISC_LIST(dns_io_t) dns_iolist_t;
 
 struct dns_zone {
 	/* Unlocked */
@@ -161,7 +166,7 @@ struct dns_zone {
 	dns_severity_t		check_names;
 	ISC_LIST(dns_notify_t)	notifies;
 	dns_request_t		*request;
-	dns_loadctx_t		*loadctx;
+	dns_io_t		*readio;
 	isc_uint32_t		maxxfrin;
 	isc_uint32_t		maxxfrout;
 	isc_uint32_t		idlein;
@@ -218,6 +223,8 @@ struct dns_zonemgr {
 	isc_ratelimiter_t *	rl;
 	isc_rwlock_t		rwlock;
 	isc_rwlock_t		conflock;
+	isc_mutex_t		iolock;
+
 	/* Locked by rwlock. */
 	dns_zonelist_t		zones;
 	dns_zonelist_t		waiting_for_xfrin;
@@ -226,6 +233,12 @@ struct dns_zonemgr {
 	/* Locked by conflock. */
 	int			transfersin;
 	int			transfersperns;
+
+	/* Locked by iolock */
+	isc_uint32_t		iolimit;
+	isc_uint32_t		ioactive;
+	dns_iolist_t		high;
+	dns_iolist_t		low;
 };
 
 /*
@@ -290,6 +303,18 @@ struct dns_forward {
 	void 			*callback_arg;
 };
 
+/*
+ *	Hold IO request state.
+ */
+struct dns_io {
+	isc_int32_t	magic;
+	dns_zonemgr_t	*zmgr;
+	isc_boolean_t	high;
+	isc_task_t	*task;
+	ISC_LINK(dns_io_t) link;
+	isc_event_t	*event;
+};
+
 static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
 
@@ -346,6 +371,11 @@ static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr,
 					     dns_zone_t *zone);
 static void zmgr_resume_xfrs(dns_zonemgr_t *zmgr);
 static void zonemgr_free(dns_zonemgr_t *zmgr);
+static isc_result_t zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
+				  isc_task_t *task, isc_taskaction_t action,
+				  void *arg, dns_io_t **iop);
+static void zonemgr_putio(dns_io_t **iop);
+static void zonemgr_cancelio(dns_io_t *io);
 
 static isc_result_t
 zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
@@ -440,7 +470,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->xfr_acl = NULL;
 	zone->check_names = dns_severity_ignore;
 	zone->request = NULL;
-	zone->loadctx = NULL;
+	zone->readio = NULL;
 	zone->timer = NULL;
 	zone->idlein = DNS_DEFAULT_IDLEIN;
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
@@ -495,9 +525,7 @@ zone_free(dns_zone_t *zone) {
 		isc_timer_detach(&zone->timer);
 	if (zone->request != NULL)
 		dns_request_destroy(&zone->request); /* XXXMPA */
-	if (zone->loadctx != NULL)
-		dns_loadctx_detach(&zone->loadctx);
-
+	INSIST(zone->readio == NULL);
 	INSIST(zone->statelist == NULL);
 
 	if (zone->task != NULL)
@@ -838,14 +866,40 @@ dns_zone_load(dns_zone_t *zone) {
 	return (result);
 }
 
+static void
+zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
+	dns_load_t *load = event->ev_arg;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_LOAD_VALID(load));
+
+	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0)
+		result = ISC_R_CANCELED;
+	isc_event_free(&event);
+	if (result == ISC_R_CANCELED)
+		goto fail;
+
+	result = dns_master_loadfileinc(load->zone->dbname,
+					dns_db_origin(load->db),
+					dns_db_origin(load->db),
+					load->zone->rdclass, ISC_FALSE,
+					&load->callbacks, task,
+					zone_loaddone, load, load->zone->mctx);
+	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE)
+		goto fail;
+	return;
+
+ fail:
+	zone_loaddone(load, result);
+}
+
 static isc_result_t
 zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	dns_load_t *load;
 	isc_result_t result;
 	isc_result_t tresult;
 
-	if (zone->view != NULL && zone->view->loadmgr != NULL &&
-	    zone->db != NULL) {
+	if (zone->zmgr != NULL && zone->db != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
 		if (load == NULL)
 			return (ISC_R_NOMEMORY);
@@ -864,21 +918,16 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 					  &load->callbacks.add_private);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-
-		result = dns_master_loadfilequota(zone->dbname,
-						  dns_db_origin(db),
-						  dns_db_origin(db),
-						  zone->rdclass, ISC_FALSE,
-						  &load->callbacks, zone->task,
-						  zone_loaddone, load,
-						  zone->view->loadmgr,
-						  &zone->loadctx, zone->mctx);
-		if (result != DNS_R_CONTINUE && result != ISC_R_SUCCESS) {
+		zonemgr_getio(zone->zmgr, ISC_TRUE, zone->task, 
+			      zone_gotreadhandle, load, &zone->readio);
+		if (result != ISC_R_SUCCESS) {
 			tresult = dns_db_endload(load->db,
 						 &load->callbacks.add_private);
 			if (result == ISC_R_SUCCESS)
 				result = tresult;
-		}
+			goto cleanup;
+		} else
+			result = DNS_R_CONTINUE;
 	} else {
 		result = dns_db_load(db, zone->dbname);
 	}
@@ -3241,8 +3290,8 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->request != NULL)
 		dns_request_cancel(zone->request);
 
-	if (zone->loadctx != NULL)
-		dns_loadctx_cancel(zone->loadctx);
+	if (zone->readio != NULL)
+		zonemgr_cancelio(zone->readio);
 
 	notify_cancel(zone);
 
@@ -4311,7 +4360,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 
 	load->magic = 0;
 	dns_db_detach(&load->db);
-	dns_loadctx_detach(&zone->loadctx);
+	zonemgr_putio(&zone->readio);
 	dns_zone_idetach(&zone);
 	isc_mem_put(mctx, load, sizeof (*load));
 	isc_mem_detach(&mctx);
@@ -4739,11 +4788,30 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	result = isc_ratelimiter_setinterval(zmgr->rl, &interval);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_ratelimiter_setpertic(zmgr->rl, 10);
+
+	zmgr->iolimit = 1;
+	zmgr->ioactive = 0;
+	ISC_LIST_INIT(zmgr->high);
+	ISC_LIST_INIT(zmgr->low);
+
+	result = isc_mutex_init(&zmgr->iolock);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init() failed: %s",
+				 isc_result_totext(result));
+		goto free_rl;
+	}
 	zmgr->magic = ZONEMGR_MAGIC;
 
 	*zmgrp = zmgr;
 	return (ISC_R_SUCCESS);
 
+#if 0
+ free_iolock:
+	DESTROYLOCK(&zmgr->iolock);
+#endif
+ free_rl:
+	isc_ratelimiter_detach(&zmgr->rl);
  free_task:
 	isc_task_detach(&zmgr->task);
  free_taskpool:
@@ -4900,6 +4968,7 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	zmgr->magic = 0;
 
+	DESTROYLOCK(&zmgr->iolock);
 	isc_ratelimiter_detach(&zmgr->rl);
 
 	isc_rwlock_destroy(&zmgr->conflock);
@@ -5086,6 +5155,134 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	return (ISC_R_SUCCESS);
 }
+
+void
+dns_zonemgr_setiolimit(dns_zonemgr_t *zmgr, isc_uint32_t iolimit) {
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(iolimit > 0);
+
+	zmgr->iolimit = iolimit;
+}
+
+isc_uint32_t
+dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr) {
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	return (zmgr->iolimit);
+}
+
+/*
+ * Get permission to request a file handle from the OS.
+ * An event will be sent to action when one is available.
+ * There are two queues available (high and low), the high
+ * queue will be serviced before the low one.
+ * 
+ * zonemgr_putio() must be called after the event is delivered to
+ * 'action'.
+ */
+
+static isc_result_t
+zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
+	      isc_task_t *task, isc_taskaction_t action, void *arg,
+	      dns_io_t **iop)
+{
+	dns_io_t *io;
+	isc_boolean_t queue;
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(iop != NULL && *iop == NULL);
+
+	io = isc_mem_get(zmgr->mctx, sizeof(*io));
+	if (io == NULL)
+		return (ISC_R_NOMEMORY);
+	io->event = isc_event_allocate(zmgr->mctx, task, DNS_EVENT_IOREADY,
+				       action, arg, sizeof(io->event));
+	if (io->event == NULL) {
+		isc_mem_put(zmgr->mctx, io, sizeof(*io));
+		return (ISC_R_NOMEMORY);
+	}
+        io->zmgr = zmgr;
+        io->high = high; 
+        io->task = NULL;
+	isc_task_attach(task, &io->task);
+	ISC_LINK_INIT(io, link); 
+	io->magic = IO_MAGIC;
+
+	LOCK(&zmgr->iolock);
+	zmgr->ioactive++;
+	queue = ISC_TF(zmgr->ioactive > zmgr->iolimit);
+	if (queue)
+		ISC_LIST_APPEND(io->high ? zmgr->high : zmgr->low, io, link);
+	UNLOCK(&zmgr->iolock);
+	*iop = io;
+
+	if (!queue) {
+		isc_task_send(io->task, &io->event);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static void
+zonemgr_putio(dns_io_t **iop) {
+	dns_io_t *io;
+	dns_io_t *next;
+	dns_zonemgr_t *zmgr;
+
+	REQUIRE(iop != NULL);
+	io = *iop;
+	REQUIRE(DNS_IO_VALID(io));
+
+	*iop = NULL;
+
+	INSIST(!ISC_LINK_LINKED(io, link));
+	INSIST(io->event == NULL);
+
+	zmgr = io->zmgr;
+	isc_task_detach(&io->task);
+	io->magic = 0;
+	isc_mem_put(zmgr->mctx, io, sizeof(*io));
+
+	LOCK(&zmgr->iolock);
+	INSIST(zmgr->ioactive > 0);
+	zmgr->ioactive--;
+	next = HEAD(zmgr->high);
+	if (next == NULL)
+		next = HEAD(zmgr->low);
+	if (next != NULL) {
+		ISC_LIST_UNLINK(next->high ? zmgr->high : zmgr->low,
+			        next, link);
+		INSIST(next->event != NULL);
+	}
+	UNLOCK(&zmgr->iolock);
+	if (next != NULL)
+		isc_task_send(next->task, &next->event);
+}
+
+static void
+zonemgr_cancelio(dns_io_t *io) {
+	isc_boolean_t send_event = ISC_FALSE;
+
+	REQUIRE(DNS_IO_VALID(io));
+
+	/*
+	 * If we are queued to be run then dequeue.
+	 */
+	LOCK(&io->zmgr->iolock);
+	if (ISC_LINK_LINKED(io, link)) {
+		ISC_LIST_UNLINK(io->high ? io->zmgr->high : io->zmgr->low,
+				io, link);
+		send_event = ISC_TRUE;
+		INSIST(io->event != NULL);
+	} 
+	UNLOCK(&io->zmgr->iolock);
+	if (send_event) {
+		io->event->ev_attributes |= ISC_EVENTATTR_CANCELED;
+		isc_task_send(io->task, &io->event);
+	}
+}
+
 
 #if 0
 /* Hook for ondestroy notifcation from a database. */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.74 2000/09/11 13:26:20 marka Exp $ */
+/* $Id: zone.h,v 1.75 2000/09/26 05:08:05 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1135,6 +1135,28 @@ dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
  * Requires:
  *	'zmgr' to be a valid zone manager.
  */
+
+void
+dns_zonemgr_setiolimit(dns_zonemgr_t *zmgr, isc_uint32_t iolimit);
+/*
+ *	Set the number of simultaneous file descriptors available for 
+ *	reading and writing masterfiles.
+ *
+ * Requires:
+ *	'zmgr' to be a valid zone manager.
+ *	'iolimit' to be positive.
+ */
+
+isc_uint32_t
+dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
+/*
+ *	Get the number of simultaneous file descriptors available for 
+ *	reading and writing masterfiles.
+ *
+ * Requires:
+ *	'zmgr' to be a valid zone manager.
+ */
+
 
 ISC_LANG_ENDDECLS
 

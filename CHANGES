@@ -1,3 +1,5 @@
+ 489.	[func]		The zone manager now has a "i/o" queue.
+
  488.	[bug]		Locks weren't properly destroyed in some cases.
 
  487.	[port]		flockfile() is not defined on all systems.
