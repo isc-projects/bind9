@@ -106,7 +106,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h.in,v 1.12 2000/02/03 02:17:07 marka Exp $
+ *	$Id: netdb.h.in,v 1.13 2000/02/03 02:21:18 marka Exp $
  */
 
 #include <stdio.h>
@@ -391,7 +391,7 @@ struct servent	*getservent_r __P((struct servent *, char *, int));
 void		setservent_r __P((int));
 void		endservent_r __P((void));
 #endif
-LWRES_LANG_BEGINDECLS
+LWRES_LANG_ENDDECLS
 
 /* This is nec'y to make this include file properly replace the sun version. */
 #ifdef sun
