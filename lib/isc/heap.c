@@ -48,12 +48,12 @@
 
 /*
  * When the heap is in a consistent state, the following invariant
- * holds true: for every element i > 1, heap_parent(i) has a higher
- * priority than i.
+ * holds true: for every element i > 1, heap_parent(i) has a priority
+ * higher than or equal to that of i.
  */
 #define HEAPCONDITION(i) ((i) == 1 || \
-			  heap->compare(heap->array[heap_parent(i)], \
-					heap->array[(i)]))
+			  ! heap->compare(heap->array[(i)], \
+					  heap->array[heap_parent(i)]))
 
 struct isc_heap {
 	unsigned int			magic;
