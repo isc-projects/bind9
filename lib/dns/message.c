@@ -56,13 +56,6 @@
 #define RDATASET_COUNT		 32
 
 /*
- * internal state stuff.
- */
-#define TO_FROM_UNKNOWN		0
-#define TO_FROM_FROMWIRE	1
-#define TO_FROM_TOWIRE		2
-
-/*
  * "helper" type, which consists of a block of some type, and is linkable.
  * For it to work, sizeof(dns_msgblock_t) must be a multiple of the pointer
  * size, or the allocated elements will not be alligned correctly.
@@ -946,6 +939,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
 
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(source != NULL);
+	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENT_PARSE);
 
 	isc_buffer_remaining(source, &r);
 	if (r.length < DNS_MESSAGE_HEADER_LEN)
@@ -999,6 +993,7 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer)
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(buffer != NULL);
 	REQUIRE(msg->buffer == NULL);
+	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENT_RENDER);
 
 	/*
 	 * Erase the contents of this buffer.
@@ -1189,6 +1184,7 @@ dns_message_movename(dns_message_t *msg, dns_name_t *name,
 		     dns_section_t tosection)
 {
 	REQUIRE(msg != NULL);
+	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENT_RENDER);
 	REQUIRE(name != NULL);
 	REQUIRE(VALID_NAMED_SECTION(fromsection));
 	REQUIRE(VALID_NAMED_SECTION(tosection));
@@ -1206,6 +1202,7 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
 		    dns_section_t section)
 {
 	REQUIRE(msg != NULL);
+	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENT_RENDER);
 	REQUIRE(name != NULL);
 	REQUIRE(VALID_NAMED_SECTION(section));
 
