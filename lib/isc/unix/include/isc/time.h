@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: time.h,v 1.20 2000/06/22 21:59:01 tale Exp $ */
+/* $Id: time.h,v 1.21 2000/06/30 22:40:30 tale Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -224,6 +224,9 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2);
  * Requires:
  *
  *	't1' and 't2' are valid pointers.
+ *
+ * Returns:
+ *	The difference of t1 - t2, or 0 if t1 <= t2.
  */
 
 isc_uint32_t
