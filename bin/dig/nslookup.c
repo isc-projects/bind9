@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.67 2000/12/08 17:06:50 mws Exp $ */
+/* $Id: nslookup.c,v 1.68 2000/12/08 18:25:54 mws Exp $ */
 
 #include <config.h>
 
@@ -150,11 +150,6 @@ static const char *rtypetext[] = {
 
 static void flush_lookup_list(void);
 static void getinput(isc_task_t *task, isc_event_t *event);
-
-static void
-show_usage(void) {
-	fputs("Usage:\n", stderr);
-}
 
 void
 dighost_shutdown(void) {
@@ -870,11 +865,6 @@ parse_args(int argc, char **argv) {
 	for (argc--, argv++; argc > 0; argc--, argv++) {
 		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
-			if ((argv[0][1] == 'h') &&
-			    (argv[0][2] == 0)) {
-				show_usage();
-				exit (1);
-			}
 			if (argv[0][1] != 0)
 				setoption(&argv[0][1]);
 			else
