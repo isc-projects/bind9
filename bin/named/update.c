@@ -296,7 +296,7 @@ foreach_rr(dns_db_t *db,
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, type, covers,
-				     (isc_stdtime_t) 0, &rdataset);
+				     (isc_stdtime_t) 0, &rdataset, NULL);
 	if (result == DNS_R_NOTFOUND) {
 		result = DNS_R_SUCCESS;
 		goto cleanup_node;
@@ -660,7 +660,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			dns_rdataset_init(&rdataset);
 			result = dns_db_findrdataset(db, node, ver, type,
 						     covers, (isc_stdtime_t) 0,
-						     &rdataset);
+						     &rdataset, NULL);
 			if (result != DNS_R_SUCCESS) {
 				dns_db_detachnode(db, &node);
 				return (DNS_R_NXRRSET);

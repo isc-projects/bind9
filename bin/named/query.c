@@ -408,6 +408,29 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	return (result);
 }
 
+static inline isc_boolean_t
+query_isduplicate(ns_client_t *client, dns_name_t *name,
+		  dns_rdatatype_t type)
+{
+	dns_section_t section;
+	dns_name_t *mname;
+
+	for (section = DNS_SECTION_ANSWER;
+	     section <= DNS_SECTION_ADDITIONAL;
+	     section++) {
+		mname = NULL;
+		if (dns_message_findname(client->message, section,
+					 name, type, 0, &mname, NULL) ==
+		    ISC_R_SUCCESS) {
+			/*
+			 * We've already got this RRset in the response.
+			 */
+			return (ISC_TRUE);
+		}
+	}
+
+	return (ISC_FALSE);
+}
 
 static isc_result_t
 query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
@@ -415,9 +438,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	isc_result_t result, eresult;
 	dns_dbnode_t *node;
 	dns_db_t *db;
-	dns_name_t *fname, *mname;
-	dns_rdataset_t *rdataset, *sigrdataset;
-	dns_section_t section;
+	dns_name_t *fname;
+	dns_rdataset_t *rdataset, *sigrdataset, *a6rdataset;
 	isc_buffer_t *dbuf;
 	isc_buffer_t b;
 	dns_dbversion_t *version;
@@ -438,6 +460,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	fname = NULL;
 	rdataset = NULL;
 	sigrdataset = NULL;
+	a6rdataset = NULL;
 	db = NULL;
 	version = NULL;
 	node = NULL;
@@ -485,35 +508,88 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		goto cleanup;
 	}
 
-	/*
-	 * Suppress duplicates.
-	 */
-	for (section = DNS_SECTION_ANSWER;
-	     section <= DNS_SECTION_ADDITIONAL;
-	     section++) {
-		mname = NULL;
-		result = dns_message_findname(client->message, section,
-					      fname, type, 0, &mname, NULL);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * We've already got this RRset in the response.
-			 */
-			goto cleanup;
+	query_keepname(client, fname, dbuf);
+
+	if (!query_isduplicate(client, fname, type)) {
+		ISC_LIST_APPEND(fname->list, rdataset, link);
+		rdataset = NULL;
+		/*
+		 * Note: we only add SIGs if we've added the type they cover,
+		 * so we do not need to check if the SIG rdataset is already
+		 * in the response.
+		 */
+		if (sigrdataset->methods != NULL) {
+			ISC_LIST_APPEND(fname->list, sigrdataset, link);
+			sigrdataset = NULL;
 		}
 	}
-	query_keepname(client, fname, dbuf);
-	ISC_LIST_APPEND(fname->list, rdataset, link);
-	rdataset = NULL;
-	/*
-	 * Note: we only add SIGs if we've added the type they cover, so
-	 * we do not need to check if the SIG rdataset is already in the
-	 * response.
-	 */
-	if (sigrdataset->methods != NULL) {
-		ISC_LIST_APPEND(fname->list, sigrdataset, link);
-		sigrdataset = NULL;
+
+	if (type == dns_rdatatype_a) {
+		/*
+		 * We treat type A additional section processing as if it
+		 * were "any address type" additional section processing.
+		 *
+		 * We now go looking for A6 and AAAA records, along with
+		 * their signatures.
+		 *
+		 * XXXRTH  This code could be more efficient.
+		 */
+		if (rdataset != NULL) {
+			if (rdataset->methods != NULL)
+				dns_rdataset_disassociate(rdataset);
+		} else {
+			rdataset = query_newrdataset(client);
+			if (rdataset == NULL)
+				goto addname;
+		}	
+		if (sigrdataset != NULL) {
+			if (sigrdataset->methods != NULL)
+				dns_rdataset_disassociate(sigrdataset);
+		} else {
+			sigrdataset = query_newrdataset(client);
+			if (sigrdataset == NULL)
+				goto addname;
+		}	
+		result = dns_db_findrdataset(db, node, version,
+					     dns_rdatatype_a6, 0,
+					     client->requesttime, rdataset,
+					     sigrdataset);
+		if (result == ISC_R_SUCCESS) {
+			if (!query_isduplicate(client, fname,
+					       dns_rdatatype_a6)) {
+				a6rdataset = rdataset;
+				ISC_LIST_APPEND(fname->list, rdataset, link);
+				if (sigrdataset->methods != NULL) {
+					ISC_LIST_APPEND(fname->list,
+							sigrdataset, link);
+					sigrdataset =
+						query_newrdataset(client);
+				}
+				rdataset = query_newrdataset(client);
+				if (rdataset == NULL || sigrdataset == NULL)
+					goto addname;
+			} else
+				dns_rdataset_disassociate(rdataset);
+		}
+		result = dns_db_findrdataset(db, node, version,
+					     dns_rdatatype_aaaa, 0,
+					     client->requesttime, rdataset,
+					     sigrdataset);
+		if (result == ISC_R_SUCCESS) {
+			if (!query_isduplicate(client, fname,
+					       dns_rdatatype_aaaa)) {
+				ISC_LIST_APPEND(fname->list, rdataset, link);
+				if (sigrdataset->methods != NULL) {
+					ISC_LIST_APPEND(fname->list,
+							sigrdataset, link);
+					sigrdataset = NULL;
+				}
+				rdataset = NULL;
+			}
+		}
 	}
 
+ addname:
 	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
 	fname = NULL;
 
@@ -550,6 +626,14 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 						      client);
 	}
 
+	/*
+	 * If we added an A6 rdataset, we should also add everything we
+	 * know about the A6 chains.  We wait until now to do this so that
+	 * they'll come after any additional data added above.
+	 */
+	if (a6rdataset != NULL)
+		dns_a6_foreach(&client->query.a6ctx, a6rdataset);
+
  cleanup:
 	if (sigrdataset != NULL) {
 		if (sigrdataset->methods != NULL)
@@ -578,9 +662,7 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 	ns_client_t *client = arg;
 	dns_rdataset_t *crdataset, *csigrdataset;
 	isc_buffer_t b, *dbuf;
-	dns_name_t *fname, *mname;
-	dns_section_t section;
-	isc_result_t result;
+	dns_name_t *fname;
 
 	/*
 	 * Add an rrset to the additional data section.
@@ -610,23 +692,8 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 	if (sigrdataset->methods != NULL)
 		dns_rdataset_clone(sigrdataset, csigrdataset);
 
-	/*
-	 * Suppress duplicates.
-	 */
-	for (section = DNS_SECTION_ANSWER;
-	     section <= DNS_SECTION_ADDITIONAL;
-	     section++) {
-		mname = NULL;
-		result = dns_message_findname(client->message, section,
-					      fname, crdataset->type, 0,
-					      &mname, NULL);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * We've already got this RRset in the response.
-			 */
-			goto cleanup;
-		}
-	}
+	if (query_isduplicate(client, fname, crdataset->type))
+		goto cleanup;
 	query_keepname(client, fname, dbuf);
 	ISC_LIST_APPEND(fname->list, crdataset, link);
 	crdataset = NULL;
