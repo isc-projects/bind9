@@ -43,4 +43,14 @@ typedef unsigned int				dns_rdataclass_t;
 typedef unsigned int				dns_rdatatype_t;
 typedef struct dns_rdata			dns_rdata_t;
 
+typedef enum {
+	dns_labeltype_ordinary = 0,
+	dns_labeltype_bitstring = 1
+} dns_labeltype_t;
+
+typedef enum {
+	dns_bitlabel_0 = 0,
+	dns_bitlabel_1 = 1
+} dns_bitlabel_t;
+
 #endif /* DNS_TYPES_H */
