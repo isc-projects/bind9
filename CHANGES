@@ -1,5 +1,6 @@
 
  748.	[doc]		List supported RFCs in doc/misc/rfc-compliance.
+			[RT #781]
 
  747.	[bug]		The code to determine whether an IXFR was possible
 			did not properly check for a database that could
