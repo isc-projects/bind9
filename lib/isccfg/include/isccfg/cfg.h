@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.7 2001/02/22 00:36:26 gson Exp $ */
+/* $Id: cfg.h,v 1.8 2001/02/22 01:40:53 bwelling Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -190,6 +190,18 @@ cfg_obj_asstring(cfg_obj_t *obj);
  *
  * Returns:
  *      A pointer to a null terminated string.
+ */
+
+isc_boolean_t
+cfg_obj_asboolean(cfg_obj_t *obj);
+/*
+ * Returns the value of a configuration object of a boolean type.
+ *
+ * Requires:
+ *      'obj' points to a valid configuration object of a boolean type.
+ *
+ * Returns:
+ *      A boolean value.
  */
 
 cfg_listelt_t *

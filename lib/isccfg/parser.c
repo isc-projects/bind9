@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.12 2001/02/22 00:36:24 gson Exp $ */
+/* $Id: parser.c,v 1.13 2001/02/22 01:40:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1566,6 +1566,12 @@ char *
 cfg_obj_asstring(cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_string);
 	return (obj->value.string.base);
+}
+
+isc_boolean_t
+cfg_obj_asboolean(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_boolean);
+	return (obj->value.boolean);
 }
 
 /* Quoted string only */
