@@ -225,6 +225,12 @@ dns_keynode_key(dns_keynode_t *keynode);
  * Get the DST key associated with keynode.
  */
 
+dns_keynode_t *
+dns_keynode_next(dns_keynode_t *keynode);
+/*
+ * Get the next keynode in the list.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_KEYTABLE_H */

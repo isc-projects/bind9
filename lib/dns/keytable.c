@@ -372,3 +372,15 @@ dns_keynode_key(dns_keynode_t *keynode) {
 
 	return (keynode->key);
 }
+
+dns_keynode_t *
+dns_keynode_next(dns_keynode_t *keynode) {
+
+	/*
+	 * Get the next keynode in the list.
+	 */
+
+	REQUIRE(VALID_KEYNODE(keynode));
+
+	return (keynode->next);
+}
