@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bitstring.c,v 1.9 2000/09/12 23:27:44 gson Exp $ */
+/* $Id: bitstring.c,v 1.10 2000/09/13 00:11:29 halley Exp $ */
 
 #include <config.h>
 
@@ -89,6 +89,7 @@ isc_bitstring_copy(isc_bitstring_t *source, unsigned int sbitpos,
 
 	REQUIRE(VALID_BITSTRING(source));
 	REQUIRE(VALID_BITSTRING(target));
+	REQUIRE(source->lsb0 == target->lsb0);
 	if (source->lsb0) {
 		REQUIRE(sbitpos <= source->length);
 		sbitpos = PADDED(source->size) - sbitpos;

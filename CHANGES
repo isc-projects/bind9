@@ -1,3 +1,8 @@
+ 449.	[bug]		isc_bitstring_copy() only works correctly if the
+			two bitstrings have the same lsb0 value, but this
+			requirement was not documented, nor was there a
+			REQUIRE for it.
+
  448.   [bug]		Host output formatting change, to match v8. [RT #255]
 
  447.   [bug]		Dig didn't properly retry in TCP mode after

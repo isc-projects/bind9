@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bitstring.h,v 1.5 2000/08/01 01:30:00 tale Exp $ */
+/* $Id: bitstring.h,v 1.6 2000/09/13 00:11:30 halley Exp $ */
 
 #ifndef ISC_BITSTRING_H
 #define ISC_BITSTRING_H 1
@@ -23,6 +23,45 @@
 /*****
  ***** Module Info
  *****/
+
+/*
+ * Bitstring
+ *
+ * A bitstring is a packed array of bits, stored in a contiguous
+ * sequence of octets.  The "most significant bit" (msb) of a bitstring
+ * is the high bit of the first octet.  The "least significant bit" of a
+ * bitstring is the low bit of the last octet.
+ *
+ * Two bit numbering schemes are supported, "msb0" and "lsb0".
+ *
+ * In the "msb0" scheme, bit number 0 designates the most significant bit,
+ * and any padding bits required to make the bitstring a multiple of 8 bits
+ * long are added to the least significant end of the last octet.
+ *
+ * In the "lsb0" scheme, bit number 0 designates the least significant bit,
+ * and any padding bits required to make the bitstring a multiple of 8 bits
+ * long are added to the most significant end of the first octet.
+ *
+ * E.g., consider the bitstring "11010001111".  This bitstring is 11 bits
+ * long and will take two octets.  Let "p" denote a pad bit.  In the msb0
+ * encoding, it would be
+ *
+ *             Octet 0           Octet 1
+ *                         |
+ *         1 1 0 1 0 0 0 1 | 1 1 1 p p p p p
+ *         ^               |               ^
+ *         |                               |
+ *         bit 0                           bit 15
+ *
+ * In the lsb0 encoding, it would be
+ *
+ *             Octet 0           Octet 1
+ *                         |
+ *         p p p p p 1 1 0 | 1 0 0 0 1 1 1 1 
+ *         ^               |               ^
+ *         |                               |
+ *         bit 15                          bit 0
+ */
 
 /***
  *** Imports
@@ -96,7 +135,7 @@ isc_bitstring_copy(isc_bitstring_t *source, unsigned int sbitpos,
  *
  * Requires:
  *
- *	'source' and target are valid bitstring.
+ *	'source' and target are valid bitstrings with the same lsb0 setting.
  *
  *	'sbitpos' + 'n' is less than or equal to the length of 'source'.
  *
