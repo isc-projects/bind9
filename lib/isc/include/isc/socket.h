@@ -86,7 +86,6 @@ struct isc_socketevent {
 	unsigned int		n;		/* bytes read or written */
 	isc_region_t		region;		/* the region info */
 	isc_sockaddr_t		address;	/* source address */
-	unsigned int		addrlength;	/* length of address */
 };
 
 typedef struct isc_socket_newconnev isc_socket_newconnev_t;
@@ -95,7 +94,6 @@ struct isc_socket_newconnev {
 	isc_socket_t *		newsocket;
 	isc_result_t		result;		/* OK, EOF, whatever else */
 	isc_sockaddr_t		address;	/* source address */
-	unsigned int		addrlength;	/* length of address */
 };
 
 typedef struct isc_socket_connev {
@@ -273,8 +271,7 @@ isc_socket_detach(isc_socket_t **socketp);
  */
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp,
-		int length);
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp);
 /*
  * Bind 'socket' to '*addressp'.
  *
@@ -283,8 +280,6 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp,
  *	'socket' is a valid socket
  *
  *	'addressp' points to a valid isc_sockaddr.
- *
- *	'length' is approprate for the isc_sockaddr type.
  *
  * Returns:
  *
@@ -345,7 +340,7 @@ isc_socket_accept(isc_socket_t *sock,
 
 isc_result_t
 isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addressp,
-		   int length, isc_task_t *task, isc_taskaction_t action,
+		   isc_task_t *task, isc_taskaction_t action,
 		   void *arg);
 /*
  * Connect 'socket' to peer with address *saddr.  When the connection
@@ -357,8 +352,6 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addressp,
  *	'socket' is a valid TCP socket
  *
  *	'addressp' points to a valid isc_sockaddr
- *
- *	'length' is approprate for the isc_sockaddr type
  *
  *	'task' is a valid task
  *
@@ -380,16 +373,13 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addressp,
  */
 
 isc_result_t
-isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp,
-		       int *lengthp);
+isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp);
 /*
  * Get the name of the peer connected to 'socket'.
  *
  * Requires:
  *
  *	'socket' is a valid TCP socket.
- *
- *	'addressp' points to '*lengthp' bytes.
  *
  * Returns:
  *
@@ -399,16 +389,13 @@ isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp,
  */
 
 isc_result_t
-isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp,
-		       int *lengthp);
+isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp);
 /*
  * Get the name of 'socket'.
  *
  * Requires:
  *
  *	'socket' is a valid socket.
- *
- *	'addressp' points to '*lengthp' bytes.
  *
  * Returns:
  *
@@ -471,7 +458,7 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t *address, unsigned int addrlength);
+		  isc_sockaddr_t *address);
 /*
  * Send the contents of 'region' to the socket's peer.
  *
