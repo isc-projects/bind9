@@ -164,6 +164,7 @@ Building
 		OpenBSD 2.6, 2.8, -current
 		UnixWare 7.1.1
 		HP-UX 10.20
+		BSD/OS 4.2
 
 	To build, just
 
