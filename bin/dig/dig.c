@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.182 2003/07/25 00:01:03 marka Exp $ */
+/* $Id: dig.c,v 1.183 2003/07/25 04:02:54 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1138,8 +1138,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (value_from_next);
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
-		if (get_reverse(textname, value, ip6_int, ISC_FALSE)
-		    == ISC_R_SUCCESS)
+		if (get_reverse(textname, sizeof(textname), value,
+				ip6_int, ISC_FALSE) == ISC_R_SUCCESS)
 		{
 			strncpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));

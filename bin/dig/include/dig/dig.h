@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.80 2003/07/17 07:42:00 marka Exp $ */
+/* $Id: dig.h,v 1.81 2003/07/25 04:02:54 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -191,7 +191,7 @@ void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
 
 isc_result_t
-get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
+get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 	    isc_boolean_t strict);
 
 void

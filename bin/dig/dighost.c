@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.256 2003/07/17 07:42:00 marka Exp $ */
+/* $Id: dighost.c,v 1.257 2003/07/25 04:02:54 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -238,7 +238,7 @@ reverse_octets(const char *in, char **p, char *end) {
 }
 
 isc_result_t
-get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
+get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 	    isc_boolean_t strict)
 {
 	int r;
@@ -260,7 +260,7 @@ get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 		result = dns_byaddr_createptrname2(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		dns_name_format(name, reverse, MXNAME);
+		dns_name_format(name, reverse, len);
 		return (ISC_R_SUCCESS);
 	} else {
 		/*
@@ -272,7 +272,7 @@ get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 		 * and such.
 		 */
 		char *p = reverse;
-		char *end = reverse + MXNAME;
+		char *end = reverse + len;
 		if (strict && inet_pton(AF_INET, value, &addr.type.in) != 1)
 			return (DNS_R_BADDOTTEDQUAD);
 		result = reverse_octets(value, &p, end);

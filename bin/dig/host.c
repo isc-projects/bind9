@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.92 2003/06/24 05:10:31 marka Exp $ */
+/* $Id: host.c,v 1.93 2003/07/25 04:02:54 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -680,8 +680,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 
 	lookup->pending = ISC_FALSE;
-	if (get_reverse(store, hostname, lookup->ip6_int, ISC_TRUE)
-	    == ISC_R_SUCCESS) 
+	if (get_reverse(store, sizeof(store), hostname,
+			lookup->ip6_int, ISC_TRUE) == ISC_R_SUCCESS) 
 	{
 		strncpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1] = 0;
