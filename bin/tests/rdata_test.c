@@ -29,6 +29,7 @@
 #include <isc/util.h>
 
 #include <dns/rdata.h>
+#include <dns/result.h>
 #include <dns/compress.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
