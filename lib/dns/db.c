@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.71 2003/09/30 05:56:10 marka Exp $ */
+/* $Id: db.c,v 1.72 2003/10/03 03:12:35 marka Exp $ */
 
 /***
  *** Imports
@@ -428,7 +428,6 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(dns_name_issubdomain(name, &db->origin));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	return ((db->methods->findnode)(db, name, create, nodep));

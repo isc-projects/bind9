@@ -1,3 +1,6 @@
+1522.	[bug]		dns_db_findnode() relax the requirements on 'name'.
+			[RT# 9286]
+
 1521.	[bug]		dns_view_createresolver() failed to check the
 			result from isc_mem_create(). [RT# 9294]
 
