@@ -1,3 +1,5 @@
+1105.	[port]		OpenUNIX 8 enable threads by default. [RT #1970]
+
 1080.	[bug]		BIND 8 compatibility: accept bare IP prefixes
 			as the second element of a two-element top level
 			sort list statement. [RT #1964]
