@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: isc-config.sh.in,v 1.12 2003/04/15 23:56:41 marka Exp $
+# $Id: isc-config.sh.in,v 1.13 2003/04/15 23:59:27 marka Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -123,6 +123,9 @@ if test x"$echo_libs" = x"true"; then
 	libs=-L${exec_prefix}/lib
 	if test x"$liblwres" = x"true" ; then
 		libs="$libs -llwres"
+	fi
+	if test x"$libbind9" = x"true" ; then
+		libs="$libs -lbind9"
 	fi
 	if test x"$libdns" = x"true" ; then
 		libs="$libs -ldns @DNS_CRYPTO_LIBS@"
