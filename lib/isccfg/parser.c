@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.8 2001/11/05 23:22:21 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.9 2001/11/13 02:52:10 marka Exp $ */
 
 #include <config.h>
 
@@ -858,7 +858,6 @@ options_clauses[] = {
 static cfg_clausedef_t
 view_clauses[] = {
 	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
-	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
@@ -912,6 +911,7 @@ static cfg_clausedef_t
 zone_clauses[] = {
 	{ "allow-query", &cfg_type_bracketed_aml, 0 },
 	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
+	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "notify", &cfg_type_notifytype, 0 },
 	{ "also-notify", &cfg_type_portiplist, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
@@ -942,7 +942,6 @@ static cfg_clausedef_t
 zone_only_clauses[] = {
 	{ "type", &cfg_type_zonetype, 0 },
 	{ "allow-update", &cfg_type_bracketed_aml, 0 },
-	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "file", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
