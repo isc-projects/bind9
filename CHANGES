@@ -1,3 +1,7 @@
+ 120.   [cleanup]       <isc/socket.h> does not need <isc/boolean.h>,
+                        <isc/bufferlist.h>, <isc/task.h>, <isc/mem.h> or
+                        <isc/net.h>.
+
  119.	[cleanup]	structure definitions for generic rdata stuctures do
 			not have _generic_ in their names.
 

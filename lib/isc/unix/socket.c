@@ -32,13 +32,15 @@
 
 #include <isc/assertions.h>
 #include <isc/buffer.h>
+#include <isc/bufferlist.h>
 #include <isc/condition.h>
 #include <isc/error.h>
 #include <isc/list.h>
-#include <isc/mutex.h>
+#include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/region.h>
 #include <isc/socket.h>
+#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 

@@ -27,6 +27,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/events.h>

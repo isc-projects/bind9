@@ -25,12 +25,13 @@
 
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/interfaceiter.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/result.h>
 #include <isc/socket.h>
+#include <isc/task.h>
 #include <isc/types.h>
-#include <isc/net.h>
-#include <isc/interfaceiter.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>

@@ -61,16 +61,10 @@
 
 #include <isc/lang.h>
 #include <isc/types.h>
-#include <isc/boolean.h>
-#include <isc/bufferlist.h>
-#include <isc/result.h>
 #include <isc/event.h>
 #include <isc/eventclass.h>
-#include <isc/task.h>
 #include <isc/time.h>
 #include <isc/region.h>
-#include <isc/mem.h>
-#include <isc/net.h>
 #include <isc/sockaddr.h>
 
 ISC_LANG_BEGINDECLS

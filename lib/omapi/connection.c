@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.22 2000/04/28 02:08:15 tale Exp $ */
+/* $Id: connection.c,v 1.23 2000/04/28 03:53:48 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -30,6 +30,7 @@
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>
+#include <isc/bufferlist.h>
 #include <isc/error.h>
 #include <isc/netdb.h>
 
