@@ -1,3 +1,6 @@
+1468.	[func]		Internal zones are nolonger for 'rndc status'.
+			[RT #4706]
+
 1467.	[func]		$GENERATES now supports optional class and ttl.
 			
 1466.	[bug]		lwresd configuration errors resulted in memory

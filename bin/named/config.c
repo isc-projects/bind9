@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.41 2003/02/27 05:12:47 marka Exp $ */
+/* $Id: config.c,v 1.42 2003/04/17 12:11:39 marka Exp $ */
 
 #include <config.h>
 
@@ -153,6 +153,9 @@ options {\n\
 	ixfr-from-differences false;\n\
 };\n\
 \n\
+#\n\
+#  Zones in the \"_bind\" view are NOT counted is the count of zones.\n\
+#\n\
 view \"_bind\" chaos {\n\
 	recursion no;\n\
 \n\
