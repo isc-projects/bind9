@@ -2857,7 +2857,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	isc_boolean_t force = ISC_FALSE;
 	isc_boolean_t header_nx;
 	isc_boolean_t newheader_nx;
-	dns_rdatatype_t nxtype;
+	dns_rdatatype_t nxtype, rdtype, covers;
 
 	/*
 	 * Add an rdatasetheader_t to a node.
@@ -2881,17 +2881,17 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	}
 
 	newheader_nx = NONEXISTENT(newheader) ? ISC_TRUE : ISC_FALSE;
+	topheader_prev = NULL;
 
 	nxtype = 0;
-#ifdef notyet
-	if (rbtversion == NULL) {
-		if (RBTDB_RDATASET_BASE(newheader->type) == 0
-		    && !newheader_nx) {
+	if (rbtversion == NULL && !newheader_nx) {
+		rdtype = RBTDB_RDATATYPE_BASE(newheader->type);
+		if (rdtype == 0) {
 			/*
 			 * We're adding a negative cache entry.
 			 */
-			if (RBTDB_RDATASET_EXT(newheader->type) ==
-			    dns_rdatatype_any) {
+			covers = RBTDB_RDATATYPE_EXT(newheader->type);
+			if (covers == dns_rdatatype_any) {
 				/*
 				 * We're adding an NXDOMAIN negative cache
 				 * entry.
@@ -2910,12 +2910,51 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				rbtnode->dirty = 1;
 				goto find_header;
 			}
-			nxtype = ;
+			nxtype = RBTDB_RDATATYPE_VALUE(covers, 0);
+		} else {
+			/*
+			 * We're adding something that isn't a
+			 * negative cache entry.  Look for an extant
+			 * non-stale NXDOMAIN negative cache entry.
+			 */
+			for (topheader = rbtnode->data;
+			     topheader != NULL;
+			     topheader = topheader->next) {
+				if (topheader->type ==
+				    RBTDB_RDATATYPE_NXDOMAIN)
+					break;
+			}
+			if (topheader != NULL && EXISTS(topheader) &&
+			    topheader->ttl > now) {
+				/*
+				 * Found one.
+				 */
+				if (newheader->trust < topheader->trust) {
+					/*
+					 * The NXDOMAIN is more trusted.
+					 */
+					free_rdataset(rbtdb->common.mctx,
+						      newheader);
+					if (addedrdataset != NULL)
+						bind_rdataset(rbtdb, rbtnode,
+							      topheader, now,
+							      addedrdataset);
+					return (DNS_R_UNCHANGED);
+				}
+				/*
+				 * The new rdataset is better.  Expire the
+				 * NXDOMAIN.
+				 */
+				topheader->ttl = 0;
+				topheader->attributes |= RDATASET_ATTR_STALE;
+				rbtnode->dirty = 1;
+				topheader = NULL;
+				goto find_header;
+			}
+			nxtype = RBTDB_RDATATYPE_VALUE(0, rdtype);
 		}
 	}
-#endif
 
-	topheader_prev = NULL;
 	for (topheader = rbtnode->data;
 	     topheader != NULL;
 	     topheader = topheader->next) {
@@ -2924,9 +2963,8 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			break;
 		topheader_prev = topheader;
 	}
-#ifdef notyet
+
  find_header:
-#endif
 	/*
 	 * If header isn't NULL, we've found the right type.  There may be
 	 * IGNORE rdatasets between the top of the chain and the first real
@@ -2948,9 +2986,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 
 		/*
 		 * Trying to add an rdataset with lower trust to a cache DB
-		 * has no effect.
+		 * has no effect, provided that the cache data isn't stale.
 		 */
-		if (rbtversion == NULL && newheader->trust < header->trust) {
+		if (rbtversion == NULL && newheader->trust < header->trust &&
+		    (header->ttl > now || header_nx)) {
 			free_rdataset(rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
