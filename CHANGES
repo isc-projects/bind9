@@ -1,4 +1,8 @@
-1841.	[port]		cmsg_len() could produce incorrect results on
+1843.	[cleanup]	CINCLUDES takes precedence over CFLAGS.  This helps
+			when CFLAGS contains "-I /usr/local/include"
+			resulting in old header files being used.
+
+1842.	[port]		cmsg_len() could produce incorrect results on
 			some platform. [RT #13744]
 
 1841.	[placeholder]	rt13694
