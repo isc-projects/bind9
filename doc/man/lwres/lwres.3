@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres.3,v 1.3 2000/08/01 01:20:24 tale Exp $
+.\" $Id: lwres.3,v 1.4 2000/09/06 21:54:23 explorer Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES 3
@@ -278,6 +278,51 @@ resolver daemon,
 It listens on port number 921 of the loopback interface and expects to
 receive packets in the lightweight resolver's canonical format
 described above.
+.Sh LIBRARY FLOW
+A typical client-side call flow consists of:
+.Pp
+(1) Allocate or use an existing lwres_packet_t, called "pkt" below.
+.Pp
+(2) Set the recvlength to the maximum length we will accept.  This is done
+so the receiver of our packets knows how large our receive buffer is.  The
+"default" is a constant in lwres.h:  LWRES_RECVLENGTH = 4096.
+.Pp
+(3) Set the pkt.serial to the next serial number.  This value is echoed
+back to the application by the remote server.
+.Pp
+(4) Set pkt.pktflags.  Usually this is set to 0.
+.Pp
+(5) Set pkt.result to 0.
+.Pp
+(6) Call lwres_*request_render, or marshall in the data using the primitives
+such as lwres_packet_render() and storing the packet data.
+.Pp
+(7) Transmit the resulting buffer.
+.Pp
+(8) Call lwres_*response_parse() to parse any packets received.
+.Pp
+(9) Verify that the opcode and serial match a request, and process the
+packet specific information contained in the body.
+.Pp
+A typical server flow:
+.Pp
+(1) When a packet is received, call lwres_*request_parse() to
+unmarshall it.  This returns a lwres_packet_t (also called pkt, below)
+as well as a data specific type, such as lwres_gabnrequest_t.
+.Pp
+(2) Process the request in the data specific type.
+.Pp
+(3) Set the pkt.result, pkt.recvlength as above.  All other fields can
+be left untouched since they were filled in by the *_parse() call
+above.  If using lwres_*response_render(), pkt.pktflags will be set up
+properly.  Otherwise, the LWRES_LWPACKETFLAG_RESPONSE bit should be
+set.
+.Pp
+(4) Call the data specific rendering function, such as
+lwres_gabnresponse_render().
+.Pp
+(5) Send the resulting packet to the client.
+.Pp
 .Sh SEE ALSO
 .Xr lwres_noop 3 ,
 .Xr lwres_gabn 3 ,
