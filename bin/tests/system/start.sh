@@ -60,11 +60,13 @@ done
 
 status=0
 
+sleep 5
+
 for d in ns*
 do
 	n=`echo $d | sed 's/ns//'`
 	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300 \
-		version.bind. chaos txt @10.53.0.$n soa > dig.out
+		version.bind. chaos txt @10.53.0.$n > dig.out
 	status=`expr $status + $?`
 	grep ";" dig.out
 done
