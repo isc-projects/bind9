@@ -1,11 +1,12 @@
 1139.	[func]		It is now possible to flush a given name from the
-			caches via 'rndc flushname name [view]'.  [RT #2051]
+			cache(s) via 'rndc flushname name [view]'. [RT #2051]
 
-1138.	[func]		It is now possible to flush given names from the
-			cache dns_cache_flushname().
+1138.	[func]		It is now possible to flush a given name from the
+			cache by calling the new function
+			dns_cache_flushname().
 
-1137.	[func]		It is now possible to flush given names from the
-			adb cache dns_adb_flushname().
+1137.	[func]		It is now possible to flush a given name from the
+			ADB by calling the new function dns_adb_flushname().
 
 1136.	[bug]		CNAME records synthesized from DNAMEs did not
 			have a TTL of zero as required by RFC2672
