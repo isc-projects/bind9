@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.82 $)
+AC_REVISION($Revision: 1.83 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -306,6 +306,7 @@ case "$use_randomdev" in
 				devrandom=/dev/random
 				;;
 		esac
+		AC_MSG_RESULT($devrandom)
 		AC_CHECK_FILE($devrandom,
 			      AC_DEFINE_UNQUOTED(PATH_RANDOMDEV,
 						 "$devrandom"),)
