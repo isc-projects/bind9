@@ -228,6 +228,11 @@ typedef struct {
 
 LWRES_LANG_BEGINDECLS
 
+/*
+ * This is in host byte order.
+ */
+extern lwres_uint16_t lwres_udp_port;
+
 lwres_result_t
 lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);

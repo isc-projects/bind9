@@ -43,6 +43,8 @@
 #define LWRES_SOCKADDR_LEN_T unsigned int
 #endif
 
+lwres_uint16_t lwres_udp_port = LWRES_UDP_PORT;
+
 static void *
 lwres_malloc(void *, size_t);
 
@@ -178,7 +180,7 @@ context_connect(lwres_context_t *ctx) {
 	memset(&localhost, 0, sizeof(localhost));
 	localhost.sin_family = AF_INET;
 	localhost.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	localhost.sin_port = htons(LWRES_UDP_PORT);
+	localhost.sin_port = htons(lwres_udp_port);
 
 	s = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (s < 0)
@@ -271,7 +273,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	 * or if someone is sending us random stuff.
 	 */
 	if (sin.sin_addr.s_addr != htonl(INADDR_LOOPBACK)
-	    || sin.sin_port != htons(LWRES_UDP_PORT))
+	    || sin.sin_port != htons(lwres_udp_port))
 		goto again;
 
 	if (recvd_len != NULL)
