@@ -8,7 +8,7 @@ cd $1
 for d in ns*
 do
     (
-        cd $d &&
+        cd $d
 	rm -f *.jnl *.bk named.run &&
 	if test -f named.pid
 	then
@@ -20,7 +20,7 @@ do
 		rm -f named.pid
 	    fi
 	fi
-	$NAMED -c named.conf -d 99 -g >named.run 2>&1 & &&
+	$NAMED -c named.conf -d 99 -g >named.run 2>&1 &
 	while test ! -f named.pid
 	do
 	    sleep 1

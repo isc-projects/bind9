@@ -8,5 +8,7 @@ cd $1
 for d in ns*
 do
      pidfile="$d/named.pid"
-     test ! -f $pidfile || kill -INT `cat $pidfile`
+     if [ -f $pidfile ]; then
+        kill -TERM `cat $pidfile`
+     fi
 done

@@ -20,3 +20,10 @@ fi
 # Start name servers running
 sh start.sh $test
 
+# Run the tests
+( cd $test ; sh tests.sh )
+
+echo "Result code $?"
+
+# Shutdown
+sh stop.sh $test
