@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.112 2000/08/03 18:23:16 mws Exp $ */
+/* $Id: dighost.c,v 1.113 2000/08/03 18:26:22 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1363,6 +1363,7 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 	sendcount--;
 	debug("sendcount=%d", sendcount);
 	INSIST(sendcount >= 0);
+	check_if_done();
 	UNLOCK_LOOKUP;
 }
 
