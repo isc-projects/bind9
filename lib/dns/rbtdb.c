@@ -171,7 +171,7 @@ typedef struct {
 	isc_stdtime_t		now;
 } rbtdb_load_t;
 
-static dns_result_t rdataset_disassociate(dns_rdataset_t *rdatasetp);
+static void rdataset_disassociate(dns_rdataset_t *rdatasetp);
 static dns_result_t rdataset_first(dns_rdataset_t *rdataset);
 static dns_result_t rdataset_next(dns_rdataset_t *rdataset);
 static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
@@ -3042,14 +3042,12 @@ dns_rbtdb_create
  * Slabbed Rdataset Methods
  */
 
-static dns_result_t
+static void
 rdataset_disassociate(dns_rdataset_t *rdataset) {
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
 
 	detachnode(db, &node);
-
-	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
