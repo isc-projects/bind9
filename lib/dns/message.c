@@ -329,7 +329,7 @@ msginit(dns_message_t *m)
 
 	for (i = 0 ; i < DNS_SECTION_MAX ; i++) {
 		m->cursors[i] = NULL;
-		m->counts[i] = NULL;
+		m->counts[i] = 0;
 	}
 
 	m->state = DNS_SECTION_ANY;  /* indicate nothing parsed or rendered */
@@ -1117,7 +1117,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	REQUIRE(msg->buffer != NULL);
 	REQUIRE(VALID_NAMED_SECTION(sectionid));
 
-	total = 0;
 	section = &msg->sections[sectionid];
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_render_rdata = ISC_TRUE;
@@ -1137,27 +1136,28 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	isc_buffer_init(&subbuffer, r.base, r.length - msg->reserved,
 			ISC_BUFFERTYPE_BINARY);
 	
+	printf("---Start rendering section %u, count %u\n",
+	       sectionid, msg->counts[sectionid]);
+
+	total = 0;
 	while (name != NULL) {
-		used = subbuffer.used;
-
 		next_name = ISC_LIST_NEXT(name, link);
-
-		result = dns_name_towire(name, &msg->cctx, &subbuffer);
-		if (result != DNS_R_SUCCESS) {
-			msg->counts[sectionid] += total;
-			isc_buffer_add(msg->buffer, used);
-			return (result);
-		}
 
 		rdataset = ISC_LIST_HEAD(name->list);
 		while (rdataset != NULL) {
 			next_rdataset = ISC_LIST_NEXT(rdataset, link);
-			count = 0;
+			used = subbuffer.used;
 
+			printf("Rendering rdataset, used = %u\n", used);
+
+			count = 0;
 			result = dns_rdataset_towire(rdataset, name,
 						     &msg->cctx,
 						     no_render_rdata,
 						     &subbuffer, &count);
+
+			total += count;
+			printf("Rendered %u rdata, total %u\n", count, total);
 
 			/*
 			 * If out of space, record stats on what we rendered
@@ -1169,9 +1169,10 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				return (result);
 			}
 
-			total += count;
-
 			ISC_LIST_UNLINK(name->list, rdataset, link);
+
+			dns_rdataset_disassociate(rdataset);
+
 			rdataset = next_rdataset;
 		}
 
@@ -1180,6 +1181,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	}
 
 	msg->counts[sectionid] += total;
+
+	printf("Done with section %u, count %u, total rendered %u\n",
+	       sectionid, msg->counts[sectionid], total);
 	isc_buffer_used(&subbuffer, &r);
 	isc_buffer_add(msg->buffer, r.length);
 
@@ -1197,9 +1201,6 @@ dns_message_renderend(dns_message_t *msg)
 	REQUIRE(msg->buffer != NULL);
 
 	isc_buffer_used(msg->buffer, &r);
-	if (r.length < DNS_MESSAGE_HEADER_LEN)
-		return (DNS_R_NOSPACE);  /* this is slightly bogus... XXX */
-
 	isc_buffer_init(&tmpbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
 
 	isc_buffer_putuint16(&tmpbuf, msg->id);

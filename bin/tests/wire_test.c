@@ -332,6 +332,9 @@ main(int argc, char *argv[]) {
 	memset(&b, 0, sizeof(b));
 	isc_buffer_clear(&source);
 
+	for (i = 0 ; i < DNS_SECTION_MAX ; i++)
+		message->counts[i] = 0;  /* Another hack XXX */
+
 	result = dns_message_renderbegin(message, &source);
 	CHECKRESULT(result, "dns_message_renderbegin() failed");
 
