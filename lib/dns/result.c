@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.110 2003/10/17 03:46:44 marka Exp $ */
+/* $Id: result.c,v 1.111 2004/01/14 02:06:50 marka Exp $ */
 
 #include <config.h>
 
@@ -142,7 +142,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"chase DS servers",		       /* 91 DNS_R_CHASEDSSERVERS    */
 	"empty name",			       /* 92 DNS_R_EMPTYNAME	     */
 	"empty wild",			       /* 93 DNS_R_EMPTYWILD	     */
-	"bad bitmap"			       /* 94 DNS_R_BADBITMAP	     */
+	"bad bitmap",			       /* 94 DNS_R_BADBITMAP	     */
+
+	"from wildcard"			       /* 95 DNS_R_FROMWILDCARD	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.248 2003/10/25 00:31:06 jinmei Exp $ */
+/* $Id: query.c,v 1.249 2004/01/14 02:06:48 marka Exp $ */
 
 #include <config.h>
 
@@ -69,6 +69,8 @@
 				  NS_QUERYATTR_NOAUTHORITY) != 0)
 #define NOADDITIONAL(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOADDITIONAL) != 0)
+#define SECURE(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_SECURE) != 0)
 
 #if 0
 #define CTRACE(m)       isc_log_write(ns_g_lctx, \
@@ -241,7 +243,8 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	query_maybeputqname(client);
 
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK |
-				    NS_QUERYATTR_CACHEOK);
+				    NS_QUERYATTR_CACHEOK |
+				    NS_QUERYATTR_SECURE);
 	client->query.restarts = 0;
 	client->query.timerset = ISC_FALSE;
 	client->query.origqname = NULL;
@@ -1337,6 +1340,10 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 			query_releasename(client, namep);
 	}
 
+	if (rdataset->trust != dns_trust_secure &&
+	    (section == DNS_SECTION_ANSWER ||
+	     section == DNS_SECTION_AUTHORITY))
+		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 	/*
 	 * Note: we only add SIGs if we've added the type they cover, so
 	 * we do not need to check if the SIG rdataset is already in the
@@ -1726,6 +1733,11 @@ query_addbestns(ns_client_t *client) {
 	if ((client->query.dboptions & DNS_DBFIND_PENDINGOK) == 0 &&
 	    (rdataset->trust == dns_trust_pending ||
 	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_pending)))
+		goto cleanup;
+
+	if (WANTDNSSEC(client) && SECURE(client) &&
+	    (rdataset->trust == dns_trust_glue ||
+	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_glue)))
 		goto cleanup;
 
 	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
@@ -2245,13 +2257,51 @@ setup_query_sortlist(ns_client_t *client) {
 	dns_message_setsortorder(client->message, order, order_arg);
 }
 
+static void
+query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
+	isc_buffer_t *dbuf, b;
+	dns_name_t *fname;
+	dns_rdataset_t *nsec, *nsecsig;
+	isc_result_t result = ISC_R_NOMEMORY;
+
+	CTRACE("query_addnoqnameproof");
+
+	fname = NULL;
+	nsec = NULL;
+	nsecsig = NULL;
+
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		goto cleanup;
+	fname = query_newname(client, dbuf, &b);
+	nsec = query_newrdataset(client);
+	nsecsig = query_newrdataset(client);
+	if (fname == NULL || nsec == NULL || nsecsig == NULL)
+		goto cleanup;
+
+	result = dns_rdataset_getnoqname(rdataset, fname, nsec, nsecsig);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	query_addrrset(client, &fname, &nsec, &nsecsig, dbuf,
+		       DNS_SECTION_AUTHORITY);
+
+ cleanup:
+	if (nsec != NULL)
+                query_putrdataset(client, &nsec);
+        if (nsecsig != NULL)
+                query_putrdataset(client, &nsecsig);
+        if (fname != NULL)
+                query_releasename(client, &fname);
+}
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
  * is ignored.  Otherwise, 'qtype' is the query type.
  */
 static void
-query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) {
+query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
+{
 	dns_db_t *db, *zdb;
 	dns_dbnode_t *node;
 	dns_rdatatype_t type;
@@ -2276,6 +2326,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	dns_rdata_dname_t dname;
 	unsigned int options;
 	isc_boolean_t empty_wild;
+	dns_rdataset_t *noqname;
 
 	CTRACE("query_find");
 
@@ -2852,8 +2903,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				      NULL);
 			need_wildcardproof = ISC_TRUE;
 		}
+		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0 &&
+		     WANTDNSSEC(client))
+			noqname = rdataset;
+		else
+			noqname = NULL;
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
+		if (noqname != NULL)
+			query_addnoqnameproof(client, noqname);
 		/*
 		 * We set the PARTIALANSWER attribute so that if anything goes
 		 * wrong later on, we'll return what we've got so far.
@@ -3124,8 +3182,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
+		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0 &&
+		     WANTDNSSEC(client))
+			noqname = rdataset;
+		else
+			noqname = NULL;
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
+		if (noqname != NULL)
+			query_addnoqnameproof(client, noqname);
 		/*
 		 * We shouldn't ever fail to add 'rdataset'
 		 * because it's already in the answer.
@@ -3384,6 +3449,13 @@ ns_query_start(ns_client_t *client) {
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
 	}
+
+	/*
+	 * Allow glue NS records to be added to the authority section
+	 * if the answer is secure.
+	 */
+	if (message->flags & DNS_MESSAGEFLAG_CD)
+		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 
 	/*
 	 * This is an ordinary query.

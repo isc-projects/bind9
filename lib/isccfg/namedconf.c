@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.24 2003/09/25 18:16:50 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.25 2004/01/14 02:06:51 marka Exp $ */
 
 #include <config.h>
 
@@ -618,6 +618,21 @@ static cfg_type_t cfg_type_optional_exclude = {
 	"optional_exclude", parse_optional_keyvalue, print_keyvalue,
 	doc_optional_keyvalue, &cfg_rep_list, &exclude_kw };
 
+static cfg_type_t cfg_type_algorithmlist = {
+	"algorithmlist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring };
+
+static cfg_tuplefielddef_t disablealgorithm_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "algorithms", &cfg_type_algorithmlist, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_disablealgorithm = {
+	"disablealgorithm", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, disablealgorithm_fields
+};
+
 /*
  * Clauses that can be found within the 'view' statement,
  * with defaults in the 'options' statement.
@@ -661,6 +676,8 @@ view_clauses[] = {
 	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
+	{ "disable-algorithms", &cfg_type_disablealgorithm,
+	  CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 

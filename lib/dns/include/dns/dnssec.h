@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.24 2002/02/20 03:34:30 marka Exp $ */
+/* $Id: dnssec.h,v 1.25 2004/01/14 02:06:50 marka Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -83,6 +83,11 @@ isc_result_t
 dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  isc_boolean_t ignoretime, isc_mem_t *mctx,
 		  dns_rdata_t *sigrdata);
+
+isc_result_t
+dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+		   isc_boolean_t ignoretime, isc_mem_t *mctx,
+		   dns_rdata_t *sigrdata, dns_name_t *wild);
 /*
  *	Verifies the SIG record covering this rdataset signed by a specific
  *	key.  This does not determine if the key's owner is authorized to
@@ -95,10 +100,14 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  *		'key' is a valid key
  *		'mctx' is not NULL
  *		'sigrdata' is a valid rdata containing a SIG record
+ *		'wild' if non-NULL then is a valid and has a buffer.
  *
  *	Returns:
  *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY
+ *		DNS_R_FROMWILDCARD - the signature is valid and is from
+ *			a wildcard expansion.  dns_dnssec_verify2() only.
+ *			'wild' contains the name of the wildcard if non-NULL.
  *		DNS_R_SIGINVALID - the signature fails to verify
  *		DNS_R_SIGEXPIRED - the signature has expired
  *		DNS_R_SIGFUTURE - the signature's validity period has not begun

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.33 2003/02/26 23:52:29 marka Exp $ */
+/* $Id: rdataslab.c,v 1.34 2004/01/14 02:06:50 marka Exp $ */
 
 #include <config.h>
 
@@ -239,7 +239,9 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_next,
 	rdataset_current,
 	rdataset_clone,
-	rdataset_count
+	rdataset_count,
+	NULL,
+	NULL
 };
 
 void

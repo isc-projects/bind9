@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.24 2003/09/30 05:56:17 marka Exp $ */
+/* $Id: validator.h,v 1.25 2004/01/14 02:06:51 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -74,8 +74,12 @@ typedef struct dns_validatorevent {
 	dns_rdataset_t *		rdataset;
 	dns_rdataset_t *		sigrdataset;
 	dns_message_t *			message;
+	dns_name_t *			proofs[3];
 } dns_validatorevent_t;
 
+#define DNS_VALIDATOR_NOQNAMEPROOF 0
+#define DNS_VALIDATOR_NODATAPROOF 1
+#define DNS_VALIDATOR_NOWILDCARDPROOF 2
 
 /*
  * A validator object represents a validation in procgress.
@@ -114,6 +118,7 @@ struct dns_validator {
 	dns_rdataset_t			frdataset;
 	dns_rdataset_t			fsigrdataset;
 	dns_fixedname_t			fname;
+	dns_fixedname_t			wild;
 	ISC_LINK(dns_validator_t)	link;
 };
 

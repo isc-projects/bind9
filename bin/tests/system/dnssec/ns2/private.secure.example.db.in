@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: private.secure.example.db.in,v 1.6 2001/01/09 21:42:53 bwelling Exp $
+; $Id: private.secure.example.db.in,v 1.7 2004/01/14 02:06:49 marka Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -30,3 +30,5 @@ a			A	10.0.0.1
 b			A	10.0.0.2
 d			A	10.0.0.4
 z			A	10.0.0.26
+private2secure-nxdomain	CNAME	r.example.
+*.wild			CNAME   s.example.

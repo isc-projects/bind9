@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.69 2004/01/12 04:19:42 marka Exp $ */
+/* $Id: rdataset.c,v 1.70 2004/01/14 02:06:50 marka Exp $ */
 
 #include <config.h>
 
@@ -55,6 +55,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->private3 = NULL;
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
+	rdataset->private6 = NULL;
 }
 
 void
@@ -108,6 +109,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->private3 = NULL;
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
+	rdataset->private6 = NULL;
 }
 
 isc_boolean_t
@@ -169,7 +171,9 @@ static dns_rdatasetmethods_t question_methods = {
 	question_cursor,
 	question_current,
 	question_clone,
-	question_count
+	question_count,
+	NULL,
+	NULL
 };
 
 void
@@ -584,4 +588,25 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 
 	return (ISC_R_SUCCESS);
 }
-	
+
+isc_result_t
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
+
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+	if (rdataset->methods->addnoqname == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return((rdataset->methods->addnoqname)(rdataset, name));
+}
+
+isc_result_t
+dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+		        dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
+{
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+
+	if (rdataset->methods->getnoqname == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return((rdataset->methods->getnoqname)(rdataset, name, nsec, nsecsig));
+}

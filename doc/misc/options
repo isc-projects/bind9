@@ -79,6 +79,7 @@ options {
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        disable-algorithms <string> { <string>; ... };
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -255,6 +256,7 @@ view <string> <optional_class> {
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        disable-algorithms <string> { <string>; ... };
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };

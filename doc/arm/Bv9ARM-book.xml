@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.231 2003/10/07 03:34:30 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.232 2004/01/14 02:06:49 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2818,6 +2818,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
 };
+    <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>; <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
 </programlisting>
 </sect2>
 
@@ -2955,8 +2956,14 @@ options {
 };
 </programlisting>
 </listitem></varlistentry>
-</variablelist>
 
+<varlistentry><term><command>disable-algorithms</command></term>
+<listitem><para>
+Disable the specified DNSSEC algorithms at and below the specified name.
+Multiple <command>disable-algorithms</command> statements are allowed.
+Only the most specific will be applied.
+</para></listitem></varlistentry>
+</variablelist>
 
 <sect3 id="boolean_options"><title>Boolean Options</title>
 

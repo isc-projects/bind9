@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.78 2003/10/25 00:31:09 jinmei Exp $
+ * $Id: dnssec.c,v 1.79 2004/01/14 02:06:50 marka Exp $
  */
 
 
@@ -337,9 +337,9 @@ cleanup_signature:
 }
 
 isc_result_t
-dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		  isc_boolean_t ignoretime, isc_mem_t *mctx,
-		  dns_rdata_t *sigrdata)
+dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+		   isc_boolean_t ignoretime, isc_mem_t *mctx,
+		   dns_rdata_t *sigrdata, dns_name_t *wild)
 {
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
@@ -351,7 +351,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_result_t ret;
 	unsigned char data[300];
 	dst_context_t *ctx = NULL;
-	int labels;
+	int labels = 0;
 	isc_uint32_t flags;
 
 	REQUIRE(name != NULL);
@@ -489,7 +489,28 @@ cleanup_context:
 cleanup_struct:
 	dns_rdata_freestruct(&sig);
 
+	if (ret == ISC_R_SUCCESS && labels - sig.labels > 0) {
+		if (wild != NULL) 
+			RUNTIME_CHECK(dns_name_concatenate(dns_wildcardname,
+					         dns_fixedname_name(&fnewname),
+						 wild, NULL) == ISC_R_SUCCESS);
+		ret = DNS_R_FROMWILDCARD;
+	}
 	return (ret);
+}
+
+isc_result_t
+dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+		  isc_boolean_t ignoretime, isc_mem_t *mctx,
+		  dns_rdata_t *sigrdata)
+{
+	isc_result_t result;
+
+	result = dns_dnssec_verify2(name, set, key, ignoretime, mctx,
+				    sigrdata, NULL);
+	if (result == DNS_R_FROMWILDCARD)
+		result = ISC_R_SUCCESS;
+	return (result);
 }
 
 #define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \

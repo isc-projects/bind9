@@ -1,3 +1,12 @@
+1558.	[func]		New DNSSEC 'disable-algorithms'.  Support entry into
+			child zones for which we don't have a supported
+			algorithm.  Such child zones are treated as unsigned.
+
+1557.	[func]		Implement missing DNSSEC tests for
+			* NOQNAME proof with wildcard answers.
+			* NOWILDARD proof with NXDOMAIN.
+			Cache and return NOQNAME with wildcard answers.
+
 1556.	[placeholder]	rt6427
 
 1555.	[func]		'rrset-order cyclic' no longer has a random starting

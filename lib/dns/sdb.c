@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.40 2003/09/30 05:56:13 marka Exp $ */
+/* $Id: sdb.c,v 1.41 2004/01/14 02:06:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1352,7 +1352,9 @@ static dns_rdatasetmethods_t methods = {
 	isc__rdatalist_next,
 	isc__rdatalist_current,
 	rdataset_clone,
-	isc__rdatalist_count
+	isc__rdatalist_count,
+	isc__rdatalist_addnoqname,
+	isc__rdatalist_getnoqname
 };
 
 static void

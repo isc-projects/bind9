@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist_p.h,v 1.3 2001/01/09 21:51:22 bwelling Exp $ */
+/* $Id: rdatalist_p.h,v 1.4 2004/01/14 02:06:50 marka Exp $ */
 
 #ifndef DNS_RDATALIST_P_H
 #define DNS_RDATALIST_P_H
@@ -42,6 +42,13 @@ isc__rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target);
 
 unsigned int
 isc__rdatalist_count(dns_rdataset_t *rdataset);
+
+isc_result_t
+isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
+
+isc_result_t
+isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+			  dns_rdataset_t *nsec, dns_rdataset_t *nsecsig);
 
 ISC_LANG_ENDDECLS
 

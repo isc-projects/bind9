@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.16 2003/10/26 21:33:45 marka Exp $
+# $Id: sign.sh,v 1.17 2004/01/14 02:06:49 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -51,3 +51,4 @@ EOF
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
+cp trusted.conf ../ns6/trusted.conf

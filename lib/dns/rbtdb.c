@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.191 2004/01/12 04:19:42 marka Exp $ */
+/* $Id: rbtdb.c,v 1.192 2004/01/14 02:06:50 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -94,6 +94,12 @@ typedef isc_uint32_t			rbtdb_rdatatype_t;
 #define RBTDB_RDATATYPE_NCACHEANY \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
+struct noqname {
+	dns_name_t name;
+	void *	   nsec;
+	void *	   nsecsig;
+};
+
 typedef struct rdatasetheader {
 	/*
 	 * Locked by the owning node's lock.
@@ -103,6 +109,7 @@ typedef struct rdatasetheader {
 	rbtdb_rdatatype_t		type;
 	isc_uint16_t			attributes;
 	dns_trust_t			trust;
+	struct noqname			*noqname;
 	/*
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
@@ -249,6 +256,10 @@ static isc_result_t rdataset_next(dns_rdataset_t *rdataset);
 static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 static void rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
 static unsigned int rdataset_count(dns_rdataset_t *rdataset);
+static isc_result_t rdataset_getnoqname(dns_rdataset_t *rdataset,
+				        dns_name_t *name,
+					dns_rdataset_t *nsec,
+					dns_rdataset_t *nsecsig);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
@@ -256,7 +267,9 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_next,
 	rdataset_current,
 	rdataset_clone,
-	rdataset_count
+	rdataset_count,
+	NULL,
+	rdataset_getnoqname
 };
 
 static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
@@ -562,9 +575,27 @@ add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 }
 
 static inline void
+free_noqname(isc_mem_t *mctx, struct noqname **noqname) {
+
+	if (dns_name_dynamic(&(*noqname)->name))
+		dns_name_free(&(*noqname)->name, mctx);
+	if ((*noqname)->nsec != NULL)
+		isc_mem_put(mctx, (*noqname)->nsec,
+			    dns_rdataslab_size((*noqname)->nsec, 0));
+	if ((*noqname)->nsec != NULL)
+		isc_mem_put(mctx, (*noqname)->nsecsig,
+			    dns_rdataslab_size((*noqname)->nsecsig, 0));
+	isc_mem_put(mctx, *noqname, sizeof(**noqname));
+	*noqname = NULL;
+}
+
+static inline void
 free_rdataset(isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 	unsigned int size;
 
+	if (rdataset->noqname != NULL)
+		free_noqname(mctx, &rdataset->noqname);
+	
 	if ((rdataset->attributes & RDATASET_ATTR_NONEXISTENT) != 0)
 		size = sizeof(*rdataset);
 	else
@@ -1372,6 +1403,13 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	 */
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
+
+	/*
+	 * Add noqname proof.
+	 */
+	rdataset->private6 = header->noqname;
+	if (rdataset->private6 != NULL)
+		rdataset->attributes |=  DNS_RDATASETATTR_NOQNAME;
 }
 
 static inline isc_result_t
@@ -3812,11 +3850,13 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * Don't replace existing NS, A and AAAA RRsets
 		 * in the cache if they are already exist.  This
 		 * prevents named being locked to old servers.
+		 * Don't lower trust of existing record if the
+		 * update is forced.
 		 */
 		if (IS_CACHE(rbtdb) && header->ttl > now &&
 		    header->type == dns_rdatatype_ns &&
 		    !header_nx && !newheader_nx &&
-		    header->trust == newheader->trust &&
+		    header->trust >= newheader->trust &&
 		    dns_rdataslab_equalx((unsigned char *)header,
 					 (unsigned char *)newheader,
 				         (unsigned int)(sizeof(*newheader)),
@@ -3828,6 +3868,11 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			 */
 			if (header->ttl > newheader->ttl)
 				header->ttl = newheader->ttl;
+			if (header->noqname == NULL &&
+			    newheader->noqname != NULL) {
+				header->noqname = newheader->noqname;
+				newheader->noqname = NULL;
+			}
 			free_rdataset(rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -3838,7 +3883,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		    (header->type == dns_rdatatype_a ||
 		     header->type == dns_rdatatype_aaaa) &&
 		    !header_nx && !newheader_nx &&
-		    header->trust == newheader->trust &&
+		    header->trust >= newheader->trust &&
 		    dns_rdataslab_equal((unsigned char *)header,
 					(unsigned char *)newheader,
 				        (unsigned int)(sizeof(*newheader)))) {
@@ -3848,6 +3893,11 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			 */
 			if (header->ttl > newheader->ttl)
 				header->ttl = newheader->ttl;
+			if (header->noqname == NULL &&
+			    newheader->noqname != NULL) {
+				header->noqname = newheader->noqname;
+				newheader->noqname = NULL;
+			}
 			free_rdataset(rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -3952,6 +4002,51 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	return (ISC_FALSE);
 }
 
+static inline isc_result_t
+addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
+	   dns_rdataset_t *rdataset)
+{
+	struct noqname *noqname;
+	isc_mem_t *mctx = rbtdb->common.mctx;
+	dns_name_t name;
+	dns_rdataset_t nsec, nsecsig;
+	isc_result_t result;
+	isc_region_t r;
+
+	dns_name_init(&name, NULL);
+	dns_rdataset_init(&nsec);
+	dns_rdataset_init(&nsecsig);
+
+	result = dns_rdataset_getnoqname(rdataset, &name, &nsec, &nsecsig);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	noqname = isc_mem_get(mctx, sizeof(*noqname));
+	if (noqname == NULL)
+		return (ISC_R_NOMEMORY);
+	dns_name_init(&noqname->name, NULL);
+	noqname->nsec = NULL;
+	noqname->nsecsig = NULL;
+	result = dns_name_dup(&name, mctx, &noqname->name);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_rdataslab_fromrdataset(&nsec, mctx, &r, 0);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	noqname->nsec = r.base;
+	result = dns_rdataslab_fromrdataset(&nsecsig, mctx, &r, 0);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	noqname->nsecsig = r.base;
+	dns_rdataset_disassociate(&nsec);
+	dns_rdataset_disassociate(&nsecsig);
+	newheader->noqname = noqname;
+	return (ISC_R_SUCCESS);
+
+cleanup:
+	free_noqname(mctx, &noqname);
+	return(result);
+}
+
 static isc_result_t
 addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	    isc_stdtime_t now, dns_rdataset_t *rdataset, unsigned int options,
@@ -3984,6 +4079,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->type = RBTDB_RDATATYPE_VALUE(rdataset->type,
 						rdataset->covers);
 	newheader->attributes = 0;
+	newheader->noqname = NULL;
 	newheader->count = 0;
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
@@ -3994,6 +4090,13 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->trust = rdataset->trust;
 		if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 			newheader->attributes |= RDATASET_ATTR_NXDOMAIN;
+		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
+			result = addnoqname(rbtdb, newheader, rdataset);
+			if (result != ISC_R_SUCCESS) {
+				free_rdataset(rbtdb->common.mctx, newheader);
+				return (result);
+			}
+		}
 	}
 
 	/*
@@ -4051,6 +4154,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->attributes = 0;
 	newheader->serial = rbtversion->serial;
 	newheader->trust = 0;
+	newheader->noqname = NULL;
 	newheader->count = 0;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
@@ -4121,6 +4225,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->attributes = RDATASET_ATTR_NONEXISTENT;
 			newheader->trust = 0;
 			newheader->serial = rbtversion->serial;
+			newheader->noqname = NULL;
 			newheader->count = 0;
 		} else {
 			free_rdataset(rbtdb->common.mctx, newheader);
@@ -4186,6 +4291,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->type = RBTDB_RDATATYPE_VALUE(type, covers);
 	newheader->attributes = RDATASET_ATTR_NONEXISTENT;
 	newheader->trust = 0;
+	newheader->noqname = NULL;
 	if (rbtversion != NULL)
 		newheader->serial = rbtversion->serial;
 	else
@@ -4266,6 +4372,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->attributes = 0;
 	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
+	newheader->noqname = NULL;
 	newheader->count = 0;
 
 	result = add(rbtdb, node, rbtdb->current_version, newheader,
@@ -4780,6 +4887,49 @@ rdataset_count(dns_rdataset_t *rdataset) {
 	count = raw[0] * 256 + raw[1];
 
 	return (count);
+}
+
+static isc_result_t
+rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+		    dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
+{
+	dns_db_t *db = rdataset->private1;
+	dns_dbnode_t *node = rdataset->private2;
+	dns_dbnode_t *cloned_node;
+	struct noqname *noqname = rdataset->private6;
+
+	attachnode(db, node, &cloned_node);
+	attachnode(db, node, &cloned_node);
+
+	nsec->methods = &rdataset_methods;
+	nsec->rdclass = db->rdclass;
+	nsec->type = dns_rdatatype_nsec;
+	nsec->covers = 0;
+	nsec->ttl = rdataset->ttl;
+	nsec->trust = rdataset->trust;
+	nsec->private1 = rdataset->private1;
+	nsec->private2 = rdataset->private2;
+	nsec->private3 = noqname->nsec;
+	nsec->privateuint4 = 0;
+	nsec->private5 = NULL;
+	nsec->private6 = NULL;
+
+	nsecsig->methods = &rdataset_methods;
+	nsecsig->rdclass = db->rdclass;
+	nsecsig->type = dns_rdatatype_rrsig;
+	nsecsig->covers = dns_rdatatype_nsec;
+	nsecsig->ttl = rdataset->ttl;
+	nsecsig->trust = rdataset->trust;
+	nsecsig->private1 = rdataset->private1;
+	nsecsig->private2 = rdataset->private2;
+	nsecsig->private3 = noqname->nsecsig;
+	nsecsig->privateuint4 = 0;
+	nsecsig->private5 = NULL;
+	nsec->private6 = NULL;
+
+	dns_name_clone(&noqname->name, name);
+
+	return (ISC_R_SUCCESS);
 }
 
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.407 2004/01/05 06:56:44 marka Exp $ */
+/* $Id: server.c,v 1.408 2004/01/14 02:06:49 marka Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
+#include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/stdio.h>
@@ -56,6 +57,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
+#include <dns/secalg.h>
 #include <dns/stats.h>
 #include <dns/tkey.h>
 #include <dns/view.h>
@@ -583,6 +585,52 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	return (result);
 }
 
+static isc_result_t
+disable_algorithms(cfg_obj_t *disabled, dns_resolver_t *resolver) {
+	isc_result_t result;
+	cfg_obj_t *algorithms;
+	cfg_listelt_t *element;
+	const char *str;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_buffer_t b;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	str = cfg_obj_asstring(cfg_tuple_get(disabled, "name"));
+	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_add(&b, strlen(str));
+	CHECK(dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL));
+
+	algorithms = cfg_tuple_get(disabled, "algorithms");
+	for (element = cfg_list_first(algorithms);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		isc_textregion_t r;
+		dns_secalg_t alg;
+
+		r.base = cfg_obj_asstring(cfg_listelt_value(element));
+		r.length = strlen(r.base);
+
+		result = dns_secalg_fromtext(&alg, &r);
+		if (result != ISC_R_SUCCESS) {
+			isc_uint8_t ui;
+			result = isc_parse_uint8(&ui, r.base, 10);
+			alg = ui;
+		}
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(cfg_listelt_value(element),
+				    ns_g_lctx, ISC_LOG_ERROR,
+				    "invalid algorithm");
+			CHECK(result);
+		}
+		CHECK(dns_resolver_disable_algorithm(resolver, name, alg));
+	}
+ cleanup:
+	return (result);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -603,6 +651,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cfg_obj_t *forwarders;
 	cfg_obj_t *alternates;
 	cfg_obj_t *zonelist;
+	cfg_obj_t *disabled;
 	cfg_obj_t *obj;
 	cfg_listelt_t *element;
 	in_port_t port;
@@ -793,6 +842,20 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (udpsize > 4096)
 		udpsize = 4096;
 	dns_resolver_setudpsize(view->resolver, udpsize);
+	
+	/*
+	 * Set supported DNSSEC algorithms.
+	 */
+	dns_resolver_reset_algorithms(view->resolver);
+	disabled = NULL;
+	(void)ns_config_get(maps, "disable-algorithms", &disabled);
+	if (disabled != NULL) {
+		for (element = cfg_list_first(disabled);
+		     element != NULL;
+		     element = cfg_list_next(element))
+			CHECK(disable_algorithms(cfg_listelt_value(element),
+						 view->resolver));
+	}
 
 	/*
 	 * A global or view "forwarders" option, if present,

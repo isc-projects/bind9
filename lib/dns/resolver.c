@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.275 2004/01/05 07:45:34 marka Exp $ */
+/* $Id: resolver.c,v 1.276 2004/01/14 02:06:50 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <dns/ncache.h>
 #include <dns/opcode.h>
 #include <dns/peer.h>
+#include <dns/rbt.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -286,6 +287,10 @@ struct dns_resolver {
 	isc_uint32_t			lame_ttl;
 	ISC_LIST(alternate_t)		alternates;
 	isc_uint16_t			udpsize;
+#if USE_ALGLOG
+	isc_rwlock_t			alglock;
+#endif
+	dns_rbt_t *			algorithms;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -2847,6 +2852,8 @@ clone_results(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_name_t *name, *hname;
 
+	FCTXTRACE("clone_results");
+
 	/*
 	 * Set up any other events to have the same data as the first
 	 * event.
@@ -2939,6 +2946,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t chaining;
 	isc_boolean_t sentresponse;
 	isc_uint32_t ttl;
+	dns_dbnode_t *nsnode = NULL;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	dns_rdataset_t *sigrdataset;
 
 	UNUSED(task); /* for now */
 
@@ -3069,6 +3080,14 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("validation OK");
 
+	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
+
+		result = dns_rdataset_addnoqname(vevent->rdataset,
+				   vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF]);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		vevent->sigrdataset->ttl = vevent->rdataset->ttl;
+	}
+
 	/*
 	 * The data was already cached as pending data.
 	 * Re-cache it as secure and bind the cached
@@ -3114,6 +3133,49 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * be validated.
 		 */
 		goto cleanup_event;
+	}
+
+	/*
+	 * Cache any NS records that happened to be validate.
+	 */
+	result = dns_message_firstname(fctx->rmessage, DNS_SECTION_AUTHORITY);
+	while (result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(fctx->rmessage, DNS_SECTION_AUTHORITY,
+					&name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (rdataset->type != dns_rdatatype_ns ||
+			    rdataset->trust != dns_trust_secure)
+				continue;
+			for (sigrdataset = ISC_LIST_HEAD(name->list);
+			     sigrdataset != NULL;
+			     sigrdataset = ISC_LIST_NEXT(sigrdataset, link)) {
+				if (sigrdataset->type != dns_rdatatype_rrsig ||
+				    sigrdataset->covers != dns_rdatatype_ns)
+					continue;
+				break;
+			}
+			if (sigrdataset == NULL ||
+			    sigrdataset->trust != dns_trust_secure)
+				continue;
+			result = dns_db_findnode(fctx->cache, name, ISC_TRUE,
+						 &nsnode);
+			if (result != ISC_R_SUCCESS)
+				continue;
+
+			result = dns_db_addrdataset(fctx->cache, nsnode, NULL,
+						    now, rdataset, 0, NULL);
+			if (result == ISC_R_SUCCESS)
+				result = dns_db_addrdataset(fctx->cache, nsnode,
+							    NULL, now,
+							    sigrdataset, 0,
+							    NULL);
+			dns_db_detachnode(fctx->cache, &nsnode);
+		}
+		result = dns_message_nextname(fctx->rmessage,
+					      DNS_SECTION_AUTHORITY);
 	}
 
 	result = ISC_R_SUCCESS;
@@ -4568,14 +4630,9 @@ answer_response(fetchctx_t *fctx) {
 							rdataset,
 							check_related,
 							fctx);
+					done = ISC_TRUE;
 				}
 			}
-			/*
-			 * Since we've found a non-external name in the
-			 * authority section, we should stop looking, even
-			 * if we didn't find any NS or SIG NS.
-			 */
-			done = ISC_TRUE;
 		}
 		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
 	}
@@ -5297,6 +5354,7 @@ destroy(dns_resolver_t *res) {
 			dns_name_free(&a->_u._n.name, res->mctx);
 		isc_mem_put(res->mctx, a, sizeof(*a));
 	}
+	dns_resolver_reset_algorithms(res);
 	res->magic = 0;
 	isc_mem_put(res->mctx, res, sizeof(*res));
 }
@@ -5376,6 +5434,7 @@ dns_resolver_create(dns_view_t *view,
 	res->lame_ttl = 0;
 	ISC_LIST_INIT(res->alternates);
 	res->udpsize = RECV_BUFFER_SIZE;
+	res->algorithms = NULL;
 
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
@@ -5429,11 +5488,22 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_nlock;
 
+#if USE_ALGLOCK
+	result = isc_rwlock_init(&res->alglock, 0, 0);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_primelock;
+#endif
+
 	res->magic = RES_MAGIC;
 
 	*resp = res;
 
 	return (ISC_R_SUCCESS);
+
+#if USE_ALGLOCK
+ cleanup_primelock:
+	DESTROYLOCK(&res->nlock);
+#endif
 
  cleanup_nlock:
 	DESTROYLOCK(&res->nlock);
@@ -6040,3 +6110,118 @@ dns_resolver_getudpsize(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	return (resolver->udpsize);
 }
+
+static void
+free_algorithm(void *node, void *arg) {
+	unsigned char *algorithms = node;
+	isc_mem_t *mctx = arg;
+
+	isc_mem_put(mctx, algorithms, *algorithms);
+}
+ 
+void
+dns_resolver_reset_algorithms(dns_resolver_t *resolver) {
+
+	REQUIRE(VALID_RESOLVER(resolver));
+
+#if USE_ALGLOCK
+	RWLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+	if (resolver->algorithms != NULL)
+		dns_rbt_destroy(&resolver->algorithms);
+#if USE_ALGLOCK
+	RWUNLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+}
+
+isc_result_t
+dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
+			       unsigned int alg)
+{
+	unsigned int len, mask;
+	unsigned char *new;
+	unsigned char *algorithms;
+	isc_result_t result;
+	dns_rbtnode_t *node = NULL;
+
+	REQUIRE(VALID_RESOLVER(resolver));
+	if (alg > 255)
+		return (ISC_R_RANGE);
+
+#if USE_ALGLOCK
+	RWLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+	if (resolver->algorithms == NULL) {
+		result = dns_rbt_create(resolver->mctx, free_algorithm,
+					resolver->mctx, &resolver->algorithms);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
+
+	len = alg/8 + 2;
+	mask = 1 << (alg%8);
+
+	result = dns_rbt_addnode(resolver->algorithms, name, &node);
+	
+	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
+		algorithms = node->data;
+		if (algorithms == NULL || len > *algorithms) {
+			new = isc_mem_get(resolver->mctx, len);
+			if (new == NULL) {
+				result = ISC_R_NOMEMORY;
+				goto cleanup;
+			}
+			memset(new, 0, len);
+			if (algorithms != NULL)
+				memcpy(new, algorithms, *algorithms);
+			new[len-1] |= mask;
+			*new = len;
+			node->data = new;
+			if (algorithms != NULL)
+				isc_mem_put(resolver->mctx, algorithms, 
+					    *algorithms);
+		} else
+			algorithms[len-1] |= mask;
+	}
+	result = ISC_R_SUCCESS;
+ cleanup:
+#if USE_ALGLOCK
+	RWUNLOCK(&resolver->alglock, isc_rwlocktype_write);
+#endif
+	return (result);
+};
+
+isc_boolean_t
+dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
+				 unsigned int alg)
+{
+	unsigned int len, mask;
+	unsigned char *algorithms;
+	void *data = NULL;
+	isc_result_t result;
+	isc_boolean_t found = ISC_FALSE;
+
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	if (resolver->algorithms == NULL)
+		return (dst_algorithm_supported(alg));
+	
+#if USE_ALGLOCK
+	RWLOCK(&resolver->alglock, isc_rwlocktype_read)
+#endif
+	result = dns_rbt_findname(resolver->algorithms, name,
+				  DNS_RBTFIND_NOEXACT, NULL, &data);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		len = alg/8 + 2;
+		mask = 1 << (alg%8);
+		algorithms = data;
+		if (len <= *algorithms && (algorithms[len-1] & mask) != 0)
+			found = ISC_TRUE;
+	}
+#if USE_ALGLOCK
+	RWUNLOCK(&resolver->alglock, isc_rwlocktype_read)
+#endif
+	if (found)
+		return (ISC_FALSE);
+	return (dst_algorithm_supported(alg));
+};

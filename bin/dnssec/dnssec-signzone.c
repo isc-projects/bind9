@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.172 2004/01/05 05:14:51 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.173 2004/01/14 02:06:48 marka Exp $ */
 
 #include <config.h>
 
@@ -729,19 +729,6 @@ nsec_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 	return (answer);
 }
 
-static void
-warnwild(const char *name) {
-	static int warned = 0;
-
-	fprintf(stderr, "%s: warning: wildcard name seen: %s\n",
-		program, name);
-	if (warned++ != 0)
-		return;
-	fprintf(stderr, "%s: warning: BIND 9 doesn't properly "
-		"validate responses containing wildcards.\n",
-		program);
-}
-
 static isc_boolean_t
 delegation(dns_name_t *name, dns_dbnode_t *node, isc_uint32_t *ttlp) {
 	dns_rdataset_t nsset;
@@ -781,9 +768,6 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	isc_uint32_t nsttl = 0;
 
 	dns_name_format(name, namestr, sizeof(namestr));
-
-	if (dns_name_iswildcard(name))
-		warnwild(namestr);
 
 	atorigin = dns_name_equal(name, gorigin);
 

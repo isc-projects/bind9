@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.48 2004/01/12 04:19:42 marka Exp $ */
+/* $Id: rdataset.h,v 1.49 2004/01/14 02:06:50 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -68,6 +68,12 @@ typedef struct dns_rdatasetmethods {
 	void			(*clone)(dns_rdataset_t *source,
 					 dns_rdataset_t *target);
 	unsigned int		(*count)(dns_rdataset_t *rdataset);
+	isc_result_t		(*addnoqname)(dns_rdataset_t *rdataset,
+					      dns_name_t *name);
+	isc_result_t		(*getnoqname)(dns_rdataset_t *rdataset,
+					      dns_name_t *name,
+					      dns_rdataset_t *nsec,
+					      dns_rdataset_t *nsecsig);
 } dns_rdatasetmethods_t;
 
 #define DNS_RDATASET_MAGIC	       ISC_MAGIC('D','N','S','R')
@@ -113,6 +119,7 @@ struct dns_rdataset {
 	void *				private3;
 	unsigned int			privateuint4;
 	void *				private5;
+	void *				private6;
 };
 
 /*
@@ -137,6 +144,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_RANDOMIZE	0x0800
 #define DNS_RDATASETATTR_CHASE		0x1000		/* Used by resolver. */
 #define DNS_RDATASETATTR_NXDOMAIN	0x2000
+#define DNS_RDATASETATTR_NOQNAME	0x4000
 
 /*
  * _OMITDNSSEC:
@@ -427,6 +435,31 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
  *	ISC_R_SUCCESS
  *
  *	Any error that dns_rdata_additionaldata() can return.
+ */
+
+isc_result_t
+dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+			dns_rdataset_t *nsec, dns_rdataset_t *nsecsig);
+/*
+ * Return the noqname proof for this record.
+ *
+ * Requires:
+ *	'rdataset' to be valid and DNS_RDATASETATTR_NOQNAME to be set.
+ *	'name' to be valid.
+ *	'nsec' and 'nsecsig' to be valid and not associated.
+ */
+
+isc_result_t
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
+/*
+ * Associate a noqname proof with this record.
+ * Sets DNS_RDATASETATTR_NOQNAME if successful.
+ * Adjusts the 'rdataset->ttl' to minimum of the 'rdataset->ttl' and
+ * the 'nsec' and 'rrsig(nsec)' ttl.
+ *
+ * Requires:
+ *	'rdataset' to be valid and DNS_RDATASETATTR_NOQNAME to be set.
+ *	'name' to be valid and have NSEC and RRSIG(NSEC) rdatasets.
  */
 
 ISC_LANG_ENDDECLS
