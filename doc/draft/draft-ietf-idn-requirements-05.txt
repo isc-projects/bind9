@@ -1,6 +1,6 @@
 IETF IDN Working Group               Editors Zita Wenzel, James Seng
-Internet Draft                       draft-ietf-idn-requirements-04.txt
-04 October 2000                      Expires 04 March 2001
+Internet Draft                       draft-ietf-idn-requirements-05.txt
+24 April 2001                        Expires 24 October 2001
 
              Requirements of Internationalized Domain Names
 
@@ -25,6 +25,16 @@ http://www.ietf.org/ietf/1id-abstracts.txt
 
 The list of Internet-Draft Shadow Directories can be accessed at
 http://www.ietf.org/shadow.html.
+
+Intended Scope  
+
+The intended scope of this document is to explore requirements for the
+internationalization of domain names on the Internet. It is not
+intended to document user requirements. It is recommended that
+solutions not necessarily be within the DNS itself, but could be a layer
+interjected between the application and the DNS. Proposals SHOULD
+fulfill most, if not all, of the requirements. This document MAY be
+updated based on clinical trials.
 
 Abstract
 
@@ -54,14 +64,11 @@ in a written language can be expressed as a string of characters.
 The same set of characters can often be used for many written languages,
 and many written languages can be expressed using different scripts.
 The same characters are often shown with somewhat different glyphs
-(shapes)
-for display of a text depending on the font used, the automatic shaping
-applied, or the automatic formation of ligatures. In addition, the same
-characters can be shown with somewhat different glyphs (shapes) for
-display
-of a text depending on the language being used, even within the same
-font
-or trough automatic font change.
+(shapes) for display of a text depending on the font used, the
+automatic shaping applied, or the automatic formation of ligatures. In
+addition, the same characters can be shown with somewhat different
+glyphs (shapes) for display of a text depending on the language being
+used, even within the same font or trough automatic font change.
 
 A character is a member of a set of elements used for organization,
 control, or representation of textual data.
@@ -127,12 +134,11 @@ Unicode Technical Report 17 [UTR17]):
    Examples: ASCII, Latin-15, Shift-JIS, UTF-16BE, UTF-16LE, UTF-8.
 
 5. The mapping from an abstract character repertoire (ACR) to a
-serialised
-   sequence of octets is called a Character Map (CM). A simple character
-   map thus implicitly includes a CCS, a CEF, and a CES, mapping from
-   abstract characters to code units to octets. A compound character
-   map includes a compound CES, and thus includes more than one CCS
-   and CEF. In that case, the abstract character repertoire for the
+   serialised sequence of octets is called a Character Map (CM). A simple
+   character map thus implicitly includes a CCS, a CEF, and a CES,
+   mapping from abstract characters to code units to octets. A compound
+   character map includes a compound CES, and thus includes more than one
+   CCS and CEF. In that case, the abstract character repertoire for the
    character map is the union of the repertoires covered by the coded
    character sets involved.
 
@@ -213,14 +219,15 @@ are meaningful for humans.
 
 In this document, this is referred to as a "hostname". While this term
 has been used for many different purposes over the years, it is used
-here in the sense of "sequence of characters (not octets) representing a
-domain name conforming to the limited hostname syntax".
+here in the sense of sequence of characters (not octets) representing a
+domain name conforming to the limited hostname syntax [RFC952].
 
 This document attempts to define the requirements for an
 "Internationalized Domain Name" (IDN). This is defined as a sequence of
 characters that can be used in the context of functions where a hostname
 is used today, but contains one or more characters that are outside the
-set of characters specified as legal characters for host names.
+set of characters specified as legal characters for host names
+[RFC1123].
 
 1.4 A multilayer model of the DNS function
 
@@ -233,10 +240,10 @@ The DNS can be seen as a multilayer function:
 - Above that is the "DNS service", created by an infrastructure of DNS
   servers, NS records that point to those DNS servers, that is
   pointed to by the root servers (listed in the "root cache file" on
-each DNS
-  server, often called "named.cache". It is at this level that the
-  statement "the DNS has a single root" [RFC2826] makes sense, but
-  still, what are being transferred are octets, not characters.
+  each DNS server, often called "named.cache". It is at this level
+  that the statement "the DNS has a single root" [RFC2826] makes
+  sense, but still, what are being transferred are octets, not
+  characters.
 
 - Interfacing to the user is a service layer, often called "the resolver
   library", and often embedded in the operating system or system
@@ -339,28 +346,28 @@ internationalized domain name.
 names as described in [RFC1034]. It MUST maintain a single, global,
 universal, and consistent hierarchical namespace.
 
-[2.5] The DNS protocol (the packet formats that go on the wire) MUST
+[3] The DNS protocol (the packet formats that go on the wire) MUST
 NOT limit the codepoints that can be used.  A service defined on top of
 the DNS, for instance the IDN-to-address function, MAY limit the
 codepoints that can be used.  The service descriptions MUST describe
 what limitations are imposed.
 
-[2.6] The protocol MUST work for all features of DNS, IPv4, and
+[4] The protocol MUST work for all features of DNS, IPv4, and
 IPv6.  The protocol MUST NOT allow an IDN to be returned to a requestor
 that requests the IP-to-(old)-domain-name mapping service.
 
-[3] The same name resolution request MUST generate the same response,
+[5] The same name resolution request MUST generate the same response,
 regardless of the location or localization settings in the resolver, in
 the master server, and in any slave servers involved in the resolution
 process.
 
-[4] The protocol MUST NOT require that the current DNS cache
+[6] The protocol MUST NOT require that the current DNS cache
 servers be modified to support IDN.  If a cache server can have
 additional functionality to support IDN better, this additional
 functionality MUST NOT cause problems for resolving correctly
 functioning current domain names.
 
-[5] A caching server MUST NOT return data in response to a query that
+[7] A caching server MUST NOT return data in response to a query that
 would not have been returned if the same query had been presented to an
 authoritative server. This applies fully for the cases when:
 
@@ -368,12 +375,12 @@ authoritative server. This applies fully for the cases when:
 - The caching server implements the whole specification
 - The caching server implements a valid subset of the specification
 
-[7] The service MAY modify the DNS protocol [RFC1035] and other related
+[8] The service MAY modify the DNS protocol [RFC1035] and other related
 work undertaken by the [DNSEXT] WG. However, these changes SHOULD be as
 small as possible and any changes SHOULD be coordinated with the
 [DNSEXT] WG.
 
-[8] The protocol supporting the service SHOULD be as simple as possible
+[9] The protocol supporting the service SHOULD be as simple as possible
 from the user's perspective. Ideally, users SHOULD NOT realize that IDN
 was added on to the existing DNS.
 
@@ -381,37 +388,41 @@ was added on to the existing DNS.
 compatibility with current DNS standards as long as it meets the other
 requirements in this document.
 
+[11] The protocol should handle with care new revisions of the CCS.
+Undefined codepoints should not be allowed unless a new revision of
+the protocol can handle it.  Protocol revisions should be tagged.
+
 2.2 Internationalization
 
-[11] Internationalized characters MUST be allowed to be represented and
+[12] Internationalized characters MUST be allowed to be represented and
 used in DNS names and records. The protocol MUST specify what charset is
 used when resolving domain names and how characters are encoded in DNS
 records.
 
-[12] Codepoints SHOULD be from the Universal Set as defined in
+[13] Codepoints SHOULD be from the Universal Set as defined in
 ISO-10646 or Unicode.  The specifics of versions MUST be defined in the
 proposed solution.  If multiple charsets are allowed, each charset MUST
 be tagged and conform to [RFC2277].
 
-[12.5] The protocol MUST NOT reject any non-IDN characters (to be
+[14] The protocol MUST NOT reject any non-IDN characters (to be
 defined) in any queries or responses.
 
-[14] The protocol SHOULD NOT invent a new CCS for the purpose of IDN
+[15] The protocol SHOULD NOT invent a new CCS for the purpose of IDN
 only and SHOULD use existing CES. The charset(s) chosen SHOULD also be
 non-ambiguous.
 
-[15] The protocol SHOULD NOT make any assumptions about the location
+[16] The protocol SHOULD NOT make any assumptions about the location
 in a domain name where internationalization might appear.  In other
 words, it SHOULD NOT differentiate between any part of a domain name
 because this MAY impose restrictions on future internationalization
 efforts.  For example, the TLDs can be internationalized.
 
-[16] The protocol also SHOULD NOT make any localized restrictions in the
+[17] The protocol also SHOULD NOT make any localized restrictions in the
 protocol. For example, an IDN implementation which only allows domain
 names to use a single local script would immediately restrict
 multinational organization.
 
-[17] While there are a wide range of devices that use the DNS and a wide
+[18] While there are a wide range of devices that use the DNS and a wide
 range of characteristics of international scripts and methods of
 domain name input and display, IDN is only concerned with the
 protocol. Therefore, there MUST be a single way of encoding an
@@ -429,58 +440,59 @@ expected that some sort of canonicalization algorithm will be used as
 the first step of this process. This section discusses some of the
 properties which will be REQUIRED of that algorithm.
 
-[22] To achieve interoperability, canonicalization MUST be done at a
+[19] To achieve interoperability, canonicalization MUST be done at a
 single well-defined place in the DNS resolution process.  The protocol
 MUST specify canonicalization; it MUST specify exactly where in the
 DNS that canonicalization happens and does not happen; it MUST specify
 how additions to ISO 10646 will affect the stability of the DNS and
 the amount of work done on the root DNS servers.
 
-[23] The canonicalization algorithm MAY specify operations for case,
+[20] The canonicalization algorithm MAY specify operations for case,
 ligature, and punctuation folding.
 
-[24] In order to retain backwards compatibility with the current DNS,
+[21] In order to retain backwards compatibility with the current DNS,
 the service MUST retain the case-insensitive comparison for [US-ASCII]
 as specified in [RFC1035]. For example, Latin capital letter A (U+0041)
 MUST match Latin small letter a (U+0061). [UTR21] describes some of
 the issues with case mapping. Case-insensitivity for non [US-ASCII]
 MUST be discussed in the protocol proposal.
 
-[25] Case folding MUST be locale independent. For example, Latin
-capital letter I (U+0049) case folded to lower case in the Turkish
-context will become Latin small letter dotless i (U+0131). But in the
-English context, it will become Latin small letter i (U+0069).
+[22] Case folding MUST be locale independent. If it were
+locale-dependent, then different clients would get different results.
+For example, Latin capital letter I (U+0049) case folded to lower case
+in the Turkish context will become Latin small letter dotless i
+(U+0131). But in the English context, it will become Latin small
+letter i (U+0069).
 
-[26] If other canonicalization is done, it MUST be done before the
+[23] If other canonicalization is done, it MUST be done before the
 domain name is resolved. Further, the canonicalization MUST be easily
 upgradable as new languages and writing systems are added.
 
-[27] Any conversion (case, ligature folding, punctuation folding, etc)
+[24] Any conversion (case, ligature folding, punctuation folding, etc)
 from what the user enters into a client to what the client asks for
 resolution MUST be done identically on any request from any client.
 
-[30] If the charset can be normalized, then it SHOULD be normalized
+[25] If the charset can be normalized, then it SHOULD be normalized
 before it is used in IDN. Normalization SHOULD follow [UTR15].
-(conflict)
 
-[31] The protocol SHOULD avoid inventing a new normalization form
+[26] The protocol SHOULD avoid inventing a new normalization form
 provided a technically sufficient one is available.
 
 2.5 Operational Issues
 
-[32] Zone files SHOULD remain easily editable.
+[27] Zone files SHOULD remain easily editable.
 
-[33] An IDN-capable resolver or server SHALL NOT generate more traffic
+[28] An IDN-capable resolver or server SHALL NOT generate more traffic
 than a non-IDN-capable resolver or server would when resolving an
 ASCII-only domain name.  The amount of traffic generated when resolving
 an IDN SHALL be similar to that generated when resolving an ASCII-only
 name.
 
-[34] The service SHOULD NOT add new centralized administration for the
+[29] The service SHOULD NOT add new centralized administration for the
 DNS. A domain administrator SHOULD be able to create internationalized
 names as easily as adding current domain names.
 
-[35] Within a single zone, the zone manager MUST be able to define
+[30] Within a single zone, the zone manager MUST be able to define
 equivalence rules that suit the purpose of the zone, such as, but not
 limited to, and not necessarily, non-ASCII case folding, Unicode
 normalizations (if Unicode is chosen), Cyrillic/Greek/Latin folding, or
@@ -488,7 +500,8 @@ traditional/simplified Chinese equivalence. Such defined equivalences
 MUST NOT remove equivalences that are assumed by (old or
 local-rule-ignorant) caches.
 
-[36] The protocol MUST work with DNSSEC.
+[31] The protocol MUST work with DNSSEC.  The protocol MAY break
+language sort order.  
 
 3. Security Considerations
 
@@ -513,7 +526,10 @@ MUST be throughly understood.
             World Wide Web Consortium.
 
 [DNSEXT]    "IETF DNS Extensions Working Group",
-            namedroppers@internic.net, Olafur Gudmundson, Randy Bush.
+            namedroppers@ops.ietf.org, Olafur Gudmundson, Randy Bush.
+
+[RFC952]    "DoD Internet Host Table Specification", rfc952.txt, 
+            October 1985, K. Harrenstien, M.K. Stahl, E.J. Feinler. 
 
 [RFC1034]   "Domain Names - Concepts and Facilities", rfc1034.txt,
             November 1987, P. Mockapetris.
@@ -567,9 +583,8 @@ MUST be throughly understood.
 
 [UNICODE30] The Unicode Consortium, "The Unicode Standard -- Version
             3.0", ISBN 0-201-61633-5. Same repertoire as ISO/IEC
-            10646-1:2000. Described at
-
-http://www.unicode.org/unicode/standard/versions/Unicode3.0.html.
+            10646-1:2000. Described at http://www.unicode.org/unicode/
+            standard/versions/Unicode3.0.html.
 
 [US-ASCII]  Coded Character Set -- 7-bit American Standard Code for
             Information Interchange, ANSI X3.4-1986; also: ISO/IEC
@@ -600,6 +615,7 @@ Fax: +1 310 823 6714
 zita@isi.edu
 
 James Seng
+i-DNS.net International Pte Ltd.
 8 Temesek Boulevand
 #24-02 Suntec Tower 3
 Singapore 038988
@@ -615,6 +631,7 @@ Harald Tveit Alvestrand <Harald@Alvestrand.no>
 Mark Andrews <Mark.Andrews@nominum.com>
 RJ Atkinson <request not to have email>
 Alan Barret <apb@cequrux.com>
+Marc Blanchet <blanchet@mailviagenie.qc.ca>
 Randy Bush <randy@psg.com>
 Andrew Draper <ADRAPER@altera.com>
 Martin Duerst <duerst@w3.org>
@@ -630,8 +647,4 @@ Dongman Lee <dlee@icu.ac.kr>
 Bill Manning <bmanning@ISI.EDU>
 Dan Oscarsson <Dan.Oscarsson@trab.se>
 J. William Semich <bill@mail.nic.nu>
-James Seng <jseng@pobox.org.sg>
-
-
-
-
+Yoshiro Yoneda <<yone@nic.ad.jp>
