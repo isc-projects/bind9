@@ -40,6 +40,7 @@
 #include <isc/random.h>
 #include <isc/timer.h>
 
+#include <dns/a6.h>
 #include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/events.h>
@@ -66,6 +67,8 @@
 #define DNS_ADBENTRY_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBENTRY_MAGIC)
 #define DNS_ADBFETCH_MAGIC	  0x61644634	/* adF4. */
 #define DNS_ADBFETCH_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH_MAGIC)
+#define DNS_ADBFETCH6_MAGIC	  0x61644636	/* adF6. */
+#define DNS_ADBFETCH6_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH6_MAGIC)
 
 /*
  * Lengths of lists needs to be small primes.
@@ -87,6 +90,7 @@ typedef ISC_LIST(dns_adbnamehook_t) dns_adbnamehooklist_t;
 typedef struct dns_adbzoneinfo dns_adbzoneinfo_t;
 typedef ISC_LIST(dns_adbentry_t) dns_adbentrylist_t;
 typedef struct dns_adbfetch dns_adbfetch_t;
+typedef struct dns_adbfetch6 dns_adbfetch6_t;
 
 struct dns_adb {
 	unsigned int			magic;
@@ -114,6 +118,7 @@ struct dns_adb {
 	isc_mempool_t		       *ahmp;	/* dns_adbfind_t */
 	isc_mempool_t		       *aimp;	/* dns_adbaddrinfo_t */
 	isc_mempool_t		       *afmp;	/* dns_adbfetch_t */
+	isc_mempool_t		       *af6mp;	/* dns_adbfetch6_t */
 
 	isc_random_t			rand;
 
@@ -149,11 +154,12 @@ struct dns_adbname {
 	int				lock_bucket;
 	isc_stdtime_t			expire_v4;
 	isc_stdtime_t			expire_v6;
+	unsigned int			chains;
 	dns_adbnamehooklist_t		v4;
 	dns_adbnamehooklist_t		v6;
 	dns_adbfetch_t		       *fetch_a;
 	dns_adbfetch_t		       *fetch_aaaa;
-	ISC_LIST(dns_adbfetch_t)	fetches_a6;
+	ISC_LIST(dns_adbfetch6_t)	fetches_a6;
 	ISC_LIST(dns_adbfind_t)		finds;
 	ISC_LINK(dns_adbname_t)		plink;
 };
@@ -164,6 +170,16 @@ struct dns_adbfetch {
 	dns_adbentry_t		       *entry;
 	dns_fetch_t		       *fetch;
 	dns_rdataset_t			rdataset;
+};
+
+struct dns_adbfetch6 {
+	unsigned int			magic;
+	dns_adbnamehook_t	       *namehook;
+	dns_adbentry_t		       *entry;
+	dns_fetch_t		       *fetch;
+	dns_rdataset_t			rdataset;
+	dns_a6context_t			a6ctx;
+	ISC_LINK(dns_adbfetch6_t)	plink;
 };
 
 /*
@@ -234,6 +250,8 @@ static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *,
 
 static inline dns_adbfetch_t *new_adbfetch(dns_adb_t *);
 static inline void free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
+static inline dns_adbfetch6_t *new_adbfetch6(dns_adb_t *, dns_a6context_t *);
+static inline void free_adbfetch6(dns_adb_t *, dns_adbfetch6_t **);
 static inline dns_adbname_t *find_name_and_lock(dns_adb_t *, dns_name_t *,
 						int *);
 static inline dns_adbentry_t *find_entry_and_lock(dns_adb_t *,
@@ -268,6 +286,7 @@ static void shutdown_names(dns_adb_t *);
 static inline void link_name(dns_adb_t *, int, dns_adbname_t *);
 static inline void unlink_name(dns_adb_t *, dns_adbname_t *);
 static void kill_name(dns_adbname_t **, isc_eventtype_t ev);
+static void fetch_callback_a6(isc_task_t *task, isc_event_t *ev);
 
 #define FIND_EVENT_SENT		0x00000001
 #define FIND_EVENT_FREED	0x00000002
@@ -829,6 +848,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 	name->dead = ISC_FALSE;
 	name->expire_v4 = INT_MAX;
 	name->expire_v6 = INT_MAX;
+	name->chains = 0;
 	name->lock_bucket = DNS_ADB_INVALIDBUCKET;
 	ISC_LIST_INIT(name->v4);
 	ISC_LIST_INIT(name->v6);
@@ -1085,6 +1105,129 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
 		dns_rdataset_disassociate(&f->rdataset);
 
 	isc_mempool_put(adb->afmp, f);
+}
+
+/*
+ * Caller must be holding the name lock.
+ */
+static isc_result_t
+a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type,
+       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	dns_adbname_t *name;
+	dns_adb_t *adb;
+
+	name = arg;
+	INSIST(DNS_ADBNAME_VALID(name));
+	adb = name->adb;
+	INSIST(DNS_ADB_VALID(adb));
+	
+	/*
+	 * XXXRTH  Cache 'now' in the name so we don't have to call
+	 *         isc_stdtime_get() on every dns_view_find().
+	 */
+	
+	return (dns_view_find(adb->view, a6name, type, 0, 0, ISC_FALSE,
+			      rdataset, sigrdataset));
+}
+
+/*
+ * Caller must be holding the name lock.
+ */
+static void
+a6missing(dns_a6context_t *a6ctx, dns_name_t *a6name) {
+	dns_adbname_t *name;
+	dns_adb_t *adb;
+	dns_adbfetch6_t *fetch;
+	isc_result_t result;
+	
+	name = a6ctx->arg;
+	INSIST(DNS_ADBNAME_VALID(name));
+	adb = name->adb;
+	INSIST(DNS_ADB_VALID(adb));
+
+	fetch = new_adbfetch6(adb, a6ctx);
+	if (fetch == NULL) {
+		name->partial_result |= DNS_ADBFIND_INET6;
+		return;
+	}
+	result = dns_resolver_createfetch(adb->view->resolver, a6name,
+					  dns_rdatatype_a6, NULL, NULL, NULL,
+					  0, adb->task, fetch_callback_a6,
+					  name, &fetch->rdataset, NULL,
+					  &fetch->fetch);
+	if (result != ISC_R_SUCCESS) {
+		free_adbfetch6(adb, &fetch);
+		name->partial_result |= DNS_ADBFIND_INET6;
+		return;
+	}
+
+	name->chains = a6ctx->chains;
+	ISC_LIST_APPEND(name->fetches_a6, fetch, plink);
+}
+
+static inline dns_adbfetch6_t *
+new_adbfetch6(dns_adb_t *adb, dns_a6context_t *a6ctx)
+{
+	dns_adbfetch6_t *f;
+
+	f = isc_mempool_get(adb->af6mp);
+	if (f == NULL)
+		return (NULL);
+
+	f->magic = 0;
+	f->namehook = NULL;
+	f->entry = NULL;
+	f->fetch = NULL;
+
+	f->namehook = new_adbnamehook(adb, NULL);
+	if (f->namehook == NULL)
+		goto err;
+
+	f->entry = new_adbentry(adb);
+	if (f->entry == NULL)
+		goto err;
+
+	dns_rdataset_init(&f->rdataset);
+
+	if (a6ctx != NULL)
+		dns_a6_copy(a6ctx, &f->a6ctx);
+	else
+		dns_a6_init(&f->a6ctx, a6find, NULL, /* import */ NULL,
+			    a6missing, f);
+
+	f->magic = DNS_ADBFETCH6_MAGIC;
+
+	return (f);
+
+ err:
+	if (f->namehook != NULL)
+		free_adbnamehook(adb, &f->namehook);
+	if (f->entry != NULL)
+		free_adbentry(adb, &f->entry);
+	isc_mempool_put(adb->af6mp, f);
+	return (NULL);
+}
+
+static inline void
+free_adbfetch6(dns_adb_t *adb, dns_adbfetch6_t **fetch)
+{
+	dns_adbfetch6_t *f;
+
+	INSIST(fetch != NULL && DNS_ADBFETCH6_VALID(*fetch));
+	f = *fetch;
+	*fetch = NULL;
+
+	f->magic = 0;
+
+	if (f->namehook != NULL)
+		free_adbnamehook(adb, &f->namehook);
+	if (f->entry != NULL)
+		free_adbentry(adb, &f->entry);
+
+	if (dns_rdataset_isassociated(&f->rdataset))
+		dns_rdataset_disassociate(&f->rdataset);
+
+	isc_mempool_put(adb->af6mp, f);
 }
 
 static inline void
@@ -1586,6 +1729,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	MPINIT(dns_adbfind_t, adb->ahmp, ISC_TRUE, "adbfind");
 	MPINIT(dns_adbaddrinfo_t, adb->aimp, ISC_TRUE, "adbaddrinfo");
 	MPINIT(dns_adbfetch_t, adb->afmp, ISC_TRUE, "adbfetch");
+	MPINIT(dns_adbfetch6_t, adb->af6mp, ISC_TRUE, "adbfetch6");
 
 #undef MPINIT
 
@@ -2529,6 +2673,7 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	return;
 
 }
+
 static void
 fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
 {
@@ -2622,6 +2767,112 @@ fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
 
 	return;
 
+}
+
+static void
+fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
+{
+	dns_fetchevent_t *dev;
+	dns_adbname_t *name;
+	dns_adb_t *adb;
+	dns_adbfetch6_t *fetch;
+	int bucket;
+	isc_eventtype_t ev_status;
+	isc_stdtime_t now;
+	isc_result_t result;
+
+	(void)task;
+
+	INSIST(ev->type == DNS_EVENT_FETCHDONE);
+	dev = (dns_fetchevent_t *)ev;
+	name = ev->arg;
+	INSIST(DNS_ADBNAME_VALID(name));
+	adb = name->adb;
+	INSIST(DNS_ADB_VALID(adb));
+
+	bucket = name->lock_bucket;
+	LOCK(&adb->namelocks[bucket]);
+
+	/* XXX INSIST(needs_poke == 0) */
+	
+	for (fetch = ISC_LIST_HEAD(name->fetches_a6);
+	     fetch != NULL;
+	     fetch = ISC_LIST_NEXT(fetch, plink))
+		if (fetch->fetch == dev->fetch)
+			break;
+	INSIST(fetch != NULL);
+	ISC_LIST_UNLINK(name->fetches_a6, fetch, plink);
+
+	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
+	dev->fetch = NULL;
+
+	/*
+	 * Cleanup things we don't care about.
+	 */
+	if (dev->node != NULL)
+		dns_db_detachnode(dev->db, &dev->node);
+	if (dev->db != NULL)
+		dns_db_detach(&dev->db);
+
+	/*
+	 * If this name is marked as dead, clean up, throwing away
+	 * potentially good data.
+	 */
+	if (name->dead) {
+		isc_boolean_t decr_adbrefcnt;
+
+		free_adbfetch6(adb, &fetch);
+		isc_event_free(&ev);
+
+		kill_name(&name, DNS_EVENT_ADBCANCELED);
+
+		decr_adbrefcnt = ISC_FALSE;
+		if (adb->name_sd[bucket] && (adb->name_refcnt[bucket] == 0))
+			decr_adbrefcnt = ISC_TRUE;
+
+		UNLOCK(&adb->namelocks[bucket]);
+
+		if (decr_adbrefcnt)
+			dec_adb_irefcnt(adb, ISC_TRUE);
+
+		return;
+	}
+
+	/*
+	 * Did we get back junk?  If so, and there are no more fetches
+	 * sitting out there, tell all the finds about it.
+	 */
+	if (dev->result != ISC_R_SUCCESS)
+		goto out;
+
+	/*
+	 * We got something potentially useful.  Run the A6 chain
+	 * follower on this A6 rdataset.
+	 */
+
+	fetch->a6ctx.chains = name->chains;
+	(void)dns_a6_foreach(&fetch->a6ctx, dev->rdataset);
+
+ out:
+	free_adbfetch6(adb, &fetch);
+	isc_event_free(&ev);
+
+#ifdef notyet
+	if (needs_poke)
+		clean_finds_at_name(name, DNS_EVENT_ADBMOREADDRESSES,
+				    DNS_ADBFIND_INET6);
+	else if (ISC_LIST_EMPTY(name->fetches_a6)) {
+		clean_finds_at_name(name, DNS_EVENT_ADBNOMOREADDRESSES,
+				    DNS_ADBFIND_INET6);
+		name->query_pending &= ~DNS_ADBFIND_INET6;
+	}
+#endif
+
+	/* XXX clear needs poke */
+
+	UNLOCK(&adb->namelocks[bucket]);
+
+	return;
 }
 
 static isc_result_t
