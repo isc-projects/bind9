@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.90.18.5 $)
+AC_REVISION($Revision: 1.90.18.6 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -2316,6 +2316,9 @@ case "$host" in
 		;;
 	*-bsdi4.1*)
 		hack_shutup_stdargcast=yes
+		;;
+	*-hpux11.11)
+		hack_shutup_in6addr_init_macros=yes
 		;;
 	*-osf5.1)
 		hack_shutup_in6addr_init_macros=yes
