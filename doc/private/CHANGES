@@ -1,5 +1,3 @@
- 401.	[func]		Added simple database API.
-
  341.	[func]		Support 'key' clause in named.conf zone masters
 			statement:
 
