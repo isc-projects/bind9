@@ -13,6 +13,9 @@
 1767.	[port]		Builds on IPv6 platforms without IPv6 Advanced API
 			support for (struct in6_pktinfo) failed.  [RT #13077]
 
+1766.	[bug]		Update the master file timestamp on successful refresh
+			as well as the journal's timestamp. [RT# 13062]
+
 1764.	[bug]		dns_zone_replacedb failed to emit a error message
 			if there was no SOA record in the replacment db.
 			[RT #13016]
