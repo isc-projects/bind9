@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.28 2000/05/05 17:24:21 gson Exp $ */
+/* $Id: ns_2.c,v 1.29 2000/05/18 06:27:07 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -144,7 +144,6 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 2);
 	REQUIRE(target != NULL);
-	REQUIRE(mctx != NULL);
 
 	ns->common.rdclass = rdata->rdclass;
 	ns->common.rdtype = rdata->type;
