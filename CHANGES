@@ -2,7 +2,7 @@
  474.	[bug]		The mnemonic of the CHAOS class is CH according to
 			RFC1035, but it was printed and read only as CHAOS.
 			We now accept both forms as input, and print it
-			as CH.
+			as CH. [RT #305]
 
  473.	[bug]		nsupdate overran the end of the list of name servers
 			when no servers could be reached, typically causing 
