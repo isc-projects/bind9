@@ -141,7 +141,7 @@ static unsigned char maptolower[] = {
 
 static struct dns_name root = {
 	NAME_MAGIC,
-	(unsigned char *)"", 1, 1, DNS_NAMEATTR_ABSOLUTE, NULL,
+	(unsigned char *)"", 1, 1, DNS_NAMEATTR_ABSOLUTE, NULL, NULL,
 	{(void *)-1, (void *)-1},
 	{NULL, NULL}
 };
@@ -257,6 +257,7 @@ dns_name_init(dns_name_t *name, unsigned char *offsets) {
 	name->labels = 0;
 	name->attributes = 0;
 	name->offsets = offsets;
+	name->buffer = NULL;
 	ISC_LINK_INIT(name, link);
 	ISC_LIST_INIT(name->list);
 }
@@ -275,7 +276,35 @@ dns_name_invalidate(dns_name_t *name) {
 	name->labels = 0;
 	name->attributes = 0;
 	name->offsets = NULL;
+	name->buffer = NULL;
 	ISC_LINK_INIT(name, link);
+}
+
+void
+dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer) {
+	/*
+	 * Dedicate a binary buffer for use with 'name'.
+	 */
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->buffer == NULL);
+	REQUIRE(isc_buffer_type(buffer) == ISC_BUFFERTYPE_BINARY);
+
+	name->buffer = buffer;
+}
+
+isc_boolean_t
+dns_name_hasbuffer(dns_name_t *name) {
+	/*
+	 * Does 'name' have a dedicated buffer?
+	 */
+
+	REQUIRE(VALID_NAME(name));
+
+	if (name->buffer != NULL)
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
 }
 
 isc_boolean_t
@@ -814,6 +843,10 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_TEXT);
+	if (target == NULL && name->buffer != NULL) {
+		target = name->buffer;
+		isc_buffer_clear(target);
+	}
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
 	
@@ -1695,6 +1728,10 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
+	if (target == NULL && name->buffer != NULL) {
+		target = name->buffer;
+		isc_buffer_clear(target);
+	}
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE(dctx != NULL);
 	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
@@ -2063,7 +2100,10 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	unsigned int nrem;
 	unsigned int labels;
 	unsigned int count;
-	dns_name_t tmp_name;
+
+	/*
+	 * Concatenate 'prefix' and 'suffix', storing the result in 'target'.
+	 */
 
 	REQUIRE(VALID_NAME(prefix));
 	if (prefix->labels != 0 &&
@@ -2071,21 +2111,34 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		REQUIRE(suffix == NULL);
 	if (suffix != NULL)
 		REQUIRE(VALID_NAME(suffix));
-	if (name != NULL)
-		REQUIRE(VALID_NAME(name));
+	REQUIRE(VALID_NAME(name));
+	if (target == NULL && name->buffer != NULL) {
+		target = name->buffer;
+		isc_buffer_clear(target);
+	}
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
 
-	if (name == NULL) {
-		name = &tmp_name;
-		dns_name_init(name, NULL);
-	}
+	/*
+	 * Invalidate 'name'.
+	 */
+	name->magic = 0;
+	name->ndata = NULL;
+	name->length = 0;
+	name->labels = 0;
+	name->attributes = 0;
 
+	/*
+	 * Set up.
+	 */
 	nrem = target->length - target->used;
 	ndata = (unsigned char *)target->base + target->used;
 	if (nrem > 255)
 		nrem = 255;
 
+	/*
+	 * Copy prefix.
+	 */
 	count = prefix->length;
 	labels = prefix->labels;
 	if (count > nrem)
@@ -2094,7 +2147,9 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	nrem -= count;
 	ndata += count;
 
-	/* append suffix */
+	/*
+	 * Append suffix.
+	 */
 	if (suffix != NULL) {
 		count = suffix->length;
 		labels += suffix->labels;
@@ -2104,6 +2159,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		ndata += count;
 	}
 
+	name->magic = NAME_MAGIC;
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
 	name->length = ndata - name->ndata;
@@ -2112,9 +2168,9 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	if (name->length > 0) {
 		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_TRUE);
 		compact(name, offsets);
-	} else
-		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
+	}
 
 	isc_buffer_add(target, name->length);
+
 	return (DNS_R_SUCCESS);
 }

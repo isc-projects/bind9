@@ -188,6 +188,7 @@ struct dns_name {
 	unsigned int			labels;
 	unsigned int			attributes;
 	unsigned char *			offsets;
+	isc_buffer_t *			buffer;
 	ISC_LINK(dns_name_t)		link;
 	ISC_LIST(dns_rdatalist_t)	list;
 };
@@ -229,7 +230,49 @@ void dns_name_invalidate(dns_name_t *name);
  * Ensures:
  *	If assertion checking is enabled, future attempts to use 'name'
  *	without initializing it will cause an assertion failure.
+ *
+ *	If the name had a dedicated buffer, that association is ended.
  */
+
+
+/***
+ *** Dedicated Buffers
+ ***/
+
+void
+dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer);
+/*
+ * Dedicate a binary buffer for use with 'name'.
+ *
+ * Notes:
+ *	Specification of a target buffer in dns_name_fromwire(),
+ *	dns_name_fromtext(), and dns_name_concatentate() is optional if
+ *	'name' has a dedicated buffer.
+ *
+ *	The caller must not write to buffer until the name has been
+ *	invalidated or is otherwise known not to be in use.
+ *
+ * Requires:
+ *	'name' is a valid name.
+ *
+ *	'name' doesn't have a dedicated buffer already.
+ *
+ *	'buffer' is a valid binary buffer.
+ */
+
+isc_boolean_t
+dns_name_hasbuffer(dns_name_t *name);
+/*
+ * Does 'name' have a dedicated buffer?
+ *
+ * Requires:
+ *	'name' is a valid name.
+ *
+ * Returns:
+ *	ISC_TRUE	'name' has a dedicated buffer.
+ *	ISC_FALSE	'name' does not have a dedicated buffer.
+ */
+
 
 /***
  *** Properties
@@ -516,14 +559,15 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
  *	first byte of the active region should be the first byte of a DNS
  *	wire *	format message.
  *
- *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY.
+ *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY or 
+ *	'target' is NULL and 'name' has a dedicated buffer.
  *
  *	'dctx' is a valid decompression context.
  *
  * Ensures:
  *
  *	If result is success:
- *	 	'name' is attached to the target.
+ *	 	If 'target' is not NULL, 'name' is attached to it.
  *
  *		Uppercase letters are downcased in the copy iff. 'downcase' is
  *		true.
@@ -605,12 +649,13 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
  *
  *	'source' is a valid buffer of type ISC_BUFFERTYPE_TEXT.
  *
- *	'target' is a valid region of type ISC_BUFFERTYPE_BINARY.
+ *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY or 
+ *	'target' is NULL and 'name' has a dedicated buffer.
  *
  * Ensures:
  *
  *	If result is success:
- *	 	'name' is attached to the target.
+ *	 	If 'target' is not NULL, 'name' is attached to it.
  *
  *		Any bitstring labels in source are canonicalized.
  *
@@ -668,14 +713,23 @@ dns_result_t dns_name_totext(dns_name_t *name,
 dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
 				  dns_name_t *name, isc_buffer_t *target);
 /*
- *	Concatenate 'prefix' & 'suffix' and return the result in 'name'.
- *	If 'prefix' is absolute 'suffix' must be NULL.
+ *	Concatenate 'prefix' and 'suffix', storing the result in 'target'.
  *
  * Requires:
- *	'prefix' to be initalised
- *	'suffix' to be initalised or NULL
- *	'name' to be initalised
- *	'target' to be initalised
+ *	'prefix' is a valid name.
+ *
+ *	If 'prefix' is absolute, 'suffix' must be NULL.
+ *
+ *	'suffix' is a valid name or NULL
+ *
+ *	'name' is a valid name or NULL
+ *
+ *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY, or 
+ *	'target' is NULL and 'name' has a dedicated buffer.
+ *
+ * Ensures:
+ *	On success,
+ *	 	If 'target' is not NULL, 'name' is attached to it.
  *
  * Returns:
  *	DNS_R_SUCCESS
