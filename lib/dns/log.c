@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.6 1999/10/29 22:36:44 explorer Exp $ */
+/* $Id: log.c,v 1.7 1999/10/29 22:37:46 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -37,6 +37,8 @@ isc_logcategory_t dns_categories[] = {
 	{ "dns_config",		0 },
 	{ "dns_parser",		0 },
 	{ "dns_resolver",	0 },
+	{ "dns_xfer_in",	0 },
+	{ "dns_xfer_out",	0 },
 	{ NULL, 		0 }
 };
 
@@ -58,6 +60,8 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/zone",		0 },
 	{ "dns/journal",	0 },
 	{ "dns/adb",		0 },
+	{ "dns/xfrin",		0 },
+	{ "dns/xfrout",		0 },
 	{ NULL, 		0 }
 };
 
