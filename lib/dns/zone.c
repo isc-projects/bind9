@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.344 2001/09/08 00:21:38 gson Exp $ */
+/* $Id: zone.c,v 1.345 2001/09/12 03:46:32 marka Exp $ */
 
 #include <config.h>
 
@@ -3234,18 +3234,21 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_time_now(&now);
 
 	if (revent->result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: failure trying master %s: %s",
-			     master, dns_result_totext(revent->result));
 		if (revent->result == ISC_R_TIMEDOUT &&
 		    !dns_request_usedtcp(revent->request)) {
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "refresh: failure trying master %s: %s",
+				     master, dns_result_totext(revent->result));
 			if (zone->refreshcnt < 3)
 				goto same_master;
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: retry limit for "
 				     "master %s exceeded",
 				     master);
-		}
+		} else
+			dns_zone_log(zone, ISC_LOG_INFO,
+				     "refresh: failure trying master %s: %s",
+				     master, dns_result_totext(revent->result));
 		goto next_master;
 	}
 
