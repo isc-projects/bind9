@@ -21,11 +21,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include <isc/types.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/sockaddr.h>
+#include <isc/mem.h>
 
 isc_boolean_t
 isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
@@ -61,8 +63,42 @@ isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
 		if (memcmp(&a->type, &b->type, a->length) != 0)
 			return (ISC_FALSE);
 	}
-
 	return (ISC_TRUE);
+}
+
+char *
+isc_sockaddr_totext(isc_sockaddr_t *sockaddr, isc_mem_t *mctx) {
+	char abuf[sizeof "xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255"];
+	char pbuf[sizeof "65000"];
+	struct sockaddr *sa;
+	struct sockaddr_in *sin;
+	struct sockaddr_in6 *sin6;
+	char *res;
+
+	REQUIRE(sockaddr != NULL);
+
+	sa = &sockaddr->type.sa;
+	switch (sa->sa_family) {
+	case AF_INET:
+		sin = &sockaddr->type.sin;
+		inet_ntop(sa->sa_family, &sin->sin_addr, abuf, sizeof abuf);
+		sprintf(pbuf, "%u", ntohs(sin->sin_port));
+		break;
+	case AF_INET6:
+		sin6 = &sockaddr->type.sin6;
+		inet_ntop(sa->sa_family, &sin6->sin6_addr, abuf, sizeof abuf);
+		sprintf(pbuf, "%u", ntohs(sin6->sin6_port));
+		break;
+	default:
+		return (NULL);
+	}
+	res = isc_mem_get(mctx, strlen(abuf) + strlen(pbuf) + 2);
+	if (res == NULL)
+		return (NULL);
+	strcpy(res, abuf);
+	strcat(res, "#");
+	strcat(res, pbuf);
+	return (res);
 }
 
 unsigned int
@@ -107,7 +143,6 @@ isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 		s++;
 		length--;
 	}
-
 	return (h);
 }
 
