@@ -18,6 +18,7 @@ static char *text_table[ISC_R_LAST_ENTRY + 1] = {
 	"not enough free resources",		/* 13 */
 	"end of file",				/* 14 */
 	"socket already bound",			/* 15 */
+	"task was shut down",			/* 16 */
 };
 
 char *

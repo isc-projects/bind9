@@ -303,7 +303,7 @@ isc_task_send(isc_task_t task, isc_event_t *eventp) {
 	if (discard) {
 		isc_event_free(&event);
 		*eventp = NULL;
-		return (ISC_R_NORESOURCES);
+		return (ISC_R_TASKSHUTDOWN);
 	}
 
 	if (was_idle) {
