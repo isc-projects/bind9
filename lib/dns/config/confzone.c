@@ -2630,7 +2630,6 @@ dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone,
 			      "Stub zones do not have a "
 			      "max_trans_idle_out field");
 		return (ISC_R_FAILURE);
-		break;
 		
 	case dns_c_zone_hint:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
