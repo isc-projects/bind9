@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.9 1999/09/15 23:49:29 explorer Exp $ */
+ /* $Id: xfrout.c,v 1.10 1999/09/28 13:50:04 gson Exp $ */
 
 #include <config.h>
 
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 
