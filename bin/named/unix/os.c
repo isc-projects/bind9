@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4.8.16 2004/05/04 03:19:42 marka Exp $ */
+/* $Id: os.c,v 1.46.2.4.8.17 2004/09/16 02:50:04 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -161,7 +161,10 @@ linux_setcaps(unsigned int caps) {
 	cap.inheritable = caps;
 	if (syscall(SYS_capset, &caphead, &cap) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("capset failed: %s", strbuf);
+		ns_main_earlyfatal("capset failed: %s:"
+				   " please ensure that the capset kernel"
+				   " module is loaded.  see insmod(8)",
+				   strbuf);
 	}
 }
 
