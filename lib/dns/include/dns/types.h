@@ -131,16 +131,6 @@ typedef enum {
 
 #include <dns/enumtype.h>
 
-enum {
-	dns_rdatatype_none = 0,
-	DNS_TYPEENUM
-	dns_rdatatype_ixfr = 251,
-	dns_rdatatype_axfr = 252,
-	dns_rdatatype_mailb = 253,
-	dns_rdatatype_maila = 254,
-	dns_rdatatype_any = 255
-};
-
 #include <dns/enumclass.h>
 enum {
 	DNS_CLASSENUM
@@ -227,7 +217,7 @@ typedef isc_result_t
 (*dns_addrdatasetfunc_t)(void *, dns_name_t *, dns_rdataset_t *);
 
 typedef isc_result_t
-(*dns_additionaldatafunc_t)(void *, dns_name_t *, int);
+(*dns_additionaldatafunc_t)(void *, dns_name_t *, dns_rdatatype_t);
 
 typedef isc_result_t
 (*dns_digestfunc_t)(void *, isc_region_t *);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.98 2000/06/01 18:25:34 tale Exp $ */
+/* $Id: rdata.c,v 1.99 2000/06/01 21:42:39 tale Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -47,14 +47,14 @@
 		return (_r); \
 	} while (0)
 
-#define ARGS_FROMTEXT	int rdclass, int type, \
+#define ARGS_FROMTEXT	int rdclass, dns_rdatatype_t type, \
 			isc_lex_t *lexer, dns_name_t *origin, \
 			isc_boolean_t downcase, isc_buffer_t *target
 
 #define ARGS_TOTEXT	dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, \
 			isc_buffer_t *target
 
-#define ARGS_FROMWIRE	int rdclass, int type, \
+#define ARGS_FROMWIRE	int rdclass, dns_rdatatype_t type, \
 			isc_buffer_t *source, dns_decompress_t *dctx, \
 			isc_boolean_t downcase, isc_buffer_t *target
 
@@ -63,7 +63,7 @@
 
 #define ARGS_COMPARE	const dns_rdata_t *rdata1, const dns_rdata_t *rdata2
 
-#define ARGS_FROMSTRUCT	int rdclass, int type, \
+#define ARGS_FROMSTRUCT	int rdclass, dns_rdatatype_t type, \
 			void *source, isc_buffer_t *target
 
 #define ARGS_TOSTRUCT	dns_rdata_t *rdata, void *target, isc_mem_t *mctx

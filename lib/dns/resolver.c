@@ -2792,7 +2792,7 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 }
 
 static isc_result_t
-check_related(void *arg, dns_name_t *addname, int type) {
+check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 	fetchctx_t *fctx = arg;
 	isc_result_t result;
 	dns_name_t *name;

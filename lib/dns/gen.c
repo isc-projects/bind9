@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.47 2000/06/01 18:25:30 tale Exp $ */
+/* $Id: gen.c,v 1.48 2000/06/01 21:42:38 tale Exp $ */
 
 #include <config.h>
 
@@ -34,70 +34,51 @@
 #include "gen-unix.h"
 #endif
 
-#define FROMTEXTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, " \
-			"isc_lex_t *lexer, dns_name_t *origin, " \
-			"isc_boolean_t downcase, isc_buffer_t *target"
 #define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target"
 #define FROMTEXTCLASS "rdclass"
 #define FROMTEXTTYPE "type"
 #define FROMTEXTDEF "use_default = ISC_TRUE"
 
-#define TOTEXTDECL "dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, " \
-			"isc_buffer_t *target"
 #define TOTEXTARGS "rdata, tctx, target"
 #define TOTEXTCLASS "rdata->rdclass"
 #define TOTEXTTYPE "rdata->type"
 #define TOTEXTDEF "use_default = ISC_TRUE"
 
-#define FROMWIREDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, " \
-			"isc_buffer_t *source, dns_decompress_t *dctx, " \
-			"isc_boolean_t downcase, isc_buffer_t *target"
 #define FROMWIREARGS "rdclass, type, source, dctx, downcase, target"
 #define FROMWIRECLASS "rdclass"
 #define FROMWIRETYPE "type"
 #define FROMWIREDEF "use_default = ISC_TRUE"
 
-#define TOWIREDECL "dns_rdata_t *rdata, dns_compress_t *cctx, " \
-			"isc_buffer_t *target"
 #define TOWIREARGS "rdata, cctx, target"
 #define TOWIRECLASS "rdata->rdclass"
 #define TOWIRETYPE "rdata->type"
 #define TOWIREDEF "use_default = ISC_TRUE"
 
-#define FROMSTRUCTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, " \
-			"void *source, isc_buffer_t *target"
 #define FROMSTRUCTARGS "rdclass, type, source, target"
 #define FROMSTRUCTCLASS "rdclass"
 #define FROMSTRUCTTYPE "type"
 #define FROMSTRUCTDEF "use_default = ISC_TRUE"
 
-#define TOSTRUCTDECL "dns_rdata_t *rdata, void *target, isc_mem_t *mctx"
 #define TOSTRUCTARGS "rdata, target, mctx"
 #define TOSTRUCTCLASS "rdata->rdclass"
 #define TOSTRUCTTYPE "rdata->type"
 #define TOSTRUCTDEF "use_default = ISC_TRUE"
 
-#define FREESTRUCTDECL "void *source"
 #define FREESTRUCTARGS "source"
 #define FREESTRUCTCLASS "common->rdclass"
 #define FREESTRUCTTYPE "common->rdtype"
 #define FREESTRUCTDEF NULL
 
-#define COMPAREDECL "dns_rdata_t *rdata1, dns_rdata_t *rdata2"
 #define COMPAREARGS "rdata1, rdata2"
 #define COMPARECLASS "rdata1->rdclass"
 #define COMPARETYPE "rdata1->type"
 #define COMPAREDEF "use_default = ISC_TRUE"
 
-#define ADDITIONALDATADECL \
-	"dns_rdata_t *rdata, dns_additionaldatafunc_t add, void *arg"
 #define ADDITIONALDATAARGS "rdata, add, arg"
 #define ADDITIONALDATACLASS "rdata->rdclass"
 #define ADDITIONALDATATYPE "rdata->type"
 #define ADDITIONALDATADEF "use_default = ISC_TRUE"
 
-#define DIGESTDECL \
-	"dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg"
 #define DIGESTARGS "rdata, digest, arg"
 #define DIGESTCLASS "rdata->rdclass"
 #define DIGESTTYPE "rdata->type"
@@ -726,21 +707,57 @@ main(int argc, char **argv) {
 
 		fputs("#endif /* DNS_CODE_H */\n", stdout);
 	} else if (type_enum) {
-		fprintf(stdout, "#ifndef DNS_ENUMTYPE_H\n");
-		fprintf(stdout, "#define DNS_ENUMTYPE_H 1\n");
+		char *s;
 
-		fprintf(stdout, "#define DNS_TYPEENUM%s\n",
-			types != NULL ? " \\" : "");
+		fprintf(stdout, "#ifndef DNS_ENUMTYPE_H\n");
+		fprintf(stdout, "#define DNS_ENUMTYPE_H 1\n\n");
+
+		fprintf(stdout, "enum {\n");
+		fprintf(stdout, "\tdns_rdatatype_none = 0,\n");
 
 		lasttype = 0;
 		for (tt = types; tt != NULL ; tt = tt->next)
 			if (tt->type != lasttype)
 				fprintf(stdout,
-					"\t dns_rdatatype_%s = %d,%s\n",
+					"\tdns_rdatatype_%s = %d,\n",
 					funname(tt->typename, buf1),
-					lasttype = tt->type,
-					tt->next != NULL ? " \\" : "");
-		fprintf(stdout, "#endif /* DNS_ENUMTYPE_H */\n");
+					lasttype = tt->type);
+
+		fprintf(stdout, "\tdns_rdatatype_ixfr = 251,\n");
+		fprintf(stdout, "\tdns_rdatatype_axfr = 252,\n");
+		fprintf(stdout, "\tdns_rdatatype_mailb = 253,\n");
+		fprintf(stdout, "\tdns_rdatatype_maila = 254,\n");
+		fprintf(stdout, "\tdns_rdatatype_any = 255\n");
+
+		fprintf(stdout, "};\n\n");
+
+		fprintf(stdout, "#define dns_rdatatype_none\t"
+			"((dns_rdatatype_t)dns_rdatatype_none)\n");
+
+		for (tt = types; tt != NULL ; tt = tt->next)
+			if (tt->type != lasttype) {
+				s = funname(tt->typename, buf1);
+				fprintf(stdout,
+					"#define dns_rdatatype_%s\t%s"
+					"((dns_rdatatype_t)dns_rdatatype_%s)"
+					"\n",
+					s, strlen(s) < 2 ? "\t" : "", s);
+				lasttype = tt->type;
+			}
+
+		fprintf(stdout, "#define dns_rdatatype_ixfr\t"
+			"((dns_rdatatype_t)dns_rdatatype_ixfr)\n");
+		fprintf(stdout, "#define dns_rdatatype_axfr\t"
+			"((dns_rdatatype_t)dns_rdatatype_axfr)\n");
+		fprintf(stdout, "#define dns_rdatatype_mailb\t"
+			"((dns_rdatatype_t)dns_rdatatype_mailb)\n");
+		fprintf(stdout, "#define dns_rdatatype_maila\t"
+			"((dns_rdatatype_t)dns_rdatatype_maila)\n");
+		fprintf(stdout, "#define dns_rdatatype_any\t"
+			"((dns_rdatatype_t)dns_rdatatype_any)\n");
+		
+		fprintf(stdout, "\n#endif /* DNS_ENUMTYPE_H */\n");
+
 	} else if (class_enum) {
 		fprintf(stdout, "#ifndef DNS_ENUMCLASS_H\n");
 		fprintf(stdout, "#define DNS_ENUMCLASS_H 1\n");

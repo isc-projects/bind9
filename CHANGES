@@ -1,3 +1,8 @@
+ 225.   [cleanup]       The enumerated dns_rdatatype_* identifiers are now
+                        cast to dns_rdatatype_t via macros of their same name
+                        so that they are of the proper integral type wherever
+                        a dns_rdatatype_t is needed.
+
  224.   [cleanup]       The entire project builds cleanly with gcc's
                         -Wcast-qual and -Wwrite-strings warnings enabled,
                         which is now the default when using gcc.  (Warnings
