@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.24 2000/08/01 01:32:20 tale Exp $ */
+/* $Id: lwconfig.c,v 1.25 2000/10/05 22:27:53 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -75,6 +75,9 @@ extern const char *lwres_net_ntop(int af, const void *src, char *dst,
 
 static lwres_result_t
 lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp);
+
+static lwres_result_t
+lwres_conf_parselwserver(lwres_context_t *ctx,  FILE *fp);
 
 static lwres_result_t
 lwres_conf_parsedomain(lwres_context_t *ctx, FILE *fp);
@@ -219,6 +222,7 @@ lwres_conf_init(lwres_context_t *ctx) {
 	confdata = &ctx->confdata;
 
 	confdata->nsnext = 0;
+	confdata->lwnext = 0;
 	confdata->domainname = NULL;
 	confdata->searchnxt = 0;
 	confdata->sortlistnxt = 0;
@@ -269,6 +273,7 @@ lwres_conf_clear(lwres_context_t *ctx) {
 	}
 
 	confdata->nsnext = 0;
+	confdata->lwnext = 0;
 	confdata->domainname = NULL;
 	confdata->searchnxt = 0;
 	confdata->sortlistnxt = 0;
@@ -299,6 +304,34 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 
 	res = lwres_create_addr(word,
 				&confdata->nameservers[confdata->nsnext++]);
+	if (res != LWRES_R_SUCCESS)
+		return (res);
+
+	return (LWRES_R_SUCCESS);
+}
+
+static lwres_result_t
+lwres_conf_parselwserver(lwres_context_t *ctx,  FILE *fp) {
+	char word[LWRES_CONFMAXLINELEN];
+	int res;
+	lwres_conf_t *confdata;
+
+	confdata = &ctx->confdata;
+
+	if (confdata->lwnext == LWRES_CONFMAXLWSERVERS)
+		return (LWRES_R_SUCCESS);
+
+	res = getword(fp, word, sizeof(word));
+	if (strlen(word) == 0)
+		return (LWRES_R_FAILURE); /* Nothing on line. */
+	else if (res == ' ' || res == '\t')
+		res = eatwhite(fp);
+
+	if (res != EOF && res != '\n')
+		return (LWRES_R_FAILURE); /* Extra junk on line. */
+
+	res = lwres_create_addr(word,
+				&confdata->lwservers[confdata->lwnext++]);
 	if (res != LWRES_R_SUCCESS)
 		return (res);
 
@@ -544,6 +577,8 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 			rval = LWRES_R_SUCCESS;
 		else if (strcmp(word, "nameserver") == 0)
 			rval = lwres_conf_parsenameserver(ctx, fp);
+		else if (strcmp(word, "lwserver") == 0)
+			rval = lwres_conf_parselwserver(ctx, fp);
 		else if (strcmp(word, "domain") == 0)
 			rval = lwres_conf_parsedomain(ctx, fp);
 		else if (strcmp(word, "search") == 0)
@@ -592,6 +627,17 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 			return (LWRES_R_FAILURE);
 
 		fprintf(fp, "nameserver %s\n", tmp);
+	}
+
+	for (i = 0 ; i < confdata->lwnext ; i++) {
+		af = lwresaddr2af(confdata->lwservers[i].family);
+
+		p = lwres_net_ntop(af, confdata->lwservers[i].address,
+				   tmp, sizeof(tmp));
+		if (p != tmp)
+			return (LWRES_R_FAILURE);
+
+		fprintf(fp, "lwserver %s\n", tmp);
 	}
 
 	if (confdata->domainname != NULL) {

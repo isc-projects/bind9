@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.25 2000/08/01 01:32:16 tale Exp $ */
+/* $Id: getnameinfo.c,v 1.26 2000/10/05 22:27:52 bwelling Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -255,7 +255,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 		if (n == 0)
-			(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
+			(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 
 		if (n == 0)
 			n = lwres_getnamebyaddr(lwrctx, lwf, afd->a_addrlen,

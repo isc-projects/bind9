@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context_p.h,v 1.10 2000/08/01 01:32:11 tale Exp $ */
+/* $Id: context_p.h,v 1.11 2000/10/05 22:27:49 bwelling Exp $ */
 
 #ifndef LWRES_CONTEXT_P_H
 #define LWRES_CONTEXT_P_H 1
@@ -41,6 +41,7 @@ struct lwres_context {
 	 * For network I/O.
 	 */
 	int			sock;		/* socket to send on */
+	lwres_addr_t		address;	/* address to send to */
 
 	/*
 	 * Function pointers for allocating memory.

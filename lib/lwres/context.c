@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.29 2000/08/22 16:20:19 gson Exp $ */
+/* $Id: context.c,v 1.30 2000/10/05 22:27:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -46,6 +46,7 @@
 #endif
 
 lwres_uint16_t lwres_udp_port = LWRES_UDP_PORT;
+const char *lwres_resolv_conf = LWRES_RESOLV_CONF;
 
 static void *
 lwres_malloc(void *, size_t);
@@ -65,6 +66,7 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	lwres_context_t *ctx;
 
 	REQUIRE(contextp != NULL && *contextp == NULL);
+	UNUSED(flags);
 
 	/*
 	 * If we were not given anything special to use, use our own
@@ -91,9 +93,6 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 
 	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
 	ctx->serial = time(NULL); /* XXXMLG or BEW */
-
-	if ((flags & LWRES_CONTEXT_SERVERMODE) == 0)
-		(void)context_connect(ctx); /* XXXMLG */
 
 	/*
 	 * Init resolv.conf bits.
@@ -177,19 +176,49 @@ static lwres_result_t
 context_connect(lwres_context_t *ctx) {
 	int s;
 	int ret;
-	struct sockaddr_in localhost;
+	struct sockaddr_in sin;
+	struct sockaddr_in6 sin6;
+	struct sockaddr *sa;
+	socklen_t salen;
 	int flags;
+	int domain;
 
-	memset(&localhost, 0, sizeof(localhost));
-	localhost.sin_family = AF_INET;
-	localhost.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	localhost.sin_port = htons(lwres_udp_port);
+	if (ctx->confdata.lwnext != 0) {
+		memcpy(&ctx->address, &ctx->confdata.lwservers[0],
+		       sizeof(lwres_addr_t));
+		LWRES_LINK_INIT(&ctx->address, link);
+	} else {
+		char localhost[] = "127.0.0.1";
+		lwres_buffer_t b;
+		lwres_buffer_init(&b, localhost, sizeof(localhost));
+		lwres_buffer_add(&b, strlen(localhost));
+		(void)lwres_addr_parse(&b, &ctx->address);
+	}
 
-	s = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (ctx->address.family == LWRES_ADDRTYPE_V4) {
+		memcpy(&sin.sin_addr, ctx->address.address,
+		       sizeof(sin.sin_addr));
+		sin.sin_port = htons(lwres_udp_port);
+		sin.sin_family = AF_INET;
+		sa = (struct sockaddr *)&sin;
+		salen = sizeof(sin);
+		domain = PF_INET;
+	} else if (ctx->address.family == LWRES_ADDRTYPE_V6) {
+		memcpy(&sin6.sin6_addr, ctx->address.address,
+		       sizeof(sin6.sin6_addr));
+		sin6.sin6_port = htons(lwres_udp_port);
+		sin6.sin6_family = AF_INET6;
+		sa = (struct sockaddr *)&sin6;
+		salen = sizeof(sin6);
+		domain = PF_INET6;
+	} else
+		return (LWRES_R_IOERROR);
+
+	s = socket(domain, SOCK_DGRAM, IPPROTO_UDP);
 	if (s < 0)
 		return (LWRES_R_IOERROR);
 
-	ret = connect(s, (struct sockaddr *)&localhost, sizeof(localhost));
+	ret = connect(s, sa, salen);
 	if (ret != 0) {
 		close(s);
 		return (LWRES_R_IOERROR);
@@ -215,6 +244,14 @@ lwres_result_t
 lwres_context_send(lwres_context_t *ctx,
 		   void *sendbase, int sendlen) {
 	int ret;
+	lwres_result_t lwresult;
+
+	if (ctx->sock == -1) {
+		lwresult = context_connect(ctx);
+		if (lwresult != LWRES_R_SUCCESS)
+			return (lwresult);
+	}
+
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
@@ -231,17 +268,25 @@ lwres_context_recv(lwres_context_t *ctx,
 {
 	LWRES_SOCKADDR_LEN_T fromlen;
 	struct sockaddr_in sin;
+	struct sockaddr_in6 sin6;
+	struct sockaddr *sa;
 	int ret;
 
-	fromlen = sizeof(sin);
+	if (ctx->address.family == LWRES_ADDRTYPE_V4) {
+		sa = (struct sockaddr *)&sin;
+		fromlen = sizeof(sin);
+	} else {
+		sa = (struct sockaddr *)&sin6;
+		fromlen = sizeof(sin6);
+	}
+
 	/*
 	 * The address of fromlen is cast to void * to shut up compiler
 	 * warnings, namely on systems that have the sixth parameter
 	 * prototyped as a signed int when LWRES_SOCKADDR_LEN_T is
 	 * defined as unsigned.
 	 */
-	ret = recvfrom(ctx->sock, recvbase, recvlen, 0,
-		       (struct sockaddr *)&sin, (void *)&fromlen);
+	ret = recvfrom(ctx->sock, recvbase, recvlen, 0, sa, (void *)&fromlen);
 
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
@@ -251,9 +296,19 @@ lwres_context_recv(lwres_context_t *ctx,
 	 * wait for another packet.  This can happen if an old result
 	 * comes in, or if someone is sending us random stuff.
 	 */
-	if (sin.sin_addr.s_addr != htonl(INADDR_LOOPBACK)
-	    || sin.sin_port != htons(lwres_udp_port))
-		return (LWRES_R_RETRY);
+	if (ctx->address.family == LWRES_ADDRTYPE_V4) {
+		if (fromlen != sizeof(sin)
+		    || memcmp(&sin.sin_addr, ctx->address.address,
+			      sizeof(sin.sin_addr)) != 0
+		    || sin.sin_port != htons(lwres_udp_port))
+			return (LWRES_R_RETRY);
+	} else {
+		if (fromlen != sizeof(sin6)
+		    || memcmp(&sin6.sin6_addr, ctx->address.address,
+			      sizeof(sin6.sin6_addr)) != 0
+		    || sin6.sin6_port != htons(lwres_udp_port))
+			return (LWRES_R_RETRY);
+	}
 
 	if (recvd_len != NULL)
 		*recvd_len = ret;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.25 2000/08/01 01:32:15 tale Exp $ */
+/* $Id: getipnode.c,v 1.26 2000/10/05 22:27:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -166,7 +166,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		*error_num = NO_RECOVERY;
 		goto cleanup;
 	}
-	(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
+	(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 	tmp_err = NO_RECOVERY;
 	if (have_v6 && af == AF_INET6) {
 
@@ -279,7 +279,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 			cp += 12;
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 		if (n == LWRES_R_SUCCESS)
-			(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
+			(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 		if (n == LWRES_R_SUCCESS)
 			n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V4,
 						INADDRSZ, cp, &by);
@@ -323,7 +323,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 
 	n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (n == LWRES_R_SUCCESS)
-		(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
+		(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 	if (n == LWRES_R_SUCCESS)
 		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, IN6ADDRSZ,
 					src, &by);

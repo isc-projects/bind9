@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.32 2000/09/19 21:21:59 bwelling Exp $ */
+/* $Id: getaddrinfo.c,v 1.33 2000/10/05 22:27:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -463,7 +463,7 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (lwres != 0)
 		ERR(EAI_FAIL);
-	(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
+	(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		ai = ai_clone(*aip, AF_INET);
 		if (ai == NULL) {
@@ -523,7 +523,7 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (lwres != 0)
 		ERR(EAI_FAIL);
-	(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
+	(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		ai = ai_clone(*aip, AF_INET6);

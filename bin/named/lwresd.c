@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.16 2000/10/04 23:18:55 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.17 2000/10/05 22:27:46 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -219,11 +219,31 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	localhost.s_addr = htonl(INADDR_LOOPBACK);
 	port = lwresd_g_listenport;
 	if (port == 0)
 		port = LWRES_UDP_PORT;
-	isc_sockaddr_fromin(&sa, &localhost, port);
+
+	if (lwc->lwnext == 0) {
+		localhost.s_addr = htonl(INADDR_LOOPBACK);
+		isc_sockaddr_fromin(&sa, &localhost, port);
+	} else {
+		if (lwc->lwservers[0].family != LWRES_ADDRTYPE_V4 &&
+		    lwc->lwservers[0].family != LWRES_ADDRTYPE_V6)
+		{
+			result = ISC_R_FAMILYNOSUPPORT;
+			goto cleanup;
+		}
+
+		if (lwc->lwservers[0].family == LWRES_ADDRTYPE_V4) {
+			struct in_addr ina;
+			memcpy(&ina.s_addr, lwc->lwservers[0].address, 4);
+			isc_sockaddr_fromin(&sa, &ina, port);
+		} else {
+			struct in6_addr ina6;
+			memcpy(&ina6.s6_addr, lwc->lwservers[0].address, 16);
+			isc_sockaddr_fromin6(&sa, &ina6, port);
+		}
+	}
 
 	result = dns_c_iplist_new(mctx, 1, &locallist);
 	if (result != ISC_R_SUCCESS)
@@ -499,9 +519,6 @@ add_listener(isc_mem_t *mctx, ns_lwreslistener_t **listenerp,
 			      NS_LOGMODULE_LWRESD, ISC_LOG_WARNING,
 			      "couldn't add lwres channel %s: %s",
 			      socktext, isc_result_totext(result));
-
-		dns_view_detach(&listener->view);
-		*listenerp = NULL;
 	}
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.43 2000/08/01 01:32:41 tale Exp $ */
+/* $Id: lwres.h,v 1.44 2000/10/05 22:27:54 bwelling Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -80,6 +80,7 @@
 #define LWRES_UDP_PORT		921	/* XXXMLG */
 #define LWRES_RECVLENGTH	4096	/* XXXMLG */
 #define LWRES_ADDR_MAXLEN	16	/* changing this breaks ABI */
+#define LWRES_RESOLV_CONF	"/etc/resolv.conf"
 
 /*
  * XXXMLG
@@ -194,6 +195,7 @@ typedef struct {
  */
 
 #define LWRES_CONFMAXNAMESERVERS 3	/* max 3 "nameserver" entries */
+#define LWRES_CONFMAXLWSERVERS 1	/* max 1 "lwserver" entry */
 #define LWRES_CONFMAXSEARCH 8		/* max 8 domains in "search" entry */
 #define LWRES_CONFMAXLINELEN 256	/* max size of a line */
 #define LWRES_CONFMAXSORTLIST 10
@@ -201,6 +203,9 @@ typedef struct {
 	lwres_context_t *lwctx;
 	lwres_addr_t    nameservers[LWRES_CONFMAXNAMESERVERS];
 	lwres_uint8_t	nsnext;		/* index for next free slot */
+
+	lwres_addr_t	lwservers[LWRES_CONFMAXLWSERVERS];
+	lwres_uint8_t	lwnext;		/* index for next free slot */
 
 	char	       *domainname;
 
@@ -231,6 +236,8 @@ LWRES_LANG_BEGINDECLS
  * This is in host byte order.
  */
 extern lwres_uint16_t lwres_udp_port;
+
+extern const char *lwres_resolv_conf;
 
 lwres_result_t
 lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
