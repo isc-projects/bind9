@@ -1023,8 +1023,6 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 	adb = ev->arg;
 	INSIST(DNS_ADB_VALID(adb));
 
-	printf("Tick!\n");
-
 	LOCK(&adb->lock);
 
 	/*
@@ -1299,7 +1297,6 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 *	list and remember to tell the caller that there will be
 	 *	more info coming later.
 	 */
-
 	handle = new_adbhandle(adb);
 	if (handle == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -1314,7 +1311,40 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (adb->name_sd[bucket]) {
 			result = ISC_R_SHUTTINGDOWN;
 			goto fail;
-	}		
+	}
+
+	if (adbname != NULL)
+		goto found;  /* goodness, I hate goto's. */
+
+	/*
+	 * Nothing found.  Allocate a new adbname structure for this name
+	 * and look in the database for details.  If the database has
+	 * nothing useful, start a fetch if we can.
+	 */
+	adbname = new_adbname(adb, name);
+	if (adbname == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto fail;
+	}
+
+	/*
+	 * Try to populate the name from the database and/or
+	 * start fetches.  If this function returns
+	 * ISC_R_SUCCESS at least ONE new bit of data was
+	 * added, and/or fetches were started.  If nothing new
+	 * can ever be found it will return DNS_R_NOMEMORY more
+	 * than likely.
+	 */
+	result = construct_name(adb, handle, name, zone, adbname, bucket, now);
+	if (result == ISC_R_SUCCESS) {
+		ISC_LIST_PREPEND(adb->names[bucket], adbname, link);
+		adb->name_refcnt[bucket]++;
+		if (adbname->partial_result)
+			handle->partial_result = ISC_TRUE;
+		goto found;
+	}
+
+	goto fail;
 
 	/*
 	 * Found!  Run through the name and copy out the bits we are
@@ -1322,7 +1352,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * ISC_R_NOMEMORY, otherwise copy out what we can and set the
 	 * missing_data bit in the header.
 	 */
- again:
+ found:
 	if (adbname != NULL) {
 		copy_namehook_list(adb, handle, adbname, zone, now);
 		if (handle->result == ISC_R_NOMEMORY
@@ -1344,32 +1374,6 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 		result = ISC_R_SUCCESS;
 		goto out;
-	}
-
-	/*
-	 * Nothing found.  Allocate a new adbname structure for this name
-	 * and look in the database for details.  If the database has
-	 * nothing useful, start a fetch if we can.
-	 */
-	adbname = new_adbname(adb, name);
-	if (adbname == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto fail;
-	}
-
-	/*
-	 * Try to populate the name from the database and/or start fetches.
-	 * If this function returns ISC_R_SUCCESS at least ONE new bit
-	 * of data was added, and/or fetches were started.  If nothing new
-	 * can ever be found it will return DNS_R_NOMEMORY more than likely.
-	 */
-	result = construct_name(adb, handle, name, zone, adbname, bucket, now);
-	if (result == ISC_R_SUCCESS) {
-		ISC_LIST_PREPEND(adb->names[bucket], adbname, link);
-		adb->name_refcnt[bucket]++;
-		if (adbname->partial_result)
-			handle->partial_result = ISC_TRUE;
-		goto again;
 	}
 
 	/*
