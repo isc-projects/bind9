@@ -382,6 +382,7 @@ typedef struct evp_cipher_ctx_st
 #ifndef NO_CAST
 		CAST_KEY cast_ks;/* key schedule */
 #endif
+		int dummy;
 		} c;
 	} EVP_CIPHER_CTX;
 
