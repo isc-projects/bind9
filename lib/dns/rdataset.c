@@ -22,6 +22,7 @@
 
 #include <isc/assertions.h>
 
+#include <dns/ncache.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
@@ -261,8 +262,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	isc_region_t r;
 	dns_result_t result;
 	unsigned int count;
-	isc_buffer_t st;
-	isc_buffer_t rdlen;
+	isc_buffer_t savedbuffer, rdlen;
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
 
@@ -278,6 +278,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		question = ISC_TRUE;
 		result = dns_rdataset_first(rdataset);
 		INSIST(result == DNS_R_NOMORE);
+	} else if (rdataset->type == 0) {
+		/*
+		 * This is a negative caching rdataset.
+		 */
+		return (dns_ncache_towire(rdataset, cctx, target, countp));
 	} else {
 		result = dns_rdataset_first(rdataset);
 		if (result == DNS_R_NOMORE)
@@ -285,6 +290,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
+
+	savedbuffer = *target;
 
 	count = 0;
 	do {
@@ -295,24 +302,17 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL);
 		else
 			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
-		st = *target;
 		result = dns_name_towire(owner_name, cctx, target);
-		if (result != DNS_R_SUCCESS) {
-			dns_compress_rollback(cctx, st.used);
-			*countp += count;
-			*target = st;
-			return (result);
-		}
+		if (result != DNS_R_SUCCESS)
+			goto rollback;
 		headlen = sizeof(dns_rdataclass_t) + sizeof(dns_rdatatype_t);
 		if (!question)
 			headlen += sizeof(dns_ttl_t)
 				+ 2;  /* XXX 2 for rdata len */
 		isc_buffer_available(target, &r);
 		if (r.length < headlen) {
-			dns_compress_rollback(cctx, st.used);
-			*countp += count;
-			*target = st;
-			return (DNS_R_NOSPACE);
+			result = ISC_R_NOSPACE;
+			goto rollback;
 		}
 		isc_buffer_putuint16(target, rdataset->type);
 		isc_buffer_putuint16(target, rdataset->rdclass);
@@ -331,20 +331,12 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			dns_rdataset_current(rdataset, &rdata);
 			result = dns_compress_localinit(cctx, owner_name,
 							target);
-			if (result != DNS_R_SUCCESS) {
-				dns_compress_rollback(cctx, st.used);
-				*countp += count;
-				*target = st;
-				return (result);
-			}
+			if (result != DNS_R_SUCCESS)
+				goto rollback;
 			result = dns_rdata_towire(&rdata, cctx, target);
 			dns_compress_localinvalidate(cctx);
-			if (result != DNS_R_SUCCESS) {
-				dns_compress_rollback(cctx, st.used);
-				*countp += count;
-				*target = st;
-				return (result);
-			}
+			if (result != DNS_R_SUCCESS)
+				goto rollback;
 			isc_buffer_putuint16(&rdlen,
 					     target->used - rdlen.used - 2);
 		}
@@ -360,6 +352,13 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	*countp += count;
 
 	return (DNS_R_SUCCESS);
+
+ rollback:
+	dns_compress_rollback(cctx, savedbuffer.used);
+	*countp = 0;
+	*target = savedbuffer;
+
+	return (result);
 }
 
 dns_result_t
