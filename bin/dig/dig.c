@@ -15,16 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.86 2000/08/10 15:45:54 bwelling Exp $ */
+/* $Id: dig.c,v 1.87 2000/08/14 20:23:39 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
 
 #include <isc/app.h>
+#include <isc/netaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/task.h>
 
+#include <dns/byaddr.h>
+#include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -136,6 +139,7 @@ show_usage(void) {
 "                 (Use ixfr=version for type ixfr)\n"
 "        q-opt    is one of:\n"
 "                 -x dot-notation     (shortcut for in-addr lookups)\n"
+"                 -n                  (nibble form for reverse IPv6 lookups)\n"
 "                 -f filename         (batch mode)\n"
 "                 -p port             (specify port number)\n"
 "                 -t type             (specify query type)\n"
@@ -578,6 +582,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	char *homedir;
 	char rcfile[132];
 #endif
+	isc_boolean_t nibble = ISC_FALSE;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -968,19 +973,49 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				show_usage();
 				exit(1);
 			}
-			n = sscanf(rv[1], "%d.%d.%d.%d", &adrs[0], &adrs[1],
-				    &adrs[2], &adrs[3]);
-			if (n == 0)
-				show_usage();
 
 			lookup = clone_lookup(default_lookup, ISC_TRUE);
 
-			for (i = n - 1; i >= 0; i--) {
-				snprintf(batchline, MXNAME/8, "%d.",
-					  adrs[i]);
-				strncat(lookup->textname, batchline, MXNAME);
+			if (strchr(rv[1], ':') == NULL) {
+				n = sscanf(rv[1], "%d.%d.%d.%d",
+					   &adrs[0], &adrs[1],
+					   &adrs[2], &adrs[3]);
+				if (n == 0)
+					show_usage();
+
+				for (i = n - 1; i >= 0; i--) {
+					snprintf(batchline, MXNAME/8, "%d.",
+						  adrs[i]);
+					strncat(lookup->textname, batchline,
+						MXNAME);
+				}
+				strncat(lookup->textname, "in-addr.arpa.",
+					MXNAME);
+			} else {
+				isc_netaddr_t addr;
+				dns_fixedname_t fname;
+				dns_name_t *name;
+				isc_buffer_t b;
+
+				addr.family = AF_INET6;
+				n = inet_pton(AF_INET6, rv[1], &addr.type.in6);
+				if (n <= 0)
+					show_usage();
+				dns_fixedname_init(&fname);
+				name = dns_fixedname_name(&fname);
+				lookup->nibble = nibble;
+				result = dns_byaddr_createptrname(&addr,
+							lookup->nibble,
+							name);
+				if (result != ISC_R_SUCCESS)
+					show_usage();
+				isc_buffer_init(&b, lookup->textname,
+						sizeof lookup->textname);
+				result = dns_name_totext(name, ISC_FALSE, &b);
+				isc_buffer_putuint8(&b, 0);
+				if (result != ISC_R_SUCCESS)
+					show_usage();
 			}
-			strncat(lookup->textname, "in-addr.arpa.", MXNAME);
 			debug("looking up %s", lookup->textname);
 			lookup->trace_root = ISC_TF(lookup->trace  ||
 						    lookup->ns_search_only);
@@ -991,6 +1026,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			rv++;
 			rc--;
+		} else if ((strncmp(rv[0], "-n", 2) == 0)) {
+			nibble = ISC_TRUE;
 		} else {
 			/*
 			 * Anything which isn't an option
