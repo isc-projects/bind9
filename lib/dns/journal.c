@@ -410,10 +410,11 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 			}
 			if (result == DNS_R_UNCHANGED) {
 			  	/*
-				 * This will not happen when executing a dynamic
-				 * update, because that code will generate strictly
-				 * minimal diffs.  It may happen when receiving an
-				 * IXFR from a server that is not as careful.
+				 * This will not happen when executing a
+				 * dynamic * update, because that code will
+				 * generate strictly * minimal diffs.
+				 * It may happen when receiving an IXFR
+				 * from a server that is not as careful.
 				 * Issue a warning and continue.
 				 */
 				printf("warning: update with no effect\n");
