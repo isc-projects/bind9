@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.8 2000/08/26 01:36:55 bwelling Exp $ */
+/* $Id: sdb.c,v 1.9 2000/08/31 13:04:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1071,6 +1071,12 @@ ispersistent(dns_db_t *db) {
 	return (ISC_TRUE);
 }
 
+static void
+overmem(dns_db_t *db, isc_boolean_t overmem) {
+	UNUSED(db);
+	UNUSED(overmem);
+}
+
 
 static dns_dbmethods_t sdb_methods = {
 	attach,
@@ -1097,7 +1103,8 @@ static dns_dbmethods_t sdb_methods = {
 	deleterdataset,
 	issecure,
 	nodecount,
-	ispersistent
+	ispersistent,
+	overmem
 };
 
 isc_result_t
