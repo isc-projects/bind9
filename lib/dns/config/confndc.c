@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.17 2000/06/02 15:12:28 brister Exp $ */
+/* $Id: confndc.c,v 1.18 2000/06/19 17:41:42 bwelling Exp $ */
 
 /*
 **	options {
@@ -1421,7 +1421,7 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
         }
 
 	/*
-	 * 97 == buckey size: higest prime < 100
+	 * 97 == bucket size: highest prime < 100
 	 */
 	result = isc_symtab_create(mem, 97, NULL, NULL, ISC_FALSE,
 				   &pctx->thekeywords);
@@ -1429,7 +1429,7 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error creating symtab",
-                              "dns_c_parse_namedconf", filename);
+                              "dns_c_parse_namedconf");
 		return (result);
 	}
 
