@@ -32,6 +32,8 @@
 #include <dns/name.h>
 #include <dns/rbt.h>
 
+#include <dst/dst.h>
+
 struct dns_keytable {
 	/* Unlocked. */
         unsigned int		magic;
@@ -57,6 +59,16 @@ struct dns_keynode {
 #define KEYNODE_MAGIC			0x4b4e6f64U	/* KNod */
 #define VALID_KEYNODE(kn)	 	ISC_MAGIC_VALID(kn, KEYNODE_MAGIC)
 
+static void
+free_keynode(void *node, void *arg) {
+	dns_keynode_t *keynode = node;
+	isc_mem_t *mctx = arg;
+
+	REQUIRE(VALID_KEYNODE(keynode));
+	dst_key_free(keynode->key);
+	isc_mem_put(mctx, keynode, sizeof(dns_keynode_t));
+}
+
 isc_result_t
 dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	dns_keytable_t *keytable;
@@ -73,7 +85,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 		return (DNS_R_NOMEMORY);
 
 	keytable->table = NULL;
-	result = dns_rbt_create(mctx, NULL, NULL, &keytable->table);
+	result = dns_rbt_create(mctx, free_keynode, mctx, &keytable->table);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_keytable;
 
