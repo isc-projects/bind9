@@ -1,4 +1,5 @@
-1529.	[placeholder]
+1529.	[bug]		"notify explict;" failed to log that NOTIFY messages
+			were being sent for the zone.
 
 1528.	[cleanup]	Simplify some dns_name_ functions based on the
 			deprecation of bitstring labels.
