@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.178 2002/08/06 01:50:27 marka Exp $ */
+/* $Id: rbtdb.c,v 1.179 2002/09/10 13:35:54 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2024,44 +2024,45 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		    result = setup_delegation(&search, nodep, foundname,
 					      rdataset, sigrdataset);
 		    goto tree_exit;
-		} else {
-			/*
-			 * The desired type doesn't exist.
-			 */
-			result = DNS_R_NXRRSET;
-			if (search.rbtdb->secure &&
-			    (nxtheader == NULL || nxtsig == NULL)) {
-				/*
-				 * The zone is secure but there's no NXT,
-				 * or the NXT has no signature!
-				 */
-				result = DNS_R_BADDB;
-				goto node_exit;
-			}
-			if ((search.options & DNS_DBFIND_FORCENXT) != 0 &&
-			    nxtheader == NULL)
-			{
-				/*
-				 * There's no NXT record, and we were told
-				 * to find one.
-				 */
-				result = DNS_R_BADDB;
-				goto node_exit;
-			}
-			if (nodep != NULL) {
-				new_reference(search.rbtdb, node);
-				*nodep = node;
-			}
-			if (search.rbtdb->secure ||
-			    (search.options & DNS_DBFIND_FORCENXT) != 0)
-			{
-				bind_rdataset(search.rbtdb, node, nxtheader,
-					      0, rdataset);
-				if (nxtsig != NULL)
-					bind_rdataset(search.rbtdb, node,
-						      nxtsig, 0, sigrdataset);
-			}
 		}
+		/*
+		 * The desired type doesn't exist.
+		 */
+		result = DNS_R_NXRRSET;
+		if (search.rbtdb->secure &&
+		    (nxtheader == NULL || nxtsig == NULL)) {
+			/*
+			 * The zone is secure but there's no NXT,
+			 * or the NXT has no signature!
+			 */
+			result = DNS_R_BADDB;
+			goto node_exit;
+		}
+		if ((search.options & DNS_DBFIND_FORCENXT) != 0 &&
+		    nxtheader == NULL)
+		{
+			/*
+			 * There's no NXT record, and we were told
+			 * to find one.
+			 */
+			result = DNS_R_BADDB;
+			goto node_exit;
+		}
+		if (nodep != NULL) {
+			new_reference(search.rbtdb, node);
+			*nodep = node;
+		}
+		if (search.rbtdb->secure ||
+		    (search.options & DNS_DBFIND_FORCENXT) != 0)
+		{
+			bind_rdataset(search.rbtdb, node, nxtheader,
+				      0, rdataset);
+			if (nxtsig != NULL)
+				bind_rdataset(search.rbtdb, node,
+					      nxtsig, 0, sigrdataset);
+		}
+		if (wild)
+			foundname->attributes |= DNS_NAMEATTR_WILDCARD;
 		goto node_exit;
 	}
 
