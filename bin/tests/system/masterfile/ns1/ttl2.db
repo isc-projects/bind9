@@ -1,0 +1,19 @@
+
+@		1	IN SOA	ns hostmaster (
+				1        ; serial
+				3600
+				1800
+				1814400
+				3
+				)
+			NS	ns
+a			TXT	"inherited ttl 1"
+b		2	TXT	"explicit ttl 2"
+c			TXT	"inherited ttl 2"
+$TTL 3
+d			TXT	"default ttl 3"
+e		2	TXT	"explicit ttl 2"
+f			TXT	"default ttl 3"
+
+
+
