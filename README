@@ -197,7 +197,8 @@ Building
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 
-	To build with DNSSEC support, you must have OpenSSL 0.9.5a
+	For the server to support DNSSEC, you need to build it
+	with crypto support.  You must have OpenSSL 0.9.5a
 	or newer installed and specify "--with-openssl" on the
 	configure command line.  If OpenSSL is installed under
 	a nonstandard prefix, you can tell configure where to
