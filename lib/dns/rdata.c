@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.92 2000/05/19 02:00:40 marka Exp $ */
+/* $Id: rdata.c,v 1.93 2000/05/20 01:05:50 explorer Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1717,9 +1717,6 @@ dns_rdatatype_iszonecutauth(dns_rdatatype_t type) {
 	    != 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
-	return (type == dns_rdatatype_ns ||
-		dns_rdatatype_isdnssec(type) ?
-		ISC_TRUE : ISC_FALSE);
 }
 
 isc_boolean_t
