@@ -1,3 +1,5 @@
+1343.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>.
+
 1340.	[doc]		query-source-v6 was missing from options section.
 			[RT #3218]
 
