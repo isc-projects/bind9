@@ -88,13 +88,13 @@ struct dns_c_ctx
 	int			errors;	/* semantic error count */
 	
 	dns_c_options_t	       *options;
-	dns_c_ctrl_list_t      *controls;
-	dns_c_srv_list_t       *servers;
-	dns_c_acl_table_t      *acls;
-	dns_c_kdef_list_t      *keydefs;
-	dns_c_zone_list_t      *zlist;
-	dns_c_tkey_list_t      *trusted_keys;
-	dns_c_logging_list_t   *logging;
+	dns_c_ctrllist_t      *controls;
+	dns_c_srvlist_t       *servers;
+	dns_c_acltable_t      *acls;
+	dns_c_kdeflist_t      *keydefs;
+	dns_c_zonelist_t      *zlist;
+	dns_c_tkeylist_t      *trusted_keys;
+	dns_c_logginglist_t   *logging;
 };
 
 
@@ -158,18 +158,18 @@ struct dns_c_options
 
 	dns_transfer_format_t	transfer_format;
 
-	dns_c_ipmatch_list_t   *queryacl;
-	dns_c_ipmatch_list_t   *transferacl;
-	dns_c_ipmatch_list_t   *blackhole;
-	dns_c_ipmatch_list_t   *topology;
-	dns_c_ipmatch_list_t   *sortlist;
+	dns_c_ipmatchlist_t   *queryacl;
+	dns_c_ipmatchlist_t   *transferacl;
+	dns_c_ipmatchlist_t   *blackhole;
+	dns_c_ipmatchlist_t   *topology;
+	dns_c_ipmatchlist_t   *sortlist;
 
-	dns_c_lstn_list_t      *listens;
+	dns_c_lstnlist_t      *listens;
 
 	dns_c_forw_t		forward;
-	dns_c_ipmatch_list_t   *forwarders;
+	dns_c_ipmatchlist_t   *forwarders;
 
-	dns_c_rrso_list_t      *ordering;
+	dns_c_rrsolist_t      *ordering;
 
 	/*
 	 * For the non-pointer fields of the struct a bit will be set in
@@ -187,40 +187,40 @@ struct dns_c_options
 
 isc_result_t	dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **cfg);
 isc_result_t	dns_c_ctx_delete(dns_c_ctx_t **cfg);
-isc_result_t	dns_c_ctx_get_options(dns_c_ctx_t *cfg, dns_c_options_t **options);
-isc_result_t	dns_c_ctx_set_logging(dns_c_ctx_t *cfg,
-				      dns_c_logging_list_t *newval,
+isc_result_t	dns_c_ctx_getoptions(dns_c_ctx_t *cfg, dns_c_options_t **options);
+isc_result_t	dns_c_ctx_setlogging(dns_c_ctx_t *cfg,
+				      dns_c_logginglist_t *newval,
 				      isc_boolean_t deepcopy);
-isc_result_t	dns_c_ctx_get_logging(dns_c_ctx_t *cfg,
-				      dns_c_logging_list_t **retval);
-isc_result_t	dns_c_ctx_add_file_channel(dns_c_ctx_t *cfg, const char *name,
+isc_result_t	dns_c_ctx_getlogging(dns_c_ctx_t *cfg,
+				      dns_c_logginglist_t **retval);
+isc_result_t	dns_c_ctx_addfile_channel(dns_c_ctx_t *cfg, const char *name,
 					   dns_c_logchan_t **chan);
-isc_result_t	dns_c_ctx_add_syslog_channel(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_addsyslogchannel(dns_c_ctx_t *cfg,
 					     const char *name,
 					     dns_c_logchan_t **chan);
-isc_result_t	dns_c_ctx_add_null_channel(dns_c_ctx_t *cfg, const char *name,
+isc_result_t	dns_c_ctx_addnullchannel(dns_c_ctx_t *cfg, const char *name,
 					   dns_c_logchan_t **chan);
-isc_result_t	dns_c_ctx_add_category(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_addcategory(dns_c_ctx_t *cfg,
 				       dns_c_category_t category,
 				       dns_c_logcat_t **newcat);
 isc_result_t	dns_c_ctx_currchannel(dns_c_ctx_t *cfg,
 				      dns_c_logchan_t **channel);
 isc_result_t	dns_c_ctx_currcategory(dns_c_ctx_t *cfg,
 				       dns_c_logcat_t **category);
-isc_boolean_t	dns_c_ctx_key_defined_p(dns_c_ctx_t *ctx, const char *keyname);
+isc_boolean_t	dns_c_ctx_keydefinedp(dns_c_ctx_t *ctx, const char *keyname);
 
 
 
-isc_boolean_t	dns_c_ctx_channel_defined_p(dns_c_ctx_t *cfg,
+isc_boolean_t	dns_c_ctx_channeldefinedp(dns_c_ctx_t *cfg,
 					    const char *name);
-isc_result_t	dns_c_ctx_options_new(isc_mem_t *mem,
+isc_result_t	dns_c_ctx_optionsnew(isc_mem_t *mem,
 				      dns_c_options_t **options);
-isc_result_t	dns_c_ctx_options_delete(dns_c_options_t **options);
+isc_result_t	dns_c_ctx_optionsdelete(dns_c_options_t **options);
 isc_result_t	dns_c_ctx_erase_options(dns_c_ctx_t *cfg);
 void		dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg);
-void		dns_c_ctx_options_print(FILE *fp, int indent,
+void		dns_c_ctx_optionsprint(FILE *fp, int indent,
 					dns_c_options_t *options);
-void		dns_c_ctx_forwarder_print(FILE *fp, int indent,
+void		dns_c_ctx_forwarderprint(FILE *fp, int indent,
 					  dns_c_options_t *options);
 
 
@@ -237,99 +237,99 @@ void		dns_c_ctx_forwarder_print(FILE *fp, int indent,
  * functions.
  *
  */
-isc_result_t	dns_c_ctx_set_directory(dns_c_ctx_t *cfg, const char *newval);
-isc_result_t	dns_c_ctx_set_version(dns_c_ctx_t *cfg, const char *newval);
-isc_result_t	dns_c_ctx_set_dump_filename(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setdirectory(dns_c_ctx_t *cfg, const char *newval);
+isc_result_t	dns_c_ctx_setversion(dns_c_ctx_t *cfg, const char *newval);
+isc_result_t	dns_c_ctx_setdumpfilename(dns_c_ctx_t *cfg,
 					    const char *newval);
-isc_result_t	dns_c_ctx_set_pid_filename(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setpidfilename(dns_c_ctx_t *cfg,
 					   const char *newval);
-isc_result_t	dns_c_ctx_set_stats_filename(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setstatsfilename(dns_c_ctx_t *cfg,
 					     const char *newval);
-isc_result_t	dns_c_ctx_set_memstats_filename(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setmemstatsfilename(dns_c_ctx_t *cfg,
 						const char *newval);
-isc_result_t	dns_c_ctx_set_named_xfer(dns_c_ctx_t *cfg, const char *newval);
-isc_result_t	dns_c_ctx_set_max_ncache_ttl(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setnamedxfer(dns_c_ctx_t *cfg, const char *newval);
+isc_result_t	dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg,
 					     isc_uint32_t newval);
-isc_result_t	dns_c_ctx_set_transfers_in(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_settransfersin(dns_c_ctx_t *cfg,
 					   isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_transfers_per_ns(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_settransfersperns(dns_c_ctx_t *cfg,
 					       isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_transfers_out(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_settransfersout(dns_c_ctx_t *cfg,
 					    isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_max_log_size_ixfr(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setmaxlogsizeixfr(dns_c_ctx_t *cfg,
 						isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_clean_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setcleaninterval(dns_c_ctx_t *cfg,
 					     isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_interface_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setinterfaceinterval(dns_c_ctx_t *cfg,
 						 isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_stats_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setstatsinterval(dns_c_ctx_t *cfg,
 					     isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_heartbeat_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setheartbeat_interval(dns_c_ctx_t *cfg,
 						 isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_max_transfer_time_in(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setmaxtransfertimein(dns_c_ctx_t *cfg,
 						   isc_int32_t newval);
-isc_result_t	dns_c_ctx_set_data_size(dns_c_ctx_t *cfg, isc_uint32_t newval);
-isc_result_t	dns_c_ctx_set_stack_size(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t	dns_c_ctx_setstacksize(dns_c_ctx_t *cfg,
 					 isc_uint32_t newval);
-isc_result_t	dns_c_ctx_set_core_size(dns_c_ctx_t *cfg, isc_uint32_t newval);
-isc_result_t	dns_c_ctx_set_files(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t	dns_c_ctx_setcoresize(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t	dns_c_ctx_setfiles(dns_c_ctx_t *cfg, isc_uint32_t newval);
 
-isc_result_t	dns_c_ctx_set_expert_mode(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setexpertmode(dns_c_ctx_t *cfg,
 					  isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_fake_iquery(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setfakeiquery(dns_c_ctx_t *cfg,
 					  isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_recursion(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setrecursion(dns_c_ctx_t *cfg,
 					isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_fetch_glue(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setfetchglue(dns_c_ctx_t *cfg,
 					 isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_notify(dns_c_ctx_t *cfg, isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_host_statistics(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setnotify(dns_c_ctx_t *cfg, isc_boolean_t newval);
+isc_result_t	dns_c_ctx_sethoststatistics(dns_c_ctx_t *cfg,
 					      isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_dealloc_on_exit(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setdealloconexit(dns_c_ctx_t *cfg,
 					      isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_use_ixfr(dns_c_ctx_t *cfg, isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_maintain_ixfr_base(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setuseixfr(dns_c_ctx_t *cfg, isc_boolean_t newval);
+isc_result_t	dns_c_ctx_setmaintainixfrbase(dns_c_ctx_t *cfg,
 						 isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_has_old_clients(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_sethasoldclients(dns_c_ctx_t *cfg,
 					      isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_auth_nx_domain(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setauthnxdomain(dns_c_ctx_t *cfg,
 					     isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_multiple_cnames(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setmultiplecnames(dns_c_ctx_t *cfg,
 					      isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_use_id_pool(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setuseidpool(dns_c_ctx_t *cfg,
 					  isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_dialup(dns_c_ctx_t *cfg, isc_boolean_t newval);
-isc_result_t	dns_c_ctx_set_query_source_addr(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval);
+isc_result_t	dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg,
 						dns_c_addr_t addr);
-isc_result_t	dns_c_ctx_set_query_source_port(dns_c_ctx_t *cfg, short port);
-isc_result_t	dns_c_ctx_set_checknames(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, short port);
+isc_result_t	dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 					 dns_c_trans_t transtype,
 					 dns_c_severity_t sever);
-isc_result_t	dns_c_ctx_set_transfer_format(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_settransferformat(dns_c_ctx_t *cfg,
 					      dns_transfer_format_t newval);
-isc_result_t	dns_c_ctx_set_queryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
-				       dns_c_ipmatch_list_t *iml);
-isc_result_t	dns_c_ctx_set_transferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
-					  dns_c_ipmatch_list_t *iml);
-isc_result_t	dns_c_ctx_set_blackhole(dns_c_ctx_t *cfg, isc_boolean_t copy,
-					dns_c_ipmatch_list_t *iml);
-isc_result_t	dns_c_ctx_set_topology(dns_c_ctx_t *cfg, isc_boolean_t copy,
-				       dns_c_ipmatch_list_t *iml);
-isc_result_t	dns_c_ctx_set_sortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
-				       dns_c_ipmatch_list_t *iml);
-isc_result_t	dns_c_ctx_set_forward(dns_c_ctx_t *cfg, dns_c_forw_t forw);
-isc_result_t	dns_c_ctx_set_forwarders(dns_c_ctx_t *cfg,
-					 dns_c_ipmatch_list_t *iml,
+isc_result_t	dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
+				       dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
+					  dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_setblackhole(dns_c_ctx_t *cfg, isc_boolean_t copy,
+					dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_settopology(dns_c_ctx_t *cfg, isc_boolean_t copy,
+				       dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_setsortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
+				       dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw);
+isc_result_t	dns_c_ctx_setforwarders(dns_c_ctx_t *cfg,
+					 dns_c_ipmatchlist_t *iml,
 					 isc_boolean_t copy);
-isc_result_t	dns_c_ctx_set_rrsetorder_list(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg,
 					      isc_boolean_t copy,
-					      dns_c_rrso_list_t *olist);
+					      dns_c_rrsolist_t *olist);
 
-isc_result_t	dns_c_ctx_add_listen_on(dns_c_ctx_t *cfg, int port,
-					dns_c_ipmatch_list_t *ml,
+isc_result_t	dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg, int port,
+					dns_c_ipmatchlist_t *ml,
 					isc_boolean_t copy);
-isc_result_t	dns_c_ctx_set_trusted_keys(dns_c_ctx_t *cfg,
-					   dns_c_tkey_list_t *list,
+isc_result_t	dns_c_ctx_settrustedkeys(dns_c_ctx_t *cfg,
+					   dns_c_tkeylist_t *list,
 					   isc_boolean_t copy);
 
 
@@ -352,97 +352,97 @@ isc_result_t	dns_c_ctx_set_trusted_keys(dns_c_ctx_t *cfg,
  */
 
 
-isc_result_t	dns_c_ctx_get_directory(dns_c_ctx_t *cfg, char **retval);
-isc_result_t	dns_c_ctx_get_version(dns_c_ctx_t *cfg, char **retval);
-isc_result_t	dns_c_ctx_get_dump_filename(dns_c_ctx_t *cfg, char **retval);
-isc_result_t	dns_c_ctx_get_pid_filename(dns_c_ctx_t *cfg, char **retval);
-isc_result_t	dns_c_ctx_get_stats_filename(dns_c_ctx_t *cfg, char **retval);
-isc_result_t	dns_c_ctx_get_memstats_filename(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getdirectory(dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_getversion(dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_getdumpfilename(dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_getpidfilename(dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_getstatsfilename(dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_getmemstatsfilename(dns_c_ctx_t *cfg,
 						char **retval);
-isc_result_t	dns_c_ctx_get_named_xfer(dns_c_ctx_t *cfg, char **retval);
-isc_result_t	dns_c_ctx_get_max_ncache_ttl(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getnamedxfer(dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_getmaxncachettl(dns_c_ctx_t *cfg,
 					     isc_uint32_t *retval);
-isc_result_t	dns_c_ctx_get_transfers_in(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_gettransfersin(dns_c_ctx_t *cfg,
 					   isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_transfers_per_ns(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_gettransfersperns(dns_c_ctx_t *cfg,
 					       isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_transfers_out(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_gettransfersout(dns_c_ctx_t *cfg,
 					    isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_max_log_size_ixfr(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getmaxlogsizeixfr(dns_c_ctx_t *cfg,
 						isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_clean_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getcleaninterval(dns_c_ctx_t *cfg,
 					     isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_interface_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getinterfaceinterval(dns_c_ctx_t *cfg,
 						 isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_stats_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getstatsinterval(dns_c_ctx_t *cfg,
 					     isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_heartbeat_interval(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getheartbeatinterval(dns_c_ctx_t *cfg,
 						 isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_max_transfer_time_in(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getmaxtransfertimein(dns_c_ctx_t *cfg,
 						   isc_int32_t *retval);
-isc_result_t	dns_c_ctx_get_data_size(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getdatasize(dns_c_ctx_t *cfg,
 					isc_uint32_t *retval);
-isc_result_t	dns_c_ctx_get_stack_size(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getstacksize(dns_c_ctx_t *cfg,
 					 isc_uint32_t *retval);
-isc_result_t	dns_c_ctx_get_core_size(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getcoresize(dns_c_ctx_t *cfg,
 					isc_uint32_t *retval);
-isc_result_t	dns_c_ctx_get_files(dns_c_ctx_t *cfg, isc_uint32_t *retval);
+isc_result_t	dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t	dns_c_ctx_get_expert_mode(dns_c_ctx_t *cfg,
 					  isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_fake_iquery(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg,
 					  isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_recursion(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getrecursion(dns_c_ctx_t *cfg,
 					isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_fetch_glue(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getfetchglue(dns_c_ctx_t *cfg,
 					 isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_notify(dns_c_ctx_t *cfg, isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_host_statistics(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getnotify(dns_c_ctx_t *cfg, isc_boolean_t *retval);
+isc_result_t	dns_c_ctx_gethoststatistics(dns_c_ctx_t *cfg,
 					      isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_dealloc_on_exit(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getdealloconexit(dns_c_ctx_t *cfg,
 					      isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_use_ixfr(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getuseixfr(dns_c_ctx_t *cfg,
 				       isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_maintain_ixfr_base(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getmaintainixfrbase(dns_c_ctx_t *cfg,
 						 isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_has_old_clients(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_gethasoldclients(dns_c_ctx_t *cfg,
 					      isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_auth_nx_domain(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getauth_nx_domain(dns_c_ctx_t *cfg,
 					     isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_multiple_cnames(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getmultiplecnames(dns_c_ctx_t *cfg,
 					      isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_use_id_pool(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg,
 					  isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_dialup(dns_c_ctx_t *cfg, isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_get_query_source_addr(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval);
+isc_result_t	dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg,
 						dns_c_addr_t *addr);
-isc_result_t	dns_c_ctx_get_query_source_port(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg,
 						short *port);
-isc_result_t	dns_c_ctx_get_checknames(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
 					 dns_c_trans_t transtype,
 					 dns_c_severity_t *sever);
-isc_result_t	dns_c_ctx_get_transfer_format(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
 					      dns_transfer_format_t *retval);
-isc_result_t	dns_c_ctx_get_queryacl(dns_c_ctx_t *cfg,
-				       dns_c_ipmatch_list_t **list);
-isc_result_t	dns_c_ctx_get_transferacl(dns_c_ctx_t *cfg,
-					  dns_c_ipmatch_list_t **list);
-isc_result_t	dns_c_ctx_get_blackhole(dns_c_ctx_t *cfg,
-					dns_c_ipmatch_list_t **list);
-isc_result_t	dns_c_ctx_get_topology(dns_c_ctx_t *cfg,
-				       dns_c_ipmatch_list_t **list);
-isc_result_t	dns_c_ctx_get_sortlist(dns_c_ctx_t *cfg,
-				       dns_c_ipmatch_list_t **list);
-isc_result_t	dns_c_ctx_get_listen_list(dns_c_ctx_t *cfg,
-					  dns_c_lstn_list_t **ll);
-isc_result_t	dns_c_ctx_get_forward(dns_c_ctx_t *cfg, dns_c_forw_t *forw);
-isc_result_t	dns_c_ctx_get_forwarders(dns_c_ctx_t *cfg,
-					 dns_c_ipmatch_list_t **list);
-isc_result_t	dns_c_ctx_get_rrsetorder_list(dns_c_ctx_t *cfg,
-					      dns_c_rrso_list_t **olist);
-isc_result_t	dns_c_ctx_get_trusted_keys(dns_c_ctx_t *cfg,
-					   dns_c_tkey_list_t **retval);
-isc_result_t	dns_c_ctx_get_logging(dns_c_ctx_t *cfg,
-				      dns_c_logging_list_t **retval);
+isc_result_t	dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg,
+				       dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_gettransferacl(dns_c_ctx_t *cfg,
+					  dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_getblackhole(dns_c_ctx_t *cfg,
+					dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_gettopology(dns_c_ctx_t *cfg,
+				       dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_getsortlist(dns_c_ctx_t *cfg,
+				       dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_getlistenlist(dns_c_ctx_t *cfg,
+					  dns_c_lstnlist_t **ll);
+isc_result_t	dns_c_ctx_getforward(dns_c_ctx_t *cfg, dns_c_forw_t *forw);
+isc_result_t	dns_c_ctx_getforwarders(dns_c_ctx_t *cfg,
+					 dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_getrrsetorderlist(dns_c_ctx_t *cfg,
+					      dns_c_rrsolist_t **olist);
+isc_result_t	dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg,
+					   dns_c_tkeylist_t **retval);
+isc_result_t	dns_c_ctx_getlogging(dns_c_ctx_t *cfg,
+				      dns_c_logginglist_t **retval);
 
 
 

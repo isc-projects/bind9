@@ -68,15 +68,15 @@
  ***/
 
 typedef struct dns_c_acl		dns_c_acl_t;
-typedef struct dns_c_acl_table		dns_c_acl_table_t;
+typedef struct dns_c_acl_table		dns_c_acltable_t;
 
 
 struct dns_c_acl 
 {
-	dns_c_acl_table_t      *mytable;
+	dns_c_acltable_t      *mytable;
 	
 	char		       *name;
-	dns_c_ipmatch_list_t   *ipml;
+	dns_c_ipmatchlist_t   *ipml;
 	isc_boolean_t		is_special;
 
 	ISC_LINK(dns_c_acl_t)	next;
@@ -96,8 +96,8 @@ struct dns_c_acl_table
  *** Functions
  ***/
 
-isc_result_t	dns_c_acl_table_new(isc_mem_t *mem,
-				    dns_c_acl_table_t **newtable);
+isc_result_t	dns_c_acltable_new(isc_mem_t *mem,
+				    dns_c_acltable_t **newtable);
 
 /*
  * Creates a new ACL table. Returns pointer to the new table through
@@ -115,7 +115,7 @@ isc_result_t	dns_c_acl_table_new(isc_mem_t *mem,
  */
 
 
-isc_result_t	dns_c_acl_table_delete(dns_c_acl_table_t **table);
+isc_result_t	dns_c_acltable_delete(dns_c_acltable_t **table);
 
 /*
  * Destroys the table pointed to by *TABLE and all the ACLs in it. The
@@ -131,7 +131,7 @@ isc_result_t	dns_c_acl_table_delete(dns_c_acl_table_t **table);
  */
 
 
-isc_result_t	dns_c_acl_table_get_acl(dns_c_acl_table_t *table,
+isc_result_t	dns_c_acltable_getacl(dns_c_acltable_t *table,
 					const char *aclname,
 					dns_c_acl_t **retval);
 
@@ -148,7 +148,7 @@ isc_result_t	dns_c_acl_table_get_acl(dns_c_acl_table_t *table,
  * 
  */
 
-isc_result_t	dns_c_acl_table_remove_acl(dns_c_acl_table_t *table,
+isc_result_t	dns_c_acltable_removeacl(dns_c_acltable_t *table,
 					   const char *aclname);
 
 /*
@@ -164,8 +164,8 @@ isc_result_t	dns_c_acl_table_remove_acl(dns_c_acl_table_t *table,
  * 
  */
 
-void		dns_c_acl_table_print(FILE *fp, int indent,
-				      dns_c_acl_table_t *table);
+void		dns_c_acltable_print(FILE *fp, int indent,
+				      dns_c_acltable_t *table);
 /*
  * Prints the ACL table and the ACLs in it to the give stdio stream.
  * indent is the indentation level (number of tabs) printed before
@@ -179,7 +179,7 @@ void		dns_c_acl_table_print(FILE *fp, int indent,
 */
 
 
-isc_result_t	dns_c_acl_table_clear(dns_c_acl_table_t *table);
+isc_result_t	dns_c_acltable_clear(dns_c_acltable_t *table);
 
 /*
  * Deletes all the acls from the table.
@@ -194,7 +194,7 @@ isc_result_t	dns_c_acl_table_clear(dns_c_acl_table_t *table);
 
 
 
-isc_result_t	dns_c_acl_new(dns_c_acl_table_t *table, const char *aclname,
+isc_result_t	dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
 			      isc_boolean_t isspecial,
 			      dns_c_acl_t **newacl);
 /*
@@ -227,8 +227,8 @@ void		dns_c_acl_print(FILE *fp, int indent, dns_c_acl_t *acl);
  */
 
 
-isc_result_t	dns_c_acl_set_ipml(dns_c_acl_t *acl,
-				   dns_c_ipmatch_list_t *ipml,
+isc_result_t	dns_c_acl_setipml(dns_c_acl_t *acl,
+				   dns_c_ipmatchlist_t *ipml,
 				   isc_boolean_t deepcopy);
 
 /*
@@ -241,7 +241,7 @@ isc_result_t	dns_c_acl_set_ipml(dns_c_acl_t *acl,
  *
  * Requires:
  *	mem be a pointer to a valid memory manager
- *	ipml be a valid dns_c_ipmatch_list_t
+ *	ipml be a valid dns_c_ipmatchlist_t
  * 
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
@@ -251,8 +251,8 @@ isc_result_t	dns_c_acl_set_ipml(dns_c_acl_t *acl,
  */
 
 
-isc_result_t	dns_c_acl_get_ipml_expanded(isc_mem_t *mem, dns_c_acl_t *acl,
-					    dns_c_ipmatch_list_t **retval);
+isc_result_t	dns_c_acl_getipmlexpanded(isc_mem_t *mem, dns_c_acl_t *acl,
+					    dns_c_ipmatchlist_t **retval);
 
 /*
  * Retuns a copy through the RETVAL parameter (the caller is responsible

@@ -27,11 +27,11 @@
 
 
 isc_result_t
-dns_c_ctrl_list_delete(dns_c_ctrl_list_t **list)
+dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
 {
 	dns_c_ctrl_t	       *ctrl;
 	dns_c_ctrl_t	       *tmpctrl;
-	dns_c_ctrl_list_t      *clist;
+	dns_c_ctrllist_t      *clist;
 
 	REQUIRE(list != NULL);
 	clist = *list;
@@ -55,9 +55,9 @@ dns_c_ctrl_list_delete(dns_c_ctrl_list_t **list)
 
 
 isc_result_t
-dns_c_ctrl_inet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
+dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		    dns_c_addr_t addr, short port,
-		    dns_c_ipmatch_list_t *iml, isc_boolean_t copy)
+		    dns_c_ipmatchlist_t *iml, isc_boolean_t copy)
 {
 	dns_c_ctrl_t  *ctrl;
 	isc_result_t	res;
@@ -76,7 +76,7 @@ dns_c_ctrl_inet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	ctrl->u.inet_v.port = port;
 
 	if (copy) {
-		res = dns_c_ipmatch_list_copy(mem, &ctrl->u.inet_v.matchlist,
+		res = dns_c_ipmatchlist_copy(mem, &ctrl->u.inet_v.matchlist,
 					      iml);
 		if (res != ISC_R_SUCCESS) {
 			isc_mem_put(mem, ctrl, sizeof *ctrl);
@@ -93,7 +93,7 @@ dns_c_ctrl_inet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 
 
 isc_result_t
-dns_c_ctrl_unix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
+dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		    const char *path, int perm, uid_t uid, gid_t gid)
 {
 	dns_c_ctrl_t  *ctrl;
@@ -143,7 +143,7 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control)
 
 	switch (ctrl->control_type) {
 	case dns_c_inet_control:
-		res = dns_c_ipmatch_list_delete(&ctrl->u.inet_v.matchlist);
+		res = dns_c_ipmatchlist_delete(&ctrl->u.inet_v.matchlist);
 		break;
 
 	case dns_c_unix_control:
@@ -166,7 +166,7 @@ void
 dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 {
 	short port;
-	dns_c_ipmatch_list_t *iml;
+	dns_c_ipmatchlist_t *iml;
 
 	(void) indent;
 	
@@ -193,7 +193,7 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 		}
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "allow ");
-		dns_c_ipmatch_list_print(fp, indent + 2, iml);
+		dns_c_ipmatchlist_print(fp, indent + 2, iml);
 	} else {
 		fprintf(fp, "unix \"%s\" perm %#o owner %d group %d;\n",
 			ctl->u.unix_v.pathname,
@@ -205,9 +205,9 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 
 
 isc_result_t
-dns_c_ctrl_list_new(isc_mem_t *mem, dns_c_ctrl_list_t **newlist)
+dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist)
 {
-	dns_c_ctrl_list_t *newl;
+	dns_c_ctrllist_t *newl;
 	
 	REQUIRE(mem != NULL);
 	REQUIRE (newlist != NULL);
@@ -228,7 +228,7 @@ dns_c_ctrl_list_new(isc_mem_t *mem, dns_c_ctrl_list_t **newlist)
 		
 	
 void
-dns_c_ctrl_list_print(FILE *fp, int indent, dns_c_ctrl_list_t *cl)
+dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl)
 {
 	dns_c_ctrl_t *ctl;
 

@@ -19,7 +19,7 @@ extern void *realloc();
 static int yygrowstack();
 #define YYPREFIX "yy"
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.c,v 1.1 1999/07/19 13:25:17 brister Exp $";
+static char rcsid[] = "$Id: confparser.c,v 1.2 1999/09/03 20:48:20 brister Exp $";
 #endif /* not lint */
 
 /*
@@ -121,12 +121,12 @@ typedef union {
 	dns_transfer_format_t	tformat;
 	dns_c_category_t	logcat;
 	
-	dns_c_ipmatch_element_t	*ime;
-	dns_c_ipmatch_list_t	*iml;
+	dns_c_ipmatchelement_t	*ime;
+	dns_c_ipmatchlist_t	*iml;
 
 	dns_c_forw_t		forward;
 	dns_c_rrso_t           *rrorder;
-	dns_c_rrso_list_t      *rrolist;
+	dns_c_rrsolist_t      *rrolist;
 	dns_rdatatype_t		ordertype;
 	dns_rdataclass_t	orderclass;
 	dns_c_ordering_t	ordering;
@@ -2003,7 +2003,7 @@ case 15:
 {
 		dns_c_options_t *options;
 
-		tmpres = dns_c_ctx_get_options(currcfg, &options);
+		tmpres = dns_c_ctx_getoptions(currcfg, &options);
 		if (tmpres == ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE, "Cannot redefine options");
 
@@ -2011,10 +2011,10 @@ case 15:
 			 * Clean out options so rest of config won't fail
 			 * or issue extra error messages
 			 */
-			dns_c_ctx_options_delete(&currcfg->options);
+			dns_c_ctx_optionsdelete(&currcfg->options);
 		}
 
-		tmpres = dns_c_ctx_options_new(currcfg->mem,
+		tmpres = dns_c_ctx_optionsnew(currcfg->mem,
 					       &currcfg->options);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
@@ -2038,7 +2038,7 @@ case 16:
 break;
 case 20:
 {
-		tmpres = dns_c_ctx_set_version(currcfg, yyvsp[0].text);
+		tmpres = dns_c_ctx_setversion(currcfg, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining version.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2053,7 +2053,7 @@ case 20:
 break;
 case 21:
 {
-		tmpres = dns_c_ctx_set_directory(currcfg, yyvsp[0].text);
+		tmpres = dns_c_ctx_setdirectory(currcfg, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining directory");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2068,7 +2068,7 @@ case 21:
 break;
 case 22:
 {
-		tmpres = dns_c_ctx_set_named_xfer(currcfg, yyvsp[0].text);
+		tmpres = dns_c_ctx_setnamedxfer(currcfg, yyvsp[0].text);
 
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining named-xfer");
@@ -2083,7 +2083,7 @@ case 22:
 break;
 case 23:
 {
-		tmpres = dns_c_ctx_set_pid_filename(currcfg, yyvsp[0].text);
+		tmpres = dns_c_ctx_setpidfilename(currcfg, yyvsp[0].text);
 
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining pid-file");
@@ -2098,7 +2098,7 @@ case 23:
 break;
 case 24:
 {
-		tmpres = dns_c_ctx_set_stats_filename(currcfg, yyvsp[0].text);
+		tmpres = dns_c_ctx_setstatsfilename(currcfg, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining statistics-file");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2112,7 +2112,7 @@ case 24:
 break;
 case 25:
 {
-		tmpres = dns_c_ctx_set_memstats_filename(currcfg, yyvsp[0].text);
+		tmpres = dns_c_ctx_setmemstatsfilename(currcfg, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining memstatistics-file");
@@ -2128,7 +2128,7 @@ case 25:
 break;
 case 26:
 {
-		tmpres = dns_c_ctx_set_dump_filename(currcfg, yyvsp[0].text);
+		tmpres = dns_c_ctx_setdumpfilename(currcfg, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining dump-file");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2142,7 +2142,7 @@ case 26:
 break;
 case 27:
 {
-		tmpres = dns_c_ctx_set_expert_mode(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setexpertmode(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining fake-iquery.");
 		}
@@ -2150,7 +2150,7 @@ case 27:
 break;
 case 28:
 {
-		tmpres = dns_c_ctx_set_fake_iquery(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setfakeiquery(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining fake-iquery.");
 		}
@@ -2158,7 +2158,7 @@ case 28:
 break;
 case 29:
 {
-		tmpres = dns_c_ctx_set_recursion(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setrecursion(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining recursion");
 		}
@@ -2166,7 +2166,7 @@ case 29:
 break;
 case 30:
 {
-		tmpres = dns_c_ctx_set_fetch_glue(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setfetchglue(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining fetch-glue.");
 		}
@@ -2174,7 +2174,7 @@ case 30:
 break;
 case 31:
 {
-		tmpres = dns_c_ctx_set_notify(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setnotify(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining notify.");
 		}
@@ -2182,7 +2182,7 @@ case 31:
 break;
 case 32:
 {
-		tmpres = dns_c_ctx_set_host_statistics(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_sethoststatistics(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining host-statistics.");
 		}
@@ -2190,7 +2190,7 @@ case 32:
 break;
 case 33:
 {
-		tmpres = dns_c_ctx_set_dealloc_on_exit(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setdealloconexit(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining deallocate-on-exit.");
@@ -2199,7 +2199,7 @@ case 33:
 break;
 case 34:
 {
-		tmpres = dns_c_ctx_set_use_ixfr(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setuseixfr(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining use-ixfr.");
 		}
@@ -2207,7 +2207,7 @@ case 34:
 break;
 case 35:
 {
-		tmpres = dns_c_ctx_set_maintain_ixfr_base(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setmaintainixfrbase(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining maintain-ixfr-base.");
@@ -2216,7 +2216,7 @@ case 35:
 break;
 case 36:
 {
-		tmpres = dns_c_ctx_set_has_old_clients(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_sethasoldclients(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining has-old-clients.");
 		}
@@ -2224,7 +2224,7 @@ case 36:
 break;
 case 37:
 {
-		tmpres = dns_c_ctx_set_auth_nx_domain(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setauthnxdomain(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining auth-nxdomain.");
 		}
@@ -2232,7 +2232,7 @@ case 37:
 break;
 case 38:
 {
-		tmpres = dns_c_ctx_set_multiple_cnames(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setmultiplecnames(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining multiple-cnames.");
 		}
@@ -2240,7 +2240,7 @@ case 38:
 break;
 case 39:
 {
-		tmpres = dns_c_ctx_set_checknames(currcfg, yyvsp[-1].transport, yyvsp[0].severity);
+		tmpres = dns_c_ctx_setchecknames(currcfg, yyvsp[-1].transport, yyvsp[0].severity);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining check-names.");
 		}
@@ -2248,7 +2248,7 @@ case 39:
 break;
 case 40:
 {
-		tmpres = dns_c_ctx_set_use_id_pool(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setuseidpool(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining use-id-pool.");
 		}
@@ -2261,7 +2261,7 @@ case 41:
 				       "address-match-list empty. "
 				       "listen statement ignored.");
 		} else {
-			tmpres = dns_c_ctx_add_listen_on(currcfg, yyvsp[-3].port_int, yyvsp[-1].iml,
+			tmpres = dns_c_ctx_addlisten_on(currcfg, yyvsp[-3].port_int, yyvsp[-1].iml,
 							 ISC_FALSE);
 
 			if (tmpres != ISC_R_SUCCESS) {
@@ -2274,7 +2274,7 @@ case 41:
 break;
 case 42:
 {
-		tmpres = dns_c_ctx_set_forward(currcfg, yyvsp[0].forward);
+		tmpres = dns_c_ctx_setforward(currcfg, yyvsp[0].forward);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining forward");
@@ -2283,15 +2283,15 @@ case 42:
 break;
 case 43:
 {
-		dns_c_ipmatch_list_t *forwarders;
+		dns_c_ipmatchlist_t *forwarders;
 
-		tmpres = dns_c_ctx_get_forwarders(currcfg, &forwarders);
+		tmpres = dns_c_ctx_getforwarders(currcfg, &forwarders);
 		if (tmpres != ISC_R_NOTFOUND) {
 			parser_error(ISC_FALSE,
 				     "Redefining options forwarders");
-			dns_c_ipmatch_list_empty(forwarders);
+			dns_c_ipmatchlist_empty(forwarders);
 		} else {
-			tmpres = dns_c_ipmatch_list_new(currcfg->mem,
+			tmpres = dns_c_ipmatchlist_new(currcfg->mem,
 						        &forwarders);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
@@ -2300,7 +2300,7 @@ case 43:
 				YYABORT;
 			}
 
-			tmpres = dns_c_ctx_set_forwarders(currcfg, forwarders,
+			tmpres = dns_c_ctx_setforwarders(currcfg, forwarders,
 							  ISC_FALSE);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
@@ -2312,7 +2312,7 @@ case 43:
 break;
 case 46:
 {
-		tmpres = dns_c_ctx_set_queryacl(currcfg, ISC_FALSE, yyvsp[-1].iml);
+		tmpres = dns_c_ctx_setqueryacl(currcfg, ISC_FALSE, yyvsp[-1].iml);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining allow-query list");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2324,7 +2324,7 @@ case 46:
 break;
 case 47:
 {
-		tmpres = dns_c_ctx_set_transferacl(currcfg, ISC_FALSE, yyvsp[-1].iml);
+		tmpres = dns_c_ctx_settransferacl(currcfg, ISC_FALSE, yyvsp[-1].iml);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining allow-transfer list");
@@ -2337,7 +2337,7 @@ case 47:
 break;
 case 48:
 {
-		tmpres = dns_c_ctx_set_sortlist(currcfg, ISC_FALSE, yyvsp[-1].iml);
+		tmpres = dns_c_ctx_setsortlist(currcfg, ISC_FALSE, yyvsp[-1].iml);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining sortlist.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2348,7 +2348,7 @@ case 48:
 break;
 case 49:
 {
-		tmpres = dns_c_ctx_set_blackhole(currcfg, ISC_FALSE, yyvsp[-1].iml);
+		tmpres = dns_c_ctx_setblackhole(currcfg, ISC_FALSE, yyvsp[-1].iml);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining blackhole.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2359,7 +2359,7 @@ case 49:
 break;
 case 50:
 {
-		tmpres = dns_c_ctx_set_topology(currcfg, ISC_FALSE, yyvsp[-1].iml);
+		tmpres = dns_c_ctx_settopology(currcfg, ISC_FALSE, yyvsp[-1].iml);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining topology.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2370,7 +2370,7 @@ case 50:
 break;
 case 53:
 {
-		tmpres = dns_c_ctx_set_transfer_format(currcfg, yyvsp[0].tformat);
+		tmpres = dns_c_ctx_settransferformat(currcfg, yyvsp[0].tformat);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining transfer-format.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2382,7 +2382,7 @@ case 53:
 break;
 case 54:
 {
-		tmpres = dns_c_ctx_set_max_transfer_time_in(currcfg, yyvsp[0].l_int * 60);
+		tmpres = dns_c_ctx_setmaxtransfertimein(currcfg, yyvsp[0].l_int * 60);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining max-transfer-time-in.");
@@ -2395,7 +2395,7 @@ case 54:
 break;
 case 55:
 {
-		tmpres = dns_c_ctx_set_clean_interval(currcfg, yyvsp[0].l_int * 60);
+		tmpres = dns_c_ctx_setcleaninterval(currcfg, yyvsp[0].l_int * 60);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining cleaning-interval.");
@@ -2408,7 +2408,7 @@ case 55:
 break;
 case 56:
 {
-		tmpres = dns_c_ctx_set_interface_interval(currcfg, yyvsp[0].l_int *
+		tmpres = dns_c_ctx_setinterfaceinterval(currcfg, yyvsp[0].l_int *
 							  60);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -2422,7 +2422,7 @@ case 56:
 break;
 case 57:
 {
-		tmpres = dns_c_ctx_set_stats_interval(currcfg, yyvsp[0].l_int * 60);
+		tmpres = dns_c_ctx_setstatsinterval(currcfg, yyvsp[0].l_int * 60);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining statistics-interval.");
@@ -2435,7 +2435,7 @@ case 57:
 break;
 case 58:
 {
-		tmpres = dns_c_ctx_set_max_log_size_ixfr(currcfg, yyvsp[0].l_int);
+		tmpres = dns_c_ctx_setmaxlogsizeixfr(currcfg, yyvsp[0].l_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining max-ixfr-log-size.");
@@ -2448,7 +2448,7 @@ case 58:
 break;
 case 59:
 {
-		tmpres = dns_c_ctx_set_max_ncache_ttl(currcfg, yyvsp[0].l_int);
+		tmpres = dns_c_ctx_setmaxncachettl(currcfg, yyvsp[0].l_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining max-ncache-ttl.");
@@ -2461,7 +2461,7 @@ case 59:
 break;
 case 60:
 {
-		tmpres = dns_c_ctx_set_heartbeat_interval(currcfg, yyvsp[0].l_int *
+		tmpres = dns_c_ctx_setheartbeat_interval(currcfg, yyvsp[0].l_int *
 							  60);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -2475,7 +2475,7 @@ case 60:
 break;
 case 61:
 {
-		tmpres = dns_c_ctx_set_dialup(currcfg, yyvsp[0].boolean);
+		tmpres = dns_c_ctx_setdialup(currcfg, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining dialup.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2486,22 +2486,22 @@ case 61:
 break;
 case 62:
 {
-		dns_c_rrso_list_t *ordering;
+		dns_c_rrsolist_t *ordering;
 
-		tmpres = dns_c_ctx_get_rrsetorder_list(currcfg, &ordering);
+		tmpres = dns_c_ctx_getrrsetorderlist(currcfg, &ordering);
 		if (tmpres != ISC_R_NOTFOUND) {
 			parser_error(ISC_FALSE,
 				     "Redefining rrset-order list");
-			dns_c_rrso_list_clear(ordering);
+			dns_c_rrsolist_clear(ordering);
 		} else {
-			tmpres = dns_c_rrso_list_new(currcfg->mem, &ordering);
+			tmpres = dns_c_rrsolist_new(currcfg->mem, &ordering);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
 					     "Failed to create rrset-order "
 					     "list");
 				YYABORT;
 			}
-			tmpres = dns_c_ctx_set_rrsetorder_list(currcfg,
+			tmpres = dns_c_ctx_setrrsetorderlist(currcfg,
 							       ISC_FALSE,
 							       ordering);
 			if (tmpres != ISC_R_SUCCESS) {
@@ -2516,7 +2516,7 @@ case 68:
 {
 		dns_c_ctrl_t *control;
 
-		tmpres = dns_c_ctrl_inet_new(currcfg->mem, &control,
+		tmpres = dns_c_ctrlinet_new(currcfg->mem, &control,
 					     yyvsp[-6].ipaddress, yyvsp[-4].port_int, yyvsp[-1].iml, ISC_FALSE);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
@@ -2531,7 +2531,7 @@ case 69:
 {
 		dns_c_ctrl_t *control;
 
-		tmpres = dns_c_ctrl_unix_new(currcfg->mem, &control,
+		tmpres = dns_c_ctrlunix_new(currcfg->mem, &control,
 					     yyvsp[-6].text, yyvsp[-4].l_int, yyvsp[-2].l_int, yyvsp[0].l_int);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
@@ -2667,7 +2667,7 @@ case 84:
 break;
 case 85:
 {
-		tmpres = dns_c_ctx_set_query_source_addr(currcfg, yyvsp[0].ipaddress);
+		tmpres = dns_c_ctx_setquerysourceaddr(currcfg, yyvsp[0].ipaddress);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining query-source address.");
@@ -2680,7 +2680,7 @@ case 85:
 break;
 case 86:
 {
-		tmpres = dns_c_ctx_set_query_source_port(currcfg, yyvsp[0].port_int);
+		tmpres = dns_c_ctx_setquerysourceport(currcfg, yyvsp[0].port_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining query-source port.");
@@ -2786,17 +2786,17 @@ case 107:
 break;
 case 108:
 {
-		yyval.forward = dns_c_forw_no_answer;
+		yyval.forward = dns_c_forw_noanswer;
 	}
 break;
 case 109:
 {
-		yyval.forward = dns_c_forw_no_domain;
+		yyval.forward = dns_c_forw_nodomain;
 	}
 break;
 case 110:
 {
-		tmpres = dns_c_ctx_set_data_size(currcfg, yyvsp[0].ul_int);
+		tmpres = dns_c_ctx_setdatasize(currcfg, yyvsp[0].ul_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining datasize.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2807,7 +2807,7 @@ case 110:
 break;
 case 111:
 {
-		tmpres = dns_c_ctx_set_stack_size(currcfg, yyvsp[0].ul_int);
+		tmpres = dns_c_ctx_setstacksize(currcfg, yyvsp[0].ul_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining stacksize.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2818,7 +2818,7 @@ case 111:
 break;
 case 112:
 {
-		tmpres = dns_c_ctx_set_core_size(currcfg, yyvsp[0].ul_int);
+		tmpres = dns_c_ctx_setcoresize(currcfg, yyvsp[0].ul_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining coresize.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2829,7 +2829,7 @@ case 112:
 break;
 case 113:
 {
-		tmpres = dns_c_ctx_set_files(currcfg, yyvsp[0].ul_int);
+		tmpres = dns_c_ctx_setfiles(currcfg, yyvsp[0].ul_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining files.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2886,7 +2886,7 @@ case 117:
 break;
 case 118:
 {
-		tmpres = dns_c_ctx_set_transfers_in(currcfg, yyvsp[0].l_int);
+		tmpres = dns_c_ctx_settransfersin(currcfg, yyvsp[0].l_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining transfers-in.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2897,7 +2897,7 @@ case 118:
 break;
 case 119:
 {
-		tmpres = dns_c_ctx_set_transfers_out(currcfg, yyvsp[0].l_int);
+		tmpres = dns_c_ctx_settransfersout(currcfg, yyvsp[0].l_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining transfers-out.");
@@ -2910,7 +2910,7 @@ case 119:
 break;
 case 120:
 {
-		tmpres = dns_c_ctx_set_transfers_per_ns(currcfg, yyvsp[0].l_int);
+		tmpres = dns_c_ctx_settransfersperns(currcfg, yyvsp[0].l_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "Redefining transfers-per-ns.");
@@ -2927,12 +2927,12 @@ case 121:
 break;
 case 125:
 {
-		dns_c_ipmatch_element_t *ime = NULL;
+		dns_c_ipmatchelement_t *ime = NULL;
 
 		INSIST(currcfg->options != NULL);
 		INSIST(currcfg->options->forwarders != NULL);
 
-		tmpres = dns_c_ipmatch_pattern_new(currcfg->mem, &ime,
+		tmpres = dns_c_ipmatchpattern_new(currcfg->mem, &ime,
 						   yyvsp[0].ipaddress, 0);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
@@ -2955,7 +2955,7 @@ case 132:
 {
 		dns_c_logchan_t *newc;
 		
-		tmpres = dns_c_ctx_add_file_channel(currcfg, yyvsp[-3].text, &newc);
+		tmpres = dns_c_ctx_addfile_channel(currcfg, yyvsp[-3].text, &newc);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "Redefing channel %s\n", yyvsp[-3].text);
@@ -2967,7 +2967,7 @@ case 132:
 
 		INSIST(newc != NULL);
 
-		tmpres = dns_c_logchan_set_path(newc, yyvsp[0].text);
+		tmpres = dns_c_logchan_setpath(newc, yyvsp[0].text);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "Failed to add file channel's path.");
@@ -2982,7 +2982,7 @@ case 134:
 {
 		dns_c_logchan_t *newc;
 		
-		tmpres = dns_c_ctx_add_syslog_channel(currcfg, yyvsp[-3].text, &newc);
+		tmpres = dns_c_ctx_addsyslogchannel(currcfg, yyvsp[-3].text, &newc);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining channel %s", yyvsp[-3].text);
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2991,7 +2991,7 @@ case 134:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_facility(newc, yyvsp[0].number);
+		tmpres = dns_c_logchan_setfacility(newc, yyvsp[0].number);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "Can't get set channel facility.");
@@ -3004,7 +3004,7 @@ case 136:
 {
 		dns_c_logchan_t *newc;
 		
-		tmpres = dns_c_ctx_add_null_channel(currcfg, yyvsp[-2].text, &newc);
+		tmpres = dns_c_ctx_addnullchannel(currcfg, yyvsp[-2].text, &newc);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining channel %s", yyvsp[-2].text);
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3028,7 +3028,7 @@ case 145:
 {
 		dns_c_logcat_t *cat;
 		
-		tmpres = dns_c_ctx_add_category(currcfg, yyvsp[0].logcat, &cat);
+		tmpres = dns_c_ctx_addcategory(currcfg, yyvsp[0].logcat, &cat);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "Redefining category ``%s''", yyvsp[0].logcat);
@@ -3041,7 +3041,7 @@ case 145:
 break;
 case 147:
 {
-		dns_c_log_severity_t severity;
+		dns_c_logseverity_t severity;
 		dns_c_logchan_t *chan;
 
 		tmpres = dns_c_string2logseverity(yyvsp[0].text, &severity);
@@ -3058,7 +3058,7 @@ case 147:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_severity(chan, severity);
+		tmpres = dns_c_logchan_setseverity(chan, severity);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining severity.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3081,7 +3081,7 @@ case 148:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_severity(chan, dns_c_log_debug);
+		tmpres = dns_c_logchan_setseverity(chan, dns_c_log_debug);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining severity.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3102,7 +3102,7 @@ case 149:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_severity(chan, dns_c_log_debug);
+		tmpres = dns_c_logchan_setseverity(chan, dns_c_log_debug);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining severity.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3112,7 +3112,7 @@ case 149:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_debug_level(chan, yyvsp[0].l_int);
+		tmpres = dns_c_logchan_setdebuglevel(chan, yyvsp[0].l_int);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "Can't get set channel "
@@ -3132,7 +3132,7 @@ case 150:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_severity(chan, dns_c_log_dynamic);
+		tmpres = dns_c_logchan_setseverity(chan, dns_c_log_dynamic);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining severity.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3154,7 +3154,7 @@ case 151:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_versions(chan, yyvsp[0].l_int);
+		tmpres = dns_c_logchan_setversions(chan, yyvsp[0].l_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining versions.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3175,7 +3175,7 @@ case 152:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_versions(chan, -1);
+		tmpres = dns_c_logchan_setversions(chan, -1);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining versions.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3197,7 +3197,7 @@ case 153:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_size(chan, yyvsp[0].ul_int);
+		tmpres = dns_c_logchan_setsize(chan, yyvsp[0].ul_int);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining size.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3247,7 +3247,7 @@ case 166:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_printtime(chan, yyvsp[0].boolean);
+		tmpres = dns_c_logchan_setprinttime(chan, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "Redefining print-time.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -3268,7 +3268,7 @@ case 167:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_printcat(chan, yyvsp[0].boolean);
+		tmpres = dns_c_logchan_setprintcat(chan, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "Redefining print-category.");
@@ -3290,7 +3290,7 @@ case 168:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_set_printsev(chan, yyvsp[0].boolean);
+		tmpres = dns_c_logchan_setprintsev(chan, yyvsp[0].boolean);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "Redefining print-severity.");
@@ -3321,7 +3321,7 @@ case 171:
 			YYABORT;
 		}
 
-		tmpres = dns_c_logcat_add_name(cat, yyvsp[0].text);
+		tmpres = dns_c_logcat_addname(cat, yyvsp[0].text);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "Can't add new name to category.");
@@ -3359,10 +3359,10 @@ case 177:
 {
 		dns_c_srv_t *server;
 		dns_c_srv_t *tmpserver;
-		dns_c_srv_list_t *servers = currcfg->servers;
+		dns_c_srvlist_t *servers = currcfg->servers;
 		
 		if (servers == NULL) {
-			tmpres = dns_c_srv_list_new(currcfg->mem,
+			tmpres = dns_c_srvlist_new(currcfg->mem,
 						    &currcfg->servers);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
@@ -3410,13 +3410,13 @@ case 181:
 
 		INSIST(server != NULL);
 
-		tmpres = dns_c_srv_get_bogus(server, &tv);
+		tmpres = dns_c_srv_getbogus(server, &tv);
 		if (tmpres != ISC_R_NOTFOUND) {
 			parser_warning(ISC_FALSE,
 				       "Redefining server bogus value");
 		}
 		
-		dns_c_srv_set_bogus(server, yyvsp[0].boolean);
+		dns_c_srv_setbogus(server, yyvsp[0].boolean);
 	}
 break;
 case 182:
@@ -3429,13 +3429,13 @@ case 182:
 
 		INSIST(server != NULL);
 
-		tmpres = dns_c_srv_get_support_ixfr(server, &tv);
+		tmpres = dns_c_srv_getsupportixfr(server, &tv);
 		if(tmpres != ISC_R_NOTFOUND) {
 			parser_warning(ISC_FALSE,
 				       "Redefining server support-ixfr value");
 		}
 		
-		dns_c_srv_set_support_ixfr(server, yyvsp[0].boolean);
+		dns_c_srv_setsupportixfr(server, yyvsp[0].boolean);
 	}
 break;
 case 183:
@@ -3448,13 +3448,13 @@ case 183:
 
 		INSIST(server != NULL);
 
-		tmpres = dns_c_srv_get_transfers(server, &tv);
+		tmpres = dns_c_srv_gettransfers(server, &tv);
 		if (tmpres != ISC_R_NOTFOUND) {
 			parser_warning(ISC_FALSE,
 				       "Redefining server transfers value");
 		}
 		
-		dns_c_srv_set_transfers(server, yyvsp[0].l_int);
+		dns_c_srv_settransfers(server, yyvsp[0].l_int);
 	}
 break;
 case 184:
@@ -3467,7 +3467,7 @@ case 184:
 
 		INSIST(server != NULL);
 
-		tmpres = dns_c_srv_get_transfer_format(server, &tv);
+		tmpres = dns_c_srv_gettransferformat(server, &tv);
 		if (tmpres != ISC_R_NOTFOUND) {
 			parser_warning(ISC_FALSE,
 				       "Redefining server transfer-format "
@@ -3475,7 +3475,7 @@ case 184:
 		}
 		
 
-		dns_c_srv_set_transfer_format(server, yyvsp[0].tformat);
+		dns_c_srv_settransferformat(server, yyvsp[0].tformat);
 	}
 break;
 case 185:
@@ -3487,7 +3487,7 @@ case 185:
 		INSIST(server != NULL);
 
 		if (server->keys == NULL) {
-			tmpres = dns_c_kid_list_new(currcfg->mem,
+			tmpres = dns_c_kidlist_new(currcfg->mem,
 						    &server->keys);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
@@ -3499,13 +3499,13 @@ case 185:
 break;
 case 187:
 {
-		dns_c_ipmatch_list_t *ml = 0;
+		dns_c_ipmatchlist_t *ml = 0;
 
 		if (yyvsp[-1].ime != NULL) {
-			tmpres = dns_c_ipmatch_list_new(currcfg->mem, &ml);
+			tmpres = dns_c_ipmatchlist_new(currcfg->mem, &ml);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE, "Insufficient memory");
-				dns_c_ipmatch_element_delete(currcfg->mem,
+				dns_c_ipmatchelement_delete(currcfg->mem,
 							     &yyvsp[-1].ime);
 				YYABORT;
 			}
@@ -3518,13 +3518,13 @@ case 187:
 break;
 case 188:
 {
-		dns_c_ipmatch_list_t *ml = yyvsp[-2].iml;
+		dns_c_ipmatchlist_t *ml = yyvsp[-2].iml;
 		
 		if (ml == NULL && yyvsp[-1].ime != NULL) {
-			tmpres = dns_c_ipmatch_list_new(currcfg->mem, &ml);
+			tmpres = dns_c_ipmatchlist_new(currcfg->mem, &ml);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE, "Insufficient memory");
-				dns_c_ipmatch_element_delete(currcfg->mem,
+				dns_c_ipmatchelement_delete(currcfg->mem,
 							     &yyvsp[-1].ime);
 				YYABORT;
 			}
@@ -3547,15 +3547,15 @@ case 190:
 break;
 case 191:
 {
-		dns_c_ipmatch_element_t *ime = NULL;
+		dns_c_ipmatchelement_t *ime = NULL;
 
-		if (!dns_c_ctx_key_defined_p(currcfg, yyvsp[0].text)) {
+		if (!dns_c_ctx_keydefinedp(currcfg, yyvsp[0].text)) {
 			parser_error(ISC_FALSE,
 				     "Address match key element (%s) "
 				     "referenced before defined", yyvsp[0].text);
 			YYABORT;
 		} else {
-			tmpres = dns_c_ipmatch_key_new(currcfg->mem, &ime, yyvsp[0].text);
+			tmpres = dns_c_ipmatchkey_new(currcfg->mem, &ime, yyvsp[0].text);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_TRUE,
 					     "Failed to create address match "
@@ -3570,9 +3570,9 @@ case 191:
 break;
 case 192:
 {
-		dns_c_ipmatch_element_t *ime = NULL;
+		dns_c_ipmatchelement_t *ime = NULL;
 
-		tmpres = dns_c_ipmatch_pattern_new(currcfg->mem, &ime, yyvsp[0].ipaddress, 0);
+		tmpres = dns_c_ipmatchpattern_new(currcfg->mem, &ime, yyvsp[0].ipaddress, 0);
 		switch (tmpres) {
 		case ISC_R_FAILURE:
 			parser_error(ISC_FALSE, "bad address match element.");
@@ -3593,7 +3593,7 @@ case 192:
 break;
 case 193:
 {
-		dns_c_ipmatch_element_t *ime = NULL;
+		dns_c_ipmatchelement_t *ime = NULL;
 
 		if (yyvsp[0].l_int < 0 || yyvsp[0].l_int > 32) {
 			parser_warning(ISC_FALSE,
@@ -3601,7 +3601,7 @@ case 193:
 				       "skipping", (int)yyvsp[0].l_int);
 			yyval.ime = NULL;
 		} else {
-			tmpres = dns_c_ipmatch_pattern_new(currcfg->mem, &ime,
+			tmpres = dns_c_ipmatchpattern_new(currcfg->mem, &ime,
 							   yyvsp[-2].ipaddress, yyvsp[0].l_int);
 			switch (tmpres) {
 			case ISC_R_FAILURE:
@@ -3626,7 +3626,7 @@ break;
 case 194:
 {
 		struct in_addr ia;
-		dns_c_ipmatch_element_t *ime = NULL;
+		dns_c_ipmatchelement_t *ime = NULL;
 		dns_c_addr_t address;
 
 		if (yyvsp[-2].l_int > 255) {
@@ -3644,7 +3644,7 @@ case 194:
 				address.a_family = AF_INET;
 				address.u.a = ia;
 				
-				tmpres = dns_c_ipmatch_pattern_new(currcfg->mem,
+				tmpres = dns_c_ipmatchpattern_new(currcfg->mem,
 								   &ime,
 								   address,
 								   yyvsp[0].l_int);
@@ -3672,10 +3672,10 @@ case 194:
 break;
 case 196:
 {
-		dns_c_ipmatch_element_t *ime = NULL;
+		dns_c_ipmatchelement_t *ime = NULL;
 		
 		if (yyvsp[-1].iml != NULL) {
-			tmpres = dns_c_ipmatch_indirect_new(currcfg->mem, &ime,
+			tmpres = dns_c_ipmatchindirect_new(currcfg->mem, &ime,
 							  yyvsp[-1].iml, NULL);
 			switch (tmpres) {
 			case ISC_R_SUCCESS:
@@ -3689,24 +3689,24 @@ case 196:
 			}
 		}
 
-		dns_c_ipmatch_list_delete(&yyvsp[-1].iml);
+		dns_c_ipmatchlist_delete(&yyvsp[-1].iml);
 
 		yyval.ime = ime;
 	}
 break;
 case 197:
 {
-		dns_c_ipmatch_element_t *elem;
+		dns_c_ipmatchelement_t *elem;
 		dns_c_acl_t *acl;
 
-		tmpres = dns_c_acl_table_get_acl(currcfg->acls, yyvsp[0].text, &acl);
+		tmpres = dns_c_acltable_getacl(currcfg->acls, yyvsp[0].text, &acl);
 		if (tmpres == ISC_R_NOTFOUND) {
 			parser_warning(ISC_FALSE,
 				       "Undefined acl ``%s'' referenced",
 				       yyvsp[0].text);
 			elem = NULL;
 		} else {
-			tmpres = dns_c_ipmatch_acl_new(currcfg->mem, &elem, yyvsp[0].text);
+			tmpres = dns_c_ipmatch_aclnew(currcfg->mem, &elem, yyvsp[0].text);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
 					     "Failed to create IPE-ACL\n");
@@ -3729,7 +3729,7 @@ case 199:
 
 		INSIST(currserver->keys != NULL);
 
-		if (!dns_c_ctx_key_defined_p(currcfg, yyvsp[0].text)) {
+		if (!dns_c_ctx_keydefinedp(currcfg, yyvsp[0].text)) {
 			parser_error(ISC_FALSE,
 				     "Server keys key_id (%s) "
 				     "referenced before defined", yyvsp[0].text);
@@ -3751,7 +3751,7 @@ case 204:
 		dns_c_kdef_t *keydef;
 		
 		if (currcfg->keydefs == NULL) {
-			tmpres = dns_c_kdef_list_new(currcfg->mem,
+			tmpres = dns_c_kdeflist_new(currcfg->mem,
 						     &currcfg->keydefs);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
@@ -3779,8 +3779,8 @@ case 206:
 		keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
 		INSIST(keydef != NULL);
 
-		dns_c_kdef_set_algorithm(keydef, yyvsp[-1].text);
-		dns_c_kdef_set_secret(keydef, yyvsp[0].text);
+		dns_c_kdefset_algorithm(keydef, yyvsp[-1].text);
+		dns_c_kdefset_secret(keydef, yyvsp[0].text);
 
 		isc_mem_free(memctx, yyvsp[-1].text);
 		isc_mem_free(memctx, yyvsp[0].text);
@@ -3795,8 +3795,8 @@ case 207:
 		keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
 		INSIST(keydef != NULL);
 
-		dns_c_kdef_set_secret(keydef, yyvsp[-1].text);
-		dns_c_kdef_set_algorithm(keydef, yyvsp[0].text);
+		dns_c_kdefset_secret(keydef, yyvsp[-1].text);
+		dns_c_kdefset_algorithm(keydef, yyvsp[0].text);
 
 		isc_mem_free(memctx, yyvsp[-1].text);
 		isc_mem_free(memctx, yyvsp[0].text);
@@ -3825,7 +3825,7 @@ case 210:
 			YYABORT;
 		}
 		
-		dns_c_acl_set_ipml(acl, yyvsp[-2].iml, ISC_FALSE);
+		dns_c_acl_setipml(acl, yyvsp[-2].iml, ISC_FALSE);
 			
 		isc_mem_free(memctx, yyvsp[-4].text);
 	}
@@ -3840,7 +3840,7 @@ case 212:
 		dns_c_zone_t *zone;
 
 		if (currcfg->zlist == NULL) {
-			tmpres = dns_c_zone_list_new(currcfg->mem,
+			tmpres = dns_c_zonelist_new(currcfg->mem,
 						  &currcfg->zlist);
 			if (tmpres != ISC_R_SUCCESS) {
 				dns_c_error(tmpres,
@@ -3875,7 +3875,7 @@ case 213:
 				YYABORT;
 			}
 
-			dns_c_zone_list_rmzone(currcfg->zlist, zone);
+			dns_c_zonelist_rmzone(currcfg->zlist, zone);
 		}
 	}
 break;
@@ -3946,7 +3946,7 @@ case 245:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_file(zone, yyvsp[0].text);
+		tmpres = dns_c_zone_setfile(zone, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining zone filename.");
@@ -3963,7 +3963,7 @@ case 246:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_ixfr_base(zone, yyvsp[0].text);
+		tmpres = dns_c_zone_setixfrbase(zone, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "Redefining ixfr-base.");
@@ -3980,7 +3980,7 @@ case 247:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_ixfr_tmp(zone, yyvsp[0].text);
+		tmpres = dns_c_zone_setixfrtmp(zone, yyvsp[0].text);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "Redefining ixfr-tmp-file.");
@@ -3997,7 +3997,7 @@ case 248:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_master_port(zone, yyvsp[-3].port_int);
+		tmpres = dns_c_zone_setmasterport(zone, yyvsp[-3].port_int);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4013,7 +4013,7 @@ case 248:
 				     "Failed to set zone master port.");
 		}
 
-		tmpres = dns_c_zone_set_master_ips(zone, yyvsp[-1].iplist, ISC_FALSE);
+		tmpres = dns_c_zone_setmasterips(zone, yyvsp[-1].iplist, ISC_FALSE);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4036,7 +4036,7 @@ case 249:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_transfer_source(zone, yyvsp[0].ipaddress);
+		tmpres = dns_c_zone_settransfersource(zone, yyvsp[0].ipaddress);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4059,7 +4059,7 @@ case 250:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_checknames(zone, yyvsp[0].severity);
+		tmpres = dns_c_zone_setchecknames(zone, yyvsp[0].severity);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4082,7 +4082,7 @@ case 251:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_allow_upd(zone, yyvsp[-1].iml, ISC_FALSE);
+		tmpres = dns_c_zone_setallowupd(zone, yyvsp[-1].iml, ISC_FALSE);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4105,7 +4105,7 @@ case 252:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_allow_query(zone, yyvsp[-1].iml, ISC_FALSE);
+		tmpres = dns_c_zone_setallowquery(zone, yyvsp[-1].iml, ISC_FALSE);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4128,7 +4128,7 @@ case 253:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_allow_transfer(zone, yyvsp[-1].iml, ISC_FALSE);
+		tmpres = dns_c_zone_setallowtransfer(zone, yyvsp[-1].iml, ISC_FALSE);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4151,7 +4151,7 @@ case 254:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_forward(zone, yyvsp[0].forward);
+		tmpres = dns_c_zone_setforward(zone, yyvsp[0].forward);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4187,7 +4187,7 @@ case 255:
 			iplist = yyvsp[-1].iplist;
 		}
 		
-		tmpres = dns_c_zone_set_forwarders(zone, iplist, ISC_FALSE);
+		tmpres = dns_c_zone_setforwarders(zone, iplist, ISC_FALSE);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4210,7 +4210,7 @@ case 256:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_max_trans_time_in(zone, yyvsp[0].l_int);
+		tmpres = dns_c_zone_setmaxtranstimein(zone, yyvsp[0].l_int);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4235,7 +4235,7 @@ case 257:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_max_ixfr_log(zone, yyvsp[0].l_int);
+		tmpres = dns_c_zone_setmaxixfrlog(zone, yyvsp[0].l_int);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4258,7 +4258,7 @@ case 258:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_notify(zone, yyvsp[0].boolean);
+		tmpres = dns_c_zone_setnotify(zone, yyvsp[0].boolean);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4281,7 +4281,7 @@ case 259:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_maint_ixfr_base(zone, yyvsp[0].boolean);
+		tmpres = dns_c_zone_setmaintixfrbase(zone, yyvsp[0].boolean);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4313,7 +4313,7 @@ case 260:
 			YYABORT;
 		}
 		
-		tmpres = dns_c_zone_set_pubkey(zone, pubkey, ISC_FALSE);
+		tmpres = dns_c_zone_setpubkey(zone, pubkey, ISC_FALSE);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4339,7 +4339,7 @@ case 261:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_also_notify(zone, yyvsp[-1].iplist, ISC_FALSE);
+		tmpres = dns_c_zone_setalsonotify(zone, yyvsp[-1].iplist, ISC_FALSE);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4362,7 +4362,7 @@ case 262:
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_set_dialup(zone, yyvsp[0].boolean);
+		tmpres = dns_c_zone_setdialup(zone, yyvsp[0].boolean);
 		switch (tmpres) {
 		case ISC_R_EXISTS:
 			parser_warning(ISC_FALSE,
@@ -4460,18 +4460,18 @@ case 275:
 break;
 case 277:
 {
-		dns_c_tkey_list_t *newlist;
+		dns_c_tkeylist_t *newlist;
 		
-		tmpres = dns_c_ctx_get_trusted_keys(currcfg, &newlist);
+		tmpres = dns_c_ctx_gettrustedkeys(currcfg, &newlist);
 		if (tmpres == ISC_R_NOTFOUND) {
-			tmpres = dns_c_tkey_list_new(currcfg->mem, &newlist);
+			tmpres = dns_c_tkeylist_new(currcfg->mem, &newlist);
 			if (tmpres != ISC_R_SUCCESS) {
 				dns_c_error(tmpres,
 					 "Failed to create trusted key list.");
 				YYABORT;
 			}
 
-			tmpres = dns_c_ctx_set_trusted_keys(currcfg,
+			tmpres = dns_c_ctx_settrustedkeys(currcfg,
 							    newlist,
 							    ISC_FALSE);
 			if (tmpres != ISC_R_SUCCESS) {
@@ -4485,9 +4485,9 @@ break;
 case 281:
 {
 		dns_c_tkey_t *tkey;
-		dns_c_tkey_list_t *list;
+		dns_c_tkeylist_t *list;
 
-		tmpres = dns_c_ctx_get_trusted_keys(currcfg, &list);
+		tmpres = dns_c_ctx_gettrustedkeys(currcfg, &list);
 		if (tmpres != ISC_R_SUCCESS) {
 			dns_c_error(tmpres, "No trusted key list defined!");
 			YYABORT;
@@ -4500,7 +4500,7 @@ case 281:
 			YYABORT;
 		}
 
-		tmpres = dns_c_tkey_list_append(list, tkey, ISC_FALSE);
+		tmpres = dns_c_tkeylist_append(list, tkey, ISC_FALSE);
 		if (tmpres != ISC_R_SUCCESS) {
 			dns_c_error(tmpres, "Failed to append trusted key.");
 			YYABORT;

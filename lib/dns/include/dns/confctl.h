@@ -70,7 +70,7 @@
  ***/
 
 typedef struct dns_c_ctrl		dns_c_ctrl_t;
-typedef struct dns_c_ctrl_list		dns_c_ctrl_list_t;
+typedef struct dns_c_ctrl_list		dns_c_ctrllist_t;
 
 struct dns_c_ctrl
 {
@@ -81,7 +81,7 @@ struct dns_c_ctrl
 		struct {
 			dns_c_addr_t addr;
 			short port;
-			dns_c_ipmatch_list_t *matchlist;
+			dns_c_ipmatchlist_t *matchlist;
 		} inet_v; /* when control_type == dns_c_inet_control  */
 		struct {
 			char *pathname;
@@ -109,9 +109,9 @@ struct dns_c_ctrl_list
  ***/
 
 
-isc_result_t	dns_c_ctrl_inet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
+isc_result_t	dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 				    dns_c_addr_t addr, short port,
-				    dns_c_ipmatch_list_t *iml,
+				    dns_c_ipmatchlist_t *iml,
 				    isc_boolean_t copy);
 /*
  * Creates a new INET control object. If COPY is true then a deep copy is
@@ -128,7 +128,7 @@ isc_result_t	dns_c_ctrl_inet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
  */
 
 
-isc_result_t	dns_c_ctrl_unix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
+isc_result_t	dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 				    const char *path,
 				    int perm, uid_t uid, gid_t gid);
 /*
@@ -169,8 +169,8 @@ void		dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl);
  */
 
 
-isc_result_t	dns_c_ctrl_list_new(isc_mem_t *mem,
-				    dns_c_ctrl_list_t **newlist);
+isc_result_t	dns_c_ctrllist_new(isc_mem_t *mem,
+				    dns_c_ctrllist_t **newlist);
 /*
  * Creates a new control object list using the MEM memory manager.
  *
@@ -184,7 +184,7 @@ isc_result_t	dns_c_ctrl_list_new(isc_mem_t *mem,
  */
 
 
-isc_result_t	dns_c_ctrl_list_delete(dns_c_ctrl_list_t **list);
+isc_result_t	dns_c_ctrllist_delete(dns_c_ctrllist_t **list);
 /*
  * Deletes the control list. The value of *list may be NULL. Sets *list to
  * NULL when done.
@@ -197,8 +197,8 @@ isc_result_t	dns_c_ctrl_list_delete(dns_c_ctrl_list_t **list);
  *
  */
 
-void		dns_c_ctrl_list_print(FILE *fp, int indent,
-				      dns_c_ctrl_list_t *cl);
+void		dns_c_ctrllist_print(FILE *fp, int indent,
+				      dns_c_ctrllist_t *cl);
 /*
  * Prints the control objects inside the list. The output is indented with
  * indent number of tabs.

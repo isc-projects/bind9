@@ -111,8 +111,8 @@
 typedef enum {
 	dns_c_forw_only,
 	dns_c_forw_first,
-	dns_c_forw_no_answer,
-	dns_c_forw_no_domain,
+	dns_c_forw_noanswer,
+	dns_c_forw_nodomain,
 } dns_c_forw_t;
 
 /* value of a 'check-names' method  */
@@ -145,6 +145,13 @@ typedef enum {
 	dns_c_ordering_cyclic,
 } dns_c_ordering_t;
 
+
+
+#if 0
+typedef enum {
+	dns_one_answer, dns_many_answers
+} dns_c_transferformat_t;
+#endif
 
 /* Possible zone types */
 typedef enum {
@@ -186,7 +193,7 @@ typedef enum {
 	dns_c_log_debug,
 	dns_c_log_dynamic,
 	dns_c_log_no_severity
-} dns_c_log_severity_t;
+} dns_c_logseverity_t;
 
 
 /* Possible logging categories. */
@@ -195,13 +202,13 @@ typedef enum {
 	dns_c_cat_config,
 	dns_c_cat_parser,
 	dns_c_cat_queries,  
-	dns_c_cat_lame_servers,
+	dns_c_cat_lameservers,
 	dns_c_cat_statistics,
 	dns_c_cat_panic, 
 	dns_c_cat_update,
 	dns_c_cat_ncache,
-	dns_c_cat_xfer_in,
-	dns_c_cat_xfer_out,  
+	dns_c_cat_xferin,
+	dns_c_cat_xferout,  
 	dns_c_cat_db,
 	dns_c_cat_eventlib,
 	dns_c_cat_packet,
@@ -212,7 +219,7 @@ typedef enum {
 	dns_c_cat_insist, 
 	dns_c_cat_maint,
 	dns_c_cat_load,
-	dns_c_cat_resp_checks,
+	dns_c_cat_respchecks,
 	dns_c_cat_control, 
 	dns_c_cat_none
 } dns_c_category_t;
@@ -269,13 +276,13 @@ typedef void (*dns_cfg_err_handler_t)(isc_result_t code,
  */
 const char *		dns_c_ordering2string(dns_c_ordering_t ordering,
 					      isc_boolean_t printable);
-const char *		dns_c_logseverity2string(dns_c_log_severity_t level,
+const char *		dns_c_logseverity2string(dns_c_logseverity_t level,
 					      isc_boolean_t printable);
 const char *		dns_c_category2string(dns_c_category_t cat,
 					      isc_boolean_t printable);
 const char *		dns_c_facility2string(int facility,
 					      isc_boolean_t printable);
-const char *		dns_c_transformat2string(dns_transfer_format_t tformat,
+const char *		dns_c_transformat2string(dns_transfer_format_t tform,
 						isc_boolean_t printable);
 const char *		dns_c_transport2string(dns_c_trans_t transport,
 					       isc_boolean_t printable);
@@ -293,7 +300,7 @@ const char *		dns_c_forward2string(dns_c_forw_t forw,
 isc_result_t		dns_c_string2ordering(char *name,
 					      dns_c_ordering_t *ordering);
 isc_result_t		dns_c_string2logseverity(const char *string,
-					      dns_c_log_severity_t *result);
+					      dns_c_logseverity_t *result);
 isc_result_t		dns_c_string2category(const char *string,
 					      dns_c_category_t *category);
 isc_result_t		dns_c_string2facility(const char *string, int *res);
@@ -302,16 +309,16 @@ isc_result_t		dns_c_string2facility(const char *string, int *res);
 
 void	 		dns_c_error(isc_result_t result, const char *fmt, ...);
 void 			dns_c_print_ipaddr(FILE *fp, dns_c_addr_t *addr);
-dns_cfg_err_handler_t	dns_c_set_error_handler(dns_cfg_err_handler_t
+dns_cfg_err_handler_t	dns_c_seterrorhandler(dns_cfg_err_handler_t
 						newhandler);
 isc_boolean_t		dns_c_need_quote(const char *string);
 
 void			dns_c_printtabs(FILE *fp, int count); 
-void			dns_c_print_in_units(FILE *fp, isc_uint32_t val);
+void			dns_c_printinunits(FILE *fp, isc_uint32_t val);
 
-void			dns_c_dataclass_to_stream(FILE *fp,
+void			dns_c_dataclass_tostream(FILE *fp,
 						  dns_rdataclass_t rclass);
-void			dns_c_datatype_to_stream(FILE *fp,
+void			dns_c_datatype_tostream(FILE *fp,
 						 dns_rdatatype_t rtype);
 
 

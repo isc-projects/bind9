@@ -31,9 +31,9 @@
 
 
 isc_result_t
-dns_c_lstn_on_new(isc_mem_t *mem, dns_c_lstn_on_t **listen)
+dns_c_lstnon_new(isc_mem_t *mem, dns_c_lstnon_t **listen)
 {
-	dns_c_lstn_on_t *ll;
+	dns_c_lstnon_t *ll;
 	isc_result_t result;
 
 	REQUIRE(listen != NULL);
@@ -45,7 +45,7 @@ dns_c_lstn_on_new(isc_mem_t *mem, dns_c_lstn_on_t **listen)
 	ll->port = 0;
 	ll->magic = LISTEN_MAGIC;
 
-	result = dns_c_ipmatch_list_new(mem, &ll->iml);
+	result = dns_c_ipmatchlist_new(mem, &ll->iml);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mem, ll, sizeof *ll);
 		return (result);
@@ -60,9 +60,9 @@ dns_c_lstn_on_new(isc_mem_t *mem, dns_c_lstn_on_t **listen)
 
 
 isc_result_t
-dns_c_lstn_on_delete(dns_c_lstn_on_t **listen)
+dns_c_lstnon_delete(dns_c_lstnon_t **listen)
 {
-	dns_c_lstn_on_t *lo;
+	dns_c_lstnon_t *lo;
 	isc_result_t r;
 
 	REQUIRE(listen != NULL);
@@ -73,7 +73,7 @@ dns_c_lstn_on_delete(dns_c_lstn_on_t **listen)
 	}
 	CHECK_LISTEN(lo);
 
-	r = dns_c_ipmatch_list_delete(&lo->iml);
+	r = dns_c_ipmatchlist_delete(&lo->iml);
 	if (r != ISC_R_SUCCESS) {
 		return (r);
 	}
@@ -87,7 +87,7 @@ dns_c_lstn_on_delete(dns_c_lstn_on_t **listen)
 
 
 isc_result_t
-dns_c_lstn_on_setiml(dns_c_lstn_on_t *listen, dns_c_ipmatch_list_t *iml,
+dns_c_lstnon_setiml(dns_c_lstnon_t *listen, dns_c_ipmatchlist_t *iml,
 		     isc_boolean_t deepcopy)
 {
 	isc_result_t result;
@@ -95,13 +95,13 @@ dns_c_lstn_on_setiml(dns_c_lstn_on_t *listen, dns_c_ipmatch_list_t *iml,
 	REQUIRE(listen != NULL);
 	REQUIRE(iml != NULL);
 	
-	result = dns_c_ipmatch_list_delete(&listen->iml);
+	result = dns_c_ipmatchlist_delete(&listen->iml);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
 	if (deepcopy) {
-		result = dns_c_ipmatch_list_copy(listen->mem,
+		result = dns_c_ipmatchlist_copy(listen->mem,
 						 &listen->iml, iml);
 	} else {
 		listen->iml = iml;
@@ -117,9 +117,9 @@ dns_c_lstn_on_setiml(dns_c_lstn_on_t *listen, dns_c_ipmatch_list_t *iml,
 
 
 isc_result_t
-dns_c_lstn_list_new(isc_mem_t *mem, dns_c_lstn_list_t **llist)
+dns_c_lstnlist_new(isc_mem_t *mem, dns_c_lstnlist_t **llist)
 {
-	dns_c_lstn_list_t *ll;
+	dns_c_lstnlist_t *ll;
 
 	REQUIRE(llist != NULL);
 
@@ -141,10 +141,10 @@ dns_c_lstn_list_new(isc_mem_t *mem, dns_c_lstn_list_t **llist)
 
 
 isc_result_t
-dns_c_lstn_list_delete(dns_c_lstn_list_t **llist)
+dns_c_lstnlist_delete(dns_c_lstnlist_t **llist)
 {
-	dns_c_lstn_list_t *ll;
-	dns_c_lstn_on_t *lo, *lotmp;
+	dns_c_lstnlist_t *ll;
+	dns_c_lstnon_t *lo, *lotmp;
 	isc_result_t r;
 
 	REQUIRE(llist != NULL);
@@ -160,7 +160,7 @@ dns_c_lstn_list_delete(dns_c_lstn_list_t **llist)
 	while (lo != NULL) {
 		lotmp = ISC_LIST_NEXT(lo, next);
 		ISC_LIST_UNLINK(ll->elements, lo, next);
-		r = dns_c_lstn_on_delete(&lo);
+		r = dns_c_lstnon_delete(&lo);
 		if (r != ISC_R_SUCCESS) {
 			return (r);
 		}
@@ -177,9 +177,9 @@ dns_c_lstn_list_delete(dns_c_lstn_list_t **llist)
 
 
 isc_result_t
-dns_c_lstn_list_print(FILE *fp, int indent, dns_c_lstn_list_t *ll)
+dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll)
 {
-	dns_c_lstn_on_t *lo;
+	dns_c_lstnon_t *lo;
 
 	if (ll == NULL) {
 		return (ISC_R_SUCCESS);
@@ -190,7 +190,7 @@ dns_c_lstn_list_print(FILE *fp, int indent, dns_c_lstn_list_t *ll)
 	lo = ISC_LIST_HEAD(ll->elements);
 	while (lo != NULL) {
 		dns_c_printtabs(fp, indent);
-		dns_c_lstn_on_print(fp, indent, lo);
+		dns_c_lstnon_print(fp, indent, lo);
 		lo = ISC_LIST_NEXT(lo, next);
 		fprintf(fp, "\n");
 	}
@@ -200,7 +200,7 @@ dns_c_lstn_list_print(FILE *fp, int indent, dns_c_lstn_list_t *ll)
 
 
 isc_result_t
-dns_c_lstn_on_print(FILE *fp, int indent, dns_c_lstn_on_t *lo)
+dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo)
 {
 	REQUIRE(lo != NULL);
 	REQUIRE(lo->iml != NULL);
@@ -211,7 +211,7 @@ dns_c_lstn_on_print(FILE *fp, int indent, dns_c_lstn_on_t *lo)
 		fprintf(fp, "port %d ", (int)ntohs(lo->port));
 	}
 
-	dns_c_ipmatch_list_print(fp, indent + 1, lo->iml);
+	dns_c_ipmatchlist_print(fp, indent + 1, lo->iml);
 
 	return (ISC_R_SUCCESS);
 }

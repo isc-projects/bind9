@@ -24,7 +24,7 @@
 
 
 isc_result_t
-dns_c_rrso_list_clear(dns_c_rrso_list_t *olist)
+dns_c_rrsolist_clear(dns_c_rrsolist_t *olist)
 {
 	dns_c_rrso_t *elem;
 	
@@ -42,8 +42,8 @@ dns_c_rrso_list_clear(dns_c_rrso_list_t *olist)
 
 
 isc_result_t
-dns_c_rrso_list_append(dns_c_rrso_list_t *dest,
-		       dns_c_rrso_list_t *src)
+dns_c_rrsolist_append(dns_c_rrsolist_t *dest,
+		       dns_c_rrsolist_t *src)
 {
 	dns_c_rrso_t *oldelem;
 	dns_c_rrso_t *newelem;
@@ -68,9 +68,9 @@ dns_c_rrso_list_append(dns_c_rrso_list_t *dest,
 
 
 isc_result_t
-dns_c_rrso_list_new(isc_mem_t *mem, dns_c_rrso_list_t **rval)
+dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval)
 {
-	dns_c_rrso_list_t *ro;
+	dns_c_rrsolist_t *ro;
 
 	ro = isc_mem_get(mem, sizeof *ro);
 	if (ro == NULL) {
@@ -124,10 +124,10 @@ dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res,
 
 
 isc_result_t
-dns_c_rrso_list_delete(dns_c_rrso_list_t **list)
+dns_c_rrsolist_delete(dns_c_rrsolist_t **list)
 {
 	dns_c_rrso_t *elem, *q;
-	dns_c_rrso_list_t *l;
+	dns_c_rrsolist_t *l;
 	isc_result_t r;
 
 	REQUIRE(list != NULL);
@@ -205,16 +205,16 @@ dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest,
 
 
 isc_result_t
-dns_c_rrso_list_copy(isc_mem_t *mem, dns_c_rrso_list_t **dest,
-		     dns_c_rrso_list_t *source)
+dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
+		     dns_c_rrsolist_t *source)
 
 {
-	dns_c_rrso_list_t *nlist;
+	dns_c_rrsolist_t *nlist;
 	dns_c_rrso_t *elem;
 	dns_c_rrso_t *newe;
 	dns_result_t res;
 	
-	res = dns_c_rrso_list_new(mem, &nlist);
+	res = dns_c_rrsolist_new(mem, &nlist);
 	if (res != DNS_R_SUCCESS) {
 		return (res);
 	}
@@ -223,7 +223,7 @@ dns_c_rrso_list_copy(isc_mem_t *mem, dns_c_rrso_list_t **dest,
 	while (elem != NULL) {
 		res = dns_c_rrso_copy(mem, &newe, elem);
 		if (res != DNS_R_SUCCESS) {
-			dns_c_rrso_list_delete(&nlist);
+			dns_c_rrsolist_delete(&nlist);
 			return (res);
 		}
 
@@ -239,8 +239,8 @@ dns_c_rrso_list_copy(isc_mem_t *mem, dns_c_rrso_list_t **dest,
 
 
 void
-dns_c_rrso_list_print(FILE *fp, int indent,
-		      dns_c_rrso_list_t *rrlist)
+dns_c_rrsolist_print(FILE *fp, int indent,
+		      dns_c_rrsolist_t *rrlist)
 {
 	dns_c_rrso_t *or;
 
@@ -276,7 +276,7 @@ dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order)
 	if (order->oclass == dns_rdataclass_any) {
 		fputc('*', fp);
 	} else {
-		dns_c_dataclass_to_stream(fp, order->oclass);
+		dns_c_dataclass_tostream(fp, order->oclass);
 	}
 	
 
@@ -284,7 +284,7 @@ dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order)
 	if (order->otype == dns_rdatatype_any) {
 		fputc('*', fp);
 	} else {
-		dns_c_datatype_to_stream(fp, order->otype);
+		dns_c_datatype_tostream(fp, order->otype);
 	}
 
 	fprintf(fp, " name %s", order->name);

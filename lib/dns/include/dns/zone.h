@@ -444,12 +444,12 @@ dns_zone_getxfrsource(dns_zone_t *zone);
 
 
 
-void dns_zone_setqueryacl(dns_zone_t *zone, dns_c_ipmatch_list_t *acl);
-void dns_zone_setupdateacl(dns_zone_t *zone, dns_c_ipmatch_list_t *acl);
-void dns_zone_setxfracl(dns_zone_t *zone, dns_c_ipmatch_list_t *acl);
-dns_c_ipmatch_list_t * dns_zone_getqueryacl(dns_zone_t *zone);
-dns_c_ipmatch_list_t * dns_zone_getupdateacl(dns_zone_t *zone);
-dns_c_ipmatch_list_t * dns_zone_getxfracl(dns_zone_t *zone);
+void dns_zone_setqueryacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+void dns_zone_setupdateacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+void dns_zone_setxfracl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+dns_c_ipmatchlist_t * dns_zone_getqueryacl(dns_zone_t *zone);
+dns_c_ipmatchlist_t * dns_zone_getupdateacl(dns_zone_t *zone);
+dns_c_ipmatchlist_t * dns_zone_getxfracl(dns_zone_t *zone);
 void dns_zone_clearupdateacl(dns_zone_t *zone);
 void dns_zone_clearqueryacl(dns_zone_t *zone);
 void dns_zone_clearxfracl(dns_zone_t *zone);

@@ -72,8 +72,8 @@ typedef struct dns_c_iplist		dns_c_iplist_t;
 typedef struct dns_c_ipmatch_direct	dns_c_ipmatch_direct_t ;
 typedef struct dns_c_ipmatch_indirect	dns_c_ipmatch_indirect_t;
 typedef struct dns_c_ipmatch_key	dns_c_ipmatch_key_t;
-typedef struct dns_c_ipmatch_element	dns_c_ipmatch_element_t;
-typedef struct dns_c_ipmatch_list	dns_c_ipmatch_list_t;
+typedef struct dns_c_ipmatch_element	dns_c_ipmatchelement_t;
+typedef struct dns_c_ipmatch_list	dns_c_ipmatchlist_t;
 
 
 /* A list of IP addresses (IPv4 or IPv6) */
@@ -100,7 +100,7 @@ struct dns_c_ipmatch_direct
 struct dns_c_ipmatch_indirect
 {
 	isc_textregion_t refname;	/* for acls, mostly. */
-	dns_c_ipmatch_list_t *list;
+	dns_c_ipmatchlist_t *list;
 };
 
 
@@ -116,7 +116,7 @@ struct dns_c_ipmatch_element
 		char		       	       *aclname;
 	} u;
 
-	ISC_LINK(dns_c_ipmatch_element_t) next;
+	ISC_LINK(dns_c_ipmatchelement_t) next;
 };
 
 
@@ -125,7 +125,7 @@ struct dns_c_ipmatch_list
 	isc_mem_t *mem;
 	int refcount;
 
-	ISC_LIST(dns_c_ipmatch_element_t) elements;
+	ISC_LIST(dns_c_ipmatchelement_t) elements;
 };
 
 
@@ -139,51 +139,51 @@ struct dns_c_ipmatch_list
  */
 
 
-isc_result_t	dns_c_ipmatch_element_new(isc_mem_t *mem,
-					  dns_c_ipmatch_element_t
+isc_result_t	dns_c_ipmatchelement_new(isc_mem_t *mem,
+					  dns_c_ipmatchelement_t
 					  **result);
-isc_result_t	dns_c_ipmatch_element_delete(isc_mem_t *mem,
-					     dns_c_ipmatch_element_t **ipme);
-isc_result_t	dns_c_ipmatch_element_copy(isc_mem_t *mem,
-					   dns_c_ipmatch_element_t **dest,
-					   dns_c_ipmatch_element_t *src);
-isc_result_t	dns_c_ipmatch_element_print(FILE *fp, int indent,
-					    dns_c_ipmatch_element_t *ime);
-isc_boolean_t	dns_c_ipmatch_element_isneg(dns_c_ipmatch_element_t *elem);
+isc_result_t	dns_c_ipmatchelement_delete(isc_mem_t *mem,
+					     dns_c_ipmatchelement_t **ipme);
+isc_result_t	dns_c_ipmatchelement_copy(isc_mem_t *mem,
+					   dns_c_ipmatchelement_t **dest,
+					   dns_c_ipmatchelement_t *src);
+isc_result_t	dns_c_ipmatchelement_print(FILE *fp, int indent,
+					    dns_c_ipmatchelement_t *ime);
+isc_boolean_t	dns_c_ipmatchelement_isneg(dns_c_ipmatchelement_t *elem);
 
-isc_result_t	dns_c_ipmatch_negate(dns_c_ipmatch_element_t *ipe);
-isc_result_t	dns_c_ipmatch_acl_new(isc_mem_t *mem,
-				      dns_c_ipmatch_element_t **result,
+isc_result_t	dns_c_ipmatch_negate(dns_c_ipmatchelement_t *ipe);
+isc_result_t	dns_c_ipmatch_aclnew(isc_mem_t *mem,
+				      dns_c_ipmatchelement_t **result,
 				      const char *aclname);
-isc_result_t	dns_c_ipmatch_key_new(isc_mem_t *mem,
-				      dns_c_ipmatch_element_t **result,
+isc_result_t	dns_c_ipmatchkey_new(isc_mem_t *mem,
+				      dns_c_ipmatchelement_t **result,
 				      const char *key);
-isc_result_t	dns_c_ipmatch_localhost_new(isc_mem_t *mem,
-					    dns_c_ipmatch_element_t **result); 
-isc_result_t	dns_c_ipmatch_localnets_new(isc_mem_t *mem,
-					    dns_c_ipmatch_element_t **result); 
-isc_result_t	dns_c_ipmatch_pattern_new(isc_mem_t *mem,
-					  dns_c_ipmatch_element_t **result,
+isc_result_t	dns_c_ipmatchlocalhost_new(isc_mem_t *mem,
+					    dns_c_ipmatchelement_t **result); 
+isc_result_t	dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
+					    dns_c_ipmatchelement_t **result); 
+isc_result_t	dns_c_ipmatchpattern_new(isc_mem_t *mem,
+					  dns_c_ipmatchelement_t **result,
 					  dns_c_addr_t address,
 					  isc_uint32_t maskbits);
-isc_result_t	dns_c_ipmatch_indirect_new(isc_mem_t *mem,
-					   dns_c_ipmatch_element_t **result,
-					   dns_c_ipmatch_list_t *iml,
+isc_result_t	dns_c_ipmatchindirect_new(isc_mem_t *mem,
+					   dns_c_ipmatchelement_t **result,
+					   dns_c_ipmatchlist_t *iml,
 					   const char *name);
 
-isc_result_t	dns_c_ipmatch_list_new(isc_mem_t *mem,
-				       dns_c_ipmatch_list_t **ptr);
-isc_result_t	dns_c_ipmatch_list_delete(dns_c_ipmatch_list_t **ml);
-dns_c_ipmatch_list_t *dns_c_ipmatch_list_attach(dns_c_ipmatch_list_t *ipml);
-isc_result_t	dns_c_ipmatch_list_copy(isc_mem_t *mem,
-					dns_c_ipmatch_list_t **dest,
-					dns_c_ipmatch_list_t *src);
-isc_result_t	dns_c_ipmatch_list_empty(dns_c_ipmatch_list_t *ipml);
-isc_result_t	dns_c_ipmatch_list_append(dns_c_ipmatch_list_t *dest,
-					  dns_c_ipmatch_list_t *src,
+isc_result_t	dns_c_ipmatchlist_new(isc_mem_t *mem,
+				       dns_c_ipmatchlist_t **ptr);
+isc_result_t	dns_c_ipmatchlist_delete(dns_c_ipmatchlist_t **ml);
+dns_c_ipmatchlist_t *dns_c_ipmatchlist_attach(dns_c_ipmatchlist_t *ipml);
+isc_result_t	dns_c_ipmatchlist_copy(isc_mem_t *mem,
+					dns_c_ipmatchlist_t **dest,
+					dns_c_ipmatchlist_t *src);
+isc_result_t	dns_c_ipmatchlist_empty(dns_c_ipmatchlist_t *ipml);
+isc_result_t	dns_c_ipmatchlist_append(dns_c_ipmatchlist_t *dest,
+					  dns_c_ipmatchlist_t *src,
 					  isc_boolean_t negate);
-isc_result_t	dns_c_ipmatch_list_print(FILE *fp, int indent,
-					 dns_c_ipmatch_list_t *iml);
+isc_result_t	dns_c_ipmatchlist_print(FILE *fp, int indent,
+					 dns_c_ipmatchlist_t *iml);
 
 
 

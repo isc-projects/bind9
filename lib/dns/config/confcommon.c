@@ -55,7 +55,7 @@ static struct dns_c_pvt_ont {
 
 
 static struct dns_c_pvt_lsnt {
-	dns_c_log_severity_t val;
+	dns_c_logseverity_t val;
 	const char *strval;
 } log_severity_nametable[] = {
 	{ dns_c_log_critical,		"critical" },
@@ -115,13 +115,13 @@ static struct dns_c_pvt_cntable {
 	{ dns_c_cat_config,		"config" },
 	{ dns_c_cat_parser,		"parser" },
 	{ dns_c_cat_queries,		"queries" },
-	{ dns_c_cat_lame_servers,	"lame-servers" },
+	{ dns_c_cat_lameservers,	"lame-servers" },
 	{ dns_c_cat_statistics,		"statistics" },
 	{ dns_c_cat_panic,		"panic" },
 	{ dns_c_cat_update,		"update" },
 	{ dns_c_cat_ncache,		"ncache" },
-	{ dns_c_cat_xfer_in,		"xfer-in" },
-	{ dns_c_cat_xfer_out,		"xfer-out" },
+	{ dns_c_cat_xferin,		"xfer-in" },
+	{ dns_c_cat_xferout,		"xfer-out" },
 	{ dns_c_cat_db,			"db" },
 	{ dns_c_cat_eventlib,		"eventlib" },
 	{ dns_c_cat_packet,		"packet" },
@@ -132,7 +132,7 @@ static struct dns_c_pvt_cntable {
 	{ dns_c_cat_insist,		"insist" },
 	{ dns_c_cat_maint,		"maintenance" },
 	{ dns_c_cat_load,		"load" },
-	{ dns_c_cat_resp_checks,	"response-checks" },
+	{ dns_c_cat_respchecks,	"response-checks" },
 	{ dns_c_cat_control,		"control" },
 	{ 0,				NULL }
 };
@@ -160,7 +160,7 @@ static void default_cfgerror(isc_result_t result, const char *fmt,
 
 
 void
-dns_c_print_in_units(FILE *fp, isc_uint32_t val)
+dns_c_printinunits(FILE *fp, isc_uint32_t val)
 {
 	isc_uint32_t one_gig = (1024 * 1024 * 1024);
 	isc_uint32_t one_meg = (1024 * 1024);
@@ -182,7 +182,7 @@ dns_c_print_in_units(FILE *fp, isc_uint32_t val)
 
 
 void
-dns_c_dataclass_to_stream(FILE *fp, dns_rdataclass_t rclass)
+dns_c_dataclass_tostream(FILE *fp, dns_rdataclass_t rclass)
 {
 	char buffer[64];
 	isc_buffer_t sourceb;
@@ -201,7 +201,7 @@ dns_c_dataclass_to_stream(FILE *fp, dns_rdataclass_t rclass)
 
 
 void
-dns_c_datatype_to_stream(FILE *fp, dns_rdatatype_t rtype)
+dns_c_datatype_tostream(FILE *fp, dns_rdatatype_t rtype)
 {
 	char buffer[64];
 	isc_buffer_t sourceb;
@@ -266,7 +266,7 @@ dns_c_ordering2string(dns_c_ordering_t ordering, isc_boolean_t printable)
 
 
 const char *
-dns_c_logseverity2string(dns_c_log_severity_t severity,
+dns_c_logseverity2string(dns_c_logseverity_t severity,
 			 isc_boolean_t printable)
 {
 	int i;
@@ -284,7 +284,7 @@ dns_c_logseverity2string(dns_c_log_severity_t severity,
 
 
 isc_result_t
-dns_c_string2logseverity(const char *string, dns_c_log_severity_t *result)
+dns_c_string2logseverity(const char *string, dns_c_logseverity_t *result)
 {
 	int i;
 	isc_result_t rval = ISC_R_FAILURE;
@@ -458,11 +458,11 @@ dns_c_forward2string(dns_c_forw_t forw, isc_boolean_t printable)
 		rval = "first";
 		break;
 
-	case dns_c_forw_no_answer:
+	case dns_c_forw_noanswer:
 		rval = "if-no-answer";
 		break;
 
-	case dns_c_forw_no_domain:
+	case dns_c_forw_nodomain:
 		rval = "if-no-domain";
 		break;
 	}
@@ -517,7 +517,7 @@ dns_c_need_quote(const char *string)
 static dns_cfg_err_handler_t cfgerrorptr = default_cfgerror;
 
 dns_cfg_err_handler_t
-dns_c_set_error_handler(dns_cfg_err_handler_t newhandler)
+dns_c_seterrorhandler(dns_cfg_err_handler_t newhandler)
 {
 	dns_cfg_err_handler_t oldhandler = cfgerrorptr;
 
