@@ -331,7 +331,7 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 		return (DNS_R_UNKNOWN);
 	
 	isc_buffer_available(target, &tregion);
-	if (n < tregion.length)
+	if (n > tregion.length)
 		return (DNS_R_NOSPACE);
 
 	memcpy(tregion.base, sregion.base, n);

@@ -190,7 +190,7 @@ towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	isc_buffer_remaining(target, &tregion);
+	isc_buffer_available(target, &tregion);
 	if (tregion.length < 20)
 		return (DNS_R_NOSPACE);
 

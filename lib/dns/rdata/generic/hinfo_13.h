@@ -84,13 +84,16 @@ fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 
 static dns_result_t
 towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+	isc_region_t region;
 
 	cctx = cctx;
 
-	if (target->length < rdata->length)
+	isc_buffer_available(target, &region);
+	if (region.length < rdata->length)
 		return (DNS_R_NOSPACE);
 
-	memcpy(target->base, rdata->data, rdata->length);
+	memcpy(region.base, rdata->data, rdata->length);
+	isc_buffer_add(target, rdata->length);
 
 	return (DNS_R_SUCCESS);
 }

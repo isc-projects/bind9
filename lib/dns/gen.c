@@ -298,6 +298,7 @@ main(int argc, char **argv) {
 	struct tm *tm;
 	time_t now;
 	char year[11];
+	int lasttype;
 
 	argc = argc;
 	argv = argv;
@@ -355,11 +356,13 @@ main(int argc, char **argv) {
 
 	fprintf(stdout, "\n#define TYPENAMES%s\n",
 		types != NULL ? " \\" : "");
+
+	lasttype = 0;
 	for (tt = types; tt != NULL ; tt = tt->next)
-		if (tt->class == 0)
+		if (tt->type != lasttype)
 			fprintf(stdout,
 				"\t{ %d, \"%s\" },%s\n",
-				tt->type, tt->typename,
+				lasttype = tt->type, tt->typename,
 				tt->next != NULL ? " \\" : "");
 
 	fputs("\n", stdout);
