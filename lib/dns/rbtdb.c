@@ -3125,7 +3125,10 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		result = dns_name_concatenate(nodename, origin, name, NULL);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-	}
+		if (rbtdbiter->common.relative_names && rbtdbiter->new_origin)
+			result = DNS_R_NEWORIGIN;
+	} else
+		result = DNS_R_SUCCESS;
 		
 	LOCK(&rbtdb->node_locks[node->locknum].lock);
 	new_reference(rbtdb, node);
@@ -3133,9 +3136,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 
 	*nodep = rbtdbiter->node;
 
-	if (rbtdbiter->new_origin)
-		return (DNS_R_NEWORIGIN);
-	return (DNS_R_SUCCESS);
+	return (result);
 }
 
 static dns_result_t
