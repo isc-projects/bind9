@@ -1,7 +1,7 @@
-Copyright (C) 2000, 2001  Internet Software Consortium.
+aCopyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.47 2001/10/16 21:56:31 gson Exp $
+$Id: release,v 1.48 2001/10/23 18:44:09 gson Exp $
 
 Preparing a bind9 release
 
@@ -22,8 +22,9 @@ release.
    number (it should have been incremented after the
    previous release)
 
- - Update the lib/*/api files as needed.  See the libtool 
-   info file for information about what the various numbers mean.
+ - Before creating a new release branch, update the lib/*/api files
+   as needed.  See the libtool info file for information about what
+   the various numbers mean.
 
  - If building from a release branch, check that any important
    bug fixes made on the mainline since the last release have
@@ -49,7 +50,8 @@ release.
    or by running genhtml.sh in doc/arm (9.1 release branch)
    and commit it.  Note that not all machines have the
    necessary XML tools, but at least trebuchet, cuba,
-   and Scanner's machine do.
+   and Scanner's machine do.  Commit any files that were
+   regenerated.
 
  - Verify that the documents in doc/misc are up-to-date.
 
@@ -148,19 +150,19 @@ release.
    $ mv $patchd/patch.most.new $patchd
    $ cvs ci -ko $patchd/patch.*
 
- - Add a marker line like "	--- 9.0.0rc7 released ---"
+ - Add a marker line like "	--- 9.0.0rc8 released ---"
    to the CHANGES file.
 
  - Tag the CVS source tree with the final tag, as in
    "cvs rtag v9_0_0rc1 bind9" (mainline) or
-   "cvs rtag -r v9_2 v9_2_0rc7 bind9" (release branch).
+   "cvs rtag -r v9_2 v9_2_0rc8 bind9" (release branch).
 
  - Build the release kit.  This procedure differs
    between the 9.0 release branch and later versions.
    On the 9.0 release branch,
 
         cd <temporary directory>
-	cvs export -r v9_0_0rc7 bind9
+	cvs export -r v9_0_0rc8 bind9
 	cd bind9
 	sh configure
 	make kit
@@ -179,12 +181,12 @@ release.
  - Sign the distribution files with the ISC signing PGP key
    and fix the permissions on the signature file:
   
-   	pgp -sba bind-9.2.0rc7.tar.gz -u 0x51BAB2ED
-	chmod 644 bind-9.2.0rc7.tar.gz.asc
+   	pgp -sba bind-9.2.0rc8.tar.gz -u 0x51BAB2ED
+	chmod 644 bind-9.2.0rc8.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.2.0rc7.tar.gz.asc bind-9.2.0rc7.tar.gz
+	pgp bind-9.2.0rc8.tar.gz.asc bind-9.2.0rc8.tar.gz
 
    (Look for the words "Good signature" in the output.)
 
@@ -192,7 +194,7 @@ release.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.2.0rc7
+     ver=9.2.0rc8
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver
