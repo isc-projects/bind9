@@ -1,3 +1,6 @@
+1239.	[bug]		Under certain circumstances named could continue to
+			use a name after it had been freed triggering
+			INSIST() failures.  [RT #2614]
 
 	--- 9.2.1rc2 released ---
 
