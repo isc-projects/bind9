@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.2 2001/02/22 02:44:08 bwelling Exp $ */
+/* $Id: log.h,v 1.3 2001/03/13 03:04:08 gson Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
@@ -23,17 +23,17 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 
-extern isc_logcategory_t isccfg_categories[];
-extern isc_logmodule_t isccfg_modules[];
+extern isc_logcategory_t cfg_categories[];
+extern isc_logmodule_t cfg_modules[];
 
-#define ISCCFG_LOGCATEGORY_CONFIG	(&isccfg_categories[0])
+#define CFG_LOGCATEGORY_CONFIG	(&cfg_categories[0])
 
-#define ISCCFG_LOGMODULE_PARSER		(&isccfg_modules[0])
+#define CFG_LOGMODULE_PARSER		(&cfg_modules[0])
 
 ISC_LANG_BEGINDECLS
 
 void
-isccfg_log_init(isc_log_t *lctx);
+cfg_log_init(isc_log_t *lctx);
 /*
  * Make the libisccfg categories and modules available for use with the
  * ISC logging library.
@@ -41,7 +41,7 @@ isccfg_log_init(isc_log_t *lctx);
  * Requires:
  *	lctx is a valid logging context.
  *
- *	isccfg_log_init() is called only once.
+ *	cfg_log_init() is called only once.
  *
  * Ensures:
  * 	The catgories and modules defined above are available for

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.1 2001/02/22 02:38:23 gson Exp $ */
+/* $Id: log.c,v 1.2 2001/03/13 03:04:05 gson Exp $ */
 
 #include <config.h>
 
@@ -27,7 +27,7 @@
  * When adding a new category, be sure to add the appropriate
  * #define to <isccfg/log.h>.
  */
-isc_logcategory_t isccfg_categories[] = {
+isc_logcategory_t cfg_categories[] = {
 	{ "config", 	0 },
 	{ NULL, 	0 }
 };
@@ -36,15 +36,15 @@ isc_logcategory_t isccfg_categories[] = {
  * When adding a new module, be sure to add the appropriate
  * #define to <isccfg/log.h>.
  */
-isc_logmodule_t isccfg_modules[] = {
+isc_logmodule_t cfg_modules[] = {
 	{ "isccfg/parser",	 0 },
 	{ NULL, 		0 }
 };
 
 void
-isccfg_log_init(isc_log_t *lctx) {
+cfg_log_init(isc_log_t *lctx) {
 	REQUIRE(lctx != NULL);
 
-	isc_log_registercategories(lctx, isccfg_categories);
-	isc_log_registermodules(lctx, isccfg_modules);
+	isc_log_registercategories(lctx, cfg_categories);
+	isc_log_registermodules(lctx, cfg_modules);
 }

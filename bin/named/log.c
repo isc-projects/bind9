@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.29 2001/03/04 21:21:21 bwelling Exp $ */
+/* $Id: log.c,v 1.30 2001/03/13 03:04:09 gson Exp $ */
 
 #include <config.h>
 
@@ -77,7 +77,7 @@ ns_log_init(isc_boolean_t safe) {
 	isc_log_setcontext(ns_g_lctx);
 	dns_log_init(ns_g_lctx);
 	dns_log_setcontext(ns_g_lctx);
-	isccfg_log_init(ns_g_lctx);
+	cfg_log_init(ns_g_lctx);
 
 	if (safe)
 		result = ns_log_setsafechannels(lcfg);

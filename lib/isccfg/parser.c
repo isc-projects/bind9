@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.44 2001/03/06 23:54:37 bwelling Exp $ */
+/* $Id: parser.c,v 1.45 2001/03/13 03:04:06 gson Exp $ */
 
 #include <config.h>
 
@@ -36,8 +36,8 @@
 #include <isccfg/log.h>
 
 /* Shorthand */
-#define CAT ISCCFG_LOGCATEGORY_CONFIG
-#define MOD ISCCFG_LOGMODULE_PARSER
+#define CAT CFG_LOGCATEGORY_CONFIG
+#define MOD CFG_LOGMODULE_PARSER
 
 /*
  * Pass one of these flags to parser_error() to include the
