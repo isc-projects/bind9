@@ -17,25 +17,7 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-@BIND9_VERSION@
-
-HEADERS =	bio.h bn.h buffer.h crypto.h dh.h dsa.h e_os.h e_os2.h err.h \
-		lhash.h md5.h opensslconf.h opensslv.h rand.h sha.h stack.h
-
 SUBDIRS =
 TARGETS =
 
 @BIND9_MAKE_RULES@
-
-installdirs:
-	if [ ! -d ${includedir} ]; then \
-		mkdir ${includedir} ; \
-	fi
-	if [ ! -d ${includedir}/dst ]; then \
-		mkdir ${includedir}/dst ; \
-	fi
-
-install:: installdirs
-	for i in ${HEADERS}; do \
-		${INSTALL_DATA} ${srcdir}/$$i ${includedir}/dst ; \
-	done
