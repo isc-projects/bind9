@@ -59,7 +59,7 @@ BIND 9.1.0b1
 	    by the "allow-update-forwarding" option
 
 	  - A new, simplified database interface and a number of
-	    sample drivers based on it; see doc/dev/sdb for details
+	    sample drivers based on it; see doc/misc/sdb for details
 
 	  - Support for building single-threaded servers for 
 	    environments that do not supply POSIX threads
