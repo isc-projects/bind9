@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.81 2001/01/12 00:15:57 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.82 2001/01/12 00:22:09 bwelling Exp $ -->
 
 <book>
 
@@ -2694,7 +2694,8 @@ for DNSSEC operations, such as TKEY transactions and dynamic update of signed
 zones.  This options specifies the device (or file) from which to read
 entropy.  If this is a file, operations requiring entropy will fail when the
 file has been exhausted.  If not specified, the default value is /dev/random
-(or equivalent) when present, and none otherwise.</para>
+(or equivalent) when present, and none otherwise.  Note that the random-device
+statement is <emphasis>not</emphasis> examined on reload.</para>
 </entry>
 </row>
 
