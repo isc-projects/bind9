@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.5 2000/09/26 22:44:19 bwelling Exp $
+# $Id: sanitize.pl,v 1.6 2000/09/26 23:17:32 bwelling Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -46,6 +46,7 @@ $makechange = 1;
 $state = 0;
 $showon = 1;
 $debug = 0;
+$deletefile = 0;
 
 # States:
 #    0 - Outside of test, include code
@@ -91,8 +92,8 @@ sub runfile($) {
 		elsif (/NOMINUM_PUBLIC_DELETE/) {
 			close(INFILE);
 			close(OUTFILE);
-			unlink($_[0]);
 			unlink($_[1]);
+			$deletefile = 1;
 			break;
 		}
 		elsif (/\#ifdef.+NOMINUM_PUBLIC/) {
@@ -167,7 +168,10 @@ sub runfile($) {
 		close(OUTFILE) if ($makechange);
 		if (($_[0] ne "-") && ($makechange)) {
 			unlink($_[0]) || die "unlink $_[0]:";
-			rename($_[1], $_[0]) || die "rename $_[1] to $_[0]:";
+			if (!$deletefile) {
+				rename($_[1], $_[0]) ||
+					die "rename $_[1] to $_[0]:";
+			}
 		}
 	}
 }
