@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.3 2002/03/11 19:00:01 gson Exp $
+ ***	Version $Id: queryperf.c,v 1.4 2002/04/30 00:11:55 marka Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -61,6 +61,7 @@
 #define MAX_BUFFER_LEN			8192		/* in bytes */
 #define HARD_TIMEOUT_EXTRA		5		/* in seconds */
 #define RESPONSE_BLOCKING_WAIT_TIME	0.1		/* in seconds */
+#define EDNSLEN				11
 
 #define FALSE				0
 #define TRUE				1
@@ -120,6 +121,7 @@ unsigned int run_timelimit;				/* init 0 */
 
 int serverset = FALSE, portset = FALSE;
 int queriesset = FALSE, timeoutset = FALSE;
+int edns = FALSE, dnssec = FALSE;
 
 int verbose = FALSE;
 
@@ -167,7 +169,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.3 2002/03/11 19:00:01 gson Exp $\n"
+"Version: $Id: queryperf.c,v 1.4 2002/04/30 00:11:55 marka Exp $\n"
 "\n");
 }
 
@@ -190,6 +192,8 @@ show_usage(void) {
 "  -l specifies how a limit for how long to run tests in seconds (no default)\n"
 "  -1 run through input only once (default: multiple iff limit given)\n"
 "  -b set input/output buffer size in kilobytes (default: %d k)\n"
+"  -e enable EDNS 0\n"
+"  -D set the DNSSEC OK bit (implies EDNS)\n"
 "  -v verbose: report the RCODE of each response on stdout\n"
 "\n",
 	        DEF_SERVER_TO_QUERY, DEF_SERVER_PORT,
@@ -407,7 +411,7 @@ parse_args(int argc, char **argv) {
 	int c;
 	unsigned int uint_arg_val;
 
-	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:v")) != -1) {
+	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:eDv")) != -1) {
 		switch (c) {
 		case 'q':
 			if (is_uint(optarg, &uint_arg_val) == TRUE) {
@@ -493,6 +497,13 @@ parse_args(int argc, char **argv) {
 					c, optarg);
 				return (-1);
 			}
+			break;
+		case 'e':
+			edns = TRUE;
+			break;
+		case 'D':
+			dnssec = TRUE;
+			edns = TRUE;
 			break;
 		case 'v':
 			verbose = 1;
@@ -991,7 +1002,7 @@ parse_query(char *input, char *qname, int qnlen, int *qtype) {
 	type_str = strtok(NULL, WHITESPACE);
 
 	if ((domain_str == NULL) || (type_str == NULL)) {
-		fprintf(stderr, "Invalid query input format: %s", input);
+		fprintf(stderr, "Invalid query input format: %s\n", input);
 		return (-1);
 	}
 
@@ -1001,7 +1012,7 @@ parse_query(char *input, char *qname, int qnlen, int *qtype) {
 	}
 
 	for (index = 0; (index < num_types) && (found == FALSE); index++) {
-		if (strcmp(type_str, qtype_strings[index]) == 0) {
+		if (strcasecmp(type_str, qtype_strings[index]) == 0) {
 			*qtype = qtype_codes[index];
 			found = TRUE;
 		}
@@ -1039,6 +1050,30 @@ dispatch_query(unsigned short int id, char *dom, int qt) {
 		fprintf(stderr, "Failed to create query packet: %s %d\n",
 		        dom, qt);
 		return (-1);
+	}
+	if (edns) {
+		unsigned char *p;
+		if (buffer_len + EDNSLEN >= PACKETSZ) {
+			fprintf(stderr, "Failed to add OPT to query packet\n");
+			return (-1);
+		}
+		packet_buffer[11] = 1;
+		p = &packet_buffer[buffer_len];
+		*p++ = 0;	/* root name */
+		*p++ = 0;
+		*p++ = 41;	/* OPT */
+		*p++ = 16;	
+		*p++ = 0;	/* UDP payload size (4K) */
+		*p++ = 0;	/* extended rcode */
+		*p++ = 0;	/* version */
+		if (dnssec)
+			*p++ = 0x80;	/* upper flag bits - DO set */
+		else
+			*p++ = 0;	/* upper flag bits */
+		*p++ = 0;	/* lower flag bit */
+		*p++ = 0;
+		*p++ = 0;	/* rdlen == 0 */
+		buffer_len += EDNSLEN;
 	}
 
 	packet_buffer[0] = id_ptr[0];

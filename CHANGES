@@ -1,3 +1,5 @@
+1276.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
+
 1275.	[bug]		When verifying that an NXT proves nonexistence, check
 			the rcode of the message and only do the matching NXT
 			check.  That is, for NXDOMAIN responses, check that
