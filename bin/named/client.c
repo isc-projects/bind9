@@ -31,13 +31,13 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/view.h>
+#include <dns/xfrin.h>
 
 #include <named/globals.h>
 #include <named/client.h>
 #include <named/log.h>
 #include <named/query.h>
 #include <named/update.h>
-#include <named/xfrin.h>
 
 #include "../../isc/util.h"		/* XXX */
 
