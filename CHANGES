@@ -1,3 +1,7 @@
+ 221.	[bug]		An uninitialized variable was sometimes passed to
+			dns_rdata_freestruct() when loading a zone, causing
+			an assertion failure.
+
  220.	[cleanup]	Set the default outgoing port in the view, and
 			set it in sockaddrs returned from the ADB.
 			[31-May-2000 explorer]
