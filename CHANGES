@@ -1,3 +1,6 @@
+
+	--- 9.2.0rc10 released ---
+
 1120.	[bug]		Errors in options were not fatal. [RT #2002]
 
 1118.	[bug]		On multithreaded servers, a race condition
