@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.20 2002/02/11 00:46:26 marka Exp $ */
+/* $Id: check.c,v 1.21 2002/02/12 13:17:23 marka Exp $ */
 
 #include <config.h>
 
@@ -24,10 +24,11 @@
 
 #include <isc/buffer.h>
 #include <isc/log.h>
+#include <isc/mem.h>
+#include <isc/region.h>
 #include <isc/result.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
-#include <isc/region.h>
 
 #include <dns/rdataclass.h>
 #include <dns/fixedname.h>
@@ -116,7 +117,7 @@ typedef struct {
 
 static isc_result_t
 check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
-	       dns_rdataclass_t defclass, isc_log_t *logctx)
+	       dns_rdataclass_t defclass, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *zname;
 	const char *typestr;
@@ -244,10 +245,15 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 		result = ISC_R_FAILURE;
 	} else {
 		char namebuf[DNS_NAME_FORMATSIZE];
+		char *key;
+
 		dns_name_format(dns_fixedname_name(&fixedname),
 				namebuf, sizeof(namebuf));
+		key = isc_mem_strdup(mctx, namebuf);
+		if (key == NULL)
+			return (ISC_R_NOMEMORY);
 		symvalue.as_pointer = NULL;
-		tresult = isc_symtab_define(symtab, namebuf,
+		tresult = isc_symtab_define(symtab, key,
 					    ztype == HINTZONE ? 1 : 2,
 					    symvalue, isc_symexists_reject);
 		if (tresult == ISC_R_EXISTS) {
@@ -411,6 +417,13 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 	}
 	return (result);
 }
+
+static void
+freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
+	UNUSED(type);
+	UNUSED(value);
+	isc_mem_free(userarg, key);
+}
 		
 static isc_result_t
 check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
@@ -427,7 +440,8 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	 * Check that all zone statements are syntactically correct and
 	 * there are no duplicate zones.
 	 */
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
+				    ISC_TRUE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
@@ -443,7 +457,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 		isc_result_t tresult;
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
-		tresult = check_zoneconf(zone, symtab, vclass, logctx);
+		tresult = check_zoneconf(zone, symtab, vclass, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
