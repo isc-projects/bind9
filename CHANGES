@@ -1,3 +1,5 @@
+1779.	[port]		OSF 5.1: libtool didn't handle -pthread correctly.
+
 1778.   [port]   	HUX 11.11: fix broken IN6ADDR_ANY_INIT and
 			IN6ADDR_LOOPBACK_INIT macros.
 
