@@ -1,0 +1,84 @@
+
+
+Databases
+
+BIND 9 DNS database allows named rdatasets to be stored and retrieved.
+DNS databases are used to store two different categories of data:
+authoritative zone data and non-authoritative cache data.Unlike
+previous versions of BIND which used a monolithic database, BIND 9 has
+one database per zone or cache.  Certain database operations, for
+example updates, have differing requirements and actions depending
+upon whether the database contains zone data or cache data.
+
+
+Database Updates
+
+A master zone is updated by a Dynamic Update message.  A slave zone is
+updated by IXFR or AXFR.  AXFR provides the entire contents of the new
+zone version, and replaces the entire contents of the database.  IXFR
+and Dynamic Update, although completely different protocols, have the
+same basic database requirements.  They are differential update
+protocols, e.g. "add this record to the records at name 'foo'".  They
+are transactional, and must either succeed or fail completely.
+Changes must not become visible to clients until the transaction has
+committed.  The differential nature of these updates requires
+transaction serialization.
+
+Cache updates are done by the server in the ordinary course of
+handling client requests.  Unlike zone updates, cache updates do not
+refer to the current contents of the cache, so concurrent writing to
+the cache is possible.  The main requirement is that concurrent update
+attempts to the same node and rdataset type must appear to have been
+executed in some order.  In order to make DB versioning simpler, the DB
+interface actually imposes a more restrictive set of requirements, namely
+that access to a node is serialized and that database changes will become
+visible in version order (more on this below).
+
+
+Database Concurrency and Locking
+
+A principle goal of the BIND 9 project is multiprocessor scalabilty.
+The amount of concurrency in database accesses is an important factor
+in achieving scalability.  Consider a heavily used database, e.g. the
+cache database serving some mail hubs, or ".com".  If access to these
+databases is not parallalized, then adding another CPU will not help
+the server's performance for the portion of the runtime spent in
+database lookup.
+
+Support for multiple concurrent readers certainly helps both cache
+databases and zone databases.  Zones are typically read much more than
+they are written, though less so than in prior years because dynamic
+DNS support is now widely available.  Caches are frequently written as
+well as read; a non-scientific survey of caching statistics on a few
+busy caching nameservers showed the ratio of cache hits to misses was
+about 2 to 1.
+
+As mentioned above, zone updates must be serialized, but cache updates
+often provide good opportunities for concurrency.
+
+A simple approach to these concurrency goals would be to have a single
+read-write lock on the database.  This would allow for multiple
+concurrent readers, and would provide the serialization of updates
+that zone updates require.  This approach also has significant
+limitations.  Readers cannot run while an update is running.  For a
+short-lived transaction like a Dynamic Update, this may be acceptable,
+but an IXFR can take a very long time (even hours) to complete.
+Preventing read access for such a long time is unacceptable.  Another
+problem is that it forces updates to be serialized, even for cache
+databases.  There are problems on the reader side of the lock too.  If
+the entire database is protected by one lock, then any data retrieved
+from the database must either be used while the lock is held, or it
+must be copied, because the data in the database can change when the
+lock isn't held.  Copying is expensive, and the server would like to
+be able to hold a reference to database data for a long time.  The
+most significant long-running reader problem is outbound AXFR, which
+could potentially block updates for a very long time (hours).
+
+A finer-grained locking scheme, e.g. one lock per node, helps
+parallelize cache updates, but doesn't help with the long-lived reader
+or long-lived writer problems.
+
+
+Database Versioning
+
+XXX TBS XXX
