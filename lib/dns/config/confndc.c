@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.25.4.4 2001/07/02 17:55:55 bwelling Exp $ */
+/* $Id: confndc.c,v 1.25.4.5 2001/07/03 01:56:12 gson Exp $ */
 
 /*
 **	options {
@@ -930,6 +930,11 @@ parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts) {
 	while (result == ISC_R_SUCCESS && pctx->currtok != L_RBRACE) {
 		option = pctx->currtok;
 
+		if (option == L_END_INPUT) {
+			parser_error(pctx, ISC_TRUE,
+				     "unexpected end of input");
+			return (ISC_R_FAILURE);
+		}
 		if (!eat(pctx, pctx->currtok))
 			return (ISC_R_FAILURE);
 
@@ -1024,6 +1029,11 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server) {
 	while (pctx->currtok != L_RBRACE) {
 		isc_int32_t field = pctx->currtok;
 
+		if (field == L_END_INPUT) {
+			parser_error(pctx, ISC_TRUE,
+				     "unexpected end of input");
+			return (ISC_R_FAILURE);
+		}
 		if (!eat(pctx, field)) {
 			result = ISC_R_FAILURE;
 			goto done;
