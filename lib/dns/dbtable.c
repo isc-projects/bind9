@@ -25,10 +25,12 @@
 #include <dns/rbt.h>
 
 struct dns_dbtable {
+	/* Unlocked. */
 	unsigned int		magic;
 	isc_mem_t *		mctx;
 	isc_rwlock_t		tree_lock;
 	dns_db_t *		default_db;
+	/* Locked by tree_lock. */
 	dns_rbt_t *		rbt;
 };
 
