@@ -1,3 +1,19 @@
+  30.	[func]		config file grammer change to support optional 
+			class type for a view.
+
+  29.	[func]		support new config file view options:
+
+				auth-nxdomain recursion query-source
+				query-source-v6 transfer-source
+				transfer-source-v6 max-transfer-time-out
+				max-transfer-idle-out transfer-format
+				request-ixfr privide-ixfr cleaning-interval
+				fetch-glue notify rfc2308-type1 lame-ttl
+				max-ncache-ttl min-roots
+
+  28.	[func]		support lame-ttl, min-roots and serial-queries 
+			config global options.
+			
   27.   [bug]           Only include <netinet6/in6.h> on BSD/OS 4.[01]*.
                         Including it on other platforms (eg, NetBSD) can
                         cause a forced #error from the C preprocessor.
