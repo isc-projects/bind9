@@ -33,7 +33,9 @@
 #include <dns/events.h>
 #include <dns/keytable.h>
 #include <dns/log.h>
+#include <dns/message.h>
 #include <dns/name.h>
+#include <dns/nxt.h>
 #include <dns/rdata.h>
 #include <dns/rdatatype.h>
 #include <dns/rdataset.h>
@@ -75,18 +77,22 @@ struct dns_validator {
 	isc_task_t *			task;
 	isc_taskaction_t		action;
 	void *				arg;
+	dns_name_t *			queryname;
 };
 
 #define VALIDATOR_MAGIC			0x56616c3fU	/* Val?. */
 #define VALID_VALIDATOR(v)	 	ISC_MAGIC_VALID(v, VALIDATOR_MAGIC)
 
 #define VALATTR_SHUTDOWN		0x01
+#define VALATTR_NEGATIVE		0x02
 #define SHUTDOWN(v)		(((v)->attributes & VALATTR_SHUTDOWN) != 0)
 
 static inline isc_result_t get_dst_key(dns_validator_t *val,
 				       dns_siginfo_t *siginfo,
 				       dns_rdataset_t *rdataset);
 static inline isc_result_t validate(dns_validator_t *val, isc_boolean_t resume);
+static inline isc_result_t nxtvalidate(dns_validator_t *val,
+				       isc_boolean_t resume);
 
 static void validator_log(dns_validator_t *val, int level,
 			  const char *fmt, ...);
@@ -130,6 +136,12 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	val->event->type = DNS_EVENT_VALIDATORDONE;
 	val->event->action = val->action;
 	val->event->arg = val->arg;
+	if ((val->attributes & VALATTR_NEGATIVE) != 0) {
+		val->event->rdataset = NULL;
+		val->event->sigrdataset = NULL;
+		if (val->queryname != NULL)
+			val->event->name = val->queryname;
+	}
 	isc_task_sendanddetach(&task, (isc_event_t **)&val->event);
 	
 }
@@ -156,7 +168,10 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 			goto free_event;
 		}
 		LOCK(&val->lock);
-		result = validate(val, ISC_TRUE);
+		if (val->attributes & VALATTR_NEGATIVE)
+			result = nxtvalidate(val, ISC_TRUE);
+		else
+			result = validate(val, ISC_TRUE);
 		if (result != DNS_R_CONTINUE) {
 			validator_done(val, result);
 			goto free_event;
@@ -195,7 +210,10 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			goto free_event;
 		}
 		LOCK(&val->lock);
-		result = validate(val, ISC_TRUE);
+		if (val->attributes & VALATTR_NEGATIVE)
+			result = nxtvalidate(val, ISC_TRUE);
+		else
+			result = validate(val, ISC_TRUE);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 		UNLOCK(&val->lock);
@@ -513,6 +531,12 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 
 		result = dns_dnssec_verify(event->name, event->rdataset,
 					   val->key, val->view->mctx, &rdata);
+		if (val->keynode != NULL)
+			dns_keytable_detachkeynode(val->keytable,
+						   &val->keynode);
+		else if (val->key != NULL)
+			dst_key_free(val->key);
+		val->key = NULL;
 		if (result == ISC_R_SUCCESS) {
 			event->rdataset->trust = dns_trust_secure;
 			event->sigrdataset->trust = dns_trust_secure;
@@ -520,6 +544,130 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 				      "marking as secure");
 			return (result);
 		}
+	}
+	return (result);
+}
+
+
+static inline isc_result_t
+nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
+	dns_name_t *name;
+	dns_rdata_t rdata;
+	dns_message_t *message = val->event->message;
+	isc_result_t result;
+	int order;
+	isc_region_t r;
+	dns_name_t nextname;
+	isc_boolean_t firstname = ISC_TRUE;
+
+	if (!resume) {
+		val->attributes |= VALATTR_NEGATIVE;
+		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+		if (result != ISC_R_SUCCESS)
+			validator_done(val, ISC_R_NOTFOUND);
+	}
+	else
+		result = ISC_R_SUCCESS;
+
+	for (;
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY))
+	{
+		dns_rdataset_t *rdataset, *sigrdataset;
+
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		if (!resume || !firstname) {
+			rdataset = ISC_LIST_HEAD(name->list);
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link))
+			{
+				if (rdataset->type != dns_rdatatype_nxt)
+					continue;
+				for (sigrdataset = ISC_LIST_HEAD(name->list);
+				     sigrdataset != NULL;
+				     sigrdataset = ISC_LIST_NEXT(sigrdataset,
+								 link))
+				{
+					if (sigrdataset->type ==
+					    dns_rdatatype_sig
+					    &&
+					    sigrdataset->covers ==
+					    rdataset->type)
+						break;
+				}
+				if (sigrdataset != NULL)
+					break;
+			}
+			if (rdataset == NULL)
+				continue;
+			val->event->rdataset = rdataset;
+			val->event->sigrdataset = sigrdataset;
+			val->queryname = val->event->name;
+			val->event->name = name;
+		}
+		firstname = ISC_FALSE;
+		result = validate(val, resume);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		order = dns_name_compare(val->queryname, val->event->name);
+		if (order == 0) {
+			dns_name_t *qname = NULL;
+			dns_rdataset_t *qrdataset = NULL;
+			dns_rdatatype_t qtype;
+
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "nxt owner is the same");
+			result = dns_message_firstname(val->event->message,
+						       DNS_SECTION_QUESTION);
+			INSIST(result == ISC_R_SUCCESS);
+			dns_message_currentname(val->event->message,
+						DNS_SECTION_QUESTION,
+						&qname);
+			qrdataset = ISC_LIST_HEAD(qname->list);
+			qtype = qrdataset->type;
+			if (qtype > 128) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "invalid type %d", qtype);
+				continue;
+			}
+			dns_rdataset_first(val->event->rdataset);
+			INSIST(result == ISC_R_SUCCESS);
+			dns_rdataset_current(val->event->rdataset, &rdata);
+			if (dns_nxt_typepresent(&rdata, qtype)) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "type should not be present");
+				continue;
+			}
+		}
+		else if (order > 0) {
+			result = dns_rdataset_first(val->event->rdataset);
+			INSIST(result == ISC_R_SUCCESS);
+			dns_rdataset_current(val->event->rdataset, &rdata);
+			dns_rdata_toregion(&rdata, &r);
+			dns_name_init(&nextname, NULL);
+			dns_name_fromregion(&nextname, &r);
+			order = dns_name_compare(val->queryname, &nextname);
+			if (order >= 0) {
+				INSIST(val->siginfo != NULL);
+				if (!dns_name_equal(&val->siginfo->signer,
+						    &nextname))
+				{
+					validator_log(val, ISC_LOG_DEBUG(3),
+						"next name is not greater");
+					continue;
+				}
+			}
+		}
+		else {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				"nxt owner name is not less");
+			continue;
+		}
+		validator_log(val, ISC_LOG_DEBUG(3),
+			"nxt range and/or bitmask is ok");
+		return (ISC_R_SUCCESS);
 	}
 	return (result);
 }
@@ -544,11 +692,14 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		 * could still get complicated.
 		 */
 		result = validate(val, ISC_FALSE);
-	} else {
+	}
+	else if (val->event->rdataset == NULL &&
+		 val->event->sigrdataset == NULL)
+	{
 		/*
 		 * This is a nonexistence validation.
 		 */
-		result = ISC_R_NOTIMPLEMENTED;
+		result = nxtvalidate(val, ISC_FALSE);
 	}
 
 	if (result != DNS_R_WAIT)
@@ -608,6 +759,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 	val->task = task;
 	val->action = action;
 	val->arg = arg;
+	val->queryname = NULL;
 	val->magic = VALIDATOR_MAGIC;
 
 	isc_task_send(task, (isc_event_t **)&event);
@@ -655,10 +807,10 @@ destroy(dns_validator_t *val) {
 	REQUIRE(val->event == NULL);
 	REQUIRE(val->fetch == NULL);
 
-	if (val->key != NULL)
-		dst_key_free(val->key);
 	if (val->keynode != NULL)
 		dns_keytable_detachkeynode(val->keytable, &val->keynode);
+	else if (val->key != NULL)
+		dst_key_free(val->key);
 	isc_mutex_destroy(&val->lock);
 	mctx = val->view->mctx;
 	dns_view_detach(&val->view);
