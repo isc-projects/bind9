@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.229 2003/02/18 06:07:40 marka Exp $ */
+/* $Id: socket.c,v 1.230 2003/02/26 04:00:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1316,6 +1316,20 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		break;
 	}
 
+#ifdef F_DUPFD
+        /*
+         * Leave a space for stdio to work in.
+         */
+        if (sock->fd >= 0 && sock->fd < 20) {
+                int new, tmp;
+                new = fcntl(sock->fd, F_DUPFD, 20);
+                tmp = errno;
+                (void)close(sock->fd);
+                errno = tmp;
+                sock->fd = new;
+        }
+#endif
+
 	if (sock->fd >= (int)FD_SETSIZE) {
 		(void)close(sock->fd);
 		isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -1740,6 +1754,21 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	memset(&dev->newsocket->address.type.sa, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
+
+#ifdef F_DUPFD
+        /*
+         * Leave a space for stdio to work in.
+         */
+        if (fd >= 0 && fd < 20) {
+                int new, tmp;
+                new = fcntl(fd, F_DUPFD, 20);
+                tmp = errno;
+                (void)close(sock->fd);
+                errno = tmp;
+                fd = new;
+        }
+#endif
+
 	if (fd < 0) {
 		if (SOFT_ERROR(errno))
 			goto soft_error;
