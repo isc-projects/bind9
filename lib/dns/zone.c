@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.108 2000/05/10 21:51:17 marka Exp $ */
+/* $Id: zone.c,v 1.109 2000/05/11 00:03:58 explorer Exp $ */
 
 #include <config.h>
 
@@ -217,8 +217,8 @@ struct dns_zonemgr {
  * Hold notify state.
  */
 struct notify {
-	isc_mem_t		*mctx;
 	isc_int32_t		magic;
+	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_adbfind_t		*find;
 	dns_request_t		*request;
