@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.8 2000/03/17 17:45:50 gson Exp $ */
+/* $Id: base64.c,v 1.9 2000/04/10 21:35:47 gson Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/region.h>
+#include <isc/result.h>
 
 #define RETERR(x) do { \
 	isc_result_t __r = (x); \
