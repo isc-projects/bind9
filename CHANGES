@@ -1,3 +1,7 @@
+1156.	[port]		The configure test for strsep() incorrectly
+			succeeded on certain patched versions of
+			AIX 4.3.3. [RT #2190]
+
 1155.	[func]		Recover from master files being removed from under
 			us.
 
