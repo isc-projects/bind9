@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.57 1999/09/23 21:58:03 bwelling Exp $ */
+/* $Id: rbt.c,v 1.58 1999/10/08 23:39:14 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -56,16 +56,16 @@ struct dns_rbt {
 /*
  * Elements of the rbtnode structure.
  */
-#define LEFT(node) 	((node)->left)
-#define RIGHT(node)	((node)->right)
-#define DOWN(node)	((node)->down)
-#define DATA(node)	((node)->data)
-#define COLOR(node) 	((node)->color)
-#define CALLBACK(node)	((node)->find_callback)
-#define NAMELEN(node)	((node)->namelen)
-#define OFFSETLEN(node)	((node)->offsetlen)
-#define ATTRS(node)	((node)->attributes)
-#define PADBYTES(node)	((node)->padbytes)
+#define LEFT(node)	 	((node)->left)
+#define RIGHT(node)		((node)->right)
+#define DOWN(node)		((node)->down)
+#define DATA(node)		((node)->data)
+#define FINDCALLBACK(node)	((node)->find_callback)
+#define COLOR(node) 		((node)->color)
+#define NAMELEN(node)		((node)->namelen)
+#define OFFSETLEN(node)		((node)->offsetlen)
+#define ATTRS(node)		((node)->attributes)
+#define PADBYTES(node)		((node)->padbytes)
 
 /*
  * Structure elements from the rbtdb.c, not
@@ -815,7 +815,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * the callback is used to learn what the
 				 * caller wants to do.
 				 */
-				if (callback != NULL && CALLBACK(current)) {
+				if (callback != NULL &&
+				    FINDCALLBACK(current)) {
 					result = chain_name(chain,
 							    callback_name,
 							    ISC_FALSE);
@@ -1224,7 +1225,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	WILD(node) = 0;
 
 	MAKE_BLACK(node);
-	CALLBACK(node) = 0;
+	FINDCALLBACK(node) = 0;
 
 	/*
 	 * The following is stored to make reconstructing a name from the
