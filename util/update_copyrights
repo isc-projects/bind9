@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.17 2000/07/27 09:55:03 tale Exp $
+# $Id: update_copyrights,v 1.18 2000/07/27 23:52:36 tale Exp $
 
 require 5.002;
 
@@ -295,7 +295,6 @@ while (<>) {
     if (system("cmp -s $file.new $file") == 0) {
         unlink("$file.new");
     } else {
-        rename("$file", "$file.bak") || die "rename($file, $file.bak): $!";
         rename("$file.new", "$file") || die "rename($file.new, $file): $!";
     }
 }
