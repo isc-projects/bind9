@@ -24,6 +24,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <sys/time.h>	/* XXX Naughty. */
 #include <unistd.h>	/* XXX Naughty. */
 
 #include <isc/assertions.h>
@@ -134,6 +136,8 @@ main(int argc, char *argv[]) {
 	isc_boolean_t verbose = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t cache = ISC_FALSE;
+	isc_boolean_t quiet = ISC_FALSE;
+	isc_boolean_t time_lookups = ISC_FALSE;
 	isc_boolean_t found_as;
 	dns_dbversion_t *version = NULL;
 	dns_dbversion_t *wversion = NULL;
@@ -147,10 +151,11 @@ main(int argc, char *argv[]) {
 	dns_fixedname_t foundname;
 	dns_name_t *fname;
 	unsigned int options = 0;
+	struct timeval start, finish;
 
 	strcpy(basetext, "");
 	strcpy(dbtype, "rbt");
-	while ((ch = getopt(argc, argv, "z:d:t:gpvc")) != -1) {
+	while ((ch = getopt(argc, argv, "z:d:t:gpqvcT")) != -1) {
 		switch (ch) {
 		case 'c':
 			cache = ISC_TRUE;
@@ -159,13 +164,20 @@ main(int argc, char *argv[]) {
 			strcpy(dbtype, optarg);
 			break;
 		case 'g':
-			options |= DNS_DBFIND_GLUEOK;
+			options |= (DNS_DBFIND_GLUEOK|DNS_DBFIND_VALIDATEGLUE);
+			break;
+		case 'q':
+			quiet = ISC_TRUE;
+			verbose = ISC_FALSE;
 			break;
 		case 'p':
 			printnode = ISC_TRUE;
 			break;
 		case 't':
 			type = atoi(optarg);
+			break;
+		case 'T':
+			time_lookups = ISC_TRUE;
 			break;
 		case 'v':
 			verbose = ISC_TRUE;
@@ -212,10 +224,16 @@ main(int argc, char *argv[]) {
 	}
 	printf("loaded\n");
 
+	if (time_lookups) {
+		/* Naughty */
+		(void)gettimeofday(&start, NULL);
+	}
+
 	for (i = 0; i < 100; i++)
 		rversions[i] = NULL;
 	while (!done) {
-		printf("\n");
+		if (!quiet)
+			printf("\n");
 		if (gets(s) == NULL) {
 			done = ISC_TRUE;
 			continue;
@@ -334,6 +352,15 @@ main(int argc, char *argv[]) {
 			       ((options & DNS_DBFIND_GLUEOK) != 0) ?
 			       "TRUE" : "FALSE");
 			continue;
+		} else if (strcmp(s, "!GV") == 0) {
+			if ((options & DNS_DBFIND_VALIDATEGLUE) != 0)
+				options &= ~DNS_DBFIND_VALIDATEGLUE;
+			else
+				options |= DNS_DBFIND_VALIDATEGLUE;
+			printf("validate glue = %s\n",
+			       ((options & DNS_DBFIND_VALIDATEGLUE) != 0) ?
+			       "TRUE" : "FALSE");
+			continue;
 		}
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
@@ -347,9 +374,10 @@ main(int argc, char *argv[]) {
 
 		node = NULL;
 		dns_rdataset_init(&rdataset);
-		result = dns_db_find(db, &name, version, type, options,
+		result = dns_db_find(db, &name, version, type, options, 0,
 				     &node, fname, &rdataset);
-		printf("\n%s\n", dns_result_totext(result));
+		if (!quiet)
+			printf("\n%s\n", dns_result_totext(result));
 
 		found_as = ISC_FALSE;
 		switch (result) {
@@ -366,9 +394,11 @@ main(int argc, char *argv[]) {
 			dns_db_detachnode(db, &node);
 			continue;
 		default:
+			if (quiet)
+				printf("%s\n", dns_result_totext(result));
 			continue;
 		}
-		if (found_as) {
+		if (found_as && !quiet) {
 			isc_buffer_init(&tb1, t1, sizeof t1,
 					ISC_BUFFERTYPE_TEXT);
 			isc_buffer_init(&tb2, t2, sizeof t2,
@@ -395,28 +425,34 @@ main(int argc, char *argv[]) {
 
 		if (!found_as && type == dns_rdatatype_any) {
 			rdsiter = NULL;
-			result = dns_db_allrdatasets(db, node, version,
+			result = dns_db_allrdatasets(db, node, version, 0,
 						     &rdsiter);
 			if (result == DNS_R_SUCCESS) {
-				print_rdatasets(fname, rdsiter);
+				if (!quiet)
+					print_rdatasets(fname, rdsiter);
 				dns_rdatasetiter_destroy(&rdsiter);
 			} else
 				printf("%s\n", dns_result_totext(result));
 		} else {
-			print_rdataset(fname, &rdataset);
-			if (addmode) {
+			if (!quiet)
+				print_rdataset(fname, &rdataset);
+			if (addmode && !found_as) {
 				rdataset.ttl++;
 				result = dns_db_addrdataset(db, node, version,
-							    &rdataset);
+							    0, &rdataset);
 				if (result != DNS_R_SUCCESS)
 					printf("%s\n",
 					       dns_result_totext(result));
-			} else if (delmode) {
+				if (printnode)
+					dns_db_printnode(db, node, stdout);
+			} else if (delmode && !found_as) {
 				result = dns_db_deleterdataset(db, node,
 							       version, type);
 				if (result != DNS_R_SUCCESS)
 					printf("%s\n",
 					       dns_result_totext(result));
+				if (printnode)
+					dns_db_printnode(db, node, stdout);
 			}
 			dns_rdataset_disassociate(&rdataset);
 		}
@@ -424,10 +460,28 @@ main(int argc, char *argv[]) {
 		dns_db_detachnode(db, &node);
 	}
 
+	if (time_lookups) {
+		struct timeval interval;
+
+		/* Naughty */
+		(void)gettimeofday(&finish, NULL);
+		if (start.tv_usec > finish.tv_usec) {
+			finish.tv_sec--;
+			interval.tv_usec = 1000000 -
+				start.tv_usec + finish.tv_usec;
+		} else
+			interval.tv_usec = finish.tv_usec - start.tv_usec;
+		interval.tv_sec = finish.tv_sec - start.tv_sec;
+		printf("elapsed time: %lu.%06lu seconds\n",
+		       (unsigned long)interval.tv_sec,
+		       (unsigned long)interval.tv_usec);
+	}
+
 	dns_db_detach(&db);
 	freename(mctx, &base);
 
-	isc_mem_stats(mctx, stdout);
+	if (!quiet)
+		isc_mem_stats(mctx, stdout);
 
 	return (0);
 }
