@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.115 2001/06/27 23:50:50 marka Exp $ */
+/* $Id: main.c,v 1.116 2001/06/28 01:08:24 marka Exp $ */
 
 #include <config.h>
 
@@ -533,16 +533,6 @@ cleanup(void) {
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
-
-	/*
-	 * This is a gross hack.  'isc_mem_debugging' must be set
-	 * before any calls to isc_mem_create().
-	 */
-	if (strcmp(argv[1], "-m") == 0 && argv[2] != NULL) {
-		isc_mem_debugging = strtoul(argv[2], NULL, 0);
-		argc -= 2;
-		argv += 2;
-	}
 
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
