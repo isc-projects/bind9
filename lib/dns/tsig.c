@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.10 1999/09/10 14:56:36 bwelling Exp $
+ * $Id: tsig.c,v 1.11 1999/09/10 15:42:57 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -175,15 +175,15 @@ dns_tsig_sign(dns_message_t *msg) {
 	isc_stdtime_t now;
 	dst_context_t ctx;
 	isc_mem_t *mctx;
-	int tries;
 	isc_result_t ret;
 
 	REQUIRE(msg != NULL);
-	if (msg->tsigkey != NULL)
-		REQUIRE(VALID_TSIG_KEY(msg->tsigkey));
+	REQUIRE(VALID_TSIG_KEY(msg->tsigkey));
 	REQUIRE(msg->tsig == NULL);
-	if (is_response(msg))
-		REQUIRE(msg->querytsig != NULL);
+
+	/* If this is a response, there should be a query tsig */
+	if (is_response(msg) && msg->querytsig != NULL)
+		return (DNS_R_EXPECTEDTSIG);
 
 	dynbuf = NULL;
 
@@ -374,7 +374,6 @@ dns_tsig_sign(dns_message_t *msg) {
 	ret = dns_message_gettemprdata(msg, &rdata);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
-	tries = 0;
 	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
 				  ISC_BUFFERTYPE_BINARY);
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
@@ -450,11 +449,20 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(source != NULL);
 	REQUIRE(msg != NULL);
 	REQUIRE(msg->tsig == NULL);
-	REQUIRE(!(ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG])));
-	if (is_response(msg)) {
-		REQUIRE(msg->querytsig != NULL);
-		REQUIRE(msg->tsigkey != NULL);
-	}
+	if (msg->tsigkey != NULL)
+		REQUIRE(VALID_TSIG_KEY(msg->tsigkey));
+
+	/* There should be a TSIG record... */
+	if (ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG]))
+		return (DNS_R_EXPECTEDTSIG);
+
+	/*
+	 * If this is a response and there's no key or query TSIG, there
+	 * shouldn't be one on the response.
+	 */
+	if (is_response(msg) &&
+	    (msg->tsigkey == NULL || msg->querytsig == NULL))
+		return (DNS_R_UNEXPECTEDTSIG);
 
 	mctx = msg->mctx;
 

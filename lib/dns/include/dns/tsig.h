@@ -87,12 +87,12 @@ dns_tsig_sign(dns_message_t *msg);
  *		'msg' is a valid message
  *		'msg->tsigkey' is a valid TSIG key
  *		'msg->tsig' is NULL
- *		'msg->querytsig' is not NULL if this is a response
  *
  *	Returns:
  *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY
  *		ISC_R_NOSPACE
+ *		DNS_R_EXPECTEDTSIG - this is a response & msg->querytsig is NULL
  */
 
 isc_result_t
@@ -102,7 +102,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg);
  *
  *	Requires:
  *		'source' is a valid buffer containing the unparsed message
- *		'msg' is a valid message containing a TSIG record
+ *		'msg' is a valid message
  *		'msg->tsigkey' is a valid TSIG key if this is a response
  *		'msg->tsig' is NULL
  *		'msg->querytsig' is not NULL if this is a response
@@ -110,6 +110,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg);
  *	Returns:
  *		DNS_R_SUCCESS
  *		ISC_R_NOMEMORY
+ *		DNS_R_EXPECTEDTSIG - A TSIG was expected but not seen
+ *		DNS_R_UNEXPECTEDTSIG - A TSIG was seen but not expected
  *		DNS_R_TSIGERRORSET - the TSIG verified but ->error was set
  *				     and this is a query
  *		DNS_R_TSIGVERIFYFAILURE - the TSIG failed to verify
