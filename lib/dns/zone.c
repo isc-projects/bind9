@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.328 2001/07/11 19:12:53 bwelling Exp $ */
+/* $Id: zone.c,v 1.329 2001/07/11 23:15:14 marka Exp $ */
 
 #include <config.h>
 
@@ -2093,7 +2093,11 @@ dns_zone_flush(dns_zone_t *zone) {
 
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FLUSH);
-	dumping = was_dumping(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
+	    zone->masterfile != NULL)
+		dumping = was_dumping(zone);
+	else
+		dumping = ISC_TRUE;
 	UNLOCK_ZONE(zone);
 	if (!dumping)
 		result = zone_dump(zone);
@@ -2151,10 +2155,7 @@ zone_dump(dns_zone_t *zone) {
 	dns_dbversion_t *version = NULL;
 	isc_boolean_t again;
 	dns_db_t *db = NULL;
-
-	/*
-	 * 'zone' locked by caller.
-	 */
+	char *masterfile = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2162,17 +2163,29 @@ zone_dump(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	if (zone->db != NULL)
 		dns_db_attach(zone->db, &db);
+	if (zone->masterfile != NULL)
+		masterfile = isc_mem_strdup(zone->mctx, zone->masterfile);
 	UNLOCK_ZONE(zone);
-	if (db == NULL)
-		return (DNS_R_NOTLOADED);
+	if (db == NULL) {
+		result = DNS_R_NOTLOADED;
+		goto fail;
+	}
+	if (masterfile == NULL) {
+		result = DNS_R_NOMASTERFILE;
+		goto fail;
+	}
 	dns_db_currentversion(db, &version);
 
 	result = dns_master_dump(zone->mctx, db, version,
-				 &dns_master_style_default,
-				 zone->masterfile);
+				 &dns_master_style_default, masterfile);
 
 	dns_db_closeversion(db, &version, ISC_FALSE);
-	dns_db_detach(&db);
+ fail:
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (masterfile != NULL)
+		isc_mem_free(zone->mctx, masterfile);
+	masterfile = NULL;
 
 	again = ISC_FALSE;
 	LOCK_ZONE(zone);
@@ -2194,7 +2207,7 @@ zone_dump(dns_zone_t *zone) {
 	if (again)
 		goto redo;
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 isc_result_t
