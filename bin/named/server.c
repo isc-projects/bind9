@@ -744,6 +744,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	 */
 	CHECKFATAL(isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server->task),
 		   "creating server task");
+	isc_task_setname(server->task, "server", server);
 	CHECKFATAL(isc_task_onshutdown(server->task, shutdown_server, server),
 		   "isc_task_onshutdown");
 	CHECKFATAL(isc_app_onrun(ns_g_mctx, server->task, run_server, server),

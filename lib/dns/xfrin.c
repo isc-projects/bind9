@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.37 2000/01/17 23:54:05 gson Exp $ */
+ /* $Id: xfrin.c,v 1.38 2000/01/25 19:28:59 halley Exp $ */
 
 #include <config.h>
 
@@ -513,6 +513,7 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 
 	task = NULL;
 	CHECK(isc_task_create(taskmgr, mctx, 0, &task));
+	isc_task_setname(task, "xfrin", zone);
 	
 	if (db == NULL) {
 		xfrin_log1(ISC_LOG_INFO, zonename, master,

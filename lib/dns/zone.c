@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.61 2000/01/24 23:10:19 gson Exp $ */
+ /* $Id: zone.c,v 1.62 2000/01/25 19:29:00 halley Exp $ */
 
 #include <config.h>
 
@@ -2994,6 +2994,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	result = isc_task_create(taskmgr, mctx, 1, &zmgr->task);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
+	isc_task_setname(zmgr->task, "zmgr", zmgr);
 
 	*zmgrp = zmgr;
 	return (ISC_R_SUCCESS);

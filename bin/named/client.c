@@ -839,6 +839,7 @@ client_create(ns_clientmgr_t *manager,
 				 &client->task);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_client;
+	isc_task_setname(client->task, "client", client);
 	result = isc_task_onshutdown(client->task, client_shutdown, client);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;

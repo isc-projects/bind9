@@ -2223,6 +2223,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_task_create(adb->taskmgr, adb->mctx, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
+	isc_task_setname(adb->task, "ADB", adb);
 	/*
 	 * XXXMLG When this is changed to be a config file option,
 	 */ 

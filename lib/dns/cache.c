@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.10 2000/01/21 02:49:07 halley Exp $ */
+ /* $Id: cache.c,v 1.11 2000/01/25 19:28:59 halley Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -327,6 +327,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 			goto cleanup_dbiterator;
 		}
 		cleaner->cache->live_tasks++;
+		isc_task_setname(cleaner->task, "cachecleaner", cleaner);
 
 		result = isc_task_onshutdown(cleaner->task,
 					      cleaner_shutdown_action, cache);

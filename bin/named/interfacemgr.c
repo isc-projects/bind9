@@ -193,6 +193,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 				 isc_result_totext(result));
 		goto task_create_failure;
 	}
+	isc_task_setname(ifp->task, "ifp", ifp);
 
 	ifp->udpsocket = NULL;
 	ifp->udpdispatch = NULL;
