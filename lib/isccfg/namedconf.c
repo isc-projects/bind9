@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.19 2003/10/10 06:39:47 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.20 2003/10/21 05:49:19 marka Exp $ */
 
 #include <config.h>
 
@@ -829,6 +829,8 @@ server_clauses[] = {
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ "edns", &cfg_type_boolean, 0 },
+	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
+	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_clausedef_t *
@@ -1584,8 +1586,8 @@ static cfg_type_t cfg_type_sockaddr4wild = {
 
 static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK;
 static cfg_type_t cfg_type_sockaddr6wild = {
-	"v6addrportwild", cfg_parse_sockaddr, cfg_print_sockaddr, cfg_doc_sockaddr,
-	&cfg_rep_sockaddr, &sockaddr6wild_flags
+	"v6addrportwild", cfg_parse_sockaddr, cfg_print_sockaddr,
+	cfg_doc_sockaddr, &cfg_rep_sockaddr, &sockaddr6wild_flags
 };
 
 /*

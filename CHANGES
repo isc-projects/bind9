@@ -21,6 +21,9 @@
 1517.	[port]		Support for IPv6 interface scanning on HP/UX and
 			TrueUNIX 5.1.
 
+1515.	[func]		Allow transfer source to be set in a server statement.
+			[RT #6496]
+
 1514.	[bug]		named: isc_hash_destroy() was being called too early.
 			[RT #9160]
 
