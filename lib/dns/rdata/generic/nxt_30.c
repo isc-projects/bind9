@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.32 2000/05/05 05:50:01 marka Exp $ */
+/* $Id: nxt_30.c,v 1.33 2000/05/13 22:05:39 tale Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -63,7 +63,7 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		if (token.type != isc_tokentype_string)
 			break;
 		n = strtol(token.value.as_pointer, &e, 10);
-		if (e != token.value.as_pointer && *e == '\0') {
+		if (e != (char *)token.value.as_pointer && *e == '\0') {
 			covered = (dns_rdatatype_t)n;
 		} else if (dns_rdatatype_fromtext(&covered, 
 				&token.value.as_textregion) == DNS_R_UNKNOWN)
@@ -154,8 +154,7 @@ fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_nxt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_nxt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 	dns_name_t name;
 
