@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.113 2001/05/09 07:18:38 marka Exp $ */
+/* $Id: master.c,v 1.114 2001/05/11 02:35:37 marka Exp $ */
 
 #include <config.h>
 
@@ -216,8 +216,8 @@ loadctx_destroy(dns_loadctx_t *lctx);
 	do { \
 		if (isc_lex_isfile(lexer)) \
 			(*callbacks->warn)(callbacks, \
-				"%s:%lu: file does not end with newline", \
-				source, line); \
+				"%s: file does not end with newline", \
+				source); \
 	} while (0)
 
 #define EXPECTEOL \
@@ -806,9 +806,12 @@ load(dns_loadctx_t *lctx) {
 	isc_buffer_init(&target, target_mem, target_size);
 	target_save = target;
 
+	source = isc_lex_getsourcename(lctx->lex);
 	do {
 		initialws = ISC_FALSE;
+		line = isc_lex_getsourceline(lctx->lex);
 		GETTOKEN(lctx->lex, ISC_LEXOPT_INITIALWS, &token, ISC_TRUE);
+		line = isc_lex_getsourceline(lctx->lex);
 
 		if (token.type == isc_tokentype_eof) {
 			if (read_till_eol)
@@ -838,8 +841,6 @@ load(dns_loadctx_t *lctx) {
 		if (read_till_eol)
 			continue;
 
-		line = isc_lex_getsourceline(lctx->lex);
-		source = isc_lex_getsourcename(lctx->lex);
 		if (token.type == isc_tokentype_initialws) {
 			/*
 			 * Still working on the same name.
