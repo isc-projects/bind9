@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.319 2001/05/07 23:34:00 gson Exp $ */
+/* $Id: server.c,v 1.320 2001/05/08 00:26:24 gson Exp $ */
 
 #include <config.h>
 
@@ -2381,7 +2381,6 @@ reconfig(ns_server_t *server) {
  */
 static void
 ns_server_reload(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
 
 	INSIST(task = server->task);
