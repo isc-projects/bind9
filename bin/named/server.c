@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.212 2000/08/08 00:44:21 gson Exp $ */
+/* $Id: server.c,v 1.213 2000/08/08 01:56:44 gson Exp $ */
 
 #include <config.h>
 
@@ -885,7 +885,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 	for (i = 0; authors[i] != NULL; i++) {
 		cr.base = authors[i];
 		cr.length = strlen(authors[i]);
-		INSIST(cr.length == cr.base[0] + 1);
+		INSIST(cr.length == ((const unsigned char *)cr.base)[0] + 1U);
 		dns_rdata_fromregion(&rdata, dns_rdataclass_ch,
 				     dns_rdatatype_txt, (isc_region_t *)&cr);
 		tuple = NULL;
