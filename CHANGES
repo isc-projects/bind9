@@ -1,4 +1,7 @@
 
+ 919.	[bug]		rndc would segfault when rndc.conf was missing the
+ 			closing brace. [RT #1461]
+
 	--- 9.1.3rc3 released ---
 
  911.	[bug]		Fail gracefully with multiple hint zones. [RT #1433]
