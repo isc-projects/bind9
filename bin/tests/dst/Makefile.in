@@ -29,7 +29,7 @@ CWARNINGS =
 
 LIBS =		../../../lib/dns/libdns.@A@ \
 		../../../lib/isc/libisc.@A@ \
-		../../../lib/isc/libt_api.@A@
+		../../../lib/tests/libt_api.@A@
 		@LIBS@
 
 TARGETS =	dst_test t_dst
