@@ -5,6 +5,10 @@
  386.	[bug]		Missing strdup() of ACL name caused random
 			ACL matching failures [RT #228].
 
+ 382.	[bug]		named -u failed on many Linux systems where the
+			libc provided kernel headers do not match
+			the current kernel.
+
  380.	[bug]		nsupdate didn't work with IPv6.
 
 	--- 9.0.0rc2 released ---

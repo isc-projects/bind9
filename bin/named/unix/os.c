@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.18.2.2 2000/07/10 21:35:38 gson Exp $ */
+/* $Id: os.c,v 1.18.2.3 2000/08/15 00:20:57 gson Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,18 @@ static isc_boolean_t done_setuid = ISC_FALSE;
 
 #ifdef HAVE_LINUX_PRCTL_H
 #include <sys/prctl.h>		/* Required for prctl(). */
+
+/*
+ * If the value of PR_SET_KEEPCAPS is not in <linux/prctl.h>, define it
+ * here.  This allows setuid() to work on systems running a new enough
+ * kernel but with /usr/include/linux pointing to "standard" kernel
+ * headers.
+ */
+#ifndef PR_SET_KEEPCAPS
+#define PR_SET_KEEPCAPS 8
 #endif
+
+#endif /* HAVE_LINUX_PRCTL_H */
 
 #ifndef SYS_capset
 #define SYS_capset __NR_capset
@@ -108,14 +119,10 @@ linux_initialprivs(void) {
 	 */
 	caps |= (1 << CAP_SYS_CHROOT);
 
-#if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
+#ifdef HAVE_LINUX_PRCTL_H
 	/*
 	 * If the kernel supports keeping capabilities after setuid(), we
-	 * also want the setuid capability.
-	 *
-	 * There's no point turning this on if we don't have PR_SET_KEEPCAPS,
-	 * because changing user ids only works right with linuxthreads if
-	 * we can do it early (before creating threads).
+	 * also want the setuid capability.  We don't know until we've tried.
 	 */
 	caps |= (1 << CAP_SETUID);
 #endif
@@ -151,7 +158,7 @@ linux_minprivs(void) {
 	linux_setcaps(caps);
 }
 
-#if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
+#ifdef HAVE_LINUX_PRCTL_H
 static void
 linux_keepcaps(void) {
 	/*
@@ -310,7 +317,7 @@ ns_os_changeuser(void) {
 void
 ns_os_minprivs(void) {
 #ifdef HAVE_LINUX_CAPABILITY_H
-#if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
+#ifdef HAVE_LINUX_PRCTL_H
 	linux_keepcaps();
 	ns_os_changeuser();
 #endif
