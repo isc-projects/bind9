@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.66 2001/07/12 03:51:14 marka Exp $ */
+/* $Id: lex.c,v 1.67 2001/11/16 10:50:00 marka Exp $ */
 
 #include <config.h>
 
@@ -770,6 +770,8 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
 	else if (expect == isc_tokentype_number)
 		options |= ISC_LEXOPT_NUMBER;
 	result = isc_lex_gettoken(lex, options, token);
+	if (result == ISC_R_RANGE)
+		isc_lex_ungettoken(lex, token);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

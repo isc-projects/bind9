@@ -1,3 +1,6 @@
+1130.	[bug]		Out of range serial number were not being logged.
+			[RT #2076]
+
 1129.	[bug]		Multithreaded servers could crash under heavy
 			resolution load due to a race condition. [RT #2018]
 
