@@ -117,6 +117,7 @@ struct dns_adb {
 	unsigned int			magic;
 
 	isc_mutex_t			lock;
+	isc_mutex_t			ilock;
 	isc_mem_t		       *mctx;
 	dns_view_t		       *view;
 	isc_timermgr_t		       *timermgr;
@@ -290,8 +291,7 @@ static void print_dns_name(FILE *, dns_name_t *);
 static void print_namehook_list(FILE *, dns_adbname_t *);
 static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
-static inline void inc_adb_irefcnt(dns_adb_t *, isc_boolean_t);
-static inline void dec_adb_irefcnt(dns_adb_t *, isc_boolean_t);
+static inline void dec_adb_irefcnt(dns_adb_t *);
 static inline void inc_adb_erefcnt(dns_adb_t *, isc_boolean_t);
 static inline void dec_adb_erefcnt(dns_adb_t *, isc_boolean_t);
 static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
@@ -722,6 +722,8 @@ unlink_name(dns_adb_t *adb, dns_adbname_t *name)
 	name->lock_bucket = DNS_ADB_INVALIDBUCKET;
 	INSIST(adb->name_refcnt[bucket] > 0);
 	adb->name_refcnt[bucket]--;
+	if (adb->name_sd[bucket] && adb->name_refcnt[bucket] == 0)
+		dec_adb_irefcnt(adb);
 }
 
 /*
@@ -750,6 +752,8 @@ unlink_entry(dns_adb_t *adb, dns_adbentry_t *entry)
 	entry->lock_bucket = DNS_ADB_INVALIDBUCKET;
 	INSIST(adb->entry_refcnt[bucket] > 0);
 	adb->entry_refcnt[bucket]--;
+	if (adb->entry_sd[bucket] && adb->entry_refcnt[bucket] == 0)
+		dec_adb_irefcnt(adb);
 }
 
 static inline void
@@ -777,24 +781,27 @@ shutdown_names(dns_adb_t *adb)
 		LOCK(&adb->namelocks[bucket]);
 		adb->name_sd[bucket] = ISC_TRUE;
 
-		/*
-		 * Run through the list.  For each name, clean up finds
-		 * found there, and cancel any fetches running.  When
-		 * all the fetches are canceled, the name will destroy
-		 * itself.
-		 */
 		name = ISC_LIST_HEAD(adb->names[bucket]);
-		while (name != NULL) {
-			next_name = ISC_LIST_NEXT(name, plink);
-
-			kill_name(&name, DNS_EVENT_ADBSHUTDOWN);
-
-			name = next_name;
+		if (name == NULL) {
+			/*
+			 * This bucket has no names.  We must decrement the
+			 * irefcnt ourselves, since it will not be
+			 * automatically triggered by a name being unlinked.
+			 */
+			dec_adb_irefcnt(adb);
+		} else {
+			/*
+			 * Run through the list.  For each name, clean up finds
+			 * found there, and cancel any fetches running.  When
+			 * all the fetches are canceled, the name will destroy
+			 * itself.
+			 */
+			while (name != NULL) {
+				next_name = ISC_LIST_NEXT(name, plink);
+				kill_name(&name, DNS_EVENT_ADBSHUTDOWN);
+				name = next_name;
+			}
 		}
-
-		/* kill_name() will decrement the refcnt. */
-		if (adb->name_refcnt[bucket] == 0)
-			dec_adb_irefcnt(adb, ISC_FALSE);
 
 		UNLOCK(&adb->namelocks[bucket]);
 	}
@@ -815,22 +822,29 @@ shutdown_entries(dns_adb_t *adb)
 		LOCK(&adb->entrylocks[bucket]);
 		adb->entry_sd[bucket] = ISC_TRUE;
 
-		/*
-		 * Run through the list.  Cleanup any entries not associated
-		 * with names, and which are not in use.
-		 */
 		entry = ISC_LIST_HEAD(adb->entries[bucket]);
-		while (entry != NULL) {
-			next_entry = ISC_LIST_NEXT(entry, plink);
-			if (entry->refcnt == 0 && entry->expires != 0) {
-				unlink_entry(adb, entry);
-				free_adbentry(adb, &entry);
+		if (entry == NULL) {
+			/*
+			 * This bucket has no entries.  We must decrement the
+			 * irefcnt ourselves, since it will not be
+			 * automatically triggered by an entry being unlinked.
+			 */
+			dec_adb_irefcnt(adb);
+		} else {
+			/*
+			 * Run through the list.  Cleanup any entries not
+			 * associated with names, and which are not in use.
+			 */
+			while (entry != NULL) {
+				next_entry = ISC_LIST_NEXT(entry, plink);
+				if (entry->refcnt == 0 &&
+				    entry->expires != 0) {
+					unlink_entry(adb, entry);
+					free_adbentry(adb, &entry);
+				}
+				entry = next_entry;
 			}
-			entry = next_entry;
 		}
-
-		if (adb->entry_refcnt[bucket] == 0)
-			dec_adb_irefcnt(adb, ISC_FALSE);
 
 		UNLOCK(&adb->entrylocks[bucket]);
 	}
@@ -1013,12 +1027,20 @@ check_exit(dns_adb_t *adb)
 {
 	isc_event_t *event, *next_event;
 	isc_task_t *etask;
+	isc_boolean_t zeroirefcnt;
 
 	/*
 	 * The caller must be holding the adb lock.
 	 */
 
-	if (adb->shutting_down && adb->irefcnt == 0 &&
+	LOCK(&adb->ilock);
+	if (adb->irefcnt == 0)
+		zeroirefcnt = ISC_TRUE;
+	else
+		zeroirefcnt = ISC_FALSE;
+	UNLOCK(&adb->ilock);
+
+	if (adb->shutting_down && zeroirefcnt &&
 	    isc_mempool_getallocated(adb->ahmp) == 0) {
 		/*
 		 * We're now shutdown.  Send any whenshutdown events.
@@ -1046,30 +1068,14 @@ check_exit(dns_adb_t *adb)
 }
 
 static inline void
-inc_adb_irefcnt(dns_adb_t *adb, isc_boolean_t lock)
+dec_adb_irefcnt(dns_adb_t *adb)
 {
-	if (lock)
-		LOCK(&adb->lock);
-
-	adb->irefcnt++;
-
-	if (lock)
-		UNLOCK(&adb->lock);
-}
-
-static inline void
-dec_adb_irefcnt(dns_adb_t *adb, isc_boolean_t lock)
-{
-	if (lock)
-		LOCK(&adb->lock);
+	LOCK(&adb->ilock);
 
 	INSIST(adb->irefcnt > 0);
 	adb->irefcnt--;
 
-	check_exit(adb);
-
-	if (lock)
-		UNLOCK(&adb->lock);
+	UNLOCK(&adb->ilock);
 }
 
 static inline void
@@ -1093,7 +1099,8 @@ dec_adb_erefcnt(dns_adb_t *adb, isc_boolean_t lock)
 	INSIST(adb->erefcnt > 0);
 	adb->erefcnt--;
 
-	check_exit(adb);
+	if (adb->erefcnt == 0)
+		check_exit(adb);
 
 	if (lock)
 		UNLOCK(&adb->lock);
@@ -1856,6 +1863,11 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now)
 	 * The name is empty.  Delete it.
 	 */
 	kill_name(&name, DNS_EVENT_ADBEXPIRED);
+
+	/*
+	 * Our caller, or one of its callers, will be calling check_exit() at
+	 * some point, so we don't need to do it here.
+	 */
 }
 
 /*
@@ -1997,6 +2009,7 @@ destroy(dns_adb_t *adb)
 	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
 	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
 
+	isc_mutex_destroy(&adb->ilock);
 	isc_mutex_destroy(&adb->lock);
 	isc_mutex_destroy(&adb->mplock);
 
@@ -2068,6 +2081,10 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_mutex_init(&adb->mplock);
 	if (result != ISC_R_SUCCESS)
 		goto fail0c;
+
+	result = isc_mutex_init(&adb->ilock);
+	if (result != ISC_R_SUCCESS)
+		goto fail0d;
 
 	/*
 	 * Initialize the bucket locks for names and elements.
@@ -2170,6 +2187,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (adb->af6mp != NULL)
 		isc_mempool_destroy(&adb->af6mp);
 
+	isc_mutex_destroy(&adb->ilock);
+ fail0d:
 	isc_mutex_destroy(&adb->mplock);
  fail0c:
 	isc_mutex_destroy(&adb->lock);
@@ -2203,6 +2222,7 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp)
 {
 	isc_task_t *clone;
 	isc_event_t *event;
+	isc_boolean_t zeroirefcnt = ISC_FALSE;
 
 	/*
 	 * Send '*eventp' to 'task' when 'adb' has shutdown.
@@ -2215,8 +2235,15 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp)
 	*eventp = NULL;
 
 	LOCK(&adb->lock);
+
+	LOCK(&adb->ilock);
+	if (adb->irefcnt == 0)
+		zeroirefcnt = ISC_TRUE;
+	else
+		zeroirefcnt = ISC_FALSE;
+	UNLOCK(&adb->ilock);
 	
-	if (adb->shutting_down && adb->irefcnt == 0 &&
+	if (adb->shutting_down && zeroirefcnt &&
 	    isc_mempool_getallocated(adb->ahmp) == 0) {
 		/*
 		 * We're already shutdown.  Send the event.
@@ -2512,7 +2539,7 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 {
 	int name_bucket;
 	dns_adbname_t *name;
-	isc_boolean_t decr_adbrefcnt;
+	isc_boolean_t want_check_exit = ISC_FALSE;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(host != NULL);
@@ -2531,15 +2558,22 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 
 	kill_name(&name, DNS_EVENT_ADBNAMEDELETED);
 
-	decr_adbrefcnt = ISC_FALSE;
-	if (adb->name_sd[name_bucket] && (adb->name_refcnt[name_bucket] == 0))
-		decr_adbrefcnt = ISC_TRUE;
+	/*
+	 * If we're shutting down and this bucket is empty, we need to call
+	 * check_exit() to see if we're done.
+	 */
+	if (adb->name_sd[name_bucket] && adb->name_refcnt[name_bucket] == 0)
+		want_check_exit = ISC_TRUE;
+
 
 	if (name_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->namelocks[name_bucket]);
 
-	if (decr_adbrefcnt)
-		dec_adb_irefcnt(adb, ISC_TRUE);
+	if (want_check_exit) {
+		LOCK(&adb->lock);
+		check_exit(adb);
+		UNLOCK(&adb->lock);
+	}
 
 	return (DNS_R_SUCCESS);
 }
@@ -3161,6 +3195,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	isc_stdtime_t now;
 	isc_result_t result;
 	unsigned int address_type;
+	isc_boolean_t want_check_exit = ISC_FALSE;
 
 	(void)task;
 
@@ -3206,21 +3241,25 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	 * potentially good data.
 	 */
 	if (NAME_DEAD(name)) {
-		isc_boolean_t decr_adbrefcnt;
-
 		free_adbfetch(adb, &fetch);
 		isc_event_free(&ev);
 
 		kill_name(&name, DNS_EVENT_ADBCANCELED);
 
-		decr_adbrefcnt = ISC_FALSE;
-		if (adb->name_sd[bucket] && (adb->name_refcnt[bucket] == 0))
-			decr_adbrefcnt = ISC_TRUE;
+		/*
+		 * If we're shutting down and this bucket is empty, we need
+		 * to call check_exit() to see if we're done.
+		 */
+		if (adb->name_sd[bucket] && adb->name_refcnt[bucket] == 0)
+			want_check_exit = ISC_TRUE;
 
 		UNLOCK(&adb->namelocks[bucket]);
 
-		if (decr_adbrefcnt)
-			dec_adb_irefcnt(adb, ISC_TRUE);
+		if (want_check_exit) {
+			LOCK(&adb->lock);
+			check_exit(adb);
+			UNLOCK(&adb->lock);
+		}
 
 		return;
 	}
@@ -3300,6 +3339,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	int bucket;
 	isc_stdtime_t now;
 	isc_result_t result;
+	isc_boolean_t want_check_exit = ISC_FALSE;
 
 	(void)task;
 
@@ -3341,21 +3381,25 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	 * potentially good data.
 	 */
 	if (NAME_DEAD(name)) {
-		isc_boolean_t decr_adbrefcnt;
-
 		free_adbfetch6(adb, &fetch);
 		isc_event_free(&ev);
 
 		kill_name(&name, DNS_EVENT_ADBCANCELED);
 
-		decr_adbrefcnt = ISC_FALSE;
-		if (adb->name_sd[bucket] && (adb->name_refcnt[bucket] == 0))
-			decr_adbrefcnt = ISC_TRUE;
+		/*
+		 * If we're shutting down and this bucket is empty, we need
+		 * to call check_exit() to see if we're done.
+		 */
+		if (adb->name_sd[bucket] && adb->name_refcnt[bucket] == 0)
+			want_check_exit = ISC_TRUE;
 
 		UNLOCK(&adb->namelocks[bucket]);
 
-		if (decr_adbrefcnt)
-			dec_adb_irefcnt(adb, ISC_TRUE);
+		if (want_check_exit) {
+			LOCK(&adb->lock);
+			check_exit(adb);
+			UNLOCK(&adb->lock);
+		}
 
 		return;
 	}
@@ -3813,8 +3857,8 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp)
 	dns_adbaddrinfo_t *addr;
 	dns_adbentry_t *entry;
 	int bucket;
-	isc_boolean_t dec_irefcnt;
 	isc_stdtime_t now;
+	isc_boolean_t want_check_exit = ISC_FALSE;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(addrp != NULL);
@@ -3823,7 +3867,6 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp)
 	entry = addr->entry;
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
 
-	dec_irefcnt = ISC_FALSE;
 	isc_stdtime_get(&now);
 
 	*addrp = NULL;
@@ -3835,14 +3878,17 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp)
 
 	dec_entry_refcnt(adb, entry, ISC_FALSE);
 	if (adb->entry_sd[bucket] && adb->entry_refcnt[bucket] == 0)
-		dec_irefcnt = ISC_TRUE;
+		want_check_exit = ISC_TRUE;
 
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	addr->entry = NULL;
 	addr->sockaddr = NULL;
 	free_adbaddrinfo(adb, &addr);
-	
-	if (dec_irefcnt)
-		dec_adb_irefcnt(adb, ISC_TRUE);
+
+	if (want_check_exit) {
+		LOCK(&adb->lock);
+		check_exit(adb);
+		UNLOCK(&adb->lock);
+	}
 }
