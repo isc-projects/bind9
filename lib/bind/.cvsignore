@@ -11,3 +11,4 @@ config.status
 timestamp
 libtool
 configure.lineno
+autom4te.cache
