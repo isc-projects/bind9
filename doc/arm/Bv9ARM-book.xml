@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.87 2001/01/17 02:42:51 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.88 2001/01/18 08:34:15 marka Exp $ -->
 
 <book>
 
@@ -4704,7 +4704,7 @@ the file has been read.</para></note></sect3>
 with undefined TTLs. Valid TTLs are of the range 0-2147483647 seconds.</para>
 <para><command>$TTL</command> is defined in RFC 2308.</para></sect3></sect2>
 <sect2><title><acronym>BIND</acronym> Master File Extension: the  <command>$GENERATE</command> Directive</title>
-        <para>Syntax: <command>$GENERATE</command> <replaceable>range</replaceable> <replaceable>hs</replaceable> <replaceable>type</replaceable> <replaceable>rhs</replaceable> <optional> <replaceable>comment</replaceable> </optional></para>
+        <para>Syntax: <command>$GENERATE</command> <replaceable>range</replaceable> <replaceable>lhs</replaceable> <replaceable>type</replaceable> <replaceable>rhs</replaceable> <optional> <replaceable>comment</replaceable> </optional></para>
 <para><command>$GENERATE</command> is used to create a series of
 resource records that only differ from each other by an iterator. <command>$GENERATE</command> can
 be used to easily generate the sets of records required to support
@@ -4758,7 +4758,7 @@ recognised a indicating a literal $ in the output.</para></entry>
         <row rowsep = "0">
           <entry colname = "1"><para><command>type</command></para></entry>
           <entry colname = "2"><para>At present the only supported types are
-PTR, CNAME and NS.</para></entry>
+PTR, CNAME, DNAME, A, AAAA and NS.</para></entry>
         </row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>rhs</command></para></entry>

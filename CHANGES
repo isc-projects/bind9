@@ -1,3 +1,5 @@
+ 690.	[func]		$GENERATE now supports DNAME. [RT #654]
+
  689.	[doc]		man pages are now installed. [RT #210]
 
  688.	[func]		"make tags" now works on systems with the
