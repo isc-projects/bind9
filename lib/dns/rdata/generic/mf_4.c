@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.21 2000/03/16 02:00:34 brister Exp $ */
+/* $Id: mf_4.c,v 1.22 2000/04/06 22:02:55 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -142,7 +142,7 @@ fromstruct_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -154,7 +154,7 @@ tostruct_mf(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void

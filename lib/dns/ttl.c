@@ -32,7 +32,7 @@
 
 #define RETERR(x) do { \
 	isc_result_t __r = (x); \
-	if (__r != DNS_R_SUCCESS) \
+	if (__r != ISC_R_SUCCESS) \
 		return (__r); \
 	} while (0)
 
@@ -58,10 +58,10 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 	INSIST(len + 1 <= sizeof tmp);
 	isc_buffer_available(target, &region);
 	if (len > region.length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(region.base, tmp, len);
 	isc_buffer_add(target, len);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /* Derived from bind8 ns_format_ttl(). */
@@ -115,7 +115,7 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
 		region.base[region.length - 1] =
 			toupper(region.base[region.length - 1]);
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -128,7 +128,7 @@ dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
 	isc_result_t result;
 
 	result = bind_ttl(source, ttl);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		result = DNS_R_BADTTL;
 	return (result);
 }
@@ -192,5 +192,5 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 		}
 	} while (*s != 0);
 	*ttl = tmp;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }

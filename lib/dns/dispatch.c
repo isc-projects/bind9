@@ -459,7 +459,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 			ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, ev->n);
 	dres = dns_message_peekheader(&source, &id, &flags);
-	if (dres != DNS_R_SUCCESS) {
+	if (dres != ISC_R_SUCCESS) {
 		free_buffer(disp, ev->region.base, ev->region.length);
 		XDEBUG(("dns_message_peekheader(): %s\n",
 			isc_result_totext(dres)));
@@ -518,7 +518,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	isc_buffer_init(&rev->buffer, ev->region.base, ev->region.length,
 			ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&rev->buffer, ev->n);
-	rev->result = DNS_R_SUCCESS;
+	rev->result = ISC_R_SUCCESS;
 	rev->id = id;
 	rev->addr = ev->address;
 	attributes = 0;
@@ -658,7 +658,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 	 * Peek into the buffer to see what we can see.
 	 */
 	dres = dns_message_peekheader(&tcpmsg->buffer, &id, &flags);
-	if (dres != DNS_R_SUCCESS) {
+	if (dres != ISC_R_SUCCESS) {
 		XDEBUG(("dns_message_peekheader(): %s\n",
 			isc_result_totext(dres)));
 		/* XXXMLG log something here... */
@@ -714,7 +714,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 	 */
 	dns_tcpmsg_keepbuffer(tcpmsg, &rev->buffer);
 	disp->buffers++;
-	rev->result = DNS_R_SUCCESS;
+	rev->result = ISC_R_SUCCESS;
 	rev->id = id;
 	rev->addr = tcpmsg->address;
 	if (queue_request) {
@@ -838,11 +838,11 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	REQUIRE(socktype == isc_sockettype_udp ||
 		socktype == isc_sockettype_tcp);
 
-	res = DNS_R_SUCCESS;
+	res = ISC_R_SUCCESS;
 
 	disp = isc_mem_get(mctx, sizeof(dns_dispatch_t));
 	if (disp == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	disp->magic = 0;
 	disp->mctx = mctx;
@@ -872,7 +872,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->qid_table = isc_mem_get(disp->mctx,
 				      buckets * sizeof(dns_displist_t));
 	if (disp->qid_table == NULL) {
-		res = DNS_R_NOMEMORY;
+		res = ISC_R_NOMEMORY;
 		goto out1;
 	}
 
@@ -883,7 +883,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->qid_increment = increment;
 
 	if (isc_mutex_init(&disp->lock) != ISC_R_SUCCESS) {
-		res = DNS_R_UNEXPECTED;
+		res = ISC_R_UNEXPECTED;
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_mutex_init failed");
 		goto out2;
 	}
@@ -891,7 +891,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->epool = NULL;
 	if (isc_mempool_create(mctx, sizeof(dns_dispatchevent_t),
 			       &disp->epool) != ISC_R_SUCCESS) {
-		res = DNS_R_NOMEMORY;
+		res = ISC_R_NOMEMORY;
 		goto out3;
 	}
 	isc_mempool_setname(disp->epool, "disp_epool");
@@ -899,7 +899,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->bpool = NULL;
 	if (isc_mempool_create(mctx, maxbuffersize,
 			       &disp->bpool) != ISC_R_SUCCESS) {
-		res = DNS_R_NOMEMORY;
+		res = ISC_R_NOMEMORY;
 		goto out4;
 	}
 	isc_mempool_setmaxalloc(disp->bpool, maxbuffers);
@@ -908,7 +908,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->rpool = NULL;
 	if (isc_mempool_create(mctx, sizeof(dns_dispentry_t),
 			       &disp->rpool) != ISC_R_SUCCESS) {
-		res = DNS_R_NOMEMORY;
+		res = ISC_R_NOMEMORY;
 		goto out5;
 	}
 	isc_mempool_setname(disp->rpool, "disp_rpool");
@@ -931,7 +931,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	disp->failsafe_ev = allocate_event(disp);
 	if (disp->failsafe_ev == NULL) {
-		res = DNS_R_NOMEMORY;
+		res = ISC_R_NOMEMORY;
 		goto out6;
 	}
 
@@ -964,7 +964,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	*dispp = disp;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
 	/*
 	 * error returns
@@ -1076,13 +1076,13 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 
 	if (!ok) {
 		UNLOCK(&disp->lock);
-		return (DNS_R_NOMORE);
+		return (ISC_R_NOMORE);
 	}
 
 	res = isc_mempool_get(disp->rpool);
 	if (res == NULL) {
 		UNLOCK(&disp->lock);
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	}
 
 	disp->refcount++;
@@ -1112,7 +1112,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	*idp = id;
 	*resp = res;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -1237,7 +1237,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	res = isc_mempool_get(disp->rpool);
 	if (res == NULL) {
 		UNLOCK(&disp->lock);
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	}
 
 	disp->refcount++;
@@ -1268,7 +1268,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 
 	*resp = res;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 void

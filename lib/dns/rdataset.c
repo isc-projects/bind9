@@ -128,7 +128,7 @@ question_disassociate(dns_rdataset_t *rdataset) {
 static isc_result_t
 question_cursor(dns_rdataset_t *rdataset) {
 	(void)rdataset;
-	return (DNS_R_NOMORE);
+	return (ISC_R_NOMORE);
 }
 
 static void
@@ -287,7 +287,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		question = ISC_TRUE;
 		count = 1;
 		result = dns_rdataset_first(rdataset);
-		INSIST(result == DNS_R_NOMORE);
+		INSIST(result == ISC_R_NOMORE);
 	} else if (rdataset->type == 0) {
 		/*
 		 * This is a negative caching rdataset.
@@ -296,9 +296,9 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	} else {
 		count = (rdataset->methods->count)(rdataset);
 		result = dns_rdataset_first(rdataset);
-		if (result == DNS_R_NOMORE)
-			return (DNS_R_SUCCESS);
-		if (result != DNS_R_SUCCESS)
+		if (result == ISC_R_NOMORE)
+			return (ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
 
@@ -323,7 +323,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 				i++;
 				result = dns_rdataset_next(rdataset);
 			} while (result == ISC_R_SUCCESS);
-			if (result != DNS_R_NOMORE)
+			if (result != ISC_R_NOMORE)
 				return (result);
 			INSIST(i == count);
 			/*
@@ -365,7 +365,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		else
 			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 		result = dns_name_towire(owner_name, cctx, target);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			goto rollback;
 		headlen = sizeof(dns_rdataclass_t) + sizeof(dns_rdatatype_t);
 		if (!question)
@@ -395,7 +395,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			else
 				dns_rdataset_current(rdataset, &rdata);
 			result = dns_rdata_towire(&rdata, cctx, target);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				goto rollback;
 			INSIST((target->used >= rdlen.used + 2) &&
 			       (target->used - rdlen.used - 2 < 65536));
@@ -413,19 +413,19 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 				i = 0;
 			tcount++;
 			if (tcount == count)
-				result = DNS_R_NOMORE;
+				result = ISC_R_NOMORE;
 			else
 				result = ISC_R_SUCCESS;
 		} else
 			result = dns_rdataset_next(rdataset);
-	} while (result == DNS_R_SUCCESS);
+	} while (result == ISC_R_SUCCESS);
 
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		goto rollback;
 
 	*countp += count;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  rollback:
 	INSIST(savedbuffer.used < 65536);
@@ -452,18 +452,18 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_QUESTION) == 0);
 
 	result = dns_rdataset_first(rdataset);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	do {
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_additionaldata(&rdata, add, arg);
-		if (result == DNS_R_SUCCESS)
+		if (result == ISC_R_SUCCESS)
 			result = dns_rdataset_next(rdataset);
-	} while (result == DNS_R_SUCCESS);
+	} while (result == ISC_R_SUCCESS);
 
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		return (result);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }

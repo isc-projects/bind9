@@ -1543,7 +1543,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					if (bitlength % 8 != 0)
 						n1++;
 					if (nrem < n1)
-						return (DNS_R_NOSPACE);
+						return (ISC_R_NOSPACE);
 					for (n2 = 0; n2 < n1; n2++) {
 						*ndata++ = dqchars[n2];
 						nrem--;
@@ -1594,11 +1594,11 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 
 	if (!done) {
 		if (nrem == 0)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		INSIST(tlen == 0);
 		if (state != ft_ordinary && state != ft_eatdot &&
 		    state != ft_at)
-			return (DNS_R_UNEXPECTEDEND);
+			return (ISC_R_UNEXPECTEDEND);
 		if (state == ft_ordinary) {
 			INSIST(count != 0);
 			*label = count;
@@ -1608,7 +1608,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 		}
 		if (origin != NULL) {
 			if (nrem < origin->length)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			label = origin->ndata;
 			n1 = origin->length;
 			nrem -= n1;
@@ -1664,7 +1664,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	isc_buffer_forward(source, tused);
 	isc_buffer_add(target, name->length);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -1704,7 +1704,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		labels = 0;
 		nlen = 0;
 		if (trem == 0)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		*tdata++ = '.';
 		trem--;
 	}
@@ -1730,7 +1730,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				case 0x40: /* '@' */
 				case 0x24: /* '$' */
 					if (trem < 2)
-						return (DNS_R_NOSPACE);
+						return (ISC_R_NOSPACE);
 					*tdata++ = '\\';
 					CONVERTFROMASCII(c);
 					*tdata++ = c;
@@ -1741,7 +1741,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				default:
 					if (c > 0x20 && c < 0x7f) {
 						if (trem == 0)
-							return (DNS_R_NOSPACE);
+							return (ISC_R_NOSPACE);
 						CONVERTFROMASCII(c);
 						*tdata++ = c;
 						ndata++;
@@ -1749,7 +1749,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 						nlen--;
 					} else {
 						if (trem < 4)
-							return (DNS_R_NOSPACE);
+							return (ISC_R_NOSPACE);
 						sprintf(tdata, "\\%03u",
 							c);
 						tdata += 4;
@@ -1762,7 +1762,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 			}
 		} else if (count == DNS_LABELTYPE_BITSTRING) {
 			if (trem < 3)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			*tdata++ = '\\';
 			*tdata++ = '[';
 			*tdata++ = 'x';
@@ -1782,7 +1782,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 			if (count % 4 != 0)
 				nibbles++;
 			if (trem < nibbles)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			trem -= nibbles;
 			nlen -= bytes;
 			while (nibbles > 0) {
@@ -1796,7 +1796,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				}
 			}
 			if (trem < 2 + len)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			*tdata++ = '/';
 			for (i = 0; i < len; i++)
 				*tdata++ = num[i];
@@ -1815,20 +1815,20 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		 * needed in the final output.
 		 */
 		if (trem == 0)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		*tdata++ = '.';
 		trem--;
 	}
 
 	if (nlen != 0 && trem == 0)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	INSIST(nlen == 0);
 	if (!saw_root || omit_final_dot)
 		trem++;
 
 	isc_buffer_add(target, tlen - trem);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -1867,7 +1867,7 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name,
 
 	if (nlen > (target->length - target->used)) {
 		MAKE_EMPTY(name);
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	}
 
 	while (labels > 0 && nlen > 0) {
@@ -2197,7 +2197,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 			if (c < 64) {
 				labels++;
 				if (nrem < c + 1)
-					return (DNS_R_NOSPACE);
+					return (ISC_R_NOSPACE);
 				nrem -= c + 1;
 				nused += c + 1;
 				*ndata++ = c;
@@ -2225,7 +2225,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 			} else if (c == DNS_LABELTYPE_BITSTRING) {
 				labels++;
 				if (nrem == 0)
-					return (DNS_R_NOSPACE);
+					return (ISC_R_NOSPACE);
 				nrem--;
 				nused++;
 				*ndata++ = c;
@@ -2262,7 +2262,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 			if ((c % 8) != 0)
 				n++;
 			if (nrem < n + 1)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			nrem -= n + 1;
 			nused += n + 1;
 			*ndata++ = c;
@@ -2293,7 +2293,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	}
 
 	if (!done)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
@@ -2312,7 +2312,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	isc_buffer_forward(source, cused);
 	isc_buffer_add(target, name->length);
 	
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -2357,18 +2357,18 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 
 	if (gf) {
 		if (target->length - target->used < gp.length)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		(void)memcpy((unsigned char *)target->base + target->used,
 			     gp.ndata, (size_t)gp.length);
 		isc_buffer_add(target, gp.length);
 		if (go < 16384) {
 			go |= 0xc000;
 			if (target->length - target->used < 2)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			isc_buffer_putuint16(target, go);
 		} else {
 			if (target->length - target->used < 3)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			*((unsigned char*)target->base + target->used) =
 				DNS_LABELTYPE_GLOBALCOMP16;
 			isc_buffer_add(target, 1);
@@ -2378,13 +2378,13 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 			dns_compress_add(cctx, &gp, &gs, offset);
 	} else {
 		if (target->length - target->used < name->length)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		(void)memcpy((unsigned char *)target->base + target->used,
 			     name->ndata, (size_t)name->length);
 		isc_buffer_add(target, name->length);
 		dns_compress_add(cctx, name, NULL, offset);
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -2467,7 +2467,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	}
 	if (length > nrem) {
 		MAKE_EMPTY(name);
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	}
 
 	if (copy_suffix) {
@@ -2535,7 +2535,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 
 	isc_buffer_add(target, name->length);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -2546,7 +2546,7 @@ dns_name_split(dns_name_t *name,
 {
 	dns_offsets_t name_odata, split_odata;
 	unsigned char *offsets, *splitoffsets;
-	isc_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int splitlabel, bitbytes, mod, len;
 	unsigned char *p, *src, *dst;
 
@@ -2635,7 +2635,7 @@ dns_name_split(dns_name_t *name,
 
 			if (prefix->length > prefix->buffer->length ) {
 				dns_name_invalidate(prefix);
-				return(DNS_R_NOSPACE);
+				return(ISC_R_NOSPACE);
 			}
 
 			/*
@@ -2701,7 +2701,7 @@ dns_name_split(dns_name_t *name,
 
 	}
 
-	if (suffix != NULL && result == DNS_R_SUCCESS) {
+	if (suffix != NULL && result == ISC_R_SUCCESS) {
 		if (nbits > 0) {
 			bitbytes = (nbits - 1) / 8 + 1;
 
@@ -2722,7 +2722,7 @@ dns_name_split(dns_name_t *name,
 			INSIST(suffix->length > 0);
 			if (suffix->length > suffix->buffer->length) {
 				dns_name_invalidate(suffix);
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			}
 
 			/*
@@ -2893,7 +2893,7 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 	target->ndata = isc_mem_get(mctx, source->length);
 	if (target->ndata == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	memcpy(target->ndata, source->ndata, source->length);
 
@@ -2911,7 +2911,7 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 				    ISC_FALSE, ISC_FALSE);
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -2936,7 +2936,7 @@ dns_name_dupwithoffsets(dns_name_t *source, isc_mem_t *mctx,
 
 	target->ndata = isc_mem_get(mctx, source->length + source->labels);
 	if (target->ndata == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	memcpy(target->ndata, source->ndata, source->length);
 
@@ -2953,7 +2953,7 @@ dns_name_dupwithoffsets(dns_name_t *source, isc_mem_t *mctx,
 		set_offsets(target, target->offsets, ISC_FALSE, ISC_FALSE,
 			    ISC_FALSE);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -2993,7 +2993,7 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	isc_buffer_init(&buffer, data, sizeof data, ISC_BUFFERTYPE_BINARY);
 	
 	result = dns_name_downcase(name, &downname, &buffer);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	
 	isc_buffer_used(&buffer, &r);

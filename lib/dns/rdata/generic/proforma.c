@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.19 2000/03/20 22:48:58 gson Exp $ */
+/* $Id: proforma.c,v 1.20 2000/04/06 22:03:07 explorer Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -31,7 +31,7 @@ fromtext_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -42,7 +42,7 @@ totext_#(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -59,7 +59,7 @@ fromwire_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		/* NONE or GLOBAL14 */
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -74,7 +74,7 @@ towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 		/* NONE or GLOBAL14 */
 		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline int
@@ -99,7 +99,7 @@ fromstruct_#(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	REQUIRE(type == #);
 	REQUIRE(rdclass == #);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -108,7 +108,7 @@ tostruct_#(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -131,7 +131,7 @@ additionaldata_#(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

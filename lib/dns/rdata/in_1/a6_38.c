@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.22 2000/03/20 22:44:35 gson Exp $ */
+ /* $Id: a6_38.c,v 1.23 2000/04/06 22:03:22 explorer Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -65,7 +65,7 @@ fromtext_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	}
 
 	if (prefixlen == 0)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
@@ -110,14 +110,14 @@ totext_in_a6(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		isc_buffer_available(target, &tr);
 		if (inet_ntop(AF_INET6, addr,
 			      (char *)tr.base, tr.length) == NULL)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 
 		isc_buffer_add(target, strlen((char *)tr.base));
 		isc_region_consume(&sr, 16 - octets);
 	}
 
 	if (prefixlen == 0)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	RETERR(str_totext(" ", target));
 	dns_name_init(&name, NULL);
@@ -149,7 +149,7 @@ fromwire_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_active(source, &sr);
 	/* prefix length */
 	if (sr.length < 1)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	prefixlen = sr.base[0];
 	if (prefixlen > 128)
 		return (DNS_R_RANGE);
@@ -161,7 +161,7 @@ fromwire_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (prefixlen != 128) {
 		octets = 16 - prefixlen / 8;
 		if (sr.length < octets)
-			return (DNS_R_UNEXPECTEDEND);
+			return (ISC_R_UNEXPECTEDEND);
 		mask = 0xff >> (prefixlen % 8);
 		sr.base[0] &= mask;	/* ensure pad bits are zero */
 		RETERR(mem_tobuffer(target, sr.base, octets));
@@ -169,7 +169,7 @@ fromwire_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	}
 
 	if (prefixlen == 0)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	dns_name_init(&name, NULL);
 	return (dns_name_fromwire(&name, source, dctx, downcase, target));
@@ -199,7 +199,7 @@ towire_in_a6(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_consume(&sr, octets);
 
 	if (prefixlen == 0)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
@@ -284,7 +284,7 @@ fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	octets = 16 - prefixlen / 8;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -297,7 +297,7 @@ tostruct_in_a6(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -317,7 +317,7 @@ additionaldata_in_a6(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -338,10 +338,10 @@ digest_in_a6(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 
 	r1.length = octets;
 	result = (digest)(arg, &r1);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (prefixlen == 0)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	isc_region_consume(&r2, octets);
 	dns_name_init(&name, NULL);

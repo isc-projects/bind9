@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.17 2000/03/20 22:44:34 gson Exp $ */
+/* $Id: rt_21.c,v 1.18 2000/04/06 22:03:11 explorer Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -99,9 +99,9 @@ fromwire_rt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
 	if (tregion.length < 2)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	if (sregion.length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	memcpy(tregion.base, sregion.base, 2);
 	isc_buffer_forward(source, 2);
 	isc_buffer_add(target, 2);
@@ -125,7 +125,7 @@ towire_rt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &region);
 	if (tr.length < 2)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(tr.base, region.base, 2);
 	isc_region_consume(&region, 2);
 	isc_buffer_add(target, 2);
@@ -179,7 +179,7 @@ fromstruct_rt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -191,7 +191,7 @@ tostruct_rt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void

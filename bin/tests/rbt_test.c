@@ -70,7 +70,7 @@ create_name(char *s) {
 	result = dns_name_fromtext(name, &source, dns_rootname,
 				   ISC_FALSE, &target);
 
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		printf("dns_name_fromtext(%s) failed: %s\n",
 		       s, dns_result_totext(result));
 		return (NULL);
@@ -132,14 +132,14 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 				  ISC_TRUE, NULL, NULL);
 
 	switch (result) {
-	case DNS_R_SUCCESS:
+	case ISC_R_SUCCESS:
 		printf("  found exact.");
 		nodes_should_match = ISC_TRUE;
 		break;
 	case DNS_R_PARTIALMATCH:
 		printf("  found parent.");
 		break;
-	case DNS_R_NOTFOUND:
+	case ISC_R_NOTFOUND:
 		printf("  name not found.");
 		break;
 	default:
@@ -153,14 +153,14 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 	} else
 		printf("  no data at node.");
 
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		printf("\n  name from dns_rbt_findnode: ");
 		print_name(foundname);
 	}
 
 	result = dns_rbtnodechain_current(&chain, foundname, origin, &node2);
 
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		printf("\n  name from dns_rbtnodechain_current: ");
 
 		/*
@@ -172,7 +172,7 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 					      dns_name_isabsolute(foundname) ?
 					          NULL : origin,
 					      fullname, NULL);
-		if (result == DNS_R_SUCCESS)
+		if (result == ISC_R_SUCCESS)
 			print_name(fullname);
 		else
 			printf("%s\n", dns_result_totext(result));
@@ -223,7 +223,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 					       origin);
 	}
 
-	if (result != DNS_R_SUCCESS && result != DNS_R_NEWORIGIN)
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
 		printf("start not found!\n");
 
 	else {
@@ -234,13 +234,13 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 				printf("\n");
 			}
 
-			if (result == DNS_R_SUCCESS ||
+			if (result == ISC_R_SUCCESS ||
 			    result == DNS_R_NEWORIGIN) {
 				print_name(&foundname);
 				printf("\n");
 
 			} else {
-				if (result != DNS_R_NOMORE)
+				if (result != ISC_R_NOMORE)
 				       printf("UNEXEPCTED ITERATION ERROR: %s",
 					      dns_result_totext(result));
 				break;
@@ -253,7 +253,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 
 
 #define CMDCHECK(s)	(strncasecmp(command, (s), length) == 0)
-#define PRINTERR(r)	if (r != DNS_R_SUCCESS) \
+#define PRINTERR(r)	if (r != ISC_R_SUCCESS) \
 				printf("... %s\n", dns_result_totext(r));
 
 int
@@ -299,7 +299,7 @@ main (int argc, char **argv) {
 	}
 
 	result = dns_rbt_create(mctx, delete_name, NULL, &rbt);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		printf("dns_rbt_create: %s: exiting\n",
 		       dns_result_totext(result));
 		exit(1);
@@ -376,7 +376,7 @@ main (int argc, char **argv) {
 								  foundname,
 								  &data);
 					switch (result) {
-					case DNS_R_SUCCESS:
+					case ISC_R_SUCCESS:
 						printf("found exact: ");
 						print_name(data);
 						putchar('\n');
@@ -388,10 +388,10 @@ main (int argc, char **argv) {
 						print_name(foundname);
 						printf(")\n");
 						break;
-					case DNS_R_NOTFOUND:
+					case ISC_R_NOTFOUND:
 						printf("NOT FOUND!\n");
 						break;
-					case DNS_R_NOMEMORY:
+					case ISC_R_NOMEMORY:
 						printf("OUT OF MEMORY!\n");
 						break;
 					default:

@@ -101,12 +101,12 @@
  */
 #define CHECK(op) \
 	do { result = (op); 				  	 \
-	       if (result != DNS_R_SUCCESS) goto failure; 	 \
+	       if (result != ISC_R_SUCCESS) goto failure; 	 \
 	} while (0)
 
 /*
  * Fail unconditionally with result 'code', which must not
- * be DNS_R_SUCCESS.  The reason for failure presumably has
+ * be ISC_R_SUCCESS.  The reason for failure presumably has
  * been logged already.
  */
 
@@ -191,7 +191,7 @@ do_one_tuple(dns_difftuple_t **tuple,
 
 	/* Apply it to the database. */
 	result = dns_diff_apply(&temp_diff, db, ver);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		dns_difftuple_free(tuple);
 		return (result);
 	}
@@ -201,7 +201,7 @@ do_one_tuple(dns_difftuple_t **tuple,
 
 	/* Do not clear temp_diff. */
 	
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 	      
 static isc_result_t
@@ -213,7 +213,7 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	isc_result_t result;
 	result = dns_difftuple_create(diff->mctx, op,
 				      name, ttl, rdata, &tuple);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	return (do_one_tuple(&tuple, db, ver, diff));
 }
@@ -257,19 +257,19 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset)
 	isc_result_t result;
 	foreach_node_rr_ctx_t *ctx = data;
 	for (result = dns_rdataset_first(rdataset);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
 	{
 		rr_t rr;
 		dns_rdataset_current(rdataset, &rr.rdata);
 		rr.ttl = rdataset->ttl;
 		result = (*ctx->rr_action)(ctx->rr_action_data, &rr);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		return (result);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -292,19 +292,19 @@ foreach_rrset(dns_db_t *db,
 	
 	node = NULL;
 	result = dns_db_findnode(db, name, ISC_FALSE, &node);
-	if (result == DNS_R_NOTFOUND)
-		return (DNS_R_SUCCESS);
-	if (result != DNS_R_SUCCESS)
+	if (result == ISC_R_NOTFOUND)
+		return (ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	
 	iter = NULL;
 	result = dns_db_allrdatasets(db, node, ver,
 				     (isc_stdtime_t) 0, &iter);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_node;
 
 	for (result = dns_rdatasetiter_first(iter);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(iter))
 	{
 		dns_rdataset_t rdataset;
@@ -315,11 +315,11 @@ foreach_rrset(dns_db_t *db,
 		result = (*action)(action_data, &rdataset);
 
 		dns_rdataset_disassociate(&rdataset);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			goto cleanup_iterator;
 	}
-	if (result == DNS_R_NOMORE)
-		result = DNS_R_SUCCESS;
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
 
  cleanup_iterator:
 	dns_rdatasetiter_destroy(&iter);
@@ -382,35 +382,35 @@ foreach_rr(dns_db_t *db,
 	
 	node = NULL;
 	result = dns_db_findnode(db, name, ISC_FALSE, &node);
-	if (result == DNS_R_NOTFOUND)
-		return (DNS_R_SUCCESS);
-	if (result != DNS_R_SUCCESS)
+	if (result == ISC_R_NOTFOUND)
+		return (ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, type, covers,
 				     (isc_stdtime_t) 0, &rdataset, NULL);
-	if (result == DNS_R_NOTFOUND) {
-		result = DNS_R_SUCCESS;
+	if (result == ISC_R_NOTFOUND) {
+		result = ISC_R_SUCCESS;
 		goto cleanup_node;
 	}
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_node;
 
 	for (result = dns_rdataset_first(&rdataset);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset))
 	{
 		rr_t rr;
 		dns_rdataset_current(&rdataset, &rr.rdata);
 		rr.ttl = rdataset.ttl;
 		result = (*rr_action)(rr_action_data, &rr);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			goto cleanup_rdataset;
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		goto cleanup_rdataset;
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 
  cleanup_rdataset:
 	dns_rdataset_disassociate(&rdataset);
@@ -438,14 +438,14 @@ rrset_exists_action(void *data, rr_t *rr) /*ARGSUSED*/
 {
 	UNUSED(data);
 	UNUSED(rr);
-	return (DNS_R_EXISTS);
+	return (ISC_R_EXISTS);
 }
 
 /*
  * Utility macro for RR existence checking functions.
  *
- * If the variable 'result' has the value DNS_R_EXISTS or
- * DNS_R_SUCCESS, set *exists to ISC_TRUE or ISC_FALSE,
+ * If the variable 'result' has the value ISC_R_EXISTS or
+ * ISC_R_SUCCESS, set *exists to ISC_TRUE or ISC_FALSE,
  * respectively, and return success.
  *
  * If 'result' has any other value, there was a failure.
@@ -455,10 +455,10 @@ rrset_exists_action(void *data, rr_t *rr) /*ARGSUSED*/
  * but that form generates tons of warnings on Solaris 2.6.
  */
 #define RETURN_EXISTENCE_FLAG 				\
-	return ((result == DNS_R_EXISTS) ? 		\
-		(*exists = ISC_TRUE, DNS_R_SUCCESS) : 	\
-		((result == DNS_R_SUCCESS) ?		\
-		 (*exists = ISC_FALSE, DNS_R_SUCCESS) :	\
+	return ((result == ISC_R_EXISTS) ? 		\
+		(*exists = ISC_TRUE, ISC_R_SUCCESS) : 	\
+		((result == ISC_R_SUCCESS) ?		\
+		 (*exists = ISC_FALSE, ISC_R_SUCCESS) :	\
 		 result));
 	
 /*
@@ -484,8 +484,8 @@ cname_compatibility_action(void *data, dns_rdataset_t *rrset)
 	UNUSED(data);
 	if (rrset->type != dns_rdatatype_cname &&
 	    ! dns_rdatatype_isdnssec(rrset->type))
-		return (DNS_R_EXISTS);
-	return (DNS_R_SUCCESS);
+		return (ISC_R_EXISTS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -511,7 +511,7 @@ count_rr_action(void *data, rr_t *rr) /*ARGSUSED*/ {
 	int *countp = data;
 	UNUSED(rr);
 	(*countp)++;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -542,8 +542,8 @@ static isc_result_t
 matching_rr_exists_action(void *data, rr_t *rr) {
 	matching_rr_exists_ctx_t *ctx = data;
 	if ((*ctx->predicate)(ctx->update_rr, &rr->rdata))
-		return (DNS_R_EXISTS);
-	return (DNS_R_SUCCESS);
+		return (ISC_R_EXISTS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -582,7 +582,7 @@ name_exists_action(void *data, dns_rdataset_t *rrset) /*ARGSUSED*/
 {
 	UNUSED(data);
 	UNUSED(rrset);
-	return (DNS_R_EXISTS);
+	return (ISC_R_EXISTS);
 }
 
 /*
@@ -668,7 +668,7 @@ temp_append(dns_diff_t *diff, dns_name_t *name, dns_rdata_t *rdata)
 /*
  * Compare two rdatasets represented as sorted lists of tuples.
  * All list elements must have the same owner name and type.
- * Return DNS_R_SUCCESS if the rdatasets are equal, rcode(dns_rcode_nxrrset)
+ * Return ISC_R_SUCCESS if the rdatasets are equal, rcode(dns_rcode_nxrrset)
  * if not.
  */
 static isc_result_t 
@@ -686,7 +686,7 @@ temp_check_rrset(dns_difftuple_t *a, dns_difftuple_t *b) {
 	}
 	if (a != NULL || b != NULL)
 		return (DNS_R_NXRRSET);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -716,7 +716,7 @@ temp_order(const void *av, const void *bv)
  * Check the "RRset exists (value dependent)" prerequisite information
  * in 'temp' against the contents of the database 'db'.
  *
- * Return DNS_R_SUCCESS if the prerequisites are satisfied,
+ * Return ISC_R_SUCCESS if the prerequisites are satisfied,
  * rcode(dns_rcode_nxrrset) if not.
  */
 
@@ -732,14 +732,14 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 	
 	/* Exit early if the list is empty (for efficiency only). */
 	if (ISC_LIST_HEAD(temp->tuples) == NULL)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	/*
 	 * Sort the prerequisite records by owner name,
 	 * type, and rdata.
 	 */
 	result = dns_diff_sort(temp, temp_order);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	dns_diff_init(mctx, &trash);
@@ -756,9 +756,9 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 		/* A new unique name begins here. */
 		node = NULL;
 		result = dns_db_findnode(db, name, ISC_FALSE, &node);
-		if (result == DNS_R_NOTFOUND)
+		if (result == ISC_R_NOTFOUND)
 			return (DNS_R_NXRRSET);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		/* A new unique type begins here. */		
@@ -784,7 +784,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			result = dns_db_findrdataset(db, node, ver, type,
 						     covers, (isc_stdtime_t) 0,
 						     &rdataset, NULL);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				dns_db_detachnode(db, &node);
 				return (DNS_R_NXRRSET);
 			}
@@ -793,19 +793,19 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			dns_diff_init(mctx, &u_rrs);
 
 			for (result = dns_rdataset_first(&rdataset);
-			     result == DNS_R_SUCCESS;
+			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(&rdataset))
 			{
 				dns_rdata_t rdata;
 				dns_rdataset_current(&rdataset, &rdata);
 				result = temp_append(&d_rrs, name, &rdata);
-				if (result != DNS_R_SUCCESS)
+				if (result != ISC_R_SUCCESS)
 					goto failure;
 			}
-			if (result != DNS_R_NOMORE)
+			if (result != ISC_R_NOMORE)
 				goto failure;
 			result = dns_diff_sort(&d_rrs, temp_order);
-			if (result != DNS_R_SUCCESS) 
+			if (result != ISC_R_SUCCESS) 
 				goto failure;
 
 			/*
@@ -827,7 +827,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			/* Compare the two sorted lists. */
 			result = temp_check_rrset(ISC_LIST_HEAD(u_rrs.tuples),
 						  ISC_LIST_HEAD(d_rrs.tuples));
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				goto failure;
 
 			/*
@@ -854,7 +854,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 	}
 	
 	dns_diff_clear(&trash);	
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /**************************************************************************/
@@ -950,7 +950,7 @@ delete_if_action(void *data, rr_t *rr) {
 				       rr->ttl, &rr->rdata);
 		return (result);
 	} else {
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	}
 }
 
@@ -1010,9 +1010,9 @@ get_current_rr(dns_message_t *msg, dns_section_t section,
 	*covers = rdataset->covers;
 	*ttl = rdataset->ttl;
 	result = dns_rdataset_first(rdataset);
-	INSIST(result == DNS_R_SUCCESS);
+	INSIST(result == ISC_R_SUCCESS);
 	dns_rdataset_current(rdataset, rdata);
-	INSIST(dns_rdataset_next(rdataset) == DNS_R_NOMORE);
+	INSIST(dns_rdataset_next(rdataset) == ISC_R_NOMORE);
 	*update_class = rdata->rdclass;
 	rdata->rdclass = zoneclass;
 }
@@ -1052,7 +1052,7 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 	dns_soa_setserial(serial, &addtuple->rdata);
 	CHECK(do_one_tuple(&addtuple, db, ver, diff));
 	CHECK(do_one_tuple(&deltuple, db, ver, diff));
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 	
  failure:
 	if (addtuple != NULL)
@@ -1094,7 +1094,7 @@ check_soa_increment(dns_db_t *db, dns_dbversion_t *ver,
 	update_serial = dns_soa_getserial(update_rdata);
 	
 	result = dns_db_getsoaserial(db, ver, &db_serial);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	if (DNS_SERIAL_GE(db_serial, update_serial)) {
@@ -1103,7 +1103,7 @@ check_soa_increment(dns_db_t *db, dns_dbversion_t *ver,
 		*ok = ISC_TRUE;
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
 }
 
@@ -1144,7 +1144,7 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 	CHECK(dns_db_createiterator(db, ISC_FALSE, &dbit));
 	
 	for (result = dns_dbiterator_seek(dbit, name);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_next(dbit))
 	{
 		dns_dbnode_t *node = NULL;
@@ -1172,8 +1172,8 @@ is_non_nxt_action(void *data, dns_rdataset_t *rrset)
 	if (!(rrset->type == dns_rdatatype_nxt ||
 	      (rrset->type == dns_rdatatype_sig &&
 	       rrset->covers == dns_rdatatype_nxt)))
-		return (DNS_R_EXISTS);
-	return (DNS_R_SUCCESS);
+		return (ISC_R_EXISTS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -1241,16 +1241,16 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			     (isc_stdtime_t) 0, NULL,
 			     dns_fixedname_name(&foundname),
 			     NULL, NULL);
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		*flag = ISC_FALSE;
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	} else if (result == DNS_R_ZONECUT) {
 		/* XXX should omit non-delegation types from NXT */
 		*flag = ISC_FALSE;
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	} else if (result == DNS_R_GLUE) {
 		*flag = ISC_TRUE;
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	} else {
 		return (result);
 	}
@@ -1280,7 +1280,7 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 			result = dns_dbiterator_next(dbit);			
 		else
 			result = dns_dbiterator_prev(dbit);
-		if (result == DNS_R_NOMORE) {
+		if (result == ISC_R_NOMORE) {
 			/* Wrap around. */
 			if (forward)
 				CHECK(dns_dbiterator_first(dbit));
@@ -1465,7 +1465,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 
 	result = find_zone_keys(db, newver, mctx, 
 				MAXZONEKEYS, zone_keys, &nkeys);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
 			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
 			      "could not get zone keys for secure "
@@ -1738,7 +1738,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 
 static isc_result_t
 send_update_event(ns_client_t *client, dns_zone_t *zone) {
-	isc_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = ISC_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
 	ns_client_t *evclient;
@@ -1747,9 +1747,9 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
 				   update_action, NULL, sizeof(*event));
 	if (event == NULL)
-		FAIL(DNS_R_NOMEMORY);
+		FAIL(ISC_R_NOMEMORY);
 	event->zone = zone;
-	event->result = DNS_R_SUCCESS;
+	event->result = ISC_R_SUCCESS;
 
 	evclient = NULL;
 	ns_client_attach(client, &evclient);
@@ -1769,7 +1769,7 @@ respond(ns_client_t *client, isc_result_t result) {
 	isc_result_t msg_result;
 
 	msg_result = dns_message_reply(client->message, ISC_TRUE);
-	if (msg_result != DNS_R_SUCCESS)
+	if (msg_result != ISC_R_SUCCESS)
 		goto msg_failure;
 	client->message->rcode = dns_result_torcode(result);
 
@@ -1798,7 +1798,7 @@ ns_update_start(ns_client_t *client)
 	 * Interpret the zone section.
 	 */
 	result = dns_message_firstname(request, DNS_SECTION_ZONE);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		FAILC(DNS_R_FORMERR,
 		      "update zone section empty");
 
@@ -1819,12 +1819,12 @@ ns_update_start(ns_client_t *client)
 
 	/* The zone section must have exactly one name. */
 	result = dns_message_nextname(request, DNS_SECTION_ZONE);
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		FAILC(DNS_R_FORMERR,
 		      "update zone section contains multiple RRs");
 
 	result = dns_zt_find(client->view->zonetable, zonename, NULL, &zone);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		FAILC(DNS_R_NOTAUTH,
 		      "not authoritative for update zone");
 
@@ -1886,7 +1886,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	/* Check prerequisites. */
 
 	for (result = dns_message_firstname(request, DNS_SECTION_PREREQUISITE);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_PREREQUISITE))
 	{
 		dns_name_t *name = NULL;
@@ -1952,17 +1952,17 @@ update_action(isc_task_t *task, isc_event_t *event)
 		} else if (update_class == zoneclass) {
 			/* "temp<rr.name, rr.type> += rr;" */
 			result = temp_append(&temp, name, &rdata);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "temp entry creation failed: %s",
 						 dns_result_totext(result));
-				FAIL(DNS_R_UNEXPECTED);
+				FAIL(ISC_R_UNEXPECTED);
 			}
 		} else {
 			FAILC(DNS_R_FORMERR, "malformed prerequisite");
 		}
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		FAIL(result);
 
 	/*
@@ -1970,7 +1970,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 * prerequisites.
 	 */
 	result = temp_check(mctx, &temp, db, ver);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		FAILC(result, "'RRset exists (value dependent)' "
 		      "prerequisite not satisfied");
 
@@ -1992,7 +1992,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	/* Perform the Update Section Prescan. */
 
 	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
 	{
 		dns_name_t *name = NULL;
@@ -2060,7 +2060,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 			}
 		}
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		FAIL(result);
 
 	isc_log_write(UPDATE_DEBUG_LOGARGS, "update section prescan OK");
@@ -2068,7 +2068,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	/* Process the Update Section. */
 
 	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
 	{
 		dns_name_t *name = NULL;
@@ -2144,7 +2144,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 				result = update_one_rr(db, ver, &diff,
 						       DNS_DIFFOP_ADD,
 						       name, ttl, &rdata);
-				if (result != DNS_R_SUCCESS)
+				if (result != ISC_R_SUCCESS)
 					FAIL(result);
 			} else {
 				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
@@ -2211,7 +2211,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 					rdata.type, covers, &rdata, &diff));
 		}
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		FAIL(result);
 
 	/*
@@ -2233,7 +2233,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 		if (dns_db_issecure(db)) {
 			result = update_signatures(mctx, db,
 						   oldver, ver, &diff);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
 					      NS_LOGMODULE_UPDATE,
 					      ISC_LOG_ERROR,
@@ -2249,11 +2249,11 @@ update_action(isc_task_t *task, isc_event_t *event)
 		journal = NULL;
 		result = dns_journal_open(mctx, dns_zone_getjournal(zone),
 					  ISC_TRUE, &journal);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			FAILS(result, "journal open failed");
 
 		result = dns_journal_write_transaction(journal, &diff);
-		if (result != DNS_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			dns_journal_destroy(&journal);
 			FAILS(result, "journal write failed");
 		}
@@ -2268,7 +2268,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 */
 	isc_log_write(UPDATE_DEBUG_LOGARGS, "committing update transaction");
 	dns_db_closeversion(db, &ver, ISC_TRUE);
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 	goto common;
 	
  failure:

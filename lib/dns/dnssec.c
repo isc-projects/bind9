@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.25 2000/03/29 01:32:20 bwelling Exp $
+ * $Id: dnssec.c,v 1.26 2000/04/06 22:01:55 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -313,7 +313,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		goto cleanup_array;
 	isc_buffer_used(&sigbuf, &r);
 	if (r.length != sig.siglen) {
-		ret = DNS_R_NOSPACE;
+		ret = ISC_R_NOSPACE;
 		goto cleanup_array;
 	}
 	memcpy(sig.signature, r.base, sig.siglen);
@@ -503,7 +503,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 		pubkey = NULL;
 		result = dns_rdataset_next(&rdataset);
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		goto failure;
 	if (count == 0)
 		result = ISC_R_NOTFOUND;

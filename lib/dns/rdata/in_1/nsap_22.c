@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.14 2000/03/20 18:03:53 gson Exp $ */
+/* $Id: nsap_22.c,v 1.15 2000/04/06 22:03:30 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -46,7 +46,7 @@ fromtext_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	sr = &token.value.as_textregion;
 	if (sr->length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	if (sr->base[0] != '0' || (sr->base[1] != 'x' && sr->base[1] != 'X'))
 		return (DNS_R_SYNTAX);
 	isc_textregion_consume(sr, 2);
@@ -68,9 +68,9 @@ fromtext_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		isc_textregion_consume(sr, 1);
 	}
 	if (digits) {
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -92,7 +92,7 @@ totext_in_nsap(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		isc_region_consume(&region, 1);
 		RETERR(str_totext(buf, target));
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -110,11 +110,11 @@ fromwire_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	isc_buffer_active(source, &region);
 	if (region.length < 1)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 
 	RETERR(mem_tobuffer(target, region.base, region.length));
 	isc_buffer_forward(source, region.length);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -154,7 +154,7 @@ fromstruct_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -166,7 +166,7 @@ tostruct_in_nsap(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -185,7 +185,7 @@ additionaldata_in_nsap(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

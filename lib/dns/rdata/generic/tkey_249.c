@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.23 2000/03/20 22:44:35 gson Exp $ */
+/* $Id: tkey_249.c,v 1.24 2000/04/06 22:03:15 explorer Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -68,7 +68,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* Error */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (dns_rcode_fromtext(&rcode, &token.value.as_textregion)
-				!= DNS_R_SUCCESS) {
+				!= ISC_R_SUCCESS) {
 		i = strtol(token.value.as_pointer, &e, 10);
 		if (*e != 0)
 			return (DNS_R_UNKNOWN);
@@ -142,7 +142,7 @@ totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* Error */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	if (dns_rcode_totext((dns_rcode_t)n, target) == DNS_R_SUCCESS)
+	if (dns_rcode_totext((dns_rcode_t)n, target) == ISC_R_SUCCESS)
 		RETERR(str_totext(" ", target));
 	else {
 		sprintf(buf, "%lu ", n);
@@ -222,27 +222,27 @@ fromwire_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 */
 	isc_buffer_active(source, &sr);
 	if (sr.length < 12)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 12));
 	isc_region_consume(&sr, 12);
 	isc_buffer_forward(source, 12);
 
 	/* Key Length + Key Data */
 	if (sr.length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	n = uint16_fromregion(&sr);
 	if (sr.length < n + 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, n + 2));
 	isc_region_consume(&sr, n + 2);
 	isc_buffer_forward(source, n + 2);
 
 	/* Other Length + Other Data */
 	if (sr.length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	n = uint16_fromregion(&sr);
 	if (sr.length < n + 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	isc_buffer_forward(source, n + 2);
 	return (mem_tobuffer(target, sr.base, n + 2));
 }
@@ -337,7 +337,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (tkey->keylen > 0) {
 		isc_buffer_available(target, &tr);
 		if (tr.length < tkey->keylen)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tkey->key, tkey->keylen);
 		isc_buffer_add(target, tkey->keylen);
 	}
@@ -349,12 +349,12 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (tkey->otherlen > 0) {
 		isc_buffer_available(target, &tr);
 		if (tr.length < tkey->otherlen)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tkey->other, tkey->otherlen);
 		isc_buffer_add(target, tkey->otherlen);
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -416,7 +416,7 @@ tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	/* Key */
 	tkey->key = isc_mem_get(mctx, tkey->keylen);
 	if (tkey->key == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	memcpy(tkey->key, sr.base, tkey->keylen);
 	isc_region_consume(&sr, tkey->keylen);
 
@@ -429,11 +429,11 @@ tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	/* Other */
 	tkey->other = isc_mem_get(mctx, tkey->otherlen);
 	if (tkey->other == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	memcpy(tkey->other, sr.base, tkey->otherlen);
 	isc_region_consume(&sr, tkey->otherlen);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -458,7 +458,7 @@ additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 249);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -469,7 +469,7 @@ digest_tkey(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 
 	REQUIRE(rdata->type == 249);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 #endif	/* RDATA_GENERIC_TKEY_249_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.52 2000/04/06 20:25:48 gson Exp $ */
+/* $Id: xfrout.c,v 1.53 2000/04/06 22:01:04 explorer Exp $ */
 
 #include <config.h>
 
@@ -90,7 +90,7 @@
 
 #define CHECK(op) \
      	do { result = (op); 					\
-		if (result != DNS_R_SUCCESS) goto failure; 	\
+		if (result != ISC_R_SUCCESS) goto failure; 	\
 	} while (0)
 
 /**************************************************************************/
@@ -137,34 +137,34 @@ db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	it->now = now;
 	it->node = NULL;
 	result = dns_db_createiterator(it->db, ISC_FALSE, &it->dbit);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	it->rdatasetit = NULL;
 	dns_rdataset_init(&it->rdataset);
 	dns_fixedname_init(&it->fixedname);
 	INSIST(! dns_rdataset_isassociated(&it->rdataset));
-	it->result = DNS_R_SUCCESS;
+	it->result = ISC_R_SUCCESS;
 	return (it->result);
 }
 
 isc_result_t
 db_rr_iterator_first(db_rr_iterator_t *it) {
 	it->result = dns_dbiterator_first(it->dbit);
-	if (it->result != DNS_R_SUCCESS)
+	if (it->result != ISC_R_SUCCESS)
 		return (it->result);
 	it->result = dns_dbiterator_current(it->dbit, &it->node,
 				    dns_fixedname_name(&it->fixedname));
-	if (it->result != DNS_R_SUCCESS) 
+	if (it->result != ISC_R_SUCCESS) 
 		return (it->result);
 
 	it->result = dns_db_allrdatasets(it->db, it->node,
 					 it->ver, it->now,
 					 &it->rdatasetit);
-	if (it->result != DNS_R_SUCCESS) 
+	if (it->result != ISC_R_SUCCESS) 
 		return (it->result);
 		
 	it->result = dns_rdatasetiter_first(it->rdatasetit);
-	if (it->result != DNS_R_SUCCESS) 
+	if (it->result != ISC_R_SUCCESS) 
 		return (it->result);
 
 	dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
@@ -176,7 +176,7 @@ db_rr_iterator_first(db_rr_iterator_t *it) {
 
 isc_result_t
 db_rr_iterator_next(db_rr_iterator_t *it) {
-	if (it->result != DNS_R_SUCCESS)
+	if (it->result != ISC_R_SUCCESS)
 		return (it->result);
 
 	INSIST(it->dbit != NULL);
@@ -184,32 +184,32 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 	INSIST(it->rdatasetit != NULL);
 
 	it->result = dns_rdataset_next(&it->rdataset);
-	if (it->result == DNS_R_NOMORE) {
+	if (it->result == ISC_R_NOMORE) {
 		dns_rdataset_disassociate(&it->rdataset);
 		it->result = dns_rdatasetiter_next(it->rdatasetit);
-		while (it->result == DNS_R_NOMORE) {
+		while (it->result == ISC_R_NOMORE) {
 			dns_rdatasetiter_destroy(&it->rdatasetit);
 			dns_db_detachnode(it->db, &it->node);
 			it->result = dns_dbiterator_next(it->dbit);
-			if (it->result == DNS_R_NOMORE) {
+			if (it->result == ISC_R_NOMORE) {
 				/* We are at the end of the entire database. */
 				return (it->result);
 			}
-			if (it->result != DNS_R_SUCCESS)
+			if (it->result != ISC_R_SUCCESS)
 				return (it->result);
 			it->result = dns_dbiterator_current(it->dbit,
 				    &it->node,
 				    dns_fixedname_name(&it->fixedname));
-			if (it->result != DNS_R_SUCCESS)
+			if (it->result != ISC_R_SUCCESS)
 				return (it->result);
 			it->result = dns_db_allrdatasets(it->db, it->node,
 					 it->ver, it->now,
 					 &it->rdatasetit);
-			if (it->result != DNS_R_SUCCESS)
+			if (it->result != ISC_R_SUCCESS)
 				return (it->result);
 			it->result = dns_rdatasetiter_first(it->rdatasetit);
 		}
-		if (it->result != DNS_R_SUCCESS)
+		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
 	}
@@ -232,7 +232,7 @@ db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 		      isc_uint32_t *ttl, dns_rdata_t **rdata)
 {
 	REQUIRE(name != NULL && *name == NULL);
-	REQUIRE(it->result == DNS_R_SUCCESS);
+	REQUIRE(it->result == ISC_R_SUCCESS);
 	*name = dns_fixedname_name(&it->fixedname);
 	*ttl = it->rdataset.ttl;
 	dns_rdataset_current(&it->rdataset, &it->rdata);
@@ -260,7 +260,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	ISC_LINK_INIT(&rdl, link);
 	dns_rdataset_init(&rds);
 	ISC_LIST_APPEND(rdl.rdata, rdata, link);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(&rdl, &rds) == DNS_R_SUCCESS);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(&rdl, &rds) == ISC_R_SUCCESS);
 		
 	isc_buffer_init(&buf, mem, sizeof(mem), ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(&rds, name,
@@ -274,7 +274,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	 * We could use xfrout_log(), but that would produce
 	 * very long lines with a repetitive prefix.
 	 */
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		isc_buffer_used(&buf, &r);
 		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
 			      "%.*s", (int) r.length, (char *) r.base);
@@ -347,7 +347,7 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 
 	s = isc_mem_get(mctx, sizeof(*s));
 	if (s == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	s->common.mctx = mctx;
 	s->common.methods = &ixfr_rrstream_methods;
 	s->journal = NULL;
@@ -357,7 +357,7 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 	CHECK(dns_journal_iter_init(s->journal, begin_serial, end_serial));
 
 	*sp = (rrstream_t *) s;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  failure:
 	ixfr_rrstream_destroy((rrstream_t **) &s);
@@ -437,7 +437,7 @@ axfr_rrstream_create(isc_mem_t *mctx,
 
 	s = isc_mem_get(mctx, sizeof(*s));
 	if (s == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	s->common.mctx = mctx;
 	s->common.methods = &axfr_rrstream_methods;
 	s->it_valid = ISC_FALSE;
@@ -446,7 +446,7 @@ axfr_rrstream_create(isc_mem_t *mctx,
 	s->it_valid = ISC_TRUE;
 
 	*sp = (rrstream_t *) s;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  failure:
 	axfr_rrstream_destroy((rrstream_t **) &s);
@@ -459,7 +459,7 @@ axfr_rrstream_first(rrstream_t *rs)
 	axfr_rrstream_t *s = (axfr_rrstream_t *) rs;
 	isc_result_t result;
 	result = db_rr_iterator_first(&s->it);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	/* Skip SOA records. */
 	for (;;) {
@@ -471,7 +471,7 @@ axfr_rrstream_first(rrstream_t *rs)
 		if (rdata->type != dns_rdatatype_soa)
 			break;
 		result = db_rr_iterator_next(&s->it);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			break;
 	}
 	return (result);
@@ -489,7 +489,7 @@ axfr_rrstream_next(rrstream_t *rs)
 		isc_uint32_t ttl_dummy;
 		dns_rdata_t *rdata = NULL;
 		result = db_rr_iterator_next(&s->it);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			break;
 		db_rr_iterator_current(&s->it, &name_dummy,
 				      &ttl_dummy, &rdata);
@@ -552,7 +552,7 @@ soa_rrstream_create(isc_mem_t *mctx,
 
 	s = isc_mem_get(mctx, sizeof(*s));
 	if (s == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	s->common.mctx = mctx;
 	s->common.methods = &soa_rrstream_methods;
 	s->soa_tuple = NULL;
@@ -561,7 +561,7 @@ soa_rrstream_create(isc_mem_t *mctx,
 				    &s->soa_tuple));
 
 	*sp = (rrstream_t *) s;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  failure:
 	soa_rrstream_destroy((rrstream_t **) &s);
@@ -571,13 +571,13 @@ soa_rrstream_create(isc_mem_t *mctx,
 static isc_result_t
 soa_rrstream_first(rrstream_t *rs) {
 	UNUSED(rs);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
 soa_rrstream_next(rrstream_t *rs) {
 	UNUSED(rs);
-	return (DNS_R_NOMORE);
+	return (ISC_R_NOMORE);
 }
 
 static void
@@ -655,7 +655,7 @@ compound_rrstream_create(isc_mem_t *mctx,
 
 	s = isc_mem_get(mctx, sizeof(*s));
 	if (s == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	s->common.mctx = mctx;
 	s->common.methods = &compound_rrstream_methods;
 	s->components[0] = *soa_stream;
@@ -667,7 +667,7 @@ compound_rrstream_create(isc_mem_t *mctx,
 	*soa_stream = NULL;
 	*data_stream = NULL;
 	*sp = (rrstream_t *) s;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -677,7 +677,7 @@ compound_rrstream_first(rrstream_t *rs) {
 	do {
 		rrstream_t *curstream = s->components[s->state];
 		s->result = curstream->methods->first(curstream);
-	} while (s->result == DNS_R_NOMORE && s->state < 2) ;
+	} while (s->result == ISC_R_NOMORE && s->state < 2) ;
 	return (s->result);
 }
 
@@ -686,9 +686,9 @@ compound_rrstream_next(rrstream_t *rs) {
 	compound_rrstream_t *s = (compound_rrstream_t *) rs;
 	rrstream_t *curstream = s->components[s->state];	
 	s->result = curstream->methods->next(curstream);
-	while (s->result == DNS_R_NOMORE) {
+	while (s->result == ISC_R_NOMORE) {
 		if (s->state == 2)
-			return (DNS_R_NOMORE);
+			return (ISC_R_NOMORE);
 		s->state++;
 		curstream = s->components[s->state];
 		s->result = curstream->methods->first(curstream);
@@ -704,7 +704,7 @@ compound_rrstream_current(rrstream_t *rs,
 	compound_rrstream_t *s = (compound_rrstream_t *) rs;
 	rrstream_t *curstream;
 	INSIST(0 <= s->state && s->state < 3);
-	INSIST(s->result == DNS_R_SUCCESS);
+	INSIST(s->result == ISC_R_SUCCESS);
 	curstream = s->components[s->state];
 	curstream->methods->current(curstream, name, ttl, rdata);
 }
@@ -828,7 +828,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	 * Apply quota.
 	 */
 	result = isc_quota_attach(&ns_g_server->xfroutquota, &quota);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "%s request denied: %s", mnemonic,
 			      isc_result_totext(result));
@@ -839,7 +839,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	 * Interpret the question section.
 	 */
 	result = dns_message_firstname(request, DNS_SECTION_QUESTION);
-	INSIST(result == DNS_R_SUCCESS);
+	INSIST(result == ISC_R_SUCCESS);
 
 	/*
 	 * The question section must contain exactly one question, and
@@ -853,11 +853,11 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	if (ISC_LIST_NEXT(question_rdataset, link) != NULL)
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	result = dns_message_nextname(request, DNS_SECTION_QUESTION);
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		FAILC(DNS_R_FORMERR, "multiple questions");
 
 	result = dns_zt_find(client->view->zonetable, question_name, NULL, &zone);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		FAILC(DNS_R_NOTAUTH, "non-authoritative zone");
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
@@ -877,7 +877,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	 * the same name and class as the question.
 	 */
 	for (result = dns_message_firstname(request, DNS_SECTION_AUTHORITY);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_AUTHORITY))
 	{
 		soa_name = NULL;
@@ -901,7 +901,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 			CHECK(dns_rdataset_first(soa_rdataset));
 			dns_rdataset_current(soa_rdataset, &soa_rdata);
 			result = dns_rdataset_next(soa_rdataset);
-			if (result == DNS_R_SUCCESS)
+			if (result == ISC_R_SUCCESS)
 				FAILC(DNS_R_FORMERR,
 				      "IXFR authority section "
 				      "has multiple SOAs");
@@ -910,7 +910,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		}
 	}
  got_soa:
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		CHECK(result);
 
 	xfrout_log1(client, question_name, ISC_LOG_DEBUG(6), 
@@ -1032,7 +1032,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	sendstream(xfr);
 	xfr = NULL;
 	
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 
  failure:
 	if (quota != NULL)
@@ -1054,7 +1054,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	/* XXX kludge */
 	if (xfr != NULL) {
 		xfrout_fail(xfr, result, "setting up zone transfer");
-	} else if (result != DNS_R_SUCCESS) {
+	} else if (result != ISC_R_SUCCESS) {
 		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT,
 			      ISC_LOG_DEBUG(3), "zone transfer setup failed"); 
 		ns_client_error(client, result);
@@ -1080,7 +1080,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	INSIST(xfrp != NULL && *xfrp == NULL);
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
 	if (xfr == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	xfr->mctx = mctx;
 	xfr->client = NULL;
 	ns_client_attach(client, &xfr->client);
@@ -1114,7 +1114,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	len = 65535;
 	mem = isc_mem_get(mctx, len);
 	if (mem == NULL) {
-		result = DNS_R_NOMEMORY;
+		result = ISC_R_NOMEMORY;
 		goto failure;
 	}
 	isc_buffer_init(&xfr->buf, mem, len, ISC_BUFFERTYPE_BINARY);
@@ -1126,7 +1126,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	len = 2 + 65535;
 	mem = isc_mem_get(mctx, len);
 	if (mem == NULL) {
-		result = DNS_R_NOMEMORY;
+		result = ISC_R_NOMEMORY;
 		goto failure;
 	}
 	isc_buffer_init(&xfr->txlenbuf, mem, 2, ISC_BUFFERTYPE_BINARY);
@@ -1153,7 +1153,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->client->shutdown_arg = xfr;
 		
 	*xfrp = xfr;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 	
 failure:
 	xfrout_ctx_destroy(&xfr);
@@ -1320,14 +1320,14 @@ sendstream(xfrout_ctx_t *xfr)
 		dns_message_gettemprdataset(msg, &msgrds);
 		dns_rdataset_init(msgrds);
 		result = dns_rdatalist_tordataset(msgrdl, msgrds);
-		INSIST(result == DNS_R_SUCCESS);
+		INSIST(result == ISC_R_SUCCESS);
 
 		ISC_LIST_APPEND(msgname->list, msgrds, link);
 
 		dns_message_addname(msg, msgname, DNS_SECTION_ANSWER);
 
 		result = xfr->stream->methods->next(xfr->stream);
-		if (result == DNS_R_NOMORE) {
+		if (result == ISC_R_NOMORE) {
 			xfr->end_of_stream = ISC_TRUE;
 			break;
 		}
@@ -1389,7 +1389,7 @@ sendstream(xfrout_ctx_t *xfr)
 	if (msg != NULL) {
 		dns_message_destroy(&msg);
 	}
-	if (result == DNS_R_SUCCESS)
+	if (result == ISC_R_SUCCESS)
 		return;
 
 	xfrout_fail(xfr, result, "sending zone data");
@@ -1449,7 +1449,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 		/* End of zone transfer stream. */
 		xfrout_log(xfr, ISC_LOG_DEBUG(6),
 			   "end of transfer");
-		ns_client_next(xfr->client, DNS_R_SUCCESS);
+		ns_client_next(xfr->client, ISC_R_SUCCESS);
 		xfrout_ctx_destroy(&xfr);
 	}
 }
@@ -1505,7 +1505,7 @@ xfrout_logv(ns_client_t *client, dns_name_t *zonename, int level,
 
 	isc_buffer_init(&znbuf, znmem, sizeof(znmem), ISC_BUFFERTYPE_TEXT);
 	result = dns_name_totext(zonename, omit_final_dot, &znbuf);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		isc_buffer_clear(&znbuf);
 		isc_buffer_putmem(&znbuf, (unsigned char *)"<UNKNOWN>",
 				  strlen("<UNKNOWN>"));

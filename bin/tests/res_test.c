@@ -125,7 +125,7 @@ launch(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 					       NULL, options, task, done,
 					       NULL,
 					       &fetch) ==
-		      DNS_R_SUCCESS);
+		      ISC_R_SUCCESS);
 	ISC_LIST_APPEND(fetches, fetch, link);
 
 	UNLOCK(&lock);
@@ -206,13 +206,13 @@ main(int argc, char *argv[]) {
 
 	dispatch = NULL;
 	RUNTIME_CHECK(dns_dispatch_create(mctx, s, task1, 4096, 1000, 1000,
-					  17, 19, &dispatch) == DNS_R_SUCCESS);
+					  17, 19, &dispatch) == ISC_R_SUCCESS);
 
 #ifdef notyet
 	res = NULL;
 	RUNTIME_CHECK(dns_resolver_create(mctx, view, taskmgr, 10, timermgr,
 					  dispatch, &res) ==
-		      DNS_R_SUCCESS);
+		      ISC_R_SUCCESS);
 
 	dns_view_setresolver(view, res);
 	dns_view_freeze(view);

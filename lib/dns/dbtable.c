@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.13 2000/02/03 23:43:46 halley Exp $
+ * $Id: dbtable.c,v 1.14 2000/04/06 22:01:53 explorer Exp $
  */
 
 /*
@@ -73,11 +73,11 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	dbtable = (dns_dbtable_t *)isc_mem_get(mctx, sizeof(*dbtable));
 	if (dbtable == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	dbtable->rbt = NULL;
 	result = dns_rbt_create(mctx, dbdetach, NULL, &dbtable->rbt);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto clean1;
 
 	iresult = isc_mutex_init(&dbtable->lock);
@@ -85,7 +85,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_lock_init() failed: %s",
 				 isc_result_totext(result));
-		result = DNS_R_UNEXPECTED;
+		result = ISC_R_UNEXPECTED;
 		goto clean2;
 	}
 
@@ -94,7 +94,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));
-		result = DNS_R_UNEXPECTED;
+		result = ISC_R_UNEXPECTED;
 		goto clean3;
 	}
 
@@ -106,7 +106,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	*dbtablep = dbtable;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  clean3:
 	(void)isc_mutex_destroy(&dbtable->lock);
@@ -223,7 +223,7 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 	result = dns_rbt_findname(dbtable->rbt, name, NULL,
 				  (void **)&stored_data);
 
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		INSIST(stored_data == db);
 
 		dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
@@ -281,13 +281,13 @@ dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp) {
 	result = dns_rbt_findname(dbtable->rbt, name, NULL,
 				  (void **)&stored_data);
 
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		dns_db_attach(stored_data, dbp);
 	else if (dbtable->default_db != NULL) {
 		dns_db_attach(dbtable->default_db, dbp);
 		result = DNS_R_PARTIALMATCH;
 	} else
-		result = DNS_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 
 	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
 

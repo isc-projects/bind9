@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.19 2000/03/16 02:31:14 tale Exp $ */
+/* $Id: mr_9.c,v 1.20 2000/04/06 22:03:00 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -137,7 +137,7 @@ fromstruct_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -147,7 +147,7 @@ tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -165,7 +165,7 @@ additionaldata_mr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

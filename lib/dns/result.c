@@ -33,7 +33,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"bitstring too long",			/*  3 */
 	"empty label",				/*  4 */
 	"bad dotted quad",			/*  5 */
-	"unexpected end of input",		/*  6 */
+	"UNUSED6",				/*  6 */
 	"unknown class/type",			/*  7 */
 	"bad label type",			/*  8 */
 	"bad compression pointer",		/*  9 */
@@ -49,7 +49,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"no owner",				/* 19 */
 	"no ttl",				/* 20 */
 	"bad class",				/* 21 */
-	"unexpected token",			/* 22 */
+	"UNUSED22",				/* 22 */
 	"partial match",			/* 23 */
 	"new origin",				/* 24 */
 	"unchanged",				/* 25 */
@@ -171,7 +171,6 @@ dns_result_torcode(isc_result_t result) {
 	case DNS_R_LABELTOOLONG:
 	case DNS_R_BADBITSTRING:
 	case DNS_R_BITSTRINGTOOLONG:
-	case DNS_R_UNEXPECTEDEND:
 	case DNS_R_UNKNOWN:
 	case DNS_R_BADLABELTYPE:
 	case DNS_R_BADPOINTER:

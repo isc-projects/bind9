@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.22 2000/03/23 05:18:41 tale Exp $ */
+/* $Id: compress.c,v 1.23 2000/04/06 22:01:50 explorer Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -60,11 +60,11 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
 	cctx->edns = edns;
 	cctx->global = NULL;
 	result = dns_rbt_create(mctx, free_offset, mctx, &cctx->global);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	cctx->mctx = mctx;
 	cctx->magic = CCTX_MAGIC;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -154,11 +154,11 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
 	result = dns_rbtnodechain_first(&chain, cctx->global, foundname,
 					origin);
 
-	while (result == DNS_R_NEWORIGIN || result == DNS_R_SUCCESS) {
+	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
 		result = dns_rbtnodechain_current(&chain, foundname,
 						  origin, &node);
 
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			break;
 
 		if (node->data != NULL &&
@@ -168,12 +168,12 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
 						      NULL : origin,
 						      fullname, NULL);
 
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				break;
 
 			result = dns_rbt_deletename(cctx->global, fullname,
 						    ISC_FALSE);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				break;
 			/*
 			 * If the delete is successful the chain is broken.
@@ -287,14 +287,14 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 		isc_buffer_init(&target, buffer, sizeof buffer,
 				ISC_BUFFERTYPE_BINARY);
 		result = dns_name_concatenate(&name, suffix, &full, &target);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return;
 		data = isc_mem_get(mctx, sizeof *data);
 		if (data == NULL)
 			return;
 		*data = offset;
 		result = dns_rbt_addname(root, &full, data);
-		if (result != DNS_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(mctx, data, sizeof *data);
 			return;
 		}
@@ -339,7 +339,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	dns_fixedname_init(&found);
 	foundname = dns_fixedname_name(&found);
 	result = dns_rbt_findname(root, name, foundname, (void *)&data);
-	if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		return (ISC_FALSE);
 	if (data == NULL)		/* root label */
 		return (ISC_FALSE);
@@ -368,7 +368,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 			dns_name_getlabelsequence(name, 0, prefixlen, prefix);
 		result = dns_name_concatenate(NULL, foundname, suffix,
 					     workspace);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (ISC_FALSE);
 		*offset = *data;
 		return (ISC_TRUE);
@@ -380,7 +380,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	 */
 	INSIST(result == DNS_R_PARTIALMATCH);
 	result = dns_name_concatenate(NULL, foundname, suffix, workspace);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
 	prefixlen = namelabels - foundlabels;
 	dns_name_init(&tmpprefix, NULL);
@@ -409,7 +409,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	dns_name_fromregion(&tmpsuffix, &region);
 	result = dns_name_concatenate(&tmpprefix, &tmpsuffix, prefix,
 				      workspace);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
 	*offset = *data;
 	return (ISC_TRUE);

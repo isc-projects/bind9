@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.23 2000/03/20 22:48:58 gson Exp $ */
+/* $Id: nxt_30.c,v 1.24 2000/04/06 22:03:05 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -75,7 +75,7 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	} while (1);
 	isc_lex_ungettoken(lexer, &token);
 	if (first) 
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	n = (maxcovered + 8) / 8;
 	return (mem_tobuffer(target, bm, n));
 }
@@ -111,7 +111,7 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 					result = dns_rdatatype_totext(
 						  (dns_rdatatype_t)(i * 8 + j),
 						  target);
-					if (result == DNS_R_SUCCESS) {
+					if (result == ISC_R_SUCCESS) {
 						RETERR(str_totext(" ",
 								  target));
 						continue;
@@ -152,7 +152,7 @@ fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_EXTRADATA);
 	RETERR(mem_tobuffer(target, sr.base, sr.length));
 	isc_buffer_forward(source, sr.length);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -214,7 +214,7 @@ fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -225,7 +225,7 @@ tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -246,7 +246,7 @@ additionaldata_nxt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -261,7 +261,7 @@ digest_nxt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);
 	result = dns_name_digest(&name, digest, arg);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_region_consume(&r, name_length(&name));
 

@@ -265,7 +265,7 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 			/*
 			 * We know the key but haven't validated it yet.
 			 */
-			result = DNS_R_NOTIMPLEMENTED;
+			result = ISC_R_NOTIMPLEMENTED;
 		} else {
 			/*
 			 * XXXRTH  What should we do if this is an untrusted
@@ -290,7 +290,7 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 		 *
 		 * XXX  Start a fetch.
 		 */
-		result = DNS_R_NOTIMPLEMENTED;
+		result = ISC_R_NOTIMPLEMENTED;
 	} else if (result ==  DNS_R_NCACHENXDOMAIN ||
 		   result == DNS_R_NCACHENXRRSET ||
 		   result == DNS_R_NXDOMAIN ||
@@ -372,7 +372,7 @@ validator_start(dns_validator_t *val) {
 		/*
 		 * This is a nonexistence validation.
 		 */
-		result = DNS_R_NOTIMPLEMENTED;
+		result = ISC_R_NOTIMPLEMENTED;
 	}
 
 	if (result != DNS_R_CONTINUE)

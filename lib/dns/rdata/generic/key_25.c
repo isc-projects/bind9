@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.17 2000/03/16 22:42:32 halley Exp $ */
+/* $Id: key_25.c,v 1.18 2000/04/06 22:02:50 explorer Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -59,7 +59,7 @@ fromtext_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	
 	/* No Key? */
 	if ((flags & 0xc000) == 0xc000)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	return (isc_base64_tobuffer(lexer, target, -1));
 }
@@ -98,7 +98,7 @@ totext_key(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	/* No Key? */
 	if ((flags & 0xc000) == 0xc00)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	/* key */
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
@@ -109,7 +109,7 @@ totext_key(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
 
-	return DNS_R_SUCCESS;
+	return ISC_R_SUCCESS;
 }
 
 static inline isc_result_t
@@ -127,7 +127,7 @@ fromwire_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	isc_buffer_active(source, &sr);
 	if (sr.length < 4)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -188,12 +188,12 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	if (key->datalen > 0) {
 		isc_buffer_available(target, &tr);
 		if (tr.length < key->datalen)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		memcpy(tr.base, key->data, key->datalen);
 		isc_buffer_add(target, key->datalen);
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -236,14 +236,14 @@ tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	if (key->datalen > 0) {
 		key->data = isc_mem_get(mctx, key->datalen);
 		if (key->data == NULL)
-			return (DNS_R_NOMEMORY);
+			return (ISC_R_NOMEMORY);
 		memcpy(key->data, sr.base, key->datalen);
 		isc_region_consume(&sr, key->datalen);
 	}
 	else
 		key->data = NULL;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -266,7 +266,7 @@ additionaldata_key(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

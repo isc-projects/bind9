@@ -84,7 +84,7 @@ hex_dump(isc_buffer_t *b)
 static inline void
 CHECKRESULT(isc_result_t result, char *msg)
 {
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, isc_result_totext(result));
 
 		exit(1);
@@ -291,7 +291,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 	printf("App:  Got request.  Result: %s\n",
 	       isc_result_totext(ev->result));
 
-	if (ev->result != DNS_R_SUCCESS) {
+	if (ev->result != ISC_R_SUCCESS) {
 		printf("Got error, terminating application\n");
 		dns_dispatch_removerequest(disp, &resp, &ev);
 		dns_dispatch_detach(&disp);
@@ -331,7 +331,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 		printf("--- adding request\n");
 		RUNTIME_CHECK(dns_dispatch_addrequest(disp, task, got_request,
 						      NULL, &resp)
-			      == DNS_R_SUCCESS);
+			      == ISC_R_SUCCESS);
 		break;
 
 	default:

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.20 2000/03/16 22:42:32 halley Exp $ */
+/* $Id: hinfo_13.c,v 1.21 2000/04/06 22:02:47 explorer Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -43,7 +43,7 @@ fromtext_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				ISC_FALSE));
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -112,7 +112,7 @@ fromstruct_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 13);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -123,7 +123,7 @@ tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -141,7 +141,7 @@ additionaldata_hinfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 13);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mg_8.c,v 1.20 2000/03/16 02:00:35 brister Exp $ */
+/* $Id: mg_8.c,v 1.21 2000/04/06 22:02:57 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
@@ -142,7 +142,7 @@ fromstruct_mg(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -154,7 +154,7 @@ tostruct_mg(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -173,7 +173,7 @@ additionaldata_mg(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

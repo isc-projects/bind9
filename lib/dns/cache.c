@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.14 2000/03/17 17:45:00 gson Exp $ */
+/* $Id: cache.c,v 1.15 2000/04/06 22:01:49 explorer Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -159,7 +159,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	result = cache_cleaner_init(cache, taskmgr, timermgr,
 				    &cache->cleaner);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_db;
 
 	*cachep = cache;

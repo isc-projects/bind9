@@ -82,7 +82,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 
 	keytable = isc_mem_get(mctx, sizeof *keytable);
 	if (keytable == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	keytable->table = NULL;
 	result = dns_rbt_create(mctx, free_keynode, mctx, &keytable->table);

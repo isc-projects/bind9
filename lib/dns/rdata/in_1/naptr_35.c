@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.18 2000/03/20 22:44:36 gson Exp $ */
+/* $Id: naptr_35.c,v 1.19 2000/04/06 22:03:27 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -137,7 +137,7 @@ fromwire_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* order, preference */
 	isc_buffer_active(source, &sr);
 	if (sr.length < 4)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 4));
 	isc_buffer_forward(source, 4);
 
@@ -257,7 +257,7 @@ fromstruct_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 35);
 	REQUIRE(rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -268,7 +268,7 @@ tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -323,7 +323,7 @@ additionaldata_in_naptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	if (atype != 0)
 		return ((add)(arg, &name, atype));
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -364,7 +364,7 @@ digest_in_naptr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	 */
 	r1.length = length;
 	result = (digest)(arg, &r1);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/* replacement */

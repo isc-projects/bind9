@@ -139,7 +139,7 @@ main(int argc, char *argv[]) {
 		} else if (token.type == isc_tokentype_string) {
 			result = dns_rdatatype_fromtext(&type,
 					&token.value.as_textregion);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				fprintf(stdout,
 				    "dns_rdatatype_fromtext returned %s(%d)\n",
 					dns_result_totext(result), result);
@@ -170,7 +170,7 @@ main(int argc, char *argv[]) {
 		} else if (token.type == isc_tokentype_string) {
 			result = dns_rdataclass_fromtext(&class,
 					&token.value.as_textregion);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				fprintf(stdout,
 				    "dns_rdataclass_fromtext returned %s(%d)\n",
 					dns_result_totext(result), result);
@@ -190,7 +190,7 @@ main(int argc, char *argv[]) {
 				ISC_BUFFERTYPE_BINARY);
 		result = dns_rdata_fromtext(&rdata, class, type, lex,
 					    NULL, ISC_FALSE, &dbuf, NULL);
-		if (result != DNS_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			fprintf(stdout,
 				"dns_rdata_fromtext returned %s(%d)\n",
 				dns_result_totext(result), result);
@@ -214,7 +214,7 @@ main(int argc, char *argv[]) {
 		/* Convert to wire and back? */
 		if (wire) {
 			result = dns_compress_init(&cctx, -1, mctx);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				fprintf(stdout,
 					"dns_compress_init returned %s(%d)\n",
 					dns_result_totext(result), result);
@@ -224,7 +224,7 @@ main(int argc, char *argv[]) {
 					ISC_BUFFERTYPE_BINARY);
 			result = dns_rdata_towire(&rdata, &cctx, &wbuf);
 			dns_compress_invalidate(&cctx);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				fprintf(stdout,
 					"dns_rdata_towire returned %s(%d)\n",
 					dns_result_totext(result), result);
@@ -263,7 +263,7 @@ main(int argc, char *argv[]) {
 			result = dns_rdata_fromwire(&rdata, class, type, &wbuf,
 						    &dctx, ISC_FALSE, &dbuf);
 			dns_decompress_invalidate(&dctx);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 			fprintf(stdout,
 					"dns_rdata_fromwire returned %s(%d)\n",
 					dns_result_totext(result), result);
@@ -289,7 +289,7 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
 				ISC_BUFFERTYPE_TEXT);
 		result = dns_rdata_totext(&rdata, NULL, &tbuf);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			fprintf(stdout, "dns_rdata_totext returned %s(%d)\n",
 				dns_result_totext(result), result);
 		else

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.20 2000/03/16 22:07:28 explorer Exp $ */
+/* $Id: ptr_12.c,v 1.21 2000/04/06 22:03:08 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -140,7 +140,7 @@ fromstruct_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 12);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -151,7 +151,7 @@ tostruct_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 12);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -170,7 +170,7 @@ additionaldata_ptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 12);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

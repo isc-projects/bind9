@@ -71,7 +71,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 	 */
 	tcpmsg->size = ntohs(tcpmsg->size);
 	if (tcpmsg->size == 0) {
-		tcpmsg->result = DNS_R_UNEXPECTEDEND;
+		tcpmsg->result = ISC_R_UNEXPECTEDEND;
 		goto send_and_free;
 	}
 	if (tcpmsg->size > tcpmsg->maxsize) {

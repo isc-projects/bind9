@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.22 2000/03/16 02:08:50 bwelling Exp $ */
+/* $Id: mb_7.c,v 1.23 2000/04/06 22:02:53 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -138,7 +138,7 @@ fromstruct_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 7);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -148,7 +148,7 @@ tostruct_mb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 7);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void

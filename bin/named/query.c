@@ -474,16 +474,16 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	zone = NULL;
 	db = NULL;
 	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		isc_result_t tresult;
 		tresult = dns_zone_getdb(zone, &db);
-		if (tresult != DNS_R_SUCCESS)
+		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 	}
 
 	if (result == ISC_R_NOTFOUND && USECACHE(client))
 		dns_db_attach(client->view->cachedb, &db);
-	else if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		goto cleanup;
 
 	/*
@@ -510,7 +510,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			     rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION ||
-	    result == DNS_R_NOTFOUND) {
+	    result == ISC_R_NOTFOUND) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset->methods != NULL)
@@ -544,7 +544,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		/*
 		 * We don't know the answer.
 		 */
-		result = DNS_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 	} else if (result == DNS_R_GLUE) {
 		if (USECACHE(client) && RECURSIONOK(client)) {
 			/*
@@ -572,7 +572,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset->methods != NULL)
 			dns_rdataset_disassociate(sigrdataset);
-		result = DNS_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 	}
 
  cleanup:
@@ -610,7 +610,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 			 */
 			CTRACE("query_isduplicate: true: done");
 			return (ISC_TRUE);
-		} else if (result == DNS_R_NXRDATASET) {
+		} else if (result == DNS_R_NXRRSET) {
 			/*
 			 * The name exists, but the rdataset does not.
 			 */
@@ -686,16 +686,16 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * Find a database to answer the query.
 	 */
 	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		isc_result_t tresult;
 		tresult = dns_zone_getdb(zone, &db);
-		if (tresult != DNS_R_SUCCESS)
+		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 	}
 
 	if (result == ISC_R_NOTFOUND && USECACHE(client))
 		dns_db_attach(client->view->cachedb, &db);
-	else if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		goto cleanup;
 
 	/*
@@ -733,7 +733,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			     client->now, &node, fname, rdataset,
 			     sigrdataset);
 
-	if (result == DNS_R_DELEGATION || result == DNS_R_NOTFOUND) {
+	if (result == DNS_R_DELEGATION || result == ISC_R_NOTFOUND) {
 		if (is_zone) {
 			if (USECACHE(client)) {
 				/*
@@ -1239,7 +1239,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 		*namep = NULL;
 		mname = name;
 	} else
-		RUNTIME_CHECK(result == DNS_R_NXRDATASET);
+		RUNTIME_CHECK(result == DNS_R_NXRRSET);
 
 	/*
 	 * Note: we only add SIGs if we've added the type they cover, so
@@ -1478,7 +1478,7 @@ query_addbestns(ns_client_t *client) {
 	 */
 	result = dns_zt_find(client->view->zonetable, client->query.qname,
 			     NULL, &zone);
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 	if (result == ISC_R_NOTFOUND) {
 		/*
@@ -1880,7 +1880,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	 */
 	result = dns_zt_find(client->view->zonetable, client->query.qname,
 			     NULL, &zone);
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 
 	if (result == ISC_R_NOTFOUND) {
@@ -1934,7 +1934,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	 * XXX there should also be a per-view one.
 	 */
 	result = ns_client_checkacl(client, "query", queryacl, ISC_TRUE);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		QUERY_ERROR(result);
 		goto cleanup;
 	}
@@ -2018,7 +2018,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
  resume:
 	CTRACE("query_find: resume");
 	switch (result) {
-	case DNS_R_SUCCESS:
+	case ISC_R_SUCCESS:
 		/*
 		 * This case is handled in the main line below.
 		 */
@@ -2031,7 +2031,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		INSIST(is_zone);
 		authoritative = ISC_FALSE;
 		break;
-	case DNS_R_NOTFOUND:
+	case ISC_R_NOTFOUND:
 		/*
 		 * The cache doesn't even have the root NS.  Get them from
 		 * the hints DB.
@@ -2163,7 +2163,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			}
 		}
 		goto cleanup;
-	case DNS_R_NXRDATASET:
+	case DNS_R_NXRRSET:
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
@@ -2474,7 +2474,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			 * We didn't match any rdatasets.
 			 */
 			if (qtype == dns_rdatatype_sig &&
-			    result == DNS_R_NOMORE) {
+			    result == ISC_R_NOMORE) {
 				/*
 				 * XXXRTH  If this is a secure zone and we
 				 * didn't find any SIGs, we should generate
@@ -2494,7 +2494,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				 */
 				result = query_addsoa(client, db);
 				if (result == ISC_R_SUCCESS)
-					result = DNS_R_NOMORE;
+					result = ISC_R_NOMORE;
 			} else {
 				/*
 				 * Something went wrong.
@@ -2503,7 +2503,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			}
 		}
 		dns_rdatasetiter_destroy(&rdsiter);
-		if (result != DNS_R_NOMORE) {
+		if (result != ISC_R_NOMORE) {
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}

@@ -320,7 +320,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			 * Write the name.
 			 */
 			result = dns_name_towire(&name, cctx, target);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				goto rollback;
 
 			/*
@@ -346,7 +346,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			 * Write the rdata.
 			 */
 			result = dns_rdata_towire(&rdata, cctx, target);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				goto rollback;
 
 			/*

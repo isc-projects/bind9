@@ -33,7 +33,7 @@
 
 #define check_result(op, msg) \
 	do { result = (op); \
-		if (result != DNS_R_SUCCESS) { \
+		if (result != ISC_R_SUCCESS) { \
 			fprintf(stderr, "%s: %s\n", msg, \
 				isc_result_totext(result)); \
 			goto failure; \
@@ -88,7 +88,7 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	for (result = dns_rdatasetiter_first(rdsiter);
 	     result == ISC_R_SUCCESS;
@@ -116,7 +116,7 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 	}
 
 	dns_rdatasetiter_destroy(&rdsiter);
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		return (result);
 
 	r.length += ((max_type + 7) / 8);
@@ -126,7 +126,7 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 			     dns_rdatatype_nxt,
 			     &r);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 

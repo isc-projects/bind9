@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.30 2000/03/17 21:43:46 gson Exp $ */
+/* $Id: sig_24.c,v 1.31 2000/04/06 22:03:12 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -46,7 +46,7 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* type covered */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	result = dns_rdatatype_fromtext(&covered, &token.value.as_textregion);
-	if (result != DNS_R_SUCCESS && result != DNS_R_NOTIMPLEMENTED) {
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
 		i = strtol(token.value.as_pointer, &e, 10);
 		if (i < 0 || i > 65535)
 			return (DNS_R_RANGE);
@@ -179,7 +179,7 @@ totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
 	
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -210,7 +210,7 @@ fromwire_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 * key footprint: 2
 	 */
 	if (sr.length < 18)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 
 	isc_buffer_forward(source, 18);
 	RETERR(mem_tobuffer(target, sr.base, 18));
@@ -347,12 +347,12 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	if (sig->siglen > 0) {
 		isc_buffer_available(target, &tr);
 		if (tr.length < sig->siglen)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		memcpy(tr.base, sig->signature, sig->siglen);
 		isc_buffer_add(target, sig->siglen);
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -422,11 +422,11 @@ tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	sig->siglen = sr.length;
 	sig->signature = isc_mem_get(mctx, sig->siglen);
 	if (sig->signature == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	memcpy(sig->signature, sr.base, sig->siglen);
 	isc_region_consume(&sr, sig->siglen);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -450,7 +450,7 @@ additionaldata_sig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -461,7 +461,7 @@ digest_sig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	UNUSED(digest);
 	UNUSED(arg);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline dns_rdatatype_t

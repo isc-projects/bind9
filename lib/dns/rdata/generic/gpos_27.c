@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.14 2000/03/21 23:48:20 gson Exp $ */
+/* $Id: gpos_27.c,v 1.15 2000/04/06 22:02:46 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -43,7 +43,7 @@ fromtext_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				ISC_FALSE));
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -65,7 +65,7 @@ totext_gpos(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 			RETERR(str_totext(" ", target));
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -83,7 +83,7 @@ fromwire_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	for (i = 0 ; i < 3; i++)
 		RETERR(txt_fromwire(source, target));
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -124,7 +124,7 @@ fromstruct_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -136,7 +136,7 @@ tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -155,7 +155,7 @@ additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

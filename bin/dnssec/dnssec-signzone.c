@@ -266,9 +266,9 @@ expecttofindkey(dns_name_t *name, dns_db_t *db, dns_dbversion_t *version) {
 	result = dns_db_find(db, name, version, dns_rdatatype_key, options,
 			     0, NULL, dns_fixedname_name(&fname), NULL, NULL);
 	switch (result) {
-		case DNS_R_SUCCESS:
+		case ISC_R_SUCCESS:
 		case DNS_R_NXDOMAIN:
-		case DNS_R_NXRDATASET:
+		case DNS_R_NXRRSET:
 			return ISC_TRUE;
 		case DNS_R_DELEGATION:
 		case DNS_R_CNAME:
@@ -470,7 +470,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			dns_rdata_freestruct(&sig);
 			result = dns_rdataset_next(&oldsigset);
 		}
-		if (result == DNS_R_NOMORE)
+		if (result == ISC_R_NOMORE)
 			result = ISC_R_SUCCESS;
 		check_result(result, "dns_db_dns_rdataset_first()/next()");
 		dns_rdataset_disassociate(&oldsigset);
@@ -569,7 +569,7 @@ hasnullkey(dns_rdataset_t rdataset) {
 			return (ISC_TRUE);
 		result = dns_rdataset_next(&rdataset);
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		check_result(result, "iteration over keys");
 	return (ISC_FALSE);
 }
@@ -669,7 +669,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_rdatasetiter_next(rdsiter);
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		fatal("rdataset iteration failed");
 	dns_rdatasetiter_destroy(&rdsiter);
 }
@@ -694,9 +694,9 @@ active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 		if (!active)
 			result = dns_rdatasetiter_next(rdsiter);
 		else
-			result = DNS_R_NOMORE;
+			result = ISC_R_NOMORE;
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		fatal("rdataset iteration failed");
 	dns_rdatasetiter_destroy(&rdsiter);
 
@@ -850,7 +850,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 					      &nextnode, origin, lastcut);
 		if (result == ISC_R_SUCCESS)
 			target = nextname;
-		else if (result == DNS_R_NOMORE)
+		else if (result == ISC_R_NOMORE)
 			target = origin;
 		else {
 			target = NULL;	/* Make compiler happy. */
@@ -864,7 +864,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		dns_db_detachnode(db, &curnode);
 		node = nextnode;
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		fatal("db iteration failed");
 	if (lastcut != NULL) {
 		dns_name_free(lastcut, mctx);

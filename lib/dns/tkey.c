@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.26 2000/03/28 03:16:40 bwelling Exp $
+ * $Id: tkey.c,v 1.27 2000/04/06 22:02:25 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -451,7 +451,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 
 	/* Interpret the question section */
 	result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
-	INSIST(result == DNS_R_SUCCESS);
+	INSIST(result == ISC_R_SUCCESS);
 
 	qname = NULL;
 	dns_message_currentname(msg, DNS_SECTION_QUESTION, &qname);

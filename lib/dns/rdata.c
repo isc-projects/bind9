@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.72 2000/03/22 17:28:57 gson Exp $ */
+/* $Id: rdata.c,v 1.73 2000/04/06 22:02:10 explorer Exp $ */
 
 #include <config.h>
 
@@ -47,7 +47,7 @@
 
 #define RETERR(x) do { \
 	isc_result_t __r = (x); \
-	if (__r != DNS_R_SUCCESS) \
+	if (__r != ISC_R_SUCCESS) \
 		return (__r); \
 	} while (0)
 
@@ -328,7 +328,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_decompress_t *dctx, isc_boolean_t downcase,
 		   isc_buffer_t *target)
 {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t ss;
 	isc_buffer_t st;
@@ -349,15 +349,15 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		(void)NULL;
 
 	/* We should have consumed all of our buffer. */
-	if (result == DNS_R_SUCCESS && !buffer_empty(source))
+	if (result == ISC_R_SUCCESS && !buffer_empty(source))
 		result = DNS_R_EXTRADATA;
 
-	if (rdata && result == DNS_R_SUCCESS) {
+	if (rdata && result == ISC_R_SUCCESS) {
 		region.length = target->used - st.used;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		*source = ss;
 		*target = st;
 	}
@@ -368,7 +368,7 @@ isc_result_t
 dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	         isc_buffer_t *target)
 {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_region_t tr;
 	isc_buffer_t st;
@@ -382,12 +382,12 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	if (use_default) {
 		isc_buffer_available(target, &tr);
 		if (tr.length < rdata->length) 
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		memcpy(tr.base, rdata->data, rdata->length);
 		isc_buffer_add(target, rdata->length);
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	}
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		*target = st;
 		INSIST(target->used < 65536);
 		dns_compress_rollback(cctx, (isc_uint16_t)target->used);
@@ -401,7 +401,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_name_t *origin, isc_boolean_t downcase,
 		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
 {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
 	isc_boolean_t use_default = ISC_FALSE;
@@ -442,19 +442,19 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		line = isc_lex_getsourceline(lexer);
 		iresult = isc_lex_gettoken(lexer, options, &token);
 		if (iresult != ISC_R_SUCCESS) {
-			if (result == DNS_R_SUCCESS) {
+			if (result == ISC_R_SUCCESS) {
 				switch (iresult) {
 				case ISC_R_NOMEMORY:
-					result = DNS_R_NOMEMORY;
+					result = ISC_R_NOMEMORY;
 					break;
 				case ISC_R_NOSPACE:
-					result = DNS_R_NOSPACE;
+					result = ISC_R_NOSPACE;
 					break;
 				default:
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 					    "isc_lex_gettoken() failed: %s",
 					    isc_result_totext(result));
-					result = DNS_R_UNEXPECTED;
+					result = ISC_R_UNEXPECTED;
 					break;
 				}
 			}
@@ -464,14 +464,14 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			break;
 		} else if (token.type != isc_tokentype_eol &&
 			   token.type != isc_tokentype_eof) {
-			if (result == DNS_R_SUCCESS)
+			if (result == ISC_R_SUCCESS)
 				result = DNS_R_EXTRATOKEN;
 			if (callback != NULL) {
 				fromtext_error(callback, callbacks, name,
 					       line, &token, result);
 				callback = NULL;
 			}
-		} else if (result != DNS_R_SUCCESS && callback != NULL) {
+		} else if (result != ISC_R_SUCCESS && callback != NULL) {
 			fromtext_error(callback, callbacks, name, line,
 				       &token, result);
 			break;
@@ -479,11 +479,11 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			break;
 	} while (1);
 
-	if (rdata != NULL && result == DNS_R_SUCCESS) {
+	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.length = target->used - st.used;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		*target = st;
 	}
 	return (result);
@@ -493,7 +493,7 @@ static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	     isc_buffer_t *target)
 {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 	
 	REQUIRE(rdata != NULL);
@@ -503,7 +503,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	/* Some DynDNS meta-RRs have empty rdata. */
 	if (rdata->length == 0)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	TOTEXTSWITCH
 
@@ -550,7 +550,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, void *source,
 		     isc_buffer_t *target)
 {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_buffer_t st;
 	isc_region_t region;
 	isc_boolean_t use_default = ISC_FALSE;
@@ -566,18 +566,18 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	if (use_default)
 		(void)NULL;
 
-	if (rdata != NULL && result == DNS_R_SUCCESS) {
+	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.length = target->used - st.used;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		*target = st;
 	return (result);
 }
 
 isc_result_t
 dns_rdata_tostruct(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(rdata != NULL);
@@ -602,7 +602,7 @@ isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 			 void *arg)
 {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	/*
@@ -623,7 +623,7 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 isc_result_t
 dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
-	isc_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	/*
@@ -667,7 +667,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 			if (n > max)
 				return (DNS_R_RANGE);
 			*valuep = n;
-			return (DNS_R_SUCCESS);
+			return (ISC_R_SUCCESS);
 		}
 		/* It was not a number after all; fall through. */
 	}
@@ -678,7 +678,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		if (n == source->length &&
 		    strncasecmp(source->base, table[i].name, n) == 0) {
 			*valuep = table[i].value;
-			return (DNS_R_SUCCESS);
+			return (ISC_R_SUCCESS);
 		}
 	}
 	return (DNS_R_UNKNOWN);
@@ -711,8 +711,8 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		    strncasecmp(source->base, classes[i].name, n) == 0) {
 			*classp = classes[i].value;
 			if ((classes[i].flags & RESERVED) != 0)
-				return (DNS_R_NOTIMPLEMENTED);
-			return (DNS_R_SUCCESS);
+				return (ISC_R_NOTIMPLEMENTED);
+			return (ISC_R_SUCCESS);
 		}
 		i++;
 	}
@@ -739,8 +739,8 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 		    strncasecmp(source->base, types[i].name, n) == 0) {
 			*typep = types[i].value;
 			if ((types[i].flags & RESERVED) != 0)
-				return (DNS_R_NOTIMPLEMENTED);
-			return (DNS_R_SUCCESS);
+				return (ISC_R_NOTIMPLEMENTED);
+			return (ISC_R_SUCCESS);
 		}
 		i++;
 	}
@@ -766,7 +766,7 @@ dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 		if (n == source->length &&
 		    strncasecmp(source->base, rcodes[i].name, n) == 0) {
 			*rcodep = rcodes[i].value;
-			return (DNS_R_SUCCESS);
+			return (ISC_R_SUCCESS);
 		}
 		i++;
 	}
@@ -783,7 +783,7 @@ dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, certs, 0xffff));
 	*certp = value;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }	
 
 isc_result_t
@@ -796,7 +796,7 @@ dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, secalgs, 0xff));
 	*secalgp = value;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -809,7 +809,7 @@ dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, secprotos, 0xff));
 	*secprotop = value;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -841,7 +841,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 			if (n > 0xffff)
 				return (DNS_R_RANGE);
 			*flagsp = n;
-			return (DNS_R_SUCCESS);
+			return (ISC_R_SUCCESS);
 		}
 		/* It was not a number after all; fall through. */
 	}
@@ -875,7 +875,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 			text++;	/* Skip "|" */
 	}
 	*flagsp = value;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /* Private function */
@@ -903,13 +903,13 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 	REQUIRE(n + 1 <= source->length);
 
 	if (tl < 1)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	*tp++ = '"';
 	tl--;
 	while (n--) {
 		if (*sp < 0x20 || *sp > 0x7f) {
 			if (tl < 4)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			sprintf(tp, "\\%03u", *sp++);
 			tp += 4;
 			tl -= 4;
@@ -917,22 +917,22 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 		}
 		if (*sp == 0x22 || *sp == 0x3b || *sp == 0x5c) {
 			if (tl < 2)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			*tp++ = '\\';
 			tl--;
 		}
 		if (tl < 1)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		*tp++ = *sp++;
 		tl--;
 	}
 	if (tl < 1)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	*tp++ = '"';
 	tl--;
 	isc_buffer_add(target, tp - (char *)region.base);
 	isc_region_consume(source, *source->base + 1);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -952,7 +952,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	nrem = tregion.length;
 	escape = ISC_FALSE;
 	if (nrem < 1)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	/* Length byte. */
 	nrem--;
 	t++;
@@ -985,7 +985,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 		}
 		escape = ISC_FALSE;
 		if (nrem == 0) 
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		*t++ = c;
 		nrem--;
 	}
@@ -993,7 +993,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 		return (DNS_R_SYNTAX);
 	*tregion.base = t - tregion.base - 1;
 	isc_buffer_add(target, *tregion.base + 1);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1004,19 +1004,19 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 
 	isc_buffer_active(source, &sregion);
 	if (sregion.length == 0)
-		return(DNS_R_UNEXPECTEDEND);
+		return(ISC_R_UNEXPECTEDEND);
 	n = *sregion.base + 1;
 	if (n > sregion.length)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	
 	isc_buffer_available(target, &tregion);
 	if (n > tregion.length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(tregion.base, sregion.base, n);
 	isc_buffer_forward(source, n);
 	isc_buffer_add(target, n);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_boolean_t
@@ -1055,11 +1055,11 @@ str_totext(char *source, isc_buffer_t *target) {
 	l = strlen(source);
 
 	if (l > region.length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(region.base, source, l);
 	isc_buffer_add(target, l);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_boolean_t
@@ -1082,9 +1082,9 @@ uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 
 	isc_buffer_available(target, &region);
 	if (region.length < 4)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	isc_buffer_putuint32(target, value);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1095,9 +1095,9 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 		return (DNS_R_RANGE);
 	isc_buffer_available(target, &region);
 	if (region.length < 2)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	isc_buffer_putuint16(target, (isc_uint16_t)value);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1108,9 +1108,9 @@ uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 		return (DNS_R_RANGE);
 	isc_buffer_available(target, &region);
 	if (region.length < 1)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	isc_buffer_putuint8(target, (isc_uint8_t)value);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_uint32_t
@@ -1158,29 +1158,29 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	case ISC_R_SUCCESS:
 		break;
 	case ISC_R_NOMEMORY:
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	case ISC_R_NOSPACE:
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	default:
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_lex_gettoken() failed: %s",
 				 isc_result_totext(result));
-                return (DNS_R_UNEXPECTED);
+                return (ISC_R_UNEXPECTED);
 	}
 	if (eol && ((token->type == isc_tokentype_eol) || 
 		    (token->type == isc_tokentype_eof)))
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	if (token->type == isc_tokentype_string &&
 	    expect == isc_tokentype_qstring)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
         if (token->type != expect) {
                 isc_lex_ungettoken(lexer, token);
                 if (token->type == isc_tokentype_eol ||
                     token->type == isc_tokentype_eof)
-                        return (DNS_R_UNEXPECTEDEND);
-                return (DNS_R_UNEXPECTEDTOKEN);
+                        return (ISC_R_UNEXPECTEDEND);
+                return (ISC_R_UNEXPECTEDTOKEN);
         }
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1189,10 +1189,10 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 
 	isc_buffer_available(target, &tr);
         if (length > tr.length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(tr.base, base, length);
 	isc_buffer_add(target, length);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static int
@@ -1304,7 +1304,7 @@ byte_atob(int c, isc_buffer_t *target, struct state *state) {
 		}
 	} else
 		return(DNS_R_SYNTAX);
-	return(DNS_R_SUCCESS);
+	return(ISC_R_SUCCESS);
 }
 
 /* Compute checksum info and place c into target */
@@ -1324,10 +1324,10 @@ putbyte(int c, isc_buffer_t *target, struct state *state) {
 	Crot += c;
 	isc_buffer_available(target, &tr);
 	if (tr.length < 1)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	tr.base[0] = c;
 	isc_buffer_add(target, 1);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /* Read the ASCII-encoded data from inbuf, of length inbuflen, and convert
@@ -1385,7 +1385,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 
 	if ((oeor != Ceor) || (osum != Csum) || (orot != Crot))
 		return(DNS_R_BADCKSUM);
-	return(DNS_R_SUCCESS);
+	return(ISC_R_SUCCESS);
 }
 
 /* Encode binary byte c into ASCII representation and place into *bufp,
@@ -1411,7 +1411,7 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 	if (bcount == 3) {
 		if (word == 0) {
 			if (tr.length < 1)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			tr.base[0] = 'z';
 			isc_buffer_add(target, 1);
 		} else {
@@ -1428,7 +1428,7 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 		    	tmpword -= (isc_int32_t)(85 * 85 * 85 * 85 * 32);
 		    }
 			if (tr.length < 5)
-				return (DNS_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 		    	tr.base[0] = atob_digits[(tmpword /
 					      (isc_int32_t)(85 * 85 * 85 * 85))
 						+ tmp];
@@ -1446,7 +1446,7 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 	} else {
 		bcount += 1;
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 

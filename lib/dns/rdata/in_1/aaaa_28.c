@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.17 2000/03/17 01:48:28 bwelling Exp $ */
+/* $Id: aaaa_28.c,v 1.18 2000/04/06 22:03:25 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -49,10 +49,10 @@ fromtext_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_BADAAAA);
 	isc_buffer_available(target, &region);
 	if (region.length < 16)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(region.base, addr, 16);
 	isc_buffer_add(target, 16);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -70,10 +70,10 @@ totext_in_aaaa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_buffer_available(target, &region);
 	if (inet_ntop(AF_INET6, rdata->data,
 		      (char *)region.base, region.length) == NULL)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	isc_buffer_add(target, strlen((char *)region.base));
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -93,14 +93,14 @@ fromwire_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
 	if (sregion.length < 16)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	if (tregion.length < 16)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(tregion.base, sregion.base, 16);
 	isc_buffer_forward(source, 16);
 	isc_buffer_add(target, 16);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -114,10 +114,10 @@ towire_in_aaaa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	isc_buffer_available(target, &region);
 	if (region.length < rdata->length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(region.base, rdata->data, rdata->length);
 	isc_buffer_add(target, 16);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline int
@@ -145,7 +145,7 @@ fromstruct_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -156,7 +156,7 @@ tostruct_in_aaaa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -175,7 +175,7 @@ additionaldata_in_aaaa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

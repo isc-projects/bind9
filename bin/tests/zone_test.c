@@ -44,7 +44,7 @@ isc_sockaddr_t addr;
 
 #define ERRRET(result, function) \
 	do { \
-		if (result != DNS_R_SUCCESS) { \
+		if (result != ISC_R_SUCCESS) { \
 			fprintf(stderr, "%s() returned %s\n", \
 				function, dns_result_totext(result)); \
 			return; \
@@ -52,7 +52,7 @@ isc_sockaddr_t addr;
 	} while (0)
 
 #define ERRCONT(result, function) \
-		if (result != DNS_R_SUCCESS) { \
+		if (result != ISC_R_SUCCESS) { \
 			fprintf(stderr, "%s() returned %s\n", \
 				function, dns_result_totext(result)); \
 			continue; \
@@ -129,7 +129,7 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
         result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
 				     &text);
         isc_buffer_used(&text, &r);
-        if (result == DNS_R_SUCCESS)
+        if (result == ISC_R_SUCCESS)
                 printf("%.*s", (int)r.length, (char *)r.base);
         else
                 printf("%s\n", dns_result_totext(result));
@@ -150,7 +150,7 @@ query(void) {
 
 	db = NULL;
 	result = dns_zone_getdb(zone, &db);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "%s() returned %s\n", "dns_zone_getdb",
 			dns_result_totext(result));
 		return;
@@ -206,7 +206,7 @@ query(void) {
 		case DNS_R_DELEGATION:
 			print_rdataset(dns_fixedname_name(&found), &rdataset);
 			break;
-		case DNS_R_SUCCESS:
+		case ISC_R_SUCCESS:
 			print_rdataset(dns_fixedname_name(&name), &rdataset);
 			break;
 		default:

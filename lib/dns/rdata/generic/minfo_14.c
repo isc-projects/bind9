@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.21 2000/03/20 22:44:33 gson Exp $ */
+/* $Id: minfo_14.c,v 1.22 2000/04/06 22:02:58 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -46,7 +46,7 @@ fromtext_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		RETERR(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -188,7 +188,7 @@ fromstruct_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -200,7 +200,7 @@ tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -219,7 +219,7 @@ additionaldata_minfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -235,7 +235,7 @@ digest_minfo(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);
 	result = dns_name_digest(&name, digest, arg);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_region_consume(&r, name_length(&name));
 	dns_name_init(&name, NULL);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.22 2000/03/16 02:00:31 brister Exp $ */
+/* $Id: cname_5.c,v 1.23 2000/04/06 22:02:43 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -142,7 +142,7 @@ fromstruct_cname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -155,7 +155,7 @@ tostruct_cname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -174,7 +174,7 @@ additionaldata_cname(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

@@ -110,7 +110,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 					       &soacount, &nscount, &callbacks,
 					       db->mctx);
 	} else
-		result = DNS_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 	eresult = dns_db_endload(db, &callbacks.add_private);
 	if (result == ISC_R_SUCCESS)
 		result = eresult;
@@ -118,7 +118,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto db_detach;
 
 	*target = db;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  db_detach:
 	dns_db_detach(&db);

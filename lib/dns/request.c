@@ -143,13 +143,13 @@ dns_requestmgr_create(isc_mem_t *mctx,
 		return (ISC_R_NOMEMORY);
 
 	result = isc_mutex_init(&requestmgr->lock);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
 		return (result);
 	}
 	for (i = 0; i < DNS_REQUEST_NLOCKS; i++) {
 		result = isc_mutex_init(&requestmgr->locks[i]);
-		if (result != DNS_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			while (--i >= 0)
 				isc_mutex_destroy(&requestmgr->locks[i]);
 			isc_mutex_destroy(&requestmgr->lock);
@@ -422,7 +422,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 					    &request->dispatch);
 			break;
 		default:
-			result = DNS_R_NOTIMPLEMENTED;
+			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup;
 		}
 	}
@@ -528,22 +528,22 @@ render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
 	 * Render message.
 	 */
 	result = dns_message_renderbegin(message, buf1);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_message_rendersection(message, DNS_SECTION_QUESTION, 0);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_message_rendersection(message, DNS_SECTION_ANSWER, 0);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_message_rendersection(message, DNS_SECTION_AUTHORITY, 0);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL, 0);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_message_renderend(message);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
 	/*

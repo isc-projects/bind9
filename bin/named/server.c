@@ -1417,14 +1417,14 @@ ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	
 	result = load_configuration(ns_g_conffile, server, ISC_FALSE);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading configuration failed: %s",
 			      isc_result_totext(result));
 	}
 	result = load_zones(server, ISC_FALSE);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading zones failed: %s",
@@ -1465,7 +1465,7 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
 	{
 		ns_listenelt_t *delt = NULL;
 		result = ns_listenelt_fromconfig(ce, cctx, actx, mctx, &delt);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		ISC_LIST_APPEND(dlist->elts, delt, link);
 	}
@@ -1494,7 +1494,7 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 		return (result);
 
 	result = dns_acl_fromconfig(celt->iml, cctx, actx, mctx, &delt->acl);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		ns_listenelt_destroy(delt);
 		return (result);
 	}

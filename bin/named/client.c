@@ -991,12 +991,12 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	client->signer = NULL;
 	dns_name_init(&client->signername, NULL);
 	result = dns_message_signer(client->message, &client->signername);
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request has valid signature");
 		client->signer = &client->signername;
-	} else if (result == DNS_R_NOTFOUND) {
+	} else if (result == ISC_R_NOTFOUND) {
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request is not signed");
@@ -1024,7 +1024,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	    /* XXX this will log too much too early */
 	    ns_client_checkacl(client, "recursion",
 			       ns_g_server->recursionacl,
-			       ISC_TRUE) == DNS_R_SUCCESS)
+			       ISC_TRUE) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
 	if (ra == ISC_TRUE)
@@ -1584,7 +1584,7 @@ ns_client_checkacl(ns_client_t  *client,
 	result = dns_acl_match(&netaddr, client->signer, acl,
 			       &ns_g_server->aclenv,
 			       &match, NULL);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto deny; /* Internal error, already logged. */
 	if (match > 0)
 		goto allow;
@@ -1594,7 +1594,7 @@ ns_client_checkacl(ns_client_t  *client,
 	ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 		      "%s approved", opname);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  deny:
 	ns_client_log(client, DNS_LOGCATEGORY_SECURITY,

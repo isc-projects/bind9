@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.17 2000/03/20 22:48:59 gson Exp $ */
+/* $Id: rp_17.c,v 1.18 2000/04/06 22:03:09 explorer Exp $ */
 
 /* RFC 1183 */
 
@@ -47,7 +47,7 @@ fromtext_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		RETERR(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -185,7 +185,7 @@ fromstruct_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 17);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -196,7 +196,7 @@ tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 17);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -215,7 +215,7 @@ additionaldata_rp(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 17);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

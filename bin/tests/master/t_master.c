@@ -56,7 +56,7 @@ t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	isc_buffer_init(&target, buf, BIGBUFLEN, ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
 				     &target);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		t_info("dns_rdataset_totext: %s\n", dns_result_totext(result));
 
 	return(result);
@@ -99,7 +99,7 @@ test_master(char *testfile, char *origin, char *class,
 	dns_name_init(&dns_origin, NULL);
 	dns_result = dns_name_fromtext(&dns_origin, &source, dns_rootname,
 				   ISC_FALSE, &target);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed %s\n",
 				dns_result_totext(dns_result));
 		return(T_UNRESOLVED);
@@ -112,7 +112,7 @@ test_master(char *testfile, char *origin, char *class,
 	textregion.length = strlen(class);
 
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
 				dns_result_totext(dns_result));
 		return(T_UNRESOLVED);
@@ -186,7 +186,7 @@ test_master_x(char *filename) {
 }
 
 static char *a1 =	"dns_master_loadfile loads a valid master file and "
-			"returns DNS_R_SUCCESS";
+			"returns ISC_R_SUCCESS";
 static void
 t1() {
 	int	result;
@@ -195,7 +195,7 @@ t1() {
 	t_result(result);
 }
 
-static char *a2 =	"dns_master_loadfile returns DNS_R_UNEXPECTEDEND when the "
+static char *a2 =	"dns_master_loadfile returns ISC_R_UNEXPECTEDEND when the "
 			"masterfile input ends unexpectedly";
 static void
 t2() {
@@ -267,8 +267,8 @@ t7() {
 }
 
 testspec_t	T_testlist[] = {
-	{	t1,	"DNS_R_SUCCESS"		},
-	{	t2,	"DNS_R_UNEXPECTEDEND"	},
+	{	t1,	"ISC_R_SUCCESS"		},
+	{	t2,	"ISC_R_UNEXPECTEDEND"	},
 	{	t3,	"DNS_NOOWNER"		},
 	{	t4,	"DNS_NOTTL"		},
 	{	t5,	"DNS_BADCLASS"		},

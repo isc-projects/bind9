@@ -135,18 +135,18 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 	}
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	isc_buffer_init(&source, buf1, sizeof buf1, ISC_BUFFERTYPE_BINARY);
-	RUNTIME_CHECK(dns_compress_init(&cctx, -1, mctx) == DNS_R_SUCCESS);
+	RUNTIME_CHECK(dns_compress_init(&cctx, -1, mctx) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(dns_name_towire(name1, &cctx, &source) == DNS_R_SUCCESS);
+	RUNTIME_CHECK(dns_name_towire(name1, &cctx, &source) == ISC_R_SUCCESS);
 
 	/*
 	RUNTIME_CHECK(dns_compress_localinit(&cctx, name1, &source) == 
-		      DNS_R_SUCCESS);
+		      ISC_R_SUCCESS);
 	*/
 	dns_compress_setmethods(&cctx, allowed);
-	RUNTIME_CHECK(dns_name_towire(name2, &cctx, &source) == DNS_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_towire(name2, &cctx, &source) == DNS_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_towire(name3, &cctx, &source) == DNS_R_SUCCESS);
+	RUNTIME_CHECK(dns_name_towire(name2, &cctx, &source) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_name_towire(name2, &cctx, &source) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_name_towire(name3, &cctx, &source) == ISC_R_SUCCESS);
 
 	/*
 	dns_compress_localinvalidate(&cctx);
@@ -175,17 +175,17 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 
 	dns_name_init(&name, NULL);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
-					&target) == DNS_R_SUCCESS);
+					&target) == ISC_R_SUCCESS);
 	dns_decompress_setmethods(&dctx, allowed);
 	/*
 	dns_decompress_localinit(&dctx, &name, &source);
 	*/
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
-					&target) == DNS_R_SUCCESS);
+					&target) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
-					&target) == DNS_R_SUCCESS);
+					&target) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
-					&target) == DNS_R_SUCCESS);
+					&target) == ISC_R_SUCCESS);
 	/*
 	dns_decompress_localinvalidate(&dctx);
 	*/

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.58 2000/04/04 19:22:07 gson Exp $ */
+/* $Id: xfrin.c,v 1.59 2000/04/06 22:02:32 explorer Exp $ */
 
 #include <config.h>
 
@@ -64,7 +64,7 @@
 
 #define FAIL(code) do { result = (code); goto failure; } while (0)
 #define CHECK(op) do { result = (op); \
-		       if (result != DNS_R_SUCCESS) goto failure; \
+		       if (result != ISC_R_SUCCESS) goto failure; \
 		     } while (0)
 
 /*
@@ -247,7 +247,7 @@ axfr_init(dns_xfrin_ctx_t *xfr) {
 	CHECK(axfr_makedb(xfr, &xfr->db));
 	CHECK(dns_db_beginload(xfr->db, &xfr->axfr.add_func,
 			       &xfr->axfr.add_private));
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -274,7 +274,7 @@ axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	dns_diff_append(&xfr->diff, &tuple);
 	if (++xfr->difflen > 100)
 		CHECK(axfr_apply(xfr));
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -287,7 +287,7 @@ axfr_apply(dns_xfrin_ctx_t *xfr) {
 			    xfr->axfr.add_func, xfr->axfr.add_private));
 	xfr->difflen = 0;
 	dns_diff_clear(&xfr->diff);
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -318,7 +318,7 @@ ixfr_init(dns_xfrin_ctx_t *xfr) {
 	xfr->difflen = 0;
         CHECK(dns_journal_open(xfr->mctx, dns_zone_getjournal(xfr->zone),
 			       ISC_TRUE, &xfr->ixfr.journal));
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -334,7 +334,7 @@ ixfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	dns_diff_append(&xfr->diff, &tuple);
 	if (++xfr->difflen > 100)
 		CHECK(ixfr_apply(xfr));
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -351,7 +351,7 @@ ixfr_apply(dns_xfrin_ctx_t *xfr) {
 	dns_journal_writediff(xfr->ixfr.journal, &xfr->diff);
 	dns_diff_clear(&xfr->diff);
 	xfr->difflen = 0;
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -365,7 +365,7 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
 		CHECK(dns_journal_commit(xfr->ixfr.journal));
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_TRUE);
 	}
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -497,7 +497,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr,
 		INSIST(0);
 		break;
 	}
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -643,7 +643,7 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
  failure:
 	if (db != NULL)
 		dns_db_detach(&db);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		xfrin_log1(ISC_LOG_ERROR, zonename, masteraddr,
 			   "zone transfer setup failed");
 	return (result);
@@ -706,7 +706,7 @@ xfrin_create(isc_mem_t *mctx,
 	
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
 	if (xfr == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	xfr->mctx = mctx;
 	xfr->refcount = 0;
 	xfr->zone = NULL;
@@ -791,7 +791,7 @@ xfrin_create(isc_mem_t *mctx,
 
 	xfr->magic = XFRIN_MAGIC;
 	*xfrp = xfr;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 	
  failure:
 	xfrin_fail(xfr, result, "creating transfer context");
@@ -826,7 +826,7 @@ render(dns_message_t *msg, isc_buffer_t *buf) {
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0));
 	CHECK(dns_message_renderend(msg));
-	result = DNS_R_SUCCESS;
+	result = ISC_R_SUCCESS;
  failure:
 	return (result);
 }
@@ -861,7 +861,7 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 
 	CHECK(xfrin_send_request(xfr));
  failure:
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		xfrin_fail(xfr, result, "connect"); 
 }
 
@@ -1014,7 +1014,7 @@ xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
 			      xfrin_send_done, xfr));
 	xfr->sends++;
  failure:
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		xfrin_fail(xfr, result, "sending request length prefix");
 }
 
@@ -1040,7 +1040,7 @@ xfrin_send_done(isc_task_t *task, isc_event_t *event)
 	xfr->recvs++;
  failure:
 	isc_event_free(&event);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		xfrin_fail(xfr, result, "sending request data");
 }
 
@@ -1084,8 +1084,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	result = dns_message_parse(msg, &tcpmsg->buffer, ISC_TRUE);
 
-	if (result != DNS_R_SUCCESS || msg->rcode != dns_rcode_noerror) {
-		if (result == DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror) {
+		if (result == ISC_R_SUCCESS)
 			result = ISC_RESULTCLASS_DNSRCODE + msg->rcode; /*XXX*/
 		if (xfr->reqtype == dns_rdatatype_axfr ||
 		    xfr->reqtype == dns_rdatatype_soa)
@@ -1100,7 +1100,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	}
 	
 	for (result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
-	     result == DNS_R_SUCCESS;
+	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(msg, DNS_SECTION_ANSWER))
 	{
 		dns_rdataset_t *rds;
@@ -1118,7 +1118,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		     rds = ISC_LIST_NEXT(rds, link))
 		{
 			for (result = dns_rdataset_first(rds);
-			     result == DNS_R_SUCCESS;
+			     result == ISC_R_SUCCESS;
 			     result = dns_rdataset_next(rds))
 			{
 				dns_rdata_t rdata;
@@ -1127,7 +1127,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 			}
 		}
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		goto failure;
 
 	if (msg->tsig != NULL) {
@@ -1198,7 +1198,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		msg->querytsig = NULL;
 		dns_message_destroy(&msg);
 	}
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		xfrin_fail(xfr, result, "receiving responses");
 }
 
@@ -1294,7 +1294,7 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 
 	isc_buffer_init(&znbuf, znmem, sizeof(znmem), ISC_BUFFERTYPE_TEXT);
 	result = dns_name_totext(zonename, omit_final_dot, &znbuf);
-	if (result != DNS_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		isc_buffer_clear(&znbuf);
 		isc_buffer_putmem(&znbuf, (unsigned char *)"<UNKNOWN>",
 				  strlen("<UNKNOWN>"));

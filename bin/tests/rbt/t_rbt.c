@@ -101,7 +101,7 @@ print_data(void *data) {
 	isc_buffer_init(&target, buffer, sizeof(buffer), ISC_BUFFERTYPE_TEXT);
 
 	dns_result = dns_name_totext(data, ISC_FALSE, &target);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_totext failed %s\n",
 				dns_result_totext(dns_result));
 	}
@@ -144,7 +144,7 @@ create_name(char *s, isc_mem_t *mctx, dns_name_t **dns_name) {
 		result = dns_name_fromtext(*dns_name, &source, dns_rootname,
 					   ISC_FALSE, &target);
 	
-		if (result != DNS_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			++nfails;
 			t_info("dns_name_fromtext(%s) failed %s\n",
 			       s, dns_result_totext(result));
@@ -178,7 +178,7 @@ t1_add(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result) {
 	nprobs = 0;
 	if (name && dns_result) {
 		*dns_result = create_name(name, mctx, &dns_name);
-		if (*dns_result == DNS_R_SUCCESS) {
+		if (*dns_result == ISC_R_SUCCESS) {
 			if (T_debug)
 				t_info("dns_rbt_addname succeeded\n");
 			*dns_result = dns_rbt_addname(rbt, dns_name, dns_name);
@@ -204,7 +204,7 @@ t1_delete(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result)
 	nprobs = 0;
 	if (name && dns_result) {
 		*dns_result = create_name(name, mctx, &dns_name);
-		if (*dns_result == DNS_R_SUCCESS) {
+		if (*dns_result == ISC_R_SUCCESS) {
 			*dns_result = dns_rbt_deletename(rbt, dns_name, ISC_FALSE);
 			delete_name(dns_name, mctx);
 		}
@@ -230,7 +230,7 @@ t1_search(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result)
 	nprobs = 0;
 	if (name && dns_result) {
 		*dns_result = create_name(name, mctx, &dns_searchname);
-		if (*dns_result == DNS_R_SUCCESS) {
+		if (*dns_result == ISC_R_SUCCESS) {
 			dns_fixedname_init(&dns_fixedname);
 			dns_foundname = dns_fixedname_name(&dns_fixedname);
 			data = NULL;
@@ -264,7 +264,7 @@ rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 	}
 
 	dns_result = dns_rbt_create(mctx, delete_name, mctx, rbt);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_create failed %s\n",
 		       		dns_result_totext(dns_result));
 		fclose(fp);
@@ -283,7 +283,7 @@ rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 			t_info("adding name %s to the rbt\n", p);
 
 		rval = t1_add(p, *rbt, mctx, &dns_result);
-		if ((rval != 0) || (dns_result != DNS_R_SUCCESS)) {
+		if ((rval != 0) || (dns_result != ISC_R_SUCCESS)) {
 			t_info("add of %s failed\n", p);
 			dns_rbt_destroy(rbt);
 			fclose(fp);
@@ -332,17 +332,17 @@ test_rbt_gen(char *filename, char *command, char *testname, isc_result_t exp_res
 	}
 	else if (strcmp(command, "add") == 0) {
 		dns_result = create_name(testname, mctx, &dns_name);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			dns_result = dns_rbt_addname(rbt, dns_name, dns_name);
 
-			if (dns_result != DNS_R_SUCCESS)
+			if (dns_result != ISC_R_SUCCESS)
 				delete_name(dns_name, mctx);
 
 			if (dns_result == exp_result) {
-				if (dns_result == DNS_R_SUCCESS) {
+				if (dns_result == ISC_R_SUCCESS) {
 					rval = t1_search(testname, rbt, mctx, &dns_result);
 					if (rval == 0) {
-						if (dns_result == DNS_R_SUCCESS) {
+						if (dns_result == ISC_R_SUCCESS) {
 							result = T_PASS;
 						}
 						else {
@@ -379,7 +379,7 @@ test_rbt_gen(char *filename, char *command, char *testname, isc_result_t exp_res
 			if (dns_result == exp_result) {
 				rval = t1_search(testname, rbt, mctx, &dns_result);
 				if (rval == 0) {
-					if (dns_result == DNS_R_SUCCESS) {
+					if (dns_result == ISC_R_SUCCESS) {
 						t_info("dns_rbt_deletename didn't "
 							"delete the name");
 						result = T_FAIL;
@@ -479,7 +479,7 @@ test_dns_rbt_x(char *filename) {
 }
 
 
-static char	*a1 =	"dns_rbt_create creates a rbt and returns DNS_R_SUCCESS "
+static char	*a1 =	"dns_rbt_create creates a rbt and returns ISC_R_SUCCESS "
 			"on success";
 
 static void
@@ -492,7 +492,7 @@ t1() {
 }
 
 static char	*a2 =	"dns_rbt_addname adds a name to a database and returns "
-			"DNS_R_SUCCESS on success";
+			"ISC_R_SUCCESS on success";
 static void
 t2() {
 	int	result;
@@ -503,7 +503,7 @@ t2() {
 }
 
 static char	*a3 =	"when name already exists, dns_rbt_addname() returns "
-			"DNS_R_EXISTS";
+			"ISC_R_EXISTS";
 
 static void
 t3() {
@@ -515,7 +515,7 @@ t3() {
 }
 
 static char	*a4 =	"when name exists, dns_rbt_deletename() returns "
-			"DNS_R_SUCCESS";
+			"ISC_R_SUCCESS";
 
 static void
 t4() {
@@ -527,7 +527,7 @@ t4() {
 }
 
 static char	*a5 =	"when name does not exist, dns_rbt_deletename() returns "
-			"DNS_R_NOTFOUND";
+			"ISC_R_NOTFOUND";
 static void
 t5() {
 	int	result;
@@ -538,7 +538,7 @@ t5() {
 }
 
 static char	*a6 =	"when name exists and exactly matches the search name, "
-			"dns_rbt_findname() returns DNS_R_SUCCESS";
+			"dns_rbt_findname() returns ISC_R_SUCCESS";
 
 static void
 t6() {
@@ -550,7 +550,7 @@ t6() {
 }
 
 static char	*a7 =	"when a name does not exist, "
-			"dns_rbt_findname returns DNS_R_NOTFOUND";
+			"dns_rbt_findname returns ISC_R_NOTFOUND";
 
 static void
 t7() {
@@ -620,7 +620,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 								NULL : dns_fixedname_name(&origin),
 							dns_fixedname_name(&fullname1),
 							NULL);
-			if (dns_result != DNS_R_SUCCESS) {
+			if (dns_result != ISC_R_SUCCESS) {
 				t_info("dns_name_concatenate failed %s\n",
 						dns_result_totext(dns_result));
 				++nprobs;
@@ -631,8 +631,8 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 			dns_fixedname_init(&name);
 			dns_result = dns_rbtnodechain_next(chain, dns_fixedname_name(&name),
 						dns_fixedname_name(&origin));
-			if ((dns_result != DNS_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
-				if (dns_result != DNS_R_NOMORE) {
+			if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+				if (dns_result != ISC_R_NOMORE) {
 					t_info("dns_rbtnodechain_next failed %s\n",
 							dns_result_totext(dns_result));
 					++nprobs;
@@ -649,7 +649,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 								NULL : dns_fixedname_name(&origin),
 							dns_fixedname_name(&fullname2),
 							NULL);
-			if (dns_result != DNS_R_SUCCESS) {
+			if (dns_result != ISC_R_SUCCESS) {
 				t_info("dns_name_concatenate failed %s\n", dns_result_totext(dns_result));
 				++nprobs;
 				break;
@@ -771,7 +771,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_findname),
 					&isc_buffer, NULL, ISC_FALSE, NULL);
 
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed %s\n", dns_result_totext(dns_result));
 		return(result);
 	}
@@ -782,7 +782,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 					dns_fixedname_name(&dns_foundname),
 					&node, &chain, ISC_TRUE, NULL, NULL);
 
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_findnode failed %s\n", dns_result_totext(dns_result));
 		return(result);
 	}
@@ -794,7 +794,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 			dns_fixedname_name(&dns_nextname),
 			dns_fixedname_name(&dns_origin));
 
-	if ((dns_result != DNS_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
 		t_info("dns_rbtnodechain_next unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
@@ -809,7 +809,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 					dns_fixedname_name(&dns_foundname),
 					&node, &chain, ISC_TRUE, NULL, NULL);
 
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("\tdns_rbt_findnode failed %s\n", dns_result_totext(dns_result));
 		return(result);
 	}
@@ -822,7 +822,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 			dns_fixedname_name(&dns_prevname),
 			dns_fixedname_name(&dns_origin));
 
-	if ((dns_result != DNS_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
 		t_info("dns_rbtnodechain_prev unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
@@ -1013,12 +1013,12 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 	t_info("testing for next name of %s, origin of %s\n",
 			expected_nextname, expected_nextorigin);
 			
-	if ((dns_result != DNS_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
 		t_info("dns_rbtnodechain_next unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
 	if (strcasecmp(expected_firstorigin, expected_nextorigin) == 0)
-		expected_result = DNS_R_SUCCESS;
+		expected_result = ISC_R_SUCCESS;
 	else
 		expected_result = DNS_R_NEWORIGIN;
 	nfails += t_namechk(dns_result, &dns_name, expected_nextname,
@@ -1173,12 +1173,12 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 			dns_fixedname_name(&dns_name),
 			dns_fixedname_name(&dns_origin));
 
-	if ((dns_result != DNS_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
 		t_info("dns_rbtnodechain_prev unexpectedly returned %s\n",
 			dns_result_totext(dns_result));
 	}
 	if (strcasecmp(expected_lastorigin, expected_prevorigin) == 0)
-		expected_result = DNS_R_SUCCESS;
+		expected_result = ISC_R_SUCCESS;
 	else
 		expected_result = DNS_R_NEWORIGIN;
 	nfails += t_namechk(dns_result, &dns_name, expected_prevname,
@@ -1325,7 +1325,7 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_findname),
 					&isc_buffer, NULL, ISC_FALSE, NULL);
 
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed %s\n", dns_result_totext(dns_result));
 		return(result);
 	}
@@ -1336,7 +1336,7 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 					dns_fixedname_name(&dns_foundname),
 					&node, &chain, ISC_TRUE, NULL, NULL);
 
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_findnode failed %s\n", dns_result_totext(dns_result));
 		return(result);
 	}
@@ -1348,7 +1348,7 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 			dns_fixedname_name(&dns_nextname),
 			dns_fixedname_name(&dns_origin));
 
-	if ((dns_result != DNS_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
 		t_info("dns_rbtnodechain_next unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
@@ -1432,7 +1432,7 @@ test_dns_rbtnodechain_next(char *filename) {
 
 static char	*a12 =	"a call to dns_rbtnodechain_next(chain, name, origin) "
 			"sets name to point to the next node of the tree "
-			"and returns DNS_R_SUCCESS or DNS_R_NEWORIGIN on success";
+			"and returns ISC_R_SUCCESS or DNS_R_NEWORIGIN on success";
 
 
 static void
@@ -1496,7 +1496,7 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 	dns_result = dns_name_fromtext(dns_fixedname_name(&dns_findname),
 					&isc_buffer, NULL, ISC_FALSE, NULL);
 
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed %s\n", dns_result_totext(dns_result));
 		return(result);
 	}
@@ -1507,7 +1507,7 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 					dns_fixedname_name(&dns_foundname),
 					&node, &chain, ISC_TRUE, NULL, NULL);
 
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_findnode failed %s\n", dns_result_totext(dns_result));
 		return(result);
 	}
@@ -1519,7 +1519,7 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 			dns_fixedname_name(&dns_prevname),
 			dns_fixedname_name(&dns_origin));
 
-	if ((dns_result != DNS_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
 		t_info("dns_rbtnodechain_prev unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
@@ -1603,7 +1603,7 @@ test_dns_rbtnodechain_prev(char *filename) {
 
 static char	*a13 =	"a call to dns_rbtnodechain_prev(chain, name, origin) "
 			"sets name to point to the previous node of the tree "
-			"and returns DNS_R_SUCCESS or DNS_R_NEWORIGIN on success";
+			"and returns ISC_R_SUCCESS or DNS_R_NEWORIGIN on success";
 
 static void
 t13() {

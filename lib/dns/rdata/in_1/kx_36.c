@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.19 2000/03/20 22:44:35 gson Exp $ */
+/* $Id: kx_36.c,v 1.20 2000/04/06 22:03:26 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -97,7 +97,7 @@ fromwire_in_kx(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	isc_buffer_active(source, &sregion);
 	if (sregion.length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sregion.base, 2));
 	isc_buffer_forward(source, 2);
 	return (dns_name_fromwire(&name, source, dctx, downcase, target));

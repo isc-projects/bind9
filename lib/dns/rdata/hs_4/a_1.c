@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.5 2000/03/20 22:44:35 gson Exp $ */
+/* $Id: a_1.c,v 1.6 2000/04/06 22:03:20 explorer Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -47,10 +47,10 @@ fromtext_hs_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_BADDOTTEDQUAD);
 	isc_buffer_available(target, &region);
 	if (region.length < 4)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -68,10 +68,10 @@ totext_hs_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_buffer_available(target, &region);
 	if (inet_ntop(AF_INET, rdata->data,
 			  (char *)region.base, region.length) == NULL)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	isc_buffer_add(target, strlen((char *)region.base));
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -92,14 +92,14 @@ fromwire_hs_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
 	if (sregion.length < 4)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	if (tregion.length < 4)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(tregion.base, sregion.base, 4);
 	isc_buffer_forward(source, 4);
 	isc_buffer_add(target, 4);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -114,10 +114,10 @@ towire_hs_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 
 	isc_buffer_available(target, &region);
 	if (region.length < rdata->length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(region.base, rdata->data, rdata->length);
 	isc_buffer_add(target, 4);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline int
@@ -148,7 +148,7 @@ fromstruct_hs_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -171,7 +171,7 @@ tostruct_hs_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	n = uint32_fromregion(&region);
 	a->in_addr.s_addr = htonl(n);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -192,7 +192,7 @@ additionaldata_hs_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

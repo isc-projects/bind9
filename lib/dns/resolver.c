@@ -678,7 +678,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			dns_dispatch_attach(res->dispatchv6, &query->dispatch);
 			break;
 		default:
-			result = DNS_R_NOTIMPLEMENTED;
+			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup_dispatch;
 		}
 		/*
@@ -1362,7 +1362,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		}
 		result = dns_rdataset_next(&fctx->nameservers);
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		return (result);
 
  out:
@@ -1595,7 +1595,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("timeout");
 
 	if (event->type == ISC_TIMEREVENT_LIFE) {
-		fctx_done(fctx, DNS_R_TIMEDOUT);
+		fctx_done(fctx, ISC_R_TIMEDOUT);
 	} else {
 		/*
 		 * We could cancel the running queries here, or we could let
@@ -1916,7 +1916,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_time_nowplusinterval: %s",
 				 isc_result_totext(iresult));
-		result = DNS_R_UNEXPECTED;
+		result = ISC_R_UNEXPECTED;
 		goto cleanup_rmessage;
 	}
 
@@ -1940,7 +1940,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_timer_create: %s",
 				 isc_result_totext(iresult));
-		result = DNS_R_UNEXPECTED;
+		result = ISC_R_UNEXPECTED;
 		goto cleanup_rmessage;
 	}
 
@@ -2254,7 +2254,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					fctx->validating++;
 				}
 #else
-				result = DNS_R_NOTIMPLEMENTED;
+				result = ISC_R_NOTIMPLEMENTED;
 #endif
 			}
 		} else if (!EXTERNAL(rdataset)) {
@@ -3277,7 +3277,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		switch (result) {
-		case DNS_R_UNEXPECTEDEND:
+		case ISC_R_UNEXPECTEDEND:
 			if (!message->question_ok ||
 			    (message->flags & DNS_MESSAGEFLAG_TC) == 0 ||
 			    (options & DNS_FETCHOPT_TCP) != 0) {
@@ -3341,7 +3341,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 			goto done;
 		case DNS_R_MOREDATA:
-			result = DNS_R_NOTIMPLEMENTED;
+			result = ISC_R_NOTIMPLEMENTED;
 			goto done;
 		default:
 			/*

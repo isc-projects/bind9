@@ -3141,7 +3141,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
-	case DNS_R_SUCCESS:
+	case ISC_R_SUCCESS:
 		/*
 		 * Found in the database.  Even if we can't copy out
 		 * any information, return success, or else a fetch
@@ -3247,7 +3247,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now)
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
-	case DNS_R_SUCCESS:
+	case ISC_R_SUCCESS:
 		/*
 		 * Start a6 chain follower.  There is no need to poke people
 		 * who might be waiting, since this is call requires there

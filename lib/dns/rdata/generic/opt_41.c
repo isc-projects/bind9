@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.5 2000/03/16 22:42:10 gson Exp $ */
+/* $Id: opt_41.c,v 1.6 2000/04/06 22:03:06 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -41,7 +41,7 @@ fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(downcase);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -57,7 +57,7 @@ totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	UNUSED(tctx);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -80,14 +80,14 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	total = 0;
 	while (sregion.length != 0) {
 		if (sregion.length < 4)
-			return (DNS_R_UNEXPECTEDEND);
+			return (ISC_R_UNEXPECTEDEND);
 		option = uint16_fromregion(&sregion);
 		isc_region_consume(&sregion, 2);
 		length = uint16_fromregion(&sregion);
 		isc_region_consume(&sregion, 2);
 		total += 4;
 		if (sregion.length < length)
-			return (DNS_R_UNEXPECTEDEND);
+			return (ISC_R_UNEXPECTEDEND);
 		isc_region_consume(&sregion, length);
 		total += length;
 	}
@@ -95,12 +95,12 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
 	if (tregion.length < total)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(tregion.base, sregion.base, total);
 	isc_buffer_forward(source, total);
 	isc_buffer_add(target, total);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -137,7 +137,7 @@ fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	UNUSED(source);
 	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -148,7 +148,7 @@ tostruct_opt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	UNUSED(target);
 	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -165,7 +165,7 @@ additionaldata_opt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -180,7 +180,7 @@ digest_opt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	UNUSED(digest);
 	UNUSED(arg);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 #endif	/* RDATA_GENERIC_OPT_41_C */

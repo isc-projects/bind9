@@ -52,7 +52,7 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 
 	zt = isc_mem_get(mctx, sizeof *zt);
 	if (zt == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	zt->table = NULL;
 	result = dns_rbt_create(mctx, auto_detach, NULL, &zt->table);
@@ -136,7 +136,7 @@ dns_zt_find(dns_zt_t *zt, dns_name_t *name, dns_name_t *foundname,
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
 	result = dns_rbt_findname(zt->table, name, foundname, (void **)&dummy);
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		dns_zone_attach(dummy, zonep);
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
@@ -202,10 +202,10 @@ dns_zt_print(dns_zt_t *zt) {
 
 	dns_rbtnodechain_init(&chain, zt->mctx);
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
-	while (result == DNS_R_NEWORIGIN || result == DNS_R_SUCCESS) {
+	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
 		result = dns_rbtnodechain_current(&chain, NULL, NULL,
 						  &node);
-		if (result == DNS_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS) {
 			zone = node->data;
 			if (zone != NULL)
 				(void)dns_zone_print(zone);
@@ -244,26 +244,26 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 
 	dns_rbtnodechain_init(&chain, zt->mctx);
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
-	if (result == DNS_R_NOTFOUND) {
+	if (result == ISC_R_NOTFOUND) {
 		/*
 		 * The tree is empty.
 		 */
-		result = DNS_R_NOMORE; 
+		result = ISC_R_NOMORE; 
 	}
-	while (result == DNS_R_NEWORIGIN || result == DNS_R_SUCCESS) {
+	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
 		result = dns_rbtnodechain_current(&chain, NULL, NULL,
 						  &node);
-		if (result == DNS_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS) {
 			zone = node->data;
 			if (zone != NULL)
 				result = (action)(zone, uap);
-			if (result != DNS_R_SUCCESS && stop)
+			if (result != ISC_R_SUCCESS && stop)
 				goto cleanup;	/* don't break */
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	}
-	if (result == DNS_R_NOMORE)
-		result = DNS_R_SUCCESS;
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
 
  cleanup:
 	dns_rbtnodechain_invalidate(&chain);

@@ -125,7 +125,7 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 			strcpy(cp, "].ip6.int.");
 		}
 	} else
-		return (DNS_R_NOTIMPLEMENTED);
+		return (ISC_R_NOTIMPLEMENTED);
 
 	len = (unsigned int)strlen(textname);
 	isc_buffer_init(&buffer, textname, len, ISC_BUFFERTYPE_TEXT);
@@ -165,7 +165,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 		ISC_LIST_APPEND(byaddr->event->names, name, link);
 		result = dns_rdataset_next(&byaddr->rdataset);
 	}
-	if (result == DNS_R_NOMORE)
+	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
 	
 	return (result);
@@ -240,7 +240,7 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 					       dns_rdatatype_ptr, 0, 0,
 					       ISC_FALSE, fname,
 					       &byaddr->rdataset, NULL);
-			if (result == DNS_R_NOTFOUND) {
+			if (result == ISC_R_NOTFOUND) {
 				/*
 				 * We don't know anything about the name.
 				 * Launch a fetch.

@@ -91,12 +91,12 @@
  */
 #define CHECK(op) \
 	do { result = (op); 				  	 \
-	       if (result != DNS_R_SUCCESS) goto failure; 	 \
+	       if (result != ISC_R_SUCCESS) goto failure; 	 \
 	} while (0)
 
 /*
  * Fail unconditionally with result 'code', which must not
- * be DNS_R_SUCCESS.  The reason for failure presumably has
+ * be ISC_R_SUCCESS.  The reason for failure presumably has
  * been logged already.
  */
 
@@ -166,7 +166,7 @@ ns_notify_start(ns_client_t *client)
 	 * Interpret the question section.
 	 */
 	result = dns_message_firstname(request, DNS_SECTION_QUESTION);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		FAILC(DNS_R_FORMERR,
 		      "notify question section empty");
 
@@ -183,12 +183,12 @@ ns_notify_start(ns_client_t *client)
 
 	/* The zone section must have exactly one name. */
 	result = dns_message_nextname(request, DNS_SECTION_ZONE);
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		FAILC(DNS_R_FORMERR,
 		      "notify question section contains multiple RRs");
 
 	result = dns_zt_find(client->view->zonetable, zonename, NULL, &zone);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		FAILC(DNS_R_REFUSED,
 		      "not authoritative for notify zone");
 

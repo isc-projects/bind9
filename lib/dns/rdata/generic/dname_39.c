@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.15 2000/03/16 02:18:13 explorer Exp $ */
+/* $Id: dname_39.c,v 1.16 2000/04/06 22:02:45 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -142,7 +142,7 @@ fromstruct_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 39);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -154,7 +154,7 @@ tostruct_dname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	REQUIRE(rdata->type == 39);
 	REQUIRE(target != NULL);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -173,7 +173,7 @@ additionaldata_dname(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 39);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

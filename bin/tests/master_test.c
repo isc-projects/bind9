@@ -47,14 +47,14 @@ print_dataset(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	isc_buffer_init(&target, buf, 64*1024, ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
 				     &target);
-	if (result == DNS_R_SUCCESS)
+	if (result == ISC_R_SUCCESS)
 		fprintf(stdout, "%.*s\n", (int)target.used,
 					  (char*)target.base);
 	else 
 		fprintf(stdout, "dns_rdataset_totext: %s\n",
 			dns_result_totext(result));
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 int
@@ -81,7 +81,7 @@ main(int argc, char *argv[]) {
 		dns_name_init(&origin, NULL);
 		result = dns_name_fromtext(&origin, &source, dns_rootname,
 					   ISC_FALSE, &target);
-		if (result != DNS_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			fprintf(stdout, "dns_name_fromtext: %s\n",
 				dns_result_totext(result));
 			exit(1);
@@ -96,7 +96,7 @@ main(int argc, char *argv[]) {
 					     &callbacks, mctx);
 		fprintf(stdout, "dns_master_loadfile: %s\n",
 			dns_result_totext(result));
-		if (result == DNS_R_SUCCESS)
+		if (result == ISC_R_SUCCESS)
 			fprintf(stdout, "soacount = %d, nscount = %d\n",
 				soacount, nscount);
 	}

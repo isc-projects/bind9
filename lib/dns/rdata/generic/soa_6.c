@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.30 2000/03/18 00:19:25 explorer Exp $ */
+/* $Id: soa_6.c,v 1.31 2000/04/06 22:03:13 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -60,7 +60,7 @@ fromtext_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		RETERR(uint32_tobuffer(n, target));
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static char *soa_fieldnames[5] = {
@@ -132,7 +132,7 @@ totext_soa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	RETERR(str_totext(")", target));
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -164,15 +164,15 @@ fromwire_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_available(target, &tregion);
 
 	if (sregion.length < 20)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	if (tregion.length < 20)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(tregion.base, sregion.base, 20);
 	isc_buffer_forward(source, 20);
 	isc_buffer_add(target, 20);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -205,11 +205,11 @@ towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 
 	isc_buffer_available(target, &tregion);
 	if (tregion.length < 20)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(tregion.base, sregion.base, 20);
 	isc_buffer_add(target, 20);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline int
@@ -267,7 +267,7 @@ fromstruct_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 6);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -313,7 +313,7 @@ tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	soa->minimum = uint32_fromregion(&region);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -338,7 +338,7 @@ additionaldata_soa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 6);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

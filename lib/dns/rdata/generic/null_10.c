@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.18 2000/03/16 21:58:58 explorer Exp $ */
+/* $Id: null_10.c,v 1.19 2000/04/06 22:03:03 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -104,7 +104,7 @@ fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 10);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -115,7 +115,7 @@ tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 10);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -134,7 +134,7 @@ additionaldata_null(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 10);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

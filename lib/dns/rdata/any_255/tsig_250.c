@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.25 2000/03/20 22:44:33 gson Exp $ */
+/* $Id: tsig_250.c,v 1.26 2000/04/06 22:02:40 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -211,34 +211,34 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_active(source, &sr);
 	/* Time Signed + Fudge */
 	if (sr.length < 8)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 8));
 	isc_region_consume(&sr, 8);
 	isc_buffer_forward(source, 8);
 
 	/* Signature Length + Signature */
 	if (sr.length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	n = uint16_fromregion(&sr);
 	if (sr.length < n + 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, n + 2));
 	isc_region_consume(&sr, n + 2);
 	isc_buffer_forward(source, n + 2);
 
 	/* Original ID + Error */
 	if (sr.length < 4)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base,  4));
 	isc_region_consume(&sr, 4);
 	isc_buffer_forward(source, 4);
 
 	/* Other Length + Other */
 	if (sr.length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	n = uint16_fromregion(&sr);
 	if (sr.length < n + 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	isc_buffer_forward(source, n + 2);
 	return (mem_tobuffer(target, sr.base, n + 2));
 }
@@ -313,7 +313,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	isc_buffer_available(target, &tr);
 	if (tr.length < 6 + 2 + 2)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	/* Time Signed: 48 bits */
 	RETERR(uint16_tobuffer((isc_uint16_t)(tsig->timesigned >> 32), target));
@@ -330,14 +330,14 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (tsig->siglen > 0) {
 		isc_buffer_available(target, &tr);
 		if (tr.length < tsig->siglen)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tsig->signature, tsig->siglen);
 		isc_buffer_add(target, tsig->siglen);
 	}
 
 	isc_buffer_available(target, &tr);
 	if (tr.length < 2 + 2 + 2)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	/* Original ID */
 	RETERR(uint16_tobuffer(tsig->originalid, target));
@@ -352,12 +352,12 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (tsig->otherlen > 0) {
 		isc_buffer_available(target, &tr);
 		if (tr.length < tsig->otherlen)
-			return (DNS_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		memcpy(tr.base, tsig->other, tsig->otherlen);
 		isc_buffer_add(target, tsig->otherlen);
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -410,7 +410,7 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->signature = isc_mem_get(mctx, tsig->siglen);
 	if (tsig->signature == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	memcpy(tsig->signature, sr.base, tsig->siglen);
 	isc_region_consume(&sr, tsig->siglen);
 
@@ -437,11 +437,11 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->other = isc_mem_get(mctx, tsig->otherlen);
 	if (tsig->other == NULL)
-		return (DNS_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	memcpy(tsig->other, sr.base, tsig->otherlen);
 	isc_region_consume(&sr, tsig->otherlen);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -469,7 +469,7 @@ additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	UNUSED(add);
 	UNUSED(arg);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -481,7 +481,7 @@ digest_any_tsig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	UNUSED(digest);
 	UNUSED(arg);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 #endif	/* RDATA_ANY_255_TSIG_250_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: time.c,v 1.7 2000/03/17 17:45:05 gson Exp $ */
+/* $Id: time.c,v 1.8 2000/04/06 22:02:23 explorer Exp $ */
 
 #include <config.h>
 
@@ -82,11 +82,11 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 	l = strlen(buf);
 
 	if (l > region.length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(region.base, buf, l);
 	isc_buffer_add(target, l);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -145,7 +145,7 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 	}
 
 	*target = value;
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -154,12 +154,12 @@ dns_time32_fromtext(char *source, isc_uint32_t *target) {
 	isc_int32_t value32;
 	isc_result_t result;
 	result = dns_time64_fromtext(source, &value64);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	value32 = (isc_uint32_t)value64;
 	if (value32 != value64)
 		return DNS_R_RANGE;
 	*target = value32;
 
-	return DNS_R_SUCCESS;
+	return ISC_R_SUCCESS;
 }

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.49 2000/03/29 01:32:21 bwelling Exp $
+ * $Id: tsig.c,v 1.50 2000/04/06 22:02:27 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -177,7 +177,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
 				 isc_result_totext(ret));
-		return (DNS_R_UNEXPECTED);
+		return (ISC_R_UNEXPECTED);
 	}
 	
 	tkey->magic = TSIG_MAGIC;
@@ -1028,7 +1028,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(ret));
-		return (DNS_R_UNEXPECTED);
+		return (ISC_R_UNEXPECTED);
 	}
 	
 	ISC_LIST_INIT((*ring)->keys);

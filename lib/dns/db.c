@@ -86,7 +86,7 @@ dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
 			return ((impinfo->create)(mctx, origin, cache, rdclass,
 						  argc, argv, dbp));
 
-	return (DNS_R_NOTFOUND);
+	return (ISC_R_NOTFOUND);
 }
 
 void
@@ -238,7 +238,7 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	dns_rdatacallbacks_init(&callbacks);
 
 	result = dns_db_beginload(db, &callbacks.add, &callbacks.add_private);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_master_loadfile(filename, &db->origin, &db->origin,
 				     db->rdclass, age_ttl, &soacount, &nscount,

@@ -160,7 +160,7 @@ main(int argc, char *argv[]) {
 
 	RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10, socketmgr,
 					      timermgr, 0, NULL, NULL) ==
-		      DNS_R_SUCCESS);
+		      ISC_R_SUCCESS);
 
 	{
 		struct in_addr ina;

@@ -58,8 +58,8 @@ print_name(dns_name_t *name) {
 	if (dns_name_countlabels(name) > 0)
 		result = dns_name_totext(name, ISC_FALSE, &source);
 	else
-		result = DNS_R_SUCCESS;
-	if (result == DNS_R_SUCCESS) {
+		result = ISC_R_SUCCESS;
+	if (result == ISC_R_SUCCESS) {
 		isc_buffer_used(&source, &r);
 		if (r.length > 0)
 			printf("%.*s\n", (int)r.length, r.base);
@@ -189,10 +189,10 @@ main(int argc, char *argv[]) {
 				dns_fixedname_init(&wname);
 			else
 				dns_fixedname_init(&wname2);
-			result = DNS_R_SUCCESS;
+			result = ISC_R_SUCCESS;
 		}
 
-		if (result != DNS_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			printf("%s\n", dns_result_totext(result));
 			if (name == dns_fixedname_name(&wname))
 				dns_fixedname_init(&wname);
@@ -228,7 +228,7 @@ main(int argc, char *argv[]) {
 							      &wname2.name,
 							      NULL);
 				name = &wname2.name;
-				if (result == DNS_R_SUCCESS) {
+				if (result == ISC_R_SUCCESS) {
 					if (check_absolute &&
 					    dns_name_countlabels(name) > 0) {
 						if (dns_name_isabsolute(name))
@@ -263,8 +263,8 @@ main(int argc, char *argv[]) {
 		if (dns_name_countlabels(name) > 0)
 			result = dns_name_totext(name, ISC_FALSE, &source);
 		else
-			result = DNS_R_SUCCESS;
-		if (result == DNS_R_SUCCESS) {
+			result = ISC_R_SUCCESS;
+		if (result == ISC_R_SUCCESS) {
 			isc_buffer_used(&source, &r);
 			if (r.length > 0)
 				printf("%.*s\n", (int)r.length, r.base);

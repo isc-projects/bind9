@@ -33,7 +33,7 @@
 
 #define ERRRET(result, function) \
 	do { \
-		if (result != DNS_R_SUCCESS) { \
+		if (result != ISC_R_SUCCESS) { \
 			fprintf(stdout, "%s() returned %s\n", \
 				function, dns_result_totext(result)); \
 			return; \
@@ -41,7 +41,7 @@
 	} while (0)
 
 #define ERRCONT(result, function) \
-		if (result != DNS_R_SUCCESS) { \
+		if (result != ISC_R_SUCCESS) { \
 			fprintf(stdout, "%s() returned %s\n", \
 				function, dns_result_totext(result)); \
 			continue; \
@@ -58,7 +58,7 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
         result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
 				     &text);
         isc_buffer_used(&text, &r);
-        if (result == DNS_R_SUCCESS)
+        if (result == ISC_R_SUCCESS)
                 printf("%.*s", (int)r.length, (char *)r.base);
         else
                 printf("%s\n", dns_result_totext(result));
@@ -128,7 +128,7 @@ query(dns_view_t *view) {
 			result = dns_zt_find(view->zonetable,
 					     dns_fixedname_name(&name), NULL,
 					     &zone);
-			if (result != DNS_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS) {
 				if (result == DNS_R_PARTIALMATCH)
 					dns_zone_detach(&zone);
 				reload = 0;
@@ -148,7 +148,7 @@ query(dns_view_t *view) {
 				"dns_view_simplefind",
 				dns_result_totext(result));
 			switch (result) {
-			case DNS_R_SUCCESS:
+			case ISC_R_SUCCESS:
 				print_rdataset(dns_fixedname_name(&name), 
 					       &rdataset);
 				break;
@@ -201,9 +201,9 @@ main(int argc, char **argv) {
 
 /*
 	RUNTIME_CHECK(dns_view_create(mctx, dns_rdataclass_in,
-				      "default/IN", &view1) == DNS_R_SUCCESS);
+				      "default/IN", &view1) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_view_create(mctx, dns_rdataclass_in,
-				      "default/IN", &view2) == DNS_R_SUCCESS);
+				      "default/IN", &view2) == ISC_R_SUCCESS);
  */
 
 	cba.mctx = mctx;
@@ -246,9 +246,9 @@ main(int argc, char **argv) {
 	result = dns_c_parse_namedconf(NULL, conf, mctx, &configctx, &cbks);
 	fprintf(stdout, "%s() returned %s\n", "dns_c_parse_namedconf",
 		dns_result_totext(result));
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		result = dns_c_ctx_getdirectory(NULL, configctx, &dir);
-		if (result == DNS_R_SUCCESS)
+		if (result == ISC_R_SUCCESS)
 			chdir(dir);
 		view = ISC_LIST_HEAD(cba.newviews);
 		while (view != NULL) {

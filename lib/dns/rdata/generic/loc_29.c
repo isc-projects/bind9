@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.12 2000/03/16 02:18:15 explorer Exp $ */
+/* $Id: loc_29.c,v 1.13 2000/04/06 22:02:51 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -494,11 +494,11 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	
 	isc_buffer_active(source, &sr);
 	if (sr.length < 1)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	if (sr.base[0] != 0)
-		return (DNS_R_NOTIMPLEMENTED);
+		return (ISC_R_NOTIMPLEMENTED);
 	if (sr.length < 16)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 
 	/* size */
 	c = sr.base[1];
@@ -575,7 +575,7 @@ fromstruct_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 29);
 	
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -586,7 +586,7 @@ tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 29);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -605,7 +605,7 @@ additionaldata_loc(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 29);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

@@ -55,7 +55,7 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx,
 		result = dns_acl_fromconfig(cacl, cctx, aclconfctx,
 					   dns_zone_getmctx(zone), &dacl);
 		dns_c_ipmatchlist_detach(&cacl);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 		(*setzacl)(zone, dacl);
 		dns_acl_detach(&dacl);
@@ -114,7 +114,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 
 	/* XXX needs to be an zone option */
 	result = dns_zone_setdbtype(zone, "rbt");
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	switch (czone->ztype) {
@@ -125,7 +125,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			return (result);
 
 		result = dns_zone_setdatabase(zone, filename);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 #ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
@@ -139,7 +139,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 					    NULL,
 					    dns_zone_setupdateacl,
 					    dns_zone_clearupdateacl);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		result = configure_zone_acl(czone, cctx, ac, zone,
@@ -147,7 +147,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 					    dns_c_ctx_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		result = configure_zone_acl(czone, cctx, ac, zone,
@@ -155,7 +155,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 					    dns_c_ctx_getallowtransfer,
 					    dns_zone_setxfracl,
 					    dns_zone_clearxfracl);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		result = dns_c_zone_getdialup(czone, &boolean);
@@ -175,7 +175,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			for (i = 0; i < iplist->nextidx; i++) {
 				result = dns_zone_addnotify(zone,
 							    &iplist->ips[i]);
-				if (result != DNS_R_SUCCESS)
+				if (result != ISC_R_SUCCESS)
 					return (result);
 			}
 		} else
@@ -184,7 +184,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS) {
 			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				maxxfr = MAX_XFER_TIME;
 		}
 		dns_zone_setmaxxfrout(zone, maxxfr);
@@ -192,7 +192,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS) {
 			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				maxxfr = DNS_DEFAULT_IDLEOUT;
 		}
 		dns_zone_setidleout(zone, maxxfr);
@@ -225,7 +225,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		result = dns_zone_setdatabase(zone, filename);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 #ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
@@ -239,7 +239,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 					    dns_c_ctx_getallowquery,					    
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		
@@ -253,7 +253,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			for (i = 0; i < iplist->nextidx; i++) {
 				result = dns_zone_addmaster(zone,
 							    &iplist->ips[i]);
-				if (result != DNS_R_SUCCESS)
+				if (result != ISC_R_SUCCESS)
 					return (result);
 			}
 		} else 
@@ -296,7 +296,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS) {
 			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				maxxfr = MAX_XFER_TIME;
 		}
 		dns_zone_setmaxxfrout(zone, maxxfr);
@@ -304,7 +304,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS) {
 			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
-			if (result != DNS_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				maxxfr = DNS_DEFAULT_IDLEOUT;
 		}
 		dns_zone_setidleout(zone, maxxfr);
@@ -317,7 +317,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		result = dns_zone_setdatabase(zone, filename);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 #ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
@@ -331,7 +331,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 					    dns_c_ctx_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 
 		result = dns_c_zone_getmasterport(czone, &port);
@@ -344,7 +344,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			for (i = 0; i < iplist->nextidx; i++) {
 				result = dns_zone_addmaster(zone,
 							    &iplist->ips[i]);
-				if (result != DNS_R_SUCCESS)
+				if (result != ISC_R_SUCCESS)
 					return (result);
 			}
 		} else 
@@ -390,7 +390,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		result = dns_zone_setdatabase(zone, filename);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 #ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
@@ -403,7 +403,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 isc_boolean_t
@@ -434,7 +434,7 @@ dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr)
 	isc_result_t result;
 	
 	result = dns_c_ctx_gettransfersin(cctx, &val);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		val = 10;
 	dns_zonemgr_settransfersin(zmgr, val);
 

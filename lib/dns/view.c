@@ -131,7 +131,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dynamickeys = NULL;
 	view->matchclients = NULL;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_trustedkeys;
 	view->peers = NULL;
 
@@ -141,7 +141,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->transfer_format = dns_one_answer;
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
-	if (result != DNS_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_dynkeys;
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
@@ -465,7 +465,7 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 	result = dns_zt_find(view->zonetable, name, NULL, zonep);
 	if (result == DNS_R_PARTIALMATCH) {
 		dns_zone_detach(zonep);
-		result = DNS_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 	}
 
 	return (result);
@@ -507,9 +507,9 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_zt_find(view->zonetable, name, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
-		if (result != DNS_R_SUCCESS && view->cachedb != NULL)
+		if (result != ISC_R_SUCCESS && view->cachedb != NULL)
 			dns_db_attach(view->cachedb, &db);
-		else if (result != DNS_R_SUCCESS)
+		else if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else if (result == ISC_R_NOTFOUND && view->cachedb != NULL)
 		dns_db_attach(view->cachedb, &db);
@@ -526,7 +526,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			     now, NULL, foundname, rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION ||
-	    result == DNS_R_NOTFOUND) {
+	    result == ISC_R_NOTFOUND) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset != NULL && sigrdataset->methods != NULL)
@@ -561,7 +561,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		/*
 		 * We don't know the answer.
 		 */
-		result = DNS_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 	} else if (result == DNS_R_GLUE) {
 		if (view->cachedb != NULL) {
 			/*
@@ -587,7 +587,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		result = ISC_R_SUCCESS;
 	}
 
-	if (result == DNS_R_NOTFOUND && use_hints && view->hints != NULL) {
+	if (result == ISC_R_NOTFOUND && use_hints && view->hints != NULL) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset != NULL && sigrdataset->methods != NULL)
@@ -603,8 +603,8 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			dns_resolver_prime(view->resolver);
 			result = DNS_R_HINT;
 		} else if (result == DNS_R_NXDOMAIN ||
-			   result == DNS_R_NXRDATASET)
-			result = DNS_R_NOTFOUND;
+			   result == DNS_R_NXRRSET)
+			result = ISC_R_NOTFOUND;
 	}
 
  cleanup:
@@ -661,12 +661,12 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		   result != DNS_R_NCACHENXDOMAIN &&
 		   result != DNS_R_NCACHENXRRSET &&
 		   result != DNS_R_NXRRSET &&
-		   result != DNS_R_NOTFOUND) {
+		   result != ISC_R_NOTFOUND) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset != NULL && sigrdataset->methods != NULL)
 			dns_rdataset_disassociate(sigrdataset);
-		result = DNS_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 	}
 
 	return (result);
@@ -710,7 +710,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	 * Find the right database.
 	 */
 	result = dns_zt_find(view->zonetable, name, NULL, &zone);
-	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 	if (result == ISC_R_NOTFOUND) {
 		/*

@@ -372,7 +372,7 @@ dname_from_tname(char *name, dns_name_t *dns_name)
 						NULL, ISC_FALSE, NULL);
 	}
 	else {
-		result = DNS_R_NOSPACE;
+		result = ISC_R_NOSPACE;
 		if (junk != NULL)
 			(void) free(junk);
 		if (binbuf != NULL)
@@ -394,7 +394,7 @@ test_dns_label_countbits(char *test_name, int pos, int expected_bits) {
 	t_info("testing name %s, label %d\n", test_name, pos);
 
 	result = dname_from_tname(test_name, &dns_name);
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		dns_name_getlabel(&dns_name, pos, &label);
 		bits = dns_label_countbits(&label);
 		if (bits == expected_bits)
@@ -477,7 +477,7 @@ test_dns_label_getbit(char *test_name, int label_pos, int bit_pos,
 		test_name, label_pos, bit_pos);
 
 	result = dname_from_tname(test_name, &dns_name);
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		dns_name_getlabel(&dns_name, label_pos, &label);
 		bitval = dns_label_getbit(&label, bit_pos);
 		if (bitval == expected_bitval)
@@ -724,7 +724,7 @@ test_dns_name_isabsolute(char *test_name, isc_boolean_t expected) {
 	dns_name_init(&name, NULL);
 	dns_name_setbuffer(&name, &binbuf);
 	result = dns_name_fromtext(&name,  &buf, NULL, ISC_FALSE, NULL);
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		isabs_p = dns_name_isabsolute(&name);
 		if (isabs_p == expected)
 			rval = T_PASS;
@@ -809,9 +809,9 @@ test_dns_name_hash(char *test_name1, char *test_name2,
 	t_info("testing names %s and %s\n", test_name1, test_name2);
 
 	result = dname_from_tname(test_name1, &dns_name1);
-	if (result == DNS_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
 		result = dname_from_tname(test_name2, &dns_name2);
-		if (result == DNS_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS) {
 			hash1 = dns_name_hash(&dns_name1, ISC_TRUE);
 			hash2 = dns_name_hash(&dns_name2, ISC_TRUE);
 			match = ISC_FALSE;
@@ -953,9 +953,9 @@ test_dns_name_fullcompare(char *name1, char *name2, dns_namereln_t exp_dns_reln,
 			dns_namereln_to_text(exp_dns_reln));
 
 	dns_result = dname_from_tname(name1, &dns_name1);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		dns_result = dname_from_tname(name2, &dns_name2);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			dns_reln = dns_name_fullcompare(&dns_name1, &dns_name2,
 					&order, &nlabels, &nbits);
 			
@@ -1088,9 +1088,9 @@ test_dns_name_compare(char *name1, char *name2, int exp_order) {
 			name2);
 
 	dns_result = dname_from_tname(name1, &dns_name1);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		dns_result = dname_from_tname(name2, &dns_name2);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			order = dns_name_compare(&dns_name1, &dns_name2);
 			
 			if (order != exp_order) {
@@ -1186,9 +1186,9 @@ test_dns_name_rdatacompare(char *name1, char *name2, int exp_order) {
 			name2);
 
 	dns_result = dname_from_tname(name1, &dns_name1);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		dns_result = dname_from_tname(name2, &dns_name2);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			order = dns_name_rdatacompare(&dns_name1, &dns_name2);
 			
 			if (order != exp_order) {
@@ -1285,9 +1285,9 @@ test_dns_name_issubdomain(char *name1, char *name2, isc_boolean_t exp_rval) {
 			name2);
 
 	dns_result = dname_from_tname(name1, &dns_name1);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		dns_result = dname_from_tname(name2, &dns_name2);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			rval = dns_name_issubdomain(&dns_name1, &dns_name2);
 			
 			if (rval != exp_rval) {
@@ -1377,7 +1377,7 @@ test_dns_name_countlabels(char *test_name, unsigned int exp_nlabels) {
 	t_info("testing %s\n", test_name);
 
 	dns_result = dname_from_tname(test_name, &dns_name);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		nlabels = dns_name_countlabels(&dns_name);
 			
 		if (nlabels != exp_nlabels) {
@@ -1473,9 +1473,9 @@ test_dns_name_getlabel(char *test_name1, int label1_pos,
 	t_info("testing with %s and %s\n", test_name1, test_name2);
 
 	dns_result = dname_from_tname(test_name1, &dns_name1);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		dns_result = dname_from_tname(test_name2, &dns_name2);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			dns_name_getlabel(&dns_name1, label1_pos, &dns_label1);
 			dns_name_getlabel(&dns_name2, label2_pos, &dns_label2);
 			if (dns_label1.length != dns_label2.length) {
@@ -1588,9 +1588,9 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 	nfails = 0;
 	result = T_UNRESOLVED;
 	dns_result = dname_from_tname(test_name1, &dns_name1);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		dns_result = dname_from_tname(test_name2, &dns_name2);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			t_info("testing %s %s\n", test_name1, test_name2);
 			dns_name_init(&dns_targetname1, NULL);
 			dns_name_init(&dns_targetname2, NULL);
@@ -1708,7 +1708,7 @@ test_dns_name_fromregion(char *test_name) {
 	t_info("testing %s\n", test_name);
 
 	dns_result = dname_from_tname(test_name, &dns_name1);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 
 		dns_name_toregion(&dns_name1, &region);
 
@@ -1880,7 +1880,7 @@ test_dns_name_fromtext(char *test_name1, char *test_name2,
 
 	dns_result = dns_name_fromtext(&dns_name3,  &txtbuf3, NULL,
 						ISC_FALSE, &binbuf3);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext(dns_name3) failed, result == %s\n",
 			dns_result_totext(dns_result));
 		return(T_FAIL);
@@ -1888,7 +1888,7 @@ test_dns_name_fromtext(char *test_name1, char *test_name2,
 
 	dns_result = dns_name_fromtext(&dns_name1, &txtbuf1, &dns_name3,
 						downcase, &binbuf1);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext(dns_name1) failed, result == %s\n",
 			dns_result_totext(dns_result));
 		return(T_FAIL);
@@ -1896,7 +1896,7 @@ test_dns_name_fromtext(char *test_name1, char *test_name2,
 
 	dns_result = dns_name_fromtext(&dns_name2,  &txtbuf2, NULL,
 						ISC_FALSE, &binbuf2);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext(dns_name2) failed, result == %s\n",
 			dns_result_totext(dns_result));
 		return(T_FAIL);
@@ -2003,7 +2003,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	/* out of the data file to dns_name1 */
 	dns_result = dns_name_fromtext(&dns_name1, &buf1, NULL, ISC_FALSE,
 					&buf2);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed, result == %s\n",
 				dns_result_totext(dns_result));
 		return(T_UNRESOLVED);
@@ -2013,7 +2013,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	isc_buffer_invalidate(&buf1);
 	isc_buffer_init(&buf1, junk1, BUFLEN, ISC_BUFFERTYPE_TEXT);
 	dns_result = dns_name_totext(&dns_name1, omit_final, &buf1);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_totext failed, result == %s\n",
 				dns_result_totext(dns_result));
 		return(T_FAIL);
@@ -2024,7 +2024,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	isc_buffer_init(&buf3, junk3, BUFLEN, ISC_BUFFERTYPE_BINARY);
 	dns_result = dns_name_fromtext(&dns_name2, &buf1,
 				       NULL, ISC_FALSE, &buf3);
-	if (dns_result != DNS_R_SUCCESS) {
+	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed, result == %s\n",
 				dns_result_totext(dns_result));
 		return(T_UNRESOLVED);
@@ -2094,16 +2094,16 @@ char	*a42 =	"dns_name_fromwire(name, source, dctx, downcase, target) "
 		"converts the possibly compressed DNS name 'name' in wire "
 		"format to canonicalized form at target, performing upper to "
 		"lower case conversion if downcase is true, and returns "
-		"DNS_R_SUCCESS"; 
+		"ISC_R_SUCCESS"; 
 
 char	*a43 =	"when a label length is invalid, dns_name_fromwire() "
-		"returns DNS_R_NOSPACE";
+		"returns ISC_R_NOSPACE";
 
 char	*a44 =	"when a label type is invalid, dns_name_fromwire() "
 		"returns DNS_R_BADLABELTYPE";
 
 char	*a45 =	"when a name length is invalid, dns_name_fromwire() "
-		"returns DNS_R_NOSPACE";
+		"returns ISC_R_NOSPACE";
 
 char	*a46 =	"when a compression type is invalid, dns_name_fromwire() "
 		"returns DNS_R_DISALLOWED";
@@ -2112,14 +2112,14 @@ char	*a47 =	"when a bad compression pointer is encountered, "
 		"dns_name_fromwire() returns DNS_R_BADPOINTER";
 
 char	*a48 =	"when input ends unexpected, dns_name_fromwire() "
-		"returns DNS_R_UNEXPECTEDEND";
+		"returns ISC_R_UNEXPECTEDEND";
 
 char	*a49 =	"when there are too many compression pointers, "
 		"dns_name_fromwire() returns DNS_R_TOOMANYHOPS";
 
 char	*a50 =	"when there is not enough space in target, "
 		"dns_name_fromwire(name, source, dcts, downcase, target) "
-		"returns DNS_R_NOSPACE";
+		"returns ISC_R_NOSPACE";
 
 static int
 test_dns_name_fromwire( char *datafile_name,
@@ -2160,10 +2160,10 @@ test_dns_name_fromwire( char *datafile_name,
 	dns_result = dns_name_fromwire(&dns_name1, &iscbuf1,
 					&dctx, downcase ? ISC_TRUE : ISC_FALSE, &iscbuf2);
 
-	if ((dns_result == exp_result) && (exp_result == DNS_R_SUCCESS)) {
+	if ((dns_result == exp_result) && (exp_result == ISC_R_SUCCESS)) {
 
 		dns_result = dname_from_tname(exp_name, &dns_name2);
-		if (dns_result == DNS_R_SUCCESS) {
+		if (dns_result == ISC_R_SUCCESS) {
 			dns_namereln = dns_name_fullcompare(
 						&dns_name1,
 						&dns_name2,
@@ -2230,17 +2230,17 @@ t_dns_name_fromwire_x(char *testfile, size_t buflen) {
 				 */
 
 				tok = Tokens[5];
-				exp_result = DNS_R_SUCCESS;
-				if (! strcmp(tok, "DNS_R_SUCCESS"))
-					exp_result = DNS_R_SUCCESS;
-				else if (! strcmp(tok, "DNS_R_NOSPACE"))
-					exp_result = DNS_R_NOSPACE;
+				exp_result = ISC_R_SUCCESS;
+				if (! strcmp(tok, "ISC_R_SUCCESS"))
+					exp_result = ISC_R_SUCCESS;
+				else if (! strcmp(tok, "ISC_R_NOSPACE"))
+					exp_result = ISC_R_NOSPACE;
 				else if (! strcmp(tok, "DNS_R_BADLABELTYPE"))
 					exp_result = DNS_R_BADLABELTYPE;
 				else if (! strcmp(tok, "DNS_R_BADPOINTER"))
 					exp_result = DNS_R_BADPOINTER;
-				else if (! strcmp(tok, "DNS_R_UNEXPECTEDEND"))
-					exp_result = DNS_R_UNEXPECTEDEND;
+				else if (! strcmp(tok, "ISC_R_UNEXPECTEDEND"))
+					exp_result = ISC_R_UNEXPECTEDEND;
 				else if (! strcmp(tok, "DNS_R_TOOMANYHOPS"))
 					exp_result = DNS_R_TOOMANYHOPS;
 				else if (! strcmp(tok, "DNS_R_DISALLOWED"))
@@ -2326,7 +2326,7 @@ char	*a51 =	"dns_name_towire(name, cctx, target) converts the DNS name "
 		"target and returns DNS_SUCCESS";
 
 char	*a52 =	"when not enough space exists in target, "
-		"dns_name_towire(name, cctx, target) returns DNS_R_NOSPACE";
+		"dns_name_towire(name, cctx, target) returns ISC_R_NOSPACE";
 
 static int
 test_dns_name_towire(	char *testname,
@@ -2368,11 +2368,11 @@ test_dns_name_towire(	char *testname,
 	isc_buffer_add(&iscbuf1, len);
 	isc_buffer_init(&iscbuf2, buf2, BUFLEN, ISC_BUFFERTYPE_BINARY);
 	dns_result = dns_name_fromtext(&dns_name, &iscbuf1, NULL, ISC_FALSE, &iscbuf2);
-	if (dns_result == DNS_R_SUCCESS) {
+	if (dns_result == ISC_R_SUCCESS) {
 		isc_buffer_init(&iscbuf3, buf3, buflen, ISC_BUFFERTYPE_BINARY);
 		dns_result = dns_name_towire(&dns_name, &cctx, &iscbuf3);
 		if (dns_result == exp_result) {
-			if (exp_result == DNS_R_SUCCESS) {
+			if (exp_result == ISC_R_SUCCESS) {
 				/* compare results with expected data */
 				val = chkdata(	buf3,
 						iscbuf3.used,
@@ -2476,7 +2476,7 @@ t_dns_name_towire_2() {
 char	*a53 =	"dns_name_concatenate(prefix, suffix, name, target) "
 		"concatenates prefix and suffix, stores the result "
 		"in target, canonicalizes any bitstring labels "
-		"and returns DNS_R_SUCCESS";
+		"and returns ISC_R_SUCCESS";
 
 void
 t_dns_name_concatenate() {

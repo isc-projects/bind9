@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.14 2000/03/16 02:08:49 bwelling Exp $ */
+/* $Id: isdn_20.c,v 1.15 2000/04/06 22:02:49 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -46,7 +46,7 @@ fromtext_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (token.type != isc_tokentype_string &&
 	    token.type != isc_tokentype_qstring) {
 		isc_lex_ungettoken(lexer, &token);
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	}
 	return (txt_fromtext(&token.value.as_textregion, target));
 }
@@ -64,7 +64,7 @@ totext_isdn(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));
 	if (region.length == 0)
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	RETERR(str_totext(" ", target));
 	return (txt_totext(&region, target));
 }
@@ -82,7 +82,7 @@ fromwire_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	RETERR(txt_fromwire(source, target));
 	if (buffer_empty(source))
-		return (DNS_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	return (txt_fromwire(source, target));
 }
 
@@ -119,7 +119,7 @@ fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 20);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -129,7 +129,7 @@ tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 20);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -147,7 +147,7 @@ additionaldata_isdn(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 20);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

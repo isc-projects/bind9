@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.22 2000/03/20 19:29:44 gson Exp $ */
+/* $Id: wks_11.c,v 1.23 2000/04/06 22:03:34 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -60,7 +60,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
 
@@ -73,7 +73,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	else if ((pe = getprotobyname(token.value.as_pointer)) != NULL)
 		proto = pe->p_proto;
 	else
-		return (DNS_R_UNEXPECTED);
+		return (ISC_R_UNEXPECTED);
 	if (proto < 0 || proto > 0xff)
 		return (DNS_R_RANGE);
 
@@ -97,7 +97,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 			  != NULL)
 			port = ntohs(se->s_port);
 		else
-			return (DNS_R_UNEXPECTED);
+			return (ISC_R_UNEXPECTED);
 		if (port < 0 || port > 0xffff)
 			return (DNS_R_RANGE);
 		if (port > maxport)
@@ -130,7 +130,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	dns_rdata_toregion(rdata, &sr);
 	isc_buffer_available(target, &tr);
 	if (inet_ntop(AF_INET, sr.base, (char *)tr.base, tr.length) == NULL)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	isc_buffer_add(target, strlen((char *)tr.base));
 	isc_region_consume(&sr, 4);
 
@@ -152,7 +152,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	}
 
 	RETERR(str_totext(" )", target));
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -173,17 +173,17 @@ fromwire_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_available(target, &tr);
 
 	if (sr.length < 5)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	if (sr.length > 8 * 1024 + 5)
 		return (DNS_R_EXTRADATA);
 	if (tr.length < sr.length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(tr.base, sr.base, sr.length);
 	isc_buffer_add(target, sr.length);
 	isc_buffer_forward(source, sr.length);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -226,7 +226,7 @@ fromstruct_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -238,7 +238,7 @@ tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -258,7 +258,7 @@ additionaldata_in_wks(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->rdclass == 1);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

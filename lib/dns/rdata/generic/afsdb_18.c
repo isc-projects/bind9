@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.19 2000/03/18 01:46:15 tale Exp $ */
+/* $Id: afsdb_18.c,v 1.20 2000/04/06 22:02:41 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -99,9 +99,9 @@ fromwire_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_active(source, &sr);
 	isc_buffer_available(target, &tr);
 	if (tr.length < 2)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	if (sr.length < 2)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	memcpy(tr.base, sr.base, 2);
 	isc_buffer_forward(source, 2);
 	isc_buffer_add(target, 2);
@@ -125,7 +125,7 @@ towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &sr);
 	if (tr.length < 2)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	memcpy(tr.base, sr.base, 2);
 	isc_region_consume(&sr, 2);
 	isc_buffer_add(target, 2);
@@ -178,7 +178,7 @@ fromstruct_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 18);
 	
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -190,7 +190,7 @@ tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	REQUIRE(rdata->type == 18);
 	REQUIRE(target != NULL);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void

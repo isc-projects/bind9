@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.20 2000/03/16 23:40:50 bwelling Exp $ */
+/* $Id: txt_16.c,v 1.21 2000/04/06 22:03:16 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -45,7 +45,7 @@ fromtext_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	}
 	/* Let upper layer handle eol/eof. */
 	isc_lex_ungettoken(lexer, &token);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -66,7 +66,7 @@ totext_txt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 			RETERR(str_totext(" ", target));
 	}
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -84,10 +84,10 @@ fromwire_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	while (!buffer_empty(source)) {
 		result = txt_fromwire(source, target);
-		if (result != DNS_R_SUCCESS)
+		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -100,11 +100,11 @@ towire_txt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	isc_buffer_available(target, &region);
 	if (region.length < rdata->length)
-		return (DNS_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	memcpy(region.base, rdata->data, rdata->length);
 	isc_buffer_add(target, rdata->length);
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline int
@@ -131,7 +131,7 @@ fromstruct_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 16);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -141,7 +141,7 @@ tostruct_txt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 16);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -159,7 +159,7 @@ additionaldata_txt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	REQUIRE(rdata->type == 16);
 
-	return (DNS_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

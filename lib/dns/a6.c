@@ -110,7 +110,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 					maybe_disassociate(&childsig);
 					if (result != ISC_R_SUCCESS)
 						break;
-				} else if (result == DNS_R_NOTFOUND &&
+				} else if (result == ISC_R_NOTFOUND &&
 					   a6ctx->missing != NULL) {
 					/*
 					 * We can't follow this chain, because
@@ -163,7 +163,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 				return (ISC_R_QUOTA);
 		}
 	}
-	if (result != DNS_R_NOMORE)
+	if (result != ISC_R_NOMORE)
 		return (result);
 	return (ISC_R_SUCCESS);
 }

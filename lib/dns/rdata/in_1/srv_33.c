@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.16 2000/03/20 22:44:36 gson Exp $ */
+/* $Id: srv_33.c,v 1.17 2000/04/06 22:03:33 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -123,7 +123,7 @@ fromwire_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* priority, weight, port */
 	isc_buffer_active(source, &sr);
 	if (sr.length < 6)
-		return (DNS_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 6));
 	isc_buffer_forward(source, 6);
 
@@ -198,7 +198,7 @@ fromstruct_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -209,7 +209,7 @@ tostruct_in_srv(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 33);
 	REQUIRE(rdata->rdclass == 1);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static inline void
