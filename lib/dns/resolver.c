@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.277 2004/01/20 12:49:45 marka Exp $ */
+/* $Id: resolver.c,v 1.278 2004/01/27 04:49:09 marka Exp $ */
 
 #include <config.h>
 
@@ -1041,6 +1041,7 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t useedns;
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
+	isc_boolean_t secure_domain;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -1104,6 +1105,21 @@ resquery_send(resquery_t *query) {
 	if ((query->options & DNS_FETCHOPT_RECURSIVE) != 0 ||
 	    ISFORWARDER(query->addrinfo))
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_RD;
+
+	/*
+	 * Set CD if the client says don't validate or the question is
+	 * under a secure entry point.
+	 */
+	if ((query->options & DNS_FETCHOPT_NOVALIDATE) == 0) {
+		result = dns_keytable_issecuredomain(res->view->secroots,
+						     &fctx->name,
+						     &secure_domain);
+		if (result != ISC_R_SUCCESS)
+			secure_domain = ISC_FALSE;
+		if (secure_domain)
+			fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
+	} else
+		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 
 	/*
 	 * We don't have to set opcode because it defaults to query.
@@ -1186,14 +1202,6 @@ resquery_send(resquery_t *query) {
 		result = DNS_R_SERVFAIL;
 		goto cleanup_message;
 	}
-
-	/*
-	 * If we're using EDNS, set CD.  CD and EDNS aren't really related,
-	 * but if we send a non EDNS query, there's a chance the server
-	 * won't understand CD either.
-	 */
-	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
-		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 
 	/*
 	 * Add TSIG record tailored to the current recipient.
