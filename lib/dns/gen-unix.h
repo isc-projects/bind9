@@ -33,6 +33,7 @@
 #include <sys/types.h>
 
 #include <dirent.h>
+#include <unistd.h>
 
 #include <isc/boolean.h>
 #include <isc/lang.h>
