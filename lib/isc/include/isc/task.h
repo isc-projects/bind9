@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.48 2001/01/09 21:57:39 bwelling Exp $ */
+/* $Id: task.h,v 1.49 2001/02/13 04:11:44 gson Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -486,6 +486,38 @@ isc_task_gettag(isc_task_t *task);
  * Requires:
  *	'task' is a valid task.
  */
+
+isc_result_t
+isc_task_beginexclusive(isc_task_t *task);
+/*
+ * Request exclusive access for 'task', which must be the calling
+ * task.  Waits for any other concurrently executing tasks to finish their
+ * current event, and prevents any new events from executing in any of the
+ * tasks sharing a task manager with 'task'.
+ *
+ * The exclusive access must be relinquished by calling 
+ * isc_task_endexclusive() before returning from the current event handler.
+ *
+ * Requires:
+ *	'task' is the calling task.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		The current task now has exclusive access.
+ *	ISC_R_LOCKBUSY		Another task has already requested exclusive
+ *				access.
+ */
+
+void
+isc_task_endexclusive(isc_task_t *task);
+/*
+ * Relinquish the exclusive access obtained by isc_task_beginexclusive(), 
+ * allowing other tasks to execute.
+ *
+ * Requires:
+ *	'task' is the calling task, and has obtained
+ *		exclusive access by calling isc_task_spl().
+ */
+
 
 /*****
  ***** Task Manager.

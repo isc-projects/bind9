@@ -1,3 +1,6 @@
+
+ 736.	[func]		New functions isc_task_{begin,end}exclusive().
+
  735.	[doc]		Add BIND 4 migration notes.
 
  734.	[bug]		An attempt to re-lock the zone lock could occur if

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.83 2001/02/09 18:27:18 gson Exp $ */
+/* $Id: task.c,v 1.84 2001/02/13 04:11:41 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -115,7 +115,10 @@ struct isc_taskmgr {
 	LIST(isc_task_t)		ready_tasks;
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_condition_t			work_available;
+	isc_condition_t			exclusive_granted;
 #endif /* ISC_PLATFORM_USETHREADS */
+	unsigned int			tasks_running;
+	isc_boolean_t			exclusive_requested;
 	isc_boolean_t			exiting;
 #ifndef ISC_PLATFORM_USETHREADS
 	unsigned int			refs;
@@ -788,7 +791,10 @@ dispatch(isc_taskmgr_t *manager) {
 		 * change the task to running state while only holding the
 		 * task lock.
 		 */
-		while (EMPTY(manager->ready_tasks) && !FINISHED(manager)) {
+		while ((EMPTY(manager->ready_tasks) ||
+		        manager->exclusive_requested) &&
+		  	!FINISHED(manager)) 
+	  	{
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_GENERAL,
 						    ISC_MSG_WAIT, "wait"));
@@ -821,6 +827,7 @@ dispatch(isc_taskmgr_t *manager) {
 			 * lock before exiting the 'if (task != NULL)' block.
 			 */
 			DEQUEUE(manager->ready_tasks, task, ready_link);
+			manager->tasks_running++;
 			UNLOCK(&manager->lock);
 
 			LOCK(&task->lock);
@@ -932,6 +939,13 @@ dispatch(isc_taskmgr_t *manager) {
 				task_finished(task);
 
 			LOCK(&manager->lock);
+			manager->tasks_running--;
+#ifdef ISC_PLATFORM_USETHREADS
+			if (manager->exclusive_requested &&
+			    manager->tasks_running == 1) {
+				SIGNAL(&manager->exclusive_granted);
+			}
+#endif /* ISC_PLATFORM_USETHREADS */
 			if (requeue) {
 				/*
 				 * We know we're awake, so we don't have
@@ -985,6 +999,7 @@ manager_free(isc_taskmgr_t *manager) {
 	isc_mem_t *mctx;
 
 #ifdef ISC_PLATFORM_USETHREADS
+	(void)isc_condition_destroy(&manager->exclusive_granted);	
 	(void)isc_condition_destroy(&manager->work_available);
 	isc_mem_put(manager->mctx, manager->threads,
 		    manager->workers * sizeof (isc_thread_t));
@@ -1000,6 +1015,7 @@ isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		   unsigned int default_quantum, isc_taskmgr_t **managerp)
 {
+	isc_result_t result;
 	unsigned int i, started = 0;
 	isc_taskmgr_t *manager;
 
@@ -1029,30 +1045,34 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager->mctx = NULL;
 	manager->workers = 0;
 	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_mgr;
 	}
 #ifdef ISC_PLATFORM_USETHREADS
 	manager->threads = isc_mem_get(mctx, workers * sizeof (isc_thread_t));
 	if (manager->threads == NULL) {
-		DESTROYLOCK(&manager->lock);
-		isc_mem_put(mctx, manager, sizeof *manager);
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_NOMEMORY;
+		goto cleanup_lock;
 	}
 	if (isc_condition_init(&manager->work_available) != ISC_R_SUCCESS) {
-		DESTROYLOCK(&manager->lock);
-		isc_mem_put(mctx, manager->threads,
-			    workers * sizeof (isc_thread_t));
-		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_condition_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_threads;
+	}
+	if (isc_condition_init(&manager->exclusive_granted) != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_condition_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_workavailable;
 	}
 #endif /* ISC_PLATFORM_USETHREADS */
 	if (default_quantum == 0)
@@ -1060,6 +1080,8 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager->default_quantum = default_quantum;
 	INIT_LIST(manager->tasks);
 	INIT_LIST(manager->ready_tasks);
+	manager->tasks_running = 0;
+	manager->exclusive_requested = ISC_FALSE;
 	manager->exiting = ISC_FALSE;
 	manager->workers = 0;
 
@@ -1093,6 +1115,18 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
+
+#ifdef ISC_PLATFORM_USETHREADS
+ cleanup_workavailable:
+	(void)isc_condition_destroy(&manager->work_available);
+ cleanup_threads:
+	isc_mem_put(mctx, manager->threads, workers * sizeof (isc_thread_t));
+ cleanup_lock:
+	DESTROYLOCK(&manager->lock);
+#endif
+ cleanup_mgr:
+	isc_mem_put(mctx, manager, sizeof *manager);
+	return (result);
 }
 
 void
@@ -1204,4 +1238,41 @@ isc__taskmgr_dispatch(void) {
 
 	return (ISC_R_SUCCESS);
 }
+
 #endif /* ISC_PLATFORM_USETHREADS */
+
+isc_result_t
+isc_task_beginexclusive(isc_task_t *task) {
+#ifdef ISC_PLATFORM_USETHREADS	
+	isc_taskmgr_t *manager = task->manager;
+	REQUIRE(task->state == task_state_running);
+	LOCK(&manager->lock);
+	if (manager->exclusive_requested) {
+		UNLOCK(&manager->lock);			
+		return (ISC_R_LOCKBUSY);
+	}
+	manager->exclusive_requested = ISC_TRUE;
+	while (manager->tasks_running > 1) {
+		WAIT(&manager->exclusive_granted, &manager->lock);
+	}
+	UNLOCK(&manager->lock);	
+#else
+	UNUSED(task);
+#endif
+	return (ISC_R_SUCCESS);
+}
+
+void
+isc_task_endexclusive(isc_task_t *task) {
+#ifdef ISC_PLATFORM_USETHREADS	
+	isc_taskmgr_t *manager = task->manager;
+	REQUIRE(task->state == task_state_running);
+	LOCK(&manager->lock);
+	REQUIRE(manager->exclusive_requested);
+	manager->exclusive_requested = ISC_FALSE;
+	BROADCAST(&manager->work_available);
+	UNLOCK(&manager->lock);
+#else
+	UNUSED(task);
+#endif
+}
