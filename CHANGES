@@ -1,6 +1,9 @@
 1271.	[port]		win32: a make file contained absolute version specific
 			references.
 
+1269.	[bug]		Missing masters clause was not handled gracefully.
+			[RT #2703]
+
 1244.	[bug]		Receiving a TCP message from a blackhole address would
 			prevent further messages being received over that
 			interface.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.15 2002/03/20 20:21:15 marka Exp $ */
+/* $Id: check.c,v 1.14.2.16 2002/04/23 02:00:03 marka Exp $ */
 
 #include <config.h>
 
@@ -261,13 +261,14 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx,
 				    "zone '%s': missing 'masters' entry",
 				    zname);
 			result = ISC_R_FAILURE;
-		}
-		addrlist = cfg_tuple_get(obj, "addresses");
-		if (cfg_list_first(addrlist) == NULL) {
-			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
-				    "zone '%s': empty 'masters' entry",
-				    zname);
-			result = ISC_R_FAILURE;
+		} else {
+			addrlist = cfg_tuple_get(obj, "addresses");
+			if (cfg_list_first(addrlist) == NULL) {
+				cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
+					    "zone '%s': empty 'masters' entry",
+					    zname);
+				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
