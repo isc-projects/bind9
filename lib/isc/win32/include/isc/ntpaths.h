@@ -15,11 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-<<<<<<< ntpaths.h
-/* $Id: ntpaths.h,v 1.7 2001/07/27 05:15:27 mayer Exp $ */
-=======
-/* $Id: ntpaths.h,v 1.7 2001/07/27 05:15:27 mayer Exp $ */
->>>>>>> 1.6
+/* $Id: ntpaths.h,v 1.8 2001/07/27 05:16:55 mayer Exp $ */
 
 /*
  * Windows-specific path definitions
