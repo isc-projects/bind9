@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_clnt.c,v 1.2 2001/04/03 05:53:02 marka Exp $";
+static const char rcsid[] = "$Id: ctl_clnt.c,v 1.3 2001/04/03 06:42:29 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -55,8 +55,9 @@ static const char rcsid[] = "$Id: ctl_clnt.c,v 1.2 2001/04/03 05:53:02 marka Exp
 /* Macros. */
 
 #define donefunc_p(ctx) ((ctx).donefunc != NULL)
-#define arpacode_p(line) (isdigit(line[0]&0xff) && isdigit(line[1]&0xff) && \
-			  isdigit(line[2]&0xff))
+#define arpacode_p(line) (isdigit((unsigned char)(line[0])) && \
+			  isdigit((unsigned char)(line[1])) && \
+			  isdigit((unsigned char)(line[2])))
 #define arpacont_p(line) (line[3] == '-')
 #define arpadone_p(line) (line[3] == ' ' || line[3] == '\t' || \
 			  line[3] == '\r' || line[3] == '\0')
@@ -243,7 +244,8 @@ ctl_command(struct ctl_cctx *ctx, const char *cmd, size_t len,
 	memcpy(tran->outbuf.text, cmd, len);
 	tran->outbuf.used = len;
 	for (pc = tran->outbuf.text, n = 0; n < tran->outbuf.used; pc++, n++)
-		if (!isascii(*pc&0xff) || !isprint(*pc&0xff))
+		if (!isascii((unsigned char)*pc) ||
+		    !isprint((unsigned char)*pc))
 			*pc = '\040';
 	start_write(ctx);
 	return (0);

@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: getnetent.c,v 1.2 2001/04/03 05:52:58 marka Exp $";
+static const char rcsid[] = "$Id: getnetent.c,v 1.3 2001/04/03 06:42:26 marka Exp $";
 #endif
 
 /* Imports */
@@ -259,7 +259,8 @@ fakeaddr(const char *name, int af, struct net_data *net_data) {
 		RES_SET_H_ERRNO(net_data->res, NETDB_INTERNAL);
 		return (NULL);
 	}
-	if (!isascii(name[0]&0xff) || !isdigit(name[0]&0xff))
+	if (!isascii((unsigned char)(name[0])) ||
+	    !isdigit((unsigned char)(name[0])))
 		return (NULL);
 	for (cp = name; *cp; ++cp)
 		if (!isascii(*cp) || (!isdigit(*cp) && *cp != '.'))

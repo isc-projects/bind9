@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_sv.c,v 1.2 2001/04/03 05:52:56 marka Exp $";
+static const char rcsid[] = "$Id: dns_sv.c,v 1.3 2001/04/03 06:42:23 marka Exp $";
 #endif
 
 /* Imports */
@@ -198,7 +198,7 @@ parse_hes_list(struct irs_sv *this, char **hes_list, const char *proto) {
 
 		/* Check to make sure the protocol matches. */
 		p = cp;
-		while (*p && !isspace(*p&0xff))
+		while (*p && !isspace((unsigned char)*p))
 			p++;
 		if (!*p)
 			continue;

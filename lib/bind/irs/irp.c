@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irp.c,v 1.2 2001/04/03 05:52:59 marka Exp $";
+static const char rcsid[] = "$Id: irp.c,v 1.3 2001/04/03 06:42:27 marka Exp $";
 #endif
 
 /* Imports */
@@ -389,9 +389,9 @@ irs_irp_read_response(struct irp_p *pvt, char *text, size_t textlen) {
 		code = 0;
 	} else if (text != NULL && textlen > 0) {
 		p = line;
-		while (isspace(*p&0xff)) p++;
-		while (isdigit(*p&0xff)) p++;
-		while (isspace(*p&0xff)) p++;
+		while (isspace((unsigned char)*p)) p++;
+		while (isdigit((unsigned char)*p)) p++;
+		while (isspace((unsigned char)*p)) p++;
 		strncpy(text, p, textlen - 1);
 		p[textlen - 1] = '\0';
 	}

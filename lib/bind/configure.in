@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.9 $)
+AC_REVISION($Revision: 1.10 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1519,6 +1519,21 @@ AC_SUBST(PASS_R_SET_RESULT)
 AC_SUBST(PASS_R_SET_RETURN)
 
 AC_CHECK_FUNC(getservent_r,
+AC_TRY_COMPILE([
+#include <netdb.h>
+struct servent *
+getservent_r(struct servent *result, char *buffer, int buflen) {}
+],[return (0);],
+[
+SERV_R_ARGS="#define SERV_R_ARGS char *buf, int buflen"
+SERV_R_BAD="#define SERV_R_BAD NULL"
+SERV_R_COPY="#define SERV_R_COPY buf, buflen"
+SERV_R_COPY_ARGS="#define SERV_R_COPY_ARGS SERV_R_ARGS"
+SERV_R_OK="#define SERV_R_OK sptr"
+SERV_R_RETURN="#define SERV_R_RETURN struct servent *"
+]
+,
+)
 ,
 SERV_R_ARGS="#define SERV_R_ARGS char *buf, int buflen"
 SERV_R_BAD="#define SERV_R_BAD NULL"

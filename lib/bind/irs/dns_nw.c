@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_nw.c,v 1.2 2001/04/03 05:52:54 marka Exp $";
+static const char rcsid[] = "$Id: dns_nw.c,v 1.3 2001/04/03 06:42:21 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -545,7 +545,7 @@ normalize_name(char *name) {
 
 	/* Make lower case. */
 	for (t = name; *t; t++)
-		if (isascii(*t&0xff) && isupper(*t&0xff))
+		if (isascii((unsigned char)*t) && isupper((unsigned char)*t))
 			*t = tolower(*t);
 
 	/* Remove trailing dots. */

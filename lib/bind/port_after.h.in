@@ -89,6 +89,11 @@ extern const struct in6_addr in6addr_any;
 #define MAXHOSTNAMELEN 256
 #endif
 
+#ifndef INET6_ADDRSTRLEN
+/* sizeof("aaaa:bbbb:cccc:dddd:eeee:ffff:123.123.123.123") */
+#define INET6_ADDRSTRLEN 46
+#endif
+
 #ifndef MIN
 #define MIN(x,y) (((x) <= (y)) ? (x) : (y))
 #endif

@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_srvr.c,v 1.2 2001/04/03 02:30:56 marka Exp $";
+static const char rcsid[] = "$Id: ctl_srvr.c,v 1.3 2001/04/03 06:42:30 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -329,8 +329,10 @@ ctl_response(struct ctl_sess *sess, u_int code, const char *text,
 	sess->outbuf.used = SPRINTF((sess->outbuf.text, "%03d%c%s\r\n",
 				     code, (flags & CTL_MORE) != 0 ? '-' : ' ',
 				     text));
-	for (pc = sess->outbuf.text, n = 0; n < (int)sess->outbuf.used-2; pc++, n++)
-		if (!isascii(*pc&0xff) || !isprint(*pc&0xff))
+	for (pc = sess->outbuf.text, n = 0;
+	     n < (int)sess->outbuf.used-2; pc++, n++)
+		if (!isascii((unsigned char)*pc) ||
+		    !isprint((unsigned char)*pc))
 			*pc = '\040';
 	*iovp++ = evConsIovec(sess->outbuf.text, sess->outbuf.used);
 	if (body != NULL) {
