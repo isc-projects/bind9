@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.34 2001/11/12 19:05:39 gson Exp $ */
+/* $Id: zt.c,v 1.35 2002/09/10 02:23:45 marka Exp $ */
 
 #include <config.h>
 
@@ -234,8 +234,12 @@ dns_zt_load(dns_zt_t *zt, isc_boolean_t stop) {
 
 static isc_result_t
 load(dns_zone_t *zone, void *uap) {
+	isc_result_t result;
 	UNUSED(uap);
-	return (dns_zone_load(zone));
+	result = dns_zone_load(zone);
+	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE)
+		result = ISC_R_SUCCESS;
+	return (result);
 }
 
 isc_result_t
@@ -252,8 +256,12 @@ dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop) {
 
 static isc_result_t
 loadnew(dns_zone_t *zone, void *uap) {
+	isc_result_t result;
 	UNUSED(uap);
-	return (dns_zone_loadnew(zone));
+	result = dns_zone_loadnew(zone);
+	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE)
+		result = ISC_R_SUCCESS;
+	return (result);
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.14 2002/09/08 18:34:03 explorer Exp $ */
+/* $Id: control.c,v 1.15 2002/09/10 02:23:43 marka Exp $ */
 
 #include <config.h>
 
@@ -81,11 +81,11 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	 * Compare the 'command' parameter against all known control commands.
 	 */
 	if (command_compare(command, NS_COMMAND_RELOAD)) {
-		result = ns_server_reloadcommand(ns_g_server, command);
+		result = ns_server_reloadcommand(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_RECONFIG)) {
 		result = ns_server_reconfigcommand(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_REFRESH)) {
-		result = ns_server_refreshcommand(ns_g_server, command);
+		result = ns_server_refreshcommand(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_RETRANSFER)) {
 		result = ns_server_retransfercommand(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_HALT)) {

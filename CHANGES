@@ -1,3 +1,14 @@
+1379.	[func]		'rndc stats' now reports tcp and recursion quota
+			states.
+
+1378.	[func]		Improved positive feedback for 'rndc {reload|refresh}.
+
+1377.	[func]		dns_zone_load{new}() now reports if the zone was
+			loaded, queued for loading to up to date.
+
+1376.	[func]		New function dns_zone_logc() to log to specified
+			category.
+
 1375.	[func]		'rndc dumpdb' now dumps the adb cache along with the
 			data cache.
 
