@@ -17,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.19 2000/10/09 18:20:18 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.20 2000/10/12 00:38:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -389,6 +389,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_TCP_CLIENTS
 %token		L_TKEY_DHKEY
 %token		L_TKEY_DOMAIN
+%token		L_TKEY_GSSAPI_CREDENTIAL
 %token		L_TOPOLOGY
 %token		L_TRANSFERS
 %token		L_TRANSFERS_IN
@@ -681,6 +682,23 @@ option: /* Empty */
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE, "set tkey-dhkey error: %s: %s",
+				     isc_result_totext(tmpres), $2);
+			YYABORT;
+		}
+
+		isc_mem_free(memctx, $2);
+	}
+	| L_TKEY_GSSAPI_CREDENTIAL L_QSTRING
+	{
+		tmpres = dns_c_ctx_settkeygsscred(currcfg, $2);
+
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine tkey-gssapi-credential");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "set tkey-gssapi-credential error: %s: %s",
 				     isc_result_totext(tmpres), $2);
 			YYABORT;
 		}
@@ -5844,6 +5862,7 @@ static struct token keyword_tokens [] = {
 	{ "tcp-clients",		L_TCP_CLIENTS },
 	{ "tkey-dhkey",			L_TKEY_DHKEY },
 	{ "tkey-domain",		L_TKEY_DOMAIN },
+	{ "tkey-gssapi-credential",	L_TKEY_GSSAPI_CREDENTIAL },
 	{ "topology",			L_TOPOLOGY },
 	{ "transfer-format",		L_TRANSFER_FORMAT },
 	{ "transfer-source",		L_TRANSFER_SOURCE },

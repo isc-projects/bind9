@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.53 2000/10/04 18:47:17 bwelling Exp $ */
+/* $Id: confctx.h,v 1.54 2000/10/12 00:38:30 bwelling Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -196,6 +196,7 @@ struct dns_c_options {
 	char 		       *tkeydhkeycp;
 	isc_uint32_t		tkeydhkeyi;
 	char 		       *tkeydomain;
+	char 		       *tkeygsscred;
 
 	dns_notifytype_t       *notify;
 	dns_c_iplist_t	       *also_notify;
@@ -706,6 +707,10 @@ isc_result_t dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg, char **retcpval,
 
 isc_result_t dns_c_ctx_settkeydomain(dns_c_ctx_t *cfg, const char *newval);
 isc_result_t dns_c_ctx_gettkeydomain(dns_c_ctx_t *cfg, char **retval);
+/* XXX need unset version */
+
+isc_result_t dns_c_ctx_settkeygsscred(dns_c_ctx_t *cfg, const char *newval);
+isc_result_t dns_c_ctx_gettkeygsscred(dns_c_ctx_t *cfg, char **retval);
 /* XXX need unset version */
 
 

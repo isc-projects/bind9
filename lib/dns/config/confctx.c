@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.91 2000/10/04 18:47:23 bwelling Exp $ */
+/* $Id: confctx.c,v 1.92 2000/10/12 00:38:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1163,6 +1163,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 			options->tkeydhkeycp, options->tkeydhkeyi);
 	}
 
+	PRINT_CHAR_P(tkeygsscred, "tkey-gssapi-credential");
 
 	dns_c_printtabs(fp, indent);
 	fprintf(fp,"};\n");
@@ -1635,6 +1636,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->tkeydhkeycp = NULL;
 	opts->tkeydhkeyi = 0;
 	opts->tkeydomain = NULL;
+	opts->tkeygsscred = NULL;
 
 	opts->also_notify = NULL;
 
@@ -1785,6 +1787,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 	FREESTRING(tkeydomain);
 	FREESTRING(tkeydhkeycp);
+	FREESTRING(tkeygsscred);
 
 	if (options->also_notify != NULL) {
 		dns_c_iplist_detach(&options->also_notify);
@@ -1977,6 +1980,23 @@ dns_c_ctx_settkeydhkey(dns_c_ctx_t *cfg,
 			       charval));
 }
 
+
+isc_result_t
+dns_c_ctx_settkeygsscred(dns_c_ctx_t *cfg, const char *newval)
+{
+	isc_result_t res;
+
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+
+	return (cfg_set_string(cfg->options,
+			       &cfg->options->tkeygsscred,
+			       newval));
+}
 
 
 
@@ -2244,6 +2264,24 @@ dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg,
 	}
 
 	return (res);
+}
+
+
+isc_result_t
+dns_c_ctx_gettkeygsscred(dns_c_ctx_t *cfg, char **retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	REQUIRE(DNS_C_CONFOPT_VALID(cfg->options));
+
+	*retval = cfg->options->tkeygsscred;
+
+	return (*retval == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
 
 
