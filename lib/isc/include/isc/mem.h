@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.47 2001/02/09 18:51:20 gson Exp $ */
+/* $Id: mem.h,v 1.48 2001/02/09 19:05:23 gson Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -208,17 +208,10 @@ isc_result_t isc_mem_ondestroy(isc_mem_t *ctx,
  * been successfully destroyed.
  */
 
-isc_result_t isc_mem_preallocate(isc_mem_t *);
-/* XXX */
-
 void isc_mem_stats(isc_mem_t *mctx, FILE *out);
 /*
  * Print memory usage statistics for 'mctx' on the stream 'out'.
  */
-
-
-isc_boolean_t isc_mem_valid(isc_mem_t *, void *);
-/* XXX */
 
 void isc_mem_setdestroycheck(isc_mem_t *mctx,
 			     isc_boolean_t on);
@@ -226,9 +219,6 @@ void isc_mem_setdestroycheck(isc_mem_t *mctx,
  * Iff 'on' is ISC_TRUE, 'mctx' will check for memory leaks when
  * destroyed and abort the program if any are present.
  */
-
-void isc_mem_setsplit(isc_mem_t *, isc_boolean_t);
-/* XXX */
 
 void isc_mem_setquota(isc_mem_t *, size_t);
 size_t isc_mem_getquota(isc_mem_t *);
@@ -244,9 +234,6 @@ size_t isc_mem_inuse(isc_mem_t *mctx);
  * This includes quantization overhead, but does not include memory
  * allocated from the system but not yet used.
  */
-
-isc_result_t isc_mem_restore(isc_mem_t *);
-/* XXX */
 
 void
 isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.82 2001/02/09 18:51:18 gson Exp $ */
+/* $Id: mem.c,v 1.83 2001/02/09 19:05:22 gson Exp $ */
 
 #include <config.h>
 
@@ -133,7 +133,6 @@ struct isc_mem {
 	unsigned int		basic_table_size;
 	unsigned char *		lowest;
 	unsigned char *		highest;
-	isc_boolean_t		trysplit;
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 #if ISC_MEM_TRACKLINES
@@ -304,71 +303,6 @@ quantize(size_t size) {
 	return ((size + ALIGNMENT_SIZE - 1) & (~(ALIGNMENT_SIZE - 1)));
 }
 
-static inline void
-split(isc_mem_t *ctx, size_t size, size_t new_size) {
-	unsigned char *ptr;
-	size_t remaining_size;
-
-	/*
-	 * Unlink a frag of size 'size'.
-	 */
-	ptr = (unsigned char *)ctx->freelists[size];
-	ctx->freelists[size] = ctx->freelists[size]->next;
-	ctx->stats[size].freefrags--;
-
-	/*
-	 * Create a frag of size 'new_size' and link it in.
-	 */
-	((element *)ptr)->next = ctx->freelists[new_size];
-	ctx->freelists[new_size] = (element *)ptr;
-	ctx->stats[new_size].freefrags++;
-
-	/*
-	 * Create a frag of size 'size - new_size' and link it in.
-	 */
-	remaining_size = size - new_size;
-	ptr += new_size;
-	((element *)ptr)->next = ctx->freelists[remaining_size];
-	ctx->freelists[remaining_size] = (element *)ptr;
-	ctx->stats[remaining_size].freefrags++;
-}
-
-static inline isc_boolean_t
-try_split(isc_mem_t *ctx, size_t new_size) {
-	size_t i, doubled_size;
-
-	if (!ctx->trysplit)
-		return (ISC_FALSE);
-
-	/*
-	 * Try splitting a frag that's at least twice as big as the size
-	 * we want.
-	 */
-	doubled_size = new_size * 2;
-	for (i = doubled_size;
-	     i < ctx->max_size;
-	     i += ALIGNMENT_SIZE) {
-		if (ctx->freelists[i] != NULL) {
-			split(ctx, i, new_size);
-			return (ISC_TRUE);
-		}
-	}
-
-	/*
-	 * No luck.  Try splitting any frag bigger than the size we need.
-	 */
-	for (i = new_size + ALIGNMENT_SIZE;
-	     i < doubled_size;
-	     i += ALIGNMENT_SIZE) {
-		if (ctx->freelists[i] != NULL) {
-			split(ctx, i, new_size);
-			return (ISC_TRUE);
-		}
-	}
-
-	return (ISC_FALSE);
-}
-
 static inline isc_boolean_t
 more_basic_blocks(isc_mem_t *ctx) {
 	void *new;
@@ -455,11 +389,7 @@ more_frags(isc_mem_t *ctx, size_t new_size) {
 			/*
 			 * XXXRTH  "At quota" notification here.
 			 */
-			/*
-			 * Maybe we can split one of our existing
-			 * list frags.
-			 */
-			return (try_split(ctx, new_size));
+			return (ISC_FALSE);
 		}
 	}
 
@@ -792,7 +722,6 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 		result = ISC_R_NOMEMORY;
 		goto error;
 	}
-	ctx->trysplit = ISC_FALSE;
 	memset(ctx->freelists, 0,
 	       ctx->max_size * sizeof (element *));
 	ctx->basic_blocks = NULL;
@@ -1007,17 +936,6 @@ isc_mem_ondestroy(isc_mem_t *ctx, isc_task_t *task, isc_event_t **event) {
 }
 
 
-isc_result_t
-isc_mem_restore(isc_mem_t *ctx) {
-	isc_result_t result;
-
-	result = isc_mutex_init(&ctx->lock);
-	if (result != ISC_R_SUCCESS)
-		ctx->magic = 0;
-
-	return (result);
-}
-
 void *
 isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	void *ptr;
@@ -1076,39 +994,6 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	if (call_water) {
 		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
 	}
-}
-
-isc_result_t
-isc_mem_preallocate(isc_mem_t *ctx) {
-#if ISC_MEM_USE_INTERNAL_MALLOC
-
-	size_t i;
-	isc_result_t result = ISC_R_SUCCESS;
-	void *ptr;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	LOCK(&ctx->lock);
-
-	for (i = 0; i < ctx->max_size; i += ALIGNMENT_SIZE) {
-		ptr = mem_getunlocked(ctx, i);
-		if (ptr == NULL) {
-			result = ISC_R_NOMEMORY;
-			break;
-		}
-		mem_putunlocked(ctx, ptr, i);
-	}
-
-	UNLOCK(&ctx->lock);
-
-	return (result);
-
-#else /* ISC_MEM_USE_INTERNAL_MALLOC */
-
-	UNUSED(ctx);
-	return (ISC_R_SUCCESS);
-
-#endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 }
 
 void
@@ -1210,33 +1095,6 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 #endif
 
 	UNLOCK(&ctx->lock);
-}
-
-isc_boolean_t
-isc_mem_valid(isc_mem_t *ctx, void *ptr) {
-#if ISC_MEM_USE_INTERNAL_MALLOC
-
-	unsigned char *cp = ptr;
-	isc_boolean_t result = ISC_FALSE;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	LOCK(&ctx->lock);
-
-	if (ctx->lowest != NULL && cp >= ctx->lowest && cp <= ctx->highest)
-		result = ISC_TRUE;
-
-	UNLOCK(&ctx->lock);
-
-	return (result);
-
-#else /* ISC_MEM_USE_INTERNAL_MALLOC */
-
-	UNUSED(ctx);
-	UNUSED(ptr);
-	return (ISC_TRUE);
-
-#endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 }
 
 /*
@@ -1342,22 +1200,6 @@ isc_mem_setdestroycheck(isc_mem_t *ctx, isc_boolean_t flag) {
 
 	UNLOCK(&ctx->lock);
 }
-
-void
-isc_mem_setsplit(isc_mem_t *ctx, isc_boolean_t flag) {
-#if ISC_MEM_USE_INTERNAL_MALLOC
-	REQUIRE(VALID_CONTEXT(ctx));
-	LOCK(&ctx->lock);
-
-	ctx->trysplit = flag;
-
-	UNLOCK(&ctx->lock);
-#else /* ISC_MEM_USE_INTERNAL_MALLOC */
-	UNUSED(ctx);
-	UNUSED(flag);
-#endif /* ISC_MEM_USE_INTERNAL_MALLOC */
-}
-
 
 /*
  * Quotas
