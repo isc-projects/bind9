@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.34 2001/10/19 21:00:12 gson Exp $ */
+/* $Id: controlconf.c,v 1.35 2001/10/31 19:35:19 gson Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/buffer.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/result.h>
 #include <isc/stdtime.h>
@@ -1161,13 +1162,17 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 			isc_sockaddr_t addr;
 
 			if (i == 0) {
+				struct in_addr localhost;
+
 				if (isc_net_probeipv4() != ISC_R_SUCCESS)
 					continue;
-				isc_sockaddr_any(&addr);
+				localhost.s_addr = htonl(INADDR_LOOPBACK);
+				isc_sockaddr_fromin(&addr, &localhost, 0);
 			} else {
 				if (isc_net_probeipv6() != ISC_R_SUCCESS)
 					continue;
-				isc_sockaddr_any6(&addr);
+				isc_sockaddr_fromin6(&addr,
+						     &in6addr_loopback, 0);
 			}
 			isc_sockaddr_setport(&addr, NS_CONTROL_PORT);
 

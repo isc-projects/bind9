@@ -1,3 +1,6 @@
+1083.	[bug]		The default control channel listened on the
+			wildcard adress, not the loopback as documented.
+
 1082.	[bug]		The -g option to named incorrectly caused logging
 			to be sent to syslog in addition to stderr.
 			[RT #1974]
