@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333 2001/08/28 03:58:10 marka Exp $ */
+/* $Id: zone.c,v 1.334 2001/08/30 05:24:44 marka Exp $ */
 
 #include <config.h>
 
@@ -405,7 +405,7 @@ static isc_result_t notify_createmessage(dns_zone_t *zone,
 					 dns_message_t **messagep);
 static void notify_done(isc_task_t *task, isc_event_t *event);
 static void notify_send_toaddr(isc_task_t *task, isc_event_t *event);
-static isc_result_t zone_dump(dns_zone_t *);
+static isc_result_t zone_dump(dns_zone_t *, isc_boolean_t);
 static void got_transfer_quota(isc_task_t *task, isc_event_t *event);
 static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr,
 					     dns_zone_t *zone);
@@ -1967,7 +1967,7 @@ zone_maintenance(dns_zone_t *zone) {
 			dumping = ISC_TRUE;
 		UNLOCK_ZONE(zone);
 		if (!dumping) {
-			result = zone_dump(zone);
+			result = zone_dump(zone, ISC_TRUE); /* task locked */
 			if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "dump failed: %s",
@@ -2101,7 +2101,7 @@ dns_zone_flush(dns_zone_t *zone) {
 		dumping = ISC_TRUE;
 	UNLOCK_ZONE(zone);
 	if (!dumping)
-		result = zone_dump(zone);
+		result = zone_dump(zone, ISC_FALSE);	/* Unknown task. */
 	return (result);
 }
 
@@ -2116,7 +2116,7 @@ dns_zone_dump(dns_zone_t *zone) {
 	dumping = was_dumping(zone);
 	UNLOCK_ZONE(zone);
 	if (!dumping)
-		result = zone_dump(zone);
+		result = zone_dump(zone, ISC_FALSE);	/* Unknown task. */
 	return (result);
 }
 
@@ -2151,14 +2151,19 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 }
 
 static isc_result_t
-zone_dump(dns_zone_t *zone) {
+zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
 	isc_boolean_t again;
 	dns_db_t *db = NULL;
 	char *masterfile = NULL;
 
+/*
+ * 'compact' MUST only be set if we are task locked.
+ */
+
 	REQUIRE(DNS_ZONE_VALID(zone));
+	UNUSED(compact);
 
  redo:
 	LOCK_ZONE(zone);
@@ -2180,6 +2185,34 @@ zone_dump(dns_zone_t *zone) {
 	result = dns_master_dump(zone->mctx, db, version,
 				 &dns_master_style_default, masterfile);
 
+	/*
+	 * Journal updates are task locked (bin/named/update.c), compact
+	 * is only set if we are task locked.
+	 */
+	if (result == ISC_R_SUCCESS && compact &&
+	    zone->journal != NULL && zone->journalsize != -1) {
+		isc_uint32_t serial;
+		isc_result_t tresult;
+
+		tresult = dns_db_getsoaserial(db, version, &serial);
+		if (tresult == ISC_R_SUCCESS) {
+			tresult = dns_journal_compact(zone->mctx, zone->journal,
+						     serial, zone->journalsize);
+			switch (tresult) {
+			case ISC_R_SUCCESS:
+			case ISC_R_NOSPACE:
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "dns_journal_compact: %s",
+					     dns_result_totext(tresult));
+				break;
+			default:
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "dns_journal_compact failed: %s",
+					     dns_result_totext(tresult));
+				break;
+			}
+		}
+	}
 	dns_db_closeversion(db, &version, ISC_FALSE);
  fail:
 	if (db != NULL)
