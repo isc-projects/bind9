@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.1 2001/07/18 03:43:18 mayer Exp $ */
+/* $Id: ntservice.c,v 1.2 2001/07/18 18:42:48 gson Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -24,7 +24,7 @@
 #include <named/main.h>
 
 /* Handle to SCM for updating service status */
-static SERVICE_STATUS_HANDLE	hServiceStatus = 0;
+static SERVICE_STATUS_HANDLE hServiceStatus = 0;
 static int foreground = FALSE;
 static char ConsoleTitle[128];
 
@@ -51,7 +51,7 @@ int bindmain()
 	int rc,
 	i = 1;
 
-	int	argc;
+	int argc;
 	char **envp, **argv;
 
 	/*
@@ -62,7 +62,7 @@ int bindmain()
 
 	/* Command line users should put -f in the options */
 	while (argv[i]) {
-		if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "/f")) {
+		if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "/f")) {
 			foreground = TRUE;
 			break;
 		}
@@ -72,45 +72,41 @@ int bindmain()
 	if (foreground) {
 		/* run in console window */
 		exit(main(argc, argv, envp));
-	}
-	else {
+	} else {
 		/* Start up as service */
 		char *SERVICE_NAME = BIND_SERVICE_NAME;
 
-		SERVICE_TABLE_ENTRY dispatchTable[] =
-		{
-			{ TEXT(SERVICE_NAME), (LPSERVICE_MAIN_FUNCTION)main},
+		SERVICE_TABLE_ENTRY dispatchTable[] = {
+			{ TEXT(SERVICE_NAME), (LPSERVICE_MAIN_FUNCTION)main },
 			{ NULL, NULL }
 		};
 
 		rc = StartServiceCtrlDispatcher(dispatchTable);
-		if (!rc)
-		{
+		if (!rc) {
 			fprintf(stderr, "Use -f to run from the command line.\n");
 			exit(GetLastError());
 		}
 	}
 	exit(0);
 }
+
 /*
- * Initialize the Service by registering it
+ * Initialize the Service by registering it.
  */
 void
 ntservice_init() {
-
 	if (!foreground) {
 		/* Register handler with the SCM */
 		hServiceStatus = RegisterServiceCtrlHandler(BIND_SERVICE_NAME,
 					(LPHANDLER_FUNCTION)ServiceControl);
 		if (!hServiceStatus) {
 			ns_main_earlyfatal(
-				"Could not register service control handler");
+				"could not register service control handler");
 			UpdateSCM(SERVICE_STOPPED);
 			exit(1);
 		}
 		UpdateSCM(SERVICE_RUNNING);
-	}
-	else {
+	} else {
 		strcpy(ConsoleTitle, "BIND Version ");
 		strcat(ConsoleTitle, VERSION);
 		SetConsoleTitle(ConsoleTitle);
@@ -119,18 +115,17 @@ ntservice_init() {
 
 void
 ntservice_shutdown() {
-		UpdateSCM(SERVICE_STOPPED);
+	UpdateSCM(SERVICE_STOPPED);
 }
 
 /* 
  * ServiceControl(): Handles requests from the SCM and passes them on
- * to named via signals
+ * to named via signals.
  */
 void
 ServiceControl(DWORD dwCtrlCode) {
 	/* Handle the requested control code */
-    switch(dwCtrlCode) {
-
+	switch(dwCtrlCode) {
         case SERVICE_CONTROL_INTERROGATE:
 		UpdateSCM(0);
 		break;
@@ -140,11 +135,11 @@ ServiceControl(DWORD dwCtrlCode) {
 		break;
         default:
 		break;
-    }
+	}
 }
 
 /*
- * Tell the Service Control Manager the state of the service
+ * Tell the Service Control Manager the state of the service.
  */
 void UpdateSCM(DWORD state) {
 	SERVICE_STATUS ss;
@@ -171,14 +166,12 @@ void UpdateSCM(DWORD state) {
 	}
 }
 
-
-
 /*
  * C-runtime stuff used to initialize the app and
- * get argv, argc, envp
+ * get argv, argc, envp.
  */
 
-typedef struct
+typedef struct 
 {
 	int newmode;
 } _startupinfo;
@@ -197,7 +190,7 @@ extern void _setdefaultprecision();
 #endif
 
 extern int _newmode;		/* malloc new() handler mode */
-extern int _dowildcard;     /* passed to __getmainargs() */
+extern int _dowildcard;		/* passed to __getmainargs() */
 
 typedef void (__cdecl *_PVFV)(void);
 extern void __cdecl _initterm(_PVFV *, _PVFV *);
