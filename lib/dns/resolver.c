@@ -2138,7 +2138,7 @@ validated(isc_task_t *task, isc_event_t *event) {
         REQUIRE(VALID_FCTX(fctx));
         REQUIRE(fctx->validating > 0);
 
-        vevent = (dns_validatorevent_t *) event;
+        vevent = (dns_validatorevent_t *)event;
 	INSIST(vevent->validator == fctx->validator);
 	
         fctx->validating--;
@@ -2261,6 +2261,7 @@ static inline isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	dns_rdataset_t *rdataset, *sigrdataset;
 	dns_rdataset_t *addedrdataset, *ardataset, *asigrdataset;
+	dns_rdataset_t *valrdataset = NULL, *valsigrdataset = NULL;
 	dns_dbnode_t *node, **anodep;
 	dns_db_t **adbp;
 	dns_name_t *aname;
@@ -2270,7 +2271,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	dns_fetchevent_t *event;
 	unsigned int options;
 	isc_task_t *task;
-	dns_validator_t *validator;
 
 	/*
 	 * The appropriate bucket lock must be held.
@@ -2394,28 +2394,15 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			}
 			if (ANSWER(rdataset)) {
 				/*
-				 * XXXRTH  We should probably do this
-				 *         after we've cached everything as
-				 *         pending, otherwise we might not
-				 *         take advantage of a key which we
-				 *         have learned.
+				 * This is the answer.  We will
+				 * validate it, but first we cache
+				 * the rest of the response - it may
+				 * contain useful keys.
 				 */
-				validator = NULL;
-				task = res->buckets[fctx->bucketnum].task;
-				result = dns_validator_create(res->view,
-							      name,
-							      rdataset->type,
-							      rdataset,
-							      sigrdataset,
-							      fctx->rmessage,
-							      0,
-							      task,
-							      validated,
-							      fctx,
-							      &fctx->validator);
-				if (result == ISC_R_SUCCESS)
-					fctx->validating++;
-				/* XXX what should we do in the failure case? */
+				INSIST(valrdataset == NULL &&
+				       valsigrdataset == NULL);
+				valrdataset = rdataset;
+				valsigrdataset = sigrdataset;
 			}
 		} else if (!EXTERNAL(rdataset)) {
 			/*
@@ -2478,6 +2465,24 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 				break;
 		}
 	}
+
+	if (valrdataset != NULL) {
+		task = res->buckets[fctx->bucketnum].task;
+		result = dns_validator_create(res->view,
+					      name,
+					      fctx->type,
+					      valrdataset,
+					      valsigrdataset,
+					      fctx->rmessage,
+					      0,
+					      task,
+					      validated,
+					      fctx,
+					      &fctx->validator);
+		if (result == ISC_R_SUCCESS)
+			fctx->validating++;
+	}
+	
 
 	if (result == ISC_R_SUCCESS && have_answer) {
 		fctx->attributes |= FCTX_ATTR_HAVEANSWER;
