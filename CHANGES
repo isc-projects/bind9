@@ -1,6 +1,7 @@
 1809.	[placeholder]	rt13463
 
-1808.	[placeholder]	rt13511
+1808.	[bug]		zone.c:notify_zone() contained a race condition,
+			zone->db could change underneath it.  [RT #13511]
 
 1807.	[placeholder]	rt13526
 
