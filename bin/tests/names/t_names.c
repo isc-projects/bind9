@@ -113,6 +113,81 @@ pbuf(isc_buffer_t *pbuf) {
 #endif	/* NEED_PBUF */
 
 /*
+ * compare data at buf with data in hex representation at exp_data,
+ * of length exp_data_len, for equality.
+ * return 0 if equal, else non-zero
+ */
+
+static int
+chkdata(unsigned char *buf, size_t buflen, char *exp_data, size_t exp_data_len) {
+	int		result;
+	unsigned char	*p;
+	unsigned char	*v;
+	char		*q;
+	unsigned char	*data;
+	size_t		cnt;
+
+	if (buflen == exp_data_len) {
+		data = (unsigned char *) malloc(exp_data_len * sizeof(unsigned char));
+		if (data == NULL) {
+			t_info("malloc failed unexpectedly\n");
+			return(-1);
+		}
+	
+		/* first convert exp_data from hex format */
+		p = data;
+		q = exp_data;
+		cnt = 0;
+		while (cnt < exp_data_len) {
+
+			if (('0' <= *q) && (*q <= '9'))
+				*p = *q - '0';
+			else if (('a' <= *q) && (*q <= 'z'))
+				*p = *q - 'a' + 10;
+			else if (('A' <= *q) && (*q <= 'Z'))
+				*p = *q - 'A' + 10;
+			++q;
+
+			*p <<= 4;
+
+			if (('0' <= *q) && (*q <= '9'))
+				*p |= ((*q - '0') & 0x0f);
+			else if (('a' <= *q) && (*q <= 'z'))
+				*p |= ((*q - 'a' + 10) & 0x0f);
+			else if (('A' <= *q) && (*q <= 'Z'))
+				*p |= ((*q - 'A' + 10) & 0x0f);
+			++p;
+			++q;
+			++cnt;
+		}
+
+		/* now compare data */
+		p = buf;
+		v = data;
+		for (cnt = 0; cnt < exp_data_len; ++cnt) {
+			if (*p != *v)
+				break;
+			++p;
+			++v;
+		}
+		if (cnt == exp_data_len)
+			result = 0;
+		else {
+			t_info("bad data at position %d, got 0x%.2x, expected 0x%.2x\n",
+					cnt, *p, *q);
+			result = cnt + 1;
+		}
+		(void) free(data);
+	}
+	else {
+		t_info("data length error, expected %d, got %d\n",
+			exp_data_len, buflen);
+		result = exp_data_len - buflen;
+	}
+	return(result);
+}
+
+/*
  * get a hex formatted dns message from a data
  * file into an isc_buffer_t
  * caller supplies data storage and the isc_buffer
@@ -355,7 +430,7 @@ t_dns_label_countbits() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			/* testname, labelpos, bitpos, expected val */
@@ -439,7 +514,7 @@ t_dns_label_getbit() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -681,7 +756,7 @@ t_dns_name_isabsolute() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -790,7 +865,7 @@ t_dns_name_hash() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -856,10 +931,8 @@ dns_namereln_to_text(dns_namereln_t reln) {
 }
 
 static int
-test_dns_name_fullcompare(char *name1, char *name2,
-			  dns_namereln_t exp_dns_reln, int exp_order,
-			  int exp_nlabels, int exp_nbits)
-{
+test_dns_name_fullcompare(char *name1, char *name2, dns_namereln_t exp_dns_reln,
+				int exp_order, int exp_nlabels, int exp_nbits) {
 	int		result;
 	int		nfails;
 	int		order;
@@ -895,14 +968,12 @@ test_dns_name_fullcompare(char *name1, char *name2,
 				t_info("expected ordering %d, got %d\n",
 						exp_order, order);
 			}
-			if ((exp_nlabels >= 0) &&
-			    (nlabels != (unsigned int)exp_nlabels)) {
+			if ((exp_nlabels >= 0) && (nlabels != (unsigned int) exp_nlabels)) {
 				++nfails;
 				t_info("expecting %d labels, got %d\n",
 						exp_nlabels, nlabels);
 			}
-			if ((exp_nbits >= 0) &&
-			    (nbits != (unsigned int)exp_nbits)) {
+			if ((exp_nbits >= 0) && (nbits != (unsigned int) exp_nbits)) {
 				++nfails;
 				t_info("expecting %d bits, got %d\n",
 						exp_nbits, nbits);
@@ -946,7 +1017,7 @@ t_dns_name_fullcompare() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1061,7 +1132,7 @@ t_dns_name_compare() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1159,7 +1230,7 @@ t_dns_name_rdatacompare() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1259,7 +1330,7 @@ t_dns_name_issubdomain() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1292,7 +1363,7 @@ char	*a35 =	"dns_name_countlabels(name) returns the number "
 		"of labels in name";
 
 static int
-test_dns_name_countlabels(char *test_name, int exp_nlabels) {
+test_dns_name_countlabels(char *test_name, unsigned int exp_nlabels) {
 
 	int		result;
 	unsigned int	nlabels;
@@ -1307,7 +1378,7 @@ test_dns_name_countlabels(char *test_name, int exp_nlabels) {
 	if (dns_result == DNS_R_SUCCESS) {
 		nlabels = dns_name_countlabels(&dns_name);
 			
-		if (nlabels != (unsigned int)exp_nlabels) {
+		if (nlabels != exp_nlabels) {
 			t_info("expected %d, got %d\n", exp_nlabels, nlabels);
 			result = T_FAIL;
 		}
@@ -1342,7 +1413,7 @@ t_dns_name_countlabels() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1452,7 +1523,7 @@ t_dns_name_getlabel() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1554,12 +1625,12 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 		}
 		else {
 			t_info("dname_from_tname failed, result == %s",
-					dns_result_totext(result));
+					dns_result_totext(dns_result));
 		}
 	}
 	else {
 		t_info("dname_from_tname failed, result == %s",
-				dns_result_totext(result));
+				dns_result_totext(dns_result));
 	}
 	return(result);
 }
@@ -1582,7 +1653,7 @@ t_dns_name_getlabelsequence() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1672,7 +1743,7 @@ t_dns_name_fromregion() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1721,7 +1792,7 @@ t_dns_name_toregion() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1860,7 +1931,7 @@ t_dns_name_fromtext() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -1987,7 +2058,7 @@ t_dns_name_totext() {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
@@ -2051,7 +2122,8 @@ test_dns_name_fromwire( char *datafile_name,
 			int downcase,
 			int dc_method,
 			char *exp_name,
-			dns_result_t exp_result) {
+			dns_result_t exp_result,
+			size_t buflen) {
 
 	int			result;
 	int			order;
@@ -2076,12 +2148,12 @@ test_dns_name_fromwire( char *datafile_name,
 	isc_buffer_setactive(&iscbuf1, len);
 	iscbuf1.current = testname_offset;
 
-	isc_buffer_init(&iscbuf2, buf2, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&iscbuf2, buf2, buflen, ISC_BUFFERTYPE_BINARY);
 	dns_name_init(&dns_name1, NULL);
 	dns_decompress_init(&dctx, -1, ISC_FALSE);
 	dns_decompress_setmethods(&dctx, dc_method);
 	dns_result = dns_name_fromwire(&dns_name1, &iscbuf1,
-					&dctx, downcase, &iscbuf2);
+					&dctx, downcase ? ISC_TRUE : ISC_FALSE, &iscbuf2);
 
 	if ((dns_result == exp_result) && (exp_result == DNS_R_SUCCESS)) {
 
@@ -2121,7 +2193,7 @@ test_dns_name_fromwire( char *datafile_name,
 }
 
 static void
-t_dns_name_fromwire_x(char *testfile) {
+t_dns_name_fromwire_x(char *testfile, size_t buflen) {
 
 	int		line;
 	int		cnt;
@@ -2141,13 +2213,12 @@ t_dns_name_fromwire_x(char *testfile) {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 6) {
 				/*
-				 *	anum that applies to test data
 				 *	datafile_name, testname_offset,
 				 *	downcase, dc_method,
 				 *	exp_name, exp_result
@@ -2189,7 +2260,8 @@ t_dns_name_fromwire_x(char *testfile) {
 						atoi(Tokens[2]),
 						dc_method,
 						Tokens[4],
-						exp_result);
+						exp_result,
+						buflen);
 			}
 			else {
 				t_info("bad format at line %d\n", line);
@@ -2210,7 +2282,7 @@ void
 t_dns_name_fromwire() {
 
 	t_assert("dns_name_fromwire", 1, T_REQUIRED, a42);
-	t_dns_name_fromwire_x("dns_name_fromwire_1_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_1_data", BUFLEN);
 
 	/*
 	 * XXXRTH these tests appear to be broken, so I have
@@ -2218,35 +2290,29 @@ t_dns_name_fromwire() {
 	 */
 #if 0
 	t_assert("dns_name_fromwire", 2, T_REQUIRED, a43);
-	t_dns_name_fromwire_x("dns_name_fromwire_2_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_2_data", BUFLEN);
 
 	t_assert("dns_name_fromwire", 3, T_REQUIRED, a44);
-	t_dns_name_fromwire_x("dns_name_fromwire_3_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_3_data", BUFLEN);
 #endif
 
 	t_assert("dns_name_fromwire", 4, T_REQUIRED, a45);
-	t_dns_name_fromwire_x("dns_name_fromwire_4_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_4_data", BUFLEN);
 
 	t_assert("dns_name_fromwire", 5, T_REQUIRED, a46);
-	t_dns_name_fromwire_x("dns_name_fromwire_5_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_5_data", BUFLEN);
 
 	t_assert("dns_name_fromwire", 6, T_REQUIRED, a47);
-	t_dns_name_fromwire_x("dns_name_fromwire_6_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_6_data", BUFLEN);
 
 	t_assert("dns_name_fromwire", 7, T_REQUIRED, a48);
-	t_dns_name_fromwire_x("dns_name_fromwire_7_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_7_data", BUFLEN);
 
 	t_assert("dns_name_fromwire", 8, T_REQUIRED, a49);
-	t_dns_name_fromwire_x("dns_name_fromwire_8_data");
+	t_dns_name_fromwire_x("dns_name_fromwire_8_data", BUFLEN);
 
-	/*
-	 * XXXRTH this test is incorrect, so I have disabled
-	 * it.
-	 */
-#if 0
 	t_assert("dns_name_fromwire", 9, T_REQUIRED, a50);
-	t_dns_name_fromwire_x("dns_name_fromwire_9_data");
-#endif
+	t_dns_name_fromwire_x("dns_name_fromwire_9_data", 2);
 
 }
 
@@ -2259,6 +2325,133 @@ char	*a51 =	"dns_name_towire(name, cctx, target) converts the DNS name "
 char	*a52 =	"when not enough space exists in target, "
 		"dns_name_towire(name, cctx, target) returns DNS_R_NOSPACE";
 
+static int
+test_dns_name_towire(	char *testname,
+			int dc_method,
+			char *exp_data,
+			int exp_data_len,
+			dns_result_t exp_result,
+			size_t buflen) {
+
+	int			result;
+	int			val;
+	int			len;
+	unsigned char		buf2[BUFLEN];
+	unsigned char		buf3[BUFLEN];
+	isc_buffer_t		iscbuf1;
+	isc_buffer_t		iscbuf2;
+	isc_buffer_t		iscbuf3;
+	dns_name_t		dns_name;
+	dns_result_t		dns_result;
+	isc_result_t		isc_result;
+	dns_compress_t		cctx;
+	isc_mem_t		*mctx;
+
+	t_info("testing using %s\n", testname);
+
+	result = T_UNRESOLVED;
+	mctx = NULL;
+
+	isc_result = isc_mem_create(0, 0, &mctx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_mem_create failed\n");
+		return(result);
+	}
+	dns_compress_init(&cctx, -1, mctx);
+	dns_compress_setmethods(&cctx, dc_method);
+	dns_name_init(&dns_name, NULL);
+	len = strlen(testname);
+	isc_buffer_init(&iscbuf1, testname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&iscbuf1, len);
+	isc_buffer_init(&iscbuf2, buf2, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	dns_result = dns_name_fromtext(&dns_name, &iscbuf1, NULL, ISC_FALSE, &iscbuf2);
+	if (dns_result == DNS_R_SUCCESS) {
+		isc_buffer_init(&iscbuf3, buf3, buflen, ISC_BUFFERTYPE_BINARY);
+		dns_result = dns_name_towire(&dns_name, &cctx, &iscbuf3);
+		if (dns_result == exp_result) {
+			if (exp_result == DNS_R_SUCCESS) {
+				/* compare results with expected data */
+				val = chkdata(	buf3,
+						iscbuf3.used,
+						exp_data,
+						exp_data_len);
+				if (val == 0)
+					result = T_PASS;
+				else
+					result = T_FAIL;
+			}
+			else
+				result = T_PASS;
+		}
+		else {
+			t_info("dns_name_towire unexpectedly returned %s\n",
+					dns_result_totext(dns_result));
+			result = T_FAIL;
+		}
+	}
+	else {
+		t_info("dns_name_fromtext %s failed, result = %s\n",
+				testname, dns_result_totext(dns_result));
+	}
+	return(result);
+}
+
+static void
+t_dns_name_towire_x(char *testfile, size_t buflen) {
+
+	int		line;
+	int		cnt;
+	int		result;
+	int		dc_method;
+	dns_result_t	exp_result;
+	char		*p;
+	FILE		*fp;
+
+	result = T_UNRESOLVED;
+	fp = fopen(testfile, "r");
+	if (fp != NULL) {
+		line = 0;
+		while ((p = t_fgetbs(fp)) != NULL) {
+
+			++line;
+
+			/* skip comment lines */
+			if ((isspace((int)*p)) || (*p == '#'))
+				continue;
+
+			cnt = bustline(p, Tokens);
+			if (cnt == 5) {
+				/*
+				 *	testname, dc_method,
+				 *	exp_data, exp_data_len,
+				 *	exp_result
+				 */
+
+				dc_method = t_dc_method_fromtext(Tokens[3]);
+				exp_result = t_dns_result_fromtext(Tokens[4]);
+
+				result = test_dns_name_towire(
+						Tokens[0],
+						dc_method,
+						Tokens[2],
+						atoi(Tokens[3]),
+						exp_result,
+						buflen);
+			}
+			else {
+				t_info("bad format at line %d\n", line);
+			}
+
+			(void) free(p);
+			t_result(result);
+		}
+		(void) fclose(fp);
+	}
+	else {
+		t_info("Missing datafile %s\n", testfile);
+		t_result(result);
+	}
+}
 void
 t_dns_name_towire() {
 	t_dns_name_towire_1();
@@ -2268,13 +2461,13 @@ t_dns_name_towire() {
 void
 t_dns_name_towire_1() {
 	t_assert("dns_name_towire", 1, T_REQUIRED, a51);
-	t_result(T_UNTESTED);
+	t_dns_name_towire_x("dns_name_towire_1_data", BUFLEN);
 }
 
 void
 t_dns_name_towire_2() {
 	t_assert("dns_name_towire", 2, T_REQUIRED, a52);
-	t_result(T_UNTESTED);
+	t_dns_name_towire_x("dns_name_towire_2_data", 2);
 }
 
 char	*a53 =	"dns_name_concatenate(prefix, suffix, name, target) "
