@@ -1,3 +1,6 @@
+ 839.	[func]		Dump packets for which there was no view or that the
+			class could not be determined to file, (-e filename).
+
  838.	[port]		UnixWare 7.x.x is now suported by
 			bin/tests/system/ifconfig.sh.
 

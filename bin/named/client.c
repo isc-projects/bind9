@@ -15,12 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.167 2001/05/14 21:33:45 gson Exp $ */
+/* $Id: client.c,v 1.168 2001/05/25 07:39:45 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/mutex.h>
+#include <isc/once.h>
 #include <isc/print.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -172,6 +174,7 @@ static void ns_client_endrequest(ns_client_t *client);
 static void ns_client_checkactive(ns_client_t *client);
 static void client_start(isc_task_t *task, isc_event_t *event);
 static void client_request(isc_task_t *task, isc_event_t *event);
+static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 
 /*
  * Enter the inactive state.
@@ -1419,6 +1422,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "message class could not be determined");
+		ns_client_dumpmessage(client,
+				      "message class could not be determined");
 		ns_client_error(client, DNS_R_FORMERR);
 		goto cleanup;
 	}
@@ -1464,6 +1469,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "no matching view in class '%s'", classname);
+		ns_client_dumpmessage(client, "no matching view in class");
 		ns_client_error(client, DNS_R_REFUSED);
 		goto cleanup;
 	}
@@ -1528,7 +1534,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if (client->view->resolver != NULL &&
 	    client->view->recursion == ISC_TRUE &&
 	    /* XXX this will log too much too early */
-	    ns_client_checkacl(client, "recursion",
+	    ns_client_checkacl(client, "recursion available:",
 			       client->view->recursionacl,
 			       ISC_TRUE, ISC_LOG_DEBUG(1)) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
@@ -2205,6 +2211,14 @@ ns_client_checkacl(ns_client_t  *client,
 }
 
 static void
+ns_client_name(ns_client_t *client, char *peerbuf, size_t len) {
+	if (client->peeraddr_valid)
+		isc_sockaddr_format(&client->peeraddr, peerbuf, len);
+	else
+		snprintf(peerbuf, len, "@%p", client);
+}
+
+static void
 ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
 {
@@ -2212,16 +2226,10 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+	ns_client_name(client, peerbuf, sizeof peerbuf);
 
-	if (client->peeraddr_valid) {
-		isc_sockaddr_format(&client->peeraddr,
-				    peerbuf, sizeof peerbuf);
-		isc_log_write(ns_g_lctx, category, module, level,
-			      "client %s: %s", peerbuf, msgbuf);
-	} else {
-		isc_log_write(ns_g_lctx, category, module, level,
-			      "client @%p: %s", client, msgbuf);
-	}
+	isc_log_write(ns_g_lctx, category, module, level,
+		      "client %s: %s", peerbuf, msgbuf);
 }
 
 void
@@ -2248,4 +2256,56 @@ ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdataclass_t rdclass,
         dns_name_format(name, namebuf, sizeof(namebuf));
         dns_rdataclass_format(rdclass, classbuf, sizeof(classbuf));
         (void)snprintf(buf, len, "%s '%s/%s'", msg, namebuf, classbuf);
+}
+
+static isc_mutex_t dumpmessagemutex;
+
+static void dumpmessagemutex_init(void) {
+	(void)isc_mutex_init(&dumpmessagemutex);
+}
+
+static void
+ns_client_dumpmessage(ns_client_t *client, const char *reason) {
+	static isc_once_t once = ISC_ONCE_INIT;
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_buffer_t buffer;
+	char *buf = NULL;
+	int len = 1024;
+	isc_result_t result;
+	FILE *fd = NULL;
+
+	if (ns_g_examinelog == NULL)
+		return;
+
+	ns_client_name(client, peerbuf, sizeof(peerbuf));
+
+	isc_once_do(&once, dumpmessagemutex_init);
+
+	LOCK(&dumpmessagemutex);
+
+	result = isc_stdio_open(ns_g_examinelog, "a", &fd);
+	if (result != ISC_R_SUCCESS)
+		goto unlock;
+
+	do {
+		buf = isc_mem_get(client->mctx, len);
+		if (buf == NULL)
+			break;
+		isc_buffer_init(&buffer, buf, len);
+		result = dns_message_totext(client->message,
+					    &dns_master_style_debug,
+					    0, &buffer);
+		if (result == ISC_R_NOSPACE) {
+			isc_mem_put(client->mctx, buf, len);
+			len += 1024;
+		} else if (result == ISC_R_SUCCESS)
+			fprintf(fd, "\nclient %s: %s\n%.*s\n", peerbuf, reason,
+				(int)isc_buffer_usedlength(&buffer), buf);
+	} while (result == ISC_R_NOSPACE);
+
+	if (buf != NULL)
+		isc_mem_put(client->mctx, buf, len);
+	(void)isc_stdio_close(fd);
+ unlock:
+	UNLOCK(&dumpmessagemutex);
 }
