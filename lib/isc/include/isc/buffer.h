@@ -199,7 +199,6 @@ isc_buffer_add(isc_buffer_t *b, unsigned int n);
  *
  */
 
-
 void
 isc_buffer_subtract(isc_buffer_t *b, unsigned int n);
 /*
