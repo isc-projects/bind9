@@ -4,6 +4,8 @@ Incremental zone file reading
 
 Update forwarding
 
+Reload / reconfig to rndc
+
 Incremental zone file dumping
 
 Dumping zones on exit
