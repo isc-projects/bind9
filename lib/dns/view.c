@@ -28,6 +28,7 @@
 
 #include <dns/types.h>
 #include <dns/dbtable.h>
+#include <dns/db.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
 
@@ -35,7 +36,8 @@
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
-		dns_resolver_t *resolver, dns_view_t **viewp)
+		dns_db_t *cachedb, dns_resolver_t *resolver, 
+		dns_view_t **viewp)
 {
 	dns_view_t *view;
 	isc_result_t result;
@@ -72,6 +74,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_mutex;
 	}
+	view->cachedb = NULL;
+	if (cachedb != NULL)
+		dns_db_attach(cachedb, &view->cachedb);
 	view->resolver = NULL;
 	if (resolver != NULL)
 		dns_resolver_attach(resolver, &view->resolver);
@@ -119,6 +124,8 @@ destroy(dns_view_t *view) {
 
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
+	if (view->cachedb != NULL)
+		dns_db_detach(&view->cachedb);
 	dns_dbtable_detach(&view->dbtable);
 	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->name);

@@ -62,6 +62,7 @@ struct dns_view {
 	char *				name;
 	dns_dbtable_t *			dbtable;
 	dns_resolver_t *		resolver;
+	dns_db_t *			cachedb;
 	isc_mutex_t			lock;
 	/* Locked by lock. */
 	unsigned int			references;
@@ -75,7 +76,8 @@ struct dns_view {
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
-		dns_resolver_t *resolver, dns_view_t **viewp);
+		dns_db_t *cachedb, dns_resolver_t *resolver,
+		dns_view_t **viewp);
 
 void
 dns_view_attach(dns_view_t *source, dns_view_t **targetp);
