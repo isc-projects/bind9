@@ -60,3 +60,6 @@ confparser.c: confparser.y
 	rm -f y.tab.c
 	chmod a-w confparser.c
 	mv y.tab.h confparser_p.h
+
+distclean::
+	rm -f confparser.c confparser_p.h
