@@ -49,7 +49,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	lwb.base = NULL;
 	client = event->ev_arg;
 	cm = client->clientmgr;
-	INSIST(client->byaddr == event->ev_sender);
+	INSIST(client->byaddr == (dns_byaddr_t *)event->ev_sender);
 
 	bevent = (dns_byaddrevent_t *)event;
 	gnba = &client->gnba;
