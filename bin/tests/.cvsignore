@@ -2,6 +2,7 @@ Makefile
 .libs
 *.la
 *.lo
+adb_test
 compress_test
 db_test
 dispatch_tcp_test
@@ -14,7 +15,10 @@ master_test
 mem_test
 mempool_test
 name_test
+nconf_test
 nxtify
+omapi_test
+ratelimiter_test
 rbt_test
 rdata_test
 res_test
@@ -28,10 +32,7 @@ sym_test
 t_journal
 task_test
 timer_test
-wire_test
-zone_test
-zone2_test
-adb_test
-nconf_test
 tkey_test
-ratelimiter_test
+wire_test
+zone2_test
+zone_test
