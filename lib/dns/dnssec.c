@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.26 2000/04/06 22:01:55 explorer Exp $
+ * $Id: dnssec.c,v 1.27 2000/04/11 18:04:35 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -136,11 +136,13 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	while (dns_rdataset_next(set) == ISC_R_SUCCESS)
 		n++;
 
+	data = isc_mem_get(mctx, n * sizeof(dns_rdata_t));
+	if (data == NULL)
+		return (ISC_R_NOMEMORY);
+
 	ret = dns_rdataset_first(set);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
-
-	data = isc_mem_get(mctx, n * sizeof(dns_rdata_t));
 
 	/* put them in the array */
 	do {
@@ -405,7 +407,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_buffer_add(&envbuf, r.length);
 	isc_buffer_putuint16(&envbuf, set->type);
 	isc_buffer_putuint16(&envbuf, set->rdclass);
-	isc_buffer_putuint32(&envbuf, set->ttl);
+	isc_buffer_putuint32(&envbuf, sig.originalttl);
 
 	memset(&dctx, 0, sizeof(dctx));
 	dctx.key = key;
