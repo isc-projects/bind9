@@ -168,7 +168,7 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	 * The new connection is good to go.  Allocate the buffers for it and
 	 * prepare its own task.
 	 */
-	if (isc_task_create(omapi_taskmgr, NULL, 0, &connection_task) !=
+	if (isc_task_create(omapi_taskmgr, 0, &connection_task) !=
 	    ISC_R_SUCCESS)
 		goto free_task;
 
@@ -282,7 +282,7 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
 	REQUIRE(addr != NULL && isc_sockaddr_getport(addr) != 0);
 
 	task = NULL;
-	result = isc_task_create(omapi_taskmgr, NULL, 0, &task);
+	result = isc_task_create(omapi_taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

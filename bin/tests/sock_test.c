@@ -223,7 +223,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		 * recv on it.
 		 */
 		newtask = NULL;
-		RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &newtask)
+		RUNTIME_CHECK(isc_task_create(manager, 0, &newtask)
 			      == ISC_R_SUCCESS);
 		isc_socket_recv(dev->newsocket, &region, 1,
 				newtask, my_recv, event->arg);
@@ -302,9 +302,9 @@ main(int argc, char *argv[])
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 
 	t1 = NULL;
-	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
 	t2 = NULL;
-	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t1, my_shutdown, "1") ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t2, my_shutdown, "2") ==

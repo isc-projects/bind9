@@ -345,10 +345,10 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr) ==
 		      ISC_R_SUCCESS);
 	task1 = NULL;
-	RUNTIME_CHECK(isc_task_create(taskmgr, mctx, 0, &task1) ==
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task1) ==
 		      ISC_R_SUCCESS);
 	task2 = NULL;
-	RUNTIME_CHECK(isc_task_create(taskmgr, mctx, 0, &task2) ==
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task2) ==
 		      ISC_R_SUCCESS);
 	timermgr = NULL;
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);

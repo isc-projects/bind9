@@ -72,7 +72,7 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(taskmgr, mctx, 0, &task) ==
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task) ==
 		      ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_ratelimiter_create(mctx, timermgr, task, 

@@ -320,10 +320,10 @@ main(int argc, char **argv)
 	create_managers();
 
 	t1 = NULL;
-	result = isc_task_create(taskmgr, NULL, 0, &t1);
+	result = isc_task_create(taskmgr, 0, &t1);
 	check_result(result, "isc_task_create t1");
 	t2 = NULL;
-	result = isc_task_create(taskmgr, NULL, 0, &t2);
+	result = isc_task_create(taskmgr, 0, &t2);
 	check_result(result, "isc_task_create t2");
 
 	printf("task 1 = %p\n", t1);

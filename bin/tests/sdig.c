@@ -265,7 +265,7 @@ main(int argc, char *argv[]) {
 	result = isc_taskmgr_create(mctx, 1, 0, &taskmgr);
 	check_result(result, "isc_taskmgr_create()");
 	task = NULL;
-	result = isc_task_create(taskmgr, NULL, 0, &task);
+	result = isc_task_create(taskmgr, 0, &task);
 	check_result(result, "isc_task_create()");
 	socketmgr = NULL;
 	result = isc_socketmgr_create(mctx, &socketmgr);

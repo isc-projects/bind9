@@ -53,7 +53,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 	for (i = 0; i < ntasks; i++) 
 		pool->tasks[i] = NULL;
 	for (i = 0; i < ntasks; i++) {
-		result = isc_task_create(tmgr, mctx, quantum, &pool->tasks[i]);
+		result = isc_task_create(tmgr, quantum, &pool->tasks[i]);
 		if (result != ISC_R_SUCCESS) {
 			isc_taskpool_destroy(&pool);
 			return (result);

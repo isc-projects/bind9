@@ -154,7 +154,7 @@ new_task(isc_mem_t *mctx, char *name) {
 		strcpy(ti->name, name);
 	} else
 		sprintf(ti->name, "%d", task_count);
-	RUNTIME_CHECK(isc_task_create(task_manager, mctx, 0, &ti->task) ==
+	RUNTIME_CHECK(isc_task_create(task_manager, 0, &ti->task) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(ti->task, shutdown_action, ti) ==
 		      ISC_R_SUCCESS);
@@ -209,14 +209,14 @@ main(int argc, char *argv[]) {
 	 * Test implicit shutdown.
 	 */
 	task = NULL;
-	RUNTIME_CHECK(isc_task_create(task_manager, mctx, 0, &task) ==
+	RUNTIME_CHECK(isc_task_create(task_manager, 0, &task) ==
 		      ISC_R_SUCCESS);
 	isc_task_detach(&task);
 
 	/*
 	 * Test anti-zombie code.
 	 */
-	RUNTIME_CHECK(isc_task_create(task_manager, mctx, 0, &task) ==
+	RUNTIME_CHECK(isc_task_create(task_manager, 0, &task) ==
 		      ISC_R_SUCCESS);
 	isc_task_detach(&task);
 

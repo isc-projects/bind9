@@ -221,7 +221,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	 * Create a task.
 	 */
 	ifp->task = NULL;
-	result = isc_task_create(mgr->taskmgr, mgr->mctx, 0, &ifp->task);
+	result = isc_task_create(mgr->taskmgr, 0, &ifp->task);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "isc_task_create() failed: %s",

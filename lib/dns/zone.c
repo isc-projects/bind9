@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.91 2000/04/07 22:30:42 gson Exp $ */
+/* $Id: zone.c,v 1.92 2000/04/12 01:36:22 halley Exp $ */
 
 #include <config.h>
 
@@ -1899,7 +1899,7 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->task == NULL);
 
-	result = isc_task_create(tmgr, zone->mctx, 0, &zone->task);
+	result = isc_task_create(tmgr, 0, &zone->task);
 	if (result != ISC_R_SUCCESS) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
@@ -3169,7 +3169,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto free_transferlist;
 
 	/* Create a single task for queueing of SOA queries. */
-	result = isc_task_create(taskmgr, mctx, 1, &zmgr->task);
+	result = isc_task_create(taskmgr, 1, &zmgr->task);
 	if (result != ISC_R_SUCCESS)
 		goto free_taskpool;
 	isc_task_setname(zmgr->task, "zmgr", zmgr);

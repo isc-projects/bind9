@@ -134,25 +134,25 @@ t_tasks1() {
 		return(T_FAIL);
 	}
 
-	isc_result = isc_task_create(manager, NULL, 0, &task1);
+	isc_result = isc_task_create(manager, 0, &task1);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %d\n", isc_result);
 		return(T_FAIL);
 	}
 
-	isc_result = isc_task_create(manager, NULL, 0, &task2);
+	isc_result = isc_task_create(manager, 0, &task2);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %d\n", isc_result);
 		return(T_FAIL);
 	}
 
-	isc_result = isc_task_create(manager, NULL, 0, &task3);
+	isc_result = isc_task_create(manager, 0, &task3);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %d\n", isc_result);
 		return(T_FAIL);
 	}
 
-	isc_result = isc_task_create(manager, NULL, 0, &task4);
+	isc_result = isc_task_create(manager, 0, &task4);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %d\n", isc_result);
 		return(T_FAIL);
@@ -452,7 +452,7 @@ t2_callback(isc_task_t *task, isc_event_t *event)
 
 		/* create a new task and forward the message */
 		newtask = NULL;
-		isc_result = isc_task_create(T2_manager, NULL, 0, &newtask);
+		isc_result = isc_task_create(T2_manager, 0, &newtask);
 		if (isc_result != ISC_R_SUCCESS) {
 			t_info("isc_task_create failed %d\n", isc_result);
 			++T2_nfails;
@@ -737,7 +737,7 @@ t_tasks3() {
 	}
 
 	task = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &task);
+	isc_result = isc_task_create(tmgr, 0, &task);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));
@@ -953,7 +953,7 @@ t_tasks4() {
 	}
 
 	task = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &task);
+	isc_result = isc_task_create(tmgr, 0, &task);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));
@@ -1151,7 +1151,7 @@ t_tasks7() {
 	}
 
 	task = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &task);
+	isc_result = isc_task_create(tmgr, 0, &task);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));
@@ -1470,7 +1470,7 @@ t_taskpurge_x(	int sender, int type, int tag,
 	}
 
 	task = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &task);
+	isc_result = isc_task_create(tmgr, 0, &task);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));
@@ -1845,7 +1845,7 @@ t_tasks11(int purgable) {
 	}
 
 	task = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &task);
+	isc_result = isc_task_create(tmgr, 0, &task);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));

@@ -328,7 +328,7 @@ main(int argc, char **argv)
 			       NULL, NULL);
 		ISC_LIST_INIT(cmgr[i].idle);
 		ISC_LIST_INIT(cmgr[i].running);
-		result = isc_task_create(taskmgr, mem, 0, &cmgr[i].task);
+		result = isc_task_create(taskmgr, 0, &cmgr[i].task);
 		if (result != ISC_R_SUCCESS)
 			break;
 		isc_task_setname(cmgr[i].task, "lwresd client", &cmgr[i]);

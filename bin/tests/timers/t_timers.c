@@ -239,7 +239,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	}
 
 	task = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &task);
+	isc_result = isc_task_create(tmgr, 0, &task);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));
@@ -841,7 +841,7 @@ t_timers5() {
 	}
 
 	T5_task1 = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &T5_task1);
+	isc_result = isc_task_create(tmgr, 0, &T5_task1);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));
@@ -867,7 +867,7 @@ t_timers5() {
 	}
 
 	T5_task2 = NULL;
-	isc_result = isc_task_create(tmgr, mctx, 0, &T5_task2);
+	isc_result = isc_task_create(tmgr, 0, &T5_task2);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 				isc_result_totext(isc_result));

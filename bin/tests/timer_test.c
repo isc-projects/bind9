@@ -112,17 +112,15 @@ main(int argc, char *argv[]) {
 	printf("%d workers\n", workers);
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx1) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx2) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx3) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_taskmgr_create(mctx1, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx1, &timgr) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_task_create(manager, mctx1, 0, &t1) ==
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, mctx2, 0, &t2) ==
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, mctx3, 0, &t3) ==
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t1, shutdown_task, "1") ==
 		      ISC_R_SUCCESS);
@@ -171,12 +169,6 @@ main(int argc, char *argv[]) {
 	printf("Statistics for mctx1:\n");
 	isc_mem_stats(mctx1, stdout);
 	isc_mem_destroy(&mctx1);
-	printf("Statistics for mctx2:\n");
-	isc_mem_stats(mctx2, stdout);
-	isc_mem_destroy(&mctx2);
-	printf("Statistics for mctx3:\n");
-	isc_mem_stats(mctx3, stdout);
-	isc_mem_destroy(&mctx3);
 
 	return (0);
 }

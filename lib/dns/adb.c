@@ -2282,7 +2282,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	/*
 	 * Allocate a timer and a task for our periodic cleanup.
 	 */
-	result = isc_task_create(adb->taskmgr, adb->mctx, 0, &adb->task);
+	result = isc_task_create(adb->taskmgr, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
 	isc_task_setname(adb->task, "ADB", adb);

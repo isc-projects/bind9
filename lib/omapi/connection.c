@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.17 2000/03/14 03:46:14 tale Exp $ */
+/* $Id: connection.c,v 1.18 2000/04/12 01:40:58 halley Exp $ */
 
 /* Principal Author: DCL */
 
@@ -518,7 +518,7 @@ connect_toserver(omapi_object_t *protocol, const char *server_name, int port) {
 	/*
 	 * Prepare the task that will wait for the connection to be made.
 	 */
-	result = isc_task_create(omapi_taskmgr, NULL, 0, &task);
+	result = isc_task_create(omapi_taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
