@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.55 2001/06/01 03:07:54 halley Exp $ */
+/* $Id: rbt.h,v 1.56 2001/11/10 01:37:44 gson Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
 
 #include <isc/lang.h>
+#include <isc/magic.h>
 
 #include <dns/types.h>
 
@@ -43,6 +44,13 @@ ISC_LANG_BEGINDECLS
 #define DNS_RBT_LOCKLENGTH			10
 #define DNS_RBT_REFLENGTH			20
 
+#define DNS_RBTNODE_MAGIC		ISC_MAGIC('R','B','N','O')
+#if DNS_RBT_USEMAGIC
+#define DNS_RBTNODE_VALID(n)		ISC_MAGIC_VALID(n, DNS_RBTNODE_MAGIC)
+#else
+#define DNS_RBTNODE_VALID(n)		ISC_TRUE
+#endif
+
 /*
  * This is the structure that is used for each node in the red/black
  * tree of trees.  NOTE WELL:  the implementation manages this as a variable
@@ -51,6 +59,9 @@ ISC_LANG_BEGINDECLS
  * multiple dns_rbtnode structures will not work.
  */
 typedef struct dns_rbtnode {
+#if DNS_RBT_USEMAGIC
+	unsigned int magic;
+#endif
 	struct dns_rbtnode *parent;
 	struct dns_rbtnode *left;
 	struct dns_rbtnode *right;
