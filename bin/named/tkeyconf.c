@@ -51,8 +51,10 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
 
 	s = NULL;
 	result = dns_c_ctx_gettkeydhkey(cfg, &s, &n);
-	if (result == ISC_R_NOTFOUND)
+	if (result == ISC_R_NOTFOUND) {
+		*tctxp = tctx;
 		return (ISC_R_SUCCESS);
+	}
 	RETERR(dst_key_fromfile(s, n, DNS_KEYALG_DH,
 				DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 				mctx, &tctx->dhkey));
@@ -60,8 +62,10 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
 	RETERR(dns_c_ctx_gettkeydomain(cfg, &s));
 	dns_name_init(&domain, NULL);
 	tctx->domain = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
-	if (tctx->domain == NULL)
-		return (ISC_R_NOMEMORY);
+	if (tctx->domain == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto failure;
+	}
 	dns_name_init(tctx->domain, NULL);
 	isc_buffer_init(&b, s, strlen(s), ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&b, strlen(s));
