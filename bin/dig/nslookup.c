@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.90.2.4.2.5 2004/06/07 03:56:25 marka Exp $ */
+/* $Id: nslookup.c,v 1.90.2.4.2.6 2004/06/19 02:30:12 sra Exp $ */
 
 #include <config.h>
 
@@ -41,15 +41,6 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/byaddr.h>
-
-#ifdef DIG_SIGCHASE
-#ifndef DIG_SIGCHASE_BU
-#define DIG_SIGCHASE_BU 1
-#endif
-#ifndef DIG_SIGCHASE_TD
-#define DIG_SIGCHASE_TD 1
-#endif
-#endif
 
 #include <dig/dig.h>
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.12 2004/06/11 00:30:50 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.13 2004/06/19 02:30:11 sra Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -31,15 +31,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
-
-#ifdef DIG_SIGCHASE
-#ifndef DIG_SIGCHASE_BU
-#define DIG_SIGCHASE_BU 1
-#endif
-#ifndef DIG_SIGCHASE_TD
-#define DIG_SIGCHASE_TD 1
-#endif
-#endif 
 
 #include <dns/byaddr.h>
 #ifdef DIG_SIGCHASE
@@ -2864,7 +2855,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				fatal("Memory allocation failure in %s:%d",
 				      __FILE__, __LINE__);
 			}
-			ISC_LIST_APPEND(chase_message_list, chase_msg, link);
+			ISC_LIST_INITANDAPPEND(chase_message_list, chase_msg,
+					       link);
 			if (dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
 					       &msg_temp) != ISC_R_SUCCESS) {
 				fatal("dns_message_create in %s:%d",
@@ -2889,7 +2881,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				fatal("Memory allocation failure in %s:%d",
 				      __FILE__, __LINE__);
 			}
-			ISC_LIST_APPEND(chase_message_list2, chase_msg2, link);
+			ISC_LIST_INITANDAPPEND(chase_message_list2, chase_msg2,
+					       link);
 			chase_msg2->msg = msg;
 		}
 #endif
