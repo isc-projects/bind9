@@ -192,7 +192,7 @@ dns_c_zonelist_addzone(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 		return (ISC_R_NOMEMORY);
 	}
 	
-	dns_c_zone_attach(lctx, zone, &zoneelem->thezone);
+	zoneelem->thezone = zone;
 	ISC_LINK_INIT(zoneelem, next);
 
 	ISC_LIST_APPEND(zlist->zones, zoneelem, next);
