@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: rndc.conf.5,v 1.8 2000/11/30 00:20:40 gson Exp $
+.\" $Id: rndc.conf.5,v 1.9 2000/12/15 00:24:10 gson Exp $
 
 .Dd Jun 30, 2000
 .Dt RDNC.CONF 5
@@ -182,6 +182,20 @@ To generate a secret from known input with
 .Bd -literal indent
 $ echo "known plaintext for a secret" | mmencode
 .Ed
+.Sh NAME SERVER CONFIGURATION
+The name server must be configured to accept
+.Xr rndc
+connections and to recognize the key specified in
+the 
+.Nm rndc.conf
+file, using the 
+.Dv controls
+statement in
+.Nm named.conf .
+See the sections on the
+.Dv controls
+statement in the BIND 9 Administrator Reference Manual for
+details.
 .Sh LIMITATIONS
 There is currently no way to specify the port for
 .Xr rndc
@@ -196,7 +210,6 @@ clause to the
 statement.
 .Sh SEE ALSO
 .Xr rndc 8 ,
-.Xr named.conf 8 ,
 .Xr dnssec-keygen 8 ,
 .Xr mmencode 1 ,
-"BIND9 Administrators Manual".
+"BIND 9 Administrator Reference Manual".
