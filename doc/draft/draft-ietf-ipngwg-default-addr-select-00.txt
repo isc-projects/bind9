@@ -1,0 +1,587 @@
+IPng Working Group                                               R. Draves 
+Internet Draft                                          Microsoft Research 
+Document: draft-ietf-ipngwg-default-addr-select-00.txt    October 22, 1999 
+Category: Standards Track                                               
+ 
+                   Default Address Selection for IPv6 
+
+Status of this Memo 
+
+   This document is an Internet-Draft and is in full conformance with 
+   all provisions of Section 10 of RFC 2026 [1]. 
+
+   Internet-Drafts are working documents of the Internet Engineering 
+   Task Force (IETF), its areas, and its working groups. Note that 
+   other groups may also distribute working documents as Internet-
+   Drafts. 
+
+   Internet-Drafts are draft documents valid for a maximum of six 
+   months and may be updated, replaced, or obsoleted by other documents 
+   at any time. It is inappropriate to use Internet-Drafts as reference 
+   material or to cite them other than as "work in progress." 
+
+   The list of current Internet-Drafts can be accessed at 
+   http://www.ietf.org/ietf/1id-abstracts.txt. 
+
+   The list of Internet-Draft Shadow Directories can be accessed at 
+   http://www.ietf.org/shadow.html. 
+
+Abstract 
+
+   This document describes two algorithms, for destination address 
+   ordering and for source address selection. The algorithms specify 
+   default behavior for all IPv6 implementations. They do not override 
+   choices made by applications or upper-layer protocols, nor do they 
+   preclude the development of more advanced mechanisms for address 
+   selection. The two algorithms share a common framework, including an 
+   optional mechanism for allowing administrators to provide policy 
+   that can override the default behavior. 
+
+1. Introduction 
+
+   The IPv6 addressing architecture [2] allows multiple unicast 
+   addresses to be assigned to interfaces. These addresses may have 
+   different reachability scopes (link-local, site-local, or global). 
+   These addresses may be "preferred" or "deprecated" [3]. In addition, 
+   multi-homing situations will result in more addresses per node. For 
+   example, a node may have multiple interfaces, some of them tunnels 
+   or virtual interfaces, or a site may have multiple ISP attachments. 
+
+   The end result is that IPv6 implementations will very often be faced 
+   with multiple possible source and destination addresses when 
+   initiating communication. It is desirable to have simple default 
+   algorithms, common across all implementations, for selecting source 
+  
+Draves            Standards Track - Expires May 2000                 1 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+   and destination addresses so that developers and administrators can 
+   reason about and predict the behavior of their systems. 
+
+   This document specifies source address selection and destination 
+   address selection separately, but using a common framework so that 
+   together the two algorithms yield useful results. The algorithms 
+   attempt to choose source and destination addresses of appropriate 
+   scope and configuration status (preferred or deprecated). 
+   Furthermore, this document suggests a preferred method, longest 
+   matching prefix, for choosing among otherwise equivalent addresses 
+   in the absence of better information. 
+
+   The framework also has policy hooks to allow administrative override 
+   of the default behavior. For example, using these hooks an 
+   administrator can specify a preferred source prefix for use with a 
+   destination prefix, or prefer destination addresses with one prefix 
+   over addresses with another prefix. These hooks give an 
+   administrator flexibility in dealing with some multi-homing and 
+   transition scenarios, but they are certainly not a panacea. 
+
+   The rules specified in this document MUST NOT be construed to 
+   override an application or upper-layer's explicit choice of 
+   destination or source address. 
+
+1.1. Conventions used in this document 
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", 
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in 
+   this document are to be interpreted as described in RFC-2119 [4]. 
+
+2. Framework 
+
+   Our framework for address selection derives from the most common 
+   implementation architecture, which separates the choice of 
+   destination address from the choice of source address. Consequently, 
+   the framework specifies two separate algorithms for these tasks. The 
+   algorithms are designed to work well together and they share a 
+   mechanism for administrative policy override. 
+
+   In this implementation architecture, applications use APIs [5] like 
+   getipnodebyname() and getaddrinfo() that return a list of addresses 
+   to the application. The application then passes a destination 
+   address to the IPv6 layer with connect() or sendto(). The 
+   application might just use the first address in the list, or it 
+   might loop over the list of addresses to find a working address. In 
+   any case, the IPv6 network layer is never in a position where it 
+   needs to choose a destination address from several alternatives. The 
+   application might also specify a source address with bind(), but 
+   often the source address is left unspecified. Therefore the IPv6 
+   layer does often choose a source address from several alternatives. 
+
+   As a consequence, we intend that implementations of 
+   getipnodebyname() and getaddrinfo() will use the destination address 
+  
+Draves            Standards Track - Expires May 2000                 2 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+   ordering algorithm specified here to sort the list of addresses that 
+   they return. Separately, the IPv6 network layer will use the source 
+   address selection algorithm when an application or upper-layer has 
+   not specified a source address. 
+
+   The algorithms use several criteria in making their decisions. The 
+   combined effect is to prefer destination/source address pairs for 
+   which the two addresses are of equal scope or type, prefer smaller 
+   scopes over larger scopes for the destination address, prefer non-
+   deprecated source addresses of sufficient scope to reach the 
+   destination, avoid the use of transitional addresses when native 
+   addresses are available, and all else being equal prefer address 
+   pairs having the longest possible common prefix. 
+
+   The framework optionally allows for the possibility of 
+   administrative configuration of policy that can override the default 
+   behavior of the algorithms. The policy override takes the form of a 
+   configurable table that provides precedence values and preferred 
+   source prefixes for destination prefixes. If an implementation is 
+   not configurable, or if an implementation has not been configured, 
+   then the default policy table specified in this document MUST be 
+   used. 
+
+2.1. Scope Comparisons 
+
+   Multicast destination addresses have a 4-bit scope field that 
+   controls the propagation of the multicast packet. The IPv6 
+   addressing architecture defines scope field values for node-local 
+   (0x1), link-local (0x2), site-local (0x5), organization-local (0x8), 
+   and global (0xE) scopes. 
+
+   Application of the address selection algorithms in the presence of 
+   multicast destination addresses requires the comparison of a unicast 
+   address scope with a multicast address scope. We map unicast link-
+   local to multicast link-local, unicast site-local to multicast site-
+   local, and unicast global scope to multicast global scope. For 
+   example, unicast site-local is equal to multicast site-local, which 
+   is smaller than multicast organization-local, which is smaller than 
+   unicast global, which is equal to multicast global. 
+
+   We write Scope(A) to mean the scope of address A. For example, if A 
+   is a link-local unicast address and B is a site-local multicast 
+   address, then Scope(A) < Scope(B). 
+
+   This mapping implicitly conflates unicast site boundaries and 
+   multicast site boundaries. 
+
+2.2. IPv4-Compatible Addresses and Other Format Prefixes 
+
+   For the purposes of this document, IPv4-compatible addresses have 
+   global scope and "preferred" configuration status. 
+
+
+  
+Draves            Standards Track - Expires May 2000                 3 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+   Similarly, NSAP addresses, IPX addresses, or addresses with as-yet-
+   undefined format prefixes should be treated as having global scope 
+   and "preferred" configuration status. Later standards may supercede 
+   this treatment. 
+
+   The loopback address should be treated as having link-local scope 
+   and "preferred" configuration status. 
+
+2.3. Policy Table 
+
+   The policy table is a longest-matching-prefix lookup table, like a 
+   routing table. Given an address A, a lookup in the policy table 
+   produces three values: a precedence value Precedence(A), a 
+   classification or label Label(A), and a second label 
+   MatchSrcLabel(A). 
+
+   The precedence value Precedence(A) is used for sorting destination 
+   addresses. If Precedence(A) > Precedence(B), we say that address A 
+   has higher precedence than address B, meaning that our algorithm 
+   will prefer to sort destination address A before destination address 
+   B. 
+
+   The labels Label(A) and MatchSrcLabel(A) allow for policies that 
+   prefer a particular source address prefix for use with a destination 
+   address prefix. The algorithms prefer to use a source address S with 
+   a destination address D if Label(S) = MatchSrcLabel(D). 
+
+   IPv6 implementations SHOULD support configurable address selection 
+   via a mechanism at least as powerful as the policy tables defined 
+   here. If an implementation is not configurable or has not been 
+   configured, then it MUST operate according to the algorithms 
+   specified here in conjunction with the following default policy 
+   table: 
+
+                Prefix    Precedence Label MatchSrcLabel 
+                fe80::/10     40       1         1 
+                fec0::/10     30       2         2 
+                ::/0          20       3         3 
+                2002::/16     10       4         4 
+                ::/96         10       5         5 
+ 
+   One effect of the default policy table is to prefer using native 
+   source addresses with native destination addresses, 6to4 source 
+   addresses with 6to4 destination addresses, and v4-compatible source 
+   addresses with v4-compatible destination addresses. Another effect 
+   of the default policy table is to prefer communication using native 
+   addresses to communication using either 6to4 or v4-compatible 
+   addresses, but not to express a preference for 6to4 addresses over 
+   v4-compatible addresses or vice-versa. 
+
+
+
+
+  
+Draves            Standards Track - Expires May 2000                 4 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+2.4. Candidate Source Addresses 
+
+   Both the destination address ordering algorithm and the source 
+   address selection algorithm use the concept of a "candidate set" of 
+   potential source addresses for a given destination address. 
+
+   We write CandidateSrc(A) to denote the candidate set for the address 
+   A. In some cases the destination address A may be qualified with a 
+   scope-id or other information that will constrain the candidate set. 
+   We write PreferSrc(A) to denote the subset of preferred (non-
+   deprecated) addresses in CandidateSrc(A)  We write MatchSrc(A) to 
+   denote the subset of addresses S in PreferSrc(A) for which Label(S) 
+   = MatchSrcLabel(A). 
+
+   The destination address ordering algorithm and the source address 
+   selection algorithm specify somewhat different definitions for 
+   CandidateSrc(A). This is because the two algorithms operate in 
+   different environments. The source address selection algorithm 
+   assumes that an outgoing interface for a packet has already been 
+   selected, while the destination address ordering algorithm does not 
+   assume that knowledge. Therefore the destination address ordering 
+   algorithm uses a broader or more-inclusive definition of 
+   CandidateSrc(A). 
+
+   In any case, anycast addresses, multicast addresses, and the 
+   unspecified address MUST NOT be included in a candidate set. 
+
+2.5. Common Prefix Length 
+
+   We define the common prefix length CommonPrefixLen(A, B) of two 
+   addresses A and B as the length of the longest prefix that the two 
+   addresses have in common. It ranges from 0 to 128. 
+
+   We define the maximum common prefix length MaxCommonPrefixLen(A, X) 
+   of an address A and a non-empty set of addresses X as the maximum of 
+   CommonPrefixLen(A, B) for addresses B in the set X. 
+
+3. Destination Address Ordering 
+
+   The destination address ordering algorithm takes a list of 
+   destination addresses and sorts the addresses to produce a new list. 
+   It is specified here in terms of the pair-wise comparison of 
+   addresses DA and DB, where DA appears before DB in the original 
+   list. 
+
+   The pair-wise comparison consists of four rules, which MUST be 
+   applied in order. If a rule determines a result, then the remaining 
+   rules are not relevant and MUST be ignored. Subsequent rules act as 
+   tie-breakers for earlier rules. 
+
+   Rule 1: If MatchSrc(DA) is non-empty and MatchSrc(DB) is empty, then 
+   sort DA before DB. Similarly, if MatchSrc(DA) is empty and 
+   MatchSrc(DB) is non-empty, then sort DB before DA. 
+  
+Draves            Standards Track - Expires May 2000                 5 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+   Rule 2: If Precedence(A) > Precedence(B), then sort DA before DB. 
+   Similarly, if Precedence(B) > Precedence(A), then sort DB before DA. 
+
+   Rule 3: If MatchSrc(DA) and MatchSrc(DB) are both non-empty. If 
+   MaxCommonPrefixLen(DA, MatchSrc(DA)) > MaxCommonPrefixLen(DB, 
+   MatchSrc(DB)), then sort DA before DB. Similarly, if 
+   MaxCommonPrefixLen(DB, MatchSrc(DB)) > MaxCommonPrefixLen(DA, 
+   MatchSrc(DA)), then sort DB before DA. 
+
+   Rule 4: Sort DA before DB. 
+
+   The third and fourth rules MAY be superceded if the implementation 
+   has other means of sorting destination addresses. For example, if 
+   the implementation somehow knows which destination addresses will 
+   result in the "best" communications performance. 
+
+3.1. Candidate Source Addresses 
+
+   For the purposes of destination address ordering, the candidate set 
+   of source addresses CandidateSrc(D) for a destination address D 
+   SHOULD contain all and only the unicast addresses assigned to 
+   interfaces that might be used to send to the destination D. 
+
+   For example, if the address D is a link-local unicast address that 
+   is qualified with a scope-id value specifying a particular 
+   interface, then CandidateSrc(D) SHOULD contain all and only the 
+   unicast addresses assigned to that interface. 
+
+   For example, if the address D is a global scope unicast address, 
+   then CandidateSrc(D) MAY contain every unicast address assigned to 
+   all interfaces. However if the implementation wishes to consult a 
+   routing table and determine a likely outgoing interface, then 
+   CandidateSrc(D) MAY contain only unicast addresses assigned to that 
+   outgoing interface. 
+
+4. Source Address Selection 
+
+   The source address selection algorithm chooses a source address for 
+   use with a destination address D. It is specified here in terms of 
+   the pair-wise comparison of addresses SA and SB. The pair-wise 
+   comparison can be used to select an address from the set 
+   CandidateSrc(D). 
+
+   The pair-wise comparison consists of six rules, which MUST be 
+   applied in order. If a rule chooses an address, then the remaining 
+   rules are not relevant and MUST be ignored. Subsequent rules act as 
+   tie-breakers for earlier rules. If the six rules fail to choose an 
+   address, some unspecified tie-breaker MUST be used. 
+
+   Rule 1: If SA is in MatchSrc(D) and SB is not, then choose SA. 
+   Similarly, if SB is in MatchSrc(D) and SA is not, then choose SB. 
+
+
+  
+Draves            Standards Track - Expires May 2000                 6 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+   Rule 2: If SA is equal to D, then choose SA. Similarly, if SB is 
+   equal to D, then choose SB. 
+
+   Rule 3a: If Scope(SA) < Scope(SB). If Scope(SA) < Scope(D), then 
+   choose SB. Otherwise, if one of the source addresses is "preferred" 
+   and one of them is "deprecated", then choose the "preferred" 
+   address. Otherwise, choose SA. 
+
+   Rule 3b: Similarly, if Scope(SB) < Scope(SA). If Scope(SB) < 
+   Scope(D), then choose SA. Otherwise, if one of the source addresses 
+   is "preferred" and one of them is "deprecated", then choose the 
+   "preferred" address. Otherwise, choose SB. 
+
+   Rule 4: The addresses SA and SB have the same scope. If one of the 
+   source addresses is "preferred" and one of them is "deprecated", an 
+   implementation MUST choose the one that is preferred. 
+
+   Rule 5: If Label(SA) = MatchSrcLabel(D) and Label(SB) <> 
+   MatchSrcLabel(D), then choose SA. Similarly, if Label(SA) <> 
+   MatchSrcLabel(D) and Label(SB) = MatchSrcLabel(D), then choose SB. 
+   (Note that this rule will apply only when both SA and SB are 
+   deprecated.) 
+
+   Rule 6: If CommonPrefixLen(SA, D) > CommonPrefixLen(SB, D), then 
+   choose SA. Similarly, if CommonPrefixLen(SB, D) > 
+   CommonPrefixLen(SA, D), then choose SB. 
+
+   The sixth rule MAY be superceded if the implementation has other 
+   means of choosing among source addresses. For example, if the 
+   implementation somehow knows which source address will result in the 
+   "best" communications performance. 
+
+4.1. Candidate Source Addresses 
+
+   For the purposes of source address selection, the candidate set of 
+   source addresses CandidateSrc(D) for a destination address D MUST 
+   contain all and only the unicast addresses assigned to the interface 
+   that will be used to send to the destination D. 
+
+5. Interactions with Routing 
+
+   All IPv6 nodes, including both hosts and routers, MUST conform to 
+   this specification. 
+
+   This specification of source address selection implies that routing 
+   (more precisely, selecting an outgoing interface on a node with 
+   multiple interfaces) is done before source address selection. 
+   However, implementations MAY use source address considerations as a 
+   tiebreaker when choosing among otherwise equivalent routes. 
+
+   For example, suppose a node has interfaces on two different links, 
+   with both links having a working default router. One of the 
+   interfaces has a preferred global address and the other interface 
+  
+Draves            Standards Track - Expires May 2000                 7 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+   only has a deprecated global address. When sending to a global 
+   destination address, if there's no routing reason to prefer one 
+   interface over the other, then an implementation MAY preferentially 
+   choose the outgoing interface that will allow it to use the 
+   preferred global source address. 
+
+6. Interactions with Mobility 
+
+   TBD 
+
+7. Implementation Considerations 
+
+   The destination address ordering algorithm needs information about 
+   potential source addresses. One possible implementation strategy is 
+   for getipnodebyname() and getaddrinfo() to call down to the IPv6 
+   network layer with a list of destination addresses, sort the list in 
+   the network layer with full current knowledge of available source 
+   addresses, and return the sorted list to getipnodebyname() or 
+   getaddrinfo(). This is simple but it introduces overhead. 
+
+   Another implementation strategy is to call down to the network layer 
+   to retrieve source address information and then sort the list of 
+   addresses directly in the context of getipnodebyname() or 
+   getaddrinfo(). To reduce overhead in this approach, the source 
+   address information SHOULD be cached, amortizing the overhead of 
+   retrieving it across multiple calls to getipnodebyname() and 
+   getaddrinfo(). If an implementation uses cached and possibly stale 
+   source address information in its implementation of destination 
+   address ordering, then it MUST ensure that the source address 
+   information is no more than one second out of date. 
+
+8. Security Considerations 
+
+   This document has no direct impact on Internet infrastructure 
+   security. 
+
+References 
+ 
+   1  S. Bradner, "The Internet Standards Process -- Revision 3", BCP 
+      9, RFC 2026, October 1996. 
+
+   2  R. Hinden, S. Deering, "IP Version 6 Addressing Architecture", 
+      RFC 2373, July 1998. 
+
+   3  S. Thompson, T. Narten, "IPv6 Stateless Address 
+      Autoconfiguration", RFC 2462 , December 1998. 
+
+   4  S. Bradner, "Key words for use in RFCs to Indicate Requirement 
+      Levels", BCP 14, RFC 2119, March 1997. 
+
+   5  R. Gilligan, S. Thomson, J. Bound, W. Stevens, "Basic Socket 
+      Interface Extensions for IPv6", RFC 2553, March 1999. 
+
+  
+Draves            Standards Track - Expires May 2000                 8 
+
+
+
+Acknowledgments 
+
+   The author would like to acknowledge the contributions of the IPng 
+   Working Group. 
+
+Author's Address 
+
+   Richard Draves 
+   Microsoft Research 
+   One Microsoft Way 
+   Redmond, WA 98052 
+   Email: richdr@microsoft.com 
+
+Revision History 
+
+Changes from draft-draves-ipngw-simple-srcaddr-01 
+
+   Added framework discussion. 
+
+   Added algorithm for destination address ordering. 
+
+   Added mechanism to allow the specification of administrative policy 
+   that can override the default behavior. 
+
+   Added section on routing interactions and TBD section on mobility 
+   interactions. 
+
+   Changed the candidate set definition for source address selection, 
+   so that only addresses assigned to the outgoing interface are 
+   allowed. 
+
+   Changed the loopback address treatment to link-local scope. 
+
+Changes from draft-draves-ipngw-simple-srcaddr-00 
+
+   Minor wording changes because DHCPv6 also supports "preferred" and 
+   "deprecated" addresses. 
+
+   Specified treatment of other format prefixes; now they are 
+   considered global scope, "preferred" addresses. 
+
+   Reiterated that anycast and multicast addresses are not allowed as 
+   source addresses. 
+
+   Recommended that source addresses be taken from the outgoing 
+   interface. Required this for multicast destinations. Added analogous 
+   requirements for link-local and site-local destinations. 
+
+   Specified treatment of the loopback address. 
+
+   Changed the second selection rule so that if both candidate source 
+   addresses have scope greater or equal than the destination address 
+   and only of them is preferred, the preferred address is chosen. 
+
+  
+Draves            Standards Track - Expires May 2000                 9 
+
+Default Address Selection for IPv6                    October 22, 1999 
+ 
+ 
+   Full Copyright Statement 
+
+   Copyright (C) The Internet Society (1999).  All Rights Reserved. 
+
+   This document and translations of it may be copied and furnished to 
+   others, and derivative works that comment on or otherwise explain it 
+   or assist in its implementation may be prepared, copied, published 
+   and distributed, in whole or in part, without restriction of any 
+   kind, provided that the above copyright notice and this paragraph 
+   are included on all such copies and derivative works.  However, this 
+   document itself may not be modified in any way, such as by removing 
+   the copyright notice or references to the Internet Society or other 
+   Internet organizations, except as needed for the purpose of 
+   developing Internet standards in which case the procedures for 
+   copyrights defined in the Internet Standards process must be 
+   followed, or as required to translate it into languages other than 
+   English. 
+
+   The limited permissions granted above are perpetual and will not be 
+   revoked by the Internet Society or its successors or assigns. 
+
+   This document and the information contained herein is provided on an 
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING 
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING 
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION 
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF 
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+Draves            Standards Track - Expires May 2000                10 
+
