@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2000/07/06 19:40:57 mws Exp $
+# $Id: Makefile.in,v 1.16 2000/07/06 19:54:01 mws Exp $
 
 @BIND9_INCLUDES@
 SUBDIRS =	lwresd
@@ -23,9 +23,6 @@ TARGETS =
 
 test: 
 	sh ./runall.sh
-
-distclean::
-	sh ./cleanall.sh
 
 clean distclean::
 	sh ./cleanall.sh
