@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.176 2001/11/08 21:21:58 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.177 2001/11/09 00:22:36 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3028,9 +3028,12 @@ may also be specified in the <command>view</command> and
 in which case it overrides the global <command>dialup</command>
 option.</para>
 <para>If the zone is a master zone then the server will send out a NOTIFY 
-request to all the slaves. This will trigger the zone serial number check
-in the slave (providing it supports NOTIFY) allowing the slave to
-verify the zone while the connection is active.</para><para>If the
+request to all the slaves (default). This should trigger the zone serial
+number check in the slave (providing it supports NOTIFY) allowing the slave
+to verify the zone while the connection is active.
+The set of servers to which NOTIFY is sent can be controlled by
+<command>notify</command> and <command>notify-also</command>.</para>
+<para>If the
 zone is a slave or stub zone, then the server will suppress the regular
 "zone up to date" (refresh) queries and only perform them when the
 <command>heartbeat-interval</command> expires in addition to sending
@@ -3095,6 +3098,8 @@ processing.</para>
 </tbody>
 </tgroup></informaltable>
 
+<para>Note that normal NOTIFY processing is not affected by
+<command>dialup</command>.</para>
 
 </listitem></varlistentry>
 
