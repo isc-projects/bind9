@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.18 2002/02/06 06:45:40 marka Exp $ */
+/* $Id: check.c,v 1.19 2002/02/06 06:54:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -517,7 +517,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t tresult;
 
 	static const char *builtin[] = { "localhost", "localnets",
-					 "any", "none", 0 };
+					 "any", "none"};
 
 	(void)cfg_map_get(config, "options", &options);
 
@@ -592,10 +592,12 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		     elt != NULL;
 		     elt = cfg_list_next(elt)) {
 			cfg_obj_t *acl = cfg_listelt_value(elt);
-			int i;
+			unsigned int i;
 
 			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
-			for (i = 0; builtin[i] != NULL; i++)
+			for (i = 0;
+			     i < sizeof(builtin) / sizeof(builtin[0]);
+			     i++)
 				if (strcasecmp(aclname, builtin[i]) == 0) {
 					cfg_obj_log(acl, logctx, ISC_LOG_ERROR,
 						    "attempt to redefine "
