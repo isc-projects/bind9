@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.183 2001/03/05 20:06:10 bwelling Exp $ */
+/* $Id: message.c,v 1.184 2001/03/05 20:12:49 bwelling Exp $ */
 
 /***
  *** Imports
@@ -70,7 +70,7 @@
  */
 #define SCRATCHPAD_SIZE		512
 #define NAME_COUNT		  8
-#define OFFSET_COUNT		 NAME_COUNT
+#define OFFSET_COUNT		  4
 #define RDATA_COUNT		  8
 #define RDATALIST_COUNT		  8
 #define RDATASET_COUNT		 RDATALIST_COUNT
@@ -675,7 +675,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 {
 	dns_message_t *m;
 	isc_result_t result;
-	dns_msgblock_t *msgblock;
 	isc_buffer_t *dynbuf;
 	unsigned int i;
 
