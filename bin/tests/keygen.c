@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: keygen.c,v 1.1 1999/09/10 19:52:56 bwelling Exp $ */
+ /* $Id: keygen.c,v 1.2 1999/09/27 17:11:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -44,7 +44,7 @@ main(int argc, char **argv) {
 	isc_uint16_t	flags = 0;
 	int		alg = -1;
 	isc_mem_t	*mctx = NULL;
-	int		ch, rsa_exp = 0;
+	int		ch, rsa_exp = 0, generator = 0, param = 0;
 	int		protocol = -1, size = -1;
 	extern char	*optarg;
 	extern int	optind;
@@ -58,7 +58,7 @@ main(int argc, char **argv) {
 		prog = strdup(++prog);
 
 /* process input arguments */
-	while ((ch = getopt(argc, argv, "achiuzn:s:p:D:H:R:F"))!= EOF) {
+	while ((ch = getopt(argc, argv, "achiuzn:s:p:D:H:R:d:Fg:"))!= EOF) {
 	    switch (ch) {
 		case 'a':
 			flags |= DNS_KEYTYPE_NOAUTH;
@@ -69,11 +69,20 @@ main(int argc, char **argv) {
 		case 'F':
 			rsa_exp=1;
 			break;
+		case 'g':
+			if (optarg != NULL && isdigit(optarg[0])) {
+				generator = (int) atoi(optarg);
+				if (generator < 0)
+					die("-g value is not positive");
+			}
+			else
+				die("-g not followed by a number");
+			break;
 		case 'p':
-			if (optarg && isdigit(optarg[0]))
+			if (optarg != NULL && isdigit(optarg[0]))
 				protocol = atoi(optarg);
 				if (protocol < 0 || protocol > 255)
-					die("-s value is not [0..15] ");
+					die("-p value is not [0..15]");
 			else
 				die("-p not followed by a number [0..255]");
 			break;
@@ -106,7 +115,7 @@ main(int argc, char **argv) {
 		case 'H':
 			if (alg > 0) 
 				die("Only one alg can be specified");
-			if (optarg && isdigit(optarg[0]))
+			if (optarg != NULL && isdigit(optarg[0]))
 				size = (int) atoi(optarg);
 			else
 				die("-H requires a size");
@@ -115,7 +124,7 @@ main(int argc, char **argv) {
 		case 'R':
 			if (alg > 0) 
 				die("Only one alg can be specified");
-			if (optarg && isdigit(optarg[0]))
+			if (optarg != NULL && isdigit(optarg[0]))
 				size = (int) atoi(optarg);
 			else
 				die("-R requires a size");
@@ -124,11 +133,20 @@ main(int argc, char **argv) {
 		case 'D':
 			if (alg > 0) 
 				die("Only one alg can be specified");
-			if (optarg && isdigit(optarg[0]))
+			if (optarg != NULL && isdigit(optarg[0]))
 				size = (int) atoi(optarg);
 			else
 				die("-D requires a size");
 			alg = DNS_KEYALG_DSA;
+			break;
+		case 'd':
+			if (alg > 0) 
+				die("Only one alg can be specified");
+			if (optarg != NULL && isdigit(optarg[0]))
+				size = (int) atoi(optarg);
+			else
+				die("-d requires a size");
+			alg = DNS_KEYALG_DH;
 			break;
 		default:
 			printf("invalid argument -%c\n", ch);
@@ -166,6 +184,13 @@ main(int argc, char **argv) {
 		else if (rsa_exp != 0)
 			die("-F can only be specified with -R");
 
+		if (alg == DNS_KEYALG_DH) {
+			if (size < 16 || size > 4096)
+				die("DH key size out of range");
+		}
+		else if (generator != 0)
+			die("-g can only be specified with -d");
+
 		if (alg == DNS_KEYALG_DSA && !dsa_size_ok(size))
 			die("Invalid DSS key size");
 	}
@@ -186,19 +211,26 @@ main(int argc, char **argv) {
 	switch(alg) {
 		case DNS_KEYALG_RSA:
 			printf("RSA");
+			param = rsa_exp;
+			break;
+		case DNS_KEYALG_DH:
+			printf("DH");
+			param = generator;
 			break;
 		case DNS_KEYALG_DSA:
 			printf("DSS");
+			param = 0;
 			break;
 		case DST_ALG_HMACMD5:
 			printf("HMAC-MD5");
+			param = 0;
 			break;
 		default:
-			break;
+			die("Unknown algorithm");
 	}
 	printf(" key for %s\n\n", name);
 
-	ret = dst_key_generate(name, alg, size, rsa_exp, flags, protocol, mctx,
+	ret = dst_key_generate(name, alg, size, param, flags, protocol, mctx,
 			       &key);
 
 	if (ret != DST_R_SUCCESS) {
@@ -214,10 +246,6 @@ main(int argc, char **argv) {
 
 	printf("Generated %d bit key %s: id=%d alg=%d flags=%d\n\n", size,
 	       name, dst_key_id(key), dst_key_alg(key), dst_key_flags(key));
-
-	if (zonefile != NULL) {
-		/* append key to zonefile */
-	}
 
 	exit(0);
 }
@@ -236,13 +264,15 @@ die(char *str) {
 static void
 usage(char *prog) {
 	printf("Usage:\n\t");
-	printf ("%s <-D|-H|-R> <size> [-F] [-z|-h|-u] [-a] [-c] [-p n]"
-	       " [-s n] name [zonefile] \n\n", prog);
+	printf ("%s <-D|-H|-R|-d> <size> [-F] [-g n] [-z|-h|-u] [-a] [-c] "
+		" [-p n] [-s n] name [zonefile] \n\n", prog);
 	printf("\t-D generate DSA/DSS key: size must be in the range\n");
 	printf("\t\t[512..1024] and a multiple of 64\n");
 	printf("\t-H generate HMAC-MD5 key: size in the range [1..512]\n");
 	printf("\t-R generate RSA key: size in the range [512..4096]\n");
+	printf("\t-d generate DH key in the range [16..4096]\n");
 	printf("\t-F use large exponent (RSA only)\n");
+	printf("\t-g use specified generator (DH only)\n");
 
 	printf("\t-z Zone key \n");
 	printf("\t-h Host/Entity key \n");
