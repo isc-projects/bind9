@@ -94,7 +94,7 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 	 * epoch.
 	 */
 	REQUIRE(t != NULL);
-	REQUIRE(t->nanoseconds < NS_PER_S);
+	REQUIRE(nanoseconds < NS_PER_S);
 
 	t->seconds = seconds;
 	t->nanoseconds = nanoseconds;
