@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.14 2003/10/10 00:30:14 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.15 2004/01/05 06:51:50 marka Exp $ */
 
 /*
  * Implementation notes
@@ -3928,20 +3928,32 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
 {
 	dns_adbzoneinfo_t *zi;
 	int bucket;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 	REQUIRE(zone != NULL);
 
+	bucket = addr->entry->lock_bucket;
+	LOCK(&adb->entrylocks[bucket]);
+	zi = ISC_LIST_HEAD(addr->entry->zoneinfo);
+	while (zi != NULL && dns_name_equal(zone, &zi->zone))
+		zi = ISC_LIST_NEXT(zi, plink);
+	if (zi != NULL) {
+		if (expire_time > zi->lame_timer)
+			zi->lame_timer = expire_time;
+		goto unlock;
+	}
 	zi = new_adbzoneinfo(adb, zone);
-	if (zi == NULL)
-		return (ISC_R_NOMEMORY);
+	if (zi == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto unlock;
+	}
 
 	zi->lame_timer = expire_time;
 
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
 	ISC_LIST_PREPEND(addr->entry->zoneinfo, zi, plink);
+ unlock:
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	return (ISC_R_SUCCESS);
