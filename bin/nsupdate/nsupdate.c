@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.93 2001/04/20 21:10:36 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.94 2001/05/05 01:19:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -849,7 +849,8 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 				     updatemsg, rdata);
 		if (retval != STATUS_MORE)
 			goto failure;
-	}
+	} else
+		rdata->flags = DNS_RDATA_UPDATE;
 
 	result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
 	check_result(result, "dns_message_gettemprdatalist");

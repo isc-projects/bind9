@@ -1,4 +1,7 @@
 
+ 822.	[bug]		Sending nxrrset prerequisites would crash nsupdate.
+ 			[RT #1248]
+
  821.	[bug]		The program name used when logging to syslog should
  			be stripped of leading path components.
 			[RT #1178, #1232]
