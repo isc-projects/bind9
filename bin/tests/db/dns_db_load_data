@@ -4,4 +4,4 @@
 # format:
 # filename type origin cache class findname expected_result
 #
-dns_db_load_1.data	rbt	.	zone	in	DNS_R_SUCCESS	a.	A	DNS_R_DELEGATION
+dns_db_load_1.data	rbt	.	zone	in	ISC_R_SUCCESS	a.	A	DNS_R_DELEGATION

@@ -16,4 +16,4 @@
 # and where exp_data_len is the length of the expected data in decimal format
 # and where exp_result is the expected return value of dns_name_towire
 #
-a.vix.com	DNS_COMPRESS_NONE	01610376697803636f6d	10	DNS_R_NOSPACE
+a.vix.com	DNS_COMPRESS_NONE	01610376697803636f6d	10	ISC_R_NOSPACE

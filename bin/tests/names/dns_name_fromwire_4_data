@@ -22,11 +22,11 @@
 # or case conversion
 #
 # and where exp_result may be one of
-#		DNS_R_NOSPACE
+#		ISC_R_NOSPACE
 #		DNS_R_BADLABELTYPE
 #		DNS_R_DISALLOWED
 #		DNS_R_BADPOINTER
-#		DNS_R_UNEXPECTEDEND
+#		ISC_R_UNEXPECTEDEND
 #		DNS_R_TOOMANYHOPS
 #		
-wire_test4.data	550	1	DNS_COMPRESS_ALL	vix.com.	DNS_R_NOSPACE
+wire_test4.data	550	1	DNS_COMPRESS_ALL	vix.com.	ISC_R_NOSPACE
