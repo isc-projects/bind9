@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.60 2000/12/20 03:38:46 bwelling Exp $ */
+/* $Id: view.h,v 1.61 2000/12/20 23:31:11 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -394,7 +394,9 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  *	If 'use_hints' is ISC_TRUE, and the view has a hints database, then
  *	it will be searched last.  If the answer is found in the hints
- *	database, the result code will be DNS_R_HINT.
+ *	database, the result code will be DNS_R_HINT.  If the name is found
+ *	in the hints database but not the type, the result code will be
+ *	DNS_R_HINTNXRRSET.
  *
  *	'foundname' must meet the requirements of dns_db_find().
  *
@@ -460,7 +462,9 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  *	If 'use_hints' is ISC_TRUE, and the view has a hints database, then
  *	it will be searched last.  If the answer is found in the hints
- *	database, the result code will be DNS_R_HINT.
+ *	database, the result code will be DNS_R_HINT.  If the name is found
+ *	in the hints database but not the type, the result code will be
+ *	DNS_R_HINTNXRRSET.
  *
  *	If 'sigrdataset' is not NULL, and there is a SIG rdataset which
  *	covers 'type', then 'sigrdataset' will be bound to it.

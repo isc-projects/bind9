@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.88 2000/12/20 03:38:43 bwelling Exp $ */
+/* $Id: view.c,v 1.89 2000/12/20 23:31:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -759,8 +759,10 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			dns_resolver_prime(view->resolver);
 			dns_db_attach(view->hints, &db);
 			result = DNS_R_HINT;
-		} else if (result == DNS_R_NXDOMAIN ||
-			   result == DNS_R_NXRRSET)
+		} else if (result == DNS_R_NXRRSET) {
+			dns_db_attach(view->hints, &db);
+			result = DNS_R_HINTNXRRSET;
+		} else if (result == DNS_R_NXDOMAIN)
 			result = ISC_R_NOTFOUND;
 	}
 
@@ -838,6 +840,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		   result != DNS_R_NCACHENXDOMAIN &&
 		   result != DNS_R_NCACHENXRRSET &&
 		   result != DNS_R_NXRRSET &&
+		   result != DNS_R_HINTNXRRSET &&
 		   result != ISC_R_NOTFOUND) {
 		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);

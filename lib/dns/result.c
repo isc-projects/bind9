@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.83 2000/12/13 00:15:13 tale Exp $ */
+/* $Id: result.c,v 1.84 2000/12/20 23:31:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -112,7 +112,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"invalid use of a meta type",	       /* 70 DNS_R_METATYPE	     */
 
 	"CNAME and other data",		       /* 71 DNS_R_CNAMEANDOTHER     */
-	"multiple RRs of singleton type"       /* 72 DNS_R_SINGLETON	     */
+	"multiple RRs of singleton type",      /* 72 DNS_R_SINGLETON	     */
+	"hint nxrrset"			       /* 73 DNS_R_HINTNXRRSET	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

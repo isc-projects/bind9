@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.161 2000/12/20 03:38:41 bwelling Exp $ */
+/* $Id: adb.c,v 1.162 2000/12/20 23:31:04 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -423,7 +423,8 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 #define NXDOMAIN_RESULT(r)	((r) == DNS_R_NXDOMAIN || \
 				 (r) == DNS_R_NCACHENXDOMAIN)
 #define NXRRSET_RESULT(r)	((r) == DNS_R_NCACHENXRRSET || \
-				 (r) == DNS_R_NXRRSET)
+				 (r) == DNS_R_NXRRSET || \
+				 (r) == DNS_R_HINTNXRRSET)
 
 /*
  * Error state rankings.
