@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.212 2001/07/27 05:41:43 bwelling Exp $ */
+/* $Id: dighost.c,v 1.213 2001/07/27 05:52:45 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -498,7 +498,6 @@ setup_text_key(void) {
 	isc_buffer_t secretbuf;
 	int secretsize;
 	unsigned char *secretstore;
-	isc_stdtime_t now;
 
 	debug("setup_text_key()");
 	result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
@@ -513,46 +512,35 @@ setup_text_key(void) {
 		      __FILE__, __LINE__);
 	isc_buffer_init(&secretbuf, secretstore, secretsize);
 	result = isc_base64_decodestring(keysecret, &secretbuf);
-	if (result != ISC_R_SUCCESS) {
-		printf(";; Couldn't create key %s: %s\n",
-		       keynametext, isc_result_totext(result));
+	if (result != ISC_R_SUCCESS)
 		goto failure;
-	}
+	
 	secretsize = isc_buffer_usedlength(&secretbuf);
-	isc_stdtime_get(&now);
 
 	result = dns_name_fromtext(&keyname, namebuf,
 				   dns_rootname, ISC_FALSE,
 				   namebuf);
-	if (result != ISC_R_SUCCESS) {
-		printf(";; Couldn't create key %s: %s\n",
-		       keynametext, isc_result_totext(result));
+	if (result != ISC_R_SUCCESS)
 		goto failure;
-	}
+
 	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
 				    secretstore, secretsize,
-				    ISC_TRUE, NULL, now, now, mctx,
+				    ISC_FALSE, NULL, 0, 0, mctx,
 				    NULL, &key);
-	if (result != ISC_R_SUCCESS) {
+ failure:
+	if (result != ISC_R_SUCCESS)
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));
-	}
- failure:
+
 	isc_mem_free(mctx, secretstore);
 	dns_name_invalidate(&keyname);
 	isc_buffer_free(&namebuf);
 }
 
-
 static void
 setup_file_key(void) {
 	isc_result_t result;
-	isc_buffer_t secretbuf;
-	unsigned char *secretstore = NULL;
-	int secretlen;
 	dst_key_t *dstkey = NULL;
-	isc_stdtime_t now;
-
 
 	debug("setup_file_key()");
 	result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE,
@@ -562,36 +550,20 @@ setup_file_key(void) {
 			keyfile, isc_result_totext(result));
 		goto failure;
 	}
-	/*
-	 * Get key size in bits, convert to bytes, rounding up (?)
-	 */
-	secretlen = (dst_key_size(dstkey) + 7) >> 3;
-	secretstore = isc_mem_allocate(mctx, secretlen);
-	if (secretstore == NULL)
-		fatal("out of memory");
-	isc_buffer_init(&secretbuf, secretstore, secretlen);
-	result = dst_key_tobuffer(dstkey, &secretbuf);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Couldn't read key from %s: %s\n",
-			keyfile, isc_result_totext(result));
-		goto failure;
-	}
-	isc_stdtime_get(&now);
+
 	dns_name_init(&keyname, NULL);
 	dns_name_clone(dst_key_name(dstkey), &keyname);
-	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
-				    secretstore, secretlen,
-				    ISC_TRUE, NULL, now, now, mctx,
-				    NULL, &key);
+	result = dns_tsigkey_createfromkey(&keyname, dns_tsig_hmacmd5_name,
+					   dstkey, ISC_FALSE, NULL, 0, 0,
+					   mctx, NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));
 	}
+	dstkey = NULL;
  failure:
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
-	if (secretstore != NULL)
-		isc_mem_free(mctx, secretstore);
 }
 
 static dig_searchlist_t *
