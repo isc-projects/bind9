@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.25 2000/06/12 18:05:15 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.26 2000/07/31 19:44:20 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -171,7 +171,7 @@ openssldh_generate(dst_key_t *key, int generator) {
 		return (result);
 	}
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst__id_calc(r.base, r.length);
+	key->key_id = dst_region_computeid(&r);
 
 	return (ISC_R_SUCCESS);
 }
@@ -369,7 +369,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	r.base += publen;
 
 	isc_buffer_remainingregion(data, &r);
-	key->key_id = dst__id_calc(r.base, plen + glen + publen + 6);
+	key->key_id = dst_region_computeid(&r);
 	key->key_size = BN_num_bits(dh->p);
 
 	isc_buffer_forward(data, plen + glen + publen + 6);
@@ -491,7 +491,7 @@ openssldh_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst__id_calc(r.base, r.length);
+	key->key_id = dst_region_computeid(&r);
 
 	if (key->key_id != id)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);

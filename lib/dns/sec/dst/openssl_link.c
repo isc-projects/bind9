@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.31 2000/06/12 18:05:13 bwelling Exp $
+ * $Id: openssl_link.c,v 1.32 2000/07/31 19:44:19 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -210,7 +210,7 @@ openssldsa_generate(dst_key_t *key, int unused) {
 		return (result);
 	}
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst__id_calc(r.base, r.length);
+	key->key_id = dst_region_computeid(&r);
 
 	return (ISC_R_SUCCESS);
 }
@@ -307,8 +307,7 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	r.base += p_bytes;
 
 	isc_buffer_remainingregion(data, &r);
-	key->key_id = dst__id_calc(r.base, 1 + ISC_SHA1_DIGESTLENGTH +
-				   3 * p_bytes);
+	key->key_id = dst_region_computeid(&r);
 	key->key_size = p_bytes * 8;
 
 	isc_buffer_forward(data, 1 + ISC_SHA1_DIGESTLENGTH + 3 * p_bytes);
@@ -421,7 +420,7 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst__id_calc(r.base, r.length);
+	key->key_id = dst_region_computeid(&r);
 
 	if (key->key_id != id)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);

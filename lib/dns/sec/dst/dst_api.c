@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.56 2000/06/12 18:05:10 bwelling Exp $
+ * $Id: dst_api.c,v 1.57 2000/07/31 19:44:14 bwelling Exp $
  */
 
 #include <config.h>
@@ -718,6 +718,30 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 			return (DST_R_UNSUPPORTEDALG);
 	}
 	return (ISC_R_SUCCESS);
+}
+
+isc_uint16_t
+dst_region_computeid(const isc_region_t *source) {
+	isc_uint32_t ac;
+	const unsigned char *p;
+	int size;
+
+	REQUIRE(source != NULL);
+
+	if (source->length == 0)
+		return (0);
+
+	p = source->base;
+	size = source->length;
+
+	for (ac = 0; size > 1; size -= 2, p += 2)
+		ac += ((*p) << 8) + *(p + 1);
+
+	if (size > 0)
+		ac += ((*p) << 8);
+	ac += (ac >> 16) & 0xffff;
+
+	return ((isc_uint16_t)(ac & 0xffff));
 }
 
 /***

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.32 2000/07/27 09:50:30 tale Exp $ */
+/* $Id: dst.h,v 1.33 2000/07/31 19:44:21 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -490,6 +490,18 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
  *
  * Ensures:
  * 	"n" stores the size of a generated shared secret
+ */
+
+isc_uint16_t
+dst_region_computeid(const isc_region_t *source);
+/*
+ * Computes the key id of the key stored in the provided region.
+ *
+ * Requires:
+ * 	"source" contains a valid, non-NULL region.
+ *
+ * Returns:
+ * 	the key id
  */
 
 ISC_LANG_ENDDECLS

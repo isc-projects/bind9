@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.25 2000/06/22 21:56:36 tale Exp $ */
+/* $Id: dst_internal.h,v 1.26 2000/07/31 19:44:15 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -109,12 +109,6 @@ void dst__hmacmd5_destroy(void);
 void dst__dnssafersa_destroy(void);
 void dst__openssldsa_destroy(void);
 void dst__openssldh_destroy(void);
-
-/*
- * Support functions.
- */
-isc_uint16_t
-dst__id_calc(const unsigned char *key, const int keysize);
 
 /*
  * Memory allocators using the DST memory pool.
