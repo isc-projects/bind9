@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.97 $)
+AC_REVISION($Revision: 1.98 $)
 
 AC_PREREQ(2.13)
 
@@ -70,6 +70,32 @@ case "$prefix" in
                                 localstatedir=/var
                                 ;;
                 esac
+                ;;
+esac
+
+dnl
+dnl Make sure INSTALL uses an absolute path, else it will be wrong in all
+dnl Makefiles, since they use make/rules.in and INSTALL will be adjusted by
+dnl configure based on the location of the file where it is substituted.
+dnl Since in BIND9 INSTALL is only substituted into make/rules.in, an immediate
+dnl subdirectory of install-sh, This relative path will be wrong for all
+dnl directories more than one level down from install-sh.
+dnl
+case "$INSTALL" in
+	/*)
+                ;;
+        *)
+                dnl
+                dnl Not all systems have dirname.
+                dnl
+                changequote({, })
+                ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
+                changequote([, ])
+
+                ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
+                test "$ac_dir" = "$ac_prog" && ac_dir=.
+                test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
+                INSTALL="$ac_dir/$ac_prog"
                 ;;
 esac
 
