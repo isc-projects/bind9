@@ -196,5 +196,6 @@ A: This may be caused by a bug in the Windows 2000 DNS server where
 DNS messages larger than 16K are not handled properly.  This can be
 worked around by setting the option "transfer-format one-answer;".
 Also check whether your zone contains domain names with embedded
-spaces or other special characters, since such names have been known
-to cause Windows 2000 slaves to incorrectly reject the zone.
+spaces or other special characters, like "John\032Doe\213s\032Computer",
+since such names have been known to cause Windows 2000 slaves to
+incorrectly reject the zone.
