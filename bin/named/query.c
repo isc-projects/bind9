@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109 2000/06/22 21:49:34 tale Exp $ */
+/* $Id: query.c,v 1.110 2000/06/26 21:42:33 explorer Exp $ */
 
 #include <config.h>
 
@@ -1819,9 +1819,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		query_putrdataset(client, &rdataset);
 		return (ISC_R_NOMEMORY);
 	}
-
-	if ((client->attributes & NS_CLIENTATTR_TCP) != 0)
-		options |= DNS_FETCHOPT_TCP;
 
 	result = dns_resolver_createfetch(client->view->resolver,
 					  client->query.qname,
