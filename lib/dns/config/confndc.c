@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.25.4.1 2001/01/09 22:44:48 bwelling Exp $ */
+/* $Id: confndc.c,v 1.25.4.2 2001/01/22 20:12:32 bwelling Exp $ */
 
 /*
 **	options {
@@ -575,7 +575,6 @@ dns_c_ndcopts_setdefserver(dns_c_ndcopts_t *opts, const char *newval) {
 	isc_boolean_t existed;
 
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(opts));
-	REQUIRE(newval == NULL || *newval != '\0');
 
 	existed = ISC_TF(opts->defserver != NULL);
 
@@ -598,7 +597,6 @@ dns_c_ndcopts_setdefkey(dns_c_ndcopts_t *opts, const char *newval) {
 	isc_boolean_t existed;
 
 	REQUIRE(DNS_C_NDCOPTIONS_VALID(opts));
-	REQUIRE(newval == NULL || *newval != '\0');
 
 	existed = ISC_TF(opts->defkey != NULL);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confacl.c,v 1.21.4.1 2001/01/09 22:44:35 bwelling Exp $ */
+/* $Id: confacl.c,v 1.21.4.2 2001/01/22 20:12:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -144,7 +144,6 @@ dns_c_acltable_getacl(dns_c_acltable_t *table,
 	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	REQUIRE(retval != NULL);
 	REQUIRE(aclname != NULL);
-	REQUIRE(*aclname != '\0');
 
 	elem = ISC_LIST_HEAD(table->acl_list);
 	while (elem != NULL) {
@@ -196,7 +195,6 @@ dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
 
 	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	REQUIRE(aclname != NULL);
-	REQUIRE(*aclname != '\0');
 	REQUIRE(newacl != NULL);
 
 	acl = isc_mem_get(table->mem, sizeof *acl);

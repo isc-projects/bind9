@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.35.4.1 2001/01/09 22:44:38 bwelling Exp $ */
+/* $Id: confcommon.c,v 1.35.4.2 2001/01/22 20:12:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -748,7 +748,6 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name) {
 	unsigned int len;
 
 	REQUIRE(keyval != NULL);
-	REQUIRE(*keyval != '\0');
 	REQUIRE(name != NULL);
 
 	len = strlen(keyval);
@@ -853,8 +852,7 @@ isc_result_t
 dns_c_checkcategory(const char *name) {
 	unsigned int i;
 
-	REQUIRE (name != NULL);
-	REQUIRE(*name != '\0');
+	REQUIRE(name != NULL);
 
 	/*
 	 * This function isn't called very often, so no need for fancy

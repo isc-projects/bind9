@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.3 2001/01/16 18:12:08 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.4 2001/01/22 20:12:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -6374,7 +6374,6 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 
 	REQUIRE(currcfg == NULL);
 	REQUIRE(filename != NULL);
-	REQUIRE(*filename != '\0');
 	REQUIRE(configctx != NULL);
 	INSIST(mylexer == NULL);
 	INSIST(memctx == NULL);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflog.c,v 1.19.4.1 2001/01/09 22:44:44 bwelling Exp $ */
+/* $Id: conflog.c,v 1.19.4.2 2001/01/22 20:12:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -341,7 +341,6 @@ dns_c_logginglist_delchannel(dns_c_logginglist_t *list,
 
 	REQUIRE(DNS_C_LOGLIST_VALID(list));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 
 	res = dns_c_logginglist_chanbyname(list, name, &logc);
 	if (res == ISC_R_SUCCESS) {
@@ -363,7 +362,6 @@ dns_c_logginglist_delcategory(dns_c_logginglist_t *list,
 
 	REQUIRE(DNS_C_LOGLIST_VALID(list));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 
 	res = dns_c_logginglist_catbyname(list, name, &logc);
 	if (res == ISC_R_SUCCESS) {
@@ -385,7 +383,6 @@ dns_c_logginglist_chanbyname(dns_c_logginglist_t *list,
 
 	REQUIRE(DNS_C_LOGLIST_VALID(list));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 	REQUIRE(chan != NULL);
 
 	logc = ISC_LIST_HEAD(list->channels);
@@ -415,7 +412,6 @@ dns_c_logginglist_catbyname(dns_c_logginglist_t *list,
 
 	REQUIRE(DNS_C_LOGLIST_VALID(list));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 	REQUIRE(cat != NULL);
 
 	logc = ISC_LIST_HEAD(list->categories);
@@ -480,7 +476,6 @@ dns_c_logchan_new(isc_mem_t *mem, const char *name,
 	dns_c_logchan_t *newc;
 
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 	REQUIRE(newchan != NULL);
 
 	newc = isc_mem_get(mem, sizeof *newc);
@@ -693,7 +688,6 @@ dns_c_logchan_setpath(dns_c_logchan_t *channel, const char *path) {
 
 	REQUIRE(DNS_C_LOGCHAN_VALID(channel));
 	REQUIRE(path != NULL);
-	REQUIRE(*path != '\0');
 
 	if (channel->ctype != dns_c_logchan_file) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
@@ -1209,7 +1203,6 @@ dns_c_logcat_addname(dns_c_logcat_t *logcat, const char *name) {
 
 	REQUIRE(DNS_C_LOGCAT_VALID(logcat));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 
 	if (logcat->cnames_len == logcat->nextcname) {
 		size_t newsize = logcat->cnames_len + 5;
@@ -1254,7 +1247,6 @@ dns_c_logcat_delname(dns_c_logcat_t *logcat, const char *name) {
 
 	REQUIRE(DNS_C_LOGCAT_VALID(logcat));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 
 	for (i = 0 ; i < logcat->nextcname ; i++) {
 		INSIST(logcat->channel_names[i] != NULL);
