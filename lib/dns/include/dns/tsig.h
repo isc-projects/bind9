@@ -116,6 +116,25 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg);
  */
 
 isc_result_t
+dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
+/*
+ *	Verifies the TSIG record in this continuation of a TCP response,
+ *	if there is one.
+ *
+ *	Requires:
+ *		'source' is a valid buffer containing the unparsed message
+ *		'msg' is a valid message
+ *		'msg->tsigkey' is a valid TSIG key
+ *		'msg->tsig' is NULL
+ *		'msg->querytsig' is not NULL
+ *
+ *	Returns:
+ *		DNS_R_SUCCESS
+ *		ISC_R_NOMEMORY
+ *		DNS_R_TSIGVERIFYFAILURE - the TSIG failed to verify
+ */
+
+isc_result_t
 dns_tsig_findkey(dns_tsig_key_t **tsigkey, dns_name_t *name,
 		 dns_name_t *algorithm);
 /*
