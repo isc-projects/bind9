@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.326 2001/06/04 19:33:17 tale Exp $ */
+/* $Id: zone.c,v 1.327 2001/07/11 05:20:26 marka Exp $ */
 
 #include <config.h>
 
@@ -253,6 +253,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_DIALREFRESH	0x00040000U
 #define DNS_ZONEFLG_SHUTDOWN	0x00080000U
 #define DNS_ZONEFLAG_NOIXFR	0x00100000U	/* IXFR failed, force AXFR */
+#define DNS_ZONEFLG_FLUSH	0x00200000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -1880,11 +1881,27 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	UNLOCK_ZONE(zone);
 }
 
+static inline isc_boolean_t
+was_dumping(dns_zone_t *zone) {
+	isc_boolean_t dumping;
+	
+	REQUIRE(LOCKED_ZONE(zone));
+
+	dumping = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING);
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DUMPING);
+	if (!dumping) {
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
+		zone->dumptime = 0;
+	}
+	return (dumping);
+}
+
 static void
 zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "zone_maintenance";
 	isc_stdtime_t now;
 	isc_result_t result;
+	isc_boolean_t dumping;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	ENTER;
@@ -1944,13 +1961,17 @@ zone_maintenance(dns_zone_t *zone) {
 		    now >= zone->dumptime &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
+			dumping = was_dumping(zone);
+		} else
+			dumping = ISC_TRUE;
+		UNLOCK_ZONE(zone);
+		if (!dumping) {
 			result = zone_dump(zone);
 			if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_WARNING,
-					 "dump failed: %s",
-					 dns_result_totext(result));
+					     "dump failed: %s",
+					     dns_result_totext(result));
 		}
-		UNLOCK_ZONE(zone);
 		break;
 	default:
 		break;
@@ -2065,28 +2086,32 @@ dns_zone_refresh(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_flush(dns_zone_t *zone) {
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result = ISC_R_ALREADYRUNNING;
+	isc_boolean_t dumping;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP))
-		result = zone_dump(zone);
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FLUSH);
+	dumping = was_dumping(zone);
 	UNLOCK_ZONE(zone);
-
+	if (!dumping)
+		result = zone_dump(zone);
 	return (result);
 }
 
 isc_result_t
 dns_zone_dump(dns_zone_t *zone) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_ALREADYRUNNING;
+	isc_boolean_t dumping;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	result = zone_dump(zone);
+	dumping = was_dumping(zone);
 	UNLOCK_ZONE(zone);
-
+	if (!dumping)
+		result = zone_dump(zone);
 	return (result);
 }
 
@@ -2124,32 +2149,51 @@ static isc_result_t
 zone_dump(dns_zone_t *zone) {
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
+	isc_boolean_t again;
+	dns_db_t *db = NULL;
 
 	/*
 	 * 'zone' locked by caller.
 	 */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(LOCKED_ZONE(zone));
 
-	dns_db_currentversion(zone->db, &version);
+ redo:
+	LOCK(&zone->lock);
+	if (zone->db != NULL)
+		dns_db_attach(zone->db, &db);
+	UNLOCK(&zone->lock);
+	if (db == NULL)
+		return (DNS_R_NOTLOADED);
+	dns_db_currentversion(db, &version);
 
-	result = dns_master_dump(zone->mctx, zone->db, version,
+	result = dns_master_dump(zone->mctx, db, version,
 				 &dns_master_style_default,
 				 zone->masterfile);
 
-	dns_db_closeversion(zone->db, &version, ISC_FALSE);
+	dns_db_closeversion(db, &version, ISC_FALSE);
+	dns_db_detach(&db);
 
-	zone->dumptime = 0;
+	again = ISC_FALSE;
+	LOCK(&zone->lock);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_DUMPING);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * Try again in a short while.
 		 */
 		zone_needdump(zone, DNS_DUMP_DELAY);
-		return (result);
+	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FLUSH) &&
+		   DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
+		   DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DUMPING);
+		zone->dumptime = 0;
+		again = ISC_TRUE;
 	}
+	UNLOCK(&zone->lock);
+	if (again)
+		goto redo;
 
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
 	return (ISC_R_SUCCESS);
 }
 
@@ -2161,7 +2205,13 @@ dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	dns_db_attach(zone->db, &db);
+	LOCK_ZONE(zone);
+	if (zone->db != NULL)
+		dns_db_attach(zone->db, &db);
+	UNLOCK_ZONE(zone);
+	if (db == NULL)
+		return (DNS_R_NOTLOADED);
+
 	dns_db_currentversion(db, &version);
 	result = dns_master_dumptostream(zone->mctx, db, version,
 					 &dns_master_style_default, fd);
@@ -3708,7 +3758,8 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	case dns_zone_master:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			next = now;
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
 			INSIST(zone->dumptime != 0);
 			if (zone->dumptime < next || next == 0)
 				next = zone->dumptime;

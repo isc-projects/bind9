@@ -1,3 +1,5 @@
+ 927.	[bug]		Don't hold the zone lock for the entire dump to disk.
+			[RT #1423]
 
  926.	[bug]		The resolver could deadlock with the ADB when
 			shutting down (multithreaded builds only).
