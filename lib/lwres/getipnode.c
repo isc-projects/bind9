@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.20.2.2 2000/06/27 23:44:19 gson Exp $ */
+/* $Id: getipnode.c,v 1.20.2.3 2000/07/10 21:02:44 gson Exp $ */
 
 #include <config.h>
 
@@ -166,6 +166,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		*error_num = NO_RECOVERY;
 		goto cleanup;
 	}
+	(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
 	tmp_err = NO_RECOVERY;
 	if (have_v6 && af == AF_INET6) {
 		
@@ -211,8 +212,10 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		lwres_freehostent(he1);
 	if (he2 != NULL)
 		lwres_freehostent(he2);
-	if (lwrctx != NULL)
+	if (lwrctx != NULL) {
+		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
+	}
 	return (he3);
 }
 
@@ -276,9 +279,12 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 			cp += 12;
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 		if (n == LWRES_R_SUCCESS)
+			(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
+		if (n == LWRES_R_SUCCESS)
 			n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V4,
 						INADDRSZ, cp, &by);
 		if (n != LWRES_R_SUCCESS) {
+			lwres_conf_clear(lwrctx);
 			lwres_context_destroy(&lwrctx);
 			if (n == LWRES_R_NOTFOUND)
 				*error_num = HOST_NOT_FOUND;
@@ -288,6 +294,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		}
 		he1 = hostfromaddr(by, AF_INET, cp);
 		lwres_gnbaresponse_free(lwrctx, &by);
+		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
 		if (af != AF_INET6)
 			return (he1);
@@ -315,6 +322,8 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	}
 
 	n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
+	if (n == LWRES_R_SUCCESS)
+		(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
 	if (n == LWRES_R_SUCCESS)
 		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, IN6ADDRSZ,
 					src, &by);
