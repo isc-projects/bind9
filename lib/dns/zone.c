@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.29 2004/03/02 02:36:41 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.30 2004/03/04 06:56:27 marka Exp $ */
 
 #include <config.h>
 
@@ -998,6 +998,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 			     isc_result_totext(result));
 		goto cleanup;
 	}
+	dns_db_settask(db, zone->task);
 
 	if (! dns_db_ispersistent(db)) {
 		if (zone->masterfile != NULL) {
@@ -3632,6 +3633,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 					     dns_result_totext(result));
 				goto cleanup;
 			}
+			dns_db_settask(stub->db, zone->task);
 		}
 
 		dns_db_newversion(stub->db, &stub->version);
@@ -4571,6 +4573,8 @@ dns_zone_settask(dns_zone_t *zone, isc_task_t *task) {
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
 	isc_task_attach(task, &zone->task);
+	if (zone->db != NULL)
+		dns_db_settask(zone->db, zone->task);
 	UNLOCK_ZONE(zone);
 }
 
@@ -4759,6 +4763,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	dns_db_attach(db, &zone->db);
+	dns_db_settask(zone->db, zone->task);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED|DNS_ZONEFLG_NEEDNOTIFY);
 	return (ISC_R_SUCCESS);
 
