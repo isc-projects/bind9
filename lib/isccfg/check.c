@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.5 2001/03/03 23:09:23 bwelling Exp $ */
+/* $Id: check.c,v 1.6 2001/03/04 21:18:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -47,7 +47,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 	unsigned int ztype;
 	cfg_obj_t *zoptions;
 	cfg_obj_t *obj = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
 
 	static optionstable options[] = {
@@ -280,7 +280,7 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 	     velement = cfg_list_next(velement))
 	{
 		cfg_obj_t *view = cfg_listelt_value(velement);
-		cfg_obj_t *vname = cfg_map_getname(view);
+		cfg_obj_t *vname = cfg_tuple_get(view, "name");
 		cfg_obj_t *voptions = cfg_tuple_get(view, "options");
 
 		if (check_viewconf(voptions, cfg_obj_asstring(vname), logctx)
@@ -301,9 +301,11 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 	}
 
 	if (options != NULL) {
+		isc_result_t tresult;
+
 		obj = NULL;
-		result = cfg_map_get(options, "max-cache-size", &obj);
-		if (result == ISC_R_SUCCESS &&
+		tresult = cfg_map_get(options, "max-cache-size", &obj);
+		if (tresult == ISC_R_SUCCESS &&
 		    cfg_obj_isstring(obj))
 		{
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
