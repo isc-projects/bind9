@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.85.2.3.8.3 2004/03/06 08:14:36 marka Exp $ */
+/* $Id: task.c,v 1.85.2.3.8.4 2004/03/08 21:06:29 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -82,6 +82,7 @@ struct isc_task {
 	isc_eventlist_t			on_shutdown;
 	unsigned int			quantum;
 	unsigned int			flags;
+	isc_stdtime_t			now;
 #ifdef ISC_TASK_NAMES
 	char				name[16];
 	void *				tag;
@@ -196,6 +197,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	INIT_LIST(task->on_shutdown);
 	task->quantum = quantum;
 	task->flags = 0;
+	task->now = 0;
 #ifdef ISC_TASK_NAMES
 	memset(task->name, 0, sizeof(task->name));
 	task->tag = NULL;
@@ -717,6 +719,17 @@ isc_task_gettag(isc_task_t *task) {
 	return (task->tag);
 }
 
+void
+isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t) {
+	REQUIRE(VALID_TASK(task));
+	REQUIRE(t != NULL);
+
+	LOCK(&task->lock);
+
+	*t = task->now;
+
+	UNLOCK(&task->lock);
+}
 
 /***
  *** Task Manager.
@@ -838,6 +851,7 @@ dispatch(isc_taskmgr_t *manager) {
 			task->state = task_state_running;
 			XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 					      ISC_MSG_RUNNING, "running"));
+			isc_stdtime_get(&task->now);
 			do {
 				if (!EMPTY(task->events)) {
 					event = HEAD(task->events);

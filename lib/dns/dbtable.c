@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.25.12.2 2004/03/06 08:13:37 marka Exp $
+ * $Id: dbtable.c,v 1.25.12.3 2004/03/08 21:06:25 marka Exp $
  */
 
 /*
@@ -211,7 +211,7 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 
 	result = dns_rbt_findname(dbtable->rbt, name, 0, NULL,
-				  (void **)&stored_data);
+				  (void **) (void *)&stored_data);
 
 	if (result == ISC_R_SUCCESS) {
 		INSIST(stored_data == db);
@@ -275,7 +275,7 @@ dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name,
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
 
 	result = dns_rbt_findname(dbtable->rbt, name, rbtoptions, NULL,
-				  (void **)&stored_data);
+				  (void **) (void *)&stored_data);
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		dns_db_attach(stored_data, dbp);

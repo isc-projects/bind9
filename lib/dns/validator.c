@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.6 2004/03/08 02:07:58 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.7 2004/03/08 21:06:28 marka Exp $ */
 
 #include <config.h>
 
@@ -460,7 +460,7 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	dns_namereln_t relation;
-	unsigned int olabels, nlabels, labels, nbits;
+	unsigned int olabels, nlabels, labels;
 	dns_rdata_nsec_t nsec;
 	isc_boolean_t atparent;
 
@@ -476,8 +476,7 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 	dns_rdataset_current(nsecset, &rdata);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "looking for relevant nsec");
-	relation = dns_name_fullcompare(name, nsecname, &order, &olabels,
-					&nbits);
+	relation = dns_name_fullcompare(name, nsecname, &order, &olabels);
 
 	if (order < 0) {
 		/*
@@ -539,8 +538,7 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 	result = dns_rdata_tostruct(&rdata, &nsec, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	relation = dns_name_fullcompare(&nsec.next, name, &order, &nlabels,
-					&nbits);
+	relation = dns_name_fullcompare(&nsec.next, name, &order, &nlabels);
 	if (order == 0) {
 		dns_rdata_freestruct(&nsec);
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -854,7 +852,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 static isc_result_t
 get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	isc_result_t result;
-	unsigned int nbits, nlabels;
+	unsigned int nlabels;
 	int order;
 	dns_namereln_t namereln;
 
@@ -865,7 +863,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	 * or closer to the the DNS root.
 	 */
 	namereln = dns_name_fullcompare(val->event->name, &siginfo->signer,
-					&order, &nlabels, &nbits);
+					&order, &nlabels);
 	if (namereln != dns_namereln_subdomain &&
 	    namereln != dns_namereln_equal)
 		return (DNS_R_CONTINUE);
@@ -1774,13 +1772,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 		tname = dns_fixedname_name(&val->fname);
 		if (val->labels == dns_name_countlabels(val->event->name))
 			dns_name_copy(val->event->name, tname, NULL);
-		else {
-			result = dns_name_splitatdepth(val->event->name,
-						       val->labels,
-						       NULL, tname);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-		}
+		else
+			dns_name_split(val->event->name, val->labels,
+				       NULL, tname);
 
 		dns_name_format(tname, namebuf, sizeof(namebuf));
 		validator_log(val, ISC_LOG_DEBUG(3),

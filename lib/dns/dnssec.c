@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69.2.5.2.5 2004/03/08 02:07:53 marka Exp $
+ * $Id: dnssec.c,v 1.69.2.5.2.6 2004/03/08 21:06:26 marka Exp $
  */
 
 
@@ -403,11 +403,10 @@ dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * If the name is an expanded wildcard, use the wildcard name.
 	 */
 	dns_fixedname_init(&fnewname);
-	labels = dns_name_depth(name) - 1;
+	labels = dns_name_countlabels(name) - 1;
 	if (labels - sig.labels > 0) {
-		RUNTIME_CHECK(dns_name_splitatdepth(name, sig.labels + 1, NULL,
-			     		    dns_fixedname_name(&fnewname))
-			      == ISC_R_SUCCESS);
+		dns_name_split(name, sig.labels + 1, NULL,
+			       dns_fixedname_name(&fnewname));
 		RUNTIME_CHECK(dns_name_downcase(dns_fixedname_name(&fnewname),
 						dns_fixedname_name(&fnewname),
 						NULL)

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.31 2004/03/08 02:07:57 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.32 2004/03/08 21:06:27 marka Exp $ */
 
 #include <config.h>
 
@@ -2792,11 +2792,11 @@ is_lame(fetchctx_t *fctx) {
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			dns_namereln_t namereln;
 			int order;
-			unsigned int labels, bits;
+			unsigned int labels;
 			if (rdataset->type != dns_rdatatype_ns)
 				continue;
 			namereln = dns_name_fullcompare(name, &fctx->domain,
-				   			&order, &labels, &bits);
+				   			&order, &labels);
 			if (namereln == dns_namereln_equal &&
 			    (message->flags & DNS_MESSAGEFLAG_AA) != 0)
 				return (ISC_FALSE);
@@ -3941,7 +3941,7 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned int nlabels, nbits;
+	unsigned int nlabels;
 	int order;
 	dns_namereln_t namereln;
 	dns_rdata_dname_t dname;
@@ -3962,19 +3962,13 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	/*
 	 * Get the prefix of qname.
 	 */
-	namereln = dns_name_fullcompare(qname, oname, &order, &nlabels,
-					&nbits);
+	namereln = dns_name_fullcompare(qname, oname, &order, &nlabels);
 	if (namereln != dns_namereln_subdomain) {
 		dns_rdata_freestruct(&dname);
 		return (DNS_R_FORMERR);
 	}
 	dns_fixedname_init(&prefix);
-	result = dns_name_split(qname, nlabels, nbits,
-				dns_fixedname_name(&prefix), NULL);
-	if (result != ISC_R_SUCCESS) {
-		dns_rdata_freestruct(&dname);
-		return (result);
-	}
+	dns_name_split(qname, nlabels, dns_fixedname_name(&prefix), NULL); 
 	dns_fixedname_init(fixeddname);
 	result = dns_name_concatenate(dns_fixedname_name(&prefix),
 				      &dname.dname,

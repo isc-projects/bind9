@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.15 2004/03/08 02:07:40 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.16 2004/03/08 21:06:21 marka Exp $ */
 
 #include <config.h>
 
@@ -2723,7 +2723,7 @@ forward_callback(void *arg, isc_result_t result, dns_message_t *answer) {
 		uev->ev_action = forward_done;
 		uev->answer = answer;
 	}
-	isc_task_send(client->task, (isc_event_t**)&uev);
+	isc_task_send(client->task, (isc_event_t **) (void *)&uev);
 }
 
 static void
@@ -2777,10 +2777,10 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	event->ev_arg = evclient;
 
 	dns_zone_gettask(zone, &zonetask);
-	isc_task_send(zonetask, (isc_event_t **)&event);
+	isc_task_send(zonetask, (isc_event_t **) (void *)&event);
 
  failure:
 	if (event != NULL)
-		isc_event_free((isc_event_t **)&event);
+		isc_event_free((isc_event_t **) (void *)&event);
 	return (result);
 }

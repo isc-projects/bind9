@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.7.2.8 2004/03/08 02:07:54 marka Exp $ */
+/* $Id: name.c,v 1.127.2.7.2.9 2004/03/08 21:06:26 marka Exp $ */
 
 #include <config.h>
 
@@ -479,8 +479,7 @@ dns_name_hashbylabel(dns_name_t *name, isc_boolean_t case_sensitive) {
 
 dns_namereln_t
 dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
-		     int *orderp,
-		     unsigned int *nlabelsp, unsigned int *nbitsp)
+		     int *orderp, unsigned int *nlabelsp)
 {
 	unsigned int l1, l2, l, count1, count2, count, nlabels;
 	int cdiff, ldiff, chdiff;
@@ -504,7 +503,6 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	REQUIRE(VALID_NAME(name2));
 	REQUIRE(orderp != NULL);
 	REQUIRE(nlabelsp != NULL);
-	REQUIRE(nbitsp != NULL);
 	/*
 	 * Either name1 is absolute and name2 is absolute, or neither is.
 	 */
@@ -572,7 +570,6 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 
  done:
 	*nlabelsp = nlabels;
-	*nbitsp = 0;
 
 	if (nlabels > 0 && namereln == dns_namereln_none)
 		namereln = dns_namereln_commonancestor;
@@ -583,7 +580,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 int
 dns_name_compare(const dns_name_t *name1, const dns_name_t *name2) {
 	int order;
-	unsigned int nlabels, nbits;
+	unsigned int nlabels;
 
 	/*
 	 * Determine the relative ordering under the DNSSEC order relation of
@@ -595,7 +592,7 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2) {
 	 * same domain.
 	 */
 
-	(void)dns_name_fullcompare(name1, name2, &order, &nlabels, &nbits);
+	(void)dns_name_fullcompare(name1, name2, &order, &nlabels);
 
 	return (order);
 }
@@ -713,7 +710,7 @@ dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2) {
 isc_boolean_t
 dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2) {
 	int order;
-	unsigned int nlabels, nbits;
+	unsigned int nlabels;
 	dns_namereln_t namereln;
 
 	/*
@@ -725,8 +722,7 @@ dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2) {
 	 * same domain.
 	 */
 
-	namereln = dns_name_fullcompare(name1, name2, &order, &nlabels,
-					&nbits);
+	namereln = dns_name_fullcompare(name1, name2, &order, &nlabels);
 	if (namereln == dns_namereln_subdomain ||
 	    namereln == dns_namereln_equal)
 		return (ISC_TRUE);
@@ -737,7 +733,7 @@ dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2) {
 isc_boolean_t
 dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname) {
 	int order;
-	unsigned int nlabels, nbits, labels;
+	unsigned int nlabels, labels;
 	dns_name_t tname;
 
 	REQUIRE(VALID_NAME(name));
@@ -749,44 +745,10 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname) {
 
 	DNS_NAME_INIT(&tname, NULL);
 	dns_name_getlabelsequence(wname, 1, labels - 1, &tname);
-	if (dns_name_fullcompare(name, &tname, &order, &nlabels, &nbits) ==
+	if (dns_name_fullcompare(name, &tname, &order, &nlabels) ==
 	    dns_namereln_subdomain)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
-}
-
-unsigned int
-dns_name_depth(const dns_name_t *name) {
-	unsigned int depth, count, nrem;
-	unsigned char *ndata;
-
-	/*
-	 * The depth of 'name'.
-	 */
-
-	REQUIRE(VALID_NAME(name));
-
-	if (name->labels == 0)
-		return (0);
-
-	depth = 0;
-	ndata = name->ndata;
-	nrem = name->length;
-	while (nrem > 0) {
-		count = *ndata++;
-		INSIST(count <= 63); /* no bitstring support */
-
-		nrem--;
-		depth++;
-		if (count == 0)
-			break;
-
-		INSIST(nrem >= count);
-		nrem -= count;
-		ndata += count;
-	}
-
-	return (depth);
 }
 
 unsigned int
@@ -1958,17 +1920,13 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-dns_name_split(dns_name_t *name,
-	       unsigned int suffixlabels, unsigned int nbits,
+void
+dns_name_split(dns_name_t *name, unsigned int suffixlabels,
 	       dns_name_t *prefix, dns_name_t *suffix)
 
 {
-	dns_offsets_t name_odata;
-	unsigned char *offsets;
 	unsigned int splitlabel;
 
-	REQUIRE(nbits == 0);	/* no bitstring support */
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(suffixlabels > 0);
 	REQUIRE(suffixlabels < name->labels);
@@ -1982,8 +1940,6 @@ dns_name_split(dns_name_t *name,
 		 suffix->buffer != NULL &&
 		 BINDABLE(suffix)));
 
-	SETUP_OFFSETS(name, offsets, name_odata);
-
 	splitlabel = name->labels - suffixlabels;
 
 	if (prefix != NULL)
@@ -1993,51 +1949,7 @@ dns_name_split(dns_name_t *name,
 		dns_name_getlabelsequence(name, splitlabel,
 					  suffixlabels, suffix);
 
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_name_splitatdepth(dns_name_t *name, unsigned int depth,
-		      dns_name_t *prefix, dns_name_t *suffix)
-{
-	unsigned int suffixlabels, label, count;
-	unsigned char *offsets, *ndata;
-	dns_offsets_t odata;
-
-	/*
-	 * Split 'name' into two pieces at a certain depth.
-	 */
-
-	REQUIRE(VALID_NAME(name));
-	REQUIRE(name->labels > 0);
-	REQUIRE(depth > 0);
-
-	SETUP_OFFSETS(name, offsets, odata);
-
-	suffixlabels = 0;
-	label = name->labels;
-	do {
-		label--;
-		ndata = &name->ndata[offsets[label]];
-		count = *ndata++;
-		INSIST(count <= 63); /* no bitstring support */
-		suffixlabels++;
-		depth--;
-	} while (depth != 0 && label != 0);
-
-	/*
-	 * If depth is not zero, then the caller violated the requirement
-	 * that depth <= dns_name_depth(name).
-	 */
-	if (depth != 0) {
-		REQUIRE(depth <= dns_name_depth(name));
-		/*
-		 * We should never get here!
-		 */
-		INSIST(0);
-	}
-
-	return (dns_name_split(name, suffixlabels, 0, prefix, suffix));
+	return;
 }
 
 isc_result_t

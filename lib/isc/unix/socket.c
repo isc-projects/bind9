@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.6 2004/03/06 08:15:01 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.7 2004/03/08 21:06:29 marka Exp $ */
 
 #include <config.h>
 
@@ -1958,7 +1958,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	task = dev->ev_sender;
 	dev->ev_sender = sock;
 
-	isc_task_sendanddetach(&task, (isc_event_t **)&dev);
+	isc_task_sendanddetach(&task, (isc_event_t **) (void *)&dev);
 	return;
 
  soft_error:
@@ -2997,7 +2997,7 @@ isc_socket_accept(isc_socket_t *sock,
 
 	ret = allocate_socket(manager, sock->type, &nsock);
 	if (ret != ISC_R_SUCCESS) {
-		isc_event_free((isc_event_t **)&dev);
+		isc_event_free((isc_event_t **) (void *)&dev);
 		UNLOCK(&sock->lock);
 		return (ret);
 	}
@@ -3097,12 +3097,12 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "%d/%s", errno, strbuf);
 
 		UNLOCK(&sock->lock);
-		isc_event_free((isc_event_t **)&dev);
+		isc_event_free((isc_event_t **) (void *)&dev);
 		return (ISC_R_UNEXPECTED);
 
 	err_exit:
 		sock->connected = 0;
-		isc_task_send(task, (isc_event_t **)&dev);
+		isc_task_send(task, (isc_event_t **) (void *)&dev);
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -3115,7 +3115,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		sock->connected = 1;
 		sock->bound = 1;
 		dev->result = ISC_R_SUCCESS;
-		isc_task_send(task, (isc_event_t **)&dev);
+		isc_task_send(task, (isc_event_t **) (void *)&dev);
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -3253,7 +3253,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 
 	task = dev->ev_sender;
 	dev->ev_sender = sock;
-	isc_task_sendanddetach(&task, (isc_event_t **)&dev);
+	isc_task_sendanddetach(&task, (isc_event_t **) (void *)&dev);
 }
 
 isc_result_t
@@ -3401,7 +3401,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 				dev->result = ISC_R_CANCELED;
 				dev->ev_sender = sock;
 				isc_task_sendanddetach(&current_task,
-						       (isc_event_t **)&dev);
+					        (isc_event_t **) (void *)&dev);
 			}
 
 			dev = next;
@@ -3428,7 +3428,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 			dev->result = ISC_R_CANCELED;
 			dev->ev_sender = sock;
 			isc_task_sendanddetach(&current_task,
-					       (isc_event_t **)&dev);
+					       (isc_event_t **) (void *)&dev);
 		}
 	}
 
