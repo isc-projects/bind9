@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.171 $)
+AC_REVISION($Revision: 1.172 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -178,18 +178,34 @@ fi
 AC_C_BIGENDIAN
 
 #
+# was --with-openssl specified?
+#
+AC_ARG_WITH(openssl,
+[  --with-openssl        Specify path for system-supplied openssl
+                        (rather than using bind-9 internal openssl)],
+    openssl="$withval", openssl="")
+
+#
 # If the user didn't specify where openssl is, and we didn't find or it
 # is imcompatible with our code, use our internal one.
-# XXXMLG Implement this check!
 #
 AC_MSG_CHECKING(for compatible OpenSSL library)
 
-DST_PRIVATEOPENSSL='-DDST_USE_PRIVATE_OPENSSL'
-dst_privateopenssl='openssl'
-DST_OPENSSL_INC='-I${srcdir}/../openssl/include'
-DST_OPENSSL_LIB=''
-DST_OPENSSL_OBJS='${OPENSSLOBJS}'
-AC_MSG_RESULT(using private library)
+if test "X$openssl" = "X" ; then
+    DST_PRIVATEOPENSSL='-DDST_USE_PRIVATE_OPENSSL'
+    dst_privateopenssl='openssl'
+    DST_OPENSSL_INC='-I${srcdir}/../openssl/include'
+    DST_OPENSSL_LIB=''
+    DST_OPENSSL_OBJS='${OPENSSLOBJS}'
+    AC_MSG_RESULT(using private library)
+else
+    DST_PRIVATEOPENSSL=''
+    dst_privateopenssl=''
+    DST_OPENSSL_INC='-I$openssl/include'
+    DNS_OPENSSL_LIBS="-L$openssl/lib -lssl -lcrypto"
+    DST_OPENSSL_LIB=''
+    AC_MSG_RESULT(using openssl from $openssl/lib and $openssl/include)
+fi
 
 AC_SUBST(DST_PRIVATEOPENSSL)
 AC_SUBST(dst_privateopenssl)
@@ -202,18 +218,7 @@ AC_SUBST(DST_OPENSSL_OBJS)
 # it as needed) if it is found.
 #
 
-DNS_OPENSSL_LIBS=""
 AC_SUBST(DNS_OPENSSL_LIBS)
-
-#
-# testing with alternate openssl libraries...  XXXMLG
-#
-# DNS_OPENSSL_LIBS="-L/usr/pkg/lib -lssl -lcrypto"
-# DST_PRIVATEOPENSSL=''
-# dst_privateopenssl=''
-# DST_OPENSSL_INC='-I/usr/pkg/include'
-# DST_OPENSSL_LIB=''
-#
 
 #
 # NetBSD has multiple pthreads implementations.  The recommended
