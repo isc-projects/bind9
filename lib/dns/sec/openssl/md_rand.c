@@ -479,7 +479,8 @@ static int ssleay_rand_bytes(unsigned char *buf, int num)
    unpredictable */
 static int ssleay_rand_pseudo_bytes(unsigned char *buf, int num) 
 	{
-	int ret, err;
+	int ret;
+	unsigned long err;
 
 	ret = RAND_bytes(buf, num);
 	if (ret == 0)
