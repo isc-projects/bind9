@@ -289,6 +289,34 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *	dns_name_towire().
  */
 
+dns_result_t
+dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
+			    dns_additionaldatafunc_t add, void *arg);
+/*
+ * For each rdata in rdataset, call 'add' for each name and type in the
+ * rdata which is subject to additional section processing.
+ *
+ * Requires:
+ *
+ *	'rdataset' is a valid, non-question rdataset.
+ *
+ *	'add' is a valid dns_additionaldatafunc_t
+ *
+ * Ensures:
+ *
+ *	If successful, dns_rdata_additionaldata() will have been called for
+ *	each rdata in 'rdataset'.
+ *
+ *	If a call to dns_rdata_additionaldata() is not successful, the
+ *	result returned will be the result of dns_rdataset_additionaldata().
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *
+ *	Any error that dns_rdata_additionaldata() can return.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATASET_H */

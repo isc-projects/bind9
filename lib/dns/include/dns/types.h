@@ -162,6 +162,9 @@ enum {
 typedef isc_result_t
 (*dns_addrdatasetfunc_t)(void *, dns_name_t *, dns_rdataset_t *);
 
+typedef isc_result_t
+(*dns_additionaldatafunc_t)(void *, dns_name_t *, dns_rdatatype_t);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_TYPES_H */
