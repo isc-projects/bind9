@@ -1,3 +1,6 @@
+1631.	[bug]		dns_journal_compact() could sometimes corrupt the
+			journal. [RT #11124]
+
 1630.	[placeholder]	queryperf-v6
 
 1629.	[placeholder]	rt8753
