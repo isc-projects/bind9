@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.108 2000/06/22 21:54:36 tale Exp $ */
+/* $Id: rbtdb.c,v 1.108.2.1 2000/07/05 20:49:03 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3585,6 +3585,15 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	 * 'load' below for more information on loading and
 	 * locking.
 	 */
+
+
+	/*
+	 * SOA records are only allowed at top of zone.
+	 */
+	if (rdataset->type == dns_rdatatype_soa &&
+	    (rbtdb->common.attributes & DNS_DBATTR_CACHE) == 0 &&
+	    !dns_name_equal(name, &rbtdb->common.origin))
+		return (DNS_R_NOTZONETOP);
 
 	if (dns_name_iswildcard(name)) {
 		/*

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.63 2000/06/22 21:54:47 tale Exp $ */
+/* $Id: result.c,v 1.63.2.1 2000/07/05 20:49:04 gson Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"extra input text",			/* 12 */
 	"extra input data",			/* 13 */
 	"text too long",			/* 14 */
-	"UNUSED15",				/* 15 */
+	"not at top of zone",			/* 15 */
 	"syntax error",				/* 16 */
 	"bad checksum",				/* 17 */
 	"bad IPv6 address",			/* 18 */

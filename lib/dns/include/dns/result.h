@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.h,v 1.59 2000/06/22 21:56:07 tale Exp $ */
+/* $Id: result.h,v 1.59.2.1 2000/07/05 20:49:06 gson Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -51,7 +51,7 @@
 #define DNS_R_EXTRATOKEN		(ISC_RESULTCLASS_DNS + 12)
 #define DNS_R_EXTRADATA			(ISC_RESULTCLASS_DNS + 13)
 #define DNS_R_TEXTTOOLONG		(ISC_RESULTCLASS_DNS + 14)
-/* 15 is unused */
+#define DNS_R_NOTZONETOP		(ISC_RESULTCLASS_DNS + 15)
 #define DNS_R_SYNTAX			(ISC_RESULTCLASS_DNS + 16)
 #define DNS_R_BADCKSUM			(ISC_RESULTCLASS_DNS + 17)
 #define DNS_R_BADAAAA			(ISC_RESULTCLASS_DNS + 18)
