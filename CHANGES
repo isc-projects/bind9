@@ -1,3 +1,5 @@
+1835.	[bug]		Update dnssec-signzone's usage message. [RT #13657]
+
 1834.	[bug]		Bad memset in rdata_test.c. [RT #13658]
 
 1833.	[bug]		Race condition in isc_mutex_lock_profile(). [RT #13660]
