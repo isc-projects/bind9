@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.18.12.3 2003/08/22 05:15:02 marka Exp $ */
+/* $Id: netaddr.c,v 1.18.12.4 2003/08/22 06:07:33 marka Exp $ */
 
 #include <config.h>
 
@@ -264,6 +264,7 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 	switch (family) {
 	case AF_INET:
 		t->type.in = s->type.sin.sin_addr;
+		t->zone = 0;
 		break;
 	case AF_INET6:
 		memcpy(&t->type.in6, &s->type.sin6.sin6_addr, 16);
