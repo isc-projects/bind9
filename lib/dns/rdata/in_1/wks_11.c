@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.29 2000/05/15 21:14:36 tale Exp $ */
+/* $Id: wks_11.c,v 1.30 2000/05/19 02:07:16 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -47,6 +47,8 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	long maxport = -1;
 	char *ps = NULL;
 	unsigned int n;
+	char service[32];
+	int i;
 
 	UNUSED(origin);
 	UNUSED(downcase);
@@ -95,9 +97,22 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				  ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
+
+		/*
+		 * Lowercase the service string as some getservbyname() are
+		 * case sensitive and the database is usually in lowercase.
+		 */
+		strncpy(service, token.value.as_pointer, sizeof(service));
+		service[sizeof(service)-1] = '\0';
+		for (i = strlen(service) - 1; i >= 0; i--)
+			if (isupper(service[i]&0xff))
+				service[i] = tolower(service[i]);
+
 		port = strtol(token.value.as_pointer, &e, 10);
 		if (*e == 0)
 			;
+		else if ((se = getservbyname(service, ps)) != NULL)
+			port = ntohs(se->s_port);
 		else if ((se = getservbyname(token.value.as_pointer, ps))
 			  != NULL)
 			port = ntohs(se->s_port);
