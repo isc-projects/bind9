@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.23 1999/08/12 01:32:42 halley Exp $ */
+ /* $Id: gen.c,v 1.24 1999/08/31 22:08:19 halley Exp $ */
 
 #include <config.h>
 
@@ -85,6 +85,13 @@
 #define ADDITIONALDATACLASS "rdata->rdclass"
 #define ADDITIONALDATATYPE "rdata->type"
 #define ADDITIONALDATADEF "use_default = ISC_TRUE"
+
+#define DIGESTDECL \
+	"dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg"
+#define DIGESTARGS "rdata, digest, arg"
+#define DIGESTCLASS "rdata->rdclass"
+#define DIGESTTYPE "rdata->type"
+#define DIGESTDEF "use_default = ISC_TRUE"
 
 char copyright[] =
 "/*\n\
@@ -444,6 +451,7 @@ main(int argc, char **argv) {
 		dodecl("dns_result_t", "tostruct", TOSTRUCTDECL);
 		dodecl("void", "freestruct", FREESTRUCTDECL);
 		dodecl("dns_result_t", "additionaldata", ADDITIONALDATADECL);
+		dodecl("dns_result_t", "digest", DIGESTDECL);
 
 		doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
 			 FROMTEXTTYPE, FROMTEXTCLASS, FROMTEXTDEF);
@@ -464,6 +472,9 @@ main(int argc, char **argv) {
 		doswitch("ADDITIONALDATASWITCH", "additionaldata",
 			 ADDITIONALDATAARGS, ADDITIONALDATATYPE,
 			 ADDITIONALDATACLASS, ADDITIONALDATADEF);
+		doswitch("DIGESTSWITCH", "digest",
+			 DIGESTARGS, DIGESTTYPE,
+			 DIGESTCLASS, DIGESTDEF);
 
 		fprintf(stdout, "\n#define TYPENAMES%s\n",
 			types != NULL ? " \\" : "");
