@@ -2,7 +2,7 @@ Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.41.12.3 2004/03/08 09:04:25 marka Exp $
+$Id: release,v 1.41.12.4 2004/03/13 02:57:28 sra Exp $
 
 Preparing a bind9 release
 
@@ -109,28 +109,41 @@ release.
    If you don't have the "iconv" library, you need to get it from
    http://clisp.cons.org/~haible/packages-libiconv.html and install it.
 
-   $ sh util/sanitize_all.sh
-   $ patch -p0 < contrib/idn/mdnkit/patch/bind9/patch.most > patch.out 2>&1
+   If you reading this part of these instructions in order to generate
+   a version of the patch for a new release, you'll need to pick a
+   version of the patch from some prior release to use as a starting
+   point.  In general, the patch corresponding to the most recent
+   prior release will be the best starting point.
+
+   $ patch -p0 < contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.x.y-patch \
+               > patch.out 2>&1
    $ egrep Hunk patch.out
 
    All hunks should have applied successfully with no offset or fuzz.
    If all succeeded but some were offset or had fuzz, the patch will be
    regenerated at the end of this stage.
 
+   Note that two of the files which the patch attempts to update
+   (configure and config.h.in) are generated automatically.  When
+   generating a new patch, the old version of the patch may not apply
+   correctly to these files, but that's ok so long as the patch does
+   apply correctly to the source files from which these files are
+   generated.  The steps below will regenerate these files.
+
    $ cd contrib/idn/idnkit-1.0-src
+
    [ Sample on netbsd ... ]
    $ CFLAGS=-I/usr/local/include ./configure  '--with-iconv=-L/usr/local/lib -liconv'
 
-	FreeBSD has giconv.
-	./configure --with-iconv-include=/usr/local/include \
-	'--with-iconv=-L/usr/local/lib -lgiconv'
+   [ Sample on freebsd -- formely used giconv, now uses iconv ]
+   ./configure --with-iconv-include=/usr/local/include \
+              '--with-iconv=-L/usr/local/lib -liconv'
 
    $ make
    $ cd ../../.. ; : cd back to top level
-   $ cp configure configure.orig
-   $ autoconf
+   $ autoheader  ; : regenerate config.h.in
+   $ autoconf    ; : regenerate configure
    $ ./configure
-
    $ make
    ... should cleanly compile
    $ make distclean
@@ -148,13 +161,18 @@ release.
    Generate a fresh copy of the diffs:
 
    $ patchd=$idn/patch/bind9    
-   $ awk '/^\+\+\+ / {print $2}' $patchd/patch.most | 
-        while read i; do
-                diff -u2 $i.orig $i
-        done > $patchd/patch.most.new
-   $ cvs diff -u2 configure > $patchd/patch.configure
-   $ mv $patchd/patch.most.new $patchd/patch.most
-   $ cvs ci -ko $patchd/patch.*
+   $ old_patch=bind-9.x.y-patch
+   $ new_patch=bind-9.x.z-patch
+   $ files=`awk '/^Index:/ && NF == 2 {print $2}' $patchd/$old_patch`
+   $ missing=`cvs log -R $files 2>&1 >/dev/null | \
+              awk '/^cvs log: nothing known about/ {print $6}'`
+   $ for i in $missing; \
+       do echo Index: $i; diff -u /dev/null $i; done >$patchd/$new_patch
+   $ cvs -f diff -U 2 -N $files >>$patchd/$new_patch
+
+   [ Add comment at head of new patch file ]
+   $ cvs add -ko $patchd/$new_patch
+   $ cvs ci $patchd/$new_patch
 
  - Add a marker line like "	--- 9.0.0rc10 released ---"
    to the CHANGES file.
