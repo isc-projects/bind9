@@ -47,7 +47,7 @@
 1482.	[bug]		named could fail to start if the kernel supports
 			IPv6 but no interfaces are configured.  Similarly
 			for IPv4. [RT #6229]
-			
+
 1481.	[bug]		Refresh and stub queries failed to use masters keys
 			if specified. [RT #7391]
 
@@ -64,7 +64,7 @@
 1478.	[port]		ifconfig.sh didn't account for other virtual
 			interfaces.  It now takes a optional arguement
 			to specify the first interface number. [RT #3907]
-		
+
 1477.	[bug]		memory leak using stub zones and TSIG.
 
 1476.	[placeholder]
@@ -434,7 +434,7 @@
 1349.	[security]	Minimum OpenSSL version now 0.9.6e (was 0.9.5a).
 			http://www.cert.org/advisories/CA-2002-23.html
 
-1348.	[port]		Win32: Rewrote code to use I/O Completion Ports
+1348.	[port]		win32: Rewrote code to use I/O Completion Ports
 			in socket.c and eliminating a host of socket
 			errors. Performance is enhanced.
 
