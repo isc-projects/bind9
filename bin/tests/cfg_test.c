@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.11 2001/07/23 18:57:53 gson Exp $ */
+/* $Id: cfg_test.c,v 1.11.2.1 2001/10/22 23:52:19 gson Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@ output(void *closure, const char *text, int textlen) {
 }
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "usage: cfg_test --rndc|--named "
 		"[--grammar] [--memstats] conffile\n");
 	exit(1);
