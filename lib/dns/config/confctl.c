@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.25 2000/07/11 19:09:02 brister Exp $ */
+/* $Id: confctl.c,v 1.26 2000/07/12 15:36:09 brister Exp $ */
 
 #include <config.h>
 
@@ -144,15 +144,12 @@ dns_c_ctrl_validate(dns_c_ctrl_t *ctrl)
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "the KEYS clause of an INET control "
 			      "channel must be used");
-		result = ISC_R_FAILURE;
 	} else if (dns_c_kidlist_keycount(ctrl->keyidlist) == 0) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "the KEYS clause of an INET control "
 			      "channel must not be empty");
-		result = ISC_R_FAILURE;
 	}
-
 
 	return (result);
 }
