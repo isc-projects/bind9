@@ -79,6 +79,8 @@
 #include <dns/types.h>
 #include <dns/result.h>
 
+#include <stdio.h>
+
 ISC_LANG_BEGINDECLS
 
 /*****
@@ -983,7 +985,7 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg);
 isc_boolean_t
 dns_name_dynamic(dns_name_t *name);
 /*
- *	Returns whether there is dynamic memory associated with this name.
+ * Returns whether there is dynamic memory associated with this name.
  *
  * Requires:
  *
@@ -992,6 +994,24 @@ dns_name_dynamic(dns_name_t *name);
  * Returns:
  *
  *	'ISC_TRUE' if the name is dynamic othewise 'ISC_FALSE'.
+ */
+
+isc_result_t
+dns_name_print(dns_name_t *name, FILE *stream);
+/*
+ * Print 'name' on 'stream'.
+ *
+ * Requires:
+ *
+ *	'name' is a valid name.
+ *
+ *	'stream' is a valid stream.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *
+ *	Any error that dns_name_totext() can return.
  */
 
 ISC_LANG_ENDDECLS

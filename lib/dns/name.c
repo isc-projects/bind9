@@ -2930,6 +2930,33 @@ isc_boolean_t
 dns_name_dynamic(dns_name_t *name) {
 	REQUIRE(VALID_NAME(name));
 
+	/*
+	 * Returns whether there is dynamic memory associated with this name.
+	 */
+
 	return ((name->attributes & DNS_NAMEATTR_DYNAMIC) != 0 ?
 		ISC_TRUE : ISC_FALSE);
+}
+
+isc_result_t
+dns_name_print(dns_name_t *name, FILE *stream) {
+	isc_result_t result;
+	isc_buffer_t b;
+	isc_region_t r;
+	char t[1024];
+
+	/*
+	 * Print 'name' on 'stream'.
+	 */
+
+	REQUIRE(VALID_NAME(name));
+
+	isc_buffer_init(&b, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+	result = dns_name_totext(name, ISC_FALSE, &b);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	isc_buffer_used(&b, &r);
+	fprintf(stream, "%.*s", (int)r.length, (char *)r.base);
+
+	return (ISC_R_SUCCESS);
 }
