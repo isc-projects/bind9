@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.92 2001/02/09 00:23:12 gson Exp $ */
+/* $Id: dispatch.c,v 1.93 2001/02/10 02:00:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2054,29 +2054,40 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
 }
 
 void
-dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t **eventp) {
+dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 	void *buf;
-	isc_socketevent_t *sevent;
+	isc_socketevent_t *sevent, *newsevent;
 
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0);
-	REQUIRE(eventp != NULL && *eventp != NULL);
+	REQUIRE(event != NULL);
 
-	sevent = (isc_socketevent_t *)*eventp;
+	sevent = (isc_socketevent_t *)event;
 
 	INSIST(sevent->n <= disp->mgr->buffersize);
+	newsevent = (isc_socketevent_t *)
+		    isc_event_allocate(disp->mgr->mctx, NULL,
+				      ISC_SOCKEVENT_RECVDONE, udp_recv,
+				      disp, sizeof(isc_socketevent_t));
+	if (newsevent == NULL)
+		return;
+
 	buf = allocate_udp_buffer(disp);
 	if (buf == NULL) {
-		isc_event_free(eventp);
+		isc_event_free((isc_event_t **)&newsevent);
 		return;
 	}
 	memcpy(buf, sevent->region.base, sevent->n);
-	sevent->region.base = buf;
-	sevent->region.length = disp->mgr->buffersize;
-	sevent->ev_action = udp_recv;
-	sevent->ev_arg = disp;
-	sevent->ev_sender = NULL;
-	isc_task_send(disp->task, eventp);
+	newsevent->region.base = buf;
+	newsevent->region.length = disp->mgr->buffersize;
+	newsevent->n = sevent->n;
+	newsevent->result = sevent->result;
+	newsevent->address = sevent->address;
+	newsevent->timestamp = sevent->timestamp;
+	newsevent->pktinfo = sevent->pktinfo;
+	newsevent->attributes = sevent->attributes;
+	
+	isc_task_send(disp->task, (isc_event_t **)&newsevent);
 }
 
 #if 0

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.41 2001/02/09 00:23:16 gson Exp $ */
+/* $Id: dispatch.h,v 1.42 2001/02/10 02:00:11 bwelling Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -408,15 +408,15 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
  */
 
 void
-dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t **eventp);
+dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event);
 /*
- * Give a socket receive event to the dispatcher.  This is used for sockets
- * shared between dispatchers and clients.  If the dispatcher fails to send
- * the event, it frees it.
+ * Inform the dispatcher of a socket receive.  This is used for sockets
+ * shared between dispatchers and clients.  If the dispatcher fails to copy
+ * or send the event, nothing happens.
  *
  * Requires:
  * 	disp is valid, and the attribute DNS_DISPATCHATTR_NOLISTEN is set.
- * 	eventp != NULL && *eventp != NULL
+ * 	event != NULL
  */
 
 ISC_LANG_ENDDECLS

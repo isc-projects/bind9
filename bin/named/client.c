@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.145 2001/02/09 21:25:55 gson Exp $ */
+/* $Id: client.c,v 1.146 2001/02/10 02:00:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1228,7 +1228,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_next(client, DNS_R_FORMERR);
 			goto cleanup_serverlock;
 		} else {
-			dns_dispatch_importrecv(client->dispatch, &event);
+			dns_dispatch_importrecv(client->dispatch, event);
 			ns_client_next(client, ISC_R_SUCCESS);
 			goto cleanup_serverlock;
 		}
@@ -1460,8 +1460,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 	RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 
-	if (event != NULL)
-		isc_event_free(&event);
+	isc_event_free(&event);
 }
 
 static void
