@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.138 2000/10/17 20:57:22 mws Exp $ */
+/* $Id: query.c,v 1.139 2000/10/20 02:21:39 marka Exp $ */
 
 #include <config.h>
 
@@ -165,7 +165,8 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 		dns_db_closeversion(dbversion->db, &dbversion->version,
 				    ISC_FALSE);
 		dns_db_detach(&dbversion->db);
-		ISC_LIST_APPEND(client->query.freeversions, dbversion, link);
+		ISC_LIST_APPENDUNSAFE(client->query.freeversions,
+				      dbversion, link);
 	}
 	ISC_LIST_INIT(client->query.activeversions);
 
@@ -393,8 +394,8 @@ query_newdbversion(ns_client_t *client, unsigned int n) {
 		if (dbversion != NULL) {
 			dbversion->db = NULL;
 			dbversion->version = NULL;
-			ISC_LIST_APPEND(client->query.freeversions, dbversion,
-					link);
+			ISC_LIST_APPENDUNSAFE(client->query.freeversions,
+					      dbversion, link);
 		} else {
 			/*
 			 * We only return ISC_R_NOMEMORY if we couldn't

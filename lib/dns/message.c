@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.152 2000/10/12 00:40:48 bwelling Exp $ */
+/* $Id: message.c,v 1.153 2000/10/20 02:21:47 marka Exp $ */
 
 /***
  *** Imports
@@ -277,6 +277,7 @@ newrdata(dns_message_t *msg) {
 		rdata = msgblock_get(msgblock, dns_rdata_t);
 	}
 
+	dns_rdata_init(rdata);
 	return (rdata);
 }
 

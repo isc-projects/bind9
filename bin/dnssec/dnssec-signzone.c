@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.101 2000/10/17 07:22:22 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.102 2000/10/20 02:21:36 marka Exp $ */
 
 #include <config.h>
 
@@ -1177,7 +1177,7 @@ loadzonekeys(dns_db_t *db) {
 		key->key = keys[i];
 		key->isdefault = ISC_FALSE;
 		key->position = keycount++;
-		ISC_LIST_APPEND(keylist, key, link);
+		ISC_LIST_APPENDUNSAFE(keylist, key, link);
 	}
 	dns_db_detachnode(db, &node);
 	dns_db_closeversion(db, &currentversion, ISC_FALSE);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.47 2000/09/26 22:10:22 bwelling Exp $ */
+/* $Id: log.c,v 1.48 2000/10/20 02:21:55 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -704,6 +704,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	channel->type = type;
 	channel->level = level;
 	channel->flags = flags;
+	ISC_LINK_INIT(channel, link);
 
 	switch (type) {
 	case ISC_LOG_TOSYSLOG:
@@ -965,7 +966,7 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 
 	new_item->channel = channel;
 	new_item->module = module;
-	ISC_LIST_PREPEND(lcfg->channellists[category_id], new_item, link);
+	ISC_LIST_PREPENDUNSAFE(lcfg->channellists[category_id], new_item, link);
 
 	/*
 	 * Remember the highest logging level set by any channel in the

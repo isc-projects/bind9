@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.71 2000/09/26 22:09:20 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.72 2000/10/20 02:21:43 marka Exp $ */
 
 #include <config.h>
 
@@ -463,6 +463,8 @@ allocate_event(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
 
 	ev = isc_mempool_get(disp->mgr->epool);
+	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, 0,
+		       NULL, NULL, NULL, NULL, NULL);
 
 	return (ev);
 }
@@ -1984,8 +1986,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	res->arg = arg;
 	res->item_out = ISC_FALSE;
 	ISC_LIST_INIT(res->items);
-	ISC_LINK_INIT(res, link);
-	ISC_LIST_APPEND(disp->rq_handlers, res, link);
+	ISC_LIST_APPENDUNSAFE(disp->rq_handlers, res, link);
 
 	request_log(disp, res, LVL(90), "attaching task %p", res->task);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.128 2000/10/18 23:53:23 marka Exp $ */
+/* $Id: rbtdb.c,v 1.129 2000/10/20 02:21:49 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -501,7 +501,7 @@ add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 		INSIST(node->references != 0);
 		changed->node = node;
 		changed->dirty = ISC_FALSE;
-		APPEND(version->changed_list, changed, link);
+		ISC_LIST_APPENDUNSAFE(version->changed_list, changed, link);
 	} else
 		version->commit_ok = ISC_FALSE;
 

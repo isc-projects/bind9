@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.28 2000/10/19 01:38:25 bwelling Exp $ */
+/* $Id: confkeys.c,v 1.29 2000/10/20 02:21:52 marka Exp $ */
 
 #include <config.h>
 
@@ -252,6 +252,7 @@ dns_c_kdef_new(isc_mem_t *mem, const char *name, dns_c_kdef_t **keyid)
 
 	kd->algorithm = NULL;
 	kd->secret = NULL;
+	ISC_LINK_INIT(kd, next);
 
 	*keyid = kd;
 
@@ -267,8 +268,8 @@ dns_c_kdef_delete(dns_c_kdef_t **keydef)
 
 	REQUIRE(keydef != NULL);
 	REQUIRE(DNS_C_KDEF_VALID(*keydef));
-
 	kd = *keydef;
+	REQUIRE(!ISC_LINK_LINKED(kd, next));
 
 	mem = kd->mem;
 
@@ -287,8 +288,6 @@ dns_c_kdef_delete(dns_c_kdef_t **keydef)
 	kd->mem = NULL;
 	kd->algorithm = NULL;
 	kd->secret = NULL;
-
-	ISC_LINK_INIT(kd,next);
 
 	isc_mem_put(mem, kd, sizeof *kd);
 
@@ -312,6 +311,7 @@ dns_c_kdef_copy(isc_mem_t *mem,
 	}
 	newk->magic = DNS_C_KDEF_MAGIC;
 	newk->secret = newk->algorithm = newk->keyid = NULL;
+	ISC_LINK_INIT(newk, next);
 
 	newk->keyid = isc_mem_strdup(mem, src->keyid);
 	if (newk->keyid == NULL) {

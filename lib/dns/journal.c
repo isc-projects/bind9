@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.58 2000/10/18 23:53:22 marka Exp $ */
+/* $Id: journal.c,v 1.59 2000/10/20 02:21:44 marka Exp $ */
 
 #include <config.h>
 
@@ -209,6 +209,7 @@ dns_difftuple_create(isc_mem_t *mctx,
 	datap += rdata->length;
 
 	ISC_LINK_INIT(&t->rdata, link);
+	ISC_LINK_INIT(t, link);
 	t->magic = DNS_DIFFTUPLE_MAGIC;
 
 	INSIST(datap == (unsigned char *)t + size);

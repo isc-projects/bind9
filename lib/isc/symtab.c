@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.20 2000/08/01 01:29:50 tale Exp $ */
+/* $Id: symtab.c,v 1.21 2000/10/20 02:21:57 marka Exp $ */
 
 #include <config.h>
 
@@ -215,6 +215,7 @@ isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 		elt = (elt_t *)isc_mem_get(symtab->mctx, sizeof *elt);
 		if (elt == NULL)
 			return (ISC_R_NOMEMORY);
+		ISC_LINK_INIT(elt, link);
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.64 2000/10/13 05:37:17 marka Exp $ */
+/* $Id: mem.c,v 1.65 2000/10/20 02:21:56 marka Exp $ */
 
 #include <config.h>
 
@@ -1325,7 +1325,7 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
 
 	*mpctxp = mpctx;
 
-	ISC_LIST_APPEND(mctx->pools, mpctx, link);
+	ISC_LIST_APPENDUNSAFE(mctx->pools, mpctx, link);
 
 	UNLOCK(&mctx->lock);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.153 2000/10/19 22:49:30 mws Exp $ */
+/* $Id: dighost.c,v 1.154 2000/10/20 02:21:33 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -235,13 +235,14 @@ make_server(const char *servname) {
 
 	REQUIRE(servname != NULL);
 
-	debug("make_server(%s)",servname);
+	debug("make_server(%s)", servname);
 	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
 	if (srv == NULL)
 		fatal("Memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	strncpy(srv->servername, servname, MXNAME);
 	srv->servername[MXNAME-1] = 0;
+	ISC_LINK_INIT(srv, link);
 	return (srv);
 }
 
@@ -326,6 +327,7 @@ make_empty_lookup(void) {
 	looknew->zonename[0] = 0;
 	looknew->viewname[0] = 0;
 #endif /* DNS_OPT_NEWCODES_LIVE */
+	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
 	return (looknew);
@@ -601,7 +603,7 @@ setup_system(void) {
 							ptr,
 							MXNAME);
 						search->origin[MXNAME-1]=0;
-						ISC_LIST_APPEND
+						ISC_LIST_APPENDUNSAFE
 							(search_list,
 							 search,
 							 link);
@@ -625,7 +627,7 @@ setup_system(void) {
 							ptr,
 							MXNAME - 1);
 						search->origin[MXNAME-1]=0;
-						ISC_LIST_PREPEND
+						ISC_LIST_PREPENDUNSAFE
 							(search_list,
 							 search,
 							 link);
@@ -1446,6 +1448,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->servname = serv->servername;
 		query->name_count = 0;
 		query->rr_count = 0;
+		ISC_LINK_INIT(query, link);
 		ISC_LIST_INIT(query->recvlist);
 		ISC_LIST_INIT(query->lengthlist);
 		query->sock = NULL;

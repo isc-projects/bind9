@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.22 2000/10/07 00:09:23 bwelling Exp $ */
+/* $Id: nxt.c,v 1.23 2000/10/20 02:21:48 marka Exp $ */
 
 #include <config.h>
 
@@ -144,6 +144,7 @@ dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdataset_t rdataset;
 
 	dns_rdataset_init(&rdataset);
+	dns_rdata_init(&rdata);
 
 	result = dns_nxt_buildrdata(db, version, node,
 				    target, data, &rdata);

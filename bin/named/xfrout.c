@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.76 2000/09/12 18:45:36 explorer Exp $ */
+/* $Id: xfrout.c,v 1.77 2000/10/20 02:21:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1294,6 +1294,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		unsigned int size;
 		isc_region_t r;
 
+		dns_rdata_init(&rdata);
 		xfr->stream->methods->current(xfr->stream,
 					      &name, &ttl, &rdata);
 		size = name->length + 10 + rdata->length;
@@ -1348,8 +1349,8 @@ sendstream(xfrout_ctx_t *xfr) {
 		msgrdl->type = rdata->type;
 		msgrdl->rdclass = rdata->rdclass;
 		msgrdl->ttl = ttl;
-		ISC_LIST_INIT(msgrdl->rdata);
 		ISC_LINK_INIT(msgrdl, link);
+		ISC_LIST_INIT(msgrdl->rdata);
 		ISC_LIST_APPEND(msgrdl->rdata, msgrdata, link);
 
 		dns_message_gettemprdataset(msg, &msgrds);

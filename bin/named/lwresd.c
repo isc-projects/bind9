@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.19 2000/10/19 02:55:20 explorer Exp $ */
+/* $Id: lwresd.c,v 1.20 2000/10/20 02:21:38 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -480,6 +480,7 @@ add_listener(isc_mem_t *mctx, ns_lwreslistener_t **listenerp,
 		listener->view = NULL;
 		listener->manager = NULL;
 		listener->address = *address;
+		ISC_LINK_INIT(listener, link);
 	}
 
 	view = NULL;

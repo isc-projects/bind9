@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.154 2000/10/07 00:09:18 bwelling Exp $ */
+/* $Id: adb.c,v 1.155 2000/10/20 02:21:42 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1634,6 +1634,7 @@ new_adbfetch6(dns_adb_t *adb, dns_adbname_t *name, dns_a6context_t *a6ctx) {
 	if (a6ctx != NULL)
 		dns_a6_copy(a6ctx, &f->a6ctx);
 
+	ISC_LINK_INIT(f, plink);
 	f->magic = DNS_ADBFETCH6_MAGIC;
 
 	return (f);

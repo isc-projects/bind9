@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.73 2000/10/17 07:22:30 marka Exp $ */
+/* $Id: master.c,v 1.74 2000/10/20 02:21:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1284,6 +1284,7 @@ load(dns_loadctx_t **ctxp) {
 		/*
 		 * Read rdata contents.
 		 */
+		dns_rdata_init(&rdata[rdcount]);
 		result = dns_rdata_fromtext(&rdata[rdcount], ctx->zclass, type,
 				   ctx->lex, ctx->origin, ISC_FALSE, &target,
 				   callbacks);
@@ -1333,11 +1334,11 @@ load(dns_loadctx_t **ctxp) {
 			this->rdclass = ctx->zclass;
 			this->ttl = ctx->ttl;
 			ISC_LIST_INIT(this->rdata);
-			ISC_LINK_INIT(this, link);
 			if (ctx->glue != NULL)
-				ISC_LIST_PREPEND(glue_list, this, link);
+				ISC_LIST_PREPENDUNSAFE(glue_list, this, link);
 			else
-				ISC_LIST_PREPEND(current_list, this, link);
+				ISC_LIST_PREPENDUNSAFE(current_list, this,
+						       link);
 		} else if (this->ttl != ctx->ttl) {
 			(*callbacks->warn)(callbacks,
 					   "%s: %s:%lu: "

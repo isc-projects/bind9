@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.57 2000/09/28 21:31:06 bwelling Exp $ */
+/* $Id: timer.c,v 1.58 2000/10/20 02:21:58 marka Exp $ */
 
 #include <config.h>
 
@@ -330,6 +330,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
+	ISC_LINK_INIT(timer, link);
 	timer->magic = TIMER_MAGIC;
 
 	LOCK(&manager->lock);

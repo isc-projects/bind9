@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.38 2000/10/17 07:22:21 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.39 2000/10/20 02:21:35 marka Exp $ */
 
 #include <config.h>
 
@@ -117,8 +117,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 			fatal("out of memory");
 		keynode->key = key;
 		keynode->verified = ISC_FALSE;
-		ISC_LINK_INIT(keynode, link);
-		ISC_LIST_APPEND(keylist, keynode, link);
+		ISC_LIST_APPENDUNSAFE(keylist, keynode, link);
 	}
 	if (result != ISC_R_NOMORE)
 		fatal("failure traversing key list");
@@ -367,9 +366,11 @@ main(int argc, char *argv[]) {
 		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 		if (rdata == NULL)
 			fatal("out of memory");
+		dns_rdata_init(rdata);
 		data = isc_mem_get(mctx, BUFSIZE);
 		if (data == NULL)
 			fatal("out of memory");
+		dns_rdata_init(rdata);
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dns_dnssec_sign(domain, &rdataset, key,
 					 &starttime, &endtime,

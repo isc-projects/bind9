@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.172 2000/10/13 18:55:11 halley Exp $ */
+/* $Id: resolver.c,v 1.173 2000/10/20 02:21:51 marka Exp $ */
 
 #include <config.h>
 
@@ -499,6 +499,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	     event != NULL;
 	     event = next_event) {
 		next_event = ISC_LIST_NEXT(event, ev_link);
+		ISC_LIST_UNLINK(fctx->events, event, ev_link);
 		task = event->ev_sender;
 		event->ev_sender = fctx;
 		if (!HAVE_ANSWER(fctx))
@@ -511,7 +512,6 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
-	ISC_LIST_INIT(fctx->events);
 }
 
 static void
@@ -751,6 +751,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->fctx = fctx;
 	query->tsig = NULL;
 	query->tsigkey = NULL;
+	ISC_LINK_INIT(query, link);
 	query->magic = QUERY_MAGIC;
 
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
@@ -1238,8 +1239,7 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	if (sa == NULL)
 		return;
 	*sa = *address;
-	ISC_LINK_INIT(sa, link);
-	ISC_LIST_APPEND(fctx->bad, sa, link);
+	ISC_LIST_APPENDUNSAFE(fctx->bad, sa, link);
 }
 
 static void
