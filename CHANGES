@@ -1,3 +1,5 @@
+ 126.   [cleanup]       <isc/quota.h> and <isc/taskpool.h> need <isc/lang.h>.
+
  125.   [cleanup]       <isc/eventclass.h>, <isc/ipv6.h>, <isc/magic.h>,
                         <isc/mutex.h>, <isc/once.h>, <isc/region.h>, and
                         <isc/resultclass.h> do not need <isc/lang.h>.

@@ -36,9 +36,9 @@
  *** Imports.
  ***/
 
+#include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/result.h>
-
 
 /*****
  ***** Types.
@@ -100,7 +100,6 @@ isc_quota_detach(isc_quota_t **p);
  * Like isc_quota_release, and also detaches '*p' from the
  * quota.
  */
-
 
 ISC_LANG_ENDDECLS
 

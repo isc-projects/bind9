@@ -41,6 +41,7 @@
  *** Imports.
  ***/
 
+#include <isc/lang.h>
 #include <isc/task.h>
 
 ISC_LANG_BEGINDECLS
