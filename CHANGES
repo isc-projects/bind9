@@ -1,4 +1,4 @@
-1164.	[bug]		"Not Implemented" should be reported as NOTIMP,
+1166.	[bug]		"Not Implemented" should be reported as NOTIMP,
 			not NOTIMPL. [RT #2281]
 
 1165.	[bug]		We were rejecting notify-source{-v6} in zone clauses.
