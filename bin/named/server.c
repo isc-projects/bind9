@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.384 2002/09/08 18:34:03 explorer Exp $ */
+/* $Id: server.c,v 1.385 2002/09/09 20:03:18 explorer Exp $ */
 
 #include <config.h>
 
@@ -1917,7 +1917,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	{
 		isc_interval_t interval;
-		isc_interval_set(&interval, 15, 0);
+		isc_interval_set(&interval, 60, 0);
 		CHECK(isc_timer_reset(server->check_timer,
 				      isc_timertype_ticker,
 				      NULL, &interval, ISC_FALSE));
