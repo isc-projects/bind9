@@ -75,7 +75,7 @@
 			 (e) == EINTR || \
 			 (e) == 0)
 
-#if 1
+#if 0
 #define ISC_SOCKET_DEBUG
 #endif
 
