@@ -77,6 +77,12 @@ isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size);
  * The resulting string is guaranteed to be null-terminated.
  */
 
+#define ISC_NETADDR_FORMATSIZE \
+	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX")
+/*
+ * Minimum size of array to pass to isc_netaddr_format().
+ */
+
 void
 isc_netaddr_fromsockaddr(isc_netaddr_t *netaddr, const isc_sockaddr_t *source);
 

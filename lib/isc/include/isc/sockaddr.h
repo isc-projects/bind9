@@ -121,6 +121,9 @@ isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size);
 
 #define ISC_SOCKADDR_FORMATSIZE \
 	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX#YYYYY")
+/*
+ * Minimum size of array to pass to isc_sockaddr_format().
+ */
 
 ISC_LANG_ENDDECLS
 
