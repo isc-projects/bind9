@@ -74,6 +74,7 @@ CLEAN :
 	-@erase "$(INTDIR)\mutexblock.obj"
 	-@erase "$(INTDIR)\net.obj"
 	-@erase "$(INTDIR)\netaddr.obj"
+	-@erase "$(INTDIR)\netscope.obj"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\once.obj"
 	-@erase "$(INTDIR)\ondestroy.obj"
@@ -171,6 +172,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\msgcat.obj" \
 	"$(INTDIR)\mutexblock.obj" \
 	"$(INTDIR)\netaddr.obj" \
+	"$(INTDIR)\netscope.obj" \
 	"$(INTDIR)\ondestroy.obj" \
 	"$(INTDIR)\quota.obj" \
 	"$(INTDIR)\random.obj" \
@@ -277,6 +279,8 @@ CLEAN :
 	-@erase "$(INTDIR)\net.sbr"
 	-@erase "$(INTDIR)\netaddr.obj"
 	-@erase "$(INTDIR)\netaddr.sbr"
+	-@erase "$(INTDIR)\netscope.obj"
+	-@erase "$(INTDIR)\netscope.sbr"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\ntpaths.sbr"
 	-@erase "$(INTDIR)\once.obj"
