@@ -1,4 +1,4 @@
- 745.	[func]		Report the owner name of the records that fail
+ 745.	[func]		Report the owner name of records that fail
 			semantic checks while loading.
 
  744.	[bug]		When returning DNS_R_CNAME or DNS_R_DNAME as the
