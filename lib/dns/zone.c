@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.238 2000/10/20 13:29:33 marka Exp $ */
+/* $Id: zone.c,v 1.239 2000/10/23 00:31:28 marka Exp $ */
 
 #include <config.h>
 
@@ -845,7 +845,7 @@ dns_zone_load(dns_zone_t *zone) {
 	 * than the last time the zone was loaded.  If the zone has not
 	 * been loaded yet, zone->loadtime will be the epoch.
 	 */
-	if (!DNS_ZONEFLG_HASINCLUDE) {
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE)) {
 		result = isc_file_getmodtime(zone->dbname, &filetime);
 		if (result == ISC_R_SUCCESS &&
 		    !isc_time_isepoch(&zone->loadtime) &&
@@ -5488,7 +5488,7 @@ isc_boolean_t
 dns_zone_isforced(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (DNS_ZONE_FLAG(zone,DNS_ZONEFLG_FORCELOAD));
+	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCELOAD));
 }
 
 void

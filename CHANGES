@@ -1,3 +1,6 @@
+ 529.	[bug]		521 contained a bug which caused zones to always
+			reload.  [RT #410]
+	
  528.	[func]		The ISC_LIST_XXXX macros now perform sanity checks
 			on their arguements.  ISC_LIST_XXXXUNSAFE can be use
 			to skip the checks however use with caution.
