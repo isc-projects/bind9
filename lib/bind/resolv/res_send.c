@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.1 2001/03/29 06:31:59 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.2 2001/04/23 02:59:17 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -343,11 +343,12 @@ res_nsend(res_state statp,
 	 */
 	if (EXT(statp).nscount == 0) {
 		for (ns = 0; ns < statp->nscount; ns++) {
-			if (!statp->nsaddr_list[ns].sin_family)
-				continue;
-			EXT(statp).ext->nsaddrs[ns].sin = statp->nsaddr_list[ns];
 			EXT(statp).nstimes[ns] = RES_MAXTIME;
 			EXT(statp).nssocks[ns] = -1;
+			if (!statp->nsaddr_list[ns].sin_family)
+				continue;
+			EXT(statp).ext->nsaddrs[ns].sin =
+				 statp->nsaddr_list[ns];
 		}
 		EXT(statp).nscount = statp->nscount;
 	}
@@ -359,31 +360,37 @@ res_nsend(res_state statp,
 	if ((statp->options & RES_ROTATE) != 0 &&
 	    (statp->options & RES_BLAST) == 0) {
 #ifdef INET6
-		union __res_sockaddr_union ina;
-		int inalen;
-#else
-		struct sockaddr_in ina;
+		union __res_sockaddr_union inu;
 #endif
+		struct sockaddr_in ina;
 		int lastns = statp->nscount - 1;
 		int fd;
+		u_int16_t nstime;
 
-		/* XXX not IPv6 ready */
 #ifdef INET6
-		ina.sin = statp->nsaddr_list[0];
-#else
-		ina = statp->nsaddr_list[0];
+		if (EXT(statp).ext != NULL)
+			inu = EXT(statp).ext->nsaddrs[0];
 #endif
+		ina = statp->nsaddr_list[0];
 		fd = EXT(statp).nssocks[0];
+		nstime = EXT(statp).nstimes[0];
 		for (ns = 0; ns < lastns; ns++) {
+#ifdef INET6
+			if (EXT(statp).ext != NULL)
+                                EXT(statp).ext->nsaddrs[ns] = 
+					EXT(statp).ext->nsaddrs[ns + 1];
+#endif
 			statp->nsaddr_list[ns] = statp->nsaddr_list[ns + 1];
 			EXT(statp).nssocks[ns] = EXT(statp).nssocks[ns + 1];
+			EXT(statp).nstimes[ns] = EXT(statp).nstimes[ns + 1];
 		}
 #ifdef INET6
-		statp->nsaddr_list[lastns] = ina.sin;
-#else
-		statp->nsaddr_list[lastns] = ina;
+		if (EXT(statp).ext != NULL)
+			EXT(statp).ext->nsaddrs[lastns] = inu;
 #endif
+		statp->nsaddr_list[lastns] = ina;
 		EXT(statp).nssocks[lastns] = fd;
+		EXT(statp).nstimes[lastns] = nstime;
 	}
 
 	/*
