@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.103 2003/02/04 05:44:31 marka Exp $ */
+/* $Id: zoneconf.c,v 1.104 2003/02/04 06:10:08 marka Exp $ */
 
 #include <config.h>
 
@@ -32,7 +32,6 @@
 #include <dns/name.h>
 #include <dns/rdatatype.h>
 #include <dns/ssu.h>
-#include <dns/view.h>
 #include <dns/zone.h>
 
 #include <named/config.h>
@@ -318,8 +317,6 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	int i;
 	isc_int32_t journal_size;
 	isc_boolean_t multi;
-	isc_boolean_t alt;
-	dns_view_t *view;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -630,32 +627,6 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		result = ns_config_get(maps, "transfer-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		RETERR(dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj)));
-
-		obj = NULL;
-		result = ns_config_get(maps, "alt-transfer-source-v4", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		RETERR(dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj)));
-
-		obj = NULL;
-		result = ns_config_get(maps, "alt-transfer-source-v6", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		RETERR(dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj)));
-
-		obj = NULL;
-		(void)ns_config_get(maps, "use-alt-transfer-source", &obj);
-		if (obj == NULL) {
-			/*
-			 * Default off when views are in use otherwise
-			 * on for BIND 8 compatability.
-			 */
-			view = dns_zone_getview(zone);
-			if (view != NULL && strcmp(view->name, "_default") == 0)
-				alt = ISC_TRUE;
-			else
-				alt = ISC_FALSE;
-		} else
-			alt = cfg_obj_asboolean(obj);
-		dns_zone_setoption(zone, DNS_ZONEOPT_USEALTXFRSRC, alt);
 
 		break;
 

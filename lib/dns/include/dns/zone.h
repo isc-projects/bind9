@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.119 2003/02/04 05:44:32 marka Exp $ */
+/* $Id: zone.h,v 1.120 2003/02/04 06:10:09 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -49,7 +49,6 @@ typedef enum {
 #define DNS_ZONEOPT_CHECKNS	  0x00000080U	/* check if NS's are addresses */
 #define DNS_ZONEOPT_FATALNS	  0x00000100U	/* DNS_ZONEOPT_CHECKNS is fatal */
 #define DNS_ZONEOPT_MULTIMASTER	  0x00000200U	/* this zone has multiple masters */
-#define DNS_ZONEOPT_USEALTXFRSRC  0x00000400U	/* use alternate transfer sources */
 
 #ifndef NOMINUM_PUBLIC
 /*
@@ -513,8 +512,6 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val);
 
 isc_result_t
 dns_zone_setxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
-isc_result_t
-dns_zone_setaltxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 /*
  * 	Set the source address to be used in IPv4 zone transfers.
  *
@@ -528,8 +525,6 @@ dns_zone_setaltxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 
 isc_sockaddr_t *
 dns_zone_getxfrsource4(dns_zone_t *zone);
-isc_sockaddr_t *
-dns_zone_getaltxfrsource4(dns_zone_t *zone);
 /*
  *	Returns the source address set by a previous dns_zone_setxfrsource4
  *	call, or the default of inaddr_any, port 0.
@@ -540,8 +535,6 @@ dns_zone_getaltxfrsource4(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_setxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
-isc_result_t
-dns_zone_setaltxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 /*
  * 	Set the source address to be used in IPv6 zone transfers.
  *
@@ -555,8 +548,6 @@ dns_zone_setaltxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 
 isc_sockaddr_t *
 dns_zone_getxfrsource6(dns_zone_t *zone);
-isc_sockaddr_t *
-dns_zone_getaltxfrsource6(dns_zone_t *zone);
 /*
  *	Returns the source address set by a previous dns_zone_setxfrsource6
  *	call, or the default of in6addr_any, port 0.
