@@ -350,6 +350,11 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
+	if (client->shuttingdown) {
+		maybe_free(client);
+		return;
+	}
+
 	/*
 	 * If all of its sendbufs buffers were busy, the client might be
 	 * waiting for one to become available.
