@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.21 2000/10/24 04:27:25 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.22 2000/10/30 20:15:20 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -29,26 +29,19 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
-#include <isc/app.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/once.h>
-#include <isc/print.h>
-#include <isc/string.h>
+#include <isc/socket.h>
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
-#include <dns/cache.h>
 #include <dns/confctx.h>
 #include <dns/conflwres.h>
-#include <dns/db.h>
-#include <dns/dispatch.h>
 #include <dns/log.h>
-#include <dns/resolver.h>
 #include <dns/result.h>
-#include <dns/rootns.h>
 #include <dns/view.h>
 
 #include <named/globals.h>
@@ -57,7 +50,6 @@
 #include <named/lwdclient.h>
 #include <named/lwsearch.h>
 #include <named/server.h>
-#include <named/os.h>
 
 #define LWRESD_MAGIC		ISC_MAGIC('L', 'W', 'R', 'D')
 #define VALID_LWRESD(l)		ISC_MAGIC_VALID(l, LWRESD_MAGIC)
