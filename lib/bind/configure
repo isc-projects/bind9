@@ -1,7 +1,7 @@
 #! /bin/sh
 
 
-# From configure.in Revision: 1.4 
+# From configure.in Revision: 1.5 
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13 
@@ -3733,13 +3733,13 @@ esac
 PORT_INCLUDE=
 SOLARIS_BITTYPES=
 case "$host" in
-	*-bsdi2*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos2";;
-	*-bsdi*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos";;
+	*-bsdi2*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos2/include";;
+	*-bsdi*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos/include";;
 	*-solaris2.012345*)
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1";
-			PORT_INCLUDE="-I\${top_builddir}/port/solaris";;
-	*-solaris2*)	PORT_INCLUDE="-I\${top_builddir}/port/solaris";;
-	*-freebsd*)	PORT_INCLUDE="-I\${top_builddir}/port/freebsd";;
+			PORT_INCLUDE="-I\${top_builddir}/port/solaris/include";;
+	*-solaris2*)	PORT_INCLUDE="-I\${top_builddir}/port/solaris/include";;
+	*-freebsd*)	PORT_INCLUDE="-I\${top_builddir}/port/freebsd/include";;
 esac
 
 
