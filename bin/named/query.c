@@ -892,7 +892,9 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		 * RFC 2535 section 3.5 says that when A or AAAA records are
 		 * retrieved as additional data, any KEY RRs for the owner name
 		 * should be added to the additional data section.  Note: we
-		 * do NOT include A6 in the list of types with such treatment.
+		 * do NOT include A6 in the list of types with such treatment
+		 * in additional data because we'd have to do it for each A6
+		 * in the A6 chain.
 		 *
 		 * XXXRTH  We should lower the priority here.  Alternatively,
 		 * we could raise the priority of glue records.
@@ -1040,8 +1042,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	/*
 	 * RFC 2535 section 3.5 says that when NS, SOA, A, or AAAA records
 	 * are retrieved, any KEY RRs for the owner name should be added
-	 * to the additional data section.  Note: we do NOT include A6 in the
-	 * list of types with such treatment.
+	 * to the additional data section.  We treat A6 records the same way.
 	 *
 	 * We don't care if query_additional() fails.
 	 */
@@ -1061,8 +1062,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 static inline void
 query_addrrset(ns_client_t *client, dns_name_t **namep,
 	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
-	       isc_buffer_t *dbuf, dns_section_t section,
-	       isc_boolean_t check_ad)
+	       isc_buffer_t *dbuf, dns_section_t section)
 {
 	dns_name_t *name, *mname;
 	dns_rdataset_t *rdataset, *mrdataset, *sigrdataset;
@@ -1110,13 +1110,6 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 		 */
 		ISC_LIST_APPEND(mname->list, sigrdataset, link);
 		*sigrdatasetp = NULL;
-	} else if (check_ad && (section == DNS_SECTION_ANSWER ||
-				section == DNS_SECTION_AUTHORITY)) {
-		/*
-		 * We just added nonauthenticated data to the answer
-		 * section.
-		 */
-		client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 	}
 }
 
@@ -1166,7 +1159,7 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 		eresult = DNS_R_SERVFAIL;
 	} else {
 		query_addrrset(client, &name, &rdataset, &sigrdataset, NULL,
-			       DNS_SECTION_AUTHORITY, ISC_TRUE);
+			       DNS_SECTION_AUTHORITY);
 	}
 
  cleanup:
@@ -1226,7 +1219,7 @@ query_addns(ns_client_t *client, dns_db_t *db) {
 		eresult = DNS_R_SERVFAIL;
 	} else {
 		query_addrrset(client, &name, &rdataset, &sigrdataset, NULL,
-			       DNS_SECTION_AUTHORITY, ISC_TRUE);
+			       DNS_SECTION_AUTHORITY);
 	}
 
  cleanup:
@@ -1625,8 +1618,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				client->query.gluedb = db;
 				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset, dbuf,
-					       DNS_SECTION_AUTHORITY,
-					       ISC_TRUE);
+					       DNS_SECTION_AUTHORITY);
 				client->query.gluedb = NULL;
 			} else {
 				/*
@@ -1699,8 +1691,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				client->query.gluedb = zdb;
 				query_addrrset(client, &fname,
 					       &rdataset, &sigrdataset,
-					       dbuf, DNS_SECTION_AUTHORITY,
-					       ISC_TRUE);
+					       dbuf, DNS_SECTION_AUTHORITY);
 				client->query.gluedb = NULL;
 			}
 		}
@@ -1741,7 +1732,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		if (dns_rdataset_isassociated(rdataset))
 			query_addrrset(client, &tname, &rdataset, &sigrdataset,
-				       NULL, DNS_SECTION_AUTHORITY, ISC_TRUE);
+				       NULL, DNS_SECTION_AUTHORITY);
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
@@ -1785,7 +1776,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		if (dns_rdataset_isassociated(rdataset))
 			query_addrrset(client, &tname, &rdataset, &sigrdataset,
-				       NULL, DNS_SECTION_AUTHORITY, ISC_TRUE);
+				       NULL, DNS_SECTION_AUTHORITY);
 		/*
 		 * Set message rcode.
 		 */
@@ -1825,7 +1816,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * Add the CNAME to the answer section.
 		 */
 		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
-			       DNS_SECTION_ANSWER, ISC_TRUE);
+			       DNS_SECTION_ANSWER);
 		/*
 		 * We set the PARTIALANSWER attribute so that if anything goes
 		 * wrong later on, we'll return what we've got so far.
@@ -1870,7 +1861,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * Add the DNAME to the answer section.
 		 */
 		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
-			       DNS_SECTION_ANSWER, ISC_TRUE);
+			       DNS_SECTION_ANSWER);
 		/*
 		 * We set the PARTIALANSWER attribute so that if anything goes
 		 * wrong later on, we'll return what we've got so far.
@@ -1952,13 +1943,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			dns_rdatasetiter_current(rdsiter, rdataset);
 			if ((qtype == dns_rdatatype_any ||
 			     rdataset->type == qtype) && rdataset->type != 0) {
-				/*
-				 * XXXRTH  AD bit checking.
-				 */
 				tname = fname;
 				query_addrrset(client, &tname, &rdataset, NULL,
-					       dbuf, DNS_SECTION_ANSWER,
-					       ISC_FALSE);
+					       dbuf, DNS_SECTION_ANSWER);
 				n++;
 				if (tname == NULL) {
 					clear_fname = ISC_TRUE;
@@ -2034,7 +2021,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		tname = fname;
 		query_addrrset(client, &tname, &rdataset, &sigrdataset, dbuf,
-			       DNS_SECTION_ANSWER, ISC_TRUE);
+			       DNS_SECTION_ANSWER);
 		if (tname == NULL)
 			clear_fname = ISC_TRUE;
 		
@@ -2263,13 +2250,14 @@ ns_query_start(ns_client_t *client) {
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AA;
 
-#ifdef notyet
 	/*
-	 * Assume authenticated response until it is known to be
-	 * otherwise.
+	 * Set AD.  We need only clear it if we add "pending" data to
+	 * a response.
+	 *
+	 * Note: as currently written, the server does not return "pending"
+	 * data even if a client says it's OK to do so.
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AD;
-#endif
 
 	query_find(client, NULL);
 }
