@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.5 2001/07/26 20:06:22 gson Exp $ */
+/* $Id: ntpaths.h,v 1.6 2001/07/26 20:40:01 gson Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -50,6 +50,8 @@ enum NtPaths {
  */
 #define NS_LOCALSTATEDIR	"dns/bin"
 #define NS_SYSCONFDIR		"dns/etc"
+
+#define RNDC_AUTOCONFFILE NS_LOCALSTATEDIR "/run/named.key"
 
 ISC_LANG_BEGINDECLS
 
