@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.184 2001/10/25 04:57:42 marka Exp $ */
+/* $Id: adb.c,v 1.185 2001/10/25 17:47:16 gson Exp $ */
 
 /*
  * Implementation notes
@@ -2037,7 +2037,7 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 	} else
 		expire = ISC_FALSE;
 
-	if (entry->expires == 0 || expire ? ISC_FALSE : entry->expires > now)
+	if (entry->expires == 0 || (! expire && entry->expires > now))
 		return;
 	/*
 	 * The entry is not in use.  Delete it.
