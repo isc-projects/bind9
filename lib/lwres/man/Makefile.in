@@ -54,4 +54,4 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man3
 
 install:: installdirs
-	for m in ${MANPAGES}; do ${INSTALL_PROGRAM} $$m ${DESTDIR}${mandir}/man3; done
+	for m in ${MANPAGES}; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man3; done

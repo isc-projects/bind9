@@ -1,4 +1,6 @@
 
+ 725.	[bug]		Installing man pages could fail.
+
  724.	[func]		New libisc functions isc_netaddr_any(),
 			isc_netaddr_any6().
 
