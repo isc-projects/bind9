@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.33 1999/04/09 15:21:14 tale Exp $ */
+/* $Id: rbt.c,v 1.34 1999/04/09 15:27:58 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1776,6 +1776,13 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	current = chain->end;
 
+	if (DOWN(current) != NULL && origin != NULL) {
+		/* XXX came up through this down pointer? */
+		/* XXX DCL probably needs work on the concept */
+		result = chain_name(chain, origin, ISC_FALSE);
+		new_origin = ISC_TRUE;
+	}
+
 	if (LEFT(current) != NULL) {
 		ADD_ANCESTOR(chain, current);
 		current = LEFT(current);
@@ -1843,16 +1850,6 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		predecessor = chain->levels[--chain->level_count];
 		chain->ancestor_count--;
 
-		/* XXX DCL probably needs work on the concept */
-		/* XXX DCL in any event, this is wrong.  the names under
-		 * an origin are supposed to include the origin itself.
-		 * somehow i have to defer the new_origin until after
-		 * this node is returned.
-		 */
-		if (origin && chain->level_count > 0) {
-			result = chain_name(chain, origin, ISC_FALSE);
-			new_origin = ISC_TRUE;
-		}
 	}
 
 	if (result == DNS_R_SUCCESS) {
