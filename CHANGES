@@ -1,5 +1,5 @@
 1024.	[port]		HP and Sun decided to use the same macros and
-			structures for different things.
+			structures for different things.  [RT #1831]
 
 1023.	[func]		Accept hints without TTLs.
 
