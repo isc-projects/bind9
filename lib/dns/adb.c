@@ -82,6 +82,7 @@
  * if the zone has extremely low TTLs.
  */
 #define ADB_CACHE_MINIMUM	10	/* seconds */
+#define ADB_CACHE_MAXIMUM	86400	/* seconds (86400 = 24 hours) */
 
 /*
  * Clean CLEAN_BUCKETS buckets every CLEAN_SECONDS.
@@ -424,6 +425,16 @@ DP(int level, const char *format, ...) {
 	va_end(args);
 }
 
+static inline dns_ttl_t
+ttlclamp(dns_ttl_t ttl) {
+	if (ttl < ADB_CACHE_MINIMUM)
+		ttl = ADB_CACHE_MINIMUM;
+	if (ttl > ADB_CACHE_MAXIMUM)
+		ttl = ADB_CACHE_MAXIMUM;
+
+	return (ttl);
+}
+
 /*
  * Requires the adbname bucket be locked and that no entry buckets be locked.
  *
@@ -521,7 +532,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
-	rdataset->ttl = ISC_MAX(rdataset->ttl, ADB_CACHE_MINIMUM);
+	rdataset->ttl = ttlclamp(rdataset->ttl);
 
 	if (rdtype == dns_rdatatype_a) {
 		DP(NCACHE_LEVEL, "expire_v4 set to MIN(%u,%u) import_rdataset",
@@ -3104,7 +3115,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 		 * We found a negative cache entry.  Pull the TTL from it
 		 * so we won't ask again for a while.
 		 */
-		rdataset.ttl = ISC_MAX(rdataset.ttl, ADB_CACHE_MINIMUM);
+		rdataset.ttl = ttlclamp(rdataset.ttl);
 		if (rdtype == dns_rdatatype_a) {
 			adbname->expire_v4 = rdataset.ttl + now;
 			DP(NCACHE_LEVEL,
@@ -3125,7 +3136,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 		 */
 		adbname->flags &= ~(DNS_ADBFIND_GLUEOK | DNS_ADBFIND_HINTOK);
 
-		rdataset.ttl = ISC_MAX(rdataset.ttl, ADB_CACHE_MINIMUM);
+		rdataset.ttl = ttlclamp(rdataset.ttl);
 		clean_target(adb, &adbname->target);
 		adbname->expire_target = INT_MAX;
 		result = set_target(adb, &adbname->name, fname, &rdataset,
@@ -3214,7 +3225,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 		break;
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
-		rdataset.ttl = ISC_MAX(rdataset.ttl, ADB_CACHE_MINIMUM);
+		rdataset.ttl = ttlclamp(rdataset.ttl);
 		clean_target(adb, &adbname->target);
 		adbname->expire_target = INT_MAX;
 		result = set_target(adb, &adbname->name, fname, &rdataset,
@@ -3321,8 +3332,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 * If we got a negative cache response, remember it.
 	 */
 	if (NCACHE_RESULT(dev->result)) {
-		dev->rdataset->ttl = ISC_MAX(dev->rdataset->ttl,
-					     ADB_CACHE_MINIMUM);
+		dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 		if (address_type == DNS_ADBFIND_INET) {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for A (ttl %u)",
@@ -3343,8 +3353,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 * Handle CNAME/DNAME.
 	 */
 	if (dev->result == DNS_R_CNAME || dev->result == DNS_R_DNAME) {
-		dev->rdataset->ttl = ISC_MAX(dev->rdataset->ttl,
-					     ADB_CACHE_MINIMUM);
+		dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 		clean_target(adb, &name->target);
 		name->expire_target = INT_MAX;
 		result = set_target(adb, &name->name,
@@ -3483,8 +3492,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 		 * If we got a negative cache response, remember it.
 		 */
 		if (NCACHE_RESULT(dev->result)) {
-			dev->rdataset->ttl = ISC_MAX(dev->rdataset->ttl,
-						     ADB_CACHE_MINIMUM);
+			dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for A6 (ttl %u)",
 			   name, dev->rdataset->ttl);
@@ -3496,8 +3504,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 		 * Handle CNAME/DNAME.
 		 */
 		if (dev->result == DNS_R_CNAME || dev->result == DNS_R_DNAME) {
-			dev->rdataset->ttl = ISC_MAX(dev->rdataset->ttl,
-						     ADB_CACHE_MINIMUM);
+			dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 			clean_target(adb, &name->target);
 			name->expire_target = INT_MAX;
 			result = set_target(adb, &name->name,
