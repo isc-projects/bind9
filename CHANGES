@@ -25,8 +25,7 @@
 1070.	[bug]		Copy DNSSEC OK (DO) to response as specified by
 			draft-ietf-dnsext-dnssec-okbit-03.txt.
 
-1069.	[func]		Kill oldest recursive query when recursive query
-			quota is exhausted.
+1069.	[placeholder]
 
 1068.	[bug]		errno could be overwritten by catgets(). [RT #1921]
 
