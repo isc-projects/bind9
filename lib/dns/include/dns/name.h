@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.88 2001/01/22 03:30:27 bwelling Exp $ */
+/* $Id: name.h,v 1.89 2001/01/22 18:21:45 gson Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -830,8 +830,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *
  *	'name' is a valid name.
  *
- *	'source' is a valid buffer with a current pointer before or at the
- *	same place as its used pointer.
+ *	'source' is a valid buffer.
  *
  *	'target' is a valid buffer or 'target' is NULL and 'name' has
  *	a dedicated buffer.
