@@ -1,9 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-
-BIND 8 to BIND 9 Migration Notes
-
+                   BIND 8 to BIND 9 Migration Notes
 
 BIND 9 is designed to be mostly upwards compatible with BIND 8, but
 there is still a number of caveats you should be aware of when
@@ -39,6 +37,12 @@ file are always logged to the default destination (syslog) when the
 server first starts up, regardless of the contents of the "logging"
 statement.  In BIND 8, the new logging configuration took effect
 immediately after the "logging" statement was read.
+
+
+1.3. Case sensitivity
+
+In BIND 9, ACL names are case sensitive.  In BIND 8 they were case
+insensitive.
 
 
 2. Zone File Compatibility
@@ -95,4 +99,4 @@ completely.  We have contacted the manufacturer of the name server in
 case and are trying to resolve the issue with them.
 
 
-$Id: migration,v 1.1.2.3 2000/08/15 22:35:05 gson Exp $
+$Id: migration,v 1.1.2.4 2000/08/22 00:58:47 gson Exp $
