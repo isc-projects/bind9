@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.27 2000/05/24 23:54:39 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.28 2000/06/01 02:32:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -329,7 +329,6 @@ main(int argc, char **argv) {
 				break;
 		}
 		if (conflict == ISC_TRUE) {
-			dst_key_free(&key);
 			if (verbose > 0) {
 				isc_buffer_clear(&buf);
 				ret = dst_key_buildfilename(key, 0, &buf);
@@ -339,6 +338,7 @@ main(int argc, char **argv) {
 					"generating a new key\n",
 					program, filename);
 			}
+			dst_key_free(&key);
 		}
 
 	} while (conflict == ISC_TRUE);
