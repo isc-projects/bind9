@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.52 2001/06/06 21:02:43 bwelling Exp $ */
+/* $Id: mem.h,v 1.53 2001/06/27 23:29:29 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -82,10 +82,14 @@ typedef void (*isc_memfree_t)(void *, void *);
  * _DEBUGRECORD
  *	remember each allocation, and match them up on free.  Crash if
  *	a free doesn't match an allocation
+ * _DEBUGUSAGE
+ *	if a hi_water mark is set print the maximium inuse memory every
+ *	time it is raised once it exceeds the hi_water mark
  */
 extern unsigned int isc_mem_debugging;
 #define ISC_MEM_DEBUGTRACE		0x00000001U
 #define ISC_MEM_DEBUGRECORD		0x00000002U
+#define ISC_MEM_DEBUGUSAGE		0x00000004U
 
 #if ISC_MEM_TRACKLINES
 #define _ISC_MEM_FILELINE	, __FILE__, __LINE__

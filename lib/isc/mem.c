@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.93 2001/06/11 20:27:16 gson Exp $ */
+/* $Id: mem.c,v 1.94 2001/06/27 23:29:27 marka Exp $ */
 
 #include <config.h>
 
@@ -118,6 +118,7 @@ struct isc_mem {
 	size_t			quota;
 	size_t			total;
 	size_t			inuse;
+	size_t			maxinuse;
 	size_t			hi_water;
 	size_t			lo_water;
 	isc_boolean_t		hi_called;
@@ -700,6 +701,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->quota = 0;
 	ctx->total = 0;
 	ctx->inuse = 0;
+	ctx->maxinuse = 0;
 	ctx->hi_water = 0;
 	ctx->lo_water = 0;
 	ctx->hi_called = ISC_FALSE;
@@ -984,6 +986,12 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	    ctx->inuse > ctx->hi_water) {
 		ctx->hi_called = ISC_TRUE;
 		call_water = ISC_TRUE;
+	}
+	if (ctx->inuse > ctx->maxinuse) {
+		ctx->maxinuse = ctx->inuse;
+		if (ctx->hi_water != 0 && ctx->inuse > ctx->hi_water &&
+		    (isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0)
+			fprintf(stderr, "maxinuse = %d\n", ctx->inuse);
 	}
 	UNLOCK(&ctx->lock);
 
