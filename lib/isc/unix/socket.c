@@ -385,14 +385,12 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifdef ISC_PLATFORM_HAVEIPV6
 		if (cmsgp->cmsg_level == IPPROTO_IPV6
 		    && cmsgp->cmsg_type == IPV6_PKTINFO) {
-			isc_sockaddr_t sa;
 
 			pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
 			memcpy(&dev->pktinfo, pktinfop,
 			       sizeof(struct in6_pktinfo));
 			dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
-			isc_sockaddr_fromin6(&sa, &dev->pktinfo.ipi6_addr, 53);
-			socket_log(sock, &sa, TRACE,
+			socket_log(sock, NULL, TRACE,
 				   "interface received on ifindex %u",
 				   dev->pktinfo.ipi6_ifindex);
 			goto next;
@@ -512,10 +510,8 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
 		struct cmsghdr *cmsgp;
 		struct in6_pktinfo *pktinfop;
-		isc_sockaddr_t sa;
 
-		isc_sockaddr_fromin6(&sa, &dev->pktinfo.ipi6_addr, 53);
-		socket_log(sock, &sa, TRACE,
+		socket_log(sock, NULL, TRACE,
 			   "sendto pktinfo data, ifindex %u",
 			   dev->pktinfo.ipi6_ifindex);
 
@@ -2350,16 +2346,17 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	set_dev_address(address, sock, dev);
 	if (pktinfo != NULL) {
-		isc_sockaddr_t sa;
-
-		isc_sockaddr_fromin6(&sa, &pktinfo->ipi6_addr, 53);
-		socket_log(sock, &sa, TRACE,
+		socket_log(sock, NULL, TRACE,
 			   "pktinfo structure provided, ifindex %u",
 			   pktinfo->ipi6_ifindex);
 
 		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
 		dev->pktinfo = *pktinfo;
-		dev->pktinfo.ipi6_ifindex = 0; /* XXXMLG */
+		/*
+		 * Set the pktinfo index to 0 here, to let the kernel decide
+		 * what interface it should send on.
+		 */
+		dev->pktinfo.ipi6_ifindex = 0;
 	}
 
 	/*
