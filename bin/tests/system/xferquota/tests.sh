@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.21 2004/03/05 05:04:04 marka Exp $
+# $Id: tests.sh,v 1.22 2004/03/10 01:06:06 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -29,7 +29,7 @@ ticks=0
 while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
 	        echo "I:Changing test zone..."
-		cp ns1/changing2.db ns1/changing.db
+		cp -f ns1/changing2.db ns1/changing.db
 		kill -HUP `cat ns1/named.pid`
 	fi
 	sleep 1

@@ -7,7 +7,8 @@
 
 1585.	[placeholder]
 
-1584.	[placeholder]	rt10461
+1584.	[bug]		"make test" failed with a readonly source tree.
+			[RT #10461]
 
 1583.	[bug]		Records add via UPDATE failed to get the correct trust
 			level. [RT #10452]

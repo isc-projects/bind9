@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.27 2004/03/05 05:03:43 marka Exp $
+# $Id: tests.sh,v 1.28 2004/03/10 01:06:06 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -34,9 +34,9 @@ grep ";" dig.out.ns3.1	# XXXDCL why is this here?
 
 echo "I:copying in new configurations for ns2 and ns3"
 rm -f ns2/named.conf ns3/named.conf ns2/example.db
-cp ns2/named2.conf ns2/named.conf
-cp ns3/named2.conf ns3/named.conf
-cp ns2/example2.db ns2/example.db
+cp -f ns2/named2.conf ns2/named.conf
+cp -f ns3/named2.conf ns3/named.conf
+cp -f ns2/example2.db ns2/example.db
 
 echo "I:reloading ns2 and ns3 with rndc"
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.7 2004/03/05 05:01:55 marka Exp $
+# $Id: setup.sh,v 1.8 2004/03/10 01:06:05 marka Exp $
 
 #
 # jnl and database files MUST be removed before we start
@@ -23,7 +23,7 @@
 
 rm -f ns1/*.jnl ns1/example.db ns2/*.jnl ns2/example.bk
 
-cp ns1/example1.db ns1/example.db
+cp -f ns1/example1.db ns1/example.db
 
 # update_test.pl has its own zone file because it
 # requires a specific NS record set.
