@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.32 2000/08/10 01:02:00 bwelling Exp $ */
+/* $Id: masterdump.c,v 1.33 2000/08/16 22:33:32 gson Exp $ */
 
 #include <config.h>
+
+#include <stdlib.h>
 
 #include <isc/file.h>
 #include <isc/mem.h>
@@ -640,111 +642,116 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 }
 
 /*
- * Dump all the rdatasets of a domain name to a master file.
+ * Define the order in which rdatasets should be printed in zone
+ * files.  We will print SOA and NS records before others, SIGs
+ * immediately following the things they sign, and order everything
+ * else by RR number.  This is all just for aesthetics and
+ * compatibility with buggy software that expects the SOA to be first;
+ * the DNS specifications allow any order.
  */
+
+static int
+dump_order(const dns_rdataset_t *rds) {
+	int t;
+	int sig;
+	if (rds->type == dns_rdatatype_sig) {
+		t = rds->covers;
+		sig = 1;
+	} else {
+		t = rds->type;
+		sig = 0;
+	}
+	switch (t) {
+	case dns_rdatatype_soa:
+		t = 0;
+		break;
+	case dns_rdatatype_ns:
+		t = 1;
+		break;
+	default:
+		t += 2;
+		break;
+	}
+	return (t << 1) + sig;
+}
+
+static int
+dump_order_compare(const void *a, const void *b) {
+	return (dump_order(*((const dns_rdataset_t **) a)) -
+		dump_order(*((const dns_rdataset_t **) b)));
+}
+
+/*
+ * Dump all the rdatasets of a domain name to a master file.  We make
+ * a "best effort" attempt to sort the RRsets in a nice order, but if
+ * there are more than MAXSORT RRsets, we punt and only sort them in
+ * groups of MAXSORT.  This is not expected to ever happen in practice
+ * since much less than 64 RR types have been registered with the
+ * IANA, so far, and the output will be correct (though not
+ * aesthetically pleasing) even if it does happen.
+ */
+
+#define MAXSORT 64
+
 static isc_result_t
 dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 	       dns_totext_ctx_t *ctx,
 	       isc_buffer_t *buffer, FILE *f)
 {
-	isc_result_t result;
-	dns_rdataset_t rdataset;
-	dns_rdataset_t soaset, sigsoaset, nsset, signsset;
+	isc_result_t itresult, dumpresult;
+	dns_rdataset_t rdatasets[MAXSORT];
+	dns_rdataset_t *sorted[MAXSORT];
+	int i, n;
 
-	dns_rdataset_init(&rdataset);
-	dns_rdataset_init(&soaset);
-	dns_rdataset_init(&sigsoaset);
-	dns_rdataset_init(&nsset);
-	dns_rdataset_init(&signsset);
+	itresult = dns_rdatasetiter_first(rdsiter);
+	dumpresult = ISC_R_SUCCESS;
 
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
-		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type == dns_rdatatype_soa)
-			dns_rdataset_clone(&rdataset, &soaset);
-		else if (rdataset.type == dns_rdatatype_ns)
-			dns_rdataset_clone(&rdataset, &nsset);
-		else if (rdataset.type == dns_rdatatype_sig) {
-			if (rdataset.covers == dns_rdatatype_soa)
-				dns_rdataset_clone(&rdataset, &sigsoaset);
-			else if (rdataset.covers == dns_rdatatype_ns)
-				dns_rdataset_clone(&rdataset, &signsset);
-		}
-		dns_rdataset_disassociate(&rdataset);
-		result = dns_rdatasetiter_next(rdsiter);
+ again:
+	for (i = 0;
+	     itresult == ISC_R_SUCCESS && i < MAXSORT;
+	     itresult = dns_rdatasetiter_next(rdsiter), i++) {
+		dns_rdataset_init(&rdatasets[i]);
+		dns_rdatasetiter_current(rdsiter, &rdatasets[i]);
+		sorted[i] = &rdatasets[i];
 	}
-	if (result != ISC_R_NOMORE)
-		return (result);
+	n = i;
+	INSIST(n <= MAXSORT);
 
-	if (dns_rdataset_isassociated(&soaset)) {
-		result = dump_rdataset(mctx, name, &soaset, ctx, buffer, f);
-		dns_rdataset_disassociate(&soaset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
-			name = NULL;
-	}
+	qsort(sorted, n, sizeof(sorted[0]), dump_order_compare);
 
-	if (dns_rdataset_isassociated(&sigsoaset)) {
-		result = dump_rdataset(mctx, name, &sigsoaset, ctx, buffer, f);
-		dns_rdataset_disassociate(&sigsoaset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
-			name = NULL;
-	}
-
-	if (dns_rdataset_isassociated(&nsset)) {
-		result = dump_rdataset(mctx, name, &nsset, ctx, buffer, f);
-		dns_rdataset_disassociate(&nsset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
-			name = NULL;
-	}
-
-	if (dns_rdataset_isassociated(&signsset)) {
-		result = dump_rdataset(mctx, name, &signsset, ctx, buffer, f);
-		dns_rdataset_disassociate(&signsset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
-			name = NULL;
-	}
-
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
-		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type != 0 &&
-		    rdataset.type != dns_rdatatype_soa &&
-		    rdataset.type != dns_rdatatype_ns &&
-		    !(rdataset.type == dns_rdatatype_sig &&
-		      (rdataset.covers == dns_rdatatype_soa ||
-		       rdataset.covers == dns_rdatatype_ns)))
-		{
-			/*
-			 * XXX  We only dump the rdataset if it isn't a
-			 * negative caching entry.  Maybe our dumping routines
-			 * will learn how to usefully dump such an entry later
-			 * on.
-			 *
-			 * Also, the SOA, NS, SIG SOA, and SIG NS rdatasets
-			 * have already been printed, so skip them.
-			 */
-			result = dump_rdataset(mctx, name, &rdataset, ctx,
+	for (i = 0; i < n; i++) {
+		/*
+		 * XXX  We only dump the rdataset if it isn't a
+		 * negative caching entry.  Maybe our dumping routines
+		 * will learn how to usefully dump such an entry later
+		 * on.
+		 */
+		if (sorted[i]->type != 0) {
+			isc_result_t result =
+				dump_rdataset(mctx, name, sorted[i], ctx,
 					       buffer, f);
-		} else
-			result = ISC_R_SUCCESS;
-		dns_rdataset_disassociate(&rdataset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		result = dns_rdatasetiter_next(rdsiter);
+			if (result != ISC_R_SUCCESS)
+				dumpresult = result;
+		}
+		dns_rdataset_disassociate(sorted[i]);
 		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
 			name = NULL;
 	}
-	if (result != ISC_R_NOMORE)
-		return (result);
-	return (ISC_R_SUCCESS);
+
+	if (dumpresult != ISC_R_SUCCESS)
+		return (dumpresult);
+
+	/*
+	 * If we got more data than could be sorted at once,
+	 * go handle the rest.
+	 */
+	if (itresult == ISC_R_SUCCESS)
+		goto again;
+
+	if (itresult == ISC_R_NOMORE)
+		itresult = ISC_R_SUCCESS;
+
+	return (itresult);
 }
 
 
