@@ -1883,7 +1883,7 @@
 ./lib/isc/include/.cvsignore			X	1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/include/isc/.cvsignore		X	1999,2000,2001
-./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004
+./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004
