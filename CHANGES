@@ -1,3 +1,5 @@
+ 552.	[bug]		We were not correctly detecting the end of all c-style
+			comments.  [RT #455]
 
  551.	[func]		Implemented the 'sortlist' option.
 

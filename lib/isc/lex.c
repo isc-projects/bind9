@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.42 2000/11/10 01:41:00 bwelling Exp $ */
+/* $Id: lex.c,v 1.43 2000/11/13 04:09:40 marka Exp $ */
 
 #include <config.h>
 
@@ -668,7 +668,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				no_comments = ISC_FALSE;
 				state = saved_state;
 				goto no_read;
-			} else
+			} else if (c != '*')
 				state = lexstate_ccomment;
 			break;
 		case lexstate_eatline:
