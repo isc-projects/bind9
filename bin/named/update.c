@@ -2257,6 +2257,13 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 */
 	isc_log_write(UPDATE_DEBUG_LOGARGS, "committing update transaction");
 	dns_db_closeversion(db, &ver, ISC_TRUE);
+
+
+	/*
+	 * Notify slaves of the change we just made.
+	 */
+	dns_zone_notify(zone);
+	
 	result = ISC_R_SUCCESS;
 	goto common;
 	
