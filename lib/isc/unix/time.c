@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <time.h>
 
 #include <sys/time.h>	/* Required for struct timeval on some platforms. */
@@ -25,6 +26,17 @@
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
+
+#define NS_PER_S	1000000000	/* Nanoseconds per second. */
+#define NS_PER_US	1000		/* Nanoseconds per microsecond. */
+#define US_PER_S	1000000		/* Microseconds per second. */
+
+/*
+ * All of the INSIST()s checks of nanoseconds < NS_PER_S are for 
+ * consistency checking of the type. In lieu of magic numbers, it
+ * is the best we've got.  The check is only performed on functions which
+ * need an initialized type.
+ */
 
 /***
  *** Intervals
@@ -35,7 +47,8 @@ isc_interval_t *isc_interval_zero = &zero_interval;
 
 void
 isc_interval_set(isc_interval_t *i,
-		 unsigned int seconds, unsigned int nanoseconds) {
+		 unsigned int seconds, unsigned int nanoseconds)
+{
 
 	/*
 	 * Set 'i' to a value representing an interval of 'seconds' seconds
@@ -44,7 +57,7 @@ isc_interval_set(isc_interval_t *i,
 	 */
 
 	REQUIRE(i != NULL);
-	REQUIRE(nanoseconds < 1000000000);
+	REQUIRE(nanoseconds < NS_PER_S);
 
 	i->seconds = seconds;
 	i->nanoseconds = nanoseconds;
@@ -58,6 +71,7 @@ isc_interval_iszero(isc_interval_t *i) {
 	 */
 
 	REQUIRE(i != NULL);
+	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (i->seconds == 0 && i->nanoseconds == 0)
 		return (ISC_TRUE);
@@ -80,6 +94,7 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 	 * epoch.
 	 */
 	REQUIRE(t != NULL);
+	REQUIRE(t->nanoseconds < NS_PER_S);
 
 	t->seconds = seconds;
 	t->nanoseconds = nanoseconds;
@@ -105,6 +120,7 @@ isc_time_isepoch(isc_time_t *t) {
 	 */
 
 	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
 
 	if (t->seconds == 0 && t->nanoseconds == 0)
 		return (ISC_TRUE);
@@ -127,8 +143,25 @@ isc_time_now(isc_time_t *t) {
 		return (ISC_R_UNEXPECTED);
 	}
 
+	/*
+	 * Does POSIX guarantee the signedness of tv_sec and tv_usec?  If not,
+	 * then this test will generate warnings for platforms on which it is
+	 * unsigned.  In any event, the chances of any of these problems
+	 * happening are pretty much zero, but since the libisc library ensures
+	 * certain things to be true ...
+	 */
+	if (tv.tv_sec < 0 || tv.tv_usec < 0 || tv.tv_usec >= US_PER_S)
+		return (ISC_R_UNEXPECTED);
+
+	/*
+	 * Ensure the tv_sec value fits in t->seconds. 
+	 */
+	if (sizeof(tv.tv_sec) > sizeof(t->seconds) &&
+	    ((tv.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0)
+		return (ISC_R_RANGE);
+
 	t->seconds = tv.tv_sec;
-	t->nanoseconds = tv.tv_usec * 1000;
+	t->nanoseconds = tv.tv_usec * NS_PER_US;
 
 	return (ISC_R_SUCCESS);
 }
@@ -143,17 +176,38 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
-	
+	INSIST(i->nanoseconds < NS_PER_S);
+
 	if (gettimeofday(&tv, NULL) == -1) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
 		return (ISC_R_UNEXPECTED);
 	}
 
+	/*
+	 * Does POSIX guarantee the signedness of tv_sec and tv_usec?  If not,
+	 * then this test will generate warnings for platforms on which it is
+	 * unsigned.  In any event, the chances of any of these problems
+	 * happening are pretty much zero, but since the libisc library ensures
+	 * certain things to be true ...
+	 */
+	if (tv.tv_sec < 0 || tv.tv_usec < 0 || tv.tv_usec >= US_PER_S)
+		return (ISC_R_UNEXPECTED);
+
+	/*
+	 * Ensure the resulting seconds value fits in the size of an
+	 * unsigned int.  (It is written this way as a slight optimization;
+	 * note that even if both values == INT_MAX, then when added
+	 * and getting another 1 added below the result is UINT_MAX.)
+	 */
+	if ((tv.tv_sec > INT_MAX || i->seconds > INT_MAX) &&
+	    ((long long)tv.tv_sec + i->seconds > UINT_MAX))
+		return (ISC_R_RANGE);
+
 	t->seconds = tv.tv_sec + i->seconds;
-	t->nanoseconds = tv.tv_usec * 1000 + i->nanoseconds;
-	if (t->nanoseconds > 1000000000) {
+	t->nanoseconds = tv.tv_usec * NS_PER_US + i->nanoseconds;
+	if (t->nanoseconds > NS_PER_S) {
 		t->seconds++;
-		t->nanoseconds -= 1000000000;
+		t->nanoseconds -= NS_PER_S;
 	}
 
 	return (ISC_R_SUCCESS);
@@ -167,6 +221,7 @@ isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
 	 */
 
 	REQUIRE(t1 != NULL && t2 != NULL);
+	INSIST(t1->nanoseconds < NS_PER_S && t2->nanoseconds < NS_PER_S);
 
 	if (t1->seconds < t2->seconds)
 		return (-1);
@@ -179,42 +234,59 @@ isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
 	return (0);
 }
 
-void
-isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result)
-{
+isc_result_t
+isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	/*
 	 * Add 't' to 'i', storing the result in 'result'.
 	 */
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
+	INSIST(t->nanoseconds < NS_PER_S && i->nanoseconds < NS_PER_S);
+
+	/*
+	 * Ensure the resulting seconds value fits in the size of an
+	 * unsigned int.  (It is written this way as a slight optimization;
+	 * note that even if both values == INT_MAX, then when added
+	 * and getting another 1 added below the result is UINT_MAX.)
+	 */
+	if ((t->seconds > INT_MAX || i->seconds > INT_MAX) &&
+	    ((long long)t->seconds + i->seconds > UINT_MAX))
+		return (ISC_R_RANGE);
 
 	result->seconds = t->seconds + i->seconds;
 	result->nanoseconds = t->nanoseconds + i->nanoseconds;
-	if (result->nanoseconds > 1000000000) {
+	if (result->nanoseconds > NS_PER_S) {
 		result->seconds++;
-		result->nanoseconds -= 1000000000;
+		result->nanoseconds -= NS_PER_S;
 	}
+
+	return (ISC_R_SUCCESS);
 }
 
-void
+isc_result_t
 isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	/*
 	 * Subtract 'i' from 't', storing the result in 'result'.
 	 */
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
-	REQUIRE((unsigned int)t->seconds > i->seconds ||
-		((unsigned int)t->seconds == i->seconds &&
-		 t->nanoseconds >= i->nanoseconds));
-	
+	INSIST(t->nanoseconds < NS_PER_S && i->nanoseconds < NS_PER_S);
+
+	if ((unsigned int)t->seconds < i->seconds ||
+	    ((unsigned int)t->seconds == i->seconds &&
+	     t->nanoseconds < i->nanoseconds))
+	    return (ISC_R_RANGE);
+
 	result->seconds = t->seconds - i->seconds;
 	if (t->nanoseconds >= i->nanoseconds)
 		result->nanoseconds = t->nanoseconds - i->nanoseconds;
 	else {
-		result->nanoseconds = 1000000000 - i->nanoseconds +
+		result->nanoseconds = NS_PER_S - i->nanoseconds +
 			t->nanoseconds;
 		result->seconds--;
 	}
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_uint64_t
@@ -222,9 +294,10 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 	isc_uint64_t i1, i2, i3;
 
 	REQUIRE(t1 != NULL && t2 != NULL);
+	INSIST(t1->nanoseconds < NS_PER_S && t2->nanoseconds < NS_PER_S);
 
-	i1 = t1->seconds * 1000000000 + t1->nanoseconds;
-	i2 = t2->seconds * 1000000000 + t2->nanoseconds;
+	i1 = (isc_uint64_t)t1->seconds * NS_PER_S + t1->nanoseconds;
+	i2 = (isc_uint64_t)t2->seconds * NS_PER_S + t2->nanoseconds;
 
 	if (i1 <= i2)
 		return (0);
@@ -234,7 +307,7 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 	/*
 	 * Convert to microseconds.
 	 */
-	i3 = (i1 - i2) / 1000;
+	i3 = (i1 - i2) / NS_PER_US;
 
 	return (i3);
 }
@@ -242,15 +315,57 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 isc_uint32_t
 isc_time_seconds(isc_time_t *t) {
 	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
 
 	return ((isc_uint32_t)t->seconds);
+}
+
+isc_result_t
+isc_time_secondsastimet(isc_time_t *t, time_t *secondsp) {
+	isc_uint64_t i;
+	time_t seconds;
+
+	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
+
+	/*
+	 * Ensure that the number of seconds represented by t->seconds
+	 * can be represented by a time_t.  Since t->seconds is an unsigned
+	 * int and since time_t is mostly opaque, this is trickier than
+	 * it seems.  (This standardized opaqueness of time_t is *very*
+	 * frustrating; time_t is not even limited to being an integral
+	 * type.)
+	 *
+	 * The mission, then, is to avoid generating any kind of warning
+	 * about "signed versus unsigned" while trying to determine if the
+	 * the unsigned int t->seconds is out range for tv_sec, which is
+	 * pretty much only true if time_t is a signed integer of the same
+	 * size as the return value of isc_time_seconds. 
+	 *
+	 * The use of a 64 bit integer takes advantage of C's conversion rules
+	 * to either zero fill or sign extend the widened type.
+	 */
+	seconds = (time_t)t->seconds;
+
+	INSIST(sizeof(unsigned int) == sizeof(isc_uint32_t));
+	INSIST(sizeof(time_t) >= sizeof(isc_uint32_t));
+
+	if (sizeof(time_t) == sizeof(isc_uint32_t) &&	       /* Same size. */
+	    (time_t)0.5 != 0.5 &&	       /* Not a floating point type. */
+	    (i = (time_t)-1) != 4294967295u &&		       /* Is signed. */
+	    (seconds & (1 << (sizeof(time_t) * 8 - 1))) != 0)	/* Negative. */
+		return (ISC_R_RANGE);
+
+	*secondsp = seconds;
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_uint32_t
 isc_time_nanoseconds(isc_time_t *t) {
 	REQUIRE(t != NULL);
 
-	ENSURE(t->nanoseconds < 1000000000);
+	ENSURE(t->nanoseconds < NS_PER_S);
 
 	return ((isc_uint32_t)t->nanoseconds);
 }
