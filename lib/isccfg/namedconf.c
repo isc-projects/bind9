@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.2 2002/01/21 11:00:25 bwelling Exp $ */
+/* $Id: namedconf.c,v 1.3 2002/01/22 19:31:56 gson Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,8 @@
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
 #include <isccfg/log.h>
+
+#define TOKEN_STRING(pctx) (pctx->token.value.as_textregion.base)
 
 /* Check a return value. */
 #define CHECK(op) 						\
@@ -420,7 +422,7 @@ parse_qstringornone(cfg_parser_t *pctx, const cfg_type_t *type,
 	isc_result_t result;
 	CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
 	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(pctx->token.value.as_pointer, "none") == 0)
+	    strcasecmp(TOKEN_STRING(pctx), "none") == 0)
 		return (cfg_create_obj(pctx, &cfg_type_none, ret));
 	cfg_ungettoken(pctx);
 	return (cfg_parse_qstring(pctx, type, ret));
@@ -825,7 +827,7 @@ parse_sizeval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
 
 	CHECK(cfg_gettoken(pctx, 0));
-	CHECK(parse_unitstring(pctx->token.value.as_pointer, &val));
+	CHECK(parse_unitstring(TOKEN_STRING(pctx), &val));
 
 	CHECK(cfg_create_obj(pctx, &cfg_type_uint64, &obj));
 	obj->value.uint64 = val;
@@ -881,7 +883,7 @@ parse_maybe_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
 
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(pctx->token.value.as_pointer, kw->name) == 0) {
+	    strcasecmp(TOKEN_STRING(pctx), kw->name) == 0) {
 		CHECK(cfg_gettoken(pctx, 0));
 		CHECK(kw->type->parse(pctx, kw->type, &obj));
 		obj->type = type; /* XXX kludge */
@@ -907,7 +909,7 @@ parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
         isc_result_t result;
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
-	    cfg_is_enum(pctx->token.value.as_pointer, enumtype->of)) {
+	    cfg_is_enum(TOKEN_STRING(pctx), enumtype->of)) {
 		CHECK(cfg_parse_enum(pctx, enumtype, ret));
 	} else {
 		CHECK(cfg_parse_obj(pctx, othertype, ret));
@@ -1086,19 +1088,22 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
-			if (strcasecmp(pctx->token.value.as_pointer,
+			if (strcasecmp(TOKEN_STRING(pctx),
 				       "address") == 0)
 			{
 				/* read "address" */
 				CHECK(cfg_gettoken(pctx, 0)); 
-				CHECK(cfg_parse_rawaddr(pctx, flags|CFG_ADDR_WILDOK, &netaddr));
+				CHECK(cfg_parse_rawaddr(pctx,
+						flags | CFG_ADDR_WILDOK,
+							&netaddr));
 				have_address++;
-			} else if (strcasecmp(pctx->token.value.as_pointer,
-					      "port") == 0)
+			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
 			{
 				/* read "port" */
 				CHECK(cfg_gettoken(pctx, 0)); 
-				CHECK(cfg_parse_rawport(pctx, CFG_ADDR_WILDOK, &port));
+				CHECK(cfg_parse_rawport(pctx,
+							CFG_ADDR_WILDOK,
+							&port));
 				have_port++;
 			} else {
 				cfg_parser_error(pctx, CFG_LOG_NEAR,
@@ -1169,7 +1174,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) 
 	if (pctx->token.type == isc_tokentype_string ||
 	    pctx->token.type == isc_tokentype_qstring) {
 		if (pctx->token.type == isc_tokentype_string &&
-		    (strcasecmp(pctx->token.value.as_pointer, "key") == 0)) {
+		    (strcasecmp(TOKEN_STRING(pctx), "key") == 0)) {
 			CHECK(cfg_parse_obj(pctx, &cfg_type_keyref, ret));
 		} else {
 			if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK |
@@ -1334,7 +1339,7 @@ parse_logseverity(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(pctx->token.value.as_pointer, "debug") == 0) {
+	    strcasecmp(TOKEN_STRING(pctx), "debug") == 0) {
 		CHECK(cfg_gettoken(pctx, 0)); /* read "debug" */
 		CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER));
 		if (pctx->token.type == isc_tokentype_number) {
@@ -1398,12 +1403,12 @@ parse_logfile(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
 			CHECK(cfg_gettoken(pctx, 0));		
-			if (strcasecmp(pctx->token.value.as_pointer,
+			if (strcasecmp(TOKEN_STRING(pctx),
 				       "versions") == 0 &&
 			    obj->value.tuple[1] == NULL) {
 				CHECK(cfg_parse_obj(pctx, fields[1].type,
 					    &obj->value.tuple[1]));
-			} else if (strcasecmp(pctx->token.value.as_pointer,
+			} else if (strcasecmp(TOKEN_STRING(pctx),
 					      "size") == 0 &&
 				   obj->value.tuple[2] == NULL) {
 				CHECK(cfg_parse_obj(pctx, fields[2].type,
