@@ -15,16 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: lwbuffer.c,v 1.6 2000/06/22 21:59:30 tale Exp $ */
-
-/* XXXMLG */
-#define REQUIRE(x)
+/* $Id: lwbuffer.c,v 1.7 2000/06/26 23:35:00 bwelling Exp $ */
 
 #include <config.h>
 
 #include <string.h>
 
 #include <lwres/lwbuffer.h>
+
+#include "assert_p.h"
 
 void
 lwres_buffer_init(lwres_buffer_t *b, void *base, unsigned int length)
