@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.161 2000/08/29 23:58:15 bwelling Exp $ */
+/* $Id: socket.c,v 1.162 2000/08/31 13:38:55 marka Exp $ */
 
 #include <config.h>
 
@@ -951,6 +951,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	struct iovec iov[MAXSCATTERGATHER_SEND];
 	size_t write_count;
 	struct msghdr msghdr;
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	build_msghdr_send(sock, dev, &msghdr, iov, &write_count);
 
@@ -1000,9 +1001,10 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 		 * However, these soft errors are still returned as
 		 * a status.
 		 */
+		isc_sockaddr_format(&dev->address, addrbuf, sizeof(addrbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "internal_send: %s",
-				 strerror(errno));
+				 "internal_send: %s: %s",
+				 addrbuf, strerror(errno));
 		if (sock->connected && sock->type == isc_sockettype_tcp)
 			sock->send_result = ISC_R_UNEXPECTED;
 		send_senddone_event(sock, &dev, ISC_R_UNEXPECTED);
