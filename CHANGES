@@ -1,4 +1,8 @@
 
+ 351.	[bug]		Constructing a response with rcode SERVFAIL to a TSIG
+			signed query could crash the server.
+
+			block were not correctly reference counted, causing
  350.	[bug]		Also-notify lists specified in the global options
 			block were not correctly reference counted, causing
 			a memory leak.
