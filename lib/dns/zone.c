@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.130 2000/05/26 18:18:12 gson Exp $ */
+/* $Id: zone.c,v 1.131 2000/05/29 05:47:18 marka Exp $ */
 
 #include <config.h>
 
@@ -1546,6 +1546,8 @@ notify_isqueued(dns_zone_t *zone, dns_name_t *name, isc_sockaddr_t *addr) {
 	for (notify = ISC_LIST_HEAD(zone->notifies);
 	     notify != NULL;
 	     notify = ISC_LIST_NEXT(notify, link)) {
+		if (notify->request != NULL)
+			continue;
 		if (name != NULL && dns_name_dynamic(&notify->ns) &&
 		    dns_name_equal(name, &notify->ns))
 			return (ISC_TRUE);
@@ -2137,7 +2139,10 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	zone->curmaster++;
 	if (zone->curmaster >= zone->masterscnt) {
 		zone->flags &= ~DNS_ZONE_F_REFRESH;
-
+                if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDREFRESH)) {
+			zone->flags &= ~DNS_ZONE_F_NEEDREFRESH;
+			zone->refreshtime = now;
+		}
 		zone_settimer(zone, now);
 		UNLOCK(&zone->lock);
 		return;
