@@ -5,6 +5,10 @@
 			multiple dnssec-lookaside namespaces (not yet
 			implemented).  
 
+1647.	[bug]		It was possible trigger a INSIST when chasing a DS
+			record that required walking back over a empty node.
+			[RT #11445]
+
 1646.	[bug]		win32: logging file versions didn't work with
 			non-UNC filenames.  [RT#11486]
 
