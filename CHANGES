@@ -1,3 +1,6 @@
+1333.	[func]		Query log now says if the query was signed (S) or
+			if EDNS was used (E).
+
 1332.	[func]		Log TSIG key used w/ outgoing zone transfers.
 
 1331.	[bug]		lwres_getrrsetbyname leaked memory.  [RT #3159]
