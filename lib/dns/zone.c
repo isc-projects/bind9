@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.24 2003/11/03 23:56:13 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.25 2003/11/04 05:35:48 marka Exp $ */
 
 #include <config.h>
 
@@ -4786,26 +4786,6 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 */
 		if (zone->db == NULL)
 			goto same_master;
-		/*
-		 * This is not neccessary if we just performed a AXFR
-		 * however it is necessary for an IXFR / UPTODATE and
-		 * won't hurt with an AXFR.
-		 */
-		if (zone->masterfile != NULL || zone->journal != NULL) {
-			result = ISC_R_FAILURE;
-			if (zone->journal != NULL)
-				result = isc_file_settime(zone->journal, &now);
-			if (result != ISC_R_SUCCESS &&
-			    zone->masterfile != NULL)
-				result = isc_file_settime(zone->masterfile,
-							  &now);
-			if (result != ISC_R_SUCCESS)
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "transfer: could not set file "
-					     "modification time of '%s': %s",
-					     zone->masterfile,
-					     dns_result_totext(result));
-		}
 
 		/*
 		 * Update the zone structure's data from the actual
@@ -4857,6 +4837,27 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		if (result == ISC_R_SUCCESS && xfrresult == ISC_R_SUCCESS)
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "transferred serial %u", zone->serial);
+
+		/*
+		 * This is not neccessary if we just performed a AXFR
+		 * however it is necessary for an IXFR / UPTODATE and
+		 * won't hurt with an AXFR.
+		 */
+		if (zone->masterfile != NULL || zone->journal != NULL) {
+			result = ISC_R_FAILURE;
+			if (zone->journal != NULL)
+				result = isc_file_settime(zone->journal, &now);
+			if (result != ISC_R_SUCCESS &&
+			    zone->masterfile != NULL)
+				result = isc_file_settime(zone->masterfile,
+							  &now);
+			if (result != ISC_R_SUCCESS)
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "transfer: could not set file "
+					     "modification time of '%s': %s",
+					     zone->masterfile,
+					     dns_result_totext(result));
+		}
 
 		break;
 
