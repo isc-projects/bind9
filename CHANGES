@@ -117,7 +117,8 @@
  217.	[func]		Also-notify and trusted-keys can now be used in
 			the 'view' statement.
 
- 216.   [func]		The 'cache-ttl' and 'ncache-ttl' options now work.
+ 216.   [func]		The 'max-cache-ttl' and 'max-ncache-ttl' options 
+			now work.
 
  215.	[bug]		Failures at certain points in request processing
 			could cause the assertion INSIST(client->lockview
