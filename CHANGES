@@ -1,4 +1,7 @@
 
+1018.	[bug]		The default log channel was not always initialized
+			correctly. [RT #1813]
+
 1017.	[bug]		When specifying TSIG keys to dig and nsupdate using
 			the -k option, they must be HMAC-MD5 keys.  [RT #1810]
 

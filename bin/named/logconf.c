@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.31 2001/09/25 00:55:22 gson Exp $ */
+/* $Id: logconf.c,v 1.32 2001/09/27 20:54:27 gson Exp $ */
 
 #include <config.h>
 
@@ -267,12 +267,12 @@ ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt) {
 		CHECK(category_fromconf(category, logconf));
 		if (!default_set) {
 			cfg_obj_t *catname = cfg_tuple_get(category, "name");
-			if (strcmp(cfg_obj_asstring(catname), "default"))
+			if (strcmp(cfg_obj_asstring(catname), "default") == 0)
 				default_set = ISC_TRUE;
 		}
 		if (!unmatched_set) {
 			cfg_obj_t *catname = cfg_tuple_get(category, "name");
-			if (strcmp(cfg_obj_asstring(catname), "unmatched"))
+			if (strcmp(cfg_obj_asstring(catname), "unmatched") == 0)
 				unmatched_set = ISC_TRUE;
 		}
 	}
