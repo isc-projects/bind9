@@ -138,3 +138,15 @@ end of input".  What's wrong?
 A: This error message is caused by a known bug in BIND 8.2.3 and will
 be fixed in 8.2.4.  It can be safely ignored - the notify has been
 acted on by the slave despite the error message.
+
+
+Q: I keep getting log messages like the following.  Why?
+
+   Jun 21 12:00:00.000 client 10.0.0.1#1234: update denied
+
+Someone is trying to update your DNS data using the RFC2136 Dynamic
+Update protocol.  Windows 2000 machines have a habit of sending dynamic
+update requests to DNS servers without being specifically configured to
+do so.  If the update requests are coming from a Windows 2000 machine,
+see <http://support.microsoft.com/support/kb/articles/q246/8/04.asp>
+for information about how to turn them off.
