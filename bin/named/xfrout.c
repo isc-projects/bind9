@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.4 1999/08/24 09:39:48 gson Exp $ */
+ /* $Id: xfrout.c,v 1.5 1999/08/27 19:48:39 halley Exp $ */
 
 #include <config.h>
 
@@ -159,6 +159,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 		dns_rdataset_disassociate(&it->rdataset);
 		it->result = dns_rdatasetiter_next(it->rdatasetit);
 		if (it->result == DNS_R_NOMORE) {
+		node_done:
 			dns_rdatasetiter_destroy(&it->rdatasetit);
 			dns_db_detachnode(it->db, &it->node);
 			it->result = dns_dbiterator_next(it->dbit);
@@ -179,6 +180,12 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 			if (it->result != DNS_R_SUCCESS)
 				return (it->result);
 			it->result = dns_rdatasetiter_first(it->rdatasetit);
+			if (it->result == DNS_R_NOMORE) {
+				/*
+				 * Ignore empty nodes.
+				 */
+				goto node_done;
+			}
 		}
 		if (it->result != DNS_R_SUCCESS)
 			return (it->result);
