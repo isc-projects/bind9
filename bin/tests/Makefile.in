@@ -71,7 +71,8 @@ SRCS =		res_test.c \
 		compress_test.c \
 		mempool_test.c \
 		dispatch_test.c \
-		dispatch_tcp_test.c
+		dispatch_tcp_test.c \
+		printmsg.c
 
 @BIND9_MAKE_RULES@
 
