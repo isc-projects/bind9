@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.39 2000/11/15 01:20:18 tale Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.40 2000/11/17 19:19:17 gson Exp $ -->
 
 <book>
 
@@ -892,7 +892,7 @@ and <filename>site2.example.com</filename>, to the servers in the
 DMZ. These internal servers will have complete sets of information
 for <filename>site1.example.com</filename>, <filename>site2.example.com</filename>,<emphasis> </emphasis><filename>site1.internal</filename>,
 and <filename>site2.internal</filename>.</para>
-<para>To protect the<filename> site1.interna</filename><emphasis>l</emphasis> and<emphasis> </emphasis><filename>site2.internal</filename> domains,
+<para>To protect the <filename>site1.internal</filename> and <filename>site2.internal</filename> domains,
 the internal nameservers must be configured to disallow all queries
 to these domains from any external hosts, including the bastion
 hosts.</para>
@@ -937,7 +937,7 @@ internal clients will now be able to:</para>
 <para>Hosts on the Internet will be able to:</para>
 <itemizedlist><listitem>
         <simpara>Look up any hostnames in the <systemitem class="systemname">site1</systemitem> and 
-<systemitem class="systemname">site2.example.com </systemitem>zones.</simpara></listitem>
+<systemitem class="systemname">site2.example.com</systemitem> zones.</simpara></listitem>
 <listitem>
         <simpara>Exchange mail with anyone in the <systemitem class="systemname">site1</systemitem> and 
 <systemitem class="systemname">site2.example.com</systemitem> zones.</simpara></listitem></itemizedlist>
@@ -1278,7 +1278,7 @@ allow-update { key host1-host2. ;};
 
       <para>The public keys should be inserted into the zone file with
       <command>$INCLUDE</command> statements, including the
-      <filename>.key </filename>files.</para>
+      <filename>.key</filename> files.</para>
 
     </sect2>
     <sect2>
@@ -2743,8 +2743,8 @@ answers. The default is <userinput>no</userinput>.</para>
 <row rowsep = "0">
 <entry colname = "1"><para><command>treat-cr-as-space</command></para></entry>
 <entry colname = "2"><para>This option was used in <acronym>BIND</acronym> 8 to make
-the server treat "<command>\r</command>" characters the same way
-as <command>&#60;space> </command>" " or "<command>\t</command>",
+the server treat carriage return ("<command>\r</command>") characters the same way
+as a space or tab character,
 to facilitate loading of zone files on a UNIX system that were generated
 on an NT or DOS machine. In <acronym>BIND</acronym> 9, both UNIX "<command>\n</command>"
 and NT/DOS "<command>\r\n</command>" newlines are always accepted,
@@ -4629,7 +4629,7 @@ all.</para>
     <acronym>BIND</acronym> and <acronym>DHCP</acronym>.</para>
 
     <para>To discuss arrangements for support, contact
-    <ulink url="email:info@isc.org">info@isc.org</ulink> or visit the
+    <ulink url="mailto:info@isc.org">info@isc.org</ulink> or visit the
     <acronym>ISC</acronym> web page at <ulink
     url="http://www.isc.org/services/support/">http://www.isc.org/services/support/</ulink>
     to read more.</para>
