@@ -65,7 +65,7 @@ A: This is often caused by TXT records with missing close quotes.  Check that
 all TXT records containing quoted strings have both open and close quotes.
 
 
-Q: How do I produce a useful core file on Linux?
+Q: How do I produce a usable core file on Linux?
 
 A: Apply the kernel patch found in bind9/linux/coredump-patch and rebuild
 the kernel.  This patch causes multithreaded programs to dump the correct
@@ -96,3 +96,4 @@ caveats of the previous answer still apply, of course.
 		  file "/dev/null";  // or any empty file
 	  };
   };
+
