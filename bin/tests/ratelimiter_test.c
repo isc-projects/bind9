@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <isc/app.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
@@ -33,40 +34,87 @@
 #include <isc/util.h>
 
 isc_ratelimiter_t *rlim = NULL;
+isc_taskmgr_t *taskmgr = NULL;
+isc_timermgr_t *timermgr = NULL;
+isc_task_t *task = NULL;
+isc_mem_t *mctx = NULL;
+
+static void utick(isc_task_t *task, isc_event_t *event);
+static void shutdown_rl(isc_task_t *task, isc_event_t *event);
+static void shutdown_all(isc_task_t *task, isc_event_t *event);
+
+typedef struct {
+	int milliseconds;
+	void (*fun)(isc_task_t *, isc_event_t *);
+} schedule_t;
+
+schedule_t schedule[] = {
+	{   100, utick },
+	{   200, utick },
+	{   300, utick },
+	{  3000, utick },
+	{  3100, utick },
+	{  3200, utick },
+	{  3300, shutdown_rl },
+	{  5000, utick },
+	{  6000, shutdown_all }
+};
+
+#define NEVENTS (int)(sizeof(schedule)/sizeof(schedule[0]))
+
+isc_timer_t *timers[NEVENTS];
 
 static void
 ltick(isc_task_t *task, isc_event_t *event)
 {
-	(void) task;
-	printf("** ltick **\n");
+	UNUSED(task);
+	printf("** ltick%s **\n",
+	       (event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ?
+	       " (canceled)" : "");
 	isc_event_free(&event);
 }
 
 static void
 utick(isc_task_t *task, isc_event_t *event)
 {
-	(void) task;
-	printf("utick\n");
+	isc_result_t result;
+	UNUSED(task);
 	event->ev_action = ltick;
-	isc_ratelimiter_enqueue(rlim, &event);
+	result = isc_ratelimiter_enqueue(rlim, &event);
+	printf("enqueue: %s\n",
+	       result == ISC_R_SUCCESS ? "ok" : "failed");
 }
 
-#define N 7
+static void
+shutdown_rl(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
+	UNUSED(event);
+	printf("shutdown ratelimiter\n");	
+	isc_ratelimiter_shutdown(rlim);
+}
+
+static void
+shutdown_all(isc_task_t *task, isc_event_t *event) {
+	int i;
+	UNUSED(task);
+	UNUSED(event);
+	printf("shutdown all\n");
+	for (i = 0; i < NEVENTS; i++) {
+		isc_timer_detach(&timers[i]);
+	}
+
+	isc_app_shutdown();
+}
 
 int
 main(int argc, char *argv[]) {
-	isc_mem_t *mctx = NULL;
-	isc_taskmgr_t *taskmgr = NULL;
-	isc_timermgr_t *timermgr = NULL;
-	isc_task_t *task = NULL;
-	int times[N] = { 1, 2, 3, 10000, 10001, 10002, 11500 };
-	isc_timer_t *timers[N];
 	isc_interval_t linterval;
 	int i;
 
 	UNUSED(argc);
 	UNUSED(argv);
-	
+
+	isc_app_start();
 	isc_interval_set(&linterval, 1, 0);
 	
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
@@ -82,34 +130,31 @@ main(int argc, char *argv[]) {
 
 	RUNTIME_CHECK(isc_ratelimiter_setinterval(rlim, &linterval) ==
 		      ISC_R_SUCCESS);
-	
-	for (i = 0; i < N; i++) {
+
+	for (i = 0; i < NEVENTS; i++) {
 		isc_interval_t uinterval;
-		isc_interval_set(&uinterval, times[i] / 1000,
-				 (times[i] % 1000) * 1000000);
+		int ms = schedule[i].milliseconds;
+		isc_interval_set(&uinterval,  ms / 1000,
+				 (ms % 1000) * 1000000);
 		timers[i] = NULL;
 		RUNTIME_CHECK(isc_timer_create(timermgr,
 					       isc_timertype_once, NULL,
 					       &uinterval,
-					       task, utick, NULL,
+					       task, schedule[i].fun, NULL,
 					       &timers[i]) == ISC_R_SUCCESS);
 	}
-	sleep(15);
-	
-	printf("destroy\n");
 
-	for (i = 0; i < N; i++) {
-		isc_timer_detach(&timers[i]);
-	}
+	isc_app_run();
 
-	isc_ratelimiter_destroy(&rlim);
 	isc_task_destroy(&task);
 
+	isc_ratelimiter_destroy(&rlim);
+	
 	isc_timermgr_destroy(&timermgr);
 	isc_taskmgr_destroy(&taskmgr);
 
-	sleep(2);
 	isc_mem_stats(mctx, stdout);
 	
+	isc_app_finish();
 	return (0);
 }
