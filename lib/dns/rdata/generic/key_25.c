@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.38 2001/03/16 22:52:42 bwelling Exp $ */
+/* $Id: key_25.c,v 1.39 2001/03/28 02:57:26 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -110,8 +110,14 @@ totext_key(ARGS_TOTEXT) {
 	RETERR(str_totext(tctx->linebreak, target));
 	RETERR(isc_base64_totext(&sr, tctx->width - 2,
 				 tctx->linebreak, target));
+
+	if ((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0)
+		RETERR(str_totext(tctx->linebreak, target));
+	else if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" ", target));
+
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
-		RETERR(str_totext(" )", target));
+		RETERR(str_totext(")", target));
 
 	if ((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0) {
 		isc_region_t tmpr;
