@@ -1,3 +1,6 @@
+  98.   [cleanup]       <isc/print.h> does not need <stdarg.h> or <stddef.h>
+                        unless ISC_PLATFORM_NEEDVSNPRINTF is defined.
+
   97.   [cleanup]       <isc/ondestroy.h> does not need <stddef.h> or
                         <isc/event.h>.
 

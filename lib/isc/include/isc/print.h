@@ -22,8 +22,6 @@
  *** Imports
  ***/
 
-#include <stdarg.h>
-
 #include <isc/lang.h>
 #include <isc/platform.h>
 
@@ -31,9 +29,12 @@
  *** Functions
  ***/
 
+#ifdef ISC_PLATFORM_NEEDVSNPRINTF
+#include <stdarg.h>
+#include <stddef.h>
+
 ISC_LANG_BEGINDECLS
 
-#ifdef ISC_PLATFORM_NEEDVSNPRINTF
 int
 isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 #define vsnprintf isc_print_vsnprintf
@@ -41,8 +42,8 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 int
 isc_print_snprintf(char *str, size_t size, const char *format, ...);
 #define snprintf isc_print_snprintf
-#endif
 
 ISC_LANG_ENDDECLS
+#endif /* ISC_PLATFORM_NEEDVSNPRINTF */
 
 #endif /* ISC_PRINT_H */
