@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.12 2002/01/23 01:53:28 gson Exp $ */
+/* $Id: parser.c,v 1.70.2.13 2002/01/23 17:54:06 gson Exp $ */
 
 #include <config.h>
 
@@ -3542,6 +3542,11 @@ cfg_gettoken(cfg_parser_t *pctx, int options) {
 	case ISC_R_NOSPACE:
 		/* More understandable than "ran out of space". */
 		parser_error(pctx, LOG_NEAR, "token too big");
+		break;
+
+	case ISC_R_IOERROR:
+		parser_error(pctx, 0, "%s",
+				 isc_result_totext(result));
 		break;
 
 	default:
