@@ -196,7 +196,6 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	struct sockaddr_in sin;
 	int fromlen;
 	fd_set readfds;
-	fd_set emptyfds;
 	struct timeval timeout;
 
 	timeout.tv_sec = LWRES_DEFAULT_TIMEOUT;
@@ -216,9 +215,8 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 		return (LWRES_R_IOERROR);
 
 	FD_ZERO(&readfds);
-	FD_ZERO(&emptyfds);
 	FD_SET(ctx->sock, &readfds);
-	ret2 = select(ctx->sock + 1, &readfds, &emptyfds, &emptyfds, &timeout);
+	ret2 = select(ctx->sock + 1, &readfds, NULL, NULL, &timeout);
 
 	flags = fcntl(ctx->sock, F_GETFL, 0);
 	flags &= ~O_NONBLOCK;
