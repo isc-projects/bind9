@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.17 2001/01/09 21:51:36 bwelling Exp $ */
+/* $Id: time.c,v 1.18 2001/05/15 22:05:35 gson Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include <isc/region.h>
+#include <isc/stdtime.h>
 #include <isc/util.h>
 
 #include <dns/result.h>
@@ -91,14 +92,19 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 
 isc_result_t
 dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
+	isc_stdtime_t now;
 	isc_int64_t start;
 	isc_int64_t base;
 	isc_int64_t t;
 
 	/*
-	 * Find the right epoch.
+	 * Adjust the time to the closest epoch.  This should be changed
+	 * to use a 64-bit counterpart to isc_stdtime_get() if one ever
+	 * is defined, but even the current code is good until the year
+	 * 2106.
 	 */
-	start = time(NULL);
+	isc_stdtime_get(&now);
+	start = (isc_int64_t) now;
 	start -= 0x7fffffff;
 	base = 0;
 	while ((t = (base + value)) < start) {
