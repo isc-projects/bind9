@@ -1,4 +1,7 @@
 
+ 978.	[bug]		dns_db_attachversion() had an invalid REQUIRE()
+			condition.
+
  940.	[bug]		Double zone locking failure on error path. [RT #1510]
 
  937.	[bug]		A race when shutting down a zone could trigger a
