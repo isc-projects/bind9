@@ -155,6 +155,21 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	return (ISC_R_SUCCESS);
 }
 
+void
+isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
+	isc_result_t result;
+	isc_buffer_t buf;
+
+	isc_buffer_init(&buf, array, size);
+	result = isc_sockaddr_totext(sa, &buf);
+	if (result != ISC_R_SUCCESS) {
+		snprintf(array, size,
+			 "<unknown address, family %u>",
+			 sa->type.sa.sa_family);
+		array[size - 1] = '\0';
+	}
+}
+
 unsigned int
 isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	unsigned int length;

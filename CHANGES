@@ -1,3 +1,6 @@
+ 174.   [func]		New public function isc_sockaddr_format(), for
+			formatting socket addresses in log messages.
+
  173.   [func]		Keep a queue of zones waiting for zone transfer
 			quota so that a new transfer can be dispatched
 			immediately whenever quota becomes available.

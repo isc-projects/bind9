@@ -111,6 +111,14 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
  *	ISC_R_NOSPACE	The text or the null termination did not fit.
  */
 
+void
+isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size);
+/*
+ * Format a human-readable representation of the socket address '*sa'
+ * into the character array 'array', which is of size 'size'.
+ * The resulting string is guaranteed to be null-terminated.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKADDR_H */
