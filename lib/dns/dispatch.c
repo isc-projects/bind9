@@ -28,6 +28,7 @@
 #include <isc/mutex.h>
 #include <isc/socket.h>
 
+#include <dns/events.h>
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/dispatch.h>
@@ -365,7 +366,12 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 
 	(void)task;  /* shut up compiler */
 
+	printf("Got packet!\n");
+
 	LOCK(&disp->lock);
+
+	INSIST(disp->recvs > 0);
+	disp->recvs--;
 
 	if (ev->result != ISC_R_SUCCESS) {
 		/*
@@ -375,8 +381,6 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 			free_buffer(disp, ev->region.base, ev->region.length);
 			isc_event_free(&ev_in);
 
-			INSIST(disp->recvs > 0);
-			disp->recvs--;
 			if (disp->recvs == 0 && disp->shutting_down == 0) {
 				disp->shutdown_why = ISC_R_CANCELED;
 				disp->shutting_down = 1;
@@ -393,17 +397,26 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 		goto restart;
 	}
 
+	printf("length == %d, buflen = %d, addr = %p\n",
+	       ev->n, ev->region.length, ev->region.base);
+
 	/*
 	 * Peek into the buffer to see what we can see.
 	 */
 	isc_buffer_init(&source, ev->region.base, ev->region.length,
 			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_add(&source, ev->n);
 	dres = dns_message_peekheader(&source, &id, &flags);
 	if (dres != DNS_R_SUCCESS) {
 		free_buffer(disp, ev->region.base, ev->region.length);
+		printf("dns_message_peekheader(): %s\n",
+		       isc_result_totext(dres));
 		/* XXXMLG log something here... */
 		goto restart;
 	}
+
+	printf("Got valid DNS message header, /QR %c, id %d\n",
+	       ((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id);
 
 	/*
 	 * Allocate an event to send to the query or response client, and
@@ -428,18 +441,30 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 		/* query */
 	} else {
  		/* response */
-		rev = allocate_event(disp);
-		if (rev == NULL) {
-			free_buffer(disp, ev->region.base, ev->region.length);
-			goto restart;
-		}
 		bucket = hash(disp, &ev->address, id);
 		resp = bucket_search(disp, &ev->address, id, bucket);
 		if (resp == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto restart;
 		}
+		rev = allocate_event(disp);
+		if (rev == NULL) {
+			free_buffer(disp, ev->region.base, ev->region.length);
+			goto restart;
+		}
 	}
+
+	/*
+	 * At this point, rev contains the event we want to fill in, and
+	 * resp contains the information on the place to send it to.
+	 * Send the event off.
+	 */
+	isc_buffer_init(&rev->buffer, ev->region.base, ev->region.length,
+			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_add(&rev->buffer, ev->n);
+	ISC_EVENT_INIT(rev, sizeof(*rev), 0, 0, DNS_EVENT_DISPATCH,
+		       resp->action, resp->arg, resp, NULL, NULL);
+	ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
 
 	/*
 	 * Restart recv() to get the next packet.
@@ -468,6 +493,8 @@ startrecv(dns_dispatch_t *disp)
 	if (disp->recvs >= disp->recvs_wanted)
 		return;
 
+	printf("Starting receive\n");
+
 	socktype = isc_socket_gettype(disp->socket);
 
 	while (disp->recvs < disp->recvs_wanted) {
@@ -480,6 +507,8 @@ startrecv(dns_dispatch_t *disp)
 			region.base = allocate_buffer(disp, disp->buffersize);
 			if (region.base == NULL)
 				return;
+			printf("Recv into %p, length %d\n", region.base,
+			       region.length);
 			res = isc_socket_recv(disp->socket, &region, ISC_TRUE,
 					      disp->task, udp_recv, disp);
 			if (res != ISC_R_SUCCESS) {
@@ -561,18 +590,21 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		goto out2;
 	}
 
+	disp->epool = NULL;
 	if (isc_mempool_create(mctx, sizeof(dns_dispatchevent_t),
 			       &disp->epool) != ISC_R_SUCCESS) {
 		res = DNS_R_NOMEMORY;
 		goto out3;
 	}
 
+	disp->bpool = NULL;
 	if (isc_mempool_create(mctx, maxbuffersize,
 			       &disp->bpool) != ISC_R_SUCCESS) {
 		res = DNS_R_NOMEMORY;
 		goto out4;
 	}
 
+	disp->rpool = NULL;
 	if (isc_mempool_create(mctx, sizeof(dns_dispentry_t),
 			       &disp->rpool) != ISC_R_SUCCESS) {
 		res = DNS_R_NOMEMORY;

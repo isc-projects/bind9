@@ -52,10 +52,19 @@ got_packet(isc_task_t *task, isc_event_t *ev_in)
 {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	dns_dispentry_t *resp = ev->sender;
+	static int cnt = 0;
 
 	(void)task;
 
-	dns_dispatch_freeevent(disp, resp, &ev);
+	printf("App:  got packet!\n");
+
+	cnt++;
+	if (cnt > 3) {
+		dns_dispatch_removerequest(disp, &resp, &ev);
+		dns_dispatch_destroy(&disp);
+	} else {
+		dns_dispatch_freeevent(disp, resp, &ev);
+	}
 }
 
 int
@@ -74,6 +83,8 @@ main(int argc, char *argv[])
 	 */
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+
+	dns_result_register();
 
 	/*
 	 * The task manager is independent (other than memory context)
@@ -94,7 +105,7 @@ main(int argc, char *argv[])
 	s0 = NULL;
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_family = AF_INET;
-	sockaddr.type.sin.sin_port = 0;
+	sockaddr.type.sin.sin_port = htons(5555);
 	sockaddr.length = sizeof (struct sockaddr_in);
 	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_udp, &s0) ==
 		      ISC_R_SUCCESS);
@@ -110,6 +121,9 @@ main(int argc, char *argv[])
 	resp = NULL;
 	RUNTIME_CHECK(dns_dispatch_addrequest(disp, t0, got_packet, NULL,
 					      &resp) == ISC_R_SUCCESS);
+
+	isc_socket_detach(&s0);
+	isc_task_detach(&t0);
 
 	fprintf(stderr, "Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
