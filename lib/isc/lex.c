@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.56 2000/12/09 02:05:25 gson Exp $ */
+/* $Id: lex.c,v 1.57 2000/12/09 03:20:05 marka Exp $ */
 
 #include <config.h>
 
@@ -817,7 +817,7 @@ isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r)
 	UNUSED(tokenp);
 
 	INSIST(source->ignored <= isc_buffer_consumedlength(source->pushback));
-	r->base = isc_buffer_base(source->pushback) + source->ignored;
+	r->base = (unsigned char *)isc_buffer_base(source->pushback) + source->ignored;
 	r->length = isc_buffer_consumedlength(source->pushback) - source->ignored;
 }
 
