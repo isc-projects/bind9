@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: nis_sv.c,v 1.1 2001/03/29 06:31:52 marka Exp $";
+static const char rcsid[] = "$Id: nis_sv.c,v 1.2 2001/04/04 05:32:27 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports */
@@ -243,7 +243,7 @@ makeservent(struct irs_sv *this) {
 	pvt->serv.s_port = htons((u_short) atoi(p));
 	pvt->serv.s_proto = NULL;
 	
-	while (*p && !isspace(*p))
+	while (*p && !isspace((unsigned char)*p))
 		if (*p++ == '/')
 			pvt->serv.s_proto = p;
 	if (!pvt->serv.s_proto)

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: nis_ho.c,v 1.1 2001/03/29 06:31:51 marka Exp $";
+static const char rcsid[] = "$Id: nis_ho.c,v 1.2 2001/04/04 05:32:23 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports */
@@ -178,6 +178,7 @@ static struct hostent *
 ho_byname2(struct irs_ho *this, const char *name, int af) {
 	struct pvt *pvt = (struct pvt *)this->private;
 	int r;
+	char *tmp;
 
 	UNUSED(af);
 	
@@ -185,8 +186,9 @@ ho_byname2(struct irs_ho *this, const char *name, int af) {
 		return (NULL);
 
 	nisfree(pvt, do_val);
-	r = yp_match(pvt->nis_domain, hosts_byname, name,
-		     strlen(name), &pvt->curval_data, &pvt->curval_len);
+	DE_CONST(name, tmp);
+	r = yp_match(pvt->nis_domain, hosts_byname, tmp,
+		     strlen(tmp), &pvt->curval_data, &pvt->curval_len);
 	if (r != 0) {
 		RES_SET_H_ERRNO(pvt->res, HOST_NOT_FOUND);
 		return (NULL);

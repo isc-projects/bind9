@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: nis_ng.c,v 1.1 2001/03/29 06:31:52 marka Exp $";
+static const char rcsid[] = "$Id: nis_ng.c,v 1.2 2001/04/04 05:32:24 marka Exp $";
 #endif
 
 /* Imports */
@@ -190,13 +190,15 @@ add_group_to_list(struct pvt *pvt, const char *name, int len) {
 	char *vdata, *cp, *np;
 	struct tmpgrp *tmp;
 	int vlen, r;
+	char *nametmp;
 
 	/* Don't add the same group to the list more than once. */
 	for (tmp = pvt->tmp; tmp; tmp = tmp->next)
 		if (!strcmp(tmp->name, name))
 			return;
 
-	r = yp_match(pvt->nis_domain, netgroup_map, name, len,
+	DE_CONST(name, nametmp);
+	r = yp_match(pvt->nis_domain, netgroup_map, nametmp, len,
 		     &vdata, &vlen);
 	if (r == 0) {
 		cp = vdata;
