@@ -394,11 +394,11 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 /*
  * Create the special view that handles queries for
  * "version.bind. CH".   The version string returned is that
- * configured in 'configctx', or a compiled-in default if
+ * configured in 'cctx', or a compiled-in default if
  * there is no "version" configuration option.
  */
 static isc_result_t
-create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
+create_version_view(dns_c_ctx_t *cctx, dns_view_t **viewp) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_zone_t *zone = NULL;
@@ -423,7 +423,7 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	r.length = sizeof(origindata);
 	dns_name_fromregion(&origin, &r);
 
-	(void) dns_c_ctx_getversion(configctx, &versiontext);
+	(void) dns_c_ctx_getversion(cctx, &versiontext);
 	if (versiontext == NULL)
 		versiontext = ns_g_version;
 	len = strlen(versiontext);
@@ -941,7 +941,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_result_t result;
 	ns_load_t lctx;
 	dns_c_cbks_t callbacks;
-	dns_c_ctx_t *configctx;
+	dns_c_ctx_t *cctx;
 	dns_view_t *view = NULL;
 	dns_view_t *view_next;
 	dns_viewlist_t tmpviewlist;
@@ -974,18 +974,18 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * 'zone' statements are handled immediately by calling
 	 * configure_zone() through 'callbacks'.
 	 */
-	configctx = NULL;
-	CHECK(dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
+	cctx = NULL;
+	CHECK(dns_c_parse_namedconf(filename, ns_g_mctx, &cctx,
 				    &callbacks));
 	
 	/*
 	 * Configure various server options.
 	 */
-	configure_server_quota(configctx, dns_c_ctx_gettransfersout,
+	configure_server_quota(cctx, dns_c_ctx_gettransfersout,
 				     &server->xfroutquota, 10);
-	configure_server_quota(configctx, dns_c_ctx_gettcpclients,
+	configure_server_quota(cctx, dns_c_ctx_gettcpclients,
 				     &server->tcpquota, 100);
-	configure_server_quota(configctx, dns_c_ctx_getrecursiveclients,
+	configure_server_quota(cctx, dns_c_ctx_getrecursiveclients,
 				     &server->recursionquota, 100);
 
 	/*
@@ -993,12 +993,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	{
  		isc_int32_t transfersin = 10;
-		(void) dns_c_ctx_gettransfersin(configctx, &transfersin);
+		(void) dns_c_ctx_gettransfersin(cctx, &transfersin);
 		dns_zonemgr_settransfersin(server->zonemgr, transfersin);
 	}
 	{
  		isc_int32_t transfersperns = 2;
-		(void) dns_c_ctx_gettransfersperns(configctx, &transfersperns);
+		(void) dns_c_ctx_gettransfersperns(cctx, &transfersperns);
 		dns_zonemgr_settransfersperns(server->zonemgr, transfersperns);
 	}
 
@@ -1010,10 +1010,10 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_c_lstnlist_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		(void) dns_c_ctx_getlistenlist(configctx, &clistenon);
+		(void) dns_c_ctx_getlistenlist(cctx, &clistenon);
 		if (clistenon != NULL) {
 			result = ns_listenlist_fromconfig(clistenon,
-							  configctx,
+							  cctx,
 							  &aclconfctx,
 							  ns_g_mctx,
 							  &listenon);
@@ -1039,7 +1039,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * as specified by the "interface-interval" option.
 	 */
 	interface_interval = 3600; /* Default is 1 hour. */
-	(void) dns_c_ctx_getinterfaceinterval(configctx, &interface_interval);
+	(void) dns_c_ctx_getinterfaceinterval(cctx, &interface_interval);
 	if (interface_interval == 0) {
 		isc_timer_reset(server->interface_timer,
 				isc_timertype_inactive,
@@ -1051,9 +1051,9 @@ load_configuration(const char *filename, ns_server_t *server,
 				NULL, &interval, ISC_FALSE);
 	}
 
-	CHECK(configure_server_querysource(configctx, server,
+	CHECK(configure_server_querysource(cctx, server,
 					   AF_INET, &dispatchv4));
-	CHECK(configure_server_querysource(configctx, server,
+	CHECK(configure_server_querysource(cctx, server,
 					   AF_INET6, &dispatchv6));
 
 	/*
@@ -1061,9 +1061,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Views that have zones were already created at parsing
 	 * time, but views with no zones must be created here.
 	 */
-	if (configctx->views != NULL) {
+	if (cctx->views != NULL) {
 		dns_c_view_t *cview;
-		for (cview = ISC_LIST_HEAD(configctx->views->views);
+		for (cview = ISC_LIST_HEAD(cctx->views->views);
 		     cview != NULL;
 		     cview = ISC_LIST_NEXT(cview, next))
 		{
@@ -1071,7 +1071,7 @@ load_configuration(const char *filename, ns_server_t *server,
 			CHECK(find_or_create_view(cview,
 						  &lctx.viewlist, &view));
 			INSIST(view != NULL);
-			CHECK(configure_view(view, configctx, cview, ns_g_mctx,
+			CHECK(configure_view(view, cctx, cview, ns_g_mctx,
 					     &aclconfctx,
 					     dispatchv4, dispatchv6));
 			dns_view_freeze(view);
@@ -1087,7 +1087,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECKM(dns_view_create(ns_g_mctx, dns_rdataclass_in, 
 				       "_default", &view),
 		       "creating default view");
-		CHECK(configure_view(view, configctx, NULL,
+		CHECK(configure_view(view, cctx, NULL,
 				     ns_g_mctx, &aclconfctx,
 				     dispatchv4, dispatchv6));
 		ISC_LIST_APPEND(lctx.viewlist, view, link);
@@ -1099,7 +1099,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Create (or recreate) the version view.
 	 */
 	view = NULL;
-	CHECK(create_version_view(configctx, &view));
+	CHECK(create_version_view(cctx, &view));
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
 	view = NULL;
 
@@ -1115,7 +1115,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	{
 		dns_tkey_ctx_t *t = NULL;
-		CHECKM(dns_tkeyctx_fromconfig(configctx, ns_g_mctx, &t),
+		CHECKM(dns_tkeyctx_fromconfig(cctx, ns_g_mctx, &t),
 		       "configuring TKEY");
 		if (server->tkeyctx != NULL)
 			dns_tkeyctx_destroy(&server->tkeyctx);
@@ -1137,7 +1137,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECKM(isc_logconfig_create(ns_g_lctx, &logc),
 		       "creating new logging configuration");
 
-		(void) dns_c_ctx_getlogging(configctx, &clog);
+		(void) dns_c_ctx_getlogging(cctx, &clog);
 		if (clog != NULL)
 			CHECKM(ns_log_configure(logc, clog),
 			       "configuring logging");
@@ -1155,14 +1155,14 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (first_time)
 		ns_os_changeuser(ns_g_username);
 
-	if (dns_c_ctx_getpidfilename(configctx, &pidfilename) ==
+	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) ==
 	    ISC_R_NOTFOUND)
 		pidfilename = ns_g_defaultpidfile;
 	ns_os_writepidfile(pidfilename);
 	
 	dns_aclconfctx_destroy(&aclconfctx);	
 
-	dns_c_ctx_delete(&configctx);
+	dns_c_ctx_delete(&cctx);
 	
  cleanup:
 	/*
