@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.116 2000/12/07 21:49:11 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.117 2000/12/07 23:00:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1069,7 +1069,7 @@ cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
  * Set up the iterator and global state before starting the tasks.
  */
 static void
-presign() {
+presign(void) {
 	isc_result_t result;
 
 	gdbiter = NULL;
