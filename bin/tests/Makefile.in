@@ -49,6 +49,7 @@ XTARGETS =	adb_test \
 		db_test \
 		dispatch_tcp_test \
 		dispatch_test \
+		entropy_test \
 		gxba_test \
 		gxbn_test \
 		hash_test \
@@ -87,6 +88,7 @@ SRCS =		adb_test.c \
 		db_test.c \
 		dispatch_tcp_test.c \
 		dispatch_test.c \
+		entropy_test.c \
 		gxba_test.c \
 		gxbn_test.c \
 		hash_test.c \
@@ -161,6 +163,10 @@ omapi_test: omapi_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${OMAPIDEPLIBS}
 
 hash_test: hash_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ hash_test.@O@ \
+		${ISCLIBS} ${LIBS}
+
+entropy_test: entropy_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ entropy_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
 sock_test: sock_test.@O@ ${ISCDEPLIBS}

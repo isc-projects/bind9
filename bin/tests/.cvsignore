@@ -9,6 +9,7 @@ compress_test
 db_test
 dispatch_tcp_test
 dispatch_test
+entropy_test
 gxba_test
 gxbn_test
 headerdep_test.sh
