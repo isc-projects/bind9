@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.5 2001/09/04 03:22:19 mayer Exp $ */
+/* $Id: interfaceiter.c,v 1.6 2001/11/22 03:08:12 mayer Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -123,9 +123,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * SIO_GET_INTERFACE_LIST WSAIoctl on.
 	 */
 	if ((iter->socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		error = WSAGetLastError();
+		isc__strerror(error, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				"making interface scan socket: %s",
-				isc__strerror(errno, strbuf, sizeof(strbuf)));
+				strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto socket_failure;
 	}
@@ -145,16 +147,15 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 		if (WSAIoctl(iter->socket, SIO_GET_INTERFACE_LIST,
 			     0, 0, iter->buf, iter->bufsize,
-			     &bytesReturned, 0, 0)
-		    == SOCKET_ERROR)
+			     &bytesReturned, 0, 0) == SOCKET_ERROR)
 		{
 			error = WSAGetLastError();
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
+				isc__strerror(error, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						"get interface configuration: %s",
-						isc__strerror(error,strbuf,
-							sizeof(strbuf)));
+						strbuf);
 				result = ISC_R_UNEXPECTED;
 				goto ioctl_failure;
 			}
