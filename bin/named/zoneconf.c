@@ -225,10 +225,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
 
-		/*
-		 * XXXAG This will fail to clear the ssutable when
-		 * the config option is removed.
-		 */
+		dns_zone_getssutable(zone, &ssutable);
+		if (ssutable != NULL)
+			dns_ssutable_detach(&ssutable);
 		result = dns_c_zone_getssuauth(czone, &ssutable);
 		if (result == ISC_R_SUCCESS) {
 			dns_ssutable_t *newssutable = NULL;

@@ -1,3 +1,6 @@
+ 213.	[cleanup]	Don't leak memory when reloading the zone if
+			an update-policy clause was present in the old zone.
+
  212.	[cleanup]	Added dns_message_get/settsigkey, to make TSIG
 			key management reasonable.
 
