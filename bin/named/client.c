@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.196 2001/11/14 23:15:22 gson Exp $ */
+/* $Id: client.c,v 1.197 2001/11/14 23:16:49 gson Exp $ */
 
 #include <config.h>
 
@@ -193,18 +193,6 @@ ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest) {
 	ISC_LIST_APPEND(client->manager->recursing, client, link);
 	client->list = &client->manager->recursing;
 	UNLOCK(&client->manager->lock);
-}
-
-/*
- * Enter the inactive state.
- *
- * Requires:
- *	No requests are outstanding.
- */
-static void
-client_deactivate(ns_client_t *client) {
-	REQUIRE(NS_CLIENT_VALID(client));
-
 }
 
 void
