@@ -2205,7 +2205,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./make/includes.in				MAKE	1999,2000,2001,2004
 ./make/mkdep.in					X	1999,2000,2001
-./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004
+./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005
 ./mkinstalldirs					X	1996
 ./util/.cvsignore				X	2000,2001
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000,2001
