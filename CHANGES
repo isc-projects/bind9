@@ -31,6 +31,9 @@
 
 1282.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
 
+1279.	[bug]		libbind: get_salen() IPv6 support was broken for OSs
+			w/o sa_len.
+
 1278.	[bug]		libbind: res_nametotype() and res_nametoclass() were
 			broken.
 
