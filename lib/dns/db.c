@@ -27,6 +27,7 @@
 #include <isc/assertions.h>
 
 #include <dns/db.h>
+#include <dns/master.h>
 #include <dns/rdataset.h>
 
 /***
@@ -170,14 +171,65 @@ dns_db_class(dns_db_t *db) {
 }
 
 dns_result_t
+dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
+		 dns_dbload_t **dbloadp) {
+	/*
+	 * Begin loading 'db'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(addp != NULL && *addp == NULL);
+	REQUIRE(dbloadp != NULL && *dbloadp == NULL);
+
+	return ((db->methods->beginload)(db, addp, dbloadp));
+}
+
+dns_result_t
+dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
+	/*
+	 * Finish loading 'db'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(dbloadp != NULL && *dbloadp != NULL);
+
+	return ((db->methods->endload)(db, dbloadp));
+}
+
+dns_result_t
 dns_db_load(dns_db_t *db, char *filename) {
+	dns_result_t result, eresult;
+	int soacount, nscount;
+	dns_rdatacallbacks_t callbacks;
+	isc_boolean_t age_ttl = ISC_FALSE;
+
 	/*
 	 * Load master file 'filename' into 'db'.
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
 
-	return (db->methods->load(db, filename));
+	if ((db->attributes & DNS_DBATTR_CACHE) != 0)
+		age_ttl = ISC_TRUE;
+
+	dns_rdatacallbacks_init(&callbacks);
+
+	result = dns_db_beginload(db, &callbacks.add, &callbacks.add_private);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = dns_master_load(filename, &db->origin, &db->origin,
+				 db->rdclass, age_ttl, &soacount, &nscount,
+				 &callbacks, db->mctx);
+	eresult = dns_db_endload(db, &callbacks.add_private);
+	/*
+	 * We always call dns_db_endload(), but we only want to return its
+	 * result if dns_master_load() succeeded.  If dns_master_load()
+	 * failed, we want to return the result code it gave us.
+	 */
+	if (result == ISC_R_SUCCESS)
+		result = eresult;
+
+	return (result);
 }
 
 dns_result_t
@@ -188,7 +240,7 @@ dns_db_dump(dns_db_t *db, dns_dbversion_t *version, char *filename) {
 
 	REQUIRE(DNS_DB_VALID(db));
 
-	return (db->methods->dump(db, version, filename));
+	return ((db->methods->dump)(db, version, filename));
 }
 
 /***

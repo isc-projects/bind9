@@ -30,6 +30,7 @@
 #include <isc/mutex.h>
 #include <isc/rwlock.h>
 
+#include <dns/types.h>
 #include <dns/name.h>
 #include <dns/fixedname.h>
 #include <dns/db.h>
@@ -145,6 +146,7 @@ typedef struct {
 } dns_rbtdb_t;
 
 #define RBTDB_ATTR_LOADED		0x01
+#define RBTDB_ATTR_LOADING		0x02
 
 /*
  * Search Context
@@ -2716,10 +2718,8 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static dns_result_t
-add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
-		      dns_rdataset_t *rdataset)
-{
-	rbtdb_load_t *loadctx = callbacks->commit_private;
+loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
+	rbtdb_load_t *loadctx = arg;
 	dns_rbtdb_t *rbtdb = loadctx->rbtdb;
 	dns_rbtnode_t *node = NULL;
 	dns_result_t result;
@@ -2767,76 +2767,73 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 }
 
 static dns_result_t
-load(dns_db_t *db, char *filename) {
-	rbtdb_load_t loadctx;
+beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp, dns_dbload_t **dbloadp) {
+	rbtdb_load_t *loadctx;
 	dns_rbtdb_t *rbtdb;
-	int soacount, nscount;
-	dns_rdatacallbacks_t callbacks;
 	dns_result_t result;
-	dns_name_t name;
-	isc_boolean_t age_ttl;
 	
 	rbtdb = (dns_rbtdb_t *)db;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	loadctx.rbtdb = rbtdb;
+	loadctx = isc_mem_get(rbtdb->common.mctx, sizeof *loadctx);
+	if (loadctx == NULL)
+		return (DNS_R_NOMEMORY);
+
+	loadctx->rbtdb = rbtdb;
 	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0) {
-		if (isc_stdtime_get(&loadctx.now) != ISC_R_SUCCESS)
-			return (DNS_R_UNEXPECTED);
-		age_ttl = ISC_TRUE;
+		if (isc_stdtime_get(&loadctx->now) != ISC_R_SUCCESS) {
+			result = DNS_R_UNEXPECTED;
+			goto cleanup_loadctx;
+		}
 	} else {
-		loadctx.now = 0;
-		age_ttl = ISC_FALSE;
+		loadctx->now = 0;
 	}
 
 	LOCK(&rbtdb->lock);
 
-	REQUIRE((rbtdb->attributes & RBTDB_ATTR_LOADED) == 0);
-	/*
-	 * We set RBTDB_ATTR_LOADED even though we don't know the
-	 * load is going to succeed because we don't want someone to try
-	 * again with partial prior load results if a load fails.
-	 */
-	rbtdb->attributes |= RBTDB_ATTR_LOADED;
+	REQUIRE((rbtdb->attributes & (RBTDB_ATTR_LOADED|RBTDB_ATTR_LOADING))
+		== 0);
+	rbtdb->attributes |= RBTDB_ATTR_LOADING;
 
 	UNLOCK(&rbtdb->lock);
 
-	/*
-	 * In order to set the node callback bit correctly in zone databases,
-	 * we need to know if the node has the origin name of the zone.
-	 * In add_rdataset_callback(), we could simply compare the new name
-	 * to the origin name, but this is expensive.  Also, we don't know the
-	 * node name in addrdataset(), so we need another way of knowing the
-	 * zone's top.
-	 *
-	 * We now explicitly create a node for the zone's origin, and then
-	 * we simply remember the node's address.  This is safe, because
-	 * the top-of-zone node can never be deleted, nor can its address
-	 * change.
-	 */
-	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) == 0) {
-		result = dns_rbt_addnode(rbtdb->tree, &rbtdb->common.origin,
-					 &rbtdb->origin_node);
-		if (result != DNS_R_SUCCESS) {
-			INSIST(result != DNS_R_EXISTS);
-			return (result);
-		}
-		dns_name_init(&name, NULL);
-		dns_rbt_namefromnode(rbtdb->origin_node, &name);
-		rbtdb->origin_node->locknum =
-			dns_name_hash(&name, ISC_TRUE) %
-			rbtdb->node_lock_count;
-	}
+	*addp = loading_addrdataset;
+	*dbloadp = loadctx;
 
-	dns_rdatacallbacks_init(&callbacks);
-	callbacks.commit = add_rdataset_callback;
-	callbacks.commit_private = &loadctx;
+	return (DNS_R_SUCCESS);
 
-	return (dns_master_load(filename, &rbtdb->common.origin, 
-				&rbtdb->common.origin, rbtdb->common.rdclass,
-				age_ttl, &soacount, &nscount, &callbacks,
-				rbtdb->common.mctx));
+ cleanup_loadctx:
+	isc_mem_put(rbtdb->common.mctx, loadctx, sizeof *loadctx);
+
+	return (result);
+}
+
+static isc_result_t
+endload(dns_db_t *db, dns_dbload_t **dbloadp) {
+	rbtdb_load_t *loadctx;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(dbloadp != NULL);
+	loadctx = *dbloadp;
+	REQUIRE(loadctx->rbtdb == rbtdb);
+
+	LOCK(&rbtdb->lock);
+
+	REQUIRE((rbtdb->attributes & RBTDB_ATTR_LOADING) != 0);
+	REQUIRE((rbtdb->attributes & RBTDB_ATTR_LOADED) == 0);
+
+	rbtdb->attributes &= ~RBTDB_ATTR_LOADING;
+	rbtdb->attributes |= RBTDB_ATTR_LOADED;
+
+	UNLOCK(&rbtdb->lock);
+	
+	*dbloadp = NULL;
+
+	isc_mem_put(rbtdb->common.mctx, loadctx, sizeof *loadctx);
+
+	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
@@ -2866,7 +2863,8 @@ delete_callback(void *data, void *arg) {
 static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
-	load,
+	beginload,
+	endload,
 	dump,
 	currentversion,
 	newversion,
@@ -2889,7 +2887,8 @@ static dns_dbmethods_t zone_methods = {
 static dns_dbmethods_t cache_methods = {
 	attach,
 	detach,
-	load,
+	beginload,
+	endload,
 	dump,
 	currentversion,
 	newversion,
@@ -2920,10 +2919,10 @@ dns_rbtdb_create
 		 dns_db_t **dbp)
 {
 	dns_rbtdb_t *rbtdb;
-	isc_result_t iresult;
-	dns_result_t dresult;
+	isc_result_t result;
 	int i;
 	isc_region_t r1, r2;
+	dns_name_t name;
 
 	/* Keep the compiler happy. */
 	(void)argc;
@@ -2942,22 +2941,22 @@ dns_rbtdb_create
 	rbtdb->common.rdclass = rdclass;
 	rbtdb->common.mctx = mctx;
 
-	iresult = isc_mutex_init(&rbtdb->lock);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&rbtdb->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(iresult));
+				 isc_result_totext(result));
 		return (DNS_R_UNEXPECTED);
 	}
 
-	iresult = isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
+	if (result != ISC_R_SUCCESS) {
 		isc_mutex_destroy(&rbtdb->lock);
 		isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(iresult));
+				 isc_result_totext(result));
 		return (DNS_R_UNEXPECTED);
 	}
 
@@ -2968,8 +2967,8 @@ dns_rbtdb_create
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count * 
 					sizeof (rbtdb_nodelock_t));
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
-		iresult = isc_mutex_init(&rbtdb->node_locks[i].lock);
-		if (iresult != ISC_R_SUCCESS) {
+		result = isc_mutex_init(&rbtdb->node_locks[i].lock);
+		if (result != ISC_R_SUCCESS) {
 			i--;
 			while (i >= 0) {
 				isc_mutex_destroy(&rbtdb->node_locks[i].lock);
@@ -2983,7 +2982,7 @@ dns_rbtdb_create
 			isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_mutex_init() failed: %s",
-					 isc_result_totext(iresult));
+					 isc_result_totext(result));
 			return (DNS_R_UNEXPECTED);
 		}
 		rbtdb->node_locks[i].references = 0;
@@ -3003,17 +3002,49 @@ dns_rbtdb_create
 	memcpy(r2.base, r1.base, r1.length);
 	dns_name_fromregion(&rbtdb->common.origin, &r2);
 
-	rbtdb->origin_node = NULL;
-
 	/*
 	 * Make the Red-Black Tree.
 	 */
-	dresult = dns_rbt_create(mctx, delete_callback, rbtdb, &rbtdb->tree);
-	if (dresult != DNS_R_SUCCESS) {
+	result = dns_rbt_create(mctx, delete_callback, rbtdb, &rbtdb->tree);
+	if (result != DNS_R_SUCCESS) {
 		free_rbtdb(rbtdb);
-		return (dresult);
+		return (result);
+	}
+	/*
+	 * In order to set the node callback bit correctly in zone databases,
+	 * we need to know if the node has the origin name of the zone.
+	 * In loading_addrdataset() we could simply compare the new name
+	 * to the origin name, but this is expensive.  Also, we don't know the
+	 * node name in addrdataset(), so we need another way of knowing the
+	 * zone's top.
+	 *
+	 * We now explicitly create a node for the zone's origin, and then
+	 * we simply remember the node's address.  This is safe, because
+	 * the top-of-zone node can never be deleted, nor can its address
+	 * change.
+	 */
+	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) == 0) {
+		rbtdb->origin_node = NULL;
+		result = dns_rbt_addnode(rbtdb->tree, &rbtdb->common.origin,
+					 &rbtdb->origin_node);
+		if (result != DNS_R_SUCCESS) {
+			INSIST(result != DNS_R_EXISTS);
+			free_rbtdb(rbtdb);
+			return (result);
+		}
+		/*
+		 * We need to give the origin node the right locknum.
+		 */
+		dns_name_init(&name, NULL);
+		dns_rbt_namefromnode(rbtdb->origin_node, &name);
+		rbtdb->origin_node->locknum =
+			dns_name_hash(&name, ISC_TRUE) %
+			rbtdb->node_lock_count;
 	}
 
+	/*
+	 * Misc. Initialization.
+	 */
 	rbtdb->references = 1;
 	rbtdb->attributes = 0;
 

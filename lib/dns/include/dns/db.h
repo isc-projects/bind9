@@ -63,6 +63,7 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+#include <dns/callbacks.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -73,7 +74,9 @@ ISC_LANG_BEGINDECLS
 typedef struct dns_dbmethods {
 	void		(*attach)(dns_db_t *source, dns_db_t **targetp);
 	void		(*detach)(dns_db_t **dbp);
-	dns_result_t	(*load)(dns_db_t *db, char *filename);
+	dns_result_t	(*beginload)(dns_db_t *db, dns_addrdatasetfunc_t *addp,
+				     dns_dbload_t **dbloadp);
+	dns_result_t	(*endload)(dns_db_t *db, dns_dbload_t **dbloadp);
 	dns_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version, 
 				char *filename);
 	void		(*currentversion)(dns_db_t *db,
@@ -308,9 +311,71 @@ dns_db_class(dns_db_t *db);
  */
 
 dns_result_t
+dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
+		 dns_dbload_t **dbloadp);
+/*
+ * Begin loading 'db'.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ *	This is the first attempt to load 'db'.
+ *
+ *	addp != NULL && *addp == NULL
+ *
+ *	dbloadp != NULL && *dbloadp == NULL
+ *
+ * Ensures:
+ *
+ *	On success, *addp will be a valid dns_addrdatasetfunc_t suitable
+ *	for loading 'db'.  *dbloadp will be a valid DB load context which
+ *	should be used as 'arg' when *addp is called.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMEMORY
+ *
+ *	Other results are possible, depending upon the database
+ *	implementation used, syntax errors in the master file, etc.
+ */
+
+dns_result_t
+dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
+/*
+ * Finish loading 'db'.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database that is being loaded.
+ *
+ *	dbloadp != NULL and *dbloadp is a valid database load context.
+ *
+ * Ensures:
+ *
+ *	*dbloadp == NULL
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMEMORY
+ *
+ *	Other results are possible, depending upon the database
+ *	implementation used, syntax errors in the master file, etc.
+ */
+
+dns_result_t
 dns_db_load(dns_db_t *db, char *filename);
 /*
  * Load master file 'filename' into 'db'.
+ *
+ * Notes:
+ *	This routine is equivalent to calling
+ *
+ *		dns_db_beginload();
+ *		dns_master_load();
+ *		dns_db_endload();
  *
  * Requires:
  *
