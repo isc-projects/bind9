@@ -31,6 +31,7 @@
 #define NS_LOGCATEGORY_UPDATE		(&ns_g_categories[3])
 #define NS_LOGCATEGORY_XFER_IN		(&ns_g_categories[4])
 #define NS_LOGCATEGORY_XFER_OUT		(&ns_g_categories[5])
+#define NS_LOGCATEGORY_NOTIFY		(&ns_g_categories[6])
 
 #define NS_LOGMODULE_MAIN		(&ns_g_modules[0])
 #define NS_LOGMODULE_CLIENT		(&ns_g_modules[1])
@@ -40,6 +41,7 @@
 #define NS_LOGMODULE_UPDATE		(&ns_g_modules[5])
 #define NS_LOGMODULE_XFER_IN		(&ns_g_modules[6])
 #define NS_LOGMODULE_XFER_OUT		(&ns_g_modules[7])
+#define NS_LOGMODULE_NOTIFY		(&ns_g_modules[8])
 
 isc_result_t
 ns_log_init(void);
