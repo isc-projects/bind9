@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.91 2001/01/12 10:20:05 marka Exp $ */
+/* $Id: xfrout.c,v 1.92 2001/01/12 10:25:15 marka Exp $ */
 
 #include <config.h>
 
@@ -196,7 +196,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 		while (it->result == ISC_R_NOMORE) {
 			dns_rdatasetiter_destroy(&it->rdatasetit);
 			dns_db_detachnode(it->db, &it->node);
-			it->paused = ISC_TRUE;
+			it->paused = ISC_FALSE;
 			it->result = dns_dbiterator_next(it->dbit);
 			if (it->result == ISC_R_NOMORE) {
 				/* We are at the end of the entire database. */
