@@ -26,7 +26,7 @@
 static dns_result_t disassociate(dns_rdataset_t *rdatasetp);
 static dns_result_t first(dns_rdataset_t *rdataset);
 static dns_result_t next(dns_rdataset_t *rdataset);
-void current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 
 static dns_rdatasetmethods_t methods = {
 	disassociate,
@@ -54,20 +54,15 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	rdataset->private1 = rdatalist;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
+	rdataset->private4 = NULL;
+	rdataset->private5 = NULL;
 
 	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
 disassociate(dns_rdataset_t *rdataset) {
-	rdataset->methods = NULL;
-	rdataset->class = 0;
-	rdataset->type = 0;
-	rdataset->ttl = 0;
-	rdataset->private1 = NULL;
-	rdataset->private2 = NULL;
-	rdataset->private3 = NULL;
-
+	(void)rdataset;				/* Keep compiler quiet. */
 	return (DNS_R_SUCCESS);
 }
 
@@ -97,7 +92,7 @@ next(dns_rdataset_t *rdataset) {
 	return (DNS_R_SUCCESS);
 }
 
-void
+static void
 current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	dns_rdata_t *list_rdata;
 
