@@ -15,18 +15,22 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.10 1999/01/22 00:38:47 marka Exp $ */
+ /* $Id: rdata.c,v 1.11 1999/01/22 01:21:02 explorer Exp $ */
+
+#include <config.h>
+
+#include <stdio.h>
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
+#include <isc/assertions.h>
+
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/rdata.h>
 #include <dns/region.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-#include <stdio.h>
-#include <isc/assertions.h>
 
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \
@@ -175,7 +179,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata,
 
 	ss = *source;
 	st = *target;
-	region.base = target->base + target->used;
+	region.base = (unsigned char *)(target->base) + target->used;
 
 	FROMWIRESWITCH
 
@@ -230,7 +234,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	st = *target;
-	region.base = target->base + target->used;
+	region.base = (unsigned char *)(target->base) + target->used;
 
 	FROMTEXTSWITCH
 
@@ -290,7 +294,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata,
 	isc_region_t region;
 	isc_boolean_t use_default = ISC_FALSE;
 
-	region.base = target->base + target->used;
+	region.base = (unsigned char *)(target->base) + target->used;
 	st = *target;
 
 	FROMSTRUCTSWITCH
