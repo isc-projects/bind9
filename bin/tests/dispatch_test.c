@@ -421,6 +421,8 @@ main(int argc, char *argv[])
 
 	isc_app_run();
 
+	dns_dispatch_cancel(disp);
+
 	isc_socket_detach(&s0);
 
 	dns_dispatch_detach(&disp);
