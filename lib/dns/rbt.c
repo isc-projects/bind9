@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.101 2001/02/09 01:26:49 bwelling Exp $ */
+/* $Id: rbt.c,v 1.102 2001/02/09 18:48:57 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1605,18 +1605,6 @@ hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	rbt->hashtable[hash] = node;
 }
 
-static void
-inithash_internal(dns_rbt_t *rbt, dns_rbtnode_t *node) {
-	if (node == NULL)
-		return;
-
-	hash_add_node(rbt, node);
-
-	inithash_internal(rbt, DOWN(node));
-	inithash_internal(rbt, LEFT(node));
-	inithash_internal(rbt, RIGHT(node));
-}
-
 static isc_result_t
 inithash(dns_rbt_t *rbt) {
 	unsigned int bytes;
@@ -1629,8 +1617,6 @@ inithash(dns_rbt_t *rbt) {
 		return (ISC_R_NOMEMORY);
 
 	memset(rbt->hashtable, 0, bytes);
-
-	inithash_internal(rbt, rbt->root);
 
 	return (ISC_R_SUCCESS);
 }
