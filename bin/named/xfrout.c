@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.72 2000/08/09 00:09:30 gson Exp $ */
+/* $Id: xfrout.c,v 1.73 2000/08/09 04:17:49 tale Exp $ */
 
 #include <config.h>
 
@@ -60,6 +60,11 @@
 
 #define XFROUT_DEBUG_LOGARGS(n) \
 	XFROUT_COMMON_LOGARGS, ISC_LOG_DEBUG(n)
+
+#define XFROUT_RR_LOGARGS \
+	XFROUT_COMMON_LOGARGS, XFROUT_RR_LOGLEVEL
+
+#define XFROUT_RR_LOGLEVEL	ISC_LOG_DEBUG(8)
 
 /*
  * Fail unconditionally and log as a client error.
@@ -243,10 +248,8 @@ db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 static void
 log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	isc_result_t result;
-
 	isc_buffer_t buf;
 	char mem[2000];
-	isc_region_t r;
 	dns_rdatalist_t rdl;
 	dns_rdataset_t rds;
 
@@ -268,17 +271,18 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	 * very long lines with a repetitive prefix.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		/* Get rid of final newline. */
+		/*
+		 * Get rid of final newline.
+		 */
 		INSIST(buf.used >= 1 &&
-		       ((char *) buf.base)[buf.used-1] == '\n');
+		       ((char *) buf.base)[buf.used - 1] == '\n');
 		buf.used--;
 		
-		isc_buffer_usedregion(&buf, &r);
-		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
-			      "%.*s", (int) r.length, (char *) r.base);
+		isc_log_write(XFROUT_RR_LOGARGS, "%.*s",
+			      (int)isc_buffer_usedlength(&buf),
+			      (char *)isc_buffer_used(&buf));
 	} else {
-		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
-			      "<RR too large to print>");
+		isc_log_write(XFROUT_RR_LOGARGS, "<RR too large to print>");
 	}
 }
 
@@ -934,15 +938,15 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 * Decide whether to allow this transfer.
 	 */
 	CHECK(ns_client_checkacl(client, "zone transfer",
-				 dns_zone_getxfracl(zone), ISC_TRUE, ISC_TRUE));
+				 dns_zone_getxfracl(zone), ISC_TRUE,
+				 ISC_TRUE));
 
 	/*
 	 * AXFR over UDP is not possible.
 	 */
 	if (reqtype == dns_rdatatype_axfr &&
-	    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
+	    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
-	}
 
 	/*
 	 * Look up the requesting server in the peer table.
@@ -1315,7 +1319,8 @@ sendstream(xfrout_ctx_t *xfr) {
 			break;
 		}
 
-		log_rr(name, rdata, ttl); /* XXX */
+		if (isc_log_wouldlog(ns_g_lctx, XFROUT_RR_LOGLEVEL))
+			log_rr(name, rdata, ttl); /* XXX */
 
 		dns_message_gettempname(msg, &msgname);
 		dns_name_init(msgname, NULL);
