@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.97 2000/06/22 23:04:27 tale Exp $ */
+/* $Id: client.c,v 1.98 2000/06/22 23:48:07 marka Exp $ */
 
 #include <config.h>
 
@@ -621,8 +621,10 @@ ns_client_send(ns_client_t *client) {
 		 */
 		INSIST(client->tcpbuf == NULL);
 		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
-		if (client->tcpbuf == NULL)
+		if (client->tcpbuf == NULL) {
+			result = ISC_R_NOMEMORY;
 			goto done;
+		}
 		data = client->tcpbuf;
 		isc_buffer_init(&tcpbuffer, data, TCP_BUFFER_SIZE);
 		isc_buffer_init(&buffer, data + 2, TCP_BUFFER_SIZE - 2);
