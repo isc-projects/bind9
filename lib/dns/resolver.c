@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.16 2003/05/19 04:47:05 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.17 2003/07/02 04:43:27 marka Exp $ */
 
 #include <config.h>
 
@@ -2229,7 +2229,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Compute an expiration time for the entire fetch.
 	 */
-	isc_interval_set(&interval, 90, 0);		/* XXXRTH constant */
+	isc_interval_set(&interval, 30, 0);		/* XXXRTH constant */
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
