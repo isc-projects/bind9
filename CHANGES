@@ -1,4 +1,10 @@
 
+   4.	[port]		bin/named/unix/os.c didn't compile on systems with
+			linux 2.3 kernel includes due to conflicts between
+			C library includes and the kernel includes.  We now
+			get only what we need from <linux/capability.h>, and
+			avoid pulling in other linux kernel .h files.
+
    3.	[bug]		TKEYs go in the answer section of responses, not
 			the additional section.
 
