@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: time.c,v 1.3 1999/10/05 19:50:10 halley Exp $ */
+ /* $Id: time.c,v 1.4 1999/10/08 23:58:07 tale Exp $ */
 
 #include <config.h>
 
@@ -72,7 +72,7 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 		t -= 60;
 		tm.tm_min++;
 	}
-	tm.tm_sec = t;
+	tm.tm_sec = (int)t;
 		    /* yy  mm  dd  HH  MM  SS */
 	sprintf(buf, "%04d%02d%02d%02d%02d%02d",
 		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
@@ -151,12 +151,12 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 dns_result_t
 dns_time32_fromtext(char *source, isc_uint32_t *target) {
 	isc_int64_t value64;
-	isc_int64_t value32;	
+	isc_int32_t value32;
 	dns_result_t result;
 	result = dns_time64_fromtext(source, &value64);
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	value32 = (isc_uint32_t) value64;
+	value32 = (isc_uint32_t)value64;
 	if (value32 != value64)
 		return DNS_R_RANGE;
 	*target = value32;
