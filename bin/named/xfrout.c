@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.7 1999/09/09 08:39:00 gson Exp $ */
+ /* $Id: xfrout.c,v 1.8 1999/09/10 15:01:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatasetiter.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -710,14 +711,17 @@ typedef struct {
 	void 			*txmem;
 	unsigned int 		txmemlen;
 	unsigned int		nmsg;		/* Number of messages sent */
+
+	dns_tsig_key_t		*tsigkey;	/* Key used to create TSIG */
+	dns_rdata_any_tsig_t	*lasttsig;	/* the last TSIG */
 } xfrout_ctx_t;
 
 static dns_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  unsigned int id, dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
-		  rrstream_t *stream,
-		  xfrout_ctx_t **xfrp);
+		  rrstream_t *stream, dns_tsig_key_t *tsigkey,
+		  dns_rdata_any_tsig_t *lasttsig, xfrout_ctx_t **xfrp);
 
 static void sendstream(xfrout_ctx_t *xfr);
 
@@ -902,7 +906,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 
  have_stream:
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
-				reqtype, db, ver, stream, &xfr));
+				reqtype, db, ver, stream, request->tsigkey,
+				request->tsig, &xfr));
 	stream = NULL;
 	db = NULL;
 	ver = NULL;
@@ -942,8 +947,8 @@ static dns_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
-		  rrstream_t *stream, 
-		  xfrout_ctx_t **xfrp)
+		  rrstream_t *stream, dns_tsig_key_t *tsigkey,
+		  dns_rdata_any_tsig_t *lasttsig, xfrout_ctx_t **xfrp)
 {
 	xfrout_ctx_t *xfr;
 	dns_result_t result;
@@ -962,6 +967,8 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->db = db;
 	xfr->ver = ver;
 	xfr->stream = stream;
+	xfr->tsigkey = tsigkey;
+	xfr->lasttsig = lasttsig;
 	xfr->txmem = NULL;
 	xfr->txmemlen = 0;
 	xfr->nmsg = 0;
@@ -1055,6 +1062,8 @@ sendstream(xfrout_ctx_t *xfr)
 	msg->id = xfr->id;
 	msg->rcode = dns_rcode_noerror;
 	msg->flags = DNS_MESSAGEFLAG_QR | DNS_MESSAGEFLAG_AA;
+	msg->tsigkey = xfr->tsigkey;
+	msg->querytsig = xfr->lasttsig;
 
 	/*
 	 * Include a question section in the first message only. 
@@ -1089,6 +1098,8 @@ sendstream(xfrout_ctx_t *xfr)
 
 		dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
 	}
+	else
+		msg->tcp_continuation = 1;
 	
 	/*
 	 * Try to fit in as many RRs as possible, unless "one-answer"
@@ -1211,12 +1222,26 @@ sendstream(xfrout_ctx_t *xfr)
 		xfrout_ctx_destroy(&xfr);
 		return;
 	}
+
+	/* Advance lasttsig to be the last TSIG generated */
+	xfr->lasttsig = msg->tsig;
+
+	/* Clear this field so the TSIG is not destroyed */
+	msg->tsig = NULL;
+
+	/*
+	 * If this is the first message, clear this too, since this is
+	 * also pointed to by the request.
+	 */
+	if (xfr->nmsg == 0)
+		msg->querytsig = NULL;
+
 	xfr->nmsg++;
 
  failure:
-	if (msg != NULL)
+	if (msg != NULL) {
 		dns_message_destroy(&msg);
-
+	}
 	if (result == DNS_R_SUCCESS)
 		return;
 
@@ -1233,6 +1258,10 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 		isc_mem_put(xfr->mctx, xfr->buf.base, xfr->buf.length);
 	if (xfr->txmem != NULL)
 		isc_mem_put(xfr->mctx, xfr->txmem, xfr->txmemlen);
+	if (xfr->lasttsig != NULL) {
+		dns_rdata_freestruct(xfr->lasttsig);
+		isc_mem_put(xfr->mctx, xfr->lasttsig, sizeof(*xfr->lasttsig));
+	}
 
 	/* XXX */
 	if (xfr->ver != NULL) 
