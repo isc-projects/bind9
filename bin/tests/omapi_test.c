@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi_test.c,v 1.22.2.2 2000/06/28 03:41:27 tale Exp $ */
+/* $Id: omapi_test.c,v 1.22.2.3 2000/07/13 02:33:43 gson Exp $ */
 
 /* 
  * Test code for OMAPI.
@@ -409,6 +409,8 @@ do_connect(const char *host, int port) {
 	client_object_t *client = NULL;
 	isc_result_t result;
 	const char *key;
+	const char *bad_secret1 = "this secret is wrong";
+	const char *bad_secret2 = "Yet Another Secret";
 
 	RUNTIME_CHECK(omapi_object_register(&client_type, "client",
 					    client_setvalue,
@@ -446,13 +448,15 @@ do_connect(const char *host, int port) {
 		omapi_auth_deregister(KEY1_NAME);
 
 		RUNTIME_CHECK(omapi_auth_register(KEY1_NAME,
-						  "this secret is wrong",
-						  OMAPI_AUTH_HMACMD5)
+						  OMAPI_AUTH_HMACMD5,
+						  bad_secret1,
+						  strlen(bad_secret1))
 			      == ISC_R_SUCCESS);
 	} else if (error_unknownsig) {
 		RUNTIME_CHECK(omapi_auth_register(KEY2_NAME,
-						  "Yet Another Secret",
-						  OMAPI_AUTH_HMACMD5)
+						  OMAPI_AUTH_HMACMD5,
+						  bad_secret2,
+						  strlen(bad_secret2))
 			      == ISC_R_SUCCESS);
 
 		key = KEY2_NAME;
@@ -538,6 +542,25 @@ listen_done(isc_task_t *task, isc_event_t *event) {
 	omapi_lib_destroy();
 }
 
+static isc_boolean_t
+verify_connection(isc_sockaddr_t *sockaddr, void *arg) {
+	/* XXXDCL test the connection verification code */
+	UNUSED(sockaddr);
+	UNUSED(arg);
+
+	return (ISC_TRUE);
+}
+
+static isc_boolean_t
+verify_key(const char *name, unsigned int algorithm, void *arg) {
+	/* XXXDCL test the key verification code */
+	UNUSED(name);
+	UNUSED(algorithm);
+	UNUSED(arg);
+
+	return (ISC_TRUE);
+}
+
 static void
 do_listen(int port) {
 	omapi_object_t *listener = NULL;
@@ -591,7 +614,8 @@ do_listen(int port) {
 	 */
 	inaddr.s_addr = INADDR_ANY;
 	isc_sockaddr_fromin(&sockaddr, &inaddr, port);
-	RUNTIME_CHECK(omapi_protocol_listen(listener, &sockaddr, acl, 1,
+	RUNTIME_CHECK(omapi_protocol_listen(listener, &sockaddr,
+					    verify_connection, verify_key,
 					    listen_done, listener)
 		      == ISC_R_SUCCESS);
 
@@ -623,6 +647,7 @@ main(int argc, char **argv) {
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_entropy_t *entropy = NULL;
+	const char *secret = "shhh, this is a secret";
 	int ch;
 
 	progname = strrchr(*argv, '/');
@@ -683,14 +708,13 @@ main(int argc, char **argv) {
 	 * Initialize the signature library.
 	 */
 	RUNTIME_CHECK(isc_entropy_create(mctx, &entropy) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dst_lib_init(mctx, entropy, ISC_ENTROPY_BLOCKING)
-		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dst_lib_init(mctx, entropy, 0) == ISC_R_SUCCESS);
 
 	/*
 	 * The secret key is shared on both the client and server side.
 	 */
-	RUNTIME_CHECK(omapi_auth_register(KEY1_NAME, "shhh, this is a secret",
-					  OMAPI_AUTH_HMACMD5)
+	RUNTIME_CHECK(omapi_auth_register(KEY1_NAME, OMAPI_AUTH_HMACMD5,
+					  secret, strlen(secret))
 		      == ISC_R_SUCCESS);
 
 	if (argc >= 1 && strcmp(argv[0], "listen") == 0) {
