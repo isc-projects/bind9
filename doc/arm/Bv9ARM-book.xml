@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.17 2002/04/22 03:43:25 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.18 2002/04/22 04:14:25 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3931,8 +3931,8 @@ are set by the master, giving slave server administrators little
 control over their contents.
 </para><para>
 These options allow the administrator to set a minimum and maximum
-refresh and retry time either per-zone, per-view, or per-server.
-These options are valid for master, slave and stub zones, 
+refresh and retry time either per-zone, per-view or globally.
+These options are valid for slave and stub zones, 
 and clamp the SOA refresh and retry times to the specified values.
 </para></listitem></varlistentry>
 
