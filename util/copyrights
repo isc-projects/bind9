@@ -895,7 +895,6 @@
 ./doc/arm/Bv9ARM.html				X	2000,2001
 ./doc/arm/Makefile.in				MAKE	2001
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001
-./doc/arm/catalog.in				X	2000,2001
 ./doc/arm/isc.color.gif				X	2000,2001
 ./doc/arm/nominum-docbook-html.dsl.in		X	2000,2001
 ./doc/arm/nominum-docbook-print.dsl.in		X	2001
@@ -1806,7 +1805,6 @@
 ./lib/tests/include/tests/t_api.h		C	1999,2000,2001
 ./lib/tests/t_api.c				C	1999,2000,2001
 ./libtool.m4					X	2000,2001
-./ltconfig					X	1999,2000,2001
 ./ltmain.sh					X	1999,2000,2001
 ./make/.cvsignore				X	1999,2000,2001
 ./make/Makefile.in				MAKE	1998,1999,2000,2001
