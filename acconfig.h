@@ -15,21 +15,6 @@
  * SOFTWARE.
  */
 
-/* define if you need inet_aton() */
-#undef NEED_INET_ATON
-
-/* define if you need inet_ntop() */
-#undef NEED_INET_NTOP
-
-/* define if you need inet_pton() */
-#undef NEED_INET_PTON
-
-/* define if you need AF_INET6 */
-#undef NEED_AF_INET6
-
-/* define if your struct sockaddr has a sa_len member */
-#undef HAVE_SA_LEN
-
 /* define on DEC OSF to enable 4.4BSD style sa_len support */
 #undef _SOCKADDR_LEN
 
