@@ -21,6 +21,7 @@
 #include <isc/boolean.h>
 #include <isc/error.h>
 #include <isc/ratelimiter.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 struct isc_ratelimiter {
@@ -73,8 +74,7 @@ free_mem:
 }
 
 isc_result_t
-isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval)
-{
+isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval) {
 	isc_result_t result = ISC_R_SUCCESS;
 	LOCK(&rl->lock);
 	rl->interval = *interval;
@@ -88,11 +88,9 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval)
 	UNLOCK(&rl->lock);
 	return (result);
 }
-			    
 			
 isc_result_t
-isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp)
-{
+isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	INSIST(eventp != NULL && *eventp != NULL);
 	LOCK(&rl->lock);
@@ -114,8 +112,7 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp)
 }
 
 static void
-ratelimiter_tick(isc_task_t *task, isc_event_t *event)
-{
+ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
 	isc_event_t *p;
@@ -150,8 +147,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event)
 }
 
 void
-isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp) 
-{
+isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp) {
 	isc_ratelimiter_t *rl = *ratelimiterp;
 	isc_event_t *p;
 	(void) isc_timer_reset(rl->timer, isc_timertype_inactive,
