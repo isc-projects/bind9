@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.63 2000/12/02 00:30:34 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.64 2000/12/02 00:32:23 gson Exp $ -->
 
 <book>
 
@@ -2708,10 +2708,8 @@ transfers, use <command>provide-ixfr</command> <userinput>no</userinput>.</para>
 <entry colname = "1"><para><command>multiple-cnames</command></para></entry>
 <entry colname = "2"><para>This option was used in <acronym>BIND</acronym> 8 to allow
 a domain name to allow multiple CNAME records in violation of the
-DNS standards.  <acronym>BIND</acronym> 9 currently does not check for multiple CNAMEs
-in zone data loaded from master files, but such checks may be introduced
-in a later release.  <acronym>BIND</acronym> 9 always strictly enforces the CNAME rules
-in dynamic updates.</para></entry>
+DNS standards.  <acronym>BIND</acronym> 9.1 always strictly
+enforces the CNAME rules both in master files and dynamic updates.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>notify</command></para></entry>
