@@ -1,4 +1,8 @@
 
+1006.	[bug]		If a KEY RR was found missing during DNSSEC validation,
+			an assertion failure could subsequently be triggered
+			in the resolver. [RT #1763]
+
 1005.	[bug]		Don't copy nonzero RCODEs from request to response.
 			[RT #1765]
 

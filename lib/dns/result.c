@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.91 2001/08/30 05:10:55 marka Exp $ */
+/* $Id: result.c,v 1.92 2001/09/19 21:25:44 gson Exp $ */
 
 #include <config.h>
 
@@ -119,7 +119,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"unknown protocol",		       /* 75 DNS_R_UNKNOWNPROTO	     */
 	"clocks are unsynchronized",	       /* 76 DNS_R_CLOCKSKEW	     */
 	"IXFR failed",			       /* 77 DNS_R_BADIXFR	     */
-	"not authoritative"		       /* 78 DNS_R_NOTAUTHORITATIVE  */
+	"not authoritative",		       /* 78 DNS_R_NOTAUTHORITATIVE  */
+	"no valid KEY"		       	       /* 79 DNS_R_NOVALIDKEY	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
