@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.7 2002/02/20 03:35:42 marka Exp $ */
+/* $Id: errno2result.c,v 1.8 2002/08/01 03:50:24 mayer Exp $ */
 
 #include <config.h>
 
@@ -38,13 +38,17 @@ isc__errno2result(int posixerrno) {
 	switch (posixerrno) {
 	case ENOTDIR:
 	case WSAELOOP:
+	case WSAEINVAL:
 	case EINVAL:		/* XXX sometimes this is not for files */
 	case ENAMETOOLONG:
+	case WSAENAMETOOLONG:
 	case EBADF:
+	case WSAEBADF:
 		return (ISC_R_INVALIDFILE);
 	case ENOENT:
 		return (ISC_R_FILENOTFOUND);
 	case EACCES:
+	case WSAEACCES:
 	case EPERM:
 		return (ISC_R_NOPERM);
 	case EEXIST:
@@ -55,6 +59,7 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_NOMEMORY);
 	case ENFILE:
 	case EMFILE:
+	case WSAEMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
 	default:
 		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
