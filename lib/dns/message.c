@@ -2296,9 +2296,10 @@ dns_message_gettsig(dns_message_t *msg, dns_name_t **owner) {
 	 */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(owner != NULL && *owner == NULL);
+	REQUIRE(owner == NULL || *owner == NULL);
 
-	*owner = msg->tsigname;
+	if (owner != NULL)
+		*owner = msg->tsigname;
 	return (msg->tsig);
 }
 
@@ -2431,8 +2432,9 @@ dns_message_getsig0(dns_message_t *msg, dns_name_t **owner) {
 	 */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(owner == NULL || *owner == NULL);
 
-	if (msg->sig0 != NULL) {
+	if (msg->sig0 != NULL && owner != NULL) {
 		/* If dns_message_getsig0 is called on a rendered message
 		 * after the SIG(0) has been applied, we need to return the
 		 * root name, not NULL.
@@ -2441,12 +2443,8 @@ dns_message_getsig0(dns_message_t *msg, dns_name_t **owner) {
 			*owner = dns_rootname;
 		else
 			*owner = msg->sig0name;
-		return (msg->sig0);
 	}
-	else {
-		*owner = NULL;
-		return (NULL);
-	}
+	return (msg->sig0);
 }
 
 isc_result_t

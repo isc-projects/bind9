@@ -944,11 +944,15 @@ dns_message_gettsig(dns_message_t *msg, dns_name_t **owner);
  * Requires:
  *
  *	'msg' is a valid message.
- *	'owner' is not NULL, and *owner is NULL.  Contains the owner on return.
+ *	'owner' is NULL or *owner is NULL.
  *
  * Returns:
  *
  *	The TSIG rdataset of 'msg', or NULL if there isn't one.
+ *
+ * Ensures:
+ *
+ * 	If 'owner' is not NULL, it will point to the owner name.
  */
 
 isc_result_t
@@ -1034,11 +1038,15 @@ dns_message_getsig0(dns_message_t *msg, dns_name_t **owner);
  * Requires:
  *
  *	'msg' is a valid message.
- *	'owner' is not NULL, and *owner is NULL.  Contains the owner on return.
+ *	'owner' is NULL or *owner is NULL.
  *
  * Returns:
  *
  *	The SIG(0) rdataset of 'msg', or NULL if there isn't one.
+ *
+ * Ensures:
+ *
+ * 	If 'owner' is not NULL, it will point to the owner name.
  */
 
 isc_result_t
