@@ -91,7 +91,7 @@
 			gai_strerror(). [RT #679]
 
  691.	[bug]		Configuring per-view forwarders caused an assertion
-			failure. [RT #675]
+			failure. [RT #675, #734]
 
  690.	[func]		$GENERATE now supports DNAME. [RT #654]
 
