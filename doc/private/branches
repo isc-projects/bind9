@@ -3,13 +3,13 @@ Name		Status		Whom
 a6_remove	open		jinmei
 blabel-cleanup
 ipv6-improvements review	marka
-ipv6-scope	review 		marka
 ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
 rt3598		review		explorer
 rt3625		review		explorer
 rt3746		open		marka
 rt3892		review		explorer
+rt4090		review		explorer
 v6source
 
 rt3536(ixfr)	closed
@@ -18,3 +18,4 @@ rt3588		closed
 rt3653		closed
 rt3445		closed
 marka_google	closed
+ipv6-scope	closed
