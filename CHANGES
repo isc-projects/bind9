@@ -1,4 +1,6 @@
-1008.	[port]		libtool.m4, ltmain.sh from libtool-1.4.2
+1009.	[port]		OpenUNIX 8 support. [RT #1728]
+
+1008.	[port]		libtool.m4, ltmain.sh from libtool-1.4.2.
 
 1003.	[func]		Add the +retry option to dig.
 
