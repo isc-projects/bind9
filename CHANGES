@@ -1,3 +1,5 @@
+ 510.	[bug]		Remove spurious view notify warning. [RT #376]
+
  509.	[func]		Add support for write of zone files on shutdown.
 
  508.	[func]		dns_message_parse() can now do a best-effort
