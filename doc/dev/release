@@ -1,0 +1,66 @@
+
+
+Preparing a bind9 release
+
+
+Here's a rough outline of the steps to follow in preparing a new bind9
+release.
+
+
+ - Update the README file
+
+ - Verify that VERSION contains the correct version
+   number (it should have been incremented after the
+   previous release)
+
+ - Announce a CVS pool freeze on bind-dev
+
+ - Do basic tests on each build system:
+
+    check out a source tree
+    do a build
+    test it:
+      transfer in
+      transfer out
+      auth query
+      recursive query
+      exit cleanly with no leaks
+
+ - On selected platforms, do more detailed tests:
+
+    Using bind9 as a caching server during web surfing
+    Resolving IPv6 addresses
+    Doing queries over IPv6
+
+ - Tag the CVS source tree with the final tag
+
+ - Export the source tree in to a fresh directory by
+   running "cvs export"
+
+ - Run "make kit"
+
+ - Take the resulting distribution files to a secure system 
+   and sign them with the ISC signing PGP key
+
+ - Change file permissions on the signature file to make sure
+   it is not writable
+
+ - Build bind9 from the kit on at least one machine
+   and test it
+
+ - Prepare a release announcement based on the previous one
+
+ - Prepare new web site information
+
+ - Verify the PGP signature
+
+ - Copy the distribution and PGP signature files to the FTP site
+
+ - Download using FTP and verify the PGP signature again
+
+ - Announce the release
+
+ - Increment VERSION
+
+ - Announce end of CVS pool freeze on bind-dev
+
