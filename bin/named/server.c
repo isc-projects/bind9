@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.220 2000/09/07 18:37:38 gson Exp $ */
+/* $Id: server.c,v 1.221 2000/09/12 10:08:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -252,8 +252,8 @@ configure_view_dnsseckeys(dns_c_view_t *cview,
 			CHECK(dns_name_fromtext(keyname, &namebuf,
 						dns_rootname, ISC_FALSE,
 						NULL));
-			CHECK(dst_key_fromdns(keyname, &rrdatabuf, mctx,
-					      &dstkey));
+			CHECK(dst_key_fromdns(keyname, viewclass, &rrdatabuf,
+					      mctx, &dstkey));
 
 			CHECK(dns_keytable_add(keytable, &dstkey));
 			INSIST(dstkey == NULL);
