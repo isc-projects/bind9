@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.1 1999/07/12 20:08:28 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.2 1999/08/26 20:41:54 bwelling Exp $
  */
 
 #include <config.h>
@@ -136,7 +136,7 @@ dst_s_bsafe_init()
  *	UPDATE (hash (more) data), FINAL (generate a signature).  This
  *	routine performs one or more of these steps.
  * Parameters
- *	mode		DST_SIG_MODE_{INIT_UPDATE_FINAL|ALL}
+ *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
  *	key		key to use for signing
  *	context		the context to use for this computation
  *	data		data to be signed
@@ -157,7 +157,7 @@ dst_bsafe_sign(const int mode, dst_key_t *key, void **context,
 	isc_region_t sig_region, digest_region;
 	dst_result_t ret;
 	
-	if (mode & DST_SIG_MODE_INIT) { 
+	if (mode & DST_SIGMODE_INIT) { 
 		md5_ctx = (B_ALGORITHM_OBJ *) isc_mem_get(mctx,
 							  sizeof(*md5_ctx));
 		if (md5_ctx == NULL)
@@ -174,7 +174,7 @@ dst_bsafe_sign(const int mode, dst_key_t *key, void **context,
 	isc_buffer_init(&digest, digest_array, sizeof(digest_array),
 			ISC_BUFFERTYPE_BINARY);
 	ret = dst_bsafe_md5digest(mode, md5_ctx, data, &digest);
-	if (ret != DST_R_SUCCESS || (mode & DST_SIG_MODE_FINAL)) {
+	if (ret != DST_R_SUCCESS || (mode & DST_SIGMODE_FINAL)) {
 		B_DestroyAlgorithmObject(md5_ctx);
 		memset(md5_ctx, 0, sizeof(*md5_ctx));
 		isc_mem_put(mctx, md5_ctx, sizeof(*md5_ctx));
@@ -182,7 +182,7 @@ dst_bsafe_sign(const int mode, dst_key_t *key, void **context,
 			return (ret);
 	}
 
-	if (mode & DST_SIG_MODE_FINAL) {
+	if (mode & DST_SIGMODE_FINAL) {
 		RSA_Key *rkey;
 		B_ALGORITHM_OBJ rsaEncryptor = (B_ALGORITHM_OBJ) NULL_PTR;
 		unsigned int written = 0;
@@ -261,7 +261,7 @@ dst_bsafe_sign(const int mode, dst_key_t *key, void **context,
  *	FINAL (generate a signature).  This routine performs one or more of 
  *	these steps.
  * Parameters
- *	mode		DST_SIG_MODE_{INIT_UPDATE_FINAL|ALL}
+ *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
  *	key		key to use for verifying
  *	context		the context to use for this computation
  *	data		signed data
@@ -283,7 +283,7 @@ dst_bsafe_verify(const int mode, dst_key_t *key, void **context,
 	dst_result_t ret;
 	int status = 0;
 
-	if (mode & DST_SIG_MODE_INIT) { 
+	if (mode & DST_SIGMODE_INIT) { 
 		md5_ctx = (B_ALGORITHM_OBJ *) isc_mem_get(mctx,
 							  sizeof(*md5_ctx));
 		if (md5_ctx == NULL)
@@ -300,7 +300,7 @@ dst_bsafe_verify(const int mode, dst_key_t *key, void **context,
 	isc_buffer_init(&digest, digest_array, sizeof(digest_array),
 			ISC_BUFFERTYPE_BINARY);
 	ret = dst_bsafe_md5digest(mode, md5_ctx, data, &digest);
-	if (ret != DST_R_SUCCESS || (mode & DST_SIG_MODE_FINAL)) {
+	if (ret != DST_R_SUCCESS || (mode & DST_SIGMODE_FINAL)) {
 		B_DestroyAlgorithmObject(md5_ctx);
 		memset(md5_ctx, 0, sizeof(*md5_ctx));
 		isc_mem_put(mctx, md5_ctx, sizeof(*md5_ctx));
@@ -308,7 +308,7 @@ dst_bsafe_verify(const int mode, dst_key_t *key, void **context,
 			return (ret);
 	}
 
-	if (mode & DST_SIG_MODE_FINAL) {
+	if (mode & DST_SIGMODE_FINAL) {
 		RSA_Key *rkey;
 		B_ALGORITHM_OBJ rsaEncryptor = (B_ALGORITHM_OBJ) NULL_PTR;
 		unsigned int written = 0;
@@ -1004,18 +1004,18 @@ dst_bsafe_md5digest(const int mode, B_ALGORITHM_OBJ *digest_obj,
 	REQUIRE(digest != NULL);
 	REQUIRE(digest_obj != NULL);
 
-	if ((mode & DST_SIG_MODE_INIT) &&
+	if ((mode & DST_SIGMODE_INIT) &&
 	    (status = B_DigestInit(*digest_obj, (B_KEY_OBJ) NULL,
 				   CHOOSER, NULL_SURRENDER)) != 0)
 		return (DST_R_SIGN_INIT_FAILURE);
 
-	if ((mode & DST_SIG_MODE_UPDATE) &&
+	if ((mode & DST_SIGMODE_UPDATE) &&
 	    (status = B_DigestUpdate(*digest_obj, data->base, data->length,
 				     NULL_SURRENDER)) != 0)
 		return (DST_R_SIGN_UPDATE_FAILURE);
 
 	isc_buffer_available(digest, &r);
-	if (mode & DST_SIG_MODE_FINAL) {
+	if (mode & DST_SIGMODE_FINAL) {
 		if (digest == NULL ||
 		    (status = B_DigestFinal(*digest_obj, r.base, &written,
 					    r.length, NULL_SURRENDER)) != 0)

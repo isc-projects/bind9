@@ -51,13 +51,13 @@ use(dst_key_t *key) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_used(&databuf, &datareg);
 
-	ret = dst_sign(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigbuf);
+	ret = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
 	printf("sign(%d) returned: %s\n", dst_key_alg(key),
 	       dst_result_totext(ret));
 
 	isc_buffer_forward(&sigbuf, 1);
 	isc_buffer_remaining(&sigbuf, &sigreg);
-	ret = dst_verify(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigreg);
+	ret = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
 	printf("verify(%d) returned: %s\n", dst_key_alg(key),
 	       dst_result_totext(ret));
 }

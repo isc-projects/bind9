@@ -37,12 +37,12 @@ typedef void *		dst_context_t;
 #define DST_MAX_ALGS		DST_ALG_HMAC_SHA1
 
 /* 'Mode' passed into dst_sign() and dst_verify() */
-#define DST_SIG_MODE_INIT	1	/* initialize digest */
-#define DST_SIG_MODE_UPDATE	2	/* add data to digest */
-#define DST_SIG_MODE_FINAL	4 	/* generate/verify signature */
-#define DST_SIG_MODE_ALL	(DST_SIG_MODE_INIT | \
-				 DST_SIG_MODE_UPDATE | \
-				 DST_SIG_MODE_FINAL)
+#define DST_SIGMODE_INIT	1	/* initialize digest */
+#define DST_SIGMODE_UPDATE	2	/* add data to digest */
+#define DST_SIGMODE_FINAL	4 	/* generate/verify signature */
+#define DST_SIGMODE_ALL		(DST_SIGMODE_INIT | \
+				 DST_SIGMODE_UPDATE | \
+				 DST_SIGMODE_FINAL)
 
 /* A buffer of this size is large enough to hold any key */
 #define DST_MAX_KEY_SIZE	1024
@@ -64,8 +64,8 @@ dst_supported_algorithm(const int alg);
 /* Sign a block of data.
  *
  * Requires:
- *	"mode" is some combination of DST_SIG_MODE_INIT, DST_SIG_MODE_UPDATE,
- *		and DST_SIG_MODE_FINAL.
+ *	"mode" is some combination of DST_SIGMODE_INIT, DST_SIGMODE_UPDATE,
+ *		and DST_SIGMODE_FINAL.
  *	"key" is a valid key.
  *	"context" contains a value appropriate for the value of "mode".
  *	"data" is a valid region.
@@ -82,8 +82,8 @@ dst_sign(const int mode, dst_key_t *key, dst_context_t *context,
 /* Verify a signature on a block of data.
  *
  * Requires:
- *	"mode" is some combination of DST_SIG_MODE_INIT, DST_SIG_MODE_UPDATE,
- *		and DST_SIG_MODE_FINAL.
+ *	"mode" is some combination of DST_SIGMODE_INIT, DST_SIGMODE_UPDATE,
+ *		and DST_SIGMODE_FINAL.
  *	"key" is a valid key.
  *	"context" contains a value appropriate for the value of "mode".
  *	"data" is a valid region.

@@ -92,7 +92,7 @@ use(dst_key_t *key, dst_result_t exp_result, int *nfails) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_used(&databuf, &datareg);
 
-	ret = dst_sign(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigbuf);
+	ret = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
 	if (ret != exp_result) {
 		t_info("dst_sign(%d) returned (%s) expected (%s)\n",
 				dst_key_alg(key), dst_result_totext(ret),
@@ -103,7 +103,7 @@ use(dst_key_t *key, dst_result_t exp_result, int *nfails) {
 
 
 	isc_buffer_remaining(&sigbuf, &sigreg);
-	ret = dst_verify(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigreg);
+	ret = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
 	if (ret != exp_result) {
 		t_info("dst_verify(%d) returned (%s) expected (%s)\n",
 				dst_key_alg(key), dst_result_totext(ret),

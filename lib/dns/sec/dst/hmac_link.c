@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.2 1999/07/29 17:21:23 bwelling Exp $
+ * $Id: hmac_link.c,v 1.3 1999/08/26 20:41:54 bwelling Exp $
  */
 
 #include <config.h>
@@ -100,7 +100,7 @@ dst_s_hmacmd5_init()
  *	UPDATE (hash (more) data), FINAL (generate a signature).  This
  *	routine performs one or more of these steps.
  * Parameters
- *	mode		DST_SIG_MODE_{INIT_UPDATE_FINAL|ALL}
+ *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
  *	key		key to use for signing
  *	context		the context to use for this computation
  *	data		data to be signed
@@ -117,7 +117,7 @@ dst_hmacmd5_sign(const int mode, dst_key_t *key, void **context,
 	isc_region_t r;
 	MD5_CTX *ctx = NULL;
 	
-	if (mode & DST_SIG_MODE_INIT) { 
+	if (mode & DST_SIGMODE_INIT) { 
 		ctx = (MD5_CTX *) isc_mem_get(mctx, sizeof(MD5_CTX));
 		if (ctx == NULL)
 			return (DST_R_NOMEMORY);
@@ -126,17 +126,17 @@ dst_hmacmd5_sign(const int mode, dst_key_t *key, void **context,
 		ctx = (MD5_CTX *) *context;
 	REQUIRE (ctx != NULL);
 
-	if (mode & DST_SIG_MODE_INIT) {
+	if (mode & DST_SIGMODE_INIT) {
 		HMAC_Key *hkey = key->opaque;
 
 		MD5Init(ctx);
 		MD5Update(ctx, hkey->ipad, HMAC_LEN);
 	}
 
-	if ((mode & DST_SIG_MODE_UPDATE))
+	if ((mode & DST_SIGMODE_UPDATE))
 		MD5Update(ctx, data->base, data->length);
 
-	if (mode & DST_SIG_MODE_FINAL) {
+	if (mode & DST_SIGMODE_FINAL) {
 		HMAC_Key *hkey = key->opaque;
 
 		isc_buffer_available(sig, &r);
@@ -168,7 +168,7 @@ dst_hmacmd5_sign(const int mode, dst_key_t *key, void **context,
  *	FINAL (generate a signature).  This routine performs one or more of 
  *	these steps.
  * Parameters
- *	mode		DST_SIG_MODE_{INIT_UPDATE_FINAL|ALL}
+ *	mode		DST_SIGMODE_{INIT_UPDATE_FINAL|ALL}
  *	key		key to use for verifying
  *	context		the context to use for this computation
  *	data		signed data
@@ -184,7 +184,7 @@ dst_hmacmd5_verify(const int mode, dst_key_t *key, void **context,
 {
 	MD5_CTX *ctx = NULL;
 	
-	if (mode & DST_SIG_MODE_INIT) { 
+	if (mode & DST_SIGMODE_INIT) { 
 		ctx = (MD5_CTX *) isc_mem_get(mctx, sizeof(MD5_CTX));
 		if (ctx == NULL)
 			return (DST_R_NOMEMORY);
@@ -193,17 +193,17 @@ dst_hmacmd5_verify(const int mode, dst_key_t *key, void **context,
 		ctx = (MD5_CTX *) *context;
 	REQUIRE (ctx != NULL);
 
-	if (mode & DST_SIG_MODE_INIT) {
+	if (mode & DST_SIGMODE_INIT) {
 		HMAC_Key *hkey = key->opaque;
 
 		MD5Init(ctx);
 		MD5Update(ctx, hkey->ipad, HMAC_LEN);
 	}
 
-	if ((mode & DST_SIG_MODE_UPDATE))
+	if ((mode & DST_SIGMODE_UPDATE))
 		MD5Update(ctx, data->base, data->length);
 
-	if (mode & DST_SIG_MODE_FINAL) {
+	if (mode & DST_SIGMODE_FINAL) {
 		u_char digest[MD5_LEN];
 		HMAC_Key *hkey = key->opaque;
 

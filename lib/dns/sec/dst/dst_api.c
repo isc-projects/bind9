@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.4 1999/08/20 17:03:30 bwelling Exp $
+ * $Id: dst_api.c,v 1.5 1999/08/26 20:41:54 bwelling Exp $
  */
 
 #include <config.h>
@@ -85,17 +85,17 @@ dst_supported_algorithm(const int alg) {
 /*
  * dst_sign
  *	An incremental signing function.  Data is signed in steps.
- *	First the context must be initialized (DST_SIG_MODE_INIT).
- *	Then data is hashed (DST_SIG_MODE_UPDATE).  Finally the signature
- *	itself is created (DST_SIG_MODE_FINAL).  This function can be called
- *	once with DST_SIG_MODE_ALL set, or it can be called separately 
+ *	First the context must be initialized (DST_SIGMODE_INIT).
+ *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the signature
+ *	itself is created (DST_SIGMODE_FINAL).  This function can be called
+ *	once with DST_SIGMODE_ALL set, or it can be called separately 
  *	for each step.  The UPDATE step may be repeated.
  * Parameters
  *	mode		A bit mask specifying operation(s) to be performed.
- *			  DST_SIG_MODE_INIT	Initialize digest
- *			  DST_SIG_MODE_UPDATE	Add data to digest
- *			  DST_SIG_MODE_FINAL	Generate signature
- *			  DST_SIG_MODE_ALL	Perform all operations
+ *			  DST_SIGMODE_INIT	Initialize digest
+ *			  DST_SIGMODE_UPDATE	Add data to digest
+ *			  DST_SIGMODE_FINAL	Generate signature
+ *			  DST_SIGMODE_ALL	Perform all operations
  *	key		The private key used to sign the data
  *	context		The state of the operation
  *	data		The data to be signed.
@@ -110,12 +110,12 @@ dst_sign(const int mode, dst_key_t *key, dst_context_t *context,
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
-	REQUIRE((mode & DST_SIG_MODE_ALL) != 0);
+	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
 
-	if ((mode & DST_SIG_MODE_UPDATE) != 0)
+	if ((mode & DST_SIGMODE_UPDATE) != 0)
 		REQUIRE(data != NULL && data->base != NULL);
 
-	if ((mode & DST_SIG_MODE_FINAL) != 0)
+	if ((mode & DST_SIGMODE_FINAL) != 0)
 		REQUIRE(sig != NULL);
 
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
@@ -131,17 +131,17 @@ dst_sign(const int mode, dst_key_t *key, dst_context_t *context,
 /*
  *  dst_verify
  *	An incremental verify function.  Data is verified in steps.
- *	First the context must be initialized (DST_SIG_MODE_INIT).
- *	Then data is hashed (DST_SIG_MODE_UPDATE).  Finally the signature
- *	is verified (DST_SIG_MODE_FINAL).  This function can be called
- *	once with DST_SIG_MODE_ALL set, or it can be called separately
+ *	First the context must be initialized (DST_SIGMODE_INIT).
+ *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the signature
+ *	is verified (DST_SIGMODE_FINAL).  This function can be called
+ *	once with DST_SIGMODE_ALL set, or it can be called separately
  *	for each step.  The UPDATE step may be repeated.
  *  Parameters
  *	mode		A bit mask specifying operation(s) to be performed.
- *			  DST_SIG_MODE_INIT	Initialize digest
- *			  DST_SIG_MODE_UPDATE	Add data to digest
- *			  DST_SIG_MODE_FINAL	Verify signature
- *			  DST_SIG_MODE_ALL	Perform all operations
+ *			  DST_SIGMODE_INIT	Initialize digest
+ *			  DST_SIGMODE_UPDATE	Add data to digest
+ *			  DST_SIGMODE_FINAL	Verify signature
+ *			  DST_SIGMODE_ALL	Perform all operations
  *	key		The public key used to verify the signature.
  *	context		The state of the operation
  *	data		The data to be digested.
@@ -157,12 +157,12 @@ dst_verify(const int mode, dst_key_t *key, dst_context_t *context,
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
-	REQUIRE((mode & DST_SIG_MODE_ALL) != 0);
+	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
 
-	if ((mode & DST_SIG_MODE_UPDATE) != 0)
+	if ((mode & DST_SIGMODE_UPDATE) != 0)
 		REQUIRE(data != NULL && data->base != NULL);
 
-	if ((mode & DST_SIG_MODE_FINAL) != 0)
+	if ((mode & DST_SIGMODE_FINAL) != 0)
 		REQUIRE(sig != NULL && sig->base != NULL);
 
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
