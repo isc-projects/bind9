@@ -297,7 +297,7 @@ dns_name_isabsolute(dns_name_t *name) {
 unsigned int
 dns_name_hash(dns_name_t *name) {
 	unsigned int length;
-	const char *s;
+	const unsigned char *s;
 	unsigned int h = 0;
 	unsigned int g;
 
