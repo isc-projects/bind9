@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.70 2001/11/30 01:59:07 gson Exp $
+ * $Id: dnssec.c,v 1.71 2002/01/21 11:00:17 bwelling Exp $
  */
 
 
@@ -481,8 +481,9 @@ cleanup_struct:
 			  == DNS_KEYOWNER_ZONE)
 
 isc_result_t
-dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
-			dns_dbnode_t *node, dns_name_t *name, isc_mem_t *mctx,
+dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
+			dns_dbnode_t *node, dns_name_t *name,
+			const char *directory, isc_mem_t *mctx,
 			unsigned int maxkeys, dst_key_t **keys,
 			unsigned int *nkeys)
 {
@@ -508,7 +509,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 					  dst_key_id(pubkey),
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
-					  NULL,
+					  directory,
 					  mctx, &keys[count]);
 		if (result == DST_R_INVALIDPRIVATEKEY)
 			goto next;
@@ -538,6 +539,16 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 		dst_key_free(&pubkey);
 	*nkeys = count;
 	return (result);
+}
+
+isc_result_t
+dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
+			dns_dbnode_t *node, dns_name_t *name, isc_mem_t *mctx,
+			unsigned int maxkeys, dst_key_t **keys,
+			unsigned int *nkeys)
+{
+	return (dns_dnssec_findzonekeys2(db, ver, node, name, NULL, mctx,
+					 maxkeys, keys, nkeys));
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.22 2001/10/10 21:39:15 gson Exp $ */
+/* $Id: dnssec.h,v 1.23 2002/01/21 11:00:22 bwelling Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -113,6 +113,12 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 			dns_name_t *name, isc_mem_t *mctx,
 			unsigned int maxkeys, dst_key_t **keys,
 			unsigned int *nkeys);
+isc_result_t
+dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
+			 dns_dbnode_t *node, dns_name_t *name,
+			 const char *directory, isc_mem_t *mctx,
+			 unsigned int maxkeys, dst_key_t **keys,
+			 unsigned int *nkeys);
 /*
  * 	Finds a set of zone keys.
  * 	XXX temporary - this should be handled in dns_zone_t.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.1 2002/01/04 02:32:12 gson Exp $ */
+/* $Id: namedconf.c,v 1.2 2002/01/21 11:00:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -597,6 +597,7 @@ zone_clauses[] = {
 	{ "min-refresh-time", &cfg_type_uint32, 0 },
 	{ "sig-validity-interval", &cfg_type_uint32, 0 },
 	{ "zone-statistics", &cfg_type_boolean, 0 },
+	{ "key-directory", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
 
