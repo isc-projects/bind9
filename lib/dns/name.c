@@ -139,6 +139,18 @@ static unsigned char maptolower[] = {
 		set_offsets(name, var, ISC_FALSE, ISC_FALSE, ISC_FALSE); \
 	}
 
+/*
+ * Note:  If additional attributes are added that should not be set for
+ *	  empty names, MAKE_EMPTY() must be changed so it clears them.
+ */
+#define MAKE_EMPTY(name) \
+do { \
+	name->ndata = NULL; \
+	name->length = 0; \
+	name->labels = 0; \
+	name->attributes &= ~DNS_NAMEATTR_ABSOLUTE; \
+} while (0);
+
 static struct dns_name root = {
 	NAME_MAGIC,
 	(unsigned char *)"", 1, 1,
@@ -261,7 +273,7 @@ dns_label_getbit(dns_label_t *label, unsigned int n) {
 void
 dns_name_init(dns_name_t *name, unsigned char *offsets) {
 	/*
-	 * Make 'name' empty.
+	 * Initialize 'name'.
 	 */
 	 
 	name->magic = NAME_MAGIC;
@@ -1012,13 +1024,9 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	kind = ft_init;	
 
 	/*
-	 * Invalidate 'name'.
+	 * Make 'name' empty in case of failure.
 	 */
-	name->magic = 0;
-	name->ndata = NULL;
-	name->length = 0;
-	name->labels = 0;
-	name->attributes = 0;
+	MAKE_EMPTY(name);
 
 	/*
 	 * Set up the state machine.
@@ -1528,7 +1536,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	} else
 		name->attributes |= DNS_NAMEATTR_ABSOLUTE;
 
-	name->magic = NAME_MAGIC;
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
 	name->length = nused;
@@ -1941,13 +1948,9 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	INIT_OFFSETS(name, offsets, odata);
 
 	/*
-	 * Invalidate 'name'.
+	 * Make 'name' empty in case of failure.
 	 */
-	name->magic = 0;
-	name->ndata = NULL;
-	name->length = 0;
-	name->labels = 0;
-	name->attributes = 0;
+	MAKE_EMPTY(name);
 
 	/*
 	 * Initialize things to make the compiler happy; they're not required.
@@ -2187,7 +2190,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	if (!done)
 		return (DNS_R_UNEXPECTEDEND);
 
-	name->magic = NAME_MAGIC;
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
 	name->length = nused;
@@ -2406,14 +2408,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		labels += suffix->labels;
 	}
 	if (length > nrem) {
-		/*
-		 * Invalidate 'name'.
-		 */
-		name->magic = 0;
-		name->ndata = NULL;
-		name->length = 0;
-		name->labels = 0;
-		name->attributes = 0;
+		MAKE_EMPTY(name);
 		return (DNS_R_NOSPACE);
 	}
 
@@ -2765,7 +2760,10 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	 * Make 'target' a dynamically allocated copy of 'source'.
 	 */
 
-	target->magic = 0;	/* Invalidate 'target' in case of failure. */
+	/*
+	 * Make 'target' empty in case of failure.
+	 */
+	MAKE_EMPTY(target);
 
 	target->ndata = isc_mem_get(mctx, source->length);
 	if (target->ndata == NULL)
@@ -2773,7 +2771,6 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 	memcpy(target->ndata, source->ndata, source->length);
 
-	target->magic = NAME_MAGIC;
 	target->length = source->length;
 	target->labels = source->labels;
 	target->attributes = DNS_NAMEATTR_DYNAMIC | DNS_NAMEATTR_READONLY;

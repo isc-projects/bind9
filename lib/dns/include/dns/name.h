@@ -206,7 +206,7 @@ extern dns_name_t *dns_wildcardname;
 
 void dns_name_init(dns_name_t *name, unsigned char *offsets);
 /*
- * Make 'name' empty.
+ * Initialize 'name'.
  *
  * Notes:
  *	'offsets' is never required to be non-NULL, but specifying a
