@@ -1,4 +1,6 @@
 
+	--- 9.1.1rc2 released ---
+
  733.	[bug]		Reference counts of dns_acl_t objects need to be
 			locked but were not. [RT #801]
 
