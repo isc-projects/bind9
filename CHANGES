@@ -8,7 +8,7 @@
 			of the message. [RT #2449]
 
 1204.	[bug]		libbind: res_nupdate() failed to update the name
-			servers addresses before sending the update.
+			server addresses before sending the update.
 
 1203.	[func]		Report locations of previous acl and zone definitions
 			when a duplicate is detected.
