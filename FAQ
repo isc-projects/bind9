@@ -143,6 +143,18 @@ acted on by the slave despite the error message.
 
 Q: I keep getting log messages like the following.  Why?
 
+   Dec  4 23:47:59 client 10.0.0.1#1355: updating zone 'example.com/IN':
+   update failed: 'RRset exists (value dependent)' prerequisite not
+   satisfied (NXRRSET)
+
+A: DNS updates allow the update request to test to see if certian
+conditions are met prior to proceeding with the update.  The message
+above is saying that conditions were not met and the update is not
+proceeding.  See doc/rfc/rfc2136.txt for more details on prerequisites.
+
+
+Q: I keep getting log messages like the following.  Why?
+
    Jun 21 12:00:00.000 client 10.0.0.1#1234: update denied
 
 A: Someone is trying to update your DNS data using the RFC2136 Dynamic
