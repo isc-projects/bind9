@@ -335,8 +335,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			     rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION ||
-	    result == DNS_R_NOTFOUND ||
-	    result == DNS_R_NXGLUE) {
+	    result == DNS_R_NOTFOUND) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset != NULL && sigrdataset->methods != NULL)
