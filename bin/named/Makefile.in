@@ -71,6 +71,7 @@ named: ${OBJS} ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
 lwresd: named
+	rm -f lwresd
 	@LN@ named lwresd
 
 clean distclean::
