@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.6 2001/11/15 01:20:16 gson Exp $ */
+/* $Id: getaddresses.c,v 1.7 2001/11/15 01:29:42 bwelling Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -127,20 +127,11 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	if (he == NULL) {
 		switch (h_errno) {
 		case HOST_NOT_FOUND:
-#if defined(NO_ADDRESS) && defined(NO_DATA)
-#if NO_ADDRESS == NO_DATA
-		case NO_ADDRESS:
-#else
-		case NO_ADDRESS:
-		case NO_DATA:
-#endif
-#else
-#ifdef NO_ADDRESS
-		case NO_ADDRESS:
-#endif
 #ifdef NO_DATA
 		case NO_DATA:
 #endif
+#if (defined(NO_ADDRESS) && (!defined(NO_DATA) || (NO_DATA != NO_ADDRESS))
+		case NO_ADDRESS:
 #endif
 			return (ISC_R_NOTFOUND);
 		default:
