@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: t_api.h,v 1.9 2000/06/22 22:00:26 tale Exp $ */
+/* $Id: t_api.h,v 1.10 2000/06/23 03:10:33 tale Exp $ */
 
 #ifndef TESTS_T_API_H
 #define TESTS_T_API_H 1
 
 #include <stdio.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>
 
 /*
@@ -62,6 +63,8 @@ typedef struct {
 extern	int	T_debug;
 extern	testspec_t T_testlist[];
 
+ISC_LANG_BEGINDECLS
+
 void
 t_assert(const char *component, int anum, int class, const char *what, ...);
 
@@ -88,6 +91,8 @@ t_bustline(char *line, char **toks);
 
 int
 t_eval(const char *filename, int (*func)(char **), int nargs);
+
+ISC_LANG_ENDDECLS
 
 #endif /* TESTS_T_API_H */
 
