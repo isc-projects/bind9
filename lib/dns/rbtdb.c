@@ -1598,10 +1598,9 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(search.rbtdb));
 
 	/*
-	 * We don't care about 'now'.  We set it to zero so compilers won't
-	 * complain about it being unused.
+	 * We don't care about 'now'.
 	 */
-	now = 0;
+	UNUSED(now);
 
 	/*
 	 * If the caller didn't supply a version, attach to the current
@@ -2899,7 +2898,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(type != dns_rdatatype_any);
 
-	version = NULL;		/* Keep compilers quiet. */
+	UNUSED(version);
 
 	result = ISC_R_SUCCESS;
 
