@@ -839,7 +839,6 @@
 ./contrib/idn/mdnkit/doc/ja/guide/runmdn.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/wrapper.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/index.html		X	2001
-./contrib/idn/mdnkit/doc/ja/spec/..html		X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/bind9.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/clientconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/dnsproxy.html	X	2001
@@ -976,7 +975,6 @@
 ./contrib/idn/mdnkit/mdnsproxy/winserv.h	X	2001
 ./contrib/idn/mdnkit/mkinstalldirs		X	2001
 ./contrib/idn/mdnkit/patch/bind8/bind-8.2.3-patch	X	2001
-./contrib/idn/mdnkit/patch/bind9/bind-9.1.2-patch	X	2001
 ./contrib/idn/mdnkit/patch/bind9/bind-9.1.3-patch	X	2002
 ./contrib/idn/mdnkit/patch/bind9/bind-9.2.0-patch	X	2002
 ./contrib/idn/mdnkit/patch/bind9/patch.configure	X	2001
