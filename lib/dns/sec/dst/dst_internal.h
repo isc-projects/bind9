@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.30 2000/09/16 01:12:20 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.31 2001/01/09 00:53:01 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -81,6 +81,7 @@ struct dst_func {
 				      const dst_key_t *key2);
 	isc_result_t (*generate)(dst_key_t *key, int parms);
 	isc_boolean_t (*isprivate)(const dst_key_t *key);
+	isc_boolean_t (*issymmetric)(void);
 	void (*destroy)(dst_key_t *key);
 
 	/* conversion functions */

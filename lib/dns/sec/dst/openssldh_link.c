@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.32 2000/12/04 23:06:36 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.33 2001/01/09 00:53:05 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -181,6 +181,11 @@ static isc_boolean_t
 openssldh_isprivate(const dst_key_t *key) {
 	DH *dh = (DH *) key->opaque;
         return (ISC_TF(dh != NULL && dh->priv_key != NULL));
+}
+
+static isc_boolean_t
+openssldh_issymmetric(void) {
+        return (ISC_FALSE);
 }
 
 static void
@@ -547,6 +552,7 @@ static dst_func_t openssldh_functions = {
 	openssldh_paramcompare,
 	openssldh_generate,
 	openssldh_isprivate,
+	openssldh_issymmetric,
 	openssldh_destroy,
 	openssldh_todns,
 	openssldh_fromdns,

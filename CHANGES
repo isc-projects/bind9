@@ -1,3 +1,6 @@
+ 669.	[func]		dnssec-keygen now makes the public key file
+			non-world-readable for symmetric keys. [RT #403]
+
  668.	[func]		named-checkzone now reports multiple errors in master
 			files.
 

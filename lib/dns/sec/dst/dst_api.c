@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.67 2000/12/18 21:09:42 gson Exp $
+ * $Id: dst_api.c,v 1.68 2001/01/09 00:52:59 bwelling Exp $
  */
 
 #include <config.h>
@@ -29,6 +29,7 @@
 #include <isc/buffer.h>
 #include <isc/dir.h>
 #include <isc/entropy.h>
+#include <isc/fsaccess.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -964,6 +965,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	char class_array[10];
 	isc_result_t ret;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_fsaccess_t access;
 
 	REQUIRE(VALID_KEY(key));
 
@@ -1016,6 +1018,15 @@ write_public_key(const dst_key_t *key, const char *directory) {
 
 	fputc('\n', fp);
 	fclose(fp);
+
+	if (key->func->issymmetric()) {
+		access = 0;
+		isc_fsaccess_add(ISC_FSACCESS_OWNER,
+				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
+				 &access);
+		(void)isc_fsaccess_set(filename, access);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
