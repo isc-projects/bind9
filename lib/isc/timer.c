@@ -51,6 +51,7 @@ struct isc_timer {
 	/* Not locked. */
 	unsigned int			magic;
 	isc_timermgr_t *		manager;
+	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	/* Locked by timer lock. */
 	unsigned int			references;
@@ -203,7 +204,7 @@ destroy(isc_timer_t *timer) {
 	isc_task_detach(&timer->task);
 	(void)isc_mutex_destroy(&timer->lock);
 	timer->magic = 0;
-	isc_mem_put(manager->mctx, timer, sizeof *timer);
+	isc_mem_put(timer->mctx, timer, sizeof *timer);
 }
 
 isc_result_t
@@ -215,6 +216,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	isc_timer_t *timer;
 	isc_result_t result;
 	isc_time_t now;
+	isc_mem_t *mctx;
 
 	/*
 	 * Create a new 'type' timer managed by 'manager'.  The timers
@@ -241,11 +243,13 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	timer = isc_mem_get(manager->mctx, sizeof *timer);
+	mctx = isc_task_mem(task);
+	timer = isc_mem_get(mctx, sizeof *timer);
 	if (timer == NULL)
 		return (ISC_R_NOMEMORY);
 
 	timer->manager = manager;
+	timer->mctx = mctx;
 	timer->references = 1;
 	if (type == isc_timertype_once && !isc_interval_iszero(interval))
 		isc_time_add(&now, interval, &timer->idle);
@@ -261,7 +265,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	timer->index = 0;
 	if (isc_mutex_init(&timer->lock) != ISC_R_SUCCESS) {
 		isc_task_detach(&timer->task);
-		isc_mem_put(manager->mctx, timer, sizeof *timer);
+		isc_mem_put(mctx, timer, sizeof *timer);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
@@ -285,7 +289,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		timer->magic = 0;
 		(void)isc_mutex_destroy(&timer->lock);
 		isc_task_detach(&timer->task);
-		isc_mem_put(manager->mctx, timer, sizeof *timer);
+		isc_mem_put(mctx, timer, sizeof *timer);
 		return (result);
 	}
 
@@ -459,7 +463,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 				/*
 				 * XXX We could preallocate this event.
 				 */
-				event = isc_event_allocate(manager->mctx,
+				event = isc_event_allocate(timer->mctx,
 							   timer,
 							   type,
 							   timer->action,
