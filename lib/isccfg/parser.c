@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.7 2001/02/16 02:57:40 gson Exp $ */
+/* $Id: parser.c,v 1.8 2001/02/17 00:15:19 gson Exp $ */
 
 #include <config.h>
 
@@ -1227,7 +1227,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret)
 }
 
 static isc_result_t
-cfg_parser_openfile(cfg_parser_t *pctx, const char *filename) {
+parser_openfile(cfg_parser_t *pctx, const char *filename) {
 	isc_result_t result;
 	cfg_listelt_t *elt = NULL;
 	cfg_obj_t *stringobj = NULL;
@@ -1250,16 +1250,14 @@ cfg_parser_openfile(cfg_parser_t *pctx, const char *filename) {
 	return (result);
 }
 
-isc_result_t
-cfg_parse_file(cfg_parser_t *pctx, const char *filename,
-	       cfg_type_t *type, cfg_obj_t **ret)
-{
+/*
+ * Parse a configuration using a pctx where a lexer has already
+ * been set up with a source.
+ */
+static isc_result_t
+parse2(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-
-	REQUIRE(filename != NULL);
-
-	CHECK(cfg_parser_openfile(pctx, filename));
 
 	result = parse(pctx, type, &obj);
 
@@ -1283,6 +1281,33 @@ cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 
  cleanup:
 	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+isc_result_t
+cfg_parse_file(cfg_parser_t *pctx, const char *filename,
+	       cfg_type_t *type, cfg_obj_t **ret)
+{
+	isc_result_t result;
+
+	REQUIRE(filename != NULL);
+
+	CHECK(parser_openfile(pctx, filename));
+	CHECK(parse2(pctx, type, ret));
+ cleanup:
+	return (result);
+}
+
+
+isc_result_t
+cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
+	cfg_type_t *type, cfg_obj_t **ret)
+{
+	isc_result_t result;
+	REQUIRE(buffer != NULL);
+	CHECK(isc_lex_openbuffer(pctx->lexer, buffer));	
+	CHECK(parse2(pctx, type, ret));
+ cleanup:
 	return (result);
 }
 
@@ -2695,8 +2720,8 @@ parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 			 */
 			CHECK(parse(pctx, &cfg_type_qstring, &includename));
 			CHECK(parse_semicolon(pctx));
-			CHECK(cfg_parser_openfile(pctx, includename->
-						  value.string.base));
+			CHECK(parser_openfile(pctx, includename->
+					      value.string.base));
 			 cfg_obj_destroy(pctx, &includename);
 			 goto redo;
 		}

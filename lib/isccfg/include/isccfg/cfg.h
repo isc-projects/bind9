@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.4 2001/02/15 23:22:27 bwelling Exp $ */
+/* $Id: cfg.h,v 1.5 2001/02/17 00:15:22 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -84,9 +84,17 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret);
 isc_result_t
 cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 	       cfg_type_t *type, cfg_obj_t **ret);
+isc_result_t
+cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
+		 cfg_type_t *type, cfg_obj_t **ret);
 /*
- * Read in a configuration file containing data of type 'type'
+ * Read a configuration containing data of type 'type'
  * and make '*ret' point to its parse tree.
+ *
+ * The configuration is read from the file 'filename'
+ * (isc_parse_file()) or the buffer 'buffer'
+ * (isc_parse_buffer()).
+ *
  * Returns an error if the file does not parse correctly.
  * 
  * Requires:
