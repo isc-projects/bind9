@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.3 2003/05/14 05:47:21 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.4 2003/07/21 00:37:25 marka Exp $ */
 
 #include <config.h>
 
@@ -124,6 +124,7 @@ typedef struct dns_totext_ctx {
 	char *			linebreak;
 	char 			linebreak_buf[DNS_TOTEXT_LINEBREAK_MAXLEN];
 	dns_name_t *		origin;
+	dns_name_t *		neworigin;
 	dns_fixedname_t		origin_fixname;
 	isc_uint32_t 		current_ttl;
 	isc_boolean_t 		current_ttl_valid;
@@ -306,6 +307,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	}
 
 	ctx->origin = NULL;
+	ctx->neworigin = NULL;
 	ctx->current_ttl = 0;
 	ctx->current_ttl_valid = ISC_FALSE;
 
@@ -788,12 +790,22 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 	       isc_buffer_t *buffer, FILE *f)
 {
 	isc_result_t itresult, dumpresult;
+	isc_region_t r;
 	dns_rdataset_t rdatasets[MAXSORT];
 	dns_rdataset_t *sorted[MAXSORT];
 	int i, n;
 
 	itresult = dns_rdatasetiter_first(rdsiter);
 	dumpresult = ISC_R_SUCCESS;
+
+	if (itresult == ISC_R_SUCCESS && ctx->neworigin != NULL) {
+		isc_buffer_clear(buffer);
+		itresult = dns_name_totext(ctx->neworigin, ISC_FALSE, buffer);
+		RUNTIME_CHECK(itresult == ISC_R_SUCCESS);
+		isc_buffer_usedregion(buffer, &r);
+		fprintf(f, "$ORIGIN %.*s\n", (int) r.length, (char *) r.base);
+		ctx->neworigin = NULL;
+	}
 
  again:
 	for (i = 0;
@@ -931,14 +943,9 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 				dns_fixedname_name(&ctx.origin_fixname);
 			result = dns_dbiterator_origin(dbiter, origin);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_buffer_clear(&buffer);
-			result = dns_name_totext(origin, ISC_FALSE, &buffer);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_buffer_usedregion(&buffer, &r);
-			fprintf(f, "$ORIGIN %.*s\n", (int) r.length,
-				(char *) r.base);
 			if ((ctx.style.flags & DNS_STYLEFLAG_REL_DATA) != 0)
 				ctx.origin = origin;
+			ctx.neworigin = origin;
 		}
 		result = dns_db_allrdatasets(db, node, version, now, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
