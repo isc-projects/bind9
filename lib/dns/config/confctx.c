@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.115 2001/01/09 21:51:55 bwelling Exp $ */
+/* $Id: confctx.c,v 1.116 2001/01/22 03:59:12 gson Exp $ */
 
 #include <config.h>
 
@@ -179,7 +179,6 @@ PVT_CONCAT(dns_c_ctx_set, FUNC)(dns_c_ctx_t *cfg, const char *newval)	     \
 									     \
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));				     \
 	REQUIRE(newval != NULL);					     \
-	REQUIRE(*newval != '\0');					     \
 									     \
 	res = make_options(cfg);					     \
 	if (res != ISC_R_SUCCESS) {					     \
@@ -1464,7 +1463,6 @@ dns_c_ctx_channeldefinedp(dns_c_ctx_t *cfg, const char *name)
 
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 
 	res = dns_c_logginglist_chanbyname(cfg->logging, name, &chan);
 
@@ -2613,7 +2611,6 @@ dns_c_ctx_keydefinedp(dns_c_ctx_t *cfg, const char *keyname)
 
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 	REQUIRE(keyname != NULL);
-	REQUIRE(*keyname != '\0');
 
 	if (cfg->keydefs != NULL) {
 		res = dns_c_kdeflist_find(cfg->keydefs, keyname, &keyid);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.74 2001/01/09 23:42:51 bwelling Exp $ */
+/* $Id: confzone.c,v 1.75 2001/01/22 03:59:21 gson Exp $ */
 
 #include <config.h>
 
@@ -267,7 +267,6 @@ dns_c_zonelist_find(dns_c_zonelist_t *zlist, const char *name,
 
 	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 	REQUIRE(retval != NULL);
 
 	zoneelem = ISC_LIST_HEAD(zlist->zones);
@@ -296,7 +295,6 @@ dns_c_zonelist_rmbyname(dns_c_zonelist_t *zlist, const char *name) {
 
 	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 
 	zoneelem = ISC_LIST_HEAD(zlist->zones);
 	while (zoneelem != NULL) {
@@ -454,7 +452,6 @@ dns_c_zone_new(isc_mem_t *mem,
 
 	REQUIRE(mem != NULL);
 	REQUIRE(name != NULL);
-	REQUIRE(*name != '\0');
 
 	newzone = isc_mem_get(mem, sizeof *newzone);
 	if (newzone == NULL) {
@@ -818,7 +815,6 @@ dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile) {
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(newfile != NULL);
-	REQUIRE(*newfile != '\0');
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -2212,7 +2208,6 @@ dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval) {
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(newval != NULL);
-	REQUIRE(*newval != '\0');
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -2320,7 +2315,6 @@ dns_c_zone_setixfrtmp(dns_c_zone_t *zone, const char *newval) {
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(newval != NULL);
-	REQUIRE(*newval != '\0');
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -4656,7 +4650,6 @@ dns_c_zone_setdatabase(dns_c_zone_t *zone, const char *database)
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(database != NULL);
-	REQUIRE(database[0] != '\0');
 
 	if (zone->database != NULL) {
 		existed = ISC_TRUE;

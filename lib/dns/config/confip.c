@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.39 2001/01/09 21:51:57 bwelling Exp $ */
+/* $Id: confip.c,v 1.40 2001/01/22 03:59:13 gson Exp $ */
 
 #include <config.h>
 
@@ -408,7 +408,6 @@ dns_c_ipmatch_aclnew(isc_mem_t *mem,
 	REQUIRE(result != NULL);
 	REQUIRE(mem != NULL);
 	REQUIRE(aclname != NULL);
-	REQUIRE(*aclname != '\0');
 
 	*result = NULL;
 

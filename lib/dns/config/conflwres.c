@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.c,v 1.7 2001/01/09 21:52:01 bwelling Exp $ */
+/* $Id: conflwres.c,v 1.8 2001/01/22 03:59:16 gson Exp $ */
 
 #include <config.h>
 
@@ -401,7 +401,6 @@ dns_c_search_new(isc_mem_t *mem, const char *val, dns_c_search_t **search)
 	dns_c_search_t *ki;
 
 	REQUIRE(val != NULL);
-	REQUIRE(*val != '\0');
 	REQUIRE(search != NULL);
 
 	ki = isc_mem_get(mem, sizeof *ki);
