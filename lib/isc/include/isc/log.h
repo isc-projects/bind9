@@ -15,12 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.17 2000/04/27 23:44:44 tale Exp $ */
+/* $Id: log.h,v 1.18 2000/04/28 00:36:55 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
-
-#include <sys/types.h>		/* XXXDCL NT; need for off_t on some systems */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -108,8 +106,7 @@ typedef struct isc_logfile {
 	 * anyone would want).  st_size returned by fstat should be typedef'd
 	 * to a size large enough for the largest possible file on a system.
 	 */
-	/* XXXDCL NT */
-	off_t maximum_size;
+	isc_offset_t maximum_size;
 } isc_logfile_t;
 
 /*

@@ -1,3 +1,6 @@
+ 116.   [func]          Added <isc/offset.h> for isc_offset_t (aka off_t
+                        on Unix systems).
+
  115.   [port]          Shut up the -Wmissing-declarations warning about
                         <stdio.h>'s __sputaux on BSD/OS pre-4.1.
 

@@ -18,8 +18,21 @@
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
 
+/*
+ * OS-specific types, from the OS-specific include directories.
+ */
 #include <isc/int.h>
+#include <isc/offset.h>
+
+/*
+ * XXXDCL should isc_boolean_t be moved here, requiring an explicit include
+ * of <isc/boolean.h> when ISC_TRUE/ISC_FALSE/ISC_TF() are desired?
+ */
 #include <isc/boolean.h>
+/*
+ * XXXDCL This is just for ISC_LIST and ISC_LINK, but gets all of the other
+ * list macros too.
+ */
 #include <isc/list.h>
 
 /***
@@ -30,7 +43,7 @@ typedef struct isc_bitstring		isc_bitstring_t;
 typedef struct isc_buffer		isc_buffer_t;
 typedef ISC_LIST(isc_buffer_t)		isc_bufferlist_t;
 typedef struct isc_event		isc_event_t;
-typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
+typedef ISC_LIST(isc_event_t)		isc_eventlist_t;
 typedef unsigned int			isc_eventtype_t;
 typedef struct isc_interface		isc_interface_t;
 typedef struct isc_interfaceiter	isc_interfaceiter_t;

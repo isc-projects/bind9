@@ -24,8 +24,6 @@
 #include <errno.h>
 #include <string.h>
 
-#include <sys/types.h>
-
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
@@ -830,19 +828,13 @@ typedef enum {
 	JOURNAL_STATE_TRANSACTION
 } journal_state_t;
 
-/*
- * XXXRTH  We use 'off_t' in the following structure.  If we continue to
- *         use stdio instead of creating an ISC file module, we'll convert
- *         'off_t' to 'long'.
- */
-
 struct dns_journal {
 	unsigned int		magic;		/* JOUR */
 	isc_mem_t		*mctx;		/* Memory context */
 	journal_state_t		state;
 	const char 		*filename;	/* Journal file name */
 	FILE *			fp;		/* File handle */
-	off_t			offset;		/* Current file offset */
+	isc_offset_t		offset;		/* Current file offset */
 	journal_header_t 	header;		/* In-core journal header */
 	journal_pos_t		*index;		/* In-core journal index */
 
