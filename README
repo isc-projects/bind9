@@ -89,9 +89,14 @@ Building
 		FreeBSD 3.4-STABLE
 		HP-UX 11
 		IRIX64 6.5
-		NetBSD-current (with "unproven" pthreads)
+		NetBSD-current (with unproven-pthreads-0.17)
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8 (beta)
+
+	We have received reports of success from users of the
+	following additional platforms:
+
+		Solaris 2.8
 
 	To build, just
 
