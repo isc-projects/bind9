@@ -199,6 +199,15 @@ enum {
 };
 
 /*
+ * Name checking severites.
+ */
+typedef enum {
+	dns_severity_ignore,
+	dns_severity_warn,
+	dns_severity_fail
+} dns_severity_t;
+
+/*
  * Functions.
  */
 
