@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.40 2002/07/06 21:54:44 marka Exp $
+# $Id: ifconfig.sh,v 1.41 2002/11/12 23:42:37 explorer Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -49,24 +49,35 @@ case `uname -a` in
   *) sys=`$config_guess` ;;
 esac
 
+case "$2" in
+[0-9]|[1-9][0-9]|[1-9][0-9][0-9]) base=$2;;
+*) base=""
+esac
+
 case "$1" in
 
     start|up)
 	for ns in 1 2 3 4 5
 	do
+		if test -n "$base"
+		then
+			int=`expr $ns + $base - 1`
+		else
+			int=$ns
+		fi
 		case "$sys" in
 		    *-pc-solaris2.5.1)
-			ifconfig lo0:$ns 10.53.0.$ns netmask 0xffffffff up
+			ifconfig lo0:$int 10.53.0.$ns netmask 0xffffffff up
 			;;
 		    *-sun-solaris2.[6-7])
-			ifconfig lo0:$ns 10.53.0.$ns netmask 0xffffffff up
+			ifconfig lo0:$int 10.53.0.$ns netmask 0xffffffff up
 			;;
 		    *-*-solaris2.8)
-    			ifconfig lo0:$ns plumb
-			ifconfig lo0:$ns 10.53.0.$ns up
+    			ifconfig lo0:$int plumb
+			ifconfig lo0:$int 10.53.0.$ns up
 			;;
 		    *-*-linux*)
-			ifconfig lo:$ns 10.53.0.$ns up netmask 255.255.255.0
+			ifconfig lo:$int 10.53.0.$ns up netmask 255.255.255.0
 		        ;;
 		    *-unknown-freebsd*)
 			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
@@ -90,7 +101,7 @@ case "$1" in
 			ifconfig lo0 alias 10.53.0.$ns
 			;;
 		    hpux)
-			ifconfig lo0:$ns 10.53.0.$ns up
+			ifconfig lo0:$int 10.53.0.$ns up
 		        ;;
 		    *-sco3.2v*)
 			ifconfig lo0 alias 10.53.0.$ns
@@ -108,19 +119,25 @@ case "$1" in
     stop|down)
 	for ns in 5 4 3 2 1
 	do
+		if test -n "$base"
+		then
+			int=`expr $ns + $base - 1`
+		else
+			int=$ns	
+		fi
 		case "$sys" in
 		    *-pc-solaris2.5.1)
-			ifconfig lo0:$ns 0.0.0.0 down
+			ifconfig lo0:$int 0.0.0.0 down
 			;;
 		    *-sun-solaris2.[6-7])
-			ifconfig lo0:$ns 10.53.0.$ns down
+			ifconfig lo0:$int 10.53.0.$ns down
 			;;
 		    *-*-solaris2.8)
-			ifconfig lo0:$ns 10.53.0.$ns down
-			ifconfig lo0:$ns 10.53.0.$ns unplumb
+			ifconfig lo0:$int 10.53.0.$ns down
+			ifconfig lo0:$int 10.53.0.$ns unplumb
 			;;
 		    *-*-linux*)
-			ifconfig lo:$ns 10.53.0.$ns down
+			ifconfig lo:$int 10.53.0.$ns down
 		        ;;
 		    *-unknown-freebsd*)
 			ifconfig lo0 10.53.0.$ns delete
@@ -144,7 +161,7 @@ case "$1" in
 			ifconfig lo0 delete 10.53.0.$ns
 			;;
 		    hpux)
-			ifconfig lo0:$ns 10.53.0.$ns down
+			ifconfig lo0:$int 10.53.0.$ns down
 		        ;;
 		    *-sco3.2v*)
 			ifconfig lo0 -alias 10.53.0.$ns
@@ -161,6 +178,6 @@ case "$1" in
 	;;
 
 	*)
-		echo "Usage: $0 { up | down }"
+		echo "Usage: $0 { up | down } [base]"
 		exit 1
 esac
