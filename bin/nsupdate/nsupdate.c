@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8 2000/06/23 20:46:25 mws Exp $ */
+/* $Id: nsupdate.c,v 1.9 2000/06/27 21:59:44 mws Exp $ */
 
 #include <config.h>
 #include <netdb.h>
@@ -287,12 +287,6 @@ setup_system(){
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
 
-	result = isc_taskmgr_create (mctx, 1, 0, &taskmgr);
-	check_result(result, "isc_taskmgr_create");
-
-	result = isc_task_create (taskmgr, 0, &global_task);
-	check_result(result, "isc_task_create");
-
 	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
@@ -301,6 +295,12 @@ setup_system(){
 
 	result = isc_timermgr_create(mctx, &timermgr);
 	check_result(result, "dns_timermgr_create");
+
+	result = isc_taskmgr_create (mctx, 1, 0, &taskmgr);
+	check_result(result, "isc_taskmgr_create");
+
+	result = isc_task_create (taskmgr, 0, &global_task);
+	check_result(result, "isc_task_create");
 
 	result = isc_entropy_create (mctx, &entp);
 	check_result(result, "isc_entropy_create");
@@ -691,7 +691,7 @@ update_add() {
 	char *ptr, *type, *data;
 	dns_rdatatype_t rdatatype;
 	dns_rdatacallbacks_t callbacks;
-	dns_rdata_t *rdata;
+	dns_rdata_t *rdata = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t region;
@@ -1309,19 +1309,17 @@ free_lists() {
 	ddebug("Shutting down dispatch manager");
 	dns_dispatchmgr_destroy(&dispatchmgr);
 
-	ddebug("Shutting down socket manager");
-	isc_socketmgr_destroy(&socketmgr);
-
-	sleep (1);
-
-	ddebug("Shutting down timer manager");
-	isc_timermgr_destroy(&timermgr);
-
 	ddebug("Ending task");
 	isc_task_detach(&global_task);
 
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);
+
+	ddebug("Shutting down socket manager");
+	isc_socketmgr_destroy(&socketmgr);
+
+	ddebug("Shutting down timer manager");
+	isc_timermgr_destroy(&timermgr);
 
 	ddebug("Destroying memory context");
 	if (isc_mem_debugging)
