@@ -1,3 +1,5 @@
+1329.	[func]		Log that a zone transfer was covered by a TSIG.
+ 
 1328.	[func]		DS (delegation signer) support.
 
 1327.	[bug]		nsupdate: allow white space base64 key data.
