@@ -45,6 +45,7 @@ TARGETS =	adb_test \
 		db_test \
 		dispatch_tcp_test \
 		dispatch_test \
+		gxbn_test \
 		inter_test \
 		keygen \
 		lex_test \
@@ -79,6 +80,7 @@ SRCS =		adb_test.c \
 		db_test.c \
 		dispatch_tcp_test.c \
 		dispatch_test.c \
+		gxbn_test.c \
 		inter_test.c \
 		keygen.c \
 		lex_test.c \
@@ -254,6 +256,10 @@ inter_test: inter_test.@O@ ${ISCDEPLIBS}
 lwres_test: lwres_test.@O@ ${LWRESDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lwres_test.@O@ \
 		${LWRESLIBS} ${LIBS}
+
+gxbn_test: gxbn_test.@O@ ${LWRESDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ gxbn_test.@O@ \
+		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
