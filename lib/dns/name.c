@@ -822,7 +822,8 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 
 isc_boolean_t
 dns_name_matcheswildcard(dns_name_t *name, dns_name_t *wname) {
-	unsigned int labels;
+	int order;
+	unsigned int nlabels, nbits, labels;
 	dns_name_t tname;
 
 	REQUIRE(VALID_NAME(name));
@@ -833,7 +834,10 @@ dns_name_matcheswildcard(dns_name_t *name, dns_name_t *wname) {
 
 	dns_name_init(&tname, NULL);
 	dns_name_getlabelsequence(wname, 1, labels - 1, &tname);
-	return (dns_name_issubdomain(name, &tname));
+	if (dns_name_fullcompare(name, &tname, &order, &nlabels, &nbits) ==
+	    dns_namereln_subdomain)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
 }
 
 unsigned int
