@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.81 2001/10/16 22:18:57 gson Exp $ */
+/* $Id: parser.c,v 1.82 2001/10/19 18:08:27 gson Exp $ */
 
 #include <config.h>
 
@@ -3944,6 +3944,8 @@ print_grammar(cfg_printer_t *pctx, const cfg_type_t *type) {
 		}
 	} else if (type->print == print_void) {
 		/* Print nothing. */
+	} else if (type->parse == parse_qstringornone) {
+		print(pctx, "( <quoted_string> | none )", 26);
 	} else {
 		print(pctx, "<", 1);
 		print_cstr(pctx, type->name);
