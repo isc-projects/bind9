@@ -467,6 +467,8 @@ import_a6(void *arg, struct in6_addr *address)
 
 	address_added = ISC_FALSE;
 
+	DP(1, "ENTER: import_a6() name %p", name);
+	
 	/*
 	 * XXX Once the time is passed in to us, this can go away.
 	 */
@@ -2963,6 +2965,8 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	LOCK(&adb->namelocks[bucket]);
 
 	INSIST(!NAME_NEEDSPOKE(name));
+
+	DP(1, "ENTER: fetch_callback_a6() name %p", name);
 	
 	for (fetch = ISC_LIST_HEAD(name->fetches_a6);
 	     fetch != NULL;
