@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.79 2001/05/09 23:04:47 bwelling Exp $
+ * $Id: dst_api.c,v 1.80 2001/05/10 04:50:28 bwelling Exp $
  */
 
 #include <config.h>
@@ -1056,14 +1056,14 @@ isc_result_t
 dst__file_addsuffix(char *filename, unsigned int len,
 	  const char *ofilename, const char *suffix)
 {
-	unsigned int olen = strlen(ofilename);
+	int olen = strlen(ofilename);
 	int n;
 
 	if (olen > 1 && ofilename[olen - 1] == '.')
 		olen -= 1;
 	else if (olen > 8 && strcmp(ofilename + olen - 8, ".private") == 0)
 		olen -= 8;
-	else if (olen > 4 && strcmp(ofilename + olen - 8, ".key") == 0)
+	else if (olen > 4 && strcmp(ofilename + olen - 4, ".key") == 0)
 		olen -= 4;
 
 	n = snprintf(filename, len, "%.*s%s", olen, ofilename, suffix);
