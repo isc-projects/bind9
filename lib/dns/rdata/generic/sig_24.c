@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.49 2001/01/09 21:54:44 bwelling Exp $ */
+/* $Id: sig_24.c,v 1.50 2001/02/12 03:04:55 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -278,6 +278,7 @@ static inline isc_result_t
 towire_sig(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
+	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == 24);
 	REQUIRE(rdata->length != 0);
@@ -299,7 +300,7 @@ towire_sig(ARGS_TOWIRE) {
 	/*
 	 * Signer.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
 	RETERR(dns_name_towire(&name, cctx, target));

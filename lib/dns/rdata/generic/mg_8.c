@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mg_8.c,v 1.35 2001/01/09 21:54:17 bwelling Exp $ */
+/* $Id: mg_8.c,v 1.36 2001/02/12 03:04:45 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
@@ -81,6 +81,7 @@ fromwire_mg(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_mg(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 8);
@@ -88,7 +89,7 @@ towire_mg(ARGS_TOWIRE) {
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

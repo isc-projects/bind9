@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.35 2001/01/09 21:53:50 bwelling Exp $ */
+/* $Id: afsdb_18.c,v 1.36 2001/02/12 03:04:38 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -112,6 +112,7 @@ towire_afsdb(ARGS_TOWIRE) {
 	isc_region_t tr;
 	isc_region_t sr;
 	dns_name_t name;
+	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == 18);
 	REQUIRE(rdata->length != 0);
@@ -125,7 +126,7 @@ towire_afsdb(ARGS_TOWIRE) {
 	isc_region_consume(&sr, 2);
 	isc_buffer_add(target, 2);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 
 	return (dns_name_towire(&name, cctx, target));
@@ -227,11 +228,12 @@ freestruct_afsdb(ARGS_FREESTRUCT) {
 static inline isc_result_t
 additionaldata_afsdb(ARGS_ADDLDATA) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 18);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);

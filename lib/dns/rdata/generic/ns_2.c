@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.38 2001/01/09 21:54:26 bwelling Exp $ */
+/* $Id: ns_2.c,v 1.39 2001/02/12 03:04:49 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -81,6 +81,7 @@ fromwire_ns(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_ns(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 2);
@@ -88,7 +89,7 @@ towire_ns(ARGS_TOWIRE) {
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
@@ -175,11 +176,12 @@ freestruct_ns(ARGS_FREESTRUCT) {
 static inline isc_result_t
 additionaldata_ns(ARGS_ADDLDATA) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 2);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.36 2001/01/09 21:54:20 bwelling Exp $ */
+/* $Id: minfo_14.c,v 1.37 2001/02/12 03:04:46 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -104,14 +104,16 @@ towire_minfo(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
+	dns_offsets_t roffsets;
+	dns_offsets_t eoffsets;
 
 	REQUIRE(rdata->type == 14);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&rmail, NULL);
-	dns_name_init(&email, NULL);
+	dns_name_init(&rmail, roffsets);
+	dns_name_init(&email, eoffsets);
 
 	dns_rdata_toregion(rdata, &region);
 

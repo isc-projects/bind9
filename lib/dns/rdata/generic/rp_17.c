@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.31 2001/01/09 21:54:40 bwelling Exp $ */
+/* $Id: rp_17.c,v 1.32 2001/02/12 03:04:53 bwelling Exp $ */
 
 /* RFC 1183 */
 
@@ -104,13 +104,15 @@ towire_rp(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
+	dns_offsets_t roffsets;
+	dns_offsets_t eoffsets;
 
 	REQUIRE(rdata->type == 17);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-	dns_name_init(&rmail, NULL);
-	dns_name_init(&email, NULL);
+	dns_name_init(&rmail, roffsets);
+	dns_name_init(&email, eoffsets);
 
 	dns_rdata_toregion(rdata, &region);
 

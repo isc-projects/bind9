@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.28 2001/01/09 21:55:12 bwelling Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.29 2001/02/12 03:05:02 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -86,6 +86,7 @@ fromwire_in_nsap_ptr(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_in_nsap_ptr(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 23);
@@ -93,7 +94,7 @@ towire_in_nsap_ptr(ARGS_TOWIRE) {
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

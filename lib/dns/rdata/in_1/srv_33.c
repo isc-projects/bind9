@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.32 2001/01/09 21:55:19 bwelling Exp $ */
+/* $Id: srv_33.c,v 1.33 2001/02/12 03:05:05 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -159,6 +159,7 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_in_srv(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 33);
@@ -175,7 +176,7 @@ towire_in_srv(ARGS_TOWIRE) {
 	/*
 	 * Target.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 	return (dns_name_towire(&name, cctx, target));
 }
@@ -288,12 +289,13 @@ freestruct_in_srv(ARGS_FREESTRUCT) {
 static inline isc_result_t
 additionaldata_in_srv(ARGS_ADDLDATA) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 33);
 	REQUIRE(rdata->rdclass == 1);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 6);
 	dns_name_fromregion(&name, &region);

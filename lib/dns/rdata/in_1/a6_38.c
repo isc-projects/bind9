@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.41 2001/01/25 20:14:39 bwelling Exp $ */
+/* $Id: a6_38.c,v 1.42 2001/02/12 03:04:59 bwelling Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -183,6 +183,7 @@ static inline isc_result_t
 towire_in_a6(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
+	dns_offsets_t offsets;
 	unsigned char prefixlen;
 	unsigned char octets;
 
@@ -202,7 +203,7 @@ towire_in_a6(ARGS_TOWIRE) {
 	if (prefixlen == 0)
 		return (ISC_R_SUCCESS);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 	return (dns_name_towire(&name, cctx, target));
 }

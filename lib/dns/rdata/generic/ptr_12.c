@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.35 2001/01/09 21:54:38 bwelling Exp $ */
+/* $Id: ptr_12.c,v 1.36 2001/02/12 03:04:52 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -81,6 +81,7 @@ fromwire_ptr(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_ptr(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 12);
@@ -88,7 +89,7 @@ towire_ptr(ARGS_TOWIRE) {
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

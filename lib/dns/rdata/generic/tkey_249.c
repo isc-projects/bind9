@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.43 2001/01/11 03:11:30 bwelling Exp $ */
+/* $Id: tkey_249.c,v 1.44 2001/02/12 03:04:58 bwelling Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -292,6 +292,7 @@ static inline isc_result_t
 towire_tkey(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
+	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == 249);
 	REQUIRE(rdata->length != 0);
@@ -301,7 +302,7 @@ towire_tkey(ARGS_TOWIRE) {
 	 * Algorithm.
 	 */
 	dns_rdata_toregion(rdata, &sr);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&sr, name_length(&name));

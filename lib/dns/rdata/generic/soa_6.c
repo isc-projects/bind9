@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.48 2001/01/09 21:54:47 bwelling Exp $ */
+/* $Id: soa_6.c,v 1.49 2001/02/12 03:04:56 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -179,14 +179,16 @@ towire_soa(ARGS_TOWIRE) {
 	isc_region_t tregion;
 	dns_name_t mname;
 	dns_name_t rname;
+	dns_offsets_t moffsets;
+	dns_offsets_t roffsets;
 
 	REQUIRE(rdata->type == 6);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&mname, NULL);
-	dns_name_init(&rname, NULL);
+	dns_name_init(&mname, moffsets);
+	dns_name_init(&rname, roffsets);
 
 	dns_rdata_toregion(rdata, &sregion);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.39 2001/01/09 21:53:55 bwelling Exp $ */
+/* $Id: cname_5.c,v 1.40 2001/02/12 03:04:39 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -82,6 +82,7 @@ fromwire_cname(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_cname(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 5);
@@ -89,7 +90,7 @@ towire_cname(ARGS_TOWIRE) {
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.45 2001/01/09 21:54:31 bwelling Exp $ */
+/* $Id: nxt_30.c,v 1.46 2001/02/12 03:04:51 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -151,12 +151,13 @@ static inline isc_result_t
 towire_nxt(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
+	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == 30);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));

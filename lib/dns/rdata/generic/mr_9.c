@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.34 2001/01/09 21:54:22 bwelling Exp $ */
+/* $Id: mr_9.c,v 1.35 2001/02/12 03:04:47 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -81,6 +81,7 @@ fromwire_mr(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_mr(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 9);
@@ -88,7 +89,7 @@ towire_mr(ARGS_TOWIRE) {
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

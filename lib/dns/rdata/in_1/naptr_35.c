@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.38 2001/01/18 22:05:40 bwelling Exp $ */
+/* $Id: naptr_35.c,v 1.39 2001/02/12 03:05:01 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -196,6 +196,7 @@ fromwire_in_naptr(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_in_naptr(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 35);
@@ -231,7 +232,7 @@ towire_in_naptr(ARGS_TOWIRE) {
 	/*
 	 * Replacement.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 	return (dns_name_towire(&name, cctx, target));
 }
@@ -438,6 +439,7 @@ freestruct_in_naptr(ARGS_FREESTRUCT) {
 static inline isc_result_t
 additionaldata_in_naptr(ARGS_ADDLDATA) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t sr;
 	dns_rdatatype_t atype;
 	unsigned int i, flagslen;
@@ -483,7 +485,7 @@ additionaldata_in_naptr(ARGS_ADDLDATA) {
 	/*
 	 * Replacement.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 
 	if (atype != 0)

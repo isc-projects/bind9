@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.37 2001/01/09 21:54:15 bwelling Exp $ */
+/* $Id: mf_4.c,v 1.38 2001/02/12 03:04:44 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -81,6 +81,7 @@ fromwire_mf(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_mf(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 4);
@@ -88,7 +89,7 @@ towire_mf(ARGS_TOWIRE) {
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
@@ -175,11 +176,12 @@ freestruct_mf(ARGS_FREESTRUCT) {
 static inline isc_result_t
 additionaldata_mf(ARGS_ADDLDATA) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 4);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 

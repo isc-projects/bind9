@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.33 2001/01/09 21:54:42 bwelling Exp $ */
+/* $Id: rt_21.c,v 1.34 2001/02/12 03:04:54 bwelling Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -105,6 +105,7 @@ fromwire_rt(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_rt(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 	isc_region_t tr;
 
@@ -120,7 +121,7 @@ towire_rt(ARGS_TOWIRE) {
 	isc_region_consume(&region, 2);
 	isc_buffer_add(target, 2);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
 
 	return (dns_name_towire(&name, cctx, target));
@@ -219,12 +220,13 @@ freestruct_rt(ARGS_FREESTRUCT) {
 static inline isc_result_t
 additionaldata_rt(ARGS_ADDLDATA) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 	isc_result_t result;
 
 	REQUIRE(rdata->type == 21);
 
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);

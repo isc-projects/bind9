@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.47 2001/01/09 21:53:48 bwelling Exp $ */
+/* $Id: tsig_250.c,v 1.48 2001/02/12 03:04:37 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -306,6 +306,7 @@ static inline isc_result_t
 towire_any_tsig(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
+	dns_offsets_t offsets;
 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
@@ -313,7 +314,7 @@ towire_any_tsig(ARGS_TOWIRE) {
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &sr);
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&sr, name_length(&name));

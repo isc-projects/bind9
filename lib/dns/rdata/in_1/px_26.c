@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.30 2001/01/09 21:55:16 bwelling Exp $ */
+/* $Id: px_26.c,v 1.31 2001/02/12 03:05:03 bwelling Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -147,6 +147,7 @@ fromwire_in_px(ARGS_FROMWIRE) {
 static inline isc_result_t
 towire_in_px(ARGS_TOWIRE) {
 	dns_name_t name;
+	dns_offsets_t offsets;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 26);
@@ -164,7 +165,7 @@ towire_in_px(ARGS_TOWIRE) {
 	/*
 	 * MAP822.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
 	RETERR(dns_name_towire(&name, cctx, target));
 	isc_region_consume(&region, name_length(&name));
@@ -172,7 +173,7 @@ towire_in_px(ARGS_TOWIRE) {
 	/*
 	 * MAPX400.
 	 */
-	dns_name_init(&name, NULL);
+	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
 	return (dns_name_towire(&name, cctx, target));
 }
