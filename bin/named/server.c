@@ -33,6 +33,7 @@
 #include <isc/timer.h>
 #include <isc/app.h>
 
+#include <dns/confparser.h>
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/master.h>
@@ -48,6 +49,7 @@
 #include <dns/message.h>
 #include <dns/journal.h>
 #include <dns/view.h>
+#include <dns/zone.h>
 
 #include <named/types.h>
 #include <named/globals.h>
@@ -56,6 +58,17 @@
 #include <named/xfrin.h>
 
 #include "../../isc/util.h"		/* XXXRTH */
+
+
+static isc_result_t server_config_load(const char *conffile, isc_mem_t *mem);
+static isc_result_t server_config_reload(const char *conffile, isc_mem_t *mem);
+static isc_result_t zoneload(dns_c_ctx_t *ctx, dns_c_zone_t *zone,
+			     dns_c_view_t *view, void *uap);
+static isc_result_t zonereload(dns_c_ctx_t *ctx, dns_c_zone_t *zone,
+			       dns_c_view_t *view, void *uap);
+static isc_result_t optionsload(dns_c_ctx_t *ctx, void *uap);
+static isc_result_t optionsreload(dns_c_ctx_t *ctx, void *uap);
+
 
 static isc_task_t *		server_task;
 static dns_db_t *		version_db;
@@ -282,6 +295,14 @@ static void
 load_configuration(void) {
 	isc_result_t result;
 
+	result = server_config_load("/etc/named.conf", ns_g_mctx);
+	if (result != ISC_R_SUCCESS) {
+		printf("server_config_load(): %s\n",
+		       isc_result_totext(result));
+		/* XXX How do we make things die here? shutdown_server()?*/
+	}
+	
+#if 0
 	/* 
 	 * XXXRTH  loading code below is temporary; it
 	 * will be replaced by proper config file processing.
@@ -292,6 +313,7 @@ load_configuration(void) {
 		/* XXXRTH */
 		printf("load_all(): %s\n", isc_result_totext(result));
 	}
+#endif
 }
 
 static void
@@ -397,3 +419,169 @@ ns_server_init(void) {
 
 	return (result);
 }
+
+static isc_result_t
+server_config_load(const char *conffile, isc_mem_t *mem)
+{
+	dns_c_cbks_t callbacks;
+	dns_c_ctx_t *configctx = NULL;
+	isc_result_t res;
+       
+
+	/* Set up callbacks for the parser.
+	 *
+	 * If zonecbk field is non-NULL, then the function it points to
+	 * will be called after each zone statement is completely
+	 * parsed. The zone will be passed in as a paramater, and also
+	 * installed in the config structure, but after the zonecbk
+	 * function returns it will be removed from the config
+	 * structure. The zonecbkuap value will be passed through to the
+	 * zonecbk function as a parameter.
+	 * 
+	 * If the optscbk function is non-NULL, then it is called after the 
+	 * options statement is completely parsed.
+	 * 
+	 * These functions must return ISC_R_SUCCESS, or the parser will
+	 * consider that a failure and will terminate. The functions should 
+	 * not modify their parameters.
+	 */
+	
+	callbacks.zonecbk = zoneload;
+	callbacks.optscbk = NULL;
+	callbacks.zonecbkuap = NULL;
+	callbacks.optscbkuap = NULL;
+
+	/* XXX should log rather than write to stderr */
+	fprintf(stderr, "named: loading config file %s\n", conffile);
+	res = dns_c_parse_namedconf(NULL, /* XXX isc_log_t to use??? */
+				    conffile, mem, &configctx,
+				    &callbacks);
+
+	if (res != ISC_R_SUCCESS) {
+		/* XXX should log rather than write to stderr */
+		fprintf(stderr, "named: failed to load config file %s\n",
+			conffile);
+		return (ISC_R_FAILURE);
+	}
+	
+	RWLOCK(&ns_g_confctxlock, isc_rwlocktype_write);
+	if (ns_g_confctx != NULL) {
+		dns_c_ctx_delete(NULL /* XXX isc_log_t */, &ns_g_confctx);
+	}
+
+	ns_g_confctx = configctx;
+
+	RWUNLOCK(&ns_g_confctxlock, isc_rwlocktype_write);
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+/* Function to be called whenever server must reload the config file,
+   e.g. on a SIGHUP. */
+static isc_result_t
+server_config_reload(const char *conffile, isc_mem_t *mem)
+{
+	dns_c_cbks_t callbacks;
+	dns_c_ctx_t *configctx = NULL;
+	isc_result_t res;
+       
+
+	/* Set up callbacks for the parser. See the comment in
+	 * server_config_load() for usage.
+	 */
+	
+	callbacks.zonecbk = zonereload;
+	callbacks.optscbk = optionsreload;
+	callbacks.zonecbkuap = NULL;
+	callbacks.optscbkuap = NULL;
+		
+	/* XXX should log rather than write to stderr */
+	fprintf(stderr, "named: reloading config file %s\n", conffile);
+	res = dns_c_parse_namedconf(NULL, /* XXX isc_log_t to use??? */
+				    conffile, mem, &configctx, &callbacks);
+
+	if (res != ISC_R_SUCCESS) {
+		/* XXX should log rather than write to stderr */
+		fprintf(stderr, "named: failed to reload config file %s\n",
+			conffile);
+		return (ISC_R_FAILURE);
+	}
+
+
+	RWLOCK(&ns_g_confctxlock, isc_rwlocktype_write);
+	if (ns_g_confctx != NULL) {
+		dns_c_ctx_delete(NULL /* XXX isc_log_t */, &ns_g_confctx);
+	}
+
+	ns_g_confctx = configctx;
+	RWUNLOCK(&ns_g_confctxlock, isc_rwlocktype_write);
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+/* Called during first time config file is loaded. Called after each zone
+ * statement is parsed.
+ */
+static isc_result_t
+zoneload(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap)
+{
+
+	/*
+	 * returning anything other than ISC_R_SUCCESS will cause parsing to 
+	 * fail.
+	 */
+	return (dns_zone_callback(ctx, zone, view, uap));
+}
+
+static isc_result_t
+zonereload(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap)
+{
+	(void) ctx; (void) zone; (void) view; (void) uap; /* lint */
+
+	
+	/*
+	 * returning anything other than ISC_R_SUCCESS will cause parsing to 
+	 * fail.
+	 */
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+
+
+/* Called the first time the config file is loaded after the options
+ * statment is parsed
+ */ 
+static isc_result_t
+optionsload(dns_c_ctx_t *ctx, void *uap)
+{
+	(void) ctx; (void) uap;		/* lint */
+
+	/* returning anything other than ISC_R_SUCCESS will cause parsing to 
+	 * fail.
+	 */
+	return (ISC_R_SUCCESS);
+}
+
+
+
+/* Called the subsequent times the config file is loaded after the options
+ * statment is parsed
+ */ 
+static isc_result_t
+optionsreload(dns_c_ctx_t *ctx, void *uap)
+{
+	(void) ctx; (void) uap;		/* lint */
+
+	/* returning anything other than ISC_R_SUCCESS will cause parsing to 
+	 * fail.
+	 */
+	return (ISC_R_SUCCESS);
+}
+
+
+
