@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock.pl,v 1.11 2001/02/14 00:09:44 nelsonm Exp $
+# $Id: testsock.pl,v 1.12 2001/04/24 01:23:28 gson Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -31,9 +31,9 @@ GetOptions("p=i" => \$port,
 
 my @ids;
 if ($id != 0) {
-  @ids = ($id);
+	@ids = ($id);
 } else {
-  @ids = (1..5);
+	@ids = (1..5);
 }
   
 foreach $id (@ids) {
@@ -45,5 +45,5 @@ foreach $id (@ids) {
 	    	or die sprintf("$0: bind(%s, %d): $!\n",
 			       inet_ntoa($addr), $port);
 	close(SOCK);
-	sleep (1);
+	sleep(1);
 }
