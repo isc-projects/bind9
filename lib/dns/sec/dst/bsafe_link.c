@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.23 2000/06/05 22:20:04 tale Exp $
+ * $Id: bsafe_link.c,v 1.24 2000/06/06 15:16:45 tale Exp $
  */
 
 #if defined(DNSSAFE)
@@ -129,7 +129,8 @@ dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	if (B_CreateAlgorithmObject(&rsaEncryptor) != 0)
 		return (ISC_R_NOMEMORY);
-	if (B_SetAlgorithmInfo(rsaEncryptor, AI_PKCS_RSAPrivate, NULL_PTR) != 0)
+	if (B_SetAlgorithmInfo(rsaEncryptor, AI_PKCS_RSAPrivate, NULL_PTR)
+	    != 0)
 		goto finalfail;
 
 	if (B_EncryptInit(rsaEncryptor, rkey->rk_Private_Key, CHOOSER,
@@ -232,7 +233,7 @@ dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	 * Skip PKCS#1 header in output from Decrypt function.
 	 */
 	if (memcmp(isc_buffer_base(&digestbuf),
-		   (char *)isc_buffer_used(&work) + sizeof(pkcs1),
+		   (char *)isc_buffer_base(&work) + sizeof(pkcs1),
 		   isc_buffer_usedlength(&digestbuf)) == 0)
 		return (ISC_R_SUCCESS);
 	else
