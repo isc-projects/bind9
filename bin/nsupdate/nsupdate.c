@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103 2001/08/08 22:54:27 gson Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.1 2001/09/04 19:35:49 gson Exp $ */
 
 #include <config.h>
 
@@ -93,7 +93,9 @@ extern int h_errno;
 
 #define DNSDEFAULTPORT 53
 
+#ifndef RESOLV_CONF
 #define RESOLV_CONF "/etc/resolv.conf"
+#endif
 
 static isc_boolean_t debugging = ISC_FALSE, ddebugging = ISC_FALSE;
 static isc_boolean_t memdebugging = ISC_FALSE;
