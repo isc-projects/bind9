@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.86 2001/03/12 22:49:29 bwelling Exp $ */
+/* $Id: update.c,v 1.87 2001/05/06 02:17:48 mayer Exp $ */
 
 #include <config.h>
 
@@ -1286,10 +1286,10 @@ non_nxt_rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
  */
 static int
 name_order(const void *av, const void *bv) {
-	dns_difftuple_t * const *ap = av;
-	dns_difftuple_t * const *bp = bv;
-	dns_difftuple_t *a = *ap;
-	dns_difftuple_t *b = *bp;
+	dns_difftuple_t const * const *ap = av;
+	dns_difftuple_t const * const *bp = bv;
+	dns_difftuple_t const *a = *ap;
+	dns_difftuple_t const *b = *bp;
 	return (dns_name_compare(&a->name, &b->name));
 }
 
