@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.31 2000/09/08 14:23:48 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.32 2000/12/04 23:06:36 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -161,6 +161,7 @@ openssldh_generate(dst_key_t *key, int generator) {
 		DH_free(dh);
 		return (DST_R_OPENSSLFAILURE);
 	}
+	dh->flags &= ~DH_FLAG_CACHE_MONT_P;
 
 	key->opaque = dh;
 
@@ -279,6 +280,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dh = DH_new();
 	if (dh == NULL)
 		return (ISC_R_NOMEMORY);
+	dh->flags &= ~DH_FLAG_CACHE_MONT_P;
 
 	/*
 	 * Read the prime length.  1 & 2 are table entries, > 16 means a
@@ -444,6 +446,7 @@ openssldh_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 	dh = DH_new();
 	if (dh == NULL)
 		DST_RET(ISC_R_NOMEMORY);
+	dh->flags &= ~DH_FLAG_CACHE_MONT_P;
 	key->opaque = dh;
 
 	for (i=0; i < priv.nelements; i++) {

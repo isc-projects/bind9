@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.37 2000/09/08 14:23:46 bwelling Exp $
+ * $Id: openssl_link.c,v 1.38 2000/12/04 23:06:35 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -27,8 +27,11 @@
 
 #include <isc/entropy.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
+#include <isc/mutexblock.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #include <dst/result.h>
@@ -40,6 +43,7 @@
 #include <openssl/rand.h>
 
 static RAND_METHOD *rm = NULL;
+static isc_mutex_t locks[CRYPTO_NUM_LOCKS];
 
 static isc_result_t openssldsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
@@ -200,6 +204,7 @@ openssldsa_generate(dst_key_t *key, int unused) {
 		DSA_free(dsa);
 		return (DST_R_OPENSSLFAILURE);
 	}
+	dsa->flags &= ~DSA_FLAG_CACHE_MONT_P;
 
 	key->opaque = dsa;
 
@@ -282,6 +287,7 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dsa = DSA_new();
 	if (dsa == NULL)
 		return (ISC_R_NOMEMORY);
+	dsa->flags &= ~DSA_FLAG_CACHE_MONT_P;
 
 	t = (unsigned int) *r.base++;
 	if (t > 8) {
@@ -387,6 +393,7 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 	dsa = DSA_new();
 	if (dsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
+	dsa->flags &= ~DSA_FLAG_CACHE_MONT_P;
 	key->opaque = dsa;
 
 	for (i=0; i < priv.nelements; i++) {
@@ -493,10 +500,30 @@ entropy_add(const void *buf, int num, double entropy) {
 	UNUSED(entropy);
 }
 
+static void
+lock_callback(int mode, int type, const char *file, int line) {
+	if ((mode & CRYPTO_LOCK) != 0)
+		LOCK(&locks[type]);
+	else
+		UNLOCK(&locks[type]);
+}
+
+static unsigned long
+id_callback(void) {
+	return ((unsigned long)isc_thread_self());
+}
+
 isc_result_t
 dst__openssl_init(void) {
+	isc_result_t result;
+
 	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
 				 dst__mem_free);
+	result = isc_mutexblock_init(locks, CRYPTO_NUM_LOCKS);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	CRYPTO_set_locking_callback(lock_callback);
+	CRYPTO_set_id_callback(id_callback);
 	rm = dst__mem_alloc(sizeof(RAND_METHOD));
 	if (rm == NULL)
 		return (ISC_R_NOMEMORY);
@@ -512,6 +539,8 @@ dst__openssl_init(void) {
 
 void
 dst__openssl_destroy(void) {
+	RUNTIME_CHECK(isc_mutexblock_destroy(locks, CRYPTO_NUM_LOCKS) ==
+		      ISC_R_SUCCESS);
 	dst__mem_free(rm);
 }
 

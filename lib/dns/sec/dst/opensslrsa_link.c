@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.4 2000/11/22 00:11:30 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.5 2000/12/04 23:06:37 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -215,6 +215,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	else
 		e = RSA_F4;
 	rsa = RSA_generate_key(key->key_size, e, NULL, NULL);
+	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
 
 	if (rsa == NULL) {
 		ERR_clear_error();
@@ -302,6 +303,7 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	rsa = RSA_new();
 	if (rsa == NULL)
 		return (ISC_R_NOMEMORY);
+	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
 
 	if (r.length < 1)
 		return (DST_R_INVALIDPUBLICKEY);
@@ -438,6 +440,7 @@ opensslrsa_fromfile(dst_key_t *key, const isc_uint16_t id,
 	rsa = RSA_new();
 	if (rsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
+	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
 	key->opaque = rsa;
 
 	for (i = 0; i < priv.nelements; i++) {

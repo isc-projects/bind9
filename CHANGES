@@ -1,6 +1,9 @@
 
 	--- 9.1.0b1 released ---
 
+ 591.	[bug]		Work around non-reentrancy in openssl by disabling
+			precomputation in keys.
+
  590.	[doc]		There are now man pages for the lwres library in
 			doc/man/lwres.
 
