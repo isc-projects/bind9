@@ -1,3 +1,6 @@
+1673.	[port]		linux: issue a error messages if IPv6 interface
+			scans fails.
+
 1672.	[cleanup]	Tests which only function in a threaded build
 			now return R:THREADONLY (rather than R:UNTESTED)
 			in a non-threaded build.
