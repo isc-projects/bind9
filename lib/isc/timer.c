@@ -28,26 +28,7 @@
 #include <isc/heap.h>
 #include <isc/timer.h>
 
-/*
- * We use macros instead of calling the routines directly because
- * the capital letters make the locking stand out.
- *
- * We INSIST that they succeed since there's no way for us to continue
- * if they fail.
- */
-
-#define LOCK(lp) \
-	INSIST(isc_mutex_lock((lp)) == ISC_R_SUCCESS);
-#define UNLOCK(lp) \
-	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS);
-#define BROADCAST(cvp) \
-	INSIST(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS);
-#define SIGNAL(cvp) \
-	INSIST(isc_condition_signal((cvp)) == ISC_R_SUCCESS);
-#define WAIT(cvp, lp) \
-	INSIST(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS);
-#define WAITUNTIL(cvp, lp, tp) \
-	isc_condition_waituntil((cvp), (lp), (tp))
+#include "util.h"
 
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s)			printf("%s\n", (s))
@@ -264,7 +245,6 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	if (timer == NULL)
 		return (ISC_R_NOMEMORY);
 
-	timer->magic = TIMER_MAGIC;
 	timer->manager = manager;
 	timer->references = 1;
 	if (type == isc_timertype_once && !isc_interval_iszero(interval))
@@ -280,11 +260,13 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	timer->arg = arg;
 	timer->index = 0;
 	if (isc_mutex_init(&timer->lock) != ISC_R_SUCCESS) {
+		isc_task_detach(&timer->task);
 		isc_mem_put(manager->mctx, timer, sizeof *timer);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
+	timer->magic = TIMER_MAGIC;
 
 	LOCK(&manager->lock);
 
@@ -293,15 +275,23 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	 * there are no external references to it yet.
 	 */
 
-	APPEND(manager->timers, timer, link);
 	result = schedule(timer, &now, ISC_TRUE);
+	if (result == ISC_R_SUCCESS)
+		APPEND(manager->timers, timer, link);
 
 	UNLOCK(&manager->lock);
 
-	if (result == ISC_R_SUCCESS)
-		*timerp = timer;
+	if (result != ISC_R_SUCCESS) {
+		timer->magic = 0;
+		(void)isc_mutex_destroy(&timer->lock);
+		isc_task_detach(&timer->task);
+		isc_mem_put(manager->mctx, timer, sizeof *timer);
+		return (result);
+	}
 
-	return (result);
+	*timerp = timer;
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
