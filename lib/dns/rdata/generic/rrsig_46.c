@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rrsig_46.c,v 1.4.2.2 2004/03/16 12:38:14 marka Exp $ */
+/* $Id: rrsig_46.c,v 1.4.2.3 2004/06/24 00:58:06 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -154,8 +154,8 @@ totext_rrsig(ARGS_TOTEXT) {
 	if (dns_rdatatype_isknown(covered) && covered != 0) {
 		RETERR(dns_rdatatype_totext(covered, target));
 	} else {
-		char buf[sizeof("65535")];
-		sprintf(buf, "%u", covered);
+		char buf[sizeof("TYPE65535")];
+		sprintf(buf, "TYPE%u", covered);
 		RETERR(str_totext(buf, target));
 	}
 	RETERR(str_totext(" ", target));
