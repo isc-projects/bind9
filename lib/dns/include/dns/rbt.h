@@ -46,10 +46,7 @@ typedef struct dns_rbt_node {
 	unsigned int name_length;
 } dns_rbtnode_t;
 
-isc_result_t dns_rbt_create(isc_mem_t *mctx, dns_rbt_t **rbtp);
-void dns_rbt_destroy(dns_rbt_t **rbtp);
-
-
+dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
 /*
  * Add 'name' to the tree of trees, associated with 'data'.
  *
@@ -72,8 +69,8 @@ void dns_rbt_destroy(dns_rbt_t **rbtp);
  *	Success
  *	Resource Limit: Out of Memory
  */
-isc_result_t dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data);
 
+dns_result_t dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name);
 /*
  * Delete 'name' from the tree of trees.
  *
@@ -93,8 +90,8 @@ isc_result_t dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data);
  *	Success
  *	Bad Form: Not Found
  */
-isc_result_t dns_rbt_delete_name(dns_rbt_t *rbt, dns_name_t *name);
 
+void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
 /*
  * Convert the sequence of labels stored at 'node' into a 'name'.
  *
@@ -104,8 +101,9 @@ isc_result_t dns_rbt_delete_name(dns_rbt_t *rbt, dns_name_t *name);
  *	will likely cause grief.
  *
  */
-void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
 
+dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt,
+				  dns_name_t *name, dns_rbtnode_t **up);
 /*
  * Find the node for 'name'.
  *
@@ -119,9 +117,8 @@ void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  *	It is _not_ required that the node associated with 'name'
  *	has a non-NULL data pointer.
  */
-dns_rbtnode_t *dns_rbt_find_node(dns_rbt_t *rbt,
-				  dns_name_t *name, dns_rbtnode_t **up);
 
+void *dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name);
 /*
  * Return the data pointer associated with 'name'.
  *
@@ -129,9 +126,11 @@ dns_rbtnode_t *dns_rbt_find_node(dns_rbt_t *rbt,
  *	Returns NULL if either the name could not be found, or
  *	if the name is found but has a NULL data pointer.
  */
-void *dns_rbt_find_name(dns_rbt_t *rbt, dns_name_t *name);
 
 void dns_rbt_indent(int depth);
 void dns_rbt_printnodename(dns_rbtnode_t *node);
 void dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth);
 void dns_rbt_printall(dns_rbt_t *rbt);
+
+dns_result_t dns_rbt_create(isc_mem_t *mctx, dns_rbt_t **rbtp);
+void dns_rbt_destroy(dns_rbt_t **rbtp);
