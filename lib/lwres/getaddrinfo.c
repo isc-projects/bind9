@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.28 2000/07/03 17:38:43 gson Exp $ */
+/* $Id: getaddrinfo.c,v 1.29 2000/07/07 19:43:08 bwelling Exp $ */
   
 #include <config.h>
 
@@ -460,6 +460,7 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (lwres != 0)
 		ERR(EAI_FAIL);
+	(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		ai = ai_clone(*aip, AF_INET);
 		if (ai == NULL) {
@@ -496,8 +497,10 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
  cleanup:
 	if (by != NULL)
 		lwres_gabnresponse_free(lwrctx, &by);
-	if (lwrctx != NULL)
+	if (lwrctx != NULL) {
+		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
+	}
 	return(result);
 }
 
@@ -517,6 +520,7 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (lwres != 0)
 		ERR(EAI_FAIL);
+	(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
 
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		ai = ai_clone(*aip, AF_INET6);
@@ -554,8 +558,10 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
  cleanup:
 	if (by != NULL)
 		lwres_gabnresponse_free(lwrctx, &by);
-	if (lwrctx != NULL)
+	if (lwrctx != NULL) {
+		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
+	}
 	return (result);
 }
 
