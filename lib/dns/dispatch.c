@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.97 2001/03/13 05:48:40 marka Exp $ */
+/* $Id: dispatch.c,v 1.98 2001/04/12 21:03:37 tale Exp $ */
 
 #include <config.h>
 
@@ -1710,14 +1710,11 @@ void
 dns_dispatch_detach(dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp;
 	isc_boolean_t killit;
-	dns_dispatchmgr_t *mgr;
 
 	REQUIRE(dispp != NULL && VALID_DISPATCH(*dispp));
 
 	disp = *dispp;
 	*dispp = NULL;
-
-	mgr = disp->mgr;
 
 	LOCK(&disp->lock);
 
