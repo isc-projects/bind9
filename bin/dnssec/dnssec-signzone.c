@@ -75,6 +75,7 @@ static int cycle = -1;
 static isc_boolean_t tryverify = ISC_FALSE;
 static isc_mem_t *mctx = NULL;
 static isc_entropy_t *ectx = NULL;
+static dns_ttl_t zonettl;
 
 static inline void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
@@ -122,8 +123,7 @@ static inline isc_boolean_t
 iszonekey(signer_key_t *key, dns_db_t *db) {
 	return (ISC_TF(dns_name_equal(dst_key_name(key->key),
 				      dns_db_origin(db)) &&
-		       (dst_key_flags(key->key) & DNS_KEYFLAG_OWNERMASK) ==
-		       DNS_KEYOWNER_ZONE));
+		       dst_key_iszonekey(key->key)));
 }
 
 /*
@@ -595,6 +595,9 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 	dns_rdata_sig_t sig;
 	signer_key_t *key;
 
+	dns_rdataset_init(&set);
+	dns_rdataset_init(&sigset);
+
 	isc_buffer_init(&b, filename, sizeof(filename) - 10);
 	result = dns_name_totext(name, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
@@ -609,8 +612,6 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 	result = dns_db_findnode(newdb, name, ISC_FALSE, &newnode);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
-	dns_rdataset_init(&set);
-	dns_rdataset_init(&sigset);
 	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key,
 				     0, 0, &set, &sigset);
 	if (result != ISC_R_SUCCESS)
@@ -618,7 +619,7 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 
 	if (!dns_rdataset_isassociated(&set) ||
 	    !dns_rdataset_isassociated(&sigset))
-		goto disfail;
+		goto failure;
 
 	result = dns_rdataset_first(&sigset);
 	check_result(result, "dns_rdataset_first()");
@@ -627,11 +628,11 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 		dns_rdataset_current(&sigset, &sigrdata);
 		result = dns_rdata_tostruct(&sigrdata, &sig, mctx);
 		if (result != ISC_R_SUCCESS)
-			goto disfail;
+			goto failure;
 		key = keythatsigned(&sig);
 		dns_rdata_freestruct(&sig);
 		if (key == NULL)
-			goto disfail;
+			goto failure;
 		result = dns_dnssec_verify(name, &set, key->key,
 					   ISC_FALSE, mctx, &sigrdata);
 		if (result == ISC_R_SUCCESS) {
@@ -640,13 +641,11 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 		}
 	}
 
- disfail:
+ failure:
 	if (dns_rdataset_isassociated(&set))
 		dns_rdataset_disassociate(&set);
 	if (dns_rdataset_isassociated(&sigset))
 		dns_rdataset_disassociate(&sigset);
-
- failure:
 	if (newnode != NULL)
 		dns_db_detachnode(newdb, &newnode);
 	if (newdb != NULL)
@@ -662,7 +661,7 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
  */
 static void
 signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	 dns_name_t *name, isc_boolean_t atorigin)
+	 dns_name_t *name)
 {
 	isc_result_t result;
 	dns_rdata_t rdata;
@@ -671,6 +670,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	isc_boolean_t isdelegation = ISC_FALSE;
 	isc_boolean_t childkey = ISC_FALSE;
 	static int warnwild = 0;
+	isc_boolean_t atorigin;
 
 	if (dns_name_iswildcard(name)) {
 		if (warnwild++ == 0) {
@@ -685,6 +685,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		fprintf(stderr, "%s: warning: wildcard name seen: %s\n",
 			program, nametostr(name));
 	}
+	atorigin = dns_name_equal(name, dns_db_origin(db));
 	if (!atorigin) {
 		dns_rdataset_t nsset;
 
@@ -771,7 +772,6 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 					 "setting KEY bit in NXT\n",
 					 nametostr(name));
 			}
-
 #else
 			if (isdelegation && !childkey) {
 				dns_rdataset_t keyset;
@@ -825,9 +825,8 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				keyrdatalist.type = dns_rdatatype_key;
 				keyrdatalist.covers = 0;
 				keyrdatalist.ttl = rdataset.ttl;
-				result =
-					dns_rdatalist_tordataset(&keyrdatalist,
-								 &keyset);
+				result = dns_rdatalist_tordataset(&keyrdatalist,
+								  &keyset);
 				check_result(result,
 					     "dns_rdatalist_tordataset");
 				dns_db_addrdataset(db, node, version, 0,
@@ -835,11 +834,8 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 						   NULL);
 				set_bit(nxt_bits, dns_rdatatype_key, 1);
 				signset(db, version, node, name, &keyset);
-
-				dns_rdataset_disassociate(&keyset);
-
  alreadyhavenullkey:
-				;
+				dns_rdataset_disassociate(&keyset);
 			}
 #endif
 		}
@@ -941,31 +937,23 @@ next_nonglue(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 }
 
 /*
- * Generates NXTs and SIGs for each non-glue name in the zone.
+ * Extracts the zone minimum TTL from the SOA.
  */
-static void
-signzone(dns_db_t *db, dns_dbversion_t *version) {
-	isc_result_t result, nxtresult;
-	dns_dbnode_t *node, *nextnode, *curnode;
-	dns_fixedname_t fname, fnextname, fcurname;
-	dns_name_t *name, *nextname, *target, *curname, *lastcut;
-	dns_dbiterator_t *dbiter;
-	isc_boolean_t atorigin = ISC_TRUE;
-	dns_name_t *origin;
+static dns_ttl_t
+minimumttl(dns_db_t *db, dns_dbversion_t *version) {
 	dns_rdataset_t soaset;
+	dns_name_t *origin;
+	dns_fixedname_t fname;
+	dns_name_t *name;
 	dns_rdata_t soarr;
 	dns_rdata_soa_t soa;
-	dns_ttl_t zonettl;
-
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-	dns_fixedname_init(&fnextname);
-	nextname = dns_fixedname_name(&fnextname);
-	dns_fixedname_init(&fcurname);
-	curname = dns_fixedname_name(&fcurname);
+	isc_result_t result;
+	dns_ttl_t ttl;
 
 	origin = dns_db_origin(db);
 
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
 	dns_rdataset_init(&soaset);
 	result = dns_db_find(db, origin, version, dns_rdatatype_soa,
 			     0, 0, NULL, name, &soaset, NULL);
@@ -977,9 +965,35 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_rdataset_current(&soaset, &soarr);
 	result = dns_rdata_tostruct(&soarr, &soa, mctx);
 	check_result(result, "dns_rdataset_tostruct()");
-	zonettl = soa.minimum;
+	ttl = soa.minimum;
 	dns_rdata_freestruct(&soa);
 	dns_rdataset_disassociate(&soaset);
+
+	return (ttl);
+}
+
+/*
+ * Generates NXTs and SIGs for each non-glue name in the zone.
+ */
+static void
+signzone(dns_db_t *db, dns_dbversion_t *version) {
+	isc_result_t result, nxtresult;
+	dns_dbnode_t *node, *nextnode, *curnode;
+	dns_fixedname_t fname, fnextname, fcurname;
+	dns_name_t *name, *nextname, *target, *curname, *lastcut;
+	dns_dbiterator_t *dbiter;
+	dns_name_t *origin;
+
+	zonettl = minimumttl(db, version);
+
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	dns_fixedname_init(&fnextname);
+	nextname = dns_fixedname_name(&fnextname);
+	dns_fixedname_init(&fcurname);
+	curname = dns_fixedname_name(&fcurname);
+
+	origin = dns_db_origin(db);
 
 	lastcut = NULL;
 	dbiter = NULL;
@@ -994,7 +1008,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		nextnode = NULL;
 		curnode = NULL;
 		dns_dbiterator_current(dbiter, &curnode, curname);
-		if (!atorigin) {
+		if (!dns_name_equal(name, dns_db_origin(db))) {
 			dns_rdatasetiter_t *rdsiter = NULL;
 			dns_rdataset_t set;
 
@@ -1045,8 +1059,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		}
 		nxtresult = dns_buildnxt(db, version, node, target, zonettl);
 		check_result(nxtresult, "dns_buildnxt()");
-		signname(db, version, node, curname, atorigin);
-		atorigin = ISC_FALSE;
+		signname(db, version, node, curname);
 		dns_db_detachnode(db, &node);
 		dns_db_detachnode(db, &curnode);
 		node = nextnode;
@@ -1061,6 +1074,9 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_dbiterator_destroy(&dbiter);
 }
 
+/*
+ * Load the zone file from disk
+ */
 static void
 loadzone(char *file, char *origin, dns_db_t **db) {
 	isc_buffer_t b, b2;
@@ -1091,27 +1107,22 @@ loadzone(char *file, char *origin, dns_db_t **db) {
 		      file, isc_result_totext(result));
 }
 
-static void
-getversion(dns_db_t *db, dns_dbversion_t **version) {
-	isc_result_t result;
-
-	result = dns_db_newversion(db, version);
-	check_result(result, "dns_db_newversion()");
-}
-
 /*
  * Finds all public zone keys in the zone, and attempts to load the
  * private keys from disk.
  */
 static void
-loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
+loadzonekeys(dns_db_t *db) {
 	dns_name_t *origin;
 	dns_dbnode_t *node;
+	dns_dbversion_t *currentversion;
 	isc_result_t result;
 	dst_key_t *keys[20];
 	unsigned int nkeys, i;
 
 	origin = dns_db_origin(db);
+	currentversion = NULL;
+	dns_db_currentversion(db, &currentversion);
 
 	node = NULL;
 	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
@@ -1119,7 +1130,7 @@ loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 		fatal("failed to find the zone's origin: %s",
 		      isc_result_totext(result));
 
-	result = dns_dnssec_findzonekeys(db, version, node, origin, mctx,
+	result = dns_dnssec_findzonekeys(db, currentversion, node, origin, mctx,
 					 20, keys, &nkeys);
 	if (result == ISC_R_NOTFOUND)
 		result = ISC_R_SUCCESS;
@@ -1139,6 +1150,7 @@ loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 		ISC_LIST_APPEND(keylist, key, link);
 	}
 	dns_db_detachnode(db, &node);
+	dns_db_closeversion(db, &currentversion, ISC_FALSE);
 }
 
 static isc_stdtime_t
@@ -1218,6 +1230,7 @@ main(int argc, char *argv[]) {
 	isc_log_t *log = NULL;
 	isc_boolean_t pseudorandom = ISC_FALSE;
 	unsigned int eflags;
+	isc_boolean_t free_output = ISC_FALSE;
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS)
@@ -1229,24 +1242,19 @@ main(int argc, char *argv[]) {
 	       != -1) {
 		switch (ch) {
 		case 's':
-			startstr = isc_mem_strdup(mctx,
-						  isc_commandline_argument);
-			if (startstr == NULL)
-				fatal("out of memory");
+			startstr = isc_commandline_argument;
 			break;
 
 		case 'e':
-			endstr = isc_mem_strdup(mctx,
-						isc_commandline_argument);
-			if (endstr == NULL)
-				fatal("out of memory");
+			endstr = isc_commandline_argument;
 			break;
 
 		case 'c':
 			endp = NULL;
 			cycle = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
-				fatal("cycle period must be numeric");
+			if (*endp != '\0' || cycle < 0)
+				fatal("cycle period must be numeric and "
+				      "positive");
 			break;
 
 		case 'p':
@@ -1254,10 +1262,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'r':
-			randomfile = isc_mem_strdup(mctx,
-						    isc_commandline_argument);
-			if (randomfile == NULL)
-				fatal("out of memory");
+			randomfile = isc_commandline_argument;
 			break;
 
 		case 'v':
@@ -1268,17 +1273,11 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'o':
-			origin = isc_mem_strdup(mctx,
-						isc_commandline_argument);
-			if (origin == NULL)
-				fatal("out of memory");
+			origin = isc_commandline_argument;
 			break;
 
 		case 'f':
-			output = isc_mem_strdup(mctx,
-						isc_commandline_argument);
-			if (output == NULL)
-				fatal("out of memory");
+			output = isc_commandline_argument;
 			break;
 
 		case 'a':
@@ -1293,8 +1292,6 @@ main(int argc, char *argv[]) {
 	}
 
 	setup_entropy(mctx, randomfile, &ectx);
-	if (randomfile != NULL)
-		isc_mem_free(mctx, randomfile);
 	eflags = ISC_ENTROPY_BLOCKING;
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;
@@ -1304,23 +1301,18 @@ main(int argc, char *argv[]) {
 
 	isc_stdtime_get(&now);
 
-	if (startstr != NULL) {
+	if (startstr != NULL)
 		starttime = strtotime(startstr, now, now);
-		isc_mem_free(mctx, startstr);
-	}
 	else
 		starttime = now;
 
-	if (endstr != NULL) {
+	if (endstr != NULL)
 		endtime = strtotime(endstr, now, starttime);
-		isc_mem_free(mctx, endstr);
-	}
 	else
 		endtime = starttime + (30 * 24 * 60 * 60);
 
-	if (cycle == -1) {
+	if (cycle == -1)
 		cycle = (endtime - starttime) / 4;
-	}
 
 	setup_logging(verbose, mctx, &log);
 	
@@ -1330,38 +1322,28 @@ main(int argc, char *argv[]) {
 	if (argc < 1)
 		usage();
 
-	file = isc_mem_strdup(mctx, argv[0]);
-	if (file == NULL)
-		fatal("out of memory");
+	file = argv[0];
 
 	argc -= 1;
 	argv += 1;
 
 	if (output == NULL) {
+		free_output = ISC_TRUE;
 		output = isc_mem_allocate(mctx,
-					 strlen(file) + strlen(".signed") + 1);
+					  strlen(file) + strlen(".signed") + 1);
 		if (output == NULL)
 			fatal("out of memory");
 		sprintf(output, "%s.signed", file);
 	}
 
-	if (origin == NULL) {
-		origin = isc_mem_allocate(mctx, strlen(file) + 2);
-		if (origin == NULL)
-			fatal("out of memory");
-		strcpy(origin, file);
-		if (file[strlen(file) - 1] != '.')
-			strcat(origin, ".");
-	}
+	if (origin == NULL)
+		origin = file;
 
 	db = NULL;
 	loadzone(file, origin, &db);
 
-	version = NULL;
-	getversion(db, &version);
-
 	ISC_LIST_INIT(keylist);
-	loadzonekeys(db, version);
+	loadzonekeys(db);
 
 	if (argc == 0) {
 		signer_key_t *key;
@@ -1412,6 +1394,10 @@ main(int argc, char *argv[]) {
 		}
 	}
 
+	version = NULL;
+	result = dns_db_newversion(db, &version);
+	check_result(result, "dns_db_newversion()");
+
 	signzone(db, version);
 
 	/*
@@ -1426,22 +1412,20 @@ main(int argc, char *argv[]) {
 
 	dns_db_detach(&db);
 
-	key = ISC_LIST_HEAD(keylist);
-	while (key != NULL) {
-		signer_key_t *next = ISC_LIST_NEXT(key, link);
+	while (!ISC_LIST_EMPTY(keylist)) {
+		key = ISC_LIST_HEAD(keylist);
+		ISC_LIST_UNLINK(keylist, key, link);
 		dst_key_free(&key->key);
 		isc_mem_put(mctx, key, sizeof(signer_key_t));
-		key = next;
 	}
 
-	isc_mem_free(mctx, origin);
-	isc_mem_free(mctx, file);
-	isc_mem_free(mctx, output);
+	if (free_output)
+		isc_mem_free(mctx, output);
 
 	if (log != NULL)
 		isc_log_destroy(&log);
-	cleanup_entropy(&ectx);
 	dst_lib_destroy();
+	cleanup_entropy(&ectx);
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
