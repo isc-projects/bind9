@@ -1566,6 +1566,8 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 {
 	dns_name_t *foundname;
 	dns_result_t result;
+	unsigned int attributes;
+	dns_rdatatype_t atype;
 
 	/*
 	 * XXX These requirements are probably too intensive, especially
@@ -1586,12 +1588,23 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	}
 
 	/*
-	 * Search through, looking for the name.
-	 *
-	 * XXXRTH  We should probably allow the 'attributes' parameter
-	 *         to be set in the public API.
+	 * Figure out what attributes we should look for.
 	 */
-	result = findname(&foundname, target, 0, &msg->sections[section]);
+	if (type == dns_rdatatype_sig)
+		atype = covers;
+	else
+		atype = type;
+	attributes = 0;
+	if (atype == dns_rdatatype_cname)
+		attributes = DNS_NAMEATTR_CNAME;
+	else if (atype == dns_rdatatype_cname)
+		attributes = DNS_NAMEATTR_DNAME;
+	
+	/*
+	 * Search through, looking for the name.
+	 */
+	result = findname(&foundname, target, attributes,
+			  &msg->sections[section]);
 	if (result == DNS_R_NOTFOUND)
 		return (DNS_R_NXDOMAIN);
 	else if (result != DNS_R_SUCCESS)
