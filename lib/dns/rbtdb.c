@@ -4455,18 +4455,20 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
 	dns_rbtnode_t *node = rbtdbiter->node;
 
-	if (rbtdbiter->result != DNS_R_SUCCESS)
+	if (rbtdbiter->result != DNS_R_SUCCESS &&
+	    rbtdbiter->result != DNS_R_NOMORE)
 		return (rbtdbiter->result);
 
 	REQUIRE(!rbtdbiter->paused);
 	REQUIRE(rbtdbiter->tree_locked);
-	REQUIRE(node != NULL);
 
-	LOCK(&rbtdb->node_locks[node->locknum].lock);
-	new_reference(rbtdb, node);
-	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
+	if (node != NULL) {
+		LOCK(&rbtdb->node_locks[node->locknum].lock);
+		new_reference(rbtdb, node);
+		UNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
-	rbtdbiter->paused = ISC_TRUE;
+		rbtdbiter->paused = ISC_TRUE;
+	}
 
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	rbtdbiter->tree_locked = ISC_FALSE;
