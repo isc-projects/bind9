@@ -76,54 +76,147 @@ struct dns_dispatch {
 #define DISPATCH_MAGIC	0x69385829 /* "random" value */
 #define VALID_DISPATCH(e)  ((e) != NULL && (e)->magic == DISPATCH_MAGIC)
 
-/*
- * Initializes a response table.  The hash table becomes 2^hashsize
- * entries large.
- *
- * Requires:
- *
- *	0 <= "hashsize" <= 24.
- *
- * Returns:
- *
- *	DNS_R_SUCCESS		-- all is well.
- *	DNS_R_NOMEMORY		-- not enough memory to allocate
- */
-static dns_result_t
-restable_initialize(dns_dispatch_t *disp, unsigned int hashsize)
+dns_result_t
+dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
+		    unsigned int maxbuffersize,
+		    unsigned int maxbuffers, unsigned int maxrequests,
+		    unsigned int hashsize, dns_dispatch_t **dispp)
 {
-	unsigned int count;
+	dns_dispatch_t *disp;
+	unsigned int tablesize;
+	dns_result_t res;
 
+	REQUIRE(mctx != NULL);
+	REQUIRE(sock != NULL);
+	REQUIRE(task != NULL);
 	REQUIRE(hashsize <= 24);
-	INSIST(disp->qid_table == NULL);
+	REQUIRE(maxbuffersize >= 512 && maxbuffersize < (64*1024));
+	REQUIRE(maxbuffers > 0);
+	REQUIRE(maxrequests <= maxbuffers);
+	REQUIRE(dispp != NULL && *dispp == NULL);
 
-	count = (1 << hashsize);
+	res = DNS_R_SUCCESS;
 
-	disp->qid_table = isc_mem_get(disp->mctx, count * sizeof(void *));
-	if (disp->qid_table == NULL)
+	disp = isc_mem_get(mctx, sizeof(dns_dispatch_t));
+	if (disp == NULL)
 		return (DNS_R_NOMEMORY);
-	disp->qid_mask = count - 1;
-	disp->qid_hashsize = count;
 
+	disp->magic = 0;
+	disp->mctx = mctx;
+	disp->task = NULL; /* set below */
+	disp->socket = NULL; /* set below */
+	disp->buffersize = maxbuffersize;
+
+	disp->refcount = 1;
+
+	tablesize = (1 << hashsize);
+
+	disp->qid_table = isc_mem_get(disp->mctx, tablesize * sizeof(void *));
+	if (disp->qid_table == NULL) {
+		res = DNS_R_NOMEMORY;
+		goto out1;
+	}
+
+	disp->qid_mask = tablesize - 1;
+	disp->qid_hashsize = tablesize;
+
+	if (isc_mutex_init(&disp->lock) != ISC_R_SUCCESS) {
+		res = DNS_R_UNEXPECTED;
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_mutex_init failed");
+		goto out2;
+	}
+
+	if (isc_mempool_create(mctx, sizeof(dns_dispatchevent_t),
+			       &disp->epool) != ISC_R_SUCCESS) {
+		res = DNS_R_NOMEMORY;
+		goto out3;
+	}
+
+	if (isc_mempool_create(mctx, maxbuffersize,
+			       &disp->bpool) != ISC_R_SUCCESS) {
+		res = DNS_R_NOMEMORY;
+		goto out4;
+	}
+
+	if (isc_mempool_create(mctx, sizeof(dns_resentry_t),
+			       &disp->rpool) != ISC_R_SUCCESS) {
+		res = DNS_R_NOMEMORY;
+		goto out5;
+	}
+
+	/*
+	 * should initialize qid_state here XXXMLG
+	 */
+
+	disp->magic = DISPATCH_MAGIC;
+
+	isc_task_attach(task, &disp->task);
+	isc_socket_attach(sock, &disp->socket);
+
+	*dispp = disp;
 	return (DNS_R_SUCCESS);
+
+	/*
+	 * error returns
+	 */
+ out5:
+	isc_mempool_destroy(&disp->rpool);
+ out4:
+	isc_mempool_destroy(&disp->bpool);
+ out3:
+	isc_mempool_destroy(&disp->epool);
+ out2:
+	isc_mem_put(mctx, disp->mctx, disp->qid_hashsize * sizeof(void *));
+ out1:
+	isc_mem_put(mctx, disp, sizeof(dns_dispatch_t));
+
+	return (res);
 }
 
 /*
- * Invalidate a ressponse table.
- *
- * Ensures:
- *
- *	All internal resources are freed.
+ * Called when refcount reaches 0 at any time.
  */
 static void
-restable_invalidate(dns_dispatch_t *disp)
+destroy(dns_dispatch_t *disp)
 {
-	REQUIRE(disp->qid_table != NULL);
+	disp->magic = 0;
 
+	isc_task_detach(&disp->task);
+	isc_socket_detach(&disp->socket);
+
+	isc_mempool_destroy(&disp->rpool);
+	isc_mempool_destroy(&disp->bpool);
+	isc_mempool_destroy(&disp->epool);
 	isc_mem_put(disp->mctx, disp->qid_table,
 		    disp->qid_hashsize * sizeof(void *));
-	disp->qid_table = NULL;
-	disp->qid_hashsize = 0;
+
+	isc_mem_put(disp->mctx, disp, sizeof(dns_dispatch_t));
+}
+
+void
+dns_dispatch_destroy(dns_dispatch_t **dispp)
+{
+	dns_dispatch_t *disp;
+	isc_boolean_t killit;
+
+	REQUIRE(dispp != NULL && VALID_DISPATCH(*dispp));
+
+	disp = *dispp;
+	*dispp = NULL;
+
+	killit = ISC_FALSE;
+
+	LOCK(&disp->lock);
+
+	INSIST(disp->refcount > 0);
+	disp->refcount--;
+	if (disp->refcount == 0)
+		killit = ISC_TRUE;
+
+	UNLOCK(&disp->lock);
+
+	if (killit)
+		destroy(disp);
 }
 
 dns_result_t
@@ -144,6 +237,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	REQUIRE(idp != NULL);
 
 	LOCK(&disp->lock);
+
+	disp->refcount++;
 
 	/*
 	 * Try somewhat hard to find an unique ID.
@@ -196,6 +291,7 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
 	dns_resentry_t *res;
 	dns_dispatchevent_t *ev;
 	unsigned int bucket;
+	isc_boolean_t killit;
 
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(resp != NULL);
@@ -203,6 +299,8 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
 
 	res = *resp;
 	*resp = NULL;
+
+	killit = ISC_FALSE;
 
 	if (sockevent != NULL) {
 		REQUIRE(*sockevent != NULL);
@@ -214,6 +312,11 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
 
 	LOCK(&disp->lock);
 
+	INSIST(disp->refcount > 0);
+	disp->refcount--;
+	if (disp->refcount == 0)
+		killit = ISC_TRUE;
+
 	res->magic = 0;
 	bucket = res->bucket;
 
@@ -222,6 +325,9 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
 	isc_mempool_put(disp->rpool, res);
 
 	UNLOCK(&disp->lock);
+
+	if (killit)
+		destroy(disp);
 }
 
 dns_result_t
@@ -264,6 +370,7 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_resentry_t **resp,
 {
 	dns_resentry_t *res;
 	dns_dispatchevent_t *ev;
+	isc_boolean_t killit;
 
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(resp != NULL);
@@ -271,6 +378,8 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_resentry_t **resp,
 
 	res = *resp;
 	*resp = NULL;
+
+	killit = ISC_FALSE;
 
 	if (sockevent != NULL) {
 		REQUIRE(*sockevent != NULL);
@@ -282,6 +391,11 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_resentry_t **resp,
 
 	LOCK(&disp->lock);
 
+	INSIST(disp->refcount > 0);
+	disp->refcount--;
+	if (disp->refcount == 0)
+		killit = ISC_TRUE;
+
 	res->magic = 0;
 
 	ISC_LIST_UNLINK(disp->rq_handlers, res, link);
@@ -289,4 +403,7 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_resentry_t **resp,
 	isc_mempool_put(disp->rpool, res);
 
 	UNLOCK(&disp->lock);
+
+	if (killit)
+		destroy(disp);
 }

@@ -61,7 +61,7 @@ ISC_LANG_BEGINDECLS
  * any buffer space allocated from common pools.
  */
 typedef struct dns_dispatchevent dns_dispatchevent_t;
-struct dns_dispatchevent_t {
+struct dns_dispatchevent {
 	ISC_EVENT_COMMON(dns_dispatchevent_t);	/* standard event common */
 	dns_result_t		result;		/* result code */
 	isc_int16_t		id;		/* message id */
@@ -86,21 +86,21 @@ typedef struct dns_resentry dns_resentry_t; /* XXX name change */
 
 dns_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
-		    unsigned int maxbuffersize, unsigned int copythresh,
+		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
-		    dns_dispatch_t **disp);
+		    unsigned int hashsize, dns_dispatch_t **dispp);
 /*
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
  * For all dispatches, "maxbuffersize" is the maximum packet size we will
- * accept.  For UDP packets, "copythresh" is the minimum size a packet
- * needs to be before a copy is performed into a smaller, exactly sized
- * buffer.  "copythresh" is ignored for TCP packets, which always get an
- * exactly sized buffer.
+ * accept.
  *
  * "maxbuffers" and "maxrequests" control the number of buffers in the
  * overall system and the number of buffers which can be allocated to
  * requests.
+ *
+ * "hashsize" is the size of the hash table used to handle responses.  The
+ * size is 2^hashsize, maximum of 2^24.
  *
  * Requires:
  *
@@ -108,21 +108,20 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  *
  *	sock is a valid.
  *
- *	taskmgr is a valid task manager.
+ *	task is a valid task that can be used internally to this dispatcher.
  *
  * 	"buffersize" >= 512, which is the minimum receive size for a
  *	DNS message.
  *
- *	For UDP sockets, "copythresh" <= "buffersize".  If "copythresh" == 0,
- *	copying is never done, and if == UINT_MAX, copying is always done.
- *
  *	maxbuffers > 0.
  *
  *	maxrequests <= maxbuffers.
+ *
+ *	hashsize <= 24.
  */
 
 void
-dns_dispatch_destroy(dns_dispatch_t **disp);
+dns_dispatch_destroy(dns_dispatch_t **dispp);
 /*
  * Destroys dispatch.  All buffers and other bits must be returned to the
  * dispatch before this is called.
