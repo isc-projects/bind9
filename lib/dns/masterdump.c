@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.49 2001/03/28 00:58:12 gson Exp $ */
+/* $Id: masterdump.c,v 1.50 2001/04/26 21:17:55 gson Exp $ */
 
 #include <config.h>
 
@@ -100,6 +100,12 @@ struct dns_master_style {
    For this to take effect, DNS_STYLEFLAG_REL_OWNER must also be set. */
 #define DNS_STYLEFLAG_REL_DATA		0x00200000U
 
+/* Print the trust level of each rdataset. */
+#define DNS_STYLEFLAG_TRUST		0x00400000U
+
+/* Print negative caching entries. */
+#define DNS_STYLEFLAG_NCACHE		0x00800000U
+
 
 /*
  * The maximum length of the newline+indentation that is output
@@ -151,7 +157,9 @@ const dns_master_style_t
 dns_master_style_cache = {
 	DNS_STYLEFLAG_OMIT_OWNER |
 	DNS_STYLEFLAG_OMIT_CLASS |
-	DNS_STYLEFLAG_MULTILINE,
+	DNS_STYLEFLAG_MULTILINE |
+	DNS_STYLEFLAG_TRUST |
+	DNS_STYLEFLAG_NCACHE,
 	24, 32, 32, 40, 80, 8
 };
 
@@ -313,6 +321,22 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	} while (0)
 
 
+static isc_result_t
+str_totext(const char *source, isc_buffer_t *target) {
+	unsigned int l;
+	isc_region_t region;
+
+	isc_buffer_availableregion(target, &region);
+	l = strlen(source);
+
+	if (l > region.length)
+		return (ISC_R_NOSPACE);
+
+	memcpy(region.base, source, l);
+	isc_buffer_add(target, l);
+	return (ISC_R_SUCCESS);
+}
+
 /*
  * Convert 'rdataset' to master file text format according to 'ctx',
  * storing the result in 'target'.  If 'owner_name' is NULL, it
@@ -332,6 +356,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	isc_boolean_t first = ISC_TRUE;
 	isc_uint32_t current_ttl;
 	isc_boolean_t current_ttl_valid;
+	int type;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
@@ -408,11 +433,20 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		/*
 		 * Type.
 		 */
+
+		if (rdataset->type == 0) {
+			type = rdataset->covers;
+		} else {
+			type = rdataset->type;
+		}
+
 		{
 			unsigned int type_start;
 			INDENT_TO(type_column);
 			type_start = target->used;
-			result = dns_rdatatype_totext(rdataset->type, target);
+			if (rdataset->type == 0)
+				RETERR(str_totext("\\-", target));
+			result = dns_rdatatype_totext(type, target);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			column += (target->used - type_start);
@@ -421,11 +455,13 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		/*
 		 * Rdata.
 		 */
-		{
+		INDENT_TO(rdata_column);
+		if (rdataset->type == 0) {
+			RETERR(str_totext(";-$\n", target));
+		} else {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			isc_region_t r;
 
-			INDENT_TO(rdata_column);
 			dns_rdataset_current(rdataset, &rdata);
 
 			RETERR(dns_rdata_tofmttext(&rdata,
@@ -731,6 +767,18 @@ dump_order_compare(const void *a, const void *b) {
 
 #define MAXSORT 64
 
+const char *trustnames[] = {
+	"none",
+	"pending",
+	"additional",
+	"glue",
+	"answer",
+	"authauthority",
+	"authanswer",
+	"secure",
+	"local" /* aka ultimate */
+};
+
 static isc_result_t
 dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 	       dns_totext_ctx_t *ctx,
@@ -758,22 +806,26 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 	qsort(sorted, n, sizeof(sorted[0]), dump_order_compare);
 
 	for (i = 0; i < n; i++) {
-		/*
-		 * XXX  We only dump the rdataset if it isn't a
-		 * negative caching entry.  Maybe our dumping routines
-		 * will learn how to usefully dump such an entry later
-		 * on.
-		 */
-		if (sorted[i]->type != 0) {
+		dns_rdataset_t *rds = sorted[i];
+		if (ctx->style.flags & DNS_STYLEFLAG_TRUST) {
+			unsigned int trust = rds->trust;
+			INSIST(trust < (sizeof(trustnames) / sizeof(trustnames[0])));
+			fprintf(f, "; %s\n", trustnames[trust]);
+		}
+		if (rds->type == 0 &&
+ 
+		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
+			/* Omit negative cache entries */
+		} else {
 			isc_result_t result =
-				dump_rdataset(mctx, name, sorted[i], ctx,
+				dump_rdataset(mctx, name, rds, ctx,
 					       buffer, f);
 			if (result != ISC_R_SUCCESS)
 				dumpresult = result;
 			if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
 				name = NULL;
 		}
-		dns_rdataset_disassociate(sorted[i]);
+		dns_rdataset_disassociate(rds);
 	}
 
 	if (dumpresult != ISC_R_SUCCESS)
