@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.88 2001/01/31 22:16:37 gson Exp $ */
+/* $Id: dispatch.c,v 1.89 2001/02/07 03:01:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2215,7 +2215,7 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		return;
 	}
 
-	ISC_LIST_UNLINK(disp->rq_events, ev, ev_link);
+	ISC_LIST_UNLINK(resp->items, ev, ev_link);
 
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
