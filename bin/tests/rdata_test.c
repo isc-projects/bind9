@@ -893,7 +893,7 @@ main(int argc, char *argv[]) {
 			continue;
 
 		result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
-					  &token)
+					  &token);
 		if (result != ISC_R_SUCCESS)
 			break;
 		if (token.type == isc_tokentype_eol)
