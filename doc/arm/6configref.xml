@@ -789,6 +789,10 @@ response</replaceable> )( <replaceable>warn</replaceable> | <replaceable>fail</r
     <optional> min-roots <replaceable>number</replaceable>; </optional>
     <optional> use-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> treat-cr-as-space <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
 };
 </programlisting>
 </sect2>
@@ -1018,6 +1022,27 @@ on an NT or DOS machine. In <acronym>BIND</acronym> 9, both UNIX "<command>\n</c
 and NT/DOS "<command>\r\n</command>" newlines are always accepted,
 and the option is ignored.</para></entry>
 </row>
+<row rowsep = "0">
+<entry colname = "1">
+<para><command>min-refresh-time</command></para>
+<para><command>max-refresh-time</command></para>
+<para><command>min-retry-time</command></para>
+<para><command>max-retry-time</command></para>
+</entry>
+<entry colname = "2"><para>
+These options control the server's behavior on refreshing a zone
+(querying for SOA changes) or retrying failed transfers.
+Usually the SOA values for the zone are used, but these values
+are set by the master, giving slave server administrators little
+control over their contents.
+</para><para>
+These options allow the administrator to set a minimum and maximum
+refresh and retry time either per-zone, per-view, or per-server.
+These options are valid for slave and stub zones, and clamp the SOA
+refresh and retry times to the specified values.
+</para></entry>
+</row>
+
 </tbody>
 </tgroup></informaltable></sect3>
 <sect3><title>Forwarding</title>

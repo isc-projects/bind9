@@ -76,7 +76,7 @@ input</para></entry>
             </row>
             <row rowsep = "0">
               <entry colname = "1" colsep = "1"><para>program output</para></entry>
-              <entry colname = "2"><para><command>Fixed Width Bold</command></para></entry>
+              <entry colname = "2"><para><computeroutput>Fixed Width Bold</computeroutput></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -114,11 +114,11 @@ input</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1" colsep = "1" rowsep = "1"><para>Program output</para></entry>
-<entry colname = "2" rowsep = "1"><para><command>Fixed Width</command></para></entry>
+                <entry colname = "2" rowsep = "1"><para><computeroutput>Fixed Width</computeroutput></para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1" colsep = "1"><para>Optional input</para></entry>
-<entry colname = "2"><para>Text is enclosed in square brackets</para></entry>
+                <entry colname = "2"><para><optional>Text is enclosed in square brackets</optional></para></entry>
 </row>
 </tbody>
 </tgroup></informaltable></para></sect1>
