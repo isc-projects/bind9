@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.26.4.2 2001/04/30 16:39:59 gson Exp $ */
+/* $Id: logconf.c,v 1.26.4.3 2001/05/02 19:34:10 gson Exp $ */
 
 #include <config.h>
 
@@ -221,7 +221,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s' file '%s': %s",
-				      channelname, dest.file.name,
+				      cchan->name, dest.file.name,
 				      isc_result_totext(result));
 		else
 			(void)isc_stdio_close(fp);
