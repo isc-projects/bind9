@@ -4,16 +4,7 @@ a6_remove	open		jinmei
 blabel-cleanup
 ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
-rt3598		closed		explorer
-rt3625		closed		explorer
 rt3746		open		marka
-rt3892		closed		explorer
-rt4090		closed		explorer
-rt4112		closed		explorer
-adb_race	review		explorer
-rt4319		closed		explorer
-rt3907		closed		explorer
-rt3507		closed		ogud (pull down by explorer)
 v6source
 
 rt3445		closed
@@ -26,3 +17,12 @@ rt3502		closed
 ipv6-improvements closed
 ipv6-scope	closed
 marka_google	closed
+rt3598		closed		explorer
+rt3625		closed		explorer
+rt3892		closed		explorer
+rt4090		closed		explorer
+rt4112		closed		explorer
+rt4319		closed		explorer
+rt3907		closed		explorer
+rt3507		closed		ogud (pull down by explorer)
+adb_race	closed		explorer
