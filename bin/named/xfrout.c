@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.97 2001/03/12 22:21:31 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.98 2001/05/31 00:59:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
+#include <dns/soa.h>
 #include <dns/timer.h>
 #include <dns/view.h>
 #include <dns/zone.h>
