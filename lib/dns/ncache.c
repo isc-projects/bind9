@@ -268,6 +268,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 	 * 'target'.
 	 */
 
+	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->type == 0);
 
 	result = dns_rdataset_first(rdataset);
