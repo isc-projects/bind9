@@ -1,3 +1,6 @@
+ 159.	[func]		Redefinition of config file elements is now an
+			error (instead of a warning).
+
  158.   [bug]		Log channel and category list copy routines
 			weren't assigning properly to output parameter.
 
