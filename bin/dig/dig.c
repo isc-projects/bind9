@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.139 2001/02/15 23:57:22 bwelling Exp $ */
+/* $Id: dig.c,v 1.140 2001/02/17 01:05:27 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -440,9 +440,8 @@ buftoosmall:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_QUESTION,
 						       flags, buf);
-			if (result == ISC_R_NOSPACE) {
+			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
-			}
 			check_result(result, "dns_message_sectiontotext");
 		}
 	}
@@ -451,15 +450,13 @@ buftoosmall:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_ANSWER,
 						       flags, buf);
-			if (result == ISC_R_NOSPACE) {
+			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
-			}
 			check_result(result, "dns_message_sectiontotext");
 		} else {
 			result = short_answer(msg, flags, buf, query);
-			if (result == ISC_R_NOSPACE) {
+			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
-			}
 			check_result(result, "short_answer");
 		}
 	}
@@ -468,9 +465,8 @@ buftoosmall:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_AUTHORITY,
 						       flags, buf);
-			if (result == ISC_R_NOSPACE) {
+			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
-			}
 			check_result(result, "dns_message_sectiontotext");
 		}
 	}
@@ -479,9 +475,8 @@ buftoosmall:
 			result = dns_message_sectiontotext(msg,
 						      DNS_SECTION_ADDITIONAL,
 						      flags, buf);
-			if (result == ISC_R_NOSPACE) {
+			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
-			}
 			check_result(result, "dns_message_sectiontotext");
 			/*
 			 * Only print the signature on the first record.
@@ -491,19 +486,16 @@ buftoosmall:
 						   msg,
 						   DNS_PSEUDOSECTION_TSIG,
 						   flags, buf);
-				if (result == ISC_R_NOSPACE) {
+				if (result == ISC_R_NOSPACE)
 					goto buftoosmall;
-				}
 				check_result(result,
 					  "dns_message_pseudosectiontotext");
 				result = dns_message_pseudosectiontotext(
 						   msg,
 						   DNS_PSEUDOSECTION_SIG0,
 						   flags, buf);
-				if (result == ISC_R_NOSPACE) {
+				if (result == ISC_R_NOSPACE)
 					goto buftoosmall;
-				}
-
 				check_result(result,
 					   "dns_message_pseudosectiontotext");
 			}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.192 2001/02/17 00:41:03 gson Exp $ */
+/* $Id: dighost.c,v 1.193 2001/02/17 01:05:29 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -420,7 +420,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 
 	looknew = make_empty_lookup();
 	INSIST(looknew != NULL);
-	strncpy(looknew->textname, lookold-> textname, MXNAME);
+	strncpy(looknew->textname, lookold->textname, MXNAME);
 	strncpy(looknew->cmdline, lookold->cmdline, MXNAME);
 	looknew->textname[MXNAME-1] = 0;
 	looknew->rdtype = lookold->rdtype;
@@ -453,8 +453,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_additional = lookold->section_additional;
 	looknew->retries = lookold->retries;
 #ifdef DNS_OPT_NEWCODES_LIVE
-	strncpy(looknew->viewname, lookold-> viewname, MXNAME);
-	strncpy(looknew->zonename, lookold-> zonename, MXNAME);
+	strncpy(looknew->viewname, lookold->viewname, MXNAME);
+	strncpy(looknew->zonename, lookold->zonename, MXNAME);
 #endif /* DNS_OPT_NEWCODES_LIVE */
 
 	if (servers)

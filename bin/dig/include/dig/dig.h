@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.66 2001/02/15 23:44:08 tamino Exp $ */
+/* $Id: dig.h,v 1.67 2001/02/17 01:05:30 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -85,7 +85,8 @@ struct dig_lookup {
 		ns_search_only,
 		ns_search_only_leafnode,
 		identify, /* Append an "on server <foo>" message */
-		identify_previous_line, /* Prepend a "Nameserver <foo>:" message, with newline and tab */
+		identify_previous_line, /* Prepend a "Nameserver <foo>:"
+					   message, with newline and tab */
 		ignore,
 		recurse,
 		aaonly,
