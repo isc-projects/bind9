@@ -7,6 +7,7 @@
 ./bin/tests/timer_test.c			1998,1999
 ./bin/tests/wire_test.c				1999
 ./lib/dns/include/dns/name.h			1998,1999
+./lib/dns/include/dns/namespace.h		1999
 ./lib/dns/include/dns/rdata.h			1998,1999
 ./lib/dns/include/dns/rdataclass.h		1998,1999
 ./lib/dns/include/dns/rdatalist.h		1999
@@ -15,6 +16,7 @@
 ./lib/dns/include/dns/result.h			1998,1999
 ./lib/dns/include/dns/types.h			1998,1999
 ./lib/dns/name.c				1998,1999
+./lib/dns/namespace.c				1999
 ./lib/dns/rdataset.c				1999
 ./lib/dns/rdatalist.c				1999
 ./lib/dns/result.c				1998,1999
@@ -25,7 +27,7 @@
 ./lib/isc/include/isc/event.h			1998
 ./lib/isc/include/isc/heap.h			1997,1998
 ./lib/isc/include/isc/int.h			1999
-./lib/isc/include/isc/lex.h			1998
+./lib/isc/include/isc/lex.h			1998,1999
 ./lib/isc/include/isc/list.h			1997,1999
 ./lib/isc/include/isc/rbtgen.h			1998
 ./lib/isc/include/isc/region.h			1998
