@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.5 $)
+AC_REVISION($Revision: 1.294.2.6 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1014,7 +1014,7 @@ $isc_netinetin6_hack
 $isc_netinet6in6_hack
 $isc_in_addr6_hack
 ],
-		[struct in6_addr in6; in6 = in6addr_any; return (0);],
+		[struct in6_addr in6; in6 = in6addr_any; return (in6.s6_addr[0]);],
 			[AC_MSG_RESULT(yes)
 			 ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
 			 LWRES_PLATFORM_NEEDIN6ADDRANY="#undef LWRES_PLATFORM_NEEDIN6ADDRANY"],
@@ -1031,7 +1031,7 @@ $isc_netinetin6_hack
 $isc_netinet6in6_hack
 $isc_in_addr6_hack
 ],
-		[struct in6_addr in6; in6 = in6addr_loopback; return (0);],
+		[struct in6_addr in6; in6 = in6addr_loopback; return (in6.s6_addr[0]);],
 			[AC_MSG_RESULT(yes)
 			 ISC_PLATFORM_NEEDIN6ADDRLOOPBACK="#undef ISC_PLATFORM_NEEDIN6ADDRLOOPBACK"
 			 LWRES_PLATFORM_NEEDIN6ADDRLOOPBACK="#undef LWRES_PLATFORM_NEEDIN6ADDRLOOPBACK"],

@@ -1,3 +1,8 @@
+1117.	[port]		The configure check for in6addr_loopback incorrectly
+			succeeded on AIX 4.3 when compiling with -O2
+			because the test code was optimized away.
+			[RT #2016]
+
 1114.	[port]		Ignore more accept() errors. [RT #2021]
 
 
