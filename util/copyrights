@@ -22,7 +22,7 @@
 ./lib/isc/include/isc/heap.h			1997,1998
 ./lib/isc/include/isc/int.h			1999
 ./lib/isc/include/isc/lex.h			1998
-./lib/isc/include/isc/list.h			1997
+./lib/isc/include/isc/list.h			1997,1999
 ./lib/isc/include/isc/socket.h			1998
 ./lib/isc/include/isc/rbtgen.h			1998
 ./lib/isc/include/isc/region.h			1998
