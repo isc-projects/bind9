@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.126 2000/11/19 22:12:39 bwelling Exp $ */
+/* $Id: rdata.c,v 1.127 2000/11/19 23:19:23 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -534,10 +534,11 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 }
 
 static isc_result_t
-rdata_valid(isc_buffer_t *buf, dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	    isc_mem_t *mctx)
+rdata_valid(isc_buffer_t *buf, unsigned int len, dns_rdataclass_t rdclass,
+	    dns_rdatatype_t type, isc_mem_t *mctx)
 {
 	isc_buffer_t *tbuf = NULL;
+	isc_buffer_t rdatabuf;
 	dns_decompress_t dctx;
 	dns_rdata_t rdata;
 	isc_region_t r;
@@ -547,10 +548,15 @@ rdata_valid(isc_buffer_t *buf, dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_rdata_init(&rdata);
 	result = isc_buffer_allocate(mctx, &tbuf, isc_buffer_usedlength(buf));
 	if (result == ISC_R_SUCCESS) {
-		isc_buffer_setactive(buf, isc_buffer_usedlength(buf));
-		result = dns_rdata_fromwire(&rdata, rdclass, type, buf, &dctx,
-					    ISC_FALSE, tbuf);
-		isc_buffer_clear(buf);
+		isc_buffer_remainingregion(buf, &r);
+		isc_buffer_init(&rdatabuf, r.base, r.length);
+		isc_buffer_add(&rdatabuf, r.length);
+		INSIST(r.length >= len);
+		isc_buffer_forward(&rdatabuf, r.length - len);
+		isc_buffer_setactive(&rdatabuf, len);
+		result = dns_rdata_fromwire(&rdata, rdclass, type, &rdatabuf,
+					    &dctx, ISC_FALSE, tbuf);
+		isc_buffer_subtract(buf, len);
 		if (result == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(tbuf, &r);
 			(void)isc_buffer_copyregion(buf, &r);
@@ -603,8 +609,11 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 						  token.value.as_ulong);
 		if (result == ISC_R_SUCCESS && dns_rdatatype_ismeta(type))
 			result = DNS_R_METATYPE;
-		if (result == ISC_R_SUCCESS && dns_rdatatype_isknown(type))
-			result = rdata_valid(target, rdclass, type, mctx);
+		if (result == ISC_R_SUCCESS && dns_rdatatype_isknown(type)) {
+			unsigned int len = isc_buffer_used(target) -
+					   isc_buffer_used(&st);
+			result = rdata_valid(target, len, rdclass, type, mctx);
+		}
 	} else {
 		isc_lex_ungettoken(lexer, &token);
 
