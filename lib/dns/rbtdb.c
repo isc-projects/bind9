@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.152 2001/03/27 00:06:34 gson Exp $ */
+/* $Id: rbtdb.c,v 1.153 2001/03/30 00:33:39 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3946,6 +3946,48 @@ beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp, dns_dbload_t **dbloadp) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_boolean_t
+iszonesecure(dns_db_t *db, dns_dbnode_t *origin) {
+	dns_rdataset_t keyset;
+	dns_rdataset_t nxtset, signxtset;
+	isc_boolean_t haszonekey = ISC_FALSE;
+	isc_boolean_t hasnxt = ISC_FALSE;
+	isc_result_t result;
+
+	dns_rdataset_init(&keyset);
+	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_key, 0,
+				     0, &keyset, NULL);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdata_t keyrdata = DNS_RDATA_INIT;
+		result = dns_rdataset_first(&keyset);
+		while (result == ISC_R_SUCCESS) {
+			dns_rdataset_current(&keyset, &keyrdata);
+			if (dns_zonekey_iszonekey(&keyrdata)) {
+				haszonekey = ISC_TRUE;
+				break;
+			}
+			result = dns_rdataset_next(&keyset);
+		}
+		dns_rdataset_disassociate(&keyset);
+	}
+	if (!haszonekey)
+		return (ISC_FALSE);
+
+	dns_rdataset_init(&nxtset);
+	dns_rdataset_init(&signxtset);
+	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_key, 0,
+				     0, &nxtset, &signxtset);
+	if (result == ISC_R_SUCCESS) {
+		if (dns_rdataset_isassociated(&signxtset)) {
+			hasnxt = ISC_TRUE;
+			dns_rdataset_disassociate(&signxtset);
+		}
+		dns_rdataset_disassociate(&nxtset);
+	}
+	return (hasnxt);
+
+}
+
 static isc_result_t
 endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	rbtdb_load_t *loadctx;
@@ -3970,28 +4012,8 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	 * If there's a KEY rdataset at the zone origin containing a
 	 * zone key, we consider the zone secure.
 	 */
-	if (! IS_CACHE(rbtdb)) {
-		dns_rdataset_t keyset;
-		isc_result_t result;
-
-		dns_rdataset_init(&keyset);
-		result = dns_db_findrdataset(db, rbtdb->origin_node,
-					     NULL, dns_rdatatype_key, 0,
-					     0, &keyset, NULL);
-		if (result == ISC_R_SUCCESS) {
-			dns_rdata_t keyrdata = DNS_RDATA_INIT;
-			result = dns_rdataset_first(&keyset);
-			while (result == ISC_R_SUCCESS) {
-				dns_rdataset_current(&keyset, &keyrdata);
-				if (dns_zonekey_iszonekey(&keyrdata)) {
-					rbtdb->secure = ISC_TRUE;
-					break;
-				}
-				result = dns_rdataset_next(&keyset);
-			}
-			dns_rdataset_disassociate(&keyset);
-		}
-	}
+	if (! IS_CACHE(rbtdb))
+		rbtdb->secure = iszonesecure(db, rbtdb->origin_node);
 
 	*dbloadp = NULL;
 
