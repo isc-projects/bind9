@@ -8,93 +8,93 @@
 <OL>
 <H1 CLASS="1Level">
 <A NAME="pgfId=997350">
- </A>
+</A>
 Section 2.	BIND Resource Requirements</H1>
 </OL>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997351">
- </A>
+</A>
 2.1	Hardware requirements</H3>
 </OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997352">
- </A>
-DNS hardware requirements have traditionally been quite modest. For many installations, servers that have been pensioned off from active duty have performed admirably as DNS servers. </P>
+</A>
+DNS hardware requirements have traditionally been quite modest. For many installations, servers that have been pensioned off from active duty have performed admirably as DNS servers.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997353">
- </A>
+</A>
 The DNSSEC and IPv6 features of BINDv9 may prove to be quite CPU intensive however, so organizations that make heavy use of these features may wish to consider larger systems for these applications. BINDv9 is now fully multithreaded, allowing full utilization of multiprocessor systems, for installations that need it.</P>
 </DIV>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997354">
- </A>
+</A>
 2.2	CPU Requirements</H3>
 </OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997355">
- </A>
-CPU requrements for BINDv9 start at i486 for serving of static zones without caching, to enterprise-class machines if you intend to process many dynamic updates and DNSSEC signed zones, serving many thousands of queries per second.</P>
+</A>
+CPU requirements for BINDv9 range from i486-class machines for serving of static zones without caching, to enterprise-class machines if you intend to process many dynamic updates and DNSSEC signed zones, serving many thousands of queries per second.</P>
 </DIV>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997356">
- </A>
+</A>
 2.3	Memory Requirements </H3>
 </OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997357">
- </A>
-For BIND 8.x and older versions, the memory of the server had to be large enough to fit the cache and zones loaded off disk. BINDv9 will provide methods to set resource limits, at the expense of limiting the cache and causing more DNS traffic. It is still good practice to have enough memory to load all zone and cache data into memory--unfortunately, the best way to determine this for a given installation is to watch the nameserver in operation. After a few weeks, the server process should reach a relatively stable size where entries are expiring from the cache as fast as they are being inserted. Ideally, the resource limits for BINDv9 should be set higher than this stable size.</P>
+</A>
+The memory of the server has to be large enough to fit the cache and zones loaded off disk. Future releases of BINDv9 will provide methods to limit the amount of memory used by the cache, at the expense of reducing cache hit rates and causing more DNS traffic. It is still good practice to have enough memory to load all zone and cache data into memory--unfortunately, the best way to determine this for a given installation is to watch the nameserver in operation. After a few weeks, the server process should reach a relatively stable size where entries are expiring from the cache as fast as they are being inserted. Ideally, the resource limits should be set higher than this stable size.</P>
 </DIV>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997358">
- </A>
+</A>
 2.4	Nameserver Intensive Environment Issues</H3>
 </OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997359">
- </A>
+</A>
 For nameserver intensive environments, there are two alternative configurations that may be used. The first is where clients and any second-level internal nameservers query a main nameserver, which has enough memory to build a large cache. This approach minimizes the bandwidth used by external name lookups. The second alternative is to set up second-level internal nameservers to make queries independently. In this configuration, none of the individual machines needs to have as much memory or CPU power as in the first alternative, but this has the disadvantage of making many more external queries, as none of the nameservers share their cached data.</P>
 </DIV>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997360">
- </A>
+</A>
 2.5	Operating Systems Supported by the Internet Software Consortium</H3>
 </OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997361">
- </A>
+</A>
 ISC BINDv9 compiles and runs on the following operating systems:</P>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997362"> </A>
-IBM AIX 4.3</PRE>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997363"> </A>
-Compaq Digital/Tru64 UNIX 4.0, 5.0</PRE>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997364"> </A>
-HP HP-UX 11.0</PRE>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997365"> </A>
-SGI IRIX 6.4</PRE>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997366"> </A>
-Red Hat Linux 6.0, 6.1</PRE>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997367"> </A>
-Sun Solaris 2.6, 7</PRE>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997368"> </A>
-FreeBSD 3.3</PRE>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997369"> </A>
-NetBSD 1.4.1 or 1.4.2, with MIT pthreads</PRE>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997362"></A>
+IBM AIX 4.3
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997363"></A>
+Compaq Digital/Tru64 UNIX 4.0D
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997364"></A>
+HP HP-UX 11
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997365"></A>
+IRIX64 6.5
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997366"></A>
+Red Hat Linux 6.0, 6.1
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997367"></A>
+Sun Solaris 2.6, 7, 8 (beta)
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997368"></A>
+FreeBSD 3.4-STABLE
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997369"></A>
+NetBSD-current with &quot;unproven&quot; pthreads</PRE>
 <P CLASS="Body">
 <A NAME="pgfId=997347">
- </A>
+</A>
 &nbsp;</P>
-<p>Return to <A href="BV9ARM.HTML">BINDv9 Administrator Reference Manual</A> table of contents.</p>
 </DIV>
+<p>Return to <A href="BV9ARM.html">BINDv9 Administrator Reference Manual</A> table of contents.</p>
 </BODY>
 </HTML>

@@ -14,14 +14,13 @@ Section 5.	BINDv9 Configuration Reference</H1>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997351">
 </A>
-BINDv9 configuration is broadly similar to BIND 8.x; however, there are a few new areas of configuration, such as views. BIND 8.x configuration files should work with few alterations in BINDv9, although more complex configurations should be reviewed to check if they can be more efficiently implemented using the new features found in BINDv9.</P>
+BINDv9 configuration is broadly similar to BIND 8.x; however, there are a few new areas of configuration, such as views. BIND 8.x configuration files should work with few alterations in BINDv9, although more complex configurations should be reviewed to check if they can be more efficiently implemented using the new features found in BIND 9.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997352">
 </A>
-BIND 4.9.x configuration files can be converted to the new format by using<BR>
-<CODE CLASS="Program-Process">
+BIND 4.9.x configuration files can be converted to the new format by using the Perl script <CODE CLASS="Program-Process">
 src/bin/named/named-bootconf.pl</CODE>
-, a shell script that is part of the BIND release kit.</P>
+ from the BIND 8 release kit.</P>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
@@ -41,7 +40,7 @@ Following is a list of elements used throughout the BIND configuration file docu
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997357">
+<A NAME="pgfId=1022979">
 </A>
 <CODE CLASS="Program-Process">
 acl_name</CODE>
@@ -49,7 +48,7 @@ acl_name</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997359">
+<A NAME="pgfId=1022981">
 </A>
 The name of an <CODE CLASS="Program-Process">
 address_match_list</CODE>
@@ -61,7 +60,7 @@ acl</CODE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997361">
+<A NAME="pgfId=1022983">
 </A>
 <CODE CLASS="Program-Process">
 address_match_list</CODE>
@@ -69,7 +68,7 @@ address_match_list</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997363">
+<A NAME="pgfId=1022985">
 </A>
 A list of one or more <CODE CLASS="Program-Process">
 ip_addr, ip_prefix, key_id, </CODE>
@@ -83,7 +82,7 @@ Address Match Lists</A>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997368">
+<A NAME="pgfId=1022990">
 </A>
 <CODE CLASS="Program-Process">
 domain_name</CODE>
@@ -91,7 +90,7 @@ domain_name</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997370">
+<A NAME="pgfId=1022992">
 </A>
 A quoted string which will be used as a DNS name, for example &quot;<EM CLASS="URL">
 my.test.domain</EM>
@@ -101,15 +100,15 @@ my.test.domain</EM>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997372">
+<A NAME="pgfId=1022994">
 </A>
 <CODE CLASS="Program-Process">
-dotted-decimal</CODE>
+dotted_decimal</CODE>
 </H6>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997374">
+<A NAME="pgfId=1022996">
 </A>
 One or more integers valued 0 through 255 separated only by dots (&quot;.&quot;), such as <CODE CLASS="Program-Process">
 123</CODE>
@@ -123,25 +122,61 @@ One or more integers valued 0 through 255 separated only by dots (&quot;.&quot;)
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997376">
+<A NAME="pgfId=1022998">
 </A>
 <CODE CLASS="Program-Process">
-ip_addr</CODE>
+ip4_addr</CODE>
 </H6>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997378">
+<A NAME="pgfId=1023000">
 </A>
-An IP address with exactly four elements in <CODE CLASS="Program-Process">
-dotted-decimal</CODE>
+An IPv4 address with exactly four elements in <CODE CLASS="Program-Process">
+dotted_decimal</CODE>
  notation.</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997380">
+<A NAME="pgfId=1023033">
+</A>
+<CODE CLASS="Program-Process">
+ip6_addr</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023035">
+</A>
+An IPv6 address, like <CODE CLASS="Program-Process">
+fe80::200:f8ff:fe01:9742</CODE>
+.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023098">
+</A>
+<CODE CLASS="Program-Process">
+ip_addr</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023100">
+</A>
+An <CODE CLASS="Program-Process">
+ip4_addr</CODE>
+ or<CODE CLASS="Program-Process">
+ ip6_addr</CODE>
+.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023002">
 </A>
 <CODE CLASS="Program-Process">
 ip_port</CODE>
@@ -149,7 +184,7 @@ ip_port</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997382">
+<A NAME="pgfId=1023004">
 </A>
 An IP port <CODE CLASS="Program-Process">
 number</CODE>
@@ -161,7 +196,7 @@ number</CODE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997384">
+<A NAME="pgfId=1023006">
 </A>
 <CODE CLASS="Program-Process">
 ip_prefix</CODE>
@@ -169,11 +204,11 @@ ip_prefix</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997386">
+<A NAME="pgfId=1023008">
 </A>
-An IP network specified in <CODE CLASS="Program-Process">
-dotted-decimal</CODE>
- form, followed by &quot;/'' and then the number of bits in the netmask. E.g. <CODE CLASS="Program-Process">
+An IP network specified as an <CODE CLASS="Program-Process">
+ip_addr</CODE>
+, followed by &quot;/'' and then the number of bits in the netmask. E.g. <CODE CLASS="Program-Process">
 127/8</CODE>
  is the network <CODE CLASS="Program-Process">
 127.0.0.0</CODE>
@@ -191,7 +226,7 @@ dotted-decimal</CODE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997388">
+<A NAME="pgfId=1023010">
 </A>
 <CODE CLASS="Program-Process">
 key_name</CODE>
@@ -199,15 +234,17 @@ key_name</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997390">
+<A NAME="pgfId=1023012">
 </A>
-A string representing the name of a shared key, to be used for transaction security.</P>
+A <CODE CLASS="Program-Process">
+domain_name</CODE>
+ representing the name of a shared key, to be used for transaction security.</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997392">
+<A NAME="pgfId=1023014">
 </A>
 <CODE CLASS="Program-Process">
 number</CODE>
@@ -215,7 +252,7 @@ number</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997394">
+<A NAME="pgfId=1023016">
 </A>
 A non-negative integer with an entire range limited by the range of a C language signed integer (2,147,483,647 on a machine with 32 bit integers). Its acceptable value might further be limited by the context in which it is used.</P>
 </TD>
@@ -223,7 +260,7 @@ A non-negative integer with an entire range limited by the range of a C language
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997396">
+<A NAME="pgfId=1023018">
 </A>
 <CODE CLASS="Program-Process">
 path_name</CODE>
@@ -231,9 +268,9 @@ path_name</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997398">
+<A NAME="pgfId=1023020">
 </A>
-A quoted string which will be used as a pathname, such as &quot;<EM CLASS="URL">
+A quoted string which will be used as a pathname, such as &quot;<EM CLASS="pathname">
 zones/master/my.test.domain</EM>
 &quot;.</P>
 </TD>
@@ -241,7 +278,7 @@ zones/master/my.test.domain</EM>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997400">
+<A NAME="pgfId=1023022">
 </A>
 <CODE CLASS="Program-Process">
 size_spec</CODE>
@@ -249,7 +286,7 @@ size_spec</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997402">
+<A NAME="pgfId=1023024">
 </A>
 A number, the word <CODE CLASS="Program-Process">
 unlimited</CODE>
@@ -257,7 +294,7 @@ unlimited</CODE>
 default</CODE>
 .</P>
 <P CLASS="CellBody">
-<A NAME="pgfId=997403">
+<A NAME="pgfId=1023025">
 </A>
 The maximum value of <CODE CLASS="Program-Process">
 size_spec</CODE>
@@ -267,7 +304,7 @@ unlimited</CODE>
 default</CODE>
  uses the limit that was in force when the server was started.</P>
 <P CLASS="CellBody">
-<A NAME="pgfId=997404">
+<A NAME="pgfId=1023026">
 </A>
 A <CODE CLASS="Program-Process">
 number</CODE>
@@ -285,7 +322,7 @@ G</CODE>
 g</CODE>
  for gigabytes, which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.</P>
 <P CLASS="CellBody">
-<A NAME="pgfId=997405">
+<A NAME="pgfId=1023027">
 </A>
 Integer storage overflow is currently silently ignored during conversion of scaled values, resulting in values less than intended, possibly even negative. Using <CODE CLASS="Program-Process">
 unlimited</CODE>
@@ -295,7 +332,7 @@ unlimited</CODE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997407">
+<A NAME="pgfId=1023029">
 </A>
 <CODE CLASS="Program-Process">
 yes_or_no</CODE>
@@ -303,7 +340,7 @@ yes_or_no</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997409">
+<A NAME="pgfId=1023031">
 </A>
 Either <CODE CLASS="Program-Process">
 yes</CODE>
@@ -337,9 +374,11 @@ Address Match Lists</H4>
 </A>
 5.1.1.1	Syntax</H5>
 </OL>
-<PRE CLASS="4Level-fixed"><A NAME="pgfId=997414"></A><EM CLASS="Optional-meta-syntax">[ </EM><CODE CLASS="Program-Process">!</CODE><EM CLASS="Optional-meta-syntax"> ] (</EM>
-<EM CLASS="variable">address_match_list</EM><CODE CLASS="Program-Process"> </CODE><EM CLASS="Optional-meta-syntax">|</EM><CODE CLASS="Program-Process"> </CODE><EM CLASS="variable">ip_address </EM><EM CLASS="Optional-meta-syntax">[/</EM><EM CLASS="variable">number</EM><EM CLASS="Optional-meta-syntax">] |</EM><CODE CLASS="Program-Process"> </CODE><EM CLASS="variable">acl_name</EM><EM CLASS="Optional-meta-syntax">) |</EM><CODE CLASS="Program-Process"> key </CODE><EM CLASS="variable">key_id</EM><CODE CLASS="Program-Process"> ; </CODE><EM CLASS="Optional-meta-syntax">[ [</EM><CODE CLASS="Program-Process"> ! </CODE><EM CLASS="Optional-meta-syntax">] (</EM><EM CLASS="variable">address_match_list</EM><CODE CLASS="Program-Process"> </CODE>
-<EM CLASS="Optional-meta-syntax">|</EM><CODE CLASS="Program-Process"> </CODE><EM CLASS="variable">ip_address</EM><EM CLASS="Optional-meta-syntax"> | </EM><EM CLASS="variable">ip_prefix</EM><EM CLASS="Optional-meta-syntax"> |</EM><CODE CLASS="Program-Process"> </CODE><EM CLASS="variable">acl_name</EM><EM CLASS="Optional-meta-syntax">) | </EM><CODE CLASS="Program-Process">key </CODE><EM CLASS="variable">key_id</EM><CODE CLASS="Program-Process"> ;</CODE><EM CLASS="Optional-meta-syntax"> [...]]</EM></PRE>
+
+<PRE CLASS="4Level-fixed"><A NAME="pgfId=997414"></A><EM CLASS="production_target">address_match_list</EM><EM CLASS="Optional-meta-syntax"> = </EM><EM CLASS="variable">address_match_list_element</EM><EM CLASS="Optional-meta-syntax"> </EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> [</EM><EM CLASS="variable">address_match_list_element</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ... ]</EM>
+</PRE>
+<PRE CLASS="4Level-fixed"><A NAME="pgfId=1018549"></A><EM CLASS="production_target">address_match_list_element </EM><EM CLASS="Optional-meta-syntax">= [ </EM><KBD CLASS="Literal-user-input">!</KBD><EM CLASS="Optional-meta-syntax"> ]</EM><EM CLASS="production_target"> </EM><EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">ip_address</EM><EM CLASS="production_target"> </EM><EMCLASS="Optional-meta-syntax">[</EM><KBD CLASS="Literal-user-input">/</KBD><EM CLASS="variable">length</EM><EM CLASS="Optional-meta-syntax">] | </EM><KBD CLASS="Literal-user-input">key</KBD><EM CLASS="production_target"> </EM><EM CLASS="variable">key_id</EM><EM CLASS="Optional-meta-syntax"> |</EM><EM CLASS="production_target"> </EM><EM CLASS="variable">acl_name</EM><EM CLASS="production_target"> </EM><EM CLASS="Optional-meta-syntax">| </EM><KBD CLASS="Literal-user-input">{</KBD><EM CLASS="variable">address_match_list</EM><KBDCLASS="Literal-user-input">}</KBD><EMCLASS="Optional-meta-syntax">)</EM>
+</PRE>
 </DIV>
 <DIV>
 <OL>
@@ -356,7 +395,7 @@ Address match lists are primarily used to determine access control for various s
 <LI CLASS="4Level-bullet1">
 <A NAME="pgfId=997417">
 </A>
-an IP address (in dotted-decimal notation)</LI>
+an IP address (IPv4 or IPv6)</LI>
 <LI CLASS="4Level-bullet2">
 <A NAME="pgfId=997418">
 </A>
@@ -368,16 +407,30 @@ a key ID, as defined by the key statement</LI>
 <LI CLASS="4Level-bullet2">
 <A NAME="pgfId=997420">
 </A>
-the name of an address match list previously defined with the acl statment</LI>
+the name of an address match list previously defined with the <CODE CLASS="Program-Process">
+acl</CODE>
+ statment</LI>
 <LI CLASS="4Level-bullet2">
 <A NAME="pgfId=997421">
 </A>
-another address_match_list</LI>
+a nested address match list enclosed in braces</LI>
 </UL>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997422">
 </A>
-Elements can be negated with a leading exclamation mark (&quot;!&quot;), and the match list names &quot;any&quot;, &quot;none&quot;, &quot;localhost&quot; and &quot;localnets&quot; are predefined. More information on those names can be found in the description of the acl statement.</P>
+Elements can be negated with a leading exclamation mark (&quot;<CODE CLASS="Program-Process">
+!</CODE>
+&quot;), and the match list names &quot;<CODE CLASS="Program-Process">
+any</CODE>
+&quot;, &quot;<CODE CLASS="Program-Process">
+none</CODE>
+&quot;, &quot;<CODE CLASS="Program-Process">
+localhost</CODE>
+&quot; and &quot;<CODE CLASS="Program-Process">
+localnets</CODE>
+&quot; are predefined. More information on those names can be found in the description of the <CODE CLASS="Program-Process">
+acl</CODE>
+ statement.</P>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997423">
 </A>
@@ -487,7 +540,7 @@ For example:</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997443">
 </A>
-WARNING: you cannot use the ; (semicolon) character to start a comment such as you would in a zone file. The semicolon indicates the end of a configuration statement, so whatever follows it will be interpreted as the start of the next statement.</P>
+WARNING: you cannot use the &quot;;&quot; (semicolon) character to start a comment such as you would in a zone file. The semicolon indicates the end of a configuration statement.</P>
 </DIV>
 </DIV>
 </DIV>
@@ -509,14 +562,14 @@ A BINDv9 configuration consists of statements and comments. Statements end with 
 </A>
 The following statements are supported:</P>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997489">
+<A NAME="pgfId=1023879">
 </A>
 &nbsp;</P>
 <TABLE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997450">
+<A NAME="pgfId=1023840">
 </A>
 <CODE CLASS="Program-Process">
 acl</CODE>
@@ -524,7 +577,7 @@ acl</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997452">
+<A NAME="pgfId=1023842">
 </A>
 defines a named IP address matching list, for access control and other uses</P>
 </TD>
@@ -532,7 +585,7 @@ defines a named IP address matching list, for access control and other uses</P>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997454">
+<A NAME="pgfId=1023844">
 </A>
 <CODE CLASS="Program-Process">
 controls</CODE>
@@ -540,17 +593,17 @@ controls</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997456">
+<A NAME="pgfId=1023846">
 </A>
 declares control channels to be used by the <CODE CLASS="Program-Process">
-ndc</CODE>
+rndc</CODE>
  utility</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997458">
+<A NAME="pgfId=1023848">
 </A>
 <CODE CLASS="Program-Process">
 include</CODE>
@@ -558,7 +611,7 @@ include</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997460">
+<A NAME="pgfId=1023850">
 </A>
 includes a file</P>
 </TD>
@@ -566,7 +619,7 @@ includes a file</P>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997462">
+<A NAME="pgfId=1023852">
 </A>
 <CODE CLASS="Program-Process">
 key</CODE>
@@ -574,7 +627,7 @@ key</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997464">
+<A NAME="pgfId=1023854">
 </A>
 specifies key information for use in authentication and authorization using TSIG. See <EM CLASS="pathname">
 draft-ietf-dnsind-tsig-13.txt</EM>
@@ -584,7 +637,7 @@ draft-ietf-dnsind-tsig-13.txt</EM>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997466">
+<A NAME="pgfId=1023856">
 </A>
 <CODE CLASS="Program-Process">
 logging</CODE>
@@ -592,7 +645,7 @@ logging</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997468">
+<A NAME="pgfId=1023858">
 </A>
 specifies what the server logs, and where the log messages are sent</P>
 </TD>
@@ -600,7 +653,7 @@ specifies what the server logs, and where the log messages are sent</P>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997470">
+<A NAME="pgfId=1023860">
 </A>
 <CODE CLASS="Program-Process">
 options</CODE>
@@ -608,7 +661,7 @@ options</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997472">
+<A NAME="pgfId=1023862">
 </A>
 controls global server configuration options and sets defaults for other statements</P>
 </TD>
@@ -616,7 +669,7 @@ controls global server configuration options and sets defaults for other stateme
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997474">
+<A NAME="pgfId=1023864">
 </A>
 <CODE CLASS="Program-Process">
 server</CODE>
@@ -624,7 +677,7 @@ server</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997476">
+<A NAME="pgfId=1023866">
 </A>
 sets certain configuration options on a per-server basis</P>
 </TD>
@@ -632,7 +685,7 @@ sets certain configuration options on a per-server basis</P>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997478">
+<A NAME="pgfId=1023868">
 </A>
 <CODE CLASS="Program-Process">
 trusted-keys</CODE>
@@ -640,7 +693,7 @@ trusted-keys</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997480">
+<A NAME="pgfId=1023870">
 </A>
 defines keys that are preconfigured into the server and implicitly trusted. See RFC 2535 for more information.</P>
 </TD>
@@ -648,7 +701,7 @@ defines keys that are preconfigured into the server and implicitly trusted. See 
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997482">
+<A NAME="pgfId=1023872">
 </A>
 <CODE CLASS="Program-Process">
 view</CODE>
@@ -656,7 +709,7 @@ view</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997484">
+<A NAME="pgfId=1023874">
 </A>
 defines a view</P>
 </TD>
@@ -664,7 +717,7 @@ defines a view</P>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997486">
+<A NAME="pgfId=1023876">
 </A>
 <CODE CLASS="Program-Process">
 zone</CODE>
@@ -672,41 +725,33 @@ zone</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997488">
+<A NAME="pgfId=1023878">
 </A>
 defines a zone</P>
 </TD>
 </TR>
 </TABLE>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997490">
+<A NAME="pgfId=1023880">
 </A>
 The <CODE CLASS="Program-Process">
 logging</CODE>
  and <CODE CLASS="Program-Process">
 options</CODE>
- statements may only occur once per configuration. <CODE CLASS="Program-Process">
-logging</CODE>
- statements are read in first, <CODE CLASS="Program-Process">
-options</CODE>
- second. Also, although the <CODE CLASS="Program-Process">
-options</CODE>
- statement can appear anywhere in a configuration file, it is suggested that it appear at the beginning, since things like the default directory are not defined until it after it has been read.</P>
+ statements may only occur once per configuration.</P>
 <DIV>
 <OL>
 <H4 CLASS="3Level">
-<A NAME="pgfId=997491">
+<A NAME="pgfId=1023881">
 </A>
 5.2.1	<CODE CLASS="Program-Process">
 acl</CODE>
  Statement Grammar</H4>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997492"></A>
-acl <EM CLASS="variable">acl-name</EM>
- { 
+acl <EM CLASS="variable">acl-name</EM> { 
     <EM CLASS="variable">address_match_list</EM>
- 
-};</PRE>
+ };</PRE>
 </DIV>
 <DIV>
 <OL>
@@ -724,9 +769,7 @@ acl</CODE>
 </A>
 The <CODE CLASS="Program-Process">
 acl</CODE>
- statement creates a <CODE CLASS="Program-Process">
-named</CODE>
- address match list. It gets its name from a primary use of address match lists: Access Control Lists (ACLs).</P>
+ statement assigns a symbolic name to an address match list. It gets its name from a primary use of address match lists: Access Control Lists (ACLs).</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997498">
 </A>
@@ -755,7 +798,7 @@ any</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997504">
 </A>
-Allows all hosts.</P>
+Matches all hosts.</P>
 </TD>
 </TR>
 <TR>
@@ -771,7 +814,7 @@ none</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997508">
 </A>
-Denies all hosts.</P>
+Matches no hosts.</P>
 </TD>
 </TR>
 <TR>
@@ -787,7 +830,7 @@ localhost</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997512">
 </A>
-Allows the IP addresses of all interfaces on the system.</P>
+Matches the IP addresses of all interfaces on the system.</P>
 </TD>
 </TR>
 <TR>
@@ -803,7 +846,7 @@ localnets</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997516">
 </A>
-Allows any host on a network for which the system has an interface.</P>
+Matches any host on a network for which the system has an interface.</P>
 </TD>
 </TR>
 </TABLE>
@@ -814,14 +857,13 @@ Allows any host on a network for which the system has an interface.</P>
 <A NAME="pgfId=997518">
 </A>
 5.2.3	<CODE CLASS="Program-Process">
-control</CODE>
+controls</CODE>
  Statement Grammar</H4>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997519"></A>
 controls {
-       <EM CLASS="Optional-meta-syntax">[</EM>inet <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">ip_addr</EM><EM CLASS="Optional-meta-syntax">|</EM>*<EM CLASS="Optional-meta-syntax">)</EM> port <EM CLASS="variable">ip_port</EM> allow { <EM CLASS="variable">address_match_list</EM> } ; <EM CLASS="Optional-meta-syntax">[</EM>inet...;<EM CLASS="Optional-meta-syntax">[...]]]
-</EM>
-       <EM CLASS="Optional-meta-syntax">[</EM>unix <EM CLASS="variable">string</EM> permission <EM CLASS="variable">number</EM> owner <EM CLASS="variable">number</EM> group <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">[</EM>unix...;<EM CLASS="Optional-meta-syntax">[..]]]</EM>
+       <EM CLASS="Optional-meta-syntax">[</EM> inet <EM CLASS="Optional-meta-syntax">(</EM> <EM CLASS="variable">ip_addr</EM><EM CLASS="Optional-meta-syntax">|</EM>*<EM CLASS="Optional-meta-syntax">)</EM> port <EM CLASS="variable">ip_port</EM> allow { <EMCLASS="variable">address_match_list</EM>} ; <EM CLASS="Optional-meta-syntax">[</EM>inet...;<EM CLASS="Optional-meta-syntax">[...]]]</EM>
+       <EM CLASS="Optional-meta-syntax">[</EM> unix <EM CLASS="variable">string</EM> permission <EM CLASS="variable">number</EM> owner <EM CLASS="variable">number</EM> group <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">[</EM>unix...;<EM CLASS="Optional-meta-syntax">[..]]]</EM>
 };</PRE>
 </DIV>
 <DIV>
@@ -864,9 +906,19 @@ inet</CODE>
 ip_port</CODE>
  on the specified <CODE CLASS="Program-Process">
 ip_addr</CODE>
-. Modern telnet clients are capable of speaking directly to these sockets, and the control protocol is ARPAnet-style text. It is recommended that 127.0.0.1 be the only <CODE CLASS="Program-Process">
+. It is recommended that 127.0.0.1 be the only <CODE CLASS="Program-Process">
 ip_addr</CODE>
  used, and this only if you trust all non-privileged users on the local host to manage your nameserver.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1023964">
+</A>
+<EM CLASS="Emphasis">
+The </EM>
+<CODE CLASS="Program-Process">
+controls</CODE>
+<EM CLASS="Emphasis">
+ statement is not yet implemented in BINDv9.  The server always listens for control connections on IP address 127.0.0.1, port 953.</EM>
+</P>
 </DIV>
 <DIV>
 <OL>
@@ -878,8 +930,7 @@ include</CODE>
  Statement Grammar</H4>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997528"></A>
-include &quot;<EM CLASS="variable">filename</EM>
-&quot;;</PRE>
+include &quot;<EM CLASS="variable">filename</EM>&quot;;</PRE>
 </DIV>
 <DIV>
 <OL>
@@ -899,7 +950,7 @@ include</CODE>
 include</CODE>
  statement is encountered. The <CODE CLASS="Program-Process">
 include</CODE>
- statement facilitates the administration of configuration files by permitting the writing of some things but not others. For example, the statement could include private keys that are readable only by a nameserver.</P>
+ statement facilitates the administration of configuration files by permitting the reading or writing of some things but not others. For example, the statement could include private keys that are readable only by a nameserver.</P>
 </DIV>
 <DIV>
 <OL>
@@ -911,12 +962,9 @@ key</CODE>
  Statement Grammar</H4>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997532"></A>
-key <EM CLASS="variable">key_id</EM>
- {
-    algorithm <EM CLASS="variable">string</EM>
-;
-    secret <EM CLASS="variable">string</EM>
-;
+key <EM CLASS="variable">key_id</EM> {
+    algorithm <EM CLASS="variable">string</EM>;
+    secret <EM CLASS="variable">string</EM>;
 };</PRE>
 </DIV>
 <DIV>
@@ -970,34 +1018,30 @@ algorithm_id</CODE>
 logging</CODE>
  statement grammar</H4>
 </OL>
-<PRE CLASS="3Level-fixed"><A NAME="pgfId=997542"></A>
+<pre>
 logging {
+   [ channel channel_name {
+     ( file path name
+         [ versions (number | unlimited ) ]
+         [ size size spec ]
+       | syslog ( syslog_facility )
+       | null );
 
-    <EM CLASS="Optional-meta-syntax">[</EM>category <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>default<EM CLASS="Optional-meta-syntax">|</EM>notify<EM CLASS="Optional-meta-syntax">)</EM>{<EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable"> name</EM><EM CLASS="Optional-meta-syntax">|</EM> null<EM CLASS="Optional-meta-syntax">)</EM>;<EM CLASS="Optional-meta-syntax">[(</EM><EM CLASS="variable"> name</EM><EM CLASS="Optional-meta-syntax">|</EM> null<EM CLASS="Optional-meta-syntax">)</EM>;<EM CLASS="Optional-meta-syntax">[...]]</EM>};
+     [ severity (critical | error | warning | notice |
+                 info | debug [ level ] | dynamic ); ]
+     [ print-category yes or no; ]
+     [ print-severity yes or no; ]
+     [ print-time yes or no; ]
+   }; ]
 
-    <EM CLASS="Optional-meta-syntax">[</EM>category <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>default<EM CLASS="Optional-meta-syntax">|</EM>notify<EM CLASS="Optional-meta-syntax">)</EM>{<EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable"> name</EM><EM CLASS="Optional-meta-syntax">|</EM> null<EM CLASS="Optional-meta-syntax">)</EM>;<EM CLASS="Optional-meta-syntax">[(</EM><EM CLASS="variable"> name</EM><EM CLASS="Optional-meta-syntax">|</EM> null<EM CLASS="Optional-meta-syntax">)</EM>;<EM CLASS="Optional-meta-syntax">[...]]</EM>};
+   [ category category_name {
+     channel_name ; [channel_name ; ... ]
+   }; ]
+   ...
+};
+</pre>
 
-    <EM CLASS="Optional-meta-syntax">[</EM>channel <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>null<EM CLASS="Optional-meta-syntax">)</EM>{<EM CLASS="Optional-meta-syntax">(</EM>file<EM CLASS="variable"> string</EM> <EM CLASS="Optional-meta-syntax">[(</EM> versions<EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable"> number</EM><EM CLASS="Optional-meta-syntax">|</EM> unlimited<EM CLASS="Optional-meta-syntax">)]</EM><EM CLASS="Optional-meta-syntax">[</EM> size<EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable"> string</EM><EM CLASS="Optional-meta-syntax">|</EM><EM CLASS="variable"> number</EM><EM CLASS="Optional-meta-syntax">|</EM> default<KBD CLASS="Literal-user-input">|</KBD> unlimited<EMCLASS="Optional-meta-syntax"> ) ] )</EM> ; } ;<EM CLASS="Optional-meta-syntax"> ]</EM>
 
-    <EM CLASS="Optional-meta-syntax">[</EM>channel <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>null<EM CLASS="Optional-meta-syntax">)</EM>{ syslog<EM CLASS="Optional-meta-syntax">[(</EM><EM CLASS="variable"> string</EM><EM CLASS="Optional-meta-syntax">|</EM>syslog <EM CLASS="Optional-meta-syntax">) ]</EM> ; } ;<EM CLASS="Optional-meta-syntax"> ]</EM>
-
-    <EM CLASS="Optional-meta-syntax">[</EM>channel <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>null<EM CLASS="Optional-meta-syntax">)</EM>{ null; } ;<EM CLASS="Optional-meta-syntax"> ]</EM>
-
-    <EM CLASS="Optional-meta-syntax">[</EM>channel <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>null<EM CLASS="Optional-meta-syntax">)</EM>{ severity <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable"> string</EM><EM CLASS="Optional-meta-syntax">|</EM> debug<EM CLASS="Optional-meta-syntax"> [</EM><EM CLASS="variable"> number</EM><EM CLASS="Optional-meta-syntax">] |</EM> dynamic<EM CLASS="Optional-meta-syntax">)</EM>; } ;<EM CLASS="Optional-meta-syntax"> ]</EM>
-
-    <EM CLASS="Optional-meta-syntax">[</EM>channel <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>null<EM CLASS="Optional-meta-syntax">)</EM>{ print-time<EM CLASS="URL"> true_or_false</EM> ; } ;<EM CLASS="Optional-meta-syntax"> ]</EM>
-
-    <EM CLASS="Optional-meta-syntax">[</EM>channel <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>null<EM CLASS="Optional-meta-syntax">)</EM>{ print-category<EM CLASS="variable"> true_or_false</EM> ;} ;<EM CLASS="Optional-meta-syntax"> ]</EM>
-
-    <EM CLASS="Optional-meta-syntax">[</EM>channel <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">name</EM><EM CLASS="Optional-meta-syntax">|</EM>null<EM CLASS="Optional-meta-syntax">)</EM>{ print-severity<EM CLASS="variable"> true_or_false</EM> ; } ;<EM CLASS="Optional-meta-syntax">]</EM> } ;
-
-</PRE>
-</DIV>
-<DIV>
-<OL>
-<H4 CLASS="3Level">
-<A NAME="pgfId=997554">
-</A>
 5.2.10	<CODE CLASS="Program-Process">
 logging</CODE>
  statement definition and usage</H4>
@@ -1024,170 +1068,561 @@ syslog</CODE>
 . If there is no <CODE CLASS="Program-Process">
 logging</CODE>
  statement, the logging configuration will be:</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=997557">
-</A>
-<EM CLASS="Emphasis">
-Note: these categories may change!  Also, additional syntax in BINDv9 may make it possible to limit logging to particular modules.</EM>
-</P>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997558"></A>
 &nbsp;</PRE>
-<PRE CLASS="3Level-fixed"><A NAME="pgfId=997559"></A>
+<PRE CLASS="3Level-fixed"><A NAME="pgfId=1023128"></A>
 logging {
      category default { default_syslog; default_debug; };
-     category panic { default_syslog; default_stderr; };
-     category packet { default_debug; };
-     category eventlib { default_debug; };
-		};</PRE>
+};</PRE>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997565">
 </A>
-The logging configuration is established as soon as the <CODE CLASS="Program-Process">
+In BINDv9, the logging configuration is only established when the entire configuration file has been parsed.  In BIND 8, it was established as soon as the <CODE CLASS="Program-Process">
 logging</CODE>
- statement is parsed. If you want to redirect messages about processing of the entire configuration file, the <CODE CLASS="Program-Process">
-logging</CODE>
- statement must appear first. Even if you do not redirect configuration file parsing messages, we recommend always putting the logging statement first so that this rule need not be consciously recalled if you ever do need or want the parser's messages relocated.</P>
+ statement was parsed. When the server is starting up, all logging messages regarding syntax errors in the configuration file go to the default channels, or to standard error if the <CODE CLASS="Program-Process">
+-g</CODE>
+ option was specified.</P>
+<DIV>
+<OL>
+<H5 CLASS="4Level">
+<A NAME="pgfId=1022605">
+</A>
+5.2.10.1	The <CODE CLASS="Program-Process">
+channel</CODE>
+ Phrase</H5>
+</OL>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022606">
+</A>
+All log output goes to one or more &quot;channels&quot;; you can make as many of them as you want.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022607">
+</A>
+Every <CODE CLASS="Program-Process">
+channel</CODE>
+ definition must include a clause that says whether messages selected for the channel go to a file, to a particular syslog facility, or are discarded. It can optionally also limit the message severity level that will be accepted by the channel (default is <CODE CLASS="Program-Process">
+info</CODE>
+), and whether to include a <CODE CLASS="Program-Process">
+named</CODE>
+-generated time stamp, the category name and/or severity level (default is not to include any).</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022608">
+</A>
+The word <CODE CLASS="Program-Process">
+null</CODE>
+ as the destination option for the channel will cause all messages sent to it to be discarded; in that case, other options for the channel are meaningless.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022609">
+</A>
+The <CODE CLASS="Program-Process">
+file</CODE>
+ clause can include limitations both on how large the file is allowed to become, and how many versions of the file will be saved each time the file is opened.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022610">
+</A>
+The <CODE CLASS="Program-Process">
+size</CODE>
+ option for files is simply a hard ceiling on log growth. If the file ever exceeds the size, then <CODE CLASS="Program-Process">
+named</CODE>
+ will not write anything more to it until the file is reopened; exceeding the size does not automatically trigger a reopen. The default behavior is not to limit the size of the file.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022611">
+</A>
+If you use the <CODE CLASS="Program-Process">
+version</CODE>
+ log file option, then <CODE CLASS="Program-Process">
+named</CODE>
+ will retain that many backup versions of the file by renaming them when opening. For example, if you choose to keep 3 old versions of the file <EM CLASS="Optional-meta-syntax">
+lamers.log</EM>
+ then just before it is opened <EM CLASS="Optional-meta-syntax">
+lamers.log.1</EM>
+ is renamed to <EM CLASS="Optional-meta-syntax">
+lames.log.2</EM>
+, <EM CLASS="Optional-meta-syntax">
+lamers.log.0</EM>
+ is renamed to <EM CLASS="Optional-meta-syntax">
+lamers.log.1</EM>
+, and <EM CLASS="Optional-meta-syntax">
+lamers.log</EM>
+ is renamed to <EM CLASS="Optional-meta-syntax">
+lamers.log.0</EM>
+. No rolled versions are kept by default; any existing log file is simply appended. The <CODE CLASS="Program-Process">
+unlimited</CODE>
+ keyword is synonymous with <CODE CLASS="Program-Process">
+99</CODE>
+ in current BIND releases.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022612">
+</A>
+Example usage of the size and versions options:</P>
+<PRE CLASS="4Level-fixed"><A NAME="pgfId=1022613"></A>
+    channel an_example_level {
+        file &quot;lamers.log&quot; versions 3 size 20m;
+        print-time yes;
+        print-category yes;
+    };</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022614">
+</A>
+The argument for the <CODE CLASS="Program-Process">
+syslog</CODE>
+ clause is a syslog facility as described in the <CODE CLASS="Program-Process">
+syslog</CODE>
+ manual page. How <CODE CLASS="Program-Process">
+syslog</CODE>
+ will handle messages sent to this facility is described in the <CODE CLASS="Program-Process">
+syslog.conf</CODE>
+ manual page. If you have a system which uses a very old version of <CODE CLASS="Program-Process">
+syslog</CODE>
+ that only uses two arguments to the <CODE CLASS="Program-Process">
+openlog()</CODE>
+ function, then this clause is silently ignored.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022615">
+</A>
+The <CODE CLASS="Program-Process">
+severity</CODE>
+ clause works like <CODE CLASS="Program-Process">
+syslog</CODE>
+'s &quot;priorities,&quot; except that they can also be used if you are writing straight to a file rather than using <CODE CLASS="Program-Process">
+syslog</CODE>
+. Messages which are not at least of the severity level given will not be selected for the channel; messages of higher severity levels will be accepted.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022616">
+</A>
+If you are using <CODE CLASS="Program-Process">
+syslog</CODE>
+, then the <CODE CLASS="Program-Process">
+syslog.conf</CODE>
+ priorities will also determine what eventually passes through. For example, defining a channel facility and severity as <CODE CLASS="Program-Process">
+daemon</CODE>
+ and <CODE CLASS="Program-Process">
+debug</CODE>
+ but only logging <CODE CLASS="Program-Process">
+daemon.warning</CODE>
+ via <CODE CLASS="Program-Process">
+syslog.conf</CODE>
+ will cause messages of severity <CODE CLASS="Program-Process">
+info</CODE>
+ and <CODE CLASS="Program-Process">
+notice</CODE>
+ to be dropped. If the situation were reversed, with <CODE CLASS="Program-Process">
+named</CODE>
+ writing messages of only <CODE CLASS="Program-Process">
+warning</CODE>
+ or higher, then <CODE CLASS="Program-Process">
+syslogd</CODE>
+ would print all messages it received from the channel.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022617">
+</A>
+The server can supply extensive debugging information when it is in debugging mode. If the server's global debug level is greater than zero, then debugging mode will be active. The global debug level is set either by starting the <CODE CLASS="Program-Process">
+named</CODE>
+ server with the &quot;<CODE CLASS="Program-Process">
+-d</CODE>
+&quot; flag followed by a positive integer, or by running <CODE CLASS="Program-Process">
+rndc trace</CODE>
+ (<EM CLASS="Emphasis">
+the latter method is not yet implemented</EM>
+). The global debug level can be set to zero, and debugging mode turned off, by running <CODE CLASS="Program-Process">
+ndc notrace</CODE>
+. All debugging messages in the server have a debug level, and higher debug levels give more detailed output. Channels that specify a specific debug severity, e.g.</P>
+<PRE CLASS="4Level-fixed"><A NAME="pgfId=1022618"></A>
+  channel specific_debug_level {
+      file &quot;foo&quot;;
+      severity debug 3;
+  };</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022619">
+</A>
+will get debugging output of level 3 or less any time the server is in debugging mode, regardless of the global debugging level. Channels with <CODE CLASS="Program-Process">
+dynamic</CODE>
+ severity use the server's global level to determine what messages to print.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022620">
+</A>
+If <CODE CLASS="Program-Process">
+print-time</CODE>
+ has been turned on, then the date and time will be logged. <CODE CLASS="Program-Process">
+print-time</CODE>
+ may be specified for a <CODE CLASS="Program-Process">
+syslog</CODE>
+ channel, but is usually pointless since <CODE CLASS="Program-Process">
+syslog</CODE>
+ also prints the date and time. If <CODE CLASS="Program-Process">
+print-category</CODE>
+ is requested, then the category of the message will be logged as well. Finally, if <CODE CLASS="Program-Process">
+print-severity</CODE>
+ is on, then the severity level of the message will be logged. The <CODE CLASS="Program-Process">
+print-</CODE>
+ options may be used in any combination, and will always be printed in the following order: time, category, severity. Here is an example where all three <CODE CLASS="Program-Process">
+print-</CODE>
+ options are on:</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022621">
+</A>
+<CODE CLASS="Program-Process">
+28-Feb-2000 15:05:32.863 general: notice: running</CODE>
+</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022622">
+</A>
+There are four predefined channels that are used for <CODE CLASS="Program-Process">
+named</CODE>
+'s default logging as follows. How they are used is described in the section <A HREF="BV9ARM.5.html#36082" CLASS="XRef">
+The category Phrase</A>
+.</P>
+<PRE CLASS="4Level-fixedSmall"><A NAME="pgfId=1022813"></A>
+    channel default_syslog {
+        syslog daemon;     # send to syslog's daemon facility
+        severity info;     # only send priority info and higher
+    };
+    channel default_debug {
+        file &quot;named.run&quot;;  # write to named.run in the working directory
+                           # Note: stderr is used instead of &quot;named.run&quot;
+                          # if the server is started with the &quot;-f&quot;
+                          # option.
+        severity dynamic  # log at the server's current debug level
+    };
+    channel default_stderr {     # writes to stderr
+        file &quot;&lt;stderr&gt;&quot;;         # this is illustrative only;
+                                 # there's currently no way of
+                                 # specifying an internal file
+                                 # descriptor in the configuration
+                                 # language.
+        severity info;           # only send priority info and higher
+    };
+    channel null {
+       null;                     # toss anything sent to this channel
+    };</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022627">
+</A>
+Once a channel is defined, it cannot be redefined. Thus you cannot alter the built-in channels directly, but you can modify the default logging by pointing categories at channels you have defined.</P>
+</DIV>
+<DIV>
+<OL>
+<H5 CLASS="4Level">
+<A NAME="pgfId=1022629">
+</A>
+5.2.10.2	<A NAME="36082">
+</A>
+The <CODE CLASS="Program-Process">
+category</CODE>
+ Phrase</H5>
+</OL>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022630">
+</A>
+There are many categories, so you can send the logs you want to see wherever you want, without seeing logs you don't want. If you don't specify a list of channels for a category, then log messages in that category will be sent to the <CODE CLASS="Program-Process">
+default</CODE>
+ category instead. If you don't specify a default category, the following &quot;default default&quot; is used:</P>
+<PRE CLASS="4Level-fixed1"><A NAME="pgfId=1022631"></A>
+    category default { default_syslog; default_debug; };</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022632">
+</A>
+As an example, let's say you want to log security events to a file, but you also want keep the default logging behavior. You'd specify the following:</P>
+<PRE CLASS="4Level-fixed1"><A NAME="pgfId=1022633"></A>
+channel my_security_channel {
+    file &quot;my_security_file&quot;;
+    severity info;
+};
+category security {
+    my_security_channel;
+    default_syslog;
+    default_debug;
+};</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1022634">
+</A>
+To discard all messages in a category, specify the <CODE CLASS="Program-Process">
+null</CODE>
+ channel:</P>
+<PRE CLASS="4Level-fixed1"><A NAME="pgfId=1022635"></A>
+category lame-servers { null; };
+category cname { null; };</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024497">
+</A>
+Following are the available categories and brief descriptions of the types of log information they contain.  <EM CLASS="Emphasis">
+This list is still subject to change.</EM>
+ </P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024500">
+</A>
+<CODE CLASS="Program-Process">
+default</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024502">
+</A>
+The default category defines the logging options for those categories where no specific configuration has been defined. If you do not define a default category, the following definition is used:<BR>
+<EM CLASS="Command">
+category default { default_syslog; default_debug; };</EM>
+</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024504">
+</A>
+<CODE CLASS="Program-Process">
+general</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024506">
+</A>
+The catch-all. Many things still aren't classified into categories, and they all end up here.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024508">
+</A>
+<CODE CLASS="Program-Process">
+database</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024510">
+</A>
+Messages relating to the databases used internally by the name server to store zone and cache data.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024512">
+</A>
+<CODE CLASS="Program-Process">
+security</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024514">
+</A>
+Approval and denial of requests.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024516">
+</A>
+<CODE CLASS="Program-Process">
+config</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024518">
+</A>
+Configuration file parsing and processing.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024520">
+</A>
+<CODE CLASS="Program-Process">
+resolver</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024522">
+</A>
+DNS resolution, such as the recursive lookups performed on behalf of clients by a caching name server.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024524">
+</A>
+<CODE CLASS="Program-Process">
+xfer-in</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024526">
+</A>
+Zone transfers the server is receiving.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024528">
+</A>
+<CODE CLASS="Program-Process">
+xfer-out</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024530">
+</A>
+Zone transfers the server is sending.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024532">
+</A>
+<CODE CLASS="Program-Process">
+notify</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024534">
+</A>
+The NOTIFY protocol.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024536">
+</A>
+<CODE CLASS="Program-Process">
+client</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024538">
+</A>
+Processing of client requests.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024540">
+</A>
+<CODE CLASS="Program-Process">
+network</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024542">
+</A>
+Network operations.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024544">
+</A>
+<CODE CLASS="Program-Process">
+update</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024546">
+</A>
+Dynamic updates.</P>
+</TD>
+</TR>
+</TABLE>
+</DIV>
 </DIV>
 <DIV>
 <OL>
 <H4 CLASS="3Level">
-<A NAME="pgfId=997566">
+<A NAME="pgfId=1024547">
 </A>
 5.2.11	<CODE CLASS="Program-Process">
 options</CODE>
  Statement Grammar</H4>
 </OL>
 <P CLASS="3LevelContinued">
-<A NAME="pgfId=997567">
+<A NAME="pgfId=1024267">
 </A>
-This is the grammar of option statement format in the <CODE CLASS="Program-Process">
+This is the grammar of the <CODE CLASS="Program-Process">
+options</CODE>
+ statement in the <CODE CLASS="Program-Process">
 named.conf</CODE>
  file:</P>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997568"></A>
-Syntax
 options {
-    <EM CLASS="Optional-meta-syntax">[</EM> version <EM CLASS="variable">version_string</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> directory <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> named-xfer <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> tkey-domain <EM CLASS="variable">string</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> tkey-dhkey <EM CLASS="variable">string number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> dump-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> memstatistics-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> pid-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> statistics-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> auth-nxdomain <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> deallocate-on-exit <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> dialup <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> fake-iquery <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> fetch-glue <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> has-old-clients <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> host-statistics <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> multiple-cnames ye<EM CLASS="variable">s_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> notify <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> recursion <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> rfc2308-type1 <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> use-id-pool <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> maintain-ixfr-base <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> forward <EM CLASS="Optional-meta-syntax">(</EM> only <EM CLASS="Optional-meta-syntax">|</EM> first <EM CLASS="Optional-meta-syntax">)</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> forwarders { <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">in_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">in_addr</EM> ; ... <EM CLASS="Optional-meta-syntax">] ]</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> check-names <EM CLASS="Optional-meta-syntax">(</EM> master <EM CLASS="Optional-meta-syntax">|</EM> slave <EM CLASS="Optional-meta-syntax">|</EM> response <EM CLASS="Optional-meta-syntax">) (</EM> warn <EM CLASS="Optional-meta-syntax">|</EM> fail <EM CLASS="Optional-meta-syntax">|</EM> ignore<EM CLASS="Optional-meta-syntax">)</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> allow-query { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> allow-transfer { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> allow-recursion { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> blackhole { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> listen-on <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">port ip_port</EM> <EM CLASS="Optional-meta-syntax">]</EM> { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> query-source <EM CLASS="Optional-meta-syntax">[</EM> address <EM CLASS="Optional-meta-syntax">(</EM> <EM CLASS="variable">ip_addr</EM> <EM CLASS="Optional-meta-syntax">|</EM> * <EM CLASS="Optional-meta-syntax">) ] [</EM> port <EM CLASS="Optional-meta-syntax">(</EM> <EM CLASS="variable">ip_port</EM> <EM CLASS="Optional-meta-syntax">|</EM> * <EM CLASS="Optional-meta-syntax">) ]</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-in <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-in <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> tcp-clients <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> recursive-clients <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> serial-queries <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfer-format <EM CLASS="Optional-meta-syntax">(</EM> one-answer <EM CLASS="Optional-meta-syntax">|</EM> many-answers <EM CLASS="Optional-meta-syntax">)</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfers-in  <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfers-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfers-per-ns <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfer-source <EM CLASS="variable">ip_addr</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> also-notify { <EM CLASS="variable">ip_addr</EM>; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM>; ... <EM CLASS="Optional-meta-syntax">]} ;
-    </EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-ixfr-log-size <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> coresize <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> datasize <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> files <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> stacksize <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> cleaning-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> heartbeat-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> interface-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> statistics-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> topology { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> sortlist { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> rrset-order { <EM CLASS="variable">order_spec</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">order_spec</EM> ; ... <EM CLASS="Optional-meta-syntax">] ] };
-    </EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> lame-ttl <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-ncache-ttl <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> min-roots <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> use-ixfr <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> expert_mode <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>version <EM CLASS="variable">version_string</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>directory <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> named-xfer <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>tkey-domain <EM CLASS="variable">string</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>tkey-dhkey <EM CLASS="variable">string number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>dump-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>memstatistics-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>pid-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>statistics-file <EM CLASS="variable">path_name</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM>auth-nxdomain <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> deallocate-on-exit <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> dialup <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> fake-iquery <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> fetch-glue <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> has-old-clients <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> host-statistics <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> multiple-cnames <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> notify <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> recursion <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> rfc2308-type1 <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> use-id-pool <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> maintain-ixfr-base <EM CLASS="variable">yes_or_no</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> forward <EM CLASS="Optional-meta-syntax">(</EM> only <EM CLASS="Optional-meta-syntax">|</EM> first <EM CLASS="Optional-meta-syntax">)</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> forwarders { <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">in_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">in_addr</EM> ; ... <EM CLASS="Optional-meta-syntax">] ]</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> check-names <EM CLASS="Optional-meta-syntax">(</EM> master <EM CLASS="Optional-meta-syntax">|</EM> slave <EM CLASS="Optional-meta-syntax">|</EM> response <EM CLASS="Optional-meta-syntax">) (</EM> warn <EM CLASS="Optional-meta-syntax">|</EM> fail <EM CLASS="Optional-meta-syntax">|</EM> ignore<EM CLASS="Optional-meta-syntax">)</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> allow-query { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> allow-transfer { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> allow-recursion { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> blackhole { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> listen-on <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">port ip_port</EM> <EM CLASS="Optional-meta-syntax">]</EM> { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> query-source <EM CLASS="Optional-meta-syntax">[</EM> address <EM CLASS="Optional-meta-syntax">(</EM> <EM CLASS="variable">ip_addr</EM> <EM CLASS="Optional-meta-syntax">|</EM> * <EM CLASS="Optional-meta-syntax">) ] [</EM> port <EM CLASS="Optional-meta-syntax">(</EM> <EM CLASS="variable">ip_port</EM> <EM CLASS="Optional-meta-syntax">|</EM> * <EM CLASS="Optional-meta-syntax">) ]</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-in <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-in <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> tcp-clients <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> recursive-clients <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> serial-queries <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> transfer-format <EM CLASS="Optional-meta-syntax">(</EM> one-answer <EM CLASS="Optional-meta-syntax">|</EM> many-answers <EM CLASS="Optional-meta-syntax">)</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> transfers-in  <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> transfers-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> transfers-per-ns <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> transfer-source <EM CLASS="variable">ip_addr</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> also-notify { <EM CLASS="variable">ip_addr</EM>; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM>; ... <EM CLASS="Optional-meta-syntax">]</EM> };
+    <EM CLASS="Optional-meta-syntax">[</EM> max-ixfr-log-size <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> coresize <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> datasize <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> files <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> stacksize <EM CLASS="variable">size_spec</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> cleaning-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> heartbeat-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> interface-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> statistics-interval <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> topology { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> sortlist { <EM CLASS="variable">address_match_list</EM> }; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> rrset-order { <EM CLASS="variable">order_spec</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">order_spec</EM> ; ... <EM CLASS="Optional-meta-syntax">] ]</EM> };
+    <EM CLASS="Optional-meta-syntax">[</EM> lame-ttl <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> max-ncache-ttl <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> min-roots <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> use-ixfr <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> treat-cr-as-space <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
 };</PRE>
 </DIV>
 <DIV>
@@ -1221,9 +1656,7 @@ version</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997638">
 </A>
-The version the server should report via the <CODE CLASS="Program-Process">
-ndc</CODE>
- command or via a query of name <CODE CLASS="Program-Process">
+The version the server should report via a query of name <CODE CLASS="Program-Process">
 version.bind</CODE>
  in class <CODE CLASS="Program-Process">
 chaos</CODE>
@@ -1261,12 +1694,13 @@ named-xfer</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997646">
 </A>
-The pathname to the <CODE CLASS="Program-Process">
+<EM CLASS="Emphasis">
+This option is obsolete.</EM>
+  It was used in BIND 8 to specify the pathname to the <CODE CLASS="Program-Process">
 named-xfer</CODE>
- program that the server uses for inbound zone transfers. If not specified, the default is system dependent<BR>
-(e.g. &quot;<CODE CLASS="Program-Process">
-/usr/sbin/named-xfer</CODE>
-&quot;).</P>
+ program.  In BINDv9, no separate <CODE CLASS="Program-Process">
+named-xfer</CODE>
+ program is needed; its functionality is built into the name server.</P>
 </TD>
 </TR>
 <TR>
@@ -1288,7 +1722,9 @@ SIGINT</CODE>
 ndc dumpdb</CODE>
 ). If not specified, the default is &quot;<CODE CLASS="Program-Process">
 named_dump.db</CODE>
-&quot;.</P>
+&quot;. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -1304,13 +1740,11 @@ memstatistics-file</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997654">
 </A>
-The pathname of the file the server writes memory usage statistics to on exit, if <CODE CLASS="Program-Process">
-deallocate-on-exit</CODE>
- is <CODE CLASS="Program-Process">
-yes</CODE>
-. If not specified, the default is &quot;<CODE CLASS="Program-Process">
+The pathname of the file the server writes memory usage statistics to on exit.  If not specified, the default is &quot;<CODE CLASS="Program-Process">
 named.memstats</CODE>
-&quot;.</P>
+&quot;. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -1326,10 +1760,11 @@ pid-file</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997658">
 </A>
-The pathname of the file the server writes its process ID in. If not specified, the default is operating system dependent, but is usually &quot;/var/run/named.pid&quot; or<BR>
-&quot;/etc/named.pid&quot;. The pid-file is used by programs like <CODE CLASS="Program-Process">
-ndc</CODE>
- that want to send signals to the running nameserver.</P>
+The pathname of the file the server writes its process ID in. If not specified, the default is operating system dependent, but is usually <EM CLASS="pathname">
+/var/run/named.pid</EM>
+ or <EM CLASS="pathname">
+/etc/named.pid</EM>
+. The pid-file is used by programs that want to send signals to the running nameserver.</P>
 </TD>
 </TR>
 <TR>
@@ -1345,13 +1780,11 @@ statistics-file</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997662">
 </A>
-The pathname of the file the server appends statistics to when it receives <CODE CLASS="Program-Process">
-SIGKILL</CODE>
- signal (<CODE CLASS="Program-Process">
-ndc stats</CODE>
-). If not specified, the default is &quot;<CODE CLASS="Program-Process">
+The pathname of the file the server appends statistics to. If not specified, the default is &quot;<CODE CLASS="Program-Process">
 named.stats</CODE>
-&quot;.</P>
+&quot;. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9</EM>
+.</P>
 </TD>
 </TR>
 </TABLE>
@@ -1386,9 +1819,11 @@ If <CODE CLASS="Program-Process">
 yes</CODE>
 , then the <CODE CLASS="Program-Process">
 AA</CODE>
- bit is always set on NXDOMAIN responses, even if the server is not actually authoritative. The default is yes. Do not turn off <CODE CLASS="Program-Process">
-auth-nxdomain</CODE>
- unless you are sure you know what you are doing, as some older software won't like it.</P>
+ bit is always set on NXDOMAIN responses, even if the server is not actually authoritative. The default is <CODE CLASS="Program-Process">
+no</CODE>
+; this is a change from BIND 8. If you are using very old DNS software, you may need to set it to <CODE CLASS="Program-Process">
+yes</CODE>
+.</P>
 </TD>
 </TR>
 <TR>
@@ -1404,15 +1839,7 @@ deallocate-on-exit</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997673">
 </A>
-If <CODE CLASS="Program-Process">
-yes</CODE>
-, then when the server exits it will painstakingly deallocate every object it allocated, and then write a memory usage report to the <CODE CLASS="Program-Process">
-memstatistics-file</CODE>
-. The default is <CODE CLASS="Program-Process">
-no</CODE>
-, because it is faster to let the operating system clean up. <CODE CLASS="Program-Process">
-deallocate-on-exit</CODE>
- is handy for detecting memory leaks.</P>
+This option was used in BIND 8 to enable checking for memory leaks on exit. BINDv9 ignores the option and always performs the checks.</P>
 </TD>
 </TR>
 <TR>
@@ -1463,7 +1890,9 @@ stub</CODE>
  then the server will suppress the regular &quot;zone up to date&quot; queries and only perform them when the<BR>
 <CODE CLASS="Program-Process">
 heartbeat-interval</CODE>
- expires.</P>
+ expires.  <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -1479,11 +1908,7 @@ fake-iquery</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997684">
 </A>
-If <CODE CLASS="Program-Process">
-yes</CODE>
-, the server will simulate the obsolete DNS query type IQUERY. The default is <CODE CLASS="Program-Process">
-no</CODE>
-.</P>
+In BIND 8, this option was used to enable simulating the obsolete DNS query type IQUERY. BINDv9 never does IQUERY simulation.</P>
 </TD>
 </TR>
 <TR>
@@ -1507,7 +1932,9 @@ fetch-glue</CODE>
 no</CODE>
  can be used in conjunction with <CODE CLASS="Program-Process">
 recursion no </CODE>
-to prevent the server's cache from growing or becoming corrupted (at the cost of requiring more work from the client).</P>
+to prevent the server's cache from growing or becoming corrupted (at the cost of requiring more work from the client). <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -1523,29 +1950,13 @@ has-old-clients</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997692">
 </A>
-Setting the option to <CODE CLASS="Program-Process">
-yes</CODE>
- is equivalent to setting the following three options: <CODE CLASS="Program-Process">
+This option was incorrectly implemented in BIND 8, and is ignored by BINDv9.  To achieve the intended effect of <CODE CLASS="Program-Process">
+has-old-clients yes</CODE>
+, specify the two separate options <CODE CLASS="Program-Process">
 auth-nxdomain yes</CODE>
-;, <CODE CLASS="Program-Process">
-maintain-ixfr-base yes</CODE>
-; and<CODE CLASS="Program-Process">
- rfc2308-type1 no</CODE>
-;. The use of <CODE CLASS="Program-Process">
-has-old-clients</CODE>
- with <CODE CLASS="Program-Process">
-auth-nxdomain</CODE>
-, <CODE CLASS="Program-Process">
-maintain-ixfr-base</CODE>
  and <CODE CLASS="Program-Process">
-rfc2308-type1</CODE>
- is order dependent. The default is <CODE CLASS="Program-Process">
-no</CODE>
-.</P>
-<P CLASS="CellBody">
-<A NAME="pgfId=997693">
-</A>
-(Note that this is a broken implementation iin BIND version 8. It should not be necessary in any but the oldest of BIND installations.)</P>
+rfc2308-type-1 no</CODE>
+ instead.</P>
 </TD>
 </TR>
 <TR>
@@ -1567,7 +1978,9 @@ yes</CODE>
 no</CODE>
 . Note: turning on <CODE CLASS="Program-Process">
 host-statistics</CODE>
- can consume huge amounts of memory.</P>
+ can consume huge amounts of memory. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -1583,10 +1996,10 @@ maintain-ixfr-base</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997701">
 </A>
-If <CODE CLASS="Program-Process">
-yes</CODE>
-, then a transaction log is kept for Incremental Zone Transfer. The default is <CODE CLASS="Program-Process">
-no</CODE>
+<EM CLASS="Emphasis">
+This option is obsolete</EM>
+.  It was used in BIND 8 to determine whether a transaction log was kept for Incremental Zone Transfer. BINDv9 maintains a transaction log whenever possible.  If you need to disable outgoing incremental zone transfers, use <CODE CLASS="Program-Process">
+provide-ixfr no</CODE>
 .</P>
 </TD>
 </TR>
@@ -1603,11 +2016,7 @@ multiple-cnames</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997705">
 </A>
-If <CODE CLASS="Program-Process">
-yes</CODE>
-, then multiple CNAME resource records will be allowed for a domain name. The default is <CODE CLASS="Program-Process">
-no</CODE>
-. Allowing multiple CNAME records is against standards and is not recommended. Multiple CNAME support is available because previous versions of BIND allowed multiple CNAME records, and these records have been used for load balancing by a number of sites.</P>
+This option was used in BIND 8 to allow a domain name to allow multiple CNAME records in violation of the DNS standards.  BINDv9 currently does not check for multiple CNAMEs in zone data loaded from master files, but such checks may be introduced in a later release.  BINDv9 always strictly enforces the CNAME rules in dynamic updates.</P>
 </TD>
 </TR>
 <TR>
@@ -1631,7 +2040,9 @@ notify</CODE>
 zone</CODE>
  statement, in which case it overrides the <CODE CLASS="Program-Process">
 options notify</CODE>
- statement. It would only be necessary to turn off this option if it caused slaves to crash.</P>
+ statement. It would only be necessary to turn off this option if it caused slaves to crash. <EM CLASS="Emphasis">
+Not yet supported in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -1675,7 +2086,26 @@ yes</CODE>
 no</CODE>
  if you have an old BIND server using you as a forwarder that does not understand negative answers which contain both SOA and NS records or you have an old version of sendmail. The correct fix is to upgrade the broken server or sendmail. The default is <CODE CLASS="Program-Process">
 no</CODE>
+. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9</EM>
 .</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023686">
+</A>
+<CODE CLASS="Program-Process">
+use-id-pool</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023688">
+</A>
+<EM CLASS="Emphasis">
+This option is obsolete</EM>
+.  BINDv9 always allocates query IDs from a pool.</P>
 </TD>
 </TR>
 <TR>
@@ -1691,19 +2121,19 @@ treat-cr-as-space</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997721">
 </A>
-If <CODE CLASS="Program-Process">
-yes</CODE>
-, the server will treat `<CODE CLASS="Program-Process">
+This option was used in BIND 8 to make the server treat `<CODE CLASS="Program-Process">
 \r</CODE>
-' characters the same way it treats a <CODE CLASS="Program-Process">
+' characters the same way as <CODE CLASS="Program-Process">
 &lt;space&gt; </CODE>
 &quot;<CODE CLASS="Program-Process">
  </CODE>
 &quot; or `<CODE CLASS="Program-Process">
 \t</CODE>
-'. This may be necessary when loading zone files on a UNIX system that were generated on an NT or DOS machine. The default is <CODE CLASS="Program-Process">
-no</CODE>
-.</P>
+', to facilitate loading of zone files on a UNIX system that were generated on an NT or DOS machine. In BINDv9, both UNIX `<CODE CLASS="Program-Process">
+\n</CODE>
+' and NT/DOS `<CODE CLASS="Program-Process">
+\r\n</CODE>
+' newlines are always accepted, and the option is ignored.</P>
 </TD>
 </TR>
 </TABLE>
@@ -1764,15 +2194,11 @@ Specifies the IP addresses to be used for forwarding. The default is the empty l
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997735">
 </A>
-Forwarding can also be configured on a per-zone basis, allowing for the global forwarding options to be overridden in a variety of ways. You can set particular zones to use different forwarders, or have different <CODE CLASS="Program-Process">
+Forwarding can also be configured on a per-domain basis, allowing for the global forwarding options to be overridden in a variety of ways. You can set particular domains to use different forwarders, or have different <CODE CLASS="Program-Process">
 forward only/first behavior</CODE>
 , or not forward at all. See <A HREF="BV9ARM.5.html#20328" CLASS="XRef">
 zone Statement Grammar</A>
  for more information.</P>
-<P CLASS="4LevelContinued">
-<A NAME="pgfId=997739">
-</A>
-Future versions of BIND will continue to support the forward and forwarders options syntax.</P>
 </DIV>
 <DIV>
 <OL>
@@ -1871,6 +2297,12 @@ options check-names</CODE>
  statement. When used in a <CODE CLASS="Program-Process">
 zone</CODE>
  statement, the area is not specified (because it can be deduced from the zone type).</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1023294">
+</A>
+<EM CLASS="Emphasis">
+Name checking is not yet implemented in BINDv9.</EM>
+</P>
 </DIV>
 <DIV>
 <OL>
@@ -1967,7 +2399,9 @@ blackhole</CODE>
 </A>
 Specifies a list of addresses that the server will not accept queries from or use to resolve a query. Queries from these addresses will not be responded to. The default is <CODE CLASS="Program-Process">
 none</CODE>
-.</P>
+.  <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 </TABLE>
@@ -2006,6 +2440,12 @@ will enable the nameserver on port 53 for the IP address 5.6.7.8, and on port 12
 If no <CODE CLASS="Program-Process">
 listen-on</CODE>
  is specified, the server will listen on port 53 on all interfaces.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1023295">
+</A>
+The listen-on option only applies to IPv4.  Currently, the server always listens for IPv6 requests on a wildcard address and port 53.  A separate <CODE CLASS="Program-Process">
+listen-on-v6</CODE>
+ option may be added in a later release.</P>
 </DIV>
 <DIV>
 <OL>
@@ -2019,7 +2459,9 @@ listen-on</CODE>
 </A>
 If the server doesn't know the answer to a question, it will query other nameservers. <CODE CLASS="Program-Process">
 query-source</CODE>
- specifies the address and port used for such queries. If <CODE CLASS="Program-Process">
+ specifies the address and port used for such queries. For queries sent over IPv6, there is a separate <CODE CLASS="Program-Process">
+query-source-v6</CODE>
+ option.  If <CODE CLASS="Program-Process">
 address</CODE>
  is <CODE CLASS="Program-Process">
 *</CODE>
@@ -2029,9 +2471,10 @@ INADDR_ANY</CODE>
 port</CODE>
  is <CODE CLASS="Program-Process">
 *</CODE>
- or is omitted, a random unprivileged port will be used. The default is</P>
+ or is omitted, a random unprivileged port will be used. The defaults are</P>
 <PRE CLASS="4Level-fixed1"><A NAME="pgfId=997797"></A>
-query-source address * port *;</PRE>
+query-source address * port *;
+query-source-v6 address * port *</PRE>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997798">
 </A>
@@ -2070,9 +2513,52 @@ max-transfer-time-in</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997806">
 </A>
-Inbound zone transfers (<CODE CLASS="Program-Process">
-named-xfer</CODE>
- processes) running longer than this many minutes will be terminated. The default is 120 minutes (2 hours).</P>
+Inbound zone transfers running longer than this many minutes will be terminated. The default is 120 minutes (2 hours).</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023326">
+</A>
+<CODE CLASS="Program-Process">
+max-transfer-idle-in</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023328">
+</A>
+Inbound zone transfers making no progress in this many minutes will be terminated. The default is 60 minutes (1 hour).</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023322">
+</A>
+<CODE CLASS="Program-Process">
+max-transfer-time-out</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023324">
+</A>
+Outbound zone transfers running longer than this many minutes will be terminated. The default is 120 minutes (2 hours).</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023318">
+</A>
+<CODE CLASS="Program-Process">
+max-transfer-idle-out</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023320">
+</A>
+Outbound zone transfers making no progress in this many minutes will be terminated.  The default is 60 minutes (1 hour).</P>
 </TD>
 </TR>
 <TR>
@@ -2094,7 +2580,7 @@ one-answer</CODE>
 many-answers</CODE>
  packs as many resource records as possible into a message. <CODE CLASS="Program-Process">
 many-answers</CODE>
- is more efficient, but is only known to be understood by BIND 8.x and patched versions of BIND 4.9.5. The default is <CODE CLASS="Program-Process">
+ is more efficient, but is only known to be understood by BINDv9, BIND 8.x and patched versions of BIND 4.9.5. The default is <CODE CLASS="Program-Process">
 one-answer</CODE>
 . <CODE CLASS="Program-Process">
 transfer-format</CODE>
@@ -2134,7 +2620,7 @@ transfers-out</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997818">
 </A>
-This option will be used in the future to limit the number of concurrent outbound zone transfers. It is checked for syntax, but is otherwise ignored.</P>
+The maximum number of outbound zone transfers that can be running concurrently. Zone transfer requests in excess of the limit will be refused. The default value is 10.</P>
 </TD>
 </TR>
 <TR>
@@ -2150,9 +2636,7 @@ transfers-per-ns</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997822">
 </A>
-The maximum number of inbound zone transfers (<CODE CLASS="Program-Process">
-named-xfer </CODE>
-processes) that can be concurrently transferring from a given remote nameserver. The default value is 2. Increasing <CODE CLASS="Program-Process">
+The maximum number of inbound zone transfers that can be concurrently transferring from a given remote nameserver. The default value is 2. Increasing <CODE CLASS="Program-Process">
 transfers-per-ns</CODE>
  may speed up the convergence of slave zones, but it also may increase the load on the remote nameserver. <CODE CLASS="Program-Process">
 transfers-per-ns</CODE>
@@ -2178,7 +2662,7 @@ transfer-source</CODE>
 </A>
 <CODE CLASS="Program-Process">
 transfer-source</CODE>
- determines which local address will be bound to the  TCP connection used to fetch all zones transferred inbound by the server. If not set, it defaults to a system controlled value which will usually be the address of the interface &quot;closest to&quot; the remote end. This address must appear in the remote end's <CODE CLASS="Program-Process">
+ determines which local address will be bound to IPv4 TCP connections used to fetch zones transferred inbound by the server. If not set, it defaults to a system controlled value which will usually be the address of the interface &quot;closest to&quot; the remote end. This address must appear in the remote end's <CODE CLASS="Program-Process">
 allow-transfer</CODE>
  option for the zone being transferred, if one is specified. This statement sets the <CODE CLASS="Program-Process">
 transfer-source</CODE>
@@ -2188,6 +2672,23 @@ transfer-source</CODE>
  statement within the <CODE CLASS="Program-Process">
 zone</CODE>
  block in the configuration file.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023338">
+</A>
+<CODE CLASS="Program-Process">
+transfer-source-v6</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023340">
+</A>
+Like <CODE CLASS="Program-Process">
+transfer-source</CODE>
+, but for zone transfers performed using IPv6.</P>
 </TD>
 </TR>
 <TR>
@@ -2205,7 +2706,9 @@ serial-queries</CODE>
 </A>
 Slave servers will periodically query master servers to find out if zone serial numbers have changed. Each such query uses a minute amount of the slave server's network bandwidth, but more importantly each query uses a small amount of memory in the slave server while waiting for the master server to respond. The <CODE CLASS="Program-Process">
 serial-queries </CODE>
-option sets the maximum number of concurrent serial-number queries allowed to be outstanding at any given time. The default is 4. Note: If a server loads a large (tens or hundreds of thousands) number of slave zones, then this limit should be raised to the high hundreds or low thousands -- otherwise the slave server may never actually become aware of zone changes in the master servers. Beware, though, that setting this limit arbitrarily high can spend a considerable amount of your slave server's network, CPU, and memory resources. As with all tunable limits, this one should be changed gently and monitored for its effects.</P>
+option sets the maximum number of concurrent serial-number queries allowed to be outstanding at any given time. The default is 4. Note: If a server loads a large (tens or hundreds of thousands) number of slave zones, then this limit should be raised to the high hundreds or low thousands -- otherwise the slave server may never actually become aware of zone changes in the master servers. Beware, though, that setting this limit arbitrarily high can spend a considerable amount of your slave server's network, CPU, and memory resources. As with all tunable limits, this one should be changed gently and monitored for its effects. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -2233,7 +2736,9 @@ zone notify</CODE>
 no</CODE>
 , the IP addresses in the global <CODE CLASS="Program-Process">
 also-notify</CODE>
- list will not be sent NOTIFY messages for that zone. The default is the empty list (no global notification list).</P>
+ list will not be sent NOTIFY messages for that zone. The default is the empty list (no global notification list). <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 </TABLE>
@@ -2248,9 +2753,7 @@ also-notify</CODE>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997837">
 </A>
-The server's usage of many system resources can be limited. Some operating systems don't support some of the limits. On such systems, a warning will be issued if the unsupported limit is used. Some operating systems don't support limiting resources, and on these systems a <CODE CLASS="Program-Process">
-cannot set resource limits on this system</CODE>
- message will be logged.</P>
+The server's usage of many system resources can be limited. Some operating systems don't support some of the limits. On such systems, a warning will be issued if the unsupported limit is used. Some operating systems don't support limiting resources.</P>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997838">
 </A>
@@ -2287,7 +2790,9 @@ coresize</CODE>
 </A>
 The maximum size of a core dump. The default is <CODE CLASS="Program-Process">
 default</CODE>
-.</P>
+. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -2305,7 +2810,9 @@ datasize</CODE>
 </A>
 The maximum amount of data memory the server may use. The default is <CODE CLASS="Program-Process">
 default</CODE>
-.</P>
+. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -2333,7 +2840,9 @@ RLIMIT_NOFILE</CODE>
 sysconf(_SC_OPEN_MAX)</CODE>
 . If the actual kernel limit is larger than this value, use <CODE CLASS="Program-Process">
 limit files </CODE>
-to specify the limit explicitly.</P>
+to specify the limit explicitly. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -2351,7 +2860,9 @@ max-ixfr-log-size</CODE>
 </A>
 The <CODE CLASS="Program-Process">
 max-ixfr-log-size</CODE>
- will be used in a future release of the server to limit the size of the transaction log kept for Incremental Zone Transfer.</P>
+ will be used in a future release of the server to limit the size of the transaction log kept for Incremental Zone Transfer. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -2369,27 +2880,64 @@ stacksize</CODE>
 </A>
 The maximum amount of stack memory the server may use. The default is <CODE CLASS="Program-Process">
 default</CODE>
-.</P>
+. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023744">
+</A>
+<CODE CLASS="Program-Process">
+tcp-clients</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023746">
+</A>
+The maximum number of simultaneous client TCP connections that the server will accept. The default is 100.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1023740">
+</A>
+<CODE CLASS="Program-Process">recursive-clients</CODE></H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1023742">
+</A>
+The maximum number of simultaneous recursive lookup the server will perform on behalf of clients.  The default is 100.</P>
 </TD>
 </TR>
 </TABLE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1023396">
+</A>
+<EM CLASS="Emphasis">
+Resource limits are not yet implemented in BINDv9.</EM>
+</P>
 </DIV>
 <DIV>
 <OL>
 <H5 CLASS="4Level">
-<A NAME="pgfId=997864">
+<A NAME="pgfId=1023375">
 </A>
 5.2.12.9	Periodic Task Intervals</H5>
 </OL>
 <P CLASS="4LevelContinued">
-<A NAME="pgfId=997882">
+<A NAME="pgfId=1023393">
 </A>
 &nbsp;</P>
 <TABLE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997867">
+<A NAME="pgfId=1023378">
 </A>
 <CODE CLASS="Program-Process">
 cleaning-interval</CODE>
@@ -2397,7 +2945,7 @@ cleaning-interval</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997869">
+<A NAME="pgfId=1023380">
 </A>
 The server will remove expired resource records from the cache every <CODE CLASS="Program-Process">
 cleaning-interval </CODE>
@@ -2407,7 +2955,7 @@ minutes. The default is 60 minutes. If set to 0, no  periodic cleaning will occu
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997871">
+<A NAME="pgfId=1023382">
 </A>
 <CODE CLASS="Program-Process">
 heartbeat-interval</CODE>
@@ -2415,17 +2963,19 @@ heartbeat-interval</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997873">
+<A NAME="pgfId=1023384">
 </A>
 The server will perform zone maintenance tasks for all zones marked  <CODE CLASS="Program-Process">
 dialup yes</CODE>
- whenever this interval expires. The default is 60 minutes.  Reasonable values are up to 1 day (1440 minutes). If set to 0, no zone maintenance for these zones will occur.</P>
+ whenever this interval expires. The default is 60 minutes.  Reasonable values are up to 1 day (1440 minutes). If set to 0, no zone maintenance for these zones will occur. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997875">
+<A NAME="pgfId=1023386">
 </A>
 <CODE CLASS="Program-Process">
 interface-interval</CODE>
@@ -2433,7 +2983,7 @@ interface-interval</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997877">
+<A NAME="pgfId=1023388">
 </A>
 The server will scan the network interface list every <CODE CLASS="Program-Process">
 interface-interval</CODE>
@@ -2445,7 +2995,7 @@ listen-on</CODE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=997879">
+<A NAME="pgfId=1023390">
 </A>
 <CODE CLASS="Program-Process">
 statistics-interval</CODE>
@@ -2453,11 +3003,13 @@ statistics-interval</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997881">
+<A NAME="pgfId=1023392">
 </A>
 Nameserver statistics will be logged every <CODE CLASS="Program-Process">
 statistics-interval</CODE>
- minutes. The default is 60. If set to 0, no statistics will be logged.</P>
+ minutes. The default is 60. If set to 0, no statistics will be logged. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 </TABLE>
@@ -2493,13 +3045,23 @@ will prefer servers on network 10 the most, followed by hosts on network 1.2.0.0
 <A NAME="pgfId=997892">
 </A>
 The default topology is</P>
-<PRE CLASS="4Level-fixed1"><A NAME="pgfId=997893"></A>
+<PRE CLASS="4Level-fixed1"><A NAME="pgfId=1023414"></A>
     topology { localhost; localnets; };</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1023427">
+</A>
+<EM CLASS="Emphasis">
+The </EM>
+<CODE CLASS="Program-Process">
+topology</CODE>
+<EM CLASS="Emphasis">
+ option is not yet implemented in BINDv9.</EM>
+</P>
 </DIV>
 <DIV>
 <OL>
 <H5 CLASS="4Level">
-<A NAME="pgfId=997895">
+<A NAME="pgfId=1023411">
 </A>
 5.2.12.11	<A NAME="39491">
 </A>
@@ -2587,6 +3149,16 @@ sortlist {
            { localhost; localnets; };
            { localnets; };
 };</PRE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1023426">
+</A>
+<EM CLASS="Emphasis">
+The </EM>
+<CODE CLASS="Program-Process">
+sortlist</CODE>
+<EM CLASS="Emphasis">
+ option is not yet implemented in BINDv9.</EM>
+</P>
 </DIV>
 <DIV>
 <OL>
@@ -2610,10 +3182,7 @@ An <CODE CLASS="Program-Process">
 order_spec</CODE>
  is defined as follows:</P>
 <PRE CLASS="4Level-fixedSmall"><A NAME="pgfId=997932"></A>
-[ class <EM CLASS="variable">class_name</EM>
- ][ type <EM CLASS="variable">type_name</EM>
- ][ name &quot;<EM CLASS="variable">domain_name</EM>
-&quot;] order <EM CLASS="variable">ordering</EM>
+[ class <EM CLASS="variable">class_name</EM> ][ type <EM CLASS="variable">type_name</EM> ][ name &quot;<EM CLASS="variable">domain_name</EM>&quot;] order <EM CLASS="variable">ordering</EM>
 </PRE>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997933">
@@ -2720,6 +3289,16 @@ rrset-order</CODE>
 <A NAME="pgfId=997958">
 </A>
 is used.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1023432">
+</A>
+<EM CLASS="Emphasis">
+The </EM>
+<CODE CLASS="Program-Process">
+rrset-order</CODE>
+<EM CLASS="Emphasis">
+ statement is not yet implemented in BINDv9.</EM>
+</P>
 </DIV>
 <DIV>
 <OL>
@@ -2746,7 +3325,9 @@ lame-ttl</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997964">
 </A>
-Sets the number of seconds to cache a lame server indication. 0 disables caching. (This is NOT recommended.) Default is 600 (10 minutes). Maximum value is 1800 (30 minutes).</P>
+Sets the number of seconds to cache a lame server indication. 0 disables caching. (This is NOT recommended.) Default is 600 (10 minutes). Maximum value is 1800 (30 minutes). <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -2770,7 +3351,9 @@ max-ncache-ttl</CODE>
  is 10800 seconds (3 hours).<BR>
 <CODE CLASS="Program-Process">
 max-ncache-ttl</CODE>
- cannot exceed the maximum retention time for ordinary (positive) answers (7 days) and will be silently truncated to 7 days if set to a value which is greater that 7 days.</P>
+ cannot exceed the maximum retention time for ordinary (positive) answers (7 days) and will be silently truncated to 7 days if set to a value which is greater that 7 days. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
@@ -2786,7 +3369,9 @@ min-roots</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=997972">
 </A>
-The minimum number of root servers that is required for a request for the root servers to be accepted. Default is 2.</P>
+The minimum number of root servers that is required for a request for the root servers to be accepted. Default is 2. <EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 </TABLE>
@@ -2804,7 +3389,7 @@ The minimum number of root servers that is required for a request for the root s
 <CODE CLASS="Program-Process">
 use-ixfr</CODE>
  is deprecated in BINDv9. If you need to disable IXFR to a particular server or servers see information on the  <CODE CLASS="Program-Process">
-support-ixfr</CODE>
+provide-ixfr</CODE>
  option in the Server Statement description (<A HREF="BV9ARM.5.html#34774" CLASS="XRef">
 server Statement Grammar</A>
  , below) and  in the description of Incremental Transfer (IXFR) (<A HREF="BV9ARM.4.html#19780" CLASS="XRef">
@@ -2824,18 +3409,12 @@ server</CODE>
  Statement Grammar</H4>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997984"></A>
-server <EM CLASS="URL">ip_addr</EM> {
-
-    <EM CLASS="Optional-meta-syntax">[</EM> bogus <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> support-ixfr <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfers <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfer-format <EM CLASS="Optional-meta-syntax">(</EM>one-answer <EM CLASS="Optional-meta-syntax">|</EM> many-answers<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]
-</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> keys { <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">[...]]</EM> } ; <EM CLASS="Optional-meta-syntax">]
-</EM>
+server <EM CLASS="URL">ip_addr</EM>{
+    <EM CLASS="Optional-meta-syntax">[</EM>bogus <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> provide-ixfr <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]   [</EM> request-ixfr <EM CLASS="variable">yes_or_no</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> transfers <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> transfer-format <EM CLASS="Optional-meta-syntax">(</EM>one-answer <EM CLASS="Optional-meta-syntax">|</EM> many-answers<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+    <EM CLASS="Optional-meta-syntax">[</EM> keys { <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">[...]]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
 };</PRE>
 </DIV>
 <DIV>
@@ -2858,9 +3437,45 @@ If you discover that a remote server is giving out bad data, marking it as bogus
 bogus</CODE>
  is <CODE CLASS="Program-Process">
 no</CODE>
-.</P>
+. <EM CLASS="Emphasis">
+The </EM>
+<CODE CLASS="Program-Process">
+bogus</CODE>
+<EM CLASS="Emphasis">
+ clause is not yet implemented in BINDv9.</EM>
+</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997994">
+</A>
+The <CODE CLASS="Program-Process">
+provide-ixfr</CODE>
+ clause determines whether the local server, acting as master, will respond with an incremental zone transfer when the given remote server, a slave, requests it. If set to <CODE CLASS="Program-Process">
+yes</CODE>
+, incremental transfer will be provided whenever possible. If set to <CODE CLASS="Program-Process">
+no</CODE>
+, all transfers to the remote server will be nonincremental. If not set, the value of the <CODE CLASS="Program-Process">
+provide-ixfr </CODE>
+option in the global options block is used as a default.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1023455">
+</A>
+The <CODE CLASS="Program-Process">
+request-ixfr</CODE>
+ clause determines whether the local server, acting as a slave, will request incremental zone transfers from the given remote server, a master. If not set, the value of the <CODE CLASS="Program-Process">
+request-ixfr</CODE>
+ option in the global options block is used as a default.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1023490">
+</A>
+IXFR requests to servers that do not support IXFR will automatically fall back to AXFR.  Therefore, there is no need to manually list which servers support IXFR and which ones do not; the global default of <CODE CLASS="Program-Process">
+yes</CODE>
+ should always work. The purpose of the <CODE CLASS="Program-Process">
+provide-ixfr</CODE>
+ and <CODE CLASS="Program-Process">
+request-ixfr</CODE>
+ clauses is to make it possible to disable the use of IXFR even when both master and slave claim to support it, for example if one of the servers is buggy and crashes or corrupts data when IXFR is used.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1023509">
 </A>
 The server supports two zone transfer methods. The first, <CODE CLASS="Program-Process">
 one-answer</CODE>
@@ -2868,7 +3483,7 @@ one-answer</CODE>
 many-answers</CODE>
  packs as many resource records as possible into a message. <CODE CLASS="Program-Process">
 many-answers</CODE>
- is more efficient, but is only known to be understood by BIND 8.2 and patched versions of BIND 4.9.5. You can specify which method to use for a server with the <CODE CLASS="Program-Process">
+ is more efficient, but is only known to be understood by BIND 9, BIND 8.x, and patched versions of BIND 4.9.5. You can specify which method to use for a server with the <CODE CLASS="Program-Process">
 transfer-format </CODE>
 option. If <CODE CLASS="Program-Process">
 transfer-format </CODE>
@@ -2897,6 +3512,12 @@ key</CODE>
  statement must come before the <CODE CLASS="Program-Process">
 server</CODE>
  statement that references it. When a request is sent to the remote server, a request signature will be generated using the key specified here and appended to the message. A request originating from the remote server is not required to be signed by this key.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1023566">
+</A>
+Although the grammar of the <CODE CLASS="Program-Process">
+keys</CODE>
+ clause allows for multiple keys, only a single key per server is currently supported.</P>
 </DIV>
 <DIV>
 <OL>
@@ -2909,10 +3530,8 @@ trusted-keys</CODE>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997998"></A>
 trusted-keys {
-    <EM CLASS="variable">string number number number string</EM>
- ;
-    [<EM CLASS="variable">string number number number string</EM>
- ; [...]]
+    <EM CLASS="variable">string number number number string</EM> ;
+      [<EM CLASS="variable">string number number number string</EM> ; [...]]
 };</PRE>
 </DIV>
 <DIV>
@@ -2945,627 +3564,6 @@ Each trusted key is associated with a domain name. Its attributes are the non-ne
 <A NAME="pgfId=998008">
 </A>
 A trusted key is added when a public key for a non-authoritative zone is known, but cannot be securely obtained through DNS. This occurs when a signed zone is a child of an unsigned zone. Adding the trusted key here allows data signed by that zone to be considered secure.</P>
-<DIV>
-<OL>
-<H5 CLASS="4Level">
-<A NAME="pgfId=998009">
-</A>
-5.2.16.1	The <CODE CLASS="Program-Process">
-channel</CODE>
- Phrase</H5>
-</OL>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998010">
-</A>
-All log output goes to one or more &quot;channels&quot;; you can make as many of them as you want.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998011">
-</A>
-Every <CODE CLASS="Program-Process">
-channel</CODE>
- definition must include a clause that says whether messages selected for the channel go to a file, to a particular syslog facility, or are discarded. It can optionally also limit the message severity level that will be accepted by the channel (default is <CODE CLASS="Program-Process">
-info</CODE>
-), and whether to include a <CODE CLASS="Program-Process">
-named</CODE>
--generated time stamp, the category name and/or severity level (default is not to include any).</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998012">
-</A>
-The word <CODE CLASS="Program-Process">
-null</CODE>
- as the destination option for the channel will cause all messages sent to it to be discarded; in that case, other options for the channel are meaningless.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998013">
-</A>
-The <CODE CLASS="Program-Process">
-file</CODE>
- clause can include limitations both on how large the file is allowed to become, and how many versions of the file will be saved each time the file is opened.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998014">
-</A>
-The <CODE CLASS="Program-Process">
-size</CODE>
- option for files is simply a hard ceiling on log growth. If the file ever exceeds the size, then <CODE CLASS="Program-Process">
-named</CODE>
- will not write anything more to it until the file is reopened; exceeding the size does not automatically trigger a reopen. The default behavior is not to limit the size of the file.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998015">
-</A>
-If you use the <CODE CLASS="Program-Process">
-version</CODE>
- log file option, then <CODE CLASS="Program-Process">
-named</CODE>
- will retain that many backup versions of the file by renaming them when opening. For example, if you choose to keep 3 old versions of the file <EM CLASS="Optional-meta-syntax">
-lamers.log</EM>
- then just before it is opened <EM CLASS="Optional-meta-syntax">
-lamers.log.1</EM>
- is renamed to <EM CLASS="Optional-meta-syntax">
-lames.log.2</EM>
-, <EM CLASS="Optional-meta-syntax">
-lamers.log.0</EM>
- is renamed to <EM CLASS="Optional-meta-syntax">
-lamers.log.1</EM>
-, and <EM CLASS="Optional-meta-syntax">
-lamers.log</EM>
- is renamed to <EM CLASS="Optional-meta-syntax">
-lamers.log.0</EM>
-. No rolled versions are kept by default; any existing log file is simply appended. The <CODE CLASS="Program-Process">
-unlimited</CODE>
- keyword is synonymous with <CODE CLASS="Program-Process">
-99</CODE>
- in current BIND releases.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998016">
-</A>
-Example usage of the size and versions options:</P>
-<PRE CLASS="3Level-fixed"><A NAME="pgfId=998017"></A>
-    channel an_example_level {
-        file &quot;lamers.log&quot; versions 3 size 20m;
-        print-time yes;
-        print-category yes;
-    };</PRE>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998022">
-</A>
-The argument for the <CODE CLASS="Program-Process">
-syslog</CODE>
- clause is a syslog facility as described in the <CODE CLASS="Program-Process">
-syslog</CODE>
- manual page. How <CODE CLASS="Program-Process">
-syslog</CODE>
- will handle messages sent to this facility is described in the <CODE CLASS="Program-Process">
-syslog.conf</CODE>
- manual page. If you have a system which uses a very old version of <CODE CLASS="Program-Process">
-syslog</CODE>
- that only uses two arguments to the <CODE CLASS="Program-Process">
-openlog()</CODE>
- function, then this clause is silently ignored.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998023">
-</A>
-The <CODE CLASS="Program-Process">
-severity</CODE>
- clause works like <CODE CLASS="Program-Process">
-syslog</CODE>
-'s &quot;priorities,&quot; except that they can also be used if you are writing straight to a file rather than using <CODE CLASS="Program-Process">
-syslog</CODE>
-. Messages which are not at least of the severity level given will not be selected for the channel; messages of higher severity levels will be accepted.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998024">
-</A>
-If you are using <CODE CLASS="Program-Process">
-syslog</CODE>
-, then the <CODE CLASS="Program-Process">
-syslog.conf</CODE>
- priorities will also determine what eventually passes through. For example, defining a channel facility and severity as <CODE CLASS="Program-Process">
-daemon</CODE>
- and <CODE CLASS="Program-Process">
-debug</CODE>
- but only logging <CODE CLASS="Program-Process">
-daemon.warning</CODE>
- via <CODE CLASS="Program-Process">
-syslog.conf</CODE>
- will cause messages of severity <CODE CLASS="Program-Process">
-info</CODE>
- and <CODE CLASS="Program-Process">
-notice</CODE>
- to be dropped. If the situation were reversed, with <CODE CLASS="Program-Process">
-named</CODE>
- writing messages of only <CODE CLASS="Program-Process">
-warning</CODE>
- or higher, then <CODE CLASS="Program-Process">
-syslogd</CODE>
- would print all messages it received from the channel.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998025">
-</A>
-The server can supply extensive debugging information when it is in debugging mode. If the server's global debug level is greater than zero, then debugging mode will be active. The global debug level is set either by starting the <CODE CLASS="Program-Process">
-named</CODE>
- server with the &quot;-d&quot; flag followed by a positive integer, or by running &quot;ndc trace&quot;. The global debug level can be set to zero, and debugging mode turned off, by running &quot;ndc notrace&quot;. All debugging messages in the server have a debug level, and higher debug levels give more detailed output. Channels that specify a specific debug severity, e.g.</P>
-<PRE CLASS="3Level-fixed"><A NAME="pgfId=998026"></A>
-  channel specific_debug_level {
-      file &quot;foo&quot;;
-      severity debug 3;
-  };</PRE>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998030">
-</A>
-will get debugging output of level 3 or less any time the server is in debugging mode, regardless of the global debugging level. Channels with <CODE CLASS="Program-Process">
-dynamic</CODE>
- severity use the server's global level to determine what messages to print.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998031">
-</A>
-If <CODE CLASS="Program-Process">
-print-time</CODE>
- has been turned on, then the date and time will be logged. <CODE CLASS="Program-Process">
-print-time</CODE>
- may be specified for a <CODE CLASS="Program-Process">
-syslog</CODE>
- channel, but is usually pointless since <CODE CLASS="Program-Process">
-syslog</CODE>
- also prints the date and time. If <CODE CLASS="Program-Process">
-print-category</CODE>
- is requested, then the category of the message will be logged as well. Finally, if <CODE CLASS="Program-Process">
-print-severity</CODE>
- is on, then the severity level of the message will be logged. The <CODE CLASS="Program-Process">
-print-</CODE>
- options may be used in any combination, and will always be printed in the following order: time, category, severity. Here is an example where all three <CODE CLASS="Program-Process">
-print-</CODE>
- options are on:</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998032">
-</A>
-28-Apr-1997 15:05:32.863 default: notice: Ready to answer queries.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998033">
-</A>
-There are four predefined channels that are used for <CODE CLASS="Program-Process">
-named</CODE>
-'s default logging as follows. How they are used is described in the section <A HREF="BV9ARM.5.html#36082" CLASS="XRef">
-The category Phrase</A>
-.</P>
-<PRE CLASS="3Level-fixed"><A NAME="pgfId=998037"></A>
-    channel default_syslog {
-        syslog daemon;     # send to syslog's daemon facility
-        severity info;     # only send priority info and higher
-    };
-    channel default_debug {
-        file &quot;named.run&quot;;  # write to named.run in the working directory
-                           # Note: stderr is used instead of &quot;named.run&quot;
-                          # if the server is started with the &quot;-f&quot;
-                           # option.
-        severity dynamic   # log at the server's current debug level
-    };
-    channel default_stderr {    # writes to stderr
-        file &quot;&lt;stderr&gt;&quot;;         # this is illustrative only;
-                                 # there's currently no way of
-                                 # specifying an internal file
-                                 # descriptor in the configuration
-                                 # language.
-        severity info;           # only send priority info and higher
-    };
-    channel null {
-       null;                     # toss anything sent to this channel
-    };</PRE>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998057">
-</A>
-Once a channel is defined, it cannot be redefined. Thus you cannot alter the built-in channels directly, but you can modify the default logging by pointing categories at channels you have defined.</P>
-</DIV>
-<DIV>
-<OL>
-<H5 CLASS="4Level">
-<A NAME="pgfId=998059">
-</A>
-5.2.16.2	<A NAME="36082">
-</A>
-The <CODE CLASS="Program-Process">
-category</CODE>
- Phrase</H5>
-</OL>
-<P CLASS="4LevelContinued">
-<A NAME="pgfId=998060">
-</A>
-There are many categories, so you can send the logs you want to see wherever you want, without seeing logs you don't want. If you don't specify a list of channels for a category, then log messages in that category will be sent to the <CODE CLASS="Program-Process">
-default</CODE>
- category instead. If you don't specify a default category, the following &quot;default default&quot; is used:</P>
-<PRE CLASS="4Level-fixed1"><A NAME="pgfId=998061"></A>
-    category default { default_syslog; default_debug; };</PRE>
-<P CLASS="4LevelContinued">
-<A NAME="pgfId=998062">
-</A>
-As an example, let's say you want to log security events to a file, but you also want keep the default logging behavior. You'd specify the following:</P>
-<PRE CLASS="4Level-fixed1"><A NAME="pgfId=998063"></A>
-channel my_security_channel {
-    file &quot;my_security_file&quot;;
-    severity info;
-};
-category security { my_security_channel; default_syslog; default_debug; };</PRE>
-<P CLASS="4LevelContinued">
-<A NAME="pgfId=998068">
-</A>
-To discard all messages in a category, specify the <CODE CLASS="Program-Process">
-null</CODE>
- channel:</P>
-<PRE CLASS="4Level-fixed1"><A NAME="pgfId=998069"></A>
-    category lame-servers { null; };
-    category cname { null; };</PRE>
-<P CLASS="4LevelContinued">
-<A NAME="pgfId=998071">
-</A>
-Following are the available categories and brief descriptions of the types of log information they contain.</P>
-<P CLASS="4LevelContinued">
-<A NAME="pgfId=998161">
-</A>
-&nbsp;</P>
-<TABLE>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998074">
-</A>
-<CODE CLASS="Program-Process">
-default</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998076">
-</A>
-The catch-all. Many things still aren't classified into categories, and they all end up here. Also, if you don't specify any channels for a category, the default category is used instead. If you do not define the default category, the following definition is used:<BR>
-<EM CLASS="Command">
-category default { default_syslog; default_debug; };</EM>
-</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998078">
-</A>
-<CODE CLASS="Program-Process">
-config</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998080">
-</A>
-High-level configuration file processing.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998082">
-</A>
-<CODE CLASS="Program-Process">
-parser</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998084">
-</A>
-Low-level configuration file processing.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998086">
-</A>
-<CODE CLASS="Program-Process">
-queries</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998088">
-</A>
-A short log message is generated for every query the server receives.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998090">
-</A>
-<CODE CLASS="Program-Process">
-lame-servers</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998092">
-</A>
-Messages like &quot;Lame server on...&quot;</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998094">
-</A>
-<CODE CLASS="Program-Process">
-statistics</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998096">
-</A>
-Statistics.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998098">
-</A>
-<CODE CLASS="Program-Process">
-panic</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998100">
-</A>
-If the server has to shut itself down due to an internal problem, it will log the problem in this category as well as in the problem's native category. If you do not define the panic category, the following definition is used:<BR>
-<EM CLASS="Command">
-category panic { default_syslog; default_stderr; };</EM>
-</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998102">
-</A>
-<CODE CLASS="Program-Process">
-update</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998104">
-</A>
-Dynamic updates.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998106">
-</A>
-<CODE CLASS="Program-Process">
-ncache</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998108">
-</A>
-Negative caching.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998110">
-</A>
-<CODE CLASS="Program-Process">
-xfer-in</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998112">
-</A>
-Zone transfers the server is receiving.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998114">
-</A>
-<CODE CLASS="Program-Process">
-xfer-out</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998116">
-</A>
-Zone transfers the server is sending.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998118">
-</A>
-<CODE CLASS="Program-Process">
-db</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998120">
-</A>
-All database operations.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998122">
-</A>
-<CODE CLASS="Program-Process">
-eventlib</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998124">
-</A>
-Debugging info from the event system. Only one channel may be specified for this category, and it must be a file channel. If you do not define the eventlib category, the following definition is used:<BR>
-<EM CLASS="Command">
-category eventlib{ default_debug; };</EM>
-</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998126">
-</A>
-<CODE CLASS="Program-Process">
-packet</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998128">
-</A>
-Dumps of packets received and sent. Only one channel may be specified for this category, and it must be a file channel. If you do not define the packet category, the following definition is used:<BR>
-<EM CLASS="Command">
-category packet { default_debug; };</EM>
-</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998130">
-</A>
-<CODE CLASS="Program-Process">
-notify</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998132">
-</A>
-The NOTIFY protocol.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998134">
-</A>
-<CODE CLASS="Program-Process">
-cname</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998136">
-</A>
-Messages like &quot;... points to a CNAME&quot;.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998138">
-</A>
-<CODE CLASS="Program-Process">
-security</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998140">
-</A>
-Approved/unapproved requests.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998142">
-</A>
-<CODE CLASS="Program-Process">
-os</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998144">
-</A>
-Operating system problems.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998146">
-</A>
-<CODE CLASS="Program-Process">
-insist</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998148">
-</A>
-Internal consistency check failures.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998150">
-</A>
-<CODE CLASS="Program-Process">
-maintenance</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998152">
-</A>
-Periodic maintenance events.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998154">
-</A>
-<CODE CLASS="Program-Process">
-load</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998156">
-</A>
-Zone loading messages.</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<H6 CLASS="CellBody21">
-<A NAME="pgfId=998158">
-</A>
-<CODE CLASS="Program-Process">
-response-checks</CODE>
-</H6>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=998160">
-</A>
-Messages arising from response checking, such as &quot;Malformed response...&quot;, &quot;wrong ans. name...&quot;, &quot;unrelated additional info...&quot;, &quot;invalid RR type...&quot;, and &quot;bad referral...&quot;.</P>
-</TD>
-</TR>
-</TABLE>
-</DIV>
 </DIV>
 <DIV>
 <OL>
@@ -3578,8 +3576,8 @@ view</CODE>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=998163"></A>
 view &quot;name&quot; {
-      <EM CLASS="Optional-meta-syntax">[</EM>allow-query <EM CLASS="variable">address_match_list</EM>; <EM CLASS="Optional-meta-syntax">[</EM>allow-query <EM CLASS="variable">address_match_list</EM>; <EM CLASS="Optional-meta-syntax">[...]]] [</EM><EM CLASS="variable">zone_statement</EM>; <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">zone_statement</EM>;<EM CLASS="Optional-meta-syntax">[....]]
-</EM>
+      <EM CLASS="Optional-meta-syntax">... </EM>
+      <EM CLASS="Optional-meta-syntax"> [</EM><EM CLASS="variable">zone_statement</EM; <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">zone_statement</EM>; <EM CLASS="Optional-meta-syntax">[....]]</EM>
 };</PRE>
 </DIV>
 <DIV>
@@ -3596,17 +3594,9 @@ view</CODE>
 </A>
 <CODE CLASS="Program-Process">
 view</CODE>
- statements are used to provide a different view of the same namespace to different clients, depending upon which <CODE CLASS="Program-Process">
-allow-query</CODE>
- statement they match. A <CODE CLASS="Program-Process">
-view</CODE>
- statement with no <CODE CLASS="Program-Process">
-allow-query</CODE>
- statement is the default view, for any client that does not match a specific view. The <CODE CLASS="Program-Process">
-view</CODE>
- statement should contain a list of zone definitions for each zone that needs differing answers. Zones that are specified outside the <CODE CLASS="Program-Process">
-view</CODE>
- statement are common to all views.<CODE CLASS="Program-Process">
+ statements are used to provide a different view of the same namespace to different clients.  <EM CLASS="Emphasis">
+They are not yet fully implemented.</EM>
+<CODE CLASS="Program-Process">
 </CODE>
 <A NAME="25091">
 </A>
@@ -3624,32 +3614,32 @@ zone</CODE>
  Statement Grammar</H4>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=998171"></A>
-zone <EM CLASS="variable">string</EM> <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">class</EM><EM CLASS="Optional-meta-syntax">] [</EM>{ 
-    type <EM CLASS="Optional-meta-syntax">(</EM>master<EM CLASS="Optional-meta-syntax">|</EM>slave<EM CLASS="Optional-meta-syntax">|</EM>hint<EM CLASS="Optional-meta-syntax">|</EM>stub<EM CLASS="Optional-meta-syntax">|</EM>forward<EM CLASS="Optional-meta-syntax">)</EM> ;
-    <EM CLASS="Optional-meta-syntax">[</EM> allow-query { <EM CLASS="variable">address_match_list</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> allow-transfer { <EM CLASS="variable">address_match_list</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> allow-update { <EM CLASS="variable">address_match_list</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> also-notify { <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[...]]]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> check-names <EM CLASS="Optional-meta-syntax">(</EM>warn<EM CLASS="Optional-meta-syntax">|</EM>fail<EM CLASS="Optional-meta-syntax">|</EM>ignore<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> dialup <EM CLASS="variable">true_or_false</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> file <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> forward <EM CLASS="Optional-meta-syntax">(</EM>only<EM CLASS="Optional-meta-syntax">|</EM>first<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> forwarders { <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[...]]]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> ixfr-base <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> ixfr-tmp-file <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> maintain-ixfr-base <EM CLASS="variable">true_or_false</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> masters <EM CLASS="Optional-meta-syntax">[</EM>port <EM CLASS="variable">number</EM><EM CLASS="Optional-meta-syntax">]</EM> { <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[...]]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-ixfr-log-size <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-in <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-in <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> notify <EM CLASS="variable">true_or_false</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> pubkey <EM CLASS="variable">number number number</EM> <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> recursive-clients <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> tcp-clients <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
-    <EM CLASS="Optional-meta-syntax">[</EM> transfer-source <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">ip_addr</EM> <EM CLASS="Optional-meta-syntax">|</EM> *<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
-}<EM CLASS="Optional-meta-syntax">]</EM>;</PRE>
+zone <EM CLASS="variable"> string</EM> <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">class</EM><EM CLASS="Optional-meta-syntax">] [</EM>{ 
+    type <EM CLASS="Optional-meta-syntax">(</EM> master<EM CLASS="Optional-meta-syntax">|</EM>slave<EM CLASS="Optional-meta-syntax">|</EM>hint<EM CLASS="Optional-meta-syntax">|</EM>stub<EM CLASS="Optional-meta-syntax">|</EM>forward<EM CLASS="Optional-meta-syntax">)</EM> ;
+   <EM CLASS="Optional-meta-syntax">[</EM> allow-query { <EM CLASS="variable">address_match_list</EM> } ;<EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> allow-transfer { <EM CLASS="variable">address_match_list</EM> } ;<EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> allow-update { <EM CLASS="variable">address_match_list</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> update-policy { <EM CLASS="variable">update_policy_rule </EM><EM CLASS="Optional-meta-syntax">[...]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> allow-update-forwarding { <EM CLASS="variable">address_match_list</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> also-notify { <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM>   <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[...]]]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> check-names <EM CLASS="Optional-meta-syntax">(</EM>warn<EM CLASS="Optional-meta-syntax">|</EM>fail<EM CLASS="Optional-meta-syntax">|</EM>ignore<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> dialup <EM CLASS="variable">true_or_false</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> file <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> forward <EM CLASS="Optional-meta-syntax">(</EM>only<EM CLASS="Optional-meta-syntax">|</EM>first<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> forwarders { <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM> <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[...]]]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> ixfr-base <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> ixfr-tmp-file <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> maintain-ixfr-base <EM CLASS="variable">true_or_false</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> masters <EM CLASS="Optional-meta-syntax">[</EM>port <EM CLASS="variable">number</EM><EM CLASS="Optional-meta-syntax">]</EM> { <EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">ip_addr</EM> ; <EM CLASS="Optional-meta-syntax">[...]]</EM> } ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> max-ixfr-log-size <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-in <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-idle-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-in <EM CLASS="variable">number</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> max-transfer-time-out <EM CLASS="variable">number</EM>; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> notify <EM CLASS="variable">true_or_false</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> pubkey <EM CLASS="variable">number number number</EM> <EM CLASS="variable">string</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>
+   <EM CLASS="Optional-meta-syntax">[</EM> transfer-source <EM CLASS="Optional-meta-syntax">(</EM><EM CLASS="variable">ip_addr</EM> <EM CLASS="Optional-meta-syntax">|</EM> *<EM CLASS="Optional-meta-syntax">)</EM> ; <EM CLASS="Optional-meta-syntax">]</EM>}<EM CLASS="Optional-meta-syntax">]</EM>
+;</PRE>
 </DIV>
 <DIV>
 <OL>
@@ -3735,19 +3725,19 @@ forward</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=998214">
 </A>
-A forward zone is used to direct all queries in it to other servers.</P>
-<P CLASS="CellBody">
-<A NAME="pgfId=998215">
-</A>
-The specification of options in such a zone will override any global options declared in the options statement.</P>
-<P CLASS="CellBody">
-<A NAME="pgfId=998216">
-</A>
-If no <CODE CLASS="Program-Process">
+A &quot;forward zone&quot; is a way to configure forwarding on a per-domain basis.  A <CODE CLASS="Program-Process">
+zone</CODE>
+ statement of type <CODE CLASS="Program-Process">
+forward</CODE>
+ can contain a <CODE CLASS="Program-Process">
+forward</CODE>
+ and/or <CODE CLASS="Program-Process">
 forwarders</CODE>
- statement is present in the zone or an empty list for <CODE CLASS="Program-Process">
+ statement, which will apply to queries within the domain given by the zone name.If no <CODE CLASS="Program-Process">
 forwarders</CODE>
- is given, then no forwarding will be done for the zone, cancelling the effects of any forwarders in the <CODE CLASS="Program-Process">
+ statement is present or an empty list for <CODE CLASS="Program-Process">
+forwarders</CODE>
+ is given, then no forwarding will be done for the domain, cancelling the effects of any forwarders in the <CODE CLASS="Program-Process">
 options</CODE>
  statement. Thus if you want to use this type of zone to change the behavior of the global <CODE CLASS="Program-Process">
 forward</CODE>
@@ -3767,7 +3757,7 @@ hint</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=998220">
 </A>
-The initial set of root nameservers is specified using a hint zone. When the server starts up, it uses the root hints to find a root nameserver and get the most recent list of root nameservers.</P>
+The initial set of root nameservers is specified using a &quot;hint zone&quot;. When the server starts up, it uses the root hints to find a root nameserver and get the most recent list of root nameservers.</P>
 </TD>
 </TR>
 </TABLE>
@@ -3797,7 +3787,7 @@ class is for an information service from MIT's Project Athena. It is used to sha
 hs</CODE>
  is a synonym for hesiod.</P>
 <P CLASS="3LevelContinued">
-<A NAME="pgfId=998225">
+<A NAME="pgfId=1024705">
 </A>
 Another MIT development was CHAOSnet, a LAN protocol created in the mid-1970s. Zone data for it can be specified with the <CODE CLASS="Program-Process">
 chaos</CODE>
@@ -3806,14 +3796,14 @@ chaos</CODE>
 <DIV>
 <OL>
 <H5 CLASS="4Level">
-<A NAME="pgfId=998297">
+<A NAME="pgfId=1024807">
 </A>
 5.2.20.3	Zone Options</H5>
 <TABLE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998228">
+<A NAME="pgfId=1024708">
 </A>
 <CODE CLASS="Program-Process">
 allow-query</CODE>
@@ -3821,7 +3811,7 @@ allow-query</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998230">
+<A NAME="pgfId=1024710">
 </A>
 See the description of <CODE CLASS="Program-Process">
 allow-query</CODE>
@@ -3833,7 +3823,7 @@ Access Control</A>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998235">
+<A NAME="pgfId=1024715">
 </A>
 <CODE CLASS="Program-Process">
 allow-transfer</CODE>
@@ -3841,7 +3831,7 @@ allow-transfer</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998237">
+<A NAME="pgfId=1024717">
 </A>
 See the description of <CODE CLASS="Program-Process">
 allow-transfer</CODE>
@@ -3853,7 +3843,7 @@ Access Control</A>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998242">
+<A NAME="pgfId=1024722">
 </A>
 <CODE CLASS="Program-Process">
 allow-update</CODE>
@@ -3861,15 +3851,47 @@ allow-update</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998244">
+<A NAME="pgfId=1024724">
 </A>
-Specifies which hosts are allowed to submit Dynamic DNS updates to the server. The default is to deny updates from all hosts.</P>
+Specifies which hosts are allowed to submit Dynamic DNS updates for master zones. The default is to deny updates from all hosts.</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998246">
+<A NAME="pgfId=1024726">
+</A>
+update-policy</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024728">
+</A>
+Specifies a &quot;Simple Secure Update&quot; policy. See description below.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024730">
+</A>
+<CODE CLASS="Program-Process">
+allow-update-forwarding</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024732">
+</A>
+Specifies which hosts are allowed to submit Dynamic DNS updates to slave zones to be forwarded to the master. The default is to deny update forwarding from all hosts. <EM CLASS="Emphasis">
+Update forwarding is not yet implemented.</EM>
+</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024734">
 </A>
 <CODE CLASS="Program-Process">
 also-notify</CODE>
@@ -3877,7 +3899,7 @@ also-notify</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998248">
+<A NAME="pgfId=1024736">
 </A>
 Only meaningful if <CODE CLASS="Program-Process">
 notify</CODE>
@@ -3888,13 +3910,16 @@ also-notify</CODE>
 .<BR>
 <CODE CLASS="Program-Process">
 also-notify</CODE>
- is not meaningful for stub zones. The default is the empty list.</P>
+ is not meaningful for stub zones. The default is the empty list.<BR>
+<EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998250">
+<A NAME="pgfId=1024738">
 </A>
 <CODE CLASS="Program-Process">
 check-names</CODE>
@@ -3902,17 +3927,20 @@ check-names</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998255">
+<A NAME="pgfId=1024743">
 </A>
 See <A HREF="BV9ARM.5.html#30910" CLASS="XRef">
 Name Checking</A>
-.</P>
+.<BR>
+<EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998257">
+<A NAME="pgfId=1024745">
 </A>
 <CODE CLASS="Program-Process">
 dialup</CODE>
@@ -3920,19 +3948,22 @@ dialup</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998261">
+<A NAME="pgfId=1024749">
 </A>
 See the description of <CODE CLASS="Program-Process">
 dialup</CODE>
  under <A HREF="BV9ARM.5.html#12205" CLASS="XRef">
 Boolean Options</A>
-.</P>
+.<BR>
+<EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998264">
+<A NAME="pgfId=1024752">
 </A>
 <CODE CLASS="Program-Process">
 forward</CODE>
@@ -3940,19 +3971,22 @@ forward</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998266">
+<A NAME="pgfId=1024754">
 </A>
 Only meaningful if the zone has a forwarders list. The <CODE CLASS="Program-Process">
 only</CODE>
  value causes the lookup to fail after trying the forwarders and getting no answer, while <CODE CLASS="Program-Process">
 first</CODE>
- would allow a normal lookup to be tried.</P>
+ would allow a normal lookup to be tried.<BR>
+<EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998268">
+<A NAME="pgfId=1024756">
 </A>
 <CODE CLASS="Program-Process">
 forwarders</CODE>
@@ -3960,33 +3994,39 @@ forwarders</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998270">
+<A NAME="pgfId=1024758">
 </A>
 Used to override the list of global forwarders. If it is not specified in a zone of type <CODE CLASS="Program-Process">
 forward</CODE>
 , no forwarding is done for the zone; the global options are not used.</P>
+<P CLASS="CellBody">
+<A NAME="pgfId=1024759">
+</A>
+<EM CLASS="Emphasis">
+Not yet implemented in BINDv9.</EM>
+</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998272">
+<A NAME="pgfId=1024761">
 </A>
 <CODE CLASS="Program-Process">
-ixfr_base</CODE>
+ixfr-base</CODE>
 </H6>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998274">
+<A NAME="pgfId=1024763">
 </A>
-Specifies the file name used for IXFR transaction log file.</P>
+Specifies the file name for the transaction log file used for dynamic update and IXFR.</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998276">
+<A NAME="pgfId=1024765">
 </A>
 <CODE CLASS="Program-Process">
 max-transfer-time-in</CODE>
@@ -3994,7 +4034,7 @@ max-transfer-time-in</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998278">
+<A NAME="pgfId=1024767">
 </A>
 See the description of <CODE CLASS="Program-Process">
 max-transfer-time-in</CODE>
@@ -4006,7 +4046,67 @@ Zone Transfers</A>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998283">
+<A NAME="pgfId=1024772">
+</A>
+<CODE CLASS="Program-Process">
+max-transfer-idle-in</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024774">
+</A>
+See the description of <CODE CLASS="Program-Process">
+max-transfer-idle-in</CODE>
+ under <A HREF="BV9ARM.5.html#32057" CLASS="XRef">
+Zone Transfers</A>
+.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024779">
+</A>
+<CODE CLASS="Program-Process">
+max-transfer-time-out</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024781">
+</A>
+See the description of <CODE CLASS="Program-Process">
+max-transfer-time-outn</CODE>
+ under <A HREF="BV9ARM.5.html#32057" CLASS="XRef">
+Zone Transfers</A>
+.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024786">
+</A>
+<CODE CLASS="Program-Process">
+max-transfer-idle-out</CODE>
+</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024788">
+</A>
+See the description of <CODE CLASS="Program-Process">
+max-transfer-idle-out</CODE>
+ under <A HREF="BV9ARM.5.html#32057" CLASS="XRef">
+Zone Transfers</A>
+.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024793">
 </A>
 <CODE CLASS="Program-Process">
 notify</CODE>
@@ -4014,7 +4114,7 @@ notify</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998287">
+<A NAME="pgfId=1024797">
 </A>
 See the description of <CODE CLASS="Program-Process">
 notify</CODE>
@@ -4026,7 +4126,7 @@ Boolean Options</A>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998290">
+<A NAME="pgfId=1024800">
 </A>
 <CODE CLASS="Program-Process">
 pubkey</CODE>
@@ -4034,7 +4134,7 @@ pubkey</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998292">
+<A NAME="pgfId=1024802">
 </A>
 Represents a public key for this zone. It is needed when this is the top level authoritative zone served by this server and there is no chain of trust to a trusted key. It is considered secure, so that data that it signs will be considered secure. The DNSSEC flags, protocol, and algorithm are specified, as well as a base-64 encoded string representing the key.</P>
 </TD>
@@ -4042,7 +4142,7 @@ Represents a public key for this zone. It is needed when this is the top level a
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <H6 CLASS="CellBody21">
-<A NAME="pgfId=998294">
+<A NAME="pgfId=1024804">
 </A>
 <CODE CLASS="Program-Process">
 transfer-source</CODE>
@@ -4050,7 +4150,7 @@ transfer-source</CODE>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=998296">
+<A NAME="pgfId=1024806">
 </A>
 Determines which local address will be bound to the TCP connection used to fetch this zone. If not set, it defaults to a system controlled value which will usually be the address of the interface <EM CLASS="Optional-meta-syntax">
 closest to</EM>
@@ -4062,26 +4162,178 @@ allow-transfer</CODE>
 </TABLE>
 </OL>
 </DIV>
+<DIV>
+<OL>
+<H5 CLASS="4Level">
+<A NAME="pgfId=1024815">
+</A>
+5.2.20.4	Dynamic Update Policies</H5>
+</OL>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1025001">
+</A>
+BINDv9 supports two alternative methods of granting clients the right to perform dynamic updates to a zone, configured by the <CODE CLASS="Program-Process">
+allow-update</CODE>
+ and <CODE CLASS="Program-Process">
+update-policy</CODE>
+ option, respectively.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024859">
+</A>
+The <CODE CLASS="Program-Process">
+allow-update</CODE>
+ clause works the same way as in previous versions of BIND. It grants given clients the permission to update any record of any name in the zone.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024862">
+</A>
+The <CODE CLASS="Program-Process">
+update-policy</CODE>
+ clause is new in BINDv9 and allows more fine-grained control over what updates are allowed. A set of rules is specified, where each rule either grants or denies permissions for one or more names to be updated by one or more identities.  If the dynamic update request message is signed (that is, it includes either a TSIG or SIG(0) record), the identity of the signer can be determined.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024826">
+</A>
+Rules are specified in the <CODE CLASS="Program-Process">
+update-policy</CODE>
+ zone option, and are only meaninful for master zones.  When the <CODE CLASS="Program-Process">
+update-policy</CODE>
+ statement is present, it is a configuration error for the <CODE CLASS="Program-Process">
+allow-update</CODE>
+ statement to be present.  The <CODE CLASS="Program-Process">
+update-policy</CODE>
+ statement only examines the signer of a message; the source address is not relevant.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024827">
+</A>
+A rule defition looks like:</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024828">
+</A>
+(<EM CLASS="Optional-meta-syntax">
+ </EM>
+<CODE CLASS="Program-Process">
+grant</CODE>
+<EM CLASS="Optional-meta-syntax">
+ | </EM>
+<CODE CLASS="Program-Process">
+deny</CODE>
+<EM CLASS="Optional-meta-syntax">
+ ) </EM>
+<EM CLASS="variable">
+identity</EM>
+<EM CLASS="Optional-meta-syntax">
+ </EM>
+<EM CLASS="variable">
+nametype</EM>
+<EM CLASS="Optional-meta-syntax">
+ </EM>
+<EM CLASS="variable">
+name</EM>
+<EM CLASS="Optional-meta-syntax">
+ [ </EM>
+<EM CLASS="variable">
+types</EM>
+<EM CLASS="Optional-meta-syntax">
+ ]</EM>
+</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024829">
+</A>
+Each rule grants or denies privileges.  Once a messages has successfully matched a rule, the operation is immediately granted or denied - no further rules are examined.  A rule is matched when the signer matches the identity field, the name matches the name field, and the type is specified in the type field.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1024969">
+</A>
+The identity field specifies a name or a wildcard name.  The nametype field has 4 values: <EM CLASS="Emphasis">
+name</EM>
+, <EM CLASS="Emphasis">
+subdomain</EM>
+, <EM CLASS="Emphasis">
+wildcard</EM>
+, and <EM CLASS="Emphasis">
+self</EM>
+. </P>
+<TABLE>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody1">
+<A NAME="pgfId=1024972">
+</A>
+name</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024974">
+</A>
+Matches when the updated name is the same as the name in the name field.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody1">
+<A NAME="pgfId=1024976">
+</A>
+subdomain</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024978">
+</A>
+Matches when the updated name is a subdomain of the name in the name field.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody1">
+<A NAME="pgfId=1024980">
+</A>
+wildcard</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024982">
+</A>
+Matches when the updated name is a valid expansion of the wildcard name in the name field.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody1">
+<A NAME="pgfId=1024984">
+</A>
+self</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024986">
+</A>
+Matches when the updated name is the same as the message signer. The name field is ignored.</P>
+</TD>
+</TR>
+</TABLE>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1025025">
+</A>
+If no types are specified, the rule matches all types except SIG, NS, SOA, and NXT. Types may be specified by name, including &quot;any&quot; (which matches all types except NXT, which can never be updated).</P>
+</DIV>
 </DIV>
 </DIV>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
-<A NAME="pgfId=998299">
+<A NAME="pgfId=1024987">
 </A>
-5.3	The Zone File</H3>
+5.3	 Zone File</H3>
 </OL>
 <DIV>
 <OL>
 <H4 CLASS="3Level">
-<A NAME="pgfId=998301">
+<A NAME="pgfId=1024701">
 </A>
 5.3.1	<A NAME="29114">
 </A>
 Types of Resource Records and When to Use Them</H4>
 </OL>
 <P CLASS="3LevelContinued">
-<A NAME="pgfId=998302">
+<A NAME="pgfId=1024991">
 </A>
 This section, largely borrowed from RFC 1034, describes the concept of a Resource Record (RR) and explains when each is used. Since the publication of RFC 1034, several new RRs have been identified and implemented in the DNS. These are also included.</P>
 <DIV>
@@ -5135,7 +5387,9 @@ $ORIGIN      2.1.10.in-addr.arpa
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=998607">
 </A>
-(Note: The $ORIGIN lines in the examples are for providing context to the examples only--they do not necessarily appear in the actual usage. They are only used here to indicate that the example is relative to the listed $ORIGIN.)</P>
+(Note: The <CODE CLASS="Program-Process">
+$ORIGIN</CODE>
+ lines in the examples are for providing context to the examples only--they do not necessarily appear in the actual usage. They are only used here to indicate that the example is relative to the listed origin.)</P>
 </DIV>
 <DIV>
 <OL>
@@ -5231,7 +5485,7 @@ $ORIGIN</CODE>
 NOTE</EM>
 : The behavior when <CODE CLASS="Program-Process">
 origin</CODE>
- is specified differs from that described in RFC 1035. The origin and current domain revert to the values they were prior to the <CODE CLASS="Program-Process">
+ is specified differs from that described in RFC&nbsp;1035. The origin and current domain revert to the values they were prior to the <CODE CLASS="Program-Process">
 $INCLUDE</CODE>
  once the file has been read.</P>
 </DIV>
@@ -5259,7 +5513,7 @@ Set the default Time To Live (TTL) for subsequent records with undefined TTLs. V
 </A>
 <CODE CLASS="Program-Process">
 $TTL</CODE>
- is defined in RFC 2308.</P>
+ is defined in RFC&nbsp;2308.</P>
 </DIV>
 </DIV>
 <DIV>
@@ -5268,7 +5522,7 @@ $TTL</CODE>
 <A NAME="pgfId=998625">
 </A>
 5.3.6	BIND Master File Extension: the  <CODE CLASS="Program-Process">
-$generate</CODE>
+$GENERATE</CODE>
  Directive</H4>
 </OL>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=998626"></A>
@@ -5389,22 +5643,32 @@ rhs is a domain name. It is processed similarly to lhs.</P>
 </TD>
 </TR>
 </TABLE>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=1024137">
+</A>
+The <CODE CLASS="Program-Process">
+$GENERATE</CODE>
+ directive is a BIND extension and not part of the standard zone file format. <EM CLASS="Emphasis">
+It is not yet implemented in BINDv9.</EM>
+</P>
 </DIV>
 <DIV>
 <OL>
 <H4 CLASS="3Level">
 <A NAME="pgfId=998650">
 </A>
-5.3.7	Discussion of Nameserver Signals</H4>
+5.3.7	Signals</H4>
 </OL>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=998651">
 </A>
-The BIND nameserver, named, is controlled by means of signals. The following table describes signals that BIND sends and their effects when sent to the server process using the kill command.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=998661">
+Certain UNIX signals cause the name server to take specific actions, as described in the following table.  These signals can be sent using the <CODE CLASS="Program-Process">
+kill</CODE>
+ command.</P>
+<P CLASS="Body">
+<A NAME="pgfId=997347">
 </A>
-&nbsp;</P>
+ &nbsp;</P>
 <TABLE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
@@ -5421,11 +5685,7 @@ SIGHUP</CODE>
 </A>
 Causes the server to read <CODE CLASS="Program-Process">
 named.conf</CODE>
- and reload the database. If the server is built with the <CODE CLASS="Program-Process">
-FORCED_RELOAD</CODE>
- compile-time option, then <CODE CLASS="Program-Process">
-SIGHUP</CODE>
- will also cause the server to check the serial number on all secondary zones. Normally the serial numbers are only checked at the SOA-specified intervals.</P>
+ and reload the database. </P>
 </TD>
 </TR>
 <TR>
@@ -5441,16 +5701,40 @@ SIGTERM</CODE>
 <P CLASS="CellBody">
 <A NAME="pgfId=998660">
 </A>
-Dumps the primary and secondary database files. Used to save modified data on shutdown if the server is compiled with dynamic updating enabled.</P>
+Causes the server to clean up and exit.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024021">
+</A>
+SIGINT</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024023">
+</A>
+Causes the server to clean up and exit.</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<H6 CLASS="CellBody21">
+<A NAME="pgfId=1024017">
+</A>
+SIGQUIT</H6>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=1024019">
+</A>
+Causes the server to clean up and exit.</P>
 </TD>
 </TR>
 </TABLE>
-<P CLASS="Body">
-<A NAME="pgfId=997347">
-</A>
- &nbsp;</P>
-<p>Return to <A href="BV9ARM.HTML">BINDv9 Administrator Reference Manual</A> table of contents.</p>
 </DIV>
 </DIV>
+<p>Return to <A href="BV9ARM.html">BINDv9 Administrator Reference Manual</A> table of contents.</p>
 </BODY>
 </HTML>

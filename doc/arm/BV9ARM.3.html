@@ -305,7 +305,7 @@ also-notify</CODE>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997465">
 </A>
-There are several indispensable diagnostic, administrative and monotoring tools available to the system administrator for controlling and debugging the nameserver daemon. We describe several in this section </P>
+There are several indispensable diagnostic, administrative and monitoring tools available to the system administrator for controlling and debugging the nameserver daemon. We describe several in this section </P>
 <DIV>
 <OL>
 <H5 CLASS="4Level">
@@ -359,7 +359,7 @@ The<EM CLASS="pathname">
 host</CODE>
 <EM CLASS="pathname">
  </EM>
-utility provides a simple DNS lookup using a command-line interface for looking up Internet hostnames. Bu default, the utility interprets between host names and Internet addresses, but its functionality can be extended with the use of options.</P>
+utility provides a simple DNS lookup using a command-line interface for looking up Internet hostnames. By default, the utility converts between host names and Internet addresses, but its functionality can be extended with the use of options.</P>
 </DIV>
 <DIV>
 <H5 CLASS="Subhead4">
@@ -423,25 +423,27 @@ Administrative tools play an integral part in the management of a server.</P>
 <H5 CLASS="Subhead4">
 <A NAME="pgfId=997489">
 </A>
-ndc</H5>
+rndc</H5>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997490">
 </A>
-The name daemon control (<CODE CLASS="Program-Process">
-ndc</CODE>
-) program is a shell script utility that allows the system administrator to control the operation of a nameserver. If you run ndc without any options it will display a usage message and prompt for commands until it reads EOF. Several commands are built into ndc, but the full set of commands supported by the nameserver is dynamic and should be discovered using the &quot;help&quot; command. Read the man page for ndc for details on its command syntax.</P>
-</DIV>
-<DIV>
-<H5 CLASS="Subhead4">
-<A NAME="pgfId=997491">
+The remote name daemon control (<CODE CLASS="Program-Process">
+rndc</CODE>
+) program is a program that allows the system administrator to control the operation of a nameserver. If you run rndc without any options it will display a usage message.</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1012780">
 </A>
-Usage:</H5>
-<PRE CLASS="4Level-fixed1"><A NAME="pgfId=997492"></A>
-ndc [-c channel] [-l localsock] [-p pidfile] [-d] [-q] [-s] [-t] [command]</PRE>
+Usage:</P>
+<P CLASS="4LevelContinued">
+<A NAME="pgfId=1012777">
+</A>
+<CODE CLASS="Program-Process">
+rndc [-p port] [-m] server command [command ...]</CODE>
+</P>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997493">
 </A>
-For more information and a list of available commands and options, see the ndc man page.</P>
+For more information and a list of available commands and options, see the rndc man page.</P>
 </DIV>
 <DIV>
 <OL>
@@ -468,7 +470,7 @@ MRTG</CODE>
 &nbsp;</P>
 </DIV>
 </DIV>
-<p>Return to <A href="BV9ARM.HTML">BINDv9 Administrator Reference Manual</A> table of contents.</p>
+<p>Return to <A href="BV9ARM.html">BINDv9 Administrator Reference Manual</A> table of contents.</p>
 </DIV>
 </BODY>
 </HTML>
