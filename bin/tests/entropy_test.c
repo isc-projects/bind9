@@ -95,10 +95,24 @@ main(int argc, char **argv) {
 	hex_dump("entropy data", buffer, 128);
 
 out:
-	isc_entropy_stats(ent, stderr);
+	{
+		isc_entropy_t *entcopy1 = NULL;
+		isc_entropy_t *entcopy2 = NULL;
+		isc_entropy_t *entcopy3 = NULL;
+
+		isc_entropy_attach(ent, &entcopy1);
+		isc_entropy_attach(ent, &entcopy2);
+		isc_entropy_attach(ent, &entcopy3);
+
+		isc_entropy_stats(ent, stderr);
+
+		isc_entropy_detach(&entcopy1);
+		isc_entropy_detach(&entcopy2);
+		isc_entropy_detach(&entcopy3);
+	}
 
 	isc_entropy_destroysource(&devrandom);
-	isc_entropy_destroy(&ent);
+	isc_entropy_detach(&ent);
 	isc_mem_stats(mctx, stderr);
 	isc_mem_destroy(&mctx);
 

@@ -78,6 +78,7 @@ typedef struct {
 struct isc_entropy {
 	isc_uint32_t			magic;
 	isc_mutex_t			lock;
+	unsigned int			refcnt;
 	isc_mem_t		       *mctx;
 	isc_entropypool_t		pool;
 	ISC_LIST(isc_entropysource_t)	sources;
@@ -544,7 +545,9 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	 * From here down, no failures will/can occur.
 	 */
 	ISC_LIST_INIT(ent->sources);
-	ent->mctx = mctx;
+	ent->mctx = NULL;
+	isc_mem_attach(mctx, &ent->mctx);
+	ent->refcnt = 1;
 	ent->magic = ENTROPY_MAGIC;
 
 	isc_entropypool_init(&ent->pool);
@@ -558,28 +561,36 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	return (ret);
 }
 
-void
-isc_entropy_destroy(isc_entropy_t **entp) {
+static inline isc_boolean_t
+destroy_check(isc_entropy_t *ent) {
+	if (ent->refcnt > 0)
+		return (ISC_FALSE);
+	if (!ISC_LIST_EMPTY(ent->sources))
+		return (ISC_FALSE);
+
+	return (ISC_TRUE);
+}
+
+static void
+destroy(isc_entropy_t **entp) {
 	isc_entropy_t *ent;
 	isc_mem_t *mctx;
 
 	REQUIRE(entp != NULL && *entp != NULL);
-
 	ent = *entp;
 	*entp = NULL;
 
-	LOCK(&ent->lock);
+	REQUIRE(ent->refcnt == 0);
 	REQUIRE(ISC_LIST_EMPTY(ent->sources));
+
 	mctx = ent->mctx;
 
 	isc_entropypool_invalidate(&ent->pool);
-
-	UNLOCK(&ent->lock);
-
 	isc_mutex_destroy(&ent->lock);
 
 	memset(ent, 0, sizeof(isc_entropy_t));
 	isc_mem_put(mctx, ent, sizeof(isc_entropy_t));
+	isc_mem_detach(&mctx);
 }
 
 /*
@@ -678,6 +689,7 @@ isc_entropy_destroysource(isc_entropysource_t **sourcep) {
 	isc_entropy_t *ent;
 	void *ptr;
 	int fd;
+	isc_boolean_t killit;
 
 	REQUIRE(sourcep != NULL);
 	REQUIRE(VALID_SOURCE(*sourcep));
@@ -712,7 +724,12 @@ isc_entropy_destroysource(isc_entropysource_t **sourcep) {
 
 	isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
 
+	killit = destroy_check(ent);
+
 	UNLOCK(&ent->lock);
+
+	if (killit)
+		destroy(&ent);
 }
 
 isc_result_t
@@ -750,9 +767,45 @@ void
 isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
 	REQUIRE(VALID_ENTROPY(ent));
 
-	fprintf(out, "Dump of entropy stats for pool %p\n", ent);
-	fprintf(out, "\tcursor %u, rotate %u\n",
-		ent->pool.cursor, ent->pool.rotate);
-	fprintf(out, "\tentropy %u, pseudo %u\n",
+	fprintf(out,
+		"Entropy pool %p:  refcnt %u"
+		" cursor %u, rotate %u entropy %u pseudo %u\n",
+		ent, ent->refcnt,
+		ent->pool.cursor, ent->pool.rotate,
 		ent->pool.entropy, ent->pool.pseudo);
+}
+
+void
+isc_entropy_attach(isc_entropy_t *ent, isc_entropy_t **entp) {
+	REQUIRE(VALID_ENTROPY(ent));
+	REQUIRE(entp != NULL && *entp == NULL);
+
+	LOCK(&ent->lock);
+
+	ent->refcnt++;
+	*entp = ent;
+
+	UNLOCK(&ent->lock);
+}
+
+void
+isc_entropy_detach(isc_entropy_t **entp) {
+	isc_entropy_t *ent;
+	isc_boolean_t killit;
+
+	REQUIRE(entp != NULL && VALID_ENTROPY(*entp));
+	ent = *entp;
+	*entp = NULL;
+
+	LOCK(&ent->lock);
+
+	REQUIRE(ent->refcnt > 0);
+	ent->refcnt--;
+
+	killit = destroy_check(ent);
+
+	UNLOCK(&ent->lock);
+
+	if (killit)
+		destroy(&ent);
 }

@@ -117,11 +117,15 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp);
  */
 
 void
-isc_entropy_destroy(isc_entropy_t **entp);
+isc_entropy_attach(isc_entropy_t *ent, isc_entropy_t **entp);
 /*
- * Destroys an entropy source.
- *
- * All entropy sources must be detached prior to calling this function.
+ * Attaches to an entropy object.
+ */
+
+void
+isc_entropy_detach(isc_entropy_t **entp);
+/*
+ * Detaches from an entropy object.
  */
 
 isc_result_t
