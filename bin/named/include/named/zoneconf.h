@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.19.18.1 2005/01/11 03:55:57 marka Exp $ */
+/* $Id: zoneconf.h,v 1.19.18.2 2005/01/12 01:54:56 marka Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
