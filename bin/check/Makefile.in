@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.18 2001/11/06 20:04:57 bwelling Exp $
+# $Id: Makefile.in,v 1.19 2002/02/12 05:35:08 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -88,4 +88,4 @@ install:: named-checkconf named-checkzone installdirs
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man8; done
 
 clean distclean::
-	rm -f ${TARGETS}
+	rm -f ${TARGETS} r1.htm
