@@ -22,14 +22,11 @@
 #include <isc/types.h>
 
 #include <dns/acl.h>
+#include <dns/aclconf.h>
+#include <dns/confctx.h>
 #include <dns/confacl.h>
 #include <dns/confip.h>
-
-/*
- * Create a dns_acl_t from the corresponding configuration data structure,
- * 'caml'.  References to named ACLs in caml are resolved against the ACL
- * table in 'cctx'.
- */
+#include <dns/confzone.h>
 
 isc_result_t dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 				dns_c_zone_t *czone, dns_zone_t *zone);
