@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.24 2001/06/01 03:10:33 halley Exp $
+# $Id: Makefile.in,v 1.25 2001/06/08 17:18:06 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -65,10 +65,10 @@ host: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 nslookup: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nslookup.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
-#doc man:: ${MANOBJS}
+doc man:: ${MANOBJS}
 
-#docclean manclean maintainer-clean::
-#	rm -f ${MANOBJS}
+docclean manclean maintainer-clean::
+	rm -f ${MANOBJS}
 
 clean distclean maintainer-clean::
 	rm -f ${TARGETS}

@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.1 2001/06/08 17:15:20 gson Exp $ -->
+<!-- $Id: dig.docbook,v 1.2 2001/06/08 17:18:09 gson Exp $ -->
 
 <refentry>
 
@@ -502,9 +502,6 @@ will not print the initial query when it looks up the NS records for
 <para>
 <citerefentry>
 <refentrytitle>host</refentrytitle><manvolnum>1</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>resolver</refentrytitle><manvolnum>5</manvolnum>
 </citerefentry>,
 <citerefentry>
 <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>

@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.1 2001/06/08 16:38:10 gson Exp $ -->
+<!-- $Id: host.docbook,v 1.2 2001/06/08 17:18:13 gson Exp $ -->
 
 <refentry>
 
@@ -192,9 +192,6 @@ value for an integer quantity.
 <para>
 <citerefentry>
 <refentrytitle>dig</refentrytitle><manvolnum>1</manvolnum>
-</citerefentry>,
-<citerefentry>
-<refentrytitle>resolver</refentrytitle><manvolnum>5</manvolnum>
 </citerefentry>,
 <citerefentry>
 <refentrytitle>named</refentrytitle><manvolnum>8</manvolnum>
