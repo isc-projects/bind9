@@ -44,6 +44,7 @@ TARGETS =	adb_test \
 		dispatch_test \
 		inter_test \
 		keygen \
+		byaddr_test \
 		lex_test \
 		lfsr_test \
 		log_test \
@@ -77,6 +78,7 @@ SRCS =		adb_test.c \
 		dispatch_test.c \
 		inter_test.c \
 		keygen.c \
+		byaddr_test.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
@@ -128,6 +130,10 @@ keygen: keygen.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 res_test: res_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ res_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+byaddr_test: byaddr_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ byaddr_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 lex_test: lex_test.@O@ ${ISCDEPLIBS}
