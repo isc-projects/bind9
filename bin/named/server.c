@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.329 2001/06/04 14:08:34 marka Exp $ */
+/* $Id: server.c,v 1.330 2001/06/04 21:51:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -591,7 +591,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	obj = NULL;
 	result = ns_config_get(maps, "cleaning-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	dns_cache_setcleaninginterval(cache, cfg_obj_asuint32(obj));
+	dns_cache_setcleaninginterval(cache, cfg_obj_asuint32(obj) * 60);
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-size", &obj);
@@ -1756,7 +1756,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	obj = NULL;
 	result = ns_config_get(maps, "interface-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	interface_interval = cfg_obj_asuint32(obj);
+	interface_interval = cfg_obj_asuint32(obj) * 60;
 	if (interface_interval == 0) {
 		isc_timer_reset(server->interface_timer,
 				isc_timertype_inactive,
@@ -1775,7 +1775,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	obj = NULL;
 	result = ns_config_get(maps, "heartbeat-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	heartbeat_interval = cfg_obj_asuint32(obj);
+	heartbeat_interval = cfg_obj_asuint32(obj) * 60;
 	if (heartbeat_interval == 0) {
 		isc_timer_reset(server->heartbeat_timer,
 				isc_timertype_inactive,

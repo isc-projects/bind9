@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.85 2001/04/12 21:09:35 tale Exp $ */
+/* $Id: zoneconf.c,v 1.86 2001/06/04 21:51:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -459,12 +459,12 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "max-transfer-time-out", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setmaxxfrout(zone, cfg_obj_asuint32(obj));
+		dns_zone_setmaxxfrout(zone, cfg_obj_asuint32(obj) * 60);
 
 		obj = NULL;
 		result = ns_config_get(maps, "max-transfer-idle-out", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setidleout(zone, cfg_obj_asuint32(obj));
+		dns_zone_setidleout(zone, cfg_obj_asuint32(obj) * 60);
 	}
 
 	/*
@@ -491,7 +491,8 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "sig-validity-interval", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setsigvalidityinterval(zone, cfg_obj_asuint32(obj));
+		dns_zone_setsigvalidityinterval(zone,
+						cfg_obj_asuint32(obj) * 86400);
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, NULL, config,
 					  "allow-update-forwarding", ac, zone,
@@ -534,12 +535,12 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "max-transfer-time-in", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setmaxxfrin(zone, cfg_obj_asuint32(obj));
+		dns_zone_setmaxxfrin(zone, cfg_obj_asuint32(obj) * 60);
 
 		obj = NULL;
 		result = ns_config_get(maps, "max-transfer-idle-in", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setidlein(zone, cfg_obj_asuint32(obj));
+		dns_zone_setidlein(zone, cfg_obj_asuint32(obj) * 60);
 
 		obj = NULL;
 		result = ns_config_get(maps, "max-refresh-time", &obj);

@@ -1,3 +1,7 @@
+ 854.	[bug]		The config parser didn't properly handle config
+ 			options that were specified in units of time other
+			than seconds.  [RT #1372]
+
  853.	[bug]		configure_view_acl() failed to detach existing acls.
 			[RT #1374]
 

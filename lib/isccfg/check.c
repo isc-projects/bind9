@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.10 2001/06/03 23:53:50 bwelling Exp $ */
+/* $Id: check.c,v 1.11 2001/06/04 21:51:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -44,6 +44,49 @@ check_forward(cfg_obj_t *options, isc_log_t *logctx) {
 		return (ISC_R_FAILURE);
 	}
 	return (ISC_R_SUCCESS);
+}
+
+typedef struct {
+	const char *name;
+	unsigned int scale;
+} intervaltable;
+
+static isc_result_t
+check_options(cfg_obj_t *options, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int i;
+
+	static intervaltable intervals[] = {
+	{ "cleaning-interval", 60 },
+	{ "heartbeat-interval", 60 },
+	{ "interface-interval", 60 },
+	{ "max-transfer-idle-in", 60 },
+	{ "max-transfer-idle-out", 60 },
+	{ "max-transfer-time-in", 60 },
+	{ "max-transfer-time-out", 60 },
+	{ "sig-validity-interval", 86400},
+	{ "statistics-interval", 60 },
+	};
+
+	/*
+	 * Check that fields specified in units of time other than seconds
+	 * have reasonable values.
+	 */
+	for (i = 0; i < sizeof(intervals) / sizeof(intervals[0]); i++) {
+		isc_uint32_t val;
+		cfg_obj_t *obj = NULL;
+		(void)cfg_map_get(options, intervals[i].name, &obj);
+		if (obj == NULL)
+			continue;
+		val = cfg_obj_asuint32(obj);
+		if (val > (ISC_UINT32_MAX / intervals[i].scale)) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "%s '%d' is out of range",
+				    intervals[i].name, val);
+			result = ISC_R_RANGE;
+		}
+	}
+	return (result);
 }
 
 #define MASTERZONE	1
@@ -241,6 +284,13 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 	if (check_forward(zoptions, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
+	/*
+	 * Check various options.
+	 */
+	tresult = check_options(zoptions, logctx);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
+
 	return (result);
 }
 
@@ -333,6 +383,10 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 			result = ISC_R_FAILURE;
 	}
 
+	tresult = check_options(vconfig, logctx);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
+
 	return (result);
 }
 
@@ -347,6 +401,9 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t tresult;
 
 	(void)cfg_map_get(config, "options", &options);
+
+	if (options != NULL)
+		check_options(options, logctx);
 
 	(void)cfg_map_get(config, "view", &views);
 

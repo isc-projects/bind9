@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.8 2001/03/26 21:32:53 bwelling Exp $ */
+/* $Id: config.c,v 1.9 2001/06/04 21:51:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -51,9 +51,9 @@ options {\n\
 	fake-iquery no;\n\
 	files default;\n\
 	has-old-clients false;\n\
-	heartbeat-interval 3600;\n\
+	heartbeat-interval 60;\n\
 	host-statistics no;\n\
-	interface-interval 3600;\n\
+	interface-interval 60;\n\
 	listen-on {any;};\n\
 	listen-on-v6 {none;};\n\
 	match-mapped-addresses no;\n\
@@ -75,7 +75,7 @@ options {\n\
 	serial-query-rate 20;\n\
 	stacksize default;\n\
 	statistics-file \"named.stats\";\n\
-	statistics-interval 3600;\n\
+	statistics-interval 60;\n\
 	tcp-clients 100;\n\
 #	tkey-dhkey <none>\n\
 #	tkey-gssapi-credential <none>\n\
@@ -108,7 +108,7 @@ options {\n\
 	query-source-v6 address *;\n\
 	notify-source *;\n\
 	notify-source-v6 *;\n\
-	cleaning-interval 3600;\n\
+	cleaning-interval 60;\n\
 	min-roots 2;\n\
 	lame-ttl 600;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
@@ -131,10 +131,10 @@ options {\n\
 #	max-ixfr-log-size <obsolete>\n\
 	transfer-source *;\n\
 	transfer-source-v6 *;\n\
-	max-transfer-time-in 7200;\n\
-	max-transfer-time-out 7200;\n\
-	max-transfer-idle-in 3600;\n\
-	max-transfer-idle-out 3600;\n\
+	max-transfer-time-in 120;\n\
+	max-transfer-time-out 120;\n\
+	max-transfer-idle-in 60;\n\
+	max-transfer-idle-out 60;\n\
 	max-retry-time 1209600; /* 2 weeks */\n\
 	min-retry-time 500;\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\
