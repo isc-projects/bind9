@@ -1,0 +1,289 @@
+
+
+DNSEXT Working Group                                    Brian Wellington
+INTERNET-DRAFT                                        Olafur Gudmundsson
+<draft-ietf-dnsext-ad-is-secure-04.txt>                    February 2002
+
+Updates: RFC 2535
+
+                       Redefinition of DNS AD bit
+
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as ``work in progress.''
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   Comments should be sent to the authors or the DNSEXT WG mailing list
+   namedroppers@ops.ietf.org
+
+   This draft expires on July  10, 2002.
+
+   Copyright Notice
+
+   Copyright (C) The Internet Society (2002).  All rights reserved.
+
+
+
+Abstract
+
+   Based on implementation experience, the current definition of the AD
+   bit in the DNS header is not useful.  This draft changes the
+   specification so that the AD bit is only set on answers where
+   signatures have been cryptographically verified or the server is
+   authoritative for the data and is allowed to set the bit by policy.
+
+
+
+
+
+Expires August 2002                                             [Page 1]
+
+INTERNET-DRAFT        AD bit set on secure answers         February 2002
+
+
+1 - Introduction
+
+   Familiarity with the DNS system [RFC1035] and DNS security extensions
+   [RFC2535] is helpful but not necessary.
+
+   As specified in RFC 2535 (section 6.1), the AD bit indicates in a
+   response that all data included in the answer and authority sections
+   of the response have been authenticated by the server according to
+   the policies of that server.  This is not especially to the policies
+   of that server. This is not especially useful in practice, since a
+   conformant server should never reply with data that failed its
+   security policy.
+
+   This draft proposes to redefine the AD bit such that it is only set
+   if all data in the response has been cryptographically verified or
+   otherwise meets the server's local security policy.  Thus, a response
+   containing properly delegated insecure data will not have AD set, nor
+   will a response from a server configured without DNSSEC keys.  As
+   before, data which failed to verify will not be returned.  An
+   application running on a host that has trust relationship with the
+   server performing the recursive query can now use the value of the AD
+   bit to determine if the data is secure or not.
+
+1.1 - Requirements
+
+   The key words "MAY", "MAY NOT" "MUST", "MUST NOT", "SHOULD", "SHOULD
+   NOT", in this document are to be interpreted as described in RFC2119.
+
+1.2 - Updated documents and sections
+
+   The definition of the AD bit in RFC2535, Section 6.1, is changed.
+
+2 - Setting of AD bit
+
+   The presence of the CD (checking disabled) bit in a query does not
+   affect the setting of the AD bit in the response.  If the CD bit is
+   set, the server will not perform checking, but SHOULD still set the
+   AD bit if the data has already been checked or complies with local
+   policy.  The AD bit MUST only be set if DNSSEC records have been
+   requested [RFC3225] and relevant SIG records are returned.
+
+2.1 - Setting of AD bit by recursive servers
+
+   Section 6.1 of RFC2535 says:
+
+   "The AD bit MUST NOT be set on a response unless all of the RRs in
+   the answer and authority sections of the response are either
+   Authenticated or Insecure."
+
+   The replacement text reads:
+
+
+
+Expires August 2002                                             [Page 2]
+
+INTERNET-DRAFT        AD bit set on secure answers         February 2002
+
+
+   "The AD bit MUST NOT be set on a response unless all of the RRsets in
+   the answer and authority sections of the response are Authenticated."
+
+   "The AD bit SHOULD be set if and only if all RRs in the answer
+   section and any relevant negative response RRs in the authority
+   section are Authenticated."
+
+   A recursive DNS server following this modified specification will
+   only set the AD bit when it has cryptographically verified the data
+   in the answer.
+
+2.2 - Setting of AD bit by authorative servers
+
+   A primary server for a secure zone the data MAY have a policy of
+   treating authoritative secure zones as Authenticated.  Secondary
+   servers MAY have the same policy, but SHOULD NOT consider zone data
+   Authenticated unless the zone was transfered securely and/or the data
+   was verified.  An authoritative server MUST only set the AD bit for
+   authoritative answers from a secure zone if it has been explicitly
+   configured to do so.  The default for this behavior SHOULD be off.
+
+2.2.1 - Justification for setting AD bit w/o verifying data
+
+   The setting of the AD bit by authoritative servers affects only a
+   small set of resolvers that are configured to directly query and
+   trust authoritative servers.  This only affects servers that function
+   as both recursive and authorative.  All recursive resolvers SHOULD
+   ignore the AD bit.
+
+   The cost of verifying all signatures on load by an authoritative
+   server can be high and increases the delay before it can answer begin
+   answering queries.  Verifying signatures at query time is also
+   expensive and could lead to resolvers timing out on many queries
+   after the server reloads zones.
+
+   Organizations that require that all DNS responses contain
+   cryptographically verified data must separate the functions of
+   authoritative and recursive servers, as authoritative servers are not
+   required to validate local secure data.
+
+3 - Interpretation of the AD bit
+
+   A response containing data marked Insecure in the answer or authority
+   section will never have the AD bit set.  In this case, the resolver
+   SHOULD treat the data as Insecure whether or not SIG records are
+   present.
+
+   A resolver MUST NOT blindly trust the AD bit unless it communicates
+   with the server over a secure transport mechanism or using message
+   authentication such as TSIG [RFC2845] or SIG(0) [RFC2931] and is
+
+
+
+Expires August 2002                                             [Page 3]
+
+INTERNET-DRAFT        AD bit set on secure answers         February 2002
+
+
+   configured to trust the server.
+
+4 - Security Considerations:
+
+   This document redefines a bit in the DNS header.  If a resolver
+   trusts the value of the AD bit, it must be sure that the server is
+   using the updated definition, which is any server supporting the OK
+   bit.
+
+   Authoritative servers that set the AD bit on answers without doing
+   cryptographic checks must only do so if explicitly configured to.
+   This only affects resolvers that directly query and trust the
+   authoritative server, and this functionality should only be used on
+   servers that act both as authoritative servers and recursive
+   resolver.
+
+   Authorative servers that set the AD bit on answers without doing
+   cryptographic checks must only do so on explicit zone by zone
+   enablement. This only affects resolvers that trust the server and
+   this functionality should only be used on servers that act both as
+   authorative servers and recursive resolver.
+
+   Resolvers (full or stub) that blindly trust the AD bit without
+   knowing the security policy of the server generating the answer can
+   not be considered security aware.
+
+5 - IANA Considerations:
+
+   None
+
+6 - Internationalization Considerations:
+
+   None, this document does not change any textual data in any protocol.
+
+7 - Acknowledgments:
+
+   The following people have provided input on this document: Andreas
+   Gustafsson, Bob Halley, Steven Jacob, Edward Lewis, Jakob Schlyter,
+   Roy Arends, Ted Lindgreen.
+
+References:
+
+[RFC1035]  P. Mockapetris, ``Domain Names - Implementation and
+           Specification'', STD 13, RFC 1035, November 1987.
+
+[RFC2535]  D. Eastlake, ``Domain Name System Security Extensions'', RFC
+           2535, March 1999.
+
+[RFC2845]  P. Vixie, O. Gudmundsson, D. Eastlake, B. Wellington,
+           ``Secret Key Transaction Authentication for DNS (TSIG)'', RFC
+
+
+
+Expires August 2002                                             [Page 4]
+
+INTERNET-DRAFT        AD bit set on secure answers         February 2002
+
+
+           2845, May 2000.
+
+[RFC2931]  D. Eastlake, ``DNS Request and Transaction Signatures
+           (SIG(0))'', RFC 2931, September 2000.
+
+[RFC3225]  D. Conrad, ``Indicating Resolver Support of DNSSEC'', RFC
+           3225, December 2001.
+
+
+
+Authors Addresses
+
+      Brian Wellington                        Olafur Gudmundsson
+      Nominum Inc.
+      2385 Bay Street                         3826 Legation Street, NW
+      Redwood City, CA, 94063                 Washington, DC, 20015
+      USA                                     USA
+      <Brian.Wellington@nominum.com>          <ogud@ogud.com>
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+
+
+
+
+
+Expires August 2002                                             [Page 5]
+
