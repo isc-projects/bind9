@@ -188,7 +188,7 @@ isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin.sin_family = AF_INET;
-#ifdef ISC_NET_HAVESALEN
+#ifdef ISC_PLATFORM_HAVESALEN
 	sockaddr->type.sin.sin_len = sizeof sockaddr->type.sin;
 #endif
 	sockaddr->type.sin.sin_addr = *ina;
@@ -203,7 +203,7 @@ isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, const struct in6_addr *ina6,
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin6.sin6_family = AF_INET6;
-#ifdef ISC_NET_HAVESALEN
+#ifdef ISC_PLATFORM_HAVESALEN
 	sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
 #endif
 	sockaddr->type.sin6.sin6_addr = *ina6;
@@ -218,7 +218,7 @@ isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin6.sin6_family = AF_INET6;
-#ifdef ISC_NET_HAVESALEN
+#ifdef ISC_PLATFORM_HAVESALEN
 	sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
 #endif
 	sockaddr->type.sin6.sin6_addr.s6_addr[10] = 0xff;

@@ -168,7 +168,7 @@ start_response(void)
 
 	memset(&from, 0, sizeof(from));
 	from.length = sizeof(struct sockaddr_in);
-#ifdef ISC_NET_HAVESALEN
+#ifdef ISC_PLATFORM_HAVESALEN
 	from.type.sa.sa_len = sizeof(struct sockaddr_in);
 #endif
 	from.type.sin.sin_port = htons(53);
