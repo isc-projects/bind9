@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.28 2001/01/24 02:22:54 bwelling Exp $
+ * $Id: dst_parse.c,v 1.29 2001/05/09 23:04:50 bwelling Exp $
  */
 
 #include <config.h>
@@ -195,24 +195,18 @@ dst__privstruct_parsefile(dst_key_t *key, const dns_keytag_t id,
 	isc_token_t token;
 	unsigned int opt = ISC_LEXOPT_EOL;
 	char *newfilename;
+	int newfilenamelen;
 	isc_result_t ret;
 
 	REQUIRE(priv != NULL);
 
-	if (strlen(filename) < 8)
-		return (DST_R_INVALIDPRIVATEKEY);
-
-	newfilename = isc_mem_get(mctx, strlen(filename) + 9);
+	newfilenamelen = strlen(filename) + 9;
+	newfilename = isc_mem_get(mctx, newfilenamelen);
 	if (newfilename == NULL)
 		return (ISC_R_NOMEMORY);
-	strcpy(newfilename, filename);
-
-	if (strcmp(filename + strlen(filename) - 4, ".key") == 0)
-		sprintf(newfilename + strlen(filename) - 4, ".private");
-	else if (strcmp(filename + strlen(filename) - 1, ".") == 0)
-		sprintf(newfilename + strlen(filename), "private");
-	else if (strcmp(filename + strlen(filename) - 8, ".private") != 0)
-		sprintf(newfilename + strlen(filename), ".private");
+	ret = dst__file_addsuffix(newfilename, newfilenamelen, filename,
+				  ".private");
+	INSIST(ret == ISC_R_SUCCESS);
 
 	priv->nelements = 0;
 
@@ -338,7 +332,7 @@ dst__privstruct_parsefile(dst_key_t *key, const dns_keytag_t id,
 
 	isc_lex_close(lex);
 	isc_lex_destroy(&lex);
-	isc_mem_put(mctx, newfilename, strlen(filename) + 9);
+	isc_mem_put(mctx, newfilename, newfilenamelen);
 
 	return (ISC_R_SUCCESS);
 
@@ -347,7 +341,7 @@ fail:
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 	}
-	isc_mem_put(mctx, newfilename, strlen(filename) + 9);
+	isc_mem_put(mctx, newfilename, newfilenamelen);
 
 	priv->nelements = n;
 	dst__privstruct_free(priv, mctx);

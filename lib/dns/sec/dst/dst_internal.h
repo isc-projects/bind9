@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.34 2001/01/24 02:22:53 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.35 2001/05/09 23:04:49 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -132,6 +132,13 @@ void * dst__mem_realloc(void *ptr, size_t size);
  */
 isc_result_t dst__entropy_getdata(void *buf, unsigned int len,
 				  isc_boolean_t pseudo);
+
+/*
+ * Generic helper functions.
+ */
+isc_result_t
+dst__file_addsuffix(char *filename, unsigned int len,
+		    const char *ofilename, const char *suffix);
 
 ISC_LANG_ENDDECLS
 

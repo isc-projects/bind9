@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.78 2001/05/04 17:57:33 gson Exp $
+ * $Id: dst_api.c,v 1.79 2001/05/09 23:04:47 bwelling Exp $
  */
 
 #include <config.h>
@@ -33,6 +33,7 @@
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -791,23 +792,17 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
 	char *newfilename;
+	unsigned int newfilenamelen;
 	isc_textregion_t r;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 
-	if (strlen(filename) < 8)
-		return (DST_R_INVALIDPUBLICKEY);
-
-	newfilename = isc_mem_get(mctx, strlen(filename) + 5);
+	newfilenamelen = strlen(filename) + 5;
+	newfilename = isc_mem_get(mctx, newfilenamelen);
 	if (newfilename == NULL)
 		return (ISC_R_NOMEMORY);
-	strcpy(newfilename, filename);
-
-	if (strcmp(filename + strlen(filename) - 8, ".private") == 0)
-		sprintf(newfilename + strlen(filename) - 8, ".key");
-	else if (strcmp(filename + strlen(filename) - 1, ".") == 0)
-		sprintf(newfilename + strlen(filename), "key");
-	else if (strcmp(filename + strlen(filename) - 4, ".key") != 0)
-		sprintf(newfilename + strlen(filename), ".key");
+	ret = dst__file_addsuffix(newfilename, newfilenamelen, filename,
+				  ".key");
+	INSIST(ret == ISC_R_SUCCESS);
 
 	/*
 	 * Open the file and read its formatted contents
@@ -886,7 +881,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 	}
-	isc_mem_put(mctx, newfilename, strlen(filename) + 5);
+	isc_mem_put(mctx, newfilename, newfilenamelen);
 
 	return (ret);
 }
@@ -1054,6 +1049,26 @@ frombuffer(dns_name_t *name, const unsigned int alg, const unsigned int flags,
 	}
 
 	*keyp = key;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dst__file_addsuffix(char *filename, unsigned int len,
+	  const char *ofilename, const char *suffix)
+{
+	unsigned int olen = strlen(ofilename);
+	int n;
+
+	if (olen > 1 && ofilename[olen - 1] == '.')
+		olen -= 1;
+	else if (olen > 8 && strcmp(ofilename + olen - 8, ".private") == 0)
+		olen -= 8;
+	else if (olen > 4 && strcmp(ofilename + olen - 8, ".key") == 0)
+		olen -= 4;
+
+	n = snprintf(filename, len, "%.*s%s", olen, ofilename, suffix);
+	if (n < 0)
+		return (ISC_R_NOSPACE);
 	return (ISC_R_SUCCESS);
 }
 
