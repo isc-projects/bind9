@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.143 2001/09/20 21:51:05 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.144 2001/09/21 00:02:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -685,8 +685,7 @@ haschildkey(dns_name_t *name) {
 		} else {
 			char namestr[DNS_NAME_FORMATSIZE];
 			dns_name_format(name, namestr, sizeof(namestr));
-			vbprintf(1,
-				 "verifying SIG in %s signedkey file: %s\n",
+			vbprintf(1, "verifying SIG in %s signedkey file: %s\n",
 				 namestr, isc_result_totext(result));
 		}
 		dns_rdata_reset(&sigrdata);
@@ -802,12 +801,12 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	isc_boolean_t atorigin;
 	isc_boolean_t neednullkey = ISC_FALSE;
 	dns_diff_t diff;
+	char namestr[DNS_NAME_FORMATSIZE];
 
-	if (dns_name_iswildcard(name)) {
-		char namestr[DNS_NAME_FORMATSIZE];
-		dns_name_format(name, namestr, sizeof(namestr));
+	dns_name_format(name, namestr, sizeof(namestr));
+
+	if (dns_name_iswildcard(name))
 		warnwild(namestr);
-	}
 
 	atorigin = dns_name_equal(name, gorigin);
 
@@ -845,8 +844,6 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 					     dns_rdatatype_key, 0, 0, &keyset,
 					     NULL);
 		if (result == ISC_R_SUCCESS && childkey) {
-			char namestr[DNS_NAME_FORMATSIZE];
-			dns_name_format(name, namestr, sizeof(namestr));
 			if (hasnullkey(&keyset)) {
 				fatal("%s has both a signedkey file and "
 				      "null keys in the zone.  Aborting.",
@@ -862,8 +859,6 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 			nullkeyttl = keyset.ttl;
 			dns_rdataset_disassociate(&keyset);
 		} else if (childkey) {
-			char namestr[DNS_NAME_FORMATSIZE];
-			dns_name_format(name, namestr, sizeof(namestr));
 			vbprintf(2, "child key for %s found\n", namestr);
 			neednullkey = ISC_FALSE;
 		}
@@ -898,7 +893,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 
 		/*
 		 * If this name is a delegation point, skip all records
-		 * except an NXT set a KEY set containing a null key.
+		 * except an NXT set and a KEY set containing a null key.
 		 */
 		if (isdelegation) {
 			if (!(rdataset.type == dns_rdatatype_nxt ||
@@ -920,21 +915,17 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_rdatasetiter_next(rdsiter);
 	}
-	if (result != ISC_R_NOMORE) {
-		char namestr[DNS_NAME_FORMATSIZE];
-		dns_name_format(name, namestr, sizeof(namestr));
+	if (result != ISC_R_NOMORE)
 		fatal("rdataset iteration for name '%s' failed: %s",
 		      namestr, isc_result_totext(result));
-	}
+
 	dns_rdatasetiter_destroy(&rdsiter);
 
 	result = dns_diff_apply(&diff, gdb, gversion);
-	if (result != ISC_R_SUCCESS) {
-		char namestr[DNS_NAME_FORMATSIZE];
-		dns_name_format(name, namestr, sizeof(namestr));
+	if (result != ISC_R_SUCCESS)
 		fatal("failed to add SIGs at node '%s': %s",
 		      namestr, isc_result_totext(result));
-	}
+
 	dns_diff_clear(&diff);
 }
 
@@ -1040,12 +1031,10 @@ soattl(void) {
 	dns_rdataset_init(&soaset);
 	result = dns_db_find(gdb, gorigin, gversion, dns_rdatatype_soa,
 			     0, 0, NULL, name, &soaset, NULL);
-	if (result != ISC_R_SUCCESS) {
-		char namestr[DNS_NAME_FORMATSIZE];
-		dns_name_format(name, namestr, sizeof(namestr));
-		fatal("failed to find '%s SOA' in the zone: %s",
-		      namestr, isc_result_totext(result));
-	}
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find an SOA at the zone apex: %s",
+		      isc_result_totext(result));
+
 	ttl = soaset.ttl;
 	dns_rdataset_disassociate(&soaset);
 	return (ttl);
@@ -1151,27 +1140,15 @@ getnextname(dns_name_t *name, dns_name_t *nextname, dns_dbnode_t **nodep) {
 	curnode = NULL;
 	dns_dbiterator_current(gdbiter, &curnode, name);
 	if (!dns_name_equal(name, gorigin)) {
-		dns_rdatasetiter_t *rdsiter = NULL;
-		dns_rdataset_t set;
+		dns_rdataset_t nsset;
 
-		dns_rdataset_init(&set);
-		result = dns_db_allrdatasets(gdb, curnode, gversion, 0,
-					     &rdsiter);
-		check_result(result, "dns_db_allrdatasets");
-		result = dns_rdatasetiter_first(rdsiter);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdatasetiter_current(rdsiter, &set);
-			if (set.type == dns_rdatatype_ns) {
-				dns_rdataset_disassociate(&set);
-				break;
-			}
-			dns_rdataset_disassociate(&set);
-			result = dns_rdatasetiter_next(rdsiter);
-		}
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE)
-			fatal("rdataset iteration failed: %s",
-			      isc_result_totext(result));
+		dns_rdataset_init(&nsset);
+		result = dns_db_findrdataset(gdb, curnode, gversion,
+					     dns_rdatatype_ns, 0, 0,
+					     &nsset, NULL);
 		if (result == ISC_R_SUCCESS) {
+			dns_rdataset_disassociate(&nsset);
+
 			if (lastzonecut != NULL)
 				dns_name_free(lastzonecut, mctx);
 			else {
@@ -1184,7 +1161,6 @@ getnextname(dns_name_t *name, dns_name_t *nextname, dns_dbnode_t **nodep) {
 			result = dns_name_dup(name, mctx, lastzonecut);
 			check_result(result, "dns_name_dup()");
 		}
-		dns_rdatasetiter_destroy(&rdsiter);
 	}
 	result = dns_dbiterator_next(gdbiter);
 	if (result == ISC_R_SUCCESS)
@@ -1651,7 +1627,6 @@ main(int argc, char *argv[]) {
 	if (ntasks == 0)
 		ntasks = isc_os_ncpus();
 	vbprintf(4, "using %d cpus\n", ntasks);
-
 
 	if (classname != NULL) {
 		r.base = classname;
