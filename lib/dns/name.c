@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: name.c,v 1.95 2000/07/14 19:12:53 tale Exp $ */
+/* $Id: name.c,v 1.96 2000/07/20 01:14:48 gson Exp $ */
 
 #include <config.h>
 
@@ -448,7 +448,6 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	unsigned int length;
 	const unsigned char *s;
 	unsigned int h = 0;
-	unsigned int g;
 	unsigned char c;
 
 	/*
@@ -463,30 +462,20 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 		length = 16;
 
 	/*
-	 * P. J. Weinberger's hash function, adapted from p. 436 of
-	 * _Compilers: Principles, Techniques, and Tools_, Aho, Sethi
-	 * and Ullman, Addison-Wesley, 1986, ISBN 0-201-10088-6.
+	 * This hash function is similar to the one Ousterhout
+	 * uses in Tcl.
 	 */
-
 	s = name->ndata;
 	if (case_sensitive) {
 		while (length > 0) {
-			h = ( h << 4 ) + *s;
-			if ((g = ( h & 0xf0000000 )) != 0) {
-				h = h ^ (g >> 24);
-				h = h ^ g;
-			}
+			h += ( h << 4 ) + *s;
 			s++;
 			length--;
 		}
 	} else {
 		while (length > 0) {
 			c = maptolower[*s];
-			h = ( h << 4 ) + c;
-			if ((g = ( h & 0xf0000000 )) != 0) {
-				h = h ^ (g >> 24);
-				h = h ^ g;
-			}
+			h += ( h << 4 ) + c;
 			s++;
 			length--;
 		}
