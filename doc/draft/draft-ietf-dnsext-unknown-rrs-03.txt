@@ -1,8 +1,6 @@
-
-
 INTERNET-DRAFT                                       Andreas Gustafsson
-draft-ietf-dnsext-unknown-rrs-02.txt                                ISC
-                                                          November 2001
+draft-ietf-dnsext-unknown-rrs-03.txt                       Nominum Inc.
+                                                              June 2002
 
 
                     Handling of Unknown DNS RR Types
@@ -51,9 +49,9 @@ Abstract
 
 
 
-Expires May 2002                                                [Page 1]
+Expires December 2002                                           [Page 1]
 
-draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
+draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
 
 
    fully realized.  This memo proposes changes to name servers and to
@@ -107,9 +105,9 @@ draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
 
 
 
-Expires May 2002                                                [Page 2]
+Expires December 2002                                           [Page 2]
 
-draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
+draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
 
 
    in RFC2782 prohibits compression, RFC2052 mandated it, and some
@@ -158,15 +156,21 @@ draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
    An implementation MAY also choose to represent some RRs of known type
    using the above generic representations for the type, class and/or
    RDATA, which carries the benefit of making the resulting master file
-   portable to servers where these types are unknown.
+   portable to servers where these types are unknown.  Using the generic
+   representation for the RDATA of an RR of known type can also be
 
 
 
-
-Expires May 2002                                                [Page 3]
+Expires December 2002                                           [Page 3]
 
-draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
+draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
 
+
+   useful in the case of an RR type where the text format varies
+   depending on a version, protocol, or similar field (or several)
+   embedded in the RDATA when such a field has a value for which no text
+   format is known, e.g., a LOC RR [RFC1876] with a VERSION other than
+   0.
 
    Even though an RR of known type represented in the \# format is
    effectively treated as an unknown type for the purpose of parsing the
@@ -210,19 +214,20 @@ draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
 
    To ensure backwards compatibility, this canonical form remains
    unchanged for any RR types defined in RFC2931 or earlier.  That is,
+
+
+
+Expires December 2002                                           [Page 4]
+
+draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
+
+
    the domain names embedded in RRs of type NS, MD, MF, CNAME, SOA, MB,
    MG, MR, PTR, HINFO, MINFO, MX, HINFO, RP, AFSDB, RT, SIG, PX, NXT,
    NAPTR, KX, SRV, DNAME, and A6 are converted to lower case.  For all
    other RR types, the canonical form is hereby changed such that no
    downcasing of embedded domain names takes place.  The owner name is
    still set to lower case.
-
-
-
-Expires May 2002                                                [Page 4]
-
-draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
-
 
    The canonical ordering is as specified in RFC2535 section 8.3, where
    the octet sequence is the canonical form as revised by this
@@ -258,8 +263,20 @@ References
    [RFC1123] - Requirements for Internet Hosts -- Application and
    Support, R. Braden, Editor, October 1989.
 
+   [RFC1876] - A Means for Expressing Location Information in the Domain
+   Name System, C. Davis, P. Vixie, T. Goodwin, I. Dickinson, January
+   1996.
+
    [RFC2052] - A DNS RR for specifying the location of services (DNS
    SRV), A. Gulbrandsen, P. Vixie, October 1996.  Obsoleted by RFC2782.
+
+
+
+
+Expires December 2002                                           [Page 5]
+
+draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
+
 
    [RFC2119] - Bradner, S., "Key words for use in RFCs to Indicate
    Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -273,32 +290,25 @@ References
    [RFC2782] - A DNS RR for specifying the location of services (DNS
    SRV).  A. Gulbrandsen, P. Vixie, L. Esibov, February 2000.
 
-
-
-Expires May 2002                                                [Page 5]
-
-draft-ietf-dnsext-unknown-rrs-02.txt                       November 2001
-
-
    [RFC2929] - Domain Name System (DNS) IANA Considerations.  D.
    Eastlake, E. Brunner-Williams, B. Manning, September 2000.
 
 Author's Address
 
    Andreas Gustafsson
-   ISC
-   950 Charter Street
+   Nominum Inc.
+   2385 Bay Rd
    Redwood City, CA 94063
    USA
 
-   Phone: +1 650 779 7004
+   Phone: +1 650 381 6004
 
-   Email: Andreas_Gustafsson@isc.org
+   Email: gson@nominum.com
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+   Copyright (C) The Internet Society (2001 - 2002).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -317,6 +327,13 @@ Full Copyright Statement
    The limited permissions granted above are perpetual and will not be
    revoked by the Internet Society or its successors or assigns.
 
+
+
+Expires December 2002                                           [Page 6]
+
+draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
+
+
    This document and the information contained herein is provided on an
    "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
    TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
@@ -331,5 +348,43 @@ Full Copyright Statement
 
 
 
-Expires May 2002                                                [Page 6]
-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires December 2002                                           [Page 7]
+
+
