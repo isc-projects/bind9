@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164.2.2 2001/01/09 22:43:49 bwelling Exp $ */
+/* $Id: message.c,v 1.164.2.3 2001/02/23 18:27:59 gson Exp $ */
 
 /***
  *** Imports
@@ -2621,14 +2621,19 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 			result = DNS_R_TSIGERRORSET;
 		else
 			result = ISC_R_SUCCESS;
-		identity = dns_tsigkey_identity(msg->tsigkey);
-		if (identity == NULL) {
-			if (result == ISC_R_SUCCESS)
-				result = DNS_R_NOIDENTITY;
-			identity = &msg->tsigkey->name;
-		}
-		dns_name_clone(identity, signer);
 		dns_rdata_freestruct(&tsig);
+
+		if (msg->tsigkey == NULL) {
+			INSIST(result != ISC_R_SUCCESS);
+		} else {
+			identity = dns_tsigkey_identity(msg->tsigkey);
+			if (identity == NULL) {
+				if (result == ISC_R_SUCCESS)
+					result = DNS_R_NOIDENTITY;
+				identity = &msg->tsigkey->name;
+			}
+			dns_name_clone(identity, signer);
+		}
 	}
 
 	return (result);
