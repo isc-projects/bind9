@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.22 2000/03/16 01:44:08 bwelling Exp $ */
+/* $Id: md_3.c,v 1.23 2000/03/16 02:08:51 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
@@ -31,7 +31,7 @@ fromtext_md(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	REQUIRE(type == 3);
 
@@ -73,7 +73,7 @@ fromwire_md(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
         dns_name_t name;
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	REQUIRE(type == 3);
 
@@ -132,9 +132,9 @@ static inline isc_result_t
 fromstruct_md(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
-	rdclass = rdclass;	/*unused*/
-	source = source;	/*unused*/
-	target = target;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 3);
 
@@ -143,8 +143,8 @@ fromstruct_md(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_md(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	target = target;	/*unused*/
-	mctx = mctx;		/*unused*/
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 3);
 

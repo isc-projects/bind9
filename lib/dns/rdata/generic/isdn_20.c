@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.13 2000/03/16 00:54:24 bwelling Exp $ */
+/* $Id: isdn_20.c,v 1.14 2000/03/16 02:08:49 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -31,9 +31,9 @@ fromtext_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_token_t token;
 
-	rdclass = rdclass;	/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
 
 	REQUIRE(type == 20);
 
@@ -57,7 +57,7 @@ totext_isdn(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_region_t region;
 
-	tctx = tctx;	/*unused*/
+	UNUSED(tctx);
 
 	REQUIRE(rdata->type == 20);
 
@@ -74,9 +74,9 @@ fromwire_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
-	dctx = dctx;		/* unused */
-	rdclass = rdclass;	/* unused */
-	downcase = downcase;	/* unused */
+	UNUSED(dctx);
+	UNUSED(rdclass);
+	UNUSED(downcase);
 
 	REQUIRE(type == 20);
 
@@ -88,7 +88,7 @@ fromwire_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 towire_isdn(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
-	cctx = cctx;	/*unused*/
+	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 20);
 
@@ -113,9 +113,9 @@ static inline isc_result_t
 fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		isc_buffer_t *target)
 {
-	rdclass = rdclass;	/*unused*/
-	source = source;	/*unused*/
-	target = target;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 20);
 
@@ -124,8 +124,8 @@ fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	target = target;	/*unused*/
-	mctx = mctx;		/*unused*/
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 20);
 
@@ -142,8 +142,8 @@ static inline isc_result_t
 additionaldata_isdn(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
-	add = add;	/*unused*/
-	arg = arg;	/*unused*/
+	UNUSED(add);
+	UNUSED(arg);
 
 	REQUIRE(rdata->type == 20);
 

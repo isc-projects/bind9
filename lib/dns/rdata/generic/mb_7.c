@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.21 2000/03/16 01:26:49 bwelling Exp $ */
+/* $Id: mb_7.c,v 1.22 2000/03/16 02:08:50 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -31,8 +31,8 @@ fromtext_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	rdclass = rdclass;	/*unused*/
-	
+	UNUSED(rdclass);
+
 	REQUIRE(type == 7);
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
@@ -73,7 +73,7 @@ fromwire_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
         dns_name_t name;
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	REQUIRE(type == 7);
 
@@ -81,7 +81,7 @@ fromwire_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 	else
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-        
+
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
@@ -132,9 +132,9 @@ static inline isc_result_t
 fromstruct_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target)
 {
-	rdclass = rdclass;	/*unused*/
-	source = source;	/*unused*/
-	target = target;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 7);
 
@@ -143,8 +143,8 @@ fromstruct_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_mb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	target = target;	/*unused*/
-	mctx = mctx;		/*unused*/
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 7);
 
