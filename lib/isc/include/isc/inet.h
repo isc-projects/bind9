@@ -18,6 +18,8 @@
 #ifndef ISC_INET_H
 #define ISC_INET_H 1
 
+#include <netinet/in.h>
+
 #include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
