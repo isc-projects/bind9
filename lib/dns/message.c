@@ -338,6 +338,8 @@ msginit(dns_message_t *m)
 	m->nextrdataset = NULL;
 	m->nextrdatalist = NULL;
 
+	m->opt = NULL;
+
 	m->buffer = NULL;
 	m->need_cctx_cleanup = ISC_FALSE;
 }
