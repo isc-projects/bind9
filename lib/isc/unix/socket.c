@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.219 2001/12/19 05:51:34 marka Exp $ */
+/* $Id: socket.c,v 1.220 2002/01/22 02:38:34 marka Exp $ */
 
 #include <config.h>
 
@@ -378,6 +378,16 @@ select_poke(isc_socketmgr_t *mgr, int fd, int msg) {
 
 	do {
 		cc = write(mgr->pipe_fds[1], buf, sizeof(buf));
+#ifdef ENOSR
+		/*
+		 * Treat ENOSR as EAGAIN but loop slowly as it is
+		 * unlikely to clear fast.
+		 */
+		if (cc < 0 && errno == ENOSR) {
+			sleep(1);
+			errno = EAGAIN;
+		}
+#endif
 	} while (cc < 0 && SOFT_ERROR(errno));
 			        
 	if (cc < 0) {
