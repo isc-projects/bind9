@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.8 2004/03/05 05:10:38 marka Exp $ */
+/* $Id: lib.h,v 1.1 2004/12/09 01:41:06 marka Exp $ */
 
 #ifndef DST_LIB_H
 #define DST_LIB_H 1

@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: eventlib.c,v 1.6 2004/12/05 22:41:16 marka Exp $";
+static const char rcsid[] = "$Id: eventlib.c,v 1.7 2004/12/09 01:40:58 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -51,6 +51,8 @@ static int		pselect(int, void *, void *, void *,
 				struct timespec *,
 				const sigset_t *);
 #endif
+
+int    __evOptMonoTime;
 
 /* Public. */
 

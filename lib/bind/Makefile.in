@@ -13,11 +13,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.24 2004/12/07 00:36:27 marka Exp $
+# $Id: Makefile.in,v 1.25 2004/12/09 01:40:57 marka Exp $
 
 srcdir =        @srcdir@
 VPATH =         @srcdir@
 top_srcdir =    @top_srcdir@
+
+# Attempt to disable parallel processing.
+.NOTPARALLEL:
+.NO_PARALLEL:
 
 @LIBBIND_API@
 
