@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.23 2004/03/08 09:04:27 marka Exp $ */
+/* $Id: check.c,v 1.37.6.24 2004/03/10 02:55:57 marka Exp $ */
 
 #include <config.h>
 
@@ -384,6 +384,28 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 		}
 	}
 
+	/*
+	 * Check the DLV zone name.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "dnssec-lookaside", &obj);
+	if (obj != NULL) {
+		dns_fixedname_t fixedname;
+		const char *dlv;
+		isc_buffer_t b;
+
+		dlv = cfg_obj_asstring(obj);
+		dns_fixedname_init(&fixedname);
+		isc_buffer_init(&b, dlv, strlen(dlv));
+		isc_buffer_add(&b, strlen(dlv));
+		tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
+					   dns_rootname, ISC_TRUE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "bad domain name '%s'", dlv);
+			result = tresult;
+		}
+	}
 	return (result);
 }
 

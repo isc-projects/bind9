@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.33.12.3 2004/03/08 04:04:34 marka Exp $
+# $Id: tests.sh,v 1.33.12.4 2004/03/10 02:55:53 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -440,6 +440,12 @@ grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+echo "I:checking dnssec-lookaside-validation works ($n)"
+ret=0
+$DIG $DIGOPTS private.secure.example. SOA @10.53.0.6 \
+	> dig.out.ns6.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns6.test$n > /dev/null || ret=1
 
 # Run a minimal update test if possible.  This is really just
 # a regression test for RT #2399; more tests should be added.

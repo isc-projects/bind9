@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.21 $)
+AC_REVISION($Revision: 1.294.2.23.2.22 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -597,9 +597,14 @@ case $host in
         # UnixWare
 	use_threads=true ;;
 *-netbsd*)
-	# Socket I/O optimizations introduced in 9.2 expose a
-	# bug in unproven-pthreads; see PR #12650
-	use_threads=false ;;
+	if test -r /usr/lib/libpthread.so ; then
+	    use_threads=true
+	else
+	    # Socket I/O optimizations introduced in 9.2 expose a
+	    # bug in unproven-pthreads; see PR #12650
+	    use_threads=false
+	fi
+	;;
 *-openbsd*)
 	# OpenBSD users have reported that named dumps core on
 	# startup when built with threads.
@@ -674,21 +679,27 @@ then
 [linking with PTL2 is highly experimental and not expected to work])
 			CC=ptlgcc
 		else
-			if test ! -d $LOCALBASE/pthreads
+			if test -r /usr/lib/libpthread.so
 			then
-				AC_MSG_RESULT(none)
-				AC_MSG_ERROR("could not find thread libraries")
-			fi
+				AC_MSG_RESULT(native)
+				LIBS="-lpthread $LIBS"
+			else
+				if test ! -d $LOCALBASE/pthreads
+				then
+					AC_MSG_RESULT(none)
+					AC_MSG_ERROR("could not find thread libraries")
+				fi
 
-			if $use_threads
-			then
-				AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
-				pkg="$LOCALBASE/pthreads"
-				lib1="-L$pkg/lib -Wl,-R$pkg/lib"
-				lib2="-lpthread -lm -lgcc -lpthread"
-				LIBS="$lib1 $lib2 $LIBS"
-				CPPFLAGS="$CPPFLAGS -I$pkg/include"
-				STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
+				if $use_threads
+				then
+					AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
+					pkg="$LOCALBASE/pthreads"
+					lib1="-L$pkg/lib -Wl,-R$pkg/lib"
+					lib2="-lpthread -lm -lgcc -lpthread"
+					LIBS="$lib1 $lib2 $LIBS"
+					CPPFLAGS="$CPPFLAGS -I$pkg/include"
+					STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
+				fi
 			fi
 		fi
 		;;

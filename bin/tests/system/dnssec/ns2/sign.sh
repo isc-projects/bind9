@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.15.12.3 2004/03/08 04:04:35 marka Exp $
+# $Id: sign.sh,v 1.15.12.4 2004/03/10 02:55:54 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -52,4 +52,17 @@ privkeyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $privzone`
 
 cat $privinfile $privkeyname.key >$privzonefile
 
-$SIGNER -g -r $RANDFILE -o $privzone $privzonefile > /dev/null
+$SIGNER -g -r $RANDFILE -o $privzone -l dlv $privzonefile > /dev/null
+
+# Sign the DLV secure zone.
+
+
+dlvzone=dlv.
+dlvinfile=dlv.db.in
+dlvzonefile=dlv.db
+
+dlvkeyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $dlvzone`
+
+cat $dlvinfile $dlvkeyname.key dlvset-$privzone > $dlvzonefile
+
+$SIGNER -g -r $RANDFILE -o $dlvzone $dlvzonefile > /dev/null

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.12.12.3 2004/03/08 04:04:34 marka Exp $
+# $Id: sign.sh,v 1.12.12.4 2004/03/10 02:55:54 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -29,6 +29,7 @@ zonefile=root.db
 (cd ../ns2 && sh sign.sh )
 
 cp ../ns2/keyset-example. .
+cp ../ns2/keyset-dlv. .
 
 keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 

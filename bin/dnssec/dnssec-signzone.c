@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.10 2004/03/08 04:04:17 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.11 2004/03/10 02:55:51 marka Exp $ */
 
 #include <config.h>
 
@@ -120,6 +120,9 @@ static isc_boolean_t nokeys = ISC_FALSE;
 static isc_boolean_t removefile = ISC_FALSE;
 static isc_boolean_t generateds = ISC_FALSE;
 static isc_boolean_t ignoreksk = ISC_FALSE;
+static dns_name_t *dlv = NULL;
+static dns_fixedname_t dlv_fixed;
+static dns_master_style_t *dsstyle = NULL;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -868,11 +871,18 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 			if (rdataset.type != dns_rdatatype_nsec &&
 			    rdataset.type != dns_rdatatype_ds)
 				goto skip;
+#if 0
+		/*
+	 	 * The current draft allows DS not at a zone cut.
+		 * This is a bad idea.  Update once the RFC is published.
+		 * XXXMPA.
+		 */
 		} else if (rdataset.type == dns_rdatatype_ds) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			fatal("'%s': found DS RRset without NS RRset\n",
 			      namebuf);
+#endif
 		}
 
 		signset(&diff, node, name, &rdataset);
@@ -1407,40 +1417,45 @@ warnifallksk(dns_db_t *db) {
 }
 
 static void
-writekeyset(void) {
+writeset(const char *prefix, dns_rdatatype_t type) {
+	char *filename;
 	char namestr[DNS_NAME_FORMATSIZE];
-	isc_buffer_t namebuf;
-	unsigned int filenamelen;
-	char *keyfile;
-	signer_key_t *key;
-	unsigned char keybuf[DST_KEY_MAXSIZE];
-	dns_diff_t diff;
-	dns_difftuple_t *tuple = NULL;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
-	dns_rdata_t rdata;
+	dns_diff_t diff;
+	dns_difftuple_t *tuple = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	dns_rdata_t rdata, ds;
+	isc_boolean_t have_ksk = ISC_FALSE;
+	isc_boolean_t have_non_ksk = ISC_FALSE;
 	isc_buffer_t b;
+	isc_buffer_t namebuf;
 	isc_region_t r;
 	isc_result_t result;
-	isc_boolean_t have_non_ksk = ISC_FALSE;
-	isc_boolean_t have_ksk = ISC_FALSE;
+	signer_key_t *key;
+	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
+	unsigned char keybuf[DST_KEY_MAXSIZE];
+	unsigned int filenamelen;
+	const dns_master_style_t *style = 
+		(type == dns_rdatatype_dnskey) ? masterstyle : dsstyle;
 
 	isc_buffer_init(&namebuf, namestr, sizeof(namestr));
 	result = dns_name_tofilenametext(gorigin, ISC_FALSE, &namebuf);
 	check_result(result, "dns_name_tofilenametext");
 	isc_buffer_putuint8(&namebuf, 0);
-	filenamelen = strlen("keyset-") + strlen(namestr);
+	filenamelen = strlen(prefix) + strlen(namestr);
 	if (directory != NULL)
 		filenamelen += strlen(directory) + 1;
-	keyfile = isc_mem_get(mctx, filenamelen + 1);
-	if (keyfile == NULL)
+	filename = isc_mem_get(mctx, filenamelen + 1);
+	if (filename == NULL)
 		fatal("out of memory");
 	if (directory != NULL)
-		sprintf(keyfile, "%s/", directory);
+		sprintf(filename, "%s/", directory);
 	else
-		keyfile[0] = 0;
-	strcat(keyfile, "keyset-");
-	strcat(keyfile, namestr);
+		filename[0] = 0;
+	strcat(filename, prefix);
+	strcat(filename, namestr);
 
 	dns_diff_init(mctx, &diff);
 
@@ -1460,6 +1475,20 @@ writekeyset(void) {
 			break;
 		}
 
+	if (type == dns_rdatatype_dlv) {
+		dns_name_t tname;
+		unsigned int labels;
+
+		dns_name_init(&tname, NULL);
+		dns_fixedname_init(&fixed);
+		name = dns_fixedname_name(&fixed);
+		labels = dns_name_countlabels(gorigin);
+		dns_name_getlabelsequence(gorigin, 0, labels - 1, &tname);
+		result = dns_name_concatenate(&tname, dlv, name, NULL);
+		check_result(result, "dns_name_concatenate");
+	} else
+		name = gorigin;
+
 	for (key = ISC_LIST_HEAD(keylist);
 	     key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
@@ -1467,13 +1496,25 @@ writekeyset(void) {
 		if (have_ksk && have_non_ksk && !key->isksk)
 			continue;
 		dns_rdata_init(&rdata);
+		dns_rdata_init(&ds);
 		isc_buffer_init(&b, keybuf, sizeof(keybuf));
 		result = dst_key_todns(key->key, &b);
 		check_result(result, "dst_key_todns");
 		isc_buffer_usedregion(&b, &r);
 		dns_rdata_fromregion(&rdata, gclass, dns_rdatatype_dnskey, &r);
-		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD, gorigin,
-					      zonettl, &rdata, &tuple);
+		if (type != dns_rdatatype_dnskey) {
+			result = dns_ds_buildrdata(gorigin, &rdata,
+						   DNS_DSDIGEST_SHA1,
+						   dsbuf, &ds);
+			check_result(result, "dns_ds_buildrdata");
+			if (type == dns_rdatatype_dlv)
+				ds.type = dns_rdatatype_dlv;
+			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
+						      name, 0, &ds, &tuple);
+		} else
+			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
+						      gorigin, zonettl,
+						      &rdata, &tuple);
 		check_result(result, "dns_difftuple_create");
 		dns_diff_append(&diff, &tuple);
 	}
@@ -1489,10 +1530,10 @@ writekeyset(void) {
 	check_result(result, "dns_diff_apply");
 	dns_diff_clear(&diff);
 
-	result = dns_master_dump(mctx, db, version, masterstyle, keyfile);
+	result = dns_master_dump(mctx, db, version, style, filename);
 	check_result(result, "dns_master_dump");
 
-	isc_mem_put(mctx, keyfile, filenamelen + 1);
+	isc_mem_put(mctx, filename, filenamelen + 1);
 
 	dns_db_closeversion(db, &version, ISC_FALSE);
 	dns_db_detach(&db);
@@ -1550,6 +1591,7 @@ usage(void) {
 	fprintf(stderr, "print statistics\n");
 	fprintf(stderr, "\t-n ncpus (number of cpus present)\n");
 	fprintf(stderr, "\t-k key_signing_key\n");
+	fprintf(stderr, "\t-l lookasidezone\n");
 
 	fprintf(stderr, "\n");
 
@@ -1609,6 +1651,9 @@ main(int argc, char *argv[]) {
 	dns_rdataclass_t rdclass;
 	dns_db_t *udb = NULL;
 	isc_task_t **tasks = NULL;
+	isc_buffer_t b;
+	int len;
+
 	masterstyle = &dns_master_style_explicitttl;
 
 	check_result(isc_app_start(), "isc_app_start");
@@ -1620,7 +1665,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ac:d:e:f:ghi:k:n:o:pr:s:Stv:z"))
+					   "ac:d:e:f:ghi:k:l:n:o:pr:s:Stv:z"))
 	       != -1) {
 		switch (ch) {
 		case 'a':
@@ -1658,6 +1703,19 @@ main(int argc, char *argv[]) {
 			if (*endp != '\0' || cycle < 0)
 				fatal("cycle period must be numeric and "
 				      "positive");
+			break;
+
+		case 'l': 
+			dns_fixedname_init(&dlv_fixed);
+			len = strlen(isc_commandline_argument);
+			isc_buffer_init(&b, isc_commandline_argument, len);
+			isc_buffer_add(&b, len);
+
+			dns_fixedname_init(&dlv_fixed);
+			dlv = dns_fixedname_name(&dlv_fixed);
+			result = dns_name_fromtext(dlv, &b, dns_rootname,
+						   ISC_FALSE, NULL);
+			check_result(result, "dns_name_fromtext(dlv)");
 			break;
 
 		case 'k':
@@ -1767,6 +1825,11 @@ main(int argc, char *argv[]) {
 		sprintf(output, "%s.signed", file);
 	}
 
+	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
+					0, 24, 0, 0, 0, 8, mctx);
+	check_result(result, "dns_master_stylecreate");
+					
+
 	gdb = NULL;
 	TIME_NOW(&timer_start);
 	loadzone(file, origin, rdclass, &gdb);
@@ -1868,8 +1931,13 @@ main(int argc, char *argv[]) {
 
 	nsecify();
 
-	if (!nokeys)
-		writekeyset();
+	if (!nokeys) {
+		writeset("keyset-", dns_rdatatype_dnskey);
+		writeset("dsset-", dns_rdatatype_ds);
+		if (dlv != NULL) {
+			writeset("dlvset-", dns_rdatatype_dlv);
+		}
+	}
 
 	tempfilelen = strlen(output) + 20;
 	tempfile = isc_mem_get(mctx, tempfilelen);
@@ -1964,6 +2032,8 @@ main(int argc, char *argv[]) {
 
 	if (free_output)
 		isc_mem_free(mctx, output);
+
+	dns_master_styledestroy(&dsstyle, mctx);
 
 	cleanup_logging(&log);
 	dst_lib_destroy();

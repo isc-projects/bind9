@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.48.2.1.10.9 2004/03/08 04:04:16 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.48.2.1.10.10 2004/03/10 02:55:50 marka Exp $ */
 
 #include <config.h>
 
@@ -85,6 +85,7 @@ usage(void) {
 		"records with (default: 0)\n");
 	fprintf(stderr, "    -r <randomdev>: a file containing random data\n");
 	fprintf(stderr, "    -v <verbose level>\n");
+	fprintf(stderr, "    -k : generate a TYPE=KEY key\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<id>.key, "
 		"K<name>+<alg>+<id>.private\n");
@@ -113,6 +114,7 @@ main(int argc, char **argv) {
 	isc_log_t	*log = NULL;
 	isc_entropy_t	*ectx = NULL;
 	dns_rdataclass_t rdclass;
+	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 
 	if (argc == 1)
 		usage();
@@ -122,7 +124,7 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:c:ef:g:n:t:p:s:r:v:h")) != -1)
+					   "a:b:c:ef:g:kn:t:p:s:r:v:h")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -151,6 +153,9 @@ main(int argc, char **argv) {
 					   &endp, 10);
 			if (*endp != '\0' || generator <= 0)
 				fatal("-g requires a positive number");
+			break;
+		case 'k':
+			options |= DST_TYPE_KEY;
 			break;
 		case 'n':
 			nametype = isc_commandline_argument;
@@ -374,7 +379,7 @@ main(int argc, char **argv) {
 		fatal("cannot generate a null key when a key with id 0 "
 		      "already exists");
 
-	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, NULL);
+	ret = dst_key_tofile(key, options, NULL);
 	if (ret != ISC_R_SUCCESS) {
 		char keystr[KEY_FORMATSIZE];
 		key_format(key, keystr, sizeof(keystr));

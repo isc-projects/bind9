@@ -1,3 +1,5 @@
+1589.	[func]		DNSSEC lookaside validation.
+
 1588.	[bug]		win32: TCP sockets could become blocked. [RT #10115]
 
 1587.	[bug]		dns_message_settsigkey() failed to clear existing key.
@@ -15,7 +17,7 @@
 			than 32 elements. [RT #10381]
 
 1581.	[func]		Disable DNSSEC support by default.  To enable
-			DNSSEC specify "enable-dnssec yes;" in named.conf.
+			DNSSEC specify "dnssec-enable yes;" in named.conf.
 
 1580.	[bug]		Zone destuction on final detach takes a long time.
 			[RT #3746]

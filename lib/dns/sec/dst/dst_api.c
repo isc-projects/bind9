@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.10 2004/03/08 09:04:45 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.11 2004/03/10 02:55:59 marka Exp $
  */
 
 #include <config.h>
@@ -72,7 +72,7 @@ static dst_key_t *	get_key_struct(dns_name_t *name,
 static isc_result_t	read_public_key(const char *filename,
 					isc_mem_t *mctx,
 					dst_key_t **keyp);
-static isc_result_t	write_public_key(const dst_key_t *key,
+static isc_result_t	write_public_key(const dst_key_t *key, int type,
 					 const char *directory);
 static isc_result_t	buildfilename(dns_name_t *name,
 				      dns_keytag_t id,
@@ -313,7 +313,7 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 		return (DST_R_UNSUPPORTEDALG);
 
 	if (type & DST_TYPE_PUBLIC) {
-		ret = write_public_key(key, directory);
+		ret = write_public_key(key, type, directory);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 	}
@@ -960,7 +960,7 @@ issymmetric(const dst_key_t *key) {
  * Writes a public key to disk in DNS format.
  */
 static isc_result_t
-write_public_key(const dst_key_t *key, const char *directory) {
+write_public_key(const dst_key_t *key, int type, const char *directory) {
 	FILE *fp;
 	isc_buffer_t keyb, textb, fileb, classb;
 	isc_region_t r;
@@ -1024,7 +1024,10 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	isc_buffer_usedregion(&classb, &r);
 	fwrite(r.base, 1, r.length, fp);
 
-	fprintf(fp, " DNSKEY ");
+	if ((type & DST_TYPE_KEY) != 0)
+		fprintf(fp, " KEY ");
+	else
+		fprintf(fp, " DNSKEY ");
 
 	isc_buffer_usedregion(&textb, &r);
 	fwrite(r.base, 1, r.length, fp);

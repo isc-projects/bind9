@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.16 2004/03/08 21:06:24 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.17 2004/03/10 02:55:57 marka Exp $ */
 
 /*
  * Implementation notes
@@ -3259,7 +3259,7 @@ fetch_name(dns_adbname_t *adbname,
 	nameservers = NULL;
 	dns_rdataset_init(&rdataset);
 
-	options = 0;
+	options = DNS_FETCHOPT_NOVALIDATE;
 	if (start_at_zone) {
 		DP(ENTER_LEVEL,
 		   "fetch_name: starting at zone for name %p",

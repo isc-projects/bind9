@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.13 2004/03/08 02:07:58 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.14 2004/03/10 02:55:58 marka Exp $ */
 
 #include <config.h>
 
@@ -168,6 +168,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dstport = 53;
 	view->preferred_glue = 0;
 	view->flush = ISC_FALSE;
+	view->dlv = NULL;
+	dns_fixedname_init(&view->dlv_fixed);
 
 	result = dns_order_create(view->mctx, &view->order);
 	if (result != ISC_R_SUCCESS)
