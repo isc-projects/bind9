@@ -1068,6 +1068,8 @@ isc_entropy_stopcallbacksources(isc_entropy_t *ent) {
 
 	REQUIRE(VALID_ENTROPY(ent));
 
+	LOCK(&ent->lock);
+
 	source = ISC_LIST_HEAD(ent->sources);
 	while (source != NULL) {
 		if (source->type == ENTROPY_SOURCETYPE_CALLBACK) {
@@ -1078,22 +1080,60 @@ isc_entropy_stopcallbacksources(isc_entropy_t *ent) {
 
 		source = ISC_LIST_NEXT(source, link);
 	}
+
+	UNLOCK(&ent->lock);
 }
 
 isc_result_t
 isc_entropy_createsamplesource(isc_entropy_t *ent,
 			       isc_entropysource_t **sourcep)
 {
+	isc_result_t ret;
+	isc_entropysource_t *source;
+	sample_queue_t *sq;
+
 	REQUIRE(VALID_ENTROPY(ent));
 	REQUIRE(sourcep != NULL && *sourcep == NULL);
 
 	LOCK(&ent->lock);
 
+	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
+	if (source == NULL) {
+		ret = ISC_R_NOMEMORY;
+		goto errout;
+	}
+
+	sq = &source->sources.sample.samplequeue;
+	ret = samplesource_allocate(ent, sq);
+	if (ret != ISC_R_SUCCESS)
+		goto errout;
+
+	/*
+	 * From here down, no failures can occur.
+	 */
+	source->magic = SOURCE_MAGIC;
+	source->type = ENTROPY_SOURCETYPE_SAMPLE;
+	source->ent = ent;
+	source->total = 0;
+	memset(source->name, 0, sizeof(source->name));
+	ISC_LINK_INIT(source, link);
+
+	/*
+	 * Hook it into the entropy system.
+	 */
+	ISC_LIST_APPEND(ent->sources, source, link);
 	ent->nsources++;
 
 	UNLOCK(&ent->lock);
+	return (ISC_R_SUCCESS);
 
-	return (ISC_R_NOTIMPLEMENTED);
+ errout:
+	if (source != NULL)
+		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
+
+	UNLOCK(&ent->lock);
+
+	return (ret);
 }
 
 static inline unsigned int
