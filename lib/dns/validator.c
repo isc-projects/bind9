@@ -319,7 +319,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 
 static isc_boolean_t
 nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
-		      dns_rdataset_t *nxtset)
+		      dns_rdataset_t *nxtset, dns_rdataset_t *signxtset)
 {
 	int order;
 	dns_rdata_t rdata;
@@ -364,9 +364,13 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 			 * name.  This is only ok if the next name is the zone
 			 * name.
 			 */
-			dns_rdata_sig_t *siginfo;
-			siginfo = val->siginfo;
-			if (!dns_name_equal(&siginfo->signer, &nextname)) {
+			dns_rdata_sig_t siginfo;
+			result = dns_rdataset_first(signxtset);
+			INSIST (result == ISC_R_SUCCESS);
+			dns_rdataset_current(signxtset, &rdata);
+			result = dns_rdata_tostruct(&rdata, &siginfo, NULL);
+			INSIST (result == ISC_R_SUCCESS);
+			if (!dns_name_equal(&siginfo.signer, &nextname)) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					"next name is not greater");
 				return (ISC_FALSE);
@@ -392,7 +396,7 @@ static void
 authvalidated(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset, *sigrdataset;
 	isc_result_t result;
 	isc_result_t eresult;
 
@@ -400,8 +404,11 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
 	devent = (dns_validatorevent_t *)event;
 	rdataset = devent->rdataset;
+	sigrdataset = devent->sigrdataset;
 	val = devent->ev_arg;
 	eresult = devent->result;
+
+	dns_validator_destroy(&val->authvalidator);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
 	LOCK(&val->lock);
@@ -412,7 +419,8 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_done(val, eresult);
 	} else {
 		if (rdataset->type == dns_rdatatype_nxt &&
-		    nxtprovesnonexistence(val, devent->name, rdataset))
+		    nxtprovesnonexistence(val, devent->name, rdataset,
+			    		  sigrdataset))
 			val->attributes |= VALATTR_FOUNDNONEXISTENCE;
 
 		result = nxtvalidate(val, ISC_TRUE);
@@ -425,7 +433,6 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	 * Free stuff from the event.
 	 */
 	isc_event_free(&event);
-	dns_validator_destroy(&val->authvalidator);
 }
 
 static void
@@ -1021,7 +1028,13 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 	result = dns_keytable_finddeepestmatch(val->view->secroots,
 					       val->event->name,
 					       dns_fixedname_name(&secroot));
-	if (result != ISC_R_SUCCESS)
+	/*
+	 * If the name is not under a security root, it must be insecure.
+	 */
+	if (result == ISC_R_NOTFOUND)
+		return (ISC_R_SUCCESS);
+
+	else if (result != ISC_R_SUCCESS)
 		return (result);
 
 	if (!resume)
@@ -1321,6 +1334,8 @@ destroy(dns_validator_t *val) {
 		dst_key_free(&val->key);
 	if (val->keyvalidator != NULL)
 		dns_validator_destroy(&val->keyvalidator);
+	if (val->authvalidator != NULL)
+		dns_validator_destroy(&val->authvalidator);
 	mctx = val->view->mctx;
 	if (val->siginfo != NULL)
 		isc_mem_put(mctx, val->siginfo, sizeof *val->siginfo);
