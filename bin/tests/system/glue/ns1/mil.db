@@ -13,7 +13,7 @@
 ; ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 ; SOFTWARE.
 
-; $Id: mil.db,v 1.1 2000/07/06 01:28:07 gson Exp $
+; $Id: mil.db,v 1.2 2000/07/08 16:29:47 tale Exp $
 
 $ORIGIN mil.
 $TTL 300
@@ -25,7 +25,6 @@ $TTL 300
 				600       	; minimum
 				)
 @			NS	a.root-servers.nil.
-a.root-servers.nil.	A	10.53.0.1
 
 ARL.MIL.         	172800  IN      NS	NS1.ARL.MIL.
 NS1.arl.mil.            172800  IN A  128.63.16.4
