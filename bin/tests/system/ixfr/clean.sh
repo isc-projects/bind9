@@ -15,6 +15,6 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.1 2001/05/10 18:29:09 gson Exp $
+# $Id: clean.sh,v 1.2 2001/07/12 01:20:56 bwelling Exp $
 
-rm -f ns1/named.conf
+rm -f ns1/named.conf ns1/myftp.db
