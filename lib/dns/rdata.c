@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.90 2000/05/15 21:14:07 tale Exp $ */
+/* $Id: rdata.c,v 1.91 2000/05/16 05:19:43 tale Exp $ */
 
 #include <config.h>
 
@@ -41,9 +41,9 @@
 #include <dns/ttl.h>
 
 #define RETERR(x) do { \
-	isc_result_t __r = (x); \
-	if (__r != ISC_R_SUCCESS) \
-		return (__r); \
+	isc_result_t _r = (x); \
+	if (_r != ISC_R_SUCCESS) \
+		return (_r); \
 	} while (0)
 
 /*
@@ -741,11 +741,11 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 isc_result_t
 dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
-#define COMPARE(__s, __f, __t) \
-	if (((sizeof(__s) - 1) == source->length) \
-	    && (strcasecmp(source->base, __s) == 0)) { \
-		*classp = __t; \
-		if ((__f & RESERVED) != 0) \
+#define COMPARE(string, flags, type) \
+	if (((sizeof(string) - 1) == source->length) \
+	    && (strcasecmp(source->base, string) == 0)) { \
+		*classp = type; \
+		if ((flags & RESERVED) != 0) \
 			return (ISC_R_NOTIMPLEMENTED); \
 		return (ISC_R_SUCCESS); \
 	}

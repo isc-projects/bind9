@@ -1,6 +1,11 @@
- 184.   [cleanup]       Conform variable names hidden in isc_region_consume
-                        and isc_textregion_consume macros to ANSI/ISO
-                        standard (double leading underscores are reserved).
+ 185.   [bug]           Fixed up handling of ISC_MEMCLUSTER_LEGACY.  Several
+                        public functions did not have an isc__ prefix, and
+                        referred to functions that had previously been
+                        renamed.
+
+ 184.   [cleanup]       Variables/functions which began with two leading
+                        underscores were made to conform to the ANSI/ISO
+                        standard, which says that such names are reserved.
 
  183.   [func]          ISC_LOG_PRINTTAG option for log channels.  Useful
                         for logging the program name or other identifier.

@@ -39,9 +39,9 @@
 #include <dns/ttl.h>
 
 #define RETERR(x) do { \
-	isc_result_t __r = (x); \
-	if (__r != ISC_R_SUCCESS) \
-		return (__r); \
+	isc_result_t _r = (x); \
+	if (_r != ISC_R_SUCCESS) \
+		return (_r); \
 	} while (0)
 
 struct dns_master_style {

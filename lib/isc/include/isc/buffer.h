@@ -580,15 +580,15 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
  * ones beginning with "isc__"
  */
 
-#define ISC__BUFFER_INIT(__b, __base, __length) \
+#define ISC__BUFFER_INIT(_b, _base, _length) \
 	do { \
-		(__b)->magic = ISC_BUFFER_MAGIC; \
-		(__b)->base = (__base); \
-		(__b)->length = (__length); \
-		(__b)->used = 0; \
-		(__b)->current = 0; \
-		(__b)->active = 0; \
-		(__b)->mctx = NULL; \
+		(_b)->magic = ISC_BUFFER_MAGIC; \
+		(_b)->base = (_base); \
+		(_b)->length = (_length); \
+		(_b)->used = 0; \
+		(_b)->current = 0; \
+		(_b)->active = 0; \
+		(_b)->mctx = NULL; \
 		ISC_LINK_INIT(b, link); \
 	} while (0)
 
@@ -688,35 +688,35 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 #define ISC__BUFFER_PUTUINT8(_b, _val) \
 	do { \
 		unsigned char *_cp; \
-		isc_uint8_t __val2 = (_val); \
+		isc_uint8_t _val2 = (_val); \
 		_cp = (_b)->base; \
 		_cp += (_b)->used; \
 		(_b)->used++; \
-		_cp[0] = (__val2 & 0x00ff); \
+		_cp[0] = (_val2 & 0x00ff); \
 	} while (0)
 
 #define ISC__BUFFER_PUTUINT16(_b, _val) \
 	do { \
 		unsigned char *_cp; \
-		isc_uint16_t __val2 = (_val); \
+		isc_uint16_t _val2 = (_val); \
 		_cp = (_b)->base; \
 		_cp += (_b)->used; \
 		(_b)->used += 2; \
-		_cp[0] = (__val2 & 0xff00U) >> 8; \
-		_cp[1] = (__val2 & 0x00ffU); \
+		_cp[0] = (_val2 & 0xff00U) >> 8; \
+		_cp[1] = (_val2 & 0x00ffU); \
 	} while (0)
 
 #define ISC__BUFFER_PUTUINT32(_b, _val) \
 	do { \
 		unsigned char *_cp; \
-		isc_uint32_t __val2 = (_val); \
+		isc_uint32_t _val2 = (_val); \
 		_cp = (_b)->base; \
 		_cp += (_b)->used; \
 		(_b)->used += 4; \
-		_cp[0] = (__val2 & 0xff000000) >> 24; \
-		_cp[1] = (__val2 & 0x00ff0000) >> 16; \
-		_cp[2] = (__val2 & 0x0000ff00) >> 8; \
-		_cp[3] = (__val2 & 0x000000ff); \
+		_cp[0] = (_val2 & 0xff000000) >> 24; \
+		_cp[1] = (_val2 & 0x00ff0000) >> 16; \
+		_cp[2] = (_val2 & 0x0000ff00) >> 8; \
+		_cp[3] = (_val2 & 0x000000ff); \
 	} while (0)
 
 #if defined(ISC_BUFFER_USEINLINE)

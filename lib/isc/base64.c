@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.12 2000/05/08 14:37:15 tale Exp $ */
+/* $Id: base64.c,v 1.13 2000/05/16 05:19:46 tale Exp $ */
 
 #include <config.h>
 
@@ -26,9 +26,9 @@
 #include <isc/util.h>
 
 #define RETERR(x) do { \
-	isc_result_t __r = (x); \
-	if (__r != ISC_R_SUCCESS) \
-		return (__r); \
+	isc_result_t _r = (x); \
+	if (_r != ISC_R_SUCCESS) \
+		return (_r); \
 	} while (0)
 
 
