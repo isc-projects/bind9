@@ -1,4 +1,7 @@
 
+ 608.	[func]		dnssec-signzone now adds a comment to the zone
+			with the time the file was signed.
+
  607.	[bug]		nsupdate would fail if it encountered a CNAME or
 			DNAME in a response to an SOA query. [RT #515]
 

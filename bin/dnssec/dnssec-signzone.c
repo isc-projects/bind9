@@ -17,11 +17,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.119 2000/12/11 19:15:50 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.120 2000/12/11 22:55:25 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <time.h>
 
 #include <isc/app.h>
 #include <isc/commandline.h>
@@ -1418,6 +1419,14 @@ loadzonepubkeys(dns_db_t *db) {
 }
 
 static void
+print_time(FILE *fp) {
+	time_t currenttime;
+
+	currenttime = time(NULL);
+	fprintf(fp, "; File written on %s", ctime(&currenttime));
+}
+
+static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\t%s [options] zonefile [keys]\n", program);
@@ -1688,6 +1697,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to open output file %s: %s", output,
 		      isc_result_totext(result));
+	print_time(fp);
 
 	result = isc_taskmgr_create(mctx, ntasks, 0, &taskmgr);
 	if (result != ISC_R_SUCCESS)
