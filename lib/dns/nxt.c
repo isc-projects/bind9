@@ -170,7 +170,7 @@ dns_nxt_typepresent(dns_rdata_t *nxt, dns_rdatatype_t type) {
 	dns_name_t name;
 	isc_region_t r, r2;
 	unsigned char *nxt_bits;
-	int nxt_bits_length, byte;
+	int nxt_bits_length;
 
 	REQUIRE(nxt != NULL);
 	REQUIRE(nxt->type == dns_rdatatype_nxt);
