@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.12 2000/01/24 05:05:43 tale Exp $ */
+/* $Id: connection.c,v 1.13 2000/01/24 18:56:56 gson Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -733,7 +733,8 @@ connection_copyout(unsigned char *dst, omapi_connection_t *connection,
 		 * over uninteresting input.
 		 */
 		if (dst != NULL)
-			(void)memcpy(dst, buffer->base + buffer->current,
+			(void)memcpy(dst, (unsigned char *) buffer->base + 
+				     buffer->current,
 				     copy_bytes);
 
 		isc_buffer_forward(buffer, copy_bytes);
