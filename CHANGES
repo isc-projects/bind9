@@ -1,3 +1,7 @@
+1530.	[bug]		It was possible to trigger a INSIST() failure if a
+			slave master file was removed a just the correct
+			moment. [RT #9462]
+
 1529.	[bug]		"notify explict;" failed to log that NOTIFY messages
 			were being sent for the zone.
 
