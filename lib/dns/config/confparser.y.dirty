@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.6 2001/03/08 18:24:54 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.7 2001/03/08 18:39:50 gson Exp $ */
 
 #include <config.h>
 
@@ -3407,7 +3407,8 @@ address_match_simple: ip_address
 		} else {
 			if ($3 < 0 || $3 > 32) {
 				parser_error(ISC_FALSE,
-					     "mask bits out of range; ");
+					     "mask bits (%d) out of range",
+					     (int) $3);
 				YYABORT;
 			} else {
 				ia.s_addr = htonl(($1 & 0xff) << 24);
