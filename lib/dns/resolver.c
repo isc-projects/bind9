@@ -257,13 +257,9 @@ static isc_boolean_t fctx_destroy(fetchctx_t *fctx);
 
 static inline isc_result_t
 fctx_starttimer(fetchctx_t *fctx) {
-	return (isc_timer_reset(fctx->timer, isc_timertype_once,
-				&fctx->expires, &fctx->interval,
-				ISC_FALSE));
-}
-
-static inline isc_result_t
-fctx_stopidletimer(fetchctx_t *fctx) {
+	/*
+	 * Start the lifetime timer for fctx.
+	 */
 	return (isc_timer_reset(fctx->timer, isc_timertype_once,
 				&fctx->expires, NULL,
 				ISC_FALSE));
@@ -287,6 +283,25 @@ fctx_stoptimer(fetchctx_t *fctx) {
 				 isc_result_totext(result));
 	}
 }
+
+
+static inline isc_result_t
+fctx_startidletimer(fetchctx_t *fctx) {
+	/*
+	 * Start the idle timer for fctx.  The lifetime timer continues
+	 * to be in effect.
+	 */
+	return (isc_timer_reset(fctx->timer, isc_timertype_once,
+				&fctx->expires, &fctx->interval,
+				ISC_FALSE));
+}
+
+/*
+ * Stopping the idle timer is equivalent to calling fctx_starttimer(), but
+ * we use fctx_stopidletimer for readability in the code below.
+ */
+#define fctx_stopidletimer	fctx_starttimer
+
 
 static inline void
 resquery_destroy(resquery_t **queryp) {
@@ -597,7 +612,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	task = res->buckets[fctx->bucketnum].task;
 
 	fctx_setretryinterval(fctx, addrinfo->srtt);
-	result = fctx_starttimer(fctx);
+	result = fctx_startidletimer(fctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -606,7 +621,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query = isc_mem_get(res->mctx, sizeof *query);
 	if (query == NULL) {
 		result = ISC_R_NOMEMORY; 
-		goto stop_timer;
+		goto stop_idle_timer;
 	}
 	query->options = options;
 	query->attributes = 0;
@@ -701,8 +716,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->magic = 0;
 	isc_mem_put(res->mctx, query, sizeof *query);
 
- stop_timer:
-	fctx_stoptimer(fctx);
+ stop_idle_timer:
+	fctx_stopidletimer(fctx);
 
 	return (result);
 }
@@ -1542,6 +1557,14 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		 * them keep going.  Right now we choose the latter...
 		 */
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
+		/*
+		 * Our timer has triggered.  Reestablish the fctx lifetime
+		 * timer.
+		 */
+		fctx_starttimer(fctx);
+		/*
+		 * Keep trying.
+		 */
 		fctx_try(fctx);
 	}
 
@@ -1683,6 +1706,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * All is well.  Start working on the fetch.
 		 */
+		fctx_starttimer(fctx);
 		fctx_try(fctx);
 	} else if (bucket_empty)
 		empty_bucket(res);
