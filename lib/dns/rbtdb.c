@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.155 2001/04/11 22:17:38 tale Exp $ */
+/* $Id: rbtdb.c,v 1.156 2001/04/12 22:58:34 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2856,7 +2856,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		/*
 		 * XXXDCL Could stand to have a better policy, like LRU.
 		 */
-		force_expire = rbtnode->down == NULL && val % 4 == 0;
+		force_expire = ISC_TF(rbtnode->down == NULL && val % 4 == 0);
 
 		/*
 		 * Note that 'log' can be true IFF rbtdb->overmem is also true.
