@@ -281,6 +281,9 @@ gxba_test: gxba_test.@O@ ${LWRESDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ gxba_test.@O@ \
 		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
+distclean::
+	rm -f headerdep_test.sh
+
 clean distclean::
 	rm -f ${TARGETS} ${XTARGETS}
 	rm -f t_journal
