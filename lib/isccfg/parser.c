@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.24 2001/02/26 19:15:11 gson Exp $ */
+/* $Id: parser.c,v 1.25 2001/02/26 22:37:32 gson Exp $ */
 
 #include <config.h>
 
@@ -321,10 +321,13 @@ static void
 print_bracketed_list(cfg_printer_t *pctx, cfg_obj_t *obj);
 
 static isc_result_t
+parse_keyvalue(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
+
+static isc_result_t
 parse_optional_keyvalue(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
 
 static void
-print_optional_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj);
+print_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj);
 
 static isc_result_t
 parse_symtab_elt(cfg_parser_t *pctx, const char *name,
@@ -610,21 +613,21 @@ static keyword_type_t wild_class_kw = { "class", &cfg_type_ustring };
 
 static cfg_type_t cfg_type_optional_wild_class = {
 	"optional_wild_class", parse_optional_keyvalue,
-	print_optional_keyvalue, &cfg_rep_string, &wild_class_kw
+	print_keyvalue, &cfg_rep_string, &wild_class_kw
 };
 
 static keyword_type_t wild_type_kw = { "type", &cfg_type_ustring };
 
 static cfg_type_t cfg_type_optional_wild_type = {
 	"optional_wild_type", parse_optional_keyvalue,
-	print_optional_keyvalue, &cfg_rep_string, &wild_type_kw
+	print_keyvalue, &cfg_rep_string, &wild_type_kw
 };
 
 static keyword_type_t wild_name_kw = { "name", &cfg_type_qstring };
 
 static cfg_type_t cfg_type_optional_wild_name = {
 	"optional_wild_name", parse_optional_keyvalue,
-	print_optional_keyvalue, &cfg_rep_string, &wild_name_kw
+	print_keyvalue, &cfg_rep_string, &wild_name_kw
 };
 
 /*
@@ -670,7 +673,7 @@ static cfg_type_t cfg_type_rrsetorder = {
 static keyword_type_t port_kw = { "port", &cfg_type_uint32 };
 
 static cfg_type_t cfg_type_optional_port = {
-	"optional_port", parse_optional_keyvalue, print_optional_keyvalue,
+	"optional_port", parse_optional_keyvalue, print_keyvalue,
 	&cfg_rep_uint32, &port_kw
 };
 
@@ -1449,7 +1452,9 @@ static cfg_type_t cfg_type_uint32 = {
  * optional_keyvalue
  */
 static isc_result_t
-parse_optional_keyvalue(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+parse_maybe_optional_keyvalue(cfg_parser_t *pctx, cfg_type_t *type,
+			      isc_boolean_t optional, cfg_obj_t **ret)
+{
         isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	keyword_type_t *kw = type->of;
@@ -1461,15 +1466,32 @@ parse_optional_keyvalue(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(kw->type->parse(pctx, kw->type, &obj));
 		obj->type = type; /* XXX kludge */
 	} else {
-		CHECK(parse_void(pctx, NULL, &obj));
+		if (optional) {
+			CHECK(parse_void(pctx, NULL, &obj));
+		} else {
+			parser_error(pctx, LOG_NEAR, "expected '%s'",
+				     kw->name);
+			result = ISC_R_UNEXPECTEDTOKEN;
+			goto cleanup;
+		}
 	}
 	*ret = obj;
  cleanup:
 	return (result);
 }
 
+static isc_result_t
+parse_keyvalue(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_maybe_optional_keyvalue(pctx, type, ISC_FALSE, ret));
+}
+
+static isc_result_t
+parse_optional_keyvalue(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_maybe_optional_keyvalue(pctx, type, ISC_TRUE, ret));
+}
+
 static void
-print_optional_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj) {
+print_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	keyword_type_t *kw = obj->type->of;
 	print(pctx, kw->name, strlen(kw->name));
 	print(pctx, " ", 1);
@@ -1697,8 +1719,14 @@ static cfg_type_t cfg_type_boolean_or_ustring = {
 	"boolean_or_string", parse_boolean_or_ustring, NULL, NULL, NULL };
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
+
+static cfg_type_t cfg_type_keyref = {
+	"keyref", parse_keyvalue, print_keyvalue,
+	&cfg_rep_string, &key_kw
+};
+
 static cfg_type_t cfg_type_optional_keyref = {
-	"optional_keyref", parse_optional_keyvalue, print_optional_keyvalue,
+	"optional_keyref", parse_optional_keyvalue, print_keyvalue,
 	&cfg_rep_string, &key_kw
 };
 
@@ -2708,9 +2736,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	    pctx->token.type == isc_tokentype_qstring) {
 		if (pctx->token.type == isc_tokentype_string &&
 		    (strcasecmp(pctx->token.value.as_pointer, "key") == 0)) {
-			CHECK(parse(pctx, &cfg_type_optional_keyref, ret));
-			/* It's not really optional. */
-			INSIST((*ret)->type != &cfg_type_void);
+			CHECK(parse(pctx, &cfg_type_keyref, ret));
 		} else {
 			if (looking_at_netaddr(pctx, V4OK|V4PREFIXOK|V6OK)) {
 				CHECK(parse_netprefix(pctx, NULL, ret));
@@ -2742,7 +2768,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
  */
 
 static cfg_tuplefielddef_t negated_fields[] = {
-	{ "acl", &cfg_type_addrmatchelt, 0 },
+	{ "value", &cfg_type_addrmatchelt, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -2915,9 +2941,9 @@ static cfg_type_t cfg_type_optional_facility = {
  */
 
 static keyword_type_t debug_kw = { "debug", &cfg_type_uint32 };
-static cfg_type_t cfg_type_optional_debuglevel = {
-	"optional_debuglevel", parse_optional_keyvalue,
-	print_optional_keyvalue, &cfg_rep_uint32, &debug_kw
+static cfg_type_t cfg_type_debuglevel = {
+	"debuglevel", parse_keyvalue,
+	print_keyvalue, &cfg_rep_uint32, &debug_kw
 };
 
 static isc_result_t
@@ -2928,8 +2954,7 @@ parse_logseverity(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
 	    strcasecmp(pctx->token.value.as_pointer, "debug") == 0) {
-		CHECK(parse(pctx, &cfg_type_optional_debuglevel, ret));
-		/* It's not really optional. */
+		CHECK(parse(pctx, &cfg_type_debuglevel, ret));
 		INSIST((*ret)->type != &cfg_type_void);
 	} else {
 		CHECK(parse(pctx, &cfg_type_astring, ret));
@@ -3279,6 +3304,11 @@ static void
 free_map(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	CLEANUP_OBJ(obj->value.map.id);
 	isc_symtab_destroy(&obj->value.map.symtab);
+}
+
+isc_boolean_t
+cfg_obj_istype(cfg_obj_t *obj, cfg_type_t *type) {
+	return (ISC_TF(obj->type == type));
 }
 
 /*

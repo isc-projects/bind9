@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.15 2001/02/26 19:15:12 gson Exp $ */
+/* $Id: cfg.h,v 1.16 2001/02/26 22:37:34 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -347,6 +347,12 @@ cfg_print(cfg_obj_t *obj,
  * at 'text' and comprising 'textlen' characters.
  */
 
+isc_boolean_t
+cfg_obj_istype(cfg_obj_t *obj, cfg_type_t *type);
+/*
+ * Return true iff 'obj' is of type 'type'. 
+ */
+
 void cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
 /*
  * Destroy a configuration object.
@@ -366,6 +372,8 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level,
  */
 extern cfg_type_t cfg_type_namedconf; /* A complete named.conf file. */
 extern cfg_type_t cfg_type_rndcconf; /* A complete rndc.conf file. */
+extern cfg_type_t cfg_type_rndcconf; /* A complete rndc.conf file. */
+extern cfg_type_t cfg_type_keyref; /* A key reference, used as an ACL element */
 
 ISC_LANG_ENDDECLS
 
