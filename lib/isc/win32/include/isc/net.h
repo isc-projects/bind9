@@ -64,14 +64,6 @@
  *** Defines.
  ***/
 
-/* XXXRTH  ISC_NET_ should be converted to ISC_PLATFORM_ */
-
-/*
- * If sockaddrs on this system have an sa_len field, ISC_PLATFORM_HAVESALEN
- * will be defined.
- */
-#undef ISC_PLATFORM_HAVESALEN
-
 /*
  * If this system has the IPv6 structure definitions, ISC_NET_HAVEIPV6
  * will be defined.
@@ -183,11 +175,3 @@ int isc_net_aton(const char *cp, struct in_addr *addr);
 #endif
 
 #endif /* ISC_NET_H */
-
-/*
- * Tell emacs to use C mode for this file.
- *
- * Local Variables:
- * mode: c
- * End:
- */
