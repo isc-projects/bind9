@@ -1,0 +1,1344 @@
+
+
+
+INTERNET-DRAFT                                           Hadmut Danisch
+Category: Experimental                                         Jun 2003
+Expires: Dec 1, 2003
+
+            A DNS RR for simple SMTP sender authentication
+                   draft-danisch-dns-rr-smtp-02.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is subject to all provisions
+   of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six
+   months and may be updated, replaced, or obsoleted by other
+   documents at any time.  It is inappropriate to use Internet-Drafts
+   as reference material or to cite them other than as "work in
+   progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/1id-abstracts.html
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+Abstract
+
+   This memo suggests a new DNS RR type to provide a very simple
+   light-weight authentication scheme for the domain part of the
+   sender address for SMTP mail transport. It is designed to be a
+   simple and robust protection against e-mail fraud and especially
+   spam. It is easy to implement and administer, compatible with all
+   legislations known by the author, and cheap. It also focuses on
+   security and privacy problems and requirements in context of spam
+   defense, and touches non-technical problems of defense against
+   spam.
+
+
+
+
+
+
+
+
+
+
+
+Hadmut Danisch                Experimental                      [Page 1]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+                           Table of Contents
+
+
+1.  Threat description . . . . . . . . . . . . . . . . . . . . . . .   4
+    1.1.  Mail sender forgery  . . . . . . . . . . . . . . . . . . .   4
+    1.2.  Spam . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+2.  Problem analysis . . . . . . . . . . . . . . . . . . . . . . . .   4
+3.  Shortcomings of strong authentication mechanisms . . . . . . . .   4
+4.  DNS based sender address verification  . . . . . . . . . . . . .   5
+5.  RMX entry types  . . . . . . . . . . . . . . . . . . . . . . . .   5
+    5.1.  Overall structure  . . . . . . . . . . . . . . . . . . . .   5
+          5.1.1  Description . . . . . . . . . . . . . . . . . . . .   6
+          5.1.2  Zone File Syntax  . . . . . . . . . . . . . . . . .   6
+          5.1.3  Encoding  . . . . . . . . . . . . . . . . . . . . .   6
+    5.2.  IPv4 and IPv6 address ranges (Type1/2) . . . . . . . . . .   7
+          5.2.1  Description . . . . . . . . . . . . . . . . . . . .   7
+          5.2.2  Zone File Syntax  . . . . . . . . . . . . . . . . .   7
+          5.2.3  Encoding  . . . . . . . . . . . . . . . . . . . . .   7
+    5.3.  Hostname (Type 3)  . . . . . . . . . . . . . . . . . . . .   7
+          5.3.1  Description . . . . . . . . . . . . . . . . . . . .   7
+          5.3.2  Zone File Syntax  . . . . . . . . . . . . . . . . .   8
+          5.3.3  Encoding  . . . . . . . . . . . . . . . . . . . . .   8
+          5.3.4  Additional Records  . . . . . . . . . . . . . . . .   8
+    5.4.  APL Reference (Type 4) . . . . . . . . . . . . . . . . . .   8
+          5.4.1  Description . . . . . . . . . . . . . . . . . . . .   8
+          5.4.2  Zone File Syntax  . . . . . . . . . . . . . . . . .   8
+          5.4.3  Encoding  . . . . . . . . . . . . . . . . . . . . .   9
+          5.4.4  Additional Records  . . . . . . . . . . . . . . . .   9
+    5.5.  Future Entry Types . . . . . . . . . . . . . . . . . . . .   9
+6.  Message Headers  . . . . . . . . . . . . . . . . . . . . . . . .   9
+7.  Compatibility  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+    7.1.  Compatibility with old mail receivers  . . . . . . . . . .  10
+    7.2.  Compatibility with old mail senders  . . . . . . . . . . .  10
+    7.3.  Compatibility with old DNS clients . . . . . . . . . . . .  10
+    7.4.  Compatibility with old DNS servers . . . . . . . . . . . .  10
+8.  Message relaying and forwarding  . . . . . . . . . . . . . . . .  10
+    8.1.  Problem description  . . . . . . . . . . . . . . . . . . .  10
+    8.2.  Trusted relaying/forwarding  . . . . . . . . . . . . . . .  11
+    8.3.  Untrusted relaying/forwarding  . . . . . . . . . . . . . .  11
+9.  Enforcement policy . . . . . . . . . . . . . . . . . . . . . . .  12
+10.  Security Considerations . . . . . . . . . . . . . . . . . . . .  12
+    10.1.  Draft specific considerations . . . . . . . . . . . . . .  12
+          10.1.1  Authentication strength  . . . . . . . . . . . . .  12
+          10.1.2  Where Authentication and Authorization end . . . .  13
+          10.1.3  Vulnerability of DNS . . . . . . . . . . . . . . .  13
+          10.1.4  Additional data attack?  . . . . . . . . . . . . .  15
+          10.1.5  Open SMTP relays . . . . . . . . . . . . . . . . .  15
+          10.1.6  Unforged Spam  . . . . . . . . . . . . . . . . . .  16
+
+
+
+Hadmut Danisch                Experimental                      [Page 2]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+          10.1.7  Empty Sender address . . . . . . . . . . . . . . .  16
+          10.1.8  Reliability of Whois Entries . . . . . . . . . . .  16
+          10.1.9  Hazards for Freedom of Speech  . . . . . . . . . .  17
+    10.2.  General Considerations about spam defense . . . . . . . .  17
+          10.2.1  Action vs. reaction  . . . . . . . . . . . . . . .  18
+          10.2.2  Content based Denial of Service attacks  . . . . .  18
+11.  Privacy Considerations  . . . . . . . . . . . . . . . . . . . .  18
+    11.1.  Draft specific considerations . . . . . . . . . . . . . .  18
+          11.1.1  No content leaking . . . . . . . . . . . . . . . .  19
+          11.1.2  Message reception and sender domain  . . . . . . .  19
+          11.1.3  Network structure  . . . . . . . . . . . . . . . .  19
+          11.1.4  Owner information distribution . . . . . . . . . .  19
+    11.2.  General Considerations about spam defense . . . . . . . .  20
+          11.2.1  Content leaking of content filters . . . . . . . .  20
+          11.2.2  Black- and Whitelists  . . . . . . . . . . . . . .  20
+12.  Deployment Considerations . . . . . . . . . . . . . . . . . . .  20
+    12.1.  The economical problem  . . . . . . . . . . . . . . . . .  21
+    12.2.  The POP problem . . . . . . . . . . . . . . . . . . . . .  21
+    12.3.  The network structure problem . . . . . . . . . . . . . .  22
+    12.4.  The mentality problem . . . . . . . . . . . . . . . . . .  22
+    12.5.  The identity problem  . . . . . . . . . . . . . . . . . .  23
+    12.6.  The multi-legislation problem . . . . . . . . . . . . . .  23
+Implementation and further Information . . . . . . . . . . . . . . .  23
+References . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  24
+Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . .  24
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hadmut Danisch                Experimental                      [Page 3]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+1.  Threat description
+
+1.1.  Mail sender forgery
+
+   Security surveillances found a significant increase in the number
+   of e-mails with forged sender addresses.  As a consequence, damage
+   caused by such e-mails increased as well. In the majority of
+   examined e-mails the domain name of the envelope sender address was
+   forged, and the e-mail was sent from an IP address which does not
+   belong to a network used by the actual owner of the domain.
+
+1.2.  Spam
+
+   A common and well known problem is the dramatic increase of
+   unsolicited e-mail, commonly called "spam". Again, the majority of
+   examined e-mails had forged sender addresses.  The abused domains
+   were mainly those of common webmailers as hotmail or yahoo, or
+   well-known companies.
+
+2.  Problem analysis
+
+   The real cause for forged e-mail is the lack of the Simple Mail
+   Transfer Protocol SMTP[1] to provide any kind of sender
+   authentication, authorisation, or verification. Efforts have been
+   made to block such e-mails by requiring the sender address domain
+   part to be resolvable (e.g. latest sendmail configurations). This
+   method provides protection from e-mails with non-existing sender
+   domains, and indeed, for some time it blocked most spam e-mails.
+   However, since attackers and spam senders began to abuse existing
+   domain names, this method was rendered ineffective.
+
+3.  Shortcomings of strong authentication mechanisms
+
+   Without any doubt, SMTP needs to be improved and reengineered in
+   the future in order to resist against these kinds of threat.
+   Cryptographical or organisational security mechanisms have to be
+   designed an implemented for some sort of SMTPng.
+
+   Unfortunately, it is impossible to seamlessly switch to a new
+   protocol, since most of the SMTP servers and client programs can't
+   be replaced or updated easily and quickly. Any kind of security
+   mechanism has to be simple and backward compatible in order to be
+   accepted. That's why extensions like SMTP with TLS are not widely
+   spread.
+
+
+
+
+
+
+
+Hadmut Danisch                Experimental                      [Page 4]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+4.  DNS based sender address verification
+
+   To gain at least some improvement in e-mail authenticity while
+   keeping as much SMTP compatibility as possible, a method is
+   suggested which doesn't change SMTP at all.
+
+   When the sender has issued the "MAIL FROM:" SMTP command, the
+   receiving mail transfer agent (MTA) can - and modern MTAs do -
+   perform some authorization checks, e.g. run a local rule database
+   or check whether the sender domain is resolvable.
+
+   The suggested method is to let the DNS server for the sender domain
+   provide informations about which IP addresses are authorized to use
+   the domain within a sender's address. After receiving the "MAIL
+   FROM:" SMTP command, the receiving MTA can verify, whether the IP
+   address of the sending MTA is authorized to send mails with this
+   domain name.  Therefore, a list of authorized IP addresses is
+   provided by the authoritative DNS server of that domain.
+
+   This version of the draft defines three distinct methods to
+   describe IP address authorizations:
+
+     - An IPv4 or IPv6 network address and mask
+     - A fully qualified domain name referring to an A record
+     - A fully qualified domain name referring to an APL record
+
+   RMX records could look like this:
+
+      rmxtest.de.         IN RMX host:relay.provider.com
+      danisch.de.         IN RMX apl:relays.rackland.de
+      relays.rackland.de. IN APL 1:213.133.101.23/32 1:1.2.3.0/24
+
+   where the machine with the example address 213.133.101.23 and the
+   machines in the example subnet 1.2.3.0/24 are the only machines
+   allowed to send e-mails with an envelope sender address of domain
+   danisch.de. Since the APL records do not necessarily belong to the
+   same domain or zone table as the RMX records, this easily allows to
+   refer to APL records defined by someone else, e.g. the internet
+   access or server hosting provider, thus reducing administrative
+   overhead to a minimum. In the example given above, the domain
+   danisch.de and several other domains are hosted by the service
+   provider Rackland. So if the relay structure of Rackland is
+   modified, only the zone of rackland.de needs to be modified. The
+   domain owners don't need to care about such details.
+
+5.  RMX entry types
+
+5.1.  Overall structure
+
+
+
+Hadmut Danisch                Experimental                      [Page 5]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+5.1.1.  Description
+
+   Similar to APL, an RMX record is just a concatenation of zero or
+   more RMX entries. The entries within one record form an ordered
+   rule base, i. e. they are processed one ofter another until the
+   first entry matches. This entry determines the result of the query.
+   Once a matching entry is found, the RMX processing is finished.
+   This method is known from many other rule based security
+   mechanisms.
+
+   For any domain name there should not exist more than a single RMX
+   entry. Due to the structure of DNS, it is nevertheless possible to
+   have more than a single RMX entry. Multiple RMX entries are treated
+   as a single record consisting of the concatenation of all records.
+   While the entries in a record are ordered, the records are not
+   ordered and may be processed in arbitrary order. If the order of
+   the entries matters, it is the zone maintainer's responsibility to
+   keep those entries in a single record.
+
+5.1.2.  Zone File Syntax
+
+   An RMX record may consist of zero or more entries, where the
+   entries are separated by whitespace. Each entry consists of a tag,
+   determining the entry type, a colon, and the entry data.
+
+   Example:
+
+      danisch.de.  IN RMX apl:relays.rackland.de ipv4:1.2.3.0/24
+
+5.1.3.  Encoding
+
+   Each entry starts with an octet containting the entry type and the
+   negation flag:
+
+      +---+---+---+---+---+---+---+---+
+      | N |    Entry Type Code        |
+      +---+---+---+---+---+---+---+---+
+
+      N           If this bit (MSB) is set, an IP address
+                  matching this entry is not authorized,
+                  but explicitely rejected. See entry
+                  type descriptions for details.
+
+      Entry Type  A 7bit number simply determining the entry
+                  type.
+
+
+   Currently, entries do not have an explicit length field, the entry
+
+
+
+Hadmut Danisch                Experimental                      [Page 6]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   length is determined implicitely by the entry type. Applications
+   are required to abort if an unknown entry type is found, instead of
+   skipping unknown entries.
+
+5.2.  IPv4 and IPv6 address ranges (Type1/2)
+
+5.2.1.  Description
+
+   These entry types (IPv4 = Type 1, IPv6 = Type 2) contain a bit
+   sequence representing a CIDR address part. If that bit sequence
+   matches the given IP address, authorization is granted or denied,
+   depending on the negation flag.
+
+5.2.2.  Zone File Syntax
+
+   The entry is prepended with the tag "IPv4" or "IPv6". The colon is
+   followed with an IPv4 or IPv6 address in standard notation,
+   optionally followed by a slash and a mask length. Examples:
+
+   danisch.de   IN RMX ipv4:213.133.101.23 ipv6:fe00::0
+                IN RMX ipv4:10.0.0.0/8     ipv6:fec0::0/16
+                IN RMX !ipv4:1.2.3.4
+
+5.2.3.  Encoding
+
+   After the entry type tag as described above, one octet follows
+   giving the length L of the bit sequence. Then a sequence of exactly
+   as many octets follows as needed to carry L bits of information (=
+   trunc((L+7)/8) ).
+
+      +---+---+---+---+---+---+---+---+
+      | N | Entry Type Code  (1 or 2) |
+      +---+---+---+---+---+---+---+---+
+      |         Length Field L        |
+      +---+---+---+---+---+---+---+---+
+      |           Bit Field           |
+      /        ((L+7)/8) Octets       /
+      +---+---+---+---+---+---+---+---+
+
+
+5.3.  Hostname (Type 3)
+
+5.3.1.  Description
+
+   This entry type simply contains a regular DNS name, which is to be
+   resolved as a host name (fetch the A record or IPv6 equivalent). If
+   the given IP address matches the result, authorization is granted
+   or denied, depending on the negation flag.
+
+
+
+Hadmut Danisch                Experimental                      [Page 7]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   It is still to be defined how to treat unresolvable entries.
+
+5.3.2.  Zone File Syntax
+
+   The entry is prepended with the tag "host", followed by a colon and
+   the hostname. Examples:
+
+   danisch.de  IN RMX host:relay.provider.de
+               IN RMX !host:badmachine.domain.de apl:relays.domain.de
+
+5.3.3.  Encoding
+
+   After the entry type tag immediately follows a DNS encoded and
+   compressed [2] domain name. Length is determined by called the
+   decompression function of the resolver library.
+
+      +---+---+---+---+---+---+---+---+
+      | N |    Entry Type Code  (3)   |
+      +---+---+---+---+---+---+---+---+
+      |  Encoded and Compressed DNS   |
+      /  Name as described in RFC1035 /
+      +---+---+---+---+---+---+---+---+
+
+5.3.4.  Additional Records
+
+   In order to avoid the need of a second query to resolve the given
+   host name, a DNS server should enclose the A record for that domain
+   name in the additional section of the additional section of the DNS
+   reply, if the server happens to be authoritative.
+
+5.4.  APL Reference (Type 4)
+
+5.4.1.  Description
+
+   This entry type simply contains a regular DNS name, which is to be
+   resolved as an APL record index  (fetch the APL record).  If the
+   given IP address positively  matches the APL, authorization is
+   granted. Details of the semantic (espially when the negation bit is
+   set) are still to be defined.
+
+   It is still to be defined how to treat unresolvable entries.
+
+5.4.2.  Zone File Syntax
+
+   The entry is prepended with the tag "host", followed by a colon and
+   the hostname. Examples:
+
+   danisch.de     IN RMX apl:relays.rackland.de
+
+
+
+Hadmut Danisch                Experimental                      [Page 8]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+5.4.3.  Encoding
+
+   After the entry type tag immediately follows a DNS encoded and
+   compressed domain name. Length is determined by called the
+   decompression function of the resolver library.
+
+      +---+---+---+---+---+---+---+---+
+      | N |    Entry Type Code  (4)   |
+      +---+---+---+---+---+---+---+---+
+      |  Encoded and Compressed DNS   |
+      /  Name as described in RFC1035 /
+      +---+---+---+---+---+---+---+---+
+
+5.4.4.  Additional Records
+
+   In order to avoid the need of a second query to resolve the given
+   host name, a DNS server should enclose the APL record for that
+   domain name in the additional section of the additional section of
+   the DNS reply, if the server happens to be authoritative.
+
+5.5.  Future Entry Types
+
+   In future, more entry type might be defined, e.g.  data used for
+   challenge response authentication, a URL or DNS name ponting to
+   some kind of service for authentication and authorization, entries
+   pointing to other directory services (e.g. LDAP), or public key
+   informations to require signatures on the message header or body.
+
+6.  Message Headers
+
+   An RMX query must be followed by any kind of action depending on
+   the RMX result. One action might be to reject the message.  Another
+   action might be to add a header line to the message body, thus
+   allowing MUAs and delivery programs to filter or sort messages.
+
+   In future, the RMX result might be melted into the Received: header
+   line.
+
+   The details of such entries are to be discussed. As a proposal the
+   following form is suggested:
+
+     X-RMX: RESULT addr ADDRESS by HOST on DATE
+
+   where
+
+   RESULT is one of "Granted", "Denied", "NotInRMX", "NoRMX",
+   "TempFail", "BadData", "Trusted".
+
+
+
+
+Hadmut Danisch                Experimental                      [Page 9]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   ADDRESS is the IP address where the RMX query was based on.
+
+   HOST is the name of the machine performing the RMX query.
+
+   DATE is the date of the query.
+
+
+
+7.  Compatibility
+
+7.1.  Compatibility with old mail receivers
+
+   Since the suggested extension doesn't change the SMTP protocol at
+   all, it is fully compatible with old mail receivers. They simply
+   don't ask for the RMX records and don't perform the check.
+
+7.2.  Compatibility with old mail senders
+
+   Since the SMTP protocol is unchanged and the SMTP sender is not
+   involved in the check, the method is fully compatible with old mail
+   senders.
+
+7.3.  Compatibility with old DNS clients
+
+   Since the RMX is a new RR, the existing DNS protocol and zone
+   informations remain completely untouched.
+
+7.4.  Compatibility with old DNS servers
+
+   If a server can't provide RMX records or a zone doesn't contain
+   them, the check can't be performed, while compatibility is still
+   guaranteed.
+
+8.  Message relaying and forwarding
+
+8.1.  Problem description
+
+   Message forwarding and relaying means that an MTA which received an
+   e-mail by SMTP does not deliver it locally, but resends the message
+   - usually unchanged except for an additional Received header line
+   and maybe the recipient's address rewritten - to the next SMTP MTA.
+   Message forwarding is an essential functionality of e-mail
+   transport services, for example:
+
+     - Message transport from outer MX relay to the intranet
+     - Message forwarding and Cc-ing by .forward or .procmail-alike
+       mechanisms
+     - Mailing list processing
+
+
+
+Hadmut Danisch                Experimental                     [Page 10]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+     - Message reception by mail relays with low MX priority,
+       usually provided by third parties as a stand-by service
+       in case of relay failure or maintenance
+     - "Forwarding" and "Bouncing" as a MUA functionality
+
+   In all these cases a message is sent by SMTP from a host which is
+   not covered by the original sender domain's RMX records.  While the
+   RMX records would forbid accepting this message, it still must be
+   accepted. The following subsections explain how to cope with that
+   problem.
+
+8.2.  Trusted relaying/forwarding
+
+   In some cases the receiving MTA trusts the sending MTA to not fake
+   messages and to already have checked the RMX records at message
+   reception. As a typical example, a company might have an outer mail
+   relay which receives messages from the Internet and checks the RMX
+   records. This relay then forwards the messages to the different
+   department's mail servers. It does not make sense for these
+   department mail servers to check the RMX record, since the RMX
+   records have already been checked and - since the message was
+   relayed by the outer relay - always would deny the message. In this
+   case there is a trust relationship between the department relays
+   and the outer relay.  So RMX checking is turned off for trusted
+   relays. In this example, the department relays would not check
+   messages from the outer relay (but for intranet security, they
+   could still check RMX records of the other departments sub-domains
+   to avoid internal forgery between departments).
+
+   When a relay forwards a message to a trusting machine, the envelope
+   sender address should remain unchanged.
+
+8.3.  Untrusted relaying/forwarding
+
+   If the receiving MTA does not trust the forwarding MTA, then there
+   is no chance to leave the sender envelope address unchanged. At a
+   first glance this might appear impracticable, but this is
+   absolutely necessary. If an untrusted MTA could claim to have
+   forwarded a message from a foreign sender address, it could have
+   forged the message as well. Spammers and forgers would just have to
+   act as such a relay.
+
+   Therefore, it is required that, when performing untrusted
+   forwarding, the envelope sender address has to be replaced by the
+   sender address of someone responsible for the relaying mechanism,
+   e.g. the owner of the mailing list or the mail address of the user
+   who's .forward caused the transmission. It is important to stress
+   that untrusted relaying/forwarding means taking over responsibility
+
+
+
+Hadmut Danisch                Experimental                     [Page 11]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   for the message.  It is the idea of RMX records to tie
+   responsibility to message transmission. Untrusted relaying without
+   replacing the sender address would mean to transmit without taking
+   responsibility.
+
+   The disadvantage is that the original sender address is lost.
+   Therefore, whenever a sender address replacement happens, the
+   Received-Line must contain the old address. Many of today's MTAs
+   already insert the envelope recipient address, but not the sender
+   address into the Received header line. It seems reasonable to
+   require every Received line to include both the sender and
+   recipient address of the incoming SMTP connection.
+
+9.  Enforcement policy
+
+   Obviously, for reasons of backward compatibility and smooth
+   introduction of this scheme, RMX records can't be required
+   immediately. Domains without RMX records must temporarily be
+   treated the same way as they are treated right now, i.e. e-mail
+   must be accepted from anywhere. But once the scheme becomes
+   sufficiently widespread, mail relays can start to refuse e-mails
+   with sender addresses from domains without RMX records, thus
+   forcing the owner of the domain to include a statement of
+   authorization into the domain's zone table.  Domain owners will
+   still be free to have an RMX record with a network and mask
+   0.0.0.0/0, i.e. to allow e-mails with that domain from everywhere.
+   On the other hand, mail receivers will be free to refuse mails from
+   domains without RMX records or RMX records which are too loose.
+   Advanced MTAs might have a configuration option to set the maximum
+   number of IP addresses authorized to use a domain. E-mails from a
+   domain, which's RMX records exceed this limit, would be rejected.
+   For example, a relay could reject e-mails from domains which
+   authorize more than 8 IP addresses. That allows to accept e-mails
+   only from domains with a reasonable security policy.
+
+10.  Security Considerations
+
+10.1.  Draft specific considerations
+
+10.1.1.  Authentication strength
+
+   It is important to stress, that the suggested method does not
+   provide high level security and does not completely block forged e-
+   mails or spam. It is not a reliable and completely secure security
+   mechanism. It is to be considered as a very cheap and simple light
+   weight mechanism, which can nevertheless provide a significant
+   improvement in mail security against a certain class of attacks,
+   until a successor of SMTP has been defined and commonly accepted.
+
+
+
+Hadmut Danisch                Experimental                     [Page 12]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+10.1.2.  Where Authentication and Authorization end
+
+   RMX records do not cover the local part of the e-mail address, i.e.
+   what's on the left side of the @ sign. Authentication and
+   authorization are limited to the sending MTA's IP address. The
+   authentication is limited to the TCP functionality, which is
+   sufficient for light weight authentication. The RMX records
+   authorize the IP address of the sending host only, not the
+   particular sender of the message. So if a machine is authorized to
+   use sender addresses of more than a single domain, the
+   authentication scheme does not prevent that any user on this
+   machine can send with any of these domains. RMX is not a substitute
+   for the host security of the involved machines.
+
+   The proposed authentication scheme can be seen as a "half way
+   authentication": It does not track back an e-mail to the effective
+   sender. It tracks only half of the way, i. e. it tracks back to the
+   domain and it's DNS administrators who authorized that particular
+   sender IP address to use it for sending e-mail. How the party
+   responsible for that domain performs user authentication, whom it
+   grants access to, how it helds people responsible for abuse, is
+   completely left as the private business of those who are in charge
+   of that domain. So this draft does not interfere with the domain's
+   individual security policy or any legislation about such policies.
+   On the other hand, the proposed authentication scheme does not give
+   any statement about the nature and quality of the domain's security
+   policy. This is an essential feature of the proposal: E-mail
+   authentication must be deployed world wide, otherwise it won't do
+   the job. Any security scheme interfering with the local
+   legislations or the domain's security policy will not be accepted
+   and can't effectively deployed. Therefore, the security policy must
+   remain the domain's private business, no matter how lousy the
+   policy might be.
+
+   In order to achieve this and to make use of the only existing world
+   wide Internet directory scheme (DNS), the approach of this proposal
+   is to just ignore the local part of the sender address (i.e. what's
+   left of the @ part) and limit view to the domain part. After all,
+   that's what we do anyway when delivering to a given address with
+   SMTP.
+
+10.1.3.  Vulnerability of DNS
+
+   DNS is an essential part of the proposed authentication scheme,
+   since it requires any directory service, and DNS is currently the
+   only one available. Unfortunately, DNS is vulnerable and can be
+   spoofed and poisoned. This flaw is commonly known and weakens many
+   network services, but for reasons beyond that draft DNS has not
+
+
+
+Hadmut Danisch                Experimental                     [Page 13]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   been significantly improved yet. After the first version of this
+   draft, I received several comments who asked me not to use DNS
+   because of its lack of security. I took this into consideration,
+   but came to the conclusion that this is unfeasible: Any
+   authentication scheme linked to some kind of symbolic identity (in
+   this case the domain name) needs some kind of infrastructure and
+   trusted assignment. There are basically two ways to do it: Do it
+   yourself and trust nobody else, or let someone else do it. There
+   are methods to do it the former way, e.g. to give someone some kind
+   of authentication information after a first successful e-mail
+   exchange, e.g. some kind of cookie or special e-mail address. This
+   is certainly interesting and powerful, but it does not solve the
+   problem on a world wide scale and is far to complicated and error
+   prone for the average user, i. e. 99% of the users.
+
+   The latter method to let someone else do the symbolic name
+   assignment and create the authentication framework is well known.
+   It context of public key cryptography, this is called a Public Key
+   Infrastructure (PKI). On of the best known facts about PKIs is
+   that, until now, we don't have any covering a significant part of
+   the Internet. And we won't have any in near future. The complexity
+   is far too high, it is too expensive, and it involves cooperation
+   of every single user, which is simply unrealistic and extremely
+   error prone. So what do we have we can use? All we have is the DNS
+   and the Whois database. And we have countries who don't allow
+   cryptography. So the proposal was designed to use DNS without
+   cryptography. It does not avoid DNS because of its vulnerability,
+   it asks for a better DNS, but accepts the DNS as it is for the
+   moment. Currently there are two main threats caused by the DNS
+   weakness:
+
+      - A spammer/forger could spoof DNS in order to gain false
+        authorization to send fake e-mails.
+
+      - An attacker could spoof DNS in order to block delivery from
+        authorized machines, i. e. perform a Denial of Service attack.
+
+   The first one is rather unrealistic, because it would require an
+   average spammer to poison a significant part of the DNS servers of
+   its victims. A spammer sending messages to one million receipients
+   would need to poison at least 1-10% which is 10,000 to 100,000
+   receipient's DNS servers. This should be unfeasible in most cases.
+
+   In contrast, the second threat is a severe one. If an attacker
+   wanted to block messages from one company to another, he just needs
+   to poison the recipients DNS server with a wrong RMX record in
+   order to make the recipient's SMTP machine reject all messages. And
+   this is feasible since the attacker needs to poison only a single
+
+
+
+Hadmut Danisch                Experimental                     [Page 14]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   DNS server. But does this make SMTP more vulnerable? No. Because
+   the attacker can already do even more without RMX. By poisoning the
+   sender's DNS server with wrong MX records, the attacker can also
+   block message delivery or even redirect the messages to the
+   attacker's machine, thus preventing any delivery error messages and
+   furthermore getting access to the messages.
+
+   As a consequence, e-mail delivery by SMTP requires a better DNS
+   anyway. The requirements are not significantly expanded by RMX.
+
+10.1.4.  Additional data attack?
+
+   While writing a test implementation, a certain kind of attack came
+   into my mind. I'm still not sure, whether this attack is possible
+   on any DNS server, but I believe it should be mentioned:
+
+   Imagine an unauthorized sender is sending a forged mail (e.g.
+   spam).  At connection time, before querying the RMX record, the
+   receiving MTA usually performs a PTR query for the IP address of
+   the sending MTA. If the sender has control over the authoritative
+   name server for that particular IP address, the sender could give a
+   normal PTR answer, but could append a wrong RMX, APL, or A record
+   in the additional section of the query. A subsequent RMX query
+   could receive wrong DNS data if the DNS server used by the
+   receiving MTA accepted those forged records.
+
+10.1.5.  Open SMTP relays
+
+   Open SMTP relays (i.e. machines who accept any e-mail message from
+   anyone and deliver to the world) abused by spammers are a one of
+   the main problems of spam defense and sender backtracking. In most
+   cases this problem just vanishes because foreign open relay
+   machines will not be covered by the RMX records of the forged
+   sender address. But there are two special cases:
+
+   If the spammer knows about a domain which authorizes this
+   particular machine, that domain can be used for forgery. But in
+   this case, the IP address of the relay machine and the RMX records
+   of the domain track back to the persons responsible. Both can be
+   demanded to fix the relay or remove the RMX record for this
+   machine. An open relay is a security flaw like leaving the machine
+   open for everybody to login and send random mails from inside. Once
+   the administrative persons refuse to solve the problem, they can be
+   identified as spammers and held responsible.
+
+   The second special case is when a domain authorizes all IP
+   addresses by having the network 0.0.0.0/0 in the RMX/APL record. In
+   this case, open relays don't make things worse. It's up to the
+
+
+
+Hadmut Danisch                Experimental                     [Page 15]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   recipient's MTA to reject mails from domains with loose security
+   policies.
+
+10.1.6.  Unforged Spam
+
+   This proposal does not prevent spam (which is, by the way, not yet
+   exactly defined), it prevents forgery. Since spam is against law
+   and violates the recipients rights, spam depends on untracability
+   of the sender. In practice the sender forges the sender address
+   (other cases see below). This proposal is designed to detect such
+   forgeries.
+
+   However, the RMX approach is rendered ineffective, if the sender
+   doesn't forge. If the sender uses just a normal address of it's own
+   domain, this is just a plain, normal e-mail, which needs to be let
+   through. Since it is up to the human's taste whether this is spam
+   or not, there's no technical way to reliably identify this as spam.
+   But since the sender domain is known, this domain can be
+   blacklisted or legal steps can be gone into.
+
+10.1.7.  Empty Sender address
+
+   There is a design flaw of current SMTP and SMTP programs: The empty
+   sender envelope address. This is used for delivery of error
+   messages, and most MTAs accept messages with an empty sender
+   address. Obviously, RMX records can't be checked for empty sender
+   addresses.
+
+   It is a design flaw to inherently allow anonymous mails. This flaw
+   must either be fixed, or other methods have to be developed. For
+   example MTAs could accept such mails only if they reference the
+   Message-ID of another e-mail which has recently been delivered.
+
+10.1.8.  Reliability of Whois Entries
+
+   Once the RMX infrastructure gets deployed, what's the security
+   gain?  It allows to determine the domain which's DNS zone
+   authorized the sending machine. What's that good for? There are
+   some immediate uses of the domain name, e.g. in black- and
+   whitelisting. But in most cases this is just the starting point of
+   further investigations, either performed automatically before
+   message acceptance, or manually after spam has been received and
+   complainted about.
+
+   The next step after determining the domain is determining the
+   people responsible for this domain. This can sometimes be achieved
+   by querying the Whois databases. Unfortunately, many whois entries
+   are useless because they are incomplete, wrong, obsolete, or in
+
+
+
+Hadmut Danisch                Experimental                     [Page 16]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   uncommon languages. Furthermore, there are several formats of
+   address informations which make it difficult to automatically
+   extract the address. Sometimes the whois entry identifies the
+   provider and not the owner of the domain. Whois servers are not
+   built for high availability and sometimes unreachable.
+
+   Therefore, a mandatory standard is required about the contents and
+   the format of whois entries, and the availability of the servers.
+   After receiving the MAIL FROM SMTP command with the sender envelope
+   address, the receiving MTA could check the RMX record and Whois
+   entry. If it doesn't point to a real human, the message could be
+   rejected and an error message like "Ask your provider to fix your
+   Whois entry" could be issued. Obviously, domain providers must be
+   held responsible for wrong entries. It might still be acceptable to
+   allow anonymous domains, i. e. domains which don't point to a
+   responsible human. But it is the receivers choice to accept e-mails
+   from such domains or not.
+
+10.1.9.  Hazards for Freedom of Speech
+
+   Currently, some governments try to enforce limitations of internet
+   traffic in order to cut unwanted content providers from the
+   network. Some of these governments try to hide a whole country
+   behind firewalls, others try to force Internet providers to poison
+   DNS servers with wrong A records for web servers, e.g. one county
+   administration in Germany tries to do so. If message reception
+   depends on DNS entries, the same governments will try to block not
+   only HTTP, but SMTP also.
+
+   However, since most MTAs already reject messages from unresolvable
+   domain names this is not a new threat.
+
+10.2.  General Considerations about spam defense
+
+   After discussing security requirements of the proposal, now the
+   security advantages of the RMX approach over content based filters
+   will be explained. Basically, there are three kinds of content
+   filters:
+
+      - Those who upload the message or some digest to an external
+        third party and ask "Is this spam"?
+
+      - Those who download a set of patterns and rules from a third
+        party and apply this set to incoming messages in order to
+        determine whether it is spam.
+
+      - Those who are independent and don't contact any third party,
+        but try to learn themselves what is spam and what isn't.
+
+
+
+Hadmut Danisch                Experimental                     [Page 17]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   The message filters provided by some e-mail service providers are
+   usually not a kind of their own, but a combination of the first two
+   kinds.
+
+10.2.1.  Action vs. reaction
+
+   Content filters suffer from a fundamental design problem: They are
+   late. They need to see some content of the same kind before in
+   order to learn and to block further distribution.
+
+   This works for viruses and worms, which redistribute. This doesn't
+   work for spam, since spam is usually not redistributed after the
+   first delivery. When the filters have learned or downloaded new
+   pattern sets, it's too late.
+
+   This proposal does not have this problem.
+
+10.2.2.  Content based Denial of Service attacks
+
+   All three kinds of content filters, but especially the second and
+   the third kind are vulnerable to content based Denial of Service
+   attacks.
+
+   If some kind of third party (e.g. non-democratic government,
+   intellectual property warriors, religious groups, military, secret
+   services, patriots, public relation agents, etc.) wants certain
+   contents not to be distributed, they could either poison the
+   pattern/rule databases or feed wrong sets to particular receivers.
+
+   Such pattern/rule sets are the perfect tool for censoring e-mail
+   traffic and denial of service attacks by governments and other
+   parties, and a similar threat are virus filters. E. g. the content
+   industry could demand to teach all virus and spam filters to delete
+   all e-mails containing the URL of an MP3 web server outside the
+   legislations. Software manufacturers could try to block all e-mails
+   containing software license keys, thus trying to make unallowed
+   distribution more difficult. Governments could try to block
+   distribution of unwanted informations.
+
+   This proposal does not have this problem.
+
+11.  Privacy Considerations
+
+   (It was proposed on the 56th IETF meeting to have a privacy section
+   in drafts and RFCs.)
+
+11.1.  Draft specific considerations
+
+
+
+
+Hadmut Danisch                Experimental                     [Page 18]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+11.1.1.  No content leaking
+
+   Since the RMX approach doesn't touch the contents of a message in
+   any way, there is obviously no way of leaking out any information
+   about the content of the message. RMX is based solely on the
+   envelope recipient address. However, methods to fix problems not
+   covered by RMX might allow content leaking, e.g. if the acceptance
+   of a message with an empty sender address requires the reference to
+   the message id of an e-mail recently sent, this allows an attacker
+   to verify whether a certain message was delivered from there.
+
+11.1.2.  Message reception and sender domain
+
+   Message delivery triggers RMX and APL requests by the recipient.
+   Thus, the admin of the DNS server or an eavesdropper could learn
+   that the given machine has just received a message with a sender
+   from this address, even if the SMTP traffic itself had been
+   encrypted.
+
+   However, most of today's MTAs do query the MX and A records of the
+   domain after the MAIL FROM command, so this is not a real new
+   threat.
+
+11.1.3.  Network structure
+
+   Since RMX and its associated APL records provide a complete list of
+   all IP addresses of hosts authorized to send messages from this
+   address, they do reveal informations about the network structure
+   and maybe the lifestyle of the domain owner, since a growing number
+   of domains are owned by single persons or families. E.g. the RMX
+   records could reveal where someone has his job or spends his time
+   at weekends.
+
+   If such informations are to be kept secret, it is the user's job to
+   not sent e-mails from there and to relay them from non-compromising
+   IP addresses.
+
+11.1.4.  Owner information distribution
+
+   As described above, RMX depends partly on the reliability of the
+   whois database entries. It does not make anonymous domains
+   impossible, but it requires to keep the database entries "true", i.
+   e. if a whois entry does not contain informations about the
+   responsible person, this must be unambigously labeled as anonymous.
+   It must not contain fake names and addresses to pretend a non-
+   existing person. However, since most Internet users on the world
+   feel extremely annoyed by spam, they will urge their MTA admin to
+   reject messages from anonymous domains. The domain owner will have
+
+
+
+Hadmut Danisch                Experimental                     [Page 19]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   the choice to either remain anonymous but be not able to send e-
+   mail to everyone in the world, or to be able but to reveal his
+   identity to everyone on the world.
+
+   It would be possible to provide whois-like services only to
+   recipients of recent messages, but this would make things too
+   complicated to be commonly adopted.
+
+11.2.  General Considerations about spam defense
+
+11.2.1.  Content leaking of content filters
+
+   As described above in the Security chapter, there are spam filters
+   which inherently allow leakage of the message body. Those filters
+   upload either the message body, or in most cases just some kind of
+   checksum to a third party, which replies whether this is to be seen
+   as spam or not. The idea is to keep a databases of all digests of
+   all messages.  If a message is sent more often than some threshold,
+   it is to be considered as a mass mail and therefore tagged as spam.
+
+   While the digest itself does not reveal the content of the message,
+   it perfectly reveals where a particular message has been delivered
+   to. If a government finds just a single unwanted message, if a
+   software manufacturer finds a single message with a stolen product
+   license key, if someone finds a message with unpatriotic content,
+   it takes just a single database lookup to get a list of all people
+   who received this particular message. Content filters with digest
+   upload are the perfect "Big Brother".
+
+11.2.2.  Black- and Whitelists
+
+   Some proposals against spam are based on a central database of
+   white- or blacklisted IP addresses, Sender names, Message IDs or
+   whatever. Again, there is a central database which learns who has
+   received which e-mail or from which sender with every query. This
+   allows tracking relations between persons, which is also a breach
+   of privacy.
+
+
+12.  Deployment Considerations
+
+   Is there a concise technical solution against spam? Yes.
+
+   Will it be deployed? Certainly not.
+
+   Why not? Because of the strong non-technical interests of several
+   parties against a solution to the problem, as described below.
+   Since these are non-technical reasons, they might be beyond the
+
+
+
+Hadmut Danisch                Experimental                     [Page 20]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   scope of such a draft. But since they are the main problems that
+   prevent fighting spam, it is unavoidable to address them. This
+   chapter exists temporarily only and should support the discussion
+   of solutions. It is not supposed to be included in a later RFC.
+
+12.1.  The economical problem
+
+   As has been recently illustrated in the initial session of the
+   IRTF's Anti Spam Research Group (ASRG) on the 56th IETF meeting,
+   sending spam is a business with significant revenues.
+
+   But a much bigger business is selling Anti-Spam software. This is a
+   billion dollar market, and it is rapidly growing. Any simple and
+   effective solution against spam would defeat revenues and drive
+   several companies into bankrupt, would make consultants jobless.
+
+   Therefore, spam is essential for the Anti-Spam business. If there
+   is no spam, then no Anti-Spam software can be sold, similar to the
+   Anti-Virus business. There are extremely strong efforts to keep
+   this market growing. Viruses, Worms, and now spam are just perfect
+   to keep this market alive: It is not sufficient to just buy a
+   software. Databases need to be updated continuously, thus making
+   the cash flow continuously. Have a single, simple, and permanent
+   solution to the problem and - boom - this billion dollar market is
+   dead.
+
+   That's one of the reasons why people are expected to live with
+   spam. They have to live with it to make them buy Anti-Spam
+   software.  Content filters are perfect products to keep this market
+   alive.
+
+12.2.  The POP problem
+
+   Another problem is the history of mail delivery. Once upon a time,
+   there used to be very few SMTP relays which handled the e-mail
+   traffic of all the world, and everybody was happy with that. Then
+   odd things like Personal Computers, which are sometimes switched
+   off, portable computers, dynamicly assigned IP addresses, IP access
+   from hotel rooms, etc. was invented, and people became unhappy,
+   because SMTP does not support delivery to such machines. To make
+   them happy again, the Post Office Protocol[3] was invented, which
+   turned the last part of message delivery from SMTP's push style
+   into a pull style, thus making virtually every computer on the
+   world with any random IP address a potential receiver of mails for
+   random domains. Unfortunately, only receiving e-mail was covered,
+   but sending e-mail was left to SMTP.
+
+   The result is that today we have only very few SMTP relays pointed
+
+
+
+Hadmut Danisch                Experimental                     [Page 21]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   to by MX records, but an extreme number of hosts sending e-mail
+   with SMTP from any IP address with sender addresses from any
+   domain. Mail delivery has become very asymmetric. Insecurity,
+   especially forgeability, has become an essential part of mail
+   transport.
+
+   That problem could easily be fixed: Use protocols which allow
+   uploading of messages to be delivered. If a host doesn't receive
+   messages by SMTP, it shouldn't deliver by SMTP.  Mail delivery
+   should go the same way back that incoming mail went in.  This is
+   not a limitation to those people on the road who plug their
+   portable computer in any hotel room's phone plug and use any
+   provider. If there is a POP server granting download access from
+   anywhere, then the same server should be ready to accept uploading
+   of outgoing messages.
+
+   But as I saw from the comments on the first version of this draft,
+   people religiously insist on sending e-mail with their domain from
+   any computer with any IP address in the world, e.g. when visiting a
+   friend using her computer. It appears to be impossible to convince
+   people that stopping mail forgery requires every one of them to
+   give up forging.
+
+12.3.  The network structure problem
+
+   A subsequent problem is that many organisations failed to implement
+   a proper mail delivery structure and heavily based their network on
+   this asymmetry. I received harsh comments from Universities who
+   were unable to give their network a good structure. While they do
+   have a central mail relay for incoming mail to the universities
+   domain, they developed a structure where every member of the
+   University randomly sends e-mails with that University's domain as
+   a sender address from home or everywhere in the world with any
+   dynamically assigned IP address from any provider. So this domain
+   is to be used from every possible IP address on earth, and they are
+   unable to operate any authentication scheme. Furthermore, they were
+   unable to understand that such a policy heavily supports spam and
+   that they have to expect that people don't accept such e-mails
+   anymore once they become blacklisted.
+
+   As long as organisations insist on having such policies, spammers
+   will have a perfect playground.
+
+12.4.  The mentality problem
+
+   Another problem is the mentality of many internet users of certain
+   countries. I received harsh comments from people who strongly
+   insisted on the freedom to send any e-mail with any sender address
+
+
+
+Hadmut Danisch                Experimental                     [Page 22]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+   from anywhere, and who heavily refused any kind of authentication
+   step or any limitation, because they claimed that this would
+   infringe their constitutional "Freedom of speech". They are
+   undeviatingly convinced that "Freedom of speech" guarantees their
+   right to talk to everybody with any sender address, and that is has
+   to be kept the recipient's own problem to sort out what he doesn't
+   want to read - on the recipient's expense.
+
+   It requires a clear statement that the constitutional "Freedom of
+   Speech" does not cover molesting people with unsolicited e-mail
+   with forged sender address.
+
+12.5.  The identity problem
+
+   How does one fight against mail forgery? With authentication.  What
+   is authentication? In simple words: Making sure that the sender's
+   real identity meets the recipients idea of who is the sender, based
+   on the sender address which came with the message.
+
+   What is identity? It is the main problem. Several countries have
+   different ideas of "identity", which turn out to be somehow
+   incompatible. In some countries people have identity cards and
+   never change their name and birthday. Identities are created by
+   human birth, not by identity changes. Other countries do not have
+   such a tight idea about identity. People's temporary identity is
+   based on nothing more than a driving license and a social security
+   number.  With this background, it is virtually impossible to create
+   a trustworthy PKI covering all Internet users. I learned that it is
+   extremely difficult to convince some people to give up random e-
+   mail sending.
+
+12.6.  The multi-legislation problem
+
+   Many proposals about fighting spam are feasible under certain
+   legislations only, and are inacceptable under some of the
+   legislations. But a world wide applicable method is required.
+   That's why the approach to ask everone on the world to sign
+   messages with cryptographic keys is not feasible.
+
+Implementation and further Information
+
+   Further informations and a test implementation are available at
+
+      http://www.danisch.de/work/security/antispam.html
+
+   and
+
+      http://www.danisch.de/software/rmx/
+
+
+
+Hadmut Danisch                Experimental                     [Page 23]
+
+INTERNET-DRAFT                 DNS RMX RR                       Jun 2003
+
+
+References
+
+
+
+1.   J. Klensin, "Simple Mail Transfer Protocol," RFC 2821 (April 2001).
+
+2.   P. Mockapetris, "DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION,"
+     RFC 1035 (November 1987).
+
+3.   J. Myers, M. Rose, "Post Office Protocol - Version 3," RFC 1939
+     (May 1996).
+
+
+Author's Address
+
+   Hadmut Danisch
+
+   Tennesseeallee 58
+   76149 Karlsruhe
+   Germany
+
+   Phone:  ++49-721-843004
+   E-Mail: rfc@danisch.de
+
+Comments
+
+   Please send comments to rfc@danisch.de.
+
+Expiry
+
+   This drafts expires on Dec 1, 2003
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hadmut Danisch                Experimental                     [Page 24]
+
