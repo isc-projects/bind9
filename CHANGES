@@ -1,3 +1,5 @@
+ 842.	[func]		'rndc flush' now takes an optional view.
+
  841.	[bug]		When sdb modules were not declared threadsafe, their
  			create and destroy functions were not serialized.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.327 2001/05/28 05:17:00 marka Exp $ */
+/* $Id: server.c,v 1.328 2001/05/31 01:21:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2758,9 +2758,19 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 }
 
 isc_result_t
-ns_server_flushcache(ns_server_t *server) {
+ns_server_flushcache(ns_server_t *server, char *args) {
+	char *ptr, *viewname;
 	dns_view_t *view;
+	isc_boolean_t flushed = ISC_FALSE;
 	isc_result_t result;
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Look for the view name. */
+	viewname = next_token(&args, " \t");
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -2768,11 +2778,17 @@ ns_server_flushcache(ns_server_t *server) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
+		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
+			continue;
 		result = dns_view_flushcache(view);
 		if (result != ISC_R_SUCCESS)
 			goto out;
+		flushed = ISC_TRUE;
 	}
-	result = ISC_R_SUCCESS;
+	if (flushed)
+		result = ISC_R_SUCCESS;
+	else
+		result = ISC_R_FAILURE;
  out:
 	isc_task_endexclusive(server->task);	
 	return (result);
