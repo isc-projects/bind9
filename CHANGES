@@ -3,8 +3,6 @@
 1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
 			<sys/param.h> is included or not.  Be consistant.
 
-1284.	[bug]		Memory leak if dns_db_beginload() failed.
-
 1283.	[bug]		Reference after free error if dns_dispatchmgr_create()
 			failed.
 
