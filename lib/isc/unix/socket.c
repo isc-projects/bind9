@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.218 2001/12/19 05:44:54 marka Exp $ */
+/* $Id: socket.c,v 1.219 2001/12/19 05:51:34 marka Exp $ */
 
 #include <config.h>
 
@@ -353,9 +353,7 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 	sock = manager->fds[fd];
 
 	/*
-	 * If there are no events, or there is an event but we
-	 * have already queued up the internal event on a task's
-	 * queue, clear the bit.  Otherwise, set it.
+	 * Set requested bit.
 	 */
 	if (msg == SELECT_POKE_READ)
 		FD_SET(sock->fd, &manager->read_fds);
