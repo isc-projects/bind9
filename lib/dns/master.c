@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.105 2001/02/07 13:24:19 marka Exp $ */
+/* $Id: master.c,v 1.106 2001/02/08 01:52:33 marka Exp $ */
 
 #include <config.h>
 
@@ -130,8 +130,8 @@ static isc_result_t
 pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp);
 
 static isc_result_t
-commit(dns_rdatacallbacks_t *, isc_lex_t *, rdatalist_head_t *, dns_name_t *,
-       dns_name_t *);
+commit(dns_rdatacallbacks_t *, dns_loadctx_t *, rdatalist_head_t *,
+       dns_name_t *, dns_name_t *);
 
 static isc_boolean_t
 is_glue(rdatalist_head_t *, dns_name_t *);
@@ -184,14 +184,14 @@ loadctx_destroy(dns_loadctx_t *ctx);
 
 #define COMMITALL \
 	do { \
-		result = commit(callbacks, ctx->lex, &current_list, \
+		result = commit(callbacks, ctx, &current_list, \
 				ctx->current, ctx->top); \
 		if (MANYERRS(ctx, result)) { \
 			SETRESULT(ctx, result); \
 			LOGIT(result); \
 		} else if (result != ISC_R_SUCCESS) \
 			goto log_and_cleanup; \
-		result = commit(callbacks, ctx->lex, &glue_list, \
+		result = commit(callbacks, ctx, &glue_list, \
 				ctx->glue, ctx->top); \
 		if (MANYERRS(ctx, result)) { \
 			SETRESULT(ctx, result); \
@@ -644,8 +644,7 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 		rdatalist.ttl = ctx->ttl;
 		ISC_LIST_PREPEND(head, &rdatalist, link);
 		ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
-		result = commit(callbacks, ctx->lex, &head, owner,
-				ctx->top);
+		result = commit(callbacks, ctx, &head, owner, ctx->top);
 		ISC_LIST_UNLINK(rdatalist.rdata, &rdata, link);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
@@ -1086,8 +1085,7 @@ load(dns_loadctx_t **ctxp) {
 			 */
 			if (ctx->glue != NULL &&
 			    dns_name_compare(ctx->glue, new_name) != 0) {
-				result = commit(callbacks, ctx->lex,
-						&glue_list,
+				result = commit(callbacks, ctx, &glue_list,
 						ctx->glue, ctx->top);
 				if (MANYERRS(ctx, result)) {
 					SETRESULT(ctx, result);
@@ -1123,7 +1121,7 @@ load(dns_loadctx_t **ctxp) {
 					ctx->in_use[ctx->glue_in_use] = 
 						ISC_TRUE;
 				} else {
-					result = commit(callbacks, ctx->lex,
+					result = commit(callbacks, ctx,
 							&current_list,
 							ctx->current,
 							ctx->top);
@@ -1449,14 +1447,13 @@ load(dns_loadctx_t **ctxp) {
 	/*
 	 * Commit what has not yet been committed.
 	 */
-	result = commit(callbacks, ctx->lex, &current_list,
-			ctx->current, ctx->top);
+	result = commit(callbacks, ctx, &current_list, ctx->current, ctx->top);
 	if (MANYERRS(ctx, result)) {
 		SETRESULT(ctx, result);
 		LOGIT(result);
 	} else if (result != ISC_R_SUCCESS)
 		goto log_and_cleanup;
-	result = commit(callbacks, ctx->lex, &glue_list, ctx->glue, ctx->top);
+	result = commit(callbacks, ctx, &glue_list, ctx->glue, ctx->top);
 	if (MANYERRS(ctx, result)) {
 		SETRESULT(ctx, result);
 		LOGIT(result);
@@ -1869,7 +1866,7 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
  */
 
 static isc_result_t
-commit(dns_rdatacallbacks_t *callbacks, isc_lex_t *lex,
+commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *ctx,
        rdatalist_head_t *head, dns_name_t *owner, dns_name_t *top)
 {
 	dns_rdatalist_t *this;
@@ -1888,8 +1885,8 @@ commit(dns_rdatacallbacks_t *callbacks, isc_lex_t *lex,
 				  "%s: %s:%lu: "
 				  "ignoring out-of-zone data",
 				  "dns_master_load",
-				  isc_lex_getsourcename(lex),
-				  isc_lex_getsourceline(lex) - 1);
+				  isc_lex_getsourcename(ctx->lex),
+				  isc_lex_getsourceline(ctx->lex) - 1);
 		ignore = ISC_TRUE;
 	}
 	do {
@@ -1900,7 +1897,9 @@ commit(dns_rdatacallbacks_t *callbacks, isc_lex_t *lex,
 			result = ((*callbacks->add)(callbacks->add_private,
 						    owner,
 						    &dataset));
-			if (result != ISC_R_SUCCESS)
+			if (MANYERRS(ctx, result))
+				SETRESULT(ctx, result);
+			else if (result != ISC_R_SUCCESS)
 				return (result);
 		}
 		ISC_LIST_UNLINK(*head, this, link);

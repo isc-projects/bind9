@@ -1,3 +1,5 @@
+ 731.	[bug]		certian zone errors could cause named-checkzone to
+			fail ungracefully.  [RT #819]
 
  730.	[bug]		lwres_getaddrinfo() returns the correct result when
 			it fails to contact a server. [RT #768]
