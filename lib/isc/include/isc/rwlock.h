@@ -19,6 +19,7 @@
 #define ISC_RWLOCK_H 1
 
 #include <isc/lang.h>
+#include <isc/types.h>
 #include <isc/result.h>
 #include <isc/mutex.h>
 #include <isc/condition.h>
@@ -30,7 +31,7 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
-typedef struct isc_rwlock {
+struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		magic;
 	isc_mutex_t		lock;
@@ -44,7 +45,7 @@ typedef struct isc_rwlock {
 	unsigned int		writers_waiting;
 	unsigned int		read_quota;
 	unsigned int		write_quota;
-} isc_rwlock_t;
+};
 
 isc_result_t
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
