@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.38 2001/07/16 18:33:01 gson Exp $ */
+/* $Id: file.c,v 1.39 2001/08/30 04:55:36 marka Exp $ */
 
 #include <config.h>
 
@@ -312,4 +312,13 @@ isc_file_absolutepath(const char *filename, char *path, size_t pathlen) {
 		return (ISC_R_NOSPACE);
 	strcat(path, filename);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_file_truncate(const char *filename, isc_offset_t size) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (truncate(filename, size) < 0) 
+		result = isc__errno2result(errno);
+	return (result);
 }
