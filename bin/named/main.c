@@ -216,11 +216,17 @@ setup() {
 	if (result != ISC_R_SUCCESS)
 		early_fatal("ns_server_init() failed: %s",
 			    isc_result_totext(result));
+
+	result = dns_tsig_init(ns_g_mctx);
+	if (result != ISC_R_SUCCESS)
+		early_fatal("dns_tsig_init() failed: %s",
+			    isc_result_totext(result));
 }
 
 static void
 cleanup() {
 	destroy_managers();
+	dns_tsig_destroy();
 #if 0
 	isc_rwlock_destroy(&ns_g_viewlock);
 #endif

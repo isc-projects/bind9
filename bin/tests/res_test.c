@@ -45,6 +45,7 @@
 #include <dns/resolver.h>
 #include <dns/events.h>
 #include <dns/dispatch.h>
+#include <dns/tsig.h>
 
 isc_mutex_t lock;
 
@@ -184,6 +185,8 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
+	RUNTIME_CHECK(dns_tsig_init(mctx) == ISC_R_SUCCESS);
+
 	argc -= optind;
 	argv += optind;
 
@@ -239,6 +242,7 @@ main(int argc, char *argv[]) {
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
 
+	dns_tsig_destroy();
 	if (verbose)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
