@@ -95,7 +95,7 @@ create_view(isc_mem_t *mctx)
 		goto out;
 
 	rootdb = NULL;
-	result = dns_rootns_create(mctx, &rootdb);
+	result = dns_rootns_create(mctx, dns_rdataclass_in, NULL, &rootdb);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 	dns_view_sethints(view, rootdb);

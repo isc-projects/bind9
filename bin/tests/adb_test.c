@@ -209,7 +209,7 @@ create_view(void)
 	check_result(result, "dns_view_createresolver()");
 
 	rootdb = NULL;
-	result = dns_rootns_create(mctx, &rootdb);
+	result = dns_rootns_create(mctx, dns_rdataclass_in, NULL, &rootdb);
 	check_result(result, "dns_rootns_create()");
 	dns_view_sethints(view, rootdb);
 	dns_db_detach(&rootdb);
