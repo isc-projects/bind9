@@ -43,6 +43,7 @@
 #include <named/globals.h>
 #include <named/interfacemgr.h>
 #include <named/log.h>
+#include <named/omapi.h>
 #include <named/os.h>
 #include <named/server.h>
 #include <named/main.h>
@@ -80,6 +81,12 @@ assertion_failed(char *file, int line, isc_assertiontype_t type, char *cond) {
 	 */
 
 	if (ns_g_lctx != NULL) {
+		/*
+		 * Reset the assetion callback in case it is the log
+		 * routines causing the assertion.
+		 */
+		isc_assertion_setcallback(NULL);
+
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "%s:%d: %s(%s) failed", file, line,
@@ -105,6 +112,12 @@ library_fatal_error(char *file, int line, char *format, va_list args) {
 	 */
 
 	if (ns_g_lctx != NULL) {
+		/*
+		 * Reset the error callback in case it is the log
+		 * routines causing the assertion.
+		 */
+		isc_error_setfatal(NULL);
+
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "%s:%d: fatal error", file, line);
@@ -137,6 +150,7 @@ usage(void) {
 static void 
 parse_command_line(int argc, char *argv[]) {
 	int ch;
+	unsigned int port;
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
@@ -159,7 +173,11 @@ parse_command_line(int argc, char *argv[]) {
 				ns_g_cpus = 1;
 			break;
 		case 'p':
-			ns_g_port = atoi(isc_commandline_argument);
+			port = atoi(isc_commandline_argument);
+			if (port < 1 || port > 65535)
+				ns_main_earlyfatal("port \"%s\" out of range",
+						   isc_commandline_argument);
+			ns_g_port = port;
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
@@ -232,6 +250,9 @@ destroy_managers(void) {
 	isc_taskmgr_destroy(&ns_g_taskmgr);
 	isc_timermgr_destroy(&ns_g_timermgr);
 	isc_socketmgr_destroy(&ns_g_socketmgr);
+
+	omapi_listener_shutdown(ns_g_omapimgr);
+	omapi_object_dereference(&ns_g_omapimgr);
 }
 
 static void
@@ -264,11 +285,23 @@ setup() {
 				   isc_result_totext(result));
 
 	ns_server_create(ns_g_mctx, &ns_g_server);
+
+	result = ns_omapi_listen(ns_g_mctx, &ns_g_omapimgr);
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_INFO,
+			      "OMAPI started");
+	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
+			      "OMAPI failed to start: %s",
+			      isc_result_totext(result));
 }
 
 static void
 cleanup() {
 	destroy_managers();
+	omapi_lib_destroy();
 	ns_server_destroy(&ns_g_server);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
