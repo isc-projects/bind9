@@ -1,3 +1,8 @@
+1051.	[bug]		Do not ignore a network interface completely just
+			because it has a noncontiguous netmask.  Instead,
+			omit it from the localnets ACL and issue a warning.
+			[RT #1891]
+
 1050.	[bug]		Log messages reporting malformed IP addresses in
 			address lists such as that of the forwarders option
 			failed to include the correct error code, file

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.62 2001/10/11 00:02:34 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.63 2001/10/12 23:05:58 gson Exp $ */
 
 #include <config.h>
 
@@ -515,22 +515,31 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		if (isc_netaddr_equal(&interface.address, &zero_address))
 			continue;
 
-		result = isc_netaddr_masktoprefixlen(&interface.netmask,
-						     &prefixlen);
-		if (result != ISC_R_SUCCESS)
-			goto ignore_interface;
 		elt.type = dns_aclelementtype_ipprefix;
 		elt.negative = ISC_FALSE;
 		elt.u.ip_prefix.address = interface.address;
-		elt.u.ip_prefix.prefixlen = prefixlen;
-		/* XXX suppress duplicates */
-		result = dns_acl_appendelement(mgr->aclenv.localnets, &elt);
-		if (result != ISC_R_SUCCESS)
-			goto ignore_interface;
 		elt.u.ip_prefix.prefixlen = 32;
 		result = dns_acl_appendelement(mgr->aclenv.localhost, &elt);
 		if (result != ISC_R_SUCCESS)
 			goto ignore_interface;
+
+		result = isc_netaddr_masktoprefixlen(&interface.netmask,
+						     &prefixlen);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(IFMGR_COMMON_LOGARGS,
+				      ISC_LOG_WARNING,
+				      "omitting IPv4 interface %s from "
+				      "localnets ACL: %s",
+				      interface.name,
+				      isc_result_totext(result));
+		} else {
+			elt.u.ip_prefix.prefixlen = prefixlen;
+			/* XXX suppress duplicates */
+			result = dns_acl_appendelement(mgr->aclenv.localnets,
+						       &elt);
+			if (result != ISC_R_SUCCESS)
+				goto ignore_interface;
+		}
 
 		for (le = ISC_LIST_HEAD(mgr->listenon4->elts);
 		     le != NULL;
