@@ -22,8 +22,6 @@ RT #222 "Documentation: "recursion no" in a view does not hide cache"
 
 RT #176 "Bind-9.0.0rc1 nit, but affects all other ISC source as well"
 
-Update forwarding (16 h)
-
 Rewrite select ARM chapters
 
 
