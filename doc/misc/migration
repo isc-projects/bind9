@@ -22,6 +22,13 @@ If your named.conf file uses an unimplemented option, named will log a
 warning message.  A message is also logged about each option whose
 default has changed unless the option is set explicitly in named.conf.
 
+In particular, if you see a warning message about the default for the
+"auth-nxdomain" option having changed, you can suppress it by adding
+one of the following lines to the named.conf options { } block:
+
+   auth-nxdomain no;	# conform to RFC1035
+   auth-nxdomain yes;	# do what BIND 8 did by default
+
 1.2. Handling of Configuration File Errors
 
 In BIND 9, named refuses to start if it detects an error in
@@ -150,4 +157,4 @@ see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
 details.  Many of the ndc commands are still unimplemented in rndc.
 
 
-$Id: migration,v 1.1.2.10 2000/09/08 21:34:39 gson Exp $
+$Id: migration,v 1.1.2.11 2000/09/18 23:41:29 gson Exp $
