@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.49 2000/03/23 00:54:44 gson Exp $ */
+/* $Id: xfrout.c,v 1.50 2000/03/29 19:01:47 halley Exp $ */
 
 #include <config.h>
 
@@ -454,6 +454,8 @@ axfr_rrstream_first(rrstream_t *rs)
 	axfr_rrstream_t *s = (axfr_rrstream_t *) rs;
 	isc_result_t result;
 	result = db_rr_iterator_first(&s->it);
+	if (result != DNS_R_SUCCESS)
+		return (result);
 	/* Skip SOA records. */
 	for (;;) {
 		dns_name_t *name_dummy = NULL;
