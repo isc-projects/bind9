@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.6 2000/01/13 06:13:22 tale Exp $ */
+/* $Id: generic.c,v 1.7 2000/01/17 18:02:06 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -29,9 +29,10 @@
 
 #include <omapi/private.h>
 
+#if 0
 isc_result_t
-omapi_generic_new(omapi_object_t **gen, const char *name) {
-	omapi_generic_object_t *obj;
+omapi_generic_new(omapi_object_t **generic_handle, const char *name) {
+	omapi_generic_object_t *generic;
 
 	obj = isc_mem_get(omapi_mctx, sizeof(*obj));
 	if (obj == NULL)
@@ -40,14 +41,15 @@ omapi_generic_new(omapi_object_t **gen, const char *name) {
 	obj->refcnt = 0;
 	obj->type = omapi_type_generic;
 
-	OBJECT_REF(gen, obj, name);
+	OBJECT_REF(gen, obj);
 
 	return (ISC_R_SUCCESS);
 }
+#endif
 
-isc_result_t
-omapi_generic_set_value(omapi_object_t *h, omapi_object_t *id,
-			omapi_data_string_t *name, omapi_typed_data_t *value)
+static isc_result_t
+generic_setvalue(omapi_object_t *h, omapi_object_t *id,
+		 omapi_data_string_t *name, omapi_typed_data_t *value)
 {
 	omapi_generic_object_t *g;
 	omapi_value_t *new;
@@ -161,9 +163,9 @@ omapi_generic_set_value(omapi_object_t *h, omapi_object_t *id,
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
-			omapi_data_string_t *name, omapi_value_t **value)
+static isc_result_t
+generic_getvalue(omapi_object_t *h, omapi_object_t *id,
+		 omapi_data_string_t *name, omapi_value_t **value)
 {
 	unsigned int i;
 	omapi_generic_object_t *g;
@@ -196,8 +198,8 @@ omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
 	PASS_GETVALUE(h);
 }
 
-void
-omapi_generic_destroy(omapi_object_t *h, const char *name) {
+static void
+generic_destroy(omapi_object_t *h) {
 	omapi_generic_object_t *g;
 	unsigned int i;
 
@@ -209,7 +211,7 @@ omapi_generic_destroy(omapi_object_t *h, const char *name) {
 		for (i = 0; i < g->nvalues; i++)
 			if (g->values[i] != NULL)
 				omapi_data_valuedereference(&g->values[i],
-							    name);
+							    NULL);
 
 		isc_mem_put(omapi_mctx, g->values,
 			    g->va_max * sizeof(*g->values));
@@ -218,8 +220,8 @@ omapi_generic_destroy(omapi_object_t *h, const char *name) {
 	}
 }
 
-isc_result_t
-omapi_generic_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
+static isc_result_t
+generic_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
@@ -230,10 +232,9 @@ omapi_generic_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
  * Write all the published values associated with the object through the
  * specified connection.
  */
-
-isc_result_t
-omapi_generic_stuff_values(omapi_object_t *connection, omapi_object_t *id,
-			   omapi_object_t *h)
+static isc_result_t
+generic_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
+		    omapi_object_t *h)
 {
 	omapi_generic_object_t *src;
 	unsigned int i;
@@ -264,4 +265,16 @@ omapi_generic_stuff_values(omapi_object_t *connection, omapi_object_t *id,
 	}			
 
 	PASS_STUFFVALUES(h);
+}
+
+isc_result_t
+omapi_generic_init(void) {
+	return (omapi_object_register(&omapi_type_generic,
+					   "generic",
+					   generic_setvalue,
+					   generic_getvalue,
+					   generic_destroy,
+					   generic_signalhandler,
+					   generic_stuffvalues,
+					   NULL, NULL, NULL));
 }

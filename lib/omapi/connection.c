@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.8 2000/01/14 23:10:01 tale Exp $ */
+/* $Id: connection.c,v 1.9 2000/01/17 18:02:04 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -88,6 +88,12 @@ free_connection(omapi_connection_object_t *connection) {
 	 */
 	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) == ISC_R_SUCCESS);
 
+	/*
+	 * This one is locked too, unlock it so it can be destroyed.
+	 */
+	RUNTIME_CHECK(isc_mutex_unlock(&connection->recv_lock) ==
+		      ISC_R_SUCCESS);
+
 	while ((buffer = ISC_LIST_HEAD(connection->input_buffers)) != NULL) {
 		ISC_LIST_UNLINK(connection->input_buffers, buffer, link);
 		isc_buffer_free(&buffer);
@@ -104,37 +110,11 @@ free_connection(omapi_connection_object_t *connection) {
 	if (connection->socket != NULL)
 		isc_socket_detach(&connection->socket);
 
-	/*
-	 * It is possible the connection was abandoned while a message
-	 * was being assembled.  That thread needs to be unblocked.
-	 * Make sure that when it is awakened, it exits the loop by
-	 * setting messages_expected to 0.
-	 */
-	if (connection->is_client) {
-		connection->messages_expected = 0;
-
-		REQUIRE(isc_condition_signal(&connection->waiter) ==
-			ISC_R_SUCCESS);
-		RUNTIME_CHECK(isc_condition_destroy(&connection->waiter) ==
-			      ISC_R_SUCCESS);
-	}
-
-	/* XXXDCL ok, but what happens when omapi_connection_wait
-	 * awakens and then tries to unlock the mutex, which is possibly
-	 * being destroyed right here.  i don't think relocking is 
-	 * a guarantee that isc_condition_wait exited and the mutex was
-	 * unlocked in omapi_connection_wait.  still, it's worth a shot.
-	 */
-	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_mutex_destroy(&connection->mutex) == ISC_R_SUCCESS);
-
-	/*
-	 * Disconnect from I/O object, if any.
-	 */
-	if (connection->outer != NULL)
-		OBJECT_DEREF(&connection->outer,
-			     "omapi_connection_disconnect");
+	RUNTIME_CHECK(isc_mutex_destroy(&connection->recv_lock) ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_condition_destroy(&connection->waiter) ==
+		      ISC_R_SUCCESS);
 
 	/*
 	 * If whatever created us registered a signal handler, send it
@@ -142,10 +122,20 @@ free_connection(omapi_connection_object_t *connection) {
 	 */
 	omapi_signal((omapi_object_t *)connection, "disconnect", connection);
 
+#if 0
+	/*
+	 * Free the inner generic object via the protocol object.
+	 * XXXDCL wildass stab in the dark
+	 */
+	OBJECT_DEREF(&connection->inner->inner);
+#endif
+
+	
+
 	/*
 	 * Finally, free the object itself.
 	 */
-	OBJECT_DEREF(&connection, "free_connection");
+	OBJECT_DEREF(&connection);
 }
 
 static void
@@ -162,6 +152,12 @@ end_connection(omapi_connection_object_t *connection, isc_event_t *event,
 	 */
 
 	/*
+	 * Don't proceed until recv_done() has finished whatever
+	 * it was doing that decremented events_pending to 0.
+	 */
+	RUNTIME_CHECK(isc_mutex_lock(&connection->recv_lock) == ISC_R_SUCCESS);
+
+	/*
 	 * Lock the connection's mutex to examine connection->events_pending.
 	 */
 	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
@@ -170,11 +166,37 @@ end_connection(omapi_connection_object_t *connection, isc_event_t *event,
 		connection->events_pending);
 
 	if (connection->events_pending == 0) {
-		free_connection(connection);
+		if (connection->waiting) {
+			/*
+			 * This must have been an error, since
+			 * omapi_connection_wait can't be called after
+			 * omapi_connection_disconnect is called for
+			 * a normal close.
+			 *
+			 * Signal omapi_connection_wait and have it do the
+			 * cleanup.  free_connection can't be called
+			 * directly here because it can't be sure
+			 * that the mutex has been finished being touched
+			 * by omapi_connection_wait even if it
+			 * free_connection signals it.  (Nasty little
+			 * race condition with the lock.)
+			 *
+			 * Make sure that when it is awakened, it exits its
+			 * wait loop by setting messages_expected to 0.
+			 */
+			connection->state = omapi_connection_closed;
+			connection->messages_expected = 0;
+
+			RUNTIME_CHECK(isc_condition_signal(&connection->waiter)
+				      == ISC_R_SUCCESS);
+		} else
+			free_connection(connection);
+
 		return;
 	}
 
-	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
+	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_unlock(&connection->recv_lock) ==
 		      ISC_R_SUCCESS);
 
 	/*
@@ -208,7 +230,7 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	fprintf(stderr, "CONNECT_DONE\n");
 
-	ENSURE(socket == connection->socket && task == connection->task);
+	INSIST(socket == connection->socket && task == connection->task);
 
 	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
 	/*
@@ -217,7 +239,7 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	 * only in recv_done.  I'm concerned that there might be some
 	 * sort of logic window, however small, where that isn't true.
 	 */
-	ENSURE(connection->events_pending > 0);
+	INSIST(connection->events_pending > 0);
 	if (--connection->events_pending == 0 && connection->is_client &&
 	    connection->state == omapi_connection_disconnecting)
 		FATAL_ERROR(__FILE__, __LINE__,
@@ -273,10 +295,40 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	fprintf(stderr, "RECV_DONE, %d bytes\n", socketevent->n);
 
-	ENSURE(socket == connection->socket && task == connection->task);
+	INSIST(socket == connection->socket && task == connection->task);
+
+	/*
+	 * XXXDCL This recv_lock is a dirty, ugly, nasty hack and I
+	 * am ashamed for it.  I have struggled for days with how to
+	 * prevent the driving progam's call of omapi_connection_disconnect
+	 * from conflicting with the execution of the task thread
+	 * (this one, where recv_done is being called).
+	 *
+	 * Basically, most of the real work happens in the task thread,
+	 * all kicked off by signalling "ready" a few lines below.  If
+	 * this recv_done() is processing the last expected bytes of a message,
+	 * then it will wake up the driving program, and the driving program
+	 * can go ahead and issue a disconnect.  Since there are neither
+	 * events_pending nor messages_expected, end_connecton goes ahead
+	 * and frees the connection.  But that can happen before this
+	 * very function can go finish up what it is doing with the
+	 * connection structure, which is clearly a bad thing.
+	 *
+	 * The regular mutex in the connection (the one named "mutex") is
+	 * being used throughout the code in a much more localized fashion,
+	 * and while it might be possible to more broadly scope it so that
+	 * it essentially does the job that recv_lock is doing, I honestly
+	 * have not yet fully thought that out and I have already burned
+	 * so much time trying other approaches before I struck on this
+	 * recv_lock idea.  My gut reaction is I don't like how long
+	 * a lock on 'mutex' would be held, and I am not entirely sure
+	 * that there aren't deadlock situations.  I have to think about it
+	 * ... LATER.
+	 */
+	RUNTIME_CHECK(isc_mutex_lock(&connection->recv_lock) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
-	ENSURE(connection->events_pending > 0);
+	INSIST(connection->events_pending > 0);
 	connection->events_pending--;
 	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) == ISC_R_SUCCESS);
 
@@ -295,12 +347,24 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	original_bytes_needed = connection->bytes_needed;
 
+	/*
+	 * Signal omapi_protocol_signal_handler that the bytes it requested
+	 * are present.
+	 *
+	 * XXXDCL it will then isc_condition_signal the driving thread,
+	 * which is free to go ahead and call omapi_connection_disconnect.
+	 * since there are possibly no more events pending and no more messages
+	 * expected at that point, the driving thread may end up freeing the
+	 * connection before this routine is done manipulating it.
+	 * what a big, ugly, pain in the rump.
+	 */
 	while (connection->bytes_needed <= connection->in_bytes &&
 	       connection->bytes_needed > 0)
+
 		if (omapi_signal((omapi_object_t *)connection, "ready",
-				 connection) !=
-		    ISC_R_SUCCESS)
+				 connection) != ISC_R_SUCCESS)
 			goto abandon;
+
 
 	/*
 	 * Queue up another recv request.  If the bufferlist is empty,
@@ -313,20 +377,37 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * See if that was the last event the client was expecting, so
-	 * that the connection can be freed.
-	 * XXXDCL I don't *think* this has to be done in the 
-	 * send_done or connect_done handlers, because a normal
-	 * termination will only happen 
+	 * that the connection can be freed.  This test needs to be
+	 * done, because it is possible omapi_connection_disconnect has
+	 * already been called, before the signal handler managed to
+	 * decrement messages_expected.  That means that _disconnect
+	 * set the state to disconnecting but didn't call the
+	 * end_connection routine.  If this was the last event,
+	 * no more events are going to come in and call recv_done again,
+	 * so this is the only time that it can be identified that
+	 * the conditions for finally freeing the connection are all true.
+	 *
+	 * XXXDCL I don't *think* this has to be done in the send_done or
+	 * connect_done handlers, because a normal termination (one defined as
+	 * "omapi_connection_disconnect called by the client with 'force' as
+	 * false") will only happen after the last of the expected data is
+	 * received.
 	 */
 	if (connection->is_client) {
 		RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) ==
 			      ISC_R_SUCCESS);
 		if (connection->events_pending == 0 &&
 		    connection->state == omapi_connection_disconnecting) {
-			ENSURE(connection->messages_expected == 1);
+			INSIST(connection->messages_expected == 1);
 
-			RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
-				      ISC_R_SUCCESS);
+			/*
+			 * omapi_connection_disconnect was called, but
+			 * end_connection has not been.  Call it now.
+			 */
+			RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex)
+				      == ISC_R_SUCCESS);
+			RUNTIME_CHECK(isc_mutex_unlock(&connection->recv_lock)
+				      == ISC_R_SUCCESS);
 
 			end_connection(connection, event, ISC_R_SUCCESS);
 			return;
@@ -334,11 +415,15 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
 			      ISC_R_SUCCESS);
 	}
+	RUNTIME_CHECK(isc_mutex_unlock(&connection->recv_lock) ==
+		      ISC_R_SUCCESS);
 
 	isc_event_free(&event);
 	return;
 
 abandon:
+	RUNTIME_CHECK(isc_mutex_unlock(&connection->recv_lock) ==
+		      ISC_R_SUCCESS);
 	end_connection(connection, event, socketevent->result);
 	return;
 }
@@ -360,13 +445,13 @@ send_done(isc_task_t *task, isc_event_t *event) {
 
 	fprintf(stderr, "SEND_DONE, %d bytes\n", socketevent->n);
 
-	ENSURE(socket == connection->socket && task == connection->task);
+	INSIST(socket == connection->socket && task == connection->task);
 
 	/*
 	 * XXXDCL I am assuming that partial writes are not done.  I hope this
 	 * does not prove to be incorrect. But the assumption can be tested ...
 	 */
-	ENSURE(socketevent->n == connection->out_bytes &&
+	INSIST(socketevent->n == connection->out_bytes &&
 	       socketevent->n ==
 	       isc_bufferlist_usedcount(&socketevent->bufferlist));
 
@@ -377,7 +462,7 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	 * only in recv_done.  I'm concerned that there might be some
 	 * sort of logic window, however small, where that isn't true.
 	 */
-	ENSURE(connection->events_pending > 0);
+	INSIST(connection->events_pending > 0);
 	if (--connection->events_pending == 0 && connection->is_client &&
 	    connection->state == omapi_connection_disconnecting)
 		FATAL_ERROR(__FILE__, __LINE__,
@@ -421,7 +506,7 @@ connection_send(omapi_connection_object_t *connection) {
 	REQUIRE(connection->state == omapi_connection_connected);
 
 	if (connection->out_bytes > 0) {
-		ENSURE(!ISC_LIST_EMPTY(connection->output_buffers));
+		INSIST(!ISC_LIST_EMPTY(connection->output_buffers));
 
 		RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) ==
 			      ISC_R_SUCCESS);
@@ -473,12 +558,13 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 	/*
 	 * Create a new connection object.
 	 */
-	result = omapi_object_new((omapi_object_t **)&connection,
+	result = omapi_object_create((omapi_object_t **)&connection,
 				  omapi_type_connection, sizeof(*connection));
 	if (result != ISC_R_SUCCESS)
 		goto free_obuffer;
 		
 	connection->is_client = ISC_TRUE;
+	connection->waiting = ISC_FALSE;
 
 	connection->task = task;
 
@@ -488,6 +574,7 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 	ISC_LIST_APPEND(connection->output_buffers, obuffer, link);
 
 	RUNTIME_CHECK(isc_mutex_init(&connection->mutex) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&connection->recv_lock) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_condition_init(&connection->waiter) ==
 		      ISC_R_SUCCESS);
 
@@ -503,8 +590,8 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 	/*
 	 * Tie the new connection object to the protocol object.
 	 */
-	OBJECT_REF(&protocol->outer, connection, "omapi_connection_toserver");
-	OBJECT_REF(&connection->inner, protocol, "omapi_connection_toserver");
+	OBJECT_REF(&protocol->outer, connection);
+	OBJECT_REF(&connection->inner, protocol);
 
 	/*
 	 * Create a socket on which to communicate.
@@ -522,7 +609,7 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 	flag = 1;
 	if (setsockopt(connection->socket, SOL_SOCKET, SO_REUSEADDR,
 		       (char *)&flag, sizeof(flag)) < 0) {
-		OBJECT_DEREF(&connection, "omapi_connect");
+		OBJECT_DEREF(&connection);
 		return (ISC_R_UNEXPECTED);
 	}
 #endif
@@ -541,8 +628,8 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
 	return (ISC_R_SUCCESS);
 
 free_object:
-	OBJECT_DEREF(&connection, "omapi_connection_toserver");
-	OBJECT_DEREF(&protocol->outer, "omapi_connection_toserver");
+	OBJECT_DEREF(&connection);
+	OBJECT_DEREF(&protocol->outer);
 	return (result);
 
 free_obuffer:
@@ -694,6 +781,12 @@ omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
  *   the protocol.)
  *
  * The client might or might not want to block on the disconnection.
+ * Currently the way to accomplish this is to call omapi_connection_wait
+ * before calling this function.  A more complex method could be developed,
+ * but after spending (too much) time thinking about it, it hardly seems to
+ * be worth the effort when it is easy to just insist that the
+ * omapi_connection_wait be done.
+ *
  * Also, if the error is being thrown from the library, the client
  * might *already* be waiting on (or intending to wait on) whatever messages
  * it has already sent, so it needs to be awakened.  That will be handled
@@ -733,24 +826,31 @@ omapi_connection_disconnect(omapi_object_t *generic, isc_boolean_t force) {
 		 */
 		RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) ==
 			      ISC_R_SUCCESS);
+		INSIST(connection->state == omapi_connection_connected);
 
-		connection->state = omapi_connection_disconnecting;
 		connection->messages_expected++;
 
 		/*
-		 * If there are no other messages expected for the socket,
-		 * the end_connection can be done right now.  Otherwise,
-		 * when recv_done gets the last output from the server,
-		 * then it will then end the connection. 
+		 * If there are other messages expected for the socket,
+		 * then set the state to disconnecting.  Based on that
+		 * flag, when recv_done gets the last output from the server,
+		 * it will then end the connection.   The reason the state 
+		 * is set to disconnecting only here and not while falling
+		 * through to end_connection below is that it is the
+		 * flag which says whether end_connection has been called or
+		 * not.
 		 */
 		if (connection->messages_expected > 1) {
+			connection->state = omapi_connection_disconnecting;
 			RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
 				      ISC_R_SUCCESS);
 			return;
 		}
+
 		/*
 		 * ... else fall through.
 		 */
+		INSIST(connection->events_pending == 0);
 		RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
 			      ISC_R_SUCCESS);
 	}
@@ -777,23 +877,7 @@ omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
 
 	connection = (omapi_connection_object_t *)generic;
 
-	/*
-	 * There is a race condition here that is really, REALLY
-	 * irritating me.  Here's the latest attempt at fixing the
-	 * whole dang disconnect problem.  It is doomed to fail ...
-	 * but maybe it will do the job for now.
-	 * XXXDCL
-	 */
-	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
-	if (connection->state == omapi_connection_disconnecting &&
-	    connection->messages_expected == 1) {
-		RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
-			      ISC_R_SUCCESS);
-		return (OMAPI_R_NOTYET);
-	}
-	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) == ISC_R_SUCCESS);
-
-	ENSURE(connection->state == omapi_connection_connected ||
+	INSIST(connection->state == omapi_connection_connected ||
 	       connection->state == omapi_connection_disconnecting);
 
 	connection->bytes_needed += bytes;
@@ -857,38 +941,15 @@ omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
 	}
 
 	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
+
 	/*
-	 * Don't queue any more read requests if the connection is
-	 * disconnecting and no more messages are expected.  This situation
-	 * can happen when omapi_connection_disconnect is called before
-	 * omapi_protocol_signal_handler has had a chance to go back to
-	 * its omapi_protocol_header_wait condition where it calls
-	 * omapi_connection_require.  It is possible the isc_socket_cancel
-	 * was already done.
+	 * Queue the receive task.
+	 * XXXDCL The "minimum" arg has not been fully thought out.
 	 */
-	if (connection->state == omapi_connection_disconnecting &&
-	    connection->messages_expected == 0) {
-		/*
-		 * Test the above comment's claim that this only happens
-		 * when requesting to wait for the header of the next message.
-		 * XXXDCL 
-		 * (omapi_protocol_object_t *)p->inner->header_size should
-		 * be what is checked against, but at the present time
-		 * the protocol_object_t exists only in protocol.c
-		 */
-		ENSURE(bytes == 24);
-	} else {
-		/*
-		 * Queue the receive task.
-		 * XXXDCL The "minimum" arg has not been fully thought out.
-		 */
-		connection->events_pending++;
-		isc_socket_recvv(connection->socket,
-				 &connection->input_buffers,
-				 (connection->bytes_needed -
-				  connection->in_bytes),
-				 connection->task, recv_done, connection);
-	}
+	connection->events_pending++;
+	isc_socket_recvv(connection->socket, &connection->input_buffers,
+			 connection->bytes_needed - connection->in_bytes,
+			 connection->task, recv_done, connection);
 
 	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
 		      ISC_R_SUCCESS);
@@ -903,6 +964,14 @@ omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
  * those events can happen before omapi_connection_wait is ever called.
  * So a counter needs to be set for every expected message, and this 
  * function can only return when that counter is 0.
+ *
+ * XXXDCL ICK.  There is a problem.  What if an error that causes disconnection
+ * is happens before it is detected by the driving program, before this
+ * function has ever been called, but after all of the connection data
+ * has been freed.
+ *
+ * Actually, that seems to be a problem throughout this WHOLE LIBRARY.  It
+ * really needs to be handled somehow.
  */
 isc_result_t
 omapi_connection_wait(omapi_object_t *object,
@@ -913,7 +982,7 @@ omapi_connection_wait(omapi_object_t *object,
 	 * XXXDCL 'object' is not really used.
 	 */
 	omapi_connection_object_t *connection;
-	isc_result_t result, wait_result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(object != NULL && connection_handle != NULL);
 	REQUIRE(connection_handle->type == omapi_type_connection);
@@ -922,90 +991,41 @@ omapi_connection_wait(omapi_object_t *object,
 	/*
 	 * This routine is not valid for server connections.
 	 */
-	REQUIRE(connection->is_client);
+	INSIST(connection->is_client);
 
-	result = isc_mutex_lock(&connection->mutex);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
+	INSIST(connection->state == omapi_connection_connected);
+	
+	connection->waiting = ISC_TRUE;
 
-	wait_result = ISC_R_SUCCESS;
-
-	while (connection->messages_expected > 0 &&
-	       wait_result == ISC_R_SUCCESS)
+	while (connection->messages_expected > 0 && result == ISC_R_SUCCESS)
 
 		if (timeout == NULL)
-			wait_result = isc_condition_wait(&connection->waiter,
-							 &connection->mutex);
+			result = isc_condition_wait(&connection->waiter,
+						    &connection->mutex);
 		else
-			wait_result =
-				isc_condition_waituntil(&connection->waiter,
-							&connection->mutex,
-							timeout);
+			result = isc_condition_waituntil(&connection->waiter,
+							 &connection->mutex,
+							 timeout);
 
-	RUNTIME_CHECK(wait_result == ISC_R_SUCCESS ||
-		      wait_result == ISC_R_TIMEDOUT);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS || result == ISC_R_TIMEDOUT);
 
-	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) == ISC_R_SUCCESS);
+	connection->waiting = ISC_FALSE;
 
-	return (wait_result);
-}
+	if (connection->state == omapi_connection_closed)
+		/*
+		 * An error occurred and end_connection needs to have
+		 * free_connection called now that we're done looking
+		 * at connection->messages_expected.
+		 *
+		 * XXXDCL something better to do with the result value?
+		 */
+		free_connection(connection);
+	else
+		RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
+			      ISC_R_SUCCESS);
 
-isc_result_t
-omapi_connection_setvalue(omapi_object_t *connection, omapi_object_t *id,
-			  omapi_data_string_t *name, omapi_typed_data_t *value)
-{
-	REQUIRE(connection != NULL &&
-		connection->type == omapi_type_connection);
-	
-	PASS_SETVALUE(connection);
-}
-
-isc_result_t
-omapi_connection_getvalue(omapi_object_t *connection, omapi_object_t *id,
-			  omapi_data_string_t *name, omapi_value_t **value)
-{
-	REQUIRE(connection != NULL &&
-		connection->type == omapi_type_connection);
-
-	PASS_GETVALUE(connection);
-}
-
-void
-omapi_connection_destroy(omapi_object_t *handle, const char *name) {
-	omapi_connection_object_t *connection;
-
-	REQUIRE(handle != NULL && handle->type == omapi_type_connection);
-
-	(void)name;
-
-	connection = (omapi_connection_object_t *)handle;
-
-	if (connection->state == omapi_connection_connected)
-		omapi_connection_disconnect(handle, OMAPI_FORCE_DISCONNECT);
-}
-
-isc_result_t
-omapi_connection_signalhandler(omapi_object_t *connection, const char *name,
-			       va_list ap)
-{
-	REQUIRE(connection != NULL &&
-		connection->type == omapi_type_connection);
-	
-	PASS_SIGNAL(connection);
-}
-
-/*
- * Write all the published values associated with the object through the
- * specified connection.
- */
-isc_result_t
-omapi_connection_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
-			     omapi_object_t *handle)
-{
-	REQUIRE(connection != NULL &&
-		connection->type == omapi_type_connection);
-
-	PASS_STUFFVALUES(handle);
+	return (result);
 }
 
 /*
@@ -1162,4 +1182,72 @@ omapi_connection_puthandle(omapi_object_t *c, omapi_object_t *h) {
 		result = omapi_connection_putuint32(c, handle);
 
 	return (result);
+}
+
+static isc_result_t
+connection_setvalue(omapi_object_t *connection, omapi_object_t *id,
+		    omapi_data_string_t *name, omapi_typed_data_t *value)
+{
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
+	
+	PASS_SETVALUE(connection);
+}
+
+static isc_result_t
+connection_getvalue(omapi_object_t *connection, omapi_object_t *id,
+		    omapi_data_string_t *name, omapi_value_t **value)
+{
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
+
+	PASS_GETVALUE(connection);
+}
+
+static void
+connection_destroy(omapi_object_t *handle) {
+	omapi_connection_object_t *connection;
+
+	REQUIRE(handle != NULL && handle->type == omapi_type_connection);
+
+	connection = (omapi_connection_object_t *)handle;
+
+	if (connection->state == omapi_connection_connected)
+		omapi_connection_disconnect(handle, OMAPI_FORCE_DISCONNECT);
+}
+
+static isc_result_t
+connection_signalhandler(omapi_object_t *connection, const char *name,
+			 va_list ap)
+{
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
+	
+	PASS_SIGNAL(connection);
+}
+
+/*
+ * Write all the published values associated with the object through the
+ * specified connection.
+ */
+static isc_result_t
+connection_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
+		       omapi_object_t *handle)
+{
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
+
+	PASS_STUFFVALUES(handle);
+}
+
+isc_result_t
+omapi_connection_init(void) {
+	return (omapi_object_register(&omapi_type_connection,
+					   "connection",
+					   connection_setvalue,
+					   connection_getvalue,
+					   connection_destroy,
+					   connection_signalhandler,
+					   connection_stuffvalues,
+					   NULL, NULL, NULL));
 }

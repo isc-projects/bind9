@@ -40,7 +40,7 @@ typedef struct omapi_listener_object {
  * Reader callback for a listener object.   Accept an incoming connection.
  */
 static void
-omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
+listener_accept(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_buffer_t *ibuffer, *obuffer;
 	isc_task_t *connection_task = NULL;
@@ -58,7 +58,7 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Set up another listen task for the socket.
 	 */
-	isc_socket_accept(event->sender, task, omapi_listener_accept,
+	isc_socket_accept(event->sender, task, listener_accept,
 			  event->arg);
 
 	/*
@@ -95,7 +95,7 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Create a new connection object.
 	 */
-	result = omapi_object_new((omapi_object_t **)&connection,
+	result = omapi_object_create((omapi_object_t **)&connection,
 				  omapi_type_connection, sizeof(*connection));
 	if (result != ISC_R_SUCCESS)
 		goto free_obuffer;
@@ -118,6 +118,7 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	ISC_LIST_APPEND(connection->output_buffers, obuffer, link);
 
 	RUNTIME_CHECK(isc_mutex_init(&connection->mutex) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&connection->recv_lock) == ISC_R_SUCCESS);
 
 	/*
 	 * Notify the listener object that a connection was made.
@@ -131,7 +132,7 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	 * reaped.  The omapi_protocol_listener_signal function added a
 	 * reference when it created a protocol object as connection->inner.
 	 */
-	OBJECT_DEREF(&connection, "omapi_listener_accept");
+	OBJECT_DEREF(&connection);
 	return;
 
 free_object:
@@ -139,7 +140,7 @@ free_object:
 	 * Destroy the connection.  This will free everything created
 	 * in this function but the event.
 	 */
-	OBJECT_DEREF(&connection, "omapi_listener_accept");
+	OBJECT_DEREF(&connection);
 	return;
 
 	/*
@@ -189,8 +190,8 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 	/*
 	 * Tie the listener object to the calling object.
 	 */
-	OBJECT_REF(&caller->outer, listener, "omapi_protocol_listen");
-	OBJECT_REF(&listener->inner, caller, "omapi_protocol_listen");
+	OBJECT_REF(&caller->outer, listener);
+	OBJECT_REF(&listener->inner, caller);
 
 	/*
 	 * Create a socket on which to listen.
@@ -203,7 +204,7 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 		 * because it has two refcnts, one for existing plus one
 		 * for the tie to h->outer.  This does not seem right to me.
 		 */
-		OBJECT_DEREF(&listener, "omapi_listen");
+		OBJECT_DEREF(&listener);
 		return (result);
 	}
 	
@@ -219,7 +220,7 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 	 */
 	result = isc_socket_bind(listener->socket, &listener->address);
 	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&listener, "omapi_listen");
+		OBJECT_DEREF(&listener);
 		return (result);
 	}
 
@@ -228,24 +229,24 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 	 */
 	result = isc_socket_listen(listener->socket, max);
 	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&listener, "omapi_listen");
+		OBJECT_DEREF(&listener);
 		return (result);
 	}
 
 	/*
 	 * Queue up the first accept event.  The listener object
-	 * will be passed to omapi_listener_accept() when it is called.
+	 * will be passed to listener_accept() when it is called.
 	 */
 	result = isc_socket_accept(listener->socket, task,
-				   omapi_listener_accept, listener);
+				   listener_accept, listener);
 	if (result != ISC_R_SUCCESS)
-		OBJECT_DEREF(&listener, "omapi_listen");
+		OBJECT_DEREF(&listener);
 
 	return (result);
 }
 
-isc_result_t
-omapi_listener_setvalue(omapi_object_t *listener, omapi_object_t *id,
+static isc_result_t
+listener_setvalue(omapi_object_t *listener, omapi_object_t *id,
 			omapi_data_string_t *name, omapi_typed_data_t *value)
 {
 	/*
@@ -257,8 +258,8 @@ omapi_listener_setvalue(omapi_object_t *listener, omapi_object_t *id,
 	PASS_SETVALUE(listener);
 }
 
-isc_result_t
-omapi_listener_getvalue(omapi_object_t *listener, omapi_object_t *id,
+static isc_result_t
+listener_getvalue(omapi_object_t *listener, omapi_object_t *id,
 			omapi_data_string_t *name, omapi_value_t **value)
 {
 	/*
@@ -270,13 +271,11 @@ omapi_listener_getvalue(omapi_object_t *listener, omapi_object_t *id,
 	PASS_GETVALUE(listener);
 }
 
-void
-omapi_listener_destroy(omapi_object_t *object, const char *name) {
+static void
+listener_destroy(omapi_object_t *object) {
 	omapi_listener_object_t *listener;
 
 	REQUIRE(object != NULL && object->type == omapi_type_listener);
-
-	(void)name;		/* Unused. */
 
 	listener = (omapi_listener_object_t *)object;
 
@@ -291,14 +290,13 @@ omapi_listener_destroy(omapi_object_t *object, const char *name) {
 	}
 }
 
-isc_result_t
-omapi_listener_signalhandler(omapi_object_t *listener, const char *name,
-			      va_list ap)
+static isc_result_t
+listener_signalhandler(omapi_object_t *listener, const char *name, va_list ap)
 {
 	REQUIRE(listener != NULL && listener->type == omapi_type_listener);
 	
 	/*
-	 * This function is reached when omapi_listener_accept does
+	 * This function is reached when listener_accept does
 	 * an omapi_signal of "connect" on the listener object.  Nothing
 	 * need be done here, but the object that originally requested
 	 * the listen needs to signalled that a connection was made.
@@ -314,12 +312,23 @@ omapi_listener_signalhandler(omapi_object_t *listener, const char *name,
  * Write all the published values associated with the object through the
  * specified connection.
  */
-isc_result_t
-omapi_listener_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
-			   omapi_object_t *listener)
+static isc_result_t
+listener_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
+		     omapi_object_t *listener)
 {
 	REQUIRE(listener != NULL && listener->type == omapi_type_listener);
 
 	PASS_STUFFVALUES(listener);
 }
 
+isc_result_t
+omapi_listener_init(void) {
+	return (omapi_object_register(&omapi_type_listener,
+					   "listener",
+					   listener_setvalue,
+					   listener_getvalue,
+					   listener_destroy,
+					   listener_signalhandler,
+					   listener_stuffvalues,
+					   NULL, NULL, NULL));
+}

@@ -27,13 +27,9 @@
 
 omapi_object_type_t *omapi_type_connection;
 omapi_object_type_t *omapi_type_listener;
-omapi_object_type_t *omapi_type_io_object;
-omapi_object_type_t *omapi_type_datagram;
 omapi_object_type_t *omapi_type_generic;
 omapi_object_type_t *omapi_type_protocol;
 omapi_object_type_t *omapi_type_protocol_listener;
-omapi_object_type_t *omapi_type_waiter;
-omapi_object_type_t *omapi_type_remote;
 omapi_object_type_t *omapi_type_message;
 
 omapi_object_type_t *omapi_object_types;
@@ -41,7 +37,6 @@ int omapi_object_type_count;
 
 isc_mem_t *omapi_mctx;
 isc_taskmgr_t *omapi_taskmgr;
-isc_timermgr_t *omapi_timermgr;
 isc_socketmgr_t *omapi_socketmgr;
 
 isc_boolean_t omapi_ipv6 = ISC_FALSE;
@@ -74,64 +69,27 @@ omapi_init(isc_mem_t *mctx) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	omapi_timermgr = NULL;
-	result = isc_timermgr_create(omapi_mctx, &omapi_timermgr);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
 	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		omapi_ipv6 = ISC_TRUE;
 	else
 		omapi_ipv6 = ISC_FALSE;
 	
 	/*
-	 * Register all the standard object types.
+	 * Initialize all the standard object types.
 	 */
-	result = omapi_object_type_register(&omapi_type_connection,
-					    "connection",
-					    omapi_connection_setvalue,
-					    omapi_connection_getvalue,
-					    omapi_connection_destroy,
-					    omapi_connection_signalhandler,
-					    omapi_connection_stuffvalues,
-					    0, 0, 0);
+	result = omapi_generic_init();
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = omapi_object_type_register(&omapi_type_listener,
-					    "listener",
-					    omapi_listener_setvalue,
-					    omapi_listener_getvalue,
-					    omapi_listener_destroy,
-					    omapi_listener_signalhandler,
-					    omapi_listener_stuffvalues,
-					    0, 0, 0);
+	result = omapi_listener_init();
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = omapi_object_type_register(&omapi_type_io_object,
-					    "io",
-					    omapi_io_setvalue,
-					    omapi_io_getvalue,
-					    omapi_io_destroy,
-					    omapi_io_signalhandler,
-					    omapi_io_stuffvalues,
-					    0, 0, 0);
+	result = omapi_connection_init();
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = omapi_object_type_register(&omapi_type_generic,
-					    "generic",
-					    omapi_generic_set_value,
-					    omapi_generic_get_value,
-					    omapi_generic_destroy,
-					    omapi_generic_signal_handler,
-					    omapi_generic_stuff_values,
-					    0, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = omapi_object_type_register(&omapi_type_protocol,
+	result = omapi_object_register(&omapi_type_protocol,
 					    "protocol",
 					    omapi_protocol_set_value,
 					    omapi_protocol_get_value,
@@ -142,7 +100,7 @@ omapi_init(isc_mem_t *mctx) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = omapi_object_type_register(&omapi_type_protocol_listener,
+	result = omapi_object_register(&omapi_type_protocol_listener,
 					    "protocol-listener",
 					    omapi_protocol_listener_set_value,
 					    omapi_protocol_listener_get_value,
@@ -153,45 +111,32 @@ omapi_init(isc_mem_t *mctx) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = omapi_object_type_register(&omapi_type_message,
-					    "message",
-					    omapi_message_setvalue,
-					    omapi_message_getvalue,
-					    omapi_message_destroy,
-					    omapi_message_signalhandler,
-					    omapi_message_stuffvalues,
-					    0, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = omapi_object_type_register(&omapi_type_waiter,
-					     "waiter",
-					     0,
-					     0,
-					     0,
-					     omapi_waiter_signal_handler, 0,
-					     0, 0, 0);
+	result = omapi_message_init();
 
 	return (result);
 }
 
+/*
+ * This does not free connections and other in-use objects, only the
+ * things created by omapi_init().  It is the callers responsibility to
+ * free the other things (as via omapi_connection_disconnect or
+ * omapi_object_dereference).
+ */
 void
-omapi_shutdown() {
+omapi_destroy() {
 	omapi_object_type_t *type, *next_type;
 
 	isc_socketmgr_destroy(&omapi_socketmgr);
 	isc_taskmgr_destroy(&omapi_taskmgr);
-	isc_timermgr_destroy(&omapi_timermgr);
 
 	for (type = omapi_object_types; type != NULL; type = next_type) {
 		next_type = type->next;
 		isc_mem_put(omapi_mctx, type, sizeof(*type));
 	}
-	
 }
 
 isc_result_t
-omapi_object_type_register(omapi_object_type_t **type, const char *name,
+omapi_object_register(omapi_object_type_t **type, const char *name,
 			   isc_result_t (*set_value)
 					(omapi_object_t *,
 					 omapi_object_t *,
@@ -205,8 +150,7 @@ omapi_object_type_register(omapi_object_type_t **type, const char *name,
 					 omapi_value_t **),
 
 			   void (*destroy)
-					(omapi_object_t *,
-					 const char *),
+					(omapi_object_t *),
 
 			   isc_result_t (*signal_handler)
 					(omapi_object_t *,
@@ -341,7 +285,7 @@ omapi_set_boolean_value(omapi_object_t *h, omapi_object_t *id,
 
 	result = omapi_set_value(h, id, n, tv);
 	omapi_data_stringdereference(&n, "omapi_set_boolean_value");
-	omapi_data_dereference(&tv, "omapi_set_boolean_value");
+	omapi_data_dereference(&tv);
 	return (result);
 }
 
@@ -367,7 +311,7 @@ omapi_set_int_value(omapi_object_t *h, omapi_object_t *id,
 
 	result = omapi_set_value(h, id, n, tv);
 	omapi_data_stringdereference(&n, "omapi_set_int_value");
-	omapi_data_dereference(&tv, "omapi_set_int_value");
+	omapi_data_dereference(&tv);
 	return (result);
 }
 
@@ -393,7 +337,7 @@ omapi_set_object_value(omapi_object_t *h, omapi_object_t *id,
 
 	result = omapi_set_value(h, id, n, tv);
 	omapi_data_stringdereference(&n, "omapi_set_object_value");
-	omapi_data_dereference(&tv, "omapi_set_object_value");
+	omapi_data_dereference(&tv);
 	return (result);
 }
 
@@ -419,7 +363,7 @@ omapi_set_string_value(omapi_object_t *h, omapi_object_t *id,
 
 	result = omapi_set_value(h, id, n, tv);
 	omapi_data_stringdereference(&n, "omapi_set_string_value");
-	omapi_data_dereference(&tv, "omapi_set_string_value");
+	omapi_data_dereference(&tv);
 	return (result);
 }
 
@@ -467,18 +411,6 @@ omapi_stuff_values(omapi_object_t *c, omapi_object_t *id, omapi_object_t *o) {
 	if (outer->type->stuff_values != NULL)
 		return ((*(outer->type->stuff_values))(c, id, outer));
 	return (ISC_R_NOTFOUND);
-}
-
-isc_result_t
-omapi_object_create(omapi_object_t **obj, omapi_object_t *id,
-		    omapi_object_type_t *type)
-{
-	REQUIRE(type != NULL);
-
-	if (type->create == NULL)
-		return (ISC_R_NOTIMPLEMENTED);
-
-	return ((*(type->create))(obj, id));
 }
 
 isc_result_t

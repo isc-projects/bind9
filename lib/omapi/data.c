@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.2 2000/01/13 06:13:21 tale Exp $ */
+/* $Id: data.c,v 1.3 2000/01/17 18:02:05 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -93,8 +93,7 @@ omapi_data_new(omapi_typed_data_t **t, omapi_datatype_t type, ...) {
 		new->u.buffer.len = val;
 		break;
 	      case omapi_datatype_object:
-		OBJECT_REF(&new->u.object, va_arg(l, omapi_object_t *),
-			  "omapi_datatype_new");
+		OBJECT_REF(&new->u.object, va_arg(l, omapi_object_t *));
 		break;
 	}
 	new->type = type;
@@ -117,7 +116,7 @@ omapi_data_reference(omapi_typed_data_t **r, omapi_typed_data_t *h,
 }
 
 void
-omapi_data_dereference(omapi_typed_data_t **h, const char *name) {
+omapi_data_dereference(omapi_typed_data_t **h) {
 	int length = 0;
 
 
@@ -138,7 +137,7 @@ omapi_data_dereference(omapi_typed_data_t **h, const char *name) {
 				(*h)->u.buffer.len;
 			break;
 		case omapi_datatype_object:
-			OBJECT_DEREF(&(*h)->u.object, name);
+			OBJECT_DEREF(&(*h)->u.object);
 			length = OMAPI_TYPED_DATA_OBJECT_LEN;
 			break;
 		default:
@@ -237,7 +236,7 @@ omapi_data_valuedereference(omapi_value_t **h, const char *name) {
 		if ((*h)->name != NULL)
 			omapi_data_stringdereference(&(*h)->name, name);
 		if ((*h)->value != NULL)
-			omapi_data_dereference(&(*h)->value, name);
+			omapi_data_dereference(&(*h)->value);
 		isc_mem_put(omapi_mctx, *h, sizeof(*h));
 	}
 	*h = NULL;

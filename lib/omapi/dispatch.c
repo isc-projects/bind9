@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.7 2000/01/13 06:13:22 tale Exp $ */
+/* $Id: dispatch.c,v 1.8 2000/01/17 18:02:05 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -39,64 +39,3 @@ omapi_dispatch(struct timeval *t) {
 	select(0, NULL, NULL, NULL, t ? t : NULL);
 	return (ISC_R_SUCCESS);
 }
-
-isc_result_t
-omapi_io_setvalue(omapi_object_t *io, omapi_object_t *id,
-		  omapi_data_string_t *name, omapi_typed_data_t *value)
-{
-	REQUIRE(io != NULL && io->type == omapi_type_io_object);
-
-	PASS_SETVALUE(io);
-}
-
-isc_result_t
-omapi_io_getvalue(omapi_object_t *io, omapi_object_t *id,
-		  omapi_data_string_t *name, omapi_value_t **value)
-{
-	REQUIRE(io != NULL && io->type == omapi_type_io_object);
-	
-	PASS_GETVALUE(io);
-}
-
-void
-omapi_io_destroy(omapi_object_t *io, const char *name) {
-	REQUIRE(io != NULL && io->type == omapi_type_io_object);
-
-	(void)name;		/* Unused. */
-}
-
-isc_result_t
-omapi_io_signalhandler(omapi_object_t *io, const char *name, va_list ap)
-{
-	REQUIRE(io != NULL && io->type == omapi_type_io_object);
-
-	PASS_SIGNAL(io);
-}
-
-isc_result_t
-omapi_io_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
-		      omapi_object_t *io)
-{
-	REQUIRE(io != NULL && io->type == omapi_type_io_object);
-
-	PASS_STUFFVALUES(io);
-}
-
-isc_result_t
-omapi_waiter_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
-	omapi_waiter_object_t *waiter;
-
-	fprintf(stderr, "omapi_waiter_signal_handler\n");
-
-	REQUIRE(h != NULL && h->type == omapi_type_waiter);
-	
-	if (strcmp(name, "ready") == 0) {
-		fprintf(stderr, "unblocking waiter\n");
-		waiter = (omapi_waiter_object_t *)h;
-		isc_condition_signal(&waiter->ready);
-		return (ISC_R_SUCCESS);
-	}
-
-	PASS_SIGNAL(h);
-}
-

@@ -70,10 +70,12 @@ typedef struct omapi_message_object {
 typedef struct omapi_connection_object {
 	OMAPI_OBJECT_PREAMBLE;
 	isc_mutex_t			mutex;
+	isc_mutex_t			recv_lock;
 	isc_socket_t			*socket; /* Connection socket. */
 	isc_task_t			*task;
 	unsigned int			events_pending;	/* socket events */
 	unsigned int			messages_expected;
+	isc_boolean_t			waiting;
 	isc_condition_t			waiter;	/* omapi_connection_wait() */
 	omapi_connection_state_t	state;
 	isc_sockaddr_t			remote_addr;
@@ -96,23 +98,14 @@ typedef struct omapi_connection_object {
 	 */
 	isc_uint32_t			out_bytes;
 	isc_bufferlist_t		output_buffers;
-#if 0
-	/*
-	 * Listener that accepted this connection.
-	 * XXXDCL This appears to not be needed.
-	 * ... well, now it is.  but it could just be an isc_boolean_t
-	 * that indicates whether this is a server side connection  or client.
-	 */
-	omapi_object_t *		listener;
-#endif
 	isc_boolean_t			is_client;
 } omapi_connection_object_t;
 
 typedef struct omapi_generic_object {
 	OMAPI_OBJECT_PREAMBLE;
-	omapi_value_t **	values;
-	unsigned int		nvalues;
-	unsigned int		va_max;
+	omapi_value_t **		values;
+	unsigned int			nvalues;
+	unsigned int			va_max;
 } omapi_generic_object_t;
 
 typedef struct omapi_waiter_object {
@@ -120,6 +113,18 @@ typedef struct omapi_waiter_object {
 	isc_mutex_t			mutex;
 	isc_condition_t			ready;
 } omapi_waiter_object_t;
+
+/*****
+ ***** Global Variables.
+ *****/
+extern omapi_object_type_t *omapi_type_connection;
+extern omapi_object_type_t *omapi_type_listener;
+extern omapi_object_type_t *omapi_type_generic;
+extern omapi_object_type_t *omapi_type_protocol;
+extern omapi_object_type_t *omapi_type_protocol_listener;
+extern omapi_object_type_t *omapi_type_message;
+
+extern omapi_object_type_t *omapi_object_types;
 
 /*
  * Everything needs a memory context.  This will likely be made a parameter
@@ -135,11 +140,6 @@ extern isc_taskmgr_t *omapi_taskmgr;
 /*
  * XXXDCL comment, localize?
  */
-extern isc_timermgr_t *omapi_timermgr;
-
-/*
- * XXXDCL comment, localize?
- */
 extern isc_socketmgr_t *omapi_socketmgr;
 
 extern isc_boolean_t omapi_ipv6;
@@ -147,12 +147,12 @@ extern isc_boolean_t omapi_ipv6;
 void
 connection_send(omapi_connection_object_t *connection);
 
-#define OBJECT_REF(objectp, object, where) \
+#define OBJECT_REF(objectp, object) \
 	omapi_object_reference((omapi_object_t **)objectp, \
-			       (omapi_object_t *)object, where)
+			       (omapi_object_t *)object)
 
-#define OBJECT_DEREF(objectp, where) \
-	omapi_object_dereference((omapi_object_t **)objectp, where)
+#define OBJECT_DEREF(objectp) \
+	omapi_object_dereference((omapi_object_t **)objectp)
 
 #define PASS_CHECK(object, function) \
 	(object->inner != NULL && object->inner->type->function != NULL)
@@ -192,6 +192,18 @@ connection_send(omapi_connection_object_t *connection);
 	else \
 		return (ISC_R_SUCCESS); \
      } while (0)
+
+isc_result_t
+omapi_connection_init(void);
+
+isc_result_t
+omapi_listener_init(void);
+
+isc_result_t
+omapi_generic_init(void);
+
+isc_result_t
+omapi_message_init(void);
 
 ISC_LANG_ENDDECLS
 

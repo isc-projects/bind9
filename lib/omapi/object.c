@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.4 2000/01/14 23:10:03 tale Exp $ */
+/* $Id: object.c,v 1.5 2000/01/17 18:02:08 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -30,12 +30,18 @@
 #include <omapi/private.h>
 
 isc_result_t
-omapi_object_new(omapi_object_t **object, omapi_object_type_t *type,
+omapi_object_create(omapi_object_t **object, omapi_object_type_t *type,
 		 size_t size)
 {
 	omapi_object_t *new;
 
 	REQUIRE(object != NULL && *object == NULL);
+	REQUIRE(size > 0 || type == NULL);
+
+	if (type == NULL) {
+		type = omapi_type_generic;
+		size = sizeof(omapi_generic_object_t);
+	}
 
 	new = isc_mem_get(omapi_mctx, size);
 	if (new == NULL)
@@ -53,20 +59,16 @@ omapi_object_new(omapi_object_t **object, omapi_object_type_t *type,
 }
 
 void
-omapi_object_reference(omapi_object_t **r, omapi_object_t *h,
-		       const char *name)
-{
+omapi_object_reference(omapi_object_t **r, omapi_object_t *h) {
 	REQUIRE(r != NULL && *r == NULL);
 	REQUIRE(h != NULL);
-
-	(void)name;		/* Unused. */
 
 	*r = h;
 	h->refcnt++;
 }
 
 void
-omapi_object_dereference(omapi_object_t **h, const char *name) {
+omapi_object_dereference(omapi_object_t **h) {
 	int outer_reference = 0;
 	int inner_reference = 0;
 	int handle_reference = 0;
@@ -83,7 +85,7 @@ omapi_object_dereference(omapi_object_t **h, const char *name) {
 	 */
 	/*
 	 * XXXDCL my wording
-	 * Note whether the object being dereference has an inner object, but
+	 * Note whether the object being dereferenced has an inner object, but
 	 * only if the inner object's own outer pointer is not what is
 	 * being dereferenced.
 	 * (XXXDCL when does it happen that way ?)
@@ -153,13 +155,14 @@ omapi_object_dereference(omapi_object_t **h, const char *name) {
 
 		if (extra_references == 0) {
 			if (inner_reference != 0)
-				OBJECT_DEREF(&(*h)->inner->outer, name);
+				OBJECT_DEREF(&(*h)->inner->outer);
 			if (outer_reference != 0)
-				OBJECT_DEREF(&(*h)->outer->inner, name);
+				OBJECT_DEREF(&(*h)->outer->inner);
 			if ((*h)->type->destroy != NULL)
-				(*((*h)->type->destroy))(*h, name);
+				(*((*h)->type->destroy))(*h, NULL);
 			isc_mem_put(omapi_mctx, *h, (*h)->object_size);
 		}
 	}
+
 	*h = NULL;
 }

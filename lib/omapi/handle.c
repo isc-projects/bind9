@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.4 2000/01/13 06:13:23 tale Exp $ */
+/* $Id: handle.c,v 1.5 2000/01/17 18:02:06 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -176,8 +176,7 @@ omapi_object_handle_in_table(omapi_handle_t h, omapi_handle_table_t *table,
 	 * appropriate place.
 	 */
 	if (table->leaf) {
-		OBJECT_REF(&table->children[h - table->first].object, o,
-			  "omapi_object_handle_in_table");
+		OBJECT_REF(&table->children[h - table->first].object, o);
 		o->handle = h;
 		return (ISC_R_SUCCESS);
 	}
@@ -296,8 +295,7 @@ omapi_handle_lookup_in(omapi_object_t **o, omapi_handle_t h,
 		if (table->children[h - table->first].object == NULL)
 			return (ISC_R_NOTFOUND);
 
-		OBJECT_REF(o, table->children[h - table->first].object,
-			   "omapi_handle_lookup_in");
+		OBJECT_REF(o, table->children[h - table->first].object);
 		return (ISC_R_SUCCESS);
 	}
 
