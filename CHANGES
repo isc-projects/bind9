@@ -1,4 +1,6 @@
 
+	--- 9.1.0b3 released ---
+
  661.	[bug]		Certain UDP IXFR requests caused an assertion failure
 			(mpctx->allocated == 0). [RT #355, #394, #623]
 
