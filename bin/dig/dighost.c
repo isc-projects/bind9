@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.51 2000/06/15 20:56:24 mws Exp $ */
+/* $Id: dighost.c,v 1.52 2000/06/15 22:08:44 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1881,6 +1881,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		memcpy(&sockaddr->type.sa,res->ai_addr, res->ai_addrlen);
 		sockaddr->length = res->ai_addrlen;
 		isc_sockaddr_setport(sockaddr, port);
+		freeaddrinfo(res);
 #else
 		he = gethostbyname(host);
 		if (he == NULL)
