@@ -1,3 +1,7 @@
+ 780.	[bug]		Error handling code dealing with out of memory or
+			other rare errors could lead to assertion failures
+			when calling functions on unitialized names. [RT #1065]
+
  779.	[func]		Added the "minimal-responses" option.
 
  778.	[bug]		When starting cache cleaning, cleaning_timer_action()
