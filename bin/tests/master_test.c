@@ -59,8 +59,6 @@ main(int argc, char *argv[]) {
 	isc_buffer_t source;
 	isc_buffer_t target;
 	unsigned char name_buf[255];
-	int soacount = 0;
-	int nscount = 0;
 	dns_rdatacallbacks_t callbacks;
 
 	UNUSED(argc);
@@ -86,13 +84,9 @@ main(int argc, char *argv[]) {
 		
 		result = dns_master_loadfile(argv[1], &origin, &origin, 1,
 					     ISC_FALSE,
-					     &soacount, &nscount, 
 					     &callbacks, mctx);
 		fprintf(stdout, "dns_master_loadfile: %s\n",
 			dns_result_totext(result));
-		if (result == ISC_R_SUCCESS)
-			fprintf(stdout, "soacount = %d, nscount = %d\n",
-				soacount, nscount);
 	}
 	return (0);
 }
