@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.212 2001/11/16 23:58:39 gson Exp $ */
+/* $Id: query.c,v 1.213 2001/11/26 22:54:16 gson Exp $ */
 
 #include <config.h>
 
@@ -3073,8 +3073,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 */
 		dns_name_init(tname, NULL);
 		query_addcnamelike(client, client->query.qname, fname,
-				   trdataset->ttl, &tname,
-				   dns_rdatatype_cname);
+				   0, &tname, dns_rdatatype_cname);
 		if (tname != NULL)
 			dns_message_puttempname(client->message, &tname);
 		/*
