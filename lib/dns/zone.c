@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.180 2000/08/10 18:35:46 gson Exp $ */
+/* $Id: zone.c,v 1.181 2000/08/10 19:34:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1979,7 +1979,12 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&notify->zone->lock);
+
 	dns_zone_iattach(notify->zone, &zone);
+
+	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_LOADED) == 0)
+		goto cleanup;
+
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ||
 	     DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING)) {
 		result = ISC_R_CANCELED;
