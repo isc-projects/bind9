@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.109 2000/12/11 19:24:14 bwelling Exp $ */
+/* $Id: name.c,v 1.110 2000/12/28 00:42:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2290,16 +2290,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				*ndata++ = c;
 				saw_bitstring = ISC_TRUE;
 				state = fw_bitstring;
-			} else if (c == DNS_LABELTYPE_GLOBALCOMP16) {
-				/*
-				 * 16-bit pointer.
-				 */
-				if ((dctx->allowed & DNS_COMPRESS_GLOBAL16) ==
-				    0)
-					return (DNS_R_DISALLOWED);
-				new_current = 0;
-				n = 2;
-				state = fw_newcurrent;
 			} else
 				return (DNS_R_BADLABELTYPE);
 			break;
@@ -2431,9 +2421,16 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 		gf = ISC_FALSE;
 
 	/*
+	 * If the offset is too high for 14 bit global compression, we're
+	 * out of luck.
+	 */
+	if (gf && go >= 0x4000)
+		gf = ISC_FALSE;
+
+	/*
 	 * Will the compression pointer reduce the message size?
 	 */
-	if (gf && (gp.length + ((go < 16384) ? 2 : 3)) >= name->length)
+	if (gf && (gp.length + 2) >= name->length)
 		gf = ISC_FALSE;
 
 	if (gf) {
@@ -2442,19 +2439,10 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 		(void)memcpy((unsigned char *)target->base + target->used,
 			     gp.ndata, (size_t)gp.length);
 		isc_buffer_add(target, gp.length);
-		if (go < 16384) {
-			go |= 0xc000;
-			if (target->length - target->used < 2)
-				return (ISC_R_NOSPACE);
-			isc_buffer_putuint16(target, go);
-		} else {
-			if (target->length - target->used < 3)
-				return (ISC_R_NOSPACE);
-			*((unsigned char*)target->base + target->used) =
-				DNS_LABELTYPE_GLOBALCOMP16;
-			isc_buffer_add(target, 1);
-			isc_buffer_putuint16(target, go);
-		}
+		go |= 0xc000;
+		if (target->length - target->used < 2)
+			return (ISC_R_NOSPACE);
+		isc_buffer_putuint16(target, go);
 		if (gp.length != 0)
 			dns_compress_add(cctx, &gp, &gs, offset);
 	} else {

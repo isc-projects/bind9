@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.29 2000/11/14 23:29:47 bwelling Exp $ */
+/* $Id: t_names.c,v 1.30 2000/12/28 00:43:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2242,8 +2242,6 @@ t_dns_name_fromwire_x(const char *testfile, size_t buflen) {
 				dc_method = DNS_COMPRESS_NONE;
 				if (! strcmp(tok, "DNS_COMPRESS_GLOBAL14"))
 					dc_method = DNS_COMPRESS_GLOBAL14;
-				else if (! strcmp(tok,"DNS_COMPRESS_GLOBAL16"))
-					dc_method = DNS_COMPRESS_GLOBAL16;
 				else if (! strcmp(tok, "DNS_COMPRESS_GLOBAL"))
 					dc_method = DNS_COMPRESS_GLOBAL;
 				else if (! strcmp(tok, "DNS_COMPRESS_ALL"))

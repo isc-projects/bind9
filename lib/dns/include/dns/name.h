@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.82 2000/11/27 19:42:34 gson Exp $ */
+/* $Id: name.h,v 1.83 2000/12/28 00:42:58 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -93,7 +93,6 @@ ISC_LANG_BEGINDECLS
  *** Extended Label Types
  ***/
 
-#define DNS_LABELTYPE_GLOBALCOMP16	0x40
 #define DNS_LABELTYPE_BITSTRING		0x41
 
 /***

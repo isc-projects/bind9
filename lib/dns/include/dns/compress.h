@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.19 2000/11/14 23:29:55 bwelling Exp $ */
+/* $Id: compress.h,v 1.20 2000/12/28 00:42:56 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -28,8 +28,7 @@ ISC_LANG_BEGINDECLS
 
 #define DNS_COMPRESS_NONE		0x00	/* no compression */
 #define DNS_COMPRESS_GLOBAL14		0x01	/* "normal" compression. */
-#define DNS_COMPRESS_GLOBAL16		0x02	/* 16-bit edns global comp. */
-#define DNS_COMPRESS_GLOBAL		0x03	/* all global comp. */
+#define DNS_COMPRESS_GLOBAL		0x01	/* all global comp. */
 /*
  * Synonymous with DNS_COMPRESS_GLOBAL.  A genuine difference existed when
  * local compression was an IETF draft, but that draft has been retired without
