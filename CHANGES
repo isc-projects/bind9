@@ -37,7 +37,8 @@
 
 1004.	[port]		Deal with recvfrom() returning EHOSTDOWN. [RT #1770]
 
-1002.	[bug]		Log unknown class including file and line. [RT #1759]
+1002.	[bug]		When reporting an unknown class name in named.conf,
+			including the file name and line number. [RT #1759]
 
 1001.	[bug]		win32 socket code doio_recv was not catching a
 			WSACONNRESET error when a client was timing out
