@@ -1,4 +1,8 @@
 
+1013.	[bug]		It was possible to cancel a query twice when marking
+			a server as bogus or by having a blackhole acl.
+			[RT #1776]
+
 1010.	[bug]		The server could attempt to execute a command channel
 			command after initiating server shutdown, causing
 			an assertion failure. [RT #1766]
