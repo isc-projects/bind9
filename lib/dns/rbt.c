@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.65 1999/10/25 17:01:30 marka Exp $ */
+/* $Id: rbt.c,v 1.66 1999/10/31 15:25:11 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1607,7 +1607,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		chain->ancestors[depth] = successor;
 		parent = chain->ancestors[depth - 1];
 
-		if (parent) {
+		if (parent != NULL) {
 			if (LEFT(parent) == delete)
 				LEFT(parent) = successor;
 			else
