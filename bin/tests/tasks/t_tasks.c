@@ -385,7 +385,7 @@ t1() {
 	t_result(result);
 }
 
-#define			T2_NTASKS	8192
+#define			T2_NTASKS	10000
 
 static isc_event_t	*T2_event;
 static isc_taskmgr_t	*T2_manager;
