@@ -52,28 +52,28 @@
 #define RTRACE(m)	isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
 				      DNS_LOGMODULE_RESOLVER, \
-				      ISC_LOG_DEBUG(1), \
+				      ISC_LOG_DEBUG(3), \
 				      "res %p: %s", res, (m))
 #define RRTRACE(r, m)	isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
 				      DNS_LOGMODULE_RESOLVER, \
-				      ISC_LOG_DEBUG(1), \
+				      ISC_LOG_DEBUG(3), \
 				      "res %p: %s", (r), (m))
 #define FCTXTRACE(m)	isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
 				      DNS_LOGMODULE_RESOLVER, \
-				      ISC_LOG_DEBUG(1), \
+				      ISC_LOG_DEBUG(3), \
 				      "fctx %p: %s", fctx, (m))
 #define FTRACE(m)	isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
 				      DNS_LOGMODULE_RESOLVER, \
-				      ISC_LOG_DEBUG(1), \
+				      ISC_LOG_DEBUG(3), \
 				      "fetch %p (fctx %p): %s", \
 				      fetch, fetch->private, (m))
 #define QTRACE(m)	isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
 				      DNS_LOGMODULE_RESOLVER, \
-				      ISC_LOG_DEBUG(1), \
+				      ISC_LOG_DEBUG(3), \
 				      "resquery %p (fctx %p): %s", \
 				      query, query->fctx, (m))
 #else
@@ -2765,6 +2765,35 @@ fctx_match(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 	return (dns_name_equal(&fctx->name, name));
 }
 
+static inline void
+log_fetch(dns_name_t *name, dns_rdatatype_t type) {
+	isc_buffer_t b;
+	char text[1024];
+	isc_region_t r;
+
+	/*
+	 * XXXRTH  Allow this to be turned on and off...
+	 */
+
+	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
+			ISC_BUFFERTYPE_TEXT);
+	if (dns_name_totext(name, ISC_TRUE, &b) !=
+	    ISC_R_SUCCESS)
+		return;
+	isc_buffer_available(&b, &r);
+	if (r.length < 1)
+		return;
+	*r.base = ' ';
+	isc_buffer_add(&b, 1);
+	if (dns_rdatatype_totext(type, &b) != ISC_R_SUCCESS)
+		return;
+	isc_buffer_used(&b, &r);
+	/* XXXRTH  Give them their own category? */
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
+		      "createfetch: %.*s", (int)r.length, (char *)r.base);
+}
+
 /*
  * XXXRTH  This routine takes an unconscionable number of arguments!
  *
@@ -2795,7 +2824,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	REQUIRE(VALID_RESOLVER(res));
 	REQUIRE(fetchp != NULL && *fetchp == NULL);
 
-	RTRACE("createfetch");
+	log_fetch(name, type);
 
 	/* XXXRTH */
 	if ((options & DNS_FETCHOPT_TCP) != 0)
