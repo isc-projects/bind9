@@ -107,12 +107,9 @@ typedef isc_event_t intev_t;
  * set them on outgoing packets.
  */
 #ifdef ISC_PLATFORM_HAVEIPV6
-#define PKTINFO_SPACE	CMSG_SPACE(sizeof(struct in6_pktinfo))
 #ifndef USE_CMSG
 #define USE_CMSG	1
 #endif
-#else
-#define PKTINFO_SPACE	0
 #endif
 
 /*
@@ -121,12 +118,9 @@ typedef isc_event_t intev_t;
  * doesn't do it for us, call gettimeofday() on every UDP receive?
  */
 #ifdef SO_TIMESTAMP
-#define TIMESTAMP_SPACE	CMSG_SPACE(sizeof(struct timeval))
 #ifndef USE_CMSG
 #define USE_CMSG	1
 #endif
-#else
-#define TIMESTAMP_SPACE	0
 #endif
 
 /*
@@ -139,9 +133,16 @@ typedef isc_event_t intev_t;
 
 /*
  * Total cmsg space needed for all of the above bits.
+ *
+ * XXXMLG
+ * This is just a guess at how much space we'll need.  Some systems (KAME
+ * based ipv6 implementations) don't have CMSG_SPACE() as a constant, but
+ * a function call, so we cannot use an exact-sized buffer.  This should
+ * be large enough for our current uses -- timestamp and a pktinfo structure
+ * for v6 datagrams.
  */
 #ifdef USE_CMSG
-#define TOTAL_SPACE	(PKTINFO_SPACE + TIMESTAMP_SPACE)
+#define TOTAL_SPACE	512
 #endif
 
 struct isc_socket {
