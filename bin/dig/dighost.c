@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.273 2005/03/31 02:36:04 marka Exp $ */
+/* $Id: dighost.c,v 1.274 2005/03/31 23:54:45 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
