@@ -39,6 +39,7 @@ static isc_result_t
 configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx,
 		   dns_aclconfctx_t *aclconfctx, dns_zone_t *zone,
 		   isc_result_t (*getcacl)(dns_c_zone_t *, dns_c_ipmatchlist_t **),
+		   isc_result_t (*getdefaultcacl)(dns_c_ctx_t *, dns_c_ipmatchlist_t **),
 		   void (*setzacl)(dns_zone_t *, dns_acl_t *),
 		   void (*clearzacl)(dns_zone_t *))
 {
@@ -46,6 +47,9 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx,
 	dns_c_ipmatchlist_t *cacl;
 	dns_acl_t *dacl = NULL;
 	result = (*getcacl)(czone, &cacl);
+	if (result == ISC_R_NOTFOUND && getdefaultcacl != NULL) {
+		result = (*getdefaultcacl)(cctx, &cacl);		
+	}
 	if (result == ISC_R_SUCCESS) {
 		result = dns_acl_fromconfig(cacl, cctx, aclconfctx,
 					   dns_zone_getmctx(zone), &dacl);
@@ -130,6 +134,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 #endif
 		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowupd,
+					    NULL,
 					    dns_zone_setupdateacl,
 					    dns_zone_clearupdateacl);
 		if (result != DNS_R_SUCCESS)
@@ -137,6 +142,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 
 		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowquery,
+					    dns_c_ctx_getqueryacl,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
 		if (result != DNS_R_SUCCESS)
@@ -144,6 +150,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 
 		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowtransfer,
+					    dns_c_ctx_gettransferacl,
 					    dns_zone_setxfracl,
 					    dns_zone_clearxfracl);
 		if (result != DNS_R_SUCCESS)
@@ -219,6 +226,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 #endif
 		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowquery,
+					    dns_c_ctx_getqueryacl,					    
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
 		if (result != DNS_R_SUCCESS)
@@ -309,7 +317,8 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			dns_zone_setchecknames(zone, dns_c_severity_warn);
 #endif
 		result = configure_zone_acl(czone, cctx, ac, zone,
-					    dns_c_zone_getallowquery,
+       				    dns_c_zone_getallowquery,
+					    dns_c_ctx_getqueryacl,					    
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
 		if (result != DNS_R_SUCCESS)

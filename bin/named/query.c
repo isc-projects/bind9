@@ -1798,6 +1798,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
 	dns_zone_t *zone;
+	dns_acl_t *queryacl;
 
 	CTRACE("query_find");
 
@@ -1923,19 +1924,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	} else
 		version = NULL;
 
+	queryacl = NULL;
+	if (is_zone)
+		queryacl = dns_zone_getqueryacl(zone);
+	if (queryacl == NULL)
+		queryacl = ns_g_server->queryacl;
 	/*
 	 * Check the query against the "allow-query" AMLs.
 	 * XXX there should also be a per-view one.
 	 */
-	result = dns_acl_checkrequest(client->signer,
-				      ns_client_getsockaddr(client),
-				      "query",
-				      (is_zone ?
-					       dns_zone_getqueryacl(zone) :
-					       ns_g_server->queryacl),
-				      ns_g_server->queryacl,
-				      &ns_g_server->aclenv,
-				      ISC_TRUE);
+	result = ns_client_checkacl(client, "query", queryacl, ISC_TRUE);
 	if (result != DNS_R_SUCCESS) {
 		QUERY_ERROR(result);
 		goto cleanup;

@@ -123,43 +123,6 @@ void dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s);
 void dns_aclenv_destroy(dns_aclenv_t *env);
 
 isc_result_t
-dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
-		     const char *opname,
-		     dns_acl_t *main_acl,
-		     dns_acl_t *fallback_acl,
-		     dns_aclenv_t *env,
-		     isc_boolean_t default_allow);
-/*
- * Convenience function for "typical" DNS request permission checking.
- *
- * Check the DNS request signed by the key whose name is 'signer',
- * from IP address 'reqaddr', against 'main_acl'.  If main_acl is NULL,
- * check against 'fallback_acl' instead.  If fallback_acl
- * is also NULL, allow the request iff 'default_allow' is ISC_TRUE.
- * Log the outcome of the check if deemed appropriate.
- * Log messages will refer to the request as an 'opname' request.
- *
- * Notes:
- *	This is appropriate for checking allow-update, 
- * 	allow-query, allow-transfer, etc.  It is not appropriate
- * 	for checking the blackhole list because we treat positive
- * 	matches as "allow" and negative matches as "deny"; in
- *	the case of the blackhole list this would be backwards.
- *
- * Requires:
- *	'signer' points to a valid name or is NULL.
- *	'reqaddr' points to a valid socket address.
- *	'opname' points to a null-terminated string.
- *	'main_acl' points to a valid address match list, or is NULL.
- *	'fallback_acl' points to a valid address match list, or is NULL.
- *
- * Returns:
- *	ISC_R_SUCCESS	if the request should be allowed
- * 	ISC_R_REFUSED	if the request should be denied
- *	No other return values are possible.
- */
-
-isc_result_t
 dns_acl_match(isc_netaddr_t *reqaddr,
 	      dns_name_t *reqsigner,
 	      dns_acl_t *acl,

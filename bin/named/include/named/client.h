@@ -217,4 +217,35 @@ ns_client_getsockaddr(ns_client_t *client);
  * currently being processed.
  */
 
+isc_result_t
+ns_client_checkacl(ns_client_t  *client,
+		   const char *opname, dns_acl_t *acl,
+		   isc_boolean_t default_allow);
+/*
+ * Convenience function for client request ACL checking.
+ *
+ * Check the current client request against 'acl'.  If 'acl'
+ * is NULL, allow the request iff 'default_allow' is ISC_TRUE.
+ * Log the outcome of the check if deemed appropriate.
+ * Log messages will refer to the request as an 'opname' request.
+ *
+ * Notes:
+ *	This is appropriate for checking allow-update, 
+ * 	allow-query, allow-transfer, etc.  It is not appropriate
+ * 	for checking the blackhole list because we treat positive
+ * 	matches as "allow" and negative matches as "deny"; in
+ *	the case of the blackhole list this would be backwards.
+ *
+ * Requires:
+ *	'client' points to a valid client.
+ *	'opname' points to a null-terminated string.
+ *	'acl' points to a valid ACL, or is NULL.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	if the request should be allowed
+ * 	ISC_R_REFUSED	if the request should be denied
+ *	No other return values are possible.
+ */
+
+
 #endif /* NS_CLIENT_H */

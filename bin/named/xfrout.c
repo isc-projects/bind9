@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.44 2000/02/14 23:56:46 gson Exp $ */
+ /* $Id: xfrout.c,v 1.45 2000/02/22 21:24:23 gson Exp $ */
 
 #include <config.h>
 
@@ -904,13 +904,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		      mnemonic);
 
 	/* Decide whether to allow this transfer. */
-	CHECK(dns_acl_checkrequest(client->signer,
-				   ns_client_getsockaddr(client),
-				   "zone transfer", 
-				   dns_zone_getxfracl(zone),
-				   ns_g_server->transferacl,
-				   &ns_g_server->aclenv,
-				   ISC_TRUE));
+	CHECK(ns_client_checkacl(client, "zone transfer", 
+				 dns_zone_getxfracl(zone),
+				 ISC_TRUE));
 
 	/* AXFR over UDP is not possible. */
 	if (reqtype == dns_rdatatype_axfr &&

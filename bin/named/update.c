@@ -1940,12 +1940,9 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
-	CHECK(dns_acl_checkrequest(client->signer,
-				   ns_client_getsockaddr(client),
-				   "update", dns_zone_getupdateacl(zone),
-				   NULL,
-				   &ns_g_server->aclenv,
-				   ISC_FALSE));
+	CHECK(ns_client_checkacl(client, "update",
+				 dns_zone_getupdateacl(zone),
+				 ISC_FALSE));
 
 	/* Perform the Update Section Prescan. */
 

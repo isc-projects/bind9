@@ -128,51 +128,6 @@ dns_acl_none(isc_mem_t *mctx, dns_acl_t **target) {
 }
 
 isc_result_t
-dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
-		     const char *opname,
-		     dns_acl_t *main_acl,
-		     dns_acl_t *fallback_acl,
-		     dns_aclenv_t *env,
-		     isc_boolean_t default_allow)
-{
-	isc_result_t result;
-	int match;
-	isc_netaddr_t netaddr;
-	dns_acl_t *acl = NULL;
-
-	if (main_acl != NULL)
-		acl = main_acl;
-	else if (fallback_acl != NULL)
-		acl = fallback_acl;
-	else if (default_allow)
-		goto allow;
-	else
-		goto deny;
-
-	isc_netaddr_fromsockaddr(&netaddr, reqaddr);
-	
-	result = dns_acl_match(&netaddr, signer, acl, env,
-			       &match, NULL);
-	if (result != DNS_R_SUCCESS)
-		goto deny; /* Internal error, already logged. */
-	if (match > 0)
-		goto allow;
-	goto deny; /* Negative match or no match. */
-
- allow:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-		      DNS_LOGMODULE_ACL, ISC_LOG_DEBUG(3),
-		      "%s approved", opname);
-	return (DNS_R_SUCCESS);
-
- deny:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-		      DNS_LOGMODULE_ACL, ISC_LOG_ERROR,
-		      "%s denied", opname);
-	return (DNS_R_REFUSED);
-}
-
-isc_result_t
 dns_acl_match(isc_netaddr_t *reqaddr,
 	      dns_name_t *reqsigner,
 	      dns_acl_t *acl,

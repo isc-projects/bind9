@@ -788,10 +788,6 @@ load_configuration(const char *filename, ns_server_t *server,
 				   dns_c_ctx_getrecursionacl,
 				   &server->recursionacl));
 	
-	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-				   dns_c_ctx_gettransferacl,
-				   &server->transferacl));
-	
 	configure_server_quota(configctx, dns_c_ctx_gettransfersout,
 				     &server->xfroutquota, 10);
 	configure_server_quota(configctx, dns_c_ctx_gettcpclients,
@@ -1058,7 +1054,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	server->queryacl = NULL;
 	server->recursionacl = NULL;
-	server->transferacl = NULL;
 
 	result = isc_quota_init(&server->xfroutquota, 10);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
@@ -1144,8 +1139,6 @@ ns_server_destroy(ns_server_t **serverp) {
 		dns_acl_detach(&server->queryacl);
 	if (server->recursionacl != NULL)
 		dns_acl_detach(&server->recursionacl);
-	if (server->transferacl != NULL)
-		dns_acl_detach(&server->transferacl);
 
 	dns_aclenv_destroy(&server->aclenv);
 

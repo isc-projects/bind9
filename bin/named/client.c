@@ -979,13 +979,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (ns_g_server->recursion == ISC_TRUE) {
 			/* XXX ACL should be view specific. */
 			/* XXX this will log too much too early */
-			result = dns_acl_checkrequest(client->signer,
-					      ns_client_getsockaddr(client),
-					      "recursion",
-					      ns_g_server->recursionacl,
-					      NULL,
-					      &ns_g_server->aclenv,
-					      ISC_TRUE);
+			result = ns_client_checkacl(client, "recursion",
+						    ns_g_server->recursionacl,
+						    ISC_TRUE);
 			if (result != DNS_R_SUCCESS)
 				ra = ISC_FALSE;
 		}
@@ -1528,3 +1524,44 @@ isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client) {
 	return (&client->peeraddr);
 }
+
+isc_result_t
+ns_client_checkacl(ns_client_t  *client,
+		   const char *opname, dns_acl_t *acl,
+		   isc_boolean_t default_allow)
+{
+	isc_result_t result;
+	int match;
+	isc_netaddr_t netaddr;
+
+	if (acl == NULL) {
+		if (default_allow)
+			goto allow;
+		else
+			goto deny;
+	}
+
+	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+	
+	result = dns_acl_match(&netaddr, client->signer, acl,
+			       &ns_g_server->aclenv,
+			       &match, NULL);
+	if (result != DNS_R_SUCCESS)
+		goto deny; /* Internal error, already logged. */
+	if (match > 0)
+		goto allow;
+	goto deny; /* Negative match or no match. */
+
+ allow:
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+		      "%s approved", opname);
+	return (DNS_R_SUCCESS);
+
+ deny:
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+		      "%s denied", opname);
+	return (DNS_R_REFUSED);
+}
+
