@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.3 1999/01/19 05:38:34 marka Exp $ */
+ /* $Id: mx_15.c,v 1.4 1999/01/19 06:49:31 marka Exp $ */
 
-#ifndef RDATA_TYPE_15_MX_H
-#define RDATA_TYPE_15_MX_H
+#ifndef RDATA_GENERIC_MX_15_H
+#define RDATA_GENERIC_MX_15_H
 
 static dns_result_t
 fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -29,7 +29,10 @@ fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_buffer_t buffer;
 	dns_result_t result;
 
+	INSIST(type == 15);
+
 	class = class;	/*unused*/
+
 	if (isc_lex_gettoken(lexer, ISC_LEXOPT_NUMBER, &token) != ISC_R_SUCCESS)
 		return (DNS_R_UNKNOWN);
 	if (token.type != isc_tokentype_number)
@@ -140,6 +143,10 @@ compare_mx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region2;
 	int result;
 
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->type == 15);
+
 	result = memcmp(rdata1->data, rdata2->data, 2);
 	if (result != 0)
 		return (result < 0 ? -1 : 1);
@@ -162,8 +169,11 @@ compare_mx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_mx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 15);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -172,9 +182,11 @@ fromstruct_mx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_mx(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 15);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_GENERIC_MX_15_H */

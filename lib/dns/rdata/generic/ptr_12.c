@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.c,v 1.2 1999/01/19 05:38:35 marka Exp $ */
+ /* $Id: ptr_12.c,v 1.3 1999/01/19 06:49:32 marka Exp $ */
 
-#ifndef RDATA_TYPE_12_PTR_H
-#define RDATA_TYPE_12_PTR_H
+#ifndef RDATA_GENERIC_PTR_12_H
+#define RDATA_GENERIC_PTR_12_H
 
 static dns_result_t
 fromtext_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -71,7 +71,8 @@ fromwire_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
         dns_name_t name;
 
 	INSIST(type == 12);
-	class = class;		/* unused */
+
+	class = class;	/* unused */
         
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
@@ -98,6 +99,10 @@ compare_ptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->type == 12);
+
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
 
@@ -113,8 +118,11 @@ compare_ptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_ptr(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 12);
+
+	class = class; /*unused*/
+
 	source = source;
 	target = target;
 
@@ -123,9 +131,11 @@ fromstruct_ptr(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_ptr(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+	
+	INSIST(rdata->type == 12);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_GENERIC_PTR_12_H */

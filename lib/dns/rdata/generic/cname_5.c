@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: cname_5.c,v 1.2 1999/01/19 05:38:32 marka Exp $ */
+ /* $Id: cname_5.c,v 1.3 1999/01/19 06:49:29 marka Exp $ */
 
-#ifndef RDATA_TYPE_5_CNAME_H
-#define RDATA_TYPE_5_CNAME_H
+#ifndef RDATA_GENERIC_CNAME_5_H
+#define RDATA_GENERIC_CNAME_5_H
 
 static dns_result_t
 fromtext_cname(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -98,6 +98,10 @@ compare_cname(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->type == 5);
+
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
 
@@ -113,8 +117,11 @@ compare_cname(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_cname(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 5);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -123,9 +130,11 @@ fromstruct_cname(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_cname(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+	
+	INSIST(rdata->type == 5);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_GENERIC_CNAME_5_H */

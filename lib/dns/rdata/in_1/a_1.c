@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.2 1999/01/19 05:38:36 marka Exp $ */
+ /* $Id: a_1.c,v 1.3 1999/01/19 06:49:33 marka Exp $ */
 
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
+
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -34,7 +35,8 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t region;
 
 	INSIST(type == 1);
-	class = class;		/*unused*/
+	INSIST(class == 1);
+
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
@@ -79,8 +81,8 @@ fromwire_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	INSIST(class == 1);
 	INSIST(type == 1);
+	INSIST(class == 1);
 
 	dctx = dctx;		/* unused */
 	downcase = downcase;	/* unused */
@@ -103,7 +105,10 @@ static dns_result_t
 towire_in_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
-	cctx = cctx;
+	INSIST(rdata->type == 1);
+	INSIST(rdata->class == 1);
+
+	cctx = cctx;	/*unused*/
 
 	isc_buffer_available(target, &region);
 	if (region.length < rdata->length)
@@ -117,6 +122,11 @@ static int
 compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 	
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->type);
+	INSIST(rdata1->type == 1);
+	INSIST(rdata1->class == 1);
+
 	result = memcmp(rdata1->data, rdata2->data, 4);
 	if (result != 0)
 		result = (result < 0) ? -1 : 1;
@@ -127,8 +137,10 @@ compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_in_a(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 1);
+	INSIST(class == 1);
+
 	source = source;
 	target = target;
 
@@ -137,9 +149,12 @@ fromstruct_in_a(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_in_a(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 1);
+	INSIST(rdata->class == 1);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_IN_1_A_1_H */

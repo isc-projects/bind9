@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: mg_8.c,v 1.2 1999/01/19 05:38:33 marka Exp $ */
+ /* $Id: mg_8.c,v 1.3 1999/01/19 06:49:30 marka Exp $ */
 
-#ifndef RDATA_TYPE_8_MG_H
-#define RDATA_TYPE_8_MG_H
+#ifndef RDATA_GENERIC_MG_8_H
+#define RDATA_GENERIC_MG_8_H
 
 static dns_result_t
 fromtext_mg(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -28,6 +28,8 @@ fromtext_mg(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
+
+	INSIST(type == 8);
 
 	class = class;	/*unused*/
 	
@@ -71,7 +73,8 @@ fromwire_mg(dns_rdataclass_t class, dns_rdatatype_t type,
         dns_name_t name;
 
 	INSIST(type == 8);
-	class = class;
+
+	class = class;	/*unused*/
         
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
@@ -98,6 +101,10 @@ compare_mg(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->type == 8);
+
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
 
@@ -113,8 +120,11 @@ compare_mg(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_mg(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 8);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -123,9 +133,11 @@ fromstruct_mg(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_mg(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 8);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_GENERIC_MG_8_H */

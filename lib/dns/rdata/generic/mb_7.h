@@ -15,21 +15,21 @@
  * SOFTWARE.
  */
 
- /* $Id: mb_7.h,v 1.2 1999/01/19 05:38:32 marka Exp $ */
+ /* $Id: mb_7.h,v 1.3 1999/01/19 06:49:29 marka Exp $ */
 
-#ifndef RDATA_TYPE_7_MB_H
-#define RDATA_TYPE_7_MB_H
+#ifndef RDATA_GENERIC_MB_7_H
+#define RDATA_GENERIC_MB_7_H
 
 static dns_result_t
 fromtext_mb(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
 	    isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	isc_result_t result; 
 	dns_name_t name;
 	isc_buffer_t buffer;
 
 	INSIST(type == 7);
+
 	class = class;	/*unused*/
 	
 	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
@@ -71,7 +71,8 @@ fromwire_mb(dns_rdataclass_t class, dns_rdatatype_t type,
         dns_name_t name;
 
 	INSIST(type == 7);
-	class = class;
+
+	class = class;	/*unused*/
         
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
@@ -98,6 +99,10 @@ compare_mb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->type == 7);
+
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
 
@@ -113,8 +118,11 @@ compare_mb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_mb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 7);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -123,9 +131,11 @@ fromstruct_mb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_mb(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 7);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_GENERIC_MB_7_H */

@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.h,v 1.3 1999/01/19 05:38:32 marka Exp $ */
+ /* $Id: hinfo_13.h,v 1.4 1999/01/19 06:49:29 marka Exp $ */
+
+#ifndef RDATA_GENERIC_HINFO_13_H
+#define RDATA_GENERIC_HINFO_13_H
 
 static dns_result_t
 fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -23,6 +26,8 @@ fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
 	dns_result_t result;
+
+	INSIST(type == 13);
 
 	class = class;		/*unused*/
 	origin = origin;	/*unused*/
@@ -49,6 +54,8 @@ totext_hinfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_result_t result;
 
+	INSIST(rdata->type == 13);
+
 	origin = origin;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
@@ -71,11 +78,11 @@ fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	dns_result_t result;
 
+	INSIST(type == 13);
+
 	dctx = dctx;		/* unused */
 	class = class;		/* unused */
 	downcase = downcase;	/* unused */
-
-	INSIST(type == 13);
 
 	result = txt_fromwire(source, target);
 	if (result != DNS_R_SUCCESS)
@@ -87,6 +94,8 @@ fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 static dns_result_t
 towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
+
+	INSIST(rdata->type == 13);
 
 	cctx = cctx;
 
@@ -105,6 +114,10 @@ compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int l;
 	int result;
 	
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->type == 13);
+
 	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
 	result = memcmp(rdata1->data, rdata2->data, l);
 
@@ -120,8 +133,10 @@ static dns_result_t
 fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	class = class;
-	type = type;
+	INSIST(type == 13);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -130,8 +145,11 @@ fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_hinfo(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 13);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
+#endif	/* RDATA_GENERIC_HINFO_13_H */

@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: md_3.h,v 1.2 1999/01/19 05:38:32 marka Exp $ */
+ /* $Id: md_3.h,v 1.3 1999/01/19 06:49:29 marka Exp $ */
 
-#ifndef RDATA_TYPE_3_MD_H
-#define RDATA_TYPE_3_MD_H
+#ifndef RDATA_GENERIC_MD_3_H
+#define RDATA_GENERIC_MD_3_H
 
 static dns_result_t
 fromtext_md(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -28,6 +28,8 @@ fromtext_md(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
+
+	INSIST(type == 3);
 
 	class = class;	/*unused*/
 
@@ -69,7 +71,8 @@ fromwire_md(dns_rdataclass_t class, dns_rdatatype_t type,
         dns_name_t name;
 
 	INSIST(type == 3);
-	class = class;
+
+	class = class;	/*unused*/
         
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
@@ -96,6 +99,10 @@ compare_md(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->type == 3);
+
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
 
@@ -111,8 +118,11 @@ compare_md(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_md(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 3);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -121,9 +131,11 @@ fromstruct_md(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_md(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 3);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_GENERIC_MD_3_H */

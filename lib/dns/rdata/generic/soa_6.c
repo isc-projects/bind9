@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.3 1999/01/19 05:38:35 marka Exp $ */
+ /* $Id: soa_6.c,v 1.4 1999/01/19 06:49:32 marka Exp $ */
 
-#ifndef RDATA_TYPE_6_SOA_H
-#define RDATA_TYPE_6_SOA_H
+#ifndef RDATA_GENERIC_SOA_6_H
+#define RDATA_GENERIC_SOA_6_H
 
 static dns_result_t
 fromtext_soa(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -29,6 +29,8 @@ fromtext_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_buffer_t buffer;
 	dns_result_t result;
 	int i;
+
+	INSIST(type == 6);
 
 	class = class;	/*unused*/
 
@@ -139,7 +141,8 @@ fromwire_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t tregion;
         
 	INSIST(type == 6);
-	class = class;		/*unused*/
+
+	class = class;	/*unused*/
 
         dns_name_init(&mname, NULL);
         dns_name_init(&rname, NULL);
@@ -209,8 +212,9 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name2;
 	int result;
 
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
 	INSIST(rdata1->type == 6);
-	INSIST(rdata2->type == 6);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -251,8 +255,11 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_soa(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 6);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -262,9 +269,10 @@ fromstruct_soa(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_soa(dns_rdata_t *rdata, void *target) {
 	
-	rdata = rdata;
+	INSIST(rdata->type == 6);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif
+#endif	/* RDATA_GENERIC_SOA_6_H */

@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.h,v 1.3 1999/01/19 05:38:36 marka Exp $ */
+ /* $Id: txt_16.h,v 1.4 1999/01/19 06:49:33 marka Exp $ */
+
+#ifndef RDATA_GENERIC_TXT_16_H
+#define RDATA_GENERIC_TXT_16_H
 
 static dns_result_t
 fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -23,6 +26,8 @@ fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
 	dns_result_t result;
+
+	INSIST(type == 16);
 
 	class = class;		/*unused*/
 	origin = origin;	/*unused*/
@@ -48,6 +53,8 @@ totext_txt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_result_t result;
 
+	INSIST(rdata->type == 16);
+
 	origin = origin;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
@@ -72,11 +79,11 @@ fromwire_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_boolean_t downcase, isc_buffer_t *target) {
 	dns_result_t result;
 
-	dctx = dctx;
-	class = class;
-	downcase = downcase;
-
 	INSIST(type == 16);
+
+	dctx = dctx;		/*unused*/
+	class = class;		/*unused*/
+	downcase = downcase;	/*unused*/
 
 	while (!buffer_empty(source)) {
 		result = txt_fromwire(source, target);
@@ -90,7 +97,9 @@ static dns_result_t
 towire_txt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
-	cctx = cctx;
+	INSIST(rdata->type == 16);
+
+	cctx = cctx;	/*unused*/
 
 	isc_buffer_available(target, &region);
 	if (region.length < rdata->length)
@@ -106,6 +115,10 @@ compare_txt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int l;
 	int result;
 	
+	INSIST(rdata1->type == rdata2->type);
+	INSIST(rdata1->class == rdata2->class);
+	INSIST(rdata1->class == 16);
+
 	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
 	result = memcmp(rdata1->data, rdata2->data, l);
 
@@ -121,8 +134,10 @@ static dns_result_t
 fromstruct_txt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	class = class;
-	type = type;
+	INSIST(type == 16);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -131,8 +146,11 @@ fromstruct_txt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_txt(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 16);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
+#endif	/* RDATA_GENERIC_TXT_16_H */

@@ -15,12 +15,18 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.h,v 1.2 1999/01/19 05:38:35 marka Exp $ */
+ /* $Id: null_10.h,v 1.3 1999/01/19 06:49:31 marka Exp $ */
+
+#ifndef RDATA_GENERIC_NULL_10_H
+#define RDATA_GENERIC_NULL_10_H
 
 static dns_result_t
 fromtext_null(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target) {
+
+	INSIST(type == 10);
+
 	class = class;		/*unused*/
 	type = type;		/*unused*/
 	lexer = lexer;		/*unused*/
@@ -35,7 +41,9 @@ static dns_result_t
 totext_null(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	
 
+	INSIST(rdata->type == 10);
 	INSIST(rdata->length == 0);
+
 	origin = origin;	/*unused*/
 	target = target;	/*unused*/
 
@@ -48,6 +56,7 @@ fromwire_null(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_boolean_t downcase, isc_buffer_t *target) {
 
 	INSIST(type == 10);
+
 	class = class;		/*unused*/
 	dctx = dctx;		/*unused*/
 	downcase = downcase;	/*unused*/
@@ -61,6 +70,7 @@ static dns_result_t
 towire_null(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	INSIST(rdata->type == 10);
+
 	cctx = cctx;		/*unused*/
 	target = target;	/*unused*/
 
@@ -70,8 +80,9 @@ towire_null(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 static int
 compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
+	INSIST(rdata1->type == rdata1->type);
+	INSIST(rdata1->class == rdata2->class);
 	INSIST(rdata1->type == 10);
-	INSIST(rdata2->type == 10);
 
 	return (0);
 }
@@ -79,8 +90,11 @@ compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 static dns_result_t
 fromstruct_null(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
-	class = class;
-	type = type;
+
+	INSIST(type == 10);
+
+	class = class;	/*unused*/
+
 	source = source;
 	target = target;
 
@@ -89,8 +103,11 @@ fromstruct_null(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_null(dns_rdata_t *rdata, void *target) {
-	rdata = rdata;
+
+	INSIST(rdata->type == 10);
+
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
+#endif	/* RDATA_GENERIC_NULL_10_H */
