@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.30 2001/05/10 19:07:12 bwelling Exp $
+ * $Id: dst_parse.c,v 1.31 2001/05/31 00:38:07 bwelling Exp $
  */
 
 #include <config.h>
@@ -291,11 +291,14 @@ dst__privstruct_parsefile(dst_key_t *key, const char *filename,
 		unsigned char *data;
 		isc_region_t r;
 
-		ret = isc_lex_gettoken(lex, opt, &token);
-		if (ret == ISC_R_EOF)
-			break;
-		if (ret != ISC_R_SUCCESS)
-			goto fail;
+		do {
+			ret = isc_lex_gettoken(lex, opt, &token);
+			if (ret == ISC_R_EOF)
+				goto done;
+			if (ret != ISC_R_SUCCESS)
+				goto fail;
+		} while (token.type == isc_tokentype_eol);
+
 		if (token.type != isc_tokentype_string) {
 			ret = DST_R_INVALIDPRIVATEKEY;
 			goto fail;
@@ -321,7 +324,7 @@ dst__privstruct_parsefile(dst_key_t *key, const char *filename,
 
 		READLINE(lex, opt, &token);
 	}
-
+ done:
 	priv->nelements = n;
 
 	if (check_data(priv, dst_key_alg(key)) < 0)
