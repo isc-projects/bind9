@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.218 2002/03/07 13:46:38 marka Exp $ */
+/* $Id: query.c,v 1.219 2002/03/28 04:03:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1843,8 +1843,7 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	isc_region_t r;
 
 	/*
-	 * We assume the name data referred to by qname and tname won't
-	 * go away.
+	 * We assume the name data referred to by tname won't go away.
 	 */
 
 	REQUIRE(anamep != NULL);
@@ -1862,7 +1861,11 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_rdataset_init(rdataset);
-	dns_name_clone(qname, *anamep);
+	result = dns_name_dup(qname, client->mctx, *anamep);
+	if (result != ISC_R_SUCCESS) {
+		dns_message_puttemprdataset(client->message, &rdataset);
+		return (result);
+	}
 
 	rdatalist->type = type;
 	rdatalist->covers = 0;

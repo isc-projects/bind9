@@ -1,3 +1,7 @@
+1239.	[bug]		Under certain circumstances named could continue to
+			use a name after it had been freed triggering
+			INSIST() failures.  [RT #2614]
+
 1238.	[bug]		It is possible to lockup the server when shutting down
 			if notifies were being processed. [RT #2591]
 
