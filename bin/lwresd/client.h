@@ -186,7 +186,7 @@ void client_init_aliases(client_t *);
 void client_init_gabn(client_t *);
 void client_init_gnba(client_t *);
 
-void DP(int level, char *format, ...);
+void DP(int level, const char *format, ...);
 void hexdump(char *msg, void *base, size_t len);
 
 #endif /* LWD_CLIENT_H */

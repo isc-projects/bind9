@@ -28,7 +28,7 @@
 #include "client.h"
 
 void
-DP(int level, char *format, ...) {
+DP(int level, const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
