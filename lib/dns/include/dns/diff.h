@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.4 2001/08/28 03:58:16 marka Exp $ */
+/* $Id: diff.h,v 1.5 2001/11/29 00:15:35 gson Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -221,8 +221,13 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare);
 
 isc_result_t
 dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
+isc_result_t
+dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
 /*
  * Apply 'diff' to the database 'db'.
+ *
+ * dns_diff_apply() logs warnings about updates with no effect or
+ * with inconsistent TTLs; dns_diff_applysilently() does not.
  *
  * For efficiency, the diff should be sorted by owner name.
  * If it is not sorted, operation will still be correct,
