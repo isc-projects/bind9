@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.251 
+# From configure.in Revision: 1.252 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5239,6 +5239,7 @@ fi
 
 test -n "$TEX" && break
 done
+test -n "$TEX" || TEX="tex"
 
 
 
@@ -5247,7 +5248,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:5251: checking for $ac_word" >&5
+echo "configure:5252: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PDFTEX'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -5281,6 +5282,7 @@ fi
 
 test -n "$PDFTEX" && break
 done
+test -n "$PDFTEX" || PDFTEX="pdftex"
 
 
 
@@ -5297,7 +5299,7 @@ SGMLDIR=""
 SGMLSTYLEDIR=""
 
 echo $ac_n "checking for SGML files""... $ac_c" 1>&6
-echo "configure:5301: checking for SGML files" >&5
+echo "configure:5303: checking for SGML files" >&5
 for d in /usr/pkg/share/sgml /usr/local/share/sgml 
 do
 	for s in docbook/dsssl/modular dsssl/docbook
@@ -5328,7 +5330,7 @@ fi
 XGMLDIR=""
 
 echo $ac_n "checking for XML files""... $ac_c" 1>&6
-echo "configure:5332: checking for XML files" >&5
+echo "configure:5334: checking for XML files" >&5
 for d in /usr/pkg/share/xml /usr/local/share/xml
 do
 	if test -f $d/dtd/docbook/docbookx.dtd
