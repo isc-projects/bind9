@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.56 2000/03/29 15:01:03 brister Exp $ */
+/* $Id: confparser.y,v 1.57 2000/04/05 15:16:49 brister Exp $ */
 
 #include <config.h>
 
@@ -156,168 +156,158 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token <ip4_addr>	L_IP4ADDR
 %token <ip6_addr>	L_IP6ADDR
 
-%token		L_LBRACE
-%token		L_RBRACE
-%token		L_EOS
-%token		L_SLASH
-%token		L_BANG
-
-%token		L_MASTER
-%token		L_SLAVE
-%token		L_SORTLIST
-%token		L_HINT
-%token		L_STUB
-%token		L_FORWARD
-
-%token		L_INCLUDE
-%token		L_END_INCLUDE
-
-%token		L_OPTIONS
-%token		L_DIRECTORY
-%token		L_PIDFILE
-%token		L_NAMED_XFER
-%token		L_TKEY_DOMAIN
-%token		L_TKEY_DHKEY
-%token		L_DUMP_FILE
-%token		L_STATS_FILE
-%token		L_MEMSTATS_FILE
-%token		L_FAKE_IQUERY
-%token		L_RECURSION
-%token		L_FETCH_GLUE
-%token		L_QUERY_SOURCE
-%token		L_QUERY_SOURCE_V6
-%token		L_LISTEN_ON
-%token		L_PORT
 %token		L_ACL
 %token		L_ADDRESS
 %token		L_ALGID
+%token		L_ALLOW
 %token		L_ALLOW_QUERY
+%token		L_ALLOW_RECURSION
 %token		L_ALLOW_TRANSFER
 %token		L_ALLOW_UPDATE
 %token		L_ALLOW_UPDATE_FORWARDING
-%token		L_ALLOW_RECURSION
 %token		L_ALSO_NOTIFY
+%token		L_AUTH_NXDOMAIN
+%token		L_BANG
 %token		L_BLACKHOLE
 %token		L_BOGUS
 %token		L_CATEGORY
 %token		L_CHANNEL
 %token		L_CHECK_NAMES
+%token		L_CLASS
+%token		L_CLEAN_INTERVAL
+%token		L_CONTROLS
+%token		L_CORESIZE
+%token		L_DATASIZE
+%token		L_DEALLOC_ON_EXIT
 %token		L_DEBUG
+%token		L_DEFAULT
+%token		L_DENY
 %token		L_DIALUP
+%token		L_DIRECTORY
+%token		L_DUMP_FILE
 %token		L_DYNAMIC
+%token		L_END_INCLUDE
+%token		L_EOS
+%token		L_EXPERT_MODE
 %token		L_FAIL
+%token		L_FAKE_IQUERY
+%token		L_FALSE
+%token		L_FETCH_GLUE
+%token		L_FILE
+%token		L_FILES
+%token		L_FILE_IXFR
 %token		L_FIRST
+%token		L_FORWARD
 %token		L_FORWARDERS
+%token		L_GRANT
+%token		L_GROUP
+%token		L_HAS_OLD_CLIENTS
+%token		L_HEARTBEAT
+%token		L_HINT
+%token		L_HOSTSTATS
 %token		L_IF_NO_ANSWER
 %token		L_IF_NO_DOMAIN
 %token		L_IGNORE
-%token		L_FILE_IXFR
+%token		L_INCLUDE
+%token		L_INET
+%token		L_INTERFACE_INTERVAL
 %token		L_IXFR_TMP
-%token		L_SEC_KEY
 %token		L_KEYS
+%token		L_LBRACE
+%token		L_LISTEN_ON
 %token		L_LOGGING
+%token		L_MAINTAIN_IXFR_BASE
+%token		L_MANY_ANSWERS
+%token		L_MASTER
 %token		L_MASTERS
+%token		L_MATCH_CLIENTS
+%token		L_MAX_LOG_SIZE_IXFR
+%token		L_MAX_NCACHE_TTL
+%token		L_MAX_TRANSFER_IDLE_IN
+%token		L_MAX_TRANSFER_IDLE_OUT
+%token		L_MAX_TRANSFER_TIME_IN
+%token		L_MAX_TRANSFER_TIME_OUT
+%token		L_MEMSTATS_FILE
+%token		L_MULTIPLE_CNAMES
+%token		L_NAME
+%token		L_NAMED_XFER
+%token		L_NO
+%token		L_NOTIFY
 %token		L_NULL_OUTPUT
+%token		L_ONE_ANSWER
 %token		L_ONLY
+%token		L_OPTIONS
+%token		L_ORDER
+%token		L_OWNER
+%token		L_PERM
+%token		L_PIDFILE
+%token		L_PORT
 %token		L_PRINT_CATEGORY
 %token		L_PRINT_SEVERITY
 %token		L_PRINT_TIME
+%token		L_PROVIDE_IXFR
 %token		L_PUBKEY
+%token		L_QUERY_SOURCE
+%token		L_QUERY_SOURCE_V6
+%token		L_RBRACE
+%token		L_RECURSION
+%token		L_RECURSIVE_CLIENTS
+%token		L_REQUEST_IXFR
 %token		L_RESPONSE
+%token		L_RFC2308_TYPE1
+%token		L_RRSET_ORDER
 %token		L_SECRET
+%token		L_SEC_KEY
+%token		L_SELF
 %token		L_SERVER
 %token		L_SEVERITY
 %token		L_SIZE
+%token		L_SLASH
+%token		L_SLAVE
+%token		L_SORTLIST
+%token		L_STACKSIZE
+%token		L_STATS_FILE
+%token		L_STATS_INTERVAL
+%token		L_STUB
+%token		L_SUBDOMAIN
 %token		L_SUPPORT_IXFR
 %token		L_SYSLOG
+%token		L_TCP_CLIENTS
+%token		L_TKEY_DHKEY
+%token		L_TKEY_DOMAIN
 %token		L_TOPOLOGY
-%token		L_TRANSFER_SOURCE
-%token		L_TRANSFER_SOURCE_V6
 %token		L_TRANSFERS
-%token		L_TRUSTED_KEYS
-%token		L_VERSIONS
-%token		L_WARN
-%token		L_RRSET_ORDER
-%token		L_ORDER
-%token		L_NAME
-%token		L_CLASS
-%token		L_CONTROLS
-%token		L_INET
-%token		L_UNIX
-%token		L_PERM
-%token		L_OWNER
-%token		L_GROUP
-%token		L_ALLOW
-%token		L_DATASIZE
-%token		L_STACKSIZE
-%token		L_CORESIZE
-%token		L_DEFAULT
-%token		L_UNLIMITED
-%token		L_FILES
-%token		L_VERSION
-%token		L_HOSTSTATS
-%token		L_DEALLOC_ON_EXIT
 %token		L_TRANSFERS_IN
 %token		L_TRANSFERS_OUT
 %token		L_TRANSFERS_PER_NS
 %token		L_TRANSFER_FORMAT
-%token		L_MAX_TRANSFER_TIME_IN
-%token		L_MAX_TRANSFER_TIME_OUT
-%token		L_MAX_TRANSFER_IDLE_IN
-%token		L_MAX_TRANSFER_IDLE_OUT
-%token		L_TCP_CLIENTS
-%token		L_RECURSIVE_CLIENTS
-%token		L_ONE_ANSWER
-%token		L_MANY_ANSWERS
-%token		L_NOTIFY
-%token		L_AUTH_NXDOMAIN
-%token		L_MULTIPLE_CNAMES
-%token		L_USE_IXFR
-%token		L_MAINTAIN_IXFR_BASE
-%token		L_CLEAN_INTERVAL
-%token		L_INTERFACE_INTERVAL
-%token		L_STATS_INTERVAL
-%token		L_MAX_LOG_SIZE_IXFR
-%token		L_HEARTBEAT
-%token		L_USE_ID_POOL
-%token		L_MAX_NCACHE_TTL
-%token		L_HAS_OLD_CLIENTS
-%token		L_EXPERT_MODE
-%token		L_ZONE
-%token		L_TYPE
-%token		L_FILE
-%token		L_YES
+%token		L_TRANSFER_SOURCE
+%token		L_TRANSFER_SOURCE_V6
 %token		L_TRUE
-%token		L_NO
-%token		L_FALSE
-%token		L_VIEW
-%token		L_RFC2308_TYPE1
-%token		L_PROVIDE_IXFR
-%token		L_REQUEST_IXFR
-
+%token		L_TRUSTED_KEYS
+%token		L_TYPE
+%token		L_UNIX
+%token		L_UNLIMITED
 %token		L_UPDATE_POLICY
-%token		L_GRANT
-%token		L_DENY
-%token		L_SUBDOMAIN
-%token		L_SELF
+%token		L_USE_ID_POOL
+%token		L_USE_IXFR
+%token		L_VERSION
+%token		L_VERSIONS
+%token		L_VIEW
+%token		L_WARN
 %token		L_WILDCARD
+%token		L_YES
+%token		L_ZONE
 
-%type <ssu>		grant_stmt
-%type <ul_int>		grant_match_type
-%type <rdatatypelist>	rdatatype_list
-%type <rdatatype>	rdatatype
+
 %type <boolean>		grantp
 %type <boolean>		yea_or_nay
-
 %type <forward>		forward_opt
 %type <forward>		zone_forward_opt
-
 %type <ime>		address_match_element
 %type <ime>		address_match_simple
 %type <ime>		address_name
-
 %type <iml>		address_match_list
-
 %type <ipaddress>	in_addr_elem
 %type <ipaddress>	ip4_address
 %type <ipaddress>	ip6_address
@@ -325,49 +315,39 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <ipaddress>	maybe_wild_addr 
 %type <ipaddress>	maybe_wild_ip4_only_addr 
 %type <ipaddress>	maybe_wild_ip6_only_addr
-%type <ipaddress>	query_source_v6
 %type <ipaddress>	query_source_v4
-
+%type <ipaddress>	query_source_v6
 %type <iplist>		in_addr_list
 %type <iplist>		master_in_addr_list
 %type <iplist>		notify_in_addr_list
 %type <iplist>		opt_in_addr_list
 %type <iplist>		opt_zone_forwarders_list
-
-%type <text>		category_name
-
 %type <number>		facility_name
 %type <number>		maybe_syslog_facility
-
 %type <orderclass>	ordering_class
-
 %type <ordertype>	ordering_type
-
 %type <port_int>	in_port
 %type <port_int>	maybe_port
 %type <port_int>	maybe_wild_port
 %type <port_int>	maybe_zero_port
-
+%type <rdatatype>	rdatatype
+%type <rdatatypelist>	rdatatype_list
 %type <rrclass>		class_name
 %type <rrclass>		optional_class
-
 %type <severity>	check_names_opt;
-
-/* %type <text>		optional_string */
+%type <ssu>		grant_stmt
 %type <text>		algorithm_id
 %type <text>		any_string
+%type <text>		category_name
 %type <text>		channel_name
 %type <text>		domain_name
+%type <text>		key_value
 %type <text>		ordering_name
 %type <text>		secret
-%type <text>		key_value
-
 %type <tformat>		transfer_format
-
 %type <transport>	check_names_type;
-
+%type <ul_int>		grant_match_type
 %type <ul_int>		size_spec
-
 %type <ztype>		zone_type
 
 /* Miscellaneous items (used in several places): */
@@ -1919,7 +1899,7 @@ version_modifier: L_VERSIONS L_INTEGER
 			YYABORT;
 		}
 
-		tmpres = dns_c_logchan_setversions(chan, -1);
+		tmpres = dns_c_logchan_setversions(chan, 0xffffffffU);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "redefining versions.");
 		} else if (tmpres != ISC_R_SUCCESS) {
@@ -2733,14 +2713,33 @@ view_options_list: view_option L_EOS
 	| view_options_list view_option L_EOS;
 
 
-view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
+view_option: L_MATCH_CLIENTS L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setallowquery(view, $3,
-						  ISC_FALSE);
+		tmpres = dns_c_view_setmatchclients(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+		
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view match-clients.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view match-clients.");
+			YYABORT;
+		}
+	}
+	| L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setallowquery(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+		
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining view allow-query.");
@@ -2756,8 +2755,9 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setallowtransfer(view,
-						     $3, ISC_FALSE);
+		tmpres = dns_c_view_settransferacl(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining view allow-transfer.");
@@ -2773,8 +2773,9 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setallowrecursion(view,
-						      $3, ISC_FALSE);
+		tmpres = dns_c_view_setrecursionacl(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining view allow-recursion.");
@@ -2790,8 +2791,9 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setallowupdateforwarding(view,
-							     $3, ISC_FALSE);
+		tmpres = dns_c_view_setallowupdateforwarding(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining view "
@@ -2809,8 +2811,9 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setblackhole(view,
-						 $3, ISC_FALSE);
+		tmpres = dns_c_view_setblackhole(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining view blackhole.");
@@ -2843,8 +2846,9 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setsortlist(view,
-						$3, ISC_FALSE);
+		tmpres = dns_c_view_setsortlist(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining view sortlist.");
@@ -2860,8 +2864,9 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_settopology(view,
-						$3, ISC_FALSE);
+		tmpres = dns_c_view_settopology(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining view topology.");
@@ -2871,11 +2876,38 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 			YYABORT;
 		}
 	}
-/* XXX not implemented yet
-	| L_RRSET_ORDER L_LBRACE rrset_ordering_list L_RBRACE 
-	| L_CHECK_NAMES 
-	| L_TRANSFER_FORMAT
-*/
+	| L_CHECK_NAMES check_names_type check_names_opt
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setchecknames(view, $2, $3);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view check-names.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view check-names.");
+			YYABORT;
+		}
+	}
+	| L_FORWARD zone_forward_opt
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setforward(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view forward.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view forward.");
+			YYABORT;
+		}
+	}
         | zone_stmt
 	;
 
@@ -4045,6 +4077,7 @@ static struct token keyword_tokens [] = {
 	{ "many-answers",		L_MANY_ANSWERS },
 	{ "master",			L_MASTER },
 	{ "masters",			L_MASTERS },
+	{ "match-clients",		L_MATCH_CLIENTS },
 	{ "max-ixfr-log-size",		L_MAX_LOG_SIZE_IXFR },
 	{ "max-ncache-ttl",		L_MAX_NCACHE_TTL },
 	{ "max-transfer-time-in",	L_MAX_TRANSFER_TIME_IN },
