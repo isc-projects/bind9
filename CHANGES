@@ -1,3 +1,4 @@
+ 568.	[func]		Add sample simple database drivers in contrib/sdb.
 
  567.	[bug]		Setting the zone transfer timeout to zero caused an
 			assertion failure. [RT #302]
