@@ -83,7 +83,8 @@ setup(char *zonename, char *filename, char *classname) {
 
 	dns_zone_settype(zone, zonetype);
 
-	isc_buffer_init(&buffer, zonename, strlen(zonename), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, zonename, strlen(zonename),
+			ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&buffer, strlen(zonename));
 	dns_fixedname_init(&fixorigin);
 	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
@@ -107,9 +108,8 @@ setup(char *zonename, char *filename, char *classname) {
 
 	dns_zone_setclass(zone, rdclass);
 
-	if (zonetype == dns_zone_slave) {
+	if (zonetype == dns_zone_slave)
 		dns_zone_addmaster(zone, &addr);
-	}
 
 	result = dns_zone_load(zone);
 	ERRRET(result, "dns_zone_load");
@@ -186,7 +186,8 @@ query(void) {
 		if (strlen(buf) == 0)
 			continue;
 		dns_fixedname_init(&name);
-		isc_buffer_init(&buffer, buf, strlen(buf), ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&buffer, buf, strlen(buf),
+				ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&buffer, strlen(buf));
 		result = dns_name_fromtext(dns_fixedname_name(&name),
 				  &buffer, dns_rootname, ISC_FALSE, NULL);
