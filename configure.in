@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.316 $)
+AC_REVISION($Revision: 1.317 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1599,7 +1599,7 @@ esac
 #
 
 # Directory trees where SGML files are commonly found.
-sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml"
+sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml /usr/share/sgml"
 
 #
 # Look for openjade.  Plain jade is no longer supported.
@@ -1652,16 +1652,17 @@ fi
 AC_SUBST($1)
 ])
 
-NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees)
+NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees, docbook/dsssl-stylesheets)
 
 #
 # Look for the HTML stylesheet html/docbook.dsl, used for
 # formatting man pages in HTML.  Its location varies,
 # so far we have seen:
 #
-# 	NetBSD 	/usr/pkg/share/docbook/dsssl/modular/
-# 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/
+# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/
 #	Linux	/usr/local/share/dsssl/docbook/
+#		/usr/share/sgml/docbook/dsssl-stylesheets/
 #
 # Ditto for the print stylesheet print/docbook.dsl.
 #
@@ -1669,7 +1670,7 @@ NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees)
 stylepath=""
 for d in $sgmltrees 
 do
-	for s in docbook/dsssl/modular dsssl/docbook
+	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
 	do
 		stylepath="$stylepath $d/$s"
 	done
@@ -1678,10 +1679,24 @@ NOM_PATH_FILE(HTMLSTYLE, html/docbook.dsl, $stylepath)
 NOM_PATH_FILE(PRINTSTYLE, print/docbook.dsl, $stylepath)
 
 #
-# Look for XML declarations
+# Look for XML declarations.
+# Its location varies, so far we have seen:
+#
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/dtds/decls/
+# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/
+#	Linux	/usr/local/share/dsssl/docbook/dtds/decls/
+#		/usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/
 #
 
-NOM_PATH_FILE(XMLDCL, docbook/dsssl/modular/dtds/decls/xml.dcl, $sgmltrees)
+xmlpath=""
+for d in $sgmltrees 
+do
+	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
+	do
+		xmlpath="$xmlpath $d/$s"
+	done
+done
+NOM_PATH_FILE(XMLDCL, dtds/decls/xml.dcl, $xmlpath)
 
 #
 # Look for docbook2man-spec.pl
