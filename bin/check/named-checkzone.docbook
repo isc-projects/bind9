@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.4 2001/09/15 02:05:35 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.5 2002/04/02 06:54:07 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -38,6 +38,7 @@
     <cmdsynopsis>
       <command>named-checkzone</command>
       <arg><option>-d</option></arg>
+      <arg><option>-m</option></arg>
       <arg><option>-q</option></arg>
       <arg><option>-v</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
@@ -90,6 +91,14 @@
 	  </para>
 	</listitem>
       </varlistentry>
+
+      <varlistentry>
+        <term>-m</term>
+        <listitem>
+          <para>
+              When loading the zone file merge the journal if it exists.
+          </para>   
+        </listitem>
 
       <varlistentry>
         <term>-c <replaceable class="parameter">class</replaceable></term>

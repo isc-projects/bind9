@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.3 2001/09/03 08:21:46 marka Exp $ */
+/* $Id: check-tool.h,v 1.4 2002/04/02 06:54:02 marka Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
@@ -35,6 +35,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	  const char *classname, dns_zone_t **zonep);
 
 extern int debug;
+extern isc_boolean_t nomerge;
 
 ISC_LANG_ENDDECLS
 

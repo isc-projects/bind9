@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.22 2002/02/20 03:32:50 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.23 2002/04/02 06:54:03 marka Exp $ */
 
 #include <config.h>
 
@@ -197,11 +197,17 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	int exit_status = 0;
 	isc_boolean_t load_zones = ISC_FALSE;
+	
+	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 
 	while ((c = isc_commandline_parse(argc, argv, "dt:vz")) != EOF) {
 		switch (c) {
 		case 'd':
 			debug++;
+			break;
+
+		case 'm':
+			nomerge = ISC_FALSE;
 			break;
 
 		case 't':

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.20 2002/02/20 03:32:53 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.21 2002/04/02 06:54:06 marka Exp $ */
 
 #include <config.h>
 
@@ -81,7 +81,7 @@ main(int argc, char **argv) {
 	char *classname = classname_in;
 	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dqist:vw:")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dimqst:vw:")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -89,6 +89,10 @@ main(int argc, char **argv) {
 
 		case 'd':
 			debug++;
+			break;
+
+		case 'm':
+			nomerge = ISC_FALSE;
 			break;
 
 		case 'q':

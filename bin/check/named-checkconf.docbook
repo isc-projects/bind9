@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkconf.docbook,v 1.4 2001/09/04 00:32:32 marka Exp $ -->
+<!-- $Id: named-checkconf.docbook,v 1.5 2002/04/02 06:54:05 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -38,6 +38,7 @@
     <cmdsynopsis>
       <command>named-checkconf</command>
       <arg><option>-v</option></arg>
+      <arg><option>-m</option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="req">filename</arg>
       <arg><option>-z</option></arg>
@@ -83,6 +84,15 @@
 	  <para>
 	      Perform a check load the master zonefiles found in
 	      <filename>named.conf</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-m</term>
+	<listitem>
+	  <para>
+	      When loading a zonefile merge the journal if it exists.
 	  </para>
 	</listitem>
       </varlistentry>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.365 2002/03/27 04:48:21 marka Exp $ */
+/* $Id: zone.c,v 1.366 2002/04/02 06:53:58 marka Exp $ */
 
 #include <config.h>
 
@@ -1246,6 +1246,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 * Apply update log, if any, on initial load.
 	 */
 	if (zone->journal != NULL &&
+	    ! DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOMERGE) &&
 	    ! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
 	{
 		result = dns_journal_rollforward(zone->mctx, db,
