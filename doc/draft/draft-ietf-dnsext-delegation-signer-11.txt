@@ -4,10 +4,9 @@
 
 
 
-
   DNSEXT Working Group                                Olafur Gudmundsson
   INTERNET-DRAFT                                            October 2002
-  <draft-ietf-dnsext-delegation-signer-10.txt>
+  <draft-ietf-dnsext-delegation-signer-11.txt>
 
   Updates: RFC 1035, RFC 2535, RFC 3008, RFC 3090.
 
@@ -39,7 +38,7 @@ Status of this Memo
    Comments should be sent to the authors or the DNSEXT WG mailing list
    namedroppers@ops.ietf.org
 
-   This draft expires on April 16, 2003.
+   This draft expires on April 30, 2003.
 
    Copyright Notice
 
@@ -58,7 +57,7 @@ Abstract
 
 
 Gudmundsson                Expires April 2003                   [Page 1]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -96,7 +95,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    in the child requires frequent two-way communication between the two
    parties. First the child transmits the KEY RRset to the parent and
    then the parent sends the signature(s) to the child. Storing the KEY
-   RRset at the parent simplifies the communication.
+   RRset at the parent was thought to simplify the communication.
 
    DNSSEC [RFC2535] requires that the parent store a NULL KEY record for
    an unsecure child zone to indicate that the child is unsecure. A NULL
@@ -115,7 +114,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 Gudmundsson                Expires April 2003                   [Page 2]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -134,18 +133,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    5. The parent may not meet the child's expectations in turnaround
       time for resigning the KEY RRset.
 
-   Given these and other reasons, there is good reason to explore
-   alternatives to using only KEY records to create a chain of trust.
-
-   Some of these problems can be reduced or eliminated by operational
-   rules or protocol changes. To reduce the number of keys at the zone
-   apex, a rule to require applications to store their KEY records at
-   the SRV name for that application is one possibility. Another is to
-   restrict the KEY record to only DNSSEC keys and create a new record
-   type for all non-DNSSEC keys. A third possible solution is to
-   prohibit the storage of non-DNSSEC keys at the zone apex. There are
-   other possible solutions, but they are outside the scope of this
-   document.
+   Given these reasons, SIG@parent isn't any better than SIG/KEY@Child.
 
 
 1.2 Reserved Words
@@ -168,14 +156,6 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
    The chain of trust is now established by verifying the parent KEY
    RRset, the DS RRset from the parent and the KEY RRset at the child.
-
-
-
-Gudmundsson                Expires April 2003                   [Page 3]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
-
-
    This is cryptographically equivalent to using just KEY records.
 
    Communication between the parent and child is greatly reduced, since
@@ -187,6 +167,14 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    applications and protocols with minimal impact on the parent. Thus if
    the child wants to have frequent key rollover for its DNS zone keys,
    the parent does not need to be aware of it: the child can use one key
+
+
+
+Gudmundsson                Expires April 2003                   [Page 3]
+
+INTERNET-DRAFT          Delegation Signer Record            October 2002
+
+
    to sign only its apex KEY RRset and other keys to sign the other
    RRsets in the zone.
 
@@ -208,6 +196,12 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    one required by RFC 2535.  There is no impact on the number of
    signatures verified for other types of RRsets.
 
+   Even though DS identifies two roles for KEY's, Key Signing Key (KSK)
+   and Zone Sigining Key (ZSK), there is no requirement that zone use
+   two different keys for these roles. It is expected that many small
+   zones will only use one key, while larger organizations will be more
+   likely to use multiple keys.
+
 2.2 Protocol Change
 
    All DNS servers and resolvers that support DS MUST support the OK bit
@@ -225,29 +219,29 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
    This increases the size of referral messages and may cause some or
    all glue to be omitted. If the DS or NXT RRsets with signatures do
+   not fit in the DNS message, the TC bit MUST be set.  Additional
+   section processing is not changed.
+
+   A DS RRset accompanying a NS RRset indicates that the child zone is
+   secure. If a NS RRset exists without a DS RRset, the child zone is
 
 
 
 Gudmundsson                Expires April 2003                   [Page 4]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
-   not fit in the DNS message, the TC bit MUST be set.  Additional
-   section processing is not changed.
-
-   A DS RRset accompanying an NS RRset indicates that the child zone is
-   secure. If an NS RRset exists without a DS RRset, the child zone is
    unsecure (from the parents point of view).  DS RRsets MUST NOT appear
    at non-delegation points or at a zone's apex.
 
    Section 2.2.1 defines special considerations related to authoritative
-   servers responding to DS queries.  Section 2.2.2 replaces RFC2535
-   sections 2.3.4 and 3.4, section 2.2.3 replaces RFC3008 section 2.7,
-   and section 2.2.4 updates RFC3090.
+   servers responding to DS queries and replaces RFC2535 sections 2.3.4
+   and 3.4. Section 2.2.2 replaces RFC3008 section 2.7, and section
+   2.2.3 updates RFC3090.
 
 
-2.2.2 RFC2535 2.3.4 and 3.4: Special Considerations at Delegation Points
+2.2.1 RFC2535 2.3.4 and 3.4: Special Considerations at Delegation Points
 
    DNS security views each zone as a unit of data completely under the
    control of the zone owner with each entry (RRset) signed by a special
@@ -280,22 +274,20 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    in the answer section.
 
 
-
-
-
-
-
-Gudmundsson                Expires April 2003                   [Page 5]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
-
-
-2.2.2.1  Special processing for DS queries
+2.2.1.1  Special processing for DS queries
 
    When a server is authoritative for the parent zone at a delegation
    point and receives a query for the DS record at that name, it will
    return the DS from the parent zone.  This is true whether or not it
    is also authoritative for the child zone.
+
+
+
+
+Gudmundsson                Expires April 2003                   [Page 5]
+
+INTERNET-DRAFT          Delegation Signer Record            October 2002
+
 
    When the server is authoritative for the child zone at a delegation
    point but not the parent zone, there is no natural response, since
@@ -319,7 +311,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    MUST not be set in the response.
 
 
-2.2.3 Signer's Name (replaces RFC3008 section 2.7)
+2.2.2 Signer's Name (replaces RFC3008 section 2.7)
 
    The signer's name field of a SIG RR MUST contain the name of the zone
    to which the data and signature belong.  The combination of signer's
@@ -332,22 +324,13 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    identify a key if this SIG(0) is to be processed.
 
 
-2.2.4 Changes to RFC3090
+2.2.3 Changes to RFC3090
 
    A number of sections of RFC3090 need to be updated to reflect the DS
    record.
 
 
-
-
-
-
-Gudmundsson                Expires April 2003                   [Page 6]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
-
-
-2.2.4.1 RFC3090: Updates to section 1: Introduction
+2.2.3.1 RFC3090: Updates to section 1: Introduction
 
    Most of the text is still relevant but the words ``NULL key'' are to
    be replaced with ``missing DS RRset''. In section 1.3 the last three
@@ -356,7 +339,14 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    obsolete.
 
 
-2.2.4.2 RFC3090 section 2.1: Globally Secured
+
+
+Gudmundsson                Expires April 2003                   [Page 6]
+
+INTERNET-DRAFT          Delegation Signer Record            October 2002
+
+
+2.2.3.2 RFC3090 section 2.1: Globally Secured
 
    Rule 2.1.b is replaced by the following rule:
 
@@ -371,7 +361,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    to this is the root zone, for which there is no parent zone.
 
 
-2.2.4.3 RFC3090 section 3: Experimental Status.
+2.2.3.3 RFC3090 section 3: Experimental Status.
 
    The only difference between experimental status and globally secured
    is the missing DS RRset in the parent zone. All locally secured zones
@@ -399,8 +389,17 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                   [Page 7]
 
+
+
+
+
+
+
+
+
+Gudmundsson                Expires April 2003                   [Page 7]
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -410,15 +409,14 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    digest type, and the digest of a public key KEY record that is
    allowed and/or used to sign the child's apex KEY RRset. Other keys
    MAY sign the child's apex KEY RRset.
-
                            1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |           key tag             |  algorithm    |  Digest type  |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                SHA-1 digest                                   |
+      |                digest  (length depends on type)               |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                (20 bytes)                                     |
+      |                (SHA-1 digest is 20 bytes)                     |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                                                               |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
@@ -456,8 +454,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                   [Page 8]
 
+Gudmundsson                Expires April 2003                   [Page 8]
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -514,7 +513,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 Gudmundsson                Expires April 2003                   [Page 9]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -571,7 +570,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 Gudmundsson                Expires April 2003                  [Page 10]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -628,7 +627,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 Gudmundsson                Expires April 2003                  [Page 11]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -685,7 +684,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 Gudmundsson                Expires April 2003                  [Page 12]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -742,7 +741,7 @@ Normative References:
 
 
 Gudmundsson                Expires April 2003                  [Page 13]
-
+
 INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
@@ -753,7 +752,7 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 Author Address
 
       Olafur Gudmundsson
-      3826 Legation Street, NW
+      PO Box 6306
       Washington, DC,  20015
       USA
       <ogud@ogud.com>
@@ -799,4 +798,3 @@ Full Copyright Statement
 
 
 Gudmundsson                Expires April 2003                  [Page 14]
-

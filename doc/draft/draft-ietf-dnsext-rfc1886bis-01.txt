@@ -1,14 +1,14 @@
 Internet Engineering Task Force                        S. Thomson, Cisco
 INTERNET-DRAFT                                     C. Huitema, Microsoft
-September 11, 2002                                     V. Ksinant, 6WIND
-Expires March 11, 2003                                 M. Souissi, AFNIC
+October 29, 2002                                       V. Ksinant, 6WIND
+Expires April 29, 2003                                 M. Souissi, AFNIC
 
 
 
 
 
                 DNS Extensions to support IP version 6
-                <draft-ietf-dnsext-rfc1886bis-00.txt>
+                <draft-ietf-dnsext-rfc1886bis-01.txt>
 
 
 Status of this Memo
@@ -29,7 +29,7 @@ Status of this Memo
    To view the list Internet-Draft Shadow Directories, see
    http://www.ietf.org/shadow.html.
 
-   This Internet Draft expires March 11, 2003.
+   This Internet Draft expires April 29, 2003.
 
 
 
@@ -37,24 +37,26 @@ Abstract
 
    This document defines the changes that need to be made to the Domain
    Name System to support hosts running IP version 6 (IPv6).  The
-   changes include a new resource record type to store an IPv6 address,
-   a new domain to support lookups based on an IPv6 address, and updated
+   changes include a resource record type to store an IPv6 address,
+   a domain to support lookups based on an IPv6 address, and updated
    definitions of existing query types that return Internet addresses as
    part of additional section processing.  The extensions are designed
    to be compatible with existing applications and, in particular, DNS
    implementations themselves.
 
-   This document updates RFC 1886 [5]. Changes mainly consist in 
-   replacing the IP6.INT domain by IP6.ARPA as defined in RFC 3152 [6].
+   This Document combines RFC1886 and changes to RFC 1886 made by
+   RFC 3152, obsoleting both. Changes mainly consist in replacing 
+   the IP6.INT domain by IP6.ARPA as defined in RFC 3152. 
+ 
 
 
 
 
 
 
-draft-ietf-dnsext-rfc1886bis-00.txt                             [Page 1]
+draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 1]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
 
 
 Table of Contents
@@ -68,6 +70,7 @@ Table of Contents
       2.5.  IP6.ARPA domain.....................................    3
    3.  Modifications to existing query types....................    4
    4.  Security Considerations..................................    4
+   5.  IANA Considerations......................................    4
    APPENDIX A: Changes from RFC-1886............................    4
    Acknowledgments..............................................    5
    References...................................................    5 
@@ -82,13 +85,13 @@ Table of Contents
    addresses[3] since applications assume that address queries return
    32-bit IPv4 addresses only.
 
-   To support the storage of IPv6 addresses we define the following
-   extensions:
+   To support the storage of IPv6 addresses in DNS, this document 
+   defines the following extensions:
 
-      o A new resource record type is defined to map a domain name to an
+      o A resource record type is defined to map a domain name to an
         IPv6 address.
 
-      o A new domain is defined to support lookups based on address.
+      o A domain is defined to support lookups based on address.
 
       o Existing queries that perform additional section processing to
         locate IPv4 addresses are redefined to perform additional
@@ -100,22 +103,22 @@ Table of Contents
    are discussed in [4].
 
 
-2. NEW RESOURCE RECORD DEFINITION AND DOMAIN
+2. RESOURCE RECORD DEFINITION AND DOMAIN
 
-   A new record type is defined to store a host's IPv6 address. A host
+   A record type is defined to store a host's IPv6 address. A host
    that has more than one IPv6 address must have more than one such
    record.
 
-draft-ietf-dnsext-rfc1886bis-00.txt                             [Page 2]
+draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 2]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
 
 2.1 AAAA record type
 
-   The AAAA resource record type is a new record specific to the
-   Internet class that stores a single IPv6 address.
+   The AAAA resource record type is a record specific to the Internet 
+   class that stores a single IPv6 address.
 
-   The value of the type is 28 (decimal).
+   The IANA assigned value of the type is 28 (decimal).
 
 
 2.2 AAAA data format
@@ -162,19 +165,19 @@ INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
 b.a.9.8.7.6.5.0.4.0.0.0.3.0.0.0.2.0.0.0.1.0.0.0.0.0.0.0.1.2.3.4.IP6.
                                                                ARPA.
 
-draft-ietf-dnsext-rfc1886bis-00.txt                             [Page 3]
+draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 3]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
 
 3. MODIFICATIONS TO EXISTING QUERY TYPES
 
    All existing query types that perform type A additional section
-   processing, i.e. name server (NS), mail exchange (MX) and mailbox
-   (MB) query types, must be redefined to perform both type A and type
-   AAAA additional section processing. These new definitions mean that a
-   name server must add any relevant IPv4 addresses and any relevant
-   IPv6 addresses available locally to the additional section of a
-   response when processing any one of the above queries.
+   processing, i.e. name server (NS) and mail exchange (MX) query 
+   types, must be redefined to perform both type A and type AAAA 
+   additional section processing. These definitions mean that a name 
+   server must add any relevant IPv4 addresses and any relevant IPv6 
+   addresses available locally to the additional section of a response 
+   when processing any one of the above queries.
 
 
 4. SECURITY CONSIDERATIONS
@@ -187,7 +190,10 @@ INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
    So, this specification is not believed to cause any new security 
    problems, nor to solve any existing ones.
 
+5. IANA CONSIDERATIONS
 
+   There are no IANA assignments to be performed.
+   
 APPENDIX A: Changes from RFC 1886
 
       The following changes were made from RFC 1886 "DNS Extensions to
@@ -204,6 +210,7 @@ APPENDIX A: Changes from RFC 1886
       - Updated document abstract
       - Added table of contents
       - Added full copyright statement
+      - Added IANA considerations section
 
 
 
@@ -215,12 +222,9 @@ APPENDIX A: Changes from RFC 1886
 
 
 
-
-
-
-draft-ietf-dnsext-rfc1886bis-00.txt                             [Page 4]
+draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 4]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
 
 Acknowledgements
 
@@ -232,7 +236,7 @@ Acknowledgements
    
    Many thanks to Alain Durand and Olafur Gudmundsson for their support.
 
-REFERENCES
+Normative References
 
    [1]  Mockapetris, P., "Domain Names - Concepts and Facilities", STD
         13, RFC 1034, USC/Information Sciences Institute, November 1987.
@@ -244,8 +248,8 @@ REFERENCES
    [3]  Hinden, R., and S. Deering, "IP Version 6 Addressing 
         Architecture", RFC 2373, Nokia, Cisco, July 1998.
         This RFC is being updated. The current draft is
-        "draft-ietf-ipngwg-addr-arch-v3-09.txt", Hinden, R., and 
-        S. Deering, August 26, 2002
+        "draft-ietf-ipngwg-addr-arch-v3-11.txt", Hinden, R., and 
+        S. Deering, October 25, 2002
 
    [4]  Gilligan, R., and E. Nordmark, "Transition Mechanisms for IPv6
         Hosts and Routers", RFC 2893, FreeGate Corp., Sun Microsystems
@@ -274,9 +278,9 @@ REFERENCES
 
 
 
-draft-ietf-dnsext-rfc1886bis-00.txt                             [Page 5]
+draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 5]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
 
 
 Authors' Addresses
@@ -328,9 +332,9 @@ Authors' Addresses
 
 
 
-draft-ietf-dnsext-rfc1886bis-00.txt                             [Page 6]
+draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 6]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6  September 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
 
 Full Copyright Statement
 
@@ -386,4 +390,4 @@ Full Copyright Statement
          information to the IETF Executive Director.
 
 
-draft-ietf-dnsext-rfc1886bis-00.txt                             [Page 7]
+draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 7]
