@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.155 2000/07/04 04:21:38 marka Exp $ */
+/* $Id: zone.c,v 1.156 2000/07/11 22:44:33 gson Exp $ */
 
 #include <config.h>
 
@@ -3917,7 +3917,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			xfrtype = dns_rdatatype_axfr;			
 		} else {
 			zone_log(zone, me, ISC_LOG_DEBUG(3),
-				 "requesting IXFR form %s",
+				 "requesting IXFR from %s",
 				 mastertext);
 			xfrtype = dns_rdatatype_ixfr;
 		}
