@@ -5,7 +5,7 @@ blabel-cleanup
 ipv6-improvements
 ipv6-scope
 ipv6_6to4	feedback	marka
-libbind_clean
+libbind_clean	open		jinmei
 rt3536		review		jinmei	[ixfr=support]
 rt3598		review		sho
 rt3625		review		sho
