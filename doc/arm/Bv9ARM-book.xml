@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.37 2000/11/14 18:07:00 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.38 2000/11/14 22:29:48 gson Exp $ -->
 
 <book>
 
@@ -4576,10 +4576,11 @@ forward it to the master with its own source IP address causing the
 master to approve it without question.</para>
 
 <para>For these reasons, we strongly recommend that updates be
-cryptographically authenticated by means transaction signatures (TSIG).
-That is, the <command>allow-update</command> option should list only
-TSIG key names, not IP addresses. Alternatively, the new 
-<command>update-policy</command> option can be used.</para>
+cryptographically authenticated by means of transaction signatures
+(TSIG).  That is, the <command>allow-update</command> option should
+list only TSIG key names, not IP addresses or network
+prefixes. Alternatively, the new <command>update-policy</command>
+option can be used.</para>
 
 <para>Some sites choose to keep all dynamically updated DNS data
 in a subdomain and delegate that subdomain to a separate zone. This
