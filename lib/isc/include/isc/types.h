@@ -23,35 +23,37 @@
 #include <isc/list.h>
 
 /***
- *** Core Types.
+ *** Core Types.  Alphabetized by defined type.
  ***/
 
-typedef unsigned int			isc_result_t;
+typedef struct isc_bitstring		isc_bitstring_t;
+typedef struct isc_buffer		isc_buffer_t;
+typedef struct isc_event		isc_event_t;
+typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
+typedef unsigned int			isc_eventtype_t;
+typedef struct isc_interval		isc_interval_t;
+typedef struct isc_lex			isc_lex_t;
+typedef struct isc_log 			isc_log_t;
+typedef struct isc_logcategory		isc_logcategory_t;
+typedef struct isc_logconfig		isc_logconfig_t;
+typedef struct isc_logmodule		isc_logmodule_t;
 typedef struct isc_mem			isc_mem_t;
 typedef struct isc_mempool		isc_mempool_t;
 typedef struct isc_msgcat		isc_msgcat_t;
-typedef unsigned int			isc_eventtype_t;
-typedef struct isc_event		isc_event_t;
-typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
-typedef struct isc_task			isc_task_t;
+typedef struct isc_netaddr		isc_netaddr_t;
+typedef struct isc_region		isc_region_t;
+typedef unsigned int			isc_result_t;
+typedef struct isc_rwlock		isc_rwlock_t;
+typedef struct isc_sockaddr		isc_sockaddr_t;
 typedef struct isc_socket		isc_socket_t;
-typedef struct isc_socketmgr		isc_socketmgr_t;
 typedef struct isc_socketevent		isc_socketevent_t;
+typedef struct isc_socketmgr		isc_socketmgr_t;
+typedef struct isc_task			isc_task_t;
 typedef struct isc_taskmgr		isc_taskmgr_t;
+typedef struct isc_textregion		isc_textregion_t;
+typedef struct isc_time			isc_time_t;
 typedef struct isc_timer		isc_timer_t;
 typedef struct isc_timermgr		isc_timermgr_t;
-typedef struct isc_rwlock		isc_rwlock_t;
-typedef struct isc_bitstring		isc_bitstring_t;
-typedef struct isc_sockaddr		isc_sockaddr_t;
-typedef struct isc_netaddr		isc_netaddr_t;
-typedef struct isc_buffer		isc_buffer_t;
-typedef struct isc_log 			isc_log_t;
-typedef struct isc_logconfig		isc_logconfig_t;
-typedef struct isc_logcategory		isc_logcategory_t;
-typedef struct isc_logmodule		isc_logmodule_t;
-typedef struct isc_region		isc_region_t;
-typedef struct isc_textregion		isc_textregion_t;
-typedef struct isc_lex			isc_lex_t;
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 

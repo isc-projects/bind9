@@ -70,10 +70,6 @@
  ***/
 
 #include <isc/types.h>
-#include <isc/result.h>
-#include <isc/boolean.h>
-#include <isc/time.h>
-#include <isc/task.h>
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/lang.h>

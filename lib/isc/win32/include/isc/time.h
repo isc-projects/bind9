@@ -20,10 +20,9 @@
 
 #include <windows.h>
 
-#include <isc/int.h>
 #include <isc/lang.h>
 #include <isc/result.h>
-#include <isc/boolean.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -37,9 +36,9 @@ ISC_LANG_BEGINDECLS
  *
  * The contents are exposed only to allow callers to avoid dynamic allocation.
  */
-typedef struct isc_interval {
+struct isc_interval {
 	isc_int64_t interval;
-} isc_interval_t;
+};
 
 extern isc_interval_t *isc_interval_zero;
 
@@ -79,9 +78,9 @@ isc_interval_iszero(isc_interval_t *i);
  * The contents are exposed only to allow callers to avoid dynamic allocation.
  */
 
-typedef struct isc_time {
+struct isc_time {
 	FILETIME absolute;
-} isc_time_t;
+};
 
 extern isc_time_t *isc_time_epoch;
 
