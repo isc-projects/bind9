@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.48 2000/11/28 21:45:28 gson Exp $
+$Id: options,v 1.49 2000/11/28 21:46:32 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -244,7 +244,7 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ provide-ixfr yes_or_no;]				    Yes*
   [ cleaning-interval number; ]				    Yes
   [ topology { address_match_list }; ]			    No
-  [ sortlist { address_match_list }; ]			    No
+  [ sortlist { address_match_list }; ]			    Yes
   [ rrset-order { order_spec ; [ order_spec ; ... ] }; ]    No
   [ key ... ]						    Yes
   [ server ... ]					    Yes
