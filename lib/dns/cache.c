@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.23 2000/06/07 02:38:30 marka Exp $ */
+/* $Id: cache.c,v 1.24 2000/07/26 21:44:34 tale Exp $ */
 
 #include <config.h>
 
@@ -500,48 +500,67 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 		}
 		INSIST(node != NULL);
 
-		/* Check TTLs, mark expired rdatasets stale. */
+		/*
+		 * Check TTLs, mark expired rdatasets stale.
+		 */
 		result = dns_db_expirenode(cleaner->cache->db, node, now);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "cache cleaner: dns_db_expirenode() "
+					 "cache cleaner: dns_db_expirenode() "
 					 "failed: %s",
 					 dns_result_totext(result));
-			/* Continue anyway. */
+			/*
+			 * Continue anyway.
+			 */
 		}
 
-		/* This is where the actual freeing takes place. */ 
+		/*
+		 * This is where the actual freeing takes place.
+		 */ 
 		dns_db_detachnode(cleaner->cache->db, &node);
 		
-		/* Step to the next node */
+		/*
+		 * Step to the next node.
+		 */
 		result = dns_dbiterator_next(cleaner->iterator);
 		if (result == ISC_R_NOMORE) {
-			/* We have successfully cleaned the whole cache. */
+			/*
+			 * We have successfully cleaned the whole cache.
+			 */
 			goto idle;
 		}
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "cache cleaner: dns_dbiterator_next() "
-				 "failed: %s", dns_result_totext(result));
+					 "cache cleaner: "
+					 "dns_dbiterator_next() failed: %s",
+					 dns_result_totext(result));
 			goto idle;
 		}
 	}
 
-	/* We have successfully performed a cleaning increment. */
+	/*
+	 * We have successfully performed a cleaning increment.
+	 */
 	result = dns_dbiterator_pause(cleaner->iterator);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "cache cleaner: dns_dbiterator_pause() "
 				 "failed: %s", dns_result_totext(result));
-		/* Try to continue. */
+		/*
+		 * Try to continue.
+		 */
 	}
-	/* Still busy, reschedule. */
+	/*
+	 * Still busy, reschedule.
+	 */
 	isc_task_send(task, &event);
 	INSIST(CLEANER_BUSY(cleaner));
 	return;
 
  idle:
-	/* No longer busy; save the event for later use. */
+	/*
+	 * No longer busy; save the event for later use.
+	 */
 	end_cleaning(cleaner, event);
 	INSIST(CLEANER_IDLE(cleaner));	
 	return;
@@ -568,17 +587,23 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 		if (result != ISC_R_SUCCESS)
 			break;
 
-		/* Check TTLs, mark expired rdatasets stale. */
+		/*
+		 * Check TTLs, mark expired rdatasets stale.
+		 */
 		result = dns_db_expirenode(cache->db, node, now);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "cache cleaner: dns_db_expirenode() "
+					 "cache cleaner: dns_db_expirenode() "
 					 "failed: %s",
 					 dns_result_totext(result));
-			/* Continue anyway. */
+			/*
+			 * Continue anyway.
+			 */
 		}
 
-		/* This is where the actual freeing takes place. */ 
+		/*
+		 * This is where the actual freeing takes place.
+		 */ 
 		dns_db_detachnode(cache->db, &node);
 
 		result = dns_dbiterator_next(iterator);
