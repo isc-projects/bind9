@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.html,v 1.8 2005/01/13 04:52:20 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.9 2005/01/17 01:55:05 marka Exp $ -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
@@ -194,10 +194,16 @@ NAME="AEN50"
 CLASS="LITERALLAYOUT"
 >server&nbsp;(&nbsp;<VAR
 CLASS="REPLACEABLE"
->ipv4_address</VAR
+>ipv4_address[<SPAN
+CLASS="OPTIONAL"
+>/prefixlen</SPAN
+>]</VAR
 >&nbsp;|&nbsp;<VAR
 CLASS="REPLACEABLE"
->ipv6_address</VAR
+>ipv6_address[<SPAN
+CLASS="OPTIONAL"
+>/prefixlen</SPAN
+>]</VAR
 >&nbsp;)&nbsp;{<br>
 	bogus&nbsp;<VAR
 CLASS="REPLACEABLE"
@@ -256,7 +262,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN68"
+NAME="AEN70"
 ></A
 ><H2
 >TRUSTED-KEYS</H2
@@ -284,7 +290,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN76"
+NAME="AEN78"
 ></A
 ><H2
 >CONTROLS</H2
@@ -325,7 +331,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN87"
+NAME="AEN89"
 ></A
 ><H2
 >LOGGING</H2
@@ -375,7 +381,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN99"
+NAME="AEN101"
 ></A
 ><H2
 >LWRES</H2
@@ -423,7 +429,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN112"
+NAME="AEN114"
 ></A
 ><H2
 >OPTIONS</H2
@@ -1054,7 +1060,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN275"
+NAME="AEN277"
 ></A
 ><H2
 >VIEW</H2
@@ -1106,10 +1112,16 @@ CLASS="REPLACEABLE"
 <br>
 	server&nbsp;(&nbsp;<VAR
 CLASS="REPLACEABLE"
->ipv4_address</VAR
+>ipv4_address[<SPAN
+CLASS="OPTIONAL"
+>/prefixlen</SPAN
+>]</VAR
 >&nbsp;|&nbsp;<VAR
 CLASS="REPLACEABLE"
->ipv6_address</VAR
+>ipv6_address[<SPAN
+CLASS="OPTIONAL"
+>/prefixlen</SPAN
+>]</VAR
 >&nbsp;)&nbsp;{<br>
 		...<br>
 	};<br>
@@ -1558,7 +1570,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN404"
+NAME="AEN408"
 ></A
 ><H2
 >ZONE</H2
@@ -1884,7 +1896,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN488"
+NAME="AEN492"
 ></A
 ><H2
 >FILES</H2
@@ -1897,7 +1909,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN492"
+NAME="AEN496"
 ></A
 ><H2
 >SEE ALSO</H2
