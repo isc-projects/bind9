@@ -45,6 +45,8 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
+	rdataset->private4 = NULL;
+	rdataset->private5 = NULL;
 }
 
 void
@@ -65,6 +67,8 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
+	rdataset->private4 = NULL;
+	rdataset->private5 = NULL;
 }
 
 void
@@ -85,6 +89,8 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
+	rdataset->private4 = NULL;
+	rdataset->private5 = NULL;
 }
 
 dns_result_t

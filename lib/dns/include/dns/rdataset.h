@@ -94,6 +94,8 @@ struct dns_rdataset {
 	void *				private1;
 	void *				private2;
 	void *				private3;
+	void *				private4;
+	void *				private5;
 };
 
 void
