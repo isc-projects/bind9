@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.84 2001/01/25 13:47:59 gson Exp $ */
+/* $Id: dispatch.c,v 1.85 2001/01/25 13:52:32 gson Exp $ */
 
 #include <config.h>
 
@@ -287,7 +287,7 @@ dns_randomid(dns_qid_t *qid) {
 
 	id = isc_lfsr_generate32(&qid->qid_lfsr1, &qid->qid_lfsr2);
 
-	return (dns_messageid_t)(id);
+	return (dns_messageid_t)(id & 0xFFFF);
 }
 
 /*
