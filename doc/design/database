@@ -1,7 +1,8 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 1999-2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: database,v 1.8 2001/01/09 21:46:41 bwelling Exp $
+$Id: database,v 1.8.2.1 2004/03/09 06:10:38 marka Exp $
 
 Databases
 

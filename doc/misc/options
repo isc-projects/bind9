@@ -67,6 +67,7 @@ options {
         max-cache-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
+        root-delegation-only [ exclude { <quoted_string>; ... } ];
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -127,7 +128,8 @@ view <string> <optional_class> {
                 secret <string>;
         };
         zone <string> <optional_class> {
-                type ( master | slave | stub | hint | forward );
+                type ( master | slave | stub | hint | forward |
+                    delegation-only );
                 allow-update { <address_match_element>; ... };
                 file <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
@@ -139,6 +141,7 @@ view <string> <optional_class> {
                 update-policy { ( grant | deny ) <string> ( name |
                     subdomain | wildcard | self ) <string> <rrtypelist>; ... };
                 database <string>;
+                delegation-only <boolean>;
                 check-names <string>; // not implemented
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
@@ -183,7 +186,7 @@ view <string> <optional_class> {
                 edns <boolean>;
         };
         trusted-keys { <string> <integer> <integer> <integer>
-            <quoted_string>; ... };
+            <quoted_string>; ... }; // obsolete
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... };
         sortlist { <address_match_element>; ... };
@@ -208,6 +211,7 @@ view <string> <optional_class> {
         max-cache-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
+        root-delegation-only [ exclude { <quoted_string>; ... } ];
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -251,7 +255,7 @@ key <string> {
 };
 
 zone <string> <optional_class> {
-        type ( master | slave | stub | hint | forward );
+        type ( master | slave | stub | hint | forward | delegation-only );
         allow-update { <address_match_element>; ... };
         file <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
@@ -262,6 +266,7 @@ zone <string> <optional_class> {
         update-policy { ( grant | deny ) <string> ( name | subdomain |
             wildcard | self ) <string> <rrtypelist>; ... };
         database <string>;
+        delegation-only <boolean>;
         check-names <string>; // not implemented
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };

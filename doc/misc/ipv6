@@ -1,3 +1,4 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
@@ -96,4 +97,4 @@ RELEVANT RFCs
 draft-ietf-ipngwg-rfc2292bis-01:  Advanced Sockets API for IPv6 (draft)
 
 
-$Id: ipv6,v 1.5 2001/01/09 21:50:27 bwelling Exp $
+$Id: ipv6,v 1.5.2.1 2004/03/09 06:10:41 marka Exp $
