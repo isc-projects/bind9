@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Internet Software Consortium.
+ * Copyright (C) 1998-1999 Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.4 1999/01/20 05:20:23 marka Exp $ */
+ /* $Id: proforma.c,v 1.5 1999/01/22 05:02:47 marka Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_H
 #define RDATA_GENERIC_#_#_H
@@ -24,10 +24,12 @@ static dns_result_t
 fromtext_#(dns_rdataclass_t class, dns_rdatatype_t type,
 	   isc_lex_t *lexer, dns_name_t *origin,
 	   isc_boolean_t downcase, isc_buffer_t *target) {
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
+	isc_token_t token;
 
 	REQUIRE(type == #);
 	REQUIRE(class == #);
+
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -63,13 +65,17 @@ towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 static int
 compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+	isc_region_t r1;
+	isc_region_t r2;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
 	REQUIRE(rdata1->type == #);
 	REQUIRE(rdata1->class == #);
 
-	return (-2);
+	dns_rdata_toregion(rdata1, &r1);
+	dns_rdata_toregion(rdata2, &r2);
+	return (compare_region(&r1, &r2));
 }
 
 static dns_result_t

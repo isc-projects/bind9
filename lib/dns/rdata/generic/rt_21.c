@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999  Internet Software Consortium.
+ * Copyright (C) 1999 Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,23 +15,29 @@
  * SOFTWARE.
  */
 
- /* $Id: mb_7.h,v 1.6 1999/01/22 05:02:45 marka Exp $ */
+ /* $Id: rt_21.c,v 1.1 1999/01/22 05:02:48 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MB_7_H
-#define RDATA_GENERIC_MB_7_H
+ /* RFC 1183 */
+
+#ifndef RDATA_GENERIC_RT_21_H
+#define RDATA_GENERIC_RT_21_H
 
 static dns_result_t
-fromtext_mb(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_rt(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
 	    isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	REQUIRE(type == 7);
+	REQUIRE(type == 21);
 
 	class = class;	/*unused*/
+
+	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	
+	RETERR(uint16_tobuffer(token.value.as_ulong, target));
+
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
@@ -42,69 +48,101 @@ fromtext_mb(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_mb(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_rt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
+	char buf[sizeof "64000"];
+	unsigned short num;
 
-	REQUIRE(rdata->type == 7);
+	REQUIRE(rdata->type == 21);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 
 	dns_rdata_toregion(rdata, &region);
+	num = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	sprintf(buf, "%u", num);
+	RETERR(str_totext(buf, target));
+	RETERR(str_totext(" ", target));
 	dns_name_fromregion(&name, &region);
-
 	sub = name_prefix(&name, origin, &prefix);
-
-	return (dns_name_totext(&prefix, sub, target));
+	return(dns_name_totext(&prefix, sub, target));
 }
 
 static dns_result_t
-fromwire_mb(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_rt(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_buffer_t *source, dns_decompress_t *dctx,
 	    isc_boolean_t downcase, isc_buffer_t *target) {
         dns_name_t name;
+	isc_region_t sregion;
+	isc_region_t tregion;
 
-	REQUIRE(type == 7);
-
-	class = class;	/*unused*/
+	REQUIRE(type == 21);
+	class = class;		/* unused */
         
         dns_name_init(&name, NULL);
-        return (dns_name_fromwire(&name, source, dctx, downcase, target));
+
+	isc_buffer_active(source, &sregion);
+	isc_buffer_available(target, &tregion);
+	if (tregion.length < 2)
+		return (DNS_R_NOSPACE);
+	if (sregion.length < 2)
+		return (DNS_R_UNEXPECTEDEND);
+	memcpy(tregion.base, sregion.base, 2);
+	isc_buffer_forward(source, 2);
+	isc_buffer_add(target, 2);
+	return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
 
 static dns_result_t
-towire_mb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_rt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
+	isc_region_t tr;
 
-	REQUIRE(rdata->type == 7);
+	REQUIRE(rdata->type == 21);
+
+	isc_buffer_available(target, &tr);
+	dns_rdata_toregion(rdata, &region);
+	if (tr.length < 2)
+		return (DNS_R_NOSPACE);
+	memcpy(tr.base, region.base, 2);
+	isc_region_consume(&region, 2);
+	isc_buffer_add(target, 2);
 
 	dns_name_init(&name, NULL);
-	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
 	return (dns_name_towire(&name, cctx, target));
 }
 
 static int
-compare_mb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_rt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
+	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
-	REQUIRE(rdata1->type == 7);
+	REQUIRE(rdata1->type == 21);
+
+	result = memcmp(rdata1->data, rdata2->data, 2);
+	if (result != 0)
+		return (result < 0 ? -1 : 1);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
+
+	isc_region_consume(&region1, 2);
+	isc_region_consume(&region2, 2);
 
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
@@ -113,10 +151,10 @@ compare_mb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_mb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_rt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	REQUIRE(type == 7);
+	REQUIRE(type == 21);
 
 	class = class;	/*unused*/
 
@@ -127,12 +165,12 @@ fromstruct_mb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_mb(dns_rdata_t *rdata, void *target) {
+tostruct_rt(dns_rdata_t *rdata, void *target) {
 
-	REQUIRE(rdata->type == 7);
+	REQUIRE(rdata->type == 21);
 
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_MB_7_H */
+#endif	/* RDATA_GENERIC_RT_21_H */

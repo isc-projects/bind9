@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 1998-1999  Internet Software Consortium.
- * 
+ * Copyright (C) 1999 Internet Software Consortium.
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
  * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
@@ -15,29 +15,31 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.h,v 1.9 1999/01/22 05:02:46 marka Exp $ */
+ /* $Id: afsdb_18.c,v 1.1 1999/01/22 05:02:44 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MX_15_H
-#define RDATA_GENERIC_MX_15_H
+ /* RFC 1183 */
+
+#ifndef RDATA_GENERIC_AFSDB_18_H
+#define RDATA_GENERIC_AFSDB_18_H
 
 static dns_result_t
-fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
-	    isc_lex_t *lexer, dns_name_t *origin,
-	    isc_boolean_t downcase, isc_buffer_t *target) {
+fromtext_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
+	   isc_lex_t *lexer, dns_name_t *origin,
+	   isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	dns_name_t name;
 	isc_buffer_t buffer;
+	dns_name_t name;
 
-	REQUIRE(type == 15);
+	REQUIRE(type == 18);
 
 	class = class;	/*unused*/
 
+	/* subtype */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
-
+	
+	/* hostname */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
 			  ISC_BUFFERTYPE_TEXT);
@@ -46,16 +48,16 @@ fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_mx(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
-	isc_region_t region;
+totext_afsdb(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_t name;
 	dns_name_t prefix;
-	isc_boolean_t sub;
+	isc_region_t region;
 	char buf[sizeof "64000"];
-	unsigned short num;
+	isc_boolean_t sub;
+	unsigned int num;
 
-	REQUIRE(rdata->type == 15);
 
+	REQUIRE(rdata->type == 18);
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 
@@ -71,63 +73,64 @@ totext_mx(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 }
 
 static dns_result_t
-fromwire_mx(dns_rdataclass_t class, dns_rdatatype_t type,
-	    isc_buffer_t *source, dns_decompress_t *dctx,
-	    isc_boolean_t downcase, isc_buffer_t *target) {
-        dns_name_t name;
-	isc_region_t sregion;
-	isc_region_t tregion;
+fromwire_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
+	   isc_buffer_t *source, dns_decompress_t *dctx,
+	   isc_boolean_t downcase, isc_buffer_t *target) {
+	dns_name_t name;
+	isc_region_t sr;
+	isc_region_t tr;
 
-	REQUIRE(type == 15);
-	class = class;		/* unused */
-        
-        dns_name_init(&name, NULL);
+	REQUIRE(type == 18);
+	
+	class = class;	/*unused*/
 
-	isc_buffer_active(source, &sregion);
-	isc_buffer_available(target, &tregion);
-	if (tregion.length < 2)
+	dns_name_init(&name, NULL);
+
+	isc_buffer_active(source, &sr);
+	isc_buffer_available(target, &tr);
+	if (tr.length < 2)
 		return (DNS_R_NOSPACE);
-	if (sregion.length < 2)
+	if (sr.length < 2)
 		return (DNS_R_UNEXPECTEDEND);
-	memcpy(tregion.base, sregion.base, 2);
+	memcpy(tr.base, sr.base, 2);
 	isc_buffer_forward(source, 2);
 	isc_buffer_add(target, 2);
 	return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
 
 static dns_result_t
-towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
-	dns_name_t name;
-	isc_region_t region;
+towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t tr;
+	isc_region_t sr;
+	dns_name_t name;
 
-	REQUIRE(rdata->type == 15);
+	REQUIRE(rdata->type == 18);
 
 	isc_buffer_available(target, &tr);
-	dns_rdata_toregion(rdata, &region);
+	dns_rdata_toregion(rdata, &sr);
 	if (tr.length < 2)
 		return (DNS_R_NOSPACE);
-	memcpy(tr.base, region.base, 2);
-	isc_region_consume(&region, 2);
+	memcpy(tr.base, sr.base, 2);
+	isc_region_consume(&sr, 2);
 	isc_buffer_add(target, 2);
 
 	dns_name_init(&name, NULL);
-	dns_name_fromregion(&name, &region);
+	dns_name_fromregion(&name, &sr);
 
 	return (dns_name_towire(&name, cctx, target));
 }
 
 static int
-compare_mx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+	int result;
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
-	REQUIRE(rdata1->type == 15);
+	REQUIRE(rdata1->type == 18);
 
 	result = memcmp(rdata1->data, rdata2->data, 2);
 	if (result != 0)
@@ -149,11 +152,11 @@ compare_mx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_mx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_afsdb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	REQUIRE(type == 15);
-
+	REQUIRE(type == 18);
+	
 	class = class;	/*unused*/
 
 	source = source;
@@ -163,12 +166,12 @@ fromstruct_mx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_mx(dns_rdata_t *rdata, void *target) {
+tostruct_afsdb(dns_rdata_t *rdata, void *target) {
 
-	REQUIRE(rdata->type == 15);
+	REQUIRE(rdata->type == 18);
 
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_MX_15_H */
+#endif	/* RDATA_GENERIC_AFSDB_18_H */

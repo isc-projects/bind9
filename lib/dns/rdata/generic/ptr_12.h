@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998-1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.h,v 1.5 1999/01/22 00:36:58 marka Exp $ */
+ /* $Id: ptr_12.h,v 1.6 1999/01/22 05:02:47 marka Exp $ */
 
 #ifndef RDATA_GENERIC_PTR_12_H
 #define RDATA_GENERIC_PTR_12_H

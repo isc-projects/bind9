@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998-1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.8 1999/01/22 00:36:57 marka Exp $ */
+ /* $Id: mx_15.c,v 1.9 1999/01/22 05:02:46 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H

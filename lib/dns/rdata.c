@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.12 1999/01/22 01:27:29 marka Exp $ */
+ /* $Id: rdata.c,v 1.13 1999/01/22 05:02:43 marka Exp $ */
 
 #include <config.h>
 
@@ -573,6 +573,8 @@ static isc_result_t
 uint16_tobuffer(unsigned long value, isc_buffer_t *target) {
 	isc_region_t region;
 
+	if (value > 0xffff)
+		return (DNS_R_RANGE);
 	isc_buffer_available(target, &region);
 	if (region.length < 2)
 		return (DNS_R_NOSPACE);

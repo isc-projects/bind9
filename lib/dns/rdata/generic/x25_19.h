@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999 Internet Software Consortium.
+ * Copyright (C) 1999 Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,90 +15,97 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.h,v 1.8 1999/01/22 05:02:44 marka Exp $ */
+ /* $Id: x25_19.h,v 1.1 1999/01/22 05:02:49 marka Exp $ */
 
-#ifndef RDATA_GENERIC_HINFO_13_H
-#define RDATA_GENERIC_HINFO_13_H
+ /* RFC 1183 */
+
+#ifndef RDATA_GENERIC_X25_19_H
+#define RDATA_GENERIC_X25_19_H
+
+#include <ctype.h>
 
 static dns_result_t
-fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_x25(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	int i;
+	unsigned int i;
 
-	REQUIRE(type == 13);
+	REQUIRE(type == 19);
 
 	class = class;		/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	for (i = 0; i < 2 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
-				ISC_FALSE));
-		RETERR(txt_fromtext(&token.value.as_textregion, target));
-	}
-	return (DNS_R_SUCCESS);
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	for (i = 0; i < token.value.as_textregion.length; i++)
+		if (!isascii(token.value.as_textregion.base[i]&0xff) ||
+		    !isdigit(token.value.as_textregion.base[i]&0xff))
+			return (DNS_R_RANGE);
+	return (txt_fromtext(&token.value.as_textregion, target));
 }
 
 static dns_result_t
-totext_hinfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_x25(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->type == 19);
 
 	origin = origin;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
-	RETERR(txt_totext(&region, target));
-	RETERR(str_totext(" ", target));
 	return (txt_totext(&region, target));
 }
 
 static dns_result_t
-fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_x25(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 
-	REQUIRE(type == 13);
+	REQUIRE(type == 19);
 
 	dctx = dctx;		/* unused */
 	class = class;		/* unused */
 	downcase = downcase;	/* unused */
 
-	RETERR(txt_fromwire(source, target));
 	return (txt_fromwire(source, target));
 }
 
 static dns_result_t
-towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_x25(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
-	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->type == 19);
 
-	cctx = cctx;	/*unused*/
+	cctx = cctx;
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static int
-compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
-	isc_region_t r1;
-	isc_region_t r2;
+compare_x25(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+	int l;
+	int result;
 	
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
-	REQUIRE(rdata1->type == 13);
+	REQUIRE(rdata1->type == 19);
 
-	dns_rdata_toregion(rdata1, &r1);
-	dns_rdata_toregion(rdata2, &r2);
-	return (compare_region(&r1, &r2));
+	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
+	result = memcmp(rdata1->data, rdata2->data, l);
+
+	if (result != 0)
+		result = (result < 0) ? -1 : 1;
+	else if (rdata1->length != rdata2->length)
+			result = (rdata1->length < rdata2->length) ? -1 : 1;
+
+	return (result);
 }
 
 static dns_result_t
-fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_x25(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	REQUIRE(type == 13);
+	REQUIRE(type == 19);
 
 	class = class;	/*unused*/
 
@@ -109,12 +116,12 @@ fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_hinfo(dns_rdata_t *rdata, void *target) {
+tostruct_x25(dns_rdata_t *rdata, void *target) {
 
-	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->type == 19);
 
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_HINFO_13_H */
+#endif	/* RDATA_GENERIC_X25_19_H */

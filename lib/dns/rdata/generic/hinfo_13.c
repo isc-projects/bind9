@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998 Internet Software Consortium.
+ * Copyright (C) 1998-1999 Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.7 1999/01/22 01:27:30 marka Exp $ */
+ /* $Id: hinfo_13.c,v 1.8 1999/01/22 05:02:44 marka Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_H
 #define RDATA_GENERIC_HINFO_13_H
@@ -72,40 +72,26 @@ fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 
 static dns_result_t
 towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
-	isc_region_t region;
 
 	REQUIRE(rdata->type == 13);
 
-	cctx = cctx;
+	cctx = cctx;	/*unused*/
 
-	isc_buffer_available(target, &region);
-	if (region.length < rdata->length)
-		return (DNS_R_NOSPACE);
-
-	memcpy(region.base, rdata->data, rdata->length);
-	isc_buffer_add(target, rdata->length);
-
-	return (DNS_R_SUCCESS);
+	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static int
 compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
-	int l;
-	int result;
+	isc_region_t r1;
+	isc_region_t r2;
 	
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
 	REQUIRE(rdata1->type == 13);
 
-	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
-	result = memcmp(rdata1->data, rdata2->data, l);
-
-	if (result != 0)
-		result = (result < 0) ? -1 : 1;
-	else if (rdata1->length != rdata2->length)
-			result = (rdata1->length < rdata2->length) ? -1 : 1;
-
-	return (result);
+	dns_rdata_toregion(rdata1, &r1);
+	dns_rdata_toregion(rdata2, &r2);
+	return (compare_region(&r1, &r2));
 }
 
 static dns_result_t

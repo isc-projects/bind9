@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999  Internet Software Consortium.
+ * Copyright (C) 1999 Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,13 +15,15 @@
  * SOFTWARE.
  */
 
- /* $Id: minfo_14.c,v 1.6 1999/01/22 05:02:46 marka Exp $ */
+ /* $Id: rp_17.c,v 1.1 1999/01/22 05:02:47 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MINFO_14_H
-#define RDATA_GENERIC_MINFO_14_H
+ /* RFC 1183 */
+
+#ifndef RDATA_GENERIC_RP_17_H
+#define RDATA_GENERIC_RP_17_H
 
 static dns_result_t
-fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_rp(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
@@ -29,7 +31,7 @@ fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_buffer_t buffer;
 	int i;
 
-	REQUIRE(type == 14);
+	REQUIRE(type == 17);
 
 	class = class;	/*unused*/
 	
@@ -47,14 +49,14 @@ fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_minfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_rp(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
 	dns_name_t prefix;
 	isc_boolean_t sub;
 
-	REQUIRE(rdata->type == 14);
+	REQUIRE(rdata->type == 17);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
@@ -79,13 +81,13 @@ totext_minfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 }
 
 static dns_result_t
-fromwire_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_rp(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
         dns_name_t rmail;
         dns_name_t email;
         
-	REQUIRE(type == 14);
+	REQUIRE(type == 17);
 
 	class = class;	/*unused*/
 
@@ -97,12 +99,12 @@ fromwire_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
 
-	REQUIRE(rdata->type == 14);
+	REQUIRE(rdata->type == 17);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
@@ -121,7 +123,7 @@ towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static int
-compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 	dns_name_t name1;
@@ -130,7 +132,7 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
-	REQUIRE(rdata1->type == 14);
+	REQUIRE(rdata1->type == 17);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -159,10 +161,10 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_minfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_rp(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	REQUIRE(type == 14);
+	REQUIRE(type == 17);
 
 	class = class;	/*unused*/
 
@@ -173,12 +175,12 @@ fromstruct_minfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_minfo(dns_rdata_t *rdata, void *target) {
+tostruct_rp(dns_rdata_t *rdata, void *target) {
 	
-	REQUIRE(rdata->type == 14);
+	REQUIRE(rdata->type == 17);
 
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_MINFO_14_H */
+#endif	/* RDATA_GENERIC_RP_17_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999 Internet Software Consortium.
+ * Copyright (C) 1999 Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,65 +15,75 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.h,v 1.8 1999/01/22 05:02:44 marka Exp $ */
+ /* $Id*/
 
-#ifndef RDATA_GENERIC_HINFO_13_H
-#define RDATA_GENERIC_HINFO_13_H
+ /* RFC 1183 */
+
+#ifndef RDATA_GENERIC_ISDN_20_H
+#define RDATA_GENERIC_ISDN_20_H
 
 static dns_result_t
-fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_isdn(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	int i;
 
-	REQUIRE(type == 13);
+	REQUIRE(type == 20);
 
 	class = class;		/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	for (i = 0; i < 2 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
-				ISC_FALSE));
-		RETERR(txt_fromtext(&token.value.as_textregion, target));
+	/* ISDN-address */
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(txt_fromtext(&token.value.as_textregion, target));
+
+	/* sa: optional */
+	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_TRUE));
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		return (DNS_R_SUCCESS);
 	}
-	return (DNS_R_SUCCESS);
+	return (txt_fromtext(&token.value.as_textregion, target));
 }
 
 static dns_result_t
-totext_hinfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_isdn(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->type == 20);
 
 	origin = origin;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));
+	if (region.length == 0)
+		return (DNS_R_SUCCESS);
 	RETERR(str_totext(" ", target));
 	return (txt_totext(&region, target));
 }
 
 static dns_result_t
-fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_isdn(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 
-	REQUIRE(type == 13);
+	REQUIRE(type == 20);
 
 	dctx = dctx;		/* unused */
 	class = class;		/* unused */
 	downcase = downcase;	/* unused */
 
 	RETERR(txt_fromwire(source, target));
+	if (buffer_empty(source))
+		return (DNS_R_SUCCESS);
 	return (txt_fromwire(source, target));
 }
 
 static dns_result_t
-towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_isdn(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
-	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->type == 20);
 
 	cctx = cctx;	/*unused*/
 
@@ -81,13 +91,13 @@ towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static int
-compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_isdn(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
 	
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
-	REQUIRE(rdata1->type == 13);
+	REQUIRE(rdata1->type == 20);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -95,10 +105,10 @@ compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_isdn(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	REQUIRE(type == 13);
+	REQUIRE(type == 20);
 
 	class = class;	/*unused*/
 
@@ -109,12 +119,12 @@ fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_hinfo(dns_rdata_t *rdata, void *target) {
+tostruct_isdn(dns_rdata_t *rdata, void *target) {
 
-	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->type == 20);
 
 	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_HINFO_13_H */
+#endif	/* RDATA_GENERIC_ISDN_20_H */
