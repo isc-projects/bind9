@@ -106,7 +106,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_c_iplist_t *iplist = NULL;
 	isc_sockaddr_t sockaddr;
 	isc_int32_t maxxfr;
-	in_port_t port;
 	struct in_addr in4addr_any;
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
 	dns_ssutable_t *ssutable;
