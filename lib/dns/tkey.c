@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.46 2000/06/22 23:07:00 bwelling Exp $
+ * $Id: tkey.c,v 1.47 2000/06/23 01:51:35 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -31,6 +31,7 @@
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
+#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -49,6 +50,21 @@
 		goto failure; \
 	} while (0)
 
+#define TKEYTRACE(m)	isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(3), \
+				      "tkey: %s", (m))
+
+static void
+tkey_log(const char *fmt, ...) {
+	va_list ap;
+
+	va_start(ap, fmt);
+	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		       DNS_LOGMODULE_REQUEST, ISC_LOG_DEBUG(4), fmt, ap);
+	va_end(ap);
+}
 
 isc_result_t
 dns_tkeyctx_create(isc_mem_t *mctx, isc_entropy_t *ectx, dns_tkeyctx_t **tctxp)
@@ -273,9 +289,11 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
  got_key:
 	if (!found_key) {
 		if (found_incompatible) {
+			tkey_log("process_dhtkey: found an incompatible key");
 			tkeyout->error = dns_tsigerror_badkey;
 			return (ISC_R_SUCCESS);
-		}
+		} else
+			tkey_log("process_dhtkey: failed to find a key");
 		return (DNS_R_FORMERR);
 	}
 
@@ -320,7 +338,12 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	RETERR(dst_key_secretsize(tctx->dhkey, &sharedsize));
 	RETERR(isc_buffer_allocate(msg->mctx, &shared, sharedsize));
 
-	RETERR(dst_key_computesecret(pubkey, tctx->dhkey, shared));
+	result = dst_key_computesecret(pubkey, tctx->dhkey, shared);
+	if (result != ISC_R_SUCCESS) {
+		tkey_log("process_dhtkey: failed to compute shared secret: %s",
+			 isc_result_totext(result));
+		goto failure;
+	}
 
 	isc_buffer_init(&secret, secretdata, sizeof(secretdata));
 
@@ -329,8 +352,13 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 		result = ISC_R_NOMEMORY;
 		goto failure;
 	}
-	RETERR(isc_entropy_getdata(tctx->ectx, randomdata, TKEY_RANDOM_AMOUNT,
-				   NULL, 0));
+	result = isc_entropy_getdata(tctx->ectx, randomdata,
+				     TKEY_RANDOM_AMOUNT, NULL, 0);
+	if (result != ISC_R_SUCCESS) {
+		tkey_log("process_dhtkey: failed to obtain entropy: %s",
+			 isc_result_totext(result));
+		goto failure;
+	}
 
 	r.base = randomdata;
 	r.length = TKEY_RANDOM_AMOUNT;
@@ -462,6 +490,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 				      dns_rdatatype_tkey, 0, &name, &tkeyset);
 	if (result != ISC_R_SUCCESS) {
 		result = DNS_R_FORMERR;
+		tkey_log("dns_tkey_processquery: couldn't find a TKEY "
+			 "matching the question");
 		goto failure;
 	}
 	result = dns_rdataset_first(tkeyset);
@@ -487,6 +517,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	if (result != ISC_R_SUCCESS &&
 	    (tkeyin.mode != DNS_TKEYMODE_GSSAPI || result != ISC_R_NOTFOUND))
 	{
+		tkey_log("dns_tkey_processquery: query was not properly "
+			 "signed - rejecting");
 		result = DNS_R_FORMERR;
 		goto failure;
 	}
@@ -582,6 +614,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		keyname = qname;
 
 	if (!dns_name_equal(&tkeyin.algorithm, DNS_TSIG_HMACMD5_NAME)) {
+		tkey_log("dns_tkey_processquery: tkey modes other than "
+			 "hmac-md5 are not supported");
 		tkeyout.error = dns_tsigerror_badkey;
 		goto failure_with_tkey;
 	}
@@ -886,6 +920,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm) ||
 	    rmsg->rcode != dns_rcode_noerror)
 	{
+		tkey_log("dns_tkey_processdhresponse: tkey mode invalid "
+			 "or error set");
 		result = DNS_R_INVALIDTKEY;
 		dns_rdata_freestruct(&qtkey);
 		goto failure;
@@ -921,6 +957,9 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
         }
 
 	if (theirkeyset == NULL) {
+		tkey_log("dns_tkey_processdhresponse: failed to find server "
+			 "key");
+		result = DNS_R_INVALIDTKEY;
 		result = ISC_R_NOTFOUND;
 		goto failure;
 	}
@@ -1001,6 +1040,8 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm) ||
 	    rmsg->rcode != dns_rcode_noerror)
 	{
+		tkey_log("dns_tkey_processdeleteresponse: tkey mode invalid "
+			 "or error set");
 		result = DNS_R_INVALIDTKEY;
 		dns_rdata_freestruct(&qtkey);
 		dns_rdata_freestruct(&rtkey);
