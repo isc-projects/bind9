@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.29 2001/07/10 18:25:42 gson Exp $ */
+/* $Id: getipnode.c,v 1.30 2001/07/18 02:37:08 mayer Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,7 @@
 #endif
 
 #ifdef LWRES_PLATFORM_NEEDIN6ADDRANY
-const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
+LIBLWRES_EXTERNAL_DATA const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
 #endif
 
 #ifndef IN6_IS_ADDR_V4COMPAT
@@ -656,7 +656,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	 */
 	he->h_addrtype = af;
 	he->h_length = (af == AF_INET) ? INADDRSZ : IN6ADDRSZ;
-	return(he);
+	return (he);
 
  cleanup2:
 	cpp = he->h_aliases;

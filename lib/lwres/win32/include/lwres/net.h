@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.1 2001/07/10 18:25:50 gson Exp $ */
+/* $Id: net.h,v 1.2 2001/07/18 02:37:14 mayer Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -50,67 +50,103 @@
  *** Imports.
  ***/
 
+/*
+ * Because of some sort of problem in the MS header files, this cannot
+ * be simple "#include <winsock2.h>", because winsock2.h tries to include
+ * windows.h, which then generates an error out of mswsock.h.  _You_
+ * figure it out.
+ */
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#endif
+
+#include <winsock2.h>
+#include <sys/types.h>
+
+#include <lwres/ipv6.h>
 #include <lwres/platform.h>	/* Required for LWRES_PLATFORM_*. */
 
-#include <winsock.h>
-
-/* XXXAG Remainder of file needs to be rewritten for win32 */
-   
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-#include <arpa/inet.h>	
-#ifdef LWRES_PLATFORM_NEEDNETINETIN6H
-#include <netinet/in6.h>	/* Required on UnixWare. */
-#endif
-#ifdef LWRES_PLATFORM_NEEDNETINET6IN6H
-#include <netinet6/in6.h>	/* Required on BSD/OS for in6_pktinfo. */
-#endif
-
 #include <lwres/lang.h>
-
-#ifdef LWRES_PLATFORM_HAVEINADDR6
-#define in6_addr in_addr6	/* Required for pre RFC2133 implementations. */
-#endif
-
-/*
- * Required for some pre RFC2133 implementations.
- * IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT were added in
- * draft-ietf-ipngwg-bsd-api-04.txt or draft-ietf-ipngwg-bsd-api-05.txt.  
- * If 's6_addr' is defined then assume that there is a union and three
- * levels otherwise assume two levels required.
- */
-#ifndef IN6ADDR_ANY_INIT
-#ifdef s6_addr
-#define IN6ADDR_ANY_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } } }
-#else
-#define IN6ADDR_ANY_INIT { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } }
-#endif
-#endif
-
-#ifndef IN6ADDR_LOOPBACK_INIT
-#ifdef s6_addr
-#define IN6ADDR_LOOPBACK_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } } }
-#else
-#define IN6ADDR_LOOPBACK_INIT { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } }
-#endif
-#endif
-
-#ifndef AF_INET6
-#define AF_INET6 99
-#endif
-
-#ifndef PF_INET6
-#define PF_INET6 AF_INET6
-#endif
-
-#ifndef LWRES_PLATFORM_HAVEIPV6
-#include <lwres/ipv6.h>		/* Contractual promise. */
-#endif
 
 #ifndef INADDR_LOOPBACK
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif
+/*
+ * Fix the FD_SET and FD_CLR Macros to properly cast
+ */
+#undef FD_CLR
+#define FD_CLR(fd, set) do { \
+    u_int __i; \
+    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count ; __i++) { \
+        if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET) fd) { \
+            while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
+                ((fd_set FAR *)(set))->fd_array[__i] = \
+                    ((fd_set FAR *)(set))->fd_array[__i+1]; \
+                __i++; \
+            } \
+            ((fd_set FAR *)(set))->fd_count--; \
+            break; \
+        } \
+    } \
+} while (0)
+
+#undef FD_SET
+#define FD_SET(fd, set) do { \
+    u_int __i; \
+    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
+        if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET)(fd)) { \
+            break; \
+        } \
+    } \
+    if (__i == ((fd_set FAR *)(set))->fd_count) { \
+        if (((fd_set FAR *)(set))->fd_count < FD_SETSIZE) { \
+            ((fd_set FAR *)(set))->fd_array[__i] = (SOCKET)(fd); \
+            ((fd_set FAR *)(set))->fd_count++; \
+        } \
+    } \
+} while (0)
+
+/*
+ * Windows Sockets errors redefined as regular Berkeley error constants.
+ * These are usually commented out in Windows NT to avoid conflicts with errno.h.
+ * Use the WSA constants instead.
+ */
+
+#define EWOULDBLOCK             WSAEWOULDBLOCK
+#define EINPROGRESS             WSAEINPROGRESS
+#define EALREADY                WSAEALREADY
+#define ENOTSOCK                WSAENOTSOCK
+#define EDESTADDRREQ            WSAEDESTADDRREQ
+#define EMSGSIZE                WSAEMSGSIZE
+#define EPROTOTYPE              WSAEPROTOTYPE
+#define ENOPROTOOPT             WSAENOPROTOOPT
+#define EPROTONOSUPPORT         WSAEPROTONOSUPPORT
+#define ESOCKTNOSUPPORT         WSAESOCKTNOSUPPORT
+#define EOPNOTSUPP              WSAEOPNOTSUPP
+#define EPFNOSUPPORT            WSAEPFNOSUPPORT
+#define EAFNOSUPPORT            WSAEAFNOSUPPORT
+#define EADDRINUSE              WSAEADDRINUSE
+#define EADDRNOTAVAIL           WSAEADDRNOTAVAIL
+#define ENETDOWN                WSAENETDOWN
+#define ENETUNREACH             WSAENETUNREACH
+#define ENETRESET               WSAENETRESET
+#define ECONNABORTED            WSAECONNABORTED
+#define ECONNRESET              WSAECONNRESET
+#define ENOBUFS                 WSAENOBUFS
+#define EISCONN                 WSAEISCONN
+#define ENOTCONN                WSAENOTCONN
+#define ESHUTDOWN               WSAESHUTDOWN
+#define ETOOMANYREFS            WSAETOOMANYREFS
+#define ETIMEDOUT               WSAETIMEDOUT
+#define ECONNREFUSED            WSAECONNREFUSED
+#define ELOOP                   WSAELOOP
+#define EHOSTDOWN               WSAEHOSTDOWN
+#define EHOSTUNREACH            WSAEHOSTUNREACH
+#define EPROCLIM                WSAEPROCLIM
+#define EUSERS                  WSAEUSERS
+#define EDQUOT                  WSAEDQUOT
+#define ESTALE                  WSAESTALE
+#define EREMOTE                 WSAEREMOTE
 
 LWRES_LANG_BEGINDECLS
 

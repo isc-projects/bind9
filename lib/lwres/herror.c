@@ -51,7 +51,7 @@
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)herror.c	8.1 (Berkeley) 6/4/93";
 static const char rcsid[] =
-	"$Id: herror.c,v 1.8 2001/01/09 21:59:22 bwelling Exp $";
+	"$Id: herror.c,v 1.9 2001/07/18 02:37:10 mayer Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -59,7 +59,7 @@ static const char rcsid[] =
 #include <stdio.h>
 #include <lwres/netdb.h>
 
-int	lwres_h_errno;
+LIBLWRES_EXTERNAL_DATA int	lwres_h_errno;
 
 /*
  * these have never been declared in any header file so make them static

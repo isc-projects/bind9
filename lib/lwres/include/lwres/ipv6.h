@@ -15,16 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.8 2001/01/09 21:59:41 bwelling Exp $ */
+/* $Id: ipv6.h,v 1.9 2001/07/18 02:37:12 mayer Exp $ */
 
 #ifndef LWRES_IPV6_H
 #define LWRES_IPV6_H 1
-
-/*
- * Also define ISC_IPV6_H to keep it from being included if libisc is
- * being used, or redefinition errors will occur.
- */
-#define ISC_IPV6_H 1
 
 /*****
  ***** Module Info
@@ -39,6 +33,7 @@
  ***/
 
 #include <lwres/int.h>
+#include <lwres/platform.h>
 
 /***
  *** Types.
@@ -59,8 +54,8 @@ struct in6_addr {
 #define IN6ADDR_ANY_INIT 	{{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}}
 #define IN6ADDR_LOOPBACK_INIT 	{{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}}
 
-extern const struct in6_addr in6addr_any;
-extern const struct in6_addr in6addr_loopback;
+LIBLWRES_EXTERNAL_DATA extern const struct in6_addr in6addr_any;
+LIBLWRES_EXTERNAL_DATA extern const struct in6_addr in6addr_loopback;
 
 struct sockaddr_in6 {
 #ifdef LWRES_PLATFORM_HAVESALEN

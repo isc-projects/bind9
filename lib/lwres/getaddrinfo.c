@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.40 2001/07/10 18:25:40 gson Exp $ */
+/* $Id: getaddrinfo.c,v 1.41 2001/07/18 02:37:07 mayer Exp $ */
 
 #include <config.h>
 
@@ -503,7 +503,7 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
 	}
-	return(result);
+	return (result);
 }
 
 static char v6_loop[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
