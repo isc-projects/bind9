@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.193 $)
+AC_REVISION($Revision: 1.194 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -476,7 +476,7 @@ Please install the devel/unproven-pthreads package and rerun configure.
 			;;
 		*-hp-hpux*)
 			CC="$CC -Ae -z +w1"
-			CCOPT="CCOPT -Ae -z"
+			CCOPT="$CCOPT -Ae -z"
 			;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
