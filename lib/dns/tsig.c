@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.78 2000/07/27 09:46:43 tale Exp $
+ * $Id: tsig.c,v 1.79 2000/07/28 00:01:59 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -142,18 +142,8 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 
 		if (ring != NULL) {
 			RWLOCK(&ring->lock, isc_rwlocktype_write);
-			ret = dns_rbt_findname(ring->keys, name, 0, NULL,
-					       (void *)&tmp);
-			if (ret == ISC_R_SUCCESS) {
-				ret = ISC_R_EXISTS;
-				RWUNLOCK(&ring->lock, isc_rwlocktype_write);
-				goto cleanup_algorithm;
-			}
-			INSIST(ret == ISC_R_NOTFOUND ||
-			       ret == DNS_R_PARTIALMATCH);
 			ret = dns_rbt_addname(ring->keys, name, tkey);
 			if (ret != ISC_R_SUCCESS) {
-				ret = ISC_R_EXISTS;
 				RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 				goto cleanup_algorithm;
 			}
@@ -188,7 +178,7 @@ cleanup_algorithm:
 cleanup_name:
 	dns_name_free(&tkey->name, mctx);
 cleanup_key:
-	isc_mem_put(mctx, *key, sizeof(dns_tsigkey_t));
+	isc_mem_put(mctx, tkey, sizeof(dns_tsigkey_t));
 
 	return (ret);
 }
