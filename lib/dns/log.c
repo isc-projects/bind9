@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.2 1999/10/02 21:13:42 brister Exp $ */
+/* $Id: log.c,v 1.3 1999/10/22 19:31:06 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -31,11 +31,12 @@
  * #define to <dns/log.h>.
  */
 isc_logcategory_t dns_categories[] = {
-	{ "dns_general: ", 	0 },
-	{ "dns_database: ", 	0 },
-	{ "dns_security: ", 	0 },
-	{ "dns_config: ",	0 },
-	{ "dns_parser: ",	0 },
+	{ "dns_general", 	0 },
+	{ "dns_database", 	0 },
+	{ "dns_security", 	0 },
+	{ "dns_config",		0 },
+	{ "dns_parser",		0 },
+	{ "dns_resolver",	0 },
 	{ NULL, 		0 }
 };
 
@@ -44,16 +45,17 @@ isc_logcategory_t dns_categories[] = {
  * #define to <dns/log.h>.
  */
 isc_logmodule_t dns_modules[] = {
-	{ "db: ", 	0 },
-	{ "rbtdb: ", 	0 }, 
-	{ "rbtdb64: ", 	0 }, 
-	{ "rbt: ", 	0 }, 
-	{ "rdata: ", 	0 },
-	{ "master: ", 	0 },
-	{ "message: ", 	0 },
-	{ "cache: ", 	0 },
-	{ "config: ",	0 },
-	{ NULL, 	0 }
+	{ "dns/db",	 	0 },
+	{ "dns/rbtdb", 		0 }, 
+	{ "dns/rbtdb64", 	0 }, 
+	{ "dns/rbt", 		0 }, 
+	{ "dns/rdata", 		0 },
+	{ "dns/master", 	0 },
+	{ "dns/message", 	0 },
+	{ "dns/cache", 		0 },
+	{ "dns/config",		0 },
+	{ "dns/resolver",	0 },
+	{ NULL, 		0 }
 };
 
 isc_log_t *dns_lctx;
