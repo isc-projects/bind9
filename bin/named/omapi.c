@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.7 2000/03/14 19:55:26 tale Exp $ */
+/* $Id: omapi.c,v 1.8 2000/03/16 20:04:47 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -225,10 +225,9 @@ ns_omapi_listen(omapi_object_t **managerp) {
 	if (result == ISC_R_SUCCESS)
 		*managerp = manager;
 
-	else {
+	else
 		if (manager != NULL)
 			omapi_object_dereference(&manager);
-	}
 
 	return (result);
 }
@@ -237,6 +236,8 @@ static void
 listen_done(void *mgr) {
 	UNUSED(mgr);
 
-	omapi_object_dereference(&ns_g_omapimgr);
+	if (ns_g_omapimgr != NULL)
+		omapi_object_dereference(&ns_g_omapimgr);
+
 	omapi_lib_destroy();
 }
