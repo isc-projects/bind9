@@ -87,7 +87,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	/*
 	 * Echo the data back
 	 */
-	if (strcmp(event->arg, "so2")) {
+	if (strcmp(event->arg, "so2") != 0) {
 		region = dev->region;
 		sprintf(buf, "\r\nReceived: %.*s\r\n\r\n",
 			(int)region.length, (char *)region.base);
@@ -121,6 +121,11 @@ my_send(isc_task_t *task, isc_event_t *event)
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
 
+	if (dev->result != ISC_R_SUCCESS) {
+		isc_socket_detach(&sock);
+		isc_task_shutdown(task);
+	}
+
 	isc_mem_put(event->mctx, dev->region.base, dev->region.length);
 
 	isc_event_free(&event);
@@ -139,6 +144,13 @@ my_http_get(isc_task_t *task, isc_event_t *event)
 	       (char *)(event->arg), task, sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
+
+	if (dev->result != ISC_R_SUCCESS) {
+		isc_socket_detach(&sock);
+		isc_task_shutdown(task);
+		isc_event_free(&event);
+		return;
+	}
 
 	isc_socket_recv(sock, &dev->region, ISC_FALSE, task, my_recv,
 			event->arg);
@@ -163,6 +175,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 		isc_event_free(&event);
+		isc_task_shutdown(task);
 		return;
 	}
 
@@ -279,13 +292,6 @@ main(int argc, char *argv[])
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
 
-	/*
-	 * create the timer we'll need
-	 */
-	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
-
-	(void)isc_time_get(&now);
-
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
@@ -322,16 +328,23 @@ main(int argc, char *argv[])
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(80);
 	sockaddr.type.sin.sin_family = AF_INET;
-	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.186.39");
+	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.186.34");
 	addrlen = sizeof(struct sockaddr_in);
 	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp,
 					&so2) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, (int)addrlen, t1,
+	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, (int)addrlen, t2,
 					 my_connect, "so2") == ISC_R_SUCCESS);
 
+	/*
+	 * Detaching these is safe, since the socket will attach to the
+	 * task for any outstanding requests.
+	 */
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
+	/*
+	 * wait a short while.
+	 */
 	sleep(10);
 
 	fprintf(stderr, "Destroying socket manager\n");
