@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.17 2000/06/19 18:54:45 tale Exp $ */
+/* $Id: nslookup.c,v 1.18 2000/06/20 00:21:15 tale Exp $ */
 
 #include <config.h>
 
@@ -831,8 +831,8 @@ main(int argc, char **argv) {
 	if (deprecation_msg) {
 		puts (
 "Note:  nslookup is deprecated and may be removed from future releases.\n"
-"Consider using the `dig' program instead.  Run nslookup with `-sil[ent]'\n"
-"option to prevent this message from appearing.\n");
+"Consider using the `dig' or `host' programs instead.  Run nslookup with\n"
+"the `-sil[ent]' option to prevent this message from appearing.\n");
 	}
 	setup_system();
 
