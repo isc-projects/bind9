@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.14 2000/07/07 18:25:17 bwelling Exp $
+# $Id: tests.sh,v 1.15 2000/07/07 23:18:19 gson Exp $
 
 #
 # Perform tests
@@ -24,15 +24,14 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-status=0;
+status=0
+
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.1
-status=`expr $status + $?`
+	a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.1 || status=1
 grep ";" dig.out.ns2.1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	a.example. @10.53.0.3 any -p 5300 > dig.out.ns3.1
-status=`expr $status + $?`
+	a.example. @10.53.0.3 any -p 5300 > dig.out.ns3.1 || status=1
 grep ";" dig.out.ns3.1
 
 rm -f ns2/named.conf ns3/named.conf ns2/example.db
@@ -45,34 +44,28 @@ kill -HUP `cat ns3/named.pid`
 sleep 60
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	-b 10.53.0.4 a.example. @10.53.0.4 any -p 5300 > dig.out.ns4.2
-status=`expr $status + $?`
+	-b 10.53.0.4 a.example. @10.53.0.4 any -p 5300 > dig.out.ns4.2 || status=1
 grep ";" dig.out.ns4.2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	-b 10.53.0.2 a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.2
-status=`expr $status + $?`
+	-b 10.53.0.2 a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.2 || status=1
 grep ";" dig.out.ns2.2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	@10.53.0.3 a.example. any -p 5300 > dig.out.ns3.2
-status=`expr $status + $?`
+	@10.53.0.3 a.example. any -p 5300 > dig.out.ns3.2 || status=1
 grep ";" dig.out.ns3.2
 
-$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2 || status=1
 
-$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2 || status=1
 
-$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2 || status=1
 
 echo "Differences should be found in the following lines:"
 $PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns3.2
 if [ $? = 0 ]; then
 	echo "No differences found.  Something's wrong."
-	status=`expr $status + 1`
+	status=1
 fi
 
 echo "I:exit status: $status"

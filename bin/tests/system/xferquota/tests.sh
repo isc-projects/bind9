@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.14 2000/07/07 18:25:20 bwelling Exp $
+# $Id: tests.sh,v 1.15 2000/07/07 23:18:51 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -43,34 +43,29 @@ while [ $count != 300 ]; do
 	echo "I:Have $count zones up in $seconds seconds"
 done
 
-status=0;
+status=0
+
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000099.example. @10.53.0.1 axfr -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	zone000099.example. @10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
 grep ";" dig.out.ns1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000099.example. @10.53.0.2 axfr -p 5300 > dig.out.ns2
-status=`expr $status + $?`
+	zone000099.example. @10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
 sleep 5
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	a.changing. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	a.changing. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 grep ";" dig.out.ns1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	a.changing. @10.53.0.2 a -p 5300 > dig.out.ns2
-status=`expr $status + $?`
+	a.changing. @10.53.0.2 a -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
 echo "I:exit status: $status"
 exit $status
