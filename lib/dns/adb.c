@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.8 2003/10/10 00:12:55 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.9 2003/10/10 00:22:48 marka Exp $ */
 
 /*
  * Implementation notes
@@ -3489,8 +3489,8 @@ dns_adb_flush(dns_adb_t *adb) {
 		/*
 		 * Call our cleanup routines.
 		 */
-		INSIST(cleanup_names(adb, i, INT_MAX) == ISC_FALSE);
-		INSIST(cleanup_entries(adb, i, INT_MAX) == ISC_FALSE);
+		RUNTIME_CHECK(cleanup_names(adb, i, INT_MAX) == ISC_FALSE);
+		RUNTIME_CHECK(cleanup_entries(adb, i, INT_MAX) == ISC_FALSE);
 	}
 
 #ifdef DUMP_ADB_AFTER_CLEANING
