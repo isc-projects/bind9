@@ -124,10 +124,6 @@
 			timeouts in certain situations, causing an 
 			unnecessary warning message to be printed.
 
- 457.	[bug]		Dig/host/hslookup didn't properly handle connect
-			timeouts in certain situations, causing an 
-			unnecessary warning message to be printed.
-
  447.	[bug]		Dig didn't properly retry in TCP mode after
 			a truncated reply.  [RT #277]
 
