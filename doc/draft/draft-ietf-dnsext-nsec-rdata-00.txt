@@ -1,0 +1,501 @@
+DNS Extensions Working Group                            J. Schlyter, Ed.
+Internet-Draft                                         November 26, 2003
+Updates: RFC 2535, RFC TCR (if approved)
+Expires: May 26, 2004
+
+
+                        DNSSEC NSEC RDATA Format
+                  draft-ietf-dnsext-nsec-rdata-00.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups. Note that other
+   groups may also distribute working documents as Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time. It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on May 26, 2004.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
+
+Abstract
+
+   This document defines updates the NSEC resource record RDATA format
+   to cover all type codes.
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 1]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+Table of Contents
+
+   1.    Introduction . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.    The NSEC Resource Record . . . . . . . . . . . . . . . . . .  3
+   2.1   NSEC RDATA Wire Format . . . . . . . . . . . . . . . . . . .  4
+   2.1.1 The Next Domain Name Field . . . . . . . . . . . . . . . . .  4
+   2.1.2 The List of Type Bit Map(s) Field  . . . . . . . . . . . . .  4
+   2.1.3 Inclusion of Wildcard Names in NSEC RDATA  . . . . . . . . .  5
+   2.2   The NSEC RR Presentation Format  . . . . . . . . . . . . . .  5
+   2.3   NSEC RR Example  . . . . . . . . . . . . . . . . . . . . . .  5
+   3.    IANA Considerations  . . . . . . . . . . . . . . . . . . . .  6
+   4.    Security Considerations  . . . . . . . . . . . . . . . . . .  6
+         Normative References . . . . . . . . . . . . . . . . . . . .  6
+         Informational References . . . . . . . . . . . . . . . . . .  6
+         Author's Address . . . . . . . . . . . . . . . . . . . . . .  6
+   A.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . .  7
+         Intellectual Property and Copyright Statements . . . . . . .  8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 2]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+1. Introduction
+
+   The NSEC [3] Resource Record (RR) is used for authenticated proof of
+   the non-existence of DNS owner names and types.  The RDATA format for
+   the NSEC RR, as described in RFC 2535 [2], had a limitation in that,
+   without using a yet undefined extension mechanism, the the RDATA
+   could only carry information about the existence of the first 127
+   types.
+
+   To prevent the introduction of an extension mechanism into a deployed
+   base of DNSSEC aware servers and resolvers, once the first 127 type
+   codes are allocated, this document redefines the wire format of the
+   "Type Bit Map" field in the NSEC RDATA to cover the full RR type
+   space.
+
+   This document introduces a new format for the type bit map.  The
+   properties of the type bit map format are that it can cover the full
+   possible range of typecodes; that it is relatively economic in the
+   amount of space it uses for the common case of a few types with an
+   owner name; that it can represent owner names with all possible type
+   present in packets of approximately 8.5 kilobytes; that the
+   representation is simple to implement. Efficient searching of the
+   type bitmap for the presence of certain types is not a requirement.
+
+   For convenience and completeness this document presents the syntax
+   and semantics for the NSEC RR based on the specification in RFC 2535
+   [2] and as updated by RFC TCR [3], thereby not introducing changes
+   except for the syntax of the type bit map.
+
+   [Editors note: this is the text that is to be copied into
+   draft-ietf-dnssec-dnssec-records]
+
+   This document updates RFC 2535 [2] and RFC TCR [3].
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [1].
+
+2. The NSEC Resource Record
+
+   The NSEC resource record lists two separate things: the owner name of
+   the next authoritative RRset in the canonical ordering of the zone,
+   and the set of RR types present at the NSEC RR's owner name.  The
+   complete set of NSEC RRs in a zone both indicate which authoritative
+   RRsets exist in a zone and also form a chain of authoritative owner
+   names in the zone.  This information is used to provide authenticated
+   denial of existence for DNS data, as described in RFC 2535 [2].
+
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 3]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+   The type value for the NSEC RR is 47.
+
+   The NSEC RR is class independent.
+
+   The NSEC RR has no special TTL requirements.
+
+2.1 NSEC RDATA Wire Format
+
+   The RDATA of the NSEC RR is as shown below:
+
+                        1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   /                      Next Domain Name                         /
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   /                   List of Type Bit Map(s)                     /
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+2.1.1 The Next Domain Name Field
+
+   The Next Domain Name field contains the owner name of the next
+   authoritative RRset in the canonical ordering of the zone. The value
+   of the Next Domain Name field in the last NSEC record in the zone is
+   the name of the zone apex (the owner name of the zone's SOA RR).
+
+   A sender MUST NOT use DNS name compression on the Next Domain Name
+   field when transmitting an NSEC RR.  A receiver which receives an
+   NSEC RR containing a compressed Next Domain Name field SHOULD
+   decompress the field value.
+
+   Owner names of RRsets not authoritative for the given zone (such as
+   glue records) MUST NOT be listed in the Next Domain Name unless at
+   least one authoritative RRset exists at the same owner name.
+
+2.1.2 The List of Type Bit Map(s) Field
+
+   The List of Type Bit Map(s) Field identifies the RRset types which
+   exist at the NSEC RR's owner name and uses a simple windowed bitmap
+   encoding.  It is a logical extension to the encoding used by NXT [2]
+   and is designed to be both efficient and easy to implement without
+   errors.
+
+   The type space is split into into 256 window blocks.  Each block that
+   has at least one active type is encoded using a window octet (from 0
+   to 255), a bitmap length octet (from 1 to 32) and a bitmap (covering
+   up to 256 type codes) in network bit order (similar to NXT).  Blocks
+   with no types present MUST NOT be included.  Trailing zero octets in
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 4]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+   the bitmap MUST be removed. Blocks is presented in increasing
+   numerical order.
+
+
+   	"|" denotes concatenation
+
+   	NSEC RDATA = ( Window Block # | Bitmap Length | Bitmap ) +
+
+   A zone MUST NOT generate an NSEC RR for any domain name that only
+   holds glue records.
+
+   Bits representing pseudo-RR types MUST be set to 0, since they do not
+   appear in zone data.  If encountered, they must be ignored upon
+   reading.
+
+2.1.3 Inclusion of Wildcard Names in NSEC RDATA
+
+   If a wildcard owner name appears in a zone, the wildcard label ("*")
+   is treated as a literal symbol and is treated the same as any other
+   owner name for purposes of generating NSEC RRs. Wildcard owner names
+   appear in the Next Domain Name field without any wildcard expansion.
+   RFC 2535 [2] describes the impact of wildcards on authenticated
+   denial of existence.
+
+2.2 The NSEC RR Presentation Format
+
+   The presentation format of the RDATA portion is as follows:
+
+   The Next Domain Name field is represented as a domain name.
+
+   The Type Bit Map field is represented either as a sequence of RR type
+   mnemonics or as a sequence of unsigned decimal integers denoting the
+   RR type codes.
+
+2.3 NSEC RR Example
+
+   The following NSEC RR identifies the RRsets associated with
+   alfa.example.com. and identifies the next authoritative name after
+   alfa.example.com.
+
+   alfa.example.com. 86400 IN NSEC host.example.com. A MX RRSIG NSEC
+
+   The first four text fields specify the name, TTL, Class, and RR type
+   (NSEC).  The entry host.example.com. is the next authoritative name
+   after alfa.example.com. in canonical order. The A, MX, RRSIG and NSEC
+   mnemonics indicate there are A, MX, RRSIG and NSEC RRsets associated
+   with the name alfa.example.com.
+
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 5]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+   Assuming that the resolver can authenticate this NSEC record, it
+   could be used to prove that beta.example.com does not exist, or could
+   be used to prove there is no AAAA record associated with
+   alfa.example.com.  Authenticated denial of existence is discussed in
+   RFC 2535 [2].
+
+3. IANA Considerations
+
+   This document introduces no new IANA considerations, because all of
+   the protocol parameters used in this document have already been
+   assigned by RFC TCR [3].
+
+4. Security Considerations
+
+   The change introducted here does not affect security, since it only
+   updates the RDATA format and encoding.
+
+Normative References
+
+   [1]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
+        Levels", BCP 14, RFC 2119, March 1997.
+
+   [2]  Eastlake, D., "Domain Name System Security Extensions", RFC
+        2535, March 1999.
+
+   [3]  Weiler, S., "Legacy Resolver Compatibility for Delegation
+        Signer", draft-ietf-dnsext-dnssec-2535typecode-change-05 (work
+        in progress), October 2003.
+
+Informational References
+
+   [4]  Mockapetris, P., "Domain names - concepts and facilities", STD
+        13, RFC 1034, November 1987.
+
+   [5]  Mockapetris, P., "Domain names - implementation and
+        specification", STD 13, RFC 1035, November 1987.
+
+
+Author's Address
+
+   Jakob Schlyter (editor)
+   Karl Gustavsgatan 15
+   Goteborg  SE-411 25
+   Sweden
+
+   EMail: jakob@schlyter.se
+
+
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 6]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+Appendix A. Acknowledgements
+
+   The encoding described in this document was initially proposed by
+   Mark Andrews.  Other encodings where proposed by David Blacka and
+   Michael Graff.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 7]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+Intellectual Property Statement
+
+   The IETF takes no position regarding the validity or scope of any
+   intellectual property or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; neither does it represent that it
+   has made any effort to identify any such rights. Information on the
+   IETF's procedures with respect to rights in standards-track and
+   standards-related documentation can be found in BCP-11. Copies of
+   claims of rights made available for publication and any assurances of
+   licenses to be made available, or the result of an attempt made to
+   obtain a general license or permission for the use of such
+   proprietary rights by implementors or users of this specification can
+   be obtained from the IETF Secretariat.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights which may cover technology that may be required to practice
+   this standard. Please address the information to the IETF Executive
+   Director.
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works. However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assignees.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 8]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           November 2003
+
+
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+
+Acknowledgment
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 26, 2004                  [Page 9]
+
