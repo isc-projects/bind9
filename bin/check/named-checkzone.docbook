@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.3.2.2.8.2 2003/08/18 05:56:56 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.3.2.2.8.3 2004/01/07 05:34:46 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -43,8 +43,10 @@
       <arg><option>-v</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">mode</replaceable></option></arg>
+      <arg><option>-o <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-w <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-D</option></arg>
       <arg choice="req">zonename</arg>
       <arg choice="req">filename</arg>
     </cmdsynopsis>
@@ -123,6 +125,15 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-o <replaceable class="parameter">filename</replaceable></term>
+        <listitem>
+          <para>
+	      Write zone output to <filename>directory</filename>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-t <replaceable class="parameter">directory</replaceable></term>
         <listitem>
           <para>
@@ -143,6 +154,15 @@
 	      <filename>named.conf</filename>.
           </para>
         </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-D</term>
+	<listitem>
+	  <para>
+	      Dump zone file in canonical format.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>

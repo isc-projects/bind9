@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.35 2004/01/05 04:26:15 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.36 2004/01/07 05:34:46 marka Exp $ */
 
 #include <config.h>
 
@@ -2465,8 +2465,8 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 	return (result);
 }
 
-isc_result_t
-dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
+static isc_result_t
+dumptostream(dns_zone_t *zone, FILE *fd, const dns_master_style_t *style) {
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
 	dns_db_t *db = NULL;
@@ -2481,11 +2481,20 @@ dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
 		return (DNS_R_NOTLOADED);
 
 	dns_db_currentversion(db, &version);
-	result = dns_master_dumptostream(zone->mctx, db, version,
-					 &dns_master_style_default, fd);
+	result = dns_master_dumptostream(zone->mctx, db, version, style, fd);
 	dns_db_closeversion(db, &version, ISC_FALSE);
 	dns_db_detach(&db);
 	return (result);
+}
+
+isc_result_t
+dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
+	return dumptostream(zone, fd, &dns_master_style_default);
+}
+
+isc_result_t
+dns_zone_fulldumptostream(dns_zone_t *zone, FILE *fd) {
+	return dumptostream(zone, fd, &dns_master_style_full);
 }
 
 void
