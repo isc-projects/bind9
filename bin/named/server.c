@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.256 2000/11/27 19:42:22 gson Exp $ */
+/* $Id: server.c,v 1.257 2000/11/27 22:08:06 gson Exp $ */
 
 #include <config.h>
 
@@ -2275,9 +2275,7 @@ isc_result_t
 ns_server_dumpstats(ns_server_t *server) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL, *next = NULL;
-	dns_name_t *zoneorg = NULL;
-	char zonestore[DNS_NAME_MAXTEXT+1];
-	isc_buffer_t zonebuf;
+	char zonestore[DNS_NAME_FORMATSIZE];
 	dns_view_t *zoneview = NULL;
 	char *viewname;
 	isc_stdtime_t now;
@@ -2304,13 +2302,8 @@ ns_server_dumpstats(ns_server_t *server) {
 	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
 	dns_zone_first(server->zonemgr, &zone);
 	while (zone != NULL) {
-		isc_buffer_init(&zonebuf, zonestore, sizeof(zonestore));
-		zoneorg = dns_zone_getorigin(zone);
-		dns_name_totext(zoneorg, ISC_FALSE, &zonebuf);
-		/* Make sure there is room for the NULL terminator */
-		if (isc_buffer_availablelength(&zonebuf) < 1)
-			isc_buffer_subtract(&zonebuf, 1);
-		isc_buffer_putuint8(&zonebuf, 0); /* NULL terminate */
+		dns_name_format(dns_zone_getorigin(zone),
+				zonestore, sizeof(zonestore));
 		zoneview = dns_zone_getview(zone);
 		viewname = zoneview->name;
 		if (dns_zone_hascounts(zone)) {
@@ -2321,15 +2314,13 @@ ns_server_dumpstats(ns_server_t *server) {
 					viewname, zonestore);
 		} else {
 			fprintf(fp, "nostatistics 0 %s:%s\n",
-					  viewname, zonestore);
+				viewname, zonestore);
 		}
-		isc_buffer_invalidate(&zonebuf);
 		dns_zone_next(zone, &next);
 		zone = next;
 		next = NULL;
 	}
-	fprintf(fp, "--- Statistics Dump --- (%ld)\n",
-		(long)now);
+	fprintf(fp, "--- Statistics Dump --- (%ld)\n", (long)now);
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
 	ns_server_closestatsfile(server);
 	return (ISC_R_SUCCESS);
