@@ -293,10 +293,10 @@ dns_view_detach(dns_view_t **viewp) {
 
 static void
 resolver_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view = event->arg;
+	dns_view_t *view = event->ev_arg;
 	isc_boolean_t done;
 	
-	REQUIRE(event->type == DNS_EVENT_VIEWRESSHUTDOWN);
+	REQUIRE(event->ev_type == DNS_EVENT_VIEWRESSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 
@@ -315,10 +315,10 @@ resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 
 static void
 adb_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view = event->arg;
+	dns_view_t *view = event->ev_arg;
 	isc_boolean_t done;
 	
-	REQUIRE(event->type == DNS_EVENT_VIEWADBSHUTDOWN);
+	REQUIRE(event->ev_type == DNS_EVENT_VIEWADBSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 

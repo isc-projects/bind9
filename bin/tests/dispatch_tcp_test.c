@@ -124,7 +124,7 @@ void
 send_done(isc_task_t *task, isc_event_t *ev_in)
 {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
-	dns_dispentry_t *resp = (dns_dispentry_t *)ev_in->arg;
+	dns_dispentry_t *resp = (dns_dispentry_t *)ev_in->ev_arg;
 
 	(void)task;
 
@@ -252,7 +252,7 @@ void
 got_response(isc_task_t *task, isc_event_t *ev_in)
 {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
-	dns_dispentry_t *resp = ev->sender;
+	dns_dispentry_t *resp = ev->ev_sender;
 	dns_message_t *msg;
 	isc_result_t result;
 
@@ -283,7 +283,7 @@ void
 got_request(isc_task_t *task, isc_event_t *ev_in)
 {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
-	dns_dispentry_t *resp = ev->sender;
+	dns_dispentry_t *resp = ev->ev_sender;
 	static int cnt = 0;
 	dns_message_t *msg;
 	isc_result_t result;

@@ -36,6 +36,8 @@ extern int h_errno;
 #include <isc/socket.h>
 #include <isc/task.h>
 
+#include <isc/util.h>
+
 #include <dns/types.h>
 #include <dns/message.h>
 #include <dns/name.h>
@@ -187,10 +189,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *b;
 	isc_result_t result;
 
-	REQUIRE(event->type == ISC_SOCKEVENT_RECVDONE);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	sevent = (isc_socketevent_t *)event;
 
-	(void)task;
+	UNUSED(task);
 
 	/*
 	 * There will be one buffer (since that is what we put on the list)
@@ -215,7 +217,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 static void
 send_done(isc_task_t *task, isc_event_t *event) {
-	(void)task;
+	UNUSED(task);
+
 	isc_event_free(&event);
 }
 

@@ -57,12 +57,12 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	isc_uint16_t naliases;
 	isc_stdtime_t now;
 
-	(void)task;
+	UNUSED(task);
 
 	lwb.base = NULL;
-	client = event->arg;
+	client = event->ev_arg;
 	cm = client->clientmgr;
-	INSIST(client->byaddr == event->sender);
+	INSIST(client->byaddr == event->ev_sender);
 
 	bevent = (dns_byaddrevent_t *)event;
 	gnba = &client->gnba;

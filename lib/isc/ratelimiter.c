@@ -98,7 +98,7 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp)
 	LOCK(&rl->lock);
         if (rl->state == isc_ratelimiter_ratelimited) {
 		isc_event_t *ev = *eventp;
-                ISC_LIST_APPEND(rl->pending, ev, link);
+                ISC_LIST_APPEND(rl->pending, ev, ev_link);
 		*eventp = NULL;
         } else {
 		result = isc_timer_reset(rl->timer, isc_timertype_ticker, NULL,
@@ -117,7 +117,7 @@ static void
 ratelimiter_tick(isc_task_t *task, isc_event_t *event)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_ratelimiter_t *rl = (isc_ratelimiter_t *) event->arg;
+	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
 	isc_event_t *p;
 	(void) task; /* Unused */
 	LOCK(&rl->lock);
@@ -126,7 +126,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event)
 		/*
 		 * There is work to do.  Let's do it after unlocking.
 		 */
-                ISC_LIST_UNLINK(rl->pending, p, link);
+                ISC_LIST_UNLINK(rl->pending, p, ev_link);
 	} else {
 		/*
 		 * No work left to do.  Stop the timer so that we don't
@@ -158,7 +158,7 @@ isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp)
 			       NULL, NULL, ISC_FALSE);
 	isc_timer_detach(&rl->timer);
 	while ((p = ISC_LIST_HEAD(rl->pending)) != NULL) {
-		ISC_LIST_UNLINK(rl->pending, p, link);
+		ISC_LIST_UNLINK(rl->pending, p, ev_link);
 		isc_event_free(&p);
 	}
 	isc_mutex_destroy(&rl->lock);

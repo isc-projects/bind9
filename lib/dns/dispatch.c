@@ -230,7 +230,7 @@ destroy(dns_dispatch_t *disp)
 	 */
 	ev = ISC_LIST_HEAD(disp->rq_events);
 	while (ev != NULL) {
-		ISC_LIST_UNLINK(disp->rq_events, ev, link);
+		ISC_LIST_UNLINK(disp->rq_events, ev, ev_link);
 		free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
 		ev = ISC_LIST_HEAD(disp->rq_events);
@@ -383,7 +383,7 @@ static void
 udp_recv(isc_task_t *task, isc_event_t *ev_in)
 {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
-	dns_dispatch_t *disp = ev_in->arg;
+	dns_dispatch_t *disp = ev_in->ev_arg;
 	dns_messageid_t id;
 	isc_result_t dres;
 	isc_buffer_t source;
@@ -394,9 +394,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	isc_boolean_t killit;
 	isc_boolean_t queue_request;
 	isc_boolean_t queue_response;
-	unsigned int attributes;
 
-	(void)task;  /* shut up compiler */
+	UNUSED(task);
 
 	XDEBUG(("Got packet!\n"));
 
@@ -521,19 +520,14 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	rev->result = ISC_R_SUCCESS;
 	rev->id = id;
 	rev->addr = ev->address;
-	attributes = 0;
-	if ((ev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
-		rev->pktinfo = ev->pktinfo;
-		attributes |= DNS_DISPATCHATTR_PKTINFO;
-	} else {
-		attributes &= ~DNS_DISPATCHATTR_PKTINFO;
-	}
+	rev->pktinfo = ev->pktinfo;
+	rev->attributes = ev->attributes;
 	if (queue_request) {
-		ISC_LIST_APPEND(disp->rq_events, rev, link);
+		ISC_LIST_APPEND(disp->rq_events, rev, ev_link);
 	} else if (queue_response) {
-		ISC_LIST_APPEND(resp->items, rev, link);
+		ISC_LIST_APPEND(resp->items, rev, ev_link);
 	} else {
-		ISC_EVENT_INIT(rev, sizeof(*rev), attributes, NULL,
+		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL,
 			       DNS_EVENT_DISPATCH,
 			       resp->action, resp->arg, resp, NULL, NULL);
 		XDEBUG(("Sent event %p buffer %p len %d to task %p, resp %p\n",
@@ -580,7 +574,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 static void
 tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 {
-	dns_dispatch_t *disp = ev_in->arg;
+	dns_dispatch_t *disp = ev_in->ev_arg;
 	dns_tcpmsg_t *tcpmsg = &disp->tcpmsg;
 	dns_messageid_t id;
 	isc_result_t dres;
@@ -592,7 +586,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 	isc_boolean_t queue_request;
 	isc_boolean_t queue_response;
 
-	(void)task;  /* shut up compiler */
+	UNUSED(task);
 
 	REQUIRE(VALID_DISPATCH(disp));
 
@@ -718,9 +712,9 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 	rev->id = id;
 	rev->addr = tcpmsg->address;
 	if (queue_request) {
-		ISC_LIST_APPEND(disp->rq_events, rev, link);
+		ISC_LIST_APPEND(disp->rq_events, rev, ev_link);
 	} else if (queue_response) {
-		ISC_LIST_APPEND(resp->items, rev, link);
+		ISC_LIST_APPEND(resp->items, rev, ev_link);
 	} else {
 		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL, DNS_EVENT_DISPATCH,
 			       resp->action, resp->arg, resp, NULL, NULL);
@@ -1193,7 +1187,7 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 	 */
 	ev = ISC_LIST_HEAD(res->items);
 	while (ev != NULL) {
-		ISC_LIST_UNLINK(res->items, ev, link);
+		ISC_LIST_UNLINK(res->items, ev, ev_link);
 		if (ev->buffer.base != NULL)
 			free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
@@ -1409,7 +1403,7 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 		return;
 	}
 
-	ISC_LIST_UNLINK(disp->rq_events, ev, link);
+	ISC_LIST_UNLINK(disp->rq_events, ev, ev_link);
 
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
@@ -1433,7 +1427,7 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 		return;
 	}
 
-	ISC_LIST_UNLINK(disp->rq_events, ev, link);
+	ISC_LIST_UNLINK(disp->rq_events, ev, ev_link);
 
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);

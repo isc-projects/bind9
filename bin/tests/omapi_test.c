@@ -531,7 +531,7 @@ do_connect(const char *host, int port) {
 
 static void
 listen_done(isc_task_t *task, isc_event_t *event) {
-	omapi_object_t *listener = event->arg;
+	omapi_object_t *listener = event->ev_arg;
 
 	UNUSED(task);
 

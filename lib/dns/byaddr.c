@@ -173,10 +173,10 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 
 static void
 fetch_done(isc_task_t *task, isc_event_t *event) {
-	dns_byaddr_t *byaddr = event->arg;
+	dns_byaddr_t *byaddr = event->ev_arg;
 	dns_fetchevent_t *fevent;
 
-	REQUIRE(event->type == DNS_EVENT_FETCHDONE);
+	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	REQUIRE(VALID_BYADDR(byaddr));
 	REQUIRE(byaddr->task == task);
 	fevent = (dns_fetchevent_t *)event;
@@ -351,7 +351,7 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 
 	if (send_event) {
 		byaddr->event->result = result;
-		byaddr->event->sender = byaddr;
+		byaddr->event->ev_sender = byaddr;
 		ievent = (isc_event_t *)byaddr->event;
 		byaddr->event = NULL;
 		isc_task_sendanddetach(&byaddr->task, &ievent);
@@ -367,8 +367,8 @@ bevent_destroy(isc_event_t *event) {
 	dns_name_t *name, *next_name;
 	isc_mem_t *mctx;
 
-	REQUIRE(event->type == DNS_EVENT_BYADDRDONE);
-	mctx = event->destroy_arg;
+	REQUIRE(event->ev_type == DNS_EVENT_BYADDRDONE);
+	mctx = event->ev_destroy_arg;
 	bevent = (dns_byaddrevent_t *)event;
 
 	for (name = ISC_LIST_HEAD(bevent->names);
@@ -378,7 +378,7 @@ bevent_destroy(isc_event_t *event) {
 		dns_name_free(name, mctx);
 		isc_mem_put(mctx, name, sizeof *name);
 	}
-	isc_mem_put(mctx, event, event->size);
+	isc_mem_put(mctx, event, event->ev_size);
 }
 
 isc_result_t

@@ -210,7 +210,7 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 		goto unlock;
 	}
 	
-	ISC_LIST_APPEND(on_run, event, link);
+	ISC_LIST_APPEND(on_run, event, ev_link);
 
 	result = ISC_R_SUCCESS;
 
@@ -249,10 +249,10 @@ isc_app_run(void) {
 		for (event = ISC_LIST_HEAD(on_run);
 		     event != NULL;
 		     event = next_event) {
-			next_event = ISC_LIST_NEXT(event, link);
-			ISC_LIST_UNLINK(on_run, event, link);
-			task = event->sender;
-			event->sender = (void *)&running;
+			next_event = ISC_LIST_NEXT(event, ev_link);
+			ISC_LIST_UNLINK(on_run, event, ev_link);
+			task = event->ev_sender;
+			event->ev_sender = (void *)&running;
 			isc_task_sendanddetach(&task, &event);
 		}
 

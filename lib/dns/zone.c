@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.92 2000/04/12 01:36:22 halley Exp $ */
+/* $Id: zone.c,v 1.93 2000/04/17 19:22:30 explorer Exp $ */
 
 #include <config.h>
 
@@ -928,7 +928,7 @@ static void
 checkservers_callback(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "checkservers_callback";
 	dns_fetchdoneevent_t *devent = (dns_fetchdoneevent_t *)event;
-	dns_zone_checkservers_t *checkservers = event->arg;
+	dns_zone_checkservers_t *checkservers = event->ev_arg;
 	dns_zone_state_t state;
 	dns_zone_t *zone;
 	dns_name_t *name;
@@ -945,7 +945,7 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 	mctx = checkservers->mctx;
 	res = checkservers->res;
 
-	task = task;	/* unused */
+	UNUSED(task);
 
 	if (devent->result != ISC_R_SUCCESS) {
 		/* timeout */
@@ -2068,7 +2068,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_uint32_t serial;
 
-	zone = devent->arg;
+	zone = devent->ev_arg;
 	INSIST(DNS_ZONE_VALID(zone));
 
 	/*
@@ -2241,10 +2241,10 @@ soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
  */
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_zone_t *zone = (dns_zone_t *) event->arg;
+	dns_zone_t *zone = (dns_zone_t *) event->ev_arg;
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
-	INSIST(event->type == DNS_EVENT_ZONECONTROL);
+	INSIST(event->ev_type == DNS_EVENT_ZONECONTROL);
 	INSIST(zone->erefs == 0);
 	zone_log(zone, "zone_shutdown", ISC_LOG_DEBUG(3), "shutting down");
 	zone->shuttingdown = ISC_TRUE;
@@ -2256,7 +2256,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 static void
 zone_timer(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "zone_timer";
-	dns_zone_t *zone = (dns_zone_t *)event->arg;
+	dns_zone_t *zone = (dns_zone_t *)event->ev_arg;
 	UNUSED(task);
 
 	DNS_ENTER;

@@ -200,7 +200,7 @@ do_find(isc_boolean_t want_event) {
 
 static void
 adb_callback(isc_task_t *etask, isc_event_t *event) {
-	unsigned int type = event->type;
+	unsigned int type = event->ev_type;
 
 	REQUIRE(etask == task);
 

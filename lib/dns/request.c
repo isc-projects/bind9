@@ -195,13 +195,13 @@ dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
                 /*
                  * We're already shutdown.  Send the event.
                  */
-                event->sender = requestmgr;
+                event->ev_sender = requestmgr;
                 isc_task_send(task, &event);
         } else {
                 clone = NULL;
                 isc_task_attach(task, &clone);
-                event->sender = clone;
-                ISC_LIST_APPEND(requestmgr->whenshutdown, event, link);
+                event->ev_sender = clone;
+                ISC_LIST_APPEND(requestmgr->whenshutdown, event, ev_link);
 	}
 	UNLOCK(&requestmgr->lock);
 }
@@ -286,10 +286,10 @@ send_shutdown_events(dns_requestmgr_t *requestmgr) {
 	for (event = ISC_LIST_HEAD(requestmgr->whenshutdown);
 	     event != NULL;
 	     event = next_event) {
-		next_event = ISC_LIST_NEXT(event, link);
-		ISC_LIST_UNLINK(requestmgr->whenshutdown, event, link);
-		etask = event->sender;
-		event->sender = requestmgr;
+		next_event = ISC_LIST_NEXT(event, ev_link);
+		ISC_LIST_UNLINK(requestmgr->whenshutdown, event, ev_link);
+		etask = event->ev_sender;
+		event->ev_sender = requestmgr;
 		isc_task_sendanddetach(&etask, &event);
 	}
 }
@@ -394,7 +394,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto cleanup;
 	}
 	isc_task_attach(task, &tclone);
-	request->event->sender = task;
+	request->event->ev_sender = task;
 	request->event->request = request;
 	request->event->result = ISC_R_FAILURE;
 	
@@ -628,9 +628,9 @@ static void
 req_connected(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	isc_result_t result;
-	dns_request_t *request = event->arg;
+	dns_request_t *request = event->ev_arg;
 
-	REQUIRE(event->type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 	REQUIRE(DNS_REQUEST_CONNECTING(request));
 
 	TRACE("req_connected\n");
@@ -653,9 +653,9 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 static void
 req_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	dns_request_t *request = event->arg;
+	dns_request_t *request = event->ev_arg;
 
-	REQUIRE(event->type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
 	TRACE("req_senddone\n");
 	(void)task;
@@ -669,12 +669,12 @@ req_senddone(isc_task_t *task, isc_event_t *event) {
 static void
 req_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	dns_request_t *request = event->arg;
+	dns_request_t *request = event->ev_arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
 	isc_region_t r;
 
 	REQUIRE(VALID_REQUEST(request));
-	REQUIRE(event->type == DNS_EVENT_DISPATCH);
+	REQUIRE(event->ev_type == DNS_EVENT_DISPATCH);
 
 	UNUSED(task);
 	
@@ -712,7 +712,7 @@ req_response(isc_task_t *task, isc_event_t *event) {
 
 static void
 req_timeout(isc_task_t *task, isc_event_t *event) {
-	dns_request_t *request = event->arg;
+	dns_request_t *request = event->ev_arg;
 	
 	TRACE("req_timeout\n");
 	UNUSED(task);
@@ -730,8 +730,8 @@ req_sendevent(dns_request_t *request, isc_result_t result) {
 	/*
 	 * Lock held by caller.
 	 */
-	task = request->event->sender;
-	request->event->sender = request;
+	task = request->event->ev_sender;
+	request->event->ev_sender = request;
 	request->event->result = result;
 	isc_task_sendanddetach(&task, (isc_event_t **)&request->event);
 }

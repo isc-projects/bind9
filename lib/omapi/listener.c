@@ -81,7 +81,7 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 
 	result = ((isc_socket_newconnev_t *)event)->result;
 	socket = ((isc_socket_newconnev_t *)event)->newsocket;
-	listener = (omapi_listener_t *)event->arg;
+	listener = (omapi_listener_t *)event->ev_arg;
 
 	/*
 	 * No more need for the event, once all the desired data has been

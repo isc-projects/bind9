@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.56 2000/04/11 19:08:32 gson Exp $ */
+/* $Id: xfrout.c,v 1.57 2000/04/17 19:22:00 explorer Exp $ */
 
 #include <config.h>
 
@@ -1431,15 +1431,19 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 
 static void
 xfrout_senddone(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sev = (isc_socketevent_t *) event;	
-	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
+	isc_socketevent_t *sev = (isc_socketevent_t *)event;	
+	xfrout_ctx_t *xfr = (xfrout_ctx_t *)event->ev_arg;
 	isc_result_t evresult = sev->result;
+
 	UNUSED(task);
-	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
+
+	INSIST(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+
 	isc_event_free(&event);
 	xfr->sends--;
 	INSIST(xfr->sends == 0);
-	(void) isc_timer_touch(xfr->client->timer);
+
+	(void)isc_timer_touch(xfr->client->timer);
 	if (xfr->shuttingdown == ISC_TRUE) {
 		xfrout_maybe_destroy(xfr);
 	} else if (evresult != ISC_R_SUCCESS) {

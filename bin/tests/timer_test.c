@@ -37,7 +37,7 @@ int tick_count = 0;
 
 static void
 shutdown_task(isc_task_t *task, isc_event_t *event) {
-	char *name = event->arg;
+	char *name = event->ev_arg;
 
 	printf("task %p shutdown %s\n", task, name);
 	isc_event_free(&event);
@@ -46,9 +46,9 @@ shutdown_task(isc_task_t *task, isc_event_t *event) {
 static void
 tick(isc_task_t *task, isc_event_t *event)
 {
-	char *name = event->arg;
+	char *name = event->ev_arg;
 
-	INSIST(event->type == ISC_TIMEREVENT_TICK);
+	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
 
 	printf("task %s (%p) tick\n", name, task);
 
@@ -75,13 +75,13 @@ tick(isc_task_t *task, isc_event_t *event)
 static void
 timeout(isc_task_t *task, isc_event_t *event)
 {
-	char *name = event->arg;
+	char *name = event->ev_arg;
 	char *type;
 
-	INSIST(event->type == ISC_TIMEREVENT_IDLE || 
-	       event->type == ISC_TIMEREVENT_LIFE);
+	INSIST(event->ev_type == ISC_TIMEREVENT_IDLE || 
+	       event->ev_type == ISC_TIMEREVENT_LIFE);
 
-	if (event->type == ISC_TIMEREVENT_IDLE)
+	if (event->ev_type == ISC_TIMEREVENT_IDLE)
 		type = "idle";
 	else
 		type = "life";

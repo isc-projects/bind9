@@ -53,7 +53,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	isc_event_t *dev;
-	dns_tcpmsg_t *tcpmsg = ev_in->arg;
+	dns_tcpmsg_t *tcpmsg = ev_in->ev_arg;
 	isc_region_t region;
 	isc_result_t result;
 
@@ -111,7 +111,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in)
 {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	isc_event_t *dev;
-	dns_tcpmsg_t *tcpmsg = ev_in->arg;
+	dns_tcpmsg_t *tcpmsg = ev_in->ev_arg;
 
 	(void)task;
 

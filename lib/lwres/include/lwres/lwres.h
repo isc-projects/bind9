@@ -430,8 +430,7 @@ void
 lwres_conf_clear(lwres_context_t *ctx);
 /*
  * frees all internally allocated memory in confdata. Uses the memory 
- * routines supplies by ctx (so that should probably be the same value as
- * given to lwres_conf_parse()).
+ * routines supplied by ctx.
  */
 
 lwres_conf_t *

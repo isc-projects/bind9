@@ -87,7 +87,7 @@ senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 
 	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_SENDDONE);
 	REQUIRE(task == task1);
 
 	printf("senddone\n");
@@ -102,7 +102,7 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->type == ISC_SOCKEVENT_RECVDONE);
+	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
 	REQUIRE(task == task1);
 
 	printf("recvdone\n");
@@ -135,7 +135,7 @@ senddone2(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 
 	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_SENDDONE);
 	REQUIRE(task == task2);
 
 	printf("senddone2\n");
@@ -150,7 +150,7 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->type == ISC_SOCKEVENT_RECVDONE);
+	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
 	REQUIRE(task == task2);
 
 	printf("recvdone2\n");

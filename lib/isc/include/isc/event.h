@@ -41,16 +41,16 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
  *         really an issue.
  */
 #define ISC_EVENT_COMMON(ltype)		\
-	size_t				size; \
-	unsigned int			attributes; \
-	void *				tag; \
-	isc_eventtype_t			type; \
-	isc_taskaction_t		action; \
-	void *				arg; \
-	void *				sender; \
-	isc_eventdestructor_t		destroy; \
-	void *				destroy_arg; \
-	ISC_LINK(ltype)			link
+	size_t				ev_size; \
+	unsigned int			ev_attributes; \
+	void *				ev_tag; \
+	isc_eventtype_t			ev_type; \
+	isc_taskaction_t		ev_action; \
+	void *				ev_arg; \
+	void *				ev_sender; \
+	isc_eventdestructor_t		ev_destroy; \
+	void *				ev_destroy_arg; \
+	ISC_LINK(ltype)			ev_link
 
 /*
  * Attributes matching a mask of 0x000000ff are reserved for the task library's
@@ -61,16 +61,16 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
 #define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
 do { \
-	(event)->size = (sz); \
-	(event)->attributes = (at); \
-	(event)->tag = (ta); \
-	(event)->type = (ty); \
-	(event)->action = (ac); \
-	(event)->arg = (ar); \
-	(event)->sender = (sn); \
-	(event)->destroy = (df); \
-	(event)->destroy_arg = (da); \
-	ISC_LINK_INIT((event), link); \
+	(event)->ev_size = (sz); \
+	(event)->ev_attributes = (at); \
+	(event)->ev_tag = (ta); \
+	(event)->ev_type = (ty); \
+	(event)->ev_action = (ac); \
+	(event)->ev_arg = (ar); \
+	(event)->ev_sender = (sn); \
+	(event)->ev_destroy = (df); \
+	(event)->ev_destroy_arg = (da); \
+	ISC_LINK_INIT((event), ev_link); \
 } while (0)
 	
 /*

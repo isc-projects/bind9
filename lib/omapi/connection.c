@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.18 2000/04/12 01:40:58 halley Exp $ */
+/* $Id: connection.c,v 1.19 2000/04/17 19:22:43 explorer Exp $ */
 
 /* Principal Author: DCL */
 
@@ -249,8 +249,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *socket;
 	omapi_connection_t *connection;
 
-	socket = event->sender;
-	connection = event->arg;
+	socket = event->ev_sender;
+	connection = event->ev_arg;
 	result = ((isc_socket_connev_t *)event)->result;
 
 	isc_event_free(&event);
@@ -308,8 +308,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	omapi_connection_t *connection;
 	unsigned int bytes_read;
 
-	socket = event->sender;
-	connection = event->arg;
+	socket = event->ev_sender;
+	connection = event->ev_arg;
 	socketevent = (isc_socketevent_t *)event;
 	bufferlist = socketevent->bufferlist;
 	bytes_read = socketevent->n;
@@ -394,8 +394,8 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	omapi_connection_t *connection;
 	unsigned int sent_bytes;
 
-	socket = event->sender;
-	connection = event->arg;
+	socket = event->ev_sender;
+	connection = event->ev_arg;
 	socketevent = (isc_socketevent_t *)event;
 	sent_bytes = socketevent->n;
 	bufferlist = socketevent->bufferlist;

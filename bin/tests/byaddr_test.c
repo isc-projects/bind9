@@ -60,7 +60,7 @@ done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_region_t r;
 
-	REQUIRE(event->type == DNS_EVENT_BYADDRDONE);
+	REQUIRE(event->ev_type == DNS_EVENT_BYADDRDONE);
 	bevent = (dns_byaddrevent_t *)event;
 
 	(void)task;
@@ -86,7 +86,7 @@ done(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-	byaddr = event->sender;
+	byaddr = event->ev_sender;
 	dns_byaddr_destroy(&byaddr);
 	isc_event_free(&event);
 

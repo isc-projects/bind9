@@ -278,13 +278,13 @@ store_realname(client_t *client)
 static void
 process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 {
-	client_t *client = ev->arg;
-	isc_eventtype_t result;
+	client_t *client = ev->ev_arg;
+	isc_eventtype_t evtype;
 	isc_boolean_t claimed;
 
 	DP(50, "Find done for task %p, client %p", task, client);
 
-	result = ev->type;
+	evtype = ev->ev_type;
 	isc_event_free(&ev);
 
 	/*
@@ -292,7 +292,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 	 * right now, so we can render things.
 	 */
 	claimed = ISC_FALSE;
-	if (result == DNS_EVENT_ADBNOMOREADDRESSES) {
+	if (evtype == DNS_EVENT_ADBNOMOREADDRESSES) {
 		if (NEED_V4(client)) {
 			client->v4find = client->find;
 			claimed = ISC_TRUE;
@@ -328,7 +328,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 	 * We have some new information we can gather.  Run off and fetch
 	 * it.
 	 */
-	if (result == DNS_EVENT_ADBMOREADDRESSES) {
+	if (evtype == DNS_EVENT_ADBMOREADDRESSES) {
 		start_find(client);
 		return;
 	}

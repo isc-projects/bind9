@@ -145,7 +145,7 @@ process_request(client_t *client)
 void
 client_recv(isc_task_t *task, isc_event_t *ev)
 {
-	client_t *client = ev->arg;
+	client_t *client = ev->ev_arg;
 	clientmgr_t *cm = client->clientmgr;
 	isc_socketevent_t *dev = (isc_socketevent_t *)ev;
 
@@ -242,10 +242,10 @@ client_start_recv(clientmgr_t *cm)
 void
 client_shutdown(isc_task_t *task, isc_event_t *ev)
 {
-	clientmgr_t *cm = ev->arg;
+	clientmgr_t *cm = ev->ev_arg;
 
 	REQUIRE(task == cm->task);
-	REQUIRE(ev->type == LWRD_SHUTDOWN);
+	REQUIRE(ev->ev_type == LWRD_SHUTDOWN);
 	REQUIRE((cm->flags & CLIENTMGR_FLAG_SHUTTINGDOWN) == 0);
 
 	DP(50, "Got shutdown event, task %p", task);
@@ -295,7 +295,7 @@ client_state_idle(client_t *client)
 void
 client_send(isc_task_t *task, isc_event_t *ev)
 {
-	client_t *client = ev->arg;
+	client_t *client = ev->ev_arg;
 	clientmgr_t *cm = client->clientmgr;
 	isc_socketevent_t *dev = (isc_socketevent_t *)ev;
 

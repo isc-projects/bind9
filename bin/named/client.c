@@ -460,8 +460,8 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 
 	REQUIRE(event != NULL);
-	REQUIRE(event->type == ISC_TASKEVENT_SHUTDOWN);
-	client = event->arg;
+	REQUIRE(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
+	client = event->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
@@ -476,7 +476,7 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 	}
 
 	client->newstate = NS_CLIENTSTATE_FREED;
-	(void) exit_check(client);
+	(void)exit_check(client);
 }
 
 
@@ -579,8 +579,8 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *) event;
 
 	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->type == ISC_SOCKEVENT_SENDDONE);
-	client = sevent->arg;
+	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_SENDDONE);
+	client = sevent->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
@@ -812,7 +812,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t ra; 	/* Recursion available. */
 
 	REQUIRE(event != NULL);
-	client = event->arg;
+	client = event->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
@@ -826,7 +826,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 	dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 
-	if (event->type == DNS_EVENT_DISPATCH) {
+	if (event->ev_type == DNS_EVENT_DISPATCH) {
 		INSIST(!TCP_CLIENT(client));
 		devent = (dns_dispatchevent_t *)event;
 		REQUIRE(client->dispentry != NULL);
@@ -835,7 +835,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		result = devent->result;
 		client->peeraddr = devent->addr;
 		client->peeraddr_valid = ISC_TRUE;
-		if ((devent->attributes & DNS_DISPATCHATTR_PKTINFO) != 0) {
+		if ((devent->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
 			client->pktinfo = devent->pktinfo;
 		} else {
@@ -843,8 +843,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		}
 	} else {
 		INSIST(TCP_CLIENT(client));
-		REQUIRE(event->type == DNS_EVENT_TCPMSG);
-		REQUIRE(event->sender == &client->tcpmsg);
+		REQUIRE(event->ev_type == DNS_EVENT_TCPMSG);
+		REQUIRE(event->ev_sender == &client->tcpmsg);
 		buffer = &client->tcpmsg.buffer;
 		result = client->tcpmsg.result;
 		INSIST(client->nreads == 1);
@@ -1069,9 +1069,9 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 
 	REQUIRE(event != NULL);
-	REQUIRE(event->type == ISC_TIMEREVENT_LIFE ||
-		event->type == ISC_TIMEREVENT_IDLE);
-	client = event->arg;
+	REQUIRE(event->ev_type == ISC_TIMEREVENT_LIFE ||
+		event->ev_type == ISC_TIMEREVENT_IDLE);
+	client = event->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 	REQUIRE(client->timer != NULL);
@@ -1233,11 +1233,11 @@ client_read(ns_client_t *client) {
 
 static void
 client_newconn(isc_task_t *task, isc_event_t *event) {
-	ns_client_t *client = event->arg;
+	ns_client_t *client = event->ev_arg;
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
 	isc_result_t result;
 	
-	REQUIRE(event->type == ISC_SOCKEVENT_NEWCONN);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_NEWCONN);
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->task == task);
 

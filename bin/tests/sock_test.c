@@ -41,7 +41,7 @@ static void my_recv(isc_task_t *task, isc_event_t *event);
 static void
 my_shutdown(isc_task_t *task, isc_event_t *event)
 {
-	char *name = event->arg;
+	char *name = event->ev_arg;
 
 	printf("shutdown %s (%p)\n", name, task);
 	fflush(stdout);
@@ -57,11 +57,11 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	char buf[1024];
 	char host[256];
 
-	sock = event->sender;
+	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
 
 	printf("Socket %s (sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->arg), sock,
+	       (char *)(event->ev_arg), sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
 	if (dev->address.type.sa.sa_family == AF_INET6) {
@@ -90,21 +90,21 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	/*
 	 * Echo the data back
 	 */
-	if (strcmp(event->arg, "so2") != 0) {
+	if (strcmp(event->ev_arg, "so2") != 0) {
 		region = dev->region;
 		sprintf(buf, "\r\nReceived: %.*s\r\n\r\n",
 			(int)dev->n, (char *)region.base);
 		region.base = isc_mem_get(mctx, strlen(buf) + 1);
 		region.length = strlen(buf) + 1;
 		strcpy((char *)region.base, buf);  /* strcpy is safe */
-		isc_socket_send(sock, &region, task, my_send, event->arg);
+		isc_socket_send(sock, &region, task, my_send, event->ev_arg);
 	} else {
 		region = dev->region;
 		printf("\r\nReceived: %.*s\r\n\r\n",
 		       (int)dev->n, (char *)region.base);
 	}
 
-	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->arg);
+	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->ev_arg);
 
 	isc_event_free(&event);
 }
@@ -115,11 +115,11 @@ my_send(isc_task_t *task, isc_event_t *event)
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
 
-	sock = event->sender;
+	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
 
 	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->arg), task, sock,
+	       (char *)(event->ev_arg), task, sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
 
@@ -139,11 +139,11 @@ my_http_get(isc_task_t *task, isc_event_t *event)
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
 
-	sock = event->sender;
+	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
 
 	printf("my_http_get: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->arg), task, sock,
+	       (char *)(event->ev_arg), task, sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
 
@@ -154,7 +154,7 @@ my_http_get(isc_task_t *task, isc_event_t *event)
 		return;
 	}
 
-	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->arg);
+	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->ev_arg);
 
 	isc_event_free(&event);
 }
@@ -167,10 +167,10 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	isc_region_t region;
 	char buf[1024];
 
-	sock = event->sender;
+	sock = event->ev_sender;
 	dev = (isc_socket_connev_t *)event;
 
-	printf("%s: Connection result:  %d\n", (char *)(event->arg),
+	printf("%s: Connection result:  %d\n", (char *)(event->ev_arg),
 	       dev->result);
 
 	if (dev->result != ISC_R_SUCCESS) {
@@ -189,7 +189,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	region.length = strlen(buf) + 1;
 	strcpy((char *)region.base, buf);  /* strcpy is safe */
 
-	isc_socket_send(sock, &region, task, my_http_get, event->arg);
+	isc_socket_send(sock, &region, task, my_http_get, event->ev_arg);
 
 	isc_event_free(&event);
 }
@@ -197,7 +197,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 static void
 my_listen(isc_task_t *task, isc_event_t *event)
 {
-	char *name = event->arg;
+	char *name = event->ev_arg;
 	isc_socket_newconnev_t *dev;
 	isc_region_t region;
 	isc_socket_t *oldsock;
@@ -206,14 +206,14 @@ my_listen(isc_task_t *task, isc_event_t *event)
 	dev = (isc_socket_newconnev_t *)event;
 
 	printf("newcon %s (task %p, oldsock %p, newsock %p, result %d)\n",
-	       name, task, event->sender, dev->newsocket, dev->result);
+	       name, task, event->ev_sender, dev->newsocket, dev->result);
 	fflush(stdout);
 
 	if (dev->result == ISC_R_SUCCESS) {
 		/*
 		 * queue another listen on this socket
 		 */
-		isc_socket_accept(event->sender, task, my_listen, event->arg);
+		isc_socket_accept(event->ev_sender, task, my_listen, event->ev_arg);
 
 		region.base = isc_mem_get(mctx, 20);
 		region.length = 20;
@@ -226,11 +226,11 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		RUNTIME_CHECK(isc_task_create(manager, 0, &newtask)
 			      == ISC_R_SUCCESS);
 		isc_socket_recv(dev->newsocket, &region, 1,
-				newtask, my_recv, event->arg);
+				newtask, my_recv, event->ev_arg);
 		isc_task_detach(&newtask);
 	} else {
-		printf("detaching from socket %p\n", event->sender);
-		oldsock = event->sender;
+		printf("detaching from socket %p\n", event->ev_sender);
+		oldsock = event->ev_sender;
 
 		isc_socket_detach(&oldsock);
 
@@ -245,12 +245,12 @@ my_listen(isc_task_t *task, isc_event_t *event)
 static void
 timeout(isc_task_t *task, isc_event_t *event)
 {
-	isc_socket_t *sock = event->arg;
+	isc_socket_t *sock = event->ev_arg;
 
 	printf("Timeout, canceling IO on socket %p (task %p)\n", sock, task);
 
 	isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_ALL);
-	isc_timer_detach((isc_timer_t **)&event->sender);
+	isc_timer_detach((isc_timer_t **)&event->ev_sender);
 	isc_event_free(&event);
 }
 

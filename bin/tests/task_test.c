@@ -35,7 +35,7 @@ static void
 my_callback(isc_task_t *task, isc_event_t *event)
 {
 	int i, j;
-	char *name = event->arg;
+	char *name = event->ev_arg;
 
 	j = 0;
 	for (i = 0; i < 1000000; i++)
@@ -46,7 +46,7 @@ my_callback(isc_task_t *task, isc_event_t *event)
 
 static void
 my_shutdown(isc_task_t *task, isc_event_t *event) {
-	char *name = event->arg;
+	char *name = event->ev_arg;
 
 	printf("shutdown %s (%p)\n", name, task);
 	isc_event_free(&event);
@@ -55,7 +55,7 @@ my_shutdown(isc_task_t *task, isc_event_t *event) {
 static void
 my_tick(isc_task_t *task, isc_event_t *event)
 {
-	char *name = event->arg;
+	char *name = event->ev_arg;
 
 	printf("task %p tick %s\n", task, name);
 	isc_event_free(&event);

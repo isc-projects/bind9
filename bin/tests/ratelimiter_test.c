@@ -45,7 +45,7 @@ utick(isc_task_t *task, isc_event_t *event)
 {
 	(void) task;
 	printf("utick\n");
-	event->action = ltick;
+	event->ev_action = ltick;
 	isc_ratelimiter_enqueue(rlim, &event);
 }
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.16 2000/04/12 01:37:41 halley Exp $ */
+/* $Id: cache.c,v 1.17 2000/04/17 19:22:22 explorer Exp $ */
 
 #include <config.h>
 
@@ -450,9 +450,10 @@ end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
  */
 static void
 cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
-	cache_cleaner_t *cleaner = event->arg;
+	cache_cleaner_t *cleaner = event->ev_arg;
 	INSIST(task == cleaner->task);
-	INSIST(event->type == ISC_TIMEREVENT_TICK);
+	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
+
 	if (cleaner->state == cleaner_s_idle) {
 		begin_cleaning(cleaner);
 	} else {
@@ -471,11 +472,13 @@ cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 static void
 incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	cache_cleaner_t *cleaner = event->arg;
+	cache_cleaner_t *cleaner = event->ev_arg;
 	isc_stdtime_t now;
 	int n_names;
-	INSIST(event->type == DNS_EVENT_CACHECLEAN);
+
+	INSIST(event->ev_type == DNS_EVENT_CACHECLEAN);
 	INSIST(CLEANER_BUSY(cleaner));
+
 	n_names = cleaner->increment;
 	isc_stdtime_get(&now);
 
@@ -590,12 +593,14 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
  */
 static void
 cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
-	dns_cache_t *cache = event->arg;
+	dns_cache_t *cache = event->ev_arg;
 	isc_boolean_t should_free = ISC_FALSE;	
+
 	UNUSED(task);
+
 	LOCK(&cache->lock);
 
-	INSIST(event->type == ISC_TASKEVENT_SHUTDOWN);
+	INSIST(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
 	isc_event_free(&event);
 	
 	cache->live_tasks--;

@@ -100,6 +100,7 @@ struct isc_socketevent {
 	isc_sockaddr_t		address;	/* source address */
 	isc_time_t		timestamp;	/* timestamp of packet recv */
 	struct in6_pktinfo	pktinfo;	/* ipv6 pktinfo */
+	isc_uint32_t		attributes;	/* see below */
 };
 
 typedef struct isc_socket_newconnev isc_socket_newconnev_t;

@@ -138,11 +138,11 @@ lookup_callback(isc_task_t *task, isc_event_t *ev)
 {
 	client_t *client;
 
-	client = ev->arg;
-	INSIST(client->find == ev->sender);
+	client = ev->ev_arg;
+	INSIST(client->find == ev->ev_sender);
 
 	printf("Task %p got event %p type %08x from %p, client %p\n",
-	       task, ev, ev->type, client->find, client);
+	       task, ev, ev->ev_type, client->find, client);
 
 	isc_event_free(&ev);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.63 2000/04/11 19:08:11 gson Exp $ */
+/* $Id: xfrin.c,v 1.64 2000/04/17 19:22:29 explorer Exp $ */
 
 #include <config.h>
 
@@ -855,14 +855,15 @@ render(dns_message_t *msg, isc_buffer_t *buf) {
 static void
 xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_socket_connev_t *cev = (isc_socket_connev_t *) event;
-	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->arg;
+	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 	isc_result_t evresult = cev->result;
 	isc_result_t result;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	task = task; /* Unused */
-	INSIST(event->type == ISC_SOCKEVENT_CONNECT);
+	UNUSED(task);
+
+	INSIST(event->ev_type == ISC_SOCKEVENT_CONNECT);
 	isc_event_free(&event);
 
 	xfr->connects--;
@@ -1007,15 +1008,16 @@ static void
 xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
 {
 	isc_socketevent_t *sev = (isc_socketevent_t *) event;
-	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->arg;
+	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 	isc_result_t evresult = sev->result;
 	isc_result_t result;
 	isc_region_t region;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	task = task; /* Unused */
-	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
+	UNUSED(task);
+
+	INSIST(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 	isc_event_free(&event);
 	
 	xfr->sends--;
@@ -1041,13 +1043,14 @@ static void
 xfrin_send_done(isc_task_t *task, isc_event_t *event)
 {
 	isc_socketevent_t *sev = (isc_socketevent_t *) event;
-	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->arg;
+	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 	isc_result_t result;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	task = task; /* Unused */
-	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
+	UNUSED(task);
+
+	INSIST(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
 	xfr->sends--;	
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sent request data");
@@ -1065,7 +1068,7 @@ xfrin_send_done(isc_task_t *task, isc_event_t *event)
 
 static void
 xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
-	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) ev->arg;
+	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) ev->ev_arg;
 	isc_result_t result;
 	dns_message_t *msg = NULL;
 	dns_name_t *name;
@@ -1073,10 +1076,10 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	task = task; /* Unused */
+	UNUSED(task);
 	
-	INSIST(ev->type == DNS_EVENT_TCPMSG);
-	tcpmsg = ev->sender;
+	INSIST(ev->ev_type == DNS_EVENT_TCPMSG);
+	tcpmsg = ev->ev_sender;
 	isc_event_free(&ev);
 	
 	xfr->recvs--;
@@ -1229,11 +1232,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 static void
 xfrin_timeout(isc_task_t *task, isc_event_t *event) {
-	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->arg;
+	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	task = task; /* Unused */
+	UNUSED(task);
 
 	isc_event_free(&event);
 	/* This will log "giving up: timeout". */

@@ -1038,12 +1038,12 @@ event_free(isc_event_t *event)
 	dns_adbfind_t *find;
 
 	INSIST(event != NULL);
-	find = event->destroy_arg;
+	find = event->ev_destroy_arg;
 	INSIST(DNS_ADBFIND_VALID(find));
 
 	LOCK(&find->lock);
 	find->flags |= FIND_EVENT_FREED;
-	event->destroy_arg = NULL;
+	event->ev_destroy_arg = NULL;
 	UNLOCK(&find->lock);
 }
 
@@ -1110,11 +1110,11 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			INSIST(!FIND_EVENTSENT(find));
 
 			ev = &find->event;
-			task = ev->sender;
-			ev->sender = find;
-			ev->type = evtype;
-			ev->destroy = event_free;
-			ev->destroy_arg = find;
+			task = ev->ev_sender;
+			ev->ev_sender = find;
+			ev->ev_type = evtype;
+			ev->ev_destroy = event_free;
+			ev->ev_destroy_arg = find;
 
 			DP(DEF_LEVEL,
 			   "Sending event %p to task %p for find %p",
@@ -1135,7 +1135,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 static inline void
 check_exit(dns_adb_t *adb)
 {
-	isc_event_t *event, *next_event;
+	isc_event_t *event;
 	isc_task_t *etask;
 	isc_boolean_t zeroirefcnt;
 
@@ -1155,15 +1155,15 @@ check_exit(dns_adb_t *adb)
 		/*
 		 * We're now shutdown.  Send any whenshutdown events.
 		 */
-		for (event = ISC_LIST_HEAD(adb->whenshutdown);
-		     event != NULL;
-		     event = next_event) {
-			next_event = ISC_LIST_NEXT(event, link);
-			ISC_LIST_UNLINK(adb->whenshutdown, event, link);
-			etask = event->sender;
-			event->sender = adb;
+		event = ISC_LIST_HEAD(adb->whenshutdown);
+		while (event != NULL) {
+			ISC_LIST_UNLINK(adb->whenshutdown, event, ev_link);
+			etask = event->ev_sender;
+			event->ev_sender = adb;
 			isc_task_sendanddetach(&etask, &event);
+			event = ISC_LIST_HEAD(adb->whenshutdown);
 		}
+
 		/*
 		 * If there aren't any external references either, we're
 		 * done.  Send the control event to initiate shutdown.
@@ -1946,7 +1946,7 @@ shutdown_task(isc_task_t *task, isc_event_t *ev)
 
 	(void)task;  /* not used */
 
-	adb = ev->arg;
+	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
 
 	/*
@@ -2095,7 +2095,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 
 	UNUSED(task);
 
-	adb = ev->arg;
+	adb = ev->ev_arg;
 	INSIST(DNS_ADB_VALID(adb));
 
 	LOCK(&adb->lock);
@@ -2399,13 +2399,13 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp)
 		/*
 		 * We're already shutdown.  Send the event.
 		 */
-		event->sender = adb;
+		event->ev_sender = adb;
 		isc_task_send(task, &event);
 	} else {
 		clone = NULL;
 		isc_task_attach(task, &clone);
-		event->sender = clone;
-		ISC_LIST_APPEND(adb->whenshutdown, event, link);
+		event->ev_sender = clone;
+		ISC_LIST_APPEND(adb->whenshutdown, event, ev_link);
 	}
 	
 	UNLOCK(&adb->lock);
@@ -2722,9 +2722,9 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			INSIST((find->flags & DNS_ADBFIND_ADDRESSMASK) != 0);
 			taskp = NULL;
 			isc_task_attach(task, &taskp);
-			find->event.sender = taskp;
-			find->event.action = action;
-			find->event.arg = arg;
+			find->event.ev_sender = taskp;
+			find->event.ev_action = action;
+			find->event.ev_arg = arg;
 		}
 	}
 
@@ -2832,11 +2832,11 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 
 	if (!FIND_EVENTSENT(find)) {
 		ev = &find->event;
-		task = ev->sender;
-		ev->sender = find;
-		ev->type = DNS_EVENT_ADBCANCELED;
-		ev->destroy = event_free;
-		ev->destroy_arg = find;
+		task = ev->ev_sender;
+		ev->ev_sender = find;
+		ev->ev_type = DNS_EVENT_ADBCANCELED;
+		ev->ev_destroy = event_free;
+		ev->ev_destroy_arg = find;
 
 		DP(DEF_LEVEL, "Sending event %p to task %p for find %p",
 		   ev, task, find);
@@ -3004,7 +3004,7 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f)
 		find->query_pending, find->partial_result,
 		find->options, find->flags);
 	fprintf(f, "\tname_bucket %d, name %p, event sender %p\n",
-		find->name_bucket, find->adbname, find->event.sender);
+		find->name_bucket, find->adbname, find->event.ev_sender);
 
 	ai = ISC_LIST_HEAD(find->list);
 	if (ai != NULL)
@@ -3324,9 +3324,9 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 
 	(void)task;
 
-	INSIST(ev->type == DNS_EVENT_FETCHDONE);
+	INSIST(ev->ev_type == DNS_EVENT_FETCHDONE);
 	dev = (dns_fetchevent_t *)ev;
-	name = ev->arg;
+	name = ev->ev_arg;
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
@@ -3482,9 +3482,9 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 
 	(void)task;
 
-	INSIST(ev->type == DNS_EVENT_FETCHDONE);
+	INSIST(ev->ev_type == DNS_EVENT_FETCHDONE);
 	dev = (dns_fetchevent_t *)ev;
-	name = ev->arg;
+	name = ev->ev_arg;
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));

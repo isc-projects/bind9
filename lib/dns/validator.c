@@ -131,11 +131,11 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	 */
 
 	val->event->result = result;
-	task = val->event->sender;
-	val->event->sender = val;
-	val->event->type = DNS_EVENT_VALIDATORDONE;
-	val->event->action = val->action;
-	val->event->arg = val->arg;
+	task = val->event->ev_sender;
+	val->event->ev_sender = val;
+	val->event->ev_type = DNS_EVENT_VALIDATORDONE;
+	val->event->ev_action = val->action;
+	val->event->ev_arg = val->arg;
 	if ((val->attributes & VALATTR_NEGATIVE) != 0) {
 		val->event->rdataset = NULL;
 		val->event->sigrdataset = NULL;
@@ -154,9 +154,9 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	UNUSED(task);
-	INSIST(event->type == DNS_EVENT_FETCHDONE);
+	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
 	devent = (dns_fetchevent_t *)event;
-	val = devent->arg;
+	val = devent->ev_arg;
 	rdataset = devent->rdataset;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
@@ -202,10 +202,10 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	UNUSED(task);
-	INSIST(event->type == DNS_EVENT_VALIDATORDONE);
+	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
 	devent = (dns_validatorevent_t *)event;
 	rdataset = devent->rdataset;
-	val = devent->arg;
+	val = devent->ev_arg;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
 	if (devent->result == ISC_R_SUCCESS) {
@@ -467,7 +467,7 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 						  &siginfo->signer,
 						  dns_rdatatype_key,
 						  NULL, NULL, NULL, 0,
-						  val->event->sender,
+						  val->event->ev_sender,
 						  fetch_callback_validator,
 						  val,
 						  frdataset,
@@ -699,7 +699,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	UNUSED(task);
-	REQUIRE(event->type == DNS_EVENT_VALIDATORSTART);
+	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORSTART);
 	vevent = (dns_validatorevent_t *) event;
 	val = vevent->validator;
 
@@ -809,8 +809,8 @@ dns_validator_cancel(dns_validator_t *validator) {
 	LOCK(&validator->lock);
 	if (validator->event != NULL) {
 		validator->event->result = ISC_R_CANCELED;
-		task = validator->event->sender;
-		validator->event->sender = validator;
+		task = validator->event->ev_sender;
+		validator->event->ev_sender = validator;
 		isc_task_sendanddetach(&task,
 				       (isc_event_t **)&validator->event);
 		/*

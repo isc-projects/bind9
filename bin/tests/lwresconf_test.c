@@ -65,7 +65,6 @@ int
 main(int argc, char *argv[])
 {
 	lwres_context_t *ctx;
-	lwres_conf_t conf;
 	const char *file = "/etc/resolv.conf";
 	int ret;
 #ifdef USE_ISC_MEM
@@ -91,14 +90,14 @@ main(int argc, char *argv[])
 #endif
 	CHECK(ret, "lwres_context_create");
 
-	lwres_conf_init(&conf);
-	if (lwres_conf_parse(ctx, file, &conf) == 0) {
-		lwres_conf_print(stderr, &conf);
+	lwres_conf_init(ctx);
+	if (lwres_conf_parse(ctx, file) == 0) {
+		lwres_conf_print(ctx, stderr);
 	} else {
 		perror("lwres_conf_parse");
 	}
 
-	lwres_conf_clear(ctx, &conf);
+	lwres_conf_clear(ctx);
 	lwres_context_destroy(&ctx);
 
 #ifdef USE_ISC_MEM

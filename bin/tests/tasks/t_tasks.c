@@ -66,7 +66,7 @@ t1_callback(isc_task_t *task, isc_event_t *event)
 	for (i = 0; i < 1000000; i++)
 		j += 100;
 
-	t_info("task %s\n", event->arg);
+	t_info("task %s\n", event->ev_arg);
 	isc_event_free(&event);
 }
 
@@ -74,7 +74,7 @@ static void
 t1_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	task = task;
-	t_info("shutdown %s\n", event->arg);
+	t_info("shutdown %s\n", event->ev_arg);
 	isc_event_free(&event);
 }
 
@@ -82,7 +82,7 @@ static void
 my_tick(isc_task_t *task, isc_event_t *event)
 {
 	task = task;
-	t_info("%s\n", event->arg);
+	t_info("%s\n", event->ev_arg);
 	isc_event_free(&event);
 }
 
@@ -404,8 +404,8 @@ t2_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	task = task; /* notused */
 
-	if (event->arg != NULL) {
-		isc_task_destroy((isc_task_t**) &event->arg);
+	if (event->ev_arg != NULL) {
+		isc_task_destroy((isc_task_t**) &event->ev_arg);
 	}
 	else {
 		isc_result = isc_mutex_lock(&T2_mx);
@@ -446,9 +446,9 @@ t2_callback(isc_task_t *task, isc_event_t *event)
 		t_info("T2_ntasks %d\n", T2_ntasks);
 	}
 
-	if (event->arg) {
+	if (event->ev_arg) {
 
-		event->arg = (void* ) (((int) event->arg) - 1);
+		event->ev_arg = (void* ) (((int) event->ev_arg) - 1);
 
 		/* create a new task and forward the message */
 		newtask = NULL;
@@ -1315,41 +1315,41 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 
 	if (T_debug) {
 		t_info("Event %p,%d,%d,%s\n",
-			event->sender,
-			(int) event->type,
-			event->tag,
-			event->attributes & ISC_EVENTATTR_NOPURGE ? "NP" : "P");
+			event->ev_sender,
+			(int) event->ev_type,
+			event->ev_tag,
+			event->ev_attributes & ISC_EVENTATTR_NOPURGE ? "NP" : "P");
 	}
 
 	if ((T10_purge_sender == 0) ||
-	    (T10_purge_sender == event->sender)) {
+	    (T10_purge_sender == event->ev_sender)) {
 		sender_match = 1;
 	}
 	if (T10_testrange == 0) {
-		if (T10_purge_type_first == event->type) {
+		if (T10_purge_type_first == event->ev_type) {
 			type_match = 1;
 		}
 	}
 	else {
-		if ((T10_purge_type_first <= event->type) &&
-		    (event->type <= T10_purge_type_last)) {
+		if ((T10_purge_type_first <= event->ev_type) &&
+		    (event->ev_type <= T10_purge_type_last)) {
 			type_match = 1;
 		}
 	}
 	if ((T10_purge_tag == NULL) ||
-	    (T10_purge_tag == event->tag)) {
+	    (T10_purge_tag == event->ev_tag)) {
 		tag_match = 1;
 	}
 		
 	if (sender_match && type_match && tag_match) {
-		if (event->attributes & ISC_EVENTATTR_NOPURGE) {
+		if (event->ev_attributes & ISC_EVENTATTR_NOPURGE) {
 			t_info("event %p,%d,%d matched but was not purgable\n",
-				event->sender, (int) event->type, event->tag);
+				event->ev_sender, (int) event->ev_type, event->ev_tag);
 			++T10_eventcnt;
 		}
 		else {
 			t_info("*** event %p,%d,%d not purged\n",
-				event->sender, (int) event->type, event->tag);
+				event->ev_sender, (int) event->ev_type, event->ev_tag);
 		}
 	}
 	else {
@@ -1522,11 +1522,11 @@ t_taskpurge_x(	int sender, int type, int tag,
 							NULL,
 							sizeof(*event));
 				
-				eventtab[event_cnt]->tag = (void *)((int)tag + tag_cnt);
+				eventtab[event_cnt]->ev_tag = (void *)((int)tag + tag_cnt);
 
 				/* make all odd message non-purgable */
 				if ((sender_cnt % 2) && (type_cnt %2) && (tag_cnt %2))
-					eventtab[event_cnt]->attributes |= ISC_EVENTATTR_NOPURGE;
+					eventtab[event_cnt]->ev_attributes |= ISC_EVENTATTR_NOPURGE;
 				++event_cnt;
 			}
 		}
@@ -1886,9 +1886,9 @@ t_tasks11(int purgable) {
 					sizeof(*event2));
 	event2_clone = event2;
 	if (purgable)
-		event2->attributes &= ~ISC_EVENTATTR_NOPURGE;
+		event2->ev_attributes &= ~ISC_EVENTATTR_NOPURGE;
 	else
-		event2->attributes |= ISC_EVENTATTR_NOPURGE;
+		event2->ev_attributes |= ISC_EVENTATTR_NOPURGE;
 
 	isc_task_send(task, &event2);
 

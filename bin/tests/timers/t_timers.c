@@ -104,12 +104,12 @@ tx_te(isc_task_t *task, isc_event_t *event) {
 	t_info("tick %d\n", Tx_eventcnt);
 
 	expected_event_type = ISC_TIMEREVENT_LIFE;
-	if ((isc_timertype_t) event->arg == isc_timertype_ticker)
+	if ((isc_timertype_t) event->ev_arg == isc_timertype_ticker)
 		expected_event_type = ISC_TIMEREVENT_TICK;
 
-	if (event->type != expected_event_type) {
+	if (event->ev_type != expected_event_type) {
 		t_info("expected event type %d, got %d\n",
-			expected_event_type, (int) event->type);
+			expected_event_type, (int) event->ev_type);
 		++Tx_nfails;
 	}
 
@@ -444,9 +444,9 @@ t3_te(isc_task_t *task, isc_event_t *event) {
 		++Tx_nprobs;
 	}
 
-	if (event->type != ISC_TIMEREVENT_IDLE) {
+	if (event->ev_type != ISC_TIMEREVENT_IDLE) {
 		t_info("received event type %d, expected type %d\n",
-				event->type, ISC_TIMEREVENT_IDLE);
+				event->ev_type, ISC_TIMEREVENT_IDLE);
 		++Tx_nfails;
 	}
 
@@ -545,9 +545,9 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (Tx_eventcnt < 3) {
-		if (event->type != ISC_TIMEREVENT_TICK) {
+		if (event->ev_type != ISC_TIMEREVENT_TICK) {
 			t_info("received event type %d, expected type %d\n",
-					event->type, ISC_TIMEREVENT_IDLE);
+					event->ev_type, ISC_TIMEREVENT_IDLE);
 			++Tx_nfails;
 		}
 		if (Tx_eventcnt == 2) {
@@ -571,9 +571,9 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 	else {
-		if (event->type != ISC_TIMEREVENT_LIFE) {
+		if (event->ev_type != ISC_TIMEREVENT_LIFE) {
 			t_info("received event type %d, expected type %d\n",
-					event->type, ISC_TIMEREVENT_IDLE);
+					event->ev_type, ISC_TIMEREVENT_IDLE);
 			++Tx_nfails;
 		}
 

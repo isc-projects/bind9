@@ -321,7 +321,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 #endif
 #endif
 
-	(void)sock;
+	UNUSED(sock);
 
 #ifdef ISC_NET_BSD44MSGHDR
 #ifdef MSG_TRUNC
@@ -642,11 +642,12 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 		return (NULL);
 
 	ev->result = ISC_R_UNEXPECTED;
-	ISC_LINK_INIT(ev, link);
+	ISC_LINK_INIT(ev, ev_link);
 	ISC_LIST_INIT(ev->bufferlist);
 	ev->region.base = NULL;
 	ev->n = 0;
 	ev->offset = 0;
+	ev->attributes = 0;
 
 	return (ev);
 }
@@ -811,6 +812,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev)
 	size_t write_count;
 	struct msghdr msghdr;
 
+	/* XXXMLG Should verify that we didn't overflow MAXSCATTERGATHER? */
 	build_msghdr_send(sock, dev, &msghdr, iov,
 			  MAXSCATTERGATHER_SEND, &write_count);
 
@@ -1228,14 +1230,14 @@ dispatch_read(isc_socket_t *sock)
 	iev = &sock->readable_ev;
 
 	XTRACE(TRACE_WATCHER, ("dispatch_read:  posted event %p to task %p\n",
-			       ev, ev->sender));
+			       ev, ev->ev_sender));
 
 	sock->references++;
-	iev->sender = sock;
-	iev->action = internal_recv;
-	iev->arg = sock;
+	iev->ev_sender = sock;
+	iev->ev_action = internal_recv;
+	iev->ev_arg = sock;
 
-	isc_task_send(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->ev_sender, (isc_event_t **)&iev);
 }
 
 static void
@@ -1254,14 +1256,14 @@ dispatch_write(isc_socket_t *sock)
 	iev = &sock->writable_ev;
 
 	XTRACE(TRACE_WATCHER, ("dispatch_send:  posted event %p to task %p\n",
-			       ev, ev->sender));
+			       ev, ev->ev_sender));
 
 	sock->references++;
-	iev->sender = sock;
-	iev->action = internal_send;
-	iev->arg = sock;
+	iev->ev_sender = sock;
+	iev->ev_action = internal_send;
+	iev->ev_arg = sock;
 
-	isc_task_send(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->ev_sender, (isc_event_t **)&iev);
 }
 
 /*
@@ -1287,11 +1289,11 @@ dispatch_accept(isc_socket_t *sock)
 	iev = &sock->readable_ev;
 
 	sock->references++;  /* keep socket around for this internal event */
-	iev->sender = sock;
-	iev->action = internal_accept;
-	iev->arg = sock;
+	iev->ev_sender = sock;
+	iev->ev_action = internal_accept;
+	iev->ev_arg = sock;
 
-	isc_task_send(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->ev_sender, (isc_event_t **)&iev);
 }
 
 static void
@@ -1308,11 +1310,11 @@ dispatch_connect(isc_socket_t *sock)
 	INSIST(sock->connecting);
 
 	sock->references++;  /* keep socket around for this internal event */
-	iev->sender = sock;
-	iev->action = internal_connect;
-	iev->arg = sock;
+	iev->ev_sender = sock;
+	iev->ev_action = internal_connect;
+	iev->ev_arg = sock;
 
-	isc_task_send(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->ev_sender, (isc_event_t **)&iev);
 }
 
 /*
@@ -1331,13 +1333,13 @@ send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
 {
 	isc_task_t *task;
 
-	task = (*dev)->sender;
+	task = (*dev)->ev_sender;
 
 	(*dev)->result = resultcode;
-	(*dev)->sender = sock;
+	(*dev)->ev_sender = sock;
 
-	if (ISC_LINK_LINKED(*dev, link))
-		ISC_LIST_DEQUEUE(sock->recv_list, *dev, link);
+	if (ISC_LINK_LINKED(*dev, ev_link))
+		ISC_LIST_DEQUEUE(sock->recv_list, *dev, ev_link);
 
 	if (sock->recv_result != ISC_R_SUCCESS)
 		(*dev)->attributes |= ISC_SOCKEVENTATTR_FATALERROR;
@@ -1360,13 +1362,14 @@ send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev,
 {
 	isc_task_t *task;
 
-	task = (*dev)->sender;
+	INSIST(dev != NULL && *dev != NULL);
 
+	task = (*dev)->ev_sender;
 	(*dev)->result = resultcode;
-	(*dev)->sender = sock;
+	(*dev)->ev_sender = sock;
 
-	if (ISC_LINK_LINKED(*dev, link))
-		ISC_LIST_DEQUEUE(sock->send_list, *dev, link);
+	if (ISC_LINK_LINKED(*dev, ev_link))
+		ISC_LIST_DEQUEUE(sock->send_list, *dev, ev_link);
 
 	if (sock->send_result != ISC_R_SUCCESS)
 		(*dev)->attributes |= ISC_SOCKEVENTATTR_FATALERROR;
@@ -1400,9 +1403,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	(void)me;
+	UNUSED(me);
 
-	sock = ev->sender;
+	sock = ev->ev_sender;
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
@@ -1468,7 +1471,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	/*
 	 * Pull off the done event.
 	 */
-	ISC_LIST_UNLINK(sock->accept_list, dev, link);
+	ISC_LIST_UNLINK(sock->accept_list, dev, ev_link);
 
 	/*
 	 * Poke watcher if there are more pending accepts.
@@ -1517,8 +1520,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	 * Fill in the done event details and send it off.
 	 */
 	dev->result = result;
-	task = dev->sender;
-	dev->sender = sock;
+	task = dev->ev_sender;
+	dev->ev_sender = sock;
 
 	isc_task_sendanddetach(&task, (isc_event_t **)&dev);
 }
@@ -1530,11 +1533,11 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 	isc_socket_t *sock;
 	isc_task_t *task;
 
-	(void)me;
+	UNUSED(me);
 
-	INSIST(ev->type == ISC_SOCKEVENT_INTR);
+	INSIST(ev->ev_type == ISC_SOCKEVENT_INTR);
 
-	sock = ev->sender;
+	sock = ev->ev_sender;
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
@@ -1561,13 +1564,13 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 	 */
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	while (dev != NULL) {
-		task = dev->sender;
+		task = dev->ev_sender;
 
 		/*
 		 * If this is a marker event, post its completion and
 		 * continue the loop.
 		 */
-		if (dev->type == ISC_SOCKEVENT_RECVMARK) {
+		if (dev->ev_type == ISC_SOCKEVENT_RECVMARK) {
 			send_recvdone_event(sock, &dev, sock->recv_result);
 			goto next;
 		}
@@ -1621,14 +1624,14 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	isc_socket_t *sock;
 	isc_task_t *task;
 
-	(void)me;
+	UNUSED(me);
 
-	INSIST(ev->type == ISC_SOCKEVENT_INTW);
+	INSIST(ev->ev_type == ISC_SOCKEVENT_INTW);
 
 	/*
 	 * Find out what socket this is and lock it.
 	 */
-	sock = (isc_socket_t *)ev->sender;
+	sock = (isc_socket_t *)ev->ev_sender;
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
@@ -1655,13 +1658,13 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	 */
 	dev = ISC_LIST_HEAD(sock->send_list);
 	while (dev != NULL) {
-		task = dev->sender;
+		task = dev->ev_sender;
 
 		/*
 		 * If this is a marker event, post its completion and
 		 * continue the loop.
 		 */
-		if (dev->type == ISC_SOCKEVENT_SENDMARK) {
+		if (dev->ev_type == ISC_SOCKEVENT_SENDMARK) {
 			send_senddone_event(sock, &dev, sock->send_result);
 			goto next;
 		}
@@ -2138,7 +2141,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 			dev->minimum = minimum;
 	}
 
-	dev->sender = task;
+	dev->ev_sender = task;
 
 	/*
 	 * Move each buffer from the passed in list to our internal one.
@@ -2193,7 +2196,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	 * Enqueue the request.  If the socket was previously not being
 	 * watched, poke the watcher to start paying attention to it.
 	 */
-	ISC_LIST_ENQUEUE(sock->recv_list, dev, link);
+	ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
@@ -2245,7 +2248,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	dev->result = ISC_R_SUCCESS;
 	dev->n = 0;
 	dev->region = *region;
-	dev->sender = task;
+	dev->ev_sender = task;
 
 	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 
@@ -2291,7 +2294,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	 * Enqueue the request.  If the socket was previously not being
 	 * watched, poke the watcher to start paying attention to it.
 	 */
-	ISC_LIST_ENQUEUE(sock->recv_list, dev, link);
+	ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
@@ -2340,7 +2343,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	}
 
 	dev->region = *region;
-	dev->sender = task;
+	dev->ev_sender = task;
 
 	set_dev_address(address, sock, dev);
 	if (pktinfo != NULL) {
@@ -2384,7 +2387,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	 * Enqueue the request.  If the socket was previously not being
 	 * watched, poke the watcher to start paying attention to it.
 	 */
-	ISC_LIST_ENQUEUE(sock->send_list, dev, link);
+	ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
@@ -2441,7 +2444,7 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	 *** to the task rather than this function failing.
 	 ***/
 
-	dev->sender = task;
+	dev->ev_sender = task;
 
 	set_dev_address(address, sock, dev);
 	if (pktinfo != NULL) {
@@ -2495,7 +2498,7 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	 * Enqueue the request.  If the socket was previously not being
 	 * watched, poke the watcher to start paying attention to it.
 	 */
-	ISC_LIST_ENQUEUE(sock->send_list, dev, link);
+	ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
@@ -2604,7 +2607,7 @@ isc_socket_accept(isc_socket_t *sock,
 	/*
 	 * Sender field is overloaded here with the task we will be sending
 	 * this event to.  Just before the actual event is delivered the
-	 * actual sender will be touched up to be the socket.
+	 * actual ev_sender will be touched up to be the socket.
 	 */
 	dev = (isc_socket_newconnev_t *)
 		isc_event_allocate(manager->mctx, task, ISC_SOCKEVENT_NEWCONN,
@@ -2613,7 +2616,7 @@ isc_socket_accept(isc_socket_t *sock,
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
-	ISC_LINK_INIT(dev, link);
+	ISC_LINK_INIT(dev, ev_link);
 
 	ret = allocate_socket(manager, sock->type, &nsock);
 	if (ret != ISC_R_SUCCESS) {
@@ -2628,7 +2631,7 @@ isc_socket_accept(isc_socket_t *sock,
 	isc_task_attach(task, &ntask);
 	nsock->references++;
 
-	dev->sender = ntask;
+	dev->ev_sender = ntask;
 	dev->newsocket = nsock;
 
 	/*
@@ -2639,7 +2642,7 @@ isc_socket_accept(isc_socket_t *sock,
 	if (EMPTY(sock->accept_list))
 		select_poke(manager, sock->fd);
 
-	ISC_LIST_ENQUEUE(sock->accept_list, dev, link);
+	ISC_LIST_ENQUEUE(sock->accept_list, dev, ev_link);
 
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
@@ -2677,7 +2680,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
-	ISC_LINK_INIT(dev, link);
+	ISC_LINK_INIT(dev, ev_link);
 
 	/*
 	 * Try to do the connect right away, as there can be only one
@@ -2737,7 +2740,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 
 	sock->connecting = 1;
 
-	dev->sender = ntask;
+	dev->ev_sender = ntask;
 
 	/*
 	 * poke watcher here.  We still have the socket locked, so there
@@ -2765,10 +2768,10 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 	int cc;
 	ISC_SOCKADDR_LEN_T optlen;
 
-	(void)me;
-	INSIST(ev->type == ISC_SOCKEVENT_INTW);
+	UNUSED(me);
+	INSIST(ev->ev_type == ISC_SOCKEVENT_INTW);
 
-	sock = ev->sender;
+	sock = ev->ev_sender;
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
@@ -2849,8 +2852,8 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 
 	UNLOCK(&sock->lock);
 
-	task = dev->sender;
-	dev->sender = sock;
+	task = dev->ev_sender;
+	dev->ev_sender = sock;
 	isc_task_sendanddetach(&task, (isc_event_t **)&dev);
 }
 
@@ -2933,8 +2936,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 		dev = ISC_LIST_HEAD(sock->recv_list);
 
 		while (dev != NULL) {
-			current_task = dev->sender;
-			next = ISC_LIST_NEXT(dev, link);
+			current_task = dev->ev_sender;
+			next = ISC_LIST_NEXT(dev, ev_link);
 
 			if ((task == NULL) || (task == current_task))
 				send_recvdone_event(sock, &dev,
@@ -2952,8 +2955,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 		dev = ISC_LIST_HEAD(sock->send_list);
 
 		while (dev != NULL) {
-			current_task = dev->sender;
-			next = ISC_LIST_NEXT(dev, link);
+			current_task = dev->ev_sender;
+			next = ISC_LIST_NEXT(dev, ev_link);
 
 			if ((task == NULL) || (task == current_task))
 				send_senddone_event(sock, &dev,
@@ -2970,18 +2973,19 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 
 		dev = ISC_LIST_HEAD(sock->accept_list);
 		while (dev != NULL) {
-			current_task = dev->sender;
-			next = ISC_LIST_NEXT(dev, link);
+			current_task = dev->ev_sender;
+			next = ISC_LIST_NEXT(dev, ev_link);
 
 			if ((task == NULL) || (task == current_task)) {
 
-				ISC_LIST_UNLINK(sock->accept_list, dev, link);
+				ISC_LIST_UNLINK(sock->accept_list, dev,
+						ev_link);
 
 				dev->newsocket->references--;
 				free_socket(&dev->newsocket);
 
 				dev->result = ISC_R_CANCELED;
-				dev->sender = sock;
+				dev->ev_sender = sock;
 				isc_task_sendanddetach(&current_task,
 						       (isc_event_t **)&dev);
 			}
@@ -3002,13 +3006,13 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 		sock->connecting = 0;
 
 		dev = sock->connect_ev;
-		current_task = dev->sender;
+		current_task = dev->ev_sender;
 
 		if ((task == NULL) || (task == current_task)) {
 			sock->connect_ev = NULL;
 
 			dev->result = ISC_R_CANCELED;
-			dev->sender = sock;
+			dev->ev_sender = sock;
 			isc_task_sendanddetach(&current_task,
 					       (isc_event_t **)&dev);
 		}
@@ -3064,9 +3068,9 @@ isc_socket_recvmark(isc_socket_t *sock,
 	 */
 	isc_task_attach(task, &ntask);
 
-	dev->sender = ntask;
+	dev->ev_sender = ntask;
 
-	ISC_LIST_ENQUEUE(sock->recv_list, dev, link);
+	ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
 
 	XTRACE(TRACE_RECV,
 	       ("isc_socket_recvmark: queued event dev %p, task %p\n",
@@ -3118,9 +3122,9 @@ isc_socket_sendmark(isc_socket_t *sock,
 	 */
 	isc_task_attach(task, &ntask);
 
-	dev->sender = ntask;
+	dev->ev_sender = ntask;
 
-	ISC_LIST_ENQUEUE(sock->send_list, dev, link);
+	ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
 
 	XTRACE(TRACE_SEND,
 	       ("isc_socket_sendmark: queued event dev %p, task %p\n",

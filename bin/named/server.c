@@ -1076,7 +1076,7 @@ scan_interfaces(ns_server_t *server) {
  */
 static void
 interface_timer_tick(isc_task_t *task, isc_event_t *event) {
-	ns_server_t *server = (ns_server_t *) event->arg;	
+	ns_server_t *server = (ns_server_t *) event->ev_arg;	
 	UNUSED(task);
 	isc_event_free(&event);
 	RWLOCK(&server->conflock, isc_rwlocktype_write);
@@ -1390,7 +1390,7 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	ns_server_t *server = (ns_server_t *) event->arg;
+	ns_server_t *server = (ns_server_t *)event->ev_arg;
 
 	UNUSED(task);
 
@@ -1424,7 +1424,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 static void
 shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view, *view_next;
-	ns_server_t *server = (ns_server_t *) event->arg;
+	ns_server_t *server = (ns_server_t *)event->ev_arg;
 		
 	UNUSED(task);
 
@@ -1580,7 +1580,7 @@ fatal(char *msg, isc_result_t result) {
 static void
 ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	ns_server_t *server = (ns_server_t *)event->arg;
+	ns_server_t *server = (ns_server_t *)event->ev_arg;
 	UNUSED(task);
 	
 	result = load_configuration(ns_g_conffile, server, ISC_FALSE);

@@ -1753,14 +1753,14 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 
 	evclient = NULL;
 	ns_client_attach(client, &evclient);
-	event->arg = evclient;
+	event->ev_arg = evclient;
 
 	dns_zone_gettask(zone, &zonetask);
-	isc_task_send(zonetask, (isc_event_t **) &event);
+	isc_task_send(zonetask, (isc_event_t **)&event);
 
  failure:
 	if (event != NULL)
-		isc_event_free((isc_event_t **) &event);
+		isc_event_free((isc_event_t **)&event);
 	return (result);
 }
 
@@ -1855,7 +1855,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 {
 	update_event_t *uev = (update_event_t *) event;
 	dns_zone_t *zone = uev->zone;
-	ns_client_t *client = (ns_client_t *) event->arg;
+	ns_client_t *client = (ns_client_t *)event->ev_arg;
 
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -1871,7 +1871,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	dns_name_t *zonename;
 	dns_ssutable_t *ssutable = NULL;
 		
-	INSIST(event->type == DNS_EVENT_UPDATE);
+	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &temp);
@@ -2294,8 +2294,8 @@ update_action(isc_task_t *task, isc_event_t *event)
 
 	isc_task_detach(&task);
 	uev->result = result;
-	uev->type = DNS_EVENT_UPDATEDONE;
-	uev->action = updatedone_action;
+	uev->ev_type = DNS_EVENT_UPDATEDONE;
+	uev->ev_action = updatedone_action;
 	isc_task_send(client->task, &event);
 	INSIST(event == NULL);
 }
@@ -2304,9 +2304,9 @@ static void
 updatedone_action(isc_task_t *task, isc_event_t *event)
 {
 	update_event_t *uev = (update_event_t *) event;
-	ns_client_t *client = (ns_client_t *) event->arg;	
+	ns_client_t *client = (ns_client_t *) event->ev_arg;	
 
-	INSIST(event->type == DNS_EVENT_UPDATEDONE);
+	INSIST(event->ev_type == DNS_EVENT_UPDATEDONE);
 	INSIST(task == client->task);
 
 	respond(client, uev->result);

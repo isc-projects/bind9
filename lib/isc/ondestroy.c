@@ -50,9 +50,9 @@ isc_ondestroy_register(isc_ondestroy_t *ondest,
 
 	isc_task_attach(task, &thetask);
 
-	theevent->sender = thetask;
+	theevent->ev_sender = thetask;
 	
-	ISC_LIST_APPEND(ondest->events, theevent, link);
+	ISC_LIST_APPEND(ondest->events, theevent, ev_link);
 
 	return (ISC_R_SUCCESS);
 }
@@ -69,10 +69,10 @@ isc_ondestroy_notify(isc_ondestroy_t *ondest, void *sender)
 
 	eventp = ISC_LIST_HEAD(ondest->events);
 	while (eventp != NULL) {
-		ISC_LIST_UNLINK(ondest->events, eventp, link);
+		ISC_LIST_UNLINK(ondest->events, eventp, ev_link);
 
-		task = eventp->sender;
-		eventp->sender = sender;
+		task = eventp->ev_sender;
+		eventp->ev_sender = sender;
 		
 		isc_task_sendanddetach(&task, &eventp);
 
