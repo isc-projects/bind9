@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.190 2004/04/15 06:47:08 marka Exp $ */
+/* $Id: dig.c,v 1.191 2004/06/03 04:23:01 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -173,7 +173,7 @@ help(void) {
 "                 -x dot-notation     (shortcut for in-addr lookups)\n"
 "                 -i                  (IP6.INT reverse IPv6 lookups)\n"
 "                 -f filename         (batch mode)\n"
-"                 -b address          (bind to source address)\n"
+"                 -b address[#port]   (bind to source address/port)\n"
 "                 -p port             (specify port number)\n"
 "                 -t type             (specify query type)\n"
 "                 -c class            (specify query class)\n"
