@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.4.2.1.8.1 2003/08/04 01:04:44 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.4.2.1.8.2 2003/08/13 06:51:34 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -206,11 +206,6 @@ openssldsa_isprivate(const dst_key_t *key) {
 	return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
 }
 
-static isc_boolean_t
-openssldsa_issymmetric(void) {
-        return (ISC_FALSE);
-}
-
 static void
 openssldsa_destroy(dst_key_t *key) {
 	DSA *dsa = key->opaque;
@@ -355,7 +350,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldsa_fromfile(dst_key_t *key, const char *filename) {
+openssldsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -364,8 +359,7 @@ openssldsa_fromfile(dst_key_t *key, const char *filename) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, DST_ALG_DSA, filename, mctx,
-					&priv);
+	ret = dst__privstruct_parse(key, DST_ALG_DSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -424,12 +418,12 @@ static dst_func_t openssldsa_functions = {
 	NULL, /* paramcompare */
 	openssldsa_generate,
 	openssldsa_isprivate,
-	openssldsa_issymmetric,
 	openssldsa_destroy,
 	openssldsa_todns,
 	openssldsa_fromdns,
 	openssldsa_tofile,
-	openssldsa_fromfile,
+	openssldsa_parse,
+	NULL, /* cleanup */
 };
 
 isc_result_t
@@ -437,10 +431,6 @@ dst__openssldsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &openssldsa_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__openssldsa_destroy(void) {
 }
 
 #endif /* OPENSSL */

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.53.2.1.8.1 2003/08/04 01:04:43 marka Exp $
+ * $Id: hmac_link.c,v 1.53.2.1.8.2 2003/08/13 06:51:33 marka Exp $
  */
 
 #include <config.h>
@@ -156,11 +156,6 @@ hmacmd5_isprivate(const dst_key_t *key) {
 	return (ISC_TRUE);
 }
 
-static isc_boolean_t
-hmacmd5_issymmetric(void) {
-        return (ISC_TRUE);
-}
-
 static void
 hmacmd5_destroy(dst_key_t *key) {
 	HMAC_Key *hkey = key->opaque;
@@ -241,15 +236,14 @@ hmacmd5_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-hmacmd5_fromfile(dst_key_t *key, const char *filename) {
+hmacmd5_parse(dst_key_t *key, isc_lex_t *lexer) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t b;
 	isc_mem_t *mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, DST_ALG_HMACMD5, filename, mctx,
-					&priv);
+	ret = dst__privstruct_parse(key, DST_ALG_HMACMD5, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -272,12 +266,12 @@ static dst_func_t hmacmd5_functions = {
 	NULL, /* paramcompare */
 	hmacmd5_generate,
 	hmacmd5_isprivate,
-	hmacmd5_issymmetric,
 	hmacmd5_destroy,
 	hmacmd5_todns,
 	hmacmd5_fromdns,
 	hmacmd5_tofile,
-	hmacmd5_fromfile,
+	hmacmd5_parse,
+	NULL, /* cleanup */
 };
 
 isc_result_t
@@ -285,8 +279,4 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &hmacmd5_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__hmacmd5_destroy(void) {
 }

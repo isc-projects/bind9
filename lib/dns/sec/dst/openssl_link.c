@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.46.2.2.2.1 2003/08/11 05:28:20 marka Exp $
+ * $Id: openssl_link.c,v 1.46.2.2.2.2 2003/08/13 06:51:33 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -35,6 +35,7 @@
 
 #include "dst_internal.h"
 
+#include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 
@@ -98,14 +99,42 @@ id_callback(void) {
 	return ((unsigned long)isc_thread_self());
 }
 
+static void *
+mem_alloc(size_t size) {
+	INSIST(dst__memory_pool != NULL);
+	return (isc_mem_allocate(dst__memory_pool, size));
+}
+
+static void
+mem_free(void *ptr) {
+	INSIST(dst__memory_pool != NULL);
+	if (ptr != NULL)
+		isc_mem_free(dst__memory_pool, ptr);
+}
+
+static void *
+mem_realloc(void *ptr, size_t size) {
+	void *p;
+
+	INSIST(dst__memory_pool != NULL);
+	p = NULL;
+	if (size > 0) {
+		p = mem_alloc(size);
+		if (p != NULL && ptr != NULL)
+			memcpy(p, ptr, size);
+	}
+	if (ptr != NULL)
+		mem_free(ptr);
+	return (p);
+}
+
 isc_result_t
 dst__openssl_init() {
 	isc_result_t result;
 
-	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
-				 dst__mem_free);
+	CRYPTO_set_mem_functions(mem_alloc, mem_realloc, mem_free);
 	nlocks = CRYPTO_num_locks();
-	locks = dst__mem_alloc(sizeof(isc_mutex_t) * nlocks);
+	locks = mem_alloc(sizeof(isc_mutex_t) * nlocks);
 	if (locks == NULL)
 		return (ISC_R_NOMEMORY);
 	result = isc_mutexblock_init(locks, nlocks);
@@ -113,7 +142,7 @@ dst__openssl_init() {
 		goto cleanup_mutexalloc;
 	CRYPTO_set_locking_callback(lock_callback);
 	CRYPTO_set_id_callback(id_callback);
-	rm = dst__mem_alloc(sizeof(RAND_METHOD));
+	rm = mem_alloc(sizeof(RAND_METHOD));
 	if (rm == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_mutexinit;
@@ -139,29 +168,28 @@ dst__openssl_init() {
 
 #ifdef USE_ENGINE
  cleanup_rm:
-	dst__mem_free(rm);
+	mem_free(rm);
 #endif
  cleanup_mutexinit:
 	DESTROYMUTEXBLOCK(locks, nlocks);
  cleanup_mutexalloc:
-	dst__mem_free(locks);
+	mem_free(locks);
 	return (result);
 }
 
 void
 dst__openssl_destroy() {
-#ifdef USE_ENGINE
-	if (e != NULL) {
+	ERR_clear_error();
+#ifdef CRYPTO_LOCK_ENGINE
+	if (e != NULL)
 		ENGINE_free(e);
-		e = NULL;
-	}
 #endif
 	if (locks != NULL) {
 		DESTROYMUTEXBLOCK(locks, nlocks);
-		dst__mem_free(locks);
+		mem_free(locks);
 	}
 	if (rm != NULL)
-		dst__mem_free(rm);
+		mem_free(rm);
 }
 
 #endif /* OPENSSL */

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.38.2.2.8.1 2003/08/04 01:04:44 marka Exp $
+ * $Id: openssldh_link.c,v 1.38.2.2.8.2 2003/08/13 06:51:33 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -169,11 +169,6 @@ static isc_boolean_t
 openssldh_isprivate(const dst_key_t *key) {
 	DH *dh = (DH *) key->opaque;
 	return (ISC_TF(dh != NULL && dh->priv_key != NULL));
-}
-
-static isc_boolean_t
-openssldh_issymmetric(void) {
-        return (ISC_FALSE);
 }
 
 static void
@@ -432,7 +427,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldh_fromfile(dst_key_t *key, const char *filename) {
+openssldh_parse(dst_key_t *key, isc_lex_t *lexer) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -443,8 +438,7 @@ openssldh_fromfile(dst_key_t *key, const char *filename) {
 	mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, DST_ALG_DH, filename, mctx,
-					&priv);
+	ret = dst__privstruct_parse(key, DST_ALG_DH, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -532,6 +526,13 @@ BN_fromhex(BIGNUM *b, const char *str) {
 	RUNTIME_CHECK(out != NULL);
 }
 
+void
+openssldh_cleanup(void) {
+	BN_free(&bn2);
+	BN_free(&bn768);
+	BN_free(&bn1024);
+}
+
 static dst_func_t openssldh_functions = {
 	NULL, /* createctx */
 	NULL, /* destroyctx */
@@ -543,12 +544,12 @@ static dst_func_t openssldh_functions = {
 	openssldh_paramcompare,
 	openssldh_generate,
 	openssldh_isprivate,
-	openssldh_issymmetric,
 	openssldh_destroy,
 	openssldh_todns,
 	openssldh_fromdns,
 	openssldh_tofile,
-	openssldh_fromfile,
+	openssldh_parse,
+	openssldh_cleanup,
 };
 
 isc_result_t
@@ -562,13 +563,6 @@ dst__openssldh_init(dst_func_t **funcp) {
 	BN_fromhex(&bn1024, PRIME1024);
 	*funcp = &openssldh_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__openssldh_destroy(void) {
-	BN_free(&bn2);
-	BN_free(&bn768);
-	BN_free(&bn1024);
 }
 
 #endif /* OPENSSL */

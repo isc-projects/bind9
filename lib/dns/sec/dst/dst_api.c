@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.3 2003/08/13 00:36:56 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.4 2003/08/13 06:51:32 marka Exp $
  */
 
 #include <config.h>
@@ -92,6 +92,9 @@ static isc_result_t	frombuffer(dns_name_t *name,
 
 static isc_result_t	algorithm_status(unsigned int alg);
 
+static isc_result_t	addsuffix(char *filename, unsigned int len,
+				  const char *ofilename, const char *suffix);
+
 #define RETERR(x) 				\
 	do {					\
 		result = (x);			\
@@ -158,18 +161,15 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 
 void
 dst_lib_destroy(void) {
+	int i;
 	RUNTIME_CHECK(dst_initialized == ISC_TRUE);
 	dst_initialized = ISC_FALSE;
 
-	dst__hmacmd5_destroy();
+	for (i = 0; i < DST_MAX_ALGS; i++)
+		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
+			dst_t_func[i]->cleanup();
 #ifdef OPENSSL
-	dst__opensslrsa_destroy();
-	dst__openssldsa_destroy();
-	dst__openssldh_destroy();
 	dst__openssl_destroy();
-#endif
-#ifdef GSSAPI
-	dst__gssapi_destroy();
 #endif
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
@@ -379,6 +379,9 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *key = NULL;
 	dns_keytag_t id;
+	char *newfilename = NULL;
+	int newfilenamelen = 0;
+	isc_lex_t *lex = NULL;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(filename != NULL);
@@ -418,30 +421,37 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	if (key->func->fromfile == NULL) {
-		dst_key_free(&key);
-		return (DST_R_UNSUPPORTEDALG);
-	}
+	if (key->func->parse == NULL)
+		RETERR(DST_R_UNSUPPORTEDALG);
 
-	result = key->func->fromfile(key, filename);
-	if (result != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (result);
-	}
+	newfilenamelen = strlen(filename) + 9;
+	newfilename = isc_mem_get(mctx, newfilenamelen);
+	if (newfilename == NULL)
+		RETERR(ISC_R_NOMEMORY);
+	result = addsuffix(newfilename, newfilenamelen, filename, ".private");
+	INSIST(result == ISC_R_SUCCESS);
 
-	result = computeid(key);
-	if (result != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (result);
-	}
+	RETERR(isc_lex_create(mctx, 1500, &lex));
+	RETERR(isc_lex_openfile(lex, newfilename));
+	isc_mem_put(mctx, newfilename, newfilenamelen);
 
-	if (id != key->key_id) {
-		dst_key_free(&key);
-		return (DST_R_INVALIDPRIVATEKEY);
-	}
+	RETERR(key->func->parse(key, lex));
+	isc_lex_destroy(&lex);
+
+	RETERR(computeid(key));
+
+	if (id != key->key_id)
+		RETERR(DST_R_INVALIDPRIVATEKEY);
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
+ out:
+	if (newfilename != NULL)
+		isc_mem_put(mctx, newfilename, newfilenamelen);
+	if (lex != NULL)
+		isc_lex_destroy(&lex);
+	dst_key_free(&key);
+	return (result);
 }
 
 isc_result_t
@@ -553,6 +563,28 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 		return (DST_R_UNSUPPORTEDALG);
 
 	return (key->func->todns(key, target));
+}
+
+isc_result_t
+dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer) {
+	isc_lex_t *lex = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(!dst_key_isprivate(key));
+	REQUIRE(buffer != NULL);
+
+	if (key->func->parse == NULL)
+		RETERR(DST_R_UNSUPPORTEDALG);
+
+	RETERR(isc_lex_create(key->mctx, 1500, &lex));
+	RETERR(isc_lex_openbuffer(lex, buffer));
+	RETERR(key->func->parse(key, lex));
+ out:
+	if (lex != NULL)
+		isc_lex_destroy(&lex);
+	return (result);
 }
 
 isc_result_t
@@ -814,8 +846,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	newfilename = isc_mem_get(mctx, newfilenamelen);
 	if (newfilename == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = dst__file_addsuffix(newfilename, newfilenamelen, filename,
-				  ".key");
+	ret = addsuffix(newfilename, newfilenamelen, filename, ".key");
 	INSIST(ret == ISC_R_SUCCESS);
 
 	/*
@@ -897,6 +928,25 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	return (ret);
 }
 
+static isc_boolean_t
+issymmetric(const dst_key_t *key) {
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(VALID_KEY(key));
+
+	switch (key->key_alg) {
+		case DST_ALG_RSAMD5:
+		case DST_ALG_RSASHA1:
+		case DST_ALG_DSA:
+		case DST_ALG_DH:
+			return (ISC_FALSE);
+		case DST_ALG_HMACMD5:
+		case DST_ALG_GSSAPI:
+			return (ISC_TRUE);
+		default:
+			return (ISC_FALSE);
+	}
+}
+
 /*
  * Writes a public key to disk in DNS format.
  */
@@ -948,7 +998,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);
 
-	if (key->func->issymmetric()) {
+	if (issymmetric(key)) {
 		access = 0;
 		isc_fsaccess_add(ISC_FSACCESS_OWNER,
 				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
@@ -1082,8 +1132,8 @@ algorithm_status(unsigned int alg) {
 }
 
 isc_result_t
-dst__file_addsuffix(char *filename, unsigned int len,
-	  const char *ofilename, const char *suffix)
+addsuffix(char *filename, unsigned int len, const char *ofilename,
+	  const char *suffix)
 {
 	int olen = strlen(ofilename);
 	int n;

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.7 2001/03/21 20:45:55 bwelling Exp $
+ * $Id: gssapi_link.c,v 1.7.12.1 2003/08/13 06:51:33 marka Exp $
  */
 
 #ifdef GSSAPI
@@ -182,12 +182,6 @@ gssapi_isprivate(const dst_key_t *key) {
         return (ISC_TRUE);
 }
 
-static isc_boolean_t
-gssapi_issymmetric(const dst_key_t *key) {
-	UNUSED(key);
-        return (ISC_TRUE);
-}
-
 static void
 gssapi_destroy(dst_key_t *key) {
 	UNUSED(key);
@@ -205,12 +199,12 @@ static dst_func_t gssapi_functions = {
 	NULL, /* paramcompare */
 	gssapi_generate,
 	gssapi_isprivate,
-	gssapi_issymmetric,
 	gssapi_destroy,
 	NULL, /* todns */
 	NULL, /* fromdns */
 	NULL, /* tofile */
-	NULL, /* fromfile */
+	NULL, /* parse */
+	NULL, /* cleanup */
 };
 
 isc_result_t
@@ -218,10 +212,6 @@ dst__gssapi_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &gssapi_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__gssapi_destroy(void) {
 }
 
 #else

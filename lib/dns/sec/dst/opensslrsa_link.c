@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.12.2.4.2.1 2003/08/04 01:04:44 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.12.2.4.2.2 2003/08/13 06:51:34 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -244,11 +244,6 @@ opensslrsa_isprivate(const dst_key_t *key) {
 	return (ISC_TF(rsa != NULL && rsa->d != NULL));
 }
 
-static isc_boolean_t
-opensslrsa_issymmetric(void) {
-        return (ISC_FALSE);
-}
-
 static void
 opensslrsa_destroy(dst_key_t *key) {
 	RSA *rsa = key->opaque;
@@ -433,7 +428,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-opensslrsa_fromfile(dst_key_t *key, const char *filename) {
+opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -442,8 +437,7 @@ opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, DST_ALG_RSA, filename, mctx,
-					&priv);
+	ret = dst__privstruct_parse(key, DST_ALG_RSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -512,12 +506,12 @@ static dst_func_t opensslrsa_functions = {
 	NULL, /* paramcompare */
 	opensslrsa_generate,
 	opensslrsa_isprivate,
-	opensslrsa_issymmetric,
 	opensslrsa_destroy,
 	opensslrsa_todns,
 	opensslrsa_fromdns,
 	opensslrsa_tofile,
-	opensslrsa_fromfile,
+	opensslrsa_parse,
+	NULL, /* cleanup */
 };
 
 isc_result_t
@@ -525,10 +519,6 @@ dst__opensslrsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &opensslrsa_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__opensslrsa_destroy(void) {
 }
 
 #endif /* OPENSSL */
