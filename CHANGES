@@ -1,4 +1,7 @@
 
+1019.	[bug]		The value of the lame-ttl option was limited to 18000
+			seconds, not 1800 seconds as documented. [RT #1803]
+
 1018.	[bug]		The default log channel was not always initialized
 			correctly. [RT #1813]
 
