@@ -106,6 +106,7 @@
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/int.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -150,7 +151,6 @@ ISC_LANG_BEGINDECLS
  * discouraged from directly manipulating the structure.
  */
 
-typedef struct isc_buffer isc_buffer_t;
 struct isc_buffer {
 	unsigned int		magic;
 	unsigned int		type;
