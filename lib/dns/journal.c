@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.70 2000/12/22 23:37:03 gson Exp $ */
+/* $Id: journal.c,v 1.71 2000/12/22 23:47:00 gson Exp $ */
 
 #include <config.h>
 
@@ -1152,7 +1152,7 @@ dns_journal_commit(dns_journal_t *j) {
 		for (i = 0; i < j->header.index_size; i++) {
 			encode_uint32(j->index[i].serial, p);
 			p += 4;
-			encode_uint32(j->index[i].serial, p);
+			encode_uint32(j->index[i].offset, p);
 			p += 4;
 		}
 		INSIST(p == j->rawindex + rawbytes);
