@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.74 2000/08/15 00:52:49 bwelling Exp $ */
+/* $Id: validator.c,v 1.75 2000/08/15 01:22:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -298,6 +298,12 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
 
+	devent = (dns_validatorevent_t *)event;
+	val = devent->ev_arg;
+	eresult = devent->result;
+
+	isc_event_free(&event);
+
 	if (SHUTDOWN(val)) {
 		dns_validator_destroy(&val);
 		return;
@@ -305,12 +311,6 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	if (val->event == NULL)
 		return;
-
-	devent = (dns_validatorevent_t *)event;
-	val = devent->ev_arg;
-	eresult = devent->result;
-
-	isc_event_free(&event);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
 	LOCK(&val->lock);
@@ -432,6 +432,13 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
 
+	devent = (dns_validatorevent_t *)event;
+	rdataset = devent->rdataset;
+	sigrdataset = devent->sigrdataset;
+	val = devent->ev_arg;
+	eresult = devent->result;
+	dns_validator_destroy(&val->authvalidator);
+
 	if (SHUTDOWN(val)) {
 		dns_validator_destroy(&val);
 		return;
@@ -439,14 +446,6 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 
 	if (val->event == NULL)
 		return;
-
-	devent = (dns_validatorevent_t *)event;
-	rdataset = devent->rdataset;
-	sigrdataset = devent->sigrdataset;
-	val = devent->ev_arg;
-	eresult = devent->result;
-
-	dns_validator_destroy(&val->authvalidator);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
 	LOCK(&val->lock);
@@ -484,6 +483,12 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
 
+	devent = (dns_validatorevent_t *)event;
+	val = devent->ev_arg;
+	eresult = devent->result;
+	isc_event_free(&event);
+	dns_validator_destroy(&val->authvalidator);
+
 	if (SHUTDOWN(val)) {
 		dns_validator_destroy(&val);
 		return;
@@ -491,13 +496,6 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 
 	if (val->event == NULL)
 		return;
-
-	devent = (dns_validatorevent_t *)event;
-	val = devent->ev_arg;
-	eresult = devent->result;
-
-	isc_event_free(&event);
-	dns_validator_destroy(&val->authvalidator);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in negauthvalidated");
 	LOCK(&val->lock);
@@ -532,6 +530,15 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
 
+	devent = (dns_validatorevent_t *)event;
+	val = devent->ev_arg;
+	eresult = devent->result;
+
+	dns_name_free(devent->name, val->view->mctx);
+	isc_mem_put(val->view->mctx, devent->name, sizeof(dns_name_t));
+	dns_validator_destroy(&val->keyvalidator);
+	isc_event_free(&event);
+
 	if (SHUTDOWN(val)) {
 		dns_validator_destroy(&val);
 		return;
@@ -539,14 +546,6 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	if (val->event == NULL)
 		return;
-
-	devent = (dns_validatorevent_t *)event;
-	val = devent->ev_arg;
-	eresult = devent->result;
-
-	dns_name_free(devent->name, val->view->mctx);
-	isc_mem_put(val->view->mctx, devent->name, sizeof(dns_name_t));
-	isc_event_free(&event);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in nullkeyvalidated");
 	if (eresult == ISC_R_SUCCESS) {
@@ -562,8 +561,6 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 			validator_done(val, result);
 		UNLOCK(&val->lock);
 	}
-
-	dns_validator_destroy(&val->keyvalidator);
 
 	/*
 	 * Free stuff from the event.
