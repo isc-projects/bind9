@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.3 2000/06/07 00:49:01 explorer Exp $ */
+/* $Id: sha1.c,v 1.4 2000/06/07 01:14:26 explorer Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -52,6 +52,16 @@
 #define BYTE_ORDER __BYTE_ORDER
 #define LITTLE_ENDIAN __LITTLE_ENDIAN
 #define BIG_ENDIAN __BIG_ENDIAN
+#endif
+
+#if !defined(BYTE_ORDER) || \
+    (BYTE_ORDER != BIG_ENDIAN && BYTE_ORDER != LITTLE_ENDIAN)
+        /* you must determine what the correct bit order is for
+         * your compiler - the next line is an intentional error
+         * which will force your compiles to bomb until you fix
+         * the above macros.
+         */
+#error "Undefined or invalid BYTE_ORDER";
 #endif
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))

@@ -41,6 +41,16 @@
 #define BIG_ENDIAN __BIG_ENDIAN
 #endif
 
+#if !defined(BYTE_ORDER) || \
+    (BYTE_ORDER != BIG_ENDIAN && BYTE_ORDER != LITTLE_ENDIAN)
+        /* you must determine what the correct bit order is for
+         * your compiler - the next line is an intentional error
+         * which will force your compiles to bomb until you fix
+         * the above macros.
+         */
+#error "Undefined or invalid BYTE_ORDER";
+#endif
+
 #if BYTE_ORDER == LITTLE_ENDIAN
 static void
 byteSwap(isc_uint32_t *buf, unsigned words)
