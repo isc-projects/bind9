@@ -387,6 +387,34 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2);
  *	1		'name1' is greater than 'name2'
  */
 
+isc_boolean_t
+dns_name_equal(dns_name_t *name1, dns_name_t *name2);
+/*
+ * Are 'name1' and 'name2' equal?
+ *
+ * Notes:
+ *	Because it only needs to test for equality, dns_name_equal() can be
+ *	significantly faster than dns_name_fullcompare() or dns_name_compare().
+ *
+ *	Offsets tables are not used in the comparision.
+ *
+ * 	It makes no sense for one of the names to be relative and the
+ *	other absolute.  If both names are relative, then to be meaningfully
+ * 	compared the caller must ensure that they are both relative to the
+ * 	same domain.
+ *
+ * Requires:
+ *	'name1' is a valid name
+ *
+ *	'name2' is a valid name
+ *
+ *	Either name1 is absolute and name2 is absolute, or neither is.
+ *
+ * Returns:
+ *	ISC_TRUE	'name1' and 'name2' are equal
+ *	ISC_FALSE	'name1' and 'name2' are not equal
+ */
+
 int
 dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2);
 /*

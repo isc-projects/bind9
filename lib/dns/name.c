@@ -413,8 +413,8 @@ dns_name_fullcompare(dns_name_t *name1, dns_name_t *name2,
 	/*
 	 * Either name1 is absolute and name2 is absolute, or neither is.
 	 */
-	REQUIRE(((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ^
-		 (name2->attributes & DNS_NAMEATTR_ABSOLUTE)) == 0);
+	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ==
+		(name2->attributes & DNS_NAMEATTR_ABSOLUTE));
 
 	SETUP_OFFSETS(name1, offsets1, odata1);
 	SETUP_OFFSETS(name2, offsets2, odata2);
@@ -606,6 +606,72 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	return (order);
 }
 
+isc_boolean_t
+dns_name_equal(dns_name_t *name1, dns_name_t *name2) {
+	unsigned int l, count;
+	unsigned char c;
+	unsigned char *label1, *label2;
+
+	/*
+	 * Are 'name1' and 'name2' equal?
+	 *
+	 * Note: It makes no sense for one of the names to be relative and the
+	 * other absolute.  If both names are relative, then to be meaningfully
+	 * compared the caller must ensure that they are both relative to the
+	 * same domain.
+	 */
+
+	REQUIRE(VALID_NAME(name1));
+	REQUIRE(VALID_NAME(name2));
+	/*
+	 * Either name1 is absolute and name2 is absolute, or neither is.
+	 */
+	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ==
+		(name2->attributes & DNS_NAMEATTR_ABSOLUTE));
+
+	if (name1->length != name2->length)
+		return (ISC_FALSE);
+
+	l = name1->labels;
+
+	if (l != name2->labels)
+		return (ISC_FALSE);
+
+	label1 = name1->ndata;
+	label2 = name2->ndata;
+	while (l > 0) {
+		l--;
+		count = *label1++;
+		if (count != *label2++)
+			return (ISC_FALSE);
+		if (count <= 63) {
+			while (count > 0) {
+				count--;
+				c = maptolower[*label1++];
+				if (c != maptolower[*label2++])
+					return (ISC_FALSE);
+			}
+		} else {
+			INSIST(count == DNS_LABELTYPE_BITSTRING);
+			count = *label1++;
+			if (count != *label2++)
+				return (ISC_FALSE);
+			if (count == 0)
+				count = 256;
+			/* number of bytes */
+			count = (count + 7) / 8;
+			while (count > 0) {
+				count--;
+				c = *label1++;
+				if (c != *label2++)
+					return (ISC_FALSE);
+			}
+		}
+	}
+
+	return (ISC_TRUE);
+}
+
 int
 dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2) {
 	unsigned int l1, l2, l, count1, count2, count;
@@ -665,6 +731,7 @@ dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2) {
 			/* number of bytes */
 			count = (count1 + 7) / 8;
 			while (count > 0) {
+				count--;
 				c1 = *label1++;
 				c2 = *label2++;
 				if (c1 != c2)
