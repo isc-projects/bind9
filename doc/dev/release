@@ -23,6 +23,10 @@ release.
 
  - Check that "make all_tests" does not produce compile errors.
 
+ - Make sure that the most recent version of the ARM has been
+   checked in.  Look for any obvious broken links in the
+   .html files.
+
  - Announce a CVS pool freeze on bind-dev
 
  - Do basic tests on each build system:
@@ -70,13 +74,16 @@ release.
  - Verify the PGP signature:
    pgp bind-9.0.0b3.tar.gz.asc bind-9.0.0b3.tar.gz
 
- - Copy the distribution and PGP signature files to the FTP site
+ - Copy the distribution and PGP signature files to the FTP site:
+
+     ssh isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/9.0.0b4"
+     scp bind-9.0.0b4.tar.gz bind-9.0.0b4.tar.gz.asc \
+	isrv4.pa.vix.com:/udir/ftp/isc/bind9/9.0.0b4   
 
  - Download using FTP and verify the PGP signature again
-
- - Announce the release
 
  - Increment the version in the file "version"
 
  - Announce end of CVS pool freeze on bind-dev
 
+ - Announce the release
