@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.32 2002/01/05 07:05:13 ogud Exp $ */
+/* $Id: loc_29.c,v 1.33 2002/01/21 01:07:19 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -81,11 +81,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (strcasecmp(token.value.as_pointer, "N") == 0)
+	if (strcasecmp(DNS_AS_STR(token), "N") == 0)
 		north = ISC_TRUE;
-	if (north || strcasecmp(token.value.as_pointer, "S") == 0)
+	if (north || strcasecmp(DNS_AS_STR(token), "S") == 0)
 		goto getlong;
-	m1 = strtol(token.value.as_pointer, &e, 10);
+	m1 = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0)
 		RETTOK(DNS_R_SYNTAX);
 	if (m1 < 0 || m1 > 59)
@@ -98,11 +98,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (strcasecmp(token.value.as_pointer, "N") == 0)
+	if (strcasecmp(DNS_AS_STR(token), "N") == 0)
 		north = ISC_TRUE;
-	if (north || strcasecmp(token.value.as_pointer, "S") == 0)
+	if (north || strcasecmp(DNS_AS_STR(token), "S") == 0)
 		goto getlong;
-	s1 = strtol(token.value.as_pointer, &e, 10);
+	s1 = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.')
 		RETTOK(DNS_R_SYNTAX);
 	if (s1 < 0 || s1 > 59)
@@ -131,9 +131,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (strcasecmp(token.value.as_pointer, "N") == 0)
+	if (strcasecmp(DNS_AS_STR(token), "N") == 0)
 		north = ISC_TRUE;
-	if (!north && strcasecmp(token.value.as_pointer, "S") != 0)
+	if (!north && strcasecmp(DNS_AS_STR(token), "S") != 0)
 		RETTOK(DNS_R_SYNTAX);
 
  getlong:
@@ -151,11 +151,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (strcasecmp(token.value.as_pointer, "E") == 0)
+	if (strcasecmp(DNS_AS_STR(token), "E") == 0)
 		east = ISC_TRUE;
-	if (east || strcasecmp(token.value.as_pointer, "W") == 0)
+	if (east || strcasecmp(DNS_AS_STR(token), "W") == 0)
 		goto getalt;
-	m2 = strtol(token.value.as_pointer, &e, 10);
+	m2 = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0)
 		RETTOK(DNS_R_SYNTAX);
 	if (m2 < 0 || m2 > 59)
@@ -168,11 +168,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (strcasecmp(token.value.as_pointer, "E") == 0)
+	if (strcasecmp(DNS_AS_STR(token), "E") == 0)
 		east = ISC_TRUE;
-	if (east || strcasecmp(token.value.as_pointer, "W") == 0)
+	if (east || strcasecmp(DNS_AS_STR(token), "W") == 0)
 		goto getalt;
-	s2 = strtol(token.value.as_pointer, &e, 10);
+	s2 = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.')
 		RETTOK(DNS_R_SYNTAX);
 	if (s2 < 0 || s2 > 59)
@@ -201,9 +201,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (strcasecmp(token.value.as_pointer, "E") == 0)
+	if (strcasecmp(DNS_AS_STR(token), "E") == 0)
 		east = ISC_TRUE;
-	if (!east && strcasecmp(token.value.as_pointer, "W") != 0)
+	if (!east && strcasecmp(DNS_AS_STR(token), "W") != 0)
 		RETTOK(DNS_R_SYNTAX);
 
  getalt:
@@ -212,7 +212,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	m = strtol(token.value.as_pointer, &e, 10);
+	m = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
 		RETTOK(DNS_R_SYNTAX);
 	if (m < -100000 || m > 42849672)
@@ -259,7 +259,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 		isc_lex_ungettoken(lexer, &token);
 		goto encode;
 	}
-	m = strtol(token.value.as_pointer, &e, 10);
+	m = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
 		RETTOK(DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
@@ -312,7 +312,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 		isc_lex_ungettoken(lexer, &token);
 		goto encode;
 	}
-	m = strtol(token.value.as_pointer, &e, 10);
+	m = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
 		RETTOK(DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
@@ -363,7 +363,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 		isc_lex_ungettoken(lexer, &token);
 		goto encode;
 	}
-	m = strtol(token.value.as_pointer, &e, 10);
+	m = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
 		RETTOK(DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)

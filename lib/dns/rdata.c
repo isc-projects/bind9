@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.157 2002/01/05 07:05:05 ogud Exp $ */
+/* $Id: rdata.c,v 1.158 2002/01/21 01:07:16 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -51,6 +51,7 @@
 		if (_r != ISC_R_SUCCESS) \
 			return (_r); \
 	} while (0)
+
 #define RETTOK(x) \
 	do { \
 		isc_result_t _r = (x); \
@@ -59,6 +60,8 @@
 			return (_r); \
 		} \
 	} while (0)
+
+#define DNS_AS_STR(t) ((t).value.as_textregion.base)
 
 #define ARGS_FROMTEXT	int rdclass, dns_rdatatype_t type, \
 			isc_lex_t *lexer, dns_name_t *origin, \
@@ -696,7 +699,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		return (result);
 	}
 
-	if (strcmp((char *)token.value.as_pointer, "\\#") == 0)
+	if (strcmp(DNS_AS_STR(token), "\\#") == 0)
 		result = unknown_fromtext(rdclass, type, lexer, mctx, target);
 	else {
 		isc_lex_ungettoken(lexer, &token);
@@ -1802,7 +1805,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	oeor = strtol(token.value.as_pointer, &e, 16);
+	oeor = strtol(DNS_AS_STR(token), &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 
@@ -1811,7 +1814,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	osum = strtol(token.value.as_pointer, &e, 16);
+	osum = strtol(DNS_AS_STR(token), &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 
@@ -1820,7 +1823,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	orot = strtol(token.value.as_pointer, &e, 16);
+	orot = strtol(DNS_AS_STR(token), &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 
@@ -1973,7 +1976,7 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 		case isc_tokentype_qstring:
 			(*callback)(callbacks, "%s: %s:%lu: near '%s': %s",
 				    "dns_rdata_fromtext", name, line,
-				    (char *)token->value.as_pointer,
+				    DNS_AS_STR(*token),
 				    dns_result_totext(result));
 			break;
 		default:

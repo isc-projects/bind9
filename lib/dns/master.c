@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.133 2001/12/11 20:52:38 marka Exp $ */
+/* $Id: master.c,v 1.134 2002/01/21 01:07:14 marka Exp $ */
 
 #include <config.h>
 
@@ -137,6 +137,8 @@ struct dns_incctx {
 
 #define DNS_LCTX_MAGIC ISC_MAGIC('L','c','t','x')
 #define DNS_LCTX_VALID(lctx) ISC_MAGIC_VALID(lctx, DNS_LCTX_MAGIC)
+
+#define DNS_AS_STR(t) ((t).value.as_textregion.base)
 
 static isc_result_t
 pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx);
@@ -891,11 +893,10 @@ load(dns_loadctx_t *lctx) {
 			 * across the normal domain name processing.
 			 */
 
-			if (strcasecmp(token.value.as_pointer,
-				       "$ORIGIN") == 0) {
+			if (strcasecmp(DNS_AS_STR(token), "$ORIGIN") == 0) {
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				finish_origin = ISC_TRUE;
-			} else if (strcasecmp(token.value.as_pointer,
+			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$TTL") == 0) {
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				result =
@@ -911,7 +912,7 @@ load(dns_loadctx_t *lctx) {
 				lctx->default_ttl_known = ISC_TRUE;
 				EXPECTEOL;
 				continue;
-			} else if (strcasecmp(token.value.as_pointer,
+			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$INCLUDE") == 0) {
 				COMMITALL;
 				if ((lctx->options & DNS_MASTER_NOINCLUDE)
@@ -938,7 +939,7 @@ load(dns_loadctx_t *lctx) {
 				if (include_file != NULL)
 					isc_mem_free(mctx, include_file);
 				include_file = isc_mem_strdup(mctx,
-						token.value.as_pointer);
+							   DNS_AS_STR(token));
 				if (include_file == NULL) {
 					result = ISC_R_NOMEMORY;
 					goto log_and_cleanup;
@@ -975,14 +976,14 @@ load(dns_loadctx_t *lctx) {
 				 * the actual inclusion later.
 				 */
 				finish_include = ISC_TRUE;
-			} else if (strcasecmp(token.value.as_pointer,
+			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$DATE") == 0) {
 				isc_int64_t dump_time64;
 				isc_stdtime_t dump_time, current_time;
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				isc_stdtime_get(&current_time);
-				result = dns_time64_fromtext(token.value.
-					     as_pointer, &dump_time64);
+				result = dns_time64_fromtext(DNS_AS_STR(token),
+							     &dump_time64);
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
 					LOGIT(result);
@@ -1007,7 +1008,7 @@ load(dns_loadctx_t *lctx) {
 				ttl_offset = current_time - dump_time;
 				EXPECTEOL;
 				continue;
-			} else if (strcasecmp(token.value.as_pointer,
+			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$GENERATE") == 0) {
 				/*
 				 * Use default ttl if known otherwise
@@ -1041,15 +1042,14 @@ load(dns_loadctx_t *lctx) {
 				/* range */
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				range = isc_mem_strdup(mctx,
-						     token.value.as_pointer);
+						     DNS_AS_STR(token));
 				if (range == NULL) {
 					result = ISC_R_NOMEMORY;
 					goto log_and_cleanup;
 				}
 				/* LHS */
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
-				lhs = isc_mem_strdup(mctx,
-						    token.value.as_pointer);
+				lhs = isc_mem_strdup(mctx, DNS_AS_STR(token));
 				if (lhs == NULL) {
 					result = ISC_R_NOMEMORY;
 					goto log_and_cleanup;
@@ -1057,15 +1057,14 @@ load(dns_loadctx_t *lctx) {
 				/* TYPE */
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				gtype = isc_mem_strdup(mctx,
-						       token.value.as_pointer);
+						       DNS_AS_STR(token));
 				if (gtype == NULL) {
 					result = ISC_R_NOMEMORY;
 					goto log_and_cleanup;
 				}
 				/* RHS */
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
-				rhs = isc_mem_strdup(mctx,
-						     token.value.as_pointer);
+				rhs = isc_mem_strdup(mctx, DNS_AS_STR(token));
 				if (rhs == NULL) {
 					result = ISC_R_NOMEMORY;
 					goto log_and_cleanup;
@@ -1078,13 +1077,13 @@ load(dns_loadctx_t *lctx) {
 					goto insist_and_cleanup;
 				EXPECTEOL;
 				continue;
-			} else if (strncasecmp(token.value.as_pointer,
+			} else if (strncasecmp(DNS_AS_STR(token),
 					       "$", 1) == 0) {
 				(callbacks->error)(callbacks,
 					   "%s: %s:%lu: "
 					   "unknown $ directive '%s'",
 					   "dns_master_load", source, line,
-					   token.value.as_pointer);
+					   DNS_AS_STR(token));
 				result = DNS_R_SYNTAX;
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);

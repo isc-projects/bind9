@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.37 2002/01/05 07:05:26 ogud Exp $ */
+/* $Id: aaaa_28.c,v 1.38 2002/01/21 01:07:29 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -46,7 +46,7 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
 
-	if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
+	if (inet_pton(AF_INET6, DNS_AS_STR(token), addr) != 1)
 		RETTOK(DNS_R_BADAAAA);
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 16)

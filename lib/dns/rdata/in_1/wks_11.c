@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.47 2002/01/05 07:05:28 ogud Exp $ */
+/* $Id: wks_11.c,v 1.48 2002/01/21 01:07:30 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -62,7 +62,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 
 	isc_buffer_availableregion(target, &region);
-	if (getquad(token.value.as_pointer, &addr, lexer, callbacks) != 1)
+	if (getquad(DNS_AS_STR(token), &addr, lexer, callbacks) != 1)
 		RETTOK(DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
 		return (ISC_R_NOSPACE);
@@ -75,10 +75,10 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
 
-	proto = strtol(token.value.as_pointer, &e, 10);
+	proto = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e == 0)
 		;
-	else if ((pe = getprotobyname(token.value.as_pointer)) != NULL)
+	else if ((pe = getprotobyname(DNS_AS_STR(token))) != NULL)
 		proto = pe->p_proto;
 	else
 		RETTOK(DNS_R_UNKNOWNPROTO);
@@ -103,18 +103,18 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 		 * Lowercase the service string as some getservbyname() are
 		 * case sensitive and the database is usually in lowercase.
 		 */
-		strncpy(service, token.value.as_pointer, sizeof(service));
+		strncpy(service, DNS_AS_STR(token), sizeof(service));
 		service[sizeof(service)-1] = '\0';
 		for (i = strlen(service) - 1; i >= 0; i--)
 			if (isupper(service[i]&0xff))
 				service[i] = tolower(service[i]);
 
-		port = strtol(token.value.as_pointer, &e, 10);
+		port = strtol(DNS_AS_STR(token), &e, 10);
 		if (*e == 0)
 			;
 		else if ((se = getservbyname(service, ps)) != NULL)
 			port = ntohs(se->s_port);
-		else if ((se = getservbyname(token.value.as_pointer, ps))
+		else if ((se = getservbyname(DNS_AS_STR(token), ps))
 			  != NULL)
 			port = ntohs(se->s_port);
 		else

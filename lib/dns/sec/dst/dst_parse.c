@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.34 2001/11/30 01:59:30 gson Exp $
+ * $Id: dst_parse.c,v 1.35 2002/01/21 01:07:32 marka Exp $
  */
 
 #include <config.h>
@@ -36,6 +36,7 @@
 #include "dst_parse.h"
 #include "dst/result.h"
 
+#define DST_AS_STR(t) ((t).value.as_textregion.base)
 
 #define PRIVATE_KEY_STR "Private-key-format:"
 #define ALGORITHM_STR "Algorithm:"
@@ -232,7 +233,7 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 	 */
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
-	    strcmp(token.value.as_pointer, PRIVATE_KEY_STR) != 0)
+	    strcmp(DST_AS_STR(token), PRIVATE_KEY_STR) != 0)
 	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
@@ -240,12 +241,12 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
-	    ((char *)token.value.as_pointer)[0] != 'v')
+	    (DST_AS_STR(token))[0] != 'v')
 	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
 	}
-	if (sscanf(token.value.as_pointer, "v%d.%d", &major, &minor) != 2)
+	if (sscanf(DST_AS_STR(token), "v%d.%d", &major, &minor) != 2)
 	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
@@ -265,7 +266,7 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 	 */
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
-	    strcmp(token.value.as_pointer, ALGORITHM_STR) != 0)
+	    strcmp(DST_AS_STR(token), ALGORITHM_STR) != 0)
 	{
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
@@ -303,7 +304,7 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 		}
 
 		memset(&priv->elements[n], 0, sizeof(dst_private_element_t));
-		tag = find_value(token.value.as_pointer, alg);
+		tag = find_value(DST_AS_STR(token), alg);
 		if (tag < 0 || TAG_ALG(tag) != alg) {
 			ret = DST_R_INVALIDPRIVATEKEY;
 			goto fail;

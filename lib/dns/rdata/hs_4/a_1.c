@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.25 2001/07/16 03:06:37 marka Exp $ */
+/* $Id: a_1.c,v 1.26 2002/01/21 01:07:24 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -43,7 +43,7 @@ fromtext_hs_a(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
 
-	if (getquad(token.value.as_pointer, &addr, lexer, callbacks) != 1)
+	if (getquad(DNS_AS_STR(token), &addr, lexer, callbacks) != 1)
 		RETTOK(DNS_R_BADDOTTEDQUAD);
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 4)

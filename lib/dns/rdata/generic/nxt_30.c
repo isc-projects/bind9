@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.52 2002/01/05 07:05:15 ogud Exp $ */
+/* $Id: nxt_30.c,v 1.53 2002/01/21 01:07:21 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -64,8 +64,8 @@ fromtext_nxt(ARGS_FROMTEXT) {
 					      isc_tokentype_string, ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
-		n = strtol(token.value.as_pointer, &e, 10);
-		if (e != (char *)token.value.as_pointer && *e == '\0') {
+		n = strtol(DNS_AS_STR(token), &e, 10);
+		if (e != DNS_AS_STR(token) && *e == '\0') {
 			covered = (dns_rdatatype_t)n;
 		} else if (dns_rdatatype_fromtext(&covered,
 				&token.value.as_textregion) == DNS_R_UNKNOWN)

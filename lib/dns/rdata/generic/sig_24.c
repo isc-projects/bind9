@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.56 2002/01/05 07:05:18 ogud Exp $ */
+/* $Id: sig_24.c,v 1.57 2002/01/21 01:07:22 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -51,7 +51,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 	result = dns_rdatatype_fromtext(&covered, &token.value.as_textregion);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
-		i = strtol(token.value.as_pointer, &e, 10);
+		i = strtol(DNS_AS_STR(token), &e, 10);
 		if (i < 0 || i > 65535)
 			RETTOK(ISC_R_RANGE);
 		if (*e != 0)
@@ -90,7 +90,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	RETTOK(dns_time32_fromtext(token.value.as_pointer, &time_expire));
+	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
 
 	/*
@@ -98,7 +98,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	RETTOK(dns_time32_fromtext(token.value.as_pointer, &time_signed));
+	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_signed));
 	RETERR(uint32_tobuffer(time_signed, target));
 
 	/*
