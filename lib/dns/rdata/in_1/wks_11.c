@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.27 2000/05/05 23:20:10 marka Exp $ */
+/* $Id: wks_11.c,v 1.28 2000/05/08 16:12:30 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -24,7 +24,6 @@
 
 #include <limits.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <isc/net.h>
 #include <isc/netdb.h>

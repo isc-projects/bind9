@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.19 2000/05/05 23:20:07 marka Exp $ */
+/* $Id: nsap_22.c,v 1.20 2000/05/08 16:12:29 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -23,8 +23,6 @@
 
 #ifndef RDATA_IN_1_NSAP_22_C
 #define RDATA_IN_1_NSAP_22_C
-
-#include <string.h>
 
 #define RRTYPE_NSAP_ATTRIBUTES (0)
 

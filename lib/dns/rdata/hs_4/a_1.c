@@ -15,14 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.10 2000/04/28 01:24:12 gson Exp $ */
+/* $Id: a_1.c,v 1.11 2000/05/08 16:12:26 tale Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
 #ifndef RDATA_HS_4_A_1_C
 #define RDATA_HS_4_A_1_C
-
-#include <string.h>
 
 #include <isc/net.h>
 

@@ -15,14 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.28 2000/05/05 23:19:58 marka Exp $ */
+ /* $Id: a6_38.c,v 1.29 2000/05/08 16:12:27 tale Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
 #ifndef RDATA_IN_1_A6_28_C
 #define RDATA_IN_1_A6_28_C
-
-#include <string.h>
 
 #include <isc/net.h>
 

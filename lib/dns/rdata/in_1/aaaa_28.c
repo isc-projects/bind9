@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.22 2000/05/05 23:20:01 marka Exp $ */
+/* $Id: aaaa_28.c,v 1.23 2000/05/08 16:12:28 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -23,8 +23,6 @@
 
 #ifndef RDATA_IN_1_AAAA_28_C
 #define RDATA_IN_1_AAAA_28_C
-
-#include <string.h>
 
 #include <isc/net.h>
 
