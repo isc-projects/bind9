@@ -603,6 +603,9 @@ void *task_manager_run(void *uap) {
 					/*
 					 * Nothing else to do for this task.
 					 * Put it to sleep.
+					 *
+					 * XXX detect tasks with 0 references
+					 * and do something about them.
 					 */
 					XTRACE("empty");
 					task->state = task_state_idle;
