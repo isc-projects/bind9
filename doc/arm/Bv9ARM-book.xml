@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.257 2004/10/17 23:11:29 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.258 2004/10/21 00:54:04 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -460,6 +460,7 @@ and a slave for the subdomain "<filename>eng.example.com</filename>".</para>
 <programlisting>
 options {
      directory "/etc/namedb";           // Working directory
+     allow-query-cache { none; };       // Do not allow access to cache
      allow-query { any; };              // This is the default
      recursion no;                      // Do not provide recursive service
 };
@@ -1227,7 +1228,8 @@ options {
   ...
   ...
   allow-transfer { none; };                     // sample allow-transfer (no one)
-  allow-query { internals; externals; };        // restrict query access
+  allow-query { any; };  			// default query access
+  allow-query-cache { internals; externals; };  // restrict cache access
   allow-recursion { internals; externals; };    // restrict recursion
   ...
   ...
@@ -1236,7 +1238,6 @@ options {
 zone "site1.example.com" {                      // sample slave zone
   type master;
   file "m/site1.foo.com";
-  allow-query { any; };
   allow-transfer { internals; externals; };
 };
 
@@ -1244,7 +1245,6 @@ zone "site2.example.com" {
   type slave;
   file "s/site2.foo.com";
   masters { another_bastion_host_maybe; };
-  allow-query { any; };
   allow-transfer { internals; externals; }
 };
 </programlisting>
@@ -1855,12 +1855,13 @@ and whether the element was negated.</para>
 <para>When used as an access control list, a non-negated match allows
 access and a negated match denies access. If there is no match,
 access is denied. The clauses <command>allow-notify</command>,
-<command>allow-query</command>, <command>allow-transfer</command>,
+<command>allow-query</command>, <command>allow-query-cache</command>,
+<command>allow-transfer</command>,
 <command>allow-update</command>, <command>allow-update-forwarding</command>,
-and <command>blackhole</command> all
-use address match lists  this. Similarly, the listen-on option will cause
-the server to not accept queries on any of the machine's addresses
-which do not match the list.</para>
+and <command>blackhole</command> all use address match lists.
+Similarly, the listen-on option will cause the server to not accept
+queries on any of the machine's addresses which do not match the
+list.</para>
 
 <para>Because of the first-match aspect of the algorithm, an element
 that defines a subset of another element in the list should come
@@ -2729,6 +2730,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable>response</replaceable> )( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-query-cache { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
@@ -3450,10 +3452,27 @@ only from a zone's master.</para>
 <listitem><para>Specifies which hosts are allowed to
 ask ordinary DNS questions. <command>allow-query</command> may also
 be specified in the <command>zone</command> statement, in which
-case it overrides the <command>options allow-query</command> statement. If
-not specified, the default is to allow queries from all hosts.</para>
+case it overrides the <command>options allow-query</command> statement.
+<command>allow-query-cache</command> may also be specified and will
+overrides access to the cache.
+If not specified, the default is to allow queries from all hosts.</para>
 </listitem></varlistentry>
 
+<varlistentry><term><command>allow-query-cache</command></term>
+<listitem><para>Specifies which hosts are allowed to get answers
+from the cache.  If not set <command>allow-query</command> applies.
+</para>
+<para>The recommended way to set query access to the cache is now via
+<command>allow-query-cache</command> rather than <command>allow-query</command>.
+Inheritance from <command>allow-query</command> has been retained for
+backwards compatability.
+</para>
+<note><para>If <command>allow-query-cache</command> is set at the options
+level and not set in the view it will still override a
+<command>allow-query</command> set at the view level.
+</para>
+</note>
+</listitem></varlistentry>
 
 <varlistentry><term><command>allow-recursion</command></term>
 <listitem><para>Specifies which hosts are allowed to

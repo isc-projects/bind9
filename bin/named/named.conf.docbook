@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.3 2004/10/17 23:11:30 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.4 2004/10/21 00:58:33 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -250,6 +250,7 @@ options {
 	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
+	allow-query-cache { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
 
@@ -377,6 +378,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
+	allow-query-cache { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
 
