@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.36 2000/06/09 22:13:23 brister Exp $ */
+/* $Id: confview.c,v 1.36.2.1 2000/07/25 22:47:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1052,10 +1052,12 @@ dns_c_view_getalsonotify(dns_c_view_t *view,
 {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(ipl != NULL);
-	
-	*ipl = view->also_notify;
 
-	return (*ipl == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	if (view->also_notify == NULL)
+		return (ISC_R_NOTFOUND);
+
+	dns_c_iplist_attach(view->also_notify, ipl);
+	return (ISC_R_SUCCESS);
 }
 
 

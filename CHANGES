@@ -1,4 +1,8 @@
 
+ 350.	[bug]		Also-notify lists specified in the global options
+			block were not correctly reference counted, causing
+			a memory leak.
+
  344.	[bug]		When shutting down, lwresd sometimes tried
 			to shut down its client tasks twice, 
 			triggering an assertion.
