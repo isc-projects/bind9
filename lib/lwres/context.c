@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.28 2000/08/01 01:32:10 tale Exp $ */
+/* $Id: context.c,v 1.29 2000/08/22 16:20:19 gson Exp $ */
 
 #include <config.h>
 
@@ -178,6 +178,7 @@ context_connect(lwres_context_t *ctx) {
 	int s;
 	int ret;
 	struct sockaddr_in localhost;
+	int flags;
 
 	memset(&localhost, 0, sizeof(localhost));
 	localhost.sin_family = AF_INET;
@@ -194,54 +195,43 @@ context_connect(lwres_context_t *ctx) {
 		return (LWRES_R_IOERROR);
 	}
 
+	flags = fcntl(s, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	ret = fcntl(s, F_SETFL, flags);
+	if (ret < 0)
+		return (LWRES_R_IOERROR);
+
 	ctx->sock = s;
 
 	return (LWRES_R_SUCCESS);
 }
 
+int
+lwres_context_getsocket(lwres_context_t *ctx) {
+	return (ctx->sock);
+}
+
 lwres_result_t
-lwres_context_sendrecv(lwres_context_t *ctx,
-		       void *sendbase, int sendlen,
-		       void *recvbase, int recvlen,
-		       int *recvd_len)
-{
+lwres_context_send(lwres_context_t *ctx,
+		   void *sendbase, int sendlen) {
 	int ret;
-	int ret2;
-	struct sockaddr_in sin;
-	LWRES_SOCKADDR_LEN_T fromlen;
-	fd_set readfds;
-	struct timeval timeout;
-
-
-	/*
-	 * Type of tv_sec is long, so make sure the unsigned long timeout
-	 * does not overflow it.
-	 */
-	if (ctx->timeout <= LONG_MAX)
-		timeout.tv_sec = (long)ctx->timeout;
-	else
-		timeout.tv_sec = LONG_MAX;
-
-	timeout.tv_usec = 0;
-
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
 	if (ret != sendlen)
 		return (LWRES_R_IOERROR);
 
- again:
-	FD_ZERO(&readfds);
-	FD_SET(ctx->sock, &readfds);
-	ret2 = select(ctx->sock + 1, &readfds, NULL, NULL, &timeout);
+	return (LWRES_R_SUCCESS);
+}
 
-	/*
-	 * What happened with select?
-	 */
-	if (ret2 < 0)
-		return (LWRES_R_IOERROR);
-	if (ret2 == 0)
-		return (LWRES_R_TIMEOUT);
+lwres_result_t
+lwres_context_recv(lwres_context_t *ctx,
+		   void *recvbase, int recvlen,
+		   int *recvd_len)
+{
+	LWRES_SOCKADDR_LEN_T fromlen;
+	struct sockaddr_in sin;
+	int ret;
 
 	fromlen = sizeof(sin);
 	/*
@@ -257,16 +247,62 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 		return (LWRES_R_IOERROR);
 
 	/*
-	 * If we got something other than what we expect, re-issue our
-	 * recvfrom() call.  This can happen if an old result comes in,
-	 * or if someone is sending us random stuff.
+	 * If we got something other than what we expect, have the caller
+	 * wait for another packet.  This can happen if an old result
+	 * comes in, or if someone is sending us random stuff.
 	 */
 	if (sin.sin_addr.s_addr != htonl(INADDR_LOOPBACK)
 	    || sin.sin_port != htons(lwres_udp_port))
-		goto again;
+		return (LWRES_R_RETRY);
 
 	if (recvd_len != NULL)
 		*recvd_len = ret;
 
 	return (LWRES_R_SUCCESS);
+}
+
+lwres_result_t
+lwres_context_sendrecv(lwres_context_t *ctx,
+		       void *sendbase, int sendlen,
+		       void *recvbase, int recvlen,
+		       int *recvd_len)
+{
+	lwres_result_t result;
+	int ret2;
+	fd_set readfds;
+	struct timeval timeout;
+
+
+	/*
+	 * Type of tv_sec is long, so make sure the unsigned long timeout
+	 * does not overflow it.
+	 */
+	if (ctx->timeout <= LONG_MAX)
+		timeout.tv_sec = (long)ctx->timeout;
+	else
+		timeout.tv_sec = LONG_MAX;
+
+	timeout.tv_usec = 0;
+
+	result = lwres_context_send(ctx, sendbase, sendlen);
+	if (result != LWRES_R_SUCCESS)
+		return (result);
+ again:
+	FD_ZERO(&readfds);
+	FD_SET(ctx->sock, &readfds);
+	ret2 = select(ctx->sock + 1, &readfds, NULL, NULL, &timeout);
+	
+	/*
+	 * What happened with select?
+	 */
+	if (ret2 < 0)
+		return (LWRES_R_IOERROR);
+	if (ret2 == 0)
+		return (LWRES_R_TIMEOUT);
+
+	result = lwres_context_recv(ctx, recvbase, recvlen, recvd_len);
+	if (result == LWRES_R_RETRY)
+		goto again;
+	
+	return (result);
 }

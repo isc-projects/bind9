@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.h,v 1.12 2000/08/10 22:44:00 gson Exp $ */
+/* $Id: context.h,v 1.13 2000/08/22 16:20:20 gson Exp $ */
 
 #ifndef LWRES_CONTEXT_H
 #define LWRES_CONTEXT_H 1
@@ -108,6 +108,18 @@ lwres_context_freemem(lwres_context_t *ctx, void *mem, size_t len);
 
 void *
 lwres_context_allocmem(lwres_context_t *ctx, size_t len);
+
+int
+lwres_context_getsocket(lwres_context_t *ctx);
+
+lwres_result_t
+lwres_context_send(lwres_context_t *ctx,
+		   void *sendbase, int sendlen);
+
+lwres_result_t
+lwres_context_recv(lwres_context_t *ctx,
+		   void *recvbase, int recvlen,
+		   int *recvd_len);
 
 lwres_result_t
 lwres_context_sendrecv(lwres_context_t *ctx,
