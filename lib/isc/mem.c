@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.58 2000/08/01 01:29:34 tale Exp $ */
+/* $Id: mem.c,v 1.59 2000/08/09 23:03:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -175,8 +175,8 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	unsigned int i;
 
 	if (MEM_TRACE)
-		fprintf(stderr, "add %p size %u file %s line %u\n",
-			ptr, size, file, line);
+		fprintf(stderr, "add %p size %u file %s line %u mctx %p\n",
+			ptr, size, file, line, mctx);
 
 	if (!MEM_RECORD)
 		return;
@@ -224,8 +224,8 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 	unsigned int i;
 
 	if (MEM_TRACE)
-		fprintf(stderr, "del %p size %u file %s line %u\n",
-			ptr, size, file, line);
+		fprintf(stderr, "del %p size %u file %s line %u mctx %p\n",
+			ptr, size, file, line, mctx);
 
 	if (!MEM_RECORD)
 		return;
@@ -680,7 +680,8 @@ destroy(isc_mem_t *ctx) {
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 #ifdef ISC_MEM_TRACKLINES
-	INSIST(ISC_LIST_EMPTY(ctx->debuglist));
+	if (ctx->checkfree)
+		INSIST(ISC_LIST_EMPTY(ctx->debuglist));
 #endif
 	INSIST(ctx->references == 0);
 
