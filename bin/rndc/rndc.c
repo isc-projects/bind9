@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.6 2000/03/14 04:04:24 tale Exp $ */
+/* $Id: rndc.c,v 1.7 2000/03/18 00:53:11 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -29,6 +29,8 @@
 #include <isc/assertions.h>
 #include <isc/commandline.h>
 #include <isc/mem.h>
+#include <isc/socket.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <named/omapi.h>
@@ -236,6 +238,8 @@ Where command is one of the following for named:\n\
 
 int
 main(int argc, char **argv) {
+	isc_socketmgr_t *socketmgr;
+	isc_taskmgr_t *taskmgr;
 	omapi_object_t *omapimgr = NULL;
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -287,8 +291,10 @@ main(int argc, char **argv) {
 	server = *argv;
 
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
+	DO("create socket manager", isc_socketmgr_create(mctx, &socketmgr));
+	DO("create task manager", isc_taskmgr_create(mctx, 1, 0, &taskmgr));
 
-	DO("initialize omapi",  omapi_lib_init(mctx));
+	DO("initialize omapi",  omapi_lib_init(mctx, taskmgr, socketmgr));
 
 	DO("register omapi object",
 	   omapi_object_register(&ndc_type, "ndc",
@@ -382,6 +388,9 @@ main(int argc, char **argv) {
 		 */
 		omapi_object_dereference(&omapimgr);
 	}
+
+	isc_socketmgr_destroy(&socketmgr);
+	isc_taskmgr_destroy(&taskmgr);
 
 	omapi_lib_destroy();
 
