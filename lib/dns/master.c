@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.115 2001/05/14 06:22:40 marka Exp $ */
+/* $Id: master.c,v 1.116 2001/05/21 22:49:24 gson Exp $ */
 
 #include <config.h>
 
@@ -1244,7 +1244,7 @@ load(dns_loadctx_t *lctx) {
 
 			if (ictx->current == NULL) {
 				(*callbacks->error)(callbacks,
-					"%s: %s:%lu: No current owner name",
+					"%s: %s:%lu: no current owner name",
 					"dns_master_load",
 					source, line);
 				result = DNS_R_NOOWNER;
