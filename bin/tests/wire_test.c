@@ -300,6 +300,29 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 	}
 }
 
+static void
+getmessage(dns_message_t *message, isc_buffer_t *source,
+	   isc_buffer_t *target)
+{
+	isc_region_t r;
+
+	message->id = getshort(source);
+	message->flags = getshort(source);
+	message->qcount = getshort(source);
+	message->ancount = getshort(source);
+	message->aucount = getshort(source);
+	message->adcount = getshort(source);
+
+	getquestions(source, &message->question, message->qcount, target);
+	getsection(source, &message->answer, message->ancount, target);
+	getsection(source, &message->authority, message->aucount, target);
+	getsection(source, &message->additional, message->adcount, target);
+
+	isc_buffer_remaining(source, &r);
+	if (r.length != 0)
+		printf("extra data at end of packet.\n");
+}
+
 static char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
@@ -457,7 +480,6 @@ main(int argc, char *argv[]) {
 	char *rp, *wp;
 	unsigned char *bp;
 	isc_buffer_t source, target;
-	isc_region_t r;
 	size_t len, i;
 	int n;
 	FILE *f;
@@ -523,22 +545,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_add(&source, bp - b);
 	isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_BINARY);
 
-	message.id = getshort(&source);
-	message.flags = getshort(&source);
-	message.qcount = getshort(&source);
-	message.ancount = getshort(&source);
-	message.aucount = getshort(&source);
-	message.adcount = getshort(&source);
-
-	getquestions(&source, &message.question, message.qcount, &target);
-	getsection(&source, &message.answer, message.ancount, &target);
-	getsection(&source, &message.authority, message.aucount, &target);
-	getsection(&source, &message.additional, message.adcount, &target);
-
-	isc_buffer_remaining(&source, &r);
-	if (r.length != 0)
-		printf("extra data at end of packet.\n");
-
+	getmessage(&message, &source, &target);
 	printmessage(&message);
 
 	return (0);
