@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.231 2002/08/06 01:50:26 marka Exp $ */
+/* $Id: query.c,v 1.232 2002/08/07 02:03:49 marka Exp $ */
 
 #include <config.h>
 
@@ -2543,6 +2543,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	zdb = NULL;
 	version = NULL;
 	zone = NULL;
+	need_wildcardproof = ISC_FALSE;
 
 	if (event != NULL) {
 		/*
