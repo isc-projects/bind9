@@ -1,3 +1,6 @@
+ 675.	[func]		TKEY queries could cause the server to leak
+			memory.
+
  674.	[func]		Allow messages to be TSIG signed / verified using
 			a offset from the current time.
 
