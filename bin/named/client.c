@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.136.2.3 2001/02/22 23:57:55 bwelling Exp $ */
+/* $Id: client.c,v 1.136.2.4 2001/02/23 02:27:25 gson Exp $ */
 
 #include <config.h>
 
@@ -1540,9 +1540,10 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 
 	/* XXXRTH  Hardwired constants */
 	client->sendbuf = isc_mem_get(manager->mctx, SEND_BUFFER_SIZE);
-	if  (client->sendbuf == NULL)
+	if  (client->sendbuf == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_message;
+	}
 
 	client->magic = NS_CLIENT_MAGIC;
 	client->mctx = manager->mctx;
