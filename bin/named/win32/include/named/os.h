@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.1.2.3 2004/01/07 06:03:23 marka Exp $ */
+/* $Id: os.h,v 1.1.2.4 2004/01/07 06:30:44 marka Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
@@ -27,6 +27,12 @@ ns_os_init(const char *progname);
 
 void
 ns_os_daemonize(void);
+
+void
+ns_os_opendevnull(void);
+
+void
+ns_os_closedevnull(void);
 
 void
 ns_os_chroot(const char *root);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.6 2004/01/07 06:03:23 marka Exp $ */
+/* $Id: main.c,v 1.119.2.7 2004/01/07 06:30:43 marka Exp $ */
 
 #include <config.h>
 
@@ -482,6 +482,8 @@ setup(void) {
 	 */
 	ns_os_tzset();
 
+	ns_os_opendevnull();
+
 	ns_os_chroot(ns_g_chrootdir);
 
 	/*
@@ -633,6 +635,8 @@ main(int argc, char *argv[]) {
 	isc_mem_destroy(&ns_g_mctx);
 
 	isc_app_finish();
+
+	ns_os_closedevnull();
 
 	ns_os_shutdown();
 
