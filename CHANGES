@@ -1,3 +1,6 @@
+1547.	[bug]		Named wasted memory recording duplicate lame zone
+			entries. [RT #9341]
+
 1546.	[bug]		We were rejecting valid secure CNAME to negative
 			answers.
 
