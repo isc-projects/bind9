@@ -15,7 +15,6 @@
  * SOFTWARE.
  */
 
-#define NOISY
 #include <config.h>
 
 #include <ctype.h>
@@ -64,6 +63,7 @@ dns_name_t names[MAX_PREALLOCATED];
 dns_rdata_t rdatas[MAX_PREALLOCATED];
 dns_rdatalist_t lists[MAX_PREALLOCATED];
 
+#ifdef NOISY
 static void
 print_wirename(isc_region_t *name) {
 	unsigned char *ccurr, *cend;
@@ -74,6 +74,7 @@ print_wirename(isc_region_t *name) {
 		printf("%02x ", *ccurr++);
 	printf("\n");
 }
+#endif
 
 static int
 fromhex(char c) {
@@ -105,8 +106,10 @@ getname(dns_name_t *name, isc_buffer_t *source, isc_buffer_t *target) {
 	unsigned char c[255];
 	dns_result_t result;
 	isc_buffer_t text;
-	isc_region_t r;
 	unsigned int current;
+#ifdef NOISY
+	isc_region_t r;
+#endif
 
 	isc_buffer_init(&text, c, 255, ISC_BUFFERTYPE_TEXT);
 	dns_name_init(name, NULL);
@@ -176,8 +179,6 @@ getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 				break;
 		}
 		if (rdatalist == NULL) {
-			ISC_LIST(dns_rdatalist_t) list;
-
 			if (rlcount == MAX_PREALLOCATED) {
 				printf("out of rdatalists\n");
 				exit(1);
@@ -187,9 +188,7 @@ getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 			rdatalist->type = type;
 			rdatalist->ttl = 0;
 			ISC_LIST_INIT(rdatalist->rdata);
-			list.head = name->list.head;
-			list.tail = name->list.tail;
-			ISC_LIST_APPEND(list, rdatalist, link);
+			ISC_LIST_APPEND(name->list, rdatalist, link);
 		} else
 			printf(";; duplicate question\n");
 	}
@@ -339,7 +338,32 @@ static char *rcodetext[] = {
 
 static void
 printquestions(dns_namelist_t *section) {
-	printf("\n;; QUERY SECTION:\n");
+	dns_name_t *name;
+	dns_rdatalist_t *rdatalist;
+	char t[1000];
+	isc_buffer_t target;
+	dns_result_t result;
+
+	printf(";; QUERY SECTION:\n");
+	for (name = ISC_LIST_HEAD(*section);
+	     name != NULL;
+	     name = ISC_LIST_NEXT(name, link)) {
+		isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+		result = dns_name_totext(name, ISC_FALSE, &target);
+		if (result != DNS_R_SUCCESS) {
+			printf("%s\n", dns_result_totext(result));
+			exit(15);
+		}
+		for (rdatalist = ISC_LIST_HEAD(name->list);
+		     rdatalist != NULL;
+		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
+			printf(";;\t%.*s, class = %u, type = %u\n",
+			       (int)target.used,
+			       (char *)target.base,
+			       rdatalist->class,
+			       rdatalist->type);
+		}
+	}
 }
 
 static void
@@ -350,6 +374,7 @@ printsection(dns_namelist_t *section, char *section_name) {
 	char t[1000];
 	isc_buffer_t target;
 	dns_result_t result;
+	char *tabs;
 
 	printf("\n;; %s SECTION:\n", section_name);
 	for (name = ISC_LIST_HEAD(*section);
@@ -367,9 +392,16 @@ printsection(dns_namelist_t *section, char *section_name) {
 			for (rdata = ISC_LIST_HEAD(rdatalist->rdata);
 			     rdata != NULL;
 			     rdata = ISC_LIST_NEXT(rdata, link)) {
-				printf("%.*s\t%u %u %u\t",
+				if (target.used >= 16)
+					tabs = "\t";
+				else if (target.used >= 8)
+					tabs = "\t\t";
+				else
+					tabs = "\t\t\t";
+				printf("%.*s%s%u %u %u\t",
 				       (int)target.used,
-				       target.base,
+				       (char *)target.base,
+				       tabs,
 				       rdatalist->ttl,
 				       rdatalist->class,
 				       rdatalist->type);
