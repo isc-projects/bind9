@@ -36,6 +36,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"bad compression pointer",		/* 13 */
 	"too many hops",			/* 14 */
 	"disallowed (by application policy)",	/* 15 */
+	"no more list elements",		/* 16 */
 };
 
 char *
