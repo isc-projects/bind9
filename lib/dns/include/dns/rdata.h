@@ -386,6 +386,9 @@ isc_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
  *
  *	'target' is a valid binary buffer.
  *
+ *	All structure pointers to memory blocks should be NULL if their
+ *	corresponding length values are zero.
+ *
  * Ensures:
  *	If result is success:
  *	 	If 'rdata' is not NULL, it is attached to the target.
