@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.9 2005/03/17 03:57:02 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.10 2005/03/22 02:32:12 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <isc/mutex.h>
 #include <isc/os.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -96,6 +97,7 @@ static ISC_LIST(signer_key_t) keylist;
 static unsigned int keycount = 0;
 static isc_stdtime_t starttime = 0, endtime = 0, now;
 static int cycle = -1;
+static int jitter = 0;
 static isc_boolean_t tryverify = ISC_FALSE;
 static isc_boolean_t printstats = ISC_FALSE;
 static isc_mem_t *mctx = NULL;
@@ -217,8 +219,10 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	    dst_key_t *key, isc_buffer_t *b)
 {
 	isc_result_t result;
+	isc_stdtime_t jendtime;
 
-	result = dns_dnssec_sign(name, rdataset, key, &starttime, &endtime,
+	jendtime = (jitter != 0) ? isc_random_jitter(endtime, jitter) : endtime;
+	result = dns_dnssec_sign(name, rdataset, key, &starttime, &jendtime,
 				 mctx, b, rdata);
 	isc_entropy_stopcallbacksources(ectx);
 	if (result != ISC_R_SUCCESS) {
@@ -1653,6 +1657,8 @@ usage(void) {
 	fprintf(stderr, "\t-i interval:\n");
 	fprintf(stderr, "\t\tcycle interval - resign "
 				"if < interval from end ( (end-start)/4 )\n");
+	fprintf(stderr, "\t-j jitter:\n");
+	fprintf(stderr, "\t\trandomize signature end time up to jitter seconds\n");
 	fprintf(stderr, "\t-v debuglevel (0)\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
@@ -1745,7 +1751,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ac:d:e:f:ghi:k:l:n:o:pr:s:Stv:z"))
+					   "ac:d:e:f:ghi:j:k:l:n:o:pr:s:Stv:z"))
 	       != -1) {
 		switch (ch) {
 		case 'a':
@@ -1783,6 +1789,13 @@ main(int argc, char *argv[]) {
 			if (*endp != '\0' || cycle < 0)
 				fatal("cycle period must be numeric and "
 				      "positive");
+			break;
+
+		case 'j':
+			endp = NULL;
+			jitter = strtol(isc_commandline_argument, &endp, 0);
+			if (*endp != '\0' || jitter < 0)
+				fatal("jitter must be numeric and positive");
 			break;
 
 		case 'l': 

@@ -1,3 +1,6 @@
+1840.	[func]		dnssec-signzone can now randomize signature end times
+			(dnssec-signzone -j jitter). [RT #13609]
+
 1839.	[bug]		<isc/hash.h> was not being installed.
 
 1836.	[cleanup]	Silence compiler warnings in hash_test.c.
