@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999 Internet Software Consortium.
+ * Copyright (C) 1998, 1999 Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.h,v 1.6 1999/02/16 22:42:28 marka Exp $ */
+ /* $Id: null_10.h,v 1.7 1999/02/16 22:51:18 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_H
 #define RDATA_GENERIC_NULL_10_H

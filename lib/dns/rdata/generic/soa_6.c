@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999 Internet Software Consortium.
+ * Copyright (C) 1998, 1999 Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.11 1999/02/16 22:42:30 marka Exp $ */
+ /* $Id: soa_6.c,v 1.12 1999/02/16 22:51:19 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_H
 #define RDATA_GENERIC_SOA_6_H
