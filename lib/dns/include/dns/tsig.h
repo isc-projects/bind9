@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.29 2000/07/27 23:56:41 bwelling Exp $ */
+/* $Id: tsig.h,v 1.30 2000/07/28 23:27:01 bwelling Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -82,13 +82,16 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *	not NULL, *key will contain a copy of the key.  The keys validity
  *	period is specified by (inception, expire), and will not expire if
  *	inception == expire.  If the key was generated, the creating identity,
- *	if there is one, should be in the creator parameter.
+ *	if there is one, should be in the creator parameter.  Specifying an
+ *	unimplemented algorithm will cause failure only if length > 0; this
+ *	allows a transient key with an invalid algorithm to exist long enough
+ *	to generate a BADKEY response.
  *
  *	Requires:
  *		'name' is a valid dns_name_t
  *		'algorithm' is a valid dns_name_t
  *		'secret' is a valid pointer
- *		'length' is an integer greater than 0
+ *		'length' is an integer >= 0
  *		'creator' points to a valid dns_name_t or is NULL
  *		'mctx' is a valid memory context
  *		'ring' is a valid TSIG keyring or NULL
