@@ -1,3 +1,6 @@
+1058.	[func]		Limited lifetime ticker timers are now available,
+			isc_timertype_limited.
+
 1055.	[func]		Version and hostname queries can now be disabled
 			using "version none;" and "hostname none;",
 			respectively.

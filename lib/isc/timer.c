@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64 2001/06/04 19:33:29 tale Exp $ */
+/* $Id: timer.c,v 1.64.12.1 2003/08/06 06:18:06 marka Exp $ */
 
 #include <config.h>
 
@@ -121,10 +121,13 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	/*
 	 * Compute the new due time.
 	 */
-	if (timer->type == isc_timertype_ticker) {
+	if (timer->type != isc_timertype_once) {
 		result = isc_time_add(now, &timer->interval, &due);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		if (timer->type == isc_timertype_limited &&
+		    isc_time_compare(&timer->expires, &due) < 0)
+			due = timer->expires;
 	} else {
 		if (isc_time_isepoch(&timer->idle))
 			due = timer->expires;
@@ -274,6 +277,8 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	REQUIRE(type == isc_timertype_inactive ||
 		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 	REQUIRE(timerp != NULL && *timerp == NULL);
+	REQUIRE(type != isc_timertype_limited ||
+		!(isc_time_isepoch(expires) || isc_interval_iszero(interval)));
 
 	/*
 	 * Get current time.
@@ -397,6 +402,8 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 		interval = isc_interval_zero;
 	REQUIRE(type == isc_timertype_inactive ||
 		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
+	REQUIRE(type != isc_timertype_limited ||
+		!(isc_time_isepoch(expires) || isc_interval_iszero(interval)));
 
 	/*
 	 * Get current time.
@@ -557,6 +564,18 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 				type = ISC_TIMEREVENT_TICK;
 				post_event = ISC_TRUE;
 				need_schedule = ISC_TRUE;
+			} else if (timer->type == isc_timertype_limited) {
+				int cmp;
+				cmp = isc_time_compare(now, &timer->expires);
+				if (cmp >= 0) {
+					type = ISC_TIMEREVENT_LIFE;
+					post_event = ISC_TRUE;
+					need_schedule = ISC_FALSE;
+				} else {
+					type = ISC_TIMEREVENT_TICK;
+					post_event = ISC_TRUE;
+					need_schedule = ISC_TRUE;
+				}
 			} else if (!isc_time_isepoch(&timer->expires) &&
 				   isc_time_compare(now,
 						    &timer->expires) >= 0) {
