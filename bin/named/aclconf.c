@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.26 2001/03/04 21:21:20 bwelling Exp $ */
+/* $Id: aclconf.c,v 1.27 2001/04/12 21:02:46 tale Exp $ */
 
 #include <config.h>
 
@@ -203,7 +203,7 @@ ns_acl_fromconfig(cfg_obj_t *caml,
 				de->type = dns_aclelementtype_any;
 			}  else if (strcasecmp(name, "none") == 0) {
 				de->type = dns_aclelementtype_any;
-				de->negative = ! de->negative;
+				de->negative = ISC_TF(! de->negative);
 			} else {
 				de->type = dns_aclelementtype_nestedacl;
 				result = convert_named_acl(ce, cctx, ctx, mctx,
