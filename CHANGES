@@ -1,4 +1,12 @@
 
+ 435.	[bug]		dns_zone_dump() overwrote existing zone files 
+			rather than writing to a temporary file and
+			renaming.  This could lead to empty or partial
+			zone files being left around in certain error
+			conditions involving the initial transfer of a
+			slave zone, interfering with subsequent server
+			startup. [RT #282]
+
  434.	[func]		New function isc_file_isabsolute().
 
  433.	[func]		isc_base64_decodestring() now accepts newlines

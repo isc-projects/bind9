@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.21 2000/09/08 18:37:26 gson Exp $ */
+/* $Id: file.c,v 1.22 2000/09/08 21:46:59 gson Exp $ */
 
 #include <config.h>
 
@@ -175,6 +175,17 @@ isc_file_remove(const char *filename) {
 	int r;
 
 	r = unlink(filename);
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (isc__errno2result(errno));
+}
+
+isc_result_t
+isc_file_rename(const char *oldname, const char *newname) {
+	int r;
+
+	r = rename(oldname, newname);
 	if (r == 0)
 		return (ISC_R_SUCCESS);
 	else

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.204 2000/09/08 00:07:44 explorer Exp $ */
+/* $Id: zone.c,v 1.205 2000/09/08 21:47:01 gson Exp $ */
 
 #include <config.h>
 
@@ -1734,11 +1734,6 @@ static isc_result_t
 zone_dump(dns_zone_t *zone) {
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
-	dns_db_t *db = NULL;
-	char *buf;
-	int buflen;
-	FILE *f = NULL;
-	int n;
 
 	/*
 	 * 'zone' locked by caller.
@@ -1747,47 +1742,19 @@ zone_dump(dns_zone_t *zone) {
 
 	REQUIRE(ISLOCKED(&zone->lock));
 
-	buflen = strlen(zone->dbname) + 20;
-	buf = isc_mem_get(zone->mctx, buflen);
-	if (buf == NULL)
-	    return (ISC_R_NOMEMORY);
+	dns_db_currentversion(zone->db, &version);
 
-	result = isc_file_mktemplate(zone->dbname, buf, buflen);
+	result = dns_master_dump(zone->mctx, zone->db, version,
+				 &dns_master_style_default,
+				 zone->dbname);
+
+	dns_db_closeversion(zone->db, &version, ISC_FALSE);
+
 	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		return (result);
 
-	result = isc_file_openunique(buf, &f);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	dns_db_attach(zone->db, &db);
-	dns_db_currentversion(db, &version);
-	result = dns_master_dumptostream(zone->mctx, db, version,
-					 &dns_master_style_default, f);
-	dns_db_closeversion(db, &version, ISC_FALSE);
-	dns_db_detach(&db);
-	n = fflush(f);
-	if (n != 0 && result == ISC_R_SUCCESS)
-		result = ISC_R_UNEXPECTED;
-	n = ferror(f);
-	if (n != 0 && result == ISC_R_SUCCESS)
-		result = ISC_R_UNEXPECTED;
-	n = fclose(f);
-	if (n != 0 && result == ISC_R_SUCCESS)
-		result = ISC_R_UNEXPECTED;
-	if (result == ISC_R_SUCCESS) {
-		n = rename(buf, zone->dbname);
-		if (n == -1) {
-			(void)remove(buf);
-			result = ISC_R_UNEXPECTED;
-		} else {
-			zone->flags &= ~DNS_ZONEFLG_NEEDDUMP;
-		}
-	} else
-		(void)remove(buf);
- cleanup:
-	isc_mem_put(zone->mctx, buf, buflen);
-	return (result);
+	zone->flags &= ~DNS_ZONEFLG_NEEDDUMP;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.10 2000/09/08 18:37:25 gson Exp $ */
+/* $Id: file.h,v 1.11 2000/09/08 21:46:58 gson Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -157,6 +157,12 @@ isc_result_t
 isc_file_remove(const char *filename);
 /*
  * Remove the file named by 'filename'.
+ */
+
+isc_result_t
+isc_file_rename(const char *oldname, const char *newname);
+/*
+ * Rename the file 'oldname' to 'newname'.
  */
 
 isc_boolean_t
