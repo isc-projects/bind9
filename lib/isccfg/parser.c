@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.1 2001/02/15 04:14:12 gson Exp $ */
+/* $Id: parser.c,v 1.2 2001/02/15 05:14:15 gson Exp $ */
 
 #include <config.h>
 
@@ -2512,6 +2512,64 @@ lwres_clausesets[] = {
 };
 static cfg_type_t cfg_type_lwres = {
 	"lwres", parse_map, print_map, &cfg_rep_map, lwres_clausesets };
+
+/*
+ * rndc
+ */
+
+static cfg_clausedef_t
+rndcconf_options_clauses[] = {
+	{ "default-server", &cfg_type_astring, 0 },
+	{ "default-key", &cfg_type_astring, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_clausedef_t *
+rndcconf_options_clausesets[] = {
+	rndcconf_options_clauses,
+	NULL
+};
+
+static cfg_type_t cfg_type_rndcconf_options = {
+	"rndcconf_options", parse_map, print_map, &cfg_rep_map,
+	rndcconf_options_clausesets
+};
+
+static cfg_clausedef_t
+rndcconf_server_clauses[] = {
+	{ "key", &cfg_type_astring, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_clausedef_t *
+rndcconf_server_clausesets[] = {
+	rndcconf_server_clauses,
+	NULL
+};
+
+static cfg_type_t cfg_type_rndcconf_server = {
+	"rndcconf_server", parse_named_map, print_map, &cfg_rep_map,
+	rndcconf_server_clausesets
+};
+
+static cfg_clausedef_t
+rndcconf_clauses[] = {
+	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
+	{ "server", &cfg_type_rndcconf_server, CFG_CLAUSEFLAG_MULTI },
+	{ "options", &cfg_type_rndcconf_options, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_clausedef_t *
+rndcconf_clausesets[] = {
+	rndcconf_clauses,
+	NULL
+};
+
+cfg_type_t cfg_type_rndcconf = {
+	"rndcconf", parse_mapbody, print_mapbody, &cfg_rep_map,
+	rndcconf_clausesets
+};
 
 /*
  * Parse a map body.  That's something like

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.1 2001/02/15 04:14:13 gson Exp $ */
+/* $Id: cfg.h,v 1.2 2001/02/15 05:14:16 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -164,6 +164,7 @@ void cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
  * Configuration object types.
  */
 extern cfg_type_t cfg_type_namedconf; /* A complete named.conf file. */
+extern cfg_type_t cfg_type_rndcconf; /* A complete rndc.conf file. */
 
 ISC_LANG_ENDDECLS
 
