@@ -163,3 +163,27 @@ user and set pid-file to "/var/run/named/named.pid", or set
 pid-file to "named.pid", which will put the file in the directory
 specified by the directory option (which, in this case, must be writable
 by the named user).
+
+
+Q: When I do a "dig . ns", many of the A records for the root
+servers are missing.  Why?
+
+A: This is normal and harmless.  It is a somewhat confusing side effect
+of the way BIND 9 does RFC2181 trust ranking and of the efforts BIND 9
+makes to avoid promoting glue into answers.
+
+When BIND 9 first starts up and primes its cache, it receives the root
+server addresses as additional data in an authoritative response from
+a root server, and these records are eligible for inclusion as
+additional data in responses.  Subsequently it receives a subset of
+the root server addresses as additional data in a non-authoritative
+(referral) response from a root server.  This causes the addresses to
+now be considered non-authoritative (glue) data, which is not eligible
+for inclusion in responses.
+
+The server does have a complete set of root server addresses cached
+at all times, it just may not include all of them as additional data,
+depending on whether they were last received as answers or as glue.
+You can always look up the addresses with explicit queries like
+"dig a.root-servers.net A".
+
