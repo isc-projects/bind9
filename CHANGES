@@ -1,3 +1,7 @@
+1633.	[bug]		named should return NOTIMP to update requests to a
+			slaves without a allow-update-forwarding acl specified.
+			[RT #11331]
+
 1632.	[bug]		nsupdate failed to send prerequisite only UPDATE
 			messages. [RT #11288]
 
