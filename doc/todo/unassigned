@@ -26,6 +26,8 @@ Implement statistics similar to those in BIND 8
 Write libdns overview document (even if it only says "don't use
 libdns")
 
+Check whether our NAPTR implementation conforms to RFC2915
+
 Improve these error messages:
   rndc: operation failed: verify failure (failed to verify signature)
   rndc: reload command failure: verify failure
