@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.219 $)
+AC_REVISION($Revision: 1.220 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1203,6 +1203,7 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 ],[])
 ],[])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
+
 #
 # Random remaining OS-specific issues involving compiler warnings.
 # XXXDCL print messages to indicate some compensation is being done?
