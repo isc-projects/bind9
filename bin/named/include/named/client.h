@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.50 2001/01/27 02:08:03 bwelling Exp $ */
+/* $Id: client.h,v 1.51 2001/01/29 19:49:51 bwelling Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -107,6 +107,7 @@ struct ns_client {
 	dns_tcpmsg_t		tcpmsg;
 	isc_boolean_t		tcpmsg_valid;
 	isc_timer_t *		timer;
+	isc_boolean_t 		timerset;
 	dns_message_t *		message;
 	unsigned char *		sendbuf;
 	unsigned char *		recvbuf;
@@ -218,6 +219,12 @@ ns_client_replace(ns_client_t *client);
  * Try to replace the current client with a new one, so that the
  * current one can go off and do some lengthy work without
  * leaving the dispatch/socket without service.
+ */
+
+void
+ns_client_settimeout(ns_client_t *client, unsigned int seconds);
+/*
+ * Set a timer in the client to go off in the specified amount of time.
  */
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.142 2001/01/27 02:07:59 bwelling Exp $ */
+/* $Id: client.c,v 1.143 2001/01/29 19:49:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -279,14 +279,15 @@ client_free(ns_client_t *client) {
 		clientmgr_destroy(manager);
 }
 
-static void
-set_timeout(ns_client_t *client, unsigned int seconds) {
+void
+ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 	isc_result_t result;
 	isc_interval_t interval;
 
 	isc_interval_set(&interval, seconds, 0);
 	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
 				 &interval, ISC_FALSE);
+	client->timerset = ISC_TRUE;
 	if (result != ISC_R_SUCCESS) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
@@ -389,8 +390,12 @@ exit_check(ns_client_t *client) {
 		if (client->tcpquota != NULL)
 			isc_quota_detach(&client->tcpquota);
 
-		(void) isc_timer_reset(client->timer, isc_timertype_inactive,
-				       NULL, NULL, ISC_TRUE);
+		if (client->timerset) {
+			(void) isc_timer_reset(client->timer,
+					       isc_timertype_inactive,
+					       NULL, NULL, ISC_TRUE);
+			client->timerset = ISC_FALSE;
+		}
 
 		client->peeraddr_valid = ISC_FALSE;
 
@@ -1189,8 +1194,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_get(&client->requesttime);
 	client->now = client->requesttime;
 
-	set_timeout(client, 60);
-
 	if (result != ISC_R_SUCCESS) {
 		if (TCP_CLIENT(client))
 			ns_client_next(client, result);
@@ -1436,10 +1439,12 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
+		ns_client_settimeout(client, 60);
 		ns_update_start(client, sigresult);
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
+		ns_client_settimeout(client, 60);
 		ns_notify_start(client);
 		break;
 	case dns_opcode_iquery:
@@ -1523,6 +1528,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 				  client, &client->timer);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
+	client->timerset = ISC_FALSE;
 
 	client->message = NULL;
 	result = dns_message_create(manager->mctx, DNS_MESSAGE_INTENTPARSE,
@@ -1633,7 +1639,7 @@ client_read(ns_client_t *client) {
 	 * Set a timeout to limit the amount of time we will wait
 	 * for a request on this TCP connection.
 	 */
-	set_timeout(client, 30);
+	ns_client_settimeout(client, 30);
 
 	client->state = client->newstate = NS_CLIENTSTATE_READING;
 	INSIST(client->nreads == 0);

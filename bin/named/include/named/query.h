@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.26 2001/01/09 21:40:27 bwelling Exp $ */
+/* $Id: query.h,v 1.27 2001/01/29 19:49:52 bwelling Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -39,6 +39,7 @@ typedef struct ns_dbversion {
 struct ns_query {
 	unsigned int			attributes;
 	unsigned int			restarts;
+	isc_boolean_t			timerset;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
 	unsigned int			dboptions;

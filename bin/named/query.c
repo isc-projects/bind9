@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.177 2001/01/26 23:40:44 gson Exp $ */
+/* $Id: query.c,v 1.178 2001/01/29 19:49:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -239,6 +239,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK |
 				    NS_QUERYATTR_CACHEOK);
 	client->query.restarts = 0;
+	client->query.timerset = ISC_FALSE;
 	client->query.origqname = NULL;
 	client->query.qname = NULL;
 	client->query.dboptions = 0;
@@ -467,6 +468,7 @@ ns_query_init(ns_client_t *client) {
 	ISC_LIST_INIT(client->query.activeversions);
 	ISC_LIST_INIT(client->query.freeversions);
 	client->query.restarts = 0;
+	client->query.timerset = ISC_FALSE;
 	client->query.qname = NULL;
 	client->query.fetch = NULL;
 	client->query.authdb = NULL;
@@ -2097,6 +2099,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	} else
 		sigrdataset = NULL;
 
+	if (client->query.timerset == ISC_FALSE)
+		ns_client_settimeout(client, 60);
 	result = dns_resolver_createfetch(client->view->resolver,
 					  client->query.qname,
 					  qtype, qdomain, nameservers,
