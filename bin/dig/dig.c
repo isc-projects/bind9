@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51.2.10 2000/10/20 21:54:08 gson Exp $ */
+/* $Id: dig.c,v 1.51.2.11 2000/10/30 17:21:41 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -677,6 +677,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			strncpy(fixeddomain, value, sizeof(fixeddomain));
 			fixeddomain[sizeof(fixeddomain)-1]=0;
+			usesearch = state;
 			break;
 		default:
 			goto invalid_option;
