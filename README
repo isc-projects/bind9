@@ -80,10 +80,10 @@ BIND 9.2
 	    in lib/bind.  It is not built by default, and may not build
 	    on all supported platforms yet.
 
-	This distribution already includes a new lightweight stub
+	This distribution also includes a new lightweight stub
 	resolver library and associated resolver daemon that fully
 	support forward and reverse lookups of both IPv4 and IPv6
-	addresses.  This library is still considered experimental and
+	addresses.  This library is considered experimental and
 	is not a complete replacement for the BIND 8 resolver library.
 	Applications that use the BIND 8 res_* functions to perform
 	DNS lookups or dynamic updates still need to be linked against
