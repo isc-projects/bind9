@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.24 2000/06/09 22:32:19 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.25 2000/06/12 18:05:15 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -128,14 +128,12 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-openssldh_generate(dst_key_t *key, int generator, isc_entropy_t *ectx) {
+openssldh_generate(dst_key_t *key, int generator) {
 	DH *dh = NULL;
 	unsigned char dns_array[DST_KEY_MAXSIZE];
 	isc_buffer_t dns;
 	isc_region_t r;
 	isc_result_t result;
-
-	UNUSED(ectx);
 
 	if (generator == 0) {
 		if (key->key_size == 768 || key->key_size == 1024) {

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.55 2000/06/12 07:07:53 bwelling Exp $
+ * $Id: dst_api.c,v 1.56 2000/06/12 18:05:10 bwelling Exp $
  */
 
 #include <config.h>
@@ -525,7 +525,7 @@ dst_key_generate(dns_name_t *name, const unsigned int alg,
 		return (DST_R_UNSUPPORTEDALG);
 	}
 
-	ret = key->func->generate(key, param, dst_entropy_pool);
+	ret = key->func->generate(key, param);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (ret);

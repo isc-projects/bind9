@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.30 2000/06/09 23:31:55 bwelling Exp $
+ * $Id: openssl_link.c,v 1.31 2000/06/12 18:05:13 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -174,7 +174,7 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-openssldsa_generate(dst_key_t *key, int unused, isc_entropy_t *ectx) {
+openssldsa_generate(dst_key_t *key, int unused) {
 	DSA *dsa;
 	unsigned char dns_array[DST_KEY_MAXSIZE];
 	unsigned char rand_array[ISC_SHA1_DIGESTLENGTH];
@@ -184,8 +184,8 @@ openssldsa_generate(dst_key_t *key, int unused, isc_entropy_t *ectx) {
 
 	UNUSED(unused);
 
-	result = isc_entropy_getdata(ectx, rand_array, sizeof(rand_array), NULL,
-				     ISC_ENTROPY_GOODONLY|ISC_ENTROPY_BLOCKING);
+	result = dst__entropy_getdata(rand_array, sizeof(rand_array),
+				      ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

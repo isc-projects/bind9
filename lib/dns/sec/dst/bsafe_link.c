@@ -19,14 +19,13 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.30 2000/06/10 21:30:53 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.31 2000/06/12 18:05:09 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
 
 #include <config.h>
 
-#include <isc/entropy.h>
 #include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -300,7 +299,7 @@ dnssafersa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-dnssafersa_generate(dst_key_t *key, int exp, isc_entropy_t *ectx) {
+dnssafersa_generate(dst_key_t *key, int exp) {
 	B_KEY_OBJ private;
 	B_KEY_OBJ public;
 	B_ALGORITHM_OBJ keypairGenerator = NULL;
@@ -393,8 +392,7 @@ dnssafersa_generate(dst_key_t *key, int exp, isc_entropy_t *ectx) {
 	if (B_RandomInit(randomAlgorithm, CHOOSER, NULL_SURRENDER) != 0)
 		do_fail(ISC_R_NOMEMORY);
 
-	ret = isc_entropy_getdata(ectx, randomSeed, sizeof(randomSeed), NULL,
-				  ISC_ENTROPY_GOODONLY | ISC_ENTROPY_BLOCKING);
+	ret = dst__entropy_getdata(randomSeed, sizeof(randomSeed), ISC_FALSE);
 	if (ret != ISC_R_SUCCESS)
 		goto fail;
 

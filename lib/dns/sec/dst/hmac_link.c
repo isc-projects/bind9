@@ -19,12 +19,11 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.37 2000/06/12 07:07:14 bwelling Exp $
+ * $Id: hmac_link.c,v 1.38 2000/06/12 18:05:12 bwelling Exp $
  */
 
 #include <config.h>
 
-#include <isc/entropy.h>
 #include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -145,7 +144,7 @@ hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-hmacmd5_generate(dst_key_t *key, int unused, isc_entropy_t *ectx) {
+hmacmd5_generate(dst_key_t *key, int unused) {
 	isc_buffer_t b;
 	isc_result_t ret;
 	int bytes;
@@ -160,8 +159,7 @@ hmacmd5_generate(dst_key_t *key, int unused, isc_entropy_t *ectx) {
 	}
 
 	memset(data, 0, HMAC_LEN);
-	ret = isc_entropy_getdata(ectx, data, bytes, NULL,
-				  ISC_ENTROPY_GOODONLY | ISC_ENTROPY_BLOCKING);
+	ret = dst__entropy_getdata(data, bytes, ISC_FALSE);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
