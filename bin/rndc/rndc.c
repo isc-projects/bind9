@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.2 2003/08/08 03:40:08 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.3 2003/08/08 03:53:53 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -54,6 +54,8 @@
 
 #include "util.h"
 
+#define SERVERADDRS 10
+
 char *progname;
 isc_boolean_t verbose;
 
@@ -61,6 +63,9 @@ static const char *admin_conffile;
 static const char *admin_keyfile;
 static const char *version = VERSION;
 static const char *servername = NULL;
+static isc_sockaddr_t serveraddrs[SERVERADDRS];
+static int nserveraddrs;
+static int currentaddr = 0;
 static unsigned int remoteport = 0;
 static isc_socketmgr_t *socketmgr = NULL;
 static unsigned char databuf[2048];
@@ -74,6 +79,8 @@ static char *args;
 static char program[256];
 static isc_socket_t *sock = NULL;
 static isc_uint32_t serial;
+
+static void rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
 
 static void
 usage(int status) {
@@ -112,16 +119,17 @@ Version: %s\n",
 }
 
 static void
-get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
-	int count;
+get_addresses(const char *host, in_port_t port) {
 	isc_result_t result;
 
-	result = bind9_getaddresses(host, port, sockaddr, 1, &count);
+	isc_app_block();
+	result = bind9_getaddresses(host, port,
+				    serveraddrs, SERVERADDRS, &nserveraddrs);
 	isc_app_unblock();
 	if (result != ISC_R_SUCCESS)
 		fatal("couldn't get address for '%s': %s",
 		      host, isc_result_totext(result));
-	INSIST(count == 1);
+	INSIST(nserveraddrs > 0);
 }
 
 static void
@@ -280,8 +288,20 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 
 	connects--;
 
-	if (sevent->result != ISC_R_SUCCESS)
-		fatal("connect failed: %s", isc_result_totext(sevent->result));
+	if (sevent->result != ISC_R_SUCCESS) {
+		if (sevent->result != ISC_R_CANCELED &&
+		    currentaddr < nserveraddrs)
+		{
+			notify("connection failed: %s",
+			       isc_result_totext(sevent->result));
+			isc_socket_detach(&sock);
+			isc_event_free(&event);
+			rndc_startconnect(&serveraddrs[currentaddr++], task);
+			return;
+		} else
+			fatal("connect failed: %s",
+			      isc_result_totext(sevent->result));
+	}
 
 	isc_stdtime_get(&now);
 	DO("create message", isccc_cc_createmessage(1, NULL, NULL, ++serial,
@@ -313,25 +333,31 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-rndc_start(isc_task_t *task, isc_event_t *event) {
-	isc_sockaddr_t addr;
+rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
 	isc_result_t result;
+
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
-	isc_event_free(&event);
-
-	get_address(servername, (in_port_t) remoteport, &addr);
-
-	isc_sockaddr_format(&addr, socktext, sizeof(socktext));
+	isc_sockaddr_format(addr, socktext, sizeof(socktext));
 
 	notify("using server %s (%s)", servername, socktext);
 
 	DO("create socket", isc_socket_create(socketmgr,
-					      isc_sockaddr_pf(&addr),
+					      isc_sockaddr_pf(addr),
 					      isc_sockettype_tcp, &sock));
-	DO("connect", isc_socket_connect(sock, &addr, task, rndc_connected,
+	DO("connect", isc_socket_connect(sock, addr, task, rndc_connected,
 					 NULL));
 	connects++;
+}
+
+static void
+rndc_start(isc_task_t *task, isc_event_t *event) {
+	isc_event_free(&event);
+
+	get_addresses(servername, (in_port_t) remoteport);
+
+	currentaddr = 0;
+	rndc_startconnect(&serveraddrs[currentaddr++], task);
 }
 
 static void

@@ -1,3 +1,6 @@
+1127.	[func]		rndc: If the server to contact has multiple addresses,
+			try all of them.
+
 1119.	[func]		Added support in Win32 for NTFS file/directory ACL's
 			for access control.
 
