@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.21 2000/08/01 01:25:00 tale Exp $ */
+/* $Id: zt.h,v 1.22 2000/08/14 19:52:20 gson Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
@@ -125,15 +125,6 @@ dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
  *
  * Requires:
  *	'zt' to be valid
- */
-
-void
-dns_zt_print(dns_zt_t *zt);
-/*
- * Print zones in zonetable, address, name and reference count.
- *
- * Requires
- *	'zt' to be valid.
  */
 
 isc_result_t
