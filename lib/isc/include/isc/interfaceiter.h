@@ -58,8 +58,7 @@ typedef struct {
 	char name[32];			/* Interface name, null-terminated. */
 	unsigned int af;		/* Address family. */ 
 	isc_netaddr_t address;		/* Local address. */
-	isc_netaddr_t netmask;		/* Network mask
-					   (non-point-to-point only). */
+	isc_netaddr_t netmask;		/* Network mask. */
 	isc_netaddr_t dstaddress; 	/* Destination address
 					   (point-to-point only). */
 	isc_uint32_t flags;		/* Flags; see below. */

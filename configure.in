@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.44 $)
+AC_REVISION($Revision: 1.45 $)
 
 AC_PREREQ(2.13)
 
@@ -259,6 +259,23 @@ AC_TRY_COMPILE([
 	[AC_MSG_RESULT(no)
 	ISC_NET_HAVESALEN="#undef ISC_NET_HAVESALEN"])
 AC_SUBST(ISC_NET_HAVESALEN)
+
+dnl
+dnl Look for a sysctl call to get the list of network interfaces.
+dnl
+
+AC_MSG_CHECKING(for interface list sysctl)
+AC_EGREP_CPP(found_rt_iflist, [
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include <sys/socket.h>
+#ifdef NET_RT_IFLIST
+found_rt_iflist
+#endif
+],
+	[AC_MSG_RESULT(yes)
+	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
+	[AC_MSG_RESULT(no)])
 
 dnl
 dnl IPv6
