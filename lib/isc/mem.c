@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.109 2001/12/05 19:13:26 bwelling Exp $ */
+/* $Id: mem.c,v 1.110 2002/01/22 15:40:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -680,6 +680,8 @@ mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
+	if (size == 0)
+		size = 1;
 	return (malloc(size));
 }
 
