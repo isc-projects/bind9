@@ -1,4 +1,6 @@
 
+	--- 9.1.1rc1 released ---
+
  723.	[bug]		Referrals whose NS RRs had a 0 TTL caused the resolver
 			to return DNS_R_SERVFAIL. [RT #783]
 
