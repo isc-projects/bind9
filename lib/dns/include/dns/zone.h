@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.99 2001/02/14 03:50:14 gson Exp $ */
+/* $Id: zone.h,v 1.100 2001/02/26 01:45:57 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 
+#include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/rwlock.h>
 
@@ -1287,7 +1288,8 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
  */
 
 void
-dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...);
+dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...)
+	ISC_FORMAT_PRINTF(3, 4);
 /*
  * Log the message 'msg...' at 'level', including text that identifies
  * the message as applying to 'zone'.

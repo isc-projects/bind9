@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.309 2001/02/24 00:58:53 bwelling Exp $ */
+/* $Id: zone.c,v 1.310 2001/02/26 01:45:54 marka Exp $ */
 
 #include <config.h>
 
@@ -967,11 +967,15 @@ dns_zone_load(dns_zone_t *zone) {
 		if (zone->masterfile != NULL) {
 			result = zone_startload(db, zone, loadtime);
 		} else {
+			result = DNS_R_NOMASTERFILE;
 			if (zone->type == dns_zone_master) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "loading zone: ",
+					     "loading zone: "
 					     "no master file configured");
+				goto cleanup;
 			}
+			dns_zone_log(zone, ISC_LOG_INFO, "loading zone: "
+				     "no master file configured: continuing");
 		}
 	}
 
@@ -1108,7 +1112,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			if (result == ISC_R_FILENOTFOUND)
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "no master file");
-			else
+			else if (result != DNS_R_NOMASTERFILE)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "loading master file %s: %s",
 					     zone->masterfile,
@@ -2828,7 +2832,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refreshing stub: "
 			     "unexpected rcode (%.*s) from %s",
-			 rb.used, rcode, master);
+			     (int)rb.used, rcode, master);
 		goto next_master;
 	}
 
@@ -2853,8 +2857,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	 * If non-auth log and next master.
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
-		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refreshing stub: ",
+		dns_zone_log(zone, ISC_LOG_INFO, "refreshing stub: "
 			     "non-authorative answer from master %s", master);
 		goto next_master;
 	}
@@ -3037,7 +3040,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: unexpected rcode (%.*s) from master %s",
-			     rb.used, rcode, master);
+			     (int)rb.used, rcode, master);
 		goto next_master;
 	}
 
@@ -4863,7 +4866,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		}
 		if (use_ixfr == ISC_FALSE) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
-				     "IXFR disabled, ",
+				     "IXFR disabled, "
 				     "requesting AXFR from %s",
 				     mastertext);
 			xfrtype = dns_rdatatype_axfr;
@@ -5041,7 +5044,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		dns_zone_log(zone, ISC_LOG_WARNING,
 			     "forwarding dynamic update: "
 			     "unexpected response: master %s returned: %.*s",
-			     master, rb.used, rcode);
+			     master, (int)rb.used, rcode);
 		goto next_master;
 	}
 

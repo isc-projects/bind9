@@ -1,3 +1,7 @@
+ 756.	[bug]		dns_zone_load() could "return" success when no master
+			file was configured.
+
+ 755.	[bug]		Fix format bugs in zone.c (non-exploitable).
 
  754.	[bug]		Certain failure returns from sendto() could
 			cause the server to retry the transmission

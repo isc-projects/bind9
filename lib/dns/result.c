@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.85 2001/01/09 21:51:29 bwelling Exp $ */
+/* $Id: result.c,v 1.86 2001/02/26 01:45:53 marka Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,8 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"CNAME and other data",		       /* 71 DNS_R_CNAMEANDOTHER     */
 	"multiple RRs of singleton type",      /* 72 DNS_R_SINGLETON	     */
-	"hint nxrrset"			       /* 73 DNS_R_HINTNXRRSET	     */
+	"hint nxrrset",			       /* 73 DNS_R_HINTNXRRSET	     */
+	"no master file configured"	       /* 74 DNS_R_NOMASTERFILE	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
