@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.40 2001/01/04 06:21:00 bwelling Exp $ */
+/* $Id: compress.c,v 1.41 2001/01/04 19:25:57 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -151,11 +151,14 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 }
 
 void
-dns_compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset) {
+dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
+		 isc_uint16_t offset)
+{
 	dns_name_t tname, nname;
 	dns_label_t label;
 	unsigned int start;
 	unsigned int n;
+	unsigned int count;
 	unsigned int hash;
 	dns_compressnode_t *node;
 
@@ -166,8 +169,11 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset) {
 	dns_name_init(&nname, NULL);
 
 	n = dns_name_countlabels(name);
+	count = dns_name_countlabels(prefix);
+	if (dns_name_isabsolute(prefix))
+		count--;
 	start = 0;
-	while (n > 1) {
+	while (count > 0) {
 		if (offset >= 0x4000)
 			break;
 		dns_name_getlabelsequence(name, start, n, &tname);
@@ -203,6 +209,7 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset) {
 		offset += label.length;
 		start++;
 		n--;
+		count--;
 	}
 }
 

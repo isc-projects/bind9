@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.22 2001/01/04 06:21:01 bwelling Exp $ */
+/* $Id: compress.h,v 1.23 2001/01/04 19:25:59 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -157,7 +157,8 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
  */
 
 void
-dns_compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset);
+dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
+		 isc_uint16_t offset);
 /*
  *	Add compression pointers for name to the compression table,
  *	not replacing existing pointers.

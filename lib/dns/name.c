@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.112 2001/01/03 00:05:10 bwelling Exp $ */
+/* $Id: name.c,v 1.113 2001/01/04 19:25:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2430,14 +2430,14 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint16(target, go);
 		if (gp.length != 0)
-			dns_compress_add(cctx, name, offset);
+			dns_compress_add(cctx, name, &gp, offset);
 	} else {
 		if (target->length - target->used < name->length)
 			return (ISC_R_NOSPACE);
 		(void)memcpy((unsigned char *)target->base + target->used,
 			     name->ndata, (size_t)name->length);
 		isc_buffer_add(target, name->length);
-		dns_compress_add(cctx, name, offset);
+		dns_compress_add(cctx, name, name, offset);
 	}
 	return (ISC_R_SUCCESS);
 }
