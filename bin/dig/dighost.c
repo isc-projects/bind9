@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58 2000/06/26 00:57:18 gson Exp $ */
+/* $Id: dighost.c,v 1.59 2000/06/26 21:28:17 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1251,7 +1251,7 @@ send_udp(dig_lookup_t *lookup) {
 /* connect_timeout is used for both UDP recieves and TCP connects. */
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
-	dig_lookup_t *lookup=NULL, *next=NULL;
+	dig_lookup_t *lookup=NULL;
 	dig_query_t *q=NULL;
 	isc_result_t result;
 	isc_buffer_t *b=NULL;
@@ -1284,24 +1284,12 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 					       q->lookup->textname,
 					       q->lookup->retries-1);
 				else {
-					if (lookup->tcp_mode) {
-						printf(";; Connection to "
-						       "server %.*s "
-						       "for %s timed out.  "
-						       "Giving up.\n",
-						       (int)r.length, r.base,
-						       q->lookup->textname);
-					} else {
-						printf(";; Connection to "
-						       "server %.*s "
-						       "for %s timed out.  "
-						       "Trying TCP.\n",
-						       (int)r.length, r.base,
-						       q->lookup->textname);
-						next = requeue_lookup
-							(lookup,ISC_TRUE);
-						next->tcp_mode = ISC_TRUE;
-					}
+					printf(";; Connection to "
+					       "server %.*s "
+					       "for %s timed out.  "
+					       "Giving up.\n",
+					       (int)r.length, r.base,
+					       q->lookup->textname);
 				}
 			}
 			isc_socket_cancel(q->sock, task,
