@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.90 2000/08/10 22:08:23 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.91 2000/08/11 19:39:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -56,8 +56,6 @@
 
 const char *program = "dnssec-signzone";
 int verbose;
-
-/*#define USE_ZONESTATUS*/
 
 #define BUFSIZE 2048
 
@@ -478,7 +476,6 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	}
 }
 
-#ifndef USE_ZONESTATUS
 /* Determine if a KEY set contains a null key */
 static isc_boolean_t
 hasnullkey(dns_rdataset_t *rdataset) {
@@ -506,7 +503,6 @@ hasnullkey(dns_rdataset_t *rdataset) {
                 fatal("failure looking for null keys");
         return (ISC_FALSE);
 }
-#endif
 
 /*
  * Looks for signatures of the zone keys by the parent, and imports them
@@ -744,12 +740,10 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			case dns_rdatatype_nxt:
 				childkey = haschildkey(db, name);
 				break;
-#ifndef USE_ZONESTATUS
 			case dns_rdatatype_key:
 				if (hasnullkey(&rdataset))
 					break;
 				goto skip;
-#endif
 			default:
 				goto skip;
 			}
@@ -779,14 +773,6 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			dns_name_toregion(&nxtname, &r2);
 			nxt_bits = r.base + r2.length;
 			set_bit(nxt_bits, dns_rdatatype_sig, 1);
-#ifdef USE_ZONESTATUS
-			if (isdelegation && childkey) {
-				set_bit(nxt_bits, dns_rdatatype_key, 1);
-				vbprintf(2, "found a child key for %s, "
-					 "setting KEY bit in NXT\n",
-					 nametostr(name));
-			}
-#else
 			if (isdelegation && !childkey) {
 				dns_rdataset_t keyset;
 				dns_rdatalist_t keyrdatalist;
@@ -855,7 +841,6 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 					 nametostr(name));
 
 			}
-#endif
 		}
 
 		signset(db, version, node, name, &rdataset);
