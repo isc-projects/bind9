@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.185 2001/03/05 21:15:41 bwelling Exp $ */
+/* $Id: message.c,v 1.186 2001/03/15 03:00:50 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2143,6 +2143,7 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item) {
 	*item = isc_mempool_get(msg->namepool);
 	if (*item == NULL)
 		return (ISC_R_NOMEMORY);
+	dns_name_init(*item, NULL);
 
 	return (ISC_R_SUCCESS);
 }
