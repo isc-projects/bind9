@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.23 2001/03/27 17:57:28 halley Exp $
+# $Id: update_copyrights,v 1.24 2001/03/27 20:07:53 bwelling Exp $
 
 require 5.002;
 
@@ -26,6 +26,7 @@ require 5.002;
 my %owner2filename = (
 	"" => "util/COPYRIGHT",
 	"NAI" => "util/COPYRIGHT.NAI",
+	"NOM" => "util/COPYRIGHT.NOM",
 	"BSDI" => "util/COPYRIGHT.BSDI",
 	"BRIEF" => "util/COPYRIGHT.BRIEF",
 	"PORTION" => "util/COPYRIGHT.PORTION",
@@ -240,11 +241,14 @@ while (<>) {
                 $last_year = $year;
         }
 
-        ($firstline, @otherlines) = @$textp;
+        ($firstline, $secondline, @otherlines) = @$textp;
 
         $firstline =~ s/\@YEARS\@/$years/;
+        $secondline =~ s/\@YEARS\@/$years/;
 
         print TARGET "$prefix$firstline";
+        print TARGET $secondline =~ /^$/ ? $nonspaceprefix : $prefix;
+	print TARGET "$secondline";
 
         foreach $_ (@otherlines) {
                 print TARGET (/^$/ ? $nonspaceprefix : $prefix);
