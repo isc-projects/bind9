@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
-	/* $Id: serial.h,v 1.2 1999/09/15 23:58:40 explorer Exp $ */
+	/* $Id: serial.h,v 1.3 2000/01/31 17:41:49 gson Exp $ */
 
-#ifndef isc_serial_h
-#define isc_serial_h
+#ifndef ISC_SERIAL_H
+#define ISC_SERIAL_H
 
 #include <isc/types.h>
 #include <isc/boolean.h>
@@ -68,4 +68,4 @@ isc_boolean_t isc_serial_ne(isc_uint32_t a, isc_uint32_t b);
 
 ISC_LANG_ENDDECLS
 
-#endif /* isc_serial_h */
+#endif /* ISC_SERIAL_H */

@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef isc_ufile_h
-#define isc_ufile_h
+#ifndef ISC_UFILE_H
+#define ISC_UFILE_H
 
 #include <stdio.h>
 #include <isc/lang.h>
@@ -41,4 +41,5 @@ FILE * isc_ufile(char *template);
  */
 
 ISC_LANG_ENDDECLS
-#endif
+
+#endif /* ISC_UFILE_H */

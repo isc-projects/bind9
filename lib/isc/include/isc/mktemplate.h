@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef isc_mktemplate_h
-#define isc_mktemplate_h
+#ifndef ISC_MKTEMPLATE_H
+#define ISC_MKTEMPLATE_H
 
 #include <isc/lang.h>
 #include <isc/result.h>
@@ -37,4 +37,4 @@ isc_mktemplate(const char *name, char *buf, size_t buflen);
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ISC_MKTEMPLATE_H */
