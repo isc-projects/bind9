@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.317 
+# From configure.in Revision: 1.318 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -9660,11 +9660,28 @@ test -n "$PDFJADETEX" || PDFJADETEX="pdfjadetex"
 
 
 
+#
+# Look for the SGML catalog.
+# Its location varies, so far we have seen:
+#
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/catalog
+# 	FreeBSD	/usr/local/share/sgml/docbook/catalog
+#	Linux	/usr/local/share/dsssl/docbook/catalog
+#		/usr/share/sgml/docbook/dsssl-stylesheets/catalog
+#
+catalogpath=""
+for d in $sgmltrees 
+do
+	for s in docbook docbook/dsssl-stylesheets
+	do
+		catalogpath="$catalogpath $d/$s"
+	done
+done
 
 SGMLCATALOG=""
 echo $ac_n "checking for catalog""... $ac_c" 1>&6
-echo "configure:9667: checking for catalog" >&5
-for d in $sgmltrees
+echo "configure:9684: checking for catalog" >&5
+for d in $catalogpath
 do
 	f=$d/catalog
 	if test -f $f
@@ -9706,7 +9723,7 @@ done
 
 HTMLSTYLE=""
 echo $ac_n "checking for html/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9710: checking for html/docbook.dsl" >&5
+echo "configure:9727: checking for html/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/html/docbook.dsl
@@ -9727,7 +9744,7 @@ fi
 
 PRINTSTYLE=""
 echo $ac_n "checking for print/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9731: checking for print/docbook.dsl" >&5
+echo "configure:9748: checking for print/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/print/docbook.dsl
@@ -9767,7 +9784,7 @@ done
 
 XMLDCL=""
 echo $ac_n "checking for dtds/decls/xml.dcl""... $ac_c" 1>&6
-echo "configure:9771: checking for dtds/decls/xml.dcl" >&5
+echo "configure:9788: checking for dtds/decls/xml.dcl" >&5
 for d in $xmlpath
 do
 	f=$d/dtds/decls/xml.dcl
@@ -9793,7 +9810,7 @@ fi
 
 DOCBOOK2MANSPEC=""
 echo $ac_n "checking for docbook2X/docbook2man-spec.pl""... $ac_c" 1>&6
-echo "configure:9797: checking for docbook2X/docbook2man-spec.pl" >&5
+echo "configure:9814: checking for docbook2X/docbook2man-spec.pl" >&5
 for d in $sgmltrees
 do
 	f=$d/docbook2X/docbook2man-spec.pl
