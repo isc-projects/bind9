@@ -43,3 +43,6 @@
  * sys/socket.h
  */
 #undef NEED_XSE_BEFORE_SOCKET_H
+
+/* define if chroot() is available */
+#undef HAVE_CHROOT

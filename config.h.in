@@ -36,16 +36,14 @@
 /* define if you have the NET_RT_IFLIST sysctl variable. */
 #undef HAVE_IFLIST_SYSCTL
 
-/* define if you need to #define _XPG4_2 before including sys/socket.h */
-#undef NEED_XPG4_2_BEFORE_SOCKET_H
-
-/* define if you need to #define _XOPEN_SOURCE_ENTENDED before including
- * sys/socket.h
- */
-#undef NEED_XSE_BEFORE_SOCKET_H
+/* define if chroot() is available */
+#undef HAVE_CHROOT
 
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
+
+/* Define if you have the <linux/capability.h> header file.  */
+#undef HAVE_LINUX_CAPABILITY_H
 
 /* Define if you have the <sys/sockio.h> header file.  */
 #undef HAVE_SYS_SOCKIO_H
