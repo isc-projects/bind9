@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.16 1999/10/22 19:42:38 gson Exp $ */
+ /* $Id: xfrout.c,v 1.17 1999/10/25 13:25:43 marka Exp $ */
 
 #include <config.h>
 
@@ -30,22 +30,22 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
+#include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/fixedname.h>
+#include <dns/journal.h>
+#include <dns/message.h>
+#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatastruct.h>
 #include <dns/rdatasetiter.h>
-#include <dns/db.h>
-#include <dns/dbiterator.h>
+#include <dns/rdatastruct.h>
+#include <dns/result.h>
+#include <dns/types.h>
+#include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
-#include <dns/message.h>
-#include <dns/journal.h>
-#include <dns/view.h>
 
 #include <named/client.h>
 #include <named/xfrout.h>
