@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.352 2001/11/12 19:05:38 gson Exp $ */
+/* $Id: zone.c,v 1.353 2001/11/20 01:15:01 gson Exp $ */
 
 #include <config.h>
 
@@ -1333,7 +1333,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone_needdump(zone, DNS_DUMP_DELAY);
 	if (zone->task != NULL)
 		zone_settimer(zone, &now);
-	dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", zone->serial);
+
+	if (! dns_db_ispersistent(db))
+		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", zone->serial);
+
 	return (result);
 
  cleanup:

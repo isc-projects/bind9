@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.61 2001/09/15 14:23:26 marka Exp $ */
+/* $Id: server.h,v 1.62 2001/11/20 01:15:00 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -49,6 +49,12 @@ struct ns_server {
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
 	dns_acl_t		*blackholeacl;
+	char *			statsfile;	/* Statistics file name */
+	char *			dumpfile;	/* Dump file name */
+	isc_boolean_t		version_set;	/* User has set version */
+	char *			version;	/* User-specified version */
+	isc_boolean_t		hostname_set;	/* User has set hostname */
+	char *			hostname;	/* User-specified hostname */
 
         /*
 	 * Current ACL environment.  This defines the
@@ -76,10 +82,7 @@ struct ns_server {
 	isc_boolean_t		flushonshutdown;
 	isc_boolean_t		log_queries;	/* For BIND 8 compatibility */
 
-	char *			statsfile;	/* Statistics file name */
 	isc_uint64_t *		querystats;	/* Query statistics counters */
-
-	char *			dumpfile;	/* Dump file name */
 
 	ns_controls_t *		controls;	/* Control channels */
 };

@@ -85,11 +85,13 @@
 ./bin/named/.cvsignore				X	1999,2000,2001
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001
 ./bin/named/aclconf.c				C	1999,2000,2001
+./bin/named/builtin.c				C	2001
 ./bin/named/client.c				C	1999,2000,2001
 ./bin/named/config.c				C	2001
 ./bin/named/control.c				C	2001
 ./bin/named/controlconf.c			C	2001
 ./bin/named/include/named/aclconf.h		C	1999,2000,2001
+./bin/named/include/named/builtin.h		C	2001
 ./bin/named/include/named/client.h		C	1999,2000,2001
 ./bin/named/include/named/config.h		C	2001
 ./bin/named/include/named/control.h		C	2001
