@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.117 2004/03/05 05:09:25 marka Exp $
+ * $Id: tsig.c,v 1.117.18.1 2005/03/16 01:46:45 marka Exp $
  */
 
 #include <config.h>
@@ -167,7 +167,7 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 			goto cleanup_name;
 		}
 	} else {
-		if (key != NULL) {
+		if (dstkey != NULL) {
 			ret = DNS_R_BADALG;
 			goto cleanup_name;
 		}
