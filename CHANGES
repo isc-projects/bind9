@@ -1,3 +1,6 @@
+ 754.	[bug]		Certain failure returns from sendto() could
+			cause the server to retry the transmission
+			indefinitely. [RT #902]
 
 	--- 9.1.1rc3 released ---
 
