@@ -1,5 +1,5 @@
 
-	--- 9.2.4 released ---
+	--- 9.2.5snap1 released ---
 
 1722.	[bug]		Don't commit the journal on malformed ixfr streams.
 			[RT #12519]
@@ -30,6 +30,8 @@
 1713.	[port]		linux: extend capset failure message to say:
 			please ensure that the capset kernel module is
 			loaded.  see insmod(8)
+
+	--- 9.2.4 released ---
 
 	--- 9.2.4rc8 released ---
 
