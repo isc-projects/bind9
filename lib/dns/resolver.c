@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.248 2002/08/27 04:53:42 marka Exp $ */
+/* $Id: resolver.c,v 1.249 2002/08/29 07:01:49 marka Exp $ */
 
 #include <config.h>
 
@@ -1355,13 +1355,15 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 		return;
 
 	if (reason == DNS_R_UNEXPECTEDRCODE) {
-		isc_buffer_init(&b, code, sizeof(code));
+		isc_buffer_init(&b, code, sizeof(code) - 1);
 		dns_rcode_totext(fctx->rmessage->rcode, &b);
+		code[isc_buffer_usedlength(&b)] = '\0';
 		sep1 = "(";
 		sep2 = ") ";
 	} else if (reason == DNS_R_UNEXPECTEDOPCODE) {
-		isc_buffer_init(&b, code, sizeof(code));
+		isc_buffer_init(&b, code, sizeof(code) - 1);
 		dns_opcode_totext(fctx->rmessage->opcode, &b);
+		code[isc_buffer_usedlength(&b)] = '\0';
 		sep1 = "(";
 		sep2 = ") ";
 	} else {
@@ -1371,7 +1373,7 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 	}
 	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
 	isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 		      "%s %s%s%sresolving '%s': %s",
 		      dns_result_totext(reason), sep1, code, sep2,
