@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.44 2000/09/14 20:32:18 gson Exp $ */
+/* $Id: nslookup.c,v 1.45 2000/09/14 22:03:52 mws Exp $ */
 
 #include <config.h>
 
@@ -520,7 +520,11 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0)
 		puts("Non-authorative answer:");
-	printsection(query, msg, headers, DNS_SECTION_ANSWER);
+	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER]))
+		printsection(query, msg, headers, DNS_SECTION_ANSWER);
+	else
+		printf("*** Can't find %s: No answer\n",
+		       query->lookup->textname);
 
 	if (((msg->flags & DNS_MESSAGEFLAG_AA) == 0) &&
 	    (query->lookup->rdtype != dns_rdatatype_a)) {
@@ -582,7 +586,12 @@ testtype(char *typetext) {
 	tr.base = typetext;
 	tr.length = strlen(typetext);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
-	return (ISC_TF(result == ISC_R_SUCCESS));
+	if (result == ISC_R_SUCCESS)
+		return (ISC_TRUE);
+	else {
+		printf("unknown query type: %s\n", typetext);
+		return (ISC_FALSE);
+	}
 }
 
 static isc_boolean_t
@@ -594,32 +603,40 @@ testclass(char *typetext) {
 	tr.base = typetext;
 	tr.length = strlen(typetext);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
-	return (ISC_TF(result == ISC_R_SUCCESS));
+	if (result == ISC_R_SUCCESS) 
+		return (ISC_TRUE);
+	else {
+		printf("unknown query class: %s\n", typetext);
+		return (ISC_FALSE);
+	}
 }
 
 
 static void
 setoption(char *opt) {
-	dig_server_t *srv;
-
 	if (strncasecmp(opt,"all",4) == 0) {
 		show_settings(ISC_TRUE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
-		strncpy(defclass, &opt[6], MXRD);
+		if (testclass(&opt[6]))
+			strncpy(defclass, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "cl=", 3) == 0) {
-		strncpy(defclass, &opt[3], MXRD);
-	} else if (strncasecmp(opt, "type=", 5) == 0) {
-		if (testtype(&opt[5]))
-			strncpy(deftype, &opt[5], MXRD);
-	} else if (strncasecmp(opt, "ty=", 3) == 0) {
 		if (testclass(&opt[3]))
 			strncpy(defclass, &opt[3], MXRD);
+	} else if (strncasecmp(opt, "type=", 5) == 0) {
+		if (testtype(&opt[5]))
+			strncpy(deftype, &opt[3], MXRD);
+	} else if (strncasecmp(opt, "ty=", 3) == 0) {
+		if (testtype(&opt[3]))
+			strncpy(deftype, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "querytype=", 10) == 0) {
-		strncpy(deftype, &opt[10], MXRD);
+		if (testtype(&opt[10]))
+			strncpy(deftype, &opt[10], MXRD);
 	} else if (strncasecmp(opt, "query=", 6) == 0) {
-		strncpy(deftype, &opt[6], MXRD);
+		if (testtype(&opt[6]))
+			strncpy(deftype, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "qu=", 3) == 0) {
-		strncpy(deftype, &opt[3], MXRD);
+		if (testtype(&opt[3]))
+			strncpy(deftype, &opt[3], MXRD);
 #if 0
 		/* XXXMWS domain= doesn't work now. */
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
@@ -654,9 +671,7 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "sil",3) == 0) {
 		deprecation_msg = ISC_FALSE;
 	} else {
-		srv = make_server(opt);
-		debug("server is %s", srv->servername);
-		ISC_LIST_APPEND(server_list, srv, link);
+		printf ("*** Invalid option: %s\n",opt);	
 	}
 }
 
@@ -864,13 +879,16 @@ getinput(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	if (global_event == NULL)
 		global_event = event;
-	isc_app_block();
-	get_next_command();
-	isc_app_unblock();
-	if (ISC_LIST_HEAD(lookup_list) != NULL)
-		 start_lookup();
-	else
-		isc_app_shutdown();
+	while (in_use) {
+		isc_app_block();
+		get_next_command();
+		isc_app_unblock();
+		if (ISC_LIST_HEAD(lookup_list) != NULL) {
+			start_lookup();
+			return;
+		}
+	}
+	isc_app_shutdown();
 }
 
 int

@@ -1,3 +1,5 @@
+ 459.	[bug]		Nslookup error in processing set command.
+
  458.	[bug]		Nslookup didn't properly check class and type values.
 
  457.	[bug]		Dig/Host/Nslookup didn't properly handle connect
