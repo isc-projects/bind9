@@ -32,6 +32,8 @@
 #include <isc/mutex.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/socket.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -528,15 +530,17 @@ do_connect(const char *host, int port) {
 }
 
 static void
-listen_done(void *l) {
-	omapi_object_t *listener = l;
+listen_done(isc_task_t *task, isc_event_t *event) {
+	omapi_object_t *listener = event->arg;
+
+	UNUSED(task);
 
 	fprintf(stderr, "SERVER STOPPED\n");
+
+	isc_event_free(&event);
+
 	omapi_object_dereference(&listener);
-	
-	LOCK(&mutex);
-	SIGNAL(&waiter);
-	UNLOCK(&mutex);
+	omapi_lib_destroy();
 }
 
 static void
@@ -613,9 +617,6 @@ do_listen(int port) {
 	} while (! master_data.target_reached);
 
 	omapi_listener_shutdown(listener);
-
-	WAIT(&waiter, &mutex);
-	UNLOCK(&mutex);
 }
 
 #undef ARG_IS
@@ -624,6 +625,8 @@ do_listen(int port) {
 int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
+	isc_socketmgr_t *socketmgr = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
 	int ch;
 
 	progname = strrchr(*argv, '/');
@@ -669,12 +672,16 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(omapi_lib_init(mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr)
+		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr)
+		      == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_mutex_init(&mutex)
+	RUNTIME_CHECK(omapi_lib_init(mctx, taskmgr, socketmgr)
 		      == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_condition_init(&waiter)
-		      == ISC_R_SUCCESS);
+
+	RUNTIME_CHECK(isc_mutex_init(&mutex) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_condition_init(&waiter) == ISC_R_SUCCESS);
 
 	/*
 	 * The secret key is shared on both the client and server side.
@@ -700,16 +707,21 @@ main(int argc, char **argv) {
 
 		do_connect(argv[1], atoi(argv[2]));
 
+		omapi_lib_destroy();
+
 	} else {
 		fprintf(stderr, "Usage: %s [-m] [listen | connect] ...\n",
 			progname);
 		exit (1);
 	}
 
-	omapi_lib_destroy();
+	isc_socketmgr_destroy(&socketmgr);
+	isc_taskmgr_destroy(&taskmgr);
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
+
+	isc_mem_destroy(&mctx);
 
 	return (0);
 }
