@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.203 2001/07/09 21:06:01 gson Exp $ */
+/* $Id: socket.c,v 1.204 2001/07/15 22:50:24 gson Exp $ */
 
 #include <config.h>
 
@@ -1687,14 +1687,17 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	/*
 	 * Try to accept the new connection.  If the accept fails with
 	 * EAGAIN or EINTR, simply poke the watcher to watch this socket
-	 * again.
+	 * again.  Also ignore ECONNRESET, which has been reported to
+	 * be spuriously returned on Linux 2.2.19 although it is not
+	 * a documented error for accept().
 	 */
+	
 	addrlen = sizeof dev->newsocket->address.type;
 	memset(&dev->newsocket->address.type.sa, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
 	if (fd < 0) {
-		if (SOFT_ERROR(errno)) {
+		if (SOFT_ERROR(errno) || errno == ECONNRESET) {
 			goto soft_error;
 		} else {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
