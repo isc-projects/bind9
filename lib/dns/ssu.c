@@ -1,5 +1,5 @@
 /*
- * $Id: ssu.c,v 1.4 2000/03/01 23:28:31 bwelling Exp $
+ * $Id: ssu.c,v 1.5 2000/03/02 20:39:23 brister Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -281,7 +281,7 @@ dns_ssurule_types(const dns_ssurule_t *rule, dns_rdatatype_t **types) {
 isc_result_t
 dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule) {
 	REQUIRE(VALID_SSUTABLE(table));
-	REQUIRE(rule != NULL && *rule != NULL);
+	REQUIRE(rule != NULL && *rule == NULL);
 	*rule = ISC_LIST_HEAD(table->rules);
 	return (*rule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE);
 }
@@ -289,7 +289,7 @@ dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule) {
 isc_result_t
 dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule) {
 	REQUIRE(VALID_SSURULE(rule));
-	REQUIRE(nextrule != NULL && *nextrule != NULL);
+	REQUIRE(nextrule != NULL && *nextrule == NULL);
 	*nextrule = ISC_LIST_NEXT(rule, link);
 	return (*nextrule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE);
 }
