@@ -1,3 +1,5 @@
+1617.	[port]		win32: VC++ 6.0 support.
+
 1616.	[placeholder]	rt11127
 
 1615.	[port]		Define ISC_SOCKADDR_LEN_T based on _BSD_SOCKLEN_T_ if

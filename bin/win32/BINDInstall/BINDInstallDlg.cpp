@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.15 2004/03/16 05:52:15 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.16 2004/04/19 04:16:54 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -113,8 +113,10 @@ const FileData installFiles[] =
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
 #endif
+#if _MSC_VER > 1200
 	{"mfc70.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr70.dll", FileData::WinSystem, FileData::Critical, TRUE},
+#endif
 	{"bindevt.dll", FileData::WinSystem, FileData::Normal, FALSE},
 	{"libbind9.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"libisc.dll", FileData::WinSystem, FileData::Critical, FALSE},
@@ -435,7 +437,7 @@ void CBINDInstallDlg::OnInstall() {
 		m_accountExists = TRUE;
 	}
 
-	ProgramGroup();
+	ProgramGroup(FALSE);
 
 	try {
 		CreateDirs();
@@ -473,7 +475,7 @@ void CBINDInstallDlg::OnInstall() {
 			RegCloseKey(hKey);
 		}
 	
-		ProgramGroup();
+		ProgramGroup(FALSE);
 		
 		if (m_startOnInstall)
 			StartBINDService();

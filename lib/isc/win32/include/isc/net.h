@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.21 2004/03/05 05:12:05 marka Exp $ */
+/* $Id: net.h,v 1.22 2004/04/19 04:16:55 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -115,6 +115,11 @@ struct in6_pktinfo {
 	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
 	unsigned int    ipi6_ifindex; /* send/recv interface index */
 };
+#endif
+
+#if _MSC_VER < 1300
+#define in6addr_any isc_in6addr_any
+#define in6addr_loopback isc_in6addr_loopback
 #endif
 
 /*
