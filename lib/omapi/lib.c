@@ -41,10 +41,9 @@ omapi_objecttype_t *omapi_type_message;
 omapi_objecttype_t *omapi_object_types;
 
 isc_mem_t *omapi_mctx;
+isc_task_t *omapi_task;
 isc_taskmgr_t *omapi_taskmgr;
 isc_socketmgr_t *omapi_socketmgr;
-
-isc_boolean_t omapi_internal_mctx = ISC_FALSE;
 
 /***
  *** Private to lib.c.
@@ -72,7 +71,9 @@ omapi_lib_initmsgcat(void) {
 }
 
 isc_result_t
-omapi_lib_init(isc_mem_t *mctx) {
+omapi_lib_init(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
+	       isc_socketmgr_t *socketmgr)
+{
 	isc_result_t result;
 
 	/*
@@ -81,35 +82,23 @@ omapi_lib_init(isc_mem_t *mctx) {
 	REQUIRE(omapi_mctx == NULL &&
 		omapi_socketmgr == NULL &&
 		omapi_taskmgr == NULL &&
+		omapi_task == NULL &&
 		omapi_object_types == NULL);
 
-	if (mctx != NULL)
-		omapi_mctx = mctx;
+	REQUIRE(mctx != NULL && taskmgr != NULL && socketmgr != NULL);
 
-	else {
-		omapi_internal_mctx = ISC_TRUE;
-		result = isc_mem_create(0, 0, &omapi_mctx);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
+	omapi_mctx = mctx;
+	omapi_taskmgr = taskmgr;
+	omapi_socketmgr = socketmgr;
 
-	result = isc_socketmgr_create(omapi_mctx, &omapi_socketmgr);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	/*
-	 * XXXDCL should the caller specify an existing taskmgr instead?
-	 * how about having the caller specify an existing task?
-	 * i need clarity on how taskmgr/task/event all work together.
-	 */
-	result = isc_taskmgr_create(omapi_mctx, 1, 0, &omapi_taskmgr);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	result = isc_task_create(omapi_taskmgr, omapi_mctx, 0, &omapi_task);
 
 	/*
 	 * Initialize the standard object types.
 	 */
-	result = generic_init();
+	if (result == ISC_R_SUCCESS)
+		result = generic_init();
+
 	if (result == ISC_R_SUCCESS)
 		result = listener_init();
 
@@ -133,24 +122,15 @@ omapi_lib_init(isc_mem_t *mctx) {
  */
 void
 omapi_lib_destroy() {
-	if (omapi_mctx != NULL && omapi_internal_mctx) {
-		isc_mem_destroy(&omapi_mctx);
-		omapi_mctx = NULL;
-	}
-
-	if (omapi_socketmgr != NULL) {
-		isc_socketmgr_destroy(&omapi_socketmgr);
-		omapi_socketmgr = NULL;
-	}
-
-	if (omapi_taskmgr != NULL) {
-		isc_taskmgr_destroy(&omapi_taskmgr);
-		omapi_taskmgr = NULL;
-	}
-
 	object_destroytypes();
 
 	handle_destroy();
 
 	auth_destroy();
+
+	isc_task_destroy(&omapi_task);
+
+	omapi_mctx = NULL;
+	omapi_socketmgr = NULL;
+	omapi_taskmgr = NULL;
 }
