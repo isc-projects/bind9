@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.36 2000/06/22 21:57:46 tale Exp $ */
+/* $Id: mem.h,v 1.37 2000/06/28 03:46:37 tale Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -31,7 +31,12 @@ ISC_LANG_BEGINDECLS
 typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 
+/*
+ * ISC_MEM_DEBUG is defined by default; define ISC_MEM_DEBUGOFF to disable it.
+ */
+#if !defined(ISC_MEM_DEBUG) && !defined(ISC_MEM_DEBUGOFF)
 #define ISC_MEM_DEBUG
+#endif
 extern isc_boolean_t isc_mem_debugging;
 
 #ifdef ISC_MEM_DEBUG
