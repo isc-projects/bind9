@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.h,v 1.2 2003/07/25 02:22:26 marka Exp $ */
+/* $Id: hash.h,v 1.3 2003/10/10 06:39:23 jinmei Exp $ */
 
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
@@ -40,8 +40,8 @@
  *
  *	Altough the API is generic about the hash keys, it mainly expects
  *	DNS names (and sometimes IPv4/v6 addresses) as inputs.  It has an
- *	upper limit of the input length, and may run slow to calculaate the
- *	has values for large inputs.
+ *	upper limit of the input length, and may run slow to calculate the
+ *	hash values for large inputs.
  *
  *	This API is designed to be general so that it can provide multiple
  *	different hash contexts that have different random vectors.  However,
