@@ -57,6 +57,10 @@ typedef struct dns_rdataset			dns_rdataset_t;
 typedef ISC_LIST(dns_rdataset_t)		dns_rdatasetlist_t;
 typedef struct dns_rdatasetiter			dns_rdatasetiter_t;
 typedef struct dns_dbtable			dns_dbtable_t;
+typedef struct dns_resolver			dns_resolver_t;
+typedef struct dns_fetch			dns_fetch_t;
+typedef struct dns_delegation			dns_delegation_t;
+typedef struct dns_forwarders			dns_forwarders_t;
 typedef isc_uint16_t				dns_messageid_t;
 
 typedef enum {
@@ -79,7 +83,9 @@ typedef enum {
 
 #include <dns/enumtype.h>
 
-/* XXXRTH why don't these enums have typedefs? */
+/*
+ * XXXRTH why don't these enums have typedefs?
+ */
 
 enum {
 	dns_rdatatype_none = 0,
