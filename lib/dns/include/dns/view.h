@@ -314,6 +314,15 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zone);
  * XXX
  */
 
+void
+dns_view_load(dns_view_t *view);
+/*
+ * Load all zones attached to this view.
+ *
+ * Requires:
+ *
+ *	'view' is a valid.
+ */
 
 ISC_LANG_ENDDECLS
 
