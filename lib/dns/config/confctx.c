@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.50 2000/04/18 00:25:41 gson Exp $ */
+/* $Id: confctx.c,v 1.51 2000/04/19 20:04:49 gson Exp $ */
 
 #include <config.h>
 
@@ -227,6 +227,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	char     	       *cpval;
 	dns_severity_t	severity;
 	isc_int32_t		intval;
+	isc_uint32_t		uintval;
 	dns_c_ipmatchlist_t    *ipml;
 	dns_c_iplist_t         *iplist;
 	isc_result_t 		result = ISC_R_SUCCESS;
@@ -379,7 +380,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getmaxncachettl(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getmaxncachettl(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'max-ncache-ttl' is not yet "
@@ -411,7 +412,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getcoresize(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getcoresize(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'coresize' is not yet "
@@ -419,7 +420,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getdatasize(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getdatasize(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'datasize' is not yet "
@@ -427,7 +428,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getfiles(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getfiles(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'files' is not yet "
@@ -435,7 +436,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 	
-	if (dns_c_ctx_getstacksize(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getstacksize(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'stacksize' is not yet "
