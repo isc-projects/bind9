@@ -815,6 +815,22 @@ printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 }
 
 static dns_result_t
+createiterator(dns_db_t *db, dns_dbversion_t *version,
+	       isc_boolean_t relative_names, dns_dbiterator_t **iteratorp)
+{
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	rbtdb_version_t *rbtversion = version;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(rbtversion == NULL || !rbtversion->writer);
+
+	(void)relative_names;
+	(void)iteratorp;
+
+	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static dns_result_t
 findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     dns_rdatatype_t type, dns_rdataset_t *rdataset)
 {
@@ -1141,6 +1157,7 @@ static dns_dbmethods_t methods = {
 	attachnode,
 	detachnode,
 	printnode,
+	createiterator,
 	findrdataset,
 	addrdataset,
 	deleterdataset
