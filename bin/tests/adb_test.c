@@ -195,25 +195,23 @@ main(int argc, char **argv)
 	dns_adb_dumphandle(adb, handle, stderr);
 
 	/*
-	 * delete the names, and kill the adb
+	 * delete one of the names, and kill the adb
 	 */
-	result = dns_adb_deletename(adb, &name1);
-	check_result(result, "dns_adb_deletename name1");
 	result = dns_adb_deletename(adb, &name2);
 	check_result(result, "dns_adb_deletename name2");
 
 	dns_adb_dump(adb, stderr);
 	dns_adb_dumphandle(adb, handle, stderr);
 
-	isc_app_run();
-
 	dns_adb_done(adb, &handle);
-
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
 	isc_mem_stats(mctx, stdout);
+	dns_adb_dump(adb, stderr);
 	dns_adb_destroy(&adb);
+
+	isc_app_run();
 
 	dns_view_detach(&view);
 
