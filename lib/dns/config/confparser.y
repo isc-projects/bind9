@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.104 2000/07/24 22:59:35 explorer Exp $ */
+/* $Id: confparser.y,v 1.105 2000/07/24 23:32:31 gson Exp $ */
 
 #include <config.h>
 
@@ -1916,37 +1916,17 @@ yea_or_nay: L_YES
 		}
 	}
 
-notify_setting: L_YES
+notify_setting: yea_or_nay
 	{
-		$$ = dns_notifytype_yes;
-	}
-	| L_TRUE
-	{
-		$$ = dns_notifytype_yes;
-	}
-	| L_NO
-	{
-		$$ = dns_notifytype_no;
-	}
-	| L_FALSE
-	{
-		$$ = dns_notifytype_no;
+		if ($1)
+			$$ = dns_notifytype_yes;
+		else
+			$$ = dns_notifytype_no;
+			
 	}
 	| L_EXPLICIT
 	{
 		$$ = dns_notifytype_explicit;
-	}
-	| L_INTEGER
-	{
-		if ($1 == 1) {
-			$$ = dns_notifytype_yes;
-		} else if ($1 == 0) {
-			$$ = dns_notifytype_no;
-		} else {
-			parser_warning(ISC_TRUE,
-				       "number should be 0 or 1, assuming 1");
-			$$ = dns_notifytype_yes;
-		}
 	}
 	;
 
