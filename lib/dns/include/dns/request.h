@@ -131,10 +131,32 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr);
 
 void
 dns_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp);
+/*
+ *	Attach to the request manager.  dns_requestmgr_shutdown() must not
+ *	have been called on 'source' prior to calling dns_requestmgr_attach().
+ *
+ * Requires:
+ *
+ *	'source' is a valid requestmgr.
+ *
+ *	'targetp' to be non NULL and '*targetp' to be NULL.
+ */
 
 void
 dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
-
+/*
+ *
+ *	Detach from the given requestmgr.  If this is the final detach
+ *	requestmgr will be destroyed.  dns_requestmgr_shutdown() must
+ *	be called before the final detach.
+ *
+ * Requires:
+ *
+ *	'*requestmgrp' is a valid requestmgr.
+ *
+ * Ensures:
+ *	'*requestmgrp' is NULL.
+ */
 
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
