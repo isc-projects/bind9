@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.42 2001/02/10 02:00:11 bwelling Exp $ */
+/* $Id: dispatch.h,v 1.43 2001/02/11 19:11:52 gson Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -32,6 +32,7 @@
  * MP:
  *
  *     	All locking is performed internally to each dispatch.
+ * 	Restrictions apply to dns_dispatch_removeresponse().
  *
  * Reliability:
  *
@@ -364,6 +365,9 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
  * Requires:
  *	"resp" != NULL and "*resp" contain a value previously allocated
  *	by dns_dispatch_addresponse();
+ *
+ *	May only be called from within the task given as the 'task' 
+ * 	argument to dns_dispatch_addresponse() when allocating '*resp'.
  */
 
 
