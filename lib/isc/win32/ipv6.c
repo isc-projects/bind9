@@ -15,15 +15,17 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.c,v 1.4 2001/07/12 05:58:27 mayer Exp $ */
+/* $Id: ipv6.c,v 1.4.2.1 2003/05/24 02:22:37 marka Exp $ */
 
 #define off_t _off_t
 
 #include <isc/net.h>
 #include <isc/platform.h>
 
+#if _MSC_VER < 1300
 LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_any =
 	IN6ADDR_ANY_INIT;
 
 LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_loopback =
 	IN6ADDR_LOOPBACK_INIT;
+#endif

@@ -25,7 +25,7 @@ rem OpenSSL is a prerequisite for building and running this release of
 rem BIND 9. You must fetch the OpenSSL sources yourself from
 rem http://www.OpenSSL.org/ and compile it yourself.  The code must reside
 rem at the same level as the bind 9.2.0 source tree and it's top-level
-rem directory be named openssl-0.9.6b. This restriction will be lifted in
+rem directory be named openssl-0.9.6f. This restriction will be lifted in
 rem a future release of BIND 9 for Windows NT/2000/XP.
 
 echo Setting up the BIND files required for the build

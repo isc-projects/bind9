@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h,v 1.2 2001/07/08 05:09:07 mayer Exp $ */
+/* $Id: netdb.h,v 1.2.2.1 2003/05/24 02:22:38 marka Exp $ */
 
 #ifndef NETDB_H
 #define NETDB_H 1
@@ -26,7 +26,7 @@
 /*
  * Define if <netdb.h> does not declare struct addrinfo.
  */
-
+#if _MSC_VER < 1300
 struct addrinfo {
 	int		ai_flags;      /* AI_PASSIVE, AI_CANONNAME */
 	int		ai_family;     /* PF_xxx */
@@ -37,7 +37,7 @@ struct addrinfo {
 	struct sockaddr	*ai_addr;      /* Binary address */
 	struct addrinfo	*ai_next;      /* Next structure in linked list */
 };
-
+#endif
 
 /*
  * Undefine all #defines we are interested in as <netdb.h> may or may not have
