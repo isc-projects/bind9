@@ -27,7 +27,12 @@
  ***/
 
 /*
- * Define if this system has the <netinet6/in6.h> header file.
+ * Define if this system needs the <netinet/in6.h> header file for IPv6.
+ */
+@LWRES_PLATFORM_NEEDNETINETIN6H@
+
+/*
+ * Define if this system needs the <netinet6/in6.h> header file for IPv6.
  */
 @LWRES_PLATFORM_NEEDNETINET6IN6H@
 

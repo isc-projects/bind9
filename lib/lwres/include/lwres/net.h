@@ -54,8 +54,11 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#ifdef LWRES_PLATFORM_NEEDNETINETIN6H
+#include <netinet/in6.h>	/* Required on UnixWare. */
+#endif
 #ifdef LWRES_PLATFORM_NEEDNETINET6IN6H
-#include <netinet6/in6.h>
+#include <netinet6/in6.h>	/* Required on BSD/OS for in6_pktinfo. */
 #endif
 
 #include <lwres/result.h>

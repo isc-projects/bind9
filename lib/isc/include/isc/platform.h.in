@@ -27,6 +27,12 @@
  ***/
 
 /*
+ * Define if this system needs the <netinet/in6.h> header file included
+ * for full IPv6 support (pretty much only UnixWare).
+ */
+@ISC_PLATFORM_NEEDNETINETIN6H@
+
+/*
  * Define if this system needs the <netinet6/in6.h> header file included
  * to support in6_pkinfo (pretty much only BSD/OS).
  */
