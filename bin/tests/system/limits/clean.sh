@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: clean.sh,v 1.1.2.1 2000/06/28 19:33:16 gson Exp $
+
 #
 # Clean up after zone transfer tests.
 #
