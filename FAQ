@@ -68,7 +68,7 @@ all TXT records containing quoted strings have both open and close quotes.
 Q: How do I produce a usable core file from a multithreaded named
 on Linux?
 
-A: Apply the kernel patch found in bind9/linux/coredump-patch and rebuild
+A: Apply the kernel patch found in contrib/linux/coredump-patch and rebuild
 the kernel.  This patch causes multithreaded programs to dump the correct
 thread.
 
