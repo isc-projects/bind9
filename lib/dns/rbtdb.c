@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.124 2000/09/06 23:16:14 gson Exp $ */
+/* $Id: rbtdb.c,v 1.125 2000/09/07 20:09:58 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1495,15 +1495,11 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				/*
 				 * We've found the right NXT record.
 				 *
-				 * XXXRTH  Well, not necessarily.  If
-				 * someone adds an NS rdataset causing a
-				 * tree to be obscured, we might be looking
-				 * at a NXT record in the obscured part of
-				 * the tree.  To avoid this, we must either
-				 * erase all the NXT records (causing lots
-				 * of IXFR work), or we must somehow determine
-				 * that we're looking at one.  For now, we
-				 * do nothing.
+				 * Note: for this to really be the right
+				 * NXT record, it's essential that the NXT
+				 * records of any nodes obscured by a zone
+				 * cut have been removed; we assume this is
+				 * the case.
 				 */
 				result = dns_name_concatenate(name, origin,
 							      foundname, NULL);
@@ -1520,6 +1516,17 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 						      foundsig, search->now,
 						      sigrdataset);
 				}
+			} else if (found == NULL && foundsig == NULL) {
+				/*
+				 * This node is active, but has no NXT or
+				 * SIG NXT.  That means it's glue or
+				 * other obscured zone data that isn't
+				 * relevant for our search.  Treat the
+				 * node as if it were empty and keep looking.
+				 */
+				empty_node = ISC_TRUE;
+				result = dns_rbtnodechain_prev(&search->chain,
+							       NULL, NULL);
 			} else {
 				/*
 				 * We found an active node, but either the
@@ -1528,30 +1535,6 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 */
 				result = DNS_R_BADDB;
 			}
-			/*
-			 * XXXRTH  This is where we'll deal with obscured
-			 * nodes.  We have to do this whether we found
-			 * a NXT or not, since we don't want to return
-			 * DNS_R_BADDB for an obscured node that has no
-			 * NXT (maybe the zone has been re-signed and the
-			 * obscured NXTs eliminated).  Here's what we'll
-			 * do:
-			 *
-			 *	Search the levels above us for a node
-			 *	with the find_callback bit set.
-			 *
-			 *	See if there is an active DNAME or zonecut.
-			 *
-			 *	If so, unbind any bindings we've made, and
-			 *	continue on.  If we really feel ambitious,
-			 *	we can unwind the chain to the cut point,
-			 *	and continue searching from there.  Probably
-			 *	not worth it for 9.0.0 since this will be a
-			 *	very uncommon case.
-			 *
-			 *	Otherwise, the result we got (a NXT or
-			 *	DNS_R_BADDB) is the right result.
-			 */
 		} else {
 			/*
 			 * This node isn't active.  We've got to keep

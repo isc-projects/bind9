@@ -1,3 +1,8 @@
+ 428.   [bug]		rbtdb.c:find_closest_nxt() erroneously returned
+			DNS_R_BADDB for nodes which had neither NXT nor SIG NXT
+			(e.g. glue).  This could cause SERVFAILs when
+			generating negative responses in a secure zone.
+
  427.	[bug]		Avoid going into an infinite loop when the validator
 			gets a negative response to a key query where the
 			records are signed by the missing key.
