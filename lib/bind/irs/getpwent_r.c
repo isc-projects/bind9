@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getpwent_r.c,v 1.1 2001/03/29 06:31:47 marka Exp $";
+static const char rcsid[] = "$Id: getpwent_r.c,v 1.2 2001/04/09 04:53:22 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -27,7 +27,15 @@ static const char rcsid[] = "$Id: getpwent_r.c,v 1.1 2001/03/29 06:31:47 marka E
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
+#if (defined(POSIX_GETPWNAM_R) || defined(POSIX_GETPWUID_R)) && \
+    defined(_POSIX_PTHREAD_SEMANTICS)
+	/* turn off solaris remapping in <grp.h> */
+#undef _POSIX_PTHREAD_SEMANTICS
 #include <pwd.h>
+#define _POSIX_PTHREAD_SEMANTICS 1
+#else
+#include <pwd.h>
+#endif
 #include <port_after.h>
 
 #ifdef PASS_R_RETURN
