@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.84.2.3 2001/05/14 03:22:04 marka Exp $ */
+/* $Id: result.c,v 1.84.2.4 2001/06/08 19:38:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -80,8 +80,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"key is unauthorized to sign data",    /* 43 DNS_R_KEYUNAUTHORIZED   */
 	"invalid time",			       /* 44 DNS_R_INVALIDTIME	     */
 
-	"expected a TSIG",		       /* 45 DNS_R_EXPECTEDTSIG	     */
-	"did not expect a TSIG",	       /* 46 DNS_R_UNEXPECTEDTSIG    */
+	"expected a TSIG or SIG(0)",	       /* 45 DNS_R_EXPECTEDTSIG	     */
+	"did not expect a TSIG or SIG(0)",     /* 46 DNS_R_UNEXPECTEDTSIG    */
 	"TKEY is unacceptable",		       /* 47 DNS_R_INVALIDTKEY	     */
 	"hint",				       /* 48 DNS_R_HINT		     */
 	"drop",				       /* 49 DNS_R_DROP		     */
