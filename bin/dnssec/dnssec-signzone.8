@@ -13,14 +13,14 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.27 2004/03/05 12:40:36 marka Exp $
+.\" $Id: dnssec-signzone.8,v 1.28 2004/03/16 05:22:15 marka Exp $
 .\"
 .TH "DNSSEC-SIGNZONE" "8" "June 30, 2000" "BIND9" ""
 .SH NAME
 dnssec-signzone \- DNSSEC zone signing tool
 .SH SYNOPSIS
 .sp
-\fBdnssec-signzone\fR [ \fB-a\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-d \fIdirectory\fB\fR ]  [ \fB-e \fIend-time\fB\fR ]  [ \fB-f \fIoutput-file\fB\fR ]  [ \fB-g\fR ]  [ \fB-h\fR ]  [ \fB-k \fIkey\fB\fR ]  [ \fB-i \fIinterval\fB\fR ]  [ \fB-n \fInthreads\fB\fR ]  [ \fB-o \fIorigin\fB\fR ]  [ \fB-p\fR ]  [ \fB-r \fIrandomdev\fB\fR ]  [ \fB-s \fIstart-time\fB\fR ]  [ \fB-t\fR ]  [ \fB-v \fIlevel\fB\fR ]  [ \fB-z\fR ]  \fBzonefile\fR [ \fBkey\fR\fI...\fR ] 
+\fBdnssec-signzone\fR [ \fB-a\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-d \fIdirectory\fB\fR ]  [ \fB-e \fIend-time\fB\fR ]  [ \fB-f \fIoutput-file\fB\fR ]  [ \fB-g\fR ]  [ \fB-h\fR ]  [ \fB-k \fIkey\fB\fR ]  [ \fB-l \fIdomain\fB\fR ]  [ \fB-i \fIinterval\fB\fR ]  [ \fB-n \fInthreads\fB\fR ]  [ \fB-o \fIorigin\fB\fR ]  [ \fB-p\fR ]  [ \fB-r \fIrandomdev\fB\fR ]  [ \fB-s \fIstart-time\fB\fR ]  [ \fB-t\fR ]  [ \fB-v \fIlevel\fB\fR ]  [ \fB-z\fR ]  \fBzonefile\fR [ \fBkey\fR\fI...\fR ] 
 .SH "DESCRIPTION"
 .PP
 \fBdnssec-signzone\fR signs a zone. It generates NSEC
@@ -42,6 +42,10 @@ Specifies the DNS class of the zone.
 \fB-k \fIkey\fB\fR
 Treat specified key as a key signing key ignoring any
 key flags. This option may be specified multiple times.
+.TP
+\fB-l \fIdomain\fB\fR
+Generate a DLV set in addition to the key (DNSKEY) and DS sets.
+The domain is appended to the name of the records.
 .TP
 \fB-d \fIdirectory\fB\fR
 Look for \fIsignedkey\fR files in

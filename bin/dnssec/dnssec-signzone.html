@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.html,v 1.7 2004/03/05 08:32:16 marka Exp $ -->
+<!-- $Id: dnssec-signzone.html,v 1.8 2004/03/16 05:22:16 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -113,6 +113,14 @@ CLASS="REPLACEABLE"
 ></TT
 >] [<TT
 CLASS="OPTION"
+>-l <TT
+CLASS="REPLACEABLE"
+><I
+>domain</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
 >-i <TT
 CLASS="REPLACEABLE"
 ><I
@@ -173,7 +181,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN63"
+NAME="AEN66"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -200,7 +208,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN69"
+NAME="AEN72"
 ></A
 ><H2
 >OPTIONS</H2
@@ -239,6 +247,19 @@ CLASS="REPLACEABLE"
 ><P
 >	       Treat specified key as a key signing key ignoring any
 	       key flags.  This option may be specified multiple times.
+	  </P
+></DD
+><DT
+>-l <TT
+CLASS="REPLACEABLE"
+><I
+>domain</I
+></TT
+></DT
+><DD
+><P
+>		Generate a DLV set in addition to the key (DNSKEY) and DS sets.
+		The domain is appended to the name of the records.
 	  </P
 ></DD
 ><DT
@@ -494,7 +515,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN174"
+NAME="AEN182"
 ></A
 ><H2
 >EXAMPLE</H2
@@ -553,7 +574,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN188"
+NAME="AEN196"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -585,7 +606,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN199"
+NAME="AEN207"
 ></A
 ><H2
 >AUTHOR</H2

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.31 2004/03/05 12:39:24 marka Exp $
+# $Id: update_copyrights,v 1.32 2004/03/16 05:22:33 marka Exp $
 
 require 5.002;
 
@@ -85,7 +85,7 @@ while (<>) {
         } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH)$/) {
                 $shell_comment = 1;
                 $prefix = "# ";
-        } elsif ($type eq "ZONE") {
+        } elsif ($type eq "ZONE" || $type eq "MC") {
                 $zone_comment = 1;
                 $prefix = "; ";
         } elsif ($type eq "MAN") {
@@ -204,6 +204,7 @@ while (<>) {
                         while (<SOURCE>) {
                                 # Not very maintainable, but ok enough for now.
                                 last unless
+                                  /[Cc]opyright/ ||
                                   /See COPYRIGHT in the source root/ ||
                                   /Permission to use, copy, modify, and / ||
                                   /THE SOFTWARE IS PROVIDED "AS IS" AND /;
