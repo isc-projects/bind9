@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.187 2001/03/28 00:50:05 gson Exp $ */
+/* $Id: message.c,v 1.188 2001/03/28 00:58:13 gson Exp $ */
 
 /***
  *** Imports
@@ -2842,6 +2842,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 				ADD_STRING(target, ";");
 				result = dns_master_questiontotext(name,
 								   rdataset,
+						   &dns_master_style_debug,
 								   target);
 			} else {
 				result = dns_master_rdatasettotext(name,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.20 2001/03/28 00:50:01 gson Exp $ */
+/* $Id: masterdump.h,v 1.21 2001/03/28 00:58:15 gson Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -127,7 +127,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
 isc_result_t
 dns_master_rdatasettotext(dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
-			  const dns_master_style_t *style,			  
+			  const dns_master_style_t *style,
 			  isc_buffer_t *target);
 /*
  * Convert 'rdataset' to text format, storing the result in 'target'.
@@ -144,6 +144,7 @@ dns_master_rdatasettotext(dns_name_t *owner_name,
 isc_result_t
 dns_master_questiontotext(dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
+			  const dns_master_style_t *style,
 			  isc_buffer_t *target);
 /*
  * Print a text representation of 'rdataset', a pseudo-rdataset

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.48 2001/03/28 00:54:40 gson Exp $ */
+/* $Id: masterdump.c,v 1.49 2001/03/28 00:58:12 gson Exp $ */
 
 #include <config.h>
 
@@ -581,9 +581,19 @@ dns_master_rdatasettotext(dns_name_t *owner_name,
 isc_result_t
 dns_master_questiontotext(dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
+			  const dns_master_style_t *style,
 			  isc_buffer_t *target)
 {
-	return (question_totext(rdataset, owner_name, NULL,
+	dns_totext_ctx_t ctx;
+	isc_result_t result;
+	result = totext_ctx_init(style, &ctx);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "could not set master file style");
+		return (ISC_R_UNEXPECTED);
+	}
+
+	return (question_totext(rdataset, owner_name, &ctx,
 				ISC_FALSE, target));
 }
 
