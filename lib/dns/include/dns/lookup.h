@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.h,v 1.1 2000/10/17 01:57:42 bwelling Exp $ */
+/* $Id: lookup.h,v 1.2 2000/10/19 18:09:34 gson Exp $ */
 
 #ifndef DNS_LOOKUP_H
 #define DNS_LOOKUP_H 1
@@ -27,7 +27,9 @@
 /*
  * DNS Lookup
  *
- * The lookup module performs simple dns lookups.
+ * The lookup module performs simple DNS lookups.  It implements
+ * the full resolver algorithm, both looking for local data and 
+ * resoving external names as necessary.
  *
  * MP:
  *	The module ensures appropriate synchronization of data structures it
