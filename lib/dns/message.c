@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.153 2000/10/20 02:21:47 marka Exp $ */
+/* $Id: message.c,v 1.154 2000/10/20 20:40:46 mws Exp $ */
 
 /***
  *** Imports
@@ -2773,7 +2773,8 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		}
 		result = dns_message_nextname(msg, section);
 	} while (result == ISC_R_SUCCESS);
-	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0)
+	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
+	    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 		ADD_STRING(target, "\n");
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
@@ -2811,7 +2812,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			ADD_STRING(target, ";; TSIG PSEUDOSECTION:\n");
 		result = dns_rdataset_totext(ps, name, omit_final_dot,
 					     ISC_FALSE, target);
-		ADD_STRING(target, "\n");
+		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
+		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
+			ADD_STRING(target, "\n");
 		return (result);
 	case DNS_PSEUDOSECTION_SIG0:
 		ps = dns_message_getsig0(msg, &name);
@@ -2821,7 +2824,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			ADD_STRING(target, ";; SIG0 PSEUDOSECTION:\n");
 		result = dns_rdataset_totext(ps, name, omit_final_dot,
 					     ISC_FALSE, target);
-		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0)
+		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
+		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");
 		return (result);
 	}
