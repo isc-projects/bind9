@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.7 2000/08/02 20:44:20 brister Exp $ */
+/* $Id: confparser.y.dirty,v 1.8 2000/08/08 23:04:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -313,7 +313,9 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_MAXIMAL
 %token		L_MAX_CACHE_TTL
 %token		L_MAX_LOG_SIZE_IXFR
+#ifndef NOMINUM_PUBLIC
 %token		L_MAX_NAMES
+#endif /* NOMINUM_PUBLIC */
 %token		L_MAX_NCACHE_TTL
 %token		L_MAX_REFRESH_TIME
 %token		L_MAX_RETRY_TIME
@@ -1462,6 +1464,7 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+#ifndef NOMINUM_PUBLIC
 	| L_MAX_NAMES L_INTEGER
 	{
 		tmpres = dns_c_ctx_setmaxnames(currcfg, $2);
@@ -1475,6 +1478,7 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+#endif /* NOMINUM_PUBLIC */
 	| L_HEARTBEAT L_INTEGER
 	{
 		if ( int_too_big($2, 60) ) {
@@ -4095,6 +4099,7 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+#ifndef NOMINUM_PUBLIC
 	| L_MAX_NAMES L_INTEGER
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -4112,6 +4117,7 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+#endif /* NOMINUM_PUBLIC */
 	| L_SIG_VALIDITY_INTERVAL L_INTEGER
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -4651,8 +4657,10 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
 	L_ENABLE_ZONE | L_DATABASE | L_PORT | L_MIN_RETRY_TIME |
-	L_MAX_RETRY_TIME | L_MIN_REFRESH_TIME | L_MAX_REFRESH_TIME |
-	L_MAX_NAMES 
+	L_MAX_RETRY_TIME | L_MIN_REFRESH_TIME | L_MAX_REFRESH_TIME
+#ifndef NOMINUM_PUBLIC
+	| L_MAX_NAMES 
+#endif /* NOMINUM_PUBLIC */
 	;
 
 
@@ -5089,6 +5097,7 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
+#ifndef NOMINUM_PUBLIC
 	| L_MAX_NAMES L_INTEGER
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
@@ -5106,6 +5115,7 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
+#endif /* NOMINUM_PUBLIC */
 	| L_MAX_LOG_SIZE_IXFR L_INTEGER
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
@@ -5591,7 +5601,9 @@ static struct token keyword_tokens [] = {
 	{ "max-retry-time",		L_MAX_RETRY_TIME },
 	{ "min-refresh-time",		L_MIN_REFRESH_TIME },
 	{ "max-refresh-time",		L_MAX_REFRESH_TIME },
+#ifndef NOMINUM_PUBLIC
 	{ "max-names",			L_MAX_NAMES },
+#endif /* NOMINUM_PUBLIC */
 	{ "maximal",			L_MAXIMAL },
 	{ "memstatistics-file",		L_MEMSTATS_FILE },
 	{ "min-roots",			L_MIN_ROOTS },
