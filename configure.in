@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.205.2.6 $)
+AC_REVISION($Revision: 1.205.2.7 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -173,11 +173,6 @@ if test "X$CC" = "X" ; then
 fi
 
 #
-# Find the machine's endian flavor.
-#
-AC_C_BIGENDIAN
-
-#
 # was --with-openssl specified?
 #
 AC_MSG_CHECKING(for compatible OpenSSL library)
@@ -298,6 +293,11 @@ esac
 
 AC_PROG_CC
 AC_PROG_YACC
+
+#
+# Find the machine's endian flavor.
+#
+AC_C_BIGENDIAN
 
 AC_HEADER_STDC
 

@@ -1,3 +1,10 @@
+
+ 831.	[bug]		The configure script tried to determine
+			endianness before making its final decision on
+			which C compiler to use, causing Solaris/x86
+			systems with gcc to be incorrectly identified
+			as big-endian. [RT #1315]
+
  827.	[bug]		When an IXFR protocol error occurs, the slave
 			should retry with AXFR.
 
