@@ -1,3 +1,6 @@
+1313.	[func]		Query log now says if the query was signed (S) or
+			if EDNS was used (E).
+
 1312.	[func]		Log TSIG key used w/ outgoing zone transfers.
 
 1309.	[func]		Log that a zone transfer was covered by a TSIG.
