@@ -1,3 +1,6 @@
+1236.	[bug]		dns_rdata{class,type}_fromtext() didn't handle non
+			NULL terminated text regions. [RT #2588]
+
 1235.	[func]		Report 'out of memory' errors from openssl.
 
 1234.	[bug]		contrib/sdb: 'zonetodb' failed to call
