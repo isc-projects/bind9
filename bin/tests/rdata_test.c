@@ -44,6 +44,7 @@ main(int argc, char *argv[]) {
 	int stats = 0;
 	unsigned int options = 0;
 	dns_rdatatype_t type;
+	dns_rdataclass_t class;
 	dns_rdatatype_t lasttype = 0;
 	char outbuf[16*1024];
 	char inbuf[16*1024];
@@ -126,6 +127,7 @@ main(int argc, char *argv[]) {
 		if (token.type == isc_tokentype_eof)
 			break;
 	
+		/* get type */
 		if (token.type == isc_tokentype_number) {
 			type = token.value.as_ulong;
 			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
@@ -150,11 +152,42 @@ main(int argc, char *argv[]) {
 		} else
 			continue;
 
+		if ((result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
+					  &token)) != ISC_R_SUCCESS)
+				  break;
+		if (token.type == isc_tokentype_eol)
+				continue;
+		if (token.type == isc_tokentype_eof)
+				break;
+		if (token.type == isc_tokentype_number) {
+			class = token.value.as_ulong;
+			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
+					ISC_BUFFERTYPE_TEXT);
+			result = dns_rdatatype_totext(class, &tbuf);
+			fprintf(stdout, "class = %.*s(%d)\n",
+				(int)tbuf.used, (char*)tbuf.base, class);
+		} else if (token.type == isc_tokentype_string) {
+			result = dns_rdataclass_fromtext(&class,
+					&token.value.as_textregion);
+			if (result != DNS_R_SUCCESS) {
+				fprintf(stdout,
+				    "dns_rdataclass_fromtext returned %s(%d)\n",
+					dns_result_totext(result), result);
+				fflush(stdout);
+				need_eol = 1;
+				continue;
+			}
+			fprintf(stdout, "class = %.*s(%d)\n",
+				(int)token.value.as_textregion.length,
+				token.value.as_textregion.base, class);
+		} else
+			continue;
+
 		fflush(stdout);
 		dns_rdata_init(&rdata);
 		isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
 				ISC_BUFFERTYPE_BINARY);
-		result = dns_rdata_fromtext(&rdata, 1, type, lex,
+		result = dns_rdata_fromtext(&rdata, class, type, lex,
 					    NULL, ISC_FALSE, &dbuf);
 		if (result != DNS_R_SUCCESS) {
 			fprintf(stdout,
@@ -217,7 +250,7 @@ main(int argc, char *argv[]) {
 			dns_rdata_init(&rdata);
 			isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
 					ISC_BUFFERTYPE_BINARY);
-			result = dns_rdata_fromwire(&rdata, 1, type, &wbuf,
+			result = dns_rdata_fromwire(&rdata, class, type, &wbuf,
 						    &dctx, ISC_FALSE, &dbuf);
 			if (result != DNS_R_SUCCESS) {
 				fprintf(stdout,
@@ -264,7 +297,7 @@ main(int argc, char *argv[]) {
 		region.base = malloc(region.length = rdata.length);
 		if (region.base) {
 			memcpy(region.base, rdata.data, rdata.length);
-			dns_rdata_fromregion(&last, 1, type, &region);
+			dns_rdata_fromregion(&last, class, type, &region);
 			lasttype = type;
 			first = 0;
 		} else
