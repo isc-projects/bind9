@@ -23,8 +23,6 @@
 #include <string.h>
 
 #include <isc/assertions.h>
-#include <isc/boolean.h>
-#include <isc/region.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -117,7 +115,7 @@ static struct dns_name root = { "", 1, 1 };
 
 dns_name_t *dns_rootname = &root;
 
-static void set_offsets(dns_name_t *, isc_boolean_t);
+static void set_offsets(dns_name_t *, dns_boolean_t);
 static void compact(dns_name_t *);
 
 /*
@@ -223,7 +221,7 @@ dns_name_init(dns_name_t *name) {
 	name->labels = 0;
 }
 
-isc_boolean_t
+dns_boolean_t
 dns_name_isabsolute(dns_name_t *name) {
 	/*
 	 * Does 'name' end in the root label?
@@ -232,8 +230,8 @@ dns_name_isabsolute(dns_name_t *name) {
 	REQUIRE(VALID_NAME(name));
 
 	if (name->ndata[name->offsets[name->labels - 1]] == 0)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (DNS_TRUE);
+	return (DNS_FALSE);
 }
 
 int
@@ -340,9 +338,9 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	return (ldiff);
 }
 
-isc_boolean_t
+dns_boolean_t
 dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
-	isc_boolean_t a1, a2;
+	dns_boolean_t a1, a2;
 	unsigned int l1, l2, count1, count2;
 	unsigned int b1, b2, n;
 	unsigned char c1, c2;
@@ -369,7 +367,7 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	l1 = name1->labels;
 	l2 = name2->labels;
 	if (l1 < l2)
-		return (ISC_FALSE);
+		return (DNS_FALSE);
 
 	while (l2 > 0) {
 		l1--;
@@ -380,17 +378,17 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 		count2 = *label2++;
 		if (count1 <= 63 && count2 <= 63) {
 			if (count1 != count2)
-				return (ISC_FALSE);
+				return (DNS_FALSE);
 			while (count2 > 0) {
 				count2--;
 				c1 = maptolower[*label1++];
 				c2 = maptolower[*label2++];
 				if (c1 != c2)
-					return (ISC_FALSE);
+					return (DNS_FALSE);
 			}
 		} else {
 			if (count1 != count2)
-				return (ISC_FALSE);
+				return (DNS_FALSE);
 			INSIST(count1 == DNS_LABELTYPE_BITSTRING &&
 			       count2 == DNS_LABELTYPE_BITSTRING);
 			count1 = *label1++;
@@ -400,20 +398,20 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 			if (count2 == 0)
 				count2 = 256;
 			if (count1 < count2)
-				return (ISC_FALSE);
+				return (DNS_FALSE);
 			/* Yes, this loop is really slow! */
 			for (n = 0; n < count2; n++) {
 				b1 = get_bit(label1, n);
 				b2 = get_bit(label2, n);
 				if (b1 != b2)
-					return (ISC_FALSE);
+					return (DNS_FALSE);
 			}
 			if (count1 != count2 && l2 != 0)
-				return (ISC_FALSE);
+				return (DNS_FALSE);
 		}
 	}
 
-	return (ISC_TRUE);
+	return (DNS_TRUE);
 }
 
 unsigned int
@@ -469,11 +467,11 @@ dns_name_getlabelsequence(dns_name_t *source,
 			source->offsets[first];
 	target->labels = n;
 
-	set_offsets(target, ISC_FALSE);
+	set_offsets(target, DNS_FALSE);
 }
 
 void
-dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
+dns_name_fromregion(dns_name_t *name, dns_region_t *r) {
 	/*
 	 * Make 'name' refer to region 'r'.
 	 */
@@ -486,13 +484,13 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 	name->length = r->length;
 
 	if (r->length > 0)
-		set_offsets(name, ISC_TRUE);
+		set_offsets(name, DNS_TRUE);
 	else
 		name->labels = 0;
 }
 
 void
-dns_name_toregion(dns_name_t *name, isc_region_t *r) {
+dns_name_toregion(dns_name_t *name, dns_region_t *r) {
 	/*
 	 * Make 'r' refer to 'name'.
 	 */
@@ -506,9 +504,9 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 
 
 dns_result_t
-dns_name_fromtext(dns_name_t *name, isc_region_t *source,
-		  dns_name_t *origin, isc_boolean_t downcase,
-		  isc_region_t *target)
+dns_name_fromtext(dns_name_t *name, dns_region_t *source,
+		  dns_name_t *origin, dns_boolean_t downcase,
+		  dns_region_t *target)
 {
 	unsigned char *ndata, *label;
 	char *tdata;
@@ -516,7 +514,7 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 	tw_state state, kind;
 	unsigned int value, count, tbcount, bitlength, maxlength;
 	unsigned int n1, n2, vlen, tlen, nrem, digits, labels;
-	isc_boolean_t done, saw_bitstring;
+	dns_boolean_t done, saw_bitstring;
 	unsigned char dqchars[4];
 
 	/*
@@ -564,8 +562,8 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 	if (nrem > 255)
 		nrem = 255;
 	labels = 0;
-	done = ISC_FALSE;
-	saw_bitstring = ISC_FALSE;
+	done = DNS_FALSE;
+	saw_bitstring = DNS_FALSE;
 	state = tw_init;
 
 	while (nrem > 0 && tlen > 0 && !done) {
@@ -584,7 +582,7 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 				labels++;
 				*ndata++ = 0;
 				nrem--;
-				done = ISC_TRUE;
+				done = DNS_TRUE;
 				break;
 			}
 			/* FALLTHROUGH */
@@ -610,7 +608,7 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 					labels++;
 					*ndata++ = 0;
 					nrem--;
-					done = ISC_TRUE;
+					done = DNS_TRUE;
 				}
 				state = tw_start;
 			} else if (c == '\\') {
@@ -628,7 +626,7 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 			break;
 		case tw_initialescape:
 			if (c == '[') {
-				saw_bitstring = ISC_TRUE;
+				saw_bitstring = DNS_TRUE;
 				kind = tw_bitstring;
 				state = tw_bitstring;
 				*label = DNS_LABELTYPE_BITSTRING;
@@ -905,7 +903,7 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 				labels++;
 				*ndata++ = 0;
 				nrem--;
-				done = ISC_TRUE;
+				done = DNS_TRUE;
 			}
 			state = tw_start;
 			break;
@@ -948,7 +946,7 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 	/*
 	 * We should build the offsets table directly.
 	 */
-	set_offsets(name, ISC_FALSE);
+	set_offsets(name, DNS_FALSE);
 
 	if (saw_bitstring)
 		compact(name);
@@ -957,8 +955,8 @@ dns_name_fromtext(dns_name_t *name, isc_region_t *source,
 }
 
 dns_result_t
-dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
-		isc_region_t *target, unsigned int *bytesp)
+dns_name_totext(dns_name_t *name, dns_boolean_t omit_final_dot,
+		dns_region_t *target, unsigned int *bytesp)
 {
 	unsigned char *ndata;
 	char *tdata;
@@ -968,7 +966,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	unsigned int bytes, nibbles;
 	size_t i, len;
 	unsigned int labels;
-	isc_boolean_t saw_root = ISC_FALSE;
+	dns_boolean_t saw_root = DNS_FALSE;
 	char num[4];
 
 	/*
@@ -987,7 +985,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 
 	/* Special handling for root label. */
 	if (nlen == 1 && labels == 1 && *ndata == 0) {
-		saw_root = ISC_TRUE;
+		saw_root = DNS_TRUE;
 		labels = 0;
 		nlen = 0;
 		if (trem == 0)
@@ -1001,7 +999,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		count = *ndata++;
 		nlen--;
 		if (count == 0) {
-			saw_root = ISC_TRUE;
+			saw_root = DNS_TRUE;
 			break;
 		}
 		if (count < 64) {
@@ -1113,7 +1111,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 }
 
 static void
-set_offsets(dns_name_t *name, isc_boolean_t set_labels) {
+set_offsets(dns_name_t *name, dns_boolean_t set_labels) {
 	unsigned int offset, count, nlabels, nrem, n;
 	unsigned char *ndata;
 
