@@ -188,10 +188,12 @@ static void internal_connect(isc_task_t *, isc_event_t *);
 static void internal_recv(isc_task_t *, isc_event_t *);
 static void internal_send(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
-static int build_msghdr_send(isc_socketevent_t *, struct msghdr *,
-			     struct iovec *, unsigned int maxiov);
-static int build_msghdr_recv(isc_socketevent_t *, struct msghdr *,
-			     struct iovec *, unsigned int maxiov);
+static int build_msghdr_send(isc_socket_t *, isc_socketevent_t *,
+			     struct msghdr *, struct iovec *, unsigned int,
+			     size_t *);
+static int build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
+			     struct msghdr *, struct iovec *, unsigned int,
+			     unsigned int *);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
@@ -303,25 +305,50 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
  * on the buffer linked list for this function to be meaningful.
  */
 static int
-build_msghdr_send(isc_socketevent_t *dev, struct msghdr *msg,
-		  struct iovec *iov, unsigned int maxiov)
+build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
+		  struct msghdr *msg, struct iovec *iov, unsigned int maxiov,
+		  size_t *write_countp)
 {
 	unsigned int iovcount;
 	isc_buffer_t *buffer;
 	isc_region_t used;
+	size_t write_count;
+	size_t skip_count;
+
+	memset(msg, 0, sizeof (struct msghdr));
+
+	if (sock->type == isc_sockettype_udp) {
+		msg->msg_name = (void *)&dev->address.type.sa;
+		msg->msg_namelen = dev->address.length;
+	}
 
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
+	write_count = 0;
+	skip_count = 0;
 
 	/*
-	 * Single buffer I/O?
+	 * Single buffer I/O?  Skip what we've done so far in this region.
 	 */
 	if (buffer == NULL) {
-		iov[0].iov_base = (void *)dev->region.base;
-		iov[0].iov_len = dev->region.length;
+		write_count = dev->region.length - dev->n;
+		iov[0].iov_base = (void *)(dev->region.base + dev->n);
+		iov[0].iov_len = write_count;
 		msg->msg_iov = iov;
 		msg->msg_iovlen = 1;
 
-		return (0);
+		goto config;
+	}
+
+	/*
+	 * Multibuffer I/O.
+	 * Skip the data in the buffer list that we have already written.
+	 */
+	while (buffer != NULL) {
+		isc_buffer_used(buffer, &used);
+		if (skip_count < used.length)
+			break;
+		skip_count -= used.length;
+		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 
 	iovcount = 0;
@@ -330,9 +357,13 @@ build_msghdr_send(isc_socketevent_t *dev, struct msghdr *msg,
 			return (-1);
 
 		isc_buffer_used(buffer, &used);
+
 		if (used.length > 0) {
-			iov[iovcount].iov_base = (void *)used.base;
-			iov[iovcount].iov_len = used.length;
+			iov[iovcount].iov_base = (void *)(used.base
+							  + skip_count);
+			iov[iovcount].iov_len = used.length - skip_count;
+			write_count += (used.length - skip_count);
+			skip_count = 0;
 			iovcount++;
 		}
 		buffer = ISC_LIST_NEXT(buffer, link);
@@ -341,7 +372,35 @@ build_msghdr_send(isc_socketevent_t *dev, struct msghdr *msg,
 	msg->msg_iov = iov;
 	msg->msg_iovlen = iovcount;
 
+ config:
+#ifdef ISC_NET_BSD44MSGHDR
+	msg->msg_control = NULL;
+	msg->msg_controllen = 0;
+	msg->msg_flags = 0;
+#else
+	msg->msg_accrights = NULL;
+	msg->msg_accrightslen = 0;
+#endif
+
+	if (write_countp != NULL)
+		*write_countp = write_count;
+
 	return (0);
+}
+
+static void
+set_dev_address(isc_sockaddr_t *address, isc_socket_t *sock,
+		isc_socketevent_t *dev)
+{
+	if (sock->type == isc_sockettype_udp) {
+		if (address != NULL)
+			dev->address = *address;
+		else
+			dev->address = sock->address;
+	} else if (sock->type == isc_sockettype_tcp) {
+		INSIST(address == NULL);
+		dev->address = sock->address;
+	}
 }
 
 static isc_socketevent_t *
@@ -1199,27 +1258,8 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 		 * It must be a write request.  Try to satisfy it as best
 		 * we can.
 		 */
-		write_count = dev->region.length - dev->n;
-		iov[0].iov_base = (void *)(dev->region.base + dev->n);
-		iov[0].iov_len = write_count;
-
-		memset(&msghdr, 0, sizeof (msghdr));
-		if (sock->type == isc_sockettype_udp) {
-			msghdr.msg_name = (void *)&dev->address.type.sa;
-			msghdr.msg_namelen = dev->address.length;
-		}
-
-		msghdr.msg_iov = iov;
-		msghdr.msg_iovlen = 1;
-
-#ifdef ISC_NET_BSD44MSGHDR
-		msghdr.msg_control = NULL;
-		msghdr.msg_controllen = 0;
-		msghdr.msg_flags = 0;
-#else
-		msghdr.msg_accrights = NULL;
-		msghdr.msg_accrightslen = 0;
-#endif
+		build_msghdr_send(sock, dev, &msghdr, iov,
+				  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
 
 		cc = sendmsg(sock->fd, &msghdr, 0);
 
@@ -1917,6 +1957,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_boolean_t was_empty;
 	struct msghdr msghdr;
 	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
+	size_t write_count;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1935,52 +1976,22 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
-	ISC_LINK_INIT(dev, link);
-	ISC_LIST_INIT(dev->bufferlist);
 
-	dev->result = ISC_R_SUCCESS;
 	dev->minimum = region->length;
 	dev->n = 0;
 	dev->region = *region;
 
-	was_empty = ISC_LIST_EMPTY(sock->send_list);
-
-	if (sock->type == isc_sockettype_udp) {
-		if (address != NULL)
-			dev->address = *address;
-		else
-			dev->address = sock->address;
-	} else if (sock->type == isc_sockettype_tcp) {
-		INSIST(address == NULL);
-		dev->address = sock->address;
-	}
+	set_dev_address(address, sock, dev);
 
 	/*
 	 * If the read queue is empty, try to do the I/O right now.
 	 */
+	was_empty = ISC_LIST_EMPTY(sock->send_list);
 	if (!was_empty)
 		goto queue;
 
-	iov[0].iov_base = (void *)(dev->region.base);
-	iov[0].iov_len = dev->region.length;
-
-	memset(&msghdr, 0, sizeof (msghdr));
-	if (sock->type == isc_sockettype_udp) {
-		msghdr.msg_name = (void *)&dev->address.type.sa;
-		msghdr.msg_namelen = dev->address.length;
-	}
-
-	msghdr.msg_iov = iov;
-	msghdr.msg_iovlen = 1;
-
-#ifdef ISC_NET_BSD44MSGHDR
-	msghdr.msg_control = NULL;
-	msghdr.msg_controllen = 0;
-	msghdr.msg_flags = 0;
-#else
-	msghdr.msg_accrights = NULL;
-	msghdr.msg_accrightslen = 0;
-#endif
+	build_msghdr_send(sock, dev, &msghdr,
+			  iov, ISC_SOCKET_MAXSCATTERGATHER, &write_count);
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 
@@ -2029,7 +2040,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	/*
 	 * Partial writes need to be queued
 	 */
-	if ((size_t)cc != dev->region.length)
+	if ((size_t)cc != write_count)
 		goto queue;
 
 	/*
