@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.406 2004/03/02 01:19:51 marka Exp $ */
+/* $Id: zone.c,v 1.407 2004/03/02 02:37:11 marka Exp $ */
 
 #include <config.h>
 
@@ -970,7 +970,10 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		 * zone being reloaded.  Do nothing - the database
 		 * we already have is guaranteed to be up-to-date.
 		 */
-		result = ISC_R_SUCCESS;
+		if (zone->type == dns_zone_master)
+			result = DNS_R_DYNAMIC;
+		else
+			result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 
