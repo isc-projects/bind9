@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.124 2000/12/15 19:07:07 gson Exp $ */
+/* $Id: dnssec-signzone.c,v 1.125 2000/12/15 19:19:56 gson Exp $ */
 
 #include <config.h>
 
@@ -1482,7 +1482,6 @@ main(int argc, char *argv[]) {
 	char *randomfile = NULL;
 	char *endp;
 	isc_time_t timer_start, timer_finish;
-	isc_uint64_t micro_sec, sigs_sec;
 	signer_key_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
@@ -1783,9 +1782,13 @@ main(int argc, char *argv[]) {
 	(void) isc_app_finish();
 
 	if (printstats) {
+		isc_uint64_t runtime_us;   /* Runtime in microseconds */
+		isc_uint64_t runtime_100s; /* Same in hundredths of seconds */
+		isc_uint64_t sigs_100s;    /* Signatures per 100 seconds */
+
 		isc_time_now(&timer_finish);
 
-		micro_sec = isc_time_microdiff(&timer_finish, &timer_start);
+		runtime_us = isc_time_microdiff(&timer_finish, &timer_start);
 
 		printf("Signatures generated:               %d\n",
 		       nsigned);
@@ -1797,16 +1800,16 @@ main(int argc, char *argv[]) {
 		       nverified);
 		printf("Signatures unsuccessfully verified: %d\n",
 		       nverifyfailed);
-#define SEC_CONST 1000000
-		printf("Runtime in seconds                  %u.%2.2u\n", 
-		       (isc_int32_t) micro_sec / SEC_CONST, 
-		       (isc_int32_t) (micro_sec % SEC_CONST));
-		if (nsigned > 0 && micro_sec > 0) {
-			sigs_sec = nsigned;
-			sigs_sec *= 100 * SEC_CONST / micro_sec;
-			printf("Signatures/second                   %u.%2u\n", 
-			       (u_int32_t) sigs_sec/100, 
-			       (u_int32_t) sigs_sec%100);
+#define MICROSECONDS 1000000
+		runtime_100s = 100 * runtime_us / MICROSECONDS;
+		printf("Runtime in seconds                  %u.%02u\n", 
+		       (unsigned int) (runtime_100s / 100), 
+		       (unsigned int) (runtime_100s % 100));
+		if (runtime_us > 0) {
+			sigs_100s = nsigned * 100 * MICROSECONDS / runtime_us;
+			printf("Signatures/second                   %u.%02u\n", 
+			       (unsigned int) sigs_100s / 100, 
+			       (unsigned int) sigs_100s % 100);
 		}
 	}
 
