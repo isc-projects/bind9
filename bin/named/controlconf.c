@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.25 2001/08/04 07:38:06 marka Exp $ */
+/* $Id: controlconf.c,v 1.26 2001/08/04 07:49:38 marka Exp $ */
 
 #include <config.h>
 
@@ -881,7 +881,9 @@ update_listener(ns_controls_t *cp,
 	 * channel reload, then the response will be with the new key
 	 * and not able to be decrypted by the client.
 	 */
-	get_key_info(config, control, &global_keylist, &control_keylist);
+	if (control != NULL)
+		get_key_info(config, control, &global_keylist,
+			     &control_keylist);
 
 	if (control_keylist != NULL) {
 		INSIST(global_keylist != NULL);
