@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.h,v 1.5 1999/01/20 05:20:24 marka Exp $ */
+ /* $Id: a_1.h,v 1.6 1999/01/22 00:36:58 marka Exp $ */
 
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
@@ -33,7 +33,6 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_token_t token;
 	struct in_addr addr;
 	isc_region_t region;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	REQUIRE(type == 1);
 	REQUIRE(class == 1);
@@ -41,15 +40,7 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
-	}
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	if (inet_aton(token.value.as_pointer , &addr) != 1)
 		return (DNS_R_UNEXPECTED);

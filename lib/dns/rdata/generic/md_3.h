@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: md_3.h,v 1.4 1999/01/20 05:20:20 marka Exp $ */
+ /* $Id: md_3.h,v 1.5 1999/01/22 00:36:55 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MD_3_H
 #define RDATA_GENERIC_MD_3_H
@@ -25,25 +25,14 @@ fromtext_md(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
 	    isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	isc_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	REQUIRE(type == 3);
 
 	class = class;	/*unused*/
 
-	result = isc_lex_gettoken(lexer, options, &token); 
-	if (result != ISC_R_SUCCESS)   
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
-	}
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.1 1999/01/21 06:02:15 marka Exp $ */
+ /* $Id: wks_11.c,v 1.2 1999/01/22 00:36:59 marka Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_H
 #define RDATA_IN_1_WKS_11_H
@@ -36,14 +36,13 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	   isc_lex_t *lexer, dns_name_t *origin,
 	   isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	dns_result_t result;
 	isc_region_t region;
 	struct in_addr addr;
 	struct protoent *pe;
 	struct servent *se;
 	char *e;
 	long proto;
-	unsigned char bm[8*1024];
+	unsigned char bm[8*1024]; /* 64k bits */
 	long port;
 	long maxport = -1;
 	char *ps = NULL;
@@ -56,9 +55,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	downcase = downcase;	/*unused*/
 
 	/* IPv4 dotted quad */
-	result = gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	isc_buffer_available(target, &region);
 	if (inet_aton(token.value.as_pointer , &addr) != 1)
@@ -69,9 +66,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_buffer_add(target, 4);
 
 	/* protocol */
-	result = gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	proto = strtol(token.value.as_pointer, &e, 10);
 	if (*e == '\0')
@@ -88,16 +83,13 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	else if (proto == IPPROTO_UDP)
 		ps = "udp";
 
-	result = uint16_tobuffer(proto, target);
+	RETERR(uint16_tobuffer(proto, target));
 
 	memset(bm, 0, sizeof bm);
 	while (1) {
-		result = gettoken(lexer, &token, isc_tokentype_string,
-				  ISC_TRUE);
-		if (result != DNS_R_SUCCESS)
-			return (result);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
+		RETERR(gettoken(lexer, &token, isc_tokentype_string,
+				  ISC_TRUE));
+		if (token.type != isc_tokentype_string)
 			break;
 		port = strtol(token.value.as_pointer, &e, 10);
 		if (*e == '\0')
@@ -124,7 +116,6 @@ totext_in_wks(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t tr;
 	unsigned short proto;
 	char buf[sizeof "65535"];
-	dns_result_t result;
 	unsigned int i, j;
 
 	REQUIRE(rdata->type == 11);
@@ -140,30 +131,21 @@ totext_in_wks(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 	proto = uint16_fromregion(&sr);
 	sprintf(buf, "%u", proto);
-	result = str_totext(" ", target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	result = str_totext(buf, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(str_totext(" ", target));
+	RETERR(str_totext(buf, target));
 	isc_region_consume(&sr, 2);
-	result = str_totext(" (", target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(str_totext(" (", target));
+
 	for (i = 0 ; i < sr.length ; i++) {
 		if (sr.base[i] != 0)
 			for (j = 0; j < 8; j++)
 				if ((sr.base[i] & (0x80>>j)) != 0) {
 					sprintf(buf, "%u", i * 8 + j);
-					result = str_totext(" ", target);
-					if (result != DNS_R_SUCCESS)
-						return (result);
-					result = str_totext(buf, target);
-					if (result != DNS_R_SUCCESS)
-						return (result);
+					RETERR(str_totext(" ", target));
+					RETERR(str_totext(buf, target));
 				}
 	}
-	result = str_totext(" )", target);
+	RETERR(str_totext(" )", target));
 	return (DNS_R_SUCCESS);
 }
 

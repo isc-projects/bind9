@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.5 1999/01/20 05:20:24 marka Exp $ */
+ /* $Id: txt_16.c,v 1.6 1999/01/22 00:36:58 marka Exp $ */
 
 #ifndef RDATA_GENERIC_TXT_16_H
 #define RDATA_GENERIC_TXT_16_H
@@ -25,8 +25,6 @@ fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
 	     isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	dns_result_t result;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	REQUIRE(type == 16);
 
@@ -34,14 +32,12 @@ fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	while (token.type == isc_tokentype_string) {
-		result = txt_fromtext(&token.value.as_textregion, target);
-		if (result != DNS_R_SUCCESS)
-			return (result);
-		if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-			return (DNS_R_UNKNOWN);
+	while (1) {
+		RETERR(gettoken(lexer, &token, isc_tokentype_string,
+				ISC_TRUE));
+		if (token.type != isc_tokentype_string)
+			break;
+		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
 	/* Let upper layer handle eol/eof. */
 	isc_lex_ungettoken(lexer, &token);
@@ -51,7 +47,6 @@ fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 static dns_result_t
 totext_txt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
-	dns_result_t result;
 
 	REQUIRE(rdata->type == 16);
 
@@ -60,14 +55,9 @@ totext_txt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_rdata_toregion(rdata, &region);
 
 	while (region.length) {
-		result = txt_totext(&region, target);
-		if (result != DNS_R_SUCCESS)
-			return (result);
-		if (region.length) {
-			result = str_totext(" ", target);
-			if (result != DNS_R_SUCCESS)
-				return (result);
-		}
+		RETERR(txt_totext(&region, target));
+		if (region.length)
+			RETERR(str_totext(" ", target));
 	}
 
 	return (DNS_R_SUCCESS);
@@ -112,22 +102,16 @@ towire_txt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 static int
 compare_txt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
-	int l;
-	int result;
+	isc_region_t r1;
+	isc_region_t r2;
 	
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
-	REQUIRE(rdata1->class == 16);
+	REQUIRE(rdata1->type == 16);
 
-	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
-	result = memcmp(rdata1->data, rdata2->data, l);
-
-	if (result != 0)
-		result = (result < 0) ? -1 : 1;
-	else if (rdata1->length != rdata2->length)
-			result = (rdata1->length < rdata2->length) ? -1 : 1;
-
-	return (result);
+	dns_rdata_toregion(rdata1, &r1);
+	dns_rdata_toregion(rdata2, &r2);
+	return (compare_region(&r1, &r2));
 }
 
 static dns_result_t

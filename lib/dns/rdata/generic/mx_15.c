@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.7 1999/01/21 06:02:14 marka Exp $ */
+ /* $Id: mx_15.c,v 1.8 1999/01/22 00:36:57 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H
@@ -27,38 +27,16 @@ fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
-	dns_result_t result;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	REQUIRE(type == 15);
 
 	class = class;	/*unused*/
 
-	options |= ISC_LEXOPT_NUMBER;
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_number) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
-	}
+	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	
-	result = uint16_tobuffer(token.value.as_ulong, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	options &= ~ISC_LEXOPT_NUMBER;
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
-	}
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
@@ -73,7 +51,6 @@ totext_mx(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	dns_result_t result;
 	char buf[sizeof "64000"];
 	unsigned short num;
 
@@ -86,14 +63,8 @@ totext_mx(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	sprintf(buf, "%u", num);
-	result = str_totext(buf, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-	result = str_totext(" ", target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
+	RETERR(str_totext(buf, target));
+	RETERR(str_totext(" ", target));
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, origin, &prefix);
 	return(dns_name_totext(&prefix, sub, target));
@@ -128,7 +99,6 @@ static dns_result_t
 towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
-	dns_result_t result;
 	isc_region_t tr;
 
 	REQUIRE(rdata->type == 15);
@@ -144,8 +114,7 @@ towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 
-	result = dns_name_towire(&name, cctx, target);
-	return (result);
+	return (dns_name_towire(&name, cctx, target));
 }
 
 static int

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.7 1999/01/21 06:02:14 marka Exp $ */
+ /* $Id: soa_6.h,v 1.8 1999/01/22 00:36:58 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_H
 #define RDATA_GENERIC_SOA_6_H
@@ -27,65 +27,28 @@ fromtext_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
-	dns_result_t result;
 	int i;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	REQUIRE(type == 6);
 
 	class = class;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
+	for (i = 0 ; i < 2 ; i++) {
+		RETERR(gettoken(lexer, &token, isc_tokentype_string,
+				ISC_FALSE));
+
+		dns_name_init(&name, NULL);
+		buffer_fromregion(&buffer, &token.value.as_region,
+				  ISC_BUFFERTYPE_TEXT);
+		origin = (origin != NULL) ? origin : dns_rootname;
+		RETERR(dns_name_fromtext(&name, &buffer, origin,
+					 downcase, target));
 	}
 
-	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
-	origin = (origin != NULL) ? origin : dns_rootname;
-	result = dns_name_fromtext(&name, &buffer, origin, downcase, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
-	}
-
-	dns_name_init(&name, NULL);
-	buffer_fromregion(&buffer, &token.value.as_region,
-			  ISC_BUFFERTYPE_TEXT);
-	origin = (origin != NULL) ? origin : dns_rootname;
-	result = dns_name_fromtext(&name, &buffer, origin, downcase, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-	options |= ISC_LEXOPT_NUMBER;
 	for (i = 0; i < 5; i++) {
-		if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-			return (DNS_R_UNEXPECTED);
-		if (token.type != isc_tokentype_number) {
-			isc_lex_ungettoken(lexer, &token);
-			if (token.type == isc_tokentype_eol ||
-			    token.type == isc_tokentype_eof)
-				return(DNS_R_UNEXPECTEDEND);
-			return (DNS_R_UNEXPECTED);
-		}
-
-		result = uint32_tobuffer(token.value.as_ulong, target);
-		if (result != DNS_R_SUCCESS)
-			return (result);
+		RETERR(gettoken(lexer, &token, isc_tokentype_number,
+				  ISC_FALSE));
+		RETERR(uint32_tobuffer(token.value.as_ulong, target));
 	}
 	return (DNS_R_SUCCESS);
 }
@@ -96,7 +59,6 @@ totext_soa(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_t mname;
 	dns_name_t rname;
 	dns_name_t prefix;
-	dns_result_t result;
 	isc_boolean_t sub;
 	int i;
 
@@ -115,33 +77,23 @@ totext_soa(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_consume(&dregion, name_length(&rname));
 
 	sub = name_prefix(&mname, origin, &prefix);
-	result = dns_name_totext(&prefix, sub, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(dns_name_totext(&prefix, sub, target));
 	
-	result = str_totext(" ", target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(str_totext(" ", target));
 
 	sub = name_prefix(&rname, origin, &prefix);
-	result = dns_name_totext(&prefix, sub, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(dns_name_totext(&prefix, sub, target));
 
 	for (i = 0; i < 5 ; i++) {
 		char buf[sizeof "2147483647"];
 		unsigned long num;
 
-		result = str_totext(" ", target);
-		if (result != DNS_R_SUCCESS)
-			return (result);
+		RETERR(str_totext(" ", target));
 
 		num = uint32_fromregion(&dregion);
 		isc_region_consume(&dregion, 4); 
 		sprintf(buf, "%lu", num);
-		result = str_totext(buf, target);
-		if (result != DNS_R_SUCCESS)
-			return (result);
+		RETERR(str_totext(buf, target));
 	}
 	return (DNS_R_SUCCESS);
 }
@@ -152,7 +104,6 @@ fromwire_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_boolean_t downcase, isc_buffer_t *target) {
         dns_name_t mname;
         dns_name_t rname;
-	dns_result_t result;
 	isc_region_t sregion;
 	isc_region_t tregion;
         
@@ -163,13 +114,8 @@ fromwire_soa(dns_rdataclass_t class, dns_rdatatype_t type,
         dns_name_init(&mname, NULL);
         dns_name_init(&rname, NULL);
 
-        result = dns_name_fromwire(&mname, source, dctx, downcase, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-        result = dns_name_fromwire(&rname, source, dctx, downcase, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+        RETERR(dns_name_fromwire(&mname, source, dctx, downcase, target));
+        RETERR(dns_name_fromwire(&rname, source, dctx, downcase, target));
 
 	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
@@ -191,7 +137,6 @@ towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t tregion;
 	dns_name_t mname;
 	dns_name_t rname;
-	dns_result_t result;
 
 	REQUIRE(rdata->type == 6);
 
@@ -201,15 +146,11 @@ towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_rdata_toregion(rdata, &sregion);
 	dns_name_fromregion(&mname, &sregion);
 	isc_region_consume(&sregion, name_length(&mname));
-	result = dns_name_towire(&mname, cctx, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(dns_name_towire(&mname, cctx, target));
 
 	dns_name_fromregion(&rname, &sregion);
 	isc_region_consume(&sregion, name_length(&rname));
-	result = dns_name_towire(&rname, cctx, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(dns_name_towire(&rname, cctx, target));
 
 	isc_buffer_available(target, &tregion);
 	if (tregion.length < 20)
@@ -236,7 +177,7 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_init(&name2, NULL);
 
 	dns_rdata_toregion(rdata1, &region1);
-	dns_rdata_toregion(rdata2, &region1);
+	dns_rdata_toregion(rdata2, &region2);
 
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
@@ -245,8 +186,8 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	if (result != 0)
 		return (result);
 
-	isc_region_consume(&region1, name1.length);
-	isc_region_consume(&region2, name2.length);
+	isc_region_consume(&region1, name_length(&name1));
+	isc_region_consume(&region2, name_length(&name2));
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -258,14 +199,10 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	if (result != 0)
 		return (result);
 
-	isc_region_consume(&region1, name1.length);
-	isc_region_consume(&region2, name2.length);
+	isc_region_consume(&region1, name_length(&name1));
+	isc_region_consume(&region2, name_length(&name2));
 
-	result = memcmp(region1.base, region2.base, 12);
-	if (result != 0)
-		return ((result < 0) ? -1 : 1);
-
-	return (0);
+	return (compare_region(&region1, &region2));
 }
 
 static dns_result_t

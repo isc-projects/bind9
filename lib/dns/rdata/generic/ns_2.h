@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.h,v 1.4 1999/01/20 05:20:22 marka Exp $ */
+ /* $Id: ns_2.h,v 1.5 1999/01/22 00:36:57 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_H
 #define RDATA_GENERIC_NS_2_H
@@ -27,21 +27,12 @@ fromtext_ns(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	REQUIRE(type == 2);
 
 	class = class;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
-	}
+	RETERR(gettoken(lexer, &token,isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.h,v 1.5 1999/01/20 05:20:20 marka Exp $ */
+ /* $Id: hinfo_13.h,v 1.6 1999/01/22 00:36:55 marka Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_H
 #define RDATA_GENERIC_HINFO_13_H
@@ -25,8 +25,7 @@ fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	dns_result_t result;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
+	int i;
 
 	REQUIRE(type == 13);
 
@@ -34,60 +33,32 @@ fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
+	for (i = 0; i < 2 ; i++) {
+		RETERR(gettoken(lexer, &token, isc_tokentype_string,
+				ISC_FALSE));
+		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
-
-	result = txt_fromtext(&token.value.as_textregion, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
-	if (token.type != isc_tokentype_string) {
-		isc_lex_ungettoken(lexer, &token);
-		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof)
-			return(DNS_R_UNEXPECTEDEND);
-		return (DNS_R_UNEXPECTED);
-	}
-	return (txt_fromtext(&token.value.as_textregion, target));
+	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
 totext_hinfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
-	dns_result_t result;
 
 	REQUIRE(rdata->type == 13);
 
 	origin = origin;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
-
-	result = txt_totext(&region, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-	result = str_totext(" ", target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-	result = txt_totext(&region, target);
-	return (DNS_R_SUCCESS);
+	RETERR(txt_totext(&region, target));
+	RETERR(str_totext(" ", target));
+	return (txt_totext(&region, target));
 }
 
 static dns_result_t
 fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
-	dns_result_t result;
 
 	REQUIRE(type == 13);
 
@@ -95,10 +66,7 @@ fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	class = class;		/* unused */
 	downcase = downcase;	/* unused */
 
-	result = txt_fromwire(source, target);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
+	RETERR(txt_fromwire(source, target));
 	return (txt_fromwire(source, target));
 }
 

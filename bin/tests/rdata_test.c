@@ -45,6 +45,7 @@ main(int argc, char *argv[]) {
 	unsigned int options = 0;
 	unsigned int parens = 0;
 	dns_rdatatype_t type;
+	dns_rdatatype_t lasttype = 0;
 	char outbuf[16*1024];
 	char inbuf[16*1024];
 	char wirebuf[16*1024];
@@ -52,6 +53,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_t tbuf;
 	isc_buffer_t wbuf;
 	dns_rdata_t rdata;
+	dns_rdata_t last;
 	int need_eol = 0;
 	int wire = 0;
 	dns_compress_t cctx;
@@ -61,6 +63,8 @@ main(int argc, char *argv[]) {
 	int len;
 	int zero = 0;
 	int debug = 0;
+	isc_region_t region;
+	int first = 1;
 
 	while ((c = getopt(argc, argv, "dqswtaz")) != -1) {
 		switch (c) {
@@ -107,6 +111,7 @@ main(int argc, char *argv[]) {
 
 	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
 
+	dns_rdata_init(&last);
 	while ((result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
 					  &token)) == ISC_R_SUCCESS) {
 		if (debug) fprintf(stdout, "token.type = %d\n", token.type);
@@ -219,6 +224,24 @@ main(int argc, char *argv[]) {
 			fprintf(stdout, "\"%.*s\"\n",
 				(int)tbuf.used, (char*)tbuf.base);
 		fflush(stdout);
+		if (lasttype == type) {
+			fprintf(stdout, "dns_rdata_compare = %d\n",
+				dns_rdata_compare(&rdata, &last));
+
+		}
+		if (!first) {
+			free(last.data);
+		}
+		dns_rdata_init(&last);
+		region.base = malloc(region.length = rdata.length);
+		if (region.base) {
+			memcpy(region.base, rdata.data, rdata.length);
+			dns_rdata_fromregion(&last, 1, type, &region);
+			lasttype = type;
+			first = 0;
+		} else
+			first = 1;
+
 	}
 	if (result != ISC_R_EOF)
 		printf("Result: %s\n", isc_result_totext(result));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.8 1999/01/21 06:02:13 marka Exp $ */
+ /* $Id: rdata.c,v 1.9 1999/01/22 00:36:54 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
@@ -27,6 +27,12 @@
 #include <dns/rdatatype.h>
 #include <stdio.h>
 #include <isc/assertions.h>
+
+#define RETERR(x) { \
+	dns_result_t __r = (x); \
+	if (__r != DNS_R_SUCCESS) \
+		return (__r); \
+	}
 
 static dns_result_t	txt_totext(isc_region_t *source, isc_buffer_t *target);
 static dns_result_t	txt_fromtext(isc_textregion_t *source,
