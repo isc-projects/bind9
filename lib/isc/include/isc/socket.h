@@ -338,7 +338,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog);
  *
  * Requires:
  *
- *	'socket' is a valid TCP socket.
+ *	'socket' is a valid, bound TCP socket.
  *
  * Returns:
  *
@@ -356,8 +356,8 @@ isc_socket_accept(isc_socket_t *sock,
  * event type, and is attached to the task 'task'.
  *
  * REQUIRES:
- *	'socket' is a valid TCP socket that isc_socket_listen() has been
- *	called on
+ *	'socket' is a valid TCP socket that isc_socket_listen() was called
+ *	on.
  *
  *	'task' is a valid task
  *
@@ -473,7 +473,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
  *
  * Requires:
  *
- *	'socket' is a valid socket
+ *	'socket' is a valid, bound socket.
  *
  *	For isc_socket_recv():
  *	'region' is a valid region
@@ -534,7 +534,7 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
  *
  * Requires:
  *
- *	'socket' is a valid socket
+ *	'socket' is a valid, bound socket.
  *
  *	For isc_socket_send():
  *	'region' is a valid region
@@ -573,7 +573,7 @@ isc_socket_sendmark(isc_socket_t *sock,
  *
  * Requires:
  *
- *	'sock' to be a valid socket.
+ *	'socket' is a valid, bound socket.
  *
  *	'task' is a valid task, 'action' is a valid action.
  *
