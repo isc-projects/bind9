@@ -66,10 +66,6 @@ extern "C" {
 #include <openssl/bio.h>
 #include <openssl/x509.h>
 
-#ifdef VMS
-#include <openssl/vms_idhacks.h>
-#endif
-
 #ifdef WIN32
 /* Under Win32 thes are defined in wincrypt.h */
 #undef PKCS7_ISSUER_AND_SERIAL

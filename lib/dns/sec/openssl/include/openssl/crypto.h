@@ -77,11 +77,6 @@ extern "C" {
 #include <openssl/ebcdic.h>
 #endif
 
-#if defined(VMS) || defined(__VMS)
-#include "vms_idhacks.h"
-#endif
-
-
 /* Backward compatibility to SSLeay */
 /* This is more to be used to check the correct DLL is being used
  * in the MS world. */
