@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.118 2001/03/19 22:38:02 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.119 2001/03/28 04:18:18 tale Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2265,21 +2265,30 @@ to a disk file.  It can include limitations
 both on how large the file is allowed to become, and how many versions
 of the file will be saved each time the file is opened.</para>
 
-<para>The <command>size</command> option for files is simply a hard
-ceiling on log growth. If the file ever exceeds the size, then <command>named</command> will
-not write anything more to it until the file is reopened; exceeding
-the size does not automatically trigger a reopen. The default behavior
-is not to limit the size of the file.</para>
-<para>If you use the <command>versions</command> log file option,
-then <command>named</command> will retain that many backup versions
-of the file by renaming them when opening. For example, if you choose
-to keep 3 old versions of the file <filename>lamers.log</filename> then
-just before it is opened <filename>lamers.log.1</filename> is renamed
-to <filename>lamers.log.2</filename>, <filename>lamers.log.0</filename> is
-renamed to <filename>lamers.log.1</filename>, and <filename>lamers.log</filename> is
-renamed to <filename>lamers.log.0</filename>. No rolled versions
-are kept by default; any existing log file is simply appended. The <command>unlimited</command> keyword
-is synonymous with <command>99</command> in current <acronym>BIND</acronym> releases.</para>
+<para>If you use the <command>versions</command> log file option, then
+<command>named</command> will retain that many backup versions of the file by
+renaming them when opening.  For example, if you choose to keep 3 old versions
+of the file <filename>lamers.log</filename> then just before it is opened
+<filename>lamers.log.1</filename> is renamed to
+<filename>lamers.log.2</filename>, <filename>lamers.log.0</filename> is renamed
+to <filename>lamers.log.1</filename>, and <filename>lamers.log</filename> is
+renamed to <filename>lamers.log.0</filename>.  If a <command>size</command>
+option is associated with the log file, then renaming is only done when the
+file being opened exceeds the indicated size.  No backup versions are kept by
+default; any existing log file is simply appended.  The
+<command>unlimited</command> keyword is synonymous with <command>99</command>
+in current <acronym>BIND</acronym> releases.</para>
+
+<para>The <command>size</command> option for files is used to limit log
+growth. If the file ever exceeds the size, then <command>named</command> will
+stop writing to the file unless it has a <command>versions</command> option
+associated with it.  If backup versions are kept, the files are rolled as
+described above and a new one begun.  If there is no
+<command>versions</command> option, no more data will be written to the log
+until some out-of-band mechanism removes or truncates the log to less than the
+maximum size.  The default behavior is not to limit the size of the
+file.</para>
+
 <para>Example usage of the <command>size</command> and
 <command>versions</command> options:</para>
 
