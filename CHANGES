@@ -1,6 +1,6 @@
- 685.	[bug]		nslookup should always use the search list/domain
-			options from resolv.conf, and it (and host) should use
-			the search list items first. [RT #405, #630]
+ 685.	[bug]		nslookup should  use the search list/domain options
+			from resolv.conf by default, and it (and host) should
+			use the search list items first. [RT #405, #630]
 
  684.	[bug]		memory leak with view forwarders. [RT #656]
 
