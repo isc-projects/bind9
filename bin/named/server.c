@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.15 2003/08/15 02:24:28 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.16 2003/08/15 02:49:33 marka Exp $ */
 
 #include <config.h>
 
@@ -2051,6 +2051,14 @@ load_configuration(const char *filename, ns_server_t *server,
 		server->hostname_set = ISC_TRUE;
 	} else {
 		server->hostname_set = ISC_FALSE;
+	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "flush-zones-on-shutdown", &obj);
+	if (result == ISC_R_SUCCESS) {
+		server->flushonshutdown = cfg_obj_asboolean(obj);
+	} else {
+		server->flushonshutdown = ISC_FALSE;
 	}
 
 	result = ISC_R_SUCCESS;
