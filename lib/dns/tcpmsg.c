@@ -187,7 +187,7 @@ dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
 		       NULL, NULL);
 
 	region.base = (unsigned char *)&tcpmsg->size;
-	region.length = 2;  /* u_int16_t */
+	region.length = 2;  /* isc_uint16_t */
 	result = isc_socket_recv(tcpmsg->sock, &region, ISC_FALSE,
 				 tcpmsg->task, recv_length, tcpmsg);
 
