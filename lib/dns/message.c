@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.192 2001/06/15 05:24:24 bwelling Exp $ */
+/* $Id: message.c,v 1.193 2001/06/28 21:21:39 gson Exp $ */
 
 /***
  *** Imports
@@ -2685,8 +2685,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 			result = DNS_R_SIGINVALID;
 		dns_name_clone(&sig.signer, signer);
 		dns_rdata_freestruct(&sig);
-	}
-	else {
+	} else {
 		dns_name_t *identity;
 		dns_rdata_any_tsig_t tsig;
 
