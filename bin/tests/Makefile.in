@@ -36,7 +36,8 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 LIBS =		@LIBS@
 
 SUBDIRS = master names rbt tasks db timers mem dst
-TARGETS =	res_test \
+TARGETS =	sdig \
+		res_test \
 		lex_test \
 		name_test \
 		sock_test \
@@ -55,7 +56,8 @@ TARGETS =	res_test \
 		dispatch_test \
 		dispatch_tcp_test
 
-SRCS =		res_test.c \
+SRCS =		sdig.c \
+		res_test.c \
 		lex_test.c \
 		name_test.c \
 		sock_test.c \
@@ -76,6 +78,10 @@ SRCS =		res_test.c \
 		printmsg.c
 
 @BIND9_MAKE_RULES@
+
+sdig: sdig.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sdig.o printmsg.o \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ res_test.o \
