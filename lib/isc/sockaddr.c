@@ -323,3 +323,17 @@ isc_sockaddr_pf(const isc_sockaddr_t *sockaddr) {
 	}
 #endif
 }
+
+void
+isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port) {
+	switch (sockaddr->type.sa.sa_family) {
+	case AF_INET:
+		sockaddr->type.sin.sin_port = htons(port);
+		break;
+	case AF_INET6:
+		sockaddr->type.sin6.sin6_port = htons(port);
+		break;
+	default:
+		FATAL_ERROR(__FILE__, __LINE__, "unknown address family");
+	}
+}

@@ -77,6 +77,12 @@ isc_sockaddr_pf(const isc_sockaddr_t *sockaddr);
  *	The protocol family of 'sockaddr', e.g. PF_INET or PF_INET6.
  */
 
+void
+isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port);
+/*
+ * Set the port of 'sockaddr' to 'port'.
+ */
+
 isc_result_t
 isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
 /*
