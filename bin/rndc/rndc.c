@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.27 2000/10/12 21:51:51 mws Exp $ */
+/* $Id: rndc.c,v 1.28 2000/11/08 19:20:03 mws Exp $ */
 
 /*
  * Principal Author: DCL
@@ -250,14 +250,16 @@ ndc_setvalue(omapi_object_t *handle, omapi_string_t *name,
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port] [-y key] command [command ...]\n\
+Usage: %s [-c config] [-s server] [-p port] [-y key] [-z zone] [-v view]\n\
+	command [command ...]\n\
 \n\
 command is one of the following for named:\n\
 \n\
   *status	Display ps(1) status of named.\n\
   *dumpdb	Dump database and cache to /var/tmp/named_dump.db.\n\
   reload	Reload configuration file and zones.\n\
-  *stats	Dump statistics to /var/tmp/named.stats.\n\
+  refresh	Refresh zone data, reloading if necessary.\n\
+  stats		Dump statistics to statistics file.\n\
   *trace	Increment debugging level by one.\n\
   *notrace	Set debugging level to 0.\n\
   *querylog	Toggle query logging.\n\
@@ -554,9 +556,6 @@ main(int argc, char **argv) {
 			}
 			result = send_command(omapimgr, command, omapiargs);
 		} else if (strcmp(command, "restart") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
-
-		} else if (strcmp(command, "stats") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
 
 		} else if (strcmp(command, "status") == 0) {
