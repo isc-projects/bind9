@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.33 2004/06/27 01:30:07 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.34 2004/07/03 00:56:55 marka Exp $ */
 
 #include <config.h>
 
@@ -1827,7 +1827,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 			if (addrinfo != NULL)
 				break;
 			find = ISC_LIST_NEXT(find, publink);
-			if (find != fctx->find && find == NULL)
+			if (find == NULL)
 				find = ISC_LIST_HEAD(fctx->finds);
 		} while (find != start);
 	}

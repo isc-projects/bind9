@@ -1,6 +1,8 @@
 
 	--- 9.2.4rc6 released ---
 
+1685.	[bug]		Change #1679 loop tests weren't quite right.
+
 1682.	[port]		Update configure test for (long long) printf format.
 			[RT #5066]
 
