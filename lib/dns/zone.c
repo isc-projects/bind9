@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.55 2005/02/03 23:50:45 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.56 2005/03/15 00:23:55 marka Exp $ */
 
 #include <config.h>
 
@@ -590,7 +590,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 
  free_mutex:
 	DESTROYLOCK(&zone->lock);
-	return (ISC_R_NOMEMORY);
+	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
+	return (result);
 }
 
 /*
