@@ -1,3 +1,7 @@
+ 291.	[func]		Caching servers no longer send outgoing queries
+			over TCP just because the incoming recursive query
+			was a TCP one.
+
  290.   [cleanup]	+twiddle option to dig (for testing only) removed.
 
  289.	[cleanup]	dig is now installed in $bindir instead of $sbindir.
