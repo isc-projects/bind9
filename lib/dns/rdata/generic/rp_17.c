@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.28 2000/10/25 05:43:52 marka Exp $ */
+/* $Id: rp_17.c,v 1.29 2000/11/08 01:55:56 bwelling Exp $ */
 
 /* RFC 1183 */
 
@@ -38,8 +38,9 @@ fromtext_rp(ARGS_FROMTEXT) {
 	origin = (origin != NULL) ? origin : dns_rootname;
 
 	for (i = 0; i < 2 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
-				ISC_FALSE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string,
+					      ISC_FALSE));
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		RETERR(dns_name_fromtext(&name, &buffer, origin,

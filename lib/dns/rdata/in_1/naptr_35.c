@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.34 2000/10/25 05:44:05 marka Exp $ */
+/* $Id: naptr_35.c,v 1.35 2000/11/08 01:56:10 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -38,7 +38,8 @@ fromtext_in_naptr(ARGS_FROMTEXT) {
 	/*
 	 * Order.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -46,7 +47,8 @@ fromtext_in_naptr(ARGS_FROMTEXT) {
 	/*
 	 * Preference.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -54,25 +56,29 @@ fromtext_in_naptr(ARGS_FROMTEXT) {
 	/*
 	 * Flags.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
+				      ISC_FALSE));
 	RETERR(txt_fromtext(&token.value.as_textregion, target));
 
 	/*
 	 * Service.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
+				      ISC_FALSE));
 	RETERR(txt_fromtext(&token.value.as_textregion, target));
 
 	/*
 	 * Regexp.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
+				      ISC_FALSE));
 	RETERR(txt_fromtext(&token.value.as_textregion, target));
 
 	/*
 	 * Replacement.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;

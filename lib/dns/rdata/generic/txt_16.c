@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.30 2000/08/01 01:26:07 tale Exp $ */
+/* $Id: txt_16.c,v 1.31 2000/11/08 01:56:02 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -35,8 +35,9 @@ fromtext_txt(ARGS_FROMTEXT) {
 	REQUIRE(type == 16);
 
 	for(;;) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
-				ISC_TRUE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_qstring,
+					      ISC_TRUE));
 		if (token.type != isc_tokentype_qstring &&
 		    token.type != isc_tokentype_string)
 			break;

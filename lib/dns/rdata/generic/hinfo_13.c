@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.30 2000/10/25 05:43:33 marka Exp $ */
+/* $Id: hinfo_13.c,v 1.31 2000/11/08 01:55:39 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -38,8 +38,9 @@ fromtext_hinfo(ARGS_FROMTEXT) {
 	REQUIRE(type == 13);
 
 	for (i = 0; i < 2 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
-				ISC_FALSE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_qstring,
+					      ISC_FALSE));
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
 	return (ISC_R_SUCCESS);

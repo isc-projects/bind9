@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.31 2000/10/25 05:43:44 marka Exp $ */
+/* $Id: mr_9.c,v 1.32 2000/11/08 01:55:49 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -34,7 +34,8 @@ fromtext_mr(ARGS_FROMTEXT) {
 
 	UNUSED(rdclass);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);

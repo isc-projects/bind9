@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.46 2000/10/25 05:43:54 marka Exp $ */
+/* $Id: sig_24.c,v 1.47 2000/11/08 01:55:58 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -45,7 +45,8 @@ fromtext_sig(ARGS_FROMTEXT) {
 	/*
 	 * Type covered.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	result = dns_rdatatype_fromtext(&covered, &token.value.as_textregion);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
 		i = strtol(token.value.as_pointer, &e, 10);
@@ -60,14 +61,16 @@ fromtext_sig(ARGS_FROMTEXT) {
 	/*
 	 * Algorithm.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_secalg_fromtext(&c, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &c, 1));
 
 	/*
 	 * Labels.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xff)
 		return (ISC_R_RANGE);
 	c = (unsigned char)token.value.as_ulong;
@@ -76,33 +79,38 @@ fromtext_sig(ARGS_FROMTEXT) {
 	/*
 	 * Original ttl.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	RETERR(uint32_tobuffer(token.value.as_ulong, target));
 
 	/*
 	 * Signature expiration.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_time32_fromtext(token.value.as_pointer, &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
 
 	/*
 	 * Time signed.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_time32_fromtext(token.value.as_pointer, &time_signed));
 	RETERR(uint32_tobuffer(time_signed, target));
 
 	/*
 	 * Key footprint.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
 	 * Signer.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.41 2000/10/25 05:43:48 marka Exp $ */
+/* $Id: nxt_30.c,v 1.42 2000/11/08 01:55:53 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -49,7 +49,8 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	/*
 	 * Next domain.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
@@ -57,8 +58,8 @@ fromtext_nxt(ARGS_FROMTEXT) {
 
 	memset(bm, 0, sizeof bm);
 	do {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
-				  ISC_TRUE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string, ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
 		n = strtol(token.value.as_pointer, &e, 10);

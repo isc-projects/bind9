@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.33 2000/10/31 20:12:32 bwelling Exp $ */
+/* $Id: key_25.c,v 1.34 2000/11/08 01:55:41 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -44,17 +44,20 @@ fromtext_key(ARGS_FROMTEXT) {
 	REQUIRE(type == 25);
 
 	/* flags */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_keyflags_fromtext(&flags, &token.value.as_textregion));
 	RETERR(uint16_tobuffer(flags, target));
 
 	/* protocol */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_secproto_fromtext(&proto, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &proto, 1));
 
 	/* algorithm */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_secalg_fromtext(&alg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &alg, 1));
 

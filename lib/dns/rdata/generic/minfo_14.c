@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.33 2000/10/25 05:43:43 marka Exp $ */
+/* $Id: minfo_14.c,v 1.34 2000/11/08 01:55:48 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -36,8 +36,9 @@ fromtext_minfo(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 
 	for (i = 0; i < 2 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
-				ISC_FALSE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string,
+					      ISC_FALSE));
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		origin = (origin != NULL) ? origin : dns_rootname;

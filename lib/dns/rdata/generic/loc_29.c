@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.24 2000/10/25 05:43:37 marka Exp $ */
+/* $Id: loc_29.c,v 1.25 2000/11/08 01:55:42 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -69,14 +69,16 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Degrees.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 90)
 		return (ISC_R_RANGE);
 	d1 = (int)token.value.as_ulong;
 	/*
 	 * Minutes.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "N") == 0)
 		north = ISC_TRUE;
 	if (north || strcasecmp(token.value.as_pointer, "S") == 0)
@@ -92,7 +94,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Seconds.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "N") == 0)
 		north = ISC_TRUE;
 	if (north || strcasecmp(token.value.as_pointer, "S") == 0)
@@ -124,7 +127,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Direction.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "N") == 0)
 		north = ISC_TRUE;
 	if (!north && strcasecmp(token.value.as_pointer, "S") != 0)
@@ -134,7 +138,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Degrees.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 180)
 		return (ISC_R_RANGE);
 	d2 = (int)token.value.as_ulong;
@@ -142,7 +147,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Minutes.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "E") == 0)
 		east = ISC_TRUE;
 	if (east || strcasecmp(token.value.as_pointer, "W") == 0)
@@ -158,7 +164,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Seconds.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "E") == 0)
 		east = ISC_TRUE;
 	if (east || strcasecmp(token.value.as_pointer, "W") == 0)
@@ -190,7 +197,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Direction.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "E") == 0)
 		east = ISC_TRUE;
 	if (!east && strcasecmp(token.value.as_pointer, "W") != 0)
@@ -200,7 +208,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Altitude.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	m = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
 		return (DNS_R_SYNTAX);
@@ -241,7 +250,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Size: optional.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_TRUE));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
 		isc_lex_ungettoken(lexer, &token);
@@ -293,7 +303,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Horizontal precision: optional.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_TRUE));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
 		isc_lex_ungettoken(lexer, &token);
@@ -343,7 +354,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	/*
 	 * Vertical precision: optional.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_TRUE));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
 		isc_lex_ungettoken(lexer, &token);

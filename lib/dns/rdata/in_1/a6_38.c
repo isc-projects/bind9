@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.37 2000/10/25 05:44:00 marka Exp $ */
+/* $Id: a6_38.c,v 1.38 2000/11/08 01:56:05 bwelling Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -42,7 +42,8 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 	/*
 	 * Prefix length.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 128)
 		return (ISC_R_RANGE);
 
@@ -60,8 +61,9 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 		/*
 		 * Octets 0..15.
 		 */
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
-				ISC_FALSE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string,
+					      ISC_FALSE));
 		if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
 			return (DNS_R_BADAAAA);
 		mask = 0xff >> (prefixlen % 8);
@@ -72,7 +74,8 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 	if (prefixlen == 0)
 		return (ISC_R_SUCCESS);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.32 2000/10/25 05:43:27 marka Exp $ */
+/* $Id: afsdb_18.c,v 1.33 2000/11/08 01:55:33 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -39,7 +39,8 @@ fromtext_afsdb(ARGS_FROMTEXT) {
 	/*
 	 * Subtype.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -47,7 +48,8 @@ fromtext_afsdb(ARGS_FROMTEXT) {
 	/*
 	 * Hostname.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;

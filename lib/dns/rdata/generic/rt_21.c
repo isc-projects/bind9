@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.30 2000/10/25 05:43:53 marka Exp $ */
+/* $Id: rt_21.c,v 1.31 2000/11/08 01:55:57 bwelling Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -36,12 +36,14 @@ fromtext_rt(ARGS_FROMTEXT) {
 
 	UNUSED(rdclass);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);

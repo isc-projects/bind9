@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.117 2000/11/07 23:44:33 bwelling Exp $ */
+/* $Id: rdata.c,v 1.118 2000/11/08 01:55:25 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -131,10 +131,6 @@ uint16_fromregion(isc_region_t *region);
 
 static isc_uint8_t
 uint8_fromregion(isc_region_t *region);
-
-static isc_result_t
-gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
-	 isc_boolean_t eol);
 
 static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
@@ -561,8 +557,8 @@ dns_rdata_fromtextgeneric(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
 
-	result = gettoken(lexer, &token, isc_tokentype_number,
-			  ISC_FALSE);
+	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+					ISC_FALSE);
 	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
 		result = ISC_R_RANGE;
 	if (result == ISC_R_SUCCESS)
@@ -666,8 +662,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	FROMTEXTSWITCH
 
 	if (use_default) {
-		result = gettoken(lexer, &token, isc_tokentype_number,
-				  ISC_FALSE);
+		result = isc_lex_getmastertoken(lexer, &token,
+						isc_tokentype_number,
+						ISC_FALSE);
 		if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
 			result = ISC_R_RANGE;
 		if (result == ISC_R_SUCCESS)
@@ -1527,48 +1524,6 @@ uint8_fromregion(isc_region_t *region) {
 }
 
 static isc_result_t
-gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
-	 isc_boolean_t eol)
-{
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
-	isc_result_t result;
-
-	if (expect == isc_tokentype_qstring)
-		options |= ISC_LEXOPT_QSTRING;
-	else if (expect == isc_tokentype_number)
-		options |= ISC_LEXOPT_NUMBER;
-	result = isc_lex_gettoken(lexer, options, token);
-	switch (result) {
-	case ISC_R_SUCCESS:
-		break;
-	case ISC_R_NOMEMORY:
-		return (ISC_R_NOMEMORY);
-	case ISC_R_NOSPACE:
-		return (ISC_R_NOSPACE);
-	default:
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_lex_gettoken() failed: %s",
-				 isc_result_totext(result));
-                return (ISC_R_UNEXPECTED);
-	}
-	if (eol && ((token->type == isc_tokentype_eol) ||
-		    (token->type == isc_tokentype_eof)))
-		return (ISC_R_SUCCESS);
-	if (token->type == isc_tokentype_string &&
-	    expect == isc_tokentype_qstring)
-		return (ISC_R_SUCCESS);
-        if (token->type != expect) {
-                isc_lex_ungettoken(lexer, token);
-                if (token->type == isc_tokentype_eol ||
-                    token->type == isc_tokentype_eof)
-                        return (ISC_R_UNEXPECTEDEND);
-                return (ISC_R_UNEXPECTEDTOKEN);
-        }
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
@@ -1751,7 +1706,8 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 
 	Ceor = Csum = Crot = word = bcount = 0;
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	while (token.value.as_textregion.length != 0) {
 		if ((c = token.value.as_textregion.base[0]) == 'x') {
 			break;
@@ -1763,14 +1719,16 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	/*
 	 * Number of bytes.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if ((token.value.as_ulong % 4) != 0)
 		isc_buffer_subtract(target,  4 - (token.value.as_ulong % 4));
 
 	/*
 	 * Checksum.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	oeor = strtol(token.value.as_pointer, &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
@@ -1778,7 +1736,8 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	/*
 	 * Checksum.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	osum = strtol(token.value.as_pointer, &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
@@ -1786,14 +1745,15 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	/*
 	 * Checksum.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	orot = strtol(token.value.as_pointer, &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 
 	if ((oeor != Ceor) || (osum != Csum) || (orot != Crot))
 		return(DNS_R_BADCKSUM);
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.44 2000/10/25 05:43:26 marka Exp $ */
+/* $Id: tsig_250.c,v 1.45 2000/11/08 01:55:31 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -41,7 +41,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Algorithm Name.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
@@ -50,7 +51,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Time Signed: 48 bits.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	sigtime = isc_string_touint64(token.value.as_pointer, &e, 10);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
@@ -62,7 +64,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Fudge.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -70,7 +73,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Signature Size.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -83,7 +87,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Original ID.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -91,7 +96,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Error.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion)
 				!= ISC_R_SUCCESS)
 	{
@@ -107,7 +113,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	/*
 	 * Other Len.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.30 2000/10/25 05:44:04 marka Exp $ */
+/* $Id: kx_36.c,v 1.31 2000/11/08 01:56:09 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -35,12 +35,14 @@ fromtext_in_kx(ARGS_FROMTEXT) {
 	REQUIRE(type == 36);
 	REQUIRE(rdclass == 1);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.24 2000/10/25 05:43:57 marka Exp $ */
+/* $Id: x25_19.c,v 1.25 2000/11/08 01:56:03 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -37,7 +37,8 @@ fromtext_x25(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 19);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
+				      ISC_FALSE));
 	if (token.value.as_textregion.length < 4)
 		return (DNS_R_SYNTAX);
 	for (i = 0; i < token.value.as_textregion.length; i++)

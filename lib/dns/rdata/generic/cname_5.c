@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.36 2000/10/25 05:43:29 marka Exp $ */
+/* $Id: cname_5.c,v 1.37 2000/11/08 01:55:35 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -26,7 +26,7 @@
 	(DNS_RDATATYPEATTR_EXCLUSIVE | DNS_RDATATYPEATTR_SINGLETON)
 
 static inline isc_result_t
-	fromtext_cname(ARGS_FROMTEXT) {
+fromtext_cname(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -35,7 +35,8 @@ static inline isc_result_t
 
 	UNUSED(rdclass);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);

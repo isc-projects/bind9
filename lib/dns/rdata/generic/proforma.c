@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.28 2000/10/25 05:43:49 marka Exp $ */
+/* $Id: proforma.c,v 1.29 2000/11/08 01:55:54 bwelling Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -29,7 +29,8 @@ fromtext_#(ARGS_FROMTEXT) {
 	REQUIRE(type == #);
 	REQUIRE(rdclass == #);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

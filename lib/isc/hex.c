@@ -20,10 +20,6 @@ static isc_result_t
 str_totext(const char *source, isc_buffer_t *target);
 
 static isc_result_t
-gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
-	 isc_boolean_t eol);
-
-static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
 
 static const char hex[] = "0123456789ABCDEF";
@@ -112,6 +108,7 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 	hex_decode_ctx_t ctx;
 	isc_textregion_t *tr;
 	isc_token_t token;
+	isc_boolean_t eol;
 
 	hex_decode_init(&ctx, length, target);
 
@@ -119,11 +116,11 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		unsigned int i;
 
 		if (length > 0)
-			RETERR(gettoken(lexer, &token, isc_tokentype_string,
-					ISC_FALSE));
+			eol = ISC_FALSE;
 		else
-			RETERR(gettoken(lexer, &token, isc_tokentype_string,
-					ISC_TRUE));
+			eol = ISC_TRUE;
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string, eol));
 		if (token.type != isc_tokentype_string)
 			break;
 		tr = &token.value.as_textregion;
@@ -178,47 +175,5 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 		return (ISC_R_NOSPACE);
 	memcpy(tr.base, base, length);
 	isc_buffer_add(target, length);
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
-	 isc_boolean_t eol)
-{
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
-	isc_result_t result;
-
-	if (expect == isc_tokentype_qstring)
-		options |= ISC_LEXOPT_QSTRING;
-	else if (expect == isc_tokentype_number)
-		options |= ISC_LEXOPT_NUMBER;
-	result = isc_lex_gettoken(lexer, options, token);
-	switch (result) {
-	case ISC_R_SUCCESS:
-		break;
-	case ISC_R_NOMEMORY:
-		return (ISC_R_NOMEMORY);
-	case ISC_R_NOSPACE:
-		return (ISC_R_NOSPACE);
-	default:
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_lex_gettoken() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-	if (eol && ((token->type == isc_tokentype_eol) ||
-		    (token->type == isc_tokentype_eof)))
-		return (ISC_R_SUCCESS);
-	if (token->type == isc_tokentype_string &&
-	    expect == isc_tokentype_qstring)
-		return (ISC_R_SUCCESS);
-	if (token->type != expect) {
-		isc_lex_ungettoken(lexer, token);
-		if (token->type == isc_tokentype_eol ||
-		    token->type == isc_tokentype_eof)
-			return (ISC_R_UNEXPECTEDEND);
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
 	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.25 2000/10/25 05:44:06 marka Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.26 2000/11/08 01:56:11 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -35,7 +35,8 @@ fromtext_in_nsap_ptr(ARGS_FROMTEXT) {
 	REQUIRE(type == 23);
 	REQUIRE(rdclass == 1);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.25 2000/10/25 05:43:31 marka Exp $ */
+/* $Id: gpos_27.c,v 1.26 2000/11/08 01:55:38 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -38,8 +38,9 @@ fromtext_gpos(ARGS_FROMTEXT) {
 	UNUSED(downcase);
 
 	for (i = 0; i < 3 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
-				ISC_FALSE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_qstring,
+					      ISC_FALSE));
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
 	return (ISC_R_SUCCESS);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.36 2000/10/25 05:44:10 marka Exp $ */
+/* $Id: wks_11.c,v 1.37 2000/11/08 01:56:15 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -56,7 +56,8 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	/*
 	 * IPv4 dotted quad.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	isc_buffer_availableregion(target, &region);
 	if (inet_aton(token.value.as_pointer, &addr) != 1)
@@ -69,7 +70,8 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	/*
 	 * Protocol.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	proto = strtol(token.value.as_pointer, &e, 10);
 	if (*e == 0)
@@ -90,8 +92,8 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 
 	memset(bm, 0, sizeof bm);
 	do {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
-				  ISC_TRUE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string, ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
 

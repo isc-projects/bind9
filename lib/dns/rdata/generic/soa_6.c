@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.45 2000/10/25 05:43:55 marka Exp $ */
+/* $Id: soa_6.c,v 1.46 2000/11/08 01:55:59 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -39,8 +39,9 @@ fromtext_soa(ARGS_FROMTEXT) {
 	origin = (origin != NULL) ? origin : dns_rootname;
 
 	for (i = 0 ; i < 2 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
-				ISC_FALSE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string,
+					      ISC_FALSE));
 
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
@@ -48,12 +49,14 @@ fromtext_soa(ARGS_FROMTEXT) {
 					 downcase, target));
 	}
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	RETERR(uint32_tobuffer(token.value.as_ulong, target));
 
 	for (i = 0; i < 4; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
-				ISC_FALSE));
+		RETERR(isc_lex_getmastertoken(lexer, &token,
+					      isc_tokentype_string,
+					      ISC_FALSE));
 		RETERR(dns_counter_fromtext(&token.value.as_textregion, &n));
 		RETERR(uint32_tobuffer(n, target));
 	}

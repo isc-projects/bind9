@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.33 2000/10/25 05:43:28 marka Exp $ */
+/* $Id: cert_37.c,v 1.34 2000/11/08 01:55:34 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -41,14 +41,16 @@ fromtext_cert(ARGS_FROMTEXT) {
 	/*
 	 * Cert type.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_cert_fromtext(&cert, &token.value.as_textregion));
 	RETERR(uint16_tobuffer(cert, target));
 
 	/*
 	 * Key tag.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -56,7 +58,8 @@ fromtext_cert(ARGS_FROMTEXT) {
 	/*
 	 * Algorithm.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	RETERR(dns_secalg_fromtext(&secalg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &secalg, 1));
 

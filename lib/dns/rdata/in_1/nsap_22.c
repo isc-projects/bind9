@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.26 2000/10/25 05:44:07 marka Exp $ */
+/* $Id: nsap_22.c,v 1.27 2000/11/08 01:56:12 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -41,7 +41,8 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 	UNUSED(downcase);
 
 	/* 0x<hex.string.with.periods> */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 	sr = &token.value.as_textregion;
 	if (sr->length < 2)
 		return (ISC_R_UNEXPECTEDEND);

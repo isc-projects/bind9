@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.29 2000/10/25 05:44:02 marka Exp $ */
+/* $Id: aaaa_28.c,v 1.30 2000/11/08 01:56:08 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -40,7 +40,8 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
 		return (DNS_R_BADAAAA);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.18 2000/10/25 05:43:59 marka Exp $ */
+/* $Id: a_1.c,v 1.19 2000/11/08 01:56:04 bwelling Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -38,7 +38,8 @@ fromtext_hs_a(ARGS_FROMTEXT) {
 	UNUSED(origin);
 	UNUSED(downcase);
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
+				      ISC_FALSE));
 
 	if (inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_BADDOTTEDQUAD);
