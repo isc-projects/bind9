@@ -31,6 +31,8 @@
 1536.	[bug]		Windows socket code failed to log a error description
 			when returning ISC_R_UNEXPECTED. [RT #9998]
 
+1535.	[placeholder]
+
 1534.	[bug]		Race condition when priming cache. [RT# 9940]
 
 1533.	[placeholder]
