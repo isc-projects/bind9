@@ -1,3 +1,6 @@
+1491.	[bug]		dns_master_dump*() would produce extraneous $ORIGIN
+			lines. [RT #6206]
+
 1490.	[bug]		Accept reading state as well as working state in
 			ns_client_next(). [RT #6813]
 			
