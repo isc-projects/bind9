@@ -32,18 +32,18 @@
 
 	--- 9.2.2rc1 released ---
 
-1357.	[bug]		--enable-libbind would fail when not built in the
+1360.	[bug]		--enable-libbind would fail when not built in the
 			source tree for certain OS's.
 
-1356.	[security]	Support patches OpenSSL libraries.
+1359.	[security]	Support patches OpenSSL libraries.
 			http://www.cert.org/advisories/CA-2002-23.html
 
-1355.	[bug]		It was possible to trigger a INSIST when debugging
+1358.	[bug]		It was possible to trigger a INSIST when debugging
 			large dynamic updates. [RT #3390]
 
-1354.	[bug]		nsupdate was extremely wasteful of memory.
+1357.	[bug]		nsupdate was extremely wasteful of memory.
 
-1355.	[tuning]	Reduce the number of events / quantum for zone tasks.
+1356.	[tuning]	Reduce the number of events / quantum for zone tasks.
 
 1354.	[doc]		lwres man pages had illegal nroff.
 
@@ -160,12 +160,12 @@
 
 1282.	[port]		libbind: hpux 11.11 interface scaning.
 
-1280.	[bug]		libbind: escape '(' and ')' when coverting to
+1280.	[bug]		libbind: escape '(' and ')' when converting to
 			presentation form.
 
 1279.	[port]		Darwin uses (unsigned long) for size_t. [RT #2590]
 
-1276.	[bug]		libbind: const pointer conficts in res_debug.c.
+1276.	[bug]		libbind: const pointer conflicts in res_debug.c.
 
 1275.	[port]		libbind: hpux: treat all hpux systems as BIG_ENDIAN.
 
@@ -182,7 +182,7 @@
 1269.	[port]		Openserver: ifconfig.sh support.
 
 1268.	[port]		Openserver: the value FD_SETSIZE depends on whether
-			<sys/param.h> is included or not.  Be consistant.
+			<sys/param.h> is included or not.  Be consistent.
 
 1266.	[bug]		ISC_LINK_INIT, ISC_LINK_UNLINK, ISC_LIST_DEQUEUE,
 			__ISC_LINK_UNLINKUNSAFE and __ISC_LIST_DEQUEUEUNSAFE
@@ -208,17 +208,17 @@
 1258.	[bug]		libbind: res_nametotype() and res_nametoclass() were
 			broken.
 
-1276.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
+1257.	[bug]		Failure to write pid-file should not be fatal on
+			reload. [RT #2861]
 
-1275.	[bug]		When verifying that an NXT proves nonexistence, check
+1256.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
+
+1255.	[bug]		When verifying that an NXT proves nonexistence, check
 			the rcode of the message and only do the matching NXT
 			check.  That is, for NXDOMAIN responses, check that
 			the name is in the range between the NXT owner and
 			next name, and for NOERROR NODATA responses, check
 			that the type is not present in the NXT bitmap.
-
-1257.	[bug]		Failure to write pid-file should not be fatal on
-			reload. [RT #2861]
 
 1253.	[bug]		The dnssec system test failed to remove the correct
 			files.
@@ -234,7 +234,7 @@
 
 1242.	[bug]		named-checkzone failed if a journal existed. [RT #2657]
 
-1241.	[bug]		Drop received UDP messsages with a zero source port
+1241.	[bug]		Drop received UDP messages with a zero source port
 			as these are invariably forged. [RT #2621]
 
 1209.	[bug]		Dig, host, nslookup were not checking the message ids
@@ -278,7 +278,7 @@
 			INSIST() failures.  [RT #2614]
 
 1238.	[bug]		It is possible to lockup the server when shutting down
-			if notifies are being processed. [RT #2591]
+			if notifies were being processed. [RT #2591]
 
 1237.	[bug]		nslookup: "set q=type" failed.
 
@@ -318,7 +318,7 @@
 			files behind.
 
 1212.	[port]		libbind: 64k answer buffers were causing stack space
-			to be exceeded for certian OS.  Use heap space instead.
+			to be exceeded for certain OS.  Use heap space instead.
 
 1211.	[bug]		dns_name_fromtext() incorrectly handled certain
 			valid octal bitlabels. [RT #2483]
@@ -368,7 +368,7 @@
 
 1193.	[bug]		Best effort parsing didn't handle packet truncation.
 
-1191.   [bug]           A dynamic update removing the last non-apex name in
+1191.	[bug]		A dynamic update removing the last non-apex name in
 			a secure zone would fail. [RT #2399]
 
 1189.	[bug]		On some systems, malloc(0) returns NULL, which
@@ -378,8 +378,8 @@
 1188.	[bug]		Dynamic updates of a signed zone would fail if
 			some of the zone private keys were unavailable.
 
-1186.   [bug]           isc_hex_tobuffer(,,length = 0) failed to unget the
-                        EOL token when reading to end of line.
+1186.	[bug]		isc_hex_tobuffer(,,length = 0) failed to unget the
+			EOL token when reading to end of line.
 
 1185.	[bug]		libbind: don't assume statp->_u._ext.ext is valid
 			unless RES_INIT is set when calling res_*init().
@@ -537,7 +537,7 @@
 
 1117.	[port]		The configure check for in6addr_loopback incorrectly
 			succeeded on AIX 4.3 when compiling with -O2
-			because the test code was optimized away.
+			because the test code was optimised away.
 			[RT #2016]
 
 1116.	[bug]		Setting transfers in a server clause, transfers-in,
@@ -588,8 +588,8 @@
 
 1090.	[bug]		libbind: dns_ho.c:add_hostent() was not returning
 			the amount of memory consumed resulting in garbage
-			address being returned.	 Alignment calculations were   
-			wasting space.	We weren't suppressing duplicate
+			address being returned.  Alignment calculations were
+			wasting space.  We weren't suppressing duplicate
 			addresses.
 
 1088.	[port]		libbind: MPE/iX C.70 (incomplete)
@@ -601,10 +601,10 @@
 1085.	[port]		libbind: solaris: sys_nerr and sys_errlist do not
 			exist when compiling in 64 bit mode.
 
-1084.	[cleanup]	libbind: gai_strerror() rewritten.
+1084.	[cleanup]	libbind: gai_strerror() re-written.
 
 1083.	[bug]		The default control channel listened on the
-			wildcard adress, not the loopback as documented.
+			wildcard address, not the loopback as documented.
 			[RT #1975]
 
 1082.	[bug]		The -g option to named incorrectly caused logging
@@ -634,6 +634,7 @@
 			are unable to scan the interface list. [RT #1921]
 
 1063.	[bug]		libbind: "make install" was failing on IRIX.
+			[RT #1919]
 
 1062.	[bug]		If the control channel listener socket was shut
 			down before server exit, the listener object could
@@ -1481,7 +1482,7 @@
 			[RT #731, #753]
 
  762.	[cleanup]	The named.conf and rndc.conf file parsers have
-			been completely rewritten.
+			been completely re-written.
 
  761.	[bug]		_REENTRANT was still defined when building with
 			--disable-threads.
@@ -2033,7 +2034,7 @@
  589.	[bug]		The server could deadlock if a zone was updated 
 			while being transferred out.
 
- 588.	[bug]		ctx->in_use was not being correctly initialised when
+ 588.	[bug]		ctx->in_use was not being correctly initialized when
 			when pushing a file for $INCLUDE. [RT #523]
 
  587.	[func]		A warning is now printed if the "allow-update"
@@ -2812,7 +2813,7 @@
  347.	[bug]		Don't crash if an argument is left off options in dig.
 
  346.	[func]		Add support for .digrc config file, in the
-			user's current directory
+			user's current directory.
 
  345.	[bug]		Large-scale changes/cleanups to dig:
 			* Significantly improve structure handling
@@ -3001,7 +3002,7 @@
 			enough to hold any legal domain name in presentation
 			format + terminating NULL.
 
- 301.	[bug]		Uninitialised pointer in host:printmessage(). [RT #159]
+ 301.	[bug]		Uninitialized pointer in host:printmessage(). [RT #159]
 
  300.	[bug]		Using both <isc/net.h> and <lwres/net.h> didn't work
 			on platforms lacking IPv6 because each included their
@@ -3174,7 +3175,7 @@
  257.	[bug]		The server detached the last zone manager reference
 			too early, while it could still be in use by queries.
 			This manifested itself as assertion failures during the
-			shutdown process for busy name servers [RT #133].
+			shutdown process for busy name servers. [RT #133]
 
  256.	[func]		isc_ratelimiter_t now has attach/detach semantics, and
 			isc_ratelimiter_shutdown guarantees that the rate
@@ -3893,7 +3894,7 @@
 			caller find the most-enclosing superdomain of
 			a name.
 
-  63	[func]		Generate NOTIFY messages.
+  63.	[func]		Generate NOTIFY messages.
 
   62.	[func]		Add UDP refresh support.
 
