@@ -12,12 +12,12 @@
 #include <isc/timer.h>
 
 mem_context_t mctx = NULL;
-task_t t1, t2, t3;
+isc_task_t t1, t2, t3;
 isc_timer_t ti1, ti2, ti3;
 int tick_count = 0;
 
 static isc_boolean_t
-shutdown_task(task_t task, task_event_t event) {
+shutdown_task(isc_task_t task, isc_event_t event) {
 	char *name = event->arg;
 
 	printf("task %p shutdown %s\n", task, name);
@@ -25,7 +25,7 @@ shutdown_task(task_t task, task_event_t event) {
 }
 
 static isc_boolean_t
-tick(task_t task, task_event_t event)
+tick(isc_task_t task, isc_event_t event)
 {
 	char *name = event->arg;
 
@@ -56,7 +56,7 @@ tick(task_t task, task_event_t event)
 }
 
 static isc_boolean_t
-timeout(task_t task, task_event_t event)
+timeout(isc_task_t task, isc_event_t event)
 {
 	char *name = event->arg;
 	char *type;
@@ -79,7 +79,7 @@ timeout(task_t task, task_event_t event)
 
 void
 main(int argc, char *argv[]) {
-	task_manager_t manager = NULL;
+	isc_taskmgr_t manager = NULL;
 	isc_timermgr_t timgr = NULL;
 	unsigned int workers;
 	os_time_t expires, interval, now;
@@ -91,10 +91,10 @@ main(int argc, char *argv[]) {
 	printf("%d workers\n", workers);
 
 	INSIST(mem_context_create(0, 0, &mctx) == 0);
-	INSIST(task_manager_create(mctx, workers, 0, &manager) == workers);
-	INSIST(task_create(manager, shutdown_task, "1", 0, &t1));
-	INSIST(task_create(manager, shutdown_task, "2", 0, &t2));
-	INSIST(task_create(manager, shutdown_task, "3", 0, &t3));
+	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) == workers);
+	INSIST(isc_task_create(manager, shutdown_task, "1", 0, &t1));
+	INSIST(isc_task_create(manager, shutdown_task, "2", 0, &t2));
+	INSIST(isc_task_create(manager, shutdown_task, "3", 0, &t3));
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 
 	printf("task 1: %p\n", t1);
@@ -123,9 +123,9 @@ main(int argc, char *argv[]) {
 	INSIST(isc_timer_create(timgr, isc_timertype_once, expires, interval,
 				t3, timeout, "3", &ti3) == ISC_R_SUCCESS);
 
-	task_detach(&t1);
-	task_detach(&t2);
-	task_detach(&t3);
+	isc_task_detach(&t1);
+	isc_task_detach(&t2);
+	isc_task_detach(&t3);
 
 	sleep(15);
 	printf("destroy\n");
@@ -134,7 +134,7 @@ main(int argc, char *argv[]) {
 	isc_timer_detach(&ti3);
 	sleep(2);
 	isc_timermgr_destroy(&timgr);
-	task_manager_destroy(&manager);
+	isc_taskmgr_destroy(&manager);
 	printf("destroyed\n");
 	
 	mem_stats(mctx, stdout);

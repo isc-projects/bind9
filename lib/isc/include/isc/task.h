@@ -1,6 +1,6 @@
 
-#ifndef TASK_H
-#define TASK_H 1
+#ifndef ISC_TASK_H
+#define ISC_TASK_H 1
 
 #include <stddef.h>
 
@@ -14,9 +14,9 @@
  *** Core Types.
  ***/
 
-typedef struct task_event *		task_event_t;
-typedef struct task *			task_t;
-typedef struct task_manager *		task_manager_t;
+typedef struct isc_event *		isc_event_t;
+typedef struct isc_task *		isc_task_t;
+typedef struct isc_taskmgr *		isc_taskmgr_t;
 
 
 /***
@@ -28,64 +28,65 @@ typedef struct task_manager *		task_manager_t;
  *
  * Type 0 means "any type".
  */
-typedef int				task_eventtype_t;
+typedef int				isc_eventtype_t;
 
-typedef isc_boolean_t			(*task_action_t)(task_t, task_event_t);
+typedef isc_boolean_t (*isc_taskaction_t)(isc_task_t, isc_event_t);
 
 /*
  * This structure is public because "subclassing" it may be useful when
  * defining new event types.
  */ 
-struct task_event {
+struct isc_event {
 	mem_context_t			mctx;
 	size_t				size;
 	void *				sender;
-	task_eventtype_t		type;
-	task_action_t			action;
+	isc_eventtype_t			type;
+	isc_taskaction_t		action;
 	void *				arg;
-	LINK(struct task_event)		link;
+	LINK(struct isc_event)		link;
 };
 
-#define TASK_EVENT_ANYEVENT		0
-#define TASK_EVENT_SHUTDOWN		(-1)
+#define ISC_TASKEVENT_ANYEVENT		0
+#define ISC_TASKEVENT_SHUTDOWN		(-1)
 
-typedef LIST(struct task_event)		task_eventlist_t;
+typedef LIST(struct isc_event)		isc_eventlist_t;
 
-task_event_t				task_event_allocate(mem_context_t,
-							    void *,
-							    task_eventtype_t,
-							    task_action_t,
-							    void *arg,
-							    size_t);
-void					task_event_free(task_event_t *);
+isc_event_t				isc_event_allocate(mem_context_t,
+							   void *,
+							   isc_eventtype_t,
+							   isc_taskaction_t,
+							   void *arg,
+							   size_t);
+void					isc_event_free(isc_event_t *);
 
 
 /***
  *** Tasks.
  ***/
 
-isc_boolean_t				task_create(task_manager_t,
-						    task_action_t,
+isc_boolean_t				isc_task_create(isc_taskmgr_t,
+						    isc_taskaction_t,
 						    void *,
 						    unsigned int,
-						    task_t *);
-void					task_attach(task_t, task_t *);
-void					task_detach(task_t *);
-isc_boolean_t				task_send_event(task_t,
-							task_event_t *);
-void					task_purge_events(task_t, void *,
-							  task_eventtype_t);
-void					task_shutdown(task_t);
-void					task_destroy(task_t *);
+						    isc_task_t *);
+void					isc_task_attach(isc_task_t,
+							isc_task_t *);
+void					isc_task_detach(isc_task_t *);
+isc_boolean_t				isc_task_send(isc_task_t,
+							isc_event_t *);
+void					isc_task_purge(isc_task_t, void *,
+						   isc_eventtype_t);
+void					isc_task_shutdown(isc_task_t);
+void					isc_task_destroy(isc_task_t *);
 
 /***
  *** Task Manager.
  ***/
 
-unsigned int				task_manager_create(mem_context_t,
-							    unsigned int,
-							    unsigned int,
-							    task_manager_t *);
-void					task_manager_destroy(task_manager_t *);
+unsigned int				isc_taskmgr_create(mem_context_t,
+							   unsigned int,
+							   unsigned int,
+							   isc_taskmgr_t *);
+void					isc_taskmgr_destroy(isc_taskmgr_t *);
 
-#endif /* TASK_H */
+#endif /* ISC_TASK_H */

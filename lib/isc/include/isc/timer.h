@@ -72,7 +72,7 @@ typedef enum {
 } isc_timertype_t;
 
 typedef struct isc_timerevent {
-	struct task_event	common;
+	struct isc_event	common;
 	/* XXX Anything else? XXX */
 } *isc_timerevent_t;
 
@@ -93,8 +93,8 @@ isc_timer_create(isc_timermgr_t manager,
 		 isc_timertype_t type,
 		 os_time_t expires,
 		 os_time_t interval,
-		 task_t task,
-		 task_action_t action,
+		 isc_task_t task,
+		 isc_taskaction_t action,
 		 void *arg,
 		 isc_timer_t *timerp);
 /*

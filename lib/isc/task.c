@@ -26,7 +26,7 @@
 #define WAIT(cvp, lp)		INSIST(os_condition_wait((cvp), (lp)))
 #define BROADCAST(cvp)		INSIST(os_condition_broadcast((cvp)))
 
-#ifdef TASK_TRACE
+#ifdef ISC_TASK_TRACE
 #define XTRACE(m)		printf("%s task %p thread %p\n", (m), \
 				       task, os_thread_self())
 #else
@@ -47,36 +47,36 @@ typedef enum {
 #define VALID_TASK(t)			((t) != NULL && \
 					 (t)->magic == TASK_MAGIC)
 
-struct task {
+struct isc_task {
 	/* Not locked. */
 	unsigned int			magic;
-	task_manager_t			manager;
+	isc_taskmgr_t			manager;
 	os_mutex_t			lock;
 	/* Locked by task lock. */
 	task_state_t			state;
 	unsigned int			references;
-	task_eventlist_t		events;
+	isc_eventlist_t			events;
 	unsigned int			quantum;
 	isc_boolean_t			enqueue_allowed;
-	task_event_t			shutdown_event;
+	isc_event_t			shutdown_event;
 	/* Locked by task manager lock. */
-	LINK(struct task)		link;
-	LINK(struct task)		ready_link;
+	LINK(struct isc_task)		link;
+	LINK(struct isc_task)		ready_link;
 };
 
 #define TASK_MANAGER_MAGIC		0x54534B4DU	/* TSKM. */
 #define VALID_MANAGER(m)		((m) != NULL && \
 					 (m)->magic == TASK_MANAGER_MAGIC)
 
-struct task_manager {
+struct isc_taskmgr {
 	/* Not locked. */
 	unsigned int			magic;
 	mem_context_t			mctx;
 	os_mutex_t			lock;
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
-	LIST(struct task)		tasks;
-	LIST(struct task)		ready_tasks;
+	LIST(struct isc_task)		tasks;
+	LIST(struct isc_task)		ready_tasks;
 	os_condition_t			work_available;
 	isc_boolean_t			exiting;
 	unsigned int			workers;
@@ -91,11 +91,11 @@ struct task_manager {
  *** Events.
  ***/
 
-static inline task_event_t
-event_allocate(mem_context_t mctx, void *sender, task_eventtype_t type,
-	       task_action_t action, void *arg, size_t size)
+static inline isc_event_t
+event_allocate(mem_context_t mctx, void *sender, isc_eventtype_t type,
+	       isc_taskaction_t action, void *arg, size_t size)
 {
-	task_event_t event;
+	isc_event_t event;
 
 	event = mem_get(mctx, size);
 	if (event == NULL)
@@ -110,11 +110,11 @@ event_allocate(mem_context_t mctx, void *sender, task_eventtype_t type,
 	return (event);
 }
 
-task_event_t
-task_event_allocate(mem_context_t mctx, void *sender, task_eventtype_t type,
-		    task_action_t action, void *arg, size_t size)
+isc_event_t
+isc_event_allocate(mem_context_t mctx, void *sender, isc_eventtype_t type,
+		    isc_taskaction_t action, void *arg, size_t size)
 {
-	if (size < sizeof (struct task_event))
+	if (size < sizeof (struct isc_event))
 		return (NULL);
 	if (type < 0)
 		return (NULL);
@@ -125,8 +125,8 @@ task_event_allocate(mem_context_t mctx, void *sender, task_eventtype_t type,
 }
 
 void
-task_event_free(task_event_t *eventp) {
-	task_event_t event;
+isc_event_free(isc_event_t *eventp) {
+	isc_event_t event;
 	
 	REQUIRE(eventp != NULL);
 	event = *eventp;
@@ -142,8 +142,8 @@ task_event_free(task_event_t *eventp) {
  ***/
 
 static void
-task_free(task_t task) {
-	task_manager_t manager = task->manager;
+task_free(isc_task_t task) {
+	isc_taskmgr_t manager = task->manager;
 
 	XTRACE("free task");
 	REQUIRE(EMPTY(task->events));
@@ -162,16 +162,16 @@ task_free(task_t task) {
 	UNLOCK(&manager->lock);
 	(void)os_mutex_destroy(&task->lock);
 	if (task->shutdown_event != NULL)
-		task_event_free(&task->shutdown_event);
+		isc_event_free(&task->shutdown_event);
 	task->magic = 0;
 	mem_put(manager->mctx, task, sizeof *task);
 }
 
 isc_boolean_t
-task_create(task_manager_t manager, task_action_t shutdown_action,
-	    void *shutdown_arg, unsigned int quantum, task_t *taskp)
+isc_task_create(isc_taskmgr_t manager, isc_taskaction_t shutdown_action,
+		void *shutdown_arg, unsigned int quantum, isc_task_t *taskp)
 {
-	task_t task;
+	isc_task_t task;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
@@ -193,7 +193,7 @@ task_create(task_manager_t manager, task_action_t shutdown_action,
 	task->enqueue_allowed = ISC_TRUE;
 	task->shutdown_event = event_allocate(manager->mctx,
 					      NULL,
-					      TASK_EVENT_SHUTDOWN,
+					      ISC_TASKEVENT_SHUTDOWN,
 					      shutdown_action,
 					      shutdown_arg,
 					      sizeof *task->shutdown_event);
@@ -217,7 +217,7 @@ task_create(task_manager_t manager, task_action_t shutdown_action,
 }
 
 void
-task_attach(task_t task, task_t *taskp) {
+isc_task_attach(isc_task_t task, isc_task_t *taskp) {
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(taskp != NULL && *taskp == NULL);
@@ -230,11 +230,11 @@ task_attach(task_t task, task_t *taskp) {
 }
 
 void
-task_detach(task_t *taskp) {
+isc_task_detach(isc_task_t *taskp) {
 	isc_boolean_t free_task = ISC_FALSE;
-	task_t task;
+	isc_task_t task;
 
-	XTRACE("task_detach");
+	XTRACE("isc_task_detach");
 
 	REQUIRE(taskp != NULL);
 	task = *taskp;
@@ -254,10 +254,10 @@ task_detach(task_t *taskp) {
 }
 
 isc_boolean_t
-task_send_event(task_t task, task_event_t *eventp) {
+isc_task_send(isc_task_t task, isc_event_t *eventp) {
 	isc_boolean_t was_idle = ISC_FALSE;
 	isc_boolean_t discard = ISC_FALSE;
-	task_event_t event;
+	isc_event_t event;
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(eventp != NULL);
@@ -287,14 +287,14 @@ task_send_event(task_t task, task_event_t *eventp) {
 	UNLOCK(&task->lock);
 
 	if (discard) {
-		task_event_free(&event);
+		isc_event_free(&event);
 		*eventp = NULL;
 		return (ISC_TRUE);
 	}
 
 	if (was_idle) {
 		isc_boolean_t need_wakeup = ISC_FALSE;
-		task_manager_t manager;
+		isc_taskmgr_t manager;
 
 		/*
 		 * We need to add this task to the ready queue.
@@ -339,9 +339,9 @@ task_send_event(task_t task, task_event_t *eventp) {
 }
 
 void
-task_purge_events(task_t task, void *sender, task_eventtype_t type) {
-	task_event_t event, next_event;
-	task_eventlist_t purgeable;
+isc_task_purge(isc_task_t task, void *sender, isc_eventtype_t type) {
+	isc_event_t event, next_event;
+	isc_eventlist_t purgeable;
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(type >= 0);
@@ -371,19 +371,19 @@ task_purge_events(task_t task, void *sender, task_eventtype_t type) {
 	     event != NULL;
 	     event = next_event) {
 		next_event = NEXT(event, link);
-		task_event_free(&event);
+		isc_event_free(&event);
 	}
 }
 
 void
-task_shutdown(task_t task) {
+isc_task_shutdown(isc_task_t task) {
 	isc_boolean_t was_idle = ISC_FALSE;
 	isc_boolean_t discard = ISC_FALSE;
 
 	REQUIRE(VALID_TASK(task));
 
 	/*
-	 * This routine is very similar to task_send_event() above.
+	 * This routine is very similar to isc_task_send_event() above.
 	 */
 
 	LOCK(&task->lock);
@@ -408,7 +408,7 @@ task_shutdown(task_t task) {
 
 	if (was_idle) {
 		isc_boolean_t need_wakeup = ISC_FALSE;
-		task_manager_t manager;
+		isc_taskmgr_t manager;
 
 		manager = task->manager;
 		INSIST(VALID_MANAGER(manager));
@@ -424,12 +424,12 @@ task_shutdown(task_t task) {
 }
 
 void
-task_destroy(task_t *taskp) {
+isc_task_destroy(isc_task_t *taskp) {
 
 	REQUIRE(taskp != NULL);
 
-	task_shutdown(*taskp);
-	task_detach(taskp);
+	isc_task_shutdown(*taskp);
+	isc_task_detach(taskp);
 }
 
 
@@ -439,9 +439,9 @@ task_destroy(task_t *taskp) {
  ***/
 
 static
-void *task_manager_run(void *uap) {
-	task_manager_t manager = uap;
-	task_t task;
+void *run(void *uap) {
+	isc_taskmgr_t manager = uap;
+	isc_task_t task;
 	isc_boolean_t no_workers = ISC_FALSE;
 
 	XTRACE("start");
@@ -502,7 +502,7 @@ void *task_manager_run(void *uap) {
 	while (!FINISHED(manager)) {
 		/*
 		 * For reasons similar to those given in the comment in
-		 * task_send_event() above, it is safe for us to dequeue
+		 * isc_task_send_event() above, it is safe for us to dequeue
 		 * the task while only holding the manager lock, and then
 		 * change the task to running state while only holding the
 		 * task lock.
@@ -522,8 +522,8 @@ void *task_manager_run(void *uap) {
 			isc_boolean_t wants_shutdown;
 			isc_boolean_t is_shutdown;
 			isc_boolean_t free_task = ISC_FALSE;
-			task_event_t event;
-			task_eventlist_t remaining_events;
+			isc_event_t event;
+			isc_eventlist_t remaining_events;
 			isc_boolean_t discard_remaining = ISC_FALSE;
 
 			INSIST(VALID_TASK(task));
@@ -555,7 +555,7 @@ void *task_manager_run(void *uap) {
 				DEQUEUE(task->events, event, link);
 				UNLOCK(&task->lock);
 
-				if (event->type == TASK_EVENT_SHUTDOWN)
+				if (event->type == ISC_TASKEVENT_SHUTDOWN)
 					is_shutdown = ISC_TRUE;
 				else
 					is_shutdown = ISC_FALSE;
@@ -571,7 +571,7 @@ void *task_manager_run(void *uap) {
 					wants_shutdown = ISC_FALSE;
 				dispatch_count++;
 				
-				task_event_free(&event);
+				isc_event_free(&event);
 
 				LOCK(&task->lock);
 				if (wants_shutdown || is_shutdown) {
@@ -630,13 +630,13 @@ void *task_manager_run(void *uap) {
 			UNLOCK(&task->lock);
 
 			if (discard_remaining) {
-				task_event_t next_event;
+				isc_event_t next_event;
 
 				for (event = HEAD(remaining_events);
 				     event != NULL;
 				     event = next_event) {
 					next_event = NEXT(event, link);
-					task_event_free(&event);
+					isc_event_free(&event);
 				}
 			}
 
@@ -684,7 +684,7 @@ void *task_manager_run(void *uap) {
 }
 
 static void
-manager_free(task_manager_t manager) {
+manager_free(isc_taskmgr_t manager) {
 	(void)os_condition_destroy(&manager->work_available);
 	(void)os_condition_destroy(&manager->no_workers);
 	(void)os_mutex_destroy(&manager->lock);
@@ -693,11 +693,11 @@ manager_free(task_manager_t manager) {
 }
 
 unsigned int
-task_manager_create(mem_context_t mctx, unsigned int workers, 
-		    unsigned int default_quantum, task_manager_t *managerp)
+isc_taskmgr_create(mem_context_t mctx, unsigned int workers, 
+		    unsigned int default_quantum, isc_taskmgr_t *managerp)
 {
 	unsigned int i, started = 0;
-	task_manager_t manager;
+	isc_taskmgr_t manager;
 	os_thread_t thread;
 
 	if (workers == 0)
@@ -735,7 +735,7 @@ task_manager_create(mem_context_t mctx, unsigned int workers,
 	 * Start workers.
 	 */
 	for (i = 0; i < workers; i++) {
-		if (os_thread_create(task_manager_run, manager, &thread)) {
+		if (os_thread_create(run, manager, &thread)) {
 			manager->workers++;
 			started++;
 			(void)os_thread_detach(thread);
@@ -754,20 +754,20 @@ task_manager_create(mem_context_t mctx, unsigned int workers,
 }
 
 void
-task_manager_destroy(task_manager_t *managerp) {
-	task_manager_t manager;
-	task_t task;
+isc_taskmgr_destroy(isc_taskmgr_t *managerp) {
+	isc_taskmgr_t manager;
+	isc_task_t task;
 
 	REQUIRE(managerp != NULL);
 	manager = *managerp;
 	REQUIRE(VALID_MANAGER(manager));
 
-	XTRACE("task_manager_destroy");
+	XTRACE("isc_taskmgr_destroy");
 	/*
 	 * Only one non-worker thread may ever call this routine.
 	 * If a worker thread wants to initiate shutdown of the
 	 * task manager, it should ask some non-worker thread to call
-	 * task_manager_destroy(), e.g. by signalling a condition variable
+	 * isc_taskmgr_destroy(), e.g. by signalling a condition variable
 	 * that the startup thread is sleeping on.
 	 */
 

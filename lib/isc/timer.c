@@ -56,8 +56,8 @@ struct isc_timer {
 	isc_timertype_t			type;
 	os_time_t			expires;
 	os_time_t			interval;
-	task_t				task;
-	task_action_t			action;
+	isc_task_t			task;
+	isc_taskaction_t		action;
 	void *				arg;
 	unsigned int			index;
 	os_time_t			due;
@@ -191,13 +191,13 @@ destroy(isc_timer_t timer) {
 
 	LOCK(&manager->lock);
 
-	task_purge_events(timer->task, timer, TASK_EVENT_ANYEVENT);
+	isc_task_purge(timer->task, timer, ISC_TASKEVENT_ANYEVENT);
 	deschedule(timer);
 	UNLINK(manager->timers, timer, link);
 
 	UNLOCK(&manager->lock);
 
-	task_detach(&timer->task);
+	isc_task_detach(&timer->task);
 	(void)os_mutex_destroy(&timer->lock);
 	timer->magic = 0;
 	mem_put(manager->mctx, timer, sizeof *timer);
@@ -206,7 +206,7 @@ destroy(isc_timer_t timer) {
 isc_result
 isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 		 os_time_t expires, os_time_t interval,
-		 task_t task, task_action_t action, void *arg,
+		 isc_task_t task, isc_taskaction_t action, void *arg,
 		 isc_timer_t *timerp)
 {
 	isc_timer_t timer;
@@ -255,7 +255,7 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	timer->expires = expires;
 	timer->interval = interval;
 	timer->task = NULL;
-	task_attach(task, &timer->task);
+	isc_task_attach(task, &timer->task);
 	timer->action = action;
 	timer->arg = arg;
 	timer->index = 0;
@@ -319,7 +319,7 @@ isc_timer_reset(isc_timer_t timer, isc_timertype_t type,
 	LOCK(&timer->lock);
 
 	if (purge)
-		task_purge_events(timer->task, timer, TASK_EVENT_ANYEVENT);
+		isc_task_purge(timer->task, timer, ISC_TASKEVENT_ANYEVENT);
 	timer->type = type;
 	timer->expires = expires;
 	timer->interval = interval;
@@ -411,8 +411,8 @@ isc_timer_detach(isc_timer_t *timerp) {
 static void
 dispatch(isc_timermgr_t manager, os_time_t *nowp) {
 	isc_boolean_t done = ISC_FALSE, post_event, need_schedule;
-	task_event_t event;
-	task_eventtype_t type = 0;
+	isc_event_t event;
+	isc_eventtype_t type = 0;
 	isc_timer_t timer;
 	isc_result result;
 
@@ -446,16 +446,16 @@ dispatch(isc_timermgr_t manager, os_time_t *nowp) {
 
 			if (post_event) {
 				XTRACEID("posting", timer);
-				event = task_event_allocate(manager->mctx,
-							    timer,
-							    type,
-							    timer->action,
-							    timer->arg,
-							    sizeof *event);
+				event = isc_event_allocate(manager->mctx,
+							   timer,
+							   type,
+							   timer->action,
+							   timer->arg,
+							   sizeof *event);
 
 				if (event != NULL)
-					INSIST(task_send_event(timer->task,
-							       &event));
+					INSIST(isc_task_send(timer->task,
+							     &event));
 				else
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "couldn't allocate event");

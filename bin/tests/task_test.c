@@ -14,7 +14,7 @@
 mem_context_t mctx = NULL;
 
 static isc_boolean_t
-my_callback(task_t task, task_event_t event)
+my_callback(isc_task_t task, isc_event_t event)
 {
 	int i, j;
 	char *name = event->arg;
@@ -28,7 +28,7 @@ my_callback(task_t task, task_event_t event)
 }
 
 static isc_boolean_t
-my_shutdown(task_t task, task_event_t event) {
+my_shutdown(isc_task_t task, isc_event_t event) {
 	char *name = event->arg;
 
 	printf("shutdown %s (%p)\n", name, task);
@@ -36,7 +36,7 @@ my_shutdown(task_t task, task_event_t event) {
 }
 
 static isc_boolean_t
-my_tick(task_t task, task_event_t event)
+my_tick(isc_task_t task, isc_event_t event)
 {
 	char *name = event->arg;
 
@@ -46,10 +46,10 @@ my_tick(task_t task, task_event_t event)
 
 void
 main(int argc, char *argv[]) {
-	task_manager_t manager = NULL;
-	task_t t1 = NULL, t2 = NULL;
-	task_t t3 = NULL, t4 = NULL;
-	task_event_t event;
+	isc_taskmgr_t manager = NULL;
+	isc_task_t t1 = NULL, t2 = NULL;
+	isc_task_t t3 = NULL, t4 = NULL;
+	isc_event_t event;
 	unsigned int workers;
 	isc_timermgr_t timgr;
 	isc_timer_t ti1, ti2;
@@ -63,12 +63,12 @@ main(int argc, char *argv[]) {
 
 	INSIST(mem_context_create(0, 0, &mctx) == 0);
 
-	INSIST(task_manager_create(mctx, workers, 0, &manager) == workers);
+	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) == workers);
 
-	INSIST(task_create(manager, my_shutdown, "1", 0, &t1));
-	INSIST(task_create(manager, my_shutdown, "2", 0, &t2));
-	INSIST(task_create(manager, my_shutdown, "3", 0, &t3));
-	INSIST(task_create(manager, my_shutdown, "4", 0, &t4));
+	INSIST(isc_task_create(manager, my_shutdown, "1", 0, &t1));
+	INSIST(isc_task_create(manager, my_shutdown, "2", 0, &t2));
+	INSIST(isc_task_create(manager, my_shutdown, "3", 0, &t3));
+	INSIST(isc_task_create(manager, my_shutdown, "4", 0, &t4));
 
 	timgr = NULL;
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
@@ -89,64 +89,64 @@ main(int argc, char *argv[]) {
 	printf("task 2 = %p\n", t2);
 	sleep(2);
 
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "1",
-				    sizeof *event);
-	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "2",
-				    sizeof *event);
-	task_send_event(t2, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "3",
-				    sizeof *event);
-	task_send_event(t3, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "4",
-				    sizeof *event);
-	task_send_event(t4, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "2",
-				    sizeof *event);
-	task_send_event(t2, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "3",
-				    sizeof *event);
-	task_send_event(t3, &event);
-	event = task_event_allocate(mctx, main, 1, my_callback, "4",
-				    sizeof *event);
-	task_send_event(t4, &event);
-	task_purge_events(t3, NULL, 0);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+				   sizeof *event);
+	isc_task_send(t1, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "2",
+				   sizeof *event);
+	isc_task_send(t2, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "3",
+				   sizeof *event);
+	isc_task_send(t3, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "4",
+				   sizeof *event);
+	isc_task_send(t4, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "2",
+				   sizeof *event);
+	isc_task_send(t2, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "3",
+				   sizeof *event);
+	isc_task_send(t3, &event);
+	event = isc_event_allocate(mctx, main, 1, my_callback, "4",
+				   sizeof *event);
+	isc_task_send(t4, &event);
+	isc_task_purge(t3, NULL, 0);
 
-	task_detach(&t1);
-	task_detach(&t2);
-	task_detach(&t3);
-	task_detach(&t4);
+	isc_task_detach(&t1);
+	isc_task_detach(&t2);
+	isc_task_detach(&t3);
+	isc_task_detach(&t4);
 
 	sleep(10);
 	printf("destroy\n");
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);
 	isc_timermgr_destroy(&timgr);
-	task_manager_destroy(&manager);
+	isc_taskmgr_destroy(&manager);
 	printf("destroyed\n");
 	
 	mem_stats(mctx, stdout);
