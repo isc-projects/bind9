@@ -295,16 +295,18 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  * Ensures:
  *
- *	If the result is ISC_R_SUCCESS or DNS_R_GLUE, then 'rdataset', and
- *	possibly 'sigrdataset', are bound to the found data.
+ *	In successful cases, 'rdataset', and possibly 'sigrdataset', are
+ *	bound to the found data.
  *
  * Returns:
  *
- *	ISC_R_SUCCESS				Success.
- *	DNS_R_GLUE				Success; result is glue.
- *	DNS_R_HINT				Success; result is a hint.
- *	ISC_R_NOTFOUND				No matching data found,
- *						or an error occurred.
+ *	ISC_R_SUCCESS			Success.
+ *	DNS_R_GLUE			Success; result is glue.
+ *	DNS_R_HINT			Success; result is a hint.
+ *	DNS_R_NCACHENXDOMAIN		Success; result is a ncache entry.
+ *	DNS_R_NCACHENXRRSET		Success; result is a ncache entry.
+ *	ISC_R_NOTFOUND			No matching data found,
+ *					or an error occurred.
  */
 
 isc_result_t
