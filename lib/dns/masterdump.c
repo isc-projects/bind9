@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.40 2001/01/04 23:40:27 mws Exp $ */
+/* $Id: masterdump.c,v 1.41 2001/01/04 23:52:14 gson Exp $ */
 
 #include <config.h>
 
@@ -123,12 +123,6 @@ typedef struct dns_totext_ctx {
 	isc_boolean_t 		current_ttl_valid;
 } dns_totext_ctx_t;
 
-/*
- * The default master file style.
- *
- * Because the TTL is always omitted, and the class is almost always
- * omitted, neither is allocated any columns.
- */
 const dns_master_style_t
 dns_master_style_default = {
 	DNS_STYLEFLAG_OMIT_OWNER |
@@ -142,11 +136,6 @@ dns_master_style_default = {
 	24, 24, 24, 32, 80, 8
 };
 
-/*
- * A master file style that prints TTL values on each record line,
- * never using $TTL statements.  The TTL has a tab stop of its
- * own, but the class and type share one.
- */
 const dns_master_style_t
 dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_OMIT_OWNER |
@@ -158,12 +147,6 @@ dns_master_style_explicitttl = {
 	24, 32, 32, 40, 80, 8
 };
 
-/*
- * A master style that prints name, ttl, class, type, and value on every line.
- * Similar to explicitttl above, but more verbose.  Intended for generating
- * master files which can be easily parsed by perl scripts and similar
- * applications.
- */
 const dns_master_style_t
 dns_master_style_simple = {
 	0,
