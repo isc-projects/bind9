@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.8 2001/05/02 17:43:42 gson Exp $ */
+/* $Id: cfg_test.c,v 1.9 2001/05/31 11:00:40 tale Exp $ */
 
 #include <config.h>
 
@@ -65,7 +65,7 @@ main(int argc, char **argv) {
 	isc_logdestination_t destination;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *cfg = NULL;
-	cfg_type_t *type;
+	cfg_type_t *type = NULL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
