@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.29 2000/11/06 20:40:54 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.30 2000/11/06 22:18:52 bwelling Exp $ -->
 
 <book>
 
@@ -1603,24 +1603,35 @@ using a combination of a lightweight resolver library and a resolver
 daemon process running on the local host.  These communicate using
 a simple UDP-based protocol, the "lightweight resolver protocol"
 that is distinct from and simpler than the full DNS protocol.</para></sect1>
-<sect1><title>Running a Resolver Daemon</title>
+<sect1><sect1 id="lwresd"><title>Running a Resolver Daemon</title>
 <para>To use the lightweight resolver interface, the system must
 run the resolver daemon <command>lwresd</command>.</para>
-<para>Applications using the lightweight resolver library will make
-UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
- The daemon will try to find the answer to the questions "what are the
-addresses for host <systemitem class="systemname">foo.example.com</systemitem>?" and "what are
-the names for IPv4 address 204.152.184.79?"</para>
+<para>By default, applications using the lightweight resolver library will make
+UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.  The
+address can be overriden by <command>lwserver</command> lines in
+<filename>/etc/resolv.conf</filename>.
+The daemon will try to find the answer to the questions "what are the
+addresses for host
+<systemitem class="systemname">foo.example.com</systemitem>?" and "what are
+the names for IPv4 address 10.1.2.3?"</para>
 <para>The daemon currently only looks in the DNS, but in the future
-it may use other sources such as <literal>/etc/hosts</literal>,
+it may use other sources such as <filename>/etc/hosts</filename>,
 NIS, etc.</para>
-<para>The <command>lwresd</command> daemon is essentially a stripped-down,
+<para>The <command>lwresd</command> daemon is essentially a
 caching-only name server that answers requests using the lightweight
 resolver protocol rather than the DNS protocol.  Because it needs
 to run on each host, it is designed to require no or minimal configuration.
- It uses the name servers listed on <command>nameserver</command> lines
-in <filename>/etc/resolv.conf</filename> as forwarders, but is also
-capable of doing the resolution autonomously if none are specified.</para></sect1></chapter>
+Unless configured otherwise, it uses the name servers listed on
+<command>nameserver</command> lines in <filename>/etc/resolv.conf</filename>
+as forwarders, but is also capable of doing the resolution autonomously if
+none are specified.</para>
+<para>The <command>lwresd</command> daemon may also be configured with a
+<filename>named.conf<filename> style configuration file, in
+<filename>/etc/lwresd.conf</filename> by default.  A name server may also
+be configured to act as a lightweight resolver daemon using the
+<command>lwres{}</command> statement in <filename>named.conf</filename>.</para>
+
+</sect1></chapter>
 
 <chapter id="ch06"><title><acronym>BIND</acronym> 9 Configuration Reference</title>
 <para><acronym>BIND</acronym> 9 configuration is broadly similar to <acronym>BIND</acronym> 8.x; however,
@@ -2353,6 +2364,48 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
 </tbody>
 </tgroup></informaltable>
       </sect3>
+    </sect2>
+    <sect2>
+      <title><command>lwres</command> Statement Grammar</title>
+
+      <para> This is the grammar of the <command>lwres</command>
+      statement in the <filename>named.conf</filename> file:</para>
+<programlisting><command>lwres</command>
+    <optional> listen-on { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> view <replaceable>view_name</replaceable>; </optional>
+    <optional> search { <replaceable>domain_name</replaceable> ; <optional> <replaceable>ip_addr</replaceable> ; ... </optional> }; </optional>
+    <optional> ndots <replaceable>number</replaceable>; </optional>
+    </sect2>
+    <sect2>
+      <title><command>lwres</command> Statement Definition and Usage</title>
+
+      <para>The <command>lwres</command> statement configures the name
+      server to also act as a lightweight resolver server, see
+      <xref linkend="lwresd"/>.  There may be be multiple
+      <command>lwres</command> statements configuring
+      lightweight resolver servers with different properties.
+
+      <para>The <command>listen-on</command> statement specifies a list of
+      addresses (and ports) that this instance of a lightweight resolver daemon
+      should accept requests on.  If this statement is omitted, requests
+      will be accepted on 127.0.0.1, port 53.</para>
+
+      <para>The <command>view</command> statement binds this instance of a
+      lightweight resolver daemon to a view in the DNS namespace, so that the
+      response will be constructed in the same manner as a normal DNS query
+      matching this view.  If this statement is omitted, the default view is
+      used, and if there is no default view, an error is triggered.</para>
+
+      <para>The <command>search</command> statement is equivalent to the
+      <command>search</command> statement in
+      <filename>/etc/resolv.conf</filename>.  It provides a list of domains
+      which are appended to relative names in queries.</para>
+
+      <para>The <command>ndots</command> statement is equivalent to the
+      <command>ndots</command> statement in
+      <filename>/etc/resolv.conf</filename>.  It indicates the minimum
+      number of dots in a relative domain name that should result in an
+      exact match lookup before search path elements are appended.</para>
     </sect2>
     <sect2>
       <title><command>options</command> Statement Grammar</title>
