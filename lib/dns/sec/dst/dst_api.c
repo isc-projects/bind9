@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.50 2000/06/08 20:38:48 tale Exp $
+ * $Id: dst_api.c,v 1.51 2000/06/08 23:21:15 tale Exp $
  */
 
 #include <config.h>
@@ -88,7 +88,7 @@ dst_lib_init(isc_mem_t *mctx) {
 }
 
 void
-dst_lib_destroy() {
+dst_lib_destroy(void) {
 	RUNTIME_CHECK(dst_initialized == ISC_TRUE);
 	dst_initialized = ISC_FALSE;
 
