@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
  *
@@ -16,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.152 2000/09/29 23:53:05 gson Exp $ */
+/* $Id: adb.c,v 1.153 2000/09/29 23:54:31 gson Exp $ */
 
 /*
  * Implementation notes
