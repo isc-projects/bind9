@@ -51,6 +51,7 @@
 
 #include <named/types.h>
 #include <named/globals.h>
+#include <named/rootns.h>
 #include <named/server.h>
 #include <named/xfrin.h>
 
@@ -225,6 +226,7 @@ static isc_result_t
 load_all(void) {
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_dbinfo_t *dbi;
+	dns_view_t *view;
 	
 	result = load_version();
 	if (result != ISC_R_SUCCESS)
@@ -236,6 +238,15 @@ load_all(void) {
 		result = load(dbi, "default/IN");
 		if (result != ISC_R_SUCCESS)
 			break;
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		RWLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+		for (view = ISC_LIST_HEAD(ns_g_viewlist);
+		     view != NULL;
+		     view = ISC_LIST_NEXT(view, link))
+			dns_view_freeze(view);
+		RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_read);
 	}
 
 	return (result);
@@ -287,7 +298,6 @@ load_configuration(void) {
 
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
-
 	(void)task;
 	printf("server running\n");
 
@@ -317,6 +327,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 	isc_task_detach(&server_task);
 
+	ns_rootns_destroy();
+
 	isc_event_free(&event);
 }
 
@@ -324,6 +336,10 @@ isc_result_t
 ns_server_init(void) {
 	isc_result_t result;
 	dns_view_t *view, *view_next;
+
+	result = ns_rootns_init();
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * XXXRTH  The view management code here will probably move to its
@@ -335,6 +351,7 @@ ns_server_init(void) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_views;
 	ISC_LIST_APPEND(ns_g_viewlist, view, link);
+	dns_view_sethints(view, ns_g_rootns);
 	view = NULL;
 	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "default/CHAOS",
 				 &view);
@@ -367,6 +384,8 @@ ns_server_init(void) {
 		ISC_LIST_UNLINK(ns_g_viewlist, view, link);
 		dns_view_detach(&view);
 	}
+
+	ns_rootns_destroy();
 
 	return (result);
 }
