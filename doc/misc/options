@@ -75,6 +75,8 @@ options {
   [ transfers-per-ns number; ]				    Yes
   [ transfer-source ip_addr; ]				    Yes
   [ transfer-source-v6 ip_addr; ]			    Yes*
+  [ request-ixfr yes_or_no; ]				    Yes*
+  [ provide-ixfr yes_or_no; ]				    No*
   [ maintain-ixfr-base yes_or_no; ]			    Obsolete+
   [ max-ixfr-log-size number; ]				    No
   [ coresize size_spec ; ]				    No
@@ -104,7 +106,9 @@ controls                                                    No
 
 server ip_addr {
   [ bogus yes_or_no; ]					    No
-  [ support-ixfr yes_or_no; ]				    Yes
+  [ request-ixfr yes_or_no; ]				    Yes*
+  [ provide-ixfr yes_or_no; ]				    No*
+  [ support-ixfr yes_or_no; ]				    Obsolete
   [ transfers number; ]					    Yes
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
   [ keys { key_id [key_id ... ] }; ]                        Yes

@@ -869,6 +869,12 @@ load_configuration(const char *filename, ns_server_t *server,
 		(void) dns_c_ctx_gettransfersperns(configctx, &transfersperns);
 		dns_zonemgr_settransfersperns(server->zonemgr, transfersperns);
 	}
+	{
+ 		isc_boolean_t requestixfr = ISC_TRUE;
+		(void) dns_c_ctx_getrequestixfr(configctx, &requestixfr);
+		dns_zonemgr_setrequestixfr(server->zonemgr, requestixfr);
+	}
+	
 
 	/*
 	 * Configure the interface manager according to the "listen-on"

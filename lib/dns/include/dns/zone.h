@@ -895,6 +895,12 @@ dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
 dns_xfrinlist_t	*
 dns_zonemgr_gettransferlist(dns_zonemgr_t *zmgr);
 
+void
+dns_zonemgr_setrequestixfr(dns_zonemgr_t *zmgr, isc_boolean_t value);
+
+isc_boolean_t
+dns_zonemgr_getrequestixfr(dns_zonemgr_t *zmgr);
+
 ISC_LANG_ENDDECLS
 
 #endif	/* DNS_ZONE_H */

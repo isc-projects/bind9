@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.52 2000/03/17 17:45:05 gson Exp $ */
+/* $Id: xfrin.c,v 1.53 2000/03/20 19:37:50 gson Exp $ */
 
 #include <config.h>
 
@@ -533,7 +533,7 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 		CHECK(result);
 
 	/*
-	 * Decide whether we should use IXFR or AXFR.
+	 * Decide whether we should request IXFR or AXFR.
 	 */
 	if (db == NULL) {
 		xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
@@ -543,15 +543,18 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 	} else {
 		isc_boolean_t use_ixfr = ISC_TRUE;
 		if (peer != NULL &&
-		    dns_peer_getsupportixfr(peer, &use_ixfr) == ISC_R_SUCCESS &&
-		    use_ixfr == ISC_FALSE)
-	        {
+		    dns_peer_getrequestixfr(peer, &use_ixfr) == ISC_R_SUCCESS) {
+			; /* Using peer setting */ 
+		} else {
+			use_ixfr = dns_zonemgr_getrequestixfr(dns_zone_getmgr(zone));
+		}
+		if (use_ixfr == ISC_FALSE) {
 			xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
-				   "IXFR disabled for server, using AXFR");
+				   "IXFR disabled, requesting AXFR");
 			xfrtype = dns_rdatatype_axfr;			
 		} else {
 			xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
-				   "trying IXFR");
+				   "requesting IXFR");
 			xfrtype = dns_rdatatype_ixfr;
 		}
 	}
