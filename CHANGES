@@ -1,4 +1,6 @@
 
+	--- 9.2.0rc3 released ---
+
  990.	[bug]		The rndc-confgen man page was not installed.
 
  989.	[bug]		Report filename if $INCLUDE fails for file related
