@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122 2001/08/28 03:58:05 marka Exp $ */
+/* $Id: master.c,v 1.122.2.1 2001/09/04 22:51:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1395,6 +1395,27 @@ load(dns_loadctx_t *lctx) {
 			target = target_ft;
 			continue;
 		}
+
+		if (type == dns_rdatatype_soa &&
+		    (lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    dns_name_compare(ictx->current, lctx->top) != 0) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(ictx->current, namebuf,
+					sizeof(namebuf));
+			(*callbacks->error)(callbacks,
+				            "dns_master_load: %s:%lu: SOA "
+			                    "record not at top of zone (%s)",
+				            source, line, namebuf);
+			result = DNS_R_NOTZONETOP;
+			if (MANYERRS(lctx, result)) {
+				SETRESULT(lctx, result);
+				read_till_eol = ISC_TRUE;
+				target = target_ft;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
+		}
+
 
 		if (type == dns_rdatatype_sig)
 			covers = dns_rdata_covers(&rdata[rdcount]);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333 2001/08/28 03:58:10 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.1 2001/09/04 22:51:38 gson Exp $ */
 
 #include <config.h>
 
@@ -1036,7 +1036,8 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
-					load->zone->rdclass, 0,
+					load->zone->rdclass,
+					DNS_MASTER_ZONE,
 					&load->callbacks, task,
 					zone_loaddone, load,
 					&load->zone->lctx, load->zone->mctx);
@@ -1087,16 +1088,17 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			result = DNS_R_CONTINUE;
 	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS)) {
 		dns_rdatacallbacks_t    callbacks;
+		unsigned int options;
 
 		dns_rdatacallbacks_init(&callbacks);
 		result = dns_db_beginload(db, &callbacks.add,
 					  &callbacks.add_private);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		options = DNS_MASTER_MANYERRORS|DNS_MASTER_ZONE;
 		result = dns_master_loadfile(zone->masterfile, &zone->origin,
 					     &zone->origin, zone->rdclass,
-					     DNS_MASTER_MANYERRORS,
-					     &callbacks, zone->mctx);
+					     options, &callbacks, zone->mctx);
 		tresult = dns_db_endload(db, &callbacks.add_private);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
