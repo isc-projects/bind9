@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.19 2004/05/12 06:38:46 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.20 2004/06/04 03:44:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1102,14 +1102,16 @@ add_rr_prepare_action(void *data, rr_t *rr) {
 	isc_result_t result = ISC_R_SUCCESS;	
 	add_rr_prepare_ctx_t *ctx = data;
 	dns_difftuple_t *tuple = NULL;
+	isc_boolean_t equal;
 
 	/*
 	 * If the update RR is a "duplicate" of the update RR,
 	 * the update should be silently ignored.
 	 */
-	if (dns_rdata_compare(&rr->rdata, ctx->update_rr) == 0 &&
-	    rr->ttl == ctx->update_rr_ttl) {
+	equal = ISC_TF(dns_rdata_compare(&rr->rdata, ctx->update_rr) == 0);
+	if (equal && rr->ttl == ctx->update_rr_ttl) {
 		ctx->ignore_add = ISC_TRUE;
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
@@ -1137,12 +1139,14 @@ add_rr_prepare_action(void *data, rr_t *rr) {
 					   &rr->rdata,
 					   &tuple));
 		dns_diff_append(&ctx->del_diff, &tuple);
-		CHECK(dns_difftuple_create(ctx->add_diff.mctx,
-					   DNS_DIFFOP_ADD, ctx->name,
-					   ctx->update_rr_ttl,
-					   &rr->rdata,
-					   &tuple));
-		dns_diff_append(&ctx->add_diff, &tuple);
+		if (!equal) {
+			CHECK(dns_difftuple_create(ctx->add_diff.mctx,
+						   DNS_DIFFOP_ADD, ctx->name,
+						   ctx->update_rr_ttl,
+						   &rr->rdata,
+						   &tuple));
+			dns_diff_append(&ctx->add_diff, &tuple);
+		}
 	}
  failure:
 	return (result);

@@ -1,3 +1,6 @@
+1649.	[bug]		Silence "unexpected non-minimal diff" message.
+			[RT #11206]
+
 1648.	[func]		Update dnssec-lookaside named.conf syntax to support
 			multiple dnssec-lookaside namespaces (not yet
 			implemented).  
