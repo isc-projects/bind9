@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.87 2004/10/07 02:21:48 marka Exp $ */
+/* $Id: dig.h,v 1.88 2004/10/21 01:44:24 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -207,6 +207,7 @@ struct dig_query {
 	ISC_LINK(dig_query_t) link;
 	isc_sockaddr_t sockaddr;
 	isc_time_t time_sent;
+	isc_uint64_t byte_count;
 };
 
 struct dig_server {

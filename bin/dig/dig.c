@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.199 2004/09/16 02:12:37 marka Exp $ */
+/* $Id: dig.c,v 1.200 2004/10/21 01:44:23 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -248,10 +248,12 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		time(&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
 		if (query->lookup->doing_xfr) {
-			printf(";; XFR size: %u records (messages %u)\n",
-			       query->rr_count, query->msg_count);
+			printf(";; XFR size: %u records (messages %u, "
+			       "bytes %" ISC_PRINT_QUADFORMAT "u)\n",
+			       query->rr_count, query->msg_count,
+			       query->byte_count);
 		} else {
-			printf(";; MSG SIZE  rcvd: %d\n", bytes);
+			printf(";; MSG SIZE  rcvd: %u\n", bytes);
 
 		}
 		if (key != NULL) {
@@ -265,8 +267,11 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		puts("");
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
-		printf(";; Received %u bytes from %s(%s) in %d ms\n\n",
-		       bytes, fromtext, query->servname,
+		printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
+		       "from %s(%s) in %d ms\n\n",
+		       query->lookup->doing_xfr ?
+				query->byte_count : (isc_uint64_t)bytes,
+		       fromtext, query->servname,
 		       (int)diff/1000);
 	}
 }
