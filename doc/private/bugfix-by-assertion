@@ -1,5 +1,6 @@
 9.1.1rc2: 
 resolver.c:1733: REQUIRE((((fctx->queries).head == 0) ? isc_boolean_true : isc_boolean_false))	????
+						RESOLVED 673 872 1048 (fixed in 9.1.1rc6)
 
 9.1.3:
 mem.c:860: REQUIRE(ctx->references == 1)	OPEN 1523
