@@ -1,3 +1,9 @@
+ 345.	[bug]		Large-scale changes/cleanups to dig:
+			* Significantly improve structure handling
+			* Don't pre-load entire batch files
+			* Add name/rr counting/limiting
+			* Fix SIGINT handling
+			* Shorten timeouts to match v8's behavior
 
  344.	[bug]		When shutting down, lwresd sometimes tried
 			to shut down its client tasks twice, 
