@@ -100,7 +100,7 @@ include                                                     Yes
 
 key							    Yes
 
-logging						            No
+logging						            Yes
 
 controls                                                    No
 
