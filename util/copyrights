@@ -393,6 +393,7 @@
 ./bin/tests/system/lwresd/Makefile.in		MAKE	2000
 ./bin/tests/system/lwresd/lwresd1/.cvsignore	X	2000
 ./bin/tests/system/lwresd/lwresd1/resolv.conf	CONF-SH	2000
+./bin/tests/system/lwresd/lwresd1/lwresd.conf	CONF-C	2000
 ./bin/tests/system/lwresd/lwtest.c		C	2000
 ./bin/tests/system/lwresd/ns1/.cvsignore	X	2000
 ./bin/tests/system/lwresd/ns1/10.10.10.in-addr.arpa.db	ZONE	2000
