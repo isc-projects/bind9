@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.26 2001/01/09 21:51:50 bwelling Exp $
+# $Id: Makefile.in,v 1.27 2001/01/09 23:55:17 bwelling Exp $
 
 srcdir		= @srcdir@
 VPATH		= @srcdir@
@@ -78,10 +78,13 @@ confparser.y: confparser.y.dirty
 
 depend: confparser.c
 
+clean::
+	rm -f confparser.c
+
 #ifndef NOMINUM_PUBLIC
 distclean::
-	rm -f confparser.c confparser_p.h confparser.y
+	rm -f confparser_p.h confparser.y
 #else NOMINUM_PUBLIC
 #+distclean::
-#+	rm -f confparser.c confparser_p.h
+#+	rm -f confparser_p.h
 #endif NOMINUM_PUBLIC
