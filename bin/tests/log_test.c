@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.10 2000/03/02 01:52:47 tale Exp $ */
+/* $Id: log_test.c,v 1.11 2000/03/04 03:05:17 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -54,6 +54,8 @@ main (int argc, char **argv) {
 	isc_mem_t *mctx;
 	isc_result_t result;
 	isc_logdestination_t destination;
+	isc_logcategory_t *category;
+	isc_logmodule_t *module;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -108,7 +110,6 @@ main (int argc, char **argv) {
 		"2 lines to syslog\n",
 		"lines ending with exclamation marks are errors\n\n");
 
-	fprintf(stderr, "==> stderr begin\n");
 	isc_log_opensyslog(progname, LOG_PID, LOG_DAEMON);
 
 	mctx = NULL;
@@ -118,6 +119,21 @@ main (int argc, char **argv) {
 	CHECK_ISC(isc_log_create(mctx, &lctx, &lcfg));
 
 	dns_log_init(lctx);
+
+	/*
+	 * Test isc_log_categorybyname and isc_log_modulebyname.
+	 */
+	category = isc_log_categorybyname(lctx, "dns_parser");
+	if (category != NULL)
+		fprintf(stderr, "%s category found.\n", category->name);
+	else
+		fprintf(stderr, "dns_parser category not found!\n");
+
+	module = isc_log_modulebyname(lctx, "xyzzy");
+	if (module != NULL)
+		fprintf(stderr, "%s module found! (error)\n", module->name);
+	else
+		fprintf(stderr, "xyzzy module not found. (expected)\n");
 
 	/*
 	 * Create a file channel to test file opening, size limiting and
@@ -172,6 +188,8 @@ main (int argc, char **argv) {
 	CHECK_ISC(isc_log_usechannel(lcfg, "debug_test",
 				     DNS_LOGCATEGORY_GENERAL,
 				     DNS_LOGMODULE_RBTDB));
+
+	fprintf(stderr, "\n==> stderr begin\n");
 
 	/*
 	 * Write to the internal default by testing both a category for which
