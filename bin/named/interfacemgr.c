@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.13 2004/03/08 09:04:14 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.14 2004/04/29 01:31:21 marka Exp $ */
 
 #include <config.h>
 
@@ -545,6 +545,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	isc_boolean_t scan_ipv6 = ISC_FALSE;
 	isc_boolean_t adjusting = ISC_FALSE;
 	isc_boolean_t ipv6only = ISC_TRUE;
+	isc_boolean_t ipv6pktinfo = ISC_TRUE;
 	isc_result_t result;
 	isc_netaddr_t zero_address, zero_address6;
 	ns_listenelt_t *le;
@@ -586,7 +587,12 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		log_explicit = ISC_TRUE;
 	}
 #endif
-	if (scan_ipv6 == ISC_TRUE && ipv6only) {
+	if (scan_ipv6 == ISC_TRUE &&
+	    isc_net_probe_ipv6pktinfo() != ISC_R_SUCCESS) {
+		ipv6pktinfo = ISC_FALSE;
+		log_explicit = ISC_TRUE;
+	}
+	if (scan_ipv6 == ISC_TRUE && ipv6only && ipv6pktinfo) {
 		for (le = ISC_LIST_HEAD(mgr->listenon6->elts);
 		    le != NULL;
 		    le = ISC_LIST_NEXT(le, link)) {
@@ -610,7 +616,9 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 				result = ns_interface_setup(mgr, &listen_addr,
 							    "<any>", &ifp,
 							    ISC_TRUE);
-				if (result != ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS)
+					ifp->flags |= NS_INTERFACEFLAG_ANYADDR;
+				else
 					isc_log_write(IFMGR_COMMON_LOGARGS,
 						      ISC_LOG_ERROR,
 						      "listening on all IPv6 "
@@ -719,7 +727,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 			 * The case of "any" IPv6 address will require
 			 * special considerations later, so remember it.
 			 */
-			if (family == AF_INET6 && ipv6only &&
+			if (family == AF_INET6 && ipv6only && ipv6pktinfo &&
 			    listenon_is_ip6_any(le))
 				ipv6_wildcard = ISC_TRUE;
 
@@ -760,14 +768,14 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 					continue;
 
 				if (log_explicit && family == AF_INET6 &&
-				    !adjusting) {
+				    !adjusting && listenon_is_ip6_any(le)) {
 					isc_log_write(IFMGR_COMMON_LOGARGS,
 						      verbose ? ISC_LOG_INFO :
 							      ISC_LOG_DEBUG(1),
-						      "IPv6-only option is not"
-						      " available; explicitly"
-						      " binding to all IPv6"
-						      " addresses.");
+						      "IPv6 socket API is "
+						      "incomplete; explicitly "
+						      "binding to each IPv6 "
+						      "address separately");
 					log_explicit = ISC_FALSE;
 				}
 				isc_sockaddr_format(&listen_sockaddr,

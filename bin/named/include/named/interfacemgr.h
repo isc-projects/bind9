@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.23.24.6 2004/03/08 04:04:20 marka Exp $ */
+/* $Id: interfacemgr.h,v 1.23.24.7 2004/04/29 01:31:22 marka Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -65,6 +65,8 @@
 #define IFACE_MAGIC		ISC_MAGIC('I',':','-',')')
 #define NS_INTERFACE_VALID(t)	ISC_MAGIC_VALID(t, IFACE_MAGIC)
 
+#define NS_INTERFACEFLAG_ANYADDR	0x01U	/* bound to "any" address */
+
 struct ns_interface {
 	unsigned int		magic;		/* Magic number. */
 	ns_interfacemgr_t *	mgr;		/* Interface manager. */
@@ -72,6 +74,7 @@ struct ns_interface {
 	int			references;	/* Locked */
 	unsigned int		generation;     /* Generation number. */
 	isc_sockaddr_t		addr;           /* Address and port. */
+	unsigned int		flags;		/* Interface characteristics */
 	char 			name[32];	/* Null terminated. */
 	dns_dispatch_t *	udpdispatch;	/* UDP dispatcher. */
 	isc_socket_t *		tcpsocket;	/* TCP socket. */

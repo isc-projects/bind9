@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.3.2.2.4.6 2004/03/11 05:58:42 marka Exp $ */
+/* $Id: net.c,v 1.3.2.2.4.7 2004/04/29 01:31:23 marka Exp $ */
 
 #include <config.h>
 
@@ -36,9 +36,11 @@ const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
 
 static isc_once_t 	once = ISC_ONCE_INIT;
 static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
+static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
 static isc_result_t	ipv4_result = ISC_R_NOTFOUND;
 static isc_result_t	ipv6_result = ISC_R_NOTFOUND;
 static isc_result_t	ipv6only_result = ISC_R_NOTFOUND;
+static isc_result_t	ipv6pktinfo_result = ISC_R_NOTFOUND;
 
 static isc_result_t
 try_proto(int domain) {
@@ -218,7 +220,7 @@ try_ipv6only(void) {
 close:
 	close(s);
 	return;
-#endif
+#endif /* IPV6_V6ONLY */
 }
 
 static void
@@ -226,8 +228,61 @@ initialize_ipv6only(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6only,
 				  try_ipv6only) == ISC_R_SUCCESS);
 }
+
+static void
+try_ipv6pktinfo(void) {
+	int s, on;
+	char strbuf[ISC_STRERRORSIZE];
+	isc_result_t result;
+	int optname;
+
+	result = isc_net_probeipv6();
+	if (result != ISC_R_SUCCESS) {
+		ipv6pktinfo_result = result;
+		return;
+	}
+
+	/* we only use this for UDP sockets */
+	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+	if (s == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "socket() %s: %s",
+				 isc_msgcat_get(isc_msgcat,
+						ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED,
+						"failed"),
+				 strbuf);
+		ipv6pktinfo_result = ISC_R_UNEXPECTED;
+		return;
+	}
+
+#ifdef IPV6_RECVPKTINFO
+	optname = IPV6_RECVPKTINFO;
+#else
+	optname = IPV6_PKTINFO;
 #endif
-#endif
+	on = 1;
+	if (setsockopt(s, IPPROTO_IPV6, optname, &on, sizeof(on)) < 0) {
+		ipv6pktinfo_result = ISC_R_NOTFOUND;
+		goto close;
+	}
+
+	close(s);
+	ipv6pktinfo_result = ISC_R_SUCCESS;
+
+close:
+	close(s);
+	return;
+}
+
+static void
+initialize_ipv6pktinfo(void) {
+	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo,
+				  try_ipv6pktinfo) == ISC_R_SUCCESS);
+}
+#endif /* WANT_IPV6 */
+#endif /* ISC_PLATFORM_HAVEIPV6 */
 
 isc_result_t
 isc_net_probe_ipv6only(void) {
@@ -239,6 +294,18 @@ isc_net_probe_ipv6only(void) {
 #endif
 #endif
 	return (ipv6only_result);
+}
+
+isc_result_t
+isc_net_probe_ipv6pktinfo(void) {
+#ifdef ISC_PLATFORM_HAVEIPV6
+#ifdef WANT_IPV6
+	initialize_ipv6pktinfo();
+#else
+	ipv6pktinfo_result = ISC_R_NOTFOUND;
+#endif
+#endif
+	return (ipv6pktinfo_result);
 }
 
 void

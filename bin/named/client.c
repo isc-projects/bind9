@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.20 2004/03/08 21:06:21 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.21 2004/04/29 01:31:21 marka Exp $ */
 
 #include <config.h>
 
@@ -1344,12 +1344,33 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * Determine the destination address.  For IPv6, we get this from the
-	 * pktinfo structure (if supported).  For IPv4, we have to make do with
-	 * the address of the interface where the request was received.
+	 * Determine the destination address.  If the receiving interface is
+	 * bound to a specific address, we simply use it regardless of the
+	 * address family.  All IPv4 queries should fall into this case.
+	 * Otherwise, if this is a TCP query, get the address from the
+	 * receiving socket (this needs a system call and can be heavy).
+	 * For IPv6 UDP queries, we get this from the pktinfo structure (if
+	 * supported).
+	 * If all the attempts fail (this can happen due to memory shortage,
+	 * etc), we regard this as an error for safety. 
 	 */
-	if (client->interface->addr.type.sa.sa_family == AF_INET6) {
-		if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0) {
+	if ((client->interface->flags & NS_INTERFACEFLAG_ANYADDR) == 0)
+		isc_netaddr_fromsockaddr(&destaddr, &client->interface->addr);
+	else {
+		result = ISC_R_FAILURE;
+
+		if (TCP_CLIENT(client)) {
+			isc_sockaddr_t destsockaddr;
+
+			result = isc_socket_getsockname(client->tcpsocket,
+							&destsockaddr);
+			if (result == ISC_R_SUCCESS)
+				isc_netaddr_fromsockaddr(&destaddr,
+							 &destsockaddr);
+		}
+		if (result != ISC_R_SUCCESS &&
+		    client->interface->addr.type.sa.sa_family == AF_INET6 &&
+		    (client->attributes & NS_CLIENTATTR_PKTINFO) != 0) {
 			isc_uint32_t zone = 0;
 
 			/*
@@ -1366,11 +1387,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			isc_netaddr_fromin6(&destaddr,
 					    &client->pktinfo.ipi6_addr);
 			isc_netaddr_setzone(&destaddr, zone);
-						      
-		} else
-			isc_netaddr_any6(&destaddr);
-	} else {
-		isc_netaddr_fromsockaddr(&destaddr, &client->interface->addr);
+			result = ISC_R_SUCCESS;
+		}
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "failed to get request's "
+					 "destination: %s",
+					 isc_result_totext(result));
+			goto cleanup;
+		}
 	}
 
 	/*
