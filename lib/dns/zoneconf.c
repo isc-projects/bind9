@@ -345,6 +345,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			boolean = ISC_TRUE;
 		dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
 
+		dns_zone_clearnotify(zone);
 		result = dns_c_zone_getalsonotify(czone, &iplist);
 		if (result == ISC_R_SUCCESS) {
 			for (i = 0; i < iplist->nextidx; i++) {
@@ -353,8 +354,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				if (result != ISC_R_SUCCESS)
 					return (result);
 			}
-		} else
-			dns_zone_clearnotify(zone);
+		}
 
 		break;
 
