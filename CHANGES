@@ -1,3 +1,5 @@
+1105.	[port]		OpenUNIX 8 enable threads by default. [RT #1970]
+
 1104.	[bug]		Invalid arguments to the transfer-format option
 			could cause an assertion failure. [RT #1995]
 
