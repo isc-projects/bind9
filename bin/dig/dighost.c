@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.21 2004/04/08 01:25:23 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.22 2004/04/15 06:53:18 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2521,7 +2521,9 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	} else {
 #ifdef USE_GETADDRINFO
 		memset(&hints, 0, sizeof(hints));
-		if (!have_ipv6)
+		if (specified_source)
+			hints.ai_family = isc_sockaddr_pf(&bind_address);
+		else if (!have_ipv6)
 			hints.ai_family = PF_INET;
 		else if (!have_ipv4)
 			hints.ai_family = PF_INET6;
