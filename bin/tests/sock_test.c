@@ -64,7 +64,8 @@ my_recv(isc_task_t task, isc_event_t event)
 	       (char *)(event->arg), sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
-	printf("\tFrom: %s port %d\n", inet_ntoa(dev->address.type.sin.sin_addr),
+	printf("\tFrom: %s port %d\n",
+	       inet_ntoa(dev->address.type.sin.sin_addr),
 	       ntohs(dev->address.type.sin.sin_port));
 
 	if (dev->result != ISC_R_SUCCESS) {
@@ -237,7 +238,7 @@ timeout(isc_task_t task, isc_event_t event)
 {
 	isc_socket_t sock = event->arg;
 
-	printf("Timeout, canceling IO on socket %p\n", sock);
+	printf("Timeout, canceling IO on socket %p (task %p)\n", sock, task);
 
 	isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_ALL);
 	isc_timer_detach((isc_timer_t *)&event->sender);
@@ -306,7 +307,8 @@ main(int argc, char *argv[])
 	addrlen = sizeof(struct sockaddr_in);
 	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
 				 &so1) == ISC_R_SUCCESS);
-	INSIST(isc_socket_bind(so1, &sockaddr, addrlen) == ISC_R_SUCCESS);
+	INSIST(isc_socket_bind(so1, &sockaddr,
+			       (int)addrlen) == ISC_R_SUCCESS);
 	INSIST(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
 
 	/*
@@ -332,7 +334,7 @@ main(int argc, char *argv[])
 	addrlen = sizeof(struct sockaddr_in);
 	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
 				 &so2) == ISC_R_SUCCESS);
-	INSIST(isc_socket_connect(so2, &sockaddr, addrlen, t1, my_connect,
+	INSIST(isc_socket_connect(so2, &sockaddr, (int)addrlen, t1, my_connect,
 				  "so2") == ISC_R_SUCCESS);
 
 	sleep(1);
