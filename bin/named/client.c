@@ -926,25 +926,36 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Find a view that matches the client's source address.
+	 * 
 	 * XXXRTH  View list management code will be moving to its own module
 	 *         soon.
 	 */
 	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		/*
-		 * XXXRTH  View matching will become more powerful later.
-		 */
 		if (client->message->rdclass == view->rdclass ||
 		    client->message->rdclass == dns_rdataclass_any)
 		{
-			dns_view_attach(view, &client->view);
-			break;
+			isc_netaddr_t netaddr;
+			int match;
+			isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+			if (view->matchclients == NULL ||
+			    (dns_acl_match(&netaddr, NULL, view->matchclients,
+					   &ns_g_server->aclenv,
+					   &match, NULL) == ISC_R_SUCCESS &&
+			     match > 0))
+			{
+				dns_view_attach(view, &client->view);
+				break;
+			}
 		}
 	}
 
 	if (view == NULL) {
-		CTRACE("no view");
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+			      "no matching view");
 		ns_client_error(client, DNS_R_REFUSED);
 		goto cleanup_serverlock;
 	}
