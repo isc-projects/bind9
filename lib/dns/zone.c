@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.50 1999/12/22 03:22:59 explorer Exp $ */
+ /* $Id: zone.c,v 1.51 1999/12/22 19:09:29 gson Exp $ */
 
 #include <config.h>
 
@@ -2809,17 +2809,19 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
 					&newzone->masters[i]))
 			goto false;
 
-	if (!dns_acl_equal(oldzone->update_acl, newzone->update_acl))
-			goto false;
+#define COMPARE_POINTERS(equalp, member) \
+	if ((oldzone->member == NULL && newzone->member != NULL) || \
+	    (oldzone->member != NULL && newzone->member == NULL) || \
+	    (oldzone->member != NULL && 			    \
+	     !(equalp)(oldzone->member, newzone->member)))	    \
+			goto false
 
-	if (!dns_acl_equal(oldzone->query_acl, newzone->query_acl))
-			goto false;
+	COMPARE_POINTERS(dns_acl_equal, update_acl);
+	COMPARE_POINTERS(dns_acl_equal, query_acl);
+	COMPARE_POINTERS(dns_acl_equal, xfr_acl);
+	COMPARE_POINTERS(dns_c_pubkey_equal, pubkey);
 
-	if (!dns_acl_equal(oldzone->xfr_acl, newzone->xfr_acl))
-			goto false;
-
-	if (!dns_c_pubkey_equal(oldzone->pubkey, newzone->pubkey))
-			goto false;
+#undef COMPARE_POINTERS
 
 	UNLOCK(&newzone->lock);
 	UNLOCK(&oldzone->lock);
