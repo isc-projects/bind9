@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.145 2000/11/11 00:26:48 gson Exp $ */
+/* $Id: query.c,v 1.146 2000/11/11 00:34:20 gson Exp $ */
 
 #include <config.h>
 
@@ -2105,7 +2105,6 @@ do { \
  *	ISC_R_SUCCESS
  *	ISC_R_NOTIMPLEMENTED	The rdata is not a known address type.
  */
-
 static isc_result_t
 rdata_tonetaddr(dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
 	struct in_addr ina;
@@ -2174,11 +2173,8 @@ sortlist_order_1element(dns_rdata_t *rdata, void *arg) {
 }
 
 /*
- * Find the sortlist element that applies to 'client',
- * store data identifying it in '*data', and set up
+ * Find the sortlist element that applies to 'client' and set up
  * the sortlist info in in client->message appropriately.
- *
- * '*data' must persist until the message has been rendered.
  */
 static void
 setup_sortlist(ns_client_t *client) {
@@ -2231,7 +2227,6 @@ setup_sortlist(ns_client_t *client) {
 				return;
 			}
 		}
-			
 	}
 
 	/* No match; don't sort. */
