@@ -450,6 +450,20 @@ dns_message_renderend(dns_message_t *msg);
  *	DNS_R_SUCCESS		-- all is well.
  */
 		      
+void
+dns_message_renderreset(dns_message_t *msg);
+/*
+ * Reset the message so that it may be rendered again.
+ *
+ * Notes:
+ *
+ *	If dns_message_renderbegin() has been called, dns_message_renderend()
+ *	must be called before calling this function.
+ *
+ * Requires:
+ *
+ *	'msg' be a valid message with rendering intent.
+ */
 
 isc_result_t
 dns_message_firstname(dns_message_t *msg, dns_section_t section);
