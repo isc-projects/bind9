@@ -46,7 +46,7 @@ SRCS =		t_names.c
 t_names: t_names.@O@ ${DEPLIBS} ${TLIB}
 	${LIBTOOL} ${CC} -o $@ t_names.@O@ ${TLIB} ${LIBS}
 
-test:
+test: t_names
 	-@./t_names -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:

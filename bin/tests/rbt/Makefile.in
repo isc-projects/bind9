@@ -46,7 +46,7 @@ SRCS =		t_rbt.c
 t_rbt: t_rbt.@O@ ${DEPLIBS} ${TLIB}
 	${LIBTOOL} ${CC} -o $@ t_rbt.@O@ ${TLIB} ${LIBS}
 
-test:
+test: t_rbt
 	-@./t_rbt -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:

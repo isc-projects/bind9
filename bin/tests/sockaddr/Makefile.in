@@ -43,7 +43,7 @@ SRCS =		t_sockaddr.c
 t_sockaddr: t_sockaddr.@O@ ${DEPLIBS}
 	${LIBTOOL} ${CC} -o $@ t_sockaddr.@O@ ${LIBS}
 
-test:
+test: t_sockaddr
 	-@./t_sockaddr -b @srcdir@ -a
 
 testhelp:

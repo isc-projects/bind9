@@ -48,7 +48,7 @@ dst_test: dst_test.@O@ ${DEPLIBS}
 t_dst: t_dst.@O@ ${DEPLIBS} ${TLIB}
 	${LIBTOOL} ${CC} -o $@ t_dst.@O@  ${TLIB} ${LIBS}
 
-test:
+test: t_dst
 	-@ ./t_dst -b @srcdir@ -q 1800 -a
 
 clean distclean::

@@ -45,7 +45,7 @@ TARGETS =	t_db
 t_db: t_db.@O@ ${DEPLIBS} ${TLIB}
 	${LIBTOOL} ${CC} -o $@ t_db.@O@ ${TLIB} ${LIBS}
 
-test:
+test: t_db
 	-@./t_db -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:
