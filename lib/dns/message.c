@@ -156,13 +156,13 @@ msgblock_free(isc_mem_t *mctx, dns_msgblock_t *block,
  * uses)
  */
 static inline dns_result_t
-newbuffer(dns_message_t *msg)
+newbuffer(dns_message_t *msg, unsigned int size)
 {
 	isc_result_t result;
 	isc_dynbuffer_t *dynbuf;
 
 	dynbuf = NULL;
-	result = isc_dynbuffer_allocate(msg->mctx, &dynbuf, SCRATCHPAD_SIZE,
+	result = isc_dynbuffer_allocate(msg->mctx, &dynbuf, size,
 					ISC_BUFFERTYPE_BINARY);
 	if (result != ISC_R_SUCCESS)
 		return (DNS_R_NOMEMORY);
@@ -692,7 +692,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		if (result == DNS_R_NOSPACE) {
 			tries++;
 
-			result = newbuffer(msg);
+			result = newbuffer(msg, SCRATCHPAD_SIZE);
 			if (result != DNS_R_SUCCESS)
 				return (result);
 
@@ -714,6 +714,7 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	isc_buffer_t *scratch;
 	dns_result_t result;
 	unsigned int tries;
+	unsigned int trysize;
 
 	/*
 	 * In dynamic update messages, the rdata can be empty.
@@ -737,18 +738,32 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 
 	/*
 	 * First try:  use current buffer.
-	 * Second try:  allocate a new buffer and use that.
+	 * Second try:  allocate a new buffer of size
+	 *     max(SCRATCHPAD_SIZE, 2 * compressed_rdatalen)
+	 *     (the data will fit if it was not more than 50% compressed)
+	 * Subsequent tries: double buffer size on each try.
 	 */
 	tries = 0;
-	while (tries < 2) {
+	trysize = 0;
+	for (;;) {
 		result = dns_rdata_fromwire(rdata, rdclass, rdtype,
 					    source, dctx, ISC_FALSE,
 					    scratch);
 
 		if (result == DNS_R_NOSPACE) {
+			if (tries == 0) {
+				trysize = 2 * rdatalen;
+				if (trysize < SCRATCHPAD_SIZE)
+					trysize = SCRATCHPAD_SIZE;
+			} else {
+				INSIST(trysize != 0);
+				if (trysize >= 65535)
+					return (ISC_R_NOSPACE);
+					/* XXX DNS_R_RRTOOLONG? */
+				trysize *= 2;
+			}
 			tries++;
-
-			result = newbuffer(msg);
+			result = newbuffer(msg, trysize);
 			if (result != DNS_R_SUCCESS)
 				return (result);
 
@@ -757,9 +772,6 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 			return (result);
 		}
 	}
-
-	INSIST(0);  /* Cannot get here... */
-	return (DNS_R_UNEXPECTED);
 }
 
 static dns_result_t
@@ -880,7 +892,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 
 static dns_result_t
 getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
-	   dns_section_t sectionid)
+	   dns_section_t sectionid, isc_boolean_t preserve_order)
 {
 	isc_region_t r;
 	unsigned int count;
@@ -968,7 +980,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * If we are doing a dynamic update don't bother searching
 		 * for a name, just append this one to the end of the message.
 		 */
-		if (msg->opcode == dns_opcode_update
+		if (preserve_order || msg->opcode == dns_opcode_update 
 		    || rdtype == dns_rdatatype_tsig) {
 			ISC_LIST_APPEND(*section, name, link);
 		} else {
@@ -1003,7 +1015,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * Search name for the particular type and class.
 		 * Skip this stage if in update mode, or this is a TSIG.
 		 */
-		if (msg->opcode == dns_opcode_update
+		if (preserve_order || msg->opcode == dns_opcode_update
 		    || rdtype == dns_rdatatype_tsig)
 			result = DNS_R_NOTFOUND;
 		else
@@ -1073,7 +1085,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 }
 
 dns_result_t
-dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
+dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
+		  isc_boolean_t preserve_order)
 {
 	isc_region_t r;
 	dns_decompress_t dctx;
@@ -1120,15 +1133,18 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
 		return (ret);
 	msg->question_ok = 1;
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER);
+	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER,
+			 preserve_order);
 	if (ret != DNS_R_SUCCESS)
 		return (ret);
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY);
+	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY,
+			 preserve_order);
 	if (ret != DNS_R_SUCCESS)
 		return (ret);
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL);
+	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL,
+			 preserve_order);
 	if (ret != DNS_R_SUCCESS)
 		return (ret);
 
