@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.140 2000/08/14 18:13:10 bwelling Exp $ */
+/* $Id: message.c,v 1.141 2000/08/21 22:41:13 bwelling Exp $ */
 
 /***
  *** Imports
@@ -982,15 +982,6 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 			msg->state = DNS_SECTION_QUESTION;
 			msg->rdclass = rdclass;
 		} else if (msg->rdclass != rdclass) {
-			result = DNS_R_FORMERR;
-			goto cleanup;
-		}
-
-		/*
-		 * If this is a type that cannot occur in a question section,
-		 * return failure.
-		 */
-		if (dns_rdatatype_notquestion(rdtype)) {
 			result = DNS_R_FORMERR;
 			goto cleanup;
 		}
