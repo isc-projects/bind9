@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.62 2000/04/07 17:40:41 brister Exp $ */
+/* $Id: confparser.y,v 1.63 2000/04/07 20:41:27 brister Exp $ */
 
 #include <config.h>
 
@@ -115,8 +115,11 @@ static void             parser_complain(isc_boolean_t is_warning,
 static isc_boolean_t    unit_to_uint32(char *in, isc_uint32_t *out);
 static char *		token_to_keyword(int token);
 static void             yyerror(const char *);
-static dns_peerlist_t	*currentPeerList(dns_c_ctx_t *cfg,
+static dns_peerlist_t	*currentpeerlist(dns_c_ctx_t *cfg,
 					 isc_boolean_t createIfNeeded);
+static isc_boolean_t	keydefinedinscope(dns_c_ctx_t *cfg,
+					  const char *name);
+ 
  
 
 /* returns true if (base * mult) would be too big.*/
@@ -2198,7 +2201,7 @@ server_stmt: L_SERVER ip_address
 	{
 		isc_netaddr_t netaddr;
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peers = currentPeerList(currcfg, ISC_TRUE);
+		dns_peerlist_t *peers = currentpeerlist(currcfg, ISC_TRUE);
 
 		isc_netaddr_fromsockaddr(&netaddr, &$2);
 
@@ -2233,7 +2236,7 @@ server_info_list: server_info L_EOS
 server_info: L_BOGUS yea_or_nay
 	{
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+		dns_peerlist_t *peerlist = currentpeerlist(currcfg, ISC_FALSE);
 
 		REQUIRE(peerlist != NULL);
 		
@@ -2261,7 +2264,7 @@ server_info: L_BOGUS yea_or_nay
 		 * Backwards compatibility, equivalent to request-ixfr.
 		 */
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+		dns_peerlist_t *peerlist = currentpeerlist(currcfg, ISC_FALSE);
 
 		REQUIRE(peerlist != NULL);
 		
@@ -2286,7 +2289,7 @@ server_info: L_BOGUS yea_or_nay
 	| L_PROVIDE_IXFR yea_or_nay
 	{
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+		dns_peerlist_t *peerlist = currentpeerlist(currcfg, ISC_FALSE);
 
 		REQUIRE(peerlist != NULL);
 		
@@ -2311,7 +2314,7 @@ server_info: L_BOGUS yea_or_nay
 	| L_REQUEST_IXFR yea_or_nay
 	{
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+		dns_peerlist_t *peerlist = currentpeerlist(currcfg, ISC_FALSE);
 
 		REQUIRE(peerlist != NULL);
 		
@@ -2336,7 +2339,7 @@ server_info: L_BOGUS yea_or_nay
 	| L_TRANSFERS L_INTEGER
 	{
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+		dns_peerlist_t *peerlist = currentpeerlist(currcfg, ISC_FALSE);
 
 		REQUIRE(peerlist != NULL);
 		
@@ -2360,7 +2363,7 @@ server_info: L_BOGUS yea_or_nay
 	| L_TRANSFER_FORMAT transfer_format
 	{
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+		dns_peerlist_t *peerlist = currentpeerlist(currcfg, ISC_FALSE);
 
 		REQUIRE(peerlist != NULL);
 		
@@ -2386,7 +2389,7 @@ server_info: L_BOGUS yea_or_nay
 	| L_KEYS key_value {
 		dns_name_t *name = NULL;
 		dns_peer_t *peer = NULL;
-		dns_peerlist_t *peerlist = currentPeerList(currcfg, ISC_FALSE);
+		dns_peerlist_t *peerlist = currentpeerlist(currcfg, ISC_FALSE);
 
 		REQUIRE(peerlist != NULL);
 		
@@ -2394,7 +2397,11 @@ server_info: L_BOGUS yea_or_nay
 
 		INSIST(peer != NULL);
 
-		/* XXX need to validate key exists */
+		if (!keydefinedinscope(currcfg, $2)) {
+			parser_error(ISC_FALSE,
+				     "undefined key `%s' referenced.", $2);
+			YYABORT;
+		}
 		
 		tmpres = dns_c_charptoname(peer->mem, $2, &name);
 		if (tmpres != ISC_R_SUCCESS) {
@@ -2486,16 +2493,8 @@ address_match_element: address_match_simple
 	| L_SEC_KEY L_STRING
 	{
 		dns_c_ipmatchelement_t *ime = NULL;
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-		isc_boolean_t isdefined;
 		
-		if (view != NULL) {
-			isdefined = dns_c_view_keydefinedp(view, $2);
-		} else {
-			isdefined = dns_c_ctx_keydefinedp(currcfg, $2);
-		}
-
-		if (!isdefined) {
+		if (!keydefinedinscope(currcfg, $2)) {
 			parser_error(ISC_FALSE,
 				     "address match key element (%s) "
 				     "referenced before defined", $2);
@@ -5305,7 +5304,7 @@ is_ip4addr(const char *string, struct in_addr *addr)
 
 
 static dns_peerlist_t *
-currentPeerList(dns_c_ctx_t *cfg, isc_boolean_t createIfNeeded)
+currentpeerlist(dns_c_ctx_t *cfg, isc_boolean_t createIfNeeded)
 {
 	dns_peerlist_t *peers = NULL;
 	dns_c_view_t *view = NULL;
@@ -5342,4 +5341,23 @@ currentPeerList(dns_c_ctx_t *cfg, isc_boolean_t createIfNeeded)
 
 	
 	
+static isc_boolean_t
+keydefinedinscope(dns_c_ctx_t *cfg, const char *name)
+{
+	dns_c_view_t *view = dns_c_ctx_getcurrview(cfg);
+	isc_boolean_t rval = ISC_FALSE;
+
+	if (view != NULL) {
+		rval = dns_c_view_keydefinedp(view, name);
+	}
+
+	if (!rval) {
+		rval = dns_c_ctx_keydefinedp(cfg, name);
+	}
+
+	return (rval);
+}
+
+		
+
 	
