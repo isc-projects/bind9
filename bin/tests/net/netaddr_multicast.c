@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: netaddr_multicast.c,v 1.3 2000/06/16 22:35:06 explorer Exp $ */
+/* $Id: netaddr_multicast.c,v 1.4 2000/06/17 00:16:29 explorer Exp $ */
 
 #include <isc/string.h>
 #include <isc/types.h>
@@ -34,9 +34,9 @@ typedef struct {
 	int family;
 	const char *addr;
 	isc_boolean_t is_multicast;
-} addr_t;
+} t_addr_t;
 
-static addr_t addrs[] = {
+static t_addr_t addrs[] = {
 	{ AF_INET, "1.2.3.4", ISC_FALSE },
 	{ AF_INET, "4.3.2.1", ISC_FALSE },
 	{ AF_INET, "224.1.1.1", ISC_TRUE },
@@ -44,12 +44,12 @@ static addr_t addrs[] = {
 	{ AF_INET6, "::1", ISC_FALSE },
 	{ AF_INET6, "ff02::1", ISC_TRUE }
 };
-#define NADDRS (sizeof(addrs) / sizeof(addr_t))
+#define NADDRS (sizeof(addrs) / sizeof(t_addr_t))
 
-static isc_result_t to_netaddr(addr_t *, isc_netaddr_t *);
+static isc_result_t to_netaddr(t_addr_t *, isc_netaddr_t *);
 
 static isc_result_t
-to_netaddr(addr_t *addr, isc_netaddr_t *na) {
+to_netaddr(t_addr_t *addr, isc_netaddr_t *na) {
 	int r;
 	struct in_addr in;
 	struct in6_addr in6;
@@ -78,7 +78,7 @@ test_result_t
 netaddr_multicast(void) {
 	isc_netaddr_t na;
 	unsigned int n_fail;
-	addr_t *addr;
+	t_addr_t *addr;
 	unsigned int i;
 	isc_result_t result;
 	isc_boolean_t tf;
