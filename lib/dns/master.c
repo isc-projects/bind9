@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.42 2000/03/22 17:50:34 gson Exp $ */
+/* $Id: master.c,v 1.43 2000/03/22 17:54:15 gson Exp $ */
 
 #include <config.h>
 
@@ -369,8 +369,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			} else if (strncasecmp(token.value.as_pointer, 
 					       "$", 1) == 0) {
 				(callbacks->error)(callbacks, 
-						   "dns_master_load: %s %d " 
-						   "UNKOWN $<DIRECTIVE> %s ",
+						   "dns_master_load: %s:%d: " 
+						   "unknown $ directive '%s'",
 						   isc_lex_getsourcename(lex),
 						   isc_lex_getsourceline(lex),
 						   token.value.as_pointer);
