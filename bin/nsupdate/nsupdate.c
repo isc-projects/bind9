@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.94 2001/05/05 01:19:45 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.95 2001/07/02 06:09:27 marka Exp $ */
 
 #include <config.h>
 
@@ -1002,6 +1002,69 @@ evaluate_local(char *cmdline) {
 }
 
 static isc_uint16_t
+evaluate_key(char *cmdline) {
+	char *namestr;
+	char *secretstr;
+	isc_buffer_t b;
+	isc_result_t result;
+	dns_fixedname_t fkeyname;
+	dns_name_t *keyname;
+	int secretlen;
+	unsigned char *secret = NULL;
+	isc_buffer_t secretbuf;
+
+	namestr = nsu_strsep(&cmdline, " \t\r\n");
+	if (*namestr == 0) {
+		fprintf(stderr, "could not read key name\n");
+		return (STATUS_SYNTAX);
+	}
+
+	dns_fixedname_init(&fkeyname);
+	keyname = dns_fixedname_name(&fkeyname);
+
+	isc_buffer_init(&b, namestr, strlen(namestr));
+	isc_buffer_add(&b, strlen(namestr));
+	result = dns_name_fromtext(keyname, &b, dns_rootname, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "could not parse key name\n");
+		return (STATUS_SYNTAX);
+	}
+
+	secretstr = nsu_strsep(&cmdline, " \t\r\n");
+	if (*secretstr == 0) {
+		fprintf(stderr, "could not read key secret\n");
+		return (STATUS_SYNTAX);
+	}
+	secretlen = strlen(secretstr) * 3 / 4;
+	secret = isc_mem_allocate(mctx, secretlen);
+	if (secret == NULL)
+		fatal("out of memory");
+	
+	isc_buffer_init(&secretbuf, secret, secretlen);
+	result = isc_base64_decodestring(secretstr, &secretbuf);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "Couldn't create key from %s: %s\n",
+			secretstr, isc_result_totext(result));
+		isc_mem_free(mctx, secret);
+		return (STATUS_SYNTAX);
+	}
+	secretlen = isc_buffer_usedlength(&secretbuf);
+
+	if (key != NULL)
+		dns_tsigkey_detach(&key);
+	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
+                                    secret, secretlen, ISC_TRUE, NULL, 0, 0,
+                                    mctx, NULL, &key);
+	isc_mem_free(mctx, secret);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "Couldn't create key from %s %s: %s\n",
+			namestr, secretstr, dns_result_totext(result));
+		return (STATUS_SYNTAX);
+	}
+	return (STATUS_MORE);
+}
+
+static isc_uint16_t
 evaluate_zone(char *cmdline) {
 	char *word;
 	isc_buffer_t b;
@@ -1295,6 +1358,8 @@ get_next_command(void) {
 		show_message(updatemsg);
 		return (STATUS_MORE);
 	}
+	if (strcasecmp(word, "key") == 0)
+		return (evaluate_key(cmdline));
 	fprintf(stderr, "incorrect section name: %s\n", word);
 	return (STATUS_SYNTAX);
 }
@@ -1354,7 +1419,22 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	check_result(result, "dns_message_create");
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
-	check_result(result, "dns_request_getresponse");
+	switch (result) {
+	case ISC_R_SUCCESS:
+		break;
+	case DNS_R_CLOCKSKEW:
+	case DNS_R_EXPECTEDTSIG:
+	case DNS_R_TSIGERRORSET:
+	case DNS_R_TSIGVERIFYFAILURE:
+	case DNS_R_UNEXPECTEDTSIG:
+		fprintf(stderr, "; TSIG error with server: %s\n",
+			isc_result_totext(result));
+		seenerror = ISC_TRUE;
+		break;
+	default:
+		check_result(result, "dns_request_getresponse");
+	}
+
 	if (rcvmsg->rcode != dns_rcode_noerror)
 		seenerror = ISC_TRUE;
 	if (debugging) {

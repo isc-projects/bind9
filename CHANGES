@@ -1,4 +1,8 @@
+ 918.	[func]		nsupdate: TSIG errors are not immediately fatal.
 
+ 917.	[func]		nsupdate: keys can now be specified inline with
+			with all other commands.
+		
  916.	[bug]		Specifying type ixfr to dig without specifying
  			a serial number failed in unexpected ways.
 
