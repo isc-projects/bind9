@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.2 1999/10/02 21:14:11 brister Exp $ */
+/* $Id: log.h,v 1.3 1999/10/22 19:33:13 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -37,6 +37,7 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGCATEGORY_SECURITY	(&dns_categories[2])
 #define DNS_LOGCATEGORY_CONFIG		(&dns_categories[3])
 #define DNS_LOGCATEGORY_PARSER		(&dns_categories[4])
+#define DNS_LOGCATEGORY_RESOLVER	(&dns_categories[5])
 
 #define DNS_LOGMODULE_DB		(&dns_modules[0])
 #define DNS_LOGMODULE_RBTDB		(&dns_modules[1])
@@ -47,6 +48,7 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_MESSAGE		(&dns_modules[6])
 #define DNS_LOGMODULE_CACHE		(&dns_modules[7])
 #define DNS_LOGMODULE_CONFIG		(&dns_modules[8])
+#define DNS_LOGMODULE_RESOLVER		(&dns_modules[9])
 
 dns_result_t
 dns_log_init(isc_log_t *lctx);
