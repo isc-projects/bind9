@@ -156,7 +156,7 @@ test_master_x(char *filename) {
 			++line;
 
 			/* skip comment lines */
-			if ((isspace(*p)) || (*p == '#'))
+			if ((isspace(*p & 0xff)) || (*p == '#'))
 				continue;
 
 			/* name of data file, origin, zclass, expected result */
