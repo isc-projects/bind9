@@ -84,7 +84,7 @@
 /*
  * If this system needs inet_pton(), ISC_NET_NEEDPTON will be defined.
  */
-#undef ISC_NET_NEEDPTON
+#define ISC_NET_NEEDPTON 1
 
 /*
  * If this system needs inet_aton(), ISC_NET_NEEDATON will be defined.
