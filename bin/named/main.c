@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.99 2000/12/29 18:09:31 gson Exp $ */
+/* $Id: main.c,v 1.100 2000/12/29 18:25:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -574,9 +574,7 @@ main(int argc, char *argv[]) {
 
 	if (want_stats) {
 		isc_mem_stats(ns_g_mctx, stdout);
-#if ISC_MUTEX_PROFILE
 		isc_mutex_stats(stdout);
-#endif
 	}
 	isc_mem_destroy(&ns_g_mctx);
 
