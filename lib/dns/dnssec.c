@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.8 1999/10/07 21:51:49 bwelling Exp $
+ * $Id: dnssec.c,v 1.9 1999/10/11 15:15:38 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -537,7 +537,7 @@ dns_dnssec_destroy() {
 		} \
 	} while (0)
 
-dns_result_t
+isc_result_t
 dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node, 
 			dns_name_t *name, isc_mem_t *mctx, unsigned int maxkeys,
 			dst_key_t **keys, unsigned int *nkeys)
