@@ -63,6 +63,7 @@ ns_log_init(void) {
 	isc_result_t result;
 	isc_logdestination_t destination;
 	unsigned int flags;
+	isc_logconfig_t *lcfg;
 
 	ns_g_categories = categories;
 	ns_g_modules = modules;
@@ -75,16 +76,13 @@ ns_log_init(void) {
 	/*
 	 * Setup a logging context.
 	 */
-	result = isc_log_create(ns_g_mctx, &ns_g_lctx);
+	result = isc_log_create(ns_g_mctx, &ns_g_lctx, &lcfg);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = isc_log_registercategories(ns_g_lctx, ns_g_categories);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+
+	isc_log_registercategories(ns_g_lctx, ns_g_categories);
 	isc_log_registermodules(ns_g_lctx, ns_g_modules);
-	result = dns_log_init(ns_g_lctx);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	dns_log_init(ns_g_lctx);
 
 	/*
 	 * Create and install the default channel.
@@ -95,14 +93,14 @@ ns_log_init(void) {
 		destination.file.versions = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
 		flags = ISC_LOG_PRINTTIME;
-		result = isc_log_createchannel(ns_g_lctx, "_default",
+		result = isc_log_createchannel(lcfg, "_default",
 					       ISC_LOG_TOFILEDESC,
 					       ISC_LOG_DYNAMIC,
 					       &destination, flags);
 	} else {
 		destination.facility = LOG_DAEMON;
 		flags = ISC_LOG_PRINTTIME;
-		result = isc_log_createchannel(ns_g_lctx, "_default",
+		result = isc_log_createchannel(lcfg, "_default",
 					       ISC_LOG_TOSYSLOG,
 					       ISC_LOG_DYNAMIC,
 					       &destination, flags);
@@ -110,7 +108,7 @@ ns_log_init(void) {
 	
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = isc_log_usechannel(ns_g_lctx, "_default", NULL, NULL);
+	result = isc_log_usechannel(lcfg, "_default", NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.11 2000/02/03 23:40:57 halley Exp $ */
+/* $Id: log.h,v 1.12 2000/02/26 19:57:01 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -58,7 +58,7 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_XFER_OUT		(&dns_modules[14])
 #define DNS_LOGMODULE_ACL		(&dns_modules[15])
 
-isc_result_t
+void
 dns_log_init(isc_log_t *lctx);
 /*
  * Make the libdns.a categories and modules available for use with the
@@ -70,20 +70,8 @@ dns_log_init(isc_log_t *lctx);
  *	dns_log_init() is called only once.
  *
  * Ensures:
- *	ISC_R_SUCCESS
- *		The catgories and modules defined above are available for
- *		use by isc_log_usechannnel() and isc_log_write().
- *
- *	ISC_R_NOMEMORY
- *		The catgories and modules defined above are not available for
- *		use by isc_log_usechannnel() and isc_log_write(), and no
- *		additional memory is being used because of the call to
- *		dns_log_init().
- *		
- *
- * Returns:
- *	ISC_R_SUCCESS	Success
- *	ISC_R_NOMEMORY	Resource limit: Out of memory
+ * 	The catgories and modules defined above are available for
+ * 	use by isc_log_usechannnel() and isc_log_write().
  */
 
 ISC_LANG_ENDDECLS

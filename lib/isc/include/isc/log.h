@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.8 2000/02/03 23:07:50 halley Exp $ */
+/* $Id: log.h,v 1.9 2000/02/26 19:57:02 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -74,6 +74,11 @@ ISC_LANG_BEGINDECLS
  * A logging context.  Details are internal to the implementation.
  */
 typedef struct isc_log isc_log_t;
+
+/*
+ * Channel configuration.  Details are internal to the implementation.
+ */
+typedef struct isc_logconfig isc_logconfig_t;
 
 /*
  * Used to name the categories used by a library.  An array of isc_logcategory
@@ -138,7 +143,7 @@ extern isc_logcategory_t isc_categories[];
 #define ISC_LOGCATEGORY_DEFAULT	(&isc_categories[0])
 
 isc_result_t
-isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp);
+isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
 /*
  * Establish a new logging context, with default channels.
  *
@@ -167,6 +172,15 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp);
  *	ISC_R_UNEXPECTED	The mutex lock could not be initialized.
  */
 
+isc_result_t
+isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
+
+isc_logconfig_t *
+isc_logconfig_get(isc_log_t *lctx);
+
+isc_result_t
+isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
+
 void
 isc_log_destroy(isc_log_t **lctxp);
 /*
@@ -184,8 +198,10 @@ isc_log_destroy(isc_log_t **lctxp);
  *	The logging context is marked as invalid.
  */
 
+void
+isc_logconfig_destroy(isc_logconfig_t **lcfgp);
 
-isc_result_t
+void
 isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
 /*
  * Identify logging categories a library will use.
@@ -249,9 +265,9 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
  */
 
 isc_result_t
-isc_log_createchannel(isc_log_t *lctx, const char *name, unsigned int type,
-		      int level, isc_logdestination_t *destination,
-		      unsigned int flags);
+isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
+		      unsigned int type, int level,
+		      isc_logdestination_t *destination, unsigned int flags);
 /*
  * Specify the parameters of a logging channel.
  *
@@ -313,7 +329,7 @@ isc_log_createchannel(isc_log_t *lctx, const char *name, unsigned int type,
  */
 
 isc_result_t
-isc_log_usechannel(isc_log_t *lctx, const char *name,
+isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 		   isc_logcategory_t *category, isc_logmodule_t *module);
 /*
  * Associate a named logging channel with a category and module that
@@ -502,7 +518,7 @@ isc_log_getdebuglevel(isc_log_t *lctx);
  */
 
 void
-isc_log_setduplicateinterval(isc_log_t *lctx, unsigned int interval);
+isc_log_setduplicateinterval(isc_logconfig_t *lcfg, unsigned int interval);
 /*
  * Set the interval over which duplicate log messages will be ignored
  * by isc_log_[v]write1(), in seconds.
@@ -525,7 +541,7 @@ isc_log_setduplicateinterval(isc_log_t *lctx, unsigned int interval);
  */
 
 unsigned int
-isc_log_getduplicateinterval(isc_log_t *lctx);
+isc_log_getduplicateinterval(isc_logconfig_t *lcfg);
 /*
  * Get the current duplicate filtering interval.
  *

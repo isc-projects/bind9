@@ -1028,6 +1028,7 @@ main(int argc, char *argv[]) {
 	signer_key_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
+	isc_logconfig_t *logconfig;
 
 	dns_result_register();
 
@@ -1107,11 +1108,11 @@ main(int argc, char *argv[]) {
 	}
 
 	if (verbose > 0) {
-		RUNTIME_CHECK(isc_log_create(mctx, &log) == ISC_R_SUCCESS);
-		RUNTIME_CHECK(dns_log_init(log) == ISC_R_SUCCESS);
-		RUNTIME_CHECK(isc_log_usechannel(log, "default_stderr",
+		RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig)
+			      == ISC_R_SUCCESS);
+		dns_log_init(log);
+		RUNTIME_CHECK(isc_log_usechannel(logconfig, "default_stderr",
 						 NULL, NULL) == ISC_R_SUCCESS);
-		dns_lctx = log;
 	}
 
 	argc -= isc_commandline_index;

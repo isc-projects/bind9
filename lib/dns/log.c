@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.13 2000/02/03 23:43:49 halley Exp $ */
+/* $Id: log.c,v 1.14 2000/02/26 19:57:00 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -68,18 +68,12 @@ isc_logmodule_t dns_modules[] = {
 
 isc_log_t *dns_lctx;
 
-isc_result_t
+void
 dns_log_init(isc_log_t *lctx) {
-	isc_result_t result;
-
 	REQUIRE(dns_lctx == NULL);
 
-	result = isc_log_registercategories(lctx, dns_categories);
+	isc_log_registercategories(lctx, dns_categories);
+	isc_log_registermodules(lctx, dns_modules);
 
-	if (result == ISC_R_SUCCESS) {
-		isc_log_registermodules(lctx, dns_modules);
-		dns_lctx = lctx;
-	}
-
-	return (result);
+	dns_lctx = lctx;
 }

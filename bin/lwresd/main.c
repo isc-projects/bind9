@@ -218,6 +218,7 @@ main(int argc, char **argv)
 	client_t *client;
 	isc_logdestination_t destination;
 	isc_log_t *lctx;
+	isc_logconfig_t *lcfg;
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -235,21 +236,20 @@ main(int argc, char **argv)
 	 * Set up logging.
 	 */
 	lctx = NULL;
-        result = isc_log_create(mem, &lctx);
+        result = isc_log_create(mem, &lctx, &lcfg);
 	INSIST(result == ISC_R_SUCCESS);
-        result = dns_log_init(lctx);
-	INSIST(result == ISC_R_SUCCESS);
+	dns_log_init(lctx);
 
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	result = isc_log_createchannel(lctx, "_default",
+	result = isc_log_createchannel(lcfg, "_default",
 				       ISC_LOG_TOFILEDESC,
 				       ISC_LOG_DYNAMIC,
 				       &destination, ISC_LOG_PRINTTIME);
 	INSIST(result == ISC_R_SUCCESS);
-	result = isc_log_usechannel(lctx, "_default", NULL, NULL);
+	result = isc_log_usechannel(lcfg, "_default", NULL, NULL);
 	INSIST(result == ISC_R_SUCCESS);
 
 	/*

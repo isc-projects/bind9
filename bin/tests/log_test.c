@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.7 2000/02/03 23:03:46 halley Exp $ */
+/* $Id: log_test.c,v 1.8 2000/02/26 19:57:00 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -44,19 +44,13 @@ char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 			progname, isc_result_totext(result)); \
 	}
 
-#define CHECK_DNS(expr) result = expr; \
-	if (result != DNS_R_SUCCESS) { \
-		fprintf(stderr, "%s: " #expr "%s: exiting\n", \
-			progname, dns_result_totext(result)); \
-	}
-
-	
 int
 main (int argc, char **argv) {
 	char *progname, *syslog_file, *message;
 	int ch, i, file_versions;
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_log_t *lctx;
+	isc_logconfig_t *lcfg;
 	isc_mem_t *mctx;
 	isc_result_t result;
 	isc_logdestination_t destination;
@@ -113,8 +107,9 @@ main (int argc, char **argv) {
 	lctx = NULL;
 
 	CHECK_ISC(isc_mem_create(0, 0, &mctx));
-	CHECK_ISC(isc_log_create(mctx, &lctx));
-	CHECK_DNS(dns_log_init(lctx));
+	CHECK_ISC(isc_log_create(mctx, &lctx, &lcfg));
+
+	dns_log_init(lctx);
 
 	/*
 	 * Create a file channel to test file opening, size limiting and
@@ -125,7 +120,7 @@ main (int argc, char **argv) {
 	destination.file.maximum_size = 1;
 	destination.file.versions = file_versions;
 
-	CHECK_ISC(isc_log_createchannel(lctx, "file_test", ISC_LOG_TOFILE,
+	CHECK_ISC(isc_log_createchannel(lcfg, "file_test", ISC_LOG_TOFILE,
 					ISC_LOG_INFO, &destination,
 					ISC_LOG_PRINTTIME|
 					ISC_LOG_PRINTLEVEL|
@@ -137,7 +132,7 @@ main (int argc, char **argv) {
 	 */
 	destination.file.stream = stderr;
 
-	CHECK_ISC(isc_log_createchannel(lctx, "debug_test", ISC_LOG_TOFILEDESC,
+	CHECK_ISC(isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
 					ISC_LOG_DYNAMIC, &destination,
 					ISC_LOG_PRINTTIME|
 					ISC_LOG_PRINTLEVEL));
@@ -145,27 +140,27 @@ main (int argc, char **argv) {
 	/*
 	 * Test the usability of the four predefined logging channels.
 	 */
-	CHECK_ISC(isc_log_usechannel(lctx, "default_syslog",
+	CHECK_ISC(isc_log_usechannel(lcfg, "default_syslog",
 				     DNS_LOGCATEGORY_DATABASE,
 				     DNS_LOGMODULE_CACHE));
-	CHECK_ISC(isc_log_usechannel(lctx, "default_stderr",
+	CHECK_ISC(isc_log_usechannel(lcfg, "default_stderr",
 				     DNS_LOGCATEGORY_DATABASE,
 				     DNS_LOGMODULE_CACHE));
-	CHECK_ISC(isc_log_usechannel(lctx, "default_debug",
+	CHECK_ISC(isc_log_usechannel(lcfg, "default_debug",
 				     DNS_LOGCATEGORY_DATABASE,
 				     DNS_LOGMODULE_CACHE));
-	CHECK_ISC(isc_log_usechannel(lctx, "null",
+	CHECK_ISC(isc_log_usechannel(lcfg, "null",
 				     DNS_LOGCATEGORY_DATABASE,
 				     NULL));
 
 	/*
 	 * Use the custom channels.
 	 */
-	CHECK_ISC(isc_log_usechannel(lctx, "file_test",
+	CHECK_ISC(isc_log_usechannel(lcfg, "file_test",
 				     DNS_LOGCATEGORY_GENERAL,
 				     DNS_LOGMODULE_DB));
 
-	CHECK_ISC(isc_log_usechannel(lctx, "debug_test",
+	CHECK_ISC(isc_log_usechannel(lcfg, "debug_test",
 				     DNS_LOGCATEGORY_GENERAL,
 				     DNS_LOGMODULE_RBTDB));
 
@@ -199,7 +194,7 @@ main (int argc, char **argv) {
 	 * Reset the internal default to use syslog instead of stderr,
 	 * and test it.
 	 */
-	CHECK_ISC(isc_log_usechannel(lctx, "default_syslog",
+	CHECK_ISC(isc_log_usechannel(lcfg, "default_syslog",
 				     ISC_LOGCATEGORY_DEFAULT,
 				     NULL));
 	isc_log_write(lctx, DNS_LOGCATEGORY_SECURITY, DNS_LOGMODULE_RBT,
@@ -261,7 +256,7 @@ main (int argc, char **argv) {
 	/*
 	 * Test out the duplicate filtering using the debug_test channel.
 	 */
-	isc_log_setduplicateinterval(lctx, 10);
+	isc_log_setduplicateinterval(lcfg, 10);
 	message = "This message should appear only once on stderr";
 
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
@@ -269,7 +264,7 @@ main (int argc, char **argv) {
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		       ISC_LOG_CRITICAL, message);
 
-	isc_log_setduplicateinterval(lctx, 1);
+	isc_log_setduplicateinterval(lcfg, 1);
 	message = "This message should appear twice on stderr";
 	
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
