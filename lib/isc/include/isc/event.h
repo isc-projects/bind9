@@ -59,6 +59,15 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
  */
 #define ISC_EVENTATTR_NOPURGE		0x00000001
 
+/*
+ * The ISC_EVENTATTR_CANCELED attribute is intended to indicate
+ * that an event is delivered as a result of a canceled operation
+ * rather than successful completion, by mutual agreement
+ * between the sender and receiver.  It is not set or used by 
+ * the task system.
+ */
+#define ISC_EVENTATTR_CANCELED		0x00000002
+
 #define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
 do { \
 	(event)->ev_size = (sz); \
