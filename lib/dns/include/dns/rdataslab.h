@@ -48,9 +48,12 @@
  ***/
 
 #include <isc/region.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 #include <dns/rdataset.h>
+
+ISC_LANG_BEGINDECLS
 
 /***
  *** Functions
@@ -88,5 +91,7 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
  * Returns:
  *	The number of bytes in the slab, including the reservelen.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATADLAB_H */

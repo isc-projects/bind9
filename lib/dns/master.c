@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.11 1999/02/10 05:25:36 marka Exp $ */
+ /* $Id: master.c,v 1.12 1999/03/04 02:47:18 halley Exp $ */
 
 #include <config.h>
 
@@ -91,7 +91,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 		dns_rdataclass_t zclass, int *soacount, int *nscount,
 		dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
-	dns_rdataclass_t class;
+	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type;
 	isc_uint32_t ttl = 0;
 	isc_uint32_t default_ttl = 0;
@@ -376,7 +376,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 		}
 
 		type = 0;
-		class = 0;
+		rdclass = 0;
 
 		GETTOKEN(lex, ISC_LEXOPT_NUMBER, &token, ISC_FALSE);
 
@@ -409,7 +409,8 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			goto cleanup;
 		}
 			
-		if (dns_rdataclass_fromtext(&class, &token.value.as_textregion)
+		if (dns_rdataclass_fromtext(&rdclass,
+					    &token.value.as_textregion)
 				== DNS_R_SUCCESS)
 			GETTOKEN(lex, 0, &token, ISC_FALSE);
 
@@ -425,7 +426,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 		if (result != DNS_R_SUCCESS)
 			goto cleanup;
 
-		if (class != 0 && class != zclass) {
+		if (rdclass != 0 && rdclass != zclass) {
 			char buf1[32];
 			char buf2[32];
 			unsigned int len1, len2;
@@ -434,7 +435,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 
 			isc_buffer_init(&buffer, buf1, sizeof buf1,
 					ISC_BUFFERTYPE_TEXT);
-			result = dns_rdataclass_totext(class, &buffer);
+			result = dns_rdataclass_totext(rdclass, &buffer);
 			if (result != DNS_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"dns_rdataclass_totext() failed: %s",
@@ -446,7 +447,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			len1 = region.length;
 			isc_buffer_init(&buffer, buf2, sizeof buf2,
 					ISC_BUFFERTYPE_TEXT);
-			result = dns_rdataclass_totext(class, &buffer);
+			result = dns_rdataclass_totext(rdclass, &buffer);
 			if (result != DNS_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"dns_rdataclass_totext() failed: %s",
@@ -506,7 +507,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			}
 			this = &rdatalist[rdlcount++];
 			this->type = type;
-			this->class = zclass;
+			this->rdclass = zclass;
 			this->ttl = ttl;
 			ISC_LIST_INIT(this->rdata);
 			ISC_LINK_INIT(this, link);
@@ -534,7 +535,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			rdata_size += 512;
 			rdata = new_rdata;
 		}
-		result = dns_rdata_fromtext(&rdata[rdcount], class, type,
+		result = dns_rdata_fromtext(&rdata[rdcount], rdclass, type,
 				   lex, &origin_name, ISC_FALSE, &target,
 				   callbacks);
 		if (result != DNS_R_SUCCESS)

@@ -22,6 +22,7 @@
  ***	Imports
  ***/
 
+#include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/lex.h>
 
@@ -30,6 +31,8 @@
 #include <dns/name.h>
 #include <dns/rdataset.h>
 #include <dns/callbacks.h>
+
+ISC_LANG_BEGINDECLS
 
 /***
  ***	Function
@@ -77,5 +80,7 @@ dns_result_t dns_master_load(char *master_file,
  *	Any dns_rdata_fromtext() error code.
  *	Any error code from callbacks->commit().
  */
+
+ISC_LANG_ENDDECLS
 
 #endif	/* DNS_MASTER_H */

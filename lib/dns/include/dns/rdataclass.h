@@ -18,7 +18,11 @@
 #ifndef DNS_RDATACLASS_H
 #define DNS_RDATACLASS_H 1
 
+#include <isc/lang.h>
+
 #include <dns/types.h>
+
+ISC_LANG_BEGINDECLS
 
 dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *classp,
 				     isc_textregion_t *source);
@@ -54,5 +58,7 @@ dns_result_t dns_rdataclass_totext(dns_rdataclass_t class,
  *	DNS_R_SUCCESS			on success
  *	DNS_R_NOSPACE			target buffer is too small
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATACLASS_H */

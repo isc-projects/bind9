@@ -48,7 +48,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	REQUIRE(rdataset->methods == NULL);
 
 	rdataset->methods = &methods;
-	rdataset->class = rdatalist->class;
+	rdataset->rdclass = rdatalist->rdclass;
 	rdataset->type = rdatalist->type;
 	rdataset->ttl = rdatalist->ttl;
 	rdataset->private1 = rdatalist;

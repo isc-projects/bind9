@@ -158,7 +158,7 @@ static void
 getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 	     isc_buffer_t *target)
 {
-	unsigned int type, class;
+	unsigned int type, rdclass;
 	dns_name_t *name, *curr;
 	dns_rdatalist_t *rdatalist;
 	isc_region_t r;
@@ -188,11 +188,11 @@ getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 		if (name != curr)
 			ISC_LIST_APPEND(*section, name, link);
 		type = getshort(source);
-		class = getshort(source);
+		rdclass = getshort(source);
 		for (rdatalist = ISC_LIST_HEAD(name->list);
 		     rdatalist != NULL;
 		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			if (rdatalist->class == class &&
+			if (rdatalist->rdclass == rdclass &&
 			    rdatalist->type == type)
 				break;
 		}
@@ -202,7 +202,7 @@ getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 				exit(1);
 			}
 			rdatalist = &lists[rlcount++];
-			rdatalist->class = class;
+			rdatalist->rdclass = rdclass;
 			rdatalist->type = type;
 			rdatalist->ttl = 0;
 			ISC_LIST_INIT(rdatalist->rdata);
@@ -216,7 +216,7 @@ static void
 getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 	   isc_buffer_t *target)
 {
-	unsigned int type, class, ttl, rdlength;
+	unsigned int type, rdclass, ttl, rdlength;
 	isc_region_t r;
 	dns_name_t *name, *curr;
 	dns_rdata_t *rdata;
@@ -247,7 +247,7 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 		if (name != curr)
 			ISC_LIST_APPEND(*section, name, link);
 		type = getshort(source);
-		class = getshort(source);
+		rdclass = getshort(source);
 		ttl = getshort(source);
 		ttl *= 65536;
 		ttl += getshort(source);
@@ -264,7 +264,7 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 		}
 		rdata = &rdatas[rdcount++];
 		dns_decompress_localinit(&dctx, name, source);
-		result = dns_rdata_fromwire(rdata, class, type,
+		result = dns_rdata_fromwire(rdata, rdclass, type,
 					    source, &dctx, ISC_FALSE,
 					    target);
 		dns_decompress_localinvalidate(&dctx);
@@ -275,7 +275,7 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 		for (rdatalist = ISC_LIST_HEAD(name->list);
 		     rdatalist != NULL;
 		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			if (rdatalist->class == class &&
+			if (rdatalist->rdclass == rdclass &&
 			    rdatalist->type == type)
 				break;
 		}
@@ -285,7 +285,7 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 				exit(1);
 			}
 			rdatalist = &lists[rlcount++];
-			rdatalist->class = class;
+			rdatalist->rdclass = rdclass;
 			rdatalist->type = type;
 			rdatalist->ttl = ttl;
 			ISC_LIST_INIT(rdatalist->rdata);
@@ -396,7 +396,7 @@ printquestions(dns_namelist_t *section) {
 			printf("%.*s, class = ", (int)target.used,
 			       (char *)target.base);
 			isc_buffer_clear(&target);
-			result = dns_rdataclass_totext(rdatalist->class,
+			result = dns_rdataclass_totext(rdatalist->rdclass,
 						       &target);
 			if (result != DNS_R_SUCCESS) {
 				printf("%s\n", dns_result_totext(result));

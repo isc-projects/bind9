@@ -43,14 +43,18 @@
  *	None.
  */
 
+#include <isc/lang.h>
+
 #include <dns/types.h>
 #include <dns/result.h>
+
+ISC_LANG_BEGINDECLS
 
 /*
  * Clients may use this type directly.
  */
 struct dns_rdatalist {
-	dns_rdataclass_t		class;
+	dns_rdataclass_t		rdclass;
 	dns_rdatatype_t			type;
 	dns_ttl_t			ttl;
 	ISC_LIST(dns_rdata_t)		rdata;
@@ -82,5 +86,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
  * Returns:
  *	DNS_R_SUCCESS
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATALIST_H */

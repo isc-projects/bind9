@@ -23,8 +23,13 @@
  ***/
 
 #include <stdio.h>
+
+#include <isc/lang.h>
+
 #include <dns/types.h>
 #include <dns/result.h>
+
+ISC_LANG_BEGINDECLS
  
 /***
  ***	Types
@@ -59,5 +64,7 @@ void dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
  * Requires:
  *      'callbacks' is a valid dns_rdatacallbacks_t,
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_CALLBACKS_H */

@@ -17,11 +17,15 @@
 
 #ifndef	DNS_RBT_H
 #define	DNS_RBT_H 1
+
+#include <isc/lang.h>
 #include <isc/result.h>
 #include <isc/mem.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
+
+ISC_LANG_BEGINDECLS
 
 /*
  * This is the structure that is used for each node in the red/black
@@ -161,5 +165,7 @@ void dns_rbt_printall(dns_rbt_t *rbt);
 dns_result_t dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 			    void *arg, dns_rbt_t **rbtp);
 void dns_rbt_destroy(dns_rbt_t **rbtp);
+
+ISC_LANG_ENDDECLS
 
 #endif

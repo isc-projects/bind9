@@ -40,7 +40,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->magic = DNS_RDATASET_MAGIC;
 	rdataset->methods = NULL;
 	ISC_LINK_INIT(rdataset, link);
-	rdataset->class = 0;
+	rdataset->rdclass = 0;
 	rdataset->type = 0;
 	rdataset->ttl = 0;
 	rdataset->private1 = NULL;
@@ -62,7 +62,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	
 	rdataset->magic = 0;
 	ISC_LINK_INIT(rdataset, link);
-	rdataset->class = 0;
+	rdataset->rdclass = 0;
 	rdataset->type = 0;
 	rdataset->ttl = 0;
 	rdataset->private1 = NULL;
@@ -84,7 +84,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	(rdataset->methods->disassociate)(rdataset);
 	rdataset->methods = NULL;
 	ISC_LINK_INIT(rdataset, link);
-	rdataset->class = 0;
+	rdataset->rdclass = 0;
 	rdataset->type = 0;
 	rdataset->ttl = 0;
 	rdataset->private1 = NULL;
@@ -212,7 +212,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		return (DNS_R_NOSPACE);
 	memcpy(r.base, ttl, length);
 	isc_buffer_add(target, length);
-	result = dns_rdataclass_totext(rdataset->class, target);
+	result = dns_rdataclass_totext(rdataset->rdclass, target);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 	isc_buffer_available(target, &r);
@@ -312,7 +312,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			return (DNS_R_NOSPACE);
 		}
 		isc_buffer_putuint16(target, rdataset->type);
-		isc_buffer_putuint16(target, rdataset->class);
+		isc_buffer_putuint16(target, rdataset->rdclass);
 		isc_buffer_putuint32(target, rdataset->ttl);
 
 		/*

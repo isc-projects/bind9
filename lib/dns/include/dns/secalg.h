@@ -18,7 +18,11 @@
 #ifndef DNS_SECALG_H
 #define DNS_SECALG_H 1
 
+#include <isc/lang.h>
+
 #include <dns/types.h>
+
+ISC_LANG_BEGINDECLS
 
 dns_result_t dns_secalg_fromtext(dns_secalg_t *secalgp,
 				 isc_textregion_t *source);
@@ -53,5 +57,7 @@ dns_result_t dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target);
  *	DNS_R_SUCCESS			on success
  *	DNS_R_NOSPACE			target buffer is too small
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_SECALG_H */

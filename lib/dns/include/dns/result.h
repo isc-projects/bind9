@@ -18,6 +18,10 @@
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
 
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
 typedef unsigned int dns_result_t;
 
 #define DNS_R_SUCCESS			0
@@ -57,5 +61,7 @@ typedef unsigned int dns_result_t;
 #define DNS_R_UNEXPECTED		0xFFFFFFFFL
 
 char *					dns_result_totext(dns_result_t);
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESULT_H */

@@ -19,9 +19,12 @@
 #define DNS_COMPRESS_H 1
 
 #include <isc/mem.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 #include <dns/rbt.h>
+
+ISC_LANG_BEGINDECLS
 
 #define DNS_COMPRESS_NONE		0x00	/* no compression */
 #define DNS_COMPRESS_GLOBAL14		0x01	/* "normal" compression. */
@@ -310,5 +313,7 @@ dns_decompress_strict(dns_decompress_t *dctx);
  *	Requires:
  *		'dctx' to be initalised
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_COMPRESS_H */

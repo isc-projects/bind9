@@ -74,10 +74,12 @@
 
 #include <isc/boolean.h>
 #include <isc/buffer.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
 
+ISC_LANG_BEGINDECLS
 
 /*****
  ***** Labels
@@ -679,5 +681,7 @@ dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *	DNS_R_SUCCESS
  *	DNS_R_NOSPACE
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_NAME_H */

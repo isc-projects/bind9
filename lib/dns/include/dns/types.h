@@ -26,9 +26,12 @@
  * include the appropriate .h file too.
  */
 
+#include <isc/lang.h>
 #include <isc/region.h>
 #include <isc/int.h>
 #include <isc/list.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
@@ -75,14 +78,14 @@ enum {
 	dns_rdatatype_none = 0,
 	TYPEENUM
 	dns_rdatatype_any = 255
-} ;
+};
 
 #include <dns/enumclass.h>
 enum {
 	CLASSENUM
 	dns_rdataclass_none = 0
 	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
-} ;
+};
 
 enum {
 	/* standard rcodes */
@@ -103,5 +106,7 @@ enum {
 	dns_rcode_badtime = 18,
 	dns_rcode_badmode = 19
 };
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_TYPES_H */

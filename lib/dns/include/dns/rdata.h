@@ -91,12 +91,15 @@
  *** Imports
  ***/
 
+#include <isc/lang.h>
 #include <isc/lex.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
 #include <dns/callbacks.h>
 #include <dns/compress.h>
+
+ISC_LANG_BEGINDECLS
 
 /*****
  ***** RData
@@ -372,5 +375,7 @@ dns_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target);
  * Result:
  *	Success
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATA_H */

@@ -52,9 +52,12 @@
 
 #include <isc/boolean.h>
 #include <isc/buffer.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef struct dns_rdatasetmethods {
 	dns_result_t		(*disassociate)(dns_rdataset_t *rdataset);
@@ -84,7 +87,7 @@ struct dns_rdataset {
 	 * Leaning towards the latter, since they are not frequently required
 	 * once you have the rdataset.
 	 */
-	dns_rdataclass_t		class;
+	dns_rdataclass_t		rdclass;
 	dns_rdatatype_t			type;
 	dns_ttl_t			ttl;
 	/*
@@ -240,5 +243,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *	Any error returned by dns_rdata_towire(), dns_rdataset_next(),
  *	dns_name_towire().
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATASET_H */
