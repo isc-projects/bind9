@@ -370,9 +370,6 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		source = ISC_LIST_NEXT(source, link);
 	}
 
-	fprintf(stderr, "fillpool:  needed %u, added %u\n",
-		needed, added);
-
 	/*
 	 * Adjust counts.
 	 */
