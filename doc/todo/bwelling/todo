@@ -7,14 +7,6 @@ Design new update client
 
 Check that lwres security stuff does something
 
-Document the new lwresd configuration mechanisms
-
-document blackhole
-
-document bogus
-
-document forwarding
-
 implement sortlist
 
 DB/2 sdb
