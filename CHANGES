@@ -6,6 +6,9 @@
 1426.   [cleanup]	Disable RFC2535 style DNSSEC.  This is incompatible
 			with the forthcoming DS style DNSSEC.
 
+1395.	[port]		OpenSSL 0.9.7 defines CRYPTO_LOCK_ENGINE but doesn't
+			have a working implementation.  [RT #4079]
+
 1382.	[bug]		make install failed with --enable-libbind. [RT #3656]
 
 1381.	[bug]		named failed to correctly process answers that
