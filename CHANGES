@@ -1,3 +1,6 @@
+1769.	[port]		win32: change compiler flags /MTd ==> /MDd,
+			/MT ==> /MD.
+
 1764.	[bug]		dns_zone_replacedb failed to emit a error message
 			if there was no SOA record in the replacment db.
 			[RT #13016]
