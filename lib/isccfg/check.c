@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.15 2001/09/01 01:41:40 gson Exp $ */
+/* $Id: check.c,v 1.16 2001/09/17 02:48:58 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,9 @@
 #include <isc/result.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
+#include <isc/region.h>
+
+#include <dns/rdataclass.h>
 
 #include <isccfg/cfg.h>
 #include <isccfg/check.h>
@@ -101,7 +104,9 @@ typedef struct {
 } optionstable;
 
 static isc_result_t
-check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
+check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
+	       dns_rdataclass_t defclass, isc_log_t *logctx)
+{
 	const char *zname;
 	const char *typestr;
 	unsigned int ztype;
@@ -111,6 +116,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	unsigned int i;
+	dns_rdataclass_t zclass;
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE },
@@ -180,6 +186,28 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 			    "zone '%s': invalid type %s",
 			    zname, typestr);
 		return (ISC_R_FAILURE);
+	}
+
+	obj = cfg_tuple_get(zconfig, "class");
+	if (cfg_obj_isstring(obj)) {
+		isc_textregion_t r;
+
+		DE_CONST(cfg_obj_asstring(obj), r.base);
+		r.length = strlen(r.base);
+		result = dns_rdataclass_fromtext(&zclass, &r);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "zone '%s': invalid class %s",
+				    zname, r.base);
+			return (ISC_R_FAILURE);
+		}
+		if (zclass != defclass) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "zone '%s': class '%s' does not "
+				    "match view/default class",
+				    zname, r.base);
+			return (ISC_R_FAILURE);
+		}
 	}
 
 	/*
@@ -313,8 +341,8 @@ cfg_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 }
 		
 static isc_result_t
-check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
-	       isc_mem_t *mctx)
+check_viewconf(cfg_obj_t *vconfig, const char *vname, dns_rdataclass_t vclass,
+	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	cfg_obj_t *zones = NULL;
 	cfg_obj_t *keys = NULL;
@@ -332,13 +360,16 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 		return (ISC_R_NOMEMORY);
 
 	(void)cfg_map_get(vconfig, "zone", &zones);
+
 	for (element = cfg_list_first(zones);
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
+		isc_result_t tresult;
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
-		if (check_zoneconf(zone, symtab, logctx) != ISC_R_SUCCESS)
+		tresult = check_zoneconf(zone, symtab, vclass, logctx);
+		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
@@ -421,8 +452,8 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(config, "view", &views);
 
 	if (views == NULL) {
-		if (check_viewconf(config, "_default", logctx, mctx)
-				   != ISC_R_SUCCESS)
+		if (check_viewconf(config, "_default", dns_rdataclass_in,
+				   logctx, mctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	} else {
 		cfg_obj_t *zones = NULL;
@@ -443,9 +474,26 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		cfg_obj_t *view = cfg_listelt_value(velement);
 		cfg_obj_t *vname = cfg_tuple_get(view, "name");
 		cfg_obj_t *voptions = cfg_tuple_get(view, "options");
+		cfg_obj_t *vclassobj = cfg_tuple_get(view, "class");
+		dns_rdataclass_t vclass = dns_rdataclass_in;
+		isc_result_t tresult = ISC_R_SUCCESS;
 
-		if (check_viewconf(voptions, cfg_obj_asstring(vname), logctx,
-				   mctx) != ISC_R_SUCCESS)
+		if (cfg_obj_isstring(vclassobj)) {
+			isc_textregion_t r;
+
+			DE_CONST(cfg_obj_asstring(vclassobj), r.base);
+			r.length = strlen(r.base);
+			tresult = dns_rdataclass_fromtext(&vclass, &r);
+			if (tresult != ISC_R_SUCCESS)
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "view '%s': invalid class %s",
+					    cfg_obj_asstring(vname), r.base);
+		}
+		if (tresult == ISC_R_SUCCESS)
+			tresult = check_viewconf(voptions,
+						 cfg_obj_asstring(vname),
+						 vclass, logctx, mctx);
+		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
