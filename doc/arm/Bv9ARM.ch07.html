@@ -83,7 +83,7 @@ HREF="Bv9ARM.ch07.html#Access_Control_Lists"
 ></DT
 ><DT
 >7.2. <A
-HREF="Bv9ARM.ch07.html#AEN3876"
+HREF="Bv9ARM.ch07.html#AEN3858"
 ><B
 CLASS="command"
 >chroot</B
@@ -95,7 +95,7 @@ UNIX servers)</A
 ></DT
 ><DT
 >7.3. <A
-HREF="Bv9ARM.ch07.html#AEN3922"
+HREF="Bv9ARM.ch07.html#AEN3904"
 >Dynamic Updates</A
 ></DT
 ></DL
@@ -180,7 +180,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3876"
+NAME="AEN3858"
 >7.2. <B
 CLASS="command"
 >chroot</B
@@ -259,7 +259,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3899"
+NAME="AEN3881"
 >7.2.1. The <B
 CLASS="command"
 >chroot</B
@@ -315,7 +315,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3914"
+NAME="AEN3896"
 >7.2.2. Using the <B
 CLASS="command"
 >setuid</B
@@ -346,21 +346,43 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3922"
+NAME="AEN3904"
 >7.3. Dynamic Updates</A
 ></H1
 ><P
->Access to the dynamic update facility should be strictly limited.
-In earlier versions of <SPAN
+>Access to the dynamic
+update facility should be strictly limited.  In earlier versions of
+<SPAN
 CLASS="acronym"
 >BIND</SPAN
-> the only way to do this was based on
-the IP address of the host requesting the update. <SPAN
-CLASS="acronym"
->BIND9</SPAN
-> also
-supports authenticating updates cryptographically by means of transaction
-signatures (TSIG). The use of TSIG is strongly recommended.</P
+> the only way to do this was based on the IP
+address of the host requesting the update, by listing an IP address or
+network prefix in the <B
+CLASS="command"
+>allow-update</B
+> zone option.
+This method is insecure since the source address of the update UDP packet
+is easily forged.  Also note that if the IP addresses allowed by the
+<B
+CLASS="command"
+>allow-update</B
+> option include the address of a slave
+server which performs forwarding of dynamic updates, the master can be
+trivially attacked by sending the update to the slave, which will
+forward it to the master with its own source IP address causing the
+master to approve it without question.</P
+><P
+>For these reasons, we strongly recommend that updates be
+cryptographically authenticated by means transaction signatures (TSIG).
+That is, the <B
+CLASS="command"
+>allow-update</B
+> option should list only
+TSIG key names, not IP addresses. Alternatively, the new 
+<B
+CLASS="command"
+>update-policy</B
+> option can be used.</P
 ><P
 >Some sites choose to keep all dynamically updated DNS data
 in a subdomain and delegate that subdomain to a separate zone. This

@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3260"
+HREF="Bv9ARM.ch06.html#AEN3242"
 >Zone File</A
 ></DT
 ></DL
@@ -2591,7 +2591,7 @@ CLASS="programlisting"
 ><B
 CLASS="command"
 >lwres</B
->
+> {
     [<SPAN
 CLASS="optional"
 > listen-on { <TT
@@ -2636,6 +2636,7 @@ CLASS="replaceable"
 ></TT
 >; </SPAN
 >]
+};
 </PRE
 ></DIV
 ><DIV
@@ -3503,6 +3504,15 @@ CLASS="replaceable"
 ></TT
 > ; </SPAN
 >]
+    [<SPAN
+CLASS="optional"
+> port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+>; </SPAN
+>]
 };
 </PRE
 ></DIV
@@ -3511,7 +3521,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1897"
+NAME="AEN1899"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -3858,6 +3868,37 @@ CLASS="acronym"
 ></DIV
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="153"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>port</B
+></P
+></TD
+><TD
+WIDTH="303"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>&#13;The UDP/TCP port number the server uses for receiving and sending DNS protocol traffic.
+The default is 53.  This option is mainly intended for server testing;
+a server using a port other than 53 will not be able to communicate with
+the global DNS.
+The <B
+CLASS="command"
+>port</B
+> option should be placed at
+the beginning of the options block, before
+any other options that take port numbers or IP addresses,
+to ensure that the port value takes effect for all addresses
+used by the server.</P
+>
+</TD
+></TR
 ></TABLE
 ><P
 ></P
@@ -4097,53 +4138,19 @@ WIDTH="287"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(Information present outside of the authoritative
-nodes in the zone is called <I
-CLASS="emphasis"
->glue</I
-> information).
-If <TT
+>This option is obsolete.
+In BIND 8, <TT
 CLASS="userinput"
 ><B
->yes</B
+>fetch-glue yes</B
 ></TT
-> (the default), the server will fetch
-glue resource records it doesn't have when constructing the additional
-data section of a response. <B
-CLASS="command"
->fetch-glue</B
-> <TT
-CLASS="userinput"
-><B
->no</B
-></TT
-> can
-be used in conjunction with <B
-CLASS="command"
->recursion</B
-> <TT
-CLASS="userinput"
-><B
->no</B
-></TT
-> to
-prevent the server's cache from growing or becoming corrupted (at
-the cost of requiring more work from the client).</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet
-implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
-></TD
+>
+caused the server to attempt to fetch glue resource records it
+didn't have when constructing the additional
+data section of a response.  This is now considered a bad idea
+and BIND 9 never does it.</P
+>
+</TD
 ></TR
 ><TR
 ><TD
@@ -4168,7 +4175,8 @@ CLASS="acronym"
 > 8, and is ignored by <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9.  To achieve the intended effect
+> 9.
+To achieve the intended effect
 of
 <B
 CLASS="command"
@@ -4214,46 +4222,9 @@ WIDTH="287"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->If <TT
-CLASS="userinput"
-><B
->yes</B
-></TT
->, then statistics
-are kept for every host that the nameserver interacts with. The
-default is <TT
-CLASS="userinput"
-><B
->no</B
-></TT
->.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->turning on <B
-CLASS="command"
->host-statistics</B
-> can consume
-huge amounts of memory.</P
-></BLOCKQUOTE
-></DIV
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
+>In BIND 8, this enables keeping of
+statistics for every host that the nameserver interacts with.
+Not implemented in BIND 9.</P
 ></TD
 ></TR
 ><TR
@@ -4636,7 +4607,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2192"
+NAME="AEN2185"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5007,7 +4978,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2299"
+NAME="AEN2292"
 >6.2.14.5. Interfaces</A
 ></H3
 ><P
@@ -5102,7 +5073,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2325"
+NAME="AEN2318"
 >6.2.14.6. Query Address</A
 ></H3
 ><P
@@ -5329,46 +5300,20 @@ servers to find out if zone serial numbers have changed. Each such
 query uses a minute amount of the slave server's network bandwidth,
 but more importantly each query uses a small amount of memory in
 the slave server while waiting for the master server to respond.
-The <B
+In BIND 8, the <B
 CLASS="command"
 >serial-queries</B
-> option sets the maximum number
+> option set the maximum number
 of concurrent serial-number queries allowed to be outstanding at
-any given time. The default is 4.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->If a server loads a large (tens or
-                    hundreds of thousands) number of slave zones, then
-                    this limit should be raised to the high hundreds
-                    or low thousands, otherwise the slave server may
-                    never actually become aware of zone changes in the
-                    master servers. Beware, though, that setting this
-                    limit arbitrarily high can spend a considerable
-                    amount of your slave server's network, CPU, and
-                    memory resources. As with all tunable limits, this
-                    one should be changed gently and monitored for its
-                    effects.</P
-></BLOCKQUOTE
-></DIV
->
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
+any given time.  BIND 9 does not limit the number of outstanding
+serial queries and ignores the The <B
+CLASS="command"
+>serial-queries</B
+> option;
+instead, it limits the rate at which the queries are sent.
+The maximum rate is currently fixed at 20 queries
+per second but may become configurable in a future release.  
+</P
 >
 </TD
 ></TR
@@ -5594,7 +5539,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2455"
+NAME="AEN2444"
 >6.2.14.8. Resource Limits</A
 ></H3
 ><P
@@ -5798,26 +5743,8 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->The <B
-CLASS="command"
->max-ixfr-log-size</B
-> will
-be used in a future release of the server to limit the size of the
-transaction log kept for Incremental Zone Transfer.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not
-yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
+>This option is obsolete; it is accepted
+and ignored for BIND 8 compatibility.</P
 ></TD
 ></TR
 ><TR
@@ -5927,7 +5854,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2544"
+NAME="AEN2529"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -6231,7 +6158,7 @@ CLASS="programlisting"
     { localhost;				   // IF   the local host
         { localnets;				   // THEN first fit on the
             192.168.1/24;			   //   following nets
-            { 192,168.2/24; 192.168.3/24; }; }; };
+            { 192.168.2/24; 192.168.3/24; }; }; };
     { 192.168.1/24;				   // IF   on class C 192.168.1
         { 192.168.1/24;				   // THEN use .1, or .2 or .3
             { 192.168.2/24; 192.168.3/24; }; }; };
@@ -6250,7 +6177,7 @@ local host and hosts on directly connected networks. It is similar
 to the behavior of the address sort in <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 8.x. Responses sent
+> 4.9.x. Responses sent
 to queries from the local host will favor any of the directly connected
 networks. Responses sent to queries from any other hosts on a directly
 connected network will prefer addresses on that same network. Responses
@@ -6526,20 +6453,6 @@ CLASS="literal"
 >1800</TT
 > (30 minutes).</P
 >
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
->
 </TD
 ></TR
 ><TR
@@ -6685,7 +6598,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2736"
+NAME="AEN2718"
 >6.2.14.14. Deprecated Features</A
 ></H3
 ><P
@@ -6962,7 +6875,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2806"
+NAME="AEN2788"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7037,7 +6950,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2822"
+NAME="AEN2804"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7072,7 +6985,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2830"
+NAME="AEN2812"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7126,7 +7039,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2842"
+NAME="AEN2824"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7642,7 +7555,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2963"
+NAME="AEN2945"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7653,7 +7566,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2966"
+NAME="AEN2948"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -7877,7 +7790,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3023"
+NAME="AEN3005"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7915,7 +7828,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3033"
+NAME="AEN3015"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
@@ -8705,7 +8618,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3260"
+NAME="AEN3242"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8726,7 +8639,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3265"
+NAME="AEN3247"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9442,7 +9355,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3479"
+NAME="AEN3461"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9760,7 +9673,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3580"
+NAME="AEN3562"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10159,7 +10072,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3701"
+NAME="AEN3683"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10257,7 +10170,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3728"
+NAME="AEN3710"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10282,7 +10195,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3735"
+NAME="AEN3717"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10352,7 +10265,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3755"
+NAME="AEN3737"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10428,7 +10341,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3774"
+NAME="AEN3756"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10468,7 +10381,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3785"
+NAME="AEN3767"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
