@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.2 2003/07/25 02:22:26 marka Exp $ */
+/* $Id: hash.c,v 1.2.2.1 2003/07/25 07:30:39 marka Exp $ */
 
 /*
  * Some portion of this code was derived from universal hash function
