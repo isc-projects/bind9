@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.93 2000/08/11 21:50:56 gson Exp $ */
+/* $Id: xfrin.c,v 1.94 2000/08/24 21:28:50 explorer Exp $ */
 
 #include <config.h>
 
@@ -1090,8 +1090,6 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		unsigned int count = dns_db_nodecount(xfr->db);
 		unsigned int maxnames = dns_zone_getmaxnames(xfr->zone);
 		
-		xfrin_log(xfr, ISC_LOG_DEBUG(2),
-			  "number of nodes in database: %u", count);
 		if (maxnames != 0 && count > maxnames) {
 			result = DNS_R_ZONETOOLARGE;
 			goto failure;
