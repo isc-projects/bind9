@@ -86,7 +86,19 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 		iter->ifc.ifc_len = iter->bufsize;
 		iter->ifc.ifc_buf = iter->buf;
 		if (ioctl(iter->socket, SIOCGIFCONF, (char *) &iter->ifc) >= 0)
-			break;
+		{
+			/*
+			 * Some OS's just return what will fit rather
+			 * than set EINVAL if the buffer is too small
+			 * to fit all the interfaces in.  If
+			 * ifc.ifc_len is too near to the end of the
+			 * buffer we will grow it just in case and
+			 * retry.
+			 */
+			if (iter->ifc.ifc_len + 2 * sizeof(struct ifreq)
+			    < iter->bufsiz) 
+				break;
+		}
 		if (errno != EINVAL) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "get interface configuration: %s",
