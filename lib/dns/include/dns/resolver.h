@@ -122,9 +122,9 @@ dns_resolver_create(dns_view_t *view,
  *
  *	'timermgr' is a valid timer manager.
  *
- *	'dispatchv4' is a valid dispatcher with an IPv4 socket, or is NULL.
+ *	'dispatchv4' is a valid dispatcher with an IPv4 UDP socket, or is NULL.
  *
- *	'dispatchv6' is a valid dispatcher with an IPv6 socket, or is NULL.
+ *	'dispatchv6' is a valid dispatcher with an IPv6 UDP socket, or is NULL.
  *
  *	*resp != NULL && *resp == NULL.
  *
