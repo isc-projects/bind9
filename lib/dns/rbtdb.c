@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.157 2001/04/18 08:06:11 tale Exp $ */
+/* $Id: rbtdb.c,v 1.158 2001/04/20 14:35:04 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -892,6 +892,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	rbtdb_changed_t *changed, *next_changed;
 	rbtdb_serial_t serial, least_serial;
 	dns_rbtnode_t *rbtnode;
+	isc_mutex_t *lock;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	version = (rbtdb_version_t *)*versionp;
@@ -1010,8 +1011,9 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 		     changed = next_changed) {
 			next_changed = NEXT(changed, link);
 			rbtnode = changed->node;
+			lock = &rbtdb->node_locks[rbtnode->locknum].lock;
 
-			LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+			LOCK(lock);
 
 			INSIST(rbtnode->references > 0);
 			rbtnode->references--;
@@ -1022,7 +1024,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				no_references(rbtdb, rbtnode, least_serial,
 					      isc_rwlocktype_none);
 
-			UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+			UNLOCK(lock);
 
 			isc_mem_put(rbtdb->common.mctx, changed,
 				    sizeof *changed);
@@ -1701,6 +1703,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	isc_boolean_t at_zonecut = ISC_FALSE;
 	isc_boolean_t wild;
 	isc_boolean_t empty_node;
+	isc_mutex_t *lock;
 	rdatasetheader_t *header, *header_next, *found, *nxtheader;
 	rdatasetheader_t *foundsig, *cnamesig, *nxtsig;
 	rbtdb_rdatatype_t sigtype;
@@ -2102,15 +2105,16 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 */
 	if (search.need_cleanup) {
 		node = search.zonecut;
+		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
-		LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		LOCK(lock);
 		INSIST(node->references > 0);
 		node->references--;
 		if (node->references == 0)
 			no_references(search.rbtdb, node, 0,
 				      isc_rwlocktype_none);
 
-		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		UNLOCK(lock);
 	}
 
 	if (close_version)
@@ -2368,6 +2372,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rbtdb_search_t search;
 	isc_boolean_t cname_ok = ISC_TRUE;
 	isc_boolean_t empty_node;
+	isc_mutex_t *lock;
 	rdatasetheader_t *header, *header_prev, *header_next;
 	rdatasetheader_t *found, *nsheader;
 	rdatasetheader_t *foundsig, *nssig, *cnamesig;
@@ -2637,14 +2642,15 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 */
 	if (search.need_cleanup) {
 		node = search.zonecut;
+		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
-		LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		LOCK(lock);
 		INSIST(node->references > 0);
 		node->references--;
 		if (node->references == 0)
 			no_references(search.rbtdb, node, 0,
 				      isc_rwlocktype_none);
-		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		UNLOCK(lock);
 	}
 
 	dns_rbtnodechain_reset(&search.chain);
@@ -2812,13 +2818,15 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node;
 	isc_boolean_t maybe_free = ISC_FALSE;
+	isc_mutex_t *lock;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
 
 	node = (dns_rbtnode_t *)(*targetp);
+	lock = &rbtdb->node_locks[node->locknum].lock;
 
-	LOCK(&rbtdb->node_locks[node->locknum].lock);
+	LOCK(lock);
 
 	INSIST(node->references > 0);
 	node->references--;
@@ -2829,7 +2837,7 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 			maybe_free = ISC_TRUE;
 	}
 
-	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
+	UNLOCK(lock);
 
 	*targetp = NULL;
 
@@ -4608,15 +4616,16 @@ static inline void
 dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
 	dns_rbtnode_t *node = rbtdbiter->node;
+	isc_mutex_t *lock = &rbtdb->node_locks[node->locknum].lock;
 
 	if (node == NULL)
 		return;
 
-	LOCK(&rbtdb->node_locks[node->locknum].lock);
+	LOCK(lock);
 	INSIST(rbtdbiter->node->references > 0);
 	if (--node->references == 0)
 		no_references(rbtdb, node, 0, rbtdbiter->tree_locked);
-	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
+	UNLOCK(lock);
 
 	rbtdbiter->node = NULL;
 }
@@ -4626,6 +4635,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 	dns_rbtnode_t *node;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
 	isc_boolean_t was_read_locked = ISC_FALSE;
+	isc_mutex_t *lock;
 	int i;
 
 	if (rbtdbiter->delete != 0) {
@@ -4650,14 +4660,15 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 
 		for (i = 0; i < rbtdbiter->delete; i++) {
 			node = rbtdbiter->deletions[i];
+			lock = &rbtdb->node_locks[node->locknum].lock;
 
-			LOCK(&rbtdb->node_locks[node->locknum].lock);
+			LOCK(lock);
 			INSIST(node->references > 0);
 			node->references--;
 			if (node->references == 0)
 				no_references(rbtdb, node, 0,
 					      rbtdbiter->tree_locked);
-			UNLOCK(&rbtdb->node_locks[node->locknum].lock);
+			UNLOCK(lock);
 		}
 
 		rbtdbiter->delete = 0;
