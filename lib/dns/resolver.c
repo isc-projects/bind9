@@ -678,7 +678,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 */
 		isc_socket_detach(&socket);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup_dispatch;
+			goto cleanup_query;
 	} else {
 		switch (isc_sockaddr_pf(addrinfo->sockaddr)) {
 		case PF_INET:
