@@ -39,6 +39,7 @@ typedef ISC_LIST(dns_name_t)			dns_namelist_t;
 typedef struct dns_db				dns_db_t;
 typedef void					dns_dbnode_t;
 typedef void					dns_dbversion_t;
+typedef struct dns_dbiterator			dns_dbiterator_t;
 typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
