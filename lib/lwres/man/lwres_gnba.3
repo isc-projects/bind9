@@ -12,46 +12,41 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_gnba.3,v 1.8 2001/04/10 21:51:52 bwelling Exp $
-
 .TH "LWRES_GNBA" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_gnbarequest_render, lwres_gnbaresponse_render, lwres_gnbarequest_parse, lwres_gnbaresponse_parse, lwres_gnbaresponse_free, lwres_gnbarequest_free \- lightweight resolver getnamebyaddress message handling
 .SH SYNOPSIS
 \fB#include <lwres/lwres.h>
 .sp
+.na
 lwres_result_t
-lwres_gnbarequest_render(lwres_context_t *\fIctx\fB);
-(lwres_gnbarequest_t *\fIreq\fB);
-(lwres_lwpacket_t *\fIpkt\fB);
-(lwres_buffer_t *\fIb\fB);
+lwres_gnbarequest_render(lwres_context_t *\fIctx\fB, lwres_gnbarequest_t *\fIreq\fB, lwres_lwpacket_t *\fIpkt\fB, lwres_buffer_t *\fIb\fB);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_gnbaresponse_render(lwres_context_t *ctx);
-(lwres_gnbaresponse_t *req);
-(lwres_lwpacket_t *pkt);
-(lwres_buffer_t *b);
+lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req, lwres_lwpacket_t *pkt, lwres_buffer_t *b);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_gnbarequest_parse(lwres_context_t *ctx);
-(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
-(lwres_gnbarequest_t **structp);
+lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b, lwres_lwpacket_t *pkt, lwres_gnbarequest_t **structp);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_gnbaresponse_parse(lwres_context_t *ctx);
-(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
-(lwres_gnbaresponse_t **structp);
+lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b, lwres_lwpacket_t *pkt, lwres_gnbaresponse_t **structp);
+.ad
 .sp
+.na
 void
-lwres_gnbaresponse_free(lwres_context_t *ctx);
-(lwres_gnbaresponse_t **structp);
+lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp);
+.ad
 .sp
+.na
 void
-lwres_gnbarequest_free(lwres_context_t *ctx);
-(lwres_gnbarequest_t **structp);
+lwres_gnbarequest_free(lwres_context_t *ctx, lwres_gnbarequest_t **structp);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 These are low-level routines for creating and parsing

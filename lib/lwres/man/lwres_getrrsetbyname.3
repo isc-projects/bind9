@@ -12,24 +12,21 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_getrrsetbyname.3,v 1.6 2001/04/10 21:51:49 bwelling Exp $
-
 .TH "LWRES_GETRRSETBYNAME" "3" "Oct 18, 2000" "BIND9" ""
 .SH NAME
 lwres_getrrsetbyname, lwres_freerrset \- retrieve DNS records
 .SH SYNOPSIS
 \fB#include <lwres/netdb.h>
 .sp
+.na
 int
-lwres_getrrsetbyname(const char *hostname);
-(unsigned int rdclass);
-(unsigned int rdtype);
-(unsigned int flags);
-(struct rrsetinfo **res);
+lwres_getrrsetbyname(const char *hostname, unsigned int rdclass, unsigned int rdtype, unsigned int flags, struct rrsetinfo **res);
+.ad
 .sp
+.na
 void
 lwres_freerrset(struct rrsetinfo *rrset);
+.ad
 \fR.PP
 The following structures are used:
 .sp

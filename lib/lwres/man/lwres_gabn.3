@@ -12,46 +12,41 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_gabn.3,v 1.8 2001/04/10 21:51:28 bwelling Exp $
-
 .TH "LWRES_GABN" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_gabnrequest_render, lwres_gabnresponse_render, lwres_gabnrequest_parse, lwres_gabnresponse_parse, lwres_gabnresponse_free, lwres_gabnrequest_free \- lightweight resolver getaddrbyname message handling
 .SH SYNOPSIS
 \fB#include <lwres/lwres.h>
 .sp
+.na
 lwres_result_t
-lwres_gabnrequest_render(lwres_context_t *ctx);
-(lwres_gabnrequest_t *req);
-(lwres_lwpacket_t *pkt);
-(lwres_buffer_t *b);
+lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req, lwres_lwpacket_t *pkt, lwres_buffer_t *b);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_gabnresponse_render(lwres_context_t *ctx);
-(lwres_gabnresponse_t *req);
-(lwres_lwpacket_t *pkt);
-(lwres_buffer_t *b);
+lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req, lwres_lwpacket_t *pkt, lwres_buffer_t *b);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_gabnrequest_parse(lwres_context_t *ctx);
-(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
-(lwres_gabnrequest_t **structp);
+lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b, lwres_lwpacket_t *pkt, lwres_gabnrequest_t **structp);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_gabnresponse_parse(lwres_context_t *ctx);
-(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
-(lwres_gabnresponse_t **structp);
+lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b, lwres_lwpacket_t *pkt, lwres_gabnresponse_t **structp);
+.ad
 .sp
+.na
 void
-lwres_gabnresponse_free(lwres_context_t *ctx);
-(lwres_gabnresponse_t **structp);
+lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp);
+.ad
 .sp
+.na
 void
-lwres_gabnrequest_free(lwres_context_t *ctx);
-(lwres_gabnrequest_t **structp);
+lwres_gabnrequest_free(lwres_context_t *ctx, lwres_gabnrequest_t **structp);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 These are low-level routines for creating and parsing

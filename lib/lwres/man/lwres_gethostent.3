@@ -12,63 +12,66 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_gethostent.3,v 1.9 2001/04/10 21:51:39 bwelling Exp $
-
 .TH "LWRES_GETHOSTENT" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_gethostbyname, lwres_gethostbyname2, lwres_gethostbyaddr, lwres_gethostent, lwres_sethostent, lwres_endhostent, lwres_gethostbyname_r, lwres_gethostbyaddr_r, lwres_gethostent_r, lwres_sethostent_r, lwres_endhostent_r \- lightweight resolver get network host entry
 .SH SYNOPSIS
 \fB#include <lwres/netdb.h>
 .sp
+.na
 struct hostent *
 lwres_gethostbyname(const char *name);
+.ad
 .sp
+.na
 struct hostent *
-lwres_gethostbyname2(const char *name);
-(int af);
+lwres_gethostbyname2(const char *name, int af);
+.ad
 .sp
+.na
 struct hostent *
-lwres_gethostbyaddr(const char *addr);
-(int len);
-(int type);
+lwres_gethostbyaddr(const char *addr, int len, int type);
+.ad
 .sp
+.na
 struct hostent *
 lwres_gethostent(void);
+.ad
 .sp
+.na
 void
 lwres_sethostent(int stayopen);
+.ad
 .sp
+.na
 void
 lwres_endhostent(void);
+.ad
 .sp
+.na
 struct hostent *
-lwres_gethostbyname_r(const char *name);
-(struct hostent *resbuf);
-(char *buf);
-(int buflen);
-(int *error);
+lwres_gethostbyname_r(const char *name, struct hostent *resbuf, char *buf, int buflen, int *error);
+.ad
 .sp
+.na
 struct hostent *
-lwres_gethostbyaddr_r(const char *addr);
-(int len);
-(int type);
-(struct hostent *resbuf);
-(char *buf);
-(int buflen);
-(int *error);
+lwres_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *resbuf, char *buf, int buflen, int *error);
+.ad
 .sp
+.na
 struct hostent *
-lwres_gethostent_r(struct hostent *resbuf);
-(char *buf);
-(int buflen);
-(int *error);
+lwres_gethostent_r(struct hostent *resbuf, char *buf, int buflen, int *error);
+.ad
 .sp
+.na
 void
 lwres_sethostent_r(int stayopen);
+.ad
 .sp
+.na
 void
 lwres_endhostent_r(void);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 These functions provide hostname-to-address and

@@ -12,36 +12,31 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_resutil.3,v 1.7 2001/04/10 21:52:09 bwelling Exp $
-
 .TH "LWRES_RESUTIL" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_string_parse, lwres_addr_parse, lwres_getaddrsbyname, lwres_getnamebyaddr \- lightweight resolver utility functions
 .SH SYNOPSIS
 \fB#include <lwres/lwres.h>
 .sp
+.na
 lwres_result_t
-lwres_string_parse(lwres_buffer_t *b);
-(char **c);
-(lwres_uint16_t *len);
+lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_addr_parse(lwres_buffer_t *b);
-(lwres_addr_t *addr);
+lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_getaddrsbyname(lwres_context_t *ctx);
-(const char *name);
-(lwres_uint32_t addrtypes);
-(lwres_gabnresponse_t **structp);
+lwres_getaddrsbyname(lwres_context_t *ctx, const char *name, lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_getnamebyaddr(lwres_context_t *ctx);
-(lwres_uint32_t addrtype);
-(lwres_uint16_t addrlen);
-(const unsigned char *addr);
-(lwres_gnbaresponse_t **structp);
+lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype, lwres_uint16_t addrlen, const unsigned char *addr, lwres_gnbaresponse_t **structp);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 \fBlwres_string_parse()\fR

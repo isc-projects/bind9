@@ -12,22 +12,21 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_packet.3,v 1.8 2001/04/10 21:52:06 bwelling Exp $
-
 .TH "LWRES_PACKET" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_lwpacket_renderheader, lwres_lwpacket_parseheader \- lightweight resolver packet handling functions
 .SH SYNOPSIS
 \fB#include <lwres/lwbuffer.h>#include <lwres/lwpacket.h>#include <lwres/result.h>
 .sp
+.na
 lwres_result_t
-lwres_lwpacket_renderheader(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
+lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_lwpacket_parseheader(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
+lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 These functions rely on a

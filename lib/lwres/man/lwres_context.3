@@ -12,47 +12,46 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_context.3,v 1.8 2001/04/10 21:51:24 bwelling Exp $
-
 .TH "LWRES_CONTEXT" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_context_create, lwres_context_destroy, lwres_context_nextserial, lwres_context_initserial, lwres_context_freemem, lwres_context_allocmem, lwres_context_sendrecv \- lightweight resolver context management
 .SH SYNOPSIS
 \fB#include <lwres/lwres.h>
 .sp
+.na
 lwres_result_t
-lwres_context_create(lwres_context_t **contextp);
-(void *arg);
-(lwres_malloc_t malloc_function);
-(lwres_free_t free_function);
+lwres_context_create(lwres_context_t **contextp, void *arg, lwres_malloc_t malloc_function, lwres_free_t free_function);
+.ad
 .sp
+.na
 lwres_result_t
 lwres_context_destroy(lwres_context_t **contextp);
+.ad
 .sp
+.na
 void
-lwres_context_initserial(lwres_context_t *ctx);
-(lwres_uint32_t serial);
+lwres_context_initserial(lwres_context_t *ctx, lwres_uint32_t serial);
+.ad
 .sp
+.na
 lwres_uint32_t
 lwres_context_nextserial(lwres_context_t *ctx);
+.ad
 .sp
+.na
 void
-lwres_context_freemem(lwres_context_t *ctx);
-(void *mem);
-(size_t len);
+lwres_context_freemem(lwres_context_t *ctx, void *mem, size_t len);
+.ad
 .sp
+.na
 void
-lwres_context_allocmem(lwres_context_t *ctx);
-(size_t len);
+lwres_context_allocmem(lwres_context_t *ctx, size_t len);
+.ad
 .sp
+.na
 void *
-lwres_context_sendrecv(lwres_context_t *ctx);
-(void *sendbase);
-(int sendlen);
-(void *recvbase);
-(int recvlen);
-(int *recvd_len);
+lwres_context_sendrecv(lwres_context_t *ctx, void *sendbase, int sendlen, void *recvbase, int recvlen, int *recvd_len);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 \fBlwres_context_create()\fR

@@ -12,31 +12,36 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_config.3,v 1.8 2001/04/10 21:51:20 bwelling Exp $
-
 .TH "LWRES_CONFIG" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_conf_init, lwres_conf_clear, lwres_conf_parse, lwres_conf_print, lwres_conf_get \- lightweight resolver configuration
 .SH SYNOPSIS
 \fB#include <lwres/lwres.h>
 .sp
+.na
 void
 lwres_conf_init(lwres_context_t *ctx);
+.ad
 .sp
+.na
 void
 lwres_conf_clear(lwres_context_t *ctx);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_conf_parse(lwres_context_t *ctx);
-(const char *filename);
+lwres_conf_parse(lwres_context_t *ctx, const char *filename);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_conf_print(lwres_context_t *ctx);
-(FILE *fp);
+lwres_conf_print(lwres_context_t *ctx, FILE *fp);
+.ad
 .sp
+.na
 lwres_conf_t *
 lwres_conf_get(lwres_context_t *ctx);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 \fBlwres_conf_init()\fR

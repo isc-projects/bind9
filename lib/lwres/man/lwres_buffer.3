@@ -12,75 +12,91 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_buffer.3,v 1.8 2001/04/10 21:51:17 bwelling Exp $
-
 .TH "LWRES_BUFFER" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_buffer_init, lwres_buffer_invalidate, lwres_buffer_add, lwres_buffer_subtract, lwres_buffer_clear, lwres_buffer_first, lwres_buffer_forward, lwres_buffer_back, lwres_buffer_getuint8, lwres_buffer_putuint8, lwres_buffer_getuint16, lwres_buffer_putuint16, lwres_buffer_getuint32, lwres_buffer_putuint32, lwres_buffer_putmem, lwres_buffer_getmem \- lightweight resolver buffer management
 .SH SYNOPSIS
 \fB#include <lwres/lwbuffer.h>
 .sp
+.na
 void
-lwres_buffer_init(lwres_buffer_t *b);
-(void *base);
-(unsigned int length);
+lwres_buffer_init(lwres_buffer_t *b, void *base, unsigned int length);
+.ad
 .sp
+.na
 void
 lwres_buffer_invalidate(lwres_buffer_t *b);
+.ad
 .sp
+.na
 void
-lwres_buffer_add(lwres_buffer_t *b);
-(unsigned int n);
+lwres_buffer_add(lwres_buffer_t *b, unsigned int n);
+.ad
 .sp
+.na
 void
-lwres_buffer_subtract(lwres_buffer_t *b);
-(unsigned int n);
+lwres_buffer_subtract(lwres_buffer_t *b, unsigned int n);
+.ad
 .sp
+.na
 void
 lwres_buffer_clear(lwres_buffer_t *b);
+.ad
 .sp
+.na
 void
 lwres_buffer_first(lwres_buffer_t *b);
+.ad
 .sp
+.na
 void
-lwres_buffer_forward(lwres_buffer_t *b);
-(unsigned int n);
+lwres_buffer_forward(lwres_buffer_t *b, unsigned int n);
+.ad
 .sp
+.na
 void
-lwres_buffer_back(lwres_buffer_t *b);
-(unsigned int n);
+lwres_buffer_back(lwres_buffer_t *b, unsigned int n);
+.ad
 .sp
+.na
 lwres_uint8_t
 lwres_buffer_getuint8(lwres_buffer_t *b);
+.ad
 .sp
+.na
 void
-lwres_buffer_putuint8(lwres_buffer_t *b);
-(lwres_uint8_t val);
+lwres_buffer_putuint8(lwres_buffer_t *b, lwres_uint8_t val);
+.ad
 .sp
+.na
 lwres_uint16_t
 lwres_buffer_getuint16(lwres_buffer_t *b);
+.ad
 .sp
+.na
 void
-lwres_buffer_putuint16(lwres_buffer_t *b);
-(lwres_uint16_t val);
+lwres_buffer_putuint16(lwres_buffer_t *b, lwres_uint16_t val);
+.ad
 .sp
+.na
 lwres_uint32_t
 lwres_buffer_getuint32(lwres_buffer_t *b);
+.ad
 .sp
+.na
 void
-lwres_buffer_putuint32(lwres_buffer_t *b);
-(lwres_uint32_t val);
+lwres_buffer_putuint32(lwres_buffer_t *b, lwres_uint32_t val);
+.ad
 .sp
+.na
 void
-lwres_buffer_putmem(lwres_buffer_t *b);
-(const unsigned char *base);
-(unsigned int length);
+lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base, unsigned int length);
+.ad
 .sp
+.na
 void
-lwres_buffer_getmem(lwres_buffer_t *b);
-(unsigned char *base);
-(unsigned int length);
+lwres_buffer_getmem(lwres_buffer_t *b, unsigned char *base, unsigned int length);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 These functions provide bounds checked access to a region of memory

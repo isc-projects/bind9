@@ -12,46 +12,41 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_noop.3,v 1.8 2001/04/10 21:52:02 bwelling Exp $
-
 .TH "LWRES_NOOP" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_nooprequest_render, lwres_noopresponse_render, lwres_nooprequest_parse, lwres_noopresponse_parse, lwres_noopresponse_free, lwres_nooprequest_free \- lightweight resolver no-op message handling
 .SH SYNOPSIS
 \fB#include <lwres/lwres.h>
 .sp
+.na
 lwres_result_t
-lwres_nooprequest_render(lwres_context_t *ctx);
-(lwres_nooprequest_t *req);
-(lwres_lwpacket_t *pkt);
-(lwres_buffer_t *b);
+lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req, lwres_lwpacket_t *pkt, lwres_buffer_t *b);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_noopresponse_render(lwres_context_t *ctx);
-(lwres_noopresponse_t *req);
-(lwres_lwpacket_t *pkt);
-(lwres_buffer_t *b);
+lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req, lwres_lwpacket_t *pkt, lwres_buffer_t *b);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_nooprequest_parse(lwres_context_t *ctx);
-(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
-(lwres_nooprequest_t **structp);
+lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b, lwres_lwpacket_t *pkt, lwres_nooprequest_t **structp);
+.ad
 .sp
+.na
 lwres_result_t
-lwres_noopresponse_parse(lwres_context_t *ctx);
-(lwres_buffer_t *b);
-(lwres_lwpacket_t *pkt);
-(lwres_noopresponse_t **structp);
+lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b, lwres_lwpacket_t *pkt, lwres_noopresponse_t **structp);
+.ad
 .sp
+.na
 void
-lwres_noopresponse_free(lwres_context_t *ctx);
-(lwres_noopresponse_t **structp);
+lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
+.ad
 .sp
+.na
 void
-lwres_nooprequest_free(lwres_context_t *ctx);
-(lwres_nooprequest_t **structp);
+lwres_nooprequest_free(lwres_context_t *ctx, lwres_nooprequest_t **structp);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 These are low-level routines for creating and parsing

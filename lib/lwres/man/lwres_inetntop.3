@@ -12,20 +12,16 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_inetntop.3,v 1.7 2001/04/10 21:51:59 bwelling Exp $
-
 .TH "LWRES_INETNTOP" "3" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 lwres_net_ntop \- lightweight resolver IP address presentation
 .SH SYNOPSIS
 \fB#include <lwres/net.h>
 .sp
+.na
 const char *
-lwres_net_ntop(int af);
-(const void *src);
-(char *dst);
-(size_t size);
+lwres_net_ntop(int af, const void *src, char *dst, size_t size);
+.ad
 \fR.SH "DESCRIPTION"
 .PP
 \fBlwres_net_ntop()\fR
