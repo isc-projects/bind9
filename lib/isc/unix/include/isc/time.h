@@ -185,7 +185,7 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
  */
 
 isc_uint64_t
-isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
+isc_time_microdiff(isc_time_t *t1, isc_time_t *t2);
 /*
  * Find the difference in milliseconds between time t1 and time t2.
  * t2 is the subtrahend of t1; ie, difference = t1 - t2.
