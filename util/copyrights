@@ -408,6 +408,7 @@
 ./bin/tests/system/dnssec/ns5/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001
+./bin/tests/system/dnssec/prereq.sh		SH	2001
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001
 ./bin/tests/system/forward/clean.sh		SH	2000,2001
@@ -578,6 +579,7 @@
 ./bin/tests/system/tkey/ns1/.cvsignore		X	2001
 ./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001
 ./bin/tests/system/tkey/ns1/setup.sh		SH	2001
+./bin/tests/system/tkey/prereq.sh		SH	2001
 ./bin/tests/system/tkey/setup.sh		SH	2001
 ./bin/tests/system/tkey/tests.sh		SH	2001
 ./bin/tests/system/unknown/clean.sh		SH	2000,2001
@@ -1420,7 +1422,6 @@
 ./lib/dns/sec/dst/openssldh_link.c		C.NAI	1999,2000,2001
 ./lib/dns/sec/dst/openssldsa_link.c		C.NAI	1999,2000,2001
 ./lib/dns/sec/dst/opensslrsa_link.c		C	2000,2001
-./lib/dns/sec/rename.h				C	2000,2001
 ./lib/dns/soa.c					C	2000,2001
 ./lib/dns/ssu.c					C	2000,2001
 ./lib/dns/stats.c				C	2000,2001
