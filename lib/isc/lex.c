@@ -289,6 +289,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	FILE *stream;
 	char *curr, *prev;
 	size_t remaining;
+	u_long u_long;
+	unsigned int i;
 
 	/*
 	 * Get the next token.
@@ -432,11 +434,14 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						c;
 					tokenp->type =
 						isc_tokentype_number;
-					/* XXX convert to number */
-					tokenp->value.as_textregion.base =
-						lex->data;
-					tokenp->value.as_textregion.length = 
-						lex->max_token - remaining;
+					u_long = 0;
+					for (i = 0;
+					     i < lex->max_token - remaining;
+					     i++) {
+						u_long *= 10;
+						u_long += lex->data[i] - '0';
+					}
+					tokenp->value.as_ulong = u_long;
 					done = ISC_TRUE;
 					continue;
 				} else
