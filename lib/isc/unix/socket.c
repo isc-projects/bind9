@@ -110,7 +110,6 @@ typedef struct rwintev {
 	isc_event_t			common;	   /* Sender is the socket. */
 	isc_task_t		       *task;	   /* task to send these to */
 	isc_socketevent_t	       *done_ev;   /* the done event to post */
-	isc_boolean_t			partial;   /* partial i/o ok */
 	isc_boolean_t			canceled;  /* I/O was canceled */
 	isc_boolean_t			posted;	   /* event posted to task */
 	ISC_LINK(struct rwintev)	link;	   /* next event */
@@ -1066,7 +1065,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 			 * was read with a success result, and continue
 			 * the loop.
 			 */
-			if (iev->partial) {
+			if (dev->partial) {
 				send_recvdone_event(sock, &iev->task,
 						    &iev, &dev,
 						    ISC_R_SUCCESS);
@@ -1710,6 +1709,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	dev->region = *region;
 	dev->n = 0;
 	dev->result = ISC_R_SUCCESS;
+	dev->partial = partial;
 
 	/*
 	 * If the read queue is empty, try to do the I/O right now.
@@ -1820,7 +1820,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 
 	iev->done_ev = dev;
 	iev->task = ntask;
-	iev->partial = partial;
 	iev->canceled = ISC_FALSE;
 
 	/*
@@ -1900,6 +1899,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	dev->region = *region;
 	dev->n = 0;
 	dev->result = ISC_R_SUCCESS;
+	dev->partial = ISC_FALSE; /* doesn't matter */
 
 	/*
 	 * If the write queue is empty, try to do the I/O right now.
@@ -2007,7 +2007,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	iev->done_ev = dev;
 	iev->task = ntask;
-	iev->partial = ISC_FALSE; /* doesn't matter */
 
 	/*
 	 * Enqueue the request.  If the socket was previously not being
@@ -2763,12 +2762,12 @@ isc_socket_recvmark(isc_socket_t *sock,
 	iev->posted = ISC_FALSE;
 
 	dev->result = ISC_R_SUCCESS;
+	dev->partial = ISC_FALSE; /* doesn't matter */
 
 	isc_task_attach(task, &ntask);
 
 	iev->done_ev = dev;
 	iev->task = ntask;
-	iev->partial = ISC_FALSE; /* doesn't matter */
 
 	ISC_LIST_ENQUEUE(sock->send_list, iev, link);
 
@@ -2836,12 +2835,12 @@ isc_socket_sendmark(isc_socket_t *sock,
 	iev->posted = ISC_FALSE;
 
 	dev->result = ISC_R_SUCCESS;
+	dev->partial = ISC_FALSE; /* doesn't matter */
 
 	isc_task_attach(task, &ntask);
 
 	iev->done_ev = dev;
 	iev->task = ntask;
-	iev->partial = ISC_FALSE; /* doesn't matter */
 
 	ISC_LIST_ENQUEUE(sock->send_list, iev, link);
 

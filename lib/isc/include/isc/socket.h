@@ -81,6 +81,7 @@ typedef struct isc_socketmgr isc_socketmgr_t;
 typedef struct isc_socketevent {
 	isc_event_t		common;		/* Sender is the socket. */
 	isc_result_t		result;		/* OK, EOF, whatever else */
+	isc_boolean_t		partial;	/* partial i/o ok */
 	unsigned int		n;		/* bytes read or written */
 	isc_region_t		region;		/* the region info */
 	isc_sockaddr_t		address;	/* source address */
