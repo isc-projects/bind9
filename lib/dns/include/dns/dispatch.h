@@ -61,7 +61,7 @@ ISC_LANG_BEGINDECLS
  * The "free" routine for this event will clean up itself as well as
  * any buffer space allocated from common pools.
  */
-typedef struct dns_dispatchevent dns_dispatchevent_t;
+
 struct dns_dispatchevent {
 	ISC_EVENT_COMMON(dns_dispatchevent_t);	/* standard event common */
 	isc_result_t		result;		/* result code */
@@ -69,8 +69,6 @@ struct dns_dispatchevent {
 	isc_sockaddr_t		addr;		/* address recv'd from */
 	isc_buffer_t	        buffer;		/* data buffer */
 };
-
-typedef struct dns_dispentry dns_dispentry_t;
 
 isc_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
