@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.89 2001/09/01 01:13:39 gson Exp $ */
+/* $Id: zoneconf.c,v 1.90 2001/09/01 01:43:24 gson Exp $ */
 
 #include <config.h>
 
@@ -479,30 +479,26 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 
 		obj = NULL;
 		result =  ns_config_get(maps, "max-journal-size", &obj);
-		if (result == ISC_R_SUCCESS) {
-			dns_zone_setjournalsize(zone, -1);
-			if (cfg_obj_isstring(obj)) {
-				const char *str = cfg_obj_asstring(obj);
-				if (strcasecmp(str, "unlimited") == 0)
-					journal_size = ISC_UINT32_MAX/2;
-				else
-					journal_size = -1;
-			} else {
-				isc_resourcevalue_t value;
-				value = cfg_obj_asuint64(obj);
-				if (value > ISC_UINT32_MAX/2) {
-					cfg_obj_log(obj, ns_g_lctx,
-						    ISC_LOG_ERROR,
-						    "'max-journal-size "
-                                    "%" ISC_PRINT_QUADFORMAT "d' is too large",
-                                    value);
-					RETERR(ISC_R_RANGE);
-				}
-				journal_size = (isc_uint32_t)value;
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setjournalsize(zone, -1);
+		if (cfg_obj_isstring(obj)) {
+			const char *str = cfg_obj_asstring(obj);
+			INSIST(strcasecmp(str, "unlimited") == 0);
+			journal_size = ISC_UINT32_MAX / 2;
+		} else {
+			isc_resourcevalue_t value;
+			value = cfg_obj_asuint64(obj);
+			if (value > ISC_UINT32_MAX / 2) {
+				cfg_obj_log(obj, ns_g_lctx,
+					    ISC_LOG_ERROR,
+					    "'max-journal-size "
+					    "%" ISC_PRINT_QUADFORMAT "d' is too large",
+					    value);
+				RETERR(ISC_R_RANGE);
 			}
-		} else
-			journal_size = -1;
-		dns_zone_setjournalsize(zone,journal_size); 
+			journal_size = (isc_uint32_t)value;
+		}
+		dns_zone_setjournalsize(zone, journal_size);
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.12 2001/08/30 05:52:08 marka Exp $ */
+/* $Id: config.c,v 1.13 2001/09/01 01:43:23 gson Exp $ */
 
 #include <config.h>
 
@@ -143,6 +143,7 @@ options {\n\
 	min-refresh-time 300;\n\
 	sig-validity-interval 30; /* days */\n\
 	zone-statistics false;\n\
+	max-journal-size unlimited;\n\
 };";
 
 isc_result_t
