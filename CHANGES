@@ -1,4 +1,7 @@
 
+ 924.	[port]		Extend support for pre-RFC2133 IPv6 implementation.
+			[RT #987]
+
  919.	[bug]		rndc would segfault when rndc.conf was missing a
  			closing brace. [RT #1461]
 

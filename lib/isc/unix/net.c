@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.16.2.2 2001/01/17 17:30:50 gson Exp $ */
+/* $Id: net.c,v 1.16.2.3 2001/07/09 22:44:09 gson Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
+const struct in6_addr isc_net_in6addrloop = IN6ADDR_LOOPBACK_INIT;
 #endif
 
 static isc_once_t 	once = ISC_ONCE_INIT;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.24.4.5 2001/06/26 21:55:52 tale Exp $ */
+/* $Id: net.h,v 1.24.4.6 2001/07/09 22:44:11 gson Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -95,6 +95,7 @@
 #define in6_addr in_addr6	/* Required for pre RFC2133 implementations. */
 #endif
 
+#ifdef ISC_PLATFORM_HAVEIPV6
 /*
  * Required for some pre RFC2133 implementations.
  * IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT were added in
@@ -118,6 +119,29 @@
 #endif
 #endif
 
+#ifndef IN6_IS_ADDR_V4MAPPED
+#define IN6_IS_ADDR_V4MAPPED(x) \
+	 (memcmp((x)->s6_addr, in6addr_any.s6_addr, 10) == 0 && \
+	  (x)->s6_addr[10] == 0xff && (x)->s6_addr[11] == 0xff)
+#endif
+
+#ifndef IN6_IS_ADDR_V4COMPAT
+#define IN6_IS_ADDR_V4COMPAT(x) \
+	 (memcmp((x)->s6_addr, in6addr_any.s6_addr, 12) == 0 && \
+	 ((x)->s6_addr[12] != 0 || (x)->s6_addr[13] != 0 || \
+	  (x)->s6_addr[14] != 0 || \
+	  ((x)->s6_addr[15] != 0 && (x)->s6_addr[15] != 1)))
+#endif
+
+#ifndef IN6_IS_ADDR_MULTICAST
+#define IN6_IS_ADDR_MULTICAST(a)        ((a)->s6_addr[0] == 0xff)
+#endif
+
+#ifndef IN6_IS_ADDR_LOOPBACK
+#define IN6_IS_ADDR_LOOPBACK(a)	IN6_IS_ADDR_EQUAL(a, &in6addr_loopback)
+#endif
+#endif
+
 #ifndef AF_INET6
 #define AF_INET6 99
 #endif
@@ -138,11 +162,13 @@ struct in6_pktinfo {
 #endif
 
 /*
- * Cope with a missing in6addr_any.
+ * Cope with a missing in6addr_any and in6addr_loopback.
  */
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 extern const struct in6_addr isc_net_in6addrany;
 #define in6addr_any isc_net_in6addrany
+extern const struct in6_addr isc_net_in6addrloop;
+#define in6addr_loopback isc_net_in6addrloop
 #endif
 
 /*
