@@ -20,7 +20,7 @@ my_callback(task_t task, task_event_t event)
 	char *name = event->arg;
 
 	j = 0;
-	for (i = 0; i < 100000000; i++)
+	for (i = 0; i < 1000000; i++)
 		j += 100;
 	printf("task %s: %d\n", name, j);
 	
@@ -75,7 +75,7 @@ main(int argc, char *argv[]) {
 	ti1 = NULL;
 	absolute.seconds = 0;
 	absolute.nanoseconds = 0;
-	interval.seconds = 2;
+	interval.seconds = 1;
 	interval.nanoseconds = 0;
 	INSIST(timer_create(timgr, timer_type_ticker, absolute, interval,
 			    t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
@@ -139,6 +139,7 @@ main(int argc, char *argv[]) {
 	task_detach(&t3);
 	task_detach(&t4);
 
+	sleep(10);
 	printf("destroy\n");
 	timer_detach(&ti1);
 	timer_detach(&ti2);

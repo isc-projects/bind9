@@ -11,16 +11,14 @@
  *
  * Provides timers which are event sources in the task system.
  *
- * Three kinds of timer are supported.
+ * Two kinds of timer are supported.
  *
- *	'ticker' timers generate a tick event at specified regular times.
+ *	'ticker' timers generate a periodic tick event.
  *
  *	'idle' timers generate an idle timeout event if they are idle for too
  *	long, and generate a life timeout event if their lifetime expires.
  *	They are used to implement both expiring idle timers and 'one-shot'
  *	timers.
- *	
- *	'inactive' timers generate no events.
  *
  * Note: unlike in eventlib, a timer's resources are never reclaimed merely
  * because it generated an event.  A timer reference will remain valid until
@@ -92,7 +90,7 @@ typedef struct timer_event {
 isc_result
 timer_create(timer_manager_t manager,
 	     timer_type_t type,
-	     os_time_t absolute,
+	     os_time_t expires,
 	     os_time_t interval,
 	     task_t task,
 	     task_action_t action,
@@ -100,19 +98,17 @@ timer_create(timer_manager_t manager,
 	     timer_t *timerp);
 /*
  * Create a new 'type' timer managed by 'manager'.  The timers parameters
- * are specified by 'absolute' and 'interval'.  Events will be posted to
+ * are specified by 'expires' and 'interval'.  Events will be posted to
  * 'task' and when dispatched 'action' will be called with 'arg' as the
  * arg value.  The new timer is returned in 'timerp'.
  *
  * Notes:
  *
- *	For ticker timers, 'absolute' specifies when the timer should first
- *	generate a tick event.  If 'absolute' is 0, then the timer will first
- *	tick at Now + 'interval'.  The timer will tick every 'interval'
- *	seconds after the first tick.
+ *	For ticker timers, the timer will generate a 'tick' event every
+ *	'interval' seconds.  The value of 'expires' is ignored.
  *
- *	For idle timers, 'absolute' specifies the time when a life timeout
- *	event should be generated.  If 'absolute' is 0, then no life
+ *	For idle timers, 'expires' specifies the time when a life timeout
+ *	event should be generated.  If 'expires' is 0, then no life
  *	timeout will be generated.  'interval' specifies how long the timer
  *	can be idle before it generates an idle timeout.  If 0, then no
  *	idle timeout will be generated.
@@ -125,7 +121,7 @@ timer_create(timer_manager_t manager,
  *
  *	'action' is a valid action
  *
- *	'absolute' and 'idle' may not both be 0
+ *	'expires' and 'interval' may not both be 0
  *
  *	'timerp' is a valid pointer, and *timerp == NULL
  *
@@ -148,10 +144,10 @@ timer_create(timer_manager_t manager,
 isc_result
 timer_reset(timer_t timer,
 	    timer_type_t type,
-	    os_time_t absolute,
+	    os_time_t expires,
 	    os_time_t interval);
 /*
- * Change the timer's type, absolute, and interval values to the given
+ * Change the timer's type, expires, and interval values to the given
  * values.
  *	
  * Requires:
@@ -159,7 +155,7 @@ timer_reset(timer_t timer,
  *	'timer' is a valid timer
  *
  *	The same requirements that timer_create() imposes on 'type',
- *	'absolute' and 'interval' apply.
+ *	'expires' and 'interval' apply.
  *
  * Ensures:
  *
