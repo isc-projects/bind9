@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.18 2003/07/03 00:50:03 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.19 2003/07/08 23:14:51 marka Exp $ */
 
 #include <config.h>
 
@@ -1200,7 +1200,8 @@ create_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	CLEANUP_OBJ(obj);
+	if (obj != NULL)
+		isc_mem_put(pctx->mctx, obj, sizeof(*obj));
 	return (result);
 }
 
@@ -2111,24 +2112,26 @@ parse_list(cfg_parser_t *pctx, const cfg_type_t *listtype, cfg_obj_t **ret)
 	cfg_obj_t *listobj = NULL;
 	const cfg_type_t *listof = listtype->of;
 	isc_result_t result;
+	cfg_listelt_t *elt = NULL;
 
 	CHECK(create_list(pctx, listtype, &listobj));
 
 	for (;;) {
-		cfg_listelt_t *elt = NULL;
-
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_special &&
-		    pctx->token.value.as_char == '}')
+		    pctx->token.value.as_char == /*{*/ '}')
 			break;
 		CHECK(parse_list_elt(pctx, listof, &elt));
 		CHECK(parse_semicolon(pctx));
 		ISC_LIST_APPEND(listobj->value.list, elt, link);
+		elt = NULL;
 	}
 	*ret = listobj;
 	return (ISC_R_SUCCESS);
 
  cleanup:
+	if (elt != NULL)
+		free_list_elt(pctx, elt);
 	CLEANUP_OBJ(listobj);
 	return (result);
 }
@@ -2431,7 +2434,6 @@ parse_symtab_elt(cfg_parser_t *pctx, const char *name,
 	CHECK(isc_symtab_define(symtab, name,
 				1, symval,
 				isc_symexists_reject));
-	obj = NULL;
 	return (ISC_R_SUCCESS);
 
  cleanup:

@@ -1,3 +1,7 @@
+1479.	[bug]		cfg_create_tuple() failed to handle out of
+			memory cleanup.  parse_list() would leak memory
+			on syntax errors.
+
 1478.	[port]		ifconfig.sh didn't account for other virtual
 			interfaces.  It now takes a optional arguement
 			to specify the first interface number. [RT #3907]
