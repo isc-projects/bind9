@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.31 2001/09/20 19:04:59 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.32 2001/09/21 03:04:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -560,8 +560,8 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-void
-ns_controls_shutdown(ns_controls_t *controls) {
+static void
+controls_shutdown(ns_controls_t *controls) {
 	controllistener_t *listener;
 	controllistener_t *next;
 
@@ -577,6 +577,11 @@ ns_controls_shutdown(ns_controls_t *controls) {
 		ISC_LIST_UNLINK(controls->listeners, listener, link);
 		shutdown_listener(listener);
 	}
+}
+
+void
+ns_controls_shutdown(ns_controls_t *controls) {
+	controls_shutdown(controls);
 	controls->shuttingdown = ISC_TRUE;
 }
 
@@ -1207,7 +1212,7 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 	 * were in the previous configuration (if any) that do not
 	 * remain in the current configuration.
 	 */
-	ns_controls_shutdown(cp);
+	controls_shutdown(cp);
 
 	/*
 	 * Put all of the valid listeners on the listeners list.
