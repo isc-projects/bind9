@@ -420,9 +420,9 @@ fctx_cleanupforwaddrs(fetchctx_t *fctx) {
 }
 
 static inline void
-fctx_stopeverything(fetchctx_t *fctx) {
+fctx_stopeverything(fetchctx_t *fctx, isc_boolean_t no_response) {
 	FCTXTRACE("stopeverything");
-	fctx_cancelqueries(fctx, ISC_FALSE);
+	fctx_cancelqueries(fctx, no_response);
 	fctx_cleanupfinds(fctx);
 	fctx_cleanupforwaddrs(fctx);
 	fctx_stoptimer(fctx);
@@ -456,12 +456,17 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 static void
 fctx_done(fetchctx_t *fctx, isc_result_t result) {
 	dns_resolver_t *res;
+	isc_boolean_t no_response;
 
 	FCTXTRACE("done");
 
 	res = fctx->res;
 
-	fctx_stopeverything(fctx);
+	if (result == ISC_R_SUCCESS)
+		no_response = ISC_TRUE;
+	else
+		no_response = ISC_FALSE;
+	fctx_stopeverything(fctx, no_response);
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
@@ -1604,7 +1609,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	INSIST(fctx->want_shutdown);
 
 	if (fctx->state != fetchstate_done) {
-		fctx_stopeverything(fctx);
+		fctx_stopeverything(fctx, ISC_FALSE);
 		fctx->state = fetchstate_done;
 		fctx_sendevents(fctx, ISC_R_CANCELED);
 	}
