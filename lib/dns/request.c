@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.43 2000/12/11 19:24:19 bwelling Exp $ */
+/* $Id: request.c,v 1.44 2000/12/19 03:36:48 marka Exp $ */
 
 #include <config.h>
 
@@ -88,11 +88,15 @@ struct dns_request {
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
 #define DNS_REQUEST_F_CANCELED 0x0002
-#define DNS_REQUEST_F_TCP 0x0008		/* This request used TCP */
+#define DNS_REQUEST_F_DESTROYED 0x0004	/* dns_request_destroy() called */
+#define DNS_REQUEST_F_TCP 0x0008	/* This request used TCP */
 #define DNS_REQUEST_CANCELED(r) \
 	(((r)->flags & DNS_REQUEST_F_CANCELED) != 0)
 #define DNS_REQUEST_CONNECTING(r) \
 	(((r)->flags & DNS_REQUEST_F_CONNECTING) != 0)
+#define DNS_REQUEST_DESTROYED(r) \
+	(((r)->flags & DNS_REQUEST_F_DESTROYED) != 0)
+
 
 /***
  *** Forward
@@ -283,7 +287,7 @@ requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp) {
 static void
 requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 	dns_requestmgr_t *requestmgr;
-	isc_boolean_t need_destroy  =ISC_FALSE;
+	isc_boolean_t need_destroy = ISC_FALSE;
 
 	REQUIRE(requestmgrp != NULL);
 	requestmgr = *requestmgrp;
@@ -1155,6 +1159,7 @@ dns_request_destroy(dns_request_t **requestp) {
 	UNLOCK(&request->requestmgr->lock);
 	if (!DNS_REQUEST_CONNECTING(request))
 		need_destroy = ISC_TRUE;
+	request->flags |= DNS_REQUEST_F_DESTROYED;
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
 	if (need_destroy)
@@ -1172,6 +1177,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	isc_result_t result;
 	dns_request_t *request = event->ev_arg;
+	isc_boolean_t need_destroy = ISC_FALSE;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
 	REQUIRE(VALID_REQUEST(request));
@@ -1179,19 +1185,26 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 
 	req_log(ISC_LOG_DEBUG(3), "req_connected: request %p", request);
 
+	LOCK(&request->requestmgr->locks[request->hash]);
 	request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
 	if (DNS_REQUEST_CANCELED(request)) {
-		req_destroy(request);
+		if (DNS_REQUEST_DESTROYED(request))
+			need_destroy = ISC_TRUE;
 	} else {
 		dns_dispatch_starttcp(request->dispatch);
 		result = sevent->result;
 		if (result == ISC_R_SUCCESS)
 			result = req_send(request, task, NULL);
 
-		if (sevent->result != ISC_R_SUCCESS)
-			dns_request_cancel(request);
+		if (sevent->result != ISC_R_SUCCESS) {
+			req_cancel(request);
+			req_sendevent(request, ISC_R_CANCELED);
+		}
 	}
+	UNLOCK(&request->requestmgr->locks[request->hash]);
+	if (need_destroy)
+		req_destroy(request);
 	isc_event_free(&event);
 }
 
