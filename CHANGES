@@ -26,6 +26,9 @@
 1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
 			<sys/param.h> is included or not.  Be consistant.
 
+1285.	[bug]		libbind: LINK_INIT and UNLINK were not compatible with
+			C++, use LINK_INIT_TYPE and UNLINK_TYPE instead.
+
 1283.	[bug]		Reference after free error if dns_dispatchmgr_create()
 			failed.
 
