@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.248 2004/06/11 00:13:41 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.249 2004/07/29 21:40:01 jinmei Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3495,11 +3495,16 @@ listen-on port 1234 { !1.2.3.4; 1.2/16; };
 <para>If no <command>listen-on</command> is specified, the
 server will listen on port 53 on all interfaces.</para>
 
-<para>By default, the server does not bind a separate socket to each
-IPv6 interface address as it does for IPv4. Instead, it listens on the 
-IPv6 wildcard address.
-Alternatively, a list of IPv6 addresses can be specified, in which case
-the server listens on a separate socket for each specified address.</para>
+<para>If the operating system has enough API support for IPv6
+(specifically if it conforms to RFC 3493), the server does not bind a
+separate socket to each IPv6 interface address as it does for IPv4.
+Instead, it listens on the IPv6 wildcard address.
+A list of particular IPv6 addresses can also be specified, in which case
+the server listens on a separate socket for each specified address,
+regardless of whether the desired API is supported by the system.</para>
+
+<para>If the system only has incomplete API support for IPv6,
+the behavior is the same as that for IPv4.</para>
 
 <para>Multiple <command>listen-on-v6</command> options can be used.
 For example,</para>
