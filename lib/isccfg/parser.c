@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.14.4.1 2003/02/17 01:15:44 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.14.4.2 2003/02/17 07:05:10 marka Exp $ */
 
 #include <config.h>
 

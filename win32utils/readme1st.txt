@@ -1,7 +1,7 @@
-Copyright (C) 2001  Internet Software Consortium.
+Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.7.2.1.6.2 2003/02/17 06:24:11 marka Exp $
+$Id: readme1st.txt,v 1.7.2.1.6.3 2003/02/17 07:05:12 marka Exp $
 
 	   Release of BIND 9.2.2 for Window NT/2000
 

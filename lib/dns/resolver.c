@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.12.4.1 2003/02/17 01:15:43 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.12.4.2 2003/02/17 07:05:08 marka Exp $ */
 
 #include <config.h>
 

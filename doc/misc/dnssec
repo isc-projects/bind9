@@ -1,4 +1,4 @@
-Copyright (C) 2000-2002  Internet Software Consortium.
+Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 DNSSEC Release Notes
@@ -89,4 +89,4 @@ future as we consider them inferior to the use of TSIG or SIG(0) to
 ensure the integrity of zone transfers.
 
 
-$Id: dnssec,v 1.14.2.3.4.1 2003/02/17 01:29:31 marka Exp $
+$Id: dnssec,v 1.14.2.3.4.2 2003/02/17 07:05:07 marka Exp $
