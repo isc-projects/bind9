@@ -18,26 +18,43 @@
 #ifndef LWD_CLIENT_H
 #define LWD_CLIENT_H 1
 
+#include <isc/event.h>
+#include <isc/eventclass.h>
 #include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/task.h>
 
+#define LWRD_EVENTCLASS		ISC_EVENTCLASS(4242)
+
+#define LWRD_SHUTDOWN		(LWRD_EVENTCLASS + 0x0001)
+
 typedef struct client_s client_t;
+typedef struct clientmgr_s clientmgr_t;
+
 struct client_s {
-	isc_socket_t	       *socket;			/* socket to reply */
 	isc_sockaddr_t		sockaddr;		/* where to reply */
+	clientmgr_t	       *clientmgr;		/* our parent */
 	unsigned char		buffer[LWRES_RECVLENGTH]; /* receive buffer */
 
 	ISC_LINK(client_t)	link;
 };
 
-typedef struct clientmgr_s clientmgr_t;
 struct clientmgr_s {
 	isc_task_t	       *task;		/* owning task */
+	isc_socket_t	       *sock;		/* socket to use */
+	unsigned int		flags;
+	isc_event_t		sdev;		/* shutdown event */
 	ISC_LIST(client_t)	idle;		/* idle client slots */
 	ISC_LIST(client_t)	running;	/* running clients */
 };
+
+#define CLIENTMGR_FLAG_RECVPENDING		0x00000001
+#define CLIENTMGR_FLAG_SHUTTINGDOWN		0x00000002
+
+void client_recv(isc_task_t *, isc_event_t *);
+void client_shutdown(isc_task_t *, isc_event_t *);
+isc_result_t client_start_recv(clientmgr_t *);
 
 #endif /* LWD_CLIENT_H */
