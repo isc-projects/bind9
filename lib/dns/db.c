@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.68 2001/04/10 03:05:55 marka Exp $ */
+/* $Id: db.c,v 1.69 2001/07/24 05:23:38 mayer Exp $ */
 
 /***
  *** Imports
@@ -69,7 +69,7 @@ static dns_dbimplementation_t rbtimp;
 static dns_dbimplementation_t rbt64imp;
 
 static void
-initialize() {
+initialize(void) {
 	RUNTIME_CHECK(isc_rwlock_init(&implock, 0, 0) == ISC_R_SUCCESS);
 
 	rbtimp.name = "rbt";
