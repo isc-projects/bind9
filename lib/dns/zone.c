@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.33 1999/10/29 23:46:27 gson Exp $ */
+ /* $Id: zone.c,v 1.34 1999/10/30 00:14:08 gson Exp $ */
 
 #include <config.h>
 
@@ -1947,7 +1947,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	result = isc_sockaddr_totext(&zone->masters[zone->curmaster],
 				     &masterbuf);
 	if (result == ISC_R_SUCCESS)
-		master = (char *) buf->base;
+		master = (char *) masterbuf.base;
 	else
 		master = "<UNKNOWN>";
 	
@@ -2064,8 +2064,6 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
  next_master:
 	LOCK(&zone->lock);
-	if (master != unknown)
-		isc_mem_put(zone->mctx, master, strlen(master) + 1);
 	isc_event_free(&event);
 	dns_resolver_destroyfetch(zone->res, &zone->fetch);
 	zone->curmaster++;
