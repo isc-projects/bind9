@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.1 2004/04/29 01:45:52 marka Exp $ */
+/* $Id: client.c,v 1.219.18.2 2004/07/23 02:57:23 marka Exp $ */
 
 #include <config.h>
 
@@ -242,12 +242,19 @@ exit_check(ns_client_t *client) {
 	 *  - The client does not detach from the view until references is zero
 	 *  - references does not go to zero until the resolver has shut down
 	 *
+	 * Keep the view attached until any outstanding updates complete.
 	 */
-	if (client->newstate == NS_CLIENTSTATE_FREED && client->view != NULL)
+	if (client->nupdates == 0 && 
+	    client->newstate == NS_CLIENTSTATE_FREED && client->view != NULL)
 		dns_view_detach(&client->view);
 
 	if (client->state == NS_CLIENTSTATE_WORKING) {
 		INSIST(client->newstate <= NS_CLIENTSTATE_READING);
+		/*
+		 * Let the update processing complete.
+		 */
+		if (client->nupdates > 0)
+			return (ISC_TRUE);
 		/*
 		 * We are trying to abort request processing.
 		 */
@@ -543,6 +550,7 @@ ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->nreads == 0);
 	INSIST(client->nsends == 0);
 	INSIST(client->nrecvs == 0);
+	INSIST(client->nupdates == 0);
 	INSIST(client->state == NS_CLIENTSTATE_WORKING);
 
 	CTRACE("endrequest");
@@ -1671,6 +1679,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->nreads = 0;
 	client->nsends = 0;
 	client->nrecvs = 0;
+	client->nupdates = 0;
 	client->nctls = 0;
 	client->references = 0;
 	client->attributes = 0;
