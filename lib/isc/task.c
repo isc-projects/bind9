@@ -108,6 +108,8 @@ event_allocate(isc_memctx_t *mctx, void *sender, isc_eventtype_t type,
 	event->type = type;
 	event->action = action;
 	event->arg = arg;
+	event->destroy = NULL;
+	INIT_LINK(event, link);
 
 	return (event);
 }
