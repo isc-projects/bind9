@@ -1,7 +1,0 @@
-Makefile
-timestamp
-code.h
-gen
-.libs
-*.la
-*.lo
