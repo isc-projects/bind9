@@ -31,7 +31,11 @@ isc_mem_t *mctx;
 isc_symtab_t *st;
 
 static void
-undefine_action(char *key, unsigned int type, isc_symvalue_t value) {
+undefine_action(char *key, unsigned int type, isc_symvalue_t value, 
+		void *arg) 
+{
+	(void) arg;
+
 	INSIST(type == 1);
 	isc_mem_free(mctx, key);
 	isc_mem_free(mctx, value.as_pointer);
@@ -66,7 +70,7 @@ main(int argc, char *argv[]) {
 	}
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_symtab_create(mctx, 691, undefine_action,
+	RUNTIME_CHECK(isc_symtab_create(mctx, 691, undefine_action, NULL,
 					case_sensitive, &st) == ISC_R_SUCCESS);
 
 	while (fgets(s, sizeof s, stdin) != NULL) {
@@ -110,7 +114,8 @@ main(int argc, char *argv[]) {
 					       key, cp,
 					       isc_result_totext(result));
 					if (result != ISC_R_SUCCESS)
-						undefine_action(key, 1, value);
+						undefine_action(key, 1, 
+							value, NULL);
 				}
 			}
 		}
