@@ -39,16 +39,17 @@ ALL : "..\..\..\Build\Release\named.exe"
 
 !ELSE 
 
-ALL : "libbind9 - Win32 Release" "liblwres - Win32 Release" "libisccfg - Win32 Release" "libisccc - Win32 Release" "libisc - Win32 Release" "libdns - Win32 Release" "..\..\..\Build\Release\named.exe"
+ALL : "libisccfg - Win32 Release" "libisccc - Win32 Release" "liblwres - Win32 Release" "libbind9 - Win32 Release" "libisc - Win32 Release" "libdns - Win32 Release" "..\..\..\Build\Release\named.exe"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libdns - Win32 ReleaseCLEAN" "libisc - Win32 ReleaseCLEAN" "libisccc - Win32 ReleaseCLEAN" "libisccfg - Win32 ReleaseCLEAN" "liblwres - Win32 ReleaseCLEAN" "libbind9 - Win32 ReleaseCLEAN" 
+CLEAN :"libdns - Win32 ReleaseCLEAN" "libisc - Win32 ReleaseCLEAN" "libbind9 - Win32 ReleaseCLEAN" "liblwres - Win32 ReleaseCLEAN" "libisccc - Win32 ReleaseCLEAN" "libisccfg - Win32 ReleaseCLEAN" 
 !ELSE 
 CLEAN :
 !ENDIF 
 	-@erase "$(INTDIR)\aclconf.obj"
+	-@erase "$(INTDIR)\builtin.obj"
 	-@erase "$(INTDIR)\client.obj"
 	-@erase "$(INTDIR)\config.obj"
 	-@erase "$(INTDIR)\control.obj"
@@ -122,12 +123,13 @@ LINK32_OBJS= \
 	"$(INTDIR)\update.obj" \
 	"$(INTDIR)\xfrout.obj" \
 	"$(INTDIR)\zoneconf.obj" \
+	"$(INTDIR)\builtin.obj" \
 	"..\..\..\lib\dns\win32\Release\libdns.lib" \
 	"..\..\..\lib\isc\win32\Release\libisc.lib" \
-	"..\..\..\lib\isccc\win32\Release\libisccc.lib" \
-	"..\..\..\lib\isccfg\win32\Release\libisccfg.lib" \
+	"..\..\..\lib\bind9\win32\Release\libbind9.lib" \
 	"..\..\..\lib\lwres\win32\Release\liblwres.lib" \
-	"..\..\..\lib\bind9\win32\Release\libbind9.lib"
+	"..\..\..\lib\isccc\win32\Release\libisccc.lib" \
+	"..\..\..\lib\isccfg\win32\Release\libisccfg.lib"
 
 "..\..\..\Build\Release\named.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -148,17 +150,19 @@ ALL : "..\..\..\Build\Debug\named.exe" "$(OUTDIR)\named.bsc"
 
 !ELSE 
 
-ALL : "libbind9 - Win32 Debug" "liblwres - Win32 Debug" "libisccfg - Win32 Debug" "libisccc - Win32 Debug" "libisc - Win32 Debug" "libdns - Win32 Debug" "..\..\..\Build\Debug\named.exe" "$(OUTDIR)\named.bsc"
+ALL : "libisccfg - Win32 Debug" "libisccc - Win32 Debug" "liblwres - Win32 Debug" "libbind9 - Win32 Debug" "libisc - Win32 Debug" "libdns - Win32 Debug" "..\..\..\Build\Debug\named.exe" "$(OUTDIR)\named.bsc"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libdns - Win32 DebugCLEAN" "libisc - Win32 DebugCLEAN" "libisccc - Win32 DebugCLEAN" "libisccfg - Win32 DebugCLEAN" "liblwres - Win32 DebugCLEAN" "libbind9 - Win32 DebugCLEAN" 
+CLEAN :"libdns - Win32 DebugCLEAN" "libisc - Win32 DebugCLEAN" "libbind9 - Win32 DebugCLEAN" "liblwres - Win32 DebugCLEAN" "libisccc - Win32 DebugCLEAN" "libisccfg - Win32 DebugCLEAN" 
 !ELSE 
 CLEAN :
 !ENDIF 
 	-@erase "$(INTDIR)\aclconf.obj"
 	-@erase "$(INTDIR)\aclconf.sbr"
+	-@erase "$(INTDIR)\builtin.obj"
+	-@erase "$(INTDIR)\builtin.sbr"
 	-@erase "$(INTDIR)\client.obj"
 	-@erase "$(INTDIR)\client.sbr"
 	-@erase "$(INTDIR)\config.obj"
@@ -261,7 +265,8 @@ BSC32_SBRS= \
 	"$(INTDIR)\tsigconf.sbr" \
 	"$(INTDIR)\update.sbr" \
 	"$(INTDIR)\xfrout.sbr" \
-	"$(INTDIR)\zoneconf.sbr"
+	"$(INTDIR)\zoneconf.sbr" \
+	"$(INTDIR)\builtin.sbr"
 
 "$(OUTDIR)\named.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -301,12 +306,13 @@ LINK32_OBJS= \
 	"$(INTDIR)\update.obj" \
 	"$(INTDIR)\xfrout.obj" \
 	"$(INTDIR)\zoneconf.obj" \
+	"$(INTDIR)\builtin.obj" \
 	"..\..\..\lib\dns\win32\Debug\libdns.lib" \
 	"..\..\..\lib\isc\win32\Debug\libisc.lib" \
-	"..\..\..\lib\isccc\win32\Debug\libisccc.lib" \
-	"..\..\..\lib\isccfg\win32\Debug\libisccfg.lib" \
+	"..\..\..\lib\bind9\win32\Debug\libbind9.lib" \
 	"..\..\..\lib\lwres\win32\Debug\liblwres.lib" \
-	"..\..\..\lib\bind9\win32\Debug\libbind9.lib"
+	"..\..\..\lib\isccc\win32\Debug\libisccc.lib" \
+	"..\..\..\lib\isccfg\win32\Debug\libisccfg.lib"
 
 "..\..\..\Build\Debug\named.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -369,6 +375,24 @@ SOURCE=..\aclconf.c
 
 
 "$(INTDIR)\aclconf.obj"	"$(INTDIR)\aclconf.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\builtin.c
+
+!IF  "$(CFG)" == "named - Win32 Release"
+
+
+"$(INTDIR)\builtin.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "named - Win32 Debug"
+
+
+"$(INTDIR)\builtin.obj"	"$(INTDIR)\builtin.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -946,6 +970,58 @@ SOURCE=..\zoneconf.c
 
 !IF  "$(CFG)" == "named - Win32 Release"
 
+"libbind9 - Win32 Release" : 
+   cd "\bind-9.3.0a03\lib\bind9\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" 
+   cd "..\..\..\bin\named\win32"
+
+"libbind9 - Win32 ReleaseCLEAN" : 
+   cd "\bind-9.3.0a03\lib\bind9\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" RECURSE=1 CLEAN 
+   cd "..\..\..\bin\named\win32"
+
+!ELSEIF  "$(CFG)" == "named - Win32 Debug"
+
+"libbind9 - Win32 Debug" : 
+   cd "\bind-9.3.0a03\lib\bind9\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" 
+   cd "..\..\..\bin\named\win32"
+
+"libbind9 - Win32 DebugCLEAN" : 
+   cd "\bind-9.3.0a03\lib\bind9\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" RECURSE=1 CLEAN 
+   cd "..\..\..\bin\named\win32"
+
+!ENDIF 
+
+!IF  "$(CFG)" == "named - Win32 Release"
+
+"liblwres - Win32 Release" : 
+   cd "\bind-9.3.0a03\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Release" 
+   cd "..\..\..\bin\named\win32"
+
+"liblwres - Win32 ReleaseCLEAN" : 
+   cd "\bind-9.3.0a03\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Release" RECURSE=1 CLEAN 
+   cd "..\..\..\bin\named\win32"
+
+!ELSEIF  "$(CFG)" == "named - Win32 Debug"
+
+"liblwres - Win32 Debug" : 
+   cd "\bind-9.3.0a03\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Debug" 
+   cd "..\..\..\bin\named\win32"
+
+"liblwres - Win32 DebugCLEAN" : 
+   cd "\bind-9.3.0a03\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Debug" RECURSE=1 CLEAN 
+   cd "..\..\..\bin\named\win32"
+
+!ENDIF 
+
+!IF  "$(CFG)" == "named - Win32 Release"
+
 "libisccc - Win32 Release" : 
    cd "\bind-9.3.0a03\lib\isccc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisccc.mak" CFG="libisccc - Win32 Release" 
@@ -992,58 +1068,6 @@ SOURCE=..\zoneconf.c
 "libisccfg - Win32 DebugCLEAN" : 
    cd "\bind-9.3.0a03\lib\isccfg\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisccfg.mak" CFG="libisccfg - Win32 Debug" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\named\win32"
-
-!ENDIF 
-
-!IF  "$(CFG)" == "named - Win32 Release"
-
-"liblwres - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\lwres\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Release" 
-   cd "..\..\..\bin\named\win32"
-
-"liblwres - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\lwres\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Release" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\named\win32"
-
-!ELSEIF  "$(CFG)" == "named - Win32 Debug"
-
-"liblwres - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\lwres\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Debug" 
-   cd "..\..\..\bin\named\win32"
-
-"liblwres - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\lwres\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Debug" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\named\win32"
-
-!ENDIF 
-
-!IF  "$(CFG)" == "named - Win32 Release"
-
-"libbind9 - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" 
-   cd "..\..\..\bin\named\win32"
-
-"libbind9 - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\named\win32"
-
-!ELSEIF  "$(CFG)" == "named - Win32 Debug"
-
-"libbind9 - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" 
-   cd "..\..\..\bin\named\win32"
-
-"libbind9 - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\named\win32"
 
 !ENDIF 
