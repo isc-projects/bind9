@@ -1,6 +1,8 @@
 
 			Name Compression
 
+	$Id: compression,v 1.4 1999/02/24 00:59:44 marka Exp $
+
 Overview.
 
 	BIND 4.x and BIND 8.x only had one methods of compression to deal
