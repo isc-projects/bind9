@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.1 2001/03/29 06:31:59 marka Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.2 2001/04/02 07:52:33 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -47,6 +47,7 @@ static const char rcsid[] = "$Id: res_update.c,v 1.1 2001/03/29 06:31:59 marka E
 #include <isc/list.h>
 
 #include "port_after.h"
+#include "res_private.h"
 
 /*
  * Separate a linked list of records into groups so that all records

@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.1 2001/03/29 06:31:59 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.2 2001/04/02 07:52:30 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -93,6 +93,7 @@ static const char rcsid[] = "$Id: res_init.c,v 1.1 2001/03/29 06:31:59 marka Exp
 #include <netdb.h>
 
 #include "port_after.h"
+#include "res_private.h"
 
 /* Options.  Should all be left alone. */
 #define RESOLVSORT
