@@ -1,3 +1,6 @@
+1546.	[bug]		We were rejecting valid secure CNAME to negative
+			answers.
+
 1545.	[bug]		It was possible to leak memory if named was unable to
 			bind to the specified transfer source and TSIG was
 			being used. [RT #10120]
