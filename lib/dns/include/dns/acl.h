@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.16.4.1 2001/01/09 22:45:01 bwelling Exp $ */
+/* $Id: acl.h,v 1.16.4.2 2001/02/09 01:01:55 bwelling Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -35,6 +35,7 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
+#include <isc/refcount.h>
 
 #include <dns/name.h>
 #include <dns/types.h>
@@ -72,7 +73,7 @@ struct dns_aclelement {
 struct dns_acl {
 	isc_uint32_t		magic;
 	isc_mem_t		*mctx;
-	unsigned int		refcount;
+	isc_refcount_t		refcount;
 	dns_aclelement_t	*elements;
 	unsigned int 		alloc;		/* Elements allocated */
 	unsigned int 		length;		/* Elements initialized */

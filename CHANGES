@@ -1,4 +1,7 @@
 
+ 733.	[bug]		Reference counts of dns_acl_t objects need to be
+			locked but were not. [RT #801]
+
  708.	[bug]		When building with --with-openssl, the openssl headers
 			included should not be used. [RT #702]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.17.4.1 2001/01/09 22:43:21 bwelling Exp $ */
+/* $Id: acl.c,v 1.17.4.2 2001/02/09 01:01:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 		return (ISC_R_NOMEMORY);
 	acl->mctx = mctx;
 	acl->name = NULL;
-	acl->refcount = 1;
+	isc_refcount_init(&acl->refcount, 1);
 	acl->elements = NULL;
 	acl->alloc = 0;
 	acl->length = 0;
@@ -235,8 +235,7 @@ dns_aclelement_match(isc_netaddr_t *reqaddr,
 void
 dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {
 	REQUIRE(DNS_ACL_VALID(source));
-	INSIST(source->refcount > 0);
-	source->refcount++;
+	isc_refcount_increment(&source->refcount, NULL);
 	*target = source;
 }
 
@@ -261,6 +260,7 @@ destroy(dns_acl_t *dacl) {
 			    dacl->alloc * sizeof(dns_aclelement_t));
 	if (dacl->name != NULL)
 		isc_mem_free(dacl->mctx, dacl->name);
+	isc_refcount_destroy(&dacl->refcount);
 	dacl->magic = 0;
 	isc_mem_put(dacl->mctx, dacl, sizeof(*dacl));
 }
@@ -268,10 +268,10 @@ destroy(dns_acl_t *dacl) {
 void
 dns_acl_detach(dns_acl_t **aclp) {
 	dns_acl_t *acl = *aclp;
+	unsigned int refs;
 	REQUIRE(DNS_ACL_VALID(acl));
-	INSIST(acl->refcount > 0);
-	acl->refcount--;
-	if (acl->refcount == 0)
+	isc_refcount_decrement(&acl->refcount, &refs);
+	if (refs == 0)
 		destroy(acl);
 	*aclp = NULL;
 }
