@@ -1,6 +1,8 @@
 1229.	[bug]		named would crash if it received a TSIG signed
 			query as part of an AXFR response. [RT #2570]
 
+1228.	[bug]		'make install' did not depend on 'make all'. [RT #2559]
+
 1227.	[bug]		dns_lex_getmastertoken() now returns ISC_R_BADNUMBER
 			if a number was expected and some other token was
 			found. [RT#2532]

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.40 2001/08/29 04:15:03 marka Exp $
+# $Id: rules.in,v 1.40.2.1 2002/03/20 20:48:16 marka Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -69,6 +69,8 @@ subdirs:
 			(cd $$i; ${MAKE} ${MAKEDEFS} all) || exit 1; \
 		fi; \
 	done
+
+install:: all
 
 install clean distclean maintainer-clean doc docclean man manclean::
 	@for i in ${ALL_SUBDIRS}; do \
