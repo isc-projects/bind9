@@ -117,12 +117,12 @@ typedef dns_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 
 /*
  * The number of level blocks to allocate at a time.  Currently the maximum
- * number of levels is allocated directly in the structure, but future revisions
- * of this code might treat levels like ancestors -- that is, have a static
- * initial block with dynamic growth.  Allocating space for 256 levels when
- * the tree is almost never that deep is wasteful, but it's not clear that
- * it matters, since the waste is only 2MB for 1000 concurrently active
- * chains on a system with 64-bit pointers.
+ * number of levels is allocated directly in the structure, but future
+ * revisions of this code might treat levels like ancestors -- that is, have
+ * a static initial block with dynamic growth.  Allocating space for 256
+ * levels when the tree is almost never that deep is wasteful, but it's not
+ * clear that it matters, since the waste is only 2MB for 1000 concurrently
+ * active chains on a system with 64-bit pointers.
  */
 #define DNS_RBT_LEVELBLOCK 254
 
@@ -147,8 +147,26 @@ typedef struct dns_rbtnodechain {
 	 * in the worst case.
 	 */
 	dns_rbtnode_t *		levels[DNS_RBT_LEVELBLOCK];
+	/*
+	 * level_count is how deep the node returned by dns_rbt_findnode()
+	 * is within the tree.  In a typical Internet DNS cache, the root
+	 * name has a level_count of 0, com, net and org have a level_count
+	 * of 1, and so on.  level_count can exceed the number of labels
+	 * in the found name when a partial match is returned, because
+	 * the search might have gone down to a lower level to determine that
+	 * no complete match could be made.
+	 */
 	unsigned int		level_count;
-	unsigned int		level_matches; /* XXX comment */
+	/*
+	 * level_matches indicates the number of levels above the node
+	 * found by dns_rbt_findnode(), both when it was a complete match
+	 * and when it was a partial match.  This is used by the rbtdb to
+	 * set the start point for a recursive search of superdomains until
+	 * the RR it is looking for is found.  Its value represents depth
+	 * the same way as level_count, but it is guaranteed to be <=
+	 * level_count, and to count fewer labels than the searched name.
+	 */
+	unsigned int		level_matches;
 } dns_rbtnodechain_t;
 
 /*****
@@ -309,12 +327,21 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	XXXRTH Changes I have made have made some of these notes inaccurate.
  *	They need to be fixed.
  *
- *	It is _not_ required that the node associated with 'name'
- *	has a non-NULL data pointer for an exact match.  A partial
- *	match must have associated data, unless the empty_data_ok flag is true.
+ *	It is _not_ required that the node associated with 'name' has a
+ *	non-NULL data pointer for an exact match.  A partial match must
+ *	have associated data, unless the empty_data_ok flag is true.
  *
  *	If the chain parameter is non-NULL, then the path to the found
- *	node is maintained.  Within the structure, 'ancestors' will point
+ *	node is maintained.  More accurately, if the name is found then
+ *	the chain will store the path to it, but if only a partial match
+ *	is found then name points to the predecessor name in the tree,
+ *	or to nothing if there is no predecessor.  Note that in a normal
+ *	Internet DNS RBT there will always be a predecessor, because '.'
+ *	will exist and '.' is the predecessor of everything.  But you can
+ *	certainly construct a trivial tree and a search for it that has
+ *	no predecessor.
+ *
+ *	Within the chain structure, 'ancestors' will point
  *	to each successive node encountered in the search, with the root
  *	of each level searched indicated by a NULL.  ancestor_count
  *	indicates how many node pointers are in the ancestor list.  The
@@ -326,7 +353,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	at all in the 'ancestors' list.
  *
  *	If any space was allocated to hold 'ancestors' in the chain,
- *	the 'ancestor_maxitems' member will indicate how many ancestors
+ *	the 'ancestor_maxitems' member will be greater than
+ *	DNS_RBT_ANCESTORBLOCK and will indicate how many ancestors
  *	could have been stored; the amount to be freed from the rbt->mctx
  *	is ancestor_maxitems * sizeof(dns_rbtnode_t *).
  *
@@ -341,26 +369,40 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	If result is DNS_R_SUCCESS:
  *		*node is the terminal node for 'name'.
  *
+ *		chain's level_matches points to the level above the found
+ *		node, and its level_count points to the level of the found
+ *		node.
+ *
  * 	If result is DNS_R_PARTIALMATCH:
  *		*node is the data associated with the deepest superdomain
  * 		of 'name' which has data.
  *
- *		chain does not necessarily terminate at *node; it continues
- *		as deep as the search went.  levels[level_count - 1] is the
- *		deepest superdomain, with or without data.
+ *		foundname is the name of deepest superdomain.
+ *		
+ *		chain points to the DNSSEC predecessor of the searched name,
+ *		or nothing if there is no predecessor.  Its level_count is the
+ *		depth of the predecessor, or -1 if there is no predecessor.
+ *		level_matches points to the level above the found node,
+ *		not the one above the predecessor.
  *
  *	If result is DNS_R_NOTFOUND:
- *		Neither the name nor a superdomain was found.
+ *		Neither the name nor a superdomain was found.  *node
+ *		is NULL.
  *
- *		If the chain's level_count > 0, levels[level_count - 1]
- *		is the deepest partial match, regardless of whether that
- *		node had data and regardless of empty_data_ok.
+ *		chain points to the DNSSEC predecessor of the searched name,
+ *		or to nothing if there is no precedessor.  chain->level_matches
+ *		is -2 because no node was found, since level_matches is -1
+ *		when the node is found on the top tree level (eg, the root
+ *		name) and it is 0 when a node is found in the first subtree.
+ *		chain's level_count is the depth of the predecessor, or -1
+ *		if no predecessor was found.
  *
  *	If result is DNS_R_NOMEMORY:
  *		The function could not complete because memory could not
  *		be allocated to maintain the chain.  However, it
  *		is possible that some memory was allocated;
- *		the chain's ancestor_maxitems will be non-zero if so.
+ *		the chain's ancestor_maxitems will be greater than
+ *		DNS_RBT_ANCESTORBLOCK if so.
  *
  * Returns:
  *	DNS_R_SUCCESS		Success
