@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DLLMain.c,v 1.1 2001/11/17 03:57:12 mayer Exp $ */
+/* $Id: DLLMain.c,v 1.1.222.1 2003/10/10 06:24:33 marka Exp $ */
 
 #include <windows.h>
 #include <signal.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2003  Internet Software Consortium.
+ * Copyright (C) 2001, 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.18 2003/09/24 03:47:12 marka Exp $ */
+/* $Id: check.c,v 1.37.6.19 2003/10/10 06:24:32 marka Exp $ */
 
 #include <config.h>
 
@@ -229,7 +229,7 @@ static isc_result_t
 check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
-	cfg_obj_t *obj;
+	cfg_obj_t *obj = NULL;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -249,7 +249,7 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	 */
 	for (i = 0; i < sizeof(intervals) / sizeof(intervals[0]); i++) {
 		isc_uint32_t val;
-		cfg_obj_t *obj = NULL;
+		obj = NULL;
 		(void)cfg_map_get(options, intervals[i].name, &obj);
 		if (obj == NULL)
 			continue;
@@ -364,7 +364,7 @@ validate_masters(cfg_obj_t *obj, cfg_obj_t *config, isc_uint32_t *countp,
 	list = cfg_tuple_get(obj, "addresses");
 	element = cfg_list_first(list);
  resume:	
-	for (;
+	for ( ;
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
@@ -461,8 +461,8 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	isc_result_t tresult;
 	unsigned int i;
 	dns_rdataclass_t zclass;
- 	dns_fixedname_t fixedname;
- 	isc_buffer_t b;
+	dns_fixedname_t fixedname;
+	isc_buffer_t b;
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE },
@@ -736,7 +736,7 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 	cfg_obj_t *algobj = NULL;
 	cfg_obj_t *secretobj = NULL;
 	const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
-
+	
 	(void)cfg_map_get(key, "algorithm", &algobj);
 	(void)cfg_map_get(key, "secret", &secretobj);
 	if (secretobj == NULL || algobj == NULL) {
@@ -744,9 +744,9 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 			    "key '%s' must have both 'secret' and "
 			    "'algorithm' defined",
 			    keyname);
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -815,8 +815,13 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 			v2 = cfg_listelt_value(e2);
 			s2 = cfg_obj_assockaddr(cfg_map_getname(v2));
 			if (isc_sockaddr_eqaddr(s1, s2)) {
+				const char *file = cfg_obj_file(v1);
+				unsigned int line = cfg_obj_line(v1);
 				isc_buffer_t target;
 				char buf[128];
+
+				if (file == NULL)
+					file = "<unknown file>";
 
 				isc_netaddr_fromsockaddr(&na, s2);
 				isc_buffer_init(&target, buf, sizeof(buf) - 1);
@@ -825,18 +830,19 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 				buf[isc_buffer_usedlength(&target)] = '\0';
 
 				cfg_obj_log(v2, logctx, ISC_LOG_ERROR,
-					    "server '%s': already exists",
-					    buf);
+					    "server '%s': already exists "
+					    "previous definition: %s:%u",
+					    buf, file, line);
 				result = ISC_R_FAILURE;
 			}
 		}
 	}
 	return (result);
 }
-
+		
 static isc_result_t
-check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
-	       dns_rdataclass_t vclass, isc_log_t *logctx, isc_mem_t *mctx)
+check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
+	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	cfg_obj_t *servers = NULL;
 	cfg_obj_t *zones = NULL;
@@ -864,6 +870,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
+		isc_result_t tresult;
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
 		tresult = check_zoneconf(zone, config, symtab, vclass,
@@ -890,7 +897,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 		isc_symtab_destroy(&symtab);
 		return (tresult);
 	}
-
+	
 	if (vconfig != NULL) {
 		keys = NULL;
 		(void)cfg_map_get(vconfig, "key", &keys);
@@ -971,7 +978,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t tresult;
 
 	static const char *builtin[] = { "localhost", "localnets",
-					 "any", "none" };
+					 "any", "none"};
 
 	(void)cfg_map_get(config, "options", &options);
 
@@ -1028,7 +1035,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 			r.length = strlen(r.base);
 			tresult = dns_rdataclass_fromtext(&vclass, &r);
 			if (tresult != ISC_R_SUCCESS)
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(vclassobj, logctx, ISC_LOG_ERROR,
 					    "view '%s': invalid class %s",
 					    cfg_obj_asstring(vname), r.base);
 		}
@@ -1047,32 +1054,6 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 				    "'cache-file' cannot be a global "
 				    "option if views are present");
 			result = ISC_R_FAILURE;
-		}
-	}
-
-        tresult = cfg_map_get(config, "acl", &acls);
-        if (tresult == ISC_R_SUCCESS) {
-		cfg_listelt_t *elt;
-		const char *aclname;
-
-		for (elt = cfg_list_first(acls);
-		     elt != NULL;
-		     elt = cfg_list_next(elt)) {
-			cfg_obj_t *acl = cfg_listelt_value(elt);
-			unsigned int i;
-
-			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
-			for (i = 0;
-			     i < sizeof(builtin) / sizeof(builtin[0]);
-			     i++)
-				if (strcasecmp(aclname, builtin[i]) == 0) {
-					cfg_obj_log(acl, logctx, ISC_LOG_ERROR,
-						    "attempt to redefine "
-						    "builtin acl '%s'",
-				    		    aclname);
-					result = ISC_R_FAILURE;
-					break;
-				}
 		}
 	}
 

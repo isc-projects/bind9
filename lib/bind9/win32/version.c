@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.2 2001/11/19 03:08:07 mayer Exp $ */
+/* $Id: version.c,v 1.2.222.1 2003/10/10 06:24:33 marka Exp $ */
 
 #include <versions.h>
 
