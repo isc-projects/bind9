@@ -54,9 +54,6 @@
  *** Types
  ***/
 
-typedef struct dns_peer			dns_peer_t;
-typedef struct dns_peerlist		dns_peerlist_t;
-
 struct dns_peerlist
 {
 	isc_uint32_t		magic;

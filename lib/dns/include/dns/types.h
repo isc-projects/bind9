@@ -99,6 +99,8 @@ typedef struct dns_ssutable			dns_ssutable_t;
 typedef struct dns_validator			dns_validator_t;
 typedef struct dns_keytable			dns_keytable_t;
 typedef struct dns_keynode			dns_keynode_t;
+typedef struct dns_peer				dns_peer_t;
+typedef struct dns_peerlist			dns_peerlist_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
