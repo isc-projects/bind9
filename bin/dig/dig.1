@@ -48,6 +48,10 @@ Unless it is told to query a specific name server,
 .PP
 When no command line arguments or options are given, will perform an
 NS query for "." (the root).
+.PP
+It is possible to set per-user defaults for \fBdig\fR via
+\fI${HOME}/.digrc\fR. This file is read and any options in it
+are applied before the command line arguments.
 .SH "SIMPLE USAGE"
 .PP
 A typical invocation of \fBdig\fR looks like:
@@ -338,6 +342,8 @@ isc.org.
 .SH "FILES"
 .PP
 \fI/etc/resolv.conf\fR
+.PP
+\fI${HOME}/.digrc\fR
 .SH "SEE ALSO"
 .PP
 \fBhost\fR(1),

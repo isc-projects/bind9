@@ -186,11 +186,21 @@ CLASS="FILENAME"
 ><P
 >When no command line arguments or options are given, will perform an
 NS query for "." (the root).</P
+><P
+>It is possible to set per-user defaults for <B
+CLASS="COMMAND"
+>dig</B
+> via
+<TT
+CLASS="FILENAME"
+>${HOME}/.digrc</TT
+>.  This file is read and any options in it
+are applied before the command line arguments.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN65"
+NAME="AEN68"
 ></A
 ><H2
 >SIMPLE USAGE</H2
@@ -287,7 +297,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN94"
+NAME="AEN97"
 ></A
 ><H2
 >OPTIONS</H2
@@ -501,7 +511,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN144"
+NAME="AEN147"
 ></A
 ><H2
 >QUERY OPTIONS</H2
@@ -966,7 +976,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN320"
+NAME="AEN323"
 ></A
 ><H2
 >MULTIPLE QUERIES</H2
@@ -1046,7 +1056,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN337"
+NAME="AEN340"
 ></A
 ><H2
 >FILES</H2
@@ -1055,11 +1065,16 @@ NAME="AEN337"
 CLASS="FILENAME"
 >/etc/resolv.conf</TT
 ></P
+><P
+><TT
+CLASS="FILENAME"
+>${HOME}/.digrc</TT
+></P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN341"
+NAME="AEN346"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -1093,7 +1108,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN354"
+NAME="AEN359"
 ></A
 ><H2
 >BUGS </H2
