@@ -57,7 +57,7 @@ version.@O@: version.c
 		-DLIBAGE=${LIBAGE} \
 		-c ${srcdir}/version.c
 
-liblwres.a: ${OBJS} version.@O@
+liblwres.@SA@: ${OBJS} version.@O@
 	${AR} ${ARFLAGS} $@ ${OBJS} version.@O@
 	${RANLIB} $@
 

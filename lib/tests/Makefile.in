@@ -32,7 +32,7 @@ TARGETS =	timestamp
 
 @BIND9_MAKE_RULES@
 
-libt_api.a: ${OBJS}
+libt_api.@SA@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 

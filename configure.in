@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-AC_REVISION($Revision: 1.101 $)
+AC_REVISION($Revision: 1.102 $)
 
 AC_PREREQ(2.13)
 
@@ -537,8 +537,14 @@ case $use_libtool in
 		AC_SUBST(LIBTOOL)
 		;;
 esac
+
+# File name extension for static archive files, for those few places
+# where they are treated differently from dynamic ones.
+SA=a
+
 AC_SUBST(O)
 AC_SUBST(A)
+AC_SUBST(SA)
 
 #
 # IPv6
