@@ -1,3 +1,6 @@
+ 188.	[func]		Log a warning message when an incoming zone transfer
+			contains out-of-zone data.
+
  187.	[func]		isc_ratelimter_enqueue() has an additional arguement
 			'task'.
 
