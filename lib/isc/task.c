@@ -83,14 +83,14 @@ struct isc_taskmgr {
 	unsigned int			magic;
 	isc_memctx_t			mctx;
 	isc_mutex_t			lock;
+	unsigned int			workers;
+	isc_thread_t *			threads;
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
 	LIST(struct isc_task)		tasks;
 	LIST(struct isc_task)		ready_tasks;
 	isc_condition_t			work_available;
 	isc_boolean_t			exiting;
-	unsigned int			workers;
-	isc_condition_t			no_workers;
 };
 
 #define DEFAULT_DEFAULT_QUANTUM		5
@@ -441,7 +441,6 @@ WINAPI
 run(void *uap) {
 	isc_taskmgr_t manager = uap;
 	isc_task_t task;
-	isc_boolean_t no_workers = ISC_FALSE;
 
 	XTRACE("start");
 
@@ -668,14 +667,7 @@ run(void *uap) {
 			}
 		}
 	}
-	INSIST(manager->workers > 0);
-	manager->workers--;
-	if (manager->workers == 0)
-		no_workers = ISC_TRUE;
 	UNLOCK(&manager->lock);
-
-	if (no_workers)
-		BROADCAST(&manager->no_workers);
 
 	XTRACE("exit");
 
@@ -685,8 +677,9 @@ run(void *uap) {
 static void
 manager_free(isc_taskmgr_t manager) {
 	(void)isc_condition_destroy(&manager->work_available);
-	(void)isc_condition_destroy(&manager->no_workers);
 	(void)isc_mutex_destroy(&manager->lock);
+	isc_mem_put(manager->mctx, manager->threads,
+		    manager->workers * sizeof (isc_thread_t));
 	manager->magic = 0;
 	isc_mem_put(manager->mctx, manager, sizeof *manager);
 }
@@ -697,7 +690,7 @@ isc_taskmgr_create(isc_memctx_t mctx, unsigned int workers,
 {
 	unsigned int i, started = 0;
 	isc_taskmgr_t manager;
-	isc_thread_t thread;
+	isc_thread_t *threads;
 
 	REQUIRE(workers > 0);
 
@@ -706,7 +699,15 @@ isc_taskmgr_create(isc_memctx_t mctx, unsigned int workers,
 		return (ISC_R_NOMEMORY);
 	manager->magic = TASK_MANAGER_MAGIC;
 	manager->mctx = mctx;
+	threads = isc_mem_get(mctx, workers * sizeof (isc_thread_t));
+	if (threads == NULL) {
+		isc_mem_put(mctx, manager, sizeof *manager);
+		return (ISC_R_NOMEMORY);
+	}
+	manager->threads = threads;
+	manager->workers = 0;
 	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, threads, workers * sizeof (isc_thread_t));
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
@@ -719,6 +720,7 @@ isc_taskmgr_create(isc_memctx_t mctx, unsigned int workers,
 	INIT_LIST(manager->ready_tasks);
 	if (isc_condition_init(&manager->work_available) != ISC_R_SUCCESS) {
 		(void)isc_mutex_destroy(&manager->lock);
+		isc_mem_put(mctx, threads, workers * sizeof (isc_thread_t));
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_condition_init() failed");
@@ -726,25 +728,17 @@ isc_taskmgr_create(isc_memctx_t mctx, unsigned int workers,
 	}
 	manager->exiting = ISC_FALSE;
 	manager->workers = 0;
-	if (isc_condition_init(&manager->no_workers) != ISC_R_SUCCESS) {
-		(void)isc_condition_destroy(&manager->work_available);
-		(void)isc_mutex_destroy(&manager->lock);
-		isc_mem_put(mctx, manager, sizeof *manager);
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() failed");
-		return (ISC_R_UNEXPECTED);
-	}
 
 	LOCK(&manager->lock);
 	/*
 	 * Start workers.
 	 */
 	for (i = 0; i < workers; i++) {
-		if (isc_thread_create(run, manager, &thread) ==
+		if (isc_thread_create(run, manager,
+				      &manager->threads[manager->workers]) == 
 		    ISC_R_SUCCESS) {
 			manager->workers++;
 			started++;
-			(void)isc_thread_detach(thread);
 		}
 	}
 	UNLOCK(&manager->lock);
@@ -763,6 +757,7 @@ void
 isc_taskmgr_destroy(isc_taskmgr_t *managerp) {
 	isc_taskmgr_t manager;
 	isc_task_t task;
+	unsigned int i;
 
 	REQUIRE(managerp != NULL);
 	manager = *managerp;
@@ -824,20 +819,13 @@ isc_taskmgr_destroy(isc_taskmgr_t *managerp) {
 	 * it will cause the workers to see manager->exiting.
 	 */
 	BROADCAST(&manager->work_available);
+	UNLOCK(&manager->lock);
 
 	/*
 	 * Wait for all the worker threads to exit.
-	 *
-	 * XXX  This will become a timed wait.  If all the workers haven't
-	 *      died after we've waited the specified interval, we will
-	 *	kill the worker threads.  Should we join with the worker
-	 *      threads after killing them or just leave them detached and
-	 *      hope they go away?
 	 */
-	while (manager->workers > 0)
-		WAIT(&manager->no_workers, &manager->lock);
-
-	UNLOCK(&manager->lock);
+	for (i = 0; i < manager->workers; i++)
+		(void)isc_thread_join(manager->threads[i], NULL);
 
 	manager_free(manager);
 
