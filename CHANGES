@@ -4,7 +4,7 @@
 			WSACONNRESET error when a client was timing out
 			the request and closing its socket. [RT #1745]
 
-1000.	[bug]		BIND 8 compatibility: accept "HESIOD" as a alias
+1000.	[bug]		BIND 8 compatibility: accept "HESIOD" as an alias
 			for class "HS".  [RT #1759]
 
  999.	[func]		"rndc retransfer zone [class [view]]" added.
