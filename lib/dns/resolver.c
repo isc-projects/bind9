@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.273 2004/01/05 05:42:16 marka Exp $ */
+/* $Id: resolver.c,v 1.274 2004/01/05 05:44:25 marka Exp $ */
 
 #include <config.h>
 
@@ -4692,7 +4692,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	unsigned int options;
 	unsigned int findoptions;
 	isc_result_t broken_server;
-	unsigned int oldcounts[DNS_SECTION_MAX];
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
