@@ -52,20 +52,20 @@
 #define RND_EVENTQSIZE	128
 
 typedef struct {
-	u_int32_t	cursor;		/* current add point in the pool */
-	u_int32_t	entropy;	/* current entropy estimate in bits */
-	u_int32_t	rotate;		/* how many bits to rotate by */
-	u_int32_t	pool[RND_POOLWORDS];	/* random pool data */
+	isc_uint32_t	cursor;		/* current add point in the pool */
+	isc_uint32_t	entropy;	/* current entropy estimate in bits */
+	isc_uint32_t	rotate;		/* how many bits to rotate by */
+	isc_uint32_t	pool[RND_POOLWORDS];	/* random pool data */
 } isc_rndpool_t;
 
 typedef struct {
 	char            name[16];	/* device name */
-	u_int32_t	last_time;	/* last time recorded */
-	u_int32_t	last_delta;	/* last delta value */
-	u_int32_t	last_delta2;	/* last delta2 value */
-	u_int32_t	total;		/* entropy from this source */
-	u_int32_t	type;		/* type */
-	u_int32_t	flags;		/* flags */
+	isc_uint32_t	last_time;	/* last time recorded */
+	isc_uint32_t	last_delta;	/* last delta value */
+	isc_uint32_t	last_delta2;	/* last delta2 value */
+	isc_uint32_t	total;		/* entropy from this source */
+	isc_uint32_t	type;		/* type */
+	isc_uint32_t	flags;		/* flags */
 	void	       *state;		/* state informaiton */
 } isc_rndsource_t;
 
