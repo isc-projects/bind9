@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.281 2001/01/12 22:22:14 bwelling Exp $ */
+/* $Id: server.c,v 1.282 2001/01/18 00:14:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -854,7 +854,7 @@ create_version_zone(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t *view)
  * the BIND 9 authors.
  */
 static isc_result_t
-create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
+create_authors_zone(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_zone_t *zone = NULL;
@@ -867,6 +867,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 	static const char origindata[] = "\007authors\004bind";
 	dns_name_t origin;
 	int i;
+	char *versiontext;
 	static const char *authors[] = {
 		"\014Mark Andrews",
 		"\015James Brister",
@@ -874,10 +875,18 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 		"\022Andreas Gustafsson",
 		"\012Bob Halley",
 		"\016David Lawrence",
+		"\013Damien Neil",
 		"\016Michael Sawyer",
 		"\020Brian Wellington",
 		NULL,
 	};
+
+	/*
+	 * If a version string is specified, disable the authors.bind zone.
+	 */
+	result = dns_c_ctx_getversion(cctx, &versiontext);
+	if (result == ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
 
 	dns_diff_init(ns_g_mctx, &diff);
 
@@ -1665,7 +1674,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	CHECK(create_bind_view(&view));
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
 	CHECK(create_version_zone(cctx, server->zonemgr, view));
-	CHECK(create_authors_zone(server->zonemgr, view));
+	CHECK(create_authors_zone(cctx, server->zonemgr, view));
 	dns_view_freeze(view);
 	view = NULL;
 
