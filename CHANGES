@@ -1,122 +1,122 @@
-1247.	[bug]		The validator would incorrectly mark data as insecure
+1337.	[bug]		The validator would incorrectly mark data as insecure
 			when seeing a bogus signature before a correct
 			signature.
 
-1246.	[bug]		DNAME/CNAME signatures were not being cached when
+1336.	[bug]		DNAME/CNAME signatures were not being cached when
 			validation was not being performed. [RT #3284]
 
-1343.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>.
+1333.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>. [RT #3205]
 
-1340.	[doc]		query-source-v6 was missing from options section.
+1330.	[doc]		query-source-v6 was missing from options section.
 			[RT #3218]
 
-1339.	[func]		libbind: log attempts to exploit #1338.
+1329.	[func]		libbind: log attempts to exploit #1328.
 
-1338.	[bug]		libbind: Remote buffer overrun.
+1328.	[bug]		libbind: Remote buffer overrun.
 
-1337.	[port]		libbind: TrueUNIX 5.1 does not like __align as a
+1327.	[port]		libbind: TrueUNIX 5.1 does not like __align as a
 			element name.
 
-1336.	[bug]		libbind: gethostans() could get out of sync parsing
+1326.	[bug]		libbind: gethostans() could get out of sync parsing
 			the response if there was a very long CNAME chain.
 
-1335.	[bug]		Options should apply to the internal _bind view.
+1325.	[bug]		Options should apply to the internal _bind view.
 
-1334.	[port]		Handle ECONNRESET from sendmsg() [unix].
+1324.	[port]		Handle ECONNRESET from sendmsg() [unix].
 
-1331.	[bug]		lwres_getrrsetbyname leaked memory.  [RT #3159]
+1321.	[bug]		lwres_getrrsetbyname leaked memory.  [RT #3159]
 
-1330.	[bug]		'rndc stop' failed to cause zones to be flushed
+1320.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #3157]
 
-1327.	[bug]		nsupdate: allow white space base64 key data.
+1317.	[bug]		nsupdate: allow white space base64 key data.
 
-1326.	[bug]		Badly encoded LOC record when the size, horizontal
+1316.	[bug]		Badly encoded LOC record when the size, horizontal
 			precision or vertical precision was 0.1m.
 
-1325.	[bug]		Document that internal zones are included in the
+1315.	[bug]		Document that internal zones are included in the
 			rndc status results.
 
-1318.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
+1308.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
 			could be left with a trailing "\" after configure
 			has been run.
 
-1317.	[port]		linux: make handling EINVAL from socket() no longer
+1307.	[port]		linux: make handling EINVAL from socket() no longer
 			conditional on #ifdef LINUX.
 
-1316.	[bug]		isc_log_closefilelogs() needed to lock the log
+1306.	[bug]		isc_log_closefilelogs() needed to lock the log
 			context.
 
-1315.	[bug]		isc_log_setdebuglevel() needed to lock the log
+1305.	[bug]		isc_log_setdebuglevel() needed to lock the log
 			context.
 
-1314.	[func]		libbind: no longer attempts bit string labels for
+1304.	[func]		libbind: no longer attempts bit string labels for
 			IPv6 reverse resolution.  Try IP6.ARPA then IP6.INT
 			for nibble style resolution.
 
-1309.	[port]		See if -ldl is required for OpenSSL? [RT #2672]
+1299.	[port]		See if -ldl is required for OpenSSL? [RT #2672]
 
-1308.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
+1298.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
 			reflect written requirements.
 
-1307.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
+1297.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
 			a rdataset to a zone db in the rbtdb implementation of
 			addrdataset.
 
-1306.	[bug]		dns_name_downcase() enforce requirement that
+1296.	[bug]		dns_name_downcase() enforce requirement that
 			target != NULL or name->buffer != NULL.
 
-1304.	[bug]		The RTT estimate on unused servers was not aged.
+1294.	[bug]		The RTT estimate on unused servers was not aged.
 			[RT #2569]
 
-1302.	[port]		libbind: hpux 11.11 interface scaning.
+1292.	[port]		libbind: hpux 11.11 interface scaning.
 
-1300.	[bug]		libbind: escape '(' and ')' when coverting to
+1290.	[bug]		libbind: escape '(' and ')' when coverting to
 			presentation form.
 
-1299.	[port]		Darwin uses (unsigned long) for size_t. [RT #2590]
+1289.	[port]		Darwin uses (unsigned long) for size_t. [RT #2590]
 
-1296.	[bug]		libbind: const pointer conficts in res_debug.c.
+1286.	[bug]		libbind: const pointer conficts in res_debug.c.
 
-1295.	[port]		libbind: hpux: treat all hpux systems as BIG_ENDIAN.
+1285.	[port]		libbind: hpux: treat all hpux systems as BIG_ENDIAN.
 
-1294.	[bug]		Memory leak in lwres_gnbarequest_parse().
+1284.	[bug]		Memory leak in lwres_gnbarequest_parse().
 
-1293.	[port]		libbind: solaris: 64 bit binary compatability.
+1283.	[port]		libbind: solaris: 64 bit binary compatability.
 
-1292.	[contrib]	Berkeley DB 4.0 sdb implementation from
+1282.	[contrib]	Berkeley DB 4.0 sdb implementation from
 			Nuno Miguel Rodrigues <nmr@co.sapo.pt>.
 
-1290.	[bug]		Check that system inet_pton() and inet_ntop() support
+1280.	[bug]		Check that system inet_pton() and inet_ntop() support
 			AF_INET6.
 
-1289.	[port]		Openserver: ifconfig.sh support.
+1279.	[port]		Openserver: ifconfig.sh support.
 
-1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
+1278.	[port]		Openserver: the value FD_SETSIZE depends on whether
 			<sys/param.h> is included or not.  Be consistant.
 
-1286.	[bug]		ISC_LINK_INIT, ISC_LINK_UNLINK, ISC_LIST_DEQUEUE,
+1276.	[bug]		ISC_LINK_INIT, ISC_LINK_UNLINK, ISC_LIST_DEQUEUE,
 			__ISC_LINK_UNLINKUNSAFE and __ISC_LIST_DEQUEUEUNSAFE
 			are not C++ compatible, use *_TYPE versions instead.
 
-1285.	[bug]		libbind: LINK_INIT and UNLINK were not compatible with
+1275.	[bug]		libbind: LINK_INIT and UNLINK were not compatible with
 			C++, use LINK_INIT_TYPE and UNLINK_TYPE instead.
 
-1283.	[bug]		Reference after free error if dns_dispatchmgr_create()
+1273.	[bug]		Reference after free error if dns_dispatchmgr_create()
 			failed.
 
-1282.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
+1272.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
 
-1281.	[func]		libbind: ns_sign2() and ns_sign_tcp() now provide
+1271.	[func]		libbind: ns_sign2() and ns_sign_tcp() now provide
 			support for compressed TSIG owner names.
 
-1280.	[func]		libbind: res_update can now update IPv6 servers,
+1270.	[func]		libbind: res_update can now update IPv6 servers,
 			new function res_findzonecut2().
 
-1279.	[bug]		libbind: get_salen() IPv6 support was broken for OSs
+1269.	[bug]		libbind: get_salen() IPv6 support was broken for OSs
 			w/o sa_len.
 
-1278.	[bug]		libbind: res_nametotype() and res_nametoclass() were
+1268.	[bug]		libbind: res_nametotype() and res_nametoclass() were
 			broken.
 
 1276.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
@@ -128,13 +128,13 @@
 			next name, and for NOERROR NODATA responses, check
 			that the type is not present in the NXT bitmap.
 
-1277.	[bug]		Failure to write pid-file should not be fatal on
+1267.	[bug]		Failure to write pid-file should not be fatal on
 			reload. [RT #2861]
 
-1273.	[bug]		The dnssec system test failed to remove the correct
+1263.	[bug]		The dnssec system test failed to remove the correct
 			files.
 
-1272.	[bug]		Dig, host and nslookup were not checking the address
+1262.	[bug]		Dig, host and nslookup were not checking the address
 			the answer was coming from against the address it was
 			sent to. [RT# 2692]
 
@@ -164,7 +164,7 @@
 1271.	[port]		win32: a make file contained absolute version specific
 			references.
 
-1269.	[bug]		Missing masters clause was not handled gracefully.
+1249.	[bug]		Missing masters clause was not handled gracefully.
 			[RT #2703]
 
 1244.	[bug]		Receiving a TCP message from a blackhole address would
