@@ -55,7 +55,6 @@
 #include "interfacemgr.h"
 #endif
 
-static dns_dbtable_t *		dbtable;
 static ns_dbinfo_t *		cache_dbi;
 static isc_task_t *		server_task;
 
@@ -129,7 +128,7 @@ resolve_packet(isc_mem_t *mctx, dns_message_t *query, isc_buffer_t *target) {
 	 * Find a database to answer the query from.
 	 */
 	db = NULL;
-	result = dns_dbtable_find(dbtable, qname, &db);
+	result = dns_dbtable_find(ns_g_dbtable, qname, &db);
 	if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
 		printf("could not find a dbtable: %s\n",
 		       dns_result_totext(result));
@@ -367,10 +366,10 @@ load(ns_dbinfo_t *dbi) {
 
 	if (dbi->iscache) {
 		INSIST(cache_dbi == NULL);
-		dns_dbtable_adddefault(dbtable, dbi->db);
+		dns_dbtable_adddefault(ns_g_dbtable, dbi->db);
 		cache_dbi = dbi;
 	} else {
-		if (dns_dbtable_add(dbtable, dbi->db) != DNS_R_SUCCESS) {
+		if (dns_dbtable_add(ns_g_dbtable, dbi->db) != DNS_R_SUCCESS) {
 			dns_db_detach(&dbi->db);
 			isc_mem_put(ns_g_mctx, dbi, sizeof *dbi);
 			return (result);
@@ -403,10 +402,10 @@ unload_all(void) {
 	for (dbi = ISC_LIST_HEAD(ns_g_dbs); dbi != NULL; dbi = dbi_next) {
 		dbi_next = ISC_LIST_NEXT(dbi, link);
 		if (dns_db_iszone(dbi->db))
-			dns_dbtable_remove(dbtable, dbi->db);
+			dns_dbtable_remove(ns_g_dbtable, dbi->db);
 		else {
 			INSIST(dbi == cache_dbi);
-			dns_dbtable_removedefault(dbtable);
+			dns_dbtable_removedefault(ns_g_dbtable);
 			cache_dbi = NULL;
 		}
 		dns_db_detach(&dbi->db);
@@ -449,7 +448,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	(void)task;
 	printf("server shutting down\n");
 	unload_all();
-	dns_dbtable_detach(&dbtable);
+	dns_dbtable_detach(&ns_g_dbtable);
 	isc_task_detach(&server_task);
 	isc_event_free(&event);
 }
@@ -458,7 +457,8 @@ isc_result_t
 ns_server_init(void) {
 	isc_result_t result;
 
-	result = dns_dbtable_create(ns_g_mctx, dns_rdataclass_in, &dbtable);
+	result = dns_dbtable_create(ns_g_mctx, dns_rdataclass_in,
+				    &ns_g_dbtable);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -480,7 +480,7 @@ ns_server_init(void) {
 	isc_task_detach(&server_task);
 
  cleanup_dbtable:
-	dns_dbtable_detach(&dbtable);
+	dns_dbtable_detach(&ns_g_dbtable);
 
 	return (result);
 }

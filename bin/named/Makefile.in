@@ -40,9 +40,9 @@ LIBS =		${DEPLIBS} \
 
 TARGETS =	named
 
-OBJS =		client.o interfacemgr.o main.o server.o
+OBJS =		client.o interfacemgr.o main.o query.o server.o
 
-SRCS =		client.c interfacemgr.c main.c server.c
+SRCS =		client.c interfacemgr.c main.c query.c server.c
 
 @BIND9_MAKE_RULES@
 

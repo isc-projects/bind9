@@ -51,8 +51,10 @@ struct ns_client {
 	dns_dispatchevent_t *		dispevent;
 	isc_timer_t *			timer;
 	dns_message_t *			message;
+	dns_name_t *			qname;
 	unsigned int			nsends;
 	isc_mempool_t *			sendbufs;
+	ISC_LIST(isc_dynbuffer_t)	namebufs;
 	ISC_LINK(struct ns_client)	link;
 };
 
@@ -71,7 +73,13 @@ void
 ns_client_next(ns_client_t *client, isc_result_t result);
 
 void
+ns_client_send(ns_client_t *client);
+
+void
 ns_client_destroy(ns_client_t *client);
+
+isc_result_t
+ns_client_newnamebuf(ns_client_t *client);
 
 isc_result_t
 ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,

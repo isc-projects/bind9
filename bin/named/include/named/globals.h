@@ -53,8 +53,9 @@ EXTERN char *			ns_g_version		INIT(VERSION);
 EXTERN isc_rwlock_t		ns_g_viewlock;
 EXTERN dns_viewlist_t		ns_g_views;
 
-/* XXXRTH  This next one is temporary. */
+/* XXXRTH  These are temporary. */
 EXTERN ns_dbinfolist_t		ns_g_dbs;
+EXTERN dns_dbtable_t *		ns_g_dbtable		INIT(NULL);
 
 #undef EXTERN
 #undef INIT
