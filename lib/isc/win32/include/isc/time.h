@@ -18,10 +18,14 @@
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
+#include <windows.h>
+
+#include <isc/int.h>
+#include <isc/lang.h>
 #include <isc/result.h>
 #include <isc/boolean.h>
 
-#include <windows.h>
+ISC_LANG_BEGINDECLS
 
 /***
  *** Intervals
@@ -31,15 +35,16 @@
  * The contents of this structure are private, and MUST NOT be accessed
  * directly by callers.
  *
- * The contents are exposed only so that callers may avoid dynamic allocation
- * and instead just declare a 'struct isc_interval'.
+ * The contents are exposed only to allow callers to avoid dynamic allocation.
  */
 typedef struct isc_interval {
-	LONGLONG interval;
-} *isc_interval_t;
+	isc_int64_t interval;
+} isc_interval_t;
+
+extern isc_interval_t *isc_interval_zero;
 
 void
-isc_interval_set(isc_interval_t i,
+isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds);
 /*
  * Set 'i' to a value representing an interval of 'seconds' seconds and
@@ -54,7 +59,7 @@ isc_interval_set(isc_interval_t i,
  */
 
 isc_boolean_t
-isc_interval_iszero(isc_interval_t i);
+isc_interval_iszero(isc_interval_t *i);
 /*
  * Returns ISC_TRUE iff. 'i' is the zero interval.
  *
@@ -72,16 +77,17 @@ isc_interval_iszero(isc_interval_t i);
  * The contents of this structure are private, and MUST NOT be accessed
  * directly by callers.
  *
- * The contents are exposed only so that callers may avoid dynamic allocation
- * and instead just declare a 'struct isc_time'.
+ * The contents are exposed only to allow callers to avoid dynamic allocation.
  */
 
 typedef struct isc_time {
 	FILETIME absolute;
-} *isc_time_t;
+} isc_time_t;
+
+extern isc_time_t *isc_time_epoch;
 
 void
-isc_time_settoepoch(isc_time_t t);
+isc_time_settoepoch(isc_time_t *t);
 /*
  * Set 't' to the time of the epoch.
  *
@@ -92,7 +98,7 @@ isc_time_settoepoch(isc_time_t t);
  */
 
 isc_boolean_t
-isc_time_isepoch(isc_time_t t);
+isc_time_isepoch(isc_time_t *t);
 /*
  * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
  *
@@ -103,7 +109,7 @@ isc_time_isepoch(isc_time_t t);
  */
 
 isc_result_t
-isc_time_get(isc_time_t t);
+isc_time_now(isc_time_t *t);
 /*
  * Set 't' to the current absolute time.
  *
@@ -117,8 +123,30 @@ isc_time_get(isc_time_t t);
  *	Unexpected error
  */
 
+isc_result_t
+isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i);
+/*
+ * Set *t to the current absolute time + i.
+ *
+ * Note:
+ *
+ *	This call is equivalent to:
+ *
+ *		isc_time_now(t);
+ *		isc_time_add(t, i, t);
+ *
+ * Requires:
+ *
+ *	't' and 'i' are valid.
+ *
+ * Returns:
+ *
+ *	Success
+ *	Unexpected error
+ */
+
 int
-isc_time_compare(isc_time_t t1, isc_time_t t2);
+isc_time_compare(isc_time_t *t1, isc_time_t *t2);
 /*
  * Compare the times referenced by 't1' and 't2'
  *
@@ -134,7 +162,7 @@ isc_time_compare(isc_time_t t1, isc_time_t t2);
  */
 
 void
-isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result);
+isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
 /*
  * Add 'i' to 't', storing the result in 'result'.
  *
@@ -144,7 +172,7 @@ isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result);
  */
 
 void
-isc_time_subtract(isc_time_t t, isc_interval_t t2, isc_time_t result);
+isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
 /*
  * Subtract 'i' from 't', storing the result in 'result'.
  *
@@ -159,6 +187,14 @@ isc_time_subtract(isc_time_t t, isc_interval_t t2, isc_time_t result);
  *** Win32 Only
  ***/
 
-unsigned int isc_time_millidiff(isc_time_t t1, isc_time_t t2);
+unsigned int
+isc_time_millidiff(isc_time_t *t1, isc_time_t *t2);
+/*
+ * Find the difference in milliseconds between time t1 and time t2.
+ * t2 is the subtrahend of t1; ie, difference = t1 - t2.
+ *
+ * Requires:
+ *	No formal requirements are asserted.
+ */
 
 #endif /* ISC_TIME_H */

@@ -33,7 +33,7 @@
  ***/
 
 void
-isc_interval_set(isc_interval_t i,
+isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds) {
 
 	/*
@@ -49,7 +49,7 @@ isc_interval_set(isc_interval_t i,
 }
 
 isc_boolean_t
-isc_interval_iszero(isc_interval_t i) {
+isc_interval_iszero(isc_interval_t *i) {
 
 	/*
 	 * Returns ISC_TRUE iff. 'i' is the zero interval.
@@ -70,7 +70,7 @@ isc_interval_iszero(isc_interval_t i) {
 static FILETIME epoch = { 0, 0 };
 
 void
-isc_time_settoepoch(isc_time_t t) {
+isc_time_settoepoch(isc_time_t *t) {
 	/*
 	 * Set 't' to the time of the epoch.
 	 */
@@ -81,7 +81,7 @@ isc_time_settoepoch(isc_time_t t) {
 }
 
 isc_boolean_t
-isc_time_isepoch(isc_time_t t) {
+isc_time_isepoch(isc_time_t *t) {
 	/*
 	 * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
 	 */
@@ -94,8 +94,8 @@ isc_time_isepoch(isc_time_t t) {
 	return (ISC_FALSE);
 }
 
-isc_result
-isc_time_get(isc_time_t t) {
+isc_result_t
+isc_time_now(isc_time_t *t) {
 	/*
 	 * Set *t to the current absolute time.
 	 */
@@ -107,10 +107,32 @@ isc_time_get(isc_time_t t) {
 	return (ISC_R_SUCCESS);
 }
 
-int
-isc_time_compare(isc_time_t t1, isc_time_t t2) {
-	LARGE_INTEGER i1, i2;
+isc_result_t
+isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
+	ULARGE_INTEGER i1;
 
+	/*
+	 * Set *t to the current absolute time + i.
+	 */
+	
+	REQUIRE(t != NULL);
+	REQUIRE(i != NULL);
+	
+	GetSystemTimeAsFileTime(&t->absolute);
+
+	i1.LowPart = t->absolute.dwLowDateTime;
+	i1.HighPart = t->absolute.dwHighDateTime;
+
+	i1.QuadPart += i->interval;
+
+	t->absolute.dwLowDateTime  = i1.LowPart;
+	t->absolute.dwHighDateTime = i1.HighPart;
+
+	return (ISC_R_SUCCESS);
+}
+
+int
+isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
 	/*
 	 * Compare the times referenced by 't1' and 't2'
 	 */
@@ -121,9 +143,9 @@ isc_time_compare(isc_time_t t1, isc_time_t t2) {
 }
 
 void
-isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result)
+isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result)
 {
-	LARGE_INTEGER i1, i2;
+	ULARGE_INTEGER i1, i2;
 
 	/*
 	 * Add 't' to 'i', storing the result in 'result'.
@@ -132,19 +154,17 @@ isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result)
 	REQUIRE(t != NULL && i != NULL && result != NULL);
 
 	i1.LowPart = t->absolute.dwLowDateTime;
-	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	i2.QuadPart = i1.QuadPart + i.interval;
+	i2.QuadPart = i1.QuadPart + i->interval;
 	
-	/* XXX potential signed to unsigned problem */
 	result->absolute.dwLowDateTime = i2.LowPart;
 	result->absolute.dwHighDateTime = i2.HighPart;
 }
 
 void
-isc_time_subtract(isc_time_t t, isc_interval_t i, isc_time_t result) {
-	LARGE_INTEGER i1, i2;
+isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
+	ULARGE_INTEGER i1, i2;
 
 	/*
 	 * Subtract 'i' from 't', storing the result in 'result'.
@@ -153,12 +173,10 @@ isc_time_subtract(isc_time_t t, isc_interval_t i, isc_time_t result) {
 	REQUIRE(t != NULL && i != NULL && result != NULL);
 
 	i1.LowPart = t->absolute.dwLowDateTime;
-	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	i2.QuadPart = i1.QuadPart - i.interval;
+	i2.QuadPart = i1.QuadPart - i->interval;
 	
-	/* XXX potential signed to unsigned problem */
 	result->absolute.dwLowDateTime = i2.LowPart;
 	result->absolute.dwHighDateTime = i2.HighPart;
 }
@@ -168,21 +186,29 @@ isc_time_subtract(isc_time_t t, isc_interval_t i, isc_time_t result) {
  ***/
 
 unsigned int
-isc_time_millidiff(isc_time_t t1, isc_time_t t2) {
-	LARGE_INTEGER i1, i2;
+isc_time_millidiff(isc_time_t *t1, isc_time_t *t2) {
+	ULARGE_INTEGER i1, i2;
 	LONGLONG i3;
 
-	i1.LowPart = t1->absolute.dwLowDateTime;
-	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
+	REQUIRE(t1 != NULL && t2 != NULL);
+
+	i1.LowPart  = t1->absolute.dwLowDateTime;
 	i1.HighPart = t1->absolute.dwHighDateTime;
-	i2.LowPart = t2->absolute.dwLowDateTime;
-	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
+	i2.LowPart  = t2->absolute.dwLowDateTime;
 	i2.HighPart = t2->absolute.dwHighDateTime;
 
 	if (i1.QuadPart <= i2.QuadPart)
 		return (0);
-	i3 = (i1.QuadPart - i2.QuadPart) / 10000; /* convert to milliseconds */
-	if (i3 > 1000000000)			  /* XXX arbitrary! */
-		return (1000000000);
+
+	/*
+	 * Convert to milliseconds.
+	 */
+	i3 = (i1.QuadPart - i2.QuadPart) / 10000;
+
+#define _MILLIMAX 1000000000			  /* XXX arbitrary! */
+	if (i3 > _MILLIMAX)
+		return (_MILLIMAX);
+#undef _MILLIMAX
+
 	return ((unsigned int)(i3));
 }
