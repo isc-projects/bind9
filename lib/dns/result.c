@@ -80,6 +80,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"zone not loaded",			/* 50 */
 	"ncache nxdomain",			/* 51 */
 	"ncache nxrrset",			/* 52 */
+	"wait",					/* 53 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
