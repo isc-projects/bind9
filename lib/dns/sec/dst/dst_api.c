@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.38 2000/05/19 00:20:57 bwelling Exp $
+ * $Id: dst_api.c,v 1.39 2000/05/24 03:00:39 tale Exp $
  */
 
 #include <config.h>
@@ -792,6 +792,7 @@ dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, char **name,
 	char c, str[6], *p, *endp;
 	isc_region_t r;
 	unsigned int length;
+	long l;
 
 	REQUIRE(source != NULL);
 	REQUIRE(mctx != NULL);
@@ -849,11 +850,14 @@ dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, char **name,
 	isc_buffer_remainingregion(source, &r);
 	memcpy(str, r.base, 5);
 	str[5] = 0;
-	*id = strtol(str, &endp, 10);
-	if (*endp != '\0') {
+
+	l = strtol(str, &endp, 10);
+	if (*endp != '\0' || l > (isc_uint16_t)-1) {
 		result = ISC_R_INVALIDFILE;
 		goto fail;
 	}
+	*id = (isc_uint16_t)l;
+
 	isc_buffer_forward(source, 5);
 	if (suffix == NULL)
 		return (ISC_R_SUCCESS);
