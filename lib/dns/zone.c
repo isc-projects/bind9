@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.202 2000/09/07 01:06:45 marka Exp $ */
+/* $Id: zone.c,v 1.203 2000/09/07 04:20:52 marka Exp $ */
 
 #include <config.h>
 
@@ -3365,7 +3365,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
 				    &message);
 	if (result != ISC_R_SUCCESS)
-		goto fail;
+		return (result);
 
 	message->opcode = dns_opcode_notify;
 	message->flags |= DNS_MESSAGEFLAG_AA;
@@ -3483,8 +3483,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 
  done:
 	*messagep = message;
-	message = NULL;
-	result = ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 
  cleanup:
 	if (tempname != NULL)
@@ -3493,8 +3492,6 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		dns_message_puttemprdataset(message, &temprdataset);
 	if (message != NULL)
 		dns_message_destroy(&message);
-
- fail:
 	return (result);
 }
 
