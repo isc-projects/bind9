@@ -1,13 +1,13 @@
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
-Expires: June 2003                                         December 2002
+Expires: February 2004                                       August 2003
 
 
 
 
                      Elliptic Curve KEYs in the DNS
                      -------- ----- ---- -- --- ---
-                   <draft-ietf-dnsext-ecc-key-03.txt>
+                   <draft-ietf-dnsext-ecc-key-04.txt>
 
                          Richard C. Schroeppel
                           Donald Eastlake 3rd
@@ -20,15 +20,15 @@ Status of This Document
    to the DNS mailing list <namedroppers@internic.com> or to the
    authors.
 
-   This document is an Internet-Draft and is in full conformance with
-   all provisions of Section 10 of RFC 2026.  Internet-Drafts are
+   This document is an Internet Draft and is in full conformance with
+   all provisions of Section 10 of RFC 2026.  Internet Drafts are
    working documents of the Internet Engineering Task Force (IETF), its
    areas, and its working groups.  Note that other groups may also
-   distribute working documents as Internet-Drafts.
+   distribute working documents as Internet Drafts.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet- Drafts as reference
+   time.  It is inappropriate to use Internet Drafts as reference
    material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
@@ -42,8 +42,8 @@ Status of This Document
 Abstract
 
    A standard method for storing elliptic curve cryptographic keys in
-   the Domain Name System is described which utilizes DNS KEY resource
-   record.
+   the Domain Name System is described.
+
 
 
 
@@ -76,18 +76,18 @@ Table of Contents
       Table of Contents..........................................2
 
       1. Introduction............................................3
-      2. Elliptic Curve KEY Resource Records.....................3
+      2. Elliptic Curve Data in Resource Records.................3
       3. The Elliptic Curve Equation.............................9
       4. How do I Compute Q, G, and Y?..........................10
       5. Performance Considerations.............................11
       6. Security Considerations................................11
       7. IANA Considerations....................................11
 
-      References................................................13
+      Informational References..................................12
+      Normative Refrences.......................................12
 
-      Authors' Addresses........................................14
-      Expiration and File Name..................................14
-
+      Authors' Addresses........................................13
+      Expiration and File Name..................................13
 
 
 
@@ -136,17 +136,14 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 
-2. Elliptic Curve KEY Resource Records
+2. Elliptic Curve Data in Resource Records
 
-   Elliptic curve public keys are stored in the DNS as KEY RRs using
-   algorithm number 4 (see [RFC 2535]).  The structure of the RDATA
-   portion of this RR is as shown below.  The first 4 octets, including
-   the flags, protocol, and algorithm fields are common to all KEY RRs.
-   The remainder is the "public key" part of the KEY RR.
+   Elliptic curve public keys are stored in the DNS within the RDATA
+   portions of RRs with the structure shown below.
 
-   The period of key validity is not in the KEY RR but is indicated by
-   the SIG RR(s) which signs and authenticates the KEY RR(s) at that
-   domain name and class.
+   The period of key validity may not be in the RR with the key but
+   could be indicated by RR(s) with signatures that authenticates the
+   RR(s) containing the key.
 
    The research world continues to work on the issue of which is the
    best elliptic curve system, which finite field to use, and how to
@@ -170,6 +167,9 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 
+
+
+
 R. Schroeppel, et al                                            [Page 3]
 
 
@@ -178,8 +178,6 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
                             1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |           KEY flags           |    protocol   |  algorithm=4  |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
        |S M -FMT- A B Z|
        +-+-+-+-+-+-+-+-+
@@ -226,6 +224,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
        |       LC      |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
        |                        C (length determined from LC)       .../
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |       LG      |
 
 
 R. Schroeppel, et al                                            [Page 4]
@@ -234,8 +234,6 @@ R. Schroeppel, et al                                            [Page 4]
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |       LG      |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
        |                        G (length determined from LG)       .../
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -286,6 +284,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 
+
+
 R. Schroeppel, et al                                            [Page 5]
 
 
@@ -302,8 +302,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
               used.  When P=2 and B=1, an additional curve parameter C
               is present.
 
-        The Z bit SHOULD be set to zero on creation of KEY RR and MUST
-           be ignored when processing a KEY RR (when S=0).
+        The Z bit SHOULD be set to zero on creation of an RR and MUST be
+           ignored when processing an RR (when S=0).
 
    Most of the remaining parameters are present in some formats and
    absent in others.  The presence or absence of a parameter is
@@ -608,9 +608,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    transfers will perform correctly and and extensions have been
    standardized to make larger transfers more efficient [RFC 2671].
    However, it is still advisable at this time to make reasonable
-   efforts to minimize the size of KEY RR sets stored within the DNS
-   consistent with adequate security.  Keep in mind that in a secure
-   zone, an authenticating SIG RRset will also be returned.
+   efforts to minimize the size of RR sets stored within the DNS
+   consistent with adequate security.
 
 
 
@@ -627,11 +626,12 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 7. IANA Considerations
 
-   Assignment of meaning to the remaining ECC KEY flag bits or to values
-   of ECC fields outside the ranges for which meaning in defined in this
-   document requires an IETF consensus as defined in [RFC 2434].
+   Assignment of meaning to the remaining ECC data flag bits or to
+   values of ECC fields outside the ranges for which meaning in defined
+   in this document requires an IETF consensus as defined in [RFC 2434].
 
-   This specification uses algorithm number 4 for DNS elliptic curve KEY
+
+
 
 
 R. Schroeppel, et al                                           [Page 11]
@@ -640,65 +640,7 @@ R. Schroeppel, et al                                           [Page 11]
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
-   RRs that was reserved for this purpose in [RFC 2535].  An elliptic
-   curve (algorithm = 4) SIG RR is not defined. Assignment of a meaning
-   to it requires an IETF Standards action.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-R. Schroeppel, et al                                           [Page 12]
-
-
-INTERNET-DRAFT                                       ECC Keys in the DNS
-
-
-References
+Informational References
 
    [RFC 1034] - P. Mockapetris, "Domain names - concepts and
    facilities", 11/01/1987.
@@ -708,12 +650,6 @@ References
 
    [RFC 1750] - D. Eastlake, S. Crocker, J. Schiller, "Randomness
    Recommendations for Security", 12/29/1994.
-
-   [RFC 2119] - S. Bradner, "Key words for use in RFCs to Indicate
-   Requirement Levels", March 1997.
-
-   [RFC 2434] - T. Narten, H. Alvestrand, "Guidelines for Writing an
-   IANA Considerations Section in RFCs", October 1998.
 
    [RFC 2535] -  D. Eastlake,"Domain Name System Security Extensions",
    March 1999.
@@ -732,6 +668,13 @@ References
 
 
 
+Normative Refrences
+
+   [RFC 2119] - S. Bradner, "Key words for use in RFCs to Indicate
+   Requirement Levels", March 1997.
+
+   [RFC 2434] - T. Narten, H. Alvestrand, "Guidelines for Writing an
+   IANA Considerations Section in RFCs", October 1998.
 
 
 
@@ -749,8 +692,7 @@ References
 
 
 
-
-R. Schroeppel, et al                                           [Page 13]
+R. Schroeppel, et al                                           [Page 12]
 
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
@@ -775,18 +717,15 @@ Authors' Addresses
 
    Telephone:   +1 508-634-2066 (h)
                 +1 508-851-8280 (w)
-   FAX:         +1 508-851-8507 (w)
    EMail:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires in June 2003.
+   This draft expires in February 2004.
 
-   Its file name is draft-ietf-dnsext-ecc-key-03.txt.
-
-
+   Its file name is draft-ietf-dnsext-ecc-key-04.txt.
 
 
 
@@ -808,5 +747,8 @@ Expiration and File Name
 
 
 
-R. Schroeppel, et al                                           [Page 14]
+
+
+
+R. Schroeppel, et al                                           [Page 13]
 
