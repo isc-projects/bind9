@@ -1,3 +1,7 @@
+1244.	[bug]		Receiving a TCP message from a blackhole address would
+			prevent further messages being received over that
+			interface.
+
 1243.	[bug]		It was possible to trigger a REQUIRE() in
 			dns_message_findtype(). [RT #2659]
 
