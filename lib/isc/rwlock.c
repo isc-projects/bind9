@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.16 2000/06/22 21:57:11 tale Exp $ */
+/* $Id: rwlock.c,v 1.16.2.1 2000/08/25 01:29:35 gson Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,14 @@
 
 #define RWLOCK_MAGIC		0x52574C6BU	/* RWLk. */
 #define VALID_RWLOCK(rwl)	ISC_MAGIC_VALID(rwl, RWLOCK_MAGIC)
+
+#ifndef RWLOCK_DEFAULT_READ_QUOTA
+#define RWLOCK_DEFAULT_READ_QUOTA 4
+#endif
+
+#ifndef RWLOCK_DEFAULT_WRITE_QUOTA
+#define RWLOCK_DEFAULT_WRITE_QUOTA 4
+#endif
 
 #ifdef ISC_RWLOCK_TRACE
 #include <stdio.h>		/* Required for fprintf/stderr. */
@@ -61,10 +69,10 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	rwl->readers_waiting = 0;
 	rwl->writers_waiting = 0;
 	if (read_quota == 0)
-		read_quota = 4;
+		read_quota = RWLOCK_DEFAULT_READ_QUOTA;
 	rwl->read_quota = read_quota;
 	if (write_quota == 0)
-		write_quota = 4;
+		write_quota = RWLOCK_DEFAULT_WRITE_QUOTA;
 	rwl->write_quota = write_quota;
 	result = isc_mutex_init(&rwl->lock);
 	if (result != ISC_R_SUCCESS) {
@@ -113,7 +121,9 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			if (!skip &&
 			    ((rwl->active == 0 ||
 			      (rwl->type == isc_rwlocktype_read &&
-			       rwl->granted < rwl->read_quota)))) {
+			       (rwl->writers_waiting == 0 ||
+			        rwl->granted < rwl->read_quota)))))
+			{
 				rwl->type = isc_rwlocktype_read;
 				rwl->active++;
 				rwl->granted++;
@@ -165,6 +175,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	print_lock("preunlock", rwl, type);
 #endif
 
+	INSIST(rwl->active > 0);
 	rwl->active--;
 	if (rwl->active == 0) {
 		if (rwl->type == isc_rwlocktype_read) {
@@ -192,14 +203,6 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			} else {
 				rwl->granted = 0;
 			}
-		}
-	} else {
-		if (rwl->type == isc_rwlocktype_read &&
-		    rwl->writers_waiting == 0) {
-			INSIST(rwl->granted > 0);
-			rwl->granted--;
-			if (rwl->readers_waiting > 0)
-				SIGNAL(&rwl->readable);
 		}
 	}
 
