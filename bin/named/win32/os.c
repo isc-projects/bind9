@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.5.2.3.8.1 2003/08/01 23:56:13 marka Exp $ */
+/* $Id: os.c,v 1.5.2.3.8.2 2003/08/02 00:15:12 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -44,7 +44,6 @@
 
 
 static char *pidfile = NULL;
-static char *memstats = NULL;
 
 static BOOL Initialized = FALSE;
 
@@ -220,32 +219,9 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	(void)fclose(lockfile);
 }
 
-static inline
-cleanup_memstats(void) {
-	if (memstats != NULL)
-		free(memstats);
-	memstats = NULL;
-}
-
-void
-ns_os_setmemstats(const char *filename) {
-	cleanup_memstats();
-	if (filename == NULL)
-		return;
-	memstats = malloc(strlen(filename) + 1);
-	if (memstats != NULL)
-		strcpy(memstats, filename);
-}
-
-const char *
-ns_os_getmemstats(void) {
-	return (memstats);
-}
-
 void
 ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
-	cleanup_memstats();
 	ntservice_shutdown();	/* This MUST be the last thing done */
 }

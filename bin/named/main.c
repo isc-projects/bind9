@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.1 2003/08/01 23:56:12 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.2 2003/08/02 00:15:10 marka Exp $ */
 
 #include <config.h>
 
@@ -559,10 +559,28 @@ cleanup(void) {
 	ns_log_shutdown();
 }
 
+static char *memstats = NULL;
+
+void
+ns_main_setmemstats(const char *filename) {
+	/*
+	 * Caller has to ensure locking.
+	 */
+
+	if (memstats != NULL) {
+		free(memstats);
+		memstats = NULL;
+	}
+	if (filename == NULL)
+		return;
+	memstats = malloc(strlen(filename) + 1);
+	if (memstats)
+		strcpy(memstats, filename);
+}
+
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
-	static const char *memstats;
 
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
@@ -621,8 +639,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(ns_g_mctx, stdout);
 		isc_mutex_stats(stdout);
 	}
-	memstats = ns_os_getmemstats();
-	if (memstats) {
+	if (memstats != NULL) {
 		FILE *fp = NULL;
 		result = isc_stdio_open(memstats, "w", &fp);
 		if (result == ISC_R_SUCCESS) {
@@ -632,6 +649,8 @@ main(int argc, char *argv[]) {
 		}
 	}
 	isc_mem_destroy(&ns_g_mctx);
+
+	ns_main_setmemstats(NULL);
 
 	isc_app_finish();
 
