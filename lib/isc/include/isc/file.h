@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.23 2001/07/16 17:22:16 gson Exp $ */
+/* $Id: file.h,v 1.24 2001/07/16 18:33:00 gson Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -183,6 +183,13 @@ isc_boolean_t
 isc_file_iscurrentdir(const char *filename);
 /*
  * Return ISC_TRUE iff the given file name is the current directory (".").
+ */
+
+isc_boolean_t
+isc_file_ischdiridempotent(const char *filename);
+/*
+ * Return ISC_TRUE if calling chdir(filename) multiple times will give
+ * the same result as calling it once.
  */
 
 const char *

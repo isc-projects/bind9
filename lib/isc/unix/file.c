@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.37 2001/07/16 17:26:44 gson Exp $ */
+/* $Id: file.c,v 1.38 2001/07/16 18:33:01 gson Exp $ */
 
 #include <config.h>
 
@@ -259,6 +259,16 @@ isc_boolean_t
 isc_file_iscurrentdir(const char *filename) {
 	REQUIRE(filename != NULL);
 	return (ISC_TF(filename[0] == '.' && filename[1] == '\0'));
+}
+
+isc_boolean_t
+isc_file_ischdiridempotent(const char *filename) {
+	REQUIRE(filename != NULL);
+	if (isc_file_isabsolute(filename))
+		return (ISC_TRUE);
+	if (isc_file_iscurrentdir(filename))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
 }
 
 const char *
