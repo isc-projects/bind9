@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.61 2001/09/19 23:08:19 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.62 2001/10/11 00:02:34 gson Exp $ */
 
 #include <config.h>
 
@@ -605,13 +605,7 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 }
 
 static isc_boolean_t
-listenon_is_ip6_none(ns_listenlist_t *p) {
-	ns_listenelt_t *elt;
-	if (ISC_LIST_EMPTY(p->elts))
-		return (ISC_TRUE); /* No listen-on-v6 statements */
-	elt = ISC_LIST_HEAD(p->elts);
-	if (ISC_LIST_NEXT(elt, link) != NULL)
-		return (ISC_FALSE); /* More than one listen-on-v6 stmt */
+listenon_is_ip6_none(ns_listenelt_t *elt) {
 	if (elt->acl->length == 0)
 		return (ISC_TRUE); /* listen-on-v6 { } */
 	if (elt->acl->length > 1)
@@ -623,20 +617,12 @@ listenon_is_ip6_none(ns_listenlist_t *p) {
 }
 
 static isc_boolean_t
-listenon_is_ip6_any(ns_listenlist_t *p, in_port_t *portp) {
-	ns_listenelt_t *elt;
-	if (ISC_LIST_EMPTY(p->elts))
-		return (ISC_FALSE); /* No listen-on-v6 statements */
-	elt = ISC_LIST_HEAD(p->elts);
-	if (ISC_LIST_NEXT(elt, link) != NULL)
-		return (ISC_FALSE); /* More than one listen-on-v6 stmt */
+listenon_is_ip6_any(ns_listenelt_t *elt) {
 	if (elt->acl->length != 1)
 		return (ISC_FALSE);
 	if (elt->acl->elements[0].negative == ISC_FALSE &&
-	    elt->acl->elements[0].type == dns_aclelementtype_any) {
-		*portp = elt->port;
+	    elt->acl->elements[0].type == dns_aclelementtype_any)
 		return (ISC_TRUE);  /* listen-on-v6 { any; } */
-	}
 	return (ISC_FALSE); /* All others */
 }
 
@@ -646,33 +632,41 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 	ns_interface_t *ifp;
 	isc_sockaddr_t listen_addr;
 	struct in6_addr in6a;
-	in_port_t port;
+	ns_listenelt_t *le;
 
-	if (listenon_is_ip6_none(mgr->listenon6))
-		return;
-
-	if (! listenon_is_ip6_any(mgr->listenon6, &port)) {
-		isc_log_write(IFMGR_COMMON_LOGARGS,
-		      ISC_LOG_ERROR,
-		      "bad IPv6 listen-on list: must be 'any' or 'none'");
-		return;
-	}
-
-	in6a = in6addr_any;
-	isc_sockaddr_fromin6(&listen_addr, &in6a, port);
-
-	ifp = find_matching_interface(mgr, &listen_addr);
-	if (ifp != NULL) {
-		ifp->generation = mgr->generation;
-	} else {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-			      "listening on IPv6 interfaces, port %u", port);
-		result = ns_interface_setup(mgr, &listen_addr, "<any>", &ifp);
-		if (result != ISC_R_SUCCESS) {
+	for (le = ISC_LIST_HEAD(mgr->listenon6->elts);
+	     le != NULL;
+	     le = ISC_LIST_NEXT(le, link))
+	{
+		if (listenon_is_ip6_none(le))
+			continue;
+		if (! listenon_is_ip6_any(le)) {
 			isc_log_write(IFMGR_COMMON_LOGARGS,
 				      ISC_LOG_ERROR,
-				      "listening on IPv6 interfaces failed");
-			/* Continue. */
+				      "bad IPv6 listen-on list: "
+				      "must be 'any' or 'none'");
+			return;
+		}
+
+		in6a = in6addr_any;
+		isc_sockaddr_fromin6(&listen_addr, &in6a, le->port);
+
+		ifp = find_matching_interface(mgr, &listen_addr);
+		if (ifp != NULL) {
+			ifp->generation = mgr->generation;
+		} else {
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+				      "listening on IPv6 interfaces, port %u",
+				      le->port);
+			result = ns_interface_setup(mgr, &listen_addr,
+						    "<any>", &ifp);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(IFMGR_COMMON_LOGARGS,
+					      ISC_LOG_ERROR,
+					      "listening on IPv6 interfaces "
+					      "failed");
+				/* Continue. */
+			}
 		}
 	}
 }
