@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.80 
+# From configure.in Revision: 1.82 
 
 
 
@@ -2302,14 +2302,14 @@ fi
 rm -f conftest*
 
 
-echo $ac_n "checking for gethostbyadd(const void *,...)""... $ac_c" 1>&6
-echo "configure:2307: checking for gethostbyadd(const void *,...)" >&5
+echo $ac_n "checking for gethostbyadd(const void *, size_t, ...)""... $ac_c" 1>&6
+echo "configure:2307: checking for gethostbyadd(const void *, size_t, ...)" >&5
 cat > conftest.$ac_ext <<EOF
 #line 2309 "configure"
 #include "confdefs.h"
 
 #include <netdb.h>
-struct hostent *gethostbyaddr(const void *, int, int);
+struct hostent *gethostbyaddr(const void *, size_t, int);
 int main() {
 return(0);
 ; return 0; }
