@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.3 2000/11/18 03:01:09 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.4 2000/11/22 00:11:30 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -485,9 +485,6 @@ opensslrsa_fromfile(dst_key_t *key, const isc_uint16_t id,
 	key->key_id = dst_region_computeid(&r, key->key_alg);
 
 	if (key->key_id != id)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
-
-	if (RSA_check_key(rsa) != 1)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	return (ISC_R_SUCCESS);
