@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.294 2001/03/05 17:20:48 halley Exp $ */
+/* $Id: server.c,v 1.295 2001/03/06 01:57:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1692,7 +1692,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		cfg_obj_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		(void)cfg_map_get(options, "listen-on", &clistenon);
+		(void)cfg_map_get(options, "listen-on-v6", &clistenon);
 		if (clistenon != NULL) {
 			result = ns_listenlist_fromconfig(clistenon,
 							  config,
