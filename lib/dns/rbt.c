@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.42 1999/04/17 15:19:45 tale Exp $ */
+/* $Id: rbt.c,v 1.43 1999/04/17 15:43:10 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -293,7 +293,7 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 	dns_name_init(&nodename, NULL);
 
 	/*
-	 * XXX Is this too devilish, initializing name like this?
+	 * XXX DCL Is this too devilish, initializing name like this?
 	 */
 	result = dns_name_concatenate(NULL, NULL, name, NULL);
 	if (result != DNS_R_SUCCESS)
@@ -307,7 +307,8 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 			break;
 	}
 
-	if (result == DNS_R_SUCCESS && include_chain_end) {
+	if (result == DNS_R_SUCCESS &&
+	    include_chain_end && chain->end != NULL) {
 		NODENAME(chain->end, &nodename);
 		result = dns_name_concatenate(&nodename, name, name, NULL);
 	}
@@ -1849,7 +1850,15 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 	REQUIRE(VALID_CHAIN(chain));
 
 	if (name != NULL) {
-		NODENAME(chain->end, name);
+		if (chain->end != NULL)
+			NODENAME(chain->end, name);
+		else
+			/*
+			 * Any offsets are zapped by this call, but they
+			 * would have been redirected anyway if there
+			 * was a chain_end.
+			 */
+			dns_name_init(name, NULL);
 
 		if (chain->level_count == 0) {
 			/*
