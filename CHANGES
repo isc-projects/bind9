@@ -1,3 +1,6 @@
+ 851.	[bug]		Handle responses from servers which do not know
+			about IXFR.
+
  851.	[cleanup]	support-ixfr is obsolete, use request-ixfr.
 
  850.	[bug]		dns_rbt_findnode() would not find nodes that were
