@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.9 2001/11/13 02:52:10 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.10 2001/12/13 06:50:59 marka Exp $ */
 
 #include <config.h>
 
@@ -857,7 +857,6 @@ options_clauses[] = {
 
 static cfg_clausedef_t
 view_clauses[] = {
-	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
@@ -912,6 +911,7 @@ zone_clauses[] = {
 	{ "allow-query", &cfg_type_bracketed_aml, 0 },
 	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
 	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
+	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
 	{ "notify", &cfg_type_notifytype, 0 },
 	{ "also-notify", &cfg_type_portiplist, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
