@@ -164,7 +164,7 @@ static void
 usage(void) {
 	fprintf(stderr,
 		"usage: named [-c conffile] [-d debuglevel] [-f] [-N number_of_cpus]\n"
-		"             [-p port] ] [-s] [-t chrootdir] [-u username]\n");
+		"             [-p port] [-s] [-t chrootdir] [-u username]\n");
 }
 
 static void 
