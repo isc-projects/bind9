@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.104 2001/01/16 22:47:56 bwelling Exp $
+ * $Id: tsig.c,v 1.105 2001/01/22 20:27:04 bwelling Exp $
  */
 
 #include <config.h>
@@ -255,7 +255,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME) && length > 0)
 		return (DNS_R_BADALG);
 
-	if (length > 0) {
+	if (secret != NULL) {
 		isc_buffer_t b;
 
 		isc_buffer_init(&b, secret, length);
