@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.32 2001/01/09 21:57:42 bwelling Exp $ */
+/* $Id: types.h,v 1.32.2.1 2002/08/06 02:20:39 marka Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -78,6 +78,7 @@ typedef struct isc_socketevent		isc_socketevent_t;
 typedef struct isc_socketmgr		isc_socketmgr_t;
 typedef struct isc_symtab		isc_symtab_t;
 typedef struct isc_task			isc_task_t;
+typedef ISC_LIST(isc_task_t)		isc_tasklist_t;
 typedef struct isc_taskmgr		isc_taskmgr_t;
 typedef struct isc_textregion		isc_textregion_t;
 typedef struct isc_time			isc_time_t;
