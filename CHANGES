@@ -1,4 +1,7 @@
 
+ 646.	[bug]		The UnixWare ISC_PLATFORM_FIXIN6INADDR fix in isc/net.h
+			didn't _cleanly_ fix the problem it was trying to fix.
+
  645.	[port]		BSD/OS 3.0 needs pthread_init(). [RT #603]
 
  644.	[bug]		#622 needed more work. [RT #562]
