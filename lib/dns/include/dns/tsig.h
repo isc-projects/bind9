@@ -43,6 +43,7 @@ struct dns_tsigkey {
 	dst_key_t		*key;		/* Key */
 	dns_name_t		name;		/* Key name */
 	dns_name_t		algorithm;	/* Algorithm name */
+	isc_boolean_t		generated;	/* was this generated? */
 	dst_key_t		*creator;	/* key that created secret */
 	isc_mutex_t		lock;
 	/* Locked */
@@ -56,8 +57,8 @@ struct dns_tsigkey {
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
-		   unsigned char *secret, int length, dst_key_t *creator,
-		   isc_mem_t *mctx, dns_tsigkey_t **key);
+		   unsigned char *secret, int length, isc_boolean_t generated,
+		   dst_key_t *creator, isc_mem_t *mctx, dns_tsigkey_t **key);
 /*
  *	Creates a tsig key structure pointed to by 'key'.
  *

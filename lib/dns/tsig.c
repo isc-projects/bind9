@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.20 1999/10/19 15:34:39 bwelling Exp $
+ * $Id: tsig.c,v 1.21 1999/10/25 20:55:31 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -62,7 +62,8 @@ dns_name_t *dns_tsig_hmacmd5_name = NULL;
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
-		   unsigned char *secret, int length, dst_key_t *creator,
+		   unsigned char *secret, int length, isc_boolean_t generated,
+		   dst_key_t *creator,
 		   isc_mem_t *mctx, dns_tsigkey_t **key)
 {
 	isc_buffer_t b, nameb;
@@ -138,6 +139,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		tkey->key = NULL;
 
 	tkey->refs = 0;
+	tkey->generated = generated;
 	tkey->creator = creator;
 	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
@@ -568,7 +570,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 		 * by calling dns_tsigkey_empty()
 		 */
 		ret = dns_tsigkey_create(keyname, &tsig->algorithm, NULL, 0,
-					 NULL, mctx, &msg->tsigkey);
+					 ISC_FALSE, NULL, mctx, &msg->tsigkey);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_struct;
 		return (DNS_R_TSIGVERIFYFAILURE);
@@ -739,7 +741,7 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	isc_mem_t *mctx;
-	isc_uint16_t addcount;
+	isc_uint16_t addcount, id;
 	isc_boolean_t has_tsig = ISC_FALSE;
 
 	REQUIRE(source != NULL);
@@ -829,7 +831,9 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 	}
 
-	/* XXX Put in the original id */
+	/* Put in the original id */
+	id = htons(tsig->originalid);
+	memcpy(&header[0], &id, 2);
 
 	/* Digest the modified header */
 	header_r.base = (unsigned char *) header;
