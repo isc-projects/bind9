@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.114 2000/05/14 20:52:34 gson Exp $ */
+/* $Id: zone.c,v 1.115 2000/05/14 23:23:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1461,66 +1461,6 @@ dns_zone_unmount(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	/*XXX MPA*/
 }
-
-#ifdef notyet
-/*
- * For reference only.  Use dns_zonemgr_managezone() instead.
- */
-static isc_result_t
-dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
-#if 1
-	REQUIRE(DNS_ZONE_VALID(zone));
-	(void)tmgr;
-	dns_zone_maintenance(zone);
-	return (ISC_R_SUCCESS);
-#else
-	isc_result_t result;
-
-	/*
-	 * XXXRTH  Zones do not have resolvers!!!!
-	 */
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(zone->task == NULL);
-
-	result = isc_task_create(tmgr, 0, &zone->task);
-	if (result != ISC_R_SUCCESS) {
-		/* XXX */
-		return (ISC_R_UNEXPECTED);
-	}
-	result = isc_task_onshutdown(zone->task, zone_shutdown, zone);
-	if (result != ISC_R_SUCCESS) {
-		/* XXX */
-		return (ISC_R_UNEXPECTED);
-	}
-	if (zone->view->res == NULL) {
-		isc_socket_t *s;
-		dns_dispatch_t *dispatch;
-
-		RUNTIME_CHECK(isc_socketmgr_create(zone->mctx, &zone->socketmgr)
-			      == ISC_R_SUCCESS);
-		s = NULL;
-		RUNTIME_CHECK(isc_socket_create(zone->socketmgr, PF_INET,
-			      isc_sockettype_udp, &s) == ISC_R_SUCCESS);
-		dispatch = NULL;
-		RUNTIME_CHECK(dns_dispatch_create(zone->mctx, s, zone->task,
-						  4096, 1000, 1000, 17, 19,
-						  &dispatch) == ISC_R_SUCCESS);
-		result = dns_resolver_create(zone->mctx, tmgr, 10, zone->timgr,
-				             zone->rdclass, dispatch,
-					     &zone->view->res); 
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
-		dns_dispatch_detach(&dispatch);
-		isc_socket_detach(&s);
-	}
-
-	dns_zone_maintenance(zone);
-	return (ISC_R_SUCCESS);
-#endif
-}
-#endif
 
 void
 dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
