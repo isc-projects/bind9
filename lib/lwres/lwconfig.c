@@ -15,23 +15,23 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.15 2000/06/22 21:59:32 tale Exp $ */
+/* $Id: lwconfig.c,v 1.15.2.1 2000/07/10 20:52:26 gson Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
  ***
  *** entry points are:
- ***	lwres_conf_init(lwres_context_t *ctx, lwres_conf_t *confdata)
- ***		intializes data structure for subsequent parsing.
+ ***	lwres_conf_init(lwres_context_t *ctx)
+ ***		intializes data structure for subsequent config parsing.
  ***
- ***	lwres_conf_parse(const char *filename, lwres_conf_t *confdata)
+ ***	lwres_conf_parse(lwres_context_t *ctx, const char *filename)
  ***		parses a file and fills in the data structure.
  ***
- ***	lwres_conf_print(FILE *fp, lwres_conf_t *confdata)
- ***		prints the data structure to the FILE.
+ ***	lwres_conf_print(lwres_context_t *ctx, FILE *fp)
+ ***		prints the config data structure to the FILE.
  ***
- ***	lwres_conf_clear(lwres_conf_t *confdata)
- ***		frees up all the internal memory used by the data
+ ***	lwres_conf_clear(lwres_context_t *ctx)
+ ***		frees up all the internal memory used by the config data
  ***		 structure, returning it to the lwres_context_t.
  ***
  ***/

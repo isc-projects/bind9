@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.38 2000/06/23 03:13:26 tale Exp $ */
+/* $Id: lwres.h,v 1.38.2.1 2000/07/10 20:51:58 gson Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -414,31 +414,25 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
 lwres_result_t
 lwres_conf_parse(lwres_context_t *ctx, const char *filename);
 /*
- * parses a resolv.conf-format file and puts the results into *confdata;
+ * parses a resolv.conf-format file and stores the results in the structure
+ * pointed to by *ctx.
  *
  * Requires:
- *	confdata != NULL
+ *	ctx != NULL
  *	filename != NULL && strlen(filename) > 0
  *
  * Returns:
- *	LWRES_R_SUCCESS on a succesfull parse.
+ *	LWRES_R_SUCCESS on a successful parse.
  *	Anything else on error.
- */
-
-void
-lwres_conf_free(lwres_context_t *ctx);
-/*
- * Returns the data in confdata to the system.
- *
- * Requires:
- *	confdata != NULL
- *	that confdata had been previously passed to lwres_conf_parse()
  */
 
 lwres_result_t
 lwres_conf_print(lwres_context_t *ctx, FILE *fp);
 /*
  * Prints a resolv.conf-format of confdata output to fp.
+ *
+ * Requires:
+ *	ctx != NULL
  */
 
 void
@@ -446,6 +440,9 @@ lwres_conf_init(lwres_context_t *ctx);
 /*
  * sets all internal fields to a default state. Used to initialize a new
  * lwres_conf_t structure (not reset a used on).
+ *
+ * Requires:
+ *	ctx != NULL
  */
 
 void
@@ -453,6 +450,9 @@ lwres_conf_clear(lwres_context_t *ctx);
 /*
  * frees all internally allocated memory in confdata. Uses the memory 
  * routines supplied by ctx.
+ *
+ * Requires:
+ *	ctx != NULL
  */
 
 lwres_conf_t *
@@ -461,6 +461,9 @@ lwres_conf_get(lwres_context_t *ctx);
  * returns a pointer to the current config structure.
  * Be extremely cautions in modifying the contents of this structure; it
  * needs an API to return the various bits of data, walk lists, etc.
+ *
+ * Requires:
+ *	ctx != NULL
  */
 
 /*
