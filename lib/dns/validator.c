@@ -759,7 +759,7 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY))
 	{
-		dns_rdataset_t *rdataset, *sigrdataset;
+		dns_rdataset_t *rdataset, *sigrdataset = NULL;
 
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
