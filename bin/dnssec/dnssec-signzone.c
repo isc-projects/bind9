@@ -186,7 +186,7 @@ iszonekey(signer_key_t *key, dns_db_t *db) {
 	isc_buffer_t b;
 	isc_result_t result;
 
-	isc_buffer_init(&b, origin, sizeof(origin), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&b, origin, sizeof(origin), ISC_BUFFERTYPE_TEXT);
 	result = dns_name_totext(dns_db_origin(db), ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
 
@@ -223,7 +223,7 @@ keythatsigned(dns_rdata_generic_sig_t *sig) {
 		check_result(ISC_R_FAILURE, "isc_mem_get");
 
 	result = dst_key_fromfile(keyname, sig->keyid, sig->algorithm,
-				  DST_TYPE_PRIVATE, mctx, &pubkey);
+				  DST_TYPE_PRIVATE, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		key->key = privkey;
 		dst_key_free(pubkey);
