@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.64 2000/09/20 00:51:49 gson Exp $ */
+/* $Id: update.c,v 1.65 2000/09/29 03:25:23 marka Exp $ */
 
 #include <config.h>
 
@@ -2341,6 +2341,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	isc_log_write(UPDATE_DEBUG_LOGARGS, "committing update transaction");
 	dns_db_closeversion(db, &ver, ISC_TRUE);
 
+	/*
+	 * Mark the zone as dirty so that it will be written to disk.
+	 */
+	dns_zone_markdirty(zone);
 
 	/*
 	 * Notify slaves of the change we just made.
