@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.97 2001/01/09 21:53:43 bwelling Exp $ */
+/* $Id: zone.h,v 1.98 2001/01/18 23:29:31 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1304,6 +1304,13 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
  * Requires:
  * 	'zone' to be valid initialised zone.
  *	'dialup' to be a valid dialup type.
+ */
+
+void
+dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...);
+/*
+ * Log the message 'msg...' at 'level', including text that identifies
+ * the message as applying to 'zone'.
  */
 
 ISC_LANG_ENDDECLS
