@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.16 2000/02/26 19:57:01 tale Exp $ */
+/* $Id: log.c,v 1.17 2000/03/01 17:31:56 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -43,9 +43,10 @@
 #define LCFG_MAGIC		0x4C636667U	/* Lcfg. */
 #define VALID_CONFIG(lcfg)	((lcfg) != NULL && (lcfg)->magic == LCFG_MAGIC)
 
+/*
+ * XXXDCL make dynamic?
+ */
 #define LOG_BUFFER_SIZE	(8 * 1024)
-
-typedef struct isc_logchannel isc_logchannel_t;
 
 /*
  * This is the structure that holds each named channel.  A simple linked
@@ -56,14 +57,15 @@ typedef struct isc_logchannel isc_logchannel_t;
  * from the head of the list are only done when isc_log_usechannel() is
  * called, which should also be very infrequent.
  */
+typedef struct isc_logchannel isc_logchannel_t;
+
 struct isc_logchannel {
-	char *			name;
-	unsigned int		type;
-	int 			level;
-	unsigned int		flags;
-	isc_logdestination_t 	destination;
-	/* XXXDCL should be an ISC_LINK, so this can be an ISC_LIST */
-	isc_logchannel_t *	next;
+	char *				name;
+	unsigned int			type;
+	int 				level;
+	unsigned int			flags;
+	isc_logdestination_t 		destination;
+	ISC_LINK(isc_logchannel_t)	link;
 };
 
 /*
@@ -77,10 +79,9 @@ struct isc_logchannel {
 typedef struct isc_logchannellist isc_logchannellist_t;
 
 struct isc_logchannellist {
-	isc_logmodule_t *	module;
-	isc_logchannel_t *	channel;
-	/* XXXDCL should be an ISC_LINK, so this can be an ISC_LIST */
-	isc_logchannellist_t *	next;
+	isc_logmodule_t *		module;
+	isc_logchannel_t *		channel;
+	ISC_LINK(isc_logchannellist_t)	link;
 };
 
 /*
@@ -96,13 +97,17 @@ struct isc_logmessage {
 };
 
 /*
- * XXX describe
+ * The isc_logconfig structure is used to store the configurable information
+ * about where messages are actually supposed to be sent -- the information
+ * that could changed based on some configuration file, as opposed to the
+ * the category/module specification of isc_log_[v]write[1] that is compiled
+ * into a program, or the debug_level which is dynamic state information.
  */
 struct isc_logconfig {
 	unsigned int			magic;
 	isc_log_t *			lctx;
-	isc_logchannel_t *		channels;
-	isc_logchannellist_t **		channellists;
+	ISC_LIST(isc_logchannel_t)	channels;
+	ISC_LIST(isc_logchannellist_t) *channellists;
 	unsigned int			channellist_count;
 	unsigned int			duplicate_interval;
 };
@@ -117,12 +122,12 @@ struct isc_logconfig {
  * Unfortunately, the lock cannot guard against a _different_ logging
  * context in the same program competing for syslog's attention.  Thus
  * There Can Be Only One, but this is not enforced.
- * XXX enforce it?
+ * XXXDCL enforce it?
  *
  * Note that the category and module information is not locked.
  * This is because in the usual case, only one isc_log_t is ever created
  * in a program, and the category/module registration happens only once.
- * XXX it might be wise to add more locking overall.
+ * XXXDCL it might be wise to add more locking overall.
  */
 struct isc_log {
 	/* Not locked. */
@@ -131,23 +136,23 @@ struct isc_log {
 	unsigned int			category_count;
 	unsigned int			module_count;
 	int				debug_level;
-	char 				buffer[LOG_BUFFER_SIZE];
-	ISC_LIST(isc_logmessage_t)	messages;
 	isc_mutex_t			lock;
 	/* Locked by isc_log lock. */
 	isc_logconfig_t * 		logconfig;
+	char 				buffer[LOG_BUFFER_SIZE];
+	ISC_LIST(isc_logmessage_t)	messages;
 };
 
 /*
  * Used when ISC_LOG_PRINTLEVEL is enabled for a channel.
  */
-static char *log_level_strings[] = {
+static const char *log_level_strings[] = {
 	"debug", "info", "notice", "warning", "error", "critical"
 };
 
 /*
  * Used to convert ISC_LOG_* priorities into syslog priorities.
- * XXXDCL NT
+ * XXXDCL This will need modification for NT.
  */
 static const int syslog_map[] = {
 	LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING, LOG_ERR, LOG_CRIT
@@ -168,7 +173,8 @@ isc_logcategory_t isc_categories[] = {
 
 /*
  * This essentially static structure must be filled in at run time,
- * so that the default_debug channel's structure can be addressed.
+ * because its channel member is pointed to a channel that is created
+ * dynamically with isc_log_createchannel.
  */
 isc_logchannellist_t default_channel;
 
@@ -214,12 +220,12 @@ isc_result_t
 isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	isc_log_t *lctx;
 	isc_logconfig_t *lcfg = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(lctxp != NULL && *lctxp == NULL);
 
-	lctx = (isc_log_t *)isc_mem_get(mctx, sizeof(*lctx));
+	lctx = isc_mem_get(mctx, sizeof(*lctx));
 	if (lctx != NULL) {
 		lctx->mctx = mctx;
 		lctx->category_count = 0;
@@ -268,14 +274,15 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	REQUIRE(lcfgp != NULL && *lcfgp == NULL);
 	REQUIRE(VALID_CONTEXT(lctx));
 
-	lcfg = (isc_logconfig_t *)isc_mem_get(lctx->mctx, sizeof(*lcfg));
+	lcfg = isc_mem_get(lctx->mctx, sizeof(*lcfg));
 
 	if (lcfg != NULL) {
 		lcfg->lctx = lctx;
-		lcfg->channels = NULL;
 		lcfg->channellists = NULL;
 		lcfg->channellist_count = 0;
 		lcfg->duplicate_interval = 0;
+
+		ISC_LIST_INIT(lcfg->channels);
 
 		/*
 		 * Normally the magic number is the last thing set in the
@@ -312,10 +319,10 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	}
 
 	/*
-	 * Set the default category's channel to default_stderr.
-	 * XXX I find this odd.
+	 * Set the default category's channel to default_stderr, which
+	 * is at the head of the channels list because it was just created.
 	 */
-	default_channel.channel = lcfg->channels;
+	default_channel.channel = ISC_LIST_HEAD(lcfg->channels);
 
 	if (result == ISC_R_SUCCESS) {
 		destination.file.stream = stderr;
@@ -326,7 +333,8 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 					       ISC_LOG_TOFILEDESC,
 					       ISC_LOG_DYNAMIC,
 					       &destination,
-					       ISC_LOG_PRINTTIME);
+					       ISC_LOG_PRINTTIME|
+					       ISC_LOG_DEBUGONLY);
 	}
 
 	if (result == ISC_R_SUCCESS)
@@ -347,6 +355,10 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 
 isc_logconfig_t *
 isc_logconfig_get(isc_log_t *lctx) {
+	REQUIRE(VALID_CONTEXT(lctx));
+
+	ENSURE(lctx->logconfig != NULL);
+
 	return (lctx->logconfig);
 }
 
@@ -423,8 +435,8 @@ void
 isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	isc_logconfig_t *lcfg;
 	isc_mem_t *mctx;
-	isc_logchannel_t *channel, *next_channel;
-	isc_logchannellist_t *item, *next_item;
+	isc_logchannel_t *channel;
+	isc_logchannellist_t *item;
 	unsigned int i;
 
 	REQUIRE(lcfgp != NULL && VALID_CONFIG(*lcfgp));
@@ -439,9 +451,8 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 
 	mctx = lcfg->lctx->mctx;
 
-	for (channel = lcfg->channels; channel != NULL;
-	     channel = next_channel) {
-		next_channel = channel->next;
+	while ((channel = ISC_LIST_HEAD(lcfg->channels)) != NULL) {
+		ISC_LIST_UNLINK(lcfg->channels, channel, link);
 
 		if (channel->type == ISC_LOG_TOFILE) {
 		    isc_mem_free(mctx, FILE_NAME(channel));
@@ -455,14 +466,14 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	}
 
 	for (i = 0; i < lcfg->channellist_count; i++)
-		for (item = lcfg->channellists[i]; item != NULL;
-		     item = next_item) {
-		     next_item = item->next;
-		     isc_mem_put(mctx, item, sizeof(*item));
+		while ((item = ISC_LIST_HEAD(lcfg->channellists[i])) != NULL) {
+			ISC_LIST_UNLINK(lcfg->channellists[i], item, link);
+			isc_mem_put(mctx, item, sizeof(*item));
 		}
 
 	isc_mem_put(mctx, lcfg->channellists,
-		    lcfg->channellist_count * sizeof(isc_logchannellist_t **));
+		    lcfg->channellist_count *
+		    sizeof(ISC_LIST(isc_logchannellist_t)));
 
 	lcfg->duplicate_interval = 0;
 	lcfg->magic = 0;
@@ -526,13 +537,13 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		type == ISC_LOG_TOFILEDESC || type == ISC_LOG_TONULL);
 	REQUIRE(destination != NULL || type == ISC_LOG_TONULL);
 	REQUIRE(level >= ISC_LOG_CRITICAL);
-	REQUIRE((flags & ~ISC_LOG_PRINTALL) == 0);
+	REQUIRE((flags & ~(ISC_LOG_PRINTALL | ISC_LOG_DEBUGONLY)) == 0);
 
 	/* XXXDCL find duplicate names? */
 
 	mctx = lcfg->lctx->mctx;
 
-	channel = (isc_logchannel_t *)isc_mem_get(mctx, sizeof(*channel));
+	channel = isc_mem_get(mctx, sizeof(*channel));
 	if (channel == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -581,8 +592,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		return (ISC_R_UNEXPECTED);
 	}
 	
-	channel->next = lcfg->channels;
-	lcfg->channels = channel;
+	ISC_LIST_PREPEND(lcfg->channels, channel, link);
 
 	/*
 	 * If default_stderr was redefined, make the default category
@@ -611,8 +621,8 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 	REQUIRE(category == NULL || category->id < lctx->category_count);
 	REQUIRE(module == NULL || module->id < lctx->module_count);
 
-	for (channel = lcfg->channels; channel != NULL;
-	     channel = channel->next)
+	for (channel = ISC_LIST_HEAD(lcfg->channels); channel != NULL;
+	     channel = ISC_LIST_NEXT(channel, link))
 		if (strcmp(name, channel->name) == 0)
 			break;
 
@@ -732,8 +742,9 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 
 	REQUIRE(VALID_CONTEXT(lctx));
 
-	for (channel = lctx->logconfig->channels; channel != NULL;
-	     channel = channel->next)
+	for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
+	     channel != NULL;
+	     channel = ISC_LIST_NEXT(channel, link))
 
 		if (channel->type == ISC_LOG_TOFILE &&
 		    FILE_STREAM(channel) != NULL) {
@@ -769,16 +780,13 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	new_item = (isc_logchannellist_t *)isc_mem_get(lctx->mctx,
-						       sizeof(*new_item));
+	new_item = isc_mem_get(lctx->mctx, sizeof(*new_item));
 	if (new_item == NULL)
 		return (ISC_R_NOMEMORY);
 
 	new_item->channel = channel;
 	new_item->module = module;
-	new_item->next = lcfg->channellists[category_id];
-
-	lcfg->channellists[category_id] = new_item;
+	ISC_LIST_PREPEND(lcfg->channellists[category_id], new_item, link);
 
 	return (ISC_R_SUCCESS);
 }
@@ -787,7 +795,7 @@ static isc_result_t
 sync_channellist(isc_logconfig_t *lcfg) {
 	int bytes;
 	isc_log_t *lctx;
-	isc_logchannellist_t **lists;
+	void *lists;
 	
 	REQUIRE(VALID_CONFIG(lcfg));
 
@@ -798,9 +806,9 @@ sync_channellist(isc_logconfig_t *lcfg) {
 	if (lctx->category_count == lcfg->channellist_count)
 		return (ISC_R_SUCCESS);
 
-	bytes = lctx->category_count *  sizeof(isc_logchannellist_t *);
+	bytes = lctx->category_count * sizeof(ISC_LIST(isc_logchannellist_t));
 
-	lists = (isc_logchannellist_t **)isc_mem_get(lctx->mctx, bytes);
+	lists = isc_mem_get(lctx->mctx, bytes);
 
 	if (lists == NULL)
 		return (ISC_R_NOMEMORY);
@@ -809,7 +817,7 @@ sync_channellist(isc_logconfig_t *lcfg) {
 
 	if (lcfg->channellist_count != 0) {
 		bytes = lcfg->channellist_count *
-			sizeof(isc_logchannellist_t *);
+			sizeof(ISC_LIST(isc_logchannellist_t));
 		memcpy(lists, lcfg->channellists, bytes);
 		isc_mem_put(lctx->mctx, lcfg->channellists, bytes);
 	}
@@ -872,9 +880,6 @@ roll_log(isc_logchannel_t *channel) {
 	char new[FILENAME_MAX + 1];
 	char *path;
 
-	/*
-	 * XXXDCL versions = 0 & versions == ISC_LOG_ROLLINFINITE do not work.
-	 */
 	/*
 	 * Do nothing (not even excess version trimming) if ISC_LOG_ROLLNEVER
 	 * is specified.  Apparently complete external control over the log
@@ -1031,11 +1036,11 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 	lcfg = lctx->logconfig;
 
-	category_channels = lcfg->channellists[category->id];
+	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
 
 	/*
-	 * XXX duplicate filtering (do not write multiple times to same source
-	 * via various channels)
+	 * XXXDCL add duplicate filtering? (To not write multiple times to
+	 * the same source via various channels).
 	 */
 	do {
 		/*
@@ -1046,12 +1051,13 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			break;
 
 		if (category_channels == NULL && ! matched &&
-		    category_channels != lcfg->channellists[0])
+		    category_channels != ISC_LIST_HEAD(lcfg->channellists[0]))
 			/*
 			 * No category/module pair was explicitly configured.
 			 * Try the category named "default".
 			 */
-			category_channels = lcfg->channellists[0];
+			category_channels =
+				ISC_LIST_HEAD(lcfg->channellists[0]);
 
 		if (category_channels == NULL && ! matched)
 			/*
@@ -1063,14 +1069,19 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
  
 		if (category_channels->module != NULL &&
 		    category_channels->module != module) {
-			category_channels = category_channels->next;
+			category_channels = ISC_LIST_NEXT(category_channels,
+							  link);
 			continue;
 		}
 
 		matched = ISC_TRUE;
 
 		channel = category_channels->channel;
-		category_channels = category_channels->next;
+		category_channels = ISC_LIST_NEXT(category_channels, link);
+
+		if (((channel->flags & ISC_LOG_DEBUGONLY) > 0) &&
+		    lctx->debug_level == 0)
+			continue;
 
 		if (channel->level == ISC_LOG_DYNAMIC) {
 			if (lctx->debug_level < level)
