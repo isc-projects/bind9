@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.6 2001/03/22 00:07:02 bwelling Exp $ */
+/* $Id: keycreate.c,v 1.7 2001/04/16 17:23:34 gson Exp $ */
 
 #include <config.h>
 
@@ -136,7 +136,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	unsigned char keydata[9];
 	dns_message_t *query;
 	dns_request_t *request;
-	char keystr[] = "0123456789ab";
+	static char keystr[] = "0123456789ab";
 
 	isc_event_free(&event);
 
