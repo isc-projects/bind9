@@ -35,13 +35,14 @@ shift
 
 test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
 
-echo "S:`date`"
+echo "S:`date`" >&2
 echo "T:$test:1:A" >&2
 
 # Irix does not have /var/run
 test -f /var/run/system_test_ifsetup ||
 test -f /etc/system_test_ifsetup ||
     { echo "I:Interfaces not set up.  Not trying system tests." >&2;
+      echo "E:$test:`date`" >&2
       exit 0;
     }
 
