@@ -1,0 +1,27 @@
+options {
+	...
+	[ allow-notify { address_match_list }; ]
+	[ notify-forward yes_or_no; ]
+};
+
+view "view_name" [ ( in | hs | hesiod | chaos ) ] {
+	...
+	[ allow-notify { address_match_list }; ]
+	[ notify-forward yes_or_no; ]
+};
+
+zone "zone_name" {
+	type slave;
+	...
+	[ allow-notify { address_match_list };]
+	[ notify-forward yes_or_no; ]
+};
+
+allow-notify:
+	Accept notify messages which match this acl in addition to
+	the zone masters.  Zone masters implicitly do not match.
+
+notify-forward:
+	If 'yes' forward notifies which match 'allow-notify' to zone
+	masters.  If 'no' accept the notify which match 'allow-notify'
+	as if it came from a master.  Default 'no'.
