@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: win32os.c,v 1.1 2002/08/01 03:40:21 mayer Exp $ */
+/* $Id: win32os.c,v 1.2 2002/08/03 01:36:24 mayer Exp $ */
 
 #include <windows.h>
 
@@ -74,27 +74,27 @@ isc_win32os_servicepackminor(void) {
 }
 
 int
-isc_win32os_version_check(unsigned int major, unsigned int minor,
+isc_win32os_versioncheck(unsigned int major, unsigned int minor,
 		     unsigned int spmajor, unsigned int spminor) {
 
 	initialize_action();
 
 	if (major < isc_win32os_majorversion())
-		return (-1);
+		return (1);
 	if (major > isc_win32os_majorversion())
-		return (1);
+		return (-1);
 	if (minor < isc_win32os_minorversion())
-		return (-1);
+		return (1);
 	if (minor > isc_win32os_minorversion())
-		return (1);
+		return (-1);
 	if (spmajor < isc_win32os_servicepackmajor())
-		return (-1);
+		return (1);
 	if (spmajor > isc_win32os_servicepackmajor())
-		return (1);
-	if (spminor < isc_win32os_servicepackminor())
 		return (-1);
-	if (spminor > isc_win32os_servicepackminor())
+	if (spminor < isc_win32os_servicepackminor())
 		return (1);
+	if (spminor > isc_win32os_servicepackminor())
+		return (-1);
 
 	/* Exact */
 	return (0);

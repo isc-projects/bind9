@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: win32os.h,v 1.1 2002/08/01 03:54:30 mayer Exp $ */
+/* $Id: win32os.h,v 1.2 2002/08/03 01:36:24 mayer Exp $ */
 
 #ifndef ISC_WIN32OS_H
 #define ISC_WIN32OS_H 1
@@ -54,7 +54,7 @@ isc_win32os_servicepackminor(void);
  */
 
 int
-isc_win32os_version_check(unsigned int major, unsigned int minor,
+isc_win32os_versioncheck(unsigned int major, unsigned int minor,
 		     unsigned int updatemajor, unsigned int updateminor);
 
 /*
