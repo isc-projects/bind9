@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.389 2003/05/14 02:41:17 marka Exp $ */
+/* $Id: zone.c,v 1.390 2003/05/21 14:15:32 marka Exp $ */
 
 #include <config.h>
 
@@ -3402,6 +3402,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "refresh: retry limit for "
 				     "master %s exceeded (source %s)",
 				     master, source);
+			/* Try with TCP. */
+			goto tcp_transfer;
 		} else
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: failure trying master "
@@ -3449,6 +3451,11 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			     "refresh: unexpected rcode (%.*s) from "
 			     "master %s (source %s)", (int)rb.used, rcode,
 			     master, source);
+		/*
+		 * Perhaps AXFR/IXFR is allowed even if SOA queries arn't.
+		 */
+		if (msg->rcode == dns_rcode_refused)
+			goto tcp_transfer;
 		goto next_master;
 	}
 
