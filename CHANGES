@@ -21,6 +21,9 @@
 1292.	[contrib]	Berkeley DB 4.0 sdb implementation from
 			Nuno Miguel Rodrigues <nmr@co.sapo.pt>.
 
+1290.	[bug]		Check that system inet_pton() and inet_ntop() support
+			AF_INET6.
+
 1289.	[port]		Openserver: ifconfig.sh support.
 
 1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
