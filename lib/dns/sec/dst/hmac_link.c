@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.42 2000/08/01 01:27:52 tale Exp $
+ * $Id: hmac_link.c,v 1.43 2000/08/02 15:33:11 tale Exp $
  */
 
 #include <config.h>
@@ -81,7 +81,7 @@ hmacmd5_adddata(dst_context_t *dctx, const isc_region_t *data) {
 static isc_result_t
 hmacmd5_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_hmacmd5_t *hmacmd5ctx = dctx->opaque;
-	char *digest;
+	unsigned char *digest;
 
 	if (isc_buffer_availablelength(sig) < ISC_MD5_DIGESTLENGTH)
 		return (ISC_R_NOSPACE);
