@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1 2001/08/01 19:01:01 gson Exp $
+# $Id: tests.sh,v 1.2 2001/08/09 00:10:56 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -23,13 +23,13 @@ SYSTEMTESTTOP=..
 status=0
 
 echo "I:test master file \$INCLUDE semantics"
-$DIG +nostats include. axfr @10.53.0.1 -p 5300 >dig.out
+$DIG +nostats +nocmd include. axfr @10.53.0.1 -p 5300 >dig.out
 
 echo "I:test master file BIND 8 compatibility TTL and \$TTL semantics"
-$DIG +nostats ttl2. axfr @10.53.0.1 -p 5300 >>dig.out
+$DIG +nostats +nocmd ttl2. axfr @10.53.0.1 -p 5300 >>dig.out
 
 echo "I:test of master file RFC1035 TTL and \$TTL semantics"
-$DIG +nostats ttl2. axfr @10.53.0.1 -p 5300 >>dig.out
+$DIG +nostats +nocmd ttl2. axfr @10.53.0.1 -p 5300 >>dig.out
 
 diff dig.out knowngood.dig.out || status=1
 
