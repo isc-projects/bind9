@@ -90,6 +90,14 @@ void dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
  *	'rdclass' != dns_rdataclass_none.
  */	
 
+dns_rdataclass_t dns_zone_getclass(dns_zone_t *zone);
+/*
+ *	Returns the current zone class.
+ *
+ * Requires:
+ *	'zone' to be a valid initalised zone.
+ */
+
 void dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type);
 /*
  *	Sets the zone type. This operation can only be performed once on
@@ -713,6 +721,42 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone);
  *	ISC_FALSE if the configurations differ.
  */
 
+isc_uint32_t
+dns_zone_getidlein(dns_zone_t *zone);
+/*
+ * Requires 'zone' to be valid.
+ *
+ * Returns:
+ *	number of seconds of idle time before we abort the transfer in.
+ */
+
+void
+dns_zone_setidlein(dns_zone_t *zone, isc_uint32_t idlein);
+/*
+ *	Set the idle timeout for transfer the.
+ *	Zero set the default value, 1 hour.
+ *
+ * Requires 'zone' to be valid.
+ */
+
+isc_uint32_t
+dns_zone_getidleout(dns_zone_t *zone);
+/*
+ * Requires 'zone' to be valid.
+ *
+ * Returns:
+ *	number of seconds of idle time before we abort a transfer out.
+ */
+
+void
+dns_zone_setidleout(dns_zone_t *zone, isc_uint32_t idleout);
+/*
+ *	Set the idle timeout for transfers out.
+ *	Zero set the default value, 1 hour.
+ *
+ * Requires 'zone' to be valid.
+ */
+
 void
 dns_zone_print(dns_zone_t *zone);
 /*
@@ -756,6 +800,9 @@ dns_zonemgr_destroy(dns_zonemgr_t **zmgrp);
  * Ensures:
  *	'*zmgrp' is NULL.
  */
+
+void
+dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 
 ISC_LANG_ENDDECLS
 
