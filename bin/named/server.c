@@ -127,6 +127,7 @@ resolve_packet(isc_mem_t *mctx, dns_message_t *query, isc_buffer_t *target) {
 		return (DNS_R_UNEXPECTED);
 	type = rds->type;
 
+	ISC_LIST_UNLINK(query->sections[DNS_SECTION_QUESTION], qname, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
 
 	result = printmessage(message);
