@@ -69,8 +69,9 @@ struct dns_validator {
 	dns_keynode_t *			keynode;
 	dst_key_t *			key;
 	dns_siginfo_t *			siginfo;
-	isc_taskaction_t                action;
-	void                           *arg;
+	isc_task_t *			task;
+	isc_taskaction_t		action;
+	void *				arg;
 };
 
 #define VALIDATOR_MAGIC			0x56616c3fU	/* Val?. */
@@ -146,7 +147,38 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS) {
 			/* No matching key */
 			validator_done(val, result);
+			goto free_event;
 		}
+		LOCK(&val->lock);
+		result = validate(val, ISC_TRUE);
+		if (result != DNS_R_CONTINUE) {
+			validator_done(val, result);
+			goto free_event;
+		}
+		UNLOCK(&val->lock);
+	}
+	else
+		fprintf(stderr, "fetch_callback_validator: got %s\n",
+			dns_result_totext(devent->result));
+
+ free_event:
+	/* free stuff from the event */
+	isc_event_free(&event);
+}
+
+static void
+keyvalidated(isc_task_t *task, isc_event_t *event) {
+	dns_validatorevent_t *devent;
+	dns_validator_t *val;
+	isc_result_t result;
+
+	UNUSED(task);
+	INSIST(event->type == DNS_EVENT_VALIDATORDONE);
+	devent = (dns_validatorevent_t *)event;
+	val = devent->arg;
+
+	fprintf(stderr, "in keyvalidated\n");
+	if (devent->result == ISC_R_SUCCESS) {
 		LOCK(&val->lock);
 		result = validate(val, ISC_TRUE);
 		if (result != DNS_R_CONTINUE)
@@ -154,7 +186,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		UNLOCK(&val->lock);
 	}
 	else
-		fprintf(stderr, "fetch_callback_validator: got %s\n",
+		fprintf(stderr, "keyvalidated: got %s\n",
 			dns_result_totext(devent->result));
 	/* free stuff from the event */
 	isc_event_free(&event);
@@ -316,7 +348,36 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 			/*
 			 * We know the key but haven't validated it yet.
 			 */
-			result = ISC_R_NOTIMPLEMENTED;
+			dns_rdataset_t *frdataset, *fsigrdataset;
+			frdataset = isc_mem_get(val->view->mctx,
+						sizeof *frdataset);
+			if (frdataset == NULL)
+				return (ISC_R_NOMEMORY);
+			fsigrdataset = isc_mem_get(val->view->mctx,
+						   sizeof *fsigrdataset);
+			if (fsigrdataset == NULL) {
+				isc_mem_put(val->view->mctx, frdataset,
+					    sizeof *frdataset);
+				return (ISC_R_NOMEMORY);
+			}
+			dns_rdataset_init(frdataset);
+			dns_rdataset_init(fsigrdataset);
+			dns_rdataset_clone(&rdataset, frdataset);
+			dns_rdataset_clone(&sigrdataset, fsigrdataset);
+
+			result = dns_validator_create(val->view,
+						      &siginfo->signer,
+						      frdataset,
+						      fsigrdataset,
+						      NULL,
+						      0,
+						      val->task,
+						      keyvalidated,
+						      val,
+						      &val->keyvalidator);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+			return (DNS_R_WAIT);
 		} else {
 			/*
 			 * XXXRTH  What should we do if this is an untrusted
@@ -338,8 +399,6 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 	} else if (result == ISC_R_NOTFOUND) {
 		/*
 		 * We don't know anything about this key.
-		 *
-		 * XXX  Start a fetch.
 		 */
 		dns_rdataset_t *frdataset, *fsigrdataset;
 		frdataset = isc_mem_get(val->view->mctx, sizeof *frdataset);
@@ -525,6 +584,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 	val->fetch = NULL;
 	val->keyvalidator = NULL;
 	val->keynode = NULL;
+	val->key = NULL;
+	val->task = task;
 	val->action = action;
 	val->arg = arg;
 	val->magic = VALIDATOR_MAGIC;
