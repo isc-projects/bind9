@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.28 1999/12/01 03:55:22 gson Exp $ */
+ /* $Id: xfrin.c,v 1.29 1999/12/02 05:11:28 gson Exp $ */
 
 #include <config.h>
 
@@ -898,7 +898,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		result = ISC_RESULTCLASS_DNSRCODE + msg->rcode; /* XXX */
 		if (xfr->reqtype == dns_rdatatype_axfr)
 			FAIL(result);
-		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR\n",
+		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR",
 		       isc_result_totext(result));
 		dns_message_destroy(&msg);
 		xfr->reqtype = dns_rdatatype_axfr;
