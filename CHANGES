@@ -1,4 +1,6 @@
-1623.	[placeholder]	rt11177
+1623.	[bug]		A serial number of zero was being displayed in the
+			"sending notifies" log message when also-notify was
+			used. [RT #11177]
 
 1622.	[placeholder]	rt11156
 
