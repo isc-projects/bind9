@@ -1,6 +1,8 @@
 1476.	[port]		win32: port unreachables were blocking further i/o
 			on sockets (Windows 2000 SP2 and later).
 
+1472.	[contrib]	idnkit-1.0 from JPNIC, replaces mdnkit.
+
 1470.	[bug]		Incorrect length passed to snprintf. [RT #5966]
 
 1466.	[bug]		lwresd configuration errors resulted in memory
