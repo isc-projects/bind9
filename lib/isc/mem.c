@@ -35,7 +35,7 @@
 #define UNLOCK(l)
 #endif
 
-boolean isc_mem_debugging = ISC_FALSE;
+isc_boolean_t isc_mem_debugging = ISC_FALSE;
 
 #ifndef ISC_MEM_FILL
 	/*
