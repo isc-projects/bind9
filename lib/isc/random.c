@@ -15,12 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.15.74.2 2003/09/24 03:47:17 marka Exp $ */
+/* $Id: random.c,v 1.15.74.3 2003/10/01 01:02:42 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <time.h>		/* Required for time(). */
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include <isc/mutex.h>
 #include <isc/once.h>
