@@ -49,6 +49,7 @@
 #include <named/lwresd.h>
 #include <named/lwdclient.h>
 #include <named/server.h>
+#include <named/os.h>
 
 #define LWRESD_MAGIC		ISC_MAGIC('L', 'W', 'R', 'D')
 #define VALID_LWRESD(l)		ISC_MAGIC_VALID(l, LWRESD_MAGIC)
@@ -111,7 +112,7 @@ shutdown_lwresd(isc_task_t *task, isc_event_t *event) {
 
 
 static void
-parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t forwarders) {
+parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t *forwarders) {
 	lwres_context_t *lwctx;
 	lwres_conf_t *lwc;
 	int lwresult;
@@ -119,6 +120,7 @@ parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t forwarders) {
 	struct in6_addr ina6;
 	isc_sockaddr_t *sa;
 	int i;
+	in_port_t port;
 
 	lwctx = NULL;
 	lwresult = lwres_context_create(&lwctx, mctx, mem_alloc, mem_free,
@@ -126,7 +128,7 @@ parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t forwarders) {
 	if (lwresult != LWRES_R_SUCCESS)
 		return;
 
-	lwresult = lwres_conf_parse(lwctx, "/etc/resolv.conf");
+	lwresult = lwres_conf_parse(lwctx, lwresd_g_conffile);
 	if (lwresult != LWRES_R_SUCCESS)
 		goto out;
 
@@ -137,26 +139,31 @@ parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t forwarders) {
 	lwc = lwres_conf_get(lwctx);
 	INSIST(lwc != NULL);
 
+	if (lwresd_g_queryport == 0)
+		port = 53;
+	else
+		port = lwresd_g_queryport;
+
 	/*
 	 * Run through the list of nameservers, and set them to be our
 	 * forwarders.
 	 */
 	for (i = 0 ; i < lwc->nsnext ; i++) {
 		switch (lwc->nameservers[i].family) {
-		case AF_INET:
+		case LWRES_ADDRTYPE_V4:
 			sa = isc_mem_get(mctx, sizeof *sa);
 			INSIST(sa != NULL);
 			memcpy(&ina.s_addr, lwc->nameservers[i].address, 4);
-			isc_sockaddr_fromin(sa, &ina, 53);
-			ISC_LIST_APPEND(forwarders, sa, link);
+			isc_sockaddr_fromin(sa, &ina, port);
+			ISC_LIST_APPEND(*forwarders, sa, link);
 			sa = NULL;
 			break;
-		case AF_INET6:
+		case LWRES_ADDRTYPE_V6:
 			sa = isc_mem_get(mctx, sizeof *sa);
 			INSIST(sa != NULL);
 			memcpy(&ina6.s6_addr, lwc->nameservers[i].address, 16);
-			isc_sockaddr_fromin6(sa, &ina6, 53);
-			ISC_LIST_APPEND(forwarders, sa, link);
+			isc_sockaddr_fromin6(sa, &ina6, port);
+			ISC_LIST_APPEND(*forwarders, sa, link);
 			sa = NULL;
 			break;
 		default:
@@ -253,7 +260,7 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 	 * If we have forwarders, set them here.
 	 */
 	ISC_LIST_INIT(forwarders);
-	parse_resolv_conf(mctx, forwarders);
+	parse_resolv_conf(mctx, &forwarders);
 	if (ISC_LIST_HEAD(forwarders) != NULL) {
 		isc_sockaddr_t *sa;
 
@@ -303,6 +310,8 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 		isc_socket_detach(&sock);
 		fatal("failed to bind lwresd protocol socket", result);
 	}
+
+	ns_os_writepidfile(lwresd_g_defaultpidfile);
 
 	lwresd = isc_mem_get(mctx, sizeof(*lwresd));
 	if (lwresd == NULL)

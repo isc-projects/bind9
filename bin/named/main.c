@@ -165,11 +165,94 @@ library_unexpected_error(const char *file, int line, const char *format,
 }
 
 static void
+lwresd_usage(void) {
+	fprintf(stderr,
+		"usage: lwresd [-C conffile] [-d debuglevel] "
+		"[-f|-g] [-n number_of_cpus]\n"
+		"              [-p listen-port] [-P query-port] [-s] "
+		"[-t chrootdir] [-u username] [-i pidfile]\n");
+}
+
+static void
 usage(void) {
 	fprintf(stderr,
 		"usage: named [-c conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
 		"             [-p port] [-s] [-t chrootdir] [-u username]\n");
+}
+
+static void 
+parse_lwresd_command_line(int argc, char *argv[]) {
+	int ch;
+	unsigned int port;
+
+	isc_commandline_errprint = ISC_FALSE;
+	while ((ch = isc_commandline_parse(argc, argv,
+					   "C:d:fgi:n:p:P:st:u:")) !=
+	       -1) {
+		switch (ch) {
+		case 'C':
+			lwresd_g_conffile = isc_commandline_argument;
+			break;
+		case 'd':
+			ns_g_debuglevel = atoi(isc_commandline_argument);
+			break;
+		case 'f':
+			ns_g_foreground = ISC_TRUE;
+			break;
+		case 'g':
+			ns_g_foreground = ISC_TRUE;
+			ns_g_logstderr = ISC_TRUE;
+			break;
+		case 'i':
+			lwresd_g_defaultpidfile = isc_commandline_argument;
+			break;
+		case 'n':
+			ns_g_cpus = atoi(isc_commandline_argument);
+			if (ns_g_cpus == 0)
+				ns_g_cpus = 1;
+			break;
+		case 'p':
+			port = atoi(isc_commandline_argument);
+			if (port < 1 || port > 65535)
+				ns_main_earlyfatal("port '%s' out of range",
+						   isc_commandline_argument);
+			ns_g_port = port;
+			break;
+		case 'P':
+			port = atoi(isc_commandline_argument);
+			if (port < 1 || port > 65535)
+				ns_main_earlyfatal("port '%s' out of range",
+						   isc_commandline_argument);
+			lwresd_g_queryport = port;
+			break;
+		case 's':
+			/* XXXRTH temporary syntax */
+			want_stats = ISC_TRUE;
+			break;
+		case 't':
+			/* XXXJAB should we make a copy? */
+			ns_g_chrootdir = isc_commandline_argument;
+			break;
+		case 'u':
+			ns_g_username = isc_commandline_argument;
+			break;
+		case '?':
+			lwresd_usage();
+			ns_main_earlyfatal("unknown option '-%c'",
+					   isc_commandline_option);
+		default:
+			ns_main_earlyfatal("parsing options returned %d", ch);
+		}
+	}
+
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
+
+	if (argc > 0) {
+		lwresd_usage();
+		ns_main_earlyfatal("extra command line arguments");
+	}
 }
 
 static void 
@@ -183,8 +266,11 @@ parse_command_line(int argc, char *argv[]) {
 		s = argv[0];
 	else
 		s++;
-	if (strcmp(s, "lwresd") == 0)
+	if (strcmp(s, "lwresd") == 0) {
 		lwresd_only = ISC_TRUE;
+		parse_lwresd_command_line(argc, argv);
+		return;
+	}
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
