@@ -403,6 +403,16 @@ configure_server_acl(dns_c_ctx_t *cctx, dns_aclconfctx_t *actx, isc_mem_t *mctx,
 }
 
 static void
+configure_server_quota(dns_c_ctx_t *cctx,
+		       isc_result_t (*getquota)(dns_c_ctx_t *, isc_int32_t *),
+		       isc_quota_t *quota, int defaultvalue)
+{
+	isc_int32_t val = defaultvalue;
+	(void)(*getquota)(cctx, &val);
+	quota->max = val;
+}
+
+static void
 load_configuration(const char *filename, ns_server_t *server) {
 	isc_result_t result;
 	ns_load_t lctx;
@@ -459,7 +469,15 @@ load_configuration(const char *filename, ns_server_t *server) {
 
 	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
 			     dns_c_ctx_gettransferacl, &server->transferacl);
-
+	
+	configure_server_quota(configctx, dns_c_ctx_gettransfersout,
+			       &server->xfroutquota, 10);
+#ifdef notyet
+	configure_server_quota(configctx, dns_c_ctx_gettcpclients,
+			       &server->tcpquota, 100);
+	configure_server_quota(configctx, dns_c_ctx_getrecursiveclients,
+			       &server->recursionquota, 100);
+#endif
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
