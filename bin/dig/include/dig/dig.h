@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.58 2000/11/21 20:55:00 mws Exp $ */
+/* $Id: dig.h,v 1.59 2000/11/21 21:40:12 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -41,7 +41,7 @@
 #define OUTPUTBUF 32767
 #define MAXRRLIMIT 0xffffffff
 #define MAXTIMEOUT 0xffff
-#define MAXTRIES 0xffff
+#define MAXTRIES 0xffffffff
 #define MAXNDOTS 0xffff
 #define MAXPORT 0xffff
 #define MAXSERIAL 0xffffffff
@@ -125,7 +125,7 @@ struct dig_lookup {
 	dig_serverlist_t my_server_list;
 	dig_searchlist_t *origin;
 	dig_query_t *xfr_q;
-	int retries;
+	isc_uint32_t retries;
 	int nsfound;
 	isc_uint16_t udpsize;
 	isc_uint32_t ixfr_serial;
