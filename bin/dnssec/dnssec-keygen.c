@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.50 2001/09/15 00:01:44 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.51 2001/09/19 00:03:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -93,7 +93,7 @@ int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	char		*classname = NULL;
-	char		*prog, *endp;
+	char		*endp;
 	dst_key_t	*key = NULL, *oldkey;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
@@ -111,17 +111,10 @@ main(int argc, char **argv) {
 	isc_entropy_t	*ectx = NULL;
 	dns_rdataclass_t rdclass;
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-
-	if ((prog = strrchr(argv[0],'/')) == NULL)
-		prog = isc_mem_strdup(mctx, argv[0]);
-	else
-		prog = isc_mem_strdup(mctx, ++prog);
-	if (prog == NULL)
-		fatal("out of memory");
-
 	if (argc == 1)
 		usage();
+
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	dns_result_register();
 
@@ -391,7 +384,6 @@ main(int argc, char **argv) {
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
 	printf("%s\n", filename);
-	isc_mem_free(mctx, prog);
 	dst_key_free(&key);
 
 	cleanup_logging(&log);
