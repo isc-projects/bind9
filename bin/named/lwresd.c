@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.32 2001/03/06 02:49:28 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.33 2001/03/07 22:04:11 gson Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -33,6 +33,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/print.h>
 #include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/util.h>
