@@ -3,6 +3,9 @@
 			do the verification, but it's not currently
 			possible. [RT #1391]
 
+ 888.	[bug]		Don't die when using TKEY to delete a nonexistent
+			TSIG key. [RT #1392]
+
  860.	[func]		Drop cross class glue in zone transfers.
 
  852.	[bug]		Handle responses from servers which do not

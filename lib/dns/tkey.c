@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.57.2.5 2001/01/30 22:12:22 gson Exp $
+ * $Id: tkey.c,v 1.57.2.6 2001/06/08 19:44:06 gson Exp $
  */
 
 #include <config.h>
@@ -520,12 +520,13 @@ process_deletetkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	dns_name_t *identity;
 
 	UNUSED(msg);
-	UNUSED(tkeyout);
 	UNUSED(namelist);
 
 	result = dns_tsigkey_find(&tsigkey, name, &tkeyin->algorithm, ring);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		tkeyout->error = dns_tsigerror_badname;
+		return (ISC_R_SUCCESS);
+	}
 
 	/*
 	 * Only allow a delete if the identity that created the key is the
