@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.44 2004/03/05 04:58:39 marka Exp $ */
+/* $Id: rbt_test.c,v 1.45 2005/03/16 22:22:30 marka Exp $ */
 
 #include <config.h>
 
@@ -224,7 +224,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 		printf("start not found!\n");
 
 	else {
-		while (1) {
+		for (;;) {
 			if (result == DNS_R_NEWORIGIN) {
 				printf("  new origin: ");
 				print_name(origin);
@@ -314,8 +314,8 @@ main(int argc, char **argv) {
 		length = strlen(buffer);
 
 		if (buffer[length - 1] != '\n') {
-			printf("line to long (%d max), ignored\n",
-			       sizeof(buffer) - 2);
+			printf("line to long (%lu max), ignored\n",
+			       (unsigned long)sizeof(buffer) - 2);
 			continue;
 		}
 
