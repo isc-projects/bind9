@@ -33,12 +33,13 @@ LIBISC = 	../isc/libisc.@A@
 
 # Alphabetically
 
-CONFOBJS =	config/confacl.@O@ config/confcommon.@O@ \
+CONFOBJS =	config/confacl.@O@ config/confcache.@O@ config/confcommon.@O@ \
 		config/confctl.@O@ config/confctx.@O@ \
 		config/confip.@O@ config/confkeys.@O@ \
 		config/conflog.@O@ config/conflsn.@O@ \
-		config/confparser.@O@ config/confrrset.@O@ \
-		config/confserv.@O@ config/confzone.@O@
+		config/confparser.@O@ config/confresolv.@O@ \
+		config/confrrset.@O@ \
+		config/confserv.@O@ config/confview.@O@ config/confzone.@O@
 
 DSTOBJS =	sec/dst/bsafe_link.@O@ sec/dst/dst_api.@O@ \
 		sec/dst/dst_parse.@O@ sec/dst/hmac_link.@O@ \

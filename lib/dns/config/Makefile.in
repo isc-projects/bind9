@@ -30,13 +30,15 @@ LIBS		= @LIBS@
 
 # Alphabetically
 
-OBJS		= confparser.@O@ confcommon.@O@ confacl.@O@ confctl.@O@ \
-		  confctx.@O@ confip.@O@ confkeys.@O@ conflog.@O@ \
-		  conflsn.@O@ confrrset.@O@ confserv.@O@ confzone.@O@
+OBJS		= confparser.@O@ confcommon.@O@ confacl.@O@ confcache.@O@ \
+		  confctl.@O@ confctx.@O@ confip.@O@ confkeys.@O@ conflog.@O@ \
+		  conflsn.@O@ confresolv.@O@ confrrset.@O@ confserv.@O@ \
+		  confview.@O@ confzone.@O@
 
-SRCS		= confparser.c  confcommon.c \
-		  confacl.c confctl.c confctx.c confip.c confkeys.c conflog.c \
-		  conflsn.c confrrset.c confserv.c confzone.c
+SRCS		= confparser.c confcommon.c confacl.c confcache.c \
+		  confctl.c confctx.c confip.c confkeys.c conflog.c \
+		  conflsn.c confresolv.c confrrset.c confserv.c \
+		  confview.c confzone.c
 
 SUBDIRS		=	
 TARGETS		= ${OBJS}
