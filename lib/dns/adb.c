@@ -2499,7 +2499,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		/*
 		 * Did we get a CNAME or DNAME?
 		 */
-		if (result == DNS_R_CNAME || result == DNS_R_DNAME) {
+		if (result == DNS_R_ALIAS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: name %p is an alias",
 			   adbname);
@@ -2532,7 +2532,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		/*
 		 * Did we get a CNAME or DNAME?
 		 */
-		if (result == DNS_R_CNAME || result == DNS_R_DNAME) {
+		if (result == DNS_R_ALIAS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: name %p is an alias",
 			   adbname);
@@ -3305,6 +3305,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		result = set_target(adb, &adbname->name, fname, &rdataset,
 				    &adbname->target);
 		if (result == ISC_R_SUCCESS) {
+			result = DNS_R_ALIAS;
 			DP(NCACHE_LEVEL,
 			   "adb name %p: caching alias target",
 			   adbname);
@@ -3392,6 +3393,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 		result = set_target(adb, &adbname->name, fname, &rdataset,
 				    &adbname->target);
 		if (result == ISC_R_SUCCESS) {
+			result = DNS_R_ALIAS;
 			DP(NCACHE_LEVEL,
 			   "adb name %p: caching alias target",
 			   adbname);
