@@ -28,14 +28,14 @@
 typedef struct dns_zt dns_zt_t;
 
 ISC_LANG_BEGINDECLS
-
 dns_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 			   dns_zt_t **zt);
-dns_result_t dns_zt_mount_zone(dns_zt_t *zt, dns_zone_t *zone);
-dns_result_t dns_zt_unmount_zone(dns_zt_t *zt, dns_zone_t *zone);
-dns_result_t dns_zt_lookup_zone(dns_zt_t *zt, dns_name_t *name,
+dns_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
+dns_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
+dns_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name,
 				dns_name_t *foundname, dns_zone_t **zone);
-void dns_zt_destroy(dns_zt_t *zt);
+void dns_zt_detach(dns_zt_t **ztp);
+void dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
 
 ISC_LANG_ENDDECLS
 

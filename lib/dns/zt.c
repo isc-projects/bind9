@@ -17,13 +17,16 @@
 
 #include <config.h>
 #include <isc/assertions.h>
+#include "../isc/util.h"
 #include <dns/zt.h>
 
 struct dns_zt {
         unsigned int    	magic;
-	dns_rdataclass_t	rdclass;
-	dns_rbt_t       	*table; 
 	isc_mem_t      		*mctx;
+	dns_rdataclass_t	rdclass;
+	isc_mutex_t             lock;
+	isc_uint32_t		references;
+	dns_rbt_t       	*table; 
 };
 
 #define ZTMAGIC 0x5a54626cU	/* ZTbl */
@@ -35,6 +38,7 @@ dns_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt) {
 	dns_zt_t *new;
 	dns_result_t result;
+	isc_result_t iresult;
 
 	REQUIRE(zt != NULL && *zt == NULL);
 	new = isc_mem_get(mctx, sizeof *new);
@@ -42,59 +46,118 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt) {
 		return (DNS_R_NOMEMORY);
 
 	result = dns_rbt_create(mctx, auto_detach, NULL, &new->table);
-	if (result != DNS_R_SUCCESS) {
-		isc_mem_put(mctx, new, sizeof *new);
-		return (result);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup0;
+
+	iresult = isc_mutex_init(&new->lock);
+	if (iresult != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_lock_init() failed: %s",
+				 isc_result_totext(result));
+		result = DNS_R_UNEXPECTED;
+		goto cleanup1;
 	}
+
 	new->mctx = mctx;
+	new->references = 1;
 	new->rdclass = rdclass;
 	new->magic = ZTMAGIC;
 	*zt = new;
 	return (DNS_R_SUCCESS);
+
+   cleanup1:
+	dns_rbt_destroy(&new->table);
+
+   cleanup0:
+	isc_mem_put(mctx, new, sizeof *new);
+	return (result);
 }
 
 dns_result_t
-dns_zt_mount_zone(dns_zt_t *zt, dns_zone_t *zone) {
+dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone) {
 	dns_result_t result;
 	dns_zone_t *dummy = NULL;
 
 	REQUIRE(VALID_ZT(zt));
 
 	dns_zone_attach(zone, &dummy);
+	LOCK(&zt->lock);
 	result = dns_rbt_addname(zt->table, dns_zone_getorigin(zone), zone);
+	UNLOCK(&zt->lock);
+
 	return (result);
 }
 
 dns_result_t
-dns_zt_unmount_zone(dns_zt_t *zt, dns_zone_t *zone) {
+dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone) {
 	dns_result_t result;
 
 	REQUIRE(VALID_ZT(zt));
 
+	LOCK(&zt->lock);
 	result = dns_rbt_deletename(zt->table, dns_zone_getorigin(zone),
 				    ISC_FALSE);
+	UNLOCK(&zt->lock);
 	return (result);
 }
 
 dns_result_t
-dns_zt_lookup_zone(dns_zt_t *zt, dns_name_t *name, dns_name_t *foundname,
+dns_zt_find(dns_zt_t *zt, dns_name_t *name, dns_name_t *foundname,
 		   dns_zone_t **zone)
 {
 	dns_result_t result;
 
 	REQUIRE(VALID_ZT(zt));
 
+	LOCK(&zt->lock);
 	result = dns_rbt_findname(zt->table, name, foundname, (void **)zone);
+	UNLOCK(&zt->lock);
+
 	return (result);
 }
 
 void
-dns_zt_destroy(dns_zt_t *zt) {
-	REQUIRE(VALID_ZT(zt));
+dns_zt_detach(dns_zt_t **ztp) {
+	isc_boolean_t destroy = ISC_FALSE;
+	dns_zt_t *zt;
 
-	zt->magic = 0;
-	dns_rbt_destroy(&zt->table);
-	isc_mem_put(zt->mctx, zt, sizeof *zt);
+	REQUIRE(ztp != NULL && VALID_ZT(*ztp));
+
+	zt = *ztp;
+
+	LOCK(&zt->lock);
+	
+	INSIST(zt->references > 0);
+	zt->references--;
+	if (zt->references == 0)
+		destroy = ISC_TRUE;
+	UNLOCK(&zt->lock);
+
+	if (destroy) {
+		dns_rbt_destroy(&zt->table);
+		isc_mutex_destroy(&zt->lock);
+		isc_mem_put(zt->mctx, zt, sizeof *zt);
+		zt->magic = 0;
+	}
+
+	*ztp = NULL;
+}
+
+void
+dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
+
+	REQUIRE(VALID_ZT(zt));
+	REQUIRE(ztp != NULL && *ztp == NULL);
+
+	LOCK(&zt->lock);
+
+	INSIST(zt->references > 0);
+	zt->references++;
+	INSIST(zt->references != 0xffffffffU);
+
+	UNLOCK(&zt->lock);
+
+	*ztp = zt;
 }
 
 static void
