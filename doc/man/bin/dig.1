@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.1 2000/09/03 18:04:24 jim Exp $
+.\" $Id: dig.1,v 1.2 2000/09/08 09:42:56 jim Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt DIG 1
@@ -57,7 +57,7 @@ Other lookup tools tend to have less functionality than
 .Nm dig .
 .Pp
 Although
-.NM dig
+.Nm dig
 is normally used with command-line arguments, it also has a batch
 mode of operation for reading lookup requests from a file.
 A brief summary of its command-line arguments and options is printed
@@ -69,15 +69,43 @@ Unlike earlier versions, the BIND9 implementation of
 .Nm dig
 allows multiple lookups to be issued from the command line.
 .Pp
+Unless it is told to query a specific name server,
+.Nm dig
+will read
+.Pa /etc/resolv.conf
+and send queries to the name servers identified by the
+.Nm nameserver
+directives in that file.
+Those name servers are queried in sequence.
+.Nm dig
+dig will send its query to the first name server listed in
+.Pa /etc/resolv.conf .
+If the query times out, 
+.Nm dig
+then tries the second name server in the list and if that query
+times out, it will try the third name server.
+When the query to that third name server times out, 
+.Nm dig
+repeats the lookups.
+It will try all three servers in sequence again and use a longer timeout
+interval for the second series of lookup attempts.
+If no answer is returned after the the second round of queries, the
+lookup fails.
+.Pp
+The lookup completes when an answer is returned, even if that
+answer indicates an error.
+A commonly held misconception is that the resolver used by tools like
+.Nm dig
+will repeat the query to the next name server listed in
+.Pa /etc/resolv.conf
+if the name server that was queried returns an error reply.
+This is not so.
+.Pp
 When no command line arguments or options are given,
 .Nm dig
 reads
 .Pa /etc/resolv.conf
-and sends a query in parallel
-for details of the root zone \*q.\*q.
-to each of the name servers listed in that file.
-The reply from the name server that responds first is printed
-and any other replies are discarded.
+and makes a lookup for details of the root zone \*q.\*q
 .Sh SIMPLE USAGE
 .Pp
 In normal usage, a typical invocation of
@@ -103,8 +131,8 @@ argument is provided,
 .Nm dig
 consults
 .Pa /etc/resolv.conf 
-and sends parallel queries to each of the name servers listed there.
-The reply from the first name server to respond is displayed.
+and queries the name servers listed there.
+The reply from the name server that responds is displayed.
 .It Ar name
 is the name of the resource record that is to be looked up.
 .It Ar type
@@ -802,6 +830,18 @@ which returns the eventual answer.
 .Xr RFC1035 ,
 .Xr RFC2535 .
 .Sh BUGS 
+Truncated replies are handled differently in the BIND9 implementation
+of
+.Nm dig .
+In previous versions,
+.Nm dig
+would automatically repeat the query using TCP whenever it received
+a truncated response.
+The BIND9 implementation does not do this.
+It will just display the truncated response unless
+.Nm dig
+was told to use a TCP connection when making queries.
+.Pp
 The
 .Fl x
 flag and
