@@ -27,12 +27,27 @@ for (;;) {
 	my ($packet, $err) = new Net::DNS::Packet(\$buf, 0);
 	$err and die $err;
 
-	print "REQUEST:\n";	
+	print "REQUEST:\n";
 	$packet->print;
 
 	$packet->header->qr(1);
-	$packet->push("authority", new Net::DNS::RR("below.www.example.com 300 NS ns.below.www.example.com"));
-	$packet->push("additional", new Net::DNS::RR("ns.below.www.example.com 300 A 10.53.0.3"));
+
+	my @questions = $packet->question;
+	my $qname = $questions[0]->qname;
+
+	if ($qname eq "cname1.example.com") {
+		# Data for the "cname + other data / 1" test
+		$packet->push("answer", new Net::DNS::RR("cname1.example.com 300 CNAME cname1.example.com"));
+		$packet->push("answer", new Net::DNS::RR("cname1.example.com 300 A 1.2.3.4"));
+	} elsif ($qname eq "cname2.example.com") {
+		# Data for the "cname + other data / 2" test: same RRs in opposite order
+		$packet->push("answer", new Net::DNS::RR("cname2.example.com 300 A 1.2.3.4"));
+		$packet->push("answer", new Net::DNS::RR("cname2.example.com 300 CNAME cname2.example.com"));
+	} else {
+		# Data for the "bogus referrals" test
+		$packet->push("authority", new Net::DNS::RR("below.www.example.com 300 NS ns.below.www.example.com"));
+		$packet->push("additional", new Net::DNS::RR("ns.below.www.example.com 300 A 10.53.0.3"));
+	}
 
 	$sock->send($packet->data);
 

@@ -15,22 +15,25 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2000/07/27 09:40:40 tale Exp $
+# $Id: tests.sh,v 1.4 2000/07/28 22:42:41 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-#
-# Perform tests
-#
-
 status=0
 
+echo "I:checking handling of bogus referrals"
 # If the server has the "INSIST(!external)" bug, this query will kill it.
-$DIG +tcp example. dig www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
+$DIG +tcp www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
 
-# Query once more to see if the server is still alive.
-$DIG +tcp example. dig www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
+echo "I:check handling of cname + other data / 1"
+$DIG +tcp cname1.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
+
+echo "I:check handling of cname + other data / 2"
+$DIG +tcp cname2.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
+
+echo "I:check that server is still running"
+$DIG +tcp www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
 
 echo "I:exit status: $status"
 exit $status
