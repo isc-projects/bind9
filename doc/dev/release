@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.20 2000/12/15 00:22:52 gson Exp $
+$Id: release,v 1.21 2000/12/21 17:39:17 tale Exp $
 
 Preparing a bind9 release
 
@@ -77,13 +77,14 @@ release.
 
    XXX This is impacted by sanitize.pl
 
+   $ sh util/sanitize_all.sh
    $ patch -p0 < contrib/idn/mdnkit/patch/bind9/patch.most > patch.out 2>&1
    $ egrep Hunk patch.out
 
    All hunks should have applied successfully with no offset or fuzz.
-   Check any that did not, and regenerate the patch as appropriate.
+   If all succeeded but some were offset or had fuzz, the patch will be
+   regenerated at the end of this stage.
 
-   the build tests.
    $ cd contrib/idn/mdnkit
    [ Sample on netbsd ... ]
    $ CFLAGS=-I/usr/local/include ./configure  '--with-iconv=-L/usr/local/lib -liconv'
@@ -107,8 +108,16 @@ release.
 
    [ Some tests will be added to bin/tests/system to validate operation. ]
 
-   Generate a fresh copy of the configure diffs, and append to the patch.
-   $ cvs diff -u2 configure >> contrib/idn/mdnkit/patch/bind9/patch.configure
+   Generate a fresh copy of the diffs:
+
+   $ patchd=$mdn/patch/bind9    
+   $ awk '/^\+\+\+ / {print $2}' $patchd/patch.most | 
+        while read i; do
+                diff -u2 $i.orig $i
+        done > $patchd/patch.most.new
+   $ cvs diff -u2 configure > $patchd/patch.configure
+   $ mv $patchd/patch.most.new $patchd
+   $ cvs ci -ko $patchd/patch.*
 
  - Add a marker line like "	--- 9.0.0b3 released ---"
    to the CHANGES file.
