@@ -27,6 +27,20 @@
 #define ZERO(t)				((t).seconds == 0 && \
 					 (t).nanoseconds == 0)
 
+#ifdef TIMER_TRACE
+#define XTRACE(s)			printf("%s\n", (s))
+#define XTRACEID(s, t)			printf("%s %p\n", (s), (t))
+#define XTRACETIME(s, d)		printf("%s %lu.%09lu\n", (s), \
+					       (d).seconds, (d).nanoseconds)
+#define XTRACETIMER(s, t, d)		printf("%s %p %lu.%09lu\n", (s), (t), \
+					       (d).seconds, (d).nanoseconds)
+#else
+#define XTRACE(s)
+#define XTRACEID(s, t)
+#define XTRACETIME(s, d)
+#define XTRACETIMER(s, t, d)
+#endif /* TIMER_TRACE */
+
 #define TIMER_MAGIC			0x54494D52U	/* TIMR. */
 #define VALID_TIMER(t)			((t) != NULL && \
 					 (t)->magic == TIMER_MAGIC)
@@ -152,12 +166,7 @@ schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 		manager->nscheduled++;
 	}
 
-#ifdef TIMER_TRACE
-	printf("schedule %p at %lu.%09lu\n",
-	       timer,
-	       (unsigned long)due.seconds,
-	       (unsigned long)due.nanoseconds);
-#endif
+	XTRACETIMER("schedule", timer, due);
 
 	/*
 	 * If this timer is at the head of the queue, we wake up the run
@@ -166,9 +175,7 @@ schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 	 * want it to oversleep.
 	 */
 	if (timer->index == 1 && broadcast_ok) {
-#ifdef TIMER_TRACE
-		printf("broadcast (schedule)\n");
-#endif
+		XTRACE("broadcast (schedule)");
 		BROADCAST(&manager->wakeup);
 	}
 
@@ -193,9 +200,7 @@ deschedule(timer_t timer) {
 		INSIST(manager->nscheduled > 0);
 		manager->nscheduled--;
 		if (need_wakeup) {
-#ifdef TIMER_TRACE
-			printf("broadcast (deschedule)\n");
-#endif
+			XTRACE("broadcast (deschedule)");
 			BROADCAST(&manager->wakeup);
 		}
 	}
@@ -480,18 +485,13 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 				/*
 				 * Idle timer has been touched; reschedule.
 				 */
-#ifdef TIMER_TRACE
-				printf("timer %p idle reschedule\n", timer);
-#endif
+				XTRACEID("idle reschedule", timer);
 				post_event = FALSE;
 				need_schedule = TRUE;
 			}
 
 			if (post_event) {
-#ifdef TIMER_TRACE
-				printf("timer %p posting %u\n", timer,
-				       type);
-#endif
+				XTRACEID("posting", timer);
 				event = task_event_allocate(manager->mctx,
 							    timer,
 							    type,
@@ -535,37 +535,22 @@ run(void *uap) {
 	LOCK(&manager->lock);
 	while (!manager->done) {
 		INSIST(os_time_get(&now) == ISC_R_SUCCESS);
-#ifdef TIMER_TRACE
-		printf("running, now %lu.%09lu\n",
-		       (unsigned long)now.seconds,
-		       (unsigned long)now.nanoseconds);
-#endif
+
+		XTRACETIME("running", now);
 
 		dispatch(manager, &now);
 
 		if (manager->nscheduled > 0) {
 			ts.tv_sec = manager->due.seconds;
 			ts.tv_nsec = manager->due.nanoseconds;
-#ifdef TIMER_TRACE
-			printf("waituntil %lu.%09lu\n",
-			       (unsigned long)manager->due.seconds,
-			       (unsigned long)manager->due.nanoseconds);
-#endif
+			XTRACETIME("waituntil", manager->due);
 			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
 				  &timeout);
-#ifdef TIMER_TRACE
-			if (!timeout)
-				printf("wakeup\n");
-#endif
 		} else {
-#ifdef TIMER_TRACE
-			printf("wait\n");
-#endif
+			XTRACE("wait");
 			WAIT(&manager->wakeup, &manager->lock);
-#ifdef TIMER_TRACE
-			printf("wakeup\n");
-#endif
 		}
+		XTRACE("wakeup");
 	}
 	UNLOCK(&manager->lock);
 
@@ -649,9 +634,7 @@ timer_manager_destroy(timer_manager_t *managerp) {
 
 	UNLOCK(&manager->lock);
 
-#ifdef TIMER_TRACE
-	printf("broadcast (destroy)\n");
-#endif
+	XTRACE("broadcast (destroy)");
 	BROADCAST(&manager->wakeup);
 
 	/*
