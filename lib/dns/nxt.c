@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.24 2000/10/25 04:26:40 marka Exp $ */
+/* $Id: nxt.c,v 1.25 2000/10/28 01:25:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,13 +31,10 @@
 #include <dns/rdatastruct.h>
 #include <dns/result.h>
 
-#define check_result(op, msg) \
-	do { result = (op); \
-		if (result != ISC_R_SUCCESS) { \
-			fprintf(stderr, "%s: %s\n", msg, \
-				isc_result_totext(result)); \
-			goto failure; \
-		} \
+#define RETERR(x) do { \
+	result = (x); \
+	if (result != ISC_R_SUCCESS) \
+		goto failure; \
 	} while (0)
 
 static void
@@ -146,9 +143,7 @@ dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdataset_init(&rdataset);
 	dns_rdata_init(&rdata);
 
-	result = dns_nxt_buildrdata(db, version, node,
-				    target, data, &rdata);
-	check_result(result, "dns_nxt_buildrdata");
+	RETERR(dns_nxt_buildrdata(db, version, node, target, data, &rdata));
 
 	rdatalist.rdclass = dns_db_class(db);
 	rdatalist.type = dns_rdatatype_nxt;
@@ -156,13 +151,12 @@ dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	rdatalist.ttl = ttl;
 	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
-	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	check_result(result, "dns_rdatalist_tordataset");
+	RETERR(dns_rdatalist_tordataset(&rdatalist, &rdataset));
 	result = dns_db_addrdataset(db, node, version, 0, &rdataset,
 				    0, NULL);
 	if (result == DNS_R_UNCHANGED)
 		result = ISC_R_SUCCESS;
-	check_result(result, "dns_db_addrdataset");
+	RETERR(result);
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
