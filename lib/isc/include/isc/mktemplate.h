@@ -18,6 +18,8 @@
 #ifndef ISC_MKTEMPLATE_H
 #define ISC_MKTEMPLATE_H
 
+#include <sys/types.h>
+
 #include <isc/lang.h>
 #include <isc/result.h>
 
