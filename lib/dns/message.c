@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.171 2001/01/09 21:51:05 bwelling Exp $ */
+/* $Id: message.c,v 1.172 2001/01/09 23:35:27 marka Exp $ */
 
 /***
  *** Imports
@@ -355,6 +355,7 @@ msginittsig(dns_message_t *m) {
 	m->sigstart = -1;
 	m->sig0key = NULL;
 	m->sig0status = dns_rcode_noerror;
+	m->timeadjust = 0;
 }
 
 /*
@@ -2978,7 +2979,19 @@ void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
 			 void *order_arg)
 {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
 	msg->order = order;
 	msg->order_arg = order_arg;
 }
-     
+
+void
+dns_message_settimeadjust(dns_message_t *msg, int timeadjust) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	msg->timeadjust = timeadjust;
+}
+
+int
+dns_message_gettimeadjust(dns_message_t *msg) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	return (msg->timeadjust);
+}

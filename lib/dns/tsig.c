@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.100 2001/01/09 21:51:39 bwelling Exp $
+ * $Id: tsig.c,v 1.101 2001/01/09 23:35:29 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -399,7 +399,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_name_clone(key->algorithm, &tsig.algorithm);
 
 	isc_stdtime_get(&now);
-	tsig.timesigned = now;
+	tsig.timesigned = now + msg->timeadjust;
 	tsig.fudge = DNS_TSIG_FUDGE;
 
 	tsig.originalid = msg->id;
@@ -739,9 +739,9 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	/*
 	 * Is the time ok?
 	 */
-	if (abs(now - tsig.timesigned) > tsig.fudge) {
+	if (abs(now + msg->timeadjust - tsig.timesigned) > tsig.fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
-		if (now > tsig.timesigned + tsig.fudge)
+		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge)
 			tsig_log(msg->tsigkey, 2,
 				 "signature has expired");
 		else

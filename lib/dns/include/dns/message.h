@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.87 2001/01/09 21:53:03 bwelling Exp $ */
+/* $Id: message.h,v 1.88 2001/01/09 23:35:33 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -217,6 +217,7 @@ struct dns_message {
 	dns_tsigkey_t		       *tsigkey;
 	dst_context_t		       *tsigctx;
 	int				sigstart;
+	int				timeadjust;
 
 	dns_name_t		       *sig0name;
 	dst_key_t		       *sig0key;
@@ -1194,7 +1195,27 @@ dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
  * 'order_arg' are NULL, a default order is used.
  *
  * Requires:
+ *	msg be a valid message.
  *	order_arg is NULL if and only if order is NULL.
+ */
+
+void 
+dns_message_settimeadjust(dns_message_t *msg, int timeadjust);
+/*
+ * Adjust the time used to sign/verify a message by timeadjust.
+ * Currently only TSIG.
+ *
+ * Requires:
+ *	msg be a valid message.
+ */
+
+int 
+dns_message_gettimeadjust(dns_message_t *msg);
+/*
+ * Return the current time adjustment.
+ *
+ * Requires:
+ *	msg be a valid message.
  */
 
 ISC_LANG_ENDDECLS
