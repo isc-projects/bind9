@@ -19,15 +19,13 @@
 #include <signal.h>
 
 BOOL InitSockets(void);
-
  
 /*
  * Called when we enter the DLL
  */
-__declspec(dllexport) BOOL WINAPI DllMain( HINSTANCE hinstDLL,
-					   DWORD fdwReason, LPVOID lpvReserved)
+__declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
+					  DWORD fdwReason, LPVOID lpvReserved)
 {
-
 	switch (fdwReason) 
 	{ 
 	/*
@@ -57,6 +55,6 @@ __declspec(dllexport) BOOL WINAPI DllMain( HINSTANCE hinstDLL,
 	default: 
 		break; 
 	} 
-	return(TRUE); 
+	return (TRUE);
 }
 

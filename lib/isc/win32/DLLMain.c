@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DLLMain.c,v 1.2 2001/07/08 05:08:54 mayer Exp $ */
+/* $Id: DLLMain.c,v 1.3 2001/07/17 19:16:55 gson Exp $ */
 
 #include <windows.h>
 #include <stdio.h>
@@ -29,7 +29,6 @@ void isc_time_initepoch();
 __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 					  DWORD fdwReason, LPVOID lpvReserved)
 {
-
 	switch (fdwReason) 
 	{ 
 	/*
@@ -60,6 +59,6 @@ __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 	default: 
 		break; 
 	} 
-	return (TRUE); 
+	return (TRUE);
 }
 

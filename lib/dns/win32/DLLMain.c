@@ -14,13 +14,12 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Id: DLLMain.c,v 1.1 2001/07/16 05:10:29 mayer Exp $ */
+/* $Id: DLLMain.c,v 1.2 2001/07/17 19:16:50 gson Exp $ */
 
 #include <windows.h>
 #include <signal.h>
 
 BOOL InitSockets(void);
-
  
 /*
  * Called when we enter the DLL
@@ -28,7 +27,6 @@ BOOL InitSockets(void);
 __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 					  DWORD fdwReason, LPVOID lpvReserved)
 {
-
 	switch (fdwReason) { 
 	/*
 	 * The DLL is loading due to process 
@@ -55,6 +53,6 @@ __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 	default: 
 		break; 
 	} 
-	return (TRUE); 
+	return (TRUE);
 }
 

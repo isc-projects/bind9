@@ -15,21 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DLLMain.c,v 1.2 2001/07/17 06:13:59 mayer Exp $ */
+/* $Id: DLLMain.c,v 1.3 2001/07/17 19:16:59 gson Exp $ */
 
 #include <windows.h>
 #include <signal.h>
 
 BOOL InitSockets(void);
 
- 
 /*
  * Called when we enter the DLL
  */
-__declspec(dllexport) BOOL WINAPI DllMain( HINSTANCE hinstDLL,
-					   DWORD fdwReason, LPVOID lpvReserved)
+__declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
+					  DWORD fdwReason, LPVOID lpvReserved)
 {
-
 	switch (fdwReason) { 
 	/*
 	 * The DLL is loading due to process 
@@ -56,6 +54,6 @@ __declspec(dllexport) BOOL WINAPI DllMain( HINSTANCE hinstDLL,
 	default: 
 		break; 
 	} 
-	return(TRUE); 
+	return (TRUE);
 }
 
