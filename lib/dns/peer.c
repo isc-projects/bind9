@@ -36,9 +36,8 @@
 #define BOGUS_BIT			0
 #define SERVER_TRANSFER_FORMAT_BIT	1
 #define TRANSFERS_BIT			2
-#define SUPPORT_IXFR_BIT		3
+#define PROVIDE_IXFR_BIT		3
 #define REQUEST_IXFR_BIT		4
-#define PROVIDE_IXFR_BIT		5
 
 static isc_result_t dns_peerlist_delete(dns_peerlist_t **list);
 static isc_result_t dns_peer_delete(dns_peer_t **peer);
@@ -216,7 +215,6 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr)
 	peer->bogus = ISC_FALSE;
 	peer->transfer_format = dns_one_answer;
 	peer->transfers = 0;
-	peer->support_ixfr = ISC_FALSE;
 	peer->request_ixfr = ISC_FALSE;
 	peer->provide_ixfr = ISC_FALSE;
 	peer->key = NULL;
@@ -327,39 +325,6 @@ dns_peer_getbogus(dns_peer_t *peer,
 	
 	if (DNS_CHECKBIT(BOGUS_BIT, &peer->bitflags)) {
 		*retval = peer->bogus;
-		return (ISC_R_SUCCESS);
-	} else {
-		return (ISC_R_NOTFOUND);
-	}
-}
-
-
-isc_result_t
-dns_peer_setsupportixfr(dns_peer_t *peer,
-			isc_boolean_t newval)
-{
-	isc_boolean_t existed;
-	
-	REQUIRE(DNS_PEER_VALID(peer));
-	
-	existed = DNS_CHECKBIT(SUPPORT_IXFR_BIT, &peer->bitflags);
-	
-	peer->support_ixfr = newval;
-	DNS_SETBIT(SUPPORT_IXFR_BIT, &peer->bitflags);
-	
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_peer_getsupportixfr(dns_peer_t *peer,
-			isc_boolean_t *retval)
-{
-	REQUIRE(DNS_PEER_VALID(peer));
-	REQUIRE(retval != NULL);
-	
-	if (DNS_CHECKBIT(SUPPORT_IXFR_BIT, &peer->bitflags)) {
-		*retval = peer->support_ixfr;
 		return (ISC_R_SUCCESS);
 	} else {
 		return (ISC_R_NOTFOUND);

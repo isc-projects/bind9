@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.50 2000/03/19 02:58:13 brister Exp $ */
+/* $Id: confparser.y,v 1.51 2000/03/20 19:39:15 gson Exp $ */
 
 #include <config.h>
 
@@ -2192,20 +2192,23 @@ server_info: L_BOGUS yea_or_nay
 	}
 	| L_SUPPORT_IXFR yea_or_nay
 	{
+		/*
+		 * Backwards compatibility, equivalent to provide-ixfr
+		 */
 		dns_peer_t *peer = NULL;
 
 		dns_peerlist_currpeer(currcfg->peers, &peer);
 		INSIST(peer != NULL);
 
-		tmpres = dns_peer_setsupportixfr(peer, $2);
+		tmpres = dns_peer_setprovideixfr(peer, $2);
 		dns_peer_detach(&peer);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining peer support-ixfr value");
+				       "redefining peer provide-ixfr value");
 		} else if(tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "error setting peer "
-				     "support-ixfr value");
+				     "provide-ixfr value");
 			YYABORT;
 		}
 	}

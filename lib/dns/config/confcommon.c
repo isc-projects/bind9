@@ -664,12 +664,6 @@ dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer)
 		fprintf(fp, "transfers %d;\n", ival);
 	}
 
-	res = dns_peer_getsupportixfr(peer, &bval);
-	if (res == ISC_R_SUCCESS) {
-		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "support-ixfr %s;\n", (bval ? "true" : "false"));
-	}
-
 	res = dns_peer_getprovideixfr(peer, &bval);
 	if (res == ISC_R_SUCCESS) {
 		dns_c_printtabs(fp, indent + 1);
