@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30 2004/03/10 02:19:58 marka Exp $ */
+/* $Id: namedconf.c,v 1.31 2004/03/30 02:05:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1219,24 +1219,24 @@ static cfg_type_t cfg_type_optional_class = {
 };
 
 static isc_result_t
-parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
+parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	isc_netaddr_t netaddr;
 	in_port_t port;
 	unsigned int have_address = 0;
 	unsigned int have_port = 0;
+	const unsigned int *flagp = type->of;
 
-	if ((flags & CFG_ADDR_V4OK) != 0)
+	if ((*flagp & CFG_ADDR_V4OK) != 0)
 		isc_netaddr_any(&netaddr);
-	else if ((flags & CFG_ADDR_V6OK) != 0)
+	else if ((*flagp & CFG_ADDR_V6OK) != 0)
 		isc_netaddr_any6(&netaddr);
 	else
 		INSIST(0);
 
 	port = 0;
 
-	CHECK(cfg_create_obj(pctx, &cfg_type_querysource, &obj));
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
@@ -1245,8 +1245,7 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 			{
 				/* read "address" */
 				CHECK(cfg_gettoken(pctx, 0)); 
-				CHECK(cfg_parse_rawaddr(pctx,
-						flags | CFG_ADDR_WILDOK,
+				CHECK(cfg_parse_rawaddr(pctx, *flagp,
 							&netaddr));
 				have_address++;
 			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
@@ -1257,6 +1256,8 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 							CFG_ADDR_WILDOK,
 							&port));
 				have_port++;
+			} else if (have_port == 0 && have_address == 0) {
+				return (cfg_parse_sockaddr(pctx, type, ret));
 			} else {
 				cfg_parser_error(pctx, CFG_LOG_NEAR,
 					     "expected 'address' or 'port'");
@@ -1271,6 +1272,7 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 
+	CHECK(cfg_create_obj(pctx, &cfg_type_querysource, &obj));
 	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, port);
 	*ret = obj;
 	return (ISC_R_SUCCESS);
@@ -1279,18 +1281,6 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 	cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid query source");
 	CLEANUP_OBJ(obj);
 	return (result);
-}
-
-static isc_result_t
-parse_querysource4(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	UNUSED(type);
-	return (parse_querysource(pctx, CFG_ADDR_V4OK, ret));
-}
-
-static isc_result_t
-parse_querysource6(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	UNUSED(type);
-	return (parse_querysource(pctx, CFG_ADDR_V6OK, ret));
 }
 
 static void
@@ -1303,16 +1293,21 @@ print_querysource(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	cfg_print_rawuint(pctx, isc_sockaddr_getport(&obj->value.sockaddr));
 }
 
+static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK;
+static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK;
 static cfg_type_t cfg_type_querysource4 = {
-	"querysource4", parse_querysource4, NULL, cfg_doc_terminal,
-	NULL, NULL
+	"querysource4", parse_querysource, NULL, cfg_doc_terminal,
+	NULL, &sockaddr4wild_flags
 };
+
 static cfg_type_t cfg_type_querysource6 = {
-	"querysource6", parse_querysource6, NULL, cfg_doc_terminal,
-	NULL, NULL
+	"querysource6", parse_querysource, NULL, cfg_doc_terminal,
+	NULL, &sockaddr6wild_flags
 };
+
 static cfg_type_t cfg_type_querysource = {
-	"querysource", NULL, print_querysource, NULL, &cfg_rep_sockaddr, NULL };
+	"querysource", NULL, print_querysource, NULL, &cfg_rep_sockaddr, NULL
+};
 
 /* addrmatchelt */
 
@@ -1605,13 +1600,11 @@ static cfg_type_t cfg_type_logfile = {
 };
 
 /* An IPv4/IPv6 address with optional port, "*" accepted as wildcard. */
-static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK;
 static cfg_type_t cfg_type_sockaddr4wild = {
 	"sockaddr4wild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &sockaddr4wild_flags
 };
 
-static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK;
 static cfg_type_t cfg_type_sockaddr6wild = {
 	"v6addrportwild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &sockaddr6wild_flags
