@@ -280,8 +280,8 @@ entropypool_extract(isc_entropypool_t *rp, void *p, unsigned int len,
 			good = (rp->entropy >= (8 * RND_ENTROPY_THRESHOLD));
 	}
 	
-	bzero(&hash, sizeof(hash));
-	bzero(digest, sizeof(digest));
+	memset(&hash, 0, sizeof(hash));
+	memset(digest, 0, sizeof(digest));
 
 	return (len - remain);
 }
