@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.2 1999/08/23 11:07:53 gson Exp $ */
+ /* $Id: xfrout.c,v 1.3 1999/08/24 06:40:54 gson Exp $ */
 
 #include <config.h>
 
@@ -124,7 +124,7 @@ db_rr_iterator_first(db_rr_iterator_t *it) {
 	if (it->result != DNS_R_SUCCESS)
 		return (it->result);
 	it->result = dns_dbiterator_current(it->dbit, &it->node,
-					    dns_fixedname_name(&it->fixedname));
+				    dns_fixedname_name(&it->fixedname));
 	if (it->result != DNS_R_SUCCESS) 
 		return (it->result);
 
@@ -168,8 +168,9 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 			}
 			if (it->result != DNS_R_SUCCESS)
 				return (it->result);
-			it->result = dns_dbiterator_current(it->dbit, &it->node,
-					    dns_fixedname_name(&it->fixedname));
+			it->result = dns_dbiterator_current(it->dbit,
+				    &it->node,
+				    dns_fixedname_name(&it->fixedname));
 			if (it->result != DNS_R_SUCCESS)
 				return (it->result);
 			it->result = dns_db_allrdatasets(it->db, it->node,
@@ -314,7 +315,8 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 	s->common.methods = &ixfr_rrstream_methods;
 	s->journal = NULL;
 	
-	CHECK(dns_journal_open(mctx, "journal" /* XXX */, ISC_FALSE, &s->journal));
+	CHECK(dns_journal_open(mctx, "journal" /* XXX */,
+			       ISC_FALSE, &s->journal));
 	CHECK(dns_journal_iter_init(s->journal, begin_serial, end_serial));
 
 	*sp = (rrstream_t *) s;
@@ -741,16 +743,13 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	rrstream_t *data_stream = NULL;
 	rrstream_t *stream = NULL;
 	dns_difftuple_t *current_soa_tuple = NULL;
-	
 	dns_name_t *soa_name;
 	dns_rdataset_t *soa_rdataset;
 	dns_rdata_t soa_rdata;
 	isc_boolean_t have_soa = ISC_FALSE;
 	char *mnemonic = NULL;	
-
 	isc_mem_t *mctx = client->mctx;
 	dns_message_t *request = client->message;
-	
 	xfrout_ctx_t *xfr = NULL;
 
 	switch (reqtype) {
@@ -796,11 +795,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		FAILMSG(DNS_R_NOTAUTH,
 			"AXFR/IXFR requested for non-authoritative zone");
 
-	/* XXX this should go away when caches are no longer in the dbtable */
-	if (dns_db_iscache(db))
-		FAILMSG(DNS_R_NOTAUTH,
-			"AXFR/IXFR requested for cache");
-	
+	dns_db_currentversion(db, &ver);
+
 	printf("%s question checked out OK\n", mnemonic);
 
 	/*
@@ -812,7 +808,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	     result = dns_message_nextname(request, DNS_SECTION_AUTHORITY))
 	{
 		soa_name = NULL;
-		dns_message_currentname(request, DNS_SECTION_AUTHORITY, &soa_name);
+		dns_message_currentname(request, DNS_SECTION_AUTHORITY,
+					&soa_name);
 		
 		/* Ignore data whose owner name is not the zone apex. */
 		if (! dns_name_equal(soa_name, question_name))
@@ -833,7 +830,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 			result = dns_rdataset_next(soa_rdataset);
 			if (result == DNS_R_SUCCESS)
 				FAILMSG(DNS_R_FORMERR,
-					"IXFR authority section has multiple SOAs");
+					"IXFR authority section "
+					"has multiple SOAs");
 			have_soa = ISC_TRUE;
 			goto got_soa;
 		}
@@ -844,6 +842,11 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 
 	printf("%s authority section checked out ok\n", mnemonic);
 
+	if (reqtype == dns_rdatatype_axfr &&
+	    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
+		FAILMSG(DNS_R_FORMERR, "attempted AXFR over UDP\n");
+	}
+	    
 	/* Get a dynamically allocated copy of the current SOA. */
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
 				    &current_soa_tuple));
@@ -857,15 +860,21 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 
 		begin_serial = dns_soa_getserial(&soa_rdata);
 		current_serial = dns_soa_getserial(&current_soa_tuple->rdata);
-		if (DNS_SERIAL_GE(begin_serial, current_serial)) {
-			/*
-			 * RFC1995 says "If an IXFR query with the same or
-			 * newer version number than that of the server 
-			 * is received, it is replied to with a single SOA 
-			 * record of the server's current version, just as
-			 * in AXFR".  The claim about AXFR is incorrect,
-			 * but other than that, we do as the RFC says.
-			 */
+
+		/*
+		 * RFC1995 says "If an IXFR query with the same or
+		 * newer version number than that of the server 
+		 * is received, it is replied to with a single SOA 
+		 * record of the server's current version, just as
+		 * in AXFR".  The claim about AXFR is incorrect,
+		 * but other than that, we do as the RFC says.
+		 *
+		 * Sending a single SOA record is also how we refuse 
+		 * IXFR over UDP (currently, we always do).
+		 */
+		if (DNS_SERIAL_GE(begin_serial, current_serial) ||
+		    (client->attributes & NS_CLIENTATTR_TCP) != 0)
+	        {
 			CHECK(soa_rrstream_create(mctx, db, ver, &stream));
 			goto have_stream;
 		}
@@ -895,6 +904,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
 				reqtype, db, ver, stream, &xfr));
 	stream = NULL;
+	db = NULL;
+	ver = NULL;
 	
 	CHECK(xfr->stream->methods->first(xfr->stream));
 	sendstream(xfr);
@@ -913,13 +924,17 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		soa_stream->methods->destroy(&soa_stream);
 	if (data_stream != NULL)
 		data_stream->methods->destroy(&data_stream);
-
+	if (ver != NULL)
+		dns_db_closeversion(db, &ver, ISC_FALSE);
+	if (db != NULL)
+		dns_db_detach(&db);
+	
 	/* XXX kludge */
 	if (xfr != NULL) {
 		xfrout_fail(xfr, result, "setting up transfer");
 	} else {
 		printf("transfer setup failed\n"); 
-		ns_client_next(client, result);
+		ns_client_error(client, result);
 	}
 }
 
@@ -1057,7 +1072,8 @@ sendstream(xfrout_ctx_t *xfr)
 		isc_buffer_add(&xfr->buf, 12 + 4);
 		
 		dns_rdataset_init(&qrdataset);
-		dns_rdataset_makequestion(&qrdataset, xfr->client->message->rdclass,
+		dns_rdataset_makequestion(&qrdataset,
+					  xfr->client->message->rdclass,
 					  xfr->qtype);
 
 		dns_message_gettempname(msg, &qname);
@@ -1065,7 +1081,8 @@ sendstream(xfrout_ctx_t *xfr)
 		isc_buffer_available(&xfr->buf, &r);
 		INSIST(r.length >= xfr->qname->length);
 		r.length = xfr->qname->length;
-		isc_buffer_putmem(&xfr->buf, xfr->qname->ndata, xfr->qname->length);
+		isc_buffer_putmem(&xfr->buf, xfr->qname->ndata,
+				  xfr->qname->length);
 		dns_name_fromregion(qname, &r);
 		ISC_LIST_INIT(qname->list);
 		ISC_LIST_APPEND(qname->list, &qrdataset, link);
@@ -1090,7 +1107,8 @@ sendstream(xfrout_ctx_t *xfr)
 		unsigned int size;
 		isc_region_t r;
 
-		xfr->stream->methods->current(xfr->stream, &name, &ttl, &rdata);
+		xfr->stream->methods->current(xfr->stream,
+					      &name, &ttl, &rdata);
 		size = name->length + 10 + rdata->length;
 		isc_buffer_available(&xfr->buf, &r);
 		if (size >= r.length) {
@@ -1132,7 +1150,8 @@ sendstream(xfrout_ctx_t *xfr)
 		r.length = rdata->length;
 		isc_buffer_putmem(&xfr->buf, rdata->data, rdata->length);
 		dns_rdata_init(msgrdata);
-		dns_rdata_fromregion(msgrdata, rdata->rdclass, rdata->type, &r);
+		dns_rdata_fromregion(msgrdata,
+				     rdata->rdclass, rdata->type, &r);
 
 		dns_message_gettemprdatalist(msg, &msgrdl);
 		msgrdl->type = rdata->type;
@@ -1162,22 +1181,36 @@ sendstream(xfrout_ctx_t *xfr)
 			break;
 	}
 
-	CHECK(dns_message_renderbegin(msg, &xfr->txbuf));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0, 0));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0, 0));
-	CHECK(dns_message_renderend(msg));
-
-	isc_buffer_used(&xfr->txbuf, &used);
-	isc_buffer_putuint16(&xfr->txlenbuf, used.length);
-
-	region.base = xfr->txlenbuf.base;
-	region.length = 2 + used.length;
-
-	printf("sending zone transfer message of %d bytes\n", used.length);
-	
-	CHECK(isc_socket_send(xfr->client->tcpsocket, /* XXX */
-			      &region, xfr->client->task,
-			      done ? xfrout_send_end : xfrout_send_more, xfr));
+	if ((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0) {
+		CHECK(dns_message_renderbegin(msg, &xfr->txbuf));
+		CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION,
+						0, 0));
+		CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER,
+						0, 0));
+		CHECK(dns_message_renderend(msg));
+		
+		isc_buffer_used(&xfr->txbuf, &used);
+		isc_buffer_putuint16(&xfr->txlenbuf, used.length);
+		region.base = xfr->txlenbuf.base;
+		region.length = 2 + used.length;
+		printf("sending zone transfer TCP message of %d bytes\n",
+		       used.length);
+		CHECK(isc_socket_send(xfr->client->tcpsocket, /* XXX */
+				      &region, xfr->client->task,
+				      done ?
+				      xfrout_send_end :
+				      xfrout_send_more,
+				      xfr));
+	} else {
+		printf("sending IXFR UDP response of %d bytes\n", used.length);
+		/* XXX kludge */
+		dns_message_destroy(&xfr->client->message);
+		xfr->client->message = msg;
+		msg = NULL;
+		ns_client_send(xfr->client);
+		xfrout_ctx_destroy(&xfr);
+		return;
+	}
 	xfr->nmsg++;
 
  failure:
