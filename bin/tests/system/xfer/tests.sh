@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.18 2000/07/07 18:25:18 bwelling Exp $
+# $Id: tests.sh,v 1.19 2000/07/24 22:05:16 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -24,9 +24,7 @@ SYSTEMTESTTOP=..
 # Perform tests
 #
 
-sleep 5
-
-status=0;
+status=0
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
