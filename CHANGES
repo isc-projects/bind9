@@ -1,4 +1,5 @@
-1582.	[placeholder]	rt10381
+1582.	[bug]		rrset-order failed to work on RRsets with more
+			than 32 elements. [RT #10381]
 
 1581.	[func]		Disable DNSSEC support by default.  To enable
 			DNSSEC specify "enable-dnssec yes;" in named.conf.

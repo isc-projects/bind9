@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.50 2001/06/04 19:32:59 tale Exp $ */
+/* $Id: compress.c,v 1.51 2004/02/19 01:23:42 marka Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -45,7 +45,7 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	unsigned int i;
 
 	REQUIRE(cctx != NULL);
-	REQUIRE(mctx != NULL);
+	REQUIRE(mctx != NULL);	/* See: rdataset.c:towiresorted(). */
 
 	cctx->allowed = 0;
 	cctx->edns = edns;
