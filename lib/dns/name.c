@@ -326,6 +326,26 @@ dns_name_isabsolute(dns_name_t *name) {
 	return (ISC_FALSE);
 }
 
+isc_boolean_t
+dns_name_iswildcard(dns_name_t *name) {
+	unsigned char *ndata;
+
+	/*
+	 * Is 'name' a wildcard name?
+	 */
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
+
+	if (name->length >= 2) {
+		ndata = name->ndata;
+		if (ndata[0] == 1 && ndata[1] == '*')
+			return (ISC_TRUE);
+	}
+
+	return (ISC_FALSE);
+}
+
 unsigned int
 dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	unsigned int length;

@@ -298,6 +298,20 @@ isc_boolean_t dns_name_isabsolute(dns_name_t *name);
  *	FALSE		The last label in 'name' is not the root label.
  */
 
+isc_boolean_t dns_name_iswildcard(dns_name_t *name);
+/*
+ * Is 'name' a wildcard name?
+ *
+ * Requires:
+ *	'name' is a valid name
+ *
+ *	dns_name_countlabels(name) > 0
+ *
+ * Returns:
+ *	TRUE		The least significant label of 'name' is '*'.
+ *	FALSE		The least significant label of 'name' is not '*'.
+ */
+
 unsigned int dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive);
 /*
  * Provide a hash value for 'name'.
