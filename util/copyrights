@@ -7,8 +7,10 @@
 ./bin/.cvsignore				X	1999,2000
 ./bin/Makefile.in				MAKE	1998,1999,2000
 ./bin/dnssec/Makefile.in			MAKE	2000
+./bin/dnssec/dnssec-keygen.c			C	1999,2000
+./bin/dnssec/dnssec-makekeyset.			C	2000
+./bin/dnssec/dnssec-signkey.c			C	2000
 ./bin/dnssec/dnssec-signzone.c			C	1999,2000
-./bin/dnssec/dnssec-keygen.c			PORTION	1999,2000
 ./bin/lwresd/.cvsignore				X	2000
 ./bin/lwresd/Makefile.in			MAKE	2000
 ./bin/lwresd/client.c				C	2000
