@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.23 1999/10/07 21:49:38 bwelling Exp $ */
+ /* $Id: sig_24.c,v 1.24 1999/10/08 21:42:23 tale Exp $ */
 
  /* RFC 2065 */
 
@@ -29,6 +29,7 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_token_t token;
 	unsigned char c; 
+	long i;
 	dns_rdatatype_t covered;
 	isc_textregion_t *tsr;
 	char *e;
@@ -48,9 +49,12 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	tsr = &token.value.as_textregion;
 	result = dns_rdatatype_fromtext(&covered, tsr);
 	if (result != DNS_R_SUCCESS && result != DNS_R_NOTIMPLEMENTED) {
-		covered = strtol(token.value.as_pointer, &e, 10);
+		i = strtol(token.value.as_pointer, &e, 10);
+		if (i < 0 || i > 65535)
+			return (DNS_R_RANGE);
 		if (*e != 0)
 			return (result);
+		covered = (dns_rdatatype_t)i;
 	}
 	RETERR(uint16_tobuffer(covered, target));
 
@@ -63,7 +67,7 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xff)
 		return (DNS_R_RANGE);
-	c = token.value.as_ulong;
+	c = token.value.as_char;
 	RETERR(mem_tobuffer(target, &c, 1));
 
 	/* original ttl */
