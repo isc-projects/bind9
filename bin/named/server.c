@@ -123,17 +123,9 @@ load(ns_dbinfo_t *dbi, char *view_name) {
 		/* Continue anyway... */
 	}
 
-	if (dbi->iscache) {
-		/*
-		 * XXXRTH  We must ensure that this is safe, since the
-		 *         field is not covered by the view's lock.
-		 *
-		 *	   We're OK for now, but we'll have to be careful
-		 *	   when we start processing the config file.
-		 */
-		INSIST(view->cachedb == NULL);
-		dns_db_attach(dbi->db, &view->cachedb);
-	} else if (dns_dbtable_add(view->dbtable, dbi->db) != DNS_R_SUCCESS)
+	if (dbi->iscache)
+		dns_view_setcachedb(view, dbi->db);
+	else if (dns_view_addzone(view, dbi->db) != DNS_R_SUCCESS)
 		goto db_detach;
 
 	return (DNS_R_SUCCESS);
@@ -200,19 +192,22 @@ load_version(void) {
 	isc_buffer_init(&source, version_text, len, ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&source, len);
 
-	result = dns_db_beginload(version_db, &callbacks.add, &callbacks.add_private);
+	result = dns_db_beginload(version_db, &callbacks.add,
+				  &callbacks.add_private);
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	result = dns_master_loadbuffer(&source, &version_db->origin, &version_db->origin,
-				       version_db->rdclass, ISC_FALSE, &soacount,
-				       &nscount, &callbacks, version_db->mctx);
+	result = dns_master_loadbuffer(&source, &version_db->origin,
+				       &version_db->origin,
+				       version_db->rdclass, ISC_FALSE,
+				       &soacount, &nscount, &callbacks,
+				       version_db->mctx);
 	eresult = dns_db_endload(version_db, &callbacks.add_private);
 	if (result == ISC_R_SUCCESS)
 		result = eresult;
 	if (result != ISC_R_SUCCESS)
 		goto db_detach;
 
-	if (dns_dbtable_add(version_view->dbtable, version_db) != DNS_R_SUCCESS)
+	if (dns_view_addzone(version_view, version_db) != DNS_R_SUCCESS)
 		goto db_detach;
 
 	return (DNS_R_SUCCESS);
@@ -254,9 +249,6 @@ unload_all(void) {
 		dbi_next = ISC_LIST_NEXT(dbi, link);
 		if (dbi->view != NULL) {
 			INSIST(dbi->db != NULL);
-			if (dns_db_iszone(dbi->db))
-				dns_dbtable_remove(dbi->view->dbtable,
-						   dbi->db);
 			dns_db_detach(&dbi->db);
 			dns_view_detach(&dbi->view);
 		}
@@ -270,7 +262,6 @@ unload_all(void) {
 
 	if (version_view != NULL) {
 		INSIST(version_db != NULL);
-		dns_dbtable_remove(version_view->dbtable, version_db);
 		dns_db_detach(&version_db);
 		dns_view_detach(&version_view);
 	}
@@ -341,13 +332,13 @@ ns_server_init(void) {
 	 */
 	view = NULL;
 	result = dns_view_create(ns_g_mctx, dns_rdataclass_in, "default/IN",
-				 NULL, NULL, &view);
+				 &view);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_views;
 	ISC_LIST_APPEND(ns_g_viewlist, view, link);
 	view = NULL;
 	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "default/CHAOS",
-				 NULL, NULL, &view);
+				 &view);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_views;
 	ISC_LIST_APPEND(ns_g_viewlist, view, link);
