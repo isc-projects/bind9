@@ -1,3 +1,6 @@
+  75.   [func]          Don't load a zone if its database file is older
+                        than the last time the zone was loaded.
+
   74.   [cleanup]       Removed mktemplate.o and ufile.o from libisc.a,
                         subsumed by file.o.
 
