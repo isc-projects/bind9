@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.154 2001/08/06 11:50:13 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155 2001/08/28 17:37:24 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -680,8 +680,9 @@ Use <command>dig</command> instead.</para>
             </listitem>
           </varlistentry>
         </variablelist>
-      </sect3>
-      <sect3 id="admin_tools">
+</sect3>
+
+<sect3 id="admin_tools">
         <title>Administrative Tools</title>
         <para>Administrative tools play an integral part in the management
 of a server.</para>
@@ -852,8 +853,7 @@ The <command>key</command> statement has two clauses:
 <command>algorithm</command> and <command>secret</command>.
 While the configuration parser will accept any string as the argument
 to algorithm, currently only the string "<userinput>hmac-md5</userinput>"
-has any meaning.  The secret is a base-64 encoded string, typically
-generated with either <command>dnssec-keygen</command> or <command>mmencode</command>.</para>
+has any meaning.  The secret is a base-64 encoded string.</para>
 
 <para>The <command>server</command> statement uses the key clause
 to associate a <command>key</command>-defined key with a server.
