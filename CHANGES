@@ -1,6 +1,8 @@
+1822.	[bug]		check-names test for RT was reversed. [RT #13382]
+
+			defined after being referenced.
 1821.	[doc]		acls definitions are no longer required to be 
 			in named.conf prior to reference.  They can be
-			defined after being referenced.
 
 1791.	[bug]		'host -t a' still printed out AAAA and MX records.
 			[RT #13230]
