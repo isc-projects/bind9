@@ -119,6 +119,12 @@ isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size);
  * The resulting string is guaranteed to be null-terminated.
  */
 
+isc_boolean_t
+isc_sockaddr_ismulticast(isc_sockaddr_t *sa);
+/*
+ * Returns ISC_TRUE if the address is a multicast address
+ */
+
 #define ISC_SOCKADDR_FORMATSIZE \
 	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX#YYYYY")
 /*

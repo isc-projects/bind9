@@ -92,6 +92,12 @@ isc_netaddr_fromin(isc_netaddr_t *netaddr, const struct in_addr *ina);
 void
 isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6);
 
+isc_boolean_t
+isc_netaddr_ismulticast(isc_netaddr_t *na);
+/*
+ * Returns ISC_TRUE if the address is a multicast address
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_NETADDR_H */

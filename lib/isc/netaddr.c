@@ -212,8 +212,7 @@ isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6) {
 }
 
 void
-isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s)
-{
+isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 	int family = s->type.sa.sa_family;
 	t->family = family;
 	switch (family) {
@@ -228,3 +227,16 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s)
         }
 }
 
+isc_boolean_t
+isc_netaddr_ismulticast(isc_netaddr_t *na) {
+	switch (na->family) {
+	case AF_INET:
+		return (ISC_TF(ISC_IPADDR_ISMULTICAST(na->type.in.s_addr)));
+		break;
+	case AF_INET6:
+		return (ISC_TF(IN6_IS_ADDR_MULTICAST(&na->type.in6)));
+		break;
+	default:
+		return (ISC_FALSE);  /* XXXMLG ? */
+	}
+}

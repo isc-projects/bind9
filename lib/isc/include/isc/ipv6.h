@@ -123,4 +123,10 @@ struct sockaddr_in6 {
          ((a)->s6_addr32[1] == 0) &&          \
          ((a)->s6_addr32[2] == htonl(0x0000ffff)))
 
+/*
+ * Multicast
+ */
+#define IN6_IS_ADDR_MULTICAST(a)	\
+	((a)->s6_addr8[0] == 0xffU)
+
 #endif /* ISC_IPV6_H */

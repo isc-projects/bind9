@@ -45,6 +45,9 @@
  * It ensures that INADDR_ANY, IN6ADDR_ANY_INIT, in6addr_any, and
  * in6addr_loopback are available.
  *
+ * It ensures that IN_MULTICAST() is available to check for multicast
+ * addresses.
+ *
  * MP:
  *	No impact.
  *
@@ -123,6 +126,16 @@ typedef isc_uint16_t in_port_t;
  */
 #ifndef MSG_TRUNC
 #define ISC_PLATFORM_RECVOVERFLOW
+#endif
+
+#define ISC__IPADDR(x)	((isc_uint32_t)htonl((isc_uint32_t)(x)))
+
+#ifdef IN_MULTICAST
+#define ISC_IPADDR_ISMULTICAST(i)	IN_MULTICAST(i)
+#else
+#define ISC_IPADDR_ISMULTICAST(i) \
+		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
+		 == ISC__IPADDR(0xe0000000))
 #endif
 
 /***
