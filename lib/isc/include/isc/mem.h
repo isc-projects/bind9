@@ -58,6 +58,7 @@ isc_boolean_t			isc_mem_valid(isc_mem_t *, void *);
 void *				isc_mem_allocate(isc_mem_t *, size_t);
 void				isc_mem_free(isc_mem_t *, void *);
 char *				isc_mem_strdup(isc_mem_t *, const char *);
+isc_boolean_t			isc_mem_destroy_check(isc_mem_t *, isc_boolean_t);
 void				isc_mem_setquota(isc_mem_t *, size_t);
 size_t				isc_mem_getquota(isc_mem_t *);
 

@@ -86,6 +86,7 @@ struct isc_mem {
 	unsigned int		basic_table_size;
 	unsigned char *		lowest;
 	unsigned char *		highest;
+	isc_boolean_t		checkfree;
 	struct stats *		stats;
 	size_t			quota;
 	size_t			total;
@@ -191,6 +192,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 		(memfree)(arg, ctx);
 		return (ISC_R_NOMEMORY);
 	}
+	ctx->checkfree = ISC_TRUE;
 	memset(ctx->freelists, 0,
 	       ctx->max_size * sizeof (element *));
 	ctx->stats = (memalloc)(arg,
@@ -246,14 +248,24 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
-	for (i = 0; i <= ctx->max_size; i++)
-		INSIST(ctx->stats[i].gets == 0);
+	if (ctx->checkfree) {
+		for (i = 0; i <= ctx->max_size; i++)
+			INSIST(ctx->stats[i].gets == 0);
+	}
+
+#if 0					/* XXX brister debugging */
+	for (i = 0; i < ctx->basic_table_count; i++)
+		memset(ctx->basic_table[i], 0x0,
+		       NUM_BASIC_BLOCKS * ctx->mem_target);
+#endif
+	
 
 	for (i = 0; i < ctx->basic_table_count; i++)
 		(ctx->memfree)(ctx->arg, ctx->basic_table[i]);
 	(ctx->memfree)(ctx->arg, ctx->freelists);
 	(ctx->memfree)(ctx->arg, ctx->stats);
 	(ctx->memfree)(ctx->arg, ctx->basic_table);
+
 	(void)isc_mutex_destroy(&ctx->lock);
 	(ctx->memfree)(ctx->arg, ctx);
 
@@ -608,6 +620,18 @@ isc_mem_strdup(isc_mem_t *mctx, const char *s) {
 	
 	return (ns);
 }
+
+isc_boolean_t
+isc_mem_destroy_check(isc_mem_t *mctx, isc_boolean_t flag) {
+	isc_boolean_t oldval;
+
+	INSIST(mctx != NULL);
+
+	oldval = mctx->checkfree;
+	mctx->checkfree = flag;
+	return (oldval);
+}
+
 
 /*
  * Quotas
