@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.19 1999/10/29 06:05:10 marka Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.20 1999/10/29 07:13:04 marka Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -3723,7 +3723,7 @@ token_to_text(int token, YYSTYPE lval) {
                         break;
                 case L_IP6ADDR:
                         strcpy(buffer, "UNAVAILABLE-IPV6-ADDRESS");
-                        inet_ntop(AF_INET6, &lval.ip6_addr.s6_addr,
+                        inet_ntop(AF_INET6, lval.ip6_addr.s6_addr,
                                   buffer, sizeof buffer);
                         break;
                 case L_IP4ADDR:
