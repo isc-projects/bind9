@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.20 2000/07/07 18:24:10 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.21 2000/07/07 18:28:58 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -551,7 +551,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 			rval = lwres_conf_parsesortlist(ctx, fp);
 		else if (strcmp(word, "option") == 0)
 			rval = lwres_conf_parseoption(ctx, fp);
-		else if (strlen(word) > 0) {
+		else {
 			/* unrecognised word. Ignore entire line */
 			rval = LWRES_R_SUCCESS;
 			stopchar = eatline(fp);
