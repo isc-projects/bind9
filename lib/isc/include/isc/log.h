@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.2 1999/10/11 13:16:42 tale Exp $ */
+/* $Id: log.h,v 1.3 1999/10/11 14:12:31 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
 
 #include <syslog.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <sys/types.h>
 
 #include <isc/lang.h>
