@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.118 2000/08/11 16:47:30 gson Exp $ */
+/* $Id: rbtdb.c,v 1.119 2000/08/14 02:49:32 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3779,7 +3779,7 @@ issecure(dns_db_t *db) {
 	return (secure);
 }
 
-static isc_boolean_t
+static unsigned int
 nodecount(dns_db_t *db) {
 	dns_rbtdb_t *rbtdb;
 	unsigned int count;
