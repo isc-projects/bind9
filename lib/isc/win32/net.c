@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.5 2002/10/29 04:40:25 marka Exp $ */
+/* $Id: net.c,v 1.6 2003/01/14 23:37:06 marka Exp $ */
 
 #include <config.h>
 
@@ -42,20 +42,18 @@ static isc_result_t	ipv6only_result = ISC_R_NOTFOUND;
 
 static isc_result_t
 try_proto(int domain) {
-	int s;
+	SOCKET s;
 	isc_result_t result = ISC_R_SUCCESS;
 	char strbuf[ISC_STRERRORSIZE];
 	int errval;
 
 	s = socket(domain, SOCK_STREAM, 0);
-	if (s == -1) {
+	if (s == INVALID_SOCKET) {
 		errval = WSAGetLastError();
 		switch (errval) {
 		case WSAEAFNOSUPPORT:
 		case WSAEPROTONOSUPPORT:
-#ifdef EINVAL
-		case EINVAL:
-#endif
+		case WSAEINVAL:
 			return (ISC_R_NOTFOUND);
 		default:
 			isc__strerror(errval, strbuf, sizeof(strbuf));
@@ -153,7 +151,8 @@ isc_net_probeipv6(void) {
 static void
 try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
-	int s, on;
+	SOCKET s;
+	int on;
 	char strbuf[ISC_STRERRORSIZE];
 #endif
 	isc_result_t result;
@@ -170,7 +169,7 @@ try_ipv6only(void) {
 #else
 	/* check for TCP sockets */
 	s = socket(PF_INET6, SOCK_STREAM, 0);
-	if (s == -1) {
+	if (s == INVALID_SOCKET) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
@@ -193,7 +192,7 @@ try_ipv6only(void) {
 
 	/* check for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
-	if (s == -1) {
+	if (s == INVALID_SOCKET) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
