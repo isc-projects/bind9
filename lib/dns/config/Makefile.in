@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.24 2000/10/04 18:47:21 bwelling Exp $
+# $Id: Makefile.in,v 1.25 2000/10/10 21:58:01 bwelling Exp $
 
 srcdir		= @srcdir@
 VPATH		= @srcdir@
@@ -72,8 +72,8 @@ confparser.c: confparser.y
 ## This rule is here only for Nominum internal use.  The above "comment"
 ## will cause the sanitizer to remove it
 confparser.y: confparser.y.dirty
-	${PERL} ../../../util/sanitize.pl -iPUBLIC - < confparser.y.dirty \
-		> confparser.y
+	${PERL} ../../../util/sanitize.pl -iNOMINUM_PUBLIC - \
+		< confparser.y.dirty > confparser.y
 #endif NOMINUM_PUBLIC
 
 depend: confparser.c
