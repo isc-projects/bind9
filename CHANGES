@@ -1,5 +1,10 @@
- 226.	[func]		dns_name_totext() now always prints the root name as '.',
-			even when omit_final_dot is true.
+ 227.   [cleanup]	The enumerated identifiers dns_rdataclass_*,
+                        dns_rcode_*, dns_opcode_*, and dns_trust_* are
+                        also now cast to their appropriate types, as with
+                        dns_rdatatype_* in item number 225 below.
+
+ 226.	[func]		dns_name_totext() now always prints the root name as
+			'.', even when omit_final_dot is true.
 
  225.   [cleanup]       The enumerated dns_rdatatype_* identifiers are now
                         cast to dns_rdatatype_t via macros of their same name
