@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.83 2000/11/03 07:15:49 marka Exp $ */
+/* $Id: view.c,v 1.84 2000/11/03 18:27:31 gson Exp $ */
 
 #include <config.h>
 
@@ -333,8 +333,8 @@ dns_view_detach(dns_view_t **viewp) {
 }
 
 static isc_result_t
-dialup(dns_zone_t *zone, void *__arg) {
-	UNUSED(__arg);
+dialup(dns_zone_t *zone, void *dummy) {
+	UNUSED(dummy);
 	dns_zone_dialup(zone);
 	return (ISC_R_SUCCESS);
 }
