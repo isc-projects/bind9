@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.h,v 1.1 2000/11/14 23:39:15 tale Exp $ */
+/* $Id: resource.h,v 1.2 2000/11/15 01:31:45 gson Exp $ */
 
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1
@@ -77,4 +77,4 @@ isc_resource_getlimit(isc_resource_t resource);
 
 ISC_LANG_ENDDECLS
 
-#endif ISC_RESOURCE_H
+#endif /* ISC_RESOURCE_H */
