@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.56.2.4 2001/04/17 17:37:20 gson Exp $
+ * $Id: dnssec.c,v 1.56.2.5 2001/05/29 22:54:19 bwelling Exp $
  */
 
 
@@ -531,7 +531,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	isc_buffer_t headerbuf, databuf, sigbuf;
 	unsigned int sigsize;
-	isc_buffer_t *dynbuf;
+	isc_buffer_t *dynbuf = NULL;
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *datalist;
 	dns_rdataset_t *dataset;
@@ -623,7 +623,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	rdata = NULL;
 	RETERR(dns_message_gettemprdata(msg, &rdata));
-	dynbuf = NULL;
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024));
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, dynbuf));
