@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.172 2000/12/08 17:50:47 mws Exp $ */
+/* $Id: dighost.c,v 1.173 2000/12/11 03:28:52 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -199,7 +199,7 @@ hex_dump(isc_buffer_t *b) {
 
 
 isc_result_t
-get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble) {
+get_reverse(char *reverse, char *value, isc_boolean_t nibble) {
 	int adrs[4];
 	char working[MXNAME];
 	int i, n;
