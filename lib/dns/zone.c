@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.169 2000/07/27 09:46:51 tale Exp $ */
+/* $Id: zone.c,v 1.170 2000/07/28 19:32:57 gson Exp $ */
 
 #include <config.h>
 
@@ -1789,6 +1789,7 @@ process_adb_event(isc_task_t *task, isc_event_t *ev) {
 
 	notify = ev->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
+	INSIST(task == notify->zone->task);	
 	result = ev->ev_type;
 	isc_event_free(&ev);
 	dns_zone_iattach(notify->zone, &zone);
@@ -2002,7 +2003,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	origin = &zone->origin;
 
 	/*
-	 * Enqueue notify request.
+	 * Enqueue notify requests for 'also-notify' servers.
 	 */
 	LOCK(&zone->lock);
 	for (i = 0; i < zone->notifycnt; i++) {
@@ -3649,6 +3650,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
+	INSIST(task == notify->zone->task);
 
 	dns_zone_iattach(notify->zone, &zone);
 	DNS_ENTER;
