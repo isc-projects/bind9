@@ -39,8 +39,9 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/master.h>
-#include <dns/name.h>
 #include <dns/log.h>
+#include <dns/name.h>
+#include <dns/rootns.h>
 
 typedef struct client client_t;
 struct client {
@@ -88,84 +89,6 @@ check_result(isc_result_t result, char *format, ...)
 	va_end(args);
 	fprintf(stderr, "\n");
 	exit(1);
-}
-
-static char root_ns[] =
-";\n"
-"; Internet Root Nameservers\n"
-";\n"
-"; Thu Sep 23 17:57:37 PDT 1999\n"
-";\n"
-"$TTL 518400\n"
-".                       518400  IN      NS      F.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      B.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      J.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      K.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      L.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      M.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      I.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      E.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      D.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      A.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      H.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      C.ROOT-SERVERS.NET.\n"
-".                       518400  IN      NS      G.ROOT-SERVERS.NET.\n"
-"F.ROOT-SERVERS.NET.     3600000 IN      A       192.5.5.241\n"
-"B.ROOT-SERVERS.NET.     3600000 IN      A       128.9.0.107\n"
-"J.ROOT-SERVERS.NET.     3600000 IN      A       198.41.0.10\n"
-"K.ROOT-SERVERS.NET.     3600000 IN      A       193.0.14.129\n"
-"L.ROOT-SERVERS.NET.     3600000 IN      A       198.32.64.12\n"
-"M.ROOT-SERVERS.NET.     3600000 IN      A       202.12.27.33\n"
-"I.ROOT-SERVERS.NET.     3600000 IN      A       192.36.148.17\n"
-"E.ROOT-SERVERS.NET.     3600000 IN      A       192.203.230.10\n"
-"D.ROOT-SERVERS.NET.     3600000 IN      A       128.8.10.90\n"
-"A.ROOT-SERVERS.NET.     3600000 IN      A       198.41.0.4\n"
-"H.ROOT-SERVERS.NET.     3600000 IN      A       128.63.2.53\n"
-"C.ROOT-SERVERS.NET.     3600000 IN      A       192.33.4.12\n"
-"G.ROOT-SERVERS.NET.     3600000 IN      A       192.112.36.4\n";
-
-isc_result_t
-ns_rootns_init(void)
-{
-	isc_result_t result, eresult;
-	isc_buffer_t source;
-	size_t len;
-	int soacount, nscount;
-	dns_rdatacallbacks_t callbacks;
-
-	rootdb = NULL;
-	result = dns_db_create(mctx, "rbt", dns_rootname, ISC_FALSE,
-			       dns_rdataclass_in, 0, NULL, &rootdb);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	dns_rdatacallbacks_init(&callbacks);
-
-	len = strlen(root_ns);
-	isc_buffer_init(&source, root_ns, len, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&source, len);
-
-	result = dns_db_beginload(rootdb, &callbacks.add,
-				  &callbacks.add_private);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	result = dns_master_loadbuffer(&source, &rootdb->origin,
-				       &rootdb->origin,
-				       rootdb->rdclass, ISC_FALSE,
-				       &soacount, &nscount, &callbacks,
-				       rootdb->mctx);
-	eresult = dns_db_endload(rootdb, &callbacks.add_private);
-	if (result == ISC_R_SUCCESS)
-		result = eresult;
-	if (result != ISC_R_SUCCESS)
-		goto db_detach;
-
-	return (DNS_R_SUCCESS);
-
- db_detach:
-	dns_db_detach(&rootdb);
-
-	return (result);
 }
 
 client_t *
@@ -285,8 +208,9 @@ create_view(void)
 					 timermgr, NULL);
 	check_result(result, "dns_view_createresolver()");
 
-	result = ns_rootns_init();
-	check_result(result, "ns_rootns_init()");
+	rootdb = NULL;
+	result = dns_rootns_create(mctx, &rootdb);
+	check_result(result, "dns_rootns_create()");
 	dns_view_sethints(view, rootdb);
 	dns_db_detach(&rootdb);
 
