@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.100 2000/08/28 23:04:51 bwelling Exp $
+# $Id: Makefile.in,v 1.101 2000/09/16 01:15:22 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -42,13 +42,21 @@ CONFOBJS =	config/confacl.@O@ config/confcache.@O@ config/confcommon.@O@ \
 		config/confresolv.@O@ config/confrrset.@O@ \
 		config/confview.@O@ config/confzone.@O@
 
-DSTOBJS =	sec/dst/bsafe_link.@O@ sec/dst/dst_api.@O@ \
+DSTOBJS =	sec/dst/dst_api.@O@ \
 		sec/dst/dst_lib.@O@ sec/dst/dst_parse.@O@ \
 		sec/dst/dst_result.@O@ sec/dst/gssapi_link.@O@ \
 		sec/dst/hmac_link.@O@ sec/dst/openssl_link.@O@ \
-		sec/dst/openssldh_link.@O@
+		sec/dst/openssldh_link.@O@ sec/dst/opensslrsa_link.@O@
 
-OPENSSLOBJS =	sec/openssl/bn_add.@O@ sec/openssl/bn_asm.@O@ \
+OPENSSLOBJS =	sec/openssl/a_bitstr.@O@ sec/openssl/a_bytes.@O@ \
+		sec/openssl/a_enum.@O@ sec/openssl/a_gentm.@O@ \
+		sec/openssl/a_int.@O@ sec/openssl/a_object.@O@ \
+		sec/openssl/a_octet.@O@ sec/openssl/a_print.@O@ \
+		sec/openssl/a_set.@O@ sec/openssl/a_type.@O@ \
+		sec/openssl/a_utctm.@O@ sec/openssl/a_utf8.@O@ \
+		sec/openssl/a_vis.@O@ sec/openssl/asn1_lib.@O@ \
+		sec/openssl/bn_add.@O@ sec/openssl/bn_asm.@O@ \
+		sec/openssl/bn_blind.@O@ \
 		sec/openssl/bn_ctx.@O@ sec/openssl/bn_div.@O@ \
 		sec/openssl/bn_err.@O@ sec/openssl/bn_exp.@O@ \
 		sec/openssl/bn_exp2.@O@ sec/openssl/bn_gcd.@O@ \
@@ -66,54 +74,16 @@ OPENSSLOBJS =	sec/openssl/bn_add.@O@ sec/openssl/bn_asm.@O@ \
 		sec/openssl/dsa_sign.@O@ sec/openssl/dsa_vrf.@O@ \
 		sec/openssl/err.@O@ sec/openssl/ex_data.@O@ \
 		sec/openssl/lhash.@O@ sec/openssl/mem_dbg.@O@ \
-		sec/openssl/mem.@O@ sec/openssl/rand_lib.@O@ \
+		sec/openssl/mem.@O@ sec/openssl/obj_dat.@O@ \
+		sec/openssl/obj_lib.@O@ sec/openssl/rand_lib.@O@ \
+                sec/openssl/rsa_chk.@O@ sec/openssl/rsa_eay.@O@ \
+                sec/openssl/rsa_gen.@O@ sec/openssl/rsa_lib.@O@ \
+		sec/openssl/rsa_none.@O@ sec/openssl/rsa_oaep.@O@ \
+		sec/openssl/rsa_pk1.@O@ \
+		sec/openssl/rsa_sign.@O@ sec/openssl/rsa_ssl.@O@ \
 		sec/openssl/sha1_one.@O@ sec/openssl/sha1dgst.@O@ \
-		sec/openssl/stack.@O@ sec/openssl/th-lock.@O@
-
-DNSSAFEOBJS =	sec/dnssafe/ahchdig.@O@ sec/dnssafe/ahchencr.@O@ \
-		sec/dnssafe/ahchgen.@O@ sec/dnssafe/ahchrand.@O@ \
-		sec/dnssafe/ahdigest.@O@ sec/dnssafe/ahencryp.@O@ \
-		sec/dnssafe/ahgen.@O@ sec/dnssafe/ahrandom.@O@ \
-		sec/dnssafe/ahrsaenc.@O@ sec/dnssafe/ahrsaepr.@O@ \
-		sec/dnssafe/ahrsaepu.@O@ sec/dnssafe/aichdig.@O@ \
-		sec/dnssafe/aichenc8.@O@ sec/dnssafe/aichencn.@O@ \
-		sec/dnssafe/aichencr.@O@ sec/dnssafe/aichgen.@O@ \
-		sec/dnssafe/aichrand.@O@ sec/dnssafe/aimd5.@O@ \
-		sec/dnssafe/aimd5ran.@O@ sec/dnssafe/ainfotyp.@O@ \
-		sec/dnssafe/ainull.@O@ sec/dnssafe/airsaepr.@O@ \
-		sec/dnssafe/airsaepu.@O@ sec/dnssafe/airsakgn.@O@ \
-		sec/dnssafe/airsaprv.@O@ sec/dnssafe/airsapub.@O@ \
-		sec/dnssafe/algchoic.@O@ sec/dnssafe/algobj.@O@ \
-		sec/dnssafe/amcrte.@O@ sec/dnssafe/ammd5.@O@ \
-		sec/dnssafe/ammd5r.@O@ sec/dnssafe/amrkg.@O@ \
-		sec/dnssafe/amrsae.@O@ \
-		sec/dnssafe/balg.@O@ sec/dnssafe/bgclrbit.@O@ \
-		sec/dnssafe/bgmdmpyx.@O@ sec/dnssafe/bgmdsqx.@O@ \
-		sec/dnssafe/bgmodexp.@O@ sec/dnssafe/bgpegcd.@O@ \
-		sec/dnssafe/big2exp.@O@ sec/dnssafe/bigabs.@O@ \
-		sec/dnssafe/bigacc.@O@ sec/dnssafe/bigarith.@O@ \
-		sec/dnssafe/bigcmp.@O@ sec/dnssafe/bigconst.@O@ \
-		sec/dnssafe/biginv.@O@ sec/dnssafe/biglen.@O@ \
-		sec/dnssafe/bigmodx.@O@ sec/dnssafe/bigmpy.@O@ \
-		sec/dnssafe/bigpdiv.@O@ sec/dnssafe/bigpmpy.@O@ \
-		sec/dnssafe/bigpmpyh.@O@ sec/dnssafe/bigpmpyl.@O@ \
-		sec/dnssafe/bigpsq.@O@ sec/dnssafe/bigqrx.@O@ \
-		sec/dnssafe/bigsmod.@O@ sec/dnssafe/bigtocan.@O@ \
-		sec/dnssafe/bigu.@O@ sec/dnssafe/bigunexp.@O@ \
-		sec/dnssafe/binfocsh.@O@ sec/dnssafe/bkey.@O@ \
-		sec/dnssafe/bmempool.@O@ sec/dnssafe/cantobig.@O@ \
-		sec/dnssafe/crt2.@O@ sec/dnssafe/digest.@O@ \
-		sec/dnssafe/digrand.@O@ sec/dnssafe/encrypt.@O@ \
-		sec/dnssafe/generate.@O@ sec/dnssafe/intbits.@O@ \
-		sec/dnssafe/intitem.@O@ sec/dnssafe/keyobj.@O@ \
-		sec/dnssafe/ki8byte.@O@ sec/dnssafe/kiitem.@O@ \
-		sec/dnssafe/kinfotyp.@O@ sec/dnssafe/kifulprv.@O@ \
-		sec/dnssafe/kipkcrpr.@O@ sec/dnssafe/kirsacrt.@O@ \
-		sec/dnssafe/kirsapub.@O@ sec/dnssafe/md5.@O@ \
-		sec/dnssafe/md5rand.@O@ sec/dnssafe/prime.@O@ \
-		sec/dnssafe/random.@O@ sec/dnssafe/rsa.@O@ \
-		sec/dnssafe/rsakeygn.@O@ sec/dnssafe/seccbcd.@O@ \
-		sec/dnssafe/seccbce.@O@ sec/dnssafe/surrendr.@O@
+		sec/openssl/stack.@O@ sec/openssl/th-lock.@O@ \
+		sec/openssl/x_sig.@O@ sec/openssl/x_algor.@O@
 
 # Alphabetically
 OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
@@ -128,7 +98,7 @@ OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 		tcpmsg.@O@ time.@O@ tkey.@O@ tkeyconf.@O@ \
 		tsig.@O@ tsigconf.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zoneconf.@O@ zt.@O@ \
-		${DSTOBJS} @DST_OPENSSL_OBJS@ ${DNSSAFEOBJS} ${CONFOBJS}
+		${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
 
 # Alphabetically
 SRCS =		a6.c acl.c aclconf.c adb.c byaddr.c \
