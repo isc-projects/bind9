@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.63 2000/10/31 03:21:39 marka Exp $ */
+/* $Id: nslookup.c,v 1.64 2000/12/06 22:38:49 tale Exp $ */
 
 #include <config.h>
 
@@ -695,7 +695,7 @@ setoption(char *opt) {
 	}
 }
 
-static dig_lookup_t*
+static void
 addlookup(char *opt) {
 	dig_lookup_t *lookup;
 	isc_result_t result;
@@ -750,7 +750,6 @@ addlookup(char *opt) {
 	lookup->origin = NULL;
 	ISC_LIST_INIT(lookup->my_server_list);
 	debug("looking up %s", lookup->textname);
-	return (lookup);
 }
 
 static void
@@ -838,7 +837,6 @@ get_next_command(void) {
 
 static void
 parse_args(int argc, char **argv) {
-	dig_lookup_t *lookup = NULL;
 	isc_boolean_t have_lookup = ISC_FALSE;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
@@ -857,7 +855,7 @@ parse_args(int argc, char **argv) {
 			if (!have_lookup) {
 				have_lookup = ISC_TRUE;
 				in_use = ISC_TRUE;
-				lookup = addlookup(argv[0]);
+				addlookup(argv[0]);
 			}
 			else
 				setsrv(argv[0]);
