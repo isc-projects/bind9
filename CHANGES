@@ -1,3 +1,6 @@
+1500.	[bug]		host failed to lookup MX records.  Also look up
+			AAAA records.
+
 1499.	[bug]		isc_random need to be seeded better if arc4random()
 			is not used.
 
@@ -21,7 +24,7 @@
 
 1490.	[bug]		Accept reading state as well as working state in
 			ns_client_next(). [RT #6813]
-			
+
 1489.	[compat]	Treat 'allow-update' on slave zones as a warning.
 			[RT #3469]
 
@@ -463,11 +466,9 @@
 1339.	[func]		dig, host and nslookup now use IP6.ARPA for nibble
 			lookups.  Bit string lookups are no longer attempted.
 
-1338.	[func]		IPv6 synthesis is now performed for IP6.ARPA bit
-			string queries.
+1338.	[placeholder]
 
-1337.	[func]		IPv6 synthesis is now performed for both IP6.ARPA
-			and IP6.INT nibble queries.
+1337.	[placeholder]
 
 1336.	[func]		Nibble lookups under IP6.ARPA are now supported by
 			dns_byaddr_create().  dns_byaddr_createptrname() is
@@ -1242,9 +1243,9 @@
 			[RT #1966]
 
 1077.	[func]		Do not accept further recursive clients when
-			the total number of of recursive lookups being
+			the total number of recursive lookups being
 			processed exceeds max-recursive-clients, even
-			if some	of the lookups are internally generated.
+			if some of the lookups are internally generated.
 			[RT #1915, #1938]
 
 1076.	[bug]		A badly defined global key could trigger an assertion
