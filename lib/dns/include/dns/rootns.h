@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.h,v 1.9.18.1 2005/02/07 00:53:47 marka Exp $ */
+/* $Id: rootns.h,v 1.9.18.2 2005/02/07 23:56:42 marka Exp $ */
 
 #ifndef DNS_ROOTNS_H
 #define DNS_ROOTNS_H 1
