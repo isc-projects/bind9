@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.12 2001/01/09 21:53:26 bwelling Exp $ */
+/* $Id: sdb.h,v 1.13 2001/10/13 01:32:34 gson Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -112,7 +112,10 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  * ns_sdb_putrr().
  *
  * The lookup function returns the lookup results to the name server
- * by calling ns_sdb_putrr() once for each record found.
+ * by calling ns_sdb_putrr() once for each record found.  On success,
+ * the return value of the lookup function should be ISC_R_SUCCESS.
+ * If the domain name 'name' does not exist, the lookup function should
+ * ISC_R_NOTFOUND.  Any other return value is treated as an error.
  *
  * Lookups at the zone apex will cause the server to also call the
  * function 'authority' (if non-NULL), which must provide an SOA record
