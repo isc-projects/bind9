@@ -167,9 +167,9 @@ int dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2);
  *	'rdata2' is a valid, non-empty rdata
  *
  * Returns:
- *	-1		'rdata1' is less than 'rdata2'
+ *	< 0		'rdata1' is less than 'rdata2'
  *	0		'rdata1' is equal to 'rdata2'
- *	1		'rdata1' is greater than 'rdata2'
+ *	> 0		'rdata1' is greater than 'rdata2'
  */
 
 /***
