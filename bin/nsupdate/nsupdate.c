@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.99 2001/07/12 04:13:39 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.100 2001/07/14 20:17:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -368,7 +368,7 @@ doshutdown(void) {
 		isc_mem_put(mctx, localaddr, sizeof(isc_sockaddr_t));
 
 	if (key != NULL) {
-		debug("Freeing key");
+		ddebug("Freeing key");
 		dns_tsigkey_detach(&key);
 	}
 
@@ -376,13 +376,13 @@ doshutdown(void) {
 		dns_message_destroy(&updatemsg);
 
 	if (is_dst_up) {
-		debug("Destroy DST lib");
+		ddebug("Destroy DST lib");
 		dst_lib_destroy();
 		is_dst_up = ISC_FALSE;
 	}
 
 	if (entp != NULL) {
-		debug("Detach from entropy");
+		ddebug("Detach from entropy");
 		isc_entropy_detach(&entp);
 	}
 
