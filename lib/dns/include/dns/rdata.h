@@ -193,7 +193,8 @@ dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
  *
  *	'class' and 'type' are valid.
  *
- *	'source' is a valid binary buffer.
+ *	'source' is a valid binary buffer, and the active region of 'source'
+ *	references the rdata to be processed.
  *
  *	'target' is a valid binary buffer.
  *
