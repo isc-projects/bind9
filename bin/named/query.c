@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.125 2000/08/09 00:09:29 gson Exp $ */
+/* $Id: query.c,v 1.126 2000/08/21 23:45:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2996,55 +2996,42 @@ ns_query_start(ns_client_t *client) {
 	log_query(client);
 
 	/*
-	 * Check for illegal meta-classes and meta-types in
-	 * multiple question queries (edns1 section 5.1).
+	 * Check for multiple question queries, since edns1 is dead.
 	 */
 	if (message->counts[DNS_SECTION_QUESTION] > 1) {
-		if (dns_rdataclass_ismeta(message->rdclass)) {
-			ns_client_error(client, DNS_R_FORMERR);
-			return;
-		}
-		for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
-		     rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			if (dns_rdatatype_ismeta(rdataset->type)) {
-				ns_client_error(client, DNS_R_FORMERR);
-				return;
-			}
-		}
+		ns_client_error(client, DNS_R_FORMERR);
+		return;
 	}
 
 	/*
 	 * Check for meta-queries like IXFR and AXFR.
 	 */
-	if (message->counts[DNS_SECTION_QUESTION] == 1) {
-		rdataset = ISC_LIST_HEAD(client->query.qname->list);
-		INSIST(rdataset != NULL);
-		if (dns_rdatatype_ismeta(rdataset->type)) {
-			switch (rdataset->type) {
-			case dns_rdatatype_any:
-				break; /* Let query_find handle it. */
-			case dns_rdatatype_ixfr:
-			case dns_rdatatype_axfr:
-				ns_xfr_start(client, rdataset->type);
-				return;
-			case dns_rdatatype_maila:
-			case dns_rdatatype_mailb:
-				ns_client_error(client, DNS_R_NOTIMP);
-				return;
-			case dns_rdatatype_tkey:
-				result = dns_tkey_processquery(client->message,
-							  ns_g_server->tkeyctx,
-						    client->view->dynamickeys);
-				if (result == ISC_R_SUCCESS)
-					ns_client_send(client);
-				else
-					ns_client_error(client, result);
-				return;
-			default: /* TSIG, etc. */
-				ns_client_error(client, DNS_R_FORMERR);
-				return;
-			}
+	rdataset = ISC_LIST_HEAD(client->query.qname->list);
+	INSIST(rdataset != NULL);
+	if (dns_rdatatype_ismeta(rdataset->type)) {
+		switch (rdataset->type) {
+		case dns_rdatatype_any:
+			break; /* Let query_find handle it. */
+		case dns_rdatatype_ixfr:
+		case dns_rdatatype_axfr:
+			ns_xfr_start(client, rdataset->type);
+			return;
+		case dns_rdatatype_maila:
+		case dns_rdatatype_mailb:
+			ns_client_error(client, DNS_R_NOTIMP);
+			return;
+		case dns_rdatatype_tkey:
+			result = dns_tkey_processquery(client->message,
+						ns_g_server->tkeyctx,
+						client->view->dynamickeys);
+			if (result == ISC_R_SUCCESS)
+				ns_client_send(client);
+			else
+				ns_client_error(client, result);
+			return;
+		default: /* TSIG, etc. */
+			ns_client_error(client, DNS_R_FORMERR);
+			return;
 		}
 	}
 
