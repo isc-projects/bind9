@@ -605,7 +605,9 @@
 ./doc/arm/Bv9ARM.css				X	2000
 ./doc/arm/Bv9ARM.html				HTML	2000
 ./doc/arm/Bv9ARM.txt				TXT.BRIEF	2000
+./doc/arm/genhtml.sh.in				SH	2000
 ./doc/arm/isc.color.gif				X	2000
+./doc/arm/validate.sh.in			SH	2000
 ./doc/design/addressdb				TXT.BRIEF	2000
 ./doc/design/compression			TXT.BRIEF	1999,2000
 ./doc/design/database				TXT.BRIEF	1999,2000
