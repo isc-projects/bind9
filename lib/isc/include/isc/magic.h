@@ -18,10 +18,18 @@
 #ifndef ISC_MAGIC_H
 #define ISC_MAGIC_H 1
 
-#define ISC_MAGIC_VALID(a,b)	(((a) != NULL) && ((a)->magic == (b)))
+typedef struct {
+	unsigned int magic;
+} isc__magic_t;
 
-#define ISC_MAGIC(a, b, c, d)	((unsigned int)(a) << 24 \
-				 | (unsigned int)(b) << 16 \
-				 | (unsigned int)(c) << 8 | (d))
+
+/*
+ * To use this macro the magic number MUST be the first thing in the
+ * structure, and MUST be of type "unsigned int"
+ */
+#define ISC_MAGIC_VALID(a,b)	(((a) != NULL) \
+				 && (((isc__magic_t *)(a))->magic == (b)))
+
+#define ISC_MAGIC(a, b, c, d)	((a) << 24 | (b) << 16 | (c) << 8 | (d))
 
 #endif /* ISC_MAGIC_H */
