@@ -64,16 +64,17 @@ dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl)
 
 	REQUIRE(DNS_C_CONFCTLLIST_VALID(cl));
 	
-	if (ISC_LIST_EMPTY(cl->elements)) {
-		return;
-	}
-	
 	fprintf(fp, "controls {\n");
 	ctl = ISC_LIST_HEAD(cl->elements);
-	while (ctl != NULL) {
+	if (ctl == NULL) {
 		dns_c_printtabs(fp, indent + 1);
-		dns_c_ctrl_print(fp, indent + 1, ctl);
-		ctl = ISC_LIST_NEXT(ctl, next);
+		fprintf(fp,"/* empty list */\n");
+	} else {
+		while (ctl != NULL) {
+			dns_c_printtabs(fp, indent + 1);
+			dns_c_ctrl_print(fp, indent + 1, ctl);
+			ctl = ISC_LIST_NEXT(ctl, next);
+		}
 	}
 	fprintf(fp, "};\n");
 }
