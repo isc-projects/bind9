@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.3.2.1 2000/06/26 21:47:35 gson Exp $ */
+/* $Id: lwdgnba.c,v 1.3.2.2 2000/10/17 18:40:10 gson Exp $ */
 
 #include <config.h>
 
@@ -170,7 +170,8 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		lwres_context_freemem(cm->lwctx,
 				      lwb.base, lwb.length);
 
-	isc_event_free(&event);
+	if (event != NULL)
+		isc_event_free(&event);
 }
 
 static void
