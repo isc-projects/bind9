@@ -17,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.26 2000/11/07 23:49:33 mws Exp $ */
+/* $Id: confparser.y.dirty,v 1.27 2000/11/16 20:44:53 tale Exp $ */
 
 #include <config.h>
 
@@ -144,7 +144,9 @@ static isc_boolean_t	keydefinedinscope(dns_c_ctx_t *cfg,
 
 
 
-/* returns true if (base * mult) would be too big.*/
+/*
+ * Returns true if (base * mult) would be too big.
+ */
 static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 
 /*
@@ -190,6 +192,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 #define yyr2		dns__yyr2
 #define yyreds		dns__yyreds
 #define yytoks		dns__yytoks
+#undef L_SEARCH			/* <sys/lkup.h> defines this. */
 
 %}
 
