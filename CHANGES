@@ -1,6 +1,7 @@
 1691.	[bug]		sdb's attachversion was not complete. [RT #11990]
 
-1690.	[placeholder]	rt11714
+1690.	[bug]		Delay detaching view from the client until UPDATE
+			processing completes when shutting down. [RT #11714]
 
 1689.	[bug]		DNS_NAME_TOREGION() and DNS_NAME_SPLIT() macros
 			contained gratuitous semicolons. [RT #11707]
