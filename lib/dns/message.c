@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.5 2002/02/19 22:12:58 gson Exp $ */
+/* $Id: message.c,v 1.194.2.6 2002/02/19 22:39:25 gson Exp $ */
 
 /***
  *** Imports
@@ -2903,6 +2903,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_name_t *name = NULL;
 	isc_result_t result;
 	char buf[sizeof("1234567890")];
+	isc_uint32_t mbz;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -2916,13 +2917,22 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
 		ADD_STRING(target, "; EDNS: version: ");
-		sprintf(buf, "%4u",
-			(unsigned int)((ps->ttl &
+		snprintf(buf, sizeof(buf), "%u",
+			 (unsigned int)((ps->ttl &
 					0x00ff0000 >> 16)));
 		ADD_STRING(target, buf);
-		ADD_STRING(target, ", udp=");
-		sprintf(buf, "%7u\n",
-			(unsigned int)ps->rdclass);
+		ADD_STRING(target, ", flags:");
+		if ((ps->ttl & DNS_MESSAGEEXTFLAG_DO) != 0)
+			ADD_STRING(target, " do");
+		mbz = ps->ttl & ~DNS_MESSAGEEXTFLAG_DO & 0xffff;
+		if (mbz != 0) {
+			ADD_STRING(target, "; MBZ: ");
+			snprintf(buf, sizeof(buf), "%.4x ", mbz);
+			ADD_STRING(target, buf);
+			ADD_STRING(target, ", udp: ");
+		} else
+			ADD_STRING(target, "; udp: ");
+		snprintf(buf, sizeof(buf), "%u\n", (unsigned int)ps->rdclass);
 		ADD_STRING(target, buf);
 		return (ISC_R_SUCCESS);
 	case DNS_PSEUDOSECTION_TSIG:
