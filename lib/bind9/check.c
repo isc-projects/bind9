@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.22 2002/02/13 03:43:09 marka Exp $ */
+/* $Id: check.c,v 1.23 2002/02/13 03:56:57 marka Exp $ */
 
 #include <config.h>
 
@@ -257,11 +257,14 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 					    ztype == HINTZONE ? 1 : 2,
 					    symvalue, isc_symexists_reject);
 		if (tresult == ISC_R_EXISTS) {
+			isc_mem_free(mctx, key);
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 				    "zone '%s': already exists ", zname);
 			result = ISC_R_FAILURE;
-		} else if (tresult != ISC_R_SUCCESS)
+		} else if (tresult != ISC_R_SUCCESS) {
+			isc_mem_strdup(mctx, key);
 			return (tresult);
+		}
 	}
 
 	/*
