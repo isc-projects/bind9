@@ -18,25 +18,27 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+RANDFILE=../random.data
+
 zone=.
 infile=root.db.in
 zonefile=root.db
 
-keyname=`$KEYGEN -a RSA -b 768 -n zone $zone`
+keyname=`$KEYGEN -a RSA -b 768 -n zone -r $RANDFILE $zone`
 
 (cd ../ns2 && sh sign.sh )
 
 cp ../ns2/example.keyset .
 
-$KEYSIGNER example.keyset $keyname
+$KEYSIGNER -r $RANDFILE example.keyset $keyname
 
 cat example.signedkey >> ../ns2/example.db.signed
 
-$KEYSETTOOL -t 3600 $keyname
+$KEYSETTOOL -r $RANDFILE -t 3600 $keyname
 
 cat $infile $keyname.key > $zonefile
 
-$SIGNER -o $zone $zonefile
+$SIGNER -r $RANDFILE -o $zone $zonefile
 
 # Configure the resolving server with a trusted key.
 

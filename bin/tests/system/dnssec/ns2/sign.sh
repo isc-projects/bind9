@@ -18,11 +18,13 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+RANDFILE=../random.data
+
 zone=example.
 infile=example.db.in
 zonefile=example.db
 
-keyname=`$KEYGEN -a RSA -b 768 -n zone $zone`
+keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
 # Have the child generate a zone key and pass it to us,
 # sign it, and pass it back
@@ -31,7 +33,7 @@ keyname=`$KEYGEN -a RSA -b 768 -n zone $zone`
 
 cp ../ns3/secure.example.keyset .
 
-$KEYSIGNER secure.example.keyset $keyname
+$KEYSIGNER -r $RANDFILE secure.example.keyset $keyname
 
 # This will leave two copies of the child's zone key in the signed db file;
 # that shouldn't cause any problems.
@@ -39,17 +41,17 @@ cat secure.example.signedkey >>../ns3/secure.example.db.signed
 
 cp ../ns3/bogus.example.keyset .
 
-$KEYSIGNER bogus.example.keyset $keyname
+$KEYSIGNER -r $RANDFILE bogus.example.keyset $keyname
 
 # This will leave two copies of the child's zone key in the signed db file;
 # that shouldn't cause any problems.
 cat bogus.example.signedkey >>../ns3/bogus.example.db.signed
 
-$KEYSETTOOL -t 3600 $keyname
+$KEYSETTOOL -r $RANDFILE -t 3600 $keyname
 
 cat $infile $keyname.key >$zonefile
 
-$SIGNER -o $zone $zonefile
+$SIGNER -r $RANDFILE -o $zone $zonefile
 
 # Sign the privately secure file
 
@@ -57,8 +59,8 @@ privzone=private.secure.example.
 privinfile=private.secure.example.db.in
 privzonefile=private.secure.example.db
 
-privkeyname=`$KEYGEN -a RSA -b 768 -n zone $privzone`
+privkeyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $privzone`
 
 cat $privinfile $privkeyname.key >$privzonefile
 
-$SIGNER -o $privzone $privzonefile
+$SIGNER -r $RANDFILE -o $privzone $privzonefile

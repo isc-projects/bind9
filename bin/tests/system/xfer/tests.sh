@@ -18,8 +18,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "S:`date`"
-echo "T:system_xfer:1"
 echo "A:A test to determine online functionality of zone transfers"
 
 #

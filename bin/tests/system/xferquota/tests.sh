@@ -18,8 +18,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "S:`date`"
-echo "T:system_xferquota:1"
 echo "A:A test to determine online speed of zone transfers"
 
 #

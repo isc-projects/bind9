@@ -15,8 +15,6 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-echo "S:`date`"
-echo "T:system_notify:1"
 echo "A:A test to determine online functionality of notify"
 
 #
