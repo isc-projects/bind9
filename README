@@ -202,11 +202,22 @@ Building
 	will be used automatically.  If you have installed KAME IPv6
 	separately, use "--with-kame[=PATH]" to specify its location.
 
-	To see additional configure options, run "configure --help".
-
 	"make install" will install "named" and the various BIND 9 libraries.
 	By default, installation is into /usr/local, but this can be changed
 	with the "--prefix" option when running "configure".
+
+	You may specify the option "--sysconfdir" to set the directory 
+	where configuration files like "named.conf" go by default,
+	and "--localstatedir" to set the default parent directory
+	of "run/named.pid".   For backwards compatibility with BIND 8,
+	--sysconfdir defaults to "/etc" and --localstatedir defaults to
+	"/var" if no --prefix option is given.  If there is a --prefix
+	option, sysconfdir defaults to "$prefix/etc" and localstatedir
+	defaults to "$prefix/var".
+
+	To see additional configure options, run "configure --help".
+	Note that the help message does not reflect the BIND 8 
+	compatibility defaults for sysconfdir and localstatedir.
 
 	If you're planning on making changes to the BIND 9 source, you
 	should also "make depend".  If you're using Emacs, you might find
