@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.19 1999/02/01 21:34:51 marka Exp $ */
+ /* $Id: rdata.c,v 1.20 1999/02/02 01:18:19 halley Exp $ */
 
 #include <config.h>
 
@@ -433,12 +433,12 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 	unsigned int tl;
 	unsigned int n;
 	unsigned char *sp;
-	unsigned char *tp;
+	char *tp;
 	isc_region_t region;
 
 	isc_buffer_available(target, &region);
 	sp = source->base;
-	tp = region.base;
+	tp = (char *)region.base;
 	tl = region.length;
 
 	n = *sp++;
@@ -473,7 +473,7 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 		return (DNS_R_NOSPACE);
 	*tp++ = '"';
 	tl--;
-	isc_buffer_add(target, tp - region.base);
+	isc_buffer_add(target, tp - (char *)region.base);
 	isc_region_consume(source, *source->base + 1);
 	return (DNS_R_SUCCESS);
 }

@@ -427,7 +427,7 @@ add_rdataset_callback(dns_name_t *name, dns_rdataset_t *rdataset,
 static dns_result_t
 load(dns_db_t *db, char *filename) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	unsigned int soacount, nscount;
+	int soacount, nscount;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 

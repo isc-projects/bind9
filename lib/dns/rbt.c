@@ -1360,7 +1360,8 @@ static int
 cmp_label(dns_label_t *a, dns_label_t *b) {
 	int i;
 
-	i = strncasecmp(a->base, b->base, MIN(a->length, b->length));
+	i = strncasecmp((char *)a->base, (char *)b->base,
+			MIN(a->length, b->length));
 
 	if (i == 0 && a->length != b->length)
 		return(a->length < b->length ? -1 : 1);

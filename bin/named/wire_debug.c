@@ -54,7 +54,7 @@ typedef struct dns_message {
 } dns_message_t;
 
 void
-dump_packet(char *buf, u_int len);
+dump_packet(unsigned char *buf, u_int len);
 
 dns_result_t
 resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target);
@@ -67,7 +67,7 @@ void getmessage(dns_message_t *message, isc_buffer_t *source,
 dns_result_t printmessage(dns_message_t *message);
 
 void
-dump_packet(char *buf, u_int len)
+dump_packet(unsigned char *buf, u_int len)
 {
 	extern dns_decompress_t dctx;
 	extern unsigned int rdcount, rlcount, ncount;

@@ -58,7 +58,7 @@ dns_db_t *db;
 /*
  * For debugging only... XXX
  */
-void dump_packet(char *buf, u_int len);
+void dump_packet(unsigned char *buf, u_int len);
 
 static void
 makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
