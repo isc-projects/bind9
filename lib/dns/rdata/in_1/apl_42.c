@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.4.200.7 2004/03/08 09:04:44 marka Exp $ */
+/* $Id: apl_42.c,v 1.4.200.8 2004/03/16 12:38:15 marka Exp $ */
 
 /* RFC 3123 */
 
@@ -57,7 +57,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		afi = strtoul(cp, &ap, 10);
 		if (*ap++ != ':' || cp == ap)
 			RETTOK(DNS_R_SYNTAX);
-		if (afi > 0xffff)
+		if (afi > 0xffffU)
 			RETTOK(ISC_R_RANGE);
 		slash = strchr(ap, '/');
 		if (slash == NULL || slash == ap)
