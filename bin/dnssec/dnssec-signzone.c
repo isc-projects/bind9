@@ -253,7 +253,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	if (result != ISC_R_NOTFOUND) {
 		result = dns_rdataset_first(&oldsigset);
 		while (result == ISC_R_SUCCESS) {
-			isc_boolean_t expired;
+			isc_boolean_t expired, future;
 			isc_boolean_t keep = ISC_FALSE, resign = ISC_FALSE;
 
 			dns_rdataset_current(&oldsigset, &oldsigrdata);
@@ -262,14 +262,19 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			check_result(result, "dns_rdata_tostruct");
 
 			expired = (now + cycle > sig.timeexpire);
+			future = (now < sig.timesigned);
 
 			key = keythatsigned(&sig);
 
-			if (key == NULL &&
-			    expecttofindkey(sig.signer, db, version))
+			if (sig.timesigned > sig.timeexpire)
 				; /* sig is dropped and not replaced */
-			else if (key == NULL)
-				keep = ISC_TRUE;
+			else if (key == NULL && !future &&
+				 expecttofindkey(sig.signer, db, version))
+				; /* sig is dropped and not replaced */
+			else if (key == NULL || future) {
+				if (!expired)
+					keep = ISC_TRUE;
+			}
 			else if (issigningkey(key)) {
 				if (!expired &&
 				    setverifies(name, set, key, &oldsigrdata))
