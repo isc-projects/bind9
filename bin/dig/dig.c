@@ -747,6 +747,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			show_details = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nodet", 6) == 0) {
 			show_details = ISC_FALSE;
+		} else if (strncmp(rv[0], "+cmd", 4) == 0) {
+			printcmd = ISC_TRUE;
+		} else if (strncmp(rv[0], "+nocmd", 6) == 0) {
+			printcmd = ISC_FALSE;
 		} else if (strncmp(rv[0], "+sho", 4) == 0) {
 			short_form = ISC_TRUE;
 			printcmd = ISC_FALSE;
