@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.112 2001/01/09 21:51:46 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.113 2001/01/17 03:02:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -696,7 +696,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->rdclass = rdclass;
 	isc_random_get(&tmp);
 	xfr->checkid = ISC_TRUE;
-	xfr->id	= tmp &0xffff;
+	xfr->id	= (isc_uint16_t)(tmp & 0xffff);
 	xfr->reqtype = reqtype;
 
 	/* sockaddr */
