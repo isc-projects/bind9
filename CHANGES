@@ -40,13 +40,47 @@
 
  505.	[bug]		nsupdate was printing "unknown result code". [RT #373]
 
+ 502.	[func]		On a SERVFAIL reply, DiG will now try the next server
+			in the list, unless the +fail option is specified.
+
+ 501.	[bug]		Incorrect port numbers were being displayed by
+			nslookup.  [RT #352]
+
+ 500.   [func]		Nearly useless +details option removed from DiG.
+
+ 499.	[func]		In DiG, specifying a class with -c or type with -t
+			changes command-line parsing so that classes and
+			types are only recognized if following -c or -t.
+			This allows hosts with the same name as a class or
+			type to be looked up.
+
  498.	[doc]		There is now a man page for "dig" 
 			in doc/man/bin/dig.1.
+
+ 495.	[bug]		nsupdate was unable to handle large records [RT #368]
 
  491.	[bug]		nsupdate would segfault when sending certain
 			prerequisites with empty RDATA. [RT #356]
 
  488.	[bug]		Locks weren't properly destroyed in some cases.
+
+ 486.	[bug]		nslookup: "set all" and "server" commands showed
+			the incorrect port number if a port other than 53
+			was specified. [RT #352]
+
+ 485.	[func]		When dig had more than one server to query, it would
+			send all of the messages at the same time.  Add
+			rate limiting of the transmitted messages.
+ 483.	[bug]		nslookup: "set all" showed search but it was not
+			settable.
+
+ 482.	[bug]		nslookup: a plain "server" or "lserver" should be
+			treated as a lookup.
+
+ 481.	[bug]		nslookup:get_next_command() stack size exceeds
+			per thread limit.
+
+ 480.	[bug]		strtok() is not thread safe. [RT #349]
 
  476.	[bug]		A zone could expire while a zone transfer was in
 			progress triggering a INSIST failure. [RT #329]
@@ -73,10 +107,51 @@
 
  471.	[bug]		nsupdate didn't compile on HP/UX 10.20
 
+ 463.	[bug]		nsupdate sent malformed SOA queries to the second
+			and subsequent name servers in resolv.conf if the
+			query sent to the first one failed.
+
+ 459.	[bug]		Nslookup processed the "set" command incorrectly.
+
+ 458.	[bug]		Nslookup didn't properly check class and type values.
+			[RT #305]
+
+ 457.	[bug]		Dig/host/hslookup didn't properly handle connect
+			timeouts in certain situations, causing an 
+			unnecessary warning message to be printed.
+
+ 457.	[bug]		Dig/host/hslookup didn't properly handle connect
+			timeouts in certain situations, causing an 
+			unnecessary warning message to be printed.
+
+ 447.   [bug]		Dig didn't properly retry in TCP mode after
+			a truncated reply.  [RT #277]
+
+ 403.	[bug]		"host" did not use the search list.
+
+ 395.	[bug]		nslookup printed incorrect RR type mnemonics
+			for RRs of type >= 21 [RT #237].
+
+ 388.	[func]		dig and host can now do reverse ipv6 lookups.
+
+
  387.	[func]		Add dns_byaddr_createptrname(), which converts
 			an address into the name used by a PTR query.
 
  379.	[func]		New library function isc_sockaddr_anyofpf().
+
+ 347.	[bug]		Don't crash if when an argument is left off
+			options in dig.
+
+ 346.	[func]		Add support for .digrc config file, in the
+			user's current directory
+
+ 345.	[bug]		Large-scale changes/cleanups to dig:
+			* Significantly improve structure handling
+			* Don't pre-load entire batch files
+			* Add name/rr counting/limiting
+			* Fix SIGINT handling
+			* Shorten timeouts to match v8's behavior
 
 	--- 9.0.0 released ---
 
