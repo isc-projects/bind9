@@ -15,11 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.2 2000/08/22 00:53:29 bwelling Exp $ */
-
-/*
- * $Id: sdb.c,v 1.2 2000/08/22 00:53:29 bwelling Exp $
- */
+/* $Id: sdb.c,v 1.3 2000/08/22 01:27:27 gson Exp $ */
 
 #include <config.h>
 
@@ -1137,6 +1133,4 @@ rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset) {
 
 	list_tordataset(sdbiterator->current, iterator->db, iterator->node,
 			rdataset);
-
 }
-
