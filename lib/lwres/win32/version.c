@@ -15,12 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.1 2001/07/18 02:37:14 mayer Exp $ */
+/* $Id: version.c,v 1.1.12.1 2003/10/10 06:34:10 marka Exp $ */
 
 #include <versions.h>
 
-char lwres_version[] = VERSION;
+#include <lwres/version.h>
 
-unsigned int lwres_libinterface = LIBINTERFACE;
-unsigned int lwres_librevision = LIBREVISION;
-unsigned int lwres_libage = LIBAGE;
+LIBLWRES_EXTERNAL_DATA const char lwres_version[] = VERSION;
+
+LIBLWRES_EXTERNAL_DATA const unsigned int lwres_libinterface = LIBINTERFACE;
+LIBLWRES_EXTERNAL_DATA const unsigned int lwres_librevision = LIBREVISION;
+LIBLWRES_EXTERNAL_DATA const unsigned int lwres_libage = LIBAGE;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.30.2.4.2.2 2003/09/24 03:47:20 marka Exp $ */
+/* $Id: getipnode.c,v 1.30.2.4.2.3 2003/10/10 06:34:08 marka Exp $ */
 
 #include <config.h>
 
@@ -636,7 +636,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 #ifdef LWRES_PLATFORM_HAVESALEN
 #ifdef FIX_ZERO_SA_LEN
 		if (u.ifreq.ifr_addr.sa_len == 0)
-			u.ifreq.ifr_addr.sa_len = IN6ADDRSZ;
+			u.ifreq.ifr_addr.sa_len = 16;
 #endif
 #ifdef HAVE_MINIMUM_IFREQ
 		cpsize = sizeof(u.ifreq);
@@ -646,6 +646,8 @@ scan_interfaces(int *have_v4, int *have_v6) {
 #else
 		cpsize = sizeof(u.ifreq.ifr_name) + u.ifreq.ifr_addr.sa_len;
 #endif /* HAVE_MINIMUM_IFREQ */
+		if (cpsize > sizeof(u.ifreq) && cpsize <= sizeof(u))
+			memcpy(&u.ifreq, cp, cpsize);
 #elif defined SIOCGIFCONF_ADDR
 		cpsize = sizeof(u.ifreq);
 #else
@@ -653,7 +655,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 		/* XXX maybe this should be a hard error? */
 		if (ioctl(s, SIOCGIFADDR, (char *)&u.ifreq) < 0)
 			continue;
-#endif /* LWRES_PLATFORM_HAVESALEN */
+#endif
 		switch (u.ifreq.ifr_addr.sa_family) {
 		case AF_INET:
 			if (*have_v4 == 0) {
@@ -669,7 +671,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 				if ((u.ifreq.ifr_flags & IFF_UP) == 0)
 					break;
 				*have_v4 = 1;
-			}
+			} 
 			break;
 		case AF_INET6:
 			if (*have_v6 == 0) {

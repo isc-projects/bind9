@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.33.2.1.2.2 2003/09/24 03:47:20 marka Exp $ */
+/* $Id: lwconfig.c,v 1.33.2.1.2.3 2003/10/10 06:34:09 marka Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -581,7 +581,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 			rval = lwres_conf_parsesearch(ctx, fp);
 		else if (strcmp(word, "sortlist") == 0)
 			rval = lwres_conf_parsesortlist(ctx, fp);
-		else if (strcmp(word, "option") == 0)
+		else if (strcmp(word, "options") == 0)
 			rval = lwres_conf_parseoption(ctx, fp);
 		else {
 			/* unrecognised word. Ignore entire line */

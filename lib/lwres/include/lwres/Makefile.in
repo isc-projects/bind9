@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.19 2001/07/31 01:32:45 gson Exp $
+# $Id: Makefile.in,v 1.19.12.1 2003/10/10 06:34:09 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -25,7 +25,7 @@ top_srcdir =	@top_srcdir@
 # install target below.
 #
 HEADERS =	context.h lwbuffer.h lwpacket.h lwres.h result.h \
-		int.h lang.h list.h ipv6.h
+		int.h lang.h list.h ipv6.h version.h
 
 SUBDIRS =
 TARGETS =

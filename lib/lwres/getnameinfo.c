@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999-2001, 2003  Internet Software Consortium.
+ * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.30.2.3.2.1 2003/08/27 07:22:40 marka Exp $ */
+/* $Id: getnameinfo.c,v 1.30.2.3.2.2 2003/10/10 06:34:08 marka Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
