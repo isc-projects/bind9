@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.20 2002/01/04 02:31:57 gson Exp $ */
+/* $Id: named-checkconf.c,v 1.21 2002/01/14 01:42:03 marka Exp $ */
 
 #include <config.h>
 
@@ -240,6 +240,8 @@ main(int argc, char **argv) {
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(setup_logging(mctx, &logc) == ISC_R_SUCCESS);
+
+	dns_result_register();
 
 	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
 

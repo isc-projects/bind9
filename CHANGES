@@ -1,3 +1,8 @@
+1175.	[bug]		named-checkzone and named-checkconf failed to call
+			dns_result_register() at startup which could
+			result in runtime exceptions when printing
+		 	"out of memory" errors. [RT #2335]
+
 1174.	[bug]		Win32: add WSAECONNRESET to the expected errors
 			from connect(). [RT #2308]
 
