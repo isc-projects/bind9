@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.24 2000/03/23 00:53:04 gson Exp $ */
+/* $Id: log.c,v 1.25 2000/04/06 20:32:31 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -110,6 +110,8 @@ struct isc_logconfig {
 	ISC_LIST(isc_logchannellist_t) *channellists;
 	unsigned int			channellist_count;
 	unsigned int			duplicate_interval;
+	int				highest_level;
+	isc_boolean_t			dynamic;
 };
 
 /*
@@ -286,6 +288,8 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		lcfg->channellists = NULL;
 		lcfg->channellist_count = 0;
 		lcfg->duplicate_interval = 0;
+		lcfg->highest_level = ISC_LOG_CRITICAL;
+		lcfg->dynamic = ISC_FALSE;
 
 		ISC_LIST_INIT(lcfg->channels);
 
@@ -481,6 +485,8 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 		    lcfg->channellist_count *
 		    sizeof(ISC_LIST(isc_logchannellist_t)));
 
+	lcfg->dynamic = ISC_FALSE;
+	lcfg->highest_level = 0;
 	lcfg->duplicate_interval = 0;
 	lcfg->magic = 0;
 
@@ -864,6 +870,18 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	new_item->module = module;
 	ISC_LIST_PREPEND(lcfg->channellists[category_id], new_item, link);
 
+	/*
+	 * Remember the highest logging level set by any channel in the
+	 * logging config, so isc_log_doit() can quickly return if the
+	 * message is too high to be logged by any channel.
+	 */
+	if (channel->type != NULL) {
+		if (lcfg->highest_level < channel->level)
+			lcfg->highest_level = channel->level;
+		if (channel->level == ISC_LOG_DYNAMIC)
+			lcfg->dynamic = ISC_TRUE;
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -1096,6 +1114,26 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	 * be non-existent.
 	 */
 	if (lctx == NULL)
+		return;
+
+	/*
+	 * Try to avoid locking the mutex for messages which can't
+	 * possibly be logged to any channels -- primarily debugging
+	 * messages that the debug level is not high enough to print.
+	 *
+	 * If the level is (mathematically) less than or equal to the
+	 * highest_level, or if there is a dynamic channel and the level is 
+	 * less than or equal to the debug level, the main loop must be
+	 * entered to see if the message should really be output.
+	 *
+	 * NOTE: this is UNLOCKED access to the logconfig.  However,
+	 * the worst thing that can happen is that a bad decision is made
+	 * about returning without logging, and that's not a big concern,
+	 * because that's a risk anyway if the logconfig is being
+	 * dynamically changed.
+	 */
+	if (! (level <= lctx->logconfig->highest_level ||
+	       (lctx->logconfig->dynamic && level <= lctx->debug_level)))
 		return;
 
 	REQUIRE(category != NULL && category->id < lctx->category_count);

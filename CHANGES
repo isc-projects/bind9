@@ -1,3 +1,7 @@
+  35.   [performance]   Log messages which are of a level too high to be
+                        logged by any channel in the logging configuration
+                        will not cause the log mutex to be locked.
+
   34.   [bug]           Recursion was allowed even with 'recursion no'.
 
   33.   [func]          The RBT now maintains a parent pointer at each node.
