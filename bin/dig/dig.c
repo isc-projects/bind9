@@ -122,7 +122,7 @@ show_usage() {
 }				
 
 void
-check_next_lookup (dig_lookup_t *lookup) {
+check_next_lookup(dig_lookup_t *lookup) {
 	dig_lookup_t *next;
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;

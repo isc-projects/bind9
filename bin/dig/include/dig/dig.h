@@ -27,6 +27,7 @@
 #include <isc/boolean.h>
 #include <isc/mem.h>
 #include <isc/list.h>
+#include <isc/print.h>
 
 #define MXSERV 4
 #define MXNAME 256

@@ -83,8 +83,7 @@ static void
 free_lists(void);
 
 static void
-hex_dump(isc_buffer_t *b)
-{
+hex_dump(isc_buffer_t *b) {
 	unsigned int len;
 	isc_region_t r;
 
@@ -184,11 +183,20 @@ setup_system() {
 					    == 0) {
 						ptr = strtok (NULL, " \t");
 						if (ptr != NULL) {
-							srv=isc_mem_allocate (mctx, sizeof(struct dig_server));
+							srv=isc_mem_allocate
+								(mctx,
+								 sizeof
+								 (struct
+								  dig_server));
 							if (srv == NULL)
-								fatal ("Memory allocation failure.");
-							strncpy(srv->servername, ptr,MXNAME-1);
-							ISC_LIST_APPEND(server_list, srv, link);
+								fatal
+					      ("Memory allocation failure.");
+							strncpy(srv->
+								servername,
+								ptr,MXNAME-1);
+							ISC_LIST_APPEND
+								(server_list,
+								 srv, link);
 						}
 					}
 				}
@@ -372,13 +380,13 @@ setup_lookup(dig_lookup_t *lookup) {
 }	
 
 static void
-send_done (isc_task_t *task, isc_event_t *event) {
+send_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED (task);
 	isc_event_free (&event);
 }
 
 static void
-cancel_lookup (dig_lookup_t *lookup) {
+cancel_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query;
 
 #ifdef DEBUG
@@ -399,7 +407,7 @@ cancel_lookup (dig_lookup_t *lookup) {
 
 /* connect_timeout is used for both UDP recieves and TCP connects. */
 static void
-connect_timeout (isc_task_t *task, isc_event_t *event) {
+connect_timeout(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *lookup;
 	dig_query_t *q=NULL;
 	isc_result_t result;
@@ -420,7 +428,8 @@ connect_timeout (isc_task_t *task, isc_event_t *event) {
 			result = isc_sockaddr_totext(&q->sockaddr, b);
 			check_result (result, "isc_sockaddr_totext");
 			isc_buffer_used(b, &r);
-			printf (";; Connection to server %.*s for %s failed: Connection timed out.\n",
+			printf (
+	";; Connection to server %.*s for %s failed: Connection timed out.\n",
 				(int)r.length, r.base, q->lookup->textname);
 			isc_socket_cancel(q->sock, task, ISC_SOCKCANCEL_ALL);
 		}
@@ -432,10 +441,10 @@ connect_timeout (isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-recv_done (isc_task_t *task, isc_event_t *event) ;
+recv_done(isc_task_t *task, isc_event_t *event) ;
 
 static void
-tcp_length_done (isc_task_t *task, isc_event_t *event) { 
+tcp_length_done(isc_task_t *task, isc_event_t *event) { 
 	isc_socketevent_t *sevent;
 	isc_buffer_t *b=NULL;
 	isc_region_t r;
@@ -540,7 +549,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 }
 	
 static void
-connect_done (isc_task_t *task, isc_event_t *event) {
+connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_socketevent_t *sevent;
 	dig_query_t *query;
@@ -664,7 +673,8 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 		if (query->lookup->doing_xfr) {
 			if (!query->first_soa_rcvd) {
 				if (!msg_contains_soa(msg,query)) {
-					puts ("; Transfer failed.  Didn't start with SOA answer.");
+					puts (
+			 "; Transfer failed.  Didn't start with SOA answer.");
 					query->working = ISC_FALSE;
 					check_next_lookup (query->lookup);
 					isc_event_free (&event);
@@ -733,7 +743,7 @@ get_address(char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
 	else {
 		he = gethostbyname(hostname);
 		if (he == NULL)
-			fatal("Couldn't look up your server host %s.  errno=%d",
+		     fatal("Couldn't look up your server host %s.  errno=%d",
 			      hostname, h_errno);
 		INSIST(he->h_addrtype == AF_INET);
 		isc_sockaddr_fromin(sockaddr,
@@ -743,7 +753,7 @@ get_address(char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
 }
 
 void
-do_lookup_tcp (dig_lookup_t *lookup) {
+do_lookup_tcp(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_result_t result;
 
@@ -778,7 +788,7 @@ do_lookup_tcp (dig_lookup_t *lookup) {
 }
 
 void
-do_lookup_udp (dig_lookup_t *lookup) {
+do_lookup_udp(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_result_t result;
 
@@ -872,7 +882,7 @@ free_lists(void) {
 }
 
 int
-main (int argc, char **argv) {
+main(int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
 
 	ISC_LIST_INIT(lookup_list);
