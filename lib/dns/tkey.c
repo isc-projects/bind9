@@ -16,12 +16,13 @@
  */
 
 /*
- * $Id: tkey.c,v 1.40 2000/05/26 00:16:40 bwelling Exp $
+ * $Id: tkey.c,v 1.41 2000/05/30 22:28:37 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -29,9 +30,11 @@
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
 #include <dns/message.h>
+#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
