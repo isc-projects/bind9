@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.37 $)
+AC_REVISION($Revision: 1.38 $)
 
 AC_PREREQ(2.13)
 
@@ -219,7 +219,7 @@ else
 			CC="$CC -mt"
 			;;
 		*-hp-hpux*)
-			CC="$CC"
+			CC="$CC -Ae -z +w1"
 			;;
 	esac
 fi
