@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.28 2001/02/20 23:20:44 bwelling Exp $ */
+/* $Id: sdb.c,v 1.29 2001/03/17 02:52:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -723,7 +723,6 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	REQUIRE(version == NULL || version == (void *) &dummy);
 
 	UNUSED(options);
-	UNUSED(sigrdataset);
 	UNUSED(sdb);
 
 	if (!dns_name_issubdomain(name, &db->origin))
@@ -767,8 +766,7 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 					      dns_rdatatype_dname,
 					      0, now, rdataset, sigrdataset);
 			if (result == ISC_R_SUCCESS) {
-				if (type != dns_rdatatype_dname)
-					result = DNS_R_DNAME;
+				result = DNS_R_DNAME;
 				break;
 			}
 		}
@@ -782,7 +780,14 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 					      dns_rdatatype_ns,
 					      0, now, rdataset, sigrdataset);
 			if (result == ISC_R_SUCCESS) {
-				if (type != dns_rdatatype_ns)
+				if (i == nlabels && type == dns_rdatatype_any)
+				{
+					result = DNS_R_ZONECUT;
+					dns_rdataset_disassociate(rdataset);
+					if (sigrdataset != NULL)
+						dns_rdataset_disassociate
+								(sigrdataset);
+				} else
 					result = DNS_R_DELEGATION;
 				break;
 			}
