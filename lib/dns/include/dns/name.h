@@ -667,9 +667,17 @@ dns_result_t dns_name_cat(dns_name_t *prefix, dns_name_t *suffix,
 			  dns_name_t *name, isc_buffer_t *target);
 /*
  *	Concatenate 'prefix' & 'suffix' and return the result in 'name'.
+ *	If either 'prefix' or 'suffix' is absolute the result is absolute.
+ *
+ * Requires:
+ *	'prefix' to be initalised
+ *	'suffix' to be initalised or NULL
+ *	'name' to be initalised
+ *	'target' to be initalised
  *
  * Returns:
  *	DNS_R_SUCCESS
  *	DNS_R_NOSPACE
  */
+
 #endif /* DNS_NAME_H */

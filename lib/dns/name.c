@@ -766,8 +766,10 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 
 	if (r->length > 0)
 		set_offsets(name, offsets, ISC_TRUE, ISC_TRUE, ISC_TRUE);
-	else
+	else {
 		name->labels = 0;
+		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
+	}
 }
 
 void
@@ -1977,6 +1979,7 @@ dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	unsigned int nrem;
 	unsigned int labels;
 	unsigned int count;
+	isc_boolean_t absolute = ISC_FALSE;
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(VALID_NAME(prefix));
@@ -1989,9 +1992,11 @@ dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	ndata = (unsigned char *)target->base + target->used;
 	if (nrem > 255)
 		nrem = 255;
-	if (dns_name_isabsolute(prefix)) {
+	if (prefix->labels != 0 &&
+	    (prefix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0) {
 		count = prefix->length - 1;
 		labels = prefix->labels - 1;
+		absolute = ISC_TRUE;
 	 } else {
 		count = prefix->length;
 		labels = prefix->labels;
@@ -2004,9 +2009,11 @@ dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 
 	/* append suffix */
 	if (suffix != NULL) {
-		if (dns_name_isabsolute(suffix)) {
+		if (suffix->labels != 0 &&
+		    (suffix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0) {
 			count = suffix->length - 1;
 			labels += suffix->labels - 1;
+			absolute = ISC_TRUE;
 		} else {
 			count = suffix->length;
 			labels += suffix->labels;
@@ -2017,19 +2024,26 @@ dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		ndata += count;
 	}
 
-	/* root label */
-	if (nrem < 1)
-		return (DNS_R_NOSPACE);
-	*ndata++ = 0;
-	labels++;
+	if (absolute) {
+		/* root label */
+		if (nrem < 1)
+			return (DNS_R_NOSPACE);
+		*ndata++ = 0;
+		labels++;
+	}
 
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
 	name->length = ndata - name->ndata;
-	name->attributes |= DNS_NAMEATTR_ABSOLUTE;
+	if (absolute)
+		name->attributes |= DNS_NAMEATTR_ABSOLUTE;
+	else
+		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 
 	INIT_OFFSETS(name, offsets, odata);
-	set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_FALSE);
+	if (name->length > 0)
+		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_FALSE);
+		
 	compact(name, offsets);
 
 	isc_buffer_add(target, name->length);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.1 1999/02/22 07:23:54 marka Exp $ */
+ /* $Id: compress.c,v 1.2 1999/02/23 02:25:39 marka Exp $ */
 
 #include <config.h>
 
@@ -255,6 +255,8 @@ dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset) {
 	REQUIRE(VALID_CCTX(cctx));
 
 	/* XXX need tree walking code */
+	/* Remove all nodes in cctx->global that have *data >= offset. */
+
 }
 
 /***
@@ -402,10 +404,15 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	if (bits == 0) {
 		if (start != 0)
 			dns_name_getlabelsequence(name, 0, start, prefix);
+		else {
+			prefix->length = 0;
+			prefix->labels = 0;
+		}
 		dns_name_getlabelsequence(name, start, count, suffix);
 		*offset = *data;
 		return (ISC_TRUE);
 	}
+	INSIST(start > 0);
 	*suffix = tmpname;
 	i = dns_label_countbits(&label);
 	j = 0;
@@ -427,13 +434,12 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	region.length = 2 + j / 8;
 	dns_name_fromregion(&tmpsuffix, &region);
 	if (start == 1)
-		tmpprefix = *dns_rootname;
+		dns_name_init(&tmpprefix, NULL);
 	else
 		dns_name_getlabelsequence(name, 0, start - 1, &tmpprefix);
-	result = dns_name_cat(&tmpprefix, &tmpsuffix, &tmpname, workspace);
+	result = dns_name_cat(&tmpprefix, &tmpsuffix, prefix, workspace);
 	if (result != DNS_R_SUCCESS)
 		return (ISC_FALSE);
-	dns_name_getlabelsequence(&tmpname, 0, start, prefix);
 	*offset = *data;
 	return (ISC_TRUE);
 }
