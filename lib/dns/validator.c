@@ -175,10 +175,12 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 			goto free_event;
 		}
 		UNLOCK(&val->lock);
-	} else
+	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_validator: got %s",
 			      dns_result_totext(devent->result));
+		validator_done(val, devent->result);
+	}
 
  free_event:
 	dns_resolver_destroyfetch(&val->fetch);
@@ -270,10 +272,12 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 		UNLOCK(&val->lock);
-	} else
+	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_nullkey: got %s",
 			      dns_result_totext(devent->result));
+		validator_done(val, devent->result);
+	}
 
 	dns_resolver_destroyfetch(&fetch);
 
@@ -323,10 +327,13 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			goto free_event;
 		}
 		UNLOCK(&val->lock);
-	} else
+	} else {
 		validator_log(val, ISC_LOG_DEBUG(3), 
 			      "keyvalidated: got %s",
 			      dns_result_totext(devent->result));
+		validator_done(val, devent->result);
+	}
+
  free_event:
 	dns_validator_destroy(&val->keyvalidator);
 	/*
@@ -357,6 +364,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3), 
 			      "authvalidated: got %s",
 			      dns_result_totext(devent->result));
+		validator_done(val, devent->result);
 		goto free_event;
 	}
 
@@ -452,6 +460,7 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3), 
 			      "negauthvalidated: got %s",
 			      dns_result_totext(devent->result));
+		validator_done(val, devent->result);
 		goto free_event;
 	}
 
@@ -1366,7 +1375,9 @@ destroy(dns_validator_t *val) {
 	REQUIRE(SHUTDOWN(val));
 	REQUIRE(val->event == NULL);
 	REQUIRE(val->fetch == NULL);
+#if 0
 	REQUIRE(val->currentset == NULL);
+#endif
 
 	if (val->keynode != NULL)
 		dns_keytable_detachkeynode(val->keytable, &val->keynode);
