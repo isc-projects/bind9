@@ -1,4 +1,8 @@
 
+ 893.	[func]		Removed isc_file_test() and added isc_file_exists()
+			for the basic functionality that was being added
+			with isc_file_test().
+
  892.	[placeholder]
 
  891.	[bug]		Return an error when a SIG(0) signed response to

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.62 2001/05/31 10:42:49 tale Exp $ */
+/* $Id: rndc.c,v 1.63 2001/06/08 21:53:47 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -351,10 +351,10 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, cfg_parser_t **pctxp,
 	isc_result_t result;
 	const char *conffile = admin_conffile;
 
-	if (! isc_file_test(conffile, ISC_FILE_EXISTS)) {
+	if (! isc_file_exists(conffile)) {
 		conffile = auto_conffile;
 
-		if (! isc_file_test(conffile, ISC_FILE_EXISTS))
+		if (! isc_file_exists(conffile))
 			fatal("neither %s nor %s was found",
 			      admin_conffile, auto_conffile);
 	}
