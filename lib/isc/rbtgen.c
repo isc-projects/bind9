@@ -1,5 +1,10 @@
 
 /*
+ * This file is a generic template that can be used to create a red-black
+ * tree library for a specified node type.
+ */
+
+/*
  * Red-Black Tree algorithms adapted from:
  *
  *	_Introduction to Algorithms_, Cormen, Leiserson, and Rivest,
