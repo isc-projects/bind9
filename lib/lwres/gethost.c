@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.17 2000/06/22 21:59:27 tale Exp $ */
+/* $Id: gethost.c,v 1.18 2000/06/26 20:39:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -29,7 +29,7 @@
 
 #define LWRES_ALIGNBYTES (sizeof(char *) - 1)
 #define LWRES_ALIGN(p) \
-	(((unsigned int)(p) + LWRES_ALIGNBYTES) &~ LWRES_ALIGNBYTES)
+	(((unsigned long)(p) + LWRES_ALIGNBYTES) &~ LWRES_ALIGNBYTES)
 
 static struct hostent *he = NULL;
 static int copytobuf(struct hostent *, struct hostent *, char *, int);
