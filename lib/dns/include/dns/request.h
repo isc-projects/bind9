@@ -44,7 +44,6 @@
 #include <isc/event.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
 
 #define DNS_REQUESTOPT_TCP 0x00000001U
 

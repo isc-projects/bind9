@@ -19,28 +19,25 @@
 
 #include <string.h>
 
-#include <isc/types.h>
-#include <isc/result.h>
 #include <isc/mem.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/cache.h>
-#include <dns/dbtable.h>
 #include <dns/db.h>
+#include <dns/dbtable.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/keytable.h>
 #include <dns/peer.h>
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
-#include <dns/resolver.h>
 #include <dns/request.h>
+#include <dns/resolver.h>
+#include <dns/result.h>
 #include <dns/tsig.h>
+#include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>

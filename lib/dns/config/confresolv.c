@@ -15,20 +15,21 @@
  * SOFTWARE.
  */
 
-/* $Id: confresolv.c,v 1.5 2000/03/28 22:58:23 brister Exp $ */
+/* $Id: confresolv.c,v 1.6 2000/05/02 03:54:05 tale Exp $ */
 
 #include <config.h>
 
-#include <dns/confresolv.h>
-#include <dns/result.h>
+#include <isc/result.h>
+#include <isc/util.h>
 
+#include <dns/confresolv.h>
 
 #include "confpvt.h"
 
 isc_result_t
-dns_c_resolv_new(isc_mem_t *mem, dns_c_resolv_t **cfgres)
-{
-	(void) mem; (void) cfgres;
+dns_c_resolv_new(isc_mem_t *mem, dns_c_resolv_t **cfgres) {
+	UNUSED(mem);
+	UNUSED(cfgres);
 	
 	/* XXX nothing yet */
 
@@ -37,9 +38,9 @@ dns_c_resolv_new(isc_mem_t *mem, dns_c_resolv_t **cfgres)
 
 
 isc_result_t
-dns_c_resolv_delete(dns_c_resolv_t **cfgres)
-{
-	(void) cfgres;
+dns_c_resolv_delete(dns_c_resolv_t **cfgres) {
+	UNUSED(cfgres);
+
 	/* XXX nothin yet */
 
 	return (ISC_R_SUCCESS);

@@ -15,14 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.19 2000/04/28 01:23:49 gson Exp $ */
+/* $Id: cache.c,v 1.20 2000/05/02 03:53:51 tale Exp $ */
 
 #include <config.h>
 
 #include <limits.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mutex.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -33,6 +31,7 @@
 #include <dns/events.h>
 #include <dns/log.h>
 #include <dns/rdata.h>
+#include <dns/result.h>
 #include <dns/types.h>
 
 #define CACHE_MAGIC	0x24242424U 	/* $$$$. */

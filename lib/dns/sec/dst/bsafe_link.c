@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.14 2000/04/28 01:10:41 halley Exp $
+ * $Id: bsafe_link.c,v 1.15 2000/05/02 03:54:14 tale Exp $
  */
 
 #include <config.h>
@@ -36,6 +36,8 @@
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
+
+#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"

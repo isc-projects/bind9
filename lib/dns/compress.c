@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.29 2000/04/28 01:09:56 halley Exp $ */
+/* $Id: compress.c,v 1.30 2000/05/02 03:53:52 tale Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -30,6 +30,7 @@
 #include <dns/compress.h>
 #include <dns/fixedname.h>
 #include <dns/rbt.h>
+#include <dns/result.h>
 
 #define CCTX_MAGIC	0x43435458U	/* CCTX */
 #define VALID_CCTX(x)	((x) != NULL && (x)->magic == CCTX_MAGIC)

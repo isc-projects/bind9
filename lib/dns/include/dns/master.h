@@ -27,7 +27,6 @@
 #include <isc/lex.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
 #include <dns/callbacks.h>
@@ -38,40 +37,43 @@ ISC_LANG_BEGINDECLS
  ***	Function
  ***/
 
-isc_result_t dns_master_loadfile(const char *master_file,
-				 dns_name_t *top,
-				 dns_name_t *origin,
-				 dns_rdataclass_t zclass,
-				 isc_boolean_t age_ttl,
-				 int *soacount,
-				 int *nscount,
-				 dns_rdatacallbacks_t *callbacks,
-				 isc_mem_t *mctx);
+isc_result_t
+dns_master_loadfile(const char *master_file,
+		    dns_name_t *top,
+		    dns_name_t *origin,
+		    dns_rdataclass_t zclass,
+		    isc_boolean_t age_ttl,
+		    int *soacount,
+		    int *nscount,
+		    dns_rdatacallbacks_t *callbacks,
+		    isc_mem_t *mctx);
 
-isc_result_t dns_master_loadstream(FILE *stream,
-				   dns_name_t *top,
-				   dns_name_t *origin,
-				   dns_rdataclass_t zclass,
-				   isc_boolean_t age_ttl,
-				   int *soacount,
-				   int *nscount,
-				   dns_rdatacallbacks_t *callbacks,
-				   isc_mem_t *mctx);
+isc_result_t
+dns_master_loadstream(FILE *stream,
+		      dns_name_t *top,
+		      dns_name_t *origin,
+		      dns_rdataclass_t zclass,
+		      isc_boolean_t age_ttl,
+		      int *soacount,
+		      int *nscount,
+		      dns_rdatacallbacks_t *callbacks,
+		      isc_mem_t *mctx);
 
-isc_result_t dns_master_loadbuffer(isc_buffer_t *buffer,
-				   dns_name_t *top,
-				   dns_name_t *origin,
-				   dns_rdataclass_t zclass,
-				   isc_boolean_t age_ttl,
-				   int *soacount,
-				   int *nscount,
-				   dns_rdatacallbacks_t *callbacks,
-				   isc_mem_t *mctx);
+isc_result_t
+dns_master_loadbuffer(isc_buffer_t *buffer,
+		      dns_name_t *top,
+		      dns_name_t *origin,
+		      dns_rdataclass_t zclass,
+		      isc_boolean_t age_ttl,
+		      int *soacount,
+		      int *nscount,
+		      dns_rdatacallbacks_t *callbacks,
+		      isc_mem_t *mctx);
 
 /*
  * Loads a RFC 1305 master file from a file, stream, or buffer into rdatasets
- * and then calls 'callbacks->commit' to commit the rdatasets.  Rdata memory belongs
- * to dns_master_load and will be reused / released when the callback
+ * and then calls 'callbacks->commit' to commit the rdatasets.  Rdata memory
+ * belongs to dns_master_load and will be reused / released when the callback
  * completes.  dns_load_master will abort if callbacks->commit returns
  * any value other than ISC_R_SUCCESS.
  *

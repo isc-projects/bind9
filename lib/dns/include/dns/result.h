@@ -19,12 +19,17 @@
 #define DNS_RESULT_H 1
 
 #include <isc/lang.h>
-#include <isc/result.h>
 #include <isc/resultclass.h>
 
 #include <dns/types.h>
 
-ISC_LANG_BEGINDECLS
+/*
+ * Nothing in this file truly depends on <isc/result.h>, but the
+ * DNS result codes are considered to be publicly derived from
+ * the ISC result codes, so including this file buys you the ISC_R_
+ * namespace too.
+ */
+#include <isc/result.h>
 
 /*
  * DNS library result codes
@@ -115,9 +120,16 @@ ISC_LANG_BEGINDECLS
 #define DNS_RESULT_ISRCODE(result) \
 	(ISC_RESULTCLASS_INCLASS(ISC_RESULTCLASS_DNSRCODE, (result)))
 
-char *				dns_result_totext(isc_result_t);
-void				dns_result_register(void);
-dns_rcode_t			dns_result_torcode(isc_result_t result);
+ISC_LANG_BEGINDECLS
+
+char *
+dns_result_totext(isc_result_t);
+
+void
+dns_result_register(void);
+
+dns_rcode_t
+dns_result_torcode(isc_result_t result);
 
 ISC_LANG_ENDDECLS
 

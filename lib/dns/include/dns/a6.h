@@ -23,7 +23,6 @@
 #include <isc/stdtime.h>
 #include <isc/bitstring.h>
 #include <isc/net.h>
-#include <isc/result.h>
 
 #include <dns/types.h>
 

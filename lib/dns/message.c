@@ -24,22 +24,22 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/boolean.h>
 #include <isc/region.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
-#include <dns/message.h>
-#include <dns/rdataset.h>
-#include <dns/rdata.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
-#include <dns/rdatalist.h>
 #include <dns/compress.h>
-#include <dns/tsig.h>
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
+#include <dns/message.h>
+#include <dns/rdata.h>
+#include <dns/rdataclass.h>
+#include <dns/rdatalist.h>
+#include <dns/rdataset.h>
+#include <dns/rdatatype.h>
+#include <dns/result.h>
+#include <dns/tsig.h>
 #include <dns/view.h>
 
 #define DNS_MESSAGE_OPCODE_MASK		0x7800U

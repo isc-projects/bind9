@@ -22,7 +22,6 @@
  ***** Module Info 
  *****/ 
 
-
 /*
  * DNS Address Database
  *
@@ -80,7 +79,6 @@
 #include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/stdtime.h>
 #include <isc/task.h>

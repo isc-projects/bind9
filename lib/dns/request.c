@@ -17,7 +17,6 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
 #include <isc/net.h>
@@ -32,6 +31,7 @@
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/request.h>
+#include <dns/result.h>
 
 #define REQUESTMGR_MAGIC 0x5271754dU		/* RquM */
 #define VALID_REQUESTMGR(mgr) ((mgr) != NULL && \

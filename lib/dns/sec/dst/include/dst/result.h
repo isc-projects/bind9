@@ -19,10 +19,15 @@
 #define DST_RESULT_H 1
 
 #include <isc/lang.h>
-#include <isc/result.h>
 #include <isc/resultclass.h>
 
-ISC_LANG_BEGINDECLS
+/*
+ * Nothing in this file truly depends on <isc/result.h>, but the
+ * DST result codes are considered to be publicly derived from
+ * the ISC result codes, so including this file buys you the ISC_R_
+ * namespace too.
+ */
+#include <isc/result.h>
 
 #define DST_R_UNSUPPORTEDALG		(ISC_RESULTCLASS_DST + 0)
 #define DST_R_UNSUPPORTEDTYPE		(ISC_RESULTCLASS_DST + 1)
@@ -47,9 +52,13 @@ ISC_LANG_BEGINDECLS
 
 #define DST_R_NRESULTS			20	/* Number of results */
 
+ISC_LANG_BEGINDECLS
 
-char *                                  dst_result_totext(isc_result_t);
-void					dst_result_register(void);
+char *
+dst_result_totext(isc_result_t);
+
+void
+dst_result_register(void);
 
 ISC_LANG_ENDDECLS
 

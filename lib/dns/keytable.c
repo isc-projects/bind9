@@ -20,17 +20,16 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/magic.h>
 #include <isc/rwlock.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/keytable.h>
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rbt.h>
+#include <dns/result.h>
 
 #include <dst/dst.h>
 

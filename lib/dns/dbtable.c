@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.16 2000/04/19 18:49:10 halley Exp $
+ * $Id: dbtable.c,v 1.17 2000/05/02 03:53:52 tale Exp $
  */
 
 /*
@@ -25,13 +25,13 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
 #include <dns/dbtable.h>
 #include <dns/db.h>
 #include <dns/rbt.h>
+#include <dns/result.h>
 
 struct dns_dbtable {
 	/* Unlocked. */
@@ -123,8 +123,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 static inline void
 dbtable_free(dns_dbtable_t *dbtable) {
 	/*
-	 * Caller must ensure that it is safe to
-	 * call.
+	 * Caller must ensure that it is safe to call.
 	 */
 
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
@@ -216,6 +215,7 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 	 * be verified.  With the current rbt.c this is expensive to do,
 	 * because effectively two find operations are being done, but
 	 * deletion is relatively infrequent.
+	 * XXXDCL ... this could be cheaper now with dns_rbt_deletenode.
 	 */
 
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.4 2000/04/28 02:08:15 tale Exp $ */
+/* $Id: auth.c,v 1.5 2000/05/02 03:54:17 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -43,6 +43,8 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/once.h>
+
+#include <dst/result.h>
 
 #include <omapi/private.h>
 

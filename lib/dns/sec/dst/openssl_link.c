@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.17 2000/04/28 01:10:48 halley Exp $
+ * $Id: openssl_link.c,v 1.18 2000/05/02 03:54:15 tale Exp $
  */
 
 #include <config.h>
@@ -36,6 +36,8 @@
 #include <isc/region.h>
 #include <isc/util.h>
 
+#include <dst/result.h>
+
 #include "dst_internal.h"
 #include "dst_parse.h"
 
@@ -46,32 +48,40 @@
 
 static struct dst_func openssl_functions;
 
-static isc_result_t	dst_openssl_sign(const unsigned int mode,
-					 dst_key_t *key,
-					 void **context, isc_region_t *data,
-					 isc_buffer_t *sig, isc_mem_t *mctx);
-static isc_result_t	dst_openssl_verify(const unsigned int mode,
-					   dst_key_t *key,
-					   void **context, isc_region_t *data,
-					   isc_region_t *sig, isc_mem_t *mctx);
-static isc_boolean_t	dst_openssl_compare(const dst_key_t *key1,
-					    const dst_key_t *key2);
-static isc_result_t	dst_openssl_generate(dst_key_t *key, int unused,
-					     isc_mem_t *mctx);
-static isc_boolean_t	dst_openssl_isprivate(const dst_key_t *key);
-static void		dst_openssl_destroy(void *key, isc_mem_t *mctx);
-static isc_result_t	dst_openssl_to_dns(const dst_key_t *in_key,
-					   isc_buffer_t *data);
-static isc_result_t	dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data,
-					     isc_mem_t *mctx);
-static isc_result_t	dst_openssl_to_file(const dst_key_t *key);
-static isc_result_t	dst_openssl_from_file(dst_key_t *key,
-					      const isc_uint16_t id,
-					      isc_mem_t *mctx);
+static isc_result_t
+dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
+		 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx);
 
-static int		BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf,
-					int size);
+static isc_result_t
+dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
+		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx);
 
+static isc_boolean_t
+dst_openssl_compare(const dst_key_t *key1, const dst_key_t *key2);
+
+static isc_result_t
+dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx);
+
+static isc_boolean_t
+dst_openssl_isprivate(const dst_key_t *key);
+
+static void
+dst_openssl_destroy(void *key, isc_mem_t *mctx);
+
+static isc_result_t
+dst_openssl_to_dns(const dst_key_t *in_key, isc_buffer_t *data);
+
+static isc_result_t
+dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx);
+
+static isc_result_t
+dst_openssl_to_file(const dst_key_t *key);
+
+static isc_result_t
+dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx);
+
+static int
+BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size);
 
 /*
  * dst_s_openssldsa_init()
@@ -620,4 +630,4 @@ BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size) {
 	return (size);
 }	
 
-#endif
+#endif /* OPENSSL */

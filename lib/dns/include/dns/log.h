@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.16 2000/05/01 17:59:09 tale Exp $ */
+/* $Id: log.h,v 1.17 2000/05/02 03:54:08 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -24,8 +24,6 @@
 
 #include <isc/lang.h>
 #include <isc/log.h>
-
-#include <dns/result.h>
 
 extern isc_log_t *dns_lctx;
 extern isc_logcategory_t dns_categories[];

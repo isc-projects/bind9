@@ -15,18 +15,17 @@
  * SOFTWARE.
  */
 
-/* $Id: confcache.c,v 1.5 2000/03/28 22:58:14 brister Exp $ */
+/* $Id: confcache.c,v 1.6 2000/05/02 03:54:04 tale Exp $ */
 
 #include <config.h>
 
 #include <dns/confcache.h>
-#include <dns/result.h>
+#include <isc/result.h>
 
 #include "confpvt.h"
 
 isc_result_t
-dns_c_cache_new(isc_mem_t *mem, dns_c_cache_t **cfgcache)
-{
+dns_c_cache_new(isc_mem_t *mem, dns_c_cache_t **cfgcache) {
 
 	(void) mem ; (void) cfgcache; /* lint */
 
@@ -35,12 +34,10 @@ dns_c_cache_new(isc_mem_t *mem, dns_c_cache_t **cfgcache)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_cache_delete(dns_c_cache_t **cfgcache)
-{
+dns_c_cache_delete(dns_c_cache_t **cfgcache) {
 	(void) cfgcache ;	/* lint */
-	
+
 	/* XXX nothin yet */
 
 	return (ISC_R_SUCCESS);

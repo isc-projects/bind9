@@ -33,7 +33,6 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#include <dns/result.h>
 #include <dns/types.h>
 #include <dns/name.h>
 #include <dns/rdata.h>

@@ -15,24 +15,22 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.104 2000/04/28 17:18:19 marka Exp $ */
+/* $Id: zone.c,v 1.105 2000/05/02 03:54:01 tale Exp $ */
 
 #include <config.h>
 
 #include <string.h>
 #include <stdarg.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/file.h>
 #include <isc/magic.h>
 #include <isc/print.h>
+#include <isc/quota.h>
 #include <isc/ratelimiter.h>
 #include <isc/rwlock.h>
-#include <isc/quota.h>
 #include <isc/serial.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
-#include <isc/file.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -51,8 +49,9 @@
 #include <dns/rdatalist.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
-#include <dns/resolver.h>
 #include <dns/request.h>
+#include <dns/resolver.h>
+#include <dns/result.h>
 #include <dns/ssu.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>

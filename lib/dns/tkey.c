@@ -16,24 +16,19 @@
  */
 
 /*
- * $Id: tkey.c,v 1.31 2000/04/28 02:08:29 marka Exp $
+ * $Id: tkey.c,v 1.32 2000/05/02 03:53:57 tale Exp $
  * Principal Author: Brian Wellington
  */
-
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
-#include <isc/error.h>
-#include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
-#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
@@ -47,6 +42,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
+#include <dns/result.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
 

@@ -17,17 +17,14 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/magic.h>
 #include <isc/print.h>
 #include <isc/region.h>
-#include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
-#include <dns/validator.h>
 #include <dns/db.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
@@ -38,9 +35,11 @@
 #include <dns/name.h>
 #include <dns/nxt.h>
 #include <dns/rdata.h>
-#include <dns/rdatatype.h>
 #include <dns/rdataset.h>
+#include <dns/rdatatype.h>
 #include <dns/resolver.h>
+#include <dns/result.h>
+#include <dns/validator.h>
 #include <dns/view.h>
 
 #include <dst/dst.h>

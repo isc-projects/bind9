@@ -16,35 +16,31 @@
  */
 
 /*
- * $Id: tsig.c,v 1.53 2000/04/28 01:10:22 halley Exp $
+ * $Id: tsig.c,v 1.54 2000/05/02 03:53:58 tale Exp $
  * Principal Author: Brian Wellington
  */
-
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
-#include <isc/error.h>
-#include <isc/list.h>
 #include <isc/net.h>
 #include <isc/once.h>
-#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
-#include <dns/name.h>
 #include <dns/message.h>
+#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
+#include <dns/result.h>
 #include <dns/tsig.h>
 
 #include <dst/dst.h>

@@ -42,10 +42,8 @@
 
 #include <isc/types.h>
 #include <isc/lang.h>
-#include <isc/result.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
 

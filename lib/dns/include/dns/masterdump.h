@@ -28,7 +28,6 @@
 #include <isc/mem.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
 

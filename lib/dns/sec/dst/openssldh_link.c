@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.10 2000/04/28 01:10:49 halley Exp $
+ * $Id: openssldh_link.c,v 1.11 2000/05/02 03:54:16 tale Exp $
  */
 
 #include <config.h>
@@ -37,6 +37,8 @@
 #include <isc/int.h>
 #include <isc/region.h>
 #include <isc/util.h>
+
+#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"
@@ -687,4 +689,4 @@ BN_fromhex(BIGNUM *b, const char *str) {
 	RUNTIME_CHECK(out != NULL);
 }
 
-#endif
+#endif /* OPENSSL */

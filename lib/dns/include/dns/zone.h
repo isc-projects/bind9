@@ -25,15 +25,13 @@
 #include <isc/lang.h>
 #include <isc/rwlock.h>
 #include <isc/sockaddr.h>
-#include <isc/types.h>
 
 #include <dns/adb.h>
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
-#include <dns/rdataset.h>
 #include <dns/callbacks.h>
+#include <dns/fixedname.h>
+#include <dns/name.h>
+#include <dns/rdataset.h>
+#include <dns/types.h>
 
 typedef enum {
 	dns_zone_none,
@@ -57,8 +55,8 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 
-isc_result_t dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
-
+isc_result_t
+dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
 /*
  *	Creates a new empty zone and attach to it.
  *
@@ -75,7 +73,8 @@ isc_result_t dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
  *	ISC_R_UNEXPECTED
  */
 
-void dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
+void
+dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
 /*
  *	Sets the class of a zone.  This operation can only be performed
  *	once on a zone.
@@ -87,7 +86,8 @@ void dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
  *	'rdclass' != dns_rdataclass_none.
  */	
 
-dns_rdataclass_t dns_zone_getclass(dns_zone_t *zone);
+dns_rdataclass_t
+dns_zone_getclass(dns_zone_t *zone);
 /*
  *	Returns the current zone class.
  *
@@ -95,7 +95,8 @@ dns_rdataclass_t dns_zone_getclass(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type);
+void
+dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type);
 /*
  *	Sets the zone type. This operation can only be performed once on
  *	a zone.
@@ -107,7 +108,8 @@ void dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type);
  *	'type' != dns_zone_none
  */
 
-void dns_zone_setview(dns_zone_t *zone, dns_view_t *view);
+void
+dns_zone_setview(dns_zone_t *zone, dns_view_t *view);
 /*
  *	Associate the zone with a view.
  *
@@ -115,7 +117,8 @@ void dns_zone_setview(dns_zone_t *zone, dns_view_t *view);
  *	'zone' to be a valid initalised zone.
  */	
 
-dns_view_t *dns_zone_getview(dns_zone_t *zone);
+dns_view_t *
+dns_zone_getview(dns_zone_t *zone);
 /*
  *	Returns the zone's associated view.
  *
@@ -123,7 +126,8 @@ dns_view_t *dns_zone_getview(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin);
+isc_result_t
+dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin);
 /*
  *	Sets the zones origin to 'origin'.
  *
@@ -136,7 +140,8 @@ isc_result_t dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin);
  * 	ISC_R_NOMEMORY
  */
 
-dns_name_t * dns_zone_getorigin(dns_zone_t *zone);
+dns_name_t *
+dns_zone_getorigin(dns_zone_t *zone);
 /*
  *	Returns the value of the origin.
  *
@@ -144,7 +149,8 @@ dns_name_t * dns_zone_getorigin(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_setdatabase(dns_zone_t *zone, const char *database);
+isc_result_t
+dns_zone_setdatabase(dns_zone_t *zone, const char *database);
 /*
  *	Sets the name of the database to be loaded. 
  *	For databases loaded from MASTER files this corresponds to the
@@ -159,7 +165,8 @@ isc_result_t dns_zone_setdatabase(dns_zone_t *zone, const char *database);
  *	ISC_R_SUCCESS
  */
 
-isc_result_t dns_zone_load(dns_zone_t *zone);
+isc_result_t
+dns_zone_load(dns_zone_t *zone);
 /*
  *	Cause the database to be loaded from its backing store.
  *	Confirm that the mimimum requirements for the zone type are
@@ -175,7 +182,8 @@ isc_result_t dns_zone_load(dns_zone_t *zone);
  *	Any result value from dns_db_load().
  */
 
-void dns_zone_checkservers(dns_zone_t *zone);
+void
+dns_zone_checkservers(dns_zone_t *zone);
 /*
  *	Initiate a consistancy check of the zones servers.
  *	XXX MPA to be implemented.
@@ -184,7 +192,8 @@ void dns_zone_checkservers(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_checkparents(dns_zone_t *zone);
+void
+dns_zone_checkparents(dns_zone_t *zone);
 /*
  *	Initiate a consistancy check of the zone and the parent zone servers.
  *	XXX MPA to be implemented.
@@ -193,7 +202,8 @@ void dns_zone_checkparents(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_checkchildren(dns_zone_t *zone);
+void
+dns_zone_checkchildren(dns_zone_t *zone);
 /*
  *	Initiate a consistancy check of the child delegations from this zone.
  *	XXX MPA to be implemented.
@@ -202,7 +212,8 @@ void dns_zone_checkchildren(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_checkglue(dns_zone_t *zone);
+void
+dns_zone_checkglue(dns_zone_t *zone);
 /*
  *	Initiate a consistancy check of the glue records in this zone.
  *	XXX MPA to be implemented.
@@ -211,7 +222,8 @@ void dns_zone_checkglue(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
+void
+dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
 /*
  *	Attach 'zone' to 'target' incrementing its external
  * 	reference count.
@@ -221,7 +233,8 @@ void dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
  *	'target' to be non NULL and '*target' to be NULL.
  */
 
-void dns_zone_detach(dns_zone_t **zonep);
+void
+dns_zone_detach(dns_zone_t **zonep);
 /*
  *	Detach from a zone decrementing its external reference count.
  *	If this was the last external reference to the zone it will be
@@ -231,7 +244,8 @@ void dns_zone_detach(dns_zone_t **zonep);
  *	'zonep' to point to a valid initalised zone.
  */
 
-void dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
+void
+dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
 /*
  *	Attach 'zone' to 'target' incrementing its internal 
  * 	reference count.  This is intended for use by operations
@@ -243,7 +257,8 @@ void dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
  *	'target' to be non NULL and '*target' to be NULL.
  */
 
-void dns_zone_idetach(dns_zone_t **zonep);
+void
+dns_zone_idetach(dns_zone_t **zonep);
 /*
  *	Detach from a zone decrementing its internal reference count.
  *	If there are no more internal or external references to the
@@ -253,8 +268,8 @@ void dns_zone_idetach(dns_zone_t **zonep);
  *	'zonep' to point to a valid initalised zone.
  */
 
-void dns_zone_setflag(dns_zone_t *zone, unsigned int flags,
-		      isc_boolean_t value);
+void
+dns_zone_setflag(dns_zone_t *zone, unsigned int flags, isc_boolean_t value);
 /*
  *	Sets ('value' == 'ISC_TRUE') / clears ('value' == 'IS_FALSE')
  *	zone flags.  Valid flag bits are DNS_ZONE_F_*.
@@ -263,7 +278,8 @@ void dns_zone_setflag(dns_zone_t *zone, unsigned int flags,
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_adddbarg(dns_zone_t *zone, char *arg);
+isc_result_t
+dns_zone_adddbarg(dns_zone_t *zone, char *arg);
 /*
  *	Add 'arg' to the end of the list of database arguements.
  *	No attempt in made to validate the arguements.
@@ -277,7 +293,8 @@ isc_result_t dns_zone_adddbarg(dns_zone_t *zone, char *arg);
  *	ISC_R_SUCCESS
  */
 
-void dns_zone_cleardbargs(dns_zone_t *zone);
+void
+dns_zone_cleardbargs(dns_zone_t *zone);
 /*
  *	Clear all database arguements.
  *
@@ -285,7 +302,8 @@ void dns_zone_cleardbargs(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
+isc_result_t
+dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 /*
  * 	Attach the database to '*dbp' if it exists otherwise
  *	return DNS_R_NOTLOADED.
@@ -299,7 +317,8 @@ isc_result_t dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
  *	DNS_R_NOTLOADED
  */
 
-isc_result_t dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
+isc_result_t
+dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
 /*
  *	Sets the database type. Current database types are: "rbt", "rbt64".
  *	'db_type' is not checked to see if it is a valid database type. 
@@ -313,11 +332,12 @@ isc_result_t dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
  *	ISC_R_SUCCESS
  */
 
-void dns_zone_validate(dns_zone_t *zone);
+void
+dns_zone_validate(dns_zone_t *zone);
+/* XXX MPA */
 
-	/* XXX MPA */
-
-void dns_zone_expire(dns_zone_t *zone);
+void
+dns_zone_expire(dns_zone_t *zone);
 /*
  *	Mark the zone as expired.  If the zone requires dumping cause it to
  *	be initiated.  Set the refresh and retry intervals to there default
@@ -327,7 +347,8 @@ void dns_zone_expire(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_refresh(dns_zone_t *zone);
+void
+dns_zone_refresh(dns_zone_t *zone);
 /*
  *	Initiate zone up to date checks.  The zone must already be being
  *	managed.
@@ -336,7 +357,8 @@ void dns_zone_refresh(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_dump(dns_zone_t *zone);
+isc_result_t
+dns_zone_dump(dns_zone_t *zone);
 /*
  *	Write the zone to database.
  *
@@ -344,7 +366,8 @@ isc_result_t dns_zone_dump(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
+isc_result_t
+dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
 /*
  *	Write the zone to stream 'fd'.
  *
@@ -353,7 +376,8 @@ isc_result_t dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
  *	'fd' to be a stream open for writing.
  */
 
-void dns_zone_maintenance(dns_zone_t *zone);
+void
+dns_zone_maintenance(dns_zone_t *zone);
 /*
  *	Perform regular maintenace on the zone.  This is called as a
  *	result of a zone being managed.
@@ -362,8 +386,9 @@ void dns_zone_maintenance(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
-				 isc_uint32_t count);
+isc_result_t
+dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
+		    isc_uint32_t count);
 /*
  *	Add a master server to the end of the set of master servers for
  *	the zone.
@@ -380,8 +405,9 @@ isc_result_t dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
  *	ISC_R_NOMEMORY
  */
 
-isc_result_t dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
-				    isc_uint32_t count);
+isc_result_t
+dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
+		       isc_uint32_t count);
 /*
  *	Add a server to the end of the list of additional servers to be
  *	notified when a zone changes.
@@ -398,10 +424,12 @@ isc_result_t dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
  *	ISC_R_NOMEMORY
  */
 
-void dns_zone_unmount(dns_zone_t *zone);
+void
+dns_zone_unmount(dns_zone_t *zone);
 	/* XXX MPA */
 
-void dns_zone_unload(dns_zone_t *zone);
+void
+dns_zone_unload(dns_zone_t *zone);
 /*
  *	detach the database from the zone structure.
  *
@@ -409,8 +437,8 @@ void dns_zone_unload(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_setoption(dns_zone_t *zone, unsigned int option,
-		        isc_boolean_t value);
+void
+dns_zone_setoption(dns_zone_t *zone, unsigned int option, isc_boolean_t value);
 /*
  *	Set given options on ('value' == ISC_TRUE) or off ('value' ==
  *	ISC_FALSE).
@@ -419,7 +447,8 @@ void dns_zone_setoption(dns_zone_t *zone, unsigned int option,
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_clearoption(dns_zone_t *zone, unsigned int option);
+void
+dns_zone_clearoption(dns_zone_t *zone, unsigned int option);
 /*
  *	Clear the given options from the zone and allow system wide value
  *	to be used.
@@ -428,7 +457,8 @@ void dns_zone_clearoption(dns_zone_t *zone, unsigned int option);
  *	'zone' to be a valid initalised zone.
  */
 
-unsigned int dns_zone_getoptions(dns_zone_t *zone);
+unsigned int
+dns_zone_getoptions(dns_zone_t *zone);
 /*
  *	Return which options a set.
  *
@@ -436,8 +466,9 @@ unsigned int dns_zone_getoptions(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
-			 isc_uint32_t retry);
+void
+dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
+		    isc_uint32_t retry);
 /*
  *	Set the refresh and retry values.  Normally this are set as a
  *	result of loading the zone (dns_zone_load).
@@ -492,7 +523,8 @@ dns_zone_getxfrsource6(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
+void
+dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
  *	Sets the query acl list for the zone.
  *
@@ -501,7 +533,8 @@ void dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
  *	'acl' to be initalised.
  */
 
-void dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl);
+void
+dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
  *	Sets the update acl list for the zone.
  *
@@ -510,7 +543,8 @@ void dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl);
  *	'acl' to be initalised.
  */
 
-void dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
+void
+dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
 /*
  *	Sets the transfer acl list for the zone.
  *
@@ -519,7 +553,8 @@ void dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
  *	'acl' to be initalised.
  */
 
-dns_acl_t * dns_zone_getqueryacl(dns_zone_t *zone);
+dns_acl_t *
+dns_zone_getqueryacl(dns_zone_t *zone);
 /*
  * 	Returns the current query acl or NULL.
  *
@@ -531,7 +566,8 @@ dns_acl_t * dns_zone_getqueryacl(dns_zone_t *zone);
  *	NULL
  */
 
-dns_acl_t * dns_zone_getupdateacl(dns_zone_t *zone);
+dns_acl_t *
+dns_zone_getupdateacl(dns_zone_t *zone);
 /*
  * 	Returns the current update acl or NULL.
  *
@@ -543,7 +579,8 @@ dns_acl_t * dns_zone_getupdateacl(dns_zone_t *zone);
  *	NULL
  */
 
-dns_acl_t * dns_zone_getxfracl(dns_zone_t *zone);
+dns_acl_t *
+dns_zone_getxfracl(dns_zone_t *zone);
 /*
  * 	Returns the current transfer acl or NULL.
  *
@@ -555,7 +592,8 @@ dns_acl_t * dns_zone_getxfracl(dns_zone_t *zone);
  *	NULL
  */
 
-void dns_zone_clearupdateacl(dns_zone_t *zone);
+void
+dns_zone_clearupdateacl(dns_zone_t *zone);
 /*
  *	Clear the current update acl.
  *
@@ -563,7 +601,8 @@ void dns_zone_clearupdateacl(dns_zone_t *zone);
  *	'zone' to be initalised.
  */
 
-void dns_zone_clearqueryacl(dns_zone_t *zone);
+void
+dns_zone_clearqueryacl(dns_zone_t *zone);
 /*
  *	Clear the current query acl.
  *
@@ -571,7 +610,8 @@ void dns_zone_clearqueryacl(dns_zone_t *zone);
  *	'zone' to be initalised.
  */
 
-void dns_zone_clearxfracl(dns_zone_t *zone);
+void
+dns_zone_clearxfracl(dns_zone_t *zone);
 /*
  *	Clear the current transfer acl.
  *
@@ -579,7 +619,8 @@ void dns_zone_clearxfracl(dns_zone_t *zone);
  *	'zone' to be initalised.
  */
 
-void dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);
+void
+dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);
 /*
  * 	Set the severity of name checking when loading a zone.
  *
@@ -587,7 +628,8 @@ void dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);
  *      'zone' to be initalised.
  */
 
-dns_severity_t dns_zone_getchecknames(dns_zone_t *zone);
+dns_severity_t
+dns_zone_getchecknames(dns_zone_t *zone);
 /*
  *	Return the current severity of name checking.
  *
@@ -595,16 +637,24 @@ dns_severity_t dns_zone_getchecknames(dns_zone_t *zone);
  *	'zone' to be initalised.
  */
 
-void dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
-isc_int32_t dns_zone_getjournalsize(dns_zone_t *zone);
+void
+dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
 
-void dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
-void dns_zone_setrequestmgr(dns_zone_t *zone, dns_requestmgr_t *requestmgr);
-void dns_zone_setadb(dns_zone_t *zone, dns_adb_t *adb);
+isc_int32_t
+dns_zone_getjournalsize(dns_zone_t *zone);
 
+void
+dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
 
-isc_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
-				dns_message_t *msg);
+void
+dns_zone_setrequestmgr(dns_zone_t *zone, dns_requestmgr_t *requestmgr);
+
+void
+dns_zone_setadb(dns_zone_t *zone, dns_adb_t *adb);
+
+isc_result_t
+dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
+		       dns_message_t *msg);
 
 void
 dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin);
@@ -617,7 +667,8 @@ dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin);
  *	'xfrtime' to be non zero.
  */
 
-isc_uint32_t dns_zone_getmaxxfrin(dns_zone_t *zone);
+isc_uint32_t
+dns_zone_getmaxxfrin(dns_zone_t *zone);
 /*
  * Returns the maximum transfer time for this zone.  This will be
  * either the value set by the last call to dns_zone_setmaxxfrin() or
@@ -638,7 +689,8 @@ dns_zone_setmaxxfrout(dns_zone_t *zone, isc_uint32_t maxxfrout);
  *	'xfrtime' to be non zero.
  */
 
-isc_uint32_t dns_zone_getmaxxfrout(dns_zone_t *zone);
+isc_uint32_t
+dns_zone_getmaxxfrout(dns_zone_t *zone);
 /*
  * Returns the maximum transfer time for this zone.  This will be
  * either the value set by the last call to dns_zone_setmaxxfrout() or
@@ -648,8 +700,8 @@ isc_uint32_t dns_zone_getmaxxfrout(dns_zone_t *zone);
  *	'zone' to be valid initialised zone.
  */
 
-isc_result_t dns_zone_setjournal(dns_zone_t *zone, const char *journal);
-
+isc_result_t
+dns_zone_setjournal(dns_zone_t *zone, const char *journal);
 /*
  * Sets the filename used for journaling updates / IXFR transfers.
  * The default journal name is set by dns_zone_setdatabase() to be
@@ -664,8 +716,8 @@ isc_result_t dns_zone_setjournal(dns_zone_t *zone, const char *journal);
  *	ISC_R_NOMEMORY 
  */
 
-char * dns_zone_getjournal(dns_zone_t *zone);
-
+char *
+dns_zone_getjournal(dns_zone_t *zone);
 /*
  * Returns the journal name associated with this zone.
  * If not journal has been set this will be NULL.
@@ -674,7 +726,8 @@ char * dns_zone_getjournal(dns_zone_t *zone);
  *	'zone' to be valid initialised zone.
  */
 
-dns_zonetype_t dns_zone_gettype(dns_zone_t *zone);
+dns_zonetype_t
+dns_zone_gettype(dns_zone_t *zone);
 /*
  * Returns the type of the zone (master/slave/etc.)
  *
@@ -703,7 +756,8 @@ dns_zone_gettask(dns_zone_t *zone, isc_task_t **target);
  *	'target' to be != NULL && '*target' == NULL.
  */
 
-const char *dns_zone_getdatabase(dns_zone_t *zone);
+const char *
+dns_zone_getdatabase(dns_zone_t *zone);
 /*
  * Gets the name of the database.  For databases loaded from
  * master files, this corresponds to the file name of the master file.
@@ -712,7 +766,8 @@ const char *dns_zone_getdatabase(dns_zone_t *zone);
  *	'zone' to be valid initialised zone.
  */
 
-void dns_zone_notify(dns_zone_t *zone);
+void
+dns_zone_notify(dns_zone_t *zone);
 /*
  * Generate notify events for this zone.
  *
@@ -721,8 +776,7 @@ void dns_zone_notify(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db,
-                   isc_boolean_t dump);
+dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump);
 /*
  * Replace the database of "zone" with a new database "db".
  *
@@ -742,7 +796,6 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 
 isc_boolean_t
 dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone);
-
 /*
  * Tests whether the configuration of two zones is equal.
  * Zone contents and state information is not tested.
@@ -809,7 +862,8 @@ dns_zone_getmctx(dns_zone_t *zone);
  * Get the memory context of a zone.
  */
 
-dns_zonemgr_t *dns_zone_getmgr(dns_zone_t *zone);
+dns_zonemgr_t *
+dns_zone_getmgr(dns_zone_t *zone);
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,

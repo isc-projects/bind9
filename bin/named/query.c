@@ -17,15 +17,13 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
-#include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/result.h>
-#include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/event.h>
 #include <isc/log.h>
+#include <isc/mem.h>
+#include <isc/mutex.h>
+#include <isc/task.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/a6.h>
@@ -38,13 +36,14 @@
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
-#include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatatype.h>
 #include <dns/resolver.h>
-#include <dns/view.h>
+#include <dns/result.h>
 #include <dns/tkey.h>
+#include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 

@@ -76,7 +76,6 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
 
 #include <stdio.h>
 

@@ -25,8 +25,9 @@
 #include <stdlib.h>		/* random */
 #include <string.h>		/* memset */
 
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/util.h>
+
+#include <dst/result.h>
 
 #include <omapi/private.h>
 

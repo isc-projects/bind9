@@ -45,14 +45,10 @@
  *	Drafts:	<TBS>
  */
 
-#include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/event.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * A dns_validatorevent_t is sent when a 'validation' completes.
@@ -71,6 +67,8 @@ typedef struct dns_validatorevent {
 	dns_rdataset_t *		sigrdataset;
 	dns_message_t *			message;
 } dns_validatorevent_t;
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,

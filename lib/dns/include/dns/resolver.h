@@ -53,7 +53,6 @@
 #include <dns/types.h>
 #include <dns/name.h>
 #include <dns/fixedname.h>
-#include <dns/result.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -309,7 +308,6 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *
  *	Many other values are possible, all of which indicate failure.
  */
- 
 
 void
 dns_resolver_cancelfetch(dns_fetch_t *fetch);
@@ -343,9 +341,15 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp);
  *	*fetchp == NULL.
  */
 
-dns_dispatch_t * dns_resolver_dispatchv4(dns_resolver_t *resolver);
-dns_dispatch_t * dns_resolver_dispatchv6(dns_resolver_t *resolver);
-isc_socketmgr_t * dns_resolver_socketmgr(dns_resolver_t *resolver);
+dns_dispatch_t *
+dns_resolver_dispatchv4(dns_resolver_t *resolver);
+
+dns_dispatch_t *
+dns_resolver_dispatchv6(dns_resolver_t *resolver);
+
+isc_socketmgr_t *
+dns_resolver_socketmgr(dns_resolver_t *resolver);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */

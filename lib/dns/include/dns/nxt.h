@@ -20,11 +20,9 @@
 
 #include <isc/lang.h>
 
-#include <dns/result.h>
+#define DNS_NXT_BUFFERSIZE (256 + 16)
 
 ISC_LANG_BEGINDECLS
-
-#define DNS_NXT_BUFFERSIZE (256 + 16)
 
 isc_result_t
 dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,

@@ -63,7 +63,6 @@
 #include <isc/int.h>
 #include <isc/lang.h>
 #include <isc/net.h>
-#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/types.h>
 

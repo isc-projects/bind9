@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.32 2000/04/28 02:08:26 marka Exp $
+ * $Id: dnssec.c,v 1.33 2000/05/02 03:53:52 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -26,26 +26,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
-#include <isc/error.h>
 #include <isc/list.h>
 #include <isc/net.h>
-#include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/dnssec.h>
 #include <dns/keyvalues.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
-#include <dns/rdataset.h>
 #include <dns/rdatalist.h>
+#include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
-#include <dns/dnssec.h>
-#include <dns/tsig.h> /* for DNS_TSIG_FUDGE */
+#include <dns/result.h>
+#include <dns/tsig.h>		/* for DNS_TSIG_FUDGE */
 
 #include <dst/dst.h>
 #include <dst/result.h>
@@ -68,14 +66,18 @@ typedef struct digestctx {
 	isc_uint8_t type;
 } digestctx_t;
 
-static isc_result_t digest_callback(void *arg, isc_region_t *data);
-static isc_result_t keyname_to_name(char *keyname, isc_mem_t *mctx,
-				    dns_name_t *name);
-static int rdata_compare_wrapper(const void *rdata1, const void *rdata2);
-static isc_result_t rdataset_to_sortedarray(dns_rdataset_t *set,
-					    isc_mem_t *mctx,
-					    dns_rdata_t **rdata, int *nrdata);
+static isc_result_t
+digest_callback(void *arg, isc_region_t *data);
 
+static isc_result_t
+keyname_to_name(char *keyname, isc_mem_t *mctx, dns_name_t *name);
+
+static int
+rdata_compare_wrapper(const void *rdata1, const void *rdata2);
+
+static isc_result_t
+rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
+			dns_rdata_t **rdata, int *nrdata);
 
 static isc_result_t
 digest_callback(void *arg, isc_region_t *data) {

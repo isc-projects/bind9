@@ -46,9 +46,6 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * Clients may use this type directly.
@@ -61,6 +58,8 @@ struct dns_rdatalist {
 	ISC_LIST(dns_rdata_t)		rdata;
 	ISC_LINK(dns_rdatalist_t)	link;
 };
+
+ISC_LANG_BEGINDECLS
 
 void
 dns_rdatalist_init(dns_rdatalist_t *rdatalist);

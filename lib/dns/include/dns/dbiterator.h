@@ -65,7 +65,6 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
-#include <dns/result.h>
 
 ISC_LANG_BEGINDECLS
 

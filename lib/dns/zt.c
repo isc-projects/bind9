@@ -17,13 +17,12 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
 #include <isc/magic.h>
 #include <isc/rwlock.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/rbt.h>
+#include <dns/result.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 

@@ -47,7 +47,6 @@
 #include <isc/lang.h>
 #include <isc/mem.h>
 
-#include <dns/result.h>
 #include <dns/types.h>
 
 #define DNS_DBTABLEFIND_NOEXACT		0x01

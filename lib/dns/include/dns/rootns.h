@@ -19,15 +19,14 @@
 #define DNS_ROOTNS_H 1
 
 #include <isc/lang.h>
-#include <isc/types.h>
-#include <isc/result.h>
 
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-			       const char *filename, dns_db_t **target);
+isc_result_t
+dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
+                  const char *filename, dns_db_t **target);
 
 ISC_LANG_ENDDECLS
 

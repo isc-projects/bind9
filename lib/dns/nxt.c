@@ -19,18 +19,18 @@
 
 #include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/name.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/name.h>
+#include <dns/nxt.h>
 #include <dns/rdata.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/rdatalist.h>
-#include <dns/nxt.h>
+#include <dns/result.h>
+#include <dns/types.h>
 
 #define check_result(op, msg) \
 	do { result = (op); \
