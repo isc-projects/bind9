@@ -1,3 +1,8 @@
+1051.	[bug]		Do not ignore a network interface completely just
+			because it has a noncontiguous netmask.  Instead,
+			omit it from the localnets ACL and issue a warning.
+			[RT #1891]
+
 1047.	[bug]		When a request was refused due to being signed with
 			a TSIG key derived from an unsigned TKEY negotiation,
 			the response could have an rcode of SUCCESS rather
