@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.2 2002/01/23 03:49:20 marka Exp $ */
+/* $Id: message.c,v 1.194.2.3 2002/01/23 17:57:51 gson Exp $ */
 
 /***
  *** Imports
@@ -115,7 +115,7 @@ static const char *rcodetext[] = {
 	"FORMERR",
 	"SERVFAIL",
 	"NXDOMAIN",
-	"NOTIMPL",
+	"NOTIMP",
 	"REFUSED",
 	"YXDOMAIN",
 	"YXRRSET",

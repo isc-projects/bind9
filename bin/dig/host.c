@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76 2001/08/27 21:31:29 gson Exp $ */
+/* $Id: host.c,v 1.76.2.1 2002/01/23 17:57:47 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -78,7 +78,7 @@ static const char *rcodetext[] = {
 	"FORMERR",
 	"SERVFAIL",
 	"NXDOMAIN",
-	"NOTIMPL",
+	"NOTIMP",
 	"REFUSED",
 	"YXDOMAIN",
 	"YXRRSET",

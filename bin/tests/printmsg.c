@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: printmsg.c,v 1.25 2001/05/09 18:47:49 bwelling Exp $ */
+/* $Id: printmsg.c,v 1.25.2.1 2002/01/23 17:57:49 gson Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@ static const char *rcodetext[] = {
 	"FORMERR",
 	"SERVFAIL",
 	"NXDOMAIN",
-	"NOTIMPL",
+	"NOTIMP",
 	"REFUSED",
 	"YXDOMAIN",
 	"YXRRSET",
