@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.223 $)
+AC_REVISION($Revision: 1.224 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -60,6 +60,7 @@ esac
 # Etags.
 #
 AC_PATH_PROGS(ETAGS, etags emacs-etags)
+
 #
 # Some systems, e.g. RH7, have the Exuberant Ctags etags instead of
 # GNU emacs etags, and it requires the -L flag.
@@ -663,7 +664,6 @@ case "$host" in
 esac
 
 #
-#
 # Purify support
 #
 AC_MSG_CHECKING(whether to use purify)
@@ -707,7 +707,6 @@ esac
 AC_SUBST(PURIFY)
 
 #
-#
 # GNU libtool support
 #
 AC_ARG_WITH(libtool,
@@ -728,8 +727,10 @@ case $use_libtool in
 		;;
 esac
 
+#
 # File name extension for static archive files, for those few places
 # where they are treated differently from dynamic ones.
+#
 SA=a
 
 AC_SUBST(O)
@@ -1345,7 +1346,6 @@ AC_SUBST(SGMLDIR)
 #
 # Look for XML files.
 #
-
 XGMLDIR=""
 
 AC_MSG_CHECKING(for XML files)
