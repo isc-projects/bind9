@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.53 2000/12/14 22:40:17 gson Exp $ */
+/* $Id: entropy.c,v 1.54 2000/12/27 00:11:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -442,7 +442,8 @@ get_from_callback(isc_entropysource_t *source, unsigned int desired,
 			added += got;
 			desired -= ISC_MIN(got, desired);
 			result = ISC_R_SUCCESS;
-		} else if (result != ISC_R_SUCCESS)
+		} else if (result != ISC_R_SUCCESS &&
+			   result != ISC_R_NOTBLOCKING)
 			source->bad = ISC_TRUE;
 
 	}

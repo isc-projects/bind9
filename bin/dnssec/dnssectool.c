@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.25 2000/12/11 19:15:51 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.26 2000/12/27 00:11:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -235,7 +235,7 @@ kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	unsigned char c;
 
 	if (!blocking)
-		return (ISC_R_NOENTROPY);
+		return (ISC_R_NOTBLOCKING);
 
 	result = isc_keyboard_getchar(kbd, &c);
 	if (result != ISC_R_SUCCESS)

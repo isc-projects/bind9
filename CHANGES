@@ -1,4 +1,7 @@
 
+ 639.	[bug]		Reading entropy from the keyboard would sometimes fail.
+			[RT #591]
+
  638.	[port]		lib/isc/random.c needed to explicitly include
 			time.h explicitly to get a prototype for time() when
 			pthreads was not being used. [RT #592]

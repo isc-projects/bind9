@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.52 2000/11/18 02:56:47 gson Exp $ */
+/* $Id: result.h,v 1.53 2000/12/27 00:11:25 bwelling Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -74,10 +74,11 @@
 #define ISC_R_FAMILYNOSUPPORT		48	/* AF not supported */
 #define ISC_R_BADHEX			49	/* bad hex encoding */
 #define ISC_R_TOOMANYOPENFILES		50	/* too many open files */
+#define ISC_R_NOTBLOCKING		51	/* not blocking */
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			51
+#define ISC_R_NRESULTS 			52
 
 ISC_LANG_BEGINDECLS
 
