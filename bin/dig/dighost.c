@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.49 2000/06/13 01:49:46 explorer Exp $ */
+/* $Id: dighost.c,v 1.50 2000/06/15 19:05:30 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -30,6 +30,10 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+#include <netdb.h>
+#include <string.h>
+#endif
 
 extern int h_errno;
 
@@ -1854,7 +1858,12 @@ void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
+#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+	struct addrinfo *res = NULL;
+	int result;
+#else
 	struct hostent *he;
+#endif
 
 	debug("get_address()");
 
@@ -1863,14 +1872,25 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	else if (inet_pton(AF_INET, host, &in4) == 1)
 		isc_sockaddr_fromin(sockaddr, &in4, port);
 	else {
+#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+		result = getaddrinfo(host, NULL, NULL, &res);
+		if (result != 0) {
+			fatal ("Couldn't find server %s.  %s",
+			       host, gai_strerror(result));
+		}
+		memcpy(&sockaddr->type.sa,res->ai_addr, res->ai_addrlen);
+		sockaddr->length = res->ai_addrlen;
+		isc_sockaddr_setport(sockaddr, port);
+#else
 		he = gethostbyname(host);
 		if (he == NULL)
-		     fatal("Couldn't look up your server host %s.  errno=%d",
+		     fatal("Couldn't find server %s.  errno=%d",
 			      host, h_errno);
 		INSIST(he->h_addrtype == AF_INET);
 		isc_sockaddr_fromin(sockaddr,
 				    (struct in_addr *)(he->h_addr_list[0]),
 				    port);
+#endif
 	}
 }
 
