@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: print.h,v 1.7 2000/06/22 21:57:54 tale Exp $ */
+/* $Id: print.h,v 1.8 2000/06/23 03:02:41 tale Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
@@ -24,7 +24,7 @@
  *** Imports
  ***/
 
-#include <isc/formatcheck.h>
+#include <isc/formatcheck.h>    /* Required for ISC_FORMAT_PRINTF() macro. */
 #include <isc/lang.h>
 #include <isc/platform.h>
 
