@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.65 2000/08/02 22:29:16 explorer Exp $ */
+/* $Id: zone.h,v 1.66 2000/08/08 23:36:24 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -507,6 +507,15 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val);
  *	'zone' is valid.
  *	val > 0.
  */
+
+#ifndef NOMINUM_PUBLIC
+void
+dns_zone_setmaxnames(dns_zone_t *zone, isc_uint32_t val);
+isc_uint32_t dns_zone_getmaxnames(dns_zone_t *zone);
+/*
+ *	Set/get the maximum number of names allowed in the zone.
+ */
+#endif /* NOMINUM_PUBLIC */
 
 isc_result_t
 dns_zone_setxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
