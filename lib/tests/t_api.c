@@ -244,15 +244,15 @@ main(int argc, char **argv)
 						deadpid = waitpid(T_pid, &status, 0);
 						if (deadpid == T_pid) {
 							if (WIFSIGNALED(status)) {
-								t_info("the test case caused an exception %d\n",
-									WTERMSIG(status));
+								if (WTERMSIG(status) == SIGTERM)
+									t_info("the test case timed out\n");
+								else
+									t_info("the test case caused exception %d\n", WTERMSIG(status));
 								t_result(T_UNRESOLVED);
 							}
 						}
 						else if ((deadpid == -1) && (errno == EINTR) && T_int) {
-							t_info("the test case was interrupted %d\n", T_int);
 							kill(T_pid, SIGTERM);
-							t_result(T_UNRESOLVED);
 							T_int = 0;
 						}
 						else if ((deadpid == -1) &&
