@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.14 $)
+AC_REVISION($Revision: 1.15 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1392,7 +1392,7 @@ AC_TRY_COMPILE(
 struct hostent  *gethostbyname_r
         (const char *, struct hostent *, char *, int, int *h_errnop) {}
 ],
-[return (0);]
+[return (0);],
 [
 HOST_R_ARGS="#define HOST_R_ARGS char *buf, int buflen, int *h_errnop"
 HOST_R_BAD="#define HOST_R_BAD NULL"
@@ -1454,6 +1454,23 @@ SETPWENT_VOID="#undef SETPWENT_VOID"
 AC_SUBST(SETPWENT_VOID)
 
 AC_CHECK_FUNC(getnetgrent_r,
+AC_TRY_COMPILE(
+[
+#include <netdb.h>
+int getnetgrent_r(char **, char **, char **, char *, int) {}
+]
+,
+[return (0);],
+[
+NGR_R_ARGS="#define NGR_R_ARGS char *buf, int buflen"
+NGR_R_BAD="#define NGR_R_BAD (0)"
+NGR_R_COPY="#define NGR_R_COPY buf, buflen"
+NGR_R_COPY_ARGS="#define NGR_R_COPY_ARGS NGR_R_ARGS"
+NGR_R_OK="#define NGR_R_OK 1"
+NGR_R_RETURN="#define NGR_R_RETURN int"
+]
+,
+)
 ,
 NGR_R_ARGS="#define NGR_R_ARGS char *buf, int buflen"
 NGR_R_BAD="#define NGR_R_BAD (0)"
