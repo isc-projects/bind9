@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.117 2000/08/26 01:42:24 bwelling Exp $ */
+/* $Id: dighost.c,v 1.118 2000/08/28 05:06:18 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2469,6 +2469,7 @@ destroy_libs(void) {
 		isc_entropy_detach(&entp);
 	}
 
+	UNLOCK_LOOKUP;
 	DESTROYLOCK(&lookup_lock);
 	if (isc_mem_debugging != 0)
 		isc_mem_stats(mctx, stderr);
