@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58.2.8 2000/07/26 22:28:31 gson Exp $ */
+/* $Id: dighost.c,v 1.58.2.9 2000/08/07 23:50:13 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -182,6 +182,26 @@ check_result(isc_result_t result, const char *msg) {
 		exitcode = 1;
 		fatal("%s: %s", msg, isc_result_totext(result));
 	}
+}
+
+/*
+ * Create a server structure, which is part of the lookup structure.
+ * This is little more than a linked list of servers to query in hopes
+ * of finding the answer the user is looking for
+ */
+dig_server_t *
+make_server(const char *servname) {
+	dig_server_t *srv;
+
+	REQUIRE(servname != NULL);
+
+	debug("make_server(%s)",servname);
+	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
+	if (srv == NULL)
+		fatal("Memory allocation failure in %s:%d",
+		      __FILE__, __LINE__);
+	strncpy(srv->servername, servname, MXNAME);
+	return (srv);
 }
 
 isc_boolean_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.25.2.3 2000/07/17 19:40:55 gson Exp $ */
+/* $Id: dig.h,v 1.25.2.4 2000/08/07 23:50:17 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -209,6 +209,8 @@ free_lists(void);
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
+dig_server_t *
+make_server(const char *servname);
 
 /*
  * Routines needed in dig.c and host.c.
