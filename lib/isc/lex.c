@@ -55,6 +55,7 @@ struct isc_lex {
 	unsigned int			comments;
 	isc_boolean_t			comment_ok;
 	isc_boolean_t			last_was_eol;
+	unsigned int			paren_count;
 	isc_lexspecials_t		specials;
 	LIST(struct inputsource)	sources;
 };
@@ -83,6 +84,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	lex->comments = 0;
 	lex->comment_ok = ISC_TRUE;
 	lex->last_was_eol = ISC_TRUE;
+	lex->paren_count = 0;
 	memset(lex->specials, 0, 256);
 	INIT_LIST(lex->sources);
 	lex->magic = LEX_MAGIC;
@@ -276,6 +278,8 @@ typedef enum {
 	lexstate_qstring
 } lexstate;
 
+#define IWSEOL (ISC_LEXOPT_INITIALWS | ISC_LEXOPT_EOL)
+
 isc_result_t
 isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	inputsource *source;
@@ -310,6 +314,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	if (source->char_count == 0 && source->result != ISC_R_SUCCESS)
 		return (source->result);
 
+	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0) {
+		if (lex->paren_count > 0)
+			options &= ~IWSEOL;
+		else
+			options |= IWSEOL;
+	}
+
 	curr = lex->data;
 	prev = NULL;
 	remaining = lex->max_token;
@@ -317,6 +328,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		if (source->char_count > 0) {
 			source->char_count--;
 			c = source->chars[source->char_count];
+		} else if (source->result != ISC_R_SUCCESS) {
+			if (source->result != ISC_R_EOF)
+				return (source->result);
+			c = EOF;
 		} else if (source->is_file) {
 			stream = source->input;
 
@@ -401,6 +416,21 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				state = lexstate_qstring;
 			} else if (lex->specials[c]) {
 				lex->last_was_eol = ISC_FALSE;
+				if ((c == '(' || c == ')') &&
+				    (options & ISC_LEXOPT_DNSMULTILINE) != 0) {
+					if (c == '(') {
+						if (lex->paren_count == 0)
+							options &= ~IWSEOL;
+						lex->paren_count++;
+					} else {
+						if (lex->paren_count == 0)
+						    return (ISC_R_UNBALANCED);
+						lex->paren_count--;
+						if (lex->paren_count == 0)
+							options |= IWSEOL;
+					}
+					continue;
+				}
 				tokenp->type = isc_tokentype_special;
 				tokenp->value.as_char = c;
 				done = ISC_TRUE;
