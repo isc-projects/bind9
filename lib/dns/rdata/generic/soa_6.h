@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1998-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_SOA_6_H
 #define GENERIC_SOA_6_H 1
 
-/* $Id: soa_6.h,v 1.22 2000/05/08 14:36:58 tale Exp $ */
+/* $Id: soa_6.h,v 1.23 2000/06/21 22:45:18 tale Exp $ */
 
 typedef struct dns_rdata_soa {
 	dns_rdatacommon_t	common;

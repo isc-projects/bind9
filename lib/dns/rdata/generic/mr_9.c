@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1998-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.27 2000/06/01 18:26:20 tale Exp $ */
+/* $Id: mr_9.c,v 1.28 2000/06/21 22:44:57 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 

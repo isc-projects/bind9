@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1998-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_NULL_10_H
 #define GENERIC_NULL_10_H 1
 
-/* $Id: null_10.h,v 1.16 2000/06/01 18:26:24 tale Exp $ */
+/* $Id: null_10.h,v 1.17 2000/06/21 22:45:07 tale Exp $ */
 
 typedef struct dns_rdata_null {
 	dns_rdatacommon_t	common;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1998-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_MG_8_H
 #define GENERIC_MG_8_H 1
 
-/* $Id: mg_8.h,v 1.17 2000/05/08 14:36:50 tale Exp $ */
+/* $Id: mg_8.h,v 1.18 2000/06/21 22:44:52 tale Exp $ */
 
 typedef struct dns_rdata_mg {
 	dns_rdatacommon_t	common;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1998-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef IN_1_A_1_H
 #define IN_1_A_1_H 1
 
-/* $Id: a_1.h,v 1.19 2000/04/29 02:01:54 tale Exp $ */
+/* $Id: a_1.h,v 1.20 2000/06/21 22:45:24 tale Exp $ */
 
 typedef struct dns_rdata_in_a {
 	dns_rdatacommon_t	common;

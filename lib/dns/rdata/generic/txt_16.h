@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1998-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_TXT_16_H
 #define GENERIC_TXT_16_H 1
 
-/* $Id: txt_16.h,v 1.17 2000/05/24 05:09:29 tale Exp $ */
+/* $Id: txt_16.h,v 1.18 2000/06/21 22:45:21 tale Exp $ */
 
 
 typedef struct dns_rdata_txt_string {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1998-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_MINFO_14_H
 #define GENERIC_MINFO_14_H 1
 
-/* $Id: minfo_14.h,v 1.18 2000/05/08 14:36:51 tale Exp $ */
+/* $Id: minfo_14.h,v 1.19 2000/06/21 22:44:55 tale Exp $ */
 
 typedef struct dns_rdata_minfo {
 	dns_rdatacommon_t	common;
