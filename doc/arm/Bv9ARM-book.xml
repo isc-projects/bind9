@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.113 2001/03/07 18:52:27 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.114 2001/03/09 00:57:19 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2322,9 +2322,8 @@ it is in debugging mode. If the server's global debug level is greater
 than zero, then debugging mode will be active. The global debug
 level is set either by starting the <command>named</command> server
 with the <option>-d</option> flag followed by a positive integer,
-or by running <command>rndc trace</command>. <note>
-            <simpara>the latter
-method is not yet implemented.</simpara></note> The global debug level
+or by running <command>rndc trace</command>.
+The global debug level
 can be set to zero, and debugging mode turned off, by running <command>ndc
 notrace</command>. All debugging messages in the server have a debug
 level, and higher debug levels give more detailed output. Channels
