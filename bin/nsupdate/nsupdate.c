@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.89 2001/04/10 18:45:05 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.90 2001/04/13 00:45:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -653,7 +653,7 @@ parse_args(int argc, char **argv) {
 			result = isc_stdio_open(argv[isc_commandline_index],
 						"r", &input);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "isc_stdio_open(%s): %s\n",
+				fprintf(stderr, "failed to open '%s': %s\n",
 					argv[isc_commandline_index],
 					isc_result_totext(result));
 				exit(1);
