@@ -57,12 +57,6 @@
 #include <named/types.h>
 
 /***
- *** Types
- ***/
-
-typedef struct ns_interfacemgr ns_interfacemgr_t;
-
-/***
  *** Functions
  ***/
 

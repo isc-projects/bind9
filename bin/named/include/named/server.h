@@ -41,6 +41,7 @@ struct ns_server {
 	/* Server data structures. */
 	dns_viewlist_t		viewlist;
 	isc_rwlock_t		viewlock;
+	ns_interfacemgr_t *	interfacemgr;
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */
