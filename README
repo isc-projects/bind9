@@ -74,11 +74,11 @@ BIND 9.0.0b2
 	be most useful to advanced users working with IPv6 or DNSSEC.
 
 	BIND 9.0.0b2 is not functionally complete, and is not a release
-	candidate for BIND 9.0.0.  The ISC anticipates a number of additional
+	candidate for BIND 9.0.0.  ISC anticipates a number of additional
 	beta releases between now and May, when BIND 9.0.0 is scheduled to
 	be released.
 
-	The ISC does not recommend using BIND 9.0.0b2 for "production"
+	ISC does not recommend using BIND 9.0.0b2 for "production"
 	services.
 
 	We hope users of BIND 9.0.0b2 will provide feedback, bug fixes, and
