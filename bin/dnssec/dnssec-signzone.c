@@ -1276,6 +1276,41 @@ usage() {
 	exit(0);
 }
 
+static void
+setup_logging(int level, isc_log_t **logp) {
+	isc_result_t result;
+	isc_logdestination_t destination;
+	isc_logconfig_t *logconfig;
+	isc_log_t *log = 0;
+	
+	RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig)
+		      == ISC_R_SUCCESS);
+	isc_log_setcontext(log);
+	dns_log_init(log);
+	dns_log_setcontext(log);
+	
+	/*
+	 * Set up a channel similar to default_stderr except
+	 * that the logging level is passed in and the
+	 * time is not printed.
+	 */
+	destination.file.stream = stderr;
+	destination.file.name = NULL;
+	destination.file.versions = ISC_LOG_ROLLNEVER;
+	destination.file.maximum_size = 0;
+	result = isc_log_createchannel(logconfig, "stderr",
+				       ISC_LOG_TOFILEDESC,
+				       level,
+				       &destination,
+				       0);
+	check_result(result, "isc_log_createchannel()");
+
+	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
+					 NULL, NULL) == ISC_R_SUCCESS);
+
+	*logp = log;
+}
+
 int
 main(int argc, char *argv[]) {
 	int i, ch;
@@ -1288,7 +1323,7 @@ main(int argc, char *argv[]) {
 	signer_key_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
-	isc_logconfig_t *logconfig;
+	int loglevel;
 
 	dns_result_register();
 
@@ -1371,16 +1406,23 @@ main(int argc, char *argv[]) {
 		cycle = (endtime - starttime) / 4;
 	}
 
-	if (verbose > 0) {
-		RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig)
-			      == ISC_R_SUCCESS);
-		isc_log_setcontext(log);
-		dns_log_init(log);
-		dns_log_setcontext(log);
-		RUNTIME_CHECK(isc_log_usechannel(logconfig, "default_stderr",
-						 NULL, NULL) == ISC_R_SUCCESS);
+	switch (verbose) {
+	case 0:
+		/*
+		 * We want to see warnings about things like out-of-zone
+		 * data in the master file even when not verbose.
+		 */
+		loglevel = ISC_LOG_WARNING;
+		break;
+	case 1:
+		loglevel = ISC_LOG_INFO;
+		break;
+	default:
+		loglevel = ISC_LOG_DEBUG(verbose - 2 + 1);
+		break;
 	}
-
+	setup_logging(loglevel, &log);
+	
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
