@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.1 2003/08/11 05:28:15 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.2 2003/08/11 05:58:18 marka Exp $ */
 
 /***
  *** Imports
@@ -2738,6 +2738,26 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 	}
 
 	return (result);
+}
+
+void
+dns_message_resetsig(dns_message_t *msg) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	msg->verified_sig = 0;
+	msg->verify_attempted = 0;
+	msg->tsigstatus = dns_rcode_noerror;
+	msg->sig0status = dns_rcode_noerror;
+	msg->timeadjust = 0;
+	if (msg->tsigkey != NULL) {
+		dns_tsigkey_detach(&msg->tsigkey);
+		msg->tsigkey = NULL;
+	}
+}
+
+isc_result_t
+dns_message_rechecksig(dns_message_t *msg, dns_view_t *view) {
+	dns_message_resetsig(msg);
+	return (dns_message_checksig(msg, view));
 }
 
 isc_result_t

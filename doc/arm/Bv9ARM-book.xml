@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.5 2003/08/07 06:33:29 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.6 2003/08/11 05:58:17 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4011,6 +4011,7 @@ more efficient, but is only known to be understood by <acronym>BIND</acronym> 9,
 to use for a server with the <command>transfer-format</command> option.
 If <command>transfer-format</command> is not specified, the <command>transfer-format</command> specified
 by the <command>options</command> statement will be used.</para>
+
 <para><command>transfers</command> is used to limit the number of
 concurrent inbound zone transfers from the specified server. If
 no <command>transfers</command> clause is specified, the limit is
@@ -4076,7 +4077,10 @@ a view if its source IP address matches the
 the <varname>address_match_list</varname> of the view's
 <command>match-destinations</command> clause.  If not specified, both
 <command>match-clients</command> and <command>match-destinations</command>
-default to matching all addresses.  A view can also be specified
+default to matching all addresses.  In addition to checking IP addresses
+<command>match-clients</command> and <command>match-destinations</command>
+can also take <command>keys</command> which provide an mechanism for the
+client to select the view.  A view can also be specified
 as <command>match-recursive-only</command>, which means that only recursive
 requests from matching clients will match that view.
 The order of the <command>view</command> statements is significant &mdash; 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.100.2.3 2002/02/19 22:13:00 gson Exp $ */
+/* $Id: message.h,v 1.100.2.3.8.1 2003/08/11 05:58:18 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -1208,6 +1208,36 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
  *	DNS_R_EXPECTEDTSIG	- A TSIG was expected, but not seen
  *	DNS_R_UNEXPECTEDTSIG	- A TSIG was seen but not expected
  *	DNS_R_TSIGVERIFYFAILURE - The TSIG failed to verify
+ */
+
+isc_result_t
+dns_message_rechecksig(dns_message_t *msg, dns_view_t *view);
+/*
+ * Reset the signature state and then if the message was signed,
+ * verify the message.
+ *
+ * Requires:
+ *
+ *	msg is a valid parsed message.
+ *	view is a valid view or NULL
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		- the message was unsigned, or the message
+ *				  was signed correctly.
+ *
+ *	DNS_R_EXPECTEDTSIG	- A TSIG was expected, but not seen
+ *	DNS_R_UNEXPECTEDTSIG	- A TSIG was seen but not expected
+ *	DNS_R_TSIGVERIFYFAILURE - The TSIG failed to verify
+ */
+
+void
+dns_message_resetsig(dns_message_t *msg);
+/*
+ * Reset the signature state.
+ *
+ * Requires:
+ *	'msg' is a valid parsed message.
  */
 
 isc_region_t *
