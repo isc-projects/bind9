@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.31 2001/02/23 23:12:28 marka Exp $ */
+/* $Id: time.c,v 1.32 2001/02/24 02:53:38 marka Exp $ */
 
 #include <config.h>
 
@@ -162,13 +162,13 @@ isc_time_now(isc_time_t *t) {
 	 * certain things to be true ...
 	 */
 #if ISC_FIX_TV_USEC
-	if (tv.tv_sec < 0) {
+	if (tv.tv_usec < 0) {
 		fixed = ISC_TRUE;
 		do {
 			tv.tv_sec -= 1;
 			tv.tv_usec += US_PER_S;
 		} while (tv.tv_usec < 0);
-	} else if (tv.tv_sec >= US_PER_S) {
+	} else if (tv.tv_usec >= US_PER_S) {
 		fixed = ISC_TRUE;
 		do {
 			tv.tv_sec += 1;
