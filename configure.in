@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.224 $)
+AC_REVISION($Revision: 1.225 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -668,8 +668,7 @@ esac
 #
 AC_MSG_CHECKING(whether to use purify)
 AC_ARG_WITH(purify,
-	[  --with-purify[=PATH]	use Rational purify [default searches user's
-path]],
+	[  --with-purify[=PATH]	use Rational purify],
 	use_purify="$withval", use_purify="no")
 
 case "$use_purify" in
