@@ -59,6 +59,10 @@ static isc_boolean_t			want_stats = ISC_FALSE;
 #include <unistd.h>
 #include <errno.h>
 
+#ifndef SYS_capset
+#define SYS_capset __NR_capset
+#endif
+
 static void
 linux_dropprivs() {
 	struct __user_cap_header_struct caphead;
