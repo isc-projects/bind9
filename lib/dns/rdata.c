@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.1 2003/08/04 01:04:42 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.2 2003/08/04 02:31:56 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -32,6 +32,7 @@
 #include <dns/cert.h>
 #include <dns/compress.h>
 #include <dns/keyflags.h>
+#include <dns/keyvalues.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -273,14 +274,14 @@ static const char decdigits[] = "0123456789";
 /* RFC2535 section 7, RFC3110 */
 
 #define SECALGNAMES \
-	{ 1, "RSAMD5", 0 }, \
-	{ 2, "DH", 0 }, \
-	{ 3, "DSA", 0 }, \
-	{ 4, "ECC", 0 }, \
-	{ 5, "RSASHA1", 0 }, \
-	{ 252, "INDIRECT", 0 }, \
-	{ 253, "PRIVATEDNS", 0 }, \
-	{ 254, "PRIVATEOID", 0 }, \
+	{ DNS_KEYALG_RSAMD5, "RSAMD5", 0 }, \
+	{ DNS_KEYALG_DH, "DH", 0 }, \
+	{ DNS_KEYALG_DSA, "DSA", 0 }, \
+	{ DNS_KEYALG_ECC, "ECC", 0 }, \
+	{ DNS_KEYALG_RSASHA1, "RSASHA1", 0 }, \
+	{ DNS_KEYALG_INDIRECT, "INDIRECT", 0 }, \
+	{ DNS_KEYALG_PRIVATEDNS, "PRIVATEDNS", 0 }, \
+	{ DNS_KEYALG_PRIVATEOID, "PRIVATEOID", 0 }, \
 	{ 0, NULL, 0}
 
 /* RFC2535 section 7.1 */
