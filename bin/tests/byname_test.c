@@ -34,6 +34,7 @@
 
 #include <dns/adb.h>
 #include <dns/cache.h>
+#include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/log.h>
 #include <dns/resolver.h>
@@ -216,6 +217,7 @@ main(int argc, char *argv[]) {
 	isc_timermgr_t *timermgr;
 	int ch;
 	isc_socketmgr_t *socketmgr;
+	dns_dispatchmgr_t *dispatchmgr;
 	dns_cache_t *cache;
 	isc_buffer_t b;
 
@@ -255,10 +257,16 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task) ==
 		      ISC_R_SUCCESS);
 
+	dispatchmgr = NULL;
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
+		      == ISC_R_SUCCESS);
+
 	timermgr = NULL;
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
+
+	
 
 	cache = NULL;
 	RUNTIME_CHECK(dns_cache_create(mctx, taskmgr, timermgr,
@@ -270,7 +278,8 @@ main(int argc, char *argv[]) {
 				      &view) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10, socketmgr,
-					      timermgr, 0, NULL, NULL) ==
+					      timermgr, 0,
+					      dispatchmgr, NULL, NULL) ==
 		      ISC_R_SUCCESS);
 
 	{

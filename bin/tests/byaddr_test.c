@@ -33,6 +33,7 @@
 
 #include <dns/byaddr.h>
 #include <dns/cache.h>
+#include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
@@ -91,6 +92,7 @@ main(int argc, char *argv[]) {
 	dns_view_t *view;
 	int ch;
 	isc_socketmgr_t *socketmgr;
+	dns_dispatchmgr_t *dispatchmgr;
 	isc_netaddr_t na;
 	dns_byaddr_t *byaddr;
 	isc_result_t result;
@@ -125,11 +127,15 @@ main(int argc, char *argv[]) {
 	}
 
 	taskmgr = NULL;
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr)
+		      == ISC_R_SUCCESS);
 	task = NULL;
-	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task) ==
-		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task)
+		      == ISC_R_SUCCESS);
+
+	dispatchmgr = NULL;
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
+		      == ISC_R_SUCCESS);
 
 	timermgr = NULL;
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
@@ -146,7 +152,8 @@ main(int argc, char *argv[]) {
 				      &view) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10, socketmgr,
-					      timermgr, 0, NULL, NULL) ==
+					      timermgr, 0,
+					      dispatchmgr, NULL, NULL) ==
 		      ISC_R_SUCCESS);
 
 	{

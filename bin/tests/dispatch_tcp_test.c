@@ -36,6 +36,7 @@
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;
 isc_socketmgr_t *socketmgr;
+dns_dispatchmgr_t *dispatchmgr;
 dns_dispatch_t *disp;
 isc_task_t *t0, *t1, *t2;
 isc_buffer_t render;
@@ -91,8 +92,8 @@ my_accept(isc_task_t *task, isc_event_t *ev_in) {
 	 * Create a dispatch context
 	 */
 	disp = NULL;
-	RUNTIME_CHECK(dns_dispatch_create(mctx, ev->newsocket, task,
-					  512, 6, 1024, 17, 19, NULL, &disp)
+	RUNTIME_CHECK(dns_dispatch_create(dispatchmgr, ev->newsocket, task,
+					  512, 6, 1024, 17, 19, NULL, 0, &disp)
 		      == ISC_R_SUCCESS);
 
 	resp = NULL;
@@ -352,6 +353,10 @@ main(int argc, char *argv[]) {
 
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
+
+	dispatchmgr = NULL;
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
+		      == ISC_R_SUCCESS);
 
 	/*
 	 * Open up a random socket.  Who cares where.

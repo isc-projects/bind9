@@ -29,6 +29,7 @@
 
 #include <dns/adb.h>
 #include <dns/cache.h>
+#include <dns/dispatch.h>
 #include <dns/db.h>
 #include <dns/log.h>
 #include <dns/rootns.h>
@@ -48,6 +49,7 @@ isc_logconfig_t *lcfg;
 isc_taskmgr_t *taskmgr;
 isc_socketmgr_t *socketmgr;
 isc_timermgr_t *timermgr;
+dns_dispatchmgr_t *dispatchmgr;
 isc_task_t *t1, *t2;
 dns_view_t *view;
 dns_db_t *rootdb;
@@ -146,6 +148,10 @@ create_managers(void) {
 	socketmgr = NULL;
 	result = isc_socketmgr_create(mctx, &socketmgr);
 	check_result(result, "isc_socketmgr_create");
+
+	dispatchmgr = NULL;
+	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	check_result(result, "dns_dispatchmgr_create");
 }
 
 static void
@@ -177,7 +183,7 @@ create_view(void) {
 	 * see if we are dealing with a shared dispatcher in this view.
 	 */
 	result = dns_view_createresolver(view, taskmgr, 16, socketmgr,
-					 timermgr, 0, NULL, NULL);
+					 timermgr, 0, dispatchmgr, NULL, NULL);
 	check_result(result, "dns_view_createresolver()");
 
 	rootdb = NULL;

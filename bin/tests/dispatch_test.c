@@ -45,6 +45,7 @@ typedef struct {
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;
 isc_socketmgr_t *socketmgr;
+dns_dispatchmgr_t *dispatchmgr;
 dns_dispatch_t *disp;
 isc_task_t *t0, *t1, *t2;
 clictx_t clients[16];  /* Lots of things might want to use this. */
@@ -377,12 +378,16 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_bind(s0, &sockaddr) == ISC_R_SUCCESS);
 
+	dispatchmgr = NULL;
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
+		      == ISC_R_SUCCESS);
+
 	/*
 	 * Create a dispatch context.
 	 */
 	disp = NULL;
-	RUNTIME_CHECK(dns_dispatch_create(mctx, s0, t0, 512, 6, 1024,
-					 17, 19, NULL, &disp)
+	RUNTIME_CHECK(dns_dispatch_create(dispatchmgr, s0, t0, 512, 6, 1024,
+					 17, 19, NULL, 0, &disp)
 		      == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_mutex_init(&client_lock) == ISC_R_SUCCESS);
