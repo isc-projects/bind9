@@ -1,4 +1,7 @@
 
+1005.	[bug]		Don't copy nonzero RCODEs from request to response.
+			[RT #1765]
+
 1004.	[port]		Deal with recvfrom() returning EHOSTDOWN. [RT #1770]
 
  987.	[bug]		"dig -help" didn't show "+[no]stats".

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.136.2.6 2001/05/15 05:15:20 bwelling Exp $ */
+/* $Id: client.c,v 1.136.2.7 2001/09/19 02:46:55 marka Exp $ */
 
 #include <config.h>
 
@@ -1371,6 +1371,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, DNS_R_REFUSED);
 		goto cleanup_serverlock;
 	}
+
+	client->message->rcode = dns_rcode_noerror;
 
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
