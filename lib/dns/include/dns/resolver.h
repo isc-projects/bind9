@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.28 2000/06/26 22:09:37 gson Exp $ */
+/* $Id: resolver.h,v 1.29 2000/07/25 17:03:21 gson Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -89,6 +89,7 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_RECURSIVE		0x04	     /* Set RD? */
 #define DNS_FETCHOPT_NOEDNS0		0x08	     /* Do not use EDNS. */
 #define DNS_FETCHOPT_FORWARDONLY	0x10	     /* Only use forwarders. */
+#define DNS_FETCHOPT_NOVALIDATE		0x20	     /* Disable validation. */
 
 /*
  * XXXRTH  Should this API be made semi-private?  (I.e.
