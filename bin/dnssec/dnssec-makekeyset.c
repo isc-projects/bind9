@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.33 2000/08/14 04:43:13 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.34 2000/08/14 20:11:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -278,11 +278,12 @@ main(int argc, char *argv[]) {
 		if (output == NULL) {
 			output = isc_mem_allocate(mctx,
 						  strlen("keyset-") +
-						  strlen(namestr) + 1);
+						  strlen(namestr) + 1 + 1);
 			if (output == NULL)
 				fatal("out of memory");
 			strcpy(output, "keyset-");
 			strcat(output, namestr);
+			strcat(output, ".");
 		}
 		if (domain == NULL) {
 			dns_fixedname_init(&fdomain);
