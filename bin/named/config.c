@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.30 2002/07/29 06:58:45 marka Exp $ */
+/* $Id: config.c,v 1.31 2002/08/01 03:23:36 mayer Exp $ */
 
 #include <config.h>
 
@@ -140,7 +140,7 @@ options {\n\
 	min-retry-time 500;\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\
 	min-refresh-time 300;\n\
-	multi-master no;
+	multi-master no;\n\
 	sig-validity-interval 30; /* days */\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
