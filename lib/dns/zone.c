@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.234 2000/10/16 21:14:29 mws Exp $ */
+/* $Id: zone.c,v 1.235 2000/10/16 22:26:25 mws Exp $ */
 
 #include <config.h>
 
@@ -253,9 +253,7 @@ struct dns_zonemgr {
  */
 struct dns_notify {
 	isc_int32_t		magic;
-#ifndef NOMINUM_PUBLIC
 	unsigned int		flags;
-#endif /* NOMINUM_PUBLIC */
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_adbfind_t		*find;
@@ -2104,9 +2102,7 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 
 	notify->mctx = NULL;
 	isc_mem_attach(mctx, &notify->mctx);
-#ifndef NOMINUM_PUBLIC
 	notify->flags = flags;
-#endif /* NOMINUM_PUBLIC */
 	notify->zone = NULL;
 	notify->find = NULL;
 	notify->request = NULL;
