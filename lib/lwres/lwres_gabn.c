@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres_gabn.c,v 1.21 2000/06/22 21:59:34 tale Exp $ */
+/* $Id: lwres_gabn.c,v 1.21.2.1 2000/06/27 18:57:44 gson Exp $ */
 
 #include <config.h>
 
@@ -248,7 +248,6 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	/* encode the addresses */
 	addr = LWRES_LIST_HEAD(req->addrs);
 	while (addr != NULL) {
-		datalen = addr->length + 2 + 4;
 		lwres_buffer_putuint32(b, addr->family);
 		lwres_buffer_putuint16(b, addr->length);
 		lwres_buffer_putmem(b, addr->address, addr->length);
@@ -256,7 +255,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	}
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
-	INSIST(b->used == pkt->length);
+	INSIST(LWRES_BUFFER_USEDCOUNT(b) == pkt->length);
 
 	return (LWRES_R_SUCCESS);
 }
@@ -294,7 +293,7 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		return (ret);
 
 	if (LWRES_BUFFER_REMAINING(b) != 0)
-		return (LWRES_R_UNEXPECTEDEND);
+		return (LWRES_R_TRAILINGDATA);
 
 	gabn = CTXMALLOC(sizeof(lwres_gabnrequest_t));
 	if (gabn == NULL)
@@ -313,14 +312,14 @@ lwres_result_t
 lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_gabnresponse_t **structp)
 {
-	lwres_result_t			ret;
-	unsigned int			x;
-	lwres_uint32_t			flags;
-	lwres_uint16_t			naliases;
-	lwres_uint16_t			naddrs;
-	lwres_gabnresponse_t	       *gabn;
-	lwres_addrlist_t		addrlist;
-	lwres_addr_t		       *addr;
+	lwres_result_t ret;
+	unsigned int x;
+	lwres_uint32_t flags;
+	lwres_uint16_t naliases;
+	lwres_uint16_t naddrs;
+	lwres_gabnresponse_t *gabn;
+	lwres_addrlist_t addrlist;
+	lwres_addr_t *addr;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(pkt != NULL);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.16 2000/06/22 21:59:35 tale Exp $ */
+/* $Id: lwres_gnba.c,v 1.16.2.1 2000/06/27 18:57:46 gson Exp $ */
 
 #include <config.h>
 
@@ -188,7 +188,7 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		goto out;
 
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = LWRES_R_UNEXPECTEDEND;
+		ret = LWRES_R_TRAILINGDATA;
 		goto out;
 	}
 
@@ -223,7 +223,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		return (LWRES_R_FAILURE);
 
 	/*
-	 * Pull off the name itself
+	 * Pull off flags & naliases
 	 */
 	if (!SPACE_REMAINING(b, 4 + 2))
 		return (LWRES_R_UNEXPECTEDEND);
