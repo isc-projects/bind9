@@ -29,6 +29,7 @@
 #include <isc/time.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/sockaddr.h>
 
 #include <omapi/types.h>
 
@@ -67,14 +68,6 @@ struct omapi_object {
 };
 
 /*
- * The port on which applications should listen for OMAPI connections.
- * XXXDCL 7911 is being used by DHCP; putting this in general library header
- * file seems to be a bit of a mistake if the API is to be used for more
- * than one server.
- */
-#define OMAPI_PROTOCOL_PORT	7912
-
-/*
  * For use with omapi_connection_disconnect().
  * XXXDCL rename
  */
@@ -96,7 +89,7 @@ void
 omapi_protocol_disconnect(omapi_object_t *handle, isc_boolean_t force);
 
 isc_result_t
-omapi_protocol_listen(omapi_object_t *object, int port, int backlog);
+omapi_protocol_listen(omapi_object_t *mgr, isc_sockaddr_t *addr, int backlog);
 
 /*
  * Public functions defined in connection.c.
@@ -130,10 +123,10 @@ omapi_connection_puthandle(omapi_object_t *connection, omapi_object_t *object);
  * Public functions defined in listen.c.
  */
 isc_result_t
-omapi_listener_listen(omapi_object_t *listener, int port, int backlog);
+omapi_listener_listen(omapi_object_t *mgr, isc_sockaddr_t *addr, int backlog);
 
 void
-omapi_listener_shutdown(omapi_object_t *listener);
+omapi_listener_shutdown(omapi_object_t *mgr);
 
 /*
  * Public functions defined in message.c.
