@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.16 2001/01/09 22:00:53 bwelling Exp $
+# $Id: merge_copyrights,v 1.16.2.1 2002/08/05 06:46:24 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -40,6 +40,7 @@ while (<FILES>) {
 
     next if (m%/\.\# |		# CVS old conflict file
                /CVS/ |		# CVS directory
+               util/newcopyrights | # our output
                \.bak$ |		# created by update_copyrights
                /(dnssafe|openssl)/.*\.[ch]$ |	# imported
                doc/(draft|expired|rfc)/		# imported
