@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.20 2000/06/27 23:13:26 bwelling Exp $ */
+/* $Id: gethost.c,v 1.21 2000/07/26 22:52:01 marka Exp $ */
 
 #include <config.h>
 
@@ -198,11 +198,10 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
 	 * Copy address list.
 	 */
         hptr->h_addr_list = ptr;
-        for (i = 0; he->h_addr_list[i]; i++ , ptr++) {
+        for (i = 0; he->h_addr_list[i]; i++, ptr++) {
                 memcpy(cp, he->h_addr_list[i], n);
                 hptr->h_addr_list[i] = cp;
                 cp += n;
-                i++;
         }
         hptr->h_addr_list[i] = NULL;
         ptr++;
@@ -219,7 +218,7 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
 	 * Copy aliases.
 	 */
         hptr->h_aliases = ptr;
-        for (i = 0 ; he->h_aliases[i]; i++) {
+        for (i = 0; he->h_aliases[i]; i++) {
                 n = strlen(he->h_aliases[i]) + 1;
                 strcpy(cp, he->h_aliases[i]);
                 hptr->h_aliases[i] = cp;

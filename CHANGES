@@ -1,3 +1,5 @@
+ 353.	[bug]		double incrememnt in lwrew/gethost.c:copytobuf().
+			(RT# 187)
 
  352.	[bug]		Race condition in dns_client_t startup could cause
 			an assertion failure.
