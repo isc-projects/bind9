@@ -1,5 +1,5 @@
 
-AC_REVISION($Revision: 1.6 $)
+AC_REVISION($Revision: 1.7 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -45,7 +45,7 @@ else
 	STD_CWARNINGS=
 	case "$host" in
 		*-dec-osf*)
-			CFLAGS="$CFLAGS -pthread"
+			CC="$CC -pthread"
 			;;
 		*-sun-solaris*)
 			CC="$CC -mt"
