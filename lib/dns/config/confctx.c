@@ -221,14 +221,14 @@ dns_c_ctx_print(isc_log_t *lctx,
 	dns_c_logginglist_print(lctx, fp, indent, cfg->logging, ISC_FALSE);
 	fprintf(fp,"\n");
 	
-	dns_c_acltable_print(lctx, fp, indent, cfg->acls);
-	fprintf(fp,"\n");
-
 	dns_c_kdeflist_print(lctx, fp, indent, cfg->keydefs);
 	fprintf(fp, "\n");
 
 	dns_c_tkeylist_print(lctx, fp, indent, cfg->trusted_keys);
 	fprintf(fp, "\n");
+
+	dns_c_acltable_print(lctx, fp, indent, cfg->acls);
+	fprintf(fp,"\n");
 
 	dns_c_zonelist_printpreopts(lctx, fp, indent, cfg->zlist);
 	fprintf(fp, "\n");
@@ -275,6 +275,7 @@ dns_c_ctx_forwarderprint(isc_log_t *lctx,
 		fprintf(fp, "forwarders ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
 					options->forwarders);
+		fprintf(fp, ";\n");
 	}
 }
 
@@ -706,6 +707,44 @@ dns_c_ctx_setnamedxfer(isc_log_t *lctx,
 	
 	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->named_xfer,
+			       newval));
+}
+
+
+isc_result_t
+dns_c_ctx_settkeydomain(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, const char *newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	res = make_options(lctx, cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_string(lctx, cfg->options,
+			       &cfg->options->tkeydomain,
+			       newval));
+}
+
+
+isc_result_t
+dns_c_ctx_settkeydhkey(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, const char *newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	res = make_options(lctx, cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_string(lctx, cfg->options,
+			       &cfg->options->tkeydhkey,
 			       newval));
 }
 
@@ -1896,6 +1935,48 @@ dns_c_ctx_getnamedxfer(isc_log_t *lctx,
 
 
 isc_result_t
+dns_c_ctx_gettkeydomain(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, char **retval)
+{
+	(void) lctx;
+	
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(DNS_CONFOPT_VALID(cfg->options));
+
+	*retval = cfg->options->tkeydomain;
+
+	return (*retval == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ctx_gettkeydhkey(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, char **retval)
+{
+	(void) lctx;
+	
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(DNS_CONFOPT_VALID(cfg->options));
+
+	*retval = cfg->options->tkeydhkey;
+
+	return (*retval == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
 dns_c_ctx_getmaxncachettl(isc_log_t *lctx,
 			  dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
@@ -2801,6 +2882,8 @@ dns_c_ctx_optionsnew(isc_log_t *lctx,
 	opts->stats_filename = NULL;
 	opts->memstats_filename = NULL;
 	opts->named_xfer = NULL;
+	opts->tkeydomain = NULL;
+	opts->tkeydhkey = NULL;
 
 	opts->mem = mem;
 	opts->magic = OPTION_MAGIC;
@@ -2907,6 +2990,14 @@ dns_c_ctx_optionsdelete(isc_log_t *lctx,
 		isc_mem_free(options->mem, options->named_xfer);
 	}
 
+	if (options->tkeydomain != NULL) {
+		isc_mem_free(options->mem, options->tkeydomain);
+	}
+	
+	if (options->tkeydhkey != NULL) {
+		isc_mem_free(options->mem, options->tkeydhkey);
+	}
+
 	r = dns_c_ipmatchlist_delete(lctx, &options->queryacl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
@@ -3007,6 +3098,8 @@ dns_c_ctx_optionsprint(isc_log_t *lctx,
 	PRINT_CHAR_P(stats_filename, "statistics-file");
 	PRINT_CHAR_P(memstats_filename, "memstatistics-file");
 	PRINT_CHAR_P(named_xfer, "named-xfer");
+	PRINT_CHAR_P(tkeydomain, "tkey-domain");
+	PRINT_CHAR_P(tkeydhkey, "tkey-dhkey");
 
 	PRINT_INTEGER(transfers_in, TRANSFERS_IN_BIT,
 		      "transfers-in", setflags1);
@@ -3137,42 +3230,42 @@ dns_c_ctx_optionsprint(isc_log_t *lctx,
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow-query ");
 		dns_c_ipmatchlist_print(lctx, fp, 2, options->queryacl);
-		fprintf(fp, "\n");
+		fprintf(fp, ";\n");
 	}
 
 	if (options->transferacl != NULL) {
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow-transfer ");
 		dns_c_ipmatchlist_print(lctx, fp, 2, options->transferacl);
-		fprintf(fp, "\n");
+		fprintf(fp, ";\n");
 	}
 
 	if (options->recursionacl != NULL) {
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow-recursion ");
 		dns_c_ipmatchlist_print(lctx, fp, 2, options->recursionacl);
-		fprintf(fp, "\n");
+		fprintf(fp, ";\n");
 	}
 
 	if (options->blackhole != NULL) {
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "blackhole ");
 		dns_c_ipmatchlist_print(lctx, fp, 2, options->blackhole);
-		fprintf(fp, "\n");
+		fprintf(fp, ";\n");
 	}
 
 	if (options->topology != NULL) {
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "topology ");
 		dns_c_ipmatchlist_print(lctx, fp, 2, options->topology);
-		fprintf(fp, "\n");
+		fprintf(fp, ";\n");
 	}
 
 	if (options->sortlist != NULL) {
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "sortlist ");
 		dns_c_ipmatchlist_print(lctx, fp, 2, options->sortlist);
-		fprintf(fp, "\n");
+		fprintf(fp, ";\n");
 	}
 
 	dns_c_lstnlist_print(lctx, fp, indent + 1, options->listens);
