@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.197 2000/08/26 01:37:00 bwelling Exp $ */
+/* $Id: zone.c,v 1.198 2000/08/29 03:45:48 marka Exp $ */
 
 #include <config.h>
 
@@ -3387,6 +3387,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 #ifndef NOMINUM_PUBLIC
 	int match = 0;
 	isc_netaddr_t netaddr;
+	isc_boolean_t forward = ISC_FALSE;
 #endif /* NOMINUM_PUBLIC */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3453,11 +3454,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	    dns_acl_match(&netaddr, NULL, zone->notify_acl, NULL, &match,
 			  NULL) == ISC_R_SUCCESS && match > 0) {
 		
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYFORWARD)) {
-			zone_notifyforward(zone);
-			UNLOCK(&zone->lock);
-			return (ISC_R_SUCCESS);
-		}
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYFORWARD))
+			forward = ISC_TRUE;
 		/* Accept notify. */
 	} else
 #endif /* NOMINUM_PUBLIC */
@@ -3500,6 +3498,14 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			}
 		}
 	}
+
+#ifndef NOMINUM_PUBLIC
+	if (forward) {
+		zone_notifyforward(zone);
+		UNLOCK(&zone->lock);
+		return (ISC_R_SUCCESS);
+	}
+#endif	/* NOMINUM_PUBLIC */
 
 	/*
 	 * If we got this far and there was a refresh in progress just
