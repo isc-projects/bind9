@@ -1,6 +1,13 @@
+ 238.   [cleanup]       A few more compilation warnings have been quieted:
+                        + missing sigwait prototype on BSD/OS 4.0/4.0.1.
+                        + PTHREAD_ONCE_INIT unbraced initializer warnings on
+                                Solaris 2.8.
+                        + IN6ADDR_ANY_INIT unbraced initializer warnings on
+                                BSD/OS 4.*, Linux and Solaris 2.8.
+
  237.	[bug]		If connect() returned ENOBUFS when the resolver was
-			initiating a TCP query, the socket didn't get destroyed,
-			and the server did not shut down cleanly. 
+			initiating a TCP query, the socket didn't get
+                        destroyed, and the server did not shut down cleanly. 
 
  236.	[func]		Added new listen-on-v6 config file statement.
 

@@ -41,11 +41,14 @@
 #define IN6ADDRSZ 16
 #endif
 
-const struct in6_addr lwres_in6addr_any = IN6ADDR_ANY_INIT;
+#ifdef LWRES_PLATFORM_NEEDIN6ADDRANY
+const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
+#endif
 
 #ifndef IN6_IS_ADDR_V4COMPAT
 static const unsigned char in6addr_compat[12] = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
 #define IN6_IS_ADDR_V4COMPAT(x) (!memcmp((x)->s6_addr, in6addr_compat, 12) && \
                                  ((x)->s6_addr[12] != 0 || \
                                   (x)->s6_addr[13] != 0 || \
@@ -58,7 +61,8 @@ static const unsigned char in6addr_compat[12] = {
 #endif
 
 static const unsigned char in6addr_mapped[12] = {
-        0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0xff, 0xff };
+        0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0xff, 0xff
+};
 
 /***
  ***	Forward declarations.
@@ -213,7 +217,10 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	lwres_context_t *lwrctx = NULL;
 	lwres_gnbaresponse_t *by = NULL;
 	int n;
-
+	union {
+		const void *konst;
+		struct in6_addr *in6;
+	} u;
 
 	/*
 	 * Sanity checks.
@@ -242,12 +249,21 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	}
 
 	/*
-	 * Lookup IPv4 and IPv4 mapped/compatible addresses
+	 * The de-"const"-ing game is done because at least one
+	 * vendor's system (RedHat 6.0) defines the IN6_IS_ADDR_*
+	 * macros in such a way that they discard the const with
+	 * internal casting, and gcc ends up complaining.  Rather
+	 * than replacing their own (possibly optimized) definitions
+	 * with our own, cleanly discarding the const is the easiest
+	 * thing to do.
 	 */
-	if ((af == AF_INET6 &&
-	     IN6_IS_ADDR_V4COMPAT((const struct in6_addr *)src)) ||
-	    (af == AF_INET6 &&
-	     IN6_IS_ADDR_V4MAPPED((const struct in6_addr *)src)) ||
+	u.konst = src;
+
+	/*
+	 * Look up IPv4 and IPv4 mapped/compatible addresses.
+	 */
+	if ((af == AF_INET6 && IN6_IS_ADDR_V4COMPAT(u.in6)) ||
+	    (af == AF_INET6 && IN6_IS_ADDR_V4MAPPED(u.in6)) ||
 	    (af == AF_INET)) {
 		const unsigned char *cp = src;
 
@@ -285,7 +301,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	/*
 	 * Lookup IPv6 address.
 	 */
-	if (memcmp(src, &lwres_in6addr_any, IN6ADDRSZ) == 0) {
+	if (memcmp(src, &in6addr_any, IN6ADDRSZ) == 0) {
 		*error_num = HOST_NOT_FOUND;
 		return (NULL);
 	}
@@ -466,7 +482,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 				       &((struct sockaddr_in6 *)
 				       &ifreq.ifr_addr)->sin6_addr,
 				       sizeof(in6));
-				if (memcmp(&in6, &lwres_in6addr_any,
+				if (memcmp(&in6, &in6addr_any,
 					   sizeof(in6)) == 0)
 					break;
 				n = ioctl(s, SIOCGIFFLAGS, (char *)&ifreq);

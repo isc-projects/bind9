@@ -48,4 +48,10 @@
  */
 @LWRES_PLATFORM_HAVEIPV6@
 
+/*
+ * If this system is missing in6addr_any, LWRES_PLATFORM_NEEDIN6ADDRANY will
+ * be defined.
+ */
+@LWRES_PLATFORM_NEEDIN6ADDRANY@
+
 #endif /* LWRES_PLATFORM_H */

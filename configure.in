@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.143 $)
+AC_REVISION($Revision: 1.144 $)
 
 AC_PREREQ(2.13)
 
@@ -710,9 +710,11 @@ case "$found_ipv6" in
 $isc_netinetin6_hack],
 		[struct in6_addr in6; in6 = in6addr_any; return (0);],
 			[AC_MSG_RESULT(yes)
-			 ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"],
+			 ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
+			 LWRES_PLATFORM_NEEDIN6ADDRANY="#undef LWRES_PLATFORM_NEEDIN6ADDRANY"],
 			[AC_MSG_RESULT(no)
-			 ISC_PLATFORM_NEEDIN6ADDRANY="#define ISC_PLATFORM_NEEDIN6ADDRANY 1"])
+			 ISC_PLATFORM_NEEDIN6ADDRANY="#define ISC_PLATFORM_NEEDIN6ADDRANY 1"
+			 LWRES_PLATFORM_NEEDIN6ADDRANY="#define LWRES_PLATFORM_NEEDIN6ADDRANY 1"])
 		AC_MSG_CHECKING(for in6_pktinfo)
 		AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -731,6 +733,7 @@ $isc_netinet6in6_hack
 		ISC_PLATFORM_HAVEIPV6="#undef ISC_PLATFORM_HAVEIPV6"
 		LWRES_PLATFORM_HAVEIPV6="#undef LWRES_PLATFORM_HAVEIPV6"
 		ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
+		LWRES_PLATFORM_NEEDIN6ADDRANY="#undef LWRES_PLATFORM_NEEDIN6ADDRANY"
 		ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
 		ISC_IPV6_H="ipv6.h"
 		ISC_IPV6_O="ipv6.$O"
@@ -746,6 +749,7 @@ AC_SUBST(LWRES_PLATFORM_NEEDNETINETIN6H)
 AC_SUBST(ISC_PLATFORM_NEEDNETINET6IN6H)
 AC_SUBST(LWRES_PLATFORM_NEEDNETINET6IN6H)
 AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRANY)
+AC_SUBST(LWRES_PLATFORM_NEEDIN6ADDRANY)
 AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
 AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
@@ -835,20 +839,61 @@ AC_CHECK_HEADERS(linux/prctl.h)
 
 #
 # Random remaining OS-specific issues.
+# XXXDCL print messages to indicate some compensation is being done?
 #
+AC_SUBST(ISC_PLATFORM_BRACEPTHREADONCEINIT)
+ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
+
 case "$host" in
-	*-bsdi3.1*|*-bsdi4.0*)
-                #
-                # Shut up a -Wmissing-prototypes warning from <stdio.h>.
-                #
+	*-bsdi3.1*)
+		hack_shutup_sputaux=yes
+		;;
+	*-bsdi4.0*)
+		hack_shutup_sigwait=yes
+		hack_shutup_sputaux=yes
+		;;
+	*-bsdi4.1*)
+		hack_shutup_stdargcast=yes
+		;;
+	*-solaris2.8)
+		hack_shutup_pthreadonceinit=yes
+		;;
+esac
+
+case "$hack_shutup_pthreadonceinit" in
+	yes)
+		#
+		# Shut up PTHREAD_ONCE_INIT unbraced initializer warnings.
+		#
+		ISC_PLATFORM_BRACEPTHREADONCEINIT="#define ISC_PLATFORM_BRACEPTHREADONCEINIT 1"
+		;;
+esac
+
+case "$hack_shutup_sigwait" in
+	yes)
+		#
+		# Shut up a -Wmissing-prototypes warning for sigwait().
+		# 
+		AC_DEFINE(SHUTUP_SIGWAIT)
+		;;
+esac
+
+case "$hack_shutup_sputaux" in
+	yes)
+		#
+		# Shut up a -Wmissing-prototypes warning from <stdio.h>.
+		#
 		AC_DEFINE(SHUTUP_SPUTAUX)
 		;;
-        *-bsdi4.1*)
-                #
-                # Shut up a -Wcast-qual warning from va_start().
-                #
-                AC_DEFINE(SHUTUP_STDARG_CAST)
-                ;;
+esac
+
+case "$hack_shutup_stdargcast" in
+	yes)
+		#
+		# Shut up a -Wcast-qual warning from va_start().
+		#
+		AC_DEFINE(SHUTUP_STDARG_CAST)
+		;;
 esac
 
 #

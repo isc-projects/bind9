@@ -63,6 +63,12 @@ struct __sFILE;
 extern __inline int __sputaux(int _c, struct __sFILE *_p);
 #endif
 
+/* Shut up warnings about missing sigwait prototype on BSD/OS 4.0* */
+#undef SHUTUP_SIGWAIT
+#ifdef SHUTUP_SIGWAIT
+int sigwait(const unsigned int *set, int *sig);
+#endif
+
 /* Shut up warnings from gcc -Wcast-qual on BSD/OS 4.1. */
 #undef SHUTUP_STDARG_CAST
 #if defined(SHUTUP_STDARG_CAST) && defined(__GNUC__)
