@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.52 2000/08/10 18:38:10 gson Exp $ */
+/* $Id: db.c,v 1.53 2000/08/18 18:25:25 bwelling Exp $ */
 
 /***
  *** Imports
@@ -190,6 +190,18 @@ dns_db_issecure(dns_db_t *db) {
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 
 	return ((db->methods->issecure)(db));
+}
+
+isc_boolean_t
+dns_db_ispersistent(dns_db_t *db) {
+
+	/*
+	 * Is 'db' persistent?
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+
+	return ((db->methods->ispersistent)(db));
 }
 
 dns_name_t *

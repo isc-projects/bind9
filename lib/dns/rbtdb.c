@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.119 2000/08/14 02:49:32 gson Exp $ */
+/* $Id: rbtdb.c,v 1.120 2000/08/18 18:25:26 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3795,6 +3795,12 @@ nodecount(dns_db_t *db) {
 	return (count);
 }
 
+static isc_boolean_t
+ispersistent(dns_db_t *db) {
+	UNUSED(db);
+	return (ISC_FALSE);
+}
+
 static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
@@ -3819,7 +3825,8 @@ static dns_dbmethods_t zone_methods = {
 	subtractrdataset,
 	deleterdataset,
 	issecure,
-	nodecount
+	nodecount,
+	ispersistent
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -3846,7 +3853,8 @@ static dns_dbmethods_t cache_methods = {
 	subtractrdataset,
 	deleterdataset,
 	issecure,
-	nodecount
+	nodecount,
+	ispersistent
 };
 
 isc_result_t

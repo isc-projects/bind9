@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.54 2000/08/03 19:46:36 bwelling Exp $ */
+/* $Id: db.h,v 1.55 2000/08/18 18:25:28 bwelling Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -141,6 +141,7 @@ typedef struct dns_dbmethods {
 					  dns_rdatatype_t covers);
 	isc_boolean_t	(*issecure)(dns_db_t *db);
 	unsigned int	(*nodecount)(dns_db_t *db);
+	isc_boolean_t	(*ispersistent)(dns_db_t *db);
 } dns_dbmethods_t;
 
 #define DNS_DB_MAGIC		0x444E5344U		/* DNSD. */
@@ -1141,6 +1142,21 @@ dns_db_nodecount(dns_db_t *db);
  *
  * Returns:
  * 	The number of nodes in the database
+ */
+
+unsigned int
+dns_db_ispersistent(dns_db_t *db);
+/*
+ * Is 'db' persistent?  A persistent database does not need to be loaded
+ * from disk or written to disk.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ * Returns:
+ *	ISC_TRUE	'db' is persistent.
+ *	ISC_FALSE	'db' is not persistent.
  */
 
 ISC_LANG_ENDDECLS
