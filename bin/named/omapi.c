@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.8 2000/03/16 20:04:47 tale Exp $ */
+/* $Id: omapi.c,v 1.9 2000/03/18 00:49:54 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -45,7 +45,7 @@ static control_object_t control;
 static omapi_objecttype_t *control_type;
 
 static void
-listen_done(void *mgr);
+listen_done(isc_task_t *task, isc_event_t *event);
 
 #undef REGION_FMT
 /*
@@ -142,10 +142,10 @@ control_stuffvalues(omapi_object_t *connection, omapi_object_t *handle) {
 }
 
 isc_result_t
-ns_omapi_init(isc_mem_t *mctx) {
+ns_omapi_init(void) {
 	isc_result_t result;
 
-	result = omapi_lib_init(mctx);
+	result = omapi_lib_init(ns_g_mctx, ns_g_taskmgr, ns_g_socketmgr);
 
 	if (result == ISC_R_SUCCESS)
 		/*
@@ -233,8 +233,10 @@ ns_omapi_listen(omapi_object_t **managerp) {
 }
 
 static void
-listen_done(void *mgr) {
-	UNUSED(mgr);
+listen_done(isc_task_t *task, isc_event_t *event) {
+	isc_event_free(&event);
+
+	UNUSED(task);
 
 	if (ns_g_omapimgr != NULL)
 		omapi_object_dereference(&ns_g_omapimgr);
