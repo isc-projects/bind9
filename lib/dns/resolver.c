@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.187.2.4 2001/01/11 20:06:57 bwelling Exp $ */
+/* $Id: resolver.c,v 1.187.2.5 2001/02/02 01:32:25 gson Exp $ */
 
 #include <config.h>
 
@@ -3470,6 +3470,15 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 		(void)dns_rdataset_additionaldata(ns_rdataset, check_related,
 						  fctx);
 		fctx->attributes &= ~FCTX_ATTR_GLUING;
+		/*
+		 * NS rdatasets with 0 TTL cause problems.
+		 * dns_view_findzonecut() will not find them when we
+		 * try to follow the referral, and we'll SERVFAIL
+		 * because the best nameservers are now above QDOMAIN.
+		 * We force the TTL to 1 second to prevent this.
+		 */
+		if (ns_rdataset->ttl == 0)
+			ns_rdataset->ttl = 1;
 		/*
 		 * Set the current query domain to the referral name.
 		 *
