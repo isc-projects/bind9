@@ -19,7 +19,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.55 $)
+AC_REVISION($Revision: 1.56 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1095,7 +1095,7 @@ case "$host" in
 	*aix4*)		PORT_INCLUDE="-I\${top_builddir}/port/aix4/include";;
 	*-bsdi2*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos2/include";;
 	*-bsdi*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos/include";;
-	*-solaris2.[012345]*)
+	*-solaris2.[[012345]]*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1";
 			PORT_INCLUDE="-I\${top_builddir}/port/solaris/include";;
