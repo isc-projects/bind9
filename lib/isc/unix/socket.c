@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.179 2001/01/09 21:58:28 bwelling Exp $ */
+/* $Id: socket.c,v 1.180 2001/01/11 18:57:23 gson Exp $ */
 
 #include <config.h>
 
@@ -1700,13 +1700,6 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	if (fd != -1 && (make_nonblock(fd) != ISC_R_SUCCESS)) {
 		close(fd);
 		fd = -1;
-
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "internal_accept: make_nonblock() %s: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"),
-				 strerror(errno));
-
 		result = ISC_R_UNEXPECTED;
 	}
 
