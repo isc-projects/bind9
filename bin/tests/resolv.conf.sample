@@ -1,0 +1,5 @@
+domain  jab.fr
+nameserver 194.150.1.2
+nameserver 194.150.1.1
+option debug
+option ndots:10
