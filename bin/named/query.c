@@ -838,9 +838,20 @@ query_find(ns_client_t *client) {
 		fname = query_newname(client, dbuf, &b);
 		if (fname == NULL)
 			goto cleanup;
+		fname->buffer->length = 20;
 		result = dns_name_concatenate(prefix, tname, fname, NULL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			if (result == ISC_R_NOSPACE) {
+				/*
+				 * draft-ietf-dnsind-dname-03.txt, section
+				 * 4.1, subsection 3c says we should
+				 * return YXDOMAIN if the constructed
+				 * name would be too long.
+				 */
+				client->message->rcode = dns_rcode_yxdomain;
+			}
 			goto cleanup;
+		}
 		query_keepname(client, fname, dbuf);
 		client->query.qname = fname;
 		fname = NULL;
