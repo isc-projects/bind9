@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.4 2004/10/21 00:59:52 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.5 2004/11/11 01:07:53 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -252,6 +252,7 @@ options {
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
 	allow-query-cache { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
+	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
 
 	notify <replaceable>notifytype</replaceable>;
@@ -380,6 +381,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
 	allow-query-cache { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
+	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
 
 	notify <replaceable>notifytype</replaceable>;

@@ -21,6 +21,9 @@
 1756.	[func]		named-checkconf now checks the logging configuration.
 			[RT #12352]
 
+1755.	[func]		allow-update is now settable at the options / view
+			level. [RT #6636]
+
 1754.	[bug]		We wern't always attempting to query the parent
 			server for the DS records at the zone cut.
 			[RT #12774]

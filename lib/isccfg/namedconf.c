@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.10 2004/10/21 00:56:46 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.11 2004/11/11 01:07:55 marka Exp $ */
 
 #include <config.h>
 
@@ -755,6 +755,7 @@ static cfg_clausedef_t
 zone_clauses[] = {
 	{ "allow-query", &cfg_type_bracketed_aml, 0 },
 	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
+	{ "allow-update", &cfg_type_bracketed_aml, 0 },
 	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
 	{ "notify", &cfg_type_notifytype, 0 },
@@ -794,7 +795,6 @@ zone_clauses[] = {
 static cfg_clausedef_t
 zone_only_clauses[] = {
 	{ "type", &cfg_type_zonetype, 0 },
-	{ "allow-update", &cfg_type_bracketed_aml, 0 },
 	{ "file", &cfg_type_qstring, 0 },
 	{ "journal", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
