@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.152 2001/07/27 06:11:06 bwelling Exp $ */
+/* $Id: dig.c,v 1.153 2001/07/27 06:45:20 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -345,7 +345,6 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
  */
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
-	isc_boolean_t did_flag = ISC_FALSE;
 	isc_result_t result;
 	dns_messagetextflag_t flags;
 	isc_buffer_t *buf = NULL;
@@ -392,34 +391,21 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			       "id: %u\n",
 			       opcodetext[msg->opcode], rcodetext[msg->rcode],
 			       msg->id);
-			printf(";; flags: ");
-			if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) {
-				printf("qr");
-				did_flag = ISC_TRUE;
-			}
-			if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0) {
-				printf("%saa", did_flag ? " " : "");
-				did_flag = ISC_TRUE; }
-			if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
-				printf("%stc", did_flag ? " " : "");
-				did_flag = ISC_TRUE;
-			}
-			if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0) {
-				printf("%srd", did_flag ? " " : "");
-				did_flag = ISC_TRUE;
-			}
-			if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0) {
-				printf("%sra", did_flag ? " " : "");
-				did_flag = ISC_TRUE;
-			}
-			if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0) {
-				printf("%sad", did_flag ? " " : "");
-				did_flag = ISC_TRUE;
-			}
-			if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0) {
-				printf("%scd", did_flag ? " " : "");
-				did_flag = ISC_TRUE;
-			}
+			printf(";; flags:");
+			if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
+				printf(" qr");
+			if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0)
+				printf(" aa");
+			if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0)
+				printf(" tc");
+			if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0)
+				printf(" rd");
+			if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0)
+				printf(" ra");
+			if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0)
+				printf(" ad");
+			if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0)
+				printf(" cd");
 
 			printf("; QUERY: %u, ANSWER: %u, "
 			       "AUTHORITY: %u, ADDITIONAL: %u\n",
