@@ -28,6 +28,7 @@
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
 #include <isc/event.h>
@@ -37,22 +38,16 @@
 
 #include "../isc/util.h"
 
-#define VCHECK(a,b)		(((a) != NULL) && ((a)->magic == (b)))
-
-#define DNS_ADB_MAGIC			0x44616462	/* Dadb. */
-#define DNS_ADB_VALID(x)		VCHECK(x, DNS_ADB_MAGIC)
-#define DNS_ADBNAME_MAGIC		0x6164624e	/* adbN. */
-#define DNS_ADBNAME_VALID(x)		VCHECK(x, DNS_ADBNAME_MAGIC)
-#define DNS_ADBNAMEHOOK_MAGIC		0x61644e48	/* adNH. */
-#define DNS_ADBNAMEHOOK_VALID(x)	VCHECK(x, DNS_ADBNAMEHOOK_MAGIC)
-#define DNS_ADBZONEINFO_MAGIC		0x6164625a	/* adbZ. */
-#define DNS_ADBZONEINFO_VALID(x)	VCHECK(x, DNS_ADBZONEINFO_MAGIC)
-#define DNS_ADBENTRY_MAGIC		0x61646245	/* adbE. */
-#define DNS_ADBENTRY_VALID(x)		VCHECK(x, DNS_ADBENTRY_MAGIC)
-#define DNS_ADBHANDLE_MAGIC		0x61646248	/* adbH. */
-#define DNS_ADBHANDLE_VALID(x)		VCHECK(x, DNS_ADBHANDLE_MAGIC)
-#define DNS_ADBADDRINFO_MAGIC		0x61644149	/* adAI. */
-#define DNS_ADBADDRINFO_VALID(x)	VCHECK(x, DNS_ADBADDRINFO_MAGIC)
+#define DNS_ADB_MAGIC		  0x44616462	/* Dadb. */
+#define DNS_ADB_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)
+#define DNS_ADBNAME_MAGIC	  0x6164624e	/* adbN. */
+#define DNS_ADBNAME_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBNAME_MAGIC)
+#define DNS_ADBNAMEHOOK_MAGIC	  0x61644e48	/* adNH. */
+#define DNS_ADBNAMEHOOK_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBNAMEHOOK_MAGIC)
+#define DNS_ADBZONEINFO_MAGIC	  0x6164625a	/* adbZ. */
+#define DNS_ADBZONEINFO_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBZONEINFO_MAGIC)
+#define DNS_ADBENTRY_MAGIC	  0x61646245	/* adbE. */
+#define DNS_ADBENTRY_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBENTRY_MAGIC)
 
 /*
  * Lengths of lists needs to be powers of two.
@@ -155,28 +150,6 @@ struct dns_adbentry {
 
 	ISC_LIST(dns_adbzoneinfo_t)	zoneinfo;
 	ISC_LINK(dns_adbentry_t)	link;
-};
-
-/*
- * dns_adbhandle_t
- *
- * This is returned to the user, and contains all the state we need to do
- * more fetches, return more information to the user, and to return the
- * address list itself.
- */
-struct dns_adbhandle {
-	unsigned int			magic;
-
-	dns_adb_t		       *adb;
-
-	isc_task_t		       *task;
-	isc_taskaction_t	       *taskaction;
-	void			       *arg;
-	dns_name_t			zone;
-	isc_event_t			event;
-
-	ISC_LIST(dns_adbaddrinfo_t)	list;
-	ISC_LINK(dns_adbhandle_t)	link;
 };
 
 /*
