@@ -275,8 +275,16 @@ void ASN1_OBJECT_free(ASN1_OBJECT *a)
 	if (a->flags & ASN1_OBJECT_FLAG_DYNAMIC_STRINGS)
 		{
 #ifndef CONST_STRICT /* disable purely for compile-time strict const checking. Doing this on a "real" compile will cause memory leaks */
-		if (a->sn != NULL) Free((void *)a->sn);
-		if (a->ln != NULL) Free((void *)a->ln);
+		union { const void *k; void *v; } u;
+
+		if (a->sn != NULL) {
+			u.k = a->sn;
+			Free(u.v);
+		}
+		if (a->ln != NULL) {
+			u.k = a->ln;
+			Free(u.v);
+		}
 #endif
 		a->sn=a->ln=NULL;
 		}
