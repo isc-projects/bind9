@@ -75,7 +75,7 @@ the base-64 encoding of the algorithm's encryption key. The
 base-64 string is enclosed in double quotes.
 .PP
 There are two common ways to generate the base-64 string for the
-secret. The BIND 9 program \fBdnssec-keygen\fR can
+secret. The BIND 9 program \fBrndc-confgen\fR can
 be used to generate a random key, or the
 \fBmmencode\fR program, also known as
 \fBmimencode\fR, can be used to generate a base-64
@@ -110,21 +110,19 @@ same name and secret. The key statement indicates that samplekey
 uses the HMAC-MD5 algorithm and its secret clause contains the
 base-64 encoding of the HMAC-MD5 secret enclosed in double quotes.
 .PP
-To generate a random secret with \fBdnssec-keygen\fR:
+To generate a random secret with \fBrndc-confgen\fR:
 .PP
-\fB$ dnssec-keygen -a hmac-md5 -b 128 -n user rndc\fR
+\fBrndc-confgen\fR
 .PP
-The base-64 string will appear in two files,
-\fIKrndc.+157.+{random}.key\fR and
-\fIKrndc.+157.+{random}.private\fR. After
-extracting the key to be placed in the
-\fIrndc.conf\fR and 
-\fInamed.conf\fR key statements, the
-\&.key and .private files can be removed.
+A complete \fIrndc.conf\fR file, including the
+randomly generated key, will be written to the standard
+output. Commented out \fBkey\fR and
+\fBcontrols\fR statements for
+\fInamed.conf\fR are also printed.
 .PP
-To generate a random secret with \fBmmencode\fR:
+To generate a base-64 secret with \fBmmencode\fR:
 .PP
-\fB$ echo "known plaintext for a secret" | mmencode\fR
+\fBecho "known plaintext for a secret" | mmencode\fR
 .SH "NAME SERVER CONFIGURATION"
 .PP
 The name server must be configured to accept rndc connections and
@@ -135,7 +133,7 @@ BIND 9 Administrator Reference Manual for details.
 .SH "SEE ALSO"
 .PP
 \fBrndc\fR(8),
-\fBdnssec-keygen\fR(8),
+\fBrndc-confgen\fR(8),
 \fBmmencode\fR(1),
 \fIBIND 9 Administrator Reference Manual\fR.
 .SH "AUTHOR"

@@ -201,7 +201,7 @@ CLASS="COMMAND"
 >        There are two common ways to generate the base-64 string for the
 	secret.  The BIND 9 program <B
 CLASS="COMMAND"
->dnssec-keygen</B
+>rndc-confgen</B
 > can
 	be used to generate a random key, or the
 	<B
@@ -258,40 +258,38 @@ CLASS="COMMAND"
 ><P
 >        To generate a random secret with <B
 CLASS="COMMAND"
->dnssec-keygen</B
+>rndc-confgen</B
 >:
     </P
 ><P
 >        <TT
 CLASS="USERINPUT"
 ><B
->$ dnssec-keygen -a hmac-md5 -b 128 -n user rndc</B
+>rndc-confgen</B
 ></TT
 >
     </P
 ><P
->        The base-64 string will appear in two files,
-	<TT
-CLASS="FILENAME"
->Krndc.+157.+{random}.key</TT
-> and
-	<TT
-CLASS="FILENAME"
->Krndc.+157.+{random}.private</TT
->. After
-	extracting the key to be placed in the
-	<TT
+>        A complete <TT
 CLASS="FILENAME"
 >rndc.conf</TT
-> and 
-	<TT
+> file, including the
+        randomly generated key, will be written to the standard
+        output.  Commented out <TT
+CLASS="OPTION"
+>key</TT
+> and
+        <TT
+CLASS="OPTION"
+>controls</TT
+> statements for
+        <TT
 CLASS="FILENAME"
 >named.conf</TT
-> key statements, the
-	.key and .private files can be removed.
+> are also printed.
     </P
 ><P
->        To generate a random secret with <B
+>        To generate a base-64 secret with <B
 CLASS="COMMAND"
 >mmencode</B
 >:
@@ -300,7 +298,7 @@ CLASS="COMMAND"
 >        <TT
 CLASS="USERINPUT"
 ><B
->$ echo "known plaintext for a secret" | mmencode</B
+>echo "known plaintext for a secret" | mmencode</B
 ></TT
 >
     </P
@@ -348,7 +346,7 @@ CLASS="REFENTRYTITLE"
 CLASS="CITEREFENTRY"
 ><SPAN
 CLASS="REFENTRYTITLE"
->dnssec-keygen</SPAN
+>rndc-confgen</SPAN
 >(8)</SPAN
 >,
       <SPAN
