@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.5 2000/01/31 14:38:01 tale Exp $ */
+/* $Id: data.c,v 1.6 2000/01/31 18:52:43 gson Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -164,11 +164,12 @@ omapi_data_strcmp(omapi_data_t *s1, const char *s2) {
 		len = slen;
 
 	order = memcmp(s1->u.buffer.value, s2, len);
-	if (order == 0)
+	if (order == 0) {
 		if (s1->u.buffer.len > slen)
 			order = 1;
 		else if (s1->u.buffer.len < slen)
 			order = -1;
+	}
 
 	return (order);
 }
