@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.165 2001/01/22 22:53:13 gson Exp $ */
+/* $Id: adb.c,v 1.166 2001/01/26 03:20:58 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -76,8 +76,6 @@
  * The number of buckets needs to be a prime (for good hashing).
  *
  * XXXRTH  How many buckets do we need?
- *
- * This value must be coordinated with CLEAN_SECONDS (below).
  */
 #define NBUCKETS	       1009	/* how many buckets for names/addrs */
 
@@ -91,19 +89,12 @@
 #define ADB_CACHE_MAXIMUM	86400	/* seconds (86400 = 24 hours) */
 
 /*
- * Clean CLEAN_BUCKETS buckets every CLEAN_SECONDS.
+ * Wake up every CLEAN_SECONDS and clean CLEAN_BUCKETS buckets, so that all
+ * buckets are cleaned in CLEAN_PERIOD seconds.
  */
-#define CLEAN_PERIOD		3600 /* one pass through every N seconds */
-#define CLEAN_BUCKETS		((NBUCKETS / CLEAN_PERIOD) + 0.5)
-#if CLEAN_BUCKET < 1
-#undef CLEAN_BUCKETS
-#define CLEAN_BUCKETS 1
-#endif
-#define CLEAN_SECONDS		(CLEAN_PERIOD * CLEAN_BUCKETS / NBUCKETS)
-#if CLEAN_SECONDS < 1
-#undef CLEAN_SECONDS
-#define CLEAN_SECONDS		1
-#endif
+#define CLEAN_PERIOD		3600
+#define CLEAN_SECONDS		30
+#define CLEAN_BUCKETS		((NBUCKETS * CLEAN_SECONDS) / CLEAN_PERIOD)
 
 #define FREE_ITEMS		64	/* free count for memory pools */
 #define FILL_COUNT		16	/* fill count for memory pools */
