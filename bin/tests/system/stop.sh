@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: stop.sh,v 1.19 2001/02/21 20:11:34 bwelling Exp $
+# $Id: stop.sh,v 1.20 2001/05/09 21:55:44 gson Exp $
 
-. conf.sh
+. ./conf.sh
 ./stop.pl $*
