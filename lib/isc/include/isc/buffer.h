@@ -110,6 +110,14 @@
 ISC_LANG_BEGINDECLS
 
 /***
+ *** Magic numbers
+ ***/
+#define ISC_BUFFER_MAGIC		0x42756621U	/* Buf!. */
+
+#define ISC_BUFFER_VALID(b)		((b) != NULL && \
+					 (b)->magic == ISC_BUFFER_MAGIC)
+
+/***
  *** Types
  ***/
 

@@ -33,7 +33,8 @@ isc_bufferlist_usedcount(isc_bufferlist_t *bl)
 	length = 0;
 	buffer = ISC_LIST_HEAD(*bl);
 	while (buffer != NULL) {
-		length += isc_buffer_usedcount(buffer);
+		REQUIRE(ISC_BUFFER_VALID(buffer));
+		length += buffer->used;
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 
@@ -51,7 +52,8 @@ isc_bufferlist_availablecount(isc_bufferlist_t *bl)
 	length = 0;
 	buffer = ISC_LIST_HEAD(*bl);
 	while (buffer != NULL) {
-		length += isc_buffer_availablecount(buffer);
+		REQUIRE(ISC_BUFFER_VALID(buffer));
+		length += (buffer->length - buffer->used);
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 

@@ -22,11 +22,6 @@
 #include <isc/assertions.h>
 #include <isc/buffer.h>
 
-#define BUFFER_MAGIC			0x42756621U	/* Buf!. */
-
-#define VALID_BUFFER(b)			((b) != NULL && \
-					 (b)->magic == BUFFER_MAGIC)
-
 void
 isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
 		unsigned int type)
@@ -37,7 +32,7 @@ isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
 
 	REQUIRE(b != NULL);
 
-	b->magic = BUFFER_MAGIC;
+	b->magic = ISC_BUFFER_MAGIC;
 	b->type = type;
 	b->base = base;
 	b->length = length;
@@ -54,7 +49,7 @@ isc_buffer_invalidate(isc_buffer_t *b) {
 	 * Make 'b' an invalid buffer.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(!ISC_LINK_LINKED(b, link));
 	REQUIRE(b->mctx == NULL);
 	
@@ -73,7 +68,7 @@ isc_buffer_type(isc_buffer_t *b) {
 	 * The type of 'b'.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 
 	return (b->type);
 }
@@ -84,7 +79,7 @@ isc_buffer_region(isc_buffer_t *b, isc_region_t *r) {
 	 * Make 'r' refer to the region of 'b'.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
 	r->base = b->base;
@@ -97,7 +92,7 @@ isc_buffer_used(isc_buffer_t *b, isc_region_t *r) {
 	 * Make 'r' refer to the used region of 'b'.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
 	r->base = b->base;
@@ -107,7 +102,7 @@ isc_buffer_used(isc_buffer_t *b, isc_region_t *r) {
 unsigned int
 isc_buffer_usedcount(isc_buffer_t *b)
 {
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 
 	return (b->used);
 }
@@ -118,7 +113,7 @@ isc_buffer_available(isc_buffer_t *b, isc_region_t *r) {
 	 * Make 'r' refer to the available region of 'b'.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
 	r->base = (unsigned char *)b->base + b->used;
@@ -128,7 +123,7 @@ isc_buffer_available(isc_buffer_t *b, isc_region_t *r) {
 unsigned int
 isc_buffer_availablecount(isc_buffer_t *b)
 {
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 
 	return (b->length - b->used);
 }
@@ -139,7 +134,7 @@ isc_buffer_add(isc_buffer_t *b, unsigned int n) {
 	 * Increase the 'used' region of 'b' by 'n' bytes.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + n <= b->length);
 
 	b->used += n;
@@ -151,7 +146,7 @@ isc_buffer_subtract(isc_buffer_t *b, unsigned int n) {
 	 * Decrease the 'used' region of 'b' by 'n' bytes.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used >= n);
 
 	b->used -= n;
@@ -167,7 +162,7 @@ isc_buffer_clear(isc_buffer_t *b) {
 	 * Make the used region empty.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 
 	b->used = 0;
 	b->current = 0;
@@ -180,7 +175,7 @@ isc_buffer_consumed(isc_buffer_t *b, isc_region_t *r) {
 	 * Make 'r' refer to the consumed region of 'b'.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
 	r->base = b->base;
@@ -193,7 +188,7 @@ isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r) {
 	 * Make 'r' refer to the remaining region of 'b'.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
 	r->base = (unsigned char *)b->base + b->current;
@@ -206,7 +201,7 @@ isc_buffer_active(isc_buffer_t *b, isc_region_t *r) {
 	 * Make 'r' refer to the active region of 'b'.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
 	if (b->current < b->active) {
@@ -226,7 +221,7 @@ isc_buffer_setactive(isc_buffer_t *b, unsigned int n) {
 	 * Sets the end of the active region 'n' bytes after current.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	active = b->current + n;
 	REQUIRE(active <= b->used);
 
@@ -239,7 +234,7 @@ isc_buffer_first(isc_buffer_t *b) {
 	 * Make the consumed region empty.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 
 	b->current = 0;
 }
@@ -250,7 +245,7 @@ isc_buffer_forward(isc_buffer_t *b, unsigned int n) {
 	 * Increase the 'consumed' region of 'b' by 'n' bytes.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->current + n <= b->used);
 
 	b->current += n;
@@ -262,7 +257,7 @@ isc_buffer_back(isc_buffer_t *b, unsigned int n) {
 	 * Decrease the 'consumed' region of 'b' by 'n' bytes.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(n <= b->current);
 
 	b->current -= n;
@@ -279,7 +274,7 @@ isc_buffer_compact(isc_buffer_t *b) {
 	 * of the consumed region, and the consumed region is then made empty.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 
 	src = (unsigned char *)b->base + b->current;
 	length = b->used - b->current;
@@ -302,7 +297,7 @@ isc_buffer_getuint8(isc_buffer_t *b) {
 	 * Read an unsigned 8-bit integer from 'b' and return it.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used - b->current >= 1);
 
 	cp = b->base;
@@ -318,7 +313,7 @@ isc_buffer_putuint8(isc_buffer_t *b, isc_uint8_t val)
 {
 	unsigned char *cp;
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 1 <= b->length);
 
 	cp = b->base;
@@ -337,7 +332,7 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 	 * convert it to host byte order, and return it.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used - b->current >= 2);
 
 	cp = b->base;
@@ -354,7 +349,7 @@ isc_buffer_putuint16(isc_buffer_t *b, isc_uint16_t val)
 {
 	unsigned char *cp;
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 2 <= b->length);
 
 	cp = b->base;
@@ -374,7 +369,7 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 	 * convert it to host byte order, and return it.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used - b->current >= 4);
 
 	cp = b->base;
@@ -393,7 +388,7 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 {
 	unsigned char *cp;
 
-	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 4 <= b->length);
 
 	cp = b->base;
@@ -435,7 +430,7 @@ isc_buffer_free(isc_buffer_t **dynbuffer)
 	isc_mem_t *mctx;
 
 	REQUIRE(dynbuffer != NULL);
-	REQUIRE(VALID_BUFFER(*dynbuffer));
+	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
 	REQUIRE((*dynbuffer)->mctx != NULL);
 
 	dbuf = *dynbuffer;
