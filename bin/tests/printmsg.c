@@ -17,8 +17,10 @@
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/util.h>
 
+#include <dns/name.h>
 #include <dns/rdataset.h>
 
 #include "printmsg.h"
