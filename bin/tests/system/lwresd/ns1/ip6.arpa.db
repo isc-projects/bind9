@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: ip6.arpa.db,v 1.5 2000/08/01 01:15:47 tale Exp $
+; $Id: ip6.arpa.db,v 1.6 2000/10/13 18:51:59 halley Exp $
 
 $TTL 300	; 5 minutes
 @	IN SOA  mname1. . (
@@ -27,3 +27,4 @@ $TTL 300	; 5 minutes
 ns	A	10.53.0.1
 
 \[x1123456789abcdef0123456789abcdef/128] PTR bitstring.example.
+\[x112233445566/48] DNAME example1.

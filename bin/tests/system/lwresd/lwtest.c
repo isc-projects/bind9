@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.15 2000/10/05 22:29:30 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.16 2000/10/13 18:51:57 halley Exp $ */
 
 #include <config.h>
 
@@ -714,6 +714,8 @@ main(void) {
 			 AF_INET6, "nibble.example");
 	test_getnameinfo("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
 			 AF_INET6, "bitstring.example");
+	test_getnameinfo("1122:3344:5566:7788:99aa:bbcc:ddee:ff00",
+			 AF_INET6, "dname.example1");
 
 	if (fails == 0)
 		printf("I:ok\n");

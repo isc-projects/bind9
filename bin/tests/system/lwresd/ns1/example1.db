@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example1.db,v 1.7 2000/08/01 01:15:45 tale Exp $
+; $Id: example1.db,v 1.8 2000/10/13 18:51:58 halley Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -32,3 +32,5 @@ a3			CNAME	nowhere
 b			A6	64 ::ffff:ffff:ffff:ffff c
 c			A6	0 eeee:eeee:eeee:eeee::
 d			A6	64 ::ffff:ffff:ffff:ffff e
+\[x7788/16]		DNAME	net
+\[x99aabbccddeeff00/64].net	PTR	dname
