@@ -101,7 +101,7 @@ static unsigned int mgr_gethash(dns_requestmgr_t *requestmgr);
 static void send_shutdown_events(dns_requestmgr_t *requestmgr);
 
 static isc_result_t req_render(dns_message_t *message, isc_buffer_t **buffer,
-			       isc_mem_t *mctx);
+			       unsigned int options, isc_mem_t *mctx);
 static void req_senddone(isc_task_t *task, isc_event_t *event);
 static void req_response(isc_task_t *task, isc_event_t *event);
 static void req_timeout(isc_task_t *task, isc_event_t *event);
@@ -546,7 +546,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 	message->id = id;
 	dns_message_settsigkey(message, request->tsigkey);
-	result = req_render(message, &request->query, mctx);
+	result = req_render(message, &request->query, options, mctx);
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
 		/*
@@ -556,11 +556,10 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		dns_dispatch_removeresponse(&request->dispentry, NULL);
 		dns_dispatch_detach(&request->dispatch);
 		socket = NULL;
-		isc_buffer_free(&request->query);
 		options |= DNS_REQUESTOPT_TCP;
 		goto use_tcp;
 	}
-	if (result != ISC_R_SUCCESS && result != DNS_R_USETCP)
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
 	result = dns_message_getquerytsig(message, mctx, &request->tsig);
@@ -635,11 +634,14 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 }
 
 static isc_result_t
-req_render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
+req_render(dns_message_t *message, isc_buffer_t **bufferp,
+	   unsigned int options, isc_mem_t *mctx)
+{
 	isc_buffer_t *buf1 = NULL;
 	isc_buffer_t *buf2 = NULL;
 	isc_result_t result;
 	isc_region_t r;
+	isc_boolean_t tcp = ISC_FALSE;
 
 	REQUIRE(bufferp != NULL && *bufferp == NULL);
 
@@ -678,13 +680,17 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
 	 * Copy rendered message to exact sized buffer.
 	 */
 	isc_buffer_usedregion(buf1, &r);
-	result = isc_buffer_allocate(mctx, &buf2, r.length +
-				     ((r.length > 512) ? 2 : 0));
+	if ((options & DNS_REQUESTOPT_TCP) != 0) {
+		tcp = ISC_TRUE;
+	} else if (r.length > 512) {
+		result = DNS_R_USETCP;
+		goto cleanup;
+	}
+	result = isc_buffer_allocate(mctx, &buf2, r.length + (tcp ? 2 : 0));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	if (r.length > 512) {
+	if (tcp)
 		isc_buffer_putuint16(buf2, (isc_uint16_t)r.length);
-	}
 	result = isc_buffer_copyregion(buf2, &r);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -790,6 +796,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 	if (DNS_REQUEST_CANCELED(request)) {
 		req_destroy(request);
 	} else {
+		dns_dispatch_starttcp(request->dispatch);
 		result = sevent->result;
 		if (result == ISC_R_SUCCESS)
 			result = req_send(request, task, NULL);
