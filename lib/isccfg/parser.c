@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2003  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20.2.14 2003/08/27 07:22:40 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.15 2003/10/10 06:39:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1014,7 +1014,7 @@ print_list(cfg_printer_t *pctx, cfg_obj_t *obj) {
 
 isc_result_t
 cfg_parse_bracketed_list(cfg_parser_t *pctx, const cfg_type_t *type,
-			 cfg_obj_t **ret)
+		     cfg_obj_t **ret)
 {
 	isc_result_t result;
 	CHECK(cfg_parse_special(pctx, '{'));
@@ -1656,7 +1656,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 			}
 		}
 		if ((flags & CFG_ADDR_V4PREFIXOK) != 0 &&
-		    strlen(s) <= 15U) {
+		    strlen(s) <= 15) {
 			char buf[64];
 			int i;
 
@@ -1734,12 +1734,12 @@ cfg_parse_rawport(cfg_parser_t *pctx, unsigned int flags, in_port_t *port) {
 	}
 	if (pctx->token.type != isc_tokentype_number) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
-				 "expected port number or '*'");
+			     "expected port number or '*'");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
-	if (pctx->token.value.as_ulong >= 65536U) {
+	if (pctx->token.value.as_ulong >= 65536) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
-				 "port number out of range");
+			     "port number out of range");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 	*port = (in_port_t)(pctx->token.value.as_ulong);

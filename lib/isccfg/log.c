@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.2.2.1 2001/10/16 05:58:28 marka Exp $ */
+/* $Id: log.c,v 1.2.2.1.10.1 2003/10/10 06:39:47 marka Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,7 @@ LIBISCCFG_EXTERNAL_DATA isc_logcategory_t cfg_categories[] = {
  * #define to <isccfg/log.h>.
  */
 LIBISCCFG_EXTERNAL_DATA isc_logmodule_t cfg_modules[] = {
-	{ "isccfg/parser",	 0 },
+	{ "isccfg/parser",	0 },
 	{ NULL, 		0 }
 };
 
