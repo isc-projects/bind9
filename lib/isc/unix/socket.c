@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.178.2.3 2001/02/06 18:10:28 gson Exp $ */
+/* $Id: socket.c,v 1.178.2.4 2001/02/07 20:21:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1652,40 +1652,40 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * again.
 	 */
 	addrlen = sizeof dev->newsocket->address.type;
+	memset(&dev->newsocket->address.type.sa, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
 	if (fd < 0) {
-		if (SOFT_ERROR(errno)) {
+		if (! SOFT_ERROR(errno)) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_accept: accept() %s: %s",
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED,
+							"failed"),
+					 strerror(errno));
+		}
+		select_poke(sock->manager, sock->fd);
+		UNLOCK(&sock->lock);
+		return;
+	} else {
+		if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_accept(): "
+					 "accept() returned peer address "
+					 "family %u (expected %u)",
+					 dev->newsocket->address.
+					 type.sa.sa_family,
+					 sock->pf);
+			(void)close(fd);
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
 			return;
 		}
-
-		/*
-		 * If some other error, ignore it as well and hope
-		 * for the best, but log it.
-		 */
-		if (isc_log_wouldlog(isc_lctx, TRACE_LEVEL))
-			socket_log(sock, NULL, TRACE, isc_msgcat,
-				   ISC_MSGSET_SOCKET,
-				   ISC_MSG_ACCEPTRETURNED,
-				   "accept() returned %d/%s",
-				   errno, strerror(errno));
-
-		fd = -1;
-
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "internal_accept: accept() %s: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"),
-				 strerror(errno));
-
-		result = ISC_R_UNEXPECTED;
-	} else {
-		INSIST(dev->newsocket->address.type.sa.sa_family == sock->pf);
-		dev->newsocket->address.length = addrlen;
-		dev->newsocket->pf = sock->pf;
 	}
+
+	dev->newsocket->address.length = addrlen;
+	dev->newsocket->pf = sock->pf;
 
 	/*
 	 * Pull off the done event.

@@ -1,6 +1,11 @@
 
 	--- 9.1.1rc1 released ---
 
+ 727.	[port]		Work around OS bug where accept() succeeds but
+			fails to fill in the peer address of the accepted
+			connection, by treating it as an error rather than
+			an assertion failure. [RT #809]
+
  723.	[bug]		Referrals whose NS RRs had a 0 TTL caused the resolver
 			to return DNS_R_SERVFAIL. [RT #783]
 
