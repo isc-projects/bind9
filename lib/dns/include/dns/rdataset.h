@@ -91,6 +91,10 @@ struct dns_rdataset {
 	dns_rdatatype_t			type;
 	dns_ttl_t			ttl;
 	/*
+	 * attributes
+	 */
+	unsigned int			attributes;
+	/*
 	 * These are for use by the rdataset implementation, and MUST NOT
 	 * be changed by clients.
 	 */
@@ -100,6 +104,8 @@ struct dns_rdataset {
 	void *				private4;
 	void *				private5;
 };
+
+#define DNS_RDATASETATTR_RENDERED	0x0001		/* used by message.c */
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
