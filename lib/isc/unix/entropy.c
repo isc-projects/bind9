@@ -99,6 +99,10 @@ typedef struct {
 } isc_entropysamplesource_t ;
 
 typedef struct {
+	isc_boolean_t	msg_printed;
+} isc_entropycallbacksource_t;
+
+typedef struct {
 	int		fd;		/* fd for the file, or -1 if closed */
 } isc_entropyfilesource_t;
 
@@ -118,6 +122,7 @@ struct isc_entropysource {
 
 #define ENTROPY_SOURCETYPE_SAMPLE	1	/* Type is a sample source */
 #define ENTROPY_SOURCETYPE_FILE		2	/* Type is a file source */
+#define ENTROPY_SOURCETYPE_CALLBACK	3	/* Type is a callback source */
 
 /*
  * The random pool "taps"
@@ -906,6 +911,30 @@ isc_entropy_destroysource(isc_entropysource_t **sourcep) {
 
 	if (killit)
 		destroy(&ent);
+}
+
+isc_result_t
+isc_entropy_createcallbacksource(isc_entropy_t *ent,
+				 isc_entropystart_t start,
+				 isc_entropyget_t get,
+				 isc_entropystop_t stop,
+				 void *arg,
+				 isc_entropysource_t **sourcep)
+{
+	REQUIRE(VALID_ENTROPY(ent));
+	REQUIRE(sourcep != NULL && *sourcep == NULL);
+
+	LOCK(&ent->lock);
+
+	ent->nsources++;
+
+	UNLOCK(&ent->lock);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+void
+isc_entropy_resetcallbacksources(isc_entropy_t *ent) {
 }
 
 isc_result_t

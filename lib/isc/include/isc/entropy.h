@@ -64,6 +64,19 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * Entropy callback function.
+ */
+typedef isc_result_t (*isc_entropystart_t)(isc_entropy_t *ent,
+					   isc_entropysource_t *source,
+					   void *arg);
+typedef isc_result_t (*isc_entropyget_t)(isc_entropy_t *ent,
+					 isc_entropysource_t *source,
+					 void *arg, unsigned int entropy);
+typedef void (*isc_entropystop_t)(isc_entropy_t *ent,
+				  isc_entropysource_t *source,
+				  void *arg);
+
 /***
  *** Flags.
  ***/
@@ -155,6 +168,22 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
  * Create an entropy source that consists of samples.  Each sample is added
  * to the source via isc_entropy_addsamples(), below.
  */
+
+isc_result_t
+isc_entropy_createcallbacksource(isc_entropy_t *ent,
+				 isc_entropystart_t start,
+				 isc_entropyget_t get,
+				 isc_entropystop_t stop,
+				 void *arg,
+				 isc_entropysource_t **sourcep);
+/*
+ * Create an entropy source that is polled via a callback.  This would
+ * be used when keyboard input is used, or a GUI input method.  It can
+ * also be used to hook in any external entropy source.
+ */
+
+void
+isc_entropy_resetcallbacksources(isc_entropy_t *ent);
 
 void
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
