@@ -1,3 +1,8 @@
+ 392.	[func]		Add ISC_R_FAMILYNOSUPPORT.  Returned when OS does
+			not support the given address family requested. 
+
+ 391.	[clarity]	ISC_R_FAMILY -> ISC_R_FAMILYMISMATCH.
+
  390.	[func]		The function dns_zone_setdbtype() now takes
 			an argc/argv style vector of words and sets 
 			both the zone database type and its arguments,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.48 2000/08/10 23:11:12 bwelling Exp $ */
+/* $Id: result.h,v 1.49 2000/08/15 01:43:37 marka Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -70,7 +70,8 @@
 #define ISC_R_NOTFILE			44	/* not a file */
 #define ISC_R_NOTDIRECTORY		45	/* not a directory */
 #define ISC_R_QUEUEFULL			46	/* queue is full */
-#define ISC_R_FAMILY			47	/* address family mismatch */
+#define ISC_R_FAMILYMISMATCH		47	/* address family mismatch */
+#define ISC_R_FAMILYNOSUPPORT		48	/* AF not supported */
 
 /*
  * Not an result code: the number of results.

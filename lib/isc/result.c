@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.47 2000/08/10 23:11:09 bwelling Exp $ */
+/* $Id: result.c,v 1.48 2000/08/15 01:43:36 marka Exp $ */
 
 #include <config.h>
 
@@ -85,7 +85,8 @@ static const char *text[ISC_R_NRESULTS] = {
 	"not a file",				/* 44 */
 	"not a directory",			/* 45 */
 	"queue is full",			/* 46 */
-	"address family mismatch"		/* 47 */
+	"address family mismatch",		/* 47 */
+	"address family not supported"		/* 48 */
 };
 
 #define ISC_RESULT_RESULTSET			2

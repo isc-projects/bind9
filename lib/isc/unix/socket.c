@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.157 2000/08/10 23:42:17 gson Exp $ */
+/* $Id: socket.c,v 1.158 2000/08/15 01:43:38 marka Exp $ */
 
 #include <config.h>
 
@@ -1167,6 +1167,12 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		case ENFILE:
 		case ENOBUFS:
 			return (ISC_R_NORESOURCES);
+
+		case EPROTONOSUPPORT:
+		case EPFNOSUPPORT:
+		case EAFNOSUPPORT:
+			return (ISC_R_FAMILYNOSUPPORT);
+
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() failed: %s",
@@ -2579,7 +2585,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 
 	if (sock->pf != sockaddr->type.sa.sa_family) {
 		UNLOCK(&sock->lock);
-		return (ISC_R_FAMILY);
+		return (ISC_R_FAMILYMISMATCH);
 	}
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof on) < 0) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.33 2000/08/14 19:31:49 gson Exp $ */
+/* $Id: request.c,v 1.34 2000/08/15 01:43:34 marka Exp $ */
 
 #include <config.h>
 
@@ -530,15 +530,17 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		case PF_INET:
 			disp = requestmgr->dispatchv4;
 			break;
+
 		case PF_INET6:
 			disp = requestmgr->dispatchv6;
 			break;
+
 		default:
 			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup;
 		}
 		if (disp == NULL) {
-			result = ISC_R_NETUNREACH;
+			result = ISC_R_FAMILYNOSUPPORT;
 			goto cleanup;
 		}
 		dns_dispatch_attach(disp, &request->dispatch);
