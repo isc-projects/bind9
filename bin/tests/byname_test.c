@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.23 2000/09/15 22:00:00 bwelling Exp $ */
+/* $Id: byname_test.c,v 1.24 2000/11/10 05:34:08 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -24,6 +24,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/app.h>
 #include <isc/commandline.h>

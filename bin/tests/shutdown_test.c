@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: shutdown_test.c,v 1.16 2000/08/01 01:13:20 tale Exp $ */
+/* $Id: shutdown_test.c,v 1.17 2000/11/10 05:34:13 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/app.h>
 #include <isc/mem.h>

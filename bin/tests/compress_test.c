@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.20 2000/08/01 01:12:39 tale Exp $ */
+/* $Id: compress_test.c,v 1.21 2000/11/10 05:34:09 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>

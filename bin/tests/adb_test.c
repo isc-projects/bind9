@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.58 2000/08/26 02:21:42 explorer Exp $ */
+/* $Id: adb_test.c,v 1.59 2000/11/10 05:34:07 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <isc/app.h>

@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sym_test.c,v 1.20 2000/08/01 01:13:23 tale Exp $ */
+/* $Id: sym_test.c,v 1.21 2000/11/10 05:34:15 bwelling Exp $ */
 
 #include <config.h>
+
+#include <string.h>
 
 #include <isc/commandline.h>
 #include <isc/mem.h>

@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sock_test.c,v 1.45 2000/08/01 01:13:21 tale Exp $ */
+/* $Id: sock_test.c,v 1.46 2000/11/10 05:34:14 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <isc/mem.h>

@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_test.c,v 1.23 2000/08/01 01:12:57 tale Exp $ */
+/* $Id: lwres_test.c,v 1.24 2000/11/10 05:34:11 bwelling Exp $ */
 
 #include <config.h>
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/netaddr.h>

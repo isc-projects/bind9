@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer_test.c,v 1.34 2000/08/01 01:13:26 tale Exp $ */
+/* $Id: timer_test.c,v 1.35 2000/11/10 05:34:16 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <isc/mem.h>

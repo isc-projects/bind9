@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.24 2000/08/01 01:13:00 tale Exp $ */
+/* $Id: master_test.c,v 1.25 2000/11/10 05:34:12 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
