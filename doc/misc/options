@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.44 2000/11/20 21:56:22 bwelling Exp $
+$Id: options,v 1.45 2000/11/28 03:20:20 marka Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -44,7 +44,8 @@ options {
   [ statistics-file path_name; ]			    No
   [ auth-nxdomain yes_or_no; ]				    Yes%
   [ deallocate-on-exit yes_or_no; ]			    Obsolete+
-  [ dialup yes_or_no; ]					    Yes
+  [ dialup yes_or_no | notify | notify-passive |
+		       refresh | passive; ]		    Yes&
   [ fake-iquery yes_or_no; ]				    Obsolete-
   [ fetch-glue yes_or_no; ]				    Obsolete
   [ has-old-clients yes_or_no; ]			    Obsolete
@@ -141,7 +142,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ update-policy ... ]					    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
-  [ dialup yes_or_no; ]					    No
+  [ dialup yes_or_no | notify; ]			    Yes&
   [ max-transfer-time-out number; ]			    Yes*
   [ max-transfer-idle-out number; ]			    Yes*
   [ notify yes_or_no | explicit; ]			    Yes&
@@ -166,7 +167,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ transfer-source ip_addr; ]				    Yes
   [ transfer-source-v6 ip_addr; ]			    Yes*
-  [ dialup yes_or_no; ]					    No
+  [ dialup yes_or_no | notify | notify-passive |
+	   	       refresh | passive; ]		    Yes&
   [ max-transfer-time-in number; ]			    Yes
   [ max-transfer-idle-in number; ]			    Yes*
   [ max-transfer-time-out number; ]			    Yes*
@@ -189,7 +191,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ transfer-source ip_addr; ]				    Yes
   [ transfer-source-v6 ip_addr; ]			    Yes*
-  [ dialup yes_or_no; ]					    Yes
+  [ dialup yes_or_no | passive | refresh; ]		    Yes%
   [ max-transfer-time-in number; ]			    Yes
   [ max-transfer-idle-in number; ]			    Yes*
   [ max-transfer-time-out number; ]			    Yes*
