@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.40 1999/12/06 12:40:31 brister Exp $ */
+ /* $Id: zone.c,v 1.41 1999/12/11 14:05:22 marka Exp $ */
 
 #include <config.h>
 
@@ -603,7 +603,7 @@ dns_zone_load(dns_zone_t *zone) {
 	if (zone->journal != NULL) {
 		result = dns_journal_rollforward(zone->mctx, db, zone->journal);
 		if (result != DNS_R_SUCCESS && result != DNS_R_NOTFOUND &&
-		    result != DNS_R_UPTODATE)
+		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL)
 			goto cleanup;
 		if (result == DNS_R_SUCCESS)
 			zone->flags |= DNS_ZONE_F_NEEDDUMP;
