@@ -137,6 +137,9 @@
 ./bin/named/lwsearch.c				C	2000,2001,2004
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004
 ./bin/named/named.8				MAN	2000,2001,2003,2004
+./bin/named/named.conf.5			MAN	2004
+./bin/named/named.conf.docbook			SGML	2004
+./bin/named/named.conf.html			HTML	2004
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004
 ./bin/named/named.html				HTML	2000,2001,2003,2004
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004
