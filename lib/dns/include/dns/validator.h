@@ -50,7 +50,6 @@
 #include <isc/event.h>
 
 #include <dns/types.h>
-#include <dns/name.h>
 #include <dns/result.h>
 
 ISC_LANG_BEGINDECLS
@@ -66,6 +65,7 @@ typedef struct dns_validatorevent {
 	ISC_EVENT_COMMON(struct dns_validatorevent);
 	dns_validator_t *		validator;
 	isc_result_t			result;
+	dns_name_t *			name;
 	dns_rdataset_t *		rdataset;
 	dns_rdataset_t *		sigrdataset;
 	dns_message_t *			message;
