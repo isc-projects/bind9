@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.48 $)
+AC_REVISION($Revision: 1.49 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1611,6 +1611,23 @@ NGR_R_OK="#define NGR_R_OK 1"
 NGR_R_RETURN="#define NGR_R_RETURN int"
 ]
 ,
+AC_TRY_COMPILE(
+[
+#include <netdb.h>
+int getnetgrent_r(char **m, char **u, char **d, char *b, size_t l) {}
+]
+,
+[return (0);],
+[
+NGR_R_ARGS="#define NGR_R_ARGS char *buf, size_t buflen"
+NGR_R_BAD="#define NGR_R_BAD (0)"
+NGR_R_COPY="#define NGR_R_COPY buf, buflen"
+NGR_R_COPY_ARGS="#define NGR_R_COPY_ARGS NGR_R_ARGS"
+NGR_R_OK="#define NGR_R_OK 1"
+NGR_R_RETURN="#define NGR_R_RETURN int"
+]
+,
+)
 )
 ,
 NGR_R_ARGS="#define NGR_R_ARGS char *buf, int buflen"
