@@ -800,7 +800,7 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 					       val->event->type);
 				continue;
 			}
-			dns_rdataset_first(val->event->rdataset);
+			result = dns_rdataset_first(val->event->rdataset);
 			INSIST(result == ISC_R_SUCCESS);
 			dns_rdataset_current(val->event->rdataset, &rdata);
 			if (dns_nxt_typepresent(&rdata, val->event->type)) {
@@ -808,6 +808,8 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 					      "type should not be present");
 				continue;
 			}
+			validator_log(val, ISC_LOG_DEBUG(3),
+			      "nxt bitmask ok");
 		} else if (order > 0) {
 			result = dns_rdataset_first(val->event->rdataset);
 			INSIST(result == ISC_R_SUCCESS);
@@ -826,14 +828,18 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 					continue;
 				}
 			}
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "nxt range ok");
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				"nxt owner name is not less");
 			continue;
 		}
-		validator_log(val, ISC_LOG_DEBUG(3),
-			"nxt range and/or bitmask is ok");
 
+		/*
+		 * We found a NXT with acceptable contents; now check
+		 * its signature.
+		 */
 		result = validate(val, resume);
 		if (result != ISC_R_SUCCESS)
 			return (result);
