@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.13 2000/04/28 01:12:20 halley Exp $ */
+/* $Id: dnssec-keygen.c,v 1.14 2000/05/05 19:55:56 gson Exp $ */
 
 #include <config.h>
 
@@ -128,7 +128,9 @@ main(int argc, char **argv) {
 		} 
 	}
 
-	if (isc_commandline_index + 1 < argc)
+	if (argc < isc_commandline_index + 1)
+		die("Must specify a domain name");
+	if (argc > isc_commandline_index + 1)
 		die("Extraneous arguments");
 
 	if (algname == NULL)
