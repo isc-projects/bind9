@@ -17,6 +17,7 @@
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
+#include <isc/boolean.h>
 
 #define ISC_LIST(type) struct { type *head, *tail; }
 #define ISC_LIST_INIT(list) \
@@ -32,7 +33,7 @@
 
 #define ISC_LIST_HEAD(list) ((list).head)
 #define ISC_LIST_TAIL(list) ((list).tail)
-#define ISC_LIST_EMPTY(list) ((list).head == NULL)
+#define ISC_LIST_EMPTY(list) ISC_TF((list).head == NULL)
 
 #define ISC_LIST_PREPEND(list, elt, link) \
 	do { \
