@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.11 2002/02/19 22:12:57 gson Exp $ */
+/* $Id: dighost.c,v 1.221.2.12 2002/07/10 04:37:55 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2097,6 +2097,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *n, *l;
 	isc_boolean_t docancel = ISC_FALSE;
 	unsigned int parseflags;
+	dns_messageid_t id;
+	unsigned int msgflags;
 
 	UNUSED(task);
 	INSIST(!free_now);
@@ -2151,6 +2153,39 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	b = ISC_LIST_HEAD(sevent->bufferlist);
 	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
+
+	result = dns_message_peekheader(b, &id, &msgflags);
+	if (result != ISC_R_SUCCESS || l->sendmsg->id != id) {
+		if (l->tcp_mode) {
+			if (result == ISC_R_SUCCESS)
+				printf(";; ERROR: ID mismatch: "
+				       "expected ID %u, got %u\n",
+				       l->sendmsg->id, id);
+			else
+				printf(";; ERROR: short (< header size) message\n");
+			isc_event_free(&event);
+			clear_query(query);
+			check_next_lookup(l);
+			UNLOCK_LOOKUP;
+			return;
+		}
+		if (result == ISC_R_SUCCESS)
+			printf(";; Warning: ID mismatch: "
+			       "expected ID %u, got %u\n", l->sendmsg->id, id);
+		else
+			printf(";; Warning: short (< header size) message received\n");
+		isc_buffer_invalidate(&query->recvbuf);
+		isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
+		ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);
+		result = isc_socket_recvv(query->sock, &query->recvlist, 1,
+					  global_task, recv_done, query);
+		check_result(result, "isc_socket_recvv");
+		recvcount++;
+		isc_event_free(&event);
+		UNLOCK_LOOKUP;
+		return;
+	}
+
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	check_result(result, "dns_message_create");
 

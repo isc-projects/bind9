@@ -54,6 +54,9 @@
 1241.	[bug]		Drop received UDP messsages with a zero source port
 			as these are invariably forged. [RT #2621]
 
+1209.	[bug]		Dig, host, nslookup were not checking the message ids
+			on the responses. [RT #2454]
+
 	--- 9.2.1 released ---
 
 1271.	[port]		win32: a make file contained absolute version specific
