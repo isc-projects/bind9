@@ -15,14 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.29 2001/03/29 02:33:48 bwelling Exp $ */
+/* $Id: file.c,v 1.30 2001/04/12 19:46:39 tale Exp $ */
 
 #include <config.h>
 
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <unistd.h>            /* Required for mkstemp on NetBSD. */
+#include <time.h>		/* Required for utimes on some platforms. */
+#include <unistd.h>		/* Required for mkstemp on NetBSD. */
 
 #include <sys/stat.h>
 #include <sys/time.h>
