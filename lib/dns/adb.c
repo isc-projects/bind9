@@ -288,7 +288,7 @@ static void kill_name(dns_adbname_t **, isc_eventtype_t ev);
 #define WANT_INET6(x)		(((x) & DNS_ADBFIND_INET6) != 0)
 #define WANTEDADDR(x, y)	(((x) & (y)) != 0)
 
-#define NO_FETCHES_A(n)		((n)->fetch_aaaa == NULL)
+#define NO_FETCHES_A(n)		((n)->fetch_a == NULL)
 #define NO_FETCHES_AAAA(n)	((n)->fetch_aaaa == NULL)
 #define NO_FETCHES_A6(n)	(ISC_LIST_EMPTY((n)->fetches_v6))
 #define NO_FETCHES(n)		(NO_FETCHES_A(n) \
