@@ -66,6 +66,8 @@ ISC_LANG_BEGINDECLS
 #define DNS_MESSAGE_OPCODE_SHIFT	    11
 #define DNS_MESSAGE_RCODE_MASK		0x000fU
 
+#define DNS_MESSAGE_HEADER_LEN		    12 /* 6 u_int16_t's */
+
 /*
  * Ordering here matters.  DNS_SECTION_ANY must be the lowest and negative,
  * and DNS_SECTION_MAX must be one greater than the last used section.
@@ -115,7 +117,12 @@ typedef struct {
 	ISC_LIST(isc_dynbuffer_t)	scratchpad;
 	ISC_LIST(dns_msgblock_t)	names;
 	ISC_LIST(dns_msgblock_t)	rdatas;
+	ISC_LIST(dns_msgblock_t)	rdatasets;
 	ISC_LIST(dns_msgblock_t)	rdatalists;
+	dns_name_t		       *nextname;
+	dns_rdata_t		       *nextrdata;
+	dns_rdataset_t		       *nextrdataset;
+	dns_rdatalist_t		       *nextrdatalist;
 } dns_message_t;
 
 dns_result_t
@@ -175,7 +182,7 @@ dns_message_destroy(dns_message_t **msg);
  */
 
 dns_result_t
-dns_message_parse(dns_message_t *msg, void *buffer, size_t buflen);
+dns_message_parse(dns_message_t *msg, isc_buffer_t *source);
 /*
  * Parse raw wire data pointed to by "buffer" and bounded by "buflen" as a
  * DNS message.

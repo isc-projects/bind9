@@ -51,7 +51,8 @@
 #define SCRATCHPAD_SIZE		768
 #define NAME_COUNT		 16
 #define RDATA_COUNT		 32
-#define RDATALIST_COUNT		 32
+#define RDATALIST_COUNT		 32 /* should match RDATASET_COUNT */
+#define RDATASET_COUNT		 32
 
 /*
  * internal state stuff.
@@ -74,7 +75,7 @@ struct dns_msgblock {
 static inline void
 msgblock_free(isc_mem_t *, dns_msgblock_t *);
 #define msgblock_get(block, type) \
-	(((type) *)msgblock_internalget(block, sizeof(type)))
+	((type *)msgblock_internalget(block, sizeof(type)))
 
 static inline void *
 msgblock_internalget(dns_msgblock_t *, unsigned int);
@@ -147,12 +148,182 @@ msgblock_free(isc_mem_t *mctx, dns_msgblock_t *block)
 }
 
 /*
+ * Allocate a new dynamic buffer, and attach it to this message as the
+ * "current" buffer.  (which is always the last on the list, for our
+ * uses)
+ */
+static inline dns_result_t
+newbuffer(dns_message_t *msg)
+{
+	isc_result_t result;
+	isc_dynbuffer_t *dynbuf;
+
+	dynbuf = NULL;
+	result = isc_dynbuffer_allocate(msg->mctx, &dynbuf, SCRATCHPAD_SIZE,
+					ISC_BUFFERTYPE_BINARY);
+	if (result != ISC_R_SUCCESS)
+		return (DNS_R_NOMEMORY);
+
+	ISC_LIST_APPEND(msg->scratchpad, dynbuf, link);
+	return (DNS_R_SUCCESS);
+}
+
+static inline isc_buffer_t *
+currentbuffer(dns_message_t *msg)
+{
+	isc_dynbuffer_t *dynbuf;
+
+	dynbuf = ISC_LIST_TAIL(msg->scratchpad);
+
+	return (&dynbuf->buffer);
+}
+
+static inline void
+releasename(dns_message_t *msg, dns_name_t *name)
+{
+	msg->nextname = name;
+}
+
+static inline dns_name_t *
+newname(dns_message_t *msg)
+{
+	dns_msgblock_t *msgblock;
+	dns_name_t *name;
+
+	if (msg->nextname != NULL) {
+		name = msg->nextname;
+		msg->nextname = NULL;
+		return (name);
+	}
+
+	msgblock = ISC_LIST_HEAD(msg->names);
+	name = msgblock_get(msgblock, dns_name_t);
+	if (name == NULL) {
+		msgblock = msgblock_allocate(msg->mctx, sizeof(dns_name_t),
+					     NAME_COUNT);
+		if (msgblock == NULL)
+			return (NULL);
+
+		ISC_LIST_APPEND(msg->names, msgblock, link);
+
+		name = msgblock_get(msgblock, dns_name_t);
+	}
+
+	return (name);
+}
+
+static inline void
+releaserdata(dns_message_t *msg, dns_rdata_t *rdata)
+{
+	msg->nextrdata = rdata;
+}
+
+static inline dns_rdata_t *
+newrdata(dns_message_t *msg)
+{
+	dns_msgblock_t *msgblock;
+	dns_rdata_t *rdata;
+
+	if (msg->nextrdata != NULL) {
+		rdata = msg->nextrdata;
+		msg->nextrdata = NULL;
+		return (rdata);
+	}
+
+	msgblock = ISC_LIST_HEAD(msg->rdatas);
+	rdata = msgblock_get(msgblock, dns_rdata_t);
+	if (rdata == NULL) {
+		msgblock = msgblock_allocate(msg->mctx, sizeof(dns_rdata_t),
+					     RDATA_COUNT);
+		if (msgblock == NULL)
+			return (NULL);
+
+		ISC_LIST_APPEND(msg->rdatas, msgblock, link);
+
+		rdata = msgblock_get(msgblock, dns_rdata_t);
+	}
+
+	return (rdata);
+}
+
+static inline void
+releaserdatalist(dns_message_t *msg, dns_rdatalist_t *rdatalist)
+{
+	msg->nextrdatalist = rdatalist;
+}
+
+static inline dns_rdatalist_t *
+newrdatalist(dns_message_t *msg)
+{
+	dns_msgblock_t *msgblock;
+	dns_rdatalist_t *rdatalist;
+
+	if (msg->nextrdatalist != NULL) {
+		rdatalist = msg->nextrdatalist;
+		msg->nextrdatalist = NULL;
+		return (rdatalist);
+	}
+
+	msgblock = ISC_LIST_HEAD(msg->rdatalists);
+	rdatalist = msgblock_get(msgblock, dns_rdatalist_t);
+	if (rdatalist == NULL) {
+		msgblock = msgblock_allocate(msg->mctx,
+					     sizeof(dns_rdatalist_t),
+					     RDATALIST_COUNT);
+		if (msgblock == NULL)
+			return (NULL);
+
+		ISC_LIST_APPEND(msg->rdatalists, msgblock, link);
+
+		rdatalist = msgblock_get(msgblock, dns_rdatalist_t);
+	}
+
+	return (rdatalist);
+}
+
+static inline void
+releaserdataset(dns_message_t *msg, dns_rdataset_t *rdataset)
+{
+	msg->nextrdataset = rdataset;
+}
+
+static inline dns_rdataset_t *
+newrdataset(dns_message_t *msg)
+{
+	dns_msgblock_t *msgblock;
+	dns_rdataset_t *rdataset;
+
+	if (msg->nextrdataset != NULL) {
+		rdataset = msg->nextrdataset;
+		msg->nextrdataset = NULL;
+		return (rdataset);
+	}
+
+	msgblock = ISC_LIST_HEAD(msg->rdatasets);
+	rdataset = msgblock_get(msgblock, dns_rdataset_t);
+	if (rdataset == NULL) {
+		msgblock = msgblock_allocate(msg->mctx, sizeof(dns_rdataset_t),
+					     RDATASET_COUNT);
+		if (msgblock == NULL)
+			return (NULL);
+
+		ISC_LIST_APPEND(msg->rdatasets, msgblock, link);
+
+		rdataset = msgblock_get(msgblock, dns_rdataset_t);
+	}
+
+	return (rdataset);
+}
+
+/*
  * Init elements to default state.  Used both when allocating a new element
  * and when resetting one.
  */
 static inline void
 msginit(dns_message_t *m)
 {
+	unsigned int i;
+
 	m->id = 0;
 	m->flags = 0;
 	m->rcode = 0;
@@ -162,7 +333,16 @@ msginit(dns_message_t *m)
 	m->ancount = 0;
 	m->aucount = 0;
 	m->adcount = 0;
+
+	for (i = 0 ; i < DNS_SECTION_MAX ; i++)
+		m->cursors[i] = NULL;
+
 	m->state = DNS_SECTION_ANY;  /* indicate nothing parsed or rendered */
+
+	m->nextname = NULL;
+	m->nextrdata = NULL;
+	m->nextrdataset = NULL;
+	m->nextrdatalist = NULL;
 }
 
 /*
@@ -241,6 +421,19 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 		msgblock = next_msgblock;
 	}
 
+	msgblock = ISC_LIST_HEAD(msg->rdatasets);
+	INSIST(msgblock != NULL);
+	if (everything == ISC_FALSE) {
+		msgblock_reset(msgblock, RDATASET_COUNT);
+		msgblock = ISC_LIST_NEXT(msgblock, link);
+	}
+	while (msgblock != NULL) {
+		next_msgblock = ISC_LIST_NEXT(msgblock, link);
+		ISC_LIST_UNLINK(msg->rdatasets, msgblock, link);
+		msgblock_free(msg->mctx, msgblock);
+		msgblock = next_msgblock;
+	}
+
 	if (msg->from_to_wire == DNS_MESSAGE_INTENT_PARSE) {
 		msgblock = ISC_LIST_HEAD(msg->rdatalists);
 		INSIST(msgblock != NULL);
@@ -311,11 +504,17 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent)
 		goto cleanup3;
 	ISC_LIST_APPEND(m->rdatas, msgblock, link);
 
+	msgblock = msgblock_allocate(mctx, sizeof(dns_rdataset_t),
+				     RDATASET_COUNT);
+	if (msgblock == NULL)
+		goto cleanup4;
+	ISC_LIST_APPEND(m->rdatas, msgblock, link);
+
 	if (intent == DNS_MESSAGE_INTENT_PARSE) {
 		msgblock = msgblock_allocate(mctx, sizeof(dns_rdatalist_t),
 					     RDATALIST_COUNT);
 		if (msgblock == NULL)
-			goto cleanup4;
+			goto cleanup5;
 		ISC_LIST_APPEND(m->rdatalists, msgblock, link);
 	}
 
@@ -324,6 +523,9 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent)
 	/*
 	 * Cleanup for error returns.
 	 */
+ cleanup5:
+	msgblock = ISC_LIST_HEAD(m->rdatasets);
+	msgblock_free(mctx, msgblock);
  cleanup4:
 	msgblock = ISC_LIST_HEAD(m->rdatas);
 	msgblock_free(mctx, msgblock);
@@ -362,16 +564,120 @@ dns_message_destroy(dns_message_t **xmsg)
 	isc_mem_put(msg->mctx, msg, sizeof(dns_message_t));
 }
 
-dns_result_t
-dns_message_parse(dns_message_t *msg, void *buffer, size_t buflen)
+static dns_result_t
+getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
+{
+	isc_region_t r;
+	unsigned int count;
+	dns_name_t *name;
+	dns_name_t *name2;
+	dns_rdataset_t *rdataset;
+	dns_rdatalist_t *rdatalist;
+	dns_result_t result;
+
+	count = msg->qcount;
+
+	while (count > 0) {
+		name = newname(msg);
+		if (name == NULL)
+			return (DNS_R_NOMEMORY);
+
+		/*
+		 * Parse the name out of this packet.
+		 */
+		result = getname(name, source, msg, dctx);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+
+		/*
+		 * Run through the section, looking to see if this name
+		 * is already there.  If it is found, put back the allocated
+		 * name since we no longer need it, and set our name pointer
+		 * to point to the name we found.
+		 */
+		result = findname(); /* XXX stop point */
+
+		/*
+		 * If it is a new name, append to the section.
+		 */
+
+		/*
+		 * Get type and class.
+		 */
+
+		/*
+		 * Search name for the particular type and class.
+		 */
+
+		/*
+		 * If it was found, this is an error, return FORMERR.
+		 */
+
+		/*
+		 * Allocate a new rdatalist.
+		 */
+
+		/*
+		 * Convert rdatalist to rdataset, and attach the latter to
+		 * the name.
+		 */
+	}
+	
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
+	   dns_section_t section)
 {
 
-	REQUIRE(VALID_MESSAGE(msg));
-	REQUIRE(buffer != NULL);
-	REQUIRE(buflen > 0); /* XXXMLG Should be >= header length... */
+	return (DNS_R_UNEXPECTED);
+}
 
-	/* XXX implement */
-	return (ISC_R_NOTIMPLEMENTED);
+dns_result_t
+dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
+{
+	isc_region_t r;
+	dns_decompress_t dctx;
+	dns_result_t ret;
+
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(source != NULL);
+
+	isc_buffer_remaining(source, &r);
+	if (r.length >= DNS_MESSAGE_HEADER_LEN)
+		return (DNS_R_UNEXPECTEDEND);
+
+	msg->id = isc_buffer_getuint16(source);
+	msg->flags = isc_buffer_getuint16(source);
+	msg->qcount = isc_buffer_getuint16(source);
+	msg->ancount = isc_buffer_getuint16(source);
+	msg->aucount = isc_buffer_getuint16(source);
+	msg->adcount = isc_buffer_getuint16(source);
+
+	dns_decompress_init(&dctx, -1, ISC_FALSE);
+
+	ret = getquestions(source, msg, &dctx);
+	if (ret != DNS_R_SUCCESS)
+		return (ret);
+
+	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER);
+	if (ret != DNS_R_SUCCESS)
+		return (ret);
+
+	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY);
+	if (ret != DNS_R_SUCCESS)
+		return (ret);
+
+	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL);
+	if (ret != DNS_R_SUCCESS)
+		return (ret);
+
+	/*
+	 * XXXMLG Need to check the tsig(s) here...
+	 */
+
+	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
