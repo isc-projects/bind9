@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.88 2001/01/18 08:34:15 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.89 2001/01/19 22:03:23 gson Exp $ -->
 
 <book>
 
@@ -25,7 +25,7 @@
     <acronym>BIND</acronym> version 9 software package for system
     administrators.</para>
 
-    <para>This version of the manual corresponds to BIND version 9.1.</para>
+    <para>This version of the manual corresponds to BIND version 9.2.</para>
     
   </sect1>
   <sect1><title>Organization of This Document</title>
