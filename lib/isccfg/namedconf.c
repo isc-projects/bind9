@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.5 2004/06/18 04:39:38 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.6 2004/07/23 04:12:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1680,7 +1680,9 @@ lwres_clausesets[] = {
 	NULL
 };
 static cfg_type_t cfg_type_lwres = {
-	"lwres", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map, lwres_clausesets };
+	"lwres", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map,
+	lwres_clausesets
+};
 
 /*
  * rndc
@@ -1688,9 +1690,11 @@ static cfg_type_t cfg_type_lwres = {
 
 static cfg_clausedef_t
 rndcconf_options_clauses[] = {
-	{ "default-server", &cfg_type_astring, 0 },
 	{ "default-key", &cfg_type_astring, 0 },
 	{ "default-port", &cfg_type_uint32, 0 },
+	{ "default-server", &cfg_type_astring, 0 },
+	{ "default-source-address", &cfg_type_netaddr4wild, 0 },
+	{ "default-source-address-v6", &cfg_type_netaddr6wild, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -1701,14 +1705,16 @@ rndcconf_options_clausesets[] = {
 };
 
 static cfg_type_t cfg_type_rndcconf_options = {
-	"rndcconf_options", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map,
-	rndcconf_options_clausesets
+	"rndcconf_options", cfg_parse_map, cfg_print_map, cfg_doc_map,
+	&cfg_rep_map, rndcconf_options_clausesets
 };
 
 static cfg_clausedef_t
 rndcconf_server_clauses[] = {
 	{ "key", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_uint32, 0 },
+	{ "source-address", &cfg_type_netaddr4wild, 0 },
+	{ "source-address-v6", &cfg_type_netaddr6wild, 0 },
 	{ "addresses", &cfg_type_bracketed_sockaddrnameportlist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -1720,8 +1726,8 @@ rndcconf_server_clausesets[] = {
 };
 
 static cfg_type_t cfg_type_rndcconf_server = {
-	"rndcconf_server", cfg_parse_named_map, cfg_print_map, cfg_doc_map, &cfg_rep_map,
-	rndcconf_server_clausesets
+	"rndcconf_server", cfg_parse_named_map, cfg_print_map, cfg_doc_map,
+	&cfg_rep_map, rndcconf_server_clausesets
 };
 
 static cfg_clausedef_t

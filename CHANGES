@@ -23,6 +23,8 @@
 1681.	[bug]		Only set SO_REUSEADDR when a port is specified in
 			isc_socket_bind(). [RT #11742]
 
+1680.	[func]		rndc: the source address can now be specified.
+
 1679.	[bug]		When there was a single nameserver with multiple
 			addresses for a zone not all addresses were tried.
 			[RT #11706]

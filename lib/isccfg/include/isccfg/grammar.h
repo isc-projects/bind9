@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.4 2004/03/05 05:12:27 marka Exp $ */
+/* $Id: grammar.h,v 1.4.18.1 2004/07/23 04:12:49 marka Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -248,6 +248,10 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_astring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_ustring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sockaddr;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netaddr;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netaddr4;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netaddr4wild;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netaddr6;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netaddr6wild;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netprefix;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_void;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_token;

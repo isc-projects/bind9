@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.conf.docbook,v 1.5.18.2 2004/06/18 04:39:40 marka Exp $ -->
+<!-- $Id: rndc.conf.docbook,v 1.5.18.3 2004/07/23 04:12:46 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -67,7 +67,7 @@
 	and a key statement.
     </para>
     <para>
-        The <option>options</option> statement contains three clauses.
+        The <option>options</option> statement contains five clauses.
 	The <option>default-server</option> clause is followed by the
 	name or address of a name server.  This host will be used when
 	no name server is given as an argument to
@@ -84,6 +84,10 @@
 	line, and no <option>port</option> clause is found in a
 	matching <option>server</option> statement, this default port
 	will be used to connect.
+	The <option>default-source-address</option> and
+	<option>default-source-address-v6</option> clauses which
+	can be used to set the IPv4 and IPv6 source addresses
+	respectively.
     </para>
     <para>
 	After the <option>server</option> keyword, the server
@@ -95,6 +99,9 @@
 	specifies the port to connect to.  If an <option>addresses</option>
 	clause is supplied these addresses will be used instead of
 	the server name.  Each address can take a optional port.
+	If an <option>source-address</option> or <option>source-address-v6</option>
+	of supplied then these will be used to specify the IPv4 and IPv6
+	source addresses respectively. 
     </para>
     <para>
         The <option>key</option> statement begins with an identifying

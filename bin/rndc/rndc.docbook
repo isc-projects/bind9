@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.docbook,v 1.8.18.1 2004/06/03 02:24:28 marka Exp $ -->
+<!-- $Id: rndc.docbook,v 1.8.18.2 2004/07/23 04:12:46 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -37,6 +37,7 @@
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>rndc</command>
+      <arg><option>-b <replaceable class="parameter">source-address</replaceable></option></arg>
       <arg><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
       <arg><option>-k <replaceable class="parameter">key-file</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">server</replaceable></option></arg>
@@ -81,6 +82,18 @@
     <title>OPTIONS</title>
 
     <variablelist>
+      <varlistentry>
+        <term>-b <replaceable class="parameter">source-address</replaceable></term>
+	<listitem>
+	  <para>
+	      Use <replaceable class="parameter">source-address</replaceable>
+	      as the source address for the connection to the server.
+	      Multiple instances are permitted to allow setting of both
+	      the IPv4 and IPv6 source addresses.
+	  </para>
+	</listitem>
+      </varlistentry>
+
       <varlistentry>
         <term>-c <replaceable class="parameter">config-file</replaceable></term>
 	<listitem>

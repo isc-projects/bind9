@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.112.18.1 2004/05/15 03:47:17 jinmei Exp $ */
+/* $Id: parser.c,v 1.112.18.2 2004/07/23 04:12:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1766,14 +1766,21 @@ cfg_print_rawaddr(cfg_printer_t *pctx, isc_netaddr_t *na) {
 
 /* netaddr */
 
+static unsigned int netaddr_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK;
+static unsigned int netaddr4_flags = CFG_ADDR_V4OK;
+static unsigned int netaddr4wild_flags = CFG_ADDR_V4OK | CFG_ADDR_WILDOK;
+static unsigned int netaddr6_flags = CFG_ADDR_V6OK;
+static unsigned int netaddr6wild_flags = CFG_ADDR_V6OK | CFG_ADDR_WILDOK;
+
 static isc_result_t
 parse_netaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	isc_netaddr_t netaddr;
-	UNUSED(type);
+	unsigned int flags = *(const unsigned int *)type->of;
+
 	CHECK(cfg_create_obj(pctx, type, &obj));
-	CHECK(cfg_parse_rawaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V6OK, &netaddr));
+	CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
 	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, 0);
 	*ret = obj;
 	return (ISC_R_SUCCESS);
@@ -1782,9 +1789,57 @@ parse_netaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (result);
 }
 
+static void
+cfg_doc_netaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
+	const unsigned int *flagp = type->of;
+	int n = 0;
+	if (*flagp != CFG_ADDR_V4OK && *flagp != CFG_ADDR_V6OK)
+		cfg_print_chars(pctx, "( ", 2);
+	if (*flagp & CFG_ADDR_V4OK) {
+		if (n != 0)
+			cfg_print_chars(pctx, " | ", 3);
+		cfg_print_cstr(pctx, "<ipv4_address>");
+		n++;
+	}
+	if (*flagp & CFG_ADDR_V6OK) {
+		if (n != 0)
+			cfg_print_chars(pctx, " | ", 3);
+		cfg_print_cstr(pctx, "<ipv6_address>");
+		n++;			
+	}
+	if (*flagp & CFG_ADDR_WILDOK) {
+		if (n != 0)
+			cfg_print_chars(pctx, " | ", 3);
+		cfg_print_chars(pctx, "*", 1);
+		n++;
+	}
+	if (*flagp != CFG_ADDR_V4OK && *flagp != CFG_ADDR_V6OK)
+		cfg_print_chars(pctx, " )", 2);
+}
+
 cfg_type_t cfg_type_netaddr = {
-	"netaddr", parse_netaddr, cfg_print_sockaddr, cfg_doc_terminal,
-	&cfg_rep_sockaddr, NULL
+	"netaddr", parse_netaddr, cfg_print_sockaddr, cfg_doc_netaddr,
+	&cfg_rep_sockaddr, &netaddr_flags
+};
+
+cfg_type_t cfg_type_netaddr4 = {
+	"netaddr4", parse_netaddr, cfg_print_sockaddr, cfg_doc_netaddr,
+	&cfg_rep_sockaddr, &netaddr4_flags
+};
+
+cfg_type_t cfg_type_netaddr4wild = {
+	"netaddr4wild", parse_netaddr, cfg_print_sockaddr, cfg_doc_netaddr,
+	&cfg_rep_sockaddr, &netaddr4wild_flags
+};
+
+cfg_type_t cfg_type_netaddr6 = {
+	"netaddr6", parse_netaddr, cfg_print_sockaddr, cfg_doc_netaddr,
+	&cfg_rep_sockaddr, &netaddr6_flags
+};
+
+cfg_type_t cfg_type_netaddr6wild = {
+	"netaddr6wild", parse_netaddr, cfg_print_sockaddr, cfg_doc_netaddr,
+	&cfg_rep_sockaddr, &netaddr6wild_flags
 };
 
 /* netprefix */
