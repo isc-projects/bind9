@@ -16,9 +16,7 @@
  * SOFTWARE.
  */
 
-#if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.48 2000/03/02 20:41:21 brister Exp $";
-#endif /* not lint */
+/* $Id: confparser.y,v 1.49 2000/03/18 00:46:47 brister Exp $ */
 
 #include <config.h>
 
