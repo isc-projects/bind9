@@ -1084,6 +1084,7 @@ free_socket(isc_socket_t **socketp) {
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
+	INSIST(!ISC_LINK_LINKED(sock, link));
 
 	sock->magic = 0;
 
@@ -1520,6 +1521,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		result = ISC_R_UNEXPECTED;
 	}
 
+	LOCK(&manager->lock);
+	ISC_LIST_APPEND(manager->socklist, dev->newsocket, link);
+
 	/*
 	 * -1 means the new socket didn't happen.
 	 */
@@ -1533,18 +1537,17 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		 */
 		dev->address = dev->newsocket->address;
 
-		LOCK(&manager->lock);
 		manager->fds[fd] = dev->newsocket;
 		manager->fdstate[fd] = MANAGED;
 		if (manager->maxfd < fd)
 			manager->maxfd = fd;
-		ISC_LIST_APPEND(manager->socklist, sock, link);
-		UNLOCK(&manager->lock);
 
 		socket_log(sock, &dev->newsocket->address, CREATION,
 			   "accepted connection, new socket %p",
 			   dev->newsocket);
 	}
+
+	UNLOCK(&manager->lock);
 
 	/*
 	 * Fill in the done event details and send it off.
