@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.27 2001/01/09 21:54:56 bwelling Exp $ */
+/* $Id: x25_19.c,v 1.28 2001/03/06 22:11:06 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -40,11 +40,12 @@ fromtext_x25(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      ISC_FALSE));
 	if (token.value.as_textregion.length < 4)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	for (i = 0; i < token.value.as_textregion.length; i++)
 		if (!isdigit(token.value.as_textregion.base[i] & 0xff))
-			return (ISC_R_RANGE);
-	return (txt_fromtext(&token.value.as_textregion, target));
+			RETTOK(ISC_R_RANGE);
+	RETTOK(txt_fromtext(&token.value.as_textregion, target));
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

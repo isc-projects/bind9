@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.29 2001/01/09 21:55:14 bwelling Exp $ */
+/* $Id: nsap_22.c,v 1.30 2001/03/06 22:11:15 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -46,9 +46,9 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 	sr = &token.value.as_textregion;
 	if (sr->length < 2)
-		return (ISC_R_UNEXPECTEDEND);
+		RETTOK(ISC_R_UNEXPECTEDEND);
 	if (sr->base[0] != '0' || (sr->base[1] != 'x' && sr->base[1] != 'X'))
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	isc_textregion_consume(sr, 2);
 	digits = 0;
 	n = 0;
@@ -58,7 +58,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 			continue;
 		}
 		if ((n = hexvalue(sr->base[0])) == -1)
-			return (DNS_R_SYNTAX);
+			RETTOK(DNS_R_SYNTAX);
 		c <<= 4;
 		c += n;
 		if (++digits == 2) {
@@ -67,9 +67,8 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 		}
 		isc_textregion_consume(sr, 1);
 	}
-	if (digits) {
-		return (ISC_R_UNEXPECTEDEND);
-	}
+	if (digits)
+		RETTOK(ISC_R_UNEXPECTEDEND);
 	return (ISC_R_SUCCESS);
 }
 

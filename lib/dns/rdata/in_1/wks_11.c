@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.40 2001/01/25 20:14:42 bwelling Exp $ */
+/* $Id: wks_11.c,v 1.41 2001/03/06 22:11:18 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -62,7 +62,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 
 	isc_buffer_availableregion(target, &region);
 	if (inet_aton(token.value.as_pointer, &addr) != 1)
-		return (DNS_R_BADDOTTEDQUAD);
+		RETTOK(DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
 		return (ISC_R_NOSPACE);
 	memcpy(region.base, &addr, 4);
@@ -80,9 +80,9 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	else if ((pe = getprotobyname(token.value.as_pointer)) != NULL)
 		proto = pe->p_proto;
 	else
-		return (ISC_R_UNEXPECTED);
+		RETTOK(DNS_R_UNKNOWNPROTO);
 	if (proto < 0 || proto > 0xff)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 
 	if (proto == IPPROTO_TCP)
 		ps = "tcp";
@@ -117,9 +117,9 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 			  != NULL)
 			port = ntohs(se->s_port);
 		else
-			return (ISC_R_UNEXPECTED);
+			RETTOK(DNS_R_UNKNOWNSERVICE);
 		if (port < 0 || port > 0xffff)
-			return (ISC_R_RANGE);
+			RETTOK(ISC_R_RANGE);
 		if (port > maxport)
 			maxport = port;
 		bm[port / 8] |= (0x80 >> (port % 8));

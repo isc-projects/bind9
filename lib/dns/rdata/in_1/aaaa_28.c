@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.33 2001/01/25 20:14:41 bwelling Exp $ */
+/* $Id: aaaa_28.c,v 1.34 2001/03/06 22:11:10 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -45,7 +45,7 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 
 	if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
-		return (DNS_R_BADAAAA);
+		RETTOK(DNS_R_BADAAAA);
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 16)
 		return (ISC_R_NOSPACE);

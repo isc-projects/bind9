@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.32 2001/02/12 03:04:53 bwelling Exp $ */
+/* $Id: rp_17.c,v 1.33 2001/03/06 22:10:59 marka Exp $ */
 
 /* RFC 1183 */
 
@@ -43,7 +43,7 @@ fromtext_rp(ARGS_FROMTEXT) {
 					      ISC_FALSE));
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
-		RETERR(dns_name_fromtext(&name, &buffer, origin,
+		RETTOK(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}
 	return (ISC_R_SUCCESS);

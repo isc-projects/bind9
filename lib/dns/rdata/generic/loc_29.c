@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.27 2001/01/09 21:54:08 bwelling Exp $ */
+/* $Id: loc_29.c,v 1.28 2001/03/06 22:10:45 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -72,7 +72,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 90)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	d1 = (int)token.value.as_ulong;
 	/*
 	 * Minutes.
@@ -85,11 +85,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 		goto getlong;
 	m1 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (m1 < 0 || m1 > 59)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	if (d1 == 90 && m1 != 0)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 
 	/*
 	 * Seconds.
@@ -102,27 +102,27 @@ fromtext_loc(ARGS_FROMTEXT) {
 		goto getlong;
 	s1 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.')
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (s1 < 0 || s1 > 59)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 3 ; i++) {
 			if (*e == 0)
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
-				return (DNS_R_SYNTAX);
+				RETTOK(DNS_R_SYNTAX);
 			s1 *= 10;
 			s1 += tmp;
 		}
 		for ( ; i < 3 ; i++)
 			s1 *= 10;
 		if (*e != 0)
-			return (DNS_R_SYNTAX);
+			RETTOK(DNS_R_SYNTAX);
 	} else
 		s1 *= 1000;
 	if (d1 == 90 && s1 != 0)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 
 	/*
 	 * Direction.
@@ -132,7 +132,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (strcasecmp(token.value.as_pointer, "N") == 0)
 		north = ISC_TRUE;
 	if (!north && strcasecmp(token.value.as_pointer, "S") != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 
  getlong:
 	/*
@@ -141,7 +141,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 180)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	d2 = (int)token.value.as_ulong;
 
 	/*
@@ -155,11 +155,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 		goto getalt;
 	m2 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (m2 < 0 || m2 > 59)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	if (d2 == 180 && m2 != 0)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 
 	/*
 	 * Seconds.
@@ -172,27 +172,27 @@ fromtext_loc(ARGS_FROMTEXT) {
 		goto getalt;
 	s2 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.')
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (s2 < 0 || s2 > 59)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 3 ; i++) {
 			if (*e == 0)
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
-				return (DNS_R_SYNTAX);
+				RETTOK(DNS_R_SYNTAX);
 			s2 *= 10;
 			s2 += tmp;
 		}
 		for ( ; i < 3 ; i++)
 			s2 *= 10;
 		if (*e != 0)
-			return (DNS_R_SYNTAX);
+			RETTOK(DNS_R_SYNTAX);
 	} else
 		s2 *= 1000;
 	if (d2 == 180 && s2 != 0)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 
 	/*
 	 * Direction.
@@ -202,7 +202,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (strcasecmp(token.value.as_pointer, "E") == 0)
 		east = ISC_TRUE;
 	if (!east && strcasecmp(token.value.as_pointer, "W") != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 
  getalt:
 	/*
@@ -212,9 +212,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 	m = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (m < -100000 || m > 42849672)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -235,11 +235,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (*e == 'm')
 		e++;
 	if (*e != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (m == -100000 && cm != 0)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	if (m == 42849672 && cm > 95)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	/*
 	 * Adjust base.
 	 */
@@ -259,9 +259,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	}
 	m = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -269,7 +269,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			if (*e == 0 || *e == 'm')
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
-				return (DNS_R_SYNTAX);
+				RETTOK(DNS_R_SYNTAX);
 			cm *= 10;
 			cm += tmp;
 		}
@@ -279,7 +279,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (*e == 'm')
 		e++;
 	if (*e != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	/*
 	 * We don't just multiply out as we will overflow.
 	 */
@@ -312,9 +312,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	}
 	m = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -322,7 +322,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			if (*e == 0 || *e == 'm')
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
-				return (DNS_R_SYNTAX);
+				RETTOK(DNS_R_SYNTAX);
 			cm *= 10;
 			cm += tmp;
 		}
@@ -332,7 +332,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (*e == 'm')
 		e++;
 	if (*e != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	/*
 	 * We don't just multiply out as we will overflow.
 	 */
@@ -363,9 +363,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	}
 	m = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -373,7 +373,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			if (*e == 0 || *e == 'm')
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
-				return (DNS_R_SYNTAX);
+				RETTOK(DNS_R_SYNTAX);
 			cm *= 10;
 			cm += tmp;
 		}
@@ -383,7 +383,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (*e == 'm')
 		e++;
 	if (*e != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	/*
 	 * We don't just multiply out as we will overflow.
 	 */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.49 2001/02/12 03:04:56 bwelling Exp $ */
+/* $Id: soa_6.c,v 1.50 2001/03/06 22:11:02 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -45,7 +45,7 @@ fromtext_soa(ARGS_FROMTEXT) {
 
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
-		RETERR(dns_name_fromtext(&name, &buffer, origin,
+		RETTOK(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}
 
@@ -57,7 +57,7 @@ fromtext_soa(ARGS_FROMTEXT) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string,
 					      ISC_FALSE));
-		RETERR(dns_counter_fromtext(&token.value.as_textregion, &n));
+		RETTOK(dns_counter_fromtext(&token.value.as_textregion, &n));
 		RETERR(uint32_tobuffer(n, target));
 	}
 

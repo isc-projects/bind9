@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.46 2001/02/12 03:04:51 bwelling Exp $ */
+/* $Id: nxt_30.c,v 1.47 2001/03/06 22:10:56 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -54,7 +54,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
 	memset(bm, 0, sizeof bm);
 	do {
@@ -67,7 +67,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 			covered = (dns_rdatatype_t)n;
 		} else if (dns_rdatatype_fromtext(&covered,
 				&token.value.as_textregion) == DNS_R_UNKNOWN)
-			return (DNS_R_UNKNOWN);
+			RETTOK(DNS_R_UNKNOWN);
 		/*
 		 * NXT is only specified for types 1..127.
 		 */

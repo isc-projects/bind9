@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.142 2001/01/25 20:14:36 bwelling Exp $ */
+/* $Id: rdata.c,v 1.143 2001/03/06 22:10:33 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -43,10 +43,19 @@
 #include <dns/time.h>
 #include <dns/ttl.h>
 
-#define RETERR(x) do { \
-	isc_result_t _r = (x); \
-	if (_r != ISC_R_SUCCESS) \
-		return (_r); \
+#define RETERR(x) \
+	do { \
+		isc_result_t _r = (x); \
+		if (_r != ISC_R_SUCCESS) \
+			return (_r); \
+	} while (0)
+#define RETTOK(x) \
+	do { \
+		isc_result_t _r = (x); \
+		if (_r != ISC_R_SUCCESS) { \
+			isc_lex_ungettoken(lexer, &token); \
+			return (_r); \
+		} \
 	} while (0)
 
 #define ARGS_FROMTEXT	int rdclass, dns_rdatatype_t type, \

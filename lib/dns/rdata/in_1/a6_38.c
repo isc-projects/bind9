@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.42 2001/02/12 03:04:59 bwelling Exp $ */
+/* $Id: a6_38.c,v 1.43 2001/03/06 22:11:08 marka Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -47,7 +47,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 128)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 
 	prefixlen = (unsigned char)token.value.as_ulong;
 	RETERR(mem_tobuffer(target, &prefixlen, 1));
@@ -67,7 +67,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 					      isc_tokentype_string,
 					      ISC_FALSE));
 		if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
-			return (DNS_R_BADAAAA);
+			RETTOK(DNS_R_BADAAAA);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;
 		RETERR(mem_tobuffer(target, &addr[octets], 16 - octets));
@@ -81,7 +81,8 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

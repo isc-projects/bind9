@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.26 2001/01/09 21:54:04 bwelling Exp $ */
+/* $Id: isdn_20.c,v 1.27 2001/03/06 22:10:43 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -39,7 +39,7 @@ fromtext_isdn(ARGS_FROMTEXT) {
 	/* ISDN-address */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      ISC_FALSE));
-	RETERR(txt_fromtext(&token.value.as_textregion, target));
+	RETTOK(txt_fromtext(&token.value.as_textregion, target));
 
 	/* sa: optional */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
@@ -49,7 +49,8 @@ fromtext_isdn(ARGS_FROMTEXT) {
 		isc_lex_ungettoken(lexer, &token);
 		return (ISC_R_SUCCESS);
 	}
-	return (txt_fromtext(&token.value.as_textregion, target));
+	RETTOK(txt_fromtext(&token.value.as_textregion, target));
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t

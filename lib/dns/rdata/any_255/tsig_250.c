@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.48 2001/02/12 03:04:37 bwelling Exp $ */
+/* $Id: tsig_250.c,v 1.49 2001/03/06 22:10:35 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -48,7 +48,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
 	/*
 	 * Time Signed: 48 bits.
@@ -57,9 +57,9 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 	sigtime = isc_string_touint64(token.value.as_pointer, &e, 10);
 	if (*e != 0)
-		return (DNS_R_SYNTAX);
+		RETTOK(DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer((isc_uint16_t)(sigtime >> 32), target));
 	RETERR(uint32_tobuffer((isc_uint32_t)(sigtime & 0xffffffffU), target));
 
@@ -69,7 +69,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -78,7 +78,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -92,7 +92,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -105,9 +105,9 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	{
 		i = strtol(token.value.as_pointer, &e, 10);
 		if (*e != 0)
-			return (DNS_R_UNKNOWN);
+			RETTOK(DNS_R_UNKNOWN);
 		if (i < 0 || i > 0xffff)
-			return (ISC_R_RANGE);
+			RETTOK(ISC_R_RANGE);
 		rcode = (dns_rcode_t)i;
 	}
 	RETERR(uint16_tobuffer(rcode, target));
@@ -118,7 +118,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*

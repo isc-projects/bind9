@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.21 2001/01/16 06:14:00 marka Exp $ */
+/* $Id: opt_41.c,v 1.22 2001/03/06 22:10:57 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -29,7 +29,7 @@
 			       DNS_RDATATYPEATTR_NOTQUESTION)
 
 static inline isc_result_t
-			       fromtext_opt(ARGS_FROMTEXT) {
+fromtext_opt(ARGS_FROMTEXT) {
 	/*
 	 * OPT records do not have a text format.
 	 */

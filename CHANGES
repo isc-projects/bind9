@@ -1,3 +1,5 @@
+ 769.	[func]		Improved error reporting when parsing rdata. [RT #740]
+
  768.	[bug]		The server did not emit an SOA when a CNAME
 			or DNAME chain ended in NXDOMAIN in an
 			authoritative zone.

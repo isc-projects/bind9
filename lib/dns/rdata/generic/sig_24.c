@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.50 2001/02/12 03:04:55 bwelling Exp $ */
+/* $Id: sig_24.c,v 1.51 2001/03/06 22:11:01 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -51,9 +51,9 @@ fromtext_sig(ARGS_FROMTEXT) {
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
 		i = strtol(token.value.as_pointer, &e, 10);
 		if (i < 0 || i > 65535)
-			return (ISC_R_RANGE);
+			RETTOK(ISC_R_RANGE);
 		if (*e != 0)
-			return (result);
+			RETTOK(result);
 		covered = (dns_rdatatype_t)i;
 	}
 	RETERR(uint16_tobuffer(covered, target));
@@ -63,7 +63,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	RETERR(dns_secalg_fromtext(&c, &token.value.as_textregion));
+	RETTOK(dns_secalg_fromtext(&c, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &c, 1));
 
 	/*
@@ -72,7 +72,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
 	if (token.value.as_ulong > 0xff)
-		return (ISC_R_RANGE);
+		RETTOK(ISC_R_RANGE);
 	c = (unsigned char)token.value.as_ulong;
 	RETERR(mem_tobuffer(target, &c, 1));
 
@@ -88,7 +88,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	RETERR(dns_time32_fromtext(token.value.as_pointer, &time_expire));
+	RETTOK(dns_time32_fromtext(token.value.as_pointer, &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
 
 	/*
@@ -96,7 +96,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	RETERR(dns_time32_fromtext(token.value.as_pointer, &time_signed));
+	RETTOK(dns_time32_fromtext(token.value.as_pointer, &time_signed));
 	RETERR(uint32_tobuffer(time_signed, target));
 
 	/*
@@ -114,7 +114,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
 	/*
 	 * Sig.

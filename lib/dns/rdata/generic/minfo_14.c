@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.37 2001/02/12 03:04:46 bwelling Exp $ */
+/* $Id: minfo_14.c,v 1.38 2001/03/06 22:10:51 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -42,7 +42,7 @@ fromtext_minfo(ARGS_FROMTEXT) {
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		origin = (origin != NULL) ? origin : dns_rootname;
-		RETERR(dns_name_fromtext(&name, &buffer, origin,
+		RETTOK(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}
 	return (ISC_R_SUCCESS);
