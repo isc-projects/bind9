@@ -66,6 +66,7 @@
 
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
+		 isc_stdtime_t now,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
 static inline void
@@ -403,6 +404,7 @@ query_findversion(ns_client_t *client, dns_db_t *db) {
 
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
+		 isc_stdtime_t now,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	ns_client_t *client = arg;
@@ -460,8 +462,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	if (db == client->query.gluedb || (!is_zone && CACHEGLUEOK(client)))
 		dboptions |= DNS_DBFIND_GLUEOK;
 	result = dns_db_find(db, name, version, type, dboptions,
-			     client->now, NULL,
-			     dns_fixedname_name(&foundname),
+			     now, NULL, dns_fixedname_name(&foundname),
 			     rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION ||
@@ -996,7 +997,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 	if (a6rdataset != NULL) {
 		dns_a6_reset(&client->query.a6ctx);
-		dns_a6_foreach(&client->query.a6ctx, a6rdataset);
+		dns_a6_foreach(&client->query.a6ctx, a6rdataset, client->now);
 	}
 
  cleanup:
@@ -1113,7 +1114,8 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	 */
 	if (type == dns_rdatatype_a6) {
 		dns_a6_reset(&client->query.a6ctx);
-		(void)dns_a6_foreach(&client->query.a6ctx, rdataset);
+		(void)dns_a6_foreach(&client->query.a6ctx, rdataset,
+				     client->now);
 	} else
 		(void)dns_rdataset_additionaldata(rdataset,
 						  query_addadditional, client);
