@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.26 2000/06/06 14:20:00 brister Exp $ */
+/* $Id: confip.c,v 1.27 2000/06/06 15:21:46 tale Exp $ */
 
 #include <config.h>
 
@@ -748,13 +748,14 @@ dns_c_ipmatchlist_walk(dns_c_ipmatchlist_t *list, dns_c_ipmlwalker func)
 		case dns_c_ipmatch_localnets:
 		case dns_c_ipmatch_any:
 		case dns_c_ipmatch_none:
-			retval = retval && (*func)(ipme);
+			retval = ISC_TF(retval && (*func)(ipme));
 			break;
 
 		case dns_c_ipmatch_indirect:
-			retval = retval &&
-				dns_c_ipmatchlist_walk(ipme->u.indirect.list,
-						       func);
+			retval = ISC_TF(retval &&
+					dns_c_ipmatchlist_walk(ipme->
+							       u.indirect.list,
+							       func));
 			break;
 
 		default:
