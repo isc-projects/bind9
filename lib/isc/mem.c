@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.79 2001/01/25 01:18:00 neild Exp $ */
+/* $Id: mem.c,v 1.80 2001/01/25 01:38:01 neild Exp $ */
 
 #include <config.h>
 
@@ -659,7 +659,7 @@ mem_get(isc_mem_t *ctx, size_t size) {
 static inline void
 mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 #if ISC_MEM_CHECKOVERRUN
-	INSIST(((char *)mem)[size] == 0xbe);
+	INSIST(((unsigned char *)mem)[size] == 0xbe);
 #endif
 #if ISC_MEM_FILL
 	memset(mem, 0xde, size); /* Mnemonic for "dead". */
