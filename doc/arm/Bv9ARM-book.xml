@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.86 2001/01/16 22:59:37 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.87 2001/01/17 02:42:51 bwelling Exp $ -->
 
 <book>
 
@@ -3484,7 +3484,7 @@ in random order. All other records are returned in cyclic order.</para>
 they are not combined-the last one applies.</para>
 <para>If no <command>rrset-order</command> statement is specified,
 then a default one of:
-<programlisting>rrset-order { class ANY type ANY name "*"; order cyclic ; };
+<programlisting>rrset-order { class ANY type ANY name "*" order cyclic ; };
 </programlisting>
 is used.</para>
 <note><simpara>The <command>rrset-order</command> statement
