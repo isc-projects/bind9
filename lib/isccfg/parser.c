@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.2 2001/09/06 23:06:43 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.3 2001/10/13 03:52:13 marka Exp $ */
 
 #include <config.h>
 
@@ -2780,14 +2780,16 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 			}
 		}
 	}
-	return (ISC_R_NOTFOUND); /* XXX */
+	return (ISC_R_UNEXPECTEDTOKEN);
 }
 
 static isc_result_t
 get_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 	isc_result_t result;
 	CHECK(cfg_gettoken(pctx, 0));
-	CHECK(token_addr(pctx, flags, na));
+	result = token_addr(pctx, flags, na);
+	if (result == ISC_R_UNEXPECTEDTOKEN)
+		parser_error(pctx, LOG_NEAR, "expected IP address");
  cleanup:
 	return (result);
 }
@@ -2943,7 +2945,6 @@ parse_netaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	*ret = obj;
 	return (ISC_R_SUCCESS);
  cleanup:
-	parser_error(pctx, LOG_NEAR, "expected IP address");
 	CLEANUP_OBJ(obj);
 	return (result);
 }

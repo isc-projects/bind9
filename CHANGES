@@ -1,4 +1,9 @@
 1048.	[bug]		Servers built with -DISC_MEM_USE_INTERNAL_MALLOC=1
+1050.	[bug]		Log messages reporting malformed IP addresses in
+			address lists such as that of the forwarders option
+			failed to include the correct error code, file
+			name, and line number. [RT #1890]
+
 			didn't work.
 
 1047.	[bug]		named was incorrectly refusing all requests signed
