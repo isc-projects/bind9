@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.7 2001/11/15 02:51:44 marka Exp $ */
+/* $Id: client.c,v 1.176.2.8 2001/11/16 21:21:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1064,6 +1064,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t *opt;
 	isc_boolean_t ra; 	/* Recursion available. */
 	isc_netaddr_t netaddr;
+	isc_netaddr_t destaddr;
 	int match;
 	dns_messageid_t id;
 	unsigned int flags;
@@ -1285,6 +1286,20 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Determine the destination address.  For IPv6, we get this from the
+	 * pktinfo structure (if supported).  For IPv4, we have to make do with
+	 * the address of the interface where the request was received.
+	 */
+	if (client->interface->addr.type.sa.sa_family == AF_INET6) {
+		if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
+			isc_netaddr_fromin6(&destaddr, &client->pktinfo.ipi6_addr);
+		else
+			isc_netaddr_any6(&destaddr);
+	} else {
+		isc_netaddr_fromsockaddr(&destaddr, &client->interface->addr);
+	}
+
+	/*
 	 * Find a view that matches the client's source address.
 	 */
 	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
@@ -1293,10 +1308,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (client->message->rdclass == view->rdclass ||
 		    client->message->rdclass == dns_rdataclass_any)
 		{
-			isc_netaddr_t destaddr;
-
-			isc_netaddr_fromsockaddr(&destaddr,
-						 &client->interface->addr); 
 			if (allowed(&netaddr, view->matchclients) &&
 			    allowed(&destaddr, view->matchdestinations) &&
 			    !((flags & DNS_MESSAGEFLAG_RD) == 0 &&
