@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.70 2001/09/04 12:17:13 marka Exp $ */
+/* $Id: db.c,v 1.71 2003/09/30 05:56:10 marka Exp $ */
 
 /***
  *** Imports
@@ -447,7 +447,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(type != dns_rdatatype_sig);
+	REQUIRE(type != dns_rdatatype_rrsig);
 	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
 	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(rdataset == NULL ||
@@ -576,7 +576,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(node != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(! dns_rdataset_isassociated(rdataset));
-	REQUIRE(covers == 0 || type == dns_rdatatype_sig);
+	REQUIRE(covers == 0 || type == dns_rdatatype_rrsig);
 	REQUIRE(type != dns_rdatatype_any);
 	REQUIRE(sigrdataset == NULL ||
 		(DNS_RDATASET_VALID(sigrdataset) &&

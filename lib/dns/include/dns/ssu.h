@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.11 2001/01/09 21:53:29 bwelling Exp $ */
+/* $Id: ssu.h,v 1.12 2003/09/30 05:56:17 marka Exp $ */
 
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
@@ -89,10 +89,10 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
  *		to be updated matches the signing identity.
  *
  *		If 'ntypes' is 0, this rule applies to all types except
- *		NS, SOA, SIG, and NXT.
+ *		NS, SOA, RRSIG, and NSEC.
  *
  *		If 'types' includes ANY, this rule applies to all types
- *		except NXT.
+ *		except NSEC.
  *
  *	Requires:
  *		'table' is a valid SSU table

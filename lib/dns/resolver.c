@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.268 2003/09/21 13:05:16 marka Exp $ */
+/* $Id: resolver.c,v 1.269 2003/09/30 05:56:13 marka Exp $ */
 
 #include <config.h>
 
@@ -711,7 +711,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		INSIST(result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(event->rdataset) ||
 		       fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_sig);
+		       fctx->type == dns_rdatatype_rrsig);
 
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
@@ -3001,7 +3001,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (hevent != NULL) {
 		if (!negative && !chaining &&
 		    (fctx->type == dns_rdatatype_any ||
-		     fctx->type == dns_rdatatype_sig)) {
+		     fctx->type == dns_rdatatype_rrsig)) {
 			/*
 			 * Don't bind rdatasets; the caller
 			 * will iterate the node.
@@ -3024,7 +3024,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			if (vevent->sigrdataset != NULL)
 				(void)dns_db_deleterdataset(fctx->cache,
 							    node, NULL,
-							    dns_rdatatype_sig,
+							    dns_rdatatype_rrsig,
 							    vevent->type);
 		}
 		result = vevent->result;
@@ -3106,7 +3106,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
 		INSIST(fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_sig);
+		       fctx->type == dns_rdatatype_rrsig);
 		/*
 		 * Don't send a response yet - we have
 		 * more rdatasets that still need to
@@ -3211,7 +3211,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			 * and we must set up the rdatasets.
 			 */
 			if ((fctx->type != dns_rdatatype_any &&
-			    fctx->type != dns_rdatatype_sig) ||
+			    fctx->type != dns_rdatatype_rrsig) ||
 			    (name->attributes & DNS_NAMEATTR_CHAINING) != 0) {
 				ardataset = event->rdataset;
 				asigrdataset = event->sigrdataset;
@@ -3251,7 +3251,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			 * SIGs are validated as part of validating the
 			 * type they cover.
 			 */
-			if (rdataset->type == dns_rdatatype_sig)
+			if (rdataset->type == dns_rdatatype_rrsig)
 				continue;
 			/*
 			 * Find the SIG for this rdataset, if we have it.
@@ -3259,7 +3259,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			for (sigrdataset = ISC_LIST_HEAD(name->list);
 			     sigrdataset != NULL;
 			     sigrdataset = ISC_LIST_NEXT(sigrdataset, link)) {
-				if (sigrdataset->type == dns_rdatatype_sig &&
+				if (sigrdataset->type == dns_rdatatype_rrsig &&
 				    sigrdataset->covers == rdataset->type)
 					break;
 			}
@@ -3318,7 +3318,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 
 			if (ANSWER(rdataset) && need_validation) {
 				if (fctx->type != dns_rdatatype_any &&
-				    fctx->type != dns_rdatatype_sig) {
+				    fctx->type != dns_rdatatype_rrsig) {
 					/*
 					 * This is The Answer.  We will
 					 * validate it, but first we cache
@@ -3380,7 +3380,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			}
 			if (rdataset->trust == dns_trust_glue &&
 			    (rdataset->type == dns_rdatatype_ns ||
-		             (rdataset->type == dns_rdatatype_sig &&
+		             (rdataset->type == dns_rdatatype_rrsig &&
 			      rdataset->covers == dns_rdatatype_ns))) {
 				/*
 				 * If the trust level is 'dns_trust_glue'
@@ -3750,7 +3750,7 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-				if (rdataset->type == dns_rdatatype_sig)
+				if (rdataset->type == dns_rdatatype_rrsig)
 					rtype = rdataset->covers;
 				else
 					rtype = rdataset->type;
@@ -3769,7 +3769,7 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 				 */
 				rdataset = NULL;
 				result = dns_message_findtype(name,
-						      dns_rdatatype_sig,
+						      dns_rdatatype_rrsig,
 						      type, &rdataset);
 				if (result == ISC_R_SUCCESS)
 					mark_related(name, rdataset, external,
@@ -3975,7 +3975,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 				type = rdataset->type;
-				if (type == dns_rdatatype_sig)
+				if (type == dns_rdatatype_rrsig)
 					type = rdataset->covers;
 			        if (((type == dns_rdatatype_ns ||
 				      type == dns_rdatatype_soa) &&
@@ -4006,12 +4006,12 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 				type = rdataset->type;
-				if (type == dns_rdatatype_sig)
+				if (type == dns_rdatatype_rrsig)
 					type = rdataset->covers;
 				if (type == dns_rdatatype_soa ||
-				    type == dns_rdatatype_nxt) {
+				    type == dns_rdatatype_nsec) {
 					/*
-					 * SOA, SIG SOA, NXT, or SIG NXT.
+					 * SOA, RRSIG SOA, NSEC, or RRSIG NSEC.
 					 *
 					 * Only one SOA is allowed.
 					 */
@@ -4253,7 +4253,7 @@ answer_response(fetchctx_t *fctx) {
 					 */
 					found = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWER;
-				} else if (rdataset->type == dns_rdatatype_sig
+				} else if (rdataset->type == dns_rdatatype_rrsig
 					   && rdataset->covers == type
 					   && !found_cname) {
 					/*
@@ -4273,9 +4273,9 @@ answer_response(fetchctx_t *fctx) {
 					 * Getting a CNAME response for some
 					 * query types is an error.
 					 */
-					if (type == dns_rdatatype_sig ||
-					    type == dns_rdatatype_key ||
-					    type == dns_rdatatype_nxt)
+					if (type == dns_rdatatype_rrsig ||
+					    type == dns_rdatatype_dnskey ||
+					    type == dns_rdatatype_nsec)
 						return (DNS_R_FORMERR);
 					found = ISC_TRUE;
 					found_cname = ISC_TRUE;
@@ -4285,7 +4285,7 @@ answer_response(fetchctx_t *fctx) {
 							      &tname);
 					if (result != ISC_R_SUCCESS)
 						return (result);
-				} else if (rdataset->type == dns_rdatatype_sig
+				} else if (rdataset->type == dns_rdatatype_rrsig
 					   && rdataset->covers ==
 					   dns_rdatatype_cname
 					   && !found_type) {
@@ -4417,7 +4417,7 @@ answer_response(fetchctx_t *fctx) {
 						return (result);
 					else
 						found_dname = ISC_TRUE;
-				} else if (rdataset->type == dns_rdatatype_sig
+				} else if (rdataset->type == dns_rdatatype_rrsig
 					   && rdataset->covers ==
 					   dns_rdatatype_dname) {
 					/*
@@ -4553,7 +4553,7 @@ answer_response(fetchctx_t *fctx) {
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 				if (rdataset->type == dns_rdatatype_ns ||
-				    (rdataset->type == dns_rdatatype_sig &&
+				    (rdataset->type == dns_rdatatype_rrsig &&
 				     rdataset->covers == dns_rdatatype_ns)) {
 					name->attributes |=
 						DNS_NAMEATTR_CACHE;

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.26 2003/07/24 06:08:20 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.27 2003/09/30 05:56:18 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -40,6 +40,14 @@
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 
+	/*
+	 * XXXMPA  Temporarially disable RSA_BLINDING as it requires
+	 * good quality random data that cannot currently be guarenteed.
+	 * XXXMPA  Find which versions of openssl use pseudo random data
+	 * and set RSA_FLAG_BLINDING for those.
+	 */
+
+#if 0
 #if OPENSSL_VERSION_NUMBER < 0x0090601fL
 #define SET_FLAGS(rsa) \
 	do { \
@@ -50,6 +58,20 @@
 #define SET_FLAGS(rsa) \
 	do { \
 		(rsa)->flags |= RSA_FLAG_BLINDING; \
+	} while (0)
+#endif
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x0090601fL
+#define SET_FLAGS(rsa) \
+	do { \
+	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE); \
+	(rsa)->flags &= ~RSA_FLAG_BLINDING; \
+	} while (0)
+#else
+#define SET_FLAGS(rsa) \
+	do { \
+		(rsa)->flags &= ~RSA_FLAG_BLINDING; \
 	} while (0)
 #endif
 
@@ -123,10 +145,14 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_region_t r;
 	/* note: ISC_SHA1_DIGESTLENGTH > ISC_MD5_DIGESTLENGTH */
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-	unsigned int siglen;
+	unsigned int siglen = 0;
 	int status;
 	int type;
 	unsigned int digestlen;
+	char *message;
+	unsigned long err;
+	const char* file;
+	int line;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
 		dctx->key->key_alg == DST_ALG_RSASHA1);
@@ -149,8 +175,15 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	status = RSA_sign(type, digest, digestlen, r.base, &siglen, rsa);
-	if (status == 0)
+	if (status == 0) {
+		err = ERR_peek_error_line(&file, &line);
+		if (err != 0) {
+			message = ERR_error_string(err, NULL);
+			fprintf(stderr, "%s:%s:%d\n", message,
+				file ? file : "", line);
+		}
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	}
 
 	isc_buffer_add(sig, siglen);
 

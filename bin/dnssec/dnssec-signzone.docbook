@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.6 2003/02/07 01:13:10 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.7 2003/09/30 05:56:00 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -62,8 +62,8 @@
   <refsect1>
     <title>DESCRIPTION</title>
     <para>
-        <command>dnssec-signzone</command> signs a zone.  It generates NXT
-	and SIG records and produces a signed version of the zone.  If there
+        <command>dnssec-signzone</command> signs a zone.  It generates NSEC
+	and RRSIG records and produces a signed version of the zone.  If there
 	is a <filename>signedkey</filename> file from the zone's parent,
 	the parent's signatures will be incorporated into the generated
 	signed zone file.  The security status of delegations from the the
@@ -129,7 +129,7 @@
         <term>-s <replaceable class="parameter">start-time</replaceable></term>
 	<listitem>
 	  <para>
-	       Specify the date and time when the generated SIG records
+	       Specify the date and time when the generated RRSIG records
 	       become valid.  This can be either an absolute or relative
 	       time.  An absolute start time is indicated by a number
 	       in YYYYMMDDHHMMSS notation; 20000530144500 denotes
@@ -145,7 +145,7 @@
         <term>-e <replaceable class="parameter">end-time</replaceable></term>
 	<listitem>
 	  <para>
-	       Specify the date and time when the generated SIG records
+	       Specify the date and time when the generated RRSIG records
 	       expire.  As with <option>start-time</option>, an absolute
 	       time is indicated in YYYYMMDDHHMMSS notation.  A time relative
 	       to the start time is indicated with +N, which is N seconds from
@@ -184,7 +184,7 @@
 	       When a previously signed zone is passed as input, records
 	       may be resigned.  The <option>interval</option> option
 	       specifies the cycle interval as an offset from the current
-	       time (in seconds).  If a SIG record expires after the
+	       time (in seconds).  If a RRSIG record expires after the
 	       cycle interval, it is retained.  Otherwise, it is considered
 	       to be expiring soon, and it will be replaced.
 	  </para>
@@ -194,7 +194,7 @@
 	       <option>end-time</option> or <option>start-time</option>
 	       are specified, <command>dnssec-signzone</command> generates
 	       signatures that are valid for 30 days, with a cycle
-	       interval of 7.5 days.  Therefore, if any existing SIG records
+	       interval of 7.5 days.  Therefore, if any existing RRSIG records
 	       are due to expire in less than 7.5 days, they would be
 	       replaced.
 	  </para>

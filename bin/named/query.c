@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.246 2003/07/29 22:05:01 jinmei Exp $ */
+/* $Id: query.c,v 1.247 2003/09/30 05:56:01 marka Exp $ */
 
 #include <config.h>
 
@@ -1204,7 +1204,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 * XXXRTH  We should lower the priority here.  Alternatively,
 		 * we could raise the priority of glue records.
 		 */
-		eresult = query_addadditional(client, name, dns_rdatatype_key);
+		eresult = query_addadditional(client, name, dns_rdatatype_dnskey);
  	} else if (type == dns_rdatatype_srv && trdataset != NULL) {
 		/*
 		 * If we're adding SRV records to the additional data
@@ -1277,7 +1277,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 		 * XXXRTH  We should lower the priority here.  Alternatively,
 		 * we could raise the priority of glue records.
 		 */
-		(void)query_addadditional(client, fname, dns_rdatatype_key);
+		(void)query_addadditional(client, fname, dns_rdatatype_dnskey);
 	}
 	CTRACE("query_addrdataset: done");
 }
@@ -1779,10 +1779,10 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node) {
 	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ds, 0,
 				     client->now, rdataset, sigrdataset);
 	/*
-	 * If we didn't find it, look for an NXT. */
+	 * If we didn't find it, look for an NSEC. */
 	if (result == ISC_R_NOTFOUND)
 		result = dns_db_findrdataset(db, node, NULL,
-					     dns_rdatatype_nxt, 0, client->now,
+					     dns_rdatatype_nsec, 0, client->now,
 					     rdataset, sigrdataset);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 		goto cleanup;
@@ -1855,7 +1855,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			goto cleanup;
 
 		result = dns_db_find(db, name, NULL,
-				     dns_rdatatype_nxt, options, 0, &node,
+				     dns_rdatatype_nsec, options, 0, &node,
 				     fname, rdataset, sigrdataset);
 		if (node != NULL)
 			dns_db_detachnode(db, &node);
@@ -1897,7 +1897,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		if (result != ISC_R_SUCCESS)
 			continue;
 
-		result = dns_db_find(db, tname, NULL, dns_rdatatype_nxt,
+		result = dns_db_find(db, tname, NULL, dns_rdatatype_nsec,
 				     client->query.dboptions, 0, &node,
 				     fname, rdataset, sigrdataset);
 		if (node != NULL)
@@ -1932,13 +1932,13 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 }
 
 static void
-query_addnxrrsetnxt(ns_client_t *client, dns_db_t *db, dns_name_t **namep,
+query_addnxrrsetnsec(ns_client_t *client, dns_db_t *db, dns_name_t **namep,
 		    dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp)
 {
 	dns_name_t *name;
 	dns_rdataset_t *sigrdataset;
 	dns_rdata_t sigrdata;
-	dns_rdata_sig_t sig;
+	dns_rdata_rrsig_t sig;
 	unsigned int labels;
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname;
@@ -2316,7 +2316,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		is_zone = ISC_FALSE;
 
 		qtype = event->qtype;
-		if (qtype == dns_rdatatype_sig)
+		if (qtype == dns_rdatatype_rrsig)
 			type = dns_rdatatype_any;
 		else
 			type = qtype;
@@ -2357,7 +2357,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	/*
 	 * If it's a SIG query, we'll iterate the node.
 	 */
-	if (qtype == dns_rdatatype_sig)
+	if (qtype == dns_rdatatype_rrsig)
 		type = dns_rdatatype_any;
 	else
 		type = qtype;
@@ -2728,7 +2728,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
-			 * If we've got a NXT record, we need to save the
+			 * If we've got a NSEC record, we need to save the
 			 * name now because we're going call query_addsoa()
 			 * below, and it needs to use the name buffer.
 			 */
@@ -2750,11 +2750,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			goto cleanup;
 		}
 		/*
-		 * Add NXT record if we found one.
+		 * Add NSEC record if we found one.
 		 */
 		if (WANTDNSSEC(client)) {
 			if (dns_rdataset_isassociated(rdataset))
-				query_addnxrrsetnxt(client, db, &fname,
+				query_addnxrrsetnsec(client, db, &fname,
 						    &rdataset, &sigrdataset);
 		}
 		goto cleanup;
@@ -2765,7 +2765,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
-			 * If we've got a NXT record, we need to save the
+			 * If we've got a NSEC record, we need to save the
 			 * name now because we're going call query_addsoa()
 			 * below, and it needs to use the name buffer.
 			 */
@@ -2793,7 +2793,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			goto cleanup;
 		}
 		/*
-		 * Add NXT record if we found one.
+		 * Add NSEC record if we found one.
 		 */
 		if (dns_rdataset_isassociated(rdataset)) {
 			if (WANTDNSSEC(client)) {
@@ -3092,7 +3092,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			/*
 			 * We didn't match any rdatasets.
 			 */
-			if (qtype == dns_rdatatype_sig &&
+			if (qtype == dns_rdatatype_rrsig &&
 			    result == ISC_R_NOMORE) {
 				/*
 				 * XXXRTH  If this is a secure zone and we
@@ -3162,7 +3162,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	}
 
 	/*
-	 * Add NXT records to the authority section if they're needed for
+	 * Add NSEC records to the authority section if they're needed for
 	 * DNSSEC wildcard proofs.
 	 */
 	if (need_wildcardproof && dns_db_issecure(db))
@@ -3387,7 +3387,7 @@ ns_query_start(ns_client_t *client) {
 	 * to return data before validation has completed.
 	 */
 	if (message->flags & DNS_MESSAGEFLAG_CD ||
-	    qtype == dns_rdatatype_sig)
+	    qtype == dns_rdatatype_rrsig)
 	{
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;

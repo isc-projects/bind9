@@ -234,7 +234,7 @@ SOURCE=..\include\dns\ncache.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\dns\nxt.h
+SOURCE=..\include\dns\nsec.h
 # End Source File
 # Begin Source File
 
@@ -511,7 +511,7 @@ SOURCE=..\ncache.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\nxt.c
+SOURCE=..\nsec.c
 # End Source File
 # Begin Source File
 

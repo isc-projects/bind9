@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.68 2003/06/18 05:42:45 marka Exp $ */
+/* $Id: masterdump.c,v 1.69 2003/09/30 05:56:12 marka Exp $ */
 
 #include <config.h>
 
@@ -715,7 +715,7 @@ static int
 dump_order(const dns_rdataset_t *rds) {
 	int t;
 	int sig;
-	if (rds->type == dns_rdatatype_sig) {
+	if (rds->type == dns_rdatatype_rrsig) {
 		t = rds->covers;
 		sig = 1;
 	} else {

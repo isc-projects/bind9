@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.37 2003/07/25 00:01:04 marka Exp $ */
+/* $Id: dnssectool.c,v 1.38 2003/09/30 05:56:00 marka Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,7 @@ alg_format(const dns_secalg_t alg, char *cp, unsigned int size) {
 }
 
 void
-sig_format(dns_rdata_sig_t *sig, char *cp, unsigned int size) {
+sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
 

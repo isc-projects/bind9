@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.59 2003/07/25 00:01:04 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.60 2003/09/30 05:55:59 marka Exp $ */
 
 #include <config.h>
 
@@ -135,7 +135,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 }
 
 static dst_key_t *
-findkey(dns_rdata_sig_t *sig) {
+findkey(dns_rdata_rrsig_t *sig) {
 	keynode_t *keynode;
 	for (keynode = ISC_LIST_HEAD(keylist);
 	     keynode != NULL;
@@ -172,7 +172,7 @@ main(int argc, char *argv[]) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset, sigrdataset;
-	dns_rdata_sig_t sig;
+	dns_rdata_rrsig_t sig;
 	isc_result_t result;
 	isc_buffer_t b;
 	isc_log_t *log = NULL;
@@ -315,7 +315,7 @@ main(int argc, char *argv[]) {
 
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_init(&sigrdataset);
-	result = dns_db_findrdataset(db, node, version, dns_rdatatype_key, 0,
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey, 0,
 				     0, &rdataset, &sigrdataset);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
@@ -407,8 +407,8 @@ main(int argc, char *argv[]) {
 		dst_key_free(&key);
 	}
 
-	result = dns_db_deleterdataset(db, node, version, dns_rdatatype_sig,
-				       dns_rdatatype_key);
+	result = dns_db_deleterdataset(db, node, version, dns_rdatatype_rrsig,
+				       dns_rdatatype_dnskey);
 	check_result(result, "dns_db_deleterdataset");
 
 	result = dns_diff_apply(&diff, db, version);

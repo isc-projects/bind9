@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.112 2003/02/27 00:19:04 marka Exp $ */
+/* $Id: validator.c,v 1.113 2003/09/30 05:56:14 marka Exp $ */
 
 #include <config.h>
 
@@ -32,7 +32,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
-#include <dns/nxt.h>
+#include <dns/nsec.h>
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdataset.h>
@@ -56,7 +56,7 @@ static void
 destroy(dns_validator_t *val);
 
 static isc_result_t
-get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
+get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 	    dns_rdataset_t *rdataset);
 
 static isc_result_t
@@ -66,7 +66,7 @@ static isc_result_t
 validatezonekey(dns_validator_t *val, isc_boolean_t resume);
 
 static isc_result_t
-nxtvalidate(dns_validator_t *val, isc_boolean_t resume);
+nsecvalidate(dns_validator_t *val, isc_boolean_t resume);
 
 static isc_result_t
 proveunsecure(dns_validator_t *val, isc_boolean_t resume);
@@ -159,18 +159,18 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdataset_clone(rdataset, &set);
 	else {
 		result = dns_ncache_getrdataset(rdataset, name,
-						dns_rdatatype_nxt, &set);
+						dns_rdatatype_nsec, &set);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_FALSE);
 	}
 
-	INSIST(set.type == dns_rdatatype_nxt);
+	INSIST(set.type == dns_rdatatype_nsec);
 
 	found = ISC_FALSE;
 	result = dns_rdataset_first(&set);
 	if (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&set, &rdata);
-		found = dns_nxt_typepresent(&rdata, dns_rdatatype_ns);
+		found = dns_nsec_typepresent(&rdata, dns_rdatatype_ns);
 	}
 	dns_rdataset_disassociate(&set);
 	return (found);
@@ -433,8 +433,8 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_boolean_t
-nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
-		      dns_rdataset_t *nxtset)
+nsecprovesnonexistence(dns_validator_t *val, dns_name_t *nsecname,
+		      dns_rdataset_t *nsecset)
 {
 	int order;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -450,16 +450,16 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 	else
 		isnxdomain = ISC_FALSE;
 
-	result = dns_rdataset_first(nxtset);
+	result = dns_rdataset_first(nsecset);
 	if (result != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			"failure processing NXT set");
+			"failure processing NSEC set");
 		return (ISC_FALSE);
 	}
-	dns_rdataset_current(nxtset, &rdata);
+	dns_rdataset_current(nsecset, &rdata);
 
-	validator_log(val, ISC_LOG_DEBUG(3), "looking for relevant nxt");
-	relation = dns_name_fullcompare(val->event->name, nxtname,
+	validator_log(val, ISC_LOG_DEBUG(3), "looking for relevant nsec");
+	relation = dns_name_fullcompare(val->event->name, nsecname,
 					&order, &olabels, &bits);
 	if (order == 0) {
 		/*
@@ -467,7 +467,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		 */
 		if (isnxdomain) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "NXT record seen at nonexistent name");
+				      "NSEC record seen at nonexistent name");
 			return (ISC_FALSE);
 		}
 		if (val->event->type >= 128) {
@@ -476,107 +476,107 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 			return (ISC_FALSE);
 		}
 
-		if (dns_nxt_typepresent(&rdata, val->event->type)) {
+		if (dns_nsec_typepresent(&rdata, val->event->type)) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "type should not be present");
 			return (ISC_FALSE);
 		}
-		validator_log(val, ISC_LOG_DEBUG(3), "nxt bitmask ok");
+		validator_log(val, ISC_LOG_DEBUG(3), "nsec bitmask ok");
 	} else if (order > 0) {
-		dns_rdata_nxt_t nxt;
+		dns_rdata_nsec_t nsec;
 
 		/*
-		 * The NXT owner name is less than the nonexistent name.
+		 * The NSEC owner name is less than the nonexistent name.
 		 */
 		if (!isnxdomain) {
 			/*
 			 * Is this a empty node?
 			 */
-			result = dns_rdata_tostruct(&rdata, &nxt, NULL);
+			result = dns_rdata_tostruct(&rdata, &nsec, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			relation = dns_name_fullcompare(&nxt.next,
+			relation = dns_name_fullcompare(&nsec.next,
 						        val->event->name,
 							&order, &nlabels,
 							&bits);
 			if (order > 0 && relation == dns_namereln_subdomain) {
-				dns_rdata_freestruct(&nxt);
+				dns_rdata_freestruct(&nsec);
 				validator_log(val, ISC_LOG_DEBUG(3),
-				      "nxt proves empty node, ok");
+				      "nsec proves empty node, ok");
 				return (ISC_TRUE);
 			}
 			/*
 			 * Look for empty wildcard matches.
 			 */
-			labels = dns_name_countlabels(&nxt.next);
+			labels = dns_name_countlabels(&nsec.next);
 			if (nlabels >= olabels && nlabels + 1 < labels) {
 				dns_name_t wild;
 				dns_name_init(&wild, NULL);
-				dns_name_getlabelsequence(&nxt.next,
+				dns_name_getlabelsequence(&nsec.next,
 							  labels - 1 - nlabels,
 							  nlabels + 1,
 							  &wild);
 				if (dns_name_iswildcard(&wild)) {
-					dns_rdata_freestruct(&nxt);
+					dns_rdata_freestruct(&nsec);
 					validator_log(val, ISC_LOG_DEBUG(3),
-					      "nxt proves empty wildcard, ok");
+					      "nsec proves empty wildcard, ok");
 					return (ISC_TRUE);
 				}
 			}
 			/*
 			 * We are not a empty name.
 			 */
-			dns_rdata_freestruct(&nxt);
+			dns_rdata_freestruct(&nsec);
 			validator_log(val, ISC_LOG_DEBUG(3),
-					      "missing NXT record at name");
+					      "missing NSEC record at name");
 			return (ISC_FALSE);
 		}
-		if (dns_name_issubdomain(val->event->name, nxtname) &&
-		    dns_nxt_typepresent(&rdata, dns_rdatatype_ns) &&
-		    !dns_nxt_typepresent(&rdata, dns_rdatatype_soa))
+		if (dns_name_issubdomain(val->event->name, nsecname) &&
+		    dns_nsec_typepresent(&rdata, dns_rdatatype_ns) &&
+		    !dns_nsec_typepresent(&rdata, dns_rdatatype_soa))
 		{
 			/*
-			 * This NXT record is from somewhere higher in
+			 * This NSEC record is from somewhere higher in
 			 * the DNS, and at the parent of a delegation.
 			 * It can not be legitimately used here.
 			 */
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "ignoring parent nxt");
+				      "ignoring parent nsec");
 			return (ISC_FALSE);
 		}
-		result = dns_rdata_tostruct(&rdata, &nxt, NULL);
+		result = dns_rdata_tostruct(&rdata, &nsec, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_FALSE);
 		dns_rdata_reset(&rdata);
-		relation = dns_name_fullcompare(&nxt.next, val->event->name,
+		relation = dns_name_fullcompare(&nsec.next, val->event->name,
 						&order, &nlabels, &bits);
 		if (order <= 0) {
 			/*
-			 * The NXT next name is less than the nonexistent
+			 * The NSEC next name is less than the nonexistent
 			 * name.  This is only ok if the next name is the zone
 			 * name.
 			 */
-			if (!dns_name_equal(val->soaname, &nxt.next)) {
+			if (!dns_name_equal(val->soaname, &nsec.next)) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					"next name is not greater");
-				dns_rdata_freestruct(&nxt);
+				dns_rdata_freestruct(&nsec);
 				return (ISC_FALSE);
 			}
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "nxt points to zone apex, ok");
+				      "nsec points to zone apex, ok");
 		} else if (relation == dns_namereln_subdomain) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "nxt proves empty node, bad");
-			dns_rdata_freestruct(&nxt);
+				      "nsec proves empty node, bad");
+			dns_rdata_freestruct(&nsec);
 			return (ISC_FALSE);
 		}
-		dns_rdata_freestruct(&nxt);
-		validator_log(val, ISC_LOG_DEBUG(3), "nxt range ok");
+		dns_rdata_freestruct(&nsec);
+		validator_log(val, ISC_LOG_DEBUG(3), "nsec range ok");
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "nxt owner name is not less");
+			      "nsec owner name is not less");
 		/*
-		 * The NXT owner name is greater than the supposedly
-		 * nonexistent name.  This NXT is irrelevant.
+		 * The NSEC owner name is greater than the supposedly
+		 * nonexistent name.  This NSEC is irrelevant.
 		 */
 		return (ISC_FALSE);
 	}
@@ -612,17 +612,17 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_CANCELED)
 			validator_done(val, result);
 		else {
-			result = nxtvalidate(val, ISC_TRUE);
+			result = nsecvalidate(val, ISC_TRUE);
 			if (result != DNS_R_WAIT)
 				validator_done(val, result);
 		}
 	} else {
-		if (val->soaname != NULL && val->nxtset != NULL &&
+		if (val->soaname != NULL && val->nsecset != NULL &&
 		    (val->attributes & VALATTR_FOUNDNONEXISTENCE) == 0 &&
-		    nxtprovesnonexistence(val, devent->name, rdataset))
+		    nsecprovesnonexistence(val, devent->name, rdataset))
 			val->attributes |= VALATTR_FOUNDNONEXISTENCE;
 
-		result = nxtvalidate(val, ISC_TRUE);
+		result = nsecvalidate(val, ISC_TRUE);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 	}
@@ -757,7 +757,7 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
  * If val->key is non-NULL, this returns the next matching key.
  */
 static isc_result_t
-get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
+get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 	    dns_rdataset_t *rdataset)
 {
 	isc_result_t result;
@@ -818,7 +818,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
 }
 
 static isc_result_t
-get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
+get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	isc_result_t result;
 	unsigned int nbits, nlabels;
 	int order;
@@ -841,7 +841,7 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 		 * If this is a self-signed keyset, it must not be a zone key
 		 * (since get_key is not called from validatezonekey).
 		 */
-		if (val->event->rdataset->type == dns_rdatatype_key)
+		if (val->event->rdataset->type == dns_rdatatype_dnskey)
 			return (DNS_R_CONTINUE);
 
 		/*
@@ -855,7 +855,7 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 	/*
 	 * Do we know about this key?
 	 */
-	result = view_find(val, &siginfo->signer, dns_rdatatype_key);
+	result = view_find(val, &siginfo->signer, dns_rdatatype_dnskey);
 	if (result == ISC_R_SUCCESS) {
 		/*
 		 * We have an rrset for the given keyname.
@@ -868,7 +868,7 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 			 * We know the key but haven't validated it yet.
 			 */
 			result = create_validator(val, &siginfo->signer,
-						  dns_rdatatype_key,
+						  dns_rdatatype_dnskey,
 						  &val->frdataset,
 						  &val->fsigrdataset,
 						  keyvalidated,
@@ -910,7 +910,7 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 		/*
 		 * We don't know anything about this key.
 		 */
-		result = create_fetch(val, &siginfo->signer, dns_rdatatype_key,
+		result = create_fetch(val, &siginfo->signer, dns_rdatatype_dnskey,
 				      fetch_callback_validator, "get_key");
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -936,7 +936,7 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 }
 
 static dns_keytag_t
-compute_keytag(dns_rdata_t *rdata, dns_rdata_key_t *key) {
+compute_keytag(dns_rdata_t *rdata, dns_rdata_dnskey_t *key) {
 	isc_region_t r;
 
 	dns_rdata_toregion(rdata, &r);
@@ -951,15 +951,15 @@ isselfsigned(dns_validator_t *val) {
 	dns_rdataset_t *rdataset, *sigrdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
-	dns_rdata_key_t key;
-	dns_rdata_sig_t sig;
+	dns_rdata_dnskey_t key;
+	dns_rdata_rrsig_t sig;
 	dns_keytag_t keytag;
 	isc_result_t result;
 
 	rdataset = val->event->rdataset;
 	sigrdataset = val->event->sigrdataset;
 
-	INSIST(rdataset->type == dns_rdatatype_key);
+	INSIST(rdataset->type == dns_rdatatype_dnskey);
 
 	for (result = dns_rdataset_first(rdataset);
 	     result == ISC_R_SUCCESS;
@@ -1168,8 +1168,8 @@ validatezonekey(dns_validator_t *val, isc_boolean_t resume) {
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
 	dns_keytag_t keytag;
 	dns_rdata_ds_t ds;
-	dns_rdata_key_t key;
-	dns_rdata_sig_t sig;
+	dns_rdata_dnskey_t key;
+	dns_rdata_rrsig_t sig;
 	dst_key_t *dstkey;
 
 	UNUSED(resume);
@@ -1407,14 +1407,14 @@ start_positive_validation(dns_validator_t *val) {
 	/*
 	 * If this is not a key, go straight into validate().
 	 */
-	if (val->event->type != dns_rdatatype_key || !isselfsigned(val))
+	if (val->event->type != dns_rdatatype_dnskey || !isselfsigned(val))
 		return (validate(val, ISC_FALSE));
 
 	return (validatezonekey(val, ISC_FALSE));
 }
 
 static isc_result_t
-nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
+nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 	dns_name_t *name;
 	dns_message_t *message = val->event->message;
 	isc_result_t result;
@@ -1423,7 +1423,7 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	else {
 		result = ISC_R_SUCCESS;
-		validator_log(val, ISC_LOG_DEBUG(3), "resuming nxtvalidate");
+		validator_log(val, ISC_LOG_DEBUG(3), "resuming nsecvalidate");
 	}
 
 	for (;
@@ -1446,21 +1446,21 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link))
 		{
-			if (rdataset->type == dns_rdatatype_sig)
+			if (rdataset->type == dns_rdatatype_rrsig)
 				continue;
 
 			if (rdataset->type == dns_rdatatype_soa) {
 				val->soaset = rdataset;
 				val->soaname = name;
-			} else if (rdataset->type == dns_rdatatype_nxt)
-				val->nxtset = rdataset;
+			} else if (rdataset->type == dns_rdatatype_nsec)
+				val->nsecset = rdataset;
 
 			for (sigrdataset = ISC_LIST_HEAD(name->list);
 			     sigrdataset != NULL;
 			     sigrdataset = ISC_LIST_NEXT(sigrdataset,
 							 link))
 			{
-				if (sigrdataset->type == dns_rdatatype_sig &&
+				if (sigrdataset->type == dns_rdatatype_rrsig &&
 				    sigrdataset->covers == rdataset->type)
 					break;
 			}
@@ -1472,24 +1472,24 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			 * things could happen.  A query for data in the zone
 			 * would lead to a query for the zone key, which
 			 * would return a negative answer, which would contain
-			 * an SOA and an NXT signed by the missing key, which
+			 * an SOA and an NSEC signed by the missing key, which
 			 * would trigger another query for the KEY (since the
 			 * first one is still in progress), and go into an
 			 * infinite loop.  Avoid that.
 			 */
-			if (val->event->type == dns_rdatatype_key &&
+			if (val->event->type == dns_rdatatype_dnskey &&
 			    dns_name_equal(name, val->event->name))
 			{
-				dns_rdata_t nxt = DNS_RDATA_INIT;
+				dns_rdata_t nsec = DNS_RDATA_INIT;
 
-				if (rdataset->type != dns_rdatatype_nxt)
+				if (rdataset->type != dns_rdatatype_nsec)
 					continue;
 
 				result = dns_rdataset_first(rdataset);
 				if (result != ISC_R_SUCCESS)
 					return (result);
-				dns_rdataset_current(rdataset, &nxt);
-				if (dns_nxt_typepresent(&nxt,
+				dns_rdataset_current(rdataset, &nsec);
+				if (dns_nsec_typepresent(&nsec,
 							dns_rdatatype_soa))
 					continue;
 			}
@@ -1497,7 +1497,7 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			result = create_validator(val, name, rdataset->type,
 						  rdataset, sigrdataset,
 						  authvalidated,
-						  "nxtvalidate");
+						  "nsecvalidate");
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			return (DNS_R_WAIT);
@@ -1514,14 +1514,14 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			result = create_validator(val, name, dns_rdatatype_soa,
 						  val->soaset, NULL,
 						  negauthvalidated,
-						  "nxtvalidate");
+						  "nsecvalidate");
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			return (DNS_R_WAIT);
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "nonexistence proof not found");
-		return (DNS_R_NOVALIDNXT);
+		return (DNS_R_NOVALIDNSEC);
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "nonexistence proof found");
@@ -1628,10 +1628,10 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 			 */
 			if (!dns_rdataset_isassociated(&val->frdataset)) {
 				/*
-				 * There should be an NXT here, since we
+				 * There should be an NSEC here, since we
 				 * are still in a secure zone.
 				 */
-				result = DNS_R_NOVALIDNXT;
+				result = DNS_R_NOVALIDNSEC;
 				goto out;
 			} else if (val->frdataset.trust < dns_trust_secure) {
 				/*
@@ -1731,7 +1731,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			      "attempting negative response validation");
 
 		val->attributes |= VALATTR_NEGATIVE;
-		result = nxtvalidate(val, ISC_FALSE);
+		result = nsecvalidate(val, ISC_FALSE);
 	} else {
 		/*
 		 * This shouldn't happen.
@@ -1815,7 +1815,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->keyset = NULL;
 	val->dsset = NULL;
 	val->soaset = NULL;
-	val->nxtset = NULL;
+	val->nsecset = NULL;
 	val->soaname = NULL;
 	val->seensig = ISC_FALSE;
 	dns_rdataset_init(&val->frdataset);

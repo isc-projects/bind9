@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.86 2003/09/19 14:35:03 marka Exp $ */
+/* $Id: view.h,v 1.87 2003/09/30 05:56:17 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -487,7 +487,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *	'name' is valid name.
  *
  *	'type' is a valid dns_rdatatype_t, and is not a meta query type
- *	(e.g. dns_rdatatype_any), or dns_rdatatype_sig.
+ *	(e.g. dns_rdatatype_any), or dns_rdatatype_rrsig.
  *
  *	'rdataset' is a valid, disassociated rdataset.
  *

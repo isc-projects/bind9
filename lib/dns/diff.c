@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.6 2002/08/06 14:33:08 marka Exp $ */
+/* $Id: diff.c,v 1.7 2003/09/30 05:56:10 marka Exp $ */
 
 #include <config.h>
 
@@ -44,7 +44,7 @@
 
 static dns_rdatatype_t
 rdata_covers(dns_rdata_t *rdata) {
-	return (rdata->type == dns_rdatatype_sig ?
+	return (rdata->type == dns_rdatatype_rrsig ?
 		dns_rdata_covers(rdata) : 0);
 }
 

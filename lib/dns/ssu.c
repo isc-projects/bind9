@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.22 2001/08/28 03:58:08 marka Exp $
+ * $Id: ssu.c,v 1.23 2003/09/30 05:56:13 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -240,7 +240,7 @@ static inline isc_boolean_t
 isusertype(dns_rdatatype_t type) {
 	return (ISC_TF(type != dns_rdatatype_ns &&
 		       type != dns_rdatatype_soa &&
-		       type != dns_rdatatype_sig));
+		       type != dns_rdatatype_rrsig));
 }
 
 isc_boolean_t

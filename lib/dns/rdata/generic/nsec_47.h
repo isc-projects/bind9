@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,26 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef GENERIC_TKEY_249_H
-#define GENERIC_TKEY_249_H 1
+#ifndef GENERIC_NSEC_47_H
+#define GENERIC_NSEC_47_H 1
 
-/* $Id: tkey_249.h,v 1.19 2003/09/30 05:56:18 marka Exp $ */
+/* $Id: nsec_47.h,v 1.2 2003/09/30 06:00:40 marka Exp $ */
 
-/* draft-ietf-dnsind-tkey-00.txt */
+/* RFC 2535 */
 
-typedef struct dns_rdata_tkey {
-        dns_rdatacommon_t	common;
-        isc_mem_t *		mctx;
-        dns_name_t		algorithm;
-        isc_uint32_t		inception;
-        isc_uint32_t		expire;
-        isc_uint16_t		mode;
-        isc_uint16_t		error;
-        isc_uint16_t		keylen;
-        unsigned char *		key;
-        isc_uint16_t		otherlen;
-        unsigned char *		other;
-} dns_rdata_tkey_t;
+typedef struct dns_rdata_nsec {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	dns_name_t		next;
+	unsigned char		*typebits;
+	isc_uint16_t		len;
+} dns_rdata_nsec_t;
 
-
-#endif /* GENERIC_TKEY_249_H */
+#endif /* GENERIC_NSEC_47_H */

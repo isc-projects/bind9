@@ -15,23 +15,23 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.57 2003/09/30 05:56:17 marka Exp $ */
+/* $Id: nsec_47.c,v 1.2 2003/09/30 06:00:40 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
 /* RFC 2535 */
 
-#ifndef RDATA_GENERIC_NXT_30_C
-#define RDATA_GENERIC_NXT_30_C
+#ifndef RDATA_GENERIC_NSEC_47_C
+#define RDATA_GENERIC_NSEC_47_C
 
 /*
  * The attributes do not include DNS_RDATATYPEATTR_SINGLETON
- * because we must be able to handle a parent/child NXT pair.
+ * because we must be able to handle a parent/child NSEC pair.
  */
-#define RRTYPE_NXT_ATTRIBUTES (0)
+#define RRTYPE_NSEC_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
 static inline isc_result_t
-fromtext_nxt(ARGS_FROMTEXT) {
+fromtext_nsec(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -42,7 +42,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	isc_boolean_t first = ISC_TRUE;
 	long n;
 
-	REQUIRE(type == 30);
+	REQUIRE(type == 47);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -71,7 +71,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 				&token.value.as_textregion) == DNS_R_UNKNOWN)
 			RETTOK(DNS_R_UNKNOWN);
 		/*
-		 * NXT is only specified for types 1..127.
+		 * NSEC is only specified for types 1..127.
 		 */
 		if (covered < 1 || covered > 127)
 			return (ISC_R_RANGE);
@@ -88,14 +88,14 @@ fromtext_nxt(ARGS_FROMTEXT) {
 }
 
 static inline isc_result_t
-totext_nxt(ARGS_TOTEXT) {
+totext_nsec(ARGS_TOTEXT) {
 	isc_region_t sr;
 	unsigned int i, j;
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
 
-	REQUIRE(rdata->type == 30);
+	REQUIRE(rdata->type == 47);
 	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
@@ -127,11 +127,11 @@ totext_nxt(ARGS_TOTEXT) {
 }
 
 static inline isc_result_t
-fromwire_nxt(ARGS_FROMWIRE) {
+fromwire_nsec(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 
-	REQUIRE(type == 30);
+	REQUIRE(type == 47);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -142,21 +142,21 @@ fromwire_nxt(ARGS_FROMWIRE) {
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
 
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length > 0 && (sr.base[0] & 0x80) == 0 &&
-	    ((sr.length > 16) || sr.base[sr.length - 1] == 0))
-		return (DNS_R_BADBITMAP);
+	/* XXXRTH  Enforce RFC 2535 length rules if bit 0 is not set. */
+	if (sr.length > 8 * 1024)
+		return (DNS_R_EXTRADATA);
 	RETERR(mem_tobuffer(target, sr.base, sr.length));
 	isc_buffer_forward(source, sr.length);
 	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
-towire_nxt(ARGS_TOWIRE) {
+towire_nsec(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 	dns_offsets_t offsets;
 
-	REQUIRE(rdata->type == 30);
+	REQUIRE(rdata->type == 47);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
@@ -170,110 +170,95 @@ towire_nxt(ARGS_TOWIRE) {
 }
 
 static inline int
-compare_nxt(ARGS_COMPARE) {
+compare_nsec(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
-	dns_name_t name1;
-	dns_name_t name2;
-	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 30);
+	REQUIRE(rdata1->type == 47);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	dns_name_fromregion(&name1, &r1);
-	dns_name_fromregion(&name2, &r2);
-	order = dns_name_rdatacompare(&name1, &name2);
-	if (order != 0)
-		return (order);
-
 	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t
-fromstruct_nxt(ARGS_FROMSTRUCT) {
-	dns_rdata_nxt_t *nxt = source;
+fromstruct_nsec(ARGS_FROMSTRUCT) {
+	dns_rdata_nsec_t *nsec = source;
 	isc_region_t region;
 
-	REQUIRE(type == 30);
+	REQUIRE(type == 47);
 	REQUIRE(source != NULL);
-	REQUIRE(nxt->common.rdtype == type);
-	REQUIRE(nxt->common.rdclass == rdclass);
-	REQUIRE(nxt->typebits != NULL || nxt->len == 0);
-	if (nxt->typebits != NULL && (nxt->typebits[0] & 0x80) == 0) {
-		REQUIRE(nxt->len <= 16);
-		REQUIRE(nxt->typebits[nxt->len - 1] != 0);
-	}
+	REQUIRE(nsec->common.rdtype == type);
+	REQUIRE(nsec->common.rdclass == rdclass);
+	REQUIRE(nsec->typebits != NULL || nsec->len == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dns_name_toregion(&nxt->next, &region);
+	dns_name_toregion(&nsec->next, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
 
-	return (mem_tobuffer(target, nxt->typebits, nxt->len));
+	return (mem_tobuffer(target, nsec->typebits, nsec->len));
 }
 
 static inline isc_result_t
-tostruct_nxt(ARGS_TOSTRUCT) {
+tostruct_nsec(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_nxt_t *nxt = target;
+	dns_rdata_nsec_t *nsec = target;
 	dns_name_t name;
 
-	REQUIRE(rdata->type == 30);
+	REQUIRE(rdata->type == 47);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
-	nxt->common.rdclass = rdata->rdclass;
-	nxt->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&nxt->common, link);
+	nsec->common.rdclass = rdata->rdclass;
+	nsec->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&nsec->common, link);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&nxt->next, NULL);
-	RETERR(name_duporclone(&name, mctx, &nxt->next));
+	dns_name_init(&nsec->next, NULL);
+	RETERR(name_duporclone(&name, mctx, &nsec->next));
 
-	nxt->len = region.length;
-	nxt->typebits = mem_maybedup(mctx, region.base, region.length);
-	if (nxt->typebits == NULL)
+	nsec->len = region.length;
+	nsec->typebits = mem_maybedup(mctx, region.base, region.length);
+	if (nsec->typebits == NULL)
 		goto cleanup;
 
-	nxt->mctx = mctx;
+	nsec->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
  cleanup:
 	if (mctx != NULL)
-		dns_name_free(&nxt->next, mctx);
+		dns_name_free(&nsec->next, mctx);
 	return (ISC_R_NOMEMORY);
 }
 
 static inline void
-freestruct_nxt(ARGS_FREESTRUCT) {
-	dns_rdata_nxt_t *nxt = source;
+freestruct_nsec(ARGS_FREESTRUCT) {
+	dns_rdata_nsec_t *nsec = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(nxt->common.rdtype == 30);
+	REQUIRE(nsec->common.rdtype == 47);
 
-	if (nxt->mctx == NULL)
+	if (nsec->mctx == NULL)
 		return;
 
-	dns_name_free(&nxt->next, nxt->mctx);
-	if (nxt->typebits != NULL)
-		isc_mem_free(nxt->mctx, nxt->typebits);
-	nxt->mctx = NULL;
+	dns_name_free(&nsec->next, nsec->mctx);
+	if (nsec->typebits != NULL)
+		isc_mem_free(nsec->mctx, nsec->typebits);
+	nsec->mctx = NULL;
 }
 
 static inline isc_result_t
-additionaldata_nxt(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 30);
+additionaldata_nsec(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == 47);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -283,22 +268,13 @@ additionaldata_nxt(ARGS_ADDLDATA) {
 }
 
 static inline isc_result_t
-digest_nxt(ARGS_DIGEST) {
+digest_nsec(ARGS_DIGEST) {
 	isc_region_t r;
-	dns_name_t name;
-	isc_result_t result;
 
-	REQUIRE(rdata->type == 30);
+	REQUIRE(rdata->type == 47);
 
 	dns_rdata_toregion(rdata, &r);
-	dns_name_init(&name, NULL);
-	dns_name_fromregion(&name, &r);
-	result = dns_name_digest(&name, digest, arg);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	isc_region_consume(&r, name_length(&name));
-
 	return ((digest)(arg, &r));
 }
 
-#endif	/* RDATA_GENERIC_NXT_30_C */
+#endif	/* RDATA_GENERIC_NSEC_47_C */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.179 2003/09/11 01:49:16 marka Exp $ */
+/* $Id: rdata.c,v 1.180 2003/09/30 05:56:12 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -2012,6 +2012,8 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata) {
+	if (rdata->type == 46)
+		return (covers_rrsig(rdata));
 	return (covers_sig(rdata));
 }
 

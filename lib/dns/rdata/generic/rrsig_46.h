@@ -15,26 +15,26 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef GENERIC_TKEY_249_H
-#define GENERIC_TKEY_249_H 1
+#ifndef GENERIC_DNSSIG_46_H
+#define GENERIC_DNSSIG_46_H 1
 
-/* $Id: tkey_249.h,v 1.19 2003/09/30 05:56:18 marka Exp $ */
+/* $Id: rrsig_46.h,v 1.2 2003/09/30 06:00:40 marka Exp $ */
 
-/* draft-ietf-dnsind-tkey-00.txt */
+/* RFC 2535 */
+typedef struct dns_rdata_rrsig {
+	dns_rdatacommon_t	common;
+	isc_mem_t *		mctx;
+	dns_rdatatype_t		covered;
+	dns_secalg_t		algorithm;
+	isc_uint8_t		labels;
+	isc_uint32_t		originalttl;
+	isc_uint32_t		timeexpire;
+	isc_uint32_t		timesigned;
+	isc_uint16_t		keyid;
+        dns_name_t		signer;
+	isc_uint16_t		siglen;
+	unsigned char *		signature;
+} dns_rdata_rrsig_t;
 
-typedef struct dns_rdata_tkey {
-        dns_rdatacommon_t	common;
-        isc_mem_t *		mctx;
-        dns_name_t		algorithm;
-        isc_uint32_t		inception;
-        isc_uint32_t		expire;
-        isc_uint16_t		mode;
-        isc_uint16_t		error;
-        isc_uint16_t		keylen;
-        unsigned char *		key;
-        isc_uint16_t		otherlen;
-        unsigned char *		other;
-} dns_rdata_tkey_t;
 
-
-#endif /* GENERIC_TKEY_249_H */
+#endif /* GENERIC_DNSSIG_46_H */

@@ -15,19 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.60 2003/09/30 05:56:18 marka Exp $ */
+/* $Id: rrsig_46.c,v 1.2 2003/09/30 06:00:40 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
 /* RFC 2535 */
 
-#ifndef RDATA_GENERIC_SIG_24_C
-#define RDATA_GENERIC_SIG_24_C
+#ifndef RDATA_GENERIC_RRSIG_46_C
+#define RDATA_GENERIC_RRSIG_46_C
 
-#define RRTYPE_SIG_ATTRIBUTES (0)
+#define RRTYPE_RRSIG_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
 static inline isc_result_t
-fromtext_sig(ARGS_FROMTEXT) {
+fromtext_rrsig(ARGS_FROMTEXT) {
 	isc_token_t token;
 	unsigned char c;
 	long i;
@@ -38,7 +38,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	isc_buffer_t buffer;
 	isc_uint32_t time_signed, time_expire;
 
-	REQUIRE(type == 24);
+	REQUIRE(type == 46);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -73,7 +73,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 0xffU)
+	if (token.value.as_ulong > 0xff)
 		RETTOK(ISC_R_RANGE);
 	c = (unsigned char)token.value.as_ulong;
 	RETERR(mem_tobuffer(target, &c, 1));
@@ -125,7 +125,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 }
 
 static inline isc_result_t
-totext_sig(ARGS_TOTEXT) {
+totext_rrsig(ARGS_TOTEXT) {
 	isc_region_t sr;
 	char buf[sizeof("4294967295")];
 	dns_rdatatype_t covered;
@@ -137,7 +137,7 @@ totext_sig(ARGS_TOTEXT) {
 	dns_name_t prefix;
 	isc_boolean_t sub;
 
-	REQUIRE(rdata->type == 24);
+	REQUIRE(rdata->type == 46);
 	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
@@ -236,11 +236,11 @@ totext_sig(ARGS_TOTEXT) {
 }
 
 static inline isc_result_t
-fromwire_sig(ARGS_FROMWIRE) {
+fromwire_rrsig(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 
-	REQUIRE(type == 24);
+	REQUIRE(type == 46);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -278,12 +278,12 @@ fromwire_sig(ARGS_FROMWIRE) {
 }
 
 static inline isc_result_t
-towire_sig(ARGS_TOWIRE) {
+towire_rrsig(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 	dns_offsets_t offsets;
 
-	REQUIRE(rdata->type == 24);
+	REQUIRE(rdata->type == 46);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
@@ -315,53 +315,26 @@ towire_sig(ARGS_TOWIRE) {
 }
 
 static inline int
-compare_sig(ARGS_COMPARE) {
+compare_rrsig(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
-	dns_name_t name1;
-	dns_name_t name2;
-	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 24);
+	REQUIRE(rdata1->type == 46);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-
-	INSIST(r1.length > 18);
-	INSIST(r2.length > 18);
-	r1.length = 18;
-	r2.length = 18;
-	order = isc_region_compare(&r1, &r2);
-	if (order != 0)
-		return (order);
-
-	dns_name_init(&name1, NULL);
-	dns_name_init(&name2, NULL);
-	dns_rdata_toregion(rdata1, &r1);
-	dns_rdata_toregion(rdata2, &r2);
-	isc_region_consume(&r1, 18);
-	isc_region_consume(&r2, 18);
-	dns_name_fromregion(&name1, &r1);
-	dns_name_fromregion(&name2, &r2);
-	order = dns_name_rdatacompare(&name1, &name2);
-	if (order != 0)
-		return (order);
-
-	isc_region_consume(&r1, name_length(&name1));
-	isc_region_consume(&r2, name_length(&name2));
-
 	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t
-fromstruct_sig(ARGS_FROMSTRUCT) {
-	dns_rdata_sig_t *sig = source;
+fromstruct_rrsig(ARGS_FROMSTRUCT) {
+	dns_rdata_rrsig_t *sig = source;
 
-	REQUIRE(type == 24);
+	REQUIRE(type == 46);
 	REQUIRE(source != NULL);
 	REQUIRE(sig->common.rdtype == type);
 	REQUIRE(sig->common.rdclass == rdclass);
@@ -417,12 +390,12 @@ fromstruct_sig(ARGS_FROMSTRUCT) {
 }
 
 static inline isc_result_t
-tostruct_sig(ARGS_TOSTRUCT) {
+tostruct_rrsig(ARGS_TOSTRUCT) {
 	isc_region_t sr;
-	dns_rdata_sig_t *sig = target;
+	dns_rdata_rrsig_t *sig = target;
 	dns_name_t signer;
 
-	REQUIRE(rdata->type == 24);
+	REQUIRE(rdata->type == 46);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
@@ -499,11 +472,11 @@ tostruct_sig(ARGS_TOSTRUCT) {
 }
 
 static inline void
-freestruct_sig(ARGS_FREESTRUCT) {
-	dns_rdata_sig_t *sig = (dns_rdata_sig_t *) source;
+freestruct_rrsig(ARGS_FREESTRUCT) {
+	dns_rdata_rrsig_t *sig = (dns_rdata_rrsig_t *) source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(sig->common.rdtype == 24);
+	REQUIRE(sig->common.rdtype == 46);
 
 	if (sig->mctx == NULL)
 		return;
@@ -515,8 +488,8 @@ freestruct_sig(ARGS_FREESTRUCT) {
 }
 
 static inline isc_result_t
-additionaldata_sig(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 24);
+additionaldata_rrsig(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == 46);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -526,9 +499,9 @@ additionaldata_sig(ARGS_ADDLDATA) {
 }
 
 static inline isc_result_t
-digest_sig(ARGS_DIGEST) {
+digest_rrsig(ARGS_DIGEST) {
 
-	REQUIRE(rdata->type == 24);
+	REQUIRE(rdata->type == 46);
 
 	UNUSED(rdata);
 	UNUSED(digest);
@@ -538,11 +511,11 @@ digest_sig(ARGS_DIGEST) {
 }
 
 static inline dns_rdatatype_t
-covers_sig(dns_rdata_t *rdata) {
+covers_rrsig(dns_rdata_t *rdata) {
 	dns_rdatatype_t type;
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 24);
+	REQUIRE(rdata->type == 46);
 
 	dns_rdata_toregion(rdata, &r);
 	type = uint16_fromregion(&r);
@@ -550,4 +523,4 @@ covers_sig(dns_rdata_t *rdata) {
 	return (type);
 }
 
-#endif	/* RDATA_GENERIC_SIG_24_C */
+#endif	/* RDATA_GENERIC_RRSIG_46_C */

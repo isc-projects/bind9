@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.67 2003/02/26 23:52:29 marka Exp $ */
+/* $Id: rdataset.c,v 1.68 2003/09/30 05:56:12 marka Exp $ */
 
 #include <config.h>
 
@@ -334,7 +334,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	    count > 1 &&
 	    (!WANT_FIXED(rdataset) || order != NULL) &&
 	    count <= MAX_SHUFFLE &&
-	    rdataset->type != dns_rdatatype_sig)
+	    rdataset->type != dns_rdatatype_rrsig)
 	{
 		shuffle = ISC_TRUE;
 		/*

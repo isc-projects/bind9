@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.23 2003/04/10 02:06:51 marka Exp $ */
+/* $Id: validator.h,v 1.24 2003/09/30 05:56:17 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -54,7 +54,7 @@
 #include <dns/fixedname.h>
 #include <dns/types.h>
 #include <dns/rdataset.h>
-#include <dns/rdatastruct.h> /* for dns_rdata_sig_t */
+#include <dns/rdatastruct.h> /* for dns_rdata_rrsig_t */
 
 #include <dst/dst.h>
 
@@ -99,7 +99,7 @@ struct dns_validator {
 	dns_keytable_t *		keytable;
 	dns_keynode_t *			keynode;
 	dst_key_t *			key;
-	dns_rdata_sig_t *		siginfo;
+	dns_rdata_rrsig_t *		siginfo;
 	isc_task_t *			task;
 	isc_taskaction_t		action;
 	void *				arg;
@@ -109,7 +109,7 @@ struct dns_validator {
 	dns_rdataset_t *		keyset;
 	dns_rdataset_t *		dsset;
 	dns_rdataset_t *		soaset;
-	dns_rdataset_t *		nxtset;
+	dns_rdataset_t *		nsecset;
 	dns_name_t *			soaname;
 	dns_rdataset_t			frdataset;
 	dns_rdataset_t			fsigrdataset;
@@ -138,7 +138,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  * null key.
  *
  * The complete response message may be given in 'message',
- * to make available any authority section NXTs that may be
+ * to make available any authority section NSECs that may be
  * needed for validation of a response resulting from a
  * wildcard expansion (though no such wildcard validation
  * is implemented yet).  If the complete response message

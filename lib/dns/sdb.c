@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.39 2003/09/17 05:34:55 marka Exp $ */
+/* $Id: sdb.c,v 1.40 2003/09/30 05:56:13 marka Exp $ */
 
 #include <config.h>
 
@@ -1085,7 +1085,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNUSED(now);
 	UNUSED(sigrdataset);
 
-	if (type == dns_rdatatype_sig)
+	if (type == dns_rdatatype_rrsig)
 		return (ISC_R_NOTIMPLEMENTED);
 
 	list = ISC_LIST_HEAD(sdbnode->lists);

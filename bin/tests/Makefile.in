@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.117 2002/12/27 03:29:32 marka Exp $
+# $Id: Makefile.in,v 1.118 2003/09/30 05:56:02 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -74,7 +74,7 @@ XTARGETS =	adb_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		mempool_test@EXEEXT@ \
 		name_test@EXEEXT@ \
-		nxtify@EXEEXT@ \
+		nsecify@EXEEXT@ \
 		ratelimiter_test@EXEEXT@ \
 		rbt_test@EXEEXT@ \
 		rdata_test@EXEEXT@ \
@@ -112,7 +112,7 @@ SRCS =		adb_test.c \
 		master_test.c \
 		mempool_test.c \
 		name_test.c \
-		nxtify.c \
+		nsecify.c \
 		printmsg.c \
 		ratelimiter_test.c \
 		rbt_test.c \
@@ -139,8 +139,8 @@ adb_test@EXEEXT@: adb_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ adb_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-nxtify@EXEEXT@: nxtify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nxtify.@O@ \
+nsecify@EXEEXT@: nsecify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nsecify.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 byaddr_test@EXEEXT@: byaddr_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

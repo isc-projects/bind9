@@ -15,26 +15,22 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef GENERIC_TKEY_249_H
-#define GENERIC_TKEY_249_H 1
+#ifndef GENERIC_DNSKEY_48_H
+#define GENERIC_DNSKEY_48_H 1
 
-/* $Id: tkey_249.h,v 1.19 2003/09/30 05:56:18 marka Exp $ */
+/* $Id: dnskey_48.h,v 1.2 2003/09/30 06:00:40 marka Exp $ */
 
-/* draft-ietf-dnsind-tkey-00.txt */
+/* RFC 2535 */
 
-typedef struct dns_rdata_tkey {
+typedef struct dns_rdata_dnskey {
         dns_rdatacommon_t	common;
         isc_mem_t *		mctx;
-        dns_name_t		algorithm;
-        isc_uint32_t		inception;
-        isc_uint32_t		expire;
-        isc_uint16_t		mode;
-        isc_uint16_t		error;
-        isc_uint16_t		keylen;
-        unsigned char *		key;
-        isc_uint16_t		otherlen;
-        unsigned char *		other;
-} dns_rdata_tkey_t;
+        isc_uint16_t		flags;
+        isc_uint8_t		protocol;
+        isc_uint8_t		algorithm;
+        isc_uint16_t		datalen;
+        unsigned char *		data;
+} dns_rdata_dnskey_t;
 
 
-#endif /* GENERIC_TKEY_249_H */
+#endif /* GENERIC_DNSKEY_48_H */

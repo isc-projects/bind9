@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.45 2003/09/30 05:56:17 marka Exp $ */
+/* $Id: dnskey_48.c,v 1.2 2003/09/30 06:00:40 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -23,21 +23,21 @@
 
 /* RFC 2535 */
 
-#ifndef RDATA_GENERIC_KEY_25_C
-#define RDATA_GENERIC_KEY_25_C
+#ifndef RDATA_GENERIC_DNSKEY_48_C
+#define RDATA_GENERIC_DNSKEY_48_C
 
 #include <dst/dst.h>
 
-#define RRTYPE_KEY_ATTRIBUTES (0)
+#define RRTYPE_DNSKEY_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
 static inline isc_result_t
-fromtext_key(ARGS_FROMTEXT) {
+fromtext_dnskey(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_secalg_t alg;
 	dns_secproto_t proto;
 	dns_keyflags_t flags;
 
-	REQUIRE(type == 25);
+	REQUIRE(type == 48);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -71,13 +71,13 @@ fromtext_key(ARGS_FROMTEXT) {
 }
 
 static inline isc_result_t
-totext_key(ARGS_TOTEXT) {
+totext_dnskey(ARGS_TOTEXT) {
 	isc_region_t sr;
 	char buf[sizeof("64000")];
 	unsigned int flags;
 	unsigned char algorithm;
 
-	REQUIRE(rdata->type == 25);
+	REQUIRE(rdata->type == 48);
 	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
@@ -132,10 +132,10 @@ totext_key(ARGS_TOTEXT) {
 }
 
 static inline isc_result_t
-fromwire_key(ARGS_FROMWIRE) {
+fromwire_dnskey(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(type == 25);
+	REQUIRE(type == 48);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -151,10 +151,10 @@ fromwire_key(ARGS_FROMWIRE) {
 }
 
 static inline isc_result_t
-towire_key(ARGS_TOWIRE) {
+towire_dnskey(ARGS_TOWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == 25);
+	REQUIRE(rdata->type == 48);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
@@ -164,13 +164,13 @@ towire_key(ARGS_TOWIRE) {
 }
 
 static inline int
-compare_key(ARGS_COMPARE) {
+compare_dnskey(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 25);
+	REQUIRE(rdata1->type == 48);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
@@ -180,91 +180,91 @@ compare_key(ARGS_COMPARE) {
 }
 
 static inline isc_result_t
-fromstruct_key(ARGS_FROMSTRUCT) {
-	dns_rdata_key_t *key = source;
+fromstruct_dnskey(ARGS_FROMSTRUCT) {
+	dns_rdata_dnskey_t *dnskey = source;
 
-	REQUIRE(type == 25);
+	REQUIRE(type == 48);
 	REQUIRE(source != NULL);
-	REQUIRE(key->common.rdtype == type);
-	REQUIRE(key->common.rdclass == rdclass);
+	REQUIRE(dnskey->common.rdtype == type);
+	REQUIRE(dnskey->common.rdclass == rdclass);
 
 	UNUSED(type);
 	UNUSED(rdclass);
 
 	/* Flags */
-	RETERR(uint16_tobuffer(key->flags, target));
+	RETERR(uint16_tobuffer(dnskey->flags, target));
 
 	/* Protocol */
-	RETERR(uint8_tobuffer(key->protocol, target));
+	RETERR(uint8_tobuffer(dnskey->protocol, target));
 
 	/* Algorithm */
-	RETERR(uint8_tobuffer(key->algorithm, target));
+	RETERR(uint8_tobuffer(dnskey->algorithm, target));
 
 	/* Data */
-	return (mem_tobuffer(target, key->data, key->datalen));
+	return (mem_tobuffer(target, dnskey->data, dnskey->datalen));
 }
 
 static inline isc_result_t
-tostruct_key(ARGS_TOSTRUCT) {
-	dns_rdata_key_t *key = target;
+tostruct_dnskey(ARGS_TOSTRUCT) {
+	dns_rdata_dnskey_t *dnskey = target;
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == 25);
+	REQUIRE(rdata->type == 48);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
-	key->common.rdclass = rdata->rdclass;
-	key->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&key->common, link);
+	dnskey->common.rdclass = rdata->rdclass;
+	dnskey->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&dnskey->common, link);
 
 	dns_rdata_toregion(rdata, &sr);
 
 	/* Flags */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
-	key->flags = uint16_fromregion(&sr);
+	dnskey->flags = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Protocol */
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
-	key->protocol = uint8_fromregion(&sr);
+	dnskey->protocol = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Algorithm */
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
-	key->algorithm = uint8_fromregion(&sr);
+	dnskey->algorithm = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Data */
-	key->datalen = sr.length;
-	key->data = mem_maybedup(mctx, sr.base, key->datalen);
-	if (key->data == NULL)
+	dnskey->datalen = sr.length;
+	dnskey->data = mem_maybedup(mctx, sr.base, dnskey->datalen);
+	if (dnskey->data == NULL)
 		return (ISC_R_NOMEMORY);
 
-	key->mctx = mctx;
+	dnskey->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
 
 static inline void
-freestruct_key(ARGS_FREESTRUCT) {
-	dns_rdata_key_t *key = (dns_rdata_key_t *) source;
+freestruct_dnskey(ARGS_FREESTRUCT) {
+	dns_rdata_dnskey_t *dnskey = (dns_rdata_dnskey_t *) source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(key->common.rdtype == 25);
+	REQUIRE(dnskey->common.rdtype == 48);
 
-	if (key->mctx == NULL)
+	if (dnskey->mctx == NULL)
 		return;
 
-	if (key->data != NULL)
-		isc_mem_free(key->mctx, key->data);
-	key->mctx = NULL;
+	if (dnskey->data != NULL)
+		isc_mem_free(dnskey->mctx, dnskey->data);
+	dnskey->mctx = NULL;
 }
 
 static inline isc_result_t
-additionaldata_key(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 25);
+additionaldata_dnskey(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == 48);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -274,14 +274,14 @@ additionaldata_key(ARGS_ADDLDATA) {
 }
 
 static inline isc_result_t
-digest_key(ARGS_DIGEST) {
+digest_dnskey(ARGS_DIGEST) {
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 25);
+	REQUIRE(rdata->type == 48);
 
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
 }
 
-#endif	/* RDATA_GENERIC_KEY_25_C */
+#endif	/* RDATA_GENERIC_DNSKEY_48_C */

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.14 2002/06/17 04:01:12 marka Exp $
+# $Id: sign.sh,v 1.15 2003/09/30 05:56:06 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -34,7 +34,7 @@ keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
 cat $infile $keyname.key > $zonefile
 
-$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a trusted key.
 

@@ -6,10 +6,7 @@ a.example.nil.		300	IN	TXT	"foo foo foo"
 a.example.nil.		300	IN	PTR	foo.net.
 a01.example.nil.	3600	IN	A	0.0.0.0
 a02.example.nil.	3600	IN	A	255.255.255.255
-a601.example.nil.	3600	IN	A6	0 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-a601.example.nil.	3600	IN	A6	64 ::ffff:ffff:ffff:ffff foo.
-a601.example.nil.	3600	IN	A6	127 ::1 foo.
-a601.example.nil.	3600	IN	A6	128  .
+a601.example.nil.	3600	IN	AAAA	ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 afsdb01.example.nil.	3600	IN	AFSDB	0 hostname.example.nil.
 afsdb02.example.nil.	3600	IN	AFSDB	65535 .
 b.example.nil.		300	IN	CNAME	foo.net.

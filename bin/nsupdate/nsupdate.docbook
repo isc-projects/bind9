@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.13 2003/03/19 17:43:41 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.14 2003/09/30 05:56:02 marka Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -500,7 +500,7 @@ This ensures that when the CNAME is added, it cannot conflict with the
 long-standing rule in RFC1034 that a name must not exist as any other
 record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
-SIG, KEY and NXT records.)
+RRSIG, DNSKEY and NSEC records.)
 </para>
 </refsect1>
 

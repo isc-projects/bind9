@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.404 2003/09/25 18:16:43 jinmei Exp $ */
+/* $Id: server.c,v 1.405 2003/09/30 05:56:01 marka Exp $ */
 
 #include <config.h>
 
@@ -192,7 +192,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 			 dns_keytable_t *keytable, isc_mem_t *mctx)
 {
 	dns_rdataclass_t viewclass;
-	dns_rdata_key_t keystruct;
+	dns_rdata_dnskey_t keystruct;
 	isc_uint32_t flags, proto, alg;
 	char *keystr, *keynamestr;
 	unsigned char keydata[4096];
@@ -220,7 +220,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 					 &viewclass));
 	}
 	keystruct.common.rdclass = viewclass;
-	keystruct.common.rdtype = dns_rdatatype_key;
+	keystruct.common.rdtype = dns_rdatatype_dnskey;
 	/*
 	 * The key data in keystruct is not dynamically allocated.
 	 */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.187 2003/04/17 01:56:34 marka Exp $ */
+/* $Id: rbtdb.c,v 1.188 2003/09/30 05:56:12 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -83,14 +83,14 @@ typedef isc_uint32_t			rbtdb_rdatatype_t;
 #define RBTDB_RDATATYPE_EXT(type)	((dns_rdatatype_t)((type) >> 16))
 #define RBTDB_RDATATYPE_VALUE(b, e)	(((e) << 16) | (b))
 
-#define RBTDB_RDATATYPE_SIGNXT \
-		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_nxt)
+#define RBTDB_RDATATYPE_SIGNSEC \
+		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_nsec)
 #define RBTDB_RDATATYPE_SIGNS \
-		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_ns)
+		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_ns)
 #define RBTDB_RDATATYPE_SIGCNAME \
-		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_cname)
+		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_cname)
 #define RBTDB_RDATATYPE_SIGDNAME \
-		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_dname)
+		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_dname)
 #define RBTDB_RDATATYPE_NCACHEANY \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
@@ -1778,9 +1778,9 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 }
 
 static inline isc_result_t
-find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
-		 dns_name_t *foundname, dns_rdataset_t *rdataset,
-		 dns_rdataset_t *sigrdataset, isc_boolean_t need_sig)
+find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
+		  dns_name_t *foundname, dns_rdataset_t *rdataset,
+		  dns_rdataset_t *sigrdataset, isc_boolean_t need_sig)
 {
 	dns_rbtnode_t *node;
 	rdatasetheader_t *header, *header_next, *found, *foundsig;
@@ -1808,7 +1808,7 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		     header = header_next) {
 			header_next = header->next;
 			/*
-			 * Look for an active, extant NXT or SIG NXT.
+			 * Look for an active, extant NSEC or RRSIG NSEC.
 			 */
 			do {
 				if (header->serial <= search->serial &&
@@ -1830,12 +1830,12 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 * active rdataset at this node.
 				 */
 				empty_node = ISC_FALSE;
-				if (header->type == dns_rdatatype_nxt) {
+				if (header->type == dns_rdatatype_nsec) {
 					found = header;
 					if (foundsig != NULL)
 						break;
 				} else if (header->type ==
-					   RBTDB_RDATATYPE_SIGNXT) {
+					   RBTDB_RDATATYPE_SIGNSEC) {
 					foundsig = header;
 					if (found != NULL)
 						break;
@@ -1847,10 +1847,10 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 			    (foundsig != NULL || !need_sig))
 			{
 				/*
-				 * We've found the right NXT record.
+				 * We've found the right NSEC record.
 				 *
 				 * Note: for this to really be the right
-				 * NXT record, it's essential that the NXT
+				 * NSEC record, it's essential that the NSEC
 				 * records of any nodes obscured by a zone
 				 * cut have been removed; we assume this is
 				 * the case.
@@ -1875,8 +1875,8 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				}
 			} else if (found == NULL && foundsig == NULL) {
 				/*
-				 * This node is active, but has no NXT or
-				 * SIG NXT.  That means it's glue or
+				 * This node is active, but has no NSEC or
+				 * RRSIG NSEC.  That means it's glue or
 				 * other obscured zone data that isn't
 				 * relevant for our search.  Treat the
 				 * node as if it were empty and keep looking.
@@ -1887,7 +1887,7 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 			} else {
 				/*
 				 * We found an active node, but either the
-				 * NXT or the SIG NXT is missing.  This
+				 * NSEC or the RRSIG NSEC is missing.  This
 				 * shouldn't happen.
 				 */
 				result = DNS_R_BADDB;
@@ -1905,7 +1905,7 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 
 	/*
 	 * If the result is ISC_R_NOMORE, then we got to the beginning of
-	 * the database and didn't find a NXT record.  This shouldn't
+	 * the database and didn't find a NSEC record.  This shouldn't
 	 * happen.
 	 */
 	if (result == ISC_R_NOMORE)
@@ -1930,8 +1930,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	isc_boolean_t wild;
 	isc_boolean_t empty_node;
 	isc_mutex_t *lock;
-	rdatasetheader_t *header, *header_next, *found, *nxtheader;
-	rdatasetheader_t *foundsig, *cnamesig, *nxtsig;
+	rdatasetheader_t *header, *header_next, *found, *nsecheader;
+	rdatasetheader_t *foundsig, *cnamesig, *nsecsig;
 	rbtdb_rdatatype_t sigtype;
 	isc_boolean_t active;
 	dns_rbtnodechain_t chain;
@@ -2017,9 +2017,9 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * beneath a zonecut, and there's no matching wildcard.
 		 */
 		if (search.rbtdb->secure ||
-		    (search.options & DNS_DBFIND_FORCENXT) != 0)
+		    (search.options & DNS_DBFIND_FORCENSEC) != 0)
 		{
-			result = find_closest_nxt(&search, nodep, foundname,
+			result = find_closest_nsec(&search, nodep, foundname,
 						  rdataset, sigrdataset,
 						  search.rbtdb->secure);
 			if (result == ISC_R_SUCCESS)
@@ -2059,10 +2059,10 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * Certain DNSSEC types are not subject to CNAME matching
 	 * (RFC 2535, section 2.3.5).
 	 *
-	 * We don't check for SIG, because we don't store SIG records
+	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nxt)
+	if (type == dns_rdatatype_dnskey || type == dns_rdatatype_nsec)
 		cname_ok = ISC_FALSE;
 
 	/*
@@ -2073,9 +2073,9 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	found = NULL;
 	foundsig = NULL;
-	sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, type);
-	nxtheader = NULL;
-	nxtsig = NULL;
+	sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
+	nsecheader = NULL;
+	nsecsig = NULL;
 	cnamesig = NULL;
 	empty_node = ISC_TRUE;
 	for (header = node->data; header != NULL; header = header_next) {
@@ -2122,8 +2122,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				maybe_zonecut = ISC_FALSE;
 				at_zonecut = ISC_TRUE;
 				if ((search.options & DNS_DBFIND_GLUEOK) == 0
-				    && type != dns_rdatatype_nxt
-				    && type != dns_rdatatype_key) {
+				    && type != dns_rdatatype_nsec
+				    && type != dns_rdatatype_dnskey) {
 					/*
 					 * Glue is not OK, but any answer we
 					 * could return would be glue.  Return
@@ -2154,7 +2154,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 					 * We may be finding a CNAME instead
 					 * of the desired type.
 					 *
-					 * If we've already got the CNAME SIG,
+					 * If we've already got the CNAME RRSIG,
 					 * use it, otherwise change sigtype
 					 * so that we find it.
 					 */
@@ -2171,7 +2171,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 					break;
 			} else if (header->type == sigtype) {
 				/*
-				 * We've found the SIG rdataset for our
+				 * We've found the RRSIG rdataset for our
 				 * target type.  Remember it.
 				 */
 				foundsig = header;
@@ -2180,19 +2180,19 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				 */
 				if (!maybe_zonecut && found != NULL)
 					break;
-			} else if (header->type == dns_rdatatype_nxt) {
+			} else if (header->type == dns_rdatatype_nsec) {
 				/*
-				 * Remember a NXT rdataset even if we're
+				 * Remember a NSEC rdataset even if we're
 				 * not specifically looking for it, because
 				 * we might need it later.
 				 */
-				nxtheader = header;
-			} else if (header->type == RBTDB_RDATATYPE_SIGNXT) {
+				nsecheader = header;
+			} else if (header->type == RBTDB_RDATATYPE_SIGNSEC) {
 				/*
-				 * If we need the NXT rdataset, we'll also
+				 * If we need the NSEC rdataset, we'll also
 				 * need its signature.
 				 */
-				nxtsig = header;
+				nsecsig = header;
 			} else if (cname_ok &&
 				   header->type == RBTDB_RDATATYPE_SIGCNAME) {
 				/*
@@ -2238,10 +2238,10 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 */
 		result = DNS_R_NXRRSET;
 		if (search.rbtdb->secure &&
-		    (nxtheader == NULL || nxtsig == NULL)) {
+		    (nsecheader == NULL || nsecsig == NULL)) {
 			/*
-			 * The zone is secure but there's no NXT,
-			 * or the NXT has no signature!
+			 * The zone is secure but there's no NSEC,
+			 * or the NSEC has no signature!
 			 */
 			if (!wild) {
 				result = DNS_R_BADDB;
@@ -2249,18 +2249,18 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			}
 			
 			UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
-			result = find_closest_nxt(&search, nodep, foundname,
+			result = find_closest_nsec(&search, nodep, foundname,
 						  rdataset, sigrdataset,
 						  search.rbtdb->secure);
 			if (result == ISC_R_SUCCESS)
 				result = DNS_R_EMPTYWILD;
 			goto tree_exit;
 		}
-		if ((search.options & DNS_DBFIND_FORCENXT) != 0 &&
-		    nxtheader == NULL)
+		if ((search.options & DNS_DBFIND_FORCENSEC) != 0 &&
+		    nsecheader == NULL)
 		{
 			/*
-			 * There's no NXT record, and we were told
+			 * There's no NSEC record, and we were told
 			 * to find one.
 			 */
 			result = DNS_R_BADDB;
@@ -2271,13 +2271,13 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			*nodep = node;
 		}
 		if (search.rbtdb->secure ||
-		    (search.options & DNS_DBFIND_FORCENXT) != 0)
+		    (search.options & DNS_DBFIND_FORCENSEC) != 0)
 		{
-			bind_rdataset(search.rbtdb, node, nxtheader,
+			bind_rdataset(search.rbtdb, node, nsecheader,
 				      0, rdataset);
-			if (nxtsig != NULL)
+			if (nsecsig != NULL)
 				bind_rdataset(search.rbtdb, node,
-					      nxtsig, 0, sigrdataset);
+					      nsecsig, 0, sigrdataset);
 		}
 		if (wild)
 			foundname->attributes |= DNS_NAMEATTR_WILDCARD;
@@ -2301,11 +2301,11 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		/*
 		 * If we're beneath a zone cut, we must indicate that the
 		 * result is glue, unless we're actually at the zone cut
-		 * and the type is NXT or KEY.
+		 * and the type is NSEC or KEY.
 		 */
 		if (search.zonecut == node) {
-			if (type == dns_rdatatype_nxt ||
-			    type == dns_rdatatype_key)
+			if (type == dns_rdatatype_nsec ||
+			    type == dns_rdatatype_dnskey)
 				result = ISC_R_SUCCESS;
 			else if (type == dns_rdatatype_any)
 				result = DNS_R_ZONECUT;
@@ -2424,7 +2424,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 
 	/*
-	 * Look for a DNAME or SIG DNAME rdataset.
+	 * Look for a DNAME or RRSIG DNAME rdataset.
 	 */
 	dname_header = NULL;
 	sigdname_header = NULL;
@@ -2512,7 +2512,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 		LOCK(&(rbtdb->node_locks[node->locknum].lock));
 
 		/*
-		 * Look for NS and SIG NS rdatasets.
+		 * Look for NS and RRSIG NS rdatasets.
 		 */
 		found = NULL;
 		foundsig = NULL;
@@ -2636,7 +2636,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *header, *header_prev, *header_next;
 	rdatasetheader_t *found, *nsheader;
 	rdatasetheader_t *foundsig, *nssig, *cnamesig;
-	rbtdb_rdatatype_t sigtype, nxtype;
+	rbtdb_rdatatype_t sigtype, nsecype;
 
 	UNUSED(version);
 
@@ -2689,10 +2689,10 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * Certain DNSSEC types are not subject to CNAME matching
 	 * (RFC 2535, section 2.3.5).
 	 *
-	 * We don't check for SIG, because we don't store SIG records
+	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nxt)
+	if (type == dns_rdatatype_dnskey || type == dns_rdatatype_nsec)
 		cname_ok = ISC_FALSE;
 
 	/*
@@ -2703,8 +2703,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	found = NULL;
 	foundsig = NULL;
-	sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, type);
-	nxtype = RBTDB_RDATATYPE_VALUE(0, type);
+	sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
+	nsecype = RBTDB_RDATATYPE_VALUE(0, type);
 	nsheader = NULL;
 	nssig = NULL;
 	cnamesig = NULL;
@@ -2757,7 +2757,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				    cname_ok &&
 				    cnamesig != NULL) {
 					/*
-					 * If we've already got the CNAME SIG,
+					 * If we've already got the CNAME RRSIG,
 					 * use it, otherwise change sigtype
 					 * so that we find it.
 					 */
@@ -2770,12 +2770,12 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				}
 			} else if (header->type == sigtype) {
 				/*
-				 * We've found the SIG rdataset for our
+				 * We've found the RRSIG rdataset for our
 				 * target type.  Remember it.
 				 */
 				foundsig = header;
 			} else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
-				   header->type == nxtype) {
+				   header->type == nsecype) {
 				/*
 				 * We've found a negative cache entry.
 				 */
@@ -3303,7 +3303,7 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	foundsig = NULL;
 	matchtype = RBTDB_RDATATYPE_VALUE(type, covers);
 	if (covers == 0)
-		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, type);
+		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
 	else
 		sigmatchtype = 0;
 
@@ -3366,7 +3366,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
 	rdatasetheader_t *header, *header_next, *found, *foundsig;
-	rbtdb_rdatatype_t matchtype, sigmatchtype, nxtype;
+	rbtdb_rdatatype_t matchtype, sigmatchtype, nsecype;
 	isc_result_t result;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
@@ -3384,9 +3384,9 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	found = NULL;
 	foundsig = NULL;
 	matchtype = RBTDB_RDATATYPE_VALUE(type, covers);
-	nxtype = RBTDB_RDATATYPE_VALUE(0, type);
+	nsecype = RBTDB_RDATATYPE_VALUE(0, type);
 	if (covers == 0)
-		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, type);
+		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
 	else
 		sigmatchtype = 0;
 
@@ -3406,7 +3406,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			if (header->type == matchtype)
 				found = header;
 			else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
-				 header->type == nxtype)
+				 header->type == nsecype)
 				found = header;
 			else if (header->type == sigmatchtype)
 				foundsig = header;
@@ -3531,17 +3531,18 @@ cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 			 * Look for active extant "other data".
 			 *
 			 * "Other data" is any rdataset whose type is not
-			 * KEY, SIG KEY, NXT, SIG NXT, or SIG CNAME.
+			 * DNSKEY, RRSIG DNSKEY, NSEC, RRSIG NSEC,
+			 * or RRSIG CNAME.
 			 */
 			rdtype = RBTDB_RDATATYPE_BASE(header->type);
-			if (rdtype == dns_rdatatype_sig)
+			if (rdtype == dns_rdatatype_rrsig)
 				rdtype = RBTDB_RDATATYPE_EXT(header->type);
-			if (rdtype != dns_rdatatype_nxt &&
-			    rdtype != dns_rdatatype_key &&
+			if (rdtype != dns_rdatatype_nsec &&
+			    rdtype != dns_rdatatype_dnskey &&
 			    rdtype != dns_rdatatype_cname) {
 				/*
 				 * We've found a type that isn't
-				 * NXT, KEY, CNAME, or one of their
+				 * NSEC, KEY, CNAME, or one of their
 				 * signatures.  Is it active and extant?
 				 */
 				do {
@@ -3581,7 +3582,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	isc_boolean_t header_nx;
 	isc_boolean_t newheader_nx;
 	isc_boolean_t merge;
-	dns_rdatatype_t nxtype, rdtype, covers;
+	dns_rdatatype_t nsecype, rdtype, covers;
 	dns_trust_t trust;
 
 	/*
@@ -3619,7 +3620,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	newheader_nx = NONEXISTENT(newheader) ? ISC_TRUE : ISC_FALSE;
 	topheader_prev = NULL;
 
-	nxtype = 0;
+	nsecype = 0;
 	if (rbtversion == NULL && !newheader_nx) {
 		rdtype = RBTDB_RDATATYPE_BASE(newheader->type);
 		if (rdtype == 0) {
@@ -3646,7 +3647,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				rbtnode->dirty = 1;
 				goto find_header;
 			}
-			nxtype = RBTDB_RDATATYPE_VALUE(covers, 0);
+			nsecype = RBTDB_RDATATYPE_VALUE(covers, 0);
 		} else {
 			/*
 			 * We're adding something that isn't a
@@ -3686,7 +3687,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				topheader = NULL;
 				goto find_header;
 			}
-			nxtype = RBTDB_RDATATYPE_VALUE(0, rdtype);
+			nsecype = RBTDB_RDATATYPE_VALUE(0, rdtype);
 		}
 	}
 
@@ -3694,7 +3695,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	     topheader != NULL;
 	     topheader = topheader->next) {
 		if (topheader->type == newheader->type ||
-		    topheader->type == nxtype)
+		    topheader->type == nsecype)
 			break;
 		topheader_prev = topheader;
 	}
@@ -4145,7 +4146,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	if (type == dns_rdatatype_any)
 		return (ISC_R_NOTIMPLEMENTED);
-	if (type == dns_rdatatype_sig && covers == 0)
+	if (type == dns_rdatatype_rrsig && covers == 0)
 		return (ISC_R_NOTIMPLEMENTED);
 
 	newheader = isc_mem_get(rbtdb->common.mctx, sizeof(*newheader));
@@ -4282,13 +4283,13 @@ beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp, dns_dbload_t **dbloadp) {
 static isc_boolean_t
 iszonesecure(dns_db_t *db, dns_dbnode_t *origin) {
 	dns_rdataset_t keyset;
-	dns_rdataset_t nxtset, signxtset;
+	dns_rdataset_t nsecset, signsecset;
 	isc_boolean_t haszonekey = ISC_FALSE;
-	isc_boolean_t hasnxt = ISC_FALSE;
+	isc_boolean_t hasnsec = ISC_FALSE;
 	isc_result_t result;
 
 	dns_rdataset_init(&keyset);
-	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_key, 0,
+	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_dnskey, 0,
 				     0, &keyset, NULL);
 	if (result == ISC_R_SUCCESS) {
 		dns_rdata_t keyrdata = DNS_RDATA_INIT;
@@ -4306,18 +4307,18 @@ iszonesecure(dns_db_t *db, dns_dbnode_t *origin) {
 	if (!haszonekey)
 		return (ISC_FALSE);
 
-	dns_rdataset_init(&nxtset);
-	dns_rdataset_init(&signxtset);
-	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_nxt, 0,
-				     0, &nxtset, &signxtset);
+	dns_rdataset_init(&nsecset);
+	dns_rdataset_init(&signsecset);
+	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_nsec, 0,
+				     0, &nsecset, &signsecset);
 	if (result == ISC_R_SUCCESS) {
-		if (dns_rdataset_isassociated(&signxtset)) {
-			hasnxt = ISC_TRUE;
-			dns_rdataset_disassociate(&signxtset);
+		if (dns_rdataset_isassociated(&signsecset)) {
+			hasnsec = ISC_TRUE;
+			dns_rdataset_disassociate(&signsecset);
 		}
-		dns_rdataset_disassociate(&nxtset);
+		dns_rdataset_disassociate(&nsecset);
 	}
-	return (hasnxt);
+	return (hasnsec);
 
 }
 
@@ -4800,7 +4801,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 				 * Note: unlike everywhere else, we
 				 * check for now > header->ttl instead
 				 * of now >= header->ttl.  This allows
-				 * ANY and SIG queries for 0 TTL
+				 * ANY and RRSIG queries for 0 TTL
 				 * rdatasets to work.
 				 */
 				if (NONEXISTENT(header) ||
@@ -4863,7 +4864,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 					 * Note: unlike everywhere else, we
 					 * check for now > header->ttl instead
 					 * of now >= header->ttl.  This allows
-					 * ANY and SIG queries for 0 TTL
+					 * ANY and RRSIG queries for 0 TTL
 					 * rdatasets to work.
 					 */
 					if ((header->attributes &

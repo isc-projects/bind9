@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxtify.c,v 1.20 2001/11/27 01:55:20 gson Exp $ */
+/* $Id: nsecify.c,v 1.2 2003/09/30 06:00:38 marka Exp $ */
 
 #include <config.h>
 
@@ -27,7 +27,7 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
-#include <dns/nxt.h>
+#include <dns/nsec.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
@@ -63,7 +63,7 @@ active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type != dns_rdatatype_nxt)
+		if (rdataset.type != dns_rdatatype_nsec)
 			active = ISC_TRUE;
 		dns_rdataset_disassociate(&rdataset);
 		if (!active)
@@ -77,10 +77,10 @@ active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 
 	if (!active) {
 		/*
-		 * Make sure there is no NXT record for this node.
+		 * Make sure there is no NSEC record for this node.
 		 */
 		result = dns_db_deleterdataset(db, node, version,
-					       dns_rdatatype_nxt, 0);
+					       dns_rdatatype_nsec, 0);
 		if (result == DNS_R_UNCHANGED)
 			result = ISC_R_SUCCESS;
 		check_result(result, "dns_db_deleterdataset");
@@ -112,7 +112,7 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 }
 
 static void
-nxtify(char *filename) {
+nsecify(char *filename) {
 	isc_result_t result;
 	dns_db_t *db;
 	dns_dbversion_t *wversion;
@@ -172,7 +172,7 @@ nxtify(char *filename) {
 			target = NULL;	/* Make compiler happy. */
 			fatal("db iteration failed");
 		}
-		dns_nxt_build(db, wversion, node, target, 3600); /* XXX BEW */
+		dns_nsec_build(db, wversion, node, target, 3600); /* XXX BEW */
 		dns_db_detachnode(db, &node);
 		node = nextnode;
 	}
@@ -206,7 +206,7 @@ main(int argc, char *argv[]) {
 	argv++;
 
 	for (i = 0; i < argc; i++)
-		nxtify(argv[i]);
+		nsecify(argv[i]);
 
 	/* isc_mem_stats(mctx, stdout); */
 	isc_mem_destroy(&mctx);

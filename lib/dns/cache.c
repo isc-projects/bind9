@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.53 2002/05/23 04:32:28 marka Exp $ */
+/* $Id: cache.c,v 1.54 2003/09/30 05:56:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1026,7 +1026,7 @@ dns_cache_flushname(dns_cache_t *cache, dns_name_t *name) {
 			dns_rdatatype_t covers;
 
 			dns_rdataset_current(&rdataset, &rdata);
-			if (rdata.type == dns_rdatatype_sig)
+			if (rdata.type == dns_rdatatype_rrsig)
 				covers = dns_rdata_covers(&rdata);
 			else
 				covers = 0;

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2001/01/09 21:43:18 bwelling Exp $
+# $Id: tests.sh,v 1.6 2003/09/30 05:56:07 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -34,7 +34,7 @@ echo "I:testing that we find glue A RRs we are authoritative for"
 $DIG +norec @10.53.0.1 -p 5300 foo.bar.xx. a >dig.out || status=1
 $PERL ../digcomp.pl xx.good dig.out || status=1
 
-echo "I:testing that we find glue A/AAAA/A6 RRs in the cache"
+echo "I:testing that we find glue A/AAAA RRs in the cache"
 $DIG +norec @10.53.0.1 -p 5300 foo.bar.yy. a >dig.out || status=1
 $PERL ../digcomp.pl yy.good dig.out || status=1
 

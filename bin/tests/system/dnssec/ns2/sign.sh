@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.21 2002/07/19 06:20:24 marka Exp $
+# $Id: sign.sh,v 1.22 2003/09/30 05:56:07 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -40,7 +40,7 @@ keyname2=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
+$SIGNER -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
 
 # Sign the privately secure file
 
@@ -52,4 +52,4 @@ privkeyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $privzone`
 
 cat $privinfile $privkeyname.key >$privzonefile
 
-$SIGNER -r $RANDFILE -o $privzone $privzonefile > /dev/null
+$SIGNER -g -r $RANDFILE -o $privzone $privzonefile > /dev/null

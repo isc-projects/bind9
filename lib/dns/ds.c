@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.c,v 1.2 2002/06/17 04:01:18 marka Exp $ */
+/* $Id: ds.c,v 1.3 2003/09/30 05:56:10 marka Exp $ */
 
 #include <config.h>
 
@@ -47,6 +47,9 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 	isc_region_t r;
 	isc_buffer_t b;
 	dns_rdata_ds_t ds;
+
+	REQUIRE(key != NULL);
+	REQUIRE(key->type == dns_rdatatype_dnskey);
 
 	if (digest_type != DNS_DSDIGEST_SHA1)
 		return (ISC_R_NOTIMPLEMENTED);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.26 2001/01/09 21:51:09 bwelling Exp $ */
+/* $Id: nsec.c,v 1.2 2003/09/30 06:00:39 marka Exp $ */
 
 #include <config.h>
 
@@ -23,7 +23,7 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
-#include <dns/nxt.h>
+#include <dns/nsec.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -62,26 +62,26 @@ bit_isset(unsigned char *array, unsigned int index) {
 }
 
 isc_result_t
-dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
-		   dns_dbnode_t *node, dns_name_t *target,
-		   unsigned char *buffer, dns_rdata_t *rdata)
+dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
+		    dns_dbnode_t *node, dns_name_t *target,
+		    unsigned char *buffer, dns_rdata_t *rdata)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	isc_region_t r;
 	int i;
 
-	unsigned char *nxt_bits;
+	unsigned char *nsec_bits;
 	unsigned int max_type;
 	dns_rdatasetiter_t *rdsiter;
 
-	memset(buffer, 0, DNS_NXT_BUFFERSIZE);
+	memset(buffer, 0, DNS_NSEC_BUFFERSIZE);
 	dns_name_toregion(target, &r);
 	memcpy(buffer, r.base, r.length);
 	r.base = buffer;
-	nxt_bits = r.base + r.length;
-	set_bit(nxt_bits, dns_rdatatype_nxt, 1);
-	max_type = dns_rdatatype_nxt;
+	nsec_bits = r.base + r.length;
+	set_bit(nsec_bits, dns_rdatatype_nsec, 1);
+	max_type = dns_rdatatype_nsec;
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
@@ -95,10 +95,10 @@ dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		if (rdataset.type > 127)
 			/* XXX "rdataset type too large" */
 			return (ISC_R_RANGE);
-		if (rdataset.type != dns_rdatatype_nxt) {
+		if (rdataset.type != dns_rdatatype_nsec) {
 			if (rdataset.type > max_type)
 				max_type = rdataset.type;
-			set_bit(nxt_bits, rdataset.type, 1);
+			set_bit(nsec_bits, rdataset.type, 1);
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
@@ -106,12 +106,12 @@ dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	/*
 	 * At zone cuts, deny the existence of glue in the parent zone.
 	 */
-	if (bit_isset(nxt_bits, dns_rdatatype_ns) &&
-	    ! bit_isset(nxt_bits, dns_rdatatype_soa)) {
+	if (bit_isset(nsec_bits, dns_rdatatype_ns) &&
+	    ! bit_isset(nsec_bits, dns_rdatatype_soa)) {
 		for (i = 0; i < 128; i++) {
-			if (bit_isset(nxt_bits, i) &&
+			if (bit_isset(nsec_bits, i) &&
 			    ! dns_rdatatype_iszonecutauth((dns_rdatatype_t)i))
-				set_bit(nxt_bits, i, 0);
+				set_bit(nsec_bits, i, 0);
 		}
 	}
 
@@ -120,10 +120,10 @@ dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		return (result);
 
 	r.length += ((max_type + 7) / 8);
-	INSIST(r.length <= DNS_NXT_BUFFERSIZE);
+	INSIST(r.length <= DNS_NSEC_BUFFERSIZE);
 	dns_rdata_fromregion(rdata,
 			     dns_db_class(db),
-			     dns_rdatatype_nxt,
+			     dns_rdatatype_nsec,
 			     &r);
 
 	return (ISC_R_SUCCESS);
@@ -131,22 +131,22 @@ dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 
 
 isc_result_t
-dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	      dns_name_t *target, dns_ttl_t ttl)
+dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
+	       dns_name_t *target, dns_ttl_t ttl)
 {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char data[DNS_NXT_BUFFERSIZE];
+	unsigned char data[DNS_NSEC_BUFFERSIZE];
 	dns_rdatalist_t rdatalist;
 	dns_rdataset_t rdataset;
 
 	dns_rdataset_init(&rdataset);
 	dns_rdata_init(&rdata);
 
-	RETERR(dns_nxt_buildrdata(db, version, node, target, data, &rdata));
+	RETERR(dns_nsec_buildrdata(db, version, node, target, data, &rdata));
 
 	rdatalist.rdclass = dns_db_class(db);
-	rdatalist.type = dns_rdatatype_nxt;
+	rdatalist.type = dns_rdatatype_nsec;
 	rdatalist.covers = 0;
 	rdatalist.ttl = ttl;
 	ISC_LIST_INIT(rdatalist.rdata);
@@ -164,23 +164,23 @@ dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 }
 
 isc_boolean_t
-dns_nxt_typepresent(dns_rdata_t *nxt, dns_rdatatype_t type) {
-	dns_rdata_nxt_t nxtstruct;
+dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
+	dns_rdata_nsec_t nsecstruct;
 	isc_result_t result;
 	isc_boolean_t present;
 
-	REQUIRE(nxt != NULL);
-	REQUIRE(nxt->type == dns_rdatatype_nxt);
+	REQUIRE(nsec != NULL);
+	REQUIRE(nsec->type == dns_rdatatype_nsec);
 	REQUIRE(type < 128);
 
 	/* This should never fail */
-	result = dns_rdata_tostruct(nxt, &nxtstruct, NULL);
+	result = dns_rdata_tostruct(nsec, &nsecstruct, NULL);
 	INSIST(result == ISC_R_SUCCESS);
 	
-	if (type >= nxtstruct.len * 8)
+	if (type >= nsecstruct.len * 8)
 		present = ISC_FALSE;
 	else
-		present = ISC_TF(bit_isset(nxtstruct.typebits, type));
-	dns_rdata_freestruct(&nxt);
+		present = ISC_TF(bit_isset(nsecstruct.typebits, type));
+	dns_rdata_freestruct(&nsec);
 	return (present);
 }

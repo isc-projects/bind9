@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.10 2001/11/12 19:05:17 gson Exp $ */
+/* $Id: lookup.c,v 1.11 2003/09/30 05:56:10 marka Exp $ */
 
 #include <config.h>
 
@@ -168,7 +168,7 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 	dns_name_t *name = dns_fixedname_name(&lookup->name);
 	dns_rdatatype_t type;
 
-	if (lookup->type == dns_rdatatype_sig)
+	if (lookup->type == dns_rdatatype_rrsig)
 		type = dns_rdatatype_any;
 	else
 		type = lookup->type;

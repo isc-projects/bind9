@@ -1,3 +1,5 @@
+1516.	[func]		Roll the DNSSEC types to RRSIG, NSEC and DNSKEY.
+
 1515.	[func]		Allow transfer source to be set in a server statement.
 			[RT #6496]
 

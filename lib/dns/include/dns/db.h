@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.72 2003/02/26 01:21:09 marka Exp $ */
+/* $Id: db.h,v 1.73 2003/09/30 05:56:16 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -186,7 +186,7 @@ struct dns_db {
 #define DNS_DBFIND_NOWILD		0x04
 #define DNS_DBFIND_PENDINGOK		0x08
 #define DNS_DBFIND_NOEXACT		0x10
-#define DNS_DBFIND_FORCENXT		0x20
+#define DNS_DBFIND_FORCENSEC		0x20
 
 /*
  * Options that can be specified for dns_db_addrdataset().
@@ -642,8 +642,8 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	If the DNS_DBFIND_NOWILD option is set, then wildcard matching will
  *	be disabled.  This option is only meaningful for zone databases.
  *
- *	If the DNS_DBFIND_FORCENXT option is set, the database is assumed to
- *	have NXT records, and these will be returned when appropriate.  This
+ *	If the DNS_DBFIND_FORCENSEC option is set, the database is assumed to
+ *	have NSEC records, and these will be returned when appropriate.  This
  *	is only necessary when querying a database that was not secure
  *	when created.
  *
@@ -775,7 +775,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *		ISC_R_NOMEMORY
  *
  *		DNS_R_BADDB			Data that is required to be
- *						present in the DB, e.g. an NXT
+ *						present in the DB, e.g. an NSEC
  *						record in a secure zone, is not
  *						present.
  *

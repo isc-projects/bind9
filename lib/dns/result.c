@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.108 2003/04/17 03:43:35 marka Exp $ */
+/* $Id: result.c,v 1.109 2003/09/30 05:56:13 marka Exp $ */
 
 #include <config.h>
 
@@ -78,9 +78,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"tsig verify failure",		       /* 38 DNS_R_TSIGVERIFYFAILURE */
 	"tsig indicates error",		       /* 39 DNS_R_TSIGERRORSET	     */
 
-	"SIG failed to verify",		       /* 40 DNS_R_SIGINVALID	     */
-	"SIG has expired",		       /* 41 DNS_R_SIGEXPIRED	     */
-	"SIG validity period has not begun",   /* 42 DNS_R_SIGFUTURE	     */
+	"RRSIG failed to verify",	       /* 40 DNS_R_SIGINVALID	     */
+	"RRSIG has expired",		       /* 41 DNS_R_SIGEXPIRED	     */
+	"RRSIG validity period has not begun", /* 42 DNS_R_SIGFUTURE	     */
 	"key is unauthorized to sign data",    /* 43 DNS_R_KEYUNAUTHORIZED   */
 	"invalid time",			       /* 44 DNS_R_INVALIDTIME	     */
 
@@ -100,9 +100,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no journal",			       /* 56 DNS_R_NOJOURNAL	     */
 	"alias",			       /* 57 DNS_R_ALIAS	     */
 	"use TCP",			       /* 58 DNS_R_USETCP	     */
-	"no valid SIG",			       /* 59 DNS_R_NOVALIDSIG	     */
+	"no valid RRSIG",		       /* 59 DNS_R_NOVALIDSIG	     */
 
-	"no valid NXT",			       /* 60 DNS_R_NOVALIDNXT	     */
+	"no valid NSEC",		       /* 60 DNS_R_NOVALIDNSEC	     */
 	"not insecure",			       /* 61 DNS_R_NOTINSECURE	     */
 	"unknown service",		       /* 62 DNS_R_UNKNOWNSERVICE    */
 	"recoverable error occurred",	       /* 63 DNS_R_RECOVERABLE       */

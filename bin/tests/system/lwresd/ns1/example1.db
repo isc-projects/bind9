@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example1.db,v 1.13 2003/07/08 05:17:20 marka Exp $
+; $Id: example1.db,v 1.14 2003/09/30 05:56:08 marka Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -33,6 +33,6 @@ b			AAAA	eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff
 8.8.7.7			DNAME	net
 0.0.f.f.e.e.d.d.c.c.b.b.a.a.9.9.net PTR     dname
 e			A	10.0.1.1
-			SIG	A 1 1 300 20001202003412 (
+			RRSIG	A 1 1 300 20001202003412 (
 				20001102003412 1 example. abcd )
 

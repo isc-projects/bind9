@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.145 2003/04/17 11:31:02 marka Exp $ */
+/* $Id: master.c,v 1.146 2003/09/30 05:56:11 marka Exp $ */
 
 #include <config.h>
 
@@ -104,6 +104,7 @@ struct dns_loadctx {
 	isc_boolean_t		ttl_known;
 	isc_boolean_t		default_ttl_known;
 	isc_boolean_t		warn_1035;
+	isc_boolean_t		warn_tcr;
 	isc_boolean_t		warn_sigexpired;
 	isc_boolean_t		seen_include;
 	isc_uint32_t		ttl;
@@ -483,6 +484,7 @@ loadctx_create(isc_mem_t *mctx, unsigned int options, dns_name_t *top,
 	lctx->default_ttl_known = ISC_FALSE;
 	lctx->default_ttl = 0;
 	lctx->warn_1035 = ISC_TRUE;	/* XXX Argument? */
+	lctx->warn_tcr = ISC_TRUE;	/* XXX Argument? */
 	lctx->warn_sigexpired = ISC_TRUE;	/* XXX Argument? */
 	lctx->options = options;
 	lctx->seen_include = ISC_FALSE;
@@ -1559,7 +1561,7 @@ load(dns_loadctx_t *lctx) {
 		}
 
 
-		if (type == dns_rdatatype_sig)
+		if (type == dns_rdatatype_rrsig)
 			covers = dns_rdata_covers(&rdata[rdcount]);
 		else
 			covers = 0;
@@ -1604,8 +1606,8 @@ load(dns_loadctx_t *lctx) {
 			lctx->warn_1035 = ISC_FALSE;
 		}
 
-		if (type == dns_rdatatype_sig && lctx->warn_sigexpired) {
-			dns_rdata_sig_t sig;
+		if (type == dns_rdatatype_rrsig && lctx->warn_sigexpired) {
+			dns_rdata_rrsig_t sig;
 			(void)dns_rdata_tostruct(&rdata[rdcount], &sig, NULL);
 			if (isc_serial_lt(sig.timeexpire, now)) {
 				(*callbacks->warn)(callbacks,
@@ -1614,6 +1616,14 @@ load(dns_loadctx_t *lctx) {
 						   source, line);
 				lctx->warn_sigexpired = ISC_FALSE;
 			}
+		}
+
+		if ((type == dns_rdatatype_sig || type == dns_rdatatype_nxt) &&
+		    lctx->warn_tcr && (lctx->options & DNS_MASTER_ZONE) != 0 &&
+                    (lctx->options & DNS_MASTER_SLAVE) == 0) {
+			(*callbacks->warn)(callbacks, "%s:%lu: old style DNSSEC "
+					   " zone detected", source, line);
+			lctx->warn_tcr = ISC_FALSE;
 		}
 
 		if ((lctx->options & DNS_MASTER_AGETTL) != 0) {

@@ -319,9 +319,9 @@ dns_name_format
 dns_name_copy
 dns_ncache_add
 dns_ncache_towire
-dns_nxt_buildrdata
-dns_nxt_build
-dns_nxt_typepresent
+dns_nsec_buildrdata
+dns_nsec_build
+dns_nsec_typepresent
 dns_soa_getserial
 dns_soa_setserial
 dns_soa_getminimum

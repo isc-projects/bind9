@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonekey.c,v 1.3 2001/02/26 02:49:19 bwelling Exp $ */
+/* $Id: zonekey.c,v 1.4 2003/09/30 05:56:14 marka Exp $ */
 
 #include <config.h>
 
@@ -32,7 +32,7 @@
 isc_boolean_t
 dns_zonekey_iszonekey(dns_rdata_t *keyrdata) {
 	isc_result_t result;
-	dns_rdata_key_t key;
+	dns_rdata_dnskey_t key;
 	isc_boolean_t iszonekey = ISC_TRUE;
 
 	REQUIRE(keyrdata != NULL);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.121 2003/09/19 13:27:18 marka Exp $ */
+/* $Id: view.c,v 1.122 2003/09/30 05:56:14 marka Exp $ */
 
 #include <config.h>
 
@@ -669,7 +669,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
-	REQUIRE(type != dns_rdatatype_sig);
+	REQUIRE(type != dns_rdatatype_rrsig);
 	REQUIRE(rdataset != NULL);  /* XXXBEW - remove this */
 
 	/*
@@ -871,7 +871,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			       rdataset, sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*
-		 * The rdataset and sigrdataset of the relevant NXT record
+		 * The rdataset and sigrdataset of the relevant NSEC record
 		 * may be returned, but the caller cannot use them because
 		 * foundname is not returned by this simplified API.  We
 		 * disassociate them here to prevent any misuse by the caller.

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.59 2002/12/03 05:01:34 marka Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.60 2003/09/30 05:55:59 marka Exp $ */
 
 #include <config.h>
 
@@ -296,7 +296,7 @@ main(int argc, char *argv[]) {
 			fatal("failed to convert key %s to a DNS KEY: %s",
 			      argv[i], isc_result_totext(result));
 		isc_buffer_usedregion(&b, &r);
-		dns_rdata_fromregion(&rdata, rdclass, dns_rdatatype_key, &r);
+		dns_rdata_fromregion(&rdata, rdclass, dns_rdatatype_dnskey, &r);
 		tuple = NULL;
 		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
 					      domain, ttl, &rdata, &tuple);
@@ -319,7 +319,7 @@ main(int argc, char *argv[]) {
 
 	dns_fixedname_init(&tname);
 	dns_rdataset_init(&rdataset);
-	result = dns_db_find(db, domain, version, dns_rdatatype_key, 0, 0,
+	result = dns_db_find(db, domain, version, dns_rdatatype_dnskey, 0, 0,
 			     NULL, dns_fixedname_name(&tname), &rdataset,
 			     NULL);
 	check_result(result, "dns_db_find");
