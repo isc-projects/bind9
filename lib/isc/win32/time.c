@@ -85,6 +85,25 @@ static isc_time_t epoch = { 0, 0 };
 isc_time_t *isc_time_epoch = &epoch;
 
 void
+isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
+	ULARGE_INTEGER i;
+
+	/*
+	 * Set 't' to a particular number of seconds + nanoseconds since the
+	 * epoch.
+	 */
+	REQUIRE(t != NULL);
+	REQUIRE(nanoseconds < 1000000000);
+
+	i.QuadPart = (LONGLONG)seconds * INTERVALS_PER_S
+		+ nanoseconds / NS_INTERVAL;
+
+	t->absolute.dwLowDateTime = i.LowPart;
+	t->absolute.dwHighDateTime = i.HighPart;
+
+}
+
+void
 isc_time_settoepoch(isc_time_t *t) {
 	/*
 	 * Set 't' to the time of the epoch.
@@ -160,9 +179,8 @@ isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
 }
 
 void
-isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result)
-{
-	ULARGE_INTEGER i1, i2;
+isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
+	ULARGE_INTEGER i1;
 
 	/*
 	 * Add 't' to 'i', storing the result in 'result'.
@@ -173,15 +191,15 @@ isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result)
 	i1.LowPart = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	i2.QuadPart = i1.QuadPart + i->interval;
-	
-	result->absolute.dwLowDateTime = i2.LowPart;
-	result->absolute.dwHighDateTime = i2.HighPart;
+	i1.QuadPart += i->interval;
+
+	result->absolute.dwLowDateTime = i1.LowPart;
+	result->absolute.dwHighDateTime = i1.HighPart;
 }
 
 void
 isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
-	ULARGE_INTEGER i1, i2;
+	ULARGE_INTEGER i1;
 
 	/*
 	 * Subtract 'i' from 't', storing the result in 'result'.
@@ -192,10 +210,12 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	i1.LowPart = t->absolute.dwLowDateTime;
 	i1.HighPart = t->absolute.dwHighDateTime;
 
-	i2.QuadPart = i1.QuadPart - i->interval;
-	
-	result->absolute.dwLowDateTime = i2.LowPart;
-	result->absolute.dwHighDateTime = i2.HighPart;
+	REQUIRE(i1.QuadPart >= i->interval);
+
+	i1.QuadPart -= i->interval;
+
+	result->absolute.dwLowDateTime = i1.LowPart;
+	result->absolute.dwHighDateTime = i1.HighPart;
 }
 
 isc_uint64_t
@@ -225,6 +245,8 @@ isc_uint32_t
 isc_time_seconds(isc_time_t *t) {
 	ULARGE_INTEGER i;
 
+	REQUIRE(t != NULL);
+
 	i.LowPart = t->absolute.dwLowDateTime;
 	i.HighPart = t->absolute.dwHighDateTime;
 
@@ -236,6 +258,8 @@ isc_time_seconds(isc_time_t *t) {
 isc_uint32_t
 isc_time_nanoseconds(isc_time_t *t) {
 	ULARGE_INTEGER i;
+
+	REQUIRE(t != NULL);
 
 	i.LowPart = t->absolute.dwLowDateTime;
 	i.HighPart = t->absolute.dwHighDateTime;

@@ -1,3 +1,8 @@
+  71.   [cleanup]       Made explicit the implicit REQUIREs of
+                        isc_time_seconds, isc_time_nanoseconds, and
+                        isc_time_subtract.
+
+  70.   [func]          isc_time_set() added.
 
   69.   [bug]		The zone object's master and also-notify lists grew
 			longer with each server reload.
@@ -17,11 +22,11 @@
 			caller find the most-enclosing superdomain of
 			a name.
 
-  63	[func]		generate NOTIFY messages.
+  63	[func]		Generate NOTIFY messages.
 
-  62.	[func]		add UDP refresh support.
+  62.	[func]		Add UDP refresh support.
 
-  61.   [cleanup]       use single quotes consistently in log messages.
+  61.   [cleanup]       Use single quotes consistently in log messages.
 
   60.	[func]		Catch and disallow singleton types on message
 			parse.

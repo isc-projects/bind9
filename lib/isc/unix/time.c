@@ -78,6 +78,18 @@ static isc_time_t epoch = { 0, 0 };
 isc_time_t *isc_time_epoch = &epoch;
 
 void
+isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
+	/*
+	 * Set 't' to a particular number of seconds + nanoseconds since the
+	 * epoch.
+	 */
+	REQUIRE(t != NULL);
+
+	t->seconds = seconds;
+	t->nanoseconds = nanoseconds;
+}
+
+void
 isc_time_settoepoch(isc_time_t *t) {
 	/*
 	 * Set 't' to the time of the epoch.
@@ -195,6 +207,9 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	 */
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
+	REQUIRE((unsigned int)t->seconds > i->seconds ||
+		((unsigned int)t->seconds == i->seconds &&
+		 t->nanoseconds >= i->nanoseconds));
 	
 	result->seconds = t->seconds - i->seconds;
 	if (t->nanoseconds >= i->nanoseconds)
@@ -230,11 +245,15 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 
 isc_uint32_t
 isc_time_seconds(isc_time_t *t) {
+	REQUIRE(t != NULL);
+
 	return ((isc_uint32_t)t->seconds);
 }
 
 isc_uint32_t
 isc_time_nanoseconds(isc_time_t *t) {
+	REQUIRE(t != NULL);
+
 	ENSURE(t->nanoseconds < 1000000000);
 
 	return ((isc_uint32_t)t->nanoseconds);
