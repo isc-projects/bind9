@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.8 2001/11/06 20:47:54 bwelling Exp $
+ * $Id: gssapi_link.c,v 1.9 2001/11/06 22:50:55 bwelling Exp $
  */
 
 #ifdef GSSAPI
@@ -209,8 +209,9 @@ static dst_func_t gssapi_functions = {
 
 isc_result_t
 dst__gssapi_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL && *funcp == NULL);
-	*funcp = &gssapi_functions;
+	REQUIRE(funcp != NULL);
+	if (*funcp == NULL)
+		*funcp = &gssapi_functions;
 	return (ISC_R_SUCCESS);
 }
 

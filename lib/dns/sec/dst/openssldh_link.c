@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.40 2001/11/06 20:47:57 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.41 2001/11/06 22:50:57 bwelling Exp $
  */
 
 #ifdef OPENSSL
@@ -536,14 +536,16 @@ static dst_func_t openssldh_functions = {
 
 isc_result_t
 dst__openssldh_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL && *funcp == NULL);
-	BN_init(&bn2);
-	BN_init(&bn768);
-	BN_init(&bn1024);
-	BN_set_word(&bn2, 2);
-	BN_fromhex(&bn768, PRIME768);
-	BN_fromhex(&bn1024, PRIME1024);
-	*funcp = &openssldh_functions;
+	REQUIRE(funcp != NULL);
+	if (*funcp == NULL) {
+		BN_init(&bn2);
+		BN_init(&bn768);
+		BN_init(&bn1024);
+		BN_set_word(&bn2, 2);
+		BN_fromhex(&bn768, PRIME768);
+		BN_fromhex(&bn1024, PRIME1024);
+		*funcp = &openssldh_functions;
+	}
 	return (ISC_R_SUCCESS);
 }
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.55 2001/11/06 20:47:55 bwelling Exp $
+ * $Id: hmac_link.c,v 1.56 2001/11/06 22:50:56 bwelling Exp $
  */
 
 #include <config.h>
@@ -277,7 +277,8 @@ static dst_func_t hmacmd5_functions = {
 
 isc_result_t
 dst__hmacmd5_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL && *funcp == NULL);
-	*funcp = &hmacmd5_functions;
+	REQUIRE(funcp != NULL);
+	if (*funcp == NULL)
+		*funcp = &hmacmd5_functions;
 	return (ISC_R_SUCCESS);
 }
