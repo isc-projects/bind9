@@ -318,7 +318,7 @@ main(int argc, char *argv[])
 	sockaddr.type.sin.sin_family = AF_INET;
 	sockaddr.type.sin.sin_port = htons(5544);
 	sockaddr.length = sizeof (struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp, &so1) ==
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_sockettype_tcp, &so1) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_bind(so1, &sockaddr) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
@@ -345,7 +345,7 @@ main(int argc, char *argv[])
 	sockaddr.type.sin.sin_family = AF_INET;
 	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.186.34");
 	sockaddr.length = sizeof (struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp,
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_sockettype_tcp,
 					&so2) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, t2,
 					 my_connect, "so2") == ISC_R_SUCCESS);

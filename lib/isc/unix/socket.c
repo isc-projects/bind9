@@ -483,10 +483,10 @@ isc_socket_create(isc_socketmgr_t *manager, isc_sockettype_t type,
 		return (ret);
 
 	switch (type) {
-	case isc_socket_udp:
+	case isc_sockettype_udp:
 		sock->fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		break;
-	case isc_socket_tcp:
+	case isc_sockettype_tcp:
 		sock->fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 		break;
 	}
@@ -973,7 +973,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 		 * we can.
 		 */
 		read_count = dev->region.length - dev->n;
-		if (sock->type == isc_socket_udp) {
+		if (sock->type == isc_sockettype_udp) {
 			addrlen = sizeof dev->address.type;
 			cc = recvfrom(sock->fd,
 				      ISC_SOCKDATA_CAST(dev->region.base
@@ -1001,7 +1001,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
 		if (sock->connected) { \
-			if (sock->type == isc_socket_tcp) \
+			if (sock->type == isc_sockettype_tcp) \
 				sock->recv_result = _isc; \
 			send_recvdone_event(sock, &iev->task, &iev, \
 					    &dev, _isc); \
@@ -1041,7 +1041,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 		 * result code.  This will set the EOF flag in markers as
 		 * well, but that's really ok.
 		 */
-		if ((sock->type == isc_socket_tcp) && (cc == 0)) {
+		if ((sock->type == isc_sockettype_tcp) && (cc == 0)) {
 			do {
 				send_recvdone_event(sock, &iev->task,
 						    &iev, &dev,
@@ -1162,7 +1162,7 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 		 * we can.
 		 */
 		write_count = dev->region.length - dev->n;
-		if (sock->type == isc_socket_udp)
+		if (sock->type == isc_sockettype_udp)
 			cc = sendto(sock->fd,
 				    ISC_SOCKDATA_CAST(dev->region.base
 						      + dev->n),
@@ -1185,7 +1185,7 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
 		if (sock->connected) { \
-			if (sock->type == isc_socket_tcp) \
+			if (sock->type == isc_sockettype_tcp) \
 				sock->send_result = _isc; \
 			send_senddone_event(sock, &iev->task, &iev, \
 					    &dev, _isc); \
@@ -1702,7 +1702,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	/*
 	 * UDP sockets are always partial read
 	 */
-	if (sock->type == isc_socket_udp)
+	if (sock->type == isc_sockettype_udp)
 		partial = ISC_TRUE;
 
 	dev->region = *region;
@@ -1714,7 +1714,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	 * If the read queue is empty, try to do the I/O right now.
 	 */
 	if (EMPTY(sock->recv_list)) {
-		if (sock->type == isc_socket_udp) {
+		if (sock->type == isc_sockettype_udp) {
 			ISC_SOCKADDR_LEN_T addrlen;
 
 			addrlen = (ISC_SOCKADDR_LEN_T)
@@ -1744,7 +1744,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
 		if (sock->connected) { \
-			if (sock->type == isc_socket_tcp) \
+			if (sock->type == isc_sockettype_tcp) \
 				sock->recv_result = _isc; \
 			send_recvdone_event(sock, &task, NULL, &dev, _isc); \
 		} \
@@ -1780,7 +1780,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 		 * UDP, zero length reads are perfectly valid, although
 		 * strange.
 		 */
-		if ((sock->type == isc_socket_tcp) && (cc == 0)) {
+		if ((sock->type == isc_sockettype_tcp) && (cc == 0)) {
 			sock->recv_result = ISC_R_EOF;
 			send_recvdone_event(sock, &task, NULL,
 					    &dev, ISC_R_EOF);
@@ -1901,24 +1901,24 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	/*
 	 * If the write queue is empty, try to do the I/O right now.
 	 */
-	if (sock->type == isc_socket_udp) {
+	if (sock->type == isc_sockettype_udp) {
 		if (address != NULL)
 			dev->address = *address;
 		else
 			dev->address = sock->address;
-	} else if (sock->type == isc_socket_tcp) {
+	} else if (sock->type == isc_sockettype_tcp) {
 		INSIST(address == NULL);
 		dev->address = sock->address;
 	}
 
 	if (EMPTY(sock->send_list)) {
-		if (sock->type == isc_socket_udp)
+		if (sock->type == isc_sockettype_udp)
 			cc = sendto(sock->fd,
 				    ISC_SOCKDATA_CAST(dev->region.base),
 				    dev->region.length, 0,
 				    &dev->address.type.sa,
 				    (int)dev->address.length);
-		else if (sock->type == isc_socket_tcp)
+		else if (sock->type == isc_sockettype_tcp)
 			cc = send(sock->fd,
 				  ISC_SOCKDATA_CAST(dev->region.base),
 				  dev->region.length, 0);
@@ -1937,7 +1937,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
 		if (sock->connected) { \
-			if (sock->type == isc_socket_tcp) \
+			if (sock->type == isc_sockettype_tcp) \
 				sock->send_result = _isc; \
 			send_senddone_event(sock, &task, NULL, &dev, _isc); \
 		} \
@@ -2086,7 +2086,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog)
 	LOCK(&sock->lock);
 
 	REQUIRE(!sock->listener);
-	REQUIRE(sock->type == isc_socket_tcp);
+	REQUIRE(sock->type == isc_sockettype_tcp);
 
 	if (backlog == 0)
 		backlog = SOMAXCONN;

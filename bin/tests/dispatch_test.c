@@ -354,7 +354,7 @@ main(int argc, char *argv[])
 	sockaddr.type.sin.sin_family = AF_INET;
 	sockaddr.type.sin.sin_port = htons(5555);
 	sockaddr.length = sizeof (struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_udp, &s0) ==
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_sockettype_udp, &s0) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_bind(s0, &sockaddr) == ISC_R_SUCCESS);
 

@@ -117,7 +117,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	 * Open a UDP socket.
 	 */
 	ifp->udpsocket = NULL;
-	iresult = isc_socket_create(mgr->socketmgr, isc_socket_udp,
+	iresult = isc_socket_create(mgr->socketmgr, isc_sockettype_udp,
 				    &ifp->udpsocket);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -147,7 +147,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	 * Open a TCP socket.
 	 */
 	ifp->tcpsocket = NULL;
-	iresult = isc_socket_create(mgr->socketmgr, isc_socket_tcp,
+	iresult = isc_socket_create(mgr->socketmgr, isc_sockettype_tcp,
 				    &ifp->tcpsocket);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

@@ -307,10 +307,10 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 	socktype = isc_socket_gettype(disp->socket);
 
 	switch (socktype) {
-	case isc_socket_tcp:
+	case isc_sockettype_tcp:
 		isc_mem_put(disp->mctx, buf, len);
 		break;
-	case isc_socket_udp:
+	case isc_sockettype_udp:
 		XDEBUG(("Freeing buffer %p, length %d, into %s, %d remain\n",
 			buf, len,
 			(len == disp->buffersize ? "mempool" : "mctx"),
@@ -752,7 +752,7 @@ startrecv(dns_dispatch_t *disp)
 			/*
 			 * UDP reads are always maximal.
 			 */
-		case isc_socket_udp:
+		case isc_sockettype_udp:
 			region.length = disp->buffersize;
 			region.base = allocate_buffer(disp, disp->buffersize);
 			if (region.base == NULL)
@@ -769,7 +769,7 @@ startrecv(dns_dispatch_t *disp)
 			disp->recvs++;
 			break;
 
-		case isc_socket_tcp:
+		case isc_sockettype_tcp:
 			XDEBUG(("Starting tcp receive\n"));
 			res = dns_tcpmsg_readmessage(&disp->tcpmsg,
 						     disp->task, tcp_recv,
@@ -811,7 +811,8 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
 	socktype = isc_socket_gettype(sock);
-	REQUIRE(socktype == isc_socket_udp || socktype == isc_socket_tcp);
+	REQUIRE(socktype == isc_sockettype_udp ||
+		socktype == isc_sockettype_tcp);
 
 	res = DNS_R_SUCCESS;
 
@@ -826,7 +827,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->maxbuffers = maxbuffers;
 	disp->refcount = 1;
 	disp->recvs = 0;
-	if (socktype == isc_socket_udp) {
+	if (socktype == isc_sockettype_udp) {
 		disp->recvs_wanted = 4; /* XXXMLG config option */
 	} else {
 		disp->recvs_wanted = 1;
