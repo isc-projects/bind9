@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.html,v 1.4.2.1.4.5 2004/06/03 05:35:46 marka Exp $ -->
+<!-- $Id: dnssec-signzone.html,v 1.4.2.1.4.6 2004/06/11 02:32:46 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -189,26 +189,21 @@ NAME="AEN66"
 >        <B
 CLASS="COMMAND"
 >dnssec-signzone</B
-> signs a zone.  It generates NSEC
-	and RRSIG records and produces a signed version of the zone.  If there
-	is a <TT
-CLASS="FILENAME"
->signedkey</TT
-> file from the zone's parent,
-	the parent's signatures will be incorporated into the generated
-	signed zone file.  The security status of delegations from the
-        signed zone (that is, whether the child zones are secure or not) is
-        determined by the presence or absence of a
+> signs a zone.  It generates
+	NSEC and RRSIG records and produces a signed version of the
+	zone. The security status of delegations from the signed zone
+	(that is, whether the child zones are secure or not) is
+	determined by the presence or absence of a
 	<TT
 CLASS="FILENAME"
->signedkey</TT
+>keyset</TT
 > file for each child zone.
     </P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN72"
+NAME="AEN71"
 ></A
 ><H2
 >OPTIONS</H2
@@ -273,7 +268,7 @@ CLASS="REPLACEABLE"
 ><P
 >	       Look for <TT
 CLASS="FILENAME"
->signedkey</TT
+>keyset</TT
 > files in
 	       <TT
 CLASS="OPTION"
@@ -515,7 +510,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN182"
+NAME="AEN181"
 ></A
 ><H2
 >EXAMPLE</H2
@@ -533,9 +528,9 @@ CLASS="COMMAND"
 	man page.  The zone's keys must be in the zone.  If there are
 	<TT
 CLASS="FILENAME"
->signedkey</TT
-> files associated with this zone
-	or any child zones, they must be in the current directory.
+>keyset</TT
+> files associated with child zones,
+	they must be in the current directory.
 	<TT
 CLASS="USERINPUT"
 ><B
@@ -574,7 +569,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN196"
+NAME="AEN195"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -599,7 +594,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN204"
+NAME="AEN203"
 ></A
 ><H2
 >AUTHOR</H2
