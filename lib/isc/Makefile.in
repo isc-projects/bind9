@@ -28,7 +28,7 @@ CDEFINES =
 CWARNINGS =
 
 UNIXOBJS =	unix/app.@O@ unix/time.@O@ unix/stdtime.@O@ \
-		unix/socket.@O@ unix/interfaceiter.@O@
+		unix/socket.@O@ unix/interfaceiter.@O@ unix/net.@O@
 
 NLSOBJS =	nls/msgcat.@O@
 

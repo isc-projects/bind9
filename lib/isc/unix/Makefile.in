@@ -25,7 +25,7 @@ CDEFINES =
 CWARNINGS =
 
 OBJS =		app.@O@ time.@O@ stdtime.@O@ socket.@O@ \
-		interfaceiter.@O@
+		interfaceiter.@O@ net.@O@
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
