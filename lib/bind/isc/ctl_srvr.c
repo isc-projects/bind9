@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_srvr.c,v 1.3.2.1.4.2 2004/03/17 00:29:51 marka Exp $";
+static const char rcsid[] = "$Id: ctl_srvr.c,v 1.3.2.1.4.3 2004/03/17 01:13:35 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -321,7 +321,7 @@ ctl_response(struct ctl_sess *sess, u_int code, const char *text,
 			       me, address_expr);
 		goto untimely;
 	}
-	if (sizeof "000-\r\n" + strlen(text) > MAX_LINELEN) {
+	if (sizeof "000-\r\n" + strlen(text) > (size_t)MAX_LINELEN) {
 		(*ctx->logger)(ctl_error, "%s: %s: output buffer ovf, closing",
 			       me, address_expr);
 		goto untimely;
@@ -610,7 +610,7 @@ ctl_readable(evContext lev, void *uap, int fd, int evmask) {
 			memmove(sess->inbuf.text, eos + 1, sess->inbuf.used);
 		return;
 	}
-	if (sess->inbuf.used == MAX_LINELEN) {
+	if (sess->inbuf.used == (size_t)MAX_LINELEN) {
 		(*ctx->logger)(ctl_error, "%s: %s: line too long, closing",
 			       me, address_expr);
 		ctl_close(sess);

@@ -49,7 +49,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: irpmarshall.c,v 1.3.206.2 2004/03/17 00:29:49 marka Exp $";
+static const char rcsid[] = "$Id: irpmarshall.c,v 1.3.206.3 2004/03/17 01:13:34 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #if 0
@@ -523,7 +523,7 @@ irp_unmarshall_gr(struct group *gr, char *buffer) {
 	/* gr_gid field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	t = strtol(tmpbuf, &tb, 10);
@@ -679,7 +679,7 @@ irp_unmarshall_sv(struct servent *sv, char *buffer) {
 
 	/* s_name field */
 	name = NULL;
-	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0) {
+	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0U) {
 		goto error;
 	}
 
@@ -700,7 +700,7 @@ irp_unmarshall_sv(struct servent *sv, char *buffer) {
 	/* s_port field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	t = strtol(tmpbuf, &tb, 10);
@@ -837,7 +837,7 @@ int irp_unmarshall_pr(struct protoent *pr, char *buffer) {
 
 	/* p_name field */
 	name = NULL;
-	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0) {
+	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0U) {
 		goto error;
 	}
 
@@ -858,7 +858,7 @@ int irp_unmarshall_pr(struct protoent *pr, char *buffer) {
 	/* p_proto field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	t = strtol(tmpbuf, &tb, 10);
@@ -1040,7 +1040,7 @@ irp_unmarshall_ho(struct hostent *ho, char *buffer) {
 
 	/* h_name field */
 	name = NULL;
-	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0) {
+	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0U) {
 		goto error;
 	}
 
@@ -1061,7 +1061,7 @@ irp_unmarshall_ho(struct hostent *ho, char *buffer) {
 	/* h_addrtype field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	if (strcmp(tmpbuf, "AF_INET") == 0)
@@ -1075,7 +1075,7 @@ irp_unmarshall_ho(struct hostent *ho, char *buffer) {
 	/* h_length field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	t = strtol(tmpbuf, &tb, 10);
@@ -1428,7 +1428,7 @@ irp_unmarshall_nw(struct nwent *ne, char *buffer) {
 
 	/* n_name field */
 	name = NULL;
-	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0) {
+	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0U) {
 		goto error;
 	}
 
@@ -1449,7 +1449,7 @@ irp_unmarshall_nw(struct nwent *ne, char *buffer) {
 	/* h_addrtype field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	if (strcmp(tmpbuf, "AF_INET") == 0)
@@ -1463,7 +1463,7 @@ irp_unmarshall_nw(struct nwent *ne, char *buffer) {
 	/* n_net field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	nnet = 0;
@@ -1605,7 +1605,7 @@ irp_unmarshall_ne(struct netent *ne, char *buffer) {
 
 	/* n_name field */
 	name = NULL;
-	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0) {
+	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0U) {
 		goto error;
 	}
 
@@ -1626,7 +1626,7 @@ irp_unmarshall_ne(struct netent *ne, char *buffer) {
 	/* h_addrtype field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	if (strcmp(tmpbuf, "AF_INET") == 0)
@@ -1640,7 +1640,7 @@ irp_unmarshall_ne(struct netent *ne, char *buffer) {
 	/* n_net field */
 	tb = tmpbuf;
 	if (getfield(&tb, sizeof tmpbuf, &p, fieldsep) == NULL ||
-	    strlen(tb) == 0) {
+	    strlen(tb) == 0U) {
 		goto error;
 	}
 	bits = inet_net_pton(naddrtype, tmpbuf, &nnet, sizeof nnet);
@@ -1961,12 +1961,12 @@ strcmp_nws(const char *a, const char *b) {
 static void
 free_array(char **argv, size_t entries) {
 	char **p = argv;
-	int useEntries = (entries > 0);
+	int useEntries = (entries > 0U);
 
 	if (argv == NULL)
 		return;
 
-	while ((useEntries && entries > 0) || *p) {
+	while ((useEntries && entries > 0U) || *p) {
 		if (*p)
 			free(*p);
 		p++;

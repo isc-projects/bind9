@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.7.4.2 2004/03/17 00:29:48 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.7.4.3 2004/03/17 01:13:34 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -838,7 +838,7 @@ gethostans(struct irs_ho *this,
 			}
 			cp += n;
 #ifdef RES_USE_DNAME
-			if ((pvt->res->options & RES_USE_DNAME) != 0)
+			if ((pvt->res->options & RES_USE_DNAME) != 0U)
 #endif
 			{
 				/*
