@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_buffer.3,v 1.3 2000/08/01 01:20:26 tale Exp $
+.\" $Id: lwres_buffer.3,v 1.4 2000/09/28 22:36:23 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_BUFFER 3
@@ -118,24 +118,13 @@
 .Fa "unsigned int length"
 .Fc
 .Sh DESCRIPTION
-These functions use the following structure as a buffer descriptor to
-manage the actual storage:
-.Bd -literal -offset indent
-typedef struct lwres_buffer lwres_buffer_t;
-struct lwres_buffer {
-	unsigned int		magic;
-	unsigned char 	       *base;
-	/* The following integers are byte offsets from 'base'. */
-	unsigned int		length;
-	unsigned int		used;
-	unsigned int 		current;
-	unsigned int 		active;
-};
-.Ed
-The main reason for making the buffer structure public is so that
-buffer operations can be implemented using macros.
-Applications should not manipulate this structure directly.
-They should use the functions listed below.
+
+
+These functions provide bounds checked access to a region of memory
+where data is being read or written.
+They are based on, and similar to, the
+.Va isc_buffer_
+functions in the ISC library.
 .Pp
 A buffer is a region of memory, together with a set of related
 subregions.
@@ -168,33 +157,42 @@ Initially, the active region is empty.
 If the current offset advances beyond the chosen offset,
 the active region will also be empty.
 .Pp
-Except for
-.Fn lwres_buffer_init ,
-all of the buffer managements functions contain an assertion check
-that
-.Fa b
-is a pointer to a valid lightweight resolver buffer.
+.Bd -literal -offset indent
+ 
+   /------------entire length---------------\\
+   /----- used region -----\\/-- available --\\
+   +----------------------------------------+
+   | consumed  | remaining |                |
+   +----------------------------------------+
+   a           b     c     d                e
+ 
+  a == base of buffer.
+  b == current pointer.  Can be anywhere between a and d.
+  c == active pointer.  Meaningful between b and d.
+  d == used pointer.
+  e == length of buffer.
+ 
+  a-e == entire length of buffer.
+  a-d == used region.
+  a-b == consumed region.
+  b-d == remaining region.
+  b-c == optional active region.
+.Ed
 .Pp
 .Fn lwres_buffer_init
-makes the
-.Dv "struct lwres_buffer"
-referenced by
+initializes the
+.Dv lwres_buffer_t
 .Fa *b
-to be associated with a memory region of size
+and assocates it with the memory region of size
 .Fa length
 bytes starting at location
 .Fa base.
-The function checks that
-.Fa *b is not
-.Dv NULL .
 .Pp
-The
-.Dv lwres_buffer_t
-.Fa *b
-is invalidated by
-.Fn lwres_buffer_invalidate .
-.Fa *b
-must be a valid lightweight resolver buffer.
+.Fn lwres_buffer_invalidate
+marks the buffer
+.Fa *b 
+as invalid.  Invalidating a buffer after use is not required,
+but makes it possible to catch its possible accidental use.
 .Pp
 The functions
 .Fn lwres_buffer_add
@@ -206,70 +204,62 @@ buffer
 by
 .Fa n
 bytes.
-.Fa *b
 .Fn lwres_buffer_add
 checks for buffer overflow and
 .Fn lwres_buffer_subtract
 checks for underflow.
 These functions do not allocate or deallocate memory.
 They just change the value of
-.Li b->used .
+.Li used .
 .Pp
-A lightweight resolver buffer is re-initialised by
+A buffer is re-initialised by
 .Fn lwres_buffer_clear .
 The function sets
-.Li b->used ,
-.Li b->current
+.Li used ,
+.Li current
 and
-.Li b->active
+.Li active
 to zero.
 .Pp
 .Fn lwres_buffer_first
 makes the consumed region of buffer
 .Fa *p
 empty by setting
-.Li b->current
-to zero: the start of the buffer.
+.Li current
+to zero (the start of the buffer).
 .Pp
-The consumed region of buffer
+.Fn lwres_buffer_forward 
+increases the consumed region of buffer
 .Fa *b
-is increased by
+by
 .Fa n
-bytes
-using
-.Fn lwres_buffer_forward .
-The function checks for buffer overflow.
+bytes, checking for overflow.
 Similarly,
 .Fn lwres_buffer_back
 decreases buffer
 .Fa b 's
 consumed region by
 .Fa n
-bytes and checks for buffer underflow.
+bytes and checks for underflow.
 .Pp
 .Fn lwres_buffer_getuint8
 reads an unsigned 8-bit integer from
 .Fa *b
 and returns it.
-The function checks that it does not read past the end of the buffer's
-consumed region.
 .Fn lwres_buffer_putuint8
 writes the unsigned 8-bit integer
 .Fa val
 to buffer
 .Fa *b .
-It checks that the buffer has available space for
-.Fa val .
 .Pp
 .Fn lwres_buffer_getuint16
 and
 .Fn lwres_buffer_getuint32
 are identical to
 .Fn lwres_buffer_putuint8
-except that they respectively read an unsigned 16-bit or 32-bit integer from
-.Fa b
-converting it from network byte order to host byte order before
-returning its value.
+except that they respectively read an unsigned 16-bit or 32-bit integer 
+in network byte order from
+.Fa b .
 Similarly,
 .Fn lwres_buffer_putuint16
 and
@@ -278,7 +268,7 @@ writes the unsigned 16-bit or 32-bit integer
 .Fa val
 to buffer
 .Fa b ,
-converting it from host byte order to network byte order.
+in network byte order.
 .Pp
 Arbitrary amounts of data are read or written from a lightweight
 resolver buffer with
@@ -301,23 +291,4 @@ bytes of memory from
 .Fa b
 to
 .Fa base .
-For both functions,
-.Fa base
-should point to at least
-.Fa length
-bytes of valid memory.
-.Fa base
-.Sh RETURN VALUES
-.Fn lwres_buffer_getuint8 ,
-.Fn lwres_buffer_getuint16
-and
-.Fn lwres_buffer_getuint32
-return an 8-, 16- or 32-bit unsigned integer respectively from the
-current offset in buffer
-.Fa b .
-The 16- and 32-bit quantities are presented in host byte order even
-though they are stored in network byte order inside the buffer.
 .Sh SEE ALSO
-.Sh BUGS
-Buffers have no synchronization.
-Clients must ensure exclusive access for thread-safe operations.

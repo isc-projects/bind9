@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_gnba.3,v 1.3 2000/08/01 01:21:29 tale Exp $
+.\" $Id: lwres_gnba.3,v 1.4 2000/09/28 22:36:31 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_GNBA 3
@@ -26,7 +26,7 @@
 .Nm lwres_gnbaresponse_parse ,
 .Nm lwres_gnbaresponse_free ,
 .Nm lwres_gnbarequest_free
-.Nd lightweight resolver getnamebyaddress functions
+.Nd lightweight resolver getnamebyaddress message handling
 .Sh SYNOPSIS
 .Fd #include <lwres/lwres.h>
 .Fd
@@ -69,10 +69,9 @@
 .Fa "lwres_gnbarequest_t **structp"
 .Fc
 .Sh DESCRIPTION
-These functions implement the lightweight resolver's getnamebyaddr opcode
-.Dv LWRES_OPCODE_GETNAMEBYADDR .
-They provide a reverse lookup mechanism, mapping an address to its
-hostname.
+These are low-level routines for creating and parsing
+lightweight resolver address-to-name lookup request and 
+response messages.
 .Pp
 There are four main functions for the getnamebyaddr opcode.
 One render function converts a getnamebyaddr request structure -

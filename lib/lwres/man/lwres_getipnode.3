@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_getipnode.3,v 1.3 2000/08/01 01:21:24 tale Exp $
+.\" $Id: lwres_getipnode.3,v 1.4 2000/09/28 22:36:29 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_GETIPNODE 3
@@ -23,9 +23,9 @@
 .Nm lwres_getipnodebyname ,
 .Nm lwres_getipnodebyaddr ,
 .Nm lwres_freehostent
-.Nd lookup functions for the lightweight resolver
+.Nd lightweight resolver nodename / address translation API
 .Sh SYNOPSIS
-.Fd #include <lwres/lwres.h>
+.Fd #include <lwres/netdb.h>
 .Fd
 .Ft struct hostent *
 .Fo lwres_getipnodebyname
@@ -46,10 +46,14 @@
 .Fa "struct hostent *he"
 .Fc
 .Sh DESCRIPTION
-These functions use a
+These functions perform thread safe, protocol independent
+nodename-to-address and address-to-nodename 
+translation as defined in RFC2553.
+.Pp
+They use a
 .Dv "struct hostent"
-which is usually defined in
-.Pa namedb.h .
+which is defined in
+.Pa namedb.h :
 .Bd -literal
 struct	hostent {
 	char	*h_name;	/* official name of host */
@@ -68,7 +72,7 @@ The official (canonical) name of the host.
 .It Li h_aliases
 A NULL-terminated array of alternate names (nicknames) for the host.
 .It Li h_addrtype
-The type of address being returned -
+The type of address being returned - usually
 .Dv PF_INET
 or
 .Dv PF_INET6 .
@@ -81,92 +85,53 @@ terminated array of network addresses for the host.
 Host addresses are returned in network byte order.
 .El
 .Pp
-For backward compatibility with very old software,
-.Li h_addr
-is the first address in
-.Li h_addr_list.
-.Pp
 .Fn lwres_getipnodebyname
-looks up the hostname
-.Fa name
-of protocol family
-.Fa af .
+looks up addresses of protocol family
+.Fa af 
+for the hostname
+.Fa name .
 The
 .Fa flags
-parameter sets bits that indicate how IPv6 and IPv4 addresses
-should presented.
-The value of those flags are:
+parameter contains ORed flag bits to 
+specify the types of addresses that are searched
+for, and the types of addresses that are returned. 
+The flag bits are:
 .Bl -tag -width AI_ADDRCONFIG
 .It Li AI_V4MAPPED
-return an IPv4 address mapped to an IPv6 address
+This is used with an
+.Fa af
+of AF_INET6, and causes IPv4 addresses to be returned as IPv4-mapped
+IPv6 addresses.
 .It Li AI_ALL
-return all possible addresses
+This is used with an
+.Fa af
+of AF_INET6, and causes all known addresses (IPv6 and IPv4) to be returned.
+If AI_V4MAPPED is also set, the IPv4 addresses are return as mapped
+IPv6 addresses.
 .It Li AI_ADDRCONFIG
-only return an IPv6 or IPv4 address if here is an active network
-interface of that type.
+Only return an IPv6 or IPv4 address if here is an active network
+interface of that type.  This is not currently implemented
+in the BIND 9 lightweight resolver, and the flag is ignored.
 .It Li AI_DEFAULT
-this default sets the
+This default sets the
 .Li AI_V4MAPPED
 and
 .Li AI_ADDRCONFIG
 flag bits.
 .El
 .Pp
-The value of
-.Dv AF_INET6
-is sometimes added to
-.Fa flags .
-When
-.Fa flags
-is set to
-.Li "AI_V4MAPPED + AF_INET6"
-.Fn lwres_getipnodebyname
-will look for an IPv6 address and if this is not found it will look
-for an IPv4 address and map it to an IPv6 address.
-When
-.Fa flags
-is
-.Li "AI_ALL + AI_V4MAPPED + AF_INET6" ,
-.Fn lwres_getipnodebyname
-returns mapped IPv4 addresses and IPv6 addresses.
-.Fn lwres_getipnodebyname
-calls
-.Fn lwres_context_create
-to create a resolver context for the lookup and
-then calls
-.Fn lwres_getaddrsbyname
-to lookup the name using that resolver context.
-.Pp
 .Fn lwres_getipnodebyaddr
-performs a thread-safe reverse lookup
+performs a reverse lookup
 of address
 .Fa src
 which is
 .Fa len
 bytes long.
 .Fa af
-denotes the protocol family:
+denotes the protocol family, typically
 .Dv PF_INET
 or
 .Dv PF_INET6 .
-.Fn lwres_getipnodebyaddr
-also sets up a resolver context by calling
-.Fn lwres_context_create.
-It then calls
-.Fn lwres_getnamebyaddr
-to make the query.
-.Pp
-Both
-.Fn lwres_getipnodebyname
-and
-.Fn lwres_getipnodebyaddr
-will free any memory that was allocated during intermediate stages of the
-lookup by calling
-.Fn lwres_gnbaresponse_free .
-Both functions call
-.Fn lwres_getipnodebyaddr
-immediately before they return so that the created resolver context
-gets discarded.
 .Pp
 .Fn lwres_freehostent
 releases all the memory associated with
@@ -193,37 +158,29 @@ to an approriate error code and the function returns a
 .Dv NULL
 pointer.
 The error codes and their meanings are defined in
-.Pa lwres/netdb.h .
+.Pa <lwres/netdb.h> :
 .Bl -tag -width HOST_NOT_FOUND
-.It Li NETDB_INTERNAL
-Internal Error - see
-.Li errno
-.It Li NETDB_SUCCESS
-no problem
 .It Li HOST_NOT_FOUND
-Authoritative Answer Host not found
-.It Li TRY_AGAIN
-Non-Authoritive Answer Host not found, or
-.Dv SERVERFAIL
-.It Li NO_RECOVERY
-Non recoverable errors,
-.Dv FORMERR ,
-.Dv REFUSED ,
-or
-.Dv NOTIMP
-.It Li NO_DATA
-Valid name, but no data record of requested type
+No such host is known.
 .It Li NO_ADDRESS
-no address, so look for MX record
+The server recognised the request and the name but no address is
+available.  Another type of request to the name server for the
+domain might return an answer.
+.It Li TRY_AGAIN
+A temporary and possibly transient error occurred, such as a
+failure of a server to respond.  The request may succeed if
+retried.
+.It Li NO_RECOVERY
+An unexpected failure occurred, and retrying the request
+is pointless.
 .El
 .Pp
 .Xr lwres_hstrerror 3
 translates these error codes to suitable error messages.
 .Sh SEE ALSO
-.Xr lwres_res_getaddrsbyname 3 ,
-.Xr lwres_res_context_create 3 ,
-.Xr lwres_res_context_destroy 3 ,
-.Xr lwres_res_gnbaresponse_free 3 ,
-.Xr lwres_res_getaddrsbyaddr 3 ,
-.Xr free 3 ,
+.Xr RFC2553 ,
+.Xr lwres 3 ,
+.Xr lwres_gethostent 3 ,
+.Xr lwres_getaddrinfo 3 ,
+.Xr lwres_getnameinfo 3 ,
 .Xr lwres_hstrerror 3 .

@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_getaddrinfo.3,v 1.3 2000/08/01 01:21:13 tale Exp $
+.\" $Id: lwres_getaddrinfo.3,v 1.4 2000/09/28 22:36:27 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_GETADDRINFO 3
@@ -40,7 +40,8 @@
 .Pp
 If the operating system does not provide a
 .Dv "struct addrinfo" ,
-the following structure is used
+the following structure is used:
+.Pp
 .Bd -literal -offset indent
 struct	addrinfo {
 	int		ai_flags;	/* AI_PASSIVE, AI_CANONNAME */
@@ -58,7 +59,7 @@ struct	addrinfo {
 .Fn lwres_getaddrinfo
 is used to get a list of IP addresses and port numbers for host
 .Fa hostname
-and
+and service
 .Fa servname .
 The function is the lightweight resolver's implementation of
 .Fn getaddrinfo
@@ -66,12 +67,12 @@ as defined in RFC2133.
 .Fa hostname
 and
 .Fa servname
-arguments are pointers to null-terminated
+are pointers to null-terminated
 strings or
 .Dv NULL .
 .Fa hostname
-either a host name or a numeric host address string: a dotted decimal
-IPv4 address or an IPv6 hex address.
+is either a host name or a numeric host address string: a dotted decimal
+IPv4 address or an IPv6 address.
 .Fa servname
 is either a decimal port number or a service name as listed in
 .Pa /etc/services .
@@ -103,12 +104,13 @@ When
 .Li ai_socktype
 is zero the caller will accept any socket type.
 .It Li ai_protocol
-indicates which transport protocol is wanted: UDP or TCP.
+indicates which transport protocol is wanted: IPPROTO_UDP or 
+IPPROTO_TCP.
 If
 .Li ai_protocol
 is zero the caller will accept any protocol.
 .It Li ai_flags
-sets some flag bits.
+Flag bits.
 If the
 .Dv AI_CANONNAME
 bit is set, a successful call to
@@ -161,14 +163,9 @@ If
 is set to
 .Dv AI_NUMERICHOST
 it indicates that
-the
-.Dv non-NuLL
 .Fa hostname
-should be treated as a numeric string defining an IPv4 or IPv6 address.
-This will prevent a numeric IPv4 address from being considered as a domain
-name when
-.Fn lwres_getaddrinfo
-is looking for IPv6 addresses or vice versa.
+should be treated as a numeric string defining an IPv4 or IPv6 address
+and no name resolution should be attempted.
 .El
 .Pp
 All other elements of the
@@ -177,14 +174,13 @@ passed via
 .Fa arg
 must be zero.
 .Pp
-If
+An
 .Fa arg
-is not supplied, a
+of
 .Dv NULL
-pointer should be given for this argument.
-It will be treated as if the caller provided an
+is treated as if the caller provided a
 .Dv "struct addrinfo"
-structure initialized to zero with
+initialized to zero with
 .Li ai_family set to
 .Li PF_UNSPEC .
 .Pp
@@ -195,7 +191,8 @@ is a pointer to a linked list of one or more
 .Dv addrinfo
 structures.
 Each
-.Dv "struct addrinfo" in this list cn be processed by following
+.Dv "struct addrinfo" 
+in this list cn be processed by following
 the
 .Li ai_next
 pointer, until a
@@ -203,7 +200,7 @@ pointer, until a
 pointer is encountered.
 The three members
 .Li ai_family ,
-ai_socktype,
+.Li ai_socktype ,
 and
 .Li ai_protocol
 in each
@@ -230,7 +227,8 @@ is released by
 .Fn lwres_freeaddrinfo .
 .Fa ai
 is a pointer to a
-.Dv "struct addrinfo" created by a call to
+.Dv "struct addrinfo" 
+created by a call to
 .Fn lwres_getaddrinfo .
 .Sh RETURN VALUES
 .Fn lwres_getaddrinfo
@@ -247,13 +245,13 @@ are
 returns
 .Er EAI_NONAME .
 .Sh SEE ALSO
+.Xr lwres 3 ,
 .Xr lwres_getaddrinfo 3 ,
 .Xr lwres_freeaddrinfo 3 ,
 .Xr lwres_gai_strerror 3 ,
 .Xr RFC2133 ,
 .Xr getservbyname 3 ,
-.Xr bind 2
-.Xr connect 2
+.Xr bind 2 ,
 .Xr connect 2 ,
 .Xr sendto 2 ,
 .Xr sendmsg 2 ,

@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_gai_strerror.3,v 1.3 2000/08/01 01:21:12 tale Exp $
+.\" $Id: lwres_gai_strerror.3,v 1.4 2000/09/28 22:36:26 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_GAI_STRERROR 3
@@ -30,16 +30,11 @@
 .Fa "int ecode"
 .Fc
 .Sh DESCRIPTION
-.Fn gai_strerror
-returns a suitable error message for the error code
-.Fa ecode .
-The message \*qinvalid error code\*q is returned if
-.Fa ecode
-is out of range.
+.Fn lwres_gai_strerror
+returns an error message corresponding to an error code returned by
+.Fn getaddrinfo .
 The following error codes and their meaning are defined in
 .Aq Pa include/lwres/netdb.h .
-They can be returned by
-.Fn getaddrinfo .
 .Bl -tag -width EAI_ADDRFAMILY -offset indent -compact
 .It Dv EAI_ADDRFAMILY
 address family for hostname not supported
@@ -68,17 +63,20 @@ not supported
 .It Dv EAI_SYSTEM
 system error returned in errno
 .El
+The message \*qinvalid error code\*q is returned if
+.Fa ecode
+is out of range.
 .Pp
 .Li ai_flags ,
 .Li ai_family
 and
 .Li ai_socktype
 are elements of the
-.Dv "struct  addrinfo" used by
+.Dv "struct  addrinfo"
+used by
 .Fn lwres_getaddrinfo .
 .Sh SEE ALSO
-.Xr errno 2 ,
-.Xr perror 3 ,
+.Xr strerror 3 ,
 .Xr lwres_getaddrinfo 3 ,
 .Xr getaddrinfo 3 ,
 .Xr RFC2133 .

@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_gethostent.3,v 1.3 2000/08/01 01:21:21 tale Exp $
+.\" $Id: lwres_gethostent.3,v 1.4 2000/09/28 22:36:28 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_GETHOSTENT 3
@@ -96,16 +96,15 @@
 .Fa "void"
 .Fc
 .Sh DESCRIPTION
-These functions define the interface to the lightweight resolver
-daemon \fPNOT IF IT IS GOING AWAY\fP
-for looking up hostnames and addresses. They are similar to the
-standard
+These functions provide hostname-to-address and
+address-to-hostname lookups by means of the lightweight resolver.
+They are similar to the standard
 .Xr gethostent 3
-functions provided by as part of the standard system software.
+functions provided by most operating systems.
 They use a
 .Dv "struct hostent"
 which is usually defined in
-.Pa namedb.h .
+.Pa <namedb.h> .
 .Bd -literal
 struct	hostent {
 	char	*h_name;	/* official name of host */
@@ -149,19 +148,17 @@ is the first address in
 .Fn lwres_sethostent_r
 and
 .Fn lwres_endhostent_r
-are empty stub functions which do nothing.
-They are provided as placeholders so that calls to the system's
-.Xr gethostent 3
-functions can simply be #defined to their
-.Xr lwres_res_gethost
-equivalents.
-See
-.Pa lwres/netdb.h .
+provide iteration over the known host entries on systems that
+provide such functionality through facilities like
+.Pa /etc/hosts
+or NIS.  The lightweight resolver does not currently implement
+these functions; it only provides them as stub functions that always
+return failure.
 .Pp
 .Fn lwres_gethostbyname
 and
 .Fn lwres_gethostbyname2
-lookup the hostname
+look up the hostname
 .Fa name .
 .Fn lwres_gethostbyname
 always looks for an IPv4 address while
@@ -173,9 +170,6 @@ either
 or
 .Dv PF_INET6
 - IPv4 or IPV6 addresses respectively.
-Both functions call
-.Fn lwres_getipnodebyname
-to look up the hostname.
 Successful calls of the functions return a
 .Dv "struct hostent" for
 the name that was looked up.
@@ -196,19 +190,9 @@ bytes and protocol family
 .Dv PF_INET
 or
 .Dv PF_INET6 .
-It calls
-.Fn lwres_getipnodebyaddr
-to do the reverse lookup.
-.Pp
 .Fn lwres_gethostbyname_r
 is a thread-safe function for forward lookups.
-It also calls
-.Fn lwres_getipnodebyname
-to lookup the hostname
-.Fa name .
-If
-.Fn lwres_getipnodebyname
-encounters an error, the error code is returned in
+If an error occurs, an error code is returned in
 .Fa *error .
 .Fa resbuf
 is a pointer to a
@@ -232,7 +216,7 @@ Successful calls to
 return
 .Fa resbuf ,
 which is a pointer to the
-.Fn "struct hostent"
+.Dv "struct hostent"
 it created.
 .Pp
 .Fn lwres_gethostbyaddr_r
@@ -246,13 +230,8 @@ and is of protocol family
 .Dv PF_INET
 or
 .Dv PF_INET6 .
-.Fn lwres_gethostbyaddr_r
-calls
-.Fn lwres_getipnodebyaddr
-to do the work.
-If this function encounters an error, the error code is returned in
+If an error occurs, the error code is returned in
 .Fa *error .
-Like
 The other function parameters are identical to those in
 .Fn lwres_gethostbyname_r .
 .Fa resbuf
@@ -287,36 +266,26 @@ The functions
 .Fn lwres_gethostbyaddr ,
 and
 .Fn lwres_gethostent
-are not thread-safe because they free any memory that had been allocated
-in a previous call to those functions before they perform a lookup.
-They also set the global variable
+return NULL to indicate an error.  In this case the global variable
 .Dv lwres_h_errno
-when they return.
-The values of this variable are defined in
-.Pa lwres/netdb.h .
-The values and their meaning are defined as follows:
+will contain one of the following error codes defined in
+.Pa <lwres/netdb.h> :
 .Bl -tag -width HOST_NOT_FOUND
-.It Li NETDB_INTERNAL
-Internal Error - see
-.Li errno
-.It Li NETDB_SUCCESS
-no problem
 .It Li HOST_NOT_FOUND
-Authoritative Answer Host not found
+The host or address was not found.
 .It Li TRY_AGAIN
-Non-Authoritive Answer Host not found, or
-.Dv SERVERFAIL
+A recoverable error occurred, e.g., a timeout.
+Retrying the lookup may succeed.
 .It Li NO_RECOVERY
-Non recoverable errors,
-.Dv FORMERR ,
-.Dv REFUSED ,
-or
-.Dv NOTIMP
+A non-recoverable error occurred.
 .It Li NO_DATA
-Valid name, but no data record of requested type
-.It Li NO_ADDRESS
-no address, so look for MX record
+The name exists, but has no address information
+associated with it (or vice versa in the case
+of a reverse lookup).  The code NO_ADDRESS
+is accepted as a synonym for NO_DATA for backwards
+compatibility.
 .El
+.Pp
 .Xr lwres_hstrerror 3
 translates these error codes to suitable error messages.
 .Pp
@@ -355,7 +324,7 @@ was too small, both
 and
 .Fn lwres_gethostbyaddr_r
 set the global variable
-.DV errno
+.Dv errno
 to
 .Er ERANGE .
 .Sh SEE ALSO
@@ -363,26 +332,13 @@ to
 .Xr lwres_getipnode 3 ,
 .Xr lwres_hstrerror 3
 .Sh BUGS
-Although
 .Fn lwres_gethostbyname ,
 .Fn lwres_gethostbyname2 ,
 .Fn lwres_gethostbyaddr
 and
 .Fn lwres_endhostent
-call thread-safe functions to perform lookups, these 3 functions
-are not thread-safe because they set the global variable
-.Dv lwres_h_errno
-which could
-overwritten if two or more threads called these functions
-simultaneously.
-They also release any memory that had been allocated in a previous call
-to these functions.
-This emulates the semantics of their equivalent functions in the
-system's
-.Xr gethostent 3
-functions which use a static buffer that gets overwritten in subsequent
-calls to those routines.
-.Pp
+are not thread safe; they return pointers to static data and 
+provide error codes through a global variable.
 Thread-safe versions for name and address lookup are provided by
 .Fn lwres_gethostbyname_r ,
 and

@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_context.3,v 1.3 2000/08/01 01:20:52 tale Exp $
+.\" $Id: lwres_context.3,v 1.4 2000/09/28 22:36:24 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_CONTEXT 3
@@ -27,7 +27,7 @@
 .Nm lwres_context_freemem ,
 .Nm lwres_context_allocmem ,
 .Nm lwres_context_sendrecv
-.Nd lightweight resolver memory allocation routines
+.Nd lightweight resolver context management
 .Sh SYNOPSIS
 .Fd #include <lwres/lwres.h>
 .Fd
@@ -43,13 +43,13 @@
 .Fa "lwres_context_t **contextp"
 .Fc
 .Ft void
-.Fo lwres_context_nextserial
-.Fa "lwres_context_t *ctx"
-.Fc
-.Ft lwres_uint32_t
 .Fo lwres_context_initserial
 .Fa "lwres_context_t *ctx"
 .Fa "lwres_uint32_t serial"
+.Fc
+.Ft lwres_uint32_t
+.Fo lwres_context_nextserial
+.Fa "lwres_context_t *ctx"
 .Fc
 .Ft void
 .Fo lwres_context_freemem
@@ -71,95 +71,81 @@
 .Fa "int recvlen"
 .Fa "int *recvd_len"
 .Fc
-.Bd -literal -offset indent
-struct lwres_context {
-	unsigned int	timeout;	/* time to wait for reply */
-	lwres_uint32_t	serial;		/* serial number state */
-	/*
-	 * For network I/O.
-	 */
-	int		sock;		/* socket to send on */
-	/*
-	 * Function pointers for allocating memory.
-	 */
-	lwres_malloc_t	malloc;
-	lwres_free_t	free;
-	void		*arg;
-	/*
-	 * resolv.conf-like data
-	 */
-	lwres_conf_t	confdata;
-};
-
-typedef struct lwres_context lwres_context_t;
-.Ed
 .Sh DESCRIPTION
 .Fn lwres_context_create
-is used to create a
+creates a
 .Dv lwres_context_t
-structure for use in lightweight resolver operations and associate
-general purpose memory allocation functions with that structure.
-.Fa *contextp
-is a pointer to a
-.Dv "struct lwres_context" .
-It must be non-NULL, which in turn implies that
-.Fa **contextp
-is also non-NULL.
+structure for use in lightweight resolver operations.
+It holds a socket and other data needed for communicating
+with a resolver daemon.
+The new
+.Dv lwres_context_t
+is returned throught
+.Fa contextp ,
+a pointer to a
+.Dv "lwres_context_t"
+pointer.  This 
+.Dv "lwres_context_t"
+pointer must initially be NULL, and is modified 
+to point to the newly created
+.Dv "lwres_context_t" .
+.Pp
+When the lightweight resolver needs to perform dynamic memory
+allocation, it will call
+.Fa malloc_function
+to allocate memory and
+.Fa free_function 
+to free it.  If 
 .Fa malloc_function
 and
-.Fa free_function
-are pointers to the functions the context should use for allocating
-and freeing memory respectively.
-Both function pointers must either be non-NULL or NULL.
-It is not permitted to use a custom allocator - i.e
-.Fa malloc_function
-is non-NULL -
-with a NULL
-.Fa free_function
-or vice versa.
-If both function pointers are NULL, the lightweight resolver's
-internal allocation routines which call
+.Fa free_function 
+are NULL, memory is allocated using
 .Xr malloc 3
 and
-.Xr free 3
-are used.
+.Xr free 3 .
+It is not permitted to have a NULL
+.Fa malloc_function
+and a non-NULL
+.Fa free_function
+or vice versa.
 .Fa arg
-is passed as the initial parameter to the memory
-allocation functions.
-The argument is passed but not used in the internal allocation
-and deallocation routines.
+is passed as the first parameter to the memory
+allocation functions.  
+If
+.Fa malloc_function
+and
+.Fa free_function
+are NULL,
+.Fa arg 
+is unused and should be passed as NULL.
+.P
 Once memory for the structure has been allocated,
-.Xr lwres_conf_init 3
-is called to initialise it.
-The structure is then returned via
+it is initialized using
+.Xr lwres_conf_init 3 
+and returned via
 .Fa *contextp .
 .Pp
-A
-.Dv "struct lwres_context"
-is destroyed by
-.Fn lwres_context_destroy.
-.Fa **contextp
+.Fn lwres_context_destroy
+destroys a 
+.Dv "lwres_context_t" ,
+closing its socket.
+.Fa contextp
 is a pointer to a pointer to the context that is to be destroyed.
-It must be non-NULL, as should
-.Fa *contextp .
-If the context has an open socket, it is closed before the structure
-is discarded.
+The pointer will be set to NULL when the context has been destroyed.
 .Pp
-The context's serial number is controlled with
+The context holds a serial number that is used to identify resolver
+request packets and associate responses with the corresponding requests.
+This serial number is controlled using
 .Fn lwres_context_initserial
 and
 .Fn lwres_context_nextserial .
-Both require that
-.Fa ctx
-is not NULL.
 .Fn lwres_context_initserial
 sets the serial number for context
 .Fa *ctx
 to
 .Fa serial .
 .Fn lwres_context_nextserial
-returns the current serial number for the context and increments
-.Dv  ctx->serial .
+increments the serial number and returns the previous value.
 .Pp
 Memory for a lightweight resolver context is allocated and freed using
 .Fn lwres_context_allocmem
@@ -182,37 +168,15 @@ frees
 .Fa len
 bytes of space starting at location
 .Fa mem .
-It has assertion checks to ensure that
-.Fa mem
-is not null and
-.Fa len
-is not zero.
-.Pp
-If the lightweight resolver's memory allocation functions are used,
-.Fa len
-bytes in the allocated buffer will be set to '0xe5' on allocation
-or '0xa9' when they are freed.
 .Pp
 .Fn lwres_context_sendrecv
 performs I/O for the context
 .Fa ctx .
-Data are read and written from the context's socket
-.Dv ctx->sock .
+Data are read and written from the context's socket.
 It writes data from
 .Fa sendbase
-- typically a DNS query -
+- typically a lightweight resolver query packet -
 and waits for a reply which is copied to the receive buffer at
-.Fa recvbase .
-.Fa sendbase
-is a pointer to the
-.Fa sendlen
-bytes of data that are to be sent using
-.Xr sendto 2.
-Up to
-.Fn recvlen
-bytes of data that are returned by a call to
-.Xr recvfrom 2
-on the socket are copied to
 .Fa recvbase .
 The number of bytes that were written to this receive buffer is
 returned in
@@ -223,9 +187,9 @@ returns
 .Er LWRES_R_NOMEMORY
 if memory for the
 .Dv "struct lwres_context"
-could not be allocated, otherwise
+could not be allocated, 
 .Er LWRES_R_SUCCESS
-is returned.
+otherwise.
 .Pp
 Successful calls to the memory allocator
 .Fn lwres_context_allocmem
@@ -239,18 +203,10 @@ completes successfully.
 .Er LWRES_R_IOERROR
 is returned if an I/O error occurs and
 .Er LWRES_R_TIMEOUT
-is returned if the
-.Xr recvfrom 2
-call times out.
+is returned if
+.Fn lwres_context_sendrecv
+times out waiting for a response.
 .Sh SEE ALSO
 .Xr lwres_conf_init 3 ,
 .Xr malloc 3 ,
-.Xr free 3 ,
-.Xr close 2 ,
-.Xr memset 3 ,
-.Xr sendto 2 ,
-.Xr recvfrom 2 .
-.Sh BUGS
-The
-.Dv lwres_context_t
-structures and the functions which operate on them are not thread-safe.
+.Xr free 3
