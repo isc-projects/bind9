@@ -1,3 +1,7 @@
+ 544.	[func]		Add statistics option, enable statistics-file option,
+			add RNDC option "dump-statistics" to write out a
+			query statistics file.
+
  543.	[doc]		The 'port' option is now documented.
 
  542.	[func]		Add allow-update-forwarding support.
