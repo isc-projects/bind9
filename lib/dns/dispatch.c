@@ -43,6 +43,11 @@
 	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
 } while (0)
 
+#ifdef DISPATCH_DEBUG
+#define XDEBUG(x) printf x
+#else
+#define XDEBUG(x)
+#endif
 
 struct dns_dispentry {
 	unsigned int			magic;
@@ -268,16 +273,16 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 {
 	dns_dispentry_t *res;
 
-	REQUIRE(bucket < disp->qid_tablesize);
+	REQUIRE(bucket < disp->qid_hashsize);
 
 	res = ISC_LIST_HEAD(disp->qid_table[bucket]);
 
 	while (res != NULL) {
 		if ((res->id == id) && isc_sockaddr_equal(dest, &res->host))
 			return (res);
-		printf("lengths (%d, %d), ids (%d, %d)\n",
-		       dest->length, res->host.length,
-		       res->id, id);
+		XDEBUG(("lengths (%d, %d), ids (%d, %d)\n",
+			dest->length, res->host.length,
+			res->id, id));
 		res = ISC_LIST_NEXT(res, link);
 	}
 
@@ -290,9 +295,9 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 	INSIST(disp->buffers > 0);
 	disp->buffers--;
 
-	printf("Freeing buffer %p, length %d, into %s, %d remain\n",
-	       buf, len, (len == disp->buffersize ? "mempool" : "mctx"),
-	       disp->buffers);
+	XDEBUG(("Freeing buffer %p, length %d, into %s, %d remain\n",
+		buf, len, (len == disp->buffersize ? "mempool" : "mctx"),
+		disp->buffers));
 	if (len == disp->buffersize)
 		isc_mempool_put(disp->bpool, buf);
 	else
@@ -314,10 +319,10 @@ allocate_buffer(dns_dispatch_t *disp, unsigned int len)
 	if (temp != NULL) {
 		disp->buffers++;
 
-		printf("Allocated buffer %p, length %d, from %s, %d total\n",
-		       temp, len,
-		       (len == disp->buffersize ? "mempool" : "mctx"),
-		       disp->buffers);
+		XDEBUG(("Allocated buffer %p, length %d, from %s, %d total\n",
+			temp, len,
+			(len == disp->buffersize ? "mempool" : "mctx"),
+			disp->buffers));
 	}
 
 	return (temp);
@@ -386,7 +391,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 
 	(void)task;  /* shut up compiler */
 
-	printf("Got packet!\n");
+	XDEBUG(("Got packet!\n"));
 
 	LOCK(&disp->lock);
 
@@ -421,8 +426,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 		goto restart;
 	}
 
-	printf("length == %d, buflen = %d, addr = %p\n",
-	       ev->n, ev->region.length, ev->region.base);
+	XDEBUG(("length == %d, buflen = %d, addr = %p\n",
+		ev->n, ev->region.length, ev->region.base));
 
 	/*
 	 * Peek into the buffer to see what we can see.
@@ -433,14 +438,14 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	dres = dns_message_peekheader(&source, &id, &flags);
 	if (dres != DNS_R_SUCCESS) {
 		free_buffer(disp, ev->region.base, ev->region.length);
-		printf("dns_message_peekheader(): %s\n",
-		       isc_result_totext(dres));
+		XDEBUG(("dns_message_peekheader(): %s\n",
+			isc_result_totext(dres)));
 		/* XXXMLG log something here... */
 		goto restart;
 	}
 
-	printf("Got valid DNS message header, /QR %c, id %d\n",
-	       ((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id);
+	XDEBUG(("Got valid DNS message header, /QR %c, id %d\n",
+		((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id));
 
 	/*
 	 * Allocate an event to send to the query or response client, and
@@ -472,8 +477,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
  		/* response */
 		bucket = hash(disp, &ev->address, id);
 		resp = bucket_search(disp, &ev->address, id, bucket);
-		printf("Search for response in bucket %d: %s\n",
-		       bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
+		XDEBUG(("Search for response in bucket %d: %s\n",
+			bucket, (resp == NULL ? "NOT FOUND" : "FOUND")));
 
 		if (resp == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
@@ -505,8 +510,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	} else {
 		ISC_EVENT_INIT(rev, sizeof(*rev), 0, 0, DNS_EVENT_DISPATCH,
 			       resp->action, resp->arg, resp, NULL, NULL);
-		printf("Sent event for buffer %p (len %d) to task %p\n",
-		       rev->buffer.base, rev->buffer.length, resp->task);
+		XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
+			rev->buffer.base, rev->buffer.length, resp->task));
 		resp->item_out = ISC_TRUE;
 		ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
 	}
@@ -558,8 +563,8 @@ startrecv(dns_dispatch_t *disp)
 			region.base = allocate_buffer(disp, disp->buffersize);
 			if (region.base == NULL)
 				return;
-			printf("Recv into %p, length %d\n", region.base,
-			       region.length);
+			XDEBUG(("Recv into %p, length %d\n", region.base,
+				region.length));
 			res = isc_socket_recv(disp->socket, &region, ISC_TRUE,
 					      disp->task, udp_recv, disp);
 			if (res != ISC_R_SUCCESS) {
@@ -753,7 +758,7 @@ dns_dispatch_destroy(dns_dispatch_t **dispp)
 			killit = ISC_TRUE;
 	}
 
-	printf("dns_dispatch_destory:  refcount = %d\n", disp->refcount);
+	XDEBUG(("dns_dispatch_destory:  refcount = %d\n", disp->refcount));
 
 	UNLOCK(&disp->lock);
 
@@ -827,7 +832,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	ISC_LINK_INIT(res, link);
 	ISC_LIST_APPEND(disp->qid_table[bucket], res, link);
 
-	printf("Inserted response into bucket %d\n", bucket);
+	XDEBUG(("Inserted response into bucket %d\n", bucket));
 
 	startrecv(disp);
 
@@ -1074,8 +1079,8 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
-	printf("Sent event for buffer %p (len %d) to task %p\n",
-	       ev->buffer.base, ev->buffer.length, resp->task);
+	XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
+		ev->buffer.base, ev->buffer.length, resp->task));
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
 
@@ -1098,8 +1103,8 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
-	printf("Sent event for buffer %p (len %d) to task %p\n",
-	       ev->buffer.base, ev->buffer.length, resp->task);
+	XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
+		ev->buffer.base, ev->buffer.length, resp->task));
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
 
