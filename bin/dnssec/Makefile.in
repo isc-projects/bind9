@@ -38,7 +38,7 @@ SUBDIRS =
 TARGETS =	dnssec-keygen \
 		dnssec-makekeyset \
 		dnssec-signkey \
-		dnssec-signzone \
+		dnssec-signzone
 
 SRCS =		dnssec-keygen.c \
 		dnssec-makekeyset.c \
