@@ -113,9 +113,12 @@ struct isc_mem {
 	unsigned char *		lowest;
 	unsigned char *		highest;
 	isc_boolean_t		checkfree;
+	isc_boolean_t		trysplit;
 	struct stats *		stats;
+	unsigned int		references;
 	size_t			quota;
 	size_t			total;
+	size_t			inuse;
 	ISC_LIST(isc_mempool_t)	pools;
 };
 
@@ -225,6 +228,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 		return (ISC_R_NOMEMORY);
 	}
 	ctx->checkfree = ISC_TRUE;
+	ctx->trysplit = ISC_FALSE;
 	memset(ctx->freelists, 0,
 	       ctx->max_size * sizeof (element *));
 	ctx->stats = (memalloc)(arg,
@@ -249,8 +253,10 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
+	ctx->references = 1;
 	ctx->quota = 0;
 	ctx->total = 0;
+	ctx->inuse = 0;
 	ctx->magic = MEM_MAGIC;
 	isc_ondestroy_init(&ctx->ondestroy);
 	ISC_LIST_INIT(ctx->pools);
@@ -268,19 +274,15 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 				ctxp));
 }
 
-void
-isc_mem_destroy(isc_mem_t **ctxp) {
+static void
+destroy(isc_mem_t *ctx) {
 	unsigned int i;
-	isc_mem_t *ctx;
 	isc_ondestroy_t ondest;
-
-	REQUIRE(ctxp != NULL);
-	ctx = *ctxp;
-	REQUIRE(VALID_CONTEXT(ctx));
 
 	ctx->magic = 0;
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
+	INSIST(ctx->references == 0);
 
 	if (ctx->checkfree) {
 		for (i = 0; i <= ctx->max_size; i++)
@@ -306,6 +308,65 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	(ctx->memfree)(ctx->arg, ctx);
 
 	isc_ondestroy_notify(&ondest, ctx);
+}
+
+void
+isc_mem_attach(isc_mem_t *source, isc_mem_t **targetp) {
+	REQUIRE(VALID_CONTEXT(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	LOCK(&source->lock);
+	source->references++;
+	UNLOCK(&source->lock);
+
+	*targetp = source;
+}
+
+void
+isc_mem_detach(isc_mem_t **ctxp) {
+	isc_mem_t *ctx;
+	isc_boolean_t want_destroy = ISC_FALSE;
+
+	REQUIRE(ctxp != NULL);
+	ctx = *ctxp;
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	LOCK(&ctx->lock);
+	INSIST(ctx->references > 0);
+	ctx->references--;
+	if (ctx->references == 0)
+		want_destroy = ISC_TRUE;
+	UNLOCK(&ctx->lock);
+
+	if (want_destroy)
+		destroy(ctx);
+
+	*ctxp = NULL;
+}
+
+void
+isc_mem_destroy(isc_mem_t **ctxp) {
+	isc_mem_t *ctx;
+	isc_boolean_t want_destroy = ISC_FALSE;
+
+	/*
+	 * This routine provides legacy support for callers who use mctxs
+	 * without attaching/detaching.
+	 */
+
+	REQUIRE(ctxp != NULL);
+	ctx = *ctxp;
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	LOCK(&ctx->lock);
+	REQUIRE(ctx->references == 1);
+	ctx->references--;
+	if (ctx->references == 0)
+		want_destroy = ISC_TRUE;
+	UNLOCK(&ctx->lock);
+
+	if (want_destroy)
+		destroy(ctx);
 
 	*ctxp = NULL;
 }
@@ -333,7 +394,7 @@ isc_mem_restore(isc_mem_t *ctx) {
 	return (result);
 }
 
-static void
+static inline isc_boolean_t
 more_basic_blocks(isc_mem_t *ctx) {
 	void *new;
 	unsigned char *curr, *next;
@@ -350,7 +411,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 	 */
 	increment = NUM_BASIC_BLOCKS * ctx->mem_target;
 	if (ctx->quota != 0 && ctx->total + increment > ctx->quota)
-		return;
+		return (ISC_FALSE);
 
 	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
 	if (ctx->basic_table_count == ctx->basic_table_size) {
@@ -358,7 +419,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 		table = (ctx->memalloc)(ctx->arg,
 					table_size * sizeof (unsigned char *));
 		if (table == NULL)
-			return;
+			return (ISC_FALSE);
 		if (ctx->basic_table_size != 0) {
 			memcpy(table, ctx->basic_table,
 			       ctx->basic_table_size *
@@ -371,7 +432,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 
 	new = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
 	if (new == NULL)
-		return;
+		return (ISC_FALSE);
 	ctx->total += increment;
 	ctx->basic_table[ctx->basic_table_count] = new;
 	ctx->basic_table_count++;
@@ -395,6 +456,8 @@ more_basic_blocks(isc_mem_t *ctx) {
 	if (last > ctx->highest)
 		ctx->highest = last;
 	ctx->basic_blocks = new;
+
+	return (ISC_TRUE);
 }
 
 void *
@@ -424,6 +487,126 @@ check_overrun(void *mem, size_t size, size_t new_size) {
 	}
 }
 
+static inline void
+split(isc_mem_t *ctx, size_t size, size_t new_size) {
+	unsigned char *ptr;
+	size_t remaining_size;
+
+	/*
+	 * Unlink a frag of size 'size'.
+	 */
+	ptr = (unsigned char *)ctx->freelists[size];
+	ctx->freelists[size] = ctx->freelists[size]->next;
+	ctx->stats[size].freefrags--;
+
+	/*
+	 * Create a frag of size 'new_size' and link it in.
+	 */
+	((element *)ptr)->next = ctx->freelists[new_size];
+	ctx->freelists[new_size] = (element *)ptr;
+	ctx->stats[new_size].freefrags++;
+
+	/*
+	 * Create a frag of size 'size - new_size' and link it in.
+	 */
+	remaining_size = size - new_size;
+	ptr += new_size;
+	((element *)ptr)->next = ctx->freelists[remaining_size];
+	ctx->freelists[remaining_size] = (element *)ptr;
+	ctx->stats[remaining_size].freefrags++;
+}
+
+static inline isc_boolean_t
+try_split(isc_mem_t *ctx, size_t new_size) {
+	size_t i, doubled_size;
+
+	if (!ctx->trysplit)
+		return (ISC_FALSE);
+
+	/*
+	 * Try splitting a frag that's at least twice as big as the size
+	 * we want.
+	 */
+	doubled_size = new_size * 2;
+	for (i = doubled_size;
+	     i < ctx->max_size;
+	     i += ALIGNMENT_SIZE) {
+		if (ctx->freelists[i] != NULL) {
+			split(ctx, i, new_size);
+			return (ISC_TRUE);
+		}
+	}
+
+	/*
+	 * No luck.  Try splitting any frag bigger than the size we need.
+	 */
+	for (i = new_size + ALIGNMENT_SIZE;
+	     i < doubled_size;
+	     i += ALIGNMENT_SIZE) {
+		if (ctx->freelists[i] != NULL) {
+			split(ctx, i, new_size);
+			return (ISC_TRUE);
+		}
+	}
+
+	return (ISC_FALSE);
+}
+
+static inline isc_boolean_t
+more_frags(isc_mem_t *ctx, size_t new_size) {
+	int i, frags;
+	size_t total_size;
+	void *new;
+	unsigned char *curr, *next;
+
+	/*
+	 * Try to get more fragments by chopping up a basic block.
+	 */
+
+	if (ctx->basic_blocks == NULL) {
+		if (!more_basic_blocks(ctx)) {
+			/*
+			 * We can't get more memory from the OS, or we've
+			 * hit the quota for this context.
+			 */
+			/*
+			 * XXXRTH  "At quota" notification here. 
+			 */
+			/*
+			 * Maybe we can split one of our existing
+			 * list frags.
+			 */
+			return (try_split(ctx, new_size));
+		}
+	}
+
+	total_size = ctx->mem_target;
+	new = ctx->basic_blocks;
+	ctx->basic_blocks = ctx->basic_blocks->next;
+	frags = total_size / new_size;
+	ctx->stats[new_size].blocks++;
+	ctx->stats[new_size].freefrags += frags;
+	/*
+	 * Set up a linked-list of blocks of size
+	 * "new_size".
+	 */
+	curr = new;
+	next = curr + new_size;
+	for (i = 0; i < (frags - 1); i++) {
+		((element *)curr)->next = (element *)next;
+		curr = next;
+		next += new_size;
+	}
+	/*
+	 * curr is now pointing at the last block in the
+	 * array.
+	 */
+	((element *)curr)->next = NULL;
+	ctx->freelists[new_size] = new;
+
+	return (ISC_TRUE);
+}
+
 static inline void *
 mem_getunlocked(isc_mem_t *ctx, size_t size)
 {
@@ -439,6 +622,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 		ret = (ctx->memalloc)(ctx->arg, size);
 		if (ret != NULL) {
 			ctx->total += size;
+			ctx->inuse += size;
 			ctx->stats[ctx->max_size].gets++;
 			ctx->stats[ctx->max_size].totalgets++;
 			/*
@@ -456,39 +640,12 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 	 * of memory and then break it up into "new_size"-sized blocks, adding
 	 * them to the free list.
 	 */
-	if (ctx->freelists[new_size] == NULL) {
-		int i, frags;
-		size_t total_size;
-		void *new;
-		unsigned char *curr, *next;
+	if (ctx->freelists[new_size] == NULL && !more_frags(ctx, new_size))
+		return (NULL);
 
-		if (ctx->basic_blocks == NULL) {
-			more_basic_blocks(ctx);
-			if (ctx->basic_blocks == NULL) {
-				ret = NULL;
-				goto done;
-			}
-		}
-		total_size = ctx->mem_target;
-		new = ctx->basic_blocks;
-		ctx->basic_blocks = ctx->basic_blocks->next;
-		frags = total_size / new_size;
-		ctx->stats[new_size].blocks++;
-		ctx->stats[new_size].freefrags += frags;
-		/* Set up a linked-list of blocks of size "new_size". */
-		curr = new;
-		next = curr + new_size;
-		for (i = 0; i < (frags - 1); i++) {
-			((element *)curr)->next = (element *)next;
-			curr = next;
-			next += new_size;
-		}
-		/* curr is now pointing at the last block in the array. */
-		((element *)curr)->next = NULL;
-		ctx->freelists[new_size] = new;
-	}
-
-	/* The free list uses the "rounded-up" size "new_size": */
+	/*
+	 * The free list uses the "rounded-up" size "new_size".
+	 */
 	ret = ctx->freelists[new_size];
 	ctx->freelists[new_size] = ctx->freelists[new_size]->next;
 
@@ -501,6 +658,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 	ctx->stats[size].gets++;
 	ctx->stats[size].totalgets++;
 	ctx->stats[new_size].freefrags--;
+	ctx->inuse += new_size;
 
  done:
 
@@ -536,6 +694,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 		INSIST(ctx->stats[ctx->max_size].gets != 0);
 		ctx->stats[ctx->max_size].gets--;
 		INSIST(size <= ctx->total);
+		ctx->inuse -= size;
 		ctx->total -= size;
 		return;
 	}
@@ -560,6 +719,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 	INSIST(ctx->stats[size].gets != 0);
 	ctx->stats[size].gets--;
 	ctx->stats[new_size].freefrags++;
+	ctx->inuse -= new_size;
 }
 
 void *
@@ -579,6 +739,30 @@ __isc_mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
 		ctx, ptr, (unsigned long)size);
 	__isc_mem_put(ctx, ptr, size);
+}
+
+isc_result_t
+isc_mem_preallocate(isc_mem_t *ctx) {
+	size_t i;
+	isc_result_t result = ISC_R_SUCCESS;
+	void *ptr;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	LOCK(&ctx->lock);
+
+	for (i = 0; i < ctx->max_size; i += ALIGNMENT_SIZE) {
+		ptr = mem_getunlocked(ctx, i);
+		if (ptr == NULL) {
+			result = ISC_R_NOMEMORY;
+			break;
+		}
+		mem_putunlocked(ctx, ptr, i);
+	}
+		
+	UNLOCK(&ctx->lock);
+
+	return (result);
 }
 
 /*
@@ -730,15 +914,24 @@ __isc_mem_strdupdebug(isc_mem_t *mctx, const char *s, const char *file,
 	return (ptr);
 }
 
-isc_boolean_t
-isc_mem_destroy_check(isc_mem_t *mctx, isc_boolean_t flag) {
-	isc_boolean_t oldval;
+void
+isc_mem_setdestroycheck(isc_mem_t *ctx, isc_boolean_t flag) {
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
 
-	INSIST(mctx != NULL);
+	ctx->checkfree = flag;
 
-	oldval = mctx->checkfree;
-	mctx->checkfree = flag;
-	return (oldval);
+	UNLOCK(&ctx->lock);
+}
+
+void
+isc_mem_setsplit(isc_mem_t *ctx, isc_boolean_t flag) {
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
+
+	ctx->trysplit = flag;
+
+	UNLOCK(&ctx->lock);
 }
 
 
@@ -768,6 +961,20 @@ isc_mem_getquota(isc_mem_t *ctx) {
 	UNLOCK(&ctx->lock);
 
 	return (quota);
+}
+
+size_t
+isc_mem_inuse(isc_mem_t *ctx) {
+	size_t inuse;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
+
+	inuse = ctx->inuse;
+
+	UNLOCK(&ctx->lock);
+
+	return (inuse);
 }
 
 #ifdef ISC_MEMCLUSTER_LEGACY

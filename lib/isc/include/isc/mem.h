@@ -54,6 +54,8 @@ typedef void (*isc_memfree_t)(void *, void *);
 #endif /* ISC_MEM_DEBUG */
 
 isc_result_t			isc_mem_create(size_t, size_t, isc_mem_t **);
+void				isc_mem_attach(isc_mem_t *, isc_mem_t **);
+void				isc_mem_detach(isc_mem_t **);
 void				isc_mem_destroy(isc_mem_t **);
 isc_result_t			isc_mem_ondestroy(isc_mem_t *ctx,
 						  isc_task_t *task,
@@ -64,6 +66,7 @@ void *				__isc_mem_getdebug(isc_mem_t *, size_t,
 						   const char *, int);
 void 				__isc_mem_putdebug(isc_mem_t *, void *,
 						   size_t, const char *, int);
+isc_result_t			isc_mem_preallocate(isc_mem_t *);
 void 				isc_mem_stats(isc_mem_t *, FILE *);
 isc_boolean_t			isc_mem_valid(isc_mem_t *, void *);
 void *				__isc_mem_allocate(isc_mem_t *, size_t);
@@ -76,9 +79,12 @@ char *				__isc_mem_strdup(isc_mem_t *, const char *);
 char *				__isc_mem_strdupdebug(isc_mem_t *,
 						      const char *,
 						      const char *, int);
-isc_boolean_t			isc_mem_destroy_check(isc_mem_t *, isc_boolean_t);
+void				isc_mem_setdestroycheck(isc_mem_t *,
+							isc_boolean_t);
+void				isc_mem_setsplit(isc_mem_t *, isc_boolean_t);
 void				isc_mem_setquota(isc_mem_t *, size_t);
 size_t				isc_mem_getquota(isc_mem_t *);
+size_t				isc_mem_inuse(isc_mem_t *);
 
 isc_result_t			isc_mem_createx(size_t, size_t,
 						isc_memalloc_t memalloc,
