@@ -1,0 +1,57 @@
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+
+
+BIND 8 to BIND 9 Migration Notes
+
+
+BIND 9 is designed to be mostly upwards compatible with BIND 8, but
+there is still a number of caveats you should be aware of when
+upgrading an existing BIND 8 installation to use BIND 9.
+
+
+Unimplemented Options and Changed Defaults
+
+Some BIND 8 configuration options are still unimplemented in BIND 9,
+and the default values of some options have changed.  If your
+named.conf file uses an unimplemented option, named will log a warning
+message.  A message is also logged about each option whose default has
+changed unless the option is set explicitly in named.conf.
+
+
+Strict RFC1035 Interpretation of TTLs in Zone Files
+
+BIND 8 allowed you to omit all TTLs from a zone file, and used the
+value of the SOA MINTTL field as a default for missing TTL values.
+
+BIND 9 enforces strict compliance with the RFC1035 and RFC2308 TTL
+rules.  The default TTL is the value specified with the $TTL
+directive, or the previous explicit TTL if there is no $TTL directive.
+If there is no $TTL directive and the first RR in the file does not
+have an explicit TTL field, the error message "no TTL specified" is
+logged and loading the zone file fails.
+
+To avoid problems, use a $TTL directive in each zone file.
+
+
+Interoperability Impact of New Query Features
+
+BIND 9 uses EDNS0 (RFC2671) to advertise its receive buffer size.  It
+also sets the AD bit in queries to indicate that it wishes to receive
+DNSSEC responses (this usage of the AD bit is not yet standard, but
+hopefully it will be soon).
+
+Most older servers that do not support EDNS0 and/or DNSSEC, including
+all known versions of BIND, will send a FORMERR or NOTIMP response to
+these queries.  When this happens, BIND 9 will automatically retry the
+query without EDNS0 and AD.
+
+Unfortunately, there exists at least one non-BIND name server
+implementation that silently ignores these queries instead of sending
+an error response.  Resolving names in zones where all or most
+authoritative servers use this server will be very slow or fail
+completely.  We have contacted the manufacturer of the name server in
+case and are trying to resolve the issue with them.
+
+
+$Id: migration,v 1.1 2000/06/30 22:44:08 gson Exp $
