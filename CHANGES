@@ -4,6 +4,8 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1408.	[bug]		distclean was not complete. [RT #4700]
+
 1407.	[bug]		lfsr incorrectly implements the shift register.
 			[RT #4617]
 
