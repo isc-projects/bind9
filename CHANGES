@@ -1,4 +1,4 @@
-1044.	[buf]		Specifying allow-transfer, notify-source or
+1044.	[bug]		Specifying allow-transfer, notify-source or
 			notify-source-v6 in a stub zone was not treated as
 			a error.
 
