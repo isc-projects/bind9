@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.109 2000/08/25 01:08:07 bwelling Exp $ */
+/* $Id: client.c,v 1.110 2000/09/12 07:48:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 
@@ -1028,6 +1029,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (view == NULL) {
+		isc_buffer_t b;
+		isc_region_t *r;
+		r = dns_message_getrawmessage(client->message);
+		isc_buffer_init(&b, r->base, r->length);
+		isc_buffer_add(&b, r->length);
+		(void)dns_tsig_verify(&b, client->message, NULL, NULL);
+
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "no matching view");
