@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.113 2001/07/26 21:33:28 gson Exp $
+# $Id: Makefile.in,v 1.114 2001/09/17 20:47:42 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -289,6 +289,8 @@ distclean::
 clean distclean::
 	rm -f ${TARGETS} ${XTARGETS}
 	rm -f t_journal
+
+check: test
 
 test:
 	@for dir in $(SUBDIRS) ;\
