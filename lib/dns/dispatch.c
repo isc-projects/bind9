@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.73 2000/11/03 02:45:45 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.74 2000/11/03 19:55:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -466,6 +466,8 @@ allocate_event(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
 
 	ev = isc_mempool_get(disp->mgr->epool);
+	if (ev == NULL)
+		return (NULL);
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, 0,
 		       NULL, NULL, NULL, NULL, NULL);
 
