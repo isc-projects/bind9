@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mempool_test.c,v 1.7 2000/06/22 21:50:32 tale Exp $ */
+/* $Id: mempool_test.c,v 1.8 2000/07/26 19:07:36 explorer Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,8 @@ main(int argc, char *argv[]) {
 
 	UNUSED(argc);
 	UNUSED(argv);
+
+	isc_mem_debugging = 2;
 
 	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
 
@@ -91,7 +93,7 @@ main(int argc, char *argv[]) {
 	 */
 	isc_mempool_setfreemax(mp2, 25);
 	isc_mempool_setfillcount(mp2, 25);
-	for (j = 0 ; j < 500000 ; j++) {
+	for (j = 0 ; j < 5000 ; j++) {
 		for (i = 0 ; i < 50 ; i++) {
 			items2[i] = isc_mempool_get(mp2);
 			RUNTIME_CHECK(items2[i] != NULL);
