@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.16 2001/09/20 15:16:28 marka Exp $
+# $Id: Makefile.in,v 1.17 2001/11/06 20:05:02 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -29,7 +29,7 @@ CDEFINES =
 CWARNINGS =
 
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
 
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@

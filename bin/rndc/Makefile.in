@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.34 2001/09/20 15:16:29 marka Exp $
+# $Id: Makefile.in,v 1.35 2001/11/06 20:05:04 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -32,7 +32,7 @@ CWARNINGS =
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCDEPLIBS =	../../lib/isccc/libisccc.@A@

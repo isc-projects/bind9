@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: isc-config.sh.in,v 1.10 2001/04/16 22:29:55 bwelling Exp $
+# $Id: isc-config.sh.in,v 1.11 2001/11/06 20:04:56 bwelling Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -120,7 +120,7 @@ if test x"$echo_libs" = x"true"; then
 		libs="$libs -llwres"
 	fi
 	if test x"$libdns" = x"true" ; then
-		libs="$libs -ldns @DNS_OPENSSL_LIBS@"
+		libs="$libs -ldns @DNS_CRYPTO_LIBS@"
 	fi
 	if test x"$libisccfg" = x"true" ; then
 		libs="$libs -lisccfg"

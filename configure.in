@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.310 $)
+AC_REVISION($Revision: 1.311 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -367,9 +367,9 @@ esac
 # it as needed) if it is found.
 #
 
-AC_SUBST(DST_OPENSSL_INC)
-AC_SUBST(DNS_OPENSSL_LIBS)
 AC_SUBST(USE_OPENSSL)
+AC_SUBST(DST_OPENSSL_INC)
+DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
 #
 # was --with-gssapi specified?
@@ -403,7 +403,13 @@ DNS_GSSAPI_LIBS=''
 
 AC_SUBST(USE_GSSAPI)
 AC_SUBST(DST_GSSAPI_INC)
-AC_SUBST(DNS_GSSAPI_LIBS)
+DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_GSSAPI_LIBS"
+
+#
+# Applications linking with libdns also need to link with these libraries.
+#
+
+AC_SUBST(DNS_CRYPTO_LIBS)
 
 #
 # was --with-randomdev specified?
