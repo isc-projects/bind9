@@ -81,5 +81,38 @@
 1234.   [bug]           'rrset-order' and 'sortlist' should be additive
                         not exclusive.
 
-1291.   [bug]           "recursion available: {denied,approved}" was too 
+1271.   [bug]           "recursion available: {denied,approved}" was too
                         confusing.
+
+1348.   [port]          Win32: Rewrote code to use I/O Completion Ports
+                        in socket.c and eliminating a host of socket
+                        errors. Performance is enhanced.
+			[review for 9.2.3]
+
+1255.   [bug]           When verifying that an NXT proves nonexistence, check
+                        the rcode of the message and only do the matching NXT
+                        check.  That is, for NXDOMAIN responses, check that
+                        the name is in the range between the NXT owner and
+                        next name, and for NOERROR NODATA responses, check
+                        that the type is not present in the NXT bitmap.
+			[required changes from DS support]
+
+1322.   [bug]           dnssec-signzone usage message was misleading.
+			[DS specific]
+
+1247.   [bug]           Don't reset the interface index for link/site local
+                        addresses. [RT #2576]
+			[depends on new functions]
+
+1224.   [bug]           'rrset-order' and 'sortlist' should be additive
+                        not exclusive.
+			[tightly coupled with 'cyclic' and 'random' support]
+
+1321.   [bug]           If the last RRset in a zone is glue, dnssec-signzone
+                        would incorrectly duplicate its output and sign it.
+			[DS specific]
+
+1328.   [bug]           The validator could incorrectly verify an invalid
+                        negative proof.
+			[DS specific]
+
