@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174.2.6 2001/02/25 01:31:03 gson Exp $ */
+/* $Id: dighost.c,v 1.174.2.7 2001/03/14 01:25:37 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -92,8 +92,7 @@ isc_boolean_t
 	usesearch = ISC_FALSE,
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
-	have_domain = ISC_FALSE,
-	is_blocking = ISC_FALSE;
+	have_domain = ISC_FALSE;
 
 in_port_t port = 53;
 unsigned int timeout = 0;
@@ -2648,9 +2647,9 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		else
 			hints.ai_family = PF_UNSPEC;
 		debug ("before getaddrinfo()");
-		is_blocking = ISC_TRUE;
+		isc_app_block();
  		result = getaddrinfo(host, NULL, &hints, &res);
-		is_blocking = ISC_FALSE;
+		isc_app_unblock();
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",
 			      host, gai_strerror(result));
@@ -2661,9 +2660,9 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		freeaddrinfo(res);
 #else
 		debug ("before gethostbyname()");
-		is_blocking = ISC_TRUE;
+		isc_app_block();
 		he = gethostbyname(host);
-		is_blocking = ISC_FALSE;
+		isc_app_unblock();
 		if (he == NULL)
 		     fatal("Couldn't find server '%s' (h_errno=%d)",
 			   host, h_errno);
@@ -2715,17 +2714,6 @@ cancel_all(void) {
 
 	debug("cancel_all()");
 
-	if (is_blocking) {
-		/*
-		 * If we get here while another thread is blocking, there's
-		 * really nothing we can do to make a clean shutdown
-		 * without waiting for the block to complete.  The only
-		 * way to get the system down now is to just exit out,
-		 * and trust the OS to clean up for us.
-		 */
-		fputs("Abort.\n", stderr);
-		exit(1);
-	}
 	LOCK_LOOKUP;
 	if (free_now) {
 		UNLOCK_LOOKUP;
@@ -2770,17 +2758,6 @@ destroy_libs(void) {
 	dig_searchlist_t *o;
 
 	debug("destroy_libs()");
-	if (is_blocking) {
-		/*
-		 * If we get here while another thread is blocking, there's
-		 * really nothing we can do to make a clean shutdown
-		 * without waiting for the block to complete.  The only
-		 * way to get the system down now is to just exit out,
-		 * and trust the OS to clean up for us.
-		 */
-		fputs("Abort.\n", stderr);
-		exit(1);
-	}
 	if (global_task != NULL) {
 		debug("freeing task");
 		isc_task_detach(&global_task);

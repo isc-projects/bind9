@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.69.2.3 2001/01/17 19:37:37 gson Exp $ */
+/* $Id: nslookup.c,v 1.69.2.4 2001/03/14 01:25:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -49,7 +49,7 @@ extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t have_ipv6,
-	usesearch, trace, qr, debugging, is_blocking;
+	usesearch, trace, qr, debugging;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -812,9 +812,9 @@ get_next_command(void) {
 	if (buf == NULL)
 		fatal("Memory allocation failure.");
 	fputs("> ", stderr);
-	is_blocking = ISC_TRUE;
+	isc_app_block();
 	ptr = fgets(buf, COMMSIZE, stdin);
-	is_blocking = ISC_FALSE;
+	isc_app_unblock();
 	if (ptr == NULL) {
 		in_use = ISC_FALSE;
 		goto cleanup;
@@ -977,6 +977,7 @@ main(int argc, char **argv) {
 	debug("done, and starting to shut down");
 	if (global_event != NULL)
 		isc_event_free(&global_event);
+	cancel_all();
 	destroy_libs();
 	isc_app_finish();
 
