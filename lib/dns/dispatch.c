@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.57 2000/06/22 21:54:23 tale Exp $ */
+/* $Id: dispatch.c,v 1.58 2000/07/04 01:48:10 tale Exp $ */
 
 #include <config.h>
 
@@ -761,6 +761,9 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	queue_request = ISC_FALSE;
 	queue_response = ISC_FALSE;
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
+		/*
+		 * Query.
+		 */
 		resp = ISC_LIST_HEAD(disp->rq_handlers);
 		while (resp != NULL) {
 			if (resp->item_out == ISC_FALSE)
@@ -772,9 +775,10 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		rev = allocate_event(disp);
 		if (rev == NULL)
 			goto restart;
-		/* query */
 	} else {
- 		/* response */
+ 		/*
+		 * Response.
+		 */
 		bucket = dns_hash(disp, &tcpmsg->address, id);
 		resp = bucket_search(disp, &tcpmsg->address, id, bucket);
 		dispatch_log(disp, LVL(90),
@@ -1341,6 +1345,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(isc_socket_gettype(sock) == isc_sockettype_tcp);
 	REQUIRE((attributes & DNS_DISPATCHATTR_TCP) != 0);
+	REQUIRE((attributes & DNS_DISPATCHATTR_UDP) == 0);
 
 	attributes |= DNS_DISPATCHATTR_PRIVATE;  /* XXXMLG */
 
@@ -1374,8 +1379,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	dns_tcpmsg_init(mgr->mctx, disp->socket, &disp->tcpmsg);
 	disp->tcpmsg_valid = 1;
 
-	attributes &= ~DNS_DISPATCHATTR_UDP;
-	attributes |= DNS_DISPATCHATTR_TCP;
 	disp->attributes = attributes;
 
 	/*

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.32 2000/06/23 17:30:59 marka Exp $ */
+/* $Id: dispatch.h,v 1.33 2000/07/04 01:48:13 tale Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -190,6 +190,19 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    unsigned int buckets, unsigned int increment,
 		    unsigned int attributes, unsigned int mask,
 		    dns_dispatch_t **dispp);
+/*
+ * Attach to existing dns_dispatch_t if one is found with dns_dispatchmgr_find,
+ *	otherwise create a new UDP dispatch.
+ *
+ * Requires:
+ *	< mumble >
+ *
+ * Ensures:
+ *	< mumble >
+ *
+ * Returns:
+ *	< mumble >
+ */
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
@@ -229,9 +242,11 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
  *
  *	buckets < 2097169 (the next prime after 65536 * 32)
  *
- *	increment > buckets (and prime)
+ *	increment > buckets (and prime).
+ *
+ *	attributes includes DNS_DISPATCHATTR_TCP and does not include
+ *	DNS_DISPATCHATTR_UDP.
  */
-
 
 void
 dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
@@ -247,7 +262,6 @@ dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
  * Returns:
  *	< mumble >
  */
-
 
 void
 dns_dispatch_detach(dns_dispatch_t **dispp);
