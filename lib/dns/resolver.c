@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.217 2001/06/04 19:33:09 tale Exp $ */
+/* $Id: resolver.c,v 1.218 2001/07/11 01:19:56 halley Exp $ */
 
 #include <config.h>
 
@@ -1959,6 +1959,13 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 		validator = ISC_LIST_NEXT(validator, link);
 	}
 
+	/*
+	 * Shut down anything that is still running on behalf of this
+	 * fetch.  To avoid deadlock with the ADB, we must do this
+	 * before we lock the bucket lock.
+	 */
+	fctx_stopeverything(fctx, ISC_FALSE);
+
 	LOCK(&res->buckets[bucketnum].lock);
 
 	INSIST(fctx->state == fetchstate_active ||
@@ -1966,7 +1973,6 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	INSIST(fctx->want_shutdown);
 
 	if (fctx->state != fetchstate_done) {
-		fctx_stopeverything(fctx, ISC_FALSE);
 		fctx->state = fetchstate_done;
 		fctx_sendevents(fctx, ISC_R_CANCELED);
 	}

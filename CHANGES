@@ -1,4 +1,8 @@
 
+ 926.	[bug]		The resolver could deadlock with the ADB when
+			shutting down (multithreaded builds only).
+			[RT #1324]
+
  925.	[cleanup]	Remove openssl from the distribution; require that
 			--with-openssl be specified if DNSSEC is needed.
 
