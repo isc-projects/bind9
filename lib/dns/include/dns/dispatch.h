@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.30 2000/06/22 21:55:36 tale Exp $ */
+/* $Id: dispatch.h,v 1.31 2000/06/23 02:59:28 tale Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -52,7 +52,6 @@
  ***/
 
 #include <isc/buffer.h>
-#include <isc/eventclass.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
 #include <dns/types.h>
