@@ -2,9 +2,18 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.103 2001/02/12 22:09:43 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.104 2001/02/14 22:50:11 gson Exp $ -->
 
 <book>
+<title>BIND 9 Administrator Reference Manual</title>
+
+<bookinfo>
+<copyright>
+<year>2000</year>
+<year>2001</year>
+<holder>Internet Software Consortium</holder>
+</copyright>
+</bookinfo>
 
   <chapter id="ch01">
   <title>Introduction </title>
@@ -2579,7 +2588,8 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; 
+        <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable>; </optional>
     <optional> coresize <replaceable>size_spec</replaceable> ; </optional>
     <optional> datasize <replaceable>size_spec</replaceable> ; </optional>
@@ -3642,7 +3652,7 @@ failure response other than those above.</para></entry>
 
 </sect2>
  <sect2 id="server_statement_grammar">
-<title><command>server</command>Statement Grammar</title>
+<title><command>server</command> Statement Grammar</title>
 
 <programlisting>server <replaceable>ip_addr</replaceable> {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
