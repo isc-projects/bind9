@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.98.4.6 2001/05/18 21:28:41 gson Exp $
+ * $Id: tsig.c,v 1.98.4.7 2001/06/15 16:52:42 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -1141,7 +1141,6 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 */
 		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 		LOCK(&key->lock);
-		key->refs--;
 		UNLOCK(&key->lock);
 		RWLOCK(&ring->lock, isc_rwlocktype_write);
 		(void) dns_rbt_deletename(ring->keys, name, ISC_FALSE);
