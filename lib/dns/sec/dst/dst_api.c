@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.70 2001/01/17 00:33:36 bwelling Exp $
+ * $Id: dst_api.c,v 1.71 2001/01/17 01:08:06 bwelling Exp $
  */
 
 #include <config.h>
@@ -50,12 +50,6 @@
 #include "dst_internal.h"
 
 #include <openssl/rand.h>
-
-#define KEY_MAGIC	0x4453544BU	/* DSTK */
-#define CTX_MAGIC	0x44535443U	/* DSTC */
-
-#define VALID_KEY(x) ISC_MAGIC_VALID(x, KEY_MAGIC)
-#define VALID_CTX(x) ISC_MAGIC_VALID(x, CTX_MAGIC)
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
 static isc_mem_t *dst_memory_pool = NULL;
@@ -628,81 +622,11 @@ dst_key_free(dst_key_t **keyp) {
 	*keyp = NULL;
 }
 
-dns_name_t *
-dst_key_name(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return (key->key_name);
-}
-
-unsigned int
-dst_key_size(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return (key->key_size);
-}
-
-unsigned int
-dst_key_proto(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return (key->key_proto);
-}
-
-unsigned int
-dst_key_alg(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return (key->key_alg);
-}
-
-isc_uint32_t
-dst_key_flags(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return (key->key_flags);
-}
-
-isc_uint16_t
-dst_key_id(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return (key->key_id);
-}
-
-dns_rdataclass_t
-dst_key_class(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-	return (key->key_class);
-}
-
 isc_boolean_t
 dst_key_isprivate(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	INSIST(key->func->isprivate != NULL);
 	return (key->func->isprivate(key));
-}
-
-isc_boolean_t
-dst_key_iszonekey(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-
-	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0)
-		return (ISC_FALSE);
-	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
-		return (ISC_FALSE);
-	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
-	    key->key_proto != DNS_KEYPROTO_ANY)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
-}
-
-isc_boolean_t
-dst_key_isnullkey(const dst_key_t *key) {
-	REQUIRE(VALID_KEY(key));
-
-	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
-		return (ISC_FALSE);
-	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
-		return (ISC_FALSE);
-	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
-	    key->key_proto != DNS_KEYPROTO_ANY)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
 }
 
 isc_result_t
