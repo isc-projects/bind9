@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.27 2000/06/22 22:00:02 tale Exp $ */
+/* $Id: protocol.c,v 1.28 2000/06/23 21:36:57 tale Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -50,7 +50,7 @@ typedef struct omapi_protocolheader {
 
 isc_result_t
 omapi_protocol_connect(omapi_object_t *h, const char *server_name,
-		       int port, omapi_object_t *authinfo)
+		       in_port_t port, omapi_object_t *authinfo)
 {
 	isc_result_t result;
 	omapi_protocol_t *obj = NULL;
