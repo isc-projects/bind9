@@ -17,6 +17,8 @@
 
 #include <config.h>
 
+#include <process.h>
+
 #include <isc/thread.h>
 
 isc_result_t
