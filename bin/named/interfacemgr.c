@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.14 2004/04/29 01:31:21 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.15 2004/08/10 04:56:23 jinmei Exp $ */
 
 #include <config.h>
 
@@ -359,7 +359,7 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * XXXRTH We don't currently have a way to easily stop
-			 * dispatch service, so we return currently return
+			 * dispatch service, so we currently return
 			 * ISC_R_SUCCESS (the UDP stuff will work even if TCP
 			 * creation failed).  This will be fixed later.
 			 */
@@ -594,8 +594,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	}
 	if (scan_ipv6 == ISC_TRUE && ipv6only && ipv6pktinfo) {
 		for (le = ISC_LIST_HEAD(mgr->listenon6->elts);
-		    le != NULL;
-		    le = ISC_LIST_NEXT(le, link)) {
+		     le != NULL;
+		     le = ISC_LIST_NEXT(le, link)) {
 			struct in6_addr in6a;
 
 			if (!listenon_is_ip6_any(le))
