@@ -26,11 +26,13 @@
 #include <dns/compress.h>
 #include <dns/name.h>
 
-unsigned char plain1[] = "\003foo";
-unsigned char plain2[] = "\003bar\003foo";
+unsigned char plain1[] = "\003yyy\003foo";
+unsigned char plain2[] = "\003bar\003yyy\003foo";
 unsigned char plain3[] = "\003xxx\003bar\003foo";
 unsigned char plain[] =
-	"\003foo\0\003bar\003foo\0\003bar\003foo\0\003xxx\003bar\003foo";
+	"\003yyy\003foo\0\003bar\003yyy\003foo\0\003bar\003yyy\003foo\0\003xxx\003bar\003foo";
+
+/* result concatenate (plain1, plain2, plain2, plain3) */
 
 unsigned char bit1[] = "\101\010b";
 unsigned char bit2[] = "\101\014b\260";
@@ -50,13 +52,9 @@ main(int argc, char *argv[]) {
 	dns_name_t name3;
 	isc_region_t region;
 	int c;
-	int bitstrings = 0;
 
-	while ((c = getopt(argc, argv, "brv")) != -1) {
+	while ((c = getopt(argc, argv, "rv")) != -1) {
 		switch (c) {
-		case 'b':
-			bitstrings++;
-			break;
 		case 'r':
 			raw++;
 			break;
@@ -102,12 +100,6 @@ main(int argc, char *argv[]) {
 	region.base = bit3;
 	region.length = sizeof bit3;
 	dns_name_fromregion(&name3, &region);
-
-	if (bitstrings == 0) {
-		fprintf(stdout, "Bit string tests not performed.");
-		fprintf(stdout, " Awaiting RBT support\n");
-		exit (0);
-	}
 
 	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, bit, sizeof bit);
@@ -207,6 +199,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 					fputs(" ", stdout);
 		}
 		fputs("\n", stdout);
+		fflush(stdout);
 	}
 
 	RUNTIME_CHECK(target.used == length);

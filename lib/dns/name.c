@@ -33,6 +33,8 @@
 #define NAME_MAGIC			0x444E536EU	/* DNSn. */
 #define VALID_NAME(n)			((n) != NULL && \
 					 (n)->magic == NAME_MAGIC)
+isc_buffer_t x;
+char xxxx[1024];
 
 typedef enum {
 	ft_init = 0,
@@ -806,6 +808,8 @@ void
 dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 	unsigned char *offsets;
 	dns_offsets_t odata;
+	unsigned int len;
+	isc_region_t r2;
 
 	/*
 	 * Make 'name' refer to region 'r'.
@@ -813,13 +817,23 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(r != NULL);
-	REQUIRE(r->length <= 255);
 	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
 
 	INIT_OFFSETS(name, offsets, odata);
 
-	name->ndata = r->base;
-	name->length = r->length;
+	if (name->buffer != NULL) {
+		isc_buffer_clear(name->buffer);
+		isc_buffer_available(name->buffer, &r2);
+		len = (r->length < r2.length) ? r->length : r2.length;
+		if (len > 255)
+			len = 255;
+		memcpy(r2.base, r->base, len);
+		name->ndata = r2.base;
+		name->length = len;
+	} else {
+		name->ndata = r->base;
+		name->length = (r->length <= 255) ? r->length : 255;
+	}
 
 	if (r->length > 0)
 		set_offsets(name, offsets, ISC_TRUE, ISC_TRUE, ISC_TRUE);
@@ -827,6 +841,9 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 		name->labels = 0;
 		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 	}
+
+	if (name->buffer != NULL)
+		isc_buffer_add(name->buffer, name->length);
 }
 
 void
@@ -1921,9 +1938,9 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				ll = 0;
 				/*
 				 * Work down owner label from TLD until we
-				 * have found 'new_current' logical labels.
+				 * have found 'new_current + 1' logical labels.
 				 */
-				while (i < lcount && ll < new_current) {
+				while (i <= lcount && ll <= new_current) {
 					dns_name_getlabel(&dctx->owner_name,
 							  lcount - i - 1,
 							  &label);
@@ -1934,7 +1951,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 						ll++;
 						continue;
 					}
-					/* XXX MPA test */
 					INSIST(labeltype ==
 					       dns_labeltype_bitstring);
 					bits = dns_label_countbits(&label);
@@ -1949,30 +1965,38 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 					 */
 					break;
 				}
-				if (i == lcount)
+				if (i > lcount)
 					return (DNS_R_BADPOINTER);
-				bits = new_current - ll;
-				if (bits != 0) {
-					/* XXX MPA test */
+				if (ll <= new_current) {
+					dns_name_getlabel(&dctx->owner_name,
+							  lcount - i - 1,
+							  &label);
+					bits = new_current + 1 - ll;
 					if (nrem < 2 + (bits + 7) / 8)
 						return (DNS_R_NOSPACE);
 					*ndata++ = DNS_LABELTYPE_BITSTRING;
 					*ndata++ = bits;
-					ndata[bits/8] = 0;
-					while (bits) {
+					/*
+					 * Zero all bits of last octet of
+					 * label.
+					 */
+					ndata[(bits - 1) / 8] = 0;
+					do {
+						bits--;
 						bit = dns_label_getbit(&label,
 								       bits);
 						set_bit(ndata, bits, bit);
-						bits--;
-					}
-					ndata += (new_current - ll + 7) / 8;
+					} while (bits != 0);
 					labels++;
-					i++;
+					bits = new_current + 1 - ll;
+					ndata += (bits + 7) / 8;
+					nused += (bits + 7) / 8 + 2;
+					nrem -= (bits + 7) / 8 - 2;
 				}
 				dns_name_init(&suffix, NULL);
 				dns_name_getlabelsequence(&dctx->owner_name,
-							  lcount - i - 1,
-							  i + 2, &suffix);
+							  lcount - i,
+							  i + 1, &suffix);
 				if (suffix.length > nrem)
 					return (DNS_R_NOSPACE);
 				memcpy(ndata, suffix.ndata, suffix.length);
@@ -2074,9 +2098,20 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 	else
 		lf = ISC_FALSE;
 
-	/* find the best compression */
+	/*
+	 * Will the compression pointer reduce the message size?
+	 */
+	if (lf && (lp.length + ((lo < 16384) ? 2 : 3)) >= name->length)
+		lf = ISC_FALSE;
+	if (gf && (gp.length + ((go < 16384) ? 2 : 3)) >= name->length)
+		gf = ISC_FALSE;
+
+	/*
+	 *
+	 */
 	if (lf && gf) {
-		if (lp.length < gp.length)
+		if ((lp.length + ((lo < 16384) ? 2 : 3)) < 
+		    (gp.length + ((go < 16384) ? 2 : 3)))
 			gf = ISC_FALSE;
 		else
 			lf = ISC_FALSE;
@@ -2517,12 +2552,13 @@ dns_name_split(dns_name_t *name,
 			/*
 			 * XXX DCL better way to decide memcpy vs memmove?
 			 */
-			if (len > 0)
+			if (len > 0) {
 				if ((dst <= src && dst + len > src) ||
 				    (src <= dst && src + len > dst))
 					memmove(dst, src, len);
 				else
 					memcpy(dst, src, len);
+			}
 
 			suffix->buffer->used = suffix->length;
 			suffix->ndata = suffix->buffer->base;
