@@ -1,3 +1,6 @@
+1642.	[port]		Support OpenSSL implementations which don't have
+			DSA support. [RT #11360]
+
 1641.	[bug]		Update the check-names description in ARM. [RT #11389]
 
 	--- 9.3.0beta4 released ---
