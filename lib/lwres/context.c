@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.34 2001/01/23 03:07:18 marka Exp $ */
+/* $Id: context.c,v 1.35 2001/06/07 00:45:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <sys/types.h>
