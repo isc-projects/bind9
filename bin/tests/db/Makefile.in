@@ -30,15 +30,15 @@ CWARNINGS =
 
 LIBS =		../../../lib/dns/libdns.@A@ \
 		../../../lib/isc/libisc.@A@ \
-		../../../lib/tests/libt_api.a \
+		../../../lib/tests/libt_api.@A@ \
 		@LIBS@
 
 TARGETS =	t_db
 
 @BIND9_MAKE_RULES@
 
-t_db: t_db.o
-	${LIBTOOL} ${CC} -o $@ t_db.o ${LIBS}
+t_db: t_db.@O@
+	${LIBTOOL} ${CC} -o $@ t_db.@O@ ${LIBS}
 
 test:
 	-@./t_db -c @top_srcdir@/t_config -a

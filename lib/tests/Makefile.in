@@ -30,7 +30,7 @@ CDEFINES =
 CWARNINGS =
 
 # Note: we are not using libtool with this library.
-OBJS =		t_api.o
+OBJS =		t_api.@O@
 
 SRCS =		t_api.c
 
@@ -39,12 +39,12 @@ TARGETS =	timestamp
 
 @BIND9_MAKE_RULES@
 
-libt_api.a: ${OBJS}
-	${AR} cruv libt_api.a ${OBJS}
+libt_api.@A@: ${OBJS}
+	${AR} ${ARFLAGS} $@ ${OBJS}
+	${RANLIB} $@
 
-timestamp: libt_api.a
-	${RANLIB} libt_api.a
+timestamp: libt_api.@A@
 	touch timestamp
 
 clean distclean::
-	rm -f t_api.o libt_api.a timestamp
+	rm -f t_api.@O@ libt_api.@A@ timestamp

@@ -95,104 +95,104 @@ SRCS =		compress_test.c \
 
 @BIND9_MAKE_RULES@
 
-sdig: sdig.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sdig.o printmsg.o \
+sdig: sdig.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sdig.@O@ printmsg.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-nxtify: nxtify.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nxtify.o \
+nxtify: nxtify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nxtify.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-signer: signer.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ signer.o \
+signer: signer.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ signer.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-keygen: keygen.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keygen.o \
+keygen: keygen.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keygen.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ res_test.o \
+res_test: res_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ res_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-lex_test: lex_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lex_test.o \
+lex_test: lex_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lex_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-log_test: log_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ log_test.o \
+log_test: log_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ log_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-name_test: name_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ name_test.o \
+name_test: name_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ name_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-sock_test: sock_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sock_test.o \
+sock_test: sock_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sock_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-sym_test: sym_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sym_test.o \
+sym_test: sym_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sym_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-task_test: task_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ task_test.o \
+task_test: task_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ task_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-shutdown_test: shutdown_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ shutdown_test.o \
+shutdown_test: shutdown_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ shutdown_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-timer_test: timer_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ timer_test.o \
+timer_test: timer_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ timer_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-rbt_test: rbt_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rbt_test.o \
+rbt_test: rbt_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rbt_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-rdata_test: rdata_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rdata_test.o \
+rdata_test: rdata_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rdata_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-rwlock_test: rwlock_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rwlock_test.o \
+rwlock_test: rwlock_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rwlock_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-wire_test: wire_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ wire_test.o printmsg.o \
+wire_test: wire_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ wire_test.@O@ printmsg.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-master_test: master_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ master_test.o \
+master_test: master_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ master_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-db_test: db_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ db_test.o \
+db_test: db_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ db_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-compress_test: compress_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ compress_test.o \
+compress_test: compress_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ compress_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-mempool_test: mempool_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ mempool_test.o \
+mempool_test: mempool_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ mempool_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-serial_test: serial_test.o ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ serial_test.o \
+serial_test: serial_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ serial_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-zone_test: zone_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone_test.o \
+zone_test: zone_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dispatch_test: dispatch_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.o printmsg.o \
+dispatch_test: dispatch_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.@O@ printmsg.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dispatch_tcp_test: dispatch_tcp_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_tcp_test.o printmsg.o \
+dispatch_tcp_test: dispatch_tcp_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_tcp_test.@O@ printmsg.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::

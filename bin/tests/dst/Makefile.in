@@ -34,7 +34,7 @@ DEPLIBS = 	../../../lib/dns/libdns.@A@ \
 LIBS =		${DEPLIBS} \
 		@LIBS@
 
-TLIB =		../../../lib/tests/libt_api.a
+TLIB =		../../../lib/tests/libt_api.@A@
 
 TARGETS =	dst_test t_dst
 
@@ -42,11 +42,11 @@ SRCS =		dst_test.c t_dst.c
 
 @BIND9_MAKE_RULES@
 
-dst_test: dst_test.o ${DEPLIBS}
-	${LIBTOOL} ${CC} -o $@ dst_test.o ${LIBS}
+dst_test: dst_test.@O@ ${DEPLIBS}
+	${LIBTOOL} ${CC} -o $@ dst_test.@O@ ${LIBS}
 
-t_dst: t_dst.o ${DEPLIBS} ${TLIB}
-	${LIBTOOL} ${CC} -o $@ t_dst.o ${LIBS} ${TLIB}
+t_dst: t_dst.@O@ ${DEPLIBS} ${TLIB}
+	${LIBTOOL} ${CC} -o $@ t_dst.@O@ ${LIBS} ${TLIB}
 
 test:
 	-@ ./t_dst -a

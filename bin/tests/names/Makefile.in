@@ -27,10 +27,10 @@ CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-# Note that we do not want to use libtool for libt_api.a
+# Note that we do not want to use libtool for libt_api
 LIBS =		../../../lib/dns/libdns.@A@ \
 		../../../lib/isc/libisc.@A@ \
-		../../../lib/tests/libt_api.a \
+		../../../lib/tests/libt_api.@A@ \
 		@LIBS@
 
 TARGETS =	t_names
@@ -39,8 +39,8 @@ SRCS =		t_names.c
 
 @BIND9_MAKE_RULES@
 
-t_names: t_names.o
-	${LIBTOOL} ${CC} -o $@ t_names.o ${LIBS}
+t_names: t_names.@O@
+	${LIBTOOL} ${CC} -o $@ t_names.@O@ ${LIBS}
 
 test:
 	-@./t_names -c @top_srcdir@/t_config -a

@@ -40,19 +40,19 @@ LIBS =		${DEPLIBS} \
 
 TARGETS =	named
 
-OBJS =		client.o interfacemgr.o main.o query.o rootns.o server.o \
-		update.o xfrin.o xfrout.o
+OBJS =		client.@O@ interfacemgr.@O@ main.@O@ query.@O@ rootns.@O@ \
+		server.@O@ update.@O@ xfrin.@O@ xfrout.@O@
 
 SRCS =		client.c interfacemgr.c main.c query.c rootns.c server.c \
 		update.c xfrin.c xfrout.c
 
 @BIND9_MAKE_RULES@
 
-main.o: main.c
+main.@O@: main.c
 	${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" -c $<
 
-printmsg.o: ${srcdir}/../tests/printmsg.c
-	${CC} -c -o printmsg.o ${ALL_CFLAGS} -I${srcdir}/../tests \
+printmsg.@O@: ${srcdir}/../tests/printmsg.c
+	${CC} -c -o printmsg.@O@ ${ALL_CFLAGS} -I${srcdir}/../tests \
 		${srcdir}/../tests/printmsg.c
 
 named: ${OBJS} ${DEPLIBS}

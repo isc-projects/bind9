@@ -30,7 +30,7 @@ CWARNINGS =
 
 DEPLIBS =	../../../lib/dns/libdns.@A@ \
 		../../../lib/isc/libisc.@A@ \
-		../../../lib/tests/libt_api.a
+		../../../lib/tests/libt_api.@A@
 
 LIBS =		${DEPLIBS} \
 		@LIBS@
@@ -39,8 +39,8 @@ TARGETS =	t_tasks
 
 @BIND9_MAKE_RULES@
 
-t_tasks: t_tasks.o ${DEPLIBS}
-	${LIBTOOL} ${CC} -o $@ t_tasks.o ${LIBS}
+t_tasks: t_tasks.@O@ ${DEPLIBS}
+	${LIBTOOL} ${CC} -o $@ t_tasks.@O@ ${LIBS}
 
 test:
 	-@./t_tasks -c @top_srcdir@/t_config

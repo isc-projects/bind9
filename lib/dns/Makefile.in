@@ -35,6 +35,7 @@ CDEFINES =
 CWARNINGS =
 
 LIBS =		@LIBS@
+LIBISC = 	../isc/libisc.@A@
 
 # Alphabetically
 
@@ -157,9 +158,9 @@ version.@O@: version.c
 		-DLIBAGE=${LIBAGE} \
 		-c $<
 
-libdns.a: ${OBJS}
-	${AR} cruv $@ ${OBJS}
-	${RANLIB} libdns.a
+libdns.@A@: ${OBJS}
+	${AR} ${ARFLAGS} $@ ${OBJS}
+	${RANLIB} $@
 
 libdns.la: ${OBJS}
 	${LIBTOOL} --mode=link \
@@ -179,7 +180,7 @@ install:: timestamp installdirs
 	${LIBTOOL} ${INSTALL_DATA} libdns.@A@ ${libdir}
 
 clean distclean::
-	rm -f libdns.a timestamp
+	rm -f libdns.@A@ timestamp
 	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
 	rm -f include/dns/rdatastruct.h
 

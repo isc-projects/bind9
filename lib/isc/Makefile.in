@@ -73,9 +73,9 @@ version.@O@: version.c
 		-DLIBAGE=${LIBAGE} \
 		-c $<
 
-libisc.a: ${OBJS}
-	${AR} cruv libisc.a ${OBJS}
-	${RANLIB} libisc.a
+libisc.@A@: ${OBJS}
+	${AR} ${ARFLAGS} $@ ${OBJS}
+	${RANLIB} $@
 
 libisc.la: ${OBJS}
 	${LIBTOOL} --mode=link \
@@ -95,4 +95,4 @@ install:: timestamp installdirs
 	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${libdir}
 
 clean distclean::
-	rm -f libisc.a libisc.la timestamp
+	rm -f libisc.@A@ libisc.la timestamp
