@@ -102,6 +102,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	dns_name_t *name;
 	dns_ttl_t ttl;
 	char *data[4096];
+	dns_trust_t trust;
 
 	/*
 	 * Convert the authority data from 'message' into a negative cache
@@ -119,13 +120,14 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	 * First, build an ncache rdata in buffer.
 	 */
 	ttl = 0xffffffff;
+	trust = 0xffff;
 	isc_buffer_init(&buffer, data, sizeof data, ISC_BUFFERTYPE_BINARY);
 	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	while (result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY,
 					&name);
-		if ((name->attributes & DNS_RDATASETATTR_NCACHE) != 0) {
+		if ((name->attributes & DNS_NAMEATTR_NCACHE) != 0) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -139,6 +141,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 				    type == dns_rdatatype_nxt) {
 					if (ttl > rdataset->ttl)
 						ttl = rdataset->ttl;
+					if (trust > rdataset->trust)
+						trust = rdataset->trust;
 					/*
 					 * Copy the owner name to the buffer.
 					 */
@@ -174,8 +178,9 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	 * the cache.
 	 */
 
+	INSIST(trust != 0xffff);
 	dns_rdata_init(&rdata);
-	isc_buffer_available(&buffer, &r);
+	isc_buffer_used(&buffer, &r);
 	rdata.data = r.base;
 	rdata.length = r.length;
 	rdata.rdclass = dns_db_class(cache);
@@ -192,6 +197,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 
 	dns_rdataset_init(&ncrdataset);
 	dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset);
+	ncrdataset.trust = trust;
 
 	result = dns_db_addrdataset(cache, node, NULL, now, &ncrdataset,
 				    ISC_FALSE, addedrdataset);
