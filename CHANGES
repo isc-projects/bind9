@@ -1,3 +1,6 @@
+1325.	[bug]		Document that internal zones are included in the
+			rndc status results.
+
 1324.	[func]		New function: dns_zone_name().
 
 1323.	[func]		Option 'flush-zones-on-shutdown <boolean>;'.

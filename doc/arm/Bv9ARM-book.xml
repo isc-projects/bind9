@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.201 2002/06/12 06:29:49 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.202 2002/06/14 00:57:54 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -794,7 +794,10 @@ of a server.</para>
    <listitem><para>Flushes the server's cache.</para></listitem></varlistentry>
 
    <varlistentry><term><userinput>status</userinput></term>
-   <listitem><para>Display status of the server.</para></listitem></varlistentry>
+   <listitem><para>Display status of the server.
+Note the number of zones includes the internal <command>bind/CH</command> zone
+and the default <command>./IN</command> hint zone if there is not a
+explicit root zone configured.</para></listitem></varlistentry>
 
 </variablelist>
 
