@@ -29,7 +29,7 @@
 #include "context_p.h"
 #include "assert_p.h"
 
-int
+lwres_result_t
 lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
@@ -85,7 +85,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
@@ -154,7 +154,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_gnbarequest_t **structp)
 {
@@ -192,7 +192,7 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	return (ret);
 }
 
-int
+lwres_result_t
 lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			 lwres_lwpacket_t *pkt, lwres_gnbaresponse_t **structp)
 {

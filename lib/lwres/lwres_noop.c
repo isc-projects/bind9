@@ -29,7 +29,7 @@
 #include "context_p.h"
 #include "assert_p.h"
 
-int
+lwres_result_t
 lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
@@ -80,7 +80,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
@@ -130,7 +130,7 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_nooprequest_t **structp)
 {
@@ -177,7 +177,7 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	return (ret);
 }
 
-int
+lwres_result_t
 lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			 lwres_lwpacket_t *pkt, lwres_noopresponse_t **structp)
 {
