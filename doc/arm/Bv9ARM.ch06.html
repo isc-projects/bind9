@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3395"
+HREF="Bv9ARM.ch06.html#AEN3401"
 >Zone File</A
 ></DT
 ></DL
@@ -2630,9 +2630,33 @@ CLASS="optional"
 > listen-on { <TT
 CLASS="replaceable"
 ><I
->address_match_list</I
+>ip_addr</I
 ></TT
-> }; </SPAN
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; [<SPAN
+CLASS="optional"
+> <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; ... </SPAN
+>] }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -2677,7 +2701,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1724"
+NAME="AEN1730"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2750,7 +2774,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1743"
+NAME="AEN1749"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3636,7 +3660,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1946"
+NAME="AEN1952"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4814,7 +4838,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2255"
+NAME="AEN2261"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5085,7 +5109,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2331"
+NAME="AEN2337"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5180,7 +5204,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2357"
+NAME="AEN2363"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5722,7 +5746,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2504"
+NAME="AEN2510"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5950,7 +5974,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2570"
+NAME="AEN2576"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -7117,7 +7141,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2871"
+NAME="AEN2877"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7192,7 +7216,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2887"
+NAME="AEN2893"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7227,7 +7251,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2895"
+NAME="AEN2901"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7290,7 +7314,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2909"
+NAME="AEN2915"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7873,7 +7897,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3046"
+NAME="AEN3052"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7884,7 +7908,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3049"
+NAME="AEN3055"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -8110,7 +8134,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3106"
+NAME="AEN3112"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8166,7 +8190,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3121"
+NAME="AEN3127"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
@@ -9132,7 +9156,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3395"
+NAME="AEN3401"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9153,7 +9177,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3400"
+NAME="AEN3406"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9873,7 +9897,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3614"
+NAME="AEN3620"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10193,7 +10217,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3715"
+NAME="AEN3721"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10594,7 +10618,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3836"
+NAME="AEN3842"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10693,7 +10717,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3863"
+NAME="AEN3869"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10718,7 +10742,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3870"
+NAME="AEN3876"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10788,7 +10812,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3890"
+NAME="AEN3896"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10864,7 +10888,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3909"
+NAME="AEN3915"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10904,7 +10928,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3920"
+NAME="AEN3926"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
