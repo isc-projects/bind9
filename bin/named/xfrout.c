@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.87.2.1 2001/01/06 03:09:54 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.87.2.2 2001/01/08 19:30:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1453,6 +1453,9 @@ sendstream(xfrout_ctx_t *xfr) {
 	} else {
 		xfrout_log(xfr, ISC_LOG_DEBUG(8), "sending IXFR UDP response");
 		ns_client_send(xfr->client);
+		xfr->stream->methods->pause(xfr->stream);
+		xfrout_ctx_destroy(&xfr);
+		return;
 	}
 
 	/* Advance lasttsig to be the last TSIG generated */
