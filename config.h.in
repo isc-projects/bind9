@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.47.2.6 2004/01/29 04:59:40 marka Exp $ */
+/* $Id: config.h.in,v 1.47.2.7 2004/01/29 05:00:52 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
