@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.25 2003/08/27 02:13:49 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.26 2003/09/02 01:14:27 marka Exp $ */
 
 #include <config.h>
 
@@ -3597,15 +3597,24 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	zone->curmaster++;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (zone->curmaster >= zone->masterscnt) {
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+			zone->curmaster = 0;
+			goto requeue;
+		}
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH)) {
 			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 			zone->refreshtime = now;
 		}
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
 		zone_settimer(zone, &now);
 		UNLOCK_ZONE(zone);
 		goto detach;
 	}
+
+ requeue:
 	queue_soa_query(zone);
 	UNLOCK_ZONE(zone);
 	goto detach;
