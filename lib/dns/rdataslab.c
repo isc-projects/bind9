@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.24 2000/11/22 00:18:34 halley Exp $ */
+/* $Id: rdataslab.c,v 1.25 2000/11/22 01:55:38 halley Exp $ */
 
 #include <config.h>
 
@@ -109,7 +109,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	buflen += (2 + rdatas[i-1].length);
 
 	/*
-	 * Check that singleton types are actually singletons.
+	 * Ensure that singleton types are actually singletons.
 	 */
 	if (nitems > 1 && dns_rdatatype_issingleton(rdataset->type)) {
 		/*
@@ -302,6 +302,17 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 
 	if (!added_something && !force)
 		return (DNS_R_UNCHANGED);
+
+	/*
+	 * Ensure that singleton types are actually singletons.
+	 */
+	if (tcount > 1 && dns_rdatatype_issingleton(type)) {
+		/*
+		 * We have a singleton type, but there's more than one
+		 * RR in the rdataset.
+		 */
+		return (DNS_R_SINGLETON);
+	}
 
 	/*
 	 * Copy the reserved area from the new slab.
