@@ -193,6 +193,8 @@ struct dns_name {
 	ISC_LIST(dns_rdataset_t)	list;
 };
 
+#define DNS_NAME_MAGIC			0x444E536EU	/* DNSn. */
+
 #define DNS_NAMEATTR_ABSOLUTE		0x0001
 #define DNS_NAMEATTR_READONLY		0x0002
 #define DNS_NAMEATTR_DYNAMIC		0x0004
@@ -383,7 +385,7 @@ dns_name_fullcompare(dns_name_t *name1, dns_name_t *name2,
  *
  * Ensures:
  *
- *	*orderp is -1 if name1 < name2, 0 if name1 = name2, 1 if
+ *	*orderp is < 0 if name1 < name2, 0 if name1 = name2, > 0 if
  *	name1 > name2.
  *
  *	*nlabelsp is the number of common significant labels.
@@ -426,9 +428,9 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2);
  *	Either name1 is absolute and name2 is absolute, or neither is.
  *
  * Returns:
- *	-1		'name1' is less than 'name2'
+ *	< 0		'name1' is less than 'name2'
  *	0		'name1' is equal to 'name2'
- *	1		'name1' is greater than 'name2'
+ *	> 0		'name1' is greater than 'name2'
  */
 
 isc_boolean_t
