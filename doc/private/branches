@@ -3,12 +3,12 @@ Name		Status		Whom
 rt4398		review		marka?
 rt4425		review		marka?
 a6_remove	review		marka
-blabel-cleanup
 ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
 rt3746		open		marka
 v6source
 
+blabel-cleanup	closed
 rt3445		closed
 rt3536(ixfr)	closed
 rt3588		closed
