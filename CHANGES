@@ -1,5 +1,9 @@
-  85.   [cleanup]       <isc/bufferlist.h> does not need <isc/mem.h>,
-                        <isc/region.h> or <isc/int.h>.
+  86.   [cleanup]       isc_bufferlist_t moved from <isc/bufferlist.h> to
+                        <isc/types.h>.
+
+  85.   [cleanup]       <isc/bufferlist.h> does not need <isc/buffer.h>,
+                        <isc/list.h>, <isc/mem.h>, <isc/region.h> or
+                        <isc/int.h>.
 
   84.	[func]		allow-query ACL checks now apply to all data
 			added to a response.
