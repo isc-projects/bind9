@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.24 2000/06/06 15:16:45 tale Exp $
+ * $Id: bsafe_link.c,v 1.25 2000/06/06 16:35:59 tale Exp $
  */
 
 #if defined(DNSSAFE)
@@ -188,11 +188,8 @@ dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	dst_key_t *key = dctx->key;
 	RSA_Key *rkey = key->opaque;
 	B_ALGORITHM_OBJ rsaEncryptor = (B_ALGORITHM_OBJ) NULL_PTR;
-	B_ALGORITHM_OBJ *ctx;
 	unsigned int written = 0;
 	isc_result_t result;
-
-	ctx = dctx->opaque;
 
 	isc_buffer_init(&digestbuf, digest_array, sizeof(digest_array));
 	result = dst_context_digest(md5ctx, &digestbuf);
