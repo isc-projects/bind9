@@ -90,7 +90,7 @@
 
 1544.	[bug]		Named would logged a single entry to a file despite it
 			being over the specified size limit.
-			
+
 1543.	[bug]		Logging using "versions unlimited" did not work.
 
 1542.	[bug]		Reversed timestamp sanity test on SIG. [RT #10095]
@@ -137,7 +137,7 @@
 1522.	[bug]		dns_db_findnode() relax the requirements on 'name'.
 			[RT# 9286]
 
-1518.   [bug]           dns_nxt_buildrdata(), and hence dns_nxt_build(),
+1518.	[bug]		dns_nxt_buildrdata(), and hence dns_nxt_build(),
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.
 
@@ -212,7 +212,7 @@
 
 1490.	[bug]		Accept reading state as well as working state in
 			ns_client_next(). [RT #6813]
-			
+
 1489.	[compat]	Treat 'allow-update' on slave zones as a warning.
 			[RT #3469]
 
@@ -238,7 +238,7 @@
 1482.	[bug]		named could fail to start if the kernel supports
 			IPv6 but no interfaces are configured.  Similarly
 			for IPv4. [RT #6229]
-			
+
 1481.	[bug]		Refresh and stub queries failed to use masters keys
 			if specified. [RT #7391]
 
@@ -1076,7 +1076,7 @@
 			under Win32. [RT #1889]
 
 1051.	[bug]		Do not ignore a network interface completely just
-			because it has a noncontiguous netmask.	 Instead,
+			because it has a noncontiguous netmask.  Instead,
 			omit it from the localnets ACL and issue a warning.
 			[RT #1891]
 
@@ -1299,7 +1299,7 @@
 			named and rndc will look for this file and use
 			it to configure a default control channel key
 			if not already configured using a different
-			method (rndc.conf / controls).	Unlike
+			method (rndc.conf / controls).  Unlike
 			named.key, rndc.key is not created automatically;
 			it must be created by manually running
 			"rndc-confgen -a".
@@ -1523,7 +1523,7 @@
  890.	[cleanup]	The man pages no longer require the mandoc macros
 			and should now format cleanly using most versions of
 			nroff, and HTML versions of the man pages have been
-			added.	Both are generated from DocBook source.
+			added.  Both are generated from DocBook source.
 
  889.	[port]		Eliminated blank lines before .TH in nroff man
 			pages since they cause problems with some versions
@@ -1929,7 +1929,7 @@
  752.	[func]		Correct bad tv_usec elements returned by
 			gettimeofday().
 
- 751.	[func]		Log successful zone loads / transfers.	[RT #898]
+ 751.	[func]		Log successful zone loads / transfers.  [RT #898]
 
  750.	[bug]		A query should not match a DNAME whose trust level
 			is pending. [RT #916]
@@ -2080,7 +2080,7 @@
 
  701.	[func]		Root hints are now fully optional.  Class IN
 			views use compiled-in hints by default, as
-			before.	 Non-IN views with no root hints now
+			before.  Non-IN views with no root hints now
 			provide authoritative service but not recursion.
 			A warning is logged if a view has neither root
 			hints nor authoritative data for the root. [RT #696]
@@ -2339,7 +2339,7 @@
 			conflicts between libc and the kernel.
 
  620.	[bug]		dns_master_load*inc() now require 'task' and 'load'
-			to be non-null.	 Also 'done' will not be called if
+			to be non-null.  Also 'done' will not be called if
 			dns_master_load*inc() fails immediately. [RT #565]
 
  618.	[bug]		Queries to a signed zone could sometimes cause
@@ -2407,7 +2407,7 @@
  600.	[bug]		Reverse lookups sometimes failed in dig, etc...
 
  599.	[func]		Added four new functions to the libisc log API to
-			support i18n messages.	isc_log_iwrite(),
+			support i18n messages.  isc_log_iwrite(),
 			isc_log_ivwrite(), isc_log_iwrite1() and
 			isc_log_ivwrite1() were added.
 
@@ -2624,7 +2624,7 @@
  530.	[func]		New function dns_rdata_invalidate().
 
  529.	[bug]		521 contained a bug which caused zones to always
-			reload.	 [RT #410]
+			reload.  [RT #410]
 
  528.	[func]		The ISC_LIST_XXXX macros now perform sanity checks
 			on their arguments.  ISC_LIST_XXXXUNSAFE can be use
@@ -2942,7 +2942,7 @@
  434.	[func]		New function isc_file_isabsolute().
 
  433.	[func]		isc_base64_decodestring() now accepts newlines
-			within the base64 data.	 This makes it possible
+			within the base64 data.  This makes it possible
 			to break up the key data in a "trusted-keys"
 			statement into multiple lines. [RT #284]
 
@@ -2988,7 +2988,7 @@
 
  422.	[func]		get rid of isc_random_t, and make isc_random_get()
 			and isc_random_jitter() use rand() internally
-			instead of local state.	 Note that isc_random_*()
+			instead of local state.  Note that isc_random_*()
 			functions are only for weak, non-critical "randomness"
 			such as timing jitter and such.
 
@@ -3058,7 +3058,7 @@
 			containing a syntax error, it could catch an
 			assertion failure trying to perform zone
 			maintenance on, or sending notifies from,
-			tentatively created zones whose	views were
+			tentatively created zones whose views were
 			never fully configured and lacked an address
 			database and request manager.
 
@@ -3351,7 +3351,7 @@
 			more than one key specified for the inet clause.
 
  313.	[bug]		When parsing resolv.conf, don't terminate on an
-			error.	Instead, parse as much as possible, but
+			error.  Instead, parse as much as possible, but
 			still return an error if one was found.
 
  312.	[bug]		Increase the number of allowed elements in the
@@ -3391,7 +3391,7 @@
 			destroying the query context and then want to use
 			it again when the send event posted, triggering an
 			assertion as it tried to cancel an already-canceled
-			query.	[RT #77]
+			query.  [RT #77]
 
  306.	[bug]		Reading HMAC-MD5 private key files didn't work.
 
@@ -3424,7 +3424,7 @@
  299.	[cleanup]	Get the user and group information before changing the
 			root directory, so the administrator does not need to
 			keep a copy of the user and group databases in the
-			chroot'ed environment.	Suggested by Hakan Olsson.
+			chroot'ed environment.  Suggested by Hakan Olsson.
 
  298.	[bug]		A mutex deadlock occurred during shutdown of the
 			interface manager under certain conditions.
@@ -3485,7 +3485,7 @@
 
  285.	[bug]		A change made to the dst API for beta4 inadvertently
 			broke OMAPI's creation of a dst key from an incoming
-			message, causing an assertion to be triggered.	Fixed.
+			message, causing an assertion to be triggered.  Fixed.
 
  284.	[func]		The DNSSEC key generation and signing tools now
 			generate randomness from keyboard input on systems
@@ -3557,7 +3557,7 @@
  265.	[bug]		dns_request_create() now works for TCP.
 
  264.	[func]		Dispatch can not take TCP sockets in connecting
-			state.	Set DNS_DISPATCHATTR_CONNECTED when calling
+			state.  Set DNS_DISPATCHATTR_CONNECTED when calling
 			dns_dispatch_createtcp() for connected TCP sockets
 			or call dns_dispatch_starttcp() when the socket is
 			connected.
@@ -3796,7 +3796,7 @@
 			when due.
 
  198.	[func]		Dispatch managers hold memory pools which
-			any managed dispatcher may use.	 This allows
+			any managed dispatcher may use.  This allows
 			us to avoid dipping into the memory context for
 			most allocations. [19-May-2000 explorer]
 
@@ -4011,7 +4011,7 @@
 			this changelog entry just notes that if a header file
 			did not need another header file that it was including
 			in order to provide its advertized functionality, the
-			inclusion of the other header file was removed.	 See
+			inclusion of the other header file was removed.  See
 			util/check-includes for how this was tested.
 
  145.	[cleanup]	Added <isc/lang.h> and ISC_LANG_BEGINDECLS/
@@ -4095,7 +4095,7 @@
 			<isc/result.h>.
 
  121.	[cleanup]	<isc/symtab.h> does not need <isc/mem.h> or
-			<isc/result.h>.	 Multiple inclusion protection
+			<isc/result.h>.  Multiple inclusion protection
 			symbol fixed from ISC_SYMBOL_H to ISC_SYMTAB_H.
 			isc_symtab_t moved to <isc/types.h>.
 
@@ -4144,7 +4144,7 @@
  107.	[func]		Add keysigner and keysettool.
 
  106.	[func]		Allow dnssec verifications to ignore the validity
-			period.	 Used by several of the dnssec tools.
+			period.  Used by several of the dnssec tools.
 
  105.	[doc]		doc/dev/coding.html expanded with other
 			implicit conventions the developers have used.
@@ -4154,16 +4154,16 @@
 
  103.	[func]		libisc buffer API changes for <isc/buffer.h>:
 			Added:
-				isc_buffer_base(b)	    (pointer)
-				isc_buffer_current(b)	    (pointer)
-				isc_buffer_active(b)	    (pointer)
-				isc_buffer_used(b)	    (pointer)
-				isc_buffer_length(b)		(int)
-				isc_buffer_usedlength(b)	(int)
-				isc_buffer_consumedlength(b)	(int)
-				isc_buffer_remaininglength(b)	(int)
-				isc_buffer_activelength(b)	(int)
-				isc_buffer_availablelength(b)	(int)
+				isc_buffer_base(b)          (pointer)
+				isc_buffer_current(b)       (pointer)
+				isc_buffer_active(b)        (pointer)
+				isc_buffer_used(b)          (pointer)
+				isc_buffer_length(b)            (int)
+				isc_buffer_usedlength(b)        (int)
+				isc_buffer_consumedlength(b)    (int)
+				isc_buffer_remaininglength(b)   (int)
+				isc_buffer_activelength(b)      (int)
+				isc_buffer_availablelength(b)   (int)
 			Removed:
 				ISC_BUFFER_USEDCOUNT(b)
 				ISC_BUFFER_AVAILABLECOUNT(b)
@@ -4193,7 +4193,7 @@
  101.	[cleanup]	Quieted EGCS warnings from lib/isc/print.c.
 
  100.	[cleanup]	<isc/random.h> does not need <isc/int.h> or
-			<isc/mutex.h>.	isc_random_t moved to <isc/types.h>.
+			<isc/mutex.h>.  isc_random_t moved to <isc/types.h>.
 
   99.	[cleanup]	Rate limiter now has separate shutdown() and
 			destroy() functions, and it guarantees that all
@@ -4457,7 +4457,7 @@
   16.	[bug]		put quotes around key names on config file
 			output to avoid possible keyword clashes.
 
-  15.	[func]		Add dns_name_dupwithoffsets().	This function is
+  15.	[func]		Add dns_name_dupwithoffsets().  This function is
 			improves comparison performance for duped names.
 
   14.	[bug]		free_rbtdb() could have 'put' unallocated memory in
