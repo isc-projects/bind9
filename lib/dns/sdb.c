@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.34 2001/06/06 22:03:58 bwelling Exp $ */
+/* $Id: sdb.c,v 1.35 2001/06/28 21:34:54 gson Exp $ */
 
 #include <config.h>
 
@@ -65,7 +65,6 @@ struct dns_sdb {
 	isc_mutex_t			lock;
 	/* Locked */
 	unsigned int			references;
-
 };
 
 struct dns_sdblookup {
