@@ -267,6 +267,9 @@ dns_c_checkconfig(dns_c_ctx_t *ctx)
 			      "rfc2308-type-1 is not yet implemented.");
 	}
 
+	/* XXX need to check all zones and views for
+	 * 'allow-update-forwarding' (not yet implemented)
+	 */
 
 
 	/*
@@ -4281,95 +4284,13 @@ cfg_get_uint32(dns_c_options_t *options,
 static isc_result_t
 acl_init(dns_c_ctx_t *cfg)
 {
-	dns_c_ipmatchelement_t *ime;
-	dns_c_ipmatchlist_t *iml;
-	isc_sockaddr_t addr;
-	dns_c_acl_t *acl;
 	isc_result_t r;
-	static struct in_addr zeroaddr;
 
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
-
-	isc_sockaddr_fromin(&addr, &zeroaddr, 0);
 
 	r = dns_c_acltable_new(cfg->mem, &cfg->acls);
 	if (r != ISC_R_SUCCESS) return (r);
 
-
-	/*
-	 * The ANY acl.
-	 */
-	r = dns_c_acl_new(cfg->acls, "any", ISC_TRUE, &acl);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	r = dns_c_ipmatchpattern_new(cfg->mem, &ime, addr, 0);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	ISC_LIST_APPEND(iml->elements, ime, next);
-
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
-	iml = NULL;
-	
-
-	/*
-	 * The NONE acl
-	 */
-
-	r = dns_c_acl_new(cfg->acls, "none", ISC_TRUE, &acl);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	r = dns_c_ipmatchpattern_new(cfg->mem, &ime, addr, 0);
-	if (r != ISC_R_SUCCESS) return (r);
-
-	dns_c_ipmatch_negate(ime);
-
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	ISC_LIST_APPEND(iml->elements, ime, next);
-	
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
-	iml = NULL;
-	
-
-	/*
-	 * The LOCALHOST acl
-	 */
-	r = dns_c_acl_new(cfg->acls, "localhost", ISC_TRUE, &acl);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	r = dns_c_ipmatchlocalhost_new(cfg->mem, &ime);
-	if (r != ISC_R_SUCCESS) return (r);
-
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	ISC_LIST_APPEND(iml->elements, ime, next);
-
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
-	iml = NULL;
-	
-	
-	/*
-	 * The LOCALNETS acl
-	 */
-	r = dns_c_acl_new(cfg->acls, "localnets", ISC_TRUE, &acl);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	r = dns_c_ipmatchlocalnets_new(cfg->mem, &ime);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
-	if (r != ISC_R_SUCCESS) return (r);
-	
-	ISC_LIST_APPEND(iml->elements, ime, next);
-
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
-	iml = NULL;
-	
 	return (ISC_R_SUCCESS);
 }
 
