@@ -20,6 +20,7 @@
 #include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/magic.h>
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/stdtime.h>

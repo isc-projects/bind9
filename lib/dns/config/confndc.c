@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.8 2000/04/07 13:35:04 brister Exp $ */
+/* $Id: confndc.c,v 1.9 2000/04/12 19:07:12 halley Exp $ */
 
 /*
 **	options {
@@ -58,6 +58,7 @@
 #include <isc/once.h>
 #include <isc/dir.h>
 #include <isc/net.h>
+#include <isc/print.h>
 
 #include <dns/confndc.h>
 #include <dns/log.h>
