@@ -343,8 +343,6 @@ msginitprivate(dns_message_t *m)
 	m->reserved = 0;
 	m->buffer = NULL;
 	m->need_cctx_cleanup = 0;
-	m->header_ok = 0;
-	m->question_ok = 0;
 }
 
 /*
@@ -356,6 +354,8 @@ msginit(dns_message_t *m)
 {
 	msginitheader(m);
 	msginitprivate(m);
+	m->header_ok = 0;
+	m->question_ok = 0;
 }
 
 static inline void
@@ -1601,7 +1601,6 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	unsigned int first_section;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 	REQUIRE((msg->flags & DNS_MESSAGEFLAG_QR) == 0);
 
 	if (!msg->header_ok)
