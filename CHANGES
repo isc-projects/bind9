@@ -1,3 +1,5 @@
+1477.	[bug]		memory leak using stub zones and TSIG.
+
 1476.	[placeholder]
 
 1475.	[port]		Probe for old sprintf().
