@@ -750,6 +750,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 {
 	isc_region_t r;
 	unsigned int count;
+	unsigned int rdatalen;
 	dns_name_t *name;
 	dns_name_t *name2;
 	dns_rdataset_t *rdataset;
@@ -835,6 +836,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 *
 		 * This sucks.  XXXMLG stop point, code below probably wrong.
 		 */
+#if 0
 		if (result != DNS_R_SUCCESS) {
 			rdataset = newrdataset(msg);
 			if (rdataset == NULL)
@@ -843,6 +845,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			ISC_LIST_APPEND(section, rdataset, 
 			
 			return (DNS_R_FORMERR);
+#endif
 
 		/*
 		 * Allocate a new rdatalist, rdata.
