@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mandoc2docbook.pl,v 1.1 2001/03/31 00:11:20 gson Exp $
+# $Id: mandoc2docbook.pl,v 1.2 2001/04/02 21:48:31 gson Exp $
 
 #
 # Do a quick-and-dirty conversion of .mandoc man pages to
@@ -46,7 +46,7 @@ print <<\END;
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: mandoc2docbook.pl,v 1.1 2001/03/31 00:11:20 gson Exp $ -->
+<!-- $Id: mandoc2docbook.pl,v 1.2 2001/04/02 21:48:31 gson Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -89,6 +89,8 @@ my %tagmap = (
 	Dv => type,
 	Pa => filename,
         Li => constant, 		# XXX guess
+	Ar => parameter,
+	Va => parameter,
 );
 	    
 while (<>) {
@@ -147,6 +149,14 @@ END
 	elsif (/^\.Fn (.*?)( ([^"]+))?$/) {
 		# special: add parenthesis
 		print "<function>$1()<\/function>$3\n";
+	}
+	elsif (/^\.Op Fl (.*?)( ([^"]+))?$/) {
+		# special: add dash
+		print "<option>-$1<\/option>$3\n";
+	}
+	elsif (/^\.Fl (.*?)( ([^"]+))?$/) {
+		# special: add dash
+		print "<option>-$1<\/option>$3\n";
 	}
 	elsif (/^\.Ft (.*)$/) {
 		print "<funcprototype>\n";		
@@ -209,7 +219,7 @@ END
 		print "</variablelist>\n";
 	        $in_list = 0;
 	}
-	elsif (/^\.It Li (.*)$/) {
+	elsif (/^\.It .. (.*)$/) {
 		if ($in_list) {
 			print "</listitem>\n";
 		}
