@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.3 1999/10/11 14:12:31 tale Exp $ */
+/* $Id: log.h,v 1.4 1999/10/22 19:30:38 halley Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -78,9 +78,7 @@ typedef struct isc_log isc_log_t;
 /*
  * Used to name the categories used by a library.  An array of isc_logcategory
  * structures names each category, and the id value is initialized by calling
- * isc_log_registercategories.  Each name should end in a colon-space pair
- * (": ") because it is used directly in the format string when
- * ISC_LOG_PRINTCATEGORY is enabled for a channel.
+ * isc_log_registercategories.
  */
 typedef struct isc_logcategory {
 	const char *name;
@@ -195,10 +193,6 @@ isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
  * Notes:
  *	The end of the categories array is identified by a NULL name.
  *
- *	The name within each structure of categories[] should end in a
- *	colon-space (": ") pair because its value is used to format the
- *	log message when ISC_LOG_PRINTCATEGORY is set for a channel.
- *
  *	Because the name is used by ISC_LOG_PRINTCATEGORY, it should not
  *	be altered or destroyed after isc_log_registercategories().
  *
@@ -237,10 +231,6 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
  *
  * Notes:
  *	The end of the modules array is identified by a NULL name.
- *
- *	The name within each structure of modules[] should end in a
- *	colon-space (": ") pair because its value is used to format the
- *	log message when ISC_LOG_PRINTMODULE is set for a channel.
  *
  *	Because the name is used by ISC_LOG_PRINTMODULE, it should not
  *	be altered or destroyed after isc_log_registermodules().

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.7 1999/10/15 19:04:38 brister Exp $ */
+/* $Id: log.c,v 1.8 1999/10/22 19:29:24 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -127,7 +127,7 @@ static const int syslog_map[] = {
  * channellist in the log context, it must come first in isc_categories[].
  */
 isc_logcategory_t isc_categories[] = {
-	{ "default: ", 0 },	/* "default" must come first. */
+	{ "default", 0 },	/* "default" must come first. */
 	{ NULL, 0 }
 };
 
@@ -866,15 +866,22 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 			/* FALLTHROUGH */
 
 		case ISC_LOG_TOFILEDESC:
-			fprintf(FILE_STREAM(channel), "%s%s%s%s%s\n",
+			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s\n",
 				(channel->flags & ISC_LOG_PRINTTIME) ?
 					time_string : "",
 				(channel->flags & ISC_LOG_PRINTCATEGORY) ?
 					category->name : "",
+				(channel->flags & ISC_LOG_PRINTCATEGORY) ?
+					": " : "",
 				(channel->flags & ISC_LOG_PRINTMODULE) ?
-					module->name : "",
+					(module != NULL ? module->name : "")
+					: "",
+				(channel->flags & ISC_LOG_PRINTMODULE) ?
+					": " : "",
 				(channel->flags & ISC_LOG_PRINTLEVEL) ?
 					level_string : "",
+				(channel->flags & ISC_LOG_PRINTLEVEL) ?
+					": " : "",
 				lctx->buffer);
 
 			fflush(FILE_STREAM(channel));
@@ -908,16 +915,22 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 				syslog_level = syslog_map[-level];
 
 			syslog(FACILITY(channel) | syslog_level,
-			       "%s%s%s%s%s",
+			       "%s%s%s%s%s%s%s%s",
 			       (channel->flags & ISC_LOG_PRINTTIME) ?
 			       		time_string : "",
 			       (channel->flags & ISC_LOG_PRINTCATEGORY) ?
 			       		category->name : "",
+			       (channel->flags & ISC_LOG_PRINTCATEGORY) ?
+			       		": " : "",
 			       (channel->flags & ISC_LOG_PRINTMODULE) ?
 					(module != NULL ? module->name : "")
 			       		: "",
+			       (channel->flags & ISC_LOG_PRINTMODULE) ?
+			       		": " : "",
 			       (channel->flags & ISC_LOG_PRINTLEVEL) ?
 			       		level_string : "",
+			       (channel->flags & ISC_LOG_PRINTLEVEL) ?
+			       		": " : "",
 			       lctx->buffer);
 			break;
 
