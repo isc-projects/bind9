@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.1 2000/07/14 23:38:13 gson Exp $
+# $Id: tests.sh,v 1.2 2000/07/18 17:13:40 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,7 +26,11 @@ SYSTEMTESTTOP=..
 
 status=0
 
-$DIG +tcp example. dig www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status = 1
+# If the server has the "INSIST(!external)" bug, this query will kill it.
+$DIG +tcp example. dig www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
+
+# Query once more to see if the server is still alive.
+$DIG +tcp example. dig www.example.com. a @10.53.0.1 -p 5300 >/dev/null || status=1
 
 echo "I:exit status: $status"
 exit $status
