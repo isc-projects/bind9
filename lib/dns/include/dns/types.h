@@ -62,6 +62,14 @@ typedef enum {
 	dns_bitlabel_1 = 1
 } dns_bitlabel_t;
 
+typedef enum {
+	dns_namereln_none = 0,
+	dns_namereln_contains = 1,
+	dns_namereln_subdomain = 2,
+	dns_namereln_equal = 3,
+	dns_namereln_commonancestor = 4
+} dns_namereln_t;
+
 #include <dns/enumtype.h>
 enum {
 	dns_rdatatype_none = 0,
