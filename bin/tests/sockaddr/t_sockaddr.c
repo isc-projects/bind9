@@ -24,8 +24,10 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/sockaddr.h>
+#include <isc/netaddr.h>
 #include <isc/result.h>
+#include <isc/sockaddr.h>
+
 #include <tests/t_api.h>
 
 static int
@@ -73,9 +75,68 @@ t1(void) {
 	result = test_isc_sockaddr_eqaddrprefix();
 	t_result(result);
 }
+
+static int
+test_isc_netaddr_masktoprefixlen(void) {
+	struct in_addr na_a;
+	struct in_addr na_b;
+	struct in_addr na_c;
+	struct in_addr na_d;		
+	isc_netaddr_t ina_a;
+	isc_netaddr_t ina_b;
+	isc_netaddr_t ina_c;
+	isc_netaddr_t ina_d;	
+	unsigned int plen;
+		
+	if (inet_pton(AF_INET, "0.0.0.0", &na_a) < 0)
+		return T_FAIL;
+	if (inet_pton(AF_INET, "255.255.255.254", &na_b) < 0)
+		return T_FAIL;
+	if (inet_pton(AF_INET, "255.255.255.255", &na_c) < 0)
+		return T_FAIL;
+	if (inet_pton(AF_INET, "255.255.255.0", &na_d) < 0)
+		return T_FAIL;
+	isc_netaddr_fromin(&ina_a, &na_a);
+	isc_netaddr_fromin(&ina_b, &na_b);
+	isc_netaddr_fromin(&ina_c, &na_c);
+	isc_netaddr_fromin(&ina_d, &na_d);
+
+	if (isc_netaddr_masktoprefixlen(&ina_a, &plen) != ISC_R_SUCCESS)
+		return T_FAIL;
+	if (plen != 0)
+		return T_FAIL;
+
+	if (isc_netaddr_masktoprefixlen(&ina_b, &plen) != ISC_R_SUCCESS)
+		return T_FAIL;
+	if (plen != 31)
+		return T_FAIL;
+
+	if (isc_netaddr_masktoprefixlen(&ina_c, &plen) != ISC_R_SUCCESS)
+		return T_FAIL;
+	if (plen != 32)
+		return T_FAIL;
+
+	if (isc_netaddr_masktoprefixlen(&ina_d, &plen) != ISC_R_SUCCESS)
+		return T_FAIL;
+	if (plen != 24)
+		return T_FAIL;
+
+	return T_PASS;
+}
+
+static void
+t2(void) {
+	int result;
+	t_assert("isc_netaddr_masktoprefixlen", 1, T_REQUIRED,
+		 "isc_netaddr_masktoprefixlen() calculates "
+		 "correct prefix lengths ");
+	result = test_isc_netaddr_masktoprefixlen();
+	t_result(result);
+}
 		
 testspec_t	T_testlist[] = {
 	{	t1,	"isc_sockaddr_eqaddrprefix"	},
+	{	t2,	"isc_netaddr_masktoprefixlen"	},
 	{	NULL,	NULL				}
 };
 
