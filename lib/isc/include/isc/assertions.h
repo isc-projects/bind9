@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 1997, 1998 by Internet Software Consortium.
- *
+ * Copyright (C) 1997, 1998  Internet Software Consortium.
+ * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
  * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.1 1998/10/21 01:08:12 halley Exp $
+ * $Id: assertions.h,v 1.2 1998/12/12 20:47:40 halley Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
