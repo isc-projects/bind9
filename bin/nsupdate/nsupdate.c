@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.52 2000/09/28 21:39:26 mws Exp $ */
+/* $Id: nsupdate.c,v 1.53 2000/09/28 21:50:22 gson Exp $ */
 
 #include <config.h>
 
@@ -69,7 +69,7 @@ extern int h_errno;
 #include <lwres/net.h>
 
 #define MAXCMD (4 * 1024)
-#define INITDATA (32*1024)
+#define INITDATA (32 * 1024)
 #define MAXDATA (64 * 1024)
 #define NAMEBUF 512
 #define WORDLEN 512
@@ -612,9 +612,9 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 			if (buf != NULL)
 				isc_buffer_free(&buf);
 			if (bufsz > MAXDATA) {
-				fprintf (stderr, "couldn't allocate enough "
-					 "space for the rdata\n");
-				exit (1);
+				fprintf(stderr, "couldn't allocate enough "
+					"space for the rdata\n");
+				exit(1);
 			}
 			result = isc_buffer_allocate(mctx, &buf, bufsz);
 			check_result(result, "isc_buffer_allocate");
@@ -1004,8 +1004,8 @@ show_message(dns_message_t *msg) {
 	bufsz = INITTEXT;
 	do { 
 		if (bufsz > MAXTEXT) {
-			fprintf (stderr, "couldn't allocate large enough"
-				 "buffer to display message\n");
+			fprintf(stderr, "couldn't allocate large enough"
+				"buffer to display message\n");
 			exit(1);
 		}
 		if (buf != NULL)
@@ -1233,9 +1233,9 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			if (buf != NULL)
 				isc_buffer_free(&buf);
 			if (bufsz > MAXTEXT) {
-				fprintf (stderr, "couldn't allocate enough "
+				fprintf(stderr, "couldn't allocate enough "
 					 "space for debugging message\n");
-				exit (1);
+				exit(1);
 			}
 			result = isc_buffer_allocate(mctx, &buf, bufsz);
 			check_result(result, "isc_buffer_allocate");
