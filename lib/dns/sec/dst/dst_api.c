@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.45 2000/06/02 23:44:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.46 2000/06/03 00:43:46 bwelling Exp $
  */
 
 #include <config.h>
@@ -249,9 +249,6 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
 	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
-	if (key->func->fromfile == NULL)
-		return (DST_R_UNSUPPORTEDALG);
-
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == 0)
 		return (DST_R_UNSUPPORTEDTYPE);
 
@@ -276,6 +273,11 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
 
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
+
+	if (key->func->fromfile == NULL) {
+		dst_key_free(&key);
+		return (DST_R_UNSUPPORTEDALG);
+	}
 
 	ret = key->func->fromfile(key, id);
 	if (ret != ISC_R_SUCCESS) {
