@@ -168,9 +168,9 @@ name_test: name_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ name_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-omapi_test: omapi_test.@O@ ${ISCDEPLIBS} ${OMAPIDEPLIBS}
+omapi_test: omapi_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${OMAPIDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ omapi_test.@O@ \
-		${OMAPILIBS} ${ISCLIBS} ${LIBS}
+		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 sock_test: sock_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sock_test.@O@ \
@@ -277,7 +277,7 @@ gxba_test: gxba_test.@O@ ${LWRESDEPLIBS}
 		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
-	rm -f ${TARGETS}
+	rm -f ${TARGETS} ${XTARGETS}
 	rm -f t_journal
 
 test:
