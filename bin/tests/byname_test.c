@@ -208,10 +208,13 @@ adb_callback(isc_task_t *etask, isc_event_t *event) {
 
 	if (type == DNS_EVENT_ADBMOREADDRESSES)
 		do_find(ISC_FALSE);
-	else if (type == DNS_EVENT_ADBNOMOREADDRESSES)
+	else if (type == DNS_EVENT_ADBNOMOREADDRESSES) {
 		printf("no more addresses\n");
-	else
+		isc_app_shutdown();
+	} else {
 		printf("unexpected ADB event type %u\n", type);
+		isc_app_shutdown();
+	}
 }
 
 static void
