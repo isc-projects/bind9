@@ -1,3 +1,7 @@
+ 136.   [cleanup]       <isc/commandline.h>, <isc/interfaceiter.h>,
+                        <isc/net.h> and Win32's <isc/thread.h> needed
+                        ISC_LANG_BEGINDECLS/ISC_LANG_ENDDECLS.
+
  135.   [cleanup]       Win32's <isc/condition.h> did not need
                         <isc/boolean.h>, now uses <isc/types.h> in place
                         of <isc/time.h>, and needed ISC_LANG_BEGINDECLS

@@ -108,6 +108,7 @@
 
 #include <sys/types.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>
 
 #ifndef AF_INET6
@@ -134,6 +135,8 @@ typedef isc_uint16_t in_port_t;
 /***
  *** Functions.
  ***/
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_net_probeipv4(void);
@@ -173,5 +176,7 @@ int isc_net_pton(int af, const char *src, void *dst);
 int isc_net_aton(const char *cp, struct in_addr *addr);
 #define inet_aton isc_net_aton
 #endif
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_NET_H */

@@ -64,6 +64,7 @@
 /***
  *** Imports.
  ***/
+#include <isc/lang.h>
 #include <isc/platform.h>
 
 #include <sys/types.h>
@@ -119,6 +120,8 @@ typedef isc_uint16_t in_port_t;
  *** Functions.
  ***/
 
+ISC_LANG_BEGINDECLS
+
 isc_result_t
 isc_net_probeipv4(void);
 /*
@@ -158,12 +161,6 @@ int isc_net_aton(const char *cp, struct in_addr *addr);
 #define inet_aton isc_net_aton
 #endif
 
-/*
- * Tell emacs to use C mode for this file.
- *
- * Local Variables:
- * mode: c
- * End:
- */
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_NET_H */
