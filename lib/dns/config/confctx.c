@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.71 2000/06/27 21:33:20 gson Exp $ */
+/* $Id: confctx.c,v 1.72 2000/07/07 22:57:53 brister Exp $ */
 
 #include <config.h>
 
@@ -976,7 +976,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 	if (options->additional_data != NULL) {
 		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "additional_data %s;\n",
+		fprintf(fp, "additional-data %s;\n",
 			dns_c_addata2string(*options->additional_data,
 					    ISC_TRUE));
 	}
