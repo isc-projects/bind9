@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155 2001/08/28 17:37:24 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.1 2001/09/19 22:16:57 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2798,6 +2798,8 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
     <optional> min-roots <replaceable>number</replaceable>; </optional>
     <optional> use-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> provide-ixfr <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> request-ixfr <replaceable>yes_or_no</replaceable>; </optional>
     <optional> treat-cr-as-space <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
@@ -3087,6 +3089,22 @@ If you need to disable IXFR to a particular server or servers see
 the information on the <command>provide-ixfr</command> option
 in <xref linkend="server_statement_definition_and_usage"/>. See also
 <xref linkend="incremental_zone_transfers"/>.
+</para></listitem></varlistentry>
+
+<varlistentry><term><command>provide-ixfr</command></term>
+<listitem>
+<para>
+See the description of
+<command>provide-ixfr</command> in
+<xref linkend="server_statement_definition_and_usage"/>
+</para></listitem></varlistentry>
+
+<varlistentry><term><command>request-ixfr</command></term>
+<listitem>
+<para>
+See the description of
+<command>request-ixfr</command> in
+<xref linkend="server_statement_definition_and_usage"/>
 </para></listitem></varlistentry>
 
 <varlistentry><term><command>treat-cr-as-space</command></term>
@@ -4002,14 +4020,14 @@ zone transfer when the given remote server, a slave, requests it.
 If set to <command>yes</command>, incremental transfer will be provided
 whenever possible. If set to <command>no</command>, all transfers
 to the remote server will be nonincremental. If not set, the value
-of the <command>provide-ixfr</command> option in the global options block
-is used as a default.</para>
+of the <command>provide-ixfr</command> option in the view or
+global options block is used as a default.</para>
 
 <para>The <command>request-ixfr</command> clause determines whether
 the local server, acting as a slave, will request incremental zone
 transfers from the given remote server, a master. If not set, the
-value of the <command>request-ixfr</command> option in the global
-options block is used as a default.</para>
+value of the <command>request-ixfr</command> option in the view or
+global options block is used as a default.</para>
 
 <para>IXFR requests to servers that do not support IXFR will automatically
 fall back to AXFR.  Therefore, there is no need to manually list
