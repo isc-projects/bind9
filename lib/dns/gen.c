@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.55 2000/11/07 23:44:32 bwelling Exp $ */
+/* $Id: gen.c,v 1.56 2000/11/09 03:03:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -706,20 +706,6 @@ main(int argc, char **argv) {
 			printf("\t\t\tbreak; \\\n");
 		}
 		printf("\t}\n");
-
-
-		/*
-		 * Dump the class names.
-		 */
-
-		fputs("\n", stdout);
-		fprintf(stdout, "\n#define CLASSNAMES%s\n",
-			classes != NULL ? " \\" : "");
-
-		for (cc = classes; cc != NULL; cc = cc->next)
-			fprintf(stdout, "\t{ %d, \"%s\", 0 },%s\n",
-				cc->rdclass, upper(cc->classname),
-				cc->next != NULL ? " \\" : "");
 
 		fputs("#endif /* DNS_CODE_H */\n", stdout);
 	} else if (type_enum) {
