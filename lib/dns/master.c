@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.112 2001/05/09 03:41:47 marka Exp $ */
+/* $Id: master.c,v 1.113 2001/05/09 07:18:38 marka Exp $ */
 
 #include <config.h>
 
@@ -1911,7 +1911,6 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 	dns_rdatalist_t *this;
 	dns_rdataset_t dataset;
 	isc_result_t result;
-	isc_boolean_t ignore = ISC_FALSE;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	void    (*error)(struct dns_rdatacallbacks *, const char *, ...);
 	void    (*warn)(struct dns_rdatacallbacks *, const char *, ...);
@@ -1923,28 +1922,25 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 	if (this == NULL)
 		return (ISC_R_SUCCESS);
 	do {
-		if (!ignore) {
-			dns_rdataset_init(&dataset);
-			dns_rdatalist_tordataset(this, &dataset);
-			dataset.trust = dns_trust_ultimate;
-			result = ((*callbacks->add)(callbacks->add_private,
-						    owner,
-						    &dataset));
-			if (result == ISC_R_NOMEMORY) {
-				(*error)(callbacks, "dns_master_load: %s",
-					 dns_result_totext(result));
-			} else if (result != ISC_R_SUCCESS) {
-				dns_name_format(owner, namebuf,
-						sizeof(namebuf));
-				(*error)(callbacks, "%s: %s:%lu: %s: %s",
-					 "dns_master_load", source, line,
-					 namebuf, dns_result_totext(result));
-			}
-			if (MANYERRS(lctx, result))
-				SETRESULT(lctx, result);
-			else if (result != ISC_R_SUCCESS)
-				return (result);
+		dns_rdataset_init(&dataset);
+		dns_rdatalist_tordataset(this, &dataset);
+		dataset.trust = dns_trust_ultimate;
+		result = ((*callbacks->add)(callbacks->add_private, owner,
+					    &dataset));
+		if (result == ISC_R_NOMEMORY) {
+			(*error)(callbacks, "dns_master_load: %s",
+				 dns_result_totext(result));
+		} else if (result != ISC_R_SUCCESS) {
+			dns_name_format(owner, namebuf,
+					sizeof(namebuf));
+			(*error)(callbacks, "%s: %s:%lu: %s: %s",
+				 "dns_master_load", source, line,
+				 namebuf, dns_result_totext(result));
 		}
+		if (MANYERRS(lctx, result))
+			SETRESULT(lctx, result);
+		else if (result != ISC_R_SUCCESS)
+			return (result);
 		ISC_LIST_UNLINK(*head, this, link);
 		this = ISC_LIST_HEAD(*head);
 	} while (this != NULL);
