@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.63 2001/07/23 00:23:29 gson Exp $ */
+/* $Id: parser.c,v 1.64 2001/07/23 05:00:43 mayer Exp $ */
 
 #include <config.h>
 
@@ -970,7 +970,7 @@ namedconf_clausesets[] = {
 	NULL
 };
 
-cfg_type_t cfg_type_namedconf = {
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_namedconf = {
 	"namedconf", parse_mapbody, print_mapbody, &cfg_rep_map,
 	namedconf_clausesets
 };
@@ -1999,7 +1999,7 @@ static cfg_type_t cfg_type_notifytype = {
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 
-cfg_type_t cfg_type_keyref = {
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_keyref = {
 	"keyref", parse_keyvalue, print_keyvalue,
 	&cfg_rep_string, &key_kw
 };
@@ -3471,7 +3471,7 @@ rndcconf_clausesets[] = {
 	NULL
 };
 
-cfg_type_t cfg_type_rndcconf = {
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndcconf = {
 	"rndcconf", parse_mapbody, print_mapbody, &cfg_rep_map,
 	rndcconf_clausesets
 };
