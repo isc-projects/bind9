@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.1 2001/02/15 04:21:17 gson Exp $
+# $Id: Makefile.in,v 1.2 2001/03/01 23:46:48 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -26,7 +26,7 @@ top_srcdir =	@top_srcdir@
 # machine generated.  The latter are handled specially in the
 # install target below.
 #
-HEADERS =	cfg.h
+HEADERS =	cfg.h check.h log.h
 
 SUBDIRS =
 TARGETS =
