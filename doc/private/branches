@@ -1,7 +1,6 @@
 Name		Status		Whom
 ------------------------------------
 rt4463		review		marka?
-rt4398		review		marka
 rt4425		review		marka
 a6_remove	review		marka
 ipv6_6to4	feedback	marka
@@ -11,25 +10,26 @@ v6source
 rt4663		review		explorer
 rt4687		review		explorer
 
-ipv6-improvements closed
+adb_race	closed		explorer
 blabel-cleanup	closed
-rt3445		closed
-rt3536(ixfr)	closed
-rt3588		closed
-rt3653		closed
-rt3666		closed
-rt4268		closed
-rt3502		closed
+ds_12		closed
+ipv6-improvements closed
 ipv6-scope	closed
 marka_google	closed
+rt3445		closed
+rt3502		closed
+rt3507		closed		ogud (pull down by explorer)
+rt3536(ixfr)	closed
+rt3588		closed
 rt3598		closed		explorer
 rt3625		closed		explorer
+rt3653		closed
+rt3666		closed
 rt3892		closed		explorer
+rt3907		closed		explorer
 rt4090		closed		explorer
 rt4112		closed		explorer
+rt4268		closed
 rt4319		closed		explorer
-rt3907		closed		explorer
-rt3507		closed		ogud (pull down by explorer)
-adb_race	closed		explorer
+rt4398		closed
 rt4802		closed
-ds_12		closed
