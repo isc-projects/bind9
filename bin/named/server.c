@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.265 2000/12/01 02:01:26 gson Exp $ */
+/* $Id: server.c,v 1.266 2000/12/01 08:58:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1636,7 +1636,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (cctx->views == NULL || ISC_LIST_EMPTY(cctx->views->views)) {
 		/*
 		 * No explicit views; there ought to be a default view.
-		 * There may already be one created as a size effect
+		 * There may already be one created as a side effect
 		 * of zone statements, or we may have to create one.
 		 * In either case, we need to configure and freeze it.
 		 */
