@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.4 2001/05/07 23:33:58 gson Exp $ */
+/* $Id: control.c,v 1.5 2001/05/08 00:28:28 gson Exp $ */
 
 #include <config.h>
 
@@ -36,16 +36,18 @@
 
 static isc_boolean_t
 command_compare(const char *text, const char *command) {
-	if (strncasecmp(text, command, strlen(command)) == 0 &&
-	    (text[strlen(command)] == 0 || text[strlen(command)] == ' '))
+	unsigned int commandlen = strlen(command);
+	if (strncasecmp(text, command, commandlen) == 0 &&
+	    (text[commandlen] == '\0' ||
+	     text[commandlen] == ' ' ||
+	     text[commandlen] == '\t'))
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
 
 /*
- * This is the function that is called to process an incoming command when a
- * message is received.  It is called once for each name/value pair in the
- * message's object value list or something.
+ * This function is called to process the incoming command
+ * when a control channel message is received.  
  */
 isc_result_t
 ns_control_docommand(isccc_sexpr_t *message) {
