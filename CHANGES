@@ -1,3 +1,6 @@
+1089.	[func]		libbind: inet_{cidr,net}_{pton,ntop}() now have IPv6
+			support.
+
 1088.	[port]		libbind: MPE/iX C.70 (incomplete)
 
 1087.	[bug]		libbind: struct __res_state to large on 64 bit arch.
