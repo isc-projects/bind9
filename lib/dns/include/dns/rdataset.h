@@ -218,7 +218,17 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *
  *	'rdataset' is not empty.
  *
- * XXX Supply Requires and Ensures XXX
+ * Ensures:
+ *	On a return of DNS_R_SUCCESS, 'target' contains a wire format
+ *	for the data contained in 'rdataset'.  Any error return leaves
+ *	the buffer in an undefined state.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		- all ok
+ *	DNS_R_NOSPACE		- 'target' doesn't have enough room
+ *
+ *	Any error returned by dns_rdata_towire(), dns_rdataset_next(),
+ *	dns_name_towire().
  */
 
 #endif /* DNS_RDATASET_H */
