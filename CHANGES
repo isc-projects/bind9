@@ -1,6 +1,9 @@
  442.	[bug]		TSIG signed messages that did not match any view
 			crashed the server. [RT #290]
 
+ 441.	[bug]		Nodes obscured by a DNAME were inaccessible even
+			when DNS_DBFIND_GLUEOK was set.
+
  436.	[bug]		If recvmsg() returned EHOSTUNREACH or ENETUNREACH,
 			which sometimes happens on Linux, named would enter
 			a busy loop.  Also, unexpected socket errors were
