@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: mx_15.c,v 1.3 1999/01/19 05:38:34 marka Exp $ */
+
 #ifndef RDATA_TYPE_15_MX_H
 #define RDATA_TYPE_15_MX_H
 

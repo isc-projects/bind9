@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: hinfo_13.h,v 1.3 1999/01/19 05:38:32 marka Exp $ */
+
 static dns_result_t
 fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: minfo_14.c,v 1.2 1999/01/19 05:38:33 marka Exp $ */
+
 #ifndef RDATA_TYPE_14_MINFO_H
 #define RDATA_TYPE_14_MINFO_H
 

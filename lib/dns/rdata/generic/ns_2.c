@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: ns_2.c,v 1.2 1999/01/19 05:38:34 marka Exp $ */
+
 #ifndef RDATA_TYPE_2_NS_H
 #define RDATA_TYPE_2_NS_H
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: proforma.h,v 1.2 1999/01/19 05:38:35 marka Exp $ */
+
 static dns_result_t
 fromtext_#(dns_rdataclass_t class, dns_rdatatype_t type,
 	   isc_lex_t *lexer, dns_name_t *origin,

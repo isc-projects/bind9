@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: md_3.h,v 1.2 1999/01/19 05:38:32 marka Exp $ */
+
 #ifndef RDATA_TYPE_3_MD_H
 #define RDATA_TYPE_3_MD_H
 

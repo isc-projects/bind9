@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: mg_8.c,v 1.2 1999/01/19 05:38:33 marka Exp $ */
+
 #ifndef RDATA_TYPE_8_MG_H
 #define RDATA_TYPE_8_MG_H
 

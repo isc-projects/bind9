@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: mb_7.h,v 1.2 1999/01/19 05:38:32 marka Exp $ */
+
 #ifndef RDATA_TYPE_7_MB_H
 #define RDATA_TYPE_7_MB_H
 
@@ -30,8 +32,7 @@ fromtext_mb(dns_rdataclass_t class, dns_rdatatype_t type,
 	INSIST(type == 7);
 	class = class;	/*unused*/
 	
-	result = isc_lex_gettoken(lexer, 0, &token);
-	if (result != ISC_R_SUCCESS)
+	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
 		return (DNS_R_UNKNOWN);
 	if (token.type != isc_tokentype_string)
 		return (DNS_R_UNKNOWN);

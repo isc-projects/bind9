@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: ptr_12.h,v 1.2 1999/01/19 05:38:35 marka Exp $ */
+
 #ifndef RDATA_TYPE_12_PTR_H
 #define RDATA_TYPE_12_PTR_H
 

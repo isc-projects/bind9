@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: rdata.c,v 1.3 1999/01/19 05:38:31 marka Exp $ */
+
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <dns/types.h>

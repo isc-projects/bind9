@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: a_1.h,v 1.2 1999/01/19 05:38:36 marka Exp $ */
+
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
 #include <sys/types.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: mr_9.c,v 1.2 1999/01/19 05:38:34 marka Exp $ */
+
 #ifndef RDATA_TYPE_9_MR_H
 #define RDATA_TYPE_9_MR_H
 

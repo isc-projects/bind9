@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: soa_6.h,v 1.3 1999/01/19 05:38:35 marka Exp $ */
+
 #ifndef RDATA_TYPE_6_SOA_H
 #define RDATA_TYPE_6_SOA_H
 

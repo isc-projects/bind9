@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: cname_5.c,v 1.2 1999/01/19 05:38:32 marka Exp $ */
+
 #ifndef RDATA_TYPE_5_CNAME_H
 #define RDATA_TYPE_5_CNAME_H
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+ /* $Id: txt_16.h,v 1.3 1999/01/19 05:38:36 marka Exp $ */
+
 static dns_result_t
 fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
