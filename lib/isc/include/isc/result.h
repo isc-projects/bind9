@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.55 2001/01/09 21:57:28 bwelling Exp $ */
+/* $Id: result.h,v 1.56 2001/02/12 20:03:16 bwelling Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -76,10 +76,11 @@
 #define ISC_R_TOOMANYOPENFILES		50	/* too many open files */
 #define ISC_R_NOTBLOCKING		51	/* not blocking */
 #define ISC_R_UNBALANCEDQUOTES		52	/* unbalanced quotes */
+#define ISC_R_INPROGRESS		53	/* operation in progress */
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			53
+#define ISC_R_NRESULTS 			54
 
 ISC_LANG_BEGINDECLS
 
