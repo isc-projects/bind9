@@ -876,7 +876,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	if (dns_c_ctx_getpidfilename(configctx, &pidfilename) ==
 	    ISC_R_NOTFOUND)
-		pidfilename = "/var/run/named.pid";
+		pidfilename = ns_g_defaultpidfile;
 	ns_os_writepidfile(pidfilename);
 	
 	dns_aclconfctx_destroy(&aclconfctx);	
