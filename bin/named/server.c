@@ -206,71 +206,75 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 	dns_keytable_t *keytable = NULL;
 	dst_key_t *dstkey = NULL;
 	
-	CHECK((*cget)(cctx, &ckeys));
-
 	CHECK(dns_keytable_create(mctx, &keytable));
 
-	for (ckey = ISC_LIST_HEAD(ckeys->tkeylist);
-	     ckey != NULL;
-	     ckey = ISC_LIST_NEXT(ckey, next))
-	{
-		dns_rdataclass_t viewclass;
-		dns_rdata_generic_key_t keystruct;
-		isc_int32_t flags, proto, alg;
-		unsigned char keydata[4096];
-		isc_buffer_t keydatabuf;
-		unsigned char rrdata[4096];
-		isc_buffer_t rrdatabuf;
-		isc_region_t r;
-
-		if (cview == NULL)
-			viewclass = dns_rdataclass_in;
-		else
-			CHECK(dns_c_view_getviewclass(cview, &viewclass));
-		keystruct.common.rdclass = viewclass;
-		keystruct.common.rdtype = dns_rdatatype_key;
-		/*
-		 * The key data in keystruct is not really
-		 * dynamically allocated, but dns_rdata_fromstruct()
-		 * requires that there is a valid mctx anyway.
-		 */
-		keystruct.mctx = mctx; 
-
-		ISC_LINK_INIT(&keystruct.common, link);
-
-		flags = ckey->pubkey->flags;
-		proto = ckey->pubkey->protocol;
-		alg = ckey->pubkey->algorithm;
-		if (flags < 0 || flags > 0xffff)
-			CHECKM(DNS_R_RANGE, "key flags");
-		if (proto < 0 || proto > 0xff)
-			CHECKM(DNS_R_RANGE, "key protocol");
-		if (alg < 0 || alg > 0xff)
-			CHECKM(DNS_R_RANGE, "key algorithm");
-		keystruct.flags = flags;
-		keystruct.protocol = proto;
-		keystruct.algorithm = alg;
-
-		isc_buffer_init(&keydatabuf, keydata, sizeof(keydata),
-				ISC_BUFFERTYPE_BINARY);
-		isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata),
-				ISC_BUFFERTYPE_BINARY);
-		
-		CHECK(base64_cstring_tobuffer(mctx, ckey->pubkey->key,
-					      &keydatabuf));
-		isc_buffer_used(&keydatabuf, &r);
-		keystruct.datalen = r.length;
-		keystruct.data = r.base;
-
-		CHECK(dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
-					   keystruct.common.rdtype,
-					   &keystruct, &rrdatabuf));
-		CHECK(dst_key_fromdns(ckey->domain, &rrdatabuf, mctx, &dstkey));
-
-		CHECK(dns_keytable_add(keytable, &dstkey));
-		INSIST(dstkey == NULL);
-	}
-	      
+	result = (*cget)(cctx, &ckeys);
+	if (result == ISC_R_SUCCESS) {
+		for (ckey = ISC_LIST_HEAD(ckeys->tkeylist);
+		     ckey != NULL;
+		     ckey = ISC_LIST_NEXT(ckey, next))
+		{
+			dns_rdataclass_t viewclass;
+			dns_rdata_generic_key_t keystruct;
+			isc_int32_t flags, proto, alg;
+			unsigned char keydata[4096];
+			isc_buffer_t keydatabuf;
+			unsigned char rrdata[4096];
+			isc_buffer_t rrdatabuf;
+			isc_region_t r;
+			
+			if (cview == NULL)
+				viewclass = dns_rdataclass_in;
+			else
+				CHECK(dns_c_view_getviewclass(cview,
+							      &viewclass));
+			keystruct.common.rdclass = viewclass;
+			keystruct.common.rdtype = dns_rdatatype_key;
+			/*
+			 * The key data in keystruct is not really
+			 * dynamically allocated, but dns_rdata_fromstruct()
+			 * requires that there is a valid mctx anyway.
+			 */
+			keystruct.mctx = mctx; 
+			
+			ISC_LINK_INIT(&keystruct.common, link);
+			
+			flags = ckey->pubkey->flags;
+			proto = ckey->pubkey->protocol;
+			alg = ckey->pubkey->algorithm;
+			if (flags < 0 || flags > 0xffff)
+				CHECKM(DNS_R_RANGE, "key flags");
+			if (proto < 0 || proto > 0xff)
+				CHECKM(DNS_R_RANGE, "key protocol");
+			if (alg < 0 || alg > 0xff)
+				CHECKM(DNS_R_RANGE, "key algorithm");
+			keystruct.flags = flags;
+			keystruct.protocol = proto;
+			keystruct.algorithm = alg;
+			
+			isc_buffer_init(&keydatabuf, keydata, sizeof(keydata),
+					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata),
+					ISC_BUFFERTYPE_BINARY);
+			
+			CHECK(base64_cstring_tobuffer(mctx, ckey->pubkey->key,
+						      &keydatabuf));
+			isc_buffer_used(&keydatabuf, &r);
+			keystruct.datalen = r.length;
+			keystruct.data = r.base;
+			
+			CHECK(dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
+						   keystruct.common.rdtype,
+						   &keystruct, &rrdatabuf));
+			CHECK(dst_key_fromdns(ckey->domain, &rrdatabuf, mctx,
+					      &dstkey));
+			
+			CHECK(dns_keytable_add(keytable, &dstkey));
+			INSIST(dstkey == NULL);
+		}
+	} else if (result != ISC_R_NOTFOUND)
+		goto cleanup;
+	
 	dns_keytable_detach(target);
 	*target = keytable; /* Transfer ownership. */
 	keytable = NULL;
