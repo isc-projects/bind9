@@ -26,21 +26,21 @@
  892.	[placeholder]
 
  891.	[bug]		Return an error when a SIG(0) signed response to
- 			an unsigned query is seen.  This should actually
+			an unsigned query is seen.  This should actually
 			do the verification, but it's not currently
 			possible. [RT #1391]
 
  890.	[cleanup]	The man pages no longer require the mandoc macros
 			and should now format cleanly using most versions of
 			nroff, and HTML versions of the man pages have been
-			added.  Both are generated from DocBook source.
+			added.	Both are generated from DocBook source.
 
  889.	[port]		Eliminated blank lines before .TH in nroff man
 			pages since they cause problems with some versions
 			of nroff. [RT #1390]
 
  888.	[bug]		Don't die when using TKEY to delete a nonexistent
- 			TSIG key. [RT #1392]
+			TSIG key. [RT #1392]
 
  887.	[port]		Detect broken compilers that can't call static
 			functions from inline functions.  [RT #1212]
@@ -69,7 +69,7 @@
 			grmerge().
 
  861.	[port]		Add support for Mac OS X, by making it equivalent
- 			to Darwin.  This was derived from the config.guess
+			to Darwin.  This was derived from the config.guess
 			file shipped with Mac OS X. [RT #1355]
 
  860.	[func]		Drop cross class glue in zone transfers.
@@ -92,7 +92,7 @@
  855.	[bug]		Stop spurious "using RFC 1035 TTL semantics" warnings.
 
  854.	[bug]		The config parser didn't properly handle config
- 			options that were specified in units of time other
+			options that were specified in units of time other
 			than seconds.  [RT #1372]
 
  853.	[bug]		configure_view_acl() failed to detach existing acls.
@@ -102,7 +102,7 @@
 			about IXFR.
 
  851.	[cleanup]	The obsolete support-ixfr option was not properly
- 			ignored.
+			ignored.
 
 	--- 9.2.0a1 released ---
 
@@ -131,7 +131,7 @@
 			rather than after it has been written and closed.
 
  844.	[func]		<isc/net.h> will ensure INADDR_LOOPBACK is defined,
- 			just as <lwres/net.h> does.
+			just as <lwres/net.h> does.
 
  843.	[func]		If no controls statement is present in named.conf,
 			or if any inet phrase of a controls statement is 
@@ -145,7 +145,7 @@
  842.	[func]		'rndc flush' now takes an optional view.
 
  841.	[bug]		When sdb modules were not declared threadsafe, their
- 			create and destroy functions were not serialized.
+			create and destroy functions were not serialized.
 
  840.	[bug]		The config file parser could print the wrong file
 			name if an error was detected after an included file
@@ -209,10 +209,10 @@
 			can easily be piped through "more". [RT #1254]
 
  822.	[bug]		Sending nxrrset prerequisites would crash nsupdate.
- 			[RT #1248]
+			[RT #1248]
 
  821.	[bug]		The program name used when logging to syslog should
- 			be stripped of leading path components.
+			be stripped of leading path components.
 			[RT #1178, #1232]
 
  820.	[bug]		Name server address lookups failed to follow
@@ -251,10 +251,10 @@
  811.	[bug]		Parentheses were not quoted in zone dumps. [RT #1194]
 
  810.	[bug]		The signer name in SIG records was not properly
- 			downcased when signing/verifying records. [RT #1186]
+			downcased when signing/verifying records. [RT #1186]
 
  809.	[bug]		Configuring a non-local address as a transfer-source
- 			could cause an assertion failure during load.
+			could cause an assertion failure during load.
 
  808.	[func]		Add 'rndc flush' to flush the server's cache.
 
@@ -271,20 +271,20 @@
 			not cause queries to fail. [RT #1143]
 
  804.	[bug]		Attempting to obtain entropy could fail in some
- 			situations.  This would be most common on systems
+			situations.  This would be most common on systems
 			with user-space threads. [RT #1131]
 
  803.	[bug]		Treat all SIG queries as if they have the CD bit set,
- 			otherwise no data will be returned [RT #749]
+			otherwise no data will be returned [RT #749]
 
  802.	[bug]		DNSSEC key tags were computed incorrectly in almost
- 			all cases. [RT #1146]
+			all cases. [RT #1146]
 
  801.	[bug]		nsupdate should treat lines beginning with ';' as
- 			comments. [RT #1139]
+			comments. [RT #1139]
 
  800.	[bug]		dnssec-signzone produced incorrect statistics for
- 			large zones. [RT #1133]
+			large zones. [RT #1133]
 
  799.	[bug]		The ADB didn't find AAAA glue in a zone unless A6
 			glue was also present.
@@ -293,7 +293,7 @@
 			and continue. [RT #1130]
 
  797.	[func]		Issue a warning if the 'directory' option contains
- 			a relative path. [RT #269]
+			a relative path. [RT #269]
 
  796.	[func]		When a size limit is associated with a log file,
 			only roll it when the size is reached, not every
@@ -302,15 +302,15 @@
  795.	[func]		Add the +multiline option to dig. [RT #1095]
 
  794.	[func]		Implement the "port" and "default-port" statements
- 			in rndc.conf.
+			in rndc.conf.
 
  793.	[cleanup]	The DNSSEC tools could create filenames that were
- 			illegal or contained shell metacharacters.  They
+			illegal or contained shell metacharacters.  They
 			now use a different text encoding of names that
 			doesn't have these problems. [RT #1101]
 
  792.	[cleanup]	Replace the OMAPI command channel protocol with a
- 			simpler one.
+			simpler one.
 
  791.	[bug]		The command channel now works over IPv6.
 
@@ -322,7 +322,7 @@
 			sortlist item.
 
  788.	[func]		Add the "match-mapped-addresses" option, which
- 			causes IPv6 v4mapped addresses to be treated as
+			causes IPv6 v4mapped addresses to be treated as
 			IPv4 addresses for the purpose of acl matching.
 
  787.	[bug]		The DNSSEC tools failed to downcase domain
@@ -590,7 +590,7 @@
 
  701.	[func]		Root hints are now fully optional.  Class IN
 			views use compiled-in hints by default, as
-			before.  Non-IN views with no root hints now
+			before.	 Non-IN views with no root hints now
 			provide authoritative service but not recursion.
 			A warning is logged if a view has neither root
 			hints nor authoritative data for the root. [RT #696]
