@@ -1,3 +1,6 @@
+ 375.	[bug]		Per-zone allow-query did not properly override the
+			view/global one for CNAME targets and additional
+			data [RT #220].
 
 	--- 9.0.0rc2 released ---
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109.2.8 2000/08/08 01:10:25 gson Exp $ */
+/* $Id: query.c,v 1.109.2.9 2000/08/08 17:52:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -485,7 +485,6 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		return (DNS_R_SERVFAIL);
 	*versionp = dbversion->version;
 	if (new_zone) {
-		queryacl = dns_zone_getqueryacl(*zonep);
 		check_acl = ISC_TRUE;
 	} else if (!dbversion->queryok) {
 		return (DNS_R_REFUSED);
@@ -493,6 +492,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		check_acl = ISC_FALSE;
 	}
 
+	queryacl = dns_zone_getqueryacl(*zonep);
 	if (queryacl == NULL) {
 		queryacl = client->view->queryacl;
 		if ((client->query.attributes &
