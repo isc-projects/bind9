@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.21 1999/10/29 06:36:00 marka Exp $ */
+ /* $Id: xfrout.c,v 1.22 1999/10/29 23:54:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1065,16 +1065,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	return (result);
 }
 
-
-static void
-isc_buffer_putmem(isc_buffer_t *b, void *src, unsigned int length)
-{
-	isc_region_t avail;
-	isc_buffer_available(b, &avail);
-	INSIST(avail.length >= length);
-	memcpy(avail.base, src, length);
-	isc_buffer_add(b, length);
-}	
 
 /*
  * Arrange to send as much as we can of "stream" without blocking.

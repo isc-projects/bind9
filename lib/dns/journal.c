@@ -1422,32 +1422,6 @@ journal_find(dns_journal_t *j, isc_uint32_t serial, journal_pos_t *pos) {
 	return (DNS_R_SUCCESS);
 }
 
-/* XXX this should be in isc/buffer.{h,c} */
-   
-static void
-isc_buffer_putmem(isc_buffer_t *b, void *src, unsigned int length);
-/*
- * Store 'length' bytes of data starting at 'src' into 'b'.
- *
- * Requires:
- *	'b' is a valid buffer.
- *
- *	The length of the unused region of 'b' is at least 'length'.
- *
- * Ensures:
- *	The used pointer in 'b' is advanced by 'length'.
- */
-
-static void
-isc_buffer_putmem(isc_buffer_t *b, void *src, unsigned int length)
-{
-	isc_region_t avail;
-	isc_buffer_available(b, &avail);
-	INSIST(avail.length >= length);
-	memcpy(avail.base, src, length);
-	isc_buffer_add(b, length);
-}	
-
 dns_result_t
 dns_journal_begin_transaction(dns_journal_t *j) {
 	isc_uint32_t offset;
