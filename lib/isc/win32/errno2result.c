@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.4.2.3 2003/07/09 05:11:08 marka Exp $ */
+/* $Id: errno2result.c,v 1.4.2.4 2003/07/09 05:17:49 marka Exp $ */
 
 #include <config.h>
 
@@ -69,29 +69,5 @@ isc__errno2result(int posixerrno) {
 		 * error" to log with.
 		 */
 		return (ISC_R_UNEXPECTED);
-	}
-}
-
-char * __cdecl
-NTstrMessage(int err) {
-	char *retmsg = NULL;
-
-	/* Copy the error value first in case of other errors */	
-	DWORD errval = err; 
-
-	/* Get the Winsock2 error messages */
-	if (errval >= WSABASEERR && errval <= (WSABASEERR + 1015)) {
-		retmsg = GetWSAErrorMessage(errval);
-		if (retmsg != NULL)
-			return (retmsg);
-	}
-	/*
-	 * If it's not one of the standard Unix error codes,
-	 * try a system error message
-	 */
-	if (errval > (DWORD) _sys_nerr) {
-		return (FormatError(errval));
-	} else {
-		return (strerror(errval));
 	}
 }
