@@ -82,7 +82,7 @@ dump_packet(isc_mem_t *mctx, unsigned char *buf, u_int len)
 	isc_buffer_init(&source, buf, len, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, len);
 
-	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENT_PARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	result = dns_message_parse(message, &source);
