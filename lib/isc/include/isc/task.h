@@ -77,7 +77,7 @@ void					isc_task_attach(isc_task_t,
 void					isc_task_detach(isc_task_t *);
 void					isc_task_send(isc_task_t, 
 						      isc_event_t *);
-void					isc_task_purge(isc_task_t, void *,
+unsigned int				isc_task_purge(isc_task_t, void *,
 						   isc_eventtype_t);
 void					isc_task_shutdown(isc_task_t);
 void					isc_task_destroy(isc_task_t *);

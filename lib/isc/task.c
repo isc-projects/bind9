@@ -341,10 +341,11 @@ isc_task_send(isc_task_t task, isc_event_t *eventp) {
 	XTRACE("sent");
 }
 
-void
+unsigned int
 isc_task_purge(isc_task_t task, void *sender, isc_eventtype_t type) {
 	isc_event_t event, next_event;
 	isc_eventlist_t purgeable;
+	unsigned int purge_count;
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(type >= 0);
@@ -356,6 +357,7 @@ isc_task_purge(isc_task_t task, void *sender, isc_eventtype_t type) {
 	 */
 
 	INIT_LIST(purgeable);
+	purge_count = 0;
 
 	LOCK(&task->lock);
 	for (event = HEAD(task->events);
@@ -375,7 +377,10 @@ isc_task_purge(isc_task_t task, void *sender, isc_eventtype_t type) {
 	     event = next_event) {
 		next_event = NEXT(event, link);
 		isc_event_free(&event);
+		purge_count++;
 	}
+
+	return (purge_count);
 }
 
 void
