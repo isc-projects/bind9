@@ -1,3 +1,5 @@
+1411.	[bug]		empty nodes should stop wildcard matches. [RT #4802]
+
 1410.	[func]		handle records that live in the parent zone, e.g. DS.
 
 1409.	[bug]		DS should have attibute DNS_RDATATYPEATTR_DNSSEC.
