@@ -91,9 +91,10 @@
  *** Imports
  ***/
 
+#include <isc/lex.h>
+
 #include <dns/types.h>
 #include <dns/name.h>
-
 
 /*****
  ***** RData
@@ -108,17 +109,27 @@
  ***/
 
 /*
- * Clients are strongly discouraged from using this type directly.
+ * Clients are strongly discouraged from using this type directly, with
+ * the exception of the 'link' field which may be used directly for whatever
+ * purpose the client desires.
  */
 struct dns_rdata {
-	unsigned char *data;
-	unsigned int length;
-	dns_rdataclass_t class;
-	dns_rdatatype_t type;
-	/*
-	 * XXX should rdata be linkable (i.e. as in <isc/list.h>) to make
-	 * rdata lists easy?
-	 */
+	unsigned char *			data;
+	unsigned int			length;
+	dns_rdataclass_t		class;
+	dns_rdatatype_t			type;
+	ISC_LINK(dns_rdata_t)		link;
+};
+
+/*
+ * Clients may use this type directly.
+ */
+struct dns_rdatalist {
+	dns_rdataclass_t		class;
+	dns_rdatatype_t			type;
+	dns_ttl_t			ttl;
+	ISC_LIST(dns_rdata_t)		rdata;
+	ISC_LINK(dns_rdatalist_t)	link;
 };
 
 /***
@@ -176,11 +187,10 @@ void dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r);
 
 dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
 				dns_rdataclass_t class, dns_rdatatype_t type,
-				isc_region_t *source,
-				dns_decompression_t *dctx,
+				isc_buffer_t *source,
+				dns_decompress_t *dctx,
 				isc_boolean_t downcase,
-				isc_region_t *target,
-				unsigned int *bytesp);
+				isc_buffer_t *target);
 /*
  * Copy the possibly-compressed rdata at source into the target region.
  *
@@ -194,9 +204,9 @@ dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
  *
  *	'class' and 'type' are valid.
  *
- *	'source' is a valid region.
+ *	'source' is a valid binary buffer.
  *
- *	'target' is a valid region.
+ *	'target' is a valid binary buffer.
  *
  *	'dctx' is a valid decompression context.
  *
@@ -220,8 +230,8 @@ dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
  */
 
 dns_result_t dns_rdata_towire(dns_rdata_t *rdata,
-			      dns_compression_t *cctx,
-			      isc_region_t *target, unsigned int *bytesp);
+			      dns_compress_t *cctx,
+			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
@@ -233,15 +243,14 @@ dns_result_t dns_rdata_towire(dns_rdata_t *rdata,
  * Requires:
  *	'rdata' is a valid, non-empty rdata
  *
- *	target is a valid region
+ *	target is a valid binary buffer
  *
  *	Any offsets specified in a global compression table are valid
  *	for target.
  *
  * Ensures:
  *	If the result is success:
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in target is updated.
  *
  * Returns:
  *	Success
@@ -254,7 +263,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
 				isc_lex_t *lexer,
 				dns_name_t *origin,
 				isc_boolean_t downcase,
-				isc_region_t *target, unsigned int *bytesp);
+				isc_buffer_t *target);
 /*
  * Convert the textual representation of a DNS rdata into uncompressed wire
  * form stored in the target region.  Tokens constituting the text of the rdata
@@ -282,8 +291,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *		The conditions dns_name_fromtext() ensures for names hold
  *		for all names in the rdata.
  *
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in target is updated.
  *
  * Result:
  *	Success
@@ -295,7 +303,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
 
 dns_result_t dns_rdata_totext(dns_rdata_t *rdata,
 			      dns_name_t *origin,
-			      isc_textregion_t *target, unsigned int *bytesp);
+			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.
  *	
@@ -309,13 +317,12 @@ dns_result_t dns_rdata_totext(dns_rdata_t *rdata,
  *
  *	'origin' is NULL, or is a valid name
  *
- *	'target' is a valid text region
+ *	'target' is a valid text buffer
  *
  * Ensures:
  *	If the result is success:
  *
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in target is updated.
  *
  * Returns:
  *	Success
@@ -326,7 +333,7 @@ dns_result_t dns_rdata_totext(dns_rdata_t *rdata,
 dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
 				  dns_rdataclass_t class, dns_rdatatype_t type,
 				  void *source,
-				  isc_region_t *target, unsigned int *bytesp);
+				  isc_buffer_t *target);
 /*
  * Convert the C structure representation of an rdata into uncompressed wire
  * format in 'target'.
@@ -339,14 +346,13 @@ dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
  *
  *	'source' points to a valid C struct for the class and type.
  *
- *	'target' is a valid region.
+ *	'target' is a valid binary buffer.
  *
  * Ensures:
  *	If result is success:
  *	 	If 'rdata' is not NULL, it is attached to the target.
  *
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in 'target' is updated.
  *
  * Result:
  *	Success
