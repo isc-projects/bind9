@@ -70,7 +70,7 @@ initialize(void) {
 }
 
 isc_result_t
-isc_net_haveipv4(void) {
+isc_net_probeipv4(void) {
 
 	/*
 	 * Check if the system's kernel supports IPv4.
@@ -81,7 +81,7 @@ isc_net_haveipv4(void) {
 }
 
 isc_result_t
-isc_net_haveipv6(void) {
+isc_net_probeipv6(void) {
 
 	/*
 	 * Check if the system's kernel supports IPv6.

@@ -270,7 +270,7 @@ main(int argc, char *argv[])
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	if (isc_net_haveipv6() == ISC_R_SUCCESS)
+	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		pf = PF_INET6;
 	else
 		pf = PF_INET;
