@@ -1,3 +1,9 @@
+ 750.	[bug]		A query should not match a DNAME whose trust level
+			is pending.  [RT #916]
+
+ 749.	[bug]		When a query matched a DNAME in a secure zone, the
+			server did not return the signature of the DNAME.
+			[RT #915]
 
  748.	[doc]		List supported RFCs in doc/misc/rfc-compliance.
 			[RT #781]
