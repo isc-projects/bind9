@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.67 2002/09/08 18:34:04 explorer Exp $ */
+/* $Id: server.h,v 1.68 2002/09/09 21:20:16 explorer Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -73,7 +73,6 @@ struct ns_server {
 
 	isc_timer_t *		interface_timer;
 	isc_timer_t *		heartbeat_timer;
-	isc_timer_t *		check_timer;
 	isc_uint32_t		interface_interval;
 	isc_uint32_t		heartbeat_interval;
 

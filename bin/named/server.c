@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.385 2002/09/09 20:03:18 explorer Exp $ */
+/* $Id: server.c,v 1.386 2002/09/09 21:20:15 explorer Exp $ */
 
 #include <config.h>
 
@@ -1561,16 +1561,6 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-static void
-check_timer_tick(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-	isc_event_free(&event);
-
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "************ I'm still alive! **************");
-}
-
 /*
  * Replace the current value of '*field', a dynamically allocated
  * string or NULL, with a dynamically allocated copy of the
@@ -1911,17 +1901,6 @@ load_configuration(const char *filename, ns_server_t *server,
 				      NULL, &interval, ISC_FALSE));
 	}
 	server->heartbeat_interval = heartbeat_interval;
-
-	/*
-	 * Configure the dialup heartbeat timer.
-	 */
-	{
-		isc_interval_t interval;
-		isc_interval_set(&interval, 60, 0);
-		CHECK(isc_timer_reset(server->check_timer,
-				      isc_timertype_ticker,
-				      NULL, &interval, ISC_FALSE));
-	}
 
 	/*
 	 * Configure and freeze all explicit views.  Explicit
@@ -2309,12 +2288,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				    server, &server->heartbeat_timer),
 		   "creating heartbeat timer");
 
-	CHECKFATAL(isc_timer_create(ns_g_timermgr, isc_timertype_inactive,
-				    NULL, NULL, server->task,
-				    check_timer_tick,
-				    server, &server->check_timer),
-		   "creating check timer");
-
 	CHECKFATAL(cfg_parser_create(ns_g_mctx, NULL, &ns_g_parser),
 		   "creating default configuration parser");
 
@@ -2376,7 +2349,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_timer_detach(&server->interface_timer);
 	isc_timer_detach(&server->heartbeat_timer);
-	isc_timer_detach(&server->check_timer);
 
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);
@@ -2464,7 +2436,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	server->interface_timer = NULL;
 	server->heartbeat_timer = NULL;
-	server->check_timer = NULL;
 	
 	server->interface_interval = 0;
 	server->heartbeat_interval = 0;
