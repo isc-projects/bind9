@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.162 2001/09/26 23:18:16 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.163 2001/10/02 20:43:33 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4133,13 +4133,14 @@ DNSSEC validation on all DNS data in subdomains of a security root.</para>
 multiple key entries, each consisting of the key's domain name,
 flags, protocol, algorithm, and the base-64 representation of the
 key data.</para></sect2>
+
 <sect2><title><command>view</command> Statement Grammar</title>
-<programlisting>view <replaceable>view_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+<programlisting>view <replaceable>view_name</replaceable> 
+      <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
       match-destinations { <replaceable>address_match_list</replaceable> } ;
       match-recursive-only { <replaceable>yes_or_no</replaceable> } ;
       <optional> <replaceable>view_option</replaceable>; ...</optional>
-      <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
       <optional> <replaceable>zone_statement</replaceable>; ...</optional>
 };
 </programlisting></sect2>
