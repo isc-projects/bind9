@@ -28,6 +28,16 @@
 #include <isc/assertions.h>
 #include <isc/time.h>
 
+/*
+ * struct FILETIME uses "100-nanoseconds intevals".
+ * NS / S = 1000000000 (10^9).
+ * While it is reasonably obvious that this makes the needed
+ * conversion factor 10^7, it is coded this way for additional clarity.
+ */
+#define NS_PER_S 	1000000000
+#define NS_INTERVAL	100
+#define INTERVALS_PER_S (NS_PER_S / NS_INTERVAL)
+
 /***
  *** Intervals
  ***/
@@ -48,7 +58,8 @@ isc_interval_set(isc_interval_t *i,
 	REQUIRE(i != NULL);
 	REQUIRE(nanoseconds < 1000000000);
 
-	i->interval = (LONGLONG)seconds * 10000000 + nanoseconds / 100;
+	i->interval = (LONGLONG)seconds * INTERVALS_PER_S
+		+ nanoseconds / NS_INTERVAL;
 }
 
 isc_boolean_t
@@ -81,7 +92,8 @@ isc_time_settoepoch(isc_time_t *t) {
 
 	REQUIRE(t != NULL);
 
-	t->absolute = epoch;
+	t->absolute.dwLowDateTime = 0;
+	t->absolute.dwHighDateTime = 0;
 }
 
 isc_boolean_t
@@ -92,7 +104,8 @@ isc_time_isepoch(isc_time_t *t) {
 
 	REQUIRE(t != NULL);
 
-	if (CompareFileTime(&t->absolute, &epoch) == 0)
+	if (t->absolute.dwLowDateTime == 0 &&
+	    t->absolute.dwHighDateTime == 0)
 		return (ISC_TRUE);
 
 	return (ISC_FALSE);
@@ -206,4 +219,30 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 	i3 = (i1.QuadPart - i2.QuadPart) / 10;
 
 	return (i3);
+}
+
+isc_uint32_t
+isc_time_seconds(isc_time_t *t) {
+	ULARGE_INTEGER i;
+
+	i.LowPart = t->absolute.dwLowDateTime;
+	i.HighPart = t->absolute.dwHighDateTime;
+
+	INSIST(i.QuadPart / INTERVALS_PER_S <= (isc_uint32_t)-1);
+
+	return ((isc_uint32_t)(i.QuadPart / INTERVALS_PER_S));
+}
+
+isc_uint32_t
+isc_time_nanoseconds(isc_time_t *t) {
+	ULARGE_INTEGER i;
+
+	i.LowPart = t->absolute.dwLowDateTime;
+	i.HighPart = t->absolute.dwHighDateTime;
+
+	i.QuadPart -= isc_time_seconds(t);
+
+	ENSURE(i.QuadPart * NS_INTERVAL < NS);
+
+	return ((isc_uint32_t)(i.QuadPart * NS_INTERVAL));
 }
