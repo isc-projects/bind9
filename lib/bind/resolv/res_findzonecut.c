@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_findzonecut.c,v 1.2.2.1 2002/07/10 05:15:22 marka Exp $";
+static const char rcsid[] = "$Id: res_findzonecut.c,v 1.2.2.2 2002/07/11 23:32:35 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -82,7 +82,7 @@ static void	free_nsrr(rrset_ns *, rr_ns *);
 static rr_ns *	find_ns(rrset_ns *, const char *);
 static int	do_query(res_state, const char *, ns_class, ns_type,
 			 u_char *, ns_msg *);
-static void	res_dprintf(const char *, ...);
+static void	res_dprintf(const char *, ...) ISC_FORMAT_PRINTF(1, 2);
 
 /* Macros. */
 

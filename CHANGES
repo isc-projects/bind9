@@ -138,6 +138,8 @@
 1209.	[bug]		Dig, host, nslookup were not checking the message ids
 			on the responses. [RT #2454]
 
+1094.	[func]		libbind: add support gcc's format string checking.
+
 	--- 9.2.1 released ---
 
 1271.	[port]		win32: a make file contained absolute version specific
