@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.163.2.6 2001/11/15 01:30:46 marka Exp $ */
+/* $Id: query.c,v 1.163.2.7 2001/11/27 00:51:09 marka Exp $ */
 
 #include <config.h>
 
@@ -2974,7 +2974,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		dns_name_init(tname, NULL);
 		query_addcname(client, client->query.qname, fname,
-			       trdataset->ttl, &tname);
+			       0, &tname);
 		if (tname != NULL)
 			dns_message_puttempname(client->message, &tname);
 		/*

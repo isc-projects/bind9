@@ -1,3 +1,7 @@
+1136.	[bug]		CNAME records synthesized from DNAMEs did not
+			have a TTL of zero as required by RFC2672
+			[RT #2129]
+
 1134.	[bug]		Multithreaded servers could deadlock in ferror()
 			when reloading zone files. [RT #1951, #1998]
 
