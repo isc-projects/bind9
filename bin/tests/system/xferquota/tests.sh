@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.12 2000/07/05 18:49:06 bwelling Exp $
+# $Id: tests.sh,v 1.13 2000/07/07 07:15:04 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -36,8 +36,7 @@ while [ $count != 300 ]; do
 	ticks=`expr $ticks + 1`
 	seconds=`expr $ticks \* 1`
 	if [ $ticks = 60 ]; then
-		echo "Took too long to load zones"
-		echo "R:FAIL"
+		echo "I:Took too long to load zones"
 		exit 1
 	fi
 	count=`cat ns2/zone*.bk | grep xyzzy | wc -l`
