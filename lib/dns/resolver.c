@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.304 2005/03/04 03:53:21 marka Exp $ */
+/* $Id: resolver.c,v 1.305 2005/03/15 01:41:28 marka Exp $ */
 
 #include <config.h>
 
@@ -1427,6 +1427,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		case ISC_R_CONNREFUSED:
 		case ISC_R_NOPERM:
 		case ISC_R_ADDRNOTAVAIL:
+		case ISC_R_CONNECTIONRESET:
 			/*
 			 * No route to remote.
 			 */

@@ -60,7 +60,7 @@
 
 1803.	[placeholder]	rt13483
 
-1802.	[placeholder]	rt11280
+1802.	[bug]		Handle connection resets better. [RT #11280]
 
 1801.	[func]		Report differences between hints and real NS rrset
 			and associated address records.
