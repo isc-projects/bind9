@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.23 2001/07/11 05:32:44 tale Exp $ */
+/* $Id: platform.h.in,v 1.24 2001/07/18 08:15:21 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -157,7 +157,6 @@
 #define LIBDNS_EXTERNAL_DATA
 #define LIBISCCC_EXTERNAL_DATA
 #define LIBISCCFG_EXTERNAL_DATA
-#define LIBLWRES_EXTERNAL_DATA
 #else /* ISC_PLATFORM_USEDECLSPEC */
 #ifdef LIBISC_EXPORTS
 #define LIBISC_EXTERNAL_DATA __declspec(dllexport)
@@ -178,11 +177,6 @@
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
 #else
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#ifdef LIBLWRES_EXPORTS
-#define LIBLWRES_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBLWRES_EXTERNAL_DATA __declspec(dllimport)
 #endif
 #endif /* ISC_PLATFORM_USEDECLSPEC */
 
