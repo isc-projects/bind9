@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.31 2001/07/22 06:09:42 mayer Exp $ */
+/* $Id: dnssectool.c,v 1.31.2.1 2001/09/06 00:14:15 gson Exp $ */
 
 #include <config.h>
 
@@ -23,7 +23,6 @@
 
 #include <isc/buffer.h>
 #include <isc/entropy.h>
-#include <isc/keyboard.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -202,13 +201,23 @@ cleanup_logging(isc_log_t **logp) {
 void
 setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	isc_result_t result;
+	int usekeyboard = ISC_ENTROPY_KEYBOARDMAYBE;
 
-	result = isc_entropy_create(mctx, ectx);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not create entropy object");
+	REQUIRE(ectx != NULL);
+	
+	if (*ectx == NULL) {
+		result = isc_entropy_create(mctx, ectx);
+		if (result != ISC_R_SUCCESS)
+			fatal("could not create entropy object");
+	}
+
+	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
+		usekeyboard = ISC_ENTROPY_KEYBOARDYES;
+		randomfile = NULL;
+	}
 
 	result = isc_entropy_usebestsource(*ectx, &source, randomfile,
-					   ISC_ENTROPY_KEYBOARDMAYBE);
+					   usekeyboard);
 
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize entropy source: %s",

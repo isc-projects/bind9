@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.3 2001/08/28 03:58:26 marka Exp $ */
+/* $Id: entropy.c,v 1.3.2.1 2001/09/06 00:14:17 gson Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -1201,6 +1201,7 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 {
 	isc_result_t result;
 	isc_result_t final_result = ISC_R_NOENTROPY;
+	isc_boolean_t userfile = ISC_TRUE;
 
 	REQUIRE(VALID_ENTROPY(ectx));
 	REQUIRE(source != NULL && *source == NULL);
@@ -1209,15 +1210,19 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 		use_keyboard == ISC_ENTROPY_KEYBOARDMAYBE);
 
 #ifdef PATH_RANDOMDEV
-	if (randomfile == NULL)
+	if (randomfile == NULL) {
 		randomfile = PATH_RANDOMDEV;
+		userfile = ISC_FALSE;
+	}
 #endif
 
-	if (randomfile != NULL) {
+	if (randomfile != NULL && use_keyboard != ISC_ENTROPY_KEYBOARDYES) {
 		result = isc_entropy_createfilesource(ectx, randomfile);
 		if (result == ISC_R_SUCCESS &&
 		    use_keyboard == ISC_ENTROPY_KEYBOARDMAYBE)
 			use_keyboard = ISC_ENTROPY_KEYBOARDNO;
+		if (result != ISC_R_SUCCESS && userfile)
+			return (result);
 
 		final_result = result;
 	}
