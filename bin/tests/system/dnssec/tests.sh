@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.26 2000/11/20 17:53:25 gson Exp $
+# $Id: tests.sh,v 1.27 2000/11/22 01:26:24 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -25,7 +25,7 @@ n=0
 
 rm -f dig.out.*
 
-DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocmd -p 5300"
+DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocmd +dnssec -p 5300"
 
 # Check the example. domain
 
