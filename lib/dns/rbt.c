@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.8 2004/11/05 00:33:00 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.9 2004/11/22 07:38:19 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -362,7 +362,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rbtnodechain_t chain;
 	unsigned int common_labels, common_bits, add_bits;
-	unsigned int nlabels, hlabels;
+	unsigned int nlabels;
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -406,7 +406,6 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_fixedname_init(&fnewname);
 	new_name = dns_fixedname_name(&fnewname);
 	nlabels = dns_name_countlabels(name);
-	hlabels = 0;
 
 	do {
 		current = child;
@@ -447,7 +446,6 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			 * the non-common parts of these two names should
 			 * start a new tree.
 			 */
-			hlabels += common_labels;
 			if (compared == dns_namereln_subdomain) {
 				/*
 				 * All of the existing labels are in common,
@@ -666,9 +664,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
 
 				rbt->nodecount++;
-				dns_name_getlabelsequence(name,
-							  nlabels - hlabels,
-						          hlabels, new_name);
+				result = dns_rbt_fullnamefromnode(new_current,
+								  new_name);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				hash_node(rbt, new_current, new_name);
 
 				if (common_labels ==
@@ -866,6 +864,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			dns_name_init(&hash_name, NULL);
 
 		hashagain:
+			/*
+			 * Hash includes tail.
+			 */
 			dns_name_getlabelsequence(name,
 						  nlabels - tlabels,
 						  hlabels + tlabels,
@@ -980,7 +981,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					dns_rbtnodechain_reset(chain);
 					return (result);
 				}
-				hlabels += common_labels;
+				hlabels += common_labels -
+					   (common_bits != 0 ? 1 : 0);
 
 				/*
 				 * This might be the closest enclosing name.
