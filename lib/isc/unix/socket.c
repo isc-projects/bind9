@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.142.2.6 2000/09/08 22:17:27 gson Exp $ */
+/* $Id: socket.c,v 1.142.2.7 2000/11/13 22:06:54 gson Exp $ */
 
 #include <config.h>
 
@@ -1179,7 +1179,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 #if defined(SO_TIMESTAMP)
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
-			       (void *)&on, sizeof on) < 0) {
+			       (void *)&on, sizeof on) < 0
+		    && errno != ENOPROTOOPT) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, SO_TIMESTAMP) failed",
 					 sock->fd);
