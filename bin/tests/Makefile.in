@@ -56,6 +56,7 @@ XTARGETS =	adb_test \
 		hash_test \
 		fsaccess_test \
 		inter_test \
+		keyboard_test \
 		lex_test \
 		lfsr_test \
 		log_test \
@@ -97,6 +98,7 @@ SRCS =		adb_test.c \
 		hash_test.c \
 		fsaccess_test.c \
 		inter_test.c \
+		keyboard_test.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
@@ -271,6 +273,10 @@ fsaccess_test: fsaccess_test.@O@ ${ISCDEPLIBS}
 
 inter_test: inter_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ inter_test.@O@ \
+		${ISCLIBS} ${LIBS}
+
+keyboard_test: keyboard_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keyboard_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
 lwresconf_test: lwresconf_test.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
