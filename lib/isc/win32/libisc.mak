@@ -85,6 +85,7 @@ CLEAN :
 	-@erase "$(INTDIR)\sockaddr.obj"
 	-@erase "$(INTDIR)\socket.obj"
 	-@erase "$(INTDIR)\stdio.obj"
+	-@erase "$(INTDIR)\strerror.obj"
 	-@erase "$(INTDIR)\stdtime.obj"
 	-@erase "$(INTDIR)\string.obj"
 	-@erase "$(INTDIR)\symtab.obj"
@@ -168,6 +169,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\resource.obj" \
 	"$(INTDIR)\socket.obj" \
 	"$(INTDIR)\stdio.obj" \
+	"$(INTDIR)\strerror.obj" \
 	"$(INTDIR)\stdtime.obj" \
 	"$(INTDIR)\syslog.obj" \
 	"$(INTDIR)\thread.obj" \
@@ -331,6 +333,8 @@ CLEAN :
 	-@erase "$(INTDIR)\socket.sbr"
 	-@erase "$(INTDIR)\stdio.obj"
 	-@erase "$(INTDIR)\stdio.sbr"
+	-@erase "$(INTDIR)\strerror.obj"
+	-@erase "$(INTDIR)\strerror.sbr"
 	-@erase "$(INTDIR)\stdtime.obj"
 	-@erase "$(INTDIR)\stdtime.sbr"
 	-@erase "$(INTDIR)\string.obj"
@@ -424,6 +428,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\resource.sbr" \
 	"$(INTDIR)\socket.sbr" \
 	"$(INTDIR)\stdio.sbr" \
+	"$(INTDIR)\strerror.sbr" \
 	"$(INTDIR)\stdtime.sbr" \
 	"$(INTDIR)\syslog.sbr" \
 	"$(INTDIR)\thread.sbr" \
@@ -497,6 +502,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\resource.obj" \
 	"$(INTDIR)\socket.obj" \
 	"$(INTDIR)\stdio.obj" \
+	"$(INTDIR)\strerror.obj" \
 	"$(INTDIR)\stdtime.obj" \
 	"$(INTDIR)\syslog.obj" \
 	"$(INTDIR)\thread.obj" \
@@ -859,6 +865,22 @@ SOURCE=.\stdio.c
 
 
 "$(INTDIR)\stdio.obj"	"$(INTDIR)\stdio.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+SOURCE=.\strerror.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\strerror.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\strerror.obj"	"$(INTDIR)\strerror.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 

@@ -165,6 +165,10 @@ SOURCE=.\socket.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\strerror.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio.c
 # End Source File
 # Begin Source File
@@ -454,6 +458,10 @@ SOURCE=.\include\isc\stat.h
 # Begin Source File
 
 SOURCE=..\include\isc\stdio.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isc\strerror.h
 # End Source File
 # Begin Source File
 

@@ -118,11 +118,6 @@
 			negative proof.
 			[DS specific]
 
-1348.	[port]		Win32: Rewrote code to use I/O Completion Ports
-			in socket.c and eliminating a host of socket
-			errors. Performance is enhanced.
-			[review for 9.2.3]
-
 1355.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
 
 1362.	[bug]		remove IFF_RUNNING test when scanning interfaces.

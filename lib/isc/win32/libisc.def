@@ -299,6 +299,7 @@ isc_stdio_read
 isc_stdio_write
 isc_stdio_flush
 isc_stdio_sync
+isc__strerror
 isc_string_touint64
 isc_string_separate
 isc_symtab_create

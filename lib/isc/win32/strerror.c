@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.5 2002/08/01 03:52:14 mayer Exp $ */
+/* $Id: strerror.c,v 1.5.186.1 2003/07/09 04:58:19 marka Exp $ */
 
 #include <config.h>
 

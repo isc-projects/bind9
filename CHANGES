@@ -146,6 +146,10 @@
 
 1366.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
 
+1348.	[port]		win32: Rewrote code to use I/O Completion Ports
+			in socket.c and eliminating a host of socket
+			errors. Performance is enhanced.
+
 1333.	[contrib]	queryperf now reports a summary of returned
 			rcodes (-c), rcodes are printed in mnemonic form (-v).
 
