@@ -1768,6 +1768,8 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item)
 	if (*item == NULL)
 		return (DNS_R_NOMEMORY);
 
+	dns_rdataset_init(*item);
+
 	return (DNS_R_SUCCESS);
 }
 
