@@ -31,7 +31,7 @@ CDEFINES =
 CWARNINGS =
 
 OBJS =		name.o db.o dbiterator.o rbt.o rbtdb.o rbtdb64.o \
-		rdata.o rdatalist.o rdataset.o rdatasetiter.c \
+		rdata.o rdatalist.o rdataset.o rdatasetiter.o \
 		rdataslab.o master.o callbacks.o compress.o \
 		result.o version.o
 
