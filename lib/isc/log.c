@@ -15,19 +15,19 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.2 1999/09/30 22:14:53 tale Exp $ */
+/* $Id: log.c,v 1.3 1999/10/07 02:10:10 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <errno.h>
 #include <stdarg.h>
+#include <stdio.h>		/* For remove(). */
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>		/* XXXDCL NT -- for unlink */
 
 #include <isc/assertions.h>
 #include <isc/boolean.h>
@@ -668,7 +668,7 @@ roll_log(isc_logchannel_t *channel) {
 		 */
 		while (--greatest >= FILE_VERSIONS(channel)) {
 			sprintf(current, "%s.%d", path, greatest);
-			(void)unlink(current);
+			(void)remove(current);
 		}
 
 	for (i = greatest; i > 0; i /= 10)
@@ -697,7 +697,7 @@ roll_log(isc_logchannel_t *channel) {
 		(void)rename(path, new);
 
 	} else if (FILE_VERSIONS(channel) == 0)
-		(void)unlink(path);
+		(void)remove(path);
 
 	return (ISC_R_SUCCESS);
 }
