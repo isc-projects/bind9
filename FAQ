@@ -199,3 +199,13 @@ Also check whether your zone contains domain names with embedded
 spaces or other special characters, like "John\032Doe\213s\032Computer",
 since such names have been known to cause Windows 2000 slaves to
 incorrectly reject the zone.
+
+
+Q: Why don't my zones reload when I do an "rndc reload" or SIGHUP?
+
+A: A zone can be updated either by editing zone files and reloading
+the server or by dynamic update, but not both.  If you have enabled
+dynamic update for a zone using the "allow-update" option, you are not
+supposed to edit the zone file by hand, and the server will not
+attempt to reload it.
+
