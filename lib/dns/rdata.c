@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.36 1999/02/22 07:23:57 marka Exp $ */
+ /* $Id: rdata.c,v 1.37 1999/02/25 00:27:02 marka Exp $ */
 
 #include <config.h>
 
@@ -149,13 +149,16 @@ static const char octdigits[] = "01234567";
 	{ 254, "OID", 0}, \
 	{ 0, NULL, 0}
 
+/* draft-ietf-dnssec-secext2-07.txt section 7 */
+
 #define SECALGNAMES \
-	{ 1, "RSA/MD5", 0}, \
-	{ 2, "Diffie-Hellman", 0}, \
-	{ 3, "DSA", 0}, \
-	{ 4, "Ellyptic-Curve", 0}, \
-	{ 253, "Private/Domain", 0}, \
-	{ 254, "Private/OID", 0}, \
+	{ 1, "RSAMD5", 0 }, \
+	{ 2, "DH", 0 }, \
+	{ 3, "DSA", 0 }, \
+	{ 4, "ECC", 0 }, \
+	{ 252, "INDIRECT", 0 }, \
+	{ 253, "PRIVATEDNS", 0 }, \
+	{ 254, "PRIVATEOID", 0 }, \
 	{ 0, NULL, 0}
 
 
