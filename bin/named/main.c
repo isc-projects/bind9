@@ -47,6 +47,7 @@
 #include <named/main.h>
 
 static isc_boolean_t			want_stats = ISC_FALSE;
+static char *				program_name = "named";
 
 void
 ns_main_earlyfatal(const char *format, ...) {
@@ -61,6 +62,7 @@ ns_main_earlyfatal(const char *format, ...) {
 			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			       "exiting (due to early fatal error)");
 	} else {
+		fprintf(stderr, "%s: ", program_name);
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
 		fflush(stderr);
@@ -135,7 +137,8 @@ static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:d:N:p:sz:")) !=
+	isc_commandline_errprint = ISC_FALSE;
+	while ((ch = isc_commandline_parse(argc, argv, "b:c:d:N:p:sx:")) !=
 	       -1) {
 		switch (ch) {
 		case 'b':
@@ -157,10 +160,13 @@ parse_command_line(int argc, char *argv[]) {
 			/* XXXRTH temporary syntax */
 			want_stats = ISC_TRUE;
 			break;
-		case '?':
-			usage();
-			ns_main_earlyfatal("unknown command line argument");
+		case 'x':
+			/* XXXRTH temporary syntax */
+			ns_g_cachefile = isc_commandline_argument;
 			break;
+		case '?':
+			ns_main_earlyfatal("unknown option `-%c'",
+					   isc_commandline_option);
 		default:
 			ns_main_earlyfatal("parsing options returned %d", ch);
 		}
@@ -289,6 +295,7 @@ int
 main(int argc, char *argv[]) {
 	isc_result_t result;
 
+	program_name = argv[0];
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
 
