@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.63 2000/09/13 01:30:32 marka Exp $ */
+/* $Id: update.c,v 1.64 2000/09/20 00:51:49 gson Exp $ */
 
 #include <config.h>
 
@@ -1265,10 +1265,13 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		*flag = ISC_FALSE;
 		return (ISC_R_SUCCESS);
 	} else if (result == DNS_R_ZONECUT) {
-		/* XXX should omit non-delegation types from NXT */
+		/*
+		 * We are at the zonecut.  The name will have an NXT, but
+		 * non-delegation will be omitted from the type bit map.
+		 */
 		*flag = ISC_FALSE;
 		return (ISC_R_SUCCESS);
-	} else if (result == DNS_R_GLUE) {
+	} else if (result == DNS_R_GLUE || result == DNS_R_DNAME) {
 		*flag = ISC_TRUE;
 		return (ISC_R_SUCCESS);
 	} else {
@@ -1279,7 +1282,7 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 /*
  * Find the next/previous name that has a NXT record.
  * In other words, skip empty database nodes and names that
- * have  had their NXTs removed because they are obscured by
+ * have had their NXTs removed because they are obscured by
  * a zone cut.
  */
 static isc_result_t
@@ -1614,18 +1617,27 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 		CHECK(namelist_append_name(&affected, prevname));
 	}
 
-	/* Find names affected by delegation changes. */
+	/*
+	 * Find names potentially affected by delegation changes
+	 * (obscured by adding an NS or DNAME, or unobscured by
+	 * removing one).
+	 */
 	for (t = ISC_LIST_HEAD(diffnames.tuples);
 	     t != NULL;
 	     t = ISC_LIST_NEXT(t, link))
 	{
-		isc_boolean_t existed, exists;
+		isc_boolean_t ns_existed, dname_existed;
+		isc_boolean_t ns_exists, dname_exists;
 
 		CHECK(rrset_exists(db, oldver, &t->name, dns_rdatatype_ns, 0,
-				   &existed));
+				   &ns_existed));
+		CHECK(rrset_exists(db, oldver, &t->name, dns_rdatatype_dname, 0,
+				   &dname_existed));
 		CHECK(rrset_exists(db, newver, &t->name, dns_rdatatype_ns, 0,
-				   &exists));
-		if (exists == existed)
+				   &ns_exists));
+		CHECK(rrset_exists(db, newver, &t->name, dns_rdatatype_dname, 0,
+				   &dname_exists));
+		if ((ns_exists || dname_exists) == (ns_existed || dname_existed))
 			continue;
 		/*
 		 * There was a delegation change.  Mark all subdomains
