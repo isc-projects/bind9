@@ -635,7 +635,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getmaxcachettl(cctx, &val);
 		if (result != ISC_R_SUCCESS)
-			val = 30 * 24 * 3600;
+			val = 7 * 24 * 3600;
 		view->maxcachettl = val;
 	}
 	{
