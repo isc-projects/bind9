@@ -270,7 +270,10 @@ main(int argc, char **argv)
 		++tnum;
 	}
 
-	(void) t_getdate(T_buf, T_BIGBUF);
+	/* output end stanza to journal */
+	sprintf(T_buf, "%s:", argv[0]);
+	len = strlen(T_buf);
+	(void) t_getdate(T_buf + len, T_BIGBUF - len);
 	t_putinfo("E", T_buf);
 
 	return(0);
