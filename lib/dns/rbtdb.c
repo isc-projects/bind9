@@ -70,8 +70,8 @@ typedef isc_uint32_t			rbtdb_serial_t;
 
 typedef isc_uint32_t			rbtdb_rdatatype_t;
 
-#define RBTDB_RDATATYPE_BASE(type)	((type) & 0xFFFF)
-#define RBTDB_RDATATYPE_EXT(type)	((type) >> 16)
+#define RBTDB_RDATATYPE_BASE(type)	((dns_rdatatype_t)((type) & 0xFFFF))
+#define RBTDB_RDATATYPE_EXT(type)	((dns_rdatatype_t)((type) >> 16))
 #define RBTDB_RDATATYPE_VALUE(b, e)	(((e) << 16) | (b))
 
 #define RBTDB_RDATATYPE_SIGNXT \
@@ -101,6 +101,8 @@ typedef struct rdatasetheader {
 #define RDATASET_ATTR_NONEXISTENT	0x01
 #define RDATASET_ATTR_STALE		0x02
 #define RDATASET_ATTR_IGNORE		0x04
+
+#undef IGNORE			/* WIN32 winbase.h defines this. */
 
 #define EXISTS(header) \
 	(((header)->attributes & RDATASET_ATTR_NONEXISTENT) == 0)
@@ -392,7 +394,7 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 }
 
 static inline rbtdb_version_t *
-allocate_version(isc_mem_t *mctx, unsigned int serial,
+allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 		 unsigned int references, isc_boolean_t writer)
 {
 	rbtdb_version_t *version;
@@ -2153,7 +2155,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 				dns_rbt_namefromnode(node, &name);
 				result = dns_name_concatenate(&name, NULL,
 							      foundname, NULL);
-				while (result == DNS_R_SUCCESS && i != 0) {
+				while (result == DNS_R_SUCCESS && i > 0) {
 					i--;
 					level_node = search->chain.levels[i];
 					dns_name_init(&name, NULL);
@@ -2920,7 +2922,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					     (unsigned int)(sizeof *newheader),
 					     rbtdb->common.mctx,
 					     rbtdb->common.rdclass,
-					     header->type,
+					     (dns_rdatatype_t)header->type,
 					     force,
 					     &merged);
 			if (result == DNS_R_SUCCESS) {
@@ -3157,7 +3159,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					(unsigned int)(sizeof *newheader),
 					rbtdb->common.mctx,
 					rbtdb->common.rdclass,
-					header->type,
+					(dns_rdatatype_t)header->type,
 					&subresult);
 		if (result == DNS_R_SUCCESS) {
 			free_rdataset(rbtdb->common.mctx, newheader);
