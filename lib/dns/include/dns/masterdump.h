@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.19 2001/03/28 00:22:15 gson Exp $ */
+/* $Id: masterdump.h,v 1.20 2001/03/28 00:50:01 gson Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -78,6 +78,11 @@ extern const dns_master_style_t dns_master_style_cache;
  * by perl scripts and similar applications.
  */
 extern const dns_master_style_t dns_master_style_simple;
+
+/*
+ * The style used for debugging, "dig" output, etc.
+ */
+extern const dns_master_style_t dns_master_style_debug;
 
 /***
  ***	Functions

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.12 2001/01/09 21:51:11 bwelling Exp $ */
+/* $Id: opt.c,v 1.13 2001/03/28 00:50:02 gson Exp $ */
 
 /* DNS_OPT_NEWCODES_KEEP */
 
@@ -154,12 +154,9 @@ dns_opt_attrtotext(dns_optattr_t *attr, isc_buffer_t *target,
 	isc_result_t result = ISC_R_SUCCESS;
 	char store[sizeof("012345678")];
 #ifdef DNS_OPT_NEWCODES
-	isc_boolean_t omit_final_dot;
 	dns_decompress_t dctx;
 	dns_fixedname_t fname;
 	isc_buffer_t source;
-
-	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
 
 #else /* DNS_OPT_NEWCODES */
 	UNUSED (flags);
@@ -178,7 +175,7 @@ dns_opt_attrtotext(dns_optattr_t *attr, isc_buffer_t *target,
 					   ISC_FALSE, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto zonefail1;
-		result = dns_name_totext(&fname.name, omit_final_dot,
+		result = dns_name_totext(&fname.name, ISC_FALSE,
 					 target);
 		ADD_STRING(target, "\n", zonefail1);
 	zonefail1:

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.46 2001/03/28 00:22:13 gson Exp $ */
+/* $Id: masterdump.c,v 1.47 2001/03/28 00:50:04 gson Exp $ */
 
 #include <config.h>
 
@@ -165,7 +165,7 @@ dns_master_style_simple = {
 /*
  * A style suitable for dns_rdataset_totext().
  */
-dns_master_style_t
+const dns_master_style_t
 dns_masterfile_style_debug = {
 	DNS_STYLEFLAG_REL_OWNER,
 	24, 32, 40, 48, 80, 8

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.95 2001/03/05 21:15:47 bwelling Exp $ */
+/* $Id: message.h,v 1.96 2001/03/28 00:50:00 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -127,7 +127,6 @@ typedef int dns_pseudosection_t;
 typedef int dns_messagetextflag_t;
 #define DNS_MESSAGETEXTFLAG_NOCOMMENTS	0x0001
 #define DNS_MESSAGETEXTFLAG_NOHEADERS	0x0002
-#define DNS_MESSAGETEXTFLAG_OMITDOT	0x0004
 
 /*
  * Dynamic update names for these sections.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.186 2001/03/15 03:00:50 bwelling Exp $ */
+/* $Id: message.c,v 1.187 2001/03/28 00:50:05 gson Exp $ */
 
 /***
  *** Imports
@@ -31,6 +31,7 @@
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
+#include <dns/masterdump.h>
 #include <dns/message.h>
 #ifdef DNS_OPT_NEWCODES
 #include <dns/opt.h>
@@ -2807,22 +2808,13 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	dns_name_t *name, empty_name;
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
-	isc_boolean_t no_rdata;
-	isc_boolean_t omit_final_dot;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_SECTION(section));
 
-	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
-
 	if (ISC_LIST_EMPTY(msg->sections[section]))
 		return (ISC_R_SUCCESS);
-
-	if (section == DNS_SECTION_QUESTION)
-		no_rdata = ISC_TRUE;
-	else
-		no_rdata = ISC_FALSE;
 
 	if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0) {
 		ADD_STRING(target, ";; ");
@@ -2846,12 +2838,17 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			if (no_rdata)
+			if (section == DNS_SECTION_QUESTION) {
 				ADD_STRING(target, ";");
-			result = dns_rdataset_totext(rdataset, name,
-						     omit_final_dot,
-						     no_rdata,
-						     target);
+				result = dns_master_questiontotext(name,
+								   rdataset,
+								   target);
+			} else {
+				result = dns_master_rdatasettotext(name,
+								   rdataset,
+						   &dns_master_style_debug,
+								   target);
+			}
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
@@ -2873,7 +2870,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_rdataset_t *ps = NULL;
 	dns_name_t *name = NULL;
 	isc_result_t result;
-	isc_boolean_t omit_final_dot;
 #ifndef DNS_OPT_NEWCODES
 	char buf[sizeof("1234567890")];
 #endif /* DNS_OPT_NEWCODES */
@@ -2881,8 +2877,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_PSEUDOSECTION(section));
-
-	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
 
 	switch (section) {
 	case DNS_PSEUDOSECTION_OPT:
@@ -2912,8 +2906,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			return (ISC_R_SUCCESS);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; TSIG PSEUDOSECTION:\n");
-		result = dns_rdataset_totext(ps, name, omit_final_dot,
-					     ISC_FALSE, target);
+		result = dns_master_rdatasettotext(name, ps,
+					     &dns_master_style_debug,
+					     target);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");
@@ -2924,8 +2919,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			return (ISC_R_SUCCESS);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; SIG0 PSEUDOSECTION:\n");
-		result = dns_rdataset_totext(ps, name, omit_final_dot,
-					     ISC_FALSE, target);
+		result = dns_master_rdatasettotext(name, ps, 
+						   &dns_master_style_debug,
+						   target);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");
