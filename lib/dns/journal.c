@@ -621,7 +621,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 			goto cleanup;
 		}
  again:
-		isc_buffer_init(&buf, mem, sizeof(mem), ISC_BUFFERTYPE_TEXT);
+		isc_buffer_init(&buf, mem, size, ISC_BUFFERTYPE_TEXT);
 		result = dns_rdataset_totext(&rds, &t->name,
 					     ISC_FALSE, ISC_FALSE, &buf);
 
