@@ -16,12 +16,11 @@
  */
 
 /*
- * $Id: tsig.c,v 1.103 2001/01/11 21:07:21 gson Exp $
- * Principal Author: Brian Wellington
+ * $Id: tsig.c,v 1.104 2001/01/16 22:47:56 bwelling Exp $
  */
 
 #include <config.h>
-#include <stdlib.h>		/* Required for abs(). */
+#include <stdlib.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -729,14 +728,13 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	/*
 	 * Is the time ok?
 	 */
-	if (abs(now + msg->timeadjust - tsig.timesigned) > tsig.fudge) {
+	if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
-		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge)
-			tsig_log(msg->tsigkey, 2,
-				 "signature has expired");
-		else
-			tsig_log(msg->tsigkey, 2,
-				 "signature is in the future");
+		tsig_log(msg->tsigkey, 2, "signature has expired");
+		return (DNS_R_TSIGVERIFYFAILURE);
+	} else if (now + msg->timeadjust < tsig.timesigned - tsig.fudge) {
+		msg->tsigstatus = dns_tsigerror_badtime;
+		tsig_log(msg->tsigkey, 2, "signature is in the future");
 		return (DNS_R_TSIGVERIFYFAILURE);
 	}
 
@@ -952,15 +950,19 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		 * Is the time ok?
 		 */
 		isc_stdtime_get(&now);
-		if (abs(now - tsig.timesigned) > tsig.fudge) {
+
+		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;
+			tsig_log(msg->tsigkey, 2, "signature has expired");
 			ret = DNS_R_TSIGVERIFYFAILURE;
-			if (now > tsig.timesigned + tsig.fudge)
-				tsig_log(msg->tsigkey, 2,
-					 "signature has expired");
-			else
-				tsig_log(msg->tsigkey, 2,
-					 "signature is in the future");
+			goto cleanup_querystruct;
+		} else if (now + msg->timeadjust <
+			   tsig.timesigned - tsig.fudge)
+		{
+			msg->tsigstatus = dns_tsigerror_badtime;
+			tsig_log(msg->tsigkey, 2,
+				 "signature is in the future");
+			ret = DNS_R_TSIGVERIFYFAILURE;
 			goto cleanup_querystruct;
 		}
 	}
