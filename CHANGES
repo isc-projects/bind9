@@ -198,6 +198,13 @@
 
 1677.	[bug]		dig: +aaonly didn't work, +aaflag undocumented.
 
+1676.	[func]		New option "allow-query-cache".  This lets
+			allow-query be used to specify the default zone
+			access level rather than having to have every
+			zone override the global value.  allow-query-cache
+			can be set at both the options and view levels.
+			If allow-query-cache is not set allow-query applies.
+
 1675.	[bug]		named would sometimes add extra NSEC records to
 			the authority section.
 			

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.12 2004/10/11 05:30:00 marka Exp $ */
+/* $Id: server.c,v 1.419.18.13 2004/10/21 00:56:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1135,8 +1135,11 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		view->additionalfromcache = ISC_TRUE;
 	}
 
-	CHECK(configure_view_acl(vconfig, config, "allow-query",
+	CHECK(configure_view_acl(vconfig, config, "allow-query-cache",
 				 actx, ns_g_mctx, &view->queryacl));
+	if (view->queryacl == NULL)
+		CHECK(configure_view_acl(vconfig, config, "allow-query",
+					 actx, ns_g_mctx, &view->queryacl));
 
 	if (strcmp(view->name, "_bind") != 0)
 		CHECK(configure_view_acl(vconfig, config, "allow-recursion",

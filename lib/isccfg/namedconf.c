@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.9 2004/10/17 23:19:15 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.10 2004/10/21 00:56:46 marka Exp $ */
 
 #include <config.h>
 
@@ -690,6 +690,7 @@ static cfg_type_t cfg_type_lookaside = {
 
 static cfg_clausedef_t
 view_clauses[] = {
+	{ "allow-query-cache", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
 	  CFG_CLAUSEFLAG_OBSOLETE },
