@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.23 2001/08/31 23:57:05 gson Exp $ */
+/* $Id: file.c,v 1.24 2001/09/01 00:05:38 gson Exp $ */
 
 #include <config.h>
 
@@ -200,22 +200,25 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 
 isc_result_t
 isc_file_getmodtime(const char *file, isc_time_t *time) {
-	isc_result_t result;
-	struct stat stats;
+	int fh;
 
 	REQUIRE(file != NULL);
 	REQUIRE(time != NULL);
 
-	result = file_stats(file, &stats);
+	if ((fh = open(file, _O_RDWR | _O_BINARY)) < 0)
+		return (isc__errno2result(errno));
 
-	if (result == ISC_R_SUCCESS)
-		/*
-		 * XXXDCL some operating systems provide nanoseconds, too,
-		 * such as BSD/OS via st_mtimespec.
-		 */
-		isc_time_set(time, stats.st_mtime, 0);
-
-	return (result);
+	if (!GetFileTime((HANDLE) _get_osfhandle(fh),
+			 NULL,
+			 NULL,
+			 &time->absolute))
+	{
+		close(fh);
+                errno = EINVAL;
+                return (isc__errno2result(errno));
+        }
+	close(fh);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
