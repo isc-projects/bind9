@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.12 2001/02/20 23:53:07 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.13 2001/02/22 00:49:55 gson Exp $ -->
 
 <book>
 
@@ -1453,6 +1453,9 @@ allow-update { key host1-host2. ;};
     resolver daemon which new applications may choose to use to avoid
     the complexities of A6 chain following and bitstring labels, see <xref
     linkend="ch05"/>.</para>
+
+    <para>For an overview of the format and structure of IPv6 addresses,
+    see <xref linkend="ipv6addresses"/>.</para>
 
     <sect2>
       <title>Address Lookups Using AAAA Records</title>
@@ -4933,7 +4936,7 @@ mid-1970s.</para>
   </sect1>
   <sect1>
     <title>General <acronym>DNS</acronym> Reference Information</title>
-    <sect2>
+    <sect2 id="ipv6addresses">
       <title>IPv6 addresses (A6)</title>
       <para>IPv6 addresses are 128-bit identifiers for interfaces and
 sets of interfaces which were introduced in the <acronym>DNS</acronym> to facilitate
