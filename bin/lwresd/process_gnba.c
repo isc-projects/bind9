@@ -228,6 +228,4 @@ process_gnba(client_t *client, lwres_buffer_t *b)
 		lwres_gnbarequest_free(client->clientmgr->lwctx, &req);
 
 	error_pkt_send(client, LWRES_R_FAILURE);
-
-	return;
 }
