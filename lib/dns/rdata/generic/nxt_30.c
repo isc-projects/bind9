@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.39 2000/08/24 21:41:42 gson Exp $ */
+/* $Id: nxt_30.c,v 1.40 2000/10/06 22:41:15 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -190,21 +190,26 @@ compare_nxt(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_nxt(ARGS_FROMSTRUCT) {
 	dns_rdata_nxt_t *nxt = source;
+	isc_region_t region;
 
 	REQUIRE(type == 30);
 	REQUIRE(source != NULL);
 	REQUIRE(nxt->common.rdtype == type);
 	REQUIRE(nxt->common.rdclass == rdclass);
-	REQUIRE((nxt->nxt != NULL && nxt->len != 0) ||
-		(nxt->nxt == NULL && nxt->len == 0));
+	REQUIRE((nxt->typebits != NULL && nxt->len != 0) ||
+		(nxt->typebits == NULL && nxt->len == 0));
 
-	return (mem_tobuffer(target, nxt->nxt, nxt->len));
+	dns_name_toregion(&nxt->next, &region);
+	RETERR(isc_buffer_copyregion(target, &region));
+
+	return (mem_tobuffer(target, nxt->typebits, nxt->len));
 }
 
 static inline isc_result_t
 tostruct_nxt(ARGS_TOSTRUCT) {
+	isc_region_t region;
 	dns_rdata_nxt_t *nxt = target;
-	isc_region_t r;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == 30);
 	REQUIRE(target != NULL);
@@ -213,17 +218,28 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 	nxt->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&nxt->common, link);
 
-	dns_rdata_toregion(rdata, &r);
-	nxt->len = r.length;
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
+	isc_region_consume(&region, name_length(&name));
+	dns_name_init(&nxt->next, NULL);
+	RETERR(name_duporclone(&name, mctx, &nxt->next));
+
+	nxt->len = region.length;
 	if (nxt->len != 0) {
-		nxt->nxt = mem_maybedup(mctx, r.base, r.length);
-		if (nxt->nxt == NULL)
-			return (ISC_R_NOMEMORY);
+		nxt->typebits = mem_maybedup(mctx, region.base, region.length);
+		if (nxt->typebits == NULL)
+			goto cleanup;
 	} else
-		nxt->nxt = NULL;
+		nxt->typebits = NULL;
 
 	nxt->mctx = mctx;
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL)
+		dns_name_free(&nxt->next, mctx);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
@@ -236,8 +252,9 @@ freestruct_nxt(ARGS_FREESTRUCT) {
 	if (nxt->mctx == NULL)
 		return;
 
-	if (nxt->nxt != NULL)
-		isc_mem_free(nxt->mctx, nxt->nxt);
+	dns_name_free(&nxt->next, nxt->mctx);
+	if (nxt->typebits != NULL)
+		isc_mem_free(nxt->mctx, nxt->typebits);
 	nxt->mctx = NULL;
 }
 

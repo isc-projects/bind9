@@ -18,15 +18,16 @@
 #ifndef GENERIC_NXT_30_H
 #define GENERIC_NXT_30_H 1
 
-/* $Id: nxt_30.h,v 1.16 2000/08/01 01:25:47 tale Exp $ */
+/* $Id: nxt_30.h,v 1.17 2000/10/06 22:41:16 bwelling Exp $ */
 
 /* RFC 2065 */
 
 typedef struct dns_rdata_nxt {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
+	dns_name_t		next;
+	unsigned char		*typebits;
 	isc_uint16_t		len;
-	unsigned char		*nxt;
 } dns_rdata_nxt_t;
 
 #endif /* GENERIC_NXT_30_H */
