@@ -264,8 +264,7 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
  * queue fully.  That is, we will not get partial writes.
  */
 static void
-select_poke(isc_socketmgr_t *mgr, int msg)
-{
+select_poke(isc_socketmgr_t *mgr, int msg) {
 	int cc;
 
 	do {
@@ -284,8 +283,7 @@ select_poke(isc_socketmgr_t *mgr, int msg)
  * read a message on the internal fd.
  */
 static int
-select_readmsg(isc_socketmgr_t *mgr)
-{
+select_readmsg(isc_socketmgr_t *mgr) {
 	int msg;
 	int cc;
 
@@ -308,8 +306,7 @@ select_readmsg(isc_socketmgr_t *mgr)
  * Make a fd non-blocking
  */
 static isc_result_t
-make_nonblock(int fd)
-{
+make_nonblock(int fd) {
 	int ret;
 	int flags;
 
@@ -332,8 +329,7 @@ make_nonblock(int fd)
  * Process control messages received on a socket.
  */
 static void
-process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
-{
+process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifdef USE_CMSG
 	struct cmsghdr *cmsgp;
 #ifdef ISC_PLATFORM_HAVEIPV6
@@ -344,9 +340,22 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 #endif
 #endif
 
+	/*
+	 * sock is used only when ISC_NET_BSD44MSGHDR and USE_CMSG are defined.
+	 * msg and dev are used only when ISC_NET_BSD44MSGHDR is defined.
+	 * They are all here, outside of the CPP tests, because it is
+	 * more consistent with the usual ISC coding style.
+	 */
 	UNUSED(sock);
+	UNUSED(msg);
+	UNUSED(dev);
 
-#ifdef ISC_NET_BSD44MSGHDR
+
+#ifndef ISC_NET_BSD44MSGHDR
+	return;
+
+#else  /* defined ISC_NET_BSD44MSGHDR */
+
 #ifdef MSG_TRUNC
 	if ((msg->msg_flags & MSG_TRUNC) == MSG_TRUNC)
 		dev->attributes |= ISC_SOCKEVENTATTR_TRUNC;
@@ -497,8 +506,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	if ((sock->type == isc_sockettype_udp)
 	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
 		struct cmsghdr *cmsgp;
-		struct in6_pktinfo *pktinfop;
-
+		struct in6_pktinfo *pktinfop; 
 		msg->msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo));
 		msg->msg_control = (void *)sock->cmsg;
 
@@ -677,8 +685,7 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 
 #if defined(ISC_SOCKET_DEBUG)
 static void
-dump_msg(struct msghdr *msg)
-{
+dump_msg(struct msghdr *msg) {
 	unsigned int i;
 
 	printf("MSGHDR %p\n", msg);
@@ -702,8 +709,7 @@ dump_msg(struct msghdr *msg)
 #define DOIO_UNEXPECTED		(-1)	/* bad stuff, no event sent */
 
 static int
-doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
-{
+doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	int cc;
 	struct iovec iov[MAXSCATTERGATHER_RECV];
 	size_t read_count;
@@ -830,8 +836,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 }
 
 static int
-doio_send(isc_socket_t *sock, isc_socketevent_t *dev)
-{
+doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	int cc;
 	struct iovec iov[MAXSCATTERGATHER_SEND];
 	size_t write_count;
@@ -919,8 +924,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev)
  * references exist.
  */
 static void
-destroy(isc_socket_t **sockp)
-{
+destroy(isc_socket_t **sockp) {
 	isc_socket_t *sock = *sockp;
 	isc_socketmgr_t *manager = sock->manager;
 
@@ -1056,8 +1060,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
  * also close the socket.
  */
 static void
-free_socket(isc_socket_t **socketp)
-{
+free_socket(isc_socket_t **socketp) {
 	isc_socket_t *sock = *socketp;
 
 	INSIST(sock->references == 0);
@@ -1189,8 +1192,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
  * Attach to a socket.  Caller must explicitly detach when it is done.
  */
 void
-isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp)
-{
+isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
@@ -1206,8 +1208,7 @@ isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp)
  * up by destroying the socket.
  */
 void 
-isc_socket_detach(isc_socket_t **socketp)
-{
+isc_socket_detach(isc_socket_t **socketp) {
 	isc_socket_t *sock;
 	isc_boolean_t kill_socket = ISC_FALSE;
 
@@ -1237,8 +1238,7 @@ isc_socket_detach(isc_socket_t **socketp)
  * The socket and manager must be locked before calling this function.
  */
 static void
-dispatch_recv(isc_socket_t *sock)
-{
+dispatch_recv(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socketevent_t *ev;
 
@@ -1263,8 +1263,7 @@ dispatch_recv(isc_socket_t *sock)
 }
 
 static void
-dispatch_send(isc_socket_t *sock)
-{
+dispatch_send(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socketevent_t *ev;
 
@@ -1292,8 +1291,7 @@ dispatch_send(isc_socket_t *sock)
  * Dispatch an internal accept event.
  */
 static void
-dispatch_accept(isc_socket_t *sock)
-{
+dispatch_accept(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socket_newconnev_t *ev;
 
@@ -1319,8 +1317,7 @@ dispatch_accept(isc_socket_t *sock)
 }
 
 static void
-dispatch_connect(isc_socket_t *sock)
-{
+dispatch_connect(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socket_connev_t *ev;
 
@@ -1415,8 +1412,7 @@ send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev,
  * so just unlock and return.
  */
 static void
-internal_accept(isc_task_t *me, isc_event_t *ev)
-{
+internal_accept(isc_task_t *me, isc_event_t *ev) {
 	isc_socket_t *sock;
 	isc_socketmgr_t *manager;
 	isc_socket_newconnev_t *dev;
@@ -1464,7 +1460,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	 * again.
 	 */
 	addrlen = sizeof dev->newsocket->address.type;
-	fd = accept(sock->fd, &dev->newsocket->address.type.sa, (void *)&addrlen);
+	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
+		    (void *)&addrlen);
 	dev->newsocket->address.length = addrlen;
 	if (fd < 0) {
 		if (SOFT_ERROR(errno)) {
@@ -1552,13 +1549,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 }
 
 static void
-internal_recv(isc_task_t *me, isc_event_t *ev)
-{
+internal_recv(isc_task_t *me, isc_event_t *ev) {
 	isc_socketevent_t *dev;
 	isc_socket_t *sock;
-	isc_task_t *task;
-
-	UNUSED(me);
 
 	INSIST(ev->ev_type == ISC_SOCKEVENT_INTR);
 
@@ -1588,8 +1581,6 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 	 */
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	while (dev != NULL) {
-		task = dev->ev_sender;
-
 		/*
 		 * If this is a marker event, post its completion and
 		 * continue the loop.
@@ -1642,13 +1633,9 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 }
 
 static void
-internal_send(isc_task_t *me, isc_event_t *ev)
-{
+internal_send(isc_task_t *me, isc_event_t *ev) {
 	isc_socketevent_t *dev;
 	isc_socket_t *sock;
-	isc_task_t *task;
-
-	UNUSED(me);
 
 	INSIST(ev->ev_type == ISC_SOCKEVENT_INTW);
 
@@ -1681,8 +1668,6 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	 */
 	dev = ISC_LIST_HEAD(sock->send_list);
 	while (dev != NULL) {
-		task = dev->ev_sender;
-
 		/*
 		 * If this is a marker event, post its completion and
 		 * continue the loop.
@@ -1726,8 +1711,7 @@ internal_send(isc_task_t *me, isc_event_t *ev)
  * this I/O and post the event to it.
  */
 static isc_threadresult_t
-watcher(void *uap)
-{
+watcher(void *uap) {
 	isc_socketmgr_t *manager = uap;
 	isc_socket_t *sock;
 	isc_boolean_t done;
@@ -1852,7 +1836,8 @@ watcher(void *uap)
 					 * Otherwise, set it.
 					 */
 					rev = ISC_LIST_HEAD(sock->recv_list);
-					ev2 = (isc_event_t *)ISC_LIST_HEAD(sock->accept_list);
+					ev2 = (isc_event_t *)
+					      ISC_LIST_HEAD(sock->accept_list);
 					if ((rev == NULL && ev2 == NULL)
 					    || sock->pending_recv
 					    || sock->pending_accept) {
@@ -1948,8 +1933,7 @@ watcher(void *uap)
  * Create a new socket manager.
  */
 isc_result_t
-isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp)
-{
+isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
@@ -2025,8 +2009,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp)
 }
 
 void
-isc_socketmgr_destroy(isc_socketmgr_t **managerp)
-{
+isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
 	int i;
 
@@ -2515,8 +2498,7 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
-{
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 	int on = 1;
 
 	LOCK(&sock->lock);
@@ -2566,8 +2548,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
  * as well keep things simple rather than having to track them.
  */
 isc_result_t
-isc_socket_listen(isc_socket_t *sock, unsigned int backlog)
-{
+isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
@@ -2770,8 +2751,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
  * Called when a socket with a pending connect() finishes.
  */
 static void
-internal_connect(isc_task_t *me, isc_event_t *ev)
-{
+internal_connect(isc_task_t *me, isc_event_t *ev) {
 	isc_socket_t *sock;
 	isc_socket_connev_t *dev;
 	isc_task_t *task;
@@ -2866,8 +2846,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 }
 
 isc_result_t
-isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp)
-{
+isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	isc_result_t ret;
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -2888,8 +2867,7 @@ isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp)
 }
 
 isc_result_t
-isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
-{
+isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	ISC_SOCKADDR_LEN_T len;
 	isc_result_t ret;
 
@@ -2917,7 +2895,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
  out:
 	UNLOCK(&sock->lock);
 
-	return (ISC_R_SUCCESS);
+	return (ret);
 }
 
 /*
@@ -2925,8 +2903,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
  * queued for task "task" of type "how".  "how" is a bitmask.
  */
 void
-isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
-{
+isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	isc_boolean_t poke_needed;
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -3166,16 +3143,14 @@ isc_socket_sendmark(isc_socket_t *sock,
 }
 
 isc_sockettype_t
-isc_socket_gettype(isc_socket_t *sock)
-{
+isc_socket_gettype(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
 
 	return (sock->type);
 }
 
 isc_boolean_t
-isc_socket_isbound(isc_socket_t *sock)
-{
+isc_socket_isbound(isc_socket_t *sock) {
 	isc_boolean_t val;
 
 	LOCK(&sock->lock);
