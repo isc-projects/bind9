@@ -198,11 +198,8 @@ Building
 	compiler (e.g. the various BSD systems, Linux).
 
 	Parts of the library can be tested by running "make test" from the
-	bin/tests subdirectory.  Running "make all_tests" will build many
-        small test applications that can also exercise a lot of functionality
-        of the library in an isolated way; however, these test programs
-        are not well documented nor directly supported, so they're mostly
-        there for people who really want to get their hands dirty with BIND9.
+	bin/tests subdirectory.
+
 
 Bug Reports and Mailing Lists
 
