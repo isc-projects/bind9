@@ -39,6 +39,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/socket.h>
 #include <isc/task.h>
