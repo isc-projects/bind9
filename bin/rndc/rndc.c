@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.67 2001/07/02 00:07:09 bwelling Exp $ */
+/* $Id: rndc.c,v 1.68 2001/07/09 22:02:15 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -24,7 +24,6 @@
 #include <config.h>
 
 #include <stdlib.h>
-#include <netdb.h>
 
 #include <isc/app.h>
 #include <isc/buffer.h>
@@ -32,6 +31,7 @@
 #include <isc/file.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/netdb.h>
 #include <isc/socket.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.205 2001/06/30 04:43:47 mayer Exp $ */
+/* $Id: dighost.c,v 1.206 2001/07/09 22:02:12 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -29,7 +29,6 @@
 #include <config.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <netdb.h>
 #include <string.h>
 #include <limits.h>
 
