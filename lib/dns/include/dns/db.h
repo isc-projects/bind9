@@ -374,7 +374,7 @@ dns_db_load(dns_db_t *db, char *filename);
  *	This routine is equivalent to calling
  *
  *		dns_db_beginload();
- *		dns_master_load();
+ *		dns_master_loadfile();
  *		dns_db_endload();
  *
  * Requires:
