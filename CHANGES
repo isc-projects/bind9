@@ -1,3 +1,5 @@
+1302.	[port]		libbind: hpux 11.11 interface scaning.
+
 1301.	[func]		Log zone when unable to get private keys to update
 			zone.  Log zone when NXT records are missing from
 			secure zone.
