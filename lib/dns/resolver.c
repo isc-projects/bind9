@@ -3180,7 +3180,7 @@ dns_resolver_create(dns_view_t *view,
 		}
 		result = dns_dispatch_create(res->mctx, res->udpsocket4,
 					     res->buckets[0].task, 4096,
-					     50, 50, 14, &res->dispatch4);
+					     1000, 32768, 14, &res->dispatch4);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocket4;
 	}
@@ -3201,7 +3201,7 @@ dns_resolver_create(dns_view_t *view,
 			goto cleanup_dispatch4;
 		result = dns_dispatch_create(res->mctx, res->udpsocket6,
 					     res->buckets[0].task, 4096, 
-					     50, 50, 14, &res->dispatch6);
+					     1000, 32768, 14, &res->dispatch6);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocket6;
 	}
