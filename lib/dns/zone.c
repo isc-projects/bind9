@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.56 2000/01/19 22:01:54 gson Exp $ */
+ /* $Id: zone.c,v 1.57 2000/01/20 01:13:42 gson Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,7 @@
 #include <dns/dbiterator.h>
 #include <dns/dispatch.h>
 #include <dns/journal.h>
+#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/message.h>
 #include <dns/rcode.h>
