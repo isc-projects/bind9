@@ -1,4 +1,10 @@
 
+  48.	[func]		isc_task_create() no longer takes an mctx.
+			isc_task_mem() has been eliminated.
+
+  47.	[func]		A number of modules now use memory context reference
+			counting.
+
   46.	[func]		Memory contexts are now reference counted.
 			Added isc_mem_inuse() and isc_mem_preallocate().
 			Renamed isc_mem_destroy_check() to
