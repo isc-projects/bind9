@@ -494,8 +494,11 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	}
 	else if (!nosigs) {
 	/*
-		dns_db_deleterdataset(db, node, version, dns_rdatatype_sig,
-				      set->type);
+		result = dns_db_deleterdataset(db, node, version,
+					       dns_rdatatype_sig, set->type);
+		if (result == ISC_R_NOTFOUND)
+			result = ISC_R_SUCCESS;
+		check_result(result, "dns_db_deleterdataset");
 	*/
 	}
 
@@ -691,16 +694,17 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 
 static inline isc_result_t
 next_nonglue(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
-	    dns_name_t *name, dns_dbnode_t **nodep, dns_name_t *lastcut)
+	    dns_name_t *name, dns_dbnode_t **nodep, dns_name_t *origin,
+	    dns_name_t *lastcut)
 {
 	isc_result_t result;
 
-	if (lastcut == NULL)
-		return next_active(db, version, dbiter, name, nodep);
 	do {
 		result = next_active(db, version, dbiter, name, nodep);
 		if (result == ISC_R_SUCCESS) {
-			if (!dns_name_issubdomain(name, lastcut))
+			if (dns_name_issubdomain(name, origin) &&
+			    (lastcut == NULL ||
+			     !dns_name_issubdomain(name, lastcut)))
 				return (ISC_R_SUCCESS);
 			dns_db_detachnode(db, nodep);
 			result = dns_dbiterator_next(dbiter);
@@ -717,6 +721,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_name_t *name, *nextname, *target, *curname, *lastcut;
 	dns_dbiterator_t *dbiter;
 	isc_boolean_t atorigin = ISC_TRUE;
+	dns_name_t *origin;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -731,8 +736,10 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	check_result(result, "dns_db_createiterator()");
 	result = dns_dbiterator_first(dbiter);
 	node = NULL;
-	dns_name_clone(dns_db_origin(db), name);
-	result = next_active(db, version, dbiter, name, &node);
+	origin = dns_db_origin(db);
+	dns_name_clone(origin, name);
+	result = next_nonglue(db, version, dbiter, name, &node, origin,
+			      lastcut);
 	while (result == ISC_R_SUCCESS) {
 		nextnode = NULL;
 		curnode = NULL;
@@ -775,11 +782,11 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		result = dns_dbiterator_next(dbiter);
 		if (result == ISC_R_SUCCESS)
 			result = next_nonglue(db, version, dbiter, nextname,
-					      &nextnode, lastcut);
+					      &nextnode, origin, lastcut);
 		if (result == ISC_R_SUCCESS)
 			target = nextname;
 		else if (result == DNS_R_NOMORE)
-			target = dns_db_origin(db);
+			target = origin;
 		else {
 			target = NULL;	/* Make compiler happy. */
 			fatal("db iteration failed");
