@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.116 2000/08/09 04:54:17 tale Exp $ */
+/* $Id: rbtdb.c,v 1.117 2000/08/10 02:02:10 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -30,6 +30,7 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/masterdump.h>
 #include <dns/rbt.h>
@@ -3688,7 +3689,6 @@ static isc_result_t
 endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	rbtdb_load_t *loadctx;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	rdatasetheader_t *header;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(dbloadp != NULL);
@@ -3706,19 +3706,29 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	UNLOCK(&rbtdb->lock);
 
 	/*
-	 * If there's a NXT rdataset at the zone origin, we consider
-	 * the zone secure.
+	 * If there's a KEY rdataset at the zone origin containing a
+	 * zone key, we consider the zone secure.
 	 */
 	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) == 0) {
-		for (header = rbtdb->origin_node->data;
-		     header != NULL;
-		     header = header->next) {
-			if (header->type == dns_rdatatype_nxt &&
-			    !IGNORE(header))
-			{
-				rbtdb->secure = ISC_TRUE;
-				break;
+		dns_rdataset_t keyset;
+		isc_result_t result;
+
+		dns_rdataset_init(&keyset);
+		result = dns_db_findrdataset(db, rbtdb->origin_node,
+					     NULL, dns_rdatatype_key, 0,
+					     0, &keyset, NULL);
+		if (result == ISC_R_SUCCESS) {
+			dns_rdata_t keyrdata;
+			result = dns_rdataset_first(&keyset);
+			while (result == ISC_R_SUCCESS) {
+				dns_rdataset_current(&keyset, &keyrdata);
+				if (dns_dnssec_iszonekey(&keyrdata)) {
+					rbtdb->secure = ISC_TRUE;
+					break;
+				}
+				result = dns_rdataset_next(&keyset);
 			}
+			dns_rdataset_disassociate(&keyset);
 		}
 	}
 
