@@ -54,13 +54,13 @@ static char root_ns[] =
 "D.ROOT-SERVERS.NET.     3600000 IN      A       128.8.10.90\n"
 "E.ROOT-SERVERS.NET.     3600000 IN      A       192.203.230.10\n"
 "F.ROOT-SERVERS.NET.     3600000 IN      A       192.5.5.241\n"
-"G.ROOT-SERVERS.NET.     3600000 IN      A       192.112.36.4\n";
+"G.ROOT-SERVERS.NET.     3600000 IN      A       192.112.36.4\n"
 "H.ROOT-SERVERS.NET.     3600000 IN      A       128.63.2.53\n"
 "I.ROOT-SERVERS.NET.     3600000 IN      A       192.36.148.17\n"
 "J.ROOT-SERVERS.NET.     3600000 IN      A       198.41.0.10\n"
 "K.ROOT-SERVERS.NET.     3600000 IN      A       193.0.14.129\n"
 "L.ROOT-SERVERS.NET.     3600000 IN      A       198.32.64.12\n"
-"M.ROOT-SERVERS.NET.     3600000 IN      A       202.12.27.33\n"
+"M.ROOT-SERVERS.NET.     3600000 IN      A       202.12.27.33\n";
 
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_db_t **target) {
