@@ -1,3 +1,6 @@
+1209.	[bug]		Dig, host, nslookup were not checking the message ids
+			on the responses. [RT #2454]
+
 1208.	[bug]		dns_master_load*() failed to log a error message if
 			an error was detected when parsing the ownername of
 			a record.  [RT #2448]
