@@ -45,6 +45,9 @@
 /* Define if you have the <linux/capability.h> header file.  */
 #undef HAVE_LINUX_CAPABILITY_H
 
+/* Define if you have the <netinet6/in6.h> header file.  */
+#undef HAVE_NETINET6_IN6_H
+
 /* Define if you have the <sys/sockio.h> header file.  */
 #undef HAVE_SYS_SOCKIO_H
 
