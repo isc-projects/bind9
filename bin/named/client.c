@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.96 2000/06/22 21:49:18 tale Exp $ */
+/* $Id: client.c,v 1.97 2000/06/22 23:04:27 tale Exp $ */
 
 #include <config.h>
 
@@ -722,7 +722,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	rcode = dns_result_torcode(result);
 
 	/*
-	 * message may be an in-progress reply that we had trouble
+	 * Message may be an in-progress reply that we had trouble
 	 * with, in which case QR will be set.  We need to clear QR before
 	 * calling dns_message_reply() to avoid triggering an assertion.
 	 */
