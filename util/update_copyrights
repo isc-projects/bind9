@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.21.4.1 2001/01/09 22:53:46 bwelling Exp $
+# $Id: update_copyrights,v 1.21.4.2 2001/06/14 06:19:56 tale Exp $
 
 require 5.002;
 
@@ -26,6 +26,7 @@ require 5.002;
 my %owner2filename = (
 	"" => "util/COPYRIGHT",
 	"NAI" => "util/COPYRIGHT.NAI",
+	"NOM" => "util/COPYRIGHT.NOM",
 	"BSDI" => "util/COPYRIGHT.BSDI",
 	"BRIEF" => "util/COPYRIGHT.BRIEF",
 	"PORTION" => "util/COPYRIGHT.PORTION",
@@ -35,6 +36,8 @@ my %owner2filename = (
 # the lines of the copyright message.
 
 my %owner2text = ();
+
+my $keyword_pat = '\$(Id|Revision):.*\$';
 
 foreach $owner (keys %owner2filename) {
         my $f = $owner2filename{$owner};
@@ -68,7 +71,7 @@ while (<>) {
         $c_comment = 0;
         $shell_comment = 0;
         $m4_comment = 0;
-        $html_comment = 0;
+        $sgml_comment = 0;
         $zone_comment = 0;
         $man_comment = 0;
         $start_comment = "";
@@ -91,8 +94,8 @@ while (<>) {
         } elsif ($type eq "M4") {
                 $m4_comment = 1;
                 $prefix = "dnl ";
-        } elsif ($type eq "HTML") {
-                $html_comment = 1;
+        } elsif ($type eq "HTML" || $type eq "SGML") {
+                $sgml_comment = 1;
                 $start_comment = "<!--\n";
                 $prefix = " - ";
                 $end_comment = "-->\n";
@@ -163,12 +166,13 @@ while (<>) {
                         next;
                 }
                 while (<SOURCE>) {
-                        if ($_ !~ /^\Q$nonspaceprefix\E/) {
+                        if ($_ !~ /^\Q$nonspaceprefix\E/ ||
+                            $_ =~ /$keyword_pat/) {
                                 $first = $_;
                                 last;
                         }
                 }
-        } elsif ($html_comment) {
+        } elsif ($sgml_comment) {
                 if (/^<!DOCTYPE/) {
                         $before_copyright = $_;
                         $_ = <SOURCE>;
@@ -240,11 +244,14 @@ while (<>) {
                 $last_year = $year;
         }
 
-        ($firstline, @otherlines) = @$textp;
+        ($firstline, $secondline, @otherlines) = @$textp;
 
         $firstline =~ s/\@YEARS\@/$years/;
+        $secondline =~ s/\@YEARS\@/$years/;
 
         print TARGET "$prefix$firstline";
+        print TARGET $secondline =~ /^$/ ? $nonspaceprefix : $prefix;
+	print TARGET "$secondline";
 
         foreach $_ (@otherlines) {
                 print TARGET (/^$/ ? $nonspaceprefix : $prefix);
@@ -255,14 +262,18 @@ while (<>) {
         if ($first eq "") {
                 $first = <SOURCE>;
         }
+
         if (defined($first)) {
-                print TARGET "\n";
+          	if ($type eq 'MAN') {
+                	print TARGET "$nonspaceprefix\n";
+		} else {
+	                print TARGET "\n";
+                }
 
                 undef $/;
                 $_ = <SOURCE>;
                 $/ = "\n";
 
-                my $pat = '\$(Id|Revision):.*\$';
                 my ($start, $end);
                 if ($start_comment ne "") {
                         ($start = $start_comment) =~ s/\s*\n/ /;
@@ -275,7 +286,7 @@ while (<>) {
                         $end = "\n";
                 }
 
-                if ($first !~ /$pat/ && $_ !~ /$pat/) {
+                if ($first !~ /$keyword_pat/ && $_ !~ /$keyword_pat/) {
                         print TARGET "$start\$";
                         print TARGET "Id: ";
                         print TARGET "\$$end\n";
