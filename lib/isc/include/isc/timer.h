@@ -27,7 +27,7 @@
  *
  * Provides timers which are event sources in the task system.
  *
- * Two kinds of timer are supported.
+ * Three types of timers are supported:
  *
  *	'ticker' timers generate a periodic tick event.
  *
@@ -36,9 +36,11 @@
  *	They are used to implement both (possibly expiring) idle timers and
  *	'one-shot' timers.
  *
- * Note: unlike in eventlib, a timer's resources are never reclaimed merely
- * because it generated an event.  A timer reference will remain valid until
- * it is explicitly detached.
+ *	'inactive' timers generate no events.
+ *
+ * Timers can change type.  It is typical to create a timer as
+ * an 'inactive' timer and then change it into a 'ticker' or 
+ * 'once' timer.
  *
  * MP:
  *	The module ensures appropriate synchronization of data structures it
