@@ -1,3 +1,7 @@
+1095.	[func]		libbind: resolver option: no-tld-query.  disables
+			trying unqualified as a tld.  no_tld_query is also
+			supported for FreeBSD compatability.
+
 1094.	[func]		libbind: add support gcc's format string checking.
 
 1093.	[doc]		libbind: miscellaneous nroff fixes.
