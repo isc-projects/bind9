@@ -1,3 +1,6 @@
+  32.   [cleanup]       bin/lwresd/client.c needs <string.h> for memset()
+                        prototype.
+
   31.   [bug]           Use ${LIBTOOL} to compile bin/named/main.@O@.
 
   30.	[func]		config file grammer change to support optional 

@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <string.h>
 #include <sys/types.h>
 
 #include <isc/assertions.h>
