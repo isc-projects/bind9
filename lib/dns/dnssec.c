@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.49 2000/08/21 17:48:46 bwelling Exp $
+ * $Id: dnssec.c,v 1.50 2000/08/21 23:22:01 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -222,6 +222,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	/*
 	 * Digest the SIG rdata.
 	 */
+	INSIST(r.length >= sig.siglen);
 	r.length -= sig.siglen;
 	ret = dst_context_adddata(ctx, &r);
 	if (ret != ISC_R_SUCCESS)
@@ -352,6 +353,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * Digest the SIG rdata (not including the signature).
 	 */
 	dns_rdata_toregion(sigrdata, &r);
+	INSIST(r.length >= sig.siglen);	
 	r.length -= sig.siglen;
 	RUNTIME_CHECK(r.length >= 19);
 
@@ -743,6 +745,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	dns_name_fromregion(&tname, &r);
 	dns_name_toregion(&tname, &r2);
 	isc_region_consume(&r, r2.length + 10);
+	INSIST(r.length >= sig.siglen);	
 	r.length -= sig.siglen;
 	RETERR(dst_context_adddata(ctx, &r));
 
