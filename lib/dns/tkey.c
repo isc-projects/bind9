@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.4 1999/10/26 21:57:52 bwelling Exp $
+ * $Id: tkey.c,v 1.5 1999/10/27 17:50:58 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -293,6 +293,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 		goto failure;
 	}
 
+	dst_key_free(pubkey);
 	isc_buffer_used(secret, &r);
 	tsigkey = NULL;
 	result = dns_tsigkey_create(name, &tkeyin->algorithm, r.base, r.length,
@@ -300,13 +301,10 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	isc_buffer_free(&secret);
 	if (result == ISC_R_NOTFOUND) {
 		tkeyout->error = dns_tsigerror_badalg;
-		dst_key_free(pubkey);
 		return (ISC_R_SUCCESS);
 	}
-	if (result != ISC_R_SUCCESS) {
-		dst_key_free(pubkey);
+	if (result != ISC_R_SUCCESS)
 		goto failure;
-	}
 
 	/* This key is good for a long time */
 	tkeyout->inception = 0;
