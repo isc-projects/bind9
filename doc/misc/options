@@ -26,6 +26,7 @@ options {
         named-xfer <quoted_string>; // obsolete
         pid-file ( <quoted_string> | none );
         port <integer>;
+        querylog <boolean>;
         recursing-file <quoted_string>;
         random-device <quoted_string>;
         recursive-clients <integer>;
