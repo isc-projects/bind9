@@ -143,6 +143,7 @@ typedef struct {
 	rbtdb_versionlist_t		open_versions;
 	/* Locked by tree_lock. */
 	dns_rbt_t *			tree;
+	isc_boolean_t			secure;
 } dns_rbtdb_t;
 
 #define RBTDB_ATTR_LOADED		0x01
@@ -1366,7 +1367,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	isc_boolean_t close_version = ISC_FALSE;
 	isc_boolean_t maybe_zonecut = ISC_FALSE;
 	isc_boolean_t at_zonecut = ISC_FALSE;
-	isc_boolean_t secure_zone;
 	isc_boolean_t wild;
 	isc_boolean_t empty_node;
 	rdatasetheader_t *header, *header_next, *found, *nxtheader;
@@ -1400,11 +1400,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	dns_fixedname_init(&search.zonecut_name);
 	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
 	search.now = 0;
-
-	/*
-	 * XXXDNSSEC Set secure_zone properly when implementing DNSSEC.
-	 */
-	secure_zone = ISC_FALSE;
 
 	/*
 	 * 'wild' will be true iff. we've matched a wildcard.
@@ -1455,7 +1450,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * beneath a zonecut, and there's no matching wildcard.
 		 */
 		result = DNS_R_NXDOMAIN;
-		if (secure_zone)
+		if (search.rbtdb->secure)
 			result = DNS_R_NOTIMPLEMENTED; /* XXXDNSSEC */
 		if (nodep != NULL)
 			*nodep = NULL;
@@ -1627,15 +1622,21 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * The desired type doesn't exist.
 			 */
 			result = DNS_R_NXRDATASET;
-			if (secure_zone && nxtheader == NULL) {
+			if (search.rbtdb->secure && nxtheader == NULL) {
 				/*
 				 * The zone is secure but there's no NXT
 				 * rdataset!
 				 */
 				result = DNS_R_BADDB;
-			} else if (nodep != NULL) {
+				goto node_exit;
+			}
+			if (nodep != NULL) {
 				new_reference(search.rbtdb, node);
 				*nodep = node;
+			}
+			if (search.rbtdb->secure) {
+				bind_rdataset(search.rbtdb, node, nxtheader,
+					      0, rdataset);
 			}
 		}
 		goto node_exit;
@@ -3023,6 +3024,7 @@ static isc_result_t
 endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	rbtdb_load_t *loadctx;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	rdatasetheader_t *header;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(dbloadp != NULL);
@@ -3039,6 +3041,19 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 
 	UNLOCK(&rbtdb->lock);
 	
+	/*
+	 * If there's a NXT rdataset at the zone origin, we consider
+	 * the zone secure.
+	 */
+	for (header = rbtdb->origin_node->data;
+	     header != NULL;
+	     header = header->next) {
+		if (header->type == dns_rdatatype_nxt && !IGNORE(header)) {
+			rbtdb->secure = ISC_TRUE;
+			break;
+		}
+	}
+
 	*dbloadp = NULL;
 
 	isc_mem_put(rbtdb->common.mctx, loadctx, sizeof *loadctx);
@@ -3257,6 +3272,7 @@ dns_rbtdb_create
 	 */
 	rbtdb->references = 1;
 	rbtdb->attributes = 0;
+	rbtdb->secure = ISC_FALSE;
 
 	/*
 	 * Version Initialization.
