@@ -1,5 +1,5 @@
 
-	--- 9.3.0rc1 released ---
+	--- 9.3.0rc2 released ---
 
 1683.	[bug]		dig +sigchase could leak memory. [RT #11445]
 
