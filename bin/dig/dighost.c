@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.249 2002/08/12 18:25:25 mayer Exp $ */
+/* $Id: dighost.c,v 1.250 2002/08/12 19:57:13 mayer Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1764,7 +1764,7 @@ send_udp(dig_query_t *query) {
  */
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
-	dig_lookup_t *l = NULL;
+	dig_lookup_t *l = NULL, *n;
 	dig_query_t *query = NULL, *cq;
 
 	UNUSED(task);
@@ -1800,7 +1800,8 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			debug("making new TCP request, %d tries left",
 			      l->retries);
 			l->retries--;
-			requeue_lookup(l, ISC_TRUE);
+			n = requeue_lookup(l, ISC_TRUE);
+			n->origin = query->lookup->origin;
 			cancel_lookup(l);
 		}
 	} else {
@@ -2372,6 +2373,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		printf(";; Truncated, retrying in TCP mode.\n");
 		n = requeue_lookup(l, ISC_TRUE);
 		n->tcp_mode = ISC_TRUE;
+		n->origin = query->lookup->origin;
 		dns_message_destroy(&msg);
 		isc_event_free(&event);
 		clear_query(query);
