@@ -17,8 +17,6 @@
 
 #include <config.h>
 
-#include <errno.h>		/* XXX */
-
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/stdio.h>
