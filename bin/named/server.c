@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.246 2000/11/13 23:35:24 bwelling Exp $ */
+/* $Id: server.c,v 1.247 2000/11/14 00:37:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1723,7 +1723,8 @@ load_configuration(const char *filename, ns_server_t *server,
  cleanup:
 	dns_aclconfctx_destroy(&aclconfctx);
 
-	dns_c_ctx_delete(&cctx);
+	if (cctx != NULL)
+		dns_c_ctx_delete(&cctx);
 
 	if (view != NULL)
 		dns_view_detach(&view);
