@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.114 2000/10/25 05:43:24 marka Exp $ */
+/* $Id: rdata.c,v 1.115 2000/10/27 21:29:23 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -330,7 +330,7 @@ dns_rdata_init(dns_rdata_t *rdata) {
 	/* ISC_LIST_INIT(rdata->list); */
 }
 
-#define DNS_RDATA_INITALISED(rdata) \
+#define DNS_RDATA_INITIALIZED(rdata) \
 	((rdata)->data == NULL && (rdata)->length == 0 && \
 	 (rdata)->rdclass == 0 && (rdata)->type == 0 && (rdata)->flags == 0 && \
 	 !ISC_LINK_LINKED((rdata), link))
@@ -357,7 +357,7 @@ dns_rdata_invalidate(dns_rdata_t *rdata) {
 void
 dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target) {
 
-	REQUIRE(DNS_RDATA_INITALISED(target));
+	REQUIRE(DNS_RDATA_INITIALIZED(target));
 
 	REQUIRE(DNS_RDATA_VALIDFLAGS(src));
 	REQUIRE(DNS_RDATA_VALIDFLAGS(target));
@@ -415,7 +415,7 @@ dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 {
 
 	REQUIRE(rdata != NULL);
-	REQUIRE(DNS_RDATA_INITALISED(rdata));
+	REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 	REQUIRE(r != NULL);
 
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -453,7 +453,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	REQUIRE(dctx != NULL);
 	if (rdata != NULL) {
-		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
 
@@ -554,7 +554,7 @@ dns_rdata_fromtextgeneric(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_result_t iresult;
 
 	if (rdata != NULL) {
-		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
 
@@ -656,7 +656,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == ISC_TRUE);
 	if (rdata != NULL) {
-		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
 
@@ -841,7 +841,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	REQUIRE(source != NULL);
 	if (rdata != NULL) {
-		REQUIRE(DNS_RDATA_INITALISED(rdata));
+		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
 
