@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.205 2001/08/08 22:54:52 gson Exp $ */
+/* $Id: socket.c,v 1.206 2001/08/12 00:12:14 marka Exp $ */
 
 #include <config.h>
 
@@ -1838,7 +1838,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 	LOCK(&sock->lock);
 	socket_log(sock, NULL, IOEVENT,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
-		   "internal_recv: task %p got event %p", me, ev, sock);
+		   "internal_recv: task %p got event %p", me, ev);
 
 	INSIST(sock->pending_recv == 1);
 	sock->pending_recv = 0;
@@ -1906,7 +1906,7 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 	LOCK(&sock->lock);
 	socket_log(sock, NULL, IOEVENT,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
-		   "internal_send: task %p got event %p", me, ev, sock);
+		   "internal_send: task %p got event %p", me, ev);
 
 	INSIST(sock->pending_send == 1);
 	sock->pending_send = 0;
