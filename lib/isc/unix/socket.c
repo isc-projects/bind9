@@ -86,7 +86,7 @@
 #define TRACE_SEND    	0x0010
 #define TRACE_MANAGER	0x0020
 
-int trace_level = TRACE_WATCHER | TRACE_MANAGER;
+int trace_level = TRACE_WATCHER | TRACE_MANAGER | TRACE_CONNECT;
 #define XTRACE(l, a)	do { if ((l) & trace_level) printf a; } while (0)
 #define XENTER(l, a)	do {						\
 				if ((l) & trace_level)			\
@@ -2358,9 +2358,7 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 	 */
 	if (iev->canceled) {
 		isc_event_free((isc_event_t **)(sock->connect_ev));
-
 		UNLOCK(&sock->lock);
-
 		return;
 	}
 
