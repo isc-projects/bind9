@@ -7,7 +7,7 @@
  287.	[bug]		rndc now works again as "rndc 127.1 reload" (for
 			only that task).  Parsing its configuration file and
 			using digital signatures for authentication has been
-			disabled until named supports the "controls" statment,
+			disabled until named supports the "controls" statement,
 			post-9.0.0.
 
  286.	[bug]		On Solaris 2, when named inherited a signal state 
@@ -135,7 +135,7 @@
 			comments (anywhere in line, not just as the beginning).
 
  252.	[bug]		resolv.conf parser mishandled masks on sortlists.
-			It slso aborted when an unrecognised keyword was seen,
+			It also aborted when an unrecognised keyword was seen,
 			now it silently ignores the entire line.
 
  251.	[bug]		lwresd caught an assertion failure on startup.
