@@ -1,3 +1,7 @@
+1301.	[func]		Log zone when unable to get private keys to update
+			zone.  Log zone when NXT records are missing from
+			secure zone.
+
 1300.	[bug]		libbind: escape '(' and ')' when coverting to
 			presentation form.
 
