@@ -36,6 +36,12 @@
 #define MAX_CHAINS	8
 #define MAX_DEPTH	16
 
+static inline void
+maybe_disassociate(dns_rdataset_t *rdataset) {
+	if (dns_rdataset_isassociated(rdataset))
+		dns_rdataset_disassociate(rdataset);
+}
+
 static isc_result_t
 foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 	unsigned int oprefixlen)
@@ -95,8 +101,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 					result = foreach(a6ctx, &child, depth,
 							 prefixlen);
 					dns_rdataset_disassociate(&child);
-					if (childsig.methods != NULL)
-					  dns_rdataset_disassociate(&childsig);
+					maybe_disassociate(&childsig);
 					if (result != ISC_R_SUCCESS)
 						break;
 				} else if (result == DNS_R_NOTFOUND &&
@@ -115,6 +120,19 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 					a6ctx->depth = depth;
 					a6ctx->prefixlen = prefixlen;
 					(a6ctx->missing)(a6ctx, &name);
+				} else {
+					/*
+					 * Either something went wrong, or
+					 * we got a negative cache response.
+					 * In either case, we can't follow
+					 * this chain further, and we don't
+					 * want to call the 'missing'
+					 * function.
+					 *
+					 * We do want to clean up...
+					 */
+					maybe_disassociate(&child);
+					maybe_disassociate(&childsig);
 				}
 			}
 		} else {
