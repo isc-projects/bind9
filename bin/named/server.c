@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.252 2000/11/15 18:11:32 gson Exp $ */
+/* $Id: server.c,v 1.253 2000/11/23 02:26:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1105,19 +1105,6 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 		      "zone '%s': wrong class for view '%s'",
 			      corigin, cview ? cview->name : "<default view>");
-		result = ISC_R_FAILURE;
-		goto cleanup;
-	}
-
-	/*
-	 * Master zones must have 'file' set.
-	 */
-	if (czone->ztype == dns_c_zone_master &&
-	    czone->u.mzone.file == NULL) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "zone '%s': 'file' not specified",
-			      corigin);
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
