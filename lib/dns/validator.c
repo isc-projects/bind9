@@ -724,9 +724,10 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 				      "verify failure: %s",
 				      dns_result_totext(result));
 	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_NOTFOUND;
-	return (result);
+	INSIST(result == ISC_R_NOMORE);
+
+	validator_log(val, ISC_LOG_INFO, "no valid signature found");
+	return (DNS_R_NOVALIDSIG);
 }
 
 
@@ -865,9 +866,10 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 
 		return (ISC_R_SUCCESS);
 	}
-	validator_log(val, ISC_LOG_DEBUG(3),
-		      "no relevant NXT found");
-	return (result);
+	INSIST(result == ISC_R_NOMORE);
+	
+	validator_log(val, ISC_LOG_DEBUG(3), "no relevant NXT found");
+	return (DNS_R_NOVALIDNXT);
 }
 
 static inline isc_result_t
