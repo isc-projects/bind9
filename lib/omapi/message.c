@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.23 2000/06/22 22:00:00 tale Exp $ */
+/* $Id: message.c,v 1.24 2000/06/23 20:30:25 tale Exp $ */
 
 /*
  * Subroutines for dealing with message objects.
@@ -723,7 +723,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			return (send_status(po, result, message->id,
 					    "no matching handle"));
 
-		result = object_methodremove(object->type, object);
+		result = object_methoddelete(object->type, object);
 		if (result == ISC_R_NOTIMPLEMENTED)
 			return (send_status(po, ISC_R_NOTIMPLEMENTED,
 					    message->id,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: private.h,v 1.18 2000/06/23 20:19:02 tale Exp $ */
+/* $Id: private.h,v 1.19 2000/06/23 20:30:28 tale Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -405,9 +405,9 @@ object_methodlookup(omapi_objecttype_t *type, omapi_object_t **object,
 isc_result_t
 object_methodcreate(omapi_objecttype_t *type, omapi_object_t **object);
 
-#define object_methodremove omapi__object_methodremove
+#define object_methoddelete omapi__object_methoddelete
 isc_result_t
-object_methodremove(omapi_objecttype_t *type, omapi_object_t *object);
+object_methoddelete(omapi_objecttype_t *type, omapi_object_t *object);
 
 #define object_destroytypes omapi__object_destroytypes
 void

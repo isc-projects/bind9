@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.11 2000/06/22 22:00:12 tale Exp $ */
+/* $Id: omapi.h,v 1.12 2000/06/23 20:30:27 tale Exp $ */
 
 /*
  * Definitions for the object management API and protocol.
@@ -220,7 +220,7 @@ omapi_object_register(omapi_objecttype_t **type, const char *name,
 
 		      isc_result_t	((*create)(omapi_object_t **)),
 
-		      isc_result_t	((*remove)(omapi_object_t *)));
+		      isc_result_t	((*delete)(omapi_object_t *)));
 
 isc_result_t
 omapi_object_set(omapi_object_t *handle, omapi_string_t *name,
