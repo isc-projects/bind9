@@ -705,6 +705,8 @@
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000
 ./lib/isc/unix/app.c				C	1999,2000
 ./lib/isc/unix/dir.c				C	1999,2000
+./lib/isc/unix/errno2isc.c                      C       2000
+./lib/isc/unix/errno2isc.h                      C       2000
 ./lib/isc/unix/file.c				C	2000
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000
