@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23 2003/07/28 07:03:15 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.24 2003/11/03 23:56:13 marka Exp $ */
 
 #include <config.h>
 
@@ -2695,6 +2695,12 @@ zone_notify(dns_zone_t *zone) {
 			notify_destroy(notify, ISC_TRUE);
 			UNLOCK_ZONE(zone);
 			return;
+		}
+		if (!loggednotify) {
+			notify_log(zone, ISC_LOG_INFO,
+				   "sending notifies (serial %u)",
+				   serial);
+			loggednotify = ISC_TRUE;
 		}
 		notify = NULL;
 	}
