@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.266 2000/12/02 05:29:15 gson Exp $ */
+/* $Id: zone.c,v 1.267 2000/12/04 23:58:27 gson Exp $ */
 
 #include <config.h>
 
@@ -940,7 +940,7 @@ dns_zone_load(dns_zone_t *zone) {
 			       &db);
 
 	if (result != ISC_R_SUCCESS) {
-		zone_log(zone, me, ISC_LOG_INFO,
+		zone_log(zone, me, ISC_LOG_ERROR,
 			 "creating database: %s", isc_result_totext(result));
 		goto cleanup;
 	}
@@ -1072,7 +1072,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_stub) {
 			if (result == ISC_R_FILENOTFOUND)
-				zone_log(zone, me, ISC_LOG_INFO,
+				zone_log(zone, me, ISC_LOG_DEBUG(1),
 					 "no master file");
 			else
 				zone_log(zone, me, ISC_LOG_ERROR,
@@ -1091,7 +1091,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		 dns_db_nodecount(db));
 	zone->loadtime = loadtime;
 
-	zone_log(zone, me, ISC_LOG_INFO, "loaded");
+	zone_log(zone, me, ISC_LOG_DEBUG(1), "loaded");
 
 	if (result == DNS_R_SEENINCLUDE)
 		zone->flags |= DNS_ZONEFLG_HASINCLUDE;
@@ -2423,7 +2423,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	(void)dns_view_getpeertsig(notify->zone->view, &dstip, &key);
 
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
-	notify_log(notify->zone, ISC_LOG_INFO, "sending NOTIFY to %s",
+	notify_log(notify->zone, ISC_LOG_DEBUG(3), "sending notify to %s",
 		   addrbuf);
 	switch (isc_sockaddr_pf(&notify->dst)) {
 	case PF_INET:
@@ -2581,7 +2581,7 @@ zone_notify(dns_zone_t *zone) {
 	if (notifytype == dns_notifytype_no)
 		return;
 
-	notify_log(zone, ISC_LOG_INFO, "queuing notifies");
+	notify_log(zone, ISC_LOG_DEBUG(3), "queueing notifies");
 
 	origin = &zone->origin;
 
@@ -2848,7 +2848,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_get(&now);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		zone_log(zone, me, ISC_LOG_INFO, "exiting");
+		zone_log(zone, me, ISC_LOG_DEBUG(1), "exiting");
 		exiting = ISC_TRUE;
 		goto next_master;
 	}
@@ -3091,7 +3091,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
 		if (zone->type == dns_zone_slave) {
 			zone_log(zone, me, ISC_LOG_INFO,
-				 "truncated UDP answer initiating "
+				 "truncated UDP answer, initiating "
 				 "TCP zone xfer %s",
 				 master);
 			goto tcp_transfer;
@@ -3157,7 +3157,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (soacnt != 1) {
 		zone_log(zone, me, ISC_LOG_INFO,
-		   	 "Answer SOA count (%d) != 1: master %s",
+		   	 "answer SOA count (%d) != 1: master %s",
 			 soacnt, master);
 		goto next_master;
 	}
@@ -4431,12 +4431,12 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_SUCCESS)
 		result = dns_rcode_totext(message->rcode, &buf);
 	if (result == ISC_R_SUCCESS)
-		notify_log(notify->zone, ISC_LOG_INFO,
-			   "NOTIFY answer from %s: %.*s",
+		notify_log(notify->zone, ISC_LOG_DEBUG(3),
+			   "notify response from %s: %.*s",
 			   addrbuf, buf.used, rcode);
 	else
-		notify_log(notify->zone, ISC_LOG_INFO,
-			   "NOTIFY to %s failed: %s", addrbuf,
+		notify_log(notify->zone, ISC_LOG_DEBUG(1),
+			   "notify to %s failed: %s", addrbuf,
 			   dns_result_totext(result));
 
 	/*
@@ -4454,8 +4454,8 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 		notify_send_queue(notify);
 	} else {
 		if (result == ISC_R_TIMEDOUT)
-			notify_log(notify->zone, ISC_LOG_INFO,
-				   "NOTIFY to %s: retries exceeded", addrbuf);
+			notify_log(notify->zone, ISC_LOG_DEBUG(1),
+				   "notify to %s: retries exceeded", addrbuf);
 		notify_destroy(notify, ISC_FALSE);
 	}
 	if (message != NULL)
@@ -5754,7 +5754,7 @@ dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-		      DNS_LOGMODULE_ZONE, ISC_LOG_INFO,
+		      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 		      "database (%p) destroyed", (void*) db);
 }
 #endif
