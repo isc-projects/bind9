@@ -1,6 +1,10 @@
 1229.	[bug]		named would crash if it received a TSIG signed
 			query as part of an AXFR response. [RT #2570]
 
+1227.	[bug]		dns_lex_getmastertoken() now returns ISC_R_BADNUMBER
+			if a number was expected and some other token was
+			found. [RT#2532]
+
 1222.	[bug]		Specifying 'port *' did not always result in a system
 			selected (non-reserved) port being used. [RT #2537]
 
