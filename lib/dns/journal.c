@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.78 2001/08/30 05:04:17 marka Exp $ */
+/* $Id: journal.c,v 1.79 2001/09/04 04:14:31 mayer Exp $ */
 
 #include <config.h>
 
@@ -1956,7 +1956,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	/*
 	 * See if there is any work to do.
 	 */
-	if (j->header.end.offset < target_size) {
+	if ((isc_uint32_t) j->header.end.offset < target_size) {
 		dns_journal_destroy(&j);
 		return (ISC_R_SUCCESS);
 	}
@@ -1974,8 +1974,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	for (i = 0; i < j->header.index_size; i++) {
 		if (POS_VALID(j->index[i]) &&
 		    DNS_SERIAL_GE(serial, j->index[i].serial) &&
-		    (j->header.end.offset - j->index[i].offset >=
-		     target_size / 2) &&
+		    ((isc_uint32_t)(j->header.end.offset - j->index[i].offset)
+		     >= target_size / 2) &&
 		    j->index[i].offset > best_guess.offset)
 			best_guess = j->index[i];
 	}
@@ -1987,8 +1987,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 			break;
 
 		if (DNS_SERIAL_GE(serial, current_pos.serial) &&
-		    ((j->header.end.offset - current_pos.offset) >=
-		     (target_size / 2)) &&
+		   ((isc_uint32_t)(j->header.end.offset - current_pos.offset)
+		     >= (target_size / 2)) &&
 		    current_pos.offset > best_guess.offset)
 			best_guess = current_pos;
 		else
@@ -2002,8 +2002,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	/*
 	 * Enough space to proceed?
 	 */
-	if (j->header.end.offset - best_guess.offset >
-	     best_guess.offset - indexend) {
+	if ((isc_uint32_t) (j->header.end.offset - best_guess.offset) >
+	     (isc_uint32_t) (best_guess.offset - indexend)) {
 		dns_journal_destroy(&j);
 		return (ISC_R_NOSPACE);
 	}
