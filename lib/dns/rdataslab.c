@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.15 2000/08/01 01:22:49 tale Exp $ */
+/* $Id: rdataslab.c,v 1.16 2000/09/01 01:35:19 bwelling Exp $ */
 
 #include <config.h>
+
+#include <stdlib.h>
 
 #include <isc/mem.h>
 #include <isc/region.h>
@@ -29,21 +31,66 @@
 #include <dns/rdataset.h>
 #include <dns/rdataslab.h>
 
+/* Note: the "const void *" are just to make qsort happy. */
+static int
+compare_rdata(const void *p1, const void *p2) {
+	const dns_rdata_t *rdata1 = p1;
+	const dns_rdata_t *rdata2 = p2;
+	int len = ISC_MIN(rdata1->length, rdata2->length);
+	int n;
+
+	n = memcmp(rdata1->data, rdata2->data, len);
+	if (n != 0)
+		return (n);
+	return (rdata1->length - rdata2->length);
+}
+
 isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			   isc_region_t *region, unsigned int reservelen)
 {
-	dns_rdata_t	rdata;
+	dns_rdata_t    *rdatas;
 	unsigned char  *rawbuf;
 	unsigned int	buflen;
 	isc_result_t	result;
 	unsigned int	nitems;
+	unsigned int	nalloc;
+	unsigned int	i;
 
 	result = dns_rdataset_first(rdataset);
 	REQUIRE(result == ISC_R_SUCCESS);
 
 	buflen = reservelen + 2;
-	nitems = 0;
+
+	nalloc = dns_rdataset_count(rdataset);
+	nitems = nalloc;
+
+	rdatas = isc_mem_get(mctx, nalloc * sizeof(dns_rdata_t));
+	if (rdatas == NULL)
+		return (ISC_R_NOMEMORY);
+
+	/*
+	 * Save all of the rdata members into an array.
+	 */
+	for (i = 0; i < nalloc; i++) {
+		INSIST(result == ISC_R_SUCCESS);
+		dns_rdataset_current(rdataset, &rdatas[i]);
+		result = dns_rdataset_next(rdataset);
+	}
+	INSIST(result == ISC_R_NOMORE);
+
+	qsort(rdatas, nalloc, sizeof(dns_rdata_t), compare_rdata);
+
+	/*
+	 * Remove duplicates.
+	 */
+	for (i = 1; i < nalloc; i++) {
+		if (compare_rdata(&rdatas[i-1], &rdatas[i]) == 0) {
+			rdatas[i-1].data = NULL;
+			rdatas[i-1].length = 0;
+			nitems--;
+		}
+	}
 
 	/*
 	 * Run through the rdataset list once, counting up the size
@@ -52,25 +99,26 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	 * for the number of records, and 2 for each rdata length, and
 	 * then the rdata itself.
 	 */
-	do {
-		dns_rdataset_current(rdataset, &rdata);
-		buflen += (2 + rdata.length);
-
-		nitems++;
-
+	for (i = 0; i < nalloc; i++) {
+		if (rdatas[i].data != NULL)
+			buflen += (2 + rdatas[i].length);
 		result = dns_rdataset_next(rdataset);
 	} while (result == ISC_R_SUCCESS);
 
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
+		isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
 		return (result);
+	}
 
 	/*
 	 * Allocate the memory, set up a buffer, start copying in
 	 * data.
 	 */
 	rawbuf = isc_mem_get(mctx, buflen);
-	if (rawbuf == NULL)
+	if (rawbuf == NULL) {
+		isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
 		return (ISC_R_NOMEMORY);
+	}
 
 	region->base = rawbuf;
 	region->length = buflen;
@@ -79,26 +127,16 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 
 	*rawbuf++ = (nitems & 0xff00) >> 8;
 	*rawbuf++ = (nitems & 0x00ff);
-	result = dns_rdataset_first(rdataset);
-	REQUIRE(result == ISC_R_SUCCESS);
-	do {
-		dns_rdataset_current(rdataset, &rdata);
-		*rawbuf++ = (rdata.length & 0xff00) >> 8;
-		*rawbuf++ = (rdata.length & 0x00ff);
-		memcpy(rawbuf, rdata.data, rdata.length);
-		rawbuf += rdata.length;
-
-		result = dns_rdataset_next(rdataset);
-	} while (result == ISC_R_SUCCESS);
-
-	if (result != ISC_R_NOMORE) {
-		isc_mem_put(mctx, region->base, region->length);
-		region->base = NULL;
-		region->length = 0;
-
-		return (result);
+	for (i = 0; i < nalloc; i++) {
+		if (rdatas[i].data == NULL)
+			continue;
+		*rawbuf++ = (rdatas[i].length & 0xff00) >> 8;
+		*rawbuf++ = (rdatas[i].length & 0x00ff);
+		memcpy(rawbuf, rdatas[i].data, rdatas[i].length);
+		rawbuf += rdatas[i].length;
 	}
 
+	isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
 	return (ISC_R_SUCCESS);
 }
 
@@ -122,6 +160,50 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 	return ((unsigned int)(current - slab));
 }
 
+static inline isc_boolean_t
+rdata_in_slab(unsigned char *slab, unsigned int reservelen,
+	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
+	      dns_rdata_t *rdata)
+{
+	unsigned int count, i;
+	isc_region_t region;
+	unsigned char *current;
+	dns_rdata_t trdata;
+
+	current = slab + reservelen;
+	count = *current++ * 256;
+	count += *current++;
+
+	dns_rdata_init(&trdata);
+
+	for (i = 0; i < count; i++) {
+		region.length = *current++ * 256;
+		region.length += *current++;
+		region.base = current;
+		dns_rdata_fromregion(&trdata, rdclass, type, &region);
+		current += region.length;
+		if (dns_rdata_compare(&trdata, rdata) == 0)
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
+static inline void
+rdata_from_slab(unsigned char **current,
+	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
+	      dns_rdata_t *rdata)
+{
+	unsigned char *tcurrent = *current;
+	isc_region_t region;
+
+	region.length = *tcurrent++ * 256;
+	region.length += *tcurrent++;
+	region.base = tcurrent;
+	tcurrent += region.length;
+	dns_rdata_fromregion(rdata, rdclass, type, &region);
+	*current = tcurrent;
+}
+
 isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
@@ -130,9 +212,12 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 {
 	unsigned char *ocurrent, *ostart, *ncurrent, *tstart, *tcurrent;
 	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
-	isc_region_t oregion, nregion;
+	isc_region_t nregion;
 	dns_rdata_t ordata, nrdata;
 	isc_boolean_t added_something = ISC_FALSE;
+	unsigned int oadded = 0;
+	unsigned int nadded = 0;
+	unsigned int nncount = 0;
 
 	/*
 	 * Merge 'oslab' and 'nslab'.
@@ -185,27 +270,20 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		nregion.length += *ncurrent++;
 		nregion.base = ncurrent;
 		dns_rdata_fromregion(&nrdata, rdclass, type, &nregion);
-		ocurrent = ostart;
-		for (count = 0; count < ocount; count++) {
-			oregion.length = *ocurrent++ * 256;
-			oregion.length += *ocurrent++;
-			oregion.base = ocurrent;
-			dns_rdata_fromregion(&ordata, rdclass, type, &oregion);
-			ocurrent += oregion.length;
-			if (dns_rdata_compare(&ordata, &nrdata) == 0)
-				break;
-		}
-		if (count == ocount) {
+		if (!rdata_in_slab(oslab, reservelen, rdclass, type, &nrdata))
+		{
 			/*
 			 * This rdata isn't in the old slab.
 			 */
 			tlength += nregion.length + 2;
 			tcount++;
+			nncount++;
 			added_something = ISC_TRUE;
 		}
 		ncurrent += nregion.length;
 		ncount--;
 	} while (ncount > 0);
+	ncount = nncount;
 
 	if (!added_something && !force)
 		return (DNS_R_UNCHANGED);
@@ -226,44 +304,56 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	*tcurrent++ = (tcount & 0x00ff);
 
 	/*
-	 * Copy the old slab.
+	 * Merge the two slabs.
 	 */
-	memcpy(tcurrent, ostart, olength);
-	tcurrent += olength;
+	ocurrent = ostart;
+	if (ocount > 0)
+       		rdata_from_slab(&ocurrent, rdclass, type, &ordata);
 
-	/*
-	 * Copy the new parts of the new slab.
-	 */
-	ncurrent = nslab + reservelen;
-	ncount = *ncurrent++ * 256;
-	ncount += *ncurrent++;
-	do {
-		nregion.length = *ncurrent++ * 256;
-		nregion.length += *ncurrent++;
-		nregion.base = ncurrent;
-		dns_rdata_fromregion(&nrdata, rdclass, type, &nregion);
-		ocurrent = ostart;
-		for (count = 0; count < ocount; count++) {
-			oregion.length = *ocurrent++ * 256;
-			oregion.length += *ocurrent++;
-			oregion.base = ocurrent;
-			dns_rdata_fromregion(&ordata, rdclass, type, &oregion);
-			ocurrent += oregion.length;
-			if (dns_rdata_compare(&ordata, &nrdata) == 0)
-				break;
+	ncurrent = nslab + reservelen + 2;
+	if (ncount > 0) {
+		do {
+       			rdata_from_slab(&ncurrent, rdclass, type, &nrdata);
+		} while (rdata_in_slab(oslab, reservelen, rdclass,
+				       type, &nrdata));
+	}
+
+	while (oadded < ocount || nadded < ncount) {
+		isc_boolean_t fromold;
+		if (oadded == ocount)
+			fromold = ISC_FALSE;
+		else if (nadded == ncount)
+			fromold = ISC_TRUE;
+		else
+			fromold = ISC_TF(compare_rdata(&ordata, &nrdata) < 0);
+		if (fromold) {
+			length = ordata.length;
+			*tcurrent++ = (length & 0xff00) >> 8;
+			*tcurrent++ = (length & 0x00ff);
+			memcpy(tcurrent, ordata.data, length);
+			tcurrent += length;
+			oadded++;
+			if (oadded < ocount) {
+       				rdata_from_slab(&ocurrent, rdclass, type,
+						&ordata);
+			}
+		} else {
+			length = nrdata.length;
+			*tcurrent++ = (length & 0xff00) >> 8;
+			*tcurrent++ = (length & 0x00ff);
+			memcpy(tcurrent, nrdata.data, length);
+			tcurrent += length;
+			nadded++;
+			if (nadded < ncount) {
+				do {
+       					rdata_from_slab(&ncurrent, rdclass,
+							type, &nrdata);
+				} while (rdata_in_slab(oslab, reservelen,
+						       rdclass, type,
+						       &nrdata));
+			}
 		}
-		if (count == ocount) {
-			/*
-			 * This rdata isn't in the old slab.
-			 */
-			*tcurrent++ = (nregion.length & 0xff00) >> 8;
-			*tcurrent++ = (nregion.length & 0x00ff);
-			memcpy(tcurrent, nregion.base, nregion.length);
-			tcurrent += nregion.length;
-		}
-		ncurrent += nregion.length;
-		ncount--;
-	} while (ncount > 0);
+	}
 
 	*tslabp = tstart;
 
@@ -405,4 +495,42 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	*tslabp = tstart;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_boolean_t
+dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
+		    unsigned int reservelen)
+{
+	unsigned char *current1, *current2;
+	unsigned int count1, count2;
+	unsigned int length1, length2;
+
+	current1 = slab1 + reservelen;
+	count1 = *current1++ * 256;
+	count1 += *current1++;
+
+	current2 = slab2 + reservelen;
+	count2 = *current2++ * 256;
+	count2 += *current2++;
+
+	if (count1 != count2)
+		return (ISC_FALSE);
+
+	while (count1 > 0) {
+		length1 = *current1++ * 256;
+		length1 += *current1++;
+
+		length2 = *current2++ * 256;
+		length2 += *current2++;
+
+		if (length1 != length2 ||
+		    memcmp(current1, current2, length1) != 0)
+			return (ISC_FALSE);
+
+		current1 += length1;
+		current2 += length1;
+
+		count1--;
+	}
+	return (ISC_TRUE);
 }
