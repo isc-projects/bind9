@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_getnameinfo.3,v 1.1 2000/06/27 21:53:06 jim Exp $
+.\" $Id: lwres_getnameinfo.3,v 1.2 2000/06/28 21:43:41 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_GETNAMEINFO 3
@@ -80,11 +80,10 @@ the address in the
 structure is presented as a dotted-decimal string for an IPv4
 address or an IPv6 hex address if the hostname is not found in the
 DNS.
-.It Li NI_NAMEREQ
+.It Li NI_NAMEREQD
 a name is required. If the hostname cannot be found in the DNS and
-this flag is set, an error -
-.Er ENI_NOHOSTNAME
-- is returned.
+this flag is set, a non-zero error code
+is returned.
 .It Li NI_NUMERICSERV
 service name is returned as a digit string representing the port number.
 .It Li NI_DGRAM
@@ -111,28 +110,31 @@ is called immediately before
 .Fn lwres_getnameinfo
 returns so that the created resolver context gets discarded.
 .Sh RETURN VALUES
-.Fn wres_getnameinfo 
+.Fn lwres_getnameinfo 
 returns 0 on success or a non-zero error code if an error occurs.
-The error codes are:
-.Bl -tag -width ENI_NOSERVNAME
-.It Li ENI_NOSOCKET
-there was no socket in
-.Fa sa
-\fBBUT ENI_NOSOCKET IS ZERO!!!!\fP
-.It Li ENI_NOSERVNAME
-no service name was found
-.It Li ENI_NOHOSTNAME
-no hostname was found
-.It Li ENI_MEMORY
-memory could not be allocated
-.It Li ENI_SYSTEM
-a system error occurred
-.It Li ENI_FAMILY
-an unsupported protocol family was requested
-.It Li ENI_SALEN
-.Fa salen
-is the wrong number of bytes for the address in
-.Fa sa .
+.\"
+.\"	The error codes below were invented by the ISC/Nominum. They
+.\"	should be defined in RFC2133 before getting documented here.
+.\"	XXXJR 28/6/00
+.\" The error codes are:
+.\" Bl -tag -width ENI_NOSERVNAME
+.\" It Li ENI_NOSOCKET
+.\" there was no socket in
+.\" Fa sa
+.\" It Li ENI_NOSERVNAME
+.\" no service name was found
+.\" It Li ENI_NOHOSTNAME
+.\" no hostname was found
+.\" It Li ENI_MEMORY
+.\" memory could not be allocated
+.\" It Li ENI_SYSTEM
+.\" a system error occurred
+.\" It Li ENI_FAMILY
+.\" an unsupported protocol family was requested
+.\" It Li ENI_SALEN
+.\" Fa salen
+.\" is the wrong number of bytes for the address in
+.\" Fa sa .
 .Sh SEE ALSO
 .Xr getnameinfo 3 ,
 .Xr RFC2133 ,
