@@ -284,15 +284,16 @@ timer_create(timer_manager_t manager, timer_type_t type,
 
 isc_result
 timer_reset(timer_t timer, timer_type_t type,
-	    os_time_t expires, os_time_t interval)
+	    os_time_t expires, os_time_t interval, boolean_t purge)
 {
 	os_time_t now;
 	timer_manager_t manager;
 	isc_result result;
 
 	/*
-	 * Change the timer's type, expires, and interval values to the
-	 * given values.
+	 * Change the timer's type, expires, and interval values to the given
+	 * values.  If 'purge' is TRUE, any pending events from this timer
+	 * are purged from its task's event queue.
 	 */
 
 	REQUIRE(VALID_TIMER(timer));
@@ -316,6 +317,8 @@ timer_reset(timer_t timer, timer_type_t type,
 	LOCK(&manager->lock);
 	LOCK(&timer->lock);
 
+	if (purge)
+		task_purge_events(timer->task, timer, TASK_EVENT_ANYEVENT);
 	timer->type = type;
 	timer->expires = expires;
 	timer->interval = interval;
@@ -331,31 +334,6 @@ timer_reset(timer_t timer, timer_type_t type,
 	UNLOCK(&manager->lock);
 
 	return (result);
-}
-
-isc_result
-timer_shutdown(timer_t timer) {
-	timer_manager_t manager;
-
-	/*
-	 * Make 'timer' inactive, and purge any pending timer events for
-	 * this timer in the timer's task's event queue.
-	 */
-
-	REQUIRE(VALID_TIMER(timer));
-	manager = timer->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
-	LOCK(&manager->lock);
-	LOCK(&timer->lock);
-
-	task_purge_events(timer->task, timer, TASK_EVENT_ANYEVENT);
-	deschedule(timer);
-	
-	UNLOCK(&timer->lock);
-	UNLOCK(&manager->lock);
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result

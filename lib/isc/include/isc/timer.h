@@ -54,6 +54,7 @@
  ***/
 
 #include <isc/result.h>
+#include <isc/boolean.h>
 #include <isc/time.h>
 #include <isc/task.h>
 #include <isc/event.h>
@@ -146,10 +147,12 @@ isc_result
 timer_reset(timer_t timer,
 	    timer_type_t type,
 	    os_time_t expires,
-	    os_time_t interval);
+	    os_time_t interval,
+	    boolean_t purge);
 /*
  * Change the timer's type, expires, and interval values to the given
- * values.
+ * values.  If 'purge' is TRUE, any pending events from this timer
+ * are purged from its task's event queue.
  *	
  * Requires:
  *
@@ -168,26 +171,6 @@ timer_reset(timer_t timer,
  *
  *	Success
  *	No memory
- *	Unexpected error
- */
-
-isc_result
-timer_shutdown(timer_t timer);
-/*
- * Make 'timer' inactive, and purge any pending timer events for this timer
- * in the timer's task's event queue.
- *
- * Requires:
- *
- *	'timer' is a valid timer
- *
- * Ensures:
- *
- *	No events for this timer remain in its task's event queue.
- *
- * Returns:
- *
- *	Success
  *	Unexpected error
  */
 

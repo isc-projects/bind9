@@ -47,7 +47,8 @@ tick(task_t task, task_event_t event)
 		interval.seconds = 4;
 		interval.nanoseconds = 0;
 		printf("*** resetting ti3 ***\n");
-		INSIST(timer_reset(ti3, timer_type_once, expires, interval)
+		INSIST(timer_reset(ti3, timer_type_once, expires, interval,
+				   TRUE)
 		       == ISC_R_SUCCESS);
 	}
 
