@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.24 2000/09/27 14:52:22 ogud Exp $
+# $Id: ifconfig.sh,v 1.25 2000/11/11 00:19:24 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -124,6 +124,6 @@ case "$1" in
 	;;
 
 	*)
-		echo "Usage: $0 {start|stop}"
+		echo "Usage: $0 { up | down }"
 		exit 1
 esac
