@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.8 2000/02/26 19:57:00 tale Exp $ */
+/* $Id: log_test.c,v 1.9 2000/03/01 17:35:00 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -47,7 +47,7 @@ char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 int
 main (int argc, char **argv) {
 	char *progname, *syslog_file, *message;
-	int ch, i, file_versions;
+	int ch, i, file_versions, stderr_line;
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_log_t *lctx;
 	isc_logconfig_t *lcfg;
@@ -78,7 +78,7 @@ main (int argc, char **argv) {
 			    file_versions != ISC_LOG_ROLLNEVER &&
 			    file_versions != ISC_LOG_ROLLINFINITE) {
 				fprintf(stderr, "%s: file rotations must be "
-					"%d (ISC_LOG_ROLLNEVER), "
+					"%d (ISC_LOG_ROLLNEVER),\n\t"
 					"%d (ISC_LOG_ROLLINFINITE) "
 					"or > 0\n", progname,
 					ISC_LOG_ROLLNEVER,
@@ -99,6 +99,14 @@ main (int argc, char **argv) {
 		fprintf(stderr, usage, progname);
 		exit(1);
 	}
+
+	fprintf(stderr, "EXPECT:\n%s%d%s%s%s",
+		"8 lines to stderr (first 5 numbered)\n",
+		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER ? 1 :
+		file_versions > 0 ? file_versions + 1 : FILE_VERSIONS + 1,
+		" /tmp/test_log* files, and\n",
+		"2 lines to syslog\n",
+		"lines ending with exclamation marks are errors\n\n");
 
 	fprintf(stderr, "==> stderr begin\n");
 	isc_log_opensyslog(progname, LOG_PID, LOG_DAEMON);
@@ -169,20 +177,26 @@ main (int argc, char **argv) {
 	 * no channel has been specified and a category which was specified
 	 * but not with the named module.
 	 */
+	stderr_line = 1;
+
 	isc_log_write(lctx, DNS_LOGCATEGORY_SECURITY, DNS_LOGMODULE_RBT,
-		      ISC_LOG_CRITICAL, "%s",
-		      "Unspecified category and unspecified module to stderr");
+		      ISC_LOG_CRITICAL, "%s (%d)",
+		      "Unspecified category and unspecified module to stderr",
+		      stderr_line++);
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBT,
-		      ISC_LOG_CRITICAL, "%s",
-		      "Specified category and unspecified module to stderr");
+		      ISC_LOG_CRITICAL, "%s (%d)",
+		      "Specified category and unspecified module to stderr",
+		      stderr_line++);
 
 	/*
 	 * Write to default_syslog, default_stderr and default_debug.
+	 * default_debug should end up not be used, because it has the
+	 * ISC_LOG_DEBUGONLY flag set, and the debug level is not set.
 	 */
 	isc_log_write(lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_WARNING, "%s%s",
-		      "Using the predefined channels to send ",
-		      "to syslog+stderr+stderr");
+		      ISC_LOG_WARNING, "%s (%d)",
+		      "Using the predefined channels to send to syslog+stderr",
+		      stderr_line++);
 
 	/*
 	 * Write to predefined null channel.
@@ -206,8 +220,13 @@ main (int argc, char **argv) {
 	 */
 	if (file_versions >= 0 || file_versions == ISC_LOG_ROLLINFINITE) {
 
-		if (file_versions == ISC_LOG_ROLLINFINITE)
-			file_versions = FILE_VERSIONS; /* Whatever. */
+		/*
+		 * If file_versions is 0 or ISC_LOG_ROLLINFINITE, write
+		 * the "should not appear" and "should be in file" messages
+		 * to ensure they get rolled.
+		 */
+		if (file_versions <= 0)
+			file_versions = FILE_VERSIONS;
 
 		else
 			isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
@@ -248,10 +267,21 @@ main (int argc, char **argv) {
 	isc_log_setdebuglevel(lctx, 3);
 
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		      ISC_LOG_DEBUG(1), "Dynamic debugging to stderr");
+		      ISC_LOG_DEBUG(1), "%s (%d)",
+		      "Dynamic debugging to stderr", stderr_line++);
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		      ISC_LOG_DEBUG(5),
 		      "This debug level is too high and should not appear!");
+
+	/*
+	 * Test the ISC_LOG_DEBUGONLY feature of default_debug.
+	 */
+	CHECK_ISC(isc_log_usechannel(lcfg, "default_debug",
+				     DNS_LOGCATEGORY_RESOLVER, NULL));
+	isc_log_write(lctx, DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_CACHE,
+		      ISC_LOG_WARNING, "%s (%d)",
+		      "Dynamic debugging with default_debug to stderr",
+		      stderr_line++);
 
 	/*
 	 * Test out the duplicate filtering using the debug_test channel.
@@ -260,7 +290,7 @@ main (int argc, char **argv) {
 	message = "This message should appear only once on stderr";
 
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		       ISC_LOG_CRITICAL, message);
+		       ISC_LOG_CRITICAL, "%s", message, stderr_line++);
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		       ISC_LOG_CRITICAL, message);
 
