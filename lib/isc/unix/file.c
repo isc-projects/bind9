@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.24 2000/10/07 06:55:01 marka Exp $ */
+/* $Id: file.c,v 1.25 2000/10/19 01:10:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -155,7 +155,6 @@ isc_file_renameunique(const char *file, char *templet) {
 	int fd = -1;
 	int res = 0;
 	isc_result_t result = ISC_R_SUCCESS;
-	struct stat stats;
 
 	fd = mkstemp(templet);
 	if (fd == -1) {
