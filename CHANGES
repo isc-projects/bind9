@@ -1,3 +1,8 @@
+ 294.	[bug]		If we run out of space in while processing glue
+			when reading a master file and commit "current name"
+			reverts to "name_current" instead of staying as
+			"name_glue".
+
  293.	[port]		Add support for freebsd 4.0 system tests.
 
  292.	[bug]		Due to problems with the way some operating systems
