@@ -32,6 +32,9 @@ release.
     Resolving IPv6 addresses
     Doing queries over IPv6
 
+ - Add a marker line like "--- 8.2.3-T4B (RC2) released ---" to
+   the CHANGES file.
+
  - Tag the CVS source tree with the final tag
 
  - Export the source tree in to a fresh directory by
