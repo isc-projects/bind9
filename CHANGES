@@ -3,7 +3,7 @@
 			locked but were not. [RT #801]
 
  708.	[bug]		When building with --with-openssl, the openssl headers
-			included should not be used. [RT #702]
+			included with BIND 9 should not be used. [RT #702]
 
 	--- 9.1.1rc1 released ---
 
