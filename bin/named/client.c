@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.162 2001/04/16 21:18:10 bwelling Exp $ */
+/* $Id: client.c,v 1.163 2001/04/16 22:10:44 gson Exp $ */
 
 #include <config.h>
 
@@ -1284,7 +1284,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		{
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
-				      "blackholed query");
+				      "blackholed UDP datagram");
 			ns_client_next(client, ISC_R_SUCCESS);
 			goto cleanup;
 		}
