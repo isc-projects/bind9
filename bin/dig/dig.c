@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.67 2000/07/14 17:57:23 mws Exp $ */
+/* $Id: dig.c,v 1.68 2000/07/14 21:33:02 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -862,28 +862,19 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			rv++;
 			rc--;
 		} else {
-			/*
-			 * If we decide to allow query type and class
-			 * to be specified (without -t and -c options)
-			 * before a host is given, all that needs to
-			 * happen is the have_host test here get removed.
-			 * Nothing should break by doing this.
-			 */
- 			if (have_host) {
-				if (strncmp(rv[0], "ixfr=", 5) == 0) {
-					strcpy(lookup->rttext, "ixfr");
-					lookup->ixfr_serial = 
-						atoi(&rv[0][5]);
-					continue;
-				}
-				if (istype(rv[0])) {
-					strncpy(lookup->rttext, rv[0], MXRD);
-					continue;
-				} else if (isclass(rv[0])) {
-					strncpy(lookup->rctext, rv[0],
-						MXRD);
-					continue;
-				}
+			if (strncmp(rv[0], "ixfr=", 5) == 0) {
+				strcpy(lookup->rttext, "ixfr");
+				lookup->ixfr_serial = 
+					atoi(&rv[0][5]);
+				continue;
+			}
+			if (istype(rv[0])) {
+				strncpy(lookup->rttext, rv[0], MXRD);
+				continue;
+			} else if (isclass(rv[0])) {
+				strncpy(lookup->rctext, rv[0],
+					MXRD);
+				continue;
 			}
 			lookup=clone_lookup(default_lookup, ISC_TRUE);
 			strncpy(lookup->textname, rv[0], MXNAME-1);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.88 2000/07/14 20:14:36 mws Exp $ */
+/* $Id: dighost.c,v 1.89 2000/07/14 21:33:03 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -387,7 +387,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	debug("before insertion, init@%p "
 	       "-> %p, new@%p -> %p",
 	      lookold, lookold->link.next, looknew, looknew->link.next);
-	ISC_LIST_INSERTAFTER(lookup_list, lookold, looknew, link);
+	ISC_LIST_PREPEND(lookup_list, looknew, link);
 	debug("after insertion, init -> "
 	      "%p, new = %p, new -> %p", 
 	      lookold, looknew, looknew->link.next);
@@ -1504,6 +1504,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		l = query->lookup;
 		clear_query(query);
 		check_next_lookup(l);
+		UNLOCK_LOOKUP;
 		return;
 	}
 	if (sevent->result != ISC_R_SUCCESS) {
@@ -1523,6 +1524,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		INSIST(sockcount >= 0);
 		isc_event_free(&event);
 		check_next_lookup(query->lookup);
+		UNLOCK_LOOKUP;
 		return;
 	}
 	b = ISC_LIST_HEAD(sevent->bufferlist);
@@ -1971,7 +1973,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			 * outages won't cause the XFR to abort
 			 */
 			if ((timeout != INT_MAX) &&
-			    (l->timer != NULL)) {
+			    (l->timer != NULL) &&
+			    l->doing_xfr ) {
 				if (timeout == 0) {
 					if (l->tcp_mode)
 						local_timeout = TCP_TIMEOUT;
@@ -2309,7 +2312,7 @@ xfree_lists(void) {
 	dig_server_t *s;
 	dig_searchlist_t *o;
 
-	debug("free_lists()");
+	debug("xfree_lists()");
 
 	REQUIRE(sockcount == 0);
 	REQUIRE(recvcount == 0);
@@ -2326,7 +2329,6 @@ xfree_lists(void) {
 		debug("freeing global server %p", s);
 		ptr = s;
 		s = ISC_LIST_NEXT(s, link);
-		debug("ptr is now %p", ptr);
 		isc_mem_free(mctx, ptr);
 	}
 	o = ISC_LIST_HEAD(search_list);
