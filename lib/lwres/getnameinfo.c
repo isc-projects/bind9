@@ -91,7 +91,7 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	char numserv[sizeof("65000")];
 	char numaddr[sizeof("abcd:abcd:abcd:abcd:abcd:abcd:255.255.255.255")];
 	char *proto;
-	isc_uint32_t lwf;
+	isc_uint32_t lwf = 0;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gnbaresponse_t *by = NULL;
 	int result = SUCCESS;
@@ -187,7 +187,7 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			lwf = LWRES_ADDRTYPE_V6;
 			break;
 		default:
-			INSIST(lwf = 0);
+			INSIST(0);
 		}
 
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
