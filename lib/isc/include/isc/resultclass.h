@@ -27,21 +27,25 @@ ISC_LANG_BEGINDECLS
  *****/
 
 /*
- * A result class is an unsigned 16 bit number.  Each class may contain up
- * to 65536 results.  A result is formed by adding the result number
- * within the class to the class number.
+ * A result class number is an unsigned 16 bit number.  Each class may
+ * contain up to 65536 results.  A result code is formed by adding the
+ * result number within the class to the class number multiplied by 65536.
  */
 
-#define ISC_RESULTCLASS(rclass)		((rclass) << 16)
-#define ISC_RESULTCLASS_SIZE		65536
+#define ISC_RESULTCLASS_FROMNUM(num)		((num) << 16)
+#define ISC_RESULTCLASS_TONUM(rclass)		((rclass) >> 16)
+#define ISC_RESULTCLASS_SIZE			65536
+#define ISC_RESULTCLASS_INCLASS(rclass, result) \
+	((rclass) == ((result) & 0xFFFF0000))
 
 /*
  * Classes < 1024 are reserved for ISC use.
  */
 
-#define	ISC_RESULTCLASS_ISC		ISC_RESULTCLASS(0)
-#define	ISC_RESULTCLASS_DNS		ISC_RESULTCLASS(1)
-#define	ISC_RESULTCLASS_DST		ISC_RESULTCLASS(2)
+#define	ISC_RESULTCLASS_ISC		ISC_RESULTCLASS_FROMNUM(0)
+#define	ISC_RESULTCLASS_DNS		ISC_RESULTCLASS_FROMNUM(1)
+#define	ISC_RESULTCLASS_DST		ISC_RESULTCLASS_FROMNUM(2)
+#define	ISC_RESULTCLASS_DNSRCODE	ISC_RESULTCLASS_FROMNUM(3)
 
 /*
  * Result classes >= 1024 and <= 65535 are reserved for application use.
