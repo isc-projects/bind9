@@ -172,6 +172,13 @@ isc_dynbuffer_allocate(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer,
  */
 
 void
+isc_dynbuffer_reset(isc_dynbuffer_t *dynbuffer);
+/*
+ * Reset the dynamic buffer to the initial state
+ */
+
+
+void
 isc_dynbuffer_free(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer);
 /*
  * Release resources allocated for a dynamic buffer.

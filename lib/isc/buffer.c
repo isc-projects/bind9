@@ -380,6 +380,14 @@ isc_dynbuffer_allocate(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer,
 }
 
 void
+isc_dynbuffer_reset(isc_dynbuffer_t *dynbuffer)
+{
+	REQUIRE(VALID_DYNBUFFER(dynbuffer));
+
+	isc_buffer_clear(&dynbuffer->buffer);
+}
+
+void
 isc_dynbuffer_free(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer)
 {
 	unsigned int real_length;
