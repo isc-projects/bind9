@@ -16,14 +16,8 @@
  */
 
 #ifndef ISC_MAGIC_H
-#define ISC_MAGIC_H
-
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
+#define ISC_MAGIC_H 1
 
 #define ISC_MAGIC_VALID(a,b)	(((a) != NULL) && ((a)->magic == (b)))
-
-ISC_LANG_ENDDECLS
 
 #endif /* ISC_MAGIC_H */

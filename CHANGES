@@ -1,3 +1,5 @@
+ 125.   [cleanup]       <isc/magic.h> does not need <isc/lang.h>.
+
  124.   [func]		signer now imports parent's zone key signature
 			and creates null keys/sets zone status bit for
 			children when necessary
