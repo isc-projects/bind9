@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.26 2004/03/16 05:52:19 marka Exp $ */
+/* $Id: time.c,v 1.26.18.1 2004/08/28 06:17:32 marka Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <time.h>
 
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/stdtime.h>
 #include <isc/util.h>

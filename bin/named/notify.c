@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.30 2004/03/05 04:57:48 marka Exp $ */
+/* $Id: notify.c,v 1.30.18.1 2004/08/28 06:17:28 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/log.h>
+#include <isc/print.h>
 
 #include <dns/message.h>
 #include <dns/rdataset.h>

@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.34 2004/03/05 05:09:18 marka Exp $ */
+/* $Id: byaddr.c,v 1.34.18.1 2004/08/28 06:17:30 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>

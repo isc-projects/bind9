@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: lwinetntop.c,v 1.12 2004/03/05 05:12:46 marka Exp $";
+	"$Id: lwinetntop.c,v 1.12.18.1 2004/08/28 06:17:36 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -27,6 +27,7 @@ static char rcsid[] =
 #include <string.h>
 
 #include <lwres/net.h>
+#include "print_p.h"
 
 #define NS_INT16SZ	 2
 #define NS_IN6ADDRSZ	16

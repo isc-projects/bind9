@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.62 2004/03/05 05:48:19 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.62.18.1 2004/08/28 06:17:25 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/db.h>

@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.4 2004/08/20 00:45:54 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.5 2004/08/28 06:17:27 marka Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>
+#include <isc/print.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
 #include <isc/string.h>

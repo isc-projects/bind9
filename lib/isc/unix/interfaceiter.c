@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.35.18.2 2004/06/19 01:02:49 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.35.18.3 2004/08/28 06:17:34 marka Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/net.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/strerror.h>
 #include <isc/string.h>
