@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.48 2000/06/12 19:33:30 mws Exp $ */
+/* $Id: dighost.c,v 1.49 2000/06/13 01:49:46 explorer Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -455,8 +455,6 @@ setup_system(void) {
 		}
 		fclose (fp);
 	}
-
-	isc_sockaddr_any(&bind_any);
 
 	if (ndots == -1)
 		ndots = 1;
@@ -1905,8 +1903,13 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 		check_result(result, "isc_socket_create");
 		if (specified_source)
 			result = isc_socket_bind(query->sock, &bind_address);
-		else
+		else {
+			if (isc_sockaddr_pf(&query->sockaddr) == AF_INET)
+				isc_sockaddr_any(&bind_any);
+			else
+				isc_sockaddr_any6(&bind_any);
 			result = isc_socket_bind(query->sock, &bind_any);
+		}
 		check_result(result, "isc_socket_bind");
 		result = isc_socket_connect(query->sock, &query->sockaddr,
 					    global_task, connect_done, query);
@@ -1939,8 +1942,13 @@ do_lookup_udp(dig_lookup_t *lookup) {
 		check_result(result, "isc_socket_create");
 		if (specified_source)
 			result = isc_socket_bind(query->sock, &bind_address);
-		else
+		else {
+			if (isc_sockaddr_pf(&query->sockaddr) == AF_INET)
+				isc_sockaddr_any(&bind_any);
+			else
+				isc_sockaddr_any6(&bind_any);
 			result = isc_socket_bind(query->sock, &bind_any);
+		}
 		check_result(result, "isc_socket_bind");
 	}
 
