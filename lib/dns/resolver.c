@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.276 2004/01/14 02:06:50 marka Exp $ */
+/* $Id: resolver.c,v 1.277 2004/01/20 12:49:45 marka Exp $ */
 
 #include <config.h>
 
@@ -4650,6 +4650,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	isc_boolean_t locked = ISC_FALSE;
+	unsigned int bucketnum;
 
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	fevent = (dns_fetchevent_t *)event;
@@ -4667,6 +4668,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 	dns_resolver_destroyfetch(&fctx->nsfetch);
 
+	bucketnum = fctx->bucketnum;
 	if (fevent->result == ISC_R_CANCELED)
 		fctx_done(fctx, ISC_R_CANCELED);
 	else if (fevent->result == ISC_R_SUCCESS) {
@@ -4713,7 +4715,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
 		else {
-			LOCK(&res->buckets[fctx->bucketnum].lock);
+			LOCK(&res->buckets[bucketnum].lock);
 			locked = ISC_TRUE;
 			fctx->references++;
 		}
@@ -4725,11 +4727,11 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	INSIST(fevent->sigrdataset == NULL);
 	isc_event_free(&event);
 	if (!locked)
-		LOCK(&res->buckets[fctx->bucketnum].lock);
+		LOCK(&res->buckets[bucketnum].lock);
 	fctx->references--;
 	if (fctx->references == 0)
 		bucket_empty = fctx_destroy(fctx);
-	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+	UNLOCK(&res->buckets[bucketnum].lock);
 	if (bucket_empty)
 		empty_bucket(res);
 }
