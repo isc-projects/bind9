@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.19 2000/02/03 23:43:07 halley Exp $ */
+/* $Id: soa_6.h,v 1.20 2000/03/17 01:22:17 explorer Exp $ */
 
 #include <dns/name.h>
 

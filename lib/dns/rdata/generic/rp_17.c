@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.14 2000/02/03 23:43:06 halley Exp $ */
+ /* $Id: rp_17.c,v 1.15 2000/03/17 01:22:15 explorer Exp $ */
 
  /* RFC 1183 */
 
@@ -32,17 +32,18 @@ fromtext_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_t buffer;
 	int i;
 
+	UNUSED(rdclass);
+
 	REQUIRE(type == 17);
 
-	rdclass = rdclass;	/*unused*/
-	
+	origin = (origin != NULL) ? origin : dns_rootname;
+
 	for (i = 0; i < 2 ; i++) {
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
 				ISC_FALSE));
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region,
 				  ISC_BUFFERTYPE_TEXT);
-		origin = (origin != NULL) ? origin : dns_rootname;
 		RETERR(dns_name_fromtext(&name, &buffer, origin,
 					 downcase, target));
 	}
@@ -74,7 +75,6 @@ totext_rp(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_region_consume(&region, email.length);
 
 	sub = name_prefix(&rmail, tctx->origin, &prefix);
-
 	RETERR(dns_name_totext(&prefix, sub, target));
 
 	RETERR(str_totext(" ", target));
@@ -90,10 +90,10 @@ fromwire_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
         dns_name_t rmail;
         dns_name_t email;
+
+	UNUSED(rdclass);
         
 	REQUIRE(type == 17);
-
-	rdclass = rdclass;	/*unused*/
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -108,7 +108,8 @@ fromwire_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -137,7 +138,8 @@ towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 	dns_name_t name1;
@@ -178,30 +180,29 @@ static inline isc_result_t
 fromstruct_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 17);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	
-	REQUIRE(rdata->type == 17);
+tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
+	UNUSED(target);
+	UNUSED(mctx);
 
-	target = target;
-	mctx = mctx;
+	REQUIRE(rdata->type == 17);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_rp(void *source) {
+freestruct_rp(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
@@ -210,29 +211,29 @@ static inline isc_result_t
 additionaldata_rp(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		  void *arg)
 {
-	REQUIRE(rdata->type == 17);
+	UNUSED(add);
+	UNUSED(arg);
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 17);
 
 	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
-digest_rp(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_rp(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 	dns_name_t name;
-	isc_result_t result;
 
 	REQUIRE(rdata->type == 17);
 
 	dns_rdata_toregion(rdata, &r);
 	dns_name_init(&name, NULL);
+
 	dns_name_fromregion(&name, &r);
-	result = dns_name_digest(&name, digest, arg);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	RETERR(dns_name_digest(&name, digest, arg));
 	isc_region_consume(&r, name_length(&name));
+
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);
 
