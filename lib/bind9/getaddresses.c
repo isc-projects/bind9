@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.8 2001/11/16 04:41:58 bwelling Exp $ */
+/* $Id: getaddresses.c,v 1.9 2001/11/16 06:48:22 bwelling Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -138,10 +138,8 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 			return (ISC_R_FAILURE);
 		}
 	}
-	if (he->h_addrtype != AF_INET && he->h_addrtype != AF_INET6) {
-		freehostent(he);
+	if (he->h_addrtype != AF_INET && he->h_addrtype != AF_INET6)
 		return (ISC_R_NOTFOUND);
-	}
 	for (i = 0; i < addrsize; i++) {
 		if (he->h_addrtype == AF_INET) {
 			struct in_addr *inp;
