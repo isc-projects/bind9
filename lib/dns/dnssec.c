@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.15 2000/02/03 18:48:15 bwelling Exp $
+ * $Id: dnssec.c,v 1.16 2000/02/03 21:57:25 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -574,7 +574,10 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PRIVATE,
 					  mctx, &keys[count++]);
-		check_result(result, "dst_key_fromfile()");
+		if (result == DST_R_INVALIDPRIVATEKEY)
+			count--;
+		else
+			check_result(result, "dst_key_fromfile()");
  next:
 		dst_key_free(pubkey);
 		pubkey = NULL;
@@ -582,10 +585,11 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 	}
 	if (result != DNS_R_NOMORE)
 		check_result(result, "iteration over zone keys");
-	result = DNS_R_SUCCESS;
 	if (count == 0)
-		check_result(ISC_R_FAILURE, "no key found");
-		
+		result = ISC_R_NOTFOUND;
+	else
+		result = ISC_R_SUCCESS;
+
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
