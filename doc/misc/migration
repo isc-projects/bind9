@@ -189,9 +189,10 @@ be upgraded.
 5.1 Ndc Replaced by Rndc
 
 The "ndc" program has been replaced by "rndc", which is capable of
-remote operation.  Unlike ndc, rndc requires a configuration file; 
-see the man pages in bin/rndc/rndc.1 and bin/rndc/rndc.conf.5 for
-details.  Some of the ndc commands are still unimplemented in rndc.
+remote operation.  Unlike ndc, rndc requires a configuration file.
+The easiest way to generate a configuration file is to run
+"rndc-confgen -a"; see the man pages for rndc(8), rndc-confgen(8),
+and rndc.conf(5) for details.
 
 5.2. Nsupdate Differences
 
@@ -242,4 +243,4 @@ necessary, the umask should be set explicitly in the script used to
 start the named process.
 
 
-$Id: migration,v 1.41 2001/09/21 17:36:35 gson Exp $
+$Id: migration,v 1.42 2001/09/21 17:39:24 gson Exp $
