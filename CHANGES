@@ -1,3 +1,6 @@
+1140.	[bug]		rndc-confgen did not accept IPv6 addresses as arguments
+			to the -s option. [RT #2138]
+
 1139.	[func]		It is now possible to flush a given name from the
 			cache(s) via 'rndc flushname name [view]'. [RT #2051]
 
