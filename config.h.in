@@ -30,6 +30,9 @@
 /* define if your struct sockaddr has a sa_len member */
 #undef HAVE_SA_LEN
 
+/* define on DEC OSF to enable 4.4BSD style sa_len support */
+#undef _SOCKADDR_LEN
+
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 

@@ -13,7 +13,9 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.22 $)
+AC_REVISION($Revision: 1.23 $)
+
+AC_PREREQ(2.12)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -55,6 +57,70 @@ if test "X$CC" = "X" ; then
 			;;
 	esac
 fi
+
+dnl
+dnl NetBSD has two alternative pthreads implementations.  Make the 
+dnl user choose one by saying --with-mit-pthreads or --with-ptl2
+dnl if necessary.
+dnl
+
+case "$host" in
+  *-netbsd*)
+	CC="gcc"
+	AC_MSG_CHECKING(which thread library to use)
+
+	AC_ARG_WITH(mit-pthreads, 
+	    [  --with-mit-pthreads     use the mit-pthreads thread library],
+	    use_mit_pthreads="$withval", use_mit_pthreads="no")
+	
+	AC_ARG_WITH(ptl2,
+	    [  --with-ptl2	       use the ptl2 thread library],
+	    use_ptl2="$withval", use_ptl2="no")
+
+        dnl If user did not choose a thread library explicitly,
+        dnl try to choose one automatically.  This will work when
+	dnl exactly one library is installed.
+
+	case "$use_mit_pthreads+$use_ptl2" in
+		no+no)
+			if test -d /usr/pkg/pthreads
+			then
+				use_mit_pthreads="yes"
+			fi
+			if test -d /usr/pkg/PTL
+			then
+				use_ptl2="yes"
+			fi
+			;;
+        esac
+
+	case "$use_mit_pthreads+$use_ptl2" in
+		yes+no)
+			AC_MSG_RESULT(mit-pthreads)
+			pkg="/usr/pkg/pthreads"
+			lib1="-L$pkg/lib -Wl,-R$pkg/lib"
+			lib2="-lpthread -lm -lgcc -lpthread"
+			LIBS="$lib1 $lib2 $LIBS"
+			STD_CINCLUDES="-I$pkg/include"
+			;;
+		no+yes)
+			AC_MSG_RESULT(PTL2)
+			pkg="/usr/pkg/PTL"
+			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
+			STD_CINCLUDES="-nostdinc -idirafter $pkg/include"
+			;;
+		*)
+			AC_MSG_ERROR([no thread library.
+
+Please choose a thread library using one of 
+
+   configure --with-mit-pthreads
+   configure --with-ptl2
+])
+			;;
+		esac
+		;;
+esac
 
 AC_PROG_CC
 
@@ -112,11 +178,6 @@ if test "X$GCC" = "Xyes"; then
 		*-sun-solaris*)
 			LIBS="$LIBS -lthread"
 			;;
-		*-netbsd*)
-			CC="gcc"
-			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
-			STD_CINCLUDES="-nostdinc -idirafter /usr/pkg/PTL/include"
-			;;
 	esac
 else
 	case "$host" in
@@ -142,10 +203,18 @@ case "$host" in
 	*-hp-hpux*)
 		AC_DEFINE(NEED_AF_INET6)
 		;;
+	*-dec-osf*)
+		dnl 4.4BSD sa_len support is not turned on
+		dnl by default, see netintro(7)
+		AC_DEFINE(_SOCKADDR_LEN)
+		;;
 esac
 
+dnl Look for a 4.4BSD-style sa_len member in struct sockaddr.
+dnl Be careful not to be fooled by the IRIX "sa_len2" member.
+
 AC_MSG_CHECKING(for sa_len in struct sockaddr)
-AC_EGREP_HEADER(sa_len, sys/socket.h,
+AC_EGREP_HEADER([sa_len[^a-z0-9_]], sys/socket.h,
 	[AC_MSG_RESULT(yes)
 	AC_DEFINE(HAVE_SA_LEN)],
 	[AC_MSG_RESULT(no)])
