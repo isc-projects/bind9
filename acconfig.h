@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.39 2002/12/04 01:19:27 marka Exp $ */
+/* $Id: acconfig.h,v 1.40 2003/04/01 05:18:21 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -52,6 +52,9 @@
 
 /* define if catgets() is available */
 #undef HAVE_CATGETS
+
+/* define if getifaddrs() exists */
+#undef HAVE_GETIFADDRS
 
 /* define if you have the NET_RT_IFLIST sysctl variable and sys/sysctl.h */
 #undef HAVE_IFLIST_SYSCTL

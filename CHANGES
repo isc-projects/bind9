@@ -1,3 +1,9 @@
+1454.	[port]		Use getifaddrs() if available for interface scanning.
+			--disable-getifaddrs to override.  Glibc currently
+			has a getifaddrs() that does not support IPv6.
+			Use --enable-getifaddrs=glibc to force the use of
+			this version under linux machines.
+
 1453.	[doc]		ARM: $GENERATE example wasn't accurate. [RT #5298]
 
 1452.	[placeholder]

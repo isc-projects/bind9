@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.7 2002/05/27 00:40:18 marka Exp $ */
+/* $Id: msgs.h,v 1.8 2003/04/01 05:18:22 marka Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -48,6 +48,7 @@
 #define ISC_MSGSET_TASK		18
 #define ISC_MSGSET_TIMER	19
 #define ISC_MSGSET_UTIL		20
+#define ISC_MSGSET_IFITERGETIFADDRS 21
 
 /*
  * Message numbers.  They are only required to be unique per message set,
@@ -176,6 +177,7 @@
 #define ISC_MSG_UTILWAIT       1710 /* "WAIT" */
 #define ISC_MSG_WAITED	       1711 /* "WAITED" */
 
+#define ISC_MSG_GETIFADDRS     1801 /* "getting interface addresses: ..." */
 
 
 #endif /* ISC_MSGS_H */
