@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.25 2000/07/07 23:53:35 bwelling Exp $ */
+/* $Id: os.c,v 1.26 2000/07/08 00:12:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -111,15 +111,19 @@ linux_initialprivs(void) {
 #if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
 	/*
 	 * If the kernel supports keeping capabilities after setuid(), we
-	 * also want the setuid and setgid capabilities.
+	 * also want the setuid capability.
 	 *
-	 * There's no point turning these on if we don't have PR_SET_KEEPCAPS,
+	 * There's no point turning this on if we don't have PR_SET_KEEPCAPS,
 	 * because changing user ids only works right with linuxthreads if
 	 * we can do it early (before creating threads).
 	 */
-	caps |= (1 << CAP_SETGID);
 	caps |= (1 << CAP_SETUID);
 #endif
+
+	/*
+	 * Since we call initgroups, we need this.
+	 */
+	caps |= (1 << CAP_SETGID);
 
 	/*
 	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not
@@ -275,6 +279,12 @@ ns_os_inituserinfo(const char *username) {
 
 	if (runas_pw == NULL)
 		ns_main_earlyfatal("user '%s' unknown", username);
+
+	if (getuid() == 0) {
+		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0)
+			ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+	}
+
 }
 
 void
@@ -289,11 +299,6 @@ ns_os_changeuser(void) {
 		ns_main_earlyfatal(
 		   "-u not supported on Linux kernels older than 2.3.99-pre3");
 #endif	
-
-	if (getuid() == 0) {
-		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0)
-			ns_main_earlyfatal("initgroups(): %s", strerror(errno));
-	}
 
 	if (setgid(runas_pw->pw_gid) < 0)
 		ns_main_earlyfatal("setgid(): %s", strerror(errno));
