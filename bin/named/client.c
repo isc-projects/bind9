@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.5 2003/08/13 02:18:16 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.6 2003/08/14 00:46:22 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -1023,7 +1024,7 @@ client_addopt(ns_client_t *client) {
 	rdatalist->rdclass = RECV_BUFFER_SIZE;
 
 	/*
-	 * Set EXTENDED-RCODE, VERSION, and Z to 0.
+	 * Set EXTENDED-RCODE, VERSION and Z to 0.
 	 */
 #ifdef ISC_RFC2535
 	rdatalist->ttl = (client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE);
@@ -1402,11 +1403,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request is signed by a nonauthoritative key");
 	} else {
+		char tsigrcode[64];
+		isc_buffer_t b;
+
+		isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);
+		RUNTIME_CHECK(dns_tsigrcode_totext(client->message->tsigstatus,
+						   &b) == ISC_R_SUCCESS);
+		tsigrcode[isc_buffer_usedlength(&b)] = '\0';
 		/* There is a signature, but it is bad. */
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-			      "request has invalid signature: %s",
-			      isc_result_totext(result));
+			      "request has invalid signature: %s (%s)",
+			      isc_result_totext(result),
+			      tsigrcode);
 		/*
 		 * Accept update messages signed by unknown keys so that
 		 * update forwarding works transparently through slaves
