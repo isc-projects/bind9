@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.16.2.1 2001/01/09 22:49:12 bwelling Exp $ */
+/* $Id: print.c,v 1.16.2.2 2001/05/21 21:31:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -180,8 +180,10 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		case 'l':
 			l = 1;
 			format++;
-			if (*format == 'l')
+			if (*format == 'l') {
 				q = 1;
+				format++;
+			}
 			goto doint;
 		case 'n':
 		case 'i':
