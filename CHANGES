@@ -1,3 +1,6 @@
+1744.	[bug]		If tuple2msgname() failed to convert a tuple to
+			a name a REQUIRE could be triggered. [RT #12796]
+
 1743.	[placeholder]	rt12790
 
 1742.	[placeholder]	rt12788

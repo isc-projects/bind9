@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.137 2004/09/16 04:54:03 marka Exp $ */
+/* $Id: xfrin.c,v 1.138 2004/10/13 22:24:18 marka Exp $ */
 
 #include <config.h>
 
@@ -923,9 +923,10 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target)
 
  failure:
 
-	if (rds != NULL)
+	if (rds != NULL) {
 		dns_rdataset_disassociate(rds);
 		dns_message_puttemprdataset(msg, &rds);
+	}
 	if (rdl != NULL) {
 		ISC_LIST_UNLINK(rdl->rdata, rdata, link);
 		dns_message_puttemprdatalist(msg, &rdl);
