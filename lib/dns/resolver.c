@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.21 2003/09/19 06:20:53 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.22 2003/09/22 00:41:11 marka Exp $ */
 
 #include <config.h>
 
@@ -372,7 +372,8 @@ fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
 			if (type == dns_rdatatype_soa &&
 			    dns_name_equal(name, domain))
 				keep_auth = ISC_TRUE;
-			if (type != dns_rdatatype_ns)
+			if (type != dns_rdatatype_ns &&
+			    type != dns_rdatatype_soa)
 				continue;
 			if (dns_name_equal(name, domain))
 				goto munge;
