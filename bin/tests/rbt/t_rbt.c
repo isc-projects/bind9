@@ -272,7 +272,9 @@ rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 
 	while ((p = t_fgetbs(fp)) != NULL) {
 
-		/* skip any comment lines */
+		/*
+		 * Skip any comment lines.
+		 */
 		if ((*p == '#') || (*p == '\0') || (*p == ' ')) {
 			free(p);
 			continue;
@@ -327,7 +329,9 @@ test_rbt_gen(char *filename, char *command, char *testname,
 		return(result);
 	}
 		
-	/* now try the database command */
+	/*
+	 * Now try the database command.
+	 */
 	if (strcmp(command, "create") == 0) {
 		result = T_PASS;
 	} else if (strcmp(command, "add") == 0) {
@@ -719,8 +723,8 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 			char *nextname, char *nextorigin,
 			char *prevname, char *prevorigin,
 			char *firstname, char *firstorigin,
-			char *lastname, char *lastorigin) {
-
+			char *lastname, char *lastorigin)
+{
 	int			result;
 	int			len;
 	int			nfails;
@@ -889,8 +893,11 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	else
 		result = T_PASS;
 		
+	dns_rbtnodechain_invalidate(&chain);
 	dns_rbt_destroy(&rbt);
+
 	isc_mem_destroy(&mctx);
+
 	return(result);
 }
 
@@ -1051,6 +1058,8 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 	else
 		result = T_PASS;
 		
+	dns_rbtnodechain_invalidate(&chain);
+
 	dns_rbt_destroy(&rbt);
 	isc_mem_destroy(&mctx);
 	return(result);
@@ -1216,8 +1225,11 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 	else
 		result = T_PASS;
 		
+	dns_rbtnodechain_invalidate(&chain);
 	dns_rbt_destroy(&rbt);
+
 	isc_mem_destroy(&mctx);
+
 	return(result);
 }
 
@@ -1395,8 +1407,11 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	else
 		result = T_PASS;
 		
+	dns_rbtnodechain_invalidate(&chain);
 	dns_rbt_destroy(&rbt);
+
 	isc_mem_destroy(&mctx);
+
 	return(result);
 }
 
@@ -1573,8 +1588,11 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname, char *prevname,
 	else
 		result = T_PASS;
 		
+	dns_rbtnodechain_invalidate(&chain);
 	dns_rbt_destroy(&rbt);
+
 	isc_mem_destroy(&mctx);
+
 	return(result);
 }
 
