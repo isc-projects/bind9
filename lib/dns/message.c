@@ -1136,14 +1136,13 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		next_name = ISC_LIST_NEXT(name, link);
 
 		result = dns_name_towire(name, &msg->cctx, &subbuffer);
-		if (result == DNS_R_NOSPACE) {
+		if (result != DNS_R_SUCCESS) {
 			subbuffer.used = used;
 			msg->counts[sectionid] += total;
 			isc_buffer_used(&subbuffer, &r);
 			isc_buffer_add(msg->buffer, r.length);
-			return (DNS_R_NOSPACE);
-		} else if (result != DNS_R_SUCCESS)
 			return (result);
+		}
 
 		rdataset = ISC_LIST_HEAD(name->list);
 		while (rdataset != NULL) {
@@ -1158,14 +1157,13 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			 * If out of space, record stats on what we rendered
 			 * so far, and return that status.
 			 */
-			if (result == DNS_R_NOSPACE) {
+			if (result != DNS_R_SUCCESS) {
 				subbuffer.used = used;
 				msg->counts[sectionid] += total;
 				isc_buffer_used(&subbuffer, &r);
 				isc_buffer_add(msg->buffer, r.length);
-				return (DNS_R_NOSPACE);
-			} else if (result != DNS_R_SUCCESS)
 				return (result);
+			}
 
 			total += count;
 
@@ -1177,8 +1175,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		name = next_name;
 	}
 
-	/* XXX implement */
-	return (ISC_R_NOTIMPLEMENTED);
+	return (ISC_R_SUCCESS);
 }
 
 dns_result_t
