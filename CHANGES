@@ -1,3 +1,6 @@
+  74.   [cleanup]       Removed mktemplate.o and ufile.o from libisc.a,
+                        subsumed by file.o.
+
   73.   [func]          New "file" API in libisc, including new function
                         isc_file_getmodtime, isc_mktemplate renamed to
                         isc_file_mktemplate and isc_ufile renamed to
