@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.15 2000/06/22 21:59:32 tale Exp $ */
+/* $Id: lwconfig.c,v 1.16 2000/06/27 00:24:27 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -405,23 +405,15 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 	unsigned int len;
 
 	if (lwres_net_pton(AF_INET, buffer, &addrbuff) == 1) {
-#if 1 /* XXX BRISTER. Set to 0 for testing with lwresconf_test */
 		addr->family = LWRES_ADDRTYPE_V4;
-#else
-		addr->family = AF_INET;
-#endif
 		addr->length = NS_INADDRSZ;
 		len = 4;
 	} else if (lwres_net_pton(AF_INET6, buffer, &addrbuff) == 1) {
-#if 1 /* XXX BRISTER. Set to 0 for testing with lwresconf_test */
 		addr->family = LWRES_ADDRTYPE_V6;
-#else
-		addr->family = AF_INET6;
-#endif	
 		addr->length = NS_IN6ADDRSZ;
 		len = 16;
 	} else {
-		return (LWRES_R_FAILURE); /* Unrecongnised format. */
+		return (LWRES_R_FAILURE); /* Unrecognised format. */
 	}
 
 	memcpy((void *)addr->address, addrbuff, len);
