@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.99.2.4 2000/08/22 00:46:22 gson Exp $ */
+/* $Id: confparser.y,v 1.99.2.5 2000/09/13 23:13:25 explorer Exp $ */
 
 #include <config.h>
 
@@ -790,14 +790,10 @@ option: /* Empty */
 	}
 	| L_MAINTAIN_IXFR_BASE yea_or_nay
 	{
-		/*
-		 * Backwards compatibility, treated as
-		 * equivalent to provide-ixfr.
-		 */
-		tmpres = dns_c_ctx_setprovideixfr(currcfg, $2);
+		tmpres = dns_c_ctx_setmaintainixfrbase(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "cannot redefine provide-ixfr");
+				     "cannot redefine maintain-ixfr-base");
 			YYABORT;
 		}
 	}
