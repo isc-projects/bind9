@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.h,v 1.10 2000/02/03 23:43:18 halley Exp $ */
+/* $Id: naptr_35.h,v 1.11 2000/03/20 22:57:15 gson Exp $ */
 
- /* RFC 2168 */
+/* RFC 2168 */
 
 typedef struct dns_rdata_in_naptr {
 	dns_rdatacommon_t	common;

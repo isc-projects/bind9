@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.h,v 1.15 2000/02/03 23:43:04 halley Exp $ */
+/* $Id: ns_2.h,v 1.16 2000/03/20 22:57:13 gson Exp $ */
 
 #include <dns/fixedname.h>
 

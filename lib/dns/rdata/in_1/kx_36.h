@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: kx_36.h,v 1.10 2000/02/03 23:43:17 halley Exp $ */
+/* $Id: kx_36.h,v 1.11 2000/03/20 22:57:15 gson Exp $ */
 
- /* RFC 2230 */
+/* RFC 2230 */
 
 typedef struct dns_rdata_in_kx {
 	dns_rdatacommon_t	common;

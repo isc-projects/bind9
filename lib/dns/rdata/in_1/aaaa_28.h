@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.h,v 1.11 2000/02/03 23:43:17 halley Exp $ */
+/* $Id: aaaa_28.h,v 1.12 2000/03/20 22:57:15 gson Exp $ */
 
- /* RFC 1886 */
+/* RFC 1886 */
 
 typedef struct dns_rdata_in_aaaa {
 	dns_rdatacommon_t	common;

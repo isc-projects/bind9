@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.h,v 1.13 2000/02/03 23:43:20 halley Exp $ */
+/* $Id: wks_11.h,v 1.14 2000/03/20 22:57:15 gson Exp $ */
 
 typedef	struct dns_rdata_in_wks {
 	dns_rdatacommon_t	common;

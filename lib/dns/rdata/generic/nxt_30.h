@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.h,v 1.11 2000/02/03 23:43:04 halley Exp $ */
+/* $Id: nxt_30.h,v 1.12 2000/03/20 22:57:14 gson Exp $ */
 
- /* RFC 2065 */
+/* RFC 2065 */
 
 typedef struct dns_rdata_nxt {
 	dns_rdatacommon_t	common;

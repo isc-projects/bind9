@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.h,v 1.17 2000/02/03 23:43:17 halley Exp $ */
+/* $Id: a_1.h,v 1.18 2000/03/20 22:57:15 gson Exp $ */
 
 typedef struct dns_rdata_in_a {
 	dns_rdatacommon_t	common;

@@ -15,5 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: cname_5.h,v 1.15 2000/02/03 23:42:58 halley Exp $ */
+/* $Id: cname_5.h,v 1.16 2000/03/20 22:57:11 gson Exp $ */
 

@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.h,v 1.12 2000/02/03 23:43:08 halley Exp $ */
+/* $Id: tkey_249.h,v 1.13 2000/03/20 22:57:14 gson Exp $ */
 
- /* draft-ietf-dnsind-tkey-00.txt */
+/* draft-ietf-dnsind-tkey-00.txt */
 
 typedef struct dns_rdata_generic_tkey {
         dns_rdatacommon_t	common;

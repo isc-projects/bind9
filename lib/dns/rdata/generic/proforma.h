@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.h,v 1.12 2000/02/03 23:43:05 halley Exp $ */
+/* $Id: proforma.h,v 1.13 2000/03/20 22:57:14 gson Exp $ */
 
 typedef struct dns_rdata_# {
 	dns_rdatacommon_t	common;

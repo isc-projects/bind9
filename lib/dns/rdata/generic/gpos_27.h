@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.h,v 1.6 2000/02/03 23:42:59 halley Exp $ */
+/* $Id: gpos_27.h,v 1.7 2000/03/20 22:57:11 gson Exp $ */
 
- /* RFC 1712 */
+/* RFC 1712 */
 

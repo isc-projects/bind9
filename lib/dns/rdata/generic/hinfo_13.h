@@ -15,5 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.h,v 1.14 2000/02/03 23:42:59 halley Exp $ */
+/* $Id: hinfo_13.h,v 1.15 2000/03/20 22:57:12 gson Exp $ */
 

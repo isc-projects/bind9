@@ -15,4 +15,4 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.h,v 1.12 2000/03/16 21:49:42 bwelling Exp $ */
+/* $Id: null_10.h,v 1.13 2000/03/20 22:57:13 gson Exp $ */

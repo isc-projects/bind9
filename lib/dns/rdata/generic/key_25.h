@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.h,v 1.8 2000/02/03 23:43:00 halley Exp $ */
+/* $Id: key_25.h,v 1.9 2000/03/20 22:57:12 gson Exp $ */
 
- /* RFC 2535 */
+/* RFC 2535 */
 
 typedef struct dns_rdata_generic_key_t {
         dns_rdatacommon_t	common;
