@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.221 2004/07/23 02:57:26 marka Exp $ */
+/* $Id: client.c,v 1.222 2004/09/26 22:34:32 marka Exp $ */
 
 #include <config.h>
 
@@ -1938,7 +1938,7 @@ client_udprecv(ns_client_t *client) {
 				  client->task, client->recvevent, 0);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_socket_recv() failed: %s",
+				 "isc_socket_recv2() failed: %s",
 				 isc_result_totext(result));
 		/*
 		 * This cannot happen in the current implementation, since
