@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4.8.14 2004/03/08 04:04:21 marka Exp $ */
+/* $Id: os.c,v 1.46.2.4.8.15 2004/04/15 05:34:57 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <syslog.h>
+#ifdef HAVE_TZSET
+#include <time.h>
+#endif
 #include <unistd.h>
 
 #include <isc/buffer.h>
