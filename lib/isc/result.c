@@ -63,7 +63,7 @@ static char *text[ISC_R_NRESULTS] = {
 	"ran out of space",			/* 19 */
 	"operation canceled",			/* 20 */
 	"sending events is not allowed",	/* 21 */
-	"task is shutting down",		/* 22 */
+	"shutting down",			/* 22 */
 	"not found",				/* 23 */
 	"unexpected end of input",		/* 24 */
 	"failure",				/* 25 */

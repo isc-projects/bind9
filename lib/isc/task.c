@@ -734,7 +734,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 		result = ISC_R_TASKDONE;
 	} else if (TASK_SHUTTINGDOWN(task)) {
 		disallowed = ISC_TRUE;
-		result = ISC_R_TASKSHUTTINGDOWN;
+		result = ISC_R_SHUTTINGDOWN;
 	} else
 		ENQUEUE(task->on_shutdown, event, link);
 	UNLOCK(&task->lock);
