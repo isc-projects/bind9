@@ -92,7 +92,7 @@
 ./bin/named/builtin.c				C	2001,2002,2003,2004
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/config.c				C	2001,2002,2003,2004
-./bin/named/control.c				C	2001,2002,2003,2004
+./bin/named/control.c				C	2001,2002,2003,2004,2005
 ./bin/named/controlconf.c			C	2001,2002,2003,2004
 ./bin/named/include/named/aclconf.h		C	1999,2000,2001,2004
 ./bin/named/include/named/builtin.h		C	2001,2004
@@ -110,6 +110,7 @@
 ./bin/named/include/named/lwsearch.h		C	2000,2001,2004
 ./bin/named/include/named/main.h		C	1999,2000,2001,2002,2004
 ./bin/named/include/named/notify.h		C	1999,2000,2001,2004
+./bin/named/include/named/ns_smf_globals.h	C	2005
 ./bin/named/include/named/query.h		C	1999,2000,2001,2002,2004
 ./bin/named/include/named/server.h		C	1999,2000,2001,2002,2003,2004
 ./bin/named/include/named/sortlist.h		C	2000,2001,2004
@@ -135,7 +136,7 @@
 ./bin/named/lwresd.docbook			SGML	2000,2001,2004
 ./bin/named/lwresd.html				HTML	2000,2001,2004,2005
 ./bin/named/lwsearch.c				C	2000,2001,2004
-./bin/named/main.c				C	1999,2000,2001,2002,2003,2004
+./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/named.8				MAN	2000,2001,2003,2004
 ./bin/named/named.conf.5			MAN	2004
 ./bin/named/named.conf.docbook			SGML	2004
@@ -151,7 +152,7 @@
 ./bin/named/unix/.cvsignore			X	1999,2000,2001
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004
-./bin/named/unix/os.c				C	1999,2000,2001,2002,2004
+./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005
 ./bin/named/update.c				C	1999,2000,2001,2002,2003,2004
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004
