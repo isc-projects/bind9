@@ -107,7 +107,7 @@ server ip_addr {
   [ support-ixfr yes_or_no; ]				    Yes
   [ transfers number; ]					    Yes
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
-  [ keys { key_id [key_id ... ] }; ]                        No
+  [ keys { key_id [key_id ... ] }; ]                        Yes
 };
 
 trusted-keys                                                No
