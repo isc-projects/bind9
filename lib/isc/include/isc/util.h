@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.15 2000/08/01 01:30:55 tale Exp $ */
+/* $Id: util.h,v 1.16 2000/08/17 09:25:38 marka Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -93,6 +93,7 @@
 	ISC_UTIL_TRACE(fprintf(stderr, "UNLOCKED %p %s %d\n", \
 			       (lp), __FILE__, __LINE__)); \
 	} while (0)
+#define ISLOCKED(lp) (isc_mutex_lock((lp)) != ISC_R_SUCCESS)
 
 #define BROADCAST(cvp) do { \
 	ISC_UTIL_TRACE(fprintf(stderr, "BROADCAST %p %s %d\n", \
