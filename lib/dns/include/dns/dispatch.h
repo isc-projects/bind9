@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.31 2000/06/23 02:59:28 tale Exp $ */
+/* $Id: dispatch.h,v 1.32 2000/06/23 17:30:59 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -267,7 +267,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
 void    
 dns_dispatch_starttcp(dns_dispatch_t *disp);
 /*
- * Start processing of a TCP dispatch.
+ * Start processing of a TCP dispatch once the socket connects.
  *
  * Requires:
  *	'disp' is valid.
