@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.55 2000/12/09 00:41:33 bwelling Exp $ */
+/* $Id: lex.c,v 1.56 2000/12/09 02:05:25 gson Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,7 @@ typedef struct inputsource {
 	isc_boolean_t			need_close;
 	isc_boolean_t			at_eof;
 	isc_buffer_t *			pushback;
+	unsigned int			ignored;
 	void *				input;
 	char *				name;
 	unsigned long			line;
@@ -213,6 +214,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 		isc_mem_put(lex->mctx, source, sizeof *source);
 		return (result);
 	}
+	source->ignored = 0;
 	source->line = 1;
 	ISC_LIST_INITANDPREPEND(lex->sources, source, link);
 
@@ -452,10 +454,15 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 		}
 
-		if (!source->at_eof)
+		if (!source->at_eof) {
+			if (state == lexstate_start)
+				/* Token has not started yet. */
+				source->ignored =
+				   isc_buffer_consumedlength(source->pushback);
 			c = isc_buffer_getuint8(source->pushback);
-		else
+		} else {
 			c = EOF;
+		}
 
 		if (c == '\n')
 			source->line++;
@@ -794,6 +801,26 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	source->line = source->saved_line;
 	source->at_eof = ISC_FALSE;
 }
+
+void
+isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r)
+{
+	inputsource *source;
+
+	REQUIRE(VALID_LEX(lex));
+	source = HEAD(lex->sources);
+	REQUIRE(source != NULL);
+	REQUIRE(tokenp != NULL);
+	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0 ||
+		tokenp->type == isc_tokentype_eof);
+
+	UNUSED(tokenp);
+
+	INSIST(source->ignored <= isc_buffer_consumedlength(source->pushback));
+	r->base = isc_buffer_base(source->pushback) + source->ignored;
+	r->length = isc_buffer_consumedlength(source->pushback) - source->ignored;
+}
+
 
 char *
 isc_lex_getsourcename(isc_lex_t *lex) {

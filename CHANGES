@@ -1,3 +1,6 @@
+
+ 605.	[func]		New function isc_lex_getlasttokentext().
+
  604.	[bug]		The named.conf parser could print incorrect line
 			numbers when long comments were present.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.23 2000/11/08 01:55:30 bwelling Exp $ */
+/* $Id: lex.h,v 1.24 2000/12/09 02:05:26 gson Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -333,6 +333,21 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp);
  *	'tokenp' points to a valid token.
  *
  *	There is no ungotten token already.
+ */
+
+void
+isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r);
+/*
+ * Returns a region containing the text of the last token returned.
+ *
+ * Requires:
+ *	'lex' is a valid lexer.
+ *
+ *	'lex' has an input source.
+ *
+ *	'tokenp' points to a valid token.
+ *
+ *	A token has been gotten and not ungotten.
  */
 
 char *
