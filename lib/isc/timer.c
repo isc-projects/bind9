@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.71 2002/09/09 21:15:58 explorer Exp $ */
+/* $Id: timer.c,v 1.72 2002/09/12 02:44:29 marka Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,8 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	 * If the manager was timed wait, we may need to signal the
 	 * manager to force a wakeup.
 	 */
-	timedwait = ISC_TF(manager->nscheduled > 0 && manager->due.seconds != 0);
+	timedwait = ISC_TF(manager->nscheduled > 0 &&
+			   isc_time_seconds(&manager->due) != 0);
 #endif
 
 	/*
