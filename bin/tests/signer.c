@@ -901,6 +901,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				dns_rdataset_disassociate(&keyset);
 
  alreadyhavenullkey:
+				;
 			}
 #endif
 		}
