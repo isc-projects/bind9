@@ -220,17 +220,20 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 				      "found a keyset, no null key");
 			result = proveunsecure(val, ISC_TRUE);
 			if (result != DNS_R_WAIT)
-				validator_done(val, ISC_R_SUCCESS);
+				validator_done(val, result);
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "found a keyset with a null key");
 			if (rdataset->trust >= dns_trust_secure) {
-				rdataset->trust = dns_trust_answer;
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "insecurity proof succeeded");
+				val->event->rdataset->trust = dns_trust_answer;
 				validator_done(val, ISC_R_SUCCESS);
-			}
-			else if (!dns_rdataset_isassociated(sigrdataset))
+			} else if (!dns_rdataset_isassociated(sigrdataset)) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "insecurity proof failed");
 				validator_done(val, DNS_R_NOTINSECURE);
-			else {
+			} else {
 				dns_name_t *tname;
 				tname = dns_fixedname_name(&devent->foundname);
 				result = dns_validator_create(val->view, tname,
