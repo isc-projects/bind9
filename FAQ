@@ -315,7 +315,7 @@ Q: Why is named listening on UDP port other than 53?
 
 A: Named uses a system selected port to make queries of other nameservers.
 This behaviour can be overridden by using query-source to lock down the
-port and/or address.
+port and/or address.  See also notify-source and transfer-source.
 
 
 Q: I get error messages like "multiple RRs of singleton type" and
