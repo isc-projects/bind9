@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.189 2001/02/06 23:43:01 gson Exp $ */
+/* $Id: socket.c,v 1.190 2001/02/07 23:40:28 marka Exp $ */
 
 #include <config.h>
 
@@ -1685,6 +1685,17 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		UNLOCK(&sock->lock);
 		return;
 	} else {
+		if (addrlen == 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_accept(): "
+					 "accept() failed to return "
+					 "remote address");
+			(void)close(fd);
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_ACCEPT);
+			UNLOCK(&sock->lock);
+			return;
+		}
 		if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept(): "
