@@ -2155,26 +2155,27 @@ validated(isc_task_t *task, isc_event_t *event) {
          */
 	FCTXTRACE("received validation completion event");
 
-        if (vevent->result != ISC_R_SUCCESS) {
-		FCTXTRACE("validation failed");		
-		goto cleanup;
-	}
-
-	if (vevent->rdataset == NULL) {
-		FCTXTRACE("negative validation result handling "
-			  "is not yet implemented");
-		result = ISC_R_NOTIMPLEMENTED;
-		goto cleanup;
-	}
-
-	FCTXTRACE("validation OK");
-	
 	hevent = ISC_LIST_HEAD(fctx->events);
 	if (hevent != NULL) {
 		ardataset = hevent->rdataset;
 		asigrdataset = hevent->sigrdataset;
 	}
 
+        if (vevent->result != ISC_R_SUCCESS) {
+		FCTXTRACE("validation failed");
+		result = vevent->result;
+		goto respond;
+	}
+
+	if (vevent->rdataset == NULL) {
+		FCTXTRACE("negative validation result handling "
+			  "is not yet implemented");
+		result = ISC_R_NOTIMPLEMENTED;
+		goto respond;
+	}
+
+	FCTXTRACE("validation OK");
+	
 	/*
 	 * The data was already cached as pending data.
 	 * Re-cache it as secure and bind the cached
@@ -2185,7 +2186,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 				 vevent->name, 
 				 ISC_TRUE, &node);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		goto respond;
 
 	isc_stdtime_get(&now);
 	result = dns_db_addrdataset(fctx->res->view->cachedb,
@@ -2194,7 +2195,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 				    ardataset);
 	if (result != ISC_R_SUCCESS &&
 	    result != DNS_R_UNCHANGED)
-		goto cleanup;
+		goto respond;
 	if (vevent->sigrdataset != NULL) {
 		result = dns_db_addrdataset(fctx->res->view->cachedb,
 					    node, NULL, now,
@@ -2202,12 +2203,15 @@ validated(isc_task_t *task, isc_event_t *event) {
 					    asigrdataset);
 		if (result != ISC_R_SUCCESS &&
 		    result != DNS_R_UNCHANGED)
-			goto cleanup;
+			goto respond;
 	}
 	
 	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
+	result = ISC_R_SUCCESS;
+
+ respond:
 	if (hevent != NULL) {
-		hevent->result = ISC_R_SUCCESS; /* XXX eresult? */
+		hevent->result = result;
 		dns_name_concatenate(vevent->name, NULL,
 		     dns_fixedname_name(&hevent->foundname), NULL);
 		dns_db_attach(fctx->res->view->cachedb, &hevent->db);
@@ -2215,9 +2219,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		node = NULL;
 		clone_results(fctx);
 	}
-	result = ISC_R_SUCCESS;
 
- cleanup:
 	if (node != NULL)
 		dns_db_detachnode(fctx->res->view->cachedb, &node);
 
@@ -2259,17 +2261,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (need_validation) {
-		/*
-		 * XXXRTH
-		 *
-		 * If some of the rdatasets associated with this name
-		 * don't have signatures, it could be that data we got is in
-		 * an unsecured subzone of a secure domain.
-		 * 
-		 * In this case we need to see if we can find a key chain
-		 * starting at the most-enclosing security root that proves
-		 * that this name is not secure.
-		 */
+		
 	}
 
 	adbp = NULL;
@@ -2544,17 +2536,18 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		return (result);
 	if (need_validation) {
 		/*
-		 * XXXRTH
-		 *
-		 * If some of the rdatasets associated with this name
-		 * don't have signatures, it could be that data we got is in
-		 * an unsecured subzone of a secure domain.
-		 * 
-		 * In this case we need to see if we can find a key chain
-		 * starting at the most-enclosing security root that proves
-		 * that this name is not secure.
+		 * Do negative response validation.
 		 */
-		return (ISC_R_NOTIMPLEMENTED);
+                isc_task_t *task = res->buckets[fctx->bucketnum].task;
+                result = dns_validator_create(res->view, name, 0,
+					      NULL, NULL,
+                                              fctx->rmessage, 0, task,
+                                              validated, fctx,
+                                              &fctx->validator);
+                if (result != ISC_R_SUCCESS)
+                        return (result);
+                fctx->validating++;
+		return (ISC_R_SUCCESS);
 	}
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
