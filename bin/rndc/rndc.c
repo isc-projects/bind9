@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.25 2000/10/05 10:42:40 marka Exp $ */
+/* $Id: rndc.c,v 1.26 2000/10/11 21:22:29 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -52,6 +52,8 @@ typedef struct ndc_object {
 	OMAPI_OBJECT_PREAMBLE;
 } ndc_object_t;
 
+#define REGION_FMT(x) (int)(x)->length, (x)->base
+
 static ndc_object_t ndc_g_ndc;
 static omapi_objecttype_t *ndc_type;
 
@@ -67,12 +69,11 @@ notify(const char *fmt, ...) {
 	}
 }
 
-
 /*
  * Send a control command to the server.
  */
 static isc_result_t
-send_command(omapi_object_t *manager, char *command) {
+send_command(omapi_object_t *manager, char *command, char *args) {
 	omapi_object_t *message = NULL;
 	isc_result_t result;
 
@@ -134,9 +135,8 @@ send_command(omapi_object_t *manager, char *command) {
 	/*
 	 * Set the command being sent.
 	 */
-	if (result == ISC_R_SUCCESS)
-		result = omapi_object_setboolean((omapi_object_t *)&ndc_g_ndc,
-						 command, ISC_TRUE);
+	result = omapi_object_setstring((omapi_object_t *)&ndc_g_ndc,
+					command, args);
 
 	if (result == ISC_R_SUCCESS) {
 		/*
@@ -180,6 +180,7 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	REQUIRE(handle->type == ndc_type);
 
 	ndc = (ndc_object_t *)handle;
+	notify("ndc_signalhandler: %s", name);
 
 	if (strcmp(name, "status") == 0) {
 		/*
@@ -225,6 +226,24 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	}
 
 	return (result);
+}
+
+static isc_result_t
+ndc_setvalue(omapi_object_t *handle, omapi_string_t *name,
+	     omapi_data_t *value)
+{
+	isc_region_t region;
+/*
+	isc_result_t result;
+	char *message;
+*/
+	
+	INSIST(handle == (omapi_object_t *)&ndc_g_ndc);
+	
+	omapi_string_totext(name, &region);
+	notify("ndc_setvalue: %.*s\n", REGION_FMT(&region));
+
+	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -277,12 +296,13 @@ main(int argc, char **argv) {
 	const char *keyname = NULL;
 	char secret[1024];
 	isc_buffer_t secretbuf;
-	char *command;
+	char *command, *args;
 	const char *servername = NULL;
 	const char *host = NULL;
 	unsigned int port = NS_OMAPI_PORT;
 	unsigned int algorithm;
 	int ch;
+	int len;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -421,7 +441,7 @@ main(int argc, char **argv) {
 
 	DO("register omapi object",
 	   omapi_object_register(&ndc_type, "ndc",
-				 NULL,			/* setvalue */
+				 ndc_setvalue,		/* setvalue */
 				 NULL,			/* getvalue */
 				 NULL,			/* destroy */
 				 ndc_signalhandler,
@@ -454,9 +474,22 @@ main(int argc, char **argv) {
 	 */
 	ndc_g_ndc.waitresult = ISC_R_SUCCESS;
 
-	while ((command = *argv++) != NULL &&
+	while ((args = *argv++) != NULL &&
 	       result == ISC_R_SUCCESS &&
 	       ndc_g_ndc.waitresult == ISC_R_SUCCESS) {
+
+		/* Skip leading white space. */
+		args += strspn(args, " \t\r\n");
+
+		/* Extract command */
+		len = strcspn(args, " \t\r\n");
+		if (len == 0)
+			continue;
+		command = isc_mem_get(mctx, len + 1);
+		if (command == NULL)
+			DO("isc_mem_get", ISC_R_NOMEMORY);
+		strncpy(command, args, len);
+		command[len] = '\0';
 
 		notify(command);
 
@@ -471,7 +504,7 @@ main(int argc, char **argv) {
 			result = ISC_R_NOTIMPLEMENTED;
 
 		} else if (strcmp(command, "reload") == 0) {
-			result = send_command(omapimgr, command);
+			result = send_command(omapimgr, command, args);
 
 		} else if (strcmp(command, "restart") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
@@ -483,12 +516,12 @@ main(int argc, char **argv) {
 			result = ISC_R_NOTIMPLEMENTED;
 
 		} else if (strcmp(command, "stop") == 0) {
-			result = send_command(omapimgr, command);
+			result = send_command(omapimgr, command, args);
 
 		} else if (strcmp(command, "trace") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
 		} else {
-			result = send_command(omapimgr, command);
+			result = send_command(omapimgr, command, args);
 		}
 
 		if (result == ISC_R_NOTIMPLEMENTED)
@@ -507,6 +540,7 @@ main(int argc, char **argv) {
 		else
 			printf("%s: %s command successful\n",
 			       progname, command);
+		isc_mem_put(mctx, command, len + 1);
 	}
 
 	notify("command loop done");
