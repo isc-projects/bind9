@@ -1,4 +1,7 @@
 
+ 628.	[bug]		If the root hints contained only AAAA addresses,
+			named would be unable to perform resolution.
+
  627.	[bug]		The EDNS0 blackhole detection code of 324. waited
 			for three retransmissions to each server, which
 			takes much too long when a domain has many name 
