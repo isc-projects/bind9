@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.8 2000/02/03 23:14:31 halley Exp $ */
+/* $Id: handle.c,v 1.9 2000/03/14 03:46:41 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -81,9 +81,6 @@ static isc_once_t once = ISC_ONCE_INIT; /* To initialize the mutex. */
  */
 static void
 initialize_mutex(void) {
-	/*
-	 * XXXDCL no provision has been made to destroy the mutex.
-	 */
 	RUNTIME_CHECK(isc_mutex_init(&mutex) == ISC_R_SUCCESS);
 }
 
