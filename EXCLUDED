@@ -81,3 +81,5 @@
 1234.   [bug]           'rrset-order' and 'sortlist' should be additive
                         not exclusive.
 
+1291.   [bug]           "recursion available: {denied,approved}" was too 
+                        confusing.
