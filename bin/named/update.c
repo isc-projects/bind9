@@ -117,6 +117,7 @@
  */
 #define FAILC(code, msg) \
 	do {							\
+		result = (code);				\
 		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
 			      "dynamic update failed: %s (%s)",	\
 		      	      msg, isc_result_totext(code));	\
@@ -128,6 +129,7 @@
  */
 #define FAILS(code, msg) \
 	do {							\
+		result = (code);				\
 		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
 			      "dynamic update error: %s: %s", 	\
 			      msg, isc_result_totext(code));	\

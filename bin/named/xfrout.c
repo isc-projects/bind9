@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.22 1999/10/29 23:54:37 gson Exp $ */
+ /* $Id: xfrout.c,v 1.23 1999/11/02 19:17:39 gson Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,7 @@
  */
 #define FAILC(code, msg) \
 	do {							\
+		result = (code);				\
 		isc_log_write(XFROUT_PROTOCOL_LOGARGS,		\
 			      "bad zone transfer request: %s (%s)", \
 		      	      msg, isc_result_totext(code));	\
