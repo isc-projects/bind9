@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.31 2000/06/22 21:50:44 tale Exp $ */
+/* $Id: rbt_test.c,v 1.32 2000/07/21 21:02:15 gson Exp $ */
 
 #include <config.h>
 
@@ -260,12 +260,12 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 				printf("... %s\n", dns_result_totext(r));
 
 int
-main (int argc, char **argv) {
+main(int argc, char **argv) {
 	char *command, *arg, buffer[1024];
 	const char *whitespace;
 	dns_name_t *name, *foundname;
 	dns_fixedname_t fixedname;
-	dns_rbt_t *rbt;
+	dns_rbt_t *rbt = NULL;
 	int length, ch;
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_result_t result;
