@@ -1,0 +1,166 @@
+
+INTERNET-DRAFT                                                Sam Weiler
+Expires: August 2003                                   February 24, 2003
+
+
+	 Legacy Resolver Compatibility for Delegation Signer
+	    draft-weiler-dnsext-dnssec-2535-compat-00.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is subject to all provisions
+   of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as
+   Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six
+   months and may be updated, replaced, or obsoleted by other
+   documents at any time.  It is inappropriate to use Internet- Drafts
+   as reference material or to cite them other than as "work in
+   progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/1id-abstracts.html
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   Comments should be sent to the author or to the DNSEXT WG mailing
+   list: namedroppers@ops.ietf.org
+
+Abstract
+
+   As the DNS Security (DNSSEC) specifications have evolved, the
+   syntax and semantics of the DNSSEC resource records have changed.
+   Many deployed nameservers understand variants of these semantics.
+   To avoid dangerous interactions when a resolver that understands an
+   earlier version of these semantics queries an authoritative server
+   that understands the new delegation signer semantics, this document
+   proposes changing the type codes and mnemonics of the previous
+   DNSSEC resource records (SIG, KEY, and NXT).
+
+1. Introduction
+
+   The DNSSEC protocol has been through many iterations whose syntax
+   and semantics are not completely compatible.  In particular,
+   delegation signer [DS] introduces new semantics for the NXT RR that
+   are incompatible with the semantics in [RFC2535].
+
+   In [RFC2535], NXT records were only returned as part of a
+   non-existence proof.  In [DS], an unsecure referral returns, in
+   addition to the NS, an NXT and SIG(NXT) to prove the non-existence
+   of a DS RR.  [RFC2535] didn't specify resolver behavior in response
+   to an answer with NOERROR or NODATA set and both an NS and an NXT
+   in the authority section.
+
+   Certain widely deployed 2535-aware resolvers interpret any answer
+   with an NXT as a non-existence proof.  This results in unsecure
+   delegations being invisible to these versions of 2535-aware
+   resolvers and violates the basic architectural principle that
+   DNSSEC must do no harm -- DNSSEC must not prevent resolution of
+   unsecured names.  Since it's impractical to force all recursive
+   resolvers to upgrade, zone owners who want their zones to be
+   globally reachable will have a strong incentive to not sign their
+   zones.
+
+2. Proposed Solution
+
+   To avoid the problem described above, legacy resolvers (those that
+   are 2535-aware) need to be kept from seeing unsecure referrals that
+   include NXT records in the authority section.  We propose doing
+   this by changing the type codes for SIG, KEY, and NXT.  To avoid
+   operational confusion, it's also necessary to change the mnemonics
+   for these RRs.
+
+   The new types will have exactly the same syntax and semantics as
+   specified for SIG, KEY, and NXT in [DNSSEC] and [DS], and they
+   completely replace the old types -- a resolver, if it receives the
+   old types, SHOULD treat them as unknown RRs, and SHOULD NOT assign
+   any special semantic value to them.  It SHOULD NOT use them for
+   DNSSEC validations or other DNS operational decision making.  An
+   authoritative server SHOULD NOT serve the old RR types.
+
+3. Alternative Solutions
+
+3.1 Changing only NXT
+
+   The observed problem with unsecure referrals could be addressed by
+   changing only the NXT type code.  It's quite possible, however,
+   that additional incompatibilities exist between [DS] and earlier
+   semantics.  It's also possible that legacy code will be confused by
+   seeing records it thinks it understands (SIG and KEY) while being
+   unable to find NXTs.  Although it may seem unnecessary to fix that
+   which is not obviously broken, it's far cleaner to change all of
+   the type codes at once.  This will leave legacy code (resolvers and
+   tools) completely blinded to DNSSEC -- it will see only unknown
+   RRs.
+
+3.2 Replacing the DO bit
+
+   Another way to keep legacy resolvers from ever seeing DNSSEC
+   records with [DS] semantics is to have authoritative servers only
+   send that data to DS-aware resolvers.  It's been proposed that
+   assigning a new EDNS0 flag bit to signal DS-awareness (tentatively
+   called "DA"), and having authoritative servers send DNSSEC data
+   only in response to queries with the DA bit set, would accomplish
+   this.  This bit would presumably supplant the DO bit described in
+   [RFC3225].
+
+   This solution is sufficient only if all 2535-aware resolvers zero
+   out EDNS0 flags that they don't understand.  If one passed through
+   the DA bit unchanged, it would still see the new semantics, and it
+   would probably fail to see unsecure delegations.  Since it's
+   impractical to know how every DNS implementation handles unknown
+   EDNS0 flags, this is not a universal solution.  It could, though,
+   be considered in addition to changing the RR type codes.
+
+4. IANA Considerations
+
+   This document updates the IANA registry for DNS Resource Record
+   Types by assigning types X, Y, and Z to the X, Y, and Z, RRs,
+   respectively.
+
+5. Security Considerations
+
+   The change proposed here does not materially effect security.  The
+   implications of trying to use both new and legacy types together
+   are not well understood, and attempts to do so would probably lead
+   to unintended results.  Accordingly, zones SHOULD NOT contain both
+   new and legacy types, and resolvers MUST NOT attempt to use both
+   new and legacy types in making trust decisions.
+
+   Changing type codes (or changing the EDNS0 flag) will leave code
+   paths in legacy resolvers that are never exercised.  Unexercised
+   code paths are a frequent source of security holes, largely because
+   those code paths do not get frequent scrutiny.
+
+6. References
+
+   [RFC2065] Eastlake, D. and C. Kaufman, "Domain Name System Security
+             Extensions", RFC 2065, January 1997.
+
+   [RFC2535] Eastlake, D., "Domain Name System Security Extensions",
+             RFC 2535, March 1999.
+
+   [RFC3225] D. Conrad, "Indicating Resolver Support of DNSSEC", RFC
+             3225, December 2001.
+
+   [DS]      Gudmundsson, O., "Delegation Signer Resource Record",
+             draft-ietf-dnsext-delegation-signer-12.txt, work in
+             progress, December 2002.
+
+   [DNSSEC]  DNSSEC rewrite documents.
+
+7. Author's Address
+
+   Sam Weiler
+   Network Associates Laboratories
+   15204 Omega Dr., Suite 300
+   Rockville, MD  20850
+   USA
+   weiler@tislabs.com
+
+
