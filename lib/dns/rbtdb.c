@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.109 2000/07/04 04:28:44 marka Exp $ */
+/* $Id: rbtdb.c,v 1.110 2000/07/25 01:06:01 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3062,7 +3062,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		merge = ISC_FALSE;
 
 	if ((options & DNS_DBADD_FORCE) != 0)
-		trust = dns_trust_authsecure;
+		trust = dns_trust_ultimate;
 	else
 		trust = newheader->trust;
 
