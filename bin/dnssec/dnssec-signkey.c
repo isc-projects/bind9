@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.46 2001/01/09 21:39:24 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.47 2001/03/23 03:58:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -262,7 +262,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_init(&b, argv[0] + strlen("keyset-"),
 			strlen(argv[0]) - strlen("keyset-"));
 	isc_buffer_add(&b, strlen(argv[0]) - strlen("keyset-"));
-	result = dns_name_fromtext(domain, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(domain, &b, dns_rootname, ISC_TRUE, NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("'%s' does not contain a valid domain name", argv[0]);
 	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1);

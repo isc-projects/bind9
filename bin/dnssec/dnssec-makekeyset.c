@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.47 2001/03/22 19:28:23 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.48 2001/03/23 03:58:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -246,6 +246,7 @@ main(int argc, char *argv[]) {
 
 	for (i = 0; i < argc; i++) {
 		char namestr[DNS_NAME_FORMATSIZE];
+		dns_fixedname_t fname;
 		isc_buffer_t namebuf;
 
 		key = NULL;
@@ -257,7 +258,12 @@ main(int argc, char *argv[]) {
 			rdatalist.rdclass = dst_key_class(key);
 
 		isc_buffer_init(&namebuf, namestr, sizeof namestr);
-		result = dns_name_totext(dst_key_name(key), ISC_FALSE,
+		dns_fixedname_init(&fname);
+		dns_name_downcase(dst_key_name(key),
+				  dns_fixedname_name(&fname),
+				  NULL);
+		result = dns_name_totext(dns_fixedname_name(&fname),
+					 ISC_FALSE,
 					 &namebuf);
 		check_result(result, "dns_name_totext");
 		isc_buffer_putuint8(&namebuf, 0);
