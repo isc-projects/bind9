@@ -867,6 +867,8 @@ loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 
 	result = dns_dnssec_findzonekeys(db, version, node, origin, mctx,
 					 20, keys, &nkeys);
+	if (result == ISC_R_NOTFOUND)
+		result = ISC_R_SUCCESS;
 	check_result(result, "dns_dnssec_findzonekeys()");
 
 	for (i = 0; i < nkeys; i++) {
