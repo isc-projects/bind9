@@ -1,0 +1,618 @@
+
+
+
+
+
+
+Network Working Group                                          D. Atkins
+draft-ietf-dnsext-dns-threats-00.txt                    IHTFP Consulting
+                                                              R. Austein
+                                             InterNetShare, Incorporated
+                                                           November 2001
+
+
+               Threat Analysis Of The Domain Name System
+
+
+Status of this document
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC 2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   <http://www.ietf.org/ietf/1id-abstracts.txt>
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   <http://www.ietf.org/shadow.html>
+
+   Distribution of this document is unlimited.  Please send comments to
+   the Namedroppers mailing list <namedroppers@ops.ietf.org>.
+
+Abstract
+
+   Although the DNS Security Extensions (DNSSEC) have been under
+   development for most of the last decade, the IETF has never written
+   down the specific set of threats against which DNSSEC is designed to
+   protect.  Among other drawbacks, this cart-before-the-horse situation
+   has made it difficult to determine whether DNSSEC meets its design
+   goals, since its design goals are not well specified.  This note
+   attempts to document some of the known threats to the DNS, and, in
+   doing so, attempts to measure to what extent (if any) DNSSEC is a
+   useful tool in defending against these threats.
+
+
+
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 1]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+1. Introduction
+
+   The earliest organized work on DNSSEC within the IETF was an open
+   design team meeting organized by members of the DNS working group in
+   November 1993 at the 28th IETF meeting in Houston.  The broad
+   outlines of DNSSEC as we know it today are already clear in Jim
+   Galvin's summary of the results of that meeting [Galvin93]:
+
+   - While some participants in the meeting were interested in
+     protecting against disclosure of DNS data to unauthorized parties,
+     the design team made an explicit decision that "DNS data is
+     `public'", and ruled all threats of data disclosure explicitly out
+     of scope for DNSSEC.
+
+   - While some participants in the meeting were interested in
+     authentication of DNS clients and servers as a basis for access
+     control, this work was also ruled out of scope for DNSSEC per se.
+     DNS Transaction Signatures (TSIG) were eventually developed as a
+     separate mechanism to address threats of unauthorized access to
+     DNS's zone transfer and dynamic update mechanisms.
+
+   - Backwards compatibility and co-existence with "insecure DNS" was
+     listed as an explicit requirement.
+
+   - The resulting list of desired security services was
+     1) data integrity, and
+     2) data origin authentication.
+
+   - The design team noted that a digital signature mechanism would
+     support the desired services.
+
+   While a number of detail decisions were yet to be made (and in some
+   cases remade after implementation experience) over the subsequent
+   eight years, the basic model and design goals have remained fixed.
+
+   Nowhere, however, does any of the DNSSEC work attempt to specify in
+   any detail the sorts of attacks against which DNSSEC is intended to
+   protect, or the reasons behind the list of desired security services
+   that came out of the Houston meeting.  For that, we have to go back
+   to a paper originally written by Steve Bellovin in 1990 but not
+   published until 1995, for reasons that Bellovin explained in the
+   paper's epilogue [Bellovin95].
+
+   While it may seem a bit strange to publish the threat analysis eight
+   years after starting work on the protocol designed to defend against
+   it, that is nevertheless what this note attempts to do.  Better late
+   than never.
+
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 2]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+   This note assumes that the reader is familiar with both the DNS and
+   with DNSSEC, and does not attempt to provide a tutorial on either.
+
+   For purposes of discussion, this note uses the term "DNSSEC" to refer
+   to the core hierarchical public key and signature mechanism specified
+   in the DNSSEC documents, and refer to TKEY and TSIG as separate
+   mechanisms, even though TKEY and TSIG are also part of the larger
+   problem of "securing DNS" and thus are often considered part of the
+   overall set of "DNS security extensions".  This is an arbitrary
+   distinction that in part reflects the way in which the protocol has
+   evolved (introduction of a putatively simpler transaction model
+   certain operations), and perhaps should be changed in a future
+   revision of this note.
+
+2.  Known Threats
+
+   There are several distinct classes of threats to the DNS, most of
+   which are DNS-related instances of more general problems, but a few
+   of which are specific to peculiarities of the DNS protocol.
+
+2.1.  Packet Interception
+
+   Some of the simplest threats against DNS are various forms of packet
+   interception: monkey-in-the-middle attacks, eavesdropping on requests
+   combined with spoofed responses that beat the real response back to
+   the resolver, and so forth.  In any of these scenarios, the attacker
+   can simply tell either party (usually the resolver) whatever it wants
+   that party to believe.  While packet interception attacks are far
+   from unique to DNS, DNS's usual behavior of sending an entire query
+   or response in a single unsigned, unencrypted UDP packet makes these
+   attacks particularly easy for any bad guy with the ability to
+   intercept packets on a shared or transit network.
+
+   To further complicate things, the DNS query the attacker intercepts
+   may just be a means to an end for the attacker: the attacker might
+   even chose to return the correct result in the answer section of a
+   reply message while using other parts of the message to set the stage
+   for something more complicated, for example, a name-based attack
+   (q.v., below).
+
+   While it certainly would be possible to sign DNS messages using TSIG
+   or IPsec, or even to encrypt them using IPsec, this would not be a
+   very good solution.  First, this approach would impose a fairly high
+   processing cost per DNS message, as well as a very high cost
+   associated with establishing and maintaining bilateral trust
+   relationships between all the parties that might be involved in
+   resolving any particular query.  For heavily used name servers (such
+   as the servers for the root zone), this cost would almost certainly
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 3]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+   be prohibitively high.  Even more important, however, is that the
+   underlying trust model in such a design would be wrong, since at best
+   it would only provide a hop-by-hop integrity check on DNS messages
+   and would not provide any sort of end-to-end integrity check between
+   the producer of DNS data (the zone administrator) and the consumer of
+   DNS data (the application that triggered the query).
+
+   By contrast, DNSSEC (when used properly) does provide an end-to-end
+   data integrity check, and is thus a much better solution for this
+   class of problems during basic DNS lookup operations.
+
+   TSIG does have its place in corners of the DNS protocol where there's
+   a specific trust relationship between a particular client and a
+   particular server, such as zone transfer, dynamic update, or a
+   resolver (stub or otherwise) that is not going to check all the
+   DNSSEC signatures itself.
+
+   Note that DNSSEC does not provide any protection against modification
+   of the DNS message header, so any properly paranoid resolver must:
+
+   - Perform all all of the DNSSEC signature checking on its own,
+
+   - Use TSIG (or some equivalent mechanism) to insure the integrity of
+     its communication with whatever name servers it chooses to trust,
+     or
+
+   - Resign itself to the possibility of being attacked via packet
+     interception (and via other techniques discussed below).
+
+2.2.  ID Guessing and Query Prediction
+
+   Since the ID field in the DNS header is only a 16-bit field and the
+   server UDP port associated with DNS is a well-known value, there are
+   only 2**32 possible combinations of ID and client UDP port for a
+   given client and server.  This is not a particularly large range, and
+   is not proof against a brute force search; furthermore, in practice
+   both the client UDP port and the ID can often be predicted from
+   previous traffic, and it is not uncommon for the client port to be a
+   known fixed value as well (due to firewalls or other restrictions),
+   thus frequently reducing the search space to a range smaller than
+   2**16.
+
+   By itself, ID guessing is not enough to allow an attacker to inject
+   bogus data, but combined with knowledge (or guesses) about QNAMEs and
+   QTYPEs for which a resolver might be querying, this leaves the
+   resolver only weakly defended against injection of bogus responses.
+
+   Since this attack relies on predicting a resolver's behavior, it's
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 4]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+   most likely to be successful when the victim is in a known state,
+   whether because the victim rebooted recently, or because the victim's
+   behavior has been influenced by some other action by the attacker, or
+   because the victim is responding (in a predictable way) to some third
+   party action known to the attacker.
+
+   This attack is both more and less difficult for the attacker than the
+   simple interception attack described above: more difficult, because
+   the attack only works when the attacker guesses correctly; less
+   difficult, because the attacker doesn't need to be on a transit or
+   shared network.
+
+   In most other respects, this attack is similar to a packet
+   interception attack.  A resolver that checks DNSSEC signatures will
+   be able to detect the forged response; resolvers that do not
+   themselves perform DNSSEC signature checking should use TSIG or some
+   equivalent mechanism to insure the integrity of their communication
+   with a recursing name server that does perform DNSSEC signature
+   checking.
+
+2.3.  Name Games
+
+   Perhaps the most interesting class of DNS-specific threats are the
+   name-based attacks.  There are several variations within this class,
+   sometimes called "cache poisoning" or "fake authority" attacks.  What
+   all of these attacks have in common is that they all involve DNS RRs
+   whose RDATA portion (right hand side) includes a DNS name.  Any such
+   RR is, at least in principle, a hook that lets an attacker feed bad
+   data into a victim's cache, thus potentially subverting subsequent
+   decisions based on DNS names.
+
+   The worst examples in this class of RRs are CNAME, NS, and DNAME RRs,
+   because they can redirect a victim's query to a location of the
+   attacker's choosing.  RRs like MX and SRV are somewhat less
+   dangerous, but in principle they can also be used to trigger further
+   lookups at a location of the attacker's choosing.
+
+   The general form of a name-based attack is something like this:
+
+   - Victim issues a query, perhaps at the instigation of the attacker
+     or some third party; in some the query itself may be unrelated to
+     the name under attack (ie, the attacker is just using this query as
+     a means to inject false information about some other name).
+
+   - Attacker injects response, whether via packet interception, query
+     guessing, or by being a legitimate name server that's involved at
+     some point in the process of answering the query that the victim
+     issued.
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 5]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+   - Attacker's response includes one or more RRs with DNS names in
+     their RDATA; depending on which particular form this attack takes,
+     the object may be to inject false data associated with those names
+     into the victim's cache via the Additional section of this
+     response, or may be to redirect the next stage of the query to a
+     server of the attacker's choosing (in order to inject more complex
+     lies into the victim's cache than will fit easily into a single
+     response, or in order to place the lies in the Authority or Answer
+     section of a response where they will have a better chance of
+     sneaking past a resolver's defenses).
+
+   The common thread in all of these attacks is that response messages
+   allow the attacker to introduce arbitrary DNS names of the attacker's
+   choosing and provide further information that the attacker claims is
+   associated with those names; unless the victim has better knowledge
+   of the data associated with those names, the victim is going to have
+   a hard time defending against this class of attacks.
+
+   This class of attack is particularly insidious given that it's quite
+   easy for an attacker to provoke a victim into querying for a
+   particular name of the attacker's choosing, for example, by embedding
+   a link to a 1x1-pixel "web bug" in a piece of Text/HTML mail to the
+   victim.
+
+   DNSSEC should provide a good defense against most (all?) variations
+   on this class of attack.  By checking signatures, a resolver can
+   determine whether the data associated with a name really was inserted
+   by the delegated authority for that portion of the DNS name space
+   (more precisely, a resolver can determine whether the entity that
+   injected the data had access to an allegedly secret key whose
+   corresponding public key appears at an expected location in the DNS
+   name space with an expected chain of parental signatures that start
+   with a public key of which the resolver has prior knowledge).
+
+   DNSSEC signatures do not cover glue records, so there's still a
+   possibility of a name-based attack involving glue, but it should be
+   possible to detect the attack by temporarily accepting the glue in
+   order to fetch the signed authoritative version of the same data,
+   then checking the signatures on the authoritative version.
+
+
+2.4.  Betrayal By Trusted Server
+
+   Another variation on the packet interception attack is the trusted
+   server that turns out not to be so trustworthy, whether by accident
+   or by intent.  Many client machines are only configured with stub
+   resolvers, and use trusted servers to perform all of their DNS
+   queries on their behalf.  In many cases the trusted server is
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 6]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+   furnished by the user's ISP and advertised to the client via DHCP or
+   PPP options.  Besides accidental betrayal of this trust relationship
+   (via server bugs, successful server break-ins, etc), the server
+   itself may be configured to give back answers that are not what the
+   user would expect (whether in an honest attempt to help the user or
+   to further some other goal such as furthering a business partnership
+   between the ISP and some third party).
+
+   This problem is particularly acute for frequent travelers who carry
+   their own equipment and expect it to work in much the same way no
+   matter which network it's plugged into at any given moment (and no
+   matter what brand of middle boxes a particular hotel chain might have
+   installed when adding network drops in every guest room...).
+
+   From the protocol standpoint, the only difference between this sort
+   of betrayal and a packet interception attack is that in this case the
+   client has voluntarily sent its request to the attacker.  The defense
+   against this is the same as with a packet interception attack: the
+   resolver must either check DNSSEC signatures itself or use TSIG (or
+   equivalent) to authenticate the server that it has chosen to trust.
+   Note that use of TSIG does not by itself guarantee that a name server
+   is at all trustworthy: all TSIG can do is help a resolver protect its
+   communication with a name server that it has already decided to trust
+   for other reasons.  Protecting a resolver's communication with a
+   server that's giving out bogus answers is not particularly useful.
+
+   Also note that if the stub resolver does not trust the name server
+   that is doing work on its behalf and wants to check the DNSSEC
+   signatures itself, the resolver really does need to have independent
+   knowledge of the DNSSEC public key(s) it needs to perform the check
+   (usually the public key for the root zone, but in some cases
+   knowledge of additional keys may also be appropriate).
+
+   It is difficult to escape the conclusion that a properly paranoid
+   resolver must always perform its own signature checking, and that
+   this rule even applies to stub resolvers.
+
+2.5.  Denial of Service
+
+   As with any network service (or, indeed, almost any service of any
+   kind in any domain of discourse), DNS is vulnerable to denial of
+   service attacks.  DNSSEC does not help this, and may in fact make the
+   problem worse for resolvers that check signatures, since checking
+   signatures both increases the processing cost per DNS message and in
+   some cases can also increase the number of messages needed to answer
+   a query.  TSIG (and similar mechanisms) have equivalent problems.
+
+   DNS servers are also at risk of being used as denial of service
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 7]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+   amplifiers, since DNS response packets tend to be significantly
+   longer than DNS query packets.  Unsurprisingly, DNSSEC doesn't help
+   here either.
+
+3.  Weaknesses of DNSSEC
+
+   DNSSEC has some problems of its own:
+
+   - DNSSEC is complex to implement, and includes some nasty edge cases
+     at the zone cuts that require very careful coding.  Testbed
+     experience to date suggests that trivial zone configuration errors
+     or expired keys can cause serious problems for a DNSSEC-aware
+     resolver, and that the current protocol's error reporting
+     capabilities may leave something to be desired.
+
+   - DNSSEC significantly increases the size of DNS response packets;
+     among other issues, this makes DNSSEC-aware DNS servers even more
+     effective as denial of service amplifiers.
+
+   - DNSSEC answer validation increases the resolver's work load, since
+     a DNSSEC-aware resolver will need to perform signature validation
+     and in some cases will also need to issue further queries.  This
+     increased workload will also increase the time it takes to get an
+     answer back to the original DNS client, which will almost certainly
+     trigger both timeouts and re-queries.  (Arguably, many current DNS
+     clients are already too impatient even before taking the further
+     delays that DNSSEC will impose into account, but that's a separate
+     topic for another document....)
+
+   - Like DNS itself, DNSSEC's trust model is almost totally
+     hierarchical.  While DNSSEC does allow resolvers to have special
+     additional knowledge of public keys beyond those for the root, in
+     the general case the root key is the one that matters.  Thus any
+     compromise in any of the zones between the root and a particular
+     target name can damage DNSSEC's ability to protect the integrity of
+     data owned by that target name.  This is not really a change, since
+     insecure DNS has essentially the same problem, but it's not good
+     either.
+
+   - Key rollover at the root is really hard.  Work to date has not even
+     come close to adequately specifying how the root key rolls over, or
+     even how it's configured in the first place.
+
+4.  Other issues
+
+   [Odds and ends that don't yet fit anywhere else, to be revised...]
+
+
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 8]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+4.1.  Interactions With Other Protocols
+
+   The above discussion has concentrated exclusively on attacks within
+   the boundaries of the DNS protocol itself, since those are the
+   problems against (some of) which DNSSEC was intended to protect.
+   There are, however, other potential problems at the boundaries where
+   DNS interacts with other protocols.  This topic needs further study.
+
+4.2.  Securing DNS Dynamic Update
+
+   This note does not (yet) discuss any of the issues involved in
+   securing DNS dynamic update, except via its occasional references to
+   TSIG.  Scaling properties of the key management problem here is a
+   particular concern that needs more study.  These topics should be
+   covered in a later version of this note.
+
+5.  Conclusion
+
+   Based on the above analysis, the DNSSEC extensions do appear to solve
+   a set of problems that do need to be solved, and are worth deploying.
+
+Security Considerations
+
+   This entire document is about security considerations of the DNS.  We
+   believe that deploying DNSSEC will help to address some, but not all,
+   of the known threats to with DNS.
+
+IANA Considerations
+
+   None known.
+
+Acknowledgments
+
+   This note is based both previous published works by others and on on
+   a number of discussions both public and private over a period of many
+   years, but particular thanks go to Steve Bellovin, Dan Bernstein,
+   Randy Bush, Olafur Gudmundsson, Allison Mankin, Paul Vixie, and our
+   libel lawyers at the firm of Dewey, Chetham, & Howe, none of whom are
+   responsible for what the authors did with their ideas.
+
+References
+
+   [Bellovin95] Bellovin, S., "Using the Domain Name System for System
+        Break-Ins", Proceedings of the Fifth Usenix Unix Security
+        Symposium, June 1995.
+
+   [Galvin93] Design team meeting summary message posted to dns-
+        security@tis.com mailing list by Jim Galvin on 19 November 1993.
+
+
+
+Atkins & Austein           Expires 20 May 2002                  [Page 9]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+   [Schuba93] Schuba, C., "Addressing Weaknesses in the Domain Name
+        System Protocol", Master's thesis, Purdue University Department
+        of Computer Sciences, August 1993.
+
+   [Vixie95] Vixie, P, "DNS and BIND Security Issues", Proceedings of
+        the Fifth Usenix Unix Security Symposium, June 1995.
+
+   [DNS-CONCEPTS] Mockapetris, P., "Domain names - concepts and
+        facilities", RFC 1034, November 1987.
+
+   [DNS-IMPLEMENTATION] Mockapetris, P., "Domain names - implementation
+        and specification", RFC 1035, November 1987.
+
+   [HOST-REQUIREMENTS] Braden, R., Editor, "Requirements for Internet
+        Hosts - Application and Support", RFC 1123, October 1989.
+
+   [DNS-CLARIFY] Elz, R., and Bush, R., "Clarifications to the DNS
+        Specification" RFC 2181, July 1997.
+
+   [NCACHE] Andrews, M., "Negative Caching of DNS Queries (DNS NCACHE)"
+        RFC 2308, March 1998.
+
+   [DNSSEC] Eastlake, D., "Domain Name System Security Extensions", RFC
+        2535, March 1999.
+
+   [EDNS0] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC 2671,
+        August 1999.
+
+   [TSIG] Vixie, P., Gudmundsson, O., Eastlake, D., and Wellington, B.,
+        "Secret Key Transaction Authentication for DNS (TSIG)" RFC 2845,
+        May 2000.
+
+   [TKEY] Eastlake, D., "Secret Key Establishment for DNS (TKEY RR)" RFC
+        2930, September 2000.
+
+   [SECURE-UPDATE] Wellington, B., "Secure Domain Name System (DNS)
+        Dynamic Update" RFC 3007, November 2000.
+
+   [SIGNING-AUTHORITY] Wellington, B., "Domain Name System Security
+        (DNSSEC) Signing Authority" RFC 3008, November 2000.
+
+   [DNSSEC-ZONE-STATUS] Lewis, E., "DNS Security Extension Clarification
+        on Zone Status" RFC 3090, March 2001.
+
+
+
+
+
+
+
+
+Atkins & Austein           Expires 20 May 2002                 [Page 10]
+
+draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+
+
+Author's addresses:
+
+      Derek Atkins
+      IHTFP Consulting
+      6 Farragut Ave
+      Somerville, MA  02144
+      USA
+      Email: warlord@ihtfp.com
+
+      Rob Austein
+      InterNetShare, Incorporated
+      325M Sharon Park Drive, Suite 308
+      Menlo Park, CA  94025
+      USA
+      sra@hactrn.net
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Atkins & Austein           Expires 20 May 2002                 [Page 11]
