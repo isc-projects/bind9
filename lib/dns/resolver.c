@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.263 2003/04/11 07:25:25 marka Exp $ */
+/* $Id: resolver.c,v 1.264 2003/07/18 04:30:01 marka Exp $ */
 
 #include <config.h>
 
@@ -3304,7 +3304,10 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					eresult = DNS_R_DNAME;
 				}
 			}
-			if (rdataset->trust == dns_trust_glue) {
+			if (rdataset->trust == dns_trust_glue &&
+			    (rdataset->type == dns_rdatatype_ns ||
+		             (rdataset->type == dns_rdatatype_sig &&
+			      rdataset->covers == dns_rdatatype_ns))) {
 				/*
 				 * If the trust level is 'dns_trust_glue'
 				 * then we are adding data from a referral
