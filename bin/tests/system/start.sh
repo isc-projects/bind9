@@ -72,4 +72,11 @@ do
 done
 rm -f dig.out
 
+if [ $status != 0 ]
+then
+    echo "I: Couldn't talk to server(s)."
+    cd ..
+    sh stop.sh $1
+fi
+
 exit $status
