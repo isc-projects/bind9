@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.37 2001/01/09 21:39:00 bwelling Exp $
+# $Id: Makefile.in,v 1.38 2001/03/27 19:36:55 halley Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -30,6 +30,11 @@ distclean::
 	rm -f config.cache config.h config.log config.status TAGS
 	rm -f libtool isc-config.sh
 	rm -f util/conf.sh
+
+# XXX we should clean libtool stuff too.  Only do this after we add rules
+# to make it.
+maintainer-clean::
+	rm -f configure
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
