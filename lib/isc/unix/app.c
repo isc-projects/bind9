@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.26 2000/08/30 00:58:28 bwelling Exp $ */
+/* $Id: app.c,v 1.27 2000/08/30 01:43:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -173,7 +173,7 @@ isc_app_start(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-#if defined(HAVE_SIGWAIT) || !defined(ISC_PLATFORM_USETHREADS)
+#ifdef HAVE_SIGWAIT
 	result = handle_signal(SIGTERM, SIG_DFL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
