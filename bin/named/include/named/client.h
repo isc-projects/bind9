@@ -64,6 +64,7 @@
 #include <isc/stdtime.h>
 #include <isc/buffer.h>
 #include <isc/quota.h>
+#include <isc/log.h>
 
 #include <dns/name.h>
 #include <dns/types.h>
@@ -118,6 +119,7 @@ struct ns_client {
 	isc_quota_t			*recursionquota;
 	ns_interface_t			*interface;
 	isc_sockaddr_t			peeraddr;
+	isc_boolean_t			peeraddr_valid;
 	struct in6_pktinfo		pktinfo;
 	ISC_LINK(ns_client_t)		link;
 	client_list_t			*list;	/* The list 'link' is part of,
@@ -249,5 +251,9 @@ ns_client_checkacl(ns_client_t  *client,
  *	No other return values are possible.
  */
 
+void
+ns_client_log(ns_client_t *client, isc_logcategory_t *category,
+	      isc_logmodule_t *module, int level,
+	      const char *fmt, ...);
 
 #endif /* NS_CLIENT_H */
