@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.36 2000/01/12 18:01:11 gson Exp $ */
+ /* $Id: xfrout.c,v 1.37 2000/01/15 00:37:00 gson Exp $ */
 
 #include <config.h>
 
@@ -731,6 +731,7 @@ typedef struct {
 	dns_rdatatype_t		qtype;		/* dns_rdatatype_{a,i}xfr */
 	dns_db_t 		*db;
 	dns_dbversion_t 	*ver;
+	isc_quota_t		*quota;
 	rrstream_t 		*stream;	/* The XFR RR stream */
 	isc_boolean_t		end_of_stream;	/* EOS has been reached */
 	isc_buffer_t 		buf;		/* Buffer for message owner
@@ -750,7 +751,7 @@ typedef struct {
 static isc_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  unsigned int id, dns_name_t *qname, dns_rdatatype_t qtype,
-		  dns_db_t *db, dns_dbversion_t *ver,
+		  dns_db_t *db, dns_dbversion_t *ver, isc_quota_t *quota,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
 		  dns_rdata_any_tsig_t *lasttsig,
 		  unsigned int maxtime,
@@ -790,6 +791,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	isc_mem_t *mctx = client->mctx;
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
+	isc_quota_t *quota = NULL;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -806,9 +808,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "got %s request", mnemonic);
 
 	/*
-	 * Apply quotas.
+	 * Apply quota.
 	 */
-	result = ns_client_getquota(client, &ns_g_server->xfroutquota);
+	result = isc_quota_attach(&ns_g_server->xfroutquota, &quota);
 	if (result != DNS_R_SUCCESS) {
 		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "zone transfer request denied: %s",
@@ -975,17 +977,18 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
  have_stream:
 	/*
 	 * Create the xfrout context object.  This transfers the ownership
-	 * of "stream", "db", and "ver" to the xfrout context object.
+	 * of "stream", "db", "ver", and "quota" to the xfrout context object.
 	 */
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
-				reqtype, db, ver, stream, request->tsigkey,
-				request->tsig,
+				reqtype, db, ver, quota, stream,
+				request->tsigkey, request->tsig,
 				dns_zone_getmaxxfrout(zone),
 				dns_zone_getidleout(zone),
 				&xfr));
 	stream = NULL;
 	db = NULL;
 	ver = NULL;
+	quota = NULL;
 	
 	CHECK(xfr->stream->methods->first(xfr->stream));
 
@@ -1000,6 +1003,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	result = DNS_R_SUCCESS;
 
  failure:
+	if (quota != NULL)
+		isc_quota_detach(&quota);
 	if (current_soa_tuple != NULL)
 		dns_difftuple_free(&current_soa_tuple);
 	if (stream != NULL)
@@ -1027,7 +1032,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 static isc_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
-		  dns_db_t *db, dns_dbversion_t *ver,
+		  dns_db_t *db, dns_dbversion_t *ver, isc_quota_t *quota,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
 		  dns_rdata_any_tsig_t *lasttsig, unsigned int maxtime,
 		  unsigned int idletime, xfrout_ctx_t **xfrp)
@@ -1051,6 +1056,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->qtype = qtype;
 	xfr->db = db;
 	xfr->ver = ver;
+	xfr->quota = quota;
 	xfr->stream = stream;
 	xfr->end_of_stream = ISC_FALSE;
 	xfr->tsigkey = tsigkey;
@@ -1379,8 +1385,8 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 		dns_rdata_freestruct(xfr->lasttsig);
 		isc_mem_put(xfr->mctx, xfr->lasttsig, sizeof(*xfr->lasttsig));
 	}
-
-	/* XXX */
+	if (xfr->quota != NULL)
+		isc_quota_detach(&xfr->quota);		
 	if (xfr->ver != NULL) 
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_FALSE);
 	if (xfr->db != NULL)
