@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confctx.c,v 1.38 2000/03/28 22:58:14 brister Exp $ */
+
 #include <config.h>
 
 #include <syslog.h>	/* XXXRTH */
@@ -29,8 +31,6 @@
 #include <dns/log.h>
 
 #include "confpvt.h"
-
-
 
 /*
  * Bit positions in the flags fields of the dns_c_options_t structure.
@@ -252,7 +252,7 @@ dns_c_checkconfig(dns_c_ctx_t *ctx)
 		dns_c_ipmatchlist_detach(&ipml);
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "topology is not yet implemented.");
+			      "topology is deprecated.");
 	}
 
 	if (dns_c_ctx_getsortlist(ctx, &ipml) != ISC_R_NOTFOUND) {

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confcache.c,v 1.5 2000/03/28 22:58:14 brister Exp $ */
+
 #include <config.h>
 
 #include <dns/confcache.h>

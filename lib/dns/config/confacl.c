@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confacl.c,v 1.14 2000/03/28 22:58:13 brister Exp $ */
+
 #include <config.h>
 
 #include <string.h>

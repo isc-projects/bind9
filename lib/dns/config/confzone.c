@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confzone.c,v 1.33 2000/03/28 22:58:25 brister Exp $ */
+
 #include <config.h>
 
 #include <isc/assertions.h>

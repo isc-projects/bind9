@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confctl.c,v 1.17 2000/03/28 22:58:14 brister Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>

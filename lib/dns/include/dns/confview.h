@@ -123,8 +123,6 @@ struct dns_c_view
 
 	dns_c_iplist_t         *forwarders;
 
-	dns_c_lstnlist_t       *listens;
-	
 	dns_c_rrsolist_t       *ordering;
 	
 	dns_severity_t	check_names[DNS_C_TRANSCOUNT];
@@ -364,9 +362,6 @@ isc_result_t dns_c_view_setsortlist(dns_c_view_t *view,
 isc_result_t dns_c_view_settopology(dns_c_view_t *view,
 				    dns_c_ipmatchlist_t *ipml,
 				    isc_boolean_t deepcopy);
-isc_result_t dns_c_view_addlisten_on(dns_c_view_t *view, in_port_t port,
-				     dns_c_ipmatchlist_t *ml,
-				     isc_boolean_t copy);
 isc_result_t dns_c_view_setrrsetorderlist(dns_c_view_t *view,
 					  isc_boolean_t copy,
 					  dns_c_rrsolist_t *olist);
@@ -393,8 +388,6 @@ isc_result_t dns_c_view_getsortlist(dns_c_view_t *view,
 				    dns_c_ipmatchlist_t **ipml);
 isc_result_t dns_c_view_gettopology(dns_c_view_t *view,
 				    dns_c_ipmatchlist_t **ipml);
-isc_result_t dns_c_view_getlistenlist(dns_c_view_t *cfg,
-				      dns_c_lstnlist_t **ll);
 isc_result_t dns_c_view_getrrsetorderlist(dns_c_view_t *view,
 					  dns_c_rrsolist_t **olist);
 isc_result_t dns_c_view_getchecknames(dns_c_view_t *view,

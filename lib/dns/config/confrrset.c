@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confrrset.c,v 1.10 2000/03/28 22:58:24 brister Exp $ */
+
 #include <config.h>
 
 #include <isc/assertions.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confcommon.c,v 1.20 2000/03/28 22:58:14 brister Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>	/* XXXRTH */
@@ -680,7 +682,7 @@ dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer)
 	if (res == ISC_R_SUCCESS) {
 		REQUIRE(name != NULL);
 		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "key { \"");
+		fprintf(fp, "keys { \"");
 		dns_name_print(peer->key, fp);
 		fprintf(fp, "\"; };\n");
 	}
@@ -749,8 +751,11 @@ dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable)
 	}
 
 	fputc('\n', fp);
+	dns_c_printtabs(fp, indent);
+	fprintf(fp, "update-policy {\n");
+	
 	do {
-		dns_c_printtabs(fp, indent);
+		dns_c_printtabs(fp, indent + 1);
 
 		fputs ((dns_ssurule_isgrant(rule) ? "grant" : "deny"), fp);
 		fputc(' ', fp);
@@ -786,7 +791,9 @@ dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable)
 
 		tcount = dns_ssurule_types(rule, &types);
 		for(i = 0 ; i < tcount ; i++) {
+			fputc('\"', fp);
 			dns_c_datatype_tostream(fp, types[i]);
+			fputc('\"', fp);
 			fputc(' ', fp);
 		}
 
@@ -795,6 +802,8 @@ dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable)
 		rule = NULL;
 	} while (dns_ssutable_nextrule(tmprule, &rule) == ISC_R_SUCCESS);
 	fputc('\n', fp);
+	dns_c_printtabs(fp, indent);
+	fprintf(fp, "};\n");
 }
 
 

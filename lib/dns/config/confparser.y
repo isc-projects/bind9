@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.54 2000/03/23 19:35:14 halley Exp $ */
+/* $Id: confparser.y,v 1.55 2000/03/28 22:58:20 brister Exp $ */
 
 #include <config.h>
 
@@ -161,7 +161,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_EOS
 %token		L_SLASH
 %token		L_BANG
-%token		L_QUOTE
 
 %token		L_MASTER
 %token		L_SLAVE
@@ -296,10 +295,10 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_PROVIDE_IXFR
 %token		L_REQUEST_IXFR
 
+%token		L_UPDATE_POLICY
 %token		L_GRANT
 %token		L_DENY
 %token		L_SUBDOMAIN
-%token		L_DOMAIN
 %token		L_SELF
 %token		L_WILDCARD
 
@@ -2872,27 +2871,6 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 			YYABORT;
 		}
 	}
-	| L_LISTEN_ON maybe_port L_LBRACE address_match_list L_RBRACE
-	{
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-
-		INSIST(view != NULL);
-		
-		if ($4 == NULL) {
-			parser_warning(ISC_FALSE,
-				       "address-match-list empty. "
-				       "listen statement ignored.");
-		} else {
-			tmpres = dns_c_view_addlisten_on(view, $2, $4,
-							 ISC_FALSE);
-
-			if (tmpres != ISC_R_SUCCESS) {
-				parser_error(ISC_FALSE,
-					     "failed to add listen statement");
-				YYABORT;
-			}
-		}
-	}
 /* XXX not implemented yet
 	| L_RRSET_ORDER L_LBRACE rrset_ordering_list L_RBRACE 
 	| L_CHECK_NAMES 
@@ -2901,6 +2879,12 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         | zone_stmt
 	;
 
+
+zone_update_policy: L_UPDATE_POLICY L_LBRACE {
+		
+	} zone_grant_stmt_list L_RBRACE;
+
+zone_grant_stmt_list: /* nothing */ | zone_grant_stmt_list zone_ssu_stmt L_EOS;
 
 zone_ssu_stmt: grant_stmt {
 		dns_ssutable_t *ssutable = NULL;
@@ -3315,7 +3299,7 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_TRANSFER_SOURCE | L_CHECK_NAMES | L_ALLOW_UPDATE |
 	L_ALLOW_UPDATE_FORWARDING | L_ALLOW_QUERY |
 	L_ALLOW_TRANSFER | L_FORWARD | L_FORWARDERS | L_MAX_TRANSFER_TIME_IN |
-	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS | L_GRANT | L_DENY |
+	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS | L_UPDATE_POLICY | L_DENY |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP
@@ -3769,7 +3753,7 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-	| zone_ssu_stmt
+	| zone_update_policy
 	;
 
 
@@ -4038,7 +4022,6 @@ static struct token keyword_tokens [] = {
 	{ "grant", 			L_GRANT },
 	{ "deny", 			L_DENY },
 	{ "subdomain", 			L_SUBDOMAIN },
-	{ "domain", 			L_DOMAIN },
 	{ "self", 			L_SELF },
 	{ "wildcard", 			L_WILDCARD },
 	{ "group",			L_GROUP },
@@ -4124,6 +4107,7 @@ static struct token keyword_tokens [] = {
 	{ "type",			L_TYPE },
 	{ "unix",			L_UNIX },
 	{ "unlimited",			L_UNLIMITED },
+	{ "update-policy",		L_UPDATE_POLICY },
 	{ "use-id-pool",		L_USE_ID_POOL },
 	{ "use-ixfr",			L_USE_IXFR },
 	{ "version",			L_VERSION },

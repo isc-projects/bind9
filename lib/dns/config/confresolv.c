@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confresolv.c,v 1.5 2000/03/28 22:58:23 brister Exp $ */
+
 #include <config.h>
 
 #include <dns/confresolv.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: conflsn.c,v 1.11 2000/03/28 22:58:19 brister Exp $ */
+
 #include <config.h>
 
 #include <isc/assertions.h>

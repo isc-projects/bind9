@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confview.c,v 1.16 2000/03/28 22:58:24 brister Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>
@@ -242,7 +244,6 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_c_view_t **newview)
 	view->sortlist = NULL;
 	view->topology = NULL;
 	view->forwarders = NULL;
-	view->listens = NULL;
 	view->ordering = NULL;
 	
 	for (i = 0 ; i < DNS_C_TRANSCOUNT ; i++) {
@@ -384,10 +385,6 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view)
 		dns_c_ipmatchlist_print(fp, indent + 2,
 					view->topology);
 		fprintf(fp, ";\n");
-	}
-
-	if (view->listens != NULL) {
-		dns_c_lstnlist_print(fp, indent + 1, view->listens);
 	}
 
 	if (view->ordering != NULL) {
@@ -821,10 +818,6 @@ dns_c_view_delete(dns_c_view_t **viewptr)
 	if (view->topology != NULL)
 		dns_c_ipmatchlist_detach(&view->topology);
 
-	if (view->listens != NULL) {
-		dns_c_lstnlist_delete(&view->listens);
-	}
-	
 	if (view->ordering != NULL) {
 		dns_c_rrsolist_delete(&view->ordering);
 	}
@@ -874,53 +867,6 @@ dns_c_view_addzone(dns_c_view_t *view, dns_c_zone_t *zone)
 	return (dns_c_zonelist_addzone(view->zonelist, attached));
 }
 	
-
-isc_result_t
-dns_c_view_addlisten_on(dns_c_view_t *view, in_port_t port,
-			dns_c_ipmatchlist_t *ml,
-		       isc_boolean_t copy)
-{
-	dns_c_lstnon_t *lo;
-	isc_result_t res;
-
-	REQUIRE(DNS_C_VIEW_VALID(view));
-
-	if (view->listens == NULL) {
-		res = dns_c_lstnlist_new(view->mem, &view->listens);
-		if (res != ISC_R_SUCCESS) {
-			return (res);
-		}
-	}
-
-	res = dns_c_lstnon_new(view->mem, &lo);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-	
-	lo->port = port;
-	res = dns_c_lstnon_setiml(lo, ml, copy);
-
-	ISC_LIST_APPEND(view->listens->elements, lo, next);
-
-	return (res);
-}
-
-
-
-isc_result_t
-dns_c_view_getlistenlist(dns_c_view_t *view, dns_c_lstnlist_t **ll)
-{
-	REQUIRE(DNS_C_VIEW_VALID(view));
-	REQUIRE(ll != NULL);
-
-	*ll = NULL;
-
-	if (view->listens != NULL) {
-		*ll = view->listens;
-	}
-
-	return (*ll == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
-}
 
 isc_result_t dns_c_view_setrrsetorderlist(dns_c_view_t *view,
 					  isc_boolean_t copy,

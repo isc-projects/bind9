@@ -15,6 +15,7 @@
  * SOFTWARE.
  */
 
+/* $Id: confndc.c,v 1.6 2000/03/28 22:58:19 brister Exp $ */
 
 /*
 **	options {

@@ -17,6 +17,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confserv.c,v 1.15 2000/03/28 22:58:24 brister Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>	/* XXXRTH */
