@@ -27,15 +27,6 @@
 
 typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
-/*
- * XXXRTH  These fields may soon be prefixed with something like "ev_"
- *         so that there's no way someone using ISC_EVENT_COMMON could
- *         have a namespace conflict with us.
- *
- *	   On the other hand, if we ever changed the contents of this
- *	   structure, we'd break binary compatibility, so maybe this isn't
- *         really an issue.
- */
 #define ISC_EVENT_COMMON(ltype)		\
 	size_t				ev_size; \
 	unsigned int			ev_attributes; \
