@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.23 2002/02/20 03:35:59 marka Exp $
+# $Id: kit.sh,v 1.24 2003/04/08 05:55:21 marka Exp $
 
 # Make a release kit
 #
@@ -28,6 +28,7 @@
 #   (e.g., sh kit.sh snapshot /tmp/bindkit
 #
 
+arg=-r
 case $# in
     2) tag=$1; tmpdir=$2 ;;
     *) echo "usage: sh kit.sh cvstag tmpdir" >&2
@@ -36,7 +37,7 @@ case $# in
 esac
 
 case $tag in
-    snapshot) tag="HEAD"; snapshot=true ;;
+    snapshot) tag=HEAD; snapshot=true ;;
     *) snapshot=false ;;
 esac
 
@@ -55,10 +56,13 @@ cvs checkout -p -r $tag bind9/version >version.tmp
 
 if $snapshot
 then
-    dstamp=`date +'%Y%m%d'`
-
+    set `date -u +'%Y%m%d%H%M%S %Y/%m/%d %H:%M:%S UTC'`
+    dstamp=$1
     RELEASETYPE=s
     RELEASEVER=$dstamp
+    shift
+    tag="$@"
+    arg=-D
 fi
 
 version=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
@@ -72,7 +76,7 @@ test ! -d $topdir || {
     exit 1
 }
 
-cvs -Q export -r $tag -d $topdir bind9
+cvs -Q export $arg "$tag" -d $topdir bind9
 
 cd $topdir || exit 1
 
