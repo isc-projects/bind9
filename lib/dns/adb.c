@@ -1673,7 +1673,6 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	       dns_name_t *zone, dns_adbname_t *adbname, int bucket,
 	       isc_stdtime_t now)
 {
-	dns_adbentry_t *entry;
 	dns_adbnamehook_t *nh;
 	isc_result_t result;
 	int addr_bucket;
@@ -1682,6 +1681,8 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
 	struct in_addr ina;
+	isc_sockaddr_t sockaddr;
+	dns_adbentry_t *foundentry;  /* NO CLEAN UP! */
 
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(DNS_ADBHANDLE_VALID(handle));
@@ -1695,7 +1696,6 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	result = ISC_R_UNEXPECTED;
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	return_success = ISC_FALSE;
-	entry = NULL;
 	nh = NULL;
 
 	use_hints = dns_name_equal(zone, dns_rootname);
@@ -1705,17 +1705,12 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	result = dns_view_find(adb->view, name, dns_rdatatype_a,
 			       now, DNS_DBFIND_GLUEOK, use_hints,
 			       &rdataset, NULL);
-	if (result == DNS_R_SUCCESS ||
-	    result == DNS_R_GLUE ||
-	    result == DNS_R_HINT) {
+	switch (result) {
+	case DNS_R_GLUE:
+	case DNS_R_HINT:
+	case DNS_R_SUCCESS:
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
-			entry = new_adbentry(adb);
-			if (entry == NULL) {
-				adbname->partial_result = ISC_TRUE;
-				result = ISC_R_NOMEMORY;
-				goto fail;
-			}
 			nh = new_adbnamehook(adb, NULL);
 			if (nh == NULL) {
 				adbname->partial_result = ISC_TRUE;
@@ -1725,7 +1720,35 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 			dns_rdataset_current(&rdataset, &rdata);
 			INSIST(rdata.length == 4);
 			memcpy(&ina.s_addr, rdata.data, 4);
-			isc_sockaddr_fromin(&entry->sockaddr, &ina, 53);
+			isc_sockaddr_fromin(&sockaddr, &ina, 53);
+
+			foundentry = find_entry_and_lock(adb, &sockaddr,
+							 &addr_bucket);
+			if (foundentry == NULL) {
+				dns_adbentry_t *entry;
+
+				entry = new_adbentry(adb);
+				if (entry == NULL) {
+					adbname->partial_result = ISC_TRUE;
+					result = ISC_R_NOMEMORY;
+					goto fail;
+				}
+
+				entry->sockaddr = sockaddr;
+				entry->refcnt = 1;
+				entry->lock_bucket = addr_bucket;
+
+				nh->entry = entry;
+
+				ISC_LIST_APPEND(adb->entries[addr_bucket],
+						entry, link);
+			} else {
+				foundentry->refcnt++;
+				nh->entry = foundentry;
+			}
+
+			ISC_LIST_APPEND(adbname->namehooks, nh, link);
+			nh = NULL;
 
 			return_success = ISC_TRUE;
 
@@ -1736,10 +1759,12 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
  fail:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
-	if (entry != NULL)
-		free_adbentry(adb, &entry);
+
 	if (nh != NULL)
 		free_adbnamehook(adb, &nh);
+
+	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
+		UNLOCK(&adb->entrylocks[addr_bucket]);
 
 	if (return_success)
 		return (ISC_R_SUCCESS);
