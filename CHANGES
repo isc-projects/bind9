@@ -1,3 +1,8 @@
+
+ 889.	[port]		Eliminated blank lines before .TH in nroff man
+			pages since they cause problems with some versions
+			of nroff. [RT #1390]
+
  888.	[bug]		Don't die when using TKEY to delete a nonexistent
  			TSIG key. [RT #1392]
 
