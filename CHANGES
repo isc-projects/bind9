@@ -3,6 +3,9 @@
 1330.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #3157]
 
+1325.	[bug]		Document that internal zones are included in the
+			rndc status results.
+
 1295.	[port]		libbind: hpux: treat all hpux systems as BIG_ENDIAN.
 
 1292.	[contrib]	Berkeley DB 4.0 sdb implementation from
