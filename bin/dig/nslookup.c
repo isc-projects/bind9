@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.78 2001/01/18 05:12:43 gson Exp $ */
+/* $Id: nslookup.c,v 1.79 2001/01/22 23:22:09 gson Exp $ */
 
 #include <config.h>
 
@@ -430,7 +430,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		debug("returning with rcode == 0");
 		return (ISC_R_SUCCESS);
 	}
-	if (!short_form){
+	if (!short_form) {
 		puts("------------");
 		/*		detailheader(query, msg);*/
 		detailsection(query, msg, headers, DNS_SECTION_QUESTION);
@@ -544,7 +544,7 @@ testclass(char *typetext) {
 static void
 safecpy(char *dest, char *src, int size) {
 	strncpy(dest, src, size);
-	dest[size-1]=0;
+	dest[size-1] = 0;
 }
 	
 
@@ -554,31 +554,31 @@ setoption(char *opt) {
 		show_settings(ISC_TRUE, ISC_FALSE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
 		if (testclass(&opt[6]))
-			safecpy(defclass, &opt[6], MXRD);
+			safecpy(defclass, &opt[6], sizeof(defclass));
 	} else if (strncasecmp(opt, "cl=", 3) == 0) {
 		if (testclass(&opt[3]))
-			safecpy(defclass, &opt[3], MXRD);
+			safecpy(defclass, &opt[3], sizeof(defclass));
 	} else if (strncasecmp(opt, "type=", 5) == 0) {
 		if (testtype(&opt[5]))
-			safecpy(deftype, &opt[5], MXRD);
+			safecpy(deftype, &opt[5], sizeof(deftype));
 	} else if (strncasecmp(opt, "ty=", 3) == 0) {
 		if (testtype(&opt[3]))
-			safecpy(deftype, &opt[3], MXRD);
+			safecpy(deftype, &opt[3], sizeof(deftype));
 	} else if (strncasecmp(opt, "querytype=", 10) == 0) {
 		if (testtype(&opt[10]))
-			safecpy(deftype, &opt[10], MXRD);
+			safecpy(deftype, &opt[10], sizeof(deftype));
 	} else if (strncasecmp(opt, "query=", 6) == 0) {
 		if (testtype(&opt[6]))
-			safecpy(deftype, &opt[6], MXRD);
+			safecpy(deftype, &opt[6], sizeof(deftype));
 	} else if (strncasecmp(opt, "qu=", 3) == 0) {
 		if (testtype(&opt[3]))
-			safecpy(deftype, &opt[3], MXRD);
+			safecpy(deftype, &opt[3], sizeof(deftype));
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
-		safecpy(domainopt, &opt[7], MXNAME);
-		set_search_domain(domainopt);		
+		safecpy(domainopt, &opt[7], sizeof(domainopt));
+		set_search_domain(domainopt);
 		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "do=", 3) == 0) {
-		safecpy(domainopt, &opt[3], MXNAME);
+		safecpy(domainopt, &opt[3], sizeof(domainopt));
 		set_search_domain(domainopt);
 		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "port=", 5) == 0) {
@@ -706,14 +706,14 @@ static void
 setsrv(char *opt) {
 	dig_server_t *srv;
 
-	if (opt == NULL) {
+	if (opt == NULL)
 		return;
-	}
+
 	flush_server_list();
-	srv=isc_mem_allocate(mctx, sizeof(struct dig_server));
+	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
 	if (srv == NULL)
-		fatal("Memory allocation failure.");
-	safecpy(srv->servername, opt, MXNAME-1);
+		fatal("memory allocation failure");
+	safecpy(srv->servername, opt, sizeof(srv->servername));
 	ISC_LIST_INITANDAPPEND(server_list, srv, link);
 }
 
@@ -725,7 +725,7 @@ get_next_command(void) {
 
 	buf = isc_mem_allocate(mctx, COMMSIZE);
 	if (buf == NULL)
-		fatal("Memory allocation failure.");
+		fatal("memory allocation failure");
 	fputs("> ", stderr);
 	isc_app_block();
 	ptr = fgets(buf, COMMSIZE, stdin);
