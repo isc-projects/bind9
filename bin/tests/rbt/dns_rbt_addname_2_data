@@ -3,4 +3,4 @@
 #
 # format is: <dbfile> <command> <testname> <exp_result>
 #
-dns_rbt.data	add	a.vix.com	DNS_R_EXISTS
+dns_rbt.data	add	a.vix.com	ISC_R_EXISTS
