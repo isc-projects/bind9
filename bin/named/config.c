@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.2 2001/03/04 22:28:32 bwelling Exp $ */
+/* $Id: config.c,v 1.3 2001/03/05 11:49:15 tale Exp $ */
 
 #include <config.h>
 
@@ -189,7 +189,7 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t *classp) {
 
 isc_result_t
 ns_config_getzonetype(cfg_obj_t *zonetypeobj) {
-	dns_zonetype_t ztype;
+	dns_zonetype_t ztype = dns_zone_none;
 	char *str;
 
 	str = cfg_obj_asstring(zonetypeobj);
