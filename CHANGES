@@ -1,4 +1,8 @@
 
+ 783.	[bug]		Following CNAMEs could cause an assertion failure
+			when either using an sdb database or under very
+			rare conditions.
+
  780.	[bug]		Error handling code dealing with out of memory or
 			other rare errors could lead to assertion failures
 			by calling functions on unitialized names. [RT #1065]
