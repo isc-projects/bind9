@@ -1,3 +1,6 @@
+1074.	[bug]		Running out of memory in dump_rdataset() could
+			cause an assertion failure. [RT #1946]
+
 1073.	[bug]		The adb cache should also be space driven,
 			max-adb-size.  [RT #1915, #1938]
 

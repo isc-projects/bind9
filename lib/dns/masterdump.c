@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.60 2001/10/23 01:49:32 gson Exp $ */
+/* $Id: masterdump.c,v 1.61 2001/10/25 23:18:05 gson Exp $ */
 
 #include <config.h>
 
@@ -717,11 +717,11 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 		if (result != ISC_R_NOSPACE)
 			break;
 
-		isc_mem_put(mctx, buffer->base, buffer->length);
 		newlength = buffer->length * 2;
 		newmem = isc_mem_get(mctx, newlength);
 		if (newmem == NULL)
 			return (ISC_R_NOMEMORY);
+		isc_mem_put(mctx, buffer->base, buffer->length);
 		isc_buffer_init(buffer, newmem, newlength);
 	}
 	if (result != ISC_R_SUCCESS)
