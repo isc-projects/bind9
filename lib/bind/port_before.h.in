@@ -107,4 +107,6 @@
 
 #define UNUSED(x) (x) = (x)
 
+@SOLARIS_BITTYPES@
+
 #endif
