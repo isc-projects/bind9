@@ -15,6 +15,13 @@
  * SOFTWARE.
  */
 
+/*
+ * Main program for the Lightweight Resolver Daemon.
+ *
+ * To paraphrase the old saying about X11, "It's not a lightweight deamon 
+ * for resolvers, it's a deamon for lightweight resolvers".
+ */
+
 #include <config.h>
 
 #include <isc/app.h>
