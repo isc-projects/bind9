@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.69 2001/06/08 18:29:31 bwelling Exp $
+ * $Id: tkey.c,v 1.70 2001/06/08 19:16:15 bwelling Exp $
  */
 
 #include <config.h>
@@ -485,7 +485,6 @@ process_deletetkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	dns_name_t *identity;
 
 	UNUSED(msg);
-	UNUSED(tkeyout);
 	UNUSED(namelist);
 
 	result = dns_tsigkey_find(&tsigkey, name, &tkeyin->algorithm, ring);
