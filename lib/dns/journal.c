@@ -2043,7 +2043,6 @@ read_one_rr(dns_journal_t *j) {
 	isc_uint32_t ttl;
 	journal_xhdr_t xhdr;
 	journal_rrhdr_t rrhdr;
-	isc_region_t r;
 
 	/*
 	 * XXXRTH  Need to resolve the comparison between int and unsigned
@@ -2114,8 +2113,7 @@ read_one_rr(dns_journal_t *j) {
 				&j->it.dctx, ISC_FALSE, &j->it.target));
 
 	/* Check that the RR header is there, and parse it. */
-	isc_buffer_remainingregion(&j->it.source, &r);
-	if (r.length < 10)
+	if (isc_buffer_remaininglength(&j->it.source) < 10)
 		FAIL(DNS_R_FORMERR);
 	
 	rdtype = isc_buffer_getuint16(&j->it.source);
