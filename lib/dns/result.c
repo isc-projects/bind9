@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.102 2002/08/06 01:50:28 marka Exp $ */
+/* $Id: result.c,v 1.103 2002/08/09 06:12:50 marka Exp $ */
 
 #include <config.h>
 
@@ -128,7 +128,12 @@ static const char *text[DNS_R_NRESULTS] = {
 	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
 	"no valid DS",			       /* 84 DNS_R_NOVALIDDS	     */
 	
-	"NS is an address"		       /* 85 DNS_R_NSISADDRESS	     */
+	"NS is an address",		       /* 85 DNS_R_NSISADDRESS	     */
+	"received FORMERR",		       /* 86 DNS_R_REMOTEFORMERR     */
+	"truncated TCP response",	       /* 87 DNS_R_TRUNCATEDTCP	     */
+	"lame server detected",		       /* 88 DNS_R_LAME		     */
+	"unexpected RCODE",		       /* 89 DNS_R_UNEXPECTEDRCODE   */
+	"unexpected OPCODE"		       /* 90 DNS_R_UNEXPECTEDOPCODE  */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

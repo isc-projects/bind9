@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.245 2002/07/23 03:41:44 marka Exp $ */
+/* $Id: resolver.c,v 1.246 2002/08/09 06:12:50 marka Exp $ */
 
 #include <config.h>
 
@@ -33,7 +33,9 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
+#include <dns/opcode.h>
 #include <dns/peer.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -1319,8 +1321,13 @@ mark_bad(fetchctx_t *fctx) {
 }
 
 static void
-add_bad(fetchctx_t *fctx, isc_sockaddr_t *address) {
+add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	char code[64];
+	isc_buffer_t b;
 	isc_sockaddr_t *sa;
+	const char *sep1, *sep2;
 
 	if (bad_server(fctx, address)) {
 		/*
@@ -1336,6 +1343,32 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address) {
 		return;
 	*sa = *address;
 	ISC_LIST_INITANDAPPEND(fctx->bad, sa, link);
+
+	if (reason == DNS_R_LAME)	/* already logged */
+		return;
+
+	if (reason == DNS_R_UNEXPECTEDRCODE) {
+		isc_buffer_init(&b, code, sizeof(code));
+		dns_rcode_totext(fctx->rmessage->rcode, &b);
+		sep1 = "(";
+		sep2 = ") ";
+	} else if (reason == DNS_R_UNEXPECTEDOPCODE) {
+		isc_buffer_init(&b, code, sizeof(code));
+		dns_opcode_totext(fctx->rmessage->opcode, &b);
+		sep1 = "(";
+		sep2 = ") ";
+	} else {
+		code[0] = '\0';
+		sep1 = "";
+		sep2 = "";
+	}
+	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+	isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      "%s %s%s%sresolving '%s': %s",
+		      dns_result_totext(reason), sep1, code, sep2,
+		      namebuf, addrbuf);
 }
 
 static void
@@ -4159,7 +4192,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	resquery_t *query = event->ev_arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
-	isc_boolean_t keep_trying, broken_server, get_nameservers, resend;
+	isc_boolean_t keep_trying, get_nameservers, resend;
 	isc_boolean_t truncated;
 	dns_message_t *message;
 	fetchctx_t *fctx;
@@ -4170,6 +4203,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned int options;
 	unsigned int findoptions;
+	isc_result_t broken_server;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -4183,7 +4217,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	(void)isc_timer_touch(fctx->timer);
 
 	keep_trying = ISC_FALSE;
-	broken_server = ISC_FALSE;
+	broken_server = ISC_R_SUCCESS;
 	get_nameservers = ISC_FALSE;
 	resend = ISC_FALSE;
 	truncated = ISC_FALSE;
@@ -4282,7 +4316,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 							DNS_FETCHOPT_NOEDNS0,
 							DNS_FETCHOPT_NOEDNS0);
 				} else {
-					broken_server = ISC_TRUE;
+					broken_server = result;
 					keep_trying = ISC_TRUE;
 				}
 				goto done;
@@ -4310,7 +4344,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 						    DNS_FETCHOPT_NOEDNS0,
 						    DNS_FETCHOPT_NOEDNS0);
 			} else {
-				broken_server = ISC_TRUE;
+				broken_server = DNS_R_UNEXPECTEDRCODE;
 				keep_trying = ISC_TRUE;
 			}
 			goto done;
@@ -4351,7 +4385,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	if (truncated) {
 		if ((options & DNS_FETCHOPT_TCP) != 0) {
-			broken_server = ISC_TRUE;
+			broken_server = DNS_R_TRUNCATEDTCP;
 			keep_trying = ISC_TRUE;
 		} else {
 			options |= DNS_FETCHOPT_TCP;
@@ -4365,7 +4399,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->opcode != dns_opcode_query) {
 		/* XXXRTH Log */
-		broken_server = ISC_TRUE;
+		broken_server = DNS_R_UNEXPECTEDOPCODE;
 		keep_trying = ISC_TRUE;
 		goto done;
 	}
@@ -4401,7 +4435,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 * This forwarder doesn't understand us,
 				 * but other forwarders might.  Keep trying.
 				 */
-				broken_server = ISC_TRUE;
+				broken_server = DNS_R_REMOTEFORMERR;
 				keep_trying = ISC_TRUE;
 			} else {
 				/*
@@ -4425,7 +4459,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			/*
 			 * XXXRTH log.
 			 */
-			broken_server = ISC_TRUE;
+			broken_server = DNS_R_UNEXPECTEDRCODE;
+			INSIST(broken_server != ISC_R_SUCCESS);
 			keep_trying = ISC_TRUE;
 		}
 		goto done;
@@ -4456,7 +4491,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
 				      "could not mark server as lame: %s",
 				      isc_result_totext(result));
-		broken_server = ISC_TRUE;
+		broken_server = DNS_R_LAME;
 		keep_trying = ISC_TRUE;
 		goto done;
 	}
@@ -4491,7 +4526,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 * to treat it as such than to figure out
 				 * some more elaborate course of action.
 				 */
-				broken_server = ISC_TRUE;
+				broken_server = DNS_R_LAME;
 				keep_trying = ISC_TRUE;
 				goto done;
 			}
@@ -4537,7 +4572,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 * The server is insane.
 		 */
 		/* XXXRTH Log */
-		broken_server = ISC_TRUE;
+		broken_server = DNS_R_UNEXPECTEDRCODE;
 		keep_trying = ISC_TRUE;
 		goto done;
 	}
@@ -4590,13 +4625,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	if (keep_trying) {
 		if (result == DNS_R_FORMERR)
-			broken_server = ISC_TRUE;
-		if (broken_server) {
+			broken_server = DNS_R_FORMERR;
+		if (broken_server != ISC_R_SUCCESS) {
 			/*
 			 * Add this server to the list of bad servers for
 			 * this fctx.
 			 */
-			add_bad(fctx, &addrinfo->sockaddr);
+			add_bad(fctx, &addrinfo->sockaddr, broken_server);
 		}
 
 		if (get_nameservers) {
