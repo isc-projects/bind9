@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.67 2000/05/08 19:23:22 tale Exp $ */
+/* $Id: xfrin.c,v 1.68 2000/05/10 03:33:54 tale Exp $ */
 
 #include <config.h>
 
@@ -45,10 +45,20 @@
  * Incoming AXFR and IXFR.
  */
 
-#define FAIL(code) do { result = (code); goto failure; } while (0)
-#define CHECK(op) do { result = (op); \
-		       if (result != ISC_R_SUCCESS) goto failure; \
-		     } while (0)
+/*
+ * It would be non-sensical (or at least obtuse) to use FAIL() with an
+ * ISC_R_SUCCESS code, but the test is there to keep the Solaris compiler
+ * from complaining about "end-of-loop code not reached".
+ */
+#define FAIL(code) \
+	do { result = (code);					\
+		if (result != ISC_R_SUCCESS) goto failure;	\
+	} while (0)
+
+#define CHECK(op) \
+	do { result = (op);					\
+		if (result != ISC_R_SUCCESS) goto failure;	\
+	} while (0)
 
 /*
  * The states of the *XFR state machine.  We handle both IXFR and AXFR

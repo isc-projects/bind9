@@ -74,7 +74,14 @@ static struct afd {
 #define ENI_FAMILY	5
 #define ENI_SALEN	6
 
-#define ERR(x) do { result = (x); goto cleanup; } while (0)
+/*
+ * The test against 0 is there to keep the Solaris compiler
+ * from complaining about "end-of-loop code not reached".
+ */
+#define ERR(code) \
+	do { result = (code);			\
+		if (result != 0) goto cleanup;	\
+	} while (0)
 
 int
 lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,

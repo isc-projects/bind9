@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.60 2000/05/08 14:33:01 tale Exp $ */
+/* $Id: xfrout.c,v 1.61 2000/05/10 03:33:52 tale Exp $ */
 
 #include <config.h>
 
@@ -62,6 +62,8 @@
 
 /*
  * Fail unconditionally and log as a client error.
+ * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
+ * from complaining about "end-of-loop code not reached".
  */
 #define FAILC(code, msg) \
 	do {							\
@@ -70,7 +72,7 @@
 			   NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO, \
 			   "bad zone transfer request: %s (%s)", \
 		      	   msg, isc_result_totext(code));	\
-		goto failure;					\
+		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 #define CHECK(op) \

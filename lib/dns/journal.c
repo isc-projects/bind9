@@ -55,7 +55,15 @@ static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
 #define JOURNAL_DEBUG_LOGARGS(n) \
 	JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(n)
 
-#define FAIL(code) do { result = (code); goto failure; } while (0)
+/*
+ * It would be non-sensical (or at least obtuse) to use FAIL() with an
+ * ISC_R_SUCCESS code, but the test is there to keep the Solaris compiler
+ * from complaining about "end-of-loop code not reached".
+ */
+#define FAIL(code) \
+	do { result = (code);					\
+		if (result != ISC_R_SUCCESS) goto failure;	\
+	} while (0)
 
 #define CHECK(op) \
      	do { result = (op); 					\

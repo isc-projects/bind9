@@ -71,16 +71,21 @@
  * Fail unconditionally with result 'code', which must not
  * be ISC_R_SUCCESS.  The reason for failure presumably has
  * been logged already.
+ *
+ * The test is there to keep the Solaris compiler from complaining
+ * about "end-of-loop code not reached".
  */
 
 #define FAIL(code) \
 	do {							\
 		result = (code);				\
-		goto failure;					\
+		if (code != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 /*
  * Fail unconditionally and log as a client error.
+ * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
+ * from complaining about "end-of-loop code not reached".
  */
 #define FAILC(code, msg) \
 	do {							\
@@ -88,11 +93,13 @@
 		isc_log_write(NOTIFY_PROTOCOL_LOGARGS,		\
 			      "notify failed: %s (%s)",	\
 		      	      msg, isc_result_totext(code));	\
-		goto failure;					\
+		if (code != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 /*
  * Fail unconditionally and log as a server error.
+ * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
+ * from complaining about "end-of-loop code not reached".
  */
 #define FAILS(code, msg) \
 	do {							\
@@ -100,7 +107,7 @@
 		isc_log_write(NOTIFY_PROTOCOL_LOGARGS,		\
 			      "notify error: %s: %s", 	\
 			      msg, isc_result_totext(code));	\
-		goto failure;					\
+		if (code != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 /**************************************************************************/

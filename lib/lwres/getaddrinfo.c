@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.15 2000/04/28 02:08:12 tale Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.16 2000/05/10 03:33:56 tale Exp $
  */
 
 #include <config.h>
@@ -219,7 +219,9 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 
 		if (lwres_net_aton(hostname, (struct in_addr *)abuf)) {
 			if (family == AF_INET6) {
-				/* Convert to a V4 mapped address */
+				/*
+				 * Convert to a V4 mapped address.
+				 */
 				struct in6_addr *a6 = (struct in6_addr *)abuf;
 				memcpy(&a6->s6_addr[12], &a6->s6_addr[0], 4);
 				memset(&a6->s6_addr[10], 0xff, 2);
@@ -319,7 +321,9 @@ set_order(family, net_order)
 		order = getenv("NET_ORDER");
 		found = 0;
 		while (order != NULL) {
-			/* We ignore any unknown names.  */
+			/*
+			 * We ignore any unknown names.
+			 */
 			tok = lwres_strsep(&order, ":");
 			if (strcasecmp(tok, "inet6") == 0) {
 				if ((found & FOUND_IPV6) == 0)
@@ -333,7 +337,9 @@ set_order(family, net_order)
 			}
 		}
 
-		/* Add in anything that we didn't find */
+		/*
+		 * Add in anything that we didn't find.
+		 */
 		if ((found & FOUND_IPV4) == 0)
 			*net_order++ = add_ipv4;
 		if ((found & FOUND_IPV6) == 0)
@@ -345,11 +351,18 @@ set_order(family, net_order)
 
 static char v4_loop[4] = { 127, 0, 0, 1 };
 
-#define ERR(x) do { result = (x); goto cleanup; } while (0)
+/*
+ * The test against 0 is there to keep the Solaris compiler
+ * from complaining about "end-of-loop code not reached".
+ */
+#define ERR(code) \
+	do { result = (code);			\
+		if (result != 0) goto cleanup;	\
+	} while (0)
 
 static int
 add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
-    int socktype, int port)
+	int socktype, int port)
 {
 	struct addrinfo *ai;
 	lwres_context_t *lwrctx = NULL;
@@ -551,10 +564,14 @@ ai_reverse(struct addrinfo *oai) {
 	nai = NULL;
 
 	while (oai) {
-		/* grab one off the old list */
+		/*
+		 * Grab one off the old list.
+		 */
 		tai = oai;
 		oai = oai->ai_next;
-		/* put it on the front of the new list */
+		/*
+		 * Put it on the front of the new list.
+		 */
 		tai->ai_next = nai;
 		nai = tai;
 	}
