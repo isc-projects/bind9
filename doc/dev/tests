@@ -43,7 +43,9 @@ running tests.  Here are examples from bb and sol:
 
 Do not confuse the shell script ~wpk/b9t/bin/b9t.cron with the crontab
 template (?) ~wpk/b9t/b9t.cron.  Although they have the same name,
-they are not related.
+they are not related.  The shell script b9t.cron then calls make,
+using the makefile b9t.mk in the same location.  This makefile moves
+the old status files out of the way and runs through the tests.
 
 The actual builds take place in a directory whose location differs
 among systems.  On most of them, it's on a local disk, under /build.
