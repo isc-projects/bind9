@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.2 2001/10/03 02:05:25 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.3 2001/10/03 02:07:34 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -501,6 +501,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
+
+	if (type == 0)
+		return (DNS_R_FORMERR);
 
 	ss = *source;
 	st = *target;
