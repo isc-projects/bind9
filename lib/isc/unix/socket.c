@@ -1539,6 +1539,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	 */
 	if (fd != -1) {
 		dev->newsocket->fd = fd;
+		dev->newsocket->bound = 1;
+		dev->newsocket->connected = 1;
 
 		/*
 		 * Save away the remote address
