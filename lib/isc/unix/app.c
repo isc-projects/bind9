@@ -181,8 +181,7 @@ isc_app_run(void) {
 	 */
 	if (sigfillset(&sset) != 0 ||
 	    sigdelset(&sset, SIGINT) != 0 ||
-	    sigdelset(&sset, SIGTERM) != 0 ||
-	    sigdelset(&sset, SIGABRT) != 0) {
+	    sigdelset(&sset, SIGTERM) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_run() sigsetops: %s", 
 				 strerror(errno));
