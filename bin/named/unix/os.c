@@ -139,7 +139,7 @@ ns_os_daemonize(void) {
 	if (pid == -1)
 		ns_main_earlyfatal("fork(): %s", strerror(errno));
 	if (pid != 0)
-                _exit(0);
+		_exit(0);
 
 	/*
 	 * We're the child.
