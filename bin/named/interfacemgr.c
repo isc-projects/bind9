@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.58 2001/06/04 19:32:53 tale Exp $ */
+/* $Id: interfacemgr.c,v 1.59 2001/06/15 23:18:04 gson Exp $ */
 
 #include <config.h>
 
@@ -698,13 +698,14 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 	 */
 	purge_old_interfaces(mgr);
 
-	if (ISC_LIST_EMPTY(mgr->interfaces)) {
+	/*
+	 * Warn if we are not listening on any interface, unless
+	 * we're in lwresd-only mode, in which case that is to 
+	 * be expected.
+	 */
+	if (ISC_LIST_EMPTY(mgr->interfaces) && ! ns_g_lwresdonly)
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "not listening on any interfaces");
-		/*
-		 * Continue anyway.
-		 */
-	}
 }
 
 void
