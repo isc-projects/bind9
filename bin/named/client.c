@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.192 2001/10/30 00:48:25 gson Exp $ */
+/* $Id: client.c,v 1.193 2001/11/14 02:03:43 gson Exp $ */
 
 #include <config.h>
 
@@ -1815,7 +1815,7 @@ client_udprecv(ns_client_t *client) {
 				 isc_result_totext(result));
 		/*
 		 * This cannot happen in the current implementation, since
-		 * isc_socket_recv2() cannot fail if flags == 0A
+		 * isc_socket_recv2() cannot fail if flags == 0.
 		 *
 		 * If this does fail, we just go idle.
 		 */
