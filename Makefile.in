@@ -50,4 +50,4 @@ kitclean: distclean
 
 tags:
 	rm -f TAGS
-	find lib bin -name "*.[ch]" -print | etags -
+	find lib bin -name "*.[ch]" -print | @ETAGS@ -

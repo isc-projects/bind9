@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-AC_REVISION($Revision: 1.104 $)
+AC_REVISION($Revision: 1.105 $)
 
 AC_PREREQ(2.13)
 
@@ -37,6 +37,9 @@ AC_PATH_PROG(AR, ar)
 ARFLAGS="cruv"
 AC_SUBST(AR)
 AC_SUBST(ARFLAGS)
+
+AC_PATH_PROGS(ETAGS, etags emacs-etags)
+AC_SUBST(ETAGS)
 
 #
 # Special processing of paths depending on whether --prefix,
