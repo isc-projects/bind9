@@ -15,6 +15,10 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+echo "S:`date`"
+echo "T:system_views:1"
+echo "A:A test to determine online functionality of views"
+
 #
 # Perform tests
 #
@@ -77,7 +81,7 @@ if [ $? = 0 ]; then
 fi
 
 if [ $status != 0 ]; then
-	echo "FAILED with status $status"
+	echo "R:FAIL"
+else
+	echo "R:PASS"
 fi
-
-exit $status

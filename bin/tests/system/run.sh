@@ -20,6 +20,12 @@
 #
 . ./conf.sh
 
+whoami=`whoami`
+if [ $whoami != "root" ]; then
+	echo "I:System tests must be run as root."
+	exit
+fi
+
 sh ifconfig.sh start
 
 if [ $? != 0 ]; then

@@ -15,6 +15,10 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+echo "S:`date`"
+echo "T:system_dnssec:1"
+echo "A:A test to determine online functionality of dnssec tools"
+
 #
 # Perform tests
 #
@@ -123,6 +127,8 @@ echo "SERVFAIL is expected in the following:"
 grep ";" dig.out.ns4
 
 if [ $status != 0 ]; then
-	echo "FAILED with status $status"
+	echo "R:FAIL"
+else
+	echo "R:PASS"
 fi
 
