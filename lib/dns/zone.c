@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.268 2000/12/05 00:36:44 bwelling Exp $ */
+/* $Id: zone.c,v 1.269 2000/12/05 00:47:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -331,7 +331,7 @@ struct dns_io {
 	isc_event_t	*event;
 };
 
-static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
+static void zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
 
 static void zone_log(dns_zone_t *zone, const char *, int, const char *msg,
@@ -1215,7 +1215,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	result = ISC_R_SUCCESS;
 	if (needdump)
 		zone_needdump(zone, DNS_DUMP_DELAY);
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 	return (result);
 
  cleanup:
@@ -1812,7 +1812,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	isc_stdtime_get(&now);
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 }
 
@@ -1904,7 +1904,7 @@ zone_maintenance(dns_zone_t *zone) {
 	default:
 		break;
 	}
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 }
 
 void
@@ -2054,7 +2054,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	if (zone->dumptime == 0 ||
 	    zone->dumptime > now + delay)
 		zone->dumptime = now + delay;
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 }
 
 static isc_result_t
@@ -2541,7 +2541,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	zone->flags |= DNS_ZONEFLG_NEEDNOTIFY;
 
 	isc_stdtime_get(&now);
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 }
 
@@ -2959,7 +2959,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	zone_log(zone, me, ISC_LOG_DEBUG(20),
 		 "refresh time (%u/%u), now %u",
 		 zone->refreshtime, zone->refresh, now);
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 	goto free_stub;
 
@@ -2978,7 +2978,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if (exiting || zone->curmaster >= zone->masterscnt) {
 		zone->flags &= ~DNS_ZONEFLG_REFRESH;
 
-		(void)zone_settimer(zone, now);
+		zone_settimer(zone, now);
 		UNLOCK(&zone->lock);
 		goto free_stub;
 	}
@@ -3244,7 +3244,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			zone->flags &= ~DNS_ZONEFLG_NEEDREFRESH;
 			zone->refreshtime = now;
 		}
-		(void)zone_settimer(zone, now);
+		zone_settimer(zone, now);
 		UNLOCK(&zone->lock);
 		return;
 	}
@@ -3640,7 +3640,7 @@ zone_timer(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static isc_result_t
+static void
 zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	const char me[] = "zone_settimer";
 	isc_stdtime_t next = 0;
@@ -3650,7 +3650,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-		return (ISC_R_SUCCESS);
+		return;
 
 	switch (zone->type) {
 	case dns_zone_master:
@@ -3692,6 +3692,10 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 			 "settimer inactive");
 		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
 					  NULL, NULL, ISC_TRUE);
+		if (result != ISC_R_SUCCESS)
+			zone_log(zone, me, ISC_LOG_ERROR,
+				 "isc_timer_reset failed: %s",
+				 isc_result_totext(result));
 	} else {
 		if (next <= now) {
 			next = now;
@@ -3706,10 +3710,11 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 			 next, now, next - now);
 		result = isc_timer_reset(zone->timer, isc_timertype_once,
 					  &expires, &interval, ISC_TRUE);
+		if (result != ISC_R_SUCCESS)
+			zone_log(zone, me, ISC_LOG_ERROR,
+				 "isc_timer_reset failed: %s",
+				 isc_result_totext(result));
 	}
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -3729,7 +3734,7 @@ cancel_refresh(dns_zone_t *zone) {
 
 	zone->flags &= ~DNS_ZONEFLG_REFRESH;
 	isc_stdtime_get(&now);
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 }
 
 static isc_result_t
@@ -4669,7 +4674,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		}
 		break;
 	}
-	(void)zone_settimer(zone, now);
+	zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 
 	/*
