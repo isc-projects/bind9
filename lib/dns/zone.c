@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.191 2000/08/19 00:47:57 gson Exp $ */
+/* $Id: zone.c,v 1.192 2000/08/21 22:20:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -758,7 +758,8 @@ dns_zone_load(dns_zone_t *zone) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = dns_db_load(db, zone->dbname);
+	if (!dns_db_ispersistent(db))
+		result = dns_db_load(db, zone->dbname);
 
 	/*
 	 * Initiate zone transfer?  We may need a error code that
