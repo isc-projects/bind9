@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.12 2001/07/23 00:48:51 marka Exp $
+ *	$Id: netdb.h,v 1.12.2.1 2003/06/27 03:51:37 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -192,7 +192,6 @@ struct	addrinfo {
 /*
  * Error return codes from getaddrinfo()
  */
-
 #define	EAI_ADDRFAMILY	 1	/* address family for hostname not supported */
 #define	EAI_AGAIN	 2	/* temporary failure in name resolution */
 #define	EAI_BADFLAGS	 3	/* invalid value for ai_flags */

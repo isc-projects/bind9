@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.3.2.2 2002/07/10 06:32:48 marka Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.3.2.3 2003/06/27 03:51:42 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -788,7 +788,7 @@ decode_bitstring(const char **cpp, char *dn, const char *eom)
 {
 	const char *cp = *cpp;
 	char *beg = dn, tc;
-	int b, blen, plen;
+	int b, blen, plen, i;
 
 	if ((blen = (*cp & 0xff)) == 0)
 		blen = 256;
@@ -798,18 +798,34 @@ decode_bitstring(const char **cpp, char *dn, const char *eom)
 		return(-1);
 
 	cp++;
-	dn += SPRINTF((dn, "\\[x"));
-	for (b = blen; b > 7; b -= 8, cp++)
-		dn += SPRINTF((dn, "%02x", *cp & 0xff));
+	i = SPRINTF((dn, "\\[x"));
+	if (i < 0)
+		return (-1);
+	dn += i;
+	for (b = blen; b > 7; b -= 8, cp++) {
+		i = SPRINTF((dn, "%02x", *cp & 0xff));
+		if (i < 0)
+			return (-1);
+		dn += i;
+	}
 	if (b > 4) {
 		tc = *cp++;
-		dn += SPRINTF((dn, "%02x", tc & (0xff << (8 - b))));
+		i = SPRINTF((dn, "%02x", tc & (0xff << (8 - b))));
+		if (i < 0)
+			return (-1);
+		dn += i;
 	} else if (b > 0) {
 		tc = *cp++;
-		dn += SPRINTF((dn, "%1x",
+		i = SPRINTF((dn, "%1x",
 			       ((tc >> 4) & 0x0f) & (0x0f << (4 - b)))); 
+		if (i < 0)
+			return (-1);
+		dn += i;
 	}
-	dn += SPRINTF((dn, "/%d]", blen));
+	i = SPRINTF((dn, "/%d]", blen));
+	if (i < 0)
+		return (-1);
+	dn += i;
 
 	*cpp = cp;
 	return(dn - beg);

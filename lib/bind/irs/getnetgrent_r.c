@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.5 2001/07/04 04:51:05 marka Exp $";
+static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.5.2.1 2003/06/27 03:51:40 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -40,9 +40,15 @@ copy_protoent(char **, char **, char **, const char *, const char *,
 
 NGR_R_RETURN
 innetgr_r(const char *netgroup, const char *host, const char *user,
-	const char *domain) {
+	  const char *domain) {
+	char *ng, *ho, *us, *dom;
 
-	return (innetgr(netgroup, host, user, domain));
+	DE_CONST(netgroup, ng);
+	DE_CONST(host, ho);
+	DE_CONST(user, us);
+	DE_CONST(domain, dom);
+
+	return (innetgr(ng, ho, us, dom));
 }
 
 /*
@@ -53,7 +59,7 @@ innetgr_r(const char *netgroup, const char *host, const char *user,
 
 NGR_R_RETURN
 getnetgrent_r(char **machinep, char **userp, char **domainp, NGR_R_ARGS) {
-	const char *mp, *up, *dp;
+	char *mp, *up, *dp;
 	int res = getnetgrent(&mp, &up, &dp);
 
 	if (res != 1) 

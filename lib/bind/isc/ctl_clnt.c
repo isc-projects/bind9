@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_clnt.c,v 1.4 2001/06/06 01:56:32 marka Exp $";
+static const char rcsid[] = "$Id: ctl_clnt.c,v 1.4.2.1 2003/06/27 03:51:41 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -185,7 +185,7 @@ ctl_client(evContext lev, const struct sockaddr *cap, size_t cap_len,
 	if (evConnect(lev, ctx->sock, (const struct sockaddr *)sap, sap_len,
 		      conn_done, ctx, &ctx->coID) < 0) {
 		(*ctx->logger)(ctl_error, "%s: evConnect(fd %d): %s",
-			       me, (void *)ctx->sock, strerror(errno));
+			       me, ctx->sock, strerror(errno));
  fatal:
 		if (ctx != NULL) {
 			if (ctx->sock >= 0)

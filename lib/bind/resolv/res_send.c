@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.5.2.1 2002/07/10 05:10:35 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.5.2.2 2003/06/27 03:51:44 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -171,6 +171,9 @@ res_ourserver_p(const res_state statp, const struct sockaddr *sa) {
 			srv6 = (struct sockaddr_in6 *)get_nsaddr(statp, ns);
 			if (srv6->sin6_family == in6p->sin6_family &&
 			    srv6->sin6_port == in6p->sin6_port &&
+#ifdef HAVE_SIN6_SCOPE_ID
+			    srv6->sin6_scope_id == in6p->sin6_scope_id &&
+#endif
 			    (IN6_IS_ADDR_UNSPECIFIED(&srv6->sin6_addr) ||
 			     IN6_ARE_ADDR_EQUAL(&srv6->sin6_addr, &in6p->sin6_addr)))
 				return (1);
@@ -386,6 +389,8 @@ res_nsend(res_state statp,
 		int nsaplen;
 		nsap = get_nsaddr(statp, ns);
 		nsaplen = get_salen(nsap);
+		statp->_flags &= ~RES_F_LASTMASK;
+		statp->_flags |= (ns << RES_F_LASTSHIFT);
  same_ns:
 		if (statp->qhook) {
 			int done = 0, loops = 0;
@@ -623,7 +628,7 @@ send_vc(res_state statp,
 	/*
 	 * Send length & message
 	 */
-	putshort((u_short)buflen, (u_char*)&len);
+	ns_put16((u_short)buflen, (u_char*)&len);
 	iov[0] = evConsIovec(&len, INT16SZ);
 	DE_CONST(buf, tmp);
 	iov[1] = evConsIovec(tmp, buflen);

@@ -3,6 +3,8 @@
 
 1472.	[contrib]	idnkit-1.0 from JPNIC, replaces mdnkit.
 
+1471.	[bug]		libbind: updated to BIND 8.4.0.
+
 1470.	[bug]		Incorrect length passed to snprintf. [RT #5966]
 
 1466.	[bug]		lwresd configuration errors resulted in memory

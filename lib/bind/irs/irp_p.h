@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: irp_p.h,v 1.1.2.1 2002/07/11 23:32:34 marka Exp $
+ * $Id: irp_p.h,v 1.1.2.2 2003/06/27 03:51:40 marka Exp $
  */
 
 #ifndef _IRP_P_H_INCLUDED
@@ -53,8 +53,6 @@ char *irs_irp_read_body(struct irp_p *pvt, size_t *size);
 int irs_irp_get_full_response(struct irp_p *pvt, int *code,
 			      char *text, size_t textlen,
 			      char **body, size_t *bodylen);
-int irs_irp_send_command(struct irp_p *pvt, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
-
 
 extern int irp_log_errors;
 

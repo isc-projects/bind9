@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_parse.c,v 1.3 2001/06/21 08:26:18 marka Exp $";
+static const char rcsid[] = "$Id: ns_parse.c,v 1.3.2.1 2003/06/27 03:51:42 marka Exp $";
 #endif
 
 /* Import. */
@@ -132,9 +132,10 @@ ns_initparse(const u_char *msg, int msglen, ns_msg *handle) {
 int
 ns_parserr(ns_msg *handle, ns_sect section, int rrnum, ns_rr *rr) {
 	int b;
+	int tmp;
 
 	/* Make section right. */
-	if (section >= ns_s_max)
+	if ((tmp = section) < 0 || section >= ns_s_max)
 		RETERR(ENODEV);
 	if (section != handle->_sect)
 		setsection(handle, section);

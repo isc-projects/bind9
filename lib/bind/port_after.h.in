@@ -24,6 +24,8 @@
 @HAVE_STRNDUP@
 @USE_FIONBIO_IOCTL@
 @USE_SYSERROR_LIST@
+@INNETGR_ARGS@
+@SETNETGRENT_ARGS@
 
 /* XXX sunos and cygwin needs O_NDELAY */
 #define PORT_NONBLOCK O_NONBLOCK
@@ -363,17 +365,24 @@ int isc__gettimeofday(struct timeval *tvp, struct _TIMEZONE *tzp);
 int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
 #endif
 
-int getnetgrent(const char **machinep, const char **userp,
-		const char **domainp);
+int getnetgrent(char **machinep, char **userp, char **domainp);
 
 int getnetgrent_r(char **machinep, char **userp, char **domainp, NGR_R_ARGS);
 
+#ifdef SETNETGRENT_ARGS
+void setnetgrent(SETNETGRENT_ARGS);
+#else
 void setnetgrent(const char *netgroup);
+#endif
 
 void endnetgrent(void);
 
+#ifdef INNETGR_ARGS
+int innetgr(INNETGR_ARGS);
+#else
 int innetgr(const char *netgroup, const char *machine,
 	    const char *user, const char *domain);
+#endif
 
 #ifdef NGR_R_ENT_ARGS
 NGR_R_SET_RETURN

@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Id: writev.c,v 1.1 2001/03/29 06:30:37 marka Exp $";
+static const char rcsid[] = "$Id: writev.c,v 1.1.2.1 2003/06/27 03:51:35 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -31,6 +31,7 @@ __writev(int fd, struct iovec *iov, int iovlen)
 	if (statbuf.st_mode & S_IFSOCK) {
 		struct msghdr   mesg;		
 
+		memset(&mesg, 0, sizeof(mesg));
 		mesg.msg_name = 0;
 		mesg.msg_namelen = 0;
 		mesg.msg_iov = iov;

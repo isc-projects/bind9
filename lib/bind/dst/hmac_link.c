@@ -1,6 +1,6 @@
 #ifdef HMAC_MD5
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.2 2001/04/03 00:28:14 bwelling Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.2.2.1 2003/06/27 03:51:36 marka Exp $";
 #endif
 /*
  * Portions Copyright (c) 1995-1998 by Trusted Information Systems, Inc.
@@ -459,15 +459,10 @@ dst_hmac_md5_init()
 }
 
 #else 
+#define	dst_hmac_md5_init	__dst_hmac_md5_init
+
 int
 dst_hmac_md5_init(){
 	return (0);
 }
 #endif
-
-
-
-
-
-
-
