@@ -38,6 +38,7 @@ typedef struct isc_taskmgr		isc_taskmgr_t;
 typedef struct isc_timer		isc_timer_t;
 typedef struct isc_timermgr		isc_timermgr_t;
 typedef struct isc_rwlock		isc_rwlock_t;
+typedef struct isc_bitstring		isc_bitstring_t;
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 
