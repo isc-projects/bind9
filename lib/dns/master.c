@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.35 2000/01/22 00:28:00 gson Exp $ */
+ /* $Id: master.c,v 1.36 2000/01/22 01:41:17 gson Exp $ */
 
 #include <config.h>
 
@@ -120,7 +120,7 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 			return (DNS_R_NOMEMORY);
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				"isc_lex_gettoken() failed: %s\n",
+				"isc_lex_gettoken() failed: %s",
 				isc_result_totext(result));
 			return (DNS_R_UNEXPECTED);
 		}
@@ -130,7 +130,7 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 		if (token->type == isc_tokentype_eol ||
 		    token->type == isc_tokentype_eof) {
 			(*callbacks->error)(callbacks,
-			    "dns_master_load: %s:%d: unexpected end of %s\n",
+			    "dns_master_load: %s:%d: unexpected end of %s",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex),
 					    (token->type ==
@@ -254,7 +254,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		if (token.type == isc_tokentype_initialws) {
 			if (!current_known) {
 				(*callbacks->error)(callbacks,
-					"%s: %s:%d: No current owner name\n",
+					"%s: %s:%d: No current owner name",
 						"dns_master_load",
 						isc_lex_getsourcename(lex),
 						isc_lex_getsourceline(lex));
@@ -287,7 +287,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					goto cleanup;
 				if (ttl > 0x7fffffffUL) {
 					(callbacks->warn)(callbacks,
-		"dns_master_load: %s:%d: $TTL %lu > MAXTLL, setting TTL to 0\n",
+		"dns_master_load: %s:%d: $TTL %lu > MAXTLL, setting TTL to 0",
 						isc_lex_getsourcename(lex),
 						isc_lex_getsourceline(lex),
 						ttl);
@@ -486,7 +486,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			}
 		} else {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-	     "%s:%d: isc_lex_gettoken() returned unexpeced token type (%d)\n",
+	     "%s:%d: isc_lex_gettoken() returned unexpeced token type (%d)",
 					 isc_lex_getsourcename(lex),
 					 isc_lex_getsourceline(lex),
 					 token.type);
@@ -517,7 +517,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				== DNS_R_SUCCESS) {
 			if (ttl > 0x7fffffffUL) {
 				(callbacks->warn)(callbacks,
-	"dns_master_load: %s:%d: TTL %lu > maxtll, setting ttl to 0\n",
+	"dns_master_load: %s:%d: TTL %lu > maxtll, setting ttl to 0",
 					isc_lex_getsourcename(lex),
 					isc_lex_getsourceline(lex),
 					ttl);
@@ -530,7 +530,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			 * BIND 4 / 8 'USE_SOA_MINIMUM' could be set here.
 			 */
 			(*callbacks->error)(callbacks,
-					    "%s: %s:%d: no TTL specified\n",
+					    "%s: %s:%d: no TTL specified",
 					    "dns_master_load",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex));
@@ -540,7 +540,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			ttl = default_ttl;
 		} else if (warn_1035) {
 			(*callbacks->warn)(callbacks,
-				   "%s: %s:%d: using RFC 1035 TTL semantics\n",
+				   "%s: %s:%d: using RFC 1035 TTL semantics",
 					   "dns_master_load",
 					   isc_lex_getsourcename(lex),
 					   isc_lex_getsourceline(lex));
@@ -549,7 +549,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 
 		if (token.type != isc_tokentype_string) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-			"isc_lex_gettoken() returned unexpected token type\n");
+			"isc_lex_gettoken() returned unexpected token type");
 			result = DNS_R_UNEXPECTED;
 			goto cleanup;
 		}
@@ -562,7 +562,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 
 		if (token.type !=  isc_tokentype_string) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-			"isc_lex_gettoken() returned unexpected token type\n");
+			"isc_lex_gettoken() returned unexpected token type");
 			result = DNS_R_UNEXPECTED;
 			goto cleanup;
 		}
@@ -608,7 +608,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			isc_buffer_used(&buffer, &region);
 			len2 = region.length;
 			(*callbacks->error)(callbacks,
-			       "%s: %s:%d: class (%.*s) != zone class (%.*s)\n",
+			       "%s: %s:%d: class (%.*s) != zone class (%.*s)",
 					    "dns_master_load",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex),
@@ -708,7 +708,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				ISC_LIST_PREPEND(current_list, this, link);
 		} else if (this->ttl != ttl) {
 			(*callbacks->warn)(callbacks,
-				   "%s: %s:%d: TTL set to prior TTL (%lu)\n",
+				   "%s: %s:%d: TTL set to prior TTL (%lu)",
 					   "dns_master_load",
 					   isc_lex_getsourcename(lex),
 					   isc_lex_getsourceline(lex),
@@ -767,7 +767,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	goto cleanup;
 
  error_cleanup:
-	(*callbacks->error)(callbacks, "dns_master_load: %s\n",
+	(*callbacks->error)(callbacks, "dns_master_load: %s",
 			    dns_result_totext(result));
 
  cleanup:
