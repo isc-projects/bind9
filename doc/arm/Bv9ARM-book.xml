@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.11 2001/02/20 23:10:01 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.12 2001/02/20 23:53:07 bwelling Exp $ -->
 
 <book>
 
@@ -1598,14 +1598,14 @@ $ORIGIN \[x3ffe805002011860/64].ip6.arpa.
 
 <programlisting>
 $ORIGIN example.com.
-host			A6	64	::1234:5678:1212:5675 cust1.example.net.
-			A6	64	::1234:5678:1212:5675 subnet5.example2.net.
+host			IN	A6	64	::1234:5678:1212:5675 cust1.example.net.
+			IN	A6	64	::1234:5678:1212:5675 subnet5.example2.net.
 $ORIGIN example.net.
-cust1			A6	48	0:0:0:dddd:: ipv6net.example.net.
-ipv6net			A6	0	aa:bb:cccc::
+cust1			IN	A6	48	0:0:0:dddd:: ipv6net.example.net.
+ipv6net			IN	A6	0	aa:bb:cccc::
 $ORIGIN example2.net.
-subnet5			A6	48	0:0:0:1:: ipv6net2.example2.net.
-ipv6net2		A6	0	6666:5555:4::
+subnet5			IN	A6	48	0:0:0:1:: ipv6net2.example2.net.
+ipv6net2		IN	A6	0	6666:5555:4::
 </programlisting>
 
 <para>This sets up forward lookups.  To handle the reverse lookups,
@@ -1614,7 +1614,7 @@ would have:</para>
 
 <programlisting>
 $ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
-\[xdddd/16]		DNAME		ipv6-rev.example.com.
+\[xdddd/16]		IN	DNAME		ipv6-rev.example.com.
 </programlisting>
 
       <para>and <systemitem
@@ -1622,7 +1622,7 @@ $ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
 
 <programlisting>
 $ORIGIN \[x666655550004/48].ip6.arpa.
-\[x0001/16]		DNAME		ipv6-rev.example.com.
+\[x0001/16]		IN	DNAME		ipv6-rev.example.com.
 </programlisting>
 
       <para><systemitem class="systemname">example.com</systemitem>
@@ -1631,7 +1631,7 @@ $ORIGIN \[x666655550004/48].ip6.arpa.
 
 <programlisting>
 $ORIGIN ipv6-rev.example.com.
-\[x1234567812125675/64]	PTR		host.example.com. 
+\[x1234567812125675/64]	IN	PTR		host.example.com. 
 </programlisting>
     </sect2>
   </sect1>
