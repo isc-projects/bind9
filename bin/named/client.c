@@ -693,7 +693,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * XXXRTH  View matching will become more powerful later.
 		 */
-		if (client->message->rdclass == view->rdclass) {
+		if (client->message->rdclass == view->rdclass ||
+		    client->message->rdclass == dns_rdataclass_any)
+		{
 			dns_view_attach(view, &client->view);
 			break;
 		}
