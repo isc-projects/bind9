@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.51 2000/08/25 01:16:04 bwelling Exp $ */
+/* $Id: view.h,v 1.52 2000/09/05 03:35:24 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -80,6 +80,7 @@ struct dns_view {
 	dns_zt_t *			zonetable;
 	dns_resolver_t *		resolver;
 	dns_adb_t *			adb;
+	dns_loadmgr_t *			loadmgr;
 	dns_requestmgr_t *		requestmgr;
 	dns_cache_t *			cache;
 	dns_db_t *			cachedb;
@@ -599,6 +600,9 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg);
  * Returns:
  *	see dns_tsig_verify()
  */
+
+void
+dns_view_setloadmgr(dns_view_t *view, dns_loadmgr_t *loadmgr);
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.93 2000/08/24 22:15:37 bwelling Exp $ */
+/* $Id: types.h,v 1.94 2000/09/05 03:35:23 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -64,6 +64,8 @@ typedef isc_uint16_t				dns_keyflags_t;
 typedef struct dns_keynode			dns_keynode_t;
 typedef struct dns_keytable			dns_keytable_t;
 typedef isc_uint16_t				dns_keytag_t;
+typedef struct dns_loadctx			dns_loadctx_t;
+typedef struct dns_loadmgr			dns_loadmgr_t;
 typedef struct dns_message			dns_message_t;
 typedef isc_uint16_t				dns_messageid_t;
 typedef isc_region_t				dns_label_t;

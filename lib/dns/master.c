@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.63 2000/08/24 19:13:13 gson Exp $ */
+/* $Id: master.c,v 1.64 2000/09/05 03:35:17 marka Exp $ */
 
 #include <config.h>
 
@@ -82,13 +82,12 @@ typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 /*
  * Master file loading state that persists across $INCLUDEs.
  */
-typedef struct loadctx loadctx_t;
 
-struct loadctx {
+struct dns_loadctx {
 	isc_uint32_t		magic;
 	isc_mem_t		*mctx;
 	isc_lex_t		*lex;
-	loadctx_t		*parent;
+	dns_loadctx_t		*parent;
 	dns_rdatacallbacks_t	*callbacks;
 	isc_task_t		*task;
 	dns_loaddonefunc_t	done;
@@ -113,13 +112,38 @@ struct loadctx {
 	int			origin_in_use;
 	unsigned int		loop_cnt;		/* records per quantum,
 							 * 0 => all. */
+	isc_boolean_t 		canceled; 
+	/* Rate limit goo. */
+	isc_boolean_t		rate_limited;
+	ISC_LINK(dns_loadctx_t)	link;
+	char			*master_file;
+	dns_loadmgr_t		*loadmgr;
+	isc_event_t		event;
+
+	isc_mutex_t		lock;
+	/* locked by lock */
+	isc_uint32_t		references;
 };
 
 #define DNS_LCTX_MAGIC ISC_MAGIC('L','c','t','x')
 #define DNS_LCTX_VALID(ctx) ISC_MAGIC_VALID(ctx, DNS_LCTX_MAGIC)
 
+struct dns_loadmgr {
+	isc_uint32_t		magic;
+	isc_mem_t		*mctx;
+	isc_uint32_t		erefs;
+	isc_uint32_t		irefs;
+	isc_mutex_t		lock;
+	isc_uint32_t		active;
+	isc_uint32_t		limit;
+	ISC_LIST(dns_loadctx_t)	list;
+};
+
+#define DNS_LMGR_MAGIC ISC_MAGIC('L','m','g','r')
+#define DNS_LMGR_VALID(ctx) ISC_MAGIC_VALID(ctx, DNS_LMGR_MAGIC)
+
 static isc_result_t
-pushfile(const char *master_file, dns_name_t *origin, loadctx_t **ctxp);
+pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp);
 
 static isc_result_t
 commit(dns_rdatacallbacks_t *, isc_lex_t *, rdatalist_head_t *, dns_name_t *,
@@ -143,7 +167,25 @@ static void
 load_quantum(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
-task_send(loadctx_t *ctx);
+task_send(dns_loadctx_t *ctx);
+
+static void
+loadctx_destroy(dns_loadctx_t *ctx);
+
+static void
+loadmgr_start(isc_task_t *task, isc_event_t *event);
+
+static void
+loadmgr_cancel(dns_loadmgr_t *mgr);
+
+static void
+loadmgr_iattach(dns_loadmgr_t *source, dns_loadmgr_t **target);
+
+static void
+loadmgr_idetach(dns_loadmgr_t **mgrp);
+
+static void
+loadmgr_destroy(dns_loadmgr_t *mgr);
 
 #define GETTOKEN(lexer, options, token, eol) \
 	do { \
@@ -224,20 +266,52 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 	return (ISC_R_SUCCESS);
 }
 
-static void
-loadctx_destroy(loadctx_t **ctxp) {
-	loadctx_t *ctx;
-	isc_mem_t *mctx;
+
+void
+dns_loadctx_attach(dns_loadctx_t *source, dns_loadctx_t **target) {
+
+	REQUIRE(target != NULL && *target == NULL);
+	REQUIRE(DNS_LCTX_VALID(source));
+
+	LOCK(&source->lock);
+	INSIST(source->references > 0);
+	source->references++;
+	INSIST(source->references != 0);	/* Overflow? */
+	UNLOCK(&source->lock);
+
+	*target = source;
+}
+
+void
+dns_loadctx_detach(dns_loadctx_t **ctxp) {
+	dns_loadctx_t *ctx;
+	isc_boolean_t need_destroy = ISC_FALSE;
 
 	REQUIRE(ctxp != NULL);
 	ctx = *ctxp;
 	REQUIRE(DNS_LCTX_VALID(ctx));
+	
+	LOCK(&ctx->lock);
+	INSIST(ctx->references > 0);
+	ctx->references--;
+	if (ctx->references == 0)
+		need_destroy = ISC_TRUE;
+	UNLOCK(&ctx->lock);
 
+	if (need_destroy)
+		loadctx_destroy(ctx);
 	*ctxp = NULL;
+}
+
+static void
+loadctx_destroy(dns_loadctx_t *ctx) {
+	isc_mem_t *mctx;
+
+	REQUIRE(DNS_LCTX_VALID(ctx));
 
 	ctx->magic = 0;
 	if (ctx->parent != NULL)
-		loadctx_destroy(&ctx->parent);
+		dns_loadctx_detach(&ctx->parent);
 
 	if (ctx->lex != NULL) {
 		isc_lex_close(ctx->lex);
@@ -245,6 +319,13 @@ loadctx_destroy(loadctx_t **ctxp) {
 	}
 	if (ctx->task != NULL)
 		isc_task_detach(&ctx->task);
+	if (ctx->master_file != NULL) {
+		isc_mem_free(ctx->mctx, ctx->master_file);
+		ctx->master_file = NULL;
+	}
+	if (ctx->loadmgr != NULL)
+		loadmgr_idetach(&ctx->loadmgr);
+	DESTROYLOCK(&ctx->lock);
 	mctx = NULL;
 	isc_mem_attach(ctx->mctx, &mctx);
 	isc_mem_detach(&ctx->mctx);
@@ -257,9 +338,9 @@ loadctx_create(isc_mem_t *mctx, isc_boolean_t age_ttl, dns_name_t *top,
 	       dns_rdataclass_t zclass, dns_name_t *origin,
 	       dns_rdatacallbacks_t *callbacks, isc_task_t *task,
 	       dns_loaddonefunc_t done, void *done_arg,
-	       loadctx_t **ctxp)
+	       dns_loadctx_t **ctxp)
 {
-	loadctx_t *ctx;
+	dns_loadctx_t *ctx;
 	isc_result_t result;
 	isc_region_t r;
 	int i;
@@ -279,6 +360,14 @@ loadctx_create(isc_mem_t *mctx, isc_boolean_t age_ttl, dns_name_t *top,
 	ctx = isc_mem_get(mctx, sizeof(*ctx));
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
+	result = isc_mutex_init(&ctx->lock);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, ctx, sizeof *ctx);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init() failed: %s",
+				 isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
 
 	ctx->lex = NULL;
 	result = isc_lex_create(mctx, TOKENSIZ, &ctx->lex);
@@ -328,8 +417,18 @@ loadctx_create(isc_mem_t *mctx, isc_boolean_t age_ttl, dns_name_t *top,
 	ctx->done = done;
 	ctx->done_arg = done_arg;
 
+	ctx->rate_limited = ISC_FALSE;
+	ctx->master_file = NULL;
+	ctx->loadmgr = NULL;
+	ISC_LINK_INIT(ctx, link);
+	ISC_EVENT_INIT(&ctx->event, sizeof(ctx->event), 0, NULL,
+		       DNS_EVENT_MASTERNEXTZONE, loadmgr_start,
+		       ctx, ctx, NULL, NULL);
+
+	ctx->canceled = ISC_FALSE;
 	ctx->mctx = NULL;
 	isc_mem_attach(mctx, &ctx->mctx);
+	ctx->references = 1;			/* Implicit attach. */
 	ctx->magic = DNS_LCTX_MAGIC;
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
@@ -340,7 +439,7 @@ loadctx_create(isc_mem_t *mctx, isc_boolean_t age_ttl, dns_name_t *top,
 }
 
 static isc_result_t
-load(loadctx_t **ctxp) {
+load(dns_loadctx_t **ctxp) {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type, covers;
 	isc_uint32_t ttl_offset = 0;
@@ -376,7 +475,7 @@ load(loadctx_t **ctxp) {
 	unsigned int loop_cnt = 0;
 	isc_mem_t *mctx;
 	dns_rdatacallbacks_t *callbacks;
-	loadctx_t *ctx;
+	dns_loadctx_t *ctx;
 
 
 	ctx = *ctxp;
@@ -416,7 +515,7 @@ load(loadctx_t **ctxp) {
 				CTX_COPYVAR(ctx, *ctxp, ttl);
 				CTX_COPYVAR(ctx, *ctxp, default_ttl);
 				CTX_COPYVAR(ctx, *ctxp, warn_1035);
-				loadctx_destroy(&ctx);
+				dns_loadctx_detach(&ctx);
 				ctx = *ctxp;
 				continue;
 			}
@@ -993,10 +1092,10 @@ load(loadctx_t **ctxp) {
 }
 
 static isc_result_t
-pushfile(const char *master_file, dns_name_t *origin, loadctx_t **ctxp) {
+pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp) {
 	isc_result_t result;
-	loadctx_t *ctx;
-	loadctx_t *new = NULL;
+	dns_loadctx_t *ctx;
+	dns_loadctx_t *new = NULL;
 	isc_region_t r;
 	int new_in_use;
 
@@ -1043,7 +1142,7 @@ pushfile(const char *master_file, dns_name_t *origin, loadctx_t **ctxp) {
 
  cleanup:
 	if (new != NULL)
-		loadctx_destroy(&new);
+		dns_loadctx_detach(&new);
 	return (result);
 }
 
@@ -1053,7 +1152,7 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 		    dns_rdataclass_t zclass, isc_boolean_t age_ttl,
 		    dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
-	loadctx_t *ctx = NULL;
+	dns_loadctx_t *ctx = NULL;
 	isc_result_t result;
 
 	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
@@ -1070,8 +1169,108 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 
  cleanup:
 	if (ctx != NULL)
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 	return (result);
+}
+
+isc_result_t
+dns_master_loadfilequota(const char *master_file, dns_name_t *top,
+			 dns_name_t *origin, dns_rdataclass_t zclass,
+			 isc_boolean_t age_ttl, dns_rdatacallbacks_t *callbacks,			 isc_task_t *task, dns_loaddonefunc_t done,
+			 void *done_arg, dns_loadmgr_t *lmgr,
+			 dns_loadctx_t **ctxp, isc_mem_t *mctx)
+{
+	isc_boolean_t queue;
+	dns_loadctx_t *ctx = NULL;
+	isc_result_t result;
+	isc_event_t *event;
+
+	REQUIRE(DNS_LMGR_VALID(lmgr));
+	REQUIRE(ctxp != NULL && *ctxp == NULL);
+	
+	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
+                                callbacks, task, done, done_arg, &ctx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	ctx->rate_limited = ISC_TRUE;
+	ctx->master_file = isc_mem_strdup(mctx, master_file);
+	if (ctx->master_file == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+	loadmgr_iattach(lmgr, &ctx->loadmgr);
+
+	LOCK(&lmgr->lock);
+	lmgr->active++;
+	queue = ISC_TF((lmgr->limit != 0 && lmgr->active > lmgr->limit));
+	if (queue)
+		ISC_LIST_APPEND(lmgr->list, ctx, link);
+	INSIST(queue || ISC_LIST_EMPTY(lmgr->list));
+	UNLOCK(&lmgr->lock);
+
+	dns_loadctx_attach(ctx, ctxp);
+	result = DNS_R_CONTINUE;
+	if (!queue) {
+		event = &ctx->event;
+		isc_task_send(ctx->task, &event);
+	}
+	return (result);
+
+ cleanup:
+	if (ctx != NULL)
+		dns_loadctx_detach(&ctx);
+	return (result);
+}
+
+static void
+loadmgr_done(dns_loadctx_t *ctx, isc_result_t result) {
+	dns_loadctx_t *next;
+	isc_event_t *event;
+
+	if (ctx->done != NULL)
+		(ctx->done)(ctx->done_arg, result);
+
+	LOCK(&ctx->loadmgr->lock);
+	INSIST(ctx->loadmgr->active > 0);
+	ctx->loadmgr->active--;
+	/* dequeue */
+	next = ISC_LIST_HEAD(ctx->loadmgr->list);
+	if (next != NULL)
+		ISC_LIST_UNLINK(ctx->loadmgr->list, next, link);
+	UNLOCK(&ctx->loadmgr->lock);
+	if (next != NULL) {
+		event = &next->event;
+		isc_task_send(next->task, &event);
+	}
+}
+
+
+static void
+loadmgr_start(isc_task_t *task, isc_event_t *event) {
+	dns_loadctx_t *ctx = event->ev_arg;
+	isc_result_t result;
+
+	INSIST(task == ctx->task);
+
+	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0) {
+		result = ISC_R_CANCELED;
+		goto done;
+	}
+	result = isc_lex_openfile(ctx->lex, ctx->master_file);
+	if (result == ISC_R_SUCCESS)
+		result = load(&ctx);
+	if (result == DNS_R_CONTINUE) {
+		result = task_send(ctx);
+		if (result == ISC_R_SUCCESS)
+			isc_event_free(&event);
+			return;
+	} 
+ done:
+	loadmgr_done(ctx, result);
+	isc_event_free(&event);
+	dns_loadctx_detach(&ctx);
+	return;
 }
 
 isc_result_t
@@ -1081,7 +1280,7 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 		       isc_task_t *task, dns_loaddonefunc_t done,
 		       void *done_arg, isc_mem_t *mctx)
 {
-	loadctx_t *ctx = NULL;
+	dns_loadctx_t *ctx = NULL;
 	isc_result_t tresult;
 	isc_result_t result;
 
@@ -1106,7 +1305,7 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 
  cleanup:
 	if (ctx != NULL)
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 	return (result);
 }
 
@@ -1116,7 +1315,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
-	loadctx_t *ctx = NULL;
+	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(stream != NULL);
 
@@ -1134,7 +1333,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
  cleanup:
 	if (ctx != NULL)
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 	return (result);
 }
 
@@ -1147,7 +1346,7 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 {
 	isc_result_t result;
 	isc_result_t tresult;
-	loadctx_t *ctx = NULL;
+	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(stream != NULL);
 
@@ -1172,7 +1371,7 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
  cleanup:
 	if (ctx != NULL)
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 	return (result);
 }
 
@@ -1183,7 +1382,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
-	loadctx_t *ctx = NULL;
+	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(buffer != NULL);
 
@@ -1201,7 +1400,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 
  cleanup:
 	if (ctx != NULL)
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 	return (result);
 }
 
@@ -1215,7 +1414,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 {
 	isc_result_t result;
 	isc_result_t tresult;
-	loadctx_t *ctx = NULL;
+	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(buffer != NULL);
 
@@ -1240,7 +1439,7 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 
  cleanup:
 	if (ctx != NULL)
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 	return (result);
 }
 
@@ -1458,30 +1657,36 @@ on_list(dns_rdatalist_t *rdatalist, dns_rdata_t *rdata) {
 static void
 load_quantum(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	loadctx_t *ctx;
+	dns_loadctx_t *ctx;
 
 	REQUIRE(event != NULL);
 	ctx = event->ev_arg;
 	REQUIRE(DNS_LCTX_VALID(ctx));
 
-	result = load(&ctx);
+	if (ctx->canceled)
+		result = ISC_R_CANCELED;
+	else
+		result = load(&ctx);
 	if (result == DNS_R_CONTINUE) {
 		isc_task_send(task, &event);
 	} else if (result == ISC_R_SUCCESS && ctx->parent) {
 		/* Pop ctx and continue. */
 		event->ev_arg = ctx->parent;
 		ctx->parent = NULL;
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 		isc_task_send(task, &event);
 	} else {
-		(ctx->done)(ctx->done_arg, result);
+		if (ctx->rate_limited)
+			loadmgr_done(ctx, result);
+		else
+			(ctx->done)(ctx->done_arg, result);
 		isc_event_free(&event);
-		loadctx_destroy(&ctx);
+		dns_loadctx_detach(&ctx);
 	}
 }
 
 static isc_result_t
-task_send(loadctx_t *ctx) {
+task_send(dns_loadctx_t *ctx) {
 	isc_event_t *event;
 
 	event = isc_event_allocate(ctx->mctx, NULL,
@@ -1491,4 +1696,182 @@ task_send(loadctx_t *ctx) {
 		return (ISC_R_NOMEMORY);
 	isc_task_send(ctx->task, &event);
 	return (ISC_R_SUCCESS);
+}
+
+/*
+ * DNS load manager.
+ */
+
+isc_result_t
+dns_loadmgr_create(isc_mem_t *mctx, dns_loadmgr_t **mgrp) {
+	dns_loadmgr_t *mgr;
+	isc_result_t result;
+
+	REQUIRE(mgrp != NULL && *mgrp == NULL);
+
+	mgr = isc_mem_get(mctx, sizeof(*mgr));
+	if (mgr == NULL)
+		return (ISC_R_NOMEMORY);
+	result = isc_mutex_init(&mgr->lock);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, mgr, sizeof(*mgr));
+		return (result);
+	}
+	mgr->erefs = 1;
+	mgr->irefs = 0;
+	mgr->limit = 0;
+	mgr->active = 0;
+	mgr->mctx = NULL;
+	isc_mem_attach(mctx, &mgr->mctx);
+	ISC_LIST_INIT(mgr->list);
+	mgr->magic = DNS_LMGR_MAGIC;
+	*mgrp = mgr;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_loadmgr_setlimit(dns_loadmgr_t *mgr, isc_uint32_t limit) {
+
+	REQUIRE(DNS_LMGR_VALID(mgr));
+
+	mgr->limit = limit;
+}
+
+isc_uint32_t
+dns_loadmgr_getlimit(dns_loadmgr_t *mgr) {
+
+	REQUIRE(DNS_LMGR_VALID(mgr));
+
+	return(mgr->limit);
+}
+
+void
+dns_loadmgr_cancel(dns_loadmgr_t *mgr) {
+
+	REQUIRE(DNS_LMGR_VALID(mgr));
+	
+	LOCK(&mgr->lock);
+	loadmgr_cancel(mgr);
+	UNLOCK(&mgr->lock);
+}
+
+static void
+loadmgr_cancel(dns_loadmgr_t *mgr) {
+	dns_loadctx_t *ctx;
+	isc_event_t *event;
+
+	for (ctx = ISC_LIST_HEAD(mgr->list); ctx != NULL; ) {
+		ISC_LIST_UNLINK(mgr->list, ctx, link);
+		event = &ctx->event;
+		event->ev_attributes |= ISC_EVENTATTR_CANCELED;
+		isc_task_send(ctx->task, &event);
+	}
+}
+
+void
+dns_loadctx_cancel(dns_loadctx_t *ctx) {
+	isc_event_t *event;
+
+	REQUIRE(DNS_LCTX_VALID(ctx));
+
+	LOCK(&ctx->lock);
+	ctx->canceled = ISC_TRUE;
+	/*
+	 * If we are queued to be run dequeue.
+	 */
+	if (ctx->loadmgr != NULL && ISC_LINK_LINKED(ctx, link)) {
+		LOCK(&ctx->loadmgr->lock);
+		ISC_LIST_UNLINK(ctx->loadmgr->list, ctx, link);
+		UNLOCK(&ctx->loadmgr->lock);
+		event = &ctx->event;
+		event->ev_attributes |= ISC_EVENTATTR_CANCELED;
+		isc_task_send(ctx->task, &event);
+	}
+	UNLOCK(&ctx->lock);
+}
+
+
+void
+dns_loadmgr_attach(dns_loadmgr_t *source, dns_loadmgr_t **target) {
+
+	REQUIRE(DNS_LMGR_VALID(source));
+	REQUIRE(target != NULL && *target == NULL);
+
+	LOCK(&source->lock);
+	INSIST(source->erefs != 0);
+	source->erefs++;
+	INSIST(source->erefs != 0);	/* Overflow? */
+	UNLOCK(&source->lock);
+
+	*target = source;
+}
+
+void
+dns_loadmgr_detach(dns_loadmgr_t **mgrp) {
+	dns_loadmgr_t *mgr;
+	isc_boolean_t destroy = ISC_FALSE;
+
+	REQUIRE(mgrp != NULL);
+	mgr = *mgrp;
+	REQUIRE(DNS_LMGR_VALID(mgr));
+
+	mgrp = NULL;
+
+	LOCK(&mgr->lock);
+	INSIST(mgr->erefs != 0);
+	mgr->erefs--;
+	if (mgr->erefs == 0) {
+		if (mgr->irefs == 0)
+			destroy = ISC_TRUE;
+		else
+			loadmgr_cancel(mgr);
+	}
+	UNLOCK(&mgr->lock);
+	if (destroy)
+		loadmgr_destroy(mgr);
+}
+
+static void
+loadmgr_iattach(dns_loadmgr_t *source, dns_loadmgr_t **target) {
+
+	REQUIRE(DNS_LMGR_VALID(source));
+	REQUIRE(target != NULL && *target == NULL);
+
+	LOCK(&source->lock);
+	source->irefs++;
+	INSIST(source->irefs != 0);	/* Overflow? */
+	UNLOCK(&source->lock);
+
+	*target = source;
+}
+
+static void
+loadmgr_idetach(dns_loadmgr_t **mgrp) {
+	dns_loadmgr_t *mgr;
+	isc_boolean_t destroy = ISC_FALSE;
+
+	REQUIRE(mgrp != NULL);
+	mgr = *mgrp;
+	REQUIRE(DNS_LMGR_VALID(mgr));
+
+	mgrp = NULL;
+
+	LOCK(&mgr->lock);
+	INSIST(mgr->irefs != 0);
+	mgr->irefs--;
+	if (mgr->erefs == 0 && mgr->irefs == 0)
+		destroy = ISC_TRUE;
+	UNLOCK(&mgr->lock);
+	if (destroy)
+		loadmgr_destroy(mgr);
+}
+
+static void
+loadmgr_destroy(dns_loadmgr_t *mgr) {
+
+	INSIST(ISC_LIST_EMPTY(mgr->list));
+
+	mgr->magic = 0;
+	DESTROYLOCK(&mgr->lock);
+	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
 }
