@@ -1,3 +1,5 @@
+1164.	[bug]		"Not Implemented" should be reported as NOTIMP.
+
 1165.	[bug]		We were rejecting notify-source{-v6} in zone clauses.
 
 1164.	[bug]		Empty masters clauses in slave / stub zones were not

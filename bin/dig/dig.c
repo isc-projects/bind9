@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.175 2001/11/30 01:58:38 gson Exp $ */
+/* $Id: dig.c,v 1.176 2001/12/19 12:16:38 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -111,7 +111,7 @@ static const char *rcodetext[] = {
 	"FORMERR",
 	"SERVFAIL",
 	"NXDOMAIN",
-	"NOTIMPL",
+	"NOTIMP",
 	"REFUSED",
 	"YXDOMAIN",
 	"YXRRSET",

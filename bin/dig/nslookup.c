@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.94 2001/11/30 01:02:06 gson Exp $ */
+/* $Id: nslookup.c,v 1.95 2001/12/19 12:16:42 marka Exp $ */
 
 #include <config.h>
 
@@ -76,7 +76,7 @@ static const char *rcodetext[] = {
 	"FORMERR",
 	"SERVFAIL",
 	"NXDOMAIN",
-	"NOTIMPL",
+	"NOTIMP",
 	"REFUSED",
 	"YXDOMAIN",
 	"YXRRSET",
