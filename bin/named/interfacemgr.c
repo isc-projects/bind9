@@ -314,7 +314,6 @@ do_ipv4(ns_interfacemgr_t *mgr, isc_boolean_t udp_only) {
 	result = isc_interfaceiter_first(iter);
 	while (result == ISC_R_SUCCESS) {
 		ns_interface_t *ifp;
-		unsigned int listen_port = 5544; /* XXX from configuration */
 		isc_interface_t interface;
 		isc_sockaddr_t listen_addr;
 
@@ -330,7 +329,7 @@ do_ipv4(ns_interfacemgr_t *mgr, isc_boolean_t udp_only) {
 		
 		isc_sockaddr_fromin(&listen_addr,
 				    &interface.address.type.in,
-				    listen_port);
+				    ns_g_port);
 
 		ifp = find_matching_interface(mgr, &listen_addr);
 		if (ifp != NULL) {
@@ -371,18 +370,17 @@ static void
 do_ipv6(ns_interfacemgr_t *mgr) {
 	isc_result_t result;
 	ns_interface_t *ifp;
-	unsigned int listen_port = 5544; /* XXX from configuration */
 	isc_sockaddr_t listen_addr;
 	struct in6_addr in6a;
 
 	in6a = in6addr_any;
-	isc_sockaddr_fromin6(&listen_addr, &in6a, listen_port);
+	isc_sockaddr_fromin6(&listen_addr, &in6a, ns_g_port);
 
 	ifp = find_matching_interface(mgr, &listen_addr);
 	if (ifp != NULL) {
 		ifp->generation = mgr->generation;
 	} else {
-		printf("IPv6: listening (port %u)\n", listen_port);
+		printf("IPv6: listening (port %u)\n", ns_g_port);
 		result = ns_interface_create(mgr, &listen_addr, ISC_FALSE,
 					     &ifp);
 		if (result != DNS_R_SUCCESS)

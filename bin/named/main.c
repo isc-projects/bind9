@@ -61,7 +61,7 @@ usage(void) {
 	fprintf(stderr,
 		"usage: named [[-c cachefile] ...] [[-z zonefile] ...]\n");
 	fprintf(stderr,
-		"             [-s] [-N number of cpus]\n");
+		"             [-p port] [-s] [-N number of cpus]\n");
 }
 
 static void 
@@ -71,7 +71,7 @@ parse_command_line(int argc, char *argv[]) {
 	ns_dbinfo_t *dbi;
 
 	/*+ XXXRTH we need a veneered getopt() */
-	while ((ch = getopt(argc, argv, "c:N:sz:")) != -1) {
+	while ((ch = getopt(argc, argv, "c:N:p:sz:")) != -1) {
 		switch (ch) {
 		case 'c':
 			/* XXXRTH temporary syntax */
@@ -96,6 +96,9 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_cpus = atoi(optarg);
 			if (ns_g_cpus == 0)
 				ns_g_cpus = 1;
+			break;
+		case 'p':
+			ns_g_port = atoi(optarg);
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
