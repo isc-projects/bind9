@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.48 2001/01/09 21:51:26 bwelling Exp $ */
+/* $Id: request.c,v 1.49 2001/01/23 01:59:03 gson Exp $ */
 
 #include <config.h>
 
@@ -799,6 +799,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	if (request == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
+
 	/*
 	 * Zero structure.
 	 */
