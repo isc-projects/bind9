@@ -1,3 +1,6 @@
+ 554.	[bug]		In some cases, not all of the dnssec tools were
+			properly installed.
+
  553.	[bug]		Incoming zone transfers deferred due to quota 
 			were not started when quota was increased but 
 			only when a transfer in progress finished. [RT #456]
