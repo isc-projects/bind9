@@ -1,4 +1,7 @@
 
+ 624.	[bug]		The zone object could get timer events after it had
+			been destroyed, causing a server crash. [RT #571]
+
  623.	[func]		Added "named-checkconf" and "named-checkzone" program
 			for syntax checking named.conf files and zone files,
 			respectively.
