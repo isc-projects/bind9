@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.54 2000/06/07 03:30:00 marka Exp $ */
+/* $Id: master.c,v 1.54.2.1 2000/06/30 16:25:09 gson Exp $ */
 
 #include <config.h>
 
@@ -788,12 +788,10 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				goto cleanup;
 			rdcount = 0;
 			rdlcount = 0;
-			if (glue_in_use != -1)
-				name_in_use[glue_in_use] = ISC_FALSE;
-			glue_in_use = -1;
-			in_glue = ISC_FALSE;
-			current_has_delegation = ISC_FALSE;
 			isc_buffer_init(&target, target_mem, target_size);
+			rdcount_save = rdcount;
+			rdlcount_save = rdlcount;
+			target_save = target;
 		}
 	} while (!done);
 	/*

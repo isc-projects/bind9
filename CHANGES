@@ -20,6 +20,11 @@
 			infinite loop when constructing the response to
 			an ANY query at a CNAME in a secure zone.
 
+ 294.	[bug]		If we run out of space in while processing glue
+			when reading a master file and commit "current name"
+			reverts to "name_current" instead of staying as
+			"name_glue".
+
  292.	[bug]		Due to problems with the way some operating systems
 			handle simultaneous listening on IPv4 and IPv6
 			addresses, the server no longer listens on IPv6
