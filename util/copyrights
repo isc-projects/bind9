@@ -1279,6 +1279,7 @@
 ./lib/isc/unix/include/isc/netdb.h		C	1999,2000,2001
 ./lib/isc/unix/include/isc/offset.h		C	2000,2001
 ./lib/isc/unix/include/isc/stdtime.h		C	1999,2000,2001
+./lib/isc/unix/include/isc/syslog.h		C	1999,2000,2001
 ./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001
@@ -1290,6 +1291,7 @@
 ./lib/isc/unix/socket_p.h			C	2000,2001
 ./lib/isc/unix/stdio.c				C	2000,2001
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001
+./lib/isc/unix/syslog.c				C	2001
 ./lib/isc/unix/time.c				C	1998,1999,2000,2001
 ./lib/isc/version.c				C	1998,1999,2000,2001
 ./lib/isc/win32/.cvsignore			X	1999,2000,2001
