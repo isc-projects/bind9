@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.66 2000/01/27 01:07:17 gson Exp $ */
+ /* $Id: zone.c,v 1.67 2000/01/27 01:35:17 gson Exp $ */
 
 #include <config.h>
 
@@ -598,9 +598,15 @@ dns_zone_load(dns_zone_t *zone) {
 	 * XXX better error feedback to log.
 	 */
 	if (result != DNS_R_SUCCESS) {
-		zone_log(zone, me, ISC_LOG_ERROR,
-			 "database %s: dns_db_load failed: %s",
-			 zone->database, dns_result_totext(result));
+		if (zone->type == dns_zone_slave) {
+			zone_log(zone, me, ISC_LOG_INFO,
+				 "no database file");
+			result = ISC_R_SUCCESS;
+		} else {
+			zone_log(zone, me, ISC_LOG_ERROR,
+				 "database %s: dns_db_load failed: %s",
+				 zone->database, dns_result_totext(result));
+		}
 		goto cleanup;
 	}
 
