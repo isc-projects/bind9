@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.23.18.3 2004/04/13 12:17:09 marka Exp $
+.\" $Id: dig.1,v 1.23.18.4 2004/06/23 09:11:23 marka Exp $
 .\"
 .TH "DIG" "1" "Jun 30, 2000" "BIND9" ""
 .SH NAME
@@ -197,9 +197,10 @@ The search list is not used by default.
 Deprecated, treated as a synonym for \fI+[no]search\fR
 .TP
 \fB+[no]aaonly\fR
-This option does nothing. It is provided for compatibility with old
-versions of \fBdig\fR where it set an unimplemented
-resolver flag.
+Sets the "aa" flag in the query.
+.TP
+\fB+[no]aaflag\fR
+A synonym for \fI+[no]aaonly\fR.
 .TP
 \fB+[no]adflag\fR
 Set [do not set] the AD (authentic data) bit in the query. The AD bit
