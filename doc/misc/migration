@@ -218,4 +218,14 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.36 2001/06/11 20:46:15 gson Exp $
+7. Umask not Modified
+
+The BIND 8 named unconditionally sets the umask to 022.  BIND 9 does
+not; the umask inherited from the parent process remains in effect.
+This may cause files created by named, such as journal files, to be
+created with different file permissions than they did in BIND 8.  If
+necessary, the umask should be set explicitly in the script used to
+start the named process.
+
+
+$Id: migration,v 1.37 2001/06/28 23:28:34 gson Exp $
