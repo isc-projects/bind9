@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.163 2002/03/08 01:38:56 bwelling Exp $ */
+/* $Id: rdata.c,v 1.164 2002/03/08 01:58:10 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1937,6 +1937,7 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
+	fprintf(stderr, "\n");
 }
 
 static void
