@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.26 2001/07/06 20:34:11 gson Exp $ */
+/* $Id: lex.h,v 1.27 2002/01/11 01:30:32 gson Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -190,7 +190,7 @@ isc_lex_setcomments(isc_lex_t *lex, unsigned int comments);
  * Requires:
  *	'lex' is a valid lexer.
  *
- *	'options' has meaningful values.
+ *	'comments' has meaningful values.
  */
 
 void
@@ -367,7 +367,7 @@ isc_lex_getsourcename(isc_lex_t *lex);
 unsigned long
 isc_lex_getsourceline(isc_lex_t *lex);
 /*
- * Return the input source name.
+ * Return the input source line number.
  *
  * Requires:
  *	'lex' is a valid lexer.
