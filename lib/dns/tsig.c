@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.72.2.6 2000/07/28 19:41:14 gson Exp $
+ * $Id: tsig.c,v 1.72.2.7 2000/07/28 23:39:21 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -87,8 +87,12 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	REQUIRE(mctx != NULL);
 
 	RUNTIME_CHECK(isc_once_do(&once, dns_tsig_inithmac) == ISC_R_SUCCESS);
-	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME))
-		return (ISC_R_NOTFOUND);
+	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME)) {
+		if (length != 0)
+			return (ISC_R_NOTIMPLEMENTED);
+		else
+			alg = 0;
+	}
 	else
 		alg = DST_ALG_HMACMD5;
 
