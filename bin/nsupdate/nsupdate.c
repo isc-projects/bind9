@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.15 2000/06/30 03:45:54 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.16 2000/06/30 06:35:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -226,19 +226,29 @@ nsu_strsep(char **stringp, const char *delim) {
 	if (string == NULL)
 		return (NULL);
 
+	for (; *string != '\0'; string++) {
+		sc = *string;
+		for (d = delim; (dc = *d) != '\0'; d++) {
+			if (sc == dc)
+				break;
+		}
+		if (dc == 0)
+			break;
+	}
+
 	for (s = string; *s != '\0'; s++) {
 		sc = *s;
-		for (d = delim; (dc = *d) != '\0'; d++)
+		for (d = delim; (dc = *d) != '\0'; d++) {
 			if (sc == dc) {
 				*s++ = '\0';
 				*stringp = s;
 				return (string);
 			}
+		}
 	}
 	*stringp = NULL;
 	return (string);
 }
-
 
 static unsigned int
 count_dots(char *s, isc_boolean_t *last_was_dot) {
