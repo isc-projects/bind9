@@ -1571,6 +1571,8 @@ dns_result_t
 dns_journal_commit(dns_journal_t *j) {
 	dns_result_t result;
 	journal_rawheader_t rawheader;
+	unsigned int i;
+	
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
 	
@@ -1640,8 +1642,7 @@ dns_journal_commit(dns_journal_t *j) {
 	CHECK(journal_seek(j, 0));
 	CHECK(journal_write(j, &rawheader, sizeof(rawheader)));
 	
-	/* Update the index.  Byte swap if necessary. */
-	/* XXX leaves index in wrong byte order */
+	/* Update the index.  Byte swap in-place if necessary. */
 	index_add(j, &j->x.pos[0]);
 	if (j->header.index_size != 0) {
 		unsigned int i;
@@ -1655,7 +1656,15 @@ dns_journal_commit(dns_journal_t *j) {
 
 	/* Commit the header to stable storage. */
 	CHECK(journal_fsync(j));
-	j->state = JOURNAL_STATE_INVALID; /* Since the byte order is wrong. */
+
+	/* Undo the byte swapping. */
+	for (i = 0; i < j->header.index_size; i++) {
+		j->index[i].serial = ntohl(j->index[i].serial);
+		j->index[i].offset = ntohl(j->index[i].offset);
+	}
+
+	/* We no longer have a transaction open. */
+	j->state = JOURNAL_STATE_WRITE;
 	
 	result = DNS_R_SUCCESS;
 
