@@ -395,6 +395,7 @@ static isc_mutex_t	T2_mx;
 static int		T2_done;
 static int		T2_nprobs;
 static int		T2_nfails;
+static int		T2_ntasks;
 
 static void
 t2_shutdown(isc_task_t *task, isc_event_t *event) {
@@ -436,14 +437,18 @@ t2_shutdown(isc_task_t *task, isc_event_t *event) {
 static void
 t2_callback(isc_task_t *task, isc_event_t *event)
 {
-	void		*intermediate;
 	isc_result_t	isc_result;
 	isc_task_t	*newtask;
 
+	++T2_ntasks;
+
+	if (T_debug && ((T2_ntasks % 100) == 0)) {
+		t_info("T2_ntasks %d\n", T2_ntasks);
+	}
+
 	if (event->arg) {
 
-		intermediate = event->arg;
-		event->arg = intermediate;	/* silly compiler */
+		event->arg = (void* ) (((int) event->arg) - 1);
 
 		/* create a new task and forward the message */
 		newtask = NULL;
@@ -486,6 +491,7 @@ t_tasks2(void) {
 	T2_done = 0;
 	T2_nprobs = 0;
 	T2_nfails = 0;
+	T2_ntasks = 0;
 
 	workers = 2;
 	p = t_getenv("ISC_TASK_WORKERS");
