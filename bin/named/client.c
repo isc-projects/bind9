@@ -136,8 +136,7 @@ maybe_free(ns_client_t *client) {
 			socket = client->tcpsocket;
 		else
 			socket = dns_dispatch_getsocket(client->dispatch);
-		isc_socket_cancel(client->tcpsocket, client->task,
-				  ISC_SOCKCANCEL_SEND);
+		isc_socket_cancel(socket, client->task, ISC_SOCKCANCEL_SEND);
 	}
 
 	if (!(client->nreads == 0 && client->naccepts == 0 &&
