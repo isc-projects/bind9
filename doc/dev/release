@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.24 2001/01/22 22:32:42 gson Exp $
+$Id: release,v 1.25 2001/02/09 00:08:52 gson Exp $
 
 Preparing a bind9 release
 
@@ -127,7 +127,7 @@ release.
 
  - Tag the CVS source tree with the final tag, as in
    "cvs rtag v9_0_0rc1 bind9" (mainline) or
-   "cvs rtag -r v9_0 v9_0_0rc1 bind9" (release branch).
+   "cvs rtag -r v9_1 v9_1_1rc1 bind9" (release branch).
 
  - Build the release kit.  This procedure differs
    between the 9.0 release branch and the mainline.
@@ -152,21 +152,21 @@ release.
 
  - Sign the distribution files with the ISC signing PGP key:
   
-   	pgp -sba bind-9.1.0.tar.gz -u 0x51BAB2ED
+   	pgp -sba bind-9.1.1rc1.tar.gz -u 0x51BAB2ED
 
  - Fix the permissions on the signature file:
 
-	chmod 644 bind-9.1.0.tar.gz.asc
+	chmod 644 bind-9.1.1rc1.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.1.0.tar.gz.asc bind-9.1.0.tar.gz
+	pgp bind-9.1.1rc1.tar.gz.asc bind-9.1.1rc1.tar.gz
 
  - Prepare a release announcement based on the previous one.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.1.0
+     ver=9.1.1rc1
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver
