@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.17 2000/03/01 17:31:56 tale Exp $ */
+/* $Id: log.c,v 1.18 2000/03/01 20:38:58 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -333,8 +333,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 					       ISC_LOG_TOFILEDESC,
 					       ISC_LOG_DYNAMIC,
 					       &destination,
-					       ISC_LOG_PRINTTIME|
-					       ISC_LOG_DEBUGONLY);
+					       ISC_LOG_PRINTTIME);
 	}
 
 	if (result == ISC_R_SUCCESS)
