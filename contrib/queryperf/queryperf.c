@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.1.1.2.2.5 2003/05/12 07:07:13 marka Exp $
+ ***	Version $Id: queryperf.c,v 1.1.1.2.2.6 2004/06/21 00:45:24 marka Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -75,13 +75,13 @@ enum directives_enum	{ V_SERVER, V_PORT, V_MAXQUERIES, V_MAXWAIT };
 #define QTYPE_STRINGS { \
 	"A", "NS", "MD", "MF", "CNAME", "SOA", "MB", "MG", \
 	"MR", "NULL", "WKS", "PTR", "HINFO", "MINFO", "MX", "TXT", \
-	"AAAA", "SRV", "A6", "AXFR", "MAILB", "MAILA", "*", "ANY" \
+	"AAAA", "SRV", "NAPTR", "A6", "AXFR", "MAILB", "MAILA", "*", "ANY" \
 }
 
 #define QTYPE_CODES { \
 	1, 2, 3, 4, 5, 6, 7, 8, \
 	9, 10, 11, 12, 13, 14, 15, 16, \
-	28, 33, 38, 252, 253, 254, 255, 255 \
+	28, 33, 35, 38, 252, 253, 254, 255, 255 \
 }
 
 #define RCODE_STRINGS { \
@@ -180,7 +180,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.1.1.2.2.5 2003/05/12 07:07:13 marka Exp $\n"
+"Version: $Id: queryperf.c,v 1.1.1.2.2.6 2004/06/21 00:45:24 marka Exp $\n"
 "\n");
 }
 

@@ -1,3 +1,5 @@
+1671.	[contrib]	queryperf: add NAPTR to the list of known types.
+
 1669.	[bug]		Restore "update forwarding denied" log messages
 			accidentally suppressed by change #1633. [RT# 11657]
 
