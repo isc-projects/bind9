@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.53 2000/09/28 21:50:22 gson Exp $ */
+/* $Id: nsupdate.c,v 1.54 2000/10/03 17:28:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -348,6 +348,8 @@ setup_system(void) {
 	int i;
 
 	ddebug("setup_system()");
+
+	dns_result_register();
 
 	result = isc_net_probeipv4();
 	check_result(result, "isc_net_probeipv4");
