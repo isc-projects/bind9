@@ -1153,7 +1153,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		result = dns_adb_createfind(res->view->adb,
 					    res->buckets[fctx->bucketnum].task,
 					    fctx_finddone, fctx, &name,
-					    &fctx->domain, options, now,
+					    &fctx->domain, options, now, NULL,
 					    &find);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -2031,9 +2031,12 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			event->result = eresult;
 			dns_db_attach(res->view->cachedb, adbp);
 			*anodep = node;
+			node = NULL;
 			clone_results(fctx);
 		}
-	} else
+	}
+
+	if (node != NULL)
 		dns_db_detachnode(res->view->cachedb, &node);
 
 	return (result);
@@ -3877,16 +3880,16 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 }
 
 void
-dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch) {
+dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	fetchctx_t *fctx;
+	dns_resolver_t *res;
 	dns_fetchevent_t *event, *next_event;
 	isc_task_t *etask;
 
-	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE(res->frozen);
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
 	REQUIRE(VALID_FCTX(fctx));
+	res = fctx->res;
 
 	FTRACE("cancelfetch");
 
@@ -3915,20 +3918,20 @@ dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch) {
 }
 
 void
-dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
+dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 	dns_fetch_t *fetch;
+	dns_resolver_t *res;
 	dns_fetchevent_t *event, *next_event;
 	fetchctx_t *fctx;
 	unsigned int bucketnum;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 
-	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE(res->frozen);
 	REQUIRE(fetchp != NULL);
 	fetch = *fetchp;
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
 	REQUIRE(VALID_FCTX(fctx));
+	res = fctx->res;
 
 	FTRACE("destroyfetch");
 
