@@ -20,10 +20,31 @@
 
 #include <netdb.h>
 
+/*
+ * Define if we need to define struct addrinfo.
+ */
 @ISC_LWRES_NEEDADDRINFO@
+
+/*
+ * Define if we need to prototype getipnodeby{name,addr}
+ * and freehostent.
+ */
 @ISC_LWRES_GETIPNODEPROTO@
+
+/*
+ * Define if we need to prototype getaddrinfo and freeaddrinfo.
+ */
 @ISC_LWRES_GETADDRINFOPROTO@
+
+/*
+ * Define if we need to prototype getnameinfo.
+ */
 @ISC_LWRES_GETNAMEINFOPROTO@
+
+/*
+ * Define if sethostent returns int.
+ */
+@ISC_LWRES_SETNETENTINT@
 
 #ifdef ISC_LWRES_NEEDADDRINFO
 struct  addrinfo {
