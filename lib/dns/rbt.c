@@ -388,7 +388,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				INSIST(compared == dns_namereln_commonancestor
 				       || compared == dns_namereln_contains);
 
-				/* @@@ handle bitstrings.
+				/* XXX DCL handle bitstrings.
 				 * When common_bits is non-zero, the last label
 				 * in common (eg, vix in a.vix.com vs
 				 * b.vix.com) is a bit label and common_bits is
@@ -597,7 +597,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	unsigned int first_common_label, foundname_labels;
 	int order;
 
-	/* @@@ optimize skipping the root node? */
+	/* XXX DCL optimize skipping the root node? */
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(FAST_ISABSOLUTE(name));
@@ -870,7 +870,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 * match in the first layer.  Should it be a requirement that
 	 * that the name to be deleted have data?  For now, it is.
 	 *
-	 * @@@ how to ->dirty, ->locknum and ->references figure in?
+	 * XXX DCL how to ->dirty, ->locknum and ->references figure in?
 	 */
 	result = dns_rbt_findnode(rbt, name, NULL, &node, &chain);
 
@@ -1011,16 +1011,14 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	isc_region_t region;
 	unsigned int labels;
 
-	REQUIRE(name->offsets != NULL);	/* @@@ XXX direct access to name. */
+	REQUIRE(name->offsets != NULL);	/* XXX DCL direct access to name. */
 
 	dns_name_toregion(name, &region);
 	labels = FAST_COUNTLABELS(name);
 	ENSURE(labels > 0);
 
 	/* 
-	 * Allocate space for the node structure, the namelen byte,
-	 * the namepad byte, the offsetlen/attrs byte, length of the name
-	 * and the number of offsets. @@@
+	 * Allocate space for the node structure, the name, and the offsets.
 	 */
 	node = (dns_rbtnode_t *)isc_mem_get(mctx, sizeof(*node) +
 					    region.length + labels);
@@ -1045,8 +1043,8 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * of labels, whether the name is absolute or not, the name itself,
 	 * and the name's offsets table.
 	 *
-	 * @@@
-	 * XXX 	The offsets table could be made smaller by eliminating the
+	 * XXX DCL
+	 *	The offsets table could be made smaller by eliminating the
 	 *	first offset, which is always 0.  This requires changes to
 	 * 	lib/dns/name.c.
 	 */
@@ -1234,7 +1232,7 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 /*
  * This is the real workhorse of the insertion code, because it does the
  * true red/black tree on a single level.
- * @@@ move this into addnode
+ * XXX DCL move this into addnode?
  */
 static void
 dns_rbt_addonlevel(dns_rbtnode_t *node,
