@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.19 2001/01/04 22:39:33 neild Exp $ */
+/* $Id: mutex.h,v 1.20 2001/01/04 23:34:03 neild Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -38,11 +38,11 @@
 #endif
 
 #if ISC_MUTEX_PROFILE
-typedef struct isc_mutex_stats isc_mutex_stats_t;
+typedef struct isc_mutexstats isc_mutexstats_t;
 
 typedef struct {
 	pthread_mutex_t		mutex;	/* The actual mutex. */
-	isc_mutex_stats_t *	stats;	/* Mutex statistics. */
+	isc_mutexstats_t *	stats;	/* Mutex statistics. */
 } isc_mutex_t;
 #else
 typedef pthread_mutex_t	isc_mutex_t;
