@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.126 
+# From configure.in Revision: 1.128 
 
 
 
@@ -3826,6 +3826,9 @@ done
 #
 case "$host" in
 	*-bsdi3.1*|*-bsdi4.0*)
+                #
+                # Shut up a -Wmissing-prototypes warning from <stdio.h>.
+                #
 		cat >> confdefs.h <<\EOF
 #define SHUTUP_SPUTAUX 1
 EOF

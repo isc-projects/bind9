@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.127 $)
+AC_REVISION($Revision: 1.128 $)
 
 AC_PREREQ(2.13)
 
@@ -791,6 +791,9 @@ AC_CHECK_HEADERS(linux/prctl.h)
 #
 case "$host" in
 	*-bsdi3.1*|*-bsdi4.0*)
+                #
+                # Shut up a -Wmissing-prototypes warning from <stdio.h>.
+                #
 		AC_DEFINE(SHUTUP_SPUTAUX)
 		;;
 esac
