@@ -4,6 +4,8 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1448.	[bug]		Handle empty wildcards labels.
+
 1439.	[bug]		Named could return NOERROR with certain NOTIFY
 			failures.  Return NOTAUTH if the NOTIFY zone is
 			not being served.

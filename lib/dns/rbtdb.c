@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.7 2003/05/14 05:47:22 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.8 2003/05/14 06:51:37 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1067,6 +1067,34 @@ add_wildcard_magic(dns_rbtdb_t *rbtdb, dns_name_t *name) {
 }
 
 static isc_result_t
+add_empty_wildcards(dns_rbtdb_t *rbtdb, dns_name_t *name) {
+	isc_result_t result;
+	dns_name_t foundname;
+	dns_offsets_t offsets;
+	unsigned int n, l, i;
+
+	dns_name_init(&foundname, offsets);
+	n = dns_name_countlabels(name);
+	l = dns_name_countlabels(&rbtdb->common.origin);
+	i = l + 1;
+	while (i < n) {
+		dns_rbtnode_t *node = NULL;	/* dummy */
+		dns_name_getlabelsequence(name, n - i, i, &foundname);
+		if (dns_name_iswildcard(&foundname)) {
+			result = add_wildcard_magic(rbtdb, &foundname);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+			result = dns_rbt_addnode(rbtdb->tree, &foundname,
+						 &node);
+			if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS)
+				return (result);
+		}
+		i++;
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
 findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	 dns_dbnode_t **nodep)
 {
@@ -1106,6 +1134,8 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 			node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
 				rbtdb->node_lock_count;
 #endif
+			add_empty_wildcards(rbtdb, name);
+
 			if (dns_name_iswildcard(name)) {
 				result = add_wildcard_magic(rbtdb, name);
 				if (result != ISC_R_SUCCESS) {
@@ -1417,6 +1447,56 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 }
 
 static inline isc_boolean_t
+activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
+	    dns_name_t *name)
+{
+	dns_fixedname_t fnext;
+	dns_fixedname_t forigin;
+	dns_name_t *next;
+	dns_name_t *origin;
+	dns_name_t prefix;
+	dns_rbtdb_t *rbtdb;
+	dns_rbtnode_t *node;
+	isc_result_t result;
+	isc_boolean_t answer = ISC_FALSE;
+	rdatasetheader_t *header;
+
+	rbtdb = search->rbtdb;
+
+	dns_name_init(&prefix, NULL);
+	dns_fixedname_init(&fnext);
+	next = dns_fixedname_name(&fnext);
+	dns_fixedname_init(&forigin);
+	origin = dns_fixedname_name(&forigin);
+
+	result = dns_rbtnodechain_next(chain, NULL, NULL);
+	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+		node = NULL;
+		result = dns_rbtnodechain_current(chain, &prefix,
+						  origin, &node);
+		if (result != ISC_R_SUCCESS)
+			break;
+		LOCK(&(rbtdb->node_locks[node->locknum].lock));
+		for (header = node->data;
+		     header != NULL;
+		     header = header->next) {
+			if (header->serial <= search->serial &&
+			    !IGNORE(header) && EXISTS(header))
+				break;
+		}
+		UNLOCK(&(rbtdb->node_locks[node->locknum].lock));
+		if (header != NULL)
+			break;
+		result = dns_rbtnodechain_next(chain, NULL, NULL);
+	}
+	if (result == ISC_R_SUCCESS)
+		result = dns_name_concatenate(&prefix, origin, next, NULL);
+	if (result == ISC_R_SUCCESS && dns_name_issubdomain(next, name))
+		answer = ISC_TRUE;
+	return (answer);
+}
+
+static inline isc_boolean_t
 activeemtpynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
 	dns_fixedname_t fnext;
 	dns_fixedname_t forigin;
@@ -1432,6 +1512,7 @@ activeemtpynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
 	dns_rbtnodechain_t chain;
 	isc_boolean_t check_next = ISC_TRUE;
 	isc_boolean_t check_prev = ISC_TRUE;
+	isc_boolean_t answer = ISC_FALSE;
 	isc_result_t result;
 	rdatasetheader_t *header;
 	unsigned int n;
@@ -1513,15 +1594,17 @@ activeemtpynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
 
 	do {
 		if ((check_prev && dns_name_issubdomain(prev, &rname)) ||
-		    (check_next && dns_name_issubdomain(next, &rname)))
-			return (ISC_TRUE);
+		    (check_next && dns_name_issubdomain(next, &rname))) {
+			answer = ISC_TRUE;
+			break;
+		}
 		/*
 		 * Remove the left hand label.
 		 */
 		n = dns_name_countlabels(&rname);
 		dns_name_getlabelsequence(&rname, 1, n - 1, &rname);
 	} while (!dns_name_equal(&rname, &tname));
-	return (ISC_FALSE);
+	return (answer);
 }
 
 static inline isc_result_t
@@ -1537,6 +1620,7 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 	dns_fixedname_t fwname;
 	dns_rbtdb_t *rbtdb;
 	isc_boolean_t done, wild, active;
+	dns_rbtnodechain_t wchain;
 
 	/*
 	 * Caller must be holding the tree lock and MUST NOT be holding
@@ -1610,8 +1694,9 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 				break;
 
 			wnode = NULL;
+			dns_rbtnodechain_init(&wchain, NULL);
 			result = dns_rbt_findnode(rbtdb->tree, wname,
-						  NULL, &wnode, NULL,
+						  NULL, &wnode, &wchain,
 						  DNS_RBTFIND_EMPTYDATA,
 						  NULL, NULL);
 			if (result == ISC_R_SUCCESS) {
@@ -1629,7 +1714,8 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 					    break;
 			    }
 			    UNLOCK(&(rbtdb->node_locks[wnode->locknum].lock));
-			    if (header != NULL) {
+			    if (header != NULL ||
+				activeempty(search, &wchain, wname)) {
 				    if (activeemtpynode(search, qname, wname))
 						return (ISC_R_NOTFOUND);
 				    /*
@@ -1821,9 +1907,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *header, *header_next, *found, *nxtheader;
 	rdatasetheader_t *foundsig, *cnamesig, *nxtsig;
 	rbtdb_rdatatype_t sigtype;
-	dns_fixedname_t fnext;
-	dns_fixedname_t forigin;
-	dns_name_t nname, *next, *origin;
 	isc_boolean_t active;
 	dns_rbtnodechain_t chain;
 
@@ -1900,45 +1983,9 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				goto tree_exit;
 		}
 
-		/*
-		 * Find if this is a active empty node (next active node is
-		 * subdomain if 'name').  This is a simpler test than is
-		 * required for activeemptynode() where name is not as
-		 * constained.
-		 */
-		active = ISC_FALSE;
-		dns_fixedname_init(&fnext);
-		next = dns_fixedname_name(&fnext);
-		dns_fixedname_init(&forigin);
-		origin = dns_fixedname_name(&forigin);
-		dns_name_init(&nname, NULL);
 		chain = search.chain;
-		result = dns_rbtnodechain_next(&chain, NULL, NULL);
-		while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
-			node = NULL;
-			result = dns_rbtnodechain_current(&chain, &nname,
-							  origin, &node);
-			if (result != ISC_R_SUCCESS)
-				break;
-			LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
-			for (header = node->data;
-			     header != NULL;
-			     header = header->next) {
-				if (header->serial <= search.serial &&
-				    !IGNORE(header) && EXISTS(header))
-					break;
-			}
-			UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
-			if (header != NULL) {
-				result = dns_name_concatenate(&nname, origin,
-							      next, NULL);
-				if (result == ISC_R_SUCCESS &&
-				    dns_name_issubdomain(next, name))
-					active = ISC_TRUE;
-				break;
-			}
-			result = dns_rbtnodechain_next(&chain, NULL, NULL);
-		}
+		active = activeempty(&search, &chain, name);
+
 		/*
 		 * If we're here, then the name does not exist, is not
 		 * beneath a zonecut, and there's no matching wildcard.
@@ -2133,14 +2180,11 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * active rdatasets in the desired version.  That means that
 		 * this node doesn't exist in the desired version, and that
 		 * we really have a partial match.
-		 *
-		 * If the node is the result of a wildcard match, then
-		 * it must be active in the desired version, and hence
-		 * empty_node should never be true.  We INSIST upon it.
 		 */
-		INSIST(!wild);
-		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
-		goto partial_match;
+		if (!wild) {
+			UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+			goto partial_match;
+		}
 	}
 
 	/*
@@ -2158,30 +2202,37 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		    result = setup_delegation(&search, nodep, foundname,
 					      rdataset, sigrdataset);
 		    goto tree_exit;
-		} else {
+		}
+		/*
+		 * The desired type doesn't exist.
+		 */
+		result = DNS_R_NXRRSET;
+		if (search.rbtdb->secure &&
+		    (nxtheader == NULL || nxtsig == NULL)) {
 			/*
-			 * The desired type doesn't exist.
+			 * The zone is secure but there's no NXT,
+			 * or the NXT has no signature!
 			 */
-			result = DNS_R_NXRRSET;
-			if (search.rbtdb->secure &&
-			    (nxtheader == NULL || nxtsig == NULL)) {
-				/*
-				 * The zone is secure but there's no NXT,
-				 * or the NXT has no signature!
-				 */
+			if (!wild) {
 				result = DNS_R_BADDB;
 				goto node_exit;
 			}
-			if (nodep != NULL) {
-				new_reference(search.rbtdb, node);
-				*nodep = node;
-			}
-			if (search.rbtdb->secure) {
-				bind_rdataset(search.rbtdb, node, nxtheader,
-					      0, rdataset);
-				bind_rdataset(search.rbtdb, node, nxtsig,
-					      0, sigrdataset);
-			}
+			UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+			result = find_closest_nxt(&search, nodep, foundname,
+						  rdataset, sigrdataset);
+			if (result == ISC_R_SUCCESS)
+				result = DNS_R_EMPTYWILD;
+			goto tree_exit;
+		}
+		if (nodep != NULL) {
+			new_reference(search.rbtdb, node);
+			*nodep = node;
+		}
+		if (search.rbtdb->secure) {
+			bind_rdataset(search.rbtdb, node, nxtheader,
+				      0, rdataset);
+			bind_rdataset(search.rbtdb, node, nxtsig,
+				      0, sigrdataset);
 		}
 		goto node_exit;
 	}
@@ -4091,6 +4142,8 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	if (rdataset->type == dns_rdatatype_soa &&
 	    !IS_CACHE(rbtdb) && !dns_name_equal(name, &rbtdb->common.origin))
 		return (DNS_R_NOTZONETOP);
+
+	add_empty_wildcards(rbtdb, name);
 
 	if (dns_name_iswildcard(name)) {
 		/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.6 2003/05/14 05:47:23 marka Exp $ */
+/* $Id: result.c,v 1.90.2.7 2003/05/14 06:51:37 marka Exp $ */
 
 #include <config.h>
 
@@ -137,7 +137,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"reserved DNS 90",
 	"reserved DNS 91",
 	"reserved DNS 92",
-	"empty name"				/* 93 DNS_R_EMPTYNAME */
+	"empty name",				/* 93 DNS_R_EMPTYNAME */
+	"empty wild"				/* 94 DNS_R_EMPTYWILD */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
