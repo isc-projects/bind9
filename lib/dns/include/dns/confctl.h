@@ -74,6 +74,7 @@ typedef struct dns_c_ctrl_list		dns_c_ctrllist_t;
 
 struct dns_c_ctrl
 {
+	isc_uint32_t	magic;
 	isc_mem_t	*mem;		/* where it's memory came from */
 
 	dns_c_control_t control_type;
@@ -97,6 +98,7 @@ struct dns_c_ctrl
 
 struct dns_c_ctrl_list
 {
+	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_ctrl_t)	elements;

@@ -21,10 +21,23 @@
 
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/magic.h>
 
 #include <dns/confip.h>
 #include <dns/confcommon.h>
 #include <dns/log.h>
+
+#define IPLIST_MAGIC 0x49706c73		/* Ipls */ /* dns_c_iplist */
+#define IPMDIRECT_MAGIC 0x49506d64	/* IPmd */ /* dns_c_ipmatch_direct */
+#define IPMINDIRECT_MAGIC 0x69506d69 	/* iPmi */ /* dns_c_ipmatch_indirect */
+#define IPMELEM_MAGIC 0x49704d65	/* IpMe */ /* dns_c_ipmatch_element */
+#define IPMLIST_MAGIC 0x69706d6c	/* ipml */ /* dns_c_ipmatchlist */
+
+#define DNS_IPLIST_VALID(ipl) ISC_MAGIC_VALID(ipl,IPLIST_MAGIC)
+#define DNS_IPDIRECT_VALID(ipmld) ISC_MAGIC_VALID(ipmld, IPMDIRECT_MAGIC)
+#define DNS_IPINDIRECT_VALID(ipmlid) ISC_MAGIC_VALID(ipmlid, IPMINDIRECT_MAGIC)
+#define DNS_IPMELEM_VALID(impe) ISC_MAGIC_VALID(impe, IPMELEM_MAGIC)
+#define DNS_IPMLIST_VALID(ipml) ISC_MAGIC_VALID(ipml, IPMLIST_MAGIC)
 
 
 /* Flag for dns_c_ipmatch_element */
@@ -51,6 +64,7 @@ dns_c_ipmatchelement_new(isc_log_t *lctx,
 		return (ISC_R_NOMEMORY);
 	}
 
+	ime->magic = IPMELEM_MAGIC;
 	ime->type = dns_c_ipmatch_none;
 	ime->flags = 0;
 	memset(&ime->u, 0x0, sizeof ime->u);
@@ -70,6 +84,8 @@ dns_c_ipmatchelement_isneg(isc_log_t *lctx,
 
 	(void) lctx;
 
+	REQUIRE(DNS_IPMELEM_VALID(elem));
+	
 	return ((elem->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE);
 }
 
@@ -88,6 +104,8 @@ dns_c_ipmatchelement_delete(isc_log_t *lctx,
 	}
 
 	elem = *ipme;
+
+	REQUIRE(DNS_IPMELEM_VALID(elem));
 	
 	switch (elem->type) {
 	case dns_c_ipmatch_localhost:
@@ -140,13 +158,13 @@ dns_c_ipmatchelement_copy(isc_log_t *lctx,
 
 	REQUIRE(mem != NULL);
 	REQUIRE(dest != NULL);
-	REQUIRE(src != NULL);
+	REQUIRE(DNS_IPMELEM_VALID(src));
 		
 	result = dns_c_ipmatchelement_new(lctx, mem, &newel);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	
+
 	newel->type = src->type;
 	newel->flags = src->flags;
 	
@@ -188,10 +206,15 @@ dns_c_ipmatchelement_copy(isc_log_t *lctx,
 	return (ISC_R_SUCCESS);
 }
 
+
+
 isc_boolean_t
 dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
 			   dns_c_ipmatchelement_t *e2)
 {
+	REQUIRE(DNS_IPMELEM_VALID(e1));
+	REQUIRE(DNS_IPMELEM_VALID(e2));
+
 	if ((e1->type != e2->type) || (e1->flags != e2->flags))
 		return (ISC_FALSE);
 
@@ -284,7 +307,7 @@ dns_c_ipmatchindirect_new(isc_log_t *lctx,
 
 	REQUIRE(mem != NULL);
 	REQUIRE(result != NULL);
-	REQUIRE(iml != NULL);
+	REQUIRE(DNS_IPMLIST_VALID(iml));
 
 	*result = NULL;
 
@@ -349,6 +372,623 @@ dns_c_ipmatchpattern_new(isc_log_t *lctx,
 
 	return (ISC_R_SUCCESS);
 }
+
+
+isc_result_t
+dns_c_ipmatchkey_new(isc_log_t *lctx,
+		     isc_mem_t *mem,
+		     dns_c_ipmatchelement_t **result,
+		     const char *key)
+{
+	dns_c_ipmatchelement_t *ipme;
+	isc_result_t res;
+
+	REQUIRE(result != NULL);
+	REQUIRE(mem != NULL);
+	REQUIRE(key != NULL);
+
+	*result = NULL;
+
+	res = dns_c_ipmatchelement_new(lctx, mem, &ipme);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+
+	ipme->type = dns_c_ipmatch_key;
+	ipme->u.key = isc_mem_strdup(mem, key);
+
+	*result = ipme;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ipmatch_aclnew(isc_log_t *lctx,
+		     isc_mem_t *mem,
+		     dns_c_ipmatchelement_t **result,
+		     const char *aclname)
+{
+	dns_c_ipmatchelement_t *ipme;
+	isc_result_t res;
+
+	REQUIRE(result != NULL);
+	REQUIRE(mem != NULL);
+	REQUIRE(aclname != NULL);
+	REQUIRE(strlen(aclname) > 0);
+
+	*result = NULL;
+
+	res = dns_c_ipmatchelement_new(lctx, mem, &ipme);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+
+	ipme->type = dns_c_ipmatch_acl;
+	ipme->u.aclname = isc_mem_strdup(mem, aclname);
+
+	*result = ipme;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ipmatch_negate(isc_log_t *lctx,
+		     dns_c_ipmatchelement_t *ipe)
+{
+	REQUIRE(DNS_IPMELEM_VALID(ipe));
+	
+	(void) lctx;
+	
+	if ((ipe->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE) {
+		ipe->flags &= ~DNS_C_IPMATCH_NEGATE;
+	} else {
+		ipe->flags |= DNS_C_IPMATCH_NEGATE;
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ipmatchlist_new(isc_log_t *lctx,
+		      isc_mem_t *mem, dns_c_ipmatchlist_t **ptr)
+{
+	dns_c_ipmatchlist_t *newlist;
+
+	(void) lctx;
+	
+	REQUIRE(ptr != NULL);
+	REQUIRE(mem != NULL);
+
+	newlist = isc_mem_get(mem, sizeof *newlist);
+	if (newlist == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	newlist->magic = IPMLIST_MAGIC;
+	newlist->mem = mem;
+	newlist->refcount = 1;
+	
+	ISC_LIST_INIT(newlist->elements);
+
+	*ptr = newlist;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ipmatchlist_delete(isc_log_t *lctx,
+			 dns_c_ipmatchlist_t **ml)
+{
+	dns_c_ipmatchelement_t *ime;
+	dns_c_ipmatchelement_t *iptr;
+	dns_c_ipmatchlist_t *iml;
+	isc_mem_t *mem;
+
+	REQUIRE(ml != NULL);
+	
+	iml = *ml;
+	if (iml == NULL) {
+		return (ISC_R_SUCCESS);
+	}
+	*ml = NULL;
+
+	REQUIRE(DNS_IPMLIST_VALID(iml));
+	INSIST(iml->refcount > 0);
+
+	iml->refcount--;
+	if (iml->refcount > 0) {
+		return (ISC_R_SUCCESS);
+	}
+	
+	mem = iml->mem;
+	INSIST(mem != NULL);
+
+	ime = ISC_LIST_HEAD(iml->elements);
+	while (ime != NULL) {
+		iptr = ISC_LIST_NEXT(ime, next);
+		dns_c_ipmatchelement_delete(lctx, mem, &ime);
+		
+		ime = iptr;
+	}
+
+	isc_mem_put(mem, iml, sizeof *iml);
+
+	return (ISC_R_SUCCESS);
+}
+
+
+dns_c_ipmatchlist_t *
+dns_c_ipmatchlist_attach(isc_log_t *lctx,
+			 dns_c_ipmatchlist_t *ipml)
+{
+
+	(void) lctx;
+
+	REQUIRE(DNS_IPMLIST_VALID(ipml));
+	
+	INSIST(ipml->refcount > 0);
+
+	ipml->refcount++;
+	return (ipml);
+}
+
+
+isc_result_t
+dns_c_ipmatchlist_empty(isc_log_t *lctx,
+			dns_c_ipmatchlist_t *ipml)
+{
+	dns_c_ipmatchelement_t *ime ;
+	dns_c_ipmatchelement_t *imptmp;
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_IPMLIST_VALID(ipml));
+	
+	ime = ISC_LIST_HEAD(ipml->elements);
+	while (ime != NULL) {
+		imptmp = ISC_LIST_NEXT(ime, next);
+		res = dns_c_ipmatchelement_delete(lctx, ipml->mem, &ime);
+		if (res != ISC_R_SUCCESS) {
+			break;
+		}
+		ime = imptmp;
+	}
+	
+	return (res);
+}
+
+
+isc_result_t
+dns_c_ipmatchlist_copy(isc_log_t *lctx, isc_mem_t *mem,
+		       dns_c_ipmatchlist_t **dest, dns_c_ipmatchlist_t *src)
+{
+	dns_c_ipmatchelement_t *ime;
+	dns_c_ipmatchelement_t *ptr;
+	dns_c_ipmatchlist_t *newlist;
+	isc_result_t result;
+
+	REQUIRE(mem != NULL);
+	REQUIRE(dest != NULL);
+	REQUIRE(DNS_IPMLIST_VALID(src));
+
+	*dest = NULL;
+
+	result = dns_c_ipmatchlist_new(lctx, mem, &newlist);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	ime = ISC_LIST_HEAD(src->elements);
+	while (ime != NULL) {
+		result = dns_c_ipmatchelement_copy(lctx, mem, &ptr, ime);
+		if (result != ISC_R_SUCCESS) {
+			dns_c_ipmatchlist_delete(lctx, &newlist);
+			return (result);
+		}
+		
+		ISC_LIST_APPEND(newlist->elements, ptr, next);
+
+		ime = ISC_LIST_NEXT(ime, next);
+	}
+
+	*dest = newlist;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_boolean_t
+dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1, dns_c_ipmatchlist_t *l2) {
+	dns_c_ipmatchelement_t *e1, *e2;
+
+	REQUIRE(l1 == NULL || DNS_IPMLIST_VALID(l1));
+	REQUIRE(l2 == NULL || DNS_IPMLIST_VALID(l2));
+	
+	if (l1 == NULL && l2 == NULL)
+		return (ISC_TRUE);
+	if (l1 != NULL || l2 != NULL)
+		return (ISC_FALSE);
+
+	e1 = ISC_LIST_HEAD(l1->elements);
+	e2 = ISC_LIST_HEAD(l2->elements);
+	while (e1 != NULL && e2 != NULL) {
+		if (!dns_c_ipmatchelement_equal(e1, e2))
+			return (ISC_FALSE);
+		e1 = ISC_LIST_NEXT(e1, next);
+		e2 = ISC_LIST_NEXT(e2, next);
+	}
+
+	if (l1 != NULL || l2 != NULL)
+		return (ISC_FALSE);
+	return (ISC_TRUE);
+}
+
+
+isc_result_t
+dns_c_ipmatchlist_append(isc_log_t *lctx,
+			 dns_c_ipmatchlist_t *dest,
+			 dns_c_ipmatchlist_t *src,
+			 isc_boolean_t negate)
+{
+	dns_c_ipmatchelement_t *ime;
+	dns_c_ipmatchelement_t *ime_copy;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_IPMLIST_VALID(dest));
+	REQUIRE(DNS_IPMLIST_VALID(src));
+
+	ime = ISC_LIST_HEAD(src->elements);
+	while (ime != NULL) {
+		result = dns_c_ipmatchelement_copy(lctx, dest->mem,
+						   &ime_copy,
+						   ime);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		if (negate) {
+			dns_c_ipmatch_negate(lctx, ime_copy);
+		}
+		
+		ISC_LIST_APPEND(dest->elements, ime_copy, next);
+
+		ime = ISC_LIST_NEXT(ime, next);
+	}
+
+	return (result);
+}
+
+
+isc_result_t
+dns_c_ipmatchelement_print(isc_log_t *lctx,
+			   FILE *fp, int indent,
+			   dns_c_ipmatchelement_t *ipme)
+{
+	int bits;
+
+	REQUIRE(fp != NULL);
+	REQUIRE(DNS_IPMELEM_VALID(ipme));
+
+	if ((ipme->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE) {
+		fputc('!', fp);
+	} else {
+		fputc(' ', fp);
+	}
+
+	switch (ipme->type) {
+	case dns_c_ipmatch_pattern:
+		dns_c_print_ipaddr(lctx, fp, &ipme->u.direct.address);
+		
+		bits = ipme->u.direct.mask;
+		if (bits > 0) {
+			fprintf(fp, "/%d", bits);
+		}
+		break;
+
+	case dns_c_ipmatch_indirect:
+		if (ipme->u.indirect.refname.base != NULL) {
+			fprintf(fp, "%s", ipme->u.indirect.refname.base);
+		} else {
+			dns_c_ipmatchlist_print(lctx, fp, indent,
+						ipme->u.indirect.list);
+		}
+
+		break;
+
+	case dns_c_ipmatch_key:
+		fprintf(fp, "key %s", ipme->u.key);
+		break;
+
+	case dns_c_ipmatch_localhost:
+		fprintf(fp, "localhost");
+		break;
+
+	case dns_c_ipmatch_localnets:
+		fprintf(fp, "localnets");
+		break;
+
+	case dns_c_ipmatch_none:
+		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "dns_ipmath_none element type\n");
+		return (ISC_R_FAILURE);
+
+	case dns_c_ipmatch_acl:
+		fprintf(fp, "%s", ipme->u.aclname);
+		break;
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ipmatchlist_print(isc_log_t *lctx,
+			FILE *fp, int indent, dns_c_ipmatchlist_t *ml)
+{
+	dns_c_ipmatchelement_t *ipme ;
+
+	REQUIRE(DNS_IPMLIST_VALID(ml));
+	REQUIRE(fp != NULL);
+
+	/* no indent on first line. */
+	fprintf(fp, "{\n");
+	ipme = ISC_LIST_HEAD(ml->elements);
+	if (ipme == NULL) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp,
+			"/* this list intentionally left blank */\n");
+	} else {
+		while (ipme != NULL) {
+			dns_c_printtabs(lctx, fp, indent);
+			dns_c_ipmatchelement_print(lctx, fp, indent + 1, ipme);
+			fprintf(fp, ";\n");
+			
+			ipme = ISC_LIST_NEXT(ipme, next);
+		}
+	}
+	
+	dns_c_printtabs(lctx, fp, indent - 1);
+	fprintf(fp, "};\n");
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_iplist_new(isc_log_t *lctx,
+		 isc_mem_t *mem, int length, dns_c_iplist_t **newlist)
+{
+	dns_c_iplist_t *list;
+	size_t bytes;
+
+	(void) lctx;
+	
+	REQUIRE(mem != NULL);
+	REQUIRE(length > 0);
+	REQUIRE(newlist != NULL);
+
+	list = isc_mem_get(mem, sizeof *list);
+	if (list == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	bytes = sizeof (isc_sockaddr_t) * length;
+	list->ips = isc_mem_get(mem, bytes);
+	if (list->ips == NULL) {
+		isc_mem_put(mem, list, sizeof *list);
+		return (ISC_R_NOMEMORY);
+	}
+
+	memset(list->ips, 0x0, bytes);
+
+	list->magic = IPLIST_MAGIC;
+	list->size = length;
+	list->nextidx = 0;
+	list->mem = mem;
+	list->refcount = 1;
+
+	*newlist = list;
+	
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_iplist_delete(isc_log_t *lctx,
+		    dns_c_iplist_t **list)
+{
+	dns_c_iplist_t *l ;
+
+	(void) lctx;
+	
+	REQUIRE(list != NULL);
+	
+	l = *list;
+	if (l == NULL) {
+		return (ISC_R_SUCCESS);
+	}
+
+	REQUIRE(DNS_IPLIST_VALID(l));
+	INSIST(l->refcount > 0);
+
+	l->refcount--;
+
+	if (l->refcount == 0) {
+		isc_mem_put(l->mem, l->ips, sizeof (isc_sockaddr_t) * l->size);
+		isc_mem_put(l->mem, l, sizeof *l);
+	}
+
+	*list = NULL;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+dns_c_iplist_t *
+dns_c_iplist_attach(isc_log_t *lctx,
+		    dns_c_iplist_t *list)
+{
+
+	(void) lctx;
+
+	REQUIRE(DNS_IPLIST_VALID(list));
+	INSIST(list->refcount > 0);
+
+	list->refcount++;
+	return (list);
+}
+
+
+
+isc_result_t
+dns_c_iplist_copy(isc_log_t *lctx,
+		  isc_mem_t *mem, dns_c_iplist_t **dest, dns_c_iplist_t *src)
+{
+	dns_c_iplist_t *newl;
+	isc_result_t res;
+	isc_uint32_t i;
+
+	REQUIRE(dest != NULL);
+	REQUIRE(DNS_IPLIST_VALID(src));
+
+	res = dns_c_iplist_new(lctx, mem, src->size, &newl);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+
+	for (i = 0 ; i < src->nextidx ; i++) {
+		newl->ips[i] = src->ips[i];
+	}
+	newl->nextidx = src->nextidx;
+
+	*dest = newl;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_boolean_t
+dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2) {
+	isc_uint32_t i;
+
+	REQUIRE(DNS_IPLIST_VALID(list1));
+	REQUIRE(DNS_IPLIST_VALID(list2));
+
+	if (list1->nextidx != list2->nextidx)
+		return (ISC_FALSE);
+
+	for (i = 0 ; i < list1->nextidx ; i++) {
+		if (!isc_sockaddr_equal(&list1->ips[i], &list2->ips[i]))
+			return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
+
+void
+dns_c_iplist_print(isc_log_t *lctx,
+		   FILE *fp, int indent, dns_c_iplist_t *list)
+{
+	isc_uint32_t i;
+
+	REQUIRE(DNS_IPLIST_VALID(list));
+		
+	fprintf(fp, "{\n");
+
+	if (list->nextidx == 0) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp, "/* no ip addresses defined */\n");
+	} else {
+		for (i = 0 ; i < list->nextidx ; i++) {
+			dns_c_printtabs(lctx, fp, indent);
+			dns_c_print_ipaddr(lctx, fp, &list->ips[i]);
+			fprintf(fp, ";\n");
+		}
+	}
+	
+	dns_c_printtabs(lctx, fp, indent - 1);
+	fprintf(fp, "};\n");
+}
+
+
+isc_result_t
+dns_c_iplist_append(isc_log_t *lctx,
+		    dns_c_iplist_t *list, isc_sockaddr_t newaddr)
+{
+	isc_uint32_t i;
+
+	(void) lctx;
+	
+	REQUIRE(DNS_IPLIST_VALID(list));
+
+	for (i = 0 ; i < list->nextidx ; i++) {
+		if (memcmp(&list->ips[i], &newaddr, sizeof newaddr) == 0) {
+			break;
+		}
+	}
+
+	if (i < list->nextidx) {
+		return (ISC_R_FAILURE);
+	}
+
+	if (list->nextidx == list->size) {
+		isc_sockaddr_t *newlist;
+		size_t newbytes;
+		size_t oldbytes = list->size * sizeof (list->ips[0]);
+		size_t newsize = list->size + 10;
+
+		newbytes = sizeof (list->ips[0]) * newsize;
+		newlist = isc_mem_get(list->mem, newbytes);
+		if (newlist == NULL) {
+			return (ISC_R_NOMEMORY);
+		}
+
+		memcpy(newlist, list->ips, oldbytes);
+
+		isc_mem_put(list->mem, list->ips, oldbytes);
+		list->ips = newlist;
+		list->size = newsize;
+	}
+	
+	list->ips[i] = newaddr;
+	list->nextidx++;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_iplist_remove(isc_log_t *lctx,
+		    dns_c_iplist_t *list, isc_sockaddr_t newaddr)
+{
+	isc_uint32_t i;
+
+	(void) lctx;
+	
+	REQUIRE(DNS_IPLIST_VALID(list));
+	
+	for (i = 0 ; i < list->nextidx ; i++) {
+		if (memcmp(&list->ips[0], &newaddr, sizeof newaddr) == 0) {
+			break;
+		}
+	}
+
+	if (i == list->nextidx) {
+		return (ISC_R_FAILURE);
+	}
+
+	list->nextidx--;
+	for ( /* nothing */ ; i < list->nextidx ; i++) {
+		list->ips[i] = list->ips[i + 1];
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+
 
 
 /*
@@ -448,604 +1088,3 @@ bits2v6mask(struct in6_addr *addr, isc_uint32_t bits)
 
 	
 
-isc_result_t
-dns_c_ipmatchkey_new(isc_log_t *lctx,
-		     isc_mem_t *mem,
-		     dns_c_ipmatchelement_t **result,
-		     const char *key)
-{
-	dns_c_ipmatchelement_t *ipme;
-	isc_result_t res;
-
-	REQUIRE(result != NULL);
-	REQUIRE(mem != NULL);
-	REQUIRE(key != NULL);
-
-	*result = NULL;
-
-	res = dns_c_ipmatchelement_new(lctx, mem, &ipme);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-
-	ipme->type = dns_c_ipmatch_key;
-	ipme->u.key = isc_mem_strdup(mem, key);
-
-	*result = ipme;
-
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_ipmatch_aclnew(isc_log_t *lctx,
-		     isc_mem_t *mem,
-		     dns_c_ipmatchelement_t **result,
-		     const char *aclname)
-{
-	dns_c_ipmatchelement_t *ipme;
-	isc_result_t res;
-
-	REQUIRE(result != NULL);
-	REQUIRE(mem != NULL);
-	REQUIRE(aclname != NULL);
-	REQUIRE(strlen(aclname) > 0);
-
-	*result = NULL;
-
-	res = dns_c_ipmatchelement_new(lctx, mem, &ipme);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-
-	ipme->type = dns_c_ipmatch_acl;
-	ipme->u.aclname = isc_mem_strdup(mem, aclname);
-
-	*result = ipme;
-
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_ipmatch_negate(isc_log_t *lctx,
-		     dns_c_ipmatchelement_t *ipe)
-{
-	REQUIRE(ipe != NULL);
-
-	(void) lctx;
-	
-	if ((ipe->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE) {
-		ipe->flags &= ~DNS_C_IPMATCH_NEGATE;
-	} else {
-		ipe->flags |= DNS_C_IPMATCH_NEGATE;
-	}
-
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_ipmatchlist_new(isc_log_t *lctx,
-		      isc_mem_t *mem, dns_c_ipmatchlist_t **ptr)
-{
-	dns_c_ipmatchlist_t *newlist;
-
-	(void) lctx;
-	
-	REQUIRE(ptr != NULL);
-	REQUIRE(mem != NULL);
-
-	newlist = isc_mem_get(mem, sizeof *newlist);
-	if (newlist == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
-	ISC_LIST_INIT(newlist->elements);
-	newlist->mem = mem;
-	newlist->refcount = 1;
-	
-	*ptr = newlist;
-
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_ipmatchlist_delete(isc_log_t *lctx,
-			 dns_c_ipmatchlist_t **ml)
-{
-	dns_c_ipmatchelement_t *ime;
-	dns_c_ipmatchelement_t *iptr;
-	dns_c_ipmatchlist_t *iml;
-	isc_mem_t *mem;
-
-	REQUIRE(ml != NULL);
-
-	iml = *ml;
-	if (iml == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-	*ml = NULL;
-
-	INSIST(iml->refcount > 0);
-
-	iml->refcount--;
-	if (iml->refcount > 0) {
-		return (ISC_R_SUCCESS);
-	}
-	
-	mem = iml->mem;
-	INSIST(mem != NULL);
-
-	ime = ISC_LIST_HEAD(iml->elements);
-	while (ime != NULL) {
-		iptr = ISC_LIST_NEXT(ime, next);
-		dns_c_ipmatchelement_delete(lctx, mem, &ime);
-		
-		ime = iptr;
-	}
-
-	isc_mem_put(mem, iml, sizeof *iml);
-
-	return (ISC_R_SUCCESS);
-}
-
-
-dns_c_ipmatchlist_t *
-dns_c_ipmatchlist_attach(isc_log_t *lctx,
-			 dns_c_ipmatchlist_t *ipml)
-{
-
-	(void) lctx;
-
-	REQUIRE(ipml != NULL);
-	INSIST(ipml->refcount > 0);
-
-	ipml->refcount++;
-	return (ipml);
-}
-
-
-isc_result_t
-dns_c_ipmatchlist_empty(isc_log_t *lctx,
-			dns_c_ipmatchlist_t *ipml)
-{
-	dns_c_ipmatchelement_t *ime ;
-	dns_c_ipmatchelement_t *imptmp;
-	isc_result_t res = ISC_R_SUCCESS;
-
-	REQUIRE(ipml != NULL);
-	
-	ime = ISC_LIST_HEAD(ipml->elements);
-	while (ime != NULL) {
-		imptmp = ISC_LIST_NEXT(ime, next);
-		res = dns_c_ipmatchelement_delete(lctx, ipml->mem, &ime);
-		if (res != ISC_R_SUCCESS) {
-			break;
-		}
-		ime = imptmp;
-	}
-	
-	return (res);
-}
-
-
-isc_result_t
-dns_c_ipmatchlist_copy(isc_log_t *lctx, isc_mem_t *mem,
-		       dns_c_ipmatchlist_t **dest, dns_c_ipmatchlist_t *src)
-{
-	dns_c_ipmatchelement_t *ime;
-	dns_c_ipmatchelement_t *ptr;
-	dns_c_ipmatchlist_t *newlist;
-	isc_result_t result;
-
-	REQUIRE(mem != NULL);
-	REQUIRE(dest != NULL);
-	REQUIRE(src != NULL);
-
-	*dest = NULL;
-
-	result = dns_c_ipmatchlist_new(lctx, mem, &newlist);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	ime = ISC_LIST_HEAD(src->elements);
-	while (ime != NULL) {
-		result = dns_c_ipmatchelement_copy(lctx, mem, &ptr, ime);
-		if (result != ISC_R_SUCCESS) {
-			dns_c_ipmatchlist_delete(lctx, &newlist);
-			return (result);
-		}
-		
-		ISC_LIST_APPEND(newlist->elements, ptr, next);
-
-		ime = ISC_LIST_NEXT(ime, next);
-	}
-
-	*dest = newlist;
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_boolean_t
-dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1, dns_c_ipmatchlist_t *l2) {
-	dns_c_ipmatchelement_t *e1, *e2;
-
-	if (l1 == NULL && l2 == NULL)
-		return (ISC_TRUE);
-	if (l1 != NULL || l2 != NULL)
-		return (ISC_FALSE);
-
-	e1 = ISC_LIST_HEAD(l1->elements);
-	e2 = ISC_LIST_HEAD(l2->elements);
-	while (e1 != NULL && e2 != NULL) {
-		if (!dns_c_ipmatchelement_equal(e1, e2))
-			return (ISC_FALSE);
-		e1 = ISC_LIST_NEXT(e1, next);
-		e2 = ISC_LIST_NEXT(e2, next);
-	}
-
-	if (l1 != NULL || l2 != NULL)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
-}
-
-
-isc_result_t
-dns_c_ipmatchlist_append(isc_log_t *lctx,
-			 dns_c_ipmatchlist_t *dest,
-			 dns_c_ipmatchlist_t *src,
-			 isc_boolean_t negate)
-{
-	dns_c_ipmatchelement_t *ime;
-	dns_c_ipmatchelement_t *ime_copy;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(dest != NULL);
-	REQUIRE(src != NULL);
-
-	ime = ISC_LIST_HEAD(src->elements);
-	while (ime != NULL) {
-		result = dns_c_ipmatchelement_copy(lctx, dest->mem,
-						   &ime_copy,
-						   ime);
-		if (result != ISC_R_SUCCESS) {
-			break;
-		}
-
-		if (negate) {
-			dns_c_ipmatch_negate(lctx, ime_copy);
-		}
-		
-		ISC_LIST_APPEND(dest->elements, ime_copy, next);
-
-		ime = ISC_LIST_NEXT(ime, next);
-	}
-
-	return (result);
-}
-
-
-isc_result_t
-dns_c_ipmatchelement_print(isc_log_t *lctx,
-			   FILE *fp, int indent,
-			   dns_c_ipmatchelement_t *ipme)
-{
-	int bits;
-
-	REQUIRE(fp != NULL);
-	REQUIRE(ipme != NULL);
-
-	if ((ipme->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE) {
-		fputc('!', fp);
-	} else {
-		fputc(' ', fp);
-	}
-
-	switch (ipme->type) {
-	case dns_c_ipmatch_pattern:
-		dns_c_print_ipaddr(lctx, fp, &ipme->u.direct.address);
-		
-		bits = ipme->u.direct.mask;
-		if (bits > 0) {
-			fprintf(fp, "/%d", bits);
-		}
-		break;
-
-	case dns_c_ipmatch_indirect:
-		if (ipme->u.indirect.refname.base != NULL) {
-			fprintf(fp, "%s", ipme->u.indirect.refname.base);
-		} else {
-			dns_c_ipmatchlist_print(lctx, fp, indent,
-						ipme->u.indirect.list);
-		}
-
-		break;
-
-	case dns_c_ipmatch_key:
-		fprintf(fp, "key %s", ipme->u.key);
-		break;
-
-	case dns_c_ipmatch_localhost:
-		fprintf(fp, "localhost");
-		break;
-
-	case dns_c_ipmatch_localnets:
-		fprintf(fp, "localnets");
-		break;
-
-	case dns_c_ipmatch_none:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "dns_ipmath_none element type\n");
-		return (ISC_R_FAILURE);
-
-	case dns_c_ipmatch_acl:
-		fprintf(fp, "%s", ipme->u.aclname);
-		break;
-	}
-
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_ipmatchlist_print(isc_log_t *lctx,
-			FILE *fp, int indent, dns_c_ipmatchlist_t *ml)
-{
-	dns_c_ipmatchelement_t *ipme ;
-
-	REQUIRE(ml != NULL);
-	REQUIRE(fp != NULL);
-
-	/* no indent on first line. */
-	fprintf(fp, "{\n");
-	ipme = ISC_LIST_HEAD(ml->elements);
-	if (ipme == NULL) {
-		dns_c_printtabs(lctx, fp, indent);
-		fprintf(fp,
-			"/* this list intentionally left blank */\n");
-	} else {
-		while (ipme != NULL) {
-			dns_c_printtabs(lctx, fp, indent);
-			dns_c_ipmatchelement_print(lctx, fp, indent + 1, ipme);
-			fprintf(fp, ";\n");
-			
-			ipme = ISC_LIST_NEXT(ipme, next);
-		}
-	}
-	
-	dns_c_printtabs(lctx, fp, indent - 1);
-	fprintf(fp, "};\n");
-
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_iplist_new(isc_log_t *lctx,
-		 isc_mem_t *mem, int length, dns_c_iplist_t **newlist)
-{
-	dns_c_iplist_t *list;
-	size_t bytes;
-
-	(void) lctx;
-	
-	REQUIRE(mem != NULL);
-	REQUIRE(length > 0);
-	REQUIRE(newlist != NULL);
-
-	list = isc_mem_get(mem, sizeof *list);
-	if (list == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
-	bytes = sizeof (isc_sockaddr_t) * length;
-	list->ips = isc_mem_get(mem, bytes);
-	if (list->ips == NULL) {
-		isc_mem_put(mem, list, sizeof *list);
-		return (ISC_R_NOMEMORY);
-	}
-
-	memset(list->ips, 0x0, bytes);
-
-	list->size = length;
-	list->nextidx = 0;
-	list->mem = mem;
-	list->refcount = 1;
-
-	*newlist = list;
-	
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_iplist_delete(isc_log_t *lctx,
-		    dns_c_iplist_t **list)
-{
-	dns_c_iplist_t *l ;
-
-	(void) lctx;
-	
-	REQUIRE(list != NULL);
-
-	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
-	INSIST(l->refcount > 0);
-
-	l->refcount--;
-
-	if (l->refcount == 0) {
-		isc_mem_put(l->mem, l->ips, sizeof (isc_sockaddr_t) * l->size);
-		isc_mem_put(l->mem, l, sizeof *l);
-	}
-
-	*list = NULL;
-
-	return (ISC_R_SUCCESS);
-}
-
-dns_c_iplist_t *
-dns_c_iplist_attach(isc_log_t *lctx,
-		    dns_c_iplist_t *list)
-{
-
-	(void) lctx;
-
-	REQUIRE(list != NULL);
-	INSIST(list->refcount > 0);
-
-	list->refcount++;
-	return (list);
-}
-
-
-
-isc_result_t
-dns_c_iplist_copy(isc_log_t *lctx,
-		  isc_mem_t *mem, dns_c_iplist_t **dest, dns_c_iplist_t *src)
-{
-	dns_c_iplist_t *newl;
-	isc_result_t res;
-	isc_uint32_t i;
-
-	REQUIRE(dest != NULL);
-	REQUIRE(src != NULL);
-
-	res = dns_c_iplist_new(lctx, mem, src->size, &newl);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-
-	for (i = 0 ; i < src->nextidx ; i++) {
-		newl->ips[i] = src->ips[i];
-	}
-	newl->nextidx = src->nextidx;
-
-	*dest = newl;
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_boolean_t
-dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2) {
-	isc_uint32_t i;
-
-	REQUIRE(list1 != NULL);
-	REQUIRE(list2 != NULL);
-
-	if (list1->nextidx != list2->nextidx)
-		return (ISC_FALSE);
-
-	for (i = 0 ; i < list1->nextidx ; i++) {
-		if (!isc_sockaddr_equal(&list1->ips[i], &list2->ips[i]))
-			return (ISC_FALSE);
-	}
-
-	return (ISC_TRUE);
-}
-
-
-void
-dns_c_iplist_print(isc_log_t *lctx,
-		   FILE *fp, int indent, dns_c_iplist_t *list)
-{
-	isc_uint32_t i;
-
-	fprintf(fp, "{\n");
-
-	if (list->nextidx == 0) {
-		dns_c_printtabs(lctx, fp, indent);
-		fprintf(fp, "/* no ip addresses defined */\n");
-	} else {
-		for (i = 0 ; i < list->nextidx ; i++) {
-			dns_c_printtabs(lctx, fp, indent);
-			dns_c_print_ipaddr(lctx, fp, &list->ips[i]);
-			fprintf(fp, ";\n");
-		}
-	}
-	
-	dns_c_printtabs(lctx, fp, indent - 1);
-	fprintf(fp, "};\n");
-}
-
-
-isc_result_t
-dns_c_iplist_append(isc_log_t *lctx,
-		    dns_c_iplist_t *list, isc_sockaddr_t newaddr)
-{
-	isc_uint32_t i;
-
-	(void) lctx;
-	
-	REQUIRE(list != NULL);
-
-	for (i = 0 ; i < list->nextidx ; i++) {
-		if (memcmp(&list->ips[i], &newaddr, sizeof newaddr) == 0) {
-			break;
-		}
-	}
-
-	if (i < list->nextidx) {
-		return (ISC_R_FAILURE);
-	}
-
-	if (list->nextidx == list->size) {
-		isc_sockaddr_t *newlist;
-		size_t newbytes;
-		size_t oldbytes = list->size * sizeof (list->ips[0]);
-		size_t newsize = list->size + 10;
-
-		newbytes = sizeof (list->ips[0]) * newsize;
-		newlist = isc_mem_get(list->mem, newbytes);
-		if (newlist == NULL) {
-			return (ISC_R_NOMEMORY);
-		}
-
-		memcpy(newlist, list->ips, oldbytes);
-
-		isc_mem_put(list->mem, list->ips, oldbytes);
-		list->ips = newlist;
-		list->size = newsize;
-	}
-	
-	list->ips[i] = newaddr;
-	list->nextidx++;
-
-	return (ISC_R_SUCCESS);
-}
-
-
-isc_result_t
-dns_c_iplist_remove(isc_log_t *lctx,
-		    dns_c_iplist_t *list, isc_sockaddr_t newaddr)
-{
-	isc_uint32_t i;
-
-	(void) lctx;
-	
-	REQUIRE(list != NULL);
-	
-	for (i = 0 ; i < list->nextidx ; i++) {
-		if (memcmp(&list->ips[0], &newaddr, sizeof newaddr) == 0) {
-			break;
-		}
-	}
-
-	if (i == list->nextidx) {
-		return (ISC_R_FAILURE);
-	}
-
-	list->nextidx--;
-	for ( /* nothing */ ; i < list->nextidx ; i++) {
-		list->ips[i] = list->ips[i + 1];
-	}
-
-	return (ISC_R_SUCCESS);
-}

@@ -78,11 +78,11 @@ typedef struct dns_c_ipmatch_list	dns_c_ipmatchlist_t;
 
 /* A list of IP addresses (IPv4 or IPv6) */
 struct dns_c_iplist {
-	isc_mem_t		*mem;
-
-	int refcount;
+	isc_uint32_t		magic;
 	
-	isc_sockaddr_t		*ips;
+	isc_mem_t	       *mem;
+	int			refcount;
+	isc_sockaddr_t	       *ips;
 	isc_uint32_t		size;
 	isc_uint32_t		nextidx;
 };
@@ -91,6 +91,8 @@ struct dns_c_iplist {
 
 struct dns_c_ipmatch_direct
 {
+	isc_uint32_t	magic;
+	
 	isc_sockaddr_t	address;		/* XXX IPv6??? */
 	isc_uint32_t	mask;
 };
@@ -99,6 +101,8 @@ struct dns_c_ipmatch_direct
 
 struct dns_c_ipmatch_indirect
 {
+	isc_uint32_t	magic;
+	
 	isc_textregion_t refname;	/* for acls, mostly. */
 	dns_c_ipmatchlist_t *list;
 };
@@ -107,6 +111,8 @@ struct dns_c_ipmatch_indirect
 
 struct dns_c_ipmatch_element
 {
+	isc_uint32_t	magic;
+	
 	dns_c_ipmatch_type_t type;
 	u_int flags;
 	union {
@@ -122,6 +128,8 @@ struct dns_c_ipmatch_element
 
 struct dns_c_ipmatch_list
 {
+	isc_uint32_t	magic;
+	
 	isc_mem_t *mem;
 	int refcount;
 

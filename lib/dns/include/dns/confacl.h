@@ -73,11 +73,13 @@ typedef struct dns_c_acl_table		dns_c_acltable_t;
 
 struct dns_c_acl 
 {
-	dns_c_acltable_t      *mytable;
+	isc_uint32_t		magic;
+
+	dns_c_acltable_t       *mytable;
 	
-	char		      *name;
-	dns_c_ipmatchlist_t   *ipml;
-	isc_boolean_t	       is_special;
+	char		       *name;
+	dns_c_ipmatchlist_t    *ipml;
+	isc_boolean_t		is_special;
 
 	ISC_LINK(dns_c_acl_t)	next;
 };
@@ -85,6 +87,8 @@ struct dns_c_acl
 
 struct dns_c_acl_table 
 {
+	isc_uint32_t		magic;
+	
 	isc_mem_t	       *mem;
 	
 	ISC_LIST(dns_c_acl_t)	acl_list;
