@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.184 2001/03/05 21:38:20 halley Exp $ */
+/* $Id: query.c,v 1.185 2001/03/06 06:57:47 halley Exp $ */
 
 #include <config.h>
 
@@ -2762,12 +2762,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
 		count_query(zone, is_zone, dns_statscounter_nxdomain);
-		if (client->query.restarts > 0) {
-			/*
-			 * We hit a dead end following a CNAME or DNAME.
-			 */
-			goto cleanup;
-		}
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
 			 * If we've got a NXT record, we need to save the

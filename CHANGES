@@ -1,3 +1,7 @@
+ 768.	[bug]		The server did not emit an SOA when a CNAME
+			or DNAME chain ended in NXDOMAIN in an
+			authoritative zone.
+
  767.	[placeholder]
 
  766.	[bug]		A few cases in query_find() could leak fname.
