@@ -41,6 +41,47 @@
 #define NEED_V6(c)	((((c)->find_wanted & LWRES_ADDRTYPE_V6) != 0) \
 			 && ((c)->v6find == NULL))
 
+static void
+hexdump(char *msg, void *base, size_t len)
+{
+	unsigned char *p;
+	unsigned int cnt;
+	char buffer[180];
+	char *n;
+
+	p = base;
+	cnt = 0;
+	n = buffer;
+	*n = 0;
+
+	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
+
+	while (cnt < len) {
+		if (cnt % 16 == 0) {
+			n = buffer;
+			n += sprintf(buffer, "%p: ", p);
+		} else if (cnt % 8 == 0) {
+			*n++ = ' ';
+			*n++ = '|';
+			*n = 0;
+		}
+		n += sprintf(n, " %02x", *p++);
+		cnt++;
+
+		if (cnt % 16 == 0) {
+			DP(80, buffer);
+			n = buffer;
+			*n = 0;
+		}
+	}
+
+	if (n != buffer) {
+		DP(80, buffer);
+		n = buffer;
+		*n = 0;
+	}
+}
+
 static void start_find(client_t *);
 
 /*
@@ -52,7 +93,7 @@ cleanup_gabn(client_t *client)
 {
 	dns_adbfind_t *v4;
 
-	DP(50, "Cleaning up client %p");
+	DP(50, "Cleaning up client %p", client);
 
 	v4 = client->v4find;
 
@@ -100,6 +141,8 @@ setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at)
 			sin6 = &ai->sockaddr->type.sin6;
 			addr->address = (unsigned char *)&sin6->sin6_addr;
 			break;
+		default:
+			goto next;
 		}
 
 		client->gabn.naddrs++;
@@ -122,6 +165,17 @@ generate_reply(client_t *client)
 
 	DP(50, "Generating gabn reply for client %p", client);
 
+	if (client->find == client->v4find || client->find == client->v6find)
+		client->find = NULL;
+	else
+		dns_adb_destroyfind(&client->find);
+
+	/*
+	 * perhaps there are some here?
+	 */
+	if (NEED_V6(client) && client->v4find != NULL)
+		client->v6find = client->v4find;
+
 	/*
 	 * Run through the finds we have and wire them up to the gabn
 	 * structure.
@@ -134,8 +188,6 @@ generate_reply(client_t *client)
 	/*
 	 * Render the packet.
 	 */
-	client->pkt.length = LWRES_LWPACKET_LENGTH;
-	client->pkt.flags |= LWRES_LWPACKETFLAG_RESPONSE;
 	client->pkt.recvlength = LWRES_RECVLENGTH;
 	client->pkt.authtype = 0; /* XXXMLG */
 	client->pkt.authlength = 0;
@@ -144,6 +196,9 @@ generate_reply(client_t *client)
 	lwres_buffer_init(&b, client->buffer, LWRES_RECVLENGTH);
 	lwres = lwres_gabnresponse_render(cm->lwctx, &client->gabn,
 					  &client->pkt, &b);
+
+	hexdump("Sending to client", b.base, b.used);
+
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
 
@@ -329,16 +384,10 @@ start_find(client_t *client)
 				    dns_fixedname_name(&client->target_name),
 				    dns_rootname, options, 0,
 				    dns_fixedname_name(&client->target_name),
-				    &client->v4find);
+				    &client->find);
 
-	/*
-	 * Did we get an error?
-	 */
-	if (result != ISC_R_SUCCESS && result != DNS_R_ALIAS) {
-		cleanup_gabn(client);
-		error_pkt_send(client, LWRES_R_FAILURE);
-		return;
-	}
+	if (client->find != NULL)
+		dns_adb_dumpfind(client->find, stderr);
 
 	/*
 	 * Did we get an alias?  If so, save it and re-issue the query.
@@ -354,6 +403,17 @@ start_find(client_t *client)
 			return;
 		}
 		goto find_again;
+	}
+
+	/*
+	 * Did we get an error?
+	 */
+	if (result != ISC_R_SUCCESS) {
+		if (client->find != NULL)
+			dns_adb_destroyfind(&client->find);
+		cleanup_gabn(client);
+		error_pkt_send(client, LWRES_R_FAILURE);
+		return;
 	}
 
 	/*
@@ -379,7 +439,7 @@ start_find(client_t *client)
 	 * If we have both v4 and v6, and we are still getting an event,
 	 * we have a programming error, so die hard.
 	 */
-	if ((client->v4find->options & DNS_ADBFIND_WANTEVENT) != 0) {
+	if ((client->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
 		DP(50, "Event will be sent.");
 		INSIST(client->v4find == NULL || client->v6find == NULL);
 		return;
@@ -440,6 +500,7 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 		goto out;
 
 	client->find_wanted = req->addrtypes;
+	DP(50, "Client %p looking for addrtypes %08x", client, client->find_wanted);
 
 	/*
 	 * We no longer need to keep this around.

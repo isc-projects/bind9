@@ -156,6 +156,7 @@ test_gabn(void)
 	res = NULL;
 	ret = lwres_getaddrsbyname(ctx, "www.flame.org", LWRES_ADDRTYPE_V4,
 				   &res);
+	printf("ret == %d\n", ret);
 	assert(ret == 0);
 
 	lwres_gabnresponse_free(ctx, &res);
