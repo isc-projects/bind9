@@ -570,7 +570,7 @@ dns_c_need_quote(isc_log_t *lctx, const char *string)
 	(void) lctx;
 	
 	while (string != NULL && *string != '\0') {
-		if (!(isalnum(*string) || *string == '_')) {
+		if (!(isalnum(*string & 0xff) || *string == '_')) {
 			rval = ISC_TRUE;
 			break;
 		}
