@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.23 2004/03/09 06:12:30 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.24 2004/03/28 23:09:55 marka Exp $ */
 
 #include <config.h>
 
@@ -3862,6 +3862,9 @@ print_grammar(cfg_printer_t *pctx, const cfg_type_t *type) {
 
 		if (type->parse == parse_named_map) {
 			print_grammar(pctx, &cfg_type_astring);
+			print(pctx, " ", 1);
+		} else if (type->parse == parse_addressed_map) {
+			print_grammar(pctx, &cfg_type_netaddr);
 			print(pctx, " ", 1);
 		}
 		
