@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.36 2002/01/22 22:27:24 gson Exp $
+# $Id: tests.sh,v 1.37 2002/02/06 03:28:58 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -309,8 +309,7 @@ ret=0
 $DIG $DIGOPTS +noauth dynamic.example. SOA @10.53.0.3 > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth dynamic.example. SOA @10.53.0.4 > dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-# XXX why does this fail?
-# grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.17 2002/01/22 22:27:27 gson Exp $
+# $Id: sign.sh,v 1.18 2002/02/06 03:28:59 bwelling Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -33,7 +33,7 @@ keyname=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
 ( cd ../ns3 && sh sign.sh )
 
-for subdomain in secure bogus
+for subdomain in secure bogus dynamic
 do
 	cp ../ns3/keyset-$subdomain.example. .
 
