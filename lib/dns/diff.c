@@ -15,28 +15,23 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.1 2000/12/09 02:17:10 bwelling Exp $ */
+/* $Id: diff.c,v 1.2 2000/12/09 03:09:19 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
+#include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/mem.h>
-#include <isc/net.h>		/* Required for ntohl. */
-#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/compress.h>
 #include <dns/db.h>
-#include <dns/dbiterator.h>
 #include <dns/diff.h>
-#include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
 #include <dns/result.h>
 
 #define CHECK(op) \

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.67 2000/12/09 02:17:05 bwelling Exp $ */
+/* $Id: journal.c,v 1.68 2000/12/09 03:09:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,7 +23,6 @@
 
 #include <isc/file.h>
 #include <isc/mem.h>
-#include <isc/net.h>		/* Required for ntohl. */
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -35,7 +34,6 @@
 #include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/log.h>
-#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
