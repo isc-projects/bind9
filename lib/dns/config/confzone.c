@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.47.2.1 2000/07/25 22:47:39 gson Exp $ */
+/* $Id: confzone.c,v 1.47.2.2 2000/10/18 18:59:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -575,12 +575,17 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	dns_c_iplist_t *iplist = NULL;
 	dns_ssutable_t *ssutable = NULL;
 	isc_result_t tmpres;
+	dns_c_forw_t tmpfwd;
 	isc_result_t result = ISC_R_SUCCESS;
 	const char *autherr = "zone '%s': allow-update is ignored when "
 		"update-policy is also used";
 	const char *nomasterserr = "zone '%s': missing 'masters' entry";
 	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
 	const char *disabledzone = "zone '%s': is disabled";
+	const char *forwarderr = "zone '%s': the 'forward' statement is "
+		"unimplemented ";
+	const char *forwarderserr = "zone '%s': the 'forwarders' statement is "
+		"unimplemented ";
 	
 	/*
 	 * Check if zone is diabled. This isn't really a validation, just a
@@ -632,6 +637,16 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 			result = ISC_R_FAILURE;
 		}
 	}
+
+	if (dns_c_zone_getforward(zone, &tmpfwd) == ISC_R_SUCCESS)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      forwarderr, zone->name);
+
+	if (dns_c_zone_getforwarders(zone, &iplist) == ISC_R_SUCCESS)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      forwarderserr, zone->name);
 
 	return (result);
 }
