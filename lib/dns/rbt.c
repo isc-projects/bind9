@@ -240,8 +240,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_result_t result;
 	dns_rbtnodechain_t chain;
 	isc_region_t r;
-	int add_labels, current_labels, keep_labels, start_label;
-	int order, common_labels, common_bits;
+	int add_labels, current_labels, keep_labels, start_label, order;
+	unsigned int common_labels, common_bits;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(FAST_ISABSOLUTE(name));
@@ -545,7 +545,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnodechain_t *chain) {
 	dns_name_t holder1, holder2;
 	dns_namereln_t compared;
 	dns_offsets_t holder1_offsets, holder2_offsets;
-	int current_labels, keep_labels, order, common_labels, common_bits;
+	int current_labels, keep_labels, order;
+	unsigned int common_labels, common_bits;
 	isc_region_t r;
 
 	/* @@@ optimize skipping the root node? */
