@@ -65,6 +65,55 @@ set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
 		array[index / 8] &= (~mask & 0xFF);
 }
 
+dns_result_t
+find_apex_keys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
+	       dns_name_t *name, isc_mem_t *mctx, unsigned int maxkeys,
+	       dst_key_t **keys, unsigned int *nkeys)
+{
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata;
+	isc_result_t result;
+	dst_key_t *pubkey;
+	unsigned int count = 0;
+
+	*nkeys = 0;
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_key, 0, 0,
+				     &rdataset, NULL);
+	check_result(result, "dns_db_findrdataset()");
+	result = dns_rdataset_first(&rdataset);
+	check_result(result, "dns_rdataset_first()");
+	while (result == ISC_R_SUCCESS && count < maxkeys) {
+		pubkey = NULL;
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey);
+		check_result(result, "dns_dnssec_keyfromrdata()");
+		result = dst_key_fromfile(dst_key_name(pubkey),
+					  dst_key_id(pubkey),
+					  dst_key_alg(pubkey),
+					  DST_TYPE_PRIVATE,
+					  mctx, &keys[count++]);
+		check_result(result, "dst_key_fromfile()");
+		dst_key_free(pubkey);
+		pubkey = NULL;
+		result = dns_rdataset_next(&rdataset);
+	}
+	if (result != DNS_R_NOMORE)
+		check_result(result, "iteration over zone keys");
+	result = DNS_R_SUCCESS;
+	if (count == 0)
+		check_result(ISC_R_FAILURE, "no key found");
+
+/* failure:*/
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (pubkey != NULL)
+		dst_key_free(pubkey);
+	*nkeys = count;
+	return (result);
+}
+
+
 static void
 sign_with_key(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	      dns_rdatalist_t *sigrdatalist, isc_stdtime_t *now,
@@ -97,38 +146,50 @@ resign_set(dns_name_t *name, dns_name_t *origin, dns_rdataset_t *rdataset,
 {
 	dns_rdata_generic_sig_t sig;
 	isc_result_t result;
+	isc_buffer_t b;
 	int i;
+	isc_boolean_t done = ISC_FALSE;
+	isc_boolean_t foundnonzone = ISC_FALSE;
 
 	result = dns_rdata_tostruct(oldsigrdata, &sig, mctx);
 	check_result(result, "dns_rdata_tostruct()");
 
 	/*
-	 * Is this an immaterial key?  This should also check that it's not
-	 * a non-zone key at the origin.
+	 * Is this a real signture that we should regenerate?
 	 */
-	if (dns_name_compare(sig.signer, origin) != 0) {
-		isc_buffer_t b;
-printf("saving old key...\n");
-		isc_buffer_init(&b, array, len, ISC_BUFFERTYPE_BINARY);
-		result = dns_rdata_fromstruct(rdata, rdataset->rdclass,
-					      dns_rdatatype_sig, &sig, &b);
-		ISC_LIST_APPEND(sigrdatalist->rdata, rdata, link);
-		check_result(result, "dns_rdata_fromstruct()");
-	}
-
-	else {
+	if (dns_name_compare(sig.signer, origin) == 0) {
 		for (i = 0; i < nkeys; i++) {
 			dst_key_t *key = keys[i];
 			if (dst_key_id(key) == sig.keyid &&
 			    dst_key_alg(key) == sig.algorithm)
-				break;
+			{
+				if (!is_zone_key(key))
+					foundnonzone = ISC_TRUE;
+				else
+					break;
+			}
 		}
-		if (i < nkeys)
+		if (i < nkeys) {
 			sign_with_key(name, rdataset, rdata, sigrdatalist,
 				      now, later, keys[i], array, len);
-		else
-			printf("couldn't find key\n");
+			done = ISC_TRUE;
+		}
 	}
+	if (!done) {
+		if (dns_name_compare(sig.signer, origin) != 0 || foundnonzone) {
+			printf("saving old sig...\n");
+			isc_buffer_init(&b, array, len, ISC_BUFFERTYPE_BINARY);
+			result = dns_rdata_fromstruct(rdata, rdataset->rdclass,
+						      dns_rdatatype_sig,
+						      &sig, &b);
+			ISC_LIST_APPEND(sigrdatalist->rdata, rdata, link);
+			check_result(result, "dns_rdata_fromstruct()");
+		}
+		else
+			printf("couldn't find key <origin>/%d, dropping sig\n",
+			       sig.keyid);
+	}
+
 	dns_rdata_freestruct(&sig);
 }
 
@@ -210,7 +271,7 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 		if (!alreadysigned) {
 			for (i = 0; i < nkeys; i++) {
-				if (!defaultkey[i])
+				if (!defaultkey[i] || !is_zone_key(keys[i]))
 					continue;
 				sign_with_key(name, &rdataset, &rdatas[i],
 					      &sigrdatalist, &now, &later,
@@ -365,8 +426,8 @@ sign(char *filename) {
 	node = NULL;
 	result = dns_db_findnode(db, name, ISC_FALSE, &node);
 	check_result(result, "dns_db_findnode()");
-	result = dns_dnssec_findzonekeys(db, NULL, node, name, mctx, MAXKEYS,
-					 keys, &nkeys);
+	result = find_apex_keys(db, NULL, node, name, mctx, MAXKEYS,
+				keys, &nkeys);
 	check_result(result, "dns_dnssec_findzonekeys()");	
 	dns_db_detachnode(db, &node);
 	for (i = 0; i < nkeys; i++)
