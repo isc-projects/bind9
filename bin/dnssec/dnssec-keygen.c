@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.62 2002/12/03 05:01:34 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.63 2003/01/18 02:40:58 marka Exp $ */
 
 #include <config.h>
 
@@ -74,6 +74,7 @@ usage(void) {
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -c <class> (default: IN)\n");
 	fprintf(stderr, "    -e use large exponent (RSAMD5/RSASHA1 only)\n");
+	fprintf(stderr, "    -f keyflag: KSK\n");
 	fprintf(stderr, "    -g <generator> use specified generator "
 		"(DH only)\n");
 	fprintf(stderr, "    -t <type>: "
@@ -122,7 +123,7 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:c:eg:n:t:p:s:r:v:h")) != -1)
+					   "a:b:c:ef:g:n:t:p:s:r:v:h")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -138,6 +139,13 @@ main(int argc, char **argv) {
 			break;
 		case 'e':
 			rsa_exp = 1;
+			break;
+		case 'f':
+			if (strcasecmp(isc_commandline_argument, "KSK") == 0)
+				flags |= DNS_KEYFLAG_KSK;
+			else
+				fatal("unknown flag '%s'",
+				      isc_commandline_argument);
 			break;
 		case 'g':
 			generator = strtol(isc_commandline_argument,

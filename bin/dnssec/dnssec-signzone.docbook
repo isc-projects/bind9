@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.4 2003/01/18 00:24:09 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.5 2003/01/18 02:40:58 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -40,18 +40,20 @@
       <arg><option>-a</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-d <replaceable class="parameter">directory</replaceable></option></arg>
-      <arg><option>-g</option></arg>
-      <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
       <arg><option>-e <replaceable class="parameter">end-time</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">output-file</replaceable></option></arg>
+      <arg><option>-g</option></arg>
       <arg><option>-h</option></arg>
+      <arg><option>-k <replaceable class="parameter">key</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">nthreads</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
       <arg><option>-p</option></arg>
       <arg><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
+      <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
       <arg><option>-t</option></arg>
       <arg><option>-v <replaceable class="parameter">level</replaceable></option></arg>
+      <arg><option>-z</option></arg>
       <arg choice="req">zonefile</arg>
       <arg rep="repeat">key</arg>
     </cmdsynopsis>
@@ -89,6 +91,16 @@
 	<listitem>
 	  <para>
 	       Specifies the DNS class of the zone.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-k <replaceable class="parameter">key</replaceable></term>
+	<listitem>
+	  <para>
+	       Treat specified key as a key signing key ignoring any
+	       key flags.  This option may be specified multiple times.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -251,6 +263,15 @@
 	<listitem>
 	  <para>
 	       Sets the debugging level.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-z</term>
+	<listitem>
+	  <para>
+	       Ignore KSK flag on key when determining what to sign.
 	  </para>
 	</listitem>
       </varlistentry>

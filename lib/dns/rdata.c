@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.172 2002/06/17 04:01:21 marka Exp $ */
+/* $Id: rdata.c,v 1.173 2003/01/18 02:40:59 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -345,6 +345,7 @@ static struct keyflag {
 	{ "SIG13",  0x000D, 0x000F },
 	{ "SIG14",  0x000E, 0x000F },
 	{ "SIG15",  0x000F, 0x000F },
+	{ "KSK",  DNS_KEYFLAG_KSK, DNS_KEYFLAG_KSK },
 	{ NULL,     0, 0 }
 };
 

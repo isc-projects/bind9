@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.13 2001/09/25 22:45:02 bwelling Exp $ */
+/* $Id: keyvalues.h,v 1.14 2003/01/18 02:40:59 marka Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
@@ -53,6 +53,7 @@
 				  DNS_KEYFLAG_RESERVED9 | \
 				  DNS_KEYFLAG_RESERVED10 | \
 				  DNS_KEYFLAG_RESERVED11 )
+#define DNS_KEYFLAG_KSK		0x0001	/* key signing key */
 
 #define DNS_KEYFLAG_RESERVEDMASK2 0xFFFF	/* no bits defined here */
 

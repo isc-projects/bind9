@@ -1,3 +1,8 @@
+1415.	[func]		DS TTL now derived from NS ttl.  NXT TTL now derived
+			from SOA MINIMUM.
+
+1414.	[func]		Support for KSK flag.
+
 1413.	[func]		Explictly request the (re-)generation of DS records from
 			keysets (dnssec-signzone -g).
 
