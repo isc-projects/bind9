@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.6 $)
+AC_REVISION($Revision: 1.7 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -303,97 +303,6 @@ AC_SUBST(WANT_IRS_NIS)
 AC_SUBST(WANT_IRS_NIS_OBJS)
 AC_SUBST(WANT_IRS_NISGR_OBJS)
 AC_SUBST(WANT_IRS_NISPW_OBJS)
-
-#
-# was --with-openssl specified?
-#
-AC_MSG_CHECKING(for compatible OpenSSL library)
-AC_ARG_WITH(openssl,
-[  --with-openssl=PATH  Specify path for system-supplied openssl
-                        (rather than using bind-9 internal openssl)],
-    use_openssl="$withval", use_openssl="no")
-
-#
-# If the user didn't specify where openssl is, and we didn't find or it
-# is incompatible with our code, use our internal one.
-#
-# XXX This appears to assume that the user specified path is correct,
-# and does no checking.
-#
-
-case "$use_openssl" in
-	no)
-		DST_PRIVATEOPENSSL='-DDST_USE_PRIVATE_OPENSSL'
-		dst_privateopenssl='openssl'
-		DST_OPENSSL_INC='-I${srcdir}/../openssl/include'
-		DST_OPENSSL_LIB=''
-		DST_OPENSSL_OBJS='${OPENSSLOBJS}'
-		AC_MSG_RESULT(using private library)
-		openssl_makefiles="lib/dns/sec/openssl/Makefile \
-				   lib/dns/sec/openssl/include/Makefile \
-				   lib/dns/sec/openssl/include/openssl/Makefile"
-
-		;;
-	yes)
-		AC_MSG_ERROR([--with-openssl must specify a path])
-		;;
-	*)
-		DST_PRIVATEOPENSSL=''
-		dst_privateopenssl=''
-		DST_OPENSSL_INC="-I$use_openssl/include"
-		DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
-		DST_OPENSSL_LIB=''
-		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
-		openssl_makefiles=""
-		;;
-esac
-
-AC_SUBST(DST_PRIVATEOPENSSL)
-AC_SUBST(dst_privateopenssl)
-AC_SUBST(DST_OPENSSL_INC)
-AC_SUBST(DST_OPENSSL_LIB)
-AC_SUBST(DST_OPENSSL_OBJS)
-
-#
-# This would include the system openssl path (and linker options to use
-# it as needed) if it is found.
-#
-
-AC_SUBST(DNS_OPENSSL_LIBS)
-
-#
-# was --with-gssapi specified?
-#
-#AC_MSG_CHECKING(for GSSAPI library)
-#AC_ARG_WITH(gssapi,
-#[  --with-gssapi=PATH   Specify path for system-supplied GSSAPI],
-#    use_gssapi="$withval", use_gssapi="no")
-#
-#case "$use_gssapi" in
-#	no)
-#		USE_GSSAPI=''
-#		DST_GSSAPI_INC=''
-#		DNS_GSSAPI_LIBS=''
-#		AC_MSG_RESULT(not specified)
-#		;;
-#	yes)
-#		AC_MSG_ERROR([--with-gssapi must specify a path])
-#		;;
-#	*)
-#		USE_GSSAPI='-DGSSAPI'
-#		DST_GSSAPI_INC="-I$use_gssapi/include"
-#		DNS_GSSAPI_LIBS="-L$use_gssapi/lib -lgssapi_krb5"
-#		AC_MSG_RESULT(using gssapi from $use_gssapi/lib and $use_gssapi/include)
-#		;;
-#esac
-
-USE_GSSAPI=''
-DST_GSSAPI_INC=''
-DNS_GSSAPI_LIBS=''
-
-AC_SUBST(USE_GSSAPI)
-AC_SUBST(DST_GSSAPI_INC)
-AC_SUBST(DNS_GSSAPI_LIBS)
 
 #
 # was --with-randomdev specified?
@@ -1822,8 +1731,6 @@ AC_OUTPUT(
 	make/includes
 	Makefile
 	bsd/Makefile
-	cylink/Makefile
-	dnssafe/Makefile
 	dst/Makefile
 	include/Makefile
 	inet/Makefile

@@ -1,8 +1,6 @@
-OBJS=	bsafe_link.@O@ cylink_link.@O@ dst_api.@O@ eay_dss_link.@O@ \
-	hmac_link.@O@ md5_dgst.@O@ prandom.@O@ rsaref_link.@O@ support.@O@
+OBJS=	dst_api.@O@ hmac_link.@O@ md5_dgst.@O@ support.@O@
 
-SRCS=	bsafe_link.c cylink_link.c dst_api.c eay_dss_link.c \
-	hmac_link.c md5_dgst.c prandom.c rsaref_link.c support.c
+SRCS=	dst_api.c hmac_link.c md5_dgst.c support.c
 
 TARGETS= ${OBJS}
 

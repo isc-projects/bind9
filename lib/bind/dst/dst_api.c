@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.2 2001/04/02 09:42:20 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.3 2001/04/03 00:28:10 bwelling Exp $";
 #endif
 
 /*
@@ -121,11 +121,7 @@ dst_init()
 	}
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	/* first one is selected */
-	dst_bsafe_init();
-	dst_rsaref_init(); 
 	dst_hmac_md5_init();
-	dst_eay_dss_init();
-	dst_cylink_init();
 }
 
 /*
@@ -1027,43 +1023,3 @@ dst_sig_size(DST_KEY *key) {
 		return -1;
 	}
 }
-
-/* 
- * dst_random 
- *  function that multiplexes number of random number generators
- * Parameters  
- *   mode: select the random number generator
- *   wanted is how many bytes of random data are requested 
- *   outran is a buffer of size at least wanted for the output data
- *
- * Returns
- *    number of bytes written to outran
- */
-int 
-dst_random(const int mode, int wanted, u_char *outran)
-{
-	u_int32_t *buff = NULL, *bp = NULL;
-	int i;
-	if (wanted <= 0 || outran == NULL) 
-		return (0);
-
-	switch (mode) {
-	case DST_RAND_SEMI: 
-		bp = buff = (u_int32_t *) malloc(wanted+sizeof(u_int32_t));
-		for (i = 0; i < wanted; i+= sizeof(u_int32_t), bp++) {
-			*bp = dst_s_quick_random(i);
-		}
-		memcpy(outran, buff, wanted);
-		SAFE_FREE(buff);
-		return (wanted);
-	case DST_RAND_STD:
-		return (dst_s_semi_random(outran, wanted));
-	case DST_RAND_KEY:
-		return (dst_s_random(outran, wanted));
-	case DST_RAND_DSS:
-	default:
-		/* need error case here XXX OG */
-		return (0);
-	}
-}
-

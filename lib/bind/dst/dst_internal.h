@@ -137,12 +137,6 @@ int       dst_s_build_filename(  char *filename, const char *name,
 
 FILE      *dst_s_fopen (const char *filename, const char *mode, int perm);
 
-/* from file prandom.c */
-int       dst_s_random( u_int8_t *output, int size);
-int       dst_s_semi_random( u_int8_t *output, int size);
-u_int32_t dst_s_quick_random( int inc);
-void	  dst_s_quick_random_set( u_int32_t val, u_int32_t cnt);
-
 /* 
  * read and write network byte order into u_int?_t  
  *  all of these should be retired

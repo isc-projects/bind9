@@ -75,9 +75,6 @@ int      dst_compare_keys(const DST_KEY *key1, const DST_KEY *key2);
 
 int	dst_sig_size(DST_KEY *key);
 
-int     dst_random(const int mode, int wanted, u_char *outran);
-
-
 /* support for dns key tags/ids */
 u_int16_t dst_s_dns_key_id(const u_char *dns_key_rdata, const int rdata_len);
 u_int16_t dst_s_id_calc(const u_char *key_data, const int key_len);

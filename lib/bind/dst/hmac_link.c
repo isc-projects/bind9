@@ -1,6 +1,6 @@
 #ifdef HMAC_MD5
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.1 2001/03/29 06:31:31 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.2 2001/04/03 00:28:14 bwelling Exp $";
 #endif
 /*
  * Portions Copyright (c) 1995-1998 by Trusted Information Systems, Inc.
@@ -428,31 +428,9 @@ dst_hmac_md5_free_key_structure(void *key)
 static int
 dst_hmac_md5_generate_key(DST_KEY *key, const int nothing)
 {
-	u_char *buff;
-	int i, n, size;
-
-	i = nothing;
-
-	if (key == NULL || key->dk_alg != KEY_HMAC_MD5)
-		return (0);
-	size = (key->dk_key_size + 7) / 8; /* convert to bytes */
-	if (size <= 0)
-		return(0);
-	
-	i = size > 64 ? 64 : size;
-	buff = malloc(i+8);
-
-	n = dst_random(DST_RAND_SEMI, i, buff);
-	n += dst_random(DST_RAND_KEY, i, buff);
-	if (n <= i) {	/* failed getting anything */
-		SAFE_FREE2(buff, i);
-		return (-1);
-	}
-	n = dst_buffer_to_hmac_md5(key, buff, i);
-	SAFE_FREE2(buff, i);
-	if (n <= 0)
-		return (n);
-	return (1);
+	(void)key;
+	(void)nothing;
+	return (-1);
 }
 
 /*
