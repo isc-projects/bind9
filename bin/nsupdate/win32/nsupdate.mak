@@ -196,24 +196,24 @@ SOURCE=..\nsupdate.c
 !IF  "$(CFG)" == "nsupdate - Win32 Release"
 
 "libdns - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\..\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" 
    cd "..\..\..\bin\nsupdate\win32"
 
 "libdns - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\..\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\nsupdate\win32"
 
 !ELSEIF  "$(CFG)" == "nsupdate - Win32 Debug"
 
 "libdns - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\..\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" 
    cd "..\..\..\bin\nsupdate\win32"
 
 "libdns - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\..\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\nsupdate\win32"
 
@@ -222,24 +222,24 @@ SOURCE=..\nsupdate.c
 !IF  "$(CFG)" == "nsupdate - Win32 Release"
 
 "libisc - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" 
    cd "..\..\..\bin\nsupdate\win32"
 
 "libisc - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\nsupdate\win32"
 
 !ELSEIF  "$(CFG)" == "nsupdate - Win32 Debug"
 
 "libisc - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" 
    cd "..\..\..\bin\nsupdate\win32"
 
 "libisc - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\nsupdate\win32"
 
@@ -248,24 +248,24 @@ SOURCE=..\nsupdate.c
 !IF  "$(CFG)" == "nsupdate - Win32 Release"
 
 "libbind9 - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "..\..\..\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" 
    cd "..\..\..\bin\nsupdate\win32"
 
 "libbind9 - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "..\..\..\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\nsupdate\win32"
 
 !ELSEIF  "$(CFG)" == "nsupdate - Win32 Debug"
 
 "libbind9 - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "..\..\..\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" 
    cd "..\..\..\bin\nsupdate\win32"
 
 "libbind9 - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "..\..\..\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\nsupdate\win32"
 

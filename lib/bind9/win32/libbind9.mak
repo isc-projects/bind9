@@ -275,24 +275,24 @@ SOURCE=.\version.c
 !IF  "$(CFG)" == "libbind9 - Win32 Release"
 
 "libdns - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" 
    cd "..\..\bind9\win32"
 
 "libdns - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\bind9\win32"
 
 !ELSEIF  "$(CFG)" == "libbind9 - Win32 Debug"
 
 "libdns - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" 
    cd "..\..\bind9\win32"
 
 "libdns - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\bind9\win32"
 
@@ -301,24 +301,24 @@ SOURCE=.\version.c
 !IF  "$(CFG)" == "libbind9 - Win32 Release"
 
 "libisc - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" 
    cd "..\..\bind9\win32"
 
 "libisc - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\bind9\win32"
 
 !ELSEIF  "$(CFG)" == "libbind9 - Win32 Debug"
 
 "libisc - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" 
    cd "..\..\bind9\win32"
 
 "libisc - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\bind9\win32"
 
@@ -327,24 +327,24 @@ SOURCE=.\version.c
 !IF  "$(CFG)" == "libbind9 - Win32 Release"
 
 "libisccfg - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\isccfg\win32"
+   cd "..\..\isccfg\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisccfg.mak" CFG="libisccfg - Win32 Release" 
    cd "..\..\bind9\win32"
 
 "libisccfg - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isccfg\win32"
+   cd "..\..\isccfg\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisccfg.mak" CFG="libisccfg - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\bind9\win32"
 
 !ELSEIF  "$(CFG)" == "libbind9 - Win32 Debug"
 
 "libisccfg - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\isccfg\win32"
+   cd "..\..\isccfg\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisccfg.mak" CFG="libisccfg - Win32 Debug" 
    cd "..\..\bind9\win32"
 
 "libisccfg - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isccfg\win32"
+   cd "..\..\isccfg\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisccfg.mak" CFG="libisccfg - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\bind9\win32"
 

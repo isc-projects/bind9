@@ -415,24 +415,24 @@ SOURCE=.\version.c
 !IF  "$(CFG)" == "libisccc - Win32 Release"
 
 "libisc - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" 
    cd "..\..\isccc\win32"
 
 "libisc - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\isccc\win32"
 
 !ELSEIF  "$(CFG)" == "libisccc - Win32 Debug"
 
 "libisc - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" 
    cd "..\..\isccc\win32"
 
 "libisc - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\isccc\win32"
 

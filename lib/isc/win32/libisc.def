@@ -408,6 +408,7 @@ isc_win32os_majorversion
 isc_win32os_minorversion
 isc_win32os_servicepackmajor
 isc_win32os_servicepackminor
+isc_win32os_versioncheck
 isc_socket_ipv6only
 isc_region_compare
 isc_socket_filter
