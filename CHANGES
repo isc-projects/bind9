@@ -1,3 +1,6 @@
+ 233.	[cleanup]	Convert all config structure integer values to unsigned
+			integer (isc_uint32_t) to match grammer.
+
  232.	[bug]		Allow slave zones to not have a file.
 
  231.	[func]		Support new 'port' clause in config file options
