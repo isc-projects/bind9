@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.7.4.6 2003/08/19 03:11:19 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.7.4.7 2003/08/20 06:37:17 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1355,6 +1355,14 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
 void
 dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...)
 	ISC_FORMAT_PRINTF(3, 4);
+/*
+ * Log the message 'msg...' at 'level', including text that identifies
+ * the message as applying to 'zone'.
+ */
+
+void
+dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category, int level,
+	      const char *msg, ...) ISC_FORMAT_PRINTF(4, 5);
 /*
  * Log the message 'msg...' at 'level', including text that identifies
  * the message as applying to 'zone'.

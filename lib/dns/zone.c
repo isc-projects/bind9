@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.17 2003/08/19 03:11:18 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.18 2003/08/20 06:37:16 marka Exp $ */
 
 #include <config.h>
 
@@ -4788,6 +4788,25 @@ notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 }
 
 void
+dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category,
+	      int level, const char *fmt, ...) {
+	va_list ap;
+	char message[4096];
+	char namebuf[1024+32];
+
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
+
+	zone_tostr(zone, namebuf, sizeof(namebuf));
+
+	va_start(ap, fmt);
+	vsnprintf(message, sizeof(message), fmt, ap);
+	va_end(ap);
+	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE,
+		      level, "zone %s: %s", namebuf, message);
+}
+
+void
 dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
@@ -5370,12 +5389,12 @@ queue_xfrin(dns_zone_t *zone) {
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 
 	if (result == ISC_R_QUOTA) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(1),
-			     "zone transfer deferred due to quota");
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
+			      "zone transfer deferred due to quota");
 	} else if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "starting zone transfer: %s",
-			     isc_result_totext(result));
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+			      "starting zone transfer: %s",
+			      isc_result_totext(result));
 	}
 }
 
