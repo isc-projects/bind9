@@ -15,12 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonekey.h,v 1.2 2001/01/18 02:00:54 bwelling Exp $ */
+/* $Id: zonekey.h,v 1.3 2001/06/01 01:09:10 bwelling Exp $ */
 
 #ifndef DNS_ZONEKEY_H
 #define DNS_ZONEKEY_H 1
 
 #include <isc/lang.h>
+
+#include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
 
