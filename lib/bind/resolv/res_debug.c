@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.4 2001/11/01 04:50:58 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.5 2001/11/01 04:59:16 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -187,7 +187,12 @@ do_section(const res_state statp,
 				ns_rr_name(rr),
 				p_type(ns_rr_type(rr)),
 				p_class(ns_rr_class(rr)));
-		else {
+		else if (section == ns_s_ar && ns_rr_type(rr) == ns_t_opt) {
+			u_int32_t ttl = ns_rr_ttl(rr);
+			fprintf(file,
+				"; EDNS: version: %u, udp=%u, flags=%04x\n",
+				(ttl>>16)&0xff, ns_rr_class(rr), ttl&0xffff);
+		} else {
 			n = ns_sprintrr(handle, &rr, NULL, NULL,
 					buf, buflen);
 			if (n < 0) {
@@ -615,6 +620,9 @@ p_option(u_long option) {
 #endif
 #ifdef RES_USE_DNAME
 	case RES_USE_DNAME:	return "dname";
+#endif
+#ifdef RES_USE_DNSSEC
+	case RES_USE_DNSSEC:	return "dnssec";
 #endif
 #ifdef RES_NOTLDQUERY
 	case RES_NOTLDQUERY:	return "no-tld-query";
