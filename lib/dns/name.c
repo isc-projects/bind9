@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.101 2000/08/08 23:18:10 gson Exp $ */
+/* $Id: name.c,v 1.102 2000/08/16 22:18:20 gson Exp $ */
 
 #include <config.h>
 
@@ -1704,12 +1704,13 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	 * wire format.
 	 */
 	REQUIRE(VALID_NAME(name));
+	REQUIRE(ISC_BUFFER_VALID(target));
 
 	ndata = name->ndata;
 	nlen = name->length;
 	labels = name->labels;
-	tdata = (char *)target->base + target->used;
-	tlen = target->length - target->used;
+	tdata = isc_buffer_used(target);
+	tlen = isc_buffer_availablelength(target);
 
 	trem = tlen;
 
