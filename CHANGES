@@ -1,3 +1,5 @@
+ 143.   [func]		Added function dns_rdatatype_isknown().
+
  142.   [cleanup]       <isc/stdtime.h> does not need <time.h> or
                         <isc/result.h>.
 

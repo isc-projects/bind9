@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.80 2000/04/27 00:01:44 tale Exp $ */
+/* $Id: rdata.c,v 1.81 2000/04/29 01:48:11 gson Exp $ */
 
 #include <config.h>
 
@@ -1635,3 +1635,13 @@ dns_rdatatype_iszonecutauth(dns_rdatatype_t type)
 		dns_rdatatype_isdnssec(type) ?
 		ISC_TRUE : ISC_FALSE);
 }
+
+isc_boolean_t
+dns_rdatatype_isknown(dns_rdatatype_t type)
+{
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_UNKNOWN)
+	    == 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+

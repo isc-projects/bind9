@@ -483,6 +483,16 @@ isc_boolean_t dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
  *
  */
 
+isc_boolean_t dns_rdatatype_isknown(dns_rdatatype_t type);
+/*
+ * Return true iff the rdata type 'type' is known.
+ *
+ * Requires:
+ * 	'type' is a valid rdata type.
+ *
+ */
+
+
 isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 			 void *arg);
