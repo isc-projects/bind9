@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.107 2001/03/07 20:53:28 bwelling Exp $
+ * $Id: tsig.c,v 1.108 2001/05/06 02:23:06 mayer Exp $
  */
 
 #include <config.h>
@@ -764,7 +764,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 * Decrement the additional field counter.
 		 */
 		memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
-		addcount = htons(ntohs(addcount) - 1);
+		addcount = htons((isc_uint16_t)(ntohs(addcount) - 1));
 		memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
 		/*
@@ -1003,7 +1003,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 */
 	if (has_tsig) {
 		memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
-		addcount = htons(ntohs(addcount) - 1);
+		addcount = htons((isc_uint16_t)(ntohs(addcount) - 1));
 		memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 	}
 
