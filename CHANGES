@@ -1,3 +1,7 @@
+1081.	[bug]		Multicast queries were incorrectly identified
+			based on the source address, not the destination
+			address.
+
 1080.	[bug]		BIND 8 compatibility: accept bare IP prefixes
 			as the second element of a two-element top level
 			sort list statement. [RT #1964]

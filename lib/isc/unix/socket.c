@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.210 2001/10/22 20:57:41 gson Exp $ */
+/* $Id: socket.c,v 1.211 2001/10/31 01:24:58 gson Exp $ */
 
 #include <config.h>
 
@@ -489,10 +489,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 	UNUSED(msg);
 	UNUSED(dev);
 
-#ifndef ISC_NET_BSD44MSGHDR
-	return;
-
-#else  /* defined ISC_NET_BSD44MSGHDR */
+#ifdef ISC_NET_BSD44MSGHDR
 
 #ifdef MSG_TRUNC
 	if ((msg->msg_flags & MSG_TRUNC) == MSG_TRUNC)
@@ -503,12 +500,6 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 	if ((msg->msg_flags & MSG_CTRUNC) == MSG_CTRUNC)
 		dev->attributes |= ISC_SOCKEVENTATTR_CTRUNC;
 #endif
-
-	/*
-	 * Check for multicast.
-	 */
-	if (isc_sockaddr_ismulticast(&dev->address))
-		dev->attributes |= ISC_SOCKEVENTATTR_MULTICAST;
 
 #ifndef USE_CMSG
 	return;
@@ -542,6 +533,8 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 				   ISC_MSG_IFRECEIVED,
 				   "interface received on ifindex %u",
 				   dev->pktinfo.ipi6_ifindex);
+			if (IN6_IS_ADDR_MULTICAST(&pktinfop->ipi6_addr))
+				dev->attributes |= ISC_SOCKEVENTATTR_MULTICAST;				
 			goto next;
 		}
 #endif
@@ -563,7 +556,6 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #endif /* USE_CMSG */
 
 #endif /* ISC_NET_BSD44MSGHDR */
-
 }
 
 /*
