@@ -60,7 +60,6 @@
 #include <string.h>
 #include "cryptlib.h"
 #include <openssl/crypto.h>
-/*#include "date.h"*/
 
 #if defined(WIN32) || defined(WIN16)
 static double SSLeay_MSVC5_hack=0.0; /* and for VC1.5 */
@@ -93,7 +92,9 @@ static const char* lock_names[CRYPTO_NUM_LOCKS] =
 	"getservbyname",
 	"readdir",
 	"RSA_blinding",
-#if CRYPTO_NUM_LOCKS != 24
+	"dh",
+	"debug_malloc2",
+#if CRYPTO_NUM_LOCKS != 26
 # error "Inconsistency between crypto.h and cryptlib.c"
 #endif
 	};
@@ -131,6 +132,11 @@ int CRYPTO_get_new_lockid(char *name)
 	else
 		i+=CRYPTO_NUM_LOCKS; /* gap of one :-) */
 	return(i);
+	}
+
+int CRYPTO_num_locks(void)
+	{
+	return CRYPTO_NUM_LOCKS;
 	}
 
 void (*CRYPTO_get_locking_callback(void))(int mode,int type,const char *file,
@@ -177,7 +183,7 @@ unsigned long CRYPTO_thread_id(void)
 		ret=(unsigned long)GetCurrentTask();
 #elif defined(WIN32)
 		ret=(unsigned long)GetCurrentThreadId();
-#elif defined(MSDOS)
+#elif defined(GETPID_IS_MEANINGLESS)
 		ret=1L;
 #else
 		ret=(unsigned long)getpid();

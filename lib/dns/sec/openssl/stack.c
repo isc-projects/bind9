@@ -59,7 +59,7 @@
 /* Code for stacks
  * Author - Eric Young v 1.0
  * 1.2 eay 12-Mar-97 -	Modified sk_find so that it _DOES_ return the
- *			lowest index for the seached item.
+ *			lowest index for the searched item.
  *
  * 1.1 eay - Take from netdb and added to SSLeay
  *
@@ -126,7 +126,7 @@ STACK *sk_new(int (*c)())
 	ret->sorted=0;
 	return(ret);
 err1:
-	Free((char *)ret);
+	Free(ret);
 err0:
 	return(NULL);
 	}
@@ -217,13 +217,9 @@ int sk_find(STACK *st, char *data)
 				return(i);
 		return(-1);
 		}
-	comp_func=(int (*)())st->comp;
-	if (!st->sorted)
-		{
-		qsort((char *)st->data,st->num,sizeof(char *),FP_ICC comp_func);
-		st->sorted=1;
-		}
+	sk_sort(st);
 	if (data == NULL) return(-1);
+	comp_func=(int (*)())st->comp;
 	r=(char **)bsearch(&data,(char *)st->data,
 		st->num,sizeof(char *),FP_ICC comp_func);
 	if (r == NULL) return(-1);
@@ -266,7 +262,7 @@ void sk_zero(STACK *st)
 	st->num=0;
 	}
 
-void sk_pop_free(STACK *st, void (*func)(char *))
+void sk_pop_free(STACK *st, void (*func)())
 	{
 	int i;
 
@@ -280,8 +276,8 @@ void sk_pop_free(STACK *st, void (*func)(char *))
 void sk_free(STACK *st)
 	{
 	if (st == NULL) return;
-	if (st->data != NULL) Free((char *)st->data);
-	Free((char *)st);
+	if (st->data != NULL) Free(st->data);
+	Free(st);
 	}
 
 int sk_num(STACK *st)
@@ -301,3 +297,15 @@ char *sk_set(STACK *st, int i, char *value)
 	if(st == NULL) return NULL;
 	return (st->data[i] = value);
 }
+
+void sk_sort(STACK *st)
+    {
+    if (!st->sorted)
+	{
+	int (*comp_func)();
+
+	comp_func=(int (*)())st->comp;
+	qsort(st->data,st->num,sizeof(char *),FP_ICC comp_func);
+	st->sorted=1;
+	}
+    }

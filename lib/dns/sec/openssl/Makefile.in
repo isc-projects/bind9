@@ -25,28 +25,29 @@ CWARNINGS =
 LIBS =		@LIBS@
 
 # Alphabetically
-OBJS =		bn_add.@O@ bn_asm.@O@ bn_comba.@O@ bn_div.@O@ \
+OBJS =		bn_add.@O@ bn_asm.@O@ bn_ctx.@O@ bn_div.@O@ \
 		bn_err.@O@ bn_exp.@O@ bn_exp2.@O@ bn_gcd.@O@ \
 		bn_lib.@O@ bn_mont.@O@ bn_mul.@O@ \
 		bn_prime.@O@ bn_print.@O@ bn_rand.@O@ bn_recp.@O@ \
 		bn_shift.@O@ bn_sqr.@O@ bn_word.@O@ buffer.@O@ \
 		cryptlib.@O@ dh_err.@O@ dh_gen.@O@ dh_key.@O@ \
 		dh_lib.@O@ dsa_asn1.@O@ dsa_err.@O@ dsa_gen.@O@ \
-		dsa_key.@O@ dsa_lib.@O@ dsa_sign.@O@ dsa_vrf.@O@ \
-		err.@O@ lhash.@O@ md_rand.@O@ md5_dgst.@O@ mem.@O@ \
+		dsa_key.@O@ dsa_lib.@O@ dsa_ossl.@O@ dsa_sign.@O@ \
+		dsa_vrf.@O@ err.@O@ ex_data.@O@ lhash.@O@ \
+		md_rand.@O@ md5_dgst.@O@ mem.@O@ mem_dbg.@O@ \
 		rand_lib.@O@ sha1_one.@O@ sha1dgst.@O@ stack.@O@ \
 		th-lock.@O@
 
-SRCS =		bn_add.c bn_asm.c bn_comba.c bn_div.c \
+SRCS =		bn_add.c bn_asm.c bn_ctx.c bn_div.c \
 		bn_err.c bn_exp.c bn_exp2.c bn_gcd.c \
 		bn_lib.c bn_mont.c bn_mul.c \
 		bn_prime.c bn_print.c bn_rand.c bn_recp.c \
 		bn_shift.c bn_sqr.c bn_word.c buffer.c \
 		cryptlib.c dh_err.c dh_gen.c dh_key.c dh_lib.c \
 		dsa_asn1.c dsa_err.c dsa_gen.c \
-		dsa_key.c dsa_lib.c dsa_sign.c dsa_vrf.c \
-		err.c lhash.c md_rand.c md5_dgst.c mem.c \
-		rand_lib.c sha1_one.c sha1dgst.c stack.c \
+		dsa_key.c dsa_lib.c dsa_ossl.c dsa_sign.c dsa_vrf.c \
+		err.c ex_data.c lhash.c md_rand.c md5_dgst.c mem.c \
+		mem_dbg.c rand_lib.c sha1_one.c sha1dgst.c stack.c \
 		th-lock.c
 
 SUBDIRS =	include

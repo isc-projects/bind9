@@ -91,7 +91,7 @@ static ERR_STRING_DATA ERR_str_libraries[]=
 {ERR_PACK(ERR_LIB_PEM,0,0)		,"PEM routines"},
 {ERR_PACK(ERR_LIB_ASN1,0,0)		,"asn1 encoding routines"},
 {ERR_PACK(ERR_LIB_X509,0,0)		,"x509 certificate routines"},
-{ERR_PACK(ERR_LIB_CONF,0,0)		,"configuation file routines"},
+{ERR_PACK(ERR_LIB_CONF,0,0)		,"configuration file routines"},
 {ERR_PACK(ERR_LIB_METH,0,0)		,"X509 lookup 'method' routines"},
 {ERR_PACK(ERR_LIB_SSL,0,0)		,"SSL routines"},
 {ERR_PACK(ERR_LIB_RSAREF,0,0)		,"RSAref routines"},
@@ -100,6 +100,7 @@ static ERR_STRING_DATA ERR_str_libraries[]=
 {ERR_PACK(ERR_LIB_PKCS7,0,0)		,"PKCS7 routines"},
 {ERR_PACK(ERR_LIB_X509V3,0,0)		,"X509 V3 routines"},
 {ERR_PACK(ERR_LIB_PKCS12,0,0)		,"PKCS12 routines"},
+{ERR_PACK(ERR_LIB_RAND,0,0)		,"random number generator"},
 {0,NULL},
 	};
 
@@ -116,6 +117,7 @@ static ERR_STRING_DATA ERR_str_functs[]=
 #ifdef WINDOWS
 	{ERR_PACK(0,SYS_F_WSASTARTUP,0),	"WSAstartup"},
 #endif
+	{ERR_PACK(0,SYS_F_OPENDIR,0),		"opendir"},
 	{0,NULL},
 	};
 
@@ -141,7 +143,7 @@ static ERR_STRING_DATA ERR_str_reasons[]=
 {ERR_R_PKCS7_LIB			,"PKCS7 lib"},
 {ERR_R_PKCS12_LIB			,"PKCS12 lib"},
 {ERR_R_MALLOC_FAILURE			,"Malloc failure"},
-{ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED	,"called a fuction you should not call"},
+{ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED	,"called a function you should not call"},
 {ERR_R_PASSED_NULL_PARAMETER		,"passed a null parameter"},
 {ERR_R_NESTED_ASN1_ERROR		,"nested asn1 error"},
 {ERR_R_BAD_ASN1_OBJECT_HEADER		,"bad asn1 object header"},
@@ -220,7 +222,7 @@ void ERR_load_strings(int lib, ERR_STRING_DATA *str)
 	while (str->error)
 		{
 		str->error|=ERR_PACK(lib,0,0);
-		lh_insert(error_hash,(char *)str);
+		lh_insert(error_hash,str);
 		str++;
 		}
 	CRYPTO_w_unlock(CRYPTO_LOCK_ERR_HASH);
@@ -426,7 +428,7 @@ const char *ERR_lib_error_string(unsigned long e)
 	if (error_hash != NULL)
 		{
 		d.error=ERR_PACK(l,0,0);
-		p=(ERR_STRING_DATA *)lh_retrieve(error_hash,(char *)&d);
+		p=(ERR_STRING_DATA *)lh_retrieve(error_hash,&d);
 		}
 
 	CRYPTO_r_unlock(CRYPTO_LOCK_ERR_HASH);
@@ -447,7 +449,7 @@ const char *ERR_func_error_string(unsigned long e)
 	if (error_hash != NULL)
 		{
 		d.error=ERR_PACK(l,f,0);
-		p=(ERR_STRING_DATA *)lh_retrieve(error_hash,(char *)&d);
+		p=(ERR_STRING_DATA *)lh_retrieve(error_hash,&d);
 		}
 
 	CRYPTO_r_unlock(CRYPTO_LOCK_ERR_HASH);
@@ -468,12 +470,11 @@ const char *ERR_reason_error_string(unsigned long e)
 	if (error_hash != NULL)
 		{
 		d.error=ERR_PACK(l,0,r);
-		p=(ERR_STRING_DATA *)lh_retrieve(error_hash,(char *)&d);
+		p=(ERR_STRING_DATA *)lh_retrieve(error_hash,&d);
 		if (p == NULL)
 			{
 			d.error=ERR_PACK(0,0,r);
-			p=(ERR_STRING_DATA *)lh_retrieve(error_hash,
-				(char *)&d);
+			p=(ERR_STRING_DATA *)lh_retrieve(error_hash,&d);
 			}
 		}
 
@@ -516,7 +517,7 @@ void ERR_remove_state(unsigned long pid)
 		pid=(unsigned long)CRYPTO_thread_id();
 	tmp.pid=pid;
 	CRYPTO_w_lock(CRYPTO_LOCK_ERR);
-	p=(ERR_STATE *)lh_delete(thread_hash,(char *)&tmp);
+	p=(ERR_STATE *)lh_delete(thread_hash,&tmp);
 	CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
 
 	if (p != NULL) ERR_STATE_free(p);
@@ -550,7 +551,7 @@ ERR_STATE *ERR_get_state(void)
 	else
 		{
 		tmp.pid=pid;
-		ret=(ERR_STATE *)lh_retrieve(thread_hash,(char *)&tmp);
+		ret=(ERR_STATE *)lh_retrieve(thread_hash,&tmp);
 		CRYPTO_r_unlock(CRYPTO_LOCK_ERR);
 		}
 
@@ -568,7 +569,7 @@ ERR_STATE *ERR_get_state(void)
 			ret->err_data_flags[i]=0;
 			}
 		CRYPTO_w_lock(CRYPTO_LOCK_ERR);
-		tmpp=(ERR_STATE *)lh_insert(thread_hash,(char *)ret);
+		tmpp=(ERR_STATE *)lh_insert(thread_hash,ret);
 		CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
 		if (tmpp != NULL) /* old entry - should not happen */
 			{
