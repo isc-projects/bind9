@@ -61,6 +61,8 @@ options {
   [ <A HREF="#topology">topology</A> { <VAR>address_match_list</VAR> }; ]
   [ <A HREF="#sortlist">sortlist</A> { <VAR>address_match_list</VAR> }; ]
   [ rrset-order { <VAR>order_spec</VAR> ; [ <VAR>order_spec</VAR> ; ... ] ] }; 
+  [ tkey-domain <VAR>string</VAR> ; ]
+  [ tkey-dhkey <VAR>string</VAR> ; ]
 };
 </PRE>
 <HR>
@@ -739,6 +741,27 @@ for these answers in the server is seconds.  The default <CODE>max-ncache-ttl</C
 maximum retention time for ordinary (positive) answers (7 days) and will be
 silently truncated to 7 days if set to a value which is greater that 7 days.
 </DL>
+
+
+<H4>Security</H4>
+<P>
+<DL>
+<DT><CODE>tkey-domain</CODE>
+<DD>
+A quoted string that sets the domain name appended to relative names used in
+the TKEY key creation process.  When an agreement is initiated by the client,
+it may request a relative name, random name, or an absolute name.  If a
+relative name is used or a random name is created, the value of tkey-domain
+will be appended. 
+
+<DT><CODE>tkey-dhkey</CODE>
+<DD>
+A quoted string that sets the Diffie Hellman key used by the server in a key
+exchange.  A shared secret will be derived from this key, the client's key,
+and some random data, and the secret will be saved as a TSIG shared secret for
+later use.
+</DL>
+
 <HR>
 
 <CENTER><P>[ <A HREF="config.html">BIND Config. File</A>
@@ -747,7 +770,7 @@ silently truncated to 7 days if set to a value which is greater that 7 days.
 
 <HR>
 <ADDRESS>
-Last Updated: $Id: options.html,v 1.1 1999/08/31 17:24:51 brister Exp $
+Last Updated: $Id: options.html,v 1.2 1999/11/02 15:13:59 brister Exp $
 </ADDRESS>
 </BODY>
 </HTML>
