@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.21 2000/06/29 05:21:12 mws Exp $ */
+/* $Id: nslookup.c,v 1.22 2000/06/30 14:11:49 mws Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@ extern int h_errno;
 #include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+#include <isc/task.h>
 
 #include <dig/dig.h>
 
@@ -57,6 +58,7 @@ extern int tries;
 extern int lookup_counter;
 extern char fixeddomain[MXNAME];
 extern int exitcode;
+extern isc_taskmgr_t *taskmgr;
 
 isc_boolean_t short_form = ISC_TRUE, printcmd = ISC_TRUE,
 	filter = ISC_FALSE, showallsoa = ISC_FALSE,
@@ -875,6 +877,10 @@ main(int argc, char **argv) {
 	free_lists(0);
 	isc_mutex_destroy(&lock);
 	isc_condition_destroy(&cond);
+	if (taskmgr != NULL) {
+		debug ("Freeing taskmgr");
+		isc_taskmgr_destroy(&taskmgr);
+        }
 	if (isc_mem_debugging)
 		isc_mem_stats(mctx, stderr);
 	isc_app_finish();

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.53 2000/06/29 05:21:08 mws Exp $ */
+/* $Id: dig.c,v 1.54 2000/06/30 14:11:45 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -25,6 +25,7 @@ extern int h_errno;
 #include <isc/app.h>
 #include <isc/string.h>
 #include <isc/util.h>
+#include <isc/task.h>
 
 #include <dns/message.h>
 #include <dns/name.h>
@@ -63,6 +64,7 @@ extern char keynametext[MXNAME];
 extern char keysecret[MXNAME];
 extern dns_tsigkey_t *key;
 extern isc_boolean_t validated;
+extern isc_taskmgr_t *taskmgr;
 
 extern isc_boolean_t debugging;
 extern isc_boolean_t isc_mem_debugging;
@@ -992,7 +994,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			show_usage();
 			exit (exitcode);
 		} else if (strcmp(rv[0], "-memdebug") == 0) {
-			isc_mem_debugging = ISC_TRUE;
+			isc_mem_debugging = 1;
 		} else if (strcmp(rv[0], "-debug") == 0) {
 			debugging = ISC_TRUE;
 		} else if (strncmp(rv[0], "-x", 2) == 0) {
@@ -1221,9 +1223,13 @@ main(int argc, char **argv) {
 	setup_system();
 	start_lookup();
 	isc_app_run();
+	isc_app_finish();
+	if (taskmgr != NULL) {
+		debug ("Freeing taskmgr");
+		isc_taskmgr_destroy(&taskmgr);
+        }
 	if (isc_mem_debugging)
 		isc_mem_stats(mctx, stderr);
-	isc_app_finish();
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);	
 	return (exitcode);

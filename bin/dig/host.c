@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.31 2000/06/29 05:21:11 mws Exp $ */
+/* $Id: host.c,v 1.32 2000/06/30 14:11:48 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -30,6 +30,7 @@ extern int h_errno;
 #include <isc/commandline.h>
 #include <isc/string.h>
 #include <isc/util.h>
+#include <isc/task.h>
 
 #include <dig/dig.h>
 
@@ -50,6 +51,7 @@ extern int ndots;
 extern int tries;
 extern int lookup_counter;
 extern int exitcode;
+extern isc_taskmgr_t *taskmgr;
 
 isc_boolean_t short_form = ISC_TRUE,
 	filter = ISC_FALSE,
@@ -696,6 +698,10 @@ main(int argc, char **argv) {
 	setup_system();
 	start_lookup();
 	isc_app_run();
+	if (taskmgr != NULL) {
+		debug ("Freeing taskmgr");
+		isc_taskmgr_destroy(&taskmgr);
+        }
 	if (isc_mem_debugging)
 		isc_mem_stats(mctx, stderr);
 	isc_app_finish();

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.63 2000/06/29 07:43:46 explorer Exp $ */
+/* $Id: dighost.c,v 1.64 2000/06/30 14:11:46 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2021,6 +2021,7 @@ free_lists(int _exitcode) {
 		debug ("Freeing global server %p", s);
 		ptr = s;
 		s = ISC_LIST_NEXT(s, link);
+		debug ("ptr is now %p", ptr);
 		isc_mem_free(mctx, ptr);
 	}
 	o = ISC_LIST_HEAD(search_list);
@@ -2042,10 +2043,6 @@ free_lists(int _exitcode) {
 		debug ("Freeing task");
 		isc_task_detach(&global_task);
 	}
-	if (taskmgr != NULL) {
-		debug ("Freeing taskmgr");
-		isc_taskmgr_destroy(&taskmgr);
-        }
 	if (key != NULL) {
 		debug ("Freeing key %p", key);
 		dns_tsigkey_setdeleted(key);
