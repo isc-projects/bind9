@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.28 2001/11/14 22:08:26 bwelling Exp $
+# $Id: Makefile.in,v 1.29 2001/11/21 02:19:00 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -29,17 +29,19 @@ CINCLUDES =	-I${srcdir}/include ${DNS_INCLUDES} ${BIND9_INCLUDES} \
 CDEFINES =	-DVERSION=\"${VERSION}\"
 CWARNINGS =
 
+ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 
+ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
 
-LIBS =		${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} @LIBS@
+LIBS =		${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} ${ISCCFGLIBS} @LIBS@
 
 SUBDIRS =
 
