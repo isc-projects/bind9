@@ -1,3 +1,7 @@
+ 194.	[doc]		The PDF version of the Administrator's Reference
+			Manual is no longer included in the ISC BIND9
+			distribution.
+
  193.	[func]		changed dst_key_free() prototype
 
  192.	[bug]		Zone configuration validation is now done at end 
