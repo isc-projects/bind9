@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.83 2000/08/02 17:58:06 mws Exp $ */
+/* $Id: dig.c,v 1.84 2000/08/02 19:47:17 tale Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -569,7 +569,6 @@ reorder_args(int argc, char *argv[]) {
 static void
 parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	   int argc, char **argv) {
-	isc_boolean_t have_host = ISC_FALSE;
 	isc_result_t result;
 	isc_textregion_t tr;
 	dig_server_t *srv = NULL;
@@ -1000,7 +999,6 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			lookup->new_search = ISC_TRUE;
 
 			ISC_LIST_APPEND(lookup_list, lookup, link);
-			have_host = ISC_TRUE;
 			rv++;
 			rc--;
 		} else {
@@ -1036,7 +1034,6 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 						     lookup->ns_search_only);
 				lookup->new_search = ISC_TRUE;
 				ISC_LIST_APPEND(lookup_list, lookup, link);
-				have_host = ISC_TRUE;
 				debug("looking up %s", lookup->textname);
 			}
 			/* XXX Error message */
