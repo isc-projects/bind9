@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.72 2001/01/09 21:50:55 bwelling Exp $ */
+/* $Id: journal.c,v 1.73 2001/01/24 07:12:56 marka Exp $ */
 
 #include <config.h>
 
@@ -720,10 +720,10 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
  */
 static int
 ixfr_order(const void *av, const void *bv) {
-	dns_difftuple_t * const *ap = av;
-	dns_difftuple_t * const *bp = bv;
-	dns_difftuple_t *a = *ap;
-	dns_difftuple_t *b = *bp;
+	dns_difftuple_t const * const *ap = av;
+	dns_difftuple_t const * const *bp = bv;
+	dns_difftuple_t const *a = *ap;
+	dns_difftuple_t const *b = *bp;
 	int r;
 
 	r = (b->op == DNS_DIFFOP_DEL) - (a->op == DNS_DIFFOP_DEL);
@@ -1768,10 +1768,10 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
  */
 static int
 rdata_order(const void *av, const void *bv) {
-	dns_difftuple_t * const *ap = av;
-	dns_difftuple_t * const *bp = bv;
-	dns_difftuple_t *a = *ap;
-	dns_difftuple_t *b = *bp;
+	dns_difftuple_t const * const *ap = av;
+	dns_difftuple_t const * const *bp = bv;
+	dns_difftuple_t const *a = *ap;
+	dns_difftuple_t const *b = *bp;
 	int r;
 	r = (b->rdata.type - a->rdata.type);
 	if (r != 0)
