@@ -1,3 +1,6 @@
+ 705.	[port]		workout resource limit type for use where rlim_t is
+			not available. [RT #695]
+
  704.	[port]		RLIMIT_NOFILE is not available on all platforms.
 			[RT #695]
 
