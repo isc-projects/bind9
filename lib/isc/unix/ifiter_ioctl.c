@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.17 2001/02/06 01:20:45 bwelling Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.18 2001/06/04 19:33:33 tale Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -45,8 +45,8 @@
 #endif
 
 
-#define IFITER_MAGIC		0x49464954U	/* IFIT. */
-#define VALID_IFITER(t)		((t) != NULL && (t)->magic == IFITER_MAGIC)
+#define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'T')
+#define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
 struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */

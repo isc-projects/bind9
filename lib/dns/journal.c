@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.75 2001/05/21 23:56:31 gson Exp $ */
+/* $Id: journal.c,v 1.76 2001/06/04 19:33:02 tale Exp $ */
 
 #include <config.h>
 
@@ -331,7 +331,7 @@ struct dns_journal {
 	} it;
 };
 
-#define DNS_JOURNAL_MAGIC	0x4a4f5552U	/* JOUR. */
+#define DNS_JOURNAL_MAGIC	ISC_MAGIC('J', 'O', 'U', 'R')
 #define DNS_JOURNAL_VALID(t)	ISC_MAGIC_VALID(t, DNS_JOURNAL_MAGIC)
 
 static void

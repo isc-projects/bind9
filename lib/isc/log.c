@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.64 2001/05/29 22:35:54 bwelling Exp $ */
+/* $Id: log.c,v 1.65 2001/06/04 19:33:24 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -40,9 +40,10 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
-#define LCTX_MAGIC		0x4C637478U	/* Lctx. */
+#define LCTX_MAGIC		ISC_MAGIC('L', 'c', 't', 'x')
 #define VALID_CONTEXT(lctx)	ISC_MAGIC_VALID(lctx, LCTX_MAGIC)
-#define LCFG_MAGIC		0x4C636667U	/* Lcfg. */
+
+#define LCFG_MAGIC		ISC_MAGIC('L', 'c', 'f', 'g')
 #define VALID_CONFIG(lcfg)	ISC_MAGIC_VALID(lcfg, LCFG_MAGIC)
 
 /*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.62 2001/01/24 21:12:48 bwelling Exp $ */
+/* $Id: lex.c,v 1.63 2001/06/04 19:33:22 tale Exp $ */
 
 #include <config.h>
 
@@ -46,9 +46,8 @@ typedef struct inputsource {
 	ISC_LINK(struct inputsource)	link;
 } inputsource;
 
-#define LEX_MAGIC			0x4C657821U	/* Lex!. */
-#define VALID_LEX(l)			((l) != NULL && \
-					 (l)->magic == LEX_MAGIC)
+#define LEX_MAGIC			ISC_MAGIC('L', 'e', 'x', '!')
+#define VALID_LEX(l)			ISC_MAGIC_VALID(l, LEX_MAGIC)
 
 struct isc_lex {
 	/* Unlocked. */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.25 2001/01/24 02:22:50 bwelling Exp $ */
+/* $Id: keytable.c,v 1.26 2001/06/04 19:33:03 tale Exp $ */
 
 #include <config.h>
 
@@ -42,7 +42,7 @@ struct dns_keytable {
 	dns_rbt_t		*table;
 };
 
-#define KEYTABLE_MAGIC			0x4b54626cU	/* KTbl */
+#define KEYTABLE_MAGIC			ISC_MAGIC('K', 'T', 'b', 'l')
 #define VALID_KEYTABLE(kt)	 	ISC_MAGIC_VALID(kt, KEYTABLE_MAGIC)
 
 struct dns_keynode {
@@ -51,7 +51,7 @@ struct dns_keynode {
 	struct dns_keynode *	next;
 };
 
-#define KEYNODE_MAGIC			0x4b4e6f64U	/* KNod */
+#define KEYNODE_MAGIC			ISC_MAGIC('K', 'N', 'o', 'd')
 #define VALID_KEYNODE(kn)	 	ISC_MAGIC_VALID(kn, KEYNODE_MAGIC)
 
 static void

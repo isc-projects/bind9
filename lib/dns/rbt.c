@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.114 2001/05/31 22:32:46 tale Exp $ */
+/* $Id: rbt.c,v 1.115 2001/06/04 19:33:05 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -44,7 +44,7 @@
  * chain junk, and replace with dns_rbt_firstnode, _previousnode, _nextnode,
  * _lastnode.  This would involve pretty major change to the API.
  */
-#define CHAIN_MAGIC		0x302d302dU /* 0-0-. */
+#define CHAIN_MAGIC		ISC_MAGIC('0', '-', '0', '-')
 #define VALID_CHAIN(chain)	ISC_MAGIC_VALID(chain, CHAIN_MAGIC)
 
 #define RBT_HASH_SIZE		64

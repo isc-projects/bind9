@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.49 2001/02/15 01:14:16 bwelling Exp $ */
+/* $Id: compress.c,v 1.50 2001/06/04 19:32:59 tale Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -30,10 +30,10 @@
 #include <dns/rbt.h>
 #include <dns/result.h>
 
-#define CCTX_MAGIC	0x43435458U	/* CCTX */
+#define CCTX_MAGIC	ISC_MAGIC('C', 'C', 'T', 'X')
 #define VALID_CCTX(x)	ISC_MAGIC_VALID(x, CCTX_MAGIC)
 
-#define DCTX_MAGIC	0x44435458U	/* DCTX */
+#define DCTX_MAGIC	ISC_MAGIC('D', 'C', 'T', 'X')
 #define VALID_DCTX(x)	ISC_MAGIC_VALID(x, DCTX_MAGIC)
 
 /***

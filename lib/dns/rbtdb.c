@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.165 2001/05/15 05:35:24 halley Exp $ */
+/* $Id: rbtdb.c,v 1.166 2001/06/04 19:33:06 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -52,14 +52,12 @@
 #endif
 
 #ifdef DNS_RBTDB_VERSION64
-#define RBTDB_MAGIC			0x52424438U	/* RBD8. */
+#define RBTDB_MAGIC			ISC_MAGIC('R', 'B', 'D', '8')
 #else
-#define RBTDB_MAGIC			0x52424434U	/* RBD4. */
+#define RBTDB_MAGIC			ISC_MAGIC('R', 'B', 'D', '4')
 #endif
 
-#define VALID_RBTDB(rbtdb)		((rbtdb) != NULL && \
-					 (rbtdb)->common.impmagic == \
-						RBTDB_MAGIC)
+#define VALID_RBTDB(rbtdb)		ISC_MAGIC_VALID(rbtdb, RBTDB_MAGIC)
 
 #ifdef DNS_RBTDB_VERSION64
 typedef isc_uint64_t			rbtdb_serial_t;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.38 2001/05/31 10:53:42 tale Exp $ */
+/* $Id: cache.c,v 1.39 2001/06/04 19:32:58 tale Exp $ */
 
 #include <config.h>
 
@@ -33,7 +33,7 @@
 #include <dns/masterdump.h>
 #include <dns/result.h>
 
-#define CACHE_MAGIC		0x24242424U 	/* $$$$. */
+#define CACHE_MAGIC		ISC_MAGIC('$', '$', '$', '$')
 #define VALID_CACHE(cache)	ISC_MAGIC_VALID(cache, CACHE_MAGIC)
 
 /***

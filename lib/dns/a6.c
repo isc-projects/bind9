@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6.c,v 1.19 2001/01/09 21:50:35 bwelling Exp $ */
+/* $Id: a6.c,v 1.20 2001/06/04 19:32:54 tale Exp $ */
 
 #include <config.h>
 
@@ -26,7 +26,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 
-#define A6CONTEXT_MAGIC		0x41365858U	/* A6XX. */
+#define A6CONTEXT_MAGIC		ISC_MAGIC('A', '6', 'X', 'X')
 #define VALID_A6CONTEXT(ac)	ISC_MAGIC_VALID(ac, A6CONTEXT_MAGIC)
 
 #define MAX_CHAINS	8

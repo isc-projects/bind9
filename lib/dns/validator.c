@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.89 2001/02/21 19:57:38 bwelling Exp $ */
+/* $Id: validator.c,v 1.90 2001/06/04 19:33:15 tale Exp $ */
 
 #include <config.h>
 
@@ -40,7 +40,7 @@
 #include <dns/validator.h>
 #include <dns/view.h>
 
-#define VALIDATOR_MAGIC			0x56616c3fU	/* Val?. */
+#define VALIDATOR_MAGIC			ISC_MAGIC('V', 'a', 'l', '?')
 #define VALID_VALIDATOR(v)	 	ISC_MAGIC_VALID(v, VALIDATOR_MAGIC)
 
 #define VALATTR_SHUTDOWN		0x01

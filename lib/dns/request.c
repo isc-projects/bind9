@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.60 2001/04/16 21:14:27 bwelling Exp $ */
+/* $Id: request.c,v 1.61 2001/06/04 19:33:08 tale Exp $ */
 
 #include <config.h>
 
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -36,13 +37,11 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 
-#define REQUESTMGR_MAGIC 0x5271754dU		/* RquM */
-#define VALID_REQUESTMGR(mgr) ((mgr) != NULL && \
-			(mgr)->magic == REQUESTMGR_MAGIC)
+#define REQUESTMGR_MAGIC	ISC_MAGIC('R', 'q', 'u', 'M')
+#define VALID_REQUESTMGR(mgr)	ISC_MAGIC_VALID(mgr, REQUESTMGR_MAGIC)
 
-#define REQUEST_MAGIC 0x52717521U		/* Rqu! */
-#define VALID_REQUEST(request) ((request) != NULL && \
-				(request)->magic == REQUEST_MAGIC)
+#define REQUEST_MAGIC		ISC_MAGIC('R', 'q', 'u', '!')
+#define VALID_REQUEST(request)	ISC_MAGIC_VALID(request, REQUEST_MAGIC)
 
 typedef ISC_LIST(dns_request_t) dns_requestlist_t;
 

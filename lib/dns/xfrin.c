@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.120 2001/06/01 15:22:56 marka Exp $ */
+/* $Id: xfrin.c,v 1.121 2001/06/04 19:33:16 tale Exp $ */
 
 #include <config.h>
 
@@ -166,7 +166,7 @@ struct dns_xfrin_ctx {
 	} ixfr;
 };
 
-#define XFRIN_MAGIC		  0x58667269U		/* XfrI. */
+#define XFRIN_MAGIC		  ISC_MAGIC('X', 'f', 'r', 'I')
 #define VALID_XFRIN(x)		  ISC_MAGIC_VALID(x, XFRIN_MAGIC)
 
 /**************************************************************************/

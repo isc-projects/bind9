@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.216 2001/05/29 23:07:28 bwelling Exp $ */
+/* $Id: resolver.c,v 1.217 2001/06/04 19:33:09 tale Exp $ */
 
 #include <config.h>
 
@@ -123,9 +123,8 @@ typedef struct query {
 	unsigned char			data[512];
 } resquery_t;
 
-#define QUERY_MAGIC			0x51212121U	/* Q!!! */
-#define VALID_QUERY(query)		((query) != NULL && \
-					 (query)->magic == QUERY_MAGIC)
+#define QUERY_MAGIC			ISC_MAGIC('Q', '!', '!', '!')
+#define VALID_QUERY(query)		ISC_MAGIC_VALID(query, QUERY_MAGIC)
 
 #define RESQUERY_ATTR_CANCELED		0x02
 
@@ -199,9 +198,8 @@ struct fetchctx {
 	unsigned int			timeouts;
 };
 
-#define FCTX_MAGIC			0x46212121U	/* F!!! */
-#define VALID_FCTX(fctx)		((fctx) != NULL && \
-					 (fctx)->magic == FCTX_MAGIC)
+#define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
+#define VALID_FCTX(fctx)		ISC_MAGIC_VALID(fctx, FCTX_MAGIC)
 
 #define FCTX_ATTR_HAVEANSWER		0x01
 #define FCTX_ATTR_GLUING		0x02
@@ -228,9 +226,8 @@ struct dns_fetch {
 	fetchctx_t *			private;
 };
 
-#define DNS_FETCH_MAGIC			0x46746368U	/* Ftch */
-#define DNS_FETCH_VALID(fetch)		((fetch) != NULL && \
-					 (fetch)->magic == DNS_FETCH_MAGIC)
+#define DNS_FETCH_MAGIC			ISC_MAGIC('F', 't', 'c', 'h')
+#define DNS_FETCH_VALID(fetch)		ISC_MAGIC_VALID(fetch, DNS_FETCH_MAGIC)
 
 typedef struct fctxbucket {
 	isc_task_t *			task;
@@ -266,9 +263,8 @@ struct dns_resolver {
 	dns_fetch_t *			primefetch;
 };
 
-#define RES_MAGIC			0x52657321U	/* Res! */
-#define VALID_RESOLVER(res)		((res) != NULL && \
-					 (res)->magic == RES_MAGIC)
+#define RES_MAGIC			ISC_MAGIC('R', 'e', 's', '!')
+#define VALID_RESOLVER(res)		ISC_MAGIC_VALID(res, RES_MAGIC)
 
 /*
  * Private addrinfo flags.  These must not conflict with DNS_FETCHOPT_NOEDNS0,

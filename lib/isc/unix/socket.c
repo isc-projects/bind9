@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.200 2001/05/14 23:58:33 gson Exp $ */
+/* $Id: socket.c,v 1.201 2001/06/04 19:33:36 tale Exp $ */
 
 #include <config.h>
 
@@ -99,8 +99,8 @@
 
 typedef isc_event_t intev_t;
 
-#define SOCKET_MAGIC		0x494f696fU	/* IOio */
-#define VALID_SOCKET(t)		((t) != NULL && (t)->magic == SOCKET_MAGIC)
+#define SOCKET_MAGIC		ISC_MAGIC('I', 'O', 'i', 'o')
+#define VALID_SOCKET(t)		ISC_MAGIC_VALID(t, SOCKET_MAGIC)
 
 /*
  * IPv6 control information.  If the socket is an IPv6 socket we want
@@ -199,9 +199,9 @@ struct isc_socket {
 #endif
 };
 
-#define SOCKET_MANAGER_MAGIC	0x494f6d67U	/* IOmg */
-#define VALID_MANAGER(m)	((m) != NULL && \
-				 (m)->magic == SOCKET_MANAGER_MAGIC)
+#define SOCKET_MANAGER_MAGIC	ISC_MAGIC('I', 'O', 'm', 'g')
+#define VALID_MANAGER(m)	ISC_MAGIC_VALID(m, SOCKET_MANAGER_MAGIC)
+
 struct isc_socketmgr {
 	/* Not locked. */
 	unsigned int		magic;

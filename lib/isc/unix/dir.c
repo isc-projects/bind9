@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.16 2001/01/29 03:17:44 marka Exp $ */
+/* $Id: dir.c,v 1.17 2001/06/04 19:33:32 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -35,7 +35,7 @@
 
 #include "errno2result.h"
 
-#define ISC_DIR_MAGIC		0x4449522aU	/* DIR*. */
+#define ISC_DIR_MAGIC		ISC_MAGIC('D', 'I', 'R', '*')
 #define VALID_DIR(dir)		ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
 
 void

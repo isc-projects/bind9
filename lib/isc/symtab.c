@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.23 2001/03/07 23:52:16 gson Exp $ */
+/* $Id: symtab.c,v 1.24 2001/06/04 19:33:27 tale Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/symtab.h>
@@ -35,9 +36,8 @@ typedef struct elt {
 
 typedef LIST(elt_t)			eltlist_t;
 
-#define SYMTAB_MAGIC			0x53796D54U	/* SymT. */
-#define VALID_SYMTAB(st)		((st) != NULL && \
-					 (st)->magic == SYMTAB_MAGIC)
+#define SYMTAB_MAGIC			ISC_MAGIC('S', 'y', 'm', 'T')
+#define VALID_SYMTAB(st)		ISC_MAGIC_VALID(st, SYMTAB_MAGIC)
 
 struct isc_symtab {
 	/* Unlocked. */

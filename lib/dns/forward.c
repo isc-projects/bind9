@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.c,v 1.4 2001/01/15 19:54:12 bwelling Exp $ */
+/* $Id: forward.c,v 1.5 2001/06/04 19:33:01 tale Exp $ */
 
 #include <config.h>
 
@@ -39,7 +39,7 @@ struct dns_fwdtable {
 	dns_rbt_t		*table;
 };
 
-#define FWDTABLEMAGIC		0x46776454U	/* FwdT */
+#define FWDTABLEMAGIC		ISC_MAGIC('F', 'w', 'd', 'T')
 #define VALID_FWDTABLE(ft) 	ISC_MAGIC_VALID(ft, FWDTABLEMAGIC)
 
 static void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.7 2001/01/09 21:58:49 bwelling Exp $ */
+/* $Id: dir.c,v 1.8 2001/06/04 19:33:37 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -24,9 +24,8 @@
 #include <isc/dir.h>
 #include <isc/assertions.h>
 
-#define ISC_DIR_MAGIC		0x4449522aU	/* DIR*. */
-#define VALID_DIR(dir)		((dir) != NULL && \
-				 (dir)->magic == ISC_DIR_MAGIC)
+#define ISC_DIR_MAGIC		ISC_MAGIC('D', 'I', 'R', '*')
+#define VALID_DIR(dir)		ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
 
 static isc_result_t
 start_directory(isc_dir_t *p);

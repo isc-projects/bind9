@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.178 2001/05/29 22:44:12 bwelling Exp $ */
+/* $Id: adb.c,v 1.179 2001/06/04 19:32:55 tale Exp $ */
 
 /*
  * Implementation notes
@@ -57,19 +57,19 @@
 #include <dns/resolver.h>
 #include <dns/result.h>
 
-#define DNS_ADB_MAGIC		  0x44616462	/* Dadb. */
+#define DNS_ADB_MAGIC		  ISC_MAGIC('D', 'a', 'd', 'b')
 #define DNS_ADB_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)
-#define DNS_ADBNAME_MAGIC	  0x6164624e	/* adbN. */
+#define DNS_ADBNAME_MAGIC	  ISC_MAGIC('a', 'd', 'b', 'N')
 #define DNS_ADBNAME_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBNAME_MAGIC)
-#define DNS_ADBNAMEHOOK_MAGIC	  0x61644e48	/* adNH. */
+#define DNS_ADBNAMEHOOK_MAGIC	  ISC_MAGIC('a', 'd', 'N', 'H')
 #define DNS_ADBNAMEHOOK_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBNAMEHOOK_MAGIC)
-#define DNS_ADBZONEINFO_MAGIC	  0x6164625a	/* adbZ. */
+#define DNS_ADBZONEINFO_MAGIC	  ISC_MAGIC('a', 'd', 'b', 'Z')
 #define DNS_ADBZONEINFO_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBZONEINFO_MAGIC)
-#define DNS_ADBENTRY_MAGIC	  0x61646245	/* adbE. */
+#define DNS_ADBENTRY_MAGIC	  ISC_MAGIC('a', 'd', 'b', 'E')
 #define DNS_ADBENTRY_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBENTRY_MAGIC)
-#define DNS_ADBFETCH_MAGIC	  0x61644634	/* adF4. */
+#define DNS_ADBFETCH_MAGIC	  ISC_MAGIC('a', 'd', 'F', '4')
 #define DNS_ADBFETCH_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH_MAGIC)
-#define DNS_ADBFETCH6_MAGIC	  0x61644636	/* adF6. */
+#define DNS_ADBFETCH6_MAGIC	  ISC_MAGIC('a', 'd', 'F', '6')
 #define DNS_ADBFETCH6_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH6_MAGIC)
 
 /*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.169 2001/05/28 05:16:54 marka Exp $ */
+/* $Id: client.c,v 1.170 2001/06/04 19:32:52 tale Exp $ */
 
 #include <config.h>
 
@@ -100,9 +100,8 @@ struct ns_clientmgr {
 	client_list_t 			inactive;	/* To be recycled */
 };
 
-#define MANAGER_MAGIC			0x4E53436DU	/* NSCm */
-#define VALID_MANAGER(m)		((m) != NULL && \
-					 (m)->magic == MANAGER_MAGIC)
+#define MANAGER_MAGIC			ISC_MAGIC('N', 'S', 'C', 'm')
+#define VALID_MANAGER(m)		ISC_MAGIC_VALID(m, MANAGER_MAGIC)
 
 /*
  * Client object states.  Ordering is significant: higher-numbered

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.108 2001/05/06 02:23:06 mayer Exp $
+ * $Id: tsig.c,v 1.109 2001/06/04 19:33:14 tale Exp $
  */
 
 #include <config.h>
@@ -42,7 +42,7 @@
 
 #include <dst/result.h>
 
-#define TSIG_MAGIC		0x54534947	/* TSIG */
+#define TSIG_MAGIC		ISC_MAGIC('T', 'S', 'I', 'G')
 #define VALID_TSIG_KEY(x)	ISC_MAGIC_VALID(x, TSIG_MAGIC)
 
 #define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.c,v 1.27 2001/01/09 21:56:03 bwelling Exp $ */
+/* $Id: heap.c,v 1.28 2001/06/04 19:33:21 tale Exp $ */
 
 /*
  * Heap implementation of priority queues adapted from the following:
@@ -30,6 +30,7 @@
 #include <config.h>
 
 #include <isc/heap.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/string.h>		/* Required for memcpy. */
 #include <isc/util.h>
@@ -44,9 +45,8 @@
 
 #define SIZE_INCREMENT			1024
 
-#define HEAP_MAGIC			0x48454150U	/* HEAP. */
-#define VALID_HEAP(h)			((h) != NULL && \
-					 (h)->magic == HEAP_MAGIC)
+#define HEAP_MAGIC			ISC_MAGIC('H', 'E', 'A', 'P')
+#define VALID_HEAP(h)			ISC_MAGIC_VALID(h, HEAP_MAGIC)
 
 /*
  * When the heap is in a consistent state, the following invariant

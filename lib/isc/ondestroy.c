@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ondestroy.c,v 1.10 2001/01/09 21:56:19 bwelling Exp $ */
+/* $Id: ondestroy.c,v 1.11 2001/06/04 19:33:26 tale Exp $ */
 
 #include <config.h>
 
@@ -27,7 +27,7 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
-#define ONDESTROY_MAGIC		0x44655374 /* DeSt */
+#define ONDESTROY_MAGIC		ISC_MAGIC('D', 'e', 'S', 't')
 #define VALID_ONDESTROY(s)	ISC_MAGIC_VALID(s, ONDESTROY_MAGIC)
 
 void

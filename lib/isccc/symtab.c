@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.2 2001/03/27 20:08:02 bwelling Exp $ */
+/* $Id: symtab.c,v 1.3 2001/06/04 19:33:39 tale Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,8 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/magic.h>
+
 #include <isccc/result.h>
 #include <isccc/symtab.h>
 #include <isccc/util.h>
@@ -38,9 +40,8 @@ typedef struct elt {
 
 typedef ISC_LIST(elt_t)			eltlist_t;
 
-#define SYMTAB_MAGIC			0x53796D54U	/* SymT. */
-#define VALID_SYMTAB(st)		((st) != NULL && \
-					 (st)->magic == SYMTAB_MAGIC)
+#define SYMTAB_MAGIC			ISC_MAGIC('S', 'y', 'm', 'T')
+#define VALID_SYMTAB(st)		ISC_MAGIC_VALID(st, SYMTAB_MAGIC)
 
 struct isccc_symtab {
 	unsigned int			magic;

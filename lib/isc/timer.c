@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.63 2001/01/27 02:44:07 bwelling Exp $ */
+/* $Id: timer.c,v 1.64 2001/06/04 19:33:29 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/condition.h>
 #include <isc/heap.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/platform.h>
@@ -48,9 +49,9 @@
 #define XTRACETIMER(s, t, d)
 #endif /* ISC_TIMER_TRACE */
 
-#define TIMER_MAGIC			0x54494D52U	/* TIMR. */
-#define VALID_TIMER(t)			((t) != NULL && \
-					 (t)->magic == TIMER_MAGIC)
+#define TIMER_MAGIC			ISC_MAGIC('T', 'I', 'M', 'R')
+#define VALID_TIMER(t)			ISC_MAGIC_VALID(t, TIMER_MAGIC)
+
 struct isc_timer {
 	/* Not locked. */
 	unsigned int			magic;
@@ -71,9 +72,8 @@ struct isc_timer {
 	LINK(isc_timer_t)		link;
 };
 
-#define TIMER_MANAGER_MAGIC		0x54494D4DU	/* TIMM. */
-#define VALID_MANAGER(m)		((m) != NULL && \
-					 (m)->magic == TIMER_MANAGER_MAGIC)
+#define TIMER_MANAGER_MAGIC		ISC_MAGIC('T', 'I', 'M', 'M')
+#define VALID_MANAGER(m)		ISC_MAGIC_VALID(m, TIMER_MANAGER_MAGIC)
 
 struct isc_timermgr {
 	/* Not locked. */

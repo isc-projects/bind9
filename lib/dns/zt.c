@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.32 2001/05/14 19:06:43 bwelling Exp $ */
+/* $Id: zt.c,v 1.33 2001/06/04 19:33:19 tale Exp $ */
 
 #include <config.h>
 
@@ -39,7 +39,7 @@ struct dns_zt {
 	dns_rbt_t		*table;
 };
 
-#define ZTMAGIC			0x5a54626cU	/* ZTbl */
+#define ZTMAGIC			ISC_MAGIC('Z', 'T', 'b', 'l')
 #define VALID_ZT(zt) 		ISC_MAGIC_VALID(zt, ZTMAGIC)
 
 static void

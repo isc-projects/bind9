@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.13 2001/02/06 01:20:46 bwelling Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.14 2001/06/04 19:33:34 tale Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -39,8 +39,8 @@
                     : sizeof(long))
 #endif
 
-#define IFITER_MAGIC		0x49464953U	/* IFIS. */
-#define VALID_IFITER(t)		((t) != NULL && (t)->magic == IFITER_MAGIC)
+#define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'S')
+#define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
 struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */

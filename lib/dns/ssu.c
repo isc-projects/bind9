@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.20 2001/01/09 21:51:33 bwelling Exp $
+ * $Id: ssu.c,v 1.21 2001/06/04 19:33:11 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -30,10 +30,11 @@
 #include <dns/name.h>
 #include <dns/ssu.h>
 
-#define SSUTABLEMAGIC		0x53535554 /* SSUT */
-#define VALID_SSUTABLE(table)	ISC_MAGIC_VALID((table), SSUTABLEMAGIC)
-#define SSURULEMAGIC		0x53535552 /* SSUR */
-#define VALID_SSURULE(table)	ISC_MAGIC_VALID((table), SSURULEMAGIC)
+#define SSUTABLEMAGIC		ISC_MAGIC('S', 'S', 'U', 'T')
+#define VALID_SSUTABLE(table)	ISC_MAGIC_VALID(table, SSUTABLEMAGIC)
+
+#define SSURULEMAGIC		ISC_MAGIC('S', 'S', 'U', 'R')
+#define VALID_SSURULE(table)	ISC_MAGIC_VALID(table, SSURULEMAGIC)
 
 struct dns_ssurule {
 	isc_uint32_t magic;

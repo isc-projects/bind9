@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.90 2001/02/20 22:03:36 gson Exp $ */
+/* $Id: mem.c,v 1.91 2001/06/04 19:33:25 tale Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 
 #include <limits.h>
 
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/ondestroy.h>
@@ -100,8 +101,8 @@ struct stats {
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 };
 
-#define MEM_MAGIC		0x4D656d43U	/* MemC. */
-#define VALID_CONTEXT(c)	((c) != NULL && (c)->magic == MEM_MAGIC)
+#define MEM_MAGIC		ISC_MAGIC('M', 'e', 'm', 'C')
+#define VALID_CONTEXT(c)	ISC_MAGIC_VALID(c, MEM_MAGIC)
 
 struct isc_mem {
 	unsigned int		magic;
@@ -140,8 +141,8 @@ struct isc_mem {
 #endif
 };
 
-#define MEMPOOL_MAGIC		0x4D454d70U	/* MEMp. */
-#define VALID_MEMPOOL(c)	((c) != NULL && (c)->magic == MEMPOOL_MAGIC)
+#define MEMPOOL_MAGIC		ISC_MAGIC('M', 'E', 'M', 'p')
+#define VALID_MEMPOOL(c)	ISC_MAGIC_VALID(c, MEMPOOL_MAGIC)
 
 struct isc_mempool {
 	/* always unlocked */

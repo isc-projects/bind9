@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.32 2001/05/29 18:34:24 bwelling Exp $ */
+/* $Id: sdb.c,v 1.33 2001/06/04 19:33:10 tale Exp $ */
 
 #include <config.h>
 
@@ -98,9 +98,8 @@ typedef struct sdb_rdatasetiter {
 	dns_rdatalist_t			*current;
 } sdb_rdatasetiter_t;
 
-#define SDB_MAGIC		0x5344422d	/* SDB- */
-#define VALID_SDB(sdb)		((sdb) != NULL && \
-				 (sdb)->common.impmagic == SDB_MAGIC)
+#define SDB_MAGIC		ISC_MAGIC('S', 'D', 'B', '-')
+#define VALID_SDB(sdb)		ISC_MAGIC_VALID(sdb, SDB_MAGIC)
 
 #define SDBLOOKUP_MAGIC		ISC_MAGIC('S','D','B','L')
 #define VALID_SDBLOOKUP(sdbl)	ISC_MAGIC_VALID(sdbl, SDBLOOKUP_MAGIC)

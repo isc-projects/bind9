@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ccmsg.c,v 1.3 2001/03/27 20:07:57 bwelling Exp $ */
+/* $Id: ccmsg.c,v 1.4 2001/06/04 19:33:38 tale Exp $ */
 
 #include <config.h>
 
@@ -28,7 +28,7 @@
 #include <isccc/events.h>
 #include <isccc/ccmsg.h>
 
-#define CCMSG_MAGIC		0x43436d73	/* CCms */
+#define CCMSG_MAGIC		ISC_MAGIC('C', 'C', 'm', 's')
 #define VALID_CCMSG(foo)	ISC_MAGIC_VALID(foo, CCMSG_MAGIC)
 
 static void recv_length(isc_task_t *, isc_event_t *);

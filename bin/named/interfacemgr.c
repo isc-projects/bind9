@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.57 2001/02/27 04:20:44 bwelling Exp $ */
+/* $Id: interfacemgr.c,v 1.58 2001/06/04 19:32:53 tale Exp $ */
 
 #include <config.h>
 
@@ -31,8 +31,8 @@
 #include <named/log.h>
 #include <named/interfacemgr.h>
 
-#define IFMGR_MAGIC		0x49464D47U	/* IFMG. */
-#define NS_INTERFACEMGR_VALID(t) ISC_MAGIC_VALID(t, IFMGR_MAGIC)
+#define IFMGR_MAGIC			ISC_MAGIC('I', 'F', 'M', 'G')
+#define NS_INTERFACEMGR_VALID(t)	ISC_MAGIC_VALID(t, IFMGR_MAGIC)
 
 #define IFMGR_COMMON_LOGARGS \
 	ns_g_lctx, NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR

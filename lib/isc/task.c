@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.84 2001/02/13 04:11:41 gson Exp $ */
+/* $Id: task.c,v 1.85 2001/06/04 19:33:28 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -30,6 +30,7 @@
 
 #include <isc/condition.h>
 #include <isc/event.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/platform.h>
@@ -66,9 +67,8 @@ typedef enum {
 	task_state_done
 } task_state_t;
 
-#define TASK_MAGIC			0x5441534BU	/* TASK. */
-#define VALID_TASK(t)			((t) != NULL && \
-					 (t)->magic == TASK_MAGIC)
+#define TASK_MAGIC			ISC_MAGIC('T', 'A', 'S', 'K')
+#define VALID_TASK(t)			ISC_MAGIC_VALID(t, TASK_MAGIC)
 
 struct isc_task {
 	/* Not locked. */
@@ -96,9 +96,8 @@ struct isc_task {
 #define TASK_SHUTTINGDOWN(t)		(((t)->flags & TASK_F_SHUTTINGDOWN) \
 					 != 0)
 
-#define TASK_MANAGER_MAGIC		0x54534B4DU	/* TSKM. */
-#define VALID_MANAGER(m)		((m) != NULL && \
-					 (m)->magic == TASK_MANAGER_MAGIC)
+#define TASK_MANAGER_MAGIC		ISC_MAGIC('T', 'S', 'K', 'M')
+#define VALID_MANAGER(m)		ISC_MAGIC_VALID(m, TASK_MANAGER_MAGIC)
 
 struct isc_taskmgr {
 	/* Not locked. */

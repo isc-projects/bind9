@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.325 2001/05/14 20:44:12 bwelling Exp $ */
+/* $Id: zone.c,v 1.326 2001/06/04 19:33:17 tale Exp $ */
 
 #include <config.h>
 
@@ -57,31 +57,32 @@
 #include <dns/xfrin.h>
 #include <dns/zone.h>
 
-#define ZONE_MAGIC 0x5a4f4e45U		/* ZONE */
-#define NOTIFY_MAGIC 0x4e746679U	/* Ntfy */
-#define STUB_MAGIC 0x53747562U		/* Stub */
-#define ZONEMGR_MAGIC 0x5a6d6772U	/* Zmgr */
-#define LOAD_MAGIC ISC_MAGIC('L','o','a','d')
-#define FORWARD_MAGIC ISC_MAGIC('F','o','r','w')
-#define IO_MAGIC ISC_MAGIC('Z','m','I','O')
+#define ZONE_MAGIC			ISC_MAGIC('Z', 'O', 'N', 'E')
+#define DNS_ZONE_VALID(zone)		ISC_MAGIC_VALID(zone, ZONE_MAGIC)
 
-#define DNS_ZONE_VALID(zone) \
-	ISC_MAGIC_VALID(zone, ZONE_MAGIC)
-#define DNS_NOTIFY_VALID(notify) \
-	ISC_MAGIC_VALID(notify, NOTIFY_MAGIC)
-#define DNS_STUB_VALID(stub) \
-	ISC_MAGIC_VALID(stub, STUB_MAGIC)
-#define DNS_ZONEMGR_VALID(stub) \
-	ISC_MAGIC_VALID(stub, ZONEMGR_MAGIC)
-#define DNS_LOAD_VALID(load) \
-	ISC_MAGIC_VALID(load, LOAD_MAGIC)
-#define DNS_FORWARD_VALID(load) \
-	ISC_MAGIC_VALID(load, FORWARD_MAGIC)
-#define DNS_IO_VALID(load) \
-	ISC_MAGIC_VALID(load, IO_MAGIC)
+#define NOTIFY_MAGIC			ISC_MAGIC('N', 't', 'f', 'y')
+#define DNS_NOTIFY_VALID(notify)	ISC_MAGIC_VALID(notify, NOTIFY_MAGIC)
 
+#define STUB_MAGIC			ISC_MAGIC('S', 't', 'u', 'b')
+#define DNS_STUB_VALID(stub)		ISC_MAGIC_VALID(stub, STUB_MAGIC)
 
-#define RANGE(a, b, c) (((a) < (b)) ? (b) : ((a) < (c) ? (a) : (c)))
+#define ZONEMGR_MAGIC			ISC_MAGIC('Z', 'm', 'g', 'r')
+#define DNS_ZONEMGR_VALID(stub)		ISC_MAGIC_VALID(stub, ZONEMGR_MAGIC)
+
+#define LOAD_MAGIC			ISC_MAGIC('L', 'o', 'a', 'd')
+#define DNS_LOAD_VALID(load)		ISC_MAGIC_VALID(load, LOAD_MAGIC)
+
+#define FORWARD_MAGIC			ISC_MAGIC('F', 'o', 'r', 'w')
+#define DNS_FORWARD_VALID(load)		ISC_MAGIC_VALID(load, FORWARD_MAGIC)
+
+#define IO_MAGIC			ISC_MAGIC('Z', 'm', 'I', 'O')
+#define DNS_IO_VALID(load)		ISC_MAGIC_VALID(load, IO_MAGIC)
+
+/*
+ * Ensure 'a' is at least 'min' but not more than 'max'.
+ */
+#define RANGE(a, min, max) \
+		(((a) < (min)) ? (min) : ((a) < (max) ? (a) : (max)))
 
 /*
  * Default values.
