@@ -1,0 +1,5 @@
+server 10.53.0.1 5300
+update add updated.example.nil. 600 A 10.10.10.1
+update add updated.example.nil. 600 TXT Foo
+update delete t.example.nil.
+
