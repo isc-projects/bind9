@@ -1,3 +1,5 @@
+1213.	[func]		Entropy can now be retrieved from EGDs. [RT #2438]
+
 1212.	[func]		Enable IPv6 support when using ioctl style interface
 			scanning and OS supports SIOCGLIFADDR using struct
 			if_laddrreq.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.4 2001/11/27 00:56:21 gson Exp $ */
+/* $Id: entropy.c,v 1.5 2002/05/30 04:21:17 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -38,6 +38,10 @@
  * is defined here.
  */
 #define FILESOURCE_HANDLE_TYPE	HCRYPTPROV
+
+typedef struct {
+	int dummy;
+} isc_entropyusocketsource_t;
 
 #include "../entropy.c"
 
@@ -225,6 +229,11 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 static void
 destroyfilesource(isc_entropyfilesource_t *source) {
 	CryptReleaseContext(source->handle, 0);
+}
+
+static void
+destroyusocketsource(isc_entropyusocketsource_t *source) {
+	UNUSED(source);
 }
 
 
