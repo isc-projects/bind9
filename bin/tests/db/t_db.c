@@ -214,7 +214,7 @@ t_dns_db_load(char **av) {
 			&rdataset, NULL);
 
 	if (dns_result != exp_find_result) {
-		t_info("dns_db_findnode returned %s, expected %s\n",
+		t_info("dns_db_find returned %s, expected %s\n",
 				dns_result_totext(dns_result),
 				dns_result_totext(exp_find_result));
 		result = T_FAIL;
@@ -1021,6 +1021,7 @@ t_dns_db_newversion(char **av) {
 
 	dns_rdataset_init(&added_rdataset);
 	rdatalist.type = rdatatype;
+	rdatalist.covers = 0;
 	rdatalist.rdclass = rdataclass;
 	rdatalist.ttl = 0;
 	ISC_LIST_INIT(rdatalist.rdata);
@@ -1366,6 +1367,7 @@ t_dns_db_closeversion_1(char **av) {
 
 	dns_rdataset_init(&added_rdataset);
 	rdatalist.type = new_rdatatype;
+	rdatalist.covers = 0;
 	rdatalist.rdclass = rdataclass;
 	rdatalist.ttl = 0;
 	ISC_LIST_INIT(rdatalist.rdata);
@@ -1719,6 +1721,7 @@ t_dns_db_closeversion_2(char **av) {
 
 	dns_rdataset_init(&added_rdataset);
 	rdatalist.type = new_rdatatype;
+	rdatalist.covers = 0;
 	rdatalist.rdclass = rdataclass;
 	rdatalist.ttl = 0;
 	ISC_LIST_INIT(rdatalist.rdata);
