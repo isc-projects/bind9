@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.45 2004/03/05 05:12:45 marka Exp $ */
+/* $Id: context.c,v 1.45.18.1 2004/09/17 05:58:12 marka Exp $ */
 
 #include <config.h>
 
@@ -346,13 +346,12 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	struct timeval timeout;
 
 	/*
-	 * Type of tv_sec is long, so make sure the unsigned long timeout
-	 * does not overflow it.
+	 * Type of tv_sec is 32 bits long. 
 	 */
-	if (ctx->timeout <= (unsigned int)LONG_MAX)
-		timeout.tv_sec = (long)ctx->timeout;
+	if (ctx->timeout <= 0x7FFFFFFFU)
+		timeout.tv_sec = (int)ctx->timeout;
 	else
-		timeout.tv_sec = LONG_MAX;
+		timeout.tv_sec = 0x7FFFFFFF;
 
 	timeout.tv_usec = 0;
 
