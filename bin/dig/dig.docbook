@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.5 2001/09/13 01:37:10 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.6 2001/09/13 01:49:56 gson Exp $ -->
 
 <refentry>
 
@@ -99,9 +99,9 @@ NS query for "." (the root).
 </para>
 
 <para>
-It is possible to set per user defaults for <command>dig</command> via
+It is possible to set per-user defaults for <command>dig</command> via
 <filename>${HOME}/.digrc</filename>.  This file is read and any options in it
-are applied before the command line arguements.
+are applied before the command line arguments.
 </para>
 
 </refsect1>
