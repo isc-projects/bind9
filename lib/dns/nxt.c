@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.26 2001/01/09 21:51:09 bwelling Exp $ */
+/* $Id: nxt.c,v 1.26.206.1 2003/10/03 03:39:52 marka Exp $ */
 
 #include <config.h>
 
@@ -119,7 +119,7 @@ dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	if (result != ISC_R_NOMORE)
 		return (result);
 
-	r.length += ((max_type + 7) / 8);
+	r.length += max_type / 8 + 1;
 	INSIST(r.length <= DNS_NXT_BUFFERSIZE);
 	dns_rdata_fromregion(rdata,
 			     dns_db_class(db),
