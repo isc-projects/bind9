@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.4 2001/07/26 03:15:14 mayer Exp $ */
+/* $Id: ntpaths.h,v 1.5 2001/07/26 20:06:22 gson Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -43,7 +43,7 @@ enum NtPaths {
 /*
  * Define a macro to get the path of the RNDC config file
  */
-#define RNDC_SYSCONFPATH isc_ntpaths_get(RNDC_CONF_PATH)
+#define RNDC_CONFFILE isc_ntpaths_get(RNDC_CONF_PATH)
 
 /*
  * Information about where these are on disk
