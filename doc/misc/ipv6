@@ -43,11 +43,11 @@ Partly because of these problems, the latest IPv6 API introduces an
 explicit knob (the "IPV6_V6ONLY" socket option ) to turn off the ipv6
 mapped address usage.
 
-In bind9, we first checks if both the advanced API and the IPV6_V6ONLY
-socket option are both available.  If both of them are available,
-bind9 named will bind to the ipv6 wildcard port for both TCP and
-UDP.  Otherwise named will make a warning and try to bind to all
-available ipv6 addresses separately.
+In bind9, we first check if both the advanced API and the IPV6_V6ONLY
+socket option are available.  If both of them are available, bind9
+named will bind to the ipv6 wildcard port for both TCP and UDP.
+Otherwise named will make a warning and try to bind to all available
+ipv6 addresses separately.
 
 In any case, bind9 named binds to specific addresses for ipv4 sockets.
 
@@ -110,4 +110,4 @@ RELEVANT RFCs
 3542:  Advanced Sockets Application Program Interface (API) for IPv6
 
 
-$Id: ipv6,v 1.7 2004/07/29 21:40:02 jinmei Exp $
+$Id: ipv6,v 1.8 2004/08/02 04:06:39 jinmei Exp $
