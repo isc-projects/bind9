@@ -215,9 +215,16 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				       view->rdclass, "rbt", 0, NULL, &cache));
 	}
 	dns_view_setcache(view, cache);
-	cleaning_interval = 3600; /* Default is 1 hour. */
-	(void) dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);
+
+	result = ISC_R_NOTFOUND;
+	if (cview != NULL)
+		result = dns_c_view_getcleaninterval(cview, &cleaning_interval);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);	
+	if (result != ISC_R_SUCCESS)
+		cleaning_interval = 3600; /* Default is 1 hour. */
 	dns_cache_setcleaninginterval(cache, cleaning_interval);
+
 	dns_cache_detach(&cache);
 
 	/*
