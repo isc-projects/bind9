@@ -63,6 +63,7 @@
 #include <isc/boolean.h>
 #include <isc/result.h>
 #include <isc/event.h>
+#include <isc/eventclass.h>
 #include <isc/task.h>
 #include <isc/region.h>
 #include <isc/mem.h>
