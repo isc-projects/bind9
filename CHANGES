@@ -1,8 +1,12 @@
-1077.   [func]          Do not accept further recursive clients when
-                        the total number of of recursive lookups being
-                        processed exceeds max-recursive-clients, even
-                        if some of the lookups are internally generated.
-                        [RT #1915, #1938]
+1079.	[bug]		BIND 8 compatibility: accept bare elements at top
+			level of sort list treating them as if they were
+			a single element list. [RT #1963]
+
+1077.	[func]		Do not accept further recursive clients when
+			the total number of of recursive lookups being
+			processed exceeds max-recursive-clients, even
+			if some of the lookups are internally generated.
+			[RT #1915, #1938]
 
 1073.	[bug]		The ADB cache cleaning should also be space driven.
 			[RT #1915, #1938]
