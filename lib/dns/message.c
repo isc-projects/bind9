@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10 2003/07/22 04:03:41 marka Exp $ */
+/* $Id: message.c,v 1.194.2.11 2004/03/04 05:05:51 marka Exp $ */
 
 /***
  *** Imports
@@ -2450,7 +2450,6 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->state == DNS_SECTION_ANY);
-	REQUIRE(msg->tsigkey == NULL && msg->sig0key == NULL);
 
 	if (key != NULL) {
 		dns_tsigkey_attach(key, &msg->tsigkey);
@@ -2616,7 +2615,6 @@ dns_message_setsig0key(dns_message_t *msg, dst_key_t *key) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
-	REQUIRE(msg->sig0key == NULL && msg->tsigkey == NULL);
 
 	msg->sig0key = key;
 	if (key != NULL) {
