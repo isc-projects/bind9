@@ -1,6 +1,8 @@
+
+
 INTERNET-DRAFT                                       Andreas Gustafsson
-draft-ietf-dnsext-unknown-rrs-03.txt                       Nominum Inc.
-                                                              June 2002
+draft-ietf-dnsext-unknown-rrs-04.txt                       Nominum Inc.
+                                                         September 2002
 
 
                     Handling of Unknown DNS RR Types
@@ -49,9 +51,9 @@ Abstract
 
 
 
-Expires December 2002                                           [Page 1]
+Expires March 2003                                              [Page 1]
 
-draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
+draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
 
 
    fully realized.  This memo proposes changes to name servers and to
@@ -83,6 +85,14 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
    unstructured binary data, storing and transmitting it without change
    [RFC1123].
 
+   To ensure the correct operation of equality comparison (section 6)
+   and of the DNSSEC canonical form (section 7) when an RR type is known
+   to some but not all of the servers involved, servers MUST also
+   exactly preserve the RDATA of RRs of known type, except for changes
+   due to compression or decompression where allowed by section 4 of
+   this memo.  In particular, the character case of domain names that
+   are not subject to compression MUST be preserved.
+
 4. Domain Name Compression
 
    RRs containing compression pointers in the RDATA part cannot be
@@ -94,6 +104,14 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
    name to be corrupted.
 
    To avoid such corruption, servers MUST NOT compress domain names
+
+
+
+Expires March 2003                                              [Page 2]
+
+draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
+
+
    embedded in the RDATA of types that are class-specific or not well-
    known.  This requirement was stated in RFC1123 without defining the
    term "well-known"; it is hereby specified that only the RR types
@@ -102,14 +120,6 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
    Receiving servers MUST decompress domain names in RRs of well-known
    type, and SHOULD also decompress RRs of type RP, AFSDB, RT, SIG, PX,
    NXT, NAPTR, and SRV (although the current specification of the SRV RR
-
-
-
-Expires December 2002                                           [Page 2]
-
-draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
-
-
    in RFC2782 prohibits compression, RFC2052 mandated it, and some
    servers following that earlier specification are still in use).
 
@@ -150,6 +160,14 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
       the actual RDATA field, each containing an even
       number of hexadecimal digits.
 
+
+
+
+Expires March 2003                                              [Page 3]
+
+draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
+
+
    If the RDATA is of zero length, the text representation contains only
    the \# token and the single zero representing the length.
 
@@ -158,14 +176,6 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
    RDATA, which carries the benefit of making the resulting master file
    portable to servers where these types are unknown.  Using the generic
    representation for the RDATA of an RR of known type can also be
-
-
-
-Expires December 2002                                           [Page 3]
-
-draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
-
-
    useful in the case of an RR type where the text format varies
    depending on a version, protocol, or similar field (or several)
    embedded in the RDATA when such a field has a value for which no text
@@ -206,6 +216,14 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
    records differing only in character case, and not expected to cause
    any problems in practice.
 
+
+
+
+Expires March 2003                                              [Page 4]
+
+draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
+
+
 7. DNSSEC Canonical Form and Ordering
 
    DNSSEC [RFC2535] defines a canonical form and ordering for RRs.  In
@@ -214,20 +232,15 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
 
    To ensure backwards compatibility, this canonical form remains
    unchanged for any RR types defined in RFC2931 or earlier.  That is,
-
-
-
-Expires December 2002                                           [Page 4]
-
-draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
-
-
    the domain names embedded in RRs of type NS, MD, MF, CNAME, SOA, MB,
    MG, MR, PTR, HINFO, MINFO, MX, HINFO, RP, AFSDB, RT, SIG, PX, NXT,
-   NAPTR, KX, SRV, DNAME, and A6 are converted to lower case.  For all
-   other RR types, the canonical form is hereby changed such that no
-   downcasing of embedded domain names takes place.  The owner name is
-   still set to lower case.
+   NAPTR, KX, SRV, DNAME, and A6 are converted to lower case according
+   to the DNS rules for character comparisons.
+
+   For all other RR types, the canonical form is hereby changed such
+   that no downcasing of embedded domain names takes place.  The owner
+   name is always set to lower case according to the DNS rules for
+   character comparisons, regardless of the RR type.
 
    The canonical ordering is as specified in RFC2535 section 8.3, where
    the octet sequence is the canonical form as revised by this
@@ -260,6 +273,13 @@ References
    [RFC1035] - Domain Names - Implementation and Specifications, P.
    Mockapetris, November 1987.
 
+
+
+Expires March 2003                                              [Page 5]
+
+draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
+
+
    [RFC1123] - Requirements for Internet Hosts -- Application and
    Support, R. Braden, Editor, October 1989.
 
@@ -269,14 +289,6 @@ References
 
    [RFC2052] - A DNS RR for specifying the location of services (DNS
    SRV), A. Gulbrandsen, P. Vixie, October 1996.  Obsoleted by RFC2782.
-
-
-
-
-Expires December 2002                                           [Page 5]
-
-draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
-
 
    [RFC2119] - Bradner, S., "Key words for use in RFCs to Indicate
    Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -316,6 +328,14 @@ Full Copyright Statement
    distributed, in whole or in part, without restriction of any kind,
    provided that the above copyright notice and this paragraph are
    included on all such copies and derivative works.  However, this
+
+
+
+Expires March 2003                                              [Page 6]
+
+draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
+
+
    document itself may not be modified in any way, such as by removing
    the copyright notice or references to the Internet Society or other
    Internet organizations, except as needed for the purpose of
@@ -326,13 +346,6 @@ Full Copyright Statement
 
    The limited permissions granted above are perpetual and will not be
    revoked by the Internet Society or its successors or assigns.
-
-
-
-Expires December 2002                                           [Page 6]
-
-draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
-
 
    This document and the information contained herein is provided on an
    "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
@@ -374,17 +387,5 @@ draft-ietf-dnsext-unknown-rrs-03.txt                           June 2002
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-Expires December 2002                                           [Page 7]
-
-
+Expires March 2003                                              [Page 7]
+
