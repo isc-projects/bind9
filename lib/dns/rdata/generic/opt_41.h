@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: opt_41.h,v 1.3 2000/02/03 23:43:05 halley Exp $ */
+/* $Id: opt_41.h,v 1.4 2000/03/16 22:42:31 gson Exp $ */
+
+/* RFC 2671 */
 
 typedef struct dns_rdata_opt {
 	dns_rdatacommon_t	common;
