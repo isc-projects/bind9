@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.110 2000/08/02 22:39:01 gson Exp $ */
+/* $Id: dighost.c,v 1.111 2000/08/03 17:43:03 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -94,7 +94,16 @@ int ndots = -1;
 int tries = 2;
 int lookup_counter = 0;
 char fixeddomain[MXNAME] = "";
-int exitcode = 9;
+/*
+ * Exit Codes:
+ *   0   Everything went well, including things like NXDOMAIN
+ *   1   Usage error
+ *   7   Got too many RR's or Names
+ *   8   Couldn't open batch file
+ *   9   No reply from server
+ *   10  Internal error
+ */
+int exitcode = 0;
 char keynametext[MXNAME];
 char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
@@ -175,8 +184,8 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	if (exitcode == 0)
-		exitcode = 8;
+	if (exitcode < 10)
+		exitcode = 10;
 	exit(exitcode);
 }
 
@@ -195,7 +204,6 @@ debug(const char *format, ...) {
 void
 check_result(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
-		exitcode = 1;
 		fatal("%s: %s", msg, isc_result_totext(result));
 	}
 }
@@ -1297,7 +1305,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	check_result(result, "dns_message_renderend");
 	debug("done rendering");
 
-	/* XXX Insist? */
 	lookup->pending = ISC_FALSE;
 
 	for (serv = ISC_LIST_HEAD(lookup->my_server_list);
@@ -1686,7 +1693,7 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		sockcount--;
 		INSIST(sockcount >= 0);
 		/* XXX Clean up exitcodes */
-		if (exitcode < 7)
+		if (exitcode < 9)
 			exitcode = 9;
 		debug("sockcount=%d", sockcount);
 		isc_buffer_free(&b);
@@ -1739,7 +1746,8 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		return (ISC_TRUE);
 	}
 	do {
-		dns_name_t *name = NULL;
+		dns_name_t *name;
+		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER,
 					&name);
 		for (rdataset = ISC_LIST_HEAD(name->list);
@@ -1795,7 +1803,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					if (query->lookup->ixfr_serial >=
 					    soa.serial) {
 						dns_rdata_freestruct(&soa);
-						goto xfr_done;
+						goto doexit;
 					}
 					dns_rdata_freestruct(&soa);
 					goto next_rdata;
@@ -1804,7 +1812,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				    dns_rdatatype_axfr) {
 					debug("doing axfr, got second SOA");
 					dns_rdata_freestruct(&soa);
-					goto xfr_done;
+					goto doexit;
 				}
 				if (!query->second_rr_rcvd) {
 					if (soa.serial ==
@@ -1812,7 +1820,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 						debug("doing ixfr, got "
 						      "empty zone");
 						dns_rdata_freestruct(&soa);
-						goto xfr_done;
+						goto doexit;
 					}
 					debug("this is the second %d",
 					       query->lookup->ixfr_serial);
@@ -1830,21 +1838,8 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					 * AXFR, and we're done.
 					 */
 					debug("done, since axfr");
-				xfr_done:
-					isc_buffer_init(&b, abspace, MXNAME);
-					result = isc_sockaddr_totext(&sevent->
-								     address,
-								     &b);
-					check_result(result,
-						     "isc_sockaddr_totext");
-					isc_buffer_usedregion(&b, &r);
-					received(b.used, r.length,
-						 (char *)r.base, query);
 					dns_rdata_freestruct(&soa);
-					if (atlimit) {
-						exitcode = 7;
-					}
-					return (ISC_TRUE);
+					goto doexit;
 				}
 				/*
 				 * If we get to this point, we're doing an
@@ -1861,7 +1856,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					}
 					debug("done with ixfr");
 					dns_rdata_freestruct(&soa);
-					goto xfr_done;
+					goto doexit;
 				}
 				debug("meaningless soa %d",
 				       soa.serial);
@@ -1878,8 +1873,20 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		}
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 	} while (result == ISC_R_SUCCESS);
-	if (atlimit)
-		goto xfr_done;
+	if (atlimit) {
+	doexit:
+		isc_buffer_init(&b, abspace, MXNAME);
+		result = isc_sockaddr_totext(&sevent->address, &b);
+		check_result(result,
+			     "isc_sockaddr_totext");
+		isc_buffer_usedregion(&b, &r);
+		received(b.used, r.length,
+			 (char *)r.base, query);
+		if (atlimit)
+			if (exitcode < 7)
+				exitcode = 7;
+		return (ISC_TRUE);
+	}
 	launch_next_query(query, ISC_FALSE);
 	return (ISC_FALSE);
 }

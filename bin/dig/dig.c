@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.84 2000/08/02 19:47:17 tale Exp $ */
+/* $Id: dig.c,v 1.85 2000/08/03 17:43:01 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -331,14 +331,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	UNUSED(query);
 
 	debug("printmessage(%s)", headers ? "headers" : "noheaders");
-
-	/*
-	 * Exitcode 9 means we timed out, but if we're printing a message,
-	 * we must have recovered.  Go ahead and reset it to code 0, and
-	 * call this a success.
-	 */
-	if (exitcode == 9)
-		exitcode = 0;
 
 	flags = 0;
 	if (!headers) {
@@ -838,7 +830,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit(exitcode);
+					exit(1);
 				}
 				ptr = rv[1];
 				rv++;
@@ -860,7 +852,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit(exitcode);
+					exit(1);
 				}
 				ptr = rv[1];
 				rv++;
@@ -889,7 +881,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit(exitcode);
+					exit(1);
 				}
 				batchname = rv[1];
 				rv++;
@@ -901,7 +893,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			else {
 				if (rc <= 1) {
 					show_usage();
-					exit(exitcode);
+					exit(1);
 				}
 				ptr = rv[1];
 				rv++;
@@ -910,13 +902,13 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			ptr = strtok(ptr,":");
 			if (ptr == NULL) {
 				show_usage();
-				exit(exitcode);
+				exit(1);
 			}
 			strncpy(keynametext, ptr, MXNAME);
 			ptr = strtok(NULL, "");
 			if (ptr == NULL) {
 				show_usage();
-				exit(exitcode);
+				exit(1);
 			}
 			strncpy(keysecret, ptr, MXNAME);
 		} else if (strncmp(rv[0], "-k", 2) == 0) {
@@ -925,7 +917,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			else {
 				if (rc <= 1) {
 					show_usage();
-					exit(exitcode);
+					exit(1);
 				}
 				ptr = rv[1];
 				rv++;
@@ -938,7 +930,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit(exitcode);
+					exit(1);
 				}
 				port = atoi(rv[1]);
 				rv++;
@@ -951,7 +943,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit(exitcode);
+					exit(1);
 				}
 				strncpy(address, rv[1],
 					sizeof(address));
@@ -962,7 +954,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			specified_source = ISC_TRUE;
 		} else if (strncmp(rv[0], "-h", 2) == 0) {
 			show_usage();
-			exit(exitcode);
+			exit(1);
 		} else if (strcmp(rv[0], "-memdebug") == 0) {
 			isc_mem_debugging = 1;
 		} else if (strcmp(rv[0], "-debug") == 0) {
@@ -976,7 +968,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			 */
 			if (rc == 1) {
 				show_usage();
-				exit(exitcode);
+				exit(1);
 			}
 			n = sscanf(rv[1], "%d.%d.%d.%d", &adrs[0], &adrs[1],
 				    &adrs[2], &adrs[3]);
@@ -1051,8 +1043,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			batchfp = fopen(batchname, "r");
 		if (batchfp == NULL) {
 			perror(batchname);
-			if (exitcode < 10)
-				exitcode = 10;
+			if (exitcode < 8)
+				exitcode = 8;
 			fatal("Couldn't open specified batch file");
 		}
 		/* XXX Remove code dup from shutdown code */

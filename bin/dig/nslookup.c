@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.31 2000/08/02 19:53:33 tale Exp $ */
+/* $Id: nslookup.c,v 1.32 2000/08/03 17:43:06 mws Exp $ */
 
 #include <config.h>
 
@@ -196,14 +196,6 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 
 	debug("printsection()");
 
-	/*
-	 * Exitcode 9 means we timed out, but if we're printing a message,
-	 * we much have recovered.  Go ahead and reset it to code 0, and
-	 * call this a success.
-	 */
-	if (exitcode == 9)
-		exitcode = 0;
-
 	result = dns_message_firstname(msg, section);
 	if (result == ISC_R_NOMORE)
 		return (ISC_R_SUCCESS);
@@ -355,14 +347,6 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	UNUSED (query);
 
 	debug("detailsection()");
-
-	/*
-	 * Exitcode 9 means we timed out, but if we're printing a message,
-	 * we much have recovered.  Go ahead and reset it to code 0, and
-	 * call this a success.
-	 */
-	if (exitcode == 9)
-		exitcode = 0;
 
 	if (headers) {
 		switch (section) {
@@ -779,6 +763,7 @@ get_next_command(void) {
 static void
 parse_args(int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
+	isc_boolean_t have_lookup = ISC_FALSE;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
 		debug ("main parsing %s", argv[0]);
@@ -790,10 +775,13 @@ parse_args(int argc, char **argv) {
 			}
 			if (argv[0][1] != 0)
 				setoption(&argv[0][1]);
+			else
+				have_lookup = ISC_TRUE;
 		} else {
-			if (lookup == NULL) {
+			if (!have_lookup) {
+				have_lookup = ISC_TRUE;
 				in_use = ISC_TRUE;
-				lookup=addlookup(argv[0]);
+				lookup = addlookup(argv[0]);
 			}
 			else
 				setsrv(argv[0]);

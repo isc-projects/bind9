@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.45 2000/08/01 01:11:16 tale Exp $ */
+/* $Id: host.c,v 1.46 2000/08/03 17:43:04 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -225,7 +225,7 @@ show_usage(void) {
 "       -v enables verbose output\n"
 "       -w specifies to wait forever for a reply\n"
 "       -W specifies how long to wait for a reply\n", stderr);
-	exit(exitcode);
+	exit(1);
 }
 
 void
@@ -418,14 +418,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_region_t r;
 
 	UNUSED(headers);
-
-	/*
-	 * Exitcode 9 means we timed out, but if we're printing a message,
-	 * we much have recovered.  Go ahead and reset it to code 0, and
-	 * call this a success.
-	 */
-	if (exitcode == 9)
-		exitcode = 0;
 
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
@@ -651,7 +643,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				   &adrs[2], &adrs[3]);
 		if (n == 0) {
 			show_usage();
-			exit(exitcode);
 		}
 		for (i = n - 1; i >= 0; i--) {
 			snprintf(store, MXNAME/8, "%d.",
