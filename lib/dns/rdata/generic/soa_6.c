@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.29 2000/03/17 21:43:46 gson Exp $ */
+/* $Id: soa_6.c,v 1.30 2000/03/18 00:19:25 explorer Exp $ */
 
-/* Required: Thu Mar 16 15:18:32 PST 2000 by explorer */
+/* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C

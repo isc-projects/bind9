@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.17 2000/03/16 00:48:08 explorer Exp $ */
+/* $Id: afsdb_18.c,v 1.18 2000/03/18 00:19:24 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -233,9 +233,7 @@ digest_afsdb(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 	r2 = r1;
 	isc_region_consume(&r2, 2);
 	r1.length = 2;
-	result = (digest)(arg, &r1);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	RETERR((digest)(arg, &r1));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	return (dns_name_digest(&name, digest, arg));
