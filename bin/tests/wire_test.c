@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.60.2.3 2005/03/17 03:59:31 marka Exp $ */
+/* $Id: wire_test.c,v 1.60.2.4 2005/03/20 23:42:26 marka Exp $ */
 
 #include <config.h>
 
@@ -194,8 +194,8 @@ main(int argc, char *argv[]) {
 		memset(b, 0, sizeof(b));
 		isc_buffer_clear(&source);
 
-		for (i = 0 ; i < DNS_SECTION_MAX ; i++)
-			message->counts[i] = 0;  /* Another hack XXX */
+		for (n = 0 ; n < DNS_SECTION_MAX ; n++)
+			message->counts[n] = 0;  /* Another hack XXX */
 
 		result = dns_compress_init(&cctx, -1, mctx);
 		CHECKRESULT(result, "dns_compress_init() failed");
