@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.9 1999/09/22 18:24:05 halley Exp $
+ * $Id: dbtable.c,v 1.10 1999/10/09 02:49:16 halley Exp $
  */
 
 /*
@@ -225,7 +225,6 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 
 	if (result == DNS_R_SUCCESS) {
 		INSIST(stored_data == db);
-		dns_db_detach(&stored_data);
 
 		dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
 	}
