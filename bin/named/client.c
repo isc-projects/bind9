@@ -73,6 +73,9 @@
 				      NS_LOGMODULE_CLIENT, \
 				      ISC_LOG_DEBUG(3), \
 				      "clientmgr %p: %s", manager, (m))
+#else
+#define CTRACE(m)	((void)(m))
+#define MTRACE(m)	((void)(m))
 #endif
 
 #define TCP_CLIENT(c)	(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
@@ -778,6 +781,8 @@ client_addopt(ns_client_t *client) {
 	 */
 	rdata->data = NULL;
 	rdata->length = 0;
+	rdata->rdclass = rdatalist->rdclass;
+	rdata->type = rdatalist->type;
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
