@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2.4.1 2003/08/22 06:40:04 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2.4.2 2003/11/02 22:58:27 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -63,7 +63,7 @@
 	and SIG records and produces a signed version of the zone.  If there
 	is a <filename>signedkey</filename> file from the zone's parent,
 	the parent's signatures will be incorporated into the generated
-	signed zone file.  The security status of delegations from the the
+	signed zone file.  The security status of delegations from the
         signed zone (that is, whether the child zones are secure or not) is
         determined by the presence or absence of a
 	<filename>signedkey</filename> file for each child zone.
