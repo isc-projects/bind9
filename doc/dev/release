@@ -1,7 +1,7 @@
 aCopyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.49 2001/10/29 18:40:12 gson Exp $
+$Id: release,v 1.50 2001/11/22 00:35:36 gson Exp $
 
 Preparing a bind9 release
 
@@ -150,19 +150,19 @@ release.
    $ mv $patchd/patch.most.new $patchd
    $ cvs ci -ko $patchd/patch.*
 
- - Add a marker line like "	--- 9.0.0rc8 released ---"
+ - Add a marker line like "	--- 9.0.0rc10 released ---"
    to the CHANGES file.
 
  - Tag the CVS source tree with the final tag, as in
    "cvs rtag v9_0_0rc1 bind9" (mainline) or
-   "cvs rtag -r v9_2 v9_2_0rc8 bind9" (release branch).
+   "cvs rtag -r v9_2 v9_2_0rc10 bind9" (release branch).
 
  - Build the release kit.  This procedure differs
    between the 9.0 release branch and later versions.
    On the 9.0 release branch,
 
         cd <temporary directory>
-	cvs export -r v9_0_0rc8 bind9
+	cvs export -r v9_0_0rc10 bind9
 	cd bind9
 	sh configure
 	make kit
@@ -180,42 +180,48 @@ release.
 
  - Sign the distribution files with the ISC signing PGP key
    and fix the permissions on the signature file:
-  
-   	pgp -sba bind-9.2.0rc8.tar.gz -u 0x51BAB2ED
-	chmod 644 bind-9.2.0rc8.tar.gz.asc
+
+        ver=9.2.0rc10
+   	pgp -sba bind-$ver.tar.gz -u 0x51BAB2ED
+	chmod 644 bind-$ver.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.2.0rc8.tar.gz.asc bind-9.2.0rc8.tar.gz
+	pgp bind-$ver.tar.gz.asc bind-$ver.tar.gz
 
    (Look for the words "Good signature" in the output.)
+
+ - If there is a companion binary kit for NT, sign it and verify the
+   signature:
+
+       scp rc.isc.org:/udir/mayer/BIND$ver.zip .
+       pgp -sba BIND$ver.zip -u 0x51BAB2ED
+       chmod 644 BIND$ver.zip.asc
+       pgp BIND$ver.zip.asc BIND$ver.zip
 
  - Prepare a release announcement based on the previous one.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.2.0rc8
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver
 
- - If there is a companion binary kit for NT, sign it and release it:
+ - If there is a companion binary kit for NT, copy it, too:
 
-     scp shell.nominum.com:/udir/mayer/BIND$ver.zip .
-     pgp -sba BIND$ver.zip -u 0x51BAB2ED
-     chmod 644 BIND$ver.zip.asc
-     pgp BIND$ver.zip.asc BIND$ver.zip
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind/contrib/ntbind-$ver"
      scp BIND$ver.zip BIND$ver.zip.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind/contrib/ntbind-$ver
 
-
  - Download using FTP (or a web browser) using the URLs in the release
    announcement and verify the PGP signature again
+
+ - Ask webteam@nominum.com to publish the updated web pages
+
+ - When the web pages are up, announce the release on
+   bind-announce@isc.org
 
  - Increment the version in the file "version"
 
  - Resume doing pullups
-
- - Announce the release on bind-announce@isc.org
 
