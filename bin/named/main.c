@@ -251,8 +251,10 @@ destroy_managers(void) {
 	isc_timermgr_destroy(&ns_g_timermgr);
 	isc_socketmgr_destroy(&ns_g_socketmgr);
 
-	omapi_listener_shutdown(ns_g_omapimgr);
-	omapi_object_dereference(&ns_g_omapimgr);
+	if (ns_g_omapimgr != NULL) {
+		omapi_listener_shutdown(ns_g_omapimgr);
+		omapi_object_dereference(&ns_g_omapimgr);
+	}
 }
 
 static void
