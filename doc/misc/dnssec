@@ -21,7 +21,8 @@ a device or file containing entropy/random data can be specified.
 Serving Secure Zones
 
 When acting as an authoritative name server, BIND9 includes KEY, SIG
-and NXT records in responses as specified in RFC2535.
+and NXT records in responses as specified in RFC2535 when the request
+has the DO flag set in the query.
 
 Response generation for wildcard records in secure zones is not fully
 supported.  Responses indicating the nonexistence of a name include a
@@ -75,16 +76,16 @@ version does not make use of any platform-specific assembly language
 routines.
 
 On many platforms, particularly i386 and SPARC, a significant
-improvement in signing and verification speed can be achieved linking
-BIND 9 with a separate OpenSSL library that uses hand-optimized
+improvement in signing and verification speed can be achieved by
+linking BIND 9 with a separate OpenSSL library that uses hand-optimized
 assembly language routines.  To do this, you need to install OpenSSL
 version 0.9.5a or newer separately from the BIND 9 tree prior to
 building BIND 9, using the default openssl configuration settings
 which will cause it to be built with assembly language routines.  Then
-specifying the "--with-openssl" option to the BIND 9 configure script
+specify the "--with-openssl" option to the BIND 9 configure script
 to make BIND 9 link against the system openssl library rather than its
 own.  For example, if openssl was installed under /usr/local, use
 "configure --with-openssl=/usr/local".
 
 
-$Id: dnssec,v 1.10 2001/01/09 21:50:26 bwelling Exp $
+$Id: dnssec,v 1.11 2001/02/05 20:15:28 bwelling Exp $
