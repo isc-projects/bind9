@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.47.2.3 2003/07/25 07:39:45 marka Exp $ */
+/* $Id: config.h.in,v 1.47.2.3.2.2 2003/08/25 05:24:08 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -75,6 +75,9 @@
 
 /* define if gai_strerror() exists */
 #undef HAVE_GAISTRERROR
+
+/* define if arc4random() exists */
+#undef HAVE_ARC4RANDOM
 
 /* define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.
