@@ -1,3 +1,5 @@
+ 384.	[bug]		nsupdate was incorrectly limiting TTLs to 65535 instead
+			of 2147483647.
 
  383.	[func]		When writing a master file, print the SOA and NS
 			records (and their SIGs) before other records.

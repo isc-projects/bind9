@@ -15,9 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.42 2000/08/09 18:44:13 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.43 2000/08/10 02:32:14 tale Exp $ */
 
 #include <config.h>
+
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -57,11 +64,6 @@
 #include <lwres/lwres.h>
 #include <lwres/net.h>
 
-#include <ctype.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #define MXNAME 256
 #define MAXCMD 1024
 #define NAMEBUF 512
@@ -69,6 +71,7 @@
 #define PACKETSIZE 2048
 #define MSGTEXT 4096
 #define FIND_TIMEOUT 5
+#define TTL_MAX 2147483647	/* Maximum signed 32 bit integer. */
 
 #define DNSDEFAULTPORT 53
 
@@ -826,7 +829,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	ddebug("update_addordelete()");
 
 	/*
-	 * Read the owner name
+	 * Read the owner name.
 	 */
 	retval = parse_name(&cmdline, updatemsg, &name);
 	if (retval != STATUS_MORE)
@@ -850,12 +853,18 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto failure;
 		}
 		ttl = strtol(word, &endp, 0);
-		if (*endp != 0) {
+		if (*endp != '\0') {
 			fprintf(stderr, "ttl '%s' is not numeric\n", word);
 			goto failure;
-		} else if (ttl < 1 || ttl > 65535) {
+		} else if (ttl < 1 || ttl > TTL_MAX || errno == ERANGE) {
+			/*
+			 * The errno test is needed to catch when strtol()
+			 * overflows on a platform where sizeof(int) ==
+			 * sizeof(long), because ttl will be set to LONG_MAX,
+			 * which will be equal to TTL_MAX.
+			 */
 			fprintf(stderr, "ttl '%s' is out of range "
-				"(1 to 65535)\n", word);
+				"(1 to %d)\n", word, TTL_MAX);
 			goto failure;
 		}
 	} else
@@ -930,7 +939,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	rdatalist->type = rdatatype;
 	rdatalist->rdclass = rdataclass;
 	rdatalist->covers = rdatatype;
-	rdatalist->ttl = (isc_uint16_t)ttl;
+	rdatalist->ttl = (dns_ttl_t)ttl;
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdataset_init(rdataset);
