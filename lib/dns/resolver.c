@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.231 2001/11/14 01:01:28 gson Exp $ */
+/* $Id: resolver.c,v 1.232 2001/11/14 01:31:12 gson Exp $ */
 
 #include <config.h>
 
@@ -2219,7 +2219,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Compute an expiration time for the entire fetch.
 	 */
-	isc_interval_set(&interval, 90, 0);		/* XXXRTH constant */
+	isc_interval_set(&interval, 30, 0);		/* XXXRTH constant */
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

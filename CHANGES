@@ -1,3 +1,6 @@
+1122.	[tuning]	Resolution timeout reduced from 90 to 30 seconds.
+			[RT #2046]
+
 1121.	[bug]		The server could attempt to access a NULL zone
 			table if shut down while resolving.
 			[RT #1587, #2054]
