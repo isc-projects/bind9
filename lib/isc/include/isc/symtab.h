@@ -18,8 +18,71 @@
 #ifndef ISC_SYMBOL_H
 #define ISC_SYMBOL_H 1
 
+/*****
+ ***** Module Info
+ *****/
+
+/*
+ * Symbol Table
+ *
+ * Provides a simple memory-based symbol table.
+ *
+ * Keys are C strings, and key comparisons are case-insenstive.  A type may
+ * be specified when looking up, defining, or undefining.  A type value of
+ * 0 means "match any type"; any other value will only match the given
+ * type.
+ *
+ * It's possible that a client will attempt to define a <key, type, value>
+ * tuple when a tuple with the given key and type already exists in the table.
+ * What to do in this case is specified by the client.  Possible policies are:
+ *
+ *	Reject			Disallow the define, returning ISC_R_EXISTS
+ *	Replace			Replace the old value with the new.  The
+ *				undefine action (if provided) will be called
+ *				with the old <key, type, value> tuple.
+ *	Add			Add the new tuple, leaving the old tuple in
+ *				the table.  Subsequent lookups will retrieve
+ *				the most-recently-defined tuple.
+ *
+ * A lookup of a key using type 0 will return the most-recently defined
+ * symbol with that key.  An undefine of a key using type 0 will undefine the
+ * most-recently defined symbol with that key.  Trying to define a key with
+ * type 0 is illegal.
+ *
+ * The symbol table library does not make a copy the key field, so the
+ * caller must ensure that any key it passes to isc_symtab_define() will not
+ * change until it calls isc_symtab_undefine() or isc_symtab_destroy().
+ *
+ * A user-specified action will be called (if provided) when a symbol is
+ * undefined.  It can be used to free memory associated with keys and/or
+ * values.
+ *
+ * MP:
+ *	The callers of this module must ensure any required synchronization.
+ *
+ * Reliability:
+ *	No anticipated impact.
+ *
+ * Resources:
+ *	<TBS>
+ *
+ * Security:
+ *	No anticipated impact.
+ *
+ * Standards:
+ *	None.
+ */
+
+/***
+ *** Imports.
+ ***/
+
 #include <isc/mem.h>
 #include <isc/result.h>
+
+/***
+ *** Symbol Tables.
+ ***/
 
 typedef union isc_symvalue {
 	void *				as_pointer;
@@ -29,6 +92,12 @@ typedef union isc_symvalue {
 
 typedef void (*isc_symtabaction_t)(char *key, unsigned int type,
 				   isc_symvalue_t value);
+
+typedef enum {
+	isc_symexists_reject = 0,
+	isc_symexists_replace = 1,
+	isc_symexists_add = 2
+} isc_symexists_t;
 
 typedef struct isc_symtab		isc_symtab_t;
 
@@ -46,7 +115,7 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
 
 isc_result_t
 isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
-		  isc_symvalue_t value);
+		  isc_symvalue_t value, isc_symexists_t exists_policy);
 
 isc_result_t
 isc_symtab_undefine(isc_symtab_t *symtab, char *key, unsigned int type);
