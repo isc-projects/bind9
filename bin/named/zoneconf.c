@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.61 2000/08/29 03:48:00 marka Exp $ */
+/* $Id: zoneconf.c,v 1.62 2000/10/13 23:21:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -342,15 +342,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
 
-		dns_zone_getssutable(zone, &ssutable);
-		if (ssutable != NULL)
-			dns_ssutable_detach(&ssutable);
 		result = dns_c_zone_getssuauth(czone, &ssutable);
-		if (result == ISC_R_SUCCESS) {
-			dns_ssutable_t *newssutable = NULL;
-			dns_ssutable_attach(ssutable, &newssutable);
-			dns_zone_setssutable(zone, newssutable);
-		}
+		if (result == ISC_R_SUCCESS)
+			dns_zone_setssutable(zone, ssutable);
 
 		result = dns_c_zone_getsigvalidityinterval(czone, &uintval);
 		if (result != ISC_R_SUCCESS && cview != NULL)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.65 2000/09/29 03:25:23 marka Exp $ */
+/* $Id: update.c,v 1.66 2000/10/13 23:21:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2373,6 +2373,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 	if (db != NULL)
 		dns_db_detach(&db);
+
+	if (ssutable != NULL)
+		dns_ssutable_detach(&ssutable);
 
 	if (zone != NULL)
 		dns_zone_detach(&zone);
