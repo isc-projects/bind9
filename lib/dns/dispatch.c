@@ -1005,6 +1005,11 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 
 	LOCK(&disp->lock);
 
+	if (disp->shutting_down == 1) {
+		UNLOCK(&disp->lock);
+		return (ISC_R_SHUTTINGDOWN);
+	}
+
 	if (disp->requests == disp->maxrequests) {
 		UNLOCK(&disp->lock);
 		return (ISC_R_QUOTA);
@@ -1140,6 +1145,11 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	REQUIRE(resp != NULL && *resp == NULL);
 
 	LOCK(&disp->lock);
+
+	if (disp->shutting_down == 1) {
+		UNLOCK(&disp->lock);
+		return (ISC_R_SHUTTINGDOWN);
+	}
 
 	if (disp->requests == disp->maxrequests) {
 		UNLOCK(&disp->lock);
