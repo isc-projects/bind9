@@ -1,4 +1,7 @@
 
+1027.	[bug]		RRs having the reserved type 0 should be rejected.
+			[RT #1471]
+
 1026.	[placeholder]	
 
 1025.	[bug]		Don't use multicast addresses to resolve iterative
