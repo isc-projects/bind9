@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.114 2001/01/04 20:00:55 bwelling Exp $ */
+/* $Id: name.c,v 1.115 2001/01/07 22:01:59 gson Exp $ */
 
 #include <config.h>
 
@@ -2370,9 +2370,10 @@ isc_result_t
 dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 	unsigned int methods;
 	isc_uint16_t offset;
-	dns_name_t gp, gs;
-	isc_boolean_t gf;
-	isc_uint16_t go;
+	dns_name_t gp;	/* Global compression prefix */
+	dns_name_t gs; 	/* Global compression suffix */
+	isc_boolean_t gf;	/* Global compression target found */
+	isc_uint16_t go;	/* Global compression offset */
 	dns_offsets_t po, so, clo;
 	dns_name_t clname;
 
