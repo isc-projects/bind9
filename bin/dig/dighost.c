@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.59 2000/06/26 21:28:17 mws Exp $ */
+/* $Id: dighost.c,v 1.60 2000/06/27 23:18:14 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1573,7 +1573,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				if (rdata.type != dns_rdatatype_soa)
 					goto NEXT_RDATA;
 				/* Now we have an SOA.  Work with it. */
-				debug ("Got a SOA");
+				debug ("Got an SOA");
 				result = dns_rdata_tostruct(&rdata,
 							    &soa,
 							    mctx);
@@ -1600,6 +1600,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					query->second_rr_rcvd = ISC_TRUE;
 					query->second_rr_serial =
 						soa.serial;
+					dns_rdata_freestruct(&soa);
 					goto NEXT_RDATA;
 				}
 				if (query->second_rr_serial == 0) {
