@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.20 2001/01/09 21:59:31 bwelling Exp $ */
+/* $Id: lwres_gnba.c,v 1.20.2.1 2002/07/10 06:05:07 marka Exp $ */
 
 #include <config.h>
 
@@ -174,12 +174,12 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if ((pkt->pktflags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
 		return (LWRES_R_FAILURE);
 
+	if (!SPACE_REMAINING(b, 4))
+		return (LWRES_R_UNEXPECTEDEND);
+
 	gnba = CTXMALLOC(sizeof(lwres_gnbarequest_t));
 	if (gnba == NULL)
 		return (LWRES_R_NOMEMORY);
-
-	if (!SPACE_REMAINING(b, 4))
-		return (LWRES_R_UNEXPECTEDEND);
 
 	gnba->flags = lwres_buffer_getuint32(b);
 
