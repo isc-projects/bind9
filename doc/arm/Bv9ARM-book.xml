@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.178 2001/11/09 03:34:55 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.179 2001/11/21 01:02:44 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1877,7 +1877,7 @@ a DNS name, for example "<literal>my.test.domain</literal>".</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>dotted_decimal</varname></para></entry>
-<entry colname = "2"><para>One or more integers valued 0 through
+<entry colname = "2"><para>One to four integers valued 0 through
 255 separated by dots (`.'), such as <command>123</command>, 
 <command>45.67</command> or <command>89.123.45.67</command>.</para></entry>
 </row>
@@ -4824,8 +4824,7 @@ and implemented in the DNS. These are also included.</para>
 <row rowsep = "0">
 <entry colname = "1"><para>type</para></entry>
 <entry colname = "2"><para>an encoded 16 bit value that specifies
-the type of the resource in this resource record. Types refer to
-abstract resources.</para></entry>
+the type of the resource record.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>TTL</para></entry>
@@ -4841,14 +4840,12 @@ a protocol family or instance of a protocol.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>RDATA</para></entry>
-<entry colname = "2"><para>the type and sometimes class-dependent
-data that describes the resource.</para></entry>
+<entry colname = "2"><para>the resource data.  The format of the
+data is type (and sometimes class) specific.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
-<para>The following are <emphasis>types</emphasis> of valid RRs
-(some of these listed, although not obsolete, are experimental (x)
-or historical (h) and no longer in general use):</para>
+<para>The following are <emphasis>types</emphasis> of valid RRs:</para>
 <informaltable colsep = "0"
     rowsep = "0"><tgroup cols = "2" colsep = "0"
     rowsep = "0" tgroupstyle = "4Level-table">
@@ -4857,19 +4854,22 @@ or historical (h) and no longer in general use):</para>
 <tbody>
 <row rowsep = "0">
 <entry colname = "1"><para>A</para></entry>
-<entry colname = "2"><para>a host address.</para></entry>
+<entry colname = "2"><para>a host address.  In the IN class, this is a
+32-bit IP address.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>A6</para></entry>
-<entry colname = "2"><para>an IPv6 address.</para></entry>
+<entry colname = "2"><para>an IPv6 address.  This can be a partial
+address (a suffix) and an indirection to the name where the rest of the
+address (the prefix) can be found.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>AAAA</para></entry>
-<entry colname = "2"><para>Obsolete format of IPv6 address</para></entry>
+<entry colname = "2"><para>obsolete format of IPv6 address</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>AFSDB</para></entry>
-<entry colname = "2"><para>(x) location of AFS database servers.
+<entry colname = "2"><para>location of AFS database servers.
 Experimental.</para></entry>
 </row>
 <row rowsep = "0">
@@ -4878,9 +4878,11 @@ Experimental.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>DNAME</para></entry>
-<entry colname = "2"><para>for delegation of reverse addresses.
-Replaces the domain name specified with another name to be looked
-up. Described in RFC 2672.</para></entry>
+<entry colname = "2"><para>Replaces the domain name specified with
+another name to be looked up, effectively aliasing an entire
+subtree of the domain name space rather than a single record
+as in the case of the CNAME RR.  Used for delegation 
+of IPv6 reverse mappings. Described in RFC 2672.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>HINFO</para></entry>
@@ -4888,7 +4890,7 @@ up. Described in RFC 2672.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>ISDN</para></entry>
-<entry colname = "2"><para>(x) representation of ISDN addresses.
+<entry colname = "2"><para>representation of ISDN addresses.
 Experimental.</para></entry>
 </row>
 <row rowsep = "0">
@@ -4898,12 +4900,14 @@ DNS name.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>LOC</para></entry>
-<entry colname = "2"><para>(x) for storing GPS info. See RFC 1876.
+<entry colname = "2"><para>for storing GPS info. See RFC 1876.
 Experimental.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>MX</para></entry>
 <entry colname = "2"><para>identifies a mail exchange for the domain.
+a 16 bit preference value (lower is better)
+followed by the host name of the mail exchange.
  See RFC 974 for details.</para></entry>
 </row>
 <row rowsep = "0">
@@ -4925,12 +4929,12 @@ name space.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>RP</para></entry>
-<entry colname = "2"><para>(x) information on persons responsible
+<entry colname = "2"><para>information on persons responsible
 for the domain. Experimental.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>RT</para></entry>
-<entry colname = "2"><para>(x) route-through binding for hosts that
+<entry colname = "2"><para>route-through binding for hosts that
 do not have their own direct wide area network addresses. Experimental.</para></entry>
 </row>
 <row rowsep = "0">
@@ -4949,13 +4953,13 @@ services (replaces WKS).</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>WKS</para></entry>
-<entry colname = "2"><para>(h) information about which well known
-network services, such as SMTP, that a domain supports. Historical,
-replaced by newer RR SRV.</para></entry>
+<entry colname = "2"><para>information about which well known
+network services, such as SMTP, that a domain supports. Historical.
+</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>X25</para></entry>
-<entry colname = "2"><para>(x) representation of X.25 network addresses. Experimental.</para></entry>
+<entry colname = "2"><para>representation of X.25 network addresses. Experimental.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
@@ -4966,63 +4970,35 @@ are currently valid in the DNS:</para><informaltable colsep = "0"
 <colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.875in"/>
 <colspec colname = "2" colnum = "2" colsep = "0" colwidth = "3.625in"/>
 <tbody>
+
 <row rowsep = "0">
 <entry colname = "1"><para>IN</para></entry>
-<entry colname = "2"><para>the Internet system.</para></entry>
+<entry colname = "2"><para>The Internet.</para></entry>
 </row>
+
 <row rowsep = "0">
-<entry nameend = "2" namest = "1"><para>For information about other,
-older classes of RRs, see <xref linkend="classes_of_resource_records"/>.</para></entry>
+<entry colname = "1"><para>CH</para></entry>
+<entry colname = "2"><para>
+CHAOSnet, a LAN protocol created at MIT in the mid-1970s.
+Rarely used for its historical purpose, but reused for BIND's
+built-in server information zones, e.g.,
+<literal>version.bind</literal>.
+</para></entry>
 </row>
+
+<row rowsep = "0">
+<entry colname = "1"><para>HS</para></entry>
+<entry colname = "2"><para>
+Hesiod, an information service
+developed by MIT's Project Athena. It is used to share information
+about various systems databases, such as users, groups, printers
+and so on.
+</para></entry>
+</row>
+
 </tbody>
 </tgroup></informaltable>
-<para><emphasis>RDATA</emphasis> is the type-dependent or class-dependent
-data that describes the resource:</para><informaltable colsep = "0"
-    rowsep = "0"><tgroup cols = "2" colsep = "0" rowsep = "0"
-    tgroupstyle = "4Level-table">
-<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.875in"/>
-<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "3.625in"/>
-<tbody>
-<row rowsep = "0">
-<entry colname = "1"><para>A</para></entry>
-<entry colname = "2"><para>for the IN class, a 32 bit IP address.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>A6</para></entry>
-<entry colname = "2"><para>maps a domain name to an IPv6 address,
-with a provision for indirection for leading "prefix" bits.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>CNAME</para></entry>
-<entry colname = "2"><para>a domain name.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>DNAME</para></entry>
-<entry colname = "2"><para>provides alternate naming to an entire
-subtree of the domain name space, rather than to a single node.
- It causes some suffix of a queried name to be substituted with
-a name from the DNAME record's RDATA.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>MX</para></entry>
-<entry colname = "2"><para>a 16 bit preference value (lower is better)
-followed by a host name willing to act as a mail exchange for the
-owner domain.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>NS</para></entry>
-<entry colname = "2"><para>a fully qualified domain name.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>PTR</para></entry>
-<entry colname = "2"><para>a fully qualified domain name.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>SOA</para></entry>
-<entry colname = "2"><para>several fields.</para></entry>
-</row>
-</tbody>
-</tgroup></informaltable>
+
 <para>The owner name is often implicit, rather than forming an integral
 part of the RR.  For example, many name servers internally form tree
 or hash structures for the name space, and chain RRs off nodes.
@@ -5620,28 +5596,9 @@ of several corporations, and by the tireless work efforts of numerous
 individuals.</para>
     </sect2>
   </sect1>
-  <sect1 id="historical_dns_information">
-    <title>Historical <acronym>DNS</acronym> Information</title>
-    <sect2 id="classes_of_resource_records">
-      <title>Classes of Resource Records</title>
-      <sect3>
-        <title>HS = hesiod</title>
-        <para>The <optional>hesiod</optional> class is an information service
-developed by MIT's Project Athena. It is used to share information
-about various systems databases, such as users, groups, printers
-and so on. The keyword <command>hs</command> is a synonym for
-hesiod.</para>
-      </sect3>
-      <sect3>
-        <title>CH = chaos</title>
-        <para>The <command>chaos</command> class is used to specify zone
-data for the MIT-developed CHAOSnet, a LAN protocol created in the
-mid-1970s.</para>
-      </sect3>
-    </sect2>
-  </sect1>
-  <sect1>
-    <title>General <acronym>DNS</acronym> Reference Information</title>
+<sect1 id="historical_dns_information">
+
+<title>General <acronym>DNS</acronym> Reference Information</title>
     <sect2 id="ipv6addresses">
       <title>IPv6 addresses (A6)</title>
       <para>IPv6 addresses are 128-bit identifiers for interfaces and
