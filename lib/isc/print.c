@@ -19,6 +19,7 @@
 
 #include <isc/assertions.h>
 #include <isc/print.h>
+#include <isc/platform.h>
 
 /*
  * Return length of string that would have been written if not truncated.
@@ -215,7 +216,11 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 						head = "";
 					tmpui = tmpi;
 				}
+#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
+				sprintf(buf, "%lu", tmpui);
+#else
 				sprintf(buf, "%llu", tmpui);
+#endif
 				goto printint;
 			case 'o':
 				if (q)
@@ -224,7 +229,11 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpi = va_arg(ap, long int);
 				else
 					tmpi = va_arg(ap, int);
+#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
+				sprintf(buf, alt ? "%#lo" : "%lo", tmpui);
+#else
 				sprintf(buf, alt ? "%#llo" : "%llo", tmpui);
+#endif
 				goto printint;
 			case 'u':
 				if (q)
@@ -233,7 +242,11 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, unsigned long int);
 				else
 					tmpui = va_arg(ap, unsigned int);
+#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
+				sprintf(buf, "%lu", tmpui);
+#else
 				sprintf(buf, "%llu", tmpui);
+#endif
 				goto printint;
 			case 'x':
 				if (q)
@@ -247,7 +260,11 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2)
 						precision -= 2;
 				}
+#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
+				sprintf(buf, "%lx", tmpui);
+#else
 				sprintf(buf, "%llx", tmpui);
+#endif
 				goto printint;
 			case 'X':
 				if (q)
@@ -261,7 +278,11 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2)
 						precision -= 2;
 				}
+#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
+				sprintf(buf, "%lX", tmpui);
+#else
 				sprintf(buf, "%llX", tmpui);
+#endif
 				goto printint;
 			printint:
 				if (precision != 0 || width != 0) {
