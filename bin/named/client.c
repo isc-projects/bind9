@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.8 2003/08/14 06:14:22 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.9 2003/08/14 06:17:23 marka Exp $ */
 
 #include <config.h>
 
@@ -1446,14 +1446,16 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	ra = ISC_FALSE;
 	if (client->view->resolver != NULL &&
 	    client->view->recursion == ISC_TRUE &&
-	    /* XXX this will log too much too early */
-	    ns_client_checkacl(client, "recursion available:",
-			       client->view->recursionacl,
-			       ISC_TRUE, ISC_LOG_DEBUG(1)) == ISC_R_SUCCESS)
+	    ns_client_checkaclsilent(client, client->view->recursionacl,
+				     ISC_TRUE) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
 	if (ra == ISC_TRUE)
 		client->attributes |= NS_CLIENTATTR_RA;
+
+	ns_client_log(client, DNS_LOGCATEGORY_SECURITY, NS_LOGMODULE_CLIENT,
+		      ISC_LOG_DEBUG(3), ra ? "recursion available" :
+		      			     "recursion not available");
 
 	/*
 	 * Dispatch the request.

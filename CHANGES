@@ -1,3 +1,6 @@
+1271.	[bug]		"recursion available: {denied,approved}" was too
+			confusing.
+
 1267.	[func]		isc_file_openunique() now creates file using mode
 			0666 rather than 0600.
 
