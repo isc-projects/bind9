@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.42 2001/01/09 21:54:49 bwelling Exp $ */
+/* $Id: tkey_249.c,v 1.43 2001/01/11 03:11:30 bwelling Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -347,10 +347,6 @@ fromstruct_tkey(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(tkey->common.rdtype == type);
 	REQUIRE(tkey->common.rdclass == rdclass);
-	REQUIRE((tkey->key == NULL && tkey->keylen == 0) ||
-		(tkey->key != NULL && tkey->keylen != 0));
-	REQUIRE((tkey->other == NULL && tkey->otherlen == 0) ||
-		(tkey->other != NULL && tkey->otherlen != 0));
 
 	UNUSED(rdclass);
 
