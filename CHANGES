@@ -1,3 +1,5 @@
+ 686.   [bug]		dig and nslookup can now be properly aborted during
+			blocking operations. [RT #568]
 
 	--- 9.1.1rc5 released ---
 
