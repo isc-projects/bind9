@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.189 2002/01/30 00:09:54 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.190 2002/01/30 01:47:35 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -726,6 +726,25 @@ of a server.</para>
    <listitem><para>Retransfer the given zone from the master.</para></listitem>
    </varlistentry>
 
+   <varlistentry><term><userinput>freeze <replaceable>zone</replaceable>
+       <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+   <listitem><para>Suspend updates to a dynamic zone.  This allows manual
+    edits to be made to a zone normally updated by dynamic update.  It
+    also causes changes in the journal file to be synced into the master
+    and the journal file to be removed.  All dynamic update attempts will
+    be refused while the zone is frozen.</para></listitem>
+   </varlistentry>
+
+   <varlistentry><term><userinput>unfreeze <replaceable>zone</replaceable>
+       <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+   <listitem><para>Enable updates to a frozen dynamic zone.  This causes
+    the server to reload the zone from disk, and re-enables dynamic updates
+    after the load has completed.  After a zone is unfrozen, dynamic updates
+    will no longer be refused.</para></listitem>
+   </varlistentry>
+
    <varlistentry><term><userinput>reconfig</userinput></term>
    <listitem><para>Reload the configuration file and load new zones,
    but do not reload existing zone files even if they have changed.
@@ -1001,16 +1020,13 @@ protocol is specified in RFC 1996.
     is up to date is to run <command>rndc stop</command>.</para>
 
     <para>If you have to make changes to a dynamic zone
-    manually, the following procedure will work: Shut down
-    the server using <command>rndc stop</command> (sending a signal
-    or using <command>rndc halt</command> is <emphasis>not</emphasis>
-    sufficient). Wait for the server to exit,
-    then <emphasis>remove</emphasis> the zone's 
-    <filename>.jnl</filename> file, edit the zone file,
-    and restart the server.  Removing the <filename>.jnl</filename>
-    file is necessary because the manual edits will not be
-    present in the journal, rendering it inconsistent with the
-    contents of the zone file.</para>
+    manually, the following procedure will work: Disable dynamic updates
+    to the zone using
+    <command>rndc freeze <replaceable>zone</replaceable></command>.
+    This will also remove the zone's <filename>.jnl</filename> file
+    and update the master file.  Edit the zone file.  Run
+    <command>rndc unfreeze <replaceable>zone</replaceable></command>
+    to reload the changed zone and re-enable dynamic updates.</para>
 
   </sect2>
     
