@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.74 2002/02/21 20:04:01 gson Exp $ */
+/* $Id: lex.c,v 1.75 2002/03/11 05:38:27 marka Exp $ */
 
 #include <config.h>
 
@@ -811,6 +811,8 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
 		if (token->type == isc_tokentype_eol ||
 		    token->type == isc_tokentype_eof)
 			return (ISC_R_UNEXPECTEDEND);
+		if (expect == isc_tokentype_number)
+			return (ISC_R_BADNUMBER);
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 	return (ISC_R_SUCCESS);

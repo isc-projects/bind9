@@ -1,3 +1,7 @@
+1227.	[bug]		dns_lex_getmastertoken() now returns ISC_R_BADNUMBER
+			if a number was expected and some other token was
+			found. [RT#2532]
+
 1226.	[func]		Use EDNS for zone refresh queries. [RT #2551]
 
 1225.	[func]		dns_message_setopt() no longer requires that
