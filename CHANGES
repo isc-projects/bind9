@@ -10,19 +10,19 @@
 			more likely to be correct.
 
  945.	[func]		Add the new view-specific options
- 			"match-destinations" and "match-recursive-only".
+			"match-destinations" and "match-recursive-only".
 
  944.	[func]		Check for expired signatures on load.
 
  943.	[bug]		The server could crash when receiving a command
- 			via rndc if the configuration file listed only
+			via rndc if the configuration file listed only
 			nonexistent keys in the controls statement.  [RT #1530]
 
  942.	[port]		libbind: GETNETBYADDR_ADDR_T was not correctly
 			defined on some platforms.
 
  941.	[bug]		The configuration checker crashed if a slave
- 			zone didn't contain a masters statement. [RT #1514]
+			zone didn't contain a masters statement. [RT #1514]
 
  940.	[bug]		Double zone locking failure on error path. [RT #1510]
 
