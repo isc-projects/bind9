@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: cleanall.sh,v 1.2 2000/07/06 19:54:02 mws Exp $
+# $Id: cleanall.sh,v 1.3 2000/07/27 03:35:48 tale Exp $
 
 #
 # Clean up after system tests.
@@ -27,7 +27,7 @@ SYSTEMTESTTOP=.
 
 find . -type f \( \
     -name 'K*' -o -name '*~' -o -name '*.core' -o -name '*.log' \
-    -o -name '*.pid' -o -name '*.keyset' \
+    -o -name '*.pid' -o -name '*.keyset' -o -name named.run \
 \) -print | xargs rm -f
 
 status=0
