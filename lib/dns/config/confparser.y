@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.36 2000/01/28 23:52:41 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.37 2000/02/02 00:38:11 halley Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -399,8 +399,8 @@ options_stmt: L_OPTIONS
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_CONFIG,
 					      DNS_LOGMODULE_CONFIG,
-					      ISC_LOG_CRITICAL,
-					      "options callback failed: %s",
+					      ISC_LOG_ERROR,
+				      "options configuration failed: %s",
 					      isc_result_totext(tmpres));
                                 YYABORT;
                         }
@@ -2768,7 +2768,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                                 isc_log_write(dns_lctx,
                                               DNS_LOGCATEGORY_CONFIG,
                                               DNS_LOGMODULE_CONFIG,
-                                              ISC_LOG_CRITICAL,
+                                              ISC_LOG_ERROR,
                                               "Failed to create zone list");
                                 YYABORT;
                         }
@@ -2780,7 +2780,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                 if (tmpres != ISC_R_SUCCESS) {
                         isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
-                                      ISC_LOG_CRITICAL,
+                                      ISC_LOG_ERROR,
                                       "Error creating new zone.");
                         YYABORT;
                 }
@@ -2794,7 +2794,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 			dns_c_zone_detach(&zone);
                         isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
-                                      ISC_LOG_CRITICAL,
+                                      ISC_LOG_ERROR,
                                       "Error adding new zone to list.");
                         YYABORT;
 		}
@@ -2825,8 +2825,9 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                         if (tmpres != ISC_R_SUCCESS) {
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 					      DNS_LOGMODULE_CONFIG,
-					      ISC_LOG_CRITICAL,
-					      "zone callback failed: %s",
+					      ISC_LOG_ERROR,
+				      "zone configuration for '%s' failed: %s",
+					      zone->name,
 					      isc_result_totext(tmpres));
                                 YYABORT;
                         }
@@ -3565,7 +3566,7 @@ trusted_keys_stmt: L_TRUSTED_KEYS
                         if (tmpres != ISC_R_SUCCESS) {
                                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                               DNS_LOGMODULE_CONFIG,
-                                              ISC_LOG_CRITICAL,
+                                              ISC_LOG_ERROR,
                                               "Failed to create trusted key"
                                               " list.");
                                 YYABORT;
@@ -3577,7 +3578,7 @@ trusted_keys_stmt: L_TRUSTED_KEYS
                         if (tmpres != ISC_R_SUCCESS) {
                                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                               DNS_LOGMODULE_CONFIG,
-                                              ISC_LOG_CRITICAL,
+                                              ISC_LOG_ERROR,
                                               "Failed to set trusted keys");
                                 YYABORT;
                         }
@@ -3599,7 +3600,7 @@ trusted_key: domain_name L_INTEGER L_INTEGER L_INTEGER L_QSTRING
                 if (tmpres != ISC_R_SUCCESS) {
                         isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
-                                      ISC_LOG_CRITICAL,
+                                      ISC_LOG_ERROR,
                                       "No trusted key list defined!");
                         YYABORT;
                 }
@@ -3609,7 +3610,7 @@ trusted_key: domain_name L_INTEGER L_INTEGER L_INTEGER L_QSTRING
                 if (tmpres != ISC_R_SUCCESS) {
                         isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
-                                      ISC_LOG_CRITICAL,
+                                      ISC_LOG_ERROR,
                                       "Failed to create trusted key");
                         YYABORT;
                 }
@@ -3619,7 +3620,7 @@ trusted_key: domain_name L_INTEGER L_INTEGER L_INTEGER L_QSTRING
                 if (tmpres != ISC_R_SUCCESS) {
                         isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
-                                      ISC_LOG_CRITICAL,
+                                      ISC_LOG_ERROR,
                                       "Failed to append trusted key.");
                         YYABORT;
                 }
@@ -3896,7 +3897,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
         res = isc_mem_create(0, 0, &memctx);
         if (res != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-                              DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+                              DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
                               "%s: Error creating mem context.",
                               funcname);
                 goto done;
@@ -3905,7 +3906,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
         res = keyword_init();
         if (res != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-                              DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+                              DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
                               "%s: Error initializing keywords.",
                               funcname);
                 goto done;
@@ -3914,7 +3915,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
         res = dns_c_ctx_new(mem, &currcfg);
         if (res != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-                              DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+                              DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
                               "%s: Error creating config context.",
                               funcname);
                 goto done;
@@ -3923,7 +3924,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
         res = isc_lex_create(memctx, CONF_MAX_IDENT, &mylexer);
         if (res != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-                              DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+                              DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
                               "%s: Error creating lexer",
                               funcname);
                 goto done;
@@ -3937,7 +3938,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
         res = isc_lex_openfile(mylexer, (char *)filename) ; /* remove const */
         if (res != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-                              DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+                              DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
                               "%s: Error opening file %s.",
                               funcname, filename);
                 goto done;
@@ -4168,7 +4169,7 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 {
         static char where[ISC_DIR_PATHMAX + 100];
         static char message[2048];
-	int level = ISC_LOG_CRITICAL;
+	int level = ISC_LOG_ERROR;
         const char *filename = isc_lex_getsourcename(mylexer);
         int lineno = isc_lex_getsourceline(mylexer);
 
