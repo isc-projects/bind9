@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.5 2001/09/03 08:21:45 marka Exp $ */
+/* $Id: check-tool.c,v 1.6 2001/09/05 21:09:31 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include "check-tool.h"
 #include <isc/util.h>
