@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.113 2001/05/31 21:52:22 tale Exp $ */
+/* $Id: rbt.c,v 1.114 2001/05/31 22:32:46 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -860,7 +860,17 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			unsigned int hash;
 			isc_boolean_t has_bitstring = ISC_FALSE;
 
-			if (rbt->hashtable == NULL)
+			/*
+			 * If there is no hash table, hashing can't be done.
+			 * Similarly, when current != current_root, that
+			 * means a left or right pointer was followed, which
+			 * only happens when the algorithm fell through to
+			 * the traditional binary search because of a
+			 * bitstring label, so that traditional search
+			 * should be continued.
+			 */
+			if (rbt->hashtable == NULL ||
+			    current != current_root)
 				goto nohash;
 
 			nlabels = dns_name_countlabels(search_name);
