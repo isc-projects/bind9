@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.1 1999/09/23 17:31:59 tale Exp $ */
+/* $Id: dir.h,v 1.2 1999/10/06 19:36:12 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -23,6 +23,7 @@
 #define DIRENT_H 1
 
 #include <windows.h>
+#include <stdlib.h>
 
 #include <isc/lang.h>
 #include <isc/boolean.h>
@@ -30,15 +31,18 @@
 
 ISC_LANG_BEGINDECLS
 
+#define ISC_DIR_NAMEMAX _MAX_FNAME
+#define ISC_DIR_PATHMAX _MAX_PATH
+
 typedef struct {
-	char 		name[MAX_PATH];
+	char 		name[ISC_DIR_NAMEMAX];
 	unsigned int	length;
 	WIN32_FIND_DATA	find_data;
 } isc_direntry_t;
 
 typedef struct {
 	int		magic;
-	char		dirname[MAX_PATH];
+	char		dirname[ISC_DIR_PATHMAX];
 	isc_direntry_t	entry;
 	isc_boolean_t	entry_filled;
 	HANDLE        	search_handle;
