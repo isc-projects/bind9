@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.67 2000/12/13 00:15:05 tale Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.68 2000/12/14 01:45:53 marka Exp $ -->
 
 <book>
 
@@ -626,6 +626,19 @@ Use <command>dig</command> instead.</para>
         <para>Administrative tools play an integral part in the management
 of a server.</para>
         <variablelist>
+	  <varlistentry id="check-zone" xreflabel="Zone Checking application">
+            <term><command>check-zone</command></term>
+            <listitem>
+	      <para>Perform consistancy checks on a individual zone.</para>
+              <cmdsynopsis label="Usage">
+                <command>check-zone</command>
+                <arg>-dq</arg>
+                <arg>-c <replaceable>class</replaceable></arg>
+                <arg choice="plain"><replaceable>zone</replaceable></arg>
+                <arg><replaceable>filename</replaceable></arg>
+              </cmdsynopsis>
+            </listitem>
+	  </varlistentry>
           <varlistentry id="rndc" xreflabel="Remote Name Daemon Control application">
             <term><command>rndc</command></term>
             <listitem>
@@ -1800,7 +1813,7 @@ for access control, defining listen-on ports, or as a topology,
 and whether the element was negated.</para>
 <para>When used as an access control list, a non-negated match allows
 access and a negated match denies access. If there is no match,
-access is denied. The clauses <command>allow-notify<command>,
+access is denied. The clauses <command>allow-notify</command>,
 <command>allow-query</command>, <command>allow-transfer</command>,
 <command>allow-update</command> and <command>blackhole</command> all
 use address match lists  this. Similarly, the listen-on option will cause
