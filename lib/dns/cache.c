@@ -15,9 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.15 2000/04/06 22:01:49 explorer Exp $ */
+/* $Id: cache.c,v 1.16 2000/04/12 01:37:41 halley Exp $ */
 
 #include <config.h>
+
 #include <limits.h>
 
 #include <isc/assertions.h>
@@ -133,7 +134,9 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	if (cache == NULL)
 		return (ISC_R_NOMEMORY);
 
-	cache->mctx = mctx;
+	cache->mctx = NULL;
+	isc_mem_attach(mctx, &cache->mctx);
+
 	result = isc_mutex_init(&cache->lock);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -170,12 +173,15 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  cleanup_mutex:
 	isc_mutex_destroy(&cache->lock);
  cleanup_mem:
-	isc_mem_put(cache->mctx, cache, sizeof *cache);
+	isc_mem_put(mctx, cache, sizeof *cache);
+	isc_mem_detach(&mctx);
 	return (result);
 }
 
 static void 
 cache_free(dns_cache_t *cache) {
+	isc_mem_t *mctx;
+
 	REQUIRE(VALID_CACHE(cache));
 	REQUIRE(cache->references == 0);
 
@@ -198,7 +204,9 @@ cache_free(dns_cache_t *cache) {
 
 	isc_mutex_destroy(&cache->lock);
 	cache->magic = 0;	
+	mctx = cache->mctx;
 	isc_mem_put(cache->mctx, cache, sizeof *cache);	
+	isc_mem_detach(&mctx);
 }	
 
 
@@ -323,8 +331,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->resched_event = NULL;
 	
 	if (taskmgr != NULL && timermgr != NULL) {
-		result = isc_task_create(taskmgr, cache->mctx,
-					  1, &cleaner->task);
+		result = isc_task_create(taskmgr, 1, &cleaner->task);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_task_create() failed: %s",
