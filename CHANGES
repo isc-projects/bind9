@@ -1,3 +1,7 @@
+1062.	[bug]		If the control channel listener socket was shut
+			down before server exit, the listener object could
+			be freed twice. [RT #1916]
+
 1061.	[bug]		If periodic cache cleaning happened to start
 			while cleaning due to reaching the configured
 			maximum cache size was in progress, the server
