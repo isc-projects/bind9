@@ -3,6 +3,9 @@
 1340.	[doc]		query-source-v6 was missing from options section.
 			[RT #3218]
 
+1337.	[port]		libbind: TrueUNIX 5.1 does not like __align as a
+			element name.
+
 1336.	[bug]		libbind: gethostans() could get out of sync parsing
 			the response if there was a very long CNAME chain.
 
