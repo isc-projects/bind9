@@ -165,9 +165,9 @@ Building
         To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 
-	To compile with KAME IPv6, use"--with-kame[=PATH]".  This should
- 	only be necessary if KAME was installed separately, not if it
-	is integrated into your operating system.
+	If your operating system has integrated support for IPv6, it
+	will be used automatically.  If you have installed KAME IPv6
+	separately, use "--with-kame[=PATH]" to specify its location.
 	
         To see additional configure options, run "configure --help".
 
