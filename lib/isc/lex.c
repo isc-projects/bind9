@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.47 2000/11/16 03:44:41 bwelling Exp $ */
+/* $Id: lex.c,v 1.48 2000/11/17 00:34:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -320,6 +320,10 @@ typedef enum {
 static void
 pushback(inputsource *source, int c) {
 	REQUIRE(source->pushback->current > 0);
+	if (c == EOF) {
+		source->at_eof = ISC_FALSE;
+		return;
+	}
 	source->pushback->current--;
 	if (c == '\n')
 		source->line--;
