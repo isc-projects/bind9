@@ -1,4 +1,7 @@
 
+ 695.	[bug]		If the resolver attempted to query a blackholed or
+			bogus server, the resolution would fail immediately.
+
  694.	[bug]		$GENERATE did not produce the last entry.
 			[RT #682, #683]
 
