@@ -28,12 +28,18 @@
 #define NS_LOGCATEGORY_GENERAL		(&ns_g_categories[0])
 #define NS_LOGCATEGORY_CLIENT		(&ns_g_categories[1])
 #define NS_LOGCATEGORY_NETWORK		(&ns_g_categories[2])
+#define NS_LOGCATEGORY_UPDATE		(&ns_g_categories[3])
+#define NS_LOGCATEGORY_XFER_IN		(&ns_g_categories[4])
+#define NS_LOGCATEGORY_XFER_OUT		(&ns_g_categories[5])
 
 #define NS_LOGMODULE_MAIN		(&ns_g_modules[0])
 #define NS_LOGMODULE_CLIENT		(&ns_g_modules[1])
 #define NS_LOGMODULE_SERVER		(&ns_g_modules[2])
 #define NS_LOGMODULE_QUERY		(&ns_g_modules[3])
 #define NS_LOGMODULE_INTERFACEMGR	(&ns_g_modules[4])
+#define NS_LOGMODULE_UPDATE		(&ns_g_modules[5])
+#define NS_LOGMODULE_XFER_IN		(&ns_g_modules[6])
+#define NS_LOGMODULE_XFER_OUT		(&ns_g_modules[7])
 
 isc_result_t
 ns_log_init(void);
