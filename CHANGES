@@ -1,4 +1,8 @@
 
+ 787.	[bug]		The dnssec tools should always downcase domain names 
+			before creating and looking for files with derived
+			names.
+
  786.	[bug]		When signing/verifying data, names were not properly
 			downcased.
 
