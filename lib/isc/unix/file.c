@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.38.12.4 2003/08/14 06:45:07 marka Exp $ */
+/* $Id: file.c,v 1.38.12.5 2003/08/15 01:54:07 marka Exp $ */
 
 #include <config.h>
 
@@ -212,7 +212,7 @@ isc_file_renameunique(const char *file, char *templet) {
 		return (ISC_R_FAILURE);
 
 	x = cp--;
-	while (*cp == 'X' && cp >= templet) {
+	while (cp >= templet && *cp == 'X') {
 		isc_random_get(&which);
 		*cp = alphnum[which % (sizeof(alphnum) - 1)];
 		x = cp--;
@@ -258,7 +258,7 @@ isc_file_openunique(char *templet, FILE **fp) {
 		return (ISC_R_FAILURE);
 
 	x = cp--;
-	while (*cp == 'X' && cp >= templet) {
+	while (cp >= templet && *cp == 'X') {
 		isc_random_get(&which);
 		*cp = alphnum[which % (sizeof(alphnum) - 1)];
 		x = cp--;
