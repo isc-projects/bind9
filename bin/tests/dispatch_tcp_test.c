@@ -30,6 +30,7 @@
 #include <dns/dispatch.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/name.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
