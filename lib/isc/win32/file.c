@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.14 2001/07/11 04:32:15 mayer Exp $ */
+/* $Id: file.c,v 1.15 2001/07/12 05:58:26 mayer Exp $ */
 
 #include <config.h>
 
@@ -384,12 +384,14 @@ isc_boolean_t
 isc_file_isabsolute(const char *filename) {
 	REQUIRE(filename != NULL);
 	/*
-	 * Look for c:\path\... style or \\computer\shar\path...
+	 * Look for c:\path\... style, c:/path/... or \\computer\shar\path...
 	 * the UNC style file specs
 	 */
 	if ((filename[0] == '\\') && (filename[1] == '\\'))
 		return (ISC_TRUE);
 	if (isalpha(filename[0]) != 0 && filename[1] == ':' && filename[2] == '\\')
+		return (ISC_TRUE);
+	if (isalpha(filename[0]) != 0 && filename[1] == ':' && filename[2] == '/')
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }

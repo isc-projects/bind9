@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.96 2001/06/28 01:57:34 marka Exp $ */
+/* $Id: mem.c,v 1.97 2001/07/12 05:58:20 mayer Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,7 @@
 #ifndef ISC_MEM_DEBUGGING
 #define ISC_MEM_DEBUGGING 0
 #endif
-unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
+LIBISC_EXTERNAL_DATA unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
 
 /*
  * Define ISC_MEM_USE_INTERNAL_MALLOC=1 to use the internal malloc()

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.3 2001/07/09 21:06:29 gson Exp $ */
+/* $Id: platform.h,v 1.4 2001/07/12 05:58:28 mayer Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -40,5 +40,44 @@
 #define ISC_PLATFORM_QUADFORMAT "I64"
 
 #define ISC_PLATFORM_NEEDSTRSEP
+
+/*
+ * Used to control how extern data is linked; needed for Win32 platforms.
+ */
+#define ISC_PLATFORM_USEDECLSPEC 1
+
+/*
+ * Set up a macro for importing and exporting from the DLL
+ */
+
+#ifdef LIBISC_EXPORTS
+#define LIBISC_EXTERNAL_DATA __declspec( dllexport )
+#else
+#define LIBISC_EXTERNAL_DATA __declspec( dllimport ) 
+#endif
+
+#ifdef LIBISCCFG_EXPORTS
+#define LIBISCCFG_EXTERNAL_DATA __declspec( dllexport )
+#else
+#define LIBISCCFG_EXTERNAL_DATA __declspec( dllimport ) 
+#endif
+
+#ifdef LIBISCCC_EXPORTS
+#define LIBISCCC_EXTERNAL_DATA __declspec( dllexport )
+#else
+#define LIBISCCC_EXTERNAL_DATA __declspec( dllimport ) 
+#endif
+
+#ifdef LIBDNS_EXPORTS
+#define LIBDNS_EXTERNAL_DATA __declspec( dllexport )
+#else
+#define LIBDNS_EXTERNAL_DATA __declspec( dllimport )
+#endif
+
+#ifdef LIBLWRES_EXPORTS
+#define LIBLWRES_EXTERNAL_DATA __declspec( dllexport )
+#else
+#define LIBLWRES_EXTERNAL_DATA __declspec( dllimport )
+#endif
 
 #endif /* ISC_PLATFORM_H */

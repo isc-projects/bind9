@@ -15,13 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.c,v 1.3 2001/07/09 21:06:10 gson Exp $ */
-
-#define LIBISC_EXTERNAL_DATA __declspec( dllexport )
+/* $Id: ipv6.c,v 1.4 2001/07/12 05:58:27 mayer Exp $ */
 
 #define off_t _off_t
 
 #include <isc/net.h>
+#include <isc/platform.h>
 
 LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_any =
 	IN6ADDR_ANY_INIT;

@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.13 2001/03/01 22:40:09 bwelling Exp $ */
+/* $Id: commandline.c,v 1.14 2001/07/12 05:58:18 mayer Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -72,14 +72,14 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-int isc_commandline_index = 1;		/* Index into parent argv vector. */
-int isc_commandline_option;		/* Character checked for validity. */
+LIBISC_EXTERNAL_DATA int isc_commandline_index = 1;		/* Index into parent argv vector. */
+LIBISC_EXTERNAL_DATA int isc_commandline_option;		/* Character checked for validity. */
 
-char *isc_commandline_argument;		/* Argument associated with option. */
-char *isc_commandline_progname;		/* For printing error messages. */
+LIBISC_EXTERNAL_DATA char *isc_commandline_argument;		/* Argument associated with option. */
+LIBISC_EXTERNAL_DATA char *isc_commandline_progname;		/* For printing error messages. */
 
-isc_boolean_t isc_commandline_errprint = ISC_TRUE; /* Print error messages. */
-isc_boolean_t isc_commandline_reset = ISC_TRUE; /* Reset processing. */
+LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_errprint = ISC_TRUE; /* Print error messages. */
+LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_reset = ISC_TRUE; /* Reset processing. */
 
 static char endopt = '\0';
 

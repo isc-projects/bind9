@@ -16,13 +16,14 @@
  */
 
 /*
- * $Id: assertions.h,v 1.16 2001/03/05 18:47:00 mayer Exp $
+ * $Id: assertions.h,v 1.17 2001/07/12 05:58:21 mayer Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
 #define ISC_ASSERTIONS_H 1
 
 #include <isc/lang.h>
+#include <isc/platform.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -36,7 +37,7 @@ typedef enum {
 typedef void (*isc_assertioncallback_t)(const char *, int, isc_assertiontype_t,
 					const char *);
 
-extern isc_assertioncallback_t isc_assertion_failed;
+LIBISC_EXTERNAL_DATA extern isc_assertioncallback_t isc_assertion_failed;
 
 void
 isc_assertion_setcallback(isc_assertioncallback_t);

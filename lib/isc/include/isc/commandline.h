@@ -15,22 +15,24 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: commandline.h,v 1.7 2001/01/09 21:56:49 bwelling Exp $ */
+/* $Id: commandline.h,v 1.8 2001/07/12 05:58:22 mayer Exp $ */
 
 #ifndef ISC_COMMANDLINE_H
 #define ISC_COMMANDLINE_H 1
 
 #include <isc/boolean.h>
 #include <isc/lang.h>
+#include <isc/platform.h>
 
-extern int isc_commandline_index;	/* Index into parent argv vector. */
-extern int isc_commandline_option;	/* Character checked for validity. */
 
-extern char *isc_commandline_argument;	/* Argument associated with option. */
-extern char *isc_commandline_progname;	/* For printing error messages. */
+LIBISC_EXTERNAL_DATA extern int isc_commandline_index;	/* Index into parent argv vector. */
+LIBISC_EXTERNAL_DATA extern int isc_commandline_option;	/* Character checked for validity. */
 
-extern isc_boolean_t isc_commandline_errprint;	/* Print error message. */
-extern isc_boolean_t isc_commandline_reset;    	/* Reset getopt. */
+LIBISC_EXTERNAL_DATA extern char *isc_commandline_argument;	/* Argument associated with option. */
+LIBISC_EXTERNAL_DATA extern char *isc_commandline_progname;	/* For printing error messages. */
+
+LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_errprint;	/* Print error message. */
+LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_reset;    	/* Reset getopt. */
 
 ISC_LANG_BEGINDECLS
 

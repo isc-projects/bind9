@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.53 2001/06/27 23:29:29 marka Exp $ */
+/* $Id: mem.h,v 1.54 2001/07/12 05:58:25 mayer Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -24,6 +24,7 @@
 
 #include <isc/lang.h>
 #include <isc/mutex.h>
+#include <isc/platform.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -86,7 +87,7 @@ typedef void (*isc_memfree_t)(void *, void *);
  *	if a hi_water mark is set print the maximium inuse memory every
  *	time it is raised once it exceeds the hi_water mark
  */
-extern unsigned int isc_mem_debugging;
+LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #define ISC_MEM_DEBUGTRACE		0x00000001U
 #define ISC_MEM_DEBUGRECORD		0x00000002U
 #define ISC_MEM_DEBUGUSAGE		0x00000004U
