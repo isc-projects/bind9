@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.121 2000/12/11 23:09:36 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.122 2000/12/12 20:21:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1425,6 +1425,11 @@ print_time(FILE *fp) {
 }
 
 static void
+print_version(FILE *fp) {
+	fprintf(fp, "; dnssec_signzone version " VERSION "\n");
+}
+
+static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\t%s [options] zonefile [keys]\n", program);
@@ -1696,6 +1701,7 @@ main(int argc, char *argv[]) {
 		fatal("failed to open output file %s: %s", output,
 		      isc_result_totext(result));
 	print_time(fp);
+	print_version(fp);
 
 	result = isc_taskmgr_create(mctx, ntasks, 0, &taskmgr);
 	if (result != ISC_R_SUCCESS)
