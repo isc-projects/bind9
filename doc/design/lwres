@@ -1,4 +1,7 @@
-$Id: lwres,v 1.2 2000/03/23 23:51:53 explorer Exp $
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+
+$Id: lwres,v 1.3 2000/06/21 23:43:36 tale Exp $
 
 This document describes the bind v9 lightweight resolver.
 

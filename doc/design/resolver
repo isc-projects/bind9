@@ -1,4 +1,7 @@
-$Id: resolver,v 1.1 1999/04/06 02:50:53 explorer Exp $
+Copyright (C) 1999, 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+
+$Id: resolver,v 1.2 2000/06/21 23:43:42 tale Exp $
 
 Multi-target Resolver
 =====================

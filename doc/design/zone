@@ -1,7 +1,9 @@
+Copyright (C) 1999, 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
 			Zones
 
-	$Id: zone,v 1.5 1999/03/11 00:17:36 marka Exp $
+	$Id: zone,v 1.6 2000/06/21 23:43:46 tale Exp $
 
 Overview
 	 

@@ -1,3 +1,5 @@
+Copyright (C) 1999, 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
 What follows is pseudocode for the zone and cache lookup algorithms, as they
 will work in the RBT DB.

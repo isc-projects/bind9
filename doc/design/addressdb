@@ -1,4 +1,7 @@
-$Id: addressdb,v 1.1 2000/02/29 20:12:48 explorer Exp $
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+
+$Id: addressdb,v 1.2 2000/06/21 23:43:28 tale Exp $
 
 You are lost in a maze of twisty little pointers, all alike...
 

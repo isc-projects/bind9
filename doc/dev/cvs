@@ -1,9 +1,7 @@
-
-
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
 Notes on CVS Usage
-
-
 
 Accessing the repository
 
@@ -71,4 +69,4 @@ borrowed from an ancient CVS FAQ:
 
 
 
-$Id: cvs,v 1.1 2000/06/01 21:00:44 gson Exp $
+$Id: cvs,v 1.2 2000/06/21 23:48:13 tale Exp $
