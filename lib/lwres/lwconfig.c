@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.26 2001/01/09 21:59:24 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.27 2001/01/23 00:41:55 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -439,6 +439,10 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 	unsigned int len;
 
 	if (lwres_net_pton(AF_INET, buffer, &addrbuff) == 1) {
+		unsigned char zeroaddress[] = {0, 0, 0, 0};
+		unsigned char loopaddress[] = {127, 0, 0, 1};
+		if (memcmp(addrbuff, zeroaddress, 4) == 0)
+			memcpy(addrbuff, loopaddress, 4);
 		addr->family = LWRES_ADDRTYPE_V4;
 		addr->length = NS_INADDRSZ;
 		len = 4;

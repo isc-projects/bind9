@@ -1,4 +1,7 @@
 
+ 702.	[func]		If the address 0.0.0.0 is seen in resolv.conf,
+			use 127.0.0.1 instead. [RT #693]
+
  701.	[func]		Root hints are now fully optional.  Class IN
 			views use compiled-in hints by default, as
 			before.  Non-IN views with no root hints now
