@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.47 2000/09/21 12:25:42 marka Exp $ */
+/* $Id: nslookup.c,v 1.48 2000/09/21 12:45:39 marka Exp $ */
 
 #include <config.h>
 
@@ -681,6 +681,10 @@ setoption(char *opt) {
 		debugging = ISC_TRUE;
 	} else if (strncasecmp(opt, "nod2", 4) == 0) {
 		debugging = ISC_FALSE;
+	} else if (strncasecmp(opt, "search",3) == 0) {
+		usesearch = ISC_TRUE;
+	} else if (strncasecmp(opt, "nosearch",5) == 0) {
+		usesearch = ISC_FALSE;
 	} else if (strncasecmp(opt, "sil",3) == 0) {
 		deprecation_msg = ISC_FALSE;
 	} else {
