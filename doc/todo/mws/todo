@@ -10,20 +10,23 @@ back, and, if necessary, reproduce behavior in dig9.  (RT351)
 Remove or fix port number display in places where it is not correctly
 reported (nslookup, in particular). (RT352)	[COMPLETED]
 
-Modify sanitize script to allow more than one key
+Modify sanitize script to allow more than one key [COMPLETED]
 
 Check text strings for host and nslookup output ov various types.
 
-Check functionality of +search option
+Check functionality of +search option		[COMPLETED]
 
-Check necessity of +details option / remove it
+Check necessity of +details option / remove it	[COMPLETED]
 
 Check AXFR under Linux v6 / 2.4.x
 
 Make -t and -c change command line parsing so that unprefixed class and types
-are treated as hosts.
+are treated as hosts.				[COMPLETED]
 
-+view and +zone stuff
++view and +zone stuff				[PENDING draft approval]
+
+dig, isolate -x/host/nslookup ip->in-addr auto-detection and conversion
+into dighost.c
 
 nsupdate code check and cleanup.  Make sure prereq, etc... work.
 
