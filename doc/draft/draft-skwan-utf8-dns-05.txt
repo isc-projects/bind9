@@ -1,8 +1,9 @@
 INTERNET-DRAFT                                             Stuart Kwan
                                                           James Gilroy
+                                                          Levon Esibov
                                                        Microsoft Corp.
-                                                             July 2000
-<draft-skwan-utf8-dns-04.txt>                     Expires January 2001
+                                                            March 2001
+<draft-skwan-utf8-dns-05.txt>                   Expires September 2001
 
 
      Using the UTF-8 Character Set in the Domain Name System
@@ -48,11 +49,10 @@ superset of ASCII and a translation of the UCS-2 character encoding.
 
 
 
+Expires September 2001                                        [Page 1]
 
-Expires January 2001                                          [Page 1]
 
-
-INTERNET-DRAFT                  UTF-8 DNS                    July 2000
+INTERNET-DRAFT                  UTF-8 DNS                   March 2001
 
 1. Introduction
 
@@ -105,10 +105,10 @@ UTF-8 characters before transmitting those names in any message.
 
 
 
-Expires January 2001                                          [Page 2]
+Expires September 2001                                        [Page 2]
 
 
-INTERNET-DRAFT                  UTF-8 DNS                    July 2000
+INTERNET-DRAFT                  UTF-8 DNS                   March 2001
 
 
 For consistency, UTF-8-aware DNS servers must compare names that
@@ -162,10 +162,10 @@ Cliff Van Dyke and Bjorn Rettig.
 
 
 
-Expires January 2001                                          [Page 3]
+Expires September 2001                                        [Page 3]
 
 
-INTERNET-DRAFT                  UTF-8 DNS                    July 2000
+INTERNET-DRAFT                  UTF-8 DNS                   March 2001
 
 
 6. References
@@ -203,6 +203,12 @@ Redmond, WA  98052                  Redmond, WA  98052
 USA                                 USA
 <skwan@microsoft.com>               <jamesg@microsoft.com>
 
+Levon Esibov
+Microsoft Corporation
+One Microsoft Way
+Redmond, WA  98052
+USA
+<levone@microsoft.com>
 
 
 
@@ -213,13 +219,9 @@ USA                                 USA
 
 
 
+Expires September 2001                                        [Page 4]
 
 
-
-
-
-
-Expires January 2001                                          [Page 4]
 
 
 

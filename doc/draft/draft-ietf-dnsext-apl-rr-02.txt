@@ -1,9 +1,15 @@
+
+
+
+
+
+
 INTERNET-DRAFT                                                Peter Koch
-Expires: December 2000                            Universitaet Bielefeld
-Updates: RFC 1035                                              June 2000
+Expires: September 2001                           Universitaet Bielefeld
+Updates: RFC 1035                                             March 2001
 
           A DNS RR Type for Lists of Address Prefixes (APL RR)
-                    draft-ietf-dnsext-apl-rr-01.txt
+                    draft-ietf-dnsext-apl-rr-02.txt
 
 
 Status of this Memo
@@ -28,7 +34,7 @@ Status of this Memo
    http://www.ietf.org/shadow.html.
 
    Comments should be sent to the author or the DNSEXT WG mailing list
-   <namedroppers@internic.net>.
+   <namedroppers@OPS.IETF.ORG>.
 
 Abstract
 
@@ -49,9 +55,9 @@ Abstract
 
 
 
-Koch                     Expires December 2000                  [Page 1]
+Koch                     Expires September 2001                 [Page 1]
 
-INTERNET-DRAFT                 DNS APL RR                      June 2000
+INTERNET-DRAFT                 DNS APL RR                     March 2001
 
 
 2. Background
@@ -59,7 +65,7 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
    The Domain Name System [RFC1034], [RFC1035] provides a mechanism to
    associate addresses and other Internet infrastructure elements with
    hierarchically built domain names. Various types of resource records
-   have been defined, especially those for IPv4 and IPv6 [RFCxxxx]
+   have been defined, especially those for IPv4 and IPv6 [RFC2874]
    addresses.  In [RFC1101] a method is described to publish information
    about the address space allocated to an organisation. In older BIND
    versions, a weak form of controlling access to zone data was
@@ -76,8 +82,8 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
 4. APL RDATA format
 
-   The RDATA section consists of zero or more strings (<apstring>) of
-   the form
+   The RDATA section consists of zero or more items (<apitem>) of the
+   form
 
       +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
       |                          ADDRESSFAMILY                        |
@@ -105,9 +111,9 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
 
 
-Koch                     Expires December 2000                  [Page 2]
+Koch                     Expires September 2001                 [Page 2]
 
-INTERNET-DRAFT                 DNS APL RR                      June 2000
+INTERNET-DRAFT                 DNS APL RR                     March 2001
 
 
    This document defines the AFDPARTs for address families 1 (IPv4) and
@@ -161,9 +167,9 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
 
 
-Koch                     Expires December 2000                  [Page 3]
+Koch                     Expires September 2001                 [Page 3]
 
-INTERNET-DRAFT                 DNS APL RR                      June 2000
+INTERNET-DRAFT                 DNS APL RR                     March 2001
 
 
    immediately followed by the "/" character, immediately followed by a
@@ -174,27 +180,26 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
 5.1. Textual Representation of IPv4 Addresses
 
-   An IPv4 address in the <address> part of an <apstring> is in dotted
+   An IPv4 address in the <address> part of an <apitem> is in dotted
    quad notation, just as in an A RR.  The <prefix> has values from the
    interval 0..32 (decimal).
 
 5.2. Textual Representation of IPv6 Addresses
 
    The representation of an IPv6 address in the <address> part of an
-   <apstring> follows [RFC2373], section 2.2. Legal values for <prefix>
+   <apitem> follows [RFC2373], section 2.2. Legal values for <prefix>
    are from the interval 0..128 (decimal).
 
 6. APL RR usage
 
    An APL RR with empty RDATA is valid and implements an empty list.
-   Multiple occurrences of the same <apstring> in a single APL RR are
-   allowed and MUST NOT be merged by a DNS server or resolver.
-   <apstrings> MUST be kept in order and MUST NOT be rearranged or
-   aggregated.
+   Multiple occurrences of the same <apitem> in a single APL RR are
+   allowed and MUST NOT be merged by a DNS server or resolver. <apitems>
+   MUST be kept in order and MUST NOT be rearranged or aggregated.
 
-   A single APL RR may contain <apstrings> belonging to different
-   address families.  The maximum number of <apstrings> is upper bounded
-   by the available RDATA space.
+   A single APL RR may contain <apitems> belonging to different address
+   families.  The maximum number of <apitems> is upper bounded by the
+   available RDATA space.
 
    RRSets consisting of more than one APL RR are legal but the
    interpretation is left to the particular application.
@@ -217,9 +222,10 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
 
 
-Koch                     Expires December 2000                  [Page 4]
+
+Koch                     Expires September 2001                 [Page 4]
 
-INTERNET-DRAFT                 DNS APL RR                      June 2000
+INTERNET-DRAFT                 DNS APL RR                     March 2001
 
 
     o which address families are expected to appear in the APL RRs for
@@ -246,20 +252,20 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
    application does exist now or will exist in the future.
 
       ; RFC 1101-like announcement of address ranges for foo.example
-      foo.example              APL 1:192.168.32.0/21 !1:192.168.38.0/28
+      foo.example.             IN APL 1:192.168.32.0/21 !1:192.168.38.0/28
 
       ; CIDR blocks covered by classless delegation
-      42.168.192.IN-ADDR.ARPA  APL ( 1:192.168.42.0/26 1:192.168.42.64/26
-                                   1:192.168.42.128/25 )
+      42.168.192.IN-ADDR.ARPA. IN APL ( 1:192.168.42.0/26 1:192.168.42.64/26
+                                      1:192.168.42.128/25 )
 
       ; Zone transfer restriction
-      _axfr.sbo.example        APL 1:127.0.0.1/32 1:172.16.64.0/22
+      _axfr.sbo.example.       IN APL 1:127.0.0.1/32 1:172.16.64.0/22
 
       ; List of address ranges for multicast
-      multicast.example        APL 1:224.0.0.0/4  2:FF00:0:0:0:0:0:0:0/8
+      multicast.example.       IN APL 1:224.0.0.0/4  2:FF00:0:0:0:0:0:0:0/8
 
    Note that since trailing zeroes are ignored in the first APL RR the
-   AFDLENGTH of both <apstrings> is three.
+   AFDLENGTH of both <apitems> is three.
 
 9. Security Considerations
 
@@ -273,9 +279,9 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
 
 
-Koch                     Expires December 2000                  [Page 5]
+Koch                     Expires September 2001                 [Page 5]
 
-INTERNET-DRAFT                 DNS APL RR                      June 2000
+INTERNET-DRAFT                 DNS APL RR                     March 2001
 
 
 10. IANA Considerations
@@ -284,14 +290,15 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
    This document does not define any new namespaces. It uses the 16 bit
    identifiers for address families maintained by IANA in
-   ftp://ftp.iana.org/in-notes/iana/assignments/address-family-numbers.
+   http://www.iana.org/numbers.html.
 
    IANA is asked to assign a numeric RR type value for APL.
 
 11. Acknowledgements
 
-   The author would like to thank Mark Andrews for his review and
-   constructive comments.
+   The author would like to thank Mark Andrews, Olafur Gudmundsson, Ed
+   Lewis, Thomas Narten, Erik Nordmark, and Paul Vixie for their review
+   and constructive comments.
 
 12. References
 
@@ -304,10 +311,6 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
    [RFC1101]   Mockapetris,P., "DNS Encoding of Network Names and Other
                Types", RFC 1101, April 1989
-
-   [RFCxxxx]   Crawford,M., Huitema,C., Thomson,S., "DNS Extensions to
-               Support IPv6 Address Aggregation and Renumbering", work in
-               progress
 
    [RFC2119]   Bradner,S., "Key words for use in RFCs to Indicate
                Requirement Levels", RFC 2119, BCP 14, March 1997
@@ -325,17 +328,17 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
                Considerations Section in RFCs", RFC 2434, BCP 26, October
                1998
 
-
-
-
-
-Koch                     Expires December 2000                  [Page 6]
-
-INTERNET-DRAFT                 DNS APL RR                      June 2000
-
-
    [RFC2535]   Eastlake,D., "Domain Name System Security Extensions", RFC
                2535, March 1999
+
+
+
+
+
+Koch                     Expires September 2001                 [Page 6]
+
+INTERNET-DRAFT                 DNS APL RR                     March 2001
+
 
    [RFC2606]   Eastlake,D., Panitz,A., "Reserved Top Level DNS Names",
                RFC 2606, BCP 32, June 1999
@@ -343,6 +346,10 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
    [RFC2845]   Vixie,P., Gudmundsson,O., Eastlake,D., Wellington,B.,
                "Secret Key Transaction Authentication for DNS (TSIG)",
                RFC 2845, May 2000
+
+   [RFC2874]   Crawford,M., Huitema,C., "DNS Extensions to Support IPv6
+               Address Aggregation and Renumbering", RFC 2874, July 2000
+
 
 
 13. Author's Address
@@ -384,5 +391,4 @@ INTERNET-DRAFT                 DNS APL RR                      June 2000
 
 
 
-
-Koch                     Expires December 2000                  [Page 7]
+Koch                     Expires September 2001                 [Page 7]

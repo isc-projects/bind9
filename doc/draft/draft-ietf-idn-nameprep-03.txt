@@ -1,6 +1,6 @@
 Internet Draft                                          Paul Hoffman
-draft-ietf-idn-nameprep-02.txt                            IMC & VPNC
-January 17, 2001                                       Marc Blanchet
+draft-ietf-idn-nameprep-03.txt                            IMC & VPNC
+February 24, 2001                                      Marc Blanchet
 Expires in six months                                       ViaGenie
 
                Preparation of Internationalized Host Names
@@ -26,20 +26,21 @@ http://www.ietf.org/shadow.html.
 Abstract
 
 This document describes how to prepare internationalized host names for
-for use in the DNS. The steps include:
-- mapping characters to other characters, such as to change their case
-- normalizing the characters
-- excluding characters that are prohibited from appearing in
-internationalized host names
+use in the DNS. The steps include:
+  - mapping characters to other characters, such as to change their case
+  - normalizing the characters
+  - excluding characters that are prohibited from appearing in
+    internationalized host names
+This document does not specify a wire protocol. This preparation should
+be done before the DNS request.
 
 1. Introduction
 
 When expanding today's DNS to include internationalized host names,
-those new names will be handled in many parts of the DNS. The IDN
-Working Group's requirements document [IDNReq] describes a framework for
-domain name handling as well as requirements for the new names. The IDN
-Working Group's comparison document [IDNComp] gives a framework for how
-various parts of the IDN solution work together.
+those new names will be handled in many parts of the DNS. The
+Internationalized Domain Name (IDN) Working Group's requirements
+document [IDNReq] describes a framework for domain name handling as well
+as requirements for the new names.
 
 A user can enter a domain name into an application program in a myriad
 of fashions. Depending on the input method, the characters entered in
@@ -49,18 +50,26 @@ the user's input before the name is resolved in the DNS.
 
 It is a design goal of this document to allow users to enter host names
 in applications and have the highest chance of getting the name correct.
-This means that the user should not be limited to only entering exactly
-the characters that might have been used, but to instead be able to
-enter characters that unambiguously normalize to characters in the
-desired host name. At the same time, this process must not introduce any
-chance that two host names could be represented by two distinct strings
-of characters that look identical to typical users. It is also a design
-goal to have all preprocessing of IDN done before going on the wire, so
-that no transformation is done in the DNS server space. Name preparation
-can be done in other places, such as in the registration process.
+Another, often conflicting, design goal is to allow as wide of a range
+of characters as possible to be allowed in host names. The user should
+not be limited to only entering exactly the characters that might have
+been used, but to instead be able to enter characters that unambiguously
+normalize to characters in the desired host name. Although it would be
+easy to use the process in this step to "correct" perceived mis-features
+or bugs in the current character standards, this document expressly does
+not do so.
 
 This document describes the steps needed to convert a name part from one
 that is entered by the user to one that can be used in the DNS.
+
+Within a fully-qualified domain name, some labels may be
+internationalized, while others are not. This specification should be
+applied to all internationalized labels. An application must be able to
+recognize which part is internationalized; the method for such
+recognition is outside of the scope of this document. Note that this
+specification is harmless to the non-internationalized labels: when the
+steps described here are applied to non-internationalized labels, the
+label will not change.
 
 1.1 Terminology
 
@@ -69,15 +78,15 @@ The key words "MUST", "SHALL", "REQUIRED", "SHOULD", "RECOMMENDED", and
 [RFC2119].
 
 Examples in this document use the notation for code points and names
-from the Unicode Standard [Unicode3] and ISO 10646 [ISO10646]. For
+from the Unicode Standard [Unicode3] and ISO/IEC 10646 [ISO10646]. For
 example, the letter "a" may be represented as either "U+0061" or "LATIN
 SMALL LETTER A". In the lists of prohibited characters, the "U+" is left
 off to make the lists easier to read. The names of character ranges are
 shown in square brackets (such as "[SYMBOLS]") and do not come from the
 standards.
 
-Note: A glossary of terms used in Unicode and ISO 10646 can be found in
-[Glossary]. Information on the 10646/Unicode character model can be
+Note: A glossary of terms used in Unicode and ISO/IEC 10646 can be found
+in [Glossary]. Information on the 10646/Unicode character model can be
 found in [CharModel].
 
 
@@ -90,10 +99,11 @@ many ways and is not specified in this document
 
 2) Map -- For each character in the input, check if it has a mapping
 and, if so, replace it with its mapping. The mappings are a combination
-of folding uppercase characters to lowercase and hyphen mapping. This
-is described in Section 4.
+of folding uppercase characters to lowercase and hyphen mapping. This is
+described in Section 4.
 
-3) Normalize -- Normalize the characters. This is described in Section 5.
+3) Normalize -- Normalize the characters. This is described in Section
+5.
 
 4) Look for prohibited output -- Check for any characters that are not
 allowed in the output. If any are found, return an error to the
@@ -125,9 +135,10 @@ table includes all the steps described in the subsections below.
 The mappings can be one-to-none, one-to-one, or one-to-many. That is,
 some characters may be eliminated or replaced by more than one
 character, and the output of this step might be shorter or longer than
-the input.
+the input. Because of this, an application MUST be prepared to receive a
+longer or shorter string than the one input in the nameprep algorithm.
 
-Design note: Characters that are not wanted in internationalized name
+Rationale: Characters that are not wanted in internationalized name
 parts can either be mapped to nothing in the mapping step, or cause an
 error in the prohibition step. The general guideline used to pick
 between the two outcomes was that removing alphabetic, non-protocol
@@ -139,11 +150,13 @@ characters from the user.
 
 3.1 Case mapping
 
-For each character in the input, if there is a lowercase mapping for
-that character, the input character is changed to the mapped lowercase
-character(s). The entries in the mapping table are derived from [UTR21].
+The input string is case folded according to [UTR21]. For most
+characters, this is the same thing as changing the input character to a
+lowercase character. For some characters, however, more complex
+transformations occur. The mapping table in Appendix E is derived by
+applying the rules for equivalence classes from [UTR21].
 
-Design note: this step could have been "change all lowercase characters
+Rationale: This step could have been "change all lowercase characters
 into uppercase characters". However, the upper-to-lower folding was
 chosen because most users of the Internet today enter host names in
 lowercase.
@@ -155,12 +168,12 @@ need processing. These characters include a few Greek characters and
 many symbols that contain Latin characters. The list of characters to
 add to the mapping table were determined by the following algorithm:
 
-b = Normalize(Fold(a));
-c = Normalize(Fold(b));
+b = NormalizeWithKC(Fold(a));
+c = NormalizeWithKC(Fold(b));
 if c is not the same as b, add a mapping for "a to c".
 
-Because Normalize(Fold(c)) always equals c, the table is stable from
-that point on.
+Because NormalizeWithKC(Fold(c)) always equals c, the table is stable
+from that point on.
 
 3.3 Mapped out
 
@@ -191,12 +204,12 @@ do not bear semantics.
 The output of the mapping step is normalized using form KC, as described
 in [UTR15]. Using form KC instead of form C causes many characters that
 are identical or near-identical to be converted into a single character.
-Note that this specification refers to a specific vesion of [UTR15].
-If a later version of [UTR15] changes the algorithm used for normalizing,
+Note that this specification refers to a specific version of [UTR15]. If
+a later version of [UTR15] changes the algorithm used for normalizing,
 that later version MUST NOT be used with this specification. Note that
-it is likely that this specification will be revised if UTR15 is changed,
-but until that happens, only the specified version of [UTR15] must
-be used.
+it is likely that this specification will be revised if UTR15 is
+changed, but until that happens, only the specified version of [UTR15]
+must be used.
 
 
 5. Prohibited Output
@@ -213,11 +226,6 @@ personal names, company names, and spoken phrases. A goal of this
 section is to prohibit as few characters that might be used in these
 contexts as possible.
 
-Note that every code point listed in this section MUST NOT be transmitted
-on the DNS service interface. If a DNS server receives a request
-containing a prohibited code point, then the DNS server MUST NOT resolve
-that name.
-
 The collected list of prohibited code points can be found in Appendix F
 of this document. The list in Appendix F MUST be used by implementations
 of this specification. If there are any discrepancies between the list
@@ -231,7 +239,7 @@ F.
 5.1 Currently-prohibited ASCII characters
 
 Some of the ASCII characters that are currently prohibited in host names
-by [STD13] are also used in protocol elements such as URIs. The other
+by [STD13] are also used in protocol elements such as URIs [URI]. The other
 characters in the range U+0000 to U+007F that are not currently allowed
 are also prohibited in host name parts to reserve them for future use in
 protocol elements.
@@ -274,7 +282,7 @@ when displayed.
 007F; DELETE
 0080-009F; [CONTROL CHARACTERS]
 2028; LINE SEPARATOR
-2029; PARAGRAPH SEPARATORS
+2029; PARAGRAPH SEPARATOR
 
 5.4 Private use and replacement characters
 
@@ -286,17 +294,17 @@ F0000-FFFFD; [PRIVATE USE, PLANE 15]
 100000-10FFFD; [PRIVATE USE, PLANE 16]
 
 The replacement character (U+FFFD) has no known semantic definition in a
-name, and is often used in renderers to say "there would be some
+name, and is often displayed by renderers to indicate "there would be some
 character here, but it cannot be rendered". For example, on a computer
 with no Asian fonts, a name with three katakana characters might be
 rendered with three replacement characters.
 
 FFFD; REPLACEMENT CHARACTER
 
-5.5 Non-character codepoints
+5.5 Non-character code points
 
 Non-character code points are code points that have been assigned in
-ISO 10646 but are not characters. Because they are already assigned,
+ISO/IEC 10646 but are not characters. Because they are already assigned,
 they are guaranteed not to later change into characters.
 
 FFFE-FFFF; [NONCHARACTER CODE POINTS]
@@ -344,7 +352,7 @@ for host names that must have a single canonical order.
 
 5.9 Change display properties
 
-The following characters, some of which are deprecated in ISO 10646,
+The following characters, some of which are deprecated in ISO/IEC 10646,
 can cause changes in display or the order in which characters appear
 when rendered.
 
@@ -362,10 +370,20 @@ when rendered.
 206E; NATIONAL DIGIT SHAPES
 206F; NOMINAL DIGIT SHAPES
 
+5.10 Inappropriate characters from common input mechanisms
+
+U+3002 is used as if it were U+002E in many input mechanisms,
+particularly in Asia. This prohibition allows input mechanisms to safely
+map U+3002 to U+002E before doing nameprep without worrying about
+preventing users from accessing legitimate host name parts.
+
+3002; IDEOGRAPHIC FULL STOP
+
+
 
 6. Unassigned Code Points
 
-All code points not yet assigned in ISO 10646 are called "unassigned
+All code points not assigned in ISO/IEC 10646 are called "unassigned
 code points". Authoritative name servers MUST NOT have internationalized
 name parts that contain any unassigned code points. DNS requests MAY
 contain name parts that contain unassigned code points. Note that this
@@ -373,19 +391,19 @@ is the only part of this document where the requirements for queries
 differs from the requirements for names in DNS zones.
 
 Using two different policies for where unassigned code points can appear
-in the DNS prevents the need for versioning the IDNprotocol [IDNrev].
+in the DNS prevents the need for versioning the IDN protocol [IDNrev].
 This is very useful since it makes the overall processing simpler and do
-not impose a "protocol" to handle versioning. It is expected that ISO
+not impose a "protocol" to handle versioning. It is expected that ISO/IEC
 10646 will be updated fairly frequently; recently, it has happened
-approximately once a year. Each time a new version of ISO 10646 appears,
+approximately once a year. Each time a new version of ISO/IEC 10646 appears,
 a new version of this document can be created. Some end users will want
 to use the new code points as soon as they are defined.
 
 The list of unassigned code points can be found in Appendix G of this
 document. The list in Appendix G MUST be used by implementations of this
 specification. If there are any discrepancies between the list in
-Appendix G and the ISO 10646 specification, the list Appendix G always
-takes precedence.
+Appendix G and the ISO/IEC 10646 specification, the list Appendix G
+always takes precedence.
 
 Due to the way that versioning is handled in this section, host names
 that are embedded in structures that cannot be changed (such as the
@@ -394,7 +412,7 @@ name parts that contain any unassigned code points.
 
 6.1 Categories of code points
 
-Each code point in ISO 10646 can be categorized by how it acts in the
+Each code point in ISO/IEC 10646 can be categorized by how it acts in the
 process described in earlier sections of this document:
 
 AO      Code points that may be in the output
@@ -409,7 +427,7 @@ D       Code points that cannot be in the output because they are
 U       Unassigned code points
 
 A subsequent version of this document that references a newer version of
-ISO 10646 with new code points will inherently have some code points
+ISO/IEC 10646 with new code points will inherently have some code points
 move from category U to either D, MN, or AO. For backwards
 compatibility, no future version of this document will move code points
 from any other category. That is, no current AO, MN, or D code points
@@ -539,11 +557,8 @@ specification.
 
 [Glossary] Unicode Glossary, <http://www.unicode.org/glossary/>.
 
-[IDNComp] Paul Hoffman, "Comparison of Internationalized Domain Name
-Proposals", draft-ietf-idn-compare
-
-[IDNReq] James Seng, "Requirements of Internationalized Domain Names",
-draft-ietf-idn-requirement
+[IDNReq] Zita Wenzel and James Seng, "Requirements of Internationalized
+Domain Names", draft-ietf-idn-requirements
 
 [IDNRev] Marc Blanchet, "Handling versions of internationalized domain
 names protocols", draft-ietf-idn-version
@@ -564,12 +579,17 @@ Generic Syntax", August 1998, RFC 2396.
 [RFC2732] Robert Hinden, et. al., Format for Literal IPv6 Addresses in
 URL's, December 1999, RFC 2732.
 
-[STD13] Paul Mockapetris, "Domain names - implementation and
-specification", November 1987, STD 13 (RFC 1034 and 1035).
+[STD13] Paul Mockapetris, "Domain names - concepts and facilities" (RFC
+1034) and "Domain names - implementation and specification" (RFC 1035,
+STD 13, November 1987.
 
 [Unicode3] The Unicode Consortium, "The Unicode Standard -- Version
 3.0", ISBN 0-201-61633-5. Described at
 <http://www.unicode.org/unicode/standard/versions/Unicode3.0.html>.
+
+[URIs] For example: Roy Fielding et. al., "Uniform Resource Identifiers:
+Generic Syntax", August 1998, RFC 2396; Robert Hinden et. al, "IPv6
+Literal Addresses in URL's", December 1999, RFC 2732.
 
 [UTR15] Mark Davis and Martin Duerst. Unicode Normalization Forms.
 Unicode Technical Report;15.
@@ -605,37 +625,52 @@ Jonathan Rosenne
 Kent Karlsson
 Scott Hollenbeck
 
-B. Differences Between -01 and -01 Drafts
 
-Throughout: changed the format of lines with character names to make
-the document easier to review.
+B. Differences Between -02 and -03 Drafts
 
-1.1: Added non-normative reference to [ISO10646]. Also added note about
-range names.
+Throughout: Changed "ISO 10646" to "ISO/IEC 10646". Changed "codepoint"
+to "code point".
 
-3.2: Changed "CaseFold" to "Fold" in last sentence.
+Abstract: Added last sentence.
 
-4: Corrected spelling in title.
+1: Removed the sentence about [IDNComp] in the first paragraph.
+Clarified the design goals in the third paragraph. Added new last
+paragraph about processing name parts.
 
-5: Changed "character" to "code point" in many places because some of
-the things that are prohibited are not chraracters. Changed the last
-sentence in the fifth paragraph.
+3: Added sentence at the end of the second paragraph about accepting
+shorter or longer responses. Changed "Design note" to "Rationale".
 
-6: Changed "character" to "code point" in many places, including the
-title of the section.
+3.1: Revised the first paragraph to make it clearer that the mapping is
+not simple lowercasing. Changed "Design note" to "Rationale".
 
-A: Added Kent Karlsson and Scott Hollenbeck to the commenters list.
+3.2: Made it clearer that the normalization is with form KC.
 
-F: Corrected an error in the table (hyphen was called prohibited
-when it obviously is not). Changed title.
+5: Removed the previous third paragraph, which discussed the DNS service
+interface.
 
-G: Fixed the table to use the proper format for the code points.
-Changed title.
+5.1: Added references for URIs.
+
+5.4: Changed the sentence about the replacement character to read
+"...and is often displayed by renderers to indicate...".
+
+5.10: Added this section, which prohibits U+3002.
+
+6: Removed "yet" from the first sentence.
+
+8: Fixed the reference for [IDNReq] and [STD13]. Removed the reference
+to [IDNComp]. Added the reference for [URIs].
+
+C: Changed wording of the section.
+
+E, F, G: Added tags to the beginning and end of the tables.
+
+F: Added 3002 (from section 5.10). Added FDD0-FDEF, which were omitted
+in error.
 
 
 C. IANA Considerations
 
-[[[ We probably won't have any. ]]]
+None.
 
 
 D. Author Contact Information
@@ -664,6 +699,7 @@ The columns are separated by semicolons. Note that the second column may
 be empty, or it may have one character, or it may have more than one
 character, with each character separated by a space.
 
+----- Start Mapping Table -----
 0041; 0061; Case map
 0042; 0062; Case map
 0043; 0063; Case map
@@ -1541,10 +1577,12 @@ FF37; FF57; Case map
 FF38; FF58; Case map
 FF39; FF59; Case map
 FF3A; FF5A; Case map
+----- End Mapping Table -----
 
 
 F. Prohibited Code Point List
 
+----- Start Prohibited Table -----
 0000-002C
 002E-002F
 003A-0040
@@ -1583,6 +1621,7 @@ F. Prohibited Code Point List
 206F
 2FF0-2FFF
 3000
+3002
 D800-DFFF
 E000-F8FF
 FFF9
@@ -1609,6 +1648,7 @@ F0000-FFFFD
 FFFFE-FFFFF
 100000-10FFFD
 10FFFE-10FFFF
+----- End Prohibited Table -----
 
 NOTE WELL: Software that follows this specification that will be used to
 check names before they are put in authoritative name servers MUST add
@@ -1618,6 +1658,7 @@ See Section 6 for more details.
 
 G. Unassigned Code Point List
 
+----- Start Unassigned Table -----
 0220-0221
 0234-024F
 02AE-02AF
@@ -1953,7 +1994,7 @@ FB45
 FBB2-FBD2
 FD40-FD4F
 FD90-FD91
-FDC8-FDCF
+FDC8-FDEF
 FDFC-FE1F
 FE24-FE2F
 FE45-FE48
@@ -1986,3 +2027,5 @@ B0000-BFFFD
 C0000-CFFFD
 D0000-DFFFD
 E0000-EFFFD
+----- End Unassigned Table -----
+
