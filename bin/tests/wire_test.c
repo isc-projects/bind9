@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.57 2001/05/09 00:16:48 bwelling Exp $ */
+/* $Id: wire_test.c,v 1.58 2001/05/09 18:51:44 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/commandline.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -53,6 +54,15 @@ fromhex(char c) {
 	/* NOTREACHED */
 }
 
+static void
+usage(void) {
+	fprintf(stderr, "wire_test [-p] [-b] [-s] [-r]\n");
+	fprintf(stderr, "\t-p\tPreserve order of the records in messages\n");
+	fprintf(stderr, "\t-b\tBest-effort parsing (ignore some errors)\n");
+	fprintf(stderr, "\t-s\tPrint memory statistics\n");
+	fprintf(stderr, "\t-r\tAfter parsing, re-render the message\n");
+}
+
 int
 main(int argc, char *argv[]) {
 	char *rp, *wp;
@@ -68,9 +78,36 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	dns_compress_t cctx;
 	isc_mem_t *mctx;
+	int parseflags = 0;
+	isc_boolean_t printmemstats = ISC_FALSE;
+	isc_boolean_t dorender = ISC_FALSE;
+	int ch;
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+
+	while ((ch = isc_commandline_parse(argc, argv, "pbsr")) != -1) {
+		switch (ch) {
+			case 'p':
+				parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
+				break;
+			case 'b':
+				parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
+				break;
+			case 's':
+				printmemstats = ISC_TRUE;
+				break;
+			case 'r':
+				dorender = ISC_TRUE;
+				break;
+			default:
+				usage();
+				exit(1);
+		}
+	}
+
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	if (argc > 1) {
 		f = fopen(argv[1], "r");
@@ -126,66 +163,82 @@ main(int argc, char *argv[]) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
-	result = dns_message_parse(message, &source, 0);
-/*	CHECKRESULT(result, "dns_message_parse failed");*/
-
-	result = printmessage(message);
-	CHECKRESULT(result, "printmessage() failed");
-
-	isc_mem_stats(mctx, stdout);
-
-	/*
-	 * XXXMLG
-	 * Changing this here is a hack, and should not be done in reasonable
-	 * application code, ever.
-	 */
-	message->from_to_wire = DNS_MESSAGE_INTENTRENDER;
-	memset(b, 0, sizeof(b));
-	isc_buffer_clear(&source);
-
-	for (i = 0 ; i < DNS_SECTION_MAX ; i++)
-		message->counts[i] = 0;  /* Another hack XXX */
-
-	result = dns_compress_init(&cctx, -1, mctx);
-	CHECKRESULT(result, "dns_compress_init() failed");
-
-	result = dns_message_renderbegin(message, &cctx, &source);
-	CHECKRESULT(result, "dns_message_renderbegin() failed");
-
-	result = dns_message_rendersection(message, DNS_SECTION_QUESTION, 0);
-	CHECKRESULT(result, "dns_message_rendersection(QUESTION) failed");
-
-	result = dns_message_rendersection(message, DNS_SECTION_ANSWER, 0);
-	CHECKRESULT(result, "dns_message_rendersection(ANSWER) failed");
-
-	result = dns_message_rendersection(message, DNS_SECTION_AUTHORITY, 0);
-	CHECKRESULT(result, "dns_message_rendersection(AUTHORITY) failed");
-
-	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL, 0);
-	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL) failed");
-
-	dns_message_renderend(message);
-
-	dns_compress_invalidate(&cctx);
-
-	message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
-	dns_message_destroy(&message);
-
-	printf("Message rendered.\n");
-	isc_mem_stats(mctx, stdout);
-
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
-	CHECKRESULT(result, "dns_message_create failed");
-
-	result = dns_message_parse(message, &source, 0);
+	result = dns_message_parse(message, &source, parseflags);
+	if (result == DNS_R_RECOVERABLE)
+		result = ISC_R_SUCCESS;
 	CHECKRESULT(result, "dns_message_parse failed");
 
 	result = printmessage(message);
 	CHECKRESULT(result, "printmessage() failed");
 
+	if (printmemstats)
+		isc_mem_stats(mctx, stdout);
+
+	if (dorender) {
+		/*
+		 * XXXMLG
+		 * Changing this here is a hack, and should not be done in
+		 * reasonable application code, ever.
+	 	*/
+		message->from_to_wire = DNS_MESSAGE_INTENTRENDER;
+		memset(b, 0, sizeof(b));
+		isc_buffer_clear(&source);
+
+		for (i = 0 ; i < DNS_SECTION_MAX ; i++)
+			message->counts[i] = 0;  /* Another hack XXX */
+
+		result = dns_compress_init(&cctx, -1, mctx);
+		CHECKRESULT(result, "dns_compress_init() failed");
+
+		result = dns_message_renderbegin(message, &cctx, &source);
+		CHECKRESULT(result, "dns_message_renderbegin() failed");
+
+		result = dns_message_rendersection(message,
+						   DNS_SECTION_QUESTION, 0);
+		CHECKRESULT(result,
+			    "dns_message_rendersection(QUESTION) failed");
+
+		result = dns_message_rendersection(message,
+						   DNS_SECTION_ANSWER, 0);
+		CHECKRESULT(result,
+			    "dns_message_rendersection(ANSWER) failed");
+
+		result = dns_message_rendersection(message,
+						   DNS_SECTION_AUTHORITY, 0);
+		CHECKRESULT(result,
+			    "dns_message_rendersection(AUTHORITY) failed");
+
+		result = dns_message_rendersection(message,
+						   DNS_SECTION_ADDITIONAL, 0);
+		CHECKRESULT(result,
+			    "dns_message_rendersection(ADDITIONAL) failed");
+
+		dns_message_renderend(message);
+
+		dns_compress_invalidate(&cctx);
+
+		message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
+		dns_message_destroy(&message);
+
+		printf("Message rendered.\n");
+		if (printmemstats)
+			isc_mem_stats(mctx, stdout);
+
+		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
+					    &message);
+		CHECKRESULT(result, "dns_message_create failed");
+
+		result = dns_message_parse(message, &source, parseflags);
+		CHECKRESULT(result, "dns_message_parse failed");
+
+		result = printmessage(message);
+		CHECKRESULT(result, "printmessage() failed");
+	}
+
 	dns_message_destroy(&message);
 
-	isc_mem_stats(mctx, stdout);
+	if (printmemstats)
+		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
 	return (0);
