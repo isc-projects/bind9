@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.97 2002/07/25 05:46:07 marka Exp $ */
+/* $Id: nslookup.c,v 1.98 2002/08/01 03:28:01 mayer Exp $ */
 
 #include <config.h>
 
@@ -539,7 +539,7 @@ set_port(const char *value) {
 	isc_uint32_t n;
 	isc_result_t result = parse_uint(&n, value, 65535, "port");
 	if (result == ISC_R_SUCCESS)
-		port = n;
+		port = (isc_uint16_t) n;
 }
 
 static void
