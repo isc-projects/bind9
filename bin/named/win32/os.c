@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.5.2.3 2002/08/08 19:15:19 mayer Exp $ */
+/* $Id: os.c,v 1.5.2.4 2004/01/07 06:03:23 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -225,3 +225,11 @@ ns_os_shutdown(void) {
 	cleanup_pidfile();
 	ntservice_shutdown();	/* This MUST be the last thing done */
 }
+
+void
+ns_os_tzset(void) {
+#ifdef HAVE_TZSET
+	tzset();
+#endif
+}
+

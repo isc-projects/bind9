@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.5 2003/10/09 07:32:33 marka Exp $ */
+/* $Id: main.c,v 1.119.2.6 2004/01/07 06:03:23 marka Exp $ */
 
 #include <config.h>
 
@@ -476,6 +476,11 @@ setup(void) {
 	 * of the user and group databases in the chroot'ed environment.
 	 */
 	ns_os_inituserinfo(ns_g_username);
+
+	/*
+	 * Initialize time conversion information
+	 */
+	ns_os_tzset();
 
 	ns_os_chroot(ns_g_chrootdir);
 

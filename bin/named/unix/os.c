@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4 2002/08/05 06:57:03 marka Exp $ */
+/* $Id: os.c,v 1.46.2.5 2004/01/07 06:03:23 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -536,4 +536,11 @@ void
 ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
+}
+
+void
+ns_os_tzset(void) {
+#ifdef HAVE_TZSET
+	tzset();
+#endif
 }
