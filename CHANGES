@@ -1,3 +1,5 @@
+1036.	[func]		Temporally drop requests received via multicast.
+
 1035.	[bug]		Respond to multicast queries from a unicast address,
 			RFC 1123. [RT #137]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.182 2001/10/09 02:39:03 marka Exp $ */
+/* $Id: client.c,v 1.183 2001/10/09 04:29:19 marka Exp $ */
 
 #include <config.h>
 
@@ -1159,6 +1159,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_next(client, ISC_R_SUCCESS);
 			goto cleanup;
 		}
+	}
+
+	/*
+	 * Silently drop multicast requests for the present.
+	 * XXXMPA look at when/if mDNS spec stabilizes.
+	 */
+	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "dropping multicast request");
+		ns_client_next(client, DNS_R_REFUSED);
 	}
 
 	result = dns_message_peekheader(buffer, &id, &flags);
