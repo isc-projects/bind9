@@ -70,8 +70,9 @@ options {
         lame-ttl <integer>;
         max-ncache-ttl <integer>;
         max-cache-ttl <integer>;
-        transfer-format <string>;
+        transfer-format ( many-answers | one-answer );
         max-cache-size <size_no_default>;
+        max-adb-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
@@ -109,7 +110,7 @@ controls {
 acl <string> { <address_match_element>; ... };
 
 logging {
-        channel {
+        channel <string> {
                 file <logfile>;
                 syslog <optional_facility>;
                 null;
@@ -126,7 +127,7 @@ view <string> <optional_class> {
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
-        key {
+        key <string> {
                 algorithm <string>;
                 secret <string>;
         };
@@ -209,8 +210,9 @@ view <string> <optional_class> {
         lame-ttl <integer>;
         max-ncache-ttl <integer>;
         max-cache-ttl <integer>;
-        transfer-format <string>;
+        transfer-format ( many-answers | one-answer );
         max-cache-size <size_no_default>;
+        max-adb-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
@@ -247,7 +249,7 @@ lwres {
         ndots <integer>;
 };
 
-key {
+key <string> {
         algorithm <string>;
         secret <string>;
 };
