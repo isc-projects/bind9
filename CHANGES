@@ -1,4 +1,7 @@
 
+ 984.	[bug]		Multithreading should be enabled by default on
+			Solaris 2.7 and newer, but it wasn't.
+
  983.	[func]		The server now supports generating IXFR difference
 			sequences for non-dynamic zones by comparing zone
 			versions, when enabled using the new config
