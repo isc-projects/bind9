@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.6 2000/06/06 22:10:10 tale Exp $ */
+/* $Id: offset.h,v 1.7 2000/06/23 03:07:45 tale Exp $ */
 
 #ifndef ISC_OFFSET_H
 #define ISC_OFFSET_H 1
@@ -23,7 +23,7 @@
 /*
  * File offsets are operating-system dependent.
  */
-#include <limits.h>
+#include <limits.h>             /* Required for CHAR_BIT. */
 #include <sys/types.h>
 
 typedef off_t isc_offset_t;
