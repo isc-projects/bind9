@@ -8,7 +8,7 @@
 
 1446.	[func]		Implemented undocumented alternate transfer sources
 			from BIND 8.  See use-alt-transfer-source,
-			alt-transfer-source-v4 and alt-transfer-source-v6.
+			alt-transfer-source and alt-transfer-source-v6.
 
 			SECURITY: use-alt-transfer-source is ENABLED unless
 			you are using views.  This may caues a security risk

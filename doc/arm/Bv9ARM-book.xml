@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.25 2003/08/27 02:13:47 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.26 2003/08/27 02:23:38 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2730,7 +2730,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> transfers-per-ns <replaceable>number</replaceable>; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> alt-transfer-source-v4 (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> alt-transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> use-alt-transfer-source <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
@@ -3544,7 +3544,7 @@ in the configuration file.</para>
 except zone transfers are performed using IPv6.</para>
               </listitem></varlistentry>
 
-<varlistentry><term><command>alt-transfer-source-v4</command></term>
+<varlistentry><term><command>alt-transfer-source</command></term>
 <listitem><para>An alternate transfer source if the one listed in
 <command>transfer-source</command> fails and
 <command>use-alt-transfer-source</command> is set.</para>
@@ -4310,7 +4310,7 @@ Statement Grammar</title>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> alt-transfer-source-v4 (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> alt-transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> alt-transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> use-alt-transfer-source <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
@@ -4608,9 +4608,9 @@ information for this zone, which can be dumped to the
 </para>
 </listitem></varlistentry>
 
-<varlistentry><term><command>alt-transfer-source-v4</command></term>
+<varlistentry><term><command>alt-transfer-source</command></term>
 <listitem><para>See the description of
-<command>alt-transfer-source-v4</command> in <xref linkend="zone_transfers"/>
+<command>alt-transfer-source</command> in <xref linkend="zone_transfers"/>
 </para>
 </listitem></varlistentry>
 
