@@ -22,12 +22,13 @@ top_srcdir =	@top_srcdir@
 @BIND9_INCLUDES@
 
 CINCLUDES =	-I${top_srcdir}/bin/named/include \
-		${ISC_INCLUDES} ${OMAPI_INCLUDES}
+		${ISC_INCLUDES} ${DNS_INCLUDES} ${OMAPI_INCLUDES}
 
 CDEFINES =	
 CWARNINGS =
 
 DEPLIBS =	../../lib/omapi/libomapi.@A@ \
+		../../lib/dns/libdns.@A@ \
 		../../lib/isc/libisc.@A@
 
 LIBS =		${DEPLIBS} \
