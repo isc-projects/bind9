@@ -19,6 +19,11 @@
  * Principal Author: Bob Halley
  */
 
+/*
+ * XXXRTH  Need to document the states a task can be in, and the rules
+ * for changing states.
+ */
+
 #include <config.h>
 
 #include <isc/assertions.h>
@@ -41,7 +46,6 @@
 #define XTRACE(m)
 #define XTHREADTRACE(m)
 #endif
-
 
 /***
  *** Types.
@@ -179,22 +183,30 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 }
 
 void
-isc_task_attach(isc_task_t *task, isc_task_t **taskp) {
+isc_task_attach(isc_task_t *source, isc_task_t **targetp) {
 
-	REQUIRE(VALID_TASK(task));
-	REQUIRE(taskp != NULL && *taskp == NULL);
+	/*
+	 * Attach *targetp to source.
+	 */
 
-	LOCK(&task->lock);
-	task->references++;
-	UNLOCK(&task->lock);
+	REQUIRE(VALID_TASK(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	*taskp = task;
+	LOCK(&source->lock);
+	source->references++;
+	UNLOCK(&source->lock);
+
+	*targetp = source;
 }
 
 void
 isc_task_detach(isc_task_t **taskp) {
 	isc_boolean_t free_task = ISC_FALSE;
 	isc_task_t *task;
+
+	/*
+	 * Detach *taskp from its task.
+	 */
 
 	REQUIRE(taskp != NULL);
 	task = *taskp;
@@ -207,6 +219,13 @@ isc_task_detach(isc_task_t **taskp) {
 	task->references--;
 	if (task->state == task_state_done && task->references == 0)
 		free_task = ISC_TRUE;
+	/*
+	 * XXXRTH  It is currently possible to detach the last
+	 * reference from a task that has not been shutdown.  This
+	 * will prevent the task from being shutdown until the
+	 * task manager is destroyed.  Should there be an
+	 * automatic shutdown on last detach?
+	 */
 	UNLOCK(&task->lock);
 
 	if (free_task)
@@ -217,6 +236,10 @@ isc_task_detach(isc_task_t **taskp) {
 
 isc_mem_t *
 isc_task_mem(isc_task_t *task) {
+
+	/*
+	 * Get the task's memory context.
+	 */
 
 	REQUIRE(VALID_TASK(task));
 	
@@ -229,6 +252,10 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 	isc_boolean_t disallowed = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *event;
+
+	/*
+	 * Send '*event' to 'task'.
+	 */
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(eventp != NULL);
@@ -303,11 +330,6 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 }
 
 unsigned int
-isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type) {
-	return (isc_task_purgerange(task, sender, type, type));
-}
-
-unsigned int
 isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 		    isc_eventtype_t last)
 {
@@ -315,11 +337,16 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 	isc_eventlist_t purgeable;
 	unsigned int purge_count;
 
+	/*
+	 * Purge events from a task's event queue.
+	 */
+
 	REQUIRE(VALID_TASK(task));
+	REQUIRE(last >= first);
 
 	/*
-	 * Purge events matching 'sender' and whose type is >= first and
-	 * <= last.  sender == NULL means "any sender".
+	 * Events matching 'sender' and whose type is >= first and
+	 * <= last will be purged.  sender == NULL means "any sender".
 	 *
 	 * Purging never changes the state of the task.
 	 */
@@ -351,9 +378,23 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 	return (purge_count);
 }
 
+unsigned int
+isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type) {
+
+	/*
+	 * Purge events from a task's event queue.
+	 */
+
+	return (isc_task_purgerange(task, sender, type, type));
+}
+
 isc_result_t
 isc_task_allowsend(isc_task_t *task, isc_boolean_t allowed) {
 	isc_result_t result = ISC_R_SUCCESS;
+
+	/*
+	 * Allow or disallow sending events to 'task'.
+	 */
 
 	REQUIRE(VALID_TASK(task));
 
@@ -374,6 +415,10 @@ isc_task_allowsend(isc_task_t *task, isc_boolean_t allowed) {
 isc_result_t
 isc_task_allowdone(isc_task_t *task, isc_boolean_t allowed) {
 	isc_result_t result = ISC_R_SUCCESS;
+
+	/*
+	 * Allow or disallow automatic termination of 'task'.
+	 */
 
 	REQUIRE(VALID_TASK(task));
 
@@ -402,7 +447,13 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *event;
 
+	/*
+	 * Send a shutdown event with action 'action' and argument 'arg' when
+	 * 'task' is shutdown.
+	 */
+
 	REQUIRE(VALID_TASK(task));
+	REQUIRE(action != NULL);
 
 	event = isc_event_allocate(task->mctx,
 				   NULL,
@@ -435,6 +486,10 @@ isc_task_shutdown(isc_task_t *task) {
 	isc_boolean_t was_idle = ISC_FALSE;
 	isc_boolean_t queued_something = ISC_FALSE;
 	isc_event_t *event, *prev;
+
+	/*
+	 * Shutdown 'task'.
+	 */
 
 	REQUIRE(VALID_TASK(task));
 
@@ -488,6 +543,10 @@ isc_task_shutdown(isc_task_t *task) {
 
 void
 isc_task_destroy(isc_task_t **taskp) {
+
+	/*
+	 * Destroy '*taskp'.
+	 */
 
 	REQUIRE(taskp != NULL);
 
@@ -717,6 +776,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	isc_taskmgr_t *manager;
 	isc_thread_t *threads;
 
+	/*
+	 * Create a new task manager.
+	 */
+
 	REQUIRE(workers > 0);
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
@@ -785,6 +848,10 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	isc_task_t *task;
 	isc_event_t *event, *prev;
 	unsigned int i;
+
+	/*
+	 * Destroy '*managerp'.
+	 */
 
 	REQUIRE(managerp != NULL);
 	manager = *managerp;
