@@ -1,3 +1,5 @@
+ 460.	[bug]		Much of the DNSSEC code only worked with class IN.
+
  459.	[bug]		Nslookup error in processing set command.
 
  458.	[bug]		Nslookup didn't properly check class and type values.
