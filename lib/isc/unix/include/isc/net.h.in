@@ -38,8 +38,7 @@
  *
  * It declares ntoh[sl]() and hton[sl]().
  *
- * It declares inet_aton(), inet_ntop(), and inet_pton() if they are
- * available on the system.
+ * It declares inet_aton(), inet_ntop(), and inet_pton().
  *
  * It ensures that INADDR_ANY, IN6ADDR_ANY_INIT, in6addr_any, and
  * in6addr_loopback are available.
@@ -77,10 +76,25 @@
 @ISC_NET_NEEDAFINET6@
 
 /*
- * If this system needs the IPv6 structure definitions, ISC_NET_HAVEIPV6
- * will not be defined, and the structure definintions will be included.
+ * If this system has the IPv6 structure definitions, ISC_NET_HAVEIPV6
+ * will be defined.
  */
 @ISC_NET_HAVEIPV6@
+
+/*
+ * If this system needs inet_ntop(), ISC_NET_NEEDNTOP will be defined.
+ */
+@ISC_NET_NEEDNTOP@
+
+/*
+ * If this system needs inet_pton(), ISC_NET_NEEDPTON will be defined.
+ */
+@ISC_NET_NEEDPTON@
+
+/*
+ * If this system needs inet_aton(), ISC_NET_NEEDATON will be defined.
+ */
+@ISC_NET_NEEDATON@
 
 /***
  *** Imports.
@@ -131,4 +145,27 @@ isc_net_haveipv6(void);
  *	ISC_R_UNEXPECTED
  */
 
+#ifdef ISC_NET_NEEDNTOP
+const char *isc_net_ntop(int af, const void *src, char *dst, size_t size);
+#define inet_ntop isc_inet_ntop
+#endif
+
+#ifdef ISC_NET_NEEDPTON
+int isc_net_pton(int af, const char *src, void *dst);
+#define inet_pton isc_inet_pton
+#endif
+
+#ifdef ISC_NET_NEEDATON
+int isc_inet_aton(const char *cp, struct in_addr *addr);
+#define inet_aton isc_inet_aton
+#endif
+
 #endif /* ISC_NET_H */
+
+/*
+ * Tell emacs to use C mode for this file.
+ *
+ * Local Variables:
+ * mode: c
+ * End:
+ */
