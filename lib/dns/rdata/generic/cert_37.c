@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.18 2000/02/03 23:42:57 halley Exp $ */
+/* $Id: cert_37.c,v 1.19 2000/03/16 01:43:42 tale Exp $ */
 
- /* draft-ietf-dnssec-certs-04.txt */
+/* RFC 2538 */
 
 #ifndef RDATA_GENERIC_CERT_37_C
 #define RDATA_GENERIC_CERT_37_C
@@ -28,27 +28,22 @@ fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
 	isc_token_t token;
-	long n;
 	dns_secalg_t secalg;
-	char *e;
 	dns_cert_t cert;
 
 	REQUIRE(type == 37);
 
-	rdclass = rdclass;	/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
 
 	/* cert type */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	n = strtol(token.value.as_pointer, &e, 10);
 	RETERR(dns_cert_fromtext(&cert, &token.value.as_textregion));
 	RETERR(uint16_tobuffer(cert, target));
 	
 	/* key tag */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* algorithm */
@@ -60,7 +55,7 @@ fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	    isc_buffer_t *target) 
 {
 	isc_region_t sr;
@@ -69,7 +64,7 @@ totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	REQUIRE(rdata->type == 37);
 
-	tctx = tctx;	/*unused*/
+	UNUSED(tctx);
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -93,7 +88,7 @@ totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
-	RETERR(isc_base64_totext(&sr, tctx->width - 2, 
+	RETERR(isc_base64_totext(&sr, tctx->width - 2,
 				 tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
@@ -109,9 +104,9 @@ fromwire_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 37);
 	
-	rdclass = rdclass;		/*unused*/
-	dctx = dctx;		/*unused*/
-	downcase = downcase;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(dctx);
+	UNUSED(downcase);
 
 	isc_buffer_active(source, &sr);
 	if (sr.length < 5)
@@ -127,7 +122,7 @@ towire_cert(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 37);
 
-	cctx = cctx;	/*unused*/
+	UNUSED(cctx);
 
 	dns_rdata_toregion(rdata, &sr);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -154,10 +149,9 @@ fromstruct_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 37);
 	
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -168,8 +162,8 @@ tostruct_cert(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 37);
 	REQUIRE(target != NULL && target == NULL);
 	
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -186,8 +180,8 @@ additionaldata_cert(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 37);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }
