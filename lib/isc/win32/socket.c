@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.11 2001/11/27 01:56:22 gson Exp $ */
+/* $Id: socket.c,v 1.12 2001/11/29 07:31:23 marka Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -3400,4 +3400,12 @@ isc_socket_isbound(isc_socket_t *sock) {
 	UNLOCK(&sock->lock);
 
 	return (val);
+}
+
+void
+isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
+	UNUSED(yes);
+	UNUSED(sock);
+
+	REQUIRE(VALID_SOCKET(sock));
 }

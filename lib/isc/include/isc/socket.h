@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.54 2001/03/06 01:23:02 bwelling Exp $ */
+/* $Id: socket.h,v 1.55 2001/11/29 07:31:25 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -681,6 +681,16 @@ isc_socket_gettype(isc_socket_t *sock);
 
 isc_boolean_t
 isc_socket_isbound(isc_socket_t *sock);
+
+void
+isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
+/*
+ * If the socket is an IPv6 socket set/clear the IPV6_IPV6ONLY socket
+ * option if the host OS supports this option.
+ *
+ * Requires:
+ *	'sock' is a valid socket.
+ */
 
 ISC_LANG_ENDDECLS
 

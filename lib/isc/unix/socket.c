@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.215 2001/11/27 01:56:19 gson Exp $ */
+/* $Id: socket.c,v 1.216 2001/11/29 07:31:22 marka Exp $ */
 
 #include <config.h>
 
@@ -3308,6 +3308,25 @@ isc_socket_isbound(isc_socket_t *sock) {
 	UNLOCK(&sock->lock);
 
 	return (val);
+}
+
+void
+isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
+#if defined(IPV6_V6ONLY)
+	int onoff = yes ? 1 : 0;
+#else
+	UNUSED(yes);
+	UNUSED(sock);
+#endif
+
+	REQUIRE(VALID_SOCKET(sock));
+
+#ifdef IPV6_V6ONLY
+	if (sock->pf == AF_INET6) {
+		(void)setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
+				 (void *)&onoff, sizeof(onoff));
+	}
+#endif
 }
 
 #ifndef ISC_PLATFORM_USETHREADS
