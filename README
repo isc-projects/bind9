@@ -80,7 +80,7 @@ BIND 9.2.0
 
           - The named.conf parser has been completely rewritten.
             It now supports "include" directives in more
-            places such as inside "view" statememnts, and it no
+            places such as inside "view" statements, and it no
             longer has any reserved words.
 
           - The "rndc status" command is now implemented.

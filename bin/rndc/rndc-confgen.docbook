@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc-confgen.docbook,v 1.4 2001/09/11 19:18:11 gson Exp $ -->
+<!-- $Id: rndc-confgen.docbook,v 1.5 2003/02/07 01:13:11 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -166,7 +166,7 @@
 	<listitem>
 	  <para>
 	       Specifies a source of random data for generating the
-	       authoriazation.  If the operating
+	       authorization.  If the operating
 	       system does not provide a <filename>/dev/random</filename>
 	       or equivalent device, the default source of randomness
 	       is keyboard input.  <filename>randomdev</filename> specifies

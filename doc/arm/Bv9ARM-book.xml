@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.213 2003/01/20 05:46:10 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.214 2003/02/07 01:13:11 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -760,7 +760,7 @@ of a server.</para>
 
    <varlistentry><term><userinput>querylog</userinput></term>
    <listitem><para>Toggle query logging. Query logging can also be enabled
-   by explictly directing the <command>queries</command>
+   by explicitly directing the <command>queries</command>
    <command>category</command> to a <command>channel</command> in the
    <command>logging</command> section of
    <filename>named.conf</filename>.</para></listitem></varlistentry>
@@ -5399,7 +5399,7 @@ The default modifier is <command>${0,0,d}</command>.
 If the <command>lhs</command> is not
 absolute, the current <command>$ORIGIN</command> is appended to
 the name.</para>
-<para>For compatability with earlier versions <command>$$</command> is still
+<para>For compatibility with earlier versions <command>$$</command> is still
 recognised a indicating a literal $ in the output.</para></entry>
         </row>
         <row rowsep = "0">

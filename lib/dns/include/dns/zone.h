@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.120 2003/02/04 06:10:09 marka Exp $ */
+/* $Id: zone.h,v 1.121 2003/02/07 01:13:12 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -219,7 +219,7 @@ isc_result_t
 dns_zone_loadnew(dns_zone_t *zone);
 /*
  *	Cause the database to be loaded from its backing store.
- *	Confirm that the mimimum requirements for the zone type are
+ *	Confirm that the minimum requirements for the zone type are
  *	met, otherwise DNS_R_BADZONE is returned.
  *
  *	dns_zone_loadnew() only loads zones that are not yet loaded.
