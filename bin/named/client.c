@@ -139,6 +139,14 @@ maybe_free(ns_client_t *client) {
 		isc_socket_cancel(socket, client->task, ISC_SOCKCANCEL_SEND);
 	}
 
+	/*
+	 * We need to detach from the view early, because when shutting
+	 * down the server, resolver shutdown does not begin until
+	 * happen until the view refcount goes to zero. 
+	 */
+	if (client->view != NULL)
+		dns_view_detach(&client->view);
+
 	if (!(client->nreads == 0 && client->naccepts == 0 &&
 	      client->nsends == 0 && client->nwaiting == 0)) {
 		/* Still waiting for events. */
@@ -162,8 +170,6 @@ maybe_free(ns_client_t *client) {
 					   &client->dispentry,
 					   deventp);
 	}
-	if (client->view != NULL)
-		dns_view_detach(&client->view);
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
