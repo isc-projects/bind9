@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.107 2004/03/18 02:58:03 marka Exp $ */
+/* $Id: name.h,v 1.108 2004/07/22 00:09:27 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1214,7 +1214,7 @@ do { \
 do { \
 	(r)->base = (n)->ndata; \
 	(r)->length = (n)->length; \
-} while (0);
+} while (0)
 
 #define DNS_NAME_SPLIT(n, l, p, s) \
 do { \
@@ -1226,7 +1226,7 @@ do { \
 		dns_name_getlabelsequence(_n, 0, _n->labels - _l, _p); \
 	if (_s != NULL) \
 		dns_name_getlabelsequence(_n, _n->labels - _l, _l, _s); \
-} while (0);
+} while (0)
 
 #ifdef DNS_NAME_USEINLINE
 

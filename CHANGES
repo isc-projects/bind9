@@ -1,3 +1,6 @@
+1689.	[bug]		DNS_NAME_TOREGION() and DNS_NAME_SPLIT() macros
+			contained gratuitous semicolons. [RT #11707]
+
 1688.	[bug]		LDFLAGS was not supported.
 
 1687.	[bug]		Race condition in dispatch. [RT #10272]
