@@ -37,12 +37,11 @@ OBJS		= confparser.@O@ confcommon.@O@ confacl.@O@ confctl.@O@ \
 		  confctx.@O@ confip.@O@ confkeys.@O@ conflog.@O@ \
 		  conflsn.@O@ confrrset.@O@ confserv.@O@ confzone.@O@
 
-OSRC		= confparser.c  confcommon.c \
+SRCS		= confparser.c  confcommon.c \
 		  confacl.c confctl.c confctx.c confip.c confkeys.c conflog.c \
 		  conflsn.c confrrset.c confserv.c confzone.c
 
 SUBDIRS		=	
-
 TARGETS		= ${OBJS}
 
 @BIND9_MAKE_RULES@
