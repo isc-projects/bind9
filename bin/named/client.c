@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.189 2001/10/13 01:10:26 gson Exp $ */
+/* $Id: client.c,v 1.190 2001/10/24 03:10:13 marka Exp $ */
 
 #include <config.h>
 
@@ -95,6 +95,7 @@ struct ns_clientmgr {
 	/* Locked by lock. */
 	isc_boolean_t			exiting;
 	client_list_t			active; 	/* Active clients */
+	client_list_t			recursing; 	/* Recursing clients */
 	client_list_t 			inactive;	/* To be recycled */
 };
 
@@ -173,6 +174,27 @@ static void client_start(isc_task_t *task, isc_event_t *event);
 static void client_request(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 
+void
+ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest) {
+	ns_client_t *oldest;
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	LOCK(&client->manager->lock);
+	if (killoldest) {
+		oldest = ISC_LIST_HEAD(client->manager->recursing);
+		if (oldest != NULL) {
+			ns_query_cancel(oldest);
+			ISC_LIST_UNLINK(*oldest->list, oldest, link);
+			ISC_LIST_APPEND(client->manager->active, oldest, link);
+			oldest->list = &client->manager->active;
+		}
+	}
+	ISC_LIST_UNLINK(*client->list, client, link);
+	ISC_LIST_APPEND(client->manager->recursing, client, link);
+	client->list = &client->manager->recursing;
+	UNLOCK(&client->manager->lock);
+}
+
 /*
  * Enter the inactive state.
  *
@@ -201,7 +223,7 @@ client_deactivate(ns_client_t *client) {
 	client->mortal = ISC_FALSE;
 
 	LOCK(&client->manager->lock);
-	ISC_LIST_UNLINK(client->manager->active, client, link);
+	ISC_LIST_UNLINK(*client->list, client, link);
 	ISC_LIST_APPEND(client->manager->inactive, client, link);
 	client->list = &client->manager->inactive;
 	UNLOCK(&client->manager->lock);
@@ -251,7 +273,8 @@ client_free(ns_client_t *client) {
 		client->list = NULL;
 		if (manager->exiting &&
 		    ISC_LIST_EMPTY(manager->active) &&
-		    ISC_LIST_EMPTY(manager->inactive))
+		    ISC_LIST_EMPTY(manager->inactive) &&
+		    ISC_LIST_EMPTY(manager->recursing))
 			need_clientmgr_destroy = ISC_TRUE;
 		UNLOCK(&manager->lock);
 	}
@@ -505,7 +528,6 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 	client->newstate = NS_CLIENTSTATE_FREED;
 	(void)exit_check(client);
 }
-
 
 static void
 ns_client_endrequest(ns_client_t *client) {
@@ -1860,6 +1882,7 @@ static void
 clientmgr_destroy(ns_clientmgr_t *manager) {
 	REQUIRE(ISC_LIST_EMPTY(manager->active));
 	REQUIRE(ISC_LIST_EMPTY(manager->inactive));
+	REQUIRE(ISC_LIST_EMPTY(manager->recursing));
 
 	MTRACE("clientmgr_destroy");
 
@@ -1889,6 +1912,7 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	manager->exiting = ISC_FALSE;
 	ISC_LIST_INIT(manager->active);
 	ISC_LIST_INIT(manager->inactive);
+	ISC_LIST_INIT(manager->recursing);
 	manager->magic = MANAGER_MAGIC;
 
 	MTRACE("create");
@@ -1919,6 +1943,11 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 	manager->exiting = ISC_TRUE;
 
+	for (client = ISC_LIST_HEAD(manager->recursing);
+	     client != NULL;
+	     client = ISC_LIST_NEXT(client, link))
+		isc_task_shutdown(client->task);
+
 	for (client = ISC_LIST_HEAD(manager->active);
 	     client != NULL;
 	     client = ISC_LIST_NEXT(client, link))
@@ -1930,7 +1959,8 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 		isc_task_shutdown(client->task);
 
 	if (ISC_LIST_EMPTY(manager->active) &&
-	    ISC_LIST_EMPTY(manager->inactive))
+	    ISC_LIST_EMPTY(manager->inactive) &&
+	    ISC_LIST_EMPTY(manager->recursing))
 		need_destroy = ISC_TRUE;
 
 	UNLOCK(&manager->lock);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.352 2001/10/17 19:34:07 gson Exp $ */
+/* $Id: server.c,v 1.353 2001/10/24 03:10:15 marka Exp $ */
 
 #include <config.h>
 
@@ -2387,6 +2387,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_quota_soft(&server->recursionquota, ISC_TRUE);
 
 	result = dns_aclenv_init(mctx, &server->aclenv);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);

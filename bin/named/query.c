@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.205 2001/10/23 06:04:37 marka Exp $ */
+/* $Id: query.c,v 1.206 2001/10/24 03:10:14 marka Exp $ */
 
 #include <config.h>
 
@@ -204,6 +204,17 @@ query_maybeputqname(ns_client_t *client) {
 	}
 }
 
+void
+ns_query_cancel(ns_client_t *client) {
+	LOCK(&client->query.fetchlock);
+	if (client->query.fetch != NULL) {
+		dns_resolver_cancelfetch(client->query.fetch);
+
+		client->query.fetch = NULL;
+	}
+	UNLOCK(&client->query.fetchlock);
+}
+
 static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
@@ -217,11 +228,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	/*
 	 * Cancel the fetch if it's running.
 	 */
-	if (client->query.fetch != NULL) {
-		dns_resolver_cancelfetch(client->query.fetch);
-
-		client->query.fetch = NULL;
-	}
+	ns_query_cancel(client);
 
 	/*
 	 * Cleanup any active versions.
@@ -509,6 +516,9 @@ ns_query_init(ns_client_t *client) {
 	client->query.restarts = 0;
 	client->query.timerset = ISC_FALSE;
 	client->query.qname = NULL;
+	result = isc_mutex_init(&client->query.fetchlock);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	client->query.fetch = NULL;
 	client->query.authdb = NULL;
 	client->query.authzone = NULL;
@@ -516,13 +526,16 @@ ns_query_init(ns_client_t *client) {
 	client->query.isreferral = ISC_FALSE;	
 	query_reset(client, ISC_FALSE);
 	result = query_newdbversion(client, 3);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		DESTROYLOCK(&client->query.fetchlock);
 		return (result);
+	}
 	dns_a6_init(&client->query.a6ctx, query_simplefind, query_adda6rrset,
 		    NULL, NULL, client);
 	result = query_newnamebuf(client);
 	if (result != ISC_R_SUCCESS) {
 		ns_dbversion_t *dbversion;
+		DESTROYLOCK(&client->query.fetchlock);
 		for (dbversion = ISC_LIST_HEAD(client->query.freeversions);
 		     dbversion != NULL;
 		     dbversion = ISC_LIST_HEAD(client->query.freeversions)) {
@@ -2043,6 +2056,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
 
+	LOCK(&client->query.fetchlock);
 	if (client->query.fetch != NULL) {
 		/*
 		 * This is the fetch we've been waiting for.
@@ -2061,6 +2075,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		 */
 		fetch_cancelled = ISC_TRUE;
 	}
+	UNLOCK(&client->query.fetchlock);
 	INSIST(client->query.fetch == NULL);
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
@@ -2080,7 +2095,10 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		if (devent->sigrdataset != NULL)
 			query_putrdataset(client, &devent->sigrdataset);
 		isc_event_free(&event);
-		query_next(client, ISC_R_CANCELED);
+		if (fetch_cancelled)
+			query_error(client, DNS_R_SERVFAIL);
+		else
+			query_next(client, ISC_R_CANCELED);
 		/*
 		 * This may destroy the client.
 		 */
@@ -2109,9 +2127,17 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	 * response.
 	 */
 	if (! client->mortal) {
+		isc_boolean_t killoldest = ISC_FALSE;
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SOFTQUOTA) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "killing oldest recursive client: %s",
+				      isc_result_totext(result));
+			killoldest = ISC_TRUE;
+		}
+		if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA)
 			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
@@ -2120,6 +2146,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 				      isc_result_totext(result));
 			return (result);
 		}
+		ns_client_recursing(client, killoldest);
 	}
 
 	/*

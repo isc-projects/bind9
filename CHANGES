@@ -1,3 +1,5 @@
+1069.	[func]		Kill oldest recursive query when recursive query				quota is exhausted.
+
 1068.	[bug]		errno could be overwritten by catgets(). [RT #1921]
 
 1067.	[func]		Allow quotas to be soft, isc_quota_soft().
