@@ -1,3 +1,6 @@
+ 454.	[bug]		Enforce dotted decimal and dotted decimal quad where
+			documented as such in named.conf. [RT #304, RT#311]
+
  453.	[bug]		Warn if the obsolete option "maintain-ixfr-base"
 			is specified in named.conf. [RT #306]
 

@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.15 2000/09/13 23:00:16 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.16 2000/09/14 02:19:04 marka Exp $ */
 
 #include <config.h>
 
@@ -234,6 +234,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token <text>		L_QSTRING
 %token <l_int>		L_INTEGER
 %token <ip4_addr>	L_IP4ADDR
+%token <ip4_addr>	L_IP4PREFIX
 %token <ip6_addr>	L_IP6ADDR
 
 %token		L_ACL
@@ -425,8 +426,10 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <iml>		address_match_list
 %type <ipaddress>	in_addr_elem
 %type <ipaddress>	ip4_address
+%type <ipaddress>	ip4_prefix
 %type <ipaddress>	ip6_address
 %type <ipaddress>	ip_address
+%type <ipaddress>	ip_prefix
 %type <ipaddress>	maybe_wild_addr
 %type <ipaddress>	maybe_wild_ip4_only_addr
 %type <ipaddress>	maybe_wild_ip6_only_addr
@@ -3188,7 +3191,7 @@ address_match_simple: ip_address
 
 		$$ = ime;
 	}
-	| ip_address L_SLASH L_INTEGER
+	| ip_prefix L_SLASH L_INTEGER
 	{
 		dns_c_ipmatchelement_t *ime = NULL;
 
@@ -5379,11 +5382,20 @@ ip4_address: L_IP4ADDR
 	}
 	;
 
+ip4_prefix: L_IP4PREFIX
+	{
+		isc_sockaddr_fromin(&$$, &$1, 0);
+	}
+	;
+
 ip6_address: L_IP6ADDR
 	{
 		isc_sockaddr_fromin6(&$$, &$1, 0);
 	};
 
+
+ip_prefix: ip4_address | ip4_prefix | ip6_address
+	;
 
 ip_address: ip4_address | ip6_address
 	;
@@ -5593,6 +5605,7 @@ maybe_eos: | L_EOS ;
 static int		intuit_token(const char *string);
 
 static isc_boolean_t	is_ip4addr(const char *string, struct in_addr *addr);
+static isc_boolean_t	is_ip4prefix(const char *string, struct in_addr *addr);
 static isc_boolean_t	is_ip6addr(const char *string, struct in6_addr *addr);
 static isc_result_t	keyword_init(void);
 static char *		token_to_text(int token, YYSTYPE lval);
@@ -6107,6 +6120,21 @@ token_to_text(int token, YYSTYPE lval) {
 			inet_ntop(AF_INET, &lval.ip4_addr.s_addr,
 				  buffer, sizeof buffer);
 			break;
+		case L_IP4PREFIX: {
+			int i;
+			strcpy(buffer, "UNAVAILABLE-IPV4-ADDRESS");
+			inet_ntop(AF_INET, &lval.ip4_addr.s_addr,
+				  buffer, sizeof buffer);
+			/*
+			 * Remove trailing zeros added in. We may remove to
+			 * many but we need to remove atleast one.
+			 */
+			for (i = 0; i < 3; i++)
+				if (strcmp(&buffer[strlen(buffer) - 2],
+				   	   ".0") == 0)
+					buffer[strlen(buffer) - 2] = '\0';
+			break;
+		}
 		case L_INTEGER:
 			sprintf(buffer, "%lu", (unsigned long)lval.ul_int);
 			break;
@@ -6333,6 +6361,8 @@ intuit_token(const char *string)
 
 	if (is_ip4addr(string, &yylval.ip4_addr)) {
 		resval = L_IP4ADDR;
+	} else if (is_ip4prefix(string, &yylval.ip4_addr)) {
+		resval = L_IP4PREFIX;
 	} else if (is_ip6addr(string, &yylval.ip6_addr)) {
 		resval = L_IP6ADDR;
 	} else {
@@ -6418,8 +6448,6 @@ is_ip6addr(const char *string, struct in6_addr *addr)
 	return ISC_TRUE;
 }
 
-
-
 static isc_boolean_t
 is_ip4addr(const char *string, struct in_addr *addr)
 {
@@ -6427,12 +6455,57 @@ is_ip4addr(const char *string, struct in_addr *addr)
 	const char *p = string;
 	int dots = 0;
 	char dot = '.';
+	isc_boolean_t lastdot = ISC_TRUE;
 
 	while (*p) {
 		if (!isdigit(*p & 0xff) && *p != dot) {
 			return (ISC_FALSE);
+		} else if (lastdot && p[0] == '0' &&
+			   (p[1] != '.' && p[1] != '\0')) {
+			return (ISC_FALSE);
 		} else if (!isdigit(*p & 0xff)) {
 			dots++;
+			lastdot = ISC_TRUE;
+		} else {
+			lastdot = ISC_FALSE;
+		}
+		p++;
+	}
+
+	if (dots != 3)
+		return (ISC_FALSE);
+
+	if (strlen(string) < sizeof addrbuf)
+		strcpy (addrbuf, string);
+	else
+		return (ISC_FALSE);
+
+	if (inet_pton(AF_INET, addrbuf, addr) != 1) {
+		return ISC_FALSE;
+	}
+	return ISC_TRUE;
+}
+
+static isc_boolean_t
+is_ip4prefix(const char *string, struct in_addr *addr)
+{
+	char addrbuf[sizeof "xxx.xxx.xxx.xxx" + 1];
+	const char *p = string;
+	int dots = 0;
+	char dot = '.';
+	isc_boolean_t lastdot = ISC_TRUE;
+
+	while (*p) {
+		if (!isdigit(*p & 0xff) && *p != dot) {
+			return (ISC_FALSE);
+		} else if (lastdot && p[0] == '0' &&
+			   (p[1] != '.' && p[1] != '\0')) {
+			return (ISC_FALSE);
+		} else if (!isdigit(*p & 0xff)) {
+			dots++;
+			lastdot = ISC_TRUE;
+		} else {
+			lastdot = ISC_FALSE;
 		}
 		p++;
 	}
