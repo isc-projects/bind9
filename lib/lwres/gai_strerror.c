@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.12.4.1 2001/01/09 22:52:12 bwelling Exp $ */
+/* $Id: gai_strerror.c,v 1.12.4.2 2001/05/29 22:40:16 bwelling Exp $ */
 
 #include <lwres/netdb.h>
 
@@ -31,7 +31,9 @@ static const char *gai_messages[] = {
 	"hostname nor servname provided, or not known",
 	"servname not supported for ai_socktype",
 	"ai_socktype not supported",
-	"system error returned in errno"
+	"system error returned in errno",
+	"bad hints",
+	"bad protocol"
 };
 
 char *
