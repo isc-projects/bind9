@@ -29,6 +29,8 @@ bindir =	@bindir@
 sbindir =	@sbindir@
 includedir =	@includedir@
 libdir =	@libdir@
+sysconfdir =	@sysconfdir@
+localstatedir =	@localstatedir@
 
 DESTDIR =
 

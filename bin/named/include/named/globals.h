@@ -66,7 +66,8 @@ EXTERN unsigned int		ns_g_debuglevel		INIT(0);
 /*
  * Current config information
  */
-EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
+EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
+							     "/named.conf");
 
 /*
  * Misc.
@@ -75,7 +76,8 @@ EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
 EXTERN const char *		ns_g_chrootdir		INIT(NULL);
 EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
 
-EXTERN char *			ns_g_defaultpidfile INIT("/var/run/named.pid");
+EXTERN char *			ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
+							     "/run/named.pid");
 EXTERN const char *		ns_g_username		INIT(NULL);
 
 /*

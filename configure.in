@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.96 $)
+AC_REVISION($Revision: 1.97 $)
 
 AC_PREREQ(2.13)
 
@@ -37,6 +37,41 @@ AC_PATH_PROG(AR, ar)
 ARFLAGS="cruv"
 AC_SUBST(AR)
 AC_SUBST(ARFLAGS)
+
+dnl
+dnl Special processing of paths depending on whether --prefix,
+dnl --sysconfdir or --localstatedir arguments were given.  What's
+dnl desired is some compatability with the way previous versions
+dnl of BIND built; they defaulted to /usr/local for most parts of
+dnl the installation, but named.boot/named.conf was in /etc
+dnl and named.pid was in /var/run.
+dnl
+dnl So ... if none of --prefix, --sysconfdir or --localstatedir are
+dnl specified, set things up that way.  If --prefix is given, use
+dnl it for sysconfdir and localstatedir the way configure normally
+dnl would.  To change the prefix for everything but leave named.conf
+dnl in /etc or named.pid in /var/run, then do this the usual configure way:
+dnl ./configure --prefix=/somewhere --sysconfdir=/etc
+dnl ./configure --prefix=/somewhere --localstatedir=/var
+dnl
+dnl To put named.conf and named.pid in /usr/local with everything else,
+dnl set the prefix explicitly to /usr/local even though that's the default:
+dnl ./configure --prefix=/usr/local
+dnl
+case "$prefix" in
+        NONE)
+                case "$sysconfdir" in
+                        '${prefix}/etc')
+                                sysconfdir=/etc
+                                ;;
+                esac
+                case "$localstatedir" in
+                        '${prefix}/var')
+                                localstatedir=/var
+                                ;;
+                esac
+                ;;
+esac
 
 dnl
 dnl On these hosts, we really want to use cc, not gcc, even if it is
