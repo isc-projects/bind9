@@ -1159,9 +1159,14 @@ fctx_getaddresses(fetchctx_t *fctx) {
 					    fctx_finddone, fctx, &name,
 					    &fctx->domain, options, now, NULL,
 					    &find);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		if (!ISC_LIST_EMPTY(find->list)) {
+		if (result != ISC_R_SUCCESS) {
+			if (result == DNS_R_ALIAS) {
+				/*
+				 * XXXRTH  Follow the CNAME/DNAME chain?
+				 */
+				dns_adb_destroyfind(&find);
+			}
+		} else if (!ISC_LIST_EMPTY(find->list)) {
 			/*
 			 * We have at least some of the addresses for the
 			 * name.
