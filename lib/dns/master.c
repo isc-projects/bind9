@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.131 2001/11/30 03:14:50 marka Exp $ */
+/* $Id: master.c,v 1.132 2001/12/11 20:37:14 marka Exp $ */
 
 #include <config.h>
 
@@ -1377,6 +1377,28 @@ load(dns_loadctx_t *lctx) {
 
 		if (type == dns_rdatatype_ns && ictx->glue == NULL)
 			current_has_delegation = ISC_TRUE;
+
+		/*
+		 * RFC 1123: MD and MF are not allowed to be loaded from
+		 * master files.
+		 */
+		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    (type == dns_rdatatype_md || type == dns_rdatatype_mf)) {
+			char typename[DNS_RDATATYPE_FORMATSIZE];
+
+			result = DNS_R_OBSOLETE;
+
+			dns_rdatatype_format(type, typename, sizeof(typename));
+			(*callbacks->error)(callbacks,
+					    "%s: %s:%lu: %s '%s': %s",
+					    "dns_master_load", source, line,
+					    "type", typename,
+					    dns_result_totext(result));
+			if (MANYERRS(lctx, result)) {
+				SETRESULT(lctx, result);
+			} else
+				goto insist_and_cleanup;
+		}
 
 		/*
 		 * Find a rdata structure.

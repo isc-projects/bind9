@@ -1,3 +1,5 @@
+1159.	[bug]		MD and MF are not permitted to be loaded by RFC1123.
+
 1158.	[func]		Report the client's address when logging notify
 			messages.
 
