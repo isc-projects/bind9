@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec_47.c,v 1.4 2003/12/13 04:31:37 marka Exp $ */
+/* $Id: nsec_47.c,v 1.5 2003/12/13 04:33:53 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -181,11 +181,6 @@ fromwire_nsec(ARGS_FROMWIRE) {
 		 * The last octet of the bitmap must be non zero.
 		 */
 		if (sr.base[i + len - 1] == 0)
-			RETERR(DNS_R_FORMERR);
-		/*
-		 * Type 0 is not valid.
-		 */
-		if (window == 0 && (sr.base[0] & 0x80) != 0)
 			RETERR(DNS_R_FORMERR);
 		lastwindow = window;
 		first = ISC_FALSE;
