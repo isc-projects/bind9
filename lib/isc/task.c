@@ -766,6 +766,12 @@ task_manager_destroy(task_manager_t *managerp) {
 
 	/*
 	 * Wait for all the worker threads to exit.
+	 *
+	 * XXX  This will become a timed wait.  If all the workers haven't
+	 *      died after we've waited the specified interval, we will
+	 *	kill the worker threads.  Should we join with the worker
+	 *      threads after killing them or just leave them detached and
+	 *      hope they go away?
 	 */
 	while (manager->workers > 0)
 		WAIT(&manager->no_workers, &manager->lock);
