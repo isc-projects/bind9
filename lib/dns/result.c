@@ -27,57 +27,46 @@
 #include <dns/lib.h>
 
 static char *text[DNS_R_NRESULTS] = {
-	"success",				/*  0 */
-	"out of memory",			/*  1 */
-	"ran out of space",			/*  2 */
-	"label too long",			/*  3 */
-	"bad escape",				/*  4 */
-	"bad bitstring",			/*  5 */
-	"bitstring too long",			/*  6 */
-	"empty label",				/*  7 */
-	"bad dotted quad",			/*  8 */
-	"unexpected end of input",		/*  9 */
-	"not implemented",			/* 10 */
-	"unknown class/type",			/* 11 */
-	"bad label type",			/* 12 */
-	"bad compression pointer",		/* 13 */
-	"too many hops",			/* 14 */
-	"disallowed (by application policy)",	/* 15 */
-	"no more list elements",		/* 16 */
-	"extra input text",			/* 17 */
-	"extra input data",			/* 18 */
-	"text too long",			/* 19 */
-	"out of range",				/* 20 */
-	"already exists",			/* 21 */
-	"not found",				/* 22 */
-	"syntax error",				/* 23 */
-	"bad checksum",				/* 24 */
-	"bad IPv6 address",			/* 25 */
-	"no owner",				/* 26 */
-	"no ttl",				/* 27 */
-	"bad class",				/* 28 */
-	"unexpected token",			/* 29 */
-	"bad base64 encoding",			/* 30 */
-	"partial match",			/* 31 */
-	"new origin",				/* 32 */
-	"unchanged",				/* 33 */
-	"bad ttl",				/* 34 */
-	"more data needed/to be rendered",	/* 35 */
-	"continue",				/* 36 */
-	"delegation",				/* 37 */
-	"glue",					/* 38 */
-	"dname",				/* 39 */
-	"cname",				/* 40 */
-	"nxdomain",				/* 41 */
-	"nxrdataset",				/* 42 */
-	"bad database",				/* 43 */
-	"zonecut",				/* 44 */
-	"format error in packet",		/* 45 */
-	"bad zone",				/* 46 */
-	"timed out",				/* 47 */
-	"canceled",				/* 48 */
-	"unexpected error",			/* 49 */
-	"more data",				/* 50 */
+	"label too long",			/*  0 */
+	"bad escape",				/*  1 */
+	"bad bitstring",			/*  2 */
+	"bitstring too long",			/*  3 */
+	"empty label",				/*  4 */
+	"bad dotted quad",			/*  5 */
+	"unexpected end of input",		/*  6 */
+	"unknown class/type",			/*  7 */
+	"bad label type",			/*  8 */
+	"bad compression pointer",		/*  9 */
+	"too many hops",			/* 10 */
+	"disallowed (by application policy)",	/* 11 */
+	"extra input text",			/* 12 */
+	"extra input data",			/* 13 */
+	"text too long",			/* 14 */
+	"out of range",				/* 15 */
+	"syntax error",				/* 16 */
+	"bad checksum",				/* 17 */
+	"bad IPv6 address",			/* 18 */
+	"no owner",				/* 19 */
+	"no ttl",				/* 20 */
+	"bad class",				/* 21 */
+	"unexpected token",			/* 22 */
+	"partial match",			/* 23 */
+	"new origin",				/* 24 */
+	"unchanged",				/* 25 */
+	"bad ttl",				/* 26 */
+	"more data needed/to be rendered",	/* 27 */
+	"continue",				/* 28 */
+	"delegation",				/* 29 */
+	"glue",					/* 30 */
+	"dname",				/* 31 */
+	"cname",				/* 32 */
+	"nxdomain",				/* 33 */
+	"nxrdataset",				/* 34 */
+	"bad database",				/* 35 */
+	"zonecut",				/* 36 */
+	"format error in packet",		/* 37 */
+	"bad zone",				/* 38 */
+	"more data",				/* 39 */
 };
 
 #define DNS_RESULT_RESULTSET			2
