@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.341 2001/09/06 02:13:50 marka Exp $ */
+/* $Id: server.c,v 1.342 2001/09/07 00:36:54 marka Exp $ */
 
 #include <config.h>
 
@@ -66,6 +66,7 @@
 #include <named/log.h>
 #include <named/logconf.h>
 #include <named/lwresd.h>
+#include <named/main.h>
 #include <named/os.h>
 #include <named/server.h>
 #include <named/tkeyconf.h>
@@ -2047,9 +2048,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	obj = NULL;
 	if (options != NULL &&
 	    cfg_map_get(options, "memstatistics-file", &obj) == ISC_R_SUCCESS)
-		ns_os_setmemstats(cfg_obj_asstring(obj));
+		ns_main_setmemstats(cfg_obj_asstring(obj));
 	else
-		ns_os_setmemstats(NULL);
+		ns_main_setmemstats(NULL);
 
 	obj = NULL;
 	result = ns_config_get(maps, "statistics-file", &obj);
