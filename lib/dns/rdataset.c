@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.58.2.2.2.8 2004/03/06 08:13:44 marka Exp $ */
+/* $Id: rdataset.c,v 1.58.2.2.2.9 2004/03/08 02:07:56 marka Exp $ */
 
 #include <config.h>
 
@@ -56,6 +56,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->private3 = NULL;
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
+	rdataset->private6 = NULL;
 }
 
 void
@@ -109,6 +110,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->private3 = NULL;
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
+	rdataset->private6 = NULL;
 }
 
 isc_boolean_t
@@ -170,7 +172,9 @@ static dns_rdatasetmethods_t question_methods = {
 	question_cursor,
 	question_current,
 	question_clone,
-	question_count
+	question_count,
+	NULL,
+	NULL
 };
 
 void
@@ -334,7 +338,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	 */
 	if (!question && count > 1 &&
 	    (!WANT_FIXED(rdataset) || order != NULL) &&
-	    rdataset->type != dns_rdatatype_sig)
+	    rdataset->type != dns_rdatatype_rrsig)
 		shuffle = ISC_TRUE;
 
 	if (shuffle && count > MAX_SHUFFLE) {
@@ -501,7 +505,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	result = ISC_R_SUCCESS;
 	goto cleanup;
 
-	rollback:
+ rollback:
 	if (partial && result == ISC_R_NOSPACE) {
 		INSIST(rrbuffer.used < 65536);
 		dns_compress_rollback(cctx, (isc_uint16_t)rrbuffer.used);
@@ -514,7 +518,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	*countp = 0;
 	*target = savedbuffer;
 
-	cleanup:
+ cleanup:
 	if (sorted != NULL && sorted != sorted_fixed)
 		isc_mem_put(cctx->mctx, sorted, count * sizeof(*sorted));
 	if (shuffled != NULL && shuffled != shuffled_fixed)
@@ -598,4 +602,25 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 
 	return (ISC_R_SUCCESS);
 }
-	
+
+isc_result_t
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
+
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+	if (rdataset->methods->addnoqname == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return((rdataset->methods->addnoqname)(rdataset, name));
+}
+
+isc_result_t
+dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+		        dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
+{
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+
+	if (rdataset->methods->getnoqname == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return((rdataset->methods->getnoqname)(rdataset, name, nsec, nsecsig));
+}

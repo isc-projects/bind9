@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.9.2.9 2004/03/06 08:13:45 marka Exp $ */
+/* $Id: result.c,v 1.90.2.9.2.10 2004/03/08 02:07:57 marka Exp $ */
 
 #include <config.h>
 
@@ -78,9 +78,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"tsig verify failure",		       /* 38 DNS_R_TSIGVERIFYFAILURE */
 	"tsig indicates error",		       /* 39 DNS_R_TSIGERRORSET	     */
 
-	"SIG failed to verify",		       /* 40 DNS_R_SIGINVALID	     */
-	"SIG has expired",		       /* 41 DNS_R_SIGEXPIRED	     */
-	"SIG validity period has not begun",   /* 42 DNS_R_SIGFUTURE	     */
+	"RRSIG failed to verify",	       /* 40 DNS_R_SIGINVALID	     */
+	"RRSIG has expired",		       /* 41 DNS_R_SIGEXPIRED	     */
+	"RRSIG validity period has not begun", /* 42 DNS_R_SIGFUTURE	     */
 	"key is unauthorized to sign data",    /* 43 DNS_R_KEYUNAUTHORIZED   */
 	"invalid time",			       /* 44 DNS_R_INVALIDTIME	     */
 
@@ -100,9 +100,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no journal",			       /* 56 DNS_R_NOJOURNAL	     */
 	"alias",			       /* 57 DNS_R_ALIAS	     */
 	"use TCP",			       /* 58 DNS_R_USETCP	     */
-	"no valid SIG",			       /* 59 DNS_R_NOVALIDSIG	     */
+	"no valid RRSIG",		       /* 59 DNS_R_NOVALIDSIG	     */
 
-	"no valid NXT",			       /* 60 DNS_R_NOVALIDNXT	     */
+	"no valid NSEC",		       /* 60 DNS_R_NOVALIDNSEC	     */
 	"not insecure",			       /* 61 DNS_R_NOTINSECURE	     */
 	"unknown service",		       /* 62 DNS_R_UNKNOWNSERVICE    */
 	"recoverable error occurred",	       /* 63 DNS_R_RECOVERABLE       */
@@ -130,7 +130,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"already frozen",		       /* 81 DNS_R_FROZEN	     */
 	"unknown flag",			       /* 82 DNS_R_UNKNOWNFLAG	     */
 	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
-	"<unused 84>",
+	"no valid DS",			       /* 84 DNS_R_NOVALIDDS	     */
 
 	"NS is an address",		       /* 85 DNS_R_NSISADDRESS	     */
 	"received FORMERR",		       /* 86 DNS_R_REMOTEFORMERR     */
@@ -139,15 +139,15 @@ static const char *text[DNS_R_NRESULTS] = {
 	"unexpected RCODE",		       /* 89 DNS_R_UNEXPECTEDRCODE   */
 
 	"unexpected OPCODE",		       /* 90 DNS_R_UNEXPECTEDOPCODE  */
-	"<unused 91>",
+	"chase DS servers",		       /* 91 DNS_R_CHASEDSSERVERS    */
 	"empty name",			       /* 92 DNS_R_EMPTYNAME	     */
 	"empty wild",			       /* 93 DNS_R_EMPTYWILD	     */
 	"bad bitmap",			       /* 94 DNS_R_BADBITMAP	     */
 
 	"from wildcard",		       /* 95 DNS_R_FROMWILDCARD	     */
 	"bad owner name (check-names)",	       /* 96 DNS_R_BADOWNERNAME	     */
-	"bad name (check-names)", 	       /* 97 DNS_R_BADNAME	     */
-	"dynamic zone"		 	       /* 98 DNS_R_DYNAMIC	     */
+	"bad name (check-names)",	       /* 97 DNS_R_BADNAME	     */
+	"dynamic zone"			       /* 98 DNS_R_DYNAMIC	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.29.2.2.2.4 2004/03/06 08:13:44 marka Exp $ */
+/* $Id: rdataslab.c,v 1.29.2.2.2.5 2004/03/08 02:07:56 marka Exp $ */
 
 #include <config.h>
 
@@ -239,7 +239,9 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_next,
 	rdataset_current,
 	rdataset_clone,
-	rdataset_count
+	rdataset_count,
+	NULL,
+	NULL
 };
 
 void

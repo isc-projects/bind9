@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.35.12.5 2004/03/06 08:13:45 marka Exp $ */
+/* $Id: sdb.c,v 1.35.12.6 2004/03/08 02:07:57 marka Exp $ */
 
 #include <config.h>
 
@@ -1085,7 +1085,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNUSED(now);
 	UNUSED(sigrdataset);
 
-	if (type == dns_rdatatype_sig)
+	if (type == dns_rdatatype_rrsig)
 		return (ISC_R_NOTIMPLEMENTED);
 
 	list = ISC_LIST_HEAD(sdbnode->lists);
@@ -1359,7 +1359,9 @@ static dns_rdatasetmethods_t methods = {
 	isc__rdatalist_next,
 	isc__rdatalist_current,
 	rdataset_clone,
-	isc__rdatalist_count
+	isc__rdatalist_count,
+	isc__rdatalist_addnoqname,
+	isc__rdatalist_getnoqname
 };
 
 static void

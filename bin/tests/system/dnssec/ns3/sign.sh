@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.12.12.1 2004/03/06 10:22:02 marka Exp $
+# $Id: sign.sh,v 1.12.12.2 2004/03/08 02:07:47 marka Exp $
 
 RANDFILE=../random.data
 
@@ -23,9 +23,7 @@ zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
-
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key > /dev/null
+keyname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -37,8 +35,33 @@ zonefile=bogus.example.db
 
 keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key > /dev/null
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+
+zone=dynamic.example.
+infile=dynamic.example.db.in
+zonefile=dynamic.example.db
+
+keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
 $SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+
+zone=keyless.example.
+infile=keyless.example.db.in
+zonefile=keyless.example.db
+
+keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
+
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+
+# Change the signer field of the a.b.keyless.example SIG A
+# to point to a provably nonexistent KEY record.
+mv $zonefile.signed $zonefile.tmp
+<$zonefile.tmp perl -p -e 's/ keyless.example/ b.keyless.example/
+    if /^a.b.keyless.example/../NXT/;' >$zonefile.signed
+rm -f $zonefile.tmp

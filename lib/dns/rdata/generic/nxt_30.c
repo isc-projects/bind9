@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.49.2.2.2.7 2004/03/06 08:14:10 marka Exp $ */
+/* $Id: nxt_30.c,v 1.49.2.2.2.8 2004/03/08 02:08:03 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -28,7 +28,7 @@
  * The attributes do not include DNS_RDATATYPEATTR_SINGLETON
  * because we must be able to handle a parent/child NXT pair.
  */
-#define RRTYPE_NXT_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
+#define RRTYPE_NXT_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_nxt(ARGS_FROMTEXT) {

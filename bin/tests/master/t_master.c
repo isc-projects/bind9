@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.30.206.1 2004/03/06 10:21:44 marka Exp $ */
+/* $Id: t_master.c,v 1.30.206.2 2004/03/08 02:07:43 marka Exp $ */
 
 #include <config.h>
 
@@ -237,7 +237,7 @@ t5() {
 }
 
 static const char *a6 =
-	"dns_master_loadfile understands KEY RR specifications "
+	"dns_master_loadfile understands DNSKEY RR specifications "
 	"containing key material";
 
 static void
@@ -251,7 +251,7 @@ t6() {
 }
 
 static const char *a7 =
-	"dns_master_loadfile understands KEY RR specifications "
+	"dns_master_loadfile understands DNSKEY RR specifications "
 	"containing no key material";
 
 static void
@@ -323,8 +323,8 @@ testspec_t	T_testlist[] = {
 	{	t3,	"DNS_NOOWNER"		},
 	{	t4,	"DNS_NOTTL"		},
 	{	t5,	"DNS_BADCLASS"		},
-	{	t6,	"KEY RR 1"		},
-	{	t7,	"KEY RR 2"		},
+	{	t6,	"DNSKEY RR 1"		},
+	{	t7,	"DNSKEY RR 2"		},
 	{	t8,	"$INCLUDE"		},
 	{	t9,	"$INCLUDE w/ DNS_BADCLASS"	},
 	{	t10,	"non empty blank lines"	},

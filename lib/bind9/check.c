@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.21 2004/03/06 08:13:34 marka Exp $ */
+/* $Id: check.c,v 1.37.6.22 2004/03/08 02:07:51 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/parseint.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
@@ -35,6 +36,7 @@
 #include <dns/fixedname.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
+#include <dns/secalg.h>
 
 #include <isccfg/cfg.h>
 
@@ -219,6 +221,57 @@ check_forward(cfg_obj_t *options, isc_log_t *logctx) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+disabled_algorithms(cfg_obj_t *disabled, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	cfg_listelt_t *element;
+	const char *str;
+	isc_buffer_t b;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	cfg_obj_t *obj;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	obj = cfg_tuple_get(disabled, "name");
+	str = cfg_obj_asstring(obj);
+	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_add(&b, strlen(str));
+	tresult = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	if (tresult != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "bad domain name '%s'", str);
+		result = tresult;
+	}
+
+	obj = cfg_tuple_get(disabled, "algorithms");
+
+	for (element = cfg_list_first(obj);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		isc_textregion_t r;
+		dns_secalg_t alg;
+		isc_result_t tresult;
+
+		r.base = cfg_obj_asstring(cfg_listelt_value(element));
+		r.length = strlen(r.base);
+
+		tresult = dns_secalg_fromtext(&alg, &r);
+		if (tresult != ISC_R_SUCCESS) {
+			isc_uint8_t ui;
+			result = isc_parse_uint8(&ui, r.base, 10);
+		}
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(cfg_listelt_value(element), logctx,
+				    ISC_LOG_ERROR, "invalid algorithm");
+			result = tresult;
+		}
+	}
+	return (result);
+}
+
 typedef struct {
 	const char *name;
 	unsigned int scale;
@@ -228,8 +281,10 @@ typedef struct {
 static isc_result_t
 check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
 	unsigned int i;
 	cfg_obj_t *obj = NULL;
+	cfg_listelt_t *element;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -289,7 +344,6 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 			dns_fixedname_t fixed;
 			dns_name_t *name;
 			isc_buffer_t b;
-			isc_result_t tresult;
 
 			dns_fixedname_init(&fixed);
 			name = dns_fixedname_name(&fixed);
@@ -312,6 +366,24 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 			}
 		}
 	}
+       
+	/*
+	 * Set supported DNSSEC algorithms.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "disable-algorithms", &obj);
+	if (obj != NULL) {
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			obj = cfg_listelt_value(element);
+			tresult = disabled_algorithms(obj, logctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+		}
+	}
+
 	return (result);
 }
 

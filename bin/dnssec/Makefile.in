@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.19.12.6 2004/03/06 10:21:14 marka Exp $
+# $Id: Makefile.in,v 1.19.12.7 2004/03/08 02:07:36 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -39,45 +39,30 @@ DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 # Alphabetically
-TARGETS =	dnssec-keygen@EXEEXT@ \
-		dnssec-makekeyset@EXEEXT@ \
-		dnssec-signkey@EXEEXT@ \
-		dnssec-signzone@EXEEXT@
+TARGETS =	dnssec-keygen@EXEEXT@ dnssec-signzone@EXEEXT@
 
 OBJS =		dnssectool.@O@
 
-SRCS =		dnssec-keygen.c dnssec-makekeyset.c \
-		dnssec-signkey.c dnssec-signzone.c \
-		dnssectool.c
+SRCS =		dnssec-keygen.c dnssec-signzone.c dnssectool.c
 
-MANPAGES =	dnssec-keygen.8 \
-		dnssec-makekeyset.8 \
-		dnssec-signkey.8 \
-		dnssec-signzone.8
+MANPAGES =	dnssec-keygen.8 dnssec-signzone.8
 
-HTMLPAGES =	dnssec-keygen.html \
-		dnssec-makekeyset.html \
-		dnssec-signkey.html \
-		dnssec-signzone.html
+HTMLPAGES =	dnssec-keygen.html dnssec-signzone.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
 dnssec-keygen@EXEEXT@: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ ${OBJS} ${LIBS}
-
-dnssec-makekeyset@EXEEXT@: dnssec-makekeyset.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-makekeyset.@O@ ${OBJS} ${LIBS}
-
-dnssec-signkey@EXEEXT@: dnssec-signkey.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signkey.@O@ ${OBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	dnssec-keygen.@O@ ${OBJS} ${LIBS}
 
 dnssec-signzone.@O@: dnssec-signzone.c
 	${LIBTOOL_MODE_COMPILE} ${PURIFY} ${CC} ${ALL_CFLAGS} -c $<
 
 dnssec-signzone@EXEEXT@: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ ${OBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	dnssec-signzone.@O@ ${OBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
 

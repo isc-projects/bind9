@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.7.2.7 2004/03/06 08:13:40 marka Exp $ */
+/* $Id: name.c,v 1.127.2.7.2.8 2004/03/08 02:07:54 marka Exp $ */
 
 #include <config.h>
 
@@ -378,21 +378,6 @@ dns_name_iswildcard(const dns_name_t *name) {
 		if (ndata[0] == 1 && ndata[1] == '*')
 			return (ISC_TRUE);
 	}
-
-	return (ISC_FALSE);
-}
-
-isc_boolean_t
-dns_name_requiresedns(const dns_name_t *name) {
-	/*
-	 * Does 'name' require EDNS for transmission?
-	 * Since we dropped the support of bitstring labels, this function
-	 * currently returns a constant value; ISC_FALSE.
-	 */
-
-	REQUIRE(VALID_NAME(name));
-	REQUIRE(name->labels > 0);
-	UNUSED(name);
 
 	return (ISC_FALSE);
 }

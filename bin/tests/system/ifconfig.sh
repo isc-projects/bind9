@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.35.2.8.2.2 2004/03/06 10:21:47 marka Exp $
+# $Id: ifconfig.sh,v 1.35.2.8.2.3 2004/03/08 02:07:44 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -57,7 +57,7 @@ esac
 case "$1" in
 
     start|up)
-	for ns in 1 2 3 4 5
+	for ns in 1 2 3 4 5 6
 	do
 		if test -n "$base"
 		then
@@ -117,7 +117,7 @@ case "$1" in
 	;;
 
     stop|down)
-	for ns in 5 4 3 2 1
+	for ns in 6 5 4 3 2 1
 	do
 		if test -n "$base"
 		then

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.31.2.3.2.3 2004/03/06 10:21:16 marka Exp $ */
+/* $Id: dnssectool.c,v 1.31.2.3.2.4 2004/03/08 02:07:38 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdatastruct.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
@@ -117,7 +118,7 @@ alg_format(const dns_secalg_t alg, char *cp, unsigned int size) {
 }
 
 void
-sig_format(dns_rdata_sig_t *sig, char *cp, unsigned int size) {
+sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
 
@@ -257,7 +258,7 @@ cleanup_entropy(isc_entropy_t **ectx) {
 }
 
 isc_stdtime_t
-strtotime(char *str, isc_int64_t now, isc_int64_t base) {
+strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 	isc_int64_t val, offset;
 	isc_result_t result;
 	char *endp;
@@ -285,4 +286,20 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 	}
 
 	return ((isc_stdtime_t) val);
+}
+
+dns_rdataclass_t
+strtoclass(const char *str) {
+	isc_textregion_t r;
+	dns_rdataclass_t rdclass;
+	isc_result_t ret;
+
+	if (str == NULL)
+		return dns_rdataclass_in;
+	DE_CONST(str, r.base);
+	r.length = strlen(str);
+	ret = dns_rdataclass_fromtext(&rdclass, &r);
+	if (ret != ISC_R_SUCCESS)
+		fatal("unknown class %s", str);
+	return (rdclass);
 }

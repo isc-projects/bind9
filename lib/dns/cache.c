@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.4.8.6 2004/03/06 08:13:36 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.4.8.7 2004/03/08 02:07:52 marka Exp $ */
 
 #include <config.h>
 
@@ -1030,7 +1030,7 @@ dns_cache_flushname(dns_cache_t *cache, dns_name_t *name) {
 			dns_rdatatype_t covers;
 
 			dns_rdataset_current(&rdataset, &rdata);
-			if (rdata.type == dns_rdatatype_sig)
+			if (rdata.type == dns_rdatatype_rrsig)
 				covers = dns_rdata_covers(&rdata);
 			else
 				covers = 0;

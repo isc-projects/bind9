@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.14 2004/03/06 08:13:40 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.15 2004/03/08 02:07:54 marka Exp $ */
 
 /***
  *** Imports
@@ -1187,7 +1187,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (msg->opcode != dns_opcode_update
 		    && rdtype != dns_rdatatype_tsig
 		    && rdtype != dns_rdatatype_opt
-		    && rdtype != dns_rdatatype_key /* in a TKEY query */
+		    && rdtype != dns_rdatatype_dnskey /* in a TKEY query */
 		    && rdtype != dns_rdatatype_sig /* SIG(0) */
 		    && rdtype != dns_rdatatype_tkey /* Win2000 TKEY */
 		    && msg->rdclass != rdclass)
@@ -1288,10 +1288,18 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		rdata->rdclass = rdclass;
-		issigzero = ISC_FALSE;
-		if (rdtype == dns_rdatatype_sig && rdata->flags == 0) {
+		if (rdtype == dns_rdatatype_rrsig  &&
+		    rdata->flags == 0) {
 			covers = dns_rdata_covers(rdata);
-			if (covers == 0) {
+			if (covers == 0)
+				DO_FORMERR;
+		} else
+			covers = 0;
+
+		issigzero = ISC_FALSE;
+		if (rdtype == dns_rdatatype_sig /* SIG(0) */ &&
+		    rdata->flags == 0) {
+			if (dns_rdata_covers(rdata) == 0) {
 				if (sectionid != DNS_SECTION_ADDITIONAL ||
 				    count != msg->counts[sectionid]  - 1)
 					DO_FORMERR;
@@ -1300,8 +1308,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				skip_type_search = ISC_TRUE;
 				issigzero = ISC_TRUE;
 			}
-		} else
-			covers = 0;
+		}
 
 		/*
 		 * If we are doing a dynamic update or this is a meta-type,
@@ -1715,8 +1722,8 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 		else
 			pass_needed = 3;
 		break;
-	case dns_rdatatype_sig:
-	case dns_rdatatype_key:
+	case dns_rdatatype_rrsig:
+	case dns_rdatatype_dnskey:
 		pass_needed = 2;
 		break;
 	default:
@@ -2826,8 +2833,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		if (view == NULL)
 			return (DNS_R_KEYUNAUTHORIZED);
 		result = dns_view_simplefind(view, &sig.signer,
-					     dns_rdatatype_key, 0, 0,
-					     ISC_FALSE, &keyset, NULL);
+					     dns_rdatatype_key /* SIG(0) */,
+					     0, 0, ISC_FALSE, &keyset, NULL);
 
 		if (result != ISC_R_SUCCESS) {
 			/* XXXBEW Should possibly create a fetch here */

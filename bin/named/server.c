@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.43 2004/03/06 10:21:21 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.44 2004/03/08 02:07:39 marka Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
+#include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/stdio.h>
@@ -56,6 +57,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
+#include <dns/secalg.h>
 #include <dns/stats.h>
 #include <dns/tkey.h>
 #include <dns/view.h>
@@ -197,13 +199,12 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 	return (result);
 }
 
-#ifdef ISC_RFC2535
 static isc_result_t
 configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 			 dns_keytable_t *keytable, isc_mem_t *mctx)
 {
 	dns_rdataclass_t viewclass;
-	dns_rdata_key_t keystruct;
+	dns_rdata_dnskey_t keystruct;
 	isc_uint32_t flags, proto, alg;
 	char *keystr, *keynamestr;
 	unsigned char keydata[4096];
@@ -231,7 +232,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 					 &viewclass));
 	}
 	keystruct.common.rdclass = viewclass;
-	keystruct.common.rdtype = dns_rdatatype_key;
+	keystruct.common.rdtype = dns_rdatatype_dnskey;
 	/*
 	 * The key data in keystruct is not dynamically allocated.
 	 */
@@ -293,7 +294,6 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 
 	return (result);
 }
-#endif
 
 /*
  * Configure DNSSEC keys for a view.  Currently used only for
@@ -307,21 +307,15 @@ configure_view_dnsseckeys(cfg_obj_t *vconfig, cfg_obj_t *config,
 			  isc_mem_t *mctx, dns_keytable_t **target)
 {
 	isc_result_t result;
-#ifdef ISC_RFC2535
 	cfg_obj_t *keys = NULL;
 	cfg_obj_t *voptions = NULL;
 	cfg_listelt_t *element, *element2;
 	cfg_obj_t *keylist;
 	cfg_obj_t *key;
-#endif
 	dns_keytable_t *keytable = NULL;
 
 	CHECK(dns_keytable_create(mctx, &keytable));
 
-#ifndef ISC_RFC2535
-	UNUSED(vconfig);
-	UNUSED(config);
-#else
 	if (vconfig != NULL)
 		voptions = cfg_tuple_get(vconfig, "options");
 
@@ -345,7 +339,7 @@ configure_view_dnsseckeys(cfg_obj_t *vconfig, cfg_obj_t *config,
 						       keytable, mctx));
 		}
 	}
-#endif
+
 	dns_keytable_detach(target);
 	*target = keytable; /* Transfer ownership. */
 	keytable = NULL;
@@ -591,6 +585,52 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	return (result);
 }
 
+static isc_result_t
+disable_algorithms(cfg_obj_t *disabled, dns_resolver_t *resolver) {
+	isc_result_t result;
+	cfg_obj_t *algorithms;
+	cfg_listelt_t *element;
+	const char *str;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_buffer_t b;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	str = cfg_obj_asstring(cfg_tuple_get(disabled, "name"));
+	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_add(&b, strlen(str));
+	CHECK(dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL));
+
+	algorithms = cfg_tuple_get(disabled, "algorithms");
+	for (element = cfg_list_first(algorithms);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		isc_textregion_t r;
+		dns_secalg_t alg;
+
+		r.base = cfg_obj_asstring(cfg_listelt_value(element));
+		r.length = strlen(r.base);
+
+		result = dns_secalg_fromtext(&alg, &r);
+		if (result != ISC_R_SUCCESS) {
+			isc_uint8_t ui;
+			result = isc_parse_uint8(&ui, r.base, 10);
+			alg = ui;
+		}
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(cfg_listelt_value(element),
+				    ns_g_lctx, ISC_LOG_ERROR,
+				    "invalid algorithm");
+			CHECK(result);
+		}
+		CHECK(dns_resolver_disable_algorithm(resolver, name, alg));
+	}
+ cleanup:
+	return (result);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -611,6 +651,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cfg_obj_t *forwarders;
 	cfg_obj_t *alternates;
 	cfg_obj_t *zonelist;
+	cfg_obj_t *disabled;
 	cfg_obj_t *obj;
 	cfg_listelt_t *element;
 	in_port_t port;
@@ -841,6 +882,20 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (udpsize > 4096)
 		udpsize = 4096;
 	dns_resolver_setudpsize(view->resolver, udpsize);
+	
+	/*
+	 * Set supported DNSSEC algorithms.
+	 */
+	dns_resolver_reset_algorithms(view->resolver);
+	disabled = NULL;
+	(void)ns_config_get(maps, "disable-algorithms", &disabled);
+	if (disabled != NULL) {
+		for (element = cfg_list_first(disabled);
+		     element != NULL;
+		     element = cfg_list_next(element))
+			CHECK(disable_algorithms(cfg_listelt_value(element),
+						 view->resolver));
+	}
 
 	/*
 	 * A global or view "forwarders" option, if present,
@@ -1061,13 +1116,19 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "provide-ixfr", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->provideixfr = cfg_obj_asboolean(obj);
+			
+	obj = NULL;
+	result = ns_config_get(maps, "enable-dnssec", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->enablednssec = cfg_obj_asboolean(obj);
 
 	/*
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
 	 */
-	CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
-				  &view->secroots));
+	if (view->enablednssec)
+		CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
+					        &view->secroots));
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-ttl", &obj);
@@ -1122,7 +1183,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		}
 	} else
 		dns_view_setrootdelonly(view, ISC_FALSE);
-			
+
 	result = ISC_R_SUCCESS;
 
  cleanup:
@@ -1820,7 +1881,7 @@ interface_timer_tick(isc_task_t *task, isc_event_t *event) {
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	scan_interfaces(server, ISC_FALSE);
-	isc_task_endexclusive(server->task);	
+	isc_task_endexclusive(server->task);
 }
 
 static void
@@ -3660,7 +3721,7 @@ ns_server_flushname(ns_server_t *server, char *args) {
 		result = ISC_R_SUCCESS;
 	else
 		result = ISC_R_FAILURE;
-	isc_task_endexclusive(server->task);
+	isc_task_endexclusive(server->task);	
 	return (result);
 }
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.73.2.4.2.10 2004/03/06 08:14:01 marka Exp $ */
+/* $Id: view.h,v 1.73.2.4.2.11 2004/03/08 02:08:02 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -107,6 +107,7 @@ struct dns_view {
 	isc_boolean_t			additionalfromcache;
 	isc_boolean_t			additionalfromauth;
 	isc_boolean_t			minimalresponses;
+	isc_boolean_t			enablednssec;
 	dns_transfer_format_t		transfer_format;
 	dns_acl_t *			queryacl;
 	dns_acl_t *			recursionacl;
@@ -488,7 +489,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *	'name' is valid name.
  *
  *	'type' is a valid dns_rdatatype_t, and is not a meta query type
- *	(e.g. dns_rdatatype_any), or dns_rdatatype_sig.
+ *	(e.g. dns_rdatatype_any), or dns_rdatatype_rrsig.
  *
  *	'rdataset' is a valid, disassociated rdataset.
  *

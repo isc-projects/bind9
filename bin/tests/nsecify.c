@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsecify.c,v 1.3 2004/03/05 04:58:39 marka Exp $ */
+/* $Id: nsecify.c,v 1.3.2.1 2004/03/08 02:07:41 marka Exp $ */
 
 #include <config.h>
 

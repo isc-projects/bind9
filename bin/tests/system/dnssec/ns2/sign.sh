@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.15.12.1 2004/03/06 10:22:01 marka Exp $
+# $Id: sign.sh,v 1.15.12.2 2004/03/08 02:07:46 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,34 +26,21 @@ zone=example.
 infile=example.db.in
 zonefile=example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
-
-# Have the child generate a zone key and pass it to us,
-# sign it, and pass it back
+# Have the child generate a zone key and pass it to us.
 
 ( cd ../ns3 && sh sign.sh )
 
-cp ../ns3/keyset-secure.example. .
+for subdomain in secure bogus dynamic keyless
+do
+	cp ../ns3/keyset-$subdomain.example. .
+done
 
-$KEYSIGNER -r $RANDFILE keyset-secure.example. $keyname > /dev/null
+keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
+keyname2=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
-# This will leave two copies of the child's zone key in the signed db file;
-# that shouldn't cause any problems.
-cat signedkey-secure.example. >>../ns3/secure.example.db.signed
+cat $infile $keyname1.key $keyname2.key >$zonefile
 
-cp ../ns3/keyset-bogus.example. .
-
-$KEYSIGNER -r $RANDFILE keyset-bogus.example. $keyname > /dev/null
-
-# This will leave two copies of the child's zone key in the signed db file;
-# that shouldn't cause any problems.
-cat signedkey-bogus.example. >>../ns3/bogus.example.db.signed
-
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname > /dev/null
-
-cat $infile $keyname.key >$zonefile
-
-$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
 
 # Sign the privately secure file
 
@@ -65,4 +52,4 @@ privkeyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $privzone`
 
 cat $privinfile $privkeyname.key >$privzonefile
 
-$SIGNER -r $RANDFILE -o $privzone $privzonefile > /dev/null
+$SIGNER -g -r $RANDFILE -o $privzone $privzonefile > /dev/null

@@ -8,6 +8,9 @@
 1582.	[bug]		rrset-order failed to work on RRsets with more
 			than 32 elements. [RT #10381]
 
+1581.	[func]		Disable DNSSEC support by default.  To enable
+			DNSSEC specify "enable-dnssec yes;" in named.conf.
+
 1580.	[bug]		Zone destuction on final detach takes a long time.
 			[RT #3746]
 
@@ -54,6 +57,10 @@
 			for IPv6 addresses did not work on these systems.
 			[RT #10221]
 
+1565.	[bug]		CD flag should be copied to outgoing queries unless
+			the query is under a secure entry point in which case
+			CD should be set.
+
 1564.	[func]		Attempt to provide a fallback entropy source to be
 			used if named is running chrooted and named is unable
 			to open entropy source within the chroot area.
@@ -72,6 +79,15 @@
 			and EAI_NONAME to the same value.
 
 1559.	[port]		named should ignore SIGFSZ.
+
+1558.	[func]		New DNSSEC 'disable-algorithms'.  Support entry into
+			child zones for which we don't have a supported
+			algorithm.  Such child zones are treated as unsigned.
+
+1557.	[func]		Implement missing DNSSEC tests for
+			* NOQNAME proof with wildcard answers.
+			* NOWILDARD proof with NXDOMAIN.
+			Cache and return NOQNAME with wildcard answers.
 
 1556.	[bug]		nsupdate now treats all names as fully qualified.
 			[RT #6427]
@@ -112,6 +128,8 @@
 			being over the specified size limit.
 
 1543.	[bug]		Logging using "versions unlimited" did not work.
+
+1541.	[func]		NSEC now uses new bitmap format.
 
 1540.	[bug]		"rndc reload <dynamiczone>" was silently accepted.
 			[RT #8934]
@@ -159,12 +177,17 @@
 
 1520.	[protocol]	Add SSHFP (SSH Finger Print) type.
 
-1518.	[bug]		dns_nxt_buildrdata(), and hence dns_nxt_build(),
+1519.	[bug]		dnssec-signzone:nsec_setbit() computed the wrong
+			length of the new bitmap.
+
+1518.	[bug]		dns_nsec_buildrdata(), and hence dns_nsec_build(),
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.
 
 1517.	[port]		Support for IPv6 interface scanning on HP/UX and
 			TrueUNIX 5.1.
+
+1516.	[func]		Roll the DNSSEC types to RRSIG, NSEC and DNSKEY.
 
 1515.	[func]		Allow transfer source to be set in a server statement.
 			[RT #6496]

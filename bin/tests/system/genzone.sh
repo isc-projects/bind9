@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: genzone.sh,v 1.3.202.2 2004/03/06 10:21:47 marka Exp $
+# $Id: genzone.sh,v 1.3.202.3 2004/03/08 02:07:43 marka Exp $
 
 #
 # Set up a test zone
@@ -156,17 +156,17 @@ nsap-ptr01		NSAP-PTR foo.
 nsap-ptr01		NSAP-PTR .
 
 ; type 24
-sig01			SIG	NXT 1 3 ( 3600 20000102030405
-				19961211100908 2143 foo.nil. 
-				MxFcby9k/yvedMfQgKzhH5er0Mu/vILz45I
-				kskceFGgiWCn/GxHhai6VAuHAoNUz4YoU1t
-				VfSCSqQYn6//11U6Nld80jEeC8aTrO+KKmCaY= )
+;sig01			SIG	NXT 1 3 ( 3600 20000102030405
+;				19961211100908 2143 foo.nil. 
+;				MxFcby9k/yvedMfQgKzhH5er0Mu/vILz45I
+;				kskceFGgiWCn/GxHhai6VAuHAoNUz4YoU1t
+;				VfSCSqQYn6//11U6Nld80jEeC8aTrO+KKmCaY= )
 
 ; type 25
-key01			KEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
-				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
-				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
-				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
+;key01			KEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
+;				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
+;				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
+;				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
 
 ; type 26
 px01			PX	65535 foo. bar.
@@ -182,10 +182,10 @@ loc02			LOC 	60 09 00.000 N 24 39 00.000 E 10.00m 20.00m (
 				  2000.00m 20.00m )
 
 ; type 30
-nxt01			NXT	a.secure.nil. ( NS SOA MX SIG KEY LOC NXT )
-nxt02			NXT	. NXT NSAP-PTR
-nxt03			NXT	. 1
-nxt04			NXT	. 127
+;nxt01			NXT	a.secure.nil. ( NS SOA MX RRSIG KEY LOC NXT )
+;nxt02			NXT	. NXT NSAP-PTR
+;nxt03			NXT	. 1
+;nxt04			NXT	. 127
 
 ; type 33
 srv01			SRV 0 0 0 .
@@ -218,6 +218,25 @@ dname03			DNAME	.
 
 ; type 41
 ; OPT is a meta-type and should never occur in master files.
+
+; type 46
+rrsig01			RRSIG	NSEC 1 3 ( 3600 20000102030405
+				19961211100908 2143 foo.nil. 
+				MxFcby9k/yvedMfQgKzhH5er0Mu/vILz45I
+				kskceFGgiWCn/GxHhai6VAuHAoNUz4YoU1t
+				VfSCSqQYn6//11U6Nld80jEeC8aTrO+KKmCaY= )
+
+; type 47
+nsec01			NSEC	a.secure.nil. ( NS SOA MX RRSIG DNSKEY LOC NSEC )
+nsec02			NSEC	. NSEC NSAP-PTR
+nsec03			NSEC	. TYPE1
+nsec04			NSEC	. TYPE127
+
+; type 48
+dnskey01		DNSKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
+				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
+				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
+				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )
 
 ; type 249
 ; TKEY is a meta-type and should never occur in master files.

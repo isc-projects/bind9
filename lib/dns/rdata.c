@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.13 2004/03/06 08:13:43 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.14 2004/03/08 02:07:55 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -2059,6 +2059,8 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata) {
+	if (rdata->type == 46)
+		return (covers_rrsig(rdata));
 	return (covers_sig(rdata));
 }
 

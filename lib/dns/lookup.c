@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.9.12.2 2004/03/06 08:13:39 marka Exp $ */
+/* $Id: lookup.c,v 1.9.12.3 2004/03/08 02:07:53 marka Exp $ */
 
 #include <config.h>
 
@@ -168,7 +168,7 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 	dns_name_t *name = dns_fixedname_name(&lookup->name);
 	dns_rdatatype_t type;
 
-	if (lookup->type == dns_rdatatype_sig)
+	if (lookup->type == dns_rdatatype_rrsig)
 		type = dns_rdatatype_any;
 	else
 		type = lookup->type;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.18 2004/03/06 10:21:16 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.19 2004/03/08 02:07:38 marka Exp $ */
 
 #include <config.h>
 
@@ -1067,11 +1067,7 @@ client_addopt(ns_client_t *client) {
 	/*
 	 * Set EXTENDED-RCODE, VERSION and Z to 0.
 	 */
-#ifdef ISC_RFC2535
 	rdatalist->ttl = (client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE);
-#else
-	rdatalist->ttl = 0;
-#endif
 
 	/*
 	 * No ENDS options in the default case.

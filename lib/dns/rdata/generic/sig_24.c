@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.54.2.1.2.5 2004/03/06 08:14:12 marka Exp $ */
+/* $Id: sig_24.c,v 1.54.2.1.2.6 2004/03/08 02:08:04 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -24,7 +24,7 @@
 #ifndef RDATA_GENERIC_SIG_24_C
 #define RDATA_GENERIC_SIG_24_C
 
-#define RRTYPE_SIG_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
+#define RRTYPE_SIG_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_sig(ARGS_FROMTEXT) {

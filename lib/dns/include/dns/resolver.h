@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.34.12.5 2004/03/06 08:13:59 marka Exp $ */
+/* $Id: resolver.h,v 1.34.12.6 2004/03/08 02:08:01 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -385,6 +385,35 @@ isc_uint16_t
 dns_resolver_getudpsize(dns_resolver_t *resolver);
 /*
  * Get the current EDNS UDP buffer size.
+ */
+
+void
+dns_resolver_reset_algorithms(dns_resolver_t *resolver);
+/*
+ * Clear the disabled DNSSEC algorithms.
+ */
+
+isc_result_t
+dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
+			       unsigned int alg);
+/*
+ * Mark the give DNSSEC algorithm as disabled and below 'name'.
+ * Valid algorithms are less than 256.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_RANGE
+ *	ISC_R_NOMEMORY
+ */
+
+isc_boolean_t
+dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
+				 unsigned int alg);
+/*
+ * Check if the given algorithm is supported by this resolver.
+ * This checks if the algorithm has been disabled via
+ * dns_resolver_disable_algorithm() then the underlying
+ * crypto libraries if not specifically disabled.
  */
 
 ISC_LANG_ENDDECLS

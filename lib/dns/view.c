@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.12 2004/03/06 08:13:48 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.13 2004/03/08 02:07:58 marka Exp $ */
 
 #include <config.h>
 
@@ -155,6 +155,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	view->additionalfromcache = ISC_TRUE;
 	view->additionalfromauth = ISC_TRUE;
+	view->enablednssec = ISC_TRUE;
 	view->minimalresponses = ISC_FALSE;
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;
@@ -674,7 +675,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
-	REQUIRE(type != dns_rdatatype_sig);
+	REQUIRE(type != dns_rdatatype_rrsig);
 	REQUIRE(rdataset != NULL);  /* XXXBEW - remove this */
 
 	/*
@@ -876,7 +877,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			       rdataset, sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*
-		 * The rdataset and sigrdataset of the relevant NXT record
+		 * The rdataset and sigrdataset of the relevant NSEC record
 		 * may be returned, but the caller cannot use them because
 		 * foundname is not returned by this simplified API.  We
 		 * disassociate them here to prevent any misuse by the caller.

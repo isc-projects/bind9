@@ -2,16 +2,19 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.36 2004/03/04 21:05:27 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.37 2004/03/08 02:07:50 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
 
 <bookinfo>
 <copyright>
-<year>2000</year>
-<year>2001</year>
+<year>2000-2003</year>
 <holder>Internet Software Consortium</holder>
+</copyright>
+<copyright>
+<year>2004</year>
+<holder>Internet Systems Consortium, Inc. ("ISC")</holder>
 </copyright>
 </bookinfo>
 
@@ -2023,6 +2026,11 @@ authentication and authorization using TSIG.</para></entry>
 the log messages are sent.</para></entry>
           </row>
           <row rowsep = "0">
+            <entry colname = "1"><para><command>lwres</command></para></entry>
+            <entry colname = "2"><para>configures <command>named</command> to
+also act as a light weight resolver daemon (<command>lwresd</command>).</para></entry>
+          </row>
+          <row rowsep = "0">
             <entry colname = "1"><para><command>masters</command></para></entry>
             <entry colname = "2"><para>defines a named masters list for
 inclusion in stub and slave zone masters clauses.</para></entry>
@@ -2648,7 +2656,7 @@ those servers during resolution.
 <entry colname = "1"><para><command>delegation-only</command></para></entry>
 <entry colname = "2"><para>Delegation only.  Logs queries that have have
 been forced to NXDOMAIN as the result of a delegation-only zone or
-a <command>delegation-only</command> in a hint or stub zone declartation.
+a <command>delegation-only</command> in a hint or stub zone declaration.
 </para></entry>
 </row>
 </tbody>
@@ -2749,6 +2757,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> enable-dnssec <replaceable>yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>domain_name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ) ; ... }; </optional>
@@ -2824,6 +2833,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
     <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
 };
+    <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>; <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
 </programlisting>
 </sect2>
 
@@ -2949,7 +2959,7 @@ The default is not to preference any type (NONE).
 
 <varlistentry><term><command>root-delegation-only</command></term>
 <listitem><para>
-Turn on enforcment of delegation-only in TLDs and root zones with an optional
+Turn on enforcement of delegation-only in TLDs and root zones with an optional
 exclude list.
 </para>
 <para>
@@ -2961,8 +2971,14 @@ options {
 };
 </programlisting>
 </listitem></varlistentry>
-</variablelist>
 
+<varlistentry><term><command>disable-algorithms</command></term>
+<listitem><para>
+Disable the specified DNSSEC algorithms at and below the specified name.
+Multiple <command>disable-algorithms</command> statements are allowed.
+Only the most specific will be applied.
+</para></listitem></varlistentry>
+</variablelist>
 
 <sect3 id="boolean_options"><title>Boolean Options</title>
 
@@ -3323,6 +3339,14 @@ when the serial number on the master is less than what named currently
 has.  The default is <userinput>no</userinput>.
 </para></listitem></varlistentry>
 
+<varlistentry><term><command>enable-dnssec</command></term>
+<listitem>
+<para>
+Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>
+named behaves as if it does not support DNSSEC.
+The default is <userinput>no</userinput>.
+</para></listitem></varlistentry>
+
 <varlistentry><term><command>querylog</command></term>
 <listitem>
 <para>
@@ -3520,7 +3544,7 @@ a wildcard IP address (<command>INADDR_ANY</command>) will be used.
 If <command>port</command> is <command>*</command> or is omitted,
 a random unprivileged port will be used, <command>avoid-v4-udp-ports</command>
 and <command>avoid-v6-udp-ports</command> can be used to prevent named
-from selecting certian ports. The defaults are</para>
+from selecting certain ports. The defaults are</para>
 <programlisting>query-source address * port *;
 query-source-v6 address * port *;
 </programlisting>
@@ -3708,10 +3732,11 @@ but applies to notify messages sent to IPv6 addresses.</para>
 <para>
 <command>avoid-v4-udp-ports</command> and <command>avoid-v6-udp-ports</command>
 specify a list of IPv4 and IPv6 UDP ports that will not be used as system
-assigned source ports for UDP sockets.  These lists are expected to be
-used to prevent named using "well known" ports in the system assigned range
-that have become unusable due to wide spread use of acls containing these
-ports.
+assigned source ports for UDP sockets.  These lists prevent named
+from choosing as its random source port a port that is blocked by
+your firewall.  If a query went out with such a source port, the
+answer would not get by the firewall and the name server would have
+to query again.
 </para>
 </sect3>
 
@@ -3791,7 +3816,7 @@ function in BIND 8.
 
 <varlistentry><term><command>max-journal-size</command></term>
 <listitem><para>Sets a maximum size for each journal file
-(<xref linkend="journal"/>).  When the journal file approches
+(<xref linkend="journal"/>).  When the journal file approaches
 the specified size, some of the oldest transactions in the journal
 will be automatically removed.  The default is
 <literal>unlimited</literal>.</para>
@@ -4611,7 +4636,7 @@ any forwarders in the <command>options</command> statement. Thus
 if you want to use this type of zone to change the behavior of the
 global <command>forward</command> option (that is, "forward first
 to", then "forward only", or vice versa, but want to use the same
-servers as set globally) you need to respecify the global forwarders.</para>
+servers as set globally) you need to re-specify the global forwarders.</para>
 </entry>
 </row>
 <row rowsep = "0">
@@ -4627,7 +4652,7 @@ Classes other than IN have no built-in defaults hints.</para></entry>
 <entry colname = "1"><para><varname>delegation-only</varname></para></entry>
 <entry colname = "2"><para>This is used to enforce the delegation only
 status of infrastructure zones (e.g. COM, NET, ORG).  Any answer that
-is received without a explicit or implict delegation in the authority
+is received without a explicit or implicit delegation in the authority
 section will be treated as NXDOMAIN.  This does not apply to the zone
 apex.  This SHOULD NOT be applied to leaf zones.</para>
 <para><varname>delegation-only</varname> has no effect on answers received
@@ -5550,7 +5575,7 @@ value.
 To get a $ in the output you need to escape the <command>$</command>
 using a backslash <command>\</command>,
 e.g. <command>\$</command>. The <command>$</command> may optionally be followed
-by modifiers which change the offset from the interator, field width and base. 
+by modifiers which change the offset from the iterator, field width and base. 
 Modifiers are introduced by a <command>{</command> immediately following the
 <command>$</command> as <command>${offset[,width[,base]]}</command>.
 e.g. <command>${-20,3,d}</command> which subtracts 20 from the current value,
@@ -5562,13 +5587,13 @@ If the <command>lhs</command> is not
 absolute, the current <command>$ORIGIN</command> is appended to
 the name.</para>
 <para>For compatibility with earlier versions <command>$$</command> is still
-recognised a indicating a literal $ in the output.</para></entry>
+recognized a indicating a literal $ in the output.</para></entry>
         </row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>ttl</command></para></entry>
           <entry colname = "2"><para><command>ttl</command> specifies the
 	  ttl of the generated records. If not specified this will be
-	  inherited using the normal ttl inhertance rules.</para>
+	  inherited using the normal ttl inheritance rules.</para>
 	  <para><command>class</command> and <command>ttl</command> can be
 	  entered in either order.</para></entry>
 	</row>
@@ -5783,7 +5808,7 @@ all.</para>
 <appendix id="ch09">
   <title>Appendices</title>
   <sect1>
-    <title>Acknowledgements</title>
+    <title>Acknowledgments</title>
     <sect2>
       <title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title>
 

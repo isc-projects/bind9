@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.6 2004/03/05 05:10:11 marka Exp $ */
+/* $Id: ds_43.c,v 1.6.2.1 2004/03/08 02:08:03 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 

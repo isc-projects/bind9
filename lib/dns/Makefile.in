@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.126.2.3.2.10 2004/03/06 08:13:35 marka Exp $
+# $Id: Makefile.in,v 1.126.2.3.2.11 2004/03/08 02:07:52 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -50,10 +50,10 @@ DSTOBJS =	sec/dst/dst_api.@O@ \
 DNSOBJS =	acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
-		dnssec.@O@ forward.@O@ journal.@O@ keytable.@O@ \
+		dnssec.@O@ ds.@O@ forward.@O@ journal.@O@ keytable.@O@ \
 		lib.@O@ log.@O@ lookup.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
-		name.@O@ ncache.@O@ nxt.@O@ order.@O@ peer.@O@ portlist.@O@ \
+		name.@O@ ncache.@O@ nsec.@O@ order.@O@ peer.@O@ portlist.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ request.@O@ \
 		resolver.@O@ result.@O@ rootns.@O@ sdb.@O@ soa.@O@ ssu.@O@ \
@@ -67,10 +67,10 @@ OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS}
 SRCS =		acl.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
-		dnssec.c forward.c journal.c keytable.c \
+		dnssec.c ds.c forward.c journal.c keytable.c \
 		lib.c log.c lookup.c \
 		master.c masterdump.c message.c \
-		name.c ncache.c nxt.c order.c peer.c portlist.c \
+		name.c ncache.c nsec.c order.c peer.c portlist.c \
 		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \
 		resolver.c result.c rootns.c sdb.c soa.c ssu.c \

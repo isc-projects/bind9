@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.51.2.3.2.3 2004/03/06 08:13:59 marka Exp $ */
+/* $Id: rdata.h,v 1.51.2.3.2.4 2004/03/08 02:08:01 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -515,7 +515,7 @@ isc_boolean_t
 dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
 /*
  * Return true iff rdata of type 'type' is considered authoritative
- * data (not glue) in the NXT chain when it occurs in the parent zone
+ * data (not glue) in the NSEC chain when it occurs in the parent zone
  * at a zone cut.
  *
  * Requires:
@@ -644,7 +644,7 @@ dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 #define DNS_RDATATYPEATTR_EXCLUSIVE		0x00000002U
 /* Is a meta type */
 #define DNS_RDATATYPEATTR_META			0x00000004U
-/* Is a DNSSEC type, like SIG or NXT */
+/* Is a DNSSEC type, like RRSIG or NSEC */
 #define DNS_RDATATYPEATTR_DNSSEC		0x00000008U
 /* Is a zone cut authority type */
 #define DNS_RDATATYPEATTR_ZONECUTAUTH		0x00000010U

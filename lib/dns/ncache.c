@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.24.2.4.2.6 2004/03/06 08:13:40 marka Exp $ */
+/* $Id: ncache.c,v 1.24.2.4.2.7 2004/03/08 02:07:54 marka Exp $ */
 
 #include <config.h>
 
@@ -137,10 +137,10 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 				     DNS_RDATASETATTR_NCACHE) == 0)
 					continue;
 				type = rdataset->type;
-				if (type == dns_rdatatype_sig)
+				if (type == dns_rdatatype_rrsig)
 					type = rdataset->covers;
 				if (type == dns_rdatatype_soa ||
-				    type == dns_rdatatype_nxt) {
+				    type == dns_rdatatype_nsec) {
 					if (ttl > rdataset->ttl)
 						ttl = rdataset->ttl;
 					if (trust > rdataset->trust)
@@ -471,7 +471,9 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_next,
 	rdataset_current,
 	rdataset_clone,
-	rdataset_count
+	rdataset_count,
+	NULL,
+	NULL
 };
 
 isc_result_t
@@ -491,7 +493,7 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 	REQUIRE(ncacherdataset->type == 0);
 	REQUIRE(name != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
-	REQUIRE(type != dns_rdatatype_sig);
+	REQUIRE(type != dns_rdatatype_rrsig);
 
 	result = dns_rdataset_first(ncacherdataset);
 	if (result != ISC_R_SUCCESS)

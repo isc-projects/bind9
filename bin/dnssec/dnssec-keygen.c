@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.48.2.1.10.7 2004/03/06 10:21:14 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.48.2.1.10.8 2004/03/08 02:07:36 marka Exp $ */
 
 #include <config.h>
 
@@ -71,17 +71,20 @@ usage(void) {
 	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER\n");
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
-	fprintf(stderr, "    -c class (default: IN)\n");
+	fprintf(stderr, "    -c <class> (default: IN)\n");
 	fprintf(stderr, "    -e use large exponent (RSAMD5/RSASHA1 only)\n");
-	fprintf(stderr, "    -g use specified generator (DH only)\n");
-	fprintf(stderr, "    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
-	       "(default: AUTHCONF)\n");
-	fprintf(stderr, "    -p protocol value "
+	fprintf(stderr, "    -f keyflag: KSK\n");
+	fprintf(stderr, "    -g <generator> use specified generator "
+		"(DH only)\n");
+	fprintf(stderr, "    -t <type>: "
+		"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
+		"(default: AUTHCONF)\n");
+	fprintf(stderr, "    -p <protocol>: "
 	       "default: 3 [dnssec]\n");
-	fprintf(stderr, "    -s strength value this key signs DNS records "
-		"with (default: 0)\n");
-	fprintf(stderr, "    -r randomdev (a file containing random data)\n");
-	fprintf(stderr, "    -v verbose level\n");
+	fprintf(stderr, "    -s <strength> strength value this key signs DNS "
+		"records with (default: 0)\n");
+	fprintf(stderr, "    -r <randomdev>: a file containing random data\n");
+	fprintf(stderr, "    -v <verbose level>\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<id>.key, "
 		"K<name>+<alg>+<id>.private\n");
@@ -93,7 +96,7 @@ int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	char		*classname = NULL;
-	char		*prog, *endp;
+	char		*endp;
 	dst_key_t	*key = NULL, *oldkey;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
@@ -111,22 +114,15 @@ main(int argc, char **argv) {
 	isc_entropy_t	*ectx = NULL;
 	dns_rdataclass_t rdclass;
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-
-	if ((prog = strrchr(argv[0],'/')) == NULL)
-		prog = isc_mem_strdup(mctx, argv[0]);
-	else
-		prog = isc_mem_strdup(mctx, ++prog);
-	if (prog == NULL)
-		fatal("out of memory");
-
 	if (argc == 1)
 		usage();
+
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:c:eg:n:t:p:s:hr:v:")) != -1)
+					   "a:b:c:ef:g:n:t:p:s:r:v:h")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -143,6 +139,13 @@ main(int argc, char **argv) {
 		case 'e':
 			rsa_exp = 1;
 			break;
+		case 'f':
+			if (strcasecmp(isc_commandline_argument, "KSK") == 0)
+				flags |= DNS_KEYFLAG_KSK;
+			else
+				fatal("unknown flag '%s'",
+				      isc_commandline_argument);
+			break;
 		case 'g':
 			generator = strtol(isc_commandline_argument,
 					   &endp, 10);
@@ -151,13 +154,9 @@ main(int argc, char **argv) {
 			break;
 		case 'n':
 			nametype = isc_commandline_argument;
-			if (nametype == NULL)
-				fatal("out of memory");
 			break;
 		case 't':
 			type = isc_commandline_argument;
-			if (type == NULL)
-				fatal("out of memory");
 			break;
 		case 'p':
 			protocol = strtol(isc_commandline_argument, &endp, 10);
@@ -207,9 +206,7 @@ main(int argc, char **argv) {
 
 	if (algname == NULL)
 		fatal("no algorithm was specified");
-	if (strcasecmp(algname, "RSA") == 0)
-		alg = DNS_KEYALG_RSAMD5;
-	else if (strcasecmp(algname, "HMAC-MD5") == 0)
+	if (strcasecmp(algname, "HMAC-MD5") == 0)
 		alg = DST_ALG_HMACMD5;
 	else {
 		r.base = algname;
@@ -250,7 +247,7 @@ main(int argc, char **argv) {
 		break;
 	case DNS_KEYALG_DSA:
 		if (size != 0 && !dsa_size_ok(size))
-			fatal("Invalid DSS key size: %d", size);
+			fatal("invalid DSS key size: %d", size);
 		break;
 	case DST_ALG_HMACMD5:
 		if (size < 1 || size > 512)
@@ -277,14 +274,7 @@ main(int argc, char **argv) {
 	else
 		fatal("invalid nametype %s", nametype);
 
-	if (classname != NULL) {
-		r.base = classname;
-		r.length = strlen(classname);
-		ret = dns_rdataclass_fromtext(&rdclass, &r);
-		if (ret != ISC_R_SUCCESS)
-			fatal("unknown class %s",classname);
-	} else 
-		rdclass = dns_rdataclass_in;
+	rdclass = strtoclass(classname);
 
 	flags |= signatory;
 
@@ -293,10 +283,15 @@ main(int argc, char **argv) {
 
 	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
 		if (size > 0)
-			fatal("Specified null key with non-zero size");
+			fatal("specified null key with non-zero size");
 		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0)
-			fatal("Specified null key with signing authority");
+			fatal("specified null key with signing authority");
 	}
+
+	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
+	    (alg == DNS_KEYALG_DH || alg == DST_ALG_HMACMD5))
+		fatal("a key with algorithm '%s' cannot be a zone key",
+		      algname);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -305,7 +300,7 @@ main(int argc, char **argv) {
 	isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
 	ret = dns_name_fromtext(name, &buf, dns_rootname, ISC_FALSE, NULL);
 	if (ret != ISC_R_SUCCESS)
-		fatal("Invalid key name %s: %s", argv[isc_commandline_index],
+		fatal("invalid key name %s: %s", argv[isc_commandline_index],
 		      isc_result_totext(ret));
 
 	switch(alg) {
@@ -390,7 +385,6 @@ main(int argc, char **argv) {
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
 	printf("%s\n", filename);
-	isc_mem_free(mctx, prog);
 	dst_key_free(&key);
 
 	cleanup_logging(&log);

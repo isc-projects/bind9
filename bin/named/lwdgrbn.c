@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.11.208.1 2004/03/06 10:21:19 marka Exp $ */
+/* $Id: lwdgrbn.c,v 1.11.208.2 2004/03/08 02:07:39 marka Exp $ */
 
 #include <config.h>
 
@@ -100,7 +100,7 @@ iterate_node(lwres_grbnresponse_t *grbn, dns_db_t *db, dns_dbnode_t *node,
 		dns_rdataset_init(&set);
 		dns_rdatasetiter_current(iter, &set);
 
-		if (set.type != dns_rdatatype_sig) {
+		if (set.type != dns_rdatatype_rrsig) {
 			dns_rdataset_disassociate(&set);
 			continue;
 		}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.100.2.3.8.6 2004/03/06 08:13:57 marka Exp $ */
+/* $Id: message.h,v 1.100.2.3.8.7 2004/03/08 02:08:00 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -99,7 +99,7 @@
 
 #define DNS_MESSAGEEXTFLAG_DO		0x8000U
 
-#define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD)
+#define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
 
 #define DNS_MESSAGE_HEADERLEN		12 /* 6 isc_uint16_t's */
@@ -680,7 +680,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *
  *	'type' be a valid type.
  *
- *	If 'type' is dns_rdatatype_sig, 'covers' must be a valid type.
+ *	If 'type' is dns_rdatatype_rrsig, 'covers' must be a valid type.
  *	Otherwise it should be 0.
  *
  * Returns:
@@ -702,7 +702,7 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
  *
  *	'type' be a valid type, and NOT dns_rdatatype_any.
  *
- *	If 'type' is dns_rdatatype_sig, 'covers' must be a valid type.
+ *	If 'type' is dns_rdatatype_rrsig, 'covers' must be a valid type.
  *	Otherwise it should be 0.
  *
  * Returns:

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.h,v 1.3 2004/03/05 05:09:42 marka Exp $ */
+/* $Id: ds.h,v 1.3.2.1 2004/03/08 02:08:00 marka Exp $ */
 
 #ifndef DNS_DS_H
 #define DNS_DS_H 1

@@ -18,7 +18,7 @@
 #ifndef GENERIC_NSEC_47_H
 #define GENERIC_NSEC_47_H 1
 
-/* $Id: nsec_47.h,v 1.4 2004/03/05 05:10:15 marka Exp $ */
+/* $Id: nsec_47.h,v 1.4.2.1 2004/03/08 02:08:03 marka Exp $ */
 
 /* draft-ietf-dnsext-nsec-rdata-01.txt */
 

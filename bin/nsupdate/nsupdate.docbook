@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.8.2.3.2.6 2004/03/06 10:21:31 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.8.2.3.2.7 2004/03/08 02:07:40 marka Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -481,8 +481,8 @@ updates specified since the last send.
 <para>
 Sends the current message.  This is equivalent to entering a blank line.
 </para>
-
 </listitem>
+
 <varlistentry><term>
 <cmdsynopsis>
 <command>answer</command>
@@ -548,7 +548,7 @@ This ensures that when the CNAME is added, it cannot conflict with the
 long-standing rule in RFC1034 that a name must not exist as any other
 record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
-SIG, KEY and NXT records.)
+RRSIG, DNSKEY and NSEC records.)
 </para>
 </refsect1>
 

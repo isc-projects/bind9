@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.35.12.5 2004/03/06 10:21:40 marka Exp $ */
+/* $Id: rdata_test.c,v 1.35.12.6 2004/03/08 02:07:42 marka Exp $ */
 
 #include <config.h>
 
@@ -284,6 +284,21 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		result = dns_rdata_tostruct(rdata, sp = &x25, NULL);
 		break;
 	}
+	case dns_rdatatype_nsec: {
+		dns_rdata_nsec_t nsec;
+		result = dns_rdata_tostruct(rdata, sp = &nsec, NULL);
+		break;
+	}
+	case dns_rdatatype_rrsig: {
+		dns_rdata_rrsig_t rrsig;
+		result = dns_rdata_tostruct(rdata, sp = &rrsig, NULL);
+		break;
+	}
+	case dns_rdatatype_dnskey: {
+		dns_rdata_dnskey_t dnskey;
+		result = dns_rdata_tostruct(rdata, sp = &dnskey, NULL);
+		break;
+	}
 	default:
 		result = ISC_R_NOTIMPLEMENTED;
 		break;
@@ -524,6 +539,21 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_x25: {
 		dns_rdata_x25_t x25;
 		result = dns_rdata_tostruct(rdata, sp = &x25, mctx);
+		break;
+	}
+	case dns_rdatatype_nsec: {
+		dns_rdata_nsec_t nsec;
+		result = dns_rdata_tostruct(rdata, sp = &nsec, mctx);
+		break;
+	}
+	case dns_rdatatype_rrsig: {
+		dns_rdata_rrsig_t rrsig;
+		result = dns_rdata_tostruct(rdata, sp = &rrsig, mctx);
+		break;
+	}
+	case dns_rdatatype_dnskey: {
+		dns_rdata_dnskey_t dnskey;
+		result = dns_rdata_tostruct(rdata, sp = &dnskey, mctx);
 		break;
 	}
 	default:
@@ -796,6 +826,21 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_x25: {
 		dns_rdata_x25_t x25;
 		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &x25, b);
+		break;
+	}
+	case dns_rdatatype_nsec: {
+		dns_rdata_nsec_t nsec;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &nsec, b);
+		break;
+	}
+	case dns_rdatatype_rrsig: {
+		dns_rdata_rrsig_t rrsig;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &rrsig, b);
+		break;
+	}
+	case dns_rdatatype_dnskey: {
+		dns_rdata_dnskey_t dnskey;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &dnskey, b);
 		break;
 	}
 	default:

@@ -18,7 +18,7 @@
 #ifndef GENERIC_DNSSIG_46_H
 #define GENERIC_DNSSIG_46_H 1
 
-/* $Id: rrsig_46.h,v 1.3 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: rrsig_46.h,v 1.3.2.1 2004/03/08 02:08:04 marka Exp $ */
 
 /* RFC 2535 */
 typedef struct dns_rdata_rrsig {

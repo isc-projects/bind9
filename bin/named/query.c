@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.23 2004/03/06 10:21:21 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.24 2004/03/08 02:07:39 marka Exp $ */
 
 #include <config.h>
 
@@ -69,6 +69,8 @@
 				  NS_QUERYATTR_NOAUTHORITY) != 0)
 #define NOADDITIONAL(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOADDITIONAL) != 0)
+#define SECURE(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_SECURE) != 0)
 
 #if 0
 #define CTRACE(m)       isc_log_write(ns_g_lctx, \
@@ -241,7 +243,8 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	query_maybeputqname(client);
 
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK |
-				    NS_QUERYATTR_CACHEOK);
+				    NS_QUERYATTR_CACHEOK |
+				    NS_QUERYATTR_SECURE);
 	client->query.restarts = 0;
 	client->query.timerset = ISC_FALSE;
 	client->query.origqname = NULL;
@@ -1204,7 +1207,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 * XXXRTH  We should lower the priority here.  Alternatively,
 		 * we could raise the priority of glue records.
 		 */
-		eresult = query_addadditional(client, name, dns_rdatatype_key);
+		eresult = query_addadditional(client, name, dns_rdatatype_dnskey);
  	} else if (type == dns_rdatatype_srv && trdataset != NULL) {
 		/*
 		 * If we're adding SRV records to the additional data
@@ -1277,7 +1280,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 		 * XXXRTH  We should lower the priority here.  Alternatively,
 		 * we could raise the priority of glue records.
 		 */
-		(void)query_addadditional(client, fname, dns_rdatatype_key);
+		(void)query_addadditional(client, fname, dns_rdatatype_dnskey);
 	}
 	CTRACE("query_addrdataset: done");
 }
@@ -1337,6 +1340,10 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 			query_releasename(client, namep);
 	}
 
+	if (rdataset->trust != dns_trust_secure &&
+	    (section == DNS_SECTION_ANSWER ||
+	     section == DNS_SECTION_AUTHORITY))
+		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 	/*
 	 * Note: we only add SIGs if we've added the type they cover, so
 	 * we do not need to check if the SIG rdataset is already in the
@@ -1729,6 +1736,11 @@ query_addbestns(ns_client_t *client) {
 	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_pending)))
 		goto cleanup;
 
+	if (WANTDNSSEC(client) && SECURE(client) &&
+	    (rdataset->trust == dns_trust_glue ||
+	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_glue)))
+		goto cleanup;
+
 	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
 		       DNS_SECTION_AUTHORITY);
 
@@ -1753,6 +1765,70 @@ query_addbestns(ns_client_t *client) {
 			query_releasename(client, &zfname);
 		dns_db_detach(&zdb);
 	}
+}
+
+static void
+query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node) {
+	dns_name_t *rname;
+	dns_rdataset_t *rdataset, *sigrdataset;
+	isc_result_t result;
+
+	CTRACE("query_addds");
+	rname = NULL;
+	rdataset = NULL;
+	sigrdataset = NULL;
+
+	/*
+	 * We'll need some resources...
+	 */
+	rdataset = query_newrdataset(client);
+	sigrdataset = query_newrdataset(client);
+	if (rdataset == NULL || sigrdataset == NULL)
+		return;
+
+	/*
+	 * Look for the DS record, which may or may not be present.
+	 */
+	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ds, 0,
+				     client->now, rdataset, sigrdataset);
+	/*
+	 * If we didn't find it, look for an NSEC. */
+	if (result == ISC_R_NOTFOUND)
+		result = dns_db_findrdataset(db, node, NULL,
+					     dns_rdatatype_nsec, 0, client->now,
+					     rdataset, sigrdataset);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		goto cleanup;
+	if (!dns_rdataset_isassociated(rdataset) ||
+	    !dns_rdataset_isassociated(sigrdataset))
+		goto cleanup;
+
+	/*
+	 * We've already added the NS record, so if the name's not there,
+	 * we have other problems.  Use this name rather than calling
+	 * query_addrrset().
+	 */
+	result = dns_message_firstname(client->message, DNS_SECTION_AUTHORITY);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	rname = NULL;
+	dns_message_currentname(client->message, DNS_SECTION_AUTHORITY,
+				&rname);
+	result = dns_message_findtype(rname, dns_rdatatype_ns, 0, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	ISC_LIST_APPEND(rname->list, rdataset, link);
+	ISC_LIST_APPEND(rname->list, sigrdataset, link);
+	rdataset = NULL;
+	sigrdataset = NULL;
+
+ cleanup:
+	if (rdataset != NULL)
+		query_putrdataset(client, &rdataset);
+	if (sigrdataset != NULL)
+		query_putrdataset(client, &sigrdataset);
 }
 
 static void
@@ -1792,7 +1868,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			goto cleanup;
 
 		result = dns_db_find(db, name, NULL,
-				     dns_rdatatype_nxt, options, 0, &node,
+				     dns_rdatatype_nsec, options, 0, &node,
 				     fname, rdataset, sigrdataset);
 		if (node != NULL)
 			dns_db_detachnode(db, &node);
@@ -1834,7 +1910,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		if (result != ISC_R_SUCCESS)
 			continue;
 
-		result = dns_db_find(db, tname, NULL, dns_rdatatype_nxt,
+		result = dns_db_find(db, tname, NULL, dns_rdatatype_nsec,
 				     client->query.dboptions, 0, &node,
 				     fname, rdataset, sigrdataset);
 		if (node != NULL)
@@ -1869,13 +1945,13 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 }
 
 static void
-query_addnxrrsetnxt(ns_client_t *client, dns_db_t *db, dns_name_t **namep,
+query_addnxrrsetnsec(ns_client_t *client, dns_db_t *db, dns_name_t **namep,
 		    dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp)
 {
 	dns_name_t *name;
 	dns_rdataset_t *sigrdataset;
 	dns_rdata_t sigrdata;
-	dns_rdata_sig_t sig;
+	dns_rdata_rrsig_t sig;
 	unsigned int labels;
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname;
@@ -2092,98 +2168,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	return (result);
 }
 
-static inline isc_result_t
-query_findparentkey(ns_client_t *client, dns_name_t *name,
-		    dns_zone_t **zonep, dns_db_t **dbp,
-		    dns_dbversion_t **versionp, dns_dbnode_t **nodep,
-		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
-	dns_db_t *pdb;
-	dns_dbnode_t *pnode;
-	dns_dbversion_t *pversion;
-	dns_rdataset_t prdataset, psigrdataset;
-	dns_rdataset_t *psigrdatasetp;
-	isc_result_t result;
-	dns_zone_t *pzone;
-	isc_boolean_t is_zone;
-	dns_fixedname_t pfoundname;
-
-	/*
-	 * 'name' is at a zone cut.  Try to find a KEY for 'name' in
-	 * the deepest ancestor zone of 'name' (if any).  If it exists,
-	 * update *zonep, *dbp, *nodep, rdataset, and sigrdataset and
-	 * return ISC_R_SUCCESS.  If not, leave them alone and return a
-	 * non-success status.
-	 */
-
-	pzone = NULL;
-	pdb = NULL;
-	pnode = NULL;
-	pversion = NULL;
-	dns_rdataset_init(&prdataset);
-	if (sigrdataset != NULL)
-		dns_rdataset_init(&psigrdataset);
-	is_zone = ISC_FALSE;
-	dns_fixedname_init(&pfoundname);
-
-	result = query_getdb(client, name, dns_rdatatype_key, DNS_GETDB_NOEXACT,
-			     &pzone, &pdb, &pversion, &is_zone);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	if (!is_zone) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
-	}
-
-	if (sigrdataset != NULL)
-		psigrdatasetp = &psigrdataset;
-	else
-		psigrdatasetp = NULL;
-	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key,
-			     client->query.dboptions,
-			     client->now, &pnode,
-			     dns_fixedname_name(&pfoundname),
-			     &prdataset, psigrdatasetp);
-	if (result == ISC_R_SUCCESS) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		dns_rdataset_clone(&prdataset, rdataset);
-		if (sigrdataset != NULL) {
-			if (dns_rdataset_isassociated(sigrdataset))
-				dns_rdataset_disassociate(sigrdataset);
-			if (dns_rdataset_isassociated(&psigrdataset))
-				dns_rdataset_clone(&psigrdataset, sigrdataset);
-		}
-		if (*nodep != NULL)
-			dns_db_detachnode(*dbp, nodep);
-		*nodep = pnode;
-		pnode = NULL;
-		*versionp = pversion;
-		if (*dbp != NULL)
-			dns_db_detach(dbp);
-		*dbp = pdb;
-		pdb = NULL;
-		if (*zonep != NULL)
-			dns_zone_detach(zonep);
-		*zonep = pzone;
-		pzone = NULL;
-	}
-
- cleanup:
-	if (dns_rdataset_isassociated(&prdataset))
-		dns_rdataset_disassociate(&prdataset);
-	if (sigrdataset != NULL && dns_rdataset_isassociated(&psigrdataset))
-		dns_rdataset_disassociate(&psigrdataset);
-	if (pnode != NULL)
-		dns_db_detachnode(pdb, &pnode);
-	if (pdb != NULL)
-		dns_db_detach(&pdb);
-	if (pzone != NULL)
-		dns_zone_detach(&pzone);
-
-	return (result);
-}
-
 #define MAX_RESTARTS 16
 
 #define QUERY_ERROR(r) \
@@ -2277,13 +2261,51 @@ setup_query_sortlist(ns_client_t *client) {
 	dns_message_setsortorder(client->message, order, order_arg);
 }
 
+static void
+query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
+	isc_buffer_t *dbuf, b;
+	dns_name_t *fname;
+	dns_rdataset_t *nsec, *nsecsig;
+	isc_result_t result = ISC_R_NOMEMORY;
+
+	CTRACE("query_addnoqnameproof");
+
+	fname = NULL;
+	nsec = NULL;
+	nsecsig = NULL;
+
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		goto cleanup;
+	fname = query_newname(client, dbuf, &b);
+	nsec = query_newrdataset(client);
+	nsecsig = query_newrdataset(client);
+	if (fname == NULL || nsec == NULL || nsecsig == NULL)
+		goto cleanup;
+
+	result = dns_rdataset_getnoqname(rdataset, fname, nsec, nsecsig);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	query_addrrset(client, &fname, &nsec, &nsecsig, dbuf,
+		       DNS_SECTION_AUTHORITY);
+
+ cleanup:
+	if (nsec != NULL)
+                query_putrdataset(client, &nsec);
+        if (nsecsig != NULL)
+                query_putrdataset(client, &nsecsig);
+        if (fname != NULL)
+                query_releasename(client, &fname);
+}
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
  * is ignored.  Otherwise, 'qtype' is the query type.
  */
 static void
-query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) {
+query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
+{
 	dns_db_t *db, *zdb;
 	dns_dbnode_t *node;
 	dns_rdatatype_t type;
@@ -2308,6 +2330,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	dns_rdata_dname_t dname;
 	unsigned int options;
 	isc_boolean_t empty_wild;
+	dns_rdataset_t *noqname;
 
 	CTRACE("query_find");
 
@@ -2345,7 +2368,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		is_zone = ISC_FALSE;
 
 		qtype = event->qtype;
-		if (qtype == dns_rdatatype_sig)
+		if (qtype == dns_rdatatype_rrsig)
 			type = dns_rdatatype_any;
 		else
 			type = qtype;
@@ -2386,7 +2409,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	/*
 	 * If it's a SIG query, we'll iterate the node.
 	 */
-	if (qtype == dns_rdatatype_sig)
+	if (qtype == dns_rdatatype_rrsig)
 		type = dns_rdatatype_any;
 	else
 		type = qtype;
@@ -2421,8 +2444,45 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	/*
 	 * First we must find the right database.
 	 */
-	result = query_getdb(client, client->query.qname, qtype, 0,
+	options = 0;
+	if (dns_rdatatype_atparent(qtype) &&
+	    !dns_name_equal(client->query.qname, dns_rootname))
+		options |= DNS_GETDB_NOEXACT;
+	result = query_getdb(client, client->query.qname, qtype, options,
 			     &zone, &db, &version, &is_zone);
+	if ((result != ISC_R_SUCCESS || !is_zone) && !RECURSIONOK(client) &&
+	    (options & DNS_GETDB_NOEXACT) != 0 && qtype == dns_rdatatype_ds) {
+		/*
+		 * Look to see if we are authoritative for the
+		 * child zone if the query type is DS.
+		 */
+		dns_db_t *tdb = NULL;
+		dns_zone_t *tzone = NULL;
+		dns_dbversion_t *tversion = NULL;
+		isc_result_t tresult;
+
+		tresult = query_getzonedb(client, client->query.qname, qtype,
+					 DNS_GETDB_PARTIAL, &tzone, &tdb,
+					 &tversion);
+		if (tresult == ISC_R_SUCCESS) {
+			options &= ~DNS_GETDB_NOEXACT;
+			query_putrdataset(client, &rdataset);
+			if (db != NULL)
+				dns_db_detach(&db);
+			if (zone != NULL)
+				dns_zone_detach(&zone);
+			version = tversion;
+			db = tdb;
+			zone = tzone;
+			is_zone = ISC_TRUE;
+			result = ISC_R_SUCCESS;
+		} else {
+			if (tdb != NULL)
+				dns_db_detach(&tdb);
+			if (tzone != NULL)
+				dns_zone_detach(&tzone);
+		}
+	}
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_REFUSED)
 			QUERY_ERROR(DNS_R_REFUSED);
@@ -2550,6 +2610,48 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		authoritative = ISC_FALSE;
 		if (is_zone) {
 			/*
+			 * Look to see if we are authoritative for the
+			 * child zone if the query type is DS.
+			 */
+			if (!RECURSIONOK(client) &&
+			    (options & DNS_GETDB_NOEXACT) != 0 &&
+			    qtype == dns_rdatatype_ds) {
+				dns_db_t *tdb = NULL;
+				dns_zone_t *tzone = NULL;
+				dns_dbversion_t *tversion = NULL;
+				result = query_getzonedb(client,
+							 client->query.qname,
+							 qtype,
+							 DNS_GETDB_PARTIAL,
+							 &tzone, &tdb,
+							 &tversion);
+				if (result == ISC_R_SUCCESS) {
+					options &= ~DNS_GETDB_NOEXACT;
+					query_putrdataset(client, &rdataset);
+					if (sigrdataset != NULL)
+						query_putrdataset(client,
+								  &sigrdataset);
+					if (fname != NULL)
+						query_releasename(client,
+								  &fname);
+					if (node != NULL)
+						dns_db_detachnode(db, &node);
+					if (db != NULL)
+						dns_db_detach(&db);
+					if (zone != NULL)
+						dns_zone_detach(&zone);
+					version = tversion;
+					db = tdb;
+					zone = tzone;
+					authoritative = ISC_TRUE;
+					goto db_find;
+				}
+				if (tdb != NULL)
+					dns_db_detach(&tdb);
+				if (tzone != NULL)
+					dns_zone_detach(&tzone);
+			}
+			/*
 			 * We're authoritative for an ancestor of QNAME.
 			 */
 			if (!USECACHE(client) || !RECURSIONOK(client)) {
@@ -2586,6 +2688,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 					       &rdataset, sigrdatasetp,
 					       dbuf, DNS_SECTION_AUTHORITY);
 				client->query.gluedb = NULL;
+				if (WANTDNSSEC(client) && dns_db_issecure(db))
+					query_addds(client, db, node);
 			} else {
 				/*
 				 * We might have a better answer or delegation
@@ -2685,6 +2789,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				client->query.gluedb = NULL;
 				client->query.attributes &=
 					~NS_QUERYATTR_CACHEGLUEOK;
+				if (WANTDNSSEC(client))
+					query_addds(client, db, node);
 			}
 		}
 		goto cleanup;
@@ -2695,7 +2801,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
-			 * If we've got a NXT record, we need to save the
+			 * If we've got a NSEC record, we need to save the
 			 * name now because we're going call query_addsoa()
 			 * below, and it needs to use the name buffer.
 			 */
@@ -2717,11 +2823,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			goto cleanup;
 		}
 		/*
-		 * Add NXT record if we found one.
+		 * Add NSEC record if we found one.
 		 */
 		if (WANTDNSSEC(client)) {
 			if (dns_rdataset_isassociated(rdataset))
-				query_addnxrrsetnxt(client, db, &fname,
+				query_addnxrrsetnsec(client, db, &fname,
 						    &rdataset, &sigrdataset);
 		}
 		goto cleanup;
@@ -2732,7 +2838,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
-			 * If we've got a NXT record, we need to save the
+			 * If we've got a NSEC record, we need to save the
 			 * name now because we're going call query_addsoa()
 			 * below, and it needs to use the name buffer.
 			 */
@@ -2760,7 +2866,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			goto cleanup;
 		}
 		/*
-		 * Add NXT record if we found one.
+		 * Add NSEC record if we found one.
 		 */
 		if (dns_rdataset_isassociated(rdataset)) {
 			if (WANTDNSSEC(client)) {
@@ -2822,8 +2928,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				      NULL);
 			need_wildcardproof = ISC_TRUE;
 		}
+		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0 &&
+		     WANTDNSSEC(client))
+			noqname = rdataset;
+		else
+			noqname = NULL;
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
+		if (noqname != NULL)
+			query_addnoqnameproof(client, noqname);
 		/*
 		 * We set the PARTIALANSWER attribute so that if anything goes
 		 * wrong later on, we'll return what we've got so far.
@@ -3059,7 +3172,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			/*
 			 * We didn't match any rdatasets.
 			 */
-			if (qtype == dns_rdatatype_sig &&
+			if (qtype == dns_rdatatype_rrsig &&
 			    result == ISC_R_NOMORE) {
 				/*
 				 * XXXRTH  If this is a secure zone and we
@@ -3099,8 +3212,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
+		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0 &&
+		     WANTDNSSEC(client))
+			noqname = rdataset;
+		else
+			noqname = NULL;
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
+		if (noqname != NULL)
+			query_addnoqnameproof(client, noqname);
 		/*
 		 * We shouldn't ever fail to add 'rdataset'
 		 * because it's already in the answer.
@@ -3129,7 +3249,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	}
 
 	/*
-	 * Add NXT records to the authority section if they're needed for
+	 * Add NSEC records to the authority section if they're needed for
 	 * DNSSEC wildcard proofs.
 	 */
 	if (need_wildcardproof && dns_db_issecure(db))
@@ -3250,14 +3370,19 @@ ns_query_start(ns_client_t *client) {
 	 */
 	client->next = query_next_callback;
 
+	/*
+	 * Behave as if we don't support DNSSEC if not enabled.
+	 */
+	if (!client->view->enablednssec) {
+		message->flags &= ~DNS_MESSAGEFLAG_CD;
+		client->extflags &= ~DNS_MESSAGEEXTFLAG_DO;
+	}
+
 	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
 		client->query.attributes |= NS_QUERYATTR_WANTRECURSION;
 	
-#ifdef ISC_RFC2535
-	if ((client->extflags & DNS_MESSAGEEXTFLAG_DO) != 0 ||
-	    (message->flags & DNS_MESSAGEFLAG_AD) != 0)
-		client->query.attributes |= NS_CLIENTATTR_WANTDNSSEC;
-#endif
+	if ((client->extflags & DNS_MESSAGEEXTFLAG_DO) != 0)
+		client->attributes |= NS_CLIENTATTR_WANTDNSSEC;
 	
 	if (client->view->minimalresponses)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
@@ -3356,11 +3481,18 @@ ns_query_start(ns_client_t *client) {
 	 * to return data before validation has completed.
 	 */
 	if (message->flags & DNS_MESSAGEFLAG_CD ||
-	    qtype == dns_rdatatype_sig)
+	    qtype == dns_rdatatype_rrsig)
 	{
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
 	}
+
+	/*
+	 * Allow glue NS records to be added to the authority section
+	 * if the answer is secure.
+	 */
+	if (message->flags & DNS_MESSAGEFLAG_CD)
+		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 
 	/*
 	 * This is an ordinary query.
@@ -3381,7 +3513,7 @@ ns_query_start(ns_client_t *client) {
 	 * Set AD.  We must clear it if we add non-validated data to a
 	 * response.
 	 */
-	if (WANTDNSSEC(client))
+	if (client->view->enablednssec)
 		message->flags |= DNS_MESSAGEFLAG_AD;
 
 	qclient = NULL;

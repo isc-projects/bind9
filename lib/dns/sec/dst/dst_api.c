@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.8 2004/03/06 08:14:19 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.9 2004/03/08 02:08:04 marka Exp $
  */
 
 #include <config.h>
@@ -838,6 +838,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	isc_lexspecials_t specials;
 	isc_uint32_t ttl;
 	isc_result_t result;
+	dns_rdatatype_t type;
 
 	newfilenamelen = strlen(filename) + 5;
 	newfilename = isc_mem_get(mctx, newfilenamelen);
@@ -909,12 +910,16 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	if (token.type != isc_tokentype_string)
 		BADTOKEN();
 
-	if (strcasecmp(DST_AS_STR(token), "KEY") != 0)
+	if (strcasecmp(DST_AS_STR(token), "DNSKEY") == 0)
+		type = dns_rdatatype_dnskey;
+	else if (strcasecmp(DST_AS_STR(token), "KEY") == 0)
+		type = dns_rdatatype_key; /* SIG(0) */
+	else
 		BADTOKEN();
 
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
-	ret = dns_rdata_fromtext(&rdata, rdclass, dns_rdatatype_key,
-				 lex, NULL, ISC_FALSE, mctx, &b, NULL);
+	ret = dns_rdata_fromtext(&rdata, rdclass, type, lex, NULL,
+				 ISC_FALSE, mctx, &b, NULL);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -978,7 +983,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 		return (ret);
 
 	isc_buffer_usedregion(&keyb, &r);
-	dns_rdata_fromregion(&rdata, key->key_class, dns_rdatatype_key, &r);
+	dns_rdata_fromregion(&rdata, key->key_class, dns_rdatatype_dnskey, &r);
 
 	ret = dns_rdata_totext(&rdata, (dns_name_t *) NULL, &textb);
 	if (ret != ISC_R_SUCCESS)
@@ -1019,7 +1024,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	isc_buffer_usedregion(&classb, &r);
 	fwrite(r.base, 1, r.length, fp);
 
-	fprintf(fp, " KEY ");
+	fprintf(fp, " DNSKEY ");
 
 	isc_buffer_usedregion(&textb, &r);
 	fwrite(r.base, 1, r.length, fp);
