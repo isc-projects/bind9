@@ -81,6 +81,7 @@ getname(isc_buffer_t *source) {
 
 	isc_buffer_init(&target, t, 255, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_init(&text, c, 255, ISC_BUFFERTYPE_TEXT);
+	dns_name_init(&name, NULL);
 
 	current = source->current;
 	result = dns_name_fromwire(&name, source, &dctx, ISC_FALSE, &target);
