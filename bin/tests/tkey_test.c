@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_test.c,v 1.33 2000/10/06 18:58:13 bwelling Exp $ */
+/* $Id: tkey_test.c,v 1.34 2000/10/06 23:12:07 bwelling Exp $ */
 
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)
@@ -24,6 +24,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/app.h>
 #include <isc/base64.h>
