@@ -196,6 +196,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 			ISC_LIST_APPEND(addresses, sa, link);
 		}
 		INSIST(!ISC_LIST_EMPTY(addresses));
+		dns_c_iplist_detach(&forwarders);
 		CHECK(dns_resolver_setforwarders(view->resolver, &addresses));
 		/*
 		 * XXXRTH  The configuration type 'dns_c_forw_t' should be
