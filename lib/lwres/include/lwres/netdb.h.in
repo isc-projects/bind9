@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.32 2001/03/06 21:46:03 bwelling Exp $ */
+/* $Id: netdb.h.in,v 1.33 2001/07/02 21:28:55 gson Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
@@ -186,6 +186,8 @@ struct rrsetinfo {
 #define ERRSET_NOMEMORY		1
 #define ERRSET_FAIL		2
 #define ERRSET_INVAL		3
+#define	ERRSET_NONAME	 	4
+#define	ERRSET_NODATA	 	5
 
 /*
  * Define to map into lwres_ namespace.

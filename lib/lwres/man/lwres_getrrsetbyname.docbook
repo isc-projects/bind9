@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getrrsetbyname.docbook,v 1.2 2001/04/10 21:51:50 bwelling Exp $ -->
+<!-- $Id: lwres_getrrsetbyname.docbook,v 1.3 2001/07/02 21:28:56 gson Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -159,9 +159,41 @@ created by a call to
 <title>RETURN VALUES</title>
 <para>
 <function>lwres_getrrsetbyname()</function>
-returns zero on success or an error code if an error occurs.  The defined
-error codes are ERRSET_NOMEMORY (memory could not be allocated),
-ERRSET_INVAL (a parameter is invalid) and ERRSET_FAIL (other failure).
+returns zero on success, and one of the following error
+codes if an error occurred:
+<variablelist>
+
+<varlistentry><term><constant>ERRSET_NONAME</constant></term>
+<listitem><para>
+the name does not exist
+</para></listitem></varlistentry>
+
+<varlistentry><term><constant>ERRSET_NODATA</constant></term>
+<listitem><para>
+the name exists, but does not have data of the desired type
+</para></listitem></varlistentry>
+
+<varlistentry><term><constant>ERRSET_NOMEMORY</constant></term>
+<listitem><para>
+memory could not be allocated
+</para></listitem></varlistentry>
+
+<varlistentry><term><constant>ERRSET_INVAL</constant></term>
+<listitem><para>
+a parameter is invalid
+</para></listitem></varlistentry>
+
+<varlistentry><term><constant>ERRSET_FAIL</constant></term>
+<listitem><para>
+other failure
+</para></listitem></varlistentry>
+
+<varlistentry><term><constant></constant></term>
+<listitem><para>
+</para></listitem></varlistentry>
+
+</variablelist>
+
 </para>
 </refsect1>
 <refsect1>
