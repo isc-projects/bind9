@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.170 2000/07/28 19:32:57 gson Exp $ */
+/* $Id: zone.c,v 1.171 2000/07/28 20:13:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -767,17 +767,15 @@ dns_zone_load(dns_zone_t *zone) {
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:
-		if (soacount != 1 || nscount == 0) {
-			if (soacount != 1)
-				zone_log(zone, me, ISC_LOG_ERROR,
-					 "has %d SOA record%s", soacount,
-					 (soacount != 0) ? "s" : "");
-			if (nscount == 0)
-				zone_log(zone, me, ISC_LOG_ERROR,
-					 "no NS records");
+		if (soacount != 1) {
+			zone_log(zone, me, ISC_LOG_ERROR,
+				 "has %d SOA record%s", soacount,
+				 (soacount != 0) ? "s" : "");
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
+		if (nscount == 0)
+			zone_log(zone, me, ISC_LOG_ERROR, "no NS records");
 		if (zone->db != NULL) {
 			if (!isc_serial_ge(serial, zone->serial)) {
 				zone_log(zone, me, ISC_LOG_ERROR,
@@ -868,7 +866,12 @@ zone_count_ns_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_ns,
 				     dns_rdatatype_none, 0, &rdataset, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result == ISC_R_NOTFOUND) {
+		*nscount = 0;
+		result = ISC_R_SUCCESS;
+		goto invalidate_rdataset;
+	}
+	else if (result != ISC_R_SUCCESS)
 		goto invalidate_rdataset;
 
 	count = 0;
