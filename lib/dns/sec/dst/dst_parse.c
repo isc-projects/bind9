@@ -19,20 +19,18 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.21 2000/06/09 20:58:34 gson Exp $
+ * $Id: dst_parse.c,v 1.22 2000/06/20 04:13:40 tale Exp $
  */
 
 #include <config.h>
 
 #include <isc/base64.h>
 #include <isc/dir.h>
+#include <isc/fsaccess.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-/* XXXBEW For chmod.  This should be removed. */
-#include <sys/stat.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"
@@ -344,6 +342,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	char filename[ISC_DIR_NAMEMAX];
 	char buffer[MAXFIELDSIZE * 2];
 	isc_buffer_t b;
+	isc_fsaccess_t access;
 
 	REQUIRE(priv != NULL);
 
@@ -358,9 +357,13 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);
 
-	/* XXXBEW This won't exist on non-unix systems.  Hmmm.... */
-	chmod(filename, 0600);
+	access = 0;
+	isc_fsaccess_add(ISC_FSACCESS_OWNER,
+			 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
+			 &access);
+	(void)isc_fsaccess_set(filename, access);
 
+	/* XXXDCL return value should be checked for full filesystem */
 	fprintf(fp, "%s v%d.%d\n", PRIVATE_KEY_STR, MAJOR_VERSION,
 		MINOR_VERSION);
 
