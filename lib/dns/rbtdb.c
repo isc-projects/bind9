@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.164 2001/05/15 03:52:31 gson Exp $ */
+/* $Id: rbtdb.c,v 1.165 2001/05/15 05:35:24 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1889,8 +1889,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				at_zonecut = ISC_TRUE;
 				if ((search.options & DNS_DBFIND_GLUEOK) == 0
 				    && type != dns_rdatatype_nxt
-				    && type != dns_rdatatype_key
-				    && type != dns_rdatatype_any) {
+				    && type != dns_rdatatype_key) {
 					/*
 					 * Glue is not OK, but any answer we
 					 * could return would be glue.  Return
@@ -2053,8 +2052,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			if (type == dns_rdatatype_nxt ||
 			    type == dns_rdatatype_key)
 				result = ISC_R_SUCCESS;
-			else if (type == dns_rdatatype_any &&
-				 search.rbtdb->secure)
+			else if (type == dns_rdatatype_any)
 				result = DNS_R_ZONECUT;
 			else
 				result = DNS_R_GLUE;
