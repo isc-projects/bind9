@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.47 2001/03/28 00:50:04 gson Exp $ */
+/* $Id: masterdump.c,v 1.48 2001/03/28 00:54:40 gson Exp $ */
 
 #include <config.h>
 
@@ -166,7 +166,7 @@ dns_master_style_simple = {
  * A style suitable for dns_rdataset_totext().
  */
 const dns_master_style_t
-dns_masterfile_style_debug = {
+dns_master_style_debug = {
 	DNS_STYLEFLAG_REL_OWNER,
 	24, 32, 40, 48, 80, 8
 };
@@ -535,7 +535,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 {
 	dns_totext_ctx_t ctx;
 	isc_result_t result;
-	result = totext_ctx_init(&dns_masterfile_style_debug, &ctx);
+	result = totext_ctx_init(&dns_master_style_debug, &ctx);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "could not set master file style");
