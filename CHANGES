@@ -1,3 +1,7 @@
+
+ 398.	[bug]		"dig" sometimes caught an assertion failure when
+			using TSIG, depending on the key length.
+
  397.	[func]		Added utility functions dns_view_gettsig() and
 			dns_view_getpeertsig().
 
