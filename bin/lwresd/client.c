@@ -43,6 +43,47 @@ DP(int level, char *format, ...)
 	va_end(args);
 }
 
+void
+hexdump(char *msg, void *base, size_t len)
+{
+	unsigned char *p;
+	unsigned int cnt;
+	char buffer[180];
+	char *n;
+
+	p = base;
+	cnt = 0;
+	n = buffer;
+	*n = 0;
+
+	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
+
+	while (cnt < len) {
+		if (cnt % 16 == 0) {
+			n = buffer;
+			n += sprintf(buffer, "%p: ", p);
+		} else if (cnt % 8 == 0) {
+			*n++ = ' ';
+			*n++ = '|';
+			*n = 0;
+		}
+		n += sprintf(n, " %02x", *p++);
+		cnt++;
+
+		if (cnt % 16 == 0) {
+			DP(80, buffer);
+			n = buffer;
+			*n = 0;
+		}
+	}
+
+	if (n != buffer) {
+		DP(80, buffer);
+		n = buffer;
+		*n = 0;
+	}
+}
+
 static void
 clientmgr_can_die(clientmgr_t *cm)
 {
@@ -288,8 +329,10 @@ client_initialize(client_t *client, clientmgr_t *cmgr)
 	client->find = NULL;
 	client->v4find = NULL;
 	client->v6find = NULL;
-
 	client->find_wanted = 0;
+
+	client->options = 0;
+	client->byaddr = NULL;
 
 	ISC_LIST_APPEND(cmgr->idle, client, link);
 }

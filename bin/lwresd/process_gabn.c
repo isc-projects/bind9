@@ -41,47 +41,6 @@
 #define NEED_V6(c)	((((c)->find_wanted & LWRES_ADDRTYPE_V6) != 0) \
 			 && ((c)->v6find == NULL))
 
-static void
-hexdump(char *msg, void *base, size_t len)
-{
-	unsigned char *p;
-	unsigned int cnt;
-	char buffer[180];
-	char *n;
-
-	p = base;
-	cnt = 0;
-	n = buffer;
-	*n = 0;
-
-	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
-
-	while (cnt < len) {
-		if (cnt % 16 == 0) {
-			n = buffer;
-			n += sprintf(buffer, "%p: ", p);
-		} else if (cnt % 8 == 0) {
-			*n++ = ' ';
-			*n++ = '|';
-			*n = 0;
-		}
-		n += sprintf(n, " %02x", *p++);
-		cnt++;
-
-		if (cnt % 16 == 0) {
-			DP(80, buffer);
-			n = buffer;
-			*n = 0;
-		}
-	}
-
-	if (n != buffer) {
-		DP(80, buffer);
-		n = buffer;
-		*n = 0;
-	}
-}
-
 static void start_find(client_t *);
 
 /*
@@ -207,11 +166,10 @@ generate_reply(client_t *client)
 	lwres_buffer_init(&b, client->buffer, LWRES_RECVLENGTH);
 	lwres = lwres_gabnresponse_render(cm->lwctx, &client->gabn,
 					  &client->pkt, &b);
-
-	hexdump("Sending to client", b.base, b.used);
-
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
+
+	hexdump("Sending to client", b.base, b.used);
 
 	r.base = b.base;
 	r.length = b.used;
@@ -423,6 +381,8 @@ start_find(client_t *client)
 		}
 		goto find_again;
 	}
+
+	DP(50, "Find returned %d (%s)", result, isc_result_totext(result));
 
 	/*
 	 * Did we get an error?

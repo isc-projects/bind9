@@ -65,6 +65,7 @@ struct client_s {
 	 */
 	unsigned char	       *sendbuf;
 	isc_uint32_t		sendlength;
+	isc_buffer_t		recv_buffer;
 
 	/*
 	 * gabn (get address by name) state info.
@@ -75,7 +76,6 @@ struct client_s {
 	unsigned int		find_wanted;	/* Addresses we want */
 	dns_fixedname_t		target_name;
 	lwres_gabnresponse_t	gabn;
-	isc_buffer_t		recv_buffer;
 
 	/*
 	 * gnba (get name by address) state info.
@@ -195,5 +195,6 @@ void client_init_gabn(client_t *);
 void client_init_gnba(client_t *);
 
 void DP(int level, char *format, ...);
+void hexdump(char *msg, void *base, size_t len);
 
 #endif /* LWD_CLIENT_H */

@@ -59,7 +59,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	bevent = (dns_byaddrevent_t *)event;
 	gnba = &client->gnba;
 
-	DP(50, "byaddr event result = %s\n",
+	DP(50, "byaddr event result = %s",
 	   isc_result_totext(bevent->result));
 
 	if (bevent->result != ISC_R_SUCCESS) {
@@ -76,12 +76,14 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 		goto out;
 	}
 
-	for (name = ISC_LIST_HEAD(bevent->names);
-	     name != NULL;
-	     name = ISC_LIST_NEXT(name, link)) {
+	name = ISC_LIST_HEAD(bevent->names);
+	while (name != NULL) {
 		b = client->recv_buffer;
 
 		result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
+		DP(50, "***** Found name %.*s",
+		   client->recv_buffer.used - b.used,
+		   (char *)(b.base) + b.used);
 		if (result != ISC_R_SUCCESS)
 			goto out;
 		if (gnba->realname == NULL) {
@@ -90,12 +92,14 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 		} else {
 			naliases = gnba->naliases;
 			if (naliases < LWRES_MAX_ALIASES) {
-				gnba->aliases[naliases] = (char *)(b.base) + b.used;
-				gnba->aliaslen[naliases] = client->recv_buffer.used
-					- b.used;
+				gnba->aliases[naliases] =
+					(char *)(b.base) + b.used;
+				gnba->aliaslen[naliases] =
+					client->recv_buffer.used - b.used;
 				gnba->naliases++;
 			}
 		}
+	     name = ISC_LIST_NEXT(name, link);
 	}
 
 	dns_byaddr_destroy(&client->byaddr);
@@ -110,11 +114,9 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 
 	lwres_buffer_init(&lwb, client->buffer, LWRES_RECVLENGTH);
 	lwres = lwres_gnbaresponse_render(client->clientmgr->lwctx,
-					  &client->gnba, &client->pkt, &lwb);
+					  gnba, &client->pkt, &lwb);
 
-#if 0
-	hexdump("Sending to client", b.base, b.used);
-#endif
+	hexdump("Sending to client", lwb.base, lwb.used);
 
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
