@@ -94,8 +94,6 @@ isc_result_t	dns_peerlist_new(isc_mem_t *mem,
 void		dns_peerlist_attach(dns_peerlist_t *source,
 				    dns_peerlist_t **target);
 void		dns_peerlist_detach(dns_peerlist_t **list);
-void		dns_peerlist_print(FILE *fp, int indent,
-				   dns_peerlist_t *peers);
 
 /* After return caller still holds a reference to peer. */
 void		dns_peerlist_addpeer(dns_peerlist_t *peers,
@@ -117,8 +115,6 @@ isc_result_t	dns_peer_new(isc_mem_t *mem,
 			     dns_peer_t **peer);
 isc_result_t	dns_peer_attach(dns_peer_t *source, dns_peer_t **target);
 isc_result_t	dns_peer_detach(dns_peer_t **list);
-void		dns_peer_print(FILE *fp, int indent,
-			       dns_peer_t *peer);
 
 isc_result_t	dns_peer_setbogus(dns_peer_t *peer,
 				  isc_boolean_t newval);
