@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.19 2001/08/03 17:24:08 gson Exp $ */
+/* $Id: controlconf.c,v 1.20 2001/08/03 18:03:02 gson Exp $ */
 
 #include <config.h>
 
@@ -868,8 +868,7 @@ update_listener(ns_controls_t *cp,
 	 * XXXDCL There is one other hazard that has not been dealt with,
 	 * the problem that if a key change is being caused by a control
 	 * channel reload, then the response will be with the new key
-	 * and not able to be decrypted by the client.  For this reason,
-	 * the automagic key is not regenerated on each reload.
+	 * and not able to be decrypted by the client.
 	 */
 	get_key_info(config, control, &global_keylist, &control_keylist);
 
