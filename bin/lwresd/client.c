@@ -57,9 +57,21 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 		isc_event_free(&ev);
 		dev = NULL;
 
+		/*
+		 * Go idle.
+		 */
+		ISC_LIST_UNLINK(cm->running, client, link);
+		ISC_LIST_APPEND(cm->idle, client, link);
+
 		clientmgr_can_die(cm);
 		return;
 	}
+
+	/*
+	 * XXXMLG Nothing to do right now, just go idle.
+	 */
+	ISC_LIST_UNLINK(cm->running, client, link);
+	ISC_LIST_APPEND(cm->idle, client, link);
 
 	client_start_recv(cm);
 
@@ -100,6 +112,13 @@ client_start_recv(clientmgr_t *cm)
 	 * Set the flag to say we've issued a recv() call.
 	 */
 	cm->flags |= CLIENTMGR_FLAG_RECVPENDING;
+
+	/*
+	 * Remove the client from the idle list, and put it on the running
+	 * list.
+	 */
+	ISC_LIST_UNLINK(cm->idle, client, link);
+	ISC_LIST_APPEND(cm->running, client, link);
 
 	return (ISC_R_SUCCESS);
 }
