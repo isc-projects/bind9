@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.127 2000/11/19 23:19:23 bwelling Exp $ */
+/* $Id: rdata.c,v 1.128 2000/11/20 06:54:40 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -456,8 +456,6 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	ss = *source;
 	st = *target;
-	/* XXX */
-	region.base = (unsigned char *)(target->base) + target->used;
 
 	activelength = isc_buffer_activelength(source);
 	INSIST(activelength < 65536);
@@ -482,7 +480,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		result = DNS_R_EXTRADATA;
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
-		region.length = target->used - st.used;
+		region.base = isc_buffer_used(&st);
+		region.length = isc_buffer_usedlength(target) -
+				isc_buffer_usedlength(&st);
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 
@@ -540,12 +540,11 @@ rdata_valid(isc_buffer_t *buf, unsigned int len, dns_rdataclass_t rdclass,
 	isc_buffer_t *tbuf = NULL;
 	isc_buffer_t rdatabuf;
 	dns_decompress_t dctx;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_result_t result;
 
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
-	dns_rdata_init(&rdata);
 	result = isc_buffer_allocate(mctx, &tbuf, isc_buffer_usedlength(buf));
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_remainingregion(buf, &r);
@@ -592,7 +591,6 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	}
 
 	st = *target;
-	region.base = (unsigned char *)(target->base) + target->used;
 
 	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 					ISC_FALSE);
@@ -610,8 +608,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		if (result == ISC_R_SUCCESS && dns_rdatatype_ismeta(type))
 			result = DNS_R_METATYPE;
 		if (result == ISC_R_SUCCESS && dns_rdatatype_isknown(type)) {
-			unsigned int len = isc_buffer_used(target) -
-					   isc_buffer_used(&st);
+			unsigned int len = isc_buffer_usedlength(target) -
+					   isc_buffer_usedlength(&st);
 			result = rdata_valid(target, len, rdclass, type, mctx);
 		}
 	} else {
@@ -678,7 +676,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	} while (1);
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
-		region.length = target->used - st.used;
+		region.base = isc_buffer_used(&st);
+		region.length = isc_buffer_usedlength(target) -
+				isc_buffer_usedlength(&st);
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 	if (result != ISC_R_SUCCESS) {
@@ -792,7 +792,6 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
 
-	region.base = (unsigned char *)(target->base) + target->used;
 	st = *target;
 
 	FROMSTRUCTSWITCH
@@ -801,7 +800,9 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		(void)NULL;
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
-		region.length = target->used - st.used;
+		region.base = isc_buffer_used(&st);
+		region.length = isc_buffer_usedlength(target) -
+				isc_buffer_usedlength(&st);
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 	if (result != ISC_R_SUCCESS)
