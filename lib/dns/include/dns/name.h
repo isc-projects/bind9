@@ -193,8 +193,8 @@ struct dns_name {
 	ISC_LIST(dns_rdataset_t)	list;
 };
 
-#define DNS_NAMEATTR_ABSOLUTE		0x01
-#define DNS_NAMEATTR_READONLY		0x02
+#define DNS_NAMEATTR_ABSOLUTE		0x0001
+#define DNS_NAMEATTR_READONLY		0x0002
 
 extern dns_name_t *dns_rootname;
 
