@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.274 2004/01/05 05:44:25 marka Exp $ */
+/* $Id: resolver.c,v 1.275 2004/01/05 07:45:34 marka Exp $ */
 
 #include <config.h>
 
@@ -270,6 +270,7 @@ struct dns_resolver {
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	isc_mutex_t			nlock;	
+	isc_mutex_t			primelock;	
 	dns_rdataclass_t		rdclass;
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
@@ -291,6 +292,7 @@ struct dns_resolver {
 	isc_eventlist_t			whenshutdown;
 	unsigned int			activebuckets;
 	isc_boolean_t			priming;
+	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
 	/* Locked by nlock. */
 	unsigned int			nfctx;
@@ -5274,6 +5276,7 @@ destroy(dns_resolver_t *res) {
 
 	INSIST(res->nfctx == 0);
 
+	DESTROYLOCK(&res->primelock);
 	DESTROYLOCK(&res->nlock);
 	DESTROYLOCK(&res->lock);
 	for (i = 0; i < res->nbuckets; i++) {
@@ -5422,11 +5425,18 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 
+	result = isc_mutex_init(&res->primelock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_nlock;
+
 	res->magic = RES_MAGIC;
 
 	*resp = res;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_nlock:
+	DESTROYLOCK(&res->nlock);
 
  cleanup_lock:
 	DESTROYLOCK(&res->lock);
@@ -5469,8 +5479,10 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(res->priming);
 	res->priming = ISC_FALSE;
+	LOCK(&res->primelock);
 	fetch = res->primefetch;
 	res->primefetch = NULL;
+	UNLOCK(&res->primelock);
 
 	UNLOCK(&res->lock);
 
@@ -5491,7 +5503,6 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 void
 dns_resolver_prime(dns_resolver_t *res) {
 	isc_boolean_t want_priming = ISC_FALSE;
-	dns_fetch_t *fetch;
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
 
@@ -5531,21 +5542,21 @@ dns_resolver_prime(dns_resolver_t *res) {
 			return;
 		}
 		dns_rdataset_init(rdataset);
-		fetch = NULL;
+		LOCK(&res->primelock);
 		result = dns_resolver_createfetch(res, dns_rootname,
 						  dns_rdatatype_ns,
 						  NULL, NULL, NULL, 0,
 						  res->buckets[0].task,
 						  prime_done,
-						  res, rdataset, NULL, &fetch);
-		LOCK(&res->lock);
-		INSIST(res->priming);
-		INSIST(res->primefetch == NULL);
-		if (result == ISC_R_SUCCESS)
-			res->primefetch = fetch;
-		else
+						  res, rdataset, NULL,
+						  &res->primefetch);
+		UNLOCK(&res->primelock);
+		if (result != ISC_R_SUCCESS) {
+			LOCK(&res->lock);
+			INSIST(res->priming);
 			res->priming = ISC_FALSE;
-		UNLOCK(&res->lock);
+			UNLOCK(&res->lock);
+		}
 	}
 }
 
