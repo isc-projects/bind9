@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.8 2001/01/09 21:59:00 bwelling Exp $ */
+/* $Id: dir.h,v 1.10 2001/07/08 05:09:24 mayer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -65,6 +65,28 @@ isc_dir_close(isc_dir_t *dir);
 
 isc_result_t
 isc_dir_chdir(const char *dirname);
+
+isc_result_t
+isc_dir_chroot(const char *dirname);
+
+isc_result_t
+isc_dir_current(char *dirname, size_t length, isc_boolean_t end_sep);
+/*
+ * Put the absolute name of the current directory into 'dirname', which is a
+ * buffer of at least 'length' characters.  If 'end_sep' is true, end the
+ * string with the appropriate path separator, such that the final product
+ * could be concatenated with a relative pathname to make a valid pathname
+ * string. 
+ */
+
+isc_result_t
+isc_dir_createunique(char *templet);
+/*
+ * Use a templet (such as from isc_file_mktemplate()) to create a uniquely
+ * named, empty directory.  The templet string is modified in place.
+ * If result == ISC_R_SUCCESS, it is the name of the directory that was
+ * created.
+ */
 
 ISC_LANG_ENDDECLS
 
