@@ -722,6 +722,10 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_dbiterator_t *dbiter;
 	isc_boolean_t atorigin = ISC_TRUE;
 	dns_name_t *origin;
+	dns_rdataset_t soaset;
+	dns_rdata_t soarr;
+	dns_rdata_soa_t soa;
+	dns_ttl_t zonettl;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -730,13 +734,27 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_fixedname_init(&fcurname);
 	curname = dns_fixedname_name(&fcurname);
 
+	origin = dns_db_origin(db);
+
+	dns_rdataset_init(&soaset);
+	result = dns_db_find(db, origin, version, dns_rdatatype_soa,
+			     0, 0, NULL, name, &soaset, NULL);
+	check_result(result, "dns_db_find");
+	result = dns_rdataset_first(&soaset);
+	check_result(result, "dns_rdataset_first");
+	dns_rdataset_current(&soaset, &soarr);
+	result = dns_rdata_tostruct(&soarr, &soa, mctx);
+	check_result(result, "dns_rdataset_tostruct");
+	zonettl = soa.minimum;
+	dns_rdata_freestruct(&soa);
+	dns_rdataset_disassociate(&soaset);
+
 	lastcut = NULL;
 	dbiter = NULL;
 	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
 	check_result(result, "dns_db_createiterator()");
 	result = dns_dbiterator_first(dbiter);
 	node = NULL;
-	origin = dns_db_origin(db);
 	dns_name_clone(origin, name);
 	result = next_nonglue(db, version, dbiter, name, &node, origin,
 			      lastcut);
@@ -791,7 +809,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 			target = NULL;	/* Make compiler happy. */
 			fatal("db iteration failed");
 		}
-		nxtresult = dns_buildnxt(db, version, node, target);
+		nxtresult = dns_buildnxt(db, version, node, target, zonettl);
 		check_result(nxtresult, "dns_buildnxt()");
 		signname(db, version, node, curname, atorigin);
 		atorigin = ISC_FALSE;
