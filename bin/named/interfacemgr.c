@@ -465,9 +465,11 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 	result = isc_interfaceiter_create(mgr->mctx, &iter);
 	if (result != ISC_R_SUCCESS)
 		return;
-	
-	result = isc_interfaceiter_first(iter);
-	while (result == ISC_R_SUCCESS) {
+
+	for (result = isc_interfaceiter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_interfaceiter_next(iter))
+	{
 		ns_interface_t *ifp;
 		isc_interface_t interface;
 		ns_listenelt_t *le;
@@ -477,10 +479,12 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		 * "listen-on" statements here.  Also build list of
 		 * local addresses and local networks.
 		 */
-		
 		result = isc_interfaceiter_current(iter, &interface);
 		if (result != ISC_R_SUCCESS)
 			break;
+
+		if (interface.address.family != AF_INET)
+			continue;
 
 		for (le = ISC_LIST_HEAD(mgr->listenon->elts);
 		     le != NULL;
@@ -542,7 +546,6 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			}
 
 		}
-		result = isc_interfaceiter_next(iter);
 	}
 	if (result != ISC_R_NOMORE)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
