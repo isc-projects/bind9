@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.86 $)
+AC_REVISION($Revision: 1.87 $)
 
 AC_PREREQ(2.13)
 
@@ -170,10 +170,12 @@ fi
 dnl
 dnl We'd like to use sigwait() too
 dnl
-AC_CHECK_LIB(pthread, sigwait,
+AC_CHECK_LIB(c, sigwait,
 	     AC_DEFINE(HAVE_SIGWAIT),
-	     AC_CHECK_LIB(pthread, _Psigwait,
-			  AC_DEFINE(HAVE_SIGWAIT),)
+             AC_CHECK_LIB(pthread, sigwait,
+			  AC_DEFINE(HAVE_SIGWAIT),
+			  AC_CHECK_LIB(pthread, _Psigwait,
+				       AC_DEFINE(HAVE_SIGWAIT),))
 )
 
 dnl
@@ -191,12 +193,12 @@ dnl
 AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
 
 dnl
-dnl BSDI 3.1 needs pthread_init() to be called before certain pthreads
-dnl calls.  LinuxThreads requires some changes to the way we deal with
+dnl BSDI 3.1 through 4.0.1 needs pthread_init() to be called before certain
+dnl pthreads calls.  LinuxThreads requires some changes to the way we deal with
 dnl signals.
 dnl
 case "$host" in
-	*-bsdi3.1*)
+	*-bsdi3.1*|*-bsdi4.0*)
 		AC_DEFINE(NEED_PTHREAD_INIT)
 		;;
 	*-linux*)
@@ -675,6 +677,7 @@ AC_OUTPUT(
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/lwresd/Makefile
+	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/names/Makefile
 	bin/tests/master/Makefile
