@@ -1,3 +1,5 @@
+1427.	[bug]		Race condition in adb with threaded build.
+
 1426.	[placeholder]
 
 1425.	[port]		linux/libbind: define __USE_MISC when testing *_r()
