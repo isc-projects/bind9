@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164.2.7 2001/06/15 17:02:18 gson Exp $ */
+/* $Id: message.c,v 1.164.2.8 2001/11/15 01:30:37 marka Exp $ */
 
 /***
  *** Imports
@@ -32,9 +32,6 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/message.h>
-#ifdef DNS_OPT_NEWCODES
-#include <dns/opt.h>
-#endif /* DNS_OPT_NEWCODES */
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -2820,9 +2817,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_name_t *name = NULL;
 	isc_result_t result;
 	isc_boolean_t omit_final_dot;
-#ifndef DNS_OPT_NEWCODES
-	char buf[sizeof("1234567890")];
-#endif /* DNS_OPT_NEWCODES */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -2835,9 +2829,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		ps = dns_message_getopt(msg);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
-#ifdef DNS_OPT_NEWCODES
-		result = dns_opt_totext(ps, target, flags);
-#else /* DNS_OPT_NEWCODES */
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
 		ADD_STRING(target, "; EDNS: version: ");
@@ -2849,9 +2840,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		sprintf(buf, "%7u\n",
 			(unsigned int)ps->rdclass);
 		ADD_STRING(target, buf);
-		result = ISC_R_SUCCESS;
-#endif /* DNS_OPT_NEWCODES */
-		return (result);
+		return (ISC_R_SUCCESS);
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);
 		if (ps == NULL)
