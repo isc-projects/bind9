@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.44 2004/09/16 02:12:19 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.45 2004/10/21 01:53:53 marka Exp $ */
 
 #include <config.h>
 
@@ -5251,7 +5251,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			     domainbuf, namebuf, typebuf, classbuf, addrbuf);
 	}
 
-	if ((fctx->res->options | DNS_RESOLVER_CHECKNAMES) != 0)
+	if ((fctx->res->options & DNS_RESOLVER_CHECKNAMES) != 0)
 		checknames(message);
 
 	/*
