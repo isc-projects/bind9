@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr_test.c,v 1.20 2000/08/09 00:09:32 gson Exp $ */
+/* $Id: byaddr_test.c,v 1.21 2000/09/15 22:00:02 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -37,6 +37,7 @@
 #include <dns/cache.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
+#include <dns/forward.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/view.h>
@@ -203,8 +204,9 @@ main(int argc, char *argv[]) {
 		isc_sockaddr_fromin(&sa, &ina, 53);
 		ISC_LIST_APPEND(sal, &sa, link);
 
-		dns_resolver_setforwarders(view->resolver, &sal);
-		dns_resolver_setfwdpolicy(view->resolver, dns_fwdpolicy_only);
+		RUNTIME_CHECK(dns_fwdtable_add(view->fwdtable, dns_rootname,
+					       &sal, dns_fwdpolicy_only)
+			      == ISC_R_SUCCESS);
 	}
 
 	dns_view_setcache(view, cache);
