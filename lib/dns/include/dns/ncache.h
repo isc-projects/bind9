@@ -52,11 +52,12 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	       dns_rdatatype_t covers, isc_stdtime_t now,
+	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
 	       dns_rdataset_t *addedrdataset);
 /*
  * Convert the authority data from 'message' into a negative cache
- * rdataset, and store it in 'cache' at 'node'.
+ * rdataset, and store it in 'cache' at 'node' with a TTL limited to
+ * 'maxttl'.
  *
  * The 'covers' argument is the RR type whose nonexistence we are caching,
  * or dns_rdatatype_any when caching a NXDOMAIN response.

@@ -627,6 +627,31 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				  dns_c_ctx_gettrustedkeys,
 				  &view->secroots));
 
+	{
+		isc_uint32_t val;
+		result = ISC_R_NOTFOUND;
+		if (cview != NULL)
+			result = dns_c_view_getmaxcachettl(cview, &val);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getmaxcachettl(cctx, &val);
+		if (result != ISC_R_SUCCESS)
+			val = 30 * 24 * 3600;
+		view->maxcachettl = val;
+	}
+	{
+		isc_uint32_t val;
+		result = ISC_R_NOTFOUND;
+		if (cview != NULL)
+			result = dns_c_view_getmaxncachettl(cview, &val);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getmaxncachettl(cctx, &val);
+		if (result != ISC_R_SUCCESS)
+			val = 3 * 3600;
+		if (val > 7 * 24 * 3600)
+			val = 7 * 24 * 3600;
+		view->maxncachettl = val;
+	}
+
 	result = ISC_R_SUCCESS;
 
  cleanup:

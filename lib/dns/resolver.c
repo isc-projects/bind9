@@ -260,7 +260,7 @@ static isc_boolean_t fctx_destroy(fetchctx_t *fctx);
 static isc_result_t ncache_adderesult(dns_message_t *message,
 				      dns_db_t *cache, dns_dbnode_t *node,
 				      dns_rdatatype_t covers,
-				      isc_stdtime_t now,
+				      isc_stdtime_t now, dns_ttl_t maxttl,
 				      dns_rdataset_t *ardataset,
 				      isc_result_t *eresultp);
 
@@ -1484,7 +1484,7 @@ static inline void
 possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 {
 	isc_netaddr_t na;
-	char buf[80];
+	char buf[ISC_NETADDR_FORMATSIZE];
 	isc_sockaddr_t *sa;
 
 	sa = addr->sockaddr;
@@ -2270,7 +2270,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 		
 		result = ncache_adderesult(fctx->rmessage,
 					   fctx->res->view->cachedb, node,
-					   covers, now, ardataset, &eresult);
+					   covers, now,
+					   fctx->res->view->maxncachettl,
+					   ardataset, &eresult);
 		if (result != ISC_R_SUCCESS)
 			goto respond;			
 
@@ -2407,6 +2409,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 		if (!CACHE(rdataset))
 			continue;
+
+		/*
+		 * Enforce the configure maximum cache TTL.
+		 */
+		if (rdataset->ttl > res->view->maxcachettl)
+			rdataset->ttl = res->view->maxcachettl;
+
 		/*
 		 * If this rrset is in a secure domain, do DNSSEC validation
 		 * for it, unless it is glue.
@@ -2618,12 +2627,13 @@ cache_message(fetchctx_t *fctx, isc_stdtime_t now) {
  */
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-		  dns_rdatatype_t covers, isc_stdtime_t now,
+		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
 		  dns_rdataset_t *ardataset,
 		  isc_result_t *eresultp)
 {
 	isc_result_t result;
-	result = dns_ncache_add(message, cache, node, covers, now, ardataset);
+	result = dns_ncache_add(message, cache, node, covers, now,
+				maxttl, ardataset);
 	if (result == DNS_R_UNCHANGED) {
 		/*
 		 * The data in the cache is better than the negative cache
@@ -2733,7 +2743,8 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		goto unlock;
 
 	result = ncache_adderesult(fctx->rmessage, res->view->cachedb, node,
-				   covers, now, ardataset, &eresult);
+				   covers, now, res->view->maxncachettl,
+				   ardataset, &eresult);
 	if (result != ISC_R_SUCCESS)
 		goto unlock;	
 	

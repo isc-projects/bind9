@@ -83,7 +83,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	       dns_rdatatype_t covers, isc_stdtime_t now,
+	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
 	       dns_rdataset_t *addedrdataset)
 {
 	isc_result_t result;
@@ -114,7 +114,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	/*
 	 * First, build an ncache rdata in buffer.
 	 */
-	ttl = 0xffffffff;
+	ttl = maxttl;
 	trust = 0xffff;
 	isc_buffer_init(&buffer, data, sizeof(data));
 	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);

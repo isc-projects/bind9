@@ -102,12 +102,15 @@ struct dns_view {
 	dns_acl_t *			recursionacl;
 	isc_boolean_t			requestixfr;
 	isc_boolean_t			provideixfr;
+	dns_ttl_t			maxcachettl;
+	dns_ttl_t			maxncachettl;
 
 	/*
 	 * Configurable data for server use only,
 	 * locked by server configuration lock.
 	 */
 	dns_acl_t *			matchclients;
+	
 	/* Locked by lock. */
 	unsigned int			references;
 	unsigned int			weakrefs;
