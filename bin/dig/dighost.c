@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.138 2000/09/29 23:42:14 mws Exp $ */
+/* $Id: dighost.c,v 1.139 2000/09/30 00:06:08 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -278,10 +278,10 @@ make_empty_lookup(void) {
 		fatal("Memory allocation failure in %s:%d",
 		       __FILE__, __LINE__);
 	looknew->pending = ISC_TRUE;
-	looknew->textname[0]=0;
-	looknew->cmdline[0]=0; /* Not copied in clone_lookup! */
-	looknew->rdtype=dns_rdatatype_a;
-	looknew->rdclass=dns_rdataclass_in;
+	looknew->textname[0] = 0;
+	looknew->cmdline[0] = 0; /* Not copied in clone_lookup! */
+	looknew->rdtype = dns_rdatatype_a;
+	looknew->rdclass = dns_rdataclass_in;
 	looknew->sendspace = NULL;
 	looknew->sendmsg = NULL;
 	looknew->name = NULL;
@@ -1007,10 +1007,10 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 						}
 						lookup->trace_root = ISC_FALSE;
 					}
-					r.base[len]=0;
+					r.base[len] = 0;
 					srv = make_server((char *)r.base);
 					debug("adding server %s",
-					       srv->servername);
+					      srv->servername);
 					ISC_LIST_APPEND
 						(lookup->my_server_list,
 						 srv, link);
