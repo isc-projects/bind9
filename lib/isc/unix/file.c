@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.36 2001/07/10 04:23:01 bwelling Exp $ */
+/* $Id: file.c,v 1.37 2001/07/16 17:26:44 gson Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
+#include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -288,5 +289,17 @@ isc_file_progname(const char *filename, char *buf, size_t buflen) {
 		return (ISC_R_NOSPACE);
 	memcpy(buf, base, len);
 
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_file_absolutepath(const char *filename, char *path, size_t pathlen) {
+	isc_result_t result;
+	result = isc_dir_current(path, pathlen, ISC_TRUE);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (strlen(path) + strlen(filename) + 1 > pathlen)
+		return (ISC_R_NOSPACE);
+	strcat(path, filename);
 	return (ISC_R_SUCCESS);
 }
