@@ -1,3 +1,5 @@
+ 446.	[bug]		Confusing notify log message. [RT #298]
+
  445.	[bug]		Doing a 0 bit isc_bitstring_copy() of an lsb0
 			bitstring triggered a REQUIRE statement.  The REQUIRE
 			statement was incorrect. [RT #297]

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.209 2000/09/12 01:22:12 marka Exp $ */
+/* $Id: zone.c,v 1.210 2000/09/12 22:50:52 marka Exp $ */
 
 #include <config.h>
 
@@ -4044,7 +4044,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 			   addrbuf, buf.used, rcode);
 	else
 		notify_log(zone, ISC_LOG_INFO, "NOTIFY to %s failed: %s",
-			   addrbuf, dns_result_totext(revent->result));
+			   addrbuf, dns_result_totext(result));
 	if (message != NULL)
 		dns_message_destroy(&message);
 
