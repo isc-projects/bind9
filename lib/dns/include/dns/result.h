@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.h,v 1.61 2000/07/13 02:41:20 bwelling Exp $ */
+/* $Id: result.h,v 1.62 2000/07/26 21:32:57 tale Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -102,10 +102,10 @@
 #define DNS_R_NRESULTS			62	/* Number of results */
 
 /*
- * DNS wire format rcodes
+ * DNS wire format rcodes.
  *
  * By making these their own class we can easily convert them into the
- * wire-format rcode value simply by masking off the resultclass 
+ * wire-format rcode value simply by masking off the resultclass.
  */
 #define DNS_R_NOERROR			(ISC_RESULTCLASS_DNSRCODE + 0)
 #define DNS_R_FORMERR			(ISC_RESULTCLASS_DNSRCODE + 1)
