@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.47 $)
+AC_REVISION($Revision: 1.48 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -953,7 +953,7 @@ $isc_netinet6in6_hack
 ],
 		[struct sockaddr_storage xyzzy; return (0);],
 			[AC_MSG_RESULT(yes)
-			 HAVE_SOCKADDR_STOR="#define HAVE_SOCKADDR_STORAGE 1"],
+			 HAVE_SOCKADDR_STORAGE="#define HAVE_SOCKADDR_STORAGE 1"],
 			[AC_MSG_RESULT(no)
 			 HAVE_SOCKADDR_STORAGE="#undef HAVE_SOCKADDR_STORAGE"])
 		;;
