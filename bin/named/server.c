@@ -529,13 +529,6 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	CHECK(dns_zone_configure(cctx, lctx->aclconf, czone, zone));
 
 	/*
-	 * XXX Why was this here?
-	 *
-	 * if (dns_zone_gettype(zone) == dns_zone_hint)
-	 *      INSIST(0);
-	 */
-
-	/*
 	 * Add the zone to its view in the new view list.
 	 */
 	CHECK(dns_view_addzone(view, zone));
