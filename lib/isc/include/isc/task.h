@@ -170,10 +170,11 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp);
  * Requires:
  *
  *	'task' is a valid task.
+ *	eventp != NULL && *eventp != NULL.
  *
- * Ensures
+ * Ensures:
  *
- *	On success, *eventp == NULL
+ *	*eventp == NULL.
  */
 
 void
@@ -185,12 +186,13 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
  * Requires:
  *
  *	'*taskp' is a valid task.
+ *	eventp != NULL && *eventp != NULL.
  *
- * Ensures
+ * Ensures:
  *
- *	*eventp == NULL
+ *	*eventp == NULL.
  *
- *	*taskp == NULL
+ *	*taskp == NULL.
  *
  *	If '*taskp' is the last reference to the task, the task is
  *	idle (has an empty event queue), and has not been shutdown,
