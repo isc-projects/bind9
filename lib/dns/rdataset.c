@@ -233,12 +233,9 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		}
 
 		dns_rdataset_current(rdataset, &rdata);
-/* XXX */
-#if 0
-		result = dns_rdata_totext(&rdata, NULL, target);
+		result = dns_rdata_totext(&rdata, target);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-#endif
 		isc_buffer_available(target, &r);
 		if (r.length < 1)
 			return (DNS_R_NOSPACE);

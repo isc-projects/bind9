@@ -260,7 +260,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *
  * Notes:
  *	Relative domain names in the rdata will have 'origin' appended to them.
- *	If 'origin' is NULL, then relative domain names will remain relative.
+ *	A NULL origin implies "origin == dns_rootname".
  *
  *	If 'downcase' is true, any uppercase letters in domain names in
  * 	'source' will be downcased when they are copied into 'target'.

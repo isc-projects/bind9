@@ -12,7 +12,7 @@ CINCLUDES =	-I${srcdir}/../isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		name.o rdatalist.o rdataset.o result.o version.o
+OBJS =		name.o rdatalist.o rdataset.o result.o version.o rdata.o
 
 SUBDIRS =	include
 TARGETS =	timestamp
@@ -39,3 +39,11 @@ install:: timestamp installdirs
 
 clean distclean::
 	rm -f libdns.a timestamp
+
+rdata.o: code.h
+
+code.h:	gen
+	./gen > code.h
+
+gen: gen.c
+	${CC} ${ALL_CFLAGS} -o $@ $?

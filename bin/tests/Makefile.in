@@ -21,7 +21,8 @@ TARGETS =	name_test \
 		lex_test \
 		task_test \
 		timer_test \
-		wire_test
+		wire_test \
+		rdata_test
 
 @BIND9_MAKE_RULES@
 
@@ -48,6 +49,9 @@ task_test: task_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 
 timer_test: timer_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ timer_test.o ${LIBS}
+
+rdata_test: rdata_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
+	${CC} -o $@ rdata_test.o ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
