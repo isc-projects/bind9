@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.177 2000/11/03 22:53:14 bwelling Exp $ */
+/* $Id: resolver.c,v 1.178 2000/11/04 02:20:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
+#include <dns/peer.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -42,8 +43,6 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
-
-#include <dns/peer.h>
 
 #define DNS_RESOLVER_TRACE
 #ifdef DNS_RESOLVER_TRACE
@@ -807,11 +806,13 @@ resquery_send(resquery_t *query) {
 	isc_task_t *task;
 	isc_socket_t *socket;
 	isc_buffer_t tcpbuffer;
-	isc_sockaddr_t *address, taddress;
+	isc_sockaddr_t *address;
 	isc_buffer_t *buffer;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
 	dns_acl_t *blackhole = NULL;
+	dns_peer_t *peer = NULL;
+	isc_boolean_t bogus;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -991,24 +992,16 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Send the query!
 	 */
-	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+	if ((query->options & DNS_FETCHOPT_TCP) == 0)
 		address = &query->addrinfo->sockaddr;
-		taddress = *address;
-	} else {
-		result = isc_socket_getpeername(socket, &taddress);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_message;
-	}
 	isc_buffer_usedregion(buffer, &r);
 
 	(void)dns_dispatchmgr_getblackhole(query->dispatchmgr, &blackhole);
 	if (blackhole != NULL) {
-		isc_netaddr_t netaddr;
 		int match;
 		isc_boolean_t drop = ISC_FALSE;
 
-		isc_netaddr_fromsockaddr(&netaddr, &taddress);
-		if (dns_acl_match(&netaddr, NULL, blackhole,
+		if (dns_acl_match(&ipaddr, NULL, blackhole,
 				  NULL, &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
 			drop = ISC_TRUE;
@@ -1017,6 +1010,17 @@ resquery_send(resquery_t *query) {
 			result = DNS_R_BLACKHOLED;
 			goto cleanup_message;
 		}
+	}
+
+	peer = NULL;
+	result = dns_peerlist_peerbyaddr(fctx->res->view->peers, &ipaddr,
+					 &peer);
+	if (result == ISC_R_SUCCESS &&
+	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
+	    bogus)
+	{
+		result = DNS_R_BLACKHOLED;
+		goto cleanup_message;
 	}
 
 	/*
