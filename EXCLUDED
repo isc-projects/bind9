@@ -7,6 +7,9 @@
                         [RT #1915, #1938]
 			[ New function dns_adb_setadbsize() ]
 
+1105.   [port]          OpenUNIX 8 enable threads by default. [RT #1970]
+			[Functional change]
+
 1110.   [bug]           dig should only accept valid abbreviations of +options.
                         [RT #2003]
 			[Potentially breaks scripts.  Leave to 9.3.0.]
@@ -34,3 +37,4 @@
 			[ Requires API change (new arguement) to
 			dns_rdataset_towire(), dns_rdataset_towirepartial()
 			and dns_rdataset_towirepartial() ]
+
