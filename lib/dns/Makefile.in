@@ -16,8 +16,9 @@ CINCLUDES =	-I${srcdir}/../isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		name.o db.o rbt.o rbtdb.o rdata.o rdatalist.o rdataset.o \
-		result.o version.o rdataslab.o master.o callbacks.o compress.o
+OBJS =		name.o db.o rbt.o rbtdb.o rbtdb64.o rdata.o rdatalist.o \
+		rdataset.o result.o version.o rdataslab.o master.o \
+		callbacks.o compress.o
 
 SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h timestamp
@@ -59,3 +60,5 @@ code.h:	gen
 
 gen: gen.c
 	${CC} ${ALL_CFLAGS} -o $@ $?
+
+rbtdb64.o: rbtdb.c
