@@ -20,6 +20,8 @@
 
 #include <pthread.h>
 
+#include <isc/result.h>		/* for ISC_R_ codes */
+
 typedef pthread_mutex_t	isc_mutex_t;
 
 /* XXX We could do fancier error handling... */

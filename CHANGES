@@ -1,3 +1,6 @@
+ 131.   [cleanup]       <isc/mutex.h> and <isc/util.h> need <isc/result.h>
+                        for ISC_R_* codes used in macros.
+
  130.   [cleanup]       <isc/condition.h> does not need <pthread.h> or
                         <isc/boolean.h>, and now includes <isc/types.h>
                         instead of <isc/time.h>.

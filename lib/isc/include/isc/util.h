@@ -62,6 +62,8 @@
 #define ISC_UTIL_TRACE(a)
 #endif
 
+#include <isc/result.h>		/* for ISC_R_SUCCESS */
+
 #define LOCK(lp) do { \
 	ISC_UTIL_TRACE(fprintf(stderr, "LOCKING %p %s %d\n", (lp), __FILE__, __LINE__)); \
 	RUNTIME_CHECK(isc_mutex_lock((lp)) == ISC_R_SUCCESS); \
