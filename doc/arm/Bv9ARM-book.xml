@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.90 2001/01/23 21:15:53 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.91 2001/01/23 23:26:52 gson Exp $ -->
 
 <book>
 
@@ -913,10 +913,11 @@ reload the database. </para></entry>
     manually, the following procedure will work: Shut down
     the server using <command>rndc stop</command> (sending a signal
     or using <command>rndc halt</command> is <emphasis>not</emphasis>
-    safe), wait for it to exit.  Then <emphasis>remove</emphasis> the zone's 
+    sufficient). Wait for the server to exit,
+    then <emphasis>remove</emphasis> the zone's 
     <filename>.jnl</filename> file, edit the zone file,
     and restart the server.  Removing the <filename>.jnl</filename>
-    file is necessary because the manual changes will not be
+    file is necessary because the manual edits will not be
     present in the journal, rendering it inconsistent with the
     contents of the zone file.</para>
 
