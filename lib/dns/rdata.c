@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.124 2000/11/15 19:05:28 gson Exp $ */
+/* $Id: rdata.c,v 1.125 2000/11/15 19:11:34 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1092,14 +1092,14 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 }
 
 void
-dns_rdatatype_format(dns_rdatatype_t rdtype
-		     char *array, unsigned int size);
+dns_rdatatype_format(dns_rdatatype_t rdtype,
+		     char *array, unsigned int size)
 {
 	isc_result_t result;
 	isc_buffer_t buf;
 
 	isc_buffer_init(&buf, array, size);
-	result = dns_type_totext(rdclass, &buf);
+	result = dns_rdatatype_totext(rdtype, &buf);
 	/*
 	 * Null terminate.
 	 */

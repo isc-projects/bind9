@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatatype.h,v 1.15 2000/11/15 19:05:32 gson Exp $ */
+/* $Id: rdatatype.h,v 1.16 2000/11/15 19:11:36 gson Exp $ */
 
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1
@@ -61,7 +61,7 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target);
  */
 
 void
-dns_rdatatype_format(dns_rdatatype_t rdtype
+dns_rdatatype_format(dns_rdatatype_t rdtype,
 		     char *array, unsigned int size);
 /*
  * Format a human-readable representation of the type 'rdtype'
