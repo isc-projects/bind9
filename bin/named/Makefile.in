@@ -38,7 +38,7 @@ LIBS =		${DEPLIBS} \
 TARGETS =	named
 
 OBJS =		server.o udpclient.o tcpclient.o wire_test.o \
-		zone.o configctx.o confparser.o
+		zone.o configctx.o confparser.o interfacemgr.o
 
 @BIND9_MAKE_RULES@
 
