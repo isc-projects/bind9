@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+#include <isc/assertions.h>
+
 #include <dns/validator.h>
 
 isc_result_t
