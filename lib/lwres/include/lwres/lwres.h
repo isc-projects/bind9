@@ -58,7 +58,7 @@ typedef struct {
 	/* public */
 	isc_uint32_t		result;
 	unsigned char	       *real_name;
-	unsgiend int		naliases;
+	unsigned int		naliases;
 	unsigned char	      **aliases;
 	/* private */
 	unsigned int		buflen;
@@ -138,7 +138,7 @@ lwres_getnamebyaddr(unsigned int addrlen, unsigned char *addr,
  */
 
 void
-lwres_freegetnamebyaddr(lwres_getaddrbyname_t **structp);
+lwres_freegetnamebyaddr(lwres_getnamebyaddr_t **structp);
 /*
  * Frees any dynamically allocated memory for this structure.
  *

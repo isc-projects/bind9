@@ -26,10 +26,10 @@ CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-OBJS =		lwbuffer.@O@
+OBJS =		lwbuffer.@O@ lwres.@O@
 
 # Alphabetically
-SRCS =		lwbuffer.c
+SRCS =		lwbuffer.c lwres.c
 
 LIBS =		@LIBS@
 
