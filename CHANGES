@@ -1,3 +1,5 @@
+1327.	[bug]		nsupdate: allow white space base64 key data.
+
 1326.	[bug]		Badly encoded LOC record when the size, horizontal
 			precision or vertical precision was 0.1m.
 

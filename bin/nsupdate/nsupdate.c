@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.118 2002/04/18 00:22:17 marka Exp $ */
+/* $Id: nsupdate.c,v 1.119 2002/06/17 02:30:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1002,7 +1002,7 @@ evaluate_key(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 
-	secretstr = nsu_strsep(&cmdline, " \t\r\n");
+	secretstr = nsu_strsep(&cmdline, "\r\n");
 	if (*secretstr == 0) {
 		fprintf(stderr, "could not read key secret\n");
 		return (STATUS_SYNTAX);
