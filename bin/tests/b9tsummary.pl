@@ -76,6 +76,12 @@ $WktpFile	= ".wktp";
 
 $RxFile		= ".b9trx";
 
+#
+# name of the host specific file containing
+# output of `uname -a`
+#
+
+$UnameFile	= "uname";
 
 # number of fatal build problems
 $Nfbp		= 0;
@@ -189,14 +195,28 @@ close(DEBUG) if ($Debug);
 sub doHost {
 	local($hostpath) = @_;
 	local($entry, $prob, $line, $bstatus, $tstatus);
-	local(@junk, $junk, $hostid, $bcolor, $tcolor);
+	local(@junk, $junk, $hostid, $hostname, $bcolor, $tcolor);
 	local(%buildprobs, %testprobs);
 	local($severity, $filename, $linenumber, $message, $lastfilename);
 
 	@junk = split(/\//, $hostpath);
 	$hostid = $junk[$#junk];
 
-	print DEBUG "Host: $hostid\n" if ($Debug);
+	#
+	# get the host name
+	#
+
+	$hostname = "n/a";
+	if ((-r "$hostpath/$UnameFile") && (-s _)) {
+		open(XXX, "< $hostpath/$UnameFile");
+		$junk = <XXX>;
+		close(XXX);
+		@junk = split(/\s/, $junk);
+		$hostname = $junk[1];
+		$hostname =~ s/\..*//; 
+	}
+
+	print DEBUG "Host: $hostid, Hostname: $hostname\n" if ($Debug);
 
 	#
 	# scan the build and test results files for problems
@@ -249,10 +269,10 @@ sub doHost {
 		$tcolor = "black";
 	}
 
-	printf(DEBUG "Host %s STATUS: bstatus %s, tstatus %s, badtest %d, reason %s\n", $hostid, $bstatus, $tstatus, $BadTest, $BadTestReason) if ($Debug);
+	printf(DEBUG "Host %s(%s) STATUS: bstatus %s, tstatus %s, badtest %d, reason %s\n", $hostid, $hostname, $bstatus, $tstatus, $BadTest, $BadTestReason) if ($Debug);
 
 	printf("\t<TR>\n");
-	printf("\t\t<TD>%s</TD>\n", $hostid);
+	printf("\t\t<TD><B>%s</B>&nbsp;%s</TD>\n", $hostid, $hostname);
 	if ($bstatus =~ /none/) {
 		printf("\t\t<TD>%s</TD>\n", $bstatus);
 		printf("\t\t<TD>&nbsp</TD>\n");
@@ -371,7 +391,8 @@ sub buildCheck {
 			# ignore it if its in the well known build problems list
 			if (defined($wkbp{"$filename:$linenumber"})) {
 				print DEBUG "IGNORED\n" if ($Debug);
-				next;
+				# by convention, ignore all severity 0 problems
+				$severity = 0;
 			}
 		}
 		else {
@@ -491,6 +512,8 @@ sub testCheck {
 				$BadTestReason = "I$.";
 			}
 			$ininfo = 1;
+			s/</\&lt;/g;
+			s/>/\&gt;/g;
 			printf(YYY "%s\n<BR>\n", $_);
 			next;
 		}
@@ -511,7 +534,9 @@ sub testCheck {
 				else {
 					$probs{"$funcname:$anum"} = $result;
 					++$Nftp;
-					s/(FAIL|UNRESOLVED|UNITIATED)/<FONT COLOR=\"red\">$1<\/FONT>/;
+					s/(FAIL|UNITIATED)/<FONT COLOR=\"red\">$1<\/FONT>/;
+					s/(UNRESOLVED)/<FONT COLOR=\"yellow\">$1<\/FONT>/;
+
 				}
 			}
 			elsif ($result =~ /PASS|UNTESTED/) {
@@ -557,6 +582,9 @@ sub wbpf {
 		foreach $message (@messageset) {
 			if ($severity >= $HaltLevel) {
 				printf(XXX "<FONT COLOR=\"red\">%s</FONT>\n<BR>\n", $message);
+			}
+			elsif ($severity == 0) {
+				printf(XXX "<FONT COLOR=\"yellow\">%s</FONT>\n<BR>\n", $message);
 			}
 			else {
 				printf(XXX "%s\n<BR>\n", $message);
