@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.72 2000/11/06 08:11:04 marka Exp $ */
+/* $Id: update.c,v 1.73 2000/11/15 19:04:41 gson Exp $ */
 
 #include <config.h>
 
@@ -466,7 +466,7 @@ rrset_exists_action(void *data, rr_t *rr) {
 		(*exists = ISC_TRUE, ISC_R_SUCCESS) : 	\
 		((result == ISC_R_SUCCESS) ?		\
 		 (*exists = ISC_FALSE, ISC_R_SUCCESS) :	\
-		 result));
+		 result))
 
 /*
  * Set '*exists' to true iff an rrset of the given type exists,
