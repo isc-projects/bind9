@@ -3193,3 +3193,15 @@ isc_socket_gettype(isc_socket_t *sock)
 
 	return (sock->type);
 }
+
+isc_boolean_t
+isc_socket_isbound(isc_socket_t *sock)
+{
+	isc_boolean_t val;
+
+	LOCK(&sock->lock);
+	val = ((sock->bound) ? ISC_TRUE : ISC_FALSE);
+	UNLOCK(&sock->lock);
+
+	return (val);
+}

@@ -655,6 +655,9 @@ isc_socket_gettype(isc_socket_t *sock);
  *	"sock" is a valid socket.
  */
 
+isc_boolean_t
+isc_socket_isbound(isc_socket_t *sock);
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKET_H */
