@@ -1,6 +1,10 @@
 
 	--- 9.2.0a2 released ---
 
+ 899.	[bug]		lib/dns/soa.c failed to compile on many platforms
+			due to inappropriate use of a void value.
+			[RT #1372, #1373, #1386, #1387, #1395]
+
  898.	[bug]		"dig" failed to set a nonzero exit status
 			on UDP query timeout. [RT #1323]
 
