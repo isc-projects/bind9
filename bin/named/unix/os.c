@@ -19,6 +19,7 @@
 
 #include <sys/types.h>
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,14 +27,18 @@
 #include <errno.h>
 #include <syslog.h>
 #include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <isc/result.h>
+#include <isc/boolean.h>
 
 #include <named/main.h>
 #include <named/os.h>
 
 
 #ifdef HAVE_LINUX_CAPABILITY_H
+
 #include <sys/syscall.h>
 #include <linux/capability.h>
 
@@ -42,20 +47,12 @@
 #endif
 
 static void
-linux_dropprivs() {
+linux_setcaps(unsigned int caps) {
 	struct __user_cap_header_struct caphead;
 	struct __user_cap_data_struct cap;
-	unsigned int caps;
 
 	if (getuid() != 0)
 		return;
-
-	/*
-	 * Drop all root privileges except the ability to bind() to
-	 * privileged ports.
-	 */
-
-	caps = 1 << CAP_NET_BIND_SERVICE;
 
 	memset(&caphead, 0, sizeof caphead);
 	caphead.version = _LINUX_CAPABILITY_VERSION;
@@ -65,9 +62,44 @@ linux_dropprivs() {
 	cap.permitted = caps;
 	cap.inheritable = caps;
 	if (syscall(SYS_capset, &caphead, &cap) < 0)
-		ns_main_earlyfatal("syscall(capset): %s", strerror(errno));
+		ns_main_earlyfatal("capset failed: %s", strerror(errno));
 }
-#endif
+
+static void
+linux_initialprivs(void) {
+	unsigned int caps;
+
+	/*
+	 * Drop all privileges except the abilities to bind() to privileged
+	 * ports, set resource limits, and chroot().
+	 */
+
+	caps = 0;
+	caps |= (1 << CAP_NET_BIND_SERVICE);
+	caps |= (1 << CAP_SYS_RESOURCE);
+	caps |= (1 << CAP_SYS_CHROOT);
+
+	linux_setcaps(caps);
+}
+
+static void
+linux_minprivs(void) {
+	unsigned int caps;
+
+	/*
+	 * Drop all privileges except the abilities to bind() to privileged
+	 * ports and set resource limits.
+	 */
+
+	caps = 0;
+	caps |= (1 << CAP_NET_BIND_SERVICE);
+	caps |= (1 << CAP_SYS_RESOURCE);
+
+	linux_setcaps(caps);
+}
+
+#endif	/* HAVE_LINUX_CAPABILITY_H */
+
 
 static void
 setup_syslog(void) {
@@ -81,26 +113,22 @@ setup_syslog(void) {
 	openlog("named", options, LOG_DAEMON);
 }
 
-isc_result_t
+void
 ns_os_init(void) {
-
 	setup_syslog();
-
 #ifdef HAVE_LINUX_CAPABILITY_H
-	linux_dropprivs();
+	linux_initialprivs();
 #endif
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 ns_os_daemonize(void) {
 	pid_t pid;
 	int fd;
 
 	pid = fork();
 	if (pid == -1)
-		return (ISC_R_FAILURE);
+		ns_main_earlyfatal("fork(): %s", strerror(errno));
 	if (pid != 0)
                 _exit(0);
 
@@ -109,7 +137,7 @@ ns_os_daemonize(void) {
 	 */
 
         if (setsid() == -1)
-                return (ISC_R_FAILURE);
+		ns_main_earlyfatal("setsid(): %s", strerror(errno));
 
 	/*
 	 * Try to set stdin, stdout, and stderr to /dev/null, but press
@@ -120,12 +148,66 @@ ns_os_daemonize(void) {
 		(void)dup2(fd, STDIN_FILENO);
 		(void)dup2(fd, STDOUT_FILENO);
 		(void)dup2(fd, STDERR_FILENO);
+		if (fd != STDIN_FILENO &&
+		    fd != STDOUT_FILENO &&
+		    fd != STDERR_FILENO)
+			(void)close(fd);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 void
 ns_os_shutdown(void) {
 	closelog();
+}
+
+
+static isc_boolean_t
+all_digits(const char *s) {
+	if (*s == '\0')
+		return (ISC_FALSE);
+	while (*s != '\0') {
+		if (!isdigit(*s))
+			return (ISC_FALSE);
+		s++;
+	}
+	return (ISC_TRUE);
+}
+
+void
+ns_os_chroot(const char *root) {
+	if (root != NULL) {
+		if (chroot(root) < 0)
+			ns_main_earlyfatal("chroot(): %s", strerror(errno));
+		if (chdir("/") < 0)
+			ns_main_earlyfatal("chdir(/): %s", strerror(errno));
+	}
+#ifdef HAVE_LINUX_CAPABILITY_H
+	/*
+	 * We must drop the chroot() capability, otherwise it could be used
+	 * to escape.
+	 */
+	linux_minprivs();
+#endif
+}
+
+void
+ns_os_changeuser(const char *username) {
+	struct passwd *pw;
+
+	if (username == NULL || getuid() != 0)
+		return;
+
+	if (all_digits(username))
+		pw = getpwuid((uid_t)atoi(username));
+	else
+		pw = getpwnam(username);
+	endpwent();
+	if (pw == NULL)
+		ns_main_earlyfatal("user '%s' unknown", username);
+	if (initgroups(pw->pw_name, pw->pw_gid) < 0)
+		ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+	if (setgid(pw->pw_gid) < 0)
+		ns_main_earlyfatal("setgid(): %s", strerror(errno));
+	if (setuid(pw->pw_uid) < 0)
+		ns_main_earlyfatal("setuid(): %s", strerror(errno));
 }

@@ -20,13 +20,19 @@
 
 #include <isc/types.h>
 
-isc_result_t
+void
 ns_os_init(void);
 
-isc_result_t
+void
 ns_os_daemonize(void);
 
 void
 ns_os_shutdown(void);
+
+void
+ns_os_chroot(const char *root);
+
+void
+ns_os_changeuser(const char *username);
 
 #endif /* NS_OS_H */
