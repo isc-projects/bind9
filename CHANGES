@@ -25,7 +25,9 @@
  383.	[func]		When writing a master file, print the SOA and NS
 			records (and their SIGs) before other records.
 
- 382.	[bug]		named -u failed on Debian Linux.
+ 382.	[bug]		named -u failed on many Linux systems where the
+			libc provided kernel headers do not match
+			the current kernel.
 
  381.	[bug]		Check for IPV6_RECVPKTINFO and use it instead of
 			IPV6_PKTINFO if found. [RT #229]
