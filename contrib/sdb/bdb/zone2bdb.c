@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2bdb.c,v 1.1 2002/05/16 04:25:22 marka Exp $ */
+/* $Id: zone2bdb.c,v 1.1.4.1 2002/07/02 04:45:37 marka Exp $ */
 
 #include <stdio.h>
 

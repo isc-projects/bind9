@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.12 2002/03/19 15:57:23 marka Exp $ */
+/* $Id: zonetodb.c,v 1.12.4.1 2002/07/02 04:45:54 marka Exp $ */
 
 #include <stdlib.h>
 #include <string.h>

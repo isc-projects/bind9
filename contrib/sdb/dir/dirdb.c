@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.9 2001/01/09 21:46:22 bwelling Exp $ */
+/* $Id: dirdb.c,v 1.9.4.1 2002/07/02 04:45:38 marka Exp $ */
 
 /*
  * A simple database driver that returns basic information about

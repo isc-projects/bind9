@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timedb.h,v 1.2 2001/01/09 21:46:31 bwelling Exp $ */
+/* $Id: timedb.h,v 1.2.4.1 2002/07/02 04:46:01 marka Exp $ */
 
 #include <isc/types.h>
 

@@ -3,6 +3,9 @@
 1330.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #3157]
 
+1292.	[contrib]	Berkeley DB 4.0 sdb implementation from
+			Nuno Miguel Rodrigues <nmr@co.sapo.pt>.
+
 1289.	[port]		Openserver: ifconfig.sh support.
 
 1288.	[port]		Openserver: the value FD_SETSIZE depends on whether

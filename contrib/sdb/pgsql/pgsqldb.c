@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.12 2001/02/28 23:42:37 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.12.4.1 2002/07/02 04:45:51 marka Exp $ */
 
 #include <config.h>
 
