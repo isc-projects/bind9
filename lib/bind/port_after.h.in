@@ -102,7 +102,7 @@ int daemon(int nochdir, int noclose);
 #endif
   
 #ifdef NEED_STRSEP
-char * strsep(char **stringp, const char *delim)
+char * strsep(char **stringp, const char *delim);
 #endif
 
 #endif
