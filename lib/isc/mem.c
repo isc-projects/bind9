@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.73 2000/12/07 20:15:57 marka Exp $ */
+/* $Id: mem.c,v 1.74 2000/12/22 00:26:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -33,7 +33,7 @@
 #include <isc/mutex.h>
 #include <isc/util.h>
 
-unsigned int isc_mem_debugging = 0;
+unsigned int isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
 /*
  * Constants.
@@ -1046,7 +1046,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	}
 
 #if ISC_MEM_TRACKLINES
-	if (isc_mem_debugging > 1) {
+	if (MEM_RECORD) {
 		debuglink_t *dl;
 		unsigned int i;
 
