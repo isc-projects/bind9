@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.108 2001/10/15 20:23:47 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.109 2001/11/06 17:46:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1159,7 +1159,9 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 
 	if (isdelete)
 		ttl = 0;
-	else if (ttl < 0 || ttl > TTL_MAX || errno == ERANGE) {
+	else if (ttl < 0 || ttl > TTL_MAX ||
+		 (ttl == LONG_MAX && errno == ERANGE))
+	{
 		/*
 		 * The errno test is needed to catch when strtol()
 		 * overflows on a platform where sizeof(int) ==
