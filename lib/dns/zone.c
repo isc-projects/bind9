@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.2 2000/07/10 22:43:38 gson Exp $ */
+/* $Id: zone.c,v 1.152.2.3 2000/07/28 05:37:31 gson Exp $ */
 
 #include <config.h>
 
@@ -1791,6 +1791,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 				    notify->zone->task,
 				    notify_done, notify,
 				    &notify->request);
+	if (key != NULL)
+		dns_tsigkey_detach(&key);
 	dns_message_destroy(&message);
  cleanup:
 	if (result != ISC_R_SUCCESS)
@@ -2650,6 +2652,8 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 			 dns_result_totext(result));
 		goto cleanup;
 	}
+	if (key != NULL)
+		dns_tsigkey_detach(&key);
 	dns_message_destroy(&message);
 	isc_event_free(&event);
 	dns_zone_idetach(&zone);
@@ -3952,6 +3956,9 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (result != ISC_R_SUCCESS)
 		zone_xfrdone(zone, result);
+
+	if (tsigkey != NULL)
+		dns_tsigkey_detach(&tsigkey);
 	
 	isc_event_free(&event);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: request.c,v 1.26.2.1 2000/07/21 22:26:16 gson Exp $ */
+/* $Id: request.c,v 1.26.2.2 2000/07/28 05:37:34 gson Exp $ */
 
 #include <config.h>
 
@@ -493,7 +493,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	request->event->ev_sender = task;
 	request->event->request = request;
 	request->event->result = ISC_R_FAILURE;
-	request->tsigkey = key;
+	if (key != NULL)
+		dns_tsigkey_attach(key, &request->tsigkey);
 	
  use_tcp:
 	if ((options & DNS_REQUESTOPT_TCP) != 0) {
@@ -934,6 +935,8 @@ req_destroy(dns_request_t *request) {
 		isc_timer_detach(&request->timer);
 	if (request->tsig != NULL)
 		isc_buffer_free(&request->tsig);
+	if (request->tsigkey != NULL)
+		dns_tsigkey_detach(&request->tsigkey);
 	requestmgr_detach(&request->requestmgr);
 	mctx = request->mctx;
 	isc_mem_put(mctx, request, sizeof(*request));
