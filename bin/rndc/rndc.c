@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.54 2001/04/12 20:39:04 tale Exp $ */
+/* $Id: rndc.c,v 1.55 2001/04/12 21:01:46 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -71,7 +71,6 @@ static isc_socketmgr_t *socketmgr = NULL;
 static unsigned char databuf[2048];
 static isccc_ccmsg_t ccmsg;
 static char *args;
-static isc_boolean_t have_ipv4, have_ipv6;
 static isccc_region_t secret;
 static isc_boolean_t verbose;
 static isc_boolean_t failed = ISC_FALSE;
@@ -149,12 +148,15 @@ static void
 get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
+	isc_boolean_t have_ipv6;
 #ifdef USE_GETADDRINFO
 	struct addrinfo *res = NULL, hints;
 	int result;
 #else
 	struct hostent *he;
 #endif
+
+	have_ipv6 = ISC_TF(isc_net_probeipv6() == ISC_R_SUCCESS);
 
 	/*
 	 * Assume we have v4 if we don't have v6, since setup_libs
@@ -169,7 +171,7 @@ get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		memset(&hints, 0, sizeof(hints));
 		if (!have_ipv6)
 			hints.ai_family = PF_INET;
-		else if (!have_ipv4)
+		else if (isc_net_probeipv4() != ISC_R_SUCCESS)
 			hints.ai_family = PF_INET6;
 		else
 			hints.ai_family = PF_UNSPEC;
@@ -541,9 +543,6 @@ main(int argc, char **argv) {
 		remoteport = NS_CONTROL_PORT;
 
 	isccc_result_register();
-
-	have_ipv4 = (isc_net_probeipv4() == ISC_R_SUCCESS);
-	have_ipv6 = (isc_net_probeipv6() == ISC_R_SUCCESS);
 
 	command = *argv;
 
