@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.44 2001/01/23 02:19:48 bwelling Exp $ */
+/* $Id: compress.c,v 1.45 2001/02/09 02:13:06 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -99,6 +99,14 @@ dns_compress_getedns(dns_compress_t *cctx) {
 	return (cctx->edns);
 }
 
+#define NODENAME(node, name) \
+do { \
+	(name)->length = (node)->r.length; \
+	(name)->labels = (node)->labels; \
+	(name)->ndata = (node)->r.base; \
+	(name)->attributes = DNS_NAMEATTR_ABSOLUTE; \
+} while (0)
+
 /*
  * Find the longest match of name in the table.
  * If match is found return ISC_TRUE. prefix, suffix and offset are updated.
@@ -129,7 +137,7 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 		       DNS_COMPRESS_TABLESIZE;
 		for (node = cctx->table[hash]; node != NULL; node = node->next)
 		{
-			dns_name_fromregion(&nname, &node->r);
+			NODENAME(node, &nname);
 			if (dns_name_equal(&nname, &tname))
 				break;
 		}
@@ -160,7 +168,7 @@ void
 dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
 		 isc_uint16_t offset)
 {
-	dns_name_t tname, nname;
+	dns_name_t tname;
 	unsigned int start;
 	unsigned int n;
 	unsigned int count;
@@ -174,7 +182,6 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
 	REQUIRE(dns_name_isabsolute(name));
 
 	dns_name_init(&tname, NULL);
-	dns_name_init(&nname, NULL);
 
 	n = dns_name_countlabels(name);
 	count = dns_name_countlabels(prefix);
@@ -191,17 +198,7 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
 		tlength = name_length(&tname);
 		toffset = (isc_uint16_t)(offset + (length - tlength));
 		/*
-		 * Look for the name in the hash bucket.  If it's there,
-		 * we're done.
-		 */
-		for (node = cctx->table[hash]; node != NULL; node = node->next)
-		{
-			dns_name_fromregion(&nname, &node->r);
-			if (dns_name_equal(&nname, &tname))
-				return;
-		}
-		/*
-		 * It's not there.  Create a new node and add it.
+		 * Create a new node and add it.
 		 */
 		if (cctx->count < DNS_COMPRESS_INITIALNODES)
 			node = &cctx->initialnodes[cctx->count];
@@ -214,6 +211,7 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
 		node->count = cctx->count++;
 		node->offset = toffset;
 		dns_name_toregion(&tname, &node->r);
+		node->labels = (isc_uint8_t)dns_name_countlabels(&tname);
 		node->next = cctx->table[hash];
 		cctx->table[hash] = node;
 		start++;

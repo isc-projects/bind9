@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.27 2001/01/09 21:52:23 bwelling Exp $ */
+/* $Id: compress.h,v 1.28 2001/02/09 02:13:07 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -44,6 +44,7 @@ struct dns_compressnode {
 	isc_region_t		r;
 	isc_uint16_t		offset;
 	isc_uint16_t		count;
+	isc_uint8_t		labels;
 	dns_compressnode_t	*next;
 };
 
