@@ -94,12 +94,15 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 	isc_buffer_usedregion(&databuf, &datareg);
 
 	ret = dst_context_create(key, mctx, &ctx);
-	if (ret != ISC_R_SUCCESS) {
-		t_info("dst_context_create(%d) returned (%s)\n",
-		       dst_key_alg(key), dst_result_totext(ret));
+	if (ret != exp_result) {
+		t_info("dst_context_create(%d) returned (%s) expected (%s)\n",
+		       dst_key_alg(key), dst_result_totext(ret),
+		       dst_result_totext(exp_result));
 		++*nfails;
 		return;
 	}
+	if (exp_result != ISC_R_SUCCESS)
+		return;
 	ret = dst_context_adddata(ctx, &datareg);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_context_adddata(%d) returned (%s)\n",
@@ -109,10 +112,9 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 		return;
 	}
 	ret = dst_context_sign(ctx, &sigbuf);
-	if (ret != exp_result) {
-		t_info("dst_context_sign(%d) returned (%s) expected (%s)\n",
-		       dst_key_alg(key), dst_result_totext(ret),
-		       dst_result_totext(exp_result));
+	if (ret != ISC_R_SUCCESS) {
+		t_info("dst_context_sign(%d) returned (%s)\n",
+		       dst_key_alg(key), dst_result_totext(ret));
 		++*nfails;
 		dst_context_destroy(&ctx);
 		return;
@@ -331,13 +333,13 @@ static const char *a1 =
 		"the dst module provides the capability to "
 		"generate, store and retrieve public and private keys, "
 		"sign and verify data using the RSA, DSA and MD5 algorithms, "
-		"compute Diffie-Hellman shared secrets, "
-		"and generate random number sequences.";
+		"and compute Diffie-Hellman shared secrets.";
 static void
 t1(void) {
 	isc_mem_t	*mctx;
 	isc_entropy_t	*ectx;
 	isc_entropysource_t *devrandom;
+	isc_entropysource_t *randfile;
 	int		nfails;
 	int		nprobs;
 	int		result;
@@ -369,8 +371,16 @@ t1(void) {
 	devrandom = NULL;
 	isc_entropy_createfilesource(ectx, "/dev/random", 0,
 			&devrandom);
-	isc_result = dst_lib_init(mctx, ectx,
-				  ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
+	randfile = NULL;
+	result = isc_entropy_createfilesource(ectx, "randomfile", 0,
+					      &randfile);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_entropy_create failed %d\n",
+		       isc_result_totext(isc_result));
+		t_result(T_UNRESOLVED);
+		return;
+	}
+	isc_result = dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_lib_init failed %d\n",
 		       isc_result_totext(isc_result));
@@ -414,12 +424,11 @@ t1(void) {
 	generate(DST_ALG_DH, mctx, 768, &nfails);
 	generate(DST_ALG_HMACMD5, mctx, 512, &nfails);
 
-	t_info("testing random number sequence generation\n");
-
 	dst_lib_destroy();
 
 	if (devrandom != NULL)
 		isc_entropy_destroysource(&devrandom);
+	isc_entropy_destroysource(&randfile);
 	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
@@ -805,6 +814,7 @@ t2_vfy(char **av) {
 	isc_mem_t	*mctx;
 	isc_entropy_t	*ectx;
 	isc_entropysource_t *devrandom;
+	isc_entropysource_t *randfile;
 	isc_result_t	isc_result;
 	int		result;
 
@@ -844,8 +854,15 @@ t2_vfy(char **av) {
 	devrandom = NULL;
 	isc_entropy_createfilesource(ectx, "/dev/random", 0,
 			&devrandom);
-	isc_result = dst_lib_init(mctx, ectx,
-				  ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
+	randfile = NULL;
+	result = isc_entropy_createfilesource(ectx, "randomfile", 0,
+					      &randfile);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_entropy_create failed %d\n",
+		       isc_result_totext(isc_result));
+		return(T_UNRESOLVED);
+	}
+	isc_result = dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_lib_init failed %d\n",
 		       isc_result_totext(isc_result));
@@ -863,6 +880,7 @@ t2_vfy(char **av) {
 
 	if (devrandom != NULL)
 		isc_entropy_destroysource(&devrandom);
+	isc_entropy_destroysource(&randfile);
 	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
