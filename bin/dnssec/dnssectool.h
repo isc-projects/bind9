@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.8 2000/08/01 01:11:27 tale Exp $ */
+/* $Id: dnssectool.h,v 1.9 2000/08/11 23:07:53 bwelling Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
 
 #include <isc/log.h>
+#include <dns/rdatastruct.h>
 
 void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
@@ -39,6 +40,9 @@ typetostr(const dns_rdatatype_t type);
 
 char *
 algtostr(const dns_secalg_t alg);
+
+char *
+sigtostr(dns_rdata_sig_t *sig);
 
 void
 setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);

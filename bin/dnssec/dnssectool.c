@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.15 2000/08/01 01:11:26 tale Exp $ */
+/* $Id: dnssectool.c,v 1.16 2000/08/11 23:07:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 
 #include <dns/log.h>
 #include <dns/name.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
@@ -80,7 +81,7 @@ nametostr(dns_name_t *name) {
 	isc_buffer_t b;
 	isc_region_t r;
 	isc_result_t result;
-	static char data[1025];
+	static char data[DNS_NAME_MAXTEXT];
 
 	isc_buffer_init(&b, data, sizeof(data));
 	result = dns_name_totext(name, ISC_FALSE, &b);
@@ -118,6 +119,29 @@ algtostr(const dns_secalg_t alg) {
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return ((char *)r.base);
+}
+
+char *
+sigtostr(dns_rdata_sig_t *sig) {
+	isc_buffer_t b;
+	isc_result_t result;
+	static char data[DNS_NAME_MAXTEXT + 30];
+	char number[sizeof("65536") + 1];
+
+	isc_buffer_init(&b, data, sizeof(data));
+
+	result = dns_name_totext(&sig->signer, ISC_FALSE, &b);
+	check_result(result, "dns_name_totext()");
+	isc_buffer_putstr(&b, "/");
+
+	result = dns_secalg_totext(sig->algorithm, &b);
+	check_result(result, "dns_secalg_totext()");
+	isc_buffer_putstr(&b, "/");
+
+	sprintf(number, "%d", sig->keyid);
+	isc_buffer_putstr(&b, number);
+
+	return (data);
 }
 
 void
