@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.102 2001/10/24 21:47:12 marka Exp $ */
+/* $Id: message.h,v 1.103 2001/12/05 03:05:30 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -215,14 +215,14 @@ struct dns_message {
 
 	dns_rcode_t			tsigstatus;
 	dns_rcode_t			querytsigstatus;
-	dns_name_t		       *tsigname;
+	dns_name_t		       *tsigname; /* Owner name of TSIG, if any */
 	dns_rdataset_t		       *querytsig;
 	dns_tsigkey_t		       *tsigkey;
 	dst_context_t		       *tsigctx;
 	int				sigstart;
 	int				timeadjust;
 
-	dns_name_t		       *sig0name;
+	dns_name_t		       *sig0name; /* Owner name of SIG0, if any */
 	dst_key_t		       *sig0key;
 	dns_rcode_t			sig0status;
 	isc_region_t			query;
