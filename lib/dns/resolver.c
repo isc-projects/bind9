@@ -31,6 +31,7 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/ncache.h>
 #include <dns/dispatch.h>
 #include <dns/resolver.h>
 #include <dns/rdata.h>
@@ -1192,6 +1193,102 @@ cache_message(fetchctx_t *fctx) {
 	return (result);
 }
 
+static inline isc_result_t
+ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers) {
+	isc_result_t result, eresult;
+	dns_name_t *name;
+	dns_resolver_t *res;
+	dns_db_t **adbp;
+	dns_dbnode_t *node, **anodep;
+	dns_rdataset_t *ardataset;
+	isc_boolean_t need_validation;
+	dns_fixedname_t foundname;
+	dns_name_t *fname, *aname;
+	dns_fetchevent_t *event;
+	void *data;
+	isc_stdtime_t now;
+
+	result = isc_stdtime_get(&now);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	res = fctx->res;
+	need_validation = ISC_FALSE;
+	eresult = ISC_R_SUCCESS;
+	name = &fctx->name;
+
+	/*
+	 * Is DNSSEC validation required for this name?
+	 */
+	dns_fixedname_init(&foundname);
+	fname = dns_fixedname_name(&foundname);
+	data = NULL;
+	result = dns_rbt_findname(res->view->secroots, name, fname, &data);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		/*
+		 * This name is at or below one of the view's security roots,
+		 * so DNSSEC validation is required.
+		 */
+		need_validation = ISC_TRUE;
+	} else if (result != ISC_R_NOTFOUND) {
+		/*
+		 * Something bad happened.
+		 */
+		return (result);
+	}
+
+	LOCK(&res->buckets[fctx->bucketnum].lock);
+
+	adbp = NULL;
+	aname = NULL;
+	anodep = NULL;
+	ardataset = NULL;
+	event = ISC_LIST_HEAD(fctx->events);
+	if (event != NULL) {
+		adbp = &event->db;
+		aname = dns_fixedname_name(&event->foundname);
+		result = dns_name_concatenate(name, NULL, aname, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto unlock;
+		anodep = &event->node;
+		ardataset = event->rdataset;
+	}
+
+	node = NULL;
+	result = dns_db_findnode(res->view->cachedb, name, ISC_TRUE,
+				 &node);
+	if (result != ISC_R_SUCCESS)
+		goto unlock;
+	result = dns_ncache_add(fctx->rmessage, res->view->cachedb, node,
+				covers, now, ardataset);
+	if (result == DNS_R_UNCHANGED) {
+		INSIST(0);
+	} else if (result == ISC_R_SUCCESS) {
+		if (covers == dns_rdatatype_any)
+			eresult = DNS_R_NCACHENXDOMAIN;
+		else
+			eresult = DNS_R_NCACHENXRRSET;
+	} else
+		goto unlock;
+
+	fctx->have_answer = ISC_TRUE;
+	if (event != NULL) {
+		event->result = eresult;
+		dns_db_attach(res->view->cachedb, adbp);
+		*anodep = node;
+		node = NULL;
+		clone_results(fctx);
+	}
+
+ unlock:
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+
+	if (node != NULL)
+		dns_db_detachnode(res->view->cachedb, &node);
+
+	return (result);
+}
+
 static inline void
 mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 	     isc_boolean_t external)
@@ -1467,7 +1564,7 @@ noanswer_response(fetchctx_t *fctx) {
 
 	message = fctx->rmessage;
 	negative_response = ISC_FALSE;
-
+	
 	/*
 	 * We have to figure out if this is a negative response, or a
 	 * referral.  We start by examining the rcode.
@@ -1644,6 +1741,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t keep_trying, broken_server, get_nameservers;
 	dns_message_t *message;
 	fetchctx_t *fctx;
+	dns_rdatatype_t covers;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -1656,6 +1754,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	keep_trying = ISC_FALSE;
 	broken_server = ISC_FALSE;
 	get_nameservers = ISC_FALSE;
+	covers = 0;
 
 	LOCK(&fctx->res->lock);
 	INSIST(fctx->state == fetchstate_active);
@@ -1752,7 +1851,21 @@ query_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			get_nameservers = ISC_TRUE;
 			keep_trying = ISC_TRUE;
-		} else if (result != ISC_R_SUCCESS) {
+		} else if (result == ISC_R_SUCCESS) {
+			/*
+			 * We have a negative response.
+			 */
+			if (message->rcode == dns_rcode_nxdomain)
+				covers = dns_rdatatype_any;
+			else
+				covers = fctx->type;
+			result = ncache_message(fctx, covers);
+			if (result != ISC_R_SUCCESS)
+				goto done;
+		} else {
+			/*
+			 * Something has gone wrong.
+			 */
 			if (result == DNS_R_FORMERR)
 				broken_server = ISC_TRUE;
 			keep_trying = ISC_TRUE;
