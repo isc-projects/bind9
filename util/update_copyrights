@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.30 2004/03/05 11:13:47 marka Exp $
+# $Id: update_copyrights,v 1.31 2004/03/05 12:39:24 marka Exp $
 
 require 5.002;
 
@@ -37,7 +37,7 @@ my %owner2filename = (
 
 my %owner2text = ();
 
-my $keyword_pat = '\$(Id|Revision):.*\$';
+my $keyword_pat = '\$(Id:.*|Revision:.*|Id|Revision)\$';
 
 foreach $owner (keys %owner2filename) {
         my $f = $owner2filename{$owner};
@@ -358,7 +358,7 @@ while (<>) {
                 }
 
                 if ($first !~ /$keyword_pat/ && $_ !~ /$keyword_pat/) {
-			$end = "\n$start" if ($type eq "MAN");
+			$end = "\n$nonspaceprefix" if ($type eq "MAN");
                         print TARGET "$start\$";
                         print TARGET "Id";
                         print TARGET "\$$end\n";
