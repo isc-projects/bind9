@@ -1,3 +1,5 @@
+ 757.	[func]		Log zone transfers.
+
  756.	[bug]		dns_zone_load() could "return" success when no master
 			file was configured.
 

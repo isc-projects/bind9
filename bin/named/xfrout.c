@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.94 2001/02/22 19:15:00 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.95 2001/02/26 03:52:30 marka Exp $ */
 
 #include <config.h>
 
+#include <isc/formatcheck.h>
 #include <isc/mem.h>
 #include <isc/timer.h>
 #include <isc/print.h>
@@ -30,6 +31,7 @@
 #include <dns/journal.h>
 #include <dns/message.h>
 #include <dns/peer.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
@@ -782,6 +784,7 @@ typedef struct {
 	unsigned int 		id;		/* ID of request */
 	dns_name_t		*qname;		/* Question name of request */
 	dns_rdatatype_t		qtype;		/* dns_rdatatype_{a,i}xfr */
+	dns_rdataclass_t	qclass;
 	dns_db_t 		*db;
 	dns_dbversion_t 	*ver;
 	isc_quota_t		*quota;
@@ -804,6 +807,7 @@ typedef struct {
 static isc_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  unsigned int id, dns_name_t *qname, dns_rdatatype_t qtype,
+		  dns_rdataclass_t qclass,
 		  dns_db_t *db, dns_dbversion_t *ver, isc_quota_t *quota,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
 		  isc_buffer_t *lasttsig,
@@ -831,11 +835,13 @@ static void
 xfrout_client_shutdown(void *arg, isc_result_t result);
 
 static void
-xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level,
-	    const char *fmt, ...);
+xfrout_log1(ns_client_t *client, dns_name_t *zonename,
+	    dns_rdataclass_t rdclass, int level,
+	    const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
 
 static void
-xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...);
+xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...)
+	   ISC_FORMAT_PRINTF(3, 4);
 
 /**************************************************************************/
 
@@ -928,7 +934,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &ver);
 
-	xfrout_log1(client, question_name, ISC_LOG_DEBUG(6),
+	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
 		    "%s question section OK", mnemonic);
 
 	/*
@@ -976,7 +982,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	if (result != ISC_R_NOMORE)
 		CHECK(result);
 
-	xfrout_log1(client, question_name, ISC_LOG_DEBUG(6),
+	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
 		    "%s authority section OK", mnemonic);
 
 	/*
@@ -1060,7 +1066,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			result = ISC_R_NOTFOUND;
 		if (result == ISC_R_NOTFOUND ||
 		    result == ISC_R_RANGE) {
-			xfrout_log1(client, question_name, ISC_LOG_DEBUG(4),
+			xfrout_log1(client, question_name, question_class,
+				    ISC_LOG_DEBUG(4),
 				    "IXFR version not in journal, "
 				    "falling back to AXFR");
 			goto axfr_fallback;
@@ -1088,8 +1095,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 * of "stream", "db", "ver", and "quota" to the xfrout context object.
 	 */
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
-				reqtype, db, ver, quota, stream,
-				dns_message_gettsigkey(request),
+				reqtype, question_class, db, ver, quota,
+				stream, dns_message_gettsigkey(request),
 				tsigbuf,
 				dns_zone_getmaxxfrout(zone),
 				dns_zone_getidleout(zone),
@@ -1110,6 +1117,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 */
 	sendstream(xfr);
 	xfr = NULL;
+	xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
+		    "%s started", mnemonic);
 
 	result = ISC_R_SUCCESS;
 
@@ -1144,6 +1153,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 static isc_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
+		  dns_rdataclass_t qclass,
 		  dns_db_t *db, dns_dbversion_t *ver, isc_quota_t *quota,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
 		  isc_buffer_t *lasttsig, unsigned int maxtime,
@@ -1165,6 +1175,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->id = id;
 	xfr->qname = qname;
 	xfr->qtype = qtype;
+	xfr->qclass = qclass;
 	xfr->db = db;
 	xfr->ver = ver;
 	xfr->quota = quota;
@@ -1594,29 +1605,31 @@ xfrout_client_shutdown(void *arg, isc_result_t result) {
  * <client>: transfer of <zone>: <message>
  */
 static void
-xfrout_logv(ns_client_t *client, dns_name_t *zonename, int level,
-	    const char *fmt, va_list ap)
+xfrout_logv(ns_client_t *client, dns_name_t *zonename,
+	    dns_rdataclass_t rdclass, int level, const char *fmt, va_list ap)
 {
 	char msgbuf[2048];
 	char namebuf[DNS_NAME_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 
 	dns_name_format(zonename, namebuf, sizeof(namebuf));
+	dns_rdataclass_format(rdclass, classbuf, sizeof(classbuf));
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,
 		      NS_LOGMODULE_XFER_OUT, level,
-		      "transfer of '%s': %s", namebuf, msgbuf);
+		      "transfer of '%s/%s': %s", namebuf, classbuf, msgbuf);
 }
 
 /*
  * Logging function for use when a xfrout_ctx_t has not yet been created.
  */
 static void
-xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level,
-	    const char *fmt, ...)
+xfrout_log1(ns_client_t *client, dns_name_t *zonename,
+	    dns_rdataclass_t rdclass, int level, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	xfrout_logv(client, zonename, level, fmt, ap);
+	xfrout_logv(client, zonename, rdclass, level, fmt, ap);
 	va_end(ap);
 }
 
@@ -1627,6 +1640,6 @@ static void
 xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	xfrout_logv(xfr->client, xfr->qname, level, fmt, ap);
+	xfrout_logv(xfr->client, xfr->qname, xfr->qclass, level, fmt, ap);
 	va_end(ap);
 }
