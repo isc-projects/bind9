@@ -185,6 +185,10 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 	source->char_count = 0;
 	source->input = input;
 	source->name = isc_mem_strdup(lex->mctx, name);
+	if (source->name == NULL) {
+		isc_mem_put(lex->mctx, source, sizeof *source);
+		return (ISC_R_NOMEMORY);
+	}
 	source->line = 1;
 	PREPEND(lex->sources, source, link);
 
