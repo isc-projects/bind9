@@ -1,3 +1,7 @@
+1032.	[func]		hostname.bind/txt/chaos now returns the name of
+			the machine hosting the nameserver.  This is useful
+			in diagnosing problems with anycast servers.
+
 1025.	[bug]		Don't use multicast addresses to resolve iterative
 			queries. [RT #101]
 
