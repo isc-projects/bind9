@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.26 2000/04/27 00:02:28 tale Exp $ */
+/* $Id: md_3.c,v 1.27 2000/04/27 23:57:55 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
@@ -144,6 +144,7 @@ fromstruct_md(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_md(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 

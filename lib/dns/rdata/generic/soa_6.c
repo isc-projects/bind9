@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.33 2000/04/27 00:02:39 tale Exp $ */
+/* $Id: soa_6.c,v 1.34 2000/04/27 23:57:56 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -334,6 +334,7 @@ static inline isc_result_t
 additionaldata_soa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

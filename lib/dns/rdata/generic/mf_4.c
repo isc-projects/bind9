@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.24 2000/04/27 00:02:29 tale Exp $ */
+/* $Id: mf_4.c,v 1.25 2000/04/27 23:57:55 gson Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -152,6 +152,7 @@ tostruct_mf(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 4);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 

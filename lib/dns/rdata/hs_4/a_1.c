@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.8 2000/04/27 00:02:45 tale Exp $ */
+/* $Id: a_1.c,v 1.9 2000/04/27 23:57:56 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -179,6 +179,8 @@ tostruct_hs_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 static inline void
 freestruct_hs_a(void *source)
 {
+	UNUSED(source);
+
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 
