@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000  Internet Software Consortium.
+# Copyright (C) 2000  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
