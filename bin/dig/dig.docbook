@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.3 2003/02/07 02:39:00 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.4 2003/02/25 22:41:58 marka Exp $ -->
 
 <refentry>
 
@@ -470,7 +470,7 @@ The default is to not display malformed answers.
 <varlistentry><term><option>+[no]dnssec</option></term>
 <listitem><para>
 Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
-in the the OPT record in the additional section of the query.
+in the OPT record in the additional section of the query.
 </para>
 
 </variablelist>
