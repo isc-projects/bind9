@@ -15,6 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.1 2000/09/08 05:48:06 marka Exp $
+# $Id: setup.sh,v 1.2 2000/09/13 01:24:05 marka Exp $
 
 cp ns1/example.orig ns1/example.db
+rm -f ns1/example.db.jnl ns2/example.bk ns2/example.bk.jnl
