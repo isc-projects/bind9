@@ -128,6 +128,7 @@ dns_c_zonelist_new(isc_mem_t *mem, dns_c_zonelist_t **zlist)
 	}
 
 	list->mem = mem;
+	list->magic = DNS_C_ZONELIST_MAGIC;
 
 	ISC_LIST_INIT(list->zones);
 
@@ -159,7 +160,7 @@ dns_c_zonelist_delete(dns_c_zonelist_t **zlist)
 		zone = zoneelem->thezone;
 		isc_mem_put(list->mem, zoneelem, sizeof *zoneelem);
 		
-		res = zone_delete(&zone);
+		res = dns_c_zone_detach(&zone);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -167,6 +168,7 @@ dns_c_zonelist_delete(dns_c_zonelist_t **zlist)
 		zoneelem = tmpelem;
 	}
 
+	list->magic = 0;
 	isc_mem_put(list->mem, list, sizeof *list);
 
 	return (ISC_R_SUCCESS);
@@ -178,8 +180,8 @@ dns_c_zonelist_addzone(dns_c_zonelist_t *zlist,
 {
 	dns_c_zonelem_t *zoneelem;
 
-	REQUIRE(zlist != NULL);
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(zone->refcount > 0);
 
 	zoneelem = isc_mem_get(zlist->mem, sizeof *zoneelem);
@@ -196,24 +198,6 @@ dns_c_zonelist_addzone(dns_c_zonelist_t *zlist,
 }
 	
 	
-#if 0					/* XXXJAB drop this function */
-dns_c_zone_t *
-dns_c_zonelist_currzone(dns_c_zonelist_t *zlist)
-{
-	dns_c_zonelem_t *zelem;
-	
-	REQUIRE(zlist != NULL);
-	REQUIRE(!ISC_LIST_EMPTY(zlist->zones));
-
-	zelem = ISC_LIST_TAIL(zlist->zones);
-
-	INSIST(zelem->thezone != NULL);
-	
-	return (zelem->thezone);
-}
-#endif
-
-	
 
 isc_result_t
 dns_c_zonelist_find(dns_c_zonelist_t *zlist, const char *name,
@@ -221,7 +205,7 @@ dns_c_zonelist_find(dns_c_zonelist_t *zlist, const char *name,
 {
 	dns_c_zonelem_t *zoneelem;
 
-	REQUIRE(zlist != NULL);
+	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
 	REQUIRE(name != NULL);
 	REQUIRE(strlen(name) > 0);
 	REQUIRE(retval != NULL);
@@ -250,8 +234,9 @@ dns_c_zonelist_rmbyname(dns_c_zonelist_t *zlist,
 	dns_c_zonelem_t *zoneelem;
 	isc_result_t res;
 
-	REQUIRE(zlist != NULL);
+	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
 	REQUIRE(name != NULL);
+	REQUIRE(strlen(name) > 0);
 
 	zoneelem = ISC_LIST_HEAD(zlist->zones);
 	while (zoneelem != NULL) {
@@ -309,6 +294,7 @@ void
 dns_c_zonelist_print(FILE *fp, int indent,
 		     dns_c_zonelist_t *list)
 {
+	REQUIRE(DNS_C_ZONELIST_VALID(list));
 	zone_list_print(zones_all, fp, indent, list);
 }
 
@@ -317,6 +303,7 @@ void
 dns_c_zonelist_printpreopts(FILE *fp, int indent,
 			    dns_c_zonelist_t *list)
 {
+	REQUIRE(DNS_C_ZONELIST_VALID(list));
 	zone_list_print(zones_preopts, fp, indent, list);
 }
 
@@ -325,6 +312,7 @@ void
 dns_c_zonelist_printpostopts(FILE *fp, int indent,
 			     dns_c_zonelist_t *list)
 {
+	REQUIRE(DNS_C_ZONELIST_VALID(list));
 	zone_list_print(zones_postopts, fp, indent, list);
 }
 
@@ -388,6 +376,7 @@ dns_c_zone_new(isc_mem_t *mem,
 		return (ISC_R_NOMEMORY);
 	}
 
+	newzone->magic = DNS_C_ZONE_MAGIC;
 	newzone->mem = mem;
 	newzone->refcount = 1;
 	newzone->ztype = ztype;
@@ -433,7 +422,7 @@ dns_c_zone_detach(dns_c_zone_t **zone)
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(zone != NULL);
-	REQUIRE(*zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(*zone));
 
 	zoneptr = *zone;
 	*zone = NULL;
@@ -453,7 +442,7 @@ void
 dns_c_zone_attach(dns_c_zone_t *source,
 		  dns_c_zone_t **target)
 {
-	REQUIRE(source != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(source));
 	REQUIRE(target != NULL);
 
 	source->refcount++;
@@ -467,10 +456,7 @@ void
 dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone)
 {
 	REQUIRE(fp != NULL);
-
-	if(zone == NULL) {
-		return;
-	}
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "zone \"%s\"", zone->name);
@@ -524,7 +510,9 @@ dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile)
 	char **p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(newfile != NULL);
+	REQUIRE(strlen(newfile) > 0);
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -575,7 +563,7 @@ dns_c_zone_setchecknames(dns_c_zone_t *zone,
 	int bit = 0;
 	isc_result_t res;
 
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -631,8 +619,8 @@ dns_c_zone_setallowupd(dns_c_zone_t *zone,
 	isc_result_t res;
 	isc_boolean_t existed;
 	
-	REQUIRE(zone != NULL);
-	REQUIRE(ipml != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -682,8 +670,8 @@ dns_c_zone_setallowquery(dns_c_zone_t *zone,
 	isc_boolean_t existed;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
-	REQUIRE(ipml != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -733,8 +721,8 @@ dns_c_zone_setallowtransfer(dns_c_zone_t *zone,
 	isc_boolean_t existed;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
-	REQUIRE(ipml != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -781,7 +769,7 @@ dns_c_zone_setdialup(dns_c_zone_t *zone, isc_boolean_t newval)
 {
 	isc_boolean_t existed = ISC_FALSE;
 
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -827,7 +815,7 @@ dns_c_zone_setnotify(dns_c_zone_t *zone, isc_boolean_t newval)
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -873,7 +861,7 @@ dns_c_zone_setmaintixfrbase(dns_c_zone_t *zone,
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -925,6 +913,9 @@ dns_c_zone_setalsonotify(dns_c_zone_t *zone,
 	isc_result_t res;
 	dns_c_iplist_t **p = NULL;
 
+	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_IPLIST_VALID(newval));
+	
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		p = &zone->u.mzone.also_notify ;
@@ -969,7 +960,9 @@ dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval)
 	isc_boolean_t existed ;
 	char **p = NULL;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(newval != NULL);
+	REQUIRE(strlen(newval) > 0);
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1018,10 +1011,12 @@ dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval)
 isc_result_t
 dns_c_zone_setixfrtmp(dns_c_zone_t *zone, const char *newval)
 {
-  isc_boolean_t existed;
+	isc_boolean_t existed;
 	char **p = NULL;
-	
-	REQUIRE(zone != NULL);
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(newval != NULL);
+	REQUIRE(strlen(newval) > 0);
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1075,6 +1070,9 @@ dns_c_zone_addpubkey(dns_c_zone_t *zone,
 	dns_c_pklist_t **p = NULL;
 	isc_result_t res;
 	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(DNS_C_PUBKEY_VALID(pubkey));
+
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		p = &zone->u.mzone.pubkeylist;
@@ -1123,7 +1121,7 @@ dns_c_zone_setmasterport(dns_c_zone_t *zone, in_port_t port)
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch(zone->ztype) {
 	case dns_c_zone_master:
@@ -1174,6 +1172,9 @@ dns_c_zone_setmasterips(dns_c_zone_t *zone,
 	isc_result_t res = ISC_R_SUCCESS;
 	dns_c_iplist_t **p;
 
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(DNS_C_IPLIST_VALID(newval));
+	
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
@@ -1220,7 +1221,7 @@ dns_c_zone_settransfersource(dns_c_zone_t *zone,
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1267,7 +1268,7 @@ dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1321,7 +1322,7 @@ dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
 	int bit = 0;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1374,7 +1375,7 @@ dns_c_zone_setforward(dns_c_zone_t *zone, dns_c_forw_t newval)
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 		
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1425,8 +1426,8 @@ dns_c_zone_setforwarders(dns_c_zone_t *zone,
 	isc_result_t res;
 	dns_c_iplist_t **p = NULL;
 	
-	REQUIRE(zone != NULL);
-	REQUIRE(ipl != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(DNS_C_IPLIST_VALID(ipl));
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
@@ -1468,7 +1469,7 @@ dns_c_zone_setforwarders(dns_c_zone_t *zone,
 isc_result_t
 dns_c_zone_getname(dns_c_zone_t *zone, const char **retval)
 {
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	*retval = zone->name;
@@ -1481,7 +1482,7 @@ isc_result_t
 dns_c_zone_getinternalname(dns_c_zone_t *zone,
 			   const char **retval)
 {
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	*retval = zone->internalname;
@@ -1496,7 +1497,7 @@ dns_c_zone_getfile(dns_c_zone_t *zone, const char **retval)
 	const char *p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1543,7 +1544,7 @@ dns_c_zone_getchecknames(dns_c_zone_t *zone,
 	int bit = 0;
 	isc_result_t res;
 
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1596,7 +1597,7 @@ dns_c_zone_getallowupd(dns_c_zone_t *zone,
 	dns_c_ipmatchlist_t *p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1644,7 +1645,7 @@ dns_c_zone_getallowquery(dns_c_zone_t *zone,
 	dns_c_ipmatchlist_t *p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1692,7 +1693,7 @@ dns_c_zone_getallowtransfer(dns_c_zone_t *zone,
 	dns_c_ipmatchlist_t *p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1740,7 +1741,7 @@ dns_c_zone_getdialup(dns_c_zone_t *zone,
 {
 	isc_result_t res = ISC_R_SUCCESS;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1797,7 +1798,7 @@ dns_c_zone_getnotify(dns_c_zone_t *zone,
 	isc_boolean_t val = ISC_FALSE;
 	int bit = 0;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1852,7 +1853,7 @@ dns_c_zone_getmaintixfrbase(dns_c_zone_t *zone,
 	isc_boolean_t val = ISC_FALSE;
 	int bit = 0;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -1905,7 +1906,7 @@ dns_c_zone_getalsonotify(dns_c_zone_t *zone,
 	dns_c_iplist_t *p = NULL;
 	isc_result_t res;
 
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 	
 	switch (zone->ztype) {
@@ -1954,7 +1955,7 @@ dns_c_zone_getixfrbase(dns_c_zone_t *zone,
 	char *p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2002,7 +2003,7 @@ dns_c_zone_getixfrtmp(dns_c_zone_t *zone, const char **retval)
 	char *p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2051,7 +2052,7 @@ dns_c_zone_getpubkeylist(dns_c_zone_t *zone,
 	dns_c_pklist_t *p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2101,7 +2102,7 @@ dns_c_zone_getmasterport(dns_c_zone_t *zone,
 {
 	isc_result_t res = ISC_R_SUCCESS;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch(zone->ztype) {
@@ -2156,6 +2157,9 @@ dns_c_zone_getmasterips(dns_c_zone_t *zone,
 {
 	isc_result_t res = ISC_R_SUCCESS;
 
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+	
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
@@ -2204,7 +2208,7 @@ dns_c_zone_gettransfersource(dns_c_zone_t *zone,
 {
 	isc_result_t res = ISC_R_SUCCESS;
 
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2260,7 +2264,7 @@ dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
 {
 	isc_result_t res = ISC_R_SUCCESS;
 
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2320,7 +2324,7 @@ dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone,
 	isc_int32_t *ptr = NULL;
 	
 
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2373,7 +2377,7 @@ dns_c_zone_getforward(dns_c_zone_t *zone,
 {
 	isc_result_t res = ISC_R_SUCCESS;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2430,7 +2434,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone,
 {
 	isc_result_t res = ISC_R_SUCCESS;
 	
-	REQUIRE(zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
 	switch (zone->ztype) {
@@ -2493,6 +2497,8 @@ static void
 master_zone_print(FILE *fp, int indent,
 		  dns_c_masterzone_t *mzone)
 {
+	REQUIRE(mzone != NULL);
+	
 	if (mzone->file != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "file \"%s\";\n", mzone->file);
@@ -2584,6 +2590,8 @@ static void
 slave_zone_print(FILE *fp, int indent,
 		 dns_c_slavezone_t *szone)
 {
+	REQUIRE(szone != NULL);
+	
 	if (szone->file != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "file \"%s\";\n", szone->file);
@@ -2696,6 +2704,8 @@ slave_zone_print(FILE *fp, int indent,
 static void
 stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 {
+	REQUIRE(tzone != NULL);
+	
 	if (tzone->file != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "file \"%s\";\n", tzone->file);
@@ -2786,6 +2796,8 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 static void
 hint_zone_print(FILE *fp, int indent, dns_c_hintzone_t *hzone)
 {
+	REQUIRE(hzone != NULL);
+	
 	if (hzone->file != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "file \"%s\";\n", hzone->file);
@@ -2809,6 +2821,8 @@ static void
 forward_zone_print(FILE *fp, int indent,
 		   dns_c_forwardzone_t *fzone)
 {
+	REQUIRE(fzone != NULL);
+	
 	if (DNS_C_CHECKBIT(FZ_CHECK_NAME_BIT, &fzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "check-names %s;\n",
@@ -2834,6 +2848,8 @@ forward_zone_print(FILE *fp, int indent,
 static isc_result_t
 master_zone_init(dns_c_masterzone_t *mzone)
 {
+	REQUIRE(mzone != NULL);
+	
 	mzone->file = NULL;
 	mzone->allow_update = NULL;
 	mzone->allow_query = NULL;
@@ -2853,6 +2869,8 @@ master_zone_init(dns_c_masterzone_t *mzone)
 static isc_result_t
 slave_zone_init(dns_c_slavezone_t *szone)
 {
+	REQUIRE(szone != NULL);
+
 	szone->file = NULL;
 	szone->ixfr_base = NULL;
 	szone->ixfr_tmp = NULL;
@@ -2873,6 +2891,8 @@ slave_zone_init(dns_c_slavezone_t *szone)
 static isc_result_t
 stub_zone_init(dns_c_stubzone_t *tzone)
 {
+	REQUIRE(tzone != NULL);
+
 	tzone->file = NULL;
 	tzone->master_ips = NULL;
 	tzone->allow_update = NULL;
@@ -2890,6 +2910,8 @@ stub_zone_init(dns_c_stubzone_t *tzone)
 static isc_result_t
 hint_zone_init(dns_c_hintzone_t *hzone)
 {
+	REQUIRE(hzone != NULL);
+
 	hzone->file = NULL;
 	hzone->pubkeylist = NULL;
 	memset(&hzone->setflags, 0x0, sizeof (hzone->setflags));
@@ -2901,6 +2923,8 @@ hint_zone_init(dns_c_hintzone_t *hzone)
 static isc_result_t
 forward_zone_init(dns_c_forwardzone_t *fzone)
 {
+	REQUIRE(fzone != NULL);
+
 	fzone->forwarders = NULL;
 	memset(&fzone->setflags, 0x0, sizeof (fzone->setflags));
 
@@ -2915,7 +2939,7 @@ zone_delete(dns_c_zone_t **zone)
 	isc_result_t res = ISC_R_SUCCESS;
 	
 	REQUIRE(zone != NULL);
-	REQUIRE(*zone != NULL);
+	REQUIRE(DNS_C_ZONE_VALID(*zone));
 
 	z = *zone;
 
@@ -2944,6 +2968,7 @@ zone_delete(dns_c_zone_t **zone)
 		break;
 	}
 
+	z->magic = 0;
 	isc_mem_put(z->mem, z, sizeof *z);
 
 	return (res);
@@ -2953,6 +2978,8 @@ zone_delete(dns_c_zone_t **zone)
 static isc_result_t
 master_zone_clear(isc_mem_t *mem, dns_c_masterzone_t *mzone)
 {
+	REQUIRE(mzone != NULL);
+	
 	if (mzone == NULL) {
 		return (ISC_R_SUCCESS);
 	}
@@ -2994,6 +3021,8 @@ master_zone_clear(isc_mem_t *mem, dns_c_masterzone_t *mzone)
 static isc_result_t
 slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone)
 {
+	REQUIRE(szone != NULL);
+	
 	if (szone == NULL) {
 		return (ISC_R_SUCCESS);
 	}
@@ -3039,6 +3068,8 @@ slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone)
 static isc_result_t
 stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
 {
+	REQUIRE(tzone != NULL);
+	
 	if (tzone == NULL) {
 		return (ISC_R_SUCCESS);
 	}
@@ -3069,6 +3100,8 @@ stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
 static isc_result_t
 forward_zone_clear(isc_mem_t *mem, dns_c_forwardzone_t *fzone)
 {
+	REQUIRE(fzone != NULL);
+	
 	if (fzone == NULL) {
 		return (ISC_R_SUCCESS);
 	}
@@ -3085,6 +3118,8 @@ forward_zone_clear(isc_mem_t *mem, dns_c_forwardzone_t *fzone)
 static isc_result_t
 hint_zone_clear(isc_mem_t *mem, dns_c_hintzone_t *hzone)
 {
+	REQUIRE(hzone != NULL);
+	
 	if (hzone == NULL) {
 		return (ISC_R_SUCCESS);
 	}

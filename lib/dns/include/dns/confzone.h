@@ -69,6 +69,13 @@
 #include <dns/confip.h>
 #include <dns/confkeys.h>
 
+#define DNS_C_ZONELIST_MAGIC		0x5a4c5354 /* ZLST */
+#define DNS_C_ZONE_MAGIC		0x7a4f6e45 /* zOnE */
+
+#define DNS_C_ZONELIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_ZONELIST_MAGIC)
+#define DNS_C_ZONE_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_ZONE_MAGIC)
+
+
 /***
  *** Types
  ***/
@@ -91,6 +98,7 @@ struct dns_c_zonelem
 
 struct dns_c_zone_list
 {
+	isc_int32_t 		magic;
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_zonelem_t)	zones;
@@ -191,6 +199,8 @@ struct dns_c_hint_zone
 
 struct dns_c_zone
 {
+	isc_int32_t			magic;
+	
 	isc_mem_t		       *mem;
 	isc_uint8_t			refcount;
 	

@@ -213,7 +213,8 @@ dns_c_ctx_delete(dns_c_ctx_t **cfg)
 	
 	if (c->views != NULL)
 		dns_c_viewtable_delete(&c->views);
-	
+
+	c->magic = 0;
 	isc_mem_put(c->mem, c, sizeof *c);
 	*cfg = NULL;
 	

@@ -68,9 +68,11 @@ dns_c_lstnon_delete(dns_c_lstnon_t **listen)
 
 	if (lo->iml != NULL) {
 		r = dns_c_ipmatchlist_detach(&lo->iml);
-	} else
+	} else {
 		r = ISC_R_SUCCESS;
+	}
 
+	lo->magic = 0;
 	isc_mem_put(lo->mem, lo, sizeof *lo);
 
 	*listen = NULL;

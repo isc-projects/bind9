@@ -101,6 +101,7 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
 		ctrl = tmpctrl;
 	}
 
+	clist->magic = 0;
 	isc_mem_put(clist->mem, clist, sizeof *clist);
 
 	*list = NULL;

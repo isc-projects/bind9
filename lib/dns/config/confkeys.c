@@ -805,6 +805,7 @@ dns_c_pubkey_delete(dns_c_pubkey_t **pubkey)
 		isc_mem_free(pkey->mem, pkey->key);
 	}
 
+	pkey->magic = 0;
 	isc_mem_put(pkey->mem, pkey, sizeof *pkey);
 
 	return (ISC_R_SUCCESS);

@@ -119,6 +119,7 @@ dns_c_ipmatchelement_delete(isc_mem_t *mem, dns_c_ipmatchelement_t **ipme)
 		return (ISC_R_FAILURE);
 	}
 
+	elem->magic = 0;
 	isc_mem_put(mem, elem, sizeof *elem);
 
 	*ipme = NULL;
