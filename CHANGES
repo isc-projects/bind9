@@ -67,9 +67,9 @@
 			standard view (_default or _bind).
 
 1212.	[port]		libbind: 64k answer buffers were causing stack space
-			to be exceeded for certian OS.  Use heap space instead.
+			to be exceeded for certain OS.  Use heap space instead.
 
-1211.	[bug]		dns_name_fromtext() incorrectly handled certian
+1211.	[bug]		dns_name_fromtext() incorrectly handled certain
 			valid octal bitlabels. [RT #2483]
 
 1210.	[bug]		libbind: getnameinfo() failed to lookup IPv4 mapped /
