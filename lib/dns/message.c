@@ -1918,7 +1918,8 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 
 	if (!msg->header_ok)
 		return (DNS_R_FORMERR);
-	if (msg->opcode != dns_opcode_query)
+	if (msg->opcode != dns_opcode_query &&
+	    msg->opcode != dns_opcode_notify)
 		want_question_section = ISC_FALSE;
 	if (want_question_section) {
 		if (!msg->question_ok)

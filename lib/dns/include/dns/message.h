@@ -771,11 +771,11 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  * Ensures:
  *
  *	The message will have a rendering intent.  If 'want_question_section'
- *	is true, the message opcode is query, and the question section is
- *	present and properly formatted, then the question section will be
- *	included in the reply.  All other sections will be cleared.  The QR
- *	flag will be set, the RD flag will be preserved, and all other flags
- *	will be cleared.
+ *	is true, the message opcode is query or notify, and the question
+ *	section is present and properly formatted, then the question section
+ *	will be included in the reply.  All other sections will be cleared.
+ *	The QR flag will be set, the RD flag will be preserved, and all other
+ *	flags will be cleared.
  *
  * Returns:
  *
