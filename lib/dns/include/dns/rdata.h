@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.55 2002/06/17 04:01:31 marka Exp $ */
+/* $Id: rdata.h,v 1.56 2003/07/30 00:54:27 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -468,10 +468,6 @@ dns_rdatatype_ismeta(dns_rdatatype_t type);
 /*
  * Return true iff the rdata type 'type' is a meta-type
  * like ANY or AXFR.
- *
- * Requires:
- * 	'type' is a valid rdata type.
- *
  */
 
 isc_boolean_t
@@ -490,10 +486,6 @@ dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
 /*
  * Return true iff the rdata class 'rdclass' is a meta-class
  * like ANY or NONE.
- *
- * Requires:
- * 	'rdclass' is a valid rdata class.
- *
  */
 
 isc_boolean_t
