@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.153 2001/03/30 00:33:39 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.154 2001/03/30 00:34:52 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3975,7 +3975,7 @@ iszonesecure(dns_db_t *db, dns_dbnode_t *origin) {
 
 	dns_rdataset_init(&nxtset);
 	dns_rdataset_init(&signxtset);
-	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_key, 0,
+	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_nxt, 0,
 				     0, &nxtset, &signxtset);
 	if (result == ISC_R_SUCCESS) {
 		if (dns_rdataset_isassociated(&signxtset)) {
