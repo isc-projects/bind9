@@ -10,6 +10,7 @@
 			are unable to scan the interface list. [RT #1921]
 
 1063.	[bug]		libbind: "make install" was failing on IRIX.
+			[RT #1919]
 
 1062.	[bug]		If the control channel listener socket was shut
 			down before server exit, the listener object could
