@@ -124,7 +124,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset);
 void
 dns_rdataset_disassociate(dns_rdataset_t *rdataset);
 /*
- * Disassocate 'rdataset' from its rdata, allowing it to be reused.
+ * Disassociate 'rdataset' from its rdata, allowing it to be reused.
  *
  * Notes:
  *	The client must ensure it has no references to rdata in the rdataset

@@ -71,7 +71,7 @@ void
 dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 
 	/*
-	 * Disassocate 'rdataset' from its rdata, allowing it to be reused.
+	 * Disassociate 'rdataset' from its rdata, allowing it to be reused.
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
