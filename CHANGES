@@ -1,3 +1,7 @@
+ 237.	[bug]		If connect() returned ENOBUFS when the resolver was
+			initiating a TCP query, the socket didn't get destroyed,
+			and the server did not shut down cleanly. 
+
  236.	[func]		Added new listen-on-v6 config file statement.
 
  235.	[func]		Consider it a config file error if a listen-on 

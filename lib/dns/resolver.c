@@ -684,10 +684,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			INSIST(0);
 		}
 		result = isc_socket_bind(query->tcpsocket, &any);
-		if (result != ISC_R_SUCCESS) {
-			isc_socket_detach(&query->tcpsocket);
-			goto cleanup_query;
-		}
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_socket;
 		
 		/*
 		 * A dispatch will be created once the connect succeeds.
@@ -730,7 +728,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 					    &addrinfo->sockaddr, task,
 					    resquery_connected, query);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup_query;
+			goto cleanup_socket;
 		query->attributes |= RESQUERY_ATTR_CONNECTING;
 		QTRACE("connecting via TCP");
 	} else {
@@ -743,8 +741,12 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	return (ISC_R_SUCCESS);
 
+ cleanup_socket:
+	isc_socket_detach(&query->tcpsocket);
+
  cleanup_dispatch:
-	dns_dispatch_detach(&query->dispatch);
+	if (query->dispatch != NULL)
+		dns_dispatch_detach(&query->dispatch);
 
  cleanup_query:
 	query->magic = 0;
