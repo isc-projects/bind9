@@ -172,18 +172,12 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	check_result(result, "dns_dnssec_sign()");
 
 	if (tryverify != 0) {
-		isc_stdtime_t current;
-		isc_stdtime_get(&current);
-		if (current >= starttime && current < endtime) {
-			result = dns_dnssec_verify(name, rdataset, key, mctx,
-						   rdata);
+		result = dns_dnssec_verify(name, rdataset, key,
+					   ISC_TRUE, mctx, rdata);
 			if (result == ISC_R_SUCCESS)
 				vbprintf(3, "\tsignature verified\n");
 			else
 				vbprintf(3, "\tsignature failed to verify\n");
-		}
-		else
-			vbprintf(3, "\tsignature is not currently valid\n");
 	}
 }
 
@@ -284,7 +278,8 @@ static inline isc_boolean_t
 setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 	    dns_rdata_t *sig)
 {
-	isc_result_t result = dns_dnssec_verify(name, set, key->key, mctx, sig);
+	isc_result_t result;
+	result = dns_dnssec_verify(name, set, key->key, ISC_FALSE, mctx, sig);
 	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
