@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.321 2001/05/07 23:34:05 gson Exp $ */
+/* $Id: zone.c,v 1.322 2001/05/09 05:20:28 marka Exp $ */
 
 #include <config.h>
 
@@ -3585,8 +3585,9 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 					    ISC_FALSE);
 		if (stub->db != NULL)
 			dns_db_detach(&stub->db);
+		if (stub->zone != NULL)
+			zone_idetach(&stub->zone);
 		isc_mem_put(stub->mctx, stub, sizeof(*stub));
-		zone_idetach(&zone);
 	}
 	if (message != NULL)
 		dns_message_destroy(&message);

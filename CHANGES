@@ -1,5 +1,8 @@
+ 825.	[bug]		zone.c:ns_query() detached from the wrong zone
+			reference.  [RT #1263] 
+
  824.	[bug]		Correct line numbers reported by dns_master_load().
-			[RT #1263].
+			[RT #1263]
 
  823.	[func]		The output of "dig -h" now goes to stdout so that it
 			can easily be piped through "more". [RT #1254]
