@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112.2.1 2001/09/27 23:17:10 gson Exp $
+ * $Id: tsig.c,v 1.112.2.2 2002/03/20 19:24:34 marka Exp $
  */
 
 #include <config.h>
@@ -910,8 +910,10 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(msg != NULL);
 	REQUIRE(dns_message_gettsigkey(msg) != NULL);
 	REQUIRE(msg->tcp_continuation == 1);
-	REQUIRE(is_response(msg));
 	REQUIRE(msg->querytsig != NULL);
+
+	if (!is_response(msg))
+		return (DNS_R_EXPECTEDRESPONSE);
 
 	mctx = msg->mctx;
 

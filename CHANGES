@@ -1,3 +1,6 @@
+1229.	[bug]		named would crash if it received a TSIG signed
+			query as part of an AXFR response. [RT #2570]
+
 1208.	[bug]		dns_master_load*() failed to log a error message if
 			an error was detected when parsing the ownername of
 			a record.  [RT #2448]

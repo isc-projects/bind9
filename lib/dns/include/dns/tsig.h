@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.40 2001/07/16 05:10:28 mayer Exp $ */
+/* $Id: tsig.h,v 1.40.2.1 2002/03/20 19:24:37 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -188,6 +188,9 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  *		DNS_R_CLOCKSKEW - the TSIG failed to verify because of
  *				  the time was out of the allowed range.
  *		DNS_R_TSIGVERIFYFAILURE - the TSIG failed to verify
+ *		DNS_R_EXPECTEDRESPONSE - the message was set over TCP and
+ *					 should have been a response,
+ *					 but was not.
  */
 
 isc_result_t
