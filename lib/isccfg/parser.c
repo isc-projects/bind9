@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.58 2001/07/02 17:05:46 gson Exp $ */
+/* $Id: parser.c,v 1.59 2001/07/02 17:48:27 gson Exp $ */
 
 #include <config.h>
 
@@ -3567,7 +3567,7 @@ parser_error(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	parser_complain(pctx, ISC_TRUE, flags, fmt, args);
+	parser_complain(pctx, ISC_FALSE, flags, fmt, args);
 	va_end(args);
 	pctx->errors++;
 }
@@ -3577,7 +3577,7 @@ parser_warning(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	parser_complain(pctx, ISC_FALSE, flags, fmt, args);
+	parser_complain(pctx, ISC_TRUE, flags, fmt, args);
 	va_end(args);
 	pctx->warnings++;
 }
