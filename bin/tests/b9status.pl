@@ -442,7 +442,7 @@ sub testCheck {
 				else {
 					$probs{"$funcname:$anum"} = $result;
 					++$Nftp;
-					s/(FAIL|UNITIATED)/<FONT COLOR=\"red\">$1<\/FONT>/;
+					s/(FAIL|UNINITIATED)/<FONT COLOR=\"red\">$1<\/FONT>/;
 					s/(UNRESOLVED)/<FONT COLOR=\"orange\">$1<\/FONT>/;
 
 				}
