@@ -140,7 +140,7 @@ dns_difftuple_free(dns_difftuple_t **tp);
  * Ensures:
  *       *tp == NULL
  *       All memory used by the tuple is freed.
-  */
+ */
 
 dns_result_t
 dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp);
@@ -309,7 +309,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 
 dns_result_t
 dns_journal_open(isc_mem_t *mctx, char *filename, isc_boolean_t write,
-	     dns_journal_t **journalp);
+		 dns_journal_t **journalp);
 /*
  * Open the journal file 'filename' and create a dns_journal_t object for it.
  *
@@ -368,20 +368,12 @@ dns_journal_commit(dns_journal_t *j);
  */
 
 dns_result_t
-dns_journal_commit(dns_journal_t *j);
-/*
- * Close the open journal file 'j' and ensure that any transactions
- * written to it will become persistent.
- *
- * Requires:
- *      'j' is open for writing.
- */
-
-dns_result_t
 dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff);
 /*
  * Write a complete transaction at once to a journal file,
- * sorting it if necessary, and commit it.
+ * sorting it if necessary, and commit it.  Equivalent to calling
+ * dns_diff_sort(), dns_journal_begin_transaction(),
+ * dns_journal_writediff(), and dns_journal_commit().
  *
  * Requires:
  *      'j' is open for writing.
