@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.6 2000/08/01 01:23:26 tale Exp $ */
+/* $Id: confparser.y.dirty,v 1.7 2000/08/02 20:44:20 brister Exp $ */
 
 #include <config.h>
 
@@ -310,17 +310,22 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_MASTER
 %token		L_MASTERS
 %token		L_MATCH_CLIENTS
-%token		L_MAX_LOG_SIZE_IXFR
+%token		L_MAXIMAL
 %token		L_MAX_CACHE_TTL
+%token		L_MAX_LOG_SIZE_IXFR
+%token		L_MAX_NAMES
 %token		L_MAX_NCACHE_TTL
+%token		L_MAX_REFRESH_TIME
+%token		L_MAX_RETRY_TIME
 %token		L_MAX_TRANSFER_IDLE_IN
 %token		L_MAX_TRANSFER_IDLE_OUT
 %token		L_MAX_TRANSFER_TIME_IN
 %token		L_MAX_TRANSFER_TIME_OUT
-%token		L_MAXIMAL
 %token		L_MEMSTATS_FILE
-%token		L_MIN_ROOTS
 %token		L_MINIMAL
+%token		L_MIN_REFRESH_TIME
+%token		L_MIN_RETRY_TIME
+%token		L_MIN_ROOTS
 %token		L_MULTIPLE_CNAMES
 %token		L_NAME
 %token		L_NAMED_XFER
@@ -1402,6 +1407,71 @@ option: /* Empty */
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set max-cache-ttl");
+			YYABORT;
+		}
+	}
+	| L_MAX_RETRY_TIME L_INTEGER
+	{
+		tmpres = dns_c_ctx_setmaxretrytime(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine max-retry-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set max-retry-time");
+			YYABORT;
+		}
+	}
+	| L_MIN_RETRY_TIME L_INTEGER
+	{
+		tmpres = dns_c_ctx_setminretrytime(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine min-retry-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set min-retry-time");
+			YYABORT;
+		}
+	}
+	| L_MAX_REFRESH_TIME L_INTEGER
+	{
+		tmpres = dns_c_ctx_setmaxrefreshtime(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine max-refresh-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set max-refresh-time");
+			YYABORT;
+		}
+	}
+	| L_MIN_REFRESH_TIME L_INTEGER
+	{
+		tmpres = dns_c_ctx_setminrefreshtime(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine min-refresh-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set min-refresh-time");
+			YYABORT;
+		}
+	}
+	| L_MAX_NAMES L_INTEGER
+	{
+		tmpres = dns_c_ctx_setmaxnames(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine max-names");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set max-names");
 			YYABORT;
 		}
 	}
@@ -3957,6 +4027,91 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_MAX_RETRY_TIME L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setmaxretrytime(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view max-retry-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view max-retry-time");
+			YYABORT;
+		}
+	}
+	| L_MIN_RETRY_TIME L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setminretrytime(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view min-retry-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view min-retry-time");
+			YYABORT;
+		}
+	}
+	| L_MAX_REFRESH_TIME L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setmaxrefreshtime(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view max-refresh-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view max-refresh-time");
+			YYABORT;
+		}
+	}
+	| L_MIN_REFRESH_TIME L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setminrefreshtime(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view min-refresh-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view min-refresh-time");
+			YYABORT;
+		}
+	}
+	| L_MAX_NAMES L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setmaxnames(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view max-names");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view max-names");
+			YYABORT;
+		}
+	}
 	| L_SIG_VALIDITY_INTERVAL L_INTEGER
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -4495,7 +4650,9 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
-	L_ENABLE_ZONE | L_DATABASE | L_PORT
+	L_ENABLE_ZONE | L_DATABASE | L_PORT | L_MIN_RETRY_TIME |
+	L_MAX_RETRY_TIME | L_MIN_REFRESH_TIME | L_MAX_REFRESH_TIME |
+	L_MAX_NAMES 
 	;
 
 
@@ -4861,6 +5018,91 @@ zone_option: L_FILE L_QSTRING
 			parser_error(ISC_FALSE,
 				     "failed to set zone "
 				     "sig-validity-interval");
+			YYABORT;
+		}
+	}
+	| L_MIN_RETRY_TIME L_INTEGER
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setminretrytime(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone min-retry-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone min-retry-time");
+			YYABORT;
+		}
+	}
+	| L_MAX_RETRY_TIME L_INTEGER
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setmaxretrytime(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone max-retry-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone max-retry-time");
+			YYABORT;
+		}
+	}
+	| L_MIN_REFRESH_TIME L_INTEGER
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setminrefreshtime(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone min-refresh-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone min-refresh-time");
+			YYABORT;
+		}
+	}
+	| L_MAX_REFRESH_TIME L_INTEGER
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setmaxrefreshtime(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone max-refresh-time");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone max-refresh-time");
+			YYABORT;
+		}
+	}
+	| L_MAX_NAMES L_INTEGER
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setmaxnames(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone max-names");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone max-names");
 			YYABORT;
 		}
 	}
@@ -5345,6 +5587,11 @@ static struct token keyword_tokens [] = {
 	{ "max-transfer-idle-out",	L_MAX_TRANSFER_IDLE_OUT },
 	{ "max-transfer-time-in",	L_MAX_TRANSFER_TIME_IN },
 	{ "max-transfer-time-out",	L_MAX_TRANSFER_TIME_OUT },
+	{ "min-retry-time",		L_MIN_RETRY_TIME },
+	{ "max-retry-time",		L_MAX_RETRY_TIME },
+	{ "min-refresh-time",		L_MIN_REFRESH_TIME },
+	{ "max-refresh-time",		L_MAX_REFRESH_TIME },
+	{ "max-names",			L_MAX_NAMES },
 	{ "maximal",			L_MAXIMAL },
 	{ "memstatistics-file",		L_MEMSTATS_FILE },
 	{ "min-roots",			L_MIN_ROOTS },

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.42 2000/08/01 01:23:30 tale Exp $ */
+/* $Id: confview.c,v 1.43 2000/08/02 20:44:22 brister Exp $ */
 
 #include <config.h>
 
@@ -42,18 +42,35 @@
 #define SETBOOL(FUNC, FIELD) SETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define GETBOOL(FUNC, FIELD) GETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define UNSETBOOL(FUNC, FIELD) UNSETBYTYPE(isc_boolean_t, FUNC, FIELD)
+#define BOOL_FUNCS(FUNC, FIELD) \
+	SETBOOL(FUNC, FIELD) \
+	GETBOOL(FUNC, FIELD) \
+	UNSETBOOL(FUNC, FIELD)
+
 
 #define SETNOTIFYTYPE(FUNC, FIELD) SETBYTYPE(dns_notifytype_t, FUNC, FIELD)
 #define GETNOTIFYTYPE(FUNC, FIELD) GETBYTYPE(dns_notifytype_t, FUNC, FIELD)
 #define UNSETNOTIFYTYPE(FUNC, FIELD) UNSETBYTYPE(dns_notifytype_t, FUNC, FIELD)
+#define NOTIFYTYPE_FUNCS(FUNC, FIELD) \
+	SETNOTIFYTYPE(FUNC, FIELD) \
+	GETNOTIFYTYPE(FUNC, FIELD) \
+	UNSETNOTIFYTYPE(FUNC, FIELD)
 
 #define SETUINT32(FUNC, FIELD) SETBYTYPE(isc_uint32_t, FUNC, FIELD)
 #define GETUINT32(FUNC, FIELD) GETBYTYPE(isc_uint32_t, FUNC, FIELD)
 #define UNSETUINT32(FUNC, FIELD) UNSETBYTYPE(isc_uint32_t, FUNC, FIELD)
+#define UINT32_FUNCS(FUNC, FIELD) \
+	SETUINT32(FUNC, FIELD) \
+	GETUINT32(FUNC, FIELD) \
+	UNSETUINT32(FUNC, FIELD)
 
 #define SETSOCKADDR(FUNC, FIELD) SETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
 #define GETSOCKADDR(FUNC, FIELD) GETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
 #define UNSETSOCKADDR(FUNC, FIELD) UNSETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
+#define SOCKADDR_FUNCS(FUNC, FIELD) \
+	SETSOCKADDR(FUNC, FIELD) \
+	GETSOCKADDR(FUNC, FIELD) \
+	UNSETSOCKADDR(FUNC, FIELD)
 
 #ifdef PVT_CONCAT
 #undef PVT_CONCAT
@@ -118,6 +135,12 @@ PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view) {	\
 	}							\
 }
 
+#define BYTYPE_FUNCS(TYPE, FUNC, FIELD) \
+	SETBYTYPE(TYPE, FUNC, FIELD) \
+	GETBYTYPE(TYPE, FUNC, FIELD) \
+	UNSETBYTYPE(TYPE, FUNC, FIELD)
+
+
 /*
 ** Now SET, GET and UNSET for dns_c_ipmatchlist_t fields
 */
@@ -171,6 +194,13 @@ PVT_CONCAT(dns_c_view_get, FUNCNAME)(dns_c_view_t *view,		\
 		return (ISC_R_NOTFOUND);				\
 	}								\
 }
+
+
+#define IPMLIST_FUNCS(FUNC, FIELD) \
+	SETIPMLIST(FUNC, FIELD) \
+	GETIPMLIST(FUNC, FIELD) \
+	UNSETIPMLIST(FUNC, FIELD)
+
 
 isc_result_t
 dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable) {
@@ -487,10 +517,19 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->clean_interval = NULL;
 	view->min_roots = NULL;
 	view->lamettl = NULL;
-	view->max_ncache_ttl = NULL;
-	view->max_cache_ttl = NULL;
 	view->sig_valid_interval = NULL;
 	view->max_cache_size = NULL;
+	view->max_ncache_ttl = NULL;
+	view->max_cache_ttl = NULL;
+
+	view->min_retry_time = NULL;
+	view->max_retry_time = NULL;
+	view->min_refresh_time = NULL;
+	view->max_refresh_time = NULL;
+
+#ifndef NOMINUM_PUBLIC
+	view->max_names = NULL;
+#endif
 
 	view->additional_data = NULL;
 	view->transfer_format = NULL;
@@ -570,6 +609,19 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		dns_c_printtabs(fp, indent + 1);		\
 		fprintf(fp, "%s %s;\n", NAME,			\
 			(*view->FIELD ? "true" : "false"));	\
+	}
+
+
+#define PRINT_AS_NOTIFYTYPE(FIELD, NAME)			\
+	if (view->FIELD != NULL) {				\
+		dns_c_printtabs(fp, indent + 1);		\
+		fprintf(fp, "%s ", NAME);			\
+		if (*view->FIELD == dns_notifytype_yes)		\
+			fputs("yes", fp);			\
+		else if (*view->FIELD == dns_notifytype_no)	\
+			fputs("no", fp);			\
+		else						\
+			fputs("explicit", fp);			\
 	}
 
 
@@ -660,12 +712,13 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	}
 
 
+	PRINT_AS_NOTIFYTYPE(notify, "notify");
+	
 	PRINT_AS_BOOLEAN(auth_nx_domain, "auth-nxdomain");
 	PRINT_AS_BOOLEAN(recursion, "recursion");
 	PRINT_AS_BOOLEAN(provide_ixfr, "provide-ixfr");
 	PRINT_AS_BOOLEAN(request_ixfr, "request-ixfr");
 	PRINT_AS_BOOLEAN(fetch_glue, "fetch-glue");
-	PRINT_AS_BOOLEAN(notify, "notify");
 	PRINT_AS_BOOLEAN(rfc2308_type1, "rfc2308-type1");
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
@@ -686,6 +739,15 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(max_ncache_ttl, "max-ncache-ttl");
 	PRINT_INT32(max_cache_ttl, "max-cache-ttl");
 	PRINT_INT32(sig_valid_interval, "sig-validity-interval");
+
+	PRINT_INT32(min_retry_time, "min-retry-time");
+	PRINT_INT32(max_retry_time, "max-retry-time");
+	PRINT_INT32(min_refresh_time, "min-refresh-time");
+	PRINT_INT32(max_refresh_time, "max-refresh-time");
+
+#ifndef NOMINUM_PUBLIC
+	PRINT_INT32(max_names, "max-names");
+#endif	
 
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
@@ -824,6 +886,15 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(sig_valid_interval);
 	FREEFIELD(max_cache_size);
 
+	FREEFIELD(min_retry_time);
+	FREEFIELD(max_retry_time);
+	FREEFIELD(min_refresh_time);
+	FREEFIELD(max_refresh_time);
+
+#ifndef NOMINUM_PUBLIC
+	FREEFIELD(max_names);
+#endif
+
 	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
 
@@ -949,10 +1020,8 @@ dns_c_view_unsetzonelist(dns_c_view_t *view) {
 */
 
 
-SETBYTYPE(dns_c_forw_t, forward, forward)
-UNSETBYTYPE(dns_c_forw_t, forward, forward)
-GETBYTYPE(dns_c_forw_t, forward, forward)
-
+BYTYPE_FUNCS(dns_c_forw_t, forward, forward)
+	
 
 /*
 **
@@ -1420,154 +1489,61 @@ dns_c_view_settrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t *newval,
 **
 */
 
-GETIPMLIST(allowquery, allowquery)
-SETIPMLIST(allowquery, allowquery)
-UNSETIPMLIST(allowquery, allowquery)
+IPMLIST_FUNCS(allowquery, allowquery)
+IPMLIST_FUNCS(allowupdateforwarding, allowupdateforwarding)
+IPMLIST_FUNCS(transferacl, transferacl)
+IPMLIST_FUNCS(recursionacl, recursionacl)
+IPMLIST_FUNCS(sortlist, sortlist)
+IPMLIST_FUNCS(topology, topology)
+IPMLIST_FUNCS(matchclients, matchclients)
 
-GETIPMLIST(allowupdateforwarding, allowupdateforwarding)
-SETIPMLIST(allowupdateforwarding, allowupdateforwarding)
-UNSETIPMLIST(allowupdateforwarding, allowupdateforwarding)
+BOOL_FUNCS(authnxdomain, auth_nx_domain)
+BOOL_FUNCS(recursion, recursion)
+BOOL_FUNCS(provideixfr, provide_ixfr)
+BOOL_FUNCS(requestixfr, request_ixfr)
+BOOL_FUNCS(fetchglue, fetch_glue)
 
-GETIPMLIST(transferacl, transferacl)
-SETIPMLIST(transferacl, transferacl)
-UNSETIPMLIST(transferacl, transferacl)
+NOTIFYTYPE_FUNCS(notify, notify)
 
-GETIPMLIST(recursionacl, recursionacl)
-SETIPMLIST(recursionacl, recursionacl)
-UNSETIPMLIST(recursionacl, recursionacl)
+BOOL_FUNCS(rfc2308type1, rfc2308_type1)
+BOOL_FUNCS(additionalfromcache, additional_from_cache)
+BOOL_FUNCS(additionalfromauth, additional_from_auth)
 
-GETIPMLIST(sortlist, sortlist)
-SETIPMLIST(sortlist, sortlist)
-UNSETIPMLIST(sortlist, sortlist)
+SOCKADDR_FUNCS(transfersource, transfer_source)
+SOCKADDR_FUNCS(transfersourcev6, transfer_source_v6)
+SOCKADDR_FUNCS(querysource, query_source)
+SOCKADDR_FUNCS(querysourcev6, query_source_v6)
 
-GETIPMLIST(topology, topology)
-SETIPMLIST(topology, topology)
-UNSETIPMLIST(topology, topology)
+UINT32_FUNCS(maxtransfertimeout, max_transfer_time_out)
+UINT32_FUNCS(maxtransferidleout, max_transfer_idle_out)
+UINT32_FUNCS(cleaninterval, clean_interval)
+UINT32_FUNCS(minroots, min_roots)
+UINT32_FUNCS(lamettl, lamettl)
+UINT32_FUNCS(maxncachettl, max_ncache_ttl)
+UINT32_FUNCS(maxcachettl, max_cache_ttl)
+UINT32_FUNCS(sigvalidityinterval, sig_valid_interval)
+UINT32_FUNCS(maxcachesize, max_cache_size)
 
-GETIPMLIST(matchclients, matchclients)
-SETIPMLIST(matchclients, matchclients)
-UNSETIPMLIST(matchclients, matchclients)
+UINT32_FUNCS(minretrytime, min_retry_time)
+UINT32_FUNCS(maxretrytime, max_retry_time)
+UINT32_FUNCS(minrefreshtime, min_refresh_time)
+UINT32_FUNCS(maxrefreshtime, max_refresh_time)
 
+#ifndef NOMINUM_PUBLIC	
+UINT32_FUNCS(maxnames, max_names)
+#endif
 
-SETBOOL(authnxdomain, auth_nx_domain)
-GETBOOL(authnxdomain, auth_nx_domain)
-UNSETBOOL(authnxdomain, auth_nx_domain)
-
-SETBOOL(recursion, recursion)
-GETBOOL(recursion, recursion)
-UNSETBOOL(recursion, recursion)
-
-SETBOOL(provideixfr, provide_ixfr)
-GETBOOL(provideixfr, provide_ixfr)
-UNSETBOOL(provideixfr, provide_ixfr)
-
-SETBOOL(requestixfr, request_ixfr)
-GETBOOL(requestixfr, request_ixfr)
-UNSETBOOL(requestixfr, request_ixfr)
-
-SETBOOL(fetchglue, fetch_glue)
-GETBOOL(fetchglue, fetch_glue)
-UNSETBOOL(fetchglue, fetch_glue)
-
-GETNOTIFYTYPE(notify, notify)
-SETNOTIFYTYPE(notify, notify)
-UNSETNOTIFYTYPE(notify, notify)
-
-SETBOOL(rfc2308type1, rfc2308_type1)
-GETBOOL(rfc2308type1, rfc2308_type1)
-UNSETBOOL(rfc2308type1, rfc2308_type1)
-
-SETBOOL(additionalfromcache, additional_from_cache)
-GETBOOL(additionalfromcache, additional_from_cache)
-UNSETBOOL(additionalfromcache, additional_from_cache)
-
-SETBOOL(additionalfromauth, additional_from_auth)
-GETBOOL(additionalfromauth, additional_from_auth)
-UNSETBOOL(additionalfromauth, additional_from_auth)
-
-GETSOCKADDR(transfersource, transfer_source)
-SETSOCKADDR(transfersource, transfer_source)
-UNSETSOCKADDR(transfersource, transfer_source)
-
-GETSOCKADDR(transfersourcev6, transfer_source_v6)
-SETSOCKADDR(transfersourcev6, transfer_source_v6)
-UNSETSOCKADDR(transfersourcev6, transfer_source_v6)
-
-GETSOCKADDR(querysource, query_source)
-SETSOCKADDR(querysource, query_source)
-UNSETSOCKADDR(querysource, query_source)
-
-GETSOCKADDR(querysourcev6, query_source_v6)
-SETSOCKADDR(querysourcev6, query_source_v6)
-UNSETSOCKADDR(querysourcev6, query_source_v6)
-
-SETUINT32(maxtransfertimeout, max_transfer_time_out)
-GETUINT32(maxtransfertimeout, max_transfer_time_out)
-UNSETUINT32(maxtransfertimeout, max_transfer_time_out)
-
-SETUINT32(maxtransferidleout, max_transfer_idle_out)
-GETUINT32(maxtransferidleout, max_transfer_idle_out)
-UNSETUINT32(maxtransferidleout, max_transfer_idle_out)
-
-SETUINT32(cleaninterval, clean_interval)
-GETUINT32(cleaninterval, clean_interval)
-UNSETUINT32(cleaninterval, clean_interval)
-
-SETUINT32(minroots, min_roots)
-GETUINT32(minroots, min_roots)
-UNSETUINT32(minroots, min_roots)
-
-SETUINT32(lamettl, lamettl)
-GETUINT32(lamettl, lamettl)
-UNSETUINT32(lamettl, lamettl)
-
-SETUINT32(maxncachettl, max_ncache_ttl)
-GETUINT32(maxncachettl, max_ncache_ttl)
-UNSETUINT32(maxncachettl, max_ncache_ttl)
-
-SETUINT32(maxcachettl, max_cache_ttl)
-GETUINT32(maxcachettl, max_cache_ttl)
-UNSETUINT32(maxcachettl, max_cache_ttl)
-
-
-SETUINT32(sigvalidityinterval, sig_valid_interval)
-GETUINT32(sigvalidityinterval, sig_valid_interval)
-UNSETUINT32(sigvalidityinterval, sig_valid_interval)
-
-
-GETUINT32(maxcachesize, max_cache_size)
-SETUINT32(maxcachesize, max_cache_size)
-UNSETUINT32(maxcachesize, max_cache_size)
-
-
-GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
-SETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
-UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
-
-GETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
-SETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
-UNSETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
+BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
+BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)
 
 #if 0
-
 /*
  * XXX waiting for implementation in server to turn these on.
  */
-SETUINT32(maxtransfertimein, max_transfer_time_in)
-GETUINT32(maxtransfertimein, max_transfer_time_in)
-UNSETUINT32(maxtransfertimein, max_transfer_time_in)
-
-SETUINT32(maxtransferidlein, max_transfer_idle_in)
-GETUINT32(maxtransferidlein, max_transfer_idle_in)
-UNSETUINT32(maxtransferidlein, max_transfer_idle_in)
-
-SETUINT32(transfersperns, transfers_per_ns)
-GETUINT32(transfersperns, transfers_per_ns)
-UNSETUINT32(transfersperns, transfers_per_ns)
-
-SETUINT32(serialqueries, serial_queries)
-GETUINT32(serialqueries, serial_queries)
-UNSETUINT32(serialqueries, serial_queries)
+UINT32_FUNCS(maxtransfertimein, max_transfer_time_in)
+UINT32_FUNCS(maxtransferidlein, max_transfer_idle_in)
+UINT32_FUNCS(transfersperns, transfers_per_ns)
+UINT32_FUNCS(serialqueries, serial_queries)
 
 #endif
 

@@ -1,3 +1,9 @@
+ 369.	[func]		Support new named.conf options, view and zone 
+			statements: 
+
+				max-retry-time, min-retry-time, 
+				max-refresh-time, min-refresh-time, max-names.
+
  368.	[func]		Restructure the internal ".bind" view so that more
 			zones can be added to it.
 

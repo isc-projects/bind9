@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.79 2000/08/01 01:23:19 tale Exp $ */
+/* $Id: confctx.c,v 1.80 2000/08/02 20:44:19 brister Exp $ */
 
 #include <config.h>
 
@@ -32,22 +32,46 @@
 #define SETBOOL(FUNC, FIELD) SETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define GETBOOL(FUNC, FIELD) GETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define UNSETBOOL(FUNC, FIELD) UNSETBYTYPE(isc_boolean_t, FUNC, FIELD)
+#define BOOL_FUNCS(FUNC, FIELD) \
+	SETBOOL(FUNC, FIELD) \
+	GETBOOL(FUNC, FIELD) \
+	UNSETBOOL(FUNC, FIELD) 
+
 
 #define SETNOTIFYTYPE(FUNC, FIELD) SETBYTYPE(dns_notifytype_t, FUNC, FIELD)
 #define GETNOTIFYTYPE(FUNC, FIELD) GETBYTYPE(dns_notifytype_t, FUNC, FIELD)
 #define UNSETNOTIFYTYPE(FUNC, FIELD) UNSETBYTYPE(dns_notifytype_t, FUNC, FIELD)
+#define NOTIFYTYPE_FUNCS(FUNC, FIELD) \
+	SETNOTIFYTYPE(FUNC, FIELD) \
+	GETNOTIFYTYPE(FUNC, FIELD) \
+	UNSETNOTIFYTYPE(FUNC, FIELD) 
+
 
 #define SETINT32(FUNC, FIELD) SETBYTYPE(isc_int32_t, FUNC, FIELD)
 #define GETINT32(FUNC, FIELD) GETBYTYPE(isc_int32_t, FUNC, FIELD)
 #define UNSETINT32(FUNC, FIELD) UNSETBYTYPE(isc_int32_t, FUNC, FIELD)
+#define INT32_FUNCS(FUNC, FIELD) \
+	SETINT32(FUNC, FIELD) \
+	GETINT32(FUNC, FIELD) \
+	UNSETINT32(FUNC, FIELD) 
+
 
 #define SETUINT32(FUNC, FIELD) SETBYTYPE(isc_uint32_t, FUNC, FIELD)
 #define GETUINT32(FUNC, FIELD) GETBYTYPE(isc_uint32_t, FUNC, FIELD)
 #define UNSETUINT32(FUNC, FIELD) UNSETBYTYPE(isc_uint32_t, FUNC, FIELD)
+#define UINT32_FUNCS(FUNC, FIELD) \
+	SETUINT32(FUNC, FIELD) \
+	GETUINT32(FUNC, FIELD) \
+	UNSETUINT32(FUNC, FIELD) 
+
 
 #define SETSOCKADDR(FUNC, FIELD) SETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
 #define GETSOCKADDR(FUNC, FIELD) GETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
 #define UNSETSOCKADDR(FUNC, FIELD) UNSETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
+#define SOCKADDR_FUNCS(FUNC, FIELD) \
+	SETSOCKADDR(FUNC, FIELD) \
+	GETSOCKADDR(FUNC, FIELD) \
+	UNSETSOCKADDR(FUNC, FIELD) 
 
 #ifdef PVT_CONCAT
 #undef PVT_CONCAT
@@ -141,6 +165,10 @@ PVT_CONCAT(dns_c_ctx_unset, FUNCNAME)(dns_c_ctx_t *cfg)		\
 	}							\
 }
 
+#define BYTYPE_FUNCS(TYPE, FUNC, FIELD) \
+	SETBYTYPE(TYPE, FUNC, FIELD) \
+	GETBYTYPE(TYPE, FUNC, FIELD) \
+	UNSETBYTYPE(TYPE, FUNC, FIELD)
 
 
 #define SETSTRING(FUNC, FIELD)						     \
@@ -202,6 +230,86 @@ PVT_CONCAT(dns_c_ctx_unset, FUNC)(dns_c_ctx_t *cfg)		\
 								\
 	return (ISC_R_SUCCESS);					\
 }
+#define STRING_FUNCS(FUNC, FIELD) \
+	SETSTRING(FUNC, FIELD) \
+	GETSTRING(FUNC, FIELD) \
+	UNSETSTRING(FUNC, FIELD)
+
+
+
+
+#define SETIPMLIST(FUNCNAME, FIELD)					\
+isc_result_t								\
+PVT_CONCAT(dns_c_ctx_set, FUNCNAME)(dns_c_ctx_t *cfg,			\
+				    dns_c_ipmatchlist_t *newval)	\
+{									\
+	isc_result_t res;						\
+									\
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));				\
+									\
+	res = make_options(cfg);					\
+	if (res != ISC_R_SUCCESS) {					\
+		return (res);						\
+	}								\
+									\
+	REQUIRE(newval != NULL);					\
+									\
+	if (cfg->options->FIELD != NULL) {				\
+		dns_c_ipmatchlist_detach(&cfg->options->FIELD);		\
+	}								\
+									\
+	dns_c_ipmatchlist_attach(newval, &cfg->options->FIELD);		\
+	return (ISC_R_SUCCESS);						\
+}									\
+
+
+
+#define GETIPMLIST(FUNC, FIELD)						\
+isc_result_t								\
+PVT_CONCAT(dns_c_ctx_get, FUNC)(dns_c_ctx_t *cfg,			\
+				dns_c_ipmatchlist_t **retval)		\
+{									\
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));				\
+									\
+	if (cfg->options == NULL) {					\
+		return (ISC_R_NOTFOUND);				\
+	}								\
+									\
+	REQUIRE(retval != NULL);					\
+									\
+	if (cfg->options->FIELD != NULL) {				\
+		dns_c_ipmatchlist_attach(cfg->options->FIELD, retval);	\
+		return (ISC_R_SUCCESS);					\
+	} else {							\
+		return (ISC_R_NOTFOUND);				\
+	}								\
+}
+
+
+
+
+#define UNSETIPMLIST(FUNC, FIELD)			\
+isc_result_t						\
+PVT_CONCAT(dns_c_ctx_unset, FUNC)(dns_c_ctx_t *cfg)	\
+{							\
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));		\
+							\
+	if (cfg->options == NULL) {			\
+		return (ISC_R_NOTFOUND);		\
+	}						\
+							\
+	dns_c_ipmatchlist_detach(&cfg->options->FIELD);	\
+							\
+	return (ISC_R_SUCCESS);				\
+}
+
+#define IPMLIST_FUNCS(FUNC, FIELD) \
+	SETIPMLIST(FUNC, FIELD) \
+	GETIPMLIST(FUNC, FIELD) \
+	UNSETIPMLIST(FUNC, FIELD) \
+
+
+
 
 
 static isc_result_t cfg_set_iplist(dns_c_options_t *options,
@@ -952,6 +1060,16 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_INTEGER(min_roots, "min-roots");
 	PRINT_INTEGER(serial_queries, "serial-queries");
 	PRINT_INTEGER(sig_valid_interval, "sig-validity-interval");
+
+	PRINT_INTEGER(min_retry_time, "min-retry-time");
+	PRINT_INTEGER(max_retry_time, "max-retry-time");
+	PRINT_INTEGER(min_refresh_time, "min-refresh-time");
+	PRINT_INTEGER(max_refresh_time, "max-refresh-time");
+
+#ifndef	NOMINUM_PUBLIC
+	PRINT_INTEGER(max_names, "max-names");
+#endif	
+	
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
 	PRINT_AS_SIZE_CLAUSE(data_size, "datasize");
@@ -1481,6 +1599,15 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->max_ncache_ttl = NULL;
 	opts->max_cache_ttl = NULL;
 
+	opts->min_retry_time = NULL;
+	opts->max_retry_time = NULL;
+	opts->min_refresh_time = NULL;
+	opts->max_refresh_time = NULL;
+
+#ifndef NOMINUM_PUBLIC
+	opts->max_names = NULL;
+#endif
+
 	opts->expert_mode = NULL;
 	opts->fake_iquery = NULL;
 	opts->recursion = NULL;
@@ -1640,6 +1767,15 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(max_ncache_ttl);
 	FREEFIELD(max_cache_ttl);
 
+	FREEFIELD(min_retry_time);
+	FREEFIELD(max_retry_time);
+	FREEFIELD(min_refresh_time);
+	FREEFIELD(max_refresh_time);
+
+#ifndef NOMINUM_PUBLIC
+	FREEFIELD(max_names);
+#endif
+
 	FREEFIELD(transfer_source);
 	FREEFIELD(transfer_source_v6);
 	FREEFIELD(query_source);
@@ -1708,318 +1844,85 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 }
 
-
-
-SETSTRING(directory, directory)
-GETSTRING(directory, directory)
-UNSETSTRING(directory, directory)
-
-
-SETSTRING(version, version)
-GETSTRING(version, version)
-UNSETSTRING(version, version)
-
-
-SETSTRING(dumpfilename, dump_filename)
-GETSTRING(dumpfilename, dump_filename)
-UNSETSTRING(dumpfilename, dump_filename)
-
-
-SETSTRING(pidfilename, pid_filename)
-GETSTRING(pidfilename, pid_filename)
-UNSETSTRING(pidfilename, pid_filename)
-
-
-SETSTRING(statsfilename, stats_filename)
-GETSTRING(statsfilename, stats_filename)
-UNSETSTRING(statsfilename, stats_filename)
-
-
-SETSTRING(memstatsfilename, memstats_filename)
-GETSTRING(memstatsfilename, memstats_filename)
-UNSETSTRING(memstatsfilename, memstats_filename)
-
-
-SETSTRING(namedxfer, named_xfer)
-GETSTRING(namedxfer, named_xfer)
-UNSETSTRING(namedxfer, named_xfer)
-
-
-SETSTRING(randomdevice, random_device)
-GETSTRING(randomdevice, random_device)
-UNSETSTRING(randomdevice, random_device)
-
-
-SETSTRING(randomseedfile, random_seed_file)
-GETSTRING(randomseedfile, random_seed_file)
-UNSETSTRING(randomseedfile, random_seed_file)
-
-
-GETBYTYPE(in_port_t, port, port)
-SETBYTYPE(in_port_t, port, port)
-UNSETBYTYPE(in_port_t, port, port)
-
-
-GETUINT32(transfersin, transfers_in)
-SETUINT32(transfersin, transfers_in)
-UNSETUINT32(transfersin, transfers_in)
-
-
-GETUINT32(transfersperns, transfers_per_ns)
-SETUINT32(transfersperns, transfers_per_ns)
-UNSETUINT32(transfersperns, transfers_per_ns)
-
-
-GETUINT32(transfersout, transfers_out)
-SETUINT32(transfersout, transfers_out)
-UNSETUINT32(transfersout, transfers_out)
-
-
-GETUINT32(maxlogsizeixfr, max_log_size_ixfr)
-SETUINT32(maxlogsizeixfr, max_log_size_ixfr)
-UNSETUINT32(maxlogsizeixfr, max_log_size_ixfr)
-
-
-GETUINT32(cleaninterval, clean_interval)
-SETUINT32(cleaninterval, clean_interval)
-UNSETUINT32(cleaninterval, clean_interval)
-
-
-GETUINT32(interfaceinterval, interface_interval)
-SETUINT32(interfaceinterval, interface_interval)
-UNSETUINT32(interfaceinterval, interface_interval)
-
-
-GETUINT32(statsinterval, stats_interval)
-SETUINT32(statsinterval, stats_interval)
-UNSETUINT32(statsinterval, stats_interval)
-
-
-GETUINT32(heartbeatinterval, heartbeat_interval)
-SETUINT32(heartbeatinterval, heartbeat_interval)
-UNSETUINT32(heartbeatinterval, heartbeat_interval)
-
-
-GETUINT32(maxtransfertimein, max_transfer_time_in)
-SETUINT32(maxtransfertimein, max_transfer_time_in)
-UNSETUINT32(maxtransfertimein, max_transfer_time_in)
-
-
-GETUINT32(maxtransfertimeout, max_transfer_time_out)
-SETUINT32(maxtransfertimeout, max_transfer_time_out)
-UNSETUINT32(maxtransfertimeout, max_transfer_time_out)
-
-
-GETUINT32(maxtransferidlein, max_transfer_idle_in)
-SETUINT32(maxtransferidlein, max_transfer_idle_in)
-UNSETUINT32(maxtransferidlein, max_transfer_idle_in)
-
-
-GETUINT32(maxtransferidleout, max_transfer_idle_out)
-SETUINT32(maxtransferidleout, max_transfer_idle_out)
-UNSETUINT32(maxtransferidleout, max_transfer_idle_out)
-
-
-GETUINT32(lamettl, lamettl)
-SETUINT32(lamettl, lamettl)
-UNSETUINT32(lamettl, lamettl)
-
-
-GETUINT32(tcpclients, tcp_clients)
-SETUINT32(tcpclients, tcp_clients)
-UNSETUINT32(tcpclients, tcp_clients)
-
-
-GETUINT32(recursiveclients, recursive_clients)
-SETUINT32(recursiveclients, recursive_clients)
-UNSETUINT32(recursiveclients, recursive_clients)
-
-
-GETUINT32(minroots, min_roots)
-SETUINT32(minroots, min_roots)
-UNSETUINT32(minroots, min_roots)
-
-
-GETUINT32(serialqueries, serial_queries)
-SETUINT32(serialqueries, serial_queries)
-UNSETUINT32(serialqueries, serial_queries)
-
-
-GETUINT32(sigvalidityinterval, sig_valid_interval)
-SETUINT32(sigvalidityinterval, sig_valid_interval)
-UNSETUINT32(sigvalidityinterval, sig_valid_interval)
-
-
-GETUINT32(datasize, data_size)
-SETUINT32(datasize, data_size)
-UNSETUINT32(datasize, data_size)
-
-
-GETUINT32(stacksize, stack_size)
-SETUINT32(stacksize, stack_size)
-UNSETUINT32(stacksize, stack_size)
-
-
-GETUINT32(coresize, core_size)
-SETUINT32(coresize, core_size)
-UNSETUINT32(coresize, core_size)
-
-
-GETUINT32(files, files)
-SETUINT32(files, files)
-UNSETUINT32(files, files)
-
-
-GETUINT32(maxcachesize, max_cache_size)
-SETUINT32(maxcachesize, max_cache_size)
-UNSETUINT32(maxcachesize, max_cache_size)
-
-
-GETUINT32(maxncachettl, max_ncache_ttl)
-SETUINT32(maxncachettl, max_ncache_ttl)
-UNSETUINT32(maxncachettl, max_ncache_ttl)
-
-
-GETUINT32(maxcachettl, max_cache_ttl)
-SETUINT32(maxcachettl, max_cache_ttl)
-UNSETUINT32(maxcachettl, max_cache_ttl)
-
-
-GETBOOL(expertmode, expert_mode)
-SETBOOL(expertmode, expert_mode)
-UNSETBOOL(expertmode, expert_mode)
-
-
-GETBOOL(fakeiquery, fake_iquery)
-SETBOOL(fakeiquery, fake_iquery)
-UNSETBOOL(fakeiquery, fake_iquery)
-
-
-GETBOOL(recursion, recursion)
-SETBOOL(recursion, recursion)
-UNSETBOOL(recursion, recursion)
-
-
-GETBOOL(fetchglue, fetch_glue)
-SETBOOL(fetchglue, fetch_glue)
-UNSETBOOL(fetchglue, fetch_glue)
-
-
-GETNOTIFYTYPE(notify, notify)
-SETNOTIFYTYPE(notify, notify)
-UNSETNOTIFYTYPE(notify, notify)
-
-
-GETBOOL(hoststatistics, host_statistics)
-SETBOOL(hoststatistics, host_statistics)
-UNSETBOOL(hoststatistics, host_statistics)
-
-
-GETBOOL(dealloconexit, dealloc_on_exit)
-SETBOOL(dealloconexit, dealloc_on_exit)
-UNSETBOOL(dealloconexit, dealloc_on_exit)
-
-
-GETBOOL(useixfr, use_ixfr)
-SETBOOL(useixfr, use_ixfr)
-UNSETBOOL(useixfr, use_ixfr)
-
-
-GETBOOL(maintainixfrbase, maintain_ixfr_base)
-SETBOOL(maintainixfrbase, maintain_ixfr_base)
-UNSETBOOL(maintainixfrbase, maintain_ixfr_base)
-
-
-GETBOOL(hasoldclients, has_old_clients)
-SETBOOL(hasoldclients, has_old_clients)
-UNSETBOOL(hasoldclients, has_old_clients)
-
-
-GETBOOL(authnxdomain, auth_nx_domain)
-SETBOOL(authnxdomain, auth_nx_domain)
-UNSETBOOL(authnxdomain, auth_nx_domain)
-
-
-GETBOOL(multiplecnames, multiple_cnames)
-SETBOOL(multiplecnames, multiple_cnames)
-UNSETBOOL(multiplecnames, multiple_cnames)
-
-
-GETBOOL(useidpool, use_id_pool)
-SETBOOL(useidpool, use_id_pool)
-UNSETBOOL(useidpool, use_id_pool)
-
-
-GETBOOL(dialup, dialup)
-SETBOOL(dialup, dialup)
-UNSETBOOL(dialup, dialup)
-
-
-GETBOOL(rfc2308type1, rfc2308_type1)
-SETBOOL(rfc2308type1, rfc2308_type1)
-UNSETBOOL(rfc2308type1, rfc2308_type1)
-
-
-GETBOOL(requestixfr, request_ixfr)
-SETBOOL(requestixfr, request_ixfr)
-UNSETBOOL(requestixfr, request_ixfr)
-
-
-GETBOOL(provideixfr, provide_ixfr)
-SETBOOL(provideixfr, provide_ixfr)
-UNSETBOOL(provideixfr, provide_ixfr)
-
-
-GETBOOL(treatcrasspace, treat_cr_as_space)
-SETBOOL(treatcrasspace, treat_cr_as_space)
-UNSETBOOL(treatcrasspace, treat_cr_as_space)
-
-
-GETBOOL(additionalfromauth, additional_from_auth)
-SETBOOL(additionalfromauth, additional_from_auth)
-UNSETBOOL(additionalfromauth, additional_from_auth)
-
-
-GETBOOL(additionalfromcache, additional_from_cache)
-SETBOOL(additionalfromcache, additional_from_cache)
-UNSETBOOL(additionalfromcache, additional_from_cache)
-
-
-GETSOCKADDR(transfersource, transfer_source)
-SETSOCKADDR(transfersource, transfer_source)
-UNSETSOCKADDR(transfersource, transfer_source)
-
-
-GETSOCKADDR(transfersourcev6, transfer_source_v6)
-SETSOCKADDR(transfersourcev6, transfer_source_v6)
-UNSETSOCKADDR(transfersourcev6, transfer_source_v6)
-
-
-GETSOCKADDR(querysource, query_source)
-SETSOCKADDR(querysource, query_source)
-UNSETSOCKADDR(querysource, query_source)
-
-
-GETSOCKADDR(querysourcev6, query_source_v6)
-SETSOCKADDR(querysourcev6, query_source_v6)
-UNSETSOCKADDR(querysourcev6, query_source_v6)
-
-
-GETBYTYPE(dns_c_forw_t, forward, forward)
-SETBYTYPE(dns_c_forw_t, forward, forward)
-UNSETBYTYPE(dns_c_forw_t, forward, forward)
-
-
-GETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
-SETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
-UNSETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
-
-
-GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
-SETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
-UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
-
-
+STRING_FUNCS(directory, directory)
+STRING_FUNCS(version, version)
+STRING_FUNCS(dumpfilename, dump_filename)
+STRING_FUNCS(pidfilename, pid_filename)
+STRING_FUNCS(statsfilename, stats_filename)
+STRING_FUNCS(memstatsfilename, memstats_filename)
+STRING_FUNCS(namedxfer, named_xfer)
+STRING_FUNCS(randomdevice, random_device)
+STRING_FUNCS(randomseedfile, random_seed_file)
+
+BYTYPE_FUNCS(in_port_t, port, port)
+
+UINT32_FUNCS(transfersin, transfers_in)
+UINT32_FUNCS(transfersperns, transfers_per_ns)
+UINT32_FUNCS(transfersout, transfers_out)
+UINT32_FUNCS(maxlogsizeixfr, max_log_size_ixfr)
+UINT32_FUNCS(cleaninterval, clean_interval)
+UINT32_FUNCS(interfaceinterval, interface_interval)
+UINT32_FUNCS(statsinterval, stats_interval)
+UINT32_FUNCS(heartbeatinterval, heartbeat_interval)
+UINT32_FUNCS(maxtransfertimein, max_transfer_time_in)
+UINT32_FUNCS(maxtransfertimeout, max_transfer_time_out)
+UINT32_FUNCS(maxtransferidlein, max_transfer_idle_in)
+UINT32_FUNCS(maxtransferidleout, max_transfer_idle_out)
+UINT32_FUNCS(lamettl, lamettl)
+UINT32_FUNCS(tcpclients, tcp_clients)
+UINT32_FUNCS(recursiveclients, recursive_clients)
+UINT32_FUNCS(minroots, min_roots)
+UINT32_FUNCS(serialqueries, serial_queries)
+UINT32_FUNCS(sigvalidityinterval, sig_valid_interval)
+UINT32_FUNCS(datasize, data_size)
+UINT32_FUNCS(stacksize, stack_size)
+UINT32_FUNCS(coresize, core_size)
+UINT32_FUNCS(files, files)
+UINT32_FUNCS(maxcachesize, max_cache_size)
+UINT32_FUNCS(maxncachettl, max_ncache_ttl)
+UINT32_FUNCS(maxcachettl, max_cache_ttl)
+
+UINT32_FUNCS(minretrytime, min_retry_time)
+UINT32_FUNCS(maxretrytime, max_retry_time)
+UINT32_FUNCS(minrefreshtime, min_refresh_time)
+UINT32_FUNCS(maxrefreshtime, max_refresh_time)
+
+#ifndef NOMINUM_PUBLIC
+UINT32_FUNCS(maxnames, max_names)
+#endif
+
+BOOL_FUNCS(expertmode, expert_mode)
+BOOL_FUNCS(fakeiquery, fake_iquery)
+BOOL_FUNCS(recursion, recursion)
+BOOL_FUNCS(fetchglue, fetch_glue)
+
+NOTIFYTYPE_FUNCS(notify, notify)
+
+BOOL_FUNCS(hoststatistics, host_statistics)
+BOOL_FUNCS(dealloconexit, dealloc_on_exit)
+BOOL_FUNCS(useixfr, use_ixfr)
+BOOL_FUNCS(maintainixfrbase, maintain_ixfr_base)
+BOOL_FUNCS(hasoldclients, has_old_clients)
+BOOL_FUNCS(authnxdomain, auth_nx_domain)
+BOOL_FUNCS(multiplecnames, multiple_cnames)
+BOOL_FUNCS(useidpool, use_id_pool)
+BOOL_FUNCS(dialup, dialup)
+BOOL_FUNCS(rfc2308type1, rfc2308_type1)
+BOOL_FUNCS(requestixfr, request_ixfr)
+BOOL_FUNCS(provideixfr, provide_ixfr)
+BOOL_FUNCS(treatcrasspace, treat_cr_as_space)
+BOOL_FUNCS(additionalfromauth, additional_from_auth)
+BOOL_FUNCS(additionalfromcache, additional_from_cache)
+
+SOCKADDR_FUNCS(transfersource, transfer_source)
+SOCKADDR_FUNCS(transfersourcev6, transfer_source_v6)
+SOCKADDR_FUNCS(querysource, query_source)
+SOCKADDR_FUNCS(querysourcev6, query_source_v6)
+
+BYTYPE_FUNCS(dns_c_forw_t, forward, forward)
+BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)
+BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
+	
 
 
 
@@ -2192,109 +2095,13 @@ dns_c_ctx_unsetchecknames(dns_c_ctx_t *cfg,
 	return (ISC_R_SUCCESS);
 }
 
-
-
-
-#define SETIPMLIST(FUNCNAME, FIELD)					\
-isc_result_t								\
-PVT_CONCAT(dns_c_ctx_set, FUNCNAME)(dns_c_ctx_t *cfg,			\
-				    dns_c_ipmatchlist_t *newval)	\
-{									\
-	isc_result_t res;						\
-									\
-	REQUIRE(DNS_C_CONFCTX_VALID(cfg));				\
-									\
-	res = make_options(cfg);					\
-	if (res != ISC_R_SUCCESS) {					\
-		return (res);						\
-	}								\
-									\
-	REQUIRE(newval != NULL);					\
-									\
-	if (cfg->options->FIELD != NULL) {				\
-		dns_c_ipmatchlist_detach(&cfg->options->FIELD);		\
-	}								\
-									\
-	dns_c_ipmatchlist_attach(newval, &cfg->options->FIELD);		\
-	return (ISC_R_SUCCESS);						\
-}									\
-
-
-
-#define GETIPMLIST(FUNC, FIELD)						\
-isc_result_t								\
-PVT_CONCAT(dns_c_ctx_get, FUNC)(dns_c_ctx_t *cfg,			\
-				dns_c_ipmatchlist_t **retval)		\
-{									\
-	REQUIRE(DNS_C_CONFCTX_VALID(cfg));				\
-									\
-	if (cfg->options == NULL) {					\
-		return (ISC_R_NOTFOUND);				\
-	}								\
-									\
-	REQUIRE(retval != NULL);					\
-									\
-	if (cfg->options->FIELD != NULL) {				\
-		dns_c_ipmatchlist_attach(cfg->options->FIELD, retval);	\
-		return (ISC_R_SUCCESS);					\
-	} else {							\
-		return (ISC_R_NOTFOUND);				\
-	}								\
-}
-
-
-
-
-#define UNSETIPMLIST(FUNC, FIELD)			\
-isc_result_t						\
-PVT_CONCAT(dns_c_ctx_unset, FUNC)(dns_c_ctx_t *cfg)	\
-{							\
-	REQUIRE(DNS_C_CONFCTX_VALID(cfg));		\
-							\
-	if (cfg->options == NULL) {			\
-		return (ISC_R_NOTFOUND);		\
-	}						\
-							\
-	dns_c_ipmatchlist_detach(&cfg->options->FIELD);	\
-							\
-	return (ISC_R_SUCCESS);				\
-}
-
-
-SETIPMLIST(allowquery, queryacl)
-UNSETIPMLIST(allowquery, queryacl)
-GETIPMLIST(allowquery, queryacl)
-
-
-SETIPMLIST(allowtransfer, transferacl)
-UNSETIPMLIST(allowtransfer, transferacl)
-GETIPMLIST(allowtransfer, transferacl)
-
-
-SETIPMLIST(allowrecursion, recursionacl)
-UNSETIPMLIST(allowrecursion, recursionacl)
-GETIPMLIST(allowrecursion, recursionacl)
-
-
-SETIPMLIST(blackhole, blackhole)
-UNSETIPMLIST(blackhole, blackhole)
-GETIPMLIST(blackhole, blackhole)
-
-
-SETIPMLIST(topology, topology)
-UNSETIPMLIST(topology, topology)
-GETIPMLIST(topology, topology)
-
-
-SETIPMLIST(sortlist, sortlist)
-UNSETIPMLIST(sortlist, sortlist)
-GETIPMLIST(sortlist, sortlist)
-
-
-SETIPMLIST(allowupdateforwarding, allowupdateforwarding)
-UNSETIPMLIST(allowupdateforwarding, allowupdateforwarding)
-GETIPMLIST(allowupdateforwarding, allowupdateforwarding)
-
+IPMLIST_FUNCS(allowquery, queryacl)
+IPMLIST_FUNCS(allowtransfer, transferacl)
+IPMLIST_FUNCS(allowrecursion, recursionacl)
+IPMLIST_FUNCS(blackhole, blackhole)
+IPMLIST_FUNCS(topology, topology)
+IPMLIST_FUNCS(sortlist, sortlist)
+IPMLIST_FUNCS(allowupdateforwarding, allowupdateforwarding)
 
 
 

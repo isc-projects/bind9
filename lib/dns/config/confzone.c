@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.52 2000/08/01 01:23:32 tale Exp $ */
+/* $Id: confzone.c,v 1.53 2000/08/02 20:44:23 brister Exp $ */
 
 #include <config.h>
 
@@ -42,24 +42,38 @@
 #define MZ_MAX_TRANS_TIME_OUT_BIT	6
 #define MZ_MAX_TRANS_IDLE_OUT_BIT	7
 #define MZ_SIG_VALID_INTERVAL_BIT	8
+#ifndef NOMINUM_PUBLIC
+#define MZ_MAX_NAMES_BIT		9
+#endif
+#define MZ_MIN_RETRY_TIME_BIT		10
+#define MZ_MAX_RETRY_TIME_BIT		11
+#define MZ_MIN_REFRESH_TIME_BIT		12
+#define MZ_MAX_REFRESH_TIME_BIT		13
 
 
 /*
  * Bit positions in the dns_c_slavezone_t structure setflags field.
  */
-#define SZ_CHECK_NAME_BIT                        0
-#define SZ_DIALUP_BIT                            1
-#define SZ_MASTER_PORT_BIT                       2
-#define SZ_TRANSFER_SOURCE_BIT                   3
-#define SZ_TRANSFER_SOURCE_V6_BIT                4
-#define SZ_MAX_TRANS_TIME_IN_BIT                 5
-#define SZ_MAX_TRANS_TIME_OUT_BIT                6
-#define SZ_MAX_TRANS_IDLE_IN_BIT                 7
-#define SZ_MAX_TRANS_IDLE_OUT_BIT                8
-#define SZ_NOTIFY_BIT                            9
-#define SZ_MAINT_IXFR_BASE_BIT                   10
-#define SZ_MAX_IXFR_LOG_BIT                      11
-#define SZ_FORWARD_BIT                           12
+#define SZ_CHECK_NAME_BIT                       0
+#define SZ_DIALUP_BIT                           1
+#define SZ_MASTER_PORT_BIT                      2
+#define SZ_TRANSFER_SOURCE_BIT                  3
+#define SZ_TRANSFER_SOURCE_V6_BIT               4
+#define SZ_MAX_TRANS_TIME_IN_BIT                5
+#define SZ_MAX_TRANS_TIME_OUT_BIT               6
+#define SZ_MAX_TRANS_IDLE_IN_BIT                7
+#define SZ_MAX_TRANS_IDLE_OUT_BIT               8
+#define SZ_NOTIFY_BIT                           9
+#define SZ_MAINT_IXFR_BASE_BIT                  10
+#define SZ_MAX_IXFR_LOG_BIT                     11
+#define SZ_FORWARD_BIT                          12
+#ifndef NOMINUM_PUBLIC
+#define SZ_MAX_NAMES_BIT			13
+#endif
+#define SZ_MIN_RETRY_TIME_BIT			14
+#define SZ_MAX_RETRY_TIME_BIT			15
+#define SZ_MIN_REFRESH_TIME_BIT			16
+#define SZ_MAX_REFRESH_TIME_BIT			17
 
 
 
@@ -74,19 +88,27 @@
 #define TZ_MAX_TRANS_IDLE_IN_BIT                 7
 #define TZ_MAX_TRANS_IDLE_OUT_BIT                8
 #define TZ_FORWARD_BIT                           9
+#define TZ_MIN_RETRY_TIME_BIT			10
+#define TZ_MAX_RETRY_TIME_BIT			11
+#define TZ_MIN_REFRESH_TIME_BIT			12
+#define TZ_MAX_REFRESH_TIME_BIT			13
 
 
 /*
  * Bit positions in the dns_c_forwardzone_t structure setflags field.
  */
-#define FZ_CHECK_NAME_BIT		0
-#define FZ_FORWARD_BIT			1
+#define FZ_CHECK_NAME_BIT			0
+#define FZ_FORWARD_BIT				1
+#define FZ_MIN_RETRY_TIME_BIT			2
+#define FZ_MAX_RETRY_TIME_BIT			3
+#define FZ_MIN_REFRESH_TIME_BIT			4
+#define FZ_MAX_REFRESH_TIME_BIT			5
 
 
 /*
  * Bit positions in the dns_c_hintzone_t structure setflags field.
  */
-#define HZ_CHECK_NAME_BIT		0
+#define HZ_CHECK_NAME_BIT			0
 
 
 static void
@@ -3055,6 +3077,586 @@ dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone, isc_uint32_t *retval) {
 }
 
 
+isc_result_t
+dns_c_zone_setminretrytime(dns_c_zone_t *zone, isc_uint32_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.min_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(MZ_MIN_RETRY_TIME_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_MIN_RETRY_TIME_BIT,
+			     &zone->u.mzone.setflags);
+		break;
+
+	case dns_c_zone_slave:
+		zone->u.szone.min_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MIN_RETRY_TIME_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MIN_RETRY_TIME_BIT,
+			     &zone->u.szone.setflags);
+		break;
+
+	case dns_c_zone_stub:
+		zone->u.tzone.min_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(TZ_MIN_RETRY_TIME_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_MIN_RETRY_TIME_BIT,
+			     &zone->u.tzone.setflags);
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "min_retry_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		zone->u.fzone.min_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(FZ_MIN_RETRY_TIME_BIT,
+					 &zone->u.fzone.setflags);
+		DNS_C_SETBIT(FZ_MIN_RETRY_TIME_BIT,
+			     &zone->u.fzone.setflags);
+		break;
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_getminretrytime(dns_c_zone_t *zone, isc_uint32_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_MIN_RETRY_TIME_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.min_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MIN_RETRY_TIME_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.min_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_MIN_RETRY_TIME_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.min_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "min_retry_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		if (DNS_C_CHECKBIT(FZ_MIN_RETRY_TIME_BIT,
+				   &zone->u.fzone.setflags)) {
+			*retval = zone->u.fzone.min_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+	}
+	
+	return (res);
+}
+
+
+isc_result_t
+dns_c_zone_setmaxretrytime(dns_c_zone_t *zone, isc_uint32_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.max_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(MZ_MAX_RETRY_TIME_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_MAX_RETRY_TIME_BIT,
+			     &zone->u.mzone.setflags);
+		break;
+
+	case dns_c_zone_slave:
+		zone->u.szone.max_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MAX_RETRY_TIME_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MAX_RETRY_TIME_BIT,
+			     &zone->u.szone.setflags);
+		break;
+
+	case dns_c_zone_stub:
+		zone->u.tzone.max_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(TZ_MAX_RETRY_TIME_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_MAX_RETRY_TIME_BIT,
+			     &zone->u.tzone.setflags);
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_retry_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		zone->u.fzone.max_retry_time = newval ;
+		existed = DNS_C_CHECKBIT(FZ_MAX_RETRY_TIME_BIT,
+					 &zone->u.fzone.setflags);
+		DNS_C_SETBIT(FZ_MAX_RETRY_TIME_BIT,
+			     &zone->u.fzone.setflags);
+		break;
+
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_getmaxretrytime(dns_c_zone_t *zone, isc_uint32_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_MAX_RETRY_TIME_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.max_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MAX_RETRY_TIME_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.max_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_MAX_RETRY_TIME_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.max_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_retry_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		if (DNS_C_CHECKBIT(FZ_MAX_RETRY_TIME_BIT,
+				   &zone->u.fzone.setflags)) {
+			*retval = zone->u.fzone.max_retry_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	}
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_zone_setminrefreshtime(dns_c_zone_t *zone, isc_uint32_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.min_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(MZ_MIN_REFRESH_TIME_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_MIN_REFRESH_TIME_BIT,
+			     &zone->u.mzone.setflags);
+		break;
+
+	case dns_c_zone_slave:
+		zone->u.szone.min_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MIN_REFRESH_TIME_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MIN_REFRESH_TIME_BIT,
+			     &zone->u.szone.setflags);
+		break;
+
+	case dns_c_zone_stub:
+		zone->u.tzone.min_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(TZ_MIN_REFRESH_TIME_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_MIN_REFRESH_TIME_BIT,
+			     &zone->u.tzone.setflags);
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "min_refresh_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		zone->u.fzone.min_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(FZ_MIN_REFRESH_TIME_BIT,
+					 &zone->u.fzone.setflags);
+		DNS_C_SETBIT(FZ_MIN_REFRESH_TIME_BIT,
+			     &zone->u.fzone.setflags);
+		break;
+
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_getminrefreshtime(dns_c_zone_t *zone, isc_uint32_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_MIN_REFRESH_TIME_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.min_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MIN_REFRESH_TIME_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.min_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_MIN_REFRESH_TIME_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.min_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "min_refresh_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		if (DNS_C_CHECKBIT(FZ_MIN_REFRESH_TIME_BIT,
+				   &zone->u.fzone.setflags)) {
+			*retval = zone->u.fzone.min_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	}
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_zone_setmaxrefreshtime(dns_c_zone_t *zone, isc_uint32_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.max_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(MZ_MAX_REFRESH_TIME_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_MAX_REFRESH_TIME_BIT,
+			     &zone->u.mzone.setflags);
+		break;
+
+	case dns_c_zone_slave:
+		zone->u.szone.max_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MAX_REFRESH_TIME_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MAX_REFRESH_TIME_BIT,
+			     &zone->u.szone.setflags);
+		break;
+
+	case dns_c_zone_stub:
+		zone->u.tzone.max_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(TZ_MAX_REFRESH_TIME_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_MAX_REFRESH_TIME_BIT,
+			     &zone->u.tzone.setflags);
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_refresh_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		zone->u.fzone.max_refresh_time = newval ;
+		existed = DNS_C_CHECKBIT(FZ_MAX_REFRESH_TIME_BIT,
+					 &zone->u.fzone.setflags);
+		DNS_C_SETBIT(FZ_MAX_REFRESH_TIME_BIT,
+			     &zone->u.fzone.setflags);
+		break;
+
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_getmaxrefreshtime(dns_c_zone_t *zone, isc_uint32_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_MAX_REFRESH_TIME_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.max_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MAX_REFRESH_TIME_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.max_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_MAX_REFRESH_TIME_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.max_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_refresh_time field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		if (DNS_C_CHECKBIT(FZ_MAX_REFRESH_TIME_BIT,
+				   &zone->u.fzone.setflags)) {
+			*retval = zone->u.fzone.max_refresh_time;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	}
+
+	return (res);
+}
+
+
+#ifndef NOMINUM_PUBLIC
+isc_result_t
+dns_c_zone_setmaxnames(dns_c_zone_t *zone, isc_uint32_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.max_names = newval ;
+		existed = DNS_C_CHECKBIT(MZ_MAX_NAMES_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_MAX_NAMES_BIT,
+			     &zone->u.mzone.setflags);
+		break;
+
+	case dns_c_zone_slave:
+		zone->u.szone.max_names = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MAX_NAMES_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MAX_NAMES_BIT,
+			     &zone->u.szone.setflags);
+		break;
+
+	case dns_c_zone_stub:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Stub zones do not have a "
+			      "max_names field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_names field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_names field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_getmaxnames(dns_c_zone_t *zone, isc_uint32_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_MAX_NAMES_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.max_names;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MAX_NAMES_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.max_names;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_stub:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Stub zones do not have a "
+			      "max_names field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_names field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_names field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (res);
+}
+#endif
+
+
 /*
  *
  */
@@ -3802,6 +4404,33 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 			mzone->sig_valid_interval);
 	}
 
+	if (DNS_C_CHECKBIT(MZ_MIN_RETRY_TIME_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-retry-time %d;\n", mzone->min_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(MZ_MAX_RETRY_TIME_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-retry-time %d;\n", mzone->max_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(MZ_MIN_REFRESH_TIME_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-refresh-time %d;\n", mzone->min_refresh_time);
+	}
+
+	if (DNS_C_CHECKBIT(MZ_MAX_REFRESH_TIME_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-refresh-time %d;\n", mzone->max_refresh_time);
+	}
+
+#ifndef NOMINUM_PUBLIC
+	if (DNS_C_CHECKBIT(MZ_MAX_NAMES_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-names %d;\n", mzone->max_names);
+	}
+#endif
+
 	if (mzone->pubkeylist != NULL) {
 		fprintf(fp, "\n");
 		dns_c_pklist_print(fp, indent, mzone->pubkeylist);
@@ -3983,6 +4612,34 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 			fprintf(fp, "notify explicit;\n");
 	}
 
+
+	if (DNS_C_CHECKBIT(SZ_MIN_RETRY_TIME_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-retry-time %d;\n", szone->min_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(SZ_MAX_RETRY_TIME_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-retry-time %d;\n", szone->max_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(SZ_MIN_REFRESH_TIME_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-refresh-time %d;\n", szone->min_refresh_time);
+	}
+
+	if (DNS_C_CHECKBIT(SZ_MAX_REFRESH_TIME_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-refresh-time %d;\n", szone->max_refresh_time);
+	}
+
+#ifndef NOMINUM_PUBLIC
+	if (DNS_C_CHECKBIT(SZ_MAX_NAMES_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-names %d;\n", szone->max_names);
+	}
+#endif
+
 	if (szone->also_notify != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "also-notify ");
@@ -4094,6 +4751,26 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone) {
 			(tzone->dialup ? "true" : "false"));
 	}
 
+	if (DNS_C_CHECKBIT(TZ_MIN_RETRY_TIME_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-retry-time %d;\n", tzone->min_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(TZ_MAX_RETRY_TIME_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-retry-time %d;\n", tzone->max_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(TZ_MIN_REFRESH_TIME_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-refresh-time %d;\n", tzone->min_refresh_time);
+	}
+
+	if (DNS_C_CHECKBIT(TZ_MAX_REFRESH_TIME_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-refresh-time %d;\n", tzone->max_refresh_time);
+	}
+
 	if (DNS_C_CHECKBIT(TZ_TRANSFER_SOURCE_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "transfer-source ");
@@ -4182,6 +4859,27 @@ forward_zone_print(FILE *fp, int indent, dns_c_forwardzone_t *fzone) {
 			dns_c_nameseverity2string(fzone->check_names,
 						  ISC_TRUE));
 	}
+
+	if (DNS_C_CHECKBIT(FZ_MIN_RETRY_TIME_BIT, &fzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-retry-time %d;\n", fzone->min_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(FZ_MAX_RETRY_TIME_BIT, &fzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-retry-time %d;\n", fzone->max_retry_time);
+	}
+
+	if (DNS_C_CHECKBIT(FZ_MIN_REFRESH_TIME_BIT, &fzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "min-refresh-time %d;\n", fzone->min_refresh_time);
+	}
+
+	if (DNS_C_CHECKBIT(FZ_MAX_REFRESH_TIME_BIT, &fzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-refresh-time %d;\n", fzone->max_refresh_time);
+	}
+
 }
 
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.48 2000/08/01 01:23:52 tale Exp $ */
+/* $Id: confctx.h,v 1.49 2000/08/02 20:44:25 brister Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -149,6 +149,14 @@ struct dns_c_options {
 	isc_uint32_t	       *max_cache_size;
 	isc_uint32_t	       *max_ncache_ttl;
 	isc_uint32_t	       *max_cache_ttl;
+
+	isc_uint32_t	       *min_retry_time;
+	isc_uint32_t	       *max_retry_time;
+	isc_uint32_t	       *min_refresh_time;
+	isc_uint32_t	       *max_refresh_time;
+
+	isc_uint32_t	       *max_names;
+	
 
 	isc_boolean_t	       *expert_mode;
 	isc_boolean_t	       *fake_iquery;
@@ -470,6 +478,35 @@ isc_result_t dns_c_ctx_unsetfiles(dns_c_ctx_t *cfg);
 isc_result_t dns_c_ctx_setmaxcachesize(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxcachesize(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxcachesize(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setminretrytime(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getminretrytime(dns_c_ctx_t *cfg, isc_uint32_t *retval);
+isc_result_t dns_c_ctx_unsetminretrytime(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setmaxretrytime(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getmaxretrytime(dns_c_ctx_t *cfg, isc_uint32_t *retval);
+isc_result_t dns_c_ctx_unsetmaxretrytime(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setminrefreshtime(dns_c_ctx_t *cfg,
+					 isc_uint32_t newval);
+isc_result_t dns_c_ctx_getminrefreshtime(dns_c_ctx_t *cfg,
+					 isc_uint32_t *retval);
+isc_result_t dns_c_ctx_unsetminrefreshtime(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setmaxrefreshtime(dns_c_ctx_t *cfg,
+					 isc_uint32_t newval);
+isc_result_t dns_c_ctx_getmaxrefreshtime(dns_c_ctx_t *cfg,
+					 isc_uint32_t *retval);
+isc_result_t dns_c_ctx_unsetmaxrefreshtime(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setmaxnames(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getmaxnames(dns_c_ctx_t *cfg, isc_uint32_t *retval);
+isc_result_t dns_c_ctx_unsetmaxnames(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval);

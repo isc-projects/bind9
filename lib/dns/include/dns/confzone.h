@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.39 2000/08/01 01:24:03 tale Exp $ */
+/* $Id: confzone.h,v 1.40 2000/08/02 20:44:27 brister Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -41,7 +41,7 @@
  *
  *	No problems.
  *
- * Resources:
+ * resources:
  *
  *	Use memory managers supplied by client.
  *
@@ -97,14 +97,14 @@ struct dns_c_zone_list {
 
 struct dns_c_master_zone {
 	char		       *file;
-	dns_severity_t	check_names;
+	dns_severity_t		check_names;
 	dns_c_ipmatchlist_t    *allow_update;
 	dns_c_ipmatchlist_t    *allow_update_forwarding;
 	dns_ssutable_t	       *ssuauth;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
 	isc_boolean_t		dialup;
-	isc_boolean_t		notify;
+	dns_notifytype_t	notify;
 	dns_c_iplist_t	       *also_notify;
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
@@ -114,6 +114,16 @@ struct dns_c_master_zone {
 	isc_uint32_t		max_trans_time_out;
 	isc_uint32_t		max_trans_idle_out;
 	isc_uint32_t		sig_valid_interval;
+
+#ifndef NOMINUM_PUBLIC
+	isc_uint32_t		max_names;
+#endif
+	
+	isc_uint32_t		min_retry_time;
+	isc_uint32_t		max_retry_time;
+	isc_uint32_t		min_refresh_time;
+	isc_uint32_t		max_refresh_time;
+	
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
@@ -129,7 +139,7 @@ struct dns_c_slave_zone {
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
 	dns_c_iplist_t	       *also_notify;
-	isc_boolean_t		notify;
+	dns_notifytype_t	notify;
 	isc_boolean_t		dialup;
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
@@ -144,6 +154,15 @@ struct dns_c_slave_zone {
 	isc_uint32_t		max_trans_time_out;
 	isc_uint32_t		max_trans_idle_in;
 	isc_uint32_t		max_trans_idle_out;
+
+#ifndef NOMINUM_PUBLIC
+	isc_uint32_t		max_names;
+#endif
+
+	isc_uint32_t		min_retry_time;
+	isc_uint32_t		max_retry_time;
+	isc_uint32_t		min_refresh_time;
+	isc_uint32_t		max_refresh_time;
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
@@ -169,6 +188,10 @@ struct dns_c_stub_zone {
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
+	isc_uint32_t		min_retry_time;
+	isc_uint32_t		max_retry_time;
+	isc_uint32_t		min_refresh_time;
+	isc_uint32_t		max_refresh_time;
 
 	dns_c_setbits_t		setflags;
 };
@@ -177,6 +200,11 @@ struct dns_c_forward_zone {
 	dns_severity_t	check_names;
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
+
+	isc_uint32_t		min_retry_time;
+	isc_uint32_t		max_retry_time;
+	isc_uint32_t		min_refresh_time;
+	isc_uint32_t		max_refresh_time;
 
 	dns_c_setbits_t		setflags;
 };
@@ -393,6 +421,35 @@ isc_result_t dns_c_zone_setsigvalidityinterval(dns_c_zone_t *zone,
 					    isc_uint32_t newval);
 isc_result_t dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone,
 					    isc_uint32_t *retval);
+
+
+isc_result_t dns_c_zone_setminretrytime(dns_c_zone_t *zone,
+					isc_uint32_t newval);
+isc_result_t dns_c_zone_getminretrytime(dns_c_zone_t *zone,
+					isc_uint32_t *retval);
+
+isc_result_t dns_c_zone_setmaxretrytime(dns_c_zone_t *zone,
+					isc_uint32_t newval);
+isc_result_t dns_c_zone_getmaxretrytime(dns_c_zone_t *zone,
+					isc_uint32_t *retval);
+
+
+isc_result_t dns_c_zone_setminrefreshtime(dns_c_zone_t *zone,
+					  isc_uint32_t newval);
+isc_result_t dns_c_zone_getminrefreshtime(dns_c_zone_t *zone,
+					  isc_uint32_t *retval);
+
+isc_result_t dns_c_zone_setmaxrefreshtime(dns_c_zone_t *zone,
+					  isc_uint32_t newval);
+isc_result_t dns_c_zone_getmaxrefreshtime(dns_c_zone_t *zone,
+					  isc_uint32_t *retval);
+
+
+isc_result_t dns_c_zone_setmaxnames(dns_c_zone_t *zone,
+					  isc_uint32_t newval);
+isc_result_t dns_c_zone_getmaxnames(dns_c_zone_t *zone,
+					  isc_uint32_t *retval);
+
 
 
 isc_result_t dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
