@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.8 2001/11/08 03:29:05 mayer Exp $ */
+/* $Id: socket.c,v 1.9 2001/11/15 19:06:04 gson Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -328,8 +328,8 @@ internal_sendmsg(int sock, const struct msghdr *msg, int flags) {
 		/* There is an error... */
 		Error = WSAGetLastError();
 		if (Error == WSA_IO_PENDING) {
-		    /* Overlapped send successfully initiated. */
-		    errno = EAGAIN;
+			/* Overlapped send successfully initiated. */
+			errno = EAGAIN;
 		} else {
 			/* An unexpected error occurred. */
 			errno = Error;
@@ -853,12 +853,11 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 		iov[0].buf = (void *)(dev->region.base + dev->n);
 		iov[0].len = read_count;
 		iovcount = 1;
-	}
-	else {
-	/*
-	 * Multibuffer I/O.
-	 * Skip empty buffers.
-	 */
+	} else {
+		/*
+		 * Multibuffer I/O.
+		 * Skip empty buffers.
+		 */
 		while (buffer != NULL) {
 			REQUIRE(ISC_BUFFER_VALID(buffer));
 			if (isc_buffer_availablelength(buffer) != 0)
