@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.38 2001/01/09 21:52:47 bwelling Exp $ */
+/* $Id: dispatch.h,v 1.39 2001/01/27 02:08:06 bwelling Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -105,8 +105,8 @@ struct dns_dispatchevent {
  * _IPV4, _IPV6
  *	The dispatcher uses an ipv4 or ipv6 socket.
  *
- * _ACCEPTREQUEST
- *	The dispatcher can be used to accept requests.
+ * _NOLISTEN
+ *	The dispatcher should not listen on the socket.
  *
  * _MAKEQUERY
  *	The dispatcher can be used to issue queries to other servers, and
@@ -117,7 +117,7 @@ struct dns_dispatchevent {
 #define DNS_DISPATCHATTR_UDP		0x00000004U
 #define DNS_DISPATCHATTR_IPV4		0x00000008U
 #define DNS_DISPATCHATTR_IPV6		0x00000010U
-#define DNS_DISPATCHATTR_ACCEPTREQUEST	0x00000020U
+#define DNS_DISPATCHATTR_NOLISTEN	0x00000020U
 #define DNS_DISPATCHATTR_MAKEQUERY	0x00000040U
 #define DNS_DISPATCHATTR_CONNECTED	0x00000080U
 
@@ -460,6 +460,18 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
  *
  *	attributes are reasonable for the dispatch.  That is, setting the UDP
  *	attribute on a TCP socket isn't reasonable.
+ */
+
+void
+dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t **eventp);
+/*
+ * Give a socket receive event to the dispatcher.  This is used for sockets
+ * shared between dispatchers and clients.  If the dispatcher fails to send
+ * the event, it frees it.
+ *
+ * Requires:
+ * 	disp is valid, and the attribute DNS_DISPATCHATTR_NOLISTEN is set.
+ * 	eventp != NULL && *eventp != NULL
  */
 
 ISC_LANG_ENDDECLS

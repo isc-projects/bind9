@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.55 2001/01/09 21:39:42 bwelling Exp $ */
+/* $Id: interfacemgr.c,v 1.56 2001/01/27 02:08:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -244,6 +244,7 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 		attrs |= DNS_DISPATCHATTR_IPV4;
 	else
 		attrs |= DNS_DISPATCHATTR_IPV6;
+	attrs |= DNS_DISPATCHATTR_NOLISTEN;
 	attrmask = 0;
 	attrmask |= DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
 	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
@@ -269,6 +270,8 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 	return (ISC_R_SUCCESS);
 
  addtodispatch_failure:
+	dns_dispatch_changeattributes(ifp->udpdispatch, 0,
+				      DNS_DISPATCHATTR_NOLISTEN);
 	dns_dispatch_detach(&ifp->udpdispatch);
  udp_dispatch_failure:
 	return (result);
@@ -373,8 +376,11 @@ ns_interface_destroy(ns_interface_t *ifp) {
 
 	ns_interface_shutdown(ifp);
 
-	if (ifp->udpdispatch != NULL)
+	if (ifp->udpdispatch != NULL) {
+		dns_dispatch_changeattributes(ifp->udpdispatch, 0,
+					      DNS_DISPATCHATTR_NOLISTEN);
 		dns_dispatch_detach(&ifp->udpdispatch);
+	}
 	if (ifp->tcpsocket != NULL)
 		isc_socket_detach(&ifp->tcpsocket);
 

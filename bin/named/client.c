@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.141 2001/01/23 18:47:33 gson Exp $ */
+/* $Id: client.c,v 1.142 2001/01/27 02:07:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -134,10 +134,10 @@ struct ns_clientmgr {
  * client manager's list of active clients.
  *
  * If it is a TCP client object, it has a TCP listener socket
- * and an outstading TCP listen request.
+ * and an outstanding TCP listen request.
  *
- * If it is a UDP client object, it is associated with a
- * dispatch and has an outstanding dispatch request.
+ * If it is a UDP client object, it has a UDP listener socket
+ * and an outstanding UDP receive request.
  */
 
 #define NS_CLIENTSTATE_READING  3
@@ -152,8 +152,7 @@ struct ns_clientmgr {
 /*
  * The client object has received a request and is working
  * on it.  It has a view, and it may  have any of a non-reset OPT,
- * recursion quota, and an outstanding write request.  If it
- * is a UDP client object, it has a dispatch event.
+ * recursion quota, and an outstanding write request.
  */
 
 #define NS_CLIENTSTATE_MAX      9
@@ -166,6 +165,7 @@ struct ns_clientmgr {
 
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
+static void client_udprecv(ns_client_t *client);
 static void clientmgr_destroy(ns_clientmgr_t *manager);
 static isc_boolean_t exit_check(ns_client_t *client);
 static void ns_client_endrequest(ns_client_t *client);
@@ -191,14 +191,9 @@ client_deactivate(ns_client_t *client) {
 	if (client->tcplistener != NULL)
 		isc_socket_detach(&client->tcplistener);
 
-	if (client->dispentry != NULL) {
-		dns_dispatchevent_t **deventp;
-		if (client->dispevent != NULL)
-			deventp = &client->dispevent;
-		else
-			deventp = NULL;
-		dns_dispatch_removerequest(&client->dispentry, deventp);
-	}
+	if (client->udpsocket != NULL)
+		isc_socket_detach(&client->udpsocket);
+
 	if (client->dispatch != NULL)
 		dns_dispatch_detach(&client->dispatch);
 
@@ -237,6 +232,7 @@ client_free(ns_client_t *client) {
 
 	ns_query_free(client);
 	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
+	isc_mem_put(client->mctx, client->recvbuf, RECV_BUFFER_SIZE);
 	isc_timer_detach(&client->timer);
 
 	if (client->tcpbuf != NULL)
@@ -338,13 +334,14 @@ exit_check(ns_client_t *client) {
 			if (TCP_CLIENT(client))
 				socket = client->tcpsocket;
 			else
-				socket =
-				dns_dispatch_getsocket(client->dispatch);
+				socket = client->udpsocket;
 			isc_socket_cancel(socket, client->task,
 					  ISC_SOCKCANCEL_SEND);
 		}
 
-		if (! (client->nsends == 0 && client->references == 0)) {
+		if (! (client->nsends == 0 && client->nrecvs == 0 &&
+		       client->references == 0))
+		{
 			/*
 			 * Still waiting for I/O cancel completion.
 			 * or lingering references.
@@ -411,16 +408,8 @@ exit_check(ns_client_t *client) {
 		if (NS_CLIENTSTATE_READY == client->newstate) {
 			if (TCP_CLIENT(client)) {
 				client_accept(client);
-			} else {
-				/*
-				 * Give the processed dispatch event back to
-				 * the dispatch. This tells the dispatch
-				 * that we are ready to receive the next event.
-				 */
-				dns_dispatch_freeevent(client->dispatch,
-						       client->dispentry,
-						       &client->dispevent);
-			}
+			} else
+				client_udprecv(client);
 			client->newstate = NS_CLIENTSTATE_MAX;
 			return (ISC_TRUE);
 		}
@@ -440,6 +429,16 @@ exit_check(ns_client_t *client) {
 			return (ISC_TRUE);
 		}
 		/* Accept cancel is complete. */
+
+		if (client->nrecvs > 0)
+			isc_socket_cancel(client->udpsocket, client->task,
+					  ISC_SOCKCANCEL_RECV);
+		if (! (client->nrecvs == 0)) {
+			/* Still waiting for recv cancel completion. */
+			return (ISC_TRUE);
+		}
+		/* Recv cancel is complete. */
+
 		client_deactivate(client);
 		client->state = NS_CLIENTSTATE_INACTIVE;
 		INSIST(client->recursionquota == NULL);
@@ -468,7 +467,6 @@ exit_check(ns_client_t *client) {
 static void
 client_start(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client = (ns_client_t *) event->ev_arg;
-	isc_result_t result;
 
 	INSIST(task == client->task);
 
@@ -477,25 +475,7 @@ client_start(isc_task_t *task, isc_event_t *event) {
 	if (TCP_CLIENT(client)) {
 		client_accept(client);
 	} else {
-		result = dns_dispatch_addrequest(client->dispatch,
-						 client->task,
-						 client_request,
-						 client,
-						 &client->dispentry);
-
-		if (result != ISC_R_SUCCESS) {
-			ns_client_log(client,
-				      DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_CLIENT,
-				      ISC_LOG_DEBUG(3),
-				      "dns_dispatch_addrequest() "
-				      "failed: %s",
-				      isc_result_totext(result));
-			/*
-			 * Not much we can do here but log the failure;
-			 * the client will effectively go idle.
-			 */
-		}
+		client_udprecv(client);
 	}
 }
 
@@ -535,6 +515,7 @@ ns_client_endrequest(ns_client_t *client) {
 	INSIST(client->naccepts == 0);
 	INSIST(client->nreads == 0);
 	INSIST(client->nsends == 0);
+	INSIST(client->nrecvs == 0);
 	INSIST(client->state == NS_CLIENTSTATE_WORKING);
 
 	CTRACE("endrequest");
@@ -731,8 +712,8 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 		socket = client->tcpsocket;
 		address = NULL;
 	} else {
-		socket = dns_dispatch_getsocket(client->dispatch);
-		address = &client->dispevent->addr;
+		socket = client->udpsocket;
+		address = &client->peeraddr;
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		if (ns_g_server->blackholeacl != NULL &&
@@ -1135,16 +1116,17 @@ client_getoptattrs(ns_client_t *client, dns_rdataset_t *opt) {
 
 
 /*
- * Handle an incoming request event from the dispatch (UDP case)
+ * Handle an incoming request event from the socket (UDP case)
  * or tcpmsg (TCP case).
  */
 static void
 client_request(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
-	dns_dispatchevent_t *devent;
+	isc_socketevent_t *sevent;
 	isc_result_t result;
 	isc_result_t sigresult;
 	isc_buffer_t *buffer;
+	isc_buffer_t tbuffer;
 	dns_view_t *view;
 	dns_rdataset_t *opt;
 	isc_boolean_t ra; 	/* Recursion available. */
@@ -1166,21 +1148,22 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 	dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 
-	if (event->ev_type == DNS_EVENT_DISPATCH) {
+	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		INSIST(!TCP_CLIENT(client));
-		devent = (dns_dispatchevent_t *)event;
-		REQUIRE(client->dispentry != NULL);
-		client->dispevent = devent;
-		buffer = &devent->buffer;
-		result = devent->result;
-		client->peeraddr = devent->addr;
+		sevent = (isc_socketevent_t *)event;
+		isc_buffer_init(&tbuffer, sevent->region.base, sevent->n);
+		isc_buffer_add(&tbuffer, sevent->n);
+		buffer = &tbuffer;
+		result = sevent->result;
+		client->peeraddr = sevent->address;
 		client->peeraddr_valid = ISC_TRUE;
-		if ((devent->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
+		if ((sevent->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
-			client->pktinfo = devent->pktinfo;
+			client->pktinfo = sevent->pktinfo;
 		}
-		if ((devent->attributes & ISC_SOCKEVENTATTR_MULTICAST) != 0)
+		if ((sevent->attributes & ISC_SOCKEVENTATTR_MULTICAST) != 0)
 			client->attributes |= NS_CLIENTATTR_MULTICAST;
+		client->nrecvs--;
 	} else {
 		INSIST(TCP_CLIENT(client));
 		REQUIRE(event->ev_type == DNS_EVENT_TCPMSG);
@@ -1232,14 +1215,20 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * We expect a query, not a response.  Unexpected UDP responses
-	 * are discarded early by the dispatcher, but TCP responses
-	 * bypass the dispatcher and must be discarded here.
+	 * We expect a query, not a response.  If this is a UDP response,
+	 * forward it to the dispatcher.  If it's a TCP response,
+	 * discarded it here.
 	 */
 	if ((client->message->flags & DNS_MESSAGEFLAG_QR) != 0) {
-		CTRACE("unexpected response");
-		ns_client_next(client, DNS_R_FORMERR);
-		goto cleanup_serverlock;
+		if (TCP_CLIENT(client)) {
+			CTRACE("unexpected response");
+			ns_client_next(client, DNS_R_FORMERR);
+			goto cleanup_serverlock;
+		} else {
+			dns_dispatch_importrecv(client->dispatch, &event);
+			ns_client_next(client, ISC_R_SUCCESS);
+			goto cleanup_serverlock;
+		}
 	}
 
 	/*
@@ -1546,6 +1535,10 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	if  (client->sendbuf == NULL)
 		goto cleanup_message;
 
+	client->recvbuf = isc_mem_get(manager->mctx, RECV_BUFFER_SIZE);
+	if  (client->recvbuf == NULL)
+		goto cleanup_sendbuf;
+
 	client->magic = NS_CLIENT_MAGIC;
 	client->mctx = manager->mctx;
 	client->manager = NULL;
@@ -1554,13 +1547,13 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->naccepts = 0;
 	client->nreads = 0;
 	client->nsends = 0;
+	client->nrecvs = 0;
 	client->references = 0;
 	client->attributes = 0;
 	client->view = NULL;
 	client->lockview = NULL;
 	client->dispatch = NULL;
-	client->dispentry = NULL;
-	client->dispevent = NULL;
+	client->udpsocket = NULL;
 	client->tcplistener = NULL;
 	client->tcpsocket = NULL;
 	client->tcpmsg_valid = ISC_FALSE;
@@ -1594,13 +1587,16 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	 */
 	result = ns_query_init(client);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_sendbuf;
+		goto cleanup_recvbuf;
 
 	CTRACE("create");
 
 	*clientp = client;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_recvbuf:
+	isc_mem_put(manager->mctx, client->recvbuf, RECV_BUFFER_SIZE);
 
  cleanup_sendbuf:
 	isc_mem_put(manager->mctx, client->sendbuf, SEND_BUFFER_SIZE);
@@ -1780,6 +1776,34 @@ client_accept(ns_client_t *client) {
 	LOCK(&client->interface->lock);
 	client->interface->ntcpcurrent++;
 	UNLOCK(&client->interface->lock);
+}
+
+static void
+client_udprecv(ns_client_t *client) {
+	isc_result_t result;
+	isc_region_t r;
+
+	CTRACE("udprecv");
+
+	r.base = client->recvbuf;
+	r.length = RECV_BUFFER_SIZE;
+	result = isc_socket_recv(client->udpsocket, &r, 1,
+				 client->task, client_request, client);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_socket_recv() failed: %s",
+				 isc_result_totext(result));
+		/*
+		 * XXXBEW  What should we do?  We're trying to accept but
+		 *         it didn't work.  If we just give up, then UDP
+		 *	   service may eventually stop.
+		 *
+		 *	   For now, we just go idle.
+		 */
+		return;
+	}
+	INSIST(client->nrecvs == 0);
+	client->nrecvs++;
 }
 
 void
@@ -1972,8 +1996,12 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 			isc_socket_attach(ifp->tcpsocket,
 					  &client->tcplistener);
 		} else {
+			isc_socket_t *sock;
+
 			dns_dispatch_attach(ifp->udpdispatch,
 					    &client->dispatch);
+			sock = dns_dispatch_getsocket(client->dispatch);
+			isc_socket_attach(sock, &client->udpsocket);
 		}
 		client->manager = manager;
 		ISC_LIST_APPEND(manager->active, client, link);

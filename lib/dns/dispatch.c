@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.85 2001/01/25 13:52:32 gson Exp $ */
+/* $Id: dispatch.c,v 1.86 2001/01/27 02:08:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -109,6 +109,7 @@ struct dns_dispatch {
 	isc_sockaddr_t		local;		/* local address */
 	unsigned int		maxrequests;	/* max requests */
 	dns_acl_t	       *blackhole;
+	isc_event_t	       *ctlevent;
 
 	/* Locked by mgr->lock. */
 	ISC_LINK(dns_dispatch_t) link;
@@ -156,7 +157,7 @@ struct dns_dispatch {
 static dns_dispentry_t *bucket_search(dns_qid_t *, isc_sockaddr_t *,
 				      dns_messageid_t, unsigned int);
 static isc_boolean_t destroy_disp_ok(dns_dispatch_t *);
-static void destroy_disp(dns_dispatch_t **);
+static void destroy_disp(isc_task_t *task, isc_event_t *event);
 static void udp_recv(isc_task_t *, isc_event_t *);
 static void tcp_recv(isc_task_t *, isc_event_t *);
 static inline void startrecv(dns_dispatch_t *);
@@ -376,14 +377,19 @@ destroy_disp_ok(dns_dispatch_t *disp)
  * The manager must be locked.
  */
 static void
-destroy_disp(dns_dispatch_t **dispp) {
-	dns_dispatchmgr_t *mgr;
+destroy_disp(isc_task_t *task, isc_event_t *event) {
 	dns_dispatch_t *disp;
+	dns_dispatchmgr_t *mgr;
+	isc_boolean_t killmgr;
 
-	disp = *dispp;
-	*dispp = NULL;
+	INSIST(event->ev_type == DNS_EVENT_DISPATCHCONTROL);
+
+	UNUSED(task);
+
+	disp = event->ev_arg;
 	mgr = disp->mgr;
 
+	LOCK(&mgr->lock);
 	ISC_LIST_UNLINK(mgr->list, disp, link);
 
 	dispatch_log(disp, LVL(90),
@@ -392,8 +398,14 @@ destroy_disp(dns_dispatch_t **dispp) {
 
 	isc_socket_detach(&disp->socket);
 	isc_task_detach(&disp->task);
+	isc_event_free(&event);
 
 	dispatch_free(&disp);
+
+	killmgr = destroy_mgr_ok(mgr);
+	UNLOCK(&mgr->lock);
+	if (killmgr)
+		destroy_mgr(&mgr);
 }
 
 
@@ -537,8 +549,10 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		     "got packet: requests %d, buffers %d, recvs %d",
 		     disp->requests, disp->mgr->buffers, disp->recv_pending);
 
-	INSIST(disp->recv_pending != 0);
-	disp->recv_pending = 0;
+	if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) == 0) {
+		INSIST(disp->recv_pending != 0);
+		disp->recv_pending = 0;
+	}
 
 	if (disp->shutting_down) {
 		/*
@@ -551,14 +565,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 		killit = destroy_disp_ok(disp);
 		UNLOCK(&disp->lock);
-		if (killit) {
-			LOCK(&mgr->lock);
-			destroy_disp(&disp);
-			killit = destroy_mgr_ok(mgr);
-			UNLOCK(&mgr->lock);
-			if (killit)
-				destroy_mgr(&mgr);
-		}
+		if (killit)
+			isc_task_send(disp->task, &disp->ctlevent);
 
 		return;
 	}
@@ -800,14 +808,8 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		 */
 		killit = destroy_disp_ok(disp);
 		UNLOCK(&disp->lock);
-		if (killit) {
-			LOCK(&mgr->lock);
-			destroy_disp(&disp);
-			killit = destroy_mgr_ok(mgr);
-			UNLOCK(&mgr->lock);
-			if (killit)
-				destroy_mgr(&mgr);
-		}
+		if (killit)
+			isc_task_send(disp->task, &disp->ctlevent);
 		return;
 	}
 
@@ -919,6 +921,9 @@ startrecv(dns_dispatch_t *disp) {
 	isc_region_t region;
 
 	if (disp->shutting_down == 1)
+		return;
+
+	if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0)
 		return;
 
 	if (disp->recv_pending != 0)
@@ -1560,6 +1565,13 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	if (result != ISC_R_SUCCESS)
 		goto kill_socket;
 
+	disp->ctlevent = isc_event_allocate(mgr->mctx, disp,
+					    DNS_EVENT_DISPATCHCONTROL,
+					    destroy_disp, disp,
+					    sizeof(isc_event_t));
+	if (disp->ctlevent == NULL)
+		goto kill_task;
+
 	isc_task_setname(disp->task, "tcpdispatch", disp);
 
 	dns_tcpmsg_init(mgr->mctx, disp->socket, &disp->tcpmsg);
@@ -1583,6 +1595,8 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	/*
 	 * Error returns.
 	 */
+ kill_task:
+	isc_task_detach(&disp->task);
  kill_socket:
 	isc_socket_detach(&disp->socket);
  deallocate_dispatch:
@@ -1633,6 +1647,13 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 		if (disp->maxrequests < maxrequests)
 			disp->maxrequests = maxrequests;
+
+		if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) == 0 &&
+		    (attributes & DNS_DISPATCHATTR_NOLISTEN) != 0)
+			disp->attributes |= DNS_DISPATCHATTR_NOLISTEN;
+			if (disp->recv_pending > 0)
+				isc_socket_cancel(disp->socket, NULL,
+						  ISC_SOCKCANCEL_RECV);
 
 		UNLOCK(&disp->lock);
 		UNLOCK(&mgr->lock);
@@ -1693,6 +1714,13 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	if (result != ISC_R_SUCCESS)
 		goto kill_socket;
 
+	disp->ctlevent = isc_event_allocate(mgr->mctx, disp,
+					    DNS_EVENT_DISPATCHCONTROL,
+					    destroy_disp, disp,
+					    sizeof(isc_event_t));
+	if (disp->ctlevent == NULL)
+		goto kill_task;
+
 	isc_task_setname(disp->task, "udpdispatch", disp);
 
 	attributes &= ~DNS_DISPATCHATTR_TCP;
@@ -1715,6 +1743,8 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	/*
 	 * Error returns.
 	 */
+ kill_task:
+	isc_task_detach(&disp->task);
  kill_socket:
 	isc_socket_detach(&disp->socket);
  deallocate_dispatch:
@@ -1771,14 +1801,8 @@ dns_dispatch_detach(dns_dispatch_t **dispp) {
 
 	killit = destroy_disp_ok(disp);
 	UNLOCK(&disp->lock);
-	if (killit) {
-		LOCK(&mgr->lock);
-		destroy_disp(&disp);
-		killit = destroy_mgr_ok(mgr);
-		UNLOCK(&mgr->lock);
-		if (killit)
-			destroy_mgr(&mgr);
-	}
+	if (killit)
+		isc_task_send(disp->task, &disp->ctlevent);
 }
 
 isc_result_t
@@ -1988,13 +2012,8 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 
 	killit = destroy_disp_ok(disp);
 	UNLOCK(&disp->lock);
-	if (killit) {
-		destroy_disp(&disp);
-		killit = destroy_mgr_ok(mgr);
-		UNLOCK(&mgr->lock);
-		if (killit)
-			destroy_mgr(&mgr);
-	}
+	if (killit)
+		isc_task_send(disp->task, &disp->ctlevent);
 }
 
 isc_result_t
@@ -2138,13 +2157,8 @@ dns_dispatch_removerequest(dns_dispentry_t **resp,
 
 	killit = destroy_disp_ok(disp);
 	UNLOCK(&disp->lock);
-	if (killit) {
-		destroy_disp(&disp);
-		killit = destroy_mgr_ok(mgr);
-		UNLOCK(&mgr->lock);
-		if (killit)
-			destroy_mgr(&mgr);
-	}
+	if (killit)
+		isc_task_send(disp->task, &disp->ctlevent);
 }
 
 void
@@ -2344,9 +2358,43 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
 	 */
 
 	LOCK(&disp->lock);
+
+	if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0 &&
+	    (attributes & DNS_DISPATCHATTR_NOLISTEN) == 0)
+	{
+		disp->attributes &= ~DNS_DISPATCHATTR_NOLISTEN;
+		startrecv(disp);
+	}
+
 	disp->attributes &= ~mask;
 	disp->attributes |= (attributes & mask);
 	UNLOCK(&disp->lock);
+}
+
+void
+dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t **eventp) {
+	void *buf;
+	isc_socketevent_t *sevent;
+
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0);
+	REQUIRE(eventp != NULL && *eventp != NULL);
+
+	sevent = (isc_socketevent_t *)*eventp;
+
+	INSIST(sevent->n <= disp->mgr->buffersize);
+	buf = allocate_udp_buffer(disp);
+	if (buf == NULL) {
+		isc_event_free(eventp);
+		return;
+	}
+	memcpy(buf, sevent->region.base, sevent->n);
+	sevent->region.base = buf;
+	sevent->region.length = disp->mgr->buffersize;
+	sevent->ev_action = udp_recv;
+	sevent->ev_arg = disp;
+	sevent->ev_sender = NULL;
+	isc_task_send(disp->task, eventp);
 }
 
 #if 0
