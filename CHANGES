@@ -1,3 +1,6 @@
+1291.	[func]		Enable IPv6 support when using sysctl style interface
+			scanning.
+
 1290.	[func]		"dig axfr" now reports the number of messages
 			as well as the number of records.
 
