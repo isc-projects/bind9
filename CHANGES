@@ -1,3 +1,6 @@
+ 110.   [cleanup]       <isc/result.h> does not need <isc/boolean.h> or
+                        <isc/list.h>.
+
  109.   [bug]           "make depend" did nothing for
                         bin/tests/{db,mem,sockaddr,tasks,timers}/.
 

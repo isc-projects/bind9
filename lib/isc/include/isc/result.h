@@ -18,12 +18,8 @@
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
 
-#include <isc/boolean.h>
 #include <isc/lang.h>
-#include <isc/list.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define ISC_R_SUCCESS			0
 #define ISC_R_NOMEMORY			1
@@ -66,12 +62,17 @@ ISC_LANG_BEGINDECLS
 
 #define ISC_R_NRESULTS 			38	/* Number of results */
 
-char *			isc_result_totext(isc_result_t);
-isc_result_t		isc_result_register(unsigned int base,
-					    unsigned int nresults,
-					    char **text,
-					    isc_msgcat_t *msgcat,
-					    int set);
+ISC_LANG_BEGINDECLS
+
+char *
+isc_result_totext(isc_result_t);
+/*
+ * Convert an isc_result_t into a string message describing the result.
+ */
+
+isc_result_t
+isc_result_register(unsigned int base, unsigned int nresults, char **text,
+		    isc_msgcat_t *msgcat, int set);
 
 ISC_LANG_ENDDECLS
 
