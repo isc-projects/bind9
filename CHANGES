@@ -1,3 +1,5 @@
+1282.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
+
 
 	--- 9.2.1 released ---
 

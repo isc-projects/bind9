@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.5 2002/03/29 01:35:24 marka Exp $ */
+/* $Id: server.c,v 1.339.2.6 2002/05/08 06:06:33 marka Exp $ */
 
 #include <config.h>
 
@@ -2387,6 +2387,7 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
+	*serverp = NULL;
 }
 
 static void
