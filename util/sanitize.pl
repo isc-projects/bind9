@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.12 2000/10/10 23:07:35 bwelling Exp $
+# $Id: sanitize.pl,v 1.13 2000/10/10 23:12:54 bwelling Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -175,11 +175,6 @@ sub runfile($) {
 				$state[$i] = 0;
 				goto doneline;
 			}
-		}
-		if (/NOMINUM_/) {
-			print(STDERR "*** WARNING in file $_[0] line $.: ".
-			      "NOMINUM_ outside of ".
-			      "#ifdef/#else/#endif.\n");
 		}
 	      doneline:
 		for ($i = 0 ; $i < $curkeys; $i++) {
