@@ -243,7 +243,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1, ISC_BUFFERTYPE_TEXT);
 	result = dns_name_totext(domain, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
-	isc_buffer_used(&b, &r);
+	isc_buffer_usedregion(&b, &r);
 	tdomain[r.length] = 0;
 
 	output = isc_mem_allocate(mctx, strlen(tdomain) + strlen("keyset") + 1);
@@ -309,7 +309,7 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&b, data, BUFSIZE, ISC_BUFFERTYPE_BINARY);
 		result = dst_key_todns(key, &b);
 		check_result(result, "dst_key_todns()");
-		isc_buffer_used(&b, &r);
+		isc_buffer_usedregion(&b, &r);
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
 				     dns_rdatatype_key, &r);
 		ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
