@@ -1947,9 +1947,11 @@ update_action(isc_task_t *task, isc_event_t *event)
 		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
 			      "dynamic update request denied: "
-			      "signature verification failed (%s)",
+			      "signature verification failed: %s",
 			      isc_result_totext(result));
 		FAIL(DNS_R_REFUSED);
+	} else {
+		isc_log_write(UPDATE_DEBUG_LOGARGS, "signature is OK");
 	}
 
 	/* Perform the Update Section Prescan. */
