@@ -18,7 +18,7 @@
 #ifndef IN_1_A6_38_H
 #define IN_1_A6_38_H 1
 
-/* $Id: a6_38.h,v 1.17 2001/01/09 21:55:02 bwelling Exp $ */
+/* $Id: a6_38.h,v 1.18 2001/01/17 02:54:17 bwelling Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -26,7 +26,7 @@ typedef struct dns_rdata_in_a6 {
         dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	dns_name_t		prefix;
-	isc_uint32_t		prefixlen;
+	isc_uint8_t		prefixlen;
 	struct in6_addr		in6_addr;
 } dns_rdata_in_a6_t;
 
