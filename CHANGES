@@ -1,3 +1,5 @@
+1003.	[func]		Add the +retry option to dig.
+
  999.	[func]		"rndc retransfer zone [class [view]]" added.
 			[RT #1752]
 
