@@ -2570,6 +2570,13 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	 */
 	if (!negative_response && ns_name != NULL && oqname == NULL) {
 		/*
+		 * If ns_name is equal to fctx->domain, we're not making
+		 * progress.  We return DNS_R_FORMERR so that we'll keep
+		 * keep trying other servers.
+		 */
+		if (dns_name_equal(ns_name, &fctx->domain))
+			return (DNS_R_FORMERR);
+		/*
 		 * Mark any additional data related to this rdataset.
 		 * It's important that we do this before we change the
 		 * query domain.
