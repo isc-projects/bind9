@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-#include <isc/net.h>
-#include <isc/util.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <stdio.h>
 
 #include <lwres/netdb.h>
-#include <stdio.h>
 
 struct netent *
 getnetbyname(const char *name) {

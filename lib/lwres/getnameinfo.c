@@ -37,16 +37,19 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/net.h>
-#include <isc/print.h>
+#include <string.h>
 
 #include <lwres/lwres.h>
-
 #include <lwres/netdb.h>
-#include <string.h>
+
+#include "assert_p.h"
 
 #define SUCCESS 0
 
@@ -91,7 +94,7 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	char numserv[sizeof("65000")];
 	char numaddr[sizeof("abcd:abcd:abcd:abcd:abcd:abcd:255.255.255.255")];
 	char *proto;
-	isc_uint32_t lwf = 0;
+	lwres_uint32_t lwf = 0;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gnbaresponse_t *by = NULL;
 	int result = SUCCESS;

@@ -15,14 +15,19 @@
  * SOFTWARE.
  */
 
-#include <isc/net.h>
-#include <isc/assertions.h>
-#include <lwres/lwres.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
-#include <lwres/netdb.h>	/* XXX #include <netdb.h> */
+#include <netinet/in.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <lwres/lwres.h>
+#include <lwres/netdb.h>	/* XXX #include <netdb.h> */
+
+#include "assert_p.h"
 
 #ifndef INADDRSZ
 #define INADDRSZ 4

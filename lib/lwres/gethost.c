@@ -15,11 +15,14 @@
  * SOFTWARE.
  */
 
-#include <isc/net.h>
-#include <lwres/netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
+#include <lwres/netdb.h>
 
 #define LWRES_ALIGNBYTES (sizeof(char *) - 1)
 #define LWRES_ALIGN(p) \
