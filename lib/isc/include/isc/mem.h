@@ -21,13 +21,12 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include <isc/boolean.h>
 #include <isc/lang.h>
+#include <isc/types.h>
+#include <isc/boolean.h>
 #include <isc/result.h>
 
 ISC_LANG_BEGINDECLS
-
-typedef struct isc_mem		isc_mem_t;
 
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
