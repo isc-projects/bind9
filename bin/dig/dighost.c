@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.160 2000/11/08 00:47:16 mws Exp $ */
+/* $Id: dighost.c,v 1.161 2000/11/08 01:23:27 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2098,7 +2098,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER,
 					&name);
-	for (rdataset = ISC_LIST_HEAD(name->list);
+		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			result = dns_rdataset_first(rdataset);
