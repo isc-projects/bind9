@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.24 2000/06/22 21:59:59 tale Exp $ */
+/* $Id: listener.c,v 1.25 2000/06/23 22:22:24 tale Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -275,7 +275,7 @@ free_task:
 
 isc_result_t
 omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
-		      dns_acl_t *acl, int max,
+		      dns_acl_t *acl, unsigned int backlog,
 		      isc_taskaction_t destroy_action, void *destroy_arg)
 {
 	isc_result_t result;
