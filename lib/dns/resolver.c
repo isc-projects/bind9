@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.240 2002/02/20 03:34:20 marka Exp $ */
+/* $Id: resolver.c,v 1.241 2002/04/03 02:44:57 marka Exp $ */
 
 #include <config.h>
 
@@ -3329,6 +3329,7 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 				/*
 				 * Do we have its SIG too?
 				 */
+				rdataset = NULL;
 				result = dns_message_findtype(name,
 						      dns_rdatatype_sig,
 						      type, &rdataset);

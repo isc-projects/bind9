@@ -1,3 +1,6 @@
+1243.	[bug]		It was possible to trigger a REQUIRE() in
+			dns_message_findtype(). [RT #2659]
+
 1242.	[bug]		named-checkzone failed if a journal existed. [RT #2657]
 
 1241.	[bug]		Drop received UDP messsages with a zero source port
