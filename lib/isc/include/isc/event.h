@@ -18,37 +18,44 @@
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
 
+#include <stddef.h>
+
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
-/***
- *** Registry of Predefined Event Type Classes
- ***/
+/*****
+ ***** Events.
+ *****/
+
+typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
 /*
- * An event class is a 16 bit number, the most sigificant bit of which must be
- * zero.  Each class may contain up to 65536 events.  An event type is
- * formed by adding the event number within the class to the class number.
- * E.g., the first event in the timer class is ISC_EVENTCLASS_TIMER + 1.
- * Event number zero is always reserved in each class.
- */
+ * This structure is public because "subclassing" it may be useful when
+ * defining new event types.
+ */ 
+struct isc_event {
+	isc_mem_t *			mctx;
+	size_t				size;
+	void *				sender;
+	isc_eventtype_t			type;
+	isc_taskaction_t		action;
+	void *				arg;
+	isc_eventdestructor_t		destroy;
+	ISC_LINK(struct isc_event)	link;
+};
 
-#define ISC_EVENTCLASS(eclass)		((eclass) << 16)
+#define ISC_EVENTTYPE_FIRSTEVENT	0x00000000
+#define ISC_EVENTTYPE_LASTEVENT		0xffffffff
 
-/*
- * Classes < 1024 are reserved for ISC use.
- */
-
-#define	ISC_EVENTCLASS_TASK		ISC_EVENTCLASS(0)
-#define	ISC_EVENTCLASS_TIMER		ISC_EVENTCLASS(1)
-#define	ISC_EVENTCLASS_SOCKET		ISC_EVENTCLASS(2)
-#define	ISC_EVENTCLASS_FILE		ISC_EVENTCLASS(3)
-#define	ISC_EVENTCLASS_DNS		ISC_EVENTCLASS(4)
-
-/*
- * Event classes >= 1024 and <= 32767 are reserved for application use.
- */
+isc_event_t *				isc_event_allocate(isc_mem_t *,
+							   void *,
+							   isc_eventtype_t,
+							   isc_taskaction_t,
+							   void *arg,
+							   size_t);
+void					isc_event_free(isc_event_t **);
 
 ISC_LANG_ENDDECLS
 
