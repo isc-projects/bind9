@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.3 2001/03/13 03:04:08 gson Exp $ */
+/* $Id: log.h,v 1.4 2001/10/11 01:07:50 gson Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
@@ -28,7 +28,7 @@ extern isc_logmodule_t cfg_modules[];
 
 #define CFG_LOGCATEGORY_CONFIG	(&cfg_categories[0])
 
-#define CFG_LOGMODULE_PARSER		(&cfg_modules[0])
+#define CFG_LOGMODULE_PARSER	(&cfg_modules[0])
 
 ISC_LANG_BEGINDECLS
 
