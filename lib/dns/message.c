@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.166 2001/01/04 00:24:26 bwelling Exp $ */
+/* $Id: message.c,v 1.167 2001/01/04 01:55:22 bwelling Exp $ */
 
 /***
  *** Imports
@@ -558,13 +558,11 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 	}
 
 	if (msg->query.base != NULL) {
-		isc_mem_put(msg->mctx, msg->query.base, msg->query.length);
 		msg->query.base = NULL;
 		msg->query.length = 0;
 	}
 
 	if (msg->saved.base != NULL) {
-		isc_mem_put(msg->mctx, msg->saved.base, msg->saved.length);
 		msg->saved.base = NULL;
 		msg->saved.length = 0;
 	}
@@ -1540,14 +1538,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 			      r.length);
 	}
 
-	isc_buffer_usedregion(&origsource, &r);
-	msg->saved.length = r.length;
-	msg->saved.base = isc_mem_get(msg->mctx, msg->saved.length);
-	if (msg->saved.base == NULL) {
-		msg->saved.length = 0;
-		return (ISC_R_NOMEMORY);
-	}
-	memcpy(msg->saved.base, r.base, msg->saved.length);
+	isc_buffer_usedregion(&origsource, &msg->saved);
 
 	if (seen_problem == ISC_TRUE)
 		return (DNS_R_RECOVERABLE);
