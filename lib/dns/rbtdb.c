@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.201 2004/12/21 10:45:17 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.202 2005/03/15 00:32:42 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4435,6 +4435,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	changed = add_changed(rbtdb, rbtversion, rbtnode);
 	if (changed == NULL) {
 		free_rdataset(rbtdb->common.mctx, newheader);
+		UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 		return (ISC_R_NOMEMORY);
 	}
 
