@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.26 2001/06/22 17:22:24 tale Exp $
+# $Id: Makefile.in,v 1.27 2001/06/27 06:32:20 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -35,7 +35,7 @@ CWARNINGS =
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCDEPLIBS =	../../lib/isccc/libisccc.@A@
@@ -46,7 +46,7 @@ RNDCLIBS =	${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} @LIBS@
 RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
 
 CONFLIBS =	${DNSLIBS} ${ISCLIBS} @LIBS@
-CONFDEPLIBS =	${DNSLIBS} ${ISCLIBS}
+CONFDEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
 TARGETS =	rndc rndc-confgen
 
