@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.61 2000/12/01 19:50:52 gson Exp $ */
+/* $Id: confview.c,v 1.62 2000/12/01 23:27:42 marka Exp $ */
 
 #include <config.h>
 
@@ -235,7 +235,7 @@ dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable) {
 }
 
 
-isc_result_t
+void
 dns_c_viewtable_delete(dns_c_viewtable_t **viewtable) {
 	dns_c_viewtable_t *table;
 
@@ -249,8 +249,6 @@ dns_c_viewtable_delete(dns_c_viewtable_t **viewtable) {
 
 	table->magic = 0;
 	isc_mem_put(table->mem, table, sizeof *table);
-
-	return (ISC_R_SUCCESS);
 }
 
 
@@ -284,7 +282,8 @@ dns_c_viewtable_addview(dns_c_viewtable_t *viewtable, dns_c_view_t *view) {
 
 	elem = ISC_LIST_HEAD(viewtable->views);
 	while (elem != NULL) {
-		if (strcmp(view->name, elem->name) == 0) {
+		if (strcmp(view->name, elem->name) == 0 &&
+		    view->viewclass == elem->viewclass) {
 			return (ISC_R_EXISTS);
 		}
 
@@ -307,7 +306,7 @@ dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view) {
 
 
 
-isc_result_t
+void
 dns_c_viewtable_clear(dns_c_viewtable_t *table) {
 	dns_c_view_t *elem;
 	dns_c_view_t *tmpelem;
@@ -322,8 +321,6 @@ dns_c_viewtable_clear(dns_c_viewtable_t *table) {
 		dns_c_view_delete(&elem);
 		elem = tmpelem;
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 

@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.33 2000/12/01 09:03:41 marka Exp $ */
+/* $Id: confparser.y.dirty,v 1.34 2000/12/01 23:27:40 marka Exp $ */
 
 #include <config.h>
 
@@ -3693,7 +3693,7 @@ view_stmt: L_VIEW any_string optional_class L_LBRACE
 		}
 
 		tmpres = dns_c_viewtable_addview(currcfg->views, view);
-		if (tmpres == ISC_R_EXISTS) {
+		if (tmpres != ISC_R_SUCCESS) {
 			dns_c_view_delete(&view);
 			parser_error(ISC_FALSE,
 				     "view '%s' already exists", $2);

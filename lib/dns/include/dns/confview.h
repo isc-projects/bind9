@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.45 2000/12/01 09:03:44 marka Exp $ */
+/* $Id: confview.h,v 1.46 2000/12/01 23:27:43 marka Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -189,13 +189,13 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t dns_c_viewtable_new(isc_mem_t *mem,
 				 dns_c_viewtable_t **viewtable);
-isc_result_t dns_c_viewtable_delete(dns_c_viewtable_t **viewtable);
+void dns_c_viewtable_delete(dns_c_viewtable_t **viewtable);
 
 void dns_c_viewtable_print(FILE *fp, int indent, dns_c_viewtable_t *table);
 isc_result_t dns_c_viewtable_addview(dns_c_viewtable_t *viewtable,
 				     dns_c_view_t *view);
 void dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view);
-isc_result_t dns_c_viewtable_clear(dns_c_viewtable_t *table);
+void dns_c_viewtable_clear(dns_c_viewtable_t *table);
 isc_result_t dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
 					const char *viewname,
 					dns_c_view_t **retval);
