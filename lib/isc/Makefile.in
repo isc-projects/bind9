@@ -31,8 +31,8 @@ CWARNINGS =
 # Alphabetically
 UNIXOBJS =	@ISC_ISCIPV6_O@ \
 		unix/app.@O@ unix/dir.@O@ unix/interfaceiter.@O@ \
-		unix/net.@O@ unix/socket.@O@ unix/time.@O@ \
-		unix/stdtime.@O@
+		unix/mktemplate.@O@ unix/net.@O@ unix/socket.@O@ \
+		unix/time.@O@ unix/stdtime.@O@ unix/ufile.@O@
 
 
 NLSOBJS =	nls/msgcat.@O@

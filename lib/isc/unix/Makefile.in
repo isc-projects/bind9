@@ -28,13 +28,13 @@ CWARNINGS =
 
 # Alphabetically
 OBJS =		@ISC_IPV6_O@ \
-		app.@O@ dir.@O@ interfaceiter.@O@ net.@O@ socket.@O@ \
-		stdtime.@O@ time.@O@
+		app.@O@ dir.@O@ interfaceiter.@O@ mktemplate.@O@ net.@O@ \
+		socket.@O@ stdtime.@O@ time.@O@ ufile.@O@
 
 # Alphabetically
 SRCS =		@ISC_IPV6_C@ \
-		app.c dir.c interfaceiter.c net.c socket.c \
-		stdtime.c time.c
+		app.c dir.c interfaceiter.c mktemplate.c net.c socket.c \
+		stdtime.c time.c ufile.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
