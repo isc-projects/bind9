@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: fsaccess.h,v 1.3 2000/06/22 21:57:34 tale Exp $ */
+/* $Id: fsaccess.h,v 1.4 2000/06/23 03:01:46 tale Exp $ */
+
+#ifndef ISC_FSACCESS_H
+#define ISC_FSACCESS_H 1
 
 /*
  * The ISC filesystem access module encapsulates the setting of file
@@ -126,6 +129,7 @@
  * 	solve this problem.
  */
 
+#include <isc/lang.h>
 #include <isc/types.h>
 
 /*
@@ -157,6 +161,8 @@
  */
 #define ISC__FSACCESS_PERMISSIONBITS 10
 
+ISC_LANG_BEGINDECLS
+
 void
 isc_fsaccess_add(int trustee, int permission, isc_fsaccess_t *access);
 
@@ -165,3 +171,7 @@ isc_fsaccess_remove(int trustee, int permission, isc_fsaccess_t *access);
 
 isc_result_t
 isc_fsaccess_set(const char *path, isc_fsaccess_t access);
+
+ISC_LANG_ENDDECLS
+
+#endif /* ISC_FSACCESS_H */
