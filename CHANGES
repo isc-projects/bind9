@@ -333,9 +333,24 @@
 1417.	[func]		ID.SERVER/CHAOS is now a built in zone.
 			See "server-id" for how to configure.
 
+1415.	[func]		DS TTL now derived from NS ttl.  NXT TTL now derived
+			from SOA MINIMUM.
+
+1414.	[func]		Support for KSK flag.
+
+1413.	[func]		Explictly request the (re-)generation of DS records from
+			keysets (dnssec-signzone -g).
+
 1412.	[func]		You can now specify servers to be tried if a nameserver
 			has IPv6 address and you only support IPv4 or the
 			reverse. See dual-stack-servers.
+
+1410.	[func]		Handle records that live in the parent zone, e.g. DS.
+
+1409.	[bug]		DS should have attribute DNS_RDATATYPEATTR_DNSSEC.
+
+1404.	[bug]		libbind: ns_name_ntol() could overwrite a zero length
+			buffer.
 
 1403.	[func]		dnssec-signzone, dnssec-keygen, dnssec-makekeyset
 			dnssec-signkey now report their version in the
@@ -343,6 +358,12 @@
 
 1402.	[cleanup]	A6 has been moved to experimental and is no longer
 			fully supported.
+
+1400.	[bug]		Block the addition of wildcard NS records by IXFR
+			or UPDATE. [RT #3502]
+
+1398.	[doc]		ARM: notify-also should have been also-notify.
+			[RT #4345]
 
 1396.	[func]		dnssec-signzone: adjust the default signing time by
 			1 hour to allow for clock skew.
@@ -426,6 +447,9 @@
 
 1341.	[func]		Allow a rate limiter to be stalled.
 
+1339.	[func]		dig, host and nslookup now use IP6.ARPA for nibble
+			lookups.  Bit string lookups are no longer attempted.
+
 1336.	[func]		Nibble lookups under IP6.ARPA are now supported by
 			dns_byaddr_create().  dns_byaddr_createptrname() is
 			deprecated, use dns_byaddr_createptrname2() instead.
@@ -440,12 +464,22 @@
 			"warn" (default) and "ignore" the results of the
 			check.
 
+1328.	[bug]		The validator could incorrectly verify an invalid
+			negative proof.
+
+1322.	[bug]		dnssec-signzone usage message was misleading.
+
+1321.	[bug]		If the last RRset in a zone is glue, dnssec-signzone
+			would incorrectly duplicate its output and sign it.
+
 1313.	[func]		Query log now says if the query was signed (S) or
 			if EDNS was used (E).
 
 1312.	[func]		Log TSIG key used w/ outgoing zone transfers.
 
 1309.	[func]		Log that a zone transfer was covered by a TSIG.
+
+1308.	[func]		DS (delegation signer) support.
 
 1304.	[func]		New function: dns_zone_name().
 
@@ -503,7 +537,14 @@
 			isc_sockaddr_islinklocal(), isc_netaddr_issitelocal()
 			and isc_netaddr_islinklocal().
 
+1243.	[bug]		It was possible to trigger a REQUIRE() in
+			dns_message_findtype(). [RT #2659]
+
 1235.	[func]		Report 'out of memory' errors from openssl.
+
+1234.	[bug]		contrib/sdb: 'zonetodb' failed to call
+			dns_result_register().  DNS_R_SEENINCLUDE should not
+			be fatal.
 
 1233.	[bug]		The flags field of a KEY record can be expressed in
 			hex as well as decimal.
@@ -717,6 +758,8 @@
 1009.	[port]		OpenUNIX 8 support. [RT #1728]
 
 1008.	[port]		libtool.m4, ltmain.sh from libtool-1.4.2.
+
+1007.	[port]		config.guess, config.sub from autoconf-2.52.
 
 1003.	[func]		Add the +retry option to dig.
 
