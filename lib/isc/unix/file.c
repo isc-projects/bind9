@@ -74,11 +74,27 @@ isc_file_settime(const char *file, isc_time_t *time) {
 
 	REQUIRE(file != NULL && time != NULL);
 
+	/*
+	 * tv_sec is at least a 32 bit quantity on all platforms we're
+	 * dealing with, but it is signed on most (all?) of them,
+	 * so we need to make sure the high bit isn't set.
+	 */
 	times[0].tv_sec = times[1].tv_sec = isc_time_seconds(time);
-	times[0].tv_usec = times[1].tv_usec = isc_time_nanoseconds(time)/1000;
+	if ((times[0].tv_sec & (1 << (sizeof(times[0].tv_sec) * 8 - 1))) != 0)
+		return (ISC_R_RANGE);
+
+	/*
+	 * isc_time_nanoseconds guarantees a value that divided by 1000 will
+	 * fit into the minimum possible size tv_usec field.  Unfortunately,
+	 * we don't know what that type is so can't cast directly ... but
+	 * we can at least cast to signed so the IRIX compiler shuts up.
+	 */
+	times[0].tv_usec = times[1].tv_usec =
+		(isc_int32_t)(isc_time_nanoseconds(time) / 1000);
 
 	if (utimes(file, times) < 0)
 		return (isc__errno2result(errno));
+
 	return (ISC_R_SUCCESS);
 
 }
