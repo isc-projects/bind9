@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.14 1999/10/14 02:12:03 gson Exp $ */
+ /* $Id: xfrin.c,v 1.15 1999/10/14 02:24:17 gson Exp $ */
 
 #include <config.h>
 
@@ -65,9 +65,6 @@
 #define CHECK(op) do { result = (op); \
 		       if (result != DNS_R_SUCCESS) goto failure; \
 		     } while (0)
-
-
-#define DNS_R_NOTLOADED DNS_R_NOTFOUND /* XXX temporary */
 
 typedef struct xfrin_ctx xfrin_ctx_t;
 
