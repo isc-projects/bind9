@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.187 2001/01/22 22:38:21 gson Exp $ */
+/* $Id: dighost.c,v 1.188 2001/01/24 19:28:30 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2095,8 +2095,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	isc_buffer_t b;
-	isc_region_t r;
-	char abspace[MXNAME];
 	isc_boolean_t atlimit=ISC_FALSE;
 
 	debug("check_for_more_data()");
@@ -2240,13 +2238,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	} while (result == ISC_R_SUCCESS);
 	if (atlimit) {
 	doexit:
-		isc_buffer_init(&b, abspace, MXNAME);
-		result = isc_sockaddr_totext(&sevent->address, &b);
-		check_result(result,
-			     "isc_sockaddr_totext");
-		isc_buffer_usedregion(&b, &r);
-		received(b.used, r.length,
-			 (char *)r.base, query);
+		received(b.used, &sevent->address, query);
 		if (atlimit)
 			if (exitcode < 7)
 				exitcode = 7;
@@ -2267,9 +2259,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *b = NULL;
 	dns_message_t *msg = NULL;
 	isc_result_t result;
-	isc_buffer_t ab;
-	char abspace[MXNAME];
-	isc_region_t r;
 	dig_lookup_t *n, *l;
 	isc_boolean_t docancel = ISC_FALSE;
 	unsigned int local_timeout;
@@ -2465,16 +2454,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					if (!next_origin(msg, query)) {
 						printmessage(query, msg,
 							     ISC_TRUE);
-						isc_buffer_init(&ab, abspace,
-								MXNAME);
-						result = isc_sockaddr_totext(
-							&sevent->address,
-							&ab);
-						check_result(result,
-						      "isc_sockaddr_totext");
-						isc_buffer_usedregion(&ab, &r);
-						received(b->used, r.length,
-							 (char *)r.base,
+						received(b->used, 
+							 &sevent->address,
 							 query);
 					}
 				} else {
@@ -2490,15 +2471,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				if (!next_origin(msg, query)) {
 					printmessage(query, msg,
 						     ISC_TRUE);
-					isc_buffer_init(&ab, abspace, MXNAME);
-					result = isc_sockaddr_totext(
-							     &sevent->address,
-							     &ab);
-					check_result(result,
-						     "isc_sockaddr_totext");
-					isc_buffer_usedregion(&ab, &r);
-					received(b->used, r.length,
-						 (char *)r.base,
+					received(b->used,
+						 &sevent->address,
 						 query);
 				}
 			} else {
@@ -2535,13 +2509,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		else {
 			if ((msg->rcode == 0) ||
 			    (l->origin == NULL)) {
-				isc_buffer_init(&ab, abspace, MXNAME);
-				result = isc_sockaddr_totext(&sevent->address,
-							     &ab);
-				check_result(result, "isc_sockaddr_totext");
-				isc_buffer_usedregion(&ab, &r);
-				received(b->used, r.length,
-					 (char *)r.base,
+				received(b->used, 
+					 &sevent->address,
 					 query);
 			}
 			query->lookup->pending = ISC_FALSE;

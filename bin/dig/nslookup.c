@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.79 2001/01/22 23:22:09 gson Exp $ */
+/* $Id: nslookup.c,v 1.80 2001/01/24 19:28:33 gson Exp $ */
 
 #include <config.h>
 
@@ -167,22 +167,6 @@ dighost_shutdown(void) {
 	}
 
 	isc_task_send(global_task, &event);
-}
-
-void
-received(int bytes, int frmsize, char *frm, dig_query_t *query) {
-	UNUSED(bytes);
-	UNUSED(frmsize);
-	UNUSED(frm);
-	UNUSED(query);
-}
-
-void
-trying(int frmsize, char *frm, dig_lookup_t *lookup) {
-	UNUSED(frmsize);
-	UNUSED(frm);
-	UNUSED(lookup);
-
 }
 
 static void
@@ -398,39 +382,36 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	return (ISC_R_SUCCESS);
 }
 
+void
+received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
+{
+	UNUSED(bytes);
+	UNUSED(from);
+	UNUSED(query);
+}
+
+void
+trying(int frmsize, char *frm, dig_lookup_t *lookup) {
+	UNUSED(frmsize);
+	UNUSED(frm);
+	UNUSED(lookup);
+
+}
+
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
-	isc_buffer_t *b = NULL;
-	isc_region_t r;
-	isc_result_t result;
+	char servtext[ISC_SOCKADDR_FORMATSIZE];	
 
 	debug("printmessage()");
-	debug("continuing on with rcode != 0");
-	result = isc_buffer_allocate(mctx, &b, MXNAME);
-	check_result(result, "isc_buffer_allocate");
+
+	isc_sockaddr_format(&query->sockaddr, servtext, sizeof(servtext));
 	printf("Server:\t\t%s\n", query->servname);
-	result = isc_sockaddr_totext(&query->sockaddr, b);
-	check_result(result, "isc_sockaddr_totext");
-	printf("Address:\t%.*s\n", (int)isc_buffer_usedlength(b),
-	       (char*)isc_buffer_base(b));
-	isc_buffer_free(&b);
+	printf("Address:\t%s\n", servtext);
+	
 	puts("");
 
-	if (msg->rcode != 0) {
-		result = isc_buffer_allocate(mctx, &b, MXNAME);
-		check_result(result, "isc_buffer_allocate");
-		result = dns_name_totext(query->lookup->name, ISC_FALSE,
-					 b);
-		check_result(result, "dns_name_totext");
-		isc_buffer_usedregion(b, &r);
-		printf("** server can't find %.*s: %s\n",
-		       (int)r.length, (char*)r.base,
-		       rcodetext[msg->rcode]);
-		isc_buffer_free(&b);
-		debug("returning with rcode == 0");
-		return (ISC_R_SUCCESS);
-	}
 	if (!short_form) {
+		isc_boolean_t headers = ISC_TRUE;
 		puts("------------");
 		/*		detailheader(query, msg);*/
 		detailsection(query, msg, headers, DNS_SECTION_QUESTION);
@@ -438,6 +419,16 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		detailsection(query, msg, headers, DNS_SECTION_AUTHORITY);
 		detailsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
 		puts("------------");
+	}
+
+	if (msg->rcode != 0) {
+		char nametext[DNS_NAME_FORMATSIZE];
+		dns_name_format(query->lookup->name,
+				nametext, sizeof(nametext));
+		printf("** server can't find %s: %s\n", nametext,
+		       rcodetext[msg->rcode]);
+		debug("returning with rcode == 0");
+		return (ISC_R_SUCCESS);
 	}
 
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.62 2001/01/18 05:12:44 gson Exp $ */
+/* $Id: dig.h,v 1.63 2001/01/24 19:28:34 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -243,13 +243,22 @@ void
 set_search_domain(char *domain);
 
 /*
- * Routines needed in dig.c and host.c.
+ * Routines to be defined in dig.c, host.c, and nslookup.c.
  */
+
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers);
+/*
+ * Print the final result of the lookup.
+ */
 
 void
-received(int bytes, int frmsize, char *frm, dig_query_t *query);
+received(int bytes, isc_sockaddr_t *from, dig_query_t *query);
+/*
+ * Print a message about where and when the response
+ * was received from, like the final comment in the
+ * output of "dig".
+ */
 
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup);

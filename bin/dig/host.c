@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.62 2001/01/18 05:12:42 gson Exp $ */
+/* $Id: host.c,v 1.63 2001/01/24 19:28:32 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -229,17 +229,20 @@ dighost_shutdown(void) {
 }
 
 void
-received(int bytes, int frmsize, char *frm, dig_query_t *query) {
+received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
+{
 	isc_time_t now;
 	isc_result_t result;
 	int diff;
 
 	if (!short_form) {
+		char fromtext[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_format(from, fromtext, sizeof(fromtext));
 		result = isc_time_now(&now);
 		check_result(result, "isc_time_now");
 		diff = isc_time_microdiff(&now, &query->time_sent);
-		printf("Received %u bytes from %.*s in %d ms\n",
-		       bytes, frmsize, frm, diff/1000);
+		printf("Received %u bytes from %s in %d ms\n",
+		       bytes, fromtext, diff/1000);
 	}
 }
 
@@ -248,7 +251,7 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 	UNUSED(lookup);
 
 	if (!short_form)
-		printf ("Trying \"%.*s\"\n", frmsize, frm);
+		printf("Trying \"%.*s\"\n", frmsize, frm);
 }
 
 static void
@@ -269,12 +272,12 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	result = dns_rdata_totext(rdata, NULL, b2);
 	check_result(result, "dns_rdata_totext");
 	isc_buffer_usedregion(b2, &r2);
-	printf ( "%.*s %s %.*s", (int)r.length, (char *)r.base,
-		 msg, (int)r2.length, (char *)r2.base);
+	printf("%.*s %s %.*s", (int)r.length, (char *)r.base,
+	       msg, (int)r2.length, (char *)r2.base);
 	if (query->lookup->identify) {
-		printf (" on server %s", query->servname);
+		printf(" on server %s", query->servname);
 	}
-	printf ("\n");
+	printf("\n");
 	isc_buffer_free(&b);
 	isc_buffer_free(&b2);
 }
@@ -345,7 +348,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
 					if (rdata.type <= 103)
-						rtt=rtypetext[rdata.type];
+						rtt = rtypetext[rdata.type];
 					else if (rdata.type == 249)
 						rtt = "key";
 					else if (rdata.type == 250)
@@ -575,8 +578,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 						   (isc_textregion_t *)&tr);
 
 			if (result != ISC_R_SUCCESS)
-				fprintf (stderr,"Warning: invalid type: %s\n",
-					 isc_commandline_argument);
+				fprintf(stderr,"Warning: invalid type: %s\n",
+					isc_commandline_argument);
 			else {
 				lookup->rdtype = rdtype;
 				lookup->rdtypeset = ISC_TRUE;
@@ -589,8 +592,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 						   (isc_textregion_t *)&tr);
 
 			if (result != ISC_R_SUCCESS)
-				fprintf (stderr,"Warning: invalid class: %s\n",
-					 isc_commandline_argument);
+				fprintf(stderr,"Warning: invalid class: %s\n",
+					isc_commandline_argument);
 			else {
 				lookup->rdclass = rdclass;
 				lookup->rdclassset = ISC_TRUE;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.134 2001/01/18 05:12:39 gson Exp $ */
+/* $Id: dig.c,v 1.135 2001/01/24 19:28:29 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -192,11 +192,14 @@ show_usage(void) {
  * Callback from dighost.c to print the received message.
  */
 void
-received(int bytes, int frmsize, char *frm, dig_query_t *query) {
+received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_uint64_t diff;
 	isc_time_t now;
 	isc_result_t result;
 	time_t tnow;
+	char fromtext[ISC_SOCKADDR_FORMATSIZE];
+
+	isc_sockaddr_format(from, fromtext, sizeof(fromtext));
 
 	result = isc_time_now(&now);
 	check_result(result, "isc_time_now");
@@ -204,8 +207,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	if (query->lookup->stats) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		printf(";; Query time: %ld msec\n", (long int)diff/1000);
-		printf(";; SERVER: %.*s(%s)\n", frmsize, frm,
-		       query->servname);
+		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
 		time(&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
 		if (query->lookup->doing_xfr) {
@@ -226,8 +228,8 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		puts("");
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
-		printf(";; Received %u bytes from %.*s(%s) in %d ms\n\n",
-		       bytes, frmsize, frm, query->servname,
+		printf(";; Received %u bytes from %s(%s) in %d ms\n\n",
+		       bytes, fromtext, query->servname,
 		       (int)diff/1000);
 	}
 }
