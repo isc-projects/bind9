@@ -344,8 +344,8 @@ main(int argc, char *argv[]) {
 			printf("bad name: %s\n", dns_result_totext(result));
 			continue;
 		}
-		node = NULL;
 
+		node = NULL;
 		dns_rdataset_init(&rdataset);
 		result = dns_db_find(db, &name, version, type, options,
 				     &node, fname, &rdataset);
@@ -356,6 +356,7 @@ main(int argc, char *argv[]) {
 		case DNS_R_SUCCESS:
 		case DNS_R_GLUE:
 		case DNS_R_CNAME:
+		case DNS_R_ZONECUT:
 			break;
 		case DNS_R_DNAME:
 		case DNS_R_DELEGATION:
