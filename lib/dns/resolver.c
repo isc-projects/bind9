@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.234 2001/11/30 01:59:18 gson Exp $ */
+/* $Id: resolver.c,v 1.235 2002/01/17 00:16:25 marka Exp $ */
 
 #include <config.h>
 
@@ -2451,6 +2451,7 @@ clone_results(fetchctx_t *fctx) {
 #define ANSWERSIG(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWERSIG) != 0)
 #define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
 #define CHAINING(r)	(((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
+#define CHASE(r)	(((r)->attributes & DNS_RDATASETATTR_CHASE) != 0)
 
 
 /*
@@ -3271,6 +3272,13 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 			rdataset->ttl = 1;
 	} else
 		rdataset->trust = dns_trust_additional;
+	/*
+	 * Avoid infinite loops by only marking new rdatasets.
+	 */
+	if (!CACHE(rdataset)) {
+		name->attributes |= DNS_NAMEATTR_CHASE;
+		rdataset->attributes |= DNS_RDATASETATTR_CHASE;
+	}
 	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 	if (external)
 		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
@@ -3312,13 +3320,6 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 				    rtype == dns_rdatatype_a6)
 					mark_related(name, rdataset, external,
 						     gluing);
-				/*
-				 * XXXRTH  Need to do a controlled recursion
-				 *	   on the A6 prefix names to mark
-				 *	   any additional data related to them.
-				 *
-				 *	   Ick.
-				 */
 			}
 		} else {
 			result = dns_message_findtype(name, type, 0,
@@ -3336,13 +3337,44 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 						     gluing);
 			}
 		}
-		/*
-		 * XXXRTH  Some other stuff still needs to be marked.
-		 *         See query.c.
-		 */
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static void
+chase_additional(fetchctx_t *fctx) {
+	isc_boolean_t rescan;
+	dns_section_t section = DNS_SECTION_ADDITIONAL;
+	isc_result_t result;
+
+ again:
+	rescan = ISC_FALSE;
+	
+	for (result = dns_message_firstname(fctx->rmessage, section);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(fctx->rmessage, section)) {
+		dns_name_t *name = NULL;
+		dns_rdataset_t *rdataset;
+		dns_message_currentname(fctx->rmessage, DNS_SECTION_ADDITIONAL,
+					&name);
+		if ((name->attributes & DNS_NAMEATTR_CHASE) == 0)
+			continue;
+		name->attributes &= ~DNS_NAMEATTR_CHASE;
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (CHASE(rdataset)) {
+				rdataset->attributes &= ~DNS_RDATASETATTR_CHASE;
+				(void)dns_rdataset_additionaldata(rdataset,
+								  check_related,
+								  fctx);
+				rescan = ISC_TRUE;
+			}
+		}
+	}
+	if (rescan)
+		goto again;
 }
 
 static inline isc_result_t
@@ -4424,6 +4456,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		keep_trying = ISC_TRUE;
 		goto done;
 	}
+
+	/*
+	 * Follow A6 and other additional section data chains.
+	 */
+	chase_additional(fctx);
 
 	/*
 	 * Cache the cacheable parts of the message.  This may also cause

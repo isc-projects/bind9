@@ -1,3 +1,6 @@
+1178.	[func]		Follow and cache (if appropriate) A6 and other
+			data chains to completion in the additional section.
+
 1177.	[func]		Report view when loading zones if it is not a
 			standard view (_default or _bind). [RT #2270]
 
