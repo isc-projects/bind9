@@ -1692,6 +1692,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 			return (ISC_R_NOSPACE);
 		*tdata++ = '.';
 		trem--;
+		omit_final_dot = ISC_FALSE;
 	}
 		
 	while (labels > 0 && nlen > 0 && trem > 0) {
