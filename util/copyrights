@@ -617,6 +617,7 @@
 ./lib/isc/include/isc/error.h			C	1998,1999,2000
 ./lib/isc/include/isc/event.h			C	1998,1999,2000
 ./lib/isc/include/isc/eventclass.h		C	1998,1999,2000
+./lib/isc/include/isc/file.h    		C	2000
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000
 ./lib/isc/include/isc/interfaceiter.h		C	1999,2000
 ./lib/isc/include/isc/lang.h			C	1999,2000
@@ -627,7 +628,6 @@
 ./lib/isc/include/isc/log.h			C	1999,2000
 ./lib/isc/include/isc/magic.h			C	1999,2000
 ./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000
-./lib/isc/include/isc/mktemplate.h		C	2000
 ./lib/isc/include/isc/msgcat.h			C	1999,2000
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000
 ./lib/isc/include/isc/netaddr.h			C	1998,1999,2000
@@ -652,7 +652,6 @@
 ./lib/isc/include/isc/taskpool.h		C	1999,2000
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000
 ./lib/isc/include/isc/types.h			C	1999,2000
-./lib/isc/include/isc/ufile.h			C	2000
 ./lib/isc/include/isc/util.h			C	1998,1999,2000
 ./lib/isc/inet_aton.c				PORTION	1999,2000
 ./lib/isc/inet_ntop.c				FIXME	1999,2000
@@ -699,6 +698,7 @@
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000
 ./lib/isc/unix/app.c				C	1999,2000
 ./lib/isc/unix/dir.c				C	1999,2000
+./lib/isc/unix/file.c				C	2000
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000
 ./lib/isc/unix/include/.cvsignore		X	1999,2000
@@ -715,17 +715,16 @@
 ./lib/isc/unix/include/isc/time.h		C	1998,1999,2000
 ./lib/isc/unix/interfaceiter.c			C	1999,2000
 ./lib/isc/unix/ipv6.c				C	1999,2000
-./lib/isc/unix/mktemplate.c			C	2000
 ./lib/isc/unix/net.c				C	1999,2000
 ./lib/isc/unix/socket.c				C	1998,1999,2000
 ./lib/isc/unix/stdtime.c			C	1999,2000
 ./lib/isc/unix/time.c				C	1998,1999,2000
-./lib/isc/unix/ufile.c				C	2000
 ./lib/isc/version.c				C	1998,1999,2000
 ./lib/isc/win32/.cvsignore			X	1999,2000
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000
 ./lib/isc/win32/condition.c			C	1998,1999,2000
 ./lib/isc/win32/dir.c				C	1999,2000
+./lib/isc/win32/file.c				C	2000
 ./lib/isc/win32/include/.cvsignore		X	1999,2000
 ./lib/isc/win32/include/Makefile.in		MAKE	1999,2000
 ./lib/isc/win32/include/isc/.cvsignore		X	1999,2000
@@ -741,7 +740,6 @@
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000
-./lib/isc/win32/mktemplate.c			C	2000
 ./lib/isc/win32/once.c				C	1999,2000
 ./lib/isc/win32/stdtime.c			C	1999,2000
 ./lib/isc/win32/thread.c			C	1998,1999,2000
