@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.216 2001/07/28 00:11:11 bwelling Exp $ */
+/* $Id: dighost.c,v 1.217 2001/07/28 00:55:14 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -313,9 +313,7 @@ make_server(const char *servname) {
  * ISC_LIST_INIT applied.
  */
 void
-clone_server_list(dig_serverlist_t src,
-		  dig_serverlist_t *dest)
-{
+clone_server_list(dig_serverlist_t src, dig_serverlist_t *dest) {
 	dig_server_t *srv, *newsrv;
 
 	debug("clone_server_list()");
@@ -615,13 +613,11 @@ setup_system(void) {
 			} else if (strcasecmp(ptr, "options") == 0) {
 				ptr = next_token(&input, " \t\r\n");
 				if (ptr != NULL) {
-					if((strncasecmp(ptr, "ndots:",
-							6) == 0) &&
-					   (ndots == -1)) {
-						ndots = atoi(
-							     &ptr[6]);
-						debug("ndots is %d.",
-						      ndots);
+					if (strncasecmp(ptr, "ndots:", 6) == 0
+					    && ndots == -1)
+					{
+						ndots = atoi(&ptr[6]);
+						debug("ndots is %d.", ndots);
 					}
 				}
 			} else if (strcasecmp(ptr, "search") == 0){
@@ -699,9 +695,9 @@ setup_libs(void) {
 	/*
 	 * Warning: This is not particularly good randomness.  We'll
 	 * just use random() now for getting id values, but doing so
-	 * does NOT ensure that id's cann't be guessed.
+	 * does NOT ensure that id's can't be guessed.
 	 */
-	srandom(getpid() + (int)&setup_libs);
+	srandom(getpid());
 
 	result = isc_net_probeipv4();
 	if (result == ISC_R_SUCCESS)
@@ -753,7 +749,7 @@ setup_libs(void) {
 
 /*
  * Add EDNS0 option record to a message.  Currently, the only supported
- * option is UDP buffer size.
+ * options are UDP buffer size and the DO bit.
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec
@@ -1057,7 +1053,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 							ISC_FALSE);
 				lookup->doing_xfr = ISC_FALSE;
 				lookup->trace = query->lookup->trace;
-				lookup->ns_search_only = ISC_FALSE;
+				lookup->ns_search_only =
+					query->lookup->ns_search_only;
 				lookup->trace_root = ISC_FALSE;
 			}
 			srv = make_server(namestr);
@@ -1125,18 +1122,18 @@ insert_soa(dig_lookup_t *lookup) {
 	debug("insert_soa()");
 	soa.mctx = mctx;
 	soa.serial = lookup->ixfr_serial;
-	soa.refresh = 1;
-	soa.retry = 1;
-	soa.expire = 1;
-	soa.minimum = 1;
+	soa.refresh = 0;
+	soa.retry = 0;
+	soa.expire = 0;
+	soa.minimum = 0;
 	soa.common.rdclass = lookup->rdclass;
 	soa.common.rdtype = dns_rdatatype_soa;
 
 	dns_name_init(&soa.origin, NULL);
 	dns_name_init(&soa.mname, NULL);
 
-	dns_name_clone(lookup->name, &soa.origin);
-	dns_name_clone(lookup->name, &soa.mname);
+	dns_name_clone(dns_rootname, &soa.origin);
+	dns_name_clone(dns_rootname, &soa.mname);
 
 	isc_buffer_init(&lookup->rdatabuf, lookup->rdatastore,
 			sizeof(lookup->rdatastore));
@@ -1159,7 +1156,7 @@ insert_soa(dig_lookup_t *lookup) {
 	rdatalist->type = dns_rdatatype_soa;
 	rdatalist->rdclass = lookup->rdclass;
 	rdatalist->covers = 0;
-	rdatalist->ttl = 1;
+	rdatalist->ttl = 0;
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
@@ -2374,7 +2371,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			printmessage(query, msg, ISC_TRUE);
 		} else if (l->ns_search_only) {
 			debug("in NSSEARCH code");
-			printmessage(query, msg, ISC_TRUE);
 
 			if (l->trace_root) {
 				/*
@@ -2388,7 +2384,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						    DNS_SECTION_ANSWER);
 				if (n == 0)
 					docancel = ISC_TRUE;
-			}
+			} else
+				printmessage(query, msg, ISC_TRUE);
 		} else {
 			int n = 0;
 			int count = msg->counts[DNS_SECTION_ANSWER];
@@ -2409,9 +2406,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		} 
 	} else if (msg->counts[DNS_SECTION_ANSWER] > 0 &&
 		   l->ns_search_only &&
-		   !l->trace_root) {
+		   !l->trace_root)
 		printmessage(query, msg, ISC_TRUE);
-	}
 
 	if (l->pending)
 		debug("still pending.");

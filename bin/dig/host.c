@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.73 2001/07/28 00:11:13 bwelling Exp $ */
+/* $Id: host.c,v 1.74 2001/07/28 00:55:15 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -414,14 +414,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	UNUSED(headers);
 
-	/*
-	 * Special case. If we're doing an ns_search_only query, but we're
-	 * still following pointers, haven't gotten to the real NS records
-	 * yet, don't print anything.
-	 */
-	if (query->lookup->ns_search_only)
-		return (ISC_R_SUCCESS);
-
 	if (listed_server) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
@@ -624,7 +616,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			break;
 		case 'C':
 			debug("showing all SOAs");
-			lookup->rdtype = dns_rdatatype_soa;
+			lookup->rdtype = dns_rdatatype_ns;
 			lookup->rdtypeset = ISC_TRUE;
 			lookup->rdclass = dns_rdataclass_in;
 			lookup->rdclassset = ISC_TRUE;
