@@ -119,6 +119,7 @@ DNSSAFEOBJS =	sec/dnssafe/ahchdig.@O@ sec/dnssafe/ahchencr.@O@ \
 OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ dispatch.@O@ dnssec.@O@ \
+		dispatchlist.@O@ \
 		journal.@O@ keytable.@O@ lib.@O@ log.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nxt.@O@ peer.@O@ \
@@ -134,6 +135,7 @@ OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 SRCS =		a6.c acl.c aclconf.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c dispatch.c dnssec.c \
+		dispatchlist.c \
 		journal.c keytable.c lib.c log.c \
 		master.c masterdump.c message.c \
 		name.c ncache.c nxt.c peer.c \
