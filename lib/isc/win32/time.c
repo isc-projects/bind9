@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.32 2001/10/08 18:58:11 gson Exp $ */
+/* $Id: time.c,v 1.33 2001/10/13 01:57:37 gson Exp $ */
 
 #include <config.h>
 
@@ -217,21 +217,22 @@ void
 isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	FILETIME localft;
 	SYSTEMTIME st;
-
+	char DateBuf[50];
+	char TimeBuf[50];
+	
 	static const char badtime[] = "Bad 00 99:99:99.999";
-	static const char *months[] = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
 	
 	REQUIRE(len > 0);
 	if (FileTimeToLocalFileTime(&t->absolute, &localft) &&
-	    FileTimeToSystemTime(&localft, &st))
-	{
-		snprintf(buf, len, "%s %2u %02u:%02u:%02u.%03u",
-		months[st.wMonth - 1], st.wDay, st.wHour, st.wMinute,
-		st.wSecond, st.wMilliseconds);
-	} else {
+	    FileTimeToSystemTime(&localft, &st)) {
+		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "MMM d", DateBuf,
+			      50);
+		GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOTIMEMARKER|
+			      TIME_FORCE24HOURFORMAT, &st, NULL, TimeBuf, 50);
+		
+		snprintf(buf, len, "%s %s.%03u", DateBuf, TimeBuf,
+			 st.wMilliseconds);
+		
+	} else
 		snprintf(buf, len, badtime);
-	}
 }
