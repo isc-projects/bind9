@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.17 2000/07/10 11:39:46 tale Exp $
+# $Id: tests.sh,v 1.18 2000/07/12 16:43:03 tale Exp $
 
 #
 # Perform tests
@@ -44,8 +44,8 @@ cp ns2/example2.db ns2/example.db
 
 echo "I:sleeping five seconds then reloading ns2 and ns3 with rndc"
 sleep 5
-$RNDC -c rndc.conf -s 10.53.0.2 -p 9953 reload
-$RNDC -c rndc.conf -s 10.53.0.3 -p 9953 reload
+$RNDC -c rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+$RNDC -c rndc.conf -s 10.53.0.3 -p 9953 reload 2>&1 | sed 's/^/I:ns3 /'
 
 echo "I:sleeping one minute"
 sleep 60
