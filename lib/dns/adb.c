@@ -60,8 +60,8 @@
 /*
  * Lengths of lists needs to be powers of two.
  */
-#define DNS_ADBNAMELIST_LENGTH	16	/* how many buckets for names */
-#define DNS_ADBENTRYLIST_LENGTH	16	/* how many buckets for addresses */
+#define DNS_ADBNAMELIST_LENGTH	32	/* how many buckets for names */
+#define DNS_ADBENTRYLIST_LENGTH	32	/* how many buckets for addresses */
 
 #define FREE_ITEMS		16	/* free count for memory pools */
 #define FILL_COUNT		 8	/* fill count for memory pools */
@@ -1699,9 +1699,11 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 }
 
 isc_result_t
-dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone)
+dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
+		 isc_stdtime_t expire_time)
 {
 	dns_adbzoneinfo_t *zi;
+	int bucket;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
@@ -1710,6 +1712,14 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone)
 	zi = new_adbzoneinfo(adb, zone);
 	if (zi == NULL)
 		return (ISC_R_NOMEMORY);
+
+	zi->lame_timer = expire_time;
+
+	bucket = addr->entry->lock_bucket;
+
+	LOCK(&adb->entrylocks[bucket]);
+	ISC_LIST_PREPEND(addr->entry->zoneinfo, zi, link);
+	UNLOCK(&adb->entrylocks[bucket]);
 
 	return (ISC_R_SUCCESS);
 }

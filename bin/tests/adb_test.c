@@ -92,6 +92,8 @@ main(int argc, char **argv)
 	dns_view_t *view;
 	dns_adb_t *adb;
 	dns_adbhandle_t *handle;
+	dns_adbaddrinfo_t *ai;
+	isc_stdtime_t now;
 
 	(void)argc;
 	(void)argv;
@@ -99,6 +101,9 @@ main(int argc, char **argv)
 	dns_result_register();
 	result = isc_app_start();
 	check_result(result, "isc_app_start()");
+
+	result = isc_stdtime_get(&now);
+	check_result(result, "isc_stdtime_get()");
 
 	/*
 	 * EVERYTHING needs a memory context.
@@ -195,13 +200,36 @@ main(int argc, char **argv)
 	dns_adb_dumphandle(adb, handle, stderr);
 
 	/*
+	 * Mark one entry as lame, then look this name up again.
+	 */
+
+	ai = ISC_LIST_HEAD(handle->list);
+	INSIST(ai != NULL);
+	ai = ISC_LIST_NEXT(ai, link);
+	INSIST(ai != NULL);
+	result = dns_adb_marklame(adb, ai, &name1, now + 10 * 60);
+	check_result(result, "dns_adb_marklame()");
+
+	dns_adb_done(adb, &handle);
+
+	/*
+	 * look it up again
+	 */
+	result = dns_adb_lookup(adb, t2, lookup_callback, &name1,
+				&name1, &name1, &handle);
+	check_result(result, "dns_adb_lookup name1");
+	check_result(handle->result, "handle->result");
+
+	dns_adb_dump(adb, stderr);
+	dns_adb_dumphandle(adb, handle, stderr);
+
+	/*
 	 * delete one of the names, and kill the adb
 	 */
 	result = dns_adb_deletename(adb, &name2);
 	check_result(result, "dns_adb_deletename name2");
 
 	dns_adb_dump(adb, stderr);
-	dns_adb_dumphandle(adb, handle, stderr);
 
 	dns_adb_done(adb, &handle);
 	isc_task_detach(&t1);

@@ -366,9 +366,12 @@ dns_adb_dumphandle(dns_adb_t *adb, dns_adbhandle_t *handle, FILE *f);
  */
 
 isc_result_t
-dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone);
+dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
+		 isc_stdtime_t expire_time);
 /*
- * Mark the given address as lame for the zone "zone".
+ * Mark the given address as lame for the zone "zone".  expire_time should
+ * be set to the time when the entry should expire.  That is, if it is to
+ * expire 10 minutes in the future, it should set it to (now + 10 * 60).
  *
  * Requires:
  *
@@ -391,8 +394,6 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone);
  *	because the data pointed to by a dns_adbaddr_t is reference counted.
  *
  *	Adjust the goodness, both local and globally.
- *
- *	Mark an entry as lame.
  *
  *	set/clear various flags.  (Which flags?)
  *
