@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.140 2001/01/22 18:58:36 gson Exp $ */
+/* $Id: client.c,v 1.141 2001/01/23 18:47:33 gson Exp $ */
 
 #include <config.h>
 
@@ -1025,7 +1025,7 @@ client_addopt(ns_client_t *client) {
 	rdatalist->covers = 0;
 
 	/*
-	 * Set Maximum UDP buffer size.
+	 * Set the maximum UDP buffer size.
 	 */
 	rdatalist->rdclass = RECV_BUFFER_SIZE;
 
