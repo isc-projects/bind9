@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwderror.c,v 1.5 2000/10/12 20:45:13 bwelling Exp $ */
+/* $Id: lwderror.c,v 1.6 2000/11/15 23:29:29 tale Exp $ */
 
 #include <config.h>
 
@@ -43,9 +43,6 @@ ns_lwdclient_errorpktsend(ns_lwdclient_t *client, isc_uint32_t _result) {
 	int lwres;
 	isc_region_t r;
 	lwres_buffer_t b;
-	ns_lwdclientmgr_t *cm;
-
-	cm = client->clientmgr;
 
 	REQUIRE(NS_LWDCLIENT_ISRUNNING(client));
 
