@@ -233,5 +233,3 @@ int setpassent(int stayopen);
 #endif
 
 #endif
-
-#endif
