@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.312 $)
+AC_REVISION($Revision: 1.313 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -336,11 +336,22 @@ case "$use_openssl" in
 		DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
 		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
 
-		AC_MSG_CHECKING(OpenSSL library version)
 		saved_cflags="$CFLAGS"
 		saved_libs="$LIBS"
 		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
 		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		AC_MSG_CHECKING(whether linking with OpenSSL works)
+		AC_TRY_RUN([
+#include <openssl/err.h>
+int main() {
+	ERR_clear_error();
+}
+],
+	        [AC_MSG_RESULT(yes)],
+		[AC_MSG_RESULT(no)
+		 AC_MSG_ERROR(Please check the argument to --with-openssl and your LD_LIBRARY_PATH.)],
+		[AC_MSG_RESULT(assuming it does work on target platform)])
+		AC_MSG_CHECKING(OpenSSL library version)
 		AC_TRY_RUN([
 #include <stdio.h>
 #include <openssl/opensslv.h>
