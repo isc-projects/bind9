@@ -46,6 +46,7 @@
 
 #include <arpa/inet.h>
 
+#include "parser.h"
 #include "udpclient.h"
 #include "tcpclient.h"
 
@@ -102,6 +103,8 @@ main(int argc, char *argv[])
 	unsigned int addrlen;
 	udp_listener_t *ludp;
 	tcp_listener_t *ltcp;
+	isc_cfgctx_t *configctx = NULL;
+	const char *conffile = "/etc/named.conf"; /* XXX hardwired */
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(5544);
@@ -115,6 +118,11 @@ main(int argc, char *argv[])
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
+#if 0
+	isc_parser_init();
+	isc_parse_configuration(conffile, mctx, &configctx);
+#endif
+	
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
 
