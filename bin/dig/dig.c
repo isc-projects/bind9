@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.102 2000/09/25 23:09:56 mws Exp $ */
+/* $Id: dig.c,v 1.103 2000/09/26 17:17:39 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -577,7 +577,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	ptr = option_store;
 	cmd=next_token(&ptr,"=");
 	if (cmd == NULL) {
-		printf (";; Invalid option %s\n",option_store);
+		printf(";; Invalid option %s\n",option_store);
 		return;
 	}
 	value=ptr;
@@ -864,7 +864,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 	case 'd':
 		debugging = ISC_TRUE;
 		return (ISC_FALSE);
-		break;
 	case 'h':
 		show_usage();
 		exit(0);
@@ -872,11 +871,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 	case 'm':
 		isc_mem_debugging = ISC_MEM_DEBUGTRACE | ISC_MEM_DEBUGRECORD;
 		return (ISC_FALSE);
-		break;
 	case 'n':
 		nibble = ISC_TRUE;
 		return (ISC_FALSE);
-		break;
 	}
 	if (value == NULL)
 		goto invalid_option;
@@ -885,7 +882,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		get_address(value, 0, &bind_address);
 		specified_source = ISC_TRUE;
 		return (value_from_next);
-		break;
 	case 'c':
 		tr.base = value;
 		tr.length = strlen(value);
@@ -894,23 +890,19 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		if (result == ISC_R_SUCCESS)
 			(*lookup)->rdclass = rdclass;
 		else
-			fprintf (stderr, ";; Warning, ignoring "
-				 "invalid class %s\n",
-				 value);
+			fprintf(stderr, ";; Warning, ignoring "
+				"invalid class %s\n",
+				value);
 		return (value_from_next);
-		break;
 	case 'f':
 		batchname = value;
 		return (value_from_next);
-		break;
 	case 'k':
 		strncpy(keyfile, value, MXNAME);
 		return (value_from_next);
-		break;
 	case 'p':
 		port = atoi(value);
 		return (value_from_next);
-		break;
 	case 't':
 		if (strncasecmp(value, "ixfr=", 5) == 0) {
 			(*lookup)->rdtype = dns_rdatatype_ixfr;
@@ -929,7 +921,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 				 "invalid type %s\n",
 				 value);
 		return (value_from_next);
-		break;
 	case 'y':
 		ptr = next_token(&value,":");
 		if (ptr == NULL) {
@@ -944,7 +935,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		}
 		strncpy(keysecret, ptr, MXNAME);
 		return (value_from_next);
-		break;
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
 		if (strchr(value, ':') == NULL) {
@@ -996,7 +986,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		
 		ISC_LIST_APPEND(lookup_list, *lookup, link);
 		return (value_from_next);
-		break;
 	invalid_option:
 	default:
 		fprintf(stderr, "Invalid option: -%s\n", option);
