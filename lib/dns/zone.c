@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.323 2001/05/10 17:51:46 gson Exp $ */
+/* $Id: zone.c,v 1.324 2001/05/14 19:06:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -5944,3 +5944,38 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 	UNLOCK_ZONE(zone);
 }
 
+unsigned int
+dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
+	dns_zone_t *zone;
+	unsigned int count = 0;
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
+	switch (state) {
+	case DNS_ZONESTATE_XFERRUNNING:
+		for (zone = ISC_LIST_HEAD(zmgr->xfrin_in_progress);
+		     zone != NULL;
+		     zone = ISC_LIST_NEXT(zone, statelink))
+			count++;
+		break;
+	case DNS_ZONESTATE_XFERDEFERRED:
+		for (zone = ISC_LIST_HEAD(zmgr->waiting_for_xfrin);
+		     zone != NULL;
+		     zone = ISC_LIST_NEXT(zone, statelink))
+			count++;
+		break;
+	case DNS_ZONESTATE_ANY:
+		for (zone = ISC_LIST_HEAD(zmgr->zones);
+		     zone != NULL;
+		     zone = ISC_LIST_NEXT(zone, link))
+			count++;
+		break;
+	default:
+		INSIST(0);
+	}
+
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
+
+	return (count);
+}

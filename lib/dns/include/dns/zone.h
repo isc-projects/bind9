@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.104 2001/05/07 23:34:10 gson Exp $ */
+/* $Id: zone.h,v 1.105 2001/05/14 19:06:45 bwelling Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -72,6 +72,11 @@ typedef enum {
 #define DNS_ZONE_DEFAULTRETRY		     60	/* 1 minute, subject to
 						   exponential backoff */
 #endif
+
+#define DNS_ZONESTATE_XFERRUNNING	1
+#define DNS_ZONESTATE_XFERDEFERRED	2
+#define DNS_ZONESTATE_SOAQUERY		3
+#define DNS_ZONESTATE_ANY		4
 
 ISC_LANG_BEGINDECLS
 
@@ -1245,6 +1250,16 @@ dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr);
  *
  * Requires:
  *	'zmgr' to be a valid zone manager.
+ */
+
+unsigned int
+dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state);
+/*
+ *	Returns the number of zones in the specified state.
+ *
+ * Requires:
+ *	'zmgr' to be a valid zone manager.
+ *	'state' to be a valid DNS_ZONESTATE_ constant.
  */
 
 void

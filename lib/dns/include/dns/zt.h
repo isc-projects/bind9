@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.26 2001/05/09 21:34:19 bwelling Exp $ */
+/* $Id: zt.h,v 1.27 2001/05/14 19:06:47 bwelling Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
@@ -160,18 +160,6 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
  * Returns:
  *	ISC_R_SUCCESS if action was applied to all nodes.
  *	any error code from 'action'.
- */
-
-unsigned int
-dns_zt_zonecount(dns_zt_t *zt);
-/*
- * Count the number of zones in the table.
- *
- * Requires:
- * 	'zt' to be valid.
- *
- * Returns:
- * 	The number of zones in the table.
  */
 
 ISC_LANG_ENDDECLS
