@@ -188,8 +188,8 @@ newrr::
 	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h
 	rm -f include/dns/rdatastruct.h
 
-${SUBDIRS}: include/dns/enumtype.h include/dns/enumclass.h
-	    include/dns/rdatastruct.h
+include: include/dns/enumtype.h include/dns/enumclass.h \
+	include/dns/rdatastruct.h
 
 rdata.@O@: code.h
 
