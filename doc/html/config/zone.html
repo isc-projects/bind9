@@ -15,6 +15,8 @@
 zone <VAR><A HREF="docdef.html">domain_name</A></VAR> [ ( in | hs | hesiod | chaos ) ] { 
   type master;
   file <VAR><A HREF="docdef.html">path_name</A></VAR>;
+  [ forward ( only | first ); ]
+  [ forwarders { [ <VAR><A HREF="docdef.html">ip_addr</A></VAR> ; [ <VAR>ip_addr</VAR> ; ... ] ] }; ]
   [ check-names ( warn | fail | ignore ); ]
   [ allow-update { <VAR><A HREF="address_list.html">address_match_list</A></VAR> }; ]
   [ allow-query { <VAR><A HREF="address_list.html">address_match_list</A></VAR> }; ]
@@ -31,6 +33,8 @@ zone <VAR><A HREF="docdef.html">domain_name</A></VAR> [ ( in | hs | hesiod | cha
   [ file <VAR><A HREF="docdef.html">path_name</A></VAR>; ]
   [ ixfr-base  <VAR><A HREF="docdef.html">path_name</A></VAR>; ]
   masters [ port <VAR><A HREF="docdef.html">ip_port</A></VAR> ] { <VAR><A HREF="docdef.html">ip_addr</A></VAR>; [ <VAR>ip_addr</VAR>; ... ] };
+  [ forward ( only | first ); ]
+  [ forwarders { [ <VAR><A HREF="docdef.html">ip_addr</A></VAR> ; [ <VAR>ip_addr</VAR> ; ... ] ] }; ]
   [ check-names ( warn | fail | ignore ); ]
   [ allow-update { <VAR><A HREF="address_list.html">address_match_list</A></VAR> }; ]
   [ allow-query { <VAR><A HREF="address_list.html">address_match_list</A></VAR> }; ]
@@ -48,6 +52,8 @@ zone <VAR><A HREF="docdef.html">domain_name</A></VAR> [ ( in | hs | hesiod | cha
   type stub;
   [ file <VAR><A HREF="docdef.html">path_name</A></VAR>; ]
   masters [ port <VAR><A HREF="docdef.html">ip_port</A></VAR> ] { <VAR><A HREF="docdef.html">ip_addr</A></VAR>; [ <VAR>ip_addr</VAR>; ... ] };
+  [ forward ( only | first ); ]
+  [ forwarders { [ <VAR><A HREF="docdef.html">ip_addr</A></VAR> ; [ <VAR>ip_addr</VAR> ; ... ] ] }; ]
   [ check-names ( warn | fail | ignore ); ]
   [ allow-update { <VAR><A HREF="address_list.html">address_match_list</A></VAR> }; ]
   [ allow-query { <VAR><A HREF="address_list.html">address_match_list</A></VAR> }; ]
@@ -251,7 +257,7 @@ string representing the key.
 
 <HR>
 <ADDRESS>
-Last Updated: $Id: zone.html,v 1.1 1999/08/31 17:24:51 brister Exp $
+Last Updated: $Id: zone.html,v 1.2 1999/11/02 15:31:40 brister Exp $
 </ADDRESS>
 </BODY>
 </HTML>
