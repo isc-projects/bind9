@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.138 2000/12/07 20:15:50 marka Exp $ */
+/* $Id: rbtdb.c,v 1.139 2000/12/07 23:37:52 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3498,7 +3498,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	newheader = (rdatasetheader_t *)region.base;
-	newheader->ttl = 0;
+	newheader->ttl = rdataset->ttl;
 	newheader->type = RBTDB_RDATATYPE_VALUE(rdataset->type,
 						rdataset->covers);
 	newheader->attributes = 0;
