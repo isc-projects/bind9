@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# From configure.in Revision: 1.159 
+# From configure.in Revision: 1.161 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999 Free Software Foundation, Inc.
@@ -4449,6 +4449,7 @@ trap 'rm -fr `echo "make/rules
 	bin/tests/system/lwresd/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
+        util/Makefile
 	util/conf.sh
  config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -4685,6 +4686,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/tests/system/lwresd/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
+        util/Makefile
 	util/conf.sh
 "}
 EOF
