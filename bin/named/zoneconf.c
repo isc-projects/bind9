@@ -189,19 +189,21 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			dns_zone_clearnotify(zone);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getmaxtransfertimeout(cview, &maxxfr);
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = MAX_XFER_TIME;
-		}
+		if (result != ISC_R_SUCCESS)
+			maxxfr = MAX_XFER_TIME;
 		dns_zone_setmaxxfrout(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = DNS_DEFAULT_IDLEOUT;
-		}
+		if (result != ISC_R_SUCCESS && cview != NULL) 
+			result = dns_c_view_getmaxtransferidleout(cview, &maxxfr);
+		if (result != ISC_R_SUCCESS)
+			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
 
 		ssutable = NULL;
@@ -213,7 +215,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		}
 
 		break;
-		
 		
 	case dns_c_zone_forward:
 #ifdef notyet
@@ -249,7 +250,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					    dns_zone_clearqueryacl);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-
 		
 		result = dns_c_zone_getmasterport(czone, &port);
 		if (result != ISC_R_SUCCESS)
@@ -268,19 +268,17 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			dns_zone_clearmasters(zone);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_getmaxtransfertimein(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = MAX_XFER_TIME;
-		}
+		if (result != ISC_R_SUCCESS)
+			maxxfr = MAX_XFER_TIME;
 		dns_zone_setmaxxfrin(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidlein(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_getmaxtransferidlein(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = DNS_DEFAULT_IDLEIN;
-		}
+		if (result != ISC_R_SUCCESS)
+			maxxfr = DNS_DEFAULT_IDLEIN;
 		dns_zone_setidlein(zone, maxxfr);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
@@ -302,19 +300,21 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setxfrsource6(zone, &sockaddr);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getmaxtransfertimeout(cview, &maxxfr);
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = MAX_XFER_TIME;
-		}
+		if (result != ISC_R_SUCCESS)
+			maxxfr = MAX_XFER_TIME;
 		dns_zone_setmaxxfrout(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = DNS_DEFAULT_IDLEOUT;
-		}
+		if (result != ISC_R_SUCCESS && cview != NULL) 
+			result = dns_c_view_getmaxtransferidleout(cview, &maxxfr);
+		if (result != ISC_R_SUCCESS)
+			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
 
 		break;
@@ -360,19 +360,17 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			dns_zone_clearmasters(zone);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_getmaxtransfertimein(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = MAX_XFER_TIME;
-		}
+		if (result != ISC_R_SUCCESS)
+			maxxfr = MAX_XFER_TIME;
 		dns_zone_setmaxxfrin(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidlein(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_getmaxtransferidlein(cctx, &maxxfr);
-			if (result != ISC_R_SUCCESS)
-				maxxfr = DNS_DEFAULT_IDLEIN;
-		}
+		if (result != ISC_R_SUCCESS)
+			maxxfr = DNS_DEFAULT_IDLEIN;
 		dns_zone_setidlein(zone, maxxfr);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
