@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9.2.4 2001/11/30 01:10:09 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.5 2003/05/15 02:43:15 marka Exp $ */
 
 #include <config.h>
 
@@ -90,31 +90,21 @@ write_key_file(const char *keyfile, const char *user,
 	FILE *fd;
 
 	fd = safe_create(keyfile);
-	if (fd == NULL) {
-		fprintf(stderr, "unable to create \"%s\"\n", keyfile);
-		return;
-	}
+	if (fd == NULL)
+		fatal( "unable to create \"%s\"\n", keyfile);
 	if (user != NULL) {
-		if (set_user(fd, user) == -1) {
-			fprintf(stderr, "unable to set file owner\n");
-			fclose(fd);
-			return;
-		}
+		if (set_user(fd, user) == -1)
+			fatal("unable to set file owner\n");
 	}
 	fprintf(fd, "key \"%s\" {\n\talgorithm hmac-md5;\n"
 		"\tsecret \"%.*s\";\n};\n", keyname,
 		(int)isc_buffer_usedlength(secret),
 		(char *)isc_buffer_base(secret));
 	fflush(fd);
-	if (ferror(fd)) {
-		fprintf(stderr, "write to %s failed\n", keyfile);
-		fclose(fd);
-		return;
-	}
-	if (fclose(fd)) {
-		fprintf(stderr, "fclose(%s) failed\n", keyfile);
-		return;
-	}
+	if (ferror(fd))
+		fatal("write to %s failed\n", keyfile);
+	if (fclose(fd))
+		fatal("fclose(%s) failed\n", keyfile);
 }
 
 int
@@ -280,11 +270,8 @@ main(int argc, char **argv) {
 			char *buf;
 			len = strlen(chrootdir) + strlen(keyfile) + 2;
 			buf = isc_mem_get(mctx, len);
-			if (buf == NULL) {
-				fprintf(stderr, "isc_mem_get(%d) failed\n",
-					len);
-				goto cleanup;
-			}
+			if (buf == NULL)
+				fatal("isc_mem_get(%d) failed\n", len);
 			snprintf(buf, len, "%s/%s", chrootdir, keyfile);
 			
 			write_key_file(buf, user, keyname, &key_txtbuffer);
@@ -326,7 +313,6 @@ options {\n\
 		       serveraddr, port, serveraddr, keyname);
 	}
 
- cleanup:
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
 

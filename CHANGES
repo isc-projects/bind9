@@ -4,7 +4,10 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
-1450.	[bug]		Fetching expired glue failed under certian
+1451.	[bug]		rndc-confgen didn't exit with a error code for all
+			failures. [RT #5209]
+
+1450.	[bug]		Fetching expired glue failed under certain
 			circumstances.  [RT #5124]
 
 1449.	[bug]		query_addbestns() didn't handle running out of memory
@@ -93,7 +96,7 @@
 1333.	[contrib]	queryperf now reports a summary of returned
 			rcodes (-c), rcodes are printed in mnemonic form (-v).
 
-1299.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
+1299.	[bug]		Set AI_ADDRCONFIG when looking up addresses
 			via getaddrinfo() (affects dig, host, nslookup, rndc
 			and nsupdate).
 
