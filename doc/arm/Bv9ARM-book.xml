@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.50 2000/11/27 18:06:02 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.51 2000/11/28 18:35:08 explorer Exp $ -->
 
 <book>
 
@@ -2506,6 +2506,8 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> port <replaceable>ip_port</replaceable>; </optional>
+    <optional> additional-from-auth <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> additional-from-cache <replaceable>yes_or_no</replaceable> ; </optional>
 };
 </programlisting>
 </sect2>
@@ -2793,6 +2795,35 @@ These options allow the administrator to set a minimum and maximum
 refresh and retry time either per-zone, per-view, or per-server.
 These options are valid for slave and stub zones, and clamp the SOA
 refresh and retry times to the specified values.
+</para>
+</entry>
+</row>
+
+<row rowsep = "0">
+<entry colname = "1">
+<para><command>additional-from-auth</command></para>
+<para><command>additional-from-cache</command></para>
+</entry>
+<entry colname = "2"><para>
+These options control the server's behavior when answering queries
+which have additional data, or when following CNAME and DNAME
+chains to provide additional data.
+</para><para>
+With both of these options set to "yes" (the default) and a
+query is being answered from authoratitive data (a zone
+configured ito the server) the additional data section of the
+reply will be filled in using data from other authoratitive zones
+and from the cache.  In some situations this is undesired, such
+as when secondaries may be added and modified by others, and when
+there is concern over the correctness of the cache.  Also, avoiding
+the search for this additional data will speed up server operations
+at the possible expense of additional queries to resolve what would
+otherwise be provided in the additional section.
+</para><para>
+For example, if a query asks for an MX record for host foo.example.com,
+and the record found is "MX 10 mail.example.net", normally the address
+records (A, A6, and AAAA) will be provided as well, if known.  These
+options disable this behavior.
 </para>
 </entry>
 </row>
