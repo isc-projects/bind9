@@ -1,8 +1,5 @@
 RT #462
 
-Eliminate use of condition variables from libomapi so that it can be
-built without threads [RT #505]
-
 RT #210 "man pages not installed"
 
 Make omapi limit pre-authentication message size to avoid denial of
@@ -11,5 +8,7 @@ service attack where a huge packet is sent
 Clean dead nodes from rbtdb
 
 Other bugs assigned to "tale" in RT
+
+Message catalog support
 
 Generate secret for rndc automatically
