@@ -1,3 +1,6 @@
+1744.	[bug]		If tuple2msgname() failed to convert a tuple to
+			a name a REQUIRE could be triggered. [RT #12796]
+
 1741.	[bug]		Deleting all records at a node in a secure zone
 			using a update-policy grant failed. [RT #12787]
 
