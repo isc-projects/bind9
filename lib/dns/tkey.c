@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.37 2000/05/19 22:11:20 bwelling Exp $
+ * $Id: tkey.c,v 1.38 2000/05/23 23:36:39 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -723,7 +723,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	dns_rdata_t *rdata = NULL;
 	isc_buffer_t src, *dynbuf = NULL;
 	isc_region_t r;
-	dns_name_t *keyname = NULL;
+	dns_name_t keyname;
 	dns_namelist_t namelist;
 	isc_result_t result;
 	isc_stdtime_t now;
@@ -769,16 +769,15 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	dns_rdata_fromregion(rdata, dns_rdataclass_any,
 			     dns_rdatatype_key, &r);
 	dns_message_takebuffer(msg, &dynbuf);
-	RETERR(dns_message_gettempname(msg, &keyname));
 	isc_buffer_init(&src, dst_key_name(key), strlen(dst_key_name(key)));
 	isc_buffer_add(&src, strlen(dst_key_name(key)));
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024));
-	dns_name_init(keyname, NULL);
-	RETERR(dns_name_fromtext(keyname, &src, dns_rootname, ISC_FALSE,
+	dns_name_init(&keyname, NULL);
+	RETERR(dns_name_fromtext(&keyname, &src, dns_rootname, ISC_FALSE,
 				 dynbuf));
 	dns_message_takebuffer(msg, &dynbuf);
 	ISC_LIST_INIT(namelist);
-	RETERR(add_rdata_to_list(msg, keyname, rdata, 0, &namelist));
+	RETERR(add_rdata_to_list(msg, &keyname, rdata, 0, &namelist));
 	dns_message_addname(msg, ISC_LIST_HEAD(namelist),
 			    DNS_SECTION_ADDITIONAL);
 
