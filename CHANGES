@@ -1,3 +1,5 @@
+ 140.   [cleanup]       <isc/time.h> does not need <time.h> or <isc/result.h>.
+
  139.   [cleanup]       <isc/net.h> now includes <isc/types.h> instead of
                         <isc/int.h> and <isc/result.h>.
 

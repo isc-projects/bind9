@@ -18,13 +18,8 @@
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
-#include <time.h>
-
 #include <isc/lang.h>
-#include <isc/result.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Intervals
@@ -42,6 +37,8 @@ struct isc_interval {
 };
 
 extern isc_interval_t *isc_interval_zero;
+
+ISC_LANG_BEGINDECLS
 
 void
 isc_interval_set(isc_interval_t *i,
