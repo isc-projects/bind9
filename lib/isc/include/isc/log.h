@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.1 1999/09/23 17:43:50 tale Exp $ */
+/* $Id: log.h,v 1.2 1999/10/11 13:16:42 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -387,6 +387,43 @@ isc_log_usechannel(isc_log_t *lctx, const char *name,
 void
 isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level, const char *format, ...);
+/*
+ * Write a message to the log channels.
+ *
+ * Notes:
+ *	lctx can be NULL; this is allowed so that programs which use
+ *	libraries that use the ISC logging system are not required to
+ *	also use it.
+ *
+ *	The format argument is a printf(3) string, with additional arguments
+ *	as necessary.
+ *
+ * Requires:
+ *	lctx is a valid logging context.
+ *
+ *	The category and module arguments must have ids that are in the
+ *	range of known ids, as estabished by isc_log_registercategories()
+ *	and isc_log_registermodules().
+ *
+ *	level != ISC_LOG_DYNAMiC.  ISC_LOG_DYNAMIC is used only to define
+ *	channels, and explicit debugging level must be identified for
+ *	isc_log_write() via ISC_LOG_DEBUG(level).
+ *
+ *	format != NULL.
+ *
+ * Ensures:
+ *	The log message is written to every channel associated with the
+ *	indicated category/module pair.
+ *
+ * Returns:
+ *	Nothing.  Failure to log a message is not construed as a
+ *	meaningful error.
+ */
+
+void
+isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
+	       isc_logmodule_t *module, int level, const char *format,
+	       va_list args);
 /*
  * Write a message to the log channels.
  *
