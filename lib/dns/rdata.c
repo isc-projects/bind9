@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.101.2.1 2000/07/10 19:17:33 gson Exp $ */
+/* $Id: rdata.c,v 1.101.2.2 2000/09/05 22:14:12 explorer Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -228,8 +228,10 @@ static const char decdigits[] = "0123456789";
 	{ dns_tsigerror_badalg, "BADALG", 0}, \
 	{ 0, NULL, 0 }
 
+/* RFC2538 section 2.1 */
+
 #define CERTNAMES \
-	{ 1, "SKIX", 0}, \
+	{ 1, "PKIX", 0}, \
 	{ 2, "SPKI", 0}, \
 	{ 3, "PGP", 0}, \
 	{ 253, "URI", 0}, \
