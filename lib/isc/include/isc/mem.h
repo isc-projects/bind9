@@ -21,10 +21,11 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include <isc/lang.h>
-#include <isc/types.h>
 #include <isc/boolean.h>
+#include <isc/lang.h>
+#include <isc/mutex.h>
 #include <isc/result.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -110,8 +111,8 @@ void *		__isc_mempool_getdebug(isc_mempool_t *, const char *, int);
 void 		__isc_mempool_putdebug(isc_mempool_t *, void *,
 				       const char *, int);
 
-isc_result_t	isc_mempool_create(isc_mem_t *mctx, size_t size,
-				   isc_mempool_t **mpctxp);
+isc_result_t
+isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp);
 /*
  * Create a memory pool.
  *
@@ -130,7 +131,8 @@ isc_result_t	isc_mempool_create(isc_mem_t *mctx, size_t size,
  *	ISC_R_SUCCESS		-- all is well.
  */
 
-void		isc_mempool_destroy(isc_mempool_t **mpctxp);
+void
+isc_mempool_destroy(isc_mempool_t **mpctxp);
 /*
  * Destroy a memory pool.
  *
@@ -139,6 +141,32 @@ void		isc_mempool_destroy(isc_mempool_t **mpctxp);
  *	The pool has no un"put" allocations outstanding
  */
 
+void
+isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
+/*
+ * Associate a lock with this memory pool.
+ *
+ * This lock is used when getting or putting items using this memory pool,
+ * and it is also used to set or get internal state via the isc_mempool_get*()
+ * and isc_mempool_set*() set of functions.
+ *
+ * Mutiple pools can each share a single lock.  For instance, if "manager"
+ * type object contained pools for various sizes of events, and each of
+ * these pools used a common lock.  Note that this lock must NEVER be used
+ * by other than mempool routines once it is given to a pool, since that can
+ * easily cause double locking.
+ *
+ * Requires:
+ *
+ *	mpctpx is a valid pool.
+ *
+ *	lock != NULL.
+ *
+ *	No previous lock is assigned to this pool.
+ *
+ *	The lock is initialized before calling this function via the normal
+ *	means of doing that.
+ */
 
 /*
  * The following functions get/set various parameters.  Note that due to
