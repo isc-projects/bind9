@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.36 2000/12/14 18:29:57 marka Exp $ */
+/* $Id: os.c,v 1.36.2.1 2001/01/09 19:38:00 gson Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -182,6 +182,12 @@ linux_initialprivs(void) {
 	 * Since we call initgroups, we need this.
 	 */
 	caps |= (1 << CAP_SETGID);
+
+	/*
+	 * Without this, we run into problems reading a configuration file
+	 * owned by a non-root user and non-world-readable on startup.
+	 */
+	caps |= (1 << CAP_DAC_READ_SEARCH);
 
 	/*
 	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not

@@ -1,6 +1,10 @@
  672.	[bug]		The wrong time was in the "time signed" field when
 			replying with BADTIME error.
 
+ 667.	[bug]		On Linux, running named with the -u option and a
+			non-world-readable configuration file didn't work.
+			[RT #626]
+
 	--- 9.1.0b3 released ---
 
  666.	[bug]		If a request sent by dig is longer than 512 bytes,
