@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.221 2000/09/26 17:28:13 gson Exp $ */
+/* $Id: zone.c,v 1.222 2000/09/26 18:17:09 gson Exp $ */
 
 #include <config.h>
 
@@ -205,6 +205,9 @@ struct dns_zone {
 						 * zone with no masters
 						 * occured */
 #define DNS_ZONEFLG_LOADING	0x00002000U	/* load from disk in progress */
+#define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/* timer values have been set from
+						   SOA (if not set, we are still using
+						   default timer values) */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -1056,8 +1059,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				    zone->minretry, zone->maxretry);
 		zone->expire = RANGE(expire, zone->refresh + zone->retry,
 				     DNS_MAX_EXPIRE);
-
 		zone->minimum = minimum;
+		zone->flags |= DNS_ZONEFLG_HAVETIMERS;
+
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_stub) {
 			isc_time_t t;
@@ -1741,6 +1745,7 @@ zone_expire(dns_zone_t *zone) {
 	zone->flags |= DNS_ZONEFLG_EXPIRED;
 	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
 	zone->retry = DNS_ZONE_DEFAULTRETRY;
+	zone->flags &= ~DNS_ZONEFLG_HAVETIMERS;
 	zone_unload(zone);
 }
 
@@ -1786,6 +1791,14 @@ dns_zone_refresh(dns_zone_t *zone) {
 	zone_log(zone, "dns_zone_refresh", ISC_LOG_DEBUG(20),
 		 "refresh time (%u/%u), now %u",
 		 zone->refreshtime, zone->refresh, now);
+
+	/*
+	 * When lacking user-specified timer values from the SOA,
+	 * do exponential backoff of the retry time up to a 
+	 * maximum of six hours.
+	 */
+	if (! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HAVETIMERS))
+		zone->retry = ISC_MIN(zone->retry * 2, 6 * 3600);
 
 	zone->curmaster = 0;
 	/* initiate soa query */
@@ -2716,6 +2729,9 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	return;
 }
 
+/*
+ * An SOA query has finished (successfully or not).
+ */
 static void
 refresh_callback(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "refresh_callback";
@@ -4247,6 +4263,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 					     zone->refresh + zone->retry,
 					     DNS_MAX_EXPIRE);
 			zone->minimum = minimum;
+			zone->flags |= DNS_ZONEFLG_HAVETIMERS;
 		}
 
 		/*

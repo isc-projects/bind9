@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.76 2000/09/26 17:24:00 gson Exp $ */
+/* $Id: zone.h,v 1.77 2000/09/26 18:17:10 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -66,7 +66,8 @@ typedef enum {
 #define DNS_ZONE_MAXRETRY		1209600	/* 2 weeks */
 #endif
 #ifndef DNS_ZONE_DEFAULTRETRY
-#define DNS_ZONE_DEFAULTRETRY		   1800	/* 30 minutes */
+#define DNS_ZONE_DEFAULTRETRY		     60	/* 1 minute, subject to
+						   exponential backoff */
 #endif
 
 ISC_LANG_BEGINDECLS

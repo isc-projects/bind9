@@ -1,3 +1,9 @@
+
+ 490.	[func]		When a slave/stub zone has not yet successfully
+			obtained an SOA containing the zone's configured
+			retry time, perform the SOA query retries using
+			exponential backoff. [RT #337]
+
  489.	[func]		The zone manager now has a "i/o" queue.
 
  488.	[bug]		Locks weren't properly destroyed in some cases.
