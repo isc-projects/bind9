@@ -48,3 +48,4 @@
 ./lib/isc/timer.c				1998
 ./lib/isc/result.c				1998
 ./lib/isc/socket.c				1998
+./lib/isc/util.h				1998
