@@ -2881,7 +2881,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 *
 				 * XXXRTH  What should we do here?
 				 */
-				QTRACE("avoiding upward referral");
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
