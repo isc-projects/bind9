@@ -2258,7 +2258,7 @@ validated(isc_task_t *task, isc_event_t *event) {
         if (vevent->result != ISC_R_SUCCESS) {
 		FCTXTRACE("validation failed");
 		result = vevent->result;
-		goto respond;
+		goto noanswer_response;
 	}
 
 	isc_stdtime_get(&now);
@@ -2275,7 +2275,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		result = dns_db_findnode(fctx->res->view->cachedb,
 					 vevent->name, ISC_TRUE, &node);
 		if (result != ISC_R_SUCCESS)
-			goto respond;
+			goto noanswer_response;
 		
 		result = ncache_adderesult(fctx->rmessage,
 					   fctx->res->view->cachedb, node,
@@ -2283,10 +2283,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 					   fctx->res->view->maxncachettl,
 					   ardataset, &eresult);
 		if (result != ISC_R_SUCCESS)
-			goto respond;			
+			goto noanswer_response;			
 
-		fctx->attributes |= FCTX_ATTR_HAVEANSWER;		
-		goto respond;
+		goto answer_response;
 	}
 
 	FCTXTRACE("validation OK");
@@ -2300,7 +2299,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	result = dns_db_findnode(fctx->res->view->cachedb,
 				 vevent->name, ISC_TRUE, &node);
 	if (result != ISC_R_SUCCESS)
-		goto respond;
+		goto noanswer_response;
 
 	result = dns_db_addrdataset(fctx->res->view->cachedb,
 				    node, NULL, now,
@@ -2308,7 +2307,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 				    ardataset);
 	if (result != ISC_R_SUCCESS &&
 	    result != DNS_R_UNCHANGED)
-		goto respond;
+		goto noanswer_response;
 	if (vevent->sigrdataset != NULL) {
 		result = dns_db_addrdataset(fctx->res->view->cachedb,
 					    node, NULL, now,
@@ -2316,13 +2315,19 @@ validated(isc_task_t *task, isc_event_t *event) {
 					    asigrdataset);
 		if (result != ISC_R_SUCCESS &&
 		    result != DNS_R_UNCHANGED)
-			goto respond;
+			goto noanswer_response;
 	}
 	
-	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 	result = ISC_R_SUCCESS;
 
- respond:
+ answer_response:
+	/*
+	 * Respond with an answer, positive or negative,
+	 * as opposed to an error.  'node' must be non-NULL.
+	 */
+	
+	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
+	
 	if (hevent != NULL) {
 		hevent->result = eresult;
 		dns_name_concatenate(vevent->name, NULL,
@@ -2333,6 +2338,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		clone_results(fctx);
 	}
 
+ noanswer_response:
 	if (node != NULL)
 		dns_db_detachnode(fctx->res->view->cachedb, &node);
 

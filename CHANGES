@@ -1,3 +1,7 @@
+ 269.	[bug]		Failed DNSSEC validations could cause an assertion
+			failure by causing clone_results() to be called with
+			with hevent->node == NULL.
+
  268.	[doc]		A plain text version of the Administrator 
 			Reference Manual is now included in the distribution,
 			as doc/arm/Bv9ARM.txt.
