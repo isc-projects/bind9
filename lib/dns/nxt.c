@@ -110,7 +110,7 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 	    ! bit_isset(nxt_bits, dns_rdatatype_soa)) {
 		for (i = 0; i < 128; i++) {
 			if (bit_isset(nxt_bits, i) &&
-			    ! dns_rdatatype_iszonecutauth(i))
+			    ! dns_rdatatype_iszonecutauth((dns_rdatatype_t)i))
 				set_bit(nxt_bits, i, 0);
 		}
 	}
