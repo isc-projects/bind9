@@ -24,7 +24,7 @@
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
       <arg><option>-v</option></arg>
       <arg><option>-y <replaceable class="parameter">key_id</replaceable></option></arg>
-      <arg>command</arg>
+      <arg choice="req">command</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
