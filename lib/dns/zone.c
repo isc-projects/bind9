@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.212 2000/09/13 04:12:42 marka Exp $ */
+/* $Id: zone.c,v 1.213 2000/09/13 04:50:19 marka Exp $ */
 
 #include <config.h>
 
@@ -2510,13 +2510,13 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	dns_zone_iattach(stub->zone, &zone);
+	zone = stub->zone;
 
 	DNS_ENTER;
 
 	isc_stdtime_get(&now);
 
-	if (DNS_ZONE_FLAG(stub->zone, DNS_ZONEFLG_EXITING)) {
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		zone_log(zone, me, ISC_LOG_INFO, "exiting");
 		exiting = ISC_TRUE;
 		goto next_master;
@@ -2665,7 +2665,6 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
  detach:
 	INSIST(event == NULL);
-	dns_zone_idetach(&zone);
 	return;
 }
 
