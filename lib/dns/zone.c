@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.139 2000/06/02 00:20:46 gson Exp $ */
+/* $Id: zone.c,v 1.140 2000/06/02 17:31:29 gson Exp $ */
 
 #include <config.h>
 
@@ -138,6 +138,7 @@ struct dns_zone {
 	isc_boolean_t		diff_on_reload;
 	isc_event_t		ctlevent;
 	dns_ssutable_t		*ssutable;
+	isc_uint32_t		sigvalidityinterval;
 	dns_view_t		*view;
 	/*
 	 * Zones in certain states such as "waiting for zone transfer" 
@@ -345,6 +346,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->diff_on_reload = ISC_FALSE;
 	zone->ssutable = NULL;
+	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->view = NULL;
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
@@ -3311,6 +3313,20 @@ dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(table != NULL);
 	zone->ssutable = table;
+}
+
+void
+dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval) {
+	REQUIRE(DNS_ZONE_VALID(zone));     
+
+	zone->sigvalidityinterval = interval;
+}
+
+isc_uint32_t
+dns_zone_getsigvalidityinterval(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));     	
+
+	return (zone->sigvalidityinterval);
 }
 
 static void

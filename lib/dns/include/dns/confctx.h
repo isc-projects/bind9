@@ -409,11 +409,11 @@ isc_result_t dns_c_ctx_getserialqueries(dns_c_ctx_t *cfg, isc_int32_t *retval);
 isc_result_t dns_c_ctx_unsetserialqueries(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setsigvalidinterval(dns_c_ctx_t *cfg,
+isc_result_t dns_c_ctx_setsigvalidityinterval(dns_c_ctx_t *cfg,
 					   isc_int32_t newval);
-isc_result_t dns_c_ctx_getsigvalidinterval(dns_c_ctx_t *cfg,
+isc_result_t dns_c_ctx_getsigvalidityinterval(dns_c_ctx_t *cfg,
 					   isc_int32_t *retval);
-isc_result_t dns_c_ctx_unsetsigvalidinterval(dns_c_ctx_t *cfg);
+isc_result_t dns_c_ctx_unsetsigvalidityinterval(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval);

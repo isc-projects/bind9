@@ -386,9 +386,9 @@ isc_result_t dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone,
 					   isc_int32_t *retval);
 
 
-isc_result_t dns_c_zone_setsigvalidinterval(dns_c_zone_t *zone,
+isc_result_t dns_c_zone_setsigvalidityinterval(dns_c_zone_t *zone,
 					    isc_int32_t newval);
-isc_result_t dns_c_zone_getsigvalidinterval(dns_c_zone_t *zone,
+isc_result_t dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone,
 					    isc_int32_t *retval);
 
 

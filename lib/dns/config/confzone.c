@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.44 2000/06/02 15:12:32 brister Exp $ */
+/* $Id: confzone.c,v 1.45 2000/06/02 17:31:38 gson Exp $ */
 
 #include <config.h>
 
@@ -2943,7 +2943,7 @@ dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone, isc_int32_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setsigvalidinterval(dns_c_zone_t *zone, isc_int32_t newval) {
+dns_c_zone_setsigvalidityinterval(dns_c_zone_t *zone, isc_int32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2995,7 +2995,7 @@ dns_c_zone_setsigvalidinterval(dns_c_zone_t *zone, isc_int32_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getsigvalidinterval(dns_c_zone_t *zone, isc_int32_t *retval) {
+dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone, isc_int32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));

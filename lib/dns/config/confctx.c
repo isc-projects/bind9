@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.58 2000/06/02 15:12:27 brister Exp $ */
+/* $Id: confctx.c,v 1.59 2000/06/02 17:31:33 gson Exp $ */
 
 #include <config.h>
 
@@ -1806,9 +1806,9 @@ GETINT32(serialqueries, serial_queries)
 SETINT32(serialqueries, serial_queries)
 UNSETINT32(serialqueries, serial_queries)
 
-GETINT32(sigvalidinterval, sig_valid_interval)
-SETINT32(sigvalidinterval, sig_valid_interval)
-UNSETINT32(sigvalidinterval, sig_valid_interval)
+GETINT32(sigvalidityinterval, sig_valid_interval)
+SETINT32(sigvalidityinterval, sig_valid_interval)
+UNSETINT32(sigvalidityinterval, sig_valid_interval)
 
 GETUINT32(datasize, data_size)
 SETUINT32(datasize, data_size)

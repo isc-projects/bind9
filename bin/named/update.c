@@ -1417,7 +1417,7 @@ find_zone_keys(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 static isc_result_t
 add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
-	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t now,
+	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t inception,
 	 isc_stdtime_t expire)
 {
 	isc_result_t result;
@@ -1441,7 +1441,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	for (i = 0; i < nkeys; i++) {
 		/* Calculate the signature, creating a SIG RDATA. */
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
-				      &now, &expire,
+				      &inception, &expire,
 				      mctx, &buffer, &sig_rdata));
 
 		/* Update the database and journal with the SIG. */
@@ -1466,10 +1466,13 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  *
  * The necessary SIG and NXT changes will be applied to "newver"
  * and added (as a minimal diff) to "diff".
+ *
+ * The SIGs generated will be valid for 'sigvalidityinterval' seconds.
  */
 static isc_result_t
 update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
-		  dns_dbversion_t *newver, dns_diff_t *diff)
+		  dns_dbversion_t *newver, dns_diff_t *diff,
+		  isc_uint32_t sigvalidityinterval)
 {
 	isc_result_t result;
 	dns_difftuple_t *t;
@@ -1482,7 +1485,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 	dst_key_t *zone_keys[MAXZONEKEYS];
 	unsigned int nkeys = 0;
 	unsigned int i;
-	isc_stdtime_t now, expire;
+	isc_stdtime_t now, inception, expire;
 	
 	dns_diff_init(mctx, &diffnames);
 	dns_diff_init(mctx, &affected);
@@ -1502,7 +1505,8 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 	}
 
 	isc_stdtime_get(&now);
-	expire = 100000 + now; /* XXX */
+	inception = now - 3600; /* Allow for some clock skew. */
+	expire = now + sigvalidityinterval;
 	
 	/*
 	 * Find all RRsets directly affected by the update, and 
@@ -1548,7 +1552,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 			if (flag) {
 				CHECK(add_sigs(db, newver, name, type,
 					       &sig_diff, zone_keys, nkeys,
-					       mctx, now, expire));
+					       mctx, inception, expire));
 			}
 		skip:
 			/* Skip any other updates to the same RRset. */
@@ -1725,8 +1729,8 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 					NULL, &sig_diff));
 		} else if (t->op == DNS_DIFFOP_ADD) {
 			CHECK(add_sigs(db, newver, &t->name, dns_rdatatype_nxt,
-				       &sig_diff, zone_keys, nkeys, mctx, now,
-				       expire));
+				       &sig_diff, zone_keys, nkeys, mctx,
+				       inception, expire));
 		} else {
 			INSIST(0);
 		}
@@ -2272,8 +2276,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		}
 
 		if (dns_db_issecure(db)) {
-			result = update_signatures(mctx, db,
-						   oldver, ver, &diff);
+			
+			result = update_signatures(mctx, db, oldver, ver,
+			   &diff, dns_zone_getsigvalidityinterval(zone));
 			if (result != ISC_R_SUCCESS) {
 				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
 					      NS_LOGMODULE_UPDATE,

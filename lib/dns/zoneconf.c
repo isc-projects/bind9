@@ -116,7 +116,8 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 #endif
 	dns_c_iplist_t *iplist;
 	isc_sockaddr_t sockaddr;
-	isc_int32_t maxxfr;
+	isc_int32_t intval;
+	isc_uint32_t uintval;
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
 	dns_ssutable_t *ssutable = NULL;
 
@@ -196,27 +197,27 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					  dns_zone_setxfracl,
 					  dns_zone_clearxfracl));
 
-		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
+		result = dns_c_zone_getmaxtranstimeout(czone, &intval);
 		if (result != ISC_R_SUCCESS && cview != NULL)
 			result = dns_c_view_getmaxtransfertimeout(cview,
-								  &maxxfr);
+								  &intval);
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getmaxtransfertimeout(cctx,
-								 &maxxfr);
+								 &intval);
 		if (result != ISC_R_SUCCESS)
-			maxxfr = MAX_XFER_TIME;
-		dns_zone_setmaxxfrout(zone, maxxfr);
+			intval = MAX_XFER_TIME;
+		dns_zone_setmaxxfrout(zone, intval);
 
-		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
+		result = dns_c_zone_getmaxtransidleout(czone, &intval);
 		if (result != ISC_R_SUCCESS && cview != NULL) 
 			result = dns_c_view_getmaxtransferidleout(cview,
-								  &maxxfr);
+								  &intval);
 		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_getmaxtransferidleout(cctx,
-								 &maxxfr);
+								 &intval);
 		if (result != ISC_R_SUCCESS)
-			maxxfr = DNS_DEFAULT_IDLEOUT;
-		dns_zone_setidleout(zone, maxxfr);
+			intval = DNS_DEFAULT_IDLEOUT;
+		dns_zone_setidleout(zone, intval);
 	}
 
 	/*
@@ -239,6 +240,17 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			dns_ssutable_attach(ssutable, &newssutable);
 			dns_zone_setssutable(zone, newssutable);
 		}
+
+		result = dns_c_zone_getsigvalidityinterval(czone, &uintval);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getsigvalidityinterval(cview,
+								  &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getsigvalidityinterval(cctx,
+								 &uintval);
+		if (result != ISC_R_SUCCESS)
+			uintval = 30 * 24 * 3600;
+		dns_zone_setsigvalidityinterval(zone, uintval);
 	}
 
 	/*
@@ -256,19 +268,19 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			result = dns_zone_setmasters(zone, NULL, 0);
 		RETERR(result);
 
-		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
+		result = dns_c_zone_getmaxtranstimein(czone, &intval);
 		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransfertimein(cctx, &maxxfr);
+			result = dns_c_ctx_getmaxtransfertimein(cctx, &intval);
 		if (result != ISC_R_SUCCESS)
-			maxxfr = MAX_XFER_TIME;
-		dns_zone_setmaxxfrin(zone, maxxfr);
+			intval = MAX_XFER_TIME;
+		dns_zone_setmaxxfrin(zone, intval);
 
-		result = dns_c_zone_getmaxtransidlein(czone, &maxxfr);
+		result = dns_c_zone_getmaxtransidlein(czone, &intval);
 		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransferidlein(cctx, &maxxfr);
+			result = dns_c_ctx_getmaxtransferidlein(cctx, &intval);
 		if (result != ISC_R_SUCCESS)
-			maxxfr = DNS_DEFAULT_IDLEIN;
-		dns_zone_setidlein(zone, maxxfr);
+			intval = DNS_DEFAULT_IDLEIN;
+		dns_zone_setidlein(zone, intval);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS && cview != NULL)

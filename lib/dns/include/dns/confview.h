@@ -431,11 +431,11 @@ isc_result_t dns_c_view_unsetmaxcachettl(dns_c_view_t *view);
 
 
 
-isc_result_t dns_c_view_getsigvalidinterval(dns_c_view_t *view,
+isc_result_t dns_c_view_getsigvalidityinterval(dns_c_view_t *view,
 					    isc_int32_t *retval);
-isc_result_t dns_c_view_setsigvalidinterval(dns_c_view_t *view,
+isc_result_t dns_c_view_setsigvalidityinterval(dns_c_view_t *view,
 					    isc_int32_t newval);
-isc_result_t dns_c_view_unsetsigvalidinterval(dns_c_view_t *view);
+isc_result_t dns_c_view_unsetsigvalidityinterval(dns_c_view_t *view);
 
 
 

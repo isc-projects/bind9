@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.87 2000/06/02 15:12:29 brister Exp $ */
+/* $Id: confparser.y,v 1.88 2000/06/02 17:31:34 gson Exp $ */
 
 #include <config.h>
 
@@ -1135,7 +1135,7 @@ option: /* Empty */
 	}
 	| L_SIG_VALIDITY_INTERVAL L_INTEGER
 	{
-		tmpres = dns_c_ctx_setsigvalidinterval(currcfg, $2);
+		tmpres = dns_c_ctx_setsigvalidityinterval(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine sig-validity-interval");
@@ -3664,7 +3664,7 @@ view_option: L_FORWARD zone_forward_opt
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setsigvalidinterval(view, $2);
+		tmpres = dns_c_view_setsigvalidityinterval(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine view "
@@ -4532,7 +4532,7 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setsigvalidinterval(zone, $2);
+		tmpres = dns_c_zone_setsigvalidityinterval(zone, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone "

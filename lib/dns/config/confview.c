@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.30 2000/06/02 15:12:31 brister Exp $ */
+/* $Id: confview.c,v 1.31 2000/06/02 17:31:36 gson Exp $ */
 
 #include <config.h>
 
@@ -1492,9 +1492,9 @@ GETINT32(maxcachettl, max_cache_ttl)
 UNSETINT32(maxcachettl, max_cache_ttl)
 
 
-SETINT32(sigvalidinterval, sig_valid_interval)
-GETINT32(sigvalidinterval, sig_valid_interval)
-UNSETINT32(sigvalidinterval, sig_valid_interval)
+SETINT32(sigvalidityinterval, sig_valid_interval)
+GETINT32(sigvalidityinterval, sig_valid_interval)
+UNSETINT32(sigvalidityinterval, sig_valid_interval)
 
 
 GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)

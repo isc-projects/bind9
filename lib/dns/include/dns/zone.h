@@ -787,9 +787,15 @@ dns_zone_setidleout(dns_zone_t *zone, isc_uint32_t idleout);
 
 void
 dns_zone_getssutable(dns_zone_t *zone, dns_ssutable_t **table);
+/*
+ * Set the simple-secure-update policy table.
+ */
 
 void
 dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table);
+/*
+ * Get the simple-secure-update policy table.
+ */
 
 void
 dns_zone_print(dns_zone_t *zone);
@@ -801,6 +807,20 @@ isc_mem_t *
 dns_zone_getmctx(dns_zone_t *zone);
 /*
  * Get the memory context of a zone.
+ */
+
+void
+dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
+/*
+ * Set the zone's SIG validity interval.  This is the length of time
+ * for which DNSSEC signatures created as a result of dynamic updates
+ * to secure zones will remain valid, in seconds.
+ */
+
+isc_uint32_t
+dns_zone_getsigvalidityinterval(dns_zone_t *zone);
+/*
+ * Get the zone's SIG validity interval.
  */
 
 dns_zonemgr_t *
