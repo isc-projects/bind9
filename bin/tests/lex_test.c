@@ -43,9 +43,7 @@ print_token(isc_token_t *tokenp, FILE *stream) {
 			tokenp->value.as_region.base);
 		break;
 	case isc_tokentype_number:
-		fprintf(stream, "NUMBER %.*s",
-			(int)tokenp->value.as_region.length,
-			tokenp->value.as_region.base);
+		fprintf(stream, "NUMBER %lu", tokenp->value.as_ulong);
 		break;
 	case isc_tokentype_qstring:
 		fprintf(stream, "QSTRING \"%.*s\"",
@@ -79,7 +77,6 @@ main(int argc, char *argv[]) {
 	int masterfile = 1;
 	int stats = 0;
 	unsigned int options = 0;
-	unsigned int parens = 0;
 
 	while ((c = getopt(argc, argv, "qmcs")) != -1) {
 		switch (c) {
@@ -108,9 +105,8 @@ main(int argc, char *argv[]) {
 		specials[')'] = 1;
 		specials['"'] = 1;
 		isc_lex_setspecials(lex, specials);
-		options = ISC_LEXOPT_EOL |
+		options = ISC_LEXOPT_DNSMULTILINE |
 			ISC_LEXOPT_EOF |
-			ISC_LEXOPT_INITIALWS |
 			ISC_LEXOPT_QSTRING;
 		isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 	} else {
@@ -136,23 +132,6 @@ main(int argc, char *argv[]) {
 
 	while ((result = isc_lex_gettoken(lex, options, &token)) ==
 	       ISC_R_SUCCESS) {
-		if (masterfile && token.type == isc_tokentype_special) {
-			if (token.value.as_char == '(') {
-				parens++;
-				options &= ~ISC_LEXOPT_EOL;
-				options &= ~ISC_LEXOPT_INITIALWS;
-			} else if (token.value.as_char == ')') {
-				if (parens == 0) {
-					printf("mismatched parens\n");
-					exit(1);
-				}
-				parens--;
-				if (parens == 0) {
-					options |= ISC_LEXOPT_EOL;
-					options |= ISC_LEXOPT_INITIALWS;
-				}
-			}
-		}
 		if (!quiet) {
 			print_token(&token, stdout);
 			printf("\n");
