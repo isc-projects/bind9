@@ -42,5 +42,5 @@ main() {
 			isc_serial_ge(a,b), isc_serial_le(a,b),
 			isc_serial_eq(a,b), isc_serial_ne(a,b));
 	}
-	exit (0);
+	return (0);
 }
