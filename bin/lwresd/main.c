@@ -24,9 +24,11 @@
 
 #include <config.h>
 
+#include <stdlib.h>
+
 #include <isc/app.h>
 #include <isc/mem.h>
-#include <isc/string.h>		/* Required for HP/UX (and others?) */
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
