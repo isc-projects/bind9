@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.39.4.1 2001/01/09 22:48:28 bwelling Exp $
+ * $Id: openssl_link.c,v 1.39.4.2 2001/04/10 01:10:25 gson Exp $
  */
 #if defined(OPENSSL)
 
@@ -180,11 +180,8 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 static isc_result_t
 openssldsa_generate(dst_key_t *key, int unused) {
 	DSA *dsa;
-	unsigned char dns_array[DST_KEY_MAXSIZE];
 	unsigned char rand_array[ISC_SHA1_DIGESTLENGTH];
-	isc_buffer_t dns;
 	isc_result_t result;
-	isc_region_t r;
 
 	UNUSED(unused);
 
@@ -207,15 +204,6 @@ openssldsa_generate(dst_key_t *key, int unused) {
 	dsa->flags &= ~DSA_FLAG_CACHE_MONT_P;
 
 	key->opaque = dsa;
-
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	result = openssldsa_todns(key, &dns);
-	if (result != ISC_R_SUCCESS) {
-		DSA_free(dsa);
-		return (result);
-	}
-	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
 
 	return (ISC_R_SUCCESS);
 }
@@ -313,9 +301,6 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dsa->pub_key = BN_bin2bn(r.base, p_bytes, NULL);
 	r.base += p_bytes;
 
-	isc_buffer_remainingregion(data, &r);
-	r.length = 1 + ISC_SHA1_DIGESTLENGTH + 3 * p_bytes;
-	key->key_id = dst_region_computeid(&r, key->key_alg);
 	key->key_size = p_bytes * 8;
 
 	isc_buffer_forward(data, 1 + ISC_SHA1_DIGESTLENGTH + 3 * p_bytes);
@@ -377,9 +362,6 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 {
 	dst_private_t priv;
 	isc_result_t ret;
-	isc_buffer_t dns;
-	isc_region_t r;
-	unsigned char dns_array[1024];
 	int i;
 	DSA *dsa = NULL;
 	isc_mem_t *mctx = key->mctx;
@@ -424,15 +406,6 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 	dst__privstruct_free(&priv, mctx);
 
 	key->key_size = BN_num_bits(dsa->p);
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	ret = openssldsa_todns(key, &dns);
-	if (ret != ISC_R_SUCCESS)
-		DST_RET(ret);
-	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
-
-	if (key->key_id != id)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	return (ISC_R_SUCCESS);
 

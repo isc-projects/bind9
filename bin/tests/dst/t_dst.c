@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.42.4.1 2001/01/09 22:34:10 bwelling Exp $ */
+/* $Id: t_dst.c,v 1.42.4.2 2001/04/10 01:10:20 gson Exp $ */
 
 #include <config.h>
 
@@ -395,24 +395,24 @@ t1(void) {
 	isc_buffer_init(&b, "test.", 5);
 	isc_buffer_add(&b, 5);
 	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
-	io(name, 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	io(name, 23616, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 	t_info("testing use of stored keys [2]\n");
 	io(name, 54622, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 
 	t_info("testing use of stored keys [3]\n");
-	io(name, 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	io(name, 49667, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 	t_info("testing use of stored keys [4]\n");
-	io(name, 0, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	io(name, 2, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 
 	isc_buffer_init(&b, "dh.", 3);
 	isc_buffer_add(&b, 3);
 	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
 
-	dh(name, 18088, name, 48443, mctx, ISC_R_SUCCESS, &nfails, &nprobs);
+	dh(name, 18602, name, 48957, mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 
 	t_info("testing use of generated keys\n");
 	generate(DST_ALG_RSAMD5, mctx, 512, &nfails);

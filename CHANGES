@@ -3,6 +3,9 @@
  			situations.  This would be most common on systems
 			with user-space threads. [RT #1131]
 
+ 802.	[bug]		DNSSEC key tags were computed incorrectly in almost
+ 			all cases. [RT #1146]
+
  800.	[bug]		dnssec-signzone produced incorrect statistics for
  			large zones. [RT #1133]
 
