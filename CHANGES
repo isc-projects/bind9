@@ -28,6 +28,10 @@
 1625.	[bug]		named failed to load/transfer RFC2535 signed zones
 			which contained CNAMES. [RT# 11237]
 
+1606.	[bug]	 	DVL insecurity proof was failing.
+
+1605.	[func]		New dns_db_find() option DNS_DBFIND_COVERINGNSEC.
+
 	--- 9.3.0beta3 released ---
 
 1624.	[bug]		zonemgr_putio() call should be locked. [RT# 11163]
