@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.88 2000/06/02 17:31:34 gson Exp $ */
+/* $Id: confparser.y,v 1.89 2000/06/04 19:51:16 brister Exp $ */
 
 #include <config.h>
 
@@ -115,6 +115,7 @@ static isc_lexspecials_t	specials;
 
 static isc_result_t	tmpres;
 static int		debug_lexer;
+static in_port_t	default_port;
 
 int			yyparse(void);
 static int		yylex(void);
@@ -1063,6 +1064,20 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+	| L_PORT in_port
+	{
+		tmpres = dns_c_ctx_setport(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine port");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set port");
+			YYABORT;
+		}
+		default_port = $2;
+	}
 	| L_MAX_TRANSFER_TIME_OUT L_INTEGER
 	{
 		if ( int_too_big($2, 60) ) {
@@ -1619,7 +1634,7 @@ port_ip_list: maybe_zero_port L_LBRACE ip_and_port_list L_RBRACE
 		unsigned int i;
 
 		if (port == 0)
-			port = DNS_C_DEFAULTPORT;
+			port = default_port;
 
 		for (i = 0 ; i < list->nextidx ; i++) {
 			if (isc_sockaddr_getport(&list->ips[i]) == 0) {
@@ -1725,7 +1740,7 @@ query_source_v4: L_ADDRESS maybe_wild_ip4_only_addr
 
 maybe_port: /* nothing */
 	{
-		$$ = DNS_C_DEFAULTPORT;
+		$$ = default_port;
 	}
 	| L_PORT in_port
 	{
@@ -4012,10 +4027,6 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 			YYABORT;
 		}
 
-		if (currcfg->options != NULL) {
-			zone->afteropts = ISC_TRUE;
-		}
-
 		tmpres = dns_c_zonelist_addzone(currcfg->zlist, zone);
 		if (tmpres != ISC_R_SUCCESS) {
 			dns_c_zone_detach(&zone);
@@ -4176,7 +4187,7 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
-	L_ENABLE_ZONE | L_DATABASE
+	L_ENABLE_ZONE | L_DATABASE | L_PORT
 	;
 
 
@@ -5156,10 +5167,8 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	specials['/'] = 1;
 	specials['"'] = 1;
 	specials['!'] = 1;
-#if 0
-	specials['*'] = 1;
-#endif
 
+	default_port = DNS_C_DEFAULTPORT;
 
 	/*
 	 * This memory context is only used by the lexer routines (and must

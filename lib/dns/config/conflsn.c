@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: conflsn.c,v 1.13 2000/05/08 14:35:30 tale Exp $ */
+/* $Id: conflsn.c,v 1.14 2000/06/04 19:51:14 brister Exp $ */
 
 #include <config.h>
 
@@ -161,7 +161,9 @@ dns_c_lstnlist_delete(dns_c_lstnlist_t **llist) {
 }
 
 isc_result_t
-dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll) {
+dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll,
+		     in_port_t default_port)
+{
 	dns_c_lstnon_t *lo;
 
 	REQUIRE(DNS_C_LISTENLIST_VALID(ll));
@@ -169,7 +171,7 @@ dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll) {
 	lo = ISC_LIST_HEAD(ll->elements);
 	while (lo != NULL) {
 		dns_c_printtabs(fp, indent);
-		dns_c_lstnon_print(fp, indent, lo);
+		dns_c_lstnon_print(fp, indent, lo, default_port);
 		lo = ISC_LIST_NEXT(lo, next);
 		fprintf(fp, "\n");
 	}
@@ -178,12 +180,13 @@ dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll) {
 }
 
 isc_result_t
-dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo) {
+dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
+		   in_port_t default_port) {
 	REQUIRE(lo != NULL);
 	REQUIRE(DNS_C_LISTEN_VALID(lo));
 	
 	fprintf(fp, "listen-on ");
-	if (lo->port != DNS_C_DEFAULTPORT) {
+	if (lo->port != default_port) {
 		fprintf(fp, "port %d ", lo->port);
 	}
 

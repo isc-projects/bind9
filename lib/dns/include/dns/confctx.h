@@ -116,6 +116,8 @@ struct dns_c_options {
 	char		       *memstats_filename;
 	char		       *named_xfer;
 
+	in_port_t 	       *port;
+
 	isc_int32_t	       *transfers_in; 
 	isc_int32_t	       *transfers_per_ns;
 	isc_int32_t	       *transfers_out; 
@@ -207,7 +209,8 @@ isc_result_t dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **cfg);
 isc_result_t dns_c_ctx_delete(dns_c_ctx_t **cfg);
 void dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg);
 
-void dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options);
+void dns_c_ctx_optionsprint(FILE *fp, int indent,
+			    dns_c_options_t *options);
 void dns_c_ctx_forwarderprint(FILE *fp, int indent, dns_c_options_t *options);
 
 isc_result_t dns_c_ctx_setcurrzone(dns_c_ctx_t *cfg, dns_c_zone_t *zone);
@@ -304,6 +307,11 @@ isc_result_t dns_c_ctx_unsetmemstatsfilename(dns_c_ctx_t *ctx);
 isc_result_t dns_c_ctx_setnamedxfer(dns_c_ctx_t *ctx, const char *newval);
 isc_result_t dns_c_ctx_getnamedxfer(dns_c_ctx_t *ctx, char **retval);
 isc_result_t dns_c_ctx_unsetnamedxfer(dns_c_ctx_t *ctx);
+
+
+isc_result_t dns_c_ctx_setport(dns_c_ctx_t *cfg, in_port_t newval);
+isc_result_t dns_c_ctx_getport(dns_c_ctx_t *cfg, in_port_t *retval);
+isc_result_t dns_c_ctx_unsetport(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_settransfersin(dns_c_ctx_t *cfg, isc_int32_t newval);

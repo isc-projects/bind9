@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.59 2000/06/02 17:31:33 gson Exp $ */
+/* $Id: confctx.c,v 1.60 2000/06/04 19:51:13 brister Exp $ */
 
 #include <config.h>
 
@@ -778,7 +778,7 @@ dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)
 	
 	
 	if (cfg->zlist != NULL) {
-		dns_c_zonelist_print(fp, indent, cfg->zlist);
+		dns_c_zonelist_print(fp, indent, cfg->zlist, NULL);
 		fprintf(fp, "\n");
 	}
 
@@ -801,6 +801,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 {
 	dns_severity_t nameseverity;
 	in_port_t port;
+	in_port_t defport = DNS_C_DEFAULTPORT;
 	
 	REQUIRE(fp != NULL);
 
@@ -810,6 +811,10 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	
 	REQUIRE(DNS_C_CONFOPT_VALID(options));
 
+	if (options->port != NULL) {
+		defport = *options->port;
+	}
+	
 #define PRINT_INTEGER(FIELD, NAME)					\
 	if (options->FIELD != NULL) {					\
 		dns_c_printtabs(fp, indent + 1);			\
@@ -903,6 +908,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_CHAR_P(memstats_filename, "memstatistics-file");
 	PRINT_CHAR_P(named_xfer, "named-xfer");
 
+	PRINT_INTEGER(port, "port");
+	
 	PRINT_INTEGER(transfers_in, "transfers-in");
 	PRINT_INTEGER(transfers_per_ns, "transfers-per-ns");
 	PRINT_INTEGER(transfers_out, "transfers-out");
@@ -991,7 +998,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	
 	if (options->listens != NULL) {
 		dns_c_lstnlist_print(fp, indent + 1,
-				     options->listens);
+				     options->listens,
+				     defport);
 	}
 	
 	dns_c_ctx_forwarderprint(fp, indent + 1, options);
@@ -1387,6 +1395,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->memstats_filename = NULL;
 	opts->named_xfer = NULL;
 
+	opts->port = NULL;
+	
 	opts->transfers_in = NULL;
 	opts->transfers_per_ns = NULL;
 	opts->transfers_out = NULL;
@@ -1536,6 +1546,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(treat_cr_as_space);
 
 	
+	FREEFIELD(port);
+	
 	FREEFIELD(transfers_in);
 	FREEFIELD(transfers_per_ns);
 	FREEFIELD(transfers_out);
@@ -1631,230 +1643,285 @@ SETSTRING(directory, directory)
 GETSTRING(directory, directory)
 UNSETSTRING(directory, directory)
 
+
 SETSTRING(version, version)
 GETSTRING(version, version)
 UNSETSTRING(version, version)
+
 
 SETSTRING(dumpfilename, dump_filename)
 GETSTRING(dumpfilename, dump_filename)
 UNSETSTRING(dumpfilename, dump_filename)
 
+
 SETSTRING(pidfilename, pid_filename)
 GETSTRING(pidfilename, pid_filename)
 UNSETSTRING(pidfilename, pid_filename)
+
 
 SETSTRING(statsfilename, stats_filename)
 GETSTRING(statsfilename, stats_filename)
 UNSETSTRING(statsfilename, stats_filename)
 
+
 SETSTRING(memstatsfilename, memstats_filename)
 GETSTRING(memstatsfilename, memstats_filename)
 UNSETSTRING(memstatsfilename, memstats_filename)
+
 
 SETSTRING(namedxfer, named_xfer)
 GETSTRING(namedxfer, named_xfer)
 UNSETSTRING(namedxfer, named_xfer)
 
 
+GETBYTYPE(in_port_t, port, port)
+SETBYTYPE(in_port_t, port, port)
+UNSETBYTYPE(in_port_t, port, port)
 
-GETBOOL(expertmode, expert_mode)
-SETBOOL(expertmode, expert_mode)
-UNSETBOOL(expertmode, expert_mode)
 
-GETBOOL(fakeiquery, fake_iquery)
-SETBOOL(fakeiquery, fake_iquery)
-UNSETBOOL(fakeiquery, fake_iquery)
+GETINT32(transfersin, transfers_in)
+SETINT32(transfersin, transfers_in)
+UNSETINT32(transfersin, transfers_in)
 
-GETBOOL(recursion, recursion)
-SETBOOL(recursion, recursion)
-UNSETBOOL(recursion, recursion)
 
-GETBOOL(fetchglue, fetch_glue)
-SETBOOL(fetchglue, fetch_glue)
-UNSETBOOL(fetchglue, fetch_glue)
+GETINT32(transfersperns, transfers_per_ns)
+SETINT32(transfersperns, transfers_per_ns)
+UNSETINT32(transfersperns, transfers_per_ns)
 
-GETBOOL(notify, notify)
-SETBOOL(notify, notify)
-UNSETBOOL(notify, notify)
 
-GETBOOL(hoststatistics, host_statistics)
-SETBOOL(hoststatistics, host_statistics)
-UNSETBOOL(hoststatistics, host_statistics)
+GETINT32(transfersout, transfers_out)
+SETINT32(transfersout, transfers_out)
+UNSETINT32(transfersout, transfers_out)
 
-GETBOOL(dealloconexit, dealloc_on_exit)
-SETBOOL(dealloconexit, dealloc_on_exit)
-UNSETBOOL(dealloconexit, dealloc_on_exit)
 
-GETBOOL(useixfr, use_ixfr)
-SETBOOL(useixfr, use_ixfr)
-UNSETBOOL(useixfr, use_ixfr)
+GETINT32(maxlogsizeixfr, max_log_size_ixfr)
+SETINT32(maxlogsizeixfr, max_log_size_ixfr)
+UNSETINT32(maxlogsizeixfr, max_log_size_ixfr)
 
-GETBOOL(maintainixfrbase, maintain_ixfr_base)
-SETBOOL(maintainixfrbase, maintain_ixfr_base)
-UNSETBOOL(maintainixfrbase, maintain_ixfr_base)
 
-GETBOOL(hasoldclients, has_old_clients)
-SETBOOL(hasoldclients, has_old_clients)
-UNSETBOOL(hasoldclients, has_old_clients)
+GETINT32(cleaninterval, clean_interval)
+SETINT32(cleaninterval, clean_interval)
+UNSETINT32(cleaninterval, clean_interval)
 
-GETBOOL(authnxdomain, auth_nx_domain)
-SETBOOL(authnxdomain, auth_nx_domain)
-UNSETBOOL(authnxdomain, auth_nx_domain)
 
-GETBOOL(multiplecnames, multiple_cnames)
-SETBOOL(multiplecnames, multiple_cnames)
-UNSETBOOL(multiplecnames, multiple_cnames)
+GETINT32(interfaceinterval, interface_interval)
+SETINT32(interfaceinterval, interface_interval)
+UNSETINT32(interfaceinterval, interface_interval)
 
-GETBOOL(useidpool, use_id_pool)
-SETBOOL(useidpool, use_id_pool)
-UNSETBOOL(useidpool, use_id_pool)
 
-GETBOOL(dialup, dialup)
-SETBOOL(dialup, dialup)
-UNSETBOOL(dialup, dialup)
+GETINT32(statsinterval, stats_interval)
+SETINT32(statsinterval, stats_interval)
+UNSETINT32(statsinterval, stats_interval)
 
-GETBOOL(rfc2308type1, rfc2308_type1)
-SETBOOL(rfc2308type1, rfc2308_type1)
-UNSETBOOL(rfc2308type1, rfc2308_type1)
 
-GETBOOL(requestixfr, request_ixfr)
-SETBOOL(requestixfr, request_ixfr)
-UNSETBOOL(requestixfr, request_ixfr)
+GETINT32(heartbeatinterval, heartbeat_interval)
+SETINT32(heartbeatinterval, heartbeat_interval)
+UNSETINT32(heartbeatinterval, heartbeat_interval)
 
-GETBOOL(provideixfr, provide_ixfr)
-SETBOOL(provideixfr, provide_ixfr)
-UNSETBOOL(provideixfr, provide_ixfr)
 
-GETBOOL(treatcrasspace, treat_cr_as_space)
-SETBOOL(treatcrasspace, treat_cr_as_space)
-UNSETBOOL(treatcrasspace, treat_cr_as_space)
+GETINT32(maxtransfertimein, max_transfer_time_in)
+SETINT32(maxtransfertimein, max_transfer_time_in)
+UNSETINT32(maxtransfertimein, max_transfer_time_in)
+
+
+GETINT32(maxtransfertimeout, max_transfer_time_out)
+SETINT32(maxtransfertimeout, max_transfer_time_out)
+UNSETINT32(maxtransfertimeout, max_transfer_time_out)
+
+
+GETINT32(maxtransferidlein, max_transfer_idle_in)
+SETINT32(maxtransferidlein, max_transfer_idle_in)
+UNSETINT32(maxtransferidlein, max_transfer_idle_in)
+
+
+GETINT32(maxtransferidleout, max_transfer_idle_out)
+SETINT32(maxtransferidleout, max_transfer_idle_out)
+UNSETINT32(maxtransferidleout, max_transfer_idle_out)
+
+
+GETINT32(lamettl, lamettl)
+SETINT32(lamettl, lamettl)
+UNSETINT32(lamettl, lamettl)
+
+
+GETINT32(tcpclients, tcp_clients)
+SETINT32(tcpclients, tcp_clients)
+UNSETINT32(tcpclients, tcp_clients)
+
+
+GETINT32(recursiveclients, recursive_clients)
+SETINT32(recursiveclients, recursive_clients)
+UNSETINT32(recursiveclients, recursive_clients)
+
+
+GETINT32(minroots, min_roots)
+SETINT32(minroots, min_roots)
+UNSETINT32(minroots, min_roots)
+
+
+GETINT32(serialqueries, serial_queries)
+SETINT32(serialqueries, serial_queries)
+UNSETINT32(serialqueries, serial_queries)
+
+
+GETINT32(sigvalidityinterval, sig_valid_interval)
+SETINT32(sigvalidityinterval, sig_valid_interval)
+UNSETINT32(sigvalidityinterval, sig_valid_interval)
+
+
+GETUINT32(datasize, data_size)
+SETUINT32(datasize, data_size)
+UNSETUINT32(datasize, data_size)
+
+
+GETUINT32(stacksize, stack_size)
+SETUINT32(stacksize, stack_size)
+UNSETUINT32(stacksize, stack_size)
+
+
+GETUINT32(coresize, core_size)
+SETUINT32(coresize, core_size)
+UNSETUINT32(coresize, core_size)
+
+
+GETUINT32(files, files)
+SETUINT32(files, files)
+UNSETUINT32(files, files)
 
 
 GETUINT32(maxncachettl, max_ncache_ttl)
 SETUINT32(maxncachettl, max_ncache_ttl)
 UNSETUINT32(maxncachettl, max_ncache_ttl)
 
+
 GETUINT32(maxcachettl, max_cache_ttl)
 SETUINT32(maxcachettl, max_cache_ttl)
 UNSETUINT32(maxcachettl, max_cache_ttl)
 
-GETINT32(transfersin, transfers_in)
-SETINT32(transfersin, transfers_in)
-UNSETINT32(transfersin, transfers_in)
 
-GETINT32(transfersperns, transfers_per_ns)
-SETINT32(transfersperns, transfers_per_ns)
-UNSETINT32(transfersperns, transfers_per_ns)
+GETBOOL(expertmode, expert_mode)
+SETBOOL(expertmode, expert_mode)
+UNSETBOOL(expertmode, expert_mode)
 
-GETINT32(transfersout, transfers_out)
-SETINT32(transfersout, transfers_out)
-UNSETINT32(transfersout, transfers_out)
 
-GETINT32(maxlogsizeixfr, max_log_size_ixfr)
-SETINT32(maxlogsizeixfr, max_log_size_ixfr)
-UNSETINT32(maxlogsizeixfr, max_log_size_ixfr)
+GETBOOL(fakeiquery, fake_iquery)
+SETBOOL(fakeiquery, fake_iquery)
+UNSETBOOL(fakeiquery, fake_iquery)
 
-GETINT32(cleaninterval, clean_interval)
-SETINT32(cleaninterval, clean_interval)
-UNSETINT32(cleaninterval, clean_interval)
 
-GETINT32(interfaceinterval, interface_interval)
-SETINT32(interfaceinterval, interface_interval)
-UNSETINT32(interfaceinterval, interface_interval)
+GETBOOL(recursion, recursion)
+SETBOOL(recursion, recursion)
+UNSETBOOL(recursion, recursion)
 
-GETINT32(statsinterval, stats_interval)
-SETINT32(statsinterval, stats_interval)
-UNSETINT32(statsinterval, stats_interval)
 
-GETINT32(heartbeatinterval, heartbeat_interval)
-SETINT32(heartbeatinterval, heartbeat_interval)
-UNSETINT32(heartbeatinterval, heartbeat_interval)
+GETBOOL(fetchglue, fetch_glue)
+SETBOOL(fetchglue, fetch_glue)
+UNSETBOOL(fetchglue, fetch_glue)
 
-GETINT32(maxtransfertimein, max_transfer_time_in)
-SETINT32(maxtransfertimein, max_transfer_time_in)
-UNSETINT32(maxtransfertimein, max_transfer_time_in)
 
-GETINT32(maxtransfertimeout, max_transfer_time_out)
-SETINT32(maxtransfertimeout, max_transfer_time_out)
-UNSETINT32(maxtransfertimeout, max_transfer_time_out)
+GETBOOL(notify, notify)
+SETBOOL(notify, notify)
+UNSETBOOL(notify, notify)
 
-GETINT32(maxtransferidlein, max_transfer_idle_in)
-SETINT32(maxtransferidlein, max_transfer_idle_in)
-UNSETINT32(maxtransferidlein, max_transfer_idle_in)
 
-GETINT32(maxtransferidleout, max_transfer_idle_out)
-SETINT32(maxtransferidleout, max_transfer_idle_out)
-UNSETINT32(maxtransferidleout, max_transfer_idle_out)
+GETBOOL(hoststatistics, host_statistics)
+SETBOOL(hoststatistics, host_statistics)
+UNSETBOOL(hoststatistics, host_statistics)
 
-GETINT32(lamettl, lamettl)
-SETINT32(lamettl, lamettl)
-UNSETINT32(lamettl, lamettl)
 
-GETINT32(tcpclients, tcp_clients)
-SETINT32(tcpclients, tcp_clients)
-UNSETINT32(tcpclients, tcp_clients)
+GETBOOL(dealloconexit, dealloc_on_exit)
+SETBOOL(dealloconexit, dealloc_on_exit)
+UNSETBOOL(dealloconexit, dealloc_on_exit)
 
-GETINT32(recursiveclients, recursive_clients)
-SETINT32(recursiveclients, recursive_clients)
-UNSETINT32(recursiveclients, recursive_clients)
 
-GETINT32(minroots, min_roots)
-SETINT32(minroots, min_roots)
-UNSETINT32(minroots, min_roots)
+GETBOOL(useixfr, use_ixfr)
+SETBOOL(useixfr, use_ixfr)
+UNSETBOOL(useixfr, use_ixfr)
 
-GETINT32(serialqueries, serial_queries)
-SETINT32(serialqueries, serial_queries)
-UNSETINT32(serialqueries, serial_queries)
 
-GETINT32(sigvalidityinterval, sig_valid_interval)
-SETINT32(sigvalidityinterval, sig_valid_interval)
-UNSETINT32(sigvalidityinterval, sig_valid_interval)
+GETBOOL(maintainixfrbase, maintain_ixfr_base)
+SETBOOL(maintainixfrbase, maintain_ixfr_base)
+UNSETBOOL(maintainixfrbase, maintain_ixfr_base)
 
-GETUINT32(datasize, data_size)
-SETUINT32(datasize, data_size)
-UNSETUINT32(datasize, data_size)
 
-GETUINT32(stacksize, stack_size)
-SETUINT32(stacksize, stack_size)
-UNSETUINT32(stacksize, stack_size)
+GETBOOL(hasoldclients, has_old_clients)
+SETBOOL(hasoldclients, has_old_clients)
+UNSETBOOL(hasoldclients, has_old_clients)
 
-GETUINT32(coresize, core_size)
-SETUINT32(coresize, core_size)
-UNSETUINT32(coresize, core_size)
 
-GETUINT32(files, files)
-SETUINT32(files, files)
-UNSETUINT32(files, files)
+GETBOOL(authnxdomain, auth_nx_domain)
+SETBOOL(authnxdomain, auth_nx_domain)
+UNSETBOOL(authnxdomain, auth_nx_domain)
+
+
+GETBOOL(multiplecnames, multiple_cnames)
+SETBOOL(multiplecnames, multiple_cnames)
+UNSETBOOL(multiplecnames, multiple_cnames)
+
+
+GETBOOL(useidpool, use_id_pool)
+SETBOOL(useidpool, use_id_pool)
+UNSETBOOL(useidpool, use_id_pool)
+
+
+GETBOOL(dialup, dialup)
+SETBOOL(dialup, dialup)
+UNSETBOOL(dialup, dialup)
+
+
+GETBOOL(rfc2308type1, rfc2308_type1)
+SETBOOL(rfc2308type1, rfc2308_type1)
+UNSETBOOL(rfc2308type1, rfc2308_type1)
+
+
+GETBOOL(requestixfr, request_ixfr)
+SETBOOL(requestixfr, request_ixfr)
+UNSETBOOL(requestixfr, request_ixfr)
+
+
+GETBOOL(provideixfr, provide_ixfr)
+SETBOOL(provideixfr, provide_ixfr)
+UNSETBOOL(provideixfr, provide_ixfr)
+
+
+GETBOOL(treatcrasspace, treat_cr_as_space)
+SETBOOL(treatcrasspace, treat_cr_as_space)
+UNSETBOOL(treatcrasspace, treat_cr_as_space)
+
 
 GETSOCKADDR(transfersource, transfer_source)
 SETSOCKADDR(transfersource, transfer_source)
 UNSETSOCKADDR(transfersource, transfer_source)
 
+
 GETSOCKADDR(transfersourcev6, transfer_source_v6)
 SETSOCKADDR(transfersourcev6, transfer_source_v6)
 UNSETSOCKADDR(transfersourcev6, transfer_source_v6)
+
 
 GETSOCKADDR(querysource, query_source)
 SETSOCKADDR(querysource, query_source)
 UNSETSOCKADDR(querysource, query_source)
 
+
 GETSOCKADDR(querysourcev6, query_source_v6)
 SETSOCKADDR(querysourcev6, query_source_v6)
 UNSETSOCKADDR(querysourcev6, query_source_v6)
+
 
 GETBYTYPE(dns_c_forw_t, forward, forward)
 SETBYTYPE(dns_c_forw_t, forward, forward)
 UNSETBYTYPE(dns_c_forw_t, forward, forward)
 
+
 GETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 SETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 UNSETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 
+
 GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 SETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
-
-
 
 
 

@@ -212,8 +212,6 @@ struct dns_c_zone {
 		dns_c_forwardzone_t	fzone;
 		dns_c_hintzone_t	hzone;
 	} u;
-
-	isc_boolean_t			afteropts;
 };
 
 /***
@@ -234,7 +232,8 @@ isc_result_t dns_c_zonelist_addzone(dns_c_zonelist_t *zlist,
 				    dns_c_zone_t *zone);
 isc_result_t dns_c_zonelist_rmzone(dns_c_zonelist_t *zlist,
 				   dns_c_zone_t *zone);
-void dns_c_zonelist_print(FILE *fp, int indent, dns_c_zonelist_t *list);
+void dns_c_zonelist_print(FILE *fp, int indent, dns_c_zonelist_t *list,
+			  dns_c_view_t *view);
 void dns_c_zonelist_printpostopts(FILE *fp, int indent,
 				  dns_c_zonelist_t *list);
 void dns_c_zonelist_printpreopts(FILE *fp, int indent,

@@ -1,3 +1,8 @@
+ 231.	[func]		Support new 'port' clause in config file options
+			section. Causes 'listen-on', 'masters' and
+			'also-notify' statements to use its value instead of
+			default (53).
+
  230.	[func]		Replace the dst sign/verify API with a cleaner one.
 
  229.	[func]		Support config file sig-validity-interval statement 

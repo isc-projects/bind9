@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.45 2000/06/02 17:31:38 gson Exp $ */
+/* $Id: confzone.c,v 1.46 2000/06/04 19:51:18 brister Exp $ */
 
 #include <config.h>
 
@@ -326,7 +326,9 @@ dns_c_zonelist_rmzone(dns_c_zonelist_t *zlist, dns_c_zone_t *zone) {
 }
 
 void
-dns_c_zonelist_print(FILE *fp, int indent, dns_c_zonelist_t *list) {
+dns_c_zonelist_print(FILE *fp, int indent, dns_c_zonelist_t *list,
+		     dns_c_view_t *view)
+{
 	dns_c_zonelem_t *zoneelem;
 
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
@@ -339,11 +341,14 @@ dns_c_zonelist_print(FILE *fp, int indent, dns_c_zonelist_t *list) {
 
 	zoneelem = ISC_LIST_HEAD(list->zones);
 	while (zoneelem != NULL) {
-		dns_c_zone_print(fp, indent, zoneelem->thezone);
-		zoneelem = ISC_LIST_NEXT(zoneelem, next);
-		if (zoneelem != NULL) {
-			fprintf(fp, "\n");
+		if (zoneelem->thezone->view == view) {
+			dns_c_zone_print(fp, indent, zoneelem->thezone);
+			if (ISC_LIST_NEXT(zoneelem, next) != NULL) {
+				fprintf(fp, "\n");
+			}
 		}
+		
+		zoneelem = ISC_LIST_NEXT(zoneelem, next);
 	}
 
 	return;
@@ -418,7 +423,6 @@ dns_c_zone_new(isc_mem_t *mem,
 	newzone->zclass = zclass;
 	newzone->view = NULL;
 	newzone->enabled = NULL;
-	newzone->afteropts = ISC_FALSE;
 	newzone->name = isc_mem_strdup(mem, name);
 	newzone->internalname = (internalname == NULL ?
 				 isc_mem_strdup(mem, name) :
@@ -3787,7 +3791,7 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 	if (DNS_C_CHECKBIT(MZ_SIG_VALID_INTERVAL_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "sig-validity-interval %d;\n",
-			mzone->sig_valid_interval / 60);
+			mzone->sig_valid_interval);
 	}
 	
 	if (mzone->pubkeylist != NULL) {

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.31 2000/06/02 17:31:36 gson Exp $ */
+/* $Id: confview.c,v 1.32 2000/06/04 19:51:17 brister Exp $ */
 
 #include <config.h>
 
@@ -703,7 +703,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	fprintf(fp, "\n");
 
 	if (view->zonelist != NULL) {
-		dns_c_zonelist_print(fp, indent + 1, view->zonelist);
+		dns_c_zonelist_print(fp, indent + 1, view->zonelist, view);
 	}
 
 	dns_c_printtabs(fp, indent);

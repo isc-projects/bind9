@@ -133,7 +133,8 @@ dns_c_lstnlist_delete(dns_c_lstnlist_t **llist);
 
 
 isc_result_t
-dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll);
+dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll,
+		     in_port_t default_port);
 /*
  * Prints the given the list LL to the stream FP. INDENT number of tabs
  * preceed each line of output.
@@ -189,7 +190,8 @@ dns_c_lstnon_setiml(dns_c_lstnon_t *listen, dns_c_ipmatchlist_t *iml,
  */
 
 isc_result_t
-dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo);
+dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
+		   in_port_t default_port);
 
 ISC_LANG_ENDDECLS
 
