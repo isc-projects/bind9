@@ -1,3 +1,6 @@
+  22.   [bug]		SIGs weren't returned in the answer section when
+			the query resulted in a fetch.
+
   21.   [port]          Look at STD_CINCLUDES after CINCLUDES during
                         compilation, so additional system include directories
                         can be searched but header files in the bind9 source

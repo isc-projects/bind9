@@ -2263,6 +2263,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			 */
 			if (ANSWER(rdataset))
 				addedrdataset = ardataset;
+			else if (ANSWERSIG(rdataset))
+				addedrdataset = asigrdataset;
 			else
 				addedrdataset = NULL;
 			if (CHAINING(rdataset)) {
