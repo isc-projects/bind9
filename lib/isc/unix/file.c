@@ -22,6 +22,7 @@
 #include <unistd.h>            /* Required for mkstemp on NetBSD. */
 
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #include <isc/file.h>
 #include <isc/string.h>
