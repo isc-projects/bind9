@@ -1651,8 +1651,8 @@
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004
-./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004
-./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2003,2004
+./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005
+./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2003,2004,2005
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001,2003,2004
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004
