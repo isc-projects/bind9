@@ -16,7 +16,7 @@
 1774.	[port]		Aix: Silence compiler warnings / build failures.
 			[RT #13154]
 
-1773.	[placeholder]	rt13153
+1773.	[bug]		Fast retry on host / net unreachable. [RT #13153]
 
 1772.	[placeholder]
 
