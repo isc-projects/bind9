@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.14 2000/03/07 19:27:50 bwelling Exp $
+ * $Id: openssl_link.c,v 1.15 2000/04/05 22:22:51 bwelling Exp $
  */
 
 #include <config.h>
@@ -272,7 +272,7 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	DSA *dsa;
 	isc_region_t r;
 	int dnslen;
-	unsigned int t;
+	unsigned int t, p_bytes;
 
 	REQUIRE(key->opaque != NULL);
 
@@ -283,6 +283,7 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	t = (BN_num_bytes(dsa->p) - 64) / 8;
 	if (t > 8)
 		return (DST_R_INVALIDPUBLICKEY);
+	p_bytes = 64 + 8 * t;
 
 	dnslen = 1 + (key->key_size * 3)/8 + SHA_DIGEST_LENGTH;
 	if (r.length < (unsigned int) dnslen)
@@ -292,11 +293,11 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	BN_bn2bin_fixed(dsa->q, r.base, SHA_DIGEST_LENGTH);
 	r.base += SHA_DIGEST_LENGTH;
 	BN_bn2bin_fixed(dsa->p, r.base, key->key_size/8);
-	r.base += key->key_size/8;
+	r.base += p_bytes;
 	BN_bn2bin_fixed(dsa->g, r.base, key->key_size/8);
-	r.base += key->key_size/8;
+	r.base += p_bytes;
 	BN_bn2bin_fixed(dsa->pub_key, r.base, key->key_size/8);
-	r.base += key->key_size/8;
+	r.base += p_bytes;
 
 	isc_buffer_add(data, dnslen);
 
@@ -327,7 +328,6 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 		return (ISC_R_SUCCESS);
 
 	dsa = DSA_new();
-/*	dsa = (DSA *) isc_mem_get(mctx, sizeof(DSA));*/
 	if (dsa == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -347,20 +347,20 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	r.base += SHA_DIGEST_LENGTH;
 
 	dsa->p = BN_bin2bn(r.base, p_bytes, NULL);
-	r.base += SHA_DIGEST_LENGTH;
+	r.base += p_bytes;
 
 	dsa->g = BN_bin2bn(r.base, p_bytes, NULL);
-	r.base += SHA_DIGEST_LENGTH;
+	r.base += p_bytes;
 
 	dsa->pub_key = BN_bin2bn(r.base, p_bytes, NULL);
-	r.base += SHA_DIGEST_LENGTH;
+	r.base += p_bytes;
 
 	isc_buffer_remaining(data, &r);
 	key->key_id = dst_s_id_calc(r.base,
 				    1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
 	key->key_size = p_bytes * 8;
 
-	isc_buffer_forward(data, SHA_DIGEST_LENGTH + 3 * p_bytes);
+	isc_buffer_forward(data, 1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
 
 	key->opaque = (void *) dsa;
 
