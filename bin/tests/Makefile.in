@@ -53,6 +53,7 @@ XTARGETS =	adb_test \
 		gxba_test \
 		gxbn_test \
 		hash_test \
+		fsaccess_test \
 		inter_test \
 		lex_test \
 		lfsr_test \
@@ -92,6 +93,7 @@ SRCS =		adb_test.c \
 		gxba_test.c \
 		gxbn_test.c \
 		hash_test.c \
+		fsaccess_test.c \
 		inter_test.c \
 		lex_test.c \
 		lfsr_test.c \
@@ -256,6 +258,10 @@ ndcconf_test: ndcconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 tkey_test: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ tkey_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+fsaccess_test: fsaccess_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ fsaccess_test.@O@ \
+		${ISCLIBS} ${LIBS}
 
 inter_test: inter_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ inter_test.@O@ \
