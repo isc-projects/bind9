@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.346 2001/09/12 18:44:54 gson Exp $ */
+/* $Id: zone.c,v 1.347 2001/09/17 14:04:32 marka Exp $ */
 
 #include <config.h>
 
@@ -2628,6 +2628,20 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	    DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING) ||
 	    notify->zone->view->requestmgr == NULL ||
 	    notify->zone->db == NULL) {
+		result = ISC_R_CANCELED;
+		goto cleanup;
+	}
+
+	/*
+	 * The raw IPv4 address should also exist.  Don't send to the
+	 * mapped form.
+	 */
+	if (isc_sockaddr_pf(&notify->dst) == PF_INET6 &&
+	    IN6_IS_ADDR_V4MAPPED(&notify->dst.type.sin6.sin6_addr)) {
+	        isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
+		notify_log(notify->zone, ISC_LOG_DEBUG(3),
+			   "notify: ignoring IPv6 mapped IPV4 address: %s",
+			   addrbuf);
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
