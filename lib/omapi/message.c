@@ -167,11 +167,11 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 	m = (omapi_message_t *)message;
 
 	if (p->key != NULL) {
-		result = dst_sign(DST_SIGMODE_INIT, p->key, &p->dstctx,
-				  NULL, NULL);
+		result = dst_key_sign(DST_SIGMODE_INIT, p->key, &p->dstctx,
+				      NULL, NULL);
 
 		if (result == ISC_R_SUCCESS)
-			result = dst_sig_size(p->key, &authlen);
+			result = dst_key_sigsize(p->key, &authlen);
 
 		p->dst_update = ISC_TRUE;
 	}
@@ -249,8 +249,8 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 
 		isc_buffer_clear(p->signature_out);
 
-		result = dst_sign(DST_SIGMODE_FINAL, p->key, &p->dstctx,
-				  NULL, p->signature_out);
+		result = dst_key_sign(DST_SIGMODE_FINAL, p->key, &p->dstctx,
+				      NULL, p->signature_out);
 
 		isc_buffer_region(p->signature_out, &r);
 
@@ -376,7 +376,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 	if (protocol->key != NULL) {
 		if (protocol->verify_result == ISC_R_SUCCESS)
 			protocol->verify_result =
-				dst_verify(DST_SIGMODE_FINAL, protocol->key,
+				dst_key_verify(DST_SIGMODE_FINAL, protocol->key,
 					   &protocol->dstctx, NULL,
 					   &protocol->signature_in);
 

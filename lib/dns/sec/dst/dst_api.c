@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.36 2000/05/15 23:14:41 bwelling Exp $
+ * $Id: dst_api.c,v 1.37 2000/05/17 22:48:04 bwelling Exp $
  */
 
 #include <config.h>
@@ -65,7 +65,7 @@ static isc_result_t	read_public_key(const char *name,
 static isc_result_t	write_public_key(const dst_key_t *key);
 
 /*
- *  dst_supported_algorithm
+ *  dst_algorithm_supported
  *	This function determines if the crypto system for the specified
  *	algorithm is present.
  *  Parameters
@@ -75,7 +75,7 @@ static isc_result_t	write_public_key(const dst_key_t *key);
  *	ISC_FALSE	The algorithm is not available.
  */
 isc_boolean_t
-dst_supported_algorithm(const int alg) {
+dst_algorithm_supported(const int alg) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL)
 		return (ISC_FALSE);
@@ -83,7 +83,7 @@ dst_supported_algorithm(const int alg) {
 }
 
 /*
- * dst_sign
+ * dst_key_sign
  *	An incremental signing function.  Data is signed in steps.
  *	First the context must be initialized (DST_SIGMODE_INIT).
  *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the signature
@@ -105,8 +105,8 @@ dst_supported_algorithm(const int alg) {
  *	!ISC_R_SUCCESS	Failure
  */
 isc_result_t
-dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
-	 isc_region_t *data, isc_buffer_t *sig)
+dst_key_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
+	     isc_region_t *data, isc_buffer_t *sig)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
@@ -118,7 +118,7 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	if ((mode & DST_SIGMODE_FINAL) != 0)
 		REQUIRE(sig != NULL);
 
-	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
+	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
@@ -131,7 +131,7 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 
 
 /*
- *  dst_verify
+ *  dst_key_verify
  *	An incremental verify function.  Data is verified in steps.
  *	First the context must be initialized (DST_SIGMODE_INIT).
  *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the signature
@@ -154,8 +154,8 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  */
 
 isc_result_t
-dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
-	   isc_region_t *data, isc_region_t *sig)
+dst_key_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
+	       isc_region_t *data, isc_region_t *sig)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
@@ -167,7 +167,7 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	if ((mode & DST_SIGMODE_FINAL) != 0)
 		REQUIRE(sig != NULL && sig->base != NULL);
 
-	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
+	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
@@ -179,7 +179,7 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 }
 
 /*
- *  dst_digest
+ *  dst_key_digest
  *	An incremental digest function.  Data is digested in steps.
  *	First the context must be initialized (DST_SIGMODE_INIT).
  *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the digest
@@ -201,8 +201,8 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  *	!ISC_R_SUCCESS	Failure
  */
 isc_result_t
-dst_digest(const unsigned int mode, const unsigned int alg,
-           dst_context_t *context, isc_region_t *data, isc_buffer_t *digest)
+dst_key_digest(const unsigned int mode, const unsigned int alg,
+	       dst_context_t *context, isc_region_t *data, isc_buffer_t *digest)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
@@ -221,7 +221,7 @@ dst_digest(const unsigned int mode, const unsigned int alg,
 
 
 /*
- * dst_computesecret
+ * dst_key_computesecret
  *	A function to compute a shared secret from two (Diffie-Hellman) keys.
  * Parameters
  *      pub             The public key
@@ -232,15 +232,15 @@ dst_digest(const unsigned int mode, const unsigned int alg,
  *      !ISC_R_SUCCESS  Failure
  */
 isc_result_t
-dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
+dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 		  isc_buffer_t *secret) 
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(pub) && VALID_KEY(priv));
 	REQUIRE(secret != NULL);
 
-	if (dst_supported_algorithm(pub->key_alg)  == ISC_FALSE ||
-	    dst_supported_algorithm(priv->key_alg) == ISC_FALSE)
+	if (dst_algorithm_supported(pub->key_alg)  == ISC_FALSE ||
+	    dst_algorithm_supported(priv->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
 	if (pub->opaque == NULL || priv->opaque == NULL)
@@ -276,7 +276,7 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
 
-	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
+	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == 0)
@@ -325,7 +325,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 	REQUIRE(keyp != NULL);
 
 	*keyp = NULL;
-	if (dst_supported_algorithm(alg) == ISC_FALSE)
+	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == 0)
@@ -384,7 +384,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(target != NULL);
 
-	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
+	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
 	isc_buffer_availableregion(target, &r);
@@ -445,7 +445,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 	proto = isc_buffer_getuint8(source);
 	alg = isc_buffer_getuint8(source);
 
-	if (!dst_supported_algorithm(alg))
+	if (!dst_algorithm_supported(alg))
 		return (DST_R_UNSUPPORTEDALG);
 
 	if (flags & DNS_KEYFLAG_EXTENDED) {
@@ -499,7 +499,7 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
 	REQUIRE(source != NULL);
 	REQUIRE(mctx != NULL);
 
-	if (dst_supported_algorithm(alg) == ISC_FALSE)
+	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
 	*keyp = get_key_struct(name, alg, flags, protocol, 0, mctx);
@@ -532,7 +532,7 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(target != NULL);
 
-	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
+	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
 	return (key->func->to_dns(key, target));
@@ -577,7 +577,7 @@ dst_key_generate(const char *name, const int alg, const int bits,
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL);
 
-	if (dst_supported_algorithm(alg) == ISC_FALSE)
+	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
 	*keyp = get_key_struct(name, alg, flags, protocol, bits, mctx);
@@ -867,7 +867,7 @@ dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, char **name,
 }
 
 /*
- * dst_sig_size
+ * dst_key_sigsize
  *	Computes the maximum size of a signature generated by the given key
  * Parameters
  *	key	The DST key
@@ -878,7 +878,7 @@ dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, char **name,
  *	DST_R_UNSUPPORTEDALG
  */
 isc_result_t
-dst_sig_size(const dst_key_t *key, unsigned int *n) {
+dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(n != NULL);
@@ -915,7 +915,7 @@ dst_sig_size(const dst_key_t *key, unsigned int *n) {
  *	DST_R_UNSUPPORTEDALG
  */
 isc_result_t
-dst_secret_size(const dst_key_t *key, unsigned int *n) {
+dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(n != NULL);
@@ -1041,7 +1041,7 @@ get_key_struct(const char *name, const int alg, const int flags,
 {
 	dst_key_t *key; 
 
-	REQUIRE(dst_supported_algorithm(alg) != ISC_FALSE);
+	REQUIRE(dst_algorithm_supported(alg) != ISC_FALSE);
 
 	key = (dst_key_t *) isc_mem_get(mctx, sizeof(dst_key_t));
 	if (key == NULL)

@@ -358,8 +358,8 @@ dispatch_messages(omapi_protocol_t *protocol,
 
 		if (protocol->key != NULL) {
 			protocol->verify_result =
-				dst_verify(DST_SIGMODE_INIT, protocol->key,
-					   &protocol->dstctx, NULL, NULL);
+				dst_key_verify(DST_SIGMODE_INIT, protocol->key,
+					       &protocol->dstctx, NULL, NULL);
 			protocol->dst_update = ISC_TRUE;
 		}
 
@@ -712,7 +712,7 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 		result = auth_makekey(p->authname, p->algorithm, &p->key);
 
 		if (result == ISC_R_SUCCESS)
-			result = dst_sig_size(p->key, &sigsize);
+			result = dst_key_sigsize(p->key, &sigsize);
 
 		if (result == ISC_R_SUCCESS)
 			result = isc_buffer_allocate(omapi_mctx,

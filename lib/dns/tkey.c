@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.34 2000/05/14 02:31:13 tale Exp $
+ * $Id: tkey.c,v 1.35 2000/05/17 22:48:02 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -160,20 +160,26 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	/*
 	 * MD5 ( query data | DH value ).
 	 */
-	RETERR(dst_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL, NULL));
-	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
-			  queryrandomness, NULL));
-	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r, NULL));
-	RETERR(dst_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL, &b));
+	RETERR(dst_key_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL,
+			      NULL));
+	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
+			      queryrandomness, NULL));
+	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r,
+			      NULL));
+	RETERR(dst_key_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL,
+			      &b));
 			
 	/*
 	 * MD5 ( server data | DH value ).
 	 */
-	RETERR(dst_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL, NULL));
-	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
-			  serverrandomness, NULL));
-	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r, NULL));
-	RETERR(dst_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL, &b));
+	RETERR(dst_key_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL,
+			      NULL));
+	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
+			      serverrandomness, NULL));
+	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r,
+			      NULL));
+	RETERR(dst_key_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL,
+			      &b));
 
 	/*
 	 * XOR ( DH value, MD5-1 | MD5-2).
@@ -312,10 +318,10 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	RETERR(add_rdata_to_list(msg, &ourname, &ourkeyrdata, ourttl,
 				 namelist));
 
-	RETERR(dst_secret_size(tctx->dhkey, &sharedsize));
+	RETERR(dst_key_secretsize(tctx->dhkey, &sharedsize));
 	RETERR(isc_buffer_allocate(msg->mctx, &shared, sharedsize));
 
-	RETERR(dst_computesecret(pubkey, tctx->dhkey, shared));
+	RETERR(dst_key_computesecret(pubkey, tctx->dhkey, shared));
 
 	isc_buffer_init(&secret, secretdata, sizeof(secretdata));
 
@@ -918,10 +924,10 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	RETERR(dns_dnssec_keyfromrdata(theirkeyname, &theirkeyrdata,
 				       rmsg->mctx, &theirkey));
 
-	RETERR(dst_secret_size(key, &sharedsize));
+	RETERR(dst_key_secretsize(key, &sharedsize));
 	RETERR(isc_buffer_allocate(rmsg->mctx, &shared, sharedsize));
 
-	RETERR(dst_computesecret(theirkey, key, shared));
+	RETERR(dst_key_computesecret(theirkey, key, shared));
 
 	isc_buffer_init(&secret, secretdata, sizeof(secretdata));
 

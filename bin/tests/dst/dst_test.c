@@ -49,13 +49,13 @@ use(dst_key_t *key) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_usedregion(&databuf, &datareg);
 
-	ret = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
+	ret = dst_key_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
 	printf("sign(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 
 	isc_buffer_forward(&sigbuf, 1);
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
-	ret = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
+	ret = dst_key_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
 	printf("verify(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 }
@@ -146,13 +146,13 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx) {
 		return;
 
 	isc_buffer_init(&b1, array1, sizeof(array1));
-	ret = dst_computesecret(key1, key2, &b1);
+	ret = dst_key_computesecret(key1, key2, &b1);
 	printf("computesecret() returned: %s\n", isc_result_totext(ret));
 	if (ret != 0)
 		return;
 
 	isc_buffer_init(&b2, array2, sizeof(array2));
-	ret = dst_computesecret(key2, key1, &b2);
+	ret = dst_key_computesecret(key2, key1, &b2);
 	printf("computesecret() returned: %s\n", isc_result_totext(ret));
 	if (ret != 0)
 		return;

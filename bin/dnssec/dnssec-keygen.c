@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.19 2000/05/16 18:40:57 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.20 2000/05/17 22:47:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -218,7 +218,7 @@ main(int argc, char **argv) {
 		if (ret != ISC_R_SUCCESS)
 			fatal("unknown algorithm %s", algname);
 	}
-	if (dst_supported_algorithm(alg) == ISC_FALSE)
+	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		fatal("unsupported algorithm %s", algname);
 
 	if (type != NULL) {

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.26 2000/05/08 19:23:32 tale Exp $ */
+/* $Id: connection.c,v 1.27 2000/05/17 22:48:07 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -643,8 +643,8 @@ omapi_connection_putmem(omapi_object_t *c, unsigned char *src,
 	if (protocol->dst_update) {
 		region.base = src;
 		region.length = len;
-		result = dst_sign(DST_SIGMODE_UPDATE, protocol->key,
-				  &protocol->dstctx, &region, NULL);
+		result = dst_key_sign(DST_SIGMODE_UPDATE, protocol->key,
+				      &protocol->dstctx, &region, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -739,8 +739,10 @@ connection_copyout(unsigned char *dst, omapi_connection_t *connection,
 		if (protocol->dst_update &&
 		    protocol->verify_result == ISC_R_SUCCESS)
 			protocol->verify_result =
-				dst_verify(DST_SIGMODE_UPDATE, protocol->key,
-					   &protocol->dstctx, &region, NULL);
+				dst_key_verify(DST_SIGMODE_UPDATE,
+					       protocol->key,
+					       &protocol->dstctx,
+					       &region, NULL);
 
 		isc_buffer_forward(buffer, copy_bytes);
 

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.35 2000/05/17 02:15:08 mws Exp $
+ * $Id: dnssec.c,v 1.36 2000/05/17 22:48:00 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -80,11 +80,11 @@ digest_callback(void *arg, isc_region_t *data) {
 	REQUIRE(ctx->type == TYPE_SIGN || ctx->type == TYPE_VERIFY);
 
 	if (ctx->type == TYPE_SIGN)
-		result = dst_sign(DST_SIGMODE_UPDATE, ctx->key, &ctx->context,
-				  data, NULL);
+		result = dst_key_sign(DST_SIGMODE_UPDATE, ctx->key,
+				      &ctx->context, data, NULL);
 	else
-		result = dst_verify(DST_SIGMODE_UPDATE, ctx->key,
-				    &ctx->context, data, NULL);
+		result = dst_key_verify(DST_SIGMODE_UPDATE, ctx->key,
+					&ctx->context, data, NULL);
 	return (result);
 }
 
@@ -247,7 +247,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	sig.timesigned = *inception;
 	sig.timeexpire = *expire;
 	sig.keyid = dst_key_id(key);
-	ret = dst_sig_size(key, &sigsize);
+	ret = dst_key_sigsize(key, &sigsize);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	sig.siglen = sigsize;
@@ -267,8 +267,8 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * Digest the SIG rdata.
 	 */
 	r.length -= sig.siglen;
-	ret = dst_sign(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
-		       key, &ctx, &r, NULL);
+	ret = dst_key_sign(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
+			   key, &ctx, &r, NULL);
 
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
@@ -303,7 +303,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		/*
 		 * Digest the envelope.
 		 */
-		ret = dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL);
+		ret = dst_key_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 
@@ -314,7 +314,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		INSIST(rdatas[i].length < 65536);
 		isc_buffer_putuint16(&lenbuf, (isc_uint16_t)rdatas[i].length);
 		isc_buffer_usedregion(&lenbuf, &lenr);
-		ret = dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &lenr, NULL);
+		ret = dst_key_sign(DST_SIGMODE_UPDATE, key, &ctx, &lenr, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 
@@ -327,7 +327,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 		
 	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
-	ret = dst_sign(DST_SIGMODE_FINAL, key, &ctx, NULL, &sigbuf);
+	ret = dst_key_sign(DST_SIGMODE_FINAL, key, &ctx, NULL, &sigbuf);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_array;
 	isc_buffer_usedregion(&sigbuf, &r);
@@ -407,8 +407,8 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	r.length -= sig.siglen;
 	RUNTIME_CHECK(r.length >= 19);
 	
-	ret = dst_verify(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
-			 key, &ctx, &r, NULL);
+	ret = dst_key_verify(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
+			     key, &ctx, &r, NULL);
 
 	/*
 	 * If the name is an expanded wildcard, use the wildcard name.
@@ -457,7 +457,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		/*
 		 * Digest the envelope.
 		 */
-		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 
@@ -472,7 +472,8 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		/*
 		 * Digest the rdata.
 		 */
-		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &lenr, NULL);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &lenr,
+				     NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 		ret = dns_rdata_digest(&rdatas[i], digest_callback, &dctx);
@@ -482,7 +483,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	r.base = sig.signature;
 	r.length = sig.siglen;
-	ret = dst_verify(DST_SIGMODE_FINAL, key, &ctx, NULL, &r);
+	ret = dst_key_verify(DST_SIGMODE_FINAL, key, &ctx, NULL, &r);
 	if (ret == DST_R_VERIFYFINALFAILURE)
 		ret = DNS_R_SIGINVALID;
 
@@ -609,11 +610,11 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	
 	isc_buffer_init(&databuf, data, sizeof(data));
 
-	RETERR(dst_sign(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
+	RETERR(dst_key_sign(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
 
 	if (is_response(msg))
-		RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, msg->query,
-				NULL));
+		RETERR(dst_key_sign(DST_SIGMODE_UPDATE, key, &ctx, msg->query,
+				    NULL));
 
 	/*
 	 * Digest the header.
@@ -621,14 +622,14 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	isc_buffer_init(&headerbuf, header, sizeof(header));
 	dns_message_renderheader(msg, &headerbuf);
 	isc_buffer_usedregion(&headerbuf, &r);
-	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+	RETERR(dst_key_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
 	/*
 	 * Digest the remainder of the message.
 	 */
 	isc_buffer_usedregion(msg->buffer, &r);
 	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
-	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+	RETERR(dst_key_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
 	/*
 	 * Digest the fields of the SIG - we can cheat and use
@@ -639,9 +640,9 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 				    dns_rdatatype_sig, &sig, &databuf));
 	isc_buffer_usedregion(&databuf, &r);
 	r.length -= 2;
-	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+	RETERR(dst_key_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
-	RETERR(dst_sig_size(key, &sigsize));
+	RETERR(dst_key_sigsize(key, &sigsize));
 	sig.siglen = sigsize;
 	sig.signature = (unsigned char *) isc_mem_get(mctx, sig.siglen);
 	if (sig.signature == NULL) {
@@ -650,7 +651,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	}
 
 	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
-	RETERR(dst_sign(DST_SIGMODE_FINAL, key, &ctx, NULL, &sigbuf));
+	RETERR(dst_key_sign(DST_SIGMODE_FINAL, key, &ctx, NULL, &sigbuf));
 
 	rdata = NULL;
 	RETERR(dns_message_gettemprdata(msg, &rdata));
@@ -743,14 +744,14 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 	/* XXXBEW ensure that sig.signer refers to this key */
 
-	RETERR(dst_verify(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
+	RETERR(dst_key_verify(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
 
 	/*
 	 * If this is a response, digest the query.
 	 */
 	if (is_response(msg))
-		RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, msg->query,
-				  NULL));
+		RETERR(dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx,
+				      msg->query, NULL));
 
 	/*
 	 * Extract the header.
@@ -769,14 +770,14 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	 */
 	header_r.base = (unsigned char *) header;
 	header_r.length = DNS_MESSAGE_HEADERLEN;
-	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &header_r, NULL));
+	RETERR(dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &header_r, NULL));
 
 	/*
 	 * Digest all non-SIG(0) records.
 	 */
 	r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 	r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
-	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+	RETERR(dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
 	/*
  	 * Digest the SIG(0) record .  Find the start of the record, skip
@@ -790,11 +791,11 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	dns_name_toregion(&tname, &r2);
 	isc_region_consume(&r, r2.length + 10);
 	r.length -= (sig.siglen + 2);
-	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+	RETERR(dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
 	sig_r.base = sig.signature;
 	sig_r.length = sig.siglen;
-	result = dst_verify(DST_SIGMODE_FINAL, key, &ctx, NULL, &sig_r);
+	result = dst_key_verify(DST_SIGMODE_FINAL, key, &ctx, NULL, &sig_r);
 	if (result != ISC_R_SUCCESS) {
 		msg->sig0status = dns_tsigerror_badsig;
 		goto failure;
