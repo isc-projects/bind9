@@ -3,6 +3,8 @@
 			received an AXFR request, it would deadlock or die
 			with an assertion failure. [RT #852]
 
+ 737.	[port]		stdtime.c failed to compile on certain platforms.
+
 	--- 9.1.1rc2 released ---
 
  733.	[bug]		Reference counts of dns_acl_t objects need to be
