@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: printmsg.c,v 1.24 2001/01/09 21:41:28 bwelling Exp $ */
+/* $Id: printmsg.c,v 1.25 2001/05/09 18:47:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -76,7 +76,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 	isc_result_t result;
 	isc_region_t r;
 	dns_name_t empty_name;
-	char t[4096];
+	char t[65536];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
 
@@ -140,7 +140,7 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 	isc_buffer_t target;
 	isc_result_t result;
 	isc_region_t r;
-	char t[4096];
+	char t[65536];
 
 	UNUSED(msg);
 	printf(";; %s SECTION:\n", set_name);
