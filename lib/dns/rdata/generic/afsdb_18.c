@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.c,v 1.15 2000/02/03 23:42:57 halley Exp $ */
+/* $Id: afsdb_18.c,v 1.16 2000/03/16 00:18:29 explorer Exp $ */
 
- /* RFC 1183 */
+/* reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
+
+/* RFC 1183 */
 
 #ifndef RDATA_GENERIC_AFSDB_18_C
 #define RDATA_GENERIC_AFSDB_18_C
@@ -31,9 +33,9 @@ fromtext_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_t buffer;
 	dns_name_t name;
 
-	REQUIRE(type == 18);
+	UNUSED(rdclass);
 
-	rdclass = rdclass;	/*unused*/
+	REQUIRE(type == 18);
 
 	/* subtype */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -59,7 +61,6 @@ totext_afsdb(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_boolean_t sub;
 	unsigned int num;
 
-
 	REQUIRE(rdata->type == 18);
 
 	dns_name_init(&name, NULL);
@@ -72,7 +73,7 @@ totext_afsdb(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	RETERR(str_totext(buf, target));
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, tctx->origin, &prefix);
-	return(dns_name_totext(&prefix, sub, target));
+	return (dns_name_totext(&prefix, sub, target));
 }
 
 static inline isc_result_t
@@ -84,10 +85,10 @@ fromwire_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_region_t sr;
 	isc_region_t tr;
 
+	UNUSED(rdclass);
+
 	REQUIRE(type == 18);
 	
-	rdclass = rdclass;	/*unused*/
-
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 	else
@@ -108,7 +109,8 @@ fromwire_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	isc_region_t tr;
 	isc_region_t sr;
 	dns_name_t name;
@@ -135,7 +137,8 @@ towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	int result;
 	dns_name_t name1;
 	dns_name_t name2;
@@ -169,31 +172,30 @@ static inline isc_result_t
 fromstruct_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 18);
 	
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
-
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 18);
 	REQUIRE(target != NULL);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_afsdb(void *source) {
+freestruct_afsdb(void *source)
+{
 	dns_rdata_afsdb_t *afsdb = source;
 
 	REQUIRE(source != NULL);
@@ -219,7 +221,8 @@ additionaldata_afsdb(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_afsdb(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_afsdb(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r1, r2;
 	isc_result_t result;
 	dns_name_t name;
