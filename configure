@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.311 
+# From configure.in Revision: 1.312 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -8081,7 +8081,7 @@ $isc_netinet6in6_hack
 $isc_in_addr6_hack
 
 int main() {
-struct in6_addr in6; in6 = in6addr_any; return (0);
+struct in6_addr in6; in6 = in6addr_any; return (in6.s6_addr[0]);
 ; return 0; }
 EOF
 if { (eval echo configure:8088: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -8113,7 +8113,7 @@ $isc_netinet6in6_hack
 $isc_in_addr6_hack
 
 int main() {
-struct in6_addr in6; in6 = in6addr_loopback; return (0);
+struct in6_addr in6; in6 = in6addr_loopback; return (in6.s6_addr[0]);
 ; return 0; }
 EOF
 if { (eval echo configure:8120: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
