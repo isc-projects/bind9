@@ -276,8 +276,8 @@ static inline dns_adbentry_t *new_adbentry(dns_adb_t *);
 static inline void free_adbentry(dns_adb_t *, dns_adbentry_t **);
 static inline dns_adbfind_t *new_adbfind(dns_adb_t *);
 static inline void free_adbfind(dns_adb_t *, dns_adbfind_t **);
-static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *,
-						 dns_adbentry_t *);
+static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *, dns_adbentry_t *,
+						 in_port_t);
 static inline dns_adbfetch_t *new_adbfetch(dns_adb_t *);
 static inline void free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
 static inline dns_adbfetch6_t *new_adbfetch6(dns_adb_t *, dns_adbname_t *,
@@ -468,11 +468,11 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		if (rdtype == dns_rdatatype_a) {
 			INSIST(rdata.length == 4);
 			memcpy(&ina.s_addr, rdata.data, 4);
-			isc_sockaddr_fromin(&sockaddr, &ina, 53);
+			isc_sockaddr_fromin(&sockaddr, &ina, 0);
 		} else {
 			INSIST(rdata.length == 16);
 			memcpy(in6a.s6_addr, rdata.data, 16);
-			isc_sockaddr_fromin6(&sockaddr, &in6a, 53);
+			isc_sockaddr_fromin6(&sockaddr, &in6a, 0);
 		}
 
 		INSIST(nh == NULL);
@@ -571,16 +571,7 @@ import_a6(dns_a6context_t *a6ctx) {
 		goto fail;
 	}
 
-	isc_sockaddr_fromin6(&sockaddr, &a6ctx->in6addr, 53);
-
-	if (IN6_IS_ADDR_V4MAPPED(&sockaddr.type.sin6.sin6_addr)
-	    || IN6_IS_ADDR_V4COMPAT(&sockaddr.type.sin6.sin6_addr)) {
-		isc_buffer_t buffer;
-		char buff[80];
-
-		isc_buffer_init(&buffer, buff, sizeof buff);
-		isc_sockaddr_totext(&sockaddr, &buffer);
-	}
+	isc_sockaddr_fromin6(&sockaddr, &a6ctx->in6addr, 0);
 
 	foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
 	if (foundentry == NULL) {
@@ -1652,7 +1643,7 @@ free_adbfind(dns_adb_t *adb, dns_adbfind_t **findp) {
  * if this function returns a valid pointer.
  */
 static inline dns_adbaddrinfo_t *
-new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry) {
+new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	dns_adbaddrinfo_t *ai;
 
 	ai = isc_mempool_get(adb->aimp);
@@ -1660,7 +1651,8 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry) {
 		return (NULL);
 
 	ai->magic = DNS_ADBADDRINFO_MAGIC;
-	ai->sockaddr = &entry->sockaddr;
+	ai->sockaddr = entry->sockaddr;
+	isc_sockaddr_setport(&ai->sockaddr, port);
 	ai->goodness = entry->goodness;
 	ai->srtt = entry->srtt;
 	ai->flags = entry->flags;
@@ -1679,7 +1671,6 @@ free_adbaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **ainfo) {
 	ai = *ainfo;
 	*ainfo = NULL;
 
-	INSIST(ai->sockaddr == NULL);
 	INSIST(ai->entry == NULL);
 	INSIST(!ISC_LINK_LINKED(ai, publink));
 
@@ -1832,7 +1823,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *zone,
 				find->options |= DNS_ADBFIND_LAMEPRUNED;
 				goto nextv4;
 			}
-			addrinfo = new_adbaddrinfo(adb, entry);
+			addrinfo = new_adbaddrinfo(adb, entry, find->port);
 			if (addrinfo == NULL) {
 				find->partial_result |= DNS_ADBFIND_INET;
 				goto out;
@@ -1866,7 +1857,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *zone,
 
 			if (entry_is_bad_for_zone(adb, entry, zone, now))
 				goto nextv6;
-			addrinfo = new_adbaddrinfo(adb, entry);
+			addrinfo = new_adbaddrinfo(adb, entry, find->port);
 			if (addrinfo == NULL) {
 				find->partial_result |= DNS_ADBFIND_INET6;
 				goto out;
@@ -2387,7 +2378,7 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
 		   unsigned int options, isc_stdtime_t now, dns_name_t *target,
-		   dns_adbfind_t **findp)
+		   in_port_t port, dns_adbfind_t **findp)
 {
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
@@ -2444,6 +2435,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	find = new_adbfind(adb);
 	if (find == NULL)
 		return (ISC_R_NOMEMORY);
+
+	find->port = port;
 
 	/*
 	 * Remember what types of addresses we are interested in.
@@ -2723,7 +2716,6 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 		ISC_LIST_UNLINK(find->list, ai, publink);
 		entry = ai->entry;
 		ai->entry = NULL;
-		ai->sockaddr = NULL;
 		INSIST(DNS_ADBENTRY_VALID(entry));
 		dec_entry_refcnt(adb, entry, ISC_TRUE);
 		free_adbaddrinfo(adb, &ai);
@@ -2958,7 +2950,7 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
 	if (ai != NULL)
 		fprintf(f, "\tAddresses:\n");
 	while (ai != NULL) {
-		sa = ai->sockaddr;
+		sa = &ai->sockaddr;
 		switch (sa->type.sa.sa_family) {
 		case AF_INET:
 			tmpp = inet_ntop(AF_INET, &sa->type.sin.sin_addr,
@@ -3883,6 +3875,7 @@ dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
 	dns_adbentry_t *entry;
 	dns_adbaddrinfo_t *addr;
 	isc_result_t result;
+	in_port_t port;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(addrp != NULL && *addrp == NULL);
@@ -3918,7 +3911,8 @@ dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
 	if (entry->avoid_bitstring > 0 && entry->avoid_bitstring < now)
 		entry->avoid_bitstring = 0;
 
-	addr = new_adbaddrinfo(adb, entry);
+	port = isc_sockaddr_getport(sa);
+	addr = new_adbaddrinfo(adb, entry, port);
 	if (addr != NULL) {
 		inc_entry_refcnt(adb, entry, ISC_FALSE);
 		*addrp = addr;
@@ -3961,7 +3955,6 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	addr->entry = NULL;
-	addr->sockaddr = NULL;
 	free_adbaddrinfo(adb, &addr);
 
 	if (want_check_exit) {

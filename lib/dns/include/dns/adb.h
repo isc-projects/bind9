@@ -75,6 +75,7 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/sockaddr.h>
 
 #include <dns/types.h>
 #include <dns/view.h>
@@ -116,6 +117,7 @@ struct dns_adbfind {
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */
+	in_port_t			port;
 	int				name_bucket;
 	unsigned int			flags;
 	dns_adbname_t		       *adbname;
@@ -173,11 +175,11 @@ struct dns_adbfind {
 struct dns_adbaddrinfo {
 	unsigned int			magic;		/* private */
 
-	isc_sockaddr_t		       *sockaddr;	/* read only */
-	int				goodness;
-	unsigned int			srtt;		/* microseconds */
-	unsigned int			flags;
-	isc_stdtime_t			avoid_bitstring; /* 0 == don't */
+	isc_sockaddr_t			sockaddr;	/* [rw] */
+	int				goodness;	/* [rw] */
+	unsigned int			srtt;		/* [rw] microseconds */
+	unsigned int			flags;		/* [rw] */
+	isc_stdtime_t			avoid_bitstring; /* [rw] 0 == don't */
 	dns_adbentry_t		       *entry;		/* private */
 	ISC_LINK(dns_adbaddrinfo_t)	publink;
 };
@@ -294,7 +296,7 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
 		   unsigned int options, isc_stdtime_t now, dns_name_t *target,
-		   dns_adbfind_t **find);
+		   in_port_t port, dns_adbfind_t **find);
 /*
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -321,6 +323,10 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * If 'target' is not NULL and 'name' is an alias (i.e. the name is
  * CNAME'd or DNAME'd to another name), then 'target' will be updated with
  * the domain name that 'name' is aliased to.
+ *
+ * All addresses returned will have the sockaddr's port set to 'port.'
+ * The caller may change them directly in the dns_adbaddrinfo_t since
+ * they are copies of the internal address only.
  *
  * XXXMLG  Document options, especially the flags which control how
  *         events are sent.

@@ -72,7 +72,7 @@ setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at) {
 
 	ai = ISC_LIST_HEAD(find->list);
 	while (ai != NULL && client->gabn.naddrs < LWRES_MAX_ADDRS) {
-		sa = &ai->sockaddr->type.sa;
+		sa = &ai->sockaddr.type.sa;
 		if (sa->sa_family != af)
 			goto next;
 
@@ -80,13 +80,13 @@ setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at) {
 
 		switch (sa->sa_family) {
 		case AF_INET:
-			sin = &ai->sockaddr->type.sin;
+			sin = &ai->sockaddr.type.sin;
 			addr->family = LWRES_ADDRTYPE_V4;
 			memcpy(addr->address, &sin->sin_addr, 4);
 			addr->length = 4;
 			break;
 		case AF_INET6:
-			sin6 = &ai->sockaddr->type.sin6;
+			sin6 = &ai->sockaddr.type.sin6;
 			addr->family = LWRES_ADDRTYPE_V6;
 			memcpy(addr->address, &sin6->sin6_addr, 16);
 			addr->length = 16;
@@ -360,6 +360,7 @@ start_find(client_t *client) {
 				    dns_fixedname_name(&client->target_name),
 				    dns_rootname, options, 0,
 				    dns_fixedname_name(&client->target_name),
+				    client->clientmgr->view->dstport,
 				    &client->find);
 
 	if (client->find != NULL)

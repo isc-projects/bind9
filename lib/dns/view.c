@@ -144,6 +144,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->provideixfr = ISC_TRUE;
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
+	view->dstport = 53;
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)

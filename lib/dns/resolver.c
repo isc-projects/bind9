@@ -663,15 +663,17 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->tcpsocket = NULL;
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
 		isc_sockaddr_t any;
+		int pf;
 
-		result = isc_socket_create(res->socketmgr,
-					   isc_sockaddr_pf(addrinfo->sockaddr),
+		pf = isc_sockaddr_pf(&addrinfo->sockaddr);
+
+		result = isc_socket_create(res->socketmgr, pf, 
 					   isc_sockettype_tcp,
 					   &query->tcpsocket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
 
-		switch (isc_sockaddr_pf(addrinfo->sockaddr)) {
+		switch (pf) {
 		case AF_INET:
 			isc_sockaddr_any(&any);
 			break;
@@ -691,7 +693,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 * A dispatch will be created once the connect succeeds.
 		 */
 	} else {
-		switch (isc_sockaddr_pf(addrinfo->sockaddr)) {
+		switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
 		case PF_INET:
 			dns_dispatch_attach(res->dispatchv4, &query->dispatch);
 			break;
@@ -725,7 +727,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 * XXXRTH  Should we attach to the socket?
 		 */
 		result = isc_socket_connect(query->tcpsocket,
-					    addrinfo->sockaddr, task,
+					    &addrinfo->sockaddr, task,
 					    resquery_connected, query);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
@@ -805,7 +807,7 @@ resquery_send(resquery_t *query) {
 	 * Get a query id from the dispatch.
 	 */
 	result = dns_dispatch_addresponse(query->dispatch,
-					  query->addrinfo->sockaddr,
+					  &query->addrinfo->sockaddr,
 					  task,
 					  resquery_response,
 					  query,
@@ -896,7 +898,7 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Add TSIG record tailored to the current recipient.
 	 */
-	isc_netaddr_fromsockaddr(&ipaddr, query->addrinfo->sockaddr);
+	isc_netaddr_fromsockaddr(&ipaddr, &query->addrinfo->sockaddr);
 	result = dns_peerlist_peerbyaddr(fctx->res->view->peers,
 					 &ipaddr, &peer);
 
@@ -958,7 +960,7 @@ resquery_send(resquery_t *query) {
 	 * Send the query!
 	 */
 	if ((query->options & DNS_FETCHOPT_TCP) == 0)
-		address = query->addrinfo->sockaddr;
+		address = &query->addrinfo->sockaddr;
 	isc_buffer_usedregion(buffer, &r);
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
@@ -1030,7 +1032,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			attrs = 0;
 			attrs |= DNS_DISPATCHATTR_TCP;
 			attrs |= DNS_DISPATCHATTR_PRIVATE;
-			if (isc_sockaddr_pf(query->addrinfo->sockaddr) ==
+			if (isc_sockaddr_pf(&query->addrinfo->sockaddr) ==
 			    AF_INET)
 				attrs |= DNS_DISPATCHATTR_IPV4;
 			else
@@ -1166,7 +1168,7 @@ mark_bad(fetchctx_t *fctx) {
 		for (addrinfo = ISC_LIST_HEAD(curr->list);
 		     addrinfo != NULL;
 		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
-			if (bad_server(fctx, addrinfo->sockaddr))
+			if (bad_server(fctx, &addrinfo->sockaddr))
 				addrinfo->flags |= FCTX_ADDRINFO_MARK;
 			else
 				all_bad = ISC_FALSE;
@@ -1179,7 +1181,7 @@ mark_bad(fetchctx_t *fctx) {
 	for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
 	     addrinfo != NULL;
 	     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
-		if (bad_server(fctx, addrinfo->sockaddr))
+		if (bad_server(fctx, &addrinfo->sockaddr))
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
 		else
 			all_bad = ISC_FALSE;
@@ -1377,7 +1379,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 					    res->buckets[fctx->bucketnum].task,
 					    fctx_finddone, fctx, &name,
 					    &fctx->domain, options, now, NULL,
-					    &find);
+					    res->view->dstport, &find);
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_ALIAS) {
 				/*
@@ -1488,18 +1490,18 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 	char buf[ISC_NETADDR_FORMATSIZE];
 	isc_sockaddr_t *sa;
 
-	sa = addr->sockaddr;
+	sa = &addr->sockaddr;
 
 	if (sa->type.sa.sa_family != AF_INET6)
 		return;
 
 	if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
-		isc_netaddr_fromsockaddr(&na, addr->sockaddr);
+		isc_netaddr_fromsockaddr(&na, sa);
 		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
 		FCTXTRACE2("Ignoring IPv6 mapped IPV4 address: ", buf);
 	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
-		isc_netaddr_fromsockaddr(&na, addr->sockaddr);
+		isc_netaddr_fromsockaddr(&na, sa);
 		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
 		FCTXTRACE2("Ignoring IPv6 compatibility IPV4 address: ", buf);
@@ -3861,7 +3863,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * Add this server to the list of bad servers for
 			 * this fctx.
 			 */
-			add_bad(fctx, addrinfo->sockaddr);
+			add_bad(fctx, &addrinfo->sockaddr);
 		}
 
 		if (get_nameservers) {

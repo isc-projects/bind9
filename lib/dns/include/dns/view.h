@@ -104,6 +104,7 @@ struct dns_view {
 	isc_boolean_t			provideixfr;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
+	in_port_t			dstport;
 
 	/*
 	 * Configurable data for server use only,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.133 2000/05/31 21:13:57 gson Exp $ */
+/* $Id: zone.c,v 1.134 2000/06/01 00:30:54 explorer Exp $ */
 
 #include <config.h>
 
@@ -1652,7 +1652,8 @@ notify_find_address(notify_t *notify) {
 				    zone->task,
 				    process_adb_event, notify,
 				    &notify->ns, dns_rootname,
-				    options, 0, NULL, &notify->find);
+				    options, 0, NULL, zone->view->dstport,
+				    &notify->find);
 
 	/* Something failed? */
 	if (result != ISC_R_SUCCESS) {
@@ -1772,9 +1773,7 @@ notify_send(notify_t *notify) {
 	for (ai = ISC_LIST_HEAD(notify->find->list);
 	     ai != NULL;
 	     ai = ISC_LIST_NEXT(ai, publink)) {
-		dst = *ai->sockaddr;
-		if (isc_sockaddr_getport(&dst) == 0)
-			isc_sockaddr_setport(&dst, 53); /* XXX */
+		dst = ai->sockaddr;
 		if (notify_isqueued(notify->zone, NULL, &dst))
 			continue;
 		new = NULL;

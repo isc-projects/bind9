@@ -176,15 +176,36 @@ create_view(void) {
 	dns_view_setcache(view, cache);
 	dns_cache_detach(&cache);
 
-	/*
-	 * Resolver.
-	 *
-	 * XXXRTH hardwired number of tasks.  Also, we'll need to
-	 * see if we are dealing with a shared dispatcher in this view.
-	 */
-	result = dns_view_createresolver(view, taskmgr, 16, socketmgr,
-					 timermgr, 0, dispatchmgr, NULL, NULL);
-	check_result(result, "dns_view_createresolver()");
+	{
+		unsigned int attrs;
+		isc_sockaddr_t any4, any6;
+		dns_dispatch_t *disp4 = NULL;
+		dns_dispatch_t *disp6 = NULL;		
+
+		isc_sockaddr_any(&any4);
+		isc_sockaddr_any6(&any6);
+
+		attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
+		RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr, socketmgr,
+						  taskmgr, &any4, 512, 6, 1024,
+						  17, 19, attrs, attrs, &disp4)
+			      == ISC_R_SUCCESS);
+		INSIST(disp4 != NULL);
+
+		attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
+		RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr, socketmgr,
+						  taskmgr, &any6, 512, 6, 1024,
+						  17, 19, attrs, attrs, &disp6)
+			      == ISC_R_SUCCESS);
+		INSIST(disp6 != NULL);
+
+		RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10,
+						      socketmgr,
+						      timermgr, 0,
+						      dispatchmgr,
+						      disp4, disp6) ==
+		      ISC_R_SUCCESS);
+	}
 
 	rootdb = NULL;
 	result = dns_rootns_create(mctx, dns_rdataclass_in, NULL, &rootdb);
@@ -226,8 +247,8 @@ lookup(char *target) {
 	options |= DNS_ADBFIND_GLUEOK;
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
 				    &client->name, dns_rootname, options,
-				    now, NULL, &client->find);
-	check_result(result, "dns_adb_lookup()");
+				    now, NULL, view->dstport, &client->find);
+	check_result(result, "dns_adb_createfind()");
 	dns_adb_dumpfind(client->find, stderr);
 
 	if ((client->find->options & DNS_ADBFIND_WANTEVENT) != 0)
@@ -291,7 +312,7 @@ main(int argc, char **argv) {
 	/*
 	 * Set the initial debug level.
 	 */
-	isc_log_setdebuglevel(lctx, 99);
+	isc_log_setdebuglevel(lctx, 2);
 
 	create_managers();
 

@@ -2347,7 +2347,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	set_dev_address(address, sock, dev);
 	if (pktinfo != NULL) {
 		socket_log(sock, NULL, TRACE,
-			   "pktinfo structure provided, ifindex %u",
+			   "pktinfo structure provided, ifindex %u (set to 0)",
 			   pktinfo->ipi6_ifindex);
 
 		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;

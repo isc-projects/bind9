@@ -1,3 +1,7 @@
+ 220.	[cleanup]	Set the default outgoing port in the view, and
+			set it in sockaddrs returned from the ADB.
+			[31-May-2000 explorer]
+
  219.	[bug]		Signed truncated messages more correctly follow
 			the respective specs.
 
