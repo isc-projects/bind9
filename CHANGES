@@ -1,3 +1,5 @@
+1766.	[placeholder]	rt13062
+
 1765.	[bug]		configure --with-openssl=auto failed. [RT #12937]
 
 1764.	[bug]		dns_zone_replacedb failed to emit a error message
