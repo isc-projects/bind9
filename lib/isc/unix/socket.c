@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.154 2000/08/10 00:05:43 bwelling Exp $ */
+/* $Id: socket.c,v 1.155 2000/08/10 21:47:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -913,6 +913,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 		ALWAYS_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 		ALWAYS_HARD(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
+		ALWAYS_HARD(EPERM, ISC_R_HOSTUNREACH);
 
 #undef SOFT_OR_HARD
 #undef ALWAYS_HARD
