@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.54 2001/06/01 15:17:19 marka Exp $ */
+/* $Id: parser.c,v 1.55 2001/06/07 01:58:49 gson Exp $ */
 
 #include <config.h>
 
@@ -122,15 +122,24 @@ struct cfg_parser {
 	isc_boolean_t	ungotten;
 
 	/*
-	 * A list of all files ever opened by this
-	 * parser (including ones that have already
-	 * been closed), as a configuration list of
-	 * configuration strings.  The "file" fields of
-	 * all other configuration objects point into
-	 * this list so that each does not need its
-	 * own copy of the filename strings.
+	 * The stack of currently active files, represented
+	 * as a configuration list of configuration strings.
+	 * The head is the top-level file, subsequent elements 
+	 * (if any) are the nested include files, and the 
+	 * last element is the file currently being parsed.
 	 */
-	cfg_obj_t *	files;
+	cfg_obj_t *	open_files;
+
+	/*
+	 * Names of files that we have parsed and closed
+	 * and were previously on the open_file list.
+	 * We keep these objects around after closing
+	 * the files because the file names may still be
+	 * referenced from other configuration objects
+	 * for use in reporting semantic errors after
+	 * parsing is complete.
+	 */
+	cfg_obj_t *	closed_files;
 
 	/*
 	 * Current line number.  We maintain our own
@@ -1346,7 +1355,8 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret)
 	pctx->seen_eof = ISC_FALSE;
 	pctx->ungotten = ISC_FALSE;
 	pctx->errors = 0;
-	pctx->files = 0;
+	pctx->open_files = NULL;
+	pctx->closed_files = NULL;
 	pctx->line = 0;
 	pctx->callback = NULL;
 	pctx->callbackarg = NULL;
@@ -1366,7 +1376,8 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret)
 					 ISC_LEXCOMMENT_CPLUSPLUS |
 					 ISC_LEXCOMMENT_SHELL));
 
-	CHECK(create_list(pctx, &cfg_type_filelist, &pctx->files));
+	CHECK(create_list(pctx, &cfg_type_filelist, &pctx->open_files));
+	CHECK(create_list(pctx, &cfg_type_filelist, &pctx->closed_files));
 
 	*ret = pctx;
 	return (ISC_R_SUCCESS);
@@ -1374,7 +1385,8 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret)
  cleanup:
 	if (pctx->lexer != NULL)
 		isc_lex_destroy(&pctx->lexer);
-	CLEANUP_OBJ(pctx->files);
+	CLEANUP_OBJ(pctx->open_files);
+	CLEANUP_OBJ(pctx->closed_files);
 	isc_mem_put(mctx, pctx, sizeof(*pctx));
 	return (result);
 }
@@ -1395,7 +1407,7 @@ parser_openfile(cfg_parser_t *pctx, const char *filename) {
 	CHECK(create_string(pctx, filename, &cfg_type_qstring, &stringobj));
 	CHECK(create_listelt(pctx, &elt));
 	elt->obj = stringobj;
-	ISC_LIST_APPEND(pctx->files->value.list, elt, link);
+	ISC_LIST_APPEND(pctx->open_files->value.list, elt, link);
 
 	return (ISC_R_SUCCESS);
  cleanup:
@@ -1477,7 +1489,13 @@ void
 cfg_parser_destroy(cfg_parser_t **pctxp) {
 	cfg_parser_t *pctx = *pctxp;
 	isc_lex_destroy(&pctx->lexer);
-	CLEANUP_OBJ(pctx->files);
+	/*
+	 * Cleaning up open_files does not
+	 * close the files; that was already done
+	 * by closing the lexer.
+	 */
+	CLEANUP_OBJ(pctx->open_files);
+	CLEANUP_OBJ(pctx->closed_files);
 	isc_mem_put(pctx->mctx, pctx, sizeof(*pctx));
 	*pctxp = NULL;
 }
@@ -3466,11 +3484,13 @@ cfg_gettoken(cfg_parser_t *pctx, int options) {
 				 * Closed an included file, not the main file.
 				 */
 				cfg_listelt_t *elt;
-				elt = ISC_LIST_TAIL(pctx->files->value.list);
+				elt = ISC_LIST_TAIL(pctx->open_files->
+						    value.list);
 				INSIST(elt != NULL);
-				ISC_LIST_UNLINK(pctx->files->value.list,
-						elt, link);
-				free_list_elt(pctx, elt);
+				ISC_LIST_UNLINK(pctx->open_files->
+						value.list, elt, link);
+				ISC_LIST_APPEND(pctx->closed_files->
+						value.list, elt, link);
 				goto redo;
 			}
 			pctx->seen_eof = ISC_TRUE;
@@ -3555,9 +3575,9 @@ current_file(cfg_parser_t *pctx) {
 	cfg_listelt_t *elt;
 	cfg_obj_t *fileobj;
 
-	if (pctx->files == NULL)
+	if (pctx->open_files == NULL)
 		return (none);
-	elt = ISC_LIST_TAIL(pctx->files->value.list);
+	elt = ISC_LIST_TAIL(pctx->open_files->value.list);
 	if (elt == NULL)
 	      return (none);
 
