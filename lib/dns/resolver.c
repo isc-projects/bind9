@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137 2000/06/22 21:54:46 tale Exp $ */
+/* $Id: resolver.c,v 1.138 2000/06/26 21:07:36 explorer Exp $ */
 
 #include <config.h>
 
@@ -90,6 +90,12 @@
  * Maximum EDNS0 input packet size.
  */
 #define SEND_BUFFER_SIZE		2048		/* XXXRTH  Constant. */
+
+/*
+ * This defines the maximum number of restarts we will permit before we
+ * disable EDNS0 on the query.
+ */
+#define NOEDNS0_RESTARTS		3
 
 typedef struct fetchctx fetchctx_t;
 
@@ -865,6 +871,11 @@ resquery_send(resquery_t *query) {
 	 * Use EDNS0, unless the caller doesn't want it, or we know that
 	 * the remote server doesn't like it.
 	 */
+	if (fctx->restarts > NOEDNS0_RESTARTS) {
+		query->options |= DNS_FETCHOPT_NOEDNS0;
+		FCTXTRACE("Too many restarts, disabling EDNS0");
+	}
+
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
 			result = fctx_addopt(fctx->qmessage);
