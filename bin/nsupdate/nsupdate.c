@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.13 2000/06/30 01:59:49 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.14 2000/06/30 03:24:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,6 @@
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
-#include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -54,16 +53,17 @@
 #include <dns/tsig.h>
 #include <dst/dst.h>
 
+#include <ctype.h>
 #include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #define MXNAME 256
-#define MAXCMD 256
+#define MAXCMD 1024
 #define NAMEBUF 512
-#define NAMEHINT 64
+#define WORDLEN 512
 #define PACKETSIZE 2048
-#define MSGTEXT 4069
+#define MSGTEXT 4096
 #define FIND_TIMEOUT 5
 
 #define RESOLV_CONF "/etc/resolv.conf"
@@ -107,20 +107,6 @@ static void sendrequest(int whichns, dns_message_t *msg,
 #define STATUS_QUIT 2
 #define STATUS_SYNTAX 3
 
-static unsigned int
-count_dots(char *s, isc_boolean_t *last_was_dot) {
-	int i = 0;
-	*last_was_dot = ISC_FALSE;
-	while (*s != 0) {
-		if (*s++ == '.') {
-			i++;
-			*last_was_dot = ISC_TRUE;
-		} else
-			*last_was_dot = ISC_FALSE;
-	}
-	return (i);
-}
-
 static void
 fatal(const char *format, ...) {
 	va_list args;
@@ -162,51 +148,179 @@ check_result(isc_result_t result, const char *msg) {
 		fatal("%s: %s", msg, isc_result_totext(result));
 }
 
+/*
+ * Eat characters from FP until EOL or EOF. Returns EOF or '\n'
+ */
+static int
+eatline(FILE *fp) {
+	int ch;
+
+	ch = fgetc(fp);
+	while (ch != '\n' && ch != EOF)
+		ch = fgetc(fp);
+	return (ch);
+}
+
+/*
+ * Eats white space up to next newline or non-whitespace character (of
+ * EOF). Returns the last character read. Comments are considered white
+ * space.
+ */
+static int
+eatwhite(FILE *fp) {
+	int ch;
+
+	ch = fgetc(fp);
+	while (ch != '\n' && ch != EOF && isspace((unsigned char)ch))
+		ch = fgetc(fp);
+
+	if (ch == ';' || ch == '#')
+		ch = eatline(fp);
+
+	return (ch);
+}
+
+/*
+ * Skip over any leading whitespace and then read in the next sequence of
+ * non-whitespace characters. In this context newline is not considered
+ * whitespace. Returns EOF on end-of-file, or the character
+ * that caused the reading to stop.
+ */
+static int
+getword(FILE *fp, char *buffer, size_t size) {
+	int ch;
+	char *p = buffer;
+
+	REQUIRE(buffer != NULL);
+	REQUIRE(size > 0);
+
+	*p = '\0';
+
+	ch = eatwhite(fp);
+
+	if (ch == EOF)
+		return (EOF);
+
+	do {
+		*p = '\0';
+
+		if (ch == EOF || isspace((unsigned char)ch))
+			break;
+		else if ((size_t) (p - buffer) == size - 1)
+			return (EOF);   /* Not enough space. */
+
+		*p++ = (char)ch;
+		ch = fgetc(fp);
+	} while (1);
+
+	return (ch);
+}
+
+static char *
+nsu_strsep(char **stringp, const char *delim) {
+	char *string = *stringp;
+	char *s;
+	const char *d;
+	char sc, dc;
+
+	if (string == NULL)
+		return (NULL);
+
+	for (s = string; *s != '\0'; s++) {
+		sc = *s;
+		for (d = delim; (dc = *d) != '\0'; d++)
+			if (sc == dc) {
+				*s++ = '\0';
+				*stringp = s;
+				return (string);
+			}
+	}
+	*stringp = NULL;
+	return (string);
+}
+
+
+static unsigned int
+count_dots(char *s, isc_boolean_t *last_was_dot) {
+	int i = 0;
+	*last_was_dot = ISC_FALSE;
+	while (*s != 0) {
+		if (*s++ == '.') {
+			i++;
+			*last_was_dot = ISC_TRUE;
+		} else
+			*last_was_dot = ISC_FALSE;
+	}
+	return (i);
+}
+
 static void
 load_resolv_conf(void) {
 	FILE *fp;
-	char rcinput[MXNAME];
-	char *ptr;
+	char word[256];
+	int stopchar, delim;
 
 	ddebug ("load_resolv_conf()");
 	fp = fopen (RESOLV_CONF, "r");
 	if (fp == NULL)
 		return;
-	while (fgets(rcinput, MXNAME, fp) != 0) {
-		ptr = strtok (rcinput, " \t\r\n");
-		if (ptr == NULL)
-			continue;
-		if (strcasecmp(ptr, "nameserver") == 0) {
+	do {
+		stopchar = getword(fp, word, sizeof(word));
+		if (stopchar == EOF)
+			break;
+		if (strcmp(word, "nameserver") == 0) {
 			ddebug ("Got a nameserver line");
-			ptr = strtok (NULL, " \t\r\n");
-			if (ptr != NULL) {
-				if (nameservers >= 3)
-					continue;
-				strncpy(nameservername[nameservers],
-					ptr, MXNAME);
-				nameservers++;
-			}
-		} else if (strcasecmp(ptr, "options") == 0) {
-			char *endp;
-			ptr = strtok(NULL, " \t\r\n");
-			if (ptr == NULL)
+			if (nameservers >= 3) {
+				stopchar = eatline(fp);
+				if (stopchar == EOF)
+					break;
 				continue;
-			if (strncasecmp(ptr, "ndots:", 6) == 0) {
-				ndots = strtol(&ptr[6], &endp, 10);
-				if (*endp != 0)
-					fatal("ndots is not numeric\n");
-				ddebug ("ndots is %d.", ndots);
 			}
+			delim = getword(fp, word, sizeof(word));
+			if (strlen(word) == 0) {
+				stopchar = eatline(fp);
+				if (stopchar == EOF)
+					break;
+				continue;
+			}
+			strncpy(nameservername[nameservers], word, MXNAME);
+			nameservers++;
+		} else if (strcasecmp(word, "options") == 0) {
+			delim = getword(fp, word, sizeof(word));
+			if (strlen(word) == 0)
+				continue;
+			while (strlen(word) > 0) {
+				char *endp;
+				if (strncmp("ndots:", word, 6) == 0) {
+					ndots = strtol(word + 6, &endp, 10);
+					if (*endp != 0)
+						fatal("ndots is not numeric\n");
+					ddebug ("ndots is %d.", ndots);
+				}
+			}
+			if (delim == EOF || delim == '\n')
+				break;
+			else
+				delim = getword(fp, word, sizeof(word));
 		/* XXXMWS Searchlist not supported! */
-		} else if (strcasecmp(ptr, "domain") == 0 && domain == NULL) {
-			ptr = strtok(NULL, " \t\r\n");
-			if (ptr == NULL)
+		} else if (strcasecmp(word, "domain") == 0 && domain == NULL) {
+			delim = getword(fp, word, sizeof(word));
+			if (strlen(word) == 0) {
+				stopchar = eatline(fp);
+				if (stopchar == EOF)
+					break;
 				continue;
-			domain = isc_mem_strdup(mctx, ptr);
+			}
+			domain = isc_mem_strdup(mctx, word);
 			if (domain == NULL)
 				fatal("out of memory");
+			strncpy(nameservername[nameservers], word, MXNAME);
+			nameservers++;
 		}
-	}
+		stopchar = eatline(fp);
+		if (stopchar == EOF)
+			break;
+	} while (ISC_TRUE);
 	fclose (fp);
 }	
 
@@ -436,9 +550,9 @@ parse_args(int argc, char **argv) {
 }
 
 static isc_uint16_t
-make_prereq(isc_boolean_t ispositive, isc_boolean_t isrrset) {
+make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	isc_result_t result;
-	char *ptr;
+	char *word;
 	dns_name_t *name = NULL;
 	isc_buffer_t *namebuf = NULL;
 	isc_buffer_t source;
@@ -457,8 +571,8 @@ make_prereq(isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	/*
 	 * Read the owner name
 	 */
-	ptr = strtok(NULL, " \t\r\n");
-	if (ptr == NULL) {
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL) {
 		puts("failed to read owner name");
 		return (STATUS_SYNTAX);
 	}
@@ -470,9 +584,9 @@ make_prereq(isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	dns_name_init(name, NULL);
 	dns_name_setbuffer(name, namebuf);
 	dns_message_takebuffer(updatemsg, &namebuf);
-	isc_buffer_init(&source, ptr, strlen(ptr));
-	isc_buffer_add(&source, strlen(ptr));
-	dots = count_dots(ptr, &last);
+	isc_buffer_init(&source, word, strlen(word));
+	isc_buffer_add(&source, strlen(word));
+	dots = count_dots(word, &last);
 	if (dots > ndots || last)
 		rn = dns_rootname;
 	result = dns_name_fromtext(name, &source, rn,
@@ -483,28 +597,27 @@ make_prereq(isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	 * If this is an rrset prereq, read the class or type.
 	 */
 	if (isrrset) {
-		char *ptr;
-		ptr = strtok(NULL, " \t\r\n");
-		if (ptr == NULL) {
+		word = nsu_strsep(&cmdline, " \t\r\n");
+		if (word == NULL) {
 			puts("failed to read class or type");
 			dns_message_puttempname(updatemsg, &name);
 			return (STATUS_SYNTAX);
 		}
-		region.base = ptr;
-		region.length = strlen(ptr);
+		region.base = word;
+		region.length = strlen(word);
 		result = dns_rdataclass_fromtext(&rdataclass, &region);
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * Now read the type.
 			 */
-			ptr = strtok(NULL, " \t\r\n");
-			if (ptr == NULL) {
+			word = nsu_strsep(&cmdline, " \t\r\n");
+			if (word == NULL) {
 				puts("failed to read type");
 				dns_message_puttempname(updatemsg, &name);
 				return (STATUS_SYNTAX);
 			}
-			region.base = ptr;
-			region.length = strlen(ptr);
+			region.base = word;
+			region.length = strlen(word);
 			result = dns_rdatatype_fromtext(&rdatatype, &region);
 			check_result(result, "dns_rdatatype_fromtext");
 		} else {
@@ -545,55 +658,57 @@ make_prereq(isc_boolean_t ispositive, isc_boolean_t isrrset) {
 }
 
 static isc_uint16_t
-evaluate_prereq(void) {
-	char *ptr;
+evaluate_prereq(char *cmdline) {
+	char *word;
 	isc_boolean_t ispositive, isrrset;
 
 	ddebug ("evaluate_prereq()");
-	ptr = strtok(NULL, " \t\r\n");
-	if (ptr == NULL) {
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL) {
 		puts ("failed to read operation code");
 		return (STATUS_SYNTAX);
 	}
-	if (strcasecmp(ptr, "nxdomain") == 0) {
+	if (strcasecmp(word, "nxdomain") == 0) {
 		ispositive = ISC_FALSE;
 		isrrset = ISC_FALSE;
-	} else if (strcasecmp(ptr, "yxdomain") == 0) {
+	} else if (strcasecmp(word, "yxdomain") == 0) {
 		ispositive = ISC_TRUE;
 		isrrset = ISC_FALSE;
-	} else if (strcasecmp(ptr, "nxrrset") == 0) {
+	} else if (strcasecmp(word, "nxrrset") == 0) {
 		ispositive = ISC_FALSE;
 		isrrset = ISC_TRUE;
-	} else if (strcasecmp(ptr, "yxrrset") == 0) {
+	} else if (strcasecmp(word, "yxrrset") == 0) {
 		ispositive = ISC_TRUE;
 		isrrset = ISC_TRUE;
 	} else {
-		printf("incorrect operation code: %s\n", ptr);
+		printf("incorrect operation code: %s\n", word);
 		return (STATUS_SYNTAX);
 	}
-	return (make_prereq(ispositive, isrrset));
+	return (make_prereq(cmdline, ispositive, isrrset));
 }
 
 static isc_uint16_t
-evaluate_server(void) {
+evaluate_server(char *cmdline) {
+	UNUSED(cmdline);
 	printf("The server statement is not currently implemented.\n");
 	return (STATUS_MORE);
 }
 
 static isc_uint16_t
-evaluate_zone(void) {
+evaluate_zone(char *cmdline) {
+	UNUSED(cmdline);
 	printf("The zone statement is not currently implemented.\n");
 	return (STATUS_MORE);
 #if 0
-	char *ptr;
+	char *word;
 	dns_name_t *name;
 	isc_buffer_t src;
 	isc_result_t result;
 	dns_fixedname_t fname;
 
 	ddebug ("evaluate_zone()");
-	ptr = strtok(NULL, " \t\r\n");
-	if (ptr == NULL) {
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL) {
 		printf("failed to read zone name");
 		return (STATUS_SYNTAX);
 	} else if (zonename != NULL)
@@ -602,8 +717,8 @@ evaluate_zone(void) {
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
 
-	isc_buffer_init(&src, ptr, strlen(ptr));
-	isc_buffer_add(&src, strlen(ptr));
+	isc_buffer_init(&src, word, strlen(word));
+	isc_buffer_add(&src, strlen(word));
 
 	result = dns_name_fromtext(name, &src, dns_rootname, ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext");
@@ -622,7 +737,7 @@ evaluate_zone(void) {
 }
 
 static isc_uint16_t
-update_addordelete(isc_boolean_t isdelete) {
+update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
 	isc_buffer_t *buf = NULL;
@@ -630,7 +745,7 @@ update_addordelete(isc_boolean_t isdelete) {
 	isc_buffer_t source;
 	dns_name_t *name = NULL;
 	isc_uint16_t ttl;
-	char *ptr, *data;
+	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
 	dns_rdatacallbacks_t callbacks;
@@ -648,8 +763,8 @@ update_addordelete(isc_boolean_t isdelete) {
 	/*
 	 * Read the owner name
 	 */
-	ptr = strtok(NULL, " \t\r\n");
-	if (ptr == NULL) {
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL) {
 		puts ("failed to read owner name");
 		return (STATUS_SYNTAX);
 	}
@@ -661,9 +776,9 @@ update_addordelete(isc_boolean_t isdelete) {
 	dns_name_init(name, NULL);
 	dns_name_setbuffer(name, namebuf);
 	dns_message_takebuffer(updatemsg, &namebuf);
-	isc_buffer_init(&source, ptr, strlen(ptr));
-	isc_buffer_add(&source, strlen(ptr));
-	dots = count_dots(ptr, &last);
+	isc_buffer_init(&source, word, strlen(word));
+	isc_buffer_add(&source, strlen(word));
+	dots = count_dots(word, &last);
 	if (dots > ndots || last)
 		rn = dns_rootname;
 	result = dns_name_fromtext(name, &source, rn,
@@ -682,15 +797,15 @@ update_addordelete(isc_boolean_t isdelete) {
 	 * If this is an add, read the TTL and verify that it's numeric.
 	 */
 	if (!isdelete) {
-		ptr = strtok(NULL, " \t\r\n");
-		if (ptr == NULL) {
+		word = nsu_strsep(&cmdline, " \t\r\n");
+		if (word == NULL) {
 			puts ("failed to read owner ttl");
 			dns_message_puttempname(updatemsg, &name);
 			return (STATUS_SYNTAX);
 		}
-		ttl = strtol(ptr, &endp, 0);
+		ttl = strtol(word, &endp, 0);
 		if (*endp != 0) {
-			printf("ttl '%s' is not numeric\n", ptr);
+			printf("ttl '%s' is not numeric\n", word);
 			dns_message_puttempname(updatemsg, &name);
 			return (STATUS_SYNTAX);
 		}
@@ -700,8 +815,8 @@ update_addordelete(isc_boolean_t isdelete) {
 	/*
 	 * Read the class or type.
 	 */
-	ptr = strtok(NULL, " \t\r\n");
-	if (ptr == NULL) {
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL) {
 		if (isdelete) {
 			rdataclass = dns_rdataclass_any;
 			rdatatype = dns_rdatatype_any;
@@ -712,15 +827,15 @@ update_addordelete(isc_boolean_t isdelete) {
 			return (STATUS_SYNTAX);
 		}
 	}
-	region.base = ptr;
-	region.length = strlen(ptr);
+	region.base = word;
+	region.length = strlen(word);
 	result = dns_rdataclass_fromtext(&rdataclass, &region);
 	if (result == ISC_R_SUCCESS) {
 		/*
 		 * Now read the type.
 		 */
-		ptr = strtok(NULL, " \t\r\n");
-		if (ptr == NULL) {
+		word = nsu_strsep(&cmdline, " \t\r\n");
+		if (word == NULL) {
 			if (isdelete) {
 				rdataclass = dns_rdataclass_any;
 				rdatatype = dns_rdatatype_any;
@@ -731,8 +846,8 @@ update_addordelete(isc_boolean_t isdelete) {
 				return (STATUS_SYNTAX);
 			}
 		}
-		region.base = ptr;
-		region.length = strlen(ptr);
+		region.base = word;
+		region.length = strlen(word);
 		result = dns_rdatatype_fromtext(&rdatatype, &region);
 		check_result(result, "dns_rdatatype_fromtext");
 	} else {
@@ -741,8 +856,10 @@ update_addordelete(isc_boolean_t isdelete) {
 		check_result(result, "dns_rdatatype_fromtext");
 	}
 
-	data = strtok(NULL, " \t\r\n");
-	if (data == NULL) {
+	while (*cmdline != 0 && isspace(*cmdline))
+		cmdline++;
+
+	if (*cmdline == 0) {
 		if (isdelete) {
 			rdataclass = dns_rdataclass_any;
 			goto doneparsing;
@@ -753,12 +870,12 @@ update_addordelete(isc_boolean_t isdelete) {
 		}
 	}
 
-	result = isc_lex_create(mctx, NAMEHINT, &lex);
+	result = isc_lex_create(mctx, WORDLEN, &lex);
 	check_result(result, "isc_lex_create");	
 	isc_buffer_invalidate(&source);
 
-	isc_buffer_init(&source, data, strlen(data));
-	isc_buffer_add(&source, strlen(data));
+	isc_buffer_init(&source, cmdline, strlen(cmdline));
+	isc_buffer_add(&source, strlen(cmdline));
 	result = isc_lex_openbuffer(lex, &source);
 	check_result(result, "isc_lex_openbuffer");
 
@@ -797,25 +914,25 @@ update_addordelete(isc_boolean_t isdelete) {
 }
 
 static isc_uint16_t
-evaluate_update(void) {
-	char *ptr;
+evaluate_update(char *cmdline) {
+	char *word;
 	isc_boolean_t isdelete;
 
 	ddebug ("evaluate_update()");
-	ptr = strtok(NULL, " \t\r\n");
-	if (ptr == NULL) {
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL) {
 		puts ("failed to read operation code");
 		return (STATUS_SYNTAX);
 	}
-	if (strcasecmp(ptr, "delete") == 0)
+	if (strcasecmp(word, "delete") == 0)
 		isdelete = ISC_TRUE;
-	else if (strcasecmp(ptr, "add") == 0)
+	else if (strcasecmp(word, "add") == 0)
 		isdelete = ISC_FALSE;
 	else {
-		printf ("incorrect operation code: %s\n",ptr);
+		printf ("incorrect operation code: %s\n", word);
 		return (STATUS_SYNTAX);
 	}
-	return (update_addordelete(isdelete));
+	return (update_addordelete(cmdline, isdelete));
 }
 
 static void
@@ -839,35 +956,37 @@ show_message(void) {
 
 static isc_uint16_t
 get_next_command(void) {
-	char cmdline[MAXCMD];
-	char *ptr;
+	char cmdlinebuf[MAXCMD];
+	char *cmdline;
+	char *word;
 
 	ddebug ("get_next_command()");
 	fputs ("> ", stderr);
-	fgets (cmdline, MAXCMD, stdin);
-	ptr = strtok(cmdline, " \t\r\n");
+	fgets (cmdlinebuf, MAXCMD, stdin);
+	cmdline = cmdlinebuf;
+	word = nsu_strsep(&cmdline, " \t\r\n");
 
 	if (feof(stdin))
-		return(STATUS_QUIT);
-	if (ptr == NULL)
-		return(STATUS_SEND);
-	if (strcasecmp(ptr,"quit") == 0)
-		return(STATUS_QUIT);
-	if (strcasecmp(ptr,"prereq") == 0)
-		return(evaluate_prereq());
-	if (strcasecmp(ptr,"update") == 0)
-		return(evaluate_update());
-	if (strcasecmp(ptr,"server") == 0)
-		return(evaluate_server());
-	if (strcasecmp(ptr,"zone") == 0)
-		return(evaluate_zone());
-	if (strcasecmp(ptr,"send") == 0)
-		return(STATUS_SEND);
-	if (strcasecmp(ptr,"show") == 0) {
+		return (STATUS_QUIT);
+	if (word == NULL)
+		return (STATUS_SEND);
+	if (strcasecmp(word, "quit") == 0)
+		return (STATUS_QUIT);
+	if (strcasecmp(word, "prereq") == 0)
+		return (evaluate_prereq(cmdline));
+	if (strcasecmp(word, "update") == 0)
+		return (evaluate_update(cmdline));
+	if (strcasecmp(word, "server") == 0)
+		return (evaluate_server(cmdline));
+	if (strcasecmp(word, "zone") == 0)
+		return (evaluate_zone(cmdline));
+	if (strcasecmp(word, "send") == 0)
+		return (STATUS_SEND);
+	if (strcasecmp(word, "show") == 0) {
 		show_message();
 		return (STATUS_MORE);
 	}
-	printf ("incorrect section name: %s\n", ptr);
+	printf ("incorrect section name: %s\n", word);
 	return (STATUS_SYNTAX);
 }
 
@@ -876,9 +995,8 @@ user_interaction(void) {
 	isc_uint16_t result = STATUS_MORE;
 
 	ddebug ("user_interaction()");
-	while ((result == STATUS_MORE) || (result == STATUS_SYNTAX)) {
+	while ((result == STATUS_MORE) || (result == STATUS_SYNTAX))
 		result = get_next_command();
-	}
 	if (result == STATUS_SEND)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
@@ -1144,6 +1262,13 @@ start_update(void) {
 	dns_name_t *firstname;
 
 	ddebug ("start_update()");
+
+	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
+	if (result != ISC_R_SUCCESS) {
+		busy = ISC_FALSE;
+		return;
+	}
+
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
 				    &soaquery);
 	check_result(result, "dns_message_create");
@@ -1159,11 +1284,6 @@ start_update(void) {
 	dns_rdataset_makequestion(rdataset, dns_rdataclass_in,
 				  dns_rdatatype_soa);
 
-	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
-	if (result != ISC_R_SUCCESS) {
-		busy = ISC_FALSE;
-		return;
-	}
 	firstname = NULL;
 	dns_message_currentname(updatemsg, DNS_SECTION_UPDATE, &firstname);
 	dns_name_init(name, NULL);
