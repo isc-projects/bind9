@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.120 2000/05/20 01:32:46 explorer Exp $ */
+/* $Id: zone.c,v 1.121 2000/05/20 21:24:41 gson Exp $ */
 
 #include <config.h>
 
@@ -3240,12 +3240,12 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDREFRESH)) {
 			zone->flags &= ~DNS_ZONE_F_NEEDREFRESH;
 			zone->refreshtime = now;
-			zone->expire = now + zone->expire;
+			zone->expiretime = now + zone->expire;
 		} else {
 			zone->refreshtime = now + zone->refresh;
-			zone->expire = now + zone->expire;
+			zone->expiretime = now + zone->expire;
 		}
-
+	
 		break;
 
 	default:
