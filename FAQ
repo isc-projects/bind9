@@ -447,3 +447,8 @@ A: This is usually a configuration error.
    ensure that /etc/rndc.conf has the correct ownership and that
    a copy is in the chroot area.  You can do this by re-running
    "rndc-confgen -a" with appropriate -t and -u arguements.
+
+
+Q: I don't get RRSIG's returned when I use "dig +dnssec".
+
+A: You need to ensure DNSSEC is enabled (dnssec-enable yes;).
