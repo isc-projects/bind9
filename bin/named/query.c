@@ -121,8 +121,8 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	 * Cancel the fetch if it's running.
 	 */
 	if (client->query.fetch != NULL) {
-		dns_resolver_cancelfetch(client->view->resolver,
-					 client->query.fetch);
+		dns_resolver_cancelfetch(client->query.fetch);
+					 
 		client->query.fetch = NULL;
 	}
 
@@ -1662,7 +1662,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->query.fetch == NULL);
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
-	dns_resolver_destroyfetch(client->view->resolver, &devent->fetch);
+	dns_resolver_destroyfetch(&devent->fetch);
 
 	/*
 	 * If this client is shutting down, or this transaction
