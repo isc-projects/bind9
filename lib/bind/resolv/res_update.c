@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.6.2.1 2002/02/20 00:43:46 gson Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.6.2.2 2002/02/26 23:13:33 halley Exp $";
 #endif /* not lint */
 
 /*
@@ -100,6 +100,7 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 
 	/* Thread all of the updates onto a list of groups. */
 	INIT_LIST(zgrps);
+	memset(&tgrp, 0, sizeof (tgrp));
 	for (rrecp = rrecp_in; rrecp;
 	     rrecp = LINKED(rrecp, r_link) ? NEXT(rrecp, r_link) : NULL) {
 		struct in_addr addrs[MAXNS];
@@ -120,8 +121,14 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 			goto done;
 		}
 		for (i = 0; i < nscnt; i++) {
+			memset(&tgrp.z_nsaddrs[i], 0,
+			       sizeof(tgrp.z_nsaddrs[i]));
 			tgrp.z_nsaddrs[i].sin.sin_addr = addrs[i];
 			tgrp.z_nsaddrs[i].sin.sin_family = AF_INET;
+#ifdef HAVE_SA_LEN
+			tgrp.z_nsaddrs[i].sin.sin_len =
+					 sizeof(tgrp.z_nsaddrs[i].sin);
+#endif
 			tgrp.z_nsaddrs[i].sin.sin_port = htons(53);
 		}
 		tgrp.z_nscount = nscnt;
