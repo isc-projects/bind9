@@ -35,7 +35,9 @@
 
 1816.	[placeholder]	rt13597
 
-1815.	[placeholder]	rt13086
+1815.	[bug]		nsupdate triggered a REQUIRE if the server was set
+			without also setting the zone and it encountered
+			a CNAME and was using TSIG.  [RT #13086]
 
 1814.	[func]		UNIX domain controls are now supported.
 

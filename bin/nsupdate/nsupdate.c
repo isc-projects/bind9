@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.135 2004/09/16 02:10:42 marka Exp $ */
+/* $Id: nsupdate.c,v 1.136 2005/03/16 01:02:33 marka Exp $ */
 
 #include <config.h>
 
@@ -1634,6 +1634,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(soaquery);
+		dns_message_settsigkey(soaquery, NULL);
 		sendrequest(localaddr, &servers[ns_inuse], soaquery, &request);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		isc_event_free(&event);
@@ -1813,6 +1814,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_name_clone(&tname, name);
 	dns_request_destroy(&request);
 	dns_message_renderreset(soaquery);
+	dns_message_settsigkey(soaquery, NULL);
 	if (userserver != NULL)
 		sendrequest(localaddr, userserver, soaquery, &request);
 	else
