@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.124 2000/09/13 00:27:23 mws Exp $ */
+/* $Id: dighost.c,v 1.125 2000/09/13 00:55:13 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -163,9 +163,9 @@ hex_dump(isc_buffer_t *b) {
 	unsigned int len;
 	isc_region_t r;
 
-	isc_buffer_remainingregion(b, &r);
+	isc_buffer_usedregion(b, &r);
 
-	printf("Printing a buffer with length %d\n", r.length);
+	printf("%d bytes\n", r.length);
 	for (len = 0; len < r.length; len++) {
 		printf("%02x ", r.base[len]);
 		if (len != 0 && len % 16 == 0)
@@ -1979,11 +1979,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			       dns_result_totext(result));
 			hex_dump(b);
 			query->waiting_connect = ISC_FALSE;
-			if (!l->tcp_mode) {
-				printf(";; Retrying in TCP mode.\n");
-				n = requeue_lookup(l, ISC_TRUE);
-				n->tcp_mode = ISC_TRUE;
-			}
 			dns_message_destroy(&msg);
 			isc_event_free(&event);
 			clear_query(query);
