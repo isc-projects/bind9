@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.45 2000/12/22 19:39:01 gson Exp $ */
+/* $Id: request.c,v 1.45.2.1 2001/01/03 20:45:40 gson Exp $ */
 
 #include <config.h>
 
@@ -87,13 +87,16 @@ struct dns_request {
 };
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
-#define DNS_REQUEST_F_CANCELED 0x0002
-#define DNS_REQUEST_F_TIMEDOUT 0x0004	/* cancelled due to a timeout */
-#define DNS_REQUEST_F_TCP 0x0008	/* This request used TCP */
+#define DNS_REQUEST_F_SENDING 0x0002
+#define DNS_REQUEST_F_CANCELED 0x0004
+#define DNS_REQUEST_F_TIMEDOUT 0x0008	/* cancelled due to a timeout */
+#define DNS_REQUEST_F_TCP 0x0010	/* This request used TCP */
 #define DNS_REQUEST_CANCELED(r) \
 	(((r)->flags & DNS_REQUEST_F_CANCELED) != 0)
 #define DNS_REQUEST_CONNECTING(r) \
 	(((r)->flags & DNS_REQUEST_F_CONNECTING) != 0)
+#define DNS_REQUEST_SENDING(r) \
+	(((r)->flags & DNS_REQUEST_F_SENDING) != 0)
 #define DNS_REQUEST_TIMEDOUT(r) \
 	(((r)->flags & DNS_REQUEST_F_TIMEDOUT) != 0)
 
@@ -416,14 +419,18 @@ static inline isc_result_t
 req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 	isc_region_t r;
 	isc_socket_t *socket;
+	isc_result_t result;
 
 	req_log(ISC_LOG_DEBUG(3), "req_send: request %p", request);
 
 	REQUIRE(VALID_REQUEST(request));
 	socket = dns_dispatch_getsocket(request->dispatch);
 	isc_buffer_usedregion(request->query, &r);
-	return (isc_socket_sendto(socket, &r, task, req_senddone,
-				  request, address, NULL));
+	result = isc_socket_sendto(socket, &r, task, req_senddone,
+				  request, address, NULL);
+	if (result == ISC_R_SUCCESS)
+		request->flags |= DNS_REQUEST_F_SENDING;
+	return (result);
 }
 
 isc_result_t
@@ -1107,7 +1114,8 @@ dns_request_cancel(dns_request_t *request) {
 	LOCK(&request->requestmgr->locks[request->hash]);
 	if (!DNS_REQUEST_CANCELED(request)) {
 		req_cancel(request);
-		if (!DNS_REQUEST_CONNECTING(request))
+		if (!DNS_REQUEST_CONNECTING(request) &&
+		    !DNS_REQUEST_SENDING(request))
 			req_sendevent(request, ISC_R_CANCELED);
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
@@ -1158,6 +1166,7 @@ dns_request_destroy(dns_request_t **requestp) {
 	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
 	UNLOCK(&request->requestmgr->lock);
 	INSIST(!DNS_REQUEST_CONNECTING(request));
+	INSIST(!DNS_REQUEST_SENDING(request));
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
 	req_destroy(request);
@@ -1214,13 +1223,28 @@ req_senddone(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 	REQUIRE(VALID_REQUEST(request));
+	REQUIRE(DNS_REQUEST_SENDING(request));
 
 	req_log(ISC_LOG_DEBUG(3), "req_senddone: request %p", request);
 
 	UNUSED(task);
 
-	if (sevent->result != ISC_R_SUCCESS)
-		dns_request_cancel(request);
+	LOCK(&request->requestmgr->locks[request->hash]);
+	request->flags &= ~DNS_REQUEST_F_SENDING;
+
+	if (DNS_REQUEST_CANCELED(request)) {
+		/*
+		 * Send delayed event.
+		 */
+		if (DNS_REQUEST_TIMEDOUT(request))
+			req_sendevent(request, ISC_R_TIMEDOUT);
+		else
+			req_sendevent(request, ISC_R_CANCELED);
+	} else if (sevent->result != ISC_R_SUCCESS) {
+			req_cancel(request);
+			req_sendevent(request, ISC_R_CANCELED);
+	}
+	UNLOCK(&request->requestmgr->locks[request->hash]);
 
 	isc_event_free(&event);
 }
@@ -1281,7 +1305,8 @@ req_timeout(isc_task_t *task, isc_event_t *event) {
 	LOCK(&request->requestmgr->locks[request->hash]);
 	request->flags |= DNS_REQUEST_F_TIMEDOUT;
 	req_cancel(request);
-	if (!DNS_REQUEST_CONNECTING(request))
+	if (!DNS_REQUEST_CONNECTING(request) &&
+	    !DNS_REQUEST_SENDING(request))
 		req_sendevent(request, ISC_R_TIMEDOUT);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 	isc_event_free(&event);
@@ -1355,6 +1380,10 @@ req_cancel(dns_request_t *request) {
 	if (DNS_REQUEST_CONNECTING(request)) {
 		socket = dns_dispatch_getsocket(request->dispatch);
 		isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_CONNECT);
+	}
+	if (DNS_REQUEST_SENDING(request)) {
+		socket = dns_dispatch_getsocket(request->dispatch);
+		isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_SEND);
 	}
 	dns_dispatch_detach(&request->dispatch);
 }
