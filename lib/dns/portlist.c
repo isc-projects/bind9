@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.c,v 1.2 2003/02/26 05:05:15 marka Exp $ */
+/* $Id: portlist.c,v 1.3 2003/03/20 00:19:55 marka Exp $ */
 
 #include <stdlib.h>
 
@@ -96,30 +96,30 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 
 static dns_element_t *
 find_port(dns_element_t *list, unsigned int len, in_port_t port) {
-	unsigned int try = len / 2;
+	unsigned int xtry = len / 2;
 	unsigned int min = 0;
 	unsigned int max = len - 1;
 	unsigned int last = len;
 
 	while (1) {
-		if (list[try].port == port)
-			return (&list[try]);
-	        if (port > list[try].port) {
-			if (try == max)
+		if (list[xtry].port == port)
+			return (&list[xtry]);
+	        if (port > list[xtry].port) {
+			if (xtry == max)
 				return (NULL);
-			min = try;
-			try = try + (max - try + 1) / 2;
-			INSIST(try <= max);
-			if (try == last)
+			min = xtry;
+			xtry = xtry + (max - xtry + 1) / 2;
+			INSIST(xtry <= max);
+			if (xtry == last)
 				return (NULL);
 			last = min;
 		} else {
-			if (try == min)
+			if (xtry == min)
 				return (NULL);
-			max = try;
-			try = try - (try - min + 1) / 2;
-			INSIST(try >= min);
-			if (try == last)
+			max = xtry;
+			xtry = xtry - (xtry - min + 1) / 2;
+			INSIST(xtry >= min);
+			if (xtry == last)
 				return (NULL);
 			last = max;
 		}
