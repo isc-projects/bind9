@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.1 2000/04/28 00:36:56 tale Exp $ */
+/* $Id: offset.h,v 1.2 2000/04/28 00:39:11 tale Exp $ */
 
 #ifndef ISC_OFFSET_T
 #define ISC_OFFSET_T 1
@@ -26,6 +26,6 @@
 
 #include <sys/types.h>
 
-typedef isc_offset_t off_t;
+typedef off_t isc_offset_t;
 
 #endif /* ISC_OFFSET_T */
