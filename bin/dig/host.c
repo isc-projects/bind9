@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.72 2001/07/27 06:11:09 bwelling Exp $ */
+/* $Id: host.c,v 1.73 2001/07/28 00:11:13 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -419,7 +419,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	 * still following pointers, haven't gotten to the real NS records
 	 * yet, don't print anything.
 	 */
-	if (query->lookup->ns_search_only && !query->lookup->ns_search_only_leafnode)
+	if (query->lookup->ns_search_only)
 		return (ISC_R_SUCCESS);
 
 	if (listed_server) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.68 2001/07/27 05:26:38 bwelling Exp $ */
+/* $Id: dig.h,v 1.69 2001/07/28 00:11:15 bwelling Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -83,7 +83,6 @@ struct dig_lookup {
 		waiting_connect,
 		doing_xfr,
 		ns_search_only,
-		ns_search_only_leafnode,
 		identify, /* Append an "on server <foo>" message */
 		identify_previous_line, /* Prepend a "Nameserver <foo>:"
 					   message, with newline and tab */
@@ -109,6 +108,7 @@ struct dig_lookup {
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
+	dns_rdatatype_t qrdtype;
 	dns_rdataclass_t rdclass;
 	isc_boolean_t rdtypeset;
 	isc_boolean_t rdclassset;

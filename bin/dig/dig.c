@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.153 2001/07/27 06:45:20 bwelling Exp $ */
+/* $Id: dig.c,v 1.154 2001/07/28 00:11:09 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -758,7 +758,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				lookup->section_additional = ISC_FALSE;
 				lookup->section_authority = ISC_FALSE;
 				lookup->section_question = ISC_FALSE;
-				lookup->rdtype = dns_rdatatype_soa;
+				lookup->rdtype = dns_rdatatype_ns;
 				lookup->rdtypeset = ISC_TRUE;
 				short_form = ISC_TRUE;
 			}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.215 2001/07/27 22:07:10 bwelling Exp $ */
+/* $Id: dighost.c,v 1.216 2001/07/28 00:11:11 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -350,6 +350,7 @@ make_empty_lookup(void) {
 	looknew->textname[0] = 0;
 	looknew->cmdline[0] = 0;
 	looknew->rdtype = dns_rdatatype_a;
+	looknew->qrdtype = dns_rdatatype_a;
 	looknew->rdclass = dns_rdataclass_in;
 	looknew->rdtypeset = ISC_FALSE;
 	looknew->rdclassset = ISC_FALSE;
@@ -376,7 +377,6 @@ make_empty_lookup(void) {
 	looknew->adflag = ISC_FALSE;
 	looknew->cdflag = ISC_FALSE;
 	looknew->ns_search_only = ISC_FALSE;
-	looknew->ns_search_only_leafnode = ISC_FALSE;
 	looknew->origin = NULL;
 	looknew->querysig = NULL;
 	looknew->retries = tries;
@@ -421,6 +421,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	strncpy(looknew->cmdline, lookold->cmdline, MXNAME);
 	looknew->textname[MXNAME-1] = 0;
 	looknew->rdtype = lookold->rdtype;
+	looknew->qrdtype = lookold->qrdtype;
 	looknew->rdclass = lookold->rdclass;
 	looknew->rdtypeset = lookold->rdtypeset;
 	looknew->rdclassset = lookold->rdclassset;
@@ -440,7 +441,6 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
 	looknew->ns_search_only = lookold->ns_search_only;
-	looknew->ns_search_only_leafnode = lookold->ns_search_only_leafnode;
 	looknew->tcp_mode = lookold->tcp_mode;
 	looknew->comments = lookold->comments;
 	looknew->stats = lookold->stats;
@@ -1047,7 +1047,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			dns_rdata_freestruct(&ns);
 
 			/* Initialize lookup if we've not yet */
-			debug("found NS %d %s", namestr);
+			debug("found NS %d %s", numLookups, namestr);
 			numLookups++;
 			if (!success) {
 				success = ISC_TRUE;
@@ -1056,16 +1056,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				lookup = requeue_lookup(query->lookup,
 							ISC_FALSE);
 				lookup->doing_xfr = ISC_FALSE;
-				if (section == DNS_SECTION_ANSWER) {
-					lookup->trace = ISC_FALSE;
-					lookup->ns_search_only = ISC_FALSE;
-				} else {
-					lookup->trace = query->lookup->trace;
-					lookup->ns_search_only =
-						query->lookup->ns_search_only;
-					lookup->ns_search_only_leafnode =
-						query->lookup->ns_search_only_leafnode;
-				}
+				lookup->trace = query->lookup->trace;
+				lookup->ns_search_only = ISC_FALSE;
 				lookup->trace_root = ISC_FALSE;
 			}
 			srv = make_server(namestr);
@@ -1166,7 +1158,7 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_rdatalist_init(rdatalist);
 	rdatalist->type = dns_rdatatype_soa;
 	rdatalist->rdclass = lookup->rdclass;
-	rdatalist->covers = dns_rdatatype_soa;
+	rdatalist->covers = 0;
 	rdatalist->ttl = 1;
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
@@ -1260,7 +1252,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			      lookup->origin->origin,
 			      isc_result_totext(result));
 		}
-		if (lookup->trace_root) {
+		if (lookup->trace && lookup->trace_root) {
 			dns_name_clone(dns_rootname, lookup->name);
 		} else {
 			len = strlen(lookup->textname);
@@ -1281,7 +1273,9 @@ setup_lookup(dig_lookup_t *lookup) {
 		dns_message_puttempname(lookup->sendmsg, &lookup->oname);
 	} else {
 		debug("using root origin");
-		if (!lookup->trace_root) {
+		if (lookup->trace && lookup->trace_root)
+			dns_name_clone(dns_rootname, lookup->name);
+		else {
 			len = strlen(lookup->textname);
 			isc_buffer_init(&b, lookup->textname, len);
 			isc_buffer_add(&b, len);
@@ -1289,8 +1283,6 @@ setup_lookup(dig_lookup_t *lookup) {
 						   dns_rootname,
 						   ISC_FALSE,
 						   &lookup->namebuf);
-		} else {
-			dns_name_clone(dns_rootname, lookup->name);
 		}
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
@@ -1312,7 +1304,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * If this is a trace request, completely disallow recursion, since
 	 * it's meaningless for traces.
 	 */
-	if (lookup->recurse && !lookup->trace && !lookup->ns_search_only) {
+	if (lookup->trace || (lookup->ns_search_only && !lookup->trace_root))
+		lookup->recurse = ISC_FALSE;
+
+	if (lookup->recurse) {
 		debug("recursive query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
 	}
@@ -1336,8 +1331,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	dns_message_addname(lookup->sendmsg, lookup->name,
 			    DNS_SECTION_QUESTION);
 
-	if (lookup->trace_root)
-		lookup->rdtype = dns_rdatatype_soa;
+	if (lookup->trace && lookup->trace_root) {
+		lookup->qrdtype = lookup->rdtype;
+		lookup->rdtype = dns_rdatatype_ns;
+	}
 
 	if ((lookup->rdtype == dns_rdatatype_axfr) ||
 	    (lookup->rdtype == dns_rdatatype_ixfr)) {
@@ -1352,7 +1349,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	add_question(lookup->sendmsg, lookup->name, lookup->rdclass,
 		     lookup->rdtype);
 
-	/* XXX add_soa */
+	/* add_soa */
 	if (lookup->rdtype == dns_rdatatype_ixfr)
 		insert_soa(lookup);
 
@@ -1651,7 +1648,7 @@ send_tcp_connect(dig_query_t *query) {
 	 * If we're at the endgame of a nameserver search, we need to
 	 * immediately bring up all the queries.  Do it here.
 	 */
-	if (l->ns_search_only_leafnode) {
+	if (l->ns_search_only && !l->trace_root) {
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
 		if (next != NULL)
@@ -1729,7 +1726,7 @@ send_udp(dig_query_t *query) {
 	 * If we're at the endgame of a nameserver search, we need to
 	 * immediately bring up all the queries.  Do it here.
 	 */
-	if (l->ns_search_only_leafnode) {
+	if (l->ns_search_only && !l->trace_root) {
 		debug("sending next, since searching");
 		next = ISC_LIST_NEXT(query, link);
 		if (next != NULL)
@@ -2176,7 +2173,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dig_lookup_t *n, *l;
 	isc_boolean_t docancel = ISC_FALSE;
-	unsigned int local_timeout;
 	unsigned int parseflags;
 
 	UNUSED(task);
@@ -2199,8 +2195,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	if ((l->tcp_mode) && (l->timer != NULL))
 		isc_timer_touch(l->timer);
-	if ((!l->pending && !l->ns_search_only && !l->ns_search_only_leafnode)
-	    || cancel_now) {
+	if ((!l->pending && !l->ns_search_only) || cancel_now) {
 		debug("no longer pending.  Got %s",
 			isc_result_totext(sevent->result));
 		query->waiting_connect = ISC_FALSE;
@@ -2252,6 +2247,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			msg->tcp_continuation = 1;
 		l->msgcounter++;
 	}
+
 	debug("before parse starts");
 	parseflags = DNS_MESSAGEPARSE_PRESERVEORDER;
 	if (l->besteffort)
@@ -2335,14 +2331,16 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	debug("after parse");
-	if (l->xfr_q == NULL) {
+	if (l->doing_xfr && l->xfr_q == NULL) {
 		l->xfr_q = query;
 		/*
 		 * Once we are in the XFR message, increase
 		 * the timeout to much longer, so brief network
 		 * outages won't cause the XFR to abort
 		 */
-		if (timeout != INT_MAX && l->timer != NULL && l->doing_xfr) {
+		if (timeout != INT_MAX && l->timer != NULL) {
+			unsigned int local_timeout;
+
 			if (timeout == 0) {
 				if (l->tcp_mode)
 					local_timeout = TCP_TIMEOUT;
@@ -2364,95 +2362,54 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			check_result(result, "isc_timer_reset");
 		}
 	}
-	if (l->xfr_q == query) {
-		if (l->trace || l->ns_search_only) {
-			debug("in TRACE code");
-			printmessage(query, msg, ISC_TRUE);
-			if (msg->rcode != dns_rcode_noerror &&
-			    l->origin != NULL)
-			{
-				if (!next_origin(msg, query)) {
-					printmessage(query, msg, ISC_TRUE);
-					received(b->used, &sevent->address,
-						 query);
-				}
-			} else {
-				result = dns_message_firstname(msg,
-							DNS_SECTION_ANSWER);
-				if (l->ns_search_only) {
-					if (result != ISC_R_SUCCESS ||
-					    l->trace_root)
-					{
-						/*
-						 * We didn't get an answer
-						 * section, or else this is
-						 * the first initial SOA query
-						 * (in which case we will in
-						 * fact get an answer section
-						 * but it won't be the right
-						 * one).  In either case, our
-						 * next query should be an NS.
-						 */
-						l->rdtype = dns_rdatatype_ns;
-					} else {
-						/*
-						 * We got an answer section for
-						 * our NS query! Yay!  Now we
-						 * shift gears, set the
-						 * leafnode bit and look for
-						 * SOAs in all the servers we
-						 * got back in our answer
-						 * section.
-						 */
-						l->rdtype = dns_rdatatype_soa;
-						l->ns_search_only_leafnode = ISC_TRUE;
-						if (followup_lookup(msg, query,
-							DNS_SECTION_ANSWER) == 0)
-						{
-							docancel = ISC_TRUE;
-						}
-					}
-				}
-				if ((result != ISC_R_SUCCESS) ||
-				    l->trace_root)
-				{
-					/*
-					 * This is executed regardless of
-					 * whether we're doing ns_search_only,
-					 * but because of the way the logic
-					 * works, it's mutually exclusive with
-					 * the other call to followup_lookup
-					 * above. This is a good thing because
-					 * we want to call followup_lookup
-					 * at most once per query.
-					 * 
-					 * The idea here is that if we didn't
-					 * get an answer section (or if it's
-					 * the initial root query) then we want
-					 * to take whatever is in the authority
-					 * section and follow up with them.
-					 */
-					if (followup_lookup(msg, query,
-						DNS_SECTION_AUTHORITY)
-						== 0)
-					{
-						docancel = ISC_TRUE;
-					}
-				}
-			}
-		} else if (msg->rcode != dns_rcode_noerror &&
-			   l->origin != NULL)
-		{
+
+	if (!l->doing_xfr || l->xfr_q == query) {
+		if (msg->rcode != dns_rcode_noerror && l->origin != NULL) {
 			if (!next_origin(msg, query)) {
 				printmessage(query, msg, ISC_TRUE);
 				received(b->used, &sevent->address, query);
 			}
-		} else {
-			printmessage(query, msg, ISC_TRUE);
 		}
+		else if (!l->trace && !l->ns_search_only) {
+			printmessage(query, msg, ISC_TRUE);
+		} else if (l->ns_search_only) {
+			debug("in NSSEARCH code");
+			printmessage(query, msg, ISC_TRUE);
+
+			if (l->trace_root) {
+				/*
+				 * This is the initial NS query. 
+				 */
+				int n;
+
+				l->trace_root = ISC_FALSE;
+				l->rdtype = dns_rdatatype_soa;
+				n = followup_lookup(msg, query,
+						    DNS_SECTION_ANSWER);
+				if (n == 0)
+					docancel = ISC_TRUE;
+			}
+		} else {
+			int n = 0;
+			int count = msg->counts[DNS_SECTION_ANSWER];
+
+			debug("in TRACE code");
+			printmessage(query, msg, ISC_TRUE);
+
+			l->rdtype = l->qrdtype;
+			if (l->trace_root) {
+				l->trace_root = ISC_FALSE;
+				n = followup_lookup(msg, query,
+						    DNS_SECTION_ANSWER);
+			} else if (count == 0)
+				n = followup_lookup(msg, query,
+						    DNS_SECTION_AUTHORITY);
+			if (n == 0)
+				docancel = ISC_TRUE;
+		} 
 	} else if (msg->counts[DNS_SECTION_ANSWER] > 0 &&
-		   (l->ns_search_only || l->ns_search_only_leafnode) &&
-		   !l->trace_root ) {
+		   l->ns_search_only &&
+		   !l->trace_root) {
 		printmessage(query, msg, ISC_TRUE);
 	}
 
@@ -2474,29 +2431,23 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			cancel_lookup(l);
 			check_next_lookup(l);
 		}
-		if (msg != NULL)
-			dns_message_destroy(&msg);
-		isc_event_free(&event);
 	} else {
-		if ((msg->rcode == 0) ||
-		    (l->origin == NULL)) {
+		if (msg->rcode == dns_rcode_noerror || l->origin == NULL)
 			received(b->used, &sevent->address, query);
-		}
-		if (!(query->lookup->ns_search_only ||
-		      query->lookup->ns_search_only_leafnode))
+		if (!query->lookup->ns_search_only)
 			query->lookup->pending = ISC_FALSE;
-		if (!(query->lookup->ns_search_only ||
-		      query->lookup->ns_search_only_leafnode) ||
-		    query->lookup->trace_root || docancel) {
+		if (!query->lookup->ns_search_only ||
+		    query->lookup->trace_root || docancel)
+		{
 			dns_message_destroy(&msg);
 			cancel_lookup(l);
 		}
-		if (msg != NULL)
-			dns_message_destroy(&msg);
-		isc_event_free(&event);
 		clear_query(query);
 		check_next_lookup(l);
 	}
+	if (msg != NULL)
+		dns_message_destroy(&msg);
+	isc_event_free(&event);
 	UNLOCK_LOOKUP;
 }
 
