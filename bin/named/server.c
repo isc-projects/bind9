@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.410 2004/01/27 01:19:41 marka Exp $ */
+/* $Id: server.c,v 1.411 2004/01/27 02:13:22 marka Exp $ */
 
 #include <config.h>
 
@@ -2358,6 +2358,23 @@ load_configuration(const char *filename, ns_server_t *server,
 					      "%s: %s",
 					      randomdev,
 					      isc_result_totext(result));
+#ifdef PATH_RANDOMDEV
+			if (ns_g_fallbackentropy != NULL) {
+				if (result != ISC_R_SUCCESS) {
+					isc_log_write(ns_g_lctx,
+						      NS_LOGCATEGORY_GENERAL,
+						      NS_LOGMODULE_SERVER,
+						      ISC_LOG_INFO,
+						      "using pre-chroot entropy source "
+						      "%s",
+						      PATH_RANDOMDEV);
+					isc_entropy_detach(&ns_g_entropy);
+					isc_entropy_attach(ns_g_fallbackentropy,
+							   &ns_g_entropy);
+				}
+				isc_entropy_detach(&ns_g_fallbackentropy);
+			}
+#endif
 		}
 	}
 
