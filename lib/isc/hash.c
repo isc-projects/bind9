@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.2.2.2 2003/07/25 08:21:45 marka Exp $ */
+/* $Id: hash.c,v 1.2.2.3 2003/07/29 04:30:07 marka Exp $ */
 
 /*
  * Some portion of this code was derived from universal hash function
@@ -245,7 +245,7 @@ isc_hash_ctxinit(isc_hash_t *hctx) {
 					     NULL, 0);
 		INSIST(result == ISC_R_SUCCESS);
 	} else {
-		isc_int32_t pr;
+		isc_uint32_t pr;
 		unsigned int i, copylen;
 		unsigned char *p;
 
