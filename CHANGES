@@ -14,6 +14,8 @@
 1535.	[bug]		When parsing APL records it was possible to silently
 			accept out of range ADDRESSFAMILY values. [RT# 9979]
 
+1534.	[bug]		Race condition when priming cache. [RT# 9940]
+
 1532.	[port]		netbsd: the configure test for <sys/sysctl.h>
 			requires <sys/param.h>.
 
