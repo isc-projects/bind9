@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.19 1999/08/31 22:05:54 halley Exp $ */
+ /* $Id: sig_24.c,v 1.20 1999/08/31 22:09:24 bwelling Exp $ */
 
  /* RFC 2065 */
 
@@ -451,6 +451,7 @@ freestruct_sig(void *source) {
 	REQUIRE(sig->common.rdtype == 24);
 
 	dns_name_free(sig->signer, sig->mctx);
+	isc_mem_put(sig->mctx, sig->signer, sizeof(dns_name_t));
 	if (sig->siglen > 0)
 		isc_mem_put(sig->mctx, sig->signature, sig->siglen);
 }
