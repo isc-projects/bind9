@@ -32,7 +32,7 @@
 
  890.	[cleanup]	The man pages no longer require the mandoc macros
 			and should now format cleanly using most versions of
-			nroff, and HTML versions of the man pages hvae been
+			nroff, and HTML versions of the man pages have been
 			added.  Both are generated from DocBook source.
 
  889.	[port]		Eliminated blank lines before .TH in nroff man
