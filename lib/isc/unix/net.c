@@ -59,7 +59,7 @@ try_proto(int domain) {
 static void
 initialize_action(void) {
 	ipv4_result = try_proto(PF_INET);
-#ifdef ISC_NET_HAVEIPV6
+#ifdef ISC_PLATFORM_HAVEIPV6
 	ipv6_result = try_proto(PF_INET6);
 #endif
 }
