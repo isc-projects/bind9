@@ -121,13 +121,13 @@ BIND 9.1.0b2
 		There are known problems with thread signal handling 
 		under Solaris 2.6.
 
-		On FreeBSD systems, the server logs error messages
-		like "fcntl(8, F_SETFL, 4): Inappropriate ioctl for
-		device".  This is due to a bug in the FreeBSD
-		/dev/random device.  The bug has been reported
-		to the FreeBSD maintainers.  Versions of OpenBSD
-		prior to 2.8 have a similar problem.
-
+		FreeBSD prior to 4.2 and OpenBSD prior to 2.8 log
+		messages like "fcntl(8, F_SETFL, 4): Inappropriate
+		ioctl for device".  This is due to a bug in
+		"/dev/random" and impacts on the servers DNSSEC
+		support.
+		
+		
 		--with-libtool does not work on AIX.
 
 
