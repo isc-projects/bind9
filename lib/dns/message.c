@@ -587,14 +587,16 @@ dns_message_destroy(dns_message_t **msgp)
 }
 
 static dns_result_t
-findname(dns_name_t **foundname, dns_name_t *target, dns_namelist_t *section)
+findname(dns_name_t **foundname, dns_name_t *target, unsigned int attributes,
+	 dns_namelist_t *section)
 {
 	dns_name_t *curr;
 
 	for (curr = ISC_LIST_TAIL(*section) ;
 	     curr != NULL ;
 	     curr = ISC_LIST_PREV(curr, link)) {
-		if (dns_name_equal(curr, target)) {
+		if (dns_name_equal(curr, target) &&
+		    (curr->attributes & attributes) == attributes) {
 			if (foundname != NULL)
 				*foundname = curr;
 			return (DNS_R_SUCCESS);
@@ -777,7 +779,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		 * name since we no longer need it, and set our name pointer
 		 * to point to the name we found.
 		 */
-		result = findname(&name2, name, section);
+		result = findname(&name2, name, 0, section);
 
 		/*
 		 * If it is the first name in the section, accept it.
@@ -890,8 +892,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	   dns_section_t sectionid, isc_boolean_t preserve_order)
 {
 	isc_region_t r;
-	unsigned int count;
-	unsigned int rdatalen;
+	unsigned int count, rdatalen, attributes;
 	dns_name_t *name;
 	dns_name_t *name2;
 	dns_rdataset_t *rdataset;
@@ -905,10 +906,11 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
 		int recstart = source->current;
-		isc_boolean_t skip_search;
+		isc_boolean_t skip_name_search, skip_type_search;
 		section = &msg->sections[sectionid];
 
-		skip_search = ISC_FALSE;
+		skip_name_search = ISC_FALSE;
+		skip_type_search = ISC_FALSE;
 		name = isc_mempool_get(msg->namepool);
 		if (name == NULL)
 			return (DNS_R_NOMEMORY);
@@ -969,7 +971,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				return (DNS_R_FORMERR);
 			section = &msg->sections[DNS_SECTION_TSIG];
 			msg->tsigstart = recstart;
-			skip_search = ISC_TRUE;
+			skip_name_search = ISC_TRUE;
+			skip_type_search = ISC_TRUE;
 		} else if (rdtype == dns_rdatatype_opt) {
 			/*
 			 * The name of an OPT record must be ".", it
@@ -980,7 +983,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			    sectionid != DNS_SECTION_ADDITIONAL ||
 			    msg->opt != NULL)
 				return (DNS_R_FORMERR);
-			skip_search = ISC_TRUE;
+			skip_name_search = ISC_TRUE;
+			skip_type_search = ISC_TRUE;
 		}
 		
 		/*
@@ -993,11 +997,49 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			return (DNS_R_UNEXPECTEDEND);
 
 		/*
+		 * Read the rdata from the wire format.  Interpret the 
+		 * rdata according to its actual class, even if it had a
+		 * DynDNS meta-class in the packet (unless this is a TSIG).
+		 * Then put the meta-class back into the finished rdata.
+		 */
+		rdata = newrdata(msg);
+		if (rdata == NULL)
+			return (DNS_R_NOMEMORY);
+		attributes = 0;
+		if (rdtype != dns_rdatatype_tsig) {
+			if (rdtype == dns_rdatatype_cname) {
+				name->attributes |= DNS_NAMEATTR_CNAME;
+				attributes = DNS_NAMEATTR_CNAME;
+				skip_name_search = ISC_TRUE;
+			} else if (rdtype == dns_rdatatype_dname) {
+				name->attributes |= DNS_NAMEATTR_DNAME;
+				attributes = DNS_NAMEATTR_DNAME;
+				skip_name_search = ISC_TRUE;
+			}
+			result = getrdata(name, source, msg, dctx,
+					  msg->rdclass, rdtype,
+					  rdatalen, rdata);
+		} else
+			result = getrdata(name, source, msg, dctx,
+					  rdclass, rdtype, rdatalen, rdata);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+		rdata->rdclass = rdclass;
+		if (rdtype == dns_rdatatype_sig && rdata->length > 0) {
+			covers = dns_rdata_covers(rdata);
+			if (covers == dns_rdatatype_cname)
+				attributes = DNS_NAMEATTR_CNAME;
+			else if (covers == dns_rdatatype_dname)
+				attributes = DNS_NAMEATTR_DNAME;
+		} else
+			covers = 0;
+
+		/*
 		 * If we are doing a dynamic update don't bother searching
 		 * for a name, just append this one to the end of the message.
 		 */
 		if (preserve_order || msg->opcode == dns_opcode_update ||
-		    skip_search) {
+		    skip_name_search) {
 			if (rdtype != dns_rdatatype_opt)
 				ISC_LIST_APPEND(*section, name, link);
 		} else {
@@ -1007,7 +1049,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * allocated name since we no longer need it, and set
 			 * our name pointer to point to the name we found.
 			 */
-			result = findname(&name2, name, section);
+			result = findname(&name2, name, attributes, section);
 
 			/*
 			 * If it is a new name, append to the section.
@@ -1021,35 +1063,11 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		}
 
 		/*
-		 * Read the rdata from the wire format.  Interpret the 
-		 * rdata according to its actual class, even if it had a
-		 * DynDNS meta-class in the packet (unless this is a TSIG).
-		 * Then put the meta-class back into the finished rdata.
-		 */
-		rdata = newrdata(msg);
-		if (rdata == NULL)
-			return (DNS_R_NOMEMORY);
-		if (rdtype != dns_rdatatype_tsig)
-			result = getrdata(name, source, msg, dctx,
-					  msg->rdclass, rdtype,
-					  rdatalen, rdata);
-		else
-			result = getrdata(name, source, msg, dctx,
-					  rdclass, rdtype, rdatalen, rdata);
-		if (result != DNS_R_SUCCESS)
-			return (result);
-		rdata->rdclass = rdclass;
-		if (rdtype == dns_rdatatype_sig && rdata->length > 0)
-			covers = dns_rdata_covers(rdata);
-		else
-			covers = 0;
-
-		/*
 		 * Search name for the particular type and class.
 		 * Skip this stage if in update mode, or this is a TSIG.
 		 */
 		if (preserve_order || msg->opcode == dns_opcode_update ||
-		    skip_search)
+		    skip_type_search)
 			result = DNS_R_NOTFOUND;
 		else {
 			rdataset = NULL;
@@ -1063,6 +1081,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * to create a new rdatalist, store the important bits there,
 		 * convert it to an rdataset, and link the latter to the name.
 		 * Yuck.
+		 *
+		 * XXXRTH  Check for attempts to create multi-record RRsets
+		 *	   for singleton RR types.
 		 */
 		if (result == DNS_R_NOTFOUND) {
 			rdataset = isc_mempool_get(msg->rdspool);
@@ -1555,8 +1576,11 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 
 	/*
 	 * Search through, looking for the name.
+	 *
+	 * XXXRTH  We should probably allow the 'attributes' parameter
+	 *         to be set in the public API.
 	 */
-	result = findname(&foundname, target, &msg->sections[section]);
+	result = findname(&foundname, target, 0, &msg->sections[section]);
 	if (result == DNS_R_NOTFOUND)
 		return (DNS_R_NXDOMAIN);
 	else if (result != DNS_R_SUCCESS)
