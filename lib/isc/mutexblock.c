@@ -19,6 +19,7 @@
 
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
+#include <isc/result.h>
 
 isc_result_t
 isc_mutexblock_init(isc_mutex_t *block, unsigned int count) {

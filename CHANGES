@@ -1,3 +1,6 @@
+  96.   [cleanup]       <isc/mutex.h> does not need <isc/lang.h> or
+                        <isc/result.h>.
+
   95.   [cleanup]       <isc/mutexblock.h> does not need <isc/result.h>.
 
   94.   [cleanup]       Some installed header files did not compile as C++.

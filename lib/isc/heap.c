@@ -33,6 +33,7 @@
 #include <isc/assertions.h>
 #include <isc/heap.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 
 /*
  * Note: to make heap_parent and heap_left easy to compute, the first

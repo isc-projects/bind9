@@ -28,6 +28,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/ondestroy.h>
+#include <isc/result.h>
 
 #ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>
