@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.125 $)
+AC_REVISION($Revision: 1.126 $)
 
 AC_PREREQ(2.13)
 
@@ -615,8 +615,6 @@ case "$enable_ipv6" in
 		found_ipv6=no
 		;;
 esac
-
-echo "======= $found_ipv6"
 
 case "$found_ipv6" in
 	yes)
