@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.90 2001/02/07 05:11:57 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.91 2001/02/08 18:25:09 gson Exp $ */
 
 #include <config.h>
 
@@ -107,7 +107,6 @@ struct dns_dispatch {
 	isc_socket_t	       *socket;		/* isc socket attached to */
 	isc_sockaddr_t		local;		/* local address */
 	unsigned int		maxrequests;	/* max requests */
-	dns_acl_t	       *blackhole;
 	isc_event_t	       *ctlevent;
 
 	/* Locked by mgr->lock. */
@@ -585,8 +584,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	 * If this is from a blackholed address, drop it.
 	 */
 	isc_netaddr_fromsockaddr(&netaddr, &ev->address);
-	if (disp->blackhole != NULL &&
-	    dns_acl_match(&netaddr, NULL, disp->blackhole,
+	if (disp->mgr->blackhole != NULL &&
+	    dns_acl_match(&netaddr, NULL, disp->mgr->blackhole,
 		    	  NULL, &match, NULL) == ISC_R_SUCCESS &&
 	    match > 0)
 	{
@@ -1405,10 +1404,6 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 		goto kill_lock;
 	}
 
-	disp->blackhole = NULL;
-	if (mgr->blackhole != NULL)
-		dns_acl_attach(mgr->blackhole, &disp->blackhole);
-
 	disp->magic = DISPATCH_MAGIC;
 
 	*dispp = disp;
@@ -1458,8 +1453,6 @@ dispatch_free(dns_dispatch_t **dispp)
 		qid_destroy(mgr->mctx, &disp->qid);
 	disp->mgr = NULL;
 	DESTROYLOCK(&disp->lock);
-	if (disp->blackhole != NULL)
-		dns_acl_detach(&disp->blackhole);
 	disp->magic = 0;
 	isc_mempool_put(mgr->dpool, disp);
 }
