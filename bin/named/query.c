@@ -38,6 +38,7 @@
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
