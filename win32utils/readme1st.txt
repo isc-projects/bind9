@@ -1,7 +1,7 @@
 Copyright (C) 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.5 2001/07/31 00:03:20 gson Exp $
+$Id: readme1st.txt,v 1.6 2001/08/02 07:03:58 mayer Exp $
 
 	Beta Release of BIND 9.2.0 for Window NT/2000
 
@@ -25,9 +25,8 @@ installer will NOT uninstall the BIND 8 binaries.  That will be fixed
 in a future release.
 
 Unpack the kit into any convenient directory and run the BINDInstall
-program.  This will install the named and associated programs
-into the correct directories and set up the required registry
-keys.
+program.  This will install the named and associated programs into
+the correct directories and set up the required registry keys.
 
 	Controlling BIND
 
@@ -35,7 +34,8 @@ Windows NT/2000 uses the same rndc program as is used on Unix
 systems.  The rndc.conf file must be configured for your system in
 order to work. You will need to generate a key for this. To do this
 use the rndc-confgen program. The program will be installed in the
-same directory as named: dns/bin/.  Use the command this way:
+same directory as named: dns/bin/.  From the DOS prompt, use the
+command this way:
 
 rndc-confgen > rndc.conf
 
@@ -45,10 +45,10 @@ the dns/etc directory where it needs to reside.
 In addition the named.conf file will need to be modified in order
 to allow rndc to control named. The additions look like the following:
 
-key rndckey { algorithm hmac-md5; secret "xxxxxxxxx=="; };
+key "rndc-key" { algorithm hmac-md5; secret "xxxxxxxxx=="; };
 
 controls {
-	inet 127.0.0.1 allow { localhost; } keys { rndckey; };
+	inet 127.0.0.1 port 953 allow { localhost; } keys { "rndc-key"; };
 };
 
 Note that the value of the secret must come from the key generated
@@ -59,21 +59,30 @@ daemon on a Unix box.
 
 In addition BIND is installed as a win32 system service, can be
 started and stopped in the same way as any other service and
-automatically starts at whenever the system is booted.
+automatically starts whenever the system is booted.
+
+	Documentation
+
+This kit includes Documentation in HTML format.  The documentation is not
+copied during the installation process so you should move it to any convenient
+location for later reference. Of particular importance is the BIND 9
+Administrator's Reference Manual (Bv9ARM*.html) which provides detailed
+information on BIND 9. In addition, there are HTML pages for each of the
+BIND 9 applications.
 
 	DNS Tools
 
-I have built versions of the following tools for Windows NT: dig,
-nslookup, host, nsupdate, named-checkconf, named-checkzone, dnssec-keygen,
-dnssec-makekeyset, dnssec-signkey, dnssec-signzone. The tools will NOT run
-on Win9x, only WinNT and Win2000. The latter tools are for use with DNSSEC.
-All tools are installed in the dns/bin directory.
+The following tools have been built for Windows NT: dig, nslookup, host,
+nsupdate, rndc, rndc-confgen, named-checkconf, named-checkzone, dnssec-keygen,
+dnssec-makekeyset, dnssec-signkey, dnssec-signzone. The tools will NOT run on
+Win9x, only WinNT and Win2000. The latter tools are for use with DNSSEC. All
+tools are installed in the dns/bin directory.
 
 	Problems
 
 Please report all problems to bind9-bugs@isc.org and not to me. All
-other questions should go to the bind-users@isc.org mailing list and
-news group.
+other questions should go to the bind-users@isc.org mailing list or the
+comp.protocol.dns.bind news group.
 
 	Danny Mayer
 	danny.mayer@nominum.com

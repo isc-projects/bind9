@@ -1,9 +1,4 @@
-Copyright (C) 2001  Internet Software Consortium.
-See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
-
-$Id: win32-build.txt,v 1.3 2001/07/31 00:20:31 mayer Exp $
-
-       BIND 9.2.0 Beta for Win32 Source Build Instructions.  12-Jul-2001
+       BIND 9.2.0 Beta for Win32 Source Build Instructions.  28-Jul-2001
 
 Building BIND 9.2 on Windows NT/2000 has two prerequisites:
 1) You need to install Perl for Windows NT/2000. ActiveState
@@ -51,6 +46,8 @@ Execute the BuildAll.bat file. This will do the following:
    BIND 9 Installer.
 7) Copies the release notes and the OpenSSL DLL to the BUILD/Release
    directory.
+8) Copies the BIND 9 ARM HTML files and the application HTML files
+   to the Build\Release area.
 
 If you wish to use Visual Studio for building, you can just run the
 BuildSetup.bat file which will create all the necessary files and you
@@ -86,7 +83,7 @@ dnssec-signzone.exe
 You should end up with 20 binaries in the bind9/Build/Release
 directory. The Install instructions Readme1st.txt from win32utils
 and libeay32.dll from the openssl/out32dll/ directory are also copied
-into the Build area.
+into the Build area. In addition you should have 22 HTML files.
 
 The set of files in the directory bind9/Build/Release form the
 installation kit which can then be zipped and distributed to any
