@@ -19,17 +19,16 @@
 
 #include <sys/types.h>
 
-#include <isc/assertions.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
-#include <dns/fixedname.h>
 #include <dns/adb.h>
+#include <dns/fixedname.h>
 #include <dns/events.h>
+#include <dns/result.h>
 
 #include <lwres/lwres.h>
 #include <lwres/result.h>

@@ -21,10 +21,8 @@
 
 #include <sys/types.h>
 
-#include <isc/assertions.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
-#include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/stdtime.h>
@@ -33,6 +31,7 @@
 
 #include <dns/adb.h>
 #include <dns/byaddr.h>
+#include <dns/result.h>
 
 #include <lwres/lwres.h>
 #include <lwres/result.h>

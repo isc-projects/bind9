@@ -20,7 +20,6 @@
 #include <sys/types.h>
 
 #include <isc/app.h>
-#include <isc/assertions.h>
 #include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/log.h>
@@ -34,6 +33,7 @@
 #include <dns/db.h>
 #include <dns/log.h>
 #include <dns/resolver.h>
+#include <dns/result.h>
 #include <dns/rootns.h>
 #include <dns/view.h>
 
@@ -65,8 +65,7 @@ isc_timermgr_t *timermgr;
 isc_sockaddrlist_t forwarders;
 
 static isc_result_t
-create_view(isc_mem_t *mctx)
-{
+create_view(isc_mem_t *mctx) {
 	dns_cache_t *cache;
 	isc_result_t result;
 	dns_db_t *rootdb;
@@ -140,20 +139,17 @@ out:
  * Wrappers around our memory management stuff, for the lwres functions.
  */
 static void *
-mem_alloc(void *arg, size_t size)
-{
+mem_alloc(void *arg, size_t size) {
 	return (isc_mem_get(arg, size));
 }
 
 static void
-mem_free(void *arg, void *mem, size_t size)
-{
+mem_free(void *arg, void *mem, size_t size) {
 	isc_mem_put(arg, mem, size);
 }
 
 static void
-parse_resolv_conf(isc_mem_t *mem)
-{
+parse_resolv_conf(isc_mem_t *mem) {
 	lwres_context_t *lwctx;
 	lwres_conf_t *lwc;
 	int lwresult;
@@ -211,8 +207,7 @@ parse_resolv_conf(isc_mem_t *mem)
 }
 
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	isc_mem_t *mem;
 	isc_socket_t *sock;
 	isc_sockaddr_t localhost;
