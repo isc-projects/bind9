@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.48 1999/04/23 04:59:41 tale Exp $ */
+/* $Id: rbt.c,v 1.49 1999/04/24 02:03:25 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -706,7 +706,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	dns_fixedname_t fixedcallbackname;
 	dns_namereln_t compared;
 	dns_result_t result, saved_result;
-	isc_region_t region;
 	isc_buffer_t buffer;
 	unsigned char data[255];
 	unsigned int common_labels, common_bits;
@@ -738,16 +737,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	 * the input name's data is used to avoid unnecessary copying.
 	 */
 	search_name = &tmp_name;
-	if (name->offsets == NULL) {
-		dns_name_init(search_name, tmp_offsets);
-		dns_name_toregion(name, &region);
-		dns_name_fromregion(search_name, &region);
-	}
-
+	dns_name_init(search_name, tmp_offsets);
 	isc_buffer_init(&buffer, data, 255, ISC_BUFFERTYPE_BINARY);
 	dns_name_setbuffer(search_name, &buffer);
-
-	search_name->ndata = name->ndata;
+	dns_name_clone(name, search_name);
 
 	dns_name_init(&current_name, NULL);
 
