@@ -1,3 +1,5 @@
+1695.   [placeholder]   rt12133
+
 1694.	[bug]		Report if the builtin views of "_default" / "_bind"
 			are defined in named.conf. [RT #12023]
 
