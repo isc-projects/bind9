@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.388 2002/09/10 04:45:53 marka Exp $ */
+/* $Id: server.c,v 1.389 2002/09/11 04:32:29 marka Exp $ */
 
 #include <config.h>
 
@@ -1496,13 +1496,11 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 			continue;
 
 		addrp = dns_zone_getnotifysrc6(zone);
-		INSIST(addrp != NULL);
 		result = add_listenelt(mctx, list, addrp);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 
 		addrp = dns_zone_getxfrsource6(zone);
-		INSIST(addrp != NULL);
 		result = add_listenelt(mctx, list, addrp);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
@@ -2196,7 +2194,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Adjust the listening interfaces in accordance with the source
 	 * addresses specified in views and zones.
 	 */
-	adjust_interfaces(server, ns_g_mctx);
+	if (isc_net_probeipv6() == ISC_R_SUCCESS)
+		adjust_interfaces(server, ns_g_mctx);
 
 	if (dispatchv4 != NULL)
 		dns_dispatch_detach(&dispatchv4);
