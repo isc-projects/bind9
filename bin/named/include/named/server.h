@@ -57,10 +57,12 @@ struct ns_server {
 #define NS_SERVER_VALID(s)		((s) != NULL && \
 					 (s)->magic == NS_SERVER_MAGIC)
 
-isc_result_t
+void
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp);
 /*
  * Create a server object with default settings.
+ * This function either succeeds or causes the program to exit
+ * with a fatal error.
  */
 
 void

@@ -23,41 +23,35 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <isc/app.h>
 #include <isc/assertions.h>
+#include <isc/dir.h>
 #include <isc/error.h>
-#include <isc/rwlock.h>
 #include <isc/mem.h>
+#include <isc/result.h>
+#include <isc/rwlock.h>
+#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/thread.h>
-#include <isc/result.h>
-#include <isc/socket.h>
 #include <isc/timer.h>
-#include <isc/app.h>
-#include <isc/dir.h>
 #include <isc/util.h>
 
 #include <dns/aclconf.h>
 #include <dns/cache.h>
 #include <dns/confparser.h>
-#include <dns/types.h>
-#include <dns/result.h>
+#include <dns/db.h>
+#include <dns/fixedname.h>
+#include <dns/journal.h>
 #include <dns/master.h>
 #include <dns/name.h>
-#include <dns/fixedname.h>
 #include <dns/rdata.h>
-#include <dns/rdatalist.h>
-#include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
-#include <dns/compress.h>
-#include <dns/db.h>
-#include <dns/dbtable.h>
-#include <dns/message.h>
-#include <dns/journal.h>
+#include <dns/result.h>
+#include <dns/tkey.h>
+#include <dns/tsig.h>
+#include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
-#include <dns/tsig.h>
-#include <dns/tkey.h>
 
 #include <named/client.h>
 #include <named/globals.h>
@@ -68,11 +62,41 @@
 #include <named/server.h>
 #include <named/types.h>
 
+/*
+ * Check an operation for failure.  Assumes that the function
+ * using it has a 'result' variable and a 'cleanup' label.
+ */
+#define CHECK(op) \
+	do { result = (op); 				  	 \
+	       if (result != ISC_R_SUCCESS) goto cleanup; 	 \
+	} while (0)
+
+#define CHECKM(op, msg) \
+	do { result = (op); 				  	  \
+	       if (result != ISC_R_SUCCESS) {			  \
+			isc_log_write(ns_g_lctx,		  \
+				      NS_LOGCATEGORY_GENERAL,	  \
+				      NS_LOGMODULE_SERVER,	  \
+				      ISC_LOG_ERROR,		  \
+				      "%s: %s", msg,		  \
+				      isc_result_totext(result)); \
+			goto cleanup;				  \
+		}						  \
+	} while (0)						  \
+
+#define CHECKFATAL(op, msg) \
+	do { result = (op); 				  	  \
+	       if (result != ISC_R_SUCCESS)			  \
+			fatal(msg, result);			  \
+	} while (0)						  \
+
 typedef struct {
 	isc_mem_t *		mctx;
 	dns_viewlist_t		viewlist;
 	dns_aclconfctx_t	*aclconf;
 } ns_load_t;
+
+static void fatal(char *msg, isc_result_t result);
 
 /*
  * Configure 'view' according to 'cctx'.
@@ -93,10 +117,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 	 * Cache.
 	 */
 	cache = NULL;
-	result = dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr,
-				  view->rdclass, "rbt", 0, NULL, &cache);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr,
+			       view->rdclass, "rbt", 0, NULL, &cache));
 	dns_view_setcache(view, cache);
 	cleaning_interval = 3600; /* Default is 1 hour. */
 	(void) dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);
@@ -111,9 +133,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 			      NS_LOGMODULE_SERVER,
 			      ISC_LOG_DEBUG(1), "loading cache '%s'",
 			      ns_g_cachefile);
-		result = dns_db_load(view->cachedb, ns_g_cachefile);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		CHECK(dns_db_load(view->cachedb, ns_g_cachefile));
 	}
 
 	/*
@@ -122,11 +142,9 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 	 * XXXRTH hardwired number of tasks.  Also, we'll need to
 	 * see if we are dealing with a shared dispatcher in this view.
 	 */
-	result = dns_view_createresolver(view, ns_g_taskmgr, 31,
-					 ns_g_socketmgr, ns_g_timermgr,
-					 NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
+				      ns_g_socketmgr, ns_g_timermgr,
+				      NULL));
 
 	/*
 	 * We have default hints for class IN.
@@ -135,15 +153,11 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 		dns_view_sethints(view, ns_g_server->roothints);
 
 	/*
-	 * Load the TSIG keys
+	 * Configure the view's TSIG keys.
 	 */
 	ring = NULL;
-	result = dns_tsig_init(cctx, view->mctx, &ring);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_tsig_init(cctx, view->mctx, &ring));
 	dns_view_setkeyring(view, ring);
-
-	return (ISC_R_SUCCESS);
 
  cleanup:
 	return (result);
@@ -194,43 +208,27 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	r.length = 1 + len;
 	dns_rdata_fromregion(&rdata, dns_rdataclass_ch, dns_rdatatype_txt, &r);
 
-	result = dns_zone_create(&zone, ns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = dns_zone_setorigin(zone, &origin);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_zone_create(&zone, ns_g_mctx));
+	CHECK(dns_zone_setorigin(zone, &origin));
 
-	result = dns_db_create(ns_g_mctx, "rbt", &origin, ISC_FALSE,
-			       dns_rdataclass_ch, 0, NULL, &db);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_db_create(ns_g_mctx, "rbt", &origin, ISC_FALSE,
+			    dns_rdataclass_ch, 0, NULL, &db));
+	
+	CHECK(dns_db_newversion(db, &dbver));
 
-	result = dns_db_newversion(db, &dbver);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
-
-	dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
-			     0, &rdata, &tuple);
+	CHECK(dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
+				   0, &rdata, &tuple));
 	dns_diff_append(&diff, &tuple);
-	result = dns_diff_apply(&diff, db, dbver);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_diff_apply(&diff, db, dbver));
 
 	dns_db_closeversion(db, &dbver, ISC_TRUE);
 
-	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_version",
-				 &view);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	CHECK(dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_version",
+			      &view));
 
-	result = dns_zone_replacedb(zone, db, ISC_FALSE);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
 
-	result = dns_view_addzone(view, zone);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_view_addzone(view, zone));
 
 	dns_view_freeze(view);
 
@@ -281,16 +279,12 @@ load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	 */
 	corigin = NULL;
 	/* XXX casting away const */
-	result = dns_c_zone_getname(czone, (const char **) &corigin);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_zone_getname(czone, (const char **) &corigin));
 	isc_buffer_init(&buffer, corigin, strlen(corigin), ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&buffer, strlen(corigin));
 	dns_fixedname_init(&fixorigin);
-	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
-			  	   &buffer, dns_rootname, ISC_FALSE, NULL);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_name_fromtext(dns_fixedname_name(&fixorigin),
+				&buffer, dns_rootname, ISC_FALSE, NULL));
 	origin = dns_fixedname_name(&fixorigin);
 	
 	/*
@@ -307,10 +301,8 @@ load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 		goto cleanup;
 	if (view == NULL) {
 		dns_view_t *tview = NULL;
-		result = dns_view_create(ns_g_mctx, czone->zclass,
-					 viewname, &view);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		CHECK(dns_view_create(ns_g_mctx, czone->zclass,
+				      viewname, &view));
 		dns_view_attach(view, &tview);
 		ISC_LIST_APPEND(lctx->viewlist, tview, link);
 	}
@@ -357,25 +349,16 @@ load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	 * create a new one.
 	 */
 	if (zone == NULL) {
-		result = dns_zone_create(&zone, lctx->mctx);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-		result = dns_zone_setorigin(zone, origin);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-		result = dns_zonemgr_managezone(ns_g_server->zonemgr,
-						zone);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-		/* XXX Unmanage? */
+		CHECK(dns_zone_create(&zone, lctx->mctx));
+		CHECK(dns_zone_setorigin(zone, origin));
+		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
+					     zone));
 	}
 
 	/*
 	 * Configure the zone.
 	 */
-	result = dns_zone_configure(cctx, lctx->aclconf, czone, zone);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_zone_configure(cctx, lctx->aclconf, czone, zone));
 
 	/*
 	 * XXX Why was this here?
@@ -387,9 +370,7 @@ load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	/*
 	 * Add the zone to its view in the new view list.
 	 */
-	result = dns_view_addzone(view, zone);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_view_addzone(view, zone));
 
  cleanup:
 	if (tzone != NULL)
@@ -404,26 +385,30 @@ load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	return (result);
 }
 
-/* XXX will need error recovery for reconfig */
-static void
+/*
+ * Configure a single server ACL at '*aclp'.  Get its configuration by
+ * calling 'getacl'.
+ */
+static isc_result_t
 configure_server_acl(dns_c_ctx_t *cctx, dns_aclconfctx_t *actx, isc_mem_t *mctx,
 		     isc_result_t (*getcacl)(dns_c_ctx_t *, dns_c_ipmatchlist_t **),
-			  dns_acl_t **aclp)
+		     dns_acl_t **aclp)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_c_ipmatchlist_t *cacl = NULL;
 	if (*aclp != NULL)
 		dns_acl_detach(aclp);
 	(void) (*getcacl)(cctx, &cacl);
 	if (cacl != NULL) {
 		result = dns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
-		if (result != DNS_R_SUCCESS)
-			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
-					"server ACL setup failed");
 		dns_c_ipmatchlist_detach(&cacl);
 	}
+	return (result);
 }
 
+/*
+ * Configure a single server quota.
+ */
 static void
 configure_server_quota(dns_c_ctx_t *cctx,
 		       isc_result_t (*getquota)(dns_c_ctx_t *, isc_int32_t *),
@@ -434,14 +419,14 @@ configure_server_quota(dns_c_ctx_t *cctx,
 	quota->max = val;
 }
 
-static void
+static isc_result_t
 load_configuration(const char *filename, ns_server_t *server) {
 	isc_result_t result;
 	ns_load_t lctx;
 	dns_c_cbks_t callbacks;
 	dns_c_ctx_t *configctx;
 	dns_view_t *view, *view_next;
-	dns_viewlist_t oviewlist;
+	dns_viewlist_t tmpviewlist;
 	dns_aclconfctx_t aclconfctx;
 
 	dns_aclconfctx_init(&aclconfctx);
@@ -465,22 +450,9 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 * load_zone() through 'callbacks'.
 	 */
 	configctx = NULL;
-	result = dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
-				       &callbacks);
-	if (result != ISC_R_SUCCESS) {
-#ifdef notyet
-		for (view = ISC_LIST_HEAD(lctx.viewlist);
-		     view != NULL;
-		     view = view_next) {
-			view_next = ISC_LIST_NEXT(view, link);
-			ISC_LIST_UNLINK(lctx.viewlist, view, link);
-			dns_view_detach(&view);
-		}
-#endif
-		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
-				"load of '%s' failed", filename);
-	}
-
+	CHECK(dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
+				    &callbacks));
+	
 	/*
 	 * Configure various server options.
 	 */
@@ -488,21 +460,23 @@ load_configuration(const char *filename, ns_server_t *server) {
 	(void) dns_c_ctx_getauthnxdomain(configctx, &server->auth_nxdomain);
 	(void) dns_c_ctx_gettransferformat(configctx, &server->transfer_format);
 	
-	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-			     dns_c_ctx_getqueryacl, &server->queryacl);
-
-	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-			     dns_c_ctx_getrecursionacl, &server->recursionacl);
-
-	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-			     dns_c_ctx_gettransferacl, &server->transferacl);
+	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
+				   dns_c_ctx_getqueryacl, &server->queryacl));
+	
+	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
+				   dns_c_ctx_getrecursionacl,
+				   &server->recursionacl));
+	
+	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
+				   dns_c_ctx_gettransferacl,
+				   &server->transferacl));
 	
 	configure_server_quota(configctx, dns_c_ctx_gettransfersout,
-			       &server->xfroutquota, 10);
+				     &server->xfroutquota, 10);
 	configure_server_quota(configctx, dns_c_ctx_gettcpclients,
-			       &server->tcpquota, 100);
+				     &server->tcpquota, 100);
 	configure_server_quota(configctx, dns_c_ctx_getrecursiveclients,
-			       &server->recursionquota, 100);
+				     &server->recursionquota, 100);
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
@@ -520,10 +494,9 @@ load_configuration(const char *filename, ns_server_t *server) {
 							  ns_g_mctx, &listenon);
 		} else {
 			/* Not specified, use default. */
-			result = ns_listenlist_default(ns_g_mctx, ns_g_port,
-						       &listenon);
+			CHECK(ns_listenlist_default(ns_g_mctx, ns_g_port,
+						    &listenon));
 		}
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		ns_interfacemgr_setlistenon(server->interfacemgr, listenon);
 		ns_listenlist_detach(&listenon);
 	}
@@ -534,13 +507,9 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 */
 	if (ISC_LIST_EMPTY(lctx.viewlist)) {
 		view = NULL;
-		result = dns_view_create(ns_g_mctx, dns_rdataclass_in, 
-					 "_default", &view);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__, 
-					"could not create default view");
-			goto cleanup;
-		}
+		CHECKM(dns_view_create(ns_g_mctx, dns_rdataclass_in, 
+				       "_default", &view),
+		       "creating default view");
 		ISC_LIST_APPEND(lctx.viewlist, view, link);
 	}
 
@@ -553,9 +522,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		result = configure_view(view, configctx, ns_g_mctx);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		CHECK(configure_view(view, configctx, ns_g_mctx));
 		dns_view_freeze(view);
 	}
 	
@@ -563,12 +530,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 * Create (or recreate) the version view.
 	 */
 	view = NULL;
-	result = create_version_view(configctx, &view);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				"could not create version view");
-		goto cleanup;
-	}
+	CHECK(create_version_view(configctx, &view));
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
 	view = NULL;
 
@@ -578,11 +540,15 @@ load_configuration(const char *filename, ns_server_t *server) {
 	if (configctx->options != NULL &&
 	    configctx->options->directory != NULL) {
 		result = isc_dir_chdir(configctx->options->directory);
-		if (result != ISC_R_SUCCESS)
-			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
-					"change directory to '%s' failed: %s",
-					configctx->options->directory,
-					isc_result_totext(result));
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR, "change directory "
+				      "to '%s' failed: %s",
+				      configctx->options->directory,
+				      isc_result_totext(result));
+			CHECK(result);
+		}
 	}
 
 	/*
@@ -592,6 +558,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	     view != NULL;
 	     view = view_next) {
 		view_next = ISC_LIST_NEXT(view, link);
+		/* XXX error checking */
 		dns_view_load(view);
 	}
 
@@ -600,44 +567,24 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 * so that we know when we need to force AXFR of
 	 * slave zones whose master files are missing.
 	 */
-	dns_zonemgr_forcemaint(server->zonemgr);
+	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
 		
 	/*
-	 * Put the configuration into production.
+	 * Swap our new view list with the production one.
 	 */
-
 	RWLOCK(&server->viewlock, isc_rwlocktype_write);
-
-	oviewlist = server->viewlist;
+	tmpviewlist = server->viewlist;
 	server->viewlist = lctx.viewlist;
-
+	lctx.viewlist = tmpviewlist;
 	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
-
-	/*
-	 * Cleanup old configuration.
-	 */
-
-	for (view = ISC_LIST_HEAD(oviewlist);
-	     view != NULL;
-	     view = view_next) {
-		view_next = ISC_LIST_NEXT(view, link);
-		ISC_LIST_UNLINK(oviewlist, view, link);
-		dns_view_detach(&view);
-	}
-
-	if (ns_g_tkeyctx != NULL)
-		dns_tkey_destroy(&ns_g_tkeyctx);
 
 	/*
 	 * Load the TKEY information from the configuration
 	 */
-	result = dns_tkey_init(configctx, ns_g_mctx, &ns_g_tkeyctx);
-	if (result != ISC_R_SUCCESS) {
-		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
-				"dns_tkey_init() failed: %s",
-				isc_result_totext(result));
-	}
-
+	if (ns_g_tkeyctx != NULL)
+		dns_tkey_destroy(&ns_g_tkeyctx);
+	CHECKM(dns_tkey_init(configctx, ns_g_mctx, &ns_g_tkeyctx),
+	       "setting up TKEY");
 	/*
 	 * Rescan the interface list to pick up changes in the
 	 * listen-on option.
@@ -647,8 +594,21 @@ load_configuration(const char *filename, ns_server_t *server) {
 	dns_aclconfctx_destroy(&aclconfctx);	
 
 	dns_c_ctx_delete(&configctx);
+	
  cleanup:
-	; /* XXX */
+	/*
+	 * This cleans up either the old production view list
+	 * or our temporary list depending on whether they
+	 * were swapped above or not.
+	 */
+	for (view = ISC_LIST_HEAD(lctx.viewlist);
+	     view != NULL;
+	     view = view_next) {
+		view_next = ISC_LIST_NEXT(view, link);
+		ISC_LIST_UNLINK(lctx.viewlist, view, link);
+		dns_view_detach(&view);
+	}
+	return (result);
 }
 
 static void
@@ -659,28 +619,17 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	result = ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				     &server->clientmgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_clientmgr_create() failed: %s",
-				 isc_result_totext(result));
-		/* XXX cleanup */
-		return;
-	}
+	CHECKFATAL(ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
+				       &server->clientmgr),
+		   "creating client manager");
 	
-	result = ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
-					ns_g_socketmgr, server->clientmgr,
-					&server->interfacemgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_interfacemgr_create() failed: %s",
-				 isc_result_totext(result));
-		/* XXX cleanup */
-		return;
-	}
+	CHECKFATAL(ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
+					  ns_g_socketmgr, server->clientmgr,
+					  &server->interfacemgr),
+		   "creating interface manager");
 
-	load_configuration(ns_g_conffile, server);
+	CHECKFATAL(load_configuration(ns_g_conffile, server),
+		   "loading configuration");
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "running");
@@ -720,13 +669,14 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-isc_result_t
+void
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	isc_result_t result;
 	
 	ns_server_t *server = isc_mem_get(mctx, sizeof(*server));
 	if (server == NULL)
-		return (ISC_R_NOMEMORY);
+		fatal("allocating server object", ISC_R_NOMEMORY);
+
 	server->mctx = mctx;
 	server->task = NULL;
 	
@@ -755,42 +705,26 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
 	server->roothints = NULL;
 		
-	result = ns_rootns_create(mctx, &server->roothints);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	CHECKFATAL(ns_rootns_create(mctx, &server->roothints),
+		   "setting up root hints");
 	
 	/*
 	 * Setup the server task, which is responsible for coordinating
 	 * startup and shutdown of the server.
 	 */
-	result = isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server->task);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = isc_task_onshutdown(server->task, shutdown_server, server);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_task;
-	result = isc_app_onrun(ns_g_mctx, server->task, run_server, server);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_task;
+	CHECKFATAL(isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server->task),
+		   "creating server task");
+	CHECKFATAL(isc_task_onshutdown(server->task, shutdown_server, server),
+		   "isc_task_onshutdown");
+	CHECKFATAL(isc_app_onrun(ns_g_mctx, server->task, run_server, server),
+		   "isc_app_onrun");
 
-	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				    ns_g_socketmgr, &server->zonemgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_zonemgr_create() failed: %s",
-				 isc_result_totext(result));
-		/* XXX cleanup */
-		return (result);
-	}
+	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
+				      ns_g_socketmgr, &server->zonemgr),
+		   "dns_zonemgr_create");
 
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
-	return (ISC_R_SUCCESS);
-	
- cleanup_task:
-	isc_task_detach(&server->task);
- cleanup:
-	/* XXX more cleanup */
-	return (result);
 }
 	
 void
@@ -822,20 +756,12 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_mem_put(server->mctx, server, sizeof(*server));
 }
 
-void
-ns_server_fatal(isc_logmodule_t *module, isc_boolean_t want_core,
-		const char *format, ...)
+static void
+fatal(char *msg, isc_result_t result)
 {
-	va_list args;
-
-	va_start(args, format);
-	isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL, module,
-		       ISC_LOG_CRITICAL, format, args);
-	va_end(args);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_CRITICAL, "%s: %s", msg, isc_result_totext(result));
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_CRITICAL, "exiting (due to fatal error)");
-
-	if (want_core && ns_g_coreok)
-		abort();
 	exit(1);
 }

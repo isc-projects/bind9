@@ -239,10 +239,7 @@ setup() {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
-	result = ns_server_create(ns_g_mctx, &ns_g_server);
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("ns_server_create() failed: %s",
-				   isc_result_totext(result));
+	ns_server_create(ns_g_mctx, &ns_g_server);
 }
 
 static void
