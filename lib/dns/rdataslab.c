@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.31 2002/02/21 23:51:49 bwelling Exp $ */
+/* $Id: rdataslab.c,v 1.32 2002/11/12 23:24:45 explorer Exp $ */
 
 #include <config.h>
 
@@ -676,6 +676,38 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 		current2 += length1;
 
 		count1--;
+	}
+	return (ISC_TRUE);
+}
+
+isc_boolean_t
+dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
+		     unsigned int reservelen, dns_rdataclass_t rdclass,
+		     dns_rdatatype_t type)
+{
+	unsigned char *current1, *current2;
+	unsigned int count1, count2;
+	dns_rdata_t rdata1 = DNS_RDATA_INIT;
+	dns_rdata_t rdata2 = DNS_RDATA_INIT;
+
+	current1 = slab1 + reservelen;
+	count1 = *current1++ * 256;
+	count1 += *current1++;
+
+	current2 = slab2 + reservelen;
+	count2 = *current2++ * 256;
+	count2 += *current2++;
+
+	if (count1 != count2)
+		return (ISC_FALSE);
+
+	while (count1-- > 0) {
+		rdata_from_slab(&current1, rdclass, type, &rdata1);
+		rdata_from_slab(&current2, rdclass, type, &rdata2);
+		if (dns_rdata_compare(&rdata1, &rdata2) != 0)
+			return (ISC_FALSE);
+		dns_rdata_reset(&rdata1);
+		dns_rdata_reset(&rdata2);
 	}
 	return (ISC_TRUE);
 }

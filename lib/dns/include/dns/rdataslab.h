@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.h,v 1.23 2002/02/20 22:57:13 bwelling Exp $ */
+/* $Id: rdataslab.h,v 1.24 2002/11/12 23:24:45 explorer Exp $ */
 
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
@@ -137,8 +137,23 @@ isc_boolean_t
 dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 		    unsigned int reservelen);
 
-/* Compare two rdataslabs for equality.  This does _not_ do a full
+/*
+ * Compare two rdataslabs for equality.  This does _not_ do a full
  * DNSSEC comparison.
+ *
+ * Requires:
+ *	'slab1' and 'slab2' point to slabs.
+ *
+ * Returns:
+ *	ISC_TRUE if the slabs are equal, ISC_FALSE otherwise.
+ */
+
+isc_boolean_t
+dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
+		     unsigned int reservelen, dns_rdataclass_t rdclass, 
+		     dns_rdatatype_t type);
+/*
+ * Compare two rdataslabs for DNSSEC equality. 
  *
  * Requires:
  *	'slab1' and 'slab2' point to slabs.
