@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.41 $)
+AC_REVISION($Revision: 1.42 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -579,6 +579,10 @@ AC_CHECK_FUNC(strsep,
 AC_SUBST(STRSEP_OBJS)
 AC_SUBST(NEED_STRSEP)
 
+AC_CHECK_FUNC(strerror, [NEED_STRERROR="#undef NEED_STRERROR"],
+[NEED_STRERROR="#define NEED_STRERROR 1"])
+AC_SUBST(NEED_STRERROR)
+
 #
 # flockfile is usually provided by pthreads, but we may want to use it
 # even if compiled with --disable-threads.
@@ -632,6 +636,7 @@ else
 		esac
 		CCOPT="$CCOPT -Ae -z"
 		LIBS="-Wl,+vnocompatwarnings $LIBS"
+MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>&1 | awk '"'"'BEGIN {colon=0; rec="";} { for (i = 0 ; i < NF; i++) { if (colon && a[$i]) continue; if ($i == "\\") continue; if (!colon) { rec =  $i continue; } if ($i == ":") { rec = rec " :" colon = 1 continue; } if (length(rec $i) > 76) { print rec " \\"; rec = "\t" $i; a[$i] = 1; } else { rec = rec " " $i a[$i] = 1; } } } END {print rec}'"'"' >>$TMP'
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)

@@ -1,6 +1,6 @@
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)strerror.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: strerror.c,v 1.1 2001/03/29 06:30:36 marka Exp $";
+static const char rcsid[] = "$Id: strerror.c,v 1.2 2001/05/08 07:06:01 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -45,12 +45,12 @@ static const char rcsid[] = "$Id: strerror.c,v 1.1 2001/03/29 06:30:36 marka Exp
 
 #include "port_after.h"
 
-extern int sys_nerr;
-extern char *sys_errlist[];
-
 #ifndef NEED_STRERROR
 int __strerror_unneeded__;
 #else
+
+extern int sys_nerr;
+extern char *sys_errlist[];
 
 const char *
 strerror(int num) {
