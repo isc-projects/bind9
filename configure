@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.119 
+# From configure.in Revision: 1.120 
 
 
 
@@ -3444,7 +3444,7 @@ cat > conftest.$ac_ext <<EOF
 #include <netinet/in.h>
 #include <arpa/inet.h>
 int main() {
-inet_ntop(0, NULL, NULL, 0); return (0);
+inet_ntop(0, 0, 0, 0); return (0);
 ; return 0; }
 EOF
 if { (eval echo configure:3451: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -3471,7 +3471,7 @@ cat > conftest.$ac_ext <<EOF
 #include <netinet/in.h>
 #include <arpa/inet.h>
 int main() {
-inet_pton(0, NULL, NULL); return (0);
+inet_pton(0, 0, 0); return (0);
 ; return 0; }
 EOF
 if { (eval echo configure:3478: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -3498,7 +3498,7 @@ cat > conftest.$ac_ext <<EOF
 #include <netinet/in.h>
 #include <arpa/inet.h>
 int main() {
-struct in_addr in; inet_aton(NULL, &in); return (0);
+struct in_addr in; inet_aton(0, &in); return (0);
 ; return 0; }
 EOF
 if { (eval echo configure:3505: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then

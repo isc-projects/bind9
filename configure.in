@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.119 $)
+AC_REVISION($Revision: 1.120 $)
 
 AC_PREREQ(2.13)
 
@@ -699,7 +699,7 @@ AC_TRY_LINK([
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>],
-        [inet_ntop(0, NULL, NULL, 0); return (0);],
+        [inet_ntop(0, 0, 0, 0); return (0);],
         [AC_MSG_RESULT(yes)
         ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
 
@@ -712,7 +712,7 @@ AC_TRY_LINK([
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>],
-        [inet_pton(0, NULL, NULL); return (0);],
+        [inet_pton(0, 0, 0); return (0);],
         [AC_MSG_RESULT(yes)
         ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
 
@@ -725,7 +725,7 @@ AC_TRY_LINK([
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>],
-        [struct in_addr in; inet_aton(NULL, &in); return (0);],
+        [struct in_addr in; inet_aton(0, &in); return (0);],
         [AC_MSG_RESULT(yes)
         ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"],
 
