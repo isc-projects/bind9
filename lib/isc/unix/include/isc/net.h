@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.31 2001/07/16 03:06:53 marka Exp $ */
+/* $Id: net.h,v 1.31.2.1 2001/11/02 00:20:09 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -167,6 +167,9 @@ struct in6_pktinfo {
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 extern const struct in6_addr isc_net_in6addrany;
 #define in6addr_any isc_net_in6addrany
+#endif
+
+#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 extern const struct in6_addr isc_net_in6addrloop;
 #define in6addr_loopback isc_net_in6addrloop
 #endif
