@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.10 2001/01/22 23:28:48 bwelling Exp $ */
+/* $Id: lwdgrbn.c,v 1.11 2001/01/24 01:42:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -38,37 +38,6 @@
 #include <named/lwsearch.h>
 
 static void start_lookup(ns_lwdclient_t *);
-
-static isc_result_t
-count_rdatasets(dns_db_t *db, dns_dbnode_t *node, lwres_uint16_t *count) {
-	dns_rdatasetiter_t *iter = NULL;
-	int n = 0;
-	isc_result_t result;
-
-	result = dns_db_allrdatasets(db, node, NULL, 0, &iter);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	for (result = dns_rdatasetiter_first(iter);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdatasetiter_next(iter))
-	{
-		dns_rdataset_t set;
-
-		dns_rdataset_init(&set);
-		dns_rdatasetiter_current(iter, &set);
-		if (set.type == dns_rdatatype_sig)
-			n += dns_rdataset_count(&set);
-		dns_rdataset_disassociate(&set);
-	}
-	if (result != ISC_R_NOMORE)
-		goto cleanup;
-	*count = n;
-	result = ISC_R_SUCCESS;
- cleanup:
-	if (iter != NULL)
-		dns_rdatasetiter_destroy(&iter);
-	return (result);
-}
 
 static isc_result_t
 fill_array(int *pos, dns_rdataset_t *rdataset,
@@ -95,6 +64,127 @@ fill_array(int *pos, dns_rdataset_t *rdataset,
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
+	return (result);
+}
+
+static isc_result_t
+iterate_node(lwres_grbnresponse_t *grbn, dns_db_t *db, dns_dbnode_t *node,
+	     isc_mem_t *mctx)
+{
+	int used = 0, count;
+	int size = 8, oldsize = 0;
+	unsigned char **rdatas = NULL, **oldrdatas = NULL, **newrdatas = NULL;
+	lwres_uint16_t *lens = NULL, *oldlens = NULL, *newlens = NULL;
+	dns_rdatasetiter_t *iter = NULL;
+	dns_rdataset_t set;
+	dns_ttl_t ttl = ISC_INT32_MAX;
+	lwres_uint32_t flags = LWRDATA_VALIDATED;
+	isc_result_t result = ISC_R_NOMEMORY;
+
+	result = dns_db_allrdatasets(db, node, NULL, 0, &iter);
+	if (result != ISC_R_SUCCESS)
+		goto out;
+
+	rdatas = isc_mem_get(mctx, size * sizeof(*rdatas));
+	if (rdatas == NULL)
+		goto out;
+	lens = isc_mem_get(mctx, size * sizeof(*lens));
+	if (lens == NULL)
+		goto out;
+
+	for (result = dns_rdatasetiter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdatasetiter_next(iter))
+	{
+		result = ISC_R_NOMEMORY;
+		dns_rdataset_init(&set);
+		dns_rdatasetiter_current(iter, &set);
+
+		if (set.type != dns_rdatatype_sig) {
+			dns_rdataset_disassociate(&set);
+			continue;
+		}
+
+		count = dns_rdataset_count(&set);
+		if (used + count > size) {
+			/* copy & reallocate */
+			oldsize = size;
+			oldrdatas = rdatas;
+			oldlens = lens;
+			rdatas = NULL;
+			lens = NULL;
+
+			size *= 2;
+
+			rdatas = isc_mem_get(mctx, size * sizeof(*rdatas));
+			if (rdatas == NULL)
+				goto out;
+			lens = isc_mem_get(mctx, size * sizeof(*lens));
+			if (lens == NULL)
+				goto out;
+			memcpy(rdatas, oldrdatas, used * sizeof(*rdatas));
+			memcpy(lens, oldlens, used * sizeof(*lens));
+			isc_mem_put(mctx, oldrdatas,
+				    oldsize * sizeof(*oldrdatas));
+			isc_mem_put(mctx, oldlens, oldsize * sizeof(*oldlens));
+			oldrdatas = NULL;
+			oldlens = NULL;
+		}
+		if (set.ttl < ttl)
+			ttl = set.ttl;
+		if (set.trust != dns_trust_secure)
+			flags &= (~LWRDATA_VALIDATED);
+		result = fill_array(&used, &set, size, rdatas, lens);
+		dns_rdataset_disassociate(&set);
+		if (result != ISC_R_SUCCESS)
+			goto out;
+	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+	if (result != ISC_R_SUCCESS)
+		goto out;
+	dns_rdatasetiter_destroy(&iter);
+
+	/*
+	 * If necessary, shrink and copy the arrays.
+	 */
+	if (size != used) {
+		result = ISC_R_NOMEMORY;
+		newrdatas = isc_mem_get(mctx, used * sizeof(*rdatas));
+		if (newrdatas == NULL)
+			goto out;
+		newlens = isc_mem_get(mctx, used * sizeof(*lens));
+		if (newlens == NULL)
+			goto out;
+		memcpy(newrdatas, rdatas, used * sizeof(*rdatas));
+		memcpy(newlens, lens, used * sizeof(*lens));
+		isc_mem_put(mctx, rdatas, size * sizeof(*rdatas));
+		isc_mem_put(mctx, lens, size * sizeof(*lens));
+		grbn->rdatas = newrdatas;
+		grbn->rdatalen = newlens;
+	} else {
+		grbn->rdatas = rdatas;
+		grbn->rdatalen = lens;
+	}
+	grbn->nrdatas = used;
+	grbn->ttl = ttl;
+	grbn->flags = flags;
+	return (ISC_R_SUCCESS);
+
+ out:
+	dns_rdatasetiter_destroy(&iter);
+	if (rdatas != NULL)
+		isc_mem_put(mctx, rdatas, size * sizeof(*rdatas));
+	if (lens != NULL)
+		isc_mem_put(mctx, lens, size * sizeof(*lens));
+	if (oldrdatas != NULL)
+		isc_mem_put(mctx, oldrdatas, oldsize * sizeof(*oldrdatas));
+	if (oldlens != NULL)
+		isc_mem_put(mctx, oldlens, oldsize * sizeof(*oldlens));
+	if (newrdatas != NULL)
+		isc_mem_put(mctx, newrdatas, used * sizeof(*oldrdatas));
+	if (newlens != NULL)
+		isc_mem_put(mctx, newlens, used * sizeof(*oldlens));
 	return (result);
 }
 
@@ -160,30 +250,17 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 
 	grbn->flags = 0;
 
-	rdataset = levent->rdataset;
-	if (rdataset != NULL)
-		grbn->nrdatas = dns_rdataset_count(rdataset);
-	else {
-		result = count_rdatasets(levent->db, levent->node,
-					 &grbn->nrdatas);
-		if (result != ISC_R_SUCCESS)
-			goto out;
-	}
+	grbn->nrdatas = 0;
 	grbn->rdatas = NULL;
 	grbn->rdatalen = NULL;
 
-	sigrdataset = levent->sigrdataset;
-	if (sigrdataset != NULL)
-		grbn->nsigs = dns_rdataset_count(sigrdataset);
-	else
-		grbn->nsigs = 0;
-
+	grbn->nsigs = 0;
 	grbn->sigs = NULL;
 	grbn->siglen = NULL;
 
 	result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
 	if (result != ISC_R_SUCCESS)
-			goto out;
+		goto out;
 	grbn->realname = (char *)isc_buffer_used(&b);
 	grbn->realnamelen = isc_buffer_usedlength(&client->recv_buffer) -
 			    isc_buffer_usedlength(&b);
@@ -193,82 +270,58 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	grbn->rdclass = cm->view->rdclass;
 	grbn->rdtype = client->rdtype;
 
-	/* If rdataset is NULL, get this later. */
-	if (rdataset == NULL)
-		grbn->ttl = ISC_INT32_MAX;
-	else
-		grbn->ttl = rdataset->ttl;
-
-	/* If rdataset is NULL, remove this later. */
-	if (rdataset == NULL || rdataset->trust == dns_trust_secure)
-		grbn->flags |= LWRDATA_VALIDATED;
-
-	grbn->rdatas = isc_mem_get(cm->mctx,
-				   grbn->nrdatas * sizeof(unsigned char *));
-	if (grbn->rdatas == NULL)
-		goto out;
-	grbn->rdatalen = isc_mem_get(cm->mctx,
-				     grbn->nrdatas * sizeof(lwres_uint16_t));
-	if (grbn->rdatalen == NULL)
-		goto out;
-
+	rdataset = levent->rdataset;
 	if (rdataset != NULL) {
+		/* The normal case */
+		grbn->nrdatas = dns_rdataset_count(rdataset);
+		grbn->rdatas = isc_mem_get(cm->mctx, grbn->nrdatas *
+					   sizeof(unsigned char *));
+		if (grbn->rdatas == NULL)
+			goto out;
+		grbn->rdatalen = isc_mem_get(cm->mctx, grbn->nrdatas *
+					     sizeof(lwres_uint16_t));
+		if (grbn->rdatalen == NULL)
+			goto out;
+
 		i = 0;
 		result = fill_array(&i, rdataset, grbn->nrdatas, grbn->rdatas,
 				    grbn->rdatalen);
-		if (result != ISC_R_SUCCESS || i != grbn->nrdatas)
-			goto out;
-	} else {
-		dns_rdatasetiter_t *iter = NULL;
-		dns_rdataset_t set;
-
-		result = dns_db_allrdatasets(levent->db, levent->node,
-					     NULL, 0, &iter);
 		if (result != ISC_R_SUCCESS)
 			goto out;
-		i = 0;
-		for (result = dns_rdatasetiter_first(iter);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdatasetiter_next(iter))
-		{
-			dns_rdataset_init(&set);
-			dns_rdatasetiter_current(iter, &set);
-			if (set.type != dns_rdatatype_sig) {
-				dns_rdataset_disassociate(&set);
-				continue;
-			}
-			if (set.ttl < grbn->ttl)
-				grbn->ttl = set.ttl;
-			if (set.trust < dns_trust_secure)
-				grbn->flags &= (~LWRDATA_VALIDATED);
-			result = fill_array(&i, &set, grbn->nrdatas,
-					    grbn->rdatas, grbn->rdatalen);
-			dns_rdataset_disassociate(&set);
-			if (result != ISC_R_SUCCESS)
-				break;
-		}
-		dns_rdatasetiter_destroy(&iter);
-		if (result == ISC_R_NOMORE)
-			result = ISC_R_SUCCESS;
-		if (result != ISC_R_SUCCESS || i != grbn->nrdatas)
+		INSIST(i == grbn->nrdatas);
+		grbn->ttl = rdataset->ttl;
+		if (rdataset->trust == dns_trust_secure)
+			grbn->flags |= LWRDATA_VALIDATED;
+	} else {
+		/* The SIG query case */
+		result = iterate_node(grbn, levent->db, levent->node,
+				      cm->mctx);
+		if (result != ISC_R_SUCCESS)
 			goto out;
 	}
+	ns_lwdclient_log(50, "filled in %d rdata%s", grbn->nrdatas,
+			 (grbn->nrdatas == 1) ? "" : "s");
 
-	grbn->sigs = isc_mem_get(cm->mctx, grbn->nsigs *
-				 sizeof(unsigned char *));
-	if (grbn->sigs == NULL)
-		goto out;
-	grbn->siglen = isc_mem_get(cm->mctx, grbn->nsigs *
-				   sizeof(lwres_uint16_t));
-	if (grbn->siglen == NULL)
-		goto out;
-	
+	sigrdataset = levent->sigrdataset;
 	if (sigrdataset != NULL) {
+		grbn->nsigs = dns_rdataset_count(sigrdataset);
+		grbn->sigs = isc_mem_get(cm->mctx, grbn->nsigs *
+					 sizeof(unsigned char *));
+		if (grbn->sigs == NULL)
+			goto out;
+		grbn->siglen = isc_mem_get(cm->mctx, grbn->nsigs *
+					   sizeof(lwres_uint16_t));
+		if (grbn->siglen == NULL)
+			goto out;
+
 		i = 0;
 		result = fill_array(&i, sigrdataset, grbn->nsigs, grbn->sigs,
 				    grbn->siglen);
-		if (result != ISC_R_SUCCESS || i != grbn->nsigs)
+		if (result != ISC_R_SUCCESS)
 			goto out;
+		INSIST(i == grbn->nsigs);
+		ns_lwdclient_log(50, "filled in %d signature%s", grbn->nsigs,
+				 (grbn->nsigs == 1) ? "" : "s");
 	}
 
 	dns_lookup_destroy(&client->lookup);
@@ -292,10 +345,12 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	isc_mem_put(cm->mctx, grbn->rdatalen,
 		    grbn->nrdatas * sizeof(lwres_uint16_t));
 
-	isc_mem_put(cm->mctx, grbn->sigs,
-		    grbn->nsigs * sizeof(unsigned char *));
-	isc_mem_put(cm->mctx, grbn->siglen,
-		    grbn->nsigs * sizeof(lwres_uint16_t));
+	if (grbn->sigs != NULL)
+		isc_mem_put(cm->mctx, grbn->sigs,
+			    grbn->nsigs * sizeof(unsigned char *));
+	if (grbn->siglen != NULL)
+		isc_mem_put(cm->mctx, grbn->siglen,
+			    grbn->nsigs * sizeof(lwres_uint16_t));
 
 	r.base = lwb.base;
 	r.length = lwb.used;
@@ -331,6 +386,9 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 
 	if (event != NULL)
 		isc_event_free(&event);
+
+	ns_lwdclient_log(50, "error constructing getrrsetbyname response");
+	ns_lwdclient_errorpktsend(client, LWRES_R_FAILURE);
 }
 
 static void
