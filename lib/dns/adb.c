@@ -289,26 +289,31 @@ static void kill_name(dns_adbname_t **, isc_eventtype_t ev);
 
 /*
  * Requires the adbname bucket be locked and that no entry buckets be locked.
+ *
+ * This code handles A and AAAA rdatasets only.
  */
 static isc_result_t
-import_rdatasetv4(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
-		  isc_stdtime_t now)
+import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
+		isc_stdtime_t now)
 {
 	isc_result_t result;
 	dns_adb_t *adb;
 	dns_adbnamehook_t *nh;
 	dns_rdata_t rdata;
 	struct in_addr ina;
+	struct in6_addr in6a;
 	isc_sockaddr_t sockaddr;
 	dns_adbentry_t *foundentry;  /* NO CLEAN UP! */
 	int addr_bucket;
 	isc_boolean_t new_addresses_added;
+	dns_rdatatype_t rdtype;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
-	INSIST(rdataset->type = dns_rdatatype_a);
+	rdtype = rdataset->type;
+	INSIST((rdtype == dns_rdatatype_a) || (rdtype == dns_rdatatype_aaaa));
 
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	new_addresses_added = ISC_FALSE;
@@ -323,9 +328,15 @@ import_rdatasetv4(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		}
 
 		dns_rdataset_current(rdataset, &rdata);
-		INSIST(rdata.length == 4);
-		memcpy(&ina.s_addr, rdata.data, 4);
-		isc_sockaddr_fromin(&sockaddr, &ina, 53);
+		if (rdtype == dns_rdatatype_a) {
+			INSIST(rdata.length == 4);
+			memcpy(&ina.s_addr, rdata.data, 4);
+			isc_sockaddr_fromin(&sockaddr, &ina, 53);
+		} else {
+			INSIST(rdata.length == 16);
+			memcpy(&in6a.s6_addr, rdata.data, 16);
+			isc_sockaddr_fromin6(&sockaddr, &in6a, 53);
+		}
 
 		foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
 		if (foundentry == NULL) {
@@ -352,7 +363,10 @@ import_rdatasetv4(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		}
 
 		new_addresses_added = ISC_TRUE;
-		ISC_LIST_APPEND(adbname->v4, nh, plink);
+		if (rdtype == dns_rdatatype_a)
+			ISC_LIST_APPEND(adbname->v4, nh, plink);
+		else
+			ISC_LIST_APPEND(adbname->v6, nh, plink);
 		nh = NULL;
 
 		result = dns_rdataset_next(rdataset);
@@ -367,96 +381,6 @@ import_rdatasetv4(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	if (now + rdataset->ttl < adbname->expire_v4)
 		adbname->expire_v4 = now + rdataset->ttl;
-
-	/*
-	 * Lie a little here.  This is more or less so code that cares
-	 * can find out if any new information was added or not.
-	 */
-	if (new_addresses_added)
-		return (ISC_R_SUCCESS);
-
-	return (result);
-}
-/*
- * Requires the adbname bucket be locked and that no entry buckets be locked.
- */
-static isc_result_t
-import_rdataset_aaaa(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
-		     isc_stdtime_t now)
-{
-	isc_result_t result;
-	dns_adb_t *adb;
-	dns_adbnamehook_t *nh;
-	dns_rdata_t rdata;
-	struct in6_addr ina;
-	isc_sockaddr_t sockaddr;
-	dns_adbentry_t *foundentry;  /* NO CLEAN UP! */
-	int addr_bucket;
-	isc_boolean_t new_addresses_added;
-
-	INSIST(DNS_ADBNAME_VALID(adbname));
-	adb = adbname->adb;
-	INSIST(DNS_ADB_VALID(adb));
-
-	INSIST(rdataset->type = dns_rdatatype_aaaa);
-
-	addr_bucket = DNS_ADB_INVALIDBUCKET;
-	new_addresses_added = ISC_FALSE;
-	
-	result = dns_rdataset_first(rdataset);
-	while (result == ISC_R_SUCCESS) {
-		nh = new_adbnamehook(adb, NULL);
-		if (nh == NULL) {
-			adbname->partial_result |= DNS_ADBFIND_INET;
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
-
-		dns_rdataset_current(rdataset, &rdata);
-		INSIST(rdata.length == 16);
-		memcpy(&ina.s6_addr, rdata.data, 16);
-		isc_sockaddr_fromin6(&sockaddr, &ina, 53);
-
-		foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
-		if (foundentry == NULL) {
-			dns_adbentry_t *entry;
-
-			entry = new_adbentry(adb);
-			if (entry == NULL) {
-				adbname->partial_result |= DNS_ADBFIND_INET;
-				result = ISC_R_NOMEMORY;
-				goto fail;
-			}
-
-			entry->sockaddr = sockaddr;
-			entry->refcnt = 1;
-			entry->lock_bucket = addr_bucket;
-
-			nh->entry = entry;
-
-			ISC_LIST_APPEND(adb->entries[addr_bucket],
-					entry, plink);
-		} else {
-			foundentry->refcnt++;
-			nh->entry = foundentry;
-		}
-
-		new_addresses_added = ISC_TRUE;
-		ISC_LIST_APPEND(adbname->v6, nh, plink);
-		nh = NULL;
-
-		result = dns_rdataset_next(rdataset);
-	}
-
- fail:
-	if (nh != NULL)
-		free_adbnamehook(adb, &nh);
-
-	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
-		UNLOCK(&adb->entrylocks[addr_bucket]);
-
-	if (now + rdataset->ttl < adbname->expire_v6)
-		adbname->expire_v6 = now + rdataset->ttl;
 
 	/*
 	 * Lie a little here.  This is more or less so code that cares
@@ -2392,7 +2316,7 @@ dbfind_name_v4(dns_adbfind_t *find, dns_name_t *zone,
 		 * any information, return success, or else a fetch
 		 * will be made, which will only make things worse.
 		 */
-		(void)import_rdatasetv4(adbname, &rdataset, now);
+		(void)import_rdataset(adbname, &rdataset, now);
 		result = ISC_R_SUCCESS;
 		break;
 	}
@@ -2448,7 +2372,7 @@ dbfind_name_aaaa(dns_adbfind_t *find, dns_name_t *zone,
 		 * any information, return success, or else a fetch
 		 * will be made, which will only make things worse.
 		 */
-		(void)import_rdataset_aaaa(adbname, &rdataset, now);
+		(void)import_rdataset(adbname, &rdataset, now);
 		result = ISC_R_SUCCESS;
 		break;
 	}
@@ -2543,7 +2467,7 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	 */
 	result = isc_stdtime_get(&now);
 	if (result == ISC_R_SUCCESS)
-		result = import_rdatasetv4(name, &fetch->rdataset, now);
+		result = import_rdataset(name, &fetch->rdataset, now);
 	if (result == ISC_R_SUCCESS)
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
 	else
@@ -2652,7 +2576,7 @@ fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
 	 */
 	result = isc_stdtime_get(&now);
 	if (result == ISC_R_SUCCESS)
-		result = import_rdataset_aaaa(name, &fetch->rdataset, now);
+		result = import_rdataset(name, &fetch->rdataset, now);
 	if (result == ISC_R_SUCCESS)
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
 	else
