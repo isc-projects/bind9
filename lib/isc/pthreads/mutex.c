@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.4 2001/01/06 01:26:35 gson Exp $ */
+/* $Id: mutex.c,v 1.5 2001/01/08 19:47:28 gson Exp $ */
 
 #include <config.h>
 
@@ -214,7 +214,7 @@ isc_mutex_statsprofile(FILE *fp) {
 
 #endif /* ISC_MUTEX_PROFILE */
 
-#ifdef __NetBSD__
+#if ISC_MUTEX_DEBUG && defined(__NetBSD__) && defined(PTHREAD_MUTEX_ERRORCHECK)
 pthread_mutexattr_t isc__mutex_attrs = {
 	PTHREAD_MUTEX_ERRORCHECK,	/* m_type */
 	0				/* m_flags, which appears to be unused. */

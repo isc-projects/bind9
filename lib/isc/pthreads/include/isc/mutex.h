@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.21 2001/01/06 01:26:36 gson Exp $ */
+/* $Id: mutex.h,v 1.22 2001/01/08 19:47:30 gson Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -30,7 +30,7 @@
  * (helpful when debugging).  This is system dependent and
  * currently only supported on NetBSD.
  */
-#ifdef __NetBSD__
+#if ISC_MUTEX_DEBUG && defined(__NetBSD__) && defined(PTHREAD_MUTEX_ERRORCHECK)
 extern pthread_mutexattr_t isc__mutex_attrs;
 #define ISC__MUTEX_ATTRS &isc__mutex_attrs
 #else
