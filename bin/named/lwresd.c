@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.8 2000/06/22 21:49:30 tale Exp $ */
+/* $Id: lwresd.c,v 1.9 2000/06/27 22:50:43 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -133,10 +133,6 @@ parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t *forwarders) {
 	lwresult = lwres_conf_parse(lwctx, lwresd_g_conffile);
 	if (lwresult != LWRES_R_SUCCESS)
 		goto out;
-
-#if 1
-	lwres_conf_print(lwctx, stderr);
-#endif
 
 	lwc = lwres_conf_get(lwctx);
 	INSIST(lwc != NULL);
