@@ -18,15 +18,10 @@
 #ifndef ISC_CONDITION_H
 #define ISC_CONDITION_H 1
 
-#include <pthread.h>
-
-#include <isc/boolean.h>
-#include <isc/result.h>
-#include <isc/mutex.h>
-#include <isc/time.h>
 #include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
+#include <isc/mutex.h>
+#include <isc/result.h>
+#include <isc/types.h>
 
 typedef pthread_cond_t isc_condition_t;
 
@@ -50,8 +45,10 @@ typedef pthread_cond_t isc_condition_t;
 	((pthread_cond_destroy((cp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 
-isc_result_t isc_condition_waituntil(isc_condition_t *, isc_mutex_t *,
-				     isc_time_t *);
+ISC_LANG_BEGINDECLS
+
+isc_result_t
+isc_condition_waituntil(isc_condition_t *, isc_mutex_t *, isc_time_t *);
 
 ISC_LANG_ENDDECLS
 

@@ -20,21 +20,20 @@
 #include <errno.h>
 #include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/condition.h>
 #include <isc/error.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 isc_result_t
-isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t)
-{
+isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	int presult;
 	struct timespec ts;
 
 	REQUIRE(c != NULL && m != NULL && t != NULL);
 
-	ts.tv_sec = t->seconds;
-	ts.tv_nsec = t->nanoseconds;
+	ts.tv_sec = isc_time_seconds(t);
+	ts.tv_nsec = isc_time_nanoseconds(t);
 	do {
 		presult = pthread_cond_timedwait(c, m, &ts);
 		if (presult == 0)

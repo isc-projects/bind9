@@ -25,22 +25,21 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include <isc/assertions.h>
 #include <isc/boolean.h>
 #include <isc/condition.h>
 #include <isc/error.h>
 #include <isc/event.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/result.h>
+#include <isc/time.h>
 #include <isc/timer.h>
 
 #include <tests/t_api.h>
 
-#define	Tx_FUDGE_SECONDS	0		/* in absence of clock_getres() */
-#define	Tx_FUDGE_NANOSECONDS	500000000	/* in absence of clock_getres() */
+#define	Tx_FUDGE_SECONDS	0	     /* in absence of clock_getres() */
+#define	Tx_FUDGE_NANOSECONDS	500000000    /* in absence of clock_getres() */
 
 static	isc_time_t	Tx_endtime;
 static	isc_time_t	Tx_lasttime;
@@ -51,7 +50,7 @@ static	isc_mutex_t	Tx_mx;
 static	isc_condition_t	Tx_cv;
 static	int		Tx_nfails;
 static	int		Tx_nprobs;
-static	isc_timer_t	*Tx_timer;
+static	isc_timer_t    *Tx_timer;
 static	int		Tx_seconds;
 static	int		Tx_nanoseconds;
 
@@ -329,9 +328,9 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 #define	T1_NANOSECONDS	500000000
 
 static char *a1 =
-	"When type is isc_timertype_ticker, a call to isc_timer_create()  creates "
-	"a timer that posts an ISC_TIMEREVENT_TICK event to the specified "
-	"task every 'interval' seconds and returns ISC_R_SUCCESS.";
+	"When type is isc_timertype_ticker, a call to isc_timer_create() "
+	"creates a timer that posts an ISC_TIMEREVENT_TICK event to the "
+	"specified task every 'interval' seconds and returns ISC_R_SUCCESS.";
 
 static void
 t1() {
@@ -365,9 +364,10 @@ t1() {
 #define	T2_NANOSECONDS	300000000;
 
 static char *a2 =
-	"When type is isc_timertype_once, a call to isc_timer_create() creates "
-	"a timer that posts an ISC_TIMEEVENT_LIFE event to the specified "
-	"task when the current time reaches or exceeds the time specified by 'expires'.";
+	"When type is isc_timertype_once, a call to isc_timer_create() "
+	"creates a timer that posts an ISC_TIMEEVENT_LIFE event to the "
+	"specified task when the current time reaches or exceeds the time "
+	"specified by 'expires'.";
 
 static void
 t2() {
@@ -459,9 +459,9 @@ t3_te(isc_task_t *task, isc_event_t *event) {
 #define	T3_NANOSECONDS	400000000
 
 static char *a3 =
-	"When type is isc_timertype_once, a call to isc_timer_create() creates "
-	"a timer that posts an ISC_TIMEEVENT_IDLE event to the specified "
-	"task when the timer has been idle for 'interval' seconds.";
+	"When type is isc_timertype_once, a call to isc_timer_create() "
+	"creates a timer that posts an ISC_TIMEEVENT_IDLE event to the "
+	"specified task when the timer has been idle for 'interval' seconds.";
 
 static void
 t3() {
@@ -551,21 +551,26 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 			++Tx_nfails;
 		}
 		if (Tx_eventcnt == 2) {
-			isc_interval_set(&interval, T4_SECONDS, T4_NANOSECONDS);
-			isc_result = isc_time_nowplusinterval(&expires, &interval);
+			isc_interval_set(&interval, T4_SECONDS,
+					 T4_NANOSECONDS);
+			isc_result = isc_time_nowplusinterval(&expires,
+							      &interval);
 			if (isc_result == ISC_R_SUCCESS) {
 				isc_interval_set(&interval, 0, 0);
-				isc_result = isc_timer_reset(Tx_timer, isc_timertype_once,
-							&expires, &interval, ISC_FALSE);
+				isc_result =
+					isc_timer_reset(Tx_timer,
+							isc_timertype_once,
+							&expires, &interval,
+							ISC_FALSE);
 				if (isc_result != ISC_R_SUCCESS) {
 					t_info("isc_timer_reset failed %s\n",
-							isc_result_totext(isc_result));
+					       isc_result_totext(isc_result));
 					++Tx_nfails;
 				}
 			}
 			else {
 				t_info("isc_time_nowplusinterval failed %s\n",
-						isc_result_totext(isc_result));
+				       isc_result_totext(isc_result));
 				++Tx_nprobs;
 			}
 		}
@@ -682,8 +687,9 @@ t5_tick_event(isc_task_t *task, isc_event_t *event) {
 	if (T5_eventcnt == 1) {
 		isc_time_settoepoch(&expires);
 		isc_interval_set(&interval, T5_SECONDS, 0);
-		isc_result = isc_timer_reset(T5_tickertimer, isc_timertype_ticker,
-						&expires, &interval, ISC_TRUE);
+		isc_result = isc_timer_reset(T5_tickertimer,
+					     isc_timertype_ticker, &expires,
+					     &interval, ISC_TRUE);
 		if (isc_result != ISC_R_SUCCESS) {
 			t_info("isc_timer_reset failed %d\n",
 					isc_result_totext(isc_result));
@@ -892,7 +898,8 @@ t_timers5() {
 		return(T_UNRESOLVED);
 	}
 
-	event = isc_event_allocate(mctx, (void *) 1 , (isc_eventtype_t) 1, t5_start_event, NULL, sizeof(*event));
+	event = isc_event_allocate(mctx, (void *)1 , (isc_eventtype_t)1,
+				   t5_start_event, NULL, sizeof(*event));
 	isc_task_send(T5_task1, &event);
 
 	isc_time_settoepoch(&expires);
@@ -927,8 +934,8 @@ t_timers5() {
 	if (isc_result != ISC_R_SUCCESS) {
 		isc_timer_detach(&T5_tickertimer);
 		isc_timermgr_destroy(&timermgr);
-		(void) isc_condition_signal(&T5_cv);
-		(void) isc_mutex_unlock(&T5_mx);
+		(void)isc_condition_signal(&T5_cv);
+		(void)isc_mutex_unlock(&T5_mx);
 		isc_task_destroy(&T5_task1);
 		isc_task_destroy(&T5_task2);
 		isc_taskmgr_destroy(&tmgr);
@@ -939,14 +946,9 @@ t_timers5() {
 	}
 
 	isc_interval_set(&interval, 0, 0);
-	isc_result = isc_timer_create(	timermgr,
-					isc_timertype_once,
-					&expires,
-					&interval,
-					T5_task2,
-					t5_once_event,
-					NULL,
-					&T5_oncetimer);
+	isc_result = isc_timer_create(timermgr, isc_timertype_once,
+				      &expires, &interval, T5_task2,
+				      t5_once_event, NULL, &T5_oncetimer);
 
 	if (isc_result != ISC_R_SUCCESS) {
 		isc_timer_detach(&T5_tickertimer);

@@ -1,3 +1,7 @@
+ 130.   [cleanup]       <isc/condition.h> does not need <pthread.h> or
+                        <isc/boolean.h>, and now includes <isc/types.h>
+                        instead of <isc/time.h>.
+
  129.   [bug]		The 'default_debug' log channel was not set up when
 			'category default' was present in the config file
 

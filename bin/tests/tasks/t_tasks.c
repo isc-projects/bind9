@@ -21,14 +21,12 @@
 #include	<stdlib.h>
 #include	<unistd.h>
 
-#include	<isc/assertions.h>
 #include	<isc/condition.h>
-#include	<isc/mutex.h>
-#include	<isc/error.h>
 #include	<isc/mem.h>
 #include	<isc/task.h>
 #include	<isc/thread.h>
 #include	<isc/result.h>
+#include 	<isc/time.h>
 #include	<isc/timer.h>
 
 #include	<tests/t_api.h>
@@ -56,8 +54,7 @@ static int	t_tasks13(void);
 isc_mem_t *mctx = NULL;
 
 static void
-t1_callback(isc_task_t *task, isc_event_t *event)
-{
+t1_callback(isc_task_t *task, isc_event_t *event) {
 	int	i;
 	int	j;
 
@@ -79,8 +76,7 @@ t1_shutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-my_tick(isc_task_t *task, isc_event_t *event)
-{
+my_tick(isc_task_t *task, isc_event_t *event) {
 	task = task;
 	t_info("%s\n", event->ev_arg);
 	isc_event_free(&event);

@@ -20,14 +20,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include <isc/assertions.h>
 #include <isc/condition.h>
-#include <isc/error.h>
 #include <isc/heap.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/task.h>
 #include <isc/thread.h>
+#include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
