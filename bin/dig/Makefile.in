@@ -55,6 +55,9 @@ dig: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 host: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ host.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
+nslookup: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nslookup.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+
 clean distclean::
 	rm -f ${TARGETS}
 

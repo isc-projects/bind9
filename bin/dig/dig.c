@@ -34,6 +34,7 @@ extern int h_errno;
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
+extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t tcp_mode, have_ipv6, show_details,
 	usesearch, trace, qr;
@@ -979,3 +980,43 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 	printgreeting (argc, argv);
 }
+
+int
+main(int argc, char **argv) {
+	dig_lookup_t *lookup = NULL;
+#ifdef TWIDDLE
+	FILE *fp;
+	int i, p;
+#endif
+
+	ISC_LIST_INIT(lookup_list);
+	ISC_LIST_INIT(server_list);
+	ISC_LIST_INIT(search_list);
+
+	debug ("dhmain()");
+#ifdef TWIDDLE
+	fp = fopen("/dev/urandom", "r");
+	if (fp!=NULL) {
+		fread (&i, sizeof(int), 1, fp);
+		srandom(i);
+	}
+	else {
+		srandom ((int)&main);
+	}
+	p = getpid()%16+8;
+	for (i=0 ; i<p; i++);
+#endif
+	setup_libs();
+	parse_args(ISC_FALSE, argc, argv);
+	setup_system();
+	lookup = ISC_LIST_HEAD(lookup_list);
+	setup_lookup(lookup);
+	if (tcp_mode)
+		do_lookup_tcp(lookup);
+	else
+		do_lookup_udp(lookup);
+	isc_app_run();
+	free_lists(0);
+	return (0);
+}
+

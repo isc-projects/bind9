@@ -148,6 +148,15 @@ void
 do_lookup_tcp (dig_lookup_t *lookup);
 void
 send_udp(dig_lookup_t *lookup);
+int
+dhmain(int argc, char **argv);
+void
+setup_libs(void);
+void
+setup_system(void);
+void
+free_lists(int exitcode);
+
 
 /* Routines needed in dig.c and host.c */
 void

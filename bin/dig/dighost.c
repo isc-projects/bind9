@@ -74,9 +74,6 @@ int lookup_counter = 0;
 char fixeddomain[MXNAME]="";
 int exitcode = 9;
 
-static void
-free_lists(void);
-
 static int
 count_dots(char *string) {
 	char *s;
@@ -117,9 +114,11 @@ fatal(char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
+	if (exitcode == 0)
+		exitcode = 8;
 #ifdef NEVER
 	isc_app_shutdown();
-	free_lists();
+	free_lists(exitcode);
 	if (mctx != NULL) {
 #ifdef MEMDEBUG
 		isc_mem_stats(mctx, stderr);
@@ -227,7 +226,7 @@ twiddlebuf(isc_buffer_t buf) {
 }
 #endif
 
-static void
+void
 setup_system(void) {
 	char rcinput[MXNAME];
 	FILE *fp;
@@ -254,6 +253,8 @@ setup_system(void) {
 	 * does NOT insure that id's cann't be guessed.
 	 */
 	srandom (getpid() + (int)&setup_system);
+
+	free_now = ISC_FALSE;
 	get_servers = (server_list.head == NULL);
 	fp = fopen (RESOLVCONF, "r");
 	if (fp != NULL) {
@@ -364,7 +365,7 @@ setup_system(void) {
 	     }
 }
 	
-static void
+void
 setup_libs(void) {
 	isc_result_t result;
 	isc_buffer_t b;
@@ -1495,8 +1496,8 @@ do_lookup_udp(dig_lookup_t *lookup) {
 	send_udp(lookup);
 }
 
-static void
-free_lists(void) {
+void
+free_lists(int exitcode) {
 	void *ptr;
 	dig_lookup_t *l;
 	dig_query_t *q;
@@ -1576,47 +1577,6 @@ free_lists(void) {
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
 
-	exit(exitcode);
-}
-
-int
-main(int argc, char **argv) {
-	dig_lookup_t *lookup = NULL;
-#ifdef TWIDDLE
-	FILE *fp;
-	int i, p;
-#endif
-
-	ISC_LIST_INIT(lookup_list);
-	ISC_LIST_INIT(server_list);
-	ISC_LIST_INIT(search_list);
-
-#ifdef TWIDDLE
-	fp = fopen("/dev/urandom", "r");
-	if (fp!=NULL) {
-		fread (&i, sizeof(int), 1, fp);
-		srandom(i);
-	}
-	else {
-		srandom ((int)&main);
-	}
-	p = getpid()%16+8;
-	for (i=0 ; i<p; i++);
-#endif
-	setup_libs();
-	parse_args(ISC_FALSE, argc, argv);
-	setup_system();
-	lookup = ISC_LIST_HEAD(lookup_list);
-	setup_lookup(lookup);
-	if (tcp_mode)
-		do_lookup_tcp(lookup);
-	else
-		do_lookup_udp(lookup);
-	isc_app_run();
-	free_lists();
-
-	/*
-	 * Should never get here.
-	 */
-	return (2);
+	if (exitcode != 0)
+		exit(exitcode);
 }
