@@ -84,7 +84,7 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 }
 
 void
-lwres_contextfree(lwres_context_t **contextp)
+lwres_freecontext(lwres_context_t **contextp)
 {
 	lwres_context_t *context;
 

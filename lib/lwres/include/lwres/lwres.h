@@ -236,15 +236,13 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
  *
  *	contextp != NULL && contextp == NULL.
  *
- *	
- *
  * Returns:
  *
  *	Returns 0 on success, non-zero on failure.
  */
 
 void
-lwres_contextfree(lwres_context_t **contextp);
+lwres_freecontext(lwres_context_t **contextp);
 /*
  * Frees all memory associated with a lwres context.
  *
