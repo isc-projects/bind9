@@ -90,5 +90,7 @@
 	  Secret Key Transaction Authentication for DNS (GSS-TSIG)
 3655:	Redefinition of DNS Authenticated Data (AD) bit
 3658:	Delegation Signer (DS) Resource Record (RR)
+3757:	Domain Name System KEY (DNSKEY) Resource Record (RR)
+	  Secure Entry Point (SEP) Flag
 3833:	Threat Analysis of the Domain Name System (DNS)
 3845:	DNS Security (DNSSEC) NextSECure (NSEC) RDATA Format
