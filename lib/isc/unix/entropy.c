@@ -377,7 +377,6 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 * Adjust counts.
 	 */
 	subtract_pseudo(ent, added);
-	add_entropy(ent, added);
 }
 
 /*
