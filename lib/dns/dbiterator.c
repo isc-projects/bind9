@@ -87,15 +87,15 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator) {
 }
 
 dns_result_t
-dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name,
-		      isc_buffer_t *target)
-{
+dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
+
 	/*
 	 * Return the origin to which returned node names are relative.
 	 */
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 	REQUIRE(iterator->relative_names);
+	REQUIRE(dns_name_hasbuffer(name));
 	
-	return (iterator->methods->origin(iterator, name, target));
+	return (iterator->methods->origin(iterator, name));
 }

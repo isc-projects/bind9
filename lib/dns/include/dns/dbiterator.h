@@ -80,8 +80,8 @@ typedef struct dns_dbiteratormethods {
 	dns_result_t	(*current)(dns_dbiterator_t *iterator,
 				   dns_dbnode_t **nodep, dns_name_t *name);
 	dns_result_t	(*pause)(dns_dbiterator_t *iterator);
-	dns_result_t	(*origin)(dns_dbiterator_t *iterator, dns_name_t *name,
-				  isc_buffer_t *target);
+	dns_result_t	(*origin)(dns_dbiterator_t *iterator,
+				  dns_name_t *name);
 } dns_dbiteratormethods_t;
 
 #define DNS_DBITERATOR_MAGIC		0x444E5349U		/* DNSI. */
@@ -103,7 +103,6 @@ struct dns_dbiterator {
 	dns_dbiteratormethods_t *	methods;
 	dns_db_t *			db;
 	dns_dbversion_t *		version;
-	isc_boolean_t			paused;
 	isc_boolean_t			relative_names;
 };
 
@@ -214,8 +213,7 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator);
  */
 
 dns_result_t
-dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name,
-		      isc_buffer_t *target);
+dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
 /*
  * Return the origin to which returned node names are relative.
  *
@@ -223,10 +221,7 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name,
  *
  *	'iterator' is a relative_names iterator.
  *
- *	'name' is a valid name.
- *
- *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY, or
- *	'target' is NULL and 'name' has a dedicated buffer.
+ *	'name' is a valid name with a dedicated buffer.
  *
  * Ensures:
  *
