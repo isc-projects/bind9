@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.130 2000/10/25 04:26:43 marka Exp $ */
+/* $Id: rbtdb.c,v 1.131 2000/11/15 23:51:13 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1132,7 +1132,6 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	      dns_rdataset_t *rdataset)
 {
 	unsigned char *raw;
-	unsigned int count;
 
 	/*
 	 * Caller must be holding the node lock.
@@ -1151,10 +1150,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rdataset->trust = header->trust;
 	rdataset->private1 = rbtdb;
 	rdataset->private2 = node;
-	raw = (unsigned char *)header + sizeof *header;
+	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
-	count = raw[0] * 256 + raw[1];
-	raw += 2;
 	
 	/*
 	 * Reset iterator state.
