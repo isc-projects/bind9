@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.41 2000/07/06 23:54:45 tale Exp $ */
+/* $Id: rbt.h,v 1.42 2000/07/07 00:25:47 tale Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -359,8 +359,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * Find the node for 'name'.
  *
  * Notes:
- *      A node that has no data is considered not to exist for this function,
- *      unless the DNS_RBTFIND_EMPTYDATA option is set.  This applies to both
+ *	A node that has no data is considered not to exist for this function,
+ *	unless the DNS_RBTFIND_EMPTYDATA option is set.  This applies to both
  *	exact matches and partial matches.
  *
  *	If the chain parameter is non-NULL, then the path through the tree
@@ -415,8 +415,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	how the various elements of the chain are set.  This was done to 
  * 	ensure that the chain's state was sane, and to prevent problems that
  *	occurred when running the predecessor location code under conditions
- *	it was not designed for.  It is clear *where* the chain should point
- *	when DNS_RBTFIND_NOEXACT is set, so if you end up using a chain
+ *	it was not designed for.  It is not clear *where* the chain should
+ *	point when DNS_RBTFIND_NOEXACT is set, so if you end up using a chain
  *	with this option because you want a particular node, let us know
  *	where you want the chain pointed, so this can be made more firm.
  *
