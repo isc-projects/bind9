@@ -30,10 +30,6 @@
 #include <isc/mutex.h>
 #endif
 
-#if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] = "$Id: mem.c,v 1.10 1998/12/11 20:38:46 halley Exp $";
-#endif /* not lint */
-
 /*
  * Types.
  */
