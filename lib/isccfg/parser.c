@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.94 2001/12/13 06:31:00 gson Exp $ */
+/* $Id: parser.c,v 1.95 2001/12/18 23:23:32 marka Exp $ */
 
 #include <config.h>
 
@@ -916,8 +916,6 @@ view_clauses[] = {
 	 */
 	{ "query-source", &cfg_type_querysource4, 0 },
 	{ "query-source-v6", &cfg_type_querysource6, 0 },
-	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
-	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "cleaning-interval", &cfg_type_uint32, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "lame-ttl", &cfg_type_uint32, 0 },
@@ -954,6 +952,8 @@ zone_clauses[] = {
 	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
 	{ "notify", &cfg_type_notifytype, 0 },
+	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
+	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "also-notify", &cfg_type_portiplist, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
