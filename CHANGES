@@ -1,4 +1,5 @@
- 316.	[bug]		EOF mid line should be a error.
+ 316.	[bug]		Generate a warning if we detect an unexpected <eof>
+			but treat as <eol><eof>.
 
  315.	[bug]		Handle non-empty blanks lines. (RT #163)
 
