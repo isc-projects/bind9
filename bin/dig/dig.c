@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.59 2000/07/12 00:22:56 gson Exp $ */
+/* $Id: dig.c,v 1.60 2000/07/12 01:41:35 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -157,7 +157,7 @@ show_usage(void) {
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
-"                 +[no]defname        (Set whether to use default domaon)\n"
+"                 +[no]defname        (Set whether to use default domain)\n"
 "                 +[no]recursive      (Recursive mode)\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]details        (Show details of all requests)\n"
@@ -214,8 +214,9 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		puts("");
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
-		printf(";; Received %u bytes from %.*s in %d ms\n",
-		       bytes, frmsize, frm, (int)diff/1000);
+		printf(";; Received %u bytes from %.*s(%s) in %d ms\n\n",
+		       bytes, frmsize, frm, query->servname,
+		       (int)diff/1000);
 	}
 }
 
@@ -773,7 +774,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 					lookup->stats = ISC_FALSE;
 				}
 				lookup->section_additional = ISC_FALSE;
-				lookup->section_authority = ISC_FALSE;
+				lookup->section_authority = ISC_TRUE;
 				lookup->section_question = ISC_FALSE;
 				show_details = ISC_TRUE;
 			} else {
@@ -785,7 +786,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 					stats = ISC_FALSE;
 				}
 				section_additional = ISC_FALSE;
-				section_authority = ISC_FALSE;
+				section_authority = ISC_TRUE;
 				section_question = ISC_FALSE;
 				show_details = ISC_TRUE;
 			}
