@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.196 2001/06/15 23:28:27 gson Exp $ */
+/* $Id: query.c,v 1.197 2001/08/27 06:10:15 marka Exp $ */
 
 #include <config.h>
 
@@ -2608,6 +2608,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 					     rdataset, sigrdataset);
 		}
 		if (result != ISC_R_SUCCESS) {
+			INSIST(node == NULL);
+			INSIST(!dns_rdataset_isassociated(rdataset));
+			INSIST(sigrdataset == NULL ||
+			      !dns_rdataset_isassociated(sigrdataset));
 			/*
 			 * We don't have any root server hints, but
 			 * we may have working forwarders, so try to

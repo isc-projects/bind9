@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.101 2001/07/26 20:42:44 bwelling Exp $ */
+/* $Id: view.c,v 1.102 2001/08/27 06:10:17 marka Exp $ */
 
 #include <config.h>
 
@@ -749,6 +749,12 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			result = DNS_R_HINTNXRRSET;
 		} else if (result == DNS_R_NXDOMAIN)
 			result = ISC_R_NOTFOUND;
+
+		/*
+		 * Cleanup if non-standard hints are used.
+		 */
+		if (db == NULL && node != NULL)
+			dns_db_detachnode(view->hints, &node);
 	}
 
  cleanup:
@@ -786,7 +792,8 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			*dbp = db;
 		else
 			dns_db_detach(&db);
-	}
+	} else
+		INSIST(node == NULL);
 
 	if (zone != NULL)
 		dns_zone_detach(&zone);
@@ -992,6 +999,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			 * nameservers!
 			 */
 			result = ISC_R_NOTFOUND;
+			INSIST(!dns_rdataset_isassociated(rdataset));
 		}
 	}
 
