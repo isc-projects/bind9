@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.373 2002/07/26 06:27:30 marka Exp $ */
+/* $Id: zone.c,v 1.374 2002/07/29 06:58:46 marka Exp $ */
 
 #include <config.h>
 
@@ -3539,7 +3539,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		DNS_ZONE_TIME_ADD(&now, zone->expire, &zone->expiretime);
 		goto next_master;
 	} else {
-		zone_debuglog(zone, me, 1, "ahead");
+		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MULTIMASTER))
+			dns_zone_log(zone, ISC_LOG_INFO, "serial number (%u) "
+				     "received from master %s < ours (%u)",
+				     soa.serial, master, zone->serial);
+		else
+			zone_debuglog(zone, me, 1, "ahead");
 		goto next_master;
 	}
 	if (msg != NULL)

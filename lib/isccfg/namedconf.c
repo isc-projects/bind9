@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.7 2002/07/13 00:53:34 marka Exp $ */
+/* $Id: namedconf.c,v 1.8 2002/07/29 06:58:46 marka Exp $ */
 
 #include <config.h>
 
@@ -588,8 +588,6 @@ zone_clauses[] = {
 	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
-	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
-	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "max-transfer-time-in", &cfg_type_uint32, 0 },
 	{ "max-transfer-time-out", &cfg_type_uint32, 0 },
 	{ "max-transfer-idle-in", &cfg_type_uint32, 0 },
@@ -598,7 +596,10 @@ zone_clauses[] = {
 	{ "min-retry-time", &cfg_type_uint32, 0 },
 	{ "max-refresh-time", &cfg_type_uint32, 0 },
 	{ "min-refresh-time", &cfg_type_uint32, 0 },
+	{ "multi-master", &cfg_type_boolean, 0 },
 	{ "sig-validity-interval", &cfg_type_uint32, 0 },
+	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
+	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "zone-statistics", &cfg_type_boolean, 0 },
 	{ "key-directory", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }

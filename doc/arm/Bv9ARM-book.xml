@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.203 2002/07/01 02:18:42 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.204 2002/07/29 06:58:45 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3397,6 +3397,15 @@ temporarily allocate memory to hold this complete
 difference set.
 </para></listitem></varlistentry>
 
+<varlistentry><term><command>multi-master</command></term>
+<listitem>
+<para>
+This should be set when you have multiple masters for a zone and the
+addresses refer to different machines.  If 'yes' named will not log
+when the serial number on the master is less than what named currently
+has.  The default is <userinput>no</userinput>.
+</para></listitem></varlistentry>
+
 </variablelist>
 
 </sect3>
@@ -4520,6 +4529,7 @@ Statement Grammar</title>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> multi-master <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
 
 }</optional>;
@@ -4827,6 +4837,10 @@ See the description in <xref linkend="tuning"/>.
 <command>key-directory</command> in <xref linkend="options"/></para>
 </listitem></varlistentry>
 
+<varlistentry><term><command>multi-master</command></term>
+<listitem><para>See the description of
+<command>multi-master</command> in <xref linkend="boolean_options"/>.</para>
+</listitem></varlistentry>
 
 </variablelist>
 
