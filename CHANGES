@@ -1,6 +1,7 @@
+1427.	[bug]		Race condition in adb with threaded build.
 
 1426.   [cleanup]	Disable RFC2535 style DNSSEC.  This is incompatible
-			with the forth coming DS style DNSSEC.
+			with the forthcoming DS style DNSSEC.
 
 1382.	[bug]		make install failed with --enable-libbind. [RT #3656]
 
