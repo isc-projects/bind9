@@ -634,7 +634,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 
 	if (result == ISC_R_NOTFOUND && USECACHE(client))
 		dns_db_attach(client->view->cachedb, &db);
-	else if (result != DNS_R_SUCCESS)
+	else if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		goto cleanup;
 
 	/*
