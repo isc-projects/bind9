@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.117 2001/11/10 01:37:42 gson Exp $ */
+/* $Id: rbt.c,v 1.118 2001/11/13 06:19:55 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -46,8 +46,6 @@
  */
 #define CHAIN_MAGIC		ISC_MAGIC('0', '-', '0', '-')
 #define VALID_CHAIN(chain)	ISC_MAGIC_VALID(chain, CHAIN_MAGIC)
-
-#define VALID_NODE(node)	ISC_MAGIC_VALID(node, DNS_RBTNODE_MAGIC)
 
 #define RBT_HASH_SIZE		64
 
@@ -1293,7 +1291,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		}
 	}
 
-	ENSURE(*node == NULL || VALID_NODE(*node));
+	ENSURE(*node == NULL || DNS_RBTNODE_VALID(*node));
 
 	return (result);
 }
@@ -1403,7 +1401,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	dns_rbtnode_t *parent;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 
 	if (DOWN(node) != NULL) {
 		if (recurse)
@@ -1484,7 +1482,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 void
 dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 	REQUIRE(name != NULL);
 	REQUIRE(name->offsets == NULL);
 
@@ -1496,7 +1494,7 @@ dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 	dns_name_t current;
 	isc_result_t result;
 
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 	REQUIRE(name != NULL);
 	REQUIRE(name->buffer != NULL);
 
@@ -1525,7 +1523,7 @@ dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname, unsigned int size)
 	dns_name_t *name;
 	isc_result_t result;
 
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 	REQUIRE(printname != NULL);
 
 	dns_fixedname_init(&fixedname);
@@ -1677,7 +1675,7 @@ static inline isc_result_t
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 
 	if (rbt->hashtable == NULL)
 		result = inithash(rbt);
@@ -1695,7 +1693,7 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	unsigned int bucket;
 	dns_rbtnode_t *bucket_node;
 
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 
 	if (rbt->hashtable != NULL) {
 		bucket = HASHVAL(node) % rbt->hashsize;
@@ -1718,7 +1716,7 @@ static inline void
 rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 	dns_rbtnode_t *child;
 
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 	REQUIRE(rootp != NULL);
 
 	child = RIGHT(node);
@@ -1751,7 +1749,7 @@ static inline void
 rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 	dns_rbtnode_t *child;
 
-	REQUIRE(VALID_NODE(node));
+	REQUIRE(DNS_RBTNODE_VALID(node));
 	REQUIRE(rootp != NULL);
 
 	child = LEFT(node);
@@ -1793,7 +1791,8 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 	dns_offsets_t add_offsets, current_offsets;
 
 	REQUIRE(rootp != NULL);
-	REQUIRE(VALID_NODE(node) && LEFT(node) == NULL && RIGHT(node) == NULL);
+	REQUIRE(DNS_RBTNODE_VALID(node) && LEFT(node) == NULL &&
+		RIGHT(node) == NULL);
 	REQUIRE(current != NULL);
 
 	root = *rootp;
