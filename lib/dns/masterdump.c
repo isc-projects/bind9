@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.27 2000/06/22 21:54:29 tale Exp $ */
+/* $Id: masterdump.c,v 1.27.2.1 2000/08/15 00:29:48 gson Exp $ */
 
 #include <config.h>
 
@@ -633,17 +633,87 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
+	dns_rdataset_t soaset, sigsoaset, nsset, signsset;
 	
 	dns_rdataset_init(&rdataset);
+	dns_rdataset_init(&soaset);
+	dns_rdataset_init(&sigsoaset);
+	dns_rdataset_init(&nsset);
+	dns_rdataset_init(&signsset);
+
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type != 0) {
+		if (rdataset.type == dns_rdatatype_soa)
+			dns_rdataset_clone(&rdataset, &soaset);
+		else if (rdataset.type == dns_rdatatype_ns)
+			dns_rdataset_clone(&rdataset, &nsset);
+		else if (rdataset.type == dns_rdatatype_sig) {
+			if (rdataset.covers == dns_rdatatype_soa)
+				dns_rdataset_clone(&rdataset, &sigsoaset);
+			else if (rdataset.covers == dns_rdatatype_ns)
+				dns_rdataset_clone(&rdataset, &signsset);
+		}
+		dns_rdataset_disassociate(&rdataset);
+		result = dns_rdatasetiter_next(rdsiter);
+	}
+	if (result != ISC_R_NOMORE)
+		return (result);
+
+	if (dns_rdataset_isassociated(&soaset)) {
+		result = dump_rdataset(mctx, name, &soaset, ctx, buffer, f);
+		dns_rdataset_disassociate(&soaset);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
+			name = NULL;
+	}
+
+	if (dns_rdataset_isassociated(&sigsoaset)) {
+		result = dump_rdataset(mctx, name, &sigsoaset, ctx, buffer, f);
+		dns_rdataset_disassociate(&sigsoaset);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
+			name = NULL;
+	}
+
+	if (dns_rdataset_isassociated(&nsset)) {
+		result = dump_rdataset(mctx, name, &nsset, ctx, buffer, f);
+		dns_rdataset_disassociate(&nsset);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
+			name = NULL;
+	}
+
+	if (dns_rdataset_isassociated(&signsset)) {
+		result = dump_rdataset(mctx, name, &signsset, ctx, buffer, f);
+		dns_rdataset_disassociate(&signsset);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
+			name = NULL;
+	}
+
+	result = dns_rdatasetiter_first(rdsiter);
+	while (result == ISC_R_SUCCESS) {
+		dns_rdatasetiter_current(rdsiter, &rdataset);
+		if (rdataset.type != 0 &&
+		    rdataset.type != dns_rdatatype_soa &&
+		    rdataset.type != dns_rdatatype_ns &&
+		    !(rdataset.type == dns_rdatatype_sig &&
+		      (rdataset.covers == dns_rdatatype_soa ||
+		       rdataset.covers == dns_rdatatype_ns)))
+		{
 			/*
 			 * XXX  We only dump the rdataset if it isn't a
 			 * negative caching entry.  Maybe our dumping routines
 			 * will learn how to usefully dump such an entry later
 			 * on.
+			 *
+			 * Also, the SOA, NS, SIG SOA, and SIG NS rdatasets
+			 * have already been printed, so skip them.
 			 */
 			result = dump_rdataset(mctx, name, &rdataset, ctx,
 					       buffer, f);
