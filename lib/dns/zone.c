@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.131 2000/05/29 05:47:18 marka Exp $ */
+/* $Id: zone.c,v 1.132 2000/05/30 22:30:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -40,6 +40,7 @@
 #include <dns/rcode.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
