@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.61 2001/06/04 19:33:08 tale Exp $ */
+/* $Id: request.c,v 1.62 2001/06/28 21:34:39 gson Exp $ */
 
 #include <config.h>
 
@@ -841,7 +841,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		dns_tsigkey_attach(key, &request->tsigkey);
 
  use_tcp:
-	tcp =  ISC_TF((options & DNS_REQUESTOPT_TCP) != 0);
+	tcp = ISC_TF((options & DNS_REQUESTOPT_TCP) != 0);
 	result = get_dispatch(tcp, requestmgr, srcaddr, destaddr,
 			      &request->dispatch);
 	if (result != ISC_R_SUCCESS)
