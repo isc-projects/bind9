@@ -206,7 +206,7 @@ clean distclean::
 	rm -f t_journal
 
 test:
-	for dir in $(SUBDIRS) ;\
+	@for dir in $(SUBDIRS) ;\
 	do \
 		( cd $$dir; $(MAKE) test ) ;\
 	done
