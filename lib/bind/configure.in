@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.11 $)
+AC_REVISION($Revision: 1.12 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1382,6 +1382,24 @@ AC_SUBST(GROUP_R_SET_RESULT)
 AC_SUBST(GROUP_R_SET_RETURN)
 
 AC_CHECK_FUNC(gethostbyname_r,
+AC_TRY_COMPILE(
+[
+#include <netdb.h>
+struct hostent  *gethostbyname_r
+        (const char *, struct hostent *, char *, int, int *h_errnop) {}
+],
+[return (0);]
+[
+HOST_R_ARGS="#define HOST_R_ARGS char *buf, int buflen, int *h_errnop"
+HOST_R_BAD="#define HOST_R_BAD NULL"
+HOST_R_COPY="#define HOST_R_COPY buf, buflen"
+HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS char *buf, int buflen"
+HOST_R_ERRNO="#define HOST_R_ERRNO *h_errnop = h_errno"
+HOST_R_OK="#define HOST_R_OK hptr"
+HOST_R_RETURN="#define HOST_R_RETURN struct hostent *"
+]
+,
+)
 ,
 HOST_R_ARGS="#define HOST_R_ARGS char *buf, int buflen, int *h_errnop"
 HOST_R_BAD="#define HOST_R_BAD NULL"
@@ -1467,6 +1485,25 @@ AC_SUBST(NGR_R_SET_RETURN)
 
 
 AC_CHECK_FUNC(getprotoent_r,
+AC_TRY_COMPILE(
+[
+#include <netdb.h>
+struct protoent *getprotoent_r(struct protoent *result,
+		 char *buffer, int buflen) {}
+]
+,
+[return (0);]
+,
+[
+PROTO_R_ARGS="#define PROTO_R_ARGS char *buf, int buflen"
+PROTO_R_BAD="#define PROTO_R_BAD NULL"
+PROTO_R_COPY="#define PROTO_R_COPY buf, buflen"
+PROTO_R_COPY_ARGS="#define PROTO_R_COPY_ARGS PROTO_R_ARGS"
+PROTO_R_OK="#define PROTO_R_OK pptr"
+PROTO_R_RETURN="#define PROTO_R_RETURN struct protoent *"
+]
+,
+)
 ,
 PROTO_R_ARGS="#define PROTO_R_ARGS char *buf, int buflen"
 PROTO_R_BAD="#define PROTO_R_BAD NULL"
