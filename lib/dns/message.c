@@ -1110,6 +1110,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			ercode = (msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
 				>> 20;
 			msg->rcode |= ercode;
+			isc_mempool_put(msg->namepool, name);
 		}
 	}
 	
