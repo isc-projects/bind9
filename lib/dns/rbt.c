@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.72 2000/04/12 21:31:02 tale Exp $ */
+/* $Id: rbt.c,v 1.73 2000/04/12 21:38:04 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -38,6 +38,11 @@
 #define RBT_MAGIC		0x5242542BU /* RBT+. */
 #define VALID_RBT(rbt)		((rbt) != NULL && (rbt)->magic == RBT_MAGIC)
 
+/*
+ * XXXDCL could remove all of the chain junk, and replace with
+ * dns_rbt_firstnode, _previousnode, _nextnode, _lastnode.  pretty
+ * major change to the API.
+ */
 #define CHAIN_MAGIC		0x302d302dU /* 0-0-. */
 #define VALID_CHAIN(chain)	((chain) != NULL && \
 				 (chain)->magic == CHAIN_MAGIC)
@@ -169,6 +174,11 @@ static isc_result_t join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node);
 static inline isc_result_t get_ancestor_mem(dns_rbtnodechain_t *chain);
 static inline void put_ancestor_mem(dns_rbtnodechain_t *chain);
 
+/*
+ * XXXDCL could ditch parent and root arguments to rotate_*, since
+ * now with parent pointers they could figure out the needed pointers
+ * themselves.  this would slightly simplify dns_rbt_{addon,deletefrom}level.
+ */
 static inline void rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent,
 			       dns_rbtnode_t **rootp);
 static inline void rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent,
