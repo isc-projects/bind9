@@ -158,7 +158,7 @@ Building
 	previous versions of BIND 9 from users of the following systems:
 
 		SuSE Linux 7.0
-		Slackware Linux 7.x
+		Slackware Linux 7.x, 8.0
 	        Red Hat Linux 7.1
 		OpenBSD 2.6, 2.8, -current
 		UnixWare 7.1.1
