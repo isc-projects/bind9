@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.38 2000/10/05 10:42:39 marka Exp $ */
+/* $Id: server.h,v 1.39 2000/10/05 23:48:49 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -95,7 +95,7 @@ ns_server_reloadwanted(ns_server_t *server);
  */
 
 void
-ns_server_flushonshutdown(ns_server_t *server);
+ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush);
 /*
  * Inform the server that the zones should be flushed to disk on shutdown.
  */

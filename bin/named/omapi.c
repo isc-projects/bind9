@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.17 2000/10/05 10:42:35 marka Exp $ */
+/* $Id: omapi.c,v 1.18 2000/10/05 23:48:47 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -81,12 +81,14 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 		result = ISC_R_SUCCESS;
 
 	} else if (omapi_string_strcmp(name,NS_OMAPI_COMMAND_HALT) == 0) {
-		if (omapi_data_getint(value) != 0)
+		if (omapi_data_getint(value) != 0) {
+			ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
 			isc_app_shutdown();
+		}
 		result = ISC_R_SUCCESS;
 	} else if (omapi_string_strcmp(name,NS_OMAPI_COMMAND_STOP) == 0) {
 		if (omapi_data_getint(value) != 0) {
-			ns_server_flushonshutdown(ns_g_server);
+			ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
 			isc_app_shutdown();
 		}
 		result = ISC_R_SUCCESS;

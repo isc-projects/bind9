@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.225 2000/10/05 10:42:36 marka Exp $ */
+/* $Id: server.c,v 1.226 2000/10/05 23:48:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1669,8 +1669,11 @@ run_server(isc_task_t *task, isc_event_t *event) {
 }
 
 void 
-ns_server_flushonshutdown(ns_server_t *server) {
-	server->flushonshutdown = ISC_TRUE;
+ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush) {
+
+	REQUIRE(NS_SERVER_VALID(server));
+
+	server->flushonshutdown = flush;
 }
 
 static void
