@@ -46,6 +46,15 @@
 #define VALID_HEAP(h)			((h) != NULL && \
 					 (h)->magic == HEAP_MAGIC)
 
+/*
+ * When the heap is in a consistent state, the following invariant
+ * holds true: for every element i > 1, heap_parent(i) has a higher
+ * priority than i.
+ */
+#define HEAPCONDITION(i) ((i) == 1 || \
+			  heap->compare(heap->array[heap_parent(i)], \
+					heap->array[(i)]))
+
 struct isc_heap {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
@@ -130,9 +139,9 @@ static void
 float_up(isc_heap_t *heap, unsigned int i, void *elt) {
 	unsigned int p;
 
-	for ( p = heap_parent(i); 
-	      i > 1 && heap->compare(elt, heap->array[p]);
-	      i = p, p = heap_parent(i) ) {
+	for (p = heap_parent(i); 
+	     i > 1 && heap->compare(elt, heap->array[p]);
+	     i = p, p = heap_parent(i)) {
 		heap->array[i] = heap->array[p];
 		if (heap->index != NULL)
 			(heap->index)(heap->array[i], i);
@@ -140,19 +149,20 @@ float_up(isc_heap_t *heap, unsigned int i, void *elt) {
 	heap->array[i] = elt;
 	if (heap->index != NULL)
 		(heap->index)(heap->array[i], i);
+
+	INSIST(HEAPCONDITION(i));
 }
 
 static void
 sink_down(isc_heap_t *heap, unsigned int i, void *elt) {
 	unsigned int j, size, half_size;
-
 	size = heap->last;
 	half_size = size / 2;
 	while (i <= half_size) {
-		/* find smallest of the (at most) two children */
+		/* Find the smallest of the (at most) two children. */
 		j = heap_left(i);
 		if (j < size && heap->compare(heap->array[j+1],
-						     heap->array[j]))
+					      heap->array[j]))
 			j++;
 		if (heap->compare(elt, heap->array[j]))
 			break;
@@ -164,6 +174,8 @@ sink_down(isc_heap_t *heap, unsigned int i, void *elt) {
 	heap->array[i] = elt;
 	if (heap->index != NULL)
 		(heap->index)(heap->array[i], i);
+
+	INSIST(HEAPCONDITION(i));
 }
 
 isc_result_t
@@ -184,13 +196,22 @@ isc_heap_insert(isc_heap_t *heap, void *elt) {
 void
 isc_heap_delete(isc_heap_t *heap, unsigned int i) {
 	void *elt;
+	isc_boolean_t less;
 
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(i >= 1 && i <= heap->last);
 
-	elt = heap->array[heap->last];
-	if (--heap->last > 0)
-		sink_down(heap, i, elt);
+	if (i == heap->last) {
+		heap->last--;
+	} else {
+		elt = heap->array[heap->last--];
+		less = heap->compare(elt, heap->array[i]);
+		heap->array[i] = elt;
+		if (less)
+			float_up(heap, i, heap->array[i]);
+		else
+			sink_down(heap, i, heap->array[i]);
+	}
 }
 
 void
