@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -41,7 +41,7 @@
 #endif
 
 #define ISC_TASK_SEND(a, b) do { \
-	INSIST(isc_task_send(a, b) == ISC_R_SUCCESS); \
+	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
 } while (0);
 
 #define SOFT_ERROR(e)	((e) == EAGAIN || (e) == EWOULDBLOCK || (e) == EINTR)
@@ -1475,8 +1475,8 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp)
 		return (ISC_R_UNEXPECTED);
 	}
 
-	INSIST(make_nonblock(manager->pipe_fds[0]) == ISC_R_SUCCESS);
-	INSIST(make_nonblock(manager->pipe_fds[1]) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(make_nonblock(manager->pipe_fds[0]) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(make_nonblock(manager->pipe_fds[1]) == ISC_R_SUCCESS);
 
 	/*
 	 * Set up initial state for the select loop

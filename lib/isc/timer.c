@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -499,7 +499,7 @@ run(void *uap) {
 
 	LOCK(&manager->lock);
 	while (!manager->done) {
-		INSIST(isc_time_get(&now) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_time_get(&now) == ISC_R_SUCCESS);
 
 		XTRACETIME("running", now);
 
