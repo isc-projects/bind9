@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.77 2000/04/14 20:13:45 explorer Exp $ */
+/* $Id: rdata.c,v 1.78 2000/04/25 19:09:07 explorer Exp $ */
 
 #include <config.h>
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -119,22 +120,6 @@ static const char octdigits[] = "01234567";
 #define META 0x0001
 #define RESERVED 0x0002
 
-#define METATYPES \
-	{ 0, "RESERVED0", META }, \
-	{ 31, "EID", RESERVED }, \
-	{ 32, "NIMLOC", RESERVED }, \
-	{ 34, "ATMA", RESERVED }, \
-	{ 100, "UINFO", RESERVED }, \
-	{ 101, "UID", RESERVED }, \
-	{ 102, "GID", RESERVED }, \
-	{ 249, "TKEY", META }, \
-	{ 250, "TSIG", META }, \
-	{ 251, "IXFR", META }, \
-	{ 252, "AXFR", META }, \
-	{ 253, "MAILB", META }, \
-	{ 254, "MAILA", META }, \
-	{ 255, "ANY", META },
-
 /*
  * Empty classes are those without any types of their own.
  */
@@ -194,16 +179,19 @@ static const char octdigits[] = "01234567";
 	{ 255,    "ALL", 0 }, \
 	{ 0, NULL, 0}
 
-static struct tbl {
+struct tbl {
 	unsigned int	value;
 	char	*name;
 	int	flags;
-} types[] = { TYPENAMES METATYPES {0, NULL, 0} },
-classes[] = { METACLASSES CLASSNAMES EMPTYCLASSES { 0, NULL, 0} },
-rcodes[] = { RCODENAMES },
-certs[] = { CERTNAMES },
-secalgs[] = { SECALGNAMES },
-secprotos[] = { SECPROTONAMES };
+};
+
+static struct tbl classes[] = {
+	METACLASSES CLASSNAMES EMPTYCLASSES { 0, NULL, 0}
+};
+static struct tbl rcodes[] = { RCODENAMES };
+static struct tbl certs[] = { CERTNAMES };
+static struct tbl secalgs[] = { SECALGNAMES };
+static struct tbl secprotos[] = { SECPROTONAMES };
 
 static struct keyflag {
 	char *name;
@@ -738,21 +726,29 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 /* XXXRTH  Should we use a hash table here? */
 
 isc_result_t
-dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
-	int i = 0;
+dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source)
+{
+	unsigned int hash;
 	unsigned int n;
+	unsigned char a, b;
 
-	while (types[i].name != NULL) {
-		n = strlen(types[i].name);
-		if (n == source->length &&
-		    strncasecmp(source->base, types[i].name, n) == 0) {
-			*typep = types[i].value;
-			if ((types[i].flags & RESERVED) != 0)
-				return (ISC_R_NOTIMPLEMENTED);
-			return (ISC_R_SUCCESS);
-		}
-		i++;
-	}
+	n = source->length;
+
+	if (n == 0)
+		return (DNS_R_UNKNOWN);
+
+	a = tolower(source->base[0]);
+	b = tolower(source->base[n - 1]);
+
+	hash = ((a + n) * b) % 256;
+
+	/*
+	 * This switch block is inlined via #define, and will use "return"
+	 * to return a result to the caller if it is a valid (known)
+	 * rdatatype name.
+	 */
+	RDATATYPE_FROMTEXT_SW(hash, source->base, typep);
+
 	return (DNS_R_UNKNOWN);
 }
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.38 2000/04/19 18:33:09 explorer Exp $ */
+/* $Id: gen.c,v 1.39 2000/04/25 19:09:06 explorer Exp $ */
 
 #include <config.h>
 
@@ -136,6 +136,7 @@ struct ttnam {
 	char typename[11];
 	char macroname[11];
 	char attr[256];
+	unsigned int sorted;
 } typenames[256];
 
 char *	upper(char *);
@@ -318,6 +319,7 @@ insert_into_typenames(int type, char *typename, char *attr)
 		exit(1);
 	}
 	strcpy(ttn->attr, attr);
+	ttn->sorted = 0;
 }
 
 void
@@ -420,6 +422,19 @@ sd(int rdclass, char *classname, char *dirname, char filetype) {
 	end_directory(&dir);
 }
 
+static unsigned int
+HASH(char *string)
+{
+	unsigned int n;
+	unsigned char a, b;
+
+	n = strlen(string);
+	a = tolower(string[0]);
+	b = tolower(string[n - 1]);
+
+	return ((a + n) * b) % 256;
+}
+
 int
 main(int argc, char **argv) {
 	char buf[256];			/* XXX Should be max path length */
@@ -428,7 +443,8 @@ main(int argc, char **argv) {
 	char classname[11];
 	struct tt *tt;
 	struct cc *cc;
-	struct ttnam *ttn;
+	struct ttnam *ttn, *ttn2;
+	unsigned int hash;
 	struct tm *tm;
 	time_t now;
 	char year[11];
@@ -437,7 +453,7 @@ main(int argc, char **argv) {
 	int class_enum = 0;
 	int type_enum = 0;
 	int structs = 0;
-	int c, i;
+	int c, i, j;
 	char buf1[11];
 	char filetype = 'c';
 	FILE *fd;
@@ -517,19 +533,6 @@ main(int argc, char **argv) {
 	fprintf(stdout, copyright, year);
 
 	if (code) {
-#if 0
-		dodecl("isc_result_t", "fromtext", FROMTEXTDECL);
-		dodecl("isc_result_t", "totext", TOTEXTDECL);
-		dodecl("isc_result_t", "fromwire", FROMWIREDECL);
-		dodecl("isc_result_t", "towire", TOWIREDECL);
-		dodecl("int", "compare", COMPAREDECL);
-		dodecl("isc_result_t", "fromstruct", FROMSTRUCTDECL);
-		dodecl("isc_result_t", "tostruct", TOSTRUCTDECL);
-		dodecl("void", "freestruct", FREESTRUCTDECL);
-		dodecl("isc_result_t", "additionaldata", ADDITIONALDATADECL);
-		dodecl("isc_result_t", "digest", DIGESTDECL);
-#endif
-
 		fputs("\n\n", stdout);
 		for (tt = types; tt != NULL ; tt = tt->next)
 			fprintf(stdout, "#include \"%s/%s_%d.c\"\n",
@@ -559,16 +562,10 @@ main(int argc, char **argv) {
 			 DIGESTARGS, DIGESTTYPE,
 			 DIGESTCLASS, DIGESTDEF);
 
-		fprintf(stdout, "\n#define TYPENAMES%s\n",
-			types != NULL ? " \\" : "");
-
-		lasttype = 0;
-		for (tt = types; tt != NULL ; tt = tt->next)
-			if (tt->type != lasttype)
-				fprintf(stdout, "\t{ %d, \"%s\", 0 },%s\n",
-					lasttype = tt->type,
-					upper(tt->typename),
-					tt->next != NULL ? " \\" : "");
+		/*
+		 * From here down, we are processing the rdata names and
+		 * attributes.
+		 */
 
 #define PRINT_COMMA(x) (x == 255 ? "" : ",")
 
@@ -613,6 +610,65 @@ main(int argc, char **argv) {
 		}
 		printf("};\n");
 
+		/*
+		 * Run through the list of types and pre-mark the unused
+		 * ones as "sorted" so we simply ignore them below.
+		 */
+		for (i = 0 ; i <= 255 ; i++) {
+			ttn = &typenames[i];
+			if (ttn->typename[0] == 0)
+				ttn->sorted = 1;
+		}
+
+		/*
+		 * Spit out a quick and dirty hash function.  Here,
+		 * we walk through the list of type names, and calculate
+		 * a hash.  This isn't perfect, but it will generate "pretty
+		 * good" estimates.  Lowercase the characters before
+		 * computing in all cases.
+		 *
+		 * Here, walk the list from top to bottom, calculating
+		 * the hash (mod 256) for each name.
+		 */
+		printf("#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) \\\n");
+		printf("\tswitch (_hash) { \\\n");
+		for (i = 0 ; i <= 255 ; i++) {
+			ttn = &typenames[i];
+
+			/*
+			 * Skip entries we already processed.
+			 */
+			if (ttn->sorted != 0)
+				continue;
+
+			hash = HASH(ttn->typename);
+			printf("\t\tcase %u: \\\n", hash);
+
+			/*
+			 * Find all other entries that happen to match
+			 * this hash.
+			 */
+			for (j = i ; j <= 255 ; j++) {
+				ttn2 = &typenames[j];
+				if (hash == HASH(ttn2->typename)) {
+					printf("\t\t\tif (strcasecmp(\"%s\", (_typename)) == 0) { \\\n"
+					       "\t\t\t\tif ((typeattr[%u].flags & DNS_RDATATYPEATTR_RESERVED) != 0) \\\n"
+					       "\t\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n"
+					       "\t\t\t\t*(_typep) = %u; \\\n"
+					       "\t\t\t\treturn (ISC_R_SUCCESS); \\\n"
+					       "\t\t\t} \\\n",
+					       ttn2->typename, j, j);
+					ttn2->sorted = 1;
+				}
+			}
+			printf("\t\t\tbreak; \\\n");
+		}
+		printf("\t}\n");
+
+
+		/*
+		 * Dump the class names.
+		 */
 
 		fputs("\n", stdout);
 		fprintf(stdout, "\n#define CLASSNAMES%s\n",
