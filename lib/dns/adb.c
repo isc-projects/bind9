@@ -52,7 +52,7 @@
 
 #include "../isc/util.h"
 
-#if 1
+#if 0
 #define DP(x)		printf x
 #else
 #define DP(x)
@@ -864,6 +864,7 @@ new_adbhandle(dns_adb_t *adb)
 	h->query_pending = ISC_FALSE;
 	h->partial_result = ISC_FALSE;
 	h->result = ISC_R_UNEXPECTED;
+	ISC_LINK_INIT(h, plink);
 	ISC_LIST_INIT(h->list);
 	h->name_bucket = DNS_ADB_INVALIDBUCKET;
 	h->adbname = NULL;
@@ -959,6 +960,7 @@ free_adbhandle(dns_adb_t *adb, dns_adbhandle_t **handlep)
 	*handlep = NULL;
 
 	INSIST(ISC_LIST_EMPTY(handle->list));
+	INSIST(!ISC_LINK_LINKED(handle, plink));
 	INSIST(!ISC_LINK_LINKED(handle, link));
 	INSIST(handle->name_bucket == DNS_ADB_INVALIDBUCKET);
 	INSIST(handle->adbname == NULL);

@@ -122,6 +122,7 @@ struct dns_adbhandle {
 	isc_boolean_t			query_pending;	/* RO: partial list */
 	isc_boolean_t			partial_result;	/* RO: addrs missing */
 	isc_result_t			result;		/* RO: extra result */
+	ISC_LINK(dns_adbhandle_t)	plink;		/* RW: client use */
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */

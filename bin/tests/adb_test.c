@@ -66,7 +66,6 @@ isc_result_t ns_rootns_init(void);
 void create_managers(void);
 static void lookup_callback(isc_task_t *, isc_event_t *);
 void create_view(void);
-void destroy_view(void);
 client_t *new_client(void);
 void free_client(client_t **);
 static inline void CLOCK(void);
@@ -294,11 +293,6 @@ create_view(void)
 	dns_view_freeze(view);
 }
 
-void
-destroy_view(void)
-{
-	dns_view_detach(&view);
-}
 
 void
 insert(char *target, char *addr, dns_ttl_t ttl, isc_stdtime_t now)
@@ -465,7 +459,7 @@ main(int argc, char **argv)
 	dns_adb_dump(adb, stderr);
 	dns_adb_detach(&adb);
 
-	destroy_view();
+	dns_view_detach(&view);
 
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
