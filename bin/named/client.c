@@ -72,7 +72,9 @@
 
 #define TCP_CLIENT(c)	(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
 
+#define TCP_BUFFER_SIZE			(65535 + 2)
 #define SEND_BUFFER_SIZE		2048
+#define RECV_BUFFER_SIZE		2048
 
 struct ns_clientmgr {
 	/* Unlocked. */
@@ -223,6 +225,8 @@ client_free(ns_client_t *client) {
 	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 	isc_timer_detach(&client->timer);
 	
+	if (client->sendbuf != NULL)
+		isc_mem_put(client->mctx, client->sendbuf, TCP_BUFFER_SIZE);
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
@@ -571,6 +575,11 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->nsends > 0);
 	client->nsends--;
+	
+	if (client->tcpbuf != NULL) {
+		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
+		client->tcpbuf = NULL;
+	}
 
 	isc_event_free(&event);
 
@@ -599,7 +608,6 @@ ns_client_send(ns_client_t *client) {
 	if ((client->attributes & NS_CLIENTATTR_RA) != 0)
 		client->message->flags |= DNS_MESSAGEFLAG_RA;
 	
-	data = client->sendbuf;
 	/*
 	 * XXXRTH  The following doesn't deal with TSIGs, TCP buffer resizing,
 	 *         or ENDS1 more data packets.
@@ -608,9 +616,14 @@ ns_client_send(ns_client_t *client) {
 		/*
 		 * XXXRTH  "tcpbuffer" is a hack to get things working.
 		 */
-		isc_buffer_init(&tcpbuffer, data, SEND_BUFFER_SIZE);
-		isc_buffer_init(&buffer, data + 2, SEND_BUFFER_SIZE - 2);
+		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
+		if (client->tcpbuf == NULL)
+			goto done;
+		data = client->tcpbuf;
+		isc_buffer_init(&tcpbuffer, data, TCP_BUFFER_SIZE);
+		isc_buffer_init(&buffer, data + 2, TCP_BUFFER_SIZE - 2);
 	} else {
+		data = client->sendbuf;
 		if (client->udpsize < SEND_BUFFER_SIZE)
 			bufsize = client->udpsize;
 		else
@@ -623,7 +636,7 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 	if (client->opt != NULL) {
 		result = dns_message_setopt(client->message, client->opt);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) 
 			goto done;
 		/*
 		 * XXXRTH dns_message_setopt() should probably do this...
@@ -683,7 +696,12 @@ ns_client_send(ns_client_t *client) {
 		client->nsends++;
 		return;
 	}
+
  done:
+	if (client->tcpbuf != NULL) {
+		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
+		client->tcpbuf = NULL;
+	}
 	ns_client_next(client, result);
 }
 	
@@ -755,7 +773,7 @@ client_addopt(ns_client_t *client) {
 	/*
 	 * Set Maximum UDP buffer size.
 	 */
-	rdatalist->rdclass = SEND_BUFFER_SIZE;
+	rdatalist->rdclass = RECV_BUFFER_SIZE;
 
 	/*
 	 * Set EXTENDED-RCODE, VERSION, and Z to 0.
@@ -1155,6 +1173,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->tcplistener = NULL;
 	client->tcpsocket = NULL;
 	client->tcpmsg_valid = ISC_FALSE;
+	client->tcpbuf = NULL;
 	client->opt = NULL;
 	client->udpsize = 512;
 	client->next = NULL;

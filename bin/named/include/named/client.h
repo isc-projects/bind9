@@ -97,6 +97,7 @@ struct ns_client {
 	dns_dispatchevent_t *	dispevent;
 	isc_socket_t *		tcplistener;
 	isc_socket_t *		tcpsocket;
+	unsigned char *		tcpbuf;
 	dns_tcpmsg_t		tcpmsg;
 	isc_boolean_t		tcpmsg_valid;
 	isc_timer_t *		timer;
