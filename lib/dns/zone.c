@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.33 2003/11/03 23:49:00 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.34 2003/11/04 05:29:09 marka Exp $ */
 
 #include <config.h>
 
@@ -5275,30 +5275,6 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 */
 		if (zone->db == NULL)
 			goto same_master;
-		/*
-		 * This is not neccessary if we just performed a AXFR
-		 * however it is necessary for an IXFR / UPTODATE and
-		 * won't hurt with an AXFR.
-		 */
-		if (zone->masterfile != NULL || zone->journal != NULL) {
-			result = ISC_R_FAILURE;
-			if (zone->journal != NULL)
-				result = isc_file_settime(zone->journal, &now);
-			if (result != ISC_R_SUCCESS &&
-			    zone->masterfile != NULL)
-				result = isc_file_settime(zone->masterfile,
-							  &now);
-			/* Someone removed the file from underneath us! */
-			if (result == ISC_R_FILENOTFOUND &&
-			    zone->masterfile != NULL)
-				zone_needdump(zone, DNS_DUMP_DELAY);
-			else if (result != ISC_R_SUCCESS)
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "transfer: could not set file "
-					     "modification time of '%s': %s",
-					     zone->masterfile,
-					     dns_result_totext(result));
-		}
 
 		/*
 		 * Update the zone structure's data from the actual
@@ -5359,6 +5335,31 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "transferred serial %u%s",
 				     zone->serial, buf);
+		}
+
+		/*
+		 * This is not neccessary if we just performed a AXFR
+		 * however it is necessary for an IXFR / UPTODATE and
+		 * won't hurt with an AXFR.
+		 */
+		if (zone->masterfile != NULL || zone->journal != NULL) {
+			result = ISC_R_FAILURE;
+			if (zone->journal != NULL)
+				result = isc_file_settime(zone->journal, &now);
+			if (result != ISC_R_SUCCESS &&
+			    zone->masterfile != NULL)
+				result = isc_file_settime(zone->masterfile,
+							  &now);
+			/* Someone removed the file from underneath us! */
+			if (result == ISC_R_FILENOTFOUND &&
+			    zone->masterfile != NULL)
+				zone_needdump(zone, DNS_DUMP_DELAY);
+			else if (result != ISC_R_SUCCESS)
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "transfer: could not set file "
+					     "modification time of '%s': %s",
+					     zone->masterfile,
+					     dns_result_totext(result));
 		}
 
 		break;
