@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.6 1999/01/20 06:51:30 marka Exp $ */
+ /* $Id: rdata.c,v 1.7 1999/01/20 22:49:34 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
@@ -50,10 +50,33 @@ static unsigned short	uint16_fromregion(isc_region_t *region);
 
 #include "code.h"
 
+#define META 0x0001
+#define RESERVED 0x0002
+
+#define METATYPES \
+	{ 0, "NONE", META }, \
+	{ 100, "UINFO", RESERVED }, \
+	{ 101, "UID", RESERVED }, \
+	{ 102, "GID", RESERVED }, \
+	{ 103, "UNSPEC", RESERVED }, \
+	{ 249, "TKEY", META }, \
+	{ 250, "TSIG", META }, \
+	{ 251, "IXFR", META }, \
+	{ 252, "AXFR", META }, \
+	{ 253, "MAILB", META }, \
+	{ 254, "MAILA", META }, \
+	{ 255, "ANY", META },
+
+#define METACLASSES \
+	{ 0, "NONE", META }, \
+	{ 255, "ANY", META },
+
 struct tbl {
 	int	value;
 	char	*name;
-} types[] = { TYPENAMES {0, NULL} }, classes[] = { CLASSNAMES { 0, NULL} };
+	int	flags;
+} types[] = { TYPENAMES METATYPES {0, NULL, 0} },
+classes[] = { CLASSNAMES METACLASSES { 0, NULL, 0} };
 /***
  *** Initialization
  ***/
@@ -297,7 +320,9 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		if (n == source->length &&
 		    strncasecmp(source->base, classes[i].name, n) == 0) {
 			*classp = classes[i].value;
-			return(DNS_R_SUCCESS);
+			if ((classes[i].flags & RESERVED) != 0)
+				return (DNS_R_NOTIMPLEMENTED);
+			return (DNS_R_SUCCESS);
 		}
 		i++;
 	}
@@ -317,7 +342,7 @@ dns_rdataclass_totext(dns_rdataclass_t class, isc_buffer_t *target) {
 				return (DNS_R_NOSPACE);
 			memcpy(region.base, classes[i].name, n);
 			isc_buffer_add(target, n);
-			return(DNS_R_SUCCESS);
+			return (DNS_R_SUCCESS);
 		}
 		i++;
 	}
@@ -334,7 +359,9 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 		if (n == source->length &&
 		    strncasecmp(source->base, types[i].name, n) == 0) {
 			*typep = types[i].value;
-			return(DNS_R_SUCCESS);
+			if ((types[i].flags & RESERVED) != 0)
+				return (DNS_R_NOTIMPLEMENTED);
+			return (DNS_R_SUCCESS);
 		}
 		i++;
 	}
@@ -354,7 +381,7 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 				return (DNS_R_NOSPACE);
 			memcpy(region.base, types[i].name, n);
 			isc_buffer_add(target, n);
-			return(DNS_R_SUCCESS);
+			return (DNS_R_SUCCESS);
 		}
 		i++;
 	}
