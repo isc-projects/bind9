@@ -1,3 +1,8 @@
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id: README,v 1.2 2000/08/30 19:18:12 gson Exp $
+
 ns1 root
 ns2 master
 ns3 stealth master(ns4)/slave(ns2)
