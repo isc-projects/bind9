@@ -1,7 +1,7 @@
 Copyright (C) 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.7 2001/08/12 04:53:38 mayer Exp $
+$Id: readme1st.txt,v 1.8 2001/09/06 04:36:21 mayer Exp $
 
 	   Release of BIND 9.2.0 for Window NT/2000
 
@@ -90,6 +90,24 @@ nsupdate, rndc, rndc-confgen, named-checkconf, named-checkzone, dnssec-keygen,
 dnssec-makekeyset, dnssec-signkey, dnssec-signzone. The tools will NOT run on
 Win9x, only WinNT and Win2000. The latter tools are for use with DNSSEC. All
 tools are installed in the dns/bin directory.
+
+IMPORTANT NOTE ON USING THE TOOLS:
+If you wish to use nsupdate on a win32 platform to do dynamic updates
+to a zone you MUST create a resolv.conf in the System32\Drivers\etc
+directory containing a list of nameserver addresses to use to find
+the nameserver authorative for the zone. The format of this file is:
+
+nameserver 1.2.3.4
+nameserver 5.6.7.8
+
+Replace the IP addresses with your real addresses.  127.0.0.1 is a valid
+address if you are running a nameserver on the localhost. 
+
+In addition, if you use dig, host or nslookup, you will need this
+file on the system where you are running these tools unless you have
+BIND running on that system.
+
+This will be fixed in a future release.
 
 	Problems
 
