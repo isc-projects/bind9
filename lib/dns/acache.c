@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.5 2004/12/29 22:30:10 marka Exp $ */
+/* $Id: acache.c,v 1.6 2004/12/29 22:42:57 marka Exp $ */
 
 #include <config.h>
 
@@ -359,8 +359,6 @@ destroy_entry(dns_acacheentry_t *entry) {
 
 static void
 destroy(dns_acache_t *acache) {
-	isc_mem_t *mctx;
-
 	REQUIRE(DNS_ACACHE_VALID(acache));
 
 	ATRACE("destroy");
@@ -380,7 +378,6 @@ destroy(dns_acache_t *acache) {
 
 	DESTROYLOCK(&acache->lock);
 	acache->magic = 0;
-	mctx = acache->mctx;
 
 	isc_mem_putanddetach(&acache->mctx, acache, sizeof(*acache));
 }
@@ -1137,10 +1134,8 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 		 * unlink_dbentries().
 		 */
 		ISC_LIST_UNLINK(dbentry->originlist, entry, olink);
-		if (acache->cleaner.current_entry == NULL ||
-		    acache->cleaner.current_entry != entry) {
+		if (acache->cleaner.current_entry != entry)
 			ISC_LIST_UNLINK(acache->entries, entry, link);
-		}
 		unlink_dbentries(acache, entry);
 
 		if (entry->callback != NULL)
@@ -1149,19 +1144,15 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 
 		UNLOCK(&entry->lock);
 
-		if (acache->cleaner.current_entry == NULL ||
-		    acache->cleaner.current_entry != entry) {
+		if (acache->cleaner.current_entry != entry)
 			dns_acache_detachentry(&entry);
-		}
 	}
 	while ((entry = ISC_LIST_HEAD(dbentry->referlist)) != NULL) {
 		LOCK(&entry->lock);
 
 		ISC_LIST_UNLINK(dbentry->referlist, entry, rlink);
-		if (acache->cleaner.current_entry == NULL ||
-		    acache->cleaner.current_entry != entry) {
+		if (acache->cleaner.current_entry != entry)
 			ISC_LIST_UNLINK(acache->entries, entry, link);
-		}
 		unlink_dbentries(acache, entry);
 
 		if (entry->callback != NULL)
@@ -1170,10 +1161,8 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 
 		UNLOCK(&entry->lock);
 
-		if (acache->cleaner.current_entry == NULL ||
-		    acache->cleaner.current_entry != entry) {
+		if (acache->cleaner.current_entry != entry)
 			dns_acache_detachentry(&entry);
-		}
 	}
 
 	INSIST(ISC_LIST_EMPTY(dbentry->originlist) &&
