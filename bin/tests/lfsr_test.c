@@ -33,6 +33,15 @@ main(int argc, char **argv)
 	UNUSED(argc);
 	UNUSED(argv);
 
+	printf("Known LFSRs:\n");
+	i = 0;
+	while (isc_lfsr_standard[i].bits != 0) {
+		printf("%2d: %2d bits, %08x initial state, %08x tap\n",
+		       i, isc_lfsr_standard[i].bits,
+		       isc_lfsr_standard[i].state, isc_lfsr_standard[i].tap);
+		i++;
+	}
+
 	/*
 	 * Verify that returned values are reproducable.
 	 */
