@@ -4,6 +4,8 @@ Make lwresd shut down its fetches properly
 
 Develop automated test for queries over IPv6
 
+Move lwres search list handling to lwresd
+
 Use util/kit.sh for building snapshots, taking care to set the version
 number to something that can be distinguished from release version
 numbers
