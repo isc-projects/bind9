@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.46 2004/05/29 00:01:17 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.47 2004/07/29 00:17:10 marka Exp $ */
 
 #include <config.h>
 
@@ -5231,6 +5231,31 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			goto fail;
 		if (dump)
 			zone_needdump(zone, DNS_DUMP_DELAY);
+		else if (zone->journalsize != -1) {
+			isc_uint32_t serial;
+
+			result = dns_db_getsoaserial(db, ver, &serial);
+			if (result == ISC_R_SUCCESS) {
+				result = dns_journal_compact(zone->mctx,
+							     zone->journal,
+							     serial,
+							     zone->journalsize);
+				switch (result) {
+				case ISC_R_SUCCESS:
+				case ISC_R_NOSPACE:
+				case ISC_R_NOTFOUND:
+					dns_zone_log(zone, ISC_LOG_DEBUG(3),
+						     "dns_journal_compact: %s",
+						     dns_result_totext(result));
+					break;
+				default:
+					dns_zone_log(zone, ISC_LOG_ERROR,
+					     "dns_journal_compact failed: %s",
+						     dns_result_totext(result));
+					break;
+				}
+			}
+		}
 	} else {
 		if (dump && zone->masterfile != NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,

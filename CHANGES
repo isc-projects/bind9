@@ -1,6 +1,9 @@
 1694.	[bug]		Report if the builtin views of "_default" / "_bind"
 			are defined in named.conf. [RT #12023]
 
+1693.	[bug]		max-journal-size was not effective for master zones
+			with ixfr-from-differences set. [RT# 12024]
+
 1692.	[bug]		Don't set -I, -L and -R flags when libcrypto is in
 			/usr/lib. [RT #11971]
 
