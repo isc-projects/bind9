@@ -35,6 +35,7 @@
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/resolver.h>
@@ -1235,6 +1236,63 @@ query_addns(ns_client_t *client, dns_db_t *db) {
 }
 
 static inline isc_result_t
+query_addcname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
+	       dns_ttl_t ttl, dns_name_t **anamep)
+{
+	dns_rdataset_t *rdataset;
+	dns_rdatalist_t *rdatalist;
+	dns_rdata_t *rdata;
+	isc_result_t result;
+	isc_region_t r;
+
+	/*
+	 * We assume the name data referred to by qname and tname won't
+	 * go away.
+	 */
+
+	REQUIRE(anamep != NULL);
+
+	rdatalist = NULL;
+	result = dns_message_gettemprdatalist(client->message, &rdatalist);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	rdata = NULL;
+	result = dns_message_gettemprdata(client->message, &rdata);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(client->message, &rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_init(rdataset);
+	dns_name_clone(qname, *anamep);
+
+	rdatalist->type = dns_rdatatype_cname;
+	rdatalist->covers = 0;
+	rdatalist->rdclass = client->message->rdclass;
+	rdatalist->ttl = ttl;
+
+	dns_name_toregion(tname, &r);
+	rdata->data = r.base;
+	rdata->length = r.length;
+
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
+
+	query_addrrset(client, anamep, &rdataset, NULL, NULL,
+		       DNS_SECTION_ANSWER);
+
+	if (rdataset != NULL) {
+		if (dns_rdataset_isassociated(rdataset))
+			dns_rdataset_disassociate(rdataset);
+		dns_message_puttemprdataset(client->message, &rdataset);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static inline isc_result_t
 query_checktype(dns_rdatatype_t type) {
 	
 	/*
@@ -1902,7 +1960,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		dns_name_init(tname, NULL);
 		dns_name_fromregion(tname, &r);
 		/*
-		 * Construct the new qname and restart the query.
+		 * Construct the new qname.
 		 */
 		dns_fixedname_init(&fixed);
 		prefix = dns_fixedname_name(&fixed);
@@ -1919,8 +1977,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (fname == NULL)
 			goto cleanup;
 		result = dns_name_concatenate(prefix, tname, fname, NULL);
-		dns_message_puttempname(client->message, &tname);
 		if (result != ISC_R_SUCCESS) {
+			dns_message_puttempname(client->message, &tname);
 			if (result == ISC_R_NOSPACE) {
 				/*
 				 * RFC 2672, section 4.1, subsection 3c says
@@ -1932,6 +1990,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			goto cleanup;
 		}
 		query_keepname(client, fname, dbuf);
+		/*
+		 * Synthesize a CNAME for this DNAME.
+		 */
+		dns_name_init(tname, NULL);
+		query_addcname(client, client->query.qname, fname,
+			       trdataset->ttl, &tname);
+		if (tname != NULL)
+			dns_message_puttempname(client->message, &tname);
+		/*
+		 * Switch to the new qname and restart.
+		 */
 		query_maybeputqname(client);
 		client->query.qname = fname;
 		fname = NULL;
