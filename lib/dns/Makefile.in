@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.97 2000/08/17 02:13:18 bwelling Exp $
+# $Id: Makefile.in,v 1.98 2000/08/22 00:54:57 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -124,7 +124,7 @@ OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 		name.@O@ ncache.@O@ nxt.@O@ peer.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ request.@O@ \
-		resolver.@O@ result.@O@ rootns.@O@ ssu.@O@ \
+		resolver.@O@ result.@O@ rootns.@O@ sdb.@O@ ssu.@O@ \
 		tcpmsg.@O@ time.@O@ tkey.@O@ tkeyconf.@O@ \
 		tsig.@O@ tsigconf.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zoneconf.@O@ zt.@O@ \
@@ -139,7 +139,7 @@ SRCS =		a6.c acl.c aclconf.c adb.c byaddr.c \
 		name.c ncache.c nxt.c peer.c \
 		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \
-		resolver.c result.c rootns.c ssu.c \
+		resolver.c result.c rootns.c sdb.c ssu.c \
 		tcpmsg.c time.c tkey.c tkeyconf.c \
 		tsig.c tsigconf.c ttl.c validator.c \
 		version.c view.c xfrin.c zone.c zoneconf.c zt.c
