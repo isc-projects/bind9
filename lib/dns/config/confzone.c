@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.57 2000/08/22 05:14:54 marka Exp $ */
+/* $Id: confzone.c,v 1.58 2000/09/27 01:50:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -605,6 +605,13 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	const char *nomasterserr = "zone '%s': missing 'masters' entry";
 	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
 	const char *disabledzone = "zone '%s': is disabled";
+	const char *checknameserror = "zone '%s': 'check-names' is not yet "
+		"implemented";
+	const char *dialuperror = "zone '%s': 'dialup' is not yet implemented";
+	const char *pubkeyerror = "zone '%s': 'pubkey' is deprecated";
+	dns_severity_t severity;
+	isc_boolean_t tbool;
+	dns_c_pklist_t *pklist = NULL;
 
 	/*
 	 * Check if zone is diabled. This isn't really a validation, just a
@@ -657,10 +664,28 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 		}
 	}
 
+	/*
+	 * Check for unimplemented options.
+	 */
+	if (dns_c_zone_getchecknames(zone, &severity) == ISC_R_SUCCESS &&
+	    severity != dns_severity_ignore)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      checknameserror, zone->name);
+
+	if (dns_c_zone_getdialup(zone, &tbool) == ISC_R_SUCCESS &&
+	    tbool == ISC_TRUE)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      dialuperror, zone->name);
+
+	if (dns_c_zone_getpubkeylist(zone, &pklist) == ISC_R_SUCCESS)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      pubkeyerror, zone->name);
 
 	/* XXX TODO make sure no 'key' clauses were given on any iplist
 	   except for masters{}; */
-
 
 	return (result);
 }
