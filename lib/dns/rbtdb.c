@@ -1039,6 +1039,63 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	return (DNS_R_DELEGATION);
 }
 
+static inline isc_boolean_t
+valid_glue(rbtdb_search_t *search, dns_name_t *name, dns_rdatatype_t type,
+	   dns_rbtnode_t *node)
+{
+	unsigned char *raw;
+	unsigned int count, size;
+	dns_name_t ns_name;
+	isc_boolean_t valid = ISC_FALSE;
+	dns_offsets_t offsets;
+	isc_region_t region;
+	rdatasetheader_t *header;
+
+	/*
+	 * No additional locking is required.
+	 */
+
+	/*
+	 * Valid glue types are A, AAAA, A6.  NS is also a valid glue type
+	 * if it occurs at a zone cut, but is not valid below it.
+	 */
+	if (type == dns_rdatatype_ns) {
+		if (node != search->zonecut) {
+			return (ISC_FALSE);
+		}
+	} else if (type != dns_rdatatype_a &&
+		   type != dns_rdatatype_aaaa &&
+		   type != dns_rdatatype_a6) {
+		return (ISC_FALSE);
+	}
+
+	header = search->zonecut_rdataset;
+	raw = (unsigned char *)header + sizeof *header;
+	count = raw[0] * 256 + raw[1];
+	raw += 2;
+
+	while (count > 0) {
+		count--;
+		size = raw[0] * 256 + raw[1];
+		raw += 2;
+		region.base = raw;
+		region.length = size;
+		raw += size;
+		/*
+		 * XXX Until we have rdata structures, we have no choice but
+		 * to directly access the rdata format.
+		 */
+		dns_name_init(&ns_name, offsets);
+		dns_name_fromregion(&ns_name, &region);
+		if (dns_name_compare(&ns_name, name) == 0) {
+			valid = ISC_TRUE;
+			break;
+		}
+	}
+
+	return (valid);
+}
+
 static dns_result_t
 zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	  dns_rdatatype_t type, unsigned int options,
@@ -1120,18 +1177,12 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * We have found a node whose name is the desired name.
 	 */
 
-	/*
-	 * If we're beneath a zone cut, we don't want to look for CNAMEs
-	 * because they're not legitimate zone glue.  If the caller wants
-	 * glue validation, we do it now.
-	 */
 	if (search.zonecut != NULL) {
+		/*
+		 * If we're beneath a zone cut, we don't want to look for
+		 * CNAMEs because they're not legitimate zone glue.
+		 */
 		cname_ok = ISC_FALSE;
-		if ((search.options & DNS_DBFIND_VALIDATEGLUE) != 0) {
-			/* XXX Validate Glue Here */
-			result = DNS_R_NOTIMPLEMENTED;
-			goto tree_exit;
-		}
 	} else {
 		/*
 		 * The node may be a zone cut itself.  If it might be one,
@@ -1254,11 +1305,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		goto partial_match;
 	}
 
-	/* 
-	 * XXX We need to do glue validation if we're looking for glue at
-	 * a zonecut.
-	 */
-
 	/*
 	 * If we didn't find what we were looking for...
 	 */
@@ -1301,14 +1347,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * We found what we were looking for, or we found a CNAME.
 	 */
 
-	if (nodep != NULL) {
-		if (!at_zonecut)
-			new_reference(search.rbtdb, node);
-		else
-			search.need_cleanup = ISC_FALSE;
-		*nodep = node;
-	}
-
 	if (type != found->type &&
 	    type != dns_rdatatype_any &&
 	    found->type == dns_rdatatype_cname) {
@@ -1334,11 +1372,34 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				result = DNS_R_GLUE;
 		} else
 			result = DNS_R_GLUE;
+		/*
+		 * We might have found data that isn't glue, but was occluded
+		 * by a dynamic update.  If the caller cares about this, they
+		 * will have told us to validate glue.
+		 *
+		 * XXX We should cache the glue validity state!
+		 */
+		if (result == DNS_R_GLUE &&
+		    (search.options & DNS_DBFIND_VALIDATEGLUE) != 0 &&
+		    !valid_glue(&search, foundname, type, node)) {
+		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		    result = setup_delegation(&search, nodep, foundname,
+					      rdataset);
+		    goto tree_exit;
+		}
 	} else {
 		/*
 		 * An ordinary successful query!
 		 */
 		result = DNS_R_SUCCESS;
+	}
+
+	if (nodep != NULL) {
+		if (!at_zonecut)
+			new_reference(search.rbtdb, node);
+		else
+			search.need_cleanup = ISC_FALSE;
+		*nodep = node;
 	}
 
 	if (rdataset != NULL && type != dns_rdatatype_any)
