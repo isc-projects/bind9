@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.76 2000/10/31 03:21:55 marka Exp $ */
+/* $Id: master.c,v 1.77 2000/11/02 05:18:33 marka Exp $ */
 
 #include <config.h>
 
@@ -459,6 +459,13 @@ genname(char *name, int it, char *buffer, size_t length) {
 	while (*name != '\0') {
 		if (*name == '$') {
 			name++;
+			if (*name == '$') {
+				if (r.length == 0)
+					return (ISC_R_NOSPACE);
+				r.base[0] = *name++;
+				isc_textregion_consume(&r, 1);
+				continue;
+			}
 			strcpy(fmt, "%d");
 			/* Get format specifier. */
 			if (*name == '{' ) {
