@@ -1,3 +1,6 @@
+ 395.	[bug]		nslookup printed incorrect RR type mnemonics
+			for RRs of type >= 21 [RT #237].
+
  394.	[bug]		Current name was not propagated via $INCLUDE.
 
  393.	[func]		Initial answer while loading (awl) support.
