@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.114.18.2 2004/06/11 00:30:15 marka Exp $
+ * $Id: dst_api.c,v 1.114.18.3 2004/06/16 01:34:40 marka Exp $
  */
 
 #include <config.h>
@@ -929,7 +929,7 @@ read_public_key(const char *filename, int type,
 	}
 
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
-	ret = dns_rdata_fromtext(&rdata, rdclass, type, lex, NULL,
+	ret = dns_rdata_fromtext(&rdata, rdclass, keytype, lex, NULL,
 				 ISC_FALSE, mctx, &b, NULL);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
