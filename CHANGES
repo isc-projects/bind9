@@ -6,6 +6,9 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1436.	[func]		dns_zonemgr_resumexfrs() can be used to restart
+			stalled transfers.
+
 1433.	[bug]		named could trigger a REQUIRE failure if it could
 			not get a file descriptor when attempting to write
 			a master file. [RT #4347]

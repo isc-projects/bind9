@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.28 2003/08/26 05:56:14 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.29 2003/08/26 07:54:18 marka Exp $ */
 
 #include <config.h>
 
@@ -2422,7 +2422,7 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 	 * so that we know when we need to force AXFR of
 	 * slave zones whose master files are missing.
 	 */
-	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
+	dns_zonemgr_resumexfrs(server->zonemgr);
  cleanup:
 	isc_task_endexclusive(server->task);	
 	return (result);
