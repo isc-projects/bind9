@@ -127,7 +127,7 @@ dns_result_register(void) {
 
 dns_rcode_t
 dns_result_torcode(isc_result_t result) {
-	dns_rcode_t rcode = DNS_R_SERVFAIL;
+	dns_rcode_t rcode = dns_rcode_servfail;
 
 	if (DNS_RESULT_ISRCODE(result)) {
 		/*
