@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.54.2.2 2001/02/05 23:31:05 gson Exp $ */
+/* $Id: entropy.c,v 1.54.2.3 2001/04/10 00:24:47 gson Exp $ */
 
 #include <config.h>
 
@@ -390,7 +390,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
 		n = read(fd, buf, ndesired);
 		if (n < 0) {
-			if (errno == EAGAIN)
+			if (errno == EAGAIN || errno == EINTR)
 				goto out;
 			close(fd);
 			source->bad = ISC_TRUE;

@@ -1,6 +1,10 @@
 
+ 804.	[bug]		Attempting to obtain entropy could fail in some
+ 			situations.  This would be most common on systems
+			with user-space threads. [RT #1131]
+
  800.	[bug]		dnssec-signzone produced incorrect statistics for
- 			large zones.  [RT #1133]
+ 			large zones. [RT #1133]
 
  799.	[bug]		The ADB didn't find AAAA glue in a zone unless A6
 			glue was also present.
