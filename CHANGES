@@ -1,3 +1,6 @@
+1129.	[bug]		Multithreaded servers could crash under heavy
+			resolution load due to a race condition. [RT #2018]
+
 1128.	[func]		sdb drivers can now provide RR data in either text
 			or wire format, the latter using the new functions
 			dns_sdb_putrdata() and dns_sdb_putnamedrdata().
