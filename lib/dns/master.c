@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.79 2000/11/09 23:54:57 bwelling Exp $ */
+/* $Id: master.c,v 1.80 2000/11/15 19:06:04 gson Exp $ */
 
 #include <config.h>
 
@@ -1219,41 +1219,20 @@ load(dns_loadctx_t **ctxp) {
 		 * print out a error message and exit.
 		 */
 		if (rdclass != 0 && rdclass != ctx->zclass) {
-			char buf1[32];
-			char buf2[32];
-			unsigned int len1, len2;
-			isc_buffer_t buffer;
-			isc_region_t region;
+			char classname1[DNS_RDATACLASS_FORMATSIZE];
+			char classname2[DNS_RDATACLASS_FORMATSIZE];
 
-			isc_buffer_init(&buffer, buf1, sizeof(buf1));
-			result = dns_rdataclass_totext(rdclass, &buffer);
-			if (result != ISC_R_SUCCESS) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-					"dns_rdataclass_totext() failed: %s",
-						 dns_result_totext(result));
-				result = ISC_R_UNEXPECTED;
-				goto insist_and_cleanup;
-			}
-			isc_buffer_usedregion(&buffer, &region);
-			len1 = region.length;
-			isc_buffer_init(&buffer, buf2, sizeof(buf2));
-			result = dns_rdataclass_totext(ctx->zclass, &buffer);
-			if (result != ISC_R_SUCCESS) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-					"dns_rdataclass_totext() failed: %s",
-						 dns_result_totext(result));
-				result = ISC_R_UNEXPECTED;
-				goto insist_and_cleanup;
-			}
-			isc_buffer_usedregion(&buffer, &region);
-			len2 = region.length;
+			dns_rdataclass_format(rdclass, classname1,
+					      sizeof(classname1));
+			dns_rdataclass_format(ctx->zclass, classname2,
+					      sizeof(classname2));
 			(*callbacks->error)(callbacks,
-					    "%s: %s:%lu: class (%.*s) != "
-					    "zone class (%.*s)",
+					    "%s: %s:%lu: class '%s' != "
+					    "zone class '%s'",
 					    "dns_master_load",
 					    isc_lex_getsourcename(ctx->lex),
 					    isc_lex_getsourceline(ctx->lex),
-					    len1, buf1, len2, buf2);
+					    classname1, classname2);
 			result = DNS_R_BADCLASS;
 			goto insist_and_cleanup;
 		}
