@@ -1,3 +1,4 @@
+ 940.	[bug]		Double zone locking failure on error path. [RT #1510]
 
 	--- 9.2.0b1 released ---
 
