@@ -212,7 +212,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
 	"$(INTDIR)\timer.obj" \
-	"$(INTDIR)\win32obj.obj"
+	"$(INTDIR)\win32os.obj"
 
 "..\..\..\Build\Release\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
