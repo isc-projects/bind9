@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.16 2000/12/21 18:11:00 gson Exp $ */
+/* $Id: validator.h,v 1.17 2000/12/22 23:01:56 gson Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -52,6 +52,8 @@
 #include <isc/mutex.h>
 
 #include <dns/types.h>
+#include <dns/rdataset.h>
+#include <dns/rdatastruct.h> /* for dns_rdata_sig_t */
 
 #include <dst/dst.h>
 
