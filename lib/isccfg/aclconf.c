@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.30 2004/03/05 04:57:46 marka Exp $ */
+/* $Id: aclconf.c,v 1.2 2005/01/11 03:46:11 marka Exp $ */
 
 #include <config.h>
 
@@ -24,20 +24,20 @@
 #include <isc/util.h>
 
 #include <isccfg/namedconf.h>
+#include <isccfg/aclconf.h>
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 
-#include <named/aclconf.h>
 
 void
-ns_aclconfctx_init(ns_aclconfctx_t *ctx) {
+cfg_aclconfctx_init(cfg_aclconfctx_t *ctx) {
 	ISC_LIST_INIT(ctx->named_acl_cache);
 }
 
 void
-ns_aclconfctx_destroy(ns_aclconfctx_t *ctx) {
+cfg_aclconfctx_destroy(cfg_aclconfctx_t *ctx) {
      	dns_acl_t *dacl, *next;
 	for (dacl = ISC_LIST_HEAD(ctx->named_acl_cache);
 	     dacl != NULL;
@@ -75,8 +75,8 @@ get_acl_def(cfg_obj_t *cctx, char *name, cfg_obj_t **ret) {
 
 static isc_result_t
 convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
-		  ns_aclconfctx_t *ctx, isc_mem_t *mctx,
-		  dns_acl_t **target)
+		  isc_log_t *lctx, cfg_aclconfctx_t *ctx,
+		  isc_mem_t *mctx, dns_acl_t **target)
 {
 	isc_result_t result;
 	cfg_obj_t *cacl = NULL;
@@ -96,11 +96,11 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 	/* Not yet converted.  Convert now. */
 	result = get_acl_def(cctx, aclname, &cacl);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(nameobj, dns_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(nameobj, lctx, ISC_LOG_WARNING,
 			    "undefined ACL '%s'", aclname);
 		return (result);
 	}
-	result = ns_acl_fromconfig(cacl, cctx, ctx, mctx, &dacl);
+	result = cfg_acl_fromconfig(cacl, cctx, lctx, ctx, mctx, &dacl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
@@ -112,7 +112,9 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 }
 
 static isc_result_t
-convert_keyname(cfg_obj_t *keyobj, isc_mem_t *mctx, dns_name_t *dnsname) {
+convert_keyname(cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
+		dns_name_t *dnsname)
+{
 	isc_result_t result;
 	isc_buffer_t buf;
 	dns_fixedname_t fixname;
@@ -126,7 +128,7 @@ convert_keyname(cfg_obj_t *keyobj, isc_mem_t *mctx, dns_name_t *dnsname) {
 	result = dns_name_fromtext(dns_fixedname_name(&fixname), &buf,
 				   dns_rootname, ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(keyobj, dns_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(keyobj, lctx, ISC_LOG_WARNING,
 			    "key name '%s' is not a valid domain name",
 			    txtname);
 		return (result);
@@ -135,11 +137,12 @@ convert_keyname(cfg_obj_t *keyobj, isc_mem_t *mctx, dns_name_t *dnsname) {
 }
 
 isc_result_t
-ns_acl_fromconfig(cfg_obj_t *caml,
-		  cfg_obj_t *cctx,
-		  ns_aclconfctx_t *ctx,
-		  isc_mem_t *mctx,
-		  dns_acl_t **target)
+cfg_acl_fromconfig(cfg_obj_t *caml,
+		   cfg_obj_t *cctx,
+	 	   isc_log_t *lctx,
+		   cfg_aclconfctx_t *ctx,
+		   isc_mem_t *mctx,
+		   dns_acl_t **target)
 {
 	isc_result_t result;
 	unsigned int count;
@@ -184,14 +187,15 @@ ns_acl_fromconfig(cfg_obj_t *caml,
 			/* Key name */
 			de->type = dns_aclelementtype_keyname;
 			dns_name_init(&de->u.keyname, NULL);
-			result = convert_keyname(ce, mctx, &de->u.keyname);
+			result = convert_keyname(ce, lctx, mctx,
+						 &de->u.keyname);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 		} else if (cfg_obj_islist(ce)) {
 			/* Nested ACL */
 			de->type = dns_aclelementtype_nestedacl;
-			result = ns_acl_fromconfig(ce, cctx, ctx, mctx,
-						   &de->u.nestedacl);
+			result = cfg_acl_fromconfig(ce, cctx, lctx, ctx,
+						    mctx, &de->u.nestedacl);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 		} else if (cfg_obj_isstring(ce)) {
@@ -208,13 +212,14 @@ ns_acl_fromconfig(cfg_obj_t *caml,
 				de->negative = ISC_TF(! de->negative);
 			} else {
 				de->type = dns_aclelementtype_nestedacl;
-				result = convert_named_acl(ce, cctx, ctx, mctx,
+				result = convert_named_acl(ce, cctx, lctx,
+							   ctx, mctx,
 							   &de->u.nestedacl);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 			}
 		} else {
-			cfg_obj_log(ce, dns_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(ce, lctx, ISC_LOG_WARNING,
 				    "address match list contains "
 				    "unsupported element type");
 			result = ISC_R_FAILURE;

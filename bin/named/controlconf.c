@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.40 2004/03/05 04:57:46 marka Exp $ */
+/* $Id: controlconf.c,v 1.41 2005/01/11 03:46:08 marka Exp $ */
 
 #include <config.h>
 
@@ -915,7 +915,7 @@ static void
 update_listener(ns_controls_t *cp,
 		controllistener_t **listenerp, cfg_obj_t *control,
 		cfg_obj_t *config, isc_sockaddr_t *addr,
-		ns_aclconfctx_t *aclconfctx, const char *socktext)
+		cfg_aclconfctx_t *aclconfctx, const char *socktext)
 {
 	controllistener_t *listener;
 	cfg_obj_t *allow;
@@ -995,8 +995,9 @@ update_listener(ns_controls_t *cp,
 	 */
 	if (control != NULL) {
 		allow = cfg_tuple_get(control, "allow");
-		result = ns_acl_fromconfig(allow, config, aclconfctx,
-					   listener->mctx, &new_acl);
+		result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
+					    aclconfctx, listener->mctx,
+					    &new_acl);
 	} else {
 		result = dns_acl_any(listener->mctx, &new_acl);
 	}
@@ -1018,7 +1019,7 @@ update_listener(ns_controls_t *cp,
 static void
 add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 	     cfg_obj_t *control, cfg_obj_t *config, isc_sockaddr_t *addr,
-	     ns_aclconfctx_t *aclconfctx, const char *socktext)
+	     cfg_aclconfctx_t *aclconfctx, const char *socktext)
 {
 	isc_mem_t *mctx = cp->server->mctx;
 	controllistener_t *listener;
@@ -1050,8 +1051,8 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		 */
 		if (control != NULL) {
 			allow = cfg_tuple_get(control, "allow");
-			result = ns_acl_fromconfig(allow, config, aclconfctx,
-						   mctx, &new_acl);
+			result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
+						    aclconfctx, mctx, &new_acl);
 		} else {
 			result = dns_acl_any(mctx, &new_acl);
 		}
@@ -1136,7 +1137,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 
 isc_result_t
 ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
-		      ns_aclconfctx_t *aclconfctx)
+		      cfg_aclconfctx_t *aclconfctx)
 {
 	controllistener_t *listener;
 	controllistenerlist_t new_listeners;

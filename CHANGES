@@ -1,3 +1,6 @@
+1797.	[func]		named-checkconf now check acls to verify that they
+			only refer to existing acls. [RT #13101]
+
 1796.	[placeholder]	rt12498
 
 1795.	[placeholder]	rt13396

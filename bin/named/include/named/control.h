@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.16 2004/10/11 05:30:19 marka Exp $ */
+/* $Id: control.h,v 1.17 2005/01/11 03:46:09 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -26,7 +26,8 @@
 
 #include <isccc/types.h>
 
-#include <named/aclconf.h>
+#include <isccfg/aclconf.h>
+
 #include <named/types.h>
 
 #define NS_CONTROL_PORT			953
@@ -70,7 +71,7 @@ ns_controls_destroy(ns_controls_t **ctrlsp);
 
 isc_result_t
 ns_controls_configure(ns_controls_t *controls, cfg_obj_t *config,
-		      ns_aclconfctx_t *aclconfctx);
+		      cfg_aclconfctx_t *aclconfctx);
 /*
  * Configure zero or more command channels into 'controls'
  * as defined in the configuration parse tree 'config'.

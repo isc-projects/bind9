@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.116 2005/01/10 23:43:17 marka Exp $ */
+/* $Id: zoneconf.c,v 1.117 2005/01/11 03:46:08 marka Exp $ */
 
 #include <config.h>
 
@@ -56,7 +56,7 @@
  */
 static isc_result_t
 configure_zone_acl(cfg_obj_t *zconfig, cfg_obj_t *vconfig, cfg_obj_t *config,
-		   const char *aclname, ns_aclconfctx_t *actx,
+		   const char *aclname, cfg_aclconfctx_t *actx,
 		   dns_zone_t *zone, 
 		   void (*setzacl)(dns_zone_t *, dns_acl_t *),
 		   void (*clearzacl)(dns_zone_t *))
@@ -85,8 +85,8 @@ configure_zone_acl(cfg_obj_t *zconfig, cfg_obj_t *vconfig, cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 	}
 
-	result = ns_acl_fromconfig(aclobj, config, actx,
-				   dns_zone_getmctx(zone), &dacl);
+	result = cfg_acl_fromconfig(aclobj, config, ns_g_lctx, actx,
+				    dns_zone_getmctx(zone), &dacl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	(*setzacl)(zone, dacl);
@@ -309,7 +309,7 @@ checknames(dns_zonetype_t ztype, cfg_obj_t **maps, cfg_obj_t **objp) {
 
 isc_result_t
 ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
-		  ns_aclconfctx_t *ac, dns_zone_t *zone)
+		  cfg_aclconfctx_t *ac, dns_zone_t *zone)
 {
 	isc_result_t result;
 	char *zname;
