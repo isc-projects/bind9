@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: run.sh,v 1.38 2001/02/14 00:14:24 nelsonm Exp $
+# $Id: run.sh,v 1.39 2001/09/22 01:10:03 gson Exp $
 
 #
 # Run a system test.
@@ -43,14 +43,14 @@ echo "A:System test $test" >&2
 
 if [ x$PERL = x ]
 then
-    echo "I:Perl not available.  Not trying system tests." >&2
+    echo "I:Perl not available.  Skipping test." >&2
     echo "R:UNTESTED" >&2
     echo "E:$test:`date`" >&2
     exit 0;
 fi
 
 $PERL testsock.pl || {
-    echo "I:Interfaces not set up.  Not trying system tests." >&2;
+    echo "I:Network interface aliases not set up.  Skipping test." >&2;
     echo "R:UNTESTED" >&2;
     echo "E:$test:`date`" >&2;
     exit 0;
