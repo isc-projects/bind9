@@ -1,3 +1,6 @@
+1670.	[func]		Log UPDATE requests to slave zones without an acl as
+			"disabled" at debug level 3. [RT# 11657]
+
 1668.	[bug]		DIG_SIGCHASE was making bin/dig/host dump core.
 
 1667.	[port]		linux: not all versions have IF_NAMESIZE.
