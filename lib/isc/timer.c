@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64.12.2 2003/08/11 05:28:21 marka Exp $ */
+/* $Id: timer.c,v 1.64.12.3 2003/08/20 07:13:05 marka Exp $ */
 
 #include <config.h>
 
@@ -36,16 +36,19 @@
 #endif /* ISC_PLATFORM_USETHREADS */
 
 #ifdef ISC_TIMER_TRACE
-#define XTRACE(s)			printf("%s\n", (s))
-#define XTRACEID(s, t)			printf("%s %p\n", (s), (t))
-#define XTRACETIME(s, d)		printf("%s %u.%09u\n", (s), \
+#define XTRACE(s)			fprintf(stderr, "%s\n", (s))
+#define XTRACEID(s, t)			fprintf(stderr, "%s %p\n", (s), (t))
+#define XTRACETIME(s, d)		fprintf(stderr, "%s %u.%09u\n", (s), \
 					       (d).seconds, (d).nanoseconds)
-#define XTRACETIMER(s, t, d)		printf("%s %p %u.%09u\n", (s), (t), \
+#define XTRACETIME2(s, d, n)		fprintf(stderr, "%s %u.%09u %u.%09u\n", (s), \
+					       (d).seconds, (d).nanoseconds, (n).seconds, (n).nanoseconds)
+#define XTRACETIMER(s, t, d)		fprintf(stderr, "%s %p %u.%09u\n", (s), (t), \
 					       (d).seconds, (d).nanoseconds)
 #else
 #define XTRACE(s)
 #define XTRACEID(s, t)
 #define XTRACETIME(s, d)
+#define XTRACETIME2(s, d, n)
 #define XTRACETIMER(s, t, d)
 #endif /* ISC_TIMER_TRACE */
 
@@ -445,6 +448,19 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 }
 
 isc_result_t
+isc_timer_gettype(isc_timer_t *timer) {
+	isc_timertype_t t;
+
+	REQUIRE(VALID_TIMER(timer));
+
+	LOCK(&timer->lock);
+	t = timer->type;
+	UNLOCK(&timer->lock);
+
+	return (t);
+}
+
+isc_result_t
 isc_timer_touch(isc_timer_t *timer) {
 	isc_result_t result;
 	isc_time_t now;
@@ -642,18 +658,18 @@ run(void *uap) {
 		dispatch(manager, &now);
 
 		if (manager->nscheduled > 0) {
-			XTRACETIME(isc_msgcat_get(isc_msgcat,
+			XTRACETIME2(isc_msgcat_get(isc_msgcat,
 						  ISC_MSGSET_GENERAL,
 						  ISC_MSG_WAITUNTIL,
 						  "waituntil"),
-				   manager->due);
+				   manager->due, now);
 			result = WAITUNTIL(&manager->wakeup, &manager->lock,
 					   &manager->due);
 			INSIST(result == ISC_R_SUCCESS ||
 			       result == ISC_R_TIMEDOUT);
 		} else {
-			XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-					      ISC_MSG_WAIT, "wait"));
+			XTRACETIME(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						  ISC_MSG_WAIT, "wait"), now);
 			WAIT(&manager->wakeup, &manager->lock);
 		}
 		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
@@ -768,6 +784,17 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+isc_timermgr_poke(isc_timermgr_t *manager) {
+#ifdef ISC_PLATFORM_USETHREADS
+	REQUIRE(VALID_MANAGER(manager));
+
+	SIGNAL(&manager->wakeup);
+#else
+	UNUSED(manager);
+#endif
 }
 
 void
