@@ -40,7 +40,7 @@ install:: timestamp installdirs
 
 clean distclean::
 	rm -f libdns.a timestamp
-	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h
+	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
 
 rdata.o: code.h
 
