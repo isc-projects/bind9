@@ -361,7 +361,7 @@ dispatch_messages(omapi_protocol_t *protocol,
 		/* XXXTL bind the authenticator here! */
 		connection_getuint32(connection, &protocol->message->authlen);
 		connection_getuint32(connection, &protocol->message->op);
-		connection_getuint32(connection, &protocol->message->handle);
+		connection_getuint32(connection, &protocol->message->h);
 		connection_getuint32(connection, &protocol->message->id);
 		connection_getuint32(connection, &protocol->message->rid);
 
