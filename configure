@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.118 
+# From configure.in Revision: 1.119 
 
 
 
@@ -3434,169 +3434,100 @@ esac
 # after the libtool checking, so we can put the right suffix on
 # the files.
 #
-echo $ac_n "checking for inet_ntop""... $ac_c" 1>&6
-echo "configure:3439: checking for inet_ntop" >&5
-if eval "test \"`echo '$''{'ac_cv_func_inet_ntop'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 3444 "configure"
+echo $ac_n "checking for inet_ntop... ""... $ac_c" 1>&6
+echo "configure:3439: checking for inet_ntop... " >&5
+cat > conftest.$ac_ext <<EOF
+#line 3441 "configure"
 #include "confdefs.h"
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char inet_ntop(); below.  */
-#include <assert.h>
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char inet_ntop();
 
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 int main() {
-
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_inet_ntop) || defined (__stub___inet_ntop)
-choke me
-#else
-inet_ntop();
-#endif
-
+inet_ntop(0, NULL, NULL, 0); return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3467: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3451: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
-  eval "ac_cv_func_inet_ntop=yes"
+  echo "$ac_t""yes" 1>&6
+        ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  eval "ac_cv_func_inet_ntop=no"
+  echo "$ac_t""no" 1>&6
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
+        ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"
 fi
 rm -f conftest*
-fi
-
-if eval "test \"`echo '$ac_cv_func_'inet_ntop`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
-else
-  echo "$ac_t""no" 1>&6
-ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	       ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"
-
-fi
-
-echo $ac_n "checking for inet_pton""... $ac_c" 1>&6
-echo "configure:3491: checking for inet_pton" >&5
-if eval "test \"`echo '$''{'ac_cv_func_inet_pton'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 3496 "configure"
+echo $ac_n "checking for inet_pton... ""... $ac_c" 1>&6
+echo "configure:3466: checking for inet_pton... " >&5
+cat > conftest.$ac_ext <<EOF
+#line 3468 "configure"
 #include "confdefs.h"
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char inet_pton(); below.  */
-#include <assert.h>
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char inet_pton();
 
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 int main() {
-
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_inet_pton) || defined (__stub___inet_pton)
-choke me
-#else
-inet_pton();
-#endif
-
+inet_pton(0, NULL, NULL); return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3519: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3478: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
-  eval "ac_cv_func_inet_pton=yes"
+  echo "$ac_t""yes" 1>&6
+        ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  eval "ac_cv_func_inet_pton=no"
+  echo "$ac_t""no" 1>&6
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
+        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
 fi
 rm -f conftest*
-fi
-
-if eval "test \"`echo '$ac_cv_func_'inet_pton`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"
-else
-  echo "$ac_t""no" 1>&6
-ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	       ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
-
-fi
-
-echo $ac_n "checking for inet_aton""... $ac_c" 1>&6
-echo "configure:3543: checking for inet_aton" >&5
-if eval "test \"`echo '$''{'ac_cv_func_inet_aton'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 3548 "configure"
+echo $ac_n "checking for inet_aton... ""... $ac_c" 1>&6
+echo "configure:3493: checking for inet_aton... " >&5
+cat > conftest.$ac_ext <<EOF
+#line 3495 "configure"
 #include "confdefs.h"
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char inet_aton(); below.  */
-#include <assert.h>
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char inet_aton();
 
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 int main() {
-
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_inet_aton) || defined (__stub___inet_aton)
-choke me
-#else
-inet_aton();
-#endif
-
+struct in_addr in; inet_aton(NULL, &in); return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3571: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3505: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
-  eval "ac_cv_func_inet_aton=yes"
+  echo "$ac_t""yes" 1>&6
+        ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  eval "ac_cv_func_inet_aton=no"
+  echo "$ac_t""no" 1>&6
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
+        ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"
 fi
 rm -f conftest*
-fi
 
-if eval "test \"`echo '$ac_cv_func_'inet_aton`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"
-else
-  echo "$ac_t""no" 1>&6
-ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
-	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
-	       ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"
 
-fi
 
+
+
+# Check for some other useful functions that are not ever-present.
 echo $ac_n "checking for strsep""... $ac_c" 1>&6
-echo "configure:3595: checking for strsep" >&5
+echo "configure:3526: checking for strsep" >&5
 if eval "test \"`echo '$''{'ac_cv_func_strsep'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3600 "configure"
+#line 3531 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char strsep(); below.  */
@@ -3619,7 +3550,7 @@ strsep();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3623: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3554: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_strsep=yes"
 else
@@ -3642,12 +3573,12 @@ ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS strsep.$O"
 fi
 
 echo $ac_n "checking for vsnprintf""... $ac_c" 1>&6
-echo "configure:3646: checking for vsnprintf" >&5
+echo "configure:3577: checking for vsnprintf" >&5
 if eval "test \"`echo '$''{'ac_cv_func_vsnprintf'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3651 "configure"
+#line 3582 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char vsnprintf(); below.  */
@@ -3670,7 +3601,7 @@ vsnprintf();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3674: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3605: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_vsnprintf=yes"
 else
@@ -3698,19 +3629,18 @@ fi
 
 
 
-
 echo $ac_n "checking for sizeof(long long int) == sizeof(long int)""... $ac_c" 1>&6
-echo "configure:3704: checking for sizeof(long long int) == sizeof(long int)" >&5
+echo "configure:3634: checking for sizeof(long long int) == sizeof(long int)" >&5
 if test "$cross_compiling" = yes; then
   echo "$ac_t""default yes" 1>&6
 	ISC_PLATFORM_LONGLONGEQUALLONG="#define ISC_PLATFORM_LONGLONGEQUALLONG 1"
 else
   cat > conftest.$ac_ext <<EOF
-#line 3710 "configure"
+#line 3640 "configure"
 #include "confdefs.h"
 main() { exit(!(sizeof(long long int) == sizeof(long int))); }
 EOF
-if { (eval echo configure:3714: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:3644: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   echo "$ac_t""yes" 1>&6
 	ISC_PLATFORM_LONGLONGEQUALLONG="#define ISC_PLATFORM_LONGLONGEQUALLONG 1"
@@ -3730,12 +3660,12 @@ fi
 # Security Stuff
 #
 echo $ac_n "checking for chroot""... $ac_c" 1>&6
-echo "configure:3734: checking for chroot" >&5
+echo "configure:3664: checking for chroot" >&5
 if eval "test \"`echo '$''{'ac_cv_func_chroot'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3739 "configure"
+#line 3669 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char chroot(); below.  */
@@ -3758,7 +3688,7 @@ chroot();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3762: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3692: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_chroot=yes"
 else
@@ -3784,17 +3714,17 @@ for ac_hdr in linux/capability.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:3788: checking for $ac_hdr" >&5
+echo "configure:3718: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3793 "configure"
+#line 3723 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3798: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3728: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3824,17 +3754,17 @@ for ac_hdr in linux/prctl.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:3828: checking for $ac_hdr" >&5
+echo "configure:3758: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3833 "configure"
+#line 3763 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3838: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3768: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*

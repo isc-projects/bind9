@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.118 $)
+AC_REVISION($Revision: 1.119 $)
 
 AC_PREREQ(2.13)
 
@@ -694,24 +694,51 @@ esac
 # after the libtool checking, so we can put the right suffix on
 # the files.
 #
-AC_CHECK_FUNC(inet_ntop,
-	      [ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
-	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	       ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"]
-)
-AC_CHECK_FUNC(inet_pton,
-	      [ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
-	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	       ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"]
-)
-AC_CHECK_FUNC(inet_aton,
-	      [ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"],
-	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
-	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
-	       ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"]
-)
+AC_MSG_CHECKING([for inet_ntop... ])
+AC_TRY_LINK([
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>],
+        [inet_ntop(0, NULL, NULL, 0); return (0);],
+        [AC_MSG_RESULT(yes)
+        ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
+
+        [AC_MSG_RESULT(no)
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
+        ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
+AC_MSG_CHECKING([for inet_pton... ])
+AC_TRY_LINK([
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>],
+        [inet_pton(0, NULL, NULL); return (0);],
+        [AC_MSG_RESULT(yes)
+        ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
+
+        [AC_MSG_RESULT(no)
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
+        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"])
+AC_MSG_CHECKING([for inet_aton... ])
+AC_TRY_LINK([
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>],
+        [struct in_addr in; inet_aton(NULL, &in); return (0);],
+        [AC_MSG_RESULT(yes)
+        ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"],
+
+        [AC_MSG_RESULT(no)
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
+        ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"])
+
+AC_SUBST(ISC_PLATFORM_NEEDNTOP)
+AC_SUBST(ISC_PLATFORM_NEEDPTON)
+AC_SUBST(ISC_PLATFORM_NEEDATON)
+
+# Check for some other useful functions that are not ever-present.
 AC_CHECK_FUNC(strsep,
 	[ISC_PLATFORM_NEEDSTRSEP="#undef ISC_PLATFORM_NEEDSTRSEP"],
 	[ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS strsep.$O"
@@ -722,13 +749,12 @@ AC_CHECK_FUNC(vsnprintf,
 	[ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS print.$O"
 	 ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS print.c"
 	 ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"])
-AC_SUBST(ISC_PLATFORM_NEEDNTOP)
-AC_SUBST(ISC_PLATFORM_NEEDPTON)
-AC_SUBST(ISC_PLATFORM_NEEDATON)
 AC_SUBST(ISC_PLATFORM_NEEDSTRSEP)
 AC_SUBST(ISC_PLATFORM_NEEDVSNPRINTF)
+
 AC_SUBST(ISC_EXTRA_OBJS)
 AC_SUBST(ISC_EXTRA_SRCS)
+
 AC_MSG_CHECKING(for sizeof(long long int) == sizeof(long int))
 AC_TRY_RUN([main() { exit(!(sizeof(long long int) == sizeof(long int))); }],
 	[AC_MSG_RESULT(yes)

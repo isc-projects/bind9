@@ -1,3 +1,6 @@
+ 102.   [bug]           Correctly detect inet_aton, inet_pton and inet_ptop
+                        on BSD/OS 4.1.
+
  101.   [cleanup]       Quieted EGCS warnings from lib/isc/print.c.
 
  100.   [cleanup]       <isc/random.h> does not need <isc/int.h> or
