@@ -19,7 +19,8 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	assertions.h base64.h boolean.h buffer.h error.h event.h \
+HEADERS =	assertions.h base64.h boolean.h buffer.h bufferlist.h \
+		error.h event.h \
 		eventclass.h heap.h int.h interfaceiter.h lang.h lex.h lib.h \
 		list.h mem.h msgcat.h netaddr.h rbtgen.h region.h result.h \
 		resultclass.h rwlock.h serial.h sockaddr.h socket.h str.h \

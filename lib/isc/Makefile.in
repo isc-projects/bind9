@@ -37,14 +37,14 @@ NLSOBJS =	nls/msgcat.@O@
 PTHREADOBJS =	pthreads/condition.@O@
 
 OBJS =		@ISC_EXTRA_OBJS@ \
-		assertions.@O@ base64.@O@ buffer.@O@ error.@O@ \
+		assertions.@O@ base64.@O@ buffer.@O@ bufferlist.@O@ error.@O@ \
 		heap.@O@ lex.@O@ lib.@O@ mem.@O@ result.@O@ \
 		rwlock.@O@ serial.@O@ sockaddr.@O@ symtab.@O@ str.@O@ event.@O@ \
 		task.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
 SRCS =		@ISC_EXTRA_SRCS@ \
-		assertions.c base64.c buffer.c error.c \
+		assertions.c base64.c buffer.c bufferlist.c error.c \
 		heap.c lex.c lib.c mem.c result.c \
 		rwlock.c sockaddr.c symtab.c str.c event.c \
 		task.c timer.c version.c
