@@ -181,6 +181,9 @@ Building
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 
+	To build libbind (BIND 8 resolver library), specify 
+	"--enable-libbind" on the configure command line.
+
 	On some platforms, BIND 9 can be built with multithreading
 	support, allowing it to take advantage of multiple CPUs.
 	You can specify whether to build a multithreaded BIND 9 
