@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.43 2001/03/06 19:13:01 gson Exp $ */
+/* $Id: parser.c,v 1.44 2001/03/06 23:54:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1014,6 +1014,7 @@ server_clauses[] = {
 	{ "transfers", &cfg_type_uint32, 0 },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },
+	{ "edns", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_clausedef_t *

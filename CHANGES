@@ -1,3 +1,6 @@
+ 770.	[func]		Add the "edns yes_or_no" statement to the server
+			clause. [RT #524]
+
  769.	[func]		Improved error reporting when parsing rdata. [RT #740]
 
  768.	[bug]		The server did not emit an SOA when a CNAME

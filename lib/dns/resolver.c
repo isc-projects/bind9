@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.207 2001/03/05 21:15:44 bwelling Exp $ */
+/* $Id: resolver.c,v 1.208 2001/03/06 23:54:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -852,6 +852,7 @@ resquery_send(resquery_t *query) {
 	dns_tsigkey_t *tsigkey = NULL;
 	dns_acl_t *blackhole;
 	dns_peer_t *peer = NULL;
+	isc_boolean_t useedns;
 	isc_boolean_t bogus;
 	isc_boolean_t aborted = ISC_FALSE;
 	dns_compress_t cctx;
@@ -943,6 +944,26 @@ resquery_send(resquery_t *query) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 
+	peer = NULL;
+	isc_netaddr_fromsockaddr(&ipaddr, &query->addrinfo->sockaddr);
+	(void) dns_peerlist_peerbyaddr(fctx->res->view->peers, &ipaddr, &peer);
+
+	/*
+	 * The ADB does not know about servers with "edns no".  Check this,
+	 * and then inform the ADB for future use.
+	 */
+	if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0 &&
+	    peer != NULL &&
+	    dns_peer_getsupportedns(peer, &useedns) == ISC_R_SUCCESS &&
+	    !useedns)
+	{
+		query->options |= DNS_FETCHOPT_NOEDNS0;
+		dns_adb_changeflags(fctx->res->view->adb,
+				    query->addrinfo,
+				    DNS_FETCHOPT_NOEDNS0,
+				    DNS_FETCHOPT_NOEDNS0);
+	}
+
 	/*
 	 * Use EDNS0, unless the caller doesn't want it, or we know that
 	 * the remote server doesn't like it.
@@ -993,7 +1014,6 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Add TSIG record tailored to the current recipient.
 	 */
-	isc_netaddr_fromsockaddr(&ipaddr, &query->addrinfo->sockaddr);
 	result = dns_view_getpeertsig(fctx->res->view, &ipaddr, &tsigkey);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 		goto cleanup_message;
@@ -1059,10 +1079,7 @@ resquery_send(resquery_t *query) {
 			aborted = ISC_TRUE;
 	}
 
-	peer = NULL;
-	result = dns_peerlist_peerbyaddr(fctx->res->view->peers, &ipaddr,
-					 &peer);
-	if (result == ISC_R_SUCCESS &&
+	if (peer != NULL &&
 	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
 	    bogus)
 		aborted = ISC_TRUE;

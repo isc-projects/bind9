@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.109 2001/03/06 07:38:18 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.110 2001/03/06 23:54:30 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3661,6 +3661,7 @@ failure response other than those above.</para></entry>
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
     <optional> keys <replaceable>{ string ; <optional> string ; <optional>...</optional></optional> }</replaceable> ; </optional>
@@ -3701,6 +3702,11 @@ The purpose of the <command>provide-ixfr</command> and
 to make it possible to disable the use of IXFR even when both master
 and slave claim to support it, for example if one of the servers
 is buggy and crashes or corrupts data when IXFR is used.</para>
+
+<para>The <command>edns</command> clause determines whether the local server
+will attempt to use EDNS when communicating with the remote server.  The
+default is yes.</para>
+
 <para>The server supports two zone transfer methods. The first, <command>one-answer</command>,
 uses one DNS message per resource record transferred. <command>many-answers</command> packs
 as many resource records as possible into a message. <command>many-answers</command> is
@@ -3713,6 +3719,7 @@ by the <command>options</command> statement will be used.</para>
 concurrent inbound zone transfers from the specified server. If
 no <command>transfers</command> clause is specified, the limit is
 set according to the <command>transfers-per-ns</command> option.</para>
+
 <para>The <command>keys</command> clause is used to identify a <command>key_id</command> defined
 by the <command>key</command> statement, to be used for transaction
 security when talking to the remote server. The <command>key</command> statement
@@ -3721,6 +3728,7 @@ it. When a request is sent to the remote server, a request signature
 will be generated using the key specified here and appended to the
 message. A request originating from the remote server is not required
 to be signed by this key.</para>
+
 <para>Although the grammar of the <command>keys</command> clause
 allows for multiple keys, only a single key per server is currently
 supported.</para></sect2>

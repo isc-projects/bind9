@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.297 2001/03/06 19:04:42 bwelling Exp $ */
+/* $Id: server.c,v 1.298 2001/03/06 23:54:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -422,6 +422,11 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "request-ixfr", &obj);
 	if (obj != NULL)
 		dns_peer_setrequestixfr(peer, cfg_obj_asboolean(obj));
+
+	obj = NULL;
+	(void)cfg_map_get(cpeer, "edns", &obj);
+	if (obj != NULL)
+		dns_peer_setsupportedns(peer, cfg_obj_asboolean(obj));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "transfers", &obj);
