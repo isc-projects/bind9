@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174.2.7 2001/03/14 01:25:37 bwelling Exp $ */
+/* $Id: dighost.c,v 1.174.2.8 2001/04/26 18:20:47 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1554,6 +1554,8 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->first_pass = ISC_TRUE;
 		query->first_soa_rcvd = ISC_FALSE;
 		query->second_rr_rcvd = ISC_FALSE;
+		query->first_repeat_rcvd = ISC_FALSE;
+		query->first_rr_serial = 0;
 		query->second_rr_serial = 0;
 		query->servname = serv->servername;
 		query->rr_count = 0;
