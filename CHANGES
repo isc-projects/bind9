@@ -1,4 +1,8 @@
 
+ 816.	[bug]		Report potential problems with log file accessibility
+			at configuration time, since such problems can't
+			reliably be reported at the time they actually occur.
+
  815.	[bug]		If a log file was specified with a path separator
 			character (i.e. "/") in its name and the directory
 			did not exist, the log file's name was treated as

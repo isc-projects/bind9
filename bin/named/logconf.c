@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.26.4.1 2001/01/09 22:31:55 bwelling Exp $ */
+/* $Id: logconf.c,v 1.26.4.2 2001/04/30 16:39:59 gson Exp $ */
 
 #include <config.h>
 
 #include <isc/result.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 
 #include <named/log.h>
@@ -206,6 +207,31 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 
 	result = isc_log_createchannel(lctx, cchan->name,
 				       type, level, &dest, flags);
+
+	if (result == ISC_R_SUCCESS && type == ISC_LOG_TOFILE) {
+		FILE *fp;
+		
+		/*
+		 * Test that the file can be opened, since isc_log_open()
+		 * can't effectively report failures when called in
+		 * isc_log_doit().
+		 */
+		result = isc_stdio_open(dest.file.name, "a", &fp);
+		if (result != ISC_R_SUCCESS)
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "logging channel '%s' file '%s': %s",
+				      channelname, dest.file.name,
+				      isc_result_totext(result));
+		else
+			(void)isc_stdio_close(fp);
+
+		/*
+		 * Allow named to continue by returning success.
+		 */
+		result = ISC_R_SUCCESS;
+	}
+
 	return (result);
 }
 
