@@ -175,17 +175,19 @@ ISC_LANG_BEGINDECLS
 
 int
 lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
-			 isc_uint32_t maxrecv, lwres_buffer_t *b);
+			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
 int
 lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
-			  isc_uint32_t maxrecv, lwres_buffer_t *b);
+			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
 int
-lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_gabnrequest_t **structp);
+lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			lwres_buffer_t *b, lwres_gabnrequest_t **structp);
 
 int
-lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_gabnresponse_t **structp);
+lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			lwres_buffer_t *b, lwres_gabnresponse_t **structp);
 
 void
 lwres_gabnrequest_free(lwres_context_t *ctx, lwres_gabnrequest_t **structp);
@@ -227,20 +229,20 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp);
 
 
 int
-lwres_gnbarequest_render(lwres_context_t *ctx,
-			 lwres_gnbarequest_t *req,
-			 isc_uint32_t maxrecv, lwres_buffer_t *b);
+lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
+			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
 int
-lwres_gnbaresponse_render(lwres_context_t *ctx,
-			  lwres_gnbaresponse_t *req,
-			  isc_uint32_t maxrecv, lwres_buffer_t *b);
+lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
+			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
 int
-lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_gnbarequest_t **structp);
+lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			lwres_buffer_t *b, lwres_gnbarequest_t **structp);
 
 int
-lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_gnbaresponse_t **structp);
+lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			lwres_buffer_t *b, lwres_gnbaresponse_t **structp);
 
 void
 lwres_gnbarequest_free(lwres_context_t *ctx, lwres_gnbarequest_t **structp);

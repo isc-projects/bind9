@@ -30,35 +30,179 @@
 #include "assert_p.h"
 
 int
-lwres_gnbarequest_render(lwres_context_t *ctx,
-			 lwres_gnbarequest_t *req,
-			 isc_uint32_t maxrecv, lwres_buffer_t *b)
+lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
+			 lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
+	unsigned char *buf;
+	size_t buflen;
+	int ret;
+	size_t payload_length;
+
+	REQUIRE(ctx != NULL);
+	REQUIRE(req != NULL);
+	REQUIRE(req->addr.family != 0);
+	REQUIRE(req->addr.length != 0);
+	REQUIRE(req->addr.address != NULL);
+	REQUIRE(pkt != NULL);
+	REQUIRE(b != NULL);
+
+	payload_length = sizeof(isc_uint32_t) + sizeof(isc_uint16_t)
+		+ req->addr.length;
+
+	buflen = LWRES_LWPACKET_LENGTH + payload_length;
+	buf = CTXMALLOC(buflen);
+	if (buf == NULL) {
+		errno = ENOMEM;
+		return (-1);
+	}
+	lwres_buffer_init(b, buf, buflen);
+
+	pkt->length = buflen;
+	pkt->version = LWRES_LWPACKETVERSION_0;
+	pkt->flags &= ~LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->opcode = LWRES_OPCODE_GETNAMEBYADDR;
+	pkt->result = 0;
+	pkt->authtype = 0;
+	pkt->authlength = 0;
+
+	ret = lwres_lwpacket_renderheader(b, pkt);
+	if (ret != 0) {
+		lwres_buffer_invalidate(b);
+		CTXFREE(buf, buflen);
+		return (ret);
+	}
+
+	INSIST(SPACE_OK(b, payload_length));
+
+	/*
+	 * Put the length and the data.  We know this will fit because we
+	 * just checked for it.
+	 */
+	lwres_buffer_putuint32(b, req->addr.family);
+	lwres_buffer_putuint16(b, req->addr.length);
+	lwres_buffer_putmem(b, req->addr.address, req->addr.length);
+
+	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
+
+	return (0);
 }
 
 int
-lwres_gnbaresponse_render(lwres_context_t *ctx,
-			  lwres_gnbaresponse_t *req,
-			  isc_uint32_t maxrecv, lwres_buffer_t *b)
+lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
+			  lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
+	unsigned char *buf;
+	size_t buflen;
+	int ret;
+	size_t payload_length;
+	isc_uint16_t datalen;
+	int x;
+
+	REQUIRE(ctx != NULL);
+	REQUIRE(req != NULL);
+	REQUIRE(pkt != NULL);
+	REQUIRE(b != NULL);
+
+	/* naliases */
+	payload_length = sizeof(isc_uint16_t);
+	/* real name encoding */
+	payload_length += LWRES_STRING_LENGTH(req->real_name);
+	/* each alias */
+	for (x = 0 ; x < req->naliases ; x++)
+		payload_length += LWRES_STRING_LENGTH(req->aliases[x]);
+
+	buflen = LWRES_LWPACKET_LENGTH + payload_length;
+	buf = CTXMALLOC(buflen);
+	if (buf == NULL) {
+		errno = ENOMEM;
+		return (-1);
+	}
+	lwres_buffer_init(b, buf, buflen);
+
+	pkt->length = buflen;
+	pkt->version = LWRES_LWPACKETVERSION_0;
+	pkt->flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->opcode = LWRES_OPCODE_GETNAMEBYADDR;
+	pkt->authtype = 0;
+	pkt->authlength = 0;
+
+	ret = lwres_lwpacket_renderheader(b, pkt);
+	if (ret != 0) {
+		lwres_buffer_invalidate(b);
+		CTXFREE(buf, buflen);
+		return (ret);
+	}
+
+	/* encode naliases */
+
+	INSIST(SPACE_OK(b, sizeof(isc_uint16_t) * 2));
+	lwres_buffer_putuint16(b, req->naliases);
+
+	/* encode the real name */
+	datalen = strlen(req->real_name);
+	INSIST(SPACE_OK(b, LWRES_STRING_LENGTH(req->real_name)));
+	lwres_buffer_putuint16(b, datalen);
+	lwres_buffer_putmem(b, req->real_name, datalen + 1);
+
+	/* encode the aliases */
+	for (x = 0 ; x < req->naliases ; x++) {
+		datalen = strlen(req->aliases[x]);
+		INSIST(SPACE_OK(b, LWRES_STRING_LENGTH(req->aliases[x])));
+		lwres_buffer_putuint16(b, datalen);
+		lwres_buffer_putmem(b, req->aliases[x], datalen + 1);
+	}
+
+	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
+
+	return (0);
 }
 
 int
-lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_gnbarequest_t **structp)
+lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			lwres_buffer_t *b, lwres_gnbarequest_t **structp)
 {
+	REQUIRE(ctx != NULL);
+	REQUIRE(pkt != NULL);
+	REQUIRE(b != NULL);
+	REQUIRE(structp != NULL && *structp == NULL);
+
 }
 
 int
-lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_gnbaresponse_t **structp)
+lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			 lwres_buffer_t *b, lwres_gnbaresponse_t **structp)
 {
+	REQUIRE(ctx != NULL);
+	REQUIRE(pkt != NULL);
+	REQUIRE(b != NULL);
+	REQUIRE(structp != NULL && *structp == NULL);
+
 }
 
 void
 lwres_gnbarequest_free(lwres_context_t *ctx, lwres_gnbarequest_t **structp)
 {
+	lwres_gnbarequest_t *gnba;
+
+	REQUIRE(ctx != NULL);
+	REQUIRE(structp != NULL && *structp != NULL);
+
+	gnba = *structp;
+	*structp = NULL;
+
+	CTXFREE(gnba, sizeof(lwres_gnbarequest_t));
 }
 
 void
 lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp)
 {
+	lwres_gnbaresponse_t *gnba;
+
+	REQUIRE(ctx != NULL);
+	REQUIRE(structp != NULL && *structp != NULL);
+
+	gnba = *structp;
+	*structp = NULL;
+
+	CTXFREE(gnba, sizeof(lwres_gnbaresponse_t));
 }

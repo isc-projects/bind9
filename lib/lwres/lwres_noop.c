@@ -40,11 +40,12 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(req != NULL);
+	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
 	payload_length = sizeof(isc_uint16_t) + req->datalength;
 
-	buflen = sizeof(lwres_lwpacket_t) + payload_length;
+	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
 	if (buf == NULL) {
 		errno = ENOMEM;
@@ -54,7 +55,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 
 	pkt->length = buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
-	pkt->flags = 0;
+	pkt->flags &= ~LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_NOOP;
 	pkt->result = 0;
 	pkt->authtype = 0;
@@ -92,11 +93,12 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(req != NULL);
+	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
 	payload_length = sizeof(isc_uint16_t) + req->datalength;
 
-	buflen = sizeof(lwres_lwpacket_t) + payload_length;
+	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
 	if (buf == NULL) {
 		errno = ENOMEM;

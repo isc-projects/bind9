@@ -39,6 +39,8 @@ struct lwres_lwpacket {
 	isc_uint16_t		authlength;
 };
 
+#define LWRES_LWPACKET_LENGTH		(4 * 5 + 2 * 4)
+
 #define LWRES_LWPACKETFLAG_RESPONSE	0x0001U	/* if set, pkt is a response */
 
 #define LWRES_LWPACKETVERSION_0		0

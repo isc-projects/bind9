@@ -76,10 +76,14 @@ main(int argc, char *argv[])
 	lwres_noopresponse_t noopresponse, *noopresponse2;
 	lwres_buffer_t b;
 
+	(void)argc;
+	(void)argv;
+
 	ctx = NULL;
 	ret = lwres_context_create(&ctx, NULL, NULL, NULL);
 	CHECK(ret, "lwres_context_create");
 
+	pkt.flags = 0;
 	pkt.serial = 0x11223344;
 	pkt.recvlength = 0x55667788;
 	pkt.result = 0;
@@ -109,6 +113,41 @@ main(int argc, char *argv[])
 		       nooprequest.datalength) == 0);
 
 	lwres_nooprequest_free(ctx, &nooprequest2);
+
+	lwres_context_freemem(ctx, b.base, b.length);
+	b.base = NULL;
+	b.length = 0;
+
+	pkt.flags = 0;
+	pkt.serial = 0x11223344;
+	pkt.recvlength = 0x55667788;
+	pkt.result = 0xdeadbeef;
+
+	noopresponse.datalength = strlen(TESTSTRING);
+	noopresponse.data = TESTSTRING;
+	ret = lwres_noopresponse_render(ctx, &noopresponse, &pkt, &b);
+	CHECK(ret, "lwres_noopresponse_render");
+
+	hexdump("rendered noop response", b.base, b.used);
+
+	/*
+	 * Now, parse it into a new structure.
+	 */
+	lwres_buffer_first(&b);
+	ret = lwres_lwpacket_parseheader(&b, &pkt2);
+	CHECK(ret, "lwres_lwpacket_parseheader");
+
+	hexdump("parsed pkt2", &pkt2, sizeof(pkt2));
+
+	noopresponse2 = NULL;
+	ret = lwres_noopresponse_parse(ctx, &b, &pkt2, &noopresponse2);
+	CHECK(ret, "lwres_noopresponse_parse");
+
+	assert(noopresponse.datalength == noopresponse2->datalength);
+	assert(memcmp(noopresponse.data, noopresponse2->data,
+		       noopresponse.datalength) == 0);
+
+	lwres_noopresponse_free(ctx, &noopresponse2);
 
 	lwres_context_freemem(ctx, b.base, b.length);
 	b.base = NULL;

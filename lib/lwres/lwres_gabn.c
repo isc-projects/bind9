@@ -31,9 +31,8 @@
 
 int
 lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
-			 isc_uint32_t maxrecv, lwres_buffer_t *b)
+			 lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
-	lwres_lwpacket_t pkt;
 	unsigned char *buf;
 	size_t buflen;
 	int ret;
@@ -43,13 +42,14 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 	REQUIRE(ctx != NULL);
 	REQUIRE(req != NULL);
 	REQUIRE(req->name != NULL);
+	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
 	datalen = strlen(req->name);
 
 	payload_length = LWRES_STRING_LENGTH(req->name);
 
-	buflen = sizeof(lwres_lwpacket_t) + payload_length;
+	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
 	if (buf == NULL) {
 		errno = ENOMEM;
@@ -57,17 +57,15 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 	}
 	lwres_buffer_init(b, buf, buflen);
 
-	pkt.length = buflen;
-	pkt.version = LWRES_LWPACKETVERSION_0;
-	pkt.flags = 0;
-	pkt.serial = req->serial;
-	pkt.opcode = LWRES_OPCODE_GETADDRSBYNAME;
-	pkt.result = 0;
-	pkt.recvlength = maxrecv;
-	pkt.authtype = 0;
-	pkt.authlength = 0;
+	pkt->length = buflen;
+	pkt->version = LWRES_LWPACKETVERSION_0;
+	pkt->flags &= ~LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->opcode = LWRES_OPCODE_GETADDRSBYNAME;
+	pkt->result = 0;
+	pkt->authtype = 0;
+	pkt->authlength = 0;
 
-	ret = lwres_lwpacket_renderheader(b, &pkt);
+	ret = lwres_lwpacket_renderheader(b, pkt);
 	if (ret != 0) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
@@ -90,9 +88,8 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 
 int
 lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
-			  isc_uint32_t maxrecv, lwres_buffer_t *b)
+			  lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
-	lwres_lwpacket_t pkt;
 	unsigned char *buf;
 	size_t buflen;
 	int ret;
@@ -102,6 +99,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(req != NULL);
+	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
 	/* naliases, naddrs */
@@ -117,7 +115,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 		payload_length += req->addrs[x]->length;
 	}
 
-	buflen = sizeof(lwres_lwpacket_t) + payload_length;
+	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
 	if (buf == NULL) {
 		errno = ENOMEM;
@@ -125,17 +123,14 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	}
 	lwres_buffer_init(b, buf, buflen);
 
-	pkt.length = buflen;
-	pkt.version = LWRES_LWPACKETVERSION_0;
-	pkt.flags = LWRES_LWPACKETFLAG_RESPONSE;
-	pkt.serial = req->serial;
-	pkt.opcode = LWRES_OPCODE_GETADDRSBYNAME;
-	pkt.result = req->result;
-	pkt.recvlength = maxrecv;
-	pkt.authtype = 0;
-	pkt.authlength = 0;
+	pkt->length = buflen;
+	pkt->version = LWRES_LWPACKETVERSION_0;
+	pkt->flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->opcode = LWRES_OPCODE_GETADDRSBYNAME;
+	pkt->authtype = 0;
+	pkt->authlength = 0;
 
-	ret = lwres_lwpacket_renderheader(b, &pkt);
+	ret = lwres_lwpacket_renderheader(b, pkt);
 	if (ret != 0) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
@@ -179,17 +174,23 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 }
 
 int
-lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_gabnrequest_t **structp)
+lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			lwres_buffer_t *b, lwres_gabnrequest_t **structp)
 {
 	REQUIRE(ctx != NULL);
+	REQUIRE(b != NULL);
+	REQUIRE(pkt != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
 }
 
 int
-lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_gabnresponse_t **structp)
+lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
+			 lwres_buffer_t *b, lwres_gabnresponse_t **structp)
 {
 	REQUIRE(ctx != NULL);
+	REQUIRE(b != NULL);
+	REQUIRE(pkt != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
 }
@@ -205,8 +206,6 @@ lwres_gabnrequest_free(lwres_context_t *ctx, lwres_gabnrequest_t **structp)
 	gabn = *structp;
 	*structp = NULL;
 
-	if (gabn->buffer != NULL)
-		CTXFREE(gabn->buffer, gabn->buflen);
 	CTXFREE(gabn, sizeof(lwres_gabnrequest_t));
 }
 
@@ -221,7 +220,5 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp)
 	gabn = *structp;
 	*structp = NULL;
 
-	if (gabn->buffer != NULL)
-		CTXFREE(gabn->buffer, gabn->buflen);
 	CTXFREE(gabn, sizeof(lwres_gabnresponse_t));
 }
