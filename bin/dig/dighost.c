@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.178 2001/01/08 23:38:37 bwelling Exp $ */
+/* $Id: dighost.c,v 1.179 2001/01/08 23:40:29 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2379,7 +2379,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			printf(";; Truncated, retrying in TCP mode.\n");
 			n = requeue_lookup(l, ISC_TRUE);
 			n->tcp_mode = ISC_TRUE;
-			n->origin = l->origin;
 			dns_message_destroy(&msg);
 			isc_event_free(&event);
 			clear_query(query);
