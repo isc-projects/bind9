@@ -71,6 +71,12 @@ main(int argc, char **argv) {
 		print_he(he, error, "getipnodebyname", argv[1]);
 		if (he != NULL)
 			freehostent(he);
+
+		he = getipnodebyname(argv[1], AF_INET6, AI_DEFAULT,
+				     &error);
+		print_he(he, error, "getipnodebyname", argv[1]);
+		if (he != NULL)
+			freehostent(he);
 		argv++;
 	}
 	return (0);
