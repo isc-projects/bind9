@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.21 2000/06/02 23:36:03 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.22 2000/06/05 19:10:27 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
@@ -75,66 +75,52 @@ static isc_boolean_t dnssafersa_isprivate(const dst_key_t *key);
 
 static isc_result_t
 dnssafersa_createctx(dst_key_t *key, dst_context_t *dctx) {
-	B_ALGORITHM_OBJ *ctx = NULL;
+	dst_context_t *md5ctx = NULL;
+	isc_result_t result;
 
 	UNUSED(key);
 
-	ctx = (B_ALGORITHM_OBJ *)isc_mem_get(dctx->mctx, sizeof(*ctx));
-	if (ctx == NULL)
-		return (ISC_R_NOMEMORY);
-	if (B_CreateAlgorithmObject(ctx) != 0) {
-		isc_mem_put(dctx->mctx, ctx, sizeof(*ctx));
-		return (ISC_R_NOMEMORY);
-	}
-	if (B_SetAlgorithmInfo(*ctx, AI_MD5, NULL) != 0) {
-		B_DestroyAlgorithmObject(ctx);
-		isc_mem_put(dctx->mctx, ctx, sizeof(*ctx));
-		return (ISC_R_NOMEMORY);
-	}
-	if (B_DigestInit(*ctx, NULL, CHOOSER, NULL_SURRENDER) != 0) {
-		B_DestroyAlgorithmObject(ctx);
-		isc_mem_put(dctx->mctx, ctx, sizeof(*ctx));
-		return (ISC_R_NOMEMORY);
-	}
-	dctx->opaque = ctx;
+	result = dst_context_create(DST_KEY_MD5, dctx->mctx, &md5ctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	dctx->opaque = md5ctx;
 	return (ISC_R_SUCCESS);
 }
 
 static void
 dnssafersa_destroyctx(dst_context_t *dctx) {
-	B_ALGORITHM_OBJ *ctx = dctx->opaque;
+	dst_context_t *md5ctx = dctx->opaque;
 
-	B_DestroyAlgorithmObject(ctx);
-	isc_mem_put(dctx->mctx, ctx, sizeof(*ctx));
+	if (md5ctx != NULL)
+		dst_context_destroy(&md5ctx);
 }
 
 static isc_result_t
 dnssafersa_adddata(dst_context_t *dctx, const isc_region_t *data) {
-	B_ALGORITHM_OBJ *ctx = dctx->opaque;
+	dst_context_t *md5ctx = dctx->opaque;
 
-	if (B_DigestUpdate(*ctx, data->base, data->length, NULL_SURRENDER) != 0)
-		return (ISC_R_FAILURE);
-
-	return (ISC_R_SUCCESS);
+	return (dst_context_adddata(md5ctx, data));
 }
 
 static isc_result_t
 dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+	dst_context_t *md5ctx = dctx->opaque;
 	unsigned char digest_array[DNS_SIG_RSAMAXSIZE];
+	isc_buffer_t digestbuf;
 	isc_region_t sig_region;
 	dst_key_t *key = dctx->key;
 	RSA_Key *rkey = key->opaque;
 	B_ALGORITHM_OBJ rsaEncryptor = (B_ALGORITHM_OBJ)NULL_PTR;
-	B_ALGORITHM_OBJ *ctx;
-	unsigned int written = 0, digest_length = 0;
+	unsigned int written = 0;
+	isc_result_t result;
 
-	ctx = dctx->opaque;
+	isc_buffer_init(&digestbuf, digest_array, sizeof(digest_array));
+	result = dst_context_digest(md5ctx, &digestbuf);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	isc_buffer_availableregion(sig, &sig_region);
-
-	if (B_DigestFinal(*ctx, digest_array, &digest_length,
-			  sizeof(digest_array), NULL_SURRENDER) != 0)
-		return (ISC_R_FAILURE);
-
 	if (sig_region.length * 8 < (unsigned int) key->key_size)
 		return (ISC_R_NOSPACE);
 		
@@ -163,8 +149,9 @@ dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	if (B_EncryptUpdate(rsaEncryptor, sig_region.base, &written,
-			    sig_region.length, digest_array,
-			    digest_length, NULL_PTR, NULL_SURRENDER) != 0)
+			    sig_region.length, isc_buffer_base(&digestbuf),
+			    isc_buffer_usedlength(&digestbuf), NULL_PTR,
+			    NULL_SURRENDER) != 0)
 		goto finalfail;
 
 	if (written > 0) {
@@ -191,7 +178,9 @@ dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 static isc_result_t
 dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
+	dst_context_t *md5ctx = dctx->opaque;
 	unsigned char digest_array[DST_HASH_SIZE];
+	isc_buffer_t digestbuf;
 	unsigned char work_area[DST_HASH_SIZE + sizeof(pkcs1)];
 	isc_buffer_t work;
 	isc_region_t work_region;
@@ -199,13 +188,15 @@ dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	RSA_Key *rkey = key->opaque;
 	B_ALGORITHM_OBJ rsaEncryptor = (B_ALGORITHM_OBJ) NULL_PTR;
 	B_ALGORITHM_OBJ *ctx;
-	unsigned int written = 0, digest_length = 0;
+	unsigned int written = 0;
+	isc_result_t result;
 
 	ctx = dctx->opaque;
 
-	if (B_DigestFinal(*ctx, digest_array, &digest_length,
-			  sizeof(digest_array), NULL_SURRENDER) != 0)
-		return (ISC_R_FAILURE);
+	isc_buffer_init(&digestbuf, digest_array, sizeof(digest_array));
+	result = dst_context_digest(md5ctx, &digestbuf);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	if (B_CreateAlgorithmObject(&rsaEncryptor) != 0)
 		return (ISC_R_NOMEMORY);
@@ -236,15 +227,13 @@ dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	if (written > 0)
 		isc_buffer_add(&work, written);
 
-	isc_buffer_usedregion(&work, &work_region);
-		
 	B_DestroyAlgorithmObject(&rsaEncryptor);
 	/*
 	 * Skip PKCS#1 header in output from Decrypt function.
 	 */
-	if (memcmp(digest_array,
-		   work_region.base + sizeof(pkcs1),
-		   digest_length) == 0)
+	if (memcmp(isc_buffer_base(&digestbuf),
+		   isc_buffer_used(&work) + sizeof(pkcs1),
+		   isc_buffer_usedlength(&digestbuf)) == 0)
 		return (ISC_R_SUCCESS);
 	else
 		return (DST_R_VERIFYFAILURE);
