@@ -26,7 +26,7 @@
 
 #include <omapi/private.h>
 
-omapi_message_t *omapi_registered_messages;
+omapi_message_t *registered_messages;
 
 isc_result_t
 omapi_message_create(omapi_object_t **o) {
@@ -56,6 +56,9 @@ omapi_message_create(omapi_object_t **o) {
 	return (result);
 }
 
+/*
+ * XXXDCL Make register/unregister implicitly part of omapi_message_send?
+ */
 void
 omapi_message_register(omapi_object_t *h) {
 	omapi_message_t *m;
@@ -68,18 +71,18 @@ omapi_message_register(omapi_object_t *h) {
 	 * Already registered?
 	 */
 	REQUIRE(m->prev == NULL && m->next == NULL &&
-		omapi_registered_messages != m);
+		registered_messages != m);
 
-	if (omapi_registered_messages != NULL) {
-		OBJECT_REF(&m->next, omapi_registered_messages);
-		OBJECT_REF(&omapi_registered_messages->prev, m);
-		OBJECT_DEREF(&omapi_registered_messages);
+	if (registered_messages != NULL) {
+		OBJECT_REF(&m->next, registered_messages);
+		OBJECT_REF(&registered_messages->prev, m);
+		OBJECT_DEREF(&registered_messages);
 	}
 
-	OBJECT_REF(&omapi_registered_messages, m);
+	OBJECT_REF(&registered_messages, m);
 }
 
-static void
+void
 omapi_message_unregister(omapi_object_t *h) {
 	omapi_message_t *m;
 	omapi_message_t *n;
@@ -91,7 +94,7 @@ omapi_message_unregister(omapi_object_t *h) {
 	/*
 	 * Not registered?
 	 */
-	REQUIRE(! (m->prev == NULL && omapi_registered_messages != m));
+	REQUIRE(m->prev != NULL || registered_messages == m);
 
 	n = NULL;
 	if (m->next != NULL) {
@@ -113,9 +116,9 @@ omapi_message_unregister(omapi_object_t *h) {
 		OBJECT_DEREF(&tmp);
 
 	} else {
-		OBJECT_DEREF(&omapi_registered_messages);
+		OBJECT_DEREF(&registered_messages);
 		if (n != NULL)
-			OBJECT_REF(&omapi_registered_messages, n);
+			OBJECT_REF(&registered_messages, n);
 	}
 
 	if (n != NULL)
@@ -137,7 +140,16 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 	isc_result_t result;
 
 	REQUIRE(message != NULL && message->type == omapi_type_message);
-	REQUIRE(protocol != NULL && protocol->type == omapi_type_protocol);
+	/*
+	 * Allow the function to be called with an object that is managing
+	 * the client side.
+	 */
+	REQUIRE(protocol != NULL &&
+		(protocol->type == omapi_type_protocol ||
+		 protocol->outer->type == omapi_type_protocol));
+
+	if (protocol->type != omapi_type_protocol)
+		protocol = protocol->outer;
 
 	p = (omapi_protocol_t *)protocol;
 
@@ -299,7 +311,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 	message = (omapi_message_t *)mo;
 
 	if (message->rid != 0) {
-		for (m = omapi_registered_messages; m != NULL; m = m->next)
+		for (m = registered_messages; m != NULL; m = m->next)
 			if (m->id == message->rid)
 				break;
 		/*
@@ -472,8 +484,8 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		result = object_update(object, message->object,
 				       message->handle);
+		OBJECT_DEREF(&object);
 		if (result != ISC_R_SUCCESS) {
-			OBJECT_DEREF(&object);
 			if (message->rid == 0)
 				return (send_status(po, result, message->id,
 						    "can't update object"));
@@ -684,12 +696,9 @@ message_destroy(omapi_object_t *handle) {
 	if (message->authenticator != NULL)
 		omapi_data_dereference(&message->authenticator);
 
-	if (message->prev == NULL && omapi_registered_messages != message)
-		omapi_message_unregister(handle);
-	if (message->prev != NULL)
-		OBJECT_DEREF(&message->prev);
-	if (message->next != NULL)
-		OBJECT_DEREF(&message->next);
+	INSIST(message->prev == NULL && message->next == NULL &&
+	       registered_messages != message);
+
 	if (message->object != NULL)
 		OBJECT_DEREF(&message->object);
 }
