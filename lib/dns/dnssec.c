@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.20 2000/02/23 23:30:28 halley Exp $
+ * $Id: dnssec.c,v 1.21 2000/02/25 01:07:17 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -382,6 +382,9 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			 key, &ctx, &r, NULL);
 
 	/* if the name is an expanded wildcard, use the wildcard name */
+	/*
+	 * XXXRTH  Note!  This will not work for names with bitstring labels!
+	 */
 	dns_name_init(&newname, NULL);
 	labels = dns_name_countlabels(name) - 1;
 	dns_name_getlabelsequence(name, labels - sig.labels, sig.labels + 1,
