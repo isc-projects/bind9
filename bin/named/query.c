@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109.2.11 2000/08/22 01:45:09 bwelling Exp $ */
+/* $Id: query.c,v 1.109.2.12 2000/09/19 22:52:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -490,7 +490,6 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		result = DNS_R_SERVFAIL;
 		goto fail;
 	}
-	*versionp = dbversion->version;
 	if (new_zone) {
 		check_acl = ISC_TRUE;
 	} else if (!dbversion->queryok) {
@@ -559,6 +558,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	/* Transfer ownership. */
 	*zonep = zone;
 	*dbp = db;
+	*versionp = dbversion->version;
 
 	return (ISC_R_SUCCESS);
 
