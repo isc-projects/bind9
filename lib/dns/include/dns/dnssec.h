@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec.h,v 1.21 2001/01/17 01:22:20 bwelling Exp $ */
+/* $Id: dnssec.h,v 1.22 2001/10/10 21:39:15 gson Exp $ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
@@ -141,7 +141,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
  *	Verifies a message signed by a SIG(0) record.  This is not
  *	called implicitly by dns_message_parse().  If dns_message_signer()
  *	is called before dns_dnssec_verifymessage(), it will return
- *	DNS_R_SIGNOTVERIFIEDYET.  dns_dnssec_verifymessage() will set
+ *	DNS_R_NOTVERIFIEDYET.  dns_dnssec_verifymessage() will set
  *	the verified_sig0 flag in msg if the verify succeeds, and
  *	the sig0status field otherwise.
  *

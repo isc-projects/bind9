@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.100 2001/08/28 03:58:17 marka Exp $ */
+/* $Id: message.h,v 1.101 2001/10/10 21:39:16 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -1180,7 +1180,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer);
  *	DNS_R_SIGINVALID	- the message was signed by a SIG(0), but
  *				  the signature failed to verify
  *
- *	DNS_R_SIGNOTVERIFIEDYET	- the message was signed by a TSIG or SIG(0),
+ *	DNS_R_NOTVERIFIEDYET	- the message was signed by a TSIG or SIG(0),
  *				  but the signature has not been verified yet
  */
 
