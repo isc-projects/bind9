@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.82 2004/07/20 07:13:33 marka Exp $
+# $Id: Makefile.in,v 1.83 2004/08/20 22:01:22 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -85,9 +85,9 @@ SRCS =		aclconf.c builtin.c client.c config.c control.c \
 		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
 		$(DBDRIVER_SRCS)
 
-MANPAGES =	named.8 lwresd.8
+MANPAGES =	named.8 lwresd.8 named.conf.5
 
-HTMLPAGES =	named.html lwresd.html
+HTMLPAGES =	named.html lwresd.html named.conf.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
