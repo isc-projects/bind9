@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.381 2002/07/04 05:03:46 marka Exp $ */
+/* $Id: server.c,v 1.382 2002/08/17 00:23:19 marka Exp $ */
 
 #include <config.h>
 
@@ -94,6 +94,19 @@
 				      NS_LOGMODULE_SERVER,	  \
 				      ISC_LOG_ERROR,		  \
 				      "%s: %s", msg,		  \
+				      isc_result_totext(result)); \
+			goto cleanup;				  \
+		}						  \
+	} while (0)						  \
+
+#define CHECKMF(op, msg, file) \
+	do { result = (op); 				  	  \
+	       if (result != ISC_R_SUCCESS) {			  \
+			isc_log_write(ns_g_lctx,		  \
+				      NS_LOGCATEGORY_GENERAL,	  \
+				      NS_LOGMODULE_SERVER,	  \
+				      ISC_LOG_ERROR,		  \
+				      "%s '%s': %s", msg, file,	  \
 				      isc_result_totext(result)); \
 			goto cleanup;				  \
 		}						  \
@@ -2719,8 +2732,8 @@ ns_server_dumpstats(ns_server_t *server) {
 
 	isc_stdtime_get(&now);
 
-	CHECKM(isc_stdio_open(server->statsfile, "a", &fp),
-	       "could not open statistics dump file");
+	CHECKMF(isc_stdio_open(server->statsfile, "a", &fp),
+		"could not open statistics dump file", server->statsfile);
 	
 	ncounters = DNS_STATS_NCOUNTERS;
 	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
@@ -2795,8 +2808,8 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 	char *ptr;
 	const char *sep;
 
-	CHECKM(isc_stdio_open(server->dumpfile, "w", &fp),
-	       "could not open dump file");
+	CHECKMF(isc_stdio_open(server->dumpfile, "w", &fp),
+		"could not open dump file", server->dumpfile);
 
 	/* Skip the command name. */
 	ptr = next_token(&args, " \t");

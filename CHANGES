@@ -1,3 +1,6 @@
+1361.	[func]		Log file name when unable to open memory statistics
+			and dump database files. [RT# 3437]
+
 1360.	[func]		Listen-on-v6 now supports specific addresses.
 
 1359.	[bug]		remove IF_RUNNING test when scanning interfaces.
