@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.296 2001/03/06 02:49:29 bwelling Exp $ */
+/* $Id: server.c,v 1.297 2001/03/06 19:04:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1664,7 +1664,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		ns_listenlist_t *listenon = NULL;
 
 		clistenon = NULL;
-		(void)cfg_map_get(options, "listen-on", &clistenon);
+		/*
+		 * Even though listen-on is present in the default
+		 * configuration, we can't use it here, since it isn't
+		 * used if we're in lwresd mode.  This way is easier.
+		 */
+		if (options != NULL)
+			(void)cfg_map_get(options, "listen-on", &clistenon);
 		if (clistenon != NULL) {
 			result = ns_listenlist_fromconfig(clistenon,
 							  config,
@@ -1691,7 +1697,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		cfg_obj_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		(void)cfg_map_get(options, "listen-on-v6", &clistenon);
+		if (options != NULL)
+			(void)cfg_map_get(options, "listen-on-v6", &clistenon);
 		if (clistenon != NULL) {
 			result = ns_listenlist_fromconfig(clistenon,
 							  config,
@@ -1820,7 +1827,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Load the TKEY information from the configuration.
 	 */
-	{
+	if (options != NULL) {
 		dns_tkeyctx_t *t = NULL;
 		CHECKM(ns_tkeyctx_fromconfig(options, ns_g_mctx, ns_g_entropy,
 					     &t),
