@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.11 2003/08/20 06:36:06 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.12 2003/08/21 03:22:48 marka Exp $ */
 
 #include <config.h>
 
@@ -2259,6 +2259,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
 				      "no more recursive clients: %s",
 				      isc_result_totext(result));
+			if (client->recursionquota != NULL)
+				isc_quota_detach(&client->recursionquota);
 			return (result);
 		}
 	}
