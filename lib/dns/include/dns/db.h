@@ -53,11 +53,13 @@
 
 #include <dns/types.h>
 #include <dns/result.h>
+#include <dns/name.h>
 
 typedef struct dns_dbmethods {
 	void		(*attach)(dns_db_t *source, dns_db_t **targetp);
 	void		(*detach)(dns_db_t **dbp);
 	void		(*shutdown)(dns_db_t *db);
+	dns_result_t	(*load)(dns_db_t *db, char *filename);
 	void		(*currentversion)(dns_db_t *db,
 					  dns_dbversion_t **versionp);
 	dns_result_t	(*newversion)(dns_db_t *db,
@@ -103,11 +105,13 @@ struct dns_db {
 	dns_dbmethods_t *		methods;
 	isc_boolean_t			cache;
 	dns_rdataclass_t		class;
+	dns_name_t			base;
+	isc_mem_t *			mctx;
 };
 
 dns_result_t
-dns_db_create(isc_mem_t *mctx, char *db_type, isc_boolean_t cache,
-	      dns_rdataclass_t class,
+dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *base,
+	      isc_boolean_t cache, dns_rdataclass_t class,
 	      unsigned int argc, char *argv[], dns_db_t **dbp);
 
 void
@@ -127,6 +131,9 @@ dns_db_iscache(dns_db_t *db);
 
 isc_boolean_t
 dns_db_iszone(dns_db_t *db);
+
+dns_result_t
+dns_db_load(dns_db_t *db, char *filename);
 
 void
 dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp);

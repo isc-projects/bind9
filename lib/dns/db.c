@@ -27,15 +27,15 @@
 #include "rbtdb.h"
 
 dns_result_t
-dns_db_create(isc_mem_t *mctx, char *db_type, isc_boolean_t cache,
-	      dns_rdataclass_t class,
+dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *base,
+	      isc_boolean_t cache, dns_rdataclass_t class,
 	      unsigned int argc, char *argv[], dns_db_t **dbp)
 {
 	/* find the create method for 'db_type', and call it. */
 
 	/* Temporary minor hack... */
 	if (strcasecmp(db_type, "rbt") == 0)
-		return (dns_rbtdb_create(mctx, cache, class, argc, argv,
+		return (dns_rbtdb_create(mctx, base, cache, class, argc, argv,
 					 dbp));
 
 	return (DNS_R_NOTIMPLEMENTED);
@@ -95,6 +95,14 @@ dns_db_iszone(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	return (!db->cache);
+}
+
+dns_result_t
+dns_db_load(dns_db_t *db, char *filename) {
+
+	REQUIRE(DNS_DB_VALID(db));
+
+	return (db->methods->load(db, filename));
 }
 
 /*
