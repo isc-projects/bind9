@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.37 2001/07/10 18:25:39 gson Exp $ */
+/* $Id: context.c,v 1.38 2001/07/10 21:13:07 gson Exp $ */
 
 #include <config.h>
 
@@ -333,7 +333,6 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	int ret2;
 	fd_set readfds;
 	struct timeval timeout;
-
 
 	/*
 	 * Type of tv_sec is long, so make sure the unsigned long timeout
