@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.22 2001/01/09 21:52:53 bwelling Exp $ */
+/* $Id: journal.h,v 1.23 2001/05/21 23:56:33 gson Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -63,35 +63,13 @@ typedef struct dns_journal dns_journal_t;
 ISC_LANG_BEGINDECLS
 
 /**************************************************************************/
-/*
- * Misc. utilities
- * XXX these belong in a general-purpose DNS library
- */
-
-isc_uint32_t
-dns_soa_getserial(dns_rdata_t *rdata);
-/*
- * Extract the serial number from the rdata of a SOA record.
- *
- * Requires:
- *	rdata refers to the rdata of a well-formed SOA record.
- */
-
-void
-dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata);
-/*
- * Change the serial number of a SOA record by modifying the
- * rdata in-place.
- *
- * Requires:
- *	rdata refers to the rdata of a well-formed SOA record.
- */
 
 isc_result_t
 dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 		   dns_diffop_t op, dns_difftuple_t **tp);
 /*
  * Create a diff tuple for the current database SOA.
+ * XXX this probably belongs somewhere else.
  */
 
 

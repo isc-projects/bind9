@@ -1019,6 +1019,7 @@
 ./lib/dns/include/dns/resolver.h		C	1999,2000,2001
 ./lib/dns/include/dns/result.h			C	1998,1999,2000,2001
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001
+./lib/dns/include/dns/soa.h			C	2000,2001
 ./lib/dns/include/dns/sdb.h			C	2000,2001
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001
@@ -1152,6 +1153,7 @@
 ./lib/dns/result.c				C	1998,1999,2000,2001
 ./lib/dns/rootns.c				C	1999,2000,2001
 ./lib/dns/sdb.c					C	2000,2001
+./lib/dns/soa.c					C	2000,2001
 ./lib/dns/sec/.cvsignore			X	1999,2000,2001
 ./lib/dns/sec/Makefile.in			MAKE	1998,1999,2000,2001
 ./lib/dns/sec/dst/.cvsignore			X	1999,2000,2001

@@ -1,4 +1,8 @@
 
+ 833.	[cleanup]	Moved dns_soa_*() from <dns/journal.h> to
+			<dns/soa.h>, and extended them to support
+			all the integer-valued fields of the SOA RR.
+
  832.	[bug]		The default location for named.conf in named-checkconf
 			should depend on --sysconfdir like it does in named.
 			[RT #1258]
