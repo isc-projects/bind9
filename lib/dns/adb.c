@@ -33,6 +33,7 @@
 #include <isc/assertions.h>
 #include <isc/condition.h>
 #include <isc/event.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
@@ -43,6 +44,7 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -51,12 +53,6 @@
 #include <dns/view.h>
 
 #include "../isc/util.h"
-
-#if 1
-#define DP(x)		printf x
-#else
-#define DP(x)
-#endif
 
 #define DNS_ADB_MAGIC		  0x44616462	/* Dadb. */
 #define DNS_ADB_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)
@@ -153,7 +149,7 @@ struct dns_adbname {
 	dns_adbnamehooklist_t		v6;
 	dns_adbfetch_t		       *fetch_a;
 	dns_adbfetch_t		       *fetch_aaaa;
-	ISC_LIST(dns_adbfetch_t)	fetches_v6;
+	ISC_LIST(dns_adbfetch_t)	fetches_a6;
 	ISC_LIST(dns_adbfind_t)		finds;
 	ISC_LINK(dns_adbname_t)		plink;
 };
@@ -289,10 +285,22 @@ static void kill_name(dns_adbname_t **, isc_eventtype_t ev);
 
 #define NO_FETCHES_A(n)		((n)->fetch_a == NULL)
 #define NO_FETCHES_AAAA(n)	((n)->fetch_aaaa == NULL)
-#define NO_FETCHES_A6(n)	(ISC_LIST_EMPTY((n)->fetches_v6))
+#define NO_FETCHES_A6(n)	(ISC_LIST_EMPTY((n)->fetches_a6))
 #define NO_FETCHES(n)		(NO_FETCHES_A(n) \
 				 && NO_FETCHES_AAAA(n) \
 				 && NO_FETCHES_A6(n))
+
+static void
+DP(int level, char *format, ...)
+{
+	va_list args;
+
+	va_start(args, format);
+	isc_log_vwrite(dns_lctx,
+		       DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
+		       ISC_LOG_DEBUG(level), format, args);
+	va_end(args);
+}
 
 /*
  * Requires the adbname bucket be locked and that no entry buckets be locked.
@@ -420,7 +428,7 @@ kill_name(dns_adbname_t **n, isc_eventtype_t ev)
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
-	DP(("killing name %p\n", name));
+	DP(1, "killing name %p", name);
 
 	/*
 	 * If we're dead already, just check to see if we should go
@@ -673,8 +681,8 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 		ev->destroy = event_free;
 		ev->destroy_arg = find;
 
-		DP(("Sending event %p to task %p for find %p\n",
-		    ev, task, find));
+		DP(1, "Sending event %p to task %p for find %p",
+		    ev, task, find);
 
 		isc_task_sendanddetach(&task, &ev);
 
@@ -820,7 +828,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 	ISC_LIST_INIT(name->v6);
 	name->fetch_a = NULL;
 	name->fetch_aaaa = NULL;
-	ISC_LIST_INIT(name->fetches_v6);
+	ISC_LIST_INIT(name->fetches_a6);
 	ISC_LIST_INIT(name->finds);
 	ISC_LINK_INIT(name, plink);
 
@@ -1652,7 +1660,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	bucket = DNS_ADB_INVALIDBUCKET;
 	adbname = find_name_and_lock(adb, name, &bucket);
 	if (adb->name_sd[bucket]) {
-		DP(("lookup:  returning ISC_R_SHUTTINGDOWN\n"));
+		DP(1, "lookup:  returning ISC_R_SHUTTINGDOWN");
 		free_adbfind(adb, &find);
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
@@ -1686,7 +1694,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = dbfind_name(find, zone, adbname, bucket, now,
 				     dns_rdatatype_a);
 		if (result == ISC_R_SUCCESS) {
-			DP(("lookup:  Found v4 for name %p in db\n", adbname));
+			DP(1, "lookup:  Found v4 for name %p in db",
+			   adbname);
 			goto v6;
 		}
 
@@ -1695,8 +1704,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		result = fetch_name_v4(adbname, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(("lookup:  Started v4 fetch for name %p\n",
-			    adbname));
+			DP(1, "lookup:  Started v4 fetch for name %p",
+			   adbname);
 			adbname->query_pending |= DNS_ADBFIND_INET;
 			goto v6;
 		}
@@ -1709,8 +1718,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = dbfind_name(find, zone, adbname, bucket, now,
 				     dns_rdatatype_aaaa);
 		if (result == ISC_R_SUCCESS) {
-			DP(("lookup: found aaaa for name %p in db\n",
-			    adbname));
+			DP(1, "lookup: found aaaa for name %p in db",
+			   adbname);
 			goto copy;
 		}
 
@@ -1719,8 +1728,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		result = fetch_name_aaaa(adbname, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(("lookup:  Started aaaa fetch for name %p\n",
-			    adbname));
+			DP(1, "lookup:  Started aaaa fetch for name %p",
+			   adbname);
 			adbname->query_pending |= DNS_ADBFIND_INET6;
 			goto copy;
 		}
@@ -1867,7 +1876,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 			goto out;
 		}
 		free_name = ISC_TRUE;
-		name->expire_v4 = expire_time;
+		name->expire_v4 = ISC_MIN(expire_time, name->expire_v4);
 	}
 
 	/*
@@ -1928,8 +1937,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 	if (!ISC_LINK_LINKED(entry, plink))
 		ISC_LIST_PREPEND(adb->entries[addr_bucket], entry, plink);
 
-	if (name->expire_v4 > expire_time)
-		name->expire_v4 = expire_time;
+	name->expire_v4 = ISC_MIN(name->expire_v4, expire_time);
 
 	UNLOCK(&adb->namelocks[name_bucket]);
 	name_bucket = DNS_ADB_INVALIDBUCKET;
@@ -1968,7 +1976,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp)
 
 	LOCK(&find->lock);
 
-	DP(("dns_adb_done on find %p\n", find));
+	DP(1, "dns_adb_done on find %p", find);
 
 	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -2020,7 +2028,7 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 
 	LOCK(&find->lock);
 
-	DP(("dns_adb_cancelfind on find %p\n", find));
+	DP(1, "dns_adb_cancelfind on find %p", find);
 
 	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -2055,8 +2063,8 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 		ev->destroy = event_free;
 		ev->destroy_arg = find;
 
-		DP(("Sending event %p to task %p for find %p\n",
-		    ev, task, find));
+		DP(1, "Sending event %p to task %p for find %p",
+		   ev, task, find);
 
 		isc_task_sendanddetach(&task, &ev);
 	}
@@ -2256,7 +2264,12 @@ print_namehook_list(FILE *f, dns_adbname_t *n)
 
 	nh = ISC_LIST_HEAD(n->v4);
 	while (nh != NULL) {
-		fprintf(f, "\t\tHook %p -> entry %p\n", nh, nh->entry);
+		fprintf(f, "\t\tHook(V4) %p -> entry %p\n", nh, nh->entry);
+		nh = ISC_LIST_NEXT(nh, plink);
+	}
+	nh = ISC_LIST_HEAD(n->v6);
+	while (nh != NULL) {
+		fprintf(f, "\t\tHook(V6) %p -> entry %p\n", nh, nh->entry);
 		nh = ISC_LIST_NEXT(nh, plink);
 	}
 }
@@ -2367,8 +2380,6 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
-	DP(("Fetch %p\n", dev->fetch));
-
 	bucket = name->lock_bucket;
 	LOCK(&adb->namelocks[bucket]);
 
@@ -2470,8 +2481,6 @@ fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
-
-	DP(("Fetch %p\n", dev->fetch));
 
 	bucket = name->lock_bucket;
 	LOCK(&adb->namelocks[bucket]);
