@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.29.2.4 2000/07/17 19:40:53 gson Exp $ */
+/* $Id: host.c,v 1.29.2.5 2000/08/22 17:42:45 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -51,6 +51,7 @@ extern isc_buffer_t rootbuf;
 extern int sendcount;
 extern int ndots;
 extern int tries;
+extern isc_boolean_t usesearch;
 extern int lookup_counter;
 extern int exitcode;
 extern isc_taskmgr_t *taskmgr;
@@ -690,6 +691,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;
 	ISC_LIST_INIT(lookup->my_server_list);
+
+	usesearch = ISC_TRUE;
 }
 
 int
