@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.c,v 1.14 2000/02/03 23:43:19 halley Exp $ */
+/* $Id: srv_33.c,v 1.15 2000/03/17 21:03:33 bwelling Exp $ */
 
- /* RFC 2052 bis */
+/* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
+
+/* RFC 2782 */
 
 #ifndef RDATA_IN_1_SRV_33_C
 #define RDATA_IN_1_SRV_33_C
@@ -97,7 +99,7 @@ totext_in_srv(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* target */
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, tctx->origin, &prefix);
-	return(dns_name_totext(&prefix, sub, target));
+	return (dns_name_totext(&prefix, sub, target));
 }
 
 static inline isc_result_t
@@ -190,24 +192,22 @@ static inline isc_result_t
 fromstruct_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		  isc_buffer_t *target)
 {
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
 tostruct_in_srv(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 33);
 	REQUIRE(rdata->rdclass == 1);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -239,7 +239,6 @@ additionaldata_in_srv(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 static inline isc_result_t
 digest_in_srv(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_region_t r1, r2;
-	isc_result_t result;
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 33);
@@ -249,9 +248,7 @@ digest_in_srv(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	r2 = r1;
 	isc_region_consume(&r2, 6);
 	r1.length = 6;
-	result = (digest)(arg, &r1);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	RETERR((digest)(arg, &r1));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	return (dns_name_digest(&name, digest, arg));

@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.h,v 1.9 2000/02/03 23:43:19 halley Exp $ */
+/* $Id: srv_33.h,v 1.10 2000/03/17 21:03:34 bwelling Exp $ */
 
- /* RFC 2052 bis */
+/* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
+
+/* RFC 2782 */
 
 typedef struct dns_rdata_in_srv {
 	dns_rdatacommon_t	common;
