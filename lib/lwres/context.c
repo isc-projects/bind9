@@ -39,6 +39,10 @@ static void *lwres_malloc(void *, size_t);
 static void lwres_free(void *, void *, size_t);
 static int context_connect(lwres_context_t *);
 
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK 0x7f000001UL
+#endif
+
 int
 lwres_context_create(lwres_context_t **contextp, void *arg,
 		     lwres_malloc_t malloc_function,

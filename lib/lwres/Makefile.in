@@ -26,12 +26,14 @@ CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-OBJS =		context.@O@ lwbuffer.@O@ lwpacket.@O@ lwresutil.@O@ \
-		lwres_gabn.@O@ lwres_gnba.@O@ lwres_noop.@O@
+OBJS =		context.@O@ getaddrinfo.@O@ gethost.@O@ getipnode.@O@ \
+		getnameinfo.@O@ getnet.@O@ lwbuffer.@O@ lwpacket.@O@ \
+		lwresutil.@O@ lwres_gabn.@O@ lwres_gnba.@O@ lwres_noop.@O@
 
 # Alphabetically
-SRCS =		context.c lwbuffer.c lwpacket.c lwres.c \
-		lwres_gabn.c lwres_gnba.c lwres_noop.c
+SRCS =		context.c getaddrinfo.c gethost.c getipnode.c \
+		getnameinfo.c getnet.c lwbuffer.c lwpacket.c \
+		lwres.c lwres_gabn.c lwres_gnba.c lwres_noop.c
 
 LIBS =		@LIBS@
 
