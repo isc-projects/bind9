@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.7 2000/10/12 20:45:19 bwelling Exp $ */
+/* $Id: lwdclient.h,v 1.8 2000/10/28 00:35:56 bwelling Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
@@ -30,6 +30,8 @@
 #include <dns/types.h>
 
 #include <lwres/lwres.h>
+
+#include <named/lwsearch.h>
 
 #define LWRD_EVENTCLASS		ISC_EVENTCLASS(4242)
 
@@ -66,7 +68,9 @@ struct ns_lwdclient {
 	dns_adbfind_t		*v4find;
 	dns_adbfind_t		*v6find;
 	unsigned int		find_wanted;	/* Addresses we want */
+	dns_fixedname_t		query_name;
 	dns_fixedname_t		target_name;
+	ns_lwsearchctx_t	searchctx;
 	lwres_gabnresponse_t	gabn;
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.7 2000/10/12 20:45:14 bwelling Exp $ */
+/* $Id: lwdgabn.c,v 1.8 2000/10/28 00:35:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -29,13 +29,17 @@
 
 #include <named/types.h>
 #include <named/lwdclient.h>
+#include <named/lwresd.h>
+#include <named/lwsearch.h>
 
 #define NEED_V4(c)	((((c)->find_wanted & LWRES_ADDRTYPE_V4) != 0) \
 			 && ((c)->v4find == NULL))
 #define NEED_V6(c)	((((c)->find_wanted & LWRES_ADDRTYPE_V6) != 0) \
 			 && ((c)->v6find == NULL))
 
-static void start_find(ns_lwdclient_t *);
+static isc_result_t start_find(ns_lwdclient_t *);
+static void restart_find(ns_lwdclient_t *);
+static void init_gabn(ns_lwdclient_t *);
 
 /*
  * Destroy any finds.  This can be used to "start over from scratch" and
@@ -43,20 +47,16 @@ static void start_find(ns_lwdclient_t *);
  */
 static void
 cleanup_gabn(ns_lwdclient_t *client) {
-	dns_adbfind_t *v4;
-
 	ns_lwdclient_log(50, "cleaning up client %p", client);
 
-	v4 = client->v4find;
-
-	if (client->v4find != NULL)
-		dns_adb_destroyfind(&client->v4find);
 	if (client->v6find != NULL) {
-		if (client->v6find == v4)
+		if (client->v6find == client->v4find)
 			client->v6find = NULL;
 		else
 			dns_adb_destroyfind(&client->v6find);
 	}
+	if (client->v4find != NULL)
+		dns_adb_destroyfind(&client->v4find);
 }
 
 static void
@@ -149,6 +149,23 @@ generate_reply(ns_lwdclient_t *client) {
 		setup_addresses(client, client->v4find, DNS_ADBFIND_INET);
 	if (client->v6find != NULL)
 		setup_addresses(client, client->v6find, DNS_ADBFIND_INET6);
+
+	/*
+	 * If there are no addresses, try the next element in the search
+	 * path, if there are any more.  Otherwise, fall through into
+	 * the error handling code below.
+	 */
+	if (client->gabn.naddrs == 0) {
+		do {
+			result = ns_lwsearchctx_next(&client->searchctx);
+			if (result == ISC_R_SUCCESS) {
+				cleanup_gabn(client);
+				result = start_find(client);
+				if (result == ISC_R_SUCCESS)
+					return;
+			}
+		} while (result == ISC_R_SUCCESS);
+	}
 
 	/*
 	 * Render the packet.
@@ -246,14 +263,19 @@ static isc_result_t
 store_realname(ns_lwdclient_t *client) {
 	isc_buffer_t b;
 	isc_result_t result;
+	dns_name_t *tname;
 
 	b = client->recv_buffer;
+
+	tname = dns_fixedname_name(&client->target_name);
+	result = ns_lwsearchctx_current(&client->searchctx, tname);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Render the new name to the buffer.
 	 */
-	result = dns_name_totext(dns_fixedname_name(&client->target_name),
-				 ISC_TRUE, &client->recv_buffer);
+	result = dns_name_totext(tname, ISC_TRUE, &client->recv_buffer);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -319,7 +341,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev) {
 	 * it.
 	 */
 	if (evtype == DNS_EVENT_ADBMOREADDRESSES) {
-		start_find(client);
+		restart_find(client);
 		return;
 	}
 
@@ -331,7 +353,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev) {
 }
 
 static void
-start_find(ns_lwdclient_t *client) {
+restart_find(ns_lwdclient_t *client) {
 	unsigned int options;
 	isc_result_t result;
 	isc_boolean_t claimed;
@@ -451,6 +473,23 @@ start_find(ns_lwdclient_t *client) {
 	generate_reply(client);
 }
 
+static isc_result_t
+start_find(ns_lwdclient_t *client) {
+	isc_result_t result;
+
+	/*
+	 * Initialize the real name and alias arrays in the reply we're
+	 * going to build up.
+	 */
+	init_gabn(client);
+
+	result = store_realname(client);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	restart_find(client);
+	return (ISC_R_SUCCESS);
+
+}
 
 static void
 init_gabn(ns_lwdclient_t *client) {
@@ -510,10 +549,12 @@ void
 ns_lwdclient_processgabn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	isc_result_t result;
 	lwres_gabnrequest_t *req;
+	ns_lwdclientmgr_t *cm;
 	isc_buffer_t namebuf;
 
 	REQUIRE(NS_LWDCLIENT_ISRECVDONE(client));
 
+	cm = client->clientmgr;
 	req = NULL;
 
 	result = lwres_gabnrequest_parse(client->clientmgr->lwctx,
@@ -525,10 +566,16 @@ ns_lwdclient_processgabn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	isc_buffer_add(&namebuf, req->namelen);
 
 	dns_fixedname_init(&client->target_name);
-	result = dns_name_fromtext(dns_fixedname_name(&client->target_name),
-				   &namebuf, dns_rootname, ISC_FALSE, NULL);
+	dns_fixedname_init(&client->query_name);
+	result = dns_name_fromtext(dns_fixedname_name(&client->query_name),
+				   &namebuf, NULL, ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto out;
+	ns_lwsearchctx_init(&client->searchctx,
+			    cm->lwresd->search,
+			    dns_fixedname_name(&client->query_name),
+			    cm->lwresd->ndots);
+	ns_lwsearchctx_first(&client->searchctx);
 
 	client->find_wanted = req->addrtypes;
 	ns_lwdclient_log(50, "client %p looking for addrtypes %08x",
@@ -540,19 +587,11 @@ ns_lwdclient_processgabn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	lwres_gabnrequest_free(client->clientmgr->lwctx, &req);
 
 	/*
-	 * Initialize the real name and alias arrays in the reply we're
-	 * going to build up.
-	 */
-	init_gabn(client);
-
-	result = store_realname(client);
-	if (result != ISC_R_SUCCESS)
-		goto out;
-
-	/*
 	 * Start the find.
 	 */
-	start_find(client);
+	result = start_find(client);
+	if (result != ISC_R_SUCCESS)
+		goto out;
 
 	return;
 
