@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.4.10.12 2004/03/08 04:04:20 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4.10.13 2004/04/20 14:12:09 marka Exp $ */
 
 #include <config.h>
 
@@ -295,11 +295,7 @@ strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp) {
 static void
 checknames(dns_zonetype_t ztype, cfg_obj_t **maps, cfg_obj_t **objp) {
 	const char *zone = NULL;
-	cfg_listelt_t *element;
-	cfg_obj_t *type;
-	cfg_obj_t *value;
-	cfg_obj_t *check;
-	int i;
+	isc_result_t result;
 
 	switch (ztype) {
 	case dns_zone_slave: zone = "slave"; break;
@@ -307,24 +303,8 @@ checknames(dns_zonetype_t ztype, cfg_obj_t **maps, cfg_obj_t **objp) {
 	default:
 		INSIST(0);
 	}
-	for (i = 0; maps[i] != NULL; i++) {
-		check = NULL;
-		cfg_map_get(maps[i], "check-names", &check);
-		if (check != NULL && !cfg_obj_islist(check)) {
-			*objp = check;
-			return;
-		}
-		for (element = cfg_list_first(check);
-		     element != NULL;
-		     element = cfg_list_next(element)) {
-			value = cfg_listelt_value(element);
-			type = cfg_tuple_get(value, "type");
-			if (strcasecmp(cfg_obj_asstring(type), zone) == 0) {
-				*objp = cfg_tuple_get(value, "mode");
-				return;
-			}
-		}
-	}
+	result = ns_checknames_get(maps, zone, objp);
+	INSIST(result == ISC_R_SUCCESS);
 }
 
 isc_result_t

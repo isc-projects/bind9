@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.4.12.3 2004/03/08 04:04:20 marka Exp $ */
+/* $Id: config.h,v 1.4.12.4 2004/04/20 14:12:10 marka Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1
@@ -30,6 +30,9 @@ ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf);
 
 isc_result_t
 ns_config_get(cfg_obj_t **maps, const char* name, cfg_obj_t **obj);
+
+isc_result_t
+ns_checknames_get(cfg_obj_t **maps, const char* name, cfg_obj_t **obj);
 
 int
 ns_config_listcount(cfg_obj_t *list);

@@ -18,6 +18,9 @@
 			Missing #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX/#endif.
 			[RT #11119]
 
+1612.	[bug]		check-names at the option/view level could trigger
+			an INSIST. [RT# 11116]
+
 1611.	[bug]		solaris: IPv6 interface scanning failed to cope with
 			no active IPv6 interfaces.
 
