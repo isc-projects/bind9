@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.2 2001/09/27 23:30:49 gson Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.3 2001/10/05 00:17:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -457,29 +457,34 @@ setup_system(void) {
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("lwres_context_create failed");
 
-	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
-	if (lwresult != LWRES_R_SUCCESS)
-		fprintf(stderr,
-			"an error was encountered in %s\n", RESOLV_CONF);
-
+	(void)lwres_conf_parse(lwctx, RESOLV_CONF);
 	lwconf = lwres_conf_get(lwctx);
 
 	ns_total = lwconf->nsnext;
-	if (ns_total <= 0)
-		fatal("no valid servers found");
-	servers = isc_mem_get(mctx, ns_total * sizeof(isc_sockaddr_t));
-	if (servers == NULL)
-		fatal("out of memory");
-	for (i = 0; i < ns_total; i++) {
-		if (lwconf->nameservers[i].family == LWRES_ADDRTYPE_V4) {
-			struct in_addr in4;
-			memcpy(&in4, lwconf->nameservers[i].address, 4);
-			isc_sockaddr_fromin(&servers[i], &in4, DNSDEFAULTPORT);
-		} else {
-			struct in6_addr in6;
-			memcpy(&in6, lwconf->nameservers[i].address, 16);
-			isc_sockaddr_fromin6(&servers[i], &in6,
-					     DNSDEFAULTPORT);
+	if (ns_total <= 0) {
+		/* No name servers in resolv.conf; default to loopback. */
+		struct in_addr localhost;
+		ns_total = 1;
+		servers = isc_mem_get(mctx, ns_total * sizeof(isc_sockaddr_t));
+		if (servers == NULL)
+			fatal("out of memory");
+		localhost.s_addr = htonl(INADDR_LOOPBACK);
+		isc_sockaddr_fromin(&servers[0], &localhost, DNSDEFAULTPORT);
+	} else {
+		servers = isc_mem_get(mctx, ns_total * sizeof(isc_sockaddr_t));
+		if (servers == NULL)
+			fatal("out of memory");
+		for (i = 0; i < ns_total; i++) {
+			if (lwconf->nameservers[i].family == LWRES_ADDRTYPE_V4) {
+				struct in_addr in4;
+				memcpy(&in4, lwconf->nameservers[i].address, 4);
+				isc_sockaddr_fromin(&servers[i], &in4, DNSDEFAULTPORT);
+			} else {
+				struct in6_addr in6;
+				memcpy(&in6, lwconf->nameservers[i].address, 16);
+				isc_sockaddr_fromin6(&servers[i], &in6,
+						     DNSDEFAULTPORT);
+			}
 		}
 	}
 

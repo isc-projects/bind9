@@ -1,4 +1,8 @@
 
+1030.	[bug]		On systems with no resolv.conf file, nsupdate
+			exited with an error rather than defaulting
+			to using the loopback address. [RT #1836]
+
 1029.	[bug]		Some named.conf errors did not cause the loading
 			of the configuration file to return a failure
 			status even though they were logged. [RT #1847]
