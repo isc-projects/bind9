@@ -91,7 +91,7 @@ timedb_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup) {
 
 /*
  * This zone does not support zone transfer, so allnodes() is NULL.  There
- * is no driver specific data, so create() and destroy() are NULL.
+ * is no database specific data, so create() and destroy() are NULL.
  */
 static dns_sdbmethods_t timedb_methods = {
 	timedb_lookup,
