@@ -85,9 +85,11 @@ CLEAN :
 	-@erase "$(INTDIR)\opensslrsa_link.obj"
 	-@erase "$(INTDIR)\order.obj"
 	-@erase "$(INTDIR)\peer.obj"
+	-@erase "$(INTDIR)\portlist.obj"
 	-@erase "$(INTDIR)\rbt.obj"
 	-@erase "$(INTDIR)\rbtdb.obj"
 	-@erase "$(INTDIR)\rbtdb64.obj"
+	-@erase "$(INTDIR)\rcode.obj"
 	-@erase "$(INTDIR)\rdata.obj"
 	-@erase "$(INTDIR)\rdatalist.obj"
 	-@erase "$(INTDIR)\rdataset.obj"
@@ -195,9 +197,11 @@ LINK32_OBJS= \
 	"$(INTDIR)\nsec.obj" \
 	"$(INTDIR)\order.obj" \
 	"$(INTDIR)\peer.obj" \
+	"$(INTDIR)\portlist.obj" \
 	"$(INTDIR)\rbt.obj" \
 	"$(INTDIR)\rbtdb.obj" \
 	"$(INTDIR)\rbtdb64.obj" \
+	"$(INTDIR)\rcode.obj" \
 	"$(INTDIR)\rdata.obj" \
 	"$(INTDIR)\rdatalist.obj" \
 	"$(INTDIR)\rdataset.obj" \
@@ -346,12 +350,16 @@ CLEAN :
 	-@erase "$(INTDIR)\order.sbr"
 	-@erase "$(INTDIR)\peer.obj"
 	-@erase "$(INTDIR)\peer.sbr"
+	-@erase "$(INTDIR)\portlist.obj"
+	-@erase "$(INTDIR)\portlist.sbr"
 	-@erase "$(INTDIR)\rbt.obj"
 	-@erase "$(INTDIR)\rbt.sbr"
 	-@erase "$(INTDIR)\rbtdb.obj"
 	-@erase "$(INTDIR)\rbtdb.sbr"
 	-@erase "$(INTDIR)\rbtdb64.obj"
 	-@erase "$(INTDIR)\rbtdb64.sbr"
+	-@erase "$(INTDIR)\rcode.obj"
+	-@erase "$(INTDIR)\rcode.sbr"
 	-@erase "$(INTDIR)\rdata.obj"
 	-@erase "$(INTDIR)\rdata.sbr"
 	-@erase "$(INTDIR)\rdatalist.obj"
@@ -484,9 +492,11 @@ BSC32_SBRS= \
 	"$(INTDIR)\nsec.sbr" \
 	"$(INTDIR)\order.sbr" \
 	"$(INTDIR)\peer.sbr" \
+	"$(INTDIR)\portlist.sbr" \
 	"$(INTDIR)\rbt.sbr" \
 	"$(INTDIR)\rbtdb.sbr" \
 	"$(INTDIR)\rbtdb64.sbr" \
+	"$(INTDIR)\rcode.sbr" \
 	"$(INTDIR)\rdata.sbr" \
 	"$(INTDIR)\rdatalist.sbr" \
 	"$(INTDIR)\rdataset.sbr" \
@@ -564,9 +574,11 @@ LINK32_OBJS= \
 	"$(INTDIR)\nsec.obj" \
 	"$(INTDIR)\order.obj" \
 	"$(INTDIR)\peer.obj" \
+	"$(INTDIR)\portlist.obj" \
 	"$(INTDIR)\rbt.obj" \
 	"$(INTDIR)\rbtdb.obj" \
 	"$(INTDIR)\rbtdb64.obj" \
+	"$(INTDIR)\rcode.obj" \
 	"$(INTDIR)\rdata.obj" \
 	"$(INTDIR)\rdatalist.obj" \
 	"$(INTDIR)\rdataset.obj" \
@@ -1133,6 +1145,25 @@ SOURCE=..\peer.c
 
 !ENDIF 
 
+
+SOURCE=..\portlist.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\portlist.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\portlist.obj"	"$(INTDIR)\portlist.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\rbt.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
@@ -1182,6 +1213,24 @@ SOURCE=..\rbtdb64.c
 
 
 "$(INTDIR)\rbtdb64.obj"	"$(INTDIR)\rbtdb64.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\rcode.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\rcode.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\rcode.obj"	"$(INTDIR)\rcode.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

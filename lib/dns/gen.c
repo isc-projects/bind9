@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65.2.5.2.4 2004/03/06 08:13:38 marka Exp $ */
+/* $Id: gen.c,v 1.65.2.5.2.5 2004/03/12 10:31:24 marka Exp $ */
 
 #include <config.h>
 
@@ -631,11 +631,11 @@ main(int argc, char **argv) {
 			 DIGESTARGS, DIGESTTYPE,
 			 DIGESTCLASS, DIGESTDEF);
 		doswitch("CHECKOWNERSWITCH", "checkowner",
-			 CHECKOWNERARGS, CHECKOWNERTYPE,
-			 CHECKOWNERCLASS, CHECKOWNERDEF);
+			CHECKOWNERARGS, CHECKOWNERTYPE,
+			CHECKOWNERCLASS, CHECKOWNERDEF);
 		doswitch("CHECKNAMESSWITCH", "checknames",
-			 CHECKNAMESARGS, CHECKNAMESTYPE,
-			 CHECKNAMESCLASS, CHECKNAMESDEF);
+			CHECKNAMESARGS, CHECKNAMESTYPE,
+			CHECKNAMESCLASS, CHECKNAMESDEF);
 
 		/*
 		 * From here down, we are processing the rdata names and
@@ -667,31 +667,6 @@ main(int argc, char **argv) {
 		insert_into_typenames(254, "maila", METAQUESTIONONLY);
 		insert_into_typenames(255, "any", METAQUESTIONONLY);
 
-		fprintf(stdout, "\ntypedef struct {\n");
-		fprintf(stdout, "\tconst char *name;\n");
-		fprintf(stdout, "\tunsigned int flags;\n");
-		fprintf(stdout, "} typeattr_t;\n");
-		fprintf(stdout, "static typeattr_t typeattr[] = {\n");
-		for (i = 0; i <= maxtype; i++) {
-			ttn = find_typename(i);
-			if (ttn == NULL) {
-				const char *attrs;
-				if (i >= 128 && i < 255)
-					attrs = "DNS_RDATATYPEATTR_UNKNOWN | "
-						"DNS_RDATATYPEATTR_META";
-				else
-					attrs = "DNS_RDATATYPEATTR_UNKNOWN";
-				fprintf(stdout, "\t{ \"TYPE%d\", %s}%s\n",
-					i, attrs, PRINT_COMMA(i));
-			} else {
-				fprintf(stdout, "\t{ \"%s\", %s }%s\n",
-				       upper(ttn->typename),
-				       upper(ttn->attr),
-				       PRINT_COMMA(i));
-			}
-		}
-		fprintf(stdout, "};\n");
-
 		/*
 		 * Spit out a quick and dirty hash function.  Here,
 		 * we walk through the list of type names, and calculate
@@ -707,7 +682,7 @@ main(int argc, char **argv) {
 		fprintf(stdout, "\t\tif (sizeof(_s) - 1 == _n && \\\n"
 				"\t\t    strncasecmp(_s,(_tn),"
 				"(sizeof(_s) - 1)) == 0) { \\\n");
-		fprintf(stdout, "\t\t\tif ((typeattr[_d].flags & "
+		fprintf(stdout, "\t\t\tif ((dns_rdatatype_attributes(_d) & "
 		       		  "DNS_RDATATYPEATTR_RESERVED) != 0) \\\n");
 		fprintf(stdout, "\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n");
 		fprintf(stdout, "\t\t\t*(_tp) = _d; \\\n");
@@ -749,6 +724,29 @@ main(int argc, char **argv) {
 				}
 			}
 			fprintf(stdout, "\t\t\tbreak; \\\n");
+		}
+		fprintf(stdout, "\t}\n");
+
+		fprintf(stdout, "#define RDATATYPE_ATTRIBUTE_SW \\\n");
+		fprintf(stdout, "\tswitch (type) { \\\n");
+		for (i = 0; i <= maxtype; i++) {
+			ttn = find_typename(i);
+			if (ttn == NULL)
+				continue;
+			fprintf(stdout, "\tcase %u: return (%s); \\\n",
+			        i, upper(ttn->attr));
+		}
+		fprintf(stdout, "\t}\n");
+
+		fprintf(stdout, "#define RDATATYPE_TOTEXT_SW \\\n");
+		fprintf(stdout, "\tswitch (type) { \\\n");
+		for (i = 0; i <= maxtype; i++) {
+			ttn = find_typename(i);
+			if (ttn == NULL)
+				continue;
+			fprintf(stdout, "\tcase %u: return "
+				"(str_totext(\"%s\", target)); \\\n",
+			        i, upper(ttn->typename));
 		}
 		fprintf(stdout, "\t}\n");
 

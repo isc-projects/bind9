@@ -242,6 +242,10 @@ SOURCE=..\include\dns\peer.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\portlist.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\rbt.h
 # End Source File
 # Begin Source File
@@ -515,6 +519,10 @@ SOURCE=..\peer.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\portlist.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\rbt.c
 # End Source File
 # Begin Source File
@@ -524,6 +532,10 @@ SOURCE=..\rbtdb.c
 # Begin Source File
 
 SOURCE=..\rbtdb64.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\rcode.c
 # End Source File
 # Begin Source File
 

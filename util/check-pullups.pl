@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.4.2.2.8.2 2004/03/09 05:21:10 marka Exp $
+# $Id: check-pullups.pl,v 1.4.2.2.8.3 2004/03/12 10:31:27 marka Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
@@ -76,8 +76,7 @@ if (@ARGV == 3) {
 
 foreach my $c (sort {$a <=> $b} keys %$c1) {
 	my $category = $c1->{$c}->{category};
-	if (($category eq "bug" || $category eq "port" ||
-	     $category eq "tuning") &&
+	if (($category ne "placeholder") &&
 	    !exists($c2->{$c}) && !exists($c3->{$c})) {
 		print $c1->{$c}->{text};
 	}
