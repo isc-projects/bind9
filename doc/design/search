@@ -111,6 +111,7 @@ Zone Search Algorithm
 				the tree.
 				Continue the search down.
 
+ Partial_Match:
 	If we don't have an exact match to the name
 		If we're below a zone cut, then we need to return a referral.
 			result = DNS_R_DELEGATION;
@@ -162,9 +163,13 @@ Zone Search Algorithm
 	*nodep = current node;
 
 	Search the rdataset list for the desired type.  If cname_ok, also
-	look for a CNAME rdataset.  If type is ANY, then all we care about
-	is if there is *some* active rdataset at this node.  While searching,
-	remember the active NXT rdataset if we come across it.
+	look for a CNAME rdataset.  While searching, remember the active NXT
+	rdataset if we come across it.  We must also determine if there are
+	any active rdatasets at the node.
+
+	If there are no active rdatasets at the node, then we've got an
+	exact name match, but the name doesn't exist in the desired version.
+	This means we really have a partial match.  Goto Partial_Match.
 
 	If we didn't find the type we were looking for (including a failed
 	ANY search)
