@@ -1,4 +1,7 @@
 
+ 642.	[bug]		Break the exit_check() race in the zone module.
+			[RT #598]
+
 	--- 9.1.0b2 released ---
 
  641.	[bug]		$GENERATE caused a uninitialized link to be used.
