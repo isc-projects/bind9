@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.99.2.3 2000/07/26 22:32:23 gson Exp $ */
+/* $Id: confparser.y,v 1.99.2.4 2000/08/22 00:46:22 gson Exp $ */
 
 #include <config.h>
 
@@ -3154,10 +3154,10 @@ address_name: any_string
 			tmpres = dns_c_acltable_getacl(currcfg->acls,
 						       $1, &acl);
 			if (tmpres == ISC_R_NOTFOUND) {
-				parser_warning(ISC_FALSE,
-					       "undefined acl '%s' "
-					       "referenced", $1);
-				elem = NULL;
+				parser_error(ISC_FALSE,
+					     "undefined acl '%s' "
+					     "referenced", $1);
+				YYABORT;
 			} else {
 				tmpres = dns_c_ipmatch_aclnew(currcfg->mem,
 							      &elem, $1);

@@ -1,4 +1,8 @@
 
+ 401.	[bug]		Treat undefined acls as errors, rather than
+			warning and then later throwing an assertion.
+			[RT #252]
+
  400.	[bug]		SIG(0) signing and verifying was done incorrectly.
 			[RT #249]
 
