@@ -1323,13 +1323,13 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 						 */
 						n1 = bitlength - 1 / 8;
 						n2 = tbcount - 1 / 8;
-						if (n1 != n2)
+						if (n1 != n2) {
 						    if (value != 0)
 						       return
 							  (DNS_R_BADBITSTRING);
 						    else
 						       count = 0;
-
+						}
 					} else if (kind == ft_hex) {
 						/*
 						 * Figure out correct number
@@ -2564,7 +2564,8 @@ dns_name_split(dns_name_t *name,
 			len = bitbytes;
 
 			if (mod == 0) {
-				if (name->ndata == prefix->buffer->base &&
+				if ((void *)(name->ndata) ==
+				    prefix->buffer->base &&
 				    len > (unsigned int)(src - dst))
 					memmove(dst, src, len);
 				else
@@ -2721,15 +2722,17 @@ dns_name_split(dns_name_t *name,
 }
 
 dns_result_t
-dns_name_dup(dns_name_t *source, isc_mem_t *mctx, unsigned char *offsets,
-	     dns_name_t *target) {
+dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	REQUIRE(VALID_NAME(source));
 	REQUIRE(source->length > 0);
+	REQUIRE(VALID_NAME(target));
 	REQUIRE((target->attributes & DNS_NAMEATTR_READONLY) == 0);
 
 	/*
 	 * Make 'target' a dynamically allocated copy of 'source'.
 	 */
+
+	target->magic = 0;	/* Invalidate 'target' in case of failure. */
 
 	target->ndata = isc_mem_get(mctx, source->length);
 	if (target->ndata == NULL)
@@ -2743,13 +2746,9 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, unsigned char *offsets,
 	target->attributes = DNS_NAMEATTR_DYNAMIC | DNS_NAMEATTR_READONLY;
 	if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
 		target->attributes |= DNS_NAMEATTR_ABSOLUTE;
-	target->offsets = offsets;
-	if (offsets != NULL)
+	if (target->offsets != NULL)
 		set_offsets(target, target->offsets, ISC_FALSE, ISC_FALSE,
 			    ISC_FALSE);
-	target->buffer = NULL;
-	ISC_LINK_INIT(target, link);
-	ISC_LIST_INIT(target->list);
 
 	return (DNS_R_SUCCESS);
 }

@@ -870,27 +870,17 @@ dns_name_split(dns_name_t *name,
  */
 
 dns_result_t
-dns_name_dup(dns_name_t *source, isc_mem_t *mctx, unsigned char *offsets,
-	     dns_name_t *target);
+dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target);
 /*
  * Make 'target' a dynamically allocated copy of 'source'.
- *
- * Notes:
- *
- *	'target' will be initialized.
- *
- *	'offsets' is never required to be non-NULL, but specifying a
- *	dns_offsets_t for 'offsets' will improve the performance of most
- *	name operations if the name is used more than once.
  *
  * Requires:
  *
  *	'source' is a valid non-empty name.
  *	
+ *	'target' is a valid name that is not read-only.
+ *	
  *	'mctx' is a valid memory context.
- *
- *	offsets == NULL or offsets is a dns_offsets_t.
- *
  */
 
 void
