@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name_test.c,v 1.33.12.3 2004/03/08 21:06:23 marka Exp $ */
+/* $Id: name_test.c,v 1.33.12.4 2004/04/13 03:24:40 marka Exp $ */
 
 #include <config.h>
 
@@ -319,8 +319,7 @@ main(int argc, char *argv[]) {
 				}
 				if (namereln != dns_namereln_none &&
 				    namereln != dns_namereln_equal)
-					printf(", nlabels = %u, nbits = %u",
-					       nlabels, nbits);
+					printf(", nlabels = %u", nlabels);
 				printf("\n");
 			}
 			printf("dns_name_equal() returns %s\n",
