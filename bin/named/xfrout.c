@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.74 2000/08/23 17:40:53 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.75 2000/08/29 19:07:11 gson Exp $ */
 
 #include <config.h>
 
@@ -283,7 +283,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 		
 		isc_log_write(XFROUT_RR_LOGARGS, "%.*s",
 			      (int)isc_buffer_usedlength(&buf),
-			      (char *)isc_buffer_used(&buf));
+			      (char *)isc_buffer_base(&buf));
 	} else {
 		isc_log_write(XFROUT_RR_LOGARGS, "<RR too large to print>");
 	}
