@@ -172,11 +172,7 @@ static const struct explore explore[] = {
 
 #define PTON_MAX	16
 
-#if PACKETSZ > 1024
-#define MAXPACKET	PACKETSZ
-#else
-#define MAXPACKET	1024
-#endif
+#define MAXPACKET	(1024*64)
 
 typedef union {
 	HEADER hdr;

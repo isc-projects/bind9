@@ -17,6 +17,8 @@
 1154.	[bug]		Don't attempt to obtain the netmask of a interface
 			if there is no address configured.  [RT #2176]
 
+1152.	[bug]		libbind: read buffer overflows.
+
 1144.	[bug]		rndc-confgen would crash if both the -a and -t
 			options were specified. [RT #2159]
 

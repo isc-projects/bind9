@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_nw.c,v 1.3 2001/04/03 06:42:21 marka Exp $";
+static const char rcsid[] = "$Id: dns_nw.c,v 1.3.2.1 2002/01/22 04:15:44 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -56,11 +56,7 @@ static const char rcsid[] = "$Id: dns_nw.c,v 1.3 2001/04/03 06:42:21 marka Exp $
 
 #define	MAXALIASES	35
 
-#if PACKETSZ > 1024
-#define	MAXPACKET	PACKETSZ
-#else
-#define	MAXPACKET	1024
-#endif
+#define	MAXPACKET	(64*1024)
 
 struct pvt {
 	struct nwent	net;
