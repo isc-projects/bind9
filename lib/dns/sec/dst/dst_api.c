@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.77 2001/04/04 02:02:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.78 2001/05/04 17:57:33 gson Exp $
  */
 
 #include <config.h>
@@ -1025,7 +1025,7 @@ computeid(dst_key_t *key) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+static isc_result_t
 frombuffer(dns_name_t *name, const unsigned int alg, const unsigned int flags,
 	   const unsigned int protocol, dns_rdataclass_t rdclass,
 	   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
