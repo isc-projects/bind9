@@ -15,16 +15,17 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bindevt.c,v 1.1 2001/07/19 06:11:31 mayer Exp $ */
+/* $Id: bindevt.c,v 1.2 2001/07/19 17:13:54 gson Exp $ */
+
 /*
- *bindevt.c : Defines the entry point for event log viewer DLL.
+ * bindevt.c : Defines the entry point for event log viewer DLL.
  */
 
 #include <windows.h>
 
-BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call,
-		       LPVOID lpReserved)
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call,
+		      LPVOID lpReserved)
 {
-	return TRUE;
+	return (TRUE);
 }
 
