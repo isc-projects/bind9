@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.41 2001/03/19 22:41:22 bwelling Exp $ */
+/* $Id: os.c,v 1.42 2001/04/04 21:45:29 bwelling Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -414,8 +414,10 @@ safe_open(const char *filename, isc_boolean_t append) {
         if (stat(filename, &sb) == -1) {
                 if (errno != ENOENT)
 			return (-1);
-        } else if ((sb.st_mode & S_IFREG) == 0)
+        } else if ((sb.st_mode & S_IFREG) == 0) {
+		errno = EOPNOTSUPP;
 		return (-1);
+	}
 
 	if (append)
 		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND,
