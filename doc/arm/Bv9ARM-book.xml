@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.251 2004/08/12 08:27:24 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.252 2004/08/15 04:48:19 jinmei Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3377,8 +3377,8 @@ or have a different <command>forward only/first</command> behavior,
 or not forward at all, see <xref linkend="zone_statement_grammar"/>.</para>
 </sect3>
 
-<sect3><title>6 to 4 Servers</title>
-<para>6 to 4 servers are used as servers of last resort to work around
+<sect3><title>Dual-stack Servers</title>
+<para>Dual-stack servers are used as servers of last resort to work around
 problems in reachability due the lack of support for either IPv4 or IPv6
 on the host machine.</para>
 
