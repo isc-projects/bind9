@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.13 2000/05/09 22:22:16 tale Exp $
+ * $Id: openssldh_link.c,v 1.14 2000/05/11 22:47:02 gson Exp $
  */
 
 #if defined(OPENSSL)
@@ -255,7 +255,7 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	isc_uint16_t plen, glen, publen;
 	int special = 0;
 
-	mctx = mctx;	/* make the compiler happy */
+	UNUSED(mctx);
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -521,10 +521,11 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id,
 static void
 dst_openssldh_destroy(void *key, isc_mem_t *mctx) {
 	DH *dh = (DH *) key;
+
+	UNUSED(mctx);
+	
 	if (dh == NULL)
 		return;
-
-	mctx = mctx;	/* make the compiler happy */
 
 	if (dh->p == &bn768 || dh->p == &bn1024)
 		dh->p = NULL;
@@ -553,7 +554,7 @@ dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx) {
 	isc_buffer_t dns;
 	isc_region_t r;
 
-	mctx = mctx;		/* make the compiler happy */
+	UNUSED(mctx);
 
 	if (generator == 0) {
 		if (key->key_size == 768 || key->key_size == 1024) {

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.20 2000/05/11 22:47:00 gson Exp $
+ * $Id: openssl_link.c,v 1.21 2000/05/11 22:48:12 gson Exp $
  */
 #if defined(OPENSSL)
 
@@ -516,10 +516,11 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 static void
 dst_openssl_destroy(void *key, isc_mem_t *mctx) {
 	DSA *dsa = (DSA *) key;
+
+	UNUSED(mctx);
+
 	if (dsa == NULL)
 		return;
-
-	mctx = mctx;	/* make the compiler happy */
 
 	DSA_free(dsa);
 }
