@@ -20,11 +20,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/lex.h>
+
 #include <dns/rdata.h>
 #include <dns/compress.h>
 #include <dns/rdataclass.h>
@@ -67,7 +68,7 @@ main(int argc, char *argv[]) {
 	int first = 1;
 	int raw = 0;
 
-	while ((c = getopt(argc, argv, "dqswtarz")) != -1) {
+	while ((c = isc_commandline_parse(argc, argv, "dqswtarz")) != -1) {
 		switch (c) {
 		case 'd':
 			debug = 1;

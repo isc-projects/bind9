@@ -24,9 +24,9 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>	/* XXX Naughty. */
 
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -156,13 +156,13 @@ main(int argc, char *argv[]) {
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	while ((ch = getopt(argc, argv, "vw:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "vw:")) != -1) {
 		switch (ch) {
 		case 'v':
 			verbose = ISC_TRUE;
 			break;
 		case 'w':
-			workers = (unsigned int)atoi(optarg);
+			workers = (unsigned int)atoi(isc_commandline_argument);
 			break;
 		}
 	}
@@ -189,8 +189,8 @@ main(int argc, char *argv[]) {
 
 	RUNTIME_CHECK(dns_tsig_init(mctx) == ISC_R_SUCCESS);
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	if (argc != 0)
 		printf("ignoring trailing arguments\n");

@@ -20,9 +20,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/lex.h>
 
@@ -82,7 +82,7 @@ main(int argc, char *argv[]) {
 	unsigned int options = 0;
 	int done = 0;
 
-	while ((c = getopt(argc, argv, "qmcs")) != -1) {
+	while ((c = isc_commandline_parse(argc, argv, "qmcs")) != -1) {
 		switch (c) {
 		case 'q':
 			quiet = 1;

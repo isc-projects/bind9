@@ -19,9 +19,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <dns/compress.h>
 #include <dns/name.h>
@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
 	isc_region_t region;
 	int c;
 
-	while ((c = getopt(argc, argv, "rv")) != -1) {
+	while ((c = isc_commandline_parse(argc, argv, "rv")) != -1) {
 		switch (c) {
 		case 'r':
 			raw++;

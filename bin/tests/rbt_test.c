@@ -19,8 +19,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
+#include <isc/commandline.h>
 #include <isc/boolean.h>
 
 #include <dns/rbt.h>
@@ -271,7 +271,7 @@ main (int argc, char **argv) {
 	else
 		progname = *argv;
 
-	while ((ch = getopt(argc, argv, "m")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "m")) != -1) {
 		switch (ch) {
 		case 'm':
 			show_final_mem = ISC_TRUE;
@@ -279,8 +279,8 @@ main (int argc, char **argv) {
 		}
 	}
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	if (argc > 1) {
 		printf("Usage: %s [-m]\n", progname);

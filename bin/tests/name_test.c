@@ -21,9 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/boolean.h>
 #include <isc/region.h>
 
@@ -66,7 +66,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t inplace = ISC_FALSE;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "acdiqw")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "acdiqw")) != -1) {
 		switch (ch) {
 		case 'a':
 			check_absolute = ISC_TRUE;
@@ -89,8 +89,8 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	if (argc > 0) {
 		if (strcasecmp("none", argv[0]) == 0)

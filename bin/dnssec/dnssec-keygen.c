@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: dnssec-keygen.c,v 1.2 1999/09/27 17:11:41 bwelling Exp $ */
+ /* $Id: dnssec-keygen.c,v 1.3 1999/10/06 20:07:24 tale Exp $ */
 
 #include <config.h>
 
@@ -23,9 +23,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <isc/boolean.h>
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <dns/keyvalues.h>
@@ -57,8 +57,8 @@ main(int argc, char **argv) {
 	else
 		prog = strdup(++prog);
 
-/* process input arguments */
-	while ((ch = getopt(argc, argv, "achiuzn:s:p:D:H:R:d:Fg:"))!= EOF) {
+	while ((ch = isc_commandline_parse(argc, argv,
+					   "achiuzn:s:p:D:H:R:d:Fg:")) != -1) {
 	    switch (ch) {
 		case 'a':
 			flags |= DNS_KEYTYPE_NOAUTH;
@@ -70,8 +70,9 @@ main(int argc, char **argv) {
 			rsa_exp=1;
 			break;
 		case 'g':
-			if (optarg != NULL && isdigit(optarg[0])) {
-				generator = (int) atoi(optarg);
+			if (isc_commandline_argument != NULL &&
+			    isdigit(isc_commandline_argument[0])) {
+				generator = atoi(isc_commandline_argument);
 				if (generator < 0)
 					die("-g value is not positive");
 			}
@@ -79,8 +80,9 @@ main(int argc, char **argv) {
 				die("-g not followed by a number");
 			break;
 		case 'p':
-			if (optarg != NULL && isdigit(optarg[0]))
-				protocol = atoi(optarg);
+			if (isc_commandline_argument != NULL &&
+			    isdigit(isc_commandline_argument[0]))
+				protocol = atoi(isc_commandline_argument);
 				if (protocol < 0 || protocol > 255)
 					die("-p value is not [0..15]");
 			else
@@ -88,8 +90,9 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			/* Default: not signatory key */
-			if (optarg != NULL && isdigit(optarg[0])) {
-				int sign_val = (int) atoi(optarg);
+			if (isc_commandline_argument != NULL &&
+			    isdigit(isc_commandline_argument[0])) {
+				int sign_val = atoi(isc_commandline_argument);
 				if (sign_val < 0 || sign_val > 15)
 					die("-s value is not [0..15] ");
 				flags |= sign_val;
@@ -115,8 +118,9 @@ main(int argc, char **argv) {
 		case 'H':
 			if (alg > 0) 
 				die("Only one alg can be specified");
-			if (optarg != NULL && isdigit(optarg[0]))
-				size = (int) atoi(optarg);
+			if (isc_commandline_argument != NULL &&
+			    isdigit(isc_commandline_argument[0]))
+				size = atoi(isc_commandline_argument);
 			else
 				die("-H requires a size");
 			alg = DST_ALG_HMACMD5;
@@ -124,8 +128,9 @@ main(int argc, char **argv) {
 		case 'R':
 			if (alg > 0) 
 				die("Only one alg can be specified");
-			if (optarg != NULL && isdigit(optarg[0]))
-				size = (int) atoi(optarg);
+			if (isc_commandline_argument != NULL &&
+			    isdigit(isc_commandline_argument[0]))
+				size = atoi(isc_commandline_argument);
 			else
 				die("-R requires a size");
 			alg = DNS_KEYALG_RSA;
@@ -133,8 +138,9 @@ main(int argc, char **argv) {
 		case 'D':
 			if (alg > 0) 
 				die("Only one alg can be specified");
-			if (optarg != NULL && isdigit(optarg[0]))
-				size = (int) atoi(optarg);
+			if (isc_commandline_argument != NULL &&
+			    isdigit(isc_commandline_argument[0]))
+				size = atoi(isc_commandline_argument);
 			else
 				die("-D requires a size");
 			alg = DNS_KEYALG_DSA;
@@ -142,8 +148,9 @@ main(int argc, char **argv) {
 		case 'd':
 			if (alg > 0) 
 				die("Only one alg can be specified");
-			if (optarg != NULL && isdigit(optarg[0]))
-				size = (int) atoi(optarg);
+			if (isc_commandline_argument != NULL &&
+			    isdigit(isc_commandline_argument[0]))
+				size = atoi(isc_commandline_argument);
 			else
 				die("-d requires a size");
 			alg = DNS_KEYALG_DH;
@@ -154,7 +161,7 @@ main(int argc, char **argv) {
 		} 
 	}
 
-	if (optind == argc)
+	if (isc_commandline_index == argc)
 		usage(prog);
 
 	if (alg < 0)
@@ -197,12 +204,12 @@ main(int argc, char **argv) {
 	else if (size < 0)
 		die("No key size specified");
 
-	name = argv[optind++];
-	if (argc > optind)
-		zonefile = argv[optind];
+	name = argv[isc_commandline_index++];
+	if (argc > isc_commandline_index)
+		zonefile = argv[isc_commandline_index];
 	if (name[strlen(name) - 1] != '.' && alg != DST_ALG_HMACMD5) {
 		name = isc_mem_get(mctx, strlen(name) + 2);
-		sprintf(name, "%s.", argv[optind - 1]);
+		sprintf(name, "%s.", argv[isc_commandline_index - 1]);
 		printf("** Added a trailing dot to the name to make it"
 			" fully qualified **\n");
 	}

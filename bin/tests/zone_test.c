@@ -18,8 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/app.h>
@@ -213,10 +213,10 @@ main(int argc, char **argv) {
 	char *filename = NULL;
 	char *classname = "IN";
 
-	while ((c = getopt(argc, argv, "cdf:m:qsMS")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "cdf:m:qsMS")) != EOF) {
 		switch (c) {
 		case 'c':
-			classname = optarg;
+			classname = isc_commandline_argument;
 			break;
 		case 'd':
 			debug++;
@@ -224,12 +224,13 @@ main(int argc, char **argv) {
 		case 'f':
 			if (filename != NULL)
 				usage();
-			filename = optarg;
+			filename = isc_commandline_argument;
 			break;
 		case 'm':
 			memset(&addr, 0, sizeof addr);
 			addr.type.sin.sin_family = AF_INET;
-			inet_pton(AF_INET, optarg, &addr.type.sin.sin_addr);
+			inet_pton(AF_INET, isc_commandline_argument,
+				  &addr.type.sin.sin_addr);
 			addr.type.sin.sin_port = htons(53);
 			break;
 		case 'q':
@@ -249,7 +250,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	if (argv[optind] == NULL)
+	if (argv[isc_commandline_index] == NULL)
 		usage();
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
@@ -258,8 +259,8 @@ main(int argc, char **argv) {
 		      ISC_R_SUCCESS);
 
 	if (filename == NULL)
-		filename = argv[optind];
-	setup(argv[optind], filename, classname);
+		filename = argv[isc_commandline_index];
+	setup(argv[isc_commandline_index], filename, classname);
 	query();
 	destroy();
 	isc_taskmgr_destroy(&manager);

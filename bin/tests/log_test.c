@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.2 1999/09/23 23:56:35 halley Exp $ */
+/* $Id: log_test.c,v 1.3 1999/10/06 20:07:24 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <unistd.h>			/* XXX Naughty. */
+#include <isc/commandline.h>
 #include <isc/mem.h>
 #include <isc/log.h>
 #include <isc/result.h>
@@ -67,16 +67,16 @@ main (int argc, char **argv) {
 	syslog_file = SYSLOG_FILE;
 	file_versions = FILE_VERSIONS;
 
-	while ((ch = getopt(argc, argv, "ms:r:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "ms:r:")) != -1) {
 		switch (ch) {
 		case 'm':
 			show_final_mem = ISC_TRUE;
 			break;
 		case 's':
-			syslog_file = optarg;
+			syslog_file = isc_commandline_argument;
 			break;
 		case 'r':
-			file_versions = atoi(optarg);
+			file_versions = atoi(isc_commandline_argument);
 			if (file_versions < 0 &&
 			    file_versions != ISC_LOG_ROLLNEVER &&
 			    file_versions != ISC_LOG_ROLLINFINITE) {
@@ -93,8 +93,8 @@ main (int argc, char **argv) {
 		}
 	}
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	fprintf(stderr, "==> stderr begin\n");
 	isc_log_opensyslog(progname, LOG_PID, LOG_DAEMON);

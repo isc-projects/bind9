@@ -20,9 +20,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/result.h>
 #include <isc/symtab.h>
@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
 	isc_symexists_t exists_policy = isc_symexists_reject;
 	isc_boolean_t case_sensitive = ISC_FALSE;
 
-	while ((c = getopt(argc, argv, "tarc")) != -1) {
+	while ((c = isc_commandline_parse(argc, argv, "tarc")) != -1) {
 		switch (c) {
 		case 't':
 			trace = 1;

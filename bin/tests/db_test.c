@@ -26,9 +26,9 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>	/* XXX Naughty. */
-#include <unistd.h>	/* XXX Naughty. */
 
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/region.h>
@@ -389,17 +389,18 @@ main(int argc, char *argv[]) {
 		      DNS_R_SUCCESS);
 
 	strcpy(dbtype, "rbt");
-	while ((ch = getopt(argc, argv, "c:d:t:z:P:Q:gpqvT")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:gpqvT"))
+	       != -1) {
 		switch (ch) {
 		case 'c':
-			result = load(optarg, ".", ISC_TRUE);
+			result = load(isc_commandline_argument, ".", ISC_TRUE);
 			if (result != DNS_R_SUCCESS)
 				printf("cache load(%s) %08x: %s\n",
-				       optarg, result,
+				       isc_commandline_argument, result,
 				       isc_result_totext(result));
 			break;
 		case 'd':
-			strcpy(dbtype, optarg);
+			strcpy(dbtype, isc_commandline_argument);
 			break;
 		case 'g':
 			options |= (DNS_DBFIND_GLUEOK|DNS_DBFIND_VALIDATEGLUE);
@@ -412,14 +413,14 @@ main(int argc, char *argv[]) {
 			printnode = ISC_TRUE;
 			break;
 		case 'P':
-			pause_every = atoi(optarg);
+			pause_every = atoi(isc_commandline_argument);
 			break;
 		case 'Q':
-			memory_quota = atoi(optarg);
+			memory_quota = atoi(isc_commandline_argument);
 			isc_mem_setquota(mctx, memory_quota);
 			break;
 		case 't':
-			type = atoi(optarg);
+			type = atoi(isc_commandline_argument);
 			break;
 		case 'T':
 			time_lookups = ISC_TRUE;
@@ -428,22 +429,23 @@ main(int argc, char *argv[]) {
 			verbose = ISC_TRUE;
 			break;
 		case 'z':
-			origintext = strrchr(optarg, '/');
+			origintext = strrchr(isc_commandline_argument, '/');
 			if (origintext == NULL)
-				origintext = optarg;
+				origintext = isc_commandline_argument;
 			else
 				origintext++;	/* Skip '/'. */
-			result = load(optarg, origintext, ISC_FALSE);
+			result = load(isc_commandline_argument, origintext,
+				      ISC_FALSE);
 			if (result != DNS_R_SUCCESS)
 				printf("zone load(%s) %08x: %s\n",
-				       optarg, result,
+				       isc_commandline_argument, result,
 				       isc_result_totext(result));
 			break;
 		}
 	}
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	if (argc != 0)
 		printf("ignoring trailing arguments\n");

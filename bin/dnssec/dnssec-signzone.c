@@ -20,10 +20,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> /* for getopt */
 
 #include <isc/types.h>
 #include <isc/assertions.h>
+#include <isc/commandline.h>
 #include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/error.h>
@@ -760,50 +760,52 @@ main(int argc, char *argv[]) {
 	signer_key_t *key;
 	isc_result_t result;
 
-	extern char *optarg;
-	extern int optind;
-
 	dns_result_register();
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
-	while ((ch = getopt(argc, argv, "s:e:c:v:o:f:h")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:h"))
+	       != -1) {
 		switch (ch) {
 		case 's':
-			startstr = isc_mem_strdup(mctx, optarg);
+			startstr = isc_mem_strdup(mctx,
+						  isc_commandline_argument);
 			if (startstr == NULL)
 				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
 			break;
 
 		case 'e':
-			endstr = isc_mem_strdup(mctx, optarg);
+			endstr = isc_mem_strdup(mctx,
+						isc_commandline_argument);
 			if (endstr == NULL)
 				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
 			break;
 
 		case 'c':
 			endp = NULL;
-			cycle = strtol(optarg, &endp, 0);
+			cycle = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				check_result(ISC_R_FAILURE, "strtol()");
 			break;
 
 		case 'v':
 			endp = NULL;
-			verbose = strtol(optarg, &endp, 0);
+			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				check_result(ISC_R_FAILURE, "strtol()");
 			break;
 
 		case 'o':
-			origin = isc_mem_strdup(mctx, optarg);
+			origin = isc_mem_strdup(mctx,
+						isc_commandline_argument);
 			if (origin == NULL)
 				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
 			break;
 
 		case 'f':
-			output = isc_mem_strdup(mctx, optarg);
+			output = isc_mem_strdup(mctx,
+						isc_commandline_argument);
 			if (output == NULL)
 				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
 			break;
@@ -835,8 +837,8 @@ main(int argc, char *argv[]) {
 		cycle = (end - start) / 4;
 	}
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	if (argc < 1)
 		check_result(ISC_R_FAILURE, "No zones specified");
