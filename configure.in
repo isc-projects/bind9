@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.93 $)
+AC_REVISION($Revision: 1.94 $)
 
 AC_PREREQ(2.13)
 
@@ -176,11 +176,16 @@ AC_CHECK_LIB(pthread, pthread_create,,
              AC_CHECK_LIB(pthread, __pthread_create_system)
 )
 
-
-dnl For FreeBSD which has no libpthread but instead libc_r
-if test "$ac_cv_lib_pthread" != "yes"; then
-	AC_CHECK_LIB(c_r, pthread_create)
-fi
+dnl
+dnl Additional OS-specific searching for pthreads
+dnl
+case "$host" in
+	*-freebsd*)
+		if test "$ac_cv_lib_pthread" != "yes"; then
+			AC_CHECK_LIB(c_r, pthread_create)
+		fi
+		;;
+esac
 
 
 dnl
@@ -250,6 +255,9 @@ if test "X$GCC" = "Xyes"; then
 		*-freebsd*)
 			CC="$CC -pthread"
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-openbsd*)
+			CC="$CC -pthread"
 			;;
 		*-sun-solaris*)
 			LIBS="$LIBS -lthread"
