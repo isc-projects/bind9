@@ -116,6 +116,7 @@ typedef struct rdatasetheader {
 typedef struct {
 	isc_mutex_t			lock;
 	unsigned int			references;
+	isc_boolean_t			exiting;
 } rbtdb_nodelock_t;
 
 typedef struct rbtdb_changed {
@@ -335,7 +336,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 }
 
 static inline void
-maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
+maybe_free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t set_exiting) {
 	isc_boolean_t want_free = ISC_TRUE;
 	unsigned int i;
 	
@@ -347,6 +348,8 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 	 */
 	for (i = 0; i < rbtdb->node_lock_count; i++) {
 		LOCK(&rbtdb->node_locks[i].lock);
+		if (set_exiting)
+			rbtdb->node_locks[i].exiting = ISC_TRUE;
 		if (rbtdb->node_locks[i].references != 0)
 			want_free = ISC_FALSE;
 		UNLOCK(&rbtdb->node_locks[i].lock);
@@ -371,7 +374,7 @@ detach(dns_db_t **dbp) {
 	UNLOCK(&rbtdb->lock);
 
 	if (maybe_free)
-		maybe_free_rbtdb(rbtdb);
+		maybe_free_rbtdb(rbtdb, ISC_TRUE);
 
 	*dbp = NULL;
 }
@@ -2639,6 +2642,7 @@ static void
 detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node;
+	isc_boolean_t maybe_free = ISC_FALSE;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
@@ -2649,12 +2653,19 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 
 	INSIST(node->references > 0);
 	node->references--;
-	if (node->references == 0)
+	if (node->references == 0) {
 		no_references(rbtdb, node, 0);
+		if (rbtdb->node_locks[node->locknum].references == 0 &&
+		    rbtdb->node_locks[node->locknum].exiting)
+			maybe_free = ISC_TRUE;
+	}
 
 	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
 	*targetp = NULL;
+
+	if (maybe_free)
+		maybe_free_rbtdb(rbtdb, ISC_FALSE);
 }
 
 static isc_result_t
@@ -3821,6 +3832,7 @@ dns_rbtdb_create
 			return (DNS_R_UNEXPECTED);
 		}
 		rbtdb->node_locks[i].references = 0;
+		rbtdb->node_locks[i].exiting = ISC_FALSE;
 	}
 
 	/*
