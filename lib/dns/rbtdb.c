@@ -25,6 +25,8 @@
 
 #include <dns/name.h>
 #include <dns/rbt.h>
+#include <dns/master.h>
+#include <dns/rdataslab.h>
 
 #include "rbtdb.h"
 
@@ -36,7 +38,19 @@
 					 (rbtdb)->common.impmagic == \
 						RBTDB_MAGIC)
 
-#define DEFAULT_NODE_LOCK_COUNT		7
+typedef struct rdatasetheader {
+	dns_ttl_t			ttl;
+	dns_rdatatype_t			type;
+	/*
+	 * We don't use the LIST macros, because the LIST structure has
+	 * both head and tail pointers.  We only have a head pointer in
+	 * the node to save space.
+	 */
+	struct rdatasetheader		*prev;
+	struct rdatasetheader		*next;
+} rdatasetheader_t;
+
+#define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
 
 typedef struct {
 	isc_mutex_t			lock;
@@ -46,7 +60,6 @@ typedef struct {
 typedef struct {
 	/* Unlocked */
 	dns_db_t			common;
-	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	isc_rwlock_t			tree_lock;
 	unsigned int			node_lock_count;
@@ -75,18 +88,22 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 static void
 free_rbtdb(dns_rbtdb_t *rbtdb) {
 	unsigned int i;
+	isc_region_t r;
 
+	dns_name_toregion(&rbtdb->common.base, &r);
+	if (r.base != NULL)
+		isc_mem_put(rbtdb->common.mctx, r.base, r.length);
 	if (rbtdb->tree != NULL)
 		dns_rbt_destroy(&rbtdb->tree);
 	for (i = 0; i < rbtdb->node_lock_count; i++)
 		isc_mutex_destroy(&rbtdb->node_locks[i].lock);
-	isc_mem_put(rbtdb->mctx, rbtdb->node_locks,
+	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof (node_lock));
 	isc_rwlock_destroy(&rbtdb->tree_lock);
 	isc_mutex_destroy(&rbtdb->lock);
 	rbtdb->common.magic = 0;
 	rbtdb->common.impmagic = 0;
-	isc_mem_put(rbtdb->mctx, rbtdb, sizeof *rbtdb);
+	isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 }
 
 static void
@@ -183,6 +200,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(dns_name_issubdomain(name, &rbtdb->common.base));
 
 	dns_name_init(&foundname, NULL);
 	RWLOCK(&rbtdb->tree_lock, locktype);
@@ -283,13 +301,26 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static dns_result_t
 addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	    dns_rdataset_t *rdataset, dns_addmode_t mode) {
-	db = NULL;
-	node = NULL;
-	version = NULL;
-	rdataset = NULL;
-	mode = dns_addmode_replace;
-	return (DNS_R_NOTIMPLEMENTED);
+	    dns_rdataset_t *rdataset, dns_addmode_t mode)
+{
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	isc_region_t region;
+	rdatasetheader_t *header;
+	dns_result_t result;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
+					    &region,
+					    sizeof (rdatasetheader_t));
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	header = (rdatasetheader_t *)region.base;
+	header->ttl = rdataset->ttl;
+	header->type = rdataset->type;
+	/* XXX Lock node, add to list */
+
+	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
@@ -302,10 +333,41 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
+static dns_result_t
+add_rdataset_callback(dns_name_t *name, dns_rdataset_t *rdataset,
+		      void *private)
+{
+	dns_rbtdb_t *rbtdb = private;
+	dns_dbnode_t *node = NULL;
+	dns_result_t result;
+
+	result = findnode((dns_db_t *)rbtdb, name, ISC_TRUE, &node);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = addrdataset((dns_db_t *)rbtdb, node, NULL, rdataset,
+			     dns_addmode_merge);
+	detachnode((dns_db_t *)rbtdb, &node);
+	return (result);
+}
+
+static dns_result_t
+load(dns_db_t *db, char *filename) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	unsigned int soacount, nscount;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	return (dns_load_master(filename, &rbtdb->common.base,
+				&rbtdb->common.base, rbtdb->common.class,
+				&soacount, &nscount, add_rdataset_callback,
+				rbtdb, rbtdb->common.mctx));
+}
+
 static dns_dbmethods_t methods = {
 	attach,
 	detach,
 	shutdown,
+	load,
 	currentversion,
 	newversion,
 	closeversion,
@@ -318,7 +380,7 @@ static dns_dbmethods_t methods = {
 };
 
 dns_result_t
-dns_rbtdb_create(isc_mem_t *mctx, isc_boolean_t cache,
+dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 		 dns_rdataclass_t class, unsigned int argc, char *argv[],
 		 dns_db_t **dbp)
 {
@@ -326,6 +388,7 @@ dns_rbtdb_create(isc_mem_t *mctx, isc_boolean_t cache,
 	isc_result_t iresult;
 	dns_result_t dresult;
 	int i;
+	isc_region_t r1, r2;
 
 	rbtdb = isc_mem_get(mctx, sizeof *rbtdb);
 	if (rbtdb == NULL)
@@ -334,11 +397,11 @@ dns_rbtdb_create(isc_mem_t *mctx, isc_boolean_t cache,
 	rbtdb->common.methods = &methods;
 	rbtdb->common.cache = cache;
 	rbtdb->common.class = class;
-	rbtdb->mctx = mctx;
+	rbtdb->common.mctx = mctx;
 
 	iresult = isc_mutex_init(&rbtdb->lock);
 	if (iresult != ISC_R_SUCCESS) {
-		isc_mem_put(rbtdb->mctx, rbtdb, sizeof *rbtdb);
+		isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
 				 isc_result_totext(iresult));
@@ -348,7 +411,7 @@ dns_rbtdb_create(isc_mem_t *mctx, isc_boolean_t cache,
 	iresult = isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
 	if (iresult != ISC_R_SUCCESS) {
 		isc_mutex_destroy(&rbtdb->lock);
-		isc_mem_put(rbtdb->mctx, rbtdb, sizeof *rbtdb);
+		isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(iresult));
@@ -372,7 +435,7 @@ dns_rbtdb_create(isc_mem_t *mctx, isc_boolean_t cache,
 				    sizeof (node_lock));
 			isc_rwlock_destroy(&rbtdb->tree_lock);
 			isc_mutex_destroy(&rbtdb->lock);
-			isc_mem_put(rbtdb->mctx, rbtdb, sizeof *rbtdb);
+			isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_mutex_init() failed: %s",
 					 isc_result_totext(iresult));
@@ -381,6 +444,23 @@ dns_rbtdb_create(isc_mem_t *mctx, isc_boolean_t cache,
 		rbtdb->node_locks[i].references = 0;
 	}
 
+	/*
+	 * Make a copy of the base name.
+	 */
+	dns_name_init(&rbtdb->common.base, NULL);
+	dns_name_toregion(base, &r1);
+	r2.base = isc_mem_get(mctx, r1.length);
+	if (r2.base == NULL) {
+		free_rbtdb(rbtdb);
+		return (DNS_R_NOMEMORY);
+	}
+	r2.length = r1.length;
+	memcpy(r2.base, r1.base, r1.length);
+	dns_name_fromregion(&rbtdb->common.base, &r2);
+
+	/*
+	 * Make the Red-Black Tree.
+	 */
 	dresult = dns_rbt_create(mctx, &rbtdb->tree);
 	if (dresult != DNS_R_SUCCESS) {
 		free_rbtdb(rbtdb);
