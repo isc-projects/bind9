@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.121 2001/06/04 19:33:16 tale Exp $ */
+/* $Id: xfrin.c,v 1.122 2001/06/05 23:43:15 marka Exp $ */
 
 #include <config.h>
 
@@ -528,6 +528,13 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 		break;
 
 	case XFRST_AXFR:
+		/*
+		 * Old BIND's sent cross class A records for non IN classes.
+		 */
+		if (rdata->type == dns_rdatatype_a &&
+		    rdata->rdclass != xfr->rdclass &&
+		    xfr->rdclass != dns_rdataclass_in)
+			break;
 		CHECK(axfr_putdata(xfr, DNS_DIFFOP_ADD, name, ttl, rdata));
 		if (rdata->type == dns_rdatatype_soa) {
 			CHECK(axfr_commit(xfr));

@@ -1,3 +1,4 @@
+ 860.	[func]		Drop cross class glue in zone transfers.
 
  859.	[bug]		Cache cleaning now won't swamp the CPU if there
 			is a persistent overlimit condition.
