@@ -76,6 +76,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 	}
 
 	view->cachedb = NULL;
+	view->hints = NULL;
 	view->resolver = NULL;
 	view->mctx = mctx;
 	view->rdclass = rdclass;
@@ -126,6 +127,8 @@ destroy(dns_view_t *view) {
 
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
+	if (view->hints != NULL)
+		dns_db_detach(&view->hints);
 	if (view->cachedb != NULL)
 		dns_db_detach(&view->cachedb);
 	dns_dbtable_detach(&view->dbtable);
@@ -162,18 +165,21 @@ dns_view_detach(dns_view_t **viewp) {
 		destroy(view);
 }
 
-void
-dns_view_setresolver(dns_view_t *view, dns_resolver_t *resolver) {
-
+isc_result_t
+dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
+			unsigned int ntasks, isc_timermgr_t *timermgr,
+			dns_dispatch_t *dispatch)
+{
 	/*
-	 * Set the view's resolver.
+	 * Create a resolver for the view.
 	 */
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 	
-	view->resolver = resolver;
+	return (dns_resolver_create(view, taskmgr, ntasks, timermgr, dispatch,
+				    &view->resolver));
 }
 
 void
@@ -194,6 +200,21 @@ dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb) {
 	REQUIRE(dns_db_iscache(cachedb));
 
 	dns_db_attach(cachedb, &view->cachedb);
+}
+
+void
+dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
+
+	/*
+	 * Set the view's hints database.
+	 */
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!view->frozen);
+	REQUIRE(view->hints == NULL);
+	REQUIRE(dns_db_iszone(hints));
+
+	dns_db_attach(hints, &view->hints);
 }
 
 isc_result_t
@@ -233,7 +254,7 @@ dns_view_freeze(dns_view_t *view) {
 
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options,
+	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
@@ -338,10 +359,27 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		 * Otherwise, the glue is the best answer.
 		 */
 		result = ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS)
-		result = DNS_R_NOTFOUND;
+	}
+
+	if (result == DNS_R_NOTFOUND && use_hints && view->hints != NULL) {
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		if (sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+		dns_fixedname_init(&foundname);
+		result = dns_db_find(view->hints, name, NULL, type, options,
+				     now, NULL, dns_fixedname_name(&foundname),
+				     rdataset, sigrdataset);
+		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE)
+			result = DNS_R_HINT;
+	}
 
  cleanup:
+	if (result != ISC_R_SUCCESS &&
+	    result != DNS_R_GLUE &&
+	    result != DNS_R_HINT)
+		result = DNS_R_NOTFOUND;
+
 	if (zrdataset.methods != NULL) {
 		dns_rdataset_disassociate(&zrdataset);
 		if (zsigrdataset.methods != NULL)

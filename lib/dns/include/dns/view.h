@@ -79,6 +79,7 @@ struct dns_view {
 	dns_dbtable_t *			dbtable;
 	dns_resolver_t *		resolver;
 	dns_db_t *			cachedb;
+	dns_db_t *			hints;
 	isc_mutex_t			lock;
 	isc_boolean_t			frozen;
 	/* Locked by lock. */
@@ -154,21 +155,27 @@ dns_view_detach(dns_view_t **viewp);
  *		All resources used by the view will be freed.
  */
 
-void
-dns_view_setresolver(dns_view_t *view, dns_resolver_t *resolver);
+isc_result_t
+dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
+			unsigned int ntasks, isc_timermgr_t *timermgr,
+			dns_dispatch_t *dispatch);
 /*
- * Set the view's resolver.
+ * Create a resolver for the view.
  *
  * Requires:
  *
- *	'view' is a valid, unfrozen view, whose resolver has not been
- *	set.
+ *	'view' is a valid, unfrozen view.
  *
- *	'resolver' is a valid resolver whose view is 'view'.
+ *	'view' does not have a resolver already.
  *
- * Ensures:
+ *	The requirements of dns_resolver_create() apply to 'taskmgr',
+ *	'ntasks', 'timermgr', and 'dispatch'.
  *
- *     	The resolver of 'view' is 'resolver'.
+ * Returns:
+ *
+ *     	ISC_R_SUCCESS
+ *
+ *	Any error that dns_resolver_create() can return.
  */
 
 void
@@ -193,6 +200,23 @@ dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb);
  *     	The cache database of 'view' is 'cachedb'.
  */
 
+void
+dns_view_sethints(dns_view_t *view, dns_db_t *hints);
+/*
+ * Set the view's hints database.
+ *
+ * Requires:
+ *
+ *	'view' is a valid, unfrozen view, whose hints database has not been
+ *	set.
+ *
+ *	'hints' is a valid zone database.
+ *
+ * Ensures:
+ *
+ *     	The hints database of 'view' is 'hints'.
+ */
+
 isc_result_t
 dns_view_addzonedb(dns_view_t *view, dns_db_t *db);
 /*
@@ -200,8 +224,11 @@ dns_view_addzonedb(dns_view_t *view, dns_db_t *db);
  *
  * Note:
  *
- *	WARNING!  THIS ROUTINE WILL BE REPLACED WITH dns_view_addzone()
- *	WHEN WE HAVE INTEGRATED ZONE OBJECT SUPPORT INTO THE LIBRARY.
+ *	WARNING!  THIS ROUTINE WILL PROBABLY GO AWAY.
+ * 
+ *      Adding/removing zones from a view is not so traumatic as
+ *      adding/removing the cache or changing the resolver, so we
+ *	probably don't need to "freeze" the zone table.
  *
  * Requires:
  *
@@ -211,8 +238,7 @@ dns_view_addzonedb(dns_view_t *view, dns_db_t *db);
  *
  * Ensures:
  *
- *     	The cache database of 'view' is 'cachedb'.
- */
+ * The cache database of 'view' is 'cachedb'.  */
 
 void
 dns_view_freeze(dns_view_t *view);
@@ -230,7 +256,7 @@ dns_view_freeze(dns_view_t *view);
 
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options,
+	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*
  * Find an rdataset whose owner name is 'name', and whose type is
@@ -239,13 +265,18 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  * Notes:
  *
  *	This routine is appropriate for simple, exact-match queries of the
- *	view.
+ *	view.  'name' must be a canonical name; there is no DNAME or CNAME
+ *	processing.
  *
  *	See the description of dns_db_find() for information about 'options'.
  *	If the caller sets DNS_DBFIND_GLUEOK, it must ensure that 'name'
  *	and 'type' are appropriate for glue retrieval.
  *
  *	If 'now' is zero, then the current time will be used.
+ *
+ *	If 'use_hints' is ISC_TRUE, and the view has a hints database, then
+ *	it will be searched last.  If the answer is found in the hints
+ *	database, the result code will be DNS_R_HINT.
  *
  *	If 'sigrdataset' is not NULL, and there is a SIG rdataset which
  *	covers 'type', then 'sigrdataset' will be bound to it.
@@ -272,9 +303,9 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  *	ISC_R_SUCCESS				Success.
  *	DNS_R_GLUE				Success; result is glue.
- *	ISC_R_NOTFOUND				Not matching data found.
- *
- *	Other results are possible, and indicate an error.
+ *	DNS_R_HINT				Success; result is a hint.
+ *	ISC_R_NOTFOUND				No matching data found,
+ *						or an error occurred.
  */
 
 ISC_LANG_ENDDECLS
