@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.142 2000/06/23 19:58:38 explorer Exp $ */
+/* $Id: socket.c,v 1.143 2000/06/26 17:48:26 explorer Exp $ */
 
 #include <config.h>
 
@@ -763,8 +763,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-		ALWAYS_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-		ALWAYS_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 
 #undef SOFT_OR_HARD
@@ -883,8 +883,8 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-		ALWAYS_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-		ALWAYS_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 		ALWAYS_HARD(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
 
@@ -1151,6 +1151,16 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (ISC_R_UNEXPECTED);
 	}
 
+#ifdef SO_BSDCOMPAT
+	if (setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
+		       (void *)&on, sizeof on) < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d, SO_BSDCOMPAT) failed",
+				 sock->fd);
+		/* Press on... */
+	}
+#endif
+
 #if defined(USE_CMSG)
 	if (type == isc_sockettype_udp) {
 
@@ -1158,7 +1168,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
 			       (void *)&on, sizeof on) < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "setsockopt(%d) failed", sock->fd);
+					 "setsockopt(%d, SO_TIMESTAMP) failed",
+					 sock->fd);
 			/* Press on... */
 		}
 #endif /* SO_TIMESTAMP */
@@ -1168,7 +1179,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
 				   (void *)&on, sizeof (on)) < 0)) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "setsockopt(%d) failed: %s",
+					 "setsockopt(%d, IPV6_PKTINFO) failed: %s",
 					 sock->fd, strerror(errno));
 		}
 
