@@ -1,4 +1,10 @@
 
+ 896.	[bug]		If a configuration file is set on named's command line
+			and it has a relative pathname, the current directory
+			(after any possible jailing resulting from named -t)
+			will be prepended to it so that reloading works
+			properly even when a directory option is present.
+
  895.	[func]		New function, isc_dir_current(), akin to POSIX's
 			getcwd().
 

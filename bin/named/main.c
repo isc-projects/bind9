@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.112 2001/05/31 10:37:08 tale Exp $ */
+/* $Id: main.c,v 1.113 2001/06/08 23:52:21 tale Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 
 #include <isc/app.h>
 #include <isc/commandline.h>
+#include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/os.h>
@@ -63,7 +64,8 @@
 /* #include "xxdb.h" */
 
 static isc_boolean_t	want_stats = ISC_FALSE;
-static char		program_name[256] = "named";
+static char		program_name[ISC_DIR_NAMEMAX] = "named";
+static char		absolute_conffile[ISC_DIR_PATHMAX];
 static char    		saved_command_line[512];
 
 void
@@ -356,6 +358,8 @@ parse_command_line(int argc, char *argv[]) {
 		usage();
 		ns_main_earlyfatal("extra command line arguments");
 	}
+
+	
 }
 
 static isc_result_t
@@ -472,6 +476,28 @@ setup(void) {
 				    &ns_g_initcoresize);
 	(void)isc_resource_getlimit(isc_resource_openfiles,
 				    &ns_g_initopenfiles);
+
+	/*
+	 * If the named configuration filename is relative, prepend the current
+	 * directory's name before possibly changing to another directory.
+	 */
+	if (! isc_file_isabsolute(ns_g_conffile)) {
+		result = isc_dir_current(absolute_conffile,
+					 sizeof(absolute_conffile), ISC_TRUE);
+		if (result != ISC_R_SUCCESS)
+			ns_main_earlyfatal("getting current directory failed: "
+					   "%s", isc_result_totext(result));
+
+		if (strlen(absolute_conffile) + strlen(ns_g_conffile) + 1 >
+		    sizeof(absolute_conffile))
+			ns_main_earlyfatal("configuration filename too long: "
+					   "%s%s", absolute_conffile,
+					   ns_g_conffile);
+
+		strcat(absolute_conffile, ns_g_conffile);
+
+		ns_g_conffile = absolute_conffile;
+	}
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)
