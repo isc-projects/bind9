@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.29 2000/08/01 01:25:22 tale Exp $ */
+/* $Id: key_25.c,v 1.30 2000/08/10 01:59:39 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -206,13 +206,13 @@ tostruct_key(ARGS_TOSTRUCT) {
 	/* Protocol */
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
-	key->flags = uint8_fromregion(&sr);
+	key->protocol = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Algorithm */
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
-	key->flags = uint8_fromregion(&sr);
+	key->algorithm = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Data */
