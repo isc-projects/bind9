@@ -134,13 +134,12 @@ struct fetchctx {
 	dns_name_t			name;
 	dns_rdatatype_t			type;
 	unsigned int			options;
-	isc_task_t *			task;			/* XXX??? */
 	unsigned int			bucketnum;
 	/* Locked by appropriate bucket lock. */
 	fetchstate			state;
 	isc_boolean_t			want_shutdown;
 	unsigned int			references;
-	isc_event_t			control_event;		/* locked? */
+	isc_event_t			control_event;
 	ISC_LINK(struct fetchctx)	link;
 	ISC_LIST(dns_fetchevent_t)	events;
 	/* Locked by task event serialization. */
@@ -3454,9 +3453,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			if (!dns_name_issubdomain(fname, &fctx->domain)) {
 				/*
 				 * The best nameservers are now above our
-				 * previous QDOMAIN.
-				 *
-				 * XXXRTH  What should we do here?
+				 * QDOMAIN.
 				 */
 				FCTXTRACE("nameservers now above QDOMAIN");
 				fctx_done(fctx, DNS_R_SERVFAIL);
