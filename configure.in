@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.26 $)
+AC_REVISION($Revision: 1.27 $)
 
 AC_PREREQ(2.12)
 
@@ -105,9 +105,10 @@ case "$host" in
 			;;
 		no+yes)
 			AC_MSG_RESULT(PTL2)
-			pkg="/usr/pkg/PTL"
-			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
-			STD_CINCLUDES="-nostdinc -idirafter $pkg/include"
+dnl			pkg="/usr/pkg/PTL"
+dnl			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
+dnl			STD_CINCLUDES="-nostdinc -idirafter $pkg/include"
+			CC=ptlgcc
 			;;
 		*)
 			AC_MSG_ERROR([no thread library.
