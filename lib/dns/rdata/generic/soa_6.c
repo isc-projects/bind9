@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.55 2001/11/27 01:55:42 gson Exp $ */
+/* $Id: soa_6.c,v 1.56 2002/01/05 07:05:19 ogud Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -255,7 +255,7 @@ compare_soa(ARGS_COMPARE) {
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
 
-	return (compare_region(&region1, &region2));
+	return (isc_region_compare(&region1, &region2));
 }
 
 static inline isc_result_t

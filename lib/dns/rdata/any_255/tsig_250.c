@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.53 2001/11/27 01:55:32 gson Exp $ */
+/* $Id: tsig_250.c,v 1.54 2002/01/05 07:05:06 ogud Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -350,7 +350,7 @@ compare_any_tsig(ARGS_COMPARE) {
 		return (order);
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

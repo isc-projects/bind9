@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.156 2001/11/30 01:02:09 gson Exp $ */
+/* $Id: rdata.c,v 1.157 2002/01/05 07:05:05 ogud Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -151,9 +151,6 @@ uint8_fromregion(isc_region_t *region);
 
 static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
-
-static int
-compare_region(isc_region_t *r1, isc_region_t *r2);
 
 static int
 hexvalue(char value);
@@ -449,7 +446,7 @@ dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2) {
 
 		dns_rdata_toregion(rdata1, &r1);
 		dns_rdata_toregion(rdata2, &r2);
-		result = compare_region(&r1, &r2);
+		result = isc_region_compare(&r1, &r2);
 	}
 	return (result);
 }
@@ -1623,20 +1620,6 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	memcpy(tr.base, base, length);
 	isc_buffer_add(target, length);
 	return (ISC_R_SUCCESS);
-}
-
-static int
-compare_region(isc_region_t *r1, isc_region_t *r2) {
-	unsigned int l;
-	int result;
-
-	l = (r1->length < r2->length) ? r1->length : r2->length;
-
-	if ((result = memcmp(r1->base, r2->base, l)) != 0)
-		return ((result < 0) ? -1 : 1);
-	else
-		return ((r1->length == r2->length) ? 0 :
-			(r1->length < r2->length) ? -1 : 1);
 }
 
 static int

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.36 2001/01/09 21:55:56 bwelling Exp $ */
+/* $Id: buffer.c,v 1.37 2002/01/05 07:05:02 ogud Exp $ */
 
 #include <config.h>
 
@@ -365,6 +365,23 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	b->used += r->length;
 
 	return (ISC_R_SUCCESS);
+}
+
+int
+isc_region_compare(isc_region_t *r1, isc_region_t *r2) {
+	unsigned int l;
+	int result;
+
+	REQUIRE(r1 != NULL);
+	REQUIRE(r2 != NULL);
+	       
+	l = (r1->length < r2->length) ? r1->length : r2->length;
+
+	if ((result = memcmp(r1->base, r2->base, l)) != 0)
+		return ((result < 0) ? -1 : 1);
+	else
+		return ((r1->length == r2->length) ? 0 :
+			(r1->length < r2->length) ? -1 : 1);
 }
 
 isc_result_t
