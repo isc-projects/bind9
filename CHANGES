@@ -1,3 +1,6 @@
+ 960.	[port]		liblwres failed to build on systems with support for
+			getrrsetbyname() in the OS.  [RT #1592]
+
  959.	[port]		freebsd: ncpus via sysctlbyname().  [RT #1584]
 
  958.	[port]		ssize_t is not available on all platforms.  [RT #1607]
