@@ -1,3 +1,6 @@
+1454.	[bug]		inet_pton() failed to reject certian malformed
+			IPv6 literals.
+
 1459.	[placeholder]
 
 1458.	[cleanup]	sprintf() -> snprintf().
