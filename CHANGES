@@ -36,6 +36,10 @@
 1805.	[bug]		Pending status was not being cleared when DLV was
 			active. [RT #13501]
 
+1804.	[bug]		Ensure that if we are queried for glue that it fits
+			in the additional section or TC is set to tell the
+			client to retry using TCP. [RT #10114]
+
 1801.	[func]		Report differences between hints and real NS rrset
 			and associated address records.
 
