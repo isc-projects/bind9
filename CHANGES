@@ -1,3 +1,5 @@
+1268.	[bug]		DESTDIR was not being propogated between makes.
+
 1247.	[bug]		Don't reset the interface index for link/site local
 			addresses. [RT #2576]
 
