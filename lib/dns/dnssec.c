@@ -16,8 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.51 2000/09/12 09:57:28 bwelling Exp $
- * Principal Author: Brian Wellington
+ * $Id: dnssec.c,v 1.52 2000/09/25 23:18:54 bwelling Exp $
  */
 
 
@@ -90,25 +89,20 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 			dns_rdata_t **rdata, int *nrdata)
 {
 	isc_result_t ret;
-	int i = 0, n = 1;
+	int i = 0, n;
 	dns_rdata_t *data;
 
-	ret = dns_rdataset_first(set);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
-	/*
-	 * Count the records.
-	 */
-	while (dns_rdataset_next(set) == ISC_R_SUCCESS)
-		n++;
+	n = dns_rdataset_count(set);
 
 	data = isc_mem_get(mctx, n * sizeof(dns_rdata_t));
 	if (data == NULL)
 		return (ISC_R_NOMEMORY);
 
 	ret = dns_rdataset_first(set);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, data, n * sizeof(dns_rdata_t));
 		return (ret);
+	}
 
 	/*
 	 * Put them in the array.
