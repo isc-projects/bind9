@@ -1,5 +1,5 @@
 
- 811.	[bug]		Parantheses were not quoted in zone dumps. [RT #1194]
+ 811.	[bug]		Parentheses were not quoted in zone dumps. [RT #1194]
 
  810.	[bug]		The signer name in SIG records was not properly
  			downcased when signing/verifying records. [RT #1186]
