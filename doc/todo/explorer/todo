@@ -1,14 +1,4 @@
 
-Check whether the lwres allocmem and freemem functions need to be
-public (whether data is ever allocated by user and freed by library or 
-vice versa)
-
-Document library "flow" in lwres(3), explain use of pkthdr
-
-Write table of what the caller needs to fill in for lwres_packet(3).
-
-Write sample code for asynchronous resolution.
-
 Document {min,max}-{refresh,retry}-time
 
 Limit the number of retries on socket errors (send and receive)
@@ -25,6 +15,8 @@ Implement ip6.arpa priming
 ----------------------------------------------------------------------
 Non-priorities (as things stand for my work load at this time
 ----------------------------------------------------------------------
+
+Write sample code for asynchronous resolution.
 
 Rewrite zone code to use a list per zone state
 
