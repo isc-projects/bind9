@@ -375,6 +375,9 @@ main(int argc, char **argv) {
 		cmgr[i].sock = sock;
 		cmgr[i].view = NULL;
 		cmgr[i].flags = 0;
+		result = isc_task_create(taskmgr, 0, &cmgr[i].task);
+		if (result != ISC_R_SUCCESS)
+			break;
 		ISC_EVENT_INIT(&cmgr[i].sdev, sizeof(isc_event_t),
 			       ISC_EVENTATTR_NOPURGE,
 			       0, LWRD_SHUTDOWN,
@@ -382,9 +385,6 @@ main(int argc, char **argv) {
 			       NULL, NULL);
 		ISC_LIST_INIT(cmgr[i].idle);
 		ISC_LIST_INIT(cmgr[i].running);
-		result = isc_task_create(taskmgr, 0, &cmgr[i].task);
-		if (result != ISC_R_SUCCESS)
-			break;
 		isc_task_setname(cmgr[i].task, "lwresd client", &cmgr[i]);
 		cmgr[i].mctx = mem;
 		cmgr[i].lwctx = NULL;
@@ -425,9 +425,7 @@ main(int argc, char **argv) {
 	/*
 	 * Wait for ^c or kill.
 	 */
-	isc_mem_stats(mem, stdout);
 	isc_app_run();
-	isc_mem_stats(mem, stdout);
 
 	/*
 	 * Send a shutdown event to every task.
