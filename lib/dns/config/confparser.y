@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.57 2000/04/05 15:16:49 brister Exp $ */
+/* $Id: confparser.y,v 1.58 2000/04/06 09:43:12 brister Exp $ */
 
 #include <config.h>
 
@@ -142,7 +142,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 
 	dns_c_forw_t		forward;
 	dns_c_rrso_t	       *rrorder;
-	dns_c_rrsolist_t      *rrolist;
+	dns_c_rrsolist_t       *rrolist;
 	dns_rdatatype_t		ordertype;
 	dns_rdataclass_t	orderclass;
 	dns_c_ordering_t	ordering;
@@ -213,6 +213,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_INTERFACE_INTERVAL
 %token		L_IXFR_TMP
 %token		L_KEYS
+%token		L_LAME_TTL
 %token		L_LBRACE
 %token		L_LISTEN_ON
 %token		L_LOGGING
@@ -228,6 +229,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_MAX_TRANSFER_TIME_IN
 %token		L_MAX_TRANSFER_TIME_OUT
 %token		L_MEMSTATS_FILE
+%token		L_MIN_ROOTS
 %token		L_MULTIPLE_CNAMES
 %token		L_NAME
 %token		L_NAMED_XFER
@@ -259,6 +261,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_SECRET
 %token		L_SEC_KEY
 %token		L_SELF
+%token		L_SERIAL_QUERIES
 %token		L_SERVER
 %token		L_SEVERITY
 %token		L_SIZE
@@ -283,6 +286,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_TRANSFER_FORMAT
 %token		L_TRANSFER_SOURCE
 %token		L_TRANSFER_SOURCE_V6
+%token		L_TREAT_CR_AS_SPACE
 %token		L_TRUE
 %token		L_TRUSTED_KEYS
 %token		L_TYPE
@@ -685,6 +689,14 @@ option: /* Empty */
 			parser_warning(ISC_FALSE, "redefining request-ixfr.");
 		}
 	}
+	| L_TREAT_CR_AS_SPACE yea_or_nay
+	{
+		tmpres = dns_c_ctx_settreatcrasspace(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining treat-cr-as-space.");
+		}
+	}
 	| L_LISTEN_ON maybe_port L_LBRACE address_match_list L_RBRACE
 	{
 		if ($4 == NULL) {
@@ -970,6 +982,30 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+	| L_MIN_ROOTS L_INTEGER
+	{
+		tmpres = dns_c_ctx_setminroots(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining min-roots.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set min-roots.");
+			YYABORT;
+		}
+	}
+	| L_SERIAL_QUERIES L_INTEGER
+	{
+		tmpres = dns_c_ctx_setserialqueries(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining serial-queries.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set serial-queries.");
+			YYABORT;
+		}
+	}
 	| L_CLEAN_INTERVAL L_INTEGER
 	{
 		if ( int_too_big($2, 60) ) {
@@ -1192,7 +1228,7 @@ ordering_type: /* nothing */
 			reg.length = strlen($2);
 		
 			tmpres = dns_rdatatype_fromtext(&ty, &reg);
-			if (tmpres != DNS_R_SUCCESS) {
+			if (tmpres != ISC_R_SUCCESS) {
 				parser_warning(ISC_TRUE,
 					       "unknown type. Assuming ``*''");
 				ty = dns_rdatatype_any;
@@ -2713,21 +2749,36 @@ view_options_list: view_option L_EOS
 	| view_options_list view_option L_EOS;
 
 
-view_option: L_MATCH_CLIENTS L_LBRACE address_match_list L_RBRACE
+view_option: L_FORWARD zone_forward_opt
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setmatchclients(view, $3);
- 		dns_c_ipmatchlist_detach(&$3);
-		
+		tmpres = dns_c_view_setforward(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining view match-clients.");
+				       "redefining view forward.");
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "failed to set view match-clients.");
+				     "failed to set view forward.");
+			YYABORT;
+		}
+	}
+	| L_FORWARDERS L_LBRACE opt_in_addr_list L_RBRACE
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setforwarders(view,
+						  $3, ISC_FALSE);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view forwarders.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view forwarders.");
 			YYABORT;
 		}
 	}
@@ -2746,6 +2797,26 @@ view_option: L_MATCH_CLIENTS L_LBRACE address_match_list L_RBRACE
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set view allow-query.");
+			YYABORT;
+		}
+	}
+	| L_ALLOW_UPDATE_FORWARDING L_LBRACE address_match_list L_RBRACE
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setallowupdateforwarding(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view "
+				       "allow-update-forwarding.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view "
+				     "allow-update-forwarding.");
 			YYABORT;
 		}
 	}
@@ -2785,61 +2856,6 @@ view_option: L_MATCH_CLIENTS L_LBRACE address_match_list L_RBRACE
 			YYABORT;
 		}
 	}
-	| L_ALLOW_UPDATE_FORWARDING L_LBRACE address_match_list L_RBRACE
-	{
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-
-		INSIST(view != NULL);
-
-		tmpres = dns_c_view_setallowupdateforwarding(view, $3);
- 		dns_c_ipmatchlist_detach(&$3);
-
-		if (tmpres == ISC_R_EXISTS) {
-			parser_warning(ISC_FALSE,
-				       "redefining view "
-				       "allow-update-forwarding.");
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set view "
-				     "allow-update-forwarding.");
-			YYABORT;
-		}
-	}
-	| L_BLACKHOLE L_LBRACE address_match_list L_RBRACE
-	{
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-
-		INSIST(view != NULL);
-
-		tmpres = dns_c_view_setblackhole(view, $3);
- 		dns_c_ipmatchlist_detach(&$3);
-
-		if (tmpres == ISC_R_EXISTS) {
-			parser_warning(ISC_FALSE,
-				       "redefining view blackhole.");
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set view blackhole.");
-			YYABORT;
-		}
-	}
-	| L_FORWARDERS L_LBRACE opt_in_addr_list L_RBRACE
-	{
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-
-		INSIST(view != NULL);
-
-		tmpres = dns_c_view_setforwarders(view,
-						  $3, ISC_FALSE);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_warning(ISC_FALSE,
-				       "redefining view forwarders.");
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set view forwarders.");
-			YYABORT;
-		}
-	}
 	| L_SORTLIST L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -2876,6 +2892,24 @@ view_option: L_MATCH_CLIENTS L_LBRACE address_match_list L_RBRACE
 			YYABORT;
 		}
 	}
+	| L_MATCH_CLIENTS L_LBRACE address_match_list L_RBRACE
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setmatchclients(view, $3);
+ 		dns_c_ipmatchlist_detach(&$3);
+		
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view match-clients.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view match-clients.");
+			YYABORT;
+		}
+	}
 	| L_CHECK_NAMES check_names_type check_names_opt
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -2892,19 +2926,293 @@ view_option: L_MATCH_CLIENTS L_LBRACE address_match_list L_RBRACE
 			YYABORT;
 		}
 	}
-	| L_FORWARD zone_forward_opt
+	| L_AUTH_NXDOMAIN yea_or_nay
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setforward(view, $2);
+		tmpres = dns_c_view_setauthnxdomain(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining view forward.");
+				       "redefining view auth-nxdomain.");
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "failed to set view forward.");
+				     "failed to set view auth-nxdomain.");
+			YYABORT;
+		}
+	}
+	| L_RECURSION yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setrecursion(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view recursion.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view recursion.");
+			YYABORT;
+		}
+	}
+	| L_PROVIDE_IXFR yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setprovideixfr(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view provide-ixfr.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view provide-ixfr.");
+			YYABORT;
+		}
+	}
+	| L_REQUEST_IXFR yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setrequestixfr(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view request-ixfr.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view request-ixfr.");
+			YYABORT;
+		}
+	}
+	| L_FETCH_GLUE yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setfetchglue(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view fetch-glue.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view fetch-glue.");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setnotify(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view notify.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view notify.");
+			YYABORT;
+		}
+	}
+	| L_RFC2308_TYPE1 yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setrfc2308type1(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view rfc2308-type1.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view rfc2308-type1.");
+			YYABORT;
+		}
+	}
+	| L_QUERY_SOURCE query_source_v4
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setquerysource(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view query-source.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view query-source.");
+			YYABORT;
+		}
+	}
+	| L_QUERY_SOURCE_V6 query_source_v6
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setquerysourcev6(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view query-source-v6.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view query-source-v6.");
+			YYABORT;
+		}
+	}
+	| L_TRANSFER_SOURCE maybe_wild_ip4_only_addr
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_settransfersource(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view transfer-source");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view transfer-source");
+			YYABORT;
+		}
+	}
+	| L_TRANSFER_SOURCE_V6 maybe_wild_ip6_only_addr
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_settransfersourcev6(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view transfer-source-v6");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view transfer-source-v6");
+			YYABORT;
+		}
+	}
+	| L_MAX_TRANSFER_TIME_OUT L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
+		tmpres = dns_c_view_setmaxtransfertimeout(view, $2 * 60);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view max-transfer-time-out.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				 "failed to set view max-transfer-time-out.");
+			YYABORT;
+		}
+	}
+	| L_MAX_TRANSFER_IDLE_OUT L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
+		tmpres = dns_c_view_setmaxtransferidleout(view, $2 * 60);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view max-transfer-idle-out.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				 "failed to set view max-transfer-idle-out.");
+			YYABORT;
+		}
+	}
+	| L_CLEAN_INTERVAL L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
+		tmpres = dns_c_view_setcleaninterval(view, $2 * 60);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view cleaning-interval.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				 "failed to set view cleaning-interval.");
+			YYABORT;
+		}
+	}
+	| L_MIN_ROOTS L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setminroots(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view min-roots.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				 "failed to set view min-roots.");
+			YYABORT;
+		}
+	}
+	| L_LAME_TTL L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setlamettl(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view lame-ttl.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				 "failed to set view lame-ttl.");
+			YYABORT;
+		}
+	}
+	| L_MAX_NCACHE_TTL L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setmaxncachettl(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				     "redefining view max-ncache-ttl.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				 "failed to set view max-ncache-ttl.");
 			YYABORT;
 		}
 	}
@@ -3100,7 +3408,7 @@ rdatatype: any_string {
 		reg.length = strlen($1);
 		
 		tmpres = dns_rdatatype_fromtext(&ty, &reg);
-		if (tmpres != DNS_R_SUCCESS) {
+		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE, "unknown rdatatype.");
 			YYABORT;
 		}
@@ -3276,7 +3584,7 @@ class_name: any_string
 			reg.length = strlen($1);
 			
 			tmpres = dns_rdataclass_fromtext(&cl, &reg);
-			if (tmpres != DNS_R_SUCCESS) {
+			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_TRUE,
 					     "unknown class assuming ``*''.");
 				cl = dns_rdataclass_any;
@@ -4071,6 +4379,7 @@ static struct token keyword_tokens [] = {
 	{ "ixfr-tmp-file",		L_IXFR_TMP },
 	{ "key",			L_SEC_KEY },
 	{ "keys",			L_KEYS },
+	{ "lame-ttl",			L_LAME_TTL },
 	{ "listen-on",			L_LISTEN_ON },
 	{ "logging",			L_LOGGING },
 	{ "maintain-ixfr-base",		L_MAINTAIN_IXFR_BASE },
@@ -4086,6 +4395,7 @@ static struct token keyword_tokens [] = {
 	{ "max-transfer-idle-out",	L_MAX_TRANSFER_IDLE_OUT },
 	{ "memstatistics-file",		L_MEMSTATS_FILE },
 	{ "multiple-cnames",		L_MULTIPLE_CNAMES },
+	{ "min-roots",			L_MIN_ROOTS },
 	{ "name",			L_NAME },
 	{ "named-xfer",			L_NAMED_XFER },
 	{ "no",				L_NO },
@@ -4114,6 +4424,7 @@ static struct token keyword_tokens [] = {
 	{ "response",			L_RESPONSE },
 	{ "secret",			L_SECRET },
 	{ "server",			L_SERVER },
+	{ "serial-queries",		L_SERIAL_QUERIES },
 	{ "severity",			L_SEVERITY },
 	{ "size",			L_SIZE },
 	{ "slave",			L_SLAVE },
@@ -4135,6 +4446,7 @@ static struct token keyword_tokens [] = {
 	{ "transfers-in",		L_TRANSFERS_IN },
 	{ "transfers-out",		L_TRANSFERS_OUT },
 	{ "transfers-per-ns",		L_TRANSFERS_PER_NS },
+        { "treat-cr-as-space", 		L_TREAT_CR_AS_SPACE },
 	{ "true",			L_TRUE },
 	{ "trusted-keys",		L_TRUSTED_KEYS },
 	{ "type",			L_TYPE },
