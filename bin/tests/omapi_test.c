@@ -278,8 +278,7 @@ client_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 				  (error_nosig &&
 				   client->waitresult == ISC_R_NOPERM) ||
 				  (error_badsig &&
-				   client->waitresult ==
-				   DST_R_VERIFYFINALFAILURE));
+				   client->waitresult == DST_R_VERIFYFAILURE));
 
 		if (client->waitresult != ISC_R_SUCCESS)
 			fprintf(stderr, "%s: message status: %s (%s)\n",
