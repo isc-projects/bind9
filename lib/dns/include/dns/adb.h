@@ -240,6 +240,30 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  */
 
 
+isc_result_t
+dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr);
+/*
+ * Insert a host name and address into the database.  A new (blank, no
+ * badness) record is inserted.
+ *
+ * This function should be used with caution, since it may not exist
+ * for more than testing purposes.
+ *
+ * Requires:
+ *
+ *	'adb' be valid.
+ *
+ *	'host' contain the naem of the host to be inserted.
+ *
+ *	'addr' point to the address of the host to insert.
+ *
+ * Returns:
+ *
+ *	ISC_R_NOMEMORY	-- no memory
+ *	ISC_R_EXISTS	-- the <host, address> tuple exists already.
+ */
+
+
 void
 dns_adb_cancel(dns_adb_t *adb, dns_adbhandle_t **handle);
 /*
