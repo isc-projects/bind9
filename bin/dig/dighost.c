@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.241 2002/02/21 04:48:00 marka Exp $ */
+/* $Id: dighost.c,v 1.242 2002/03/14 18:11:38 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2179,7 +2179,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS || l->sendmsg->id != id) {
 		if (l->tcp_mode) {
 			if (result == ISC_R_SUCCESS)
-				printf(";; ERROR: ID mismatch\n");
+				printf(";; ERROR: ID mismatch: "
+				       "expected ID %u, got %u\n",
+				       l->sendmsg->id, id);
 			else
 				printf(";; ERROR: runt message\n");
 			isc_event_free(&event);
@@ -2189,7 +2191,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			return;
 		}
 		if (result == ISC_R_SUCCESS)
-			printf(";; Warning: ID mismatch\n");
+			printf(";; Warning: ID mismatch: "
+			       "expected ID %u, got %u\n", l->sendmsg->id, id);
 		else
 			printf(";; Warning: runt message received\n");
 		isc_buffer_invalidate(&query->recvbuf);
