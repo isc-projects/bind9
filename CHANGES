@@ -1,4 +1,9 @@
 
+ 727.	[port]		Work around OS bug where accept() succeeds but
+			fails to fill in the peer address of the accepted
+			connection, by treating it as an error rather than
+			an assertion failure. [RT #809]
+
  726.	[func]		Implement the "trace" and "notrace" commands in rndc.
 
  725.	[bug]		Installing man pages could fail.
