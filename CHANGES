@@ -1,3 +1,5 @@
+ 251.	[bug]		lwresd caught an assertion failure on startup.
+
  250.	[bug]		fixed handling of size+unit when value would be too
 			large for internal representation.
 
