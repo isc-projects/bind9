@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.71 2000/08/01 01:23:04 tale Exp $ */
+/* $Id: validator.c,v 1.72 2000/08/14 22:17:40 gson Exp $ */
 
 #include <config.h>
 
@@ -1369,7 +1369,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	if (val == NULL)
 		return (ISC_R_NOMEMORY);
 	val->view = NULL;
-	dns_view_attach(view, &val->view);
+	dns_view_weakattach(view, &val->view);
 	event = (dns_validatorevent_t *)
 		isc_event_allocate(view->mctx, task,
 				   DNS_EVENT_VALIDATORSTART,
@@ -1421,7 +1421,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	isc_event_free((isc_event_t **)&val->event);
 
  cleanup_val:
-	dns_view_detach(&val->view);
+	dns_view_weakdetach(&val->view);
 	isc_mem_put(view->mctx, val, sizeof *val);
 
 	return (result);
@@ -1474,7 +1474,7 @@ destroy(dns_validator_t *val) {
 	if (val->siginfo != NULL)
 		isc_mem_put(mctx, val->siginfo, sizeof *val->siginfo);
 	isc_mutex_destroy(&val->lock);
-	dns_view_detach(&val->view);
+	dns_view_weakdetach(&val->view);
 	val->magic = 0;
 	isc_mem_put(mctx, val, sizeof *val);
 }
