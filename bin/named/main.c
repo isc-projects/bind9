@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.89 2000/10/13 22:35:43 bwelling Exp $ */
+/* $Id: main.c,v 1.90 2000/11/01 20:59:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -172,8 +172,8 @@ library_unexpected_error(const char *file, int line, const char *format,
 static void
 lwresd_usage(void) {
 	fprintf(stderr,
-		"usage: lwresd [-C conffile] [-d debuglevel] "
-		"[-f|-g] [-n number_of_cpus]\n"
+		"usage: lwresd [-c conffile | -C resolvconffile] "
+		"[-d debuglevel] [-f|-g] [-n number_of_cpus]\n"
 		"              [-p port] [-P listen-port] [-s] "
 		"[-t chrootdir]\n"
 		"              [-u username] [-i pidfile]\n");
@@ -276,10 +276,14 @@ parse_command_line(int argc, char *argv[]) {
 		case 'c':
 			ns_g_conffile = isc_commandline_argument;
 			lwresd_g_conffile = isc_commandline_argument;
+			if (lwresd_g_useresolvconf)
+				ns_main_earlyfatal("cannot specify -c and -C");
+			ns_g_conffileset = ISC_TRUE;
 			break;
-		/* XXXBEW Should -C be removed? */
 		case 'C':
 			lwresd_g_resolvconffile = isc_commandline_argument;
+			if (ns_g_conffileset)
+				ns_main_earlyfatal("cannot specify -c and -C");
 			lwresd_g_useresolvconf = ISC_TRUE;
 			break;
 		case 'd':

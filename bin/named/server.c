@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.233 2000/10/31 03:21:44 marka Exp $ */
+/* $Id: server.c,v 1.234 2000/11/01 20:59:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1313,7 +1313,9 @@ load_configuration(const char *filename, ns_server_t *server,
 		result = dns_c_parse_namedconf(filename, ns_g_mctx, &cctx,
 					       &callbacks);
 	}
-	if (result == ISC_R_FILENOTFOUND && ns_g_lwresdonly) {
+	if (result == ISC_R_FILENOTFOUND &&
+	    ns_g_lwresdonly && !ns_g_conffileset)
+	{
 		isc_log_write(ns_g_lctx,
 			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 			      ISC_LOG_INFO, "loading configuration from '%s'",
