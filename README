@@ -68,33 +68,43 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0b4
+BIND 9.0.0rc1
 
-	BIND 9.0.0b4 is the fourth public release of BIND 9 code.  It will
-	be most useful to advanced users working with IPv6 or DNSSEC.
+	BIND 9.0.0rc1 is a release candidate for 9.0.0.  It contains
+        the final set of features for 9.0.0.  The only changes 
+	expected between 9.0.0rc1 and 9.0.0 are critical bug fixes and
+	updates to the documentation.
 
-	BIND 9.0.0b4 has almost all the functionality of the upcoming
-        9.0.0 release.  It is not a release candidate for BIND 9.0.0.
-        ISC anticipates at least one more beta release between now and 
-	the release of BIND 9.0.0.
+	We are running 9.0.0rc1 in production, but it has not been
+	extensively tested in large installations or under heavy load,
+	We welcome your feedback about how it performs in the real
+	world.
 
-	ISC does not recommend using BIND 9.0.0b4 for "production"
-	services.
+	The distribution includes a new lightweight resolver library
+	and associated resolver daemon.  These should still be considered
+	experimental.
 
-	We hope users of BIND 9.0.0b4 will provide feedback and bug fixes.
+	The server-side support DNSSEC secured zones is stable and
+	complete with the exception of the handling of wildcard records.
+	The support for secure resolution is still to be considered
+	experimental.
 
-	There have been many changes since beta 3; the highlights are:
+	There have been some changes since beta 4; the highlights are:
 
-		Stub zones have been implemented.
+		The default value of the 'transfer-format' option is
+		now 'many-answers'.
 
-		Additional configuration options have been implemented, 
-		such as "max-cache-ttl" and "max-ncache-ttl".
+		The 'lwresd' program is now a link to 'named'.
 
-		More configuration options can be specified separately
-		for each view, including the "key" and "server" statements.
+		The DNSSEC key generation and signing tools now
+		generate randomness from keyboard input on systems
+		that lack /dev/random.
 
-		Numerous bugs have been fixed and the code has been cleaned
-		up.
+		A plain text version of the Administratior Reference
+		Manual has been added.
+		
+		Various bug fixes and cleanups.
+
 
 	There are a few known bugs:
 
@@ -112,23 +122,15 @@ BIND 9.0.0b4
 
 		There are known problems with thread signal handling 
 		under SunOS 5.6.
-		
 
-	For a detailed list of user-visible changes since beta 3, see
+
+	For a detailed list of user-visible changes since beta 4, see
 	the CHANGES file.	
 
-	Some of the more significant items that will be implemented or
-	enhanced in a future beta are
-
-		Selective forwarding
-
-		Documentation
-
-			Future releases will contain a lot more documentation,
-			but a preliminary version of the Administrator's
-			Reference Manual is in the doc/arm subdirectory in
-			HTML format.  A plain text version will be added
-			in a future release.
+	BIND 9.0.0 supports most but not all BIND 8 features.  Among
+	the missing features are selective (per-domain) forwarding,
+	sortlists, statistics, and process limits.  We plan to implement
+	most of the missing ones in BIND 9.1.
 
 
 Building
@@ -140,17 +142,13 @@ Building
 
 		AIX 4.3
 		COMPAQ Tru64 UNIX 4.0D
+                COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
 		FreeBSD 3.4-STABLE
 		HP-UX 11
 		IRIX64 6.5
 		NetBSD-current (with "unproven" pthreads, foreground only)
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8 (beta)
-
-        We've also had reports of successful builds on the following
-        systems, though we do not have tested these platforms ourselves:
-
-                COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
 
 	To build, just
 
@@ -260,10 +258,3 @@ Bug Reports and Mailing Lists
 	provided, named will attempt to determine the number of available
 	CPUs and use all of them.
 
-
-Note to Programmers
-	The APIs for the libraries in BIND 9 are not yet frozen.
-	We expect the existing library interfaces in the release to be
-	quite stable, however, and unless we've specifically indicated that
-	an interface is temporary, we don't anticipate major changes in
-	future releases.
