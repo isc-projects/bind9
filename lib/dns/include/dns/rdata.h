@@ -127,7 +127,7 @@ struct dns_rdata {
 };
 
 /*
- * Context structure for dns_rdata_totext().  Defines
+ * Context structure for the totext_ functions.  Defines
  * the way the rdata part of a master file line is
  * formatted.
  */
@@ -323,7 +323,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
+dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.

@@ -43,6 +43,11 @@
 #include <dns/ttl.h>
 #include <dns/masterdump.h>
 
+/* XXX */
+dns_result_t
+__dns_rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
+		   isc_buffer_t *target);
+
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \
 	if (__r != DNS_R_SUCCESS) \
@@ -158,6 +163,8 @@ char spaces[N_SPACES] = "          ";
 
 #define N_TABS 10
 char tabs[N_TABS] = "\t\t\t\t\t\t\t\t\t\t";
+
+
 
 /*
  * Output tabs and spaces to go from column '*current' to 
@@ -396,7 +403,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			INDENT_TO(rdata_column);
 			dns_rdataset_current(rdataset, &rdata);
 
-			RETERR(dns_rdata_totext(&rdata, &ctx->rdata_ctx, target));
+			RETERR(__dns_rdata_totext(&rdata, &ctx->rdata_ctx, target));
 
 			isc_buffer_available(target, &r);
 			if (r.length < 1)
