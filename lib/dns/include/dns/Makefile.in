@@ -5,7 +5,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	name.h result.h types.h
+HEADERS =	name.h rdata.h rdataclass.h rdatatype.h result.h types.h
 
 SUBDIRS =
 TARGETS =
