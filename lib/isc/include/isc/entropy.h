@@ -81,11 +81,18 @@ ISC_LANG_BEGINDECLS
 #define ISC_ENTROPY_GOODONLY	0x00000001U
 
 /*
+ * _ESTIMATE
+ *	Estimate the amount of entropy contained in the sample pool.
+ *	If this is not set, the source will be gathered and perodically
+ *	mixed into the entropy pool, but no increment in contained entropy
+ *	will be assumed.
+ *
  * _POLLABLE
  *	The entropy source is pollable for more data.  This is most useful
  *	for things like files and devices.  It should not be used for
  *	tty/keyboard data, device timings, etc.
  */
+#define ISC_ENTROPYSOURCE_ESTIMATE	0x00000001U
 #define ISC_ENTROPYSOURCE_POLLABLE	0x00000002U
 
 /***
@@ -142,9 +149,21 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
  */
 
 void
-isc_entropy_addsamples(isc_entropysource_t *source, isc_uint32_t *samples,
-		       unsigned int count);
-/* XXXMLG */
+isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
+		      isc_uint32_t extra, isc_boolean_t has_entropy);
+/*
+ * Add a sample to the sample source.  The sample MUST be a timestamp
+ * that increases over time, with the exception of wrap-around for
+ * extremely high resolution timers which will quickly wrap-around
+ * a 32-bit integer.
+ *
+ * The "extra" parameter is used only to add a bit more unpredictable
+ * data.  It is not used other than included in the hash of samples.
+ *
+ * If "has_entropy" is ISC_TRUE, entropy calculations are performed on
+ * this data, otherwise the sample is assumed to contain no entropy
+ * and is simply added to the sample list.
+ */
 
 isc_result_t
 isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
