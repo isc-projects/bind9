@@ -1,3 +1,6 @@
+1182.	[bug]		The server could throw an assertion failure when
+			constructing a negative response packet.
+
 1162.	[bug]		The allow-notify option was not accepted in slave
 			zone statements.
 
