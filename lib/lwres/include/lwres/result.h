@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.13 2001/01/09 21:59:51 bwelling Exp $ */
+/* $Id: result.h,v 1.14 2001/07/02 20:46:31 bwelling Exp $ */
 
 #ifndef LWRES_RESULT_H
 #define LWRES_RESULT_H 1
@@ -35,5 +35,6 @@ typedef unsigned int lwres_result_t;
 #define LWRES_R_INCOMPLETE		10
 #define LWRES_R_RETRY			11
 #define LWRES_R_TYPENOTFOUND		12
+#define LWRES_R_TOOLARGE		13
 
 #endif /* LWRES_RESULT_H */

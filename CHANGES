@@ -1,4 +1,10 @@
 
+ 921.	[bug]		lwres returned an incorrect error code if it received
+ 			a truncated message.
+
+ 920.	[func]		Increase the lwres receive buffer size to 16K.
+ 			[RT #1451]
+
  919.	[placeholder]
 
  918.	[func]		In nsupdate, TSIG errors are no longer treated as

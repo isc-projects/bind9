@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.35 2001/06/07 00:45:35 bwelling Exp $ */
+/* $Id: context.c,v 1.36 2001/07/02 20:46:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -300,6 +300,9 @@ lwres_context_recv(lwres_context_t *ctx,
 
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
+
+	if (ret == recvlen)
+		return (LWRES_R_TOOLARGE);
 
 	/*
 	 * If we got something other than what we expect, have the caller

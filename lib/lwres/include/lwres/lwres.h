@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.48 2001/03/08 16:09:40 tale Exp $ */
+/* $Id: lwres.h,v 1.49 2001/07/02 20:46:29 bwelling Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -77,8 +77,8 @@
  *	response_free().
  */
 
-#define LWRES_UDP_PORT		921	/* XXXMLG */
-#define LWRES_RECVLENGTH	4096	/* XXXMLG */
+#define LWRES_UDP_PORT		921
+#define LWRES_RECVLENGTH	16384
 #define LWRES_ADDR_MAXLEN	16	/* changing this breaks ABI */
 #define LWRES_RESOLV_CONF	"/etc/resolv.conf"
 
