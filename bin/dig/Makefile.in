@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.10 2000/06/22 21:48:59 tale Exp $
+# $Id: Makefile.in,v 1.10.2.1 2000/06/28 16:33:42 tale Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -63,9 +63,10 @@ clean distclean::
 	rm -f ${TARGETS}
 
 installdirs:
-	if [ ! -d ${DESTDIR}${sbindir} ]; then \
-		mkdir ${DESTDIR}${sbindir}; \
+	if [ ! -d ${DESTDIR}${bindir} ]; then \
+		mkdir ${DESTDIR}${bindir}; \
 	fi
 
 install:: dig host installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${sbindir}
+	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${bindir}
+	${LIBTOOL} ${INSTALL_PROGRAM} host ${DESTDIR}${bindir}
