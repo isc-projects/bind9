@@ -19,6 +19,7 @@ isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
 /*
  *	Creates a table that will be used to store simple-secure-update rules.
+ *	Note: all locking must be provided by the client.
  *
  *	Requires:
  *		'mctx' is a valid memory context
@@ -87,16 +88,36 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
  *		'name' is a valid absolute name
  */
 
+
 isc_boolean_t	dns_ssurule_isgrant(const dns_ssurule_t *rule);
 dns_name_t *	dns_ssurule_identity(const dns_ssurule_t *rule);
 unsigned int	dns_ssurule_matchtype(const dns_ssurule_t *rule);
 dns_name_t *	dns_ssurule_name(const dns_ssurule_t *rule);
 unsigned int	dns_ssurule_types(const dns_ssurule_t *rule,
 				  dns_rdatatype_t **types);
+/*
+ * Accessor functions to extract rule components
+ */
+
 isc_result_t	dns_ssutable_firstrule(const dns_ssutable_t *table,
 				       dns_ssurule_t **rule);
+/*
+ * Initiates a rule iterator.  There is no need to maintain any state.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE
+ */
+
 isc_result_t	dns_ssutable_nextrule(dns_ssurule_t *rule,
 				      dns_ssurule_t **nextrule);
+/*
+ * Returns the next rule in the table.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE
+ */
 
 ISC_LANG_ENDDECLS
 
