@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.62 2000/11/16 22:33:43 bwelling Exp $ */
+/* $Id: db.c,v 1.63 2000/11/17 01:06:37 bwelling Exp $ */
 
 /***
  *** Imports
@@ -737,6 +737,8 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 	REQUIRE(name != NULL);
 	REQUIRE(dbimp != NULL && *dbimp == NULL);
 
+	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+
 	RWLOCK(&implock, isc_rwlocktype_write);
 	imp = impfind(name);
 	if (imp != NULL) {
@@ -769,6 +771,8 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 	isc_mem_t *mctx;
 
 	REQUIRE(dbimp != NULL && *dbimp != NULL);
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
 	imp = *dbimp;
 	RWLOCK(&implock, isc_rwlocktype_write);
