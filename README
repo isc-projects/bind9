@@ -233,7 +233,8 @@ Documentation
 	"make install".
 
 	If you are upgrading from BIND 8, please read the migration
-	notes in doc/misc/migration.
+	notes in doc/misc/migration.  If you are upgrading from
+	BIND 4, read doc/misc/migration-4to9.
 
 
 Bug Reports and Mailing Lists
