@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.27 2002/05/30 01:28:53 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.28 2002/06/04 23:26:16 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -314,7 +314,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	struct ifreq ifreq;
 	int family;
 	char strbuf[ISC_STRERRORSIZE];
-#if !defined(SIOCGLIFCONF) || defined(SIOCGLIFADDR)
+#if !defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
 	struct if_laddrreq if_laddrreq;
 	int i, bits;
 #endif
@@ -392,7 +392,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	if ((ifreq.ifr_flags & IFF_LOOPBACK) != 0)
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
 
-#if !defined(SIOCGLIFCONF) || defined(SIOCGLIFADDR)
+#if !defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
 	if (family == AF_INET) 
 		goto inet;
 
