@@ -1,3 +1,12 @@
+ 343.	[bug]		Although zone maintenance SOA queries and
+			notify requests were signed with TSIG keys
+			when configured for the server in case,
+			the TSIG was not verified on the response.
+
+ 342.	[bug]		The wrong name was being passed to
+			dns_name_dup() when generating a TSIG
+			key using TKEY.
+
  341.	[func]		Support 'key' clause in named.conf zone masters 
 			statement:
 
