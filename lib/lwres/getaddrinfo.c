@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.4 2000/01/18 05:37:19 marka Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.5 2000/01/18 23:38:19 marka Exp $
  */
 
 
@@ -41,6 +41,8 @@ static void set_order(int, int (**)());
 #define FOUND_IPV6	0x2
 #define FOUND_MAX	2
 
+#define ISC_AI_MASK (AI_PASSIVE|AI_CANONNAME|AI_NUMERICHOST)
+
 int
 getaddrinfo(const char *hostname, const char *servname,
 	const struct addrinfo *hints, struct addrinfo **res)
@@ -57,7 +59,7 @@ getaddrinfo(const char *hostname, const char *servname,
 
 	proto = NULL;
 	if (hints != NULL) {
-		if (hints->ai_flags & ~(AI_MASK))
+		if (hints->ai_flags & ~(ISC_AI_MASK))
 			return (EAI_BADFLAGS);
 		if (hints->ai_addrlen || hints->ai_canonname ||
 		    hints->ai_addr || hints->ai_next) {
