@@ -1,4 +1,12 @@
 
+ 865.	[bug]		The new configuration parser did not allow
+			the optional debug level in a "severity debug"
+			clause of a logging channel to be omitted.
+			This is now allowed and treated as "severity
+			debug 1;" like it did in BIND 8.2.4, not as 
+			"severity debug 0;" like it did in BIND 9.1.
+			[RT #1367]
+
  864.	[cleanup]	Multithreading is now enabled by default on
 			OSF1, Solaris 2.7 and newer, AIX, IRIX, and HP-UX.
 

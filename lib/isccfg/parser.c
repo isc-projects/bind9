@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.55 2001/06/07 01:58:49 gson Exp $ */
+/* $Id: parser.c,v 1.56 2001/06/08 01:03:00 gson Exp $ */
 
 #include <config.h>
 
@@ -3262,8 +3262,20 @@ parse_logseverity(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
 	    strcasecmp(pctx->token.value.as_pointer, "debug") == 0) {
-		CHECK(parse(pctx, &cfg_type_debuglevel, ret));
-		INSIST((*ret)->type != &cfg_type_void);
+		CHECK(cfg_gettoken(pctx, 0)); /* read "debug" */
+		CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER));
+		if (pctx->token.type == isc_tokentype_number) {
+			CHECK(parse_uint32(pctx, NULL, ret));
+		} else {
+			/*
+			 * The debug level is optional and defaults to 1.
+			 * This makes little sense, but we support it for
+			 * compatibility with BIND 8.
+			 */
+			CHECK(create_cfgobj(pctx, &cfg_type_uint32, ret));
+			(*ret)->value.uint32 = 1;
+		}
+		(*ret)->type = &cfg_type_debuglevel; /* XXX kludge */
 	} else {
 		CHECK(parse(pctx, &cfg_type_loglevel, ret));
 	}
