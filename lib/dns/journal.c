@@ -381,6 +381,7 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 			 */
 
 			rdl.type = t->rdata.type;
+			rdl.covers = 0; /* XXX */
 			rdl.rdclass = t->rdata.rdclass;
 			rdl.ttl = t->ttl;
 			ISC_LIST_INIT(rdl.rdata);
