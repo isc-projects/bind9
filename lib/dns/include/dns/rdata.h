@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.43 2000/10/20 13:22:36 marka Exp $ */
+/* $Id: rdata.h,v 1.44 2000/10/24 02:03:33 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -151,6 +151,15 @@ dns_rdata_init(dns_rdata_t *rdata);
  *
  * Requires:
  *	'rdata' is a valid rdata (i.e. not NULL, points to a struct dns_rdata)
+ */
+
+void
+dns_rdata_invalidate(dns_rdata_t *rdata);
+/*
+ * Make 'rdata' empty.
+ *
+ * Requires:
+ *	'rdata' is a previously initaliased rdata and is not linked.
  */
 
 void
