@@ -157,7 +157,7 @@ main(int argc, char *argv[]) {
 		fclose(f);
 
 	dctx.allowed = DNS_COMPRESS_GLOBAL14 | DNS_COMPRESS_GLOBAL16;
-	dns_name_init(&dctx.owner_name);
+	dns_name_init(&dctx.owner_name, NULL);
 
 	isc_buffer_init(&source, b, 255, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, bp - b);

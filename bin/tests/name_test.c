@@ -54,6 +54,7 @@ main(int argc, char *argv[]) {
 	dns_name_t *origin, *comp;
 	isc_boolean_t downcase = ISC_FALSE;
 	size_t len;
+	dns_offsets_t offsets, compoffsets;
 
 	argc--;
 	argv++;
@@ -68,6 +69,7 @@ main(int argc, char *argv[]) {
 			isc_buffer_add(&source, len);
 			isc_buffer_init(&target, o, 255,
 					ISC_BUFFERTYPE_BINARY);
+			dns_name_init(&oname, NULL);
 			result = dns_name_fromtext(&oname, &source,
 						   dns_rootname, 0,
 						   &target);
@@ -92,6 +94,7 @@ main(int argc, char *argv[]) {
 			isc_buffer_add(&source, len);
 			isc_buffer_init(&target, c, 255,
 					ISC_BUFFERTYPE_BINARY);
+			dns_name_init(&compname, compoffsets);
 			result = dns_name_fromtext(&compname, &source,
 						   dns_rootname, 0,
 						   &target);
@@ -106,6 +109,7 @@ main(int argc, char *argv[]) {
 	} else
 		comp = NULL;
 
+	dns_name_init(&name, offsets);
 	while (gets(s) != NULL) {
 		len = strlen(s);
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
@@ -138,13 +142,13 @@ main(int argc, char *argv[]) {
 				printf("%s\n", dns_result_totext(result));
 		}
 
-#ifndef QUIET
 		if (comp != NULL) {
 			int i;
 			isc_boolean_t b;
 
 			i = dns_name_compare(&name, comp);
 			b = dns_name_issubdomain(&name, comp);
+#ifndef QUIET
 			if (i < 0)
 				printf("<, ");
 			else if (i > 0)
@@ -154,8 +158,11 @@ main(int argc, char *argv[]) {
 			if (!b)
 				printf("not ");
 			printf("subdomain\n");
-		}
+#else
+			if (!b)
+				printf("not subdomain\n");
 #endif
+		}
 	}
 	
 	return (0);
