@@ -8,6 +8,9 @@
 			sharing the same port for listening and querying, and
 			changing listening addresses several times. [RT# 3509]
 
+1199.	[doc]		ARM reference to RFC 2157 should have been RFC 1918.
+			[RT #2436]
+
  992.	[doc]		dig: ~/.digrc is now documented.
 
 	--- 9.2.2 released ---
