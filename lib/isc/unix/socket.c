@@ -175,8 +175,8 @@ struct isc_socketmgr {
 #define MANAGED		1
 #define CLOSE_PENDING	2
 
-static void send_recvdone_event(isc_socket_t *, isc_task_t **,
-				isc_socketevent_t **, isc_result_t, int);
+static void send_recvdone_event(isc_socket_t *, isc_socketevent_t **,
+				isc_result_t);
 static void send_senddone_event(isc_socket_t *, isc_task_t **,
 				isc_socketevent_t **, isc_result_t, int);
 static void free_socket(isc_socket_t **);
@@ -528,6 +528,102 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 	ev->offset = 0;
 
 	return (ev);
+}
+
+#define DOIO_SUCCESS		0
+#define DOIO_SOFT		1
+#define DOIO_HARD		2
+#define DOIO_EOF		3
+#define DOIO_UNEXPECTED		(-1)
+static int
+doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
+{
+	int cc;
+	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
+	size_t read_count;
+	struct msghdr msghdr;
+
+	if (build_msghdr_recv(sock, dev, &msghdr, iov,
+			      ISC_SOCKET_MAXSCATTERGATHER, &read_count)
+	    != 0)
+		return (DOIO_UNEXPECTED); /* XXX Need better errors! */
+
+	cc = recvmsg(sock->fd, &msghdr, 0);
+	if (sock->type == isc_sockettype_udp)
+		dev->address.length = msghdr.msg_namelen;
+
+	XTRACE(TRACE_RECV,
+	       ("do_recv: recvmsg(%d) %d bytes, err %d/%s, from %s\n",
+		sock->fd, cc, errno, strerror(errno),
+		inet_ntoa(dev->address.type.sin.sin_addr)));
+
+	if (cc < 0) {
+		if (SOFT_ERROR(errno))
+			return (DOIO_SOFT);
+
+#define SOFT_OR_HARD(_system, _isc) \
+	if (errno == _system) { \
+		if (sock->connected) { \
+			if (sock->type == isc_sockettype_tcp) \
+				sock->recv_result = _isc; \
+			send_recvdone_event(sock, &dev, _isc); \
+		} \
+		select_poke(sock->manager, sock->fd); \
+		return (DOIO_HARD); \
+	}
+
+		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
+		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+#undef SOFT_OR_HARD
+
+		/*
+		 * This might not be a permanent error.
+		 */
+		if (errno == ENOBUFS) {
+			send_recvdone_event(sock, &dev, ISC_R_UNEXPECTED);
+			return (DOIO_SOFT);
+		}
+
+		sock->recv_result = ISC_R_UNEXPECTED;
+		send_recvdone_event(sock, &dev, ISC_R_UNEXPECTED);
+		return (DOIO_SUCCESS);
+	}
+
+	/*
+	 * On TCP, zero length reads indicate EOF, while on
+	 * UDP, zero length reads are perfectly valid, although
+	 * strange.
+	 */
+	if ((sock->type == isc_sockettype_tcp) && (cc == 0)) {
+		sock->recv_result = ISC_R_EOF;
+		return (DOIO_EOF);
+	}
+
+	/*
+	 * If there are control messages attached, run through them and pull
+	 * out the interesting bits.
+	 *
+	 * Note that for multi-read TCP this isn't as interesting in that
+	 * only the last packet will set some of these, but that is better
+	 * than nothing.
+	 */
+	process_cmsg(sock, &msghdr, dev);
+
+	/*
+	 * If we read less than we expected, update counters,
+	 * and let the upper layer poke the descriptor.
+	 */
+	dev->n += cc;
+	if (((size_t)cc != read_count) && (dev->n < dev->minimum))
+		return (DOIO_SOFT);
+
+	/*
+	 * full reads are posted, or partials if partials are ok.
+	 */
+	send_recvdone_event(sock, &dev, ISC_R_SUCCESS);
+
+	return (DOIO_SUCCESS);
 }
 
 /*
@@ -925,18 +1021,24 @@ dispatch_connect(isc_socket_t *sock)
  * Caller must have the socket locked.
  */
 static void
-send_recvdone_event(isc_socket_t *sock, isc_task_t **taskp,
-		    isc_socketevent_t **dev, isc_result_t resultcode,
-		    int detach)
+send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
+		    isc_result_t resultcode)
 {
+	isc_task_t *task;
+
+	task = (*dev)->sender;
+
 	(*dev)->result = resultcode;
 	(*dev)->sender = sock;
+
 	if (ISC_LINK_LINKED(*dev, link))
 		ISC_LIST_DEQUEUE(sock->recv_list, *dev, link);
-	if (detach)
-		ISC_TASK_SENDANDDETACH(taskp, (isc_event_t **)dev);
+
+	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
+	    == ISC_SOCKEVENTATTR_ATTACHED)
+		ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)dev);
 	else
-		ISC_TASK_SEND(*taskp, (isc_event_t **)dev);
+		ISC_TASK_SEND(task, (isc_event_t **)dev);
 }
 
 /*
@@ -1110,10 +1212,6 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 	isc_socketevent_t *dev;
 	isc_socket_t *sock;
 	isc_task_t *task;
-	int cc;
-	size_t read_count;
-	struct msghdr msghdr;
-	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
 
 	(void)me;
 
@@ -1153,119 +1251,34 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		 * continue the loop.
 		 */
 		if (dev->type == ISC_SOCKEVENT_RECVMARK) {
-			send_recvdone_event(sock, &task, &dev,
-					    sock->recv_result, 1);
+			send_recvdone_event(sock, &dev, sock->recv_result);
 			goto next;
 		}
 
-		/*
-		 * It must be a read request.  Try to satisfy it as best
-		 * we can.
-		 */
-		build_msghdr_recv(sock, dev, &msghdr, iov,
-				  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
+		switch (doio_recv(sock, dev)) {
+		case DOIO_SOFT:
+		case DOIO_HARD:
+			goto poke;
+			break;
 
-		cc = recvmsg(sock->fd, &msghdr, 0);
-
-		if (sock->type == isc_sockettype_udp)
-			dev->address.length = msghdr.msg_namelen;
-
-		XTRACE(TRACE_RECV,
-		       ("internal_recv: recvmsg(%d) %d bytes, err %d/%s, from %s\n",
-			sock->fd, cc, errno, strerror(errno),
-			inet_ntoa(dev->address.type.sin.sin_addr)));
-
-		/*
-		 * check for error or block condition
-		 */
-		if (cc < 0) {
-			if (SOFT_ERROR(errno))
-				goto poke;
-
-#define SOFT_OR_HARD(_system, _isc) \
-	if (errno == _system) { \
-		if (sock->connected) { \
-			if (sock->type == isc_sockettype_tcp) \
-				sock->recv_result = _isc; \
-			send_recvdone_event(sock, &task, &dev, _isc, 1); \
-		} \
-		goto next; \
-	}
-
-			SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-			SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-			SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
-#undef SOFT_OR_HARD
-
+		case DOIO_EOF:
 			/*
-			 * This might not be a permanent error.
+			 * read of 0 means the remote end was closed.
+			 * Run through the event queue and dispatch all
+			 * the events with an EOF result code.  This will
+			 *  set the EOF flag in markers as well, but
+			 * that's really ok.
 			 */
-			if (errno == ENOBUFS) {
-				send_recvdone_event(sock, &task, &dev,
-						    ISC_R_NORESOURCES, 1);
-				goto next;
-			}
-
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal read: %s", strerror(errno));
-
-			sock->recv_result = ISC_R_UNEXPECTED;
-			send_recvdone_event(sock, &task, &dev,
-					    ISC_R_UNEXPECTED, 1);
-			goto next;
-		}
-
-		/*
-		 * read of 0 means the remote end was closed.  Run through
-		 * the event queue and dispatch all the events with an EOF
-		 * result code.  This will set the EOF flag in markers as
-		 * well, but that's really ok.
-		 */
-		if ((sock->type == isc_sockettype_tcp) && (cc == 0)) {
-			sock->recv_result = ISC_R_EOF;
 			do {
-				send_recvdone_event(sock, &task, &dev,
-						    ISC_R_EOF, 1);
+				send_recvdone_event(sock, &dev, ISC_R_EOF);
 				dev = ISC_LIST_HEAD(sock->recv_list);
 			} while (dev != NULL);
 			goto poke;
-		}
+			break;
 
-		/*
-		 * if we read less than we expected, update counters,
-		 * poke.
-		 */
-		if ((size_t)cc < read_count) {
-			dev->n += cc;
-
-			process_cmsg(sock, &msghdr, dev);
-
-			/*
-			 * If partial reads are allowed, we return whatever
-			 * was read with a success result, and continue
-			 * the loop.
-			 */
-			if (dev->minimum <= dev->n) {
-				send_recvdone_event(sock, &task, &dev,
-						    ISC_R_SUCCESS, 1);
-				goto next;
-			}
-
-			/*
-			 * Partials not ok.  Exit the loop and notify the
-			 * watcher to wait for more reads
-			 */
-			goto poke;
-		}
-
-		/*
-		 * Exactly what we wanted to read.  We're done with this
-		 * entry.  Post its completion event.
-		 */
-		if ((size_t)cc == read_count) {
-			dev->n += read_count;
-			send_recvdone_event(sock, &task, &dev,
-					    ISC_R_SUCCESS, 1);
+		case DOIO_UNEXPECTED:
+		case DOIO_SUCCESS:
+			break;
 		}
 
 	next:
@@ -1833,11 +1846,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	int cc;
 	isc_boolean_t was_empty;
-	struct msghdr msghdr;
-	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
-	size_t read_count;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1855,8 +1864,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
-	ISC_LINK_INIT(dev, link);
-	ISC_LIST_INIT(dev->bufferlist);
 
 	/*
 	 * UDP sockets are always partial read
@@ -1873,6 +1880,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	dev->result = ISC_R_SUCCESS;
 	dev->n = 0;
 	dev->region = *region;
+	dev->sender = task;
 
 	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 
@@ -1882,93 +1890,27 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (!was_empty)
 		goto queue;
 
-	build_msghdr_recv(sock, dev, &msghdr, iov,
-			  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
-
-	cc = recvmsg(sock->fd, &msghdr, 0);
-	if (sock->type == isc_sockettype_udp)
-		dev->address.length = msghdr.msg_namelen;
-
-
-	XTRACE(TRACE_RECV,
-	       ("isc_socket_recv: recvmsg(%d) %d bytes, err %d/%s, from %s\n",
-		sock->fd, cc, errno, strerror(errno),
-		inet_ntoa(dev->address.type.sin.sin_addr)));
-
-	if (cc < 0) {
-		if (SOFT_ERROR(errno))
-			goto queue;
-
-#define SOFT_OR_HARD(_system, _isc) \
-	if (errno == _system) { \
-		if (sock->connected) { \
-			if (sock->type == isc_sockettype_tcp) \
-				sock->recv_result = _isc; \
-			send_recvdone_event(sock, &task, &dev, _isc, 0); \
-		} \
-		select_poke(sock->manager, sock->fd); \
-		goto out; \
-	}
-
-		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
-#undef SOFT_OR_HARD
-
-		/*
-		 * This might not be a permanent error.
-		 */
-		if (errno == ENOBUFS) {
-			send_recvdone_event(sock, &task, &dev,
-					   ISC_R_UNEXPECTED, 0);
-			goto queue;
-		}
-
-		sock->recv_result = ISC_R_UNEXPECTED;
-		send_recvdone_event(sock, &task, &dev, ISC_R_UNEXPECTED, 0);
-
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
-	}
-
-	/*
-	 * On TCP, zero length reads indicate EOF, while on
-	 * UDP, zero length reads are perfectly valid, although
-	 * strange.
-	 */
-	if ((sock->type == isc_sockettype_tcp) && (cc == 0)) {
-		sock->recv_result = ISC_R_EOF;
-		send_recvdone_event(sock, &task, &dev, ISC_R_EOF, 0);
-
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
-	}
-
-	dev->n = cc;
-
-	/*
-	 * If there are control messages attached, run through them and pull
-	 * out the interesting bits.
-	 *
-	 * Note that for multi-read TCP this isn't as interesting in that
-	 * only the last packet will set some of these, but that is better
-	 * than nothing.
-	 */
-	process_cmsg(sock, &msghdr, dev);
-
-	/*
-	 * Partial reads need to be queued
-	 */
-	if (((size_t)cc != read_count) && (dev->n < dev->minimum))
+	switch (doio_recv(sock, dev)) {
+	case DOIO_SOFT:
 		goto queue;
+		break;
 
-	/*
-	 * full reads are posted, or partials if partials are ok.
-	 */
-	send_recvdone_event(sock, &task, &dev, ISC_R_SUCCESS, 0);
+	case DOIO_HARD:
+		goto out;
+		break;
 
-	UNLOCK(&sock->lock);
-	return (ISC_R_SUCCESS);
+	case DOIO_EOF:
+		send_recvdone_event(sock, &dev, ISC_R_EOF);
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+		break;
+
+	case DOIO_UNEXPECTED:
+	case DOIO_SUCCESS:
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+		break;
+	}
 
  queue:
 	/*
@@ -1979,6 +1921,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	 */
 	isc_task_attach(task, &ntask);
 	dev->sender = ntask;
+	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
 
 	/*
 	 * Enqueue the request.  If the socket was previously not being
@@ -2051,11 +1994,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	build_msghdr_send(sock, dev, &msghdr, iov,
 			  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
-
-	printf("%d: iov[0].iov_len = %d, iov_base = %p\n"
-	       "%d: msghdr.msg_iovlen = %d, write_count = %d\n",
-	       sock->fd, iov[0].iov_len, iov[0].iov_base,
-	       sock->fd, msghdr.msg_iovlen, write_count);
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 
@@ -2586,8 +2524,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 			next = ISC_LIST_NEXT(dev, link);
 
 			if ((task == NULL) || (task == current_task))
-				send_recvdone_event(sock, &current_task, &dev,
-						    ISC_R_CANCELED, 1);
+				send_recvdone_event(sock, &dev,
+						    ISC_R_CANCELED);
 			dev = next;
 		}
 	}
