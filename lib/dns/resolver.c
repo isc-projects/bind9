@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.165 2000/08/17 00:18:08 gson Exp $ */
+/* $Id: resolver.c,v 1.166 2000/08/24 22:15:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
+#include <dns/forward.h>
 #include <dns/keytable.h>
 #include <dns/log.h>
 #include <dns/message.h>
@@ -169,6 +170,7 @@ struct fetchctx {
 	dns_adbfind_t *			find;
 	dns_adbaddrinfolist_t		forwaddrs;
 	isc_sockaddrlist_t		forwarders;
+	dns_fwdpolicy_t			fwdpolicy;
 	isc_sockaddrlist_t		bad;
 	ISC_LIST(dns_validator_t)	validators;
 	/*
@@ -229,8 +231,6 @@ struct dns_resolver {
 	isc_taskmgr_t *			taskmgr;
 	dns_view_t *			view;
 	isc_boolean_t			frozen;
-	isc_sockaddrlist_t		forwarders;
-	dns_fwdpolicy_t			fwdpolicy;
 	unsigned int			options;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatchv4;
@@ -1333,12 +1333,20 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	INSIST(ISC_LIST_EMPTY(fctx->forwaddrs));
 
 	/*
-	 * If this fctx has forwarders, use them; otherwise use the
+	 * If this fctx has forwarders, use them; otherwise use any
+	 * selective forwarders specified in the view; otherwise use the
 	 * resolver's forwarders (if any).
 	 */
 	sa = ISC_LIST_HEAD(fctx->forwarders);
-	if (sa == NULL)
-		sa = ISC_LIST_HEAD(res->forwarders);
+	if (sa == NULL) {
+		dns_forwarders_t *forwarders = NULL;
+		result = dns_fwdtable_find(fctx->res->view->fwdtable,
+					   &fctx->name, &forwarders);
+		if (result == ISC_R_SUCCESS) {
+			sa = ISC_LIST_HEAD(forwarders->addrs);
+			fctx->fwdpolicy = forwarders->fwdpolicy;
+		}
+	}
 
 	while (sa != NULL) {
 		ai = NULL;
@@ -1355,7 +1363,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	 * If the forwarding policy is "only", we don't need the addresses
 	 * of the nameservers.
 	 */
-	if (res->fwdpolicy == dns_fwdpolicy_only)
+	if (fctx->fwdpolicy == dns_fwdpolicy_only)
 		goto out;
 
 	/*
@@ -1976,7 +1984,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	dns_name_init(&fctx->domain, NULL);
 	dns_rdataset_init(&fctx->nameservers);
 	if (domain == NULL) {
-		if (res->fwdpolicy != dns_fwdpolicy_only) {
+		if (fctx->fwdpolicy != dns_fwdpolicy_only) {
 			/*
 			 * The caller didn't supply a query domain and
 			 * nameservers, and we're not in forward-only mode,
@@ -2033,6 +2041,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->forwaddrs);
 	ISC_LIST_INIT(fctx->forwarders);
+	fctx->fwdpolicy = dns_fwdpolicy_none;
 	ISC_LIST_INIT(fctx->bad);
 	ISC_LIST_INIT(fctx->validators);
 	fctx->find = NULL;
@@ -4167,19 +4176,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
  ***/
 
 static void
-free_forwarders(dns_resolver_t *res) {
-	isc_sockaddr_t *sa, *next_sa;
-
-	for (sa = ISC_LIST_HEAD(res->forwarders);
-	     sa != NULL;
-	     sa = next_sa) {
-		next_sa = ISC_LIST_NEXT(sa, link);
-		ISC_LIST_UNLINK(res->forwarders, sa, link);
-		isc_mem_put(res->mctx, sa, sizeof *sa);
-	}
-}
-
-static void
 destroy(dns_resolver_t *res) {
 	unsigned int i;
 
@@ -4202,7 +4198,6 @@ destroy(dns_resolver_t *res) {
 		dns_dispatch_detach(&res->dispatchv4);
 	if (res->dispatchv6 != NULL)
 		dns_dispatch_detach(&res->dispatchv6);
-	free_forwarders(res);
 	res->magic = 0;
 	isc_mem_put(res->mctx, res, sizeof *res);
 }
@@ -4312,12 +4307,6 @@ dns_resolver_create(dns_view_t *view,
 	if (dispatchv6 != NULL)
 		dns_dispatch_attach(dispatchv6, &res->dispatchv6);
 
-	/*
-	 * Forwarding.
-	 */
-	ISC_LIST_INIT(res->forwarders);
-	res->fwdpolicy = dns_fwdpolicy_none;
-
 	res->references = 1;
 	res->exiting = ISC_FALSE;
 	res->frozen = ISC_FALSE;
@@ -4354,55 +4343,6 @@ dns_resolver_create(dns_view_t *view,
 	isc_mem_put(view->mctx, res, sizeof *res);
 
 	return (result);
-}
-
-isc_result_t
-dns_resolver_setforwarders(dns_resolver_t *res,
-			   isc_sockaddrlist_t *forwarders)
-{
-	isc_sockaddr_t *sa, *nsa;
-
-	/*
-	 * Set the default forwarders to be used by the resolver.
-	 */
-
-	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE(!res->frozen);
-	REQUIRE(!ISC_LIST_EMPTY(*forwarders));
-
-	if (!ISC_LIST_EMPTY(res->forwarders))
-		free_forwarders(res);
-
-	for (sa = ISC_LIST_HEAD(*forwarders);
-	     sa != NULL;
-	     sa = ISC_LIST_NEXT(sa, link)) {
-		nsa = isc_mem_get(res->mctx, sizeof *nsa);
-		if (nsa == NULL) {
-			free_forwarders(res);
-			return (ISC_R_NOMEMORY);
-		}
-		/* XXXRTH  Create and use isc_sockaddr_copy(). */
-		*nsa = *sa;
-		ISC_LINK_INIT(nsa, link);
-		ISC_LIST_APPEND(res->forwarders, nsa, link);
-	}
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_resolver_setfwdpolicy(dns_resolver_t *res, dns_fwdpolicy_t fwdpolicy) {
-
-	/*
-	 * Set the default forwarding policy to be used by the resolver.
-	 */
-
-	REQUIRE(VALID_RESOLVER(res));
-	REQUIRE(!res->frozen);
-
-	res->fwdpolicy = fwdpolicy;
-
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -4452,13 +4392,6 @@ dns_resolver_prime(dns_resolver_t *res) {
 	REQUIRE(res->frozen);
 
 	RTRACE("dns_resolver_prime");
-
-	/*
-	 * Forwarding-only resolvers don't need to be
-	 * primed.
-	 */
-	if (res->fwdpolicy == dns_fwdpolicy_only)
-		return;
 
 	LOCK(&res->lock);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.49 2000/08/17 23:45:12 gson Exp $ */
+/* $Id: view.h,v 1.50 2000/08/24 22:15:38 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -96,6 +96,7 @@ struct dns_view {
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
 	dns_peerlist_t *		peers;
+	dns_fwdtable_t *		fwdtable;
 	isc_boolean_t			recursion;
 	isc_boolean_t			auth_nxdomain;
 	isc_boolean_t			additionalfromcache;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.76 2000/08/17 23:54:32 gson Exp $ */
+/* $Id: view.c,v 1.77 2000/08/24 22:15:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/events.h>
+#include <dns/forward.h>
 #include <dns/keytable.h>
 #include <dns/peer.h>
 #include <dns/rdataset.h>
@@ -111,6 +112,15 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_secroots;
 	}
+	view->fwdtable = NULL;
+	result = dns_fwdtable_create(mctx, &view->fwdtable);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "dns_fwdtable_create() failed: %s",
+				 isc_result_totext(result));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_trustedkeys;
+	}
 
 	view->cache = NULL;
 	view->cachedb = NULL;
@@ -131,7 +141,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->matchclients = NULL;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_trustedkeys;
+		goto cleanup_fwdtable;
 	view->peers = NULL;
 
 	/*
@@ -171,6 +181,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_dynkeys:
 	dns_tsigkeyring_destroy(&view->dynamickeys);
+
+ cleanup_fwdtable:
+	dns_fwdtable_destroy(&view->fwdtable);
 
  cleanup_trustedkeys:
 	dns_keytable_detach(&view->trustedkeys);
@@ -233,6 +246,7 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->recursionacl);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
+	dns_fwdtable_destroy(&view->fwdtable);
 	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_put(view->mctx, view, sizeof *view);

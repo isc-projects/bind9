@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.215 2000/08/24 19:02:06 gson Exp $ */
+/* $Id: server.c,v 1.216 2000/08/24 22:15:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <dns/confparser.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/forward.h>
 #include <dns/journal.h>
 #include <dns/keytable.h>
 #include <dns/peer.h>
@@ -106,6 +107,11 @@ static isc_result_t
 ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
 			 dns_aclconfctx_t *actx,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
+
+static isc_result_t
+configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
+		  dns_view_t *view, dns_name_t *origin,
+		  dns_c_iplist_t *forwarders);
 
 /*
  * Configure a single view ACL at '*aclp'.  Get its configuration by
@@ -401,13 +407,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_result_t result;
 	isc_uint32_t cleaning_interval;
 	dns_tsig_keyring_t *ring;
-	dns_c_forw_t forward;
 	dns_c_iplist_t *forwarders;
-	dns_fwdpolicy_t fwdpolicy;
-	isc_sockaddrlist_t addresses;
-	isc_sockaddr_t *sa, *next_sa;
 	dns_view_t *pview = NULL;	/* Production view */
-	unsigned int i;
 	isc_mem_t *cmctx;
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
@@ -415,7 +416,6 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	ISC_LIST_INIT(addresses);
 	cmctx = NULL;
 
 	RWLOCK(&view->conflock, isc_rwlocktype_write);
@@ -508,37 +508,9 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	     dns_c_view_getforwarders(cview, &forwarders) == ISC_R_SUCCESS) ||
 	    (dns_c_ctx_getforwarders(cctx, &forwarders) == ISC_R_SUCCESS))
 	{
-		fwdpolicy = dns_fwdpolicy_first;
-		/*
-		 * Ugh.  Convert between list formats.
-		 */
-		for (i = 0; i < forwarders->nextidx; i++) {
-			sa = isc_mem_get(view->mctx, sizeof *sa);
-			if (sa == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
-			*sa = forwarders->ips[i];
-			isc_sockaddr_setport(sa, port);
-			ISC_LINK_INIT(sa, link);
-			ISC_LIST_APPEND(addresses, sa, link);
-		}
-		INSIST(!ISC_LIST_EMPTY(addresses));
+		result = configure_forward(cctx, NULL, cview, view,
+					   dns_rootname, forwarders);
 		dns_c_iplist_detach(&forwarders);
-		CHECK(dns_resolver_setforwarders(view->resolver, &addresses));
-		/*
-		 * XXXRTH  The configuration type 'dns_c_forw_t' should be
-		 *         eliminated.
-		 */
-		if ((cview != NULL &&
-		     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS)
-		    || dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS) {
-			INSIST(forward == dns_c_forw_first ||
-			       forward == dns_c_forw_only);
-			if (forward == dns_c_forw_only)
-				fwdpolicy = dns_fwdpolicy_only;
-		}
-		CHECK(dns_resolver_setfwdpolicy(view->resolver, fwdpolicy));
 	}
 
 	/*
@@ -703,13 +675,6 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
-
-	for (sa = ISC_LIST_HEAD(addresses);
-	     sa != NULL;
-	     sa = next_sa) {
-		next_sa = ISC_LIST_NEXT(sa, link);
-		isc_mem_put(view->mctx, sa, sizeof *sa);
-	}
 
 	if (cmctx != NULL)
 		isc_mem_detach(&cmctx);
@@ -931,6 +896,74 @@ configure_hints(dns_view_t *view, const char *filename) {
 	return (result);
 }
 
+static isc_result_t
+configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
+		  dns_view_t *view, dns_name_t *origin,
+		  dns_c_iplist_t *forwarders)
+{
+	dns_c_forw_t forward;
+	dns_fwdpolicy_t fwdpolicy;
+	isc_sockaddrlist_t addresses;
+	isc_sockaddr_t *sa;
+	isc_result_t result;
+	in_port_t port;
+	unsigned int i;
+
+	result = dns_c_ctx_getport(cctx, &port);
+	if (result != ISC_R_SUCCESS)
+		port = 53;
+
+	ISC_LIST_INIT(addresses);
+
+	if (forwarders != NULL) {
+		for (i = 0; i < forwarders->nextidx; i++) {
+			sa = isc_mem_get(view->mctx, sizeof(isc_sockaddr_t));
+			if (sa == NULL) {
+				result = ISC_R_NOMEMORY;
+				goto cleanup;
+			}
+			*sa = forwarders->ips[i];
+			isc_sockaddr_setport(sa, port);
+			ISC_LINK_INIT(sa, link);
+			ISC_LIST_APPEND(addresses, sa, link);
+		}
+	}
+
+	if (ISC_LIST_EMPTY(addresses))
+		fwdpolicy = dns_fwdpolicy_none;
+	else
+		fwdpolicy = dns_fwdpolicy_first;
+
+	if ((czone != NULL &&
+	     dns_c_zone_getforward(czone, &forward) == ISC_R_SUCCESS) ||
+	    (cview != NULL &&
+	     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
+	    dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS)
+	{
+		INSIST(forward == dns_c_forw_first ||
+		       forward == dns_c_forw_only);
+		if (forward == dns_c_forw_only)
+			fwdpolicy = dns_fwdpolicy_only;
+	}
+
+	result = dns_fwdtable_add(view->fwdtable, origin, &addresses,
+				  fwdpolicy);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+
+	while (!ISC_LIST_EMPTY(addresses)) {
+		sa = ISC_LIST_HEAD(addresses);
+		ISC_LIST_UNLINK(addresses, sa, link);
+		isc_mem_put(view->mctx, sa, sizeof(isc_sockaddr_t));
+	}
+
+	return (result);
+}
+
 /*
  * Find an existing view matching the name and class of 'cview'
  * in 'viewlist', or create a new one and add it to the list.
@@ -1064,16 +1097,12 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	}
 
 	/*
-	 * "forward zones" aren't zones either.  Eventually we'll
-	 * translate this syntax into the appropriate selective forwarding
-	 * configuration.
+	 * "forward zones" aren't zones either.  Translate this syntax into
+	 * the appropriate selective forwarding configuration and return.
 	 */
 	if (czone->ztype == dns_c_zone_forward) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-      "forward zone '%s': forward zones are not supported in this release",
-			      corigin);
-		result = ISC_R_SUCCESS;
+		result = configure_forward(cctx, czone, cview, view, origin,
+					   czone->u.fzone.forwarders);
 		goto cleanup;
 	}
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.31 2000/08/01 01:24:39 tale Exp $ */
+/* $Id: resolver.h,v 1.32 2000/08/24 22:15:36 bwelling Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -141,40 +141,6 @@ dns_resolver_create(dns_view_t *view,
  *	Anything else				Failure.
  */
 
-isc_result_t
-dns_resolver_setforwarders(dns_resolver_t *res,
-			   isc_sockaddrlist_t *forwarders);
-/*
- * Set the default forwarders to be used by the resolver.
- *
- * Requires:
- *
- *	'res' is a valid, unfrozen resolver.
- *
- *	'forwarders' is a valid nonempty list.
- *
- * Returns:
- *
- *	ISC_R_SUCCESS
- *	ISC_R_NOMEMORY
- */
-
-isc_result_t
-dns_resolver_setfwdpolicy(dns_resolver_t *res, dns_fwdpolicy_t fwdpolicy);
-/*
- * Set the default forwarding policy to be used by the resolver.
- *
- * Requires:
- *
- *	'res' is a valid, unfrozen resolver.
- *
- *	'fwdpolicy' is a valid dns_fwdpolicy_t.
- *
- * Returns:
- *
- *	ISC_R_SUCCESS
- */
-
 void
 dns_resolver_freeze(dns_resolver_t *res);
 /*
@@ -182,9 +148,8 @@ dns_resolver_freeze(dns_resolver_t *res);
  *
  * Notes:
  *
- *	Certain configuration changes, e.g. setting forwarders,
- *	cannot be made after the resolver is frozen.  Fetches
- *	cannot be created until the resolver is frozen.
+ *	Certain configuration changes cannot be made after the resolver
+ *	is frozen.  Fetches cannot be created until the resolver is frozen.
  *
  * Requires:
  *

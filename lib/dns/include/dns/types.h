@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.92 2000/08/15 03:33:52 marka Exp $ */
+/* $Id: types.h,v 1.93 2000/08/24 22:15:37 bwelling Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -59,6 +59,7 @@ typedef struct dns_dispentry			dns_dispentry_t;
 typedef struct dns_fetch			dns_fetch_t;
 typedef struct dns_fixedname			dns_fixedname_t;
 typedef struct dns_forwarders			dns_forwarders_t;
+typedef struct dns_fwdtable			dns_fwdtable_t;
 typedef isc_uint16_t				dns_keyflags_t;
 typedef struct dns_keynode			dns_keynode_t;
 typedef struct dns_keytable			dns_keytable_t;

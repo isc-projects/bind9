@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.13 2000/08/01 01:11:50 tale Exp $ */
+/* $Id: lwresd.c,v 1.14 2000/08/24 22:15:26 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -40,6 +40,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/forward.h>
 #include <dns/log.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
@@ -268,14 +269,16 @@ ns_lwresd_createview(ns_lwresd_t *lwresd, dns_view_t **viewp) {
 	if (ISC_LIST_HEAD(forwarders) != NULL) {
 		isc_sockaddr_t *sa;
 
-		dns_resolver_setforwarders(view->resolver, &forwarders);
-		dns_resolver_setfwdpolicy(view->resolver, dns_fwdpolicy_only);
+		result = dns_fwdtable_add(view->fwdtable, dns_rootname,
+					  &forwarders, dns_fwdpolicy_only);
 		sa = ISC_LIST_HEAD(forwarders);
 		while (sa != NULL) {
 			ISC_LIST_UNLINK(forwarders, sa, link);
 			isc_mem_put(lwresd->mctx, sa, sizeof (*sa));
 			sa = ISC_LIST_HEAD(forwarders);
 		}
+		if (result != ISC_R_SUCCESS)
+			goto out;
 	}
 
 	dns_view_freeze(view);

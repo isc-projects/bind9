@@ -1,4 +1,6 @@
 
+ 405.	[func]		Add support for selective forwarding (forward zones)
+
  404.	[bug]		The request library didn't completely work with IPv6.
 
  403.	[bug]		"host" did not use the search list.
