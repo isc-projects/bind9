@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.37 2001/01/09 21:59:55 bwelling Exp $ */
+/* $Id: connection.c,v 1.38 2001/02/06 22:54:27 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -416,8 +416,9 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	 * Check the validity of the assumption that partial
 	 * writes are not done.
 	 */
-	INSIST(sent_bytes == connection->out_bytes &&
-	       sent_bytes == isc_bufferlist_usedcount(&bufferlist));
+	if (socketevent->result == ISC_R_SUCCESS)
+		INSIST(sent_bytes == connection->out_bytes &&
+		       sent_bytes == isc_bufferlist_usedcount(&bufferlist));
 
 	/*
 	 * Acquire the wait_lock before proceeding, to guarantee that
