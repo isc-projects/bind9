@@ -1,4 +1,6 @@
 
+ 403.	[bug]		"host" did not use the search list.
+
  402.	[bug]		Treat undefined acls as errors, rather than
 			warning and then later throwing an assertion.
 			[RT #252]

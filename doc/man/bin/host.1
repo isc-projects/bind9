@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: host.1,v 1.4 2000/08/15 20:11:54 gson Exp $
+.\" $Id: host.1,v 1.5 2000/08/22 17:02:49 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt HOST 1
@@ -114,19 +114,17 @@ The
 .Fl N
 option sets the number of dots that have to be in
 .Ar name
-before the root name servers are queried for that name.
-The default number of dots is zero.
-Unlike previous versions of
-.Nm host ,
-the BIND9 implementation does not append domain names from the
-.Dv domain
-or
+for it to be considered absolute.  The default value is that
+defined using the ndots statement in
+.Pa /etc/resolv.conf ,
+or 1 if no ndots statement is present.  Names with fewer
+dots are interpreted as relative names and will be searched 
+for in the domains listed in the 
 .Dv search
-directives in
+or
+.Dv domain
+directive in
 .Pa /etc/resolv.conf .
-Therefore
-.Ar name
-should be a fully-qualified domain name.
 .Pp
 The number of UDP retries for a lookup can be changed with the
 .Fl R

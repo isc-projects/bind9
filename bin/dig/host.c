@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.49 2000/08/22 16:44:46 gson Exp $ */
+/* $Id: host.c,v 1.50 2000/08/22 17:02:48 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -50,6 +50,7 @@ extern unsigned int timeout;
 extern isc_mem_t *mctx;
 extern int ndots;
 extern int tries;
+extern isc_boolean_t usesearch;
 extern int lookup_counter;
 extern char *progname;
 extern isc_task_t *global_task;
@@ -673,6 +674,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 	lookup->new_search = ISC_TRUE;
 	ISC_LIST_APPEND(lookup_list, lookup, link);
+
+	usesearch = ISC_TRUE;
 }
 
 int
