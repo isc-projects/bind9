@@ -57,7 +57,6 @@ struct dns_fetch {
 	unsigned int			magic;
 	dns_resolver_t *		res;
 	void *				private;
-	unsigned int			tag;
 	ISC_LINK(struct dns_fetch)	link;
 };
 
