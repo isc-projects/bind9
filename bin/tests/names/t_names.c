@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.25 2000/06/22 21:51:14 tale Exp $ */
+/* $Id: t_names.c,v 1.26 2000/07/14 22:21:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2235,6 +2235,8 @@ t_dns_name_fromwire_x(const char *testfile, size_t buflen) {
 					exp_result = DNS_R_TOOMANYHOPS;
 				else if (! strcmp(tok, "DNS_R_DISALLOWED"))
 					exp_result = DNS_R_DISALLOWED;
+				else if (! strcmp(tok, "DNS_R_NAMETOOLONG"))
+					exp_result = DNS_R_NAMETOOLONG;
 
 				tok = Tokens[3];
 				dc_method = DNS_COMPRESS_NONE;
