@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.104 2000/09/26 23:25:48 bwelling Exp $
+# $Id: Makefile.in,v 1.105 2000/09/28 20:29:22 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -107,7 +107,7 @@ OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 
 OTHERSRCS =	
 #ifndef NOMINUM_PUBLIC
-OTHERSRCS =	sdb.@O@
+OTHERSRCS =	sdb.c
 #endif /* NOMINUM_PUBLIC */
 
 
