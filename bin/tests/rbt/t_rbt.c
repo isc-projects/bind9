@@ -47,7 +47,8 @@ static char	*fixedname_totext(dns_fixedname_t *name);
 static int	fixedname_cmp(dns_fixedname_t *dns_name, char *txtname);
 static char	*dnsname_totext(dns_name_t *name);
 static int	t_namechk(dns_result_t dns_result, dns_fixedname_t *dns_name, char *exp_name,
-				dns_fixedname_t *dns_origin, char *exp_origin);
+			  dns_fixedname_t *dns_origin, char *exp_origin,
+			  dns_result_t exp_result);
 
 /* parts adapted from the original rbt_test.c */
 
@@ -680,8 +681,9 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 
 static int
 t_namechk(dns_result_t dns_result, dns_fixedname_t *dns_name, char *exp_name,
-		dns_fixedname_t *dns_origin, char *exp_origin) {
-
+	  dns_fixedname_t *dns_origin, char *exp_origin,
+	  dns_result_t exp_result)
+{
 	int	nfails;
 
 	nfails = 0;
@@ -693,15 +695,14 @@ t_namechk(dns_result_t dns_result, dns_fixedname_t *dns_name, char *exp_name,
 	}
 	if (exp_origin != NULL) {
 		t_info("checking for DNS_R_NEWORIGIN\n");
-		if (dns_result == DNS_R_NEWORIGIN) {
+		if (dns_result == exp_result) {
 			if (fixedname_cmp(dns_origin, exp_origin)) {
-				t_info("\tnew origin %s, expected %s\n",
-					fixedname_totext(dns_origin),
-					exp_origin);
+				t_info("\torigin %s, expected %s\n",
+				       fixedname_totext(dns_origin),
+				       exp_origin);
 				++nfails;
 			}
-		}
-		else {
+		} else {
 			t_info("\tgot %s\n", dns_result_totext(dns_result));
 			++nfails;
 		}
@@ -776,6 +777,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	}
 
 	/* set the starting node */
+	node = NULL;
 	dns_result = dns_rbt_findnode(rbt, dns_fixedname_name(&dns_findname),
 					dns_fixedname_name(&dns_foundname),
 					&node, &chain, ISC_TRUE, NULL, NULL);
@@ -797,7 +799,8 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 				dns_result_totext(dns_result));
 	}
 
-	nfails += t_namechk(dns_result, &dns_nextname, nextname, &dns_origin, nextorigin);
+	nfails += t_namechk(dns_result, &dns_nextname, nextname, &dns_origin, nextorigin,
+			    DNS_R_NEWORIGIN);
 
 	/* set the starting node again */
 	node = NULL;
@@ -823,7 +826,8 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 		t_info("dns_rbtnodechain_prev unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
-	nfails += t_namechk(dns_result, &dns_prevname, prevname, &dns_origin, prevorigin);
+	nfails += t_namechk(dns_result, &dns_prevname, prevname, &dns_origin, prevorigin,
+			    DNS_R_NEWORIGIN);
 
 
 	/* check first */
@@ -837,7 +841,8 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 		t_info("dns_rbtnodechain_first unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
-	nfails += t_namechk(dns_result, &dns_firstname, firstname, &dns_origin, firstorigin);
+	nfails += t_namechk(dns_result, &dns_firstname, firstname, &dns_origin, firstorigin,
+			    DNS_R_NEWORIGIN);
 
 
 	/* check last */
@@ -850,7 +855,8 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 		t_info("dns_rbtnodechain_last unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
-	nfails += t_namechk(dns_result, &dns_lastname, lastname, &dns_origin, lastorigin);
+	nfails += t_namechk(dns_result, &dns_lastname, lastname, &dns_origin, lastorigin,
+			    DNS_R_NEWORIGIN);
 
 	/* check node ordering */
 	t_info("checking node ordering\n");
@@ -960,6 +966,7 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 	dns_result_t		dns_result;
 	dns_fixedname_t		dns_name;
 	dns_fixedname_t		dns_origin;
+	dns_result_t		expected_result;
 
 	result = T_UNRESOLVED;
 
@@ -995,10 +1002,10 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 		t_info("dns_rbtnodechain_first unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
-	nfails = t_namechk(dns_result, &dns_name, expected_firstname, &dns_origin, expected_firstorigin);
+	nfails = t_namechk(dns_result, &dns_name, expected_firstname,
+			   &dns_origin, expected_firstorigin, DNS_R_NEWORIGIN);
 
 	dns_fixedname_init(&dns_name);
-	dns_fixedname_init(&dns_origin);
 	dns_result = dns_rbtnodechain_next(&chain,
 			dns_fixedname_name(&dns_name),
 			dns_fixedname_name(&dns_origin));
@@ -1010,7 +1017,12 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 		t_info("dns_rbtnodechain_next unexpectedly returned %s\n",
 				dns_result_totext(dns_result));
 	}
-	nfails += t_namechk(dns_result, &dns_name, expected_nextname, &dns_origin, expected_nextorigin);
+	if (strcasecmp(expected_firstorigin, expected_nextorigin) == 0)
+		expected_result = DNS_R_SUCCESS;
+	else
+		expected_result = DNS_R_NEWORIGIN;
+	nfails += t_namechk(dns_result, &dns_name, expected_nextname,
+			    &dns_origin, expected_nextorigin, expected_result);
 
 	if (nfails)
 		result = T_FAIL;
@@ -1116,6 +1128,7 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 	dns_result_t		dns_result;
 	dns_fixedname_t		dns_name;
 	dns_fixedname_t		dns_origin;
+	dns_result_t		expected_result;
 
 	result = T_UNRESOLVED;
 
@@ -1150,12 +1163,12 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 		t_info("dns_rbtnodechain_last unexpectedly returned %s\n",
 			dns_result_totext(dns_result));
 	}
-	nfails = t_namechk(dns_result, &dns_name, expected_lastname, &dns_origin, expected_lastorigin);
+	nfails = t_namechk(dns_result, &dns_name, expected_lastname, &dns_origin, expected_lastorigin,
+			   DNS_R_NEWORIGIN);
 
 	t_info("testing for previous name of %s, origin of %s\n", expected_prevname, expected_prevorigin);
 
 	dns_fixedname_init(&dns_name);
-	dns_fixedname_init(&dns_origin);
 	dns_result = dns_rbtnodechain_prev(&chain,
 			dns_fixedname_name(&dns_name),
 			dns_fixedname_name(&dns_origin));
@@ -1164,7 +1177,12 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 		t_info("dns_rbtnodechain_prev unexpectedly returned %s\n",
 			dns_result_totext(dns_result));
 	}
-	nfails += t_namechk(dns_result, &dns_name, expected_prevname, &dns_origin, expected_prevorigin);
+	if (strcasecmp(expected_lastorigin, expected_prevorigin) == 0)
+		expected_result = DNS_R_SUCCESS;
+	else
+		expected_result = DNS_R_NEWORIGIN;
+	nfails += t_namechk(dns_result, &dns_name, expected_prevname,
+			    &dns_origin, expected_prevorigin, expected_result);
 
 	if (nfails)
 		result = T_FAIL;
@@ -1313,6 +1331,7 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	}
 
 	/* set the starting node */
+	node = NULL;
 	dns_result = dns_rbt_findnode(rbt, dns_fixedname_name(&dns_findname),
 					dns_fixedname_name(&dns_foundname),
 					&node, &chain, ISC_TRUE, NULL, NULL);
@@ -1334,7 +1353,8 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 				dns_result_totext(dns_result));
 	}
 
-	nfails += t_namechk(dns_result, &dns_nextname, nextname, &dns_origin, nextorigin);
+	nfails += t_namechk(dns_result, &dns_nextname, nextname, &dns_origin, nextorigin,
+			    DNS_R_NEWORIGIN);
 
 	if (nfails)
 		result = T_FAIL;
@@ -1504,7 +1524,8 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 				dns_result_totext(dns_result));
 	}
 
-	nfails += t_namechk(dns_result, &dns_prevname, prevname, &dns_origin, prevorigin);
+	nfails += t_namechk(dns_result, &dns_prevname, prevname, &dns_origin, prevorigin,
+			    DNS_R_NEWORIGIN);
 
 	if (nfails)
 		result = T_FAIL;

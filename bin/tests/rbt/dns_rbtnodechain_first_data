@@ -3,5 +3,5 @@
 #
 # format is: <dbfile> <findnode> <next> <nextorigin> <prev> <prevorigin>  <first> <firstorigin> <last> <lastorigin>
 #
-dns_rbtnodechain_first_1.data	.	.	.	.
+dns_rbtnodechain_first_1.data	.	.	com	.
 dns_rbtnodechain_first_2.data	.	.	vix.com	.
