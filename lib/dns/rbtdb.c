@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.6 2003/10/14 03:48:02 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.7 2003/10/17 05:37:20 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -394,7 +394,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 
 static inline void
 maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
-	isc_boolean_t want_free = ISC_TRUE;
+	isc_boolean_t want_free = ISC_FALSE;
 	unsigned int i;
 	unsigned int inactive = 0;
 
