@@ -155,6 +155,7 @@ Building
 		Slackware Linux 7.0.1 with glibc 2.1.3
 		OpenBSD 2.6, 2.8, -current
 		UnixWare 7.1.1
+		HP-UX 10.20
 
 	To build, just
 
