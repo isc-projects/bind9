@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.19 2000/06/23 20:52:31 bwelling Exp $
+# $Id: Makefile.in,v 1.20 2000/06/23 21:19:05 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -38,6 +38,9 @@ distclean::
 	rm -f isc-config.sh
 
 cleandir: distclean
+
+install:: isc-config.sh
+	${INSTALL_PROGRAM} isc-config.sh ${DESTDIR}${bindir}
 
 kit: kitclean
 	mkdir bind-${VERSION}
