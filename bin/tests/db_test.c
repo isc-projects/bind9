@@ -742,6 +742,10 @@ main(int argc, char *argv[]) {
 				dns_db_detach(&db);
 			}
 			continue;
+		case DNS_R_NXDOMAIN:
+			if (dns_rdataset_isassociated(&rdataset))
+				break;
+			/* FALLTHROUGH */
 		default:
 			if (dbi == NULL)
 				dns_db_detach(&db);
