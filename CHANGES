@@ -1,4 +1,8 @@
 
+1001.	[bug]		win32 socket code doio_recv was not catching a
+			WSACONNRESET error when a client was timing out
+			the request and closing its socket. [RT #1745]
+
 	--- 9.2.0rc3 released ---
 
  990.	[bug]		The rndc-confgen man page was not installed.
