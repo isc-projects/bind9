@@ -63,7 +63,7 @@ Building
 		AIX 4.3
 		COMPAQ Tru64 UNIX 4.0D
                 COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
-		FreeBSD 3.4-STABLE
+		FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1
 		HP-UX 11
 		IRIX64 6.5
 		NetBSD-current (with unproven-pthreads-0.17)
