@@ -550,6 +550,9 @@ dns_view_dumpdbtostream
 dns_view_flushcache
 dns_view_isdelegationonly
 dns_view_adddelegationonly
+dns_view_excludedelegationonly
+dns_view_setrootdelonly
+dns_view_getrootdelonly
 dns_xfrin_create
 dns_xfrin_shutdown
 dns_xfrin_detach

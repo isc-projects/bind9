@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.21 2003/09/17 05:20:04 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.22 2003/09/19 13:41:36 marka Exp $ */
 
 #include <config.h>
 
@@ -855,6 +855,17 @@ options_clauses[] = {
 	{ NULL, NULL, 0 }
 };
 
+
+static cfg_type_t cfg_type_namelist = {
+	"namelist", parse_bracketed_list, print_bracketed_list,
+	&cfg_rep_list, &cfg_type_qstring };
+
+static keyword_type_t exclude_kw = { "exclude", &cfg_type_namelist };
+
+static cfg_type_t cfg_type_optional_exclude = {
+	"optional_exclude", parse_optional_keyvalue, print_keyvalue,
+	&cfg_rep_list, &exclude_kw };
+
 /*
  * Clauses that can be found within the 'view' statement,
  * with defaults in the 'options' statement.
@@ -891,6 +902,7 @@ view_clauses[] = {
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
+	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ NULL, NULL, 0 }
 };
 
