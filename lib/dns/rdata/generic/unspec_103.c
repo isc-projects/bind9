@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.28 2001/07/16 03:06:35 marka Exp $ */
+/* $Id: unspec_103.c,v 1.28.2.1 2001/09/11 01:09:07 gson Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -77,7 +77,7 @@ compare_unspec(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
-	REQUIRE(rdata1->type == rdata1->type);
+	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 103);
 
