@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.26 2000/11/06 08:11:05 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.27 2000/11/06 19:45:52 bwelling Exp $ -->
 
 <book>
 
@@ -2813,9 +2813,7 @@ If not specified, the default is to allow transfers from all hosts.</para></entr
 <entry colname = "1"><para><command>blackhole</command></para></entry>
 <entry colname = "2"><para>Specifies a list of addresses that the
 server will not accept queries from or use to resolve a query. Queries
-from these addresses will not be responded to. The default is <userinput>none</userinput>.</para>
-<note>
-                      <simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+from these addresses will not be responded to. The default is <userinput>none</userinput>.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable></para></sect3>
@@ -3380,9 +3378,6 @@ to be associated with a remote nameserver.</para>
 <para>If you discover that a remote server is giving out bad data,
 marking it as bogus will prevent further queries to it. The default
 value of <command>bogus</command> is <command>no</command>.</para>
-      <note>
-        <simpara>The <command>bogus</command> clause
-is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
 <para>The <command>provide-ixfr</command> clause determines whether
 the local server, acting as master, will respond with an incremental
 zone transfer when the given remote server, a slave, requests it.
@@ -3611,9 +3606,7 @@ if you want to use this type of zone to change the behavior of the
 global <command>forward</command> option (that is, "forward first
 to", then "forward only", or vice versa, but want to use the same
 servers as set globally) you need to respecify the global forwarders.</para>
-<note>
-                <simpara>Domain-specific
-forwarding is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>hint</varname></para></entry>
@@ -3709,16 +3702,14 @@ The default is the empty list.</para></entry>
 list. The <command>only</command> value causes the lookup to fail
 after trying the forwarders and getting no answer, while <command>first</command> would
 allow a normal lookup to be tried.</para>
-<note>
-                    <simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>forwarders</command></para></entry>
 <entry colname = "2"><para>Used to override the list of global forwarders.
 If it is not specified in a zone of type <command>forward</command>,
-no forwarding is done for the zone; the global options are not used.</para><note>
-<para>Not
-yet implemented in <acronym>BIND</acronym> 9.</para></note></entry>
+no forwarding is done for the zone; the global options are not used.</para>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>ixfr-base</command></para></entry>
