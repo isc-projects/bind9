@@ -508,6 +508,39 @@ fctx_addopt(dns_message_t *message) {
 	return (dns_message_setopt(message, rdataset));
 }
 
+static inline void
+fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
+	unsigned int seconds;
+
+	/*
+	 * We retry every 2 seconds the first two times through the address
+	 * list, and then we do exponential back-off.
+	 */
+	if (fctx->restarts < 3)
+		seconds = 2;
+	else
+		seconds = (2 << (fctx->restarts - 1));
+
+	/*
+	 * Double the round-trip time and convert to seconds.
+	 */
+	rtt /= 500000;
+	
+	/*
+	 * Always wait for at least the doubled round-trip time.
+	 */
+	if (seconds < rtt)
+		seconds = rtt;
+
+	/*
+	 * But don't ever wait for more than 30 seconds.
+	 */
+	if (seconds > 30)
+		seconds = 30;
+
+	isc_interval_set(&fctx->interval, seconds, 0);
+}
+
 static isc_result_t
 fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	   unsigned int options)
@@ -523,6 +556,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	res = fctx->res;
 	task = res->buckets[fctx->bucketnum].task;
 
+	fctx_setretryinterval(fctx, addrinfo->srtt);
 	result = fctx_starttimer(fctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -1495,7 +1529,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Compute an expiration time for the entire fetch.
 	 */
-	isc_interval_set(&interval, 30, 0);		/* XXXRTH constant */
+	isc_interval_set(&interval, 90, 0);		/* XXXRTH constant */
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1506,10 +1540,11 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	}
 
 	/*
-	 * XXX Retry interval initialization.  Should be setup by the
-	 * transmission strategy routine (when we have one).
+	 * Default retry interval initialization.  We set the interval now
+	 * mostly so it won't be uninitialized.  It will be set to the
+	 * correct value before a query is issued.
 	 */
-	isc_interval_set(&fctx->interval, 1, 500000000);
+	isc_interval_set(&fctx->interval, 2, 0);
 
 	/*
 	 * Create an inactive timer.  It will be made active when the fetch
@@ -2937,6 +2972,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Cancel the query.
+	 *
+	 * XXXRTH  Don't cancel the query if waiting for validation?
 	 */
 	fctx_cancelquery(&query, &devent, finish, ISC_FALSE);
 
