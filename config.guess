@@ -118,10 +118,10 @@ if (test -f /.attbin/uname) >/dev/null 2>&1 ; then
 	PATH=$PATH:/.attbin ; export PATH
 fi
 
-UNAME_MACHINE=`(uname -m) 2>/dev/null` || UNAME_MACHINE=unknown
-UNAME_RELEASE=`(uname -r) 2>/dev/null` || UNAME_RELEASE=unknown
-UNAME_SYSTEM=`(uname -s) 2>/dev/null`  || UNAME_SYSTEM=unknown
-UNAME_VERSION=`(uname -v) 2>/dev/null` || UNAME_VERSION=unknown
+UNAME_MACHINE=i386
+UNAME_RELEASE=5
+UNAME_SYSTEM=OpenUNIX
+UNAME_VERSION=8.0.0
 
 # Note: order is significant - the case branches are not exclusive.
 
