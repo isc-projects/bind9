@@ -1,3 +1,6 @@
+1737.	[bug]		named failed if more that 16 masters were specified.
+			[RT #12627]
+
 1736.	[bug]		dst_key_fromnamedfile() could fail to read a
 			public key. [RT #12687]
 			
