@@ -1,3 +1,5 @@
+ 898.	[bug]		"dig" failed to set a nonzero exit status
+ 			on UDP query timeout. [RT #1323]
 
  894.	[bug]		When using the DNSSEC tools, a message intended to warn
 			when the keyboard was being used because of the lack
