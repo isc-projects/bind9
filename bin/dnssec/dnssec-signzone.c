@@ -661,7 +661,7 @@ loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 	dns_dbnode_t *node;
 	isc_result_t result;
 	dst_key_t *keys[20];
-	int nkeys, i;
+	unsigned int nkeys, i;
 
 	origin = dns_db_origin(db);
 
