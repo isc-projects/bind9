@@ -1,12 +1,11 @@
 
-
 IPSECKEY WG                                                M. Richardson
 Internet-Draft                                                       SSW
-Expires: March 4, 2004                                 September 4, 2003
+Expires: June 14, 2004                                 December 15, 2003
 
 
-           A method for storing IPsec keying material in DNS.
-                     draft-ietf-ipseckey-rr-07.txt
+           A Method for Storing IPsec Keying Material in DNS
+                     draft-ietf-ipseckey-rr-08.txt
 
 Status of this Memo
 
@@ -29,7 +28,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 4, 2004.
+   This Internet-Draft will expire on June 14, 2004.
 
 Copyright Notice
 
@@ -38,7 +37,10 @@ Copyright Notice
 Abstract
 
    This document describes a new resource record for DNS.  This record
-   may be used to store public keys for use in IPsec systems.
+   may be used to store public keys for use in IPsec systems.  The
+   record also includes provisions for indicating what IP address (v4 or
+   v6) should be contacted when establishing an IPsec tunnel with the
+   entity in question.
 
    This record replaces the functionality of the sub-type #1 of the KEY
    Resource Record, which has been obsoleted by RFC3445.
@@ -49,12 +51,9 @@ Abstract
 
 
 
-
-
-
-Richardson                Expires March 4, 2004                 [Page 1]
+Richardson                Expires June 14, 2004                 [Page 1]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 Table of Contents
@@ -65,8 +64,8 @@ Table of Contents
    2.  Storage formats  . . . . . . . . . . . . . . . . . . . . . . .  4
    2.1 IPSECKEY RDATA format  . . . . . . . . . . . . . . . . . . . .  4
    2.2 RDATA format - precedence  . . . . . . . . . . . . . . . . . .  4
-   2.3 RDATA format - algorithm type  . . . . . . . . . . . . . . . .  4
-   2.4 RDATA format - gateway type  . . . . . . . . . . . . . . . . .  4
+   2.3 RDATA format - gateway type  . . . . . . . . . . . . . . . . .  4
+   2.4 RDATA format - algorithm type  . . . . . . . . . . . . . . . .  5
    2.5 RDATA format - gateway . . . . . . . . . . . . . . . . . . . .  5
    2.6 RDATA format - public keys . . . . . . . . . . . . . . . . . .  5
    3.  Presentation formats . . . . . . . . . . . . . . . . . . . . .  7
@@ -75,11 +74,12 @@ Table of Contents
    4.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
    4.1 Active attacks against unsecured IPSECKEY resource records . .  9
    5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 11
-   6.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 12
-       Normative references . . . . . . . . . . . . . . . . . . . . . 13
-       Non-normative references . . . . . . . . . . . . . . . . . . . 14
-       Author's Address . . . . . . . . . . . . . . . . . . . . . . . 14
-       Full Copyright Statement . . . . . . . . . . . . . . . . . . . 15
+   6.  Intellectual Property Claims . . . . . . . . . . . . . . . . . 12
+   7.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 13
+       Normative references . . . . . . . . . . . . . . . . . . . . . 14
+       Non-normative references . . . . . . . . . . . . . . . . . . . 15
+       Author's Address . . . . . . . . . . . . . . . . . . . . . . . 15
+       Full Copyright Statement . . . . . . . . . . . . . . . . . . . 16
 
 
 
@@ -107,13 +107,23 @@ Table of Contents
 
 
 
-
-Richardson                Expires March 4, 2004                 [Page 2]
+Richardson                Expires June 14, 2004                 [Page 2]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 1. Introduction
+
+   It postulated that there is an end system desiring to establish an
+   IPsec tunnel with some remote entity on the network.  This system,
+   having only a DNS name of some kind (forward, reverse or even
+   user@FQDN) needs a public key to authenticate the remote entity.  It
+   also desires some guidance about whether to contact the entity
+   directly, or whether to contact another entity, as the gateway to
+   that desired entity.
+
+   The IPSECKEY RR provides a storage mechanism for such items as the
+   public key, and the gateway information.
 
    The type number for the IPSECKEY RR is TBD.
 
@@ -126,7 +136,7 @@ Internet-Draft                   ipsecrr                  September 2003
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in RFC2119 [8].
+   document are to be interpreted as described in RFC2119 [7].
 
 1.2 Usage Criteria
 
@@ -153,28 +163,18 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-Richardson                Expires March 4, 2004                 [Page 3]
+Richardson                Expires June 14, 2004                 [Page 3]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 2. Storage formats
 
 2.1 IPSECKEY RDATA format
 
-   The RDATA for an IPSECKEY RR consists of a precedence value, a public
-   key, algorithm type, and an optional gateway address.
+   The RDATA for an IPSECKEY RR consists of a precedence value, a
+   gateway type, a public key, algorithm type, and an optional gateway
+   address.
 
        0                   1                   2                   3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -199,31 +199,10 @@ Internet-Draft                   ipsecrr                  September 2003
    attempted first.  Where there is a tie in precedence, the order
    should be non-deterministic.
 
-2.3 RDATA format - algorithm type
-
-   The algorithm type field identifies the public key's cryptographic
-   algorithm and determines the format of the public key field.
-
-   A value of 0 indicates that no key is present.
-
-   The following values are defined:
-
-   1  A DSA key is present, in the format defined in RFC2536 [11]
-
-   2  A RSA key is present, in the format defined in RFC3110 [12]
-
-
-2.4 RDATA format - gateway type
+2.3 RDATA format - gateway type
 
    The gateway type field indicates the format of the information that
    is stored in the gateway field.
-
-
-
-Richardson                Expires March 4, 2004                 [Page 4]
-
-Internet-Draft                   ipsecrr                  September 2003
-
 
    The following values are defined:
 
@@ -235,7 +214,28 @@ Internet-Draft                   ipsecrr                  September 2003
 
    3  A wire-encoded domain name is present.  The wire-encoded format is
       self-describing, so the length is implicit.  The domain name MUST
-      NOT be compressed.
+      NOT be compressed.  (see section 3.3 of RFC1035 [2]).
+
+
+
+
+Richardson                Expires June 14, 2004                 [Page 4]
+
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
+
+
+2.4 RDATA format - algorithm type
+
+   The algorithm type field identifies the public key's cryptographic
+   algorithm and determines the format of the public key field.
+
+   A value of 0 indicates that no key is present.
+
+   The following values are defined:
+
+   1  A DSA key is present, in the format defined in RFC2536 [10]
+
+   2  A RSA key is present, in the format defined in RFC3110 [11]
 
 
 2.5 RDATA format - gateway
@@ -250,8 +250,8 @@ Internet-Draft                   ipsecrr                  September 2003
    [2].  This is a 32-bit number in network byte order.
 
    A 128-bit IPv6 address is present in the gateway field.  The data
-   portion is an IPv6 address as described in section 2.2 of RFC1886
-   [7].  This is a 128-bit number in network byte order.
+   portion is an IPv6 address as described in section 2.2 of RFC3596
+   [13].  This is a 128-bit number in network byte order.
 
    The gateway field is a normal wire-encoded domain name, as described
    in section 3.3 of RFC1035 [2].  Compression MUST NOT be used.
@@ -272,22 +272,22 @@ Internet-Draft                   ipsecrr                  September 2003
    RR) and IPSECKEY, are likely to use the same public key encodings in
    both records.  Unless otherwise specified, the IPSECKEY public key
    field will contain the algorithm-specific portion of the KEY RR RDATA
-   for the corresponding algorithm.  The algorithm must still be
 
 
 
-Richardson                Expires March 4, 2004                 [Page 5]
+Richardson                Expires June 14, 2004                 [Page 5]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
+   for the corresponding algorithm.  The algorithm must still be
    designated for use by IPSECKEY, and an IPSECKEY algorithm type number
    (which might be different than the DNSSEC algorithm number) must be
    assigned to it.
 
-   The DSA key format is defined in RFC2536 [11]
+   The DSA key format is defined in RFC2536 [10]
 
-   The RSA key format is defined in RFC3110 [12], with the following
+   The RSA key format is defined in RFC3110 [11], with the following
    changes:
 
    The earlier definition of RSA/MD5 in RFC2065 limited the exponent and
@@ -331,10 +331,9 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-
-Richardson                Expires March 4, 2004                 [Page 6]
+Richardson                Expires June 14, 2004                 [Page 6]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 3. Presentation formats
@@ -355,7 +354,7 @@ Internet-Draft                   ipsecrr                  September 2003
 
    The Public Key field is represented as a Base64 encoding of the
    Public Key.  Whitespace is allowed within the Base64 text.  For a
-   definition of Base64 encoding, see RFC1521 [3] Section 5.2.
+   definition of Base64 encoding, see RFC3548 [6] Section 5.2.
 
    The general presentation for the record as as follows:
 
@@ -388,9 +387,9 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-Richardson                Expires March 4, 2004                 [Page 7]
+Richardson                Expires June 14, 2004                 [Page 7]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
    An example of a node, 192.0.1.38 that has delegated authority to the
@@ -403,7 +402,7 @@ Internet-Draft                   ipsecrr                  September 2003
    An example of a node, 2001:0DB8:0200:1:210:f3ff:fe03:4d0 that has
    delegated authority to the node 2001:0DB8:c000:0200:2::1
 
-   $ORIGIN 1.0.0.0.0.0.2.8.B.D.0.1.0.0.2.ip6.int.
+   $ORIGIN 1.0.0.0.0.0.2.8.B.D.0.1.0.0.2.ip6.arpa.
    0.d.4.0.3.0.e.f.f.f.3.f.0.1.2.0 7200 IN     IPSECKEY ( 10 2 2
                     2001:0DB8:0:8002::2000:1
                     AQNRU3mG7TVTO2BkR47usntb102uFJtugbo6BSGvgqt4AQ== )
@@ -444,15 +443,15 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-Richardson                Expires March 4, 2004                 [Page 8]
+Richardson                Expires June 14, 2004                 [Page 8]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 4. Security Considerations
 
    This entire memo pertains to the provision of public keying material
-   for use by key management protocols such as ISAKMP/IKE (RFC2407) [9].
+   for use by key management protocols such as ISAKMP/IKE (RFC2407) [8].
 
    The IPSECKEY resource record contains information that SHOULD be
    communicated to the end client in an integral fashion - i.e.  free
@@ -469,9 +468,9 @@ Internet-Draft                   ipsecrr                  September 2003
    of the resulting IPsec session: IPsec and IKE provide for defense
    against both active and passive attacks.
 
-   Any user of this resource record MUST carefully document their trust
-   model, and why the trust model of DNSSEC is appropriate, if that is
-   the secure channel used.
+   Any derivative standard that makes use of this resource record MUST
+   carefully document their trust model, and why the trust model of
+   DNSSEC is appropriate, if that is the secure channel used.
 
 4.1 Active attacks against unsecured IPSECKEY resource records
 
@@ -500,9 +499,9 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-Richardson                Expires March 4, 2004                 [Page 9]
+Richardson                Expires June 14, 2004                 [Page 9]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
    key or remove it, thus providing an IPSECKEY record of its own to
@@ -556,9 +555,9 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-Richardson                Expires March 4, 2004                [Page 10]
+Richardson                Expires June 14, 2004                [Page 10]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 5. IANA Considerations
@@ -566,15 +565,19 @@ Internet-Draft                   ipsecrr                  September 2003
    This document updates the IANA Registry for DNS Resource Record Types
    by assigning type X to the IPSECKEY record.
 
+   This document creates two new IANA registries, both specific to the
+   IPSECKEY Resource Record:
+
    This document creates an IANA registry for the algorithm type field.
 
-   Values 0, 1 and 2 are defined in Section 2.3.  Algorithm numbers 3
-   through 255 can be assigned by IETF Consensus (see RFC2434 [6]).
+   Values 0, 1 and 2 are defined in Section 2.4.  Algorithm numbers 3
+   through 255 can be assigned by IETF Consensus (see RFC2434 [5]).
 
    This document creates an IANA registry for the gateway type field.
 
-   Values 0, 1, 2 and 3 are defined in Section 2.4.  Algorithm numbers 4
-   through 255 can be assigned by Standards Action (see RFC2434 [6]).
+   Values 0, 1, 2 and 3 are defined in Section 2.3.  Gateway type
+   numbers 4 through 255 can be assigned by Standards Action (see
+   RFC2434 [5]).
 
 
 
@@ -608,16 +611,68 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-
-
-
-
-Richardson                Expires March 4, 2004                [Page 11]
+Richardson                Expires June 14, 2004                [Page 11]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
-6. Acknowledgments
+6. Intellectual Property Claims
+
+   The IETF takes no position regarding the validity or scope of any
+   intellectual property or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; neither does it represent that it
+   has made any effort to identify any such rights.  Information on the
+   IETF's procedures with respect to rights in standards-track and
+   standards-related documentation can be found in BCP-11.  Copies of
+   claims of rights made available for publication and any assurances of
+   licenses to be made available, or the result of an attempt made to
+   obtain a general license or permission for the use of such
+   proprietary rights by implementors or users of this specification can
+   be obtained from the IETF Secretariat.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights which may cover technology that may be required to practice
+   this standard.  Please address the information to the IETF Executive
+   Director.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson                Expires June 14, 2004                [Page 12]
+
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
+
+
+7. Acknowledgments
 
    My thanks to Paul Hoffman, Sam Weiler, Jean-Jacques Puig, Rob
    Austein, and Olafur Gurmundsson who reviewed this document carefully.
@@ -668,9 +723,9 @@ Internet-Draft                   ipsecrr                  September 2003
 
 
 
-Richardson                Expires March 4, 2004                [Page 12]
+Richardson                Expires June 14, 2004                [Page 13]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 Normative references
@@ -681,20 +736,17 @@ Normative references
    [2]  Mockapetris, P., "Domain names - implementation and
         specification", STD 13, RFC 1035, November 1987.
 
-   [3]  Borenstein, N. and N. Freed, "MIME (Multipurpose Internet Mail
-        Extensions) Part One: Mechanisms for Specifying and Describing
-        the Format of Internet Message Bodies", RFC 1521, September
-        1993.
-
-   [4]  Bradner, S., "The Internet Standards Process -- Revision 3", BCP
+   [3]  Bradner, S., "The Internet Standards Process -- Revision 3", BCP
         9, RFC 2026, October 1996.
 
-   [5]  Eastlake, D. and C. Kaufman, "Domain Name System Security
+   [4]  Eastlake, D. and C. Kaufman, "Domain Name System Security
         Extensions", RFC 2065, January 1997.
 
-   [6]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
+   [5]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
         Considerations Section in RFCs", BCP 26, RFC 2434, October 1998.
 
+   [6]  Josefsson, S., "The Base16, Base32, and Base64 Data Encodings",
+        RFC 3548, July 2003.
 
 
 
@@ -724,33 +776,36 @@ Normative references
 
 
 
-Richardson                Expires March 4, 2004                [Page 13]
+
+
+
+Richardson                Expires June 14, 2004                [Page 14]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 Non-normative references
 
-   [7]   Thomson, S. and C. Huitema, "DNS Extensions to support IP
-         version 6", RFC 1886, December 1995.
-
-   [8]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
+   [7]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
          Levels", BCP 14, RFC 2119, March 1997.
 
-   [9]   Piper, D., "The Internet IP Security Domain of Interpretation
+   [8]   Piper, D., "The Internet IP Security Domain of Interpretation
          for ISAKMP", RFC 2407, November 1998.
 
-   [10]  Eastlake, D., "Domain Name System Security Extensions", RFC
+   [9]   Eastlake, D., "Domain Name System Security Extensions", RFC
          2535, March 1999.
 
-   [11]  Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
+   [10]  Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
          (DNS)", RFC 2536, March 1999.
 
-   [12]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
+   [11]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
          System (DNS)", RFC 3110, May 2001.
 
-   [13]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
+   [12]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
          Record (RR)", RFC 3445, December 2002.
+
+   [13]  Thomson, S., Huitema, C., Ksinant, V. and M. Souissi, "DNS
+         Extensions to Support IP Version 6", RFC 3596, October 2003.
 
 
 Author's Address
@@ -780,9 +835,9 @@ Author's Address
 
 
 
-Richardson                Expires March 4, 2004                [Page 14]
+Richardson                Expires June 14, 2004                [Page 15]
 
-Internet-Draft                   ipsecrr                  September 2003
+Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 Full Copyright Statement
@@ -836,5 +891,5 @@ Acknowledgement
 
 
 
-Richardson                Expires March 4, 2004                [Page 15]
+Richardson                Expires June 14, 2004                [Page 16]
 
