@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.144 2001/06/26 23:53:39 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.145 2001/06/27 17:48:32 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3367,12 +3367,25 @@ as defined using the <command>serial-query-rate</command> option.
 </listitem></varlistentry>
 
 <varlistentry><term><command>transfer-format</command></term>
-<listitem><para>The server supports two zone transfer methods. <command>one-answer</command> uses
-one DNS message per resource record transferred. <command>many-answers</command> packs
-as many resource records as possible into a message. <command>many-answers</command> is
-more efficient, but is only known to be understood by <acronym>BIND</acronym> 9, <acronym>BIND</acronym>
-8.x and patched versions of <acronym>BIND</acronym> 4.9.5. The default is <command>many-answers</command>. <command>transfer-format</command> may
-be overridden on a per-server basis by using the <command>server</command> statement.</para>
+<listitem>
+
+<para>
+Zone transfers can be sent using two different formats,
+<command>one-answer</command> and <command>many-answers</command>.
+The <command>transfer-format</command> option is used
+on the master server to determine which format it sends.
+<command>one-answer</command> uses one DNS message per
+resource record transferred.
+<command>many-answers</command> packs as many resource records as
+possible into a message. <command>many-answers</command> is more
+efficient, but is only supported by relatively new slave servers,
+such as <acronym>BIND</acronym> 9, <acronym>BIND</acronym> 8.x and patched
+versions of <acronym>BIND</acronym> 4.9.5. The default is
+<command>many-answers</command>. <command>transfer-format</command>
+may be overridden on a per-server basis by using the
+<command>server</command> statement.
+</para>
+
 </listitem></varlistentry>
 
 <varlistentry><term><command>transfers-in</command></term>
