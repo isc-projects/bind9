@@ -55,3 +55,10 @@ isc_result_t udp_listener_start(udp_listener_t *l,
 				dns_result_t (*dispatch)(isc_mem_t *,
 							 isc_region_t *,
 							 unsigned int));
+/*
+ * Notes:
+ *	There is no need to hold on to the udp_listener_t * after starting
+ *	the listener, and here is no need to shut down the listener explicitly.
+ *	It will shut down itself and free its resources when its socket is 
+ *	shut down.
+ */

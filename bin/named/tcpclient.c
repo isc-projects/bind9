@@ -60,6 +60,7 @@ static void tcp_send(isc_task_t *task, isc_event_t *event);
 static void tcp_recv_len(isc_task_t *task, isc_event_t *event);
 static void tcp_recv_req(isc_task_t *task, isc_event_t *event);
 static void tcp_accept(isc_task_t *task, isc_event_t *event);
+static void tcp_listener_free(tcp_listener_t **lp);
 
 static tcp_cctx_t *
 tcp_cctx_allocate(isc_mem_t *mctx)
@@ -112,24 +113,26 @@ tcp_restart(isc_task_t *task, tcp_cctx_t *ctx)
 	isc_mem_stats(ctx->mctx, stdout);
 }
 
+/*
+ * A worker task is shutting down, presumably because the
+ * socket has been shut down.
+ */
 static void
 tcp_shutdown(isc_task_t *task, isc_event_t *event)
 {
 	tcp_cctx_t *ctx;
 	tcp_listener_t *l;
+	isc_boolean_t free_listener = ISC_FALSE;
 
 	ctx = (tcp_cctx_t *)(event->arg);
 	l = ctx->parent;
 
 	LOCK(&l->lock);
 
-	if (ctx->csock != NULL)
-		isc_socket_detach(&ctx->csock);
-
 	REQUIRE(l->nwactive > 0);
 
 	/*
-	 * remove our task from the list of tasks that the listener
+	 * Remove our task from the list of tasks that the listener
 	 * maintains by setting things to NULL, then freeing the
 	 * pointers we maintain.
 	 */
@@ -139,16 +142,29 @@ tcp_shutdown(isc_task_t *task, isc_event_t *event)
 
 	l->nwactive--;
 
+	if (l->nwactive == 0)
+		free_listener = ISC_TRUE;
+
 	UNLOCK(&l->lock);
 
 #ifdef NOISY
 	printf("Final shutdown slot %u\n", ctx->slot);
 #endif
+
+	/* This is where the pointers are freed. */
 	tcp_cctx_free(ctx);
+	isc_task_detach(&task);	
 
 	isc_event_free(&event);
+	
+	if (free_listener)
+		tcp_listener_free(&l);
 }
 
+/*
+ * We have received the 2-byte length prefix (or a socket shutdown
+ * request).
+ */
 static void
 tcp_recv_len(isc_task_t *task, isc_event_t *event)
 {
@@ -209,6 +225,9 @@ tcp_recv_len(isc_task_t *task, isc_event_t *event)
 	isc_event_free(&event);
 }
 
+/*
+ * We have received the actual request data.
+ */
 static void
 tcp_recv_req(isc_task_t *task, isc_event_t *event)
 {
@@ -418,6 +437,18 @@ tcp_listener_allocate(isc_mem_t *mctx, u_int nwmax)
 
 	return (l);
 }
+
+static void 
+tcp_listener_free(tcp_listener_t **lp)
+{
+	tcp_listener_t *l = *lp;
+	isc_mem_put(l->mctx, l->ctxs, sizeof(tcp_cctx_t *) * l->nwmax);	
+	isc_mem_put(l->mctx, l->tasks, sizeof(isc_task_t *) * l->nwmax);
+	isc_mutex_destroy(&l->lock);
+	isc_mem_put(l->mctx, l, sizeof(tcp_listener_t));
+	*lp = NULL;
+}
+
 
 isc_result_t
 tcp_listener_start(tcp_listener_t *l,

@@ -52,7 +52,7 @@ static void udp_cctx_free(udp_cctx_t *ctx);
 
 static void udp_send(isc_task_t *task, isc_event_t *event);
 static void udp_recv(isc_task_t *task, isc_event_t *event);
-
+static void udp_listener_free(udp_listener_t **lp);
 
 
 static udp_cctx_t *
@@ -83,12 +83,16 @@ udp_cctx_free(udp_cctx_t *ctx)
 	isc_mem_put(ctx->mctx, ctx, sizeof(udp_cctx_t));
 }
 
+/*
+ * A worker task is shutting down, presumably because the
+ * socket has been shut down.
+ */
 static void
 udp_shutdown(isc_task_t *task, isc_event_t *event)
 {
 	udp_cctx_t *ctx;
 	udp_listener_t *l;
-	isc_socket_t *sock;
+	isc_boolean_t free_listener = ISC_FALSE;
 
 	ctx = (udp_cctx_t *)(event->arg);
 	l = ctx->parent;
@@ -98,29 +102,40 @@ udp_shutdown(isc_task_t *task, isc_event_t *event)
 	REQUIRE(l->nwactive > 0);
 
 	/*
-	 * remove our task from the list of tasks that the listener
+	 * Remove our task from the list of tasks that the listener
 	 * maintains by setting things to NULL, then freeing the
 	 * pointers we maintain.
 	 */
 	INSIST(l->tasks[ctx->slot] == task);
 	l->tasks[ctx->slot] = NULL;
+	INSIST(l->ctxs[ctx->slot] == ctx);	
 	l->ctxs[ctx->slot] = NULL;
 
 	l->nwactive--;
 
-	sock = l->sock;
-	isc_socket_detach(&sock);
+	if (l->nwactive == 0)
+		free_listener = ISC_TRUE;
 
 	UNLOCK(&l->lock);
 
 #ifdef NOISY
 	printf("Final shutdown slot %u\n", ctx->slot);
 #endif
+
+	/* This is where the pointers are freed. */
 	udp_cctx_free(ctx);
+	isc_task_detach(&task);
 
 	isc_event_free(&event);
+
+	if (free_listener)
+		udp_listener_free(&l);
 }
 
+/*
+ * We got the data we were waiting to receive, or 
+ * a socket shutdown request.
+ */
 static void
 udp_recv(isc_task_t *task, isc_event_t *event)
 {
@@ -157,13 +172,21 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 	result = ctx->parent->dispatch(ctx->mctx, &region, 0);
 
 	if (result == DNS_R_SUCCESS) {
+		/* Send a reply as soon as the socket is ready to do so. */
 		isc_socket_sendto(sock, &region, task, udp_send, ctx,
 				  &dev->address, dev->addrlength);
+	} else {
+		/* Send no reply, just wait for the next request. */
+		isc_socket_recv(sock, &region, ISC_FALSE, task, udp_recv, ctx);
 	}
 
 	isc_event_free(&event);
 }
 
+/*
+ * The data we were waiting to send was sent, or we got a socket
+ * shutdown request.
+ */
 static void
 udp_send(isc_task_t *task, isc_event_t *event)
 {
@@ -232,6 +255,19 @@ udp_listener_allocate(isc_mem_t *mctx, u_int nwmax)
 	l->nwactive = 0;
 
 	return (l);
+}
+
+static void 
+udp_listener_free(udp_listener_t **lp)
+{
+	udp_listener_t *l = *lp;
+	isc_mem_put(l->mctx, l->ctxs, sizeof(udp_cctx_t *) * l->nwmax);	
+	l->ctxs = NULL;
+	isc_mem_put(l->mctx, l->tasks, sizeof(isc_task_t *) * l->nwmax);
+	l->tasks = NULL;	
+	isc_mutex_destroy(&l->lock);
+	isc_mem_put(l->mctx, l, sizeof(udp_listener_t));
+	*lp = NULL;
 }
 
 isc_result_t
