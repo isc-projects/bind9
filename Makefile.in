@@ -21,10 +21,10 @@ top_srcdir =	@top_srcdir@
 
 SUBDIRS =	make lib bin
 TARGETS =
-DISTFILES =	Makefile.in README \
+DISTFILES =	CHANGES Makefile.in README \
 		acconfig.h aclocal.m4 config.guess config.h.in config.h.win32 \
 		config.status.win32 config.sub configure configure.in \
-		install-sh ltconfig ltmain.sh \
+		install-sh libtool.m4 ltconfig ltmain.sh \
 		bin lib make \
 		version
 DOCDIRS =	arm draft misc rfc
