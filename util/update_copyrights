@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl -w
 
-die "This program is being updated; talk to Bob.";
-
 if (@ARGV == 0) {
     die "usage: update_copyrights <copyright_text>";
 }
@@ -22,15 +20,23 @@ while (<>) {
 	next;
     }
 
+    $before_copyright = "";
+    $c_comment = 0;
+    $shell_comment = 0;
+    $first = "";
     if ($type eq "C") {
 	$c_comment = 1;
+	$prefix = " * ";
+    } elsif ($type eq "SH" || $type eq "PERL" || $type eq "MAKE") {
+	$shell_comment = 1;
+	$prefix = "# ";
     } else {
 	print "$file: type '$type' not supported yet; skipping\n";
 	next;
     }
     open(SOURCE, "<$file") || die "can't open $file: $!";
     $_ = <SOURCE>;
-    if (/^\/\*/) {
+    if ($c_comment && /^\/\*/) {
 	$_ = <SOURCE>;
 	if ($_ !~ /[Cc]opyright/) {
 	    print "$file: non-copyright comment\n";
@@ -44,14 +50,38 @@ while (<>) {
 		}
 	    }
 	}
-	$first = "";
+    } elsif ($shell_comment) {
+	if (/^\#\!/) {
+	    $before_copyright = "$_#\n";
+	    $_ = <SOURCE>;
+	    if ($_ eq "#\n") {
+		$_ = <SOURCE>;
+	    }
+	}
+	if (/^\#/) {
+	    if ($_ !~ /[Cc]opyright/) {
+		print "$file: non-copyright comment\n";
+		close(SOURCE);
+		next;
+	    }
+	    while (<SOURCE>) {
+		if ($_ !~ /^\#/) {
+		    $first = $_;
+		    last;
+		}
+	    }
+	} else {
+	    $first = $_;
+	}
     } else {
 	$first = $_;
     }
     open(TARGET, ">$file.new") || die "can't open $file.new: $!";
+    if ($before_copyright ne "") {
+	print TARGET $before_copyright;
+    }
     if ($c_comment) {
 	print TARGET "/*\n";
-	$prefix = " * ";
     }
     print TARGET "${prefix}Copyright (C) ";
     $first_year = 1;
@@ -70,11 +100,17 @@ while (<>) {
     if ($c_comment) {
 	print TARGET " */\n";
     }
-    if ($first ne "") {
-	print TARGET $first;
+    if ($first eq "") {
+	$first = <SOURCE>;
     }
-    while (<SOURCE>) {
-	print TARGET $_;
+    if ($first ne "") {
+	if ($first !~ /^\s*$/) {
+	    print TARGET "\n";
+	}
+	print TARGET $first;
+	while (<SOURCE>) {
+	    print TARGET $_;
+	}
     }
     close(TARGET);
     close(SOURCE);
