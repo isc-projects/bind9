@@ -1,5 +1,5 @@
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: hesiod.c,v 1.1.2.1.4.2 2004/03/17 01:49:41 marka Exp $";
+static const char rcsid[] = "$Id: hesiod.c,v 1.1.2.1.4.3 2004/05/17 07:48:56 marka Exp $";
 #endif
 
 /*
@@ -92,19 +92,14 @@ hesiod_init(void **context) {
 		/*
 		 * Use compiled in defaults.
 		 */
-		ctx->LHS = malloc(strlen(DEF_LHS)+1);
-		ctx->RHS = malloc(strlen(DEF_RHS)+1);
-		if (ctx->LHS == 0 || ctx->RHS == 0) {
+		ctx->LHS = malloc(strlen(DEF_LHS) + 1);
+		ctx->RHS = malloc(strlen(DEF_RHS) + 1);
+		if (ctx->LHS == NULL || ctx->RHS == NULL) {
 			errno = ENOMEM;
 			goto cleanup;
 		}
-#ifdef HAVE_STRLCPY
-		strlcpy(ctx->LHS, DEF_LHS, strlen(DEF_LHS) + 1);
-		strlcpy(ctx->RHS, DEF_RHS, strlen(DEF_RHS) + 1);
-#else
-		strcpy(ctx->LHS, DEF_LHS);
-		strcpy(ctx->RHS, DEF_RHS);
-#endif
+		strcpy(ctx->LHS, DEF_LHS);	/* (checked) */
+		strcpy(ctx->RHS, DEF_RHS);	/* (checked) */
 #else
 		goto cleanup;
 #endif
@@ -123,22 +118,10 @@ hesiod_init(void **context) {
 			goto cleanup;
 		}
 		if (cp[0] == '.') {
-#ifdef HAVE_STRLCPY
-			strlcpy(ctx->RHS, cp, RHSlen);
-#else
-			strcpy(ctx->RHS, cp);
-#endif
+			strcpy(ctx->RHS, cp);	/* (checked) */
 		} else {
-#ifdef HAVE_STRLCPY
-			strlcpy(ctx->RHS, ".", RHSlen);
-#else
-			strcpy(ctx->RHS, ".");
-#endif
-#ifdef HAVE_STRLCAT
-			strlcat(ctx->RHS, cp, RHSlen);
-#else
-			strcat(ctx->RHS, cp);
-#endif
+			strcpy(ctx->RHS, ".");	/* (checked) */
+			strcat(ctx->RHS, cp);	/* (checked) */
 		}
 	}
 
