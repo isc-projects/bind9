@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: rndc.conf.5,v 1.26 2004/06/03 04:12:38 marka Exp $
+.\" $Id: rndc.conf.5,v 1.27 2004/06/18 06:00:41 marka Exp $
 .\"
 .TH "RNDC.CONF" "5" "June 30, 2000" "BIND9" ""
 .SH NAME
@@ -60,12 +60,15 @@ line, and no \fBport\fR clause is found in a
 matching \fBserver\fR statement, this default port
 will be used to connect.
 .PP
-After the \fBserver\fR keyword, the server statement
-includes a string which is the hostname or address for a name
-server. The statement has two possible clauses:
-\fBkey\fR and \fBport\fR. The key name must
-match the name of a key statement in the file. The port number
-specifies the port to connect to.
+After the \fBserver\fR keyword, the server
+statement includes a string which is the hostname or address
+for a name server. The statement has three possible clauses:
+\fBkey\fR, \fBport\fR and
+\fBaddresses\fR. The key name must match the
+name of a key statement in the file. The port number
+specifies the port to connect to. If an \fBaddresses\fR
+clause is supplied these addresses will be used instead of
+the server name. Each address can take a optional port.
 .PP
 The \fBkey\fR statement begins with an identifying
 string, the name of the key. The statement has two clauses.
@@ -86,7 +89,7 @@ EXAMPLE section for sample command lines for each.
 .SH "EXAMPLE"
 .sp
 .nf
-    options {
+      options {
         default-server  localhost;
         default-key     samplekey;
       };
@@ -95,10 +98,20 @@ EXAMPLE section for sample command lines for each.
         key             samplekey;
       };
 
+      server testserver {
+        key		testkey;
+        addresses	{ localhost port 5353; };
+      };
+
       key samplekey {
         algorithm       hmac-md5;
-        secret          "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
+        secret          "6FMfj43Osz4lyb24OIe2iGEz9lf1llJO+lz";
       };
+	
+      key testkey {
+        algorithm	hmac-md5;
+        secret		"R3HI8P6BKw9ZwXwN3VZKuQ==";
+      }
     
 .sp
 .fi
@@ -110,6 +123,9 @@ must also be defined in the server's configuration file with the
 same name and secret. The key statement indicates that samplekey
 uses the HMAC-MD5 algorithm and its secret clause contains the
 base-64 encoding of the HMAC-MD5 secret enclosed in double quotes.
+.PP
+If \fBrndc -s testserver\fR is used then \fBrndc\fR will
+connect to server on localhost port 5353 using the key testkey.
 .PP
 To generate a random secret with \fBrndc-confgen\fR:
 .PP
