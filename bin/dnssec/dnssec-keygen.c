@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.46 2001/01/09 21:39:22 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.47 2001/02/15 23:26:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -56,31 +56,34 @@ dsa_size_ok(int size) {
 
 static void
 usage(void) {
-	printf("Usage:\n");
-	printf("    %s -a alg -b bits -n type [options] name\n\n", program);
-	printf("Required options:\n");
-	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
-	printf("    -b key size, in bits:\n");
-	printf("        RSA:\t\t[512..%d]\n", MAX_RSA);
-	printf("        DH:\t\t[128..4096]\n");
-	printf("        DSA:\t\t[512..1024] and divisible by 64\n");
-	printf("        HMAC-MD5:\t[1..512]\n");
-	printf("    -n nametype: ZONE | HOST | ENTITY | USER\n");
-	printf("    name: owner of the key\n");
-	printf("Other options:\n");
-	printf("    -c class (default: IN)\n");
-	printf("    -e use large exponent (RSA only)\n");
-	printf("    -g use specified generator (DH only)\n");
-	printf("    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
+	fprintf(stderr, "Usage:\n");
+	fprintf(stderr, "    %s -a alg -b bits -n type [options] name\n\n",
+		program);
+	fprintf(stderr, "Required options:\n");
+	fprintf(stderr, "    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5"
+		"\n");
+	fprintf(stderr, "    -b key size, in bits:\n");
+	fprintf(stderr, "        RSA:\t\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "        DH:\t\t[128..4096]\n");
+	fprintf(stderr, "        DSA:\t\t[512..1024] and divisible by 64\n");
+	fprintf(stderr, "        HMAC-MD5:\t[1..512]\n");
+	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER\n");
+	fprintf(stderr, "    name: owner of the key\n");
+	fprintf(stderr, "Other options:\n");
+	fprintf(stderr, "    -c class (default: IN)\n");
+	fprintf(stderr, "    -e use large exponent (RSA only)\n");
+	fprintf(stderr, "    -g use specified generator (DH only)\n");
+	fprintf(stderr, "    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
 	       "(default: AUTHCONF)\n");
-	printf("    -p protocol value "
+	fprintf(stderr, "    -p protocol value "
 	       "(default: 2 [email] for USER, 3 [dnssec] otherwise)\n");
-	printf("    -s strength value this key signs DNS records with "
-	       "(default: 0)\n");
-	printf("    -r randomdev (a file containing random data)\n");
-	printf("    -v verbose level\n");
-	printf("Output:\n");
-	printf("     K<name>+<alg>+<id>.key, K<name>+<alg>+<id>.private\n");
+	fprintf(stderr, "    -s strength value this key signs DNS records "
+		"with (default: 0)\n");
+	fprintf(stderr, "    -r randomdev (a file containing random data)\n");
+	fprintf(stderr, "    -v verbose level\n");
+	fprintf(stderr, "Output:\n");
+	fprintf(stderr, "     K<name>+<alg>+<id>.key, "
+		"K<name>+<alg>+<id>.private\n");
 
 	exit (-1);
 }
