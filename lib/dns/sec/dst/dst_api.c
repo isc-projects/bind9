@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.8 1999/09/01 18:56:19 bwelling Exp $
+ * $Id: dst_api.c,v 1.9 1999/09/02 15:56:32 bwelling Exp $
  */
 
 #include <config.h>
@@ -599,9 +599,9 @@ dst_sig_size(const dst_key_t *key) {
 			return (key->key_size + 7) / 8;
 		case DST_ALG_DSA:
 			return (DNS_SIG_DSASIGSIZE);
-		case DST_ALG_HMAC_MD5:
+		case DST_ALG_HMACMD5:
 			return (16);
-		case DST_ALG_HMAC_SHA1:
+		case DST_ALG_HMACSHA1:
 			return (20);
 		default:
 			REQUIRE(ISC_FALSE);
@@ -728,7 +728,7 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 		      isc_mem_t *mctx, dst_key_t **keyp)
 {
 	char filename[PATH_MAX];
-	u_char rdatabuf[DST_MAX_KEY_SIZE];
+	u_char rdatabuf[DST_KEY_MAXSIZE];
 	isc_buffer_t b;
 	isc_lex_t *lex = NULL;
 	isc_token_t token;
@@ -824,8 +824,8 @@ write_public_key(const dst_key_t *key) {
 	isc_buffer_t keyb, textb;
 	isc_region_t r;
 	char filename[PATH_MAX];
-	unsigned char key_array[DST_MAX_KEY_SIZE];
-	char text_array[DST_MAX_KEY_SIZE];
+	unsigned char key_array[DST_KEY_MAXSIZE];
+	char text_array[DST_KEY_MAXSIZE];
 	dst_result_t ret;
 	dns_result_t dnsret;
 	dns_rdata_t rdata;

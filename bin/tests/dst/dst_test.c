@@ -126,7 +126,7 @@ main() {
 
 	generate(DST_ALG_RSA, mctx);
 	generate(DST_ALG_DSA, mctx);
-	generate(DST_ALG_HMAC_MD5, mctx);
+	generate(DST_ALG_HMACMD5, mctx);
 
 	get_random();
 

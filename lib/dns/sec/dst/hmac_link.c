@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.5 1999/09/01 18:56:19 bwelling Exp $
+ * $Id: hmac_link.c,v 1.6 1999/09/02 15:56:33 bwelling Exp $
  */
 
 #include <config.h>
@@ -81,8 +81,8 @@ static dst_result_t	dst_hmacmd5_from_file(dst_key_t *key, const int id,
 void
 dst_s_hmacmd5_init()
 {
-	REQUIRE(dst_t_func[DST_ALG_HMAC_MD5] == NULL);
-	dst_t_func[DST_ALG_HMAC_MD5] = &hmacmd5_functions;
+	REQUIRE(dst_t_func[DST_ALG_HMACMD5] == NULL);
+	dst_t_func[DST_ALG_HMACMD5] = &hmacmd5_functions;
 	memset(&hmacmd5_functions, 0, sizeof(struct dst_func));
 	hmacmd5_functions.sign = dst_hmacmd5_sign;
 	hmacmd5_functions.verify = dst_hmacmd5_verify;

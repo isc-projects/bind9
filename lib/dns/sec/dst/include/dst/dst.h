@@ -30,11 +30,11 @@ typedef void *		dst_context_t;
 #define DST_ALG_RSA		1
 #define DST_ALG_DH		2
 #define DST_ALG_DSA		3
-#define DST_ALG_HMAC_MD5	157
-#define DST_ALG_HMAC_SHA1	158	/* not implemented */
+#define DST_ALG_HMACMD5		157
+#define DST_ALG_HMACSHA1	158	/* not implemented */
 #define DST_ALG_PRIVATE		254
 #define DST_ALG_EXPAND		255
-#define DST_MAX_ALGS		DST_ALG_HMAC_SHA1
+#define DST_MAX_ALGS		DST_ALG_HMACSHA1
 
 /* 'Mode' passed into dst_sign() and dst_verify() */
 #define DST_SIGMODE_INIT	1	/* initialize digest */
@@ -45,7 +45,7 @@ typedef void *		dst_context_t;
 				 DST_SIGMODE_FINAL)
 
 /* A buffer of this size is large enough to hold any key */
-#define DST_MAX_KEY_SIZE	1024
+#define DST_KEY_MAXSIZE		1024
 
 /* 'Type' for dst_read_key() */
 #define DST_TYPE_PRIVATE	0x2000000

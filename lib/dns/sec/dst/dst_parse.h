@@ -51,7 +51,7 @@ ISC_LANG_BEGINDECLS
 #define TAG_DSA_PUBLIC		((DST_ALG_DSA << TAG_SHIFT) + 4)
 
 #define HMACMD5_NTAGS		1
-#define TAG_HMACMD5_KEY		((DST_ALG_HMAC_MD5 << TAG_SHIFT) + 0)
+#define TAG_HMACMD5_KEY		((DST_ALG_HMACMD5 << TAG_SHIFT) + 0)
 
 struct dst_private_element {
 	unsigned short tag;

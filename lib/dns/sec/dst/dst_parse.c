@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.3 1999/09/01 18:56:19 bwelling Exp $
+ * $Id: dst_parse.c,v 1.4 1999/09/02 15:56:32 bwelling Exp $
  */
 
 #include <config.h>
@@ -48,7 +48,7 @@
 #define ALGORITHM_STR "Algorithm:"
 #define RSA_STR "RSA"
 #define DSA_STR "DSA"
-#define HMAC_MD5_STR "HMAC_MD5"
+#define HMACMD5_STR "HMAC_MD5"
 
 struct parse_map {
 	int value;
@@ -145,7 +145,7 @@ check_data(const dst_private_t *priv, const int alg) {
 			return (check_rsa(priv));
 		case DST_ALG_DSA:
 			return (check_dsa(priv));
-		case DST_ALG_HMAC_MD5:
+		case DST_ALG_HMACMD5:
 			return (check_hmac_md5(priv));
 		default:
 			return (DST_R_UNSUPPORTEDALG);
@@ -331,7 +331,7 @@ dst_s_write_private_key_file(const char *name, const int alg, const int id,
 	switch (alg) {
 		case DST_ALG_RSA: fprintf(fp, "(RSA)\n"); break;
 		case DST_ALG_DSA: fprintf(fp, "(DSA)\n"); break;
-		case DST_ALG_HMAC_MD5: fprintf(fp, "(HMAC_MD5)\n"); break;
+		case DST_ALG_HMACMD5: fprintf(fp, "(HMAC_MD5)\n"); break;
 		default : fprintf(fp, "(?)\n"); break;
 	}
 

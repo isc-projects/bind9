@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.7 1999/09/02 02:10:43 explorer Exp $
+ * $Id: tsig.c,v 1.8 1999/09/02 15:56:32 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -82,7 +82,7 @@ dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
 	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME))
 		return (ISC_R_NOTFOUND);
 	else
-		alg = DST_ALG_HMAC_MD5;
+		alg = DST_ALG_HMACMD5;
 
 	*key = (dns_tsig_key_t *) isc_mem_get(mctx, sizeof(dns_tsig_key_t));
 	if (*key == NULL)

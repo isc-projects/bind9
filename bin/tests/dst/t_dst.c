@@ -274,7 +274,7 @@ t1() {
 	t_info("testing use of generated keys\n");
 	generate(DST_ALG_RSA, mctx, &nfails);
 	generate(DST_ALG_DSA, mctx, &nfails);
-	generate(DST_ALG_HMAC_MD5, mctx, &nfails);
+	generate(DST_ALG_HMACMD5, mctx, &nfails);
 
 	t_info("testing random number sequence generation\n");
 	get_random(&nfails);
