@@ -22,6 +22,8 @@
 
 #include <lwres/netdb.h>
 
+#include "assert_p.h"
+
 struct netent *
 getnetbyname(const char *name) {
 
