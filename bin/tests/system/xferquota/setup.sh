@@ -18,8 +18,8 @@
 #
 # Set up test data for zone transfer quota tests.
 #
-perl5 setup.pl
-if [ $? = 1 ]; then
-    perl setup.pl
-fi
+
+# Try "perl5", then "perl".
+perl5 setup.pl || perl setup.pl
+
 cp ns1/changing1.db ns1/changing.db
