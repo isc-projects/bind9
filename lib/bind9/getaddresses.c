@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.2 2001/11/14 23:03:42 bwelling Exp $ */
+/* $Id: getaddresses.c,v 1.3 2001/11/15 00:51:10 gson Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -128,7 +128,6 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 		switch (h_errno) {
 			case HOST_NOT_FOUND:
 			case NO_ADDRESS:
-			case NO_DATA:
 				return (ISC_R_NOTFOUND);
 			default:
 				return (ISC_R_FAILURE);
