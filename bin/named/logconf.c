@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.33 2001/10/11 01:16:15 gson Exp $ */
+/* $Id: logconf.c,v 1.34 2004/03/03 05:39:04 marka Exp $ */
 
 #include <config.h>
 
@@ -140,6 +140,9 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		
 		if (versionsobj != NULL && cfg_obj_isuint32(versionsobj))
 			versions = cfg_obj_asuint32(versionsobj);
+		if (versionsobj != NULL && cfg_obj_isstring(versionsobj) &&
+		    strcasecmp(cfg_obj_asstring(versionsobj), "unlimited") == 0)
+			versions = ISC_LOG_ROLLINFINITE;
 		if (sizeobj != NULL &&
 		    cfg_obj_isuint64(sizeobj) &&
 		    cfg_obj_asuint64(sizeobj) < ISC_OFFSET_MAXIMUM)

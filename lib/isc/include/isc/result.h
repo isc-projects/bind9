@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.60 2003/01/16 03:59:26 marka Exp $ */
+/* $Id: result.h,v 1.61 2004/03/03 05:39:05 marka Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -81,11 +81,12 @@
 #define ISC_R_SOFTQUOTA			55	/* soft quota reached */
 #define ISC_R_BADNUMBER			56	/* not a valid number */
 #define ISC_R_DISABLED			57	/* disabled */
+#define ISC_R_MAXSIZE			58	/* max size */
 
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			58
+#define ISC_R_NRESULTS 			59
 
 ISC_LANG_BEGINDECLS
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.60 2003/01/16 03:59:25 marka Exp $ */
+/* $Id: result.c,v 1.61 2004/03/03 05:39:04 marka Exp $ */
 
 #include <config.h>
 
@@ -95,7 +95,8 @@ static const char *text[ISC_R_NRESULTS] = {
 	"connection reset",			/* 54 */
 	"soft quota reached",			/* 55 */
 	"not a valid number",			/* 56 */
-	"disabled"				/* 57 */
+	"disabled",				/* 57 */
+	"max size"				/* 58 */
 };
 
 #define ISC_RESULT_RESULTSET			2
