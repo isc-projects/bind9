@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.42 2000/08/31 16:58:28 gson Exp $ */
+/* $Id: mem.h,v 1.43 2000/09/05 03:30:19 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -102,6 +102,11 @@ extern unsigned int isc_mem_debugging;
 		isc__mem_put((c), (p), (s) _ISC_MEM_FILELINE); \
 		(p) = NULL; \
 	} while (0)
+#define isc_mem_putanddetach(c, p, s) \
+	do { \
+		isc__mem_putanddetach((c), (p), (s) _ISC_MEM_FILELINE); \
+		(p) = NULL; \
+	} while (0)
 #define isc_mem_free(c, p) \
 	do { \
 		isc__mem_free((c), (p) _ISC_MEM_FILELINE); \
@@ -114,6 +119,8 @@ extern unsigned int isc_mem_debugging;
 	} while (0)
 #else
 #define isc_mem_put(c, p, s)	isc__mem_put((c), (p), (s) _ISC_MEM_FILELINE)
+#define isc_mem_putanddetach(c, p, s) \
+	isc__mem_putanddetach((c), (p), (s) _ISC_MEM_FILELINE)
 #define isc_mem_free(c, p)	isc__mem_free((c), (p) _ISC_MEM_FILELINE)
 #define isc_mempool_put(c, p)	isc__mempool_put((c), (p) _ISC_MEM_FILELINE)
 #endif
@@ -127,6 +134,8 @@ isc_result_t			isc_mem_ondestroy(isc_mem_t *ctx,
 						  isc_event_t **event);
 void *				isc__mem_get(isc_mem_t *, size_t
 					     _ISC_MEM_FLARG);
+void 				isc__mem_putanddetach(isc_mem_t **, void *,
+						      size_t _ISC_MEM_FLARG);
 void 				isc__mem_put(isc_mem_t *, void *,
 					     size_t _ISC_MEM_FLARG);
 isc_result_t			isc_mem_preallocate(isc_mem_t *);

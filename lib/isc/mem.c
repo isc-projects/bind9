@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.61 2000/08/31 12:15:16 marka Exp $ */
+/* $Id: mem.c,v 1.62 2000/09/05 03:30:18 marka Exp $ */
 
 #include <config.h>
 
@@ -753,6 +753,45 @@ isc_mem_detach(isc_mem_t **ctxp) {
 		destroy(ctx);
 
 	*ctxp = NULL;
+}
+
+/*
+ * isc_mem_putanddetach() is the equivalent of:
+ *
+ * mctx = NULL;
+ * isc_mem_attach(ptr->mctx, &mctx);
+ * isc_mem_detach(&ptr->mctx);
+ * isc_mem_put(mctx, ptr, sizeof(*ptr);
+ * isc_mem_detach(&mctx);
+ */
+
+void
+isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
+	isc_mem_t *ctx;
+	isc_boolean_t want_destroy = ISC_FALSE;
+
+	REQUIRE(ctxp != NULL);
+	ctx = *ctxp;
+	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(ptr != NULL);
+
+	/*
+	 * Must be before mem_putunlocked() as ctxp is usually within
+	 * [ptr..ptr+size).
+	 */
+	*ctxp = NULL;
+
+	LOCK(&ctx->lock);
+	DELETE_TRACE(ctx, ptr, size, file, line);
+	mem_putunlocked(ctx, ptr, size);
+	INSIST(ctx->references > 0);
+	ctx->references--;
+	if (ctx->references == 0)
+		want_destroy = ISC_TRUE;
+	UNLOCK(&ctx->lock);
+
+	if (want_destroy)
+		destroy(ctx);
 }
 
 void
