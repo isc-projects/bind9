@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.61 2000/07/12 17:44:03 mws Exp $ */
+/* $Id: dig.c,v 1.62 2000/07/13 01:22:33 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1047,7 +1047,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			strcpy(lookup->rttext, "ptr");
 			strcpy(lookup->rctext, "in");
 			lookup->namespace[0] = 0;
-			lookup->sendspace[0] = 0;
+			lookup->sendspace = NULL;
 			lookup->sendmsg = NULL;
 			lookup->name = NULL;
 			lookup->oname = NULL;
@@ -1112,7 +1112,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->rttext[0] = 0;
 			lookup->rctext[0] = 0;
 			lookup->namespace[0] = 0;
-			lookup->sendspace[0] = 0;
+			lookup->sendspace = NULL;
 			lookup->sendmsg = NULL;
 			lookup->name = NULL;
 			lookup->oname = NULL;
@@ -1189,7 +1189,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->pending = ISC_FALSE;
 		lookup->rctext[0] = 0;
 		lookup->namespace[0] = 0;
-		lookup->sendspace[0] = 0;
+		lookup->sendspace = NULL;
 		lookup->sendmsg = NULL;
 		lookup->name = NULL;
 		lookup->oname = NULL;

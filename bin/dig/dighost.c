@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.78 2000/07/13 00:32:20 mws Exp $ */
+/* $Id: dighost.c,v 1.79 2000/07/13 01:22:34 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -252,7 +252,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	strncpy(looknew->rttext, lookold-> rttext, 32);
 	strncpy(looknew->rctext, lookold-> rctext, 32);
 	looknew->namespace[0] = 0;
-	looknew->sendspace[0] = 0;
+	looknew->sendspace = NULL;
 	looknew->sendmsg = NULL;
 	looknew->name = NULL;
 	looknew->oname = NULL;
@@ -645,6 +645,8 @@ clear_query(dig_query_t *query) {
 	if (ISC_LINK_LINKED(&query->lengthbuf, link))
 		ISC_LIST_DEQUEUE(query->lengthlist, &query->lengthbuf,
 				 link);
+	INSIST(query->recvspace != NULL);
+	isc_mem_put(mctx, query->recvspace, COMMSIZE);
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_invalidate(&query->lengthbuf);
 	isc_mem_free(mctx, query);
@@ -683,6 +685,8 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	}
 	if (lookup->timer != NULL)
 		isc_timer_detach(&lookup->timer);
+	INSIST(lookup->sendspace != NULL);
+	isc_mem_put(mctx, lookup->sendspace, COMMSIZE);
 	
 	ptr = lookup;
 	lookup = ISC_LIST_NEXT(lookup, link);
@@ -1129,6 +1133,10 @@ setup_lookup(dig_lookup_t *lookup) {
 		lookup->querysig = NULL;
 	}
 
+	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);
+	if (lookup->sendspace == NULL)
+		fatal("memory allocation failure");
+
 	debug("starting to render the message");
 	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
@@ -1172,6 +1180,9 @@ setup_lookup(dig_lookup_t *lookup) {
 		ISC_LIST_INIT(query->recvlist);
 		ISC_LIST_INIT(query->lengthlist);
 		query->sock = NULL;
+		query->recvspace = isc_mem_get(mctx, COMMSIZE);
+		if (query->recvspace == NULL)
+			fatal("memory allocation failure");
 
 		isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
 		isc_buffer_init(&query->lengthbuf, query->lengthspace, 2);
