@@ -144,8 +144,8 @@ int MGF1(unsigned char *mask, long len, unsigned char *seed, long seedlen)
 
     for (i = 0; outlen < len; i++)
 	{
-	cnt[0] = (i >> 24) & 255, cnt[1] = (i >> 16) & 255,
-	  cnt[2] = (i >> 8) & 255, cnt[3] = i & 255;
+	cnt[0] = ((int)i >> 24) & 255, cnt[1] = ((int)i >> 16) & 255,
+	  cnt[2] = ((int)i >> 8) & 255, cnt[3] = (int)i & 255;
 	SHA1_Init(&c);
 	SHA1_Update(&c, seed, seedlen);
 	SHA1_Update(&c, cnt, 4);
