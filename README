@@ -51,15 +51,22 @@ BIND 9.2
 	will become BIND 9.2.  Bind 9.2 will have a number of 
 	new features over 9.1, including:
 
-	  - The ability to automatically convert RFC1886-style
+	  - The size of the cache can now be limited using the
+            "max-cache-size" option.
+
+	  - The server can now automatically convert RFC1886-style
 	    recursive lookup requests into RFC2874-style lookups, 
-	    enabled using the new option "allow-v6-synthesis".
+	    when enabled using the new option "allow-v6-synthesis".
             This allows stub resolvers that support AAAA records
             but not A6 record chains or binary labels to perform
             lookups in domains that make use of these IPv6 DNS
             features.
 
-	  - Improved performance.
+	  - Performance has been improved.
+
+	  - The man pages now use the more portable "man" macros
+	    rather than the "mandoc" macros, and are installed
+            by "make install".
 
 	An IPv6 capable stub resolver based on the BIND 8 resolver
 	code base and fully backwards compatible with existing BIND 8
@@ -97,11 +104,6 @@ BIND 9.2
 		IPv6, you must specify "listen-on-v6 { any; };"
 		in the named.conf options statement.
 
-		There are known problems with thread signal handling 
-		under Solaris 2.6 and BSD/OS.  We recommend disabling
-		threads with "configure --disable-threads" on these
-		platforms.
-
 		FreeBSD prior to 4.2 (and 4.2 if running as non-root)
 		and OpenBSD prior to 2.8 log messages like
 		"fcntl(8, F_SETFL, 4): Inappropriate ioctl for device".
@@ -127,7 +129,7 @@ Building
 		FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1
 		HP-UX 11
 		IRIX64 6.5
-		NetBSD 1.5 (with unproven-pthreads-0.17)
+		NetBSD 1.5
 		Red Hat Linux 6.0, 6.1, 6.2, 7.0
 		Solaris 2.6, 7, 8
 
@@ -169,8 +171,12 @@ Building
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 
-	To build without multithreading, specify "--disable-threads"
-	on the configure command line.
+	On some platforms, BIND 9 can be built with multithreading
+	support, allowing it to take advantage of multiple CPUs.
+	You can specify whether to build a multithreaded BIND 9 
+	by specifying "--enable-threads" or "--disable-threads"
+	on the configure command line.  The default is operating
+	system dependent.
 
 	If your operating system has integrated support for IPv6, it
 	will be used automatically.  If you have installed KAME IPv6
@@ -193,11 +199,6 @@ Building
 	the tests require you to configure a set of virtual IP addresses
 	on your system, and some require Perl; see bin/tests/system/README
 	for details.
-
-	Linux systems do not provide useful core dumps for multithreaded 
-	programs unless the kernel patch in contrib/linux/coredump-patch
-	has been applied.  We recommend all Linux users to install this
-	patch so that any server crashes can be properly diagnosed.
 
 Documentation
 
