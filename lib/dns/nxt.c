@@ -17,6 +17,8 @@
 
 #include <config.h>
 
+#include <string.h>
+
 #include <isc/assertions.h>
 
 #include <dns/types.h>
