@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.93 2001/11/06 22:27:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.94 2001/11/07 23:03:52 bwelling Exp $
  */
 
 #include <config.h>
@@ -51,10 +51,11 @@
 #include "dst_internal.h"
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
-static isc_mem_t *dst_memory_pool = NULL;
 static isc_entropy_t *dst_entropy_pool = NULL;
 static unsigned int dst_entropy_flags = 0;
 static isc_boolean_t dst_initialized = ISC_FALSE;
+
+isc_mem_t *dst__memory_pool = NULL;
 
 /*
  * Static functions.
@@ -111,7 +112,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	REQUIRE(mctx != NULL && ectx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
 
-	dst_memory_pool = NULL;
+	dst__memory_pool = NULL;
 
 #ifdef OPENSSL
 	UNUSED(mctx);
@@ -121,12 +122,12 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	 * Avoid assertions by using a local memory context and not checking
 	 * for leaks on exit.
 	 */
-	result = isc_mem_create(0, 0, &dst_memory_pool);
+	result = isc_mem_create(0, 0, &dst__memory_pool);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	isc_mem_setdestroycheck(dst_memory_pool, ISC_FALSE);
+	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
 #else
-	isc_mem_attach(mctx, &dst_memory_pool);
+	isc_mem_attach(mctx, &dst__memory_pool);
 #endif
 	isc_entropy_attach(ectx, &dst_entropy_pool);
 	dst_entropy_flags = eflags;
@@ -165,8 +166,8 @@ dst_lib_destroy(void) {
 #ifdef OPENSSL
 	dst__openssl_destroy();
 #endif
-	if (dst_memory_pool != NULL)
-		isc_mem_detach(&dst_memory_pool);
+	if (dst__memory_pool != NULL)
+		isc_mem_detach(&dst__memory_pool);
 	if (dst_entropy_pool != NULL)
 		isc_entropy_detach(&dst_entropy_pool);
 
@@ -1106,35 +1107,6 @@ dst__file_addsuffix(char *filename, unsigned int len,
 	if (n < 0)
 		return (ISC_R_NOSPACE);
 	return (ISC_R_SUCCESS);
-}
-
-void *
-dst__mem_alloc(size_t size) {
-	INSIST(dst_memory_pool != NULL);
-	return (isc_mem_allocate(dst_memory_pool, size));
-}
-
-void
-dst__mem_free(void *ptr) {
-	INSIST(dst_memory_pool != NULL);
-	if (ptr != NULL)
-		isc_mem_free(dst_memory_pool, ptr);
-}
-
-void *
-dst__mem_realloc(void *ptr, size_t size) {
-	void *p;
-
-	INSIST(dst_memory_pool != NULL);
-	p = NULL;
-	if (size > 0) {
-		p = dst__mem_alloc(size);
-		if (p != NULL && ptr != NULL)
-			memcpy(p, ptr, size);
-	}
-	if (ptr != NULL)
-		dst__mem_free(ptr);
-	return (p);
 }
 
 isc_result_t
