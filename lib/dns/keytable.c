@@ -261,7 +261,7 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 
 	knode = NULL;
 	data = NULL;
-	result = dns_rbt_findname(keytable->table, name, NULL, &data);
+	result = dns_rbt_findname(keytable->table, name, 0, NULL, &data);
 
 	if (result == ISC_R_SUCCESS) {
 		INSIST(data != NULL);
@@ -305,7 +305,7 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
 
 	knode = NULL;
 	data = NULL;
-	result = dns_rbt_findname(keytable->table, name, foundname, &data);
+	result = dns_rbt_findname(keytable->table, name, 0, foundname, &data);
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = ISC_R_SUCCESS;
@@ -352,7 +352,7 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
 
 	data = NULL;
-	result = dns_rbt_findname(keytable->table, name, NULL, &data);
+	result = dns_rbt_findname(keytable->table, name, 0, NULL, &data);
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		INSIST(data != NULL);

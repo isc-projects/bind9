@@ -234,7 +234,7 @@ t1_search(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result)
 			dns_fixedname_init(&dns_fixedname);
 			dns_foundname = dns_fixedname_name(&dns_fixedname);
 			data = NULL;
-			*dns_result = dns_rbt_findname(rbt, dns_searchname,
+			*dns_result = dns_rbt_findname(rbt, dns_searchname, 0,
 						dns_foundname, &data);
 			delete_name(dns_searchname, mctx);
 		}
@@ -779,8 +779,9 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	/* set the starting node */
 	node = NULL;
 	dns_result = dns_rbt_findnode(rbt, dns_fixedname_name(&dns_findname),
-					dns_fixedname_name(&dns_foundname),
-					&node, &chain, ISC_TRUE, NULL, NULL);
+				      dns_fixedname_name(&dns_foundname),
+				      &node, &chain, DNS_RBTFIND_EMPTYDATA,
+				      NULL, NULL);
 
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_findnode failed %s\n", dns_result_totext(dns_result));
@@ -806,8 +807,9 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	node = NULL;
 	dns_fixedname_init(&dns_foundname);
 	dns_result = dns_rbt_findnode(rbt, dns_fixedname_name(&dns_findname),
-					dns_fixedname_name(&dns_foundname),
-					&node, &chain, ISC_TRUE, NULL, NULL);
+				      dns_fixedname_name(&dns_foundname),
+				      &node, &chain, DNS_RBTFIND_EMPTYDATA,
+				      NULL, NULL);
 
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("\tdns_rbt_findnode failed %s\n", dns_result_totext(dns_result));
@@ -1333,8 +1335,9 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	/* set the starting node */
 	node = NULL;
 	dns_result = dns_rbt_findnode(rbt, dns_fixedname_name(&dns_findname),
-					dns_fixedname_name(&dns_foundname),
-					&node, &chain, ISC_TRUE, NULL, NULL);
+				      dns_fixedname_name(&dns_foundname),
+				      &node, &chain, DNS_RBTFIND_EMPTYDATA,
+				      NULL, NULL);
 
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_findnode failed %s\n", dns_result_totext(dns_result));
@@ -1504,8 +1507,9 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 	/* set the starting node */
 	node = NULL;
 	dns_result = dns_rbt_findnode(rbt, dns_fixedname_name(&dns_findname),
-					dns_fixedname_name(&dns_foundname),
-					&node, &chain, ISC_TRUE, NULL, NULL);
+				      dns_fixedname_name(&dns_foundname),
+				      &node, &chain, DNS_RBTFIND_EMPTYDATA,
+				      NULL, NULL);
 
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rbt_findnode failed %s\n", dns_result_totext(dns_result));

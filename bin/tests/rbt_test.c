@@ -129,7 +129,7 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 	printf("\n");
 
 	result = dns_rbt_findnode(rbt, name, foundname, &node1, &chain,
-				  ISC_TRUE, NULL, NULL);
+				  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -372,7 +372,7 @@ main (int argc, char **argv) {
 						dns_fixedname_name(&fixedname);
 					data = NULL;
 
-					result = dns_rbt_findname(rbt, name,
+					result = dns_rbt_findname(rbt, name, 0,
 								  foundname,
 								  &data);
 					switch (result) {

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.24 2000/04/12 21:25:10 tale Exp $ */
+/* $Id: compress.c,v 1.25 2000/04/19 18:23:29 halley Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -339,7 +339,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 
 	dns_fixedname_init(&found);
 	foundname = dns_fixedname_name(&found);
-	result = dns_rbt_findname(root, name, foundname, (void *)&data);
+	result = dns_rbt_findname(root, name, 0, foundname, (void *)&data);
 	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		return (ISC_FALSE);
 	if (data == NULL)		/* root label */
