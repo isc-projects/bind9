@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.11.18.3 2005/01/11 01:39:26 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.11.18.4 2005/03/16 01:07:31 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -142,7 +142,7 @@
         <term>-o <replaceable class="parameter">filename</replaceable></term>
         <listitem>
           <para>
-	      Write zone output to <filename>directory</filename>.
+	      Write zone output to <filename>filename</filename>.
           </para>
         </listitem>
       </varlistentry>

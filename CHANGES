@@ -1,3 +1,5 @@
+1831.	[doc]		Update named-checkzone documentation. [RT#13604]
+
 1830.	[bug]		adb lame cache has sence of test reversed. [RT #13600]
 
 1829.	[bug]		win32: "pid-file none;" broken. [RT #13563]
