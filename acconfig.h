@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.29 2000/09/22 18:52:32 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.30 2000/12/22 20:50:01 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -111,3 +111,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if the system has a random number generating device */
 #undef PATH_RANDOMDEV
+
+/* define if pthread_attr_getstacksize() is available */
+#undef HAVE_PTHREAD_ATTR_GETSTACKSIZE

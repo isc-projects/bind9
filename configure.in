@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.199 $)
+AC_REVISION($Revision: 1.200 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -377,12 +377,18 @@ Please install the devel/unproven-pthreads package and rerun configure.
 		;;
 		*)
 			AC_CHECK_LIB(pthread, pthread_create,,
-			     AC_CHECK_LIB(pthread, __pthread_create)
-			     AC_CHECK_LIB(pthread, __pthread_create_system)
-			     AC_CHECK_LIB(pthreads, pthread_create))
+			     AC_CHECK_LIB(pthread, __pthread_create,,
+			     AC_CHECK_LIB(pthread, __pthread_create_system,,
+			     use_threads=false)))
 		;;
 	esac
+fi
 
+#
+# We may have failed to find libpthread, so check again.
+#
+if $use_threads
+then
 	#
 	# We'd like to use sigwait() too
 	#
@@ -393,6 +399,9 @@ Please install the devel/unproven-pthreads package and rerun configure.
 				  AC_CHECK_LIB(pthread, _Psigwait,
 					       AC_DEFINE(HAVE_SIGWAIT),))
 	)
+
+	AC_CHECK_FUNC(pthread_attr_getstacksize,
+		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
 
 	#
 	# Additional OS-specific issues related to pthreads and sigwait.
