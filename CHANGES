@@ -1,6 +1,6 @@
 1588.	[bug]		win32: TCP sockets could become blocked. [RT #10115]
 
-1586.	[func]          "check-names" is now implemented.
+1586.	[func]		"check-names" is now implemented.
 
 1583.	[bug]		Records add via UPDATE failed to get the correct trust
 			level. [RT #10452]
@@ -110,7 +110,7 @@
 
 1544.	[bug]		Named would logged a single entry to a file despite it
 			being over the specified size limit.
-			
+
 1543.	[bug]		Logging using "versions unlimited" did not work.
 
 1540.	[bug]		"rndc reload <dynamiczone>" was silently accepted.
@@ -120,7 +120,7 @@
 			that use reserved ports at startup. [RT #9475]
 
 1537.	[func]		New option "querylog".  If set specify whether query
-			logging	is to be enabled or disabled at startup.
+			logging is to be enabled or disabled at startup.
 
 1536.	[bug]		Windows socket code failed to log a error description
 			when returning ISC_R_UNEXPECTED. [RT #9998]
@@ -158,7 +158,7 @@
 
 1520.	[protocol]	Add SSHFP (SSH Finger Print) type.
 
-1518.   [bug]           dns_nxt_buildrdata(), and hence dns_nxt_build(),
+1518.	[bug]		dns_nxt_buildrdata(), and hence dns_nxt_build(),
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.
 
@@ -4705,16 +4705,16 @@
 
  103.	[func]		libisc buffer API changes for <isc/buffer.h>:
 			Added:
-				isc_buffer_base(b)	    (pointer)
-				isc_buffer_current(b)	    (pointer)
-				isc_buffer_active(b)	    (pointer)
-				isc_buffer_used(b)	    (pointer)
-				isc_buffer_length(b)		(int)
-				isc_buffer_usedlength(b)	(int)
-				isc_buffer_consumedlength(b)	(int)
-				isc_buffer_remaininglength(b)	(int)
-				isc_buffer_activelength(b)	(int)
-				isc_buffer_availablelength(b)	(int)
+				isc_buffer_base(b)          (pointer)
+				isc_buffer_current(b)       (pointer)
+				isc_buffer_active(b)        (pointer)
+				isc_buffer_used(b)          (pointer)
+				isc_buffer_length(b)            (int)
+				isc_buffer_usedlength(b)        (int)
+				isc_buffer_consumedlength(b)    (int)
+				isc_buffer_remaininglength(b)   (int)
+				isc_buffer_activelength(b)      (int)
+				isc_buffer_availablelength(b)   (int)
 			Removed:
 				ISC_BUFFER_USEDCOUNT(b)
 				ISC_BUFFER_AVAILABLECOUNT(b)
