@@ -11,14 +11,12 @@ Document the new lwresd configuration mechanisms
 
 document blackhole
 
-implement sortlist
-
-implement bogus
+document bogus
 
 document forwarding
 
+implement sortlist
+
 DB/2 sdb
 
-setrrsetbyname proposal
-
-fix lwresd reload (with setuid)
+setrrsetbyname proposal (sent, waiting for responses)
