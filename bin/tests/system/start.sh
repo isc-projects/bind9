@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.21 2000/06/26 01:12:35 gson Exp $
+# $Id: start.sh,v 1.21.2.1 2000/06/26 21:21:18 gson Exp $
 
 #
 # Start name servers for running system tests.
@@ -115,14 +115,14 @@ do
 		fi
 		grep ";" dig.out
 		try=`expr $try + 1`
-		if [ $try = 22 ]; then
+		if [ $try = 30 ]; then
 			cd ..
 			sh ./stop.sh $1
 			echo "I: no response from $d"
 			echo "R:FAIL"
 			exit 1
 		fi
-		sleep 4
+		sleep 9
 	done
 done
 rm -f dig.out
