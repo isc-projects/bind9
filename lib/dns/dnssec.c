@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.3 1999/09/03 19:05:49 bwelling Exp $
+ * $Id: dnssec.c,v 1.4 1999/09/09 08:28:23 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -522,4 +522,68 @@ dns_dnssec_destroy() {
 		dns_name_free(&key->name, mctx);
 		isc_mem_put(mctx, key, sizeof(dns_trusted_key_t));
 	}
+}
+
+#define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \
+			  == DNS_KEYOWNER_ZONE)
+
+#define check_result(op, msg) \
+	do { result = (op); \
+		if (result != DNS_R_SUCCESS) { \
+			fprintf(stderr, "%s: %s\n", msg, \
+				isc_result_totext(result)); \
+			goto failure; \
+		} \
+	} while (0)
+
+dns_result_t
+dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node, 
+			dns_name_t *name, isc_mem_t *mctx, unsigned int maxkeys,
+			dst_key_t **keys, unsigned int *nkeys)
+{
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata;
+	isc_result_t result;
+	dst_key_t *pubkey;
+	unsigned int count = 0;
+
+	*nkeys = 0;
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_key, 0, 0,
+				     &rdataset, NULL);
+	check_result(result, "dns_db_findrdataset()");
+	result = dns_rdataset_first(&rdataset);
+	check_result(result, "dns_rdataset_first()");
+	while (result == ISC_R_SUCCESS && count < maxkeys) {
+		pubkey = NULL;
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey);
+		check_result(result, "dns_dnssec_keyfromrdata()");
+		if (!is_zone_key(pubkey)) {
+			dst_key_free(pubkey);
+			continue;
+		}
+		result = dst_key_fromfile(dst_key_name(pubkey),
+					  dst_key_id(pubkey),
+					  dst_key_alg(pubkey),
+					  DST_TYPE_PRIVATE,
+					  mctx, &keys[count++]);
+		check_result(result, "dst_key_fromfile()");
+		dst_key_free(pubkey);
+		pubkey = NULL;
+		result = dns_rdataset_next(&rdataset);
+	}
+	if (result != DNS_R_NOMORE)
+		check_result(result, "iteration over zone keys");
+	result = DNS_R_SUCCESS;
+	if (count == 0)
+		check_result(ISC_R_FAILURE, "no key found");
+		
+ failure:
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (pubkey != NULL)
+		dst_key_free(pubkey);
+	*nkeys = count;
+	return (result);
 }
