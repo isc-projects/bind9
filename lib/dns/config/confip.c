@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.36 2000/08/02 21:58:19 gson Exp $ */
+/* $Id: confip.c,v 1.37 2000/09/27 20:10:39 gson Exp $ */
 
 #include <config.h>
 
@@ -350,6 +350,9 @@ dns_c_ipmatchpattern_new(isc_mem_t *mem,
 	res = checkmask(&address, maskbits);
 
 	if (res != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
+			      "host portion of network address is not zero");
 		return (res);
 	}
 
