@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.3 1999/10/26 19:32:37 bwelling Exp $
+ * $Id: tkey.c,v 1.4 1999/10/26 21:57:52 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -530,7 +530,7 @@ dns_tkey_processquery(dns_message_t *msg) {
 		case DNS_TKEYMODE_SERVERASSIGNED:
 		case DNS_TKEYMODE_GSSAPI:
 		case DNS_TKEYMODE_RESOLVERASSIGNED:
-			result = dns_rcode_notimp;
+			result = DNS_R_NOTIMP;
 			goto failure;
 		default:
 			tkeyout.error = dns_tsigerror_badmode;
@@ -761,7 +761,7 @@ find_tkey(dns_message_t *msg, dns_name_t **name, dns_rdata_t *rdata) {
 
 isc_result_t
 dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-			   dst_key_t *key)
+			   dst_key_t *key, dns_tsigkey_t **outkey)
 {
 	dns_rdata_t qtkeyrdata, rtkeyrdata;
 	dns_name_t keyname, *tkeyname, *theirkeyname, *ourkeyname, *tempname;
@@ -781,6 +781,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	REQUIRE(key != NULL);
 	REQUIRE(dst_key_alg(key) == DNS_KEYALG_DH);
 	REQUIRE(dst_key_isprivate(key));
+	if (outkey != NULL)
+		REQUIRE(*outkey == NULL);
 
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, rmsg->mctx));
@@ -791,7 +793,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	if (rtkey.error != dns_rcode_noerror ||
 	    rtkey.mode != DNS_TKEYMODE_DIFFIEHELLMAN ||
 	    rtkey.mode != qtkey.mode ||
-	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm))
+	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm) ||
+	    rmsg->rcode != dns_rcode_noerror)
 	{
 		result = DNS_R_INVALIDTKEY;
 		dns_rdata_freestruct(&rtkey);
@@ -855,6 +858,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 				    r.base, r.length, ISC_TRUE,
 				    NULL, rmsg->mctx, &tsigkey);
 	isc_buffer_free(&secret);
+	if (outkey != NULL)
+		RETERR(dns_tsigkey_find(outkey, tkeyname, &rtkey.algorithm));
 
 	return (result);
 
@@ -885,7 +890,8 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg) {
 	if (rtkey.error != dns_rcode_noerror ||
 	    rtkey.mode != DNS_TKEYMODE_DELETE ||
 	    rtkey.mode != qtkey.mode ||
-	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm))
+	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm) ||
+	    rmsg->rcode != dns_rcode_noerror)
 	{
 		result = DNS_R_INVALIDTKEY;
 		dns_rdata_freestruct(&rtkey);

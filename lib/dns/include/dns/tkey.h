@@ -112,7 +112,7 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
 
 isc_result_t
 dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-                           dst_key_t *key);
+                           dst_key_t *key, dns_tsigkey_t **outkey);
 /*
  *	Processes a response to a query containing a TKEY that was
  *	designed to generate a shared secret using a Diffie-Hellman key
@@ -123,6 +123,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
  *		'qmsg' is a valid message (the query)
  *		'rmsg' is a valid message (the response)
  *		'key' is a valid Diffie Hellman dst key
+ *		'outkey' is either NULL or a pointer to NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS	the shared key was successfully added
