@@ -1,8 +1,11 @@
+1073.	[bug]		The adb cache should also be space driven,
+			max-adb-size.  [RT #1915, #1938]
+
 1072.	[bug]		The TCP client quota could be exceeded when
 			recursion occurred. [RT #1937]
 
 1071.	[bug]		Sockets listening for TCP DNS connections
-			specified an excessive listen backlog. [RT #1937]
+			specified an excessive listen backlog. [RT #1937]
 
 1070.	[bug]		Copy DNSSEC OK (DO) to response as specified by
 			draft-ietf-dnsext-dnssec-okbit-03.txt.
