@@ -1263,10 +1263,10 @@ ns_server_destroy(ns_server_t **serverp) {
 }
 
 static void
-fatal(char *msg, isc_result_t result)
-{
+fatal(char *msg, isc_result_t result) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_CRITICAL, "%s: %s", msg, isc_result_totext(result));
+		      ISC_LOG_CRITICAL, "%s: %s", msg,
+		      isc_result_totext(result));
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_CRITICAL, "exiting (due to fatal error)");
 	exit(1);
@@ -1275,7 +1275,7 @@ fatal(char *msg, isc_result_t result)
 static void
 ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	ns_server_t *server = (ns_server_t *) event->arg;
+	ns_server_t *server = (ns_server_t *)event->arg;
 	UNUSED(task);
 	
 	result = load_configuration(ns_g_conffile, server, ISC_FALSE);
