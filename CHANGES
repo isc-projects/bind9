@@ -1,3 +1,5 @@
+1520.	[protocol]	Add SSHFP (SSH Finger Print) type.
+
 1519.	[bug]		dnssec-signzone:nsec_setbit() computed the wrong
 			length of the new bitmap.
 
