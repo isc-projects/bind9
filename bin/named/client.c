@@ -113,7 +113,7 @@ release_quotas(ns_client_t *client) {
 static void
 maybe_free(ns_client_t *client) {
 	isc_boolean_t need_clientmgr_destroy = ISC_FALSE;
-	ns_clientmgr_t *manager;
+	ns_clientmgr_t *manager = NULL;
 	
 	REQUIRE(NS_CLIENT_VALID(client));
 
