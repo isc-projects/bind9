@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.32 1999/11/05 20:19:24 halley Exp $
+ * $Id: tsig.c,v 1.33 1999/11/16 03:02:36 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -188,6 +188,32 @@ cleanup_key:
 	return (ret);
 }
 
+static void
+tsigkey_free(dns_tsigkey_t **key) {
+	dns_tsigkey_t *tkey;
+
+	REQUIRE(key != NULL);
+	REQUIRE(VALID_TSIG_KEY(*key));
+	tkey = *key;
+	*key = NULL;
+
+	tkey->magic = 0;
+	if (tkey->key != NULL) {
+		isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
+		ISC_LIST_UNLINK(tsigkeys, tkey, link);
+		isc_rwlock_unlock(&tsiglock, isc_rwlocktype_write);
+	}
+	dns_name_free(&tkey->name, tkey->mctx);
+	dns_name_free(&tkey->algorithm, tkey->mctx);
+	if (tkey->key != NULL)
+		dst_key_free(tkey->key);
+	if (tkey->creator != NULL) {
+		dns_name_free(tkey->creator, tkey->mctx);
+		isc_mem_put(tkey->mctx, tkey->creator, sizeof(dns_name_t));
+	}
+	isc_mem_put(tkey->mctx, tkey, sizeof(dns_tsigkey_t));
+}
+
 void
 dns_tsigkey_free(dns_tsigkey_t **key) {
 	dns_tsigkey_t *tkey;
@@ -204,21 +230,7 @@ dns_tsigkey_free(dns_tsigkey_t **key) {
 		return;
 	}
 	isc_mutex_unlock(&tkey->lock);
-	tkey->magic = 0;
-	if (tkey->key != NULL) {
-		isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
-		ISC_LIST_UNLINK(tsigkeys, tkey, link);
-		isc_rwlock_unlock(&tsiglock, isc_rwlocktype_write);
-	}
-	dns_name_free(&tkey->name, tkey->mctx);
-	dns_name_free(&tkey->algorithm, tkey->mctx);
-	if (tkey->key != NULL)
-		dst_key_free(tkey->key);
-	if (tkey->creator != NULL) {
-		dns_name_free(tkey->creator, tkey->mctx);
-		isc_mem_put(tkey->mctx, tkey->creator, sizeof(dns_name_t));
-	}
-	isc_mem_put(tkey->mctx, tkey, sizeof(dns_tsigkey_t));
+	tsigkey_free(key);
 }
 
 void
@@ -1024,7 +1036,7 @@ add_initial_keys(dns_c_kdeflist_t *list, isc_mem_t *mctx) {
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
 		isc_lex_close(lex);
-		lex = NULL;
+		isc_lex_destroy(&lex);
 
 		ret = dns_tsigkey_create(&keyname, &alg, secret, secretlen,
 					 ISC_FALSE, NULL, mctx, NULL);
@@ -1038,7 +1050,7 @@ add_initial_keys(dns_c_kdeflist_t *list, isc_mem_t *mctx) {
 
  failure:
 	if (lex != NULL)
-		isc_lex_close(lex);
+		isc_lex_destroy(&lex);
 	if (secret != NULL)
 		isc_mem_put(mctx, secret, secretlen);
 	return (ret);
@@ -1108,7 +1120,7 @@ dns_tsig_destroy() {
 		dns_tsigkey_t *key = ISC_LIST_HEAD(tsigkeys);
 		key->refs = 0;
 		key->deleted = ISC_TRUE;
-		dns_tsigkey_free(&key);
+		tsigkey_free(&key);
 	}
 	dns_name_free(dns_tsig_hmacmd5_name, tsig_mctx);
 	isc_mem_put(tsig_mctx, dns_tsig_hmacmd5_name, sizeof(dns_name_t));
