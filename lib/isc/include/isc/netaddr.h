@@ -57,6 +57,26 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp);
  *	ISC_R_MASKNONCONTIG
  */
 
+isc_result_t
+isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target);
+/*
+ * Append a text representation of 'sockaddr' to the buffer 'target'.
+ * The text is NOT null terminated.  Handles IPv4 and IPv6 addresses.  
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE	The text or the null termination did not fit.
+ *	ISC_R_FAILURE	Unspecified failure
+ */
+
+void
+isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size);
+/*
+ * Format a human-readable representation of the network address '*na'
+ * into the character array 'array', which is of size 'size'.
+ * The resulting string is guaranteed to be null-terminated.
+ */
+
 void
 isc_netaddr_fromsockaddr(isc_netaddr_t *netaddr, const isc_sockaddr_t *source);
 

@@ -17,8 +17,11 @@
 
 #include <config.h>
 
+#include <stdio.h>
 
+#include <isc/buffer.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -99,6 +102,55 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 			return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
+}
+
+isc_result_t
+isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
+	char abuf[sizeof "xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255"];
+	unsigned int alen;
+	const char *r;
+
+	REQUIRE(netaddr != NULL);
+
+	r = inet_ntop(netaddr->family, &netaddr->type, abuf, sizeof abuf);
+	if (r == NULL)
+		return (ISC_R_FAILURE);
+
+	alen = strlen(abuf);
+	INSIST(alen < sizeof(abuf));
+
+	if (alen > isc_buffer_availablelength(target))
+		return (ISC_R_NOSPACE);
+	    
+	isc_buffer_putmem(target, (unsigned char *)abuf, alen);
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size) {
+	isc_result_t result;
+	isc_buffer_t buf;
+
+	isc_buffer_init(&buf, array, size);
+	result = isc_netaddr_totext(na, &buf);
+
+	/*
+	 * Null terminate.
+	 */
+	if (result == ISC_R_SUCCESS) {
+		if (isc_buffer_availablelength(&buf) >= 1)
+			isc_buffer_putuint8(&buf, 0);
+		else
+			result = ISC_R_NOSPACE;
+	}
+		
+	if (result != ISC_R_SUCCESS) {
+		snprintf(array, size,
+			 "<unknown address, family %u>",
+			 na->family);
+		array[size - 1] = '\0';
+	}
 }
 
 isc_result_t
