@@ -1,3 +1,6 @@
+1250.	[bug]		When processing events (non-threaded) only allow
+			the task one chance to use to use its quantum.
+
 1249.	[func]		named-checkzone will now check if nameservers that
 			appear to be IP addresses.  Available modes "fail",
 			"warn" (default) and "ignore" the results of the
