@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.21 2000/05/08 14:34:41 tale Exp $ */
+/* $Id: log.c,v 1.22 2000/05/09 23:29:51 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -65,6 +65,7 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/acl",		0 },
 	{ "dns/validator",	0 },
 	{ "dns/dispatch",	0 },
+	{ "dns/request",	0 },
 	{ NULL, 		0 }
 };
 
