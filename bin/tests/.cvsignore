@@ -39,3 +39,4 @@ zone2_test
 zone_test
 byaddr_test
 inter_test
+byname_test
