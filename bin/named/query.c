@@ -993,6 +993,7 @@ void
 ns_query_start(ns_client_t *client) {
 	isc_result_t result;
 	dns_message_t *message = client->message;
+	dns_rdataset_t *rdataset;
 
 	/*
 	 * Ensure that appropriate cleanups occur.
@@ -1002,18 +1003,6 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * XXXRTH  Deal with allow-query and allow-recursion here.
 	 */
-
-	result = dns_message_reply(message, ISC_TRUE);
-	if (result != ISC_R_SUCCESS) {
-		ns_client_next(client, result);
-		return;
-	}
-
-	/*
-	 * Assume authoritative response until it is known to be
-	 * otherwise.
-	 */
-	message->flags |= DNS_MESSAGEFLAG_AA;
 
 	/*
 	 * If the client doesn't want recursion, turn it off.
@@ -1044,6 +1033,66 @@ ns_query_start(ns_client_t *client) {
 			ns_client_error(client, result);
 		return;
 	}
+
+	/*
+	 * Check for illegal meta-classes and meta-types in
+	 * multiple question queries (edns1 section 5.1).
+	 */
+	if (message->counts[DNS_SECTION_QUESTION] > 1) {
+		if (dns_rdataclass_ismeta(message->rdclass)) {
+			ns_client_error(client, DNS_R_FORMERR);
+			return;
+		}
+		for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (dns_rdatatype_ismeta(rdataset->type)) {
+				ns_client_error(client, DNS_R_FORMERR);
+				return;
+			}
+		}
+	}
+	
+	/*
+	 * Check for meta-queries like IXFR and AXFR.
+	 */
+	if (message->counts[DNS_SECTION_QUESTION] == 1) {
+		rdataset = ISC_LIST_HEAD(client->query.qname->list);
+		INSIST(rdataset != NULL);
+		if (dns_rdatatype_ismeta(rdataset->type)) {
+			switch (rdataset->type) {
+			case dns_rdatatype_any:
+				break; /* Let query_find handle it. */
+			case dns_rdatatype_ixfr:
+			case dns_rdatatype_axfr:
+#ifdef notyet
+				ns_xfr_start(client, rdataset->type);
+				return;
+#endif
+			case dns_rdatatype_maila:
+			case dns_rdatatype_mailb:
+				ns_client_error(client, DNS_R_NOTIMP);
+				return;
+			default: /* TSIG, etc. */
+				ns_client_error(client, DNS_R_FORMERR);
+				return;
+			}
+		}
+	}
+
+	/* This is an ordinary query. */
+
+	result = dns_message_reply(message, ISC_TRUE);
+	if (result != ISC_R_SUCCESS) {
+		ns_client_next(client, result);
+		return;
+	}
+
+	/*
+	 * Assume authoritative response until it is known to be
+	 * otherwise.
+	 */
+	message->flags |= DNS_MESSAGEFLAG_AA;
 
 	query_find(client);
 }
