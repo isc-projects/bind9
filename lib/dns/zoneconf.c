@@ -96,7 +96,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 	isc_uint32_t i;
 	isc_sockaddr_t sockaddr;
 	isc_int32_t maxxfr;
-	isc_int32_t idle;
 	in_port_t port;
 	struct in_addr in4addr_any;
 	isc_sockaddr_t sockaddr_any4;
@@ -180,16 +179,20 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			dns_zone_clearnotify(zone);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setmaxxfrout(zone, maxxfr);
-		else
-			dns_zone_setmaxxfrout(zone, MAX_XFER_TIME);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
+			if (result != DNS_R_SUCCESS)
+				maxxfr = MAX_XFER_TIME;
+		}
+		dns_zone_setmaxxfrout(zone, maxxfr);
 
-		result = dns_c_zone_getmaxtransidleout(czone, &idle);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setidleout(zone, idle);
-		else
-			dns_zone_setidleout(zone, 0);
+		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
+			if (result != DNS_R_SUCCESS)
+				maxxfr = DNS_DEFAULT_IDLEOUT;
+		}
+		dns_zone_setidleout(zone, maxxfr);
 
 		break;
 		
@@ -270,16 +273,20 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		dns_zone_setxfrsource4(zone, &sockaddr);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setmaxxfrout(zone, maxxfr);
-		else
-			dns_zone_setmaxxfrout(zone, MAX_XFER_TIME);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
+			if (result != DNS_R_SUCCESS)
+				maxxfr = MAX_XFER_TIME;
+		}
+		dns_zone_setmaxxfrout(zone, maxxfr);
 
-		result = dns_c_zone_getmaxtransidleout(czone, &idle);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setidleout(zone, idle);
-		else
-			dns_zone_setidleout(zone, 0);
+		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
+			if (result != DNS_R_SUCCESS)
+				maxxfr = DNS_DEFAULT_IDLEOUT;
+		}
+		dns_zone_setidleout(zone, maxxfr);
 
 		break;
 
