@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.220 $)
+AC_REVISION($Revision: 1.221 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -415,22 +415,22 @@ then
 [linking with PTL2 is highly experimental and not expected to work])
 			CC=ptlgcc
 		else
-			AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
-
 			if test ! -d $LOCALBASE/pthreads
 			then
-				AC_MSG_ERROR([no thread library found.
-
-Please install the devel/unproven-pthreads package and rerun configure.
-])
+				AC_MSG_RESULT(none)
+				use_threads=false
 			fi
 
-			pkg="$LOCALBASE/pthreads"
-			lib1="-L$pkg/lib -Wl,-R$pkg/lib"
-			lib2="-lpthread -lm -lgcc -lpthread"
-			LIBS="$lib1 $lib2 $LIBS"
-			CPPFLAGS="$CPPFLAGS -I$pkg/include"
-			STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
+			if $use_threads
+			then
+				AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
+				pkg="$LOCALBASE/pthreads"
+				lib1="-L$pkg/lib -Wl,-R$pkg/lib"
+				lib2="-lpthread -lm -lgcc -lpthread"
+				LIBS="$lib1 $lib2 $LIBS"
+				CPPFLAGS="$CPPFLAGS -I$pkg/include"
+				STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
+			fi
 		fi
 		;;
 		*)
