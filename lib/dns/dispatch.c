@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.87 2001/01/31 17:21:11 gson Exp $ */
+/* $Id: dispatch.c,v 1.88 2001/01/31 22:16:37 gson Exp $ */
 
 #include <config.h>
 
@@ -42,7 +42,6 @@ typedef ISC_LIST(dns_dispentry_t)	dns_displist_t;
 
 typedef struct dns_qid {
 	unsigned int	magic;
-	isc_mem_t	*mctx;
 	unsigned int	qid_nbuckets;	/* hash table size */
 	unsigned int	qid_increment;	/* id increment on collision */
 	isc_mutex_t	lock;
