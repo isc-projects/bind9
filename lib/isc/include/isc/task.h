@@ -184,16 +184,17 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 /*
  * Purge events from a task's event queue.
  *
- * Notes:
- *	Events whose sender is 'sender', and whose type is >= first and
- *	<= last will be purged, unless they are marked as unpurgable.
- *	A sender of NULL will match any sender.
- *
  * Requires:
  *
  *	'task' is a valid task.
  *
  *	last >= first
+ *
+ * Ensures:
+ *
+ *	Events whose sender is 'sender', and whose type is >= first and
+ *	<= last will be purged, unless they are marked as unpurgable.
+ *	A sender of NULL will match any sender.
  *
  * Returns:
  *
@@ -206,9 +207,6 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type);
  * Purge events from a task's event queue.
  *
  * Notes:
- *	Events whose sender is 'sender', and whose type is 'type'
- *	will be purged, unless they are marked as unpurgable.
- *	A sender of NULL will match any sender.
  *
  *	This function is equivalent to
  *
@@ -220,11 +218,46 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type);
  *
  *	last >= first
  *
+ * Ensures:
+ *
+ *	Events whose sender is 'sender', and whose type is 'type'
+ *	will be purged, unless they are marked as unpurgable.
+ *	A sender of NULL will match any sender.
+ *
  * Returns:
  *
  *	The number of events purged.
  */
 
+isc_boolean_t
+isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
+/*
+ * Purge 'event' from a task's event queue.
+ *
+ * Notes:
+ *
+ *	If 'event' is on the task's event queue, it will be purged,
+ * 	unless it is marked as unpurgeable.  'event' does not have to be
+ *	on the task's event queue; in fact, it can even be an invalid
+ *	pointer.  Purging only occurs if the event is actually on the task's
+ *	event queue.
+ *
+ * 	Purging never changes the state of the task.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ * Ensures:
+ *
+ *	'event' is not in the event queue for 'task'.
+ *
+ * Returns:
+ *
+ *	ISC_TRUE			The event was purged.
+ *	ISC_FALSE			The event was not in the event queue,
+ *					or was marked unpurgeable.
+ */
 
 isc_result_t
 isc_task_allowsend(isc_task_t *task, isc_boolean_t allow);

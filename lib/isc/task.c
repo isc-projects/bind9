@@ -391,6 +391,47 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type) {
 	return (isc_task_purgerange(task, sender, type, type));
 }
 
+isc_boolean_t
+isc_task_purgeevent(isc_task_t *task, isc_event_t *event) {
+	isc_event_t *curr_event, *next_event;
+
+	/*
+	 * Purge 'event' from a task's event queue.
+	 */
+
+	REQUIRE(VALID_TASK(task));
+
+	/*
+	 * If 'event' is on the task's event queue, it will be purged,
+	 * unless it is marked as unpurgeable.  'event' does not have to be
+	 * on the task's event queue; in fact, it can even be an invalid
+	 * pointer.  Purging only occurs if the event is actually on the task's
+	 * event queue.
+	 *
+	 * Purging never changes the state of the task.
+	 */
+
+	LOCK(&task->lock);
+	for (curr_event = HEAD(task->events);
+	     curr_event != NULL;
+	     curr_event = next_event) {
+		next_event = NEXT(curr_event, link);
+		if (curr_event == event &&
+		    (event->attributes & ISC_EVENTATTR_NOPURGE) == 0) {
+			DEQUEUE(task->events, curr_event, link);
+			break;
+		}
+	}
+	UNLOCK(&task->lock);
+
+	if (curr_event == NULL)
+		return (ISC_FALSE);
+
+	isc_event_free(&curr_event);
+
+	return (ISC_TRUE);
+}
+
 isc_result_t
 isc_task_allowsend(isc_task_t *task, isc_boolean_t allowed) {
 	isc_result_t result = ISC_R_SUCCESS;
