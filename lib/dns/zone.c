@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.129 2000/05/25 21:13:37 gson Exp $ */
+/* $Id: zone.c,v 1.130 2000/05/26 18:18:12 gson Exp $ */
 
 #include <config.h>
 
@@ -2388,6 +2388,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	case dns_zone_slave:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDNOTIFY))
 			next = now;
+		/*FALLTHROUGH*/
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONE_F_NOMASTERS) &&
@@ -3204,6 +3205,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	switch (result) {
 	case ISC_R_SUCCESS:
 		zone->flags |= DNS_ZONE_F_NEEDNOTIFY;
+		/*FALLTHROUGH*/
 	case DNS_R_UPTODATE:
 		/*
 		 * This is not neccessary if we just performed a AXFR
