@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.14 2001/01/04 22:19:18 mws Exp $ */
+/* $Id: masterdump.h,v 1.15 2001/01/04 23:40:28 mws Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -54,7 +54,7 @@ ISC_LANG_BEGINDECLS
  */
 extern const dns_master_style_t dns_master_style_default;
 extern const dns_master_style_t dns_master_style_explicitttl;
-extern const dns_master_style_t dns_master_style_parsable;
+extern const dns_master_style_t dns_master_style_simple;
 
 /***
  ***	Functions

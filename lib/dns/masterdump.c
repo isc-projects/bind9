@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.39 2001/01/04 22:19:16 mws Exp $ */
+/* $Id: masterdump.c,v 1.40 2001/01/04 23:40:27 mws Exp $ */
 
 #include <config.h>
 
@@ -165,7 +165,7 @@ dns_master_style_explicitttl = {
  * applications.
  */
 const dns_master_style_t
-dns_master_style_parsable = {
+dns_master_style_simple = {
 	0,
 	24, 32, 32, 40, 80, 8
 };
