@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.25 2001/10/03 05:08:30 marka Exp $ */
+/* $Id: platform.h.in,v 1.26 2001/10/22 04:01:29 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -152,6 +152,17 @@
  * for IPv6.
  */
 @ISC_PLATFORM_HAVELIFCONF@
+
+/*
+ * Define if the system has struct if_laddrconf which is a extended struct
+ * ifconf for IPv6.
+ */
+@ISC_PLATFORM_HAVEIF_LADDRCONF@
+
+/*
+ * Define if the system has struct if_laddrreq.
+ */
+@ISC_PLATFORM_HAVEIF_LADDRREQ@
 
 /*
  * Used to control how extern data is linked; needed for Win32 platforms.

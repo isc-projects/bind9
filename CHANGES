@@ -1,3 +1,6 @@
+1065.	[func]		Runtime support to select new / old style interface
+			scanning using ioctls.
+
 1064.	[bug]		Do not shutdown active interfaces if we are unable
 			to scan the list of interfaces.  [RT #1921]
 
