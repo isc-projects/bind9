@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.324 2001/05/14 19:06:42 bwelling Exp $ */
+/* $Id: zone.c,v 1.325 2001/05/14 20:44:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -5964,6 +5964,13 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 		     zone != NULL;
 		     zone = ISC_LIST_NEXT(zone, statelink))
 			count++;
+		break;
+	case DNS_ZONESTATE_SOAQUERY:
+		for (zone = ISC_LIST_HEAD(zmgr->zones);
+		     zone != NULL;
+		     zone = ISC_LIST_NEXT(zone, link))
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH))
+				count++;
 		break;
 	case DNS_ZONESTATE_ANY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.325 2001/05/14 19:06:40 bwelling Exp $ */
+/* $Id: server.c,v 1.326 2001/05/14 20:44:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -841,11 +841,9 @@ create_bind_view(dns_view_t **viewp) {
 	return (result);
 }
 
-
-
 /*
  * Create the zone that handles queries for "version.bind. CH".   The
- * version string returned either from the "version" configuration
+ * version string is returned either from the "version" configuration
  * option or the global defaults.
  */
 static isc_result_t
@@ -924,9 +922,8 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 }
 
 /*
- * Create the special view that handles queries for
- * "authors.bind. CH".   The strings returned list
- * the BIND 9 authors.
+ * Create the special zone that handles queries for "authors.bind. CH".
+ * The strings returned list the BIND 9 authors.
  */
 static isc_result_t
 create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
@@ -2781,18 +2778,16 @@ ns_server_flushcache(ns_server_t *server) {
 
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text) {
-	dns_view_t *view;
-	int zonecount = 0;
-	int xferrunning = 0;
-	int xferdeferred = 0;
+	int zonecount, xferrunning, xferdeferred, soaqueries;
 	int n;
-	isc_result_t result;
 
 	zonecount = dns_zonemgr_getcount(server->zonemgr, DNS_ZONESTATE_ANY);
 	xferrunning = dns_zonemgr_getcount(server->zonemgr,
 					   DNS_ZONESTATE_XFERRUNNING);
 	xferdeferred = dns_zonemgr_getcount(server->zonemgr,
 					    DNS_ZONESTATE_XFERDEFERRED);
+	soaqueries = dns_zonemgr_getcount(server->zonemgr,
+					  DNS_ZONESTATE_SOAQUERY);
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
 		     "number of zones: %d\n"
@@ -2803,8 +2798,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "query logging is %s\n"
 		     "server is up and running",
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
-		     -1, /* XXX */
-		     server->log_queries ? "ON" : "OFF");
+		     soaqueries, server->log_queries ? "ON" : "OFF");
 	if (n < 0)
 		return (ISC_R_NOSPACE);
 	isc_buffer_add(text, n);

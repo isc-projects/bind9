@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.131 2001/05/09 16:58:12 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.132 2001/05/14 20:44:14 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -788,11 +788,15 @@ of a server.</para>
    <varlistentry><term><userinput>flush</userinput></term>
    <listitem><para>Flushes the server's cache.</para></listitem></varlistentry>
 
+   <varlistentry><term><userinput>status</userinput></term>
+   <listitem><para>Display status of the server.</para></listitem></varlistentry>
+
 </variablelist>
 
-<para>In <acronym>BIND</acronym> 9.1, <command>rndc</command> does not
-yet support all the commands of the BIND 8 <command>ndc</command>
-utility.  Additonal commands will be added in future releases.</para>
+              <para>In <acronym>BIND</acronym> 9.2, <command>rndc</command>
+	      supports all the commands of the BIND 8 <command>ndc</command>
+	      utility except <command>ndc start</command>, which was also
+	      not supported in <command>ndc</command>'s channel mode.</para>
 
               <para>A configuration file is required, since all
               communication with the server is authenticated with

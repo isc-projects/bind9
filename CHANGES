@@ -1,4 +1,6 @@
 
+ 830.	[func]		Implement 'rndc status'.
+
  829.	[bug]		The DNS_R_ZONECUT result code is only meaningful
 			for secure zone databases.  Queries at zone cut points
 			in non-secure zones should always return a delegation.
