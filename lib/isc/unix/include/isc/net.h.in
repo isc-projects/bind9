@@ -76,6 +76,11 @@
 @ISC_NET_NEEDAFINET6@
 
 /*
+ * If this system needs PF_INET6, ISC_NET_NEEDPFINET6 will be defined.
+ */
+@ISC_NET_NEEDPFINET6@
+
+/*
  * If this system has the IPv6 structure definitions, ISC_NET_HAVEIPV6
  * will be defined.
  */
@@ -110,6 +115,9 @@
 
 #ifdef ISC_NET_NEEDAFINET6
 #define AF_INET6 99
+#endif
+
+#ifdef ISC_NET_NEEDPFINET6
 #define PF_INET6 AF_INET6
 #endif
 
