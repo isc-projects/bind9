@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.9 2001/07/11 13:31:01 marka Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.10 2001/07/17 07:36:03 marka Exp $ */
 
 #include <config.h>
 
@@ -6134,13 +6134,13 @@ static int		lasttoken;
  * Definition of all unique keyword tokens to be recognised by the
  * lexer. All the 'L_' tokens defined in parser.y must be defined here too.
  */
-struct token
+struct dns_token
 {
 	const char *token;
 	int yaccval;
 };
 
-static struct token keyword_tokens [] = {
+static struct dns_token keyword_tokens [] = {
 	{ "{",				L_LBRACE },
 	{ "}",				L_RBRACE },
 	{ ";",				L_EOS },
@@ -6327,7 +6327,7 @@ static struct token keyword_tokens [] = {
 };
 
 
-static struct token class_symbol_tokens[] = {
+static struct dns_token class_symbol_tokens[] = {
 	{ "IN", dns_rdataclass_in },
 #if 0					/* XXX expand */
 	{ "CHAOS", dns_rdataclass_chaos },
@@ -6499,7 +6499,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 static isc_result_t
 keyword_init(void)
 {
-	struct token *tok;
+	struct dns_token *tok;
 	isc_symvalue_t symval;
 	isc_result_t result;
 

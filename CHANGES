@@ -1,3 +1,5 @@
+ 938.	[port]		aix 4.3.2 namespace clash on "struct token".
+
  929.	[bug]		RUNTIME_CHECK() used inappropriately in named.conf
 			parser.
 
