@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: md5.h,v 1.4 2000/06/22 21:57:45 tale Exp $ */
+/* $Id: md5.h,v 1.5 2000/06/23 03:02:04 tale Exp $ */
 
 /*
  * This is the header file for the MD5 message-digest algorithm.
@@ -40,8 +40,9 @@
  */
 
 #ifndef ISC_MD5_H
-#define ISC_MD5_H
+#define ISC_MD5_H 1
 
+#include <isc/lang.h>
 #include <isc/types.h>
 
 #define ISC_MD5_DIGESTLENGTH 16
@@ -52,10 +53,20 @@ typedef struct {
 	isc_uint32_t in[16];
 } isc_md5_t;
 
-void isc_md5_init(isc_md5_t *ctx);
-void isc_md5_invalidate(isc_md5_t *ctx);
-void isc_md5_update(isc_md5_t *ctx, const unsigned char *buf,
-		    unsigned int len);
-void isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
+ISC_LANG_BEGINDECLS
 
-#endif /* !MD5_H */
+void
+isc_md5_init(isc_md5_t *ctx);
+
+void
+isc_md5_invalidate(isc_md5_t *ctx);
+
+void
+isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len);
+
+void
+isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
+
+ISC_LANG_ENDDECLS
+
+#endif /* ISC_MD5_H */
