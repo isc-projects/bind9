@@ -148,6 +148,8 @@ while (<>) {
     }
     close(TARGET);
     close(SOURCE);
+    $mode = (stat $file)[2]&511;
+    chmod $mode, "$file.new";
     rename("$file", "$file.bak") || die "rename($file, $file.bak): $!";
     rename("$file.new", "$file") || die "rename($file.new, $file): $!";
 }
