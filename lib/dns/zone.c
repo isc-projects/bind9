@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.167 2000/07/25 19:29:00 mws Exp $ */
+/* $Id: zone.c,v 1.168 2000/07/26 18:47:32 mws Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,9 @@ struct dns_zone {
 	isc_uint32_t		expire;
 	isc_uint32_t		minimum;
 	isc_sockaddr_t		*masters;
+#ifndef NOMINUM_PUBLIC
 	dns_name_t              **masterkeynames;
+#endif /* NOMINUM_PUBLIC */
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
 	isc_sockaddr_t		masteraddr;
@@ -362,7 +364,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->expire = 0;
 	zone->minimum = 0;
 	zone->masters = NULL;
+#ifndef NOMINUM_PUBLIC
 	zone->masterkeynames = NULL;
+#endif /* NOMINUM_PUBLIC */
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
 	zone->notify = NULL;
@@ -439,7 +443,11 @@ zone_free(dns_zone_t *zone) {
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	dns_zone_cleardbargs(zone);
+#ifndef NOMINUM_PUBLIC
 	dns_zone_setmasterswithkeys(zone, NULL, NULL, 0);
+#else /* NOMINUM_PUBLIC */
+	dns_zone_setmasters(zone, NULL, 0);
+#endif /* NOMINUM_PUBLIC */
 	dns_zone_setalsonotify(zone, NULL, 0);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
@@ -1271,6 +1279,7 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 	return (ISC_R_SUCCESS);
 }
 
+#ifndef NOMINUM_PUBLIC
 isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		    isc_uint32_t count)
@@ -1284,24 +1293,34 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 isc_result_t
 dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    dns_name_t **keynames, isc_uint32_t count)
+#else /* NOMINUM_PUBLIC */
+isc_result_t
+dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
+		    isc_uint32_t count)
+#endif /* NOMINUM_PUBLIC */
 {
 	isc_sockaddr_t *new;
-	dns_name_t **newname;
 	isc_result_t result = ISC_R_SUCCESS;
+#ifndef NOMINUM_PUBLIC
+	dns_name_t **newname;
 	unsigned int i;
+#endif /* NOMINUM_PUBLIC */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(count == 0 || masters != NULL);
+#ifndef NOMINUM_PUBLIC
 	if (keynames != NULL) {
 		REQUIRE(count != 0);
 	}
-	
+#endif /* NOMINUM_PUBLIC */
+
 	LOCK(&zone->lock);
 	if (zone->masters != NULL) {
 		isc_mem_put(zone->mctx, zone->masters,
 			    zone->masterscnt * sizeof *new);
 		zone->masters = NULL;
 	}
+#ifndef NOMINUM_PUBLIC
 	if (zone->masterkeynames != NULL) {
 		for (i = 0; i < zone->masterscnt; i++) {
 			if (zone->masterkeynames[i] != NULL) {
@@ -1317,6 +1336,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    zone->masterscnt * sizeof(dns_name_t *));
 		zone->masterkeynames = NULL;
 	}
+#endif /* NOMINUM_PUBLIC */
 	zone->masterscnt = 0;
 	/*
 	 * If count == 0, don't allocate any space for masters or keynames
@@ -1339,6 +1359,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	zone->masterscnt = count;
 	zone->flags &= ~DNS_ZONEFLG_NOMASTERS;
 
+#ifndef NOMINUM_PUBLIC
 	/*
 	 * if keynames is non-NULL, it must contain count elements!
 	 */
@@ -1379,6 +1400,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 		}
 		zone->masterkeynames = newname;
 	}
+#endif /* NOMINUM_PUBLIC */
  unlock:
 	UNLOCK(&zone->lock);
 	return (result);
@@ -4044,6 +4066,9 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Determine if we should attempt to sign the request with TSIG.
+	 */
+#ifndef NOMINUM_PUBLIC
+	/*
 	 * First, look for a tsig key in the master statement, then
 	 * try for a server key.
 	 */
@@ -4053,7 +4078,9 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		keyname = zone->masterkeynames[zone->curmaster];
 		gotkey = ISC_TRUE;
 	}
-	else if (peer != NULL &&
+	else
+#endif /* NOMINUM_PUBLIC */
+        if (peer != NULL &&
 		 dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS) {
 		view = dns_zone_getview(zone);
 		gotkey = ISC_TRUE;

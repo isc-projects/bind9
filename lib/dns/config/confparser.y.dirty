@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.107 2000/07/26 18:47:38 mws Exp $ */
+/* $Id: confparser.y.dirty,v 1.1 2000/07/26 18:47:40 mws Exp $ */
 
 #include <config.h>
 
@@ -448,7 +448,9 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <text>		channel_name
 %type <text>		domain_name
 %type <text>		key_value
+#ifndef NOMINUM_PUBLIC
 %type <text>		maybe_key
+#endif /* NOMINUM_PUBLIC */
 %type <kidlist>		control_keys
 %type <kidlist>		keyid_list
 %type <text>		ordering_name
@@ -1669,6 +1671,7 @@ transfer_format: L_ONE_ANSWER
 	}
 	;
 
+#ifndef NOMINUM_PUBLIC
 
 maybe_key: /* nothing */
 	{
@@ -1678,6 +1681,7 @@ maybe_key: /* nothing */
 	{
 		$$ = $2;
 	};
+#endif /* NOMINUM_PUBLIC */
 
 maybe_wild_addr: ip4_address
 	| ip6_address
@@ -1781,7 +1785,11 @@ ip_and_port_element: ip_address maybe_zero_port
 	};
 
 
+#ifndef NOMINUM_PUBLIC
 ip_and_port_list: ip_and_port_element maybe_key L_EOS
+#else /* NOMINUM_PUBLIC */
+ip_and_port_list: ip_and_port_element L_EOS
+#endif /* NOMINUM_PUBLIC */
 	{
 		dns_c_iplist_t *list;
 
@@ -1792,31 +1800,47 @@ ip_and_port_list: ip_and_port_element maybe_key L_EOS
 			YYABORT;
 		}
 
+#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append(list, $1, $2);
+#else /* NOMINUM_PUBLIC */
+		tmpres = dns_c_iplist_append(list, $1);
+#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
 			YYABORT;
 		}
 
+#ifndef NOMINUM_PUBLIC
 		if ($2 != NULL) {
 			isc_mem_free(memctx, $2);
 		}
+#endif /* NOMINUM_PUBLIC */
 		
 		$$ = list;
 	}
+#ifndef NOMINUM_PUBLIC
 	| ip_and_port_list ip_and_port_element maybe_key L_EOS
+#else /* NOMINUM_PUBLIC */
+	| ip_and_port_list ip_and_port_element L_EOS
+#endif /* NOMINUM_PUBLIC */
 	{
+#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append($1, $2, $3);
+#else /* NOMINUM_PUBLIC */
+		tmpres = dns_c_iplist_append($1, $2);
+#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
 			YYABORT;
 		}
 
+#ifndef NOMINUM_PUBLIC
 		if ($3 != NULL) {
 			isc_mem_free(memctx, $3);
 		}
+#endif /* NOMINUM_PUBLIC */
 
 		$$ = $1;
 	}
@@ -2167,8 +2191,13 @@ forwarders_in_addr_list: forwarders_in_addr L_EOS
 
 forwarders_in_addr: ip_address
 	{
+#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append(currcfg->options->forwarders,
 					     $1, NULL);
+#else /* NOMINUM_PUBLIC */
+		tmpres = dns_c_iplist_append(currcfg->options->forwarders,
+					     $1);
+#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to add forwarders "
@@ -5034,7 +5063,11 @@ in_addr_list: in_addr_elem L_EOS
 			YYABORT;
 		}
 
+#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append(list, $1, NULL);
+#else /* NOMINUM_PUBLIC */
+		tmpres = dns_c_iplist_append(list, $1);
+#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
@@ -5045,7 +5078,11 @@ in_addr_list: in_addr_elem L_EOS
 	}
 	| in_addr_list in_addr_elem L_EOS
 	{
+#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append($1, $2, NULL);
+#else /* NOMINUM_PUBLIC */
+		tmpres = dns_c_iplist_append($1, $2, NULL);
+#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");

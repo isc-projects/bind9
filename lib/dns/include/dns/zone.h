@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.61 2000/07/24 22:59:44 explorer Exp $ */
+/* $Id: zone.h,v 1.62 2000/07/26 18:47:42 mws Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -351,9 +351,11 @@ dns_zone_maintenance(dns_zone_t *zone);
 isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		    isc_uint32_t count);
+#ifndef NOMINUM_PUBLIC
 isc_result_t
 dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    dns_name_t **keynames, isc_uint32_t count);
+#endif /* NOMINUM_PUBLIC */
 /*
  *	Set the list of master servers for the zone.
  *
@@ -361,17 +363,21 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
  *	'zone' to be a valid zone.
  *	'masters' array of isc_sockaddr_t with port set or NULL.
  *	'count' the number of masters.
+#ifndef NOMINUM_PUBLIC
  *      'keynames' array of dns_name_t's for tsig keys or NULL.
  *
  *      dns_zone_setmasters() is just a wrapper to setmasterswithkeys(),
  *      passing NULL in the keynames field.
+#endif NOMINUM_PUBLIC
  *
  * 	If 'masters' is NULL then 'count' must be zero.
  *
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOMEMORY
+#ifndef NOMINUM_PUBLIC
  *      Any result dns_name_dup() can return, if keynames!=NULL
+#endif NOMINUM_PUBLIC
  */
 
 isc_result_t
