@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.71 2003/01/18 03:18:31 marka Exp $ */
+/* $Id: db.h,v 1.72 2003/02/26 01:21:09 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -288,7 +288,7 @@ dns_db_ondestroy(dns_db_t *db, isc_task_t *task, isc_event_t **eventp);
  * Causes 'eventp' to be sent to be sent to 'task' when the database is
  * destroyed.
  *
- * Note; ownrship of the eventp is taken from the caller (and *eventp is
+ * Note; ownership of the eventp is taken from the caller (and *eventp is
  * set to NULL). The sender field of the event is set to 'db' before it is
  * sent to the task.
  */
