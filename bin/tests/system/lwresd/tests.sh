@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2000/06/22 21:52:07 tale Exp $
+# $Id: tests.sh,v 1.3 2000/07/05 18:49:00 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -30,9 +30,5 @@ status=0;
 ./lwtest
 status=`expr $status + $?`
 
-
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+echo "I: exit status: $status"
+exit $status

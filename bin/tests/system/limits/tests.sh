@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2000/06/28 19:01:38 gson Exp $
+# $Id: tests.sh,v 1.4 2000/07/05 18:48:59 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -69,8 +69,5 @@ status=`expr $status + $?`
 grep 'flags: qr aa tc ad;' dig.out.ns1
 status=`expr $status + $?`
 
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+echo "I: exit status: $status"
+exit $status
