@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.h,v 1.12 2000/06/22 21:56:24 tale Exp $ */
+/* $Id: xfrin.h,v 1.13 2000/06/23 03:00:01 tale Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1
@@ -33,7 +33,6 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/mutex.h>
 
 #include <dns/types.h>
 
@@ -41,7 +40,9 @@
  *** Types
  ***/
 
-/* A transfer in progress.  This is an opaque type. */
+/*
+ * A transfer in progress.  This is an opaque type.
+ */
 typedef struct dns_xfrin_ctx dns_xfrin_ctx_t;
 
 /***
@@ -66,14 +67,16 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
  * code as arguments when the transfer finishes. 
  */
 
-void dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr);
+void
+dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr);
 /*
  * If the zone transfer 'xfr' has already finished,
  * do nothing.  Otherwise, abort it and cause it to call
  * its done callback with a status of ISC_R_CANCELLED.
  */
 
-void dns_xfrin_detach(dns_xfrin_ctx_t **xfrp);
+void
+dns_xfrin_detach(dns_xfrin_ctx_t **xfrp);
 /*
  * Detach a reference to a zone transfer object.  
  *
