@@ -28,11 +28,13 @@
 			"allow-recursion" active' warning from view "_bind".
 			[RT# 10920]
 
-1600.	[placeholder]	rt10861.
+1600.	[bug]		Duplicate zone pre-load checks were not case
+			insensitive.
 
-1599.	[placeholder]	rt10861.
+1599.	[bug]		Fix memory leak on error path when checking named.conf.
 
-1598.	[placeholder]	rt10861.
+1598.	[func]		Specify that certain parts of the namespace must
+			be secure (dnssec-must-be-secure).
 
 1597.	[placeholder]	rt6496a
 
