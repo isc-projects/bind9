@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.76 2000/12/29 01:02:07 bwelling Exp $ */
+/* $Id: mem.c,v 1.77 2001/01/09 00:39:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1379,8 +1379,8 @@ isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
 	if (mpctx->lock != NULL)
 		LOCK(mpctx->lock);
 
-	memset(mpctx->name, 0, sizeof(mpctx->name));
 	strncpy(mpctx->name, name, sizeof(mpctx->name) - 1);
+	mpctx->name[sizeof(mpctx->name) - 1] = '\0';
 
 	if (mpctx->lock != NULL)
 		UNLOCK(mpctx->lock);
