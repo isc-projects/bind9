@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.71 2000/08/17 13:13:28 marka Exp $ */
+/* $Id: zone.h,v 1.72 2000/08/22 05:14:59 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -47,8 +47,7 @@ typedef enum {
 /*
  * Nominum specific options build down.
  */
-#define DNS_ZONEOPT_NOTIFYRELAY	0x40000000U	/* relay notify to master */
-#define DNS_ZONEOPT_NOTIFYANY	0x80000000U	/* accept all notifies */
+#define DNS_ZONEOPT_NOTIFYFORWARD 0x80000000U	/* forward notify to master */
 #endif /* NOMINUM_PUBLIC */
 
 #ifndef DNS_ZONE_MINREFRESH
@@ -278,7 +277,7 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 
 isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone,
-		   unsigned int dbargc, const char **dbargv);
+		   unsigned int dbargc, const char * const *dbargv);
 /*
  *	Sets the database type to dbargv[0] and database arguments
  *	to subsequent dbargv elements.
@@ -550,6 +549,17 @@ dns_zone_getxfrsource6(dns_zone_t *zone);
  *	'zone' to be a valid zone.
  */
 
+#ifndef NOMINUM_PUBLIC
+void
+dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl);
+/*
+ *	Sets the notify acl list for the zone.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *	'acl' to be a valid acl.
+ */
+#endif
 void
 dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
@@ -579,6 +589,21 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
  *	'zone' to be a valid zone.
  *	'acl' to be valid acl.
  */
+
+#ifndef NOMINUM_PUBLIC
+dns_acl_t *
+dns_zone_getnotifyacl(dns_zone_t *zone);
+/*
+ * 	Returns the current notify acl or NULL.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *
+ * Returns:
+ *	acl a pointer to the acl.
+ *	NULL
+ */
+#endif /* NOMINUM_PUBLIC */
 
 dns_acl_t *
 dns_zone_getqueryacl(dns_zone_t *zone);
@@ -627,6 +652,17 @@ dns_zone_clearupdateacl(dns_zone_t *zone);
  * Require:
  *	'zone' to be a valid zone.
  */
+
+#ifndef NOMINUM_PUBLIC
+void
+dns_zone_clearnotifyacl(dns_zone_t *zone);
+/*
+ *	Clear the current notify acl.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_clearqueryacl(dns_zone_t *zone);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.50 2000/08/17 13:13:24 marka Exp $ */
+/* $Id: confctx.h,v 1.51 2000/08/22 05:14:56 marka Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -179,8 +179,7 @@ struct dns_c_options {
 	isc_boolean_t	       *additional_from_cache;
 	isc_boolean_t	       *additional_from_auth;
 #ifndef NOMINUM_PUBLIC
-	isc_boolean_t	       *notify_any;
-	isc_boolean_t	       *notify_relay;
+	isc_boolean_t	       *notify_forward;
 #endif /* NOMINUM_PUBLIC */
 
 	isc_sockaddr_t	       *transfer_source;
@@ -203,6 +202,9 @@ struct dns_c_options {
 
 	dns_transfer_format_t  *transfer_format;
 
+#ifndef NOMINUM_PUBLIC
+	dns_c_ipmatchlist_t    *notifyacl;
+#endif
 	dns_c_ipmatchlist_t    *queryacl;
 	dns_c_ipmatchlist_t    *transferacl;
 	dns_c_ipmatchlist_t    *recursionacl;
@@ -534,13 +536,11 @@ isc_result_t dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t *retval);
 isc_result_t dns_c_ctx_unsetfakeiquery(dns_c_ctx_t *cfg);
 
 #ifndef NOMINUM_PUBLIC
-isc_result_t dns_c_ctx_setnotifyany(dns_c_ctx_t *cfg, isc_boolean_t newval);
-isc_result_t dns_c_ctx_getnotifyany(dns_c_ctx_t *cfg, isc_boolean_t *retval);
-isc_result_t dns_c_ctx_unsetnotifyany(dns_c_ctx_t *cfg);
-
-isc_result_t dns_c_ctx_setnotifyrelay(dns_c_ctx_t *cfg, isc_boolean_t newval);
-isc_result_t dns_c_ctx_getnotifyrelay(dns_c_ctx_t *cfg, isc_boolean_t *retval);
-isc_result_t dns_c_ctx_unsetnotifyrelay(dns_c_ctx_t *cfg);
+isc_result_t dns_c_ctx_setnotifyforward(dns_c_ctx_t *cfg,
+				        isc_boolean_t newval);
+isc_result_t dns_c_ctx_getnotifyforward(dns_c_ctx_t *cfg,
+				        isc_boolean_t *retval);
+isc_result_t dns_c_ctx_unsetnotifyforward(dns_c_ctx_t *cfg);
 #endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_ctx_setrecursion(dns_c_ctx_t *cfg, isc_boolean_t newval);
@@ -726,6 +726,13 @@ isc_result_t dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
 					 dns_transfer_format_t *tformat);
 isc_result_t dns_c_ctx_unsettransferformat(dns_c_ctx_t *cfg);
 
+#ifndef NOMINUM_PUBLIC
+isc_result_t dns_c_ctx_setallownotify(dns_c_ctx_t *cfg,
+				      dns_c_ipmatchlist_t *iml);
+isc_result_t dns_c_ctx_getallownotify(dns_c_ctx_t *cfg,
+				      dns_c_ipmatchlist_t **list);
+isc_result_t dns_c_ctx_unsetallownotify(dns_c_ctx_t *cfg);
+#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_ctx_setallowquery(dns_c_ctx_t *cfg,
 				     dns_c_ipmatchlist_t *iml);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.192 2000/08/21 22:20:32 bwelling Exp $ */
+/* $Id: zone.c,v 1.193 2000/08/22 05:14:47 marka Exp $ */
 
 #include <config.h>
 
@@ -138,6 +138,9 @@ struct dns_zone {
 	dns_xfrin_ctx_t		*xfr;
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
+#ifndef NOMINUM_PUBLIC
+	dns_acl_t		*notify_acl;
+#endif /* NOMINUM_PUBLIC */
 	dns_acl_t		*query_acl;
 	dns_acl_t		*xfr_acl;
 	dns_severity_t		check_names;
@@ -282,7 +285,7 @@ static isc_result_t notify_createmessage(dns_zone_t *zone,
 static isc_result_t notify_createmessage(dns_zone_t *zone,
 					 unsigned int flags,
 					 dns_message_t **messagep);
-static void zone_notifyrelay(dns_zone_t *zone);
+static void zone_notifyforward(dns_zone_t *zone);
 #endif /* NOMINUM_PUBLIC */
 static void notify_done(isc_task_t *task, isc_event_t *event);
 static void notify_send_toaddr(isc_task_t *task, isc_event_t *event);
@@ -378,6 +381,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->notifycnt = 0;
 	zone->task = NULL;
 	zone->update_acl = NULL;
+#ifndef NOMINUM_PUBLIC
+	zone->notify_acl = NULL;
+#endif /* NOMINUM_PUBLIC */
 	zone->query_acl = NULL;
 	zone->xfr_acl = NULL;
 	zone->check_names = dns_severity_ignore;
@@ -464,6 +470,10 @@ zone_free(dns_zone_t *zone) {
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
+#ifndef NOMINUM_PUBLIC
+	if (zone->notify_acl != NULL)
+		dns_acl_detach(&zone->notify_acl);
+#endif /* NOMINUM_PUBLIC */
 	if (zone->query_acl != NULL)
 		dns_acl_detach(&zone->query_acl);
 	if (zone->xfr_acl != NULL)
@@ -551,7 +561,7 @@ zone_freedbargs(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone,
-		   unsigned int dbargc, const char **dbargv) {
+		   unsigned int dbargc, const char * const *dbargv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	char **new = NULL;
 	unsigned int i;
@@ -2057,9 +2067,9 @@ notify_send(dns_notify_t *notify) {
 
 #ifndef NOMINUM_PUBLIC
 static void
-zone_notifyrelay(dns_zone_t *zone) {
+zone_notifyforward(dns_zone_t *zone) {
 	isc_result_t result;
-	const char me[] = "zone_notifyrelay";
+	const char me[] = "zone_notifyforward";
 	dns_notify_t *notify = NULL;
 	unsigned int i;
 	isc_sockaddr_t dst;
@@ -3368,6 +3378,10 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	dns_rdata_t rdata;
 	isc_result_t result;
 	isc_stdtime_t now;
+#ifndef NOMINUM_PUBLIC
+	int match = 0;
+	isc_netaddr_t netaddr;
+#endif /* NOMINUM_PUBLIC */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3423,15 +3437,22 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			break;
 
 #ifndef	NOMINUM_PUBLIC
-	if ((DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYRELAY) ||
-	     DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYANY)) &&
-	    (i >= zone->masterscnt)) {
+	/*
+	 * Accept notify requests from non masters if they are on
+	 * 'zone->notify_acl'.  If DNS_ZONEOPT_NOTIFYFORWARD is set
+	 * then forward the notify.
+	 */
+	isc_netaddr_fromsockaddr(&netaddr, from);
+	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
+	    dns_acl_match(&netaddr, NULL, zone->notify_acl, NULL, &match,
+			  NULL) == ISC_R_SUCCESS && match > 0) {
 		
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYRELAY)) {
-			zone_notifyrelay(zone);
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYFORWARD)) {
+			zone_notifyforward(zone);
 			UNLOCK(&zone->lock);
 			return (ISC_R_SUCCESS);
 		}
+		/* Accept notify. */
 	} else
 #endif /* NOMINUM_PUBLIC */
 	if (i >= zone->masterscnt) {
@@ -3496,6 +3517,20 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	return (ISC_R_SUCCESS);
 }
 
+#ifndef NOMINUM_PUBLIC
+void
+dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	if (zone->notify_acl != NULL)
+		dns_acl_detach(&zone->notify_acl);
+	dns_acl_attach(acl, &zone->notify_acl);
+	UNLOCK(&zone->lock);
+}
+#endif
+
 void
 dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl) {
 
@@ -3532,6 +3567,16 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl) {
 	UNLOCK(&zone->lock);
 }
 
+#ifndef NOMINUM_PUBLIC
+dns_acl_t *
+dns_zone_getnotifyacl(dns_zone_t *zone) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->notify_acl);
+}
+#endif
+
 dns_acl_t *
 dns_zone_getqueryacl(dns_zone_t *zone) {
 
@@ -3566,6 +3611,19 @@ dns_zone_clearupdateacl(dns_zone_t *zone) {
 		dns_acl_detach(&zone->update_acl);
 	UNLOCK(&zone->lock);
 }
+
+#ifndef NOMINUM_PUBLIC
+void
+dns_zone_clearnotifyacl(dns_zone_t *zone) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	if (zone->notify_acl != NULL)
+		dns_acl_detach(&zone->notify_acl);
+	UNLOCK(&zone->lock);
+}
+#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_clearqueryacl(dns_zone_t *zone) {

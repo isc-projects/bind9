@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.46 2000/08/19 00:46:13 gson Exp $ */
+/* $Id: confview.c,v 1.47 2000/08/22 05:14:53 marka Exp $ */
 
 #include <config.h>
 
@@ -483,6 +483,9 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->forwarders = NULL;
 	view->also_notify = NULL;
 
+#ifndef NOMINUM_PUBLIC
+	view->allownotify = NULL;
+#endif /* NOMINUM_PUBLIC */
 	view->allowquery = NULL;
 	view->allowupdateforwarding = NULL;
 	view->transferacl = NULL;
@@ -529,8 +532,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 
 #ifndef NOMINUM_PUBLIC
 	view->max_names = NULL;
-	view->notify_any = NULL;
-	view->notify_relay = NULL;
+	view->notify_forward = NULL;
 #endif /* NOMINUM_PUBLIC */
 
 	view->additional_data = NULL;
@@ -675,6 +677,9 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		fprintf(fp, ";\n");
 	}
 
+#ifndef NOMINUM_PUBLIC
+	PRINT_IPMLIST(allownotify, "allow-notify");
+#endif /* NOMINUM_PUBLIC */
 	PRINT_IPMLIST(allowquery, "allow-query");
 	PRINT_IPMLIST(allowupdateforwarding, "allow-update-forwarding");
 	PRINT_IPMLIST(transferacl, "alllow-transfer");
@@ -725,8 +730,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
 #ifndef NOMINUM_PUBLIC
-	PRINT_AS_BOOLEAN(notify_any, "notify-any");
-	PRINT_AS_BOOLEAN(notify_relay, "notify-relay");
+	PRINT_AS_BOOLEAN(notify_forward, "notify-forward");
 #endif /* NOMINUM_PUBLIC */
 
 	PRINT_IP(transfer_source, "transfer-source");
@@ -849,6 +853,9 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 		dns_c_iplist_detach(&view->also_notify);
 	}
 
+#ifndef NOMINUM_PUBLIC
+	FREEIPMLIST(allownotify);
+#endif /* NOMINUM_PUBLIC */
 	FREEIPMLIST(allowquery);
 	FREEIPMLIST(allowupdateforwarding);
 	FREEIPMLIST(transferacl);
@@ -898,8 +905,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 
 #ifndef NOMINUM_PUBLIC
 	FREEFIELD(max_names);
-	FREEFIELD(notify_any);
-	FREEFIELD(notify_relay);
+	FREEFIELD(notify_forward);
 #endif /* NOMINUM_PUBLIC */
 
 	FREEFIELD(additional_data);
@@ -1496,6 +1502,9 @@ dns_c_view_settrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t *newval,
 **
 */
 
+#ifndef NOMINUM_PUBLIC
+IPMLIST_FUNCS(allownotify, allownotify)
+#endif /* NOMINUM_PUBLIC */
 IPMLIST_FUNCS(allowquery, allowquery)
 IPMLIST_FUNCS(allowupdateforwarding, allowupdateforwarding)
 IPMLIST_FUNCS(transferacl, transferacl)
@@ -1513,8 +1522,7 @@ BOOL_FUNCS(fetchglue, fetch_glue)
 NOTIFYTYPE_FUNCS(notify, notify)
 
 #ifndef NOMINUM_PUBLIC
-BOOL_FUNCS(notifyany, notify_any)
-BOOL_FUNCS(notifyrelay, notify_relay)
+BOOL_FUNCS(notifyforward, notify_forward)
 #endif /* NOMINUM_PUBLIC */
 
 BOOL_FUNCS(rfc2308type1, rfc2308_type1)

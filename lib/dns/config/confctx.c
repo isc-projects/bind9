@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.83 2000/08/19 00:39:23 gson Exp $ */
+/* $Id: confctx.c,v 1.84 2000/08/22 05:14:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1103,8 +1103,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
 #ifndef NOMINUM_PUBLIC
-	PRINT_AS_BOOLEAN(notify_any, "notify-any");
-	PRINT_AS_BOOLEAN(notify_relay, "notify-relay");
+	PRINT_AS_BOOLEAN(notify_forward, "notify-forward");
 #endif /* NOMINUM_PUBLIC */
 
 	if (options->transfer_format != NULL) {
@@ -1133,6 +1132,9 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 	fprintf(fp, "\n");
 
+#ifndef NOMINUM_PUBLIC
+	PRINT_IPMLIST(queryacl, "allow-notify");
+#endif /* NOMINUM_PUBLIC */
 	PRINT_IPMLIST(queryacl, "allow-query");
 	PRINT_IPMLIST(transferacl, "allow-transfer");
 	PRINT_IPMLIST(recursionacl, "allow-recursion");
@@ -1633,8 +1635,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->additional_from_auth = NULL;
 	opts->additional_from_cache = NULL;
 #ifndef NOMINUM_PUBLIC
-	opts->notify_any = NULL;
-	opts->notify_relay = NULL;
+	opts->notify_forward = NULL;
 #endif /* NOMINUM_PUBLIC */
 
 	opts->transfer_source = NULL;
@@ -1657,6 +1658,9 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 
 	opts->transfer_format = NULL;
 
+#ifndef NOMINUM_PUBLIC
+	opts->notifyacl = NULL;
+#endif
 	opts->queryacl = NULL;
 	opts->transferacl = NULL;
 	opts->recursionacl = NULL;
@@ -1782,8 +1786,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 #ifndef NOMINUM_PUBLIC
 	FREEFIELD(max_names);
-	FREEFIELD(notify_any);
-	FREEFIELD(notify_relay);
+	FREEFIELD(notify_forward);
 #endif /* NOMINUM_PUBLIC */
 
 	FREEFIELD(transfer_source);
@@ -1807,6 +1810,9 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 	FREEFIELD(transfer_format);
 
+#ifndef NOMINUM_PUBLIC
+	FREEIPMLIST(notifyacl);
+#endif /* NOMINUM_PUBLIC */
 	FREEIPMLIST(queryacl);
 	FREEIPMLIST(transferacl);
 	FREEIPMLIST(recursionacl);
@@ -1909,8 +1915,7 @@ BOOL_FUNCS(fetchglue, fetch_glue)
 NOTIFYTYPE_FUNCS(notify, notify)
 
 #ifndef NOMINUM_PUBLIC
-BOOL_FUNCS(notifyany, notify_any)
-BOOL_FUNCS(notifyrelay, notify_relay)
+BOOL_FUNCS(notifyforward, notify_forward)
 #endif /* NOMINUM_PUBLIC */
 
 BOOL_FUNCS(hoststatistics, host_statistics)
@@ -2110,6 +2115,9 @@ dns_c_ctx_unsetchecknames(dns_c_ctx_t *cfg,
 	return (ISC_R_SUCCESS);
 }
 
+#ifndef NOMINUM_PUBLIC
+IPMLIST_FUNCS(allownotify, notifyacl)
+#endif /* NOMINUM_PUBLIC */
 IPMLIST_FUNCS(allowquery, queryacl)
 IPMLIST_FUNCS(allowtransfer, transferacl)
 IPMLIST_FUNCS(allowrecursion, recursionacl)

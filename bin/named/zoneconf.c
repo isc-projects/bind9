@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.59 2000/08/17 13:13:35 marka Exp $ */
+/* $Id: zoneconf.c,v 1.60 2000/08/22 05:14:49 marka Exp $ */
 
 #include <config.h>
 
@@ -197,7 +197,12 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		cpval = default_dbtype;
 	RETERR(strtoargv(mctx, cpval, &dbargc, &dbargv));
-	RETERR(dns_zone_setdbtype(zone, dbargc, dbargv));
+	/*
+	 * ANSI C is strange here.  There is no logical reason why (char **)
+	 * cannot be promoted automatically to (const char * const *) by the
+	 * compiler w/o generating a warning.
+	 */
+	RETERR(dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv));
 	isc_mem_put(mctx, dbargv, dbargc * sizeof(*dbargv));
 
 	result = dns_c_zone_getfile(czone, &filename);
@@ -215,6 +220,15 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setchecknames(zone, dns_c_severity_warn);
 #endif
 
+#ifndef NOMINUM_PUBLIC
+	if (czone->ztype == dns_c_zone_slave)
+		RETERR(configure_zone_acl(czone, cctx, cview, ac, zone,
+					  dns_c_zone_getallownotify,
+					  dns_c_view_getallownotify,
+					  dns_c_ctx_getallownotify,
+					  dns_zone_setnotifyacl,
+					  dns_zone_clearnotifyacl));
+#endif /* NOMINUM_PUBLIC */
 	/*
 	 * XXXAG This probably does not make sense for stubs.
 	 */
@@ -244,26 +258,15 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setmaxnames(zone, uintval);
 	}
 
-	if (czone->ztype != dns_c_zone_stub) {
-		result = dns_c_zone_getnotifyany(czone, &boolean);
+	if (czone->ztype == dns_c_zone_slave) {
+		result = dns_c_zone_getnotifyforward(czone, &boolean);
 		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getnotifyany(cview, &boolean);
+			result = dns_c_view_getnotifyforward(cview, &boolean);
 		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getnotifyany(cctx, &boolean);
+			result = dns_c_ctx_getnotifyforward(cctx, &boolean);
 		if (result != ISC_R_SUCCESS)
 			boolean = ISC_FALSE;
-		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYANY, boolean);
-	}
-
-	if (czone->ztype != dns_c_zone_stub) {
-		result = dns_c_zone_getnotifyrelay(czone, &boolean);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getnotifyrelay(cview, &boolean);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getnotifyrelay(cctx, &boolean);
-		if (result != ISC_R_SUCCESS)
-			boolean = ISC_FALSE;
-		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYRELAY, boolean);
+		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYFORWARD, boolean);
 	}
 #endif /* NOMINUM_PUBLIC */
 

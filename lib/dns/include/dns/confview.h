@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.40 2000/08/19 00:47:17 gson Exp $ */
+/* $Id: confview.h,v 1.41 2000/08/22 05:14:57 marka Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -102,6 +102,9 @@ struct dns_c_view {
 	dns_c_iplist_t	       *forwarders;
 	dns_c_iplist_t	       *also_notify;
 
+#ifndef NOMINUM_PUBLIC
+	dns_c_ipmatchlist_t    *allownotify;
+#endif /* NOMINUM_PUBLIC */
 	dns_c_ipmatchlist_t    *allowquery;
 	dns_c_ipmatchlist_t    *allowupdateforwarding;
 	dns_c_ipmatchlist_t    *transferacl;
@@ -125,8 +128,7 @@ struct dns_c_view {
 	isc_boolean_t	       *additional_from_auth;
 	isc_boolean_t	       *additional_from_cache;
 #ifndef NOMINUM_PUBLIC
-	isc_boolean_t	       *notify_any;
-	isc_boolean_t	       *notify_relay;
+	isc_boolean_t	       *notify_forward;
 #endif /* NOMINUM_PUBLIC */
 
 	isc_sockaddr_t	       *query_source;
@@ -233,6 +235,14 @@ isc_result_t dns_c_view_unsetforwarders(dns_c_view_t *view);
 isc_result_t dns_c_view_getforwarders(dns_c_view_t *view,
 				      dns_c_iplist_t **ipl);
 
+
+#ifndef NOMINUM_PUBLIC
+isc_result_t dns_c_view_getallownotify(dns_c_view_t *view,
+				       dns_c_ipmatchlist_t **retval);
+isc_result_t dns_c_view_setallownotify(dns_c_view_t *view,
+				       dns_c_ipmatchlist_t *newval);
+isc_result_t dns_c_view_unsetallownotify(dns_c_view_t *view);
+#endif /* NOMINUM_PUBLIC */
 
 
 isc_result_t dns_c_view_getallowquery(dns_c_view_t *view,
@@ -356,18 +366,11 @@ isc_result_t dns_c_view_setnotify(dns_c_view_t *view,
 isc_result_t dns_c_view_unsetnotify(dns_c_view_t *view);
 
 #ifndef NOMINUM_PUBLIC
-isc_result_t dns_c_view_getnotifyany(dns_c_view_t *view,
-				     isc_boolean_t *retval);
-isc_result_t dns_c_view_setnotifyany(dns_c_view_t *view,
-				     isc_boolean_t newval);
-isc_result_t dns_c_view_unsetnotifyany(dns_c_view_t *view);
-
-
-isc_result_t dns_c_view_getnotifyrelay(dns_c_view_t *view,
-				       isc_boolean_t *retval);
-isc_result_t dns_c_view_setnotifyrelay(dns_c_view_t *view,
-				       isc_boolean_t newval);
-isc_result_t dns_c_view_unsetnotifyrelay(dns_c_view_t *view);
+isc_result_t dns_c_view_getnotifyforward(dns_c_view_t *view,
+				         isc_boolean_t *retval);
+isc_result_t dns_c_view_setnotifyforward(dns_c_view_t *view,
+				         isc_boolean_t newval);
+isc_result_t dns_c_view_unsetnotifyforward(dns_c_view_t *view);
 #endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_view_getrfc2308type1(dns_c_view_t *view,
