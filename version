@@ -1,10 +1,10 @@
-# $Id: version,v 1.26 2001/08/08 19:47:38 gson Exp $
+# $Id: version,v 1.27 2001/08/30 05:02:20 marka Exp $
 #
 # This file must follow /bin/sh rules.  It is imported directly via
 # configure.
 #
 MAJORVER=9
-MINORVER=2
+MINORVER=3
 PATCHVER=0
-RELEASETYPE=rc
-RELEASEVER=1
+RELEASETYPE=a
+RELEASEVER=0
