@@ -364,6 +364,10 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *
  *	'*versionp' refers to a valid version.
  *
+ *	If committing a writable version, then there must be no other
+ *	outstanding references to the version (e.g. an active rdataset
+ *	iterator).
+ *
  * Ensures:
  *
  *	*versionp == NULL
