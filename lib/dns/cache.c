@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.5 2003/10/16 06:07:12 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.6 2003/10/23 05:53:25 marka Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,7 @@
 #define VALID_CACHE(cache)	ISC_MAGIC_VALID(cache, CACHE_MAGIC)
 
 /*
- * The following three variables control incremental cleaning.
+ * The following two variables control incremental cleaning.
  * MINSIZE is how many bytes is the floor for dns_cache_setcachesize().
  * CLEANERINCREMENT is how many nodes are examined in one pass.
  */
