@@ -1,3 +1,5 @@
+1120.	[bug]		Errors in options were not fatal. [RT #2002]
+
 1119.	[func]		Added support in Win32 for NTFS file/directory ACL's
 			for access control.
 
