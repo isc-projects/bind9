@@ -2,11 +2,12 @@
 #define DNS_TCPMSG_H
 
 #include <isc/buffer.h>
+#include <isc/int.h>
 
 typedef struct {
 	/* private (don't touch!) */
 	unsigned int		magic;
-	u_int16_t		size;
+	isc_uint16_t		size;
 	isc_buffer_t		buffer;
 	unsigned int		maxsize;
 	isc_mem_t	       *mctx;
