@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.15 1999/08/20 18:56:24 bwelling Exp $ */
+ /* $Id: tsig_250.c,v 1.16 1999/08/25 14:22:38 bwelling Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -390,6 +390,8 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_consume(&sr, name_length(tsig->algorithm));
 
 	/* Time Signed */
+	if (sr.length < 6)
+		return (ISC_R_UNEXPECTEDEND);
 	tsig->timesigned = ((isc_uint64_t)sr.base[0] << 40) |
 			   ((isc_uint64_t)sr.base[1] << 32) |
 			   (sr.base[2] << 24) | (sr.base[3] << 16) |
@@ -397,15 +399,21 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_consume(&sr, 6);
 
 	/* Fudge */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
 	tsig->fudge = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Signature Size */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
 	tsig->siglen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Signature */
 	if (tsig->siglen > 0) {
+		if (sr.length < tsig->siglen)
+			return (ISC_R_UNEXPECTEDEND);
 		tsig->signature = isc_mem_get(mctx, tsig->siglen);
 		if (tsig->signature == NULL)
 			return (DNS_R_NOMEMORY);
@@ -416,19 +424,27 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 		tsig->signature = NULL;
 
 	/* Original ID */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
 	tsig->originalid = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Error */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
 	tsig->error = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Other Size */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
 	tsig->otherlen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Other */
 	if (tsig->otherlen > 0) {
+		if (sr.length < tsig->otherlen)
+			return (ISC_R_UNEXPECTEDEND);
 		tsig->other = isc_mem_get(mctx, tsig->otherlen);
 		if (tsig->other == NULL)
 			return (DNS_R_NOMEMORY);
@@ -453,7 +469,7 @@ freestruct_any_tsig(void *source) {
 	isc_mem_put(tsig->mctx, tsig->algorithm, sizeof(dns_name_t));
 	if (tsig->siglen > 0)
 		isc_mem_put(tsig->mctx, tsig->signature, tsig->siglen);
-	if (tsig->other != NULL)
+	if (tsig->otherlen > 0)
 		isc_mem_put(tsig->mctx, tsig->other, tsig->otherlen);
 }
 
