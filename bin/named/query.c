@@ -390,7 +390,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	 */
 	node = NULL;
 	result = dns_db_find(db, name, version, type, client->query.dboptions,
-			     client->requesttime, &node, fname, rdataset);
+			     client->requesttime, &node, fname, rdataset,
+			     NULL);
 	switch (result) {
 	case DNS_R_SUCCESS:
 	case DNS_R_GLUE:
@@ -409,7 +410,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	     section++) {
 		mname = NULL;
 		result = dns_message_findname(client->message, section,
-					      name, type, &mname, NULL);
+					      name, type, 0, &mname, NULL);
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We've already got this RRset in the response.
@@ -508,19 +509,23 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 
 static inline void
 query_addrrset(ns_client_t *client, dns_name_t **namep,
-	       dns_rdataset_t **rdatasetp, isc_dynbuffer_t *dbuf,
-	       dns_section_t section)
+	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
+	       isc_dynbuffer_t *dbuf, dns_section_t section)
 {
 	dns_name_t *name, *mname;
-	dns_rdataset_t *rdataset, *mrdataset;
+	dns_rdataset_t *rdataset, *mrdataset, *sigrdataset;
 	isc_result_t result;
 
 	name = *namep;
 	rdataset = *rdatasetp;
+	if (sigrdatasetp != NULL)
+		sigrdataset = *sigrdatasetp;
+	else
+		sigrdataset = NULL;
 	mname = NULL;
 	mrdataset = NULL;
 	result = dns_message_findname(client->message, section,
-				      name, rdataset->type,
+				      name, rdataset->type, rdataset->covers,
 				      &mname, &mrdataset);
 	if (result == ISC_R_SUCCESS) {
 		/*
@@ -540,8 +545,20 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 	} else
 		RUNTIME_CHECK(result == DNS_R_NXRDATASET);
 
+	/*
+	 * Note: we only add SIGs if we've added the type they cover, so
+	 * we do not need to check if the SIG rdataset is already in the
+	 * response.
+	 */
 	query_addrdataset(client, mname, rdataset);
 	*rdatasetp = NULL;
+	if (sigrdataset != NULL && sigrdataset->methods != NULL) {
+		/*
+		 * We have a signature.  Add it to the response.
+		 */
+		query_addrdataset(client, mname, sigrdataset);
+		*sigrdatasetp = NULL;
+	}
 }
 
 static inline isc_result_t
@@ -550,7 +567,7 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 	dns_dbnode_t *node;
 	isc_result_t result, eresult;
 	dns_fixedname_t foundname;
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset, *sigrdataset;
 
 	/*
 	 * Initialization.
@@ -571,7 +588,8 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 	dns_name_init(name, NULL);
 	dns_name_clone(dns_db_origin(db), name);
 	rdataset = query_newrdataset(client);
-	if (rdataset == NULL) {
+	sigrdataset = query_newrdataset(client);
+	if (rdataset == NULL || sigrdataset == NULL) {
 		eresult = DNS_R_SERVFAIL;
 		goto cleanup;
 	}
@@ -580,7 +598,7 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 	 * Find the SOA.
 	 */
 	result = dns_db_find(db, name, NULL, dns_rdatatype_soa, 0, 0, &node,
-			     fname, rdataset);
+			     fname, rdataset, sigrdataset);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * This is bad.  We tried to get the SOA RR at the zone top
@@ -589,11 +607,17 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 		 * The note above about temporary leakage applies here too.
 		 */
 		eresult = DNS_R_SERVFAIL;
-	} else
-		query_addrrset(client, &name, &rdataset, NULL,
+	} else {
+		query_addrrset(client, &name, &rdataset, &sigrdataset, NULL,
 			       DNS_SECTION_AUTHORITY);
+	}
 
  cleanup:
+	if (sigrdataset != NULL) {
+		if (sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+		ISC_LIST_APPEND(client->query.tmprdatasets, sigrdataset, link);
+	}
 	if (rdataset != NULL) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
@@ -611,13 +635,10 @@ static inline isc_result_t
 query_checktype(dns_rdatatype_t type) {
 	
 	/*
-	 * XXXRTH  SIG is here only temporarily.
-	 *	   OPT still needs to be added.
+	 * XXXRTH  OPT still needs to be added.
 	 *	   Should get help with this from rdata.c
 	 */
 	switch (type) {
-	case dns_rdatatype_sig:
-		return (DNS_R_NOTIMP);
 	case dns_rdatatype_tkey:
 		return (DNS_R_NOTIMP);
 	case dns_rdatatype_tsig:
@@ -649,6 +670,7 @@ query_find(ns_client_t *client) {
 	dns_rdatatype_t qtype, type;
 	dns_name_t *fname, *tname, *prefix;
 	dns_rdataset_t *rdataset, *qrdataset, *trdataset;
+	dns_rdataset_t *sigrdataset;
 	dns_rdata_t rdata;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t use_cache, recursion_ok, want_restart;
@@ -676,6 +698,7 @@ query_find(ns_client_t *client) {
 	recursion_ok = ISC_FALSE;
 	fname = NULL;
 	rdataset = NULL;
+	sigrdataset = NULL;
 	node = NULL;
 	db = NULL;
 	version = NULL;
@@ -779,6 +802,12 @@ query_find(ns_client_t *client) {
 	}
 
 	/*
+	 * If it's a SIG query, we'll iterate the node.
+	 */
+	if (qtype == dns_rdatatype_sig)
+		type = dns_rdatatype_any;
+
+	/*
 	 * We'll need some resources...
 	 */
 	dbuf = query_getnamebuf(client);
@@ -788,7 +817,8 @@ query_find(ns_client_t *client) {
 	}
 	fname = query_newname(client, dbuf, &b);
 	rdataset = query_newrdataset(client);
-	if (fname == NULL || rdataset == NULL) {
+	sigrdataset = query_newrdataset(client);
+	if (fname == NULL || rdataset == NULL || sigrdataset == NULL) {
 		QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
@@ -800,7 +830,8 @@ query_find(ns_client_t *client) {
 	 * Now look for an answer in the database.
 	 */
 	result = dns_db_find(db, client->query.qname, version, type, 0,
-			     client->requesttime, &node, fname, rdataset);
+			     client->requesttime, &node, fname, rdataset,
+			     sigrdataset);
 	switch (result) {
 	case DNS_R_SUCCESS:
 	case DNS_R_ZONECUT:
@@ -818,7 +849,8 @@ query_find(ns_client_t *client) {
 				 * We don't have a cache, so this is the best
 				 * answer.
 				 */
-				query_addrrset(client, &fname, &rdataset, dbuf,
+				query_addrrset(client, &fname, &rdataset,
+					       &sigrdataset, dbuf,
 					       DNS_SECTION_AUTHORITY);
 			} else {
 				/*
@@ -878,8 +910,8 @@ query_find(ns_client_t *client) {
 		 * Add NXT record if we found one.
 		 */
 		if (dns_rdataset_isassociated(rdataset))
-			query_addrrset(client, &tname, &rdataset, NULL,
-				       DNS_SECTION_AUTHORITY);
+			query_addrrset(client, &tname, &rdataset, &sigrdataset,
+				       NULL, DNS_SECTION_AUTHORITY);
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
 		if (restarts > 0) {
@@ -922,8 +954,8 @@ query_find(ns_client_t *client) {
 		 * Add NXT record if we found one.
 		 */
 		if (dns_rdataset_isassociated(rdataset))
-			query_addrrset(client, &tname, &rdataset, NULL,
-				       DNS_SECTION_AUTHORITY);
+			query_addrrset(client, &tname, &rdataset, &sigrdataset,
+				       NULL, DNS_SECTION_AUTHORITY);
 		/*
 		 * Set message rcode.
 		 */
@@ -942,7 +974,7 @@ query_find(ns_client_t *client) {
 		/*
 		 * Add the CNAME to the answer section.
 		 */
-		query_addrrset(client, &fname, &rdataset, dbuf,
+		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
 		 * We set the PARTIALANSWER attribute so that if anything goes
@@ -986,7 +1018,7 @@ query_find(ns_client_t *client) {
 		/*
 		 * Add the DNAME to the answer section.
 		 */
-		query_addrrset(client, &fname, &rdataset, dbuf,
+		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
 		 * We set the PARTIALANSWER attribute so that if anything goes
@@ -1029,9 +1061,8 @@ query_find(ns_client_t *client) {
 		if (result != ISC_R_SUCCESS) {
 			if (result == ISC_R_NOSPACE) {
 				/*
-				 * draft-ietf-dnsind-dname-03.txt, section
-				 * 4.1, subsection 3c says we should
-				 * return YXDOMAIN if the constructed
+				 * RFC 2672, section 4.1, subsection 3c says
+				 * we should return YXDOMAIN if the constructed
 				 * name would be too long.
 				 */
 				client->message->rcode = dns_rcode_yxdomain;
@@ -1058,7 +1089,7 @@ query_find(ns_client_t *client) {
 		 */
 		n = 0;
 		rdsiter = NULL;
-		result = dns_db_allrdatasets(db, node, NULL, 0, &rdsiter);
+		result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
@@ -1066,34 +1097,72 @@ query_find(ns_client_t *client) {
 		result = dns_rdatasetiter_first(rdsiter);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, rdataset);
-			tname = fname;
-			query_addrrset(client, &tname, &rdataset, dbuf,
-				       DNS_SECTION_ANSWER);
-			n++;
+			if (qtype == dns_rdatatype_any ||
+			    rdataset->type == qtype) {
+				tname = fname;
+				query_addrrset(client, &tname, &rdataset, NULL,
+					       dbuf, DNS_SECTION_ANSWER);
+				n++;
+				/*
+				 * We shouldn't ever fail to add 'rdataset'
+				 * because it's already in the answer.
+				 */
+				INSIST(rdataset == NULL);
+				/*
+				 * We set dbuf to NULL because we only want
+				 * the query_keepname() call in
+				 * query_addrrset() to be called once.
+				 */
+				dbuf = NULL;
+				rdataset = query_newrdataset(client);
+				if (rdataset == NULL)
+					break;
+			} else {
+				/*
+				 * We're not interested in this rdataset.
+				 */
+				dns_rdataset_disassociate(rdataset);
+			}
+			result = dns_rdatasetiter_next(rdsiter);
+		}
+		if (n > 0) {
 			/*
-			 * We shouldn't ever fail to add 'rdataset' because
-			 * it's already in the answer.
+			 * If we added at least one RRset, then we must clear
+			 * fname,  otherwise the cleanup code might cause it
+			 * to be reused.
 			 */
-			INSIST(rdataset == NULL);
+			fname = NULL;
+		} else {
 			/*
-			 * We set dbuf to NULL because we only want the
-			 * query_keepname() call in query_addrrset() to be
-			 * called once.
+			 * We didn't match any rdatasets.
 			 */
-			dbuf = NULL;
-			result = dns_message_gettemprdataset(client->message,
-							     &rdataset);
-			if (result == ISC_R_SUCCESS) {
-				dns_rdataset_init(rdataset);
-				result = dns_rdatasetiter_next(rdsiter);
+			if (qtype == dns_rdatatype_sig &&
+			    result == DNS_R_NOMORE) {
+				/*
+				 * XXXRTH  If this is a secure zone and we
+				 * didn't find any SIGs, we should generate
+				 * an error unless we were searching for
+				 * glue.  Ugh.
+				 */
+				/*
+				 * We were searching for SIG records in
+				 * a nonsecure zone.  Send a "no error,
+				 * no data" response.
+				 *
+				 * First we must release fname.
+				 */
+				query_releasename(client, &fname);
+				/*
+				 * Add SOA.
+				 */
+				result = query_addsoa(client, db);
+			} else {
+				/*
+				 * Something went wrong.
+				 */
+				result = DNS_R_SERVFAIL;
 			}
 		}
-		/*
-		 * If we added at least one RRset, then we must clear fname,
-		 * otherwise the cleanup code might cause it to be reused.
-		 */
-		if (n > 0)
-			fname = NULL;
 		dns_rdatasetiter_destroy(&rdsiter);
 		if (result != DNS_R_NOMORE) {
 			QUERY_ERROR(DNS_R_SERVFAIL);
@@ -1104,7 +1173,7 @@ query_find(ns_client_t *client) {
 		 * This is the "normal" case -- an ordinary question to which
 		 * we know the answer.
 		 */
-		query_addrrset(client, &fname, &rdataset, dbuf,
+		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
 		 * Remember that we've answered this question.
@@ -1123,6 +1192,11 @@ query_find(ns_client_t *client) {
 	 */
 
  cleanup:
+	if (sigrdataset != NULL) {
+		if (sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+		ISC_LIST_APPEND(client->query.tmprdatasets, sigrdataset, link);
+	}
 	if (rdataset != NULL) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);

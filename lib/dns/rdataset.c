@@ -44,6 +44,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->type = 0;
 	rdataset->ttl = 0;
 	rdataset->trust = 0;
+	rdataset->covers = 0;
 	rdataset->attributes = 0;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
@@ -68,6 +69,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	rdataset->type = 0;
 	rdataset->ttl = 0;
 	rdataset->trust = 0;
+	rdataset->covers = 0;
 	rdataset->attributes = 0;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
@@ -93,6 +95,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->type = 0;
 	rdataset->ttl = 0;
 	rdataset->trust = 0;
+	rdataset->covers = 0;
 	rdataset->attributes = 0;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
@@ -146,7 +149,7 @@ static dns_rdatasetmethods_t question_methods = {
 	question_cursor,
 	question_cursor,
 	question_current,
-	question_clone
+	question_clone,
 };
 
 void

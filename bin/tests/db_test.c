@@ -323,7 +323,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_t source, target;
 	char s[1000];
 	char b[255];
-	dns_rdataset_t rdataset;
+	dns_rdataset_t rdataset, sigrdataset;
 	int ch;
 	dns_rdatatype_t type = 1;
 	isc_boolean_t printnode = ISC_FALSE;
@@ -706,8 +706,9 @@ main(int argc, char *argv[]) {
 		}
 		node = NULL;
 		dns_rdataset_init(&rdataset);
+		dns_rdataset_init(&sigrdataset);
 		result = dns_db_find(db, &name, version, type, options, 0,
-				     &node, fname, &rdataset);
+				     &node, fname, &rdataset, &sigrdataset);
 		if (!quiet) {
 			if (dbi != NULL)
 				printf("\n");
@@ -797,6 +798,11 @@ main(int argc, char *argv[]) {
 		} else {
 			if (!quiet)
 				print_rdataset(fname, &rdataset);
+			if (dns_rdataset_isassociated(&sigrdataset)) {
+				if (!quiet)
+					print_rdataset(fname, &sigrdataset);
+				dns_rdataset_disassociate(&sigrdataset);
+			}
 			if (dbi != NULL && addmode && !found_as) {
 				rdataset.ttl++;
 				rdataset.trust = trust;

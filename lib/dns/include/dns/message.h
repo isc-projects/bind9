@@ -464,11 +464,12 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
 dns_result_t
 dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     dns_name_t *target, dns_rdatatype_t type,
-		     dns_name_t **foundname, dns_rdataset_t **rdataset);
+		     dns_rdatatype_t covers, dns_name_t **foundname,
+		     dns_rdataset_t **rdataset);
 /*
  * Search for a name in the specified section.  If it is found, *name is
  * set to point to the name, and *rdataset is set to point to the found
- * rdataset (if type is specified as other than dns_rdatatype_any.)
+ * rdataset (if type is specified as other than dns_rdatatype_any).
  *
  * Requires:
  *	'msg' be valid.

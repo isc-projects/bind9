@@ -261,9 +261,9 @@ foreach_node_rr(dns_db_t *db,
 
 
 /*
- * For each of the RRs specified by 'db', 'ver', 'name', and 'type',
- * (which can be dns_rdatatype_any to match any type),  call 'action' 
- * with the RR and 'action_data' as arguments. If the name 
+ * For each of the RRs specified by 'db', 'ver', 'name', 'type',
+ * (which can be dns_rdatatype_any to match any type), and 'covers', call
+ * 'action' with the RR and 'action_data' as arguments. If the name 
  * does not exist, or if no RRset of the given type exists at the name,
  * do nothing.
  * 
@@ -274,6 +274,7 @@ foreach_rr(dns_db_t *db,
 	   dns_dbversion_t *ver,
 	   dns_name_t *name,
 	   dns_rdatatype_t type,
+	   dns_rdatatype_t covers,
 	   rr_func *rr_action,
 	   void *rr_action_data)
 {
@@ -294,7 +295,7 @@ foreach_rr(dns_db_t *db,
 		return (result);
 
 	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(db, node, ver, type,
+	result = dns_db_findrdataset(db, node, ver, type, covers,
 				     (isc_stdtime_t) 0, &rdataset);
 	if (result == DNS_R_NOTFOUND) {
 		result = DNS_R_SUCCESS;
@@ -366,10 +367,11 @@ do {						\
  */
 static dns_result_t
 rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
-	     dns_name_t *name, dns_rdatatype_t type, isc_boolean_t *exists)
+	     dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers,
+	     isc_boolean_t *exists)
 {
 	dns_result_t result;
-	result = foreach_rr(db, ver, name, type,
+	result = foreach_rr(db, ver, name, type, covers,
 			    rrset_exists_action, NULL);
 	RETURN_EXISTENCE_FLAG;
 }
@@ -429,10 +431,10 @@ count_rr_action(void *data, rr_t *rr) /*ARGSUSED*/ {
  */
 static dns_result_t
 rr_count(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	 dns_rdatatype_t type, int *countp)
+	 dns_rdatatype_t type, dns_rdatatype_t covers, int *countp)
 {
 	*countp = 0;
-	return (foreach_rr(db, ver, name, type,
+	return (foreach_rr(db, ver, name, type, covers,
 			   count_rr_action, countp));
 }
 
@@ -468,6 +470,7 @@ matching_rr_exists(rr_predicate *predicate,
 	     dns_dbversion_t *ver,
 	     dns_name_t *name,
 	     dns_rdatatype_t type,
+	     dns_rdatatype_t covers,
 	     dns_rdata_t *update_rr,
 	     isc_boolean_t *exists)
 {
@@ -478,7 +481,7 @@ matching_rr_exists(rr_predicate *predicate,
 	ctx.ver = ver;
 	ctx.name = name;
 	ctx.update_rr = update_rr;
-	result = foreach_rr(db, ver, name, type,
+	result = foreach_rr(db, ver, name, type, covers,
 			    matching_rr_exists_action, &ctx);
 	RETURN_EXISTENCE_FLAG;
 }
@@ -637,7 +640,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 
 		/* A new unique type begins here. */		
 		while (t != NULL && dns_name_equal(&t->name, name)) {
-			dns_rdatatype_t type;
+			dns_rdatatype_t type, covers;
 			dns_rdataset_t rdataset;
 			dns_diff_t d_rrs; /* Database RRs with 
 						this name and type */
@@ -645,6 +648,10 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 						this name and type */
 
 			type = t->rdata.type;
+			if (type == dns_rdatatype_sig)
+				covers = dns_rdata_covers(&t->rdata);
+			else
+				covers = 0;
 
 			/*
 			 * Collect all database RRs for this name and type
@@ -652,7 +659,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			 */
 			dns_rdataset_init(&rdataset);
 			result = dns_db_findrdataset(db, node, ver, type,
-						     (isc_stdtime_t) 0,
+						     covers, (isc_stdtime_t) 0,
 						     &rdataset);
 			if (result != DNS_R_SUCCESS) {
 				dns_db_detachnode(db, &node);
@@ -837,6 +844,7 @@ delete_if(rr_predicate *predicate,
 	  dns_dbversion_t *ver,
 	  dns_name_t *name,
 	  dns_rdatatype_t type,
+	  dns_rdatatype_t covers,
 	  dns_rdata_t *update_rr,
 	  dns_diff_t *diff)
 {
@@ -847,7 +855,7 @@ delete_if(rr_predicate *predicate,
 	ctx.diff = diff;
 	ctx.name = name;
 	ctx.update_rr = update_rr;
-	return (foreach_rr(db, ver, name, type,
+	return (foreach_rr(db, ver, name, type, covers,
 			   delete_if_action, &ctx));
 }
 
@@ -866,7 +874,8 @@ delete_if(rr_predicate *predicate,
 static void
 get_current_rr(dns_message_t *msg, dns_section_t section,
 	       dns_rdataclass_t zoneclass,
-	       dns_name_t **name, dns_rdata_t *rdata, dns_ttl_t *ttl,
+	       dns_name_t **name, dns_rdata_t *rdata, dns_rdatatype_t *covers,
+	       dns_ttl_t *ttl,
 	       dns_rdataclass_t *update_class)
 {
 	dns_rdataset_t *rdataset;
@@ -875,6 +884,7 @@ get_current_rr(dns_message_t *msg, dns_section_t section,
 	rdataset = ISC_LIST_HEAD((*name)->list);
 	INSIST(rdataset != NULL);
 	INSIST(ISC_LIST_NEXT(rdataset, link) == NULL);
+	*covers = rdataset->covers;
 	*ttl = rdataset->ttl;
 	result = dns_rdataset_first(rdataset);
 	INSIST(result == DNS_R_SUCCESS);
@@ -991,6 +1001,7 @@ ns_req_update(ns_client_t *client,
 	unsigned int response_rcode = dns_rcode_noerror;
 	isc_boolean_t soa_serial_changed = ISC_FALSE;
 	isc_mem_t *mctx = client->mctx;
+	dns_rdatatype_t covers;
 	
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &temp);
@@ -1065,7 +1076,7 @@ ns_req_update(ns_client_t *client,
 		isc_boolean_t flag;
 
 		get_current_rr(request, DNS_SECTION_PREREQUISITE, zoneclass,
-			       &name, &rdata, &ttl, &update_class);
+			       &name, &rdata, &covers, &ttl, &update_class);
 
 		if (ttl != 0)
 			FAILMSG(DNS_R_FORMERR, "prereq TTL != 0");
@@ -1087,7 +1098,7 @@ ns_req_update(ns_client_t *client,
 				}
 			} else {
 				CHECK(rrset_exists(db, ver, name,
-						   rdata.type, &flag));
+						   rdata.type, covers, &flag));
 				if (! flag) {
 					/* RRset does not exist. */
 					FAILMSG(DNS_R_NXRRSET,
@@ -1108,7 +1119,7 @@ ns_req_update(ns_client_t *client,
 				}
 			} else {
 				CHECK(rrset_exists(db, ver, name,
-						   rdata.type, &flag));
+						   rdata.type, covers, &flag));
 				if (flag) {
 					/* RRset exists. */
 					FAILMSG(DNS_R_YXRRSET,
@@ -1156,7 +1167,7 @@ ns_req_update(ns_client_t *client,
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;		
 		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass,
-			       &name, &rdata, &ttl, &update_class);
+			       &name, &rdata, &covers, &ttl, &update_class);
 
 		if (! dns_name_issubdomain(name, zonename))
 			FAILMSG(DNS_R_NOTZONE,
@@ -1206,7 +1217,7 @@ ns_req_update(ns_client_t *client,
 		isc_boolean_t flag;
 		
 		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass,
-			       &name, &rdata, &ttl, &update_class);
+			       &name, &rdata, &covers, &ttl, &update_class);
 
 		if (update_class == zoneclass) {
 			if (rdata.type == dns_rdatatype_cname) {
@@ -1221,7 +1232,7 @@ ns_req_update(ns_client_t *client,
 				}
 			} else {
 				CHECK(rrset_exists(db, ver, name,
-						   dns_rdatatype_cname,
+						   dns_rdatatype_cname, 0,
 						   &flag));
 				if (flag && ! is_dnssec_type(rdata.type)) {
 					printf("attempt to add non-cname "
@@ -1232,7 +1243,8 @@ ns_req_update(ns_client_t *client,
 			if (rdata.type == dns_rdatatype_soa) {
 				isc_boolean_t changed, ok;
 				CHECK(rrset_exists(db, ver, name, 
-						   dns_rdatatype_soa, &flag));
+						   dns_rdatatype_soa, 0,
+						   &flag));
 				if (! flag) {
 					printf("attempt to create extra SOA "
 					       "ignored\n");
@@ -1254,11 +1266,13 @@ ns_req_update(ns_client_t *client,
 			 * CNAME, SOA, or WKS exists, remove it first.
 			 */
 			CHECK(matching_rr_exists(rr_equal_p, db, ver, name,
-						 rdata.type, &rdata, &flag));
+						 rdata.type, covers, &rdata,
+						 &flag));
 			if (! flag) {
 				printf("add an RR\n");
 				CHECK(delete_if(replaces_p, db, ver, name,
-						rdata.type, &rdata, &diff));
+						rdata.type, covers, &rdata,
+						&diff));
 				result = update_one_rr(db, ver, &diff,
 						       DNS_DIFFOP_ADD,
 						       name, ttl, &rdata);
@@ -1273,11 +1287,11 @@ ns_req_update(ns_client_t *client,
 				if (dns_name_equal(name, zonename)) {
 					CHECK(delete_if(type_not_soa_nor_ns_p,
 							db, ver, name, 
-							dns_rdatatype_any,
+							dns_rdatatype_any, 0,
 							&rdata, &diff));
 				} else {
 					CHECK(delete_if(true_p, db, ver, name, 
-							dns_rdatatype_any,
+							dns_rdatatype_any, 0,
 							&rdata, &diff));
 				}
 			} else if (dns_name_equal(name, zonename) &&
@@ -1289,7 +1303,8 @@ ns_req_update(ns_client_t *client,
 			} else {
 				printf("delete an rrset\n");
 				CHECK(delete_if(true_p, db, ver, name,
-						rdata.type, &rdata, &diff));
+						rdata.type, covers, &rdata,
+						&diff));
 			}
 		} else if (update_class == dns_rdataclass_none) {
 			if (rdata.type == dns_rdatatype_soa) {
@@ -1299,7 +1314,7 @@ ns_req_update(ns_client_t *client,
 			if (rdata.type == dns_rdatatype_ns) {
 				int count;
 				CHECK(rr_count(db, ver, name,
-					       dns_rdatatype_ns, &count));
+					       dns_rdatatype_ns, 0, &count));
 				if (count == 1) {
 					printf("attempt to delete last "
 					       "NS ignored\n");
@@ -1308,7 +1323,7 @@ ns_req_update(ns_client_t *client,
 			}
 			printf("delete an RR\n");
 			CHECK(delete_if(rr_equal_p, db, ver, name,
-					rdata.type, &rdata, &diff));
+					rdata.type, covers, &rdata, &diff));
 		}
 	}
 	if (result != DNS_R_NOMORE)

@@ -34,7 +34,7 @@ static dns_rdatasetmethods_t methods = {
 	first,
 	next,
 	current,
-	clone
+	clone,
 };
 
 dns_result_t
@@ -52,6 +52,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	rdataset->methods = &methods;
 	rdataset->rdclass = rdatalist->rdclass;
 	rdataset->type = rdatalist->type;
+	rdataset->covers = rdatalist->covers;
 	rdataset->ttl = rdatalist->ttl;
 	rdataset->private1 = rdatalist;
 	rdataset->private2 = NULL;

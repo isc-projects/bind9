@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.22 1999/08/05 22:10:23 halley Exp $ */
+ /* $Id: master.c,v 1.23 1999/08/31 22:12:14 halley Exp $ */
 
 #include <config.h>
 
@@ -140,7 +140,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
      isc_mem_t *mctx)
 {
 	dns_rdataclass_t rdclass;
-	dns_rdatatype_t type;
+	dns_rdatatype_t type, covers;
 	isc_uint32_t ttl = 0;
 	isc_uint32_t default_ttl = 0;
 	isc_uint32_t ttl_offset = 0;
@@ -635,58 +635,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		}
 
 		/*
-		 * Find type in rdatalist.
-		 * If it does not exit create new one and prepend to list
-		 * as this will mimimise list traversal.
-		 */
-		if (in_glue)
-			this = ISC_LIST_HEAD(glue_list);
-		else
-			this = ISC_LIST_HEAD(current_list);
-
-		while (this != NULL) {
-			if (this->type == type)
-				break;
-			this = ISC_LIST_NEXT(this, link);
-		}
-
-		if (this == NULL) {
-			if (rdlcount == rdatalist_size) {
-				new_rdatalist =
-					grow_rdatalist(rdatalist_size + RDLSZ,
-						       rdatalist,
-						       rdatalist_size,
-						       &current_list,
-						       &glue_list,
-						       mctx);
-				if (new_rdatalist == NULL) {
-					result = DNS_R_NOMEMORY;
-					goto error_cleanup;
-				}
-				rdatalist = new_rdatalist;
-				rdatalist_size += RDLSZ;
-			}
-			this = &rdatalist[rdlcount++];
-			this->type = type;
-			this->rdclass = zclass;
-			this->ttl = ttl;
-			ISC_LIST_INIT(this->rdata);
-			ISC_LINK_INIT(this, link);
-			if (in_glue)
-				ISC_LIST_PREPEND(glue_list, this, link);
-			else
-				ISC_LIST_PREPEND(current_list, this, link);
-		} else if (this->ttl != ttl) {
-			(*callbacks->warn)(callbacks,
-				   "%s: %s:%d: TTL set to prior TTL (%lu)\n",
-					   "dns_master_load",
-					   isc_lex_getsourcename(lex),
-					   isc_lex_getsourceline(lex),
-					   this->ttl);
-			ttl = this->ttl;
-		}
-
-		/*
 		 * Find a rdata structure.
 		 */
 		if (rdcount == rdata_size) {
@@ -709,6 +657,64 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				   callbacks);
 		if (result != DNS_R_SUCCESS)
 			goto cleanup;
+		if (type == dns_rdatatype_sig)
+			covers = dns_rdata_covers(&rdata[rdcount]);
+		else
+			covers = 0;
+
+
+		/*
+		 * Find type in rdatalist.
+		 * If it does not exit create new one and prepend to list
+		 * as this will mimimise list traversal.
+		 */
+		if (in_glue)
+			this = ISC_LIST_HEAD(glue_list);
+		else
+			this = ISC_LIST_HEAD(current_list);
+
+		while (this != NULL) {
+			if (this->type == type && this->covers == covers)
+				break;
+			this = ISC_LIST_NEXT(this, link);
+		}
+
+		if (this == NULL) {
+			if (rdlcount == rdatalist_size) {
+				new_rdatalist =
+					grow_rdatalist(rdatalist_size + RDLSZ,
+						       rdatalist,
+						       rdatalist_size,
+						       &current_list,
+						       &glue_list,
+						       mctx);
+				if (new_rdatalist == NULL) {
+					result = DNS_R_NOMEMORY;
+					goto error_cleanup;
+				}
+				rdatalist = new_rdatalist;
+				rdatalist_size += RDLSZ;
+			}
+			this = &rdatalist[rdlcount++];
+			this->type = type;
+			this->covers = covers;
+			this->rdclass = zclass;
+			this->ttl = ttl;
+			ISC_LIST_INIT(this->rdata);
+			ISC_LINK_INIT(this, link);
+			if (in_glue)
+				ISC_LIST_PREPEND(glue_list, this, link);
+			else
+				ISC_LIST_PREPEND(current_list, this, link);
+		} else if (this->ttl != ttl) {
+			(*callbacks->warn)(callbacks,
+				   "%s: %s:%d: TTL set to prior TTL (%lu)\n",
+					   "dns_master_load",
+					   isc_lex_getsourcename(lex),
+					   isc_lex_getsourceline(lex),
+					   this->ttl);
+			ttl = this->ttl;
+		}
 
 		/*
 		 * If the new rdata is not on the list add it.

@@ -211,7 +211,7 @@ t_dns_db_load(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&rdataset);
+			&rdataset, NULL);
 
 	if (dns_result != exp_find_result) {
 		t_info("dns_db_findnode returned %s, expected %s\n",
@@ -757,7 +757,7 @@ t_dns_db_currentversion(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&rdataset);
+			&rdataset, NULL);
 
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("unable to find %s using current version\n", findname);
@@ -817,7 +817,7 @@ t_dns_db_currentversion(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&rdataset);
+			&rdataset, NULL);
 
 	if ((dns_result != DNS_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
 		t_info("unexpectedly found %s using current version\n", findname);
@@ -840,7 +840,7 @@ t_dns_db_currentversion(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&rdataset);
+			&rdataset, NULL);
 
 	/* and expect it to succeed */
 	if (dns_result == DNS_R_SUCCESS) {
@@ -1076,7 +1076,7 @@ t_dns_db_newversion(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset);
+			&found_rdataset, NULL);
 
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("unable to find %s\n", newname);
@@ -1400,7 +1400,7 @@ t_dns_db_closeversion_1(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset);
+			&found_rdataset, NULL);
 
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("unable to find %s\n", new_name);
@@ -1447,7 +1447,7 @@ t_dns_db_closeversion_1(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset);
+			&found_rdataset, NULL);
 
 
 	if ((dns_result != DNS_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
@@ -1741,7 +1741,7 @@ t_dns_db_closeversion_2(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset);
+			&found_rdataset, NULL);
 
 	if (	(dns_result == DNS_R_NOTFOUND)	||
 		(dns_result == DNS_R_NXDOMAIN)	||
@@ -1791,7 +1791,7 @@ t_dns_db_closeversion_2(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset);
+			&found_rdataset, NULL);
 
 
 	if ((dns_result != DNS_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
@@ -1821,7 +1821,7 @@ t_dns_db_closeversion_2(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset);
+			&found_rdataset, NULL);
 
 	if ((dns_result != DNS_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
 		t_info("dns_db_find %s returned %s\n", new_name,
@@ -1848,7 +1848,7 @@ t_dns_db_closeversion_2(char **av) {
 			0,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset);
+			&found_rdataset, NULL);
 
 
 	if (	(dns_result == DNS_R_NOTFOUND)	||
@@ -2027,7 +2027,7 @@ t_dns_db_expirenode(char **av) {
 			find_expire_time,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&rdataset);
+			&rdataset, NULL);
 
 	if (dns_result == exp_result) {
 		result = T_PASS;
@@ -2182,7 +2182,8 @@ t_dns_db_findnode_1(char **av) {
 		dns_db_currentversion(db, &cversionp);
 		dns_rdataset_init(&rdataset);
 	
-		dns_result = dns_db_findrdataset(db, nodep, cversionp, rdatatype, 0, &rdataset);
+		dns_result = dns_db_findrdataset(db, nodep, cversionp, rdatatype, 0,
+						 0, &rdataset);
 		if (dns_result == DNS_R_SUCCESS) {
 			dns_rdataset_disassociate(&rdataset);
 			result = T_PASS;
@@ -2332,7 +2333,7 @@ t_dns_db_findnode_2(char **av) {
 			0,
 			&newnodep,
 			dns_fixedname_name(&dns_foundname),
-			&rdataset);
+			&rdataset, NULL);
 	if ((dns_result != DNS_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
 		dns_db_detachnode(db, &newnodep);
 	}
@@ -2512,7 +2513,7 @@ t_dns_db_find_x(char **av) {
 			ftime,
 			&nodep,
 			dns_fixedname_name(&dns_foundname),
-			&rdataset);
+			&rdataset, NULL);
 
 	if (dns_result != exp_result) {
 		t_info("dns_db_find %s %s unexpectedly returned %s, expected %s\n",

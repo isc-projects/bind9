@@ -96,7 +96,8 @@ typedef struct dns_dbmethods {
 				dns_rdatatype_t type, unsigned int options,
 				isc_stdtime_t now,
 				dns_dbnode_t **nodep, dns_name_t *foundname,
-				dns_rdataset_t *rdataset);
+				dns_rdataset_t *rdataset,
+				dns_rdataset_t *sigrdataset);
 	void		(*attachnode)(dns_db_t *db,
 				      dns_dbnode_t *source,
 				      dns_dbnode_t **targetp);
@@ -112,6 +113,7 @@ typedef struct dns_dbmethods {
 	dns_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					dns_rdatatype_t type,
+					dns_rdatatype_t covers,
 					isc_stdtime_t now,
 					dns_rdataset_t *rdataset);
 	dns_result_t	(*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
@@ -554,7 +556,7 @@ dns_result_t
 dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset);
+	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*
  * Find the best match for 'name' and 'type' in version 'version' of 'db'.
  *
@@ -784,8 +786,8 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
 
 dns_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    dns_rdatatype_t type, isc_stdtime_t now,
-		    dns_rdataset_t *rdataset);
+		    dns_rdatatype_t type, dns_rdatatype_t covers,
+		    isc_stdtime_t now, dns_rdataset_t *rdataset);
 /*
  * Search for an rdataset of type 'type' at 'node' that are in version
  * 'version' of 'db'.  If found, make 'rdataset' refer to it.
@@ -810,7 +812,9 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	'rdataset' is a valid, disassociated rdataset.
  *
- *	'type' is not SIG, or a meta-RR type such as 'ANY' or 'OPT'.
+ *	If 'covers' != 0, 'type' must be SIG.
+ *
+ *	'type' is not a meta-RR type such as 'ANY' or 'OPT'.
  *
  * Ensures:
  *

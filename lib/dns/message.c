@@ -674,14 +674,15 @@ findname(dns_name_t **foundname, dns_name_t *target, dns_namelist_t *section)
 }
 
 static dns_result_t
-findtype(dns_rdataset_t **rdataset, dns_name_t *name, dns_rdatatype_t type)
+findtype(dns_rdataset_t **rdataset, dns_name_t *name, dns_rdatatype_t type,
+	 dns_rdatatype_t covers)
 {
 	dns_rdataset_t *curr;
 
 	for (curr = ISC_LIST_TAIL(name->list) ;
 	     curr != NULL ;
 	     curr = ISC_LIST_PREV(curr, link)) {
-		if (curr->type == type) {
+		if (curr->type == type && curr->covers == covers) {
 			if (rdataset != NULL)
 				*rdataset = curr;
 			return (DNS_R_SUCCESS);
@@ -880,7 +881,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		/*
 		 * Can't ask the same question twice.
 		 */
-		result = findtype(NULL, name, rdtype);
+		result = findtype(NULL, name, rdtype, 0);
 		if (result == DNS_R_SUCCESS)
 			return (DNS_R_FORMERR);
 
@@ -927,7 +928,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_rdataset_t *rdataset;
 	dns_rdatalist_t *rdatalist;
 	dns_result_t result;
-	dns_rdatatype_t rdtype;
+	dns_rdatatype_t rdtype, covers;
 	dns_rdataclass_t rdclass;
 	dns_rdata_t *rdata;
 	dns_ttl_t ttl;
@@ -1039,42 +1040,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 #endif
 
 		/*
-		 * Search name for the particular type and class.
-		 * Skip this stage if in update mode, or this is a TSIG.
-		 */
-		if (preserve_order || msg->opcode == dns_opcode_update
-		    || rdtype == dns_rdatatype_tsig)
-			result = DNS_R_NOTFOUND;
-		else
-			result = findtype(&rdataset, name, rdtype);
-
-		/*
-		 * If we found an rdataset that matches, we need to
-		 * append this rdata to that set.  If we did not, we need
-		 * to create a new rdatalist, store the important bits there,
-		 * convert it to an rdataset, and link the latter to the name.
-		 * Yuck.
-		 */
-		if (result == DNS_R_NOTFOUND) {
-			rdataset = newrdataset(msg);
-			if (rdataset == NULL)
-				return (DNS_R_NOMEMORY);
-			rdatalist = newrdatalist(msg);
-			if (rdatalist == NULL)
-				return (DNS_R_NOMEMORY);
-
-			rdatalist->type = rdtype;
-			rdatalist->rdclass = rdclass;
-			rdatalist->ttl = ttl;
-			ISC_LIST_INIT(rdatalist->rdata);
-
-			dns_rdataset_init(rdataset);
-			dns_rdatalist_tordataset(rdatalist, rdataset);
-
-			ISC_LIST_APPEND(name->list, rdataset, link);
-		}
-
-		/*
 		 * Read the rdata from the wire format.  Interpret the 
 		 * rdata according to its actual class, even if it had a
 		 * DynDNS meta-class in the packet (unless this is a TSIG).
@@ -1093,6 +1058,51 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (result != DNS_R_SUCCESS)
 			return (result);
 		rdata->rdclass = rdclass;
+		if (rdtype == dns_rdatatype_sig && rdata->length > 0)
+			covers = dns_rdata_covers(rdata);
+		else
+			covers = 0;
+
+		/*
+		 * Search name for the particular type and class.
+		 * Skip this stage if in update mode, or this is a TSIG.
+		 */
+		if (preserve_order || msg->opcode == dns_opcode_update
+		    || rdtype == dns_rdatatype_tsig)
+			result = DNS_R_NOTFOUND;
+		else
+			result = findtype(&rdataset, name, rdtype, covers);
+
+		/*
+		 * If we found an rdataset that matches, we need to
+		 * append this rdata to that set.  If we did not, we need
+		 * to create a new rdatalist, store the important bits there,
+		 * convert it to an rdataset, and link the latter to the name.
+		 * Yuck.
+		 */
+		if (result == DNS_R_NOTFOUND) {
+			rdataset = newrdataset(msg);
+			if (rdataset == NULL)
+				return (DNS_R_NOMEMORY);
+			rdatalist = newrdatalist(msg);
+			if (rdatalist == NULL)
+				return (DNS_R_NOMEMORY);
+
+			rdatalist->type = rdtype;
+			rdatalist->covers = covers;
+			rdatalist->rdclass = rdclass;
+			rdatalist->ttl = ttl;
+			ISC_LIST_INIT(rdatalist->rdata);
+
+			dns_rdataset_init(rdataset);
+			dns_rdatalist_tordataset(rdatalist, rdataset);
+
+			ISC_LIST_APPEND(name->list, rdataset, link);
+		}
+
+		/*
+		 * XXXRTH  Normalize TTLs.
+		 */
 
 		/*
 		 * XXXMLG Perform a totally ugly hack here to pull
@@ -1485,7 +1495,8 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
 dns_result_t
 dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     dns_name_t *target, dns_rdatatype_t type,
-		     dns_name_t **name, dns_rdataset_t **rdataset)
+		     dns_rdatatype_t covers, dns_name_t **name,
+		     dns_rdataset_t **rdataset)
 {
 	dns_name_t *foundname;
 	dns_result_t result;
@@ -1526,7 +1537,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	if (type == dns_rdatatype_any)
 		return (DNS_R_SUCCESS);
 
-	result = findtype(rdataset, foundname, type);
+	result = findtype(rdataset, foundname, type, covers);
 	if (result == DNS_R_NOTFOUND)
 		return (DNS_R_NXRDATASET);
 
