@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.30 2000/05/02 03:53:52 tale Exp $ */
+/* $Id: compress.c,v 1.31 2000/05/04 22:19:00 gson Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -224,7 +224,10 @@ dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed) {
 
 	REQUIRE(VALID_DCTX(dctx));
 
-	dctx->allowed = allowed;
+	if (dns_decompress_strict(dctx))
+		dctx->allowed = allowed;
+	else
+		dctx->allowed = DNS_COMPRESS_ALL;
 }
 
 unsigned int

@@ -280,11 +280,6 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 	INSIST(dns_rdataset_next(rdataset) == ISC_R_NOMORE);
 	isc_buffer_init(&source, rdata.data, rdata.length);
 	isc_buffer_add(&source, rdata.length);
-	
-	if (dns_compress_getedns(cctx) >= 1)
-		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL);
-	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	savedbuffer = *target;
 
@@ -320,6 +315,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			/*
 			 * Write the name.
 			 */
+			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 			result = dns_name_towire(&name, cctx, target);
 			if (result != ISC_R_SUCCESS)
 				goto rollback;

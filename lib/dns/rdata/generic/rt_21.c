@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.21 2000/04/28 01:24:08 gson Exp $ */
+/* $Id: rt_21.c,v 1.22 2000/05/04 22:19:24 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -90,10 +90,7 @@ fromwire_rt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 21);
 	UNUSED(rdclass);
 
-	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
-	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
         
         dns_name_init(&name, NULL);
 
@@ -118,11 +115,7 @@ towire_rt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 
 	REQUIRE(rdata->type == 21);
 
-	if (dns_compress_getedns(cctx) >= 1)
-		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
-	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-
+	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	isc_buffer_availableregion(target, &tr);
 	dns_rdata_toregion(rdata, &region);
 	if (tr.length < 2)

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.22 2000/04/27 00:02:48 tale Exp $ */
+/* $Id: kx_36.c,v 1.23 2000/05/04 22:19:30 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -89,10 +89,7 @@ fromwire_in_kx(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 36);
 	REQUIRE(rdclass == 1);
 
-	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
-	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
         
         dns_name_init(&name, NULL);
 
@@ -113,11 +110,7 @@ towire_in_kx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	REQUIRE(rdata->type == 36);
 	REQUIRE(rdata->rdclass == 1);
 
-	if (dns_compress_getedns(cctx) >= 1)
-		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
-	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-
+	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &region);
 	RETERR(mem_tobuffer(target, region.base, 2));
 	isc_region_consume(&region, 2);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.31 2000/04/28 22:40:08 tale Exp $ */
+/* $Id: tsig_250.c,v 1.32 2000/05/04 22:19:05 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -201,10 +201,7 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
 	
-	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
-	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	/* Algorithm Name */
 	dns_name_init(&name, NULL);
@@ -255,11 +252,7 @@ towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx,
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
 
-	if (dns_compress_getedns(cctx) >= 1)
-		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
-	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-
+	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);

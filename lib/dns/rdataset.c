@@ -361,10 +361,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		/*
 		 * copy out the name, type, class, ttl.
 		 */
-		if (dns_compress_getedns(cctx) >= 1)
-			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL);
-		else
-			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 		result = dns_name_towire(owner_name, cctx, target);
 		if (result != ISC_R_SUCCESS)
 			goto rollback;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.21 2000/04/28 01:24:08 gson Exp $ */
+/* $Id: rp_17.c,v 1.22 2000/05/04 22:19:23 gson Exp $ */
 
 /* RFC 1183 */
 
@@ -96,10 +96,7 @@ fromwire_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         
 	REQUIRE(type == 17);
 
-	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
-	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
         dns_name_init(&rmail, NULL);
         dns_name_init(&email, NULL);
@@ -117,11 +114,7 @@ towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 
 	REQUIRE(rdata->type == 17);
 
-	if (dns_compress_getedns(cctx) >= 1)
-		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
-	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-
+	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
 

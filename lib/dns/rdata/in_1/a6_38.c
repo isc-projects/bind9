@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.26 2000/04/28 01:24:13 gson Exp $ */
+ /* $Id: a6_38.c,v 1.27 2000/05/04 22:19:29 gson Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -142,10 +142,7 @@ fromwire_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 38);
 	REQUIRE(rdclass == 1);
 
-	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
-	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	isc_buffer_activeregion(source, &sr);
 	/* prefix length */
@@ -186,11 +183,7 @@ towire_in_a6(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
 
-	if (dns_compress_getedns(cctx) >= 1)
-		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
-	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-
+	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &sr);
 	prefixlen = sr.base[0];
 	INSIST(prefixlen <= 128);

@@ -1375,11 +1375,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	 */
 	dns_decompress_init(&dctx, -1, ISC_FALSE);
 
-	if (dns_decompress_edns(&dctx) > 1 || !dns_decompress_strict(&dctx))
-		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL);
-	else
-		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
-
+	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 
 	ret = getquestions(source, msg, &dctx);
 	if (ret != ISC_R_SUCCESS)
