@@ -1,3 +1,6 @@
+1770.	[bug]		named-checkconf failed to report missing a missing
+			file clause for rbt{64} master/hint zones. [RT#13009]
+
 1769.	[port]		win32: change compiler flags /MTd ==> /MDd,
 			/MT ==> /MD.
 
