@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.27 2001/02/27 01:31:56 gson Exp $ */
+/* $Id: parser.c,v 1.28 2001/02/27 01:49:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1919,7 +1919,9 @@ cfg_obj_islist(cfg_obj_t *obj) {
 
 cfg_listelt_t *
 cfg_list_first(cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_list);
+	REQUIRE(obj == NULL || obj->type->rep == &cfg_rep_list);
+	if (obj == NULL)
+		return (NULL);
 	return (ISC_LIST_HEAD(obj->value.list));
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.16 2001/02/26 22:37:34 gson Exp $ */
+/* $Id: cfg.h,v 1.17 2001/02/27 01:49:46 bwelling Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -303,11 +303,11 @@ cfg_list_first(cfg_obj_t *obj);
  * Returns the first list element in a configuration object of a list type.
  *
  * Requires:
- *      'obj' points to a valid configuration object of a list type.
+ *      'obj' points to a valid configuration object of a list type or NULL.
  *
  * Returns:
  *      A pointer to a cfg_listelt_t representing the first list element,
- * 	or NULL if the list is empty.
+ * 	or NULL if the list is empty or nonexistent.
  */
 
 cfg_listelt_t *
