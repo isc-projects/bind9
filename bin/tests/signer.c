@@ -910,6 +910,7 @@ main(int argc, char *argv[]) {
 							 "key specify");
 					break;
 				}
+				key = ISC_LIST_NEXT(key, link);
 			}
 			if (key == NULL) {
 				dst_key_t *dkey = NULL;
