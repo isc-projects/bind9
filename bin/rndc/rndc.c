@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77 2001/08/06 11:40:46 gson Exp $ */
+/* $Id: rndc.c,v 1.78 2001/09/06 23:14:38 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -498,7 +498,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'M':
-			isc_mem_debugging = 1;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 			break;
 
 		case 'm':

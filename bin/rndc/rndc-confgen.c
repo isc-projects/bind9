@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.10 2001/09/05 22:32:06 bwelling Exp $ */
+/* $Id: rndc-confgen.c,v 1.11 2001/09/06 23:14:37 gson Exp $ */
 
 #include <config.h>
 
@@ -180,7 +180,7 @@ main(int argc, char **argv) {
 			keyname = isc_commandline_argument;
 			break;
 		case 'M':
-			isc_mem_debugging = 1;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 			break;
 
 		case 'm':
