@@ -1,6 +1,6 @@
 	Beta Release of BIND 9.2.0 for Window NT/2000
 
-Date: 30-Jun-2001.
+Date: 20-Jul-2001.
 
   This is a Beta Release of BIND 9.2.0 for Windows NT/2000. As such
 it should not be installed on a production system or anywhere that is
@@ -34,7 +34,7 @@ same directory as named: dns/bin/.  Use the command this way:
 
 rndc-confgen > rndc.conf
 
-An rndc.conf will be generated in the current but not copied to
+An rndc.conf will be generated in the current directory but not copied to
 the dns/etc directory where it needs to reside.
 
 In addition the named.conf file will need to be modified in order
@@ -50,19 +50,25 @@ Note that the value of the secret must come from the key generated
 above for rndc and must be the same key value for both. If you
 have rndc on a Unix box you can use it to control BIND on the NT/W2K
 box as well as using the Windows version of rndc to control a BIND 9
-daemon.
+daemon on a Unix box.
+
+In addition BIND is installed as a win32 system service, can be
+started and stopped in the same way as any other service and
+automatically starts at whenever the system is booted.
 
 	DNS Tools
 
 I have built versions of the following tools for Windows NT: dig,
-nslookup, host, nsupdate, dnssec-keygen, dnssec-makekeyset, dnssec-signkey,
-dnssec-signzone. The tools will NOT run on Win9x, only WinNT and Win2000.
-The latter tools are for use with DNSSEC.
-
+nslookup, host, nsupdate, named-checkconf, named-checkzone, dnssec-keygen,
+dnssec-makekeyset, dnssec-signkey, dnssec-signzone. The tools will NOT run
+on Win9x, only WinNT and Win2000. The latter tools are for use with DNSSEC.
+All tools are installed in the dns/bin directory.
 
 	Problems
 
-Please report all problems to bind9-bugs@isc.org and not to me.
+Please report all problems to bind9-bugs@isc.org and not to me. All
+other questions should go to the bind-users@isc.org mailing list and
+news group.
 
 	Danny Mayer
 	danny.mayer@nominum.com
