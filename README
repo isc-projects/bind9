@@ -76,6 +76,8 @@ BIND 9.3.0
 	  NOTIMP rather than NOTIMPL.  This will have impact on scripts
 	  that are looking for NOTIMPL.
 
+	libbind: corresponds to that from BIND 8.4.5.
+
 BIND 9.2.0
 
 	BIND 9.2.0 has a number of new features over 9.1,
