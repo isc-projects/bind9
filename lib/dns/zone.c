@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.79 2000/02/10 01:12:14 gson Exp $ */
+ /* $Id: zone.c,v 1.80 2000/02/10 16:13:12 brister Exp $ */
 
 #include <config.h>
 
@@ -219,6 +219,12 @@ static void releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 static void xfrin_start_temporary_kludge(dns_zone_t *zone);
 static void xfrdone(dns_zone_t *zone, isc_result_t result);
 static void zone_shutdown(isc_task_t *, isc_event_t *);
+
+#if 0
+/* ondestroy example */
+static void dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event);
+#endif
+
 #ifdef notyet
 static void refresh_callback(isc_task_t *, isc_event_t *);
 static void soa_query(dns_zone_t *, isc_taskaction_t);
@@ -751,6 +757,20 @@ dns_zone_load(dns_zone_t *zone) {
 		result = DNS_R_UNEXPECTED;
 		goto cleanup;
 	}
+
+
+#if 0
+	/* destroy notification example. */
+	{
+		isc_event_t *e = isc_event_allocate(zone->mctx, NULL,
+						    DNS_EVENT_DBDESTROYED,
+						    dns_zonemgr_dbdestroyed,
+						    zone,
+						    sizeof(isc_event_t));
+		dns_db_ondestroy(db, zone->task, &e);
+	}
+#endif	
+
 	if (zone->top != NULL) {
 		result = replacedb(zone, db, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
@@ -3251,3 +3271,20 @@ dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr) {
 	return (zmgr->transfersin.max);
 }
 
+
+#if 0
+/* hook for ondestroy notifcation from a database. */
+
+static void
+dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
+	dns_db_t *db = event->sender;
+	UNUSED(task);
+
+	isc_event_free(&event);
+	
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		      DNS_LOGMODULE_ZONE, ISC_LOG_INFO,
+		      "database (%p) destroyed", (void*) db);
+}
+
+#endif
