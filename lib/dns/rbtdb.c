@@ -285,6 +285,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	version = allocate_version(rbtdb->common.mctx, rbtdb->next_serial, 1,
 				   ISC_TRUE);
 	if (version != NULL) {
+		version->commit_ok = ISC_TRUE;
 		rbtdb->next_serial++;
 		rbtdb->future_version = version;
 	}
@@ -292,6 +293,8 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 
 	if (version == NULL)
 		return (DNS_R_NOMEMORY);
+
+	*versionp = version;
 
 	return (DNS_R_SUCCESS);
 }
@@ -580,6 +583,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				/*
 				 * Become the current version.
 				 */
+				version->writer = ISC_FALSE;
 				rbtdb->current_version = version;
 				rbtdb->current_serial = version->serial;
 				rbtdb->future_version = NULL;
@@ -590,6 +594,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				cleanup_list = version->changed_list;
 				rollback = ISC_TRUE;
 				cleanup_version = version;
+				rbtdb->future_version = NULL;
 			}
 			/* XXX wake up waiting updates */
 		} else {
@@ -756,6 +761,44 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	*targetp = NULL;
 }
 
+static void
+printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *rbtnode = node;
+	isc_boolean_t first;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	fprintf(out, "node %p, %u references, locknum = %u\n",
+		rbtnode, rbtnode->references, rbtnode->locknum);
+	if (rbtnode->data != NULL) {
+		rdatasetheader_t *current, *top_next;
+
+		for (current = rbtnode->data; current != NULL;
+		     current = top_next) {
+			top_next = current->next;
+			first = ISC_TRUE;
+			fprintf(out, "\ttype %u", current->type);
+			do {
+				if (!first)
+					fprintf(out, "\t");
+				first = ISC_FALSE;
+				fprintf(out,
+				"\tserial = %lu, ttl = %u, attributes = %u\n",
+					(unsigned long)current->serial,
+					current->ttl,
+					current->attributes);
+				current = current->down;
+			} while (current != NULL);
+		}
+	} else
+		fprintf(out, "(empty)\n");
+
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+}
+
 static dns_result_t
 findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     dns_rdatatype_t type, dns_rdataset_t *rdataset)
@@ -896,7 +939,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		header->prev = newheader;
 		header->next = NULL;
 		rbtnode->dirty = 1;
-		changed->dirty = ISC_TRUE;
+		if (changed != NULL)
+			changed->dirty = ISC_TRUE;
 	} else {
 		/*
 		 * The rdataset type doesn't exist at this node.
@@ -934,6 +978,7 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 	dns_result_t result;
 	isc_region_t region;
 	rdatasetheader_t *header, *newheader;
+	dns_name_t foundname;
 
 	/*
 	 * This routine does no node locking.  See comments in
@@ -944,6 +989,12 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 	result = dns_rbt_addnode(rbtdb->tree, name, &node);
 	if (result != DNS_R_SUCCESS && result != DNS_R_EXISTS)
 		return (result);
+	if (result != DNS_R_EXISTS) {
+		dns_name_init(&foundname, NULL);
+		dns_rbt_namefromnode(node, &foundname);
+		node->locknum = dns_name_hash(&foundname, ISC_TRUE) %
+			rbtdb->node_lock_count;
+	}
 
 	/*
 	 * The following is basically addrdataset(), with no locking.
@@ -1028,6 +1079,7 @@ static dns_dbmethods_t methods = {
 	findnode,
 	attachnode,
 	detachnode,
+	printnode,
 	findrdataset,
 	addrdataset,
 	deleterdataset
