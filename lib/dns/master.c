@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.88 2000/12/19 01:32:41 marka Exp $ */
+/* $Id: master.c,v 1.89 2000/12/28 02:31:20 marka Exp $ */
 
 #include <config.h>
 
@@ -612,6 +612,8 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 		goto error_cleanup;
 	}
 
+	ISC_LIST_INIT(rdatalist.rdata);
+	ISC_LINK_INIT(&rdatalist, link);
 	for (i = start; i < stop; i += step) {
 		result = genname(lhs, i, lhsbuf, DNS_MASTER_BUFSZ);
 		if (result != ISC_R_SUCCESS)
@@ -648,7 +650,6 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 		rdatalist.covers = 0;
 		rdatalist.rdclass = ctx->zclass;
 		rdatalist.ttl = ctx->ttl;
-		ISC_LIST_INIT(rdatalist.rdata);
 		ISC_LIST_PREPEND(head, &rdatalist, link);
 		ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 		result = commit(callbacks, ctx->lex, &head, owner,

@@ -1,3 +1,5 @@
+ 641.	[bug]		$GENERATE caused a uninitialized link to be used.
+			[RT #595]
 
 	--- 9.1.0b2 released ---
 
