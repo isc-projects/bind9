@@ -39,6 +39,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/aclconf.h>
 #include <dns/cache.h>
 #include <dns/confacl.h>
@@ -805,6 +806,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * be shared with an interface.
 	 */
 	ns_interfacemgr_scan(server->interfacemgr);
+	dns_aclenv_copy(&server->aclenv,
+			ns_interfacemgr_getaclenv(server->interfacemgr));
+	
 
 	dispatch = NULL;
 	CHECK(configure_server_querysource(configctx, server, &dispatch));
@@ -1018,7 +1022,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
-	
+
+	result = dns_aclenv_init(mctx, &server->aclenv);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
+		
 	/* Initialize server data structures. */
 	server->zonemgr = NULL;
 	server->clientmgr = NULL;
@@ -1091,6 +1098,8 @@ ns_server_destroy(ns_server_t **serverp) {
 		dns_acl_detach(&server->recursionacl);
 	if (server->transferacl != NULL)
 		dns_acl_detach(&server->transferacl);
+
+	dns_aclenv_destroy(&server->aclenv);
 
 	isc_quota_destroy(&server->recursionquota);
 	isc_quota_destroy(&server->tcpquota);

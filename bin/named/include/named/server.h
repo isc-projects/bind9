@@ -24,6 +24,7 @@
 #include <isc/quota.h>
 
 #include <dns/types.h>
+#include <dns/acl.h>
 
 #define NS_EVENTCLASS		ISC_EVENTCLASS(0x4E43)
 #define NS_EVENT_RELOAD		(NS_EVENTCLASS + 0)
@@ -50,6 +51,9 @@ struct ns_server {
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
+
+	/* Not really configurable, but covered by conflock. */
+	dns_aclenv_t		aclenv;
 
 	/* Server data structures. */
 	dns_zonemgr_t *		zonemgr;

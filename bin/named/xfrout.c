@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.41 2000/02/03 22:29:54 halley Exp $ */
+ /* $Id: xfrout.c,v 1.42 2000/02/09 22:58:45 gson Exp $ */
 
 #include <config.h>
 
@@ -911,6 +911,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 				   "zone transfer", 
 				   dns_zone_getxfracl(zone),
 				   ns_g_server->transferacl,
+				   &ns_g_server->aclenv,
 				   ISC_TRUE));
 
 	/* AXFR over UDP is not possible. */

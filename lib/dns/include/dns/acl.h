@@ -71,6 +71,12 @@ struct dns_acl {
 	ISC_LINK(dns_acl_t) 	nextincache;	/* Ditto */
 };
 
+struct dns_aclenv {
+	dns_acl_t *localhost;
+	dns_acl_t *localnets;	
+};
+
+
 #define DNS_ACL_MAGIC		0x4461636c	/* Dacl */
 #define DNS_ACL_VALID(a)	((a) != NULL && \
 				 (a)->magic == DNS_ACL_MAGIC)
@@ -82,8 +88,13 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
 /*
- * Create a new ACL with place for 'n' elements.
+ * Create a new ACL with room for 'n' elements.
  * The elements are uninitialized and the length is 0.
+ */
+
+isc_result_t dns_acl_appendelement(dns_acl_t *acl, dns_aclelement_t *elt);
+/*
+ * Append an element to an existing ACL.
  */
 
 isc_result_t dns_acl_any(isc_mem_t *mctx, dns_acl_t **target);
@@ -105,11 +116,18 @@ dns_aclelement_equal(dns_aclelement_t *ea, dns_aclelement_t *eb);
 
 isc_boolean_t dns_acl_equal(dns_acl_t *a, dns_acl_t *b);
 
+isc_result_t dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env);
+
+void dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s);
+	
+void dns_aclenv_destroy(dns_aclenv_t *env);
+
 isc_result_t
 dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 		     const char *opname,
 		     dns_acl_t *main_acl,
 		     dns_acl_t *fallback_acl,
+		     dns_aclenv_t *env,
 		     isc_boolean_t default_allow);
 /*
  * Convenience function for "typical" DNS request permission checking.
@@ -145,6 +163,7 @@ isc_result_t
 dns_acl_match(isc_sockaddr_t *reqaddr,
 	      dns_name_t *reqsigner,
 	      dns_acl_t *acl,
+	      dns_aclenv_t *env,
 	      int *match,
 	      dns_aclelement_t **matchelt);
 /*

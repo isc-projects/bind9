@@ -9,8 +9,8 @@ Legend:
 
   No        Not implemented, may be implemented in a later release.
 
-  Obsolete  Obsolete, not applicable to BIND 9, or just evil.  Will not be
-            implemented.
+  Obsolete  Obsolete, not applicable to BIND 9, or just evil.  
+            Will not be implemented.
 
   *         New in BIND 9.
 
@@ -21,9 +21,10 @@ Legend:
   %         The default value has changed since BIND 8.
 
   @	    Semantics of certain pathological address match lists, in
-	    particular those involving double negation, have changed.  The new
-	    semantics are generally safer.  The predefined ACLs "localhost" 
-	    and "localnets" are not yet supported.
+	    particular those involving double negation, have changed.  
+	    The new semantics are generally safer.  IPv6 addresses
+            are supported, but the predefined ACLs "localhost" and 
+            "localnets" match IPv4 addresses only.
 
   #         BIND 9 accepts both LF and CRLF as end-of-line markers.
 

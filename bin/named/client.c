@@ -789,7 +789,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 					      ns_client_getsockaddr(client),
 					      "recursion",
 					      ns_g_server->recursionacl,
-					      NULL, ISC_TRUE);
+					      NULL,
+					      &ns_g_server->aclenv,
+					      ISC_TRUE);
 			if (result != DNS_R_SUCCESS)
 				ra = ISC_FALSE;
 		}

@@ -29,14 +29,17 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-/*
- * Create a new ACL with 'n' uninitialized elements.
- */
 isc_result_t
 dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
 {
 	isc_result_t result;
 	dns_acl_t *acl;
+
+	 /*
+	  * Work around silly limitation of isc_mem_get().
+	  */
+	if (n == 0)
+		n = 1;
 	
 	acl = isc_mem_get(mctx, sizeof(*acl));
 	if (acl == NULL)
@@ -67,6 +70,38 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
 	return (result);
 }
 
+isc_result_t
+dns_acl_appendelement(dns_acl_t *acl, dns_aclelement_t *elt)
+{
+	if (acl->length + 1 > acl->alloc) {
+		/*
+		 * Resize the ACL.
+		 */
+		unsigned int newalloc;
+		void *newmem;
+
+		newalloc = acl->alloc * 2;
+		if (newalloc < 4)
+			newalloc = 4;
+		newmem = isc_mem_get(acl->mctx,
+				     newalloc * sizeof(dns_aclelement_t));
+		if (newmem == NULL)
+			return (ISC_R_NOMEMORY);
+		memcpy(newmem, acl->elements,
+		       acl->length * sizeof(dns_aclelement_t));
+		isc_mem_put(acl->mctx, acl->elements,
+			    acl->alloc * sizeof(dns_aclelement_t));
+		acl->elements = newmem;
+		acl->alloc = newalloc;
+	}
+	/*
+	 * Append the new element.
+	 */
+	acl->elements[acl->length++] = *elt;
+	
+	return (ISC_R_SUCCESS);
+}
+		       
 static isc_result_t
 dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target)
 {
@@ -97,6 +132,7 @@ dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 		     const char *opname,
 		     dns_acl_t *main_acl,
 		     dns_acl_t *fallback_acl,
+		     dns_aclenv_t *env,
 		     isc_boolean_t default_allow)
 {
 	isc_result_t result;
@@ -112,7 +148,7 @@ dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 	else
 		goto deny;
 
-	result = dns_acl_match(reqaddr, signer, acl,
+	result = dns_acl_match(reqaddr, signer, acl, env,
 			       &match, NULL);
 	if (result != DNS_R_SUCCESS)
 		goto deny; /* Internal error, already logged. */
@@ -137,6 +173,7 @@ isc_result_t
 dns_acl_match(isc_sockaddr_t *reqaddr,
 	      dns_name_t *reqsigner,
 	      dns_acl_t *acl,
+	      dns_aclenv_t *env,
 	      int *match,
 	      dns_aclelement_t **matchelt)
 {
@@ -148,6 +185,7 @@ dns_acl_match(isc_sockaddr_t *reqaddr,
 	
 	for (i = 0; i < acl->length; i++) {
 		dns_aclelement_t *e = &acl->elements[i];
+		dns_acl_t *inner = NULL;
 		
 		switch (e->type) {
 		case dns_aclelementtype_ipprefix:
@@ -164,8 +202,11 @@ dns_acl_match(isc_sockaddr_t *reqaddr,
 			break;
 		
 		case dns_aclelementtype_nestedacl:
+			inner = e->u.nestedacl;
+		nested:
 			result = dns_acl_match(reqaddr, reqsigner,
-					       e->u.nestedacl,
+					       inner,
+					       env,
 					       &indirectmatch, matchelt);
 			if (result != ISC_R_SUCCESS)
 				return (result);
@@ -194,7 +235,21 @@ dns_acl_match(isc_sockaddr_t *reqaddr,
 			return (ISC_R_SUCCESS);
 
 		case dns_aclelementtype_localhost:
+			if (env != NULL && env->localhost != NULL) {
+				inner = env->localhost;
+				goto nested;
+			} else {
+				break;
+			}
+			
 		case dns_aclelementtype_localnets:
+			if (env != NULL && env->localnets != NULL) {
+				inner = env->localnets;
+				goto nested;
+			} else {
+				break;
+			}
+			
 		default:
 			INSIST(0);
 			break;
@@ -289,4 +344,36 @@ dns_acl_equal(dns_acl_t *a, dns_acl_t *b) {
 			return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
+}
+
+isc_result_t
+dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env)
+{
+	isc_result_t result;
+	env->localhost = NULL;
+	env->localnets = NULL;
+	result = dns_acl_create(mctx, 0, &env->localhost);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_nothing;
+	result = dns_acl_create(mctx, 0, &env->localnets);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_localhost;
+	return (ISC_R_SUCCESS);
+
+ cleanup_localhost:
+	dns_acl_detach(&env->localhost);
+ cleanup_nothing:
+	return (result);
+}
+
+void dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
+	dns_acl_detach(&t->localhost);
+	dns_acl_attach(s->localhost, &t->localhost);
+	dns_acl_detach(&t->localnets);
+	dns_acl_attach(s->localnets, &t->localnets);
+}
+
+void dns_aclenv_destroy(dns_aclenv_t *env) {
+	dns_acl_detach(&env->localhost);
+	dns_acl_detach(&env->localnets);
 }

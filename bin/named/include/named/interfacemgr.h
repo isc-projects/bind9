@@ -129,6 +129,9 @@ ns_interfacemgr_findudpdispatcher(ns_interfacemgr_t *mgr,
  * Find a UDP dispatcher matching 'address', if it exists.
  */
 
+dns_aclenv_t *
+ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr);
+
 void
 ns_interface_attach(ns_interface_t *source,
 		    ns_interface_t **target);

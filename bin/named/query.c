@@ -1934,6 +1934,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 					       dns_zone_getqueryacl(zone) :
 					       ns_g_server->queryacl),
 				      ns_g_server->queryacl,
+				      &ns_g_server->aclenv,
 				      ISC_TRUE);
 	if (result != DNS_R_SUCCESS) {
 		QUERY_ERROR(result);

@@ -58,6 +58,7 @@ struct ns_interfacemgr {
 	ns_clientmgr_t *	clientmgr;	/* Client manager. */
 	unsigned int		generation;	/* Current generation no. */
 	ns_listenlist_t *	listenon;
+	dns_aclenv_t		aclenv;		/* Localhost/localnets ACLs */
 	ISC_LIST(ns_interface_t) interfaces;	/* List of interfaces. */
 };
 
@@ -81,7 +82,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	result = isc_mutex_init(&mgr->lock);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		goto cleanup_mem;
 
 	mgr->mctx = mctx;
 	mgr->taskmgr = taskmgr;
@@ -94,14 +95,20 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	result = ns_listenlist_default(mctx, ns_g_port,
 				       &mgr->listenon);
 	if (result != DNS_R_SUCCESS)
-		goto cleanup;
+		goto cleanup_mem;
+
+	result = dns_aclenv_init(mctx, &mgr->aclenv);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_listenon;
 	
 	mgr->references = 1;
 	mgr->magic = IFMGR_MAGIC;
 	*mgrp = mgr;
 	return (DNS_R_SUCCESS);
 
- cleanup:
+ cleanup_listenon:
+	ns_listenlist_detach(&mgr->listenon);
+ cleanup_mem:
 	isc_mem_put(mctx, mgr, sizeof(*mgr));
 	return (result);
 }
@@ -110,10 +117,17 @@ static void
 ns_interfacemgr_destroy(ns_interfacemgr_t *mgr)
 {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+	dns_aclenv_destroy(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon);
 	isc_mutex_destroy(&mgr->lock);
 	mgr->magic = 0;
 	isc_mem_put(mgr->mctx, mgr, sizeof *mgr);
+}
+
+dns_aclenv_t *
+ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr)
+{
+	return (&mgr->aclenv);
 }
 
 void
@@ -452,6 +466,19 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 	}
 }
 
+static isc_result_t
+clearacl(isc_mem_t *mctx, dns_acl_t **aclp) {
+	dns_acl_t *newacl = NULL;
+	isc_result_t result;
+	result = dns_acl_create(mctx, 10, &newacl);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_acl_detach(aclp);
+	dns_acl_attach(newacl, aclp);
+	dns_acl_detach(&newacl);
+	return (ISC_R_SUCCESS);
+}
+
 static void
 do_ipv4(ns_interfacemgr_t *mgr) {
 	isc_interfaceiter_t *iter = NULL;
@@ -461,6 +488,13 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 	if (result != ISC_R_SUCCESS)
 		return;
 
+	result = clearacl(mgr->mctx, &mgr->aclenv.localhost);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_iter;
+	result = clearacl(mgr->mctx, &mgr->aclenv.localnets);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_iter;
+	
 	for (result = isc_interfaceiter_first(iter);
 	     result == ISC_R_SUCCESS;
 	     result = isc_interfaceiter_next(iter))
@@ -468,12 +502,9 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		ns_interface_t *ifp;
 		isc_interface_t interface;
 		ns_listenelt_t *le;
+		dns_aclelement_t elt;
+		unsigned int prefixlen;
 		
-		/*
-		 * XXX insert code to match against named.conf
-		 * "listen-on" statements here.  Also build list of
-		 * local addresses and local networks.
-		 */
 		result = isc_interfaceiter_current(iter, &interface);
 		if (result != ISC_R_SUCCESS)
 			break;
@@ -484,6 +515,24 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		if ((interface.flags & INTERFACE_F_UP) == 0)
 			continue;
 
+		result = isc_netaddr_masktoprefixlen(&interface.netmask,
+						     &prefixlen);
+		if (result != ISC_R_SUCCESS)
+			goto ignore_interface;
+		elt.type = dns_aclelementtype_ipprefix;
+		elt.negative = ISC_FALSE;
+		isc_sockaddr_fromnetaddr(&elt.u.ip_prefix.address,
+					 &interface.address, 0); /* XXX */
+		elt.u.ip_prefix.prefixlen = prefixlen;
+		/* XXX suppress duplicates */
+		result = dns_acl_appendelement(mgr->aclenv.localnets, &elt);
+		if (result != ISC_R_SUCCESS)
+			goto ignore_interface;
+		elt.u.ip_prefix.prefixlen = 32;
+		result = dns_acl_appendelement(mgr->aclenv.localhost, &elt);
+		if (result != ISC_R_SUCCESS)
+			goto ignore_interface;
+		
 		for (le = ISC_LIST_HEAD(mgr->listenon->elts);
 		     le != NULL;
 		     le = ISC_LIST_NEXT(le, link))
@@ -515,7 +564,8 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			 * if not, ignore the interface.
 			 */
 			result = dns_acl_match(&listen_addr, NULL,
-					       le->acl, &match, NULL);
+					       le->acl, &mgr->aclenv,
+					       &match, NULL);
 			if (match <= 0)
 				continue;
 			
@@ -544,12 +594,20 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			}
 
 		}
+		continue;
+
+	ignore_interface:
+		isc_log_write(IFMGR_COMMON_LOGARGS,
+			      ISC_LOG_ERROR,
+			      "ignoring IPv4 interface %s: %s",
+			      interface.name, isc_result_totext(result));
+		continue;
 	}
 	if (result != ISC_R_NOMORE)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "IPv4: interface iteration failed: %s",
 				 isc_result_totext(result));
-
+ cleanup_iter:
 	isc_interfaceiter_destroy(&iter);
 }
 

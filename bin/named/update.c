@@ -51,10 +51,11 @@
 #include <dns/zone.h>
 #include <dns/zt.h>
 
-#include <named/globals.h>
 #include <named/client.h>
-#include <named/update.h>
+#include <named/globals.h>
 #include <named/log.h>
+#include <named/server.h>
+#include <named/update.h>
 
 /*
  * This module implements dynamic update as in RFC2136.
@@ -1946,7 +1947,9 @@ update_action(isc_task_t *task, isc_event_t *event)
 	CHECK(dns_acl_checkrequest(client->signer,
 				   ns_client_getsockaddr(client),
 				   "update", dns_zone_getupdateacl(zone),
-				   NULL, ISC_FALSE));
+				   NULL,
+				   &ns_g_server->aclenv,
+				   ISC_FALSE));
 
 	/* Perform the Update Section Prescan. */
 

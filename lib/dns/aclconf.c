@@ -155,23 +155,12 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 			break;
-#ifdef notyet
 		case dns_c_ipmatch_localhost:
 			de->type = dns_aclelementtype_localhost;
 			break;
 		case dns_c_ipmatch_localnets:
 			de->type = dns_aclelementtype_localnets;			
 			break;
-#else
-		case dns_c_ipmatch_localhost:
-		case dns_c_ipmatch_localnets:
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-				      DNS_LOGMODULE_ACL, ISC_LOG_WARNING,
-				      "the 'localhost' and 'localnets' ACLs "
-				      "are not yet supported");
-			result = ISC_R_FAILURE;
-			goto cleanup;
-#endif
 		case dns_c_ipmatch_acl:
 			de->type = dns_aclelementtype_nestedacl;
 			result = convert_named_acl(ce->u.aclname, cctx,
