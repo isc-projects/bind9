@@ -72,6 +72,7 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_TCP		0x01
 #define DNS_FETCHOPT_UNSHARED		0x02
 #define DNS_FETCHOPT_RECURSIVE		0x04
+#define DNS_FETCHOPT_NOEDNS0		0x08
 
 dns_result_t
 dns_resolver_create(dns_view_t *view,
