@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.144 2001/02/06 02:43:42 bwelling Exp $ */
+/* $Id: client.c,v 1.145 2001/02/09 21:25:55 gson Exp $ */
 
 #include <config.h>
 
@@ -1300,9 +1300,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Find a view that matches the client's source address.
-	 *
-	 * XXXRTH  View list management code will be moving to its own module
-	 *         soon.
 	 */
 	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
 	     view != NULL;
