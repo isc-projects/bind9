@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.49 2000/09/18 19:16:45 mws Exp $ */
+/* $Id: nsupdate.c,v 1.50 2000/09/18 23:23:12 gson Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,10 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#if (!(defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)))
+extern int h_errno;
+#endif
 
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -105,8 +109,6 @@ static int ns_total = 0;
 static isc_sockaddr_t *userserver = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
-
-extern int h_errno;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
