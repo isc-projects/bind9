@@ -75,11 +75,17 @@ isc_dir_read and isc_dir_close, used to iterate over the filenames in
 a directory.  XXX It also implements isc_dir_chdir to set the current
 directory, but this function has not yet been written for Win32.
 
+File
+
+The File module is for functions that access and/or modify operating
+system information about files.  XXX It has not yet been written for Win32.
+
 Filelock
 
 This module implements the pthreads functions flockfile, funlockfile
 and getc_unlocked, which synchronize stdio calls from multiple
-threads.  XXX It has not yet been written for Win32.
+threads.  XXX It has not yet been written for Win32.  Or for Unix
+for that matter.  Merge into File?
 
 Interfaceiter
 
