@@ -153,6 +153,7 @@
 ./bin/tests/generic-b9t.cron			X	1999,2000
 ./bin/tests/gxba_test.c				C	2000
 ./bin/tests/gxbn_test.c				C	2000
+./bin/tests/hash_test.c				C	2000
 ./bin/tests/headerdep_test.sh.in		SH	2000
 ./bin/tests/inter_test.c			C	2000
 ./bin/tests/lex_test.c				C	1998,1999,2000
@@ -265,7 +266,6 @@
 ./bin/tests/resolv.conf.sample			X	2000
 ./bin/tests/rwlock_test.c			C	1998,1999,2000
 ./bin/tests/serial_test.c			C	1999,2000
-./bin/tests/sha1_test.c				C	2000
 ./bin/tests/shutdown_test.c			C	1998,1999,2000
 ./bin/tests/sock_test.c				C	1998,1999,2000
 ./bin/tests/sockaddr/.cvsignore			X	1999,2000
@@ -673,6 +673,7 @@
 ./lib/isc/include/isc/list.h			C	1997,1999,2000
 ./lib/isc/include/isc/log.h			C	1999,2000
 ./lib/isc/include/isc/magic.h			C	1999,2000
+./lib/isc/include/isc/md5.h			C	2000
 ./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000
 ./lib/isc/include/isc/msgcat.h			C	1999,2000
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000
@@ -708,6 +709,7 @@
 ./lib/isc/lib.c					C	1999,2000
 ./lib/isc/log.c					C	1999,2000
 ./lib/isc/mem.c					C	1997,1998,1999,2000
+./lib/isc/md5.c					C	2000
 ./lib/isc/mutexblock.c				C	1999,2000
 ./lib/isc/netaddr.c				C	1999,2000
 ./lib/isc/nls/.cvsignore			X	1999,2000
