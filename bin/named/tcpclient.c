@@ -391,7 +391,13 @@ tcp_listener_allocate(isc_mem_t *mctx, u_int nwmax)
 	l->ctxs = isc_mem_get(mctx, sizeof(tcp_cctx_t *) * nwmax);
 	RUNTIME_CHECK(l->ctxs != NULL);  /* XXX should be non-fatal? */
 
+	l->sock = NULL;
+	l->nwstart = 0;
+	l->nwkeep = 0;
+	l->nwmax = nwmax;
 	l->mctx = mctx;
+	l->dispatch = NULL;
+	l->nwactive = 0;
 
 	return (l);
 }
