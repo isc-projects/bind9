@@ -37,6 +37,7 @@ struct ns_query {
 	unsigned int			restarts;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
+	dns_rdataset_t *		qrdataset;
 	unsigned int			dboptions;
 	dns_db_t *			gluedb;
 	dns_fetch_t *			fetch;

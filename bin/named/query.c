@@ -148,6 +148,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 				    NS_QUERYATTR_CACHEOK);
 	client->query.restarts = 0;
 	client->query.origqname = NULL;
+	client->query.qrdataset = NULL;
 	client->query.dboptions = 0;
 	client->query.gluedb = NULL;
 }
@@ -1394,7 +1395,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_dbnode_t *node;
 	dns_rdatatype_t qtype, type;
 	dns_name_t *fname, *zfname, *tname, *prefix;
-	dns_rdataset_t *rdataset, *qrdataset, *trdataset;
+	dns_rdataset_t *rdataset, *trdataset;
 	dns_rdataset_t *sigrdataset, *zrdataset, *zsigrdataset;
 	dns_rdata_t rdata;
 	dns_rdatasetiter_t *rdsiter;
@@ -1428,7 +1429,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	zdb = NULL;
 	version = NULL;
 	qcount = 0;
-	qrdataset = NULL;
 
 	if (event != NULL) {
 		/*
@@ -1453,7 +1453,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		node = event->node;
 		rdataset = event->rdataset;
 		sigrdataset = event->sigrdataset;
-		isc_event_free((isc_event_t **)(&event));
 
 		/*
 		 * We'll need some resources...
@@ -1468,13 +1467,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
+		tname = dns_fixedname_name(&event->foundname);
+		result = dns_name_concatenate(tname, NULL, fname, NULL);
+		if (result != ISC_R_SUCCESS) {
+			QUERY_ERROR(DNS_R_SERVFAIL);
+			goto cleanup;
+		}
 
-		/*
-		 * XXXRTH need to set fname.
-		 */
+		isc_event_free((isc_event_t **)(&event));
 
 		goto resume;
-	}
+	} else
+		client->query.qrdataset = NULL;
 
  restart:
 	want_restart = ISC_FALSE;
@@ -1534,8 +1538,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	     trdataset != NULL;
 	     trdataset = ISC_LIST_NEXT(trdataset, link)) {
 		if (!ANSWERED(trdataset)) {
-			if (qrdataset == NULL) {
-				qrdataset = trdataset;
+			if (client->query.qrdataset == NULL) {
+				client->query.qrdataset = trdataset;
 				qtype = trdataset->type;
 			}
 			qcount++;
@@ -1544,7 +1548,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	/*
 	 * We had better have found something!
 	 */
-	INSIST(qrdataset != NULL && qcount > 0);
+	INSIST(client->query.qrdataset != NULL && qcount > 0);
 	/*
 	 * If there's more than one question, we'll retrieve the node and
 	 * iterate it, trying to find answers.
@@ -1596,6 +1600,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	result = dns_db_find(db, client->query.qname, version, type, 0,
 			     client->requesttime, &node, fname, rdataset,
 			     sigrdataset);
+
  resume:
 	switch (result) {
 	case DNS_R_SUCCESS:
@@ -2049,7 +2054,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		/*
 		 * Remember that we've answered this question.
 		 */
-		qrdataset->attributes |= DNS_RDATASETATTR_ANSWERED;
+		client->query.qrdataset->attributes |=
+			DNS_RDATASETATTR_ANSWERED;
 
 		/*
 		 * A6 records cause type A and AAAA additional
