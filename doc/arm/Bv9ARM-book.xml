@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.9 2001/02/06 16:51:24 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.10 2001/02/12 22:07:12 gson Exp $ -->
 
 <book>
 
@@ -4604,11 +4604,16 @@ if it were included into the file at this point.  If <command>origin</command> i
 specified the file is processed with <command>$ORIGIN</command> set
 to that value, otherwise the current <command>$ORIGIN</command> is
 used.</para>
-        <note>
-<para>The behavior when <command>origin</command> is
-specified differs from that described in RFC 1035. The origin and
-current domain revert to the values they were prior to the <command>$INCLUDE</command> once
-the file has been read.</para></note></sect3>
+<para>The origin and the current domain name
+revert to the values they had prior to the <command>$INCLUDE</command> once
+the file has been read.</para>
+<note><para>
+RFC 1035 specifies that the current origin should be restored after
+an <command>$INCLUDE</command>, but it is silent on whether the current
+domain name should also be restored.  BIND 9 restores both of them.
+This could be construed as a deviation from RFC 1035, a feature, or both.
+</para></note>
+</sect3>
 <sect3><title>The <command>$TTL</command> Directive</title>
 <para>Syntax: <command>$TTL</command>
 <replaceable>default-ttl</replaceable> <optional>
