@@ -1,6 +1,14 @@
  308.	[bug]		Treat a SOA record not at top of zone as an error
 			when loading a zone. (RT #154)
 
+ 307.	[bug]		When canceling a query, the resolver didn't check for
+			isc_socket_sendto() calls that did not yet have their
+			completion events posted, so it could (rarely) end up
+			destroying the query context and then want to use
+			it again when the send event posted, triggering an
+			assertion as it tried to cancel an already-canceled
+			query.  (RT #77)
+
  306.	[bug] 		Reading HMAC-MD5 private key files didn't work.
 
  305.	[bug]		When reloading the server with a config file

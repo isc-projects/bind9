@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137 2000/06/22 21:54:46 tale Exp $ */
+/* $Id: resolver.c,v 1.137.2.1 2000/07/07 21:41:32 gson Exp $ */
 
 #include <config.h>
 
@@ -111,6 +111,7 @@ typedef struct query {
 	dns_tsigkey_t			*tsigkey;
 	unsigned int			options;
 	unsigned int			attributes;
+	unsigned int			sends;
 	unsigned char			data[512];
 } resquery_t;
 
@@ -125,6 +126,7 @@ typedef struct query {
 					  RESQUERY_ATTR_CONNECTING) != 0)
 #define RESQUERY_CANCELED(q)		(((q)->attributes & \
 					  RESQUERY_ATTR_CANCELED) != 0)
+#define RESQUERY_SENDING(q)		((q)->sends > 0)
 
 typedef enum {
 	fetchstate_init = 0,		/* Start event has not run yet. */
@@ -331,7 +333,7 @@ resquery_destroy(resquery_t **queryp) {
 	INSIST(query->tcpsocket == NULL);
 	
 	query->magic = 0;
-	isc_mem_put(query->mctx, query, sizeof *query);
+	isc_mem_put(query->mctx, query, sizeof(*query));
 	*queryp = NULL;
 }
 
@@ -387,26 +389,39 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
+
 	ISC_LIST_UNLINK(fctx->queries, query, link);
+
 	if (query->tsig != NULL)
 		isc_buffer_free(&query->tsig);
-	if (RESQUERY_CONNECTING(query)) {
+
+	/*
+	 * Check for any outstanding socket events.  If they exist, cancel
+	 * them and let the event handlers finish the cleanup.  The resolver
+	 * only needs to worry about managing the connect and send events;
+	 * the dispatcher manages the recv events.
+	 */
+	if (RESQUERY_CONNECTING(query))
 		/*
 		 * Cancel the connect.
 		 */
 		isc_socket_cancel(query->tcpsocket, NULL,
 				  ISC_SOCKCANCEL_CONNECT);
-	}
+	else if (RESQUERY_SENDING(query))
+		/*
+		 * Cancel the pending send.
+		 */
+		isc_socket_cancel(dns_dispatch_getsocket(query->dispatch),
+				  NULL, ISC_SOCKCANCEL_SEND);
 
 	if (query->dispatch != NULL)
 		dns_dispatch_detach(&query->dispatch);
 	
-	if (!RESQUERY_CONNECTING(query)) {
+	if (! (RESQUERY_CONNECTING(query) || RESQUERY_SENDING(query)))
 		/*
 		 * It's safe to destroy the query now.
 		 */
 		resquery_destroy(&query);
-	}
 }
 
 static void
@@ -530,9 +545,23 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	if (sevent->result != ISC_R_SUCCESS)
+	INSIST(RESQUERY_SENDING(query));
+
+	query->sends--;
+
+	if (RESQUERY_CANCELED(query)) {
+		if (query->sends == 0) {
+			/*
+			 * This query was canceled while the
+			 * isc_socket_sendto() was in progress.
+			 */
+			if (query->tcpsocket != NULL)
+				isc_socket_detach(&query->tcpsocket);
+			resquery_destroy(&query);
+		}
+	} else if (sevent->result != ISC_R_SUCCESS)
 		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
-				 
+
 	isc_event_free(&event);
 }
 
@@ -648,6 +677,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->mctx = res->mctx;
 	query->options = options;
 	query->attributes = 0;
+	query->sends = 0;
 	/*
 	 * Note that the caller MUST guarantee that 'addrinfo' will remain
 	 * valid until this query is canceled.
@@ -976,6 +1006,7 @@ resquery_send(resquery_t *query) {
 				   query, address, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
+	query->sends++;
 	QTRACE("sent");
 
 	return (ISC_R_SUCCESS);
@@ -1064,7 +1095,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			
 			if (result != ISC_R_SUCCESS) {
 				fetchctx_t *fctx = query->fctx;
-				fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+				fctx_cancelquery(&query, NULL, NULL,
+						 ISC_FALSE);
 				fctx_done(fctx, result);
 			}
 		} else {
