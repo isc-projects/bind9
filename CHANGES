@@ -1,6 +1,6 @@
 1148.	[func]		'rndc-confgen -a' provide positive feedback.
 
-1147.	[func]		Set IPV6_IPV6ONLY on IPv6 sockets if supported by
+1147.	[func]		Set IPV6_V6ONLY on IPv6 sockets if supported by
 			the OS.  listen-on-v6 { any; }; should no longer
 			result in IPv4 queries be accepted.  Similarly
 			control { inet :: ... }; should no longer result
