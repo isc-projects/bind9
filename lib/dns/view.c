@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103 2001/08/27 17:20:10 gson Exp $ */
+/* $Id: view.c,v 1.104 2001/08/30 05:52:15 marka Exp $ */
 
 #include <config.h>
 
@@ -158,6 +158,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
 	view->dstport = 53;
+	view->tryedns = ISC_TRUE;
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)

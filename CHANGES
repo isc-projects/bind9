@@ -1,3 +1,5 @@
+ 971.	[func]		'try-edns' can be use to disable edns on all queries.
+
  970.	[func]		'journal-size' can now be used to set a target
 			size for a journal.
 

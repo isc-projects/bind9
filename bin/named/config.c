@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11 2001/08/07 01:58:54 marka Exp $ */
+/* $Id: config.c,v 1.12 2001/08/30 05:52:08 marka Exp $ */
 
 #include <config.h>
 
@@ -101,6 +101,7 @@ options {\n\
 	recursion true;\n\
 	provide-ixfr true;\n\
 	request-ixfr true;\n\
+	try-edns true;\n\
 	fetch-glue no;\n\
 	rfc2308-type1 no;\n\
 	additional-from-auth true;\n\
