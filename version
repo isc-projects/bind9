@@ -1,4 +1,4 @@
-# $Id: version,v 1.22 2001/06/07 22:19:30 gson Exp $
+# $Id: version,v 1.23 2001/07/12 17:40:17 gson Exp $
 #
 # This file must follow /bin/sh rules.  It is imported directly via
 # configure.
@@ -7,4 +7,4 @@ MAJORVER=9
 MINORVER=2
 PATCHVER=0
 RELEASETYPE=a
-RELEASEVER=2
+RELEASEVER=3

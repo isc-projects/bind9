@@ -45,9 +45,9 @@ BIND 9
 
 
 
-BIND 9.2.0a2
+BIND 9.2.0a3
 
-	BIND 9.2.0a2 is an alpha release of BIND 9.2.0.
+	BIND 9.2.0a3 is an alpha release of BIND 9.2.0.
 	It includes a number of new features over 9.1, including:
 
 	  - The size of the cache can now be limited using the
@@ -79,10 +79,11 @@ BIND 9.2.0a2
 	  - A BIND 8 compatible stub resolver library is now
 	    included in lib/bind.
 
-	  - openssl has been removed from the distribution.  This means
-	    that to use DNSSEC, openssl must be installed and the
-	    --with-openssl option must be supplied to configure.  This
-	    does not apply to TSIG, which does not require openssl.
+	  - OpenSSL has been removed from the distribution.  This
+	    means that to use DNSSEC, OpenSSL must be installed and
+	    the --with-openssl option must be supplied to configure.
+	    This does not apply to the use of TSIG, which does not
+	    require OpenSSL.
 
 	This distribution also includes a new lightweight stub
 	resolver library and associated resolver daemon that fully
