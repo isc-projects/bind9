@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.106 2001/02/21 23:21:28 bwelling Exp $ */
+/* $Id: rbt.c,v 1.107 2001/02/28 20:20:18 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1685,9 +1685,6 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 		else {
 			while (HASHNEXT(bucket_node) != node) {
 				INSIST(HASHNEXT(bucket_node) != NULL);
-				if (HASHNEXT(bucket_node) == NULL)
-					break;
-
 				bucket_node = HASHNEXT(bucket_node);
 			}
 			HASHNEXT(bucket_node) = HASHNEXT(node);
