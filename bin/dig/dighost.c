@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.44 2000/06/06 23:06:23 mws Exp $ */
+/* $Id: dighost.c,v 1.45 2000/06/07 00:13:56 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1017,6 +1017,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->sendmsg->id = (unsigned short)(random() & 0xFFFF);
 	lookup->sendmsg->opcode = dns_opcode_query;
+	lookup->msgcounter = 0;
 	/*
 	 * If this is a trace request, completely disallow recursion, since
 	 * it's meaningless for traces.
@@ -1067,6 +1068,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		insert_soa(lookup);
 
 	if (key != NULL) {
+		debug ("Initializing keys");
 		result = dns_message_settsigkey(lookup->sendmsg, key);
 		check_result(result, "dns_message_settsigkey");
 		lookup->tsigctx = NULL;
@@ -1686,8 +1688,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					    &msg);
 		check_result(result, "dns_message_create");
 		
-		if ((key != NULL) && !query->lookup->doing_xfr) {
+		if (key != NULL) {
+			debug ("querysig 1 is %lx", query->lookup->querysig);
 			if (query->lookup->querysig == NULL) {
+				debug ("Getting initial querysig");
 				result = dns_message_getquerytsig(
 					     query->lookup->sendmsg,
 					     mctx, &query->lookup->querysig);
@@ -1700,8 +1704,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			result = dns_message_settsigkey(msg, key);
 			check_result(result, "dns_message_settsigkey");
 			msg->tsigctx = query->lookup->tsigctx;
-			if (query->lookup->tsigctx != NULL) 
+			if (query->lookup->msgcounter != 0) 
 				msg->tcp_continuation = 1;
+			query->lookup->msgcounter++;
 		}
 		debug ("Before parse starts");
 		result = dns_message_parse(msg, b, ISC_TRUE);
@@ -1720,7 +1725,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			isc_event_free(&event);
 			return;
 		}
-		if ((key != NULL) && !query->lookup->doing_xfr) {
+		if (key != NULL) {
+			debug ("querysig 2 is %lx", query->lookup->querysig);
 			debug ("Before verify");
 			result = dns_tsig_verify(&query->recvbuf, msg,
 						 NULL, keyring);
@@ -1732,15 +1738,14 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			}
 			query->lookup->tsigctx = msg->tsigctx;
 			if (query->lookup->querysig != NULL) {
-				debug ("Freeing buffer %lx",
+				debug ("Freeing querysig buffer %lx",
 				       query->lookup->querysig);
 				isc_buffer_free(&query->lookup->querysig);
 			}
-			result = dns_message_getquerytsig(
-						     query->lookup->sendmsg,
-						     mctx,
+			result = dns_message_getquerytsig(msg, mctx,
 						     &query->lookup->querysig);
 			check_result(result,"dns_message_getquerytsig");
+			debug ("querysig 3 is %lx", query->lookup->querysig);
 		}
 		debug ("After parse");
 		if (query->lookup->xfr_q == NULL)

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.42 2000/06/06 23:06:21 mws Exp $ */
+/* $Id: dig.c,v 1.43 2000/06/07 00:13:54 mws Exp $ */
 
 #include <config.h>
 
@@ -197,9 +197,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		printf(";; WHEN: %s", ctime(&tnow));
 		printf (";; MSG SIZE  rcvd: %d\n", bytes);
 		if (key != NULL) {
-			if (validated)
-				puts (";; All TSIG signatures validated");
-			else
+			if (!validated)
 				puts (";; WARNING -- Some TSIG could not "
 				      "be validated");
 		}

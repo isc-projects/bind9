@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.21 2000/06/06 22:50:44 mws Exp $ */
+/* $Id: dig.h,v 1.22 2000/06/07 00:13:57 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -107,6 +107,7 @@ struct dig_lookup {
 	char rdatastore[MXNAME];
 	dst_context_t *tsigctx;
 	isc_buffer_t *querysig;
+	isc_uint32_t msgcounter;
 };
 
 struct dig_query {
