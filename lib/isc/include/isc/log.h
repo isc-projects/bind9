@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.9 2000/02/26 19:57:02 tale Exp $ */
+/* $Id: log.h,v 1.10 2000/03/01 17:33:04 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -60,6 +60,7 @@ ISC_LANG_BEGINDECLS
 #define ISC_LOG_PRINTCATEGORY	0x0004
 #define ISC_LOG_PRINTMODULE	0x0008
 #define ISC_LOG_PRINTALL	0x000F
+#define ISC_LOG_DEBUGONLY	0x0010
 
 /*
  * Other options.
@@ -148,38 +149,109 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
  * Establish a new logging context, with default channels.
  *
  * Notes:
+ *	isc_log_create calls isc_logconfig_create, so see its comment
+ *	below for more information.
+ *
+ * Requires:
+ *	mctx is a valid memory context.
+ *	lctxp is not null and *lctxp is null.
+ *	lctfg is not null and *lcfgp is null.
+ *
+ * Ensures:
+ *	*lctxp will point to a valid logging context if all of the necessary
+ *	memory was allocated, or NULL otherwise.
+ *	*lcfgp will point to a valid logging context if all of the necessary
+ *	memory was allocated, or NULL otherwise.
+ *	On failure, no additional memory is allocated.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		Success
+ *	ISC_R_NOMEMORY		Resource limit: Out of memory
+ */
+
+isc_result_t
+isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
+/*
+ * Create the data structure that holds all of the configurable information
+ * about where messages are actually supposed to be sent -- the information
+ * that could changed based on some configuration file, as opposed to the
+ * the category/module specification of isc_log_[v]write[1] that is compiled
+ * into a program, or the debug_level which is dynamic state information.
+ *
+ * Notes:
+ *	It is necessary to specify the logging context the configuration
+ * 	will be used with because the number of categories and modules
+ *	needs to be known in order to set the configuration.  However,
+ *	the configuration is not used by the logging context until the
+ *	isc_logconfig_use function is called.
+ *
+ *	The memory context used for operations that allocate memory for
+ *	the configuration is that of the logging context, as specified
+ *	in the isc_log_create call.
+ *
  *	Four default channels are established:
  *	    	default_syslog
  *		 - log to syslog's daemon facility LOG_INFO or higher
  *		default_stderr
  *		 - log to stderr LOG_INFO or higher
  *		default_debug
- *		 - log to stderr LOG_DEBUG dynamically
+ *		 - log to stderr LOG_DEBUG dynamically with ISC_LOG_DEBUGONLY
  *		null
  *		 - log nothing
  *
  * Requires:
- *	mctx is a valid memory context.
- *	lctxp is not null and *lctxp is null.
+ * 	lctx is a valid logging context.
+ *	lcftp is not null and *lcfgp is null.
  *
  * Ensures:
- *	*lctxp will point to a valid logging context if all of the necessary
+ *	*lcfgp will point to a valid logging context if all of the necessary
  *	memory was allocated, or NULL otherwise.
+ *	On failure, no additional memory is allocated.
  *
  * Returns:
  *	ISC_R_SUCCESS		Success
  *	ISC_R_NOMEMORY		Resource limit: Out of memory
- *	ISC_R_UNEXPECTED	The mutex lock could not be initialized.
  */
-
-isc_result_t
-isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
 
 isc_logconfig_t *
 isc_logconfig_get(isc_log_t *lctx);
+/*
+ * Returns a pointer to the configuration currently in use by the log context.
+ *
+ * Requires:
+ *	lctx is a valid context.
+ *
+ * Ensures:
+ *	The configuration pointer is non-null.
+ *
+ * Returns:
+ *	The configuration pointer.
+ */
 
 isc_result_t
 isc_logconfig_use(isc_log_t *lctx, isc_logconfig_t *lcfg);
+/*
+ * Associate a new configuration with a logging context.
+ *
+ * Notes:
+ *	This is thread safe.  The logging context will lock a mutex
+ *	before attempting to swap in the new configuration, and isc_log_doit
+ *	(the internal function used by all of isc_log_[v]write[1]) locks
+ *	the same lock for the duration of its use of the configuration.
+ *
+ * Requires:
+ *	lctx is a valid logging context.
+ *	lcfg is a valid logging configuration.
+ *	lctx is the same configuration given to isc_logconfig_create
+ *		when the configuration was created.
+ *
+ * Ensures:
+ *	Future calls to isc_log_write will use the new configuration.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		Success
+ *	ISC_R_NOMEMORY		Resource limit: Out of memory
+ */
 
 void
 isc_log_destroy(isc_log_t **lctxp);
@@ -200,6 +272,23 @@ isc_log_destroy(isc_log_t **lctxp);
 
 void
 isc_logconfig_destroy(isc_logconfig_t **lcfgp);
+/*
+ * Destroy a logging configuration.
+ *
+ * Notes:
+ *	This function cannot be used directly with the return value of
+ *	isc_logconfig_get, because a logging context must always have
+ *	a valid configuration associated with it.
+ *
+ * Requires:
+ *	lcfgp is not null and *lcfgp is a valid logging configuration.
+ *	The logging configuration is not in use by an existing logging context.
+ *
+ * Ensures:
+ *	All memory allocated for the configuration is freed.
+ *
+ *	The configuration is marked as invalid.
+ */
 
 void
 isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
@@ -221,23 +310,8 @@ isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
  *	categories != NULL.
  *
  * Ensures:
- *	ISC_R_SUCCESS
- *		There are references to each category in the logging context,
- *		so they can be used with isc_log_usechannel() and
- *		isc_log_write().
- *
- *	ISC_R_NOMEMORY
- *		No additional memory is in use by the logging context.
- *
- *		The count of categories in the logging context is not updated,
- *		so a subsequent call when more memory is available will Do
- *		The Right Thing.
- *
- *		Does _not_ ensure that any id in categories[] is unchanged.
- *
- * Returns:
- *	ISC_R_SUCCESS	Success
- *	ISC_R_NOMEMORY	Resource limit: Out of memory
+ * 	There are references to each category in the logging context,
+ * 	so they can be used with isc_log_usechannel() and isc_log_write().
  */
 
 void
@@ -296,8 +370,12 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
  *	Specifying ISC_LOG_PRINTTIME for syslog is allowed, but probably
  *	not what you wanted to do.
  *
+ *	ISC_LOG_DEBUGONLY will mark the channel as usable only when the
+ *	debug level of the logging context (see isc_log_setdebuglevel)
+ *	is non-zero.
+ *
  * Requires:
- *	lctx is a valid logging context.
+ *	lcfg is a valid logging configuration.
  *
  *	name is not NULL.
  *
@@ -308,7 +386,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
  *
  *	level is >= ISC_LOG_CRITICAL (the most negative logging level).
  *
- *	flags does not include any bits aside from the ISC_LOG_PRINT* bits.
+ *	flags does not include any bits aside from the ISC_LOG_PRINT* bits
+ *	or ISC_LOG_DEBUGONLY.
  *
  * Ensures:
  *	ISC_R_SUCCESS
@@ -324,7 +403,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
  * Returns:
  *	ISC_R_SUCCESS		Success
  *	ISC_R_NOMEMORY		Resource limit: Out of memory
- *	ISC_R_UNEXPECTED	type was out of ranged and REQUIRE()
+ *	ISC_R_UNEXPECTED	type was out of range and REQUIRE()
  *					was disabled.
  */
 
@@ -363,7 +442,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  * 	is also used by that category/module pair.
  *
  * Requires:
- *	lctx is a valid logging context.
+ *	lcfg is a valid logging configuration.
  *	
  *	category is NULL or has an id that is in the range of known ids.
  *
@@ -383,7 +462,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *		If assignment for all categories has been requested
  *		then _some_ may have succeeded (starting with category
  *		"default" and progressing through the order of categories
- *		passed to isc_registercategories) and additional memory
+ *		passed to isc_log_registercategories) and additional memory
  *		is being used by whatever assignments succeeded.
  *
  * Returns:
