@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.181 2002/11/12 23:24:45 explorer Exp $ */
+/* $Id: rbtdb.c,v 1.182 2002/12/16 12:47:39 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3567,7 +3567,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * in the cache if they are already exist.  This
 		 * prevents named being locked to old servers.
 		 */
-		if (IS_CACHE(rbtdb) &&
+		if (IS_CACHE(rbtdb) && header->ttl > now &&
 		    header->type == dns_rdatatype_ns &&
 		    !header_nx && !newheader_nx &&
 		    header->trust == newheader->trust &&
@@ -3588,7 +3588,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					      addedrdataset);
 			return (ISC_R_SUCCESS);
 		}
-		if (IS_CACHE(rbtdb) &&
+		if (IS_CACHE(rbtdb) && header->ttl > now &&
 		    (header->type == dns_rdatatype_a ||
 		     header->type == dns_rdatatype_aaaa) &&
 		    !header_nx && !newheader_nx &&
