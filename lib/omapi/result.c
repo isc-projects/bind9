@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.10.4.1 2001/01/09 22:53:04 bwelling Exp $ */
+/* $Id: result.c,v 1.10.4.2 2003/08/29 07:08:32 marka Exp $ */
 #include <config.h>
 
 #include <isc/once.h>
@@ -31,6 +31,7 @@ static const char *text[OMAPI_R_NRESULTS] = {
 	"invalid argument",			/* 3 */
 	"protocol version mismatch",		/* 4 */
 	"protocol error",			/* 5 */
+	"bad authid",				/* 6 */
 };
 
 

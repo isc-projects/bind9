@@ -1,3 +1,8 @@
+1499.	[bug]		isc_random need to be seeded better if arc4random()
+			is not used.
+
+1480.	[bug]		Provide replay protection for rndc commands.
+
 1347.	[bug]		Incorporate OpenSSL fixes for CERT Advisory CA-2002-23
 			http://www.cert.org/advisories/CA-2002-23.html
 

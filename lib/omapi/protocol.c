@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.32.4.1 2001/01/09 22:53:03 bwelling Exp $ */
+/* $Id: protocol.c,v 1.32.4.2 2003/08/29 07:08:32 marka Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -28,6 +28,7 @@
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -160,7 +161,7 @@ send_intro(omapi_object_t *h, unsigned int ver) {
 		 * Make up an initial transaction ID for this connection.
 		 * XXXDCL better generator than random()?
 		 */
-		p->next_xid = random();
+		isc_random_get(&p->next_xid);
 
 		result = connection_send(connection);
 
@@ -212,7 +213,7 @@ omapi_protocol_listen(omapi_object_t *manager, isc_sockaddr_t *addr,
 
 isc_result_t
 send_status(omapi_object_t *po, isc_result_t waitstatus,
-	    unsigned int rid, const char *msg)
+	    unsigned int rid, unsigned int authid, const char *msg)
 {
 	isc_result_t result;
 	omapi_object_t *message = NULL;
@@ -229,6 +230,10 @@ send_status(omapi_object_t *po, isc_result_t waitstatus,
 
 	if (result == ISC_R_SUCCESS)
 		result = omapi_object_setinteger(message, "rid", (int)rid);
+
+	if (result == ISC_R_SUCCESS)
+		result = omapi_object_setinteger(message, "authid",
+						 (int)authid);
 
 	if (result == ISC_R_SUCCESS)
 		result = omapi_object_setinteger(message, "result",
@@ -249,7 +254,9 @@ send_status(omapi_object_t *po, isc_result_t waitstatus,
 }
 
 isc_result_t
-send_update(omapi_object_t *po, unsigned int rid, omapi_object_t *object) {
+send_update(omapi_object_t *po, unsigned int rid, unsigned int authid,
+	    omapi_object_t *object)
+{
 	isc_result_t result;
 	omapi_object_t *message = NULL;
 
@@ -266,6 +273,10 @@ send_update(omapi_object_t *po, unsigned int rid, omapi_object_t *object) {
 		omapi_handle_t handle;
 
 		result = omapi_object_setinteger(message, "rid", (int)rid);
+
+		if (result == ISC_R_SUCCESS)
+			result = omapi_object_setinteger(message, "authid",
+							 (int)authid);
 
 		if (result == ISC_R_SUCCESS)
 			result = object_gethandle(&handle, object);
@@ -378,6 +389,8 @@ dispatch_messages(omapi_protocol_t *protocol,
 		 */
 		/* XXXDCL authid is unused */
 		connection_getuint32(connection, &protocol->message->authid);
+		if (protocol->authid == 0)
+			protocol->authid = protocol->message->authid;
 		/* XXXTL bind the authenticator here! */
 		connection_getuint32(connection, &protocol->message->authlen);
 		connection_getuint32(connection, &protocol->message->op);

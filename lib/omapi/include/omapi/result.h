@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.7.4.1 2001/01/09 22:53:16 bwelling Exp $ */
+/* $Id: result.h,v 1.7.4.2 2003/08/29 07:08:33 marka Exp $ */
 
 #ifndef OMAPI_RESULT_H
 #define OMAPI_RESULT_H 1
@@ -32,8 +32,9 @@ ISC_LANG_BEGINDECLS
 #define OMAPI_R_INVALIDARG		(ISC_RESULTCLASS_OMAPI + 3)
 #define OMAPI_R_VERSIONMISMATCH		(ISC_RESULTCLASS_OMAPI + 4)
 #define OMAPI_R_PROTOCOLERROR		(ISC_RESULTCLASS_OMAPI + 5)
+#define OMAPI_R_BADAUTHID		(ISC_RESULTCLASS_OMAPI + 6)
 
-#define OMAPI_R_NRESULTS		6	/* Number of results */
+#define OMAPI_R_NRESULTS		7	/* Number of results */
 
 const char *
 omapi_result_totext(isc_result_t);
