@@ -29,3 +29,15 @@
 
 /* define if your struct sockaddr has a sa_len member */
 #undef HAVE_SA_LEN
+
+/* define on DEC OSF to enable 4.4BSD style sa_len support */
+#undef _SOCKADDR_LEN
+
+/* define if your system needs pthread_init() before using pthreads */
+#undef NEED_PTHREAD_INIT
+
+/* define if your system has sigwait() */
+#undef HAVE_SIGWAIT
+
+/* define on Solaris to get sigwait() to work using pthreads semantics */
+#undef _POSIX_PTHREAD_SEMANTICS
