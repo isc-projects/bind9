@@ -442,6 +442,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	if (result == DNS_R_SUCCESS)
 		result = dns_rbt_addonlevel(rbt, new_node, root, &chain);
+	/* XXXRTH Free node if add fails? */
+	/* XXXRTH Is it true that result should never be DNS_R_EXISTS? */
 
 	if (chain.ancestor_maxitems > 0)
 		isc_mem_put(rbt->mctx, chain.ancestors,
