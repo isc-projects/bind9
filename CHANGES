@@ -1,3 +1,6 @@
+  92.   [cleanup]       <isc/mem.h> does not need <stddef.h>, <isc/boolean.h>,
+                        or <isc/result.h>.
+
   91.   [cleanup]       <isc/log.h> does not need <sys/types.h> or
                         <isc/result.h>.
 

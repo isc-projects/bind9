@@ -19,12 +19,9 @@
 #define ISC_MEM_H 1
 
 #include <stdio.h>
-#include <stddef.h>
 
-#include <isc/boolean.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
-#include <isc/result.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -217,29 +214,32 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
  *	mpctx is a valid memory pool
  */
 
-unsigned int	isc_mempool_getfreemax(isc_mempool_t *mpctx);
+unsigned int
+isc_mempool_getfreemax(isc_mempool_t *mpctx);
 /*
  * Returns the maximum allowed size of the free list.
  */
 
-void		isc_mempool_setfreemax(isc_mempool_t *mpctx,
-				       unsigned int limit);
+void
+isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit);
 /*
  * Sets the maximum allowed size of the free list.
  */
 
-unsigned int	isc_mempool_getfreecount(isc_mempool_t *mpctx);
+unsigned int
+isc_mempool_getfreecount(isc_mempool_t *mpctx);
 /*
  * Returns current size of the free list.
  */
 
-unsigned int	isc_mempool_getmaxalloc(isc_mempool_t *mpctx);
+unsigned int
+isc_mempool_getmaxalloc(isc_mempool_t *mpctx);
 /*
  * Returns the maximum allowed number of allocations.
  */
 
-void		isc_mempool_setmaxalloc(isc_mempool_t *mpctx,
-					unsigned int limit);
+void
+isc_mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit);
 /*
  * Sets the maximum allowed number of allocations.
  *
@@ -247,19 +247,21 @@ void		isc_mempool_setmaxalloc(isc_mempool_t *mpctx,
  *	limit > 0
  */
 
-unsigned int	isc_mempool_getallocated(isc_mempool_t *mpctx);
+unsigned int
+isc_mempool_getallocated(isc_mempool_t *mpctx);
 /*
  * Returns the number of items allocated from this pool.
  */
 
-unsigned int	isc_mempool_getfillcount(isc_mempool_t *mpctx);
+unsigned int
+isc_mempool_getfillcount(isc_mempool_t *mpctx);
 /*
  * Returns the number of items allocated as a block from the parent memory
  * context when the free list is empty.
  */
 
-void		isc_mempool_setfillcount(isc_mempool_t *mpctx,
-					 unsigned int limit);
+void
+isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
 /*
  * Sets the fillcount.
  *
