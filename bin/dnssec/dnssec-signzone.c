@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.130 2001/03/23 03:59:00 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.131 2001/03/27 22:08:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -528,7 +528,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 	}
 	isc_buffer_putuint8(&b, 0);
 
-	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 

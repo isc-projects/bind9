@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.47 2001/03/23 03:58:59 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.48 2001/03/27 22:08:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -279,7 +279,7 @@ main(int argc, char *argv[]) {
 	strcat(output, tdomain);
 
 	db = NULL;
-	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       rdclass, 0, NULL, &db);
 	check_result(result, "dns_db_create()");
 

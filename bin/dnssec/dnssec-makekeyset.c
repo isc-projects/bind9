@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.48 2001/03/23 03:58:58 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.49 2001/03/27 22:08:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -403,7 +403,7 @@ main(int argc, char *argv[]) {
 	}
 
 	db = NULL;
-	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       rdataset.rdclass, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
