@@ -241,8 +241,8 @@ main(void) {
 	dns_result_register();
 
 	isc_entropy_create(mctx, &ectx);
-	isc_entropy_createfilesource(ectx, "/dev/random", 0);
-	isc_entropy_createfilesource(ectx, "randomfile", 0);
+	isc_entropy_createfilesource(ectx, "/dev/random");
+	isc_entropy_createfilesource(ectx, "randomfile");
 	dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
 
 	dns_fixedname_init(&fname);

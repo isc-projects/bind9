@@ -119,7 +119,6 @@ struct isc_entropysource {
 	isc_uint32_t	magic;
 	unsigned int	type;
 	isc_entropy_t  *ent;
-	unsigned int	flags;		/* flags */
 	isc_uint32_t	total;		/* entropy from this source */
 	ISC_LINK(isc_entropysource_t)	link;
 	char		name[32];
@@ -854,9 +853,7 @@ make_nonblock(int fd) {
 }
 
 isc_result_t
-isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
-			     unsigned int flags)
-{
+isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	int fd;
 	isc_result_t ret;
 	isc_entropysource_t *source;
@@ -894,7 +891,6 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
 	source->magic = SOURCE_MAGIC;
 	source->type = ENTROPY_SOURCETYPE_FILE;
 	source->ent = ent;
-	source->flags = flags;
 	source->total = 0;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);
@@ -988,7 +984,6 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 	source->magic = SOURCE_MAGIC;
 	source->type = ENTROPY_SOURCETYPE_CALLBACK;
 	source->ent = ent;
-	source->flags = 0;
 	source->total = 0;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);

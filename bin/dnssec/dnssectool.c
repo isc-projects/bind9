@@ -174,11 +174,11 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	if (result != ISC_R_SUCCESS)
 		fatal("could not create entropy object");
 	if (randomfile != NULL) {
-		result = isc_entropy_createfilesource(*ectx, randomfile, 0);
+		result = isc_entropy_createfilesource(*ectx, randomfile);
 		if (result == ISC_R_SUCCESS)
 			return;
 	}
-	result = isc_entropy_createfilesource(*ectx, "/dev/random", 0);
+	result = isc_entropy_createfilesource(*ectx, "/dev/random");
 	if (result != ISC_R_SUCCESS)
 		fatal("No randomfile specified, and /dev/random not present.");
 	return;

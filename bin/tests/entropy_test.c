@@ -71,15 +71,13 @@ main(int argc, char **argv) {
 	isc_entropy_stats(ent, stderr);
 
 #if 1
-	flags = 0;
 	CHECK("isc_entropy_createfilesource() 1",
-	      isc_entropy_createfilesource(ent, "/dev/random", flags));
+	      isc_entropy_createfilesource(ent, "/dev/random"));
 	CHECK("isc_entropy_createfilesource() 2",
-	      isc_entropy_createfilesource(ent, "/dev/random", flags));
+	      isc_entropy_createfilesource(ent, "/dev/random"));
 #else
-	flags = 0;
 	CHECK("isc_entropy_createfilesource() 3",
-	      isc_entropy_createfilesource(ent, "/tmp/foo", flags));
+	      isc_entropy_createfilesource(ent, "/tmp/foo"));
 #endif
 
 	fprintf(stderr,

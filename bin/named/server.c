@@ -1556,7 +1556,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->entropy = NULL;
 	CHECKFATAL(isc_entropy_create(ns_g_mctx, &server->entropy),
 		   "initializing entropy pool");
-	(void) isc_entropy_createfilesource(server->entropy, "/dev/random", 0);
+	(void)isc_entropy_createfilesource(server->entropy, "/dev/random");
 
 	CHECKFATAL(dst_lib_init(ns_g_mctx, server->entropy, 0),
 		   "initializing DST");

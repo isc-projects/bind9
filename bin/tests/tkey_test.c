@@ -372,7 +372,7 @@ main(int argc, char *argv[]) {
 	ectx = NULL;
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
 
-	result = isc_entropy_createfilesource(ectx, "/dev/random", 0);
+	result = isc_entropy_createfilesource(ectx, "/dev/random");
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr,
 			"%s only runs when /dev/random is available.\n",

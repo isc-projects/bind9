@@ -366,8 +366,8 @@ t1(void) {
 		t_result(T_UNRESOLVED);
 		return;
 	}
-	isc_entropy_createfilesource(ectx, "/dev/random", 0);
-	result = isc_entropy_createfilesource(ectx, "randomfile", 0);
+	isc_entropy_createfilesource(ectx, "/dev/random");
+	result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_entropy_create failed %d\n",
 		       isc_result_totext(isc_result));
@@ -840,8 +840,8 @@ t2_vfy(char **av) {
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
-	isc_entropy_createfilesource(ectx, "/dev/random", 0);
-	result = isc_entropy_createfilesource(ectx, "randomfile", 0);
+	isc_entropy_createfilesource(ectx, "/dev/random");
+	result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_entropy_create failed %d\n",
 		       isc_result_totext(isc_result));
