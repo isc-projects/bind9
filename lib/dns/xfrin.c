@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.75 2000/06/01 13:48:55 tale Exp $ */
+/* $Id: xfrin.c,v 1.76 2000/06/01 18:04:37 gson Exp $ */
 
 #include <config.h>
 
@@ -230,6 +230,7 @@ xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...);
 static isc_result_t
 axfr_init(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
+
  	xfr->is_ixfr = ISC_FALSE;
 
 	if (xfr->db != NULL)
@@ -259,6 +260,7 @@ axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	     dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
 {
 	isc_result_t result;
+
 	dns_difftuple_t *tuple = NULL;
 	CHECK(dns_difftuple_create(xfr->diff.mctx, op,
 				   name, ttl, rdata, &tuple));
@@ -276,6 +278,7 @@ axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 static isc_result_t
 axfr_apply(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
+
         CHECK(dns_diff_load(&xfr->diff,
 			    xfr->axfr.add_func, xfr->axfr.add_private));
 	xfr->difflen = 0;
@@ -306,6 +309,7 @@ axfr_commit(dns_xfrin_ctx_t *xfr) {
 static isc_result_t
 ixfr_init(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
+
 	xfr->is_ixfr = ISC_TRUE;
 	INSIST(xfr->db != NULL);
 	xfr->difflen = 0;
@@ -321,6 +325,7 @@ ixfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	     dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
 {
 	isc_result_t result;
+
 	dns_difftuple_t *tuple = NULL;
 	CHECK(dns_difftuple_create(xfr->diff.mctx, op,
 				   name, ttl, rdata, &tuple));
@@ -338,6 +343,7 @@ ixfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 static isc_result_t
 ixfr_apply(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
+
 	if (xfr->ver == NULL) {
 		CHECK(dns_db_newversion(xfr->db, &xfr->ver));
 		CHECK(dns_journal_begin_transaction(xfr->ixfr.journal));
@@ -354,6 +360,7 @@ ixfr_apply(dns_xfrin_ctx_t *xfr) {
 static isc_result_t
 ixfr_commit(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
+
 	ixfr_apply(xfr);
 	if (xfr->ver != NULL) {
 		/* XXX enter ready-to-commit state here */
@@ -375,10 +382,11 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
  * state.
  */
 static isc_result_t
-xfr_rr(dns_xfrin_ctx_t *xfr,
-       dns_name_t *name, isc_uint32_t ttl, dns_rdata_t *rdata)
+xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
+       dns_rdata_t *rdata)
 {
 	isc_result_t result;
+
  redo:
 	switch (xfr->state) {
 	case XFRST_SOAQUERY:
@@ -516,7 +524,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
-	(void) dns_zone_getdb(zone, &db);
+	(void)dns_zone_getdb(zone, &db);
 	
 	CHECK(xfrin_create(mctx, zone, db, task, timermgr, socketmgr, zonename,
 			   dns_zone_getclass(zone), xfrtype, masteraddr,
@@ -706,6 +714,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 static isc_result_t
 render(dns_message_t *msg, isc_buffer_t *buf) {
 	isc_result_t result;
+
 	CHECK(dns_message_renderbegin(msg, buf));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
@@ -1143,7 +1152,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 		dns_journal_destroy(&xfr->ixfr.journal);
 
 	if (xfr->axfr.add_private != NULL)
-		(void) dns_db_endload(xfr->db, &xfr->axfr.add_private);
+		(void)dns_db_endload(xfr->db, &xfr->axfr.add_private);
 
 	if (xfr->tcpmsg_valid)
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);
@@ -1194,6 +1203,7 @@ xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 	   const char *fmt, ...)
 {
         va_list ap;
+
 	va_start(ap, fmt);
 	xfrin_logv(level, zonename, masteraddr, fmt, ap);
 	va_end(ap);
@@ -1207,6 +1217,7 @@ static void
 xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 {
         va_list ap;
+
 	va_start(ap, fmt);
 	xfrin_logv(level, &xfr->name, &xfr->masteraddr, fmt, ap);
 	va_end(ap);
