@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.37 2000/12/29 00:59:38 bwelling Exp $ */
+/* $Id: compress.c,v 1.38 2000/12/29 18:49:36 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -242,7 +242,8 @@ compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset) {
 		if (offset >= 0x4000)
 			break;
 		dns_name_getlabelsequence(name, start, n, &tname);
-		hash = dns_name_hash(&tname, ISC_FALSE) % DNS_COMPRESS_TABLESIZE;
+		hash = dns_name_hash(&tname, ISC_FALSE) %
+		       DNS_COMPRESS_TABLESIZE;
 		/*
 		 * Look for the name in the hash bucket.  If it's there,
 		 * we're done.
@@ -287,7 +288,7 @@ compress_find(dns_compress_t *cctx,
 	      dns_name_t *suffix, isc_uint16_t *offset)
 {
 	dns_name_t tname, nname;
-	dns_compressnode_t *node;
+	dns_compressnode_t *node = NULL;
 	unsigned int labels, hash, n;
 
 	labels = dns_name_countlabels(name);
@@ -298,7 +299,8 @@ compress_find(dns_compress_t *cctx,
 
 	for (n = 0; n < labels - 1; n++) {
 		dns_name_getlabelsequence(name, n, labels - n, &tname);
-		hash = dns_name_hash(&tname, ISC_FALSE) % DNS_COMPRESS_TABLESIZE;
+		hash = dns_name_hash(&tname, ISC_FALSE) %
+		       DNS_COMPRESS_TABLESIZE;
 		for (node = cctx->table[hash]; node != NULL; node = node->next)
 		{
 			dns_name_fromregion(&nname, &node->r);
