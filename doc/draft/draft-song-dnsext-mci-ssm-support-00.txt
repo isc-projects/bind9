@@ -1,0 +1,387 @@
+INTERNET DRAFT                                            JUNHYUK SONG
+March 2002                                         SAMSUNG ELECTRONICS.
+
+
+
+
+
+
+          MCI(Multicast Channel Identifier) DNS RR type 
+        for the support of SSM(Source Specific Multicast)
+	
+	     draft-song-dnsext-mci-ssm-support-00.txt
+
+
+Status of This Memo
+
+   Distribution of this memo is unlimited.
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.  Internet-Drafts are working
+   documents of the Internet Engineering Task Force (IETF), its areas,
+   and its working groups.  Note that other groups may also distribute
+   working documents as Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at
+   any time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at:
+        http://www.ietf.org/ietf/1id-abstracts.txt
+   The list of Internet-Draft Shadow Directories can be accessed at:
+        http://www.ietf.org/shadow.html.
+
+
+
+
+Abstract
+   
+   This document proposes the use of the new DNS RR type MCI 
+   (Multicast Channel Identifier), as it is specifying SSM (Source 
+   Specific Multicast) multicast channel [SSM] as a DNS Resource
+   Record. It shall allow the advance multicast session advertisement
+   by providing the dynamic mapping between SSM multicast channel 
+   and MCI.
+
+   
+
+
+
+
+
+
+
+
+Song                   Expires  September  2002                [Page 1]
+
+
+Internet Draft                                          25 March   2002
+
+1. Introduction
+
+   IP multicast is the efficient way of delivering IP packets from
+   single source to multiple recipients or vice versa.  
+   It is especially beneficial for the limited bandwidth network such
+   as Wireless network.  However, one of the known challenge for 
+   the deployment of widely commercialized IP multicast is the address
+   management.  Unlike unicast IP address, Multicast IP addresses are 
+   not assigned to each of individual hosts. It rather statically or 
+   dynamically assigned to multicast group by service provider, and 
+   it often has its own address semantics.  In order to expedite the 
+   the deployment of commercialized IP multicast service, the method of
+   locating dynamically changed multicast group information may be
+   beneficial.
+
+   The purpose of this document is to propose the use of MCI (Multicast
+   Channel Identifier) as a DNS RR so as to identify dynamically changed
+   multicast source and SSM destination IP address for the SSM channel.
+   The SSM (Source-Specific Multicast) is defined in [SSM] as below.
+
+   "A datagram sent with source IP address S and destination IP address
+   G in the SSM range is delivered to each host socket that has 
+   specifically requested delivery of datagrams sent by S to G, and
+   only to those sockets."
+
+   MCI shall provide the efficient way of identifying the SSM multicast
+   group/channel information, that shall enable persistent mapping 
+   between multicast channel and dynamically changed Source IP address 
+   and SSM destination IP address.
+
+
+2. Applicability Statement
+   
+   One of the challenge of the wide deployment of the multicast service
+   is the address management.  SSM(Source Specific Multicast) is one of
+   the proposed the solutions, the delivery semantics for host specific 
+   addressing.
+   
+   IP address in the 232/8 (232.0.0.0 to 232.255.255.255) range are 
+   currently designated as source specific multicast (SSM) destination 
+   addresses and are reserved for use by source-specific applications 
+   and protocols [IANA-ALLOCATION].
+
+   The MCI RR defines the multicast channel.  The channel is identified
+   by (S,G), G for SSM address and S for source host address [SSM].
+   MCI (Multicast Channel Identifier) RR provides persistent way to
+   identify the multicast channel information.
+
+
+
+Song                   Expires  September  2002                [Page 2]
+
+
+Internet Draft                                          25 March   2002
+
+
+   There are two category of the multicast application that may 
+   make use of MCI, One-to-Many and Many-to-Many cases.[QA]
+   One-to-Many case is a single source sending to one or more receivers
+   The example of One-to-Many is Scheduled AV presentation, IP Push 
+   Service, File Distribution, White board, and etc.
+
+   On the other hand, Many-to-Many case is multiple receivers also 
+   represent multiple senders.  The example of Many-to-Many is multiple
+   user network game, multi-user conference/chat and etc.
+
+   In both cases, MCI can be beneficial because users can always locate
+   the multicast group/channel by MCI, regardless of the dynamic 
+   allocation multicast IP address and source IP allocation.  
+   The multicast group subscribed user can access the service, since MCI
+   shall always indicate unique SSM (S,G). Especially wireless mobile 
+   case, MS(Mobile Station) are more likely dynamically assigned to new 
+   Multicast IP address and source IP address.
+   
+   MS may be scattered over the visited networks, while having video 
+   conference.  In that case, the potential members of the video 
+   conference group subscribe the group to the host of the the group by
+   registering the home IP address or NAI [AM] by outband signaling. 
+   And then the host of the group can register MCI, assigned SSM 
+   destination IP address, source IP addresses or NAI of the members 
+   to DNS server.  On scheduled time, the members of the group query 
+   the MCI to retrieve the SSM destination IP address, source IP 
+   addresses or NAI of other group members, and then send IGMPv3 report
+   message [IGMPv3] to attached multicast router to join the conference
+   call.  With respect to session advertisement (Announcing information 
+   about the group), there are several approaches available, including
+   WWW and SAP (Session Announcement Protocol) [QA].  However, it is 
+   outside the scope of this document.
+
+
+3. MCI Resource Record
+   
+   MCI name space is resemble to Domain Name Space, except that it is a 
+   sequence of one or more labels, made of the Multicast Channel 
+   Identifier and domain name. MCI records cause no additional section 
+   processing
+
+   The MCI record has the DNS RR type of "?", hence has the same QTYPE 
+   number.  Note: MCI RR requires IANA number assignment.
+   
+   The class of MCI RR is defined in the IN class only.
+
+   TTL should be configured to minimize the time of the RR being cached
+
+
+Song                   Expires  September  2002                [Page 3]
+
+
+Internet Draft                                          25 March   2002
+
+3.1 MCI RDATA format
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |            SSM Destination Multicast IP address               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |IP Addr Count  |                Reserved                       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       Source Address [1]                      |
+   +-                                                             -+
+   |                       Source Address [2]                      |
+   +-                              .                              -+
+   .                               .                               .
+   .                               .                               .
+   +-                                                             -+
+   |                       Source Address [N]                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  NAI Count    |                Reserved                       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                   Network Access Identifier [1]               |
+   +-                                                             -+
+   |                   Network Access Identifier [2]               |
+   +-                              .                              -+
+   .                               .                               .
+   .                               .                               .
+   +-                                                             -+
+   |                   Network Access Identifier [N]               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 
+where:
+
+SSM Destination Multicast IP address is the IP address in the 232/8 
+(232.0.0.0 to 232.255.255.255) range.  It also follows AS number scheme
+in RFC 1791 case 1 and RFC 3180(GLOP Addressing in 233/8)[ML], modified
+as follows: the high octet has the value of 232, identifying SSM scheme.
+There MUST be only one SSM Destination multicast IP address field.
+
+IP Addr Count is one octet long and indicating the number of Source IP
+addresses.
+
+Source address is the four octet long Source Host IP address, 
+it always precede to NAI field.
+
+NAI Count is one octet long and indicating the number of NAI.
+
+Network Access Identifier is the four octet long Name Access Identifier 
+and it always comes after Source address field.
+
+
+Song                   Expires  September  2002                [Page 4]
+
+
+Internet Draft                                          25 March   2002
+
+
+4. Examples
+
+   Multicast Router that support GLOP addressing [ML] and SSM mechanism
+   shall have the 16 bits AS(Autonomous System) number [ML] while 
+   allowed to use the IP addresses in the 232/8 (232.0.0.0 to 
+   232.255.255.255) range [SSM].  If the host attached to the 
+   multicast router with AS number 5662 shall allow to use the subnet
+   of 232.22.30.0 as a multicast IP address.  The AS number 5662 is 
+   written in hexadecimal format as 161E. Separating out the two octets
+   16 and 1E results in 22 and 30 in decimal format.  These values result
+   in a subnet of 232.22.30.0 that would be uniquely reserved for the use
+   of SSM capable AS 5662 domain.
+
+   Resource Record for SSM MCI for starcraft.xbs.samsung.co.kr with two
+   source IP address and one NAI will be like below:
+
+   starcraft.xbs.samsung.co.kr  1440  IN   MCI   232.22.30.4
+                                                 165.213.114.7
+                                                 165.213.114.1  
+                                                 santajun@lycos.co.kr
+
+
+5. IPv6 support
+
+   For IPv6, the address prefixes FF3x:: and FF2x:: are proposed for Source-
+   Specific Multicast [SSMIPv6]. It shall be covered by another document
+
+
+
+6. IANA Considerations
+
+   It requires new RR type number from IANA.
+
+
+
+7. Acknowledgements
+
+   Special thanks to Professor of Murali Venkatesh of Syracuse 
+   University
+
+
+
+
+
+
+
+
+
+
+Song                   Expires  September  2002                [Page 5]
+
+
+Internet Draft                                          25 March   2002
+
+
+
+References
+
+[IANA]    http://www.iana.org/numbers.html
+
+[AM] Bernard Aboba and Mark A. Beadles "The Network Access 
+     Identifier". RFC 2486. January 1999.
+
+[IGMPv3] B. Cain and S. Deering, I. Kouvelas and A. Thyagarajan.
+         Internet Group Management Protocol, Version 3. Work in 
+	 Progress.
+
+[IANA-ALLOCATION] Internet Assigned Numbers Authority,
+ http://www.isi.edu/in-notes/iana/assignments/multicast-addresses.
+
+[ML] Meyer and Lothberg "GLOP Addressing in 233/8"
+     RFC 3180 September 2001
+
+[RFC1797] IANA, "Class A Subnet Experiment", RFC 1797, April 1995.
+
+[SSM] Brad Cain, Hugh Holbrook "Source-Specific Multicast for IP"
+      Work in Progress.
+
+[SSMIPv6] Haberman, B. and Thaler, D.  "Unicast-Prefix-based IPv6
+          Multicast Addresses."  Work in Progress.
+   
+[QA] Bob Quinn and Kevin Almeroth "IP Multicast Applications: Challenge
+     and Solutions" RFC3170 September 2001
+
+
+
+
+
+Author's Address
+
+Questions about this memo can be directed to the author:
+	JUNHYUK SONG   
+	SAMSUNG ELECTRONICS.
+	Packet Technology System Lab.
+	Mobile Development Team           
+        Phone: +82-31-279-3639          
+        Email: junhyuk@telecom.samsung.co.kr
+	       santajunman@yahoo.com
+           
+
+
+
+
+
+Song                   Expires  September  2002                [Page 6]
+
+
+Internet Draft                                          25 March   2002
+
+
+
+
+Full Copyright Statement 
+    
+   Copyright (C) The Internet Society (2002).  All Rights Reserved. 
+    
+   This document and translations of it may be copied and furnished to 
+   others, and derivative works that comment on or otherwise explain it 
+   or assist in its implementation may be prepared, copied, published 
+   and distributed, in whole or in part, without restriction of any 
+   kind, provided that the above copyright notice and this paragraph 
+   are included on all such copies and derivative works.  However, this 
+   document itself may not be modified in any way, such as by removing 
+   the copyright notice ore references to the Internet Society or other 
+   Internet organizations, except as needed for the purpose of 
+   developing Internet standards in which case the procedures for 
+   copyrights defined in the Internet Standards process must be 
+   followed, or as required to translate it into languages other than 
+   English. 
+    
+   The limited permissions granted above are perpetual and will not be 
+   revoked by the Internet Society or its successors or assigns. 
+    
+   This document and the information contained herein is provided on an 
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING 
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING 
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION 
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF 
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song                   Expires  September  2002                [Page 7]
+
