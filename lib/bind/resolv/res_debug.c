@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.11 2004/04/10 03:47:09 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.12 2004/04/13 07:19:18 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -625,7 +625,9 @@ p_option(u_long option) {
 #ifdef RES_NOTLDQUERY
 	case RES_NOTLDQUERY:	return "no-tld-query";
 #endif
-
+#ifdef RES_NO_NIBBLE2
+	case RES_NO_NIBBLE2:	return "no-nibble2";
+#endif
 				/* XXX nonreentrant */
 	default:		sprintf(nbuf, "?0x%lx?", (u_long)option);
 				return (nbuf);
