@@ -49,7 +49,6 @@
 #include <dns/dbiterator.h>
 #include <dns/dbtable.h>
 
-#define MAXDBS			100
 #define MAXHOLD			100
 #define MAXVERSIONS		100
 
