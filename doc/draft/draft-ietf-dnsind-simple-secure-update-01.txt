@@ -1,0 +1,317 @@
+
+DNSIND Working Group                          Brian Wellington (NAILabs)
+INTERNET-DRAFT                                                 June 1999
+
+<draft-ietf-dnsind-simple-secure-update-01.txt>
+
+Updates: RFC 2535, RFC 2136, [TSIG]
+Replaces: RFC 2137, [update2]
+
+         Simple Secure Domain Name System (DNS) Dynamic Update
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as ``work in progress.''
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   Comments should be sent to the authors or the DNSIND WG mailing list
+   namedroppers@internic.net.
+
+   This draft expires on December 25, 1999.
+
+   Copyright Notice
+
+   Copyright (C) The Internet Society (1999).  All rights reserved.
+
+Abstract
+
+   This draft proposes a method for performing secure Domain Name System
+   (DNS) dynamic updates.  The method described here is simple to
+
+Expires December 1999                                           [Page 1]
+
+INTERNET-DRAFT        Simple Secure Dynamic Update             June 1999
+
+   understand and use, and flexible enough to represent any policy
+   decisions.  Secure communication based on request/transaction
+   signatures is used to provide authentication and authorization.
+
+1 - Introduction
+
+Dynamic update operations for the Domain Name System are defined in
+[RFC2136], but no mechanisms for security are defined.  A form of secure
+dynamic update is defined in [RFC2137, update2].  Request and
+transaction signatures are defined in [TSIG] and [RFC2535].
+
+Familiarity with the DNS system [RFC1034, RFC1035] as well as the
+proposals mentioned above is assumed.
+
+1.1 - Overview of DNS Dynamic Update
+
+DNS dynamic update defines a new DNS opcode and a new interpretation of
+the DNS message if that opcode is used.  An update can specify
+insertions or deletions of data, along with prerequisites necessary for
+the updates to occur.  All tests and changes for a DNS update request
+are restricted to a single zone, and are performed at the primary server
+for the zone.  The primary server for a dynamic zone must increment the
+zone SOA serial number when an update occurs or before the next
+retrieval of the SOA.
+
+1.2 - Overview of DNS Transaction Security
+
+Transaction signatures (TSIG [TSIG] and SIG(0) [RFC2535]) provide the
+means for two processes to authenticate DNS requests and responses sent
+between them.  A TSIG is generated from a shared secret, and a SIG(0) is
+generated from a private key whose public counterpart is stored in DNS.
+In both cases, a record containing the message signature is included as
+the final resource record in a DNS message.  Keyed hashes, used in TSIG,
+are simple to calculate and verify, and do not require caching of data.
+Public key encryption, as used in SIG(0), is more scalable.
+
+1.3 - Requirement of a message signature
+
+In some cases, DNSSEC SIG records could be used to protect the integrity
+of individual RRs or RRsets in the update process.  There are several
+problems with this, though.  First, SIG records do not cover the message
+header, so malicious tampering in the header or the removal of records
+would be unnoticed.  A SIG record would be required in the zone section,
+to prevent tampering.  SIG records could be created to protect data in
+the prerequisite section, but this would imply that the SIG is a
+prerequisite, and in some cases, the SIG may be present in DNS and
+require no computation.  In the update section, signing addition
+
+Expires December 1999                                           [Page 2]
+
+INTERNET-DRAFT        Simple Secure Dynamic Update             June 1999
+
+requests is straightforward, but signing delete requests is difficult,
+since there may be no remaining set that a SIG would cover.
+
+Message based signatures, using TSIG or SIG(0), avoid these problems,
+since only one signature is computed for the message, and this signature
+protects the integrity of the entire message.  This is also a less
+expensive operation.
+
+1.4 - Removal of non-zone key SIG records
+
+The main objective of a DNSSEC capable resolver is the authenticated
+retrieval of data.  When data is received, a chain of trust is followed
+to the root.  This chain of trust must include the zone key of the zone
+containing the data, but can become overly complicated if host and user
+keys are delegated signing authority.  In this proposal, only signatures
+generated by zone keys are considered relevant to DNSSEC capable
+resolvers.  This is an update to the DNSSEC specification [RFC2535], and
+simplifies the resolution process.
+
+The primary usefulness of host and user keys, with respect to DNSSEC, is
+to authenticate dynamic updates.  Thus, host and user keys may be used
+to generate SIG(0) records to authenticate updates, or be used in the
+TKEY [TKEY] process to generate TSIG shared secrets.  In both cases, no
+SIG records generated by non-zone keys will be present in DNS.
+
+This completely disassociates authentication of an update request from
+authentication of the data itself.  Authentication of the update message
+can be done with either TSIG shared secrets or DNSSEC host or user keys.
+Authentication of the data, once it is present in DNS, only involves
+DNSSEC zone keys.
+
+1.5 - Signatory strength
+
+[RFC2535] defines the signatory field of a key as the final 4 bits of
+the flags field, but does not define its value.  This proposal defines
+the field as a 4 bit unsigned integer representing strength, where 15 is
+strongest.  A key of a certain strength can replace data signed by a key
+of equal or lesser strength.  Data signed by this key can be replaced by
+a key with equal or greater strength.  Note that this strength is
+unrelated to the number of bits in the key.
+
+Expires December 1999                                           [Page 3]
+
+INTERNET-DRAFT        Simple Secure Dynamic Update             June 1999
+
+2 - Authentication
+
+TSIG or SIG(0) records MUST be attached to all secure dynamic update
+messages.  This allows the server to verifiably determine the originator
+of the message; the originator is either the other party sharing the
+TSIG secret or the host or user that owns the key generating the SIG(0).
+Note that SIG(0) signatures MAY NOT be generated by zone keys.
+
+If a SIG(0) is used, the signatory strength can be derived from the
+signing KEY.  If a TSIG is used that was automatically generated using
+TKEY, the signatory strength of the TSIG is declared to be the same as
+the KEY used in the TKEY process.  If a TSIG is used that was manually
+configured, its signatory strength SHOULD be manually configured also
+(or left as the default).  The key name/strength pair can be used in the
+decision of whether to accept the update.
+
+DNSSEC SIG records (other than SIG(0)) may be included in an update
+message, but are not used for authentication purposes in the secure
+update protocol.  If a message fails the authentication test due to an
+unauthorized key, the failure is indicated with the REFUSED rcode.
+Other TSIG or dynamic update errors are returned unchanged.
+
+3 - Policy
+
+All policy is enforced by the server and configured by the zone
+administrator.  Policy checks are based on identity, where the identity
+is equivalent to the owner (name) of the message signing key.  The
+signing strength of the key is also important when updating a secure
+zone, since the message signing key's strength can be compared to the
+strength of the zone key(s).
+
+The server's policy defines criteria which determine if the key used to
+sign the update is permitted to update the records requested.  By
+default, a key cannot make any changes to the zone; the key's scope must
+be explicitly enabled.  There are several reasons that this process is
+implemented in the server and not the protocol (as in [RFC2137,
+update2], where the signatory bits of KEY records may define the
+policy).
+
+3.1 - Flexibility
+
+Storing policy in the signatory fields of DNS keys is overly
+restrictive.  Only a fixed number of bits are present, which means that
+only a fixed number of policy decisions are representable.  There are
+many decisions that do not fit into the framework imposed by the
+signatory field; a zone administrator cannot effectively impose a policy
+not implemented in the draft defining the field.
+
+Expires December 1999                                           [Page 4]
+
+INTERNET-DRAFT        Simple Secure Dynamic Update             June 1999
+
+There may be any number of policies applied in the process of
+authorization, and there are no restrictions on the scope of these
+policies.  Implementation of the policies is beyond the scope of this
+document.
+
+3.2 - Simplicity
+
+Policy decisions in the server could be used as an adjunct to policy
+fields in the KEY records.  This could lead to confusion if the policies
+are inconsistent.  Furthermore, since there is no need to expose
+policies and policies need only be present at the primary server for a
+zone, a central configuration point is more logical.
+
+3.3 - Extendibility
+
+If a policy is changed, there are no changes made to the DNS protocol or
+the data on the wire.  This means that new policies can be defined at
+any point without adverse effects or interoperability concerns.
+
+3.3 - Recommendations
+
+In many cases, dynamic updates should be restricted by name.  An example
+would be that updates are allowed only if the name to be updated is
+under the name of the message signing key.  Since the signatory field
+defines a key's signing strength, a simple policy would only allow a key
+to update signed data if the message signing key was at least as strong
+as the zone key that signed the RRset.
+
+4 - Interaction with DNSSEC
+
+A successful update request may or may not include SIG records for each
+RRset.  Since SIG records are not used for authentication in this
+protocol, they are not required.  If the updated zone is signed, the
+server will generate SIG records for each updated RRset with a zone key
+(which MUST be online), unless the set is already correctly signed by a
+zone key.  If multiple zone keys are online, the zone key with the
+greatest signatory strength less than or equal to that of the update
+message signing key is chosen.
+
+If there are any immaterial (to DNSSEC) SIG records present, these are
+retained.  If there are SIG records that have been generated by an
+appropriate zone KEY, these SIGs are verified and retained if the
+verification is successful.  DNSSEC SIG records generated by any other
+KEY are dropped.  The server will also, if necessary, generate a new SOA
+record and new NXT records, and sign these with a zone key.  Unlike
+traditional dynamic update, the client is forbidden from updating NXT
+records.  SOA updates are allowed, since SOA serial advancement policies
+can be outside of the scope of the DNS protocol.
+
+Expires December 1999                                           [Page 5]
+
+INTERNET-DRAFT        Simple Secure Dynamic Update             June 1999
+
+Multiple zone keys can be useful in conjunction with secure dynamic
+update.  A strong zone key can be used offline to sign static data,
+while a weaker zone key can sign dynamic data.  If signed updates are
+received with key strengths stronger than the weak zone key, updates
+will be allowed only to RRsets signed by the weak zone key.  It is
+highly recommended that no host or user key be allowed to have a
+signatory strength equal to or greater than the strongest zone key.
+
+5 - Security considerations
+
+For a secure zone to support dynamic update, a zone key MUST be online
+(unlike [RFC2137]).  An online zone key would be required to sign NXT
+records even if other signatures were not done online, since allowing
+NXT updates is inherently dangerous.
+
+6 - Acknowledgements
+
+The author would like to thank Olafur Gudmundsson, Bob Halley, and Ed
+Lewis for review and informative comments.
+
+7 - References
+
+[RFC1034]  P. Mockapetris, ``Domain Names - Concepts and Facilities,''
+           RFC 1034, ISI, November 1987.
+
+[RFC1035]  P. Mockapetris, ``Domain Names - Implementation and
+           Specification,'' RFC 1035, ISI, November 1987.
+
+[RFC2136]  P. Vixie (Ed.), S. Thomson, Y. Rekhter, J. Bound ``Dynamic
+           Updates in the Domain Name System,'' RFC 2136, ISC & Bellcore
+           & Cisco & DEC, April 1997.
+
+[RFC2137]  D. Eastlake ``Secure Domain Name System Dynamic Update,'' RFC
+           2137, CyberCash, April 1997.
+
+[RFC2535]  D. Eastlake, ``Domain Name System Security Extensions,'' RFC
+           2065, IBM, March 1999.
+
+[TSIG]     P. Vixie (ed), O. Gudmundsson, D. Eastlake, B. Wellington
+           ``Secret Key Transaction Signatures for DNS (TSIG),'' draft-
+           ietf-dnsind-tsig-09.txt, ISC & TISLabs & IBM & TISLabs, June
+           1999.
+
+[update2]  D. Eastlake ``Secure Domain Name System (DNS) Dynamic
+           Update,'' draft-ietf-dnssec-update2-00.txt, Transfinite
+           Systems Company, August 1998.
+
+Expires December 1999                                           [Page 6]
+
+INTERNET-DRAFT        Simple Secure Dynamic Update             June 1999
+
+[TKEY]     D. Eastlake ``Secret Key Establishment for DNS (TKEY RR),''
+           draft-ietf-dnsind-tkey-00.txt, IBM, May 1999.
+
+8 - Author's Address
+
+   Brian Wellington
+       NAILabs
+       Network Associates
+       3060 Washington Road (Rt. 97)
+       Glenwood, MD 21738
+       +1 443 259 2369
+       <bwelling@tislabs.com>
+
+Expires December 1999                                           [Page 7]
