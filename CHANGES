@@ -1,4 +1,7 @@
 
+ 552.	[bug]		We were not correctly detecting the end of all c-style
+			comments.  [RT #455]
+
 	--- 9.0.1 released ---
 
  547.	[bug]		dnssafe doesn't correctly handle RSA keys longer

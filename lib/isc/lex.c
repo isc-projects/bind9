@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.31.2.2 2000/07/11 04:55:09 gson Exp $ */
+/* $Id: lex.c,v 1.31.2.3 2000/11/13 17:42:25 gson Exp $ */
 
 #include <config.h>
 
@@ -620,7 +620,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				no_comments = ISC_FALSE;
 				state = saved_state;
 				goto no_read;
-			} else
+			} else if (c != '*')
 				state = lexstate_ccomment;
 			break;
 		case lexstate_eatline:
