@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.316 
+# From configure.in Revision: 1.317 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -9506,7 +9506,7 @@ esac
 #
 
 # Directory trees where SGML files are commonly found.
-sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml"
+sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml /usr/share/sgml"
 
 #
 # Look for openjade.  Plain jade is no longer supported.
@@ -9687,9 +9687,10 @@ fi
 # formatting man pages in HTML.  Its location varies,
 # so far we have seen:
 #
-# 	NetBSD 	/usr/pkg/share/docbook/dsssl/modular/
-# 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/
+# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/
 #	Linux	/usr/local/share/dsssl/docbook/
+#		/usr/share/sgml/docbook/dsssl-stylesheets/
 #
 # Ditto for the print stylesheet print/docbook.dsl.
 #
@@ -9697,7 +9698,7 @@ fi
 stylepath=""
 for d in $sgmltrees 
 do
-	for s in docbook/dsssl/modular dsssl/docbook
+	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
 	do
 		stylepath="$stylepath $d/$s"
 	done
@@ -9705,7 +9706,7 @@ done
 
 HTMLSTYLE=""
 echo $ac_n "checking for html/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9709: checking for html/docbook.dsl" >&5
+echo "configure:9710: checking for html/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/html/docbook.dsl
@@ -9726,7 +9727,7 @@ fi
 
 PRINTSTYLE=""
 echo $ac_n "checking for print/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9730: checking for print/docbook.dsl" >&5
+echo "configure:9731: checking for print/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/print/docbook.dsl
@@ -9746,16 +9747,30 @@ fi
 
 
 #
-# Look for XML declarations
+# Look for XML declarations.
+# Its location varies, so far we have seen:
+#
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/dtds/decls/
+# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/
+#	Linux	/usr/local/share/dsssl/docbook/dtds/decls/
+#		/usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/
 #
 
+xmlpath=""
+for d in $sgmltrees 
+do
+	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
+	do
+		xmlpath="$xmlpath $d/$s"
+	done
+done
 
 XMLDCL=""
-echo $ac_n "checking for docbook/dsssl/modular/dtds/decls/xml.dcl""... $ac_c" 1>&6
-echo "configure:9756: checking for docbook/dsssl/modular/dtds/decls/xml.dcl" >&5
-for d in $sgmltrees
+echo $ac_n "checking for dtds/decls/xml.dcl""... $ac_c" 1>&6
+echo "configure:9771: checking for dtds/decls/xml.dcl" >&5
+for d in $xmlpath
 do
-	f=$d/docbook/dsssl/modular/dtds/decls/xml.dcl
+	f=$d/dtds/decls/xml.dcl
 	if test -f $f
 	then
 		XMLDCL=$f
@@ -9766,7 +9781,7 @@ done
 if test "X$XMLDCL" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	XMLDCL=docbook/dsssl/modular/dtds/decls/xml.dcl
+	XMLDCL=dtds/decls/xml.dcl
 fi
 
 
@@ -9778,7 +9793,7 @@ fi
 
 DOCBOOK2MANSPEC=""
 echo $ac_n "checking for docbook2X/docbook2man-spec.pl""... $ac_c" 1>&6
-echo "configure:9782: checking for docbook2X/docbook2man-spec.pl" >&5
+echo "configure:9797: checking for docbook2X/docbook2man-spec.pl" >&5
 for d in $sgmltrees
 do
 	f=$d/docbook2X/docbook2man-spec.pl
