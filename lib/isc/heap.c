@@ -56,7 +56,7 @@ struct isc_heap {
 	isc_heapindex_t			index;
 };
 
-isc_result
+isc_result_t
 isc_heap_create(isc_memctx_t mctx, isc_heapcompare_t compare,
 		isc_heapindex_t index, unsigned int size_increment,
 		isc_heap_t *heapp)
@@ -165,7 +165,7 @@ sink_down(isc_heap_t heap, unsigned int i, void *elt) {
 		(heap->index)(heap->array[i], i);
 }
 
-isc_result
+isc_result_t
 isc_heap_insert(isc_heap_t heap, void *elt) {
 	unsigned int i;
 

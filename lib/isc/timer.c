@@ -89,9 +89,9 @@ struct isc_timermgr {
 	isc_heap_t			heap;
 };
 
-static inline isc_result
+static inline isc_result_t
 schedule(isc_timer_t timer, isc_time_t now, isc_boolean_t signal_ok) {
-	isc_result result;
+	isc_result_t result;
 	isc_timermgr_t manager;
 	struct isc_time due;
 	int cmp;
@@ -209,14 +209,14 @@ destroy(isc_timer_t timer) {
 	isc_mem_put(manager->mctx, timer, sizeof *timer);
 }
 
-isc_result
+isc_result_t
 isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 		 isc_time_t expires, isc_interval_t interval,
 		 isc_task_t task, isc_taskaction_t action, void *arg,
 		 isc_timer_t *timerp)
 {
 	isc_timer_t timer;
-	isc_result result;
+	isc_result_t result;
 	struct isc_time now;
 
 	/*
@@ -288,14 +288,14 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	return (result);
 }
 
-isc_result
+isc_result_t
 isc_timer_reset(isc_timer_t timer, isc_timertype_t type,
 		isc_time_t expires, isc_interval_t interval,
 		isc_boolean_t purge)
 {
 	struct isc_time now;
 	isc_timermgr_t manager;
-	isc_result result;
+	isc_result_t result;
 
 	/*
 	 * Change the timer's type, expires, and interval values to the given
@@ -341,9 +341,9 @@ isc_timer_reset(isc_timer_t timer, isc_timertype_t type,
 	return (result);
 }
 
-isc_result
+isc_result_t
 isc_timer_touch(isc_timer_t timer) {
-	isc_result result;
+	isc_result_t result;
 	struct isc_time now;
 
 	/*
@@ -418,7 +418,7 @@ dispatch(isc_timermgr_t manager, isc_time_t now) {
 	isc_event_t event;
 	isc_eventtype_t type = 0;
 	isc_timer_t timer;
-	isc_result result;
+	isc_result_t result;
 
 	while (manager->nscheduled > 0 && !done) {
 		timer = isc_heap_element(manager->heap, 1);
@@ -540,10 +540,10 @@ set_index(void *what, unsigned int index) {
 	timer->index = index;
 }
 
-isc_result
+isc_result_t
 isc_timermgr_create(isc_memctx_t mctx, isc_timermgr_t *managerp) {
 	isc_timermgr_t manager;
-	isc_result result;
+	isc_result_t result;
 
 	/*
 	 * Create a timer manager.
