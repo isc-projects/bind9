@@ -10,7 +10,7 @@ involving a different DNS setup.  They are:
   xferquota/	Zone transfer quota tests
   dnssec/	DNSSEC tests
 
-Typically each test suite sets up 2-4 name servers and then performs
+Typically each test suite sets up 2-5 name servers and then performs
 one or more tests against them.  Within the test suite subdirectory,
 each name server has a separate subdirectory containing its
 configuration data.  By convention, these subdirectories are named
@@ -39,4 +39,4 @@ To clean up files left behind by the tests:
 
   sh clean.sh
 
-$Id: README,v 1.3 2000/05/22 21:29:21 gson Exp $
+$Id: README,v 1.4 2000/06/08 18:18:23 gson Exp $
