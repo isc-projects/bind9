@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.4 2000/11/17 23:57:32 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.5 2000/11/20 18:25:14 gson Exp $ */
 
 #include <config.h>
 
@@ -54,9 +54,9 @@ struct dbinfo {
 };
 
 /*
- *  * Canonicalize a string before writing it to the database.
- *   * "dest" must be an array of at least size 2*strlen(source) + 1.
- *    */
+ * Canonicalize a string before writing it to the database.
+ * "dest" must be an array of at least size 2*strlen(source) + 1.
+ */
 static void
 canonicalize(const char *source, char *dest) {
 	while (*source != 0) {
@@ -95,7 +95,7 @@ pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 		 "lower(NAME) = lower('%s')", dbi->table, canonname);
 	isc_mem_put(ns_g_mctx, canonname, strlen(name) * 2 + 1);
 	res = PQexec(dbi->conn, str);
-	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK ) {
+	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		PQclear(res);
 		return (ISC_R_FAILURE);
 	}
