@@ -142,7 +142,7 @@ maybe_free(ns_client_t *client) {
 	/*
 	 * We need to detach from the view early, because when shutting
 	 * down the server, resolver shutdown does not begin until
-	 * happen until the view refcount goes to zero. 
+	 * the view refcount goes to zero. 
 	 */
 	if (client->view != NULL)
 		dns_view_detach(&client->view);
