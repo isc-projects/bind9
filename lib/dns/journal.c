@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.81 2001/09/15 07:16:39 marka Exp $ */
+/* $Id: journal.c,v 1.82 2001/10/15 04:47:55 marka Exp $ */
 
 #include <config.h>
 
@@ -492,7 +492,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 
 	INSIST(sizeof(journal_rawheader_t) == JOURNAL_HEADER_SIZE);
 
-	result = isc_stdio_open(filename, "w", &fp);
+	result = isc_stdio_open(filename, "wb", &fp);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: create: %s",
