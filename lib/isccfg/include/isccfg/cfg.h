@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.29 2001/08/03 05:56:11 marka Exp $ */
+/* $Id: cfg.h,v 1.30 2001/08/03 23:19:01 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -408,7 +408,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf;
 /* A complete rndc.conf file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndckey;
-/* A complete rndc.conf file. */
+/* A complete rndc.key file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
 /* A key reference, used as an ACL element */
