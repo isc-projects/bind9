@@ -1,3 +1,5 @@
+1836.	[cleanup]	Silence compiler warnings in hash_test.c.
+
 1835.	[bug]		Update dnssec-signzone's usage message. [RT #13657]
 
 1834.	[bug]		Bad memset in rdata_test.c. [RT #13658]
