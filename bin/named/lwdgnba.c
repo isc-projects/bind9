@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.3 2000/06/22 21:49:28 tale Exp $ */
+/* $Id: lwdgnba.c,v 1.3.2.1 2000/06/26 21:47:35 gson Exp $ */
 
 #include <config.h>
 
@@ -58,8 +58,8 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	bevent = (dns_byaddrevent_t *)event;
 	gnba = &client->gnba;
 
-	DP(50, "byaddr event result = %s",
-	   isc_result_totext(bevent->result));
+	ns_lwdclient_log(50, "byaddr event result = %s",
+			 isc_result_totext(bevent->result));
 
 	result = bevent->result;
 	if (result != ISC_R_SUCCESS) {
@@ -112,9 +112,9 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
 		if (result != ISC_R_SUCCESS)
 			goto out;
-		DP(50, "found name '%.*s'",
-		   client->recv_buffer.used - b.used,
-		   (char *)(b.base) + b.used);
+		ns_lwdclient_log(50, "found name '%.*s'",
+				 client->recv_buffer.used - b.used,
+				 (char *)(b.base) + b.used);
 		if (gnba->realname == NULL) {
 			gnba->realname = (char *)(b.base) + b.used;
 			gnba->realnamelen = client->recv_buffer.used - b.used;
@@ -257,8 +257,8 @@ ns_lwdclient_processgnba(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	}
 	isc_sockaddr_fromnetaddr(&sa, &client->na, 53);
 
-	DP(50, "client %p looking for addrtype %08x",
-	   client, req->addr.family);
+	ns_lwdclient_log(50, "client %p looking for addrtype %08x",
+			 client, req->addr.family);
 
 	/*
 	 * We no longer need to keep this around.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.3 2000/06/22 21:49:26 tale Exp $ */
+/* $Id: lwdgabn.c,v 1.3.2.1 2000/06/26 21:47:33 gson Exp $ */
 
 #include <config.h>
 
@@ -45,7 +45,7 @@ static void
 cleanup_gabn(ns_lwdclient_t *client) {
 	dns_adbfind_t *v4;
 
-	DP(50, "cleaning up client %p", client);
+	ns_lwdclient_log(50, "cleaning up client %p", client);
 
 	v4 = client->v4find;
 
@@ -98,8 +98,8 @@ setup_addresses(ns_lwdclient_t *client, dns_adbfind_t *find, unsigned int at) {
 			goto next;
 		}
 
-		DP(50, "adding address %p, family %d, length %d",
-		   addr->address, addr->family, addr->length);
+		ns_lwdclient_log(50, "adding address %p, family %d, length %d",
+				 addr->address, addr->family, addr->length);
 
 		client->gabn.naddrs++;
 		REQUIRE(!LWRES_LINK_LINKED(addr, link));
@@ -121,7 +121,7 @@ generate_reply(ns_lwdclient_t *client) {
 	cm = client->clientmgr;
 	lwb.base = NULL;
 
-	DP(50, "generating gabn reply for client %p", client);
+	ns_lwdclient_log(50, "generating gabn reply for client %p", client);
 
 	/*
 	 * We must make certain the client->find is not still active.
@@ -273,7 +273,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev) {
 	isc_eventtype_t evtype;
 	isc_boolean_t claimed;
 
-	DP(50, "find done for task %p, client %p", task, client);
+	ns_lwdclient_log(50, "find done for task %p, client %p", task, client);
 
 	evtype = ev->ev_type;
 	isc_event_free(&ev);
@@ -337,7 +337,7 @@ start_find(ns_lwdclient_t *client) {
 	isc_result_t result;
 	isc_boolean_t claimed;
 
-	DP(50, "starting find for client %p", client);
+	ns_lwdclient_log(50, "starting find for client %p", client);
 
 	/*
 	 * Issue a find for the name contained in the request.  We won't
@@ -373,19 +373,21 @@ start_find(ns_lwdclient_t *client) {
 	 * Did we get an alias?  If so, save it and re-issue the query.
 	 */
 	if (result == DNS_R_ALIAS) {
-		DP(50, "found alias, restarting query");
+		ns_lwdclient_log(50, "found alias, restarting query");
 		dns_adb_destroyfind(&client->find);
 		cleanup_gabn(client);
 		result = add_alias(client);
 		if (result != ISC_R_SUCCESS) {
-			DP(50, "out of buffer space adding alias");
+			ns_lwdclient_log(50,
+					 "out of buffer space adding alias");
 			ns_lwdclient_errorpktsend(client, LWRES_R_FAILURE);
 			return;
 		}
 		goto find_again;
 	}
 
-	DP(50, "find returned %d (%s)", result, isc_result_totext(result));
+	ns_lwdclient_log(50, "find returned %d (%s)", result,
+			 isc_result_totext(result));
 
 	/*
 	 * Did we get an error?
@@ -405,8 +407,8 @@ start_find(ns_lwdclient_t *client) {
 	 */
 	if (NEED_V4(client)
 	    && ((client->find->query_pending & DNS_ADBFIND_INET) == 0)) {
-		DP(50, "client %p ipv4 satisfied by find %p", client,
-		   client->find);
+		ns_lwdclient_log(50, "client %p ipv4 satisfied by find %p",
+				 client, client->find);
 		claimed = ISC_TRUE;
 		client->v4find = client->find;
 	}
@@ -416,8 +418,8 @@ start_find(ns_lwdclient_t *client) {
 	 */
 	if (NEED_V6(client)
 	    && ((client->find->query_pending & DNS_ADBFIND_INET6) == 0)) {
-		DP(50, "client %p ipv6 satisfied by find %p", client,
-		   client->find);
+		ns_lwdclient_log(50, "client %p ipv6 satisfied by find %p",
+				 client, client->find);
 		claimed = ISC_TRUE;
 		client->v6find = client->find;
 	}
@@ -432,11 +434,11 @@ start_find(ns_lwdclient_t *client) {
 	 * we have a programming error, so die hard.
 	 */
 	if ((client->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
-		DP(50, "event will be sent");
+		ns_lwdclient_log(50, "event will be sent");
 		INSIST(client->v4find == NULL || client->v6find == NULL);
 		return;
 	}
-	DP(50, "no event will be sent");
+	ns_lwdclient_log(50, "no event will be sent");
 	if (claimed)
 		client->find = NULL;
 	else
@@ -530,8 +532,8 @@ ns_lwdclient_processgabn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 		goto out;
 
 	client->find_wanted = req->addrtypes;
-	DP(50, "client %p looking for addrtypes %08x",
-	   client, client->find_wanted);
+	ns_lwdclient_log(50, "client %p looking for addrtypes %08x",
+			 client, client->find_wanted);
 
 	/*
 	 * We no longer need to keep this around.
