@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.80 2001/01/22 20:00:56 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.81 2001/01/23 19:55:04 gson Exp $ */
 
 #include <config.h>
 
@@ -73,7 +73,7 @@
 #endif
 #endif
 
-#ifdef USE_GETADDRINFO
+#ifndef USE_GETADDRINFO
 extern int h_errno;
 #endif
 
