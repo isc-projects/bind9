@@ -208,6 +208,10 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 	CTRACE("shutdown");
 
 	client->shuttingdown = ISC_TRUE;
+	
+	if (client->shutdown != NULL)
+		(client->shutdown)(client->shutdown_arg);
+
 	maybe_free(client);
 
 	isc_event_free(&event);
@@ -850,6 +854,8 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->opt = NULL;
 	client->udpsize = 512;
 	client->next = NULL;
+	client->shutdown = NULL;
+	client->shutdown_arg = NULL;
 	dns_name_init(&client->signername, NULL);
 	client->mortal = ISC_FALSE;
 	client->quota = NULL;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.35 2000/01/12 01:17:26 gson Exp $ */
+ /* $Id: xfrout.c,v 1.36 2000/01/12 18:01:11 gson Exp $ */
 
 #include <config.h>
 
@@ -320,7 +320,6 @@ typedef struct ixfr_rrstream {
 /* Forward declarations. */
 static void ixfr_rrstream_destroy(rrstream_t **sp);
 static rrstream_methods_t ixfr_rrstream_methods;
-
 
 /*
  * Returns: anything dns_journal_open() or dns_journal_iter_init()
@@ -765,6 +764,7 @@ static void xfrout_timeout(isc_task_t *task, isc_event_t *event);
 static void xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg);
 static void xfrout_maybe_destroy(xfrout_ctx_t *xfr);
 static void xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
+static void xfrout_client_shutdown(void *arg);
 
 /**************************************************************************/
 
@@ -1104,6 +1104,15 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 			       &expires, &idleinterval, 
 			       xfr->client->task,
 			       xfrout_timeout, xfr, &xfr->timer));
+
+	/*
+	 * Register a shutdown callback with the client, so that we
+	 * can stop the transfer immediately when the client task
+	 * gets a shutdown event.
+	 */
+	xfr->client->shutdown = xfrout_client_shutdown;
+	xfr->client->shutdown_arg = xfr;
+		
 	*xfrp = xfr;
 	return (DNS_R_SUCCESS);
 	
@@ -1354,6 +1363,10 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	xfrout_ctx_t *xfr = *xfrp;
 
 	INSIST(xfr->sends == 0);
+
+	xfr->client->shutdown = NULL;
+	xfr->client->shutdown_arg = NULL;
+
 	if (xfr->timer != NULL)
 		isc_timer_detach(&xfr->timer);
 	if (xfr->stream != NULL)
@@ -1438,4 +1451,11 @@ xfrout_maybe_destroy(xfrout_ctx_t *xfr) {
 		ns_client_next(xfr->client, ISC_R_CANCELED);
 		xfrout_ctx_destroy(&xfr);
 	}
+}
+
+static void
+xfrout_client_shutdown(void *arg)
+{
+	xfrout_ctx_t *xfr = (xfrout_ctx_t *) arg;
+	xfrout_fail(xfr, ISC_R_SHUTTINGDOWN, "aborted");
 }

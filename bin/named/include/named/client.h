@@ -65,6 +65,8 @@ struct ns_client {
 	dns_rdataset_t *		opt;
 	isc_uint16_t			udpsize;
 	void				(*next)(ns_client_t *, isc_result_t);
+	void				(*shutdown)(void *arg);
+	void 				*shutdown_arg;
 	ns_query_t			query;
 	isc_stdtime_t			requesttime;
 	isc_stdtime_t			now;
