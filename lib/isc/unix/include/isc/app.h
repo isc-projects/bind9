@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.h,v 1.8 2000/08/01 01:31:34 tale Exp $ */
+/* $Id: app.h,v 1.9 2000/09/01 21:31:53 bwelling Exp $ */
 
 #ifndef ISC_APP_H
 #define ISC_APP_H 1
@@ -175,6 +175,37 @@ isc_app_finish(void);
  * Ensures:
  *	Any resources allocated by isc_app_start() have been released.
  */
+
+void
+isc_app_block(void);
+/*
+ * Indicate that a blocking operation will be performed.
+ *
+ * Notes:
+ *	If a blocking operation is in process, a call to isc_app_shutdown()
+ *	or an external signal will abort the program, rather than allowing
+ *	clean shutdown.  This is primarily useful for reading user input.
+ *
+ * Requires:
+ * 	isc_app_start() has been called.
+ * 	No other blocking operations are in progress.
+ */
+
+void
+isc_app_unblock(void);
+/*
+ * Indicate that a blocking operation is complete.
+ *
+ * Notes:
+ * 	When a blocking operation has completed, return the program to a
+ * 	state where a call to isc_app_shutdown() or an external signal will
+ * 	shutdown normally.
+ *
+ * Requires:
+ * 	isc_app_start() has been called.
+ * 	isc_app_block() has been called by the same thread.
+ */
+
 
 ISC_LANG_ENDDECLS
 

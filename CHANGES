@@ -1,4 +1,8 @@
 
+ 417.	[func]		Add isc_app_block() and isc_app_unblock(), which
+			allow an application to handle signals while
+			blocking.		
+
  416.	[bug]		Slave zones with no master file tried to use a
 			NULL pointer for a journal file name when they
 			received an IXFR. [RT #273]

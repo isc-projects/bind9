@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.28 2000/08/30 23:47:16 bwelling Exp $ */
+/* $Id: app.c,v 1.29 2000/09/01 21:31:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -57,6 +57,11 @@ static isc_boolean_t		want_shutdown = ISC_FALSE;
  * We assume that 'want_reload' can be read and written atomically.
  */
 static isc_boolean_t		want_reload = ISC_FALSE;
+
+static isc_boolean_t		blocked  = ISC_FALSE;
+#ifdef ISC_PLATFORM_USETHREADS
+static pthread_t		blockedthread;
+#endif
 
 #ifdef HAVE_LINUXTHREADS
 /*
@@ -521,3 +526,43 @@ isc_app_finish(void) {
 
 	DESTROYLOCK(&lock);
 }
+
+void
+isc_app_block(void) {
+#ifdef ISC_PLATFORM_USETHREADS
+	sigset_t sset;
+#endif
+	REQUIRE(running);
+	REQUIRE(!blocked);
+
+	blocked = ISC_TRUE;
+#ifdef ISC_PLATFORM_USETHREADS
+	blockedthread = pthread_self();
+	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
+		      sigaddset(&sset, SIGINT) == 0 &&
+		      sigaddset(&sset, SIGTERM) == 0);
+	RUNTIME_CHECK(pthread_sigmask(SIG_UNBLOCK, &sset, NULL) == 0);
+#endif
+}
+
+void
+isc_app_unblock(void) {
+#ifdef ISC_PLATFORM_USETHREADS
+	sigset_t sset;
+#endif
+
+	REQUIRE(running);
+	REQUIRE(blocked);
+
+	blocked = ISC_FALSE;
+
+#ifdef ISC_PLATFORM_USETHREADS
+	REQUIRE(blockedthread == pthread_self());
+
+	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
+		      sigaddset(&sset, SIGINT) == 0 && 
+		      sigaddset(&sset, SIGTERM) == 0);
+	RUNTIME_CHECK(pthread_sigmask(SIG_BLOCK, &sset, NULL) == 0);
+#endif
+}
+
