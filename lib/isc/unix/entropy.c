@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.59 2001/06/21 14:19:19 tale Exp $ */
+/* $Id: entropy.c,v 1.60 2001/07/18 01:31:13 gson Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -33,6 +33,8 @@
 #ifdef ISC_PLATFORM_NEEDSYSSELECTH
 #include <sys/select.h>
 #endif
+
+#include "errno2result.h"
 
 /*
  * There is only one variable in the entropy data structures that is not
@@ -296,7 +298,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 
 	fd = open(fname, O_RDONLY | O_NONBLOCK, 0);
 	if (fd < 0) {
-		ret = ISC_R_IOERROR;
+		ret = isc__errno2result(errno);
 		goto errout;
 	}
 	ret = make_nonblock(fd);
