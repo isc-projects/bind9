@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.88 2001/01/09 23:35:33 marka Exp $ */
+/* $Id: message.h,v 1.89 2001/01/18 00:26:36 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -165,7 +165,7 @@ struct dns_message {
 
 	dns_messageid_t			id;
 	unsigned int			flags;
-	unsigned int			rcode;
+	dns_rcode_t			rcode;
 	unsigned int			opcode;
 	dns_rdataclass_t		rdclass;
 

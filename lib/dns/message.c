@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.172 2001/01/09 23:35:27 marka Exp $ */
+/* $Id: message.c,v 1.173 2001/01/18 00:26:34 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1408,13 +1408,14 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * the extended rcode.
 		 */
 		if (rdtype == dns_rdatatype_opt) {
-			unsigned int ercode;
+			dns_rcode_t ercode;
 
 			msg->opt = rdataset;
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
-			ercode = (msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
-				>> 20;
+			ercode = (dns_rcode_t)
+				 (msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
+				 >> 20;
 			msg->rcode |= ercode;
 			isc_mempool_put(msg->namepool, name);
 			free_name = ISC_FALSE;
@@ -1487,7 +1488,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	tmpflags = isc_buffer_getuint16(source);
 	msg->opcode = ((tmpflags & DNS_MESSAGE_OPCODE_MASK)
 		       >> DNS_MESSAGE_OPCODE_SHIFT);
-	msg->rcode = (tmpflags & DNS_MESSAGE_RCODE_MASK);
+	msg->rcode = (dns_rcode_t)(tmpflags & DNS_MESSAGE_RCODE_MASK);
 	msg->flags = (tmpflags & DNS_MESSAGE_FLAG_MASK);
 	msg->counts[DNS_SECTION_QUESTION] = isc_buffer_getuint16(source);
 	msg->counts[DNS_SECTION_ANSWER] = isc_buffer_getuint16(source);
