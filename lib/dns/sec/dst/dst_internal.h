@@ -24,7 +24,6 @@
 #include <isc/region.h>
 
 #include "../rename.h"
-#include "../rename-dnssafe.h"
 
 #include <dst/dst.h>
 #include <dst/result.h>

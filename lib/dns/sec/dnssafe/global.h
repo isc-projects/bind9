@@ -9,8 +9,6 @@
 #ifndef DNSSAFE_GLOBAL_H
 #define DNSSAFE_GLOBAL_H 1
 
-#include "../rename-dnssafe.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
