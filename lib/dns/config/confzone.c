@@ -2606,7 +2606,7 @@ dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone,
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
+		if (DNS_C_CHECKBIT(MZ_MAX_TRANS_TIME_OUT_BIT,
 				   &zone->u.mzone.setflags)) {
 			*retval = zone->u.mzone.max_trans_time_out;
 			res = ISC_R_SUCCESS;
@@ -2719,7 +2719,7 @@ dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone,
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		if (DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_OUT_BIT,
+		if (DNS_C_CHECKBIT(MZ_MAX_TRANS_IDLE_OUT_BIT,
 				   &zone->u.mzone.setflags)) {
 			*retval = zone->u.mzone.max_trans_idle_out;
 			res = ISC_R_SUCCESS;
