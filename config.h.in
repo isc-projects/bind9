@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.47.2.3.2.12 2004/10/05 03:18:15 marka Exp $ */
+/* $Id: config.h.in,v 1.47.2.3.2.13 2004/12/04 06:53:50 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -142,6 +142,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T
+
+/* Define if threads need PTHREAD_SCOPE_SYSTEM */
+#undef NEED_PTHREAD_SCOPE_SYSTEM
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H

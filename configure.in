@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.34 $)
+AC_REVISION($Revision: 1.294.2.23.2.35 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -789,6 +789,11 @@ then
 		#
 		*-freebsd*)
 			AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
+			case $host in
+			*-freebsd5.3|*-freebsd5.3.*)
+				AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
+				;;
+			esac
 			;;
 		#
 		# BSDI 3.0 through 4.0.1 needs pthread_init() to be
