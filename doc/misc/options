@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.47 2000/11/28 21:43:36 gson Exp $
+$Id: options,v 1.48 2000/11/28 21:45:28 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -59,7 +59,7 @@ options {
   [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ in_addr ; [ in_addr ; ... ] ] }; ]	    Yes
-  [ check-names ... ]					    No
+  [ check-names ... ]					    Obsolete
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ allow-recursion { address_match_list }; ]		    Yes@
@@ -139,7 +139,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   file path_name;					    Yes
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
-  [ check-names ( warn | fail | ignore ); ]		    No
+  [ check-names ( warn | fail | ignore ); ]		    Obsolete
   [ allow-update { address_match_list }; ]		    Yes@
   [ update-policy ... ]					    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
@@ -162,7 +162,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
-  [ check-names ( warn | fail | ignore ); ]		    No
+  [ check-names ( warn | fail | ignore ); ]		    Obsolete
   [ allow-update { address_match_list }; ]		    Obsolete
   [ allow-update-forwarding { address_match_list }; ]	    No*
   [ allow-query { address_match_list }; ]		    Yes@
@@ -186,7 +186,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
-  [ check-names ( warn | fail | ignore ); ]		    No
+  [ check-names ( warn | fail | ignore ); ]		    Obsolete
   [ allow-update { address_match_list }; ]		    Obsolete
   [ allow-update-forwarding { address_match_list }; ]	    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
@@ -210,7 +210,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
 zone "." [ ( in | hs | hesiod | chaos ) ] {
   type hint;						    Yes
   file path_name;					    Yes
-  [ check-names ( warn | fail | ignore ); ]		    No
+  [ check-names ( warn | fail | ignore ); ]		    Obsolete
 };
 
 view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
@@ -224,7 +224,7 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ in_addr ; [ in_addr ; ... ] ] }; ]	    Yes
-  [ check-names ... ]					    No
+  [ check-names ... ]					    Obsolete
   [ allow-query { address_match_list }; ]		    Yes
   [ allow-transfer { address_match_list }; ]		    Yes
   [ allow-recursion { address_match_list }; ]		    Yes
