@@ -8,6 +8,9 @@
 			for clients that are supplied recursive service.
 			[RT #2260]
 
+1164.	[bug]		Empty masters clauses in slave / stub zones were not
+			handled gracefully. [RT #2262]
+
 1162.	[bug]		The allow-notify option was not accepted in slave
 			zone statements.
 
