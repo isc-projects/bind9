@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.31 2003/09/21 23:36:37 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.32 2003/09/23 07:20:43 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2829,11 +2829,11 @@ Turn on enforcment of delegation-only in TLDs and root zones with an optional
 exclude list.
 </para>
 <para>
-Note some TLDs are NOT delegation only (e.g. "DE", "LV" and "MUSEUM").
+Note some TLDs are NOT delegation only (e.g. "DE", "LV", "US" and "MUSEUM").
 </para>
 <programlisting>
 options {
-	root-delegation-only exclude { "de"; "lv"; "museum"; };
+	root-delegation-only exclude { "de"; "lv"; "us"; "museum"; };
 };
 </programlisting>
 </listitem></varlistentry>
