@@ -1,9 +1,12 @@
+Make omapi limit pre-authentication message size to avoid denial of
+service attack where a huge packet is sent
+
+Eliminate use of condition variables from libomapi so that it can be
+built without threads.
+
 Eliminate parent chain
 
 Clean dead nodes from rbtdb
-
-Make omapi limit pre-authentication message size to avoid denial of
-service attack where a huge packet is sent
 
 Generate secret for rndc automatically
 
