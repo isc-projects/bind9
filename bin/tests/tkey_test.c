@@ -345,6 +345,7 @@ main(int argc, char *argv[]) {
 	isc_timermgr_destroy(&timermgr);
 
 	dns_tsig_destroy();
+	dns_tkey_destroy();
 	if (verbose)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

@@ -52,6 +52,12 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx);
  *		return codes from dns_name_fromtext()
  */
 
+void
+dns_tkey_destroy(void);
+/*
+ *      Frees all data associated with the TKEY subsystem
+ */
+
 isc_result_t
 dns_tkey_processquery(dns_message_t *msg);
 /*
