@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.12 2001/01/21 18:50:40 bwelling Exp $ */
+/* $Id: lwdgabn.c,v 1.13 2001/01/22 22:12:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -608,7 +608,7 @@ ns_lwdclient_processgabn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 					 b, &client->pkt, &req);
 	if (result != LWRES_R_SUCCESS)
 		goto out;
-	if (req->name == NULL || req->namelen == 0)
+	if (req->name == NULL)
 		goto out;
 
 	isc_buffer_init(&namebuf, req->name, req->namelen);

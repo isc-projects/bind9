@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.8 2001/01/21 18:50:41 bwelling Exp $ */
+/* $Id: lwdgrbn.c,v 1.9 2001/01/22 22:12:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -396,7 +396,7 @@ ns_lwdclient_processgrbn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 					 b, &client->pkt, &req);
 	if (result != LWRES_R_SUCCESS)
 		goto out;
-	if (req->name == NULL || req->namelen == 0)
+	if (req->name == NULL)
 		goto out;
 
 	client->options = 0;
