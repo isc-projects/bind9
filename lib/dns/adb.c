@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.179 2001/06/04 19:32:55 tale Exp $ */
+/* $Id: adb.c,v 1.180 2001/06/11 04:26:41 gson Exp $ */
 
 /*
  * Implementation notes
@@ -3707,7 +3707,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 static isc_result_t
 fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	isc_result_t result;
-	dns_adbfetch_t *fetch;
+	dns_adbfetch_t *fetch = NULL;
 	dns_adb_t *adb;
 	dns_name_t *name;
 	dns_rdataset_t rdataset;
