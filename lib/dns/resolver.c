@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.150 2000/07/19 23:19:05 gson Exp $ */
+/* $Id: resolver.c,v 1.151 2000/07/24 20:10:26 gson Exp $ */
 
 #include <config.h>
 
@@ -3286,7 +3286,7 @@ answer_response(fetchctx_t *fctx) {
 	qname = &fctx->name;
 	type = fctx->type;
 	result = dns_message_firstname(message, DNS_SECTION_ANSWER);
-	while (result == ISC_R_SUCCESS) {
+	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_ANSWER, &name);
 		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
@@ -3297,10 +3297,18 @@ answer_response(fetchctx_t *fctx) {
 				found = ISC_FALSE;
 				want_chaining = ISC_FALSE;
 				aflag = 0;
-				if (rdataset->type == type ||
-				    type == dns_rdatatype_any) {
+				if (rdataset->type == type) {
 					/*
 					 * We've found an ordinary answer.
+					 */
+					found = ISC_TRUE;
+					done = ISC_TRUE;
+					aflag = DNS_RDATASETATTR_ANSWER;
+				} else if (type == dns_rdatatype_any) {
+					/*
+					 * We've found an answer matching
+					 * an ANY query.  There may be
+					 * more.
 					 */
 					found = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWER;
@@ -3497,7 +3505,9 @@ answer_response(fetchctx_t *fctx) {
 		}
 		result = dns_message_nextname(message, DNS_SECTION_ANSWER);
 	}
-	if (result != ISC_R_NOMORE)
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/*
@@ -3584,10 +3594,10 @@ answer_response(fetchctx_t *fctx) {
 		}
 		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
 	}
-	if (result != ISC_R_NOMORE)
-		return (result);
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static void
