@@ -44,6 +44,51 @@
 
 static isc_boolean_t			want_stats = ISC_FALSE;
 
+
+/*
+ * XXXRTH  OS-specific stuff like this will eventually be moved
+ *	   to a subdirectory.  The server will call a general
+ *	   "if the user wants to drop privs, do it".
+ */
+
+#ifdef HAVE_LINUX_CAPABILITY_H
+
+#include <sys/types.h>
+#include <sys/syscall.h>
+#include <linux/capability.h>
+#include <unistd.h>
+#include <errno.h>
+
+static void
+linux_dropprivs() {
+	struct __user_cap_header_struct caphead;
+	struct __user_cap_data_struct cap;
+	unsigned int caps;
+
+	if (getuid() != 0)
+		return;
+
+	/*
+	 * Drop all root privileges except the ability to bind() to
+	 * privileged ports.
+	 */
+
+	caps = CAP_NET_BIND_SERVICE;
+
+	memset(&caphead, 0, sizeof caphead);
+	caphead.version = _LINUX_CAPABILITY_VERSION;
+	caphead.pid = 0;
+	memset(&cap, 0, sizeof cap);
+	cap.effective = caps;
+	cap.permitted = caps;
+	cap.inheritable = caps;
+	if (syscall(SYS_capset, &caphead, &cap) < 0) {
+		fprintf(stderr, "syscall(capset): %s", strerror(errno));
+		exit(1);
+	}
+}
+#endif
+
 static void
 early_fatal(char *format, ...) {
 	va_list args;
@@ -262,14 +307,16 @@ static void
 cleanup() {
 	destroy_managers();
 	dns_tsig_destroy();
-#if 0
 	isc_rwlock_destroy(&ns_g_viewlock);
-#endif
 }
 
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
+
+#ifdef HAVE_LINUX_CAPABILITY_H
+	linux_dropprivs();
+#endif
 
 	result = isc_app_start();
 	if (result != ISC_R_SUCCESS)
