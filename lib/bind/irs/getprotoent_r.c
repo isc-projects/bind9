@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getprotoent_r.c,v 1.2 2001/07/15 23:29:46 marka Exp $";
+static const char rcsid[] = "$Id: getprotoent_r.c,v 1.3 2001/07/16 08:37:45 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -39,21 +39,41 @@ copy_protoent(struct protoent *, struct protoent *, PROTO_R_COPY_ARGS);
 PROTO_R_RETURN
 getprotobyname_r(const char *name, struct protoent *pptr, PROTO_R_ARGS) {
 	struct protoent *pe = getprotobyname(name);
+#ifdef PROTO_R_SETANSWER
+	int n = 0;
 
+	if (pe == NULL || (n = copy_protoent(pe, pptr, PROTO_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = pptr;
+	
+	return (n);
+#else
 	if (pe == NULL)
 		return (PROTO_R_BAD);
 
 	return (copy_protoent(pe, pptr, PROTO_R_COPY));
+#endif
 }
 
 PROTO_R_RETURN
 getprotobynumber_r(int proto, struct protoent *pptr, PROTO_R_ARGS) {
 	struct protoent *pe = getprotobynumber(proto);
+#ifdef PROTO_R_SETANSWER
+	int n = 0;
 
+	if (pe == NULL || (n = copy_protoent(pe, pptr, PROTO_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = pptr;
+	
+	return (n);
+#else
 	if (pe == NULL)
 		return (PROTO_R_BAD);
 
 	return (copy_protoent(pe, pptr, PROTO_R_COPY));
+#endif
 }
 
 /*
@@ -65,11 +85,21 @@ getprotobynumber_r(int proto, struct protoent *pptr, PROTO_R_ARGS) {
 PROTO_R_RETURN
 getprotoent_r(struct protoent *pptr, PROTO_R_ARGS) {
 	struct protoent *pe = getprotoent();
+#ifdef PROTO_R_SETANSWER
+	int n = 0;
 
+	if (pe == NULL || (n = copy_protoent(pe, pptr, PROTO_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = pptr;
+	
+	return (n);
+#else
 	if (pe == NULL)
 		return (PROTO_R_BAD);
 
 	return (copy_protoent(pe, pptr, PROTO_R_COPY));
+#endif
 }
 
 PROTO_R_SET_RETURN
@@ -114,7 +144,7 @@ copy_protoent(struct protoent *pe, struct protoent *pptr, PROTO_R_COPY_ARGS) {
 	len += strlen(pe->p_name) + 1;
 	len += numptr * sizeof(char*);
 	
-	if (len > buflen) {
+	if (len > (int)buflen) {
 		errno = ERANGE;
 		return (PROTO_R_BAD);
 	}

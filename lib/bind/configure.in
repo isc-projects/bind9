@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.71 $)
+AC_REVISION($Revision: 1.72 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1792,9 +1792,30 @@ PROTO_R_BAD="#define PROTO_R_BAD NULL"
 PROTO_R_COPY="#define PROTO_R_COPY buf, buflen"
 PROTO_R_COPY_ARGS="#define PROTO_R_COPY_ARGS PROTO_R_ARGS"
 PROTO_R_OK="#define PROTO_R_OK pptr"
+PROTO_R_SETANSWER="#undef PROTO_R_SETANSWER"
 PROTO_R_RETURN="#define PROTO_R_RETURN struct protoent *"
 ]
 ,
+AC_TRY_COMPILE(
+[
+#include <netdb.h>
+int getprotoent_r (struct protoent *, char *, size_t, struct protoent **);
+
+]
+,
+[return (0);]
+,
+[
+PROTO_R_ARGS="#define PROTO_R_ARGS char *buf, size_t buflen, struct protoent **answerp"
+PROTO_R_BAD="#define PROTO_R_BAD ERANGE"
+PROTO_R_COPY="#define PROTO_R_COPY buf, buflen"
+PROTO_R_COPY_ARGS="#define PROTO_R_COPY_ARGS char *buf, size_t buflen"
+PROTO_R_OK="#define PROTO_R_OK 0"
+PROTO_R_SETANSWER="#define PROTO_R_SETANSWER 1"
+PROTO_R_RETURN="#define PROTO_R_RETURN int"
+]
+,
+)
 )
 ,
 PROTO_R_ARGS="#define PROTO_R_ARGS char *buf, int buflen"
@@ -1802,6 +1823,7 @@ PROTO_R_BAD="#define PROTO_R_BAD NULL"
 PROTO_R_COPY="#define PROTO_R_COPY buf, buflen"
 PROTO_R_COPY_ARGS="#define PROTO_R_COPY_ARGS PROTO_R_ARGS"
 PROTO_R_OK="#define PROTO_R_OK pptr"
+PROTO_R_SETANSWER="#undef PROTO_R_SETANSWER"
 PROTO_R_RETURN="#define PROTO_R_RETURN struct protoent *"
 )
 AC_SUBST(PROTO_R_ARGS)
@@ -1809,6 +1831,7 @@ AC_SUBST(PROTO_R_BAD)
 AC_SUBST(PROTO_R_COPY)
 AC_SUBST(PROTO_R_COPY_ARGS)
 AC_SUBST(PROTO_R_OK)
+AC_SUBST(PROTO_R_SETANSWER)
 AC_SUBST(PROTO_R_RETURN)
 
 AC_CHECK_FUNC(endprotoent_r,

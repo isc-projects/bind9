@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.8 2001/07/16 08:05:19 marka Exp $
+ *	$Id: netdb.h,v 1.9 2001/07/16 08:37:44 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -470,11 +470,19 @@ struct netent	*getnetent_r __P((struct netent *, char *, int));
 void		setnetent_r __P((int));
 void		endnetent_r __P((void));
 
+#ifdef __GLIBC__
+int getprotobyname_r __P((const char *, struct protoent *, char *,
+			  size_t, struct protoent **));
+int getprotobynumber_r __P((int, struct protoent *, char *, size_t,
+			    struct protoent **));
+int getprotoent_r __P((struct protoent *, char *, size_t, struct protoent **));
+#else
 struct protoent	*getprotobyname_r __P((const char *,
 				struct protoent *, char *, int));
 struct protoent	*getprotobynumber_r __P((int,
 				struct protoent *, char *, int));
 struct protoent	*getprotoent_r __P((struct protoent *, char *, int));
+#endif
 void		setprotoent_r __P((int));
 void		endprotoent_r __P((void));
 

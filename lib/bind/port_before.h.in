@@ -84,6 +84,7 @@ struct timezone;        /* silence warning */
 @PROTO_R_END_RETURN@
 @PROTO_R_ENT_ARGS@
 @PROTO_R_OK@
+@PROTO_R_SETANSWER@
 @PROTO_R_RETURN@
 @PROTO_R_SET_RESULT@
 @PROTO_R_SET_RETURN@
