@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.44 2001/03/27 00:44:42 bwelling Exp $ */
+/* $Id: rndc.c,v 1.45 2001/03/27 02:34:36 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -48,7 +48,7 @@
 #include <isccc/types.h>
 #include <isccc/util.h>
 
-#include <named/control.h>
+#define NS_CONTROL_PORT		953
 
 #ifdef HAVE_ADDRINFO
 #ifdef HAVE_GETADDRINFO
