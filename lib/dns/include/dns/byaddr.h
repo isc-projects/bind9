@@ -56,6 +56,13 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * A 'dns_byaddrevent_t' is returned when a byaddr completes.
+ * The sender field will be set to the byaddr that completed.  If 'result'
+ * is ISC_R_SUCCESS, then 'names' will contain a list of names associated
+ * with the address.  The recipient of the event must not change the list
+ * and must not refer to any of the name data after the event is freed.
+ */
 typedef struct dns_byaddrevent {
 	ISC_EVENT_COMMON(struct dns_byaddrevent);
 	isc_result_t			result;
