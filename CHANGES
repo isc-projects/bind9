@@ -29,7 +29,7 @@
 1515.   [func]          Allow transfer source to be set in a server statement.
                         [RT #6496]
 
-1514.   [bug]           named: isc_hash_destroy() was being called to early.
+1514.   [bug]           named: isc_hash_destroy() was being called too early.
                         [RT #9160]
 
 1513.   [doc]           Add "US" to root-delgation-only exclude list.
