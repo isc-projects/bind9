@@ -1,8 +1,8 @@
 
 INTERNET-DRAFT                                               Stuart Kwan
-<draft-ietf-dnsext-gss-tsig-03.txt>                         Praerit Garg
-September 20, 2001                                          James Gilroy
-Expires March 20, 2002                                      Levon Esibov
+<draft-ietf-dnsext-gss-tsig-04.txt>                         Praerit Garg
+November 19, 2001                                           James Gilroy
+Expires May 19, 2002                                        Levon Esibov
                                                            Jeff Westhead
                                                          Microsoft Corp.
                                                               Randy Hall
@@ -54,9 +54,9 @@ Application Program Interface (GSS-API) (RFC2743).
 
 
 
-Expires March 20, 2002                                        [Page 1]
+Expires May 19, 2002                                          [Page 1]
 
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 Table of Contents
 
@@ -91,12 +91,12 @@ Table of Contents
 1. Introduction
 
 The Secret Key Transaction Signature for DNS (TSIG) [RFC2845] protocol
-was developed to provide a lightweight end to end authentication and
-integrity of messages between two DNS entities, such as client and
-server or server and server. TSIG can be used to protect dynamic update
-messages, authenticate regular message or to off-load complicated
-DNSSEC [RFC2535] processing from a client to a server and still allow
-the client to be assured of the integrity off the answers.
+was developed to provide a lightweight authentication and integrity of
+messages between two DNS entities, such as client and server or server
+and server. TSIG can be used to protect dynamic update messages,
+authenticate regular message or to off-load complicated DNSSEC
+[RFC2535] processing from a client to a server and still allow the
+client to be assured of the integrity off the answers.
 
 The TSIG protocol [RFC2845] is extensible through the definition of new
 algorithms.  This document specifies an algorithm based on the Generic
@@ -108,13 +108,13 @@ include authentication, integrity, and confidentiality.
 The GSS-API framework has several benefits:
 * Mechanism and protocol independence.  The underlying mechanisms that
 realize the security services can be negotiated on the fly and varied
-over time.  For example, a client and server may use Kerberos [RFC1964]
-for one transaction, whereas that same server may use SPKM [RFC2025]
+over time.  For example, a client and server MAY use Kerberos [RFC1964]
+for one transaction, whereas that same server MAY use SPKM [RFC2025]
 with a different client.
 
-Expires March 20, 2002                                        [Page 2]
+Expires May 19, 2002                                          [Page 2]
 
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 * The protocol developer is removed from the responsibility of
 creating and managing a security infrastructure.  For example, the
@@ -130,9 +130,9 @@ of [RFC2743] before examining this protocol in detail. It is also
 assumed that the reader is familiar with [RFC2845], [RFC2930], [RFC1034]
 and [RFC1035].
 
-The key words "MUST", "REQUIRED", "SHOULD", "RECOMMENDED",  and
-"MAY" in this document are to be interpreted as described in RFC 2119
-[RFC2119].
+The key words "MUST", "MUST NOT", "REQUIRED", "SHOULD", "SHOULD NOT",
+"RECOMMENDED", and "MAY" in this document are to be interpreted as
+described in RFC 2119 [RFC2119].
 
 
 2. Algorithm Overview
@@ -170,9 +170,9 @@ states of a context associated with a connection:
                            |          |
                            +----------+
 
-Expires March 20, 2002                                        [Page 3]
+Expires May 19, 2002                                          [Page 3]
 
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 
 Every connection begins in the uninitialized state.
@@ -211,6 +211,13 @@ the owner name of the TKEY and TSIG records sent between a client and a
 server to indicate to each other which context MUST be used to process
 the current request.
 
+DNS client and server MAY use various underlying security mechanisms to
+establish security context as described in sections 3 and 4. At the
+same time, in order to guarantee interoperability between DNS clients
+and servers that support GSS-TSIG it is required that security
+mechanism used by client enables use of Kerberos v5 (see Section 9
+for more information).
+
 
 3.1  Negotiating Context
 
@@ -220,6 +227,11 @@ initial token and sends it to the server.  The server processes the
 token and if necessary, returns a subsequent token to the client.  The
 client processes this token, and so on, until the negotiation is
 complete.  The number of times the client and server exchange tokens
+
+Expires May 19, 2002                                          [Page 4]
+
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
+
 depends on the underlying security mechanism.  A completed negotiation
 results in a context handle.
 
@@ -227,11 +239,6 @@ The TKEY resource record [RFC2930] is used as the vehicle to transfer
 tokens between client and server.  The TKEY record is a general
 mechanism for establishing secret keys for use with TSIG.  For more
 information, see [RFC2930].
-
-Expires March 20, 2002                                        [Page 4]
-
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
-
 
 
 3.1.1 Call GSS_Init_sec_context
@@ -278,18 +285,16 @@ indicated with the output values below.  Consult Sections 2.2.1
      BOOLEAN        deleg_state
      BOOLEAN        sequence_state
      BOOLEAN        anon_state
+
+Expires May 19, 2002                                          [Page 5]
+
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
+
      BOOLEAN        trans_state
      BOOLEAN        prot_ready_state
      BOOLEAN        conf_avail
      BOOLEAN        integ_avail
      INTEGER        lifetime_rec
-
-
-
-Expires March 20, 2002                                        [Page 5]
-
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
-
 
 The client MUST abandon the algorithm if returned major_status is set to
 one of the following errors:
@@ -339,14 +344,9 @@ context to both the client and server, and thus the client SHOULD use
 a value which is globally unique as described in [RFC2930]. To achieve
 global uniqueness, the name MAY contain a UUID/GUID [ISO11578].
 
+Expires May 19, 2002                                          [Page 6]
 
-
-
-
-
-Expires March 20, 2002                                        [Page 6]
-
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 
    TKEY Record
@@ -394,17 +394,17 @@ signature in the TSIG record MUST be verified using the procedure
 detailed in section 5, Sending and Verifying Signed Messages. If the
 response is not signed, OR if the response is signed but signature is
 invalid, then an attacker has tampered with the message in transit or
-has attempted to send the client a false response. The client MUST
+has attempted to send the client a false response. The client MAY
 continue waiting for a response to its last TKEY query until the time
 period since the client sent last TKEY query expires. Such a time period
-is specified by the policy local to the client.
+is specified by the policy local to the client. This is a new option
+that allows DNS client to accept multiple answers for one query ID and
+select one (not necessarily the first one) based on some criteria.
+ 
 
+Expires May 19, 2002                                          [Page 7]
 
-
-
-Expires March 20, 2002                                        [Page 7]
-
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 
 If the signature is verified  the context state is advanced to Context
@@ -423,7 +423,7 @@ context by calling GSS_Delete_sec_context providing the associated
 context_handle. The client MAY repeat the negotiation sequence starting
 with the uninitialized state as described in section 3.1. To prevent
 infinite looping the number of attempts to establish a security context
-must be limited.
+MUST be limited to ten or less.
 
 If the DNS message error is NO_ERROR and error filed in the TKEY record
 is 0 (i.e. no error), then the client MUST pass a token specified in the
@@ -460,9 +460,9 @@ If OUTPUT major_status is set to one of the following values
      GSS_S_BAD_MECH
      GSS_S_FAILURE
 
-Expires March 20, 2002                                        [Page 8]
+Expires May 19, 2002                                          [Page 8]
 
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 
 the client MUST abandon this negotiation sequence. The client MUST
@@ -470,7 +470,7 @@ delete an active context by calling GSS_Delete_sec_context providing
 the associated context_handle. The client MAY repeat the negotiation
 sequence starting with the uninitialized state as described in section
 3.1. To prevent infinite looping the number of attempts to establish a
-security context must be limited.
+security context MUST be limited to ten or less.
 
 If OUTPUT major_status is GSS_S_CONTINUE_NEEDED OR GSS_S_COMPLETE then
 client MUST act as described below.
@@ -483,8 +483,8 @@ negotiation sequence. The client MUST delete an active context by
 calling GSS_Delete_sec_context providing the associated context_handle.
 The client MAY repeat the negotiation sequence starting with the
 uninitialized state as described in section 3.1. To prevent infinite
-looping the number of attempts to establish a security context must be
-limited.
+looping the number of attempts to establish a security context MUST be
+limited to ten or less.
 
 If major_status is GSS_S_CONTINUE_NEEDED the negotiation is not yet
 finished.  The token output_token MUST be passed to the server in a TKEY
@@ -518,9 +518,9 @@ in section 5, Sending and Verifying Signed Messages.
 
 
 
-Expires March 20, 2002                                        [Page 9]
+Expires May 19, 2002                                          [Page 9]
 
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 
 3.2.1 Terminating a Context
@@ -576,9 +576,9 @@ context negotiation.
 
 
 
-Expires March 20, 2002                                       [Page 10]
+Expires May 19, 2002                                         [Page 10]
 
-INTERNET-DRAFT                   GSS-TSIG           September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG            November 19, 2001
 
 
 4.1.2 Call GSS_Accept_sec_context
@@ -634,9 +634,9 @@ RCODE = NOERROR, that contains a TKEY record in the answer section.
 
 
 
-Expires March 20, 2002                                        [Page 11]
+Expires May 19, 2002                                          [Page 11]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
 If OUTPUT major_status is one of the following errors the error field
 in the TKEY record set to BADKEY.
@@ -692,9 +692,9 @@ Error, Other Size and Data Fields, MUST be set according to [RFC2930].
 
 
 
-Expires March 20, 2002                                        [Page 12]
+Expires May 19, 2002                                          [Page 12]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
 
 
@@ -750,9 +750,9 @@ call" of the RFC 2743[RFC2743] for syntax definitions.
 
 
 
-Expires March 20, 2002                                        [Page 13]
+Expires May 19, 2002                                          [Page 13]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
    INPUTS
      CONTEXT HANDLE context_handle = context_handle for key_name
@@ -808,9 +808,9 @@ For the GSS algorithm, a signature is verified by using GSS_VerifyMIC:
      INTEGER        minor_status
      INTEGER        qop_state
 
-Expires March 20, 2002                                        [Page 14]
+Expires May 19, 2002                                          [Page 14]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
 If major_status is GSS_S_COMPLETE, the signature is authentic and the
 message was delivered intact.  Per [RFC2845], the timer values of the
@@ -866,9 +866,9 @@ to the algorithm described above.
 
 
 
-Expires March 20, 2002                                        [Page 15]
+Expires May 19, 2002                                          [Page 15]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
   Client verifies that replay_det_state and mutual_state values are
   TRUE. Since the major_status is GSS_S_CONTINUE_NEEDED, which is a
@@ -924,9 +924,9 @@ INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
 
 
 
-Expires March 20, 2002                                        [Page 16]
+Expires May 19, 2002                                          [Page 16]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
   V. Server responds to the TKEY query
   Since the major_status = GSS_S_CONTINUE_NEEDED in the last server's
@@ -982,9 +982,9 @@ INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
 
 
 
-Expires March 20, 2002                                        [Page 17]
+Expires May 19, 2002                                          [Page 17]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
   VIII. Server receives a TKEY query
   When the server receives a TKEY query, the server verifies that Mode
@@ -1040,9 +1040,9 @@ INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
 
   Signature field in the TSIG record is set to per_msg_token.
 
-Expires March 20, 2002                                        [Page 18]
+Expires May 19, 2002                                          [Page 18]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
 
   XI. Client processes token returned by server
@@ -1074,6 +1074,9 @@ This document describes a protocol for DNS security using GSS-API.
 The security provided by this protocol is only as effective as the
 security provided by the underlying GSS mechanisms.
 
+All the security considerations from RFC2845, RFC2930 and RFC 2743
+apply to the protocol described in this document.
+
 
 8. IANA Considerations
 
@@ -1095,12 +1098,9 @@ mech_type in their GSS API calls. At the same time, in order to
 guarantee interoperability between DNS clients and servers that support
 GSS-TSIG it is required that
 
+Expires May 19, 2002                                          [Page 19]
 
-
-
-Expires March 20, 2002                                        [Page 19]
-
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
 
 - DNS servers specify SPNEGO mech_type
@@ -1156,9 +1156,9 @@ Ram Viswanathan, Olafur Gudmundsson and Donald E. Eastlake 3rd.
 [RFC2478] Baize, E., Pinkas, D., "The Simple and Protected GSS-API
           Negotiation Mechanism", RFC 2478, Bull, December 1998.
 
-Expires March 20, 2002                                        [Page 20]
+Expires May 19, 2002                                          [Page 20]
 
-INTERNET-DRAFT                   GSS-TSIG            September 20, 2001
+INTERNET-DRAFT                   GSS-TSIG             November 19, 2001
 
 
 [ISO11578]"Information technology", "Open Systems
@@ -1175,14 +1175,14 @@ Microsoft Corporation               Microsoft Corporation
 One Microsoft Way                   One Microsoft Way
 Redmond, WA  98052                  Redmond, WA  98052
 USA                                 USA
-skwan@microsoft.com
+skwan@microsoft.com                 praeritg@microsoft.com
 
 James Gilroy                        Levon Esibov
 Microsoft Corporation               Microsoft Corporation
 One Microsoft Way                   One Microsoft Way
 Redmond, WA  98052                  Redmond, WA  98052
 USA                                 USA
-                                    levone@microsoft.com
+jamesg@microsoft.com                levone@microsoft.com
 
 
 Randy Hall                          Jeff Westhead
@@ -1190,8 +1190,8 @@ Lucent Technologies                 Microsoft Corporation
 400 Lapp Road                       One Microsoft Way
 Malvern PA 19355                    Redmond, WA  98052
 USA                                 USA
-randyhall@lucent.com
+randyhall@lucent.com                jwesth@microsoft.com
 
 
 
-Expires March 20, 2002                                        [Page 21]
+Expires May 19, 2002                                          [Page 21]
