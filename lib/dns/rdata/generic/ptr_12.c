@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.c,v 1.19 2000/02/03 23:43:05 halley Exp $ */
+/* $Id: ptr_12.c,v 1.20 2000/03/16 22:07:28 explorer Exp $ */
+
+/* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
 #ifndef RDATA_GENERIC_PTR_12_C
 #define RDATA_GENERIC_PTR_12_C
@@ -29,10 +31,10 @@ fromtext_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 
+	UNUSED(rdclass);
+
 	REQUIRE(type == 12);
 
-	rdclass = rdclass;	/*unused*/
-	
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
@@ -71,9 +73,9 @@ fromwire_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
         dns_name_t name;
 
-	REQUIRE(type == 12);
+	UNUSED(rdclass);
 
-	rdclass = rdclass;	/* unused */
+	REQUIRE(type == 12);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -85,7 +87,8 @@ fromwire_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_ptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_ptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	dns_name_t name;
 	isc_region_t region;
 
@@ -104,7 +107,8 @@ towire_ptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_ptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_ptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
@@ -130,30 +134,29 @@ static inline isc_result_t
 fromstruct_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 12);
-
-	rdclass = rdclass; /*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	
-	REQUIRE(rdata->type == 12);
+tostruct_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
+	UNUSED(target);
+	UNUSED(mctx);
 
-	target = target;
-	mctx = mctx;
+	REQUIRE(rdata->type == 12);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_ptr(void *source) {
+freestruct_ptr(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
 }
@@ -162,16 +165,17 @@ static inline isc_result_t
 additionaldata_ptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
-	REQUIRE(rdata->type == 12);
+	UNUSED(add);
+	UNUSED(arg);
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 12);
 
 	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
-digest_ptr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_ptr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 	dns_name_t name;
 
