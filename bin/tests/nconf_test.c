@@ -29,21 +29,33 @@
 
 #include <isc/error.h>
 
-isc_result_t zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, void *uap);
+isc_result_t zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone,
+		     dns_c_view_t *view, void *uap);
 isc_result_t optscbk(dns_c_ctx_t *ctx, void *uap);
 
 
 isc_result_t
-zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, void *uap)
+zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap)
 {
 	const char *zname;
+	const char *vname;
 
 	(void) ctx;
 	(void) uap;
 	
 	dns_c_zone_getname(NULL, zone, &zname);
 
-	fprintf(stderr, "handling zone %s\n", zname);
+#if 0
+	if (view != NULL) {
+		dns_c_view_getname(NULL, view, &vname);
+	} else {
+		vname = "no current view";
+	}
+#else
+	vname = "foo";
+#endif	
+
+	fprintf(stderr, "handling zone %s, view %s\n", zname, vname);
 
 	return (ISC_R_SUCCESS);
 }
@@ -68,7 +80,7 @@ int main (int argc, char **argv) {
 	isc_mem_t *mem = NULL;
 	dns_c_cbks_t callbacks;
 
-#if 1
+#if 0
 	callbacks.zonecbk = NULL;
 	callbacks.zonecbkuap = NULL;
 	callbacks.optscbk = NULL;
