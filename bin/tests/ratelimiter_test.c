@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ratelimiter_test.c,v 1.11 2000/06/22 21:50:43 tale Exp $ */
+/* $Id: ratelimiter_test.c,v 1.12 2000/06/28 16:27:36 gson Exp $ */
 
 #include <config.h>
 
@@ -141,7 +141,7 @@ main(int argc, char *argv[]) {
 
 	isc_task_destroy(&g_task);
 
-	isc_ratelimiter_destroy(&rlim);
+	isc_ratelimiter_detach(&rlim);
 	
 	isc_timermgr_destroy(&timermgr);
 	isc_taskmgr_destroy(&taskmgr);
