@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.201 2001/06/11 18:08:16 gson Exp $ */
+/* $Id: dighost.c,v 1.202 2001/06/11 18:20:43 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1856,6 +1856,8 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		printf(";; connection timed out; no servers could be "
 		       "reached\n");
 		cancel_lookup(l);
+		if (exitcode < 9)
+			exitcode = 9;
 	}
 	UNLOCK_LOOKUP;
 }
