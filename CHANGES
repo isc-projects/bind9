@@ -26,6 +26,8 @@
  387.	[func]		Add dns_byaddr_createptrname(), which converts
 			an address into the name used by a PTR query.
 
+ 379.	[func]		New library function isc_sockaddr_anyofpf().
+
 	--- 9.0.0 released ---
 
  463.	[bug]		nsupdate sent malformed SOA queries to the second
