@@ -48,6 +48,7 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"failure",				/* 25 */
 	"I/O error",				/* 26 */
 	"not implemented",			/* 27 */
+	"unbalanced parentheses",		/* 28 */
 };
 
 char *
