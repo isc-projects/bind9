@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: nsupdate.8,v 1.4 2000/08/01 01:18:45 tale Exp $
+.\" $Id: nsupdate.8,v 1.5 2000/08/15 19:40:40 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NSUPDATE 8
@@ -36,18 +36,17 @@ is used to submit Dynamic DNS Update requests as defined in RFC2136
 to a name server.
 This allows resource records to be added or removed from a zone
 without manually editing the zone file.
-A single update request could contain requests to add or remove more than one
+A single update request can contain requests to add or remove more than one
 resource record.
 .Pp
 Zones that are under dynamic control via
 .Nm nsupdate
 or a DHCP server should not be edited by hand.
 Manual edits could
-conflict with dynamic updates or the name server's transaction log
-activities which keep the file copy of the zone consistent with its
-internal representation in the name server's memory.
+conflict with dynamic updates and leave the name server's transaction
+log out of sync witih the zone file, causing data to be lost.
 .Pp
-The names of resource records that are dynamically added or removed with
+The resource records that are dynamically added or removed with
 .Nm nsupdate
 have to be in the same zone.
 Requests are sent to the zone's master server.
@@ -88,16 +87,16 @@ does not read
 .Nm nsupdate
 uses the
 .Fl y
-and
+or
 .Fl k
-options to provide the shared secret needed to generate a TSIG record
+option to provide the shared secret needed to generate a TSIG record
 for authenticating Dynamic DNS update requests.
 These options are mutually exclusive.
-The
+With the
 .Fl k
-option gets
+option,
 .Nm nsupdate
-to read the shared secret from the file
+reads the shared secret from the file
 .Ar keyfile .
 When the
 .Fl y
@@ -107,8 +106,7 @@ is used, a signature is generated from
 is the name of the key,
 and
 .Ar secret
-is a string comprising the shared secret, typically written in base-64
-encoding.
+is the base64 encoded shared secret.
 Use of the
 .Fl y
 option is discouraged because the shared secret is supplied as a command
@@ -125,7 +123,7 @@ The
 option makes
 .Nm nsupdate
 use a TCP connection.
-This may be preferable when a batch of update requests are made.
+This may be preferable when a batch of update requests is made.
 .Sh INPUT FORMAT
 .Nm nsupdate
 reads commands from its standard input.
@@ -139,7 +137,7 @@ These conditions must be met if the entire update request is to succeed.
 Updates will be rejected if the tests for the prerequisite conditions fail.
 .Pp
 Every update request consists of zero or more prerequisites
-and one or more updates.
+and zero or more updates.
 This allows a suitably authenticated update request to proceed if some
 specified resource records are present or missing from the zone.
 A blank input line causes the accumulated commands to be sent as one Dynamic
@@ -170,11 +168,11 @@ used.
 .sp 1
 Specifies that all updates are to be made to the zone
 .Va zonename .
-.Nm nsupdate
-will determine the correct zone to update based on the rest of the input
-data if no
+If no
 .Va zone
-statement is provided.
+statement is provided,
+.Nm nsupdate
+will attempt determine the correct zone to update based on the rest of the input.
 .It Xo
 .Ic prereq nxdomain Va domain-name
 .Xc
@@ -187,7 +185,7 @@ Requires that no resource record of any type exists with name
 .sp 1
 Requires that
 .Va domain-name
-exists as at least one resource record of any type.
+exists (has as at least one resource record, of any type).
 .It Xo
 .Ic prereq nxrrset Va domain-name Op class
 .Va type
@@ -204,24 +202,42 @@ is omitted, IN (internet) is assumed.
 .It Xo
 .Ic prereq yxrrset
 .Va domain-name Op class
-.Va type Op data...
+.Va type
 .Xc
 .sp 1
-This requires that a resource record of the specified type
+This requires that a resource record of the specified
 .Va type ,
 .Va class
-and name
+and
 .Va domain-name
 must exist.
 If
 .Va class
 is omitted, IN (internet) is assumed.
-If
+.It Xo
+.Ic prereq yxrrset
+.Va domain-name Op class
+.Va type data...
+.Xc
+.sp 1
+The
 .Va data
-is supplied, it has to exactly match the corresponding RDATA for
-.Va name .
+from each set of prerequisites of this form
+sharing a common
+.Va type ,
+.Va class ,
+and 
+.Va domain-name
+is combined to form a set of RRs.  This set of RRs must
+exactly match the set of RRs existing in the zone at the
+given 
+.Va type ,
+.Va class ,
+and 
+.Va domain-name .
+The
 .Va data
-is written in the standard text representation of the resource record's
+are written in the standard text representation of the resource record's
 RDATA.
 .It Xo
 .Ic update delete
@@ -293,22 +309,10 @@ record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
 SIG, KEY and NXT records.)
 .Pp
-.Sh NAME SERVER PROCESSING
-.Pp
-When a successful update request is made, the BIND9 name server
-increments the serial number in the zone's SOA record.
-A transaction log file is written containing details of the resource
-records that have been added or removed.
-This allows the name server to roll forward to the current state of the
-zone if it is restarted before a fresh copy of the zone file is written
-out by the name server.
-XXXJR WHEN DOES IT DO THAT???
-It then sends a NOTIFY message to the zone's slave servers to inform
-them that the zone's contents have changed.
 .Sh FILES
 .Bl -tag -width K{name}.+157.+{random}.private -compact
-.It Pa /etc/named.conf
-name server configuration file
+.It Pa /etc/resolv.conf
+used to identify default name server
 .It Pa K{name}.+157.+{random}.key
 base-64 encoding of HMAC-MD5 key created by
 .Xr dnssec-keygen 8 .
@@ -326,11 +330,7 @@ base-64 encoding of HMAC-MD5 key created by
 .Xr named 8 ,
 .Xr dnssec-keygen 8 .
 .Sh BUGS
-The
-.Fl D
-and
-.Fl M
-options are not documented apart from this self-referential paragraph.
-They provide additional debugging information which is primarily of interest
-to the BIND9 developers.
-These options might be changed or removed in future releases.
+The TSIG key is redundantly stored in two separate files.
+This is a consequence of nsupdate using the DST library
+for its cryptographic operations, and may change in future
+releases.
