@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.13 2004/06/11 01:17:35 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.14 2004/08/11 08:56:05 marka Exp $ */
 
 #include <config.h>
 
@@ -914,7 +914,8 @@ active_node(dns_dbnode_t *node) {
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type != dns_rdatatype_nsec)
+		if (rdataset.type != dns_rdatatype_nsec &&
+		    rdataset.type != dns_rdatatype_rrsig)
 			active = ISC_TRUE;
 		dns_rdataset_disassociate(&rdataset);
 		if (!active)
@@ -925,18 +926,41 @@ active_node(dns_dbnode_t *node) {
 	if (result != ISC_R_NOMORE)
 		fatal("rdataset iteration failed: %s",
 		      isc_result_totext(result));
-	dns_rdatasetiter_destroy(&rdsiter);
 
 	if (!active) {
 		/*
-		 * Make sure there is no NSEC record for this node.
+		 * Make sure there is no NSEC / RRSIG records for
+		 * this node.
 		 */
 		result = dns_db_deleterdataset(gdb, node, gversion,
 					       dns_rdatatype_nsec, 0);
 		if (result == DNS_R_UNCHANGED)
 			result = ISC_R_SUCCESS;
-		check_result(result, "dns_db_deleterdataset");
+		check_result(result, "dns_db_deleterdataset(nsec)");
+		
+		result = dns_rdatasetiter_first(rdsiter);
+		for (result = dns_rdatasetiter_first(rdsiter);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdatasetiter_next(rdsiter)) {
+			dns_rdatasetiter_current(rdsiter, &rdataset);
+			if (rdataset.type == dns_rdatatype_rrsig) {
+				dns_rdatatype_t type = rdataset.type;
+				dns_rdatatype_t covers = rdataset.covers;
+				result = dns_db_deleterdataset(gdb, node,
+							       gversion, type,
+							       covers);
+				if (result == DNS_R_UNCHANGED)
+					result = ISC_R_SUCCESS;
+				check_result(result,
+					     "dns_db_deleterdataset(rrsig)");
+			}
+			dns_rdataset_disassociate(&rdataset);
+		}
+		if (result != ISC_R_NOMORE)
+			fatal("rdataset iteration failed: %s",
+			      isc_result_totext(result));
 	}
+	dns_rdatasetiter_destroy(&rdsiter);
 
 	return (active);
 }

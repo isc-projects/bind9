@@ -1,6 +1,10 @@
 
 	--- 9.3.0rc3 released ---
 
+1696.	[bug]		dnssec-signzone failed to clean out nodes that
+			consisted of only NSEC and RRSIG records.
+			[RT #12154]
+
 1695.	[bug]		DS records when forwarding require special handling.
 			[RT #12133]
 
