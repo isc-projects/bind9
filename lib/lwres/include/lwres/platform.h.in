@@ -1,0 +1,46 @@
+/*
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
+#ifndef LWRES_PLATFORM_H
+#define LWRES_PLATFORM_H 1
+
+/*****
+ ***** Platform-dependent defines.
+ *****/
+
+/***
+ *** Network.
+ ***/
+
+/*
+ * Define if this system has the <netinet6/in6.h> header file.
+ */
+@LWRES_PLATFORM_HAVENETINET6IN6H@
+
+/*
+ * If sockaddrs on this system have an sa_len field, LWRES_PLATFORM_HAVESALEN
+ * will be defined.
+ */
+@LWRES_PLATFORM_HAVESALEN@
+
+/*
+ * If this system has the IPv6 structure definitions, LWRES_PLATFORM_HAVEIPV6
+ * will be defined.
+ */
+@LWRES_PLATFORM_HAVEIPV6@
+
+#endif /* LWRES_PLATFORM_H */

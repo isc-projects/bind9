@@ -1,0 +1,81 @@
+/*
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
+#ifndef LWRES_NET_H
+#define LWRES_NET_H 1
+
+/*****
+ ***** Module Info
+ *****/
+
+/*
+ * Basic Networking Types
+ *
+ * This module is responsible for defining the following basic networking
+ * types:
+ *
+ *		struct in_addr
+ *		struct in6_addr
+ *		struct sockaddr
+ *		struct sockaddr_in
+ *		struct sockaddr_in6
+ *
+ * It ensures that the AF_ and PF_ macros are defined.
+ *
+ * It declares ntoh[sl]() and hton[sl]().
+ *
+ * It declares lwres_net_aton(), lwres_net_ntop(), and lwres_net_pton().
+ *
+ * It ensures that INADDR_ANY and IN6ADDR_ANY_INIT are defined.
+ */
+
+/***
+ *** Imports.
+ ***/
+
+#include <lwres/platform.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#ifdef LWRES_PLATFORM_HAVENETINET6IN6H
+#include <netinet6/in6.h>
+#endif
+
+#include <lwres/result.h>
+
+#ifndef AF_INET6
+#define AF_INET6 99
+#endif
+
+#ifndef PF_INET6
+#define PF_INET6 AF_INET6
+#endif
+
+#ifndef LWRES_PLATFORM_HAVEIPV6
+#include <lwres/ipv6.h>
+#endif
+
+const char *lwres_net_ntop(int af, const void *src, char *dst, size_t size);
+
+int lwres_net_pton(int af, const char *src, void *dst);
+
+int lwres_net_aton(const char *cp, struct in_addr *addr);
+
+#endif /* LWRES_NET_H */
