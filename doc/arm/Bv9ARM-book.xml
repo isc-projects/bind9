@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.10 2000/09/20 01:20:17 scanner Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.11 2000/09/26 18:27:12 gson Exp $ -->
 
 <book>
 
@@ -2662,7 +2662,9 @@ These options allow the administrator to set a minimum and maximum
 refresh and retry time either per-zone, per-view, or per-server.
 These options are valid for slave and stub zones, and clamp the SOA
 refresh and retry times to the specified values.
-</para></entry>
+</para>
+<note><para>These options are not yet implemented in <acronym>BIND</acronym> 9.0.</para></note>
+</entry>
 </row>
 
 </tbody>
