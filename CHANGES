@@ -1,3 +1,6 @@
+1046.	[bug]		The help message for the --with-openssl configure
+			option was inaccurate. [RT #1880]
+
 1045.	[bug]		It was possible to skip saving glue for a nameserver
 			for a stub zone.
 

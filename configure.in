@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.1 $)
+AC_REVISION($Revision: 1.294.2.2 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -280,8 +280,8 @@ AC_C_BIGENDIAN
 #
 AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
-[  --with-openssl=PATH  Specify path for system-supplied openssl
-                        (required for DNSSEC)],
+[  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
+                          (Required for DNSSEC)],
     use_openssl="$withval", use_openssl="no")
 
 case "$use_openssl" in
