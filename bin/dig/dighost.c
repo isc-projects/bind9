@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.186 2001/01/18 22:21:30 bwelling Exp $ */
+/* $Id: dighost.c,v 1.187 2001/01/22 22:38:21 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -75,7 +75,7 @@
 #endif
 #endif
 
-#ifdef USE_GETADDRINFO
+#ifndef USE_GETADDRINFO
 extern int h_errno;
 #endif
 
