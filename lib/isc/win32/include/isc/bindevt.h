@@ -15,7 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bindevt.h,v 1.2 2001/07/08 05:09:22 mayer Exp $ */
+/* $Id: bindevt.h,v 1.3 2001/07/09 21:34:42 gson Exp $ */
+
+#ifndef ISC_BINDEVT_H
+#define ISC_BINDEVT_H 1
 
 /*
  * This is used for the event log for both logging the messages and
@@ -85,3 +88,4 @@
  */
 #define BIND_INFO_MSG		((DWORD)0x40000003L)
 
+#endif /* ISC_BINDEVT_H */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.2 2001/07/08 05:09:31 mayer Exp $ */
+/* $Id: ntpaths.h,v 1.3 2001/07/09 21:34:44 gson Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -23,9 +23,8 @@
  * information about the files enumerated in NtPaths
  */
 
-
-#ifndef _NTPATHS_H
-#define _NTPATHS_H
+#ifndef ISC_NTPATHS_H
+#define ISC_NTPATHS_H
 
 /*
  * Index of paths needed
@@ -45,4 +44,4 @@ isc_ntpaths_init(void);
 char *
 isc_ntpaths_get(int);
 
-#endif /* _NTPATHS_H */
+#endif /* ISC_NTPATHS_H */

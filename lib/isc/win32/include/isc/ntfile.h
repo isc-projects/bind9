@@ -15,7 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.h,v 1.3 2001/07/09 21:06:28 gson Exp $ */
+/* $Id: ntfile.h,v 1.4 2001/07/09 21:34:43 gson Exp $ */
+
+#ifndef ISC_NTFILE_H
+#define ISC_NTFILE_H 1
 
 /*
  * This file has been necessitated by the fact that the iov array is local
@@ -95,3 +98,4 @@ isc_ntfile_read(int fd, char *buf, int len);
 int
 isc_ntfile_write(int fd, char *buf, int len);
 
+#endif /* ISC_NTFILE_H */

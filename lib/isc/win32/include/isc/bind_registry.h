@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bind_registry.h,v 1.3 2001/07/09 21:06:25 gson Exp $ */
+/* $Id: bind_registry.h,v 1.4 2001/07/09 21:34:41 gson Exp $ */
 
-#ifndef _BIND_REGISTRY_H
-#define _BIND_REGISTRY_H
+#ifndef ISC_BINDREGISTRY_H
+#define ISC_BINDREGISTRY_H
 
 /*
  * BIND makes use of the following Registry keys in various places, especially
@@ -43,4 +43,4 @@
 #define BIND_FOREGROUND		3
 #define BIND_PORT		4
 
-#endif
+#endif /* ISC_BINDREGISTRY_H */
