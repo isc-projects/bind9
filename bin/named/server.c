@@ -124,7 +124,7 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
  */
 static isc_result_t
 configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
-	       dns_dispatch_t *dispatch)
+	       dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6)
 {
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
@@ -197,7 +197,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	 */
 	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
 				      ns_g_socketmgr, ns_g_timermgr,
-				      0, dispatch, NULL));
+				      0, dispatchv4, dispatchv6));
 
 	/*
 	 * Set resolver forwarding policy.
@@ -604,37 +604,55 @@ configure_server_quota(dns_c_ctx_t *cctx,
 }
 
 static isc_result_t
-configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
+configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server, int af,
 			     dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 	struct in_addr ina;
-	isc_sockaddr_t sa, any;
+	isc_sockaddr_t sa, any4, any6, *any;
 	isc_socket_t *socket;
+	dns_dispatch_t **server_dispatchp;
+	isc_sockaddr_t *server_dispatchaddr;
 
 	ina.s_addr = htonl(INADDR_ANY);
-	isc_sockaddr_fromin(&any, &ina, 0);
-
+	isc_sockaddr_fromin(&any4, &ina, 0);
+	isc_sockaddr_fromin6(&any6, &in6addr_any, 0);
+	
 	*dispatchp = NULL;
 
-	if (dns_c_ctx_getquerysource(cctx, &sa) != ISC_R_SUCCESS)
-		sa = any;
+	switch (af) {
+	case AF_INET:
+		any = &any4;
+		result = dns_c_ctx_getquerysource(cctx, &sa);
+		break;
+	case AF_INET6:
+		any = &any6;
+		result = dns_c_ctx_getquerysourcev6(cctx, &sa);
+		break;
+	default:
+		INSIST(0);
+	}
+	if (result != ISC_R_SUCCESS)
+		sa = *any;
+	
+	INSIST(isc_sockaddr_pf(&sa) == af);
 
 	/*
-	 * XXX  We need to have separate query source options for v4 and v6,
-	 *      but right now we only have one option, and the parser allows
-	 *      v6 addresses for it.  Until we have a separate v6 option,
-	 *      make sure that the query source is v4.
+	 * If we don't support this address family, we're done!
 	 */
-	if (isc_sockaddr_pf(&sa) != PF_INET)
-		return (DNS_R_NOTIMPLEMENTED);
-
-	/*
-	 * If we don't support IPv4, we're done!
-	 */
-	if (isc_net_probeipv4() != ISC_R_SUCCESS)
+	switch (af) {
+	case AF_INET:
+		result = isc_net_probeipv4();
+		break;
+	case AF_INET6:
+		result = isc_net_probeipv6();
+		break;
+	default:
+		INSIST(0);
+	}
+	if (result != ISC_R_SUCCESS)
 		return (ISC_R_SUCCESS);
 
-	if (isc_sockaddr_equal(&sa, &any)) {
+	if (isc_sockaddr_equal(&sa, any)) {
 		/*
 		 * The query source is fully wild.  No special dispatcher
 		 * work needs to be done.
@@ -646,20 +664,32 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 	 * If the interface manager has a dispatcher for this address,
 	 * use it.
 	 */
+	switch (af) {
+	case AF_INET:
+		server_dispatchp = &server->querysrc_dispatchv4;
+		server_dispatchaddr = &server->querysrc_addressv4;
+		break;
+	case AF_INET6:
+		server_dispatchp = &server->querysrc_dispatchv6;
+		server_dispatchaddr = &server->querysrc_addressv6;
+		break;
+	default:
+		INSIST(0);
+	}
 	if (ns_interfacemgr_findudpdispatcher(server->interfacemgr, &sa,
 					      dispatchp) !=
 	    ISC_R_SUCCESS) {
 		/*
 		 * The interface manager doesn't have a matching dispatcher.
 		 */
-		if (server->querysrc_dispatch != NULL) {
+		if (*server_dispatchp != NULL) {
 			/*
 			 * We've already got a custom dispatcher.  If it is
 			 * compatible with the new configuration, use it.
 			 */
-			if (isc_sockaddr_equal(&server->querysrc_address,
+			if (isc_sockaddr_equal(server_dispatchaddr,
 					       &sa)) {
-				dns_dispatch_attach(server->querysrc_dispatch,
+				dns_dispatch_attach(*server_dispatchp,
 						    dispatchp);
 				return (ISC_R_SUCCESS);
 			}
@@ -667,15 +697,15 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 			 * The existing custom dispatcher is not compatible.
 			 * We don't need it anymore.
 			 */
-			dns_dispatch_detach(&server->querysrc_dispatch);
+			dns_dispatch_detach(server_dispatchp);
 		}
 		/*
 		 * Create a custom dispatcher.
 		 */
-		INSIST(server->querysrc_dispatch == NULL);
-		server->querysrc_address = sa;
+		INSIST(*server_dispatchp == NULL);
+		*server_dispatchaddr = sa;
 		socket = NULL;
-		result = isc_socket_create(ns_g_socketmgr, AF_INET,
+		result = isc_socket_create(ns_g_socketmgr, af,
 					   isc_sockettype_udp,
 					   &socket);
 		if (result != ISC_R_SUCCESS)
@@ -688,7 +718,7 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 		result = dns_dispatch_create(ns_g_mctx, socket,
 					     server->task, 4096,
 					     1000, 32768, 16411, 16433, NULL,
-					     &server->querysrc_dispatch);
+					     server_dispatchp);
 		/*
 		 * Regardless of whether dns_dispatch_create() succeeded or
 		 * failed, we don't need to keep the reference to the socket.
@@ -696,14 +726,14 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 		isc_socket_detach(&socket);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		dns_dispatch_attach(server->querysrc_dispatch, dispatchp);
+		dns_dispatch_attach(*server_dispatchp, dispatchp);
 	} else {
 		/*
 		 * We're sharing a UDP dispatcher with the interface manager
 		 * now.  Any prior custom dispatcher can be discarded.
 		 */
-		if (server->querysrc_dispatch != NULL)
-			dns_dispatch_detach(&server->querysrc_dispatch);
+		if (*server_dispatchp != NULL)
+			dns_dispatch_detach(server_dispatchp);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -772,7 +802,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_view_t *view, *view_next;
 	dns_viewlist_t tmpviewlist;
 	dns_aclconfctx_t aclconfctx;
-	dns_dispatch_t *dispatch;
+	dns_dispatch_t *dispatchv4 = NULL;
+	dns_dispatch_t *dispatchv6 = NULL;
 	char *pidfilename;
 	isc_int32_t interface_interval;
 	
@@ -887,8 +918,10 @@ load_configuration(const char *filename, ns_server_t *server,
 				NULL, &interval, ISC_FALSE);
 	}
 
-	dispatch = NULL;
-	CHECK(configure_server_querysource(configctx, server, &dispatch));
+	CHECK(configure_server_querysource(configctx, server,
+					   AF_INET, &dispatchv4));
+	CHECK(configure_server_querysource(configctx, server,
+					   AF_INET6, &dispatchv6));
 
 	/*
 	 * If we haven't created any views, create a default view for class
@@ -911,16 +944,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		CHECK(configure_view(view, configctx, ns_g_mctx, dispatch));
+		CHECK(configure_view(view, configctx, ns_g_mctx,
+				     dispatchv4, dispatchv6));
 		dns_view_freeze(view);
 	}
 
-	/*
-	 * We don't need dispatch anymore.
-	 */
-	if (dispatch != NULL)
-		dns_dispatch_detach(&dispatch);
-	
 	/*
 	 * Create (or recreate) the version view.
 	 */
@@ -1004,6 +1032,11 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_view_detach(&view);
 
 	}
+
+	if (dispatchv4 != NULL)
+		dns_dispatch_detach(&dispatchv4);
+	if (dispatchv6 != NULL)
+		dns_dispatch_detach(&dispatchv6);
 
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_write);
 	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
@@ -1092,8 +1125,10 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_view_detach(&view);
 	}
 
-	if (server->querysrc_dispatch != NULL)
-		dns_dispatch_detach(&server->querysrc_dispatch);
+	if (server->querysrc_dispatchv4 != NULL)
+		dns_dispatch_detach(&server->querysrc_dispatchv4);
+	if (server->querysrc_dispatchv6 != NULL)
+		dns_dispatch_detach(&server->querysrc_dispatchv6);
 	ns_clientmgr_destroy(&server->clientmgr);
 	isc_timer_detach(&server->interface_timer);
 	ns_interfacemgr_shutdown(server->interfacemgr);
@@ -1165,7 +1200,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->tkeyctx = NULL;
 	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, &server->tkeyctx),
 		   "creating TKEY context");
-	server->querysrc_dispatch = NULL;
+	server->querysrc_dispatchv4 = NULL;
+	server->querysrc_dispatchv6 = NULL;
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
@@ -1196,7 +1232,8 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
-	REQUIRE(server->querysrc_dispatch == NULL);
+	REQUIRE(server->querysrc_dispatchv4 == NULL);
+	REQUIRE(server->querysrc_dispatchv6 == NULL);
 	if (server->tkeyctx != NULL)
 		dns_tkeyctx_destroy(&server->tkeyctx);
 
