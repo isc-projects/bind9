@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.47 2000/04/06 22:02:00 explorer Exp $ */
+/* $Id: master.c,v 1.48 2000/04/20 18:47:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1073,6 +1073,7 @@ commit(dns_rdatacallbacks_t *callbacks, rdatalist_head_t *head,
 		if (!ignore) {
 			dns_rdataset_init(&dataset);
 			dns_rdatalist_tordataset(this, &dataset);
+			dataset.trust = dns_trust_ultimate;
 			result = ((*callbacks->add)(callbacks->add_private,
 						    owner,
 						    &dataset));

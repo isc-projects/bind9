@@ -207,7 +207,8 @@ enum {
 	dns_trust_authauthority = 5,
 	dns_trust_authanswer = 6,
 	dns_trust_secure = 7,
-	dns_trust_authsecure = 8
+	dns_trust_authsecure = 8,
+	dns_trust_ultimate = 9
 };
 
 /*

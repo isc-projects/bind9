@@ -518,6 +518,7 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 			/* Convert the rdatalist into a rdataset. */
 			dns_rdataset_init(&rds);
 			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
+			rds.trust = dns_trust_ultimate;
 
 			INSIST(op == DNS_DIFFOP_ADD);
 			result = (*addfunc)(add_private, name, &rds);
