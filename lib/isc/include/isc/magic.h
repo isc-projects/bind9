@@ -25,7 +25,10 @@ typedef struct {
 
 /*
  * To use this macro the magic number MUST be the first thing in the
- * structure, and MUST be of type "unsigned int"
+ * structure, and MUST be of type "unsigned int".
+ *
+ * The intent of this is to allow magic numbers to be checked even though
+ * the object is otherwise opaque.
  */
 #define ISC_MAGIC_VALID(a,b)	(((a) != NULL) \
 				 && (((isc__magic_t *)(a))->magic == (b)))
