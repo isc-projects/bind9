@@ -72,6 +72,8 @@ static char *text[DNS_R_NRESULTS] = {
 	"SIG validity period has not begun",	/* 42 */
 	"key is unauthorized to sign data",	/* 43 */
 	"invalid time",				/* 44 */
+	"expected a TSIG",			/* 45 */
+	"did not expect a TSIG",		/* 46 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
