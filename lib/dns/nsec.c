@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.2 2003/09/30 06:00:39 marka Exp $ */
+/* $Id: nsec.c,v 1.3 2003/10/01 04:07:27 marka Exp $ */
 
 #include <config.h>
 
@@ -119,7 +119,7 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	if (result != ISC_R_NOMORE)
 		return (result);
 
-	r.length += ((max_type + 7) / 8);
+	r.length += max_type / 8 + 1;
 	INSIST(r.length <= DNS_NSEC_BUFFERSIZE);
 	dns_rdata_fromregion(rdata,
 			     dns_db_class(db),
