@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.18 2000/06/22 21:49:57 tale Exp $ */
+/* $Id: os.c,v 1.19 2000/06/28 16:26:40 explorer Exp $ */
 
 #include <config.h>
 
@@ -215,11 +215,20 @@ ns_os_daemonize(void) {
 	/*
 	 * Try to set stdin, stdout, and stderr to /dev/null, but press
 	 * on even if it fails.
+	 *
+	 * XXXMLG The close() calls here are unneeded on all but NetBSD, but
+	 * are harmless to include everywhere.  dup2() is supposed to close
+	 * the FD if it is in use, but unproven-pthreads-0.16 is broken
+	 * and will end up closing the wrong FD.  This will be fixed eventually,
+	 * and these calls will be removed.
 	 */
 	fd = open("/dev/null", O_RDWR, 0);
 	if (fd != -1) {
+		close(STDIN_FILENO);
 		(void)dup2(fd, STDIN_FILENO);
+		close(STDOUT_FILENO);
 		(void)dup2(fd, STDOUT_FILENO);
+		close(STDERR_FILENO);
 		(void)dup2(fd, STDERR_FILENO);
 		if (fd != STDIN_FILENO &&
 		    fd != STDOUT_FILENO &&
