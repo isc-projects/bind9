@@ -85,7 +85,7 @@ HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
 ></DT
 ><DT
 >4.3. <A
-HREF="Bv9ARM.ch04.html#AEN674"
+HREF="Bv9ARM.ch04.html#AEN680"
 >Split DNS</A
 ></DT
 ><DT
@@ -95,12 +95,12 @@ HREF="Bv9ARM.ch04.html#tsig"
 ></DT
 ><DT
 >4.5. <A
-HREF="Bv9ARM.ch04.html#AEN834"
+HREF="Bv9ARM.ch04.html#AEN840"
 >TKEY</A
 ></DT
 ><DT
 >4.6. <A
-HREF="Bv9ARM.ch04.html#AEN849"
+HREF="Bv9ARM.ch04.html#AEN855"
 >SIG(0)</A
 ></DT
 ><DT
@@ -110,7 +110,7 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ></DT
 ><DT
 >4.8. <A
-HREF="Bv9ARM.ch04.html#AEN933"
+HREF="Bv9ARM.ch04.html#AEN939"
 >IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -162,24 +162,49 @@ TARGET="_top"
     the server using an online zone key. Update authorization is based
     on transaction signatures and an explicit server policy.</P
 ><P
->The zone files of dynamic zones must not be edited by hand.
+>The zone files of dynamic zones cannot normally be edited by hand.
     The zone file on disk at any given time may not contain the latest
-    changes performed by dynamic update. The zone file is written to
-    disk only periodically, and changes that have occurred since the
+    changes performed by dynamic update. The zone file is only
+    written to disk only occasionally, and when shutting down the server using
+    <B
+CLASS="command"
+>rndc stop</B
+>.  Changes that have occurred since the
     zone file was last written to disk are stored only in the zone's
     journal (<TT
 CLASS="filename"
 >.jnl</TT
->) file. <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9 currently does
-    not update the zone file when it exits as <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 8 does, so editing
-    the zone file manually is unsafe even when the server has been
-    shut down. </P
+>) file.</P
+><P
+>If you have to make changes to a dynamic zone
+    manually, the following procedure will work: Shut down
+    the server using <B
+CLASS="command"
+>rndc stop</B
+> (sending a signal
+    or using <B
+CLASS="command"
+>rndc halt</B
+> is <I
+CLASS="emphasis"
+>not</I
+>
+    sufficient). Wait for the server to exit,
+    then <I
+CLASS="emphasis"
+>remove</I
+> the zone's 
+    <TT
+CLASS="filename"
+>.jnl</TT
+> file, edit the zone file,
+    and restart the server.  Removing the <TT
+CLASS="filename"
+>.jnl</TT
+>
+    file is necessary because the manual edits will not be
+    present in the journal, rendering it inconsistent with the
+    contents of the zone file.</P
 ></DIV
 ><DIV
 CLASS="sect1"
@@ -229,7 +254,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN674"
+NAME="AEN680"
 >4.3. Split DNS</A
 ></H1
 ><P
@@ -629,7 +654,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN765"
+NAME="AEN771"
 >4.4.1. Generate Shared Keys for Each Pair of Hosts</A
 ></H2
 ><P
@@ -647,7 +672,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN770"
+NAME="AEN776"
 >4.4.1.1. Automatic Generation</A
 ></H3
 ><P
@@ -689,7 +714,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN781"
+NAME="AEN787"
 >4.4.1.2. Manual Generation</A
 ></H3
 ><P
@@ -710,7 +735,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN786"
+NAME="AEN792"
 >4.4.2. Copying the Shared Secret to Both Machines</A
 ></H2
 ><P
@@ -722,7 +747,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN789"
+NAME="AEN795"
 >4.4.3. Informing the Servers of the Key's Existence</A
 ></H2
 ><P
@@ -770,7 +795,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN801"
+NAME="AEN807"
 >4.4.4. Instructing the Server to Use the Key</A
 ></H2
 ><P
@@ -830,7 +855,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN817"
+NAME="AEN823"
 >4.4.5. TSIG Key Based Access Control</A
 ></H2
 ><P
@@ -876,7 +901,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN830"
+NAME="AEN836"
 >4.4.6. Errors</A
 ></H2
 ><P
@@ -905,7 +930,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN834"
+NAME="AEN840"
 >4.5. TKEY</A
 ></H1
 ><P
@@ -971,7 +996,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN849"
+NAME="AEN855"
 >4.6. SIG(0)</A
 ></H1
 ><P
@@ -1040,7 +1065,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN865"
+NAME="AEN871"
 >4.7.1. Generating Keys</A
 ></H2
 ><P
@@ -1119,7 +1144,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN885"
+NAME="AEN891"
 >4.7.2. Creating a Keyset</A
 ></H2
 ><P
@@ -1172,7 +1197,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN897"
+NAME="AEN903"
 >4.7.3. Signing the Child's Keyset</A
 ></H2
 ><P
@@ -1222,7 +1247,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN910"
+NAME="AEN916"
 >4.7.4. Signing the Zone</A
 ></H2
 ><P
@@ -1284,7 +1309,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN926"
+NAME="AEN932"
 >4.7.5. Configuring Servers</A
 ></H2
 ><P
@@ -1311,7 +1336,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN933"
+NAME="AEN939"
 >4.8. IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1365,7 +1390,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN947"
+NAME="AEN953"
 >4.8.1. Address Lookups Using AAAA Records</A
 ></H2
 ><P
@@ -1387,7 +1412,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN952"
+NAME="AEN958"
 >4.8.2. Address Lookups Using A6 Records</A
 ></H2
 ><P
@@ -1407,7 +1432,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN956"
+NAME="AEN962"
 >4.8.2.1. A6 Chains</A
 ></H3
 ><P
@@ -1453,7 +1478,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN967"
+NAME="AEN973"
 >4.8.2.2. A6 Records for DNS Servers</A
 ></H3
 ><P
@@ -1483,7 +1508,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN973"
+NAME="AEN979"
 >4.8.3. Address to Name Lookups Using Nibble Format</A
 ></H2
 ><P
@@ -1514,7 +1539,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN980"
+NAME="AEN986"
 >4.8.4. Address to Name Lookups Using Bitstring Format</A
 ></H2
 ><P
@@ -1541,7 +1566,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN987"
+NAME="AEN993"
 >4.8.5. Using DNAME for Delegation of IPv6 Reverse Addresses</A
 ></H2
 ><P
