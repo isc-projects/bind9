@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.108 2001/11/27 01:56:03 gson Exp $ */
+/* $Id: mem.c,v 1.109 2001/12/05 19:13:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -68,6 +68,7 @@ typedef struct debuglink debuglink_t;
 struct debuglink {
 	ISC_LINK(debuglink_t)	link;
 	const void	       *ptr[DEBUGLIST_COUNT];
+	unsigned int		size[DEBUGLIST_COUNT];
 	const char	       *file[DEBUGLIST_COUNT];
 	unsigned int		line[DEBUGLIST_COUNT];
 	unsigned int		count;
@@ -227,6 +228,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 		for (i = 0; i < DEBUGLIST_COUNT; i++) {
 			if (dl->ptr[i] == NULL) {
 				dl->ptr[i] = ptr;
+				dl->size[i] = size;
 				dl->file[i] = file;
 				dl->line[i] = line;
 				dl->count++;
@@ -243,11 +245,13 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	ISC_LINK_INIT(dl, link);
 	for (i = 1; i < DEBUGLIST_COUNT; i++) {
 		dl->ptr[i] = NULL;
+		dl->size[i] = 0;
 		dl->file[i] = NULL;
 		dl->line[i] = 0;
 	}
 
 	dl->ptr[0] = ptr;
+	dl->size[0] = size;
 	dl->file[0] = file;
 	dl->line[0] = line;
 	dl->count = 1;
@@ -280,6 +284,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 		for (i = 0; i < DEBUGLIST_COUNT; i++) {
 			if (dl->ptr[i] == ptr) {
 				dl->ptr[i] = NULL;
+				dl->size[i] = 0;
 				dl->file[i] = NULL;
 				dl->line[i] = 0;
 
@@ -1097,7 +1102,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 		found = ISC_FALSE;
 		format = isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 				        ISC_MSG_PTRFILELINE,
-					"\tptr %p file %s line %u\n");
+					"\tptr %p size %u file %s line %u\n");
 		for (i = 0; i <= mctx->max_size; i++) {
 			dl = ISC_LIST_HEAD(mctx->debuglist[i]);
 			
@@ -1108,7 +1113,9 @@ print_active(isc_mem_t *mctx, FILE *out) {
 				for (j = 0; j < DEBUGLIST_COUNT; j++)
 					if (dl->ptr[j] != NULL)
 						fprintf(out, format,
-							dl->ptr[j], dl->file[j],
+							dl->ptr[j],
+							dl->size[j],
+							dl->file[j],
 							dl->line[j]);
 				dl = ISC_LIST_NEXT(dl, link);
 			}
