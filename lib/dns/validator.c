@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.97 2002/02/01 20:08:56 bwelling Exp $ */
+/* $Id: validator.c,v 1.98 2002/02/01 20:18:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -169,7 +169,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_validator: got %s",
-			      dns_result_totext(eresult));
+			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_NOVALIDKEY);
 	}
 
@@ -280,15 +280,14 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * No keys.
 		 */
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "no keys found");
+		validator_log(val, ISC_LOG_DEBUG(3), "no keys found");
 		result = proveunsecure(val, ISC_TRUE);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_nullkey: got %s",
-			      dns_result_totext(eresult));
+			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_NOVALIDKEY);
 	}
 	UNLOCK(&val->lock);
@@ -345,7 +344,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "keyvalidated: got %s",
-			      dns_result_totext(eresult));
+			      isc_result_totext(eresult));
 		validator_done(val, eresult);
 	}
  out:
@@ -377,8 +376,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 	}
 	dns_rdataset_current(nxtset, &rdata);
 
-	validator_log(val, ISC_LOG_DEBUG(3),
-		      "looking for relevant nxt");
+	validator_log(val, ISC_LOG_DEBUG(3), "looking for relevant nxt");
 	order = dns_name_compare(val->event->name, nxtname);
 	if (order == 0) {
 		/*
@@ -439,11 +437,10 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 				      "nxt points to zone apex, ok");
 		}
 		dns_rdata_freestruct(&nxt);
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "nxt range ok");
+		validator_log(val, ISC_LOG_DEBUG(3), "nxt range ok");
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			"nxt owner name is not less");
+			      "nxt owner name is not less");
 		/*
 		 * The NXT owner name is greater than the supposedly
 		 * nonexistent name.  This NXT is irrelevant.
@@ -484,7 +481,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	if (eresult != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "authvalidated: got %s",
-			      dns_result_totext(eresult));
+			      isc_result_totext(eresult));
 		result = nxtvalidate(val, ISC_TRUE);
 		if (result != DNS_R_WAIT)
 			validator_done(val, result);
@@ -540,7 +537,7 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "negauthvalidated: got %s",
-			      dns_result_totext(eresult));
+			      isc_result_totext(eresult));
 		validator_done(val, eresult);
 	}
 	UNLOCK(&val->lock);
@@ -1617,24 +1614,15 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 
 	if (val->event != NULL && val->event->name != NULL) {
-		char namebuf[1024];
-		char typebuf[256];
-		isc_buffer_t b;
-		isc_region_t r;
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 		dns_name_format(val->event->name, namebuf, sizeof(namebuf));
-
-		isc_buffer_init(&b, (unsigned char *)typebuf, sizeof(typebuf));
-		if (dns_rdatatype_totext(val->event->type, &b)
-		    != ISC_R_SUCCESS)
-		{
-			isc_buffer_clear(&b);
-			isc_buffer_putstr(&b, "<bad type>");
-		}
-		isc_buffer_usedregion(&b, &r);
+		dns_rdatatype_format(val->event->type, typebuf,
+				     sizeof(typebuf));
 		isc_log_write(dns_lctx, category, module, level,
-			      "validating %s %.*s: %s", namebuf,
-			      (int)r.length, (char *)r.base, msgbuf);
+			      "validating %s %s: %s", namebuf, typebuf,
+			      msgbuf);
 	} else {
 		isc_log_write(dns_lctx, category, module, level,
 			      "validator @%p: %s", val, msgbuf);
@@ -1643,8 +1631,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 }
 
 static void
-validator_log(dns_validator_t *val, int level, const char *fmt, ...)
-{
+validator_log(dns_validator_t *val, int level, const char *fmt, ...) {
 	va_list ap;
 
 	if (! isc_log_wouldlog(dns_lctx, level))
