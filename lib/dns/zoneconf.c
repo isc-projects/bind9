@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.54 2000/08/08 23:14:28 gson Exp $ */
+/* $Id: zoneconf.c,v 1.55 2000/08/10 00:53:34 gson Exp $ */
 
 #include <config.h>
 
+#include <isc/mem.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -105,6 +106,50 @@ dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
 	}
 }
 
+/*
+ * Helper function for strtoargv().  Pardon the gratuitous recursion.
+ */
+static isc_result_t
+strtoargvsub(isc_mem_t *mctx, char *s, int *argcp, char ***argvp, int n) {
+	isc_result_t result;
+	
+	/* Discard leading whitespace. */
+	while (*s == ' ' || *s == '\t')
+		s++;
+	
+	if (*s == '\0') {
+		/* We have reached the end of the string. */
+		*argcp = n;
+		*argvp = isc_mem_get(mctx, n * sizeof(char *));
+		if (*argvp == NULL)
+			return (ISC_R_NOMEMORY);
+	} else {
+		char *p = s;
+		while (*p != ' ' && *p != '\t' && *p != '\0')
+			p++;
+		if (*p != '\0')
+			*p++ = '\0';
+
+		result = strtoargvsub(mctx, p, argcp, argvp, n + 1);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		(*argvp)[n] = s;
+	}
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Tokenize the string "s" into whitespace-separated words,
+ * return the number of words in '*argcp' and an array
+ * of pointers to the words in '*argvp'.  The caller
+ * must free the array using isc_mem_put().  The string
+ * is modified in-place.
+ */
+static isc_result_t
+strtoargv(isc_mem_t *mctx, char *s, int *argcp, char ***argvp) {
+	return (strtoargvsub(mctx, s, argcp, argvp, 0));
+}
+
 isc_result_t
 dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		   dns_c_zone_t *czone, dns_aclconfctx_t *ac,
@@ -122,6 +167,11 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_uint32_t uintval;
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
 	dns_ssutable_t *ssutable = NULL;
+	char *cpval;
+	unsigned int dbargc;
+	char **dbargv;
+	static char default_dbtype[] = "rbt";
+	isc_mem_t *mctx = dns_zone_getmctx(zone);
 
 	isc_sockaddr_any(&sockaddr_any4);
 	isc_sockaddr_any6(&sockaddr_any6);
@@ -134,8 +184,19 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 	dns_zone_settype(zone, dns_zonetype_fromconf(czone->ztype));
 
-	/* XXX needs to be an zone option */
-	RETERR(dns_zone_setdbtype(zone, "rbt"));
+	cpval = NULL;
+	result = dns_c_zone_getdatabase(czone, &cpval);
+#ifdef notyet
+	if (result != ISC_R_SUCCESS && cview != NULL)
+		result = dns_c_view_getdatabase(cview, &cpval);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getdatabase(cview, &cpval);
+#endif
+	if (result != ISC_R_SUCCESS)
+		cpval = default_dbtype;
+	RETERR(strtoargv(mctx, cpval, &dbargc, &dbargv));
+	RETERR(dns_zone_setdbtype(zone, dbargc, dbargv));
+	isc_mem_put(mctx, dbargv, dbargc * sizeof(*dbargv));
 
 	result = dns_c_zone_getfile(czone, &filename);
 	if (result == ISC_R_SUCCESS)

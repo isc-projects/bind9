@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.177 2000/08/09 00:17:20 bwelling Exp $ */
+/* $Id: zone.c,v 1.178 2000/08/10 00:53:33 gson Exp $ */
 
 #include <config.h>
 
@@ -101,7 +101,6 @@ struct dns_zone {
 	dns_zonetype_t		type;
 	unsigned int		flags;
 	unsigned int		options;
-	char			*db_type;
 	unsigned int		db_argc;
 	char			**db_argv;
 	isc_stdtime_t		expiretime;
@@ -288,6 +287,8 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 		 isc_uint32_t *refresh, isc_uint32_t *retry,
 		 isc_uint32_t *expire, isc_uint32_t *minimum);
 
+static void zone_freedbargs(dns_zone_t *zone);
+
 #define PRINT_ZONE_REF(zone) \
 	do { \
 		char *s = NULL; \
@@ -303,6 +304,9 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 #define ZONE_LOG(x,y) zone_log(zone, me, ISC_LOG_DEBUG(x), y)
 #define DNS_ENTER zone_log(zone, me, ISC_LOG_DEBUG(1), "enter")
 #define DNS_LEAVE zone_log(zone, me, ISC_LOG_DEBUG(1), "leave")
+
+const unsigned int dbargc_default = 1;
+const char *dbargv_default[] = { "rbt" };
 
 /***
  ***	Public functions.
@@ -345,7 +349,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->type = dns_zone_none;
 	zone->flags = 0;
 	zone->options = 0;
-	zone->db_type = NULL;
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
 	zone->expiretime = 0;
@@ -395,12 +398,24 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
 
+		
 	zone->magic = ZONE_MAGIC;
+
+	/* Must be after magic is set. */
+	result = dns_zone_setdbtype(zone, dbargc_default,
+				    (char **) dbargv_default);
+	if (result != ISC_R_SUCCESS)
+		goto free_mutex;
+	
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
 		       NULL, NULL);
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
+
+ free_mutex:
+	isc_mutex_destroy(&zone->lock);
+	return (ISC_R_NOMEMORY);
 }
 
 /*
@@ -438,12 +453,9 @@ zone_free(dns_zone_t *zone) {
 	if (zone->journal != NULL)
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
-	if (zone->db_type != NULL)
-		isc_mem_free(zone->mctx, zone->db_type);
-	zone->db_type = NULL;
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
-	dns_zone_cleardbargs(zone);
+	zone_freedbargs(zone);
 #ifndef NOMINUM_PUBLIC
 	dns_zone_setmasterswithkeys(zone, NULL, NULL, 0);
 #else /* NOMINUM_PUBLIC */
@@ -523,19 +535,67 @@ dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
 	UNLOCK(&zone->lock);
 }
 
+static void
+zone_freedbargs(dns_zone_t *zone) {
+	unsigned int i;
+
+	/* Free the old database argument list. */
+	if (zone->db_argv != NULL) {
+		for (i = 0; i < zone->db_argc; i++)
+			isc_mem_free(zone->mctx, zone->db_argv[i]);
+		isc_mem_put(zone->mctx, zone->db_argv,
+			    zone->db_argc * sizeof *zone->db_argv);
+	}
+	zone->db_argc = 0;
+	zone->db_argv = NULL;
+}
+
 isc_result_t
-dns_zone_setdbtype(dns_zone_t *zone, const char *db_type) {
+dns_zone_setdbtype(dns_zone_t *zone,
+		   unsigned int dbargc, char **dbargv) {
 	isc_result_t result = ISC_R_SUCCESS;
+	char **new = NULL;
+	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(dbargc >= 1);
+	REQUIRE(dbargv != NULL);
 
 	LOCK(&zone->lock);
-	if (zone->db_type != NULL)
-		isc_mem_free(zone->mctx, zone->db_type);
-	zone->db_type = isc_mem_strdup(zone->mctx, db_type);
-	if (zone->db_type == NULL)
-		result = ISC_R_NOMEMORY;
-	UNLOCK(&zone->lock);
+
+	/* Set up a new database argument list. */
+	new = isc_mem_get(zone->mctx, dbargc * sizeof *new);
+	if (new == NULL)
+		goto nomem;
+	for (i = 0; i < dbargc; i++)
+		new[i] = NULL;
+	for (i = 0; i < dbargc; i++) {
+		new[i] = isc_mem_strdup(zone->mctx, dbargv[i]);
+		if (new[i] == NULL)
+			goto nomem;
+	}
+
+	/* Free the old list. */
+	zone_freedbargs(zone);
+
+	zone->db_argc = dbargc;
+	zone->db_argv = new;
+	result = ISC_R_SUCCESS;
+	goto unlock;
+	
+ nomem:
+	if (new != NULL) {
+		for (i = 0; i < dbargc; i++) {
+			if (zone->db_argv[i] != NULL)
+				isc_mem_free(zone->mctx, new[i]);
+			isc_mem_put(zone->mctx, new, 
+				    dbargc * sizeof *new);
+		}
+	}
+	result = ISC_R_NOMEMORY;
+	
+ unlock:
+	UNLOCK(&zone->lock);	
 	return (result);
 }
 
@@ -688,10 +748,12 @@ dns_zone_load(dns_zone_t *zone) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = dns_db_create(zone->mctx, zone->db_type,
+	INSIST(zone->db_argc >= 1);
+	result = dns_db_create(zone->mctx, zone->db_argv[0],
 			       &zone->origin, (zone->type == dns_zone_stub) ?
 			       dns_dbtype_stub : dns_dbtype_zone,
-			       zone->rdclass, zone->db_argc, zone->db_argv,
+			       zone->rdclass,
+			       zone->db_argc - 1, zone->db_argv + 1,
 			       &db);
 
 	if (result != ISC_R_SUCCESS)
@@ -1164,64 +1226,6 @@ dns_zone_getoptions(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->options);
-}
-
-isc_result_t
-dns_zone_adddbarg(dns_zone_t *zone, char *arg) {
-	char **new = NULL;
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(arg != NULL);
-
-	/*
-	 * Allocate new 'db_argv' and set last to be copy of 'arg'.
-	 */
-	LOCK(&zone->lock);
-	new = isc_mem_get(zone->mctx, (zone->db_argc + 1) * sizeof *new);
-	if (new == NULL)
-		goto cleanup;
-	new[zone->db_argc] = isc_mem_strdup(zone->mctx, arg);
-	if (new[zone->db_argc] == NULL)
-		goto cleanup;
-
-	/*
-	 * Copy old 'db_argv' if required the free it.
-	 */
-	if (zone->db_argc != 0) {
-		memcpy(new, zone->db_argv, zone->db_argc * sizeof *new);
-		isc_mem_put(zone->mctx, zone->db_argv,
-			    zone->db_argc * sizeof *new);
-	}
-
-	zone->db_argv = new;
-	zone->db_argc++;
-	UNLOCK(&zone->lock);
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	if (new != NULL)
-		isc_mem_put(zone->mctx, new,
-			    (zone->db_argc + 1) * sizeof *new);
-	UNLOCK(&zone->lock);
-	return (ISC_R_NOMEMORY);
-}
-
-void
-dns_zone_cleardbargs(dns_zone_t *zone) {
-	unsigned int i;
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK(&zone->lock);
-	if (zone->db_argc) {
-		for (i = 0 ; i < zone->db_argc; i++)
-			isc_mem_free(zone->mctx, zone->db_argv[i]);
-		isc_mem_put(zone->mctx, zone->db_argv,
-			    zone->db_argc * sizeof *zone->db_argv);
-		zone->db_argc = 0;
-		zone->db_argv = NULL;
-	}
-	UNLOCK(&zone->lock);
 }
 
 isc_result_t
@@ -2930,10 +2934,12 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		if (zone->db != NULL)
 			dns_db_attach(zone->db, &stub->db);
 		else {
-			result = dns_db_create(zone->mctx, "rbt",
+			INSIST(zone->db_argc >= 1);			
+			result = dns_db_create(zone->mctx, zone->db_argv[0],
 					       &zone->origin, dns_dbtype_stub,
 					       zone->rdclass,
-					       zone->db_argc, zone->db_argv,
+					       zone->db_argc - 1,
+					       zone->db_argv + 1,
 					       &stub->db);
 			if (result != ISC_R_SUCCESS) {
 				zone_log(zone, me, ISC_LOG_INFO,
@@ -3778,12 +3784,6 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
 	    (oldzone->journal != NULL && newzone->journal == NULL) ||
 	    (oldzone->journal != NULL &&
 	     strcmp(oldzone->journal, newzone->journal) != 0))
-		goto false;
-
-	if ((oldzone->db_type == NULL && newzone->db_type != NULL) ||
-	    (oldzone->db_type != NULL && newzone->db_type == NULL) ||
-	    (oldzone->db_type != NULL &&
-	     strcmp(oldzone->db_type, newzone->db_type) != 0))
 		goto false;
 
 	for (i = 0; i < oldzone->db_argc; i++)

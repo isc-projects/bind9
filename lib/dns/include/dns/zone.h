@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.66 2000/08/08 23:36:24 gson Exp $ */
+/* $Id: zone.h,v 1.67 2000/08/10 00:53:36 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -255,30 +255,6 @@ dns_zone_setflag(dns_zone_t *zone, unsigned int flags, isc_boolean_t value);
  */
 
 isc_result_t
-dns_zone_adddbarg(dns_zone_t *zone, char *arg);
-/*
- *	Add 'arg' to the end of the list of database arguements.
- *	No attempt in made to validate the arguements.
- *
- * Require:
- *	'zone' to be a valid zone.
- *	'arg' to be non NULL.
- *
- * Returns:
- *	ISC_R_NOMEMORY
- *	ISC_R_SUCCESS
- */
-
-void
-dns_zone_cleardbargs(dns_zone_t *zone);
-/*
- *	Clear all database arguements.
- *
- * Require:
- *	'zone' to be a valid zone.
- */
-
-isc_result_t
 dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 /*
  * 	Attach '*dbp' to the database to if it exists otherwise
@@ -294,14 +270,18 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
  */
 
 isc_result_t
-dns_zone_setdbtype(dns_zone_t *zone, const char *db_type);
+dns_zone_setdbtype(dns_zone_t *zone,
+		   unsigned int dbargc, char **dbargv);
 /*
- *	Sets the database type. Current database types are: "rbt", "rbt64".
+ *	Sets the database type to dbargv[0] and database arguments
+ *	to subsequent dbargv elements.
  *	'db_type' is not checked to see if it is a valid database type.
  *
  * Require:
  *	'zone' to be a valid zone.
  *	'database' to be non NULL.
+ *	'dbargc' to be >= 1
+ *	'dbargv' to point to dbargc NULL-terminated strings
  *
  * Returns:
  *	ISC_R_NOMEMORY
