@@ -153,7 +153,7 @@ be upgraded.
 
 The "ndc" program has been replaced by "rndc", which is capable of
 remote operation.  Unlike ndc, rndc requires a configuration file; 
-see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
+see the man pages in bin/rndc/rndc.1 and bin/rndc/rndc.conf.5 for
 details.  Some of the ndc commands are still unimplemented in rndc.
 
 
@@ -185,4 +185,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.27 2001/03/19 18:07:32 gson Exp $
+$Id: migration,v 1.28 2001/03/27 23:59:53 bwelling Exp $
