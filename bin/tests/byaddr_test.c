@@ -44,10 +44,6 @@ done(isc_task_t *task, isc_event_t *event) {
 	dns_byaddrevent_t *bevent;
 	dns_byaddr_t *byaddr;
 	dns_name_t *name;
-	char textname[1024];
-	isc_buffer_t buffer;
-	isc_result_t result;
-	isc_region_t r;
 
 	REQUIRE(event->ev_type == DNS_EVENT_BYADDRDONE);
 	bevent = (dns_byaddrevent_t *)event;
@@ -58,19 +54,12 @@ done(isc_task_t *task, isc_event_t *event) {
 	       isc_result_totext(bevent->result));
 
 	if (bevent->result == ISC_R_SUCCESS) {
-		isc_buffer_init(&buffer, textname, sizeof(textname));
 		for (name = ISC_LIST_HEAD(bevent->names);
 		     name != NULL;
 		     name = ISC_LIST_NEXT(name, link)) {
-			isc_buffer_clear(&buffer);
-			result = dns_name_totext(name, ISC_TRUE, &buffer);
-			if (result != ISC_R_SUCCESS) {
-				printf("dns_name_totext() returned %s\n",
-				       isc_result_totext(result));
-				break;
-			}
-			isc_buffer_usedregion(&buffer, &r);
-			printf("%.*s\n", (int)r.length, r.base);
+			char text[1024];
+			dns_name_format(name, text, sizeof(text));
+			printf("%s\n", text);
 		}
 	}
 
@@ -132,6 +121,7 @@ main(int argc, char *argv[]) {
 	task = NULL;
 	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task)
 		      == ISC_R_SUCCESS);
+	isc_task_setname(task, "byaddr", NULL);	
 
 	dispatchmgr = NULL;
 	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
@@ -180,6 +170,9 @@ main(int argc, char *argv[]) {
 						      dispatchmgr,
 						      disp4, disp6) ==
 		      ISC_R_SUCCESS);
+
+		dns_dispatch_detach(&disp4);
+		dns_dispatch_detach(&disp6);
 	}
 
 	{
@@ -233,6 +226,9 @@ main(int argc, char *argv[]) {
 
 	isc_task_shutdown(task);
 	isc_task_detach(&task);
+
+	dns_dispatchmgr_destroy(&dispatchmgr);
+
 	isc_taskmgr_destroy(&taskmgr);
 
 	isc_socketmgr_destroy(&socketmgr);
