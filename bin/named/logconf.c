@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.29 2001/04/26 02:38:08 tale Exp $ */
+/* $Id: logconf.c,v 1.30 2001/05/28 05:16:57 marka Exp $ */
 
 #include <config.h>
 
@@ -245,6 +245,7 @@ ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt) {
 	cfg_obj_t *categories = NULL;
 	cfg_listelt_t *element;
 	isc_boolean_t default_set = ISC_FALSE;
+	isc_boolean_t unmatched_set = ISC_FALSE;
 
 	CHECK(ns_log_setdefaultchannels(logconf));
 
@@ -269,10 +270,18 @@ ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt) {
 			if (strcmp(cfg_obj_asstring(catname), "default"))
 				default_set = ISC_TRUE;
 		}
+		if (!unmatched_set) {
+			cfg_obj_t *catname = cfg_tuple_get(category, "name");
+			if (strcmp(cfg_obj_asstring(catname), "unmatched"))
+				unmatched_set = ISC_TRUE;
+		}
 	}
 
 	if (!default_set)
 		CHECK(ns_log_setdefaultcategory(logconf));
+
+	if (!unmatched_set)
+		CHECK(ns_log_setunmatchedcategory(logconf));
 
 	return (ISC_R_SUCCESS);
 

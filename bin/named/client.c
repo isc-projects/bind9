@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.168 2001/05/25 07:39:45 marka Exp $ */
+/* $Id: client.c,v 1.169 2001/05/28 05:16:54 marka Exp $ */
 
 #include <config.h>
 
@@ -2258,34 +2258,17 @@ ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdataclass_t rdclass,
         (void)snprintf(buf, len, "%s '%s/%s'", msg, namebuf, classbuf);
 }
 
-static isc_mutex_t dumpmessagemutex;
-
-static void dumpmessagemutex_init(void) {
-	(void)isc_mutex_init(&dumpmessagemutex);
-}
-
 static void
 ns_client_dumpmessage(ns_client_t *client, const char *reason) {
-	static isc_once_t once = ISC_ONCE_INIT;
-	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_buffer_t buffer;
 	char *buf = NULL;
 	int len = 1024;
 	isc_result_t result;
-	FILE *fd = NULL;
 
-	if (ns_g_examinelog == NULL)
-		return;
-
-	ns_client_name(client, peerbuf, sizeof(peerbuf));
-
-	isc_once_do(&once, dumpmessagemutex_init);
-
-	LOCK(&dumpmessagemutex);
-
-	result = isc_stdio_open(ns_g_examinelog, "a", &fd);
-	if (result != ISC_R_SUCCESS)
-		goto unlock;
+	/*
+	 * Note these a multiline debug messages.  We want a newline
+	 * to appear in the log after each message.
+	 */
 
 	do {
 		buf = isc_mem_get(client->mctx, len);
@@ -2299,13 +2282,13 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 			isc_mem_put(client->mctx, buf, len);
 			len += 1024;
 		} else if (result == ISC_R_SUCCESS)
-			fprintf(fd, "\nclient %s: %s\n%.*s\n", peerbuf, reason,
-				(int)isc_buffer_usedlength(&buffer), buf);
+		        ns_client_log(client, NS_LOGCATEGORY_UNMATCHED,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_INFO,
+				      "%s\n%.*s", reason,
+				       (int)isc_buffer_usedlength(&buffer),
+				       buf);
 	} while (result == ISC_R_NOSPACE);
 
 	if (buf != NULL)
 		isc_mem_put(client->mctx, buf, len);
-	(void)isc_stdio_close(fd);
- unlock:
-	UNLOCK(&dumpmessagemutex);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.110 2001/05/25 07:39:46 marka Exp $ */
+/* $Id: main.c,v 1.111 2001/05/28 05:16:58 marka Exp $ */
 
 #include <config.h>
 
@@ -270,7 +270,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:C:d:e:fgi:ln:N:p:P:st:u:vx:")) !=
+					   "c:C:d:fgi:ln:N:p:P:st:u:vx:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -289,9 +289,6 @@ parse_command_line(int argc, char *argv[]) {
 		case 'd':
 			ns_g_debuglevel = parse_int(isc_commandline_argument,
 						    "debug level");
-			break;
-		case 'e':
-			ns_g_examinelog = isc_commandline_argument;
 			break;
 		case 'f':
 			ns_g_foreground = ISC_TRUE;

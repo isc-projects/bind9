@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.135 2001/05/19 00:07:33 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.136 2001/05/28 05:17:05 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2271,6 +2271,7 @@ as many channels and categories as are wanted. If there is no <command>logging</
 the logging configuration will be:</para>
 
 <programlisting>logging {
+     category "unmatched" { "null"; };
      category "default" { "default_syslog"; "default_debug"; };
 };
 </programlisting>
@@ -2535,6 +2536,14 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>client</command></para></entry>
 <entry colname = "2"><para>Processing of client requests.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>unmatched</command></para></entry>
+<entry colname = "2"><para>Messages that named was unable to determine the
+class of or for which there was no matching <command>view</command>.
+A one line summary is also logged to the <command>client</command> category.
+This category is best sent to a file or stderr, by default it is sent to
+the <command>null</command> channel.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>network</command></para></entry>

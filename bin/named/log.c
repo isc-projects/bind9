@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.31 2001/03/27 00:44:31 bwelling Exp $ */
+/* $Id: log.c,v 1.32 2001/05/28 05:16:55 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@ static isc_logcategory_t categories[] = {
 	{ "network",	 		0 },
 	{ "update",	 		0 },
 	{ "queries",	 		0 },
+	{ "unmatched",	 		0 },
 	{ NULL, 			0 }
 };
 
@@ -178,6 +179,15 @@ ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	return (result);
+}
+
+isc_result_t
+ns_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
+	isc_result_t result;
+
+	result = isc_log_usechannel(lcfg, "null",
+				    NS_LOGCATEGORY_UNMATCHED, NULL);
 	return (result);
 }
 

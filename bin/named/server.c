@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.326 2001/05/14 20:44:10 bwelling Exp $ */
+/* $Id: server.c,v 1.327 2001/05/28 05:17:00 marka Exp $ */
 
 #include <config.h>
 
@@ -1929,6 +1929,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		} else {
 			CHECKM(ns_log_setdefaultchannels(logc),
 			       "setting up default logging channels");
+			CHECKM(ns_log_setunmatchedcategory(logc),
+			       "setting up default 'category unmatched'");
 			CHECKM(ns_log_setdefaultcategory(logc),
 			       "setting up default 'category default'");
 		}
