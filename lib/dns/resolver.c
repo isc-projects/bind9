@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137.2.7 2000/07/27 21:39:42 gson Exp $ */
+/* $Id: resolver.c,v 1.137.2.8 2000/07/27 21:42:14 gson Exp $ */
 
 #include <config.h>
 
@@ -2609,7 +2609,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			} else if (!ANSWER(rdataset))
 				continue;
 
-			if (ANSWER(rdataset)) {
+			if (ANSWER(rdataset) && need_validation) {
 				if (fctx->type != dns_rdatatype_any &&
 				    fctx->type != dns_rdatatype_sig) {
 					/*
@@ -2871,10 +2871,8 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 
 	if (secure_domain) {
 		/*
-		 * Do negative response validation.
+		 * Mark all rdatasets as pending.
 		 */
-		dns_validator_t *validator;
-		isc_task_t *task;
 		dns_rdataset_t *trdataset;
 		dns_name_t *tname;
 
@@ -2895,8 +2893,15 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		if (result != ISC_R_NOMORE)
 			return (result);
 
-		validator = NULL;
-		task = res->buckets[fctx->bucketnum].task;
+	}
+
+	if (need_validation) {
+		/*
+		 * Do negative response validation.
+		 */
+		dns_validator_t *validator = NULL;
+		isc_task_t *task = res->buckets[fctx->bucketnum].task;
+
 		result = dns_validator_create(res->view, name, fctx->type,
 					      NULL, NULL,
 					      fctx->rmessage, 0, task,
@@ -2910,8 +2915,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		 * to process the message, letting the validation complete
 		 * in its own good time.
 		 */
-		if (need_validation)
-			return (ISC_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	}
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
