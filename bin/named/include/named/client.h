@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.64 2001/12/10 23:09:24 marka Exp $ */
+/* $Id: client.h,v 1.65 2002/01/23 08:46:39 bwelling Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -153,6 +153,8 @@ struct ns_client {
 #define NS_CLIENTATTR_RA		0x02 /* Client gets recusive service */
 #define NS_CLIENTATTR_PKTINFO		0x04 /* pktinfo is valid */
 #define NS_CLIENTATTR_MULTICAST		0x08 /* recv'd from multicast */
+#define NS_CLIENTATTR_WANTDNSSEC	0x10 /* include dnssec records */
+
 
 /***
  *** Functions

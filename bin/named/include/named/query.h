@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.31 2001/10/24 03:10:18 marka Exp $ */
+/* $Id: query.h,v 1.32 2002/01/23 08:46:40 bwelling Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -72,7 +72,7 @@ struct ns_query {
 #define NS_QUERYATTR_QUERYOKVALID	0x0040
 #define NS_QUERYATTR_QUERYOK		0x0080
 #define NS_QUERYATTR_WANTRECURSION	0x0100
-#define NS_QUERYATTR_WANTDNSSEC		0x0200
+/* unused */
 #define NS_QUERYATTR_NOAUTHORITY	0x0400
 #define NS_QUERYATTR_NOADDITIONAL	0x0800
 

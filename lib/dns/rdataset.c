@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.59 2002/01/22 09:07:23 bwelling Exp $ */
+/* $Id: rdataset.c,v 1.60 2002/01/23 08:46:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -308,9 +308,10 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 		/*
 		 * This is a negative caching rdataset.
 		 */
-		isc_boolean_t omit_dnssec;
-		omit_dnssec = ISC_TF(DNS_RDATASETTOWIRE_OMITDNSSEC != 0);
-		return (dns_ncache_towire(rdataset, cctx, target, omit_dnssec,
+		unsigned int ncache_opts = 0;
+		if ((options & DNS_RDATASETTOWIRE_OMITDNSSEC) != 0)
+			ncache_opts |= DNS_NCACHETOWIRE_OMITDNSSEC;
+		return (dns_ncache_towire(rdataset, cctx, target, ncache_opts,
 					  countp));
 	} else {
 		count = (rdataset->methods->count)(rdataset);

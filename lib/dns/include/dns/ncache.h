@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.h,v 1.13 2002/01/22 09:07:27 bwelling Exp $ */
+/* $Id: ncache.h,v 1.14 2002/01/23 08:46:35 bwelling Exp $ */
 
 #ifndef DNS_NCACHE_H
 #define DNS_NCACHE_H 1
@@ -52,6 +52,12 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * _OMITDNSSEC:
+ *      Omit DNSSEC records when rendering.
+ */
+#define DNS_NCACHETOWIRE_OMITDNSSEC   0x0001
+
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
@@ -85,7 +91,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 
 isc_result_t
 dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
-		  isc_buffer_t *target, isc_boolean_t omit_dnssec,
+		  isc_buffer_t *target, unsigned int options,
 		  unsigned int *countp);
 /*
  * Convert the negative caching rdataset 'rdataset' to wire format,
