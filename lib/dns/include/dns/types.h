@@ -86,6 +86,7 @@ typedef struct dns_zone_callbackarg		dns_zone_callbackarg_t;
 typedef struct dns_a6context			dns_a6context_t;
 typedef struct dns_rbt				dns_rbt_t;
 typedef struct dns_zt				dns_zt_t;
+typedef struct dns_cache			dns_cache_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
