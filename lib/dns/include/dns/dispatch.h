@@ -118,12 +118,17 @@ typedef struct dns_dispatchmethods dns_dispatchmethods_t;
  * _IPV4, _IPV6
  *	The dispatcher uses an ipv4 or ipv6 socket.
  *
- * _REQUEST
+ * _ACCEPTREQUEST
  *	The dispatcher can be used to accept requests.
  *
- * _RESPONSE
+ * _MAKEQUERY
  *	The dispatcher can be used to issue queries to other servers, and
  *	accept replies from them.
+ *
+ * _CONNECTED
+ *	The socket the dispatcher uses is a connected socket, and can
+ *	only send to a specific host.  This will disallow wildcarded
+ *	remote addresses.
  */
 #define DNS_DISPATCHATTR_PRIVATE	0x00000001U
 #define DNS_DISPATCHATTR_TCP		0x00000002U
@@ -164,8 +169,10 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp);
 
 
 isc_result_t
-dns_dispatchmgr_find(dns_dispatchmgr_t *mgr, unsigned int attributes,
-		      unsigned int mask, dns_dispatch_t **dispp);
+dns_dispatchmgr_find(dns_dispatchmgr_t *mgr,
+		     isc_sockaddr_t *local, isc_sockaddr_t *remote,
+		     unsigned int attributes, unsigned int mask,
+		     dns_dispatch_t **dispp);
 /*
  * Search for a dispatcher that has the attributes specified by
  *	(attributes & mask)

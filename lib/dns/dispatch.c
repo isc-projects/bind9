@@ -67,12 +67,16 @@ struct dns_dispentry {
 
 typedef ISC_LIST(dns_dispentry_t)	dns_displist_t;
 
+#define DISPATCHFLAG_CONNECTED		0x00000001U
+
 struct dns_dispatch {
 	/* Unlocked. */
 	unsigned int		magic;		/* magic */
 	dns_dispatchmgr_t      *mgr;		/* dispatch manager */
 	isc_task_t	       *task;		/* internal task */
 	isc_socket_t	       *socket;		/* isc socket attached to */
+	isc_sockaddr_t		local;		/* local address */
+	isc_sockaddr_t		remote;		/* remote address */
 	unsigned int		buffersize;	/* size of each buffer */
 	unsigned int		maxrequests;	/* max requests */
 	unsigned int		maxbuffers;	/* max buffers */
@@ -84,6 +88,7 @@ struct dns_dispatch {
 	/* Locked by "lock". */
 	isc_mutex_t		lock;		/* locks all below */
 	unsigned int		refcount;	/* number of users */
+	unsigned int		flags;
 	isc_mempool_t	       *epool;		/* memory pool for events */
 	isc_mempool_t	       *bpool;		/* memory pool for buffers */
 	isc_mempool_t	       *rpool;		/* memory pool request/reply */
@@ -969,9 +974,38 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp)
 
 #define ATTRMATCH(_a1, _a2, _mask) (((_a1) & (_mask)) == ((_a2) & (_mask)))
 
+static isc_boolean_t
+local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr)
+{
+	in_port_t port;
+
+	if (addr == NULL)
+		return (ISC_TRUE);
+
+	port = isc_sockaddr_getport(addr);
+	if (port == 0)
+		return (isc_sockaddr_eqaddr(&disp->local, addr));
+	else
+		return (isc_sockaddr_equal(&disp->local, addr));
+}
+
+static isc_boolean_t
+remote_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr)
+{
+	if (addr == NULL)
+		return (ISC_TRUE);
+
+	if ((disp->flags & DISPATCHFLAG_CONNECTED) == 0)
+		return (ISC_TRUE);
+
+	return (isc_sockaddr_equal(&disp->remote, addr));
+}
+
 isc_result_t
-dns_dispatchmgr_find(dns_dispatchmgr_t *mgr, unsigned int attributes,
-		      unsigned int mask, dns_dispatch_t **dispp)
+dns_dispatchmgr_find(dns_dispatchmgr_t *mgr,
+		     isc_sockaddr_t *local, isc_sockaddr_t *remote,
+		     unsigned int attributes, unsigned int mask,
+		     dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
 	isc_result_t result;
@@ -983,7 +1017,9 @@ dns_dispatchmgr_find(dns_dispatchmgr_t *mgr, unsigned int attributes,
 	disp = ISC_LIST_HEAD(mgr->list);
 	while (disp != NULL) {
 		if (!IS_PRIVATE(disp)
-		    && ATTRMATCH(disp->attributes, attributes, mask))
+		    && ATTRMATCH(disp->attributes, attributes, mask)
+		    && local_addr_match(disp, local)
+		    && remote_addr_match(disp, remote))
 			break;
 		disp = ISC_LIST_NEXT(disp, link);
 	}
@@ -1016,6 +1052,7 @@ dns_dispatch_create(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	isc_result_t res;
 	isc_sockettype_t socktype;
 	unsigned int i;
+	isc_sockaddr_t local;
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(sock != NULL);
@@ -1030,7 +1067,10 @@ dns_dispatch_create(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	REQUIRE(socktype == isc_sockettype_udp ||
 		socktype == isc_sockettype_tcp);
 
-	res = ISC_R_SUCCESS;
+	memset(&local, 0, sizeof local);
+	res = isc_socket_getsockname(sock, &local);
+	if (res != ISC_R_SUCCESS)
+		return (res);
 
 	disp = isc_mem_get(mgr->mctx, sizeof(dns_dispatch_t));
 	if (disp == NULL)
@@ -1049,6 +1089,11 @@ dns_dispatch_create(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	} else {
 		disp->recvs_wanted = 1;
 	}
+	memset(&disp->remote, 0, sizeof disp->remote);
+	res = isc_socket_getpeername(sock, &disp->remote);
+	if (res == ISC_R_SUCCESS)
+		disp->flags = DISPATCHFLAG_CONNECTED;
+	disp->local = local;
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
 	disp->shutdown_why = ISC_R_UNEXPECTED;
@@ -1758,3 +1803,19 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
 	UNLOCK(&disp->lock);
 	UNLOCK(&disp->mgr->lock);
 }
+
+#if 0
+void
+dns_dispatchmgr_dump(dns_dispatchmgr_t *mgr)
+{
+	dns_dispatch_t *disp;
+	char foo[1024];
+
+	disp = ISC_LIST_HEAD(mgr->list);
+	while (disp != NULL) {
+		sockaddr_format(&disp->local, foo, sizeof foo);
+		printf("dispatch %p, addr %s\n", disp, foo);
+		disp = ISC_LIST_NEXT(disp, link);
+	}
+}
+#endif
