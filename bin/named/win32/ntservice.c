@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.4 2001/09/01 05:27:46 mayer Exp $ */
+/* $Id: ntservice.c,v 1.5 2002/02/02 00:56:40 mayer Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -135,6 +135,7 @@ ServiceControl(DWORD dwCtrlCode) {
 		UpdateSCM(0);
 		break;
 
+        case SERVICE_CONTROL_SHUTDOWN:
         case SERVICE_CONTROL_STOP:
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
 		isc_app_shutdown();
