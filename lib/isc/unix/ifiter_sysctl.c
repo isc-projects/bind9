@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.12 2001/01/09 21:58:20 bwelling Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.13 2001/02/06 01:20:46 bwelling Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -165,6 +165,7 @@ internal_current(isc_interfaceiter_t *iter) {
 		if (namelen > sizeof(iter->current.name) - 1)
 			namelen = sizeof(iter->current.name) - 1;
 
+		memset(iter->current.name, 0, sizeof(iter->current.name));
 		memcpy(iter->current.name, sdl->sdl_data, namelen);
 
 		iter->current.flags = 0;

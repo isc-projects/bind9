@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.16 2001/01/09 21:58:19 bwelling Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.17 2001/02/06 01:20:45 bwelling Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -226,6 +226,7 @@ internal_current(isc_interfaceiter_t *iter) {
 	iter->current.af = family;
 
 	INSIST(sizeof(lifreq.lifr_name) <= sizeof(iter->current.name));
+	memset(iter->current.name, 0, sizeof(iter->current.name));
 	memcpy(iter->current.name, lifreq.lifr_name, sizeof(lifreq.lifr_name));
 
 	get_addr(family, &iter->current.address,
