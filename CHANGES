@@ -1,5 +1,5 @@
 
-	--- 9.2.2 released ---
+	--- 9.2.2rc1 released ---
 
 1354.	[bug]		nsupdate was extremely wasteful of memory.
 
