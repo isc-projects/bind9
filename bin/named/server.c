@@ -1201,12 +1201,25 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Ditto for IPv6.
 	 */
 	{
-		ns_listenlist_t *listenon = NULL;		
-		CHECK(ns_listenlist_default(ns_g_mctx, listen_port, &listenon));
-		ns_interfacemgr_setlistenon6(server->interfacemgr, listenon);
-		ns_listenlist_detach(&listenon);		
-	}
+		dns_c_lstnlist_t *clistenon = NULL;
+		ns_listenlist_t *listenon = NULL;
 
+		(void) dns_c_ctx_getv6listenlist(cctx, &clistenon);
+		if (clistenon != NULL) {
+			result = ns_listenlist_fromconfig(clistenon,
+							  cctx,
+							  &aclconfctx,
+							  ns_g_mctx,
+							  &listenon);
+		} else {
+			/* Not specified, use default. */
+			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
+						    &listenon));
+		}
+		ns_interfacemgr_setlistenon6(server->interfacemgr, listenon);
+		ns_listenlist_detach(&listenon);
+	}
+	
 	/*
 	 * Rescan the interface list to pick up changes in the
 	 * listen-on option.  It's important that we do this before we try
