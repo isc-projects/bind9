@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_ADDRESS_H
-#define DNS_ADDRESS_H
+#ifndef DNS_ADB_H
+#define DNS_ADB_H
 
 /***** 
  ***** Module Info 
@@ -455,4 +455,4 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_ADDRESS_H */
+#endif /* DNS_ADB_H */

@@ -35,7 +35,7 @@
 #include <isc/socket.h>
 #include <isc/net.h>
 
-#include <dns/address.h>
+#include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/master.h>
 #include <dns/name.h>

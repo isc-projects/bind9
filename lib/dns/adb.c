@@ -38,7 +38,7 @@
 #include <isc/mutexblock.h>
 #include <isc/random.h>
 
-#include <dns/address.h>
+#include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/name.h>
