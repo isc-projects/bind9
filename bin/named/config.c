@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.50 2004/08/28 05:42:12 marka Exp $ */
+/* $Id: config.c,v 1.51 2004/10/05 02:47:50 marka Exp $ */
 
 #include <config.h>
 
@@ -555,8 +555,8 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			if (new == NULL)
 				goto cleanup;
 			if (keycount != 0) {
-				memcpy(new, keys, newsize);
-				isc_mem_put(mctx, keys, newsize);
+				memcpy(new, keys, oldsize);
+				isc_mem_put(mctx, keys, oldsize);
 			}
 			keys = new;
 			keycount = newlen;
