@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.99 2001/01/22 20:41:43 bwelling Exp $ */
+/* $Id: rbt.c,v 1.100 2001/02/05 20:07:20 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -313,25 +313,25 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 {
 	dns_name_t nodename;
 	isc_result_t result = ISC_R_SUCCESS;
-	unsigned int i;
+	int i;
 
 	dns_name_init(&nodename, NULL);
-	dns_name_reset(name);
 
-	for (i = 0; i < chain->level_count; i++) {
+	if (include_chain_end && chain->end != NULL) {
+		NODENAME(chain->end, &nodename);
+		result = dns_name_copy(&nodename, name, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	} else
+		dns_name_reset(name);
+
+	for (i = (int)chain->level_count - 1; i >= 0; i--) {
 		NODENAME(chain->levels[i], &nodename);
-		result = dns_name_concatenate(&nodename, name, name, NULL);
+		result = dns_name_concatenate(name, &nodename, name, NULL);
 
 		if (result != ISC_R_SUCCESS)
-			break;
+			return (result);
 	}
-
-	if (result == ISC_R_SUCCESS &&
-	    include_chain_end && chain->end != NULL) {
-		NODENAME(chain->end, &nodename);
-		result = dns_name_concatenate(&nodename, name, name, NULL);
-	}
-
 	return (result);
 }
 
