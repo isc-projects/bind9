@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.122 2000/05/22 17:23:11 gson Exp $ */
+/* $Id: zone.c,v 1.123 2000/05/23 04:38:22 gson Exp $ */
 
 #include <config.h>
 
@@ -487,6 +487,8 @@ dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
 
 void
 dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
+	if (zone->view != NULL)
+		dns_view_weakdetach(&zone->view);
 	dns_view_weakattach(view, &zone->view);
 }
      

@@ -922,16 +922,21 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			dns_zone_detach(&zone);
 	}
 
-	/*
-	 * If we cannot reuse an existing zone, we will have to
-	 * create a new one.
-	 */
-	if (zone == NULL) {
+	if (zone != NULL) {
+		/*
+		 * We found a reusable zone.  Make it use the
+		 * new view.
+		 */
+		dns_zone_setview(zone, view);
+	} else {
+		/*
+		 * We cannot reuse an existing zone, we have
+		 * to create a new one.
+		 */
 		CHECK(dns_zone_create(&zone, lctx->mctx));
 		CHECK(dns_zone_setorigin(zone, origin));
 		dns_zone_setview(zone, view);
-		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
-					     zone));
+		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
 	}
 
 	/*
