@@ -224,6 +224,13 @@ isc_result_t	dns_c_iplist_remove(isc_log_t *lctx,
 void		dns_c_iplist_print(isc_log_t *lctx,
 				   FILE *fp, int indent,
 				   dns_c_iplist_t *list);
+isc_boolean_t	dns_c_iplist_equal(dns_c_iplist_t *list1,
+				   dns_c_iplist_t *list2);
 
+isc_boolean_t dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
+					 dns_c_ipmatchelement_t *e2);
+
+isc_boolean_t dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1,
+				      dns_c_ipmatchlist_t *l2);
 
 #endif /* DNS_CONFIG_CONFIP_H */
