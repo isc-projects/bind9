@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.30 2000/08/01 01:32:13 tale Exp $ */
+/* $Id: getaddrinfo.c,v 1.31 2000/08/02 16:08:41 tale Exp $ */
 
 #include <config.h>
 
@@ -245,15 +245,17 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 	    (family == 0 || (flags & AI_NUMERICHOST) != 0)) {
 		char abuf[sizeof(struct in6_addr)];
 		char nbuf[NI_MAXHOST];
-		char ntmp[NI_MAXHOST];
 		int addrsize, addroff;
-#if defined(LWRES_HAVE_SIN6_SCOPE_ID)
+#ifdef LWRES_HAVE_SIN6_SCOPE_ID
 		char *p, *ep;
+		char ntmp[NI_MAXHOST];
 		lwres_uint32_t scopeid;
 #endif
 
-#if defined(LWRES_HAVE_SIN6_SCOPE_ID)
-		/* scope identifier portion */
+#ifdef LWRES_HAVE_SIN6_SCOPE_ID
+		/*
+		 * Scope identifier portion.
+		 */
 		ntmp[0] = '\0';
 		if (strchr(hostname, '%') != NULL) {
 			strncpy(ntmp, hostname, sizeof(ntmp) - 1);
@@ -262,7 +264,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			ep = NULL;
 
 			/*
-			 * vendors may want to support non-numeric
+			 * Vendors may want to support non-numeric
 			 * scopeid around here.
 			 */
 
@@ -296,7 +298,8 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			addroff = (char *)(&SIN(0)->sin_addr) - (char *)0;
 			family = AF_INET;
 			goto common;
-		} else if (ntmp[0] != 0 &&
+#ifdef LWRES_HAVE_SIN6_SCOPE_ID
+		} else if (ntmp[0] != '\0' &&
 			   lwres_net_pton(AF_INET6, ntmp, abuf) != 0)
 		{
 			if (family && family != AF_INET6)
@@ -305,6 +308,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			addroff = (char *)(&SIN6(0)->sin6_addr) - (char *)0;
 			family = AF_INET6;
 			goto common;
+#endif
 		} else if (lwres_net_pton(AF_INET6, hostname, abuf) != 0) {
 			if (family != 0 && family != AF_INET6)
 				return (EAI_NONAME);
