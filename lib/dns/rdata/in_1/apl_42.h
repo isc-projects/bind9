@@ -18,7 +18,7 @@
 #ifndef IN_1_APL_42_H
 #define IN_1_APL_42_H 1
 
-/* $Id: apl_42.h,v 1.1 2002/03/06 07:41:25 marka Exp $ */
+/* $Id: apl_42.h,v 1.1.202.1 2003/08/20 04:47:23 marka Exp $ */
 
 typedef struct dns_rdata_apl_ent {
 	isc_boolean_t	negative;

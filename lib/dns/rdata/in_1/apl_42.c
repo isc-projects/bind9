@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.4 2002/08/01 03:31:44 mayer Exp $ */
+/* $Id: apl_42.c,v 1.4.200.1 2003/08/20 04:47:23 marka Exp $ */
 
 /* RFC 3123 */
 
@@ -53,7 +53,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		neg = ISC_TF(*cp == '!');
 		if (neg)
 			cp++;
-		afi = (isc_uint16_t) strtoul(cp, &ap, 10);
+		afi = strtoul(cp, &ap, 10);
 		if (*ap++ != ':' || cp == ap)
 			RETTOK(DNS_R_SYNTAX);
 		if (afi > 0xffff)
@@ -62,7 +62,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		if (slash == NULL || slash == ap)
 			RETTOK(DNS_R_SYNTAX);
 		*slash++ = '\0';
-		prefix = (isc_uint8_t) strtoul(slash, &cp, 10);
+		prefix = strtoul(slash, &cp, 10);
 		if (*cp != '\0' || slash == cp)
 			RETTOK(DNS_R_SYNTAX);
 		switch (afi) {
@@ -111,8 +111,7 @@ totext_in_apl(ARGS_TOTEXT) {
 	isc_uint8_t prefix;
 	isc_uint8_t len;
 	isc_boolean_t neg;
-	unsigned char buf[16];
-	char txt[sizeof(" !64000")];
+	char buf[16];
 	const char *sep = "";
 	int n;
 
@@ -135,10 +134,10 @@ totext_in_apl(ARGS_TOTEXT) {
 		neg = ISC_TF((*sr.base & 0x80) != 0);
 		isc_region_consume(&sr, 1);
 		INSIST(len <= sr.length);
-		n = snprintf(txt, sizeof(txt), "%s%s%u:", sep,
+		n = snprintf(buf, sizeof(buf), "%s%s%u:", sep,
 			     neg ? "!": "", afi);
-		INSIST(n < (int)sizeof(txt));
-		RETERR(str_totext(txt, target));
+		INSIST(n < (int)sizeof(buf));
+		RETERR(str_totext(buf, target));
 		switch (afi) {
 		case 1:
 			INSIST(len <= 4);
@@ -159,9 +158,9 @@ totext_in_apl(ARGS_TOTEXT) {
 		default:
 			return (ISC_R_NOTIMPLEMENTED);
 		}
-		n = snprintf(txt, sizeof(txt), "/%u", prefix);
-		INSIST(n < (int)sizeof(txt));
-		RETERR(str_totext(txt, target));
+		n = snprintf(buf, sizeof(buf), "/%u", prefix);
+		INSIST(n < (int)sizeof(buf));
+		RETERR(str_totext(buf, target));
 		isc_region_consume(&sr, len);
 		sep = " ";
 	}
