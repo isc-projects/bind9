@@ -32,7 +32,10 @@ print_lock(char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 }
 
 isc_result_t
-isc_rwlock_init(isc_rwlock_t *rwl) {
+isc_rwlock_init(isc_rwlock_t *rwl,
+		unsigned int read_quota,
+		unsigned int write_quota)
+{
 	isc_result_t result;
 
 	REQUIRE(rwl != NULL);
@@ -42,7 +45,12 @@ isc_rwlock_init(isc_rwlock_t *rwl) {
 	rwl->granted = 0;
 	rwl->readers_waiting = 0;
 	rwl->writers_waiting = 0;
-	rwl->read_quota = 5;		/* XXX */
+	if (read_quota == 0)
+		read_quota = 4;
+	rwl->read_quota = read_quota;
+	if (write_quota == 0)
+		write_quota = 4;
+	rwl->write_quota = write_quota;
 	result = isc_mutex_init(&rwl->lock);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -105,6 +113,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			if (!skip && rwl->active == 0) {
 				rwl->type = isc_rwlocktype_write;
 				rwl->active = 1;
+				rwl->granted++;
 				done = ISC_TRUE;
 			} else {
 				skip = ISC_FALSE;
@@ -135,19 +144,27 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 	rwl->active--;
 	if (rwl->active == 0) {
-		rwl->granted = 0;
 		if (rwl->type == isc_rwlocktype_read) {
+			rwl->granted = 0;
 			if (rwl->writers_waiting > 0) {
 				rwl->type = isc_rwlocktype_write;
 				SIGNAL(&rwl->writeable);
 			} else if (rwl->readers_waiting > 0) {
+				/* Does this case ever happen? */
 				BROADCAST(&rwl->readable);
 			}
 		} else {
 			if (rwl->readers_waiting > 0) {
-				rwl->type = isc_rwlocktype_read;
-				BROADCAST(&rwl->readable);
+				if (rwl->writers_waiting > 0 &&
+				    rwl->granted < rwl->write_quota) {
+					SIGNAL(&rwl->writeable);
+				} else {
+					rwl->granted = 0;
+					rwl->type = isc_rwlocktype_read;
+					BROADCAST(&rwl->readable);
+				}
 			} else if (rwl->writers_waiting > 0) {
+				rwl->granted = 0;
 				SIGNAL(&rwl->writeable);
 			}
 		}

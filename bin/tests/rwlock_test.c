@@ -79,14 +79,14 @@ main(int argc, char *argv[]) {
 		nworkers = 24;
 	printf("%d workers\n", nworkers);
 
-	INSIST(isc_rwlock_init(&lock) == ISC_R_SUCCESS);
+	INSIST(isc_rwlock_init(&lock, 5, 10) == ISC_R_SUCCESS);
 
 	for (i = 0; i < nworkers; i++) {
 		sprintf(name, "%02u", i);
 		dupname = strdup(name);
 		INSIST(dupname != NULL);
 		if (i != 0 && i % 3 == 0)
-			INSIST(isc_thread_create(run2, dupname, &workers[i]) ==
+			INSIST(isc_thread_create(run1, dupname, &workers[i]) ==
 			       ISC_R_SUCCESS);
 		else
 			INSIST(isc_thread_create(run1, dupname, &workers[i]) ==
