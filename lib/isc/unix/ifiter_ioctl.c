@@ -85,9 +85,18 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 		
 		iter->ifc.ifc_len = iter->bufsize;
 		iter->ifc.ifc_buf = iter->buf;
-		if (ioctl(iter->socket, SIOCGIFCONF, (char *) &iter->ifc) >= 0)
-		{
+		if (ioctl(iter->socket, SIOCGIFCONF, (char *) &iter->ifc) < 0) {
+			if (errno != EINVAL) {
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+						 "get interface configuration: %s",
+						 strerror(errno));
+				result = ISC_R_UNEXPECTED;
+				goto ioctl_failure;
+			}
+			/* EINVAL.  Retry with a bigger buffer. */
+		} else {
 			/*
+			 * The ioctl succeeded.
 			 * Some OS's just return what will fit rather
 			 * than set EINVAL if the buffer is too small
 			 * to fit all the interfaces in.  If
@@ -99,14 +108,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 			    < iter->bufsize) 
 				break;
 		}
-		if (errno != EINVAL) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "get interface configuration: %s",
-					 strerror(errno));
-			result = ISC_R_UNEXPECTED;
-			goto ioctl_failure;
-		}
-
 		if (iter->bufsize >= IFCONF_BUFSIZE_MAX) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__, 
 					 "get interface configuration: "
