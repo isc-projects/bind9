@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999 Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,9 +17,19 @@
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
+
+/***
+ ***	Imports
+ ***/
+
+#include <stdio.h>
 #include <dns/types.h>
 #include <dns/result.h>
  
+/***
+ ***	Types
+ ***/
+
 typedef struct dns_rdatacallbacks {
 	/* dns_load_master calls this when it has rdatasets to commit */
 	dns_result_t	(*commit)(struct dns_rdatacallbacks *,
@@ -33,5 +43,18 @@ typedef struct dns_rdatacallbacks {
 	void		*error_private;
 	void		*warn_private;
 } dns_rdatacallbacks_t;
+
+/***
+ ***	Initialization
+ ***/
+
+void dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
+
+/*
+ * Make 'callbacks' empty.
+ *
+ * Requires:
+ *      'callbacks' is a valid dns_rdatacallbacks_t,
+ */
 
 #endif /* DNS_CALLBACKS_H */
