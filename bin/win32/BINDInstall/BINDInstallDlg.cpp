@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6 2001/07/31 00:03:13 gson Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.1 2001/08/30 20:27:55 gson Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -191,29 +191,6 @@ BOOL CBINDInstallDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	HANDLE hToken; 
-	TOKEN_PRIVILEGES tkp; 
-	BOOL adjustedPrivileges = FALSE;
-	
-	if(OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
-	{ 
-		LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &tkp.Privileges[0].Luid); 
-		tkp.PrivilegeCount = 1;
-		tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; 
- 
-		AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0); 
- 
-		if(GetLastError() == ERROR_SUCCESS) 
-		{ 
-			adjustedPrivileges = TRUE;
-		}
-	}
-		 
-	if(!adjustedPrivileges)
-	{
-		MsgBox(IDS_BAD_PRIVILEGES, MB_OK);
-		EndDialog(1);
-	}
 	// Set the icon for this dialog.  The framework does this automatically
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
