@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.39 2000/01/26 21:12:03 halley Exp $ */
+ /* $Id: xfrin.c,v 1.40 2000/01/28 01:12:01 gson Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,8 @@ struct xfrin_ctx {
 	 */
 	dns_rdatatype_t 	reqtype;
 
-	isc_sockaddr_t 		master;
+	isc_sockaddr_t 		masteraddr;
+	isc_sockaddr_t		sourceaddr;
 	isc_socket_t 		*socket;
 
 	/* Buffer for IXFR/AXFR request message */
@@ -176,7 +177,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
-	     isc_sockaddr_t *master,
+	     isc_sockaddr_t *masteraddr,
 	     dns_tsigkey_t *tsigkey,
 	     xfrin_ctx_t **xfrp);
 
@@ -213,10 +214,10 @@ static void xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg);
 static isc_result_t render(dns_message_t *msg, isc_buffer_t *buf);
 
 static void
-xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *master, 
+xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr, 
 	   const char *fmt, va_list ap);
 static void
-xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *master,
+xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 	   const char *fmt, ...);
 static void
 xfrin_log(xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...);
@@ -490,7 +491,7 @@ xfr_rr(xfrin_ctx_t *xfr,
 }
 
 void
-dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
+dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 		isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		dns_xfrindone_t done)
@@ -505,7 +506,7 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 
 	zonename = dns_zone_getorigin(zone);
 
-	xfrin_log1(ISC_LOG_INFO, zonename, master, "starting");
+	xfrin_log1(ISC_LOG_INFO, zonename, masteraddr, "starting");
 
 	result = dns_zone_getdb(zone, &db);
 	if (result == DNS_R_NOTLOADED)
@@ -518,12 +519,12 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 	isc_task_setname(task, "xfrin", zone);
 	
 	if (db == NULL) {
-		xfrin_log1(ISC_LOG_DEBUG(3), zonename, master,
+		xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
 			   "no database exists yet, "
 			   "requesting AXFR of initial version");
 		xfrtype = dns_rdatatype_axfr;
 	} else {
-		xfrin_log1(ISC_LOG_DEBUG(3), zonename, master,
+		xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
 			  "database exists, trying IXFR");
 		xfrtype = dns_rdatatype_ixfr;
 	}
@@ -537,7 +538,7 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 			   done,
 			   zonename,
 			   dns_zone_getclass(zone), xfrtype,
-			   master, key, &xfr));
+			   masteraddr, key, &xfr));
 
 	xfrin_start(xfr);
 	goto cleanup;
@@ -550,7 +551,7 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 	if (db != NULL)
 		dns_db_detach(&db);
 	if (result != DNS_R_SUCCESS)
-		xfrin_log1(ISC_LOG_ERROR, zonename, master,
+		xfrin_log1(ISC_LOG_ERROR, zonename, masteraddr,
 			   "zone transfer setup failed");
 	return;
 }
@@ -587,7 +588,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
-	     isc_sockaddr_t *master,
+	     isc_sockaddr_t *masteraddr,
 	     dns_tsigkey_t *tsigkey,
 	     xfrin_ctx_t **xfrp)
 {
@@ -655,8 +656,10 @@ xfrin_create(isc_mem_t *mctx,
 			       NULL, &interval, task,
 			       xfrin_timeout, xfr, &xfr->timer));
 
-	xfr->master = *master;
-
+	xfr->masteraddr = *masteraddr;
+	/* XXX global, too */
+	xfr->sourceaddr = *dns_zone_getxfrsource(zone);
+	
 	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
 			sizeof(xfr->qbuffer_data),
 			ISC_BUFFERTYPE_BINARY);
@@ -673,10 +676,11 @@ void
 xfrin_start(xfrin_ctx_t *xfr) {
 	isc_result_t result;
 	CHECK(isc_socket_create(xfr->socketmgr,
-				isc_sockaddr_pf(&xfr->master),
+				isc_sockaddr_pf(&xfr->masteraddr),
 				isc_sockettype_tcp,
 				&xfr->socket));
-	CHECK(isc_socket_connect(xfr->socket, &xfr->master, xfr->task,
+	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr));
+	CHECK(isc_socket_connect(xfr->socket, &xfr->masteraddr, xfr->task,
 				 xfrin_connect_done, xfr));
 	xfr->connects++;
 	return;
@@ -1116,7 +1120,7 @@ maybe_free(xfrin_ctx_t *xfr) {
  * transfer of <zone> from <address>: <message> 
  */
 static void
-xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *master, 
+xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr, 
 	   const char *fmt, va_list ap)
 {
 	isc_buffer_t znbuf;
@@ -1136,7 +1140,7 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *master,
 	
 	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem),
 			ISC_BUFFERTYPE_TEXT);
-	result = isc_sockaddr_totext(master, &masterbuf);
+	result = isc_sockaddr_totext(masteraddr, &masterbuf);
 	if (result != ISC_R_SUCCESS)
 		strcpy(masterbuf.base, "<UNKNOWN>");
 
@@ -1151,12 +1155,12 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *master,
 /* Logging function for use when a xfin_ctx_t has not yet been created. */
 
 static void
-xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *master, 
+xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr, 
 	   const char *fmt, ...)
 {
         va_list ap;
 	va_start(ap, fmt);
-	xfrin_logv(level, zonename, master, fmt, ap);
+	xfrin_logv(level, zonename, masteraddr, fmt, ap);
 	va_end(ap);
 }
 
@@ -1167,6 +1171,6 @@ xfrin_log(xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 {
         va_list ap;
 	va_start(ap, fmt);
-	xfrin_logv(level, &xfr->name, &xfr->master, fmt, ap);
+	xfrin_logv(level, &xfr->name, &xfr->masteraddr, fmt, ap);
 	va_end(ap);
 }
