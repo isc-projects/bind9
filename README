@@ -44,16 +44,12 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0rc6
+BIND 9.0.0
 
-	BIND 9.0.0rc6 is a release candidate for the upcoming 
-	9.0.0 release.  The only changes expected between
-	rc5 and the final release are bug fixes and documentation
-	updates.
-
-	The 9.0.0 release, and this release candidate, is aimed at
-	early adopters and those who wish to make use of new 9.0
-	features, such as IPv6 and DNSSEC secure resolution support.
+	BIND 9.0.0 is the first "general availability" release of BIND
+	version 9. It is aimed at early adopters and those who wish to 
+	make use of new 9.0 features, such as IPv6 and DNSSEC secure 
+	resolution support.
 
 	We are running BIND 9 in production, and it has been used
 	as a root name server.
@@ -78,9 +74,6 @@ BIND 9.0.0rc6
 	This part of the DNSSEC implementation is still considered
 	experimental.  For detailed information about the state of the
 	DNSSEC implementation, see the file doc/misc/dnssec.
-
-	A number of bugs found in rc5 have been fixed.  For a 
-	detailed list of user-visible changes, see the CHANGES file.
 
 	There are a few known bugs:
 
@@ -110,6 +103,7 @@ BIND 9.0.0rc6
 		to the FreeBSD maintainers.  A similar problem is
 		reported to exist on OpenBSD.
 
+		The configure option --disable-ipv6 is not functional.
 
 Building
 
