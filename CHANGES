@@ -1,3 +1,6 @@
+1817.	[bug]		The validator needed to check both the algorithm and
+			digest types of the DS to determine if it could be
+			used to introduce a secure zone. [RT #13593]
 
 	--- 9.3.1rc1 released ---
 
