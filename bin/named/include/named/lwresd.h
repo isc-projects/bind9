@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.2 2000/06/22 21:49:46 tale Exp $ */
+/* $Id: lwresd.h,v 1.3 2000/06/28 00:06:25 bwelling Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1
@@ -33,13 +33,11 @@ struct ns_lwresd {
 	dns_view_t *view;
 	isc_mem_t *mctx;
 	isc_task_t *task;
+	dns_dispatchmgr_t *dispmgr;
 };
 
 void
 ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp);
-
-isc_result_t
-ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp);
 
 void
 ns_lwresd_destroy(ns_lwresd_t **lwresdp);
