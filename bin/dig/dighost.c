@@ -15,8 +15,6 @@
  * SOFTWARE.
  */
 
-#define MEMDEBUG
-
 #include <config.h>
 
 #include <errno.h>
@@ -238,7 +236,6 @@ setup_libs(void) {
 
 	result = isc_socketmgr_create (mctx, &socketmgr);
 	check_result(result, "isc_socketmgr_create");
-
 	isc_buffer_init(&b, ".", 1);
 	isc_buffer_add(&b, 1);
 	dns_name_init(&rootorg, NULL);
@@ -377,7 +374,7 @@ cancel_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query;
 
 #ifdef DEBUG
-	fputs("Cancelling all queries", stderr);
+	fputs("Cancelling all queries\n", stderr);
 #endif
 	if (!lookup->pending)
 		return;
@@ -405,6 +402,9 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
 
+#ifdef DEBUG
+	fputs ("Buffer Allocate connect_timeout\n",stderr);
+#endif
 	result = isc_buffer_allocate(mctx, &b, 256);
 	check_result(result, "isc_buffer_allocate");
 	for (q = ISC_LIST_HEAD(lookup->q);
@@ -442,7 +442,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 #ifdef DEBUG
-	fputs("In tcp_length_done", stderr);
+	fputs("In tcp_length_done\n", stderr);
 #endif
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	sevent = (isc_socketevent_t *)event;	
@@ -457,6 +457,9 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	if (sevent->result != ISC_R_SUCCESS) {
+#ifdef DEBUG
+		fputs ("Buffer Allocate connect_timeout\n",stderr);
+#endif
 		result = isc_buffer_allocate(mctx, &b, 256);
 		check_result(result, "isc_buffer_allocate");
 		result = isc_sockaddr_totext(&query->sockaddr, b);
@@ -500,7 +503,8 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 
 	if (!query->lookup->pending) {
 #ifdef DEBUG
-		fputs("Ignoring launch_next_query because !pending.", stderr);
+		fputs("Ignoring launch_next_query because !pending.\n",
+		      stderr);
 #endif
 		isc_socket_detach(&query->sock);
 		query->working = ISC_FALSE;
@@ -523,7 +527,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	check_result(result, "isc_socket_recvv");
 	sendcount++;
 #ifdef DEBUG
-	fputs("Sending a request.", stderr);
+	fputs("Sending a request.\n", stderr);
 #endif
 	result = isc_socket_sendv(query->sock, &query->sendlist, task,
 				  send_done, query);
@@ -552,9 +556,12 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	query->waiting_connect = ISC_FALSE;
 
 #ifdef DEBUG
-	fputs("In connect_done.", stderr);
+	fputs("In connect_done.\n", stderr);
 #endif
 	if (sevent->result != ISC_R_SUCCESS) {
+#ifdef DEBUG
+		fputs ("Buffer Allocate connect_timeout\n",stderr);
+#endif
 		result = isc_buffer_allocate(mctx, &b, 256);
 		check_result(result, "isc_buffer_allocate");
 		result = isc_sockaddr_totext(&query->sockaddr, b);
@@ -584,7 +591,7 @@ msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
 				      0, &name, NULL);
 	if (result == ISC_R_SUCCESS) {
 #ifdef DEBUG
-		fputs("Found SOA", stderr);
+		fputs("Found SOA\n", stderr);
 #endif
 		return (ISC_TRUE);
 	} else {
@@ -625,7 +632,13 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 #endif
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
+#ifdef DEBUG
+		fputs ("Starting the cancel\n",stderr);
+#endif
 		cancel_lookup(query->lookup);
+#ifdef DEBUG
+		fputs ("Starting the check\n",stderr);
+#endif
 		check_next_lookup(query->lookup);
 		isc_event_free(&event);
 		return;
@@ -652,7 +665,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		}
 #ifdef DEBUG
 		if (query->lookup->pending)
-			fputs("Still pending.", stderr);
+			fputs("Still pending.\n", stderr);
 #endif
 		if (query->lookup->doing_xfr) {
 			if (!query->first_soa_rcvd) {
@@ -660,8 +673,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					puts("; Transfer failed.  "
 					     "Didn't start with SOA answer.");
 					query->working = ISC_FALSE;
-					check_next_lookup(query->lookup);
-					isc_event_free(&event);
+					cancel_lookup(query->lookup);
+					check_next_lookup (query->lookup);
+					isc_event_free (&event);
+					dns_message_destroy (&msg);
 					return;
 				}
 				else {
@@ -675,6 +690,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					query->working = ISC_FALSE;
 					check_next_lookup(query->lookup);
 					isc_event_free(&event);
+					dns_message_destroy (&msg);
 					return;
 				}
 				else {
@@ -742,7 +758,7 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 	isc_result_t result;
 
 #ifdef DEBUG
-	fputs("Starting a TCP lookup", stderr);
+	fputs("Starting a TCP lookup\n", stderr);
 #endif
 	lookup->pending = ISC_TRUE;
 	isc_interval_set(&lookup->interval, timeout, 0);
@@ -774,7 +790,7 @@ do_lookup_udp(dig_lookup_t *lookup) {
 	isc_result_t result;
 
 #ifdef DEBUG
-	fputs("Starting a UDP lookup.", stderr);
+	fputs("Starting a UDP lookup.\n", stderr);
 #endif
 	lookup->pending = ISC_TRUE;
 	isc_interval_set(&lookup->interval, timeout, 0);
@@ -836,9 +852,9 @@ free_lists(void) {
 			isc_mem_free(mctx, ptr);
 		}
 		if (l->sendmsg != NULL)
-			dns_message_destroy(&l->sendmsg);
+			dns_message_destroy (&l->sendmsg);
 		if (l->timer != NULL)
-			isc_timer_detach(&l->timer);
+			isc_timer_detach (&l->timer);
 		ptr = l;
 		l = ISC_LIST_NEXT(l, link);
 		isc_mem_free(mctx, ptr);

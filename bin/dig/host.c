@@ -77,7 +77,8 @@ extern isc_buffer_t rootbuf;
 extern int sendcount;
 
 isc_boolean_t short_form=ISC_TRUE,
-	filter=ISC_FALSE;
+	filter=ISC_FALSE,
+	showallsoa=ISC_FALSE;
 
 static char *opcodetext[] = {
 	"QUERY",
@@ -117,6 +118,50 @@ static char *rcodetext[] = {
 	"RESERVED15",
 	"BADVERS"
 };
+
+static char *rtypetext[] = {
+	"zero",				/* 0 */
+	"has address",			/* 1 */
+	"name server",			/* 2 */
+	"MD",				/* 3 */
+	"MF",				/* 4 */
+	"is an alias for",		/* 5 */
+	"start of authority",		/* 6 */
+	"MB",				/* 7 */	
+	"MG",				/* 8 */
+	"MR",				/* 9 */
+	"NULL",				/* 10 */
+	"has well known services",	/* 11 */
+	"domain name pointer",		/* 12 */
+	"host information",		/* 13 */
+	"MINFO",			/* 14 */
+	"mail is handled by",	       	/* 15 */
+	"text",				/* 16 */
+	"RP",				/* 17 */
+	"AFSDB",			/* 18 */
+	"x25 address",			/* 19 */
+	"isdn address",			/* 20 */
+	"RT"				/* 21 */
+	"NSAP",				/* 22 */
+	"NSAP_PTR",			/* 23 */
+	"has signature",		/* 24 */
+	"has key",			/* 25 */
+	"PX",				/* 26 */
+	"GPOS",				/* 27 */
+	"has AAAA address",		/* 28 */
+	"LOC",				/* 29 */
+	"has next record",		/* 30 */
+	"has 31 record",		/* 31 */
+	"has 32 record",		/* 32 */
+	"SRV",				/* 33 */
+	"has 34 record",		/* 34 */
+	"NAPTR",			/* 35 */
+	"KX",				/* 36 */
+	"CERT",				/* 37 */
+	"has v6 address",		/* 38 */
+	"DNAME",			/* 39 */
+	"has 40 record",       		/* 40 */
+	"has optional information"};	/* 41 */
 
 void
 check_next_lookup (dig_lookup_t *lookup) {
@@ -165,17 +210,25 @@ show_usage() {
 }				
 
 static void
-say_message(char *host, char *msg, dns_rdata_t *rdata, isc_buffer_t *target) {
-	isc_region_t r;
+say_message(dns_name_t *name, char *msg, dns_rdata_t *rdata) {
+	isc_buffer_t *b, *b2;
+	isc_region_t r, r2;
 	isc_result_t result;
 
-	result = dns_rdata_totext( rdata, NULL, target);
+	isc_buffer_allocate(mctx, &b, BUFSIZE);
+	isc_buffer_allocate(mctx, &b2, BUFSIZE);
+	result = dns_name_totext(name, ISC_TRUE, b);
+	check_result(result, "dns_name_totext");
+	isc_buffer_usedregion(b, &r);
+	result = dns_rdata_totext(rdata, NULL, b2);
 	check_result(result, "dns_rdata_totext");
-	isc_buffer_usedregion(target, &r);
-	printf ( "%s %s %.*s\n", host, msg, (int)r.length,
-		 (char *)r.base);
-}				
-	
+	isc_buffer_usedregion(b2, &r2);
+	printf ( "%.*s %s %.*s\n", (int)r.length, (char *)r.base,
+		 msg, (int)r2.length, (char *)r2.base);
+	isc_buffer_free(&b);
+	isc_buffer_free(&b2);
+}
+
 
 static isc_result_t
 printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
@@ -191,6 +244,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 	char t[4096];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
+	char *rtt;
 	
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
@@ -237,24 +291,19 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
-					if (rdata.type == dns_rdatatype_a) {
-						say_message ("Something",
-							     "has address",
-							     &rdata,
-							     &target);
-					} else if 
-					  (rdata.type == dns_rdatatype_mx) {
-						say_message ("Something",
-							     "mail server",
-							     &rdata,
-							     &target);
-					} else if 
-					  (rdata.type == dns_rdatatype_ns) {
-						say_message ("Something",
-							     "name server",
-							     &rdata,
-							     &target);
-					}
+					if (rdata.type <= 41)
+						rtt=rtypetext[rdata.type];
+					else if (rdata.type == 103)
+						rtt="unspecified data";
+					else if (rdata.type == 249)
+						rtt="key";
+					else if (rdata.type == 250)
+						rtt="signature";
+					else
+						rtt="unknown";
+					say_message(print_name,
+						    rtypetext[rdata.type],
+						    &rdata);
 					loopresult = dns_rdataset_next(
 								 rdataset);
 				}
@@ -311,6 +360,11 @@ printmessage(dns_message_t *msg, isc_boolean_t headers) {
 	dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
 
+	if (msg->rcode != 0) {
+		printf ("Host not found: %d(%s)\n",
+			msg->rcode, rcodetext[msg->rcode]);
+		return (ISC_R_SUCCESS);
+	}
 	if (!short_form) {
 		printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
 		       opcodetext[msg->opcode], rcodetext[msg->rcode],
@@ -413,11 +467,12 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char hostname[MXNAME];
 	char servname[MXNAME];
 	char querytype[32]="a";
+	char queryclass[32]="in";
 	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int c;
 
-	while ((c = isc_commandline_parse(argc, argv,"lvwrdt:a")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv,"lvwrdt:aC")) != EOF) {
 		switch (c) {
 		case 'l':
 			tcp_mode = ISC_TRUE;
@@ -435,6 +490,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		case 't':
 			strncpy (querytype, isc_commandline_argument, 32);
 			break;
+		case 'c':
+			strncpy (queryclass, isc_commandline_argument, 32);
+			break;
 		case 'a':
 			strcpy (querytype, "any");
 			short_form = ISC_FALSE;
@@ -443,6 +501,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			/* XXXMWS This should be a system-indep.
 			   thing! */
 			timeout = 32767;
+			break;
+		case 'C':
+			showallsoa = ISC_TRUE;
 			break;
 		}
 	}
@@ -469,7 +530,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->pending = ISC_FALSE;
 	strncpy (lookup->textname, hostname, MXNAME);
 	strncpy (lookup->rttext, querytype, 32);
-	strcpy (lookup->rctext,"in");
+	strncpy (lookup->rctext,queryclass, 32);
 	lookup->namespace[0]=0;
 	lookup->sendspace[0]=0;
 	lookup->sendmsg=NULL;

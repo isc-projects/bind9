@@ -126,14 +126,14 @@ check_next_lookup(dig_lookup_t *lookup) {
 	isc_boolean_t still_working=ISC_FALSE;
 	
 #ifdef DEBUG
-	fputs("In check_next_lookup",stderr);
+	fputs("In check_next_lookup\n",stderr);
 #endif
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
 #ifdef DEBUG
-			fputs("Still have a worker.",stderr);
+			fputs("Still have a worker.\n",stderr);
 #endif
 			still_working=ISC_TRUE;
 		}
@@ -144,7 +144,7 @@ check_next_lookup(dig_lookup_t *lookup) {
 	next = ISC_LIST_NEXT(lookup, link);
 	if (next == NULL) {
 #ifdef DEBUG
-		fputs("Shutting Down.",stderr);
+		fputs("Shutting Down.\n",stderr);
 #endif
 		isc_app_shutdown();
 		return;
