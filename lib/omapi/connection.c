@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.23 2000/04/28 03:53:48 tale Exp $ */
+/* $Id: connection.c,v 1.24 2000/05/03 18:25:52 gson Exp $ */
 
 /* Principal Author: DCL */
 
@@ -1025,7 +1025,7 @@ omapi_connection_putname(omapi_object_t *c, const char *name) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	return (omapi_connection_putmem(c, (char *)name, len));
+	return (omapi_connection_putmem(c, (unsigned char *)name, len));
 }
 
 isc_result_t
@@ -1041,7 +1041,8 @@ omapi_connection_putstring(omapi_object_t *c, const char *string) {
 	result = omapi_connection_putuint32(c, len);
 
 	if (result == ISC_R_SUCCESS && len > 0)
-		result = omapi_connection_putmem(c, (char *)string, len);
+		result = omapi_connection_putmem(c, (unsigned char *)string,
+						 len);
 	return (result);
 }
 

@@ -78,7 +78,8 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	lwres_buffer_putuint32(b, req->flags);
 	lwres_buffer_putuint32(b, req->addr.family);
 	lwres_buffer_putuint16(b, req->addr.length);
-	lwres_buffer_putmem(b, req->addr.address, req->addr.length);
+	lwres_buffer_putmem(b, (unsigned char *)req->addr.address, 
+			    req->addr.length);
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
@@ -139,14 +140,15 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	/* encode the real name */
 	datalen = req->realnamelen;
 	lwres_buffer_putuint16(b, datalen);
-	lwres_buffer_putmem(b, req->realname, datalen);
+	lwres_buffer_putmem(b, (unsigned char *)req->realname, datalen);
 	lwres_buffer_putuint8(b, 0);
 
 	/* encode the aliases */
 	for (x = 0 ; x < req->naliases ; x++) {
 		datalen = req->aliaslen[x];
 		lwres_buffer_putuint16(b, datalen);
-		lwres_buffer_putmem(b, req->aliases[x], datalen);
+		lwres_buffer_putmem(b, (unsigned char *)req->aliases[x],
+				    datalen);
 		lwres_buffer_putuint8(b, 0);
 	}
 

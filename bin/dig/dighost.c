@@ -257,7 +257,7 @@ setup_system(void) {
 							fatal("Memory "
 							      "allocation "
 							      "failure.");
-							strncpy(srv->
+							strncpy((char *)srv->
 								servername,
 								ptr,
 								MXNAME - 1);
@@ -482,7 +482,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 					if (srv == NULL)
 						fatal("Memory allocation "
 						      "failure.");
-					strncpy(srv->servername, r.base,
+					strncpy(srv->servername, (char *)r.base,
 						len);
 					srv->servername[len]=0;
 					ISC_LIST_APPEND
@@ -1166,8 +1166,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					check_result(result,
 						     "isc_sockaddr_totext");
 					isc_buffer_usedregion(&ab, &r);
-					received(b->used, r.length, r.base,
-						 query);
+					received(b->used, r.length,
+						 (char *)r.base, query);
 					cancel_lookup(query->lookup);
 					query->working = ISC_FALSE;
 					check_next_lookup(query->lookup);
@@ -1189,7 +1189,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 							     &ab);
 				check_result(result, "isc_sockaddr_totext");
 				isc_buffer_usedregion(&ab, &r);
-				received(b->used, r.length, r.base, query);
+				received(b->used, r.length, (char *)r.base,
+					 query);
 			}
 			query->working = ISC_FALSE;
 			cancel_lookup(query->lookup);

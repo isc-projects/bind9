@@ -594,7 +594,7 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	result = dns_db_create(mctx, "rbt", name, ISC_FALSE, dns_db_class(db),
 			       0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
-	result = dns_db_load(newdb, filename);
+	result = dns_db_load(newdb, (char *)filename);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 	result = dns_db_findnode(newdb, name, ISC_FALSE, &newnode);
@@ -673,7 +673,7 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 	result = dns_db_create(mctx, "rbt", name, ISC_FALSE, dns_db_class(db),
 			       0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
-	result = dns_db_load(newdb, filename);
+	result = dns_db_load(newdb, (char *)filename);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 	result = dns_db_findnode(newdb, name, ISC_FALSE, &newnode);
