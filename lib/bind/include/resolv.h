@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.12 2001/11/01 05:09:41 marka Exp $
+ *	$Id: resolv.h,v 1.13 2001/11/02 23:23:34 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -179,7 +179,7 @@ struct __res_state {
 	u_int	_flags;			/* PRIVATE: see below */
 	union {
 		/* On an 32-bit arch this means 512b total. */
-		char	pad[80 - 3*sizeof (int) - 2*sizeof (void *)];
+		char	pad[72 - 3*sizeof (int) - 2*sizeof (void *)];
 		struct {
 			u_int16_t		nscount;
 			u_int16_t		nstimes[MAXNS];	/* ms. */
