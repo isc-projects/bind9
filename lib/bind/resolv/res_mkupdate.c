@@ -21,7 +21,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_mkupdate.c,v 1.4 2004/03/18 02:58:02 marka Exp $";
+static const char rcsid[] = "$Id: res_mkupdate.c,v 1.5 2004/06/03 04:43:34 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -350,13 +350,13 @@ res_nmkupdate(res_state statp, ns_updrec *rrecp_in, u_char *buf, int buflen) {
 				bm[i] = 0;
 
 			while (getword_str(buf2, sizeof buf2, &startp, endp)) {
-				if ((n1 = res_servicenumber(buf2)) <= 0)
+				if ((n = res_servicenumber(buf2)) <= 0)
 					return (-1);
 
-				if (n1 < MAXPORT) {
-					bm[n1/8] |= (0x80>>(n1%8));
-					if (n1 > maxbm)
-						maxbm = n1;
+				if (n < MAXPORT) {
+					bm[n/8] |= (0x80>>(n%8));
+					if ((unsigned)n > maxbm)
+						maxbm = n;
 				} else
 					return (-1);
 			}
