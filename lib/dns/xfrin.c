@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.79.2.6 2000/09/01 01:06:06 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.79.2.7 2000/12/05 18:59:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -406,6 +406,11 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
  redo:
 	switch (xfr->state) {
 	case XFRST_SOAQUERY:
+		if (rdata->type != dns_rdatatype_soa) {
+			xfrin_log(xfr, ISC_LOG_ERROR,
+				  "non-SOA response to SOA query");
+			FAIL(DNS_R_FORMERR);
+		}
 		xfr->end_serial = dns_soa_getserial(rdata);
 		if (!DNS_SERIAL_GT(xfr->end_serial,
 				   xfr->ixfr.request_serial)) {
