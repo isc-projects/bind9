@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.193 2002/02/11 04:03:51 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.194 2002/03/11 00:46:35 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4012,12 +4012,9 @@ they are not combined &mdash; the last one applies.</para>
 
 <note>
 <simpara>The <command>rrset-order</command> statement
-is not yet implemented in <acronym>BIND</acronym> 9.
-BIND 9 currently supports only a "random-cyclic" ordering,
-where the server randomly chooses a starting point within
-the RRset and returns the records in order starting at
-that point, wrapping around the end of the RRset if 
-necessary.</simpara></note>
+is not yet fully implemented in <acronym>BIND</acronym> 9.
+BIND 9 currently does not support "fixed" ordering.
+</simpara></note>
 </sect3>
 
 <sect3 id="synthesis"><title>Synthetic IPv6 responses</title>
