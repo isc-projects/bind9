@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.18.2.1 2000/06/28 16:50:01 gson Exp $ */
+/* $Id: os.c,v 1.18.2.2 2000/07/10 21:35:38 gson Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,9 @@ static pid_t mainpid = 0;
 static isc_boolean_t non_root_caps = ISC_FALSE;
 static isc_boolean_t non_root = ISC_FALSE;
 #endif
+
+static struct passwd *runas_pw = NULL;
+static isc_boolean_t done_setuid = ISC_FALSE;
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
@@ -108,15 +111,19 @@ linux_initialprivs(void) {
 #if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
 	/*
 	 * If the kernel supports keeping capabilities after setuid(), we
-	 * also want the setuid and setgid capabilities.
+	 * also want the setuid capability.
 	 *
-	 * There's no point turning these on if we don't have PR_SET_KEEPCAPS,
+	 * There's no point turning this on if we don't have PR_SET_KEEPCAPS,
 	 * because changing user ids only works right with linuxthreads if
 	 * we can do it early (before creating threads).
 	 */
-	caps |= (1 << CAP_SETGID);
 	caps |= (1 << CAP_SETUID);
 #endif
+
+	/*
+	 * Since we call initgroups, we need this.
+	 */
+	caps |= (1 << CAP_SETGID);
 
 	/*
 	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not
@@ -260,11 +267,32 @@ ns_os_chroot(const char *root) {
 }
 
 void
-ns_os_changeuser(const char *username) {
-	struct passwd *pw;
-
-	if (username == NULL || getuid() != 0)
+ns_os_inituserinfo(const char *username) {
+	if (username == NULL)
 		return;
+
+	if (all_digits(username))
+		runas_pw = getpwuid((uid_t)atoi(username));
+	else
+		runas_pw = getpwnam(username);
+	endpwent();
+
+	if (runas_pw == NULL)
+		ns_main_earlyfatal("user '%s' unknown", username);
+
+	if (getuid() == 0) {
+		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0)
+			ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+	}
+
+}
+
+void
+ns_os_changeuser(void) {
+	if (runas_pw == NULL || done_setuid)
+		return;
+
+	done_setuid = ISC_TRUE;
 
 #ifdef HAVE_LINUXTHREADS
 	if (!non_root_caps)
@@ -272,33 +300,23 @@ ns_os_changeuser(const char *username) {
 		   "-u not supported on Linux kernels older than 2.3.99-pre3");
 #endif	
 
-	if (all_digits(username))
-		pw = getpwuid((uid_t)atoi(username));
-	else
-		pw = getpwnam(username);
-	endpwent();
-	if (pw == NULL)
-		ns_main_earlyfatal("user '%s' unknown", username);
-	if (initgroups(pw->pw_name, pw->pw_gid) < 0)
-		ns_main_earlyfatal("initgroups(): %s", strerror(errno));
-	if (setgid(pw->pw_gid) < 0)
+	if (setgid(runas_pw->pw_gid) < 0)
 		ns_main_earlyfatal("setgid(): %s", strerror(errno));
-	if (setuid(pw->pw_uid) < 0)
+
+	if (setuid(runas_pw->pw_uid) < 0)
 		ns_main_earlyfatal("setuid(): %s", strerror(errno));
 }
 
 void
-ns_os_minprivs(const char *username) {
+ns_os_minprivs(void) {
 #ifdef HAVE_LINUX_CAPABILITY_H
 #if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
 	linux_keepcaps();
-	ns_os_changeuser(username);
-#else
-	(void)username;
+	ns_os_changeuser();
 #endif
+
 	linux_minprivs();
-#else
-	(void)username;
+
 #endif /* HAVE_LINUX_CAPABILITY_H */
 }
 

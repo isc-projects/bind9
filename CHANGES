@@ -62,7 +62,10 @@
 			each library's ipv6.h defines the wrapper symbol of
 			the other (ISC_IPV6_H and LWRES_IPV6_H).
 
- 299.			Has not been pulled up to the 9.0.0 release branch.
+ 299.	[cleanup]	Get the user and group information before changing the
+			root directory, so the administrator does not need to
+			keep a copy of the user and group databases in the
+			chroot'ed environment.  Suggested by Hakan Olsson.
 
 	--- 9.0.0b5 released ---
 
