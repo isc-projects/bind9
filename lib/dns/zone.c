@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.145 2000/06/09 06:16:18 marka Exp $ */
+/* $Id: zone.c,v 1.146 2000/06/15 02:45:47 marka Exp $ */
 
 #include <config.h>
 
@@ -156,7 +156,6 @@ struct dns_zone {
 	 */
 	ISC_LINK(dns_zone_t)	statelink;	
 	dns_zonelist_t	        *statelist;
-	
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -509,6 +508,8 @@ dns_zone_setdbtype(dns_zone_t *zone, const char *db_type) {
 
 void
 dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
 	if (zone->view != NULL)
 		dns_view_weakdetach(&zone->view);
 	dns_view_weakattach(view, &zone->view);
@@ -517,6 +518,8 @@ dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
 
 dns_view_t *
 dns_zone_getview(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
 	return (zone->view);
 }
      
@@ -3379,6 +3382,7 @@ void
 dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(maxxfrin != 0);
+
 	zone->maxxfrin = maxxfrin;
 }
 
@@ -3471,12 +3475,6 @@ dns_zone_getidleout(dns_zone_t *zone) {
 
 	return (zone->idleout);
 }
-
-#ifdef notyet
-static void
-record_serial() {
-}
-#endif
 
 static void
 notify_done(isc_task_t *task, isc_event_t *event) {
