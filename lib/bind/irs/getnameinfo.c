@@ -79,6 +79,10 @@ struct sockinet {
 	u_short	si_port;
 };
 
+static int ip6_parsenumeric __P((const struct sockaddr *, const char *, char *,
+				 size_t, int));
+static int ip6_sa2str __P((const struct sockaddr_in6 *, char *, size_t, int));
+
 int
 getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 	const struct sockaddr *sa;
@@ -178,13 +182,111 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 			if (flags & NI_NAMEREQD)
 				return EAI_NONAME;
 		  numeric:
-			if (inet_ntop(afd->a_af, addr, numaddr,
-				      sizeof(numaddr)) == NULL)
-				return EAI_NONAME;
-			if (strlen(numaddr) + 1 > hostlen)
-				return EAI_MEMORY;
-			strcpy(host, numaddr);
+			switch(afd->a_af) {
+			case AF_INET6:
+			{
+				int error;
+
+				if ((error = ip6_parsenumeric(sa, addr, host,
+							      hostlen,
+							      flags)) != 0)
+					return(error);
+				break;
+			}
+
+			default:
+				if (inet_ntop(afd->a_af, addr, numaddr,
+					      sizeof(numaddr)) == NULL)
+					return EAI_NONAME;
+				if (strlen(numaddr) + 1 > hostlen)
+					return EAI_MEMORY;
+				strcpy(host, numaddr);
+			}
 		}
 	}
 	return(0);
+}
+
+static int
+ip6_parsenumeric(sa, addr, host, hostlen, flags)
+	const struct sockaddr *sa;
+	const char *addr;
+	char *host;
+	size_t hostlen;
+	int flags;
+{
+	size_t numaddrlen;
+	char numaddr[512];
+
+	if (inet_ntop(AF_INET6, addr, numaddr, sizeof(numaddr))
+	    == NULL)
+		return EAI_SYSTEM;
+
+	numaddrlen = strlen(numaddr);
+	if (numaddrlen + 1 > hostlen) /* don't forget terminator */
+		return EAI_MEMORY;
+	strcpy(host, numaddr);
+
+	if (((const struct sockaddr_in6 *)sa)->sin6_scope_id) {
+		char scopebuf[MAXHOSTNAMELEN]; /* XXX */
+		int scopelen;
+
+		/* ip6_sa2str never fails */
+		scopelen = ip6_sa2str((const struct sockaddr_in6 *)sa,
+				      scopebuf, sizeof(scopebuf), flags);
+
+		if (scopelen + 1 + numaddrlen + 1 > hostlen)
+			return EAI_MEMORY;
+
+		/* construct <numeric-addr><delim><scopeid> */
+		memcpy(host + numaddrlen + 1, scopebuf,
+		       scopelen);
+		host[numaddrlen] = SCOPE_DELIMITER;
+		host[numaddrlen + 1 + scopelen] = '\0';
+	}
+
+	return 0;
+}
+
+/* ARGSUSED */
+static int
+ip6_sa2str(sa6, buf, bufsiz, flags)
+	const struct sockaddr_in6 *sa6;
+	char *buf;
+	size_t bufsiz;
+	int flags;
+{
+#ifdef USE_IFNAMELINKID
+	unsigned int ifindex = (unsigned int)sa6->sin6_scope_id;
+	const struct in6_addr *a6 = &sa6->sin6_addr;
+#endif
+
+#ifdef NI_NUMERICSCOPE
+	if (flags & NI_NUMERICSCOPE) {
+		return(snprintf(buf, bufsiz, "%d", sa6->sin6_scope_id));
+	}
+#endif
+
+#ifdef USE_IFNAMELINKID
+	/*
+	 * For a link-local address, convert the index to an interface
+	 * name, assuming a one-to-one mapping between links and interfaces.
+	 * Note, however, that this assumption is stronger than the
+	 * specification of the scoped address architecture;  the
+	 * specficication says that more than one interfaces can belong to
+	 * a single link.
+	 */
+
+	/* if_indextoname() does not take buffer size.  not a good api... */
+	if ((IN6_IS_ADDR_LINKLOCAL(a6) || IN6_IS_ADDR_MC_LINKLOCAL(a6)) &&
+	    bufsiz >= IF_NAMESIZE) {
+		char *p = if_indextoname(ifindex, buf);
+		if (p) {
+			return(strlen(p));
+		}
+	}
+#endif
+
+	/* last resort */
+	return(snprintf(buf, bufsiz, "%u", sa6->sin6_scope_id));
 }
