@@ -338,15 +338,18 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		
 		if (!resume) {
 			result = get_key(val, &siginfo);
-			if (result != DNS_R_CONTINUE)
+			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
 		INSIST(val->key != NULL);
 
+		result = dns_dnssec_verify(event->name, event->rdataset,
+					   val->key, val->view->mctx, &rdata);
+		if (result == ISC_R_SUCCESS)
+			return (result);
+
 		result = dns_rdataset_next(event->sigrdataset);
 	} while (result == ISC_R_SUCCESS);
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
 
 	return (result);
 }
@@ -371,7 +374,7 @@ validator_start(dns_validator_t *val) {
 		result = DNS_R_NOTIMPLEMENTED;
 	}
 
-	if (result != ISC_R_SUCCESS)
+	if (result != DNS_R_CONTINUE)
 		validator_done(val, result);
 
 	UNLOCK(&val->lock);
