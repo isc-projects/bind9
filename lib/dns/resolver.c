@@ -2606,7 +2606,7 @@ dns_resolver_create(dns_view_t *view,
 		/*
 		 * Create an IPv6 UDP socket and a dispatcher for it.
 		 */
-		result = isc_socket_create(socketmgr, AF_INET,
+		result = isc_socket_create(socketmgr, AF_INET6,
 					   isc_sockettype_udp,
 					   &res->udpsocket6);
 		if (result != ISC_R_SUCCESS)
