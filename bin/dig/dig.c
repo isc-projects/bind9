@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.111 2000/10/11 17:44:00 mws Exp $ */
+/* $Id: dig.c,v 1.112 2000/10/13 17:53:57 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -161,6 +161,7 @@ show_usage(void) {
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)"
 "\n"
 "                 +[no]fail           (Don't try next server on SERVFAIL)\n"
+"                 +[no]besteffort     (Try and parse even illegal messages)\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
@@ -638,16 +639,25 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			goto invalid_option;
 		}
 		break;
-	case 'b': /* bufsize */
-		if (value == NULL)
-			goto need_value;
-		if (!state)
+	case 'b':
+		switch (tolower(cmd[1])) {
+		case 'e':/* besteffort */
+			lookup->besteffort = state;
+			break;
+		case 'u':/* bufsize */
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			lookup->udpsize = atoi(value);
+			if (lookup->udpsize <= 0)
+				lookup->udpsize = 0;
+			if (lookup->udpsize > COMMSIZE)
+				lookup->udpsize = COMMSIZE;
+			break;
+		default:
 			goto invalid_option;
-		lookup->udpsize = atoi(value);
-		if (lookup->udpsize <= 0)
-			lookup->udpsize = 0;
-		if (lookup->udpsize > COMMSIZE)
-			lookup->udpsize = COMMSIZE;
+		}
 		break;
 	case 'c':
 		switch (tolower(cmd[1])) {

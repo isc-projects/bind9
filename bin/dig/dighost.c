@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.143 2000/10/12 01:16:12 bwelling Exp $ */
+/* $Id: dighost.c,v 1.144 2000/10/13 17:53:58 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -301,6 +301,7 @@ make_empty_lookup(void) {
 	looknew->identify = ISC_FALSE;
 	looknew->ignore = ISC_FALSE;
 	looknew->servfail_stops = ISC_FALSE;
+	looknew->besteffort = ISC_TRUE;
 	looknew->udpsize = 0;
 	looknew->recurse = ISC_TRUE;
 	looknew->aaonly = ISC_FALSE;
@@ -357,6 +358,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->identify = lookold->identify;
 	looknew->ignore = lookold->ignore;
 	looknew->servfail_stops = lookold->servfail_stops;
+	looknew->besteffort = lookold->besteffort;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
         looknew->aaonly = lookold->aaonly;
@@ -2238,9 +2240,15 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			l->msgcounter++;
 		}
 		debug("before parse starts");
-		result = dns_message_parse(msg, b,
+		if (l->besteffort)
+			result = dns_message_parse(msg, b,
+					   DNS_MESSAGEPARSE_PRESERVEORDER
+					   |DNS_MESSAGEPARSE_BESTEFFORT);
+		else
+			result = dns_message_parse(msg, b,
 					   DNS_MESSAGEPARSE_PRESERVEORDER);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && 
+		    result != DNS_R_RECOVERABLE ) {
 			printf(";; Got bad packet: %s\n",
 			       dns_result_totext(result));
 			hex_dump(b);
@@ -2253,6 +2261,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			UNLOCK_LOOKUP;
 			return;
 		}
+		if (result == DNS_R_RECOVERABLE)
+			printf(";; Warning: Message parser reports malformed "
+			       "message packet.\n");
 		if (((msg->flags & DNS_MESSAGEFLAG_TC) != 0) 
 		    && ! l->ignore && !l->tcp_mode) {
 			printf(";; Truncated, retrying in TCP mode.\n");
