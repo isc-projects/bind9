@@ -1,3 +1,6 @@
+1168.	[bug]		Empty also-notify clauses were not handled gracefully.
+			[RT #2309]
+
 1167.	[contrib]	nslint-2.1a3 (from author).
 
 1166.	[bug]		"Not Implemented" should be reported as NOTIMP,

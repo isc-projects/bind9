@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.12 2001/12/17 22:56:58 marka Exp $ */
+/* $Id: check.c,v 1.13 2001/12/29 04:49:51 marka Exp $ */
 
 #include <config.h>
 
@@ -60,6 +60,7 @@ static isc_result_t
 check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
+	cfg_obj_t *obj = NULL;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -79,7 +80,7 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	 */
 	for (i = 0; i < sizeof(intervals) / sizeof(intervals[0]); i++) {
 		isc_uint32_t val;
-		cfg_obj_t *obj = NULL;
+		obj = NULL;
 		(void)cfg_map_get(options, intervals[i].name, &obj);
 		if (obj == NULL)
 			continue;
@@ -95,6 +96,18 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 				    "%s '%d' is out of range",
 				    intervals[i].name, val);
 			result = ISC_R_RANGE;
+		}
+	}
+	obj = NULL;
+	(void)cfg_map_get(options, "also-notify", &obj);
+	if (obj != NULL) {
+		cfg_obj_t *addrlist = NULL;
+		addrlist = cfg_tuple_get(obj, "addresses");
+		if (cfg_list_first(addrlist) == NULL) {
+			cfg_obj_log(options, logctx, ISC_LOG_ERROR,
+				    "empty 'also-notify' entry");
+			if (result == ISC_R_SUCCESS)
+				result = ISC_R_FAILURE;
 		}
 	}
 	return (result);
