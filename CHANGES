@@ -1,3 +1,7 @@
+ 316.	[bug]		EOF mid line should be a error.
+
+ 315.	[bug]		Handle non-empty blanks lines. (RT #163)
+
  309.	[bug]		When sending a referral, the server did not look
 			for name server addresses as glue in the zone
 			holding the NS RRset in the case where this zone
