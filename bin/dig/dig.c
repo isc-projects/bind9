@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.120 2000/10/20 00:54:01 mws Exp $ */
+/* $Id: dig.c,v 1.121 2000/10/20 19:53:59 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1124,7 +1124,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		 */
 		homedir = getenv("HOME");
 		if (homedir != NULL)
-			snprintf(rcfile, 256, "%s/.digrc", homedir);
+			snprintf(rcfile, sizeof(rcfile), "%s/.digrc", homedir);
 		else
 			strcpy(rcfile, ".digrc");
 		batchfp = fopen(rcfile, "r");
