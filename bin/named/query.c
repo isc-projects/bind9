@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.12 2003/05/15 02:23:20 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13 2003/05/15 06:30:15 marka Exp $ */
 
 #include <config.h>
 
@@ -1146,6 +1146,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 
 	if (client->query.gluedb == NULL)
+		goto cleanup;
+
+	/*
+	 * Don't poision caches using the baliwick protection model.
+	 */
+	if (!dns_name_issubdomain(name, dns_db_origin(client->query.gluedb)))
 		goto cleanup;
 
 	dns_db_attach(client->query.gluedb, &db);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.6 2003/05/12 05:52:09 marka Exp $ */
+/* $Id: master.c,v 1.122.2.7 2003/05/15 06:30:16 marka Exp $ */
 
 #include <config.h>
 
@@ -691,7 +691,10 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
 
-		if (!dns_name_issubdomain(owner, lctx->top)) {
+		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
+		    !dns_name_issubdomain(owner, lctx->top))
+		{
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(owner, namebuf, sizeof(namebuf));
 			/*
@@ -1219,7 +1222,10 @@ load(dns_loadctx_t *lctx) {
 							target_size);
 				}
 			}
-			if (!dns_name_issubdomain(new_name, lctx->top)) {
+			if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
+			    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
+			    !dns_name_issubdomain(new_name, lctx->top))
+			{
 				char namebuf[DNS_NAME_FORMATSIZE];
 				dns_name_format(new_name, namebuf,
 						sizeof(namebuf));

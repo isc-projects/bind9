@@ -1,3 +1,6 @@
+1464.	[bug]		Preserve "out of zone" data for outgoing zone 
+			transfers. [RT #5192]
+
 1463.	[bug]		dns_rdata_from{wire,struct}() failed to catch bad
 			NXT bit maps. [RT #5577]
 
