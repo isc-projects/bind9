@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.144 2001/03/28 03:09:45 bwelling Exp $ */
+/* $Id: dig.c,v 1.145 2001/05/08 15:56:01 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -133,11 +133,25 @@ static const char *rcodetext[] = {
 extern char *progname;
 
 static void
-show_usage(void) {
+print_usage(FILE *fp) {
 	fputs(
 "Usage:  dig [@global-server] [domain] [q-type] [q-class] {q-opt}\n"
 "        {global-d-opt} host [@local-server] {local-d-opt}\n"
-"        [ host [@local-server] {local-d-opt} [...]]\n"
+"        [ host [@local-server] {local-d-opt} [...]]\n", fp);
+}
+
+static void
+usage() {
+	print_usage(stderr);
+	fputs("\nUse \"dig -h\" (or \"dig -h | more\") "
+	      "for complete list of options\n", stderr);
+	exit(1);
+}
+
+static void
+help(void) {
+	print_usage(stdout);
+	fputs(
 "Where:  domain	  are in the Domain Name System\n"
 "        q-class  is one of (in,hs,ch,...) [default: in]\n"
 "        q-type   is one of (a,any,mx,ns,soa,hinfo,axfr,txt,...) [default:a]\n"
@@ -184,8 +198,8 @@ show_usage(void) {
 "                 +[no]dnssec         (Request DNSSEC records)\n"
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
-"        local d-opts and servers (after host name) affect only that lookup.\n"
-, stderr);
+"        local d-opts and servers (after host name) affect only that lookup.\n",
+	stdout);
 }
 
 /*
@@ -891,8 +905,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	need_value:
 		fprintf(stderr, "Invalid option: +%s\n",
 			 option);
-		show_usage();
-		exit(1);
+		usage();
 	}
 	return;
 }
@@ -930,7 +943,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		debugging = ISC_TRUE;
 		return (ISC_FALSE);
 	case 'h':
-		show_usage();
+		help();
 		exit(0);
 		break;
 	case 'm': /* memdebug */
@@ -1025,16 +1038,13 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	case 'y':
 		ptr = next_token(&value,":");
 		if (ptr == NULL) {
-			show_usage();
-			exit(1);
+			usage();
 		}
 		strncpy(keynametext, ptr, sizeof(keynametext));
 		keynametext[sizeof(keynametext)-1]=0;
 		ptr = next_token(&value, "");
-		if (ptr == NULL) {
-			show_usage();
-			exit(1);
-		}
+		if (ptr == NULL)
+			usage();
 		strncpy(keysecret, ptr, sizeof(keysecret));
 		keysecret[sizeof(keysecret)-1]=0;
 		return (value_from_next);
@@ -1066,8 +1076,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	invalid_option:
 	default:
 		fprintf(stderr, "Invalid option: -%s\n", option);
-		show_usage();
-		exit(1);
+		usage();
 	}
 	return (ISC_FALSE);
 }
