@@ -31,6 +31,8 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 
+#include <dns/result.h>
+
 #include <dst/dst.h>
 #include <dst/result.h>
 
