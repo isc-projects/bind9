@@ -1,4 +1,4 @@
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.2 2001/04/03 00:48:09 bwelling Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.2.2.1 2001/11/02 22:25:29 gson Exp $";
 
 
 /*
@@ -91,7 +91,7 @@ dst_s_calculate_bits(const u_char *str, const int max_bits)
 
 
 /*
- * calculates a checksum used in kmt for a id.
+ * calculates a checksum used in dst for an id.
  * takes an array of bytes and a length.
  * returns a 16  bit checksum.
  */
@@ -116,34 +116,30 @@ dst_s_id_calc(const u_char *key, const int keysize)
 }
 
 /* 
- * dst_s_dns_key_id() Function to calculated DNSSEC footprint from KEY reocrd
- *   rdata (all of  record)
+ * dst_s_dns_key_id() Function to calculate DNSSEC footprint from KEY record
+ *   rdata
  * Input:
  *	dns_key_rdata: the raw data in wire format 
  *      rdata_len: the size of the input data 
  * Output:
- *      the key footprint/id calcuated from the key data 
+ *      the key footprint/id calculated from the key data 
  */ 
 u_int16_t
 dst_s_dns_key_id(const u_char *dns_key_rdata, const int rdata_len)
 {
-	int key_data = 4;
-
-	if (!dns_key_rdata || (rdata_len < key_data))
+	if (!dns_key_rdata)
 		return 0;
-
-	/* check the extended parameters bit in the DNS Key RR flags */
-	if (dst_s_get_int16(dns_key_rdata) & DST_EXTEND_FLAG)
-		key_data += 2;
 
 	/* compute id */
 	if (dns_key_rdata[3] == KEY_RSA)	/* Algorithm RSA */
 		return dst_s_get_int16((const u_char *)
 				       &dns_key_rdata[rdata_len - 3]);
+	else if (dns_key_rdata[3] == KEY_HMAC_MD5)
+		/* compatibility */
+		return 0;
 	else
 		/* compute a checksum on the key part of the key rr */
-		return dst_s_id_calc(&dns_key_rdata[key_data],
-				     (rdata_len - key_data));
+		return dst_s_id_calc(dns_key_rdata, rdata_len);
 }
 
 /*
