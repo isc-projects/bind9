@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.12 2000/08/23 23:54:58 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.13 2000/08/23 23:56:44 gson Exp $ */
 
 #include <config.h>
 
@@ -2119,14 +2119,6 @@ forward_opt: L_ONLY
 	| L_FIRST
 	{
 		$$ = dns_c_forw_first;
-	}
-	| L_IF_NO_ANSWER
-	{
-		$$ = dns_c_forw_noanswer;
-	}
-	| L_IF_NO_DOMAIN
-	{
-		$$ = dns_c_forw_nodomain;
 	}
 	;
 
