@@ -55,7 +55,7 @@
 
 /*
  *	@(#)cdefs.h	8.1 (Berkeley) 6/2/93
- *	$Id: cdefs.h,v 1.1 2004/09/24 04:32:33 marka Exp $
+ *	$Id: cdefs.h,v 1.2 2004/11/30 01:08:52 marka Exp $
  */
 
 #ifndef	_CDEFS_H_
@@ -96,7 +96,11 @@
 #endif /* !__cplusplus */
 
 #else	/* !(__STDC__ || __cplusplus) */
+#ifdef _NO_PROTO
 #define	__P(protos)	()		/* traditional C preprocessor */
+#else
+#define	__P(protos)	protos
+#endif
 #define	__CONCAT(x,y)	x/**/y
 #define	__STRING(x)	"x"
 

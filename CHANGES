@@ -1,4 +1,5 @@
-1774.	[placeholder]	rt13154
+1774.	[port]		Aix: Silence compiler warnings / build failures.
+			[RT #13154]
 
 1773.	[placeholder]	rt13153
 
