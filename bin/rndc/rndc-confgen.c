@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9.2.3 2001/11/28 21:51:51 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.4 2001/11/30 01:10:09 gson Exp $ */
 
 #include <config.h>
 
@@ -66,7 +66,7 @@ Usage:\n\
 [-s addr] [-t chrootdir] [-u user]\n\
   -a:		generate just the key clause and write it to keyfile (%s)\n\
   -b bits:	from 1 through 512, default %d; total length of the secret\n\
-  -c keyfile:	specify a alterate keyfile (requires -a)\n\
+  -c keyfile:	specify an alternate key file (requires -a)\n\
   -k keyname:	the name as it will be used  in named.conf and rndc.conf\n\
   -p port:	the port named will listen on and rndc will connect to\n\
   -r randomfile: a file containing random data\n\
