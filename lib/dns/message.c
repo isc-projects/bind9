@@ -894,6 +894,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		 * the name.
 		 */
 		rdatalist->type = rdtype;
+		rdatalist->covers = 0;
 		rdatalist->rdclass = rdclass;
 		rdatalist->ttl = 0;
 		ISC_LIST_INIT(rdatalist->rdata);
