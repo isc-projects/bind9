@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.83 2001/01/25 00:44:29 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.84 2001/01/25 13:47:59 gson Exp $ */
 
 #include <config.h>
 
@@ -306,6 +306,9 @@ dns_hash(dns_qid_t *qid, isc_sockaddr_t *dest, dns_messageid_t id) {
 	return (ret);
 }
 
+/*
+ * Find the first entry in 'qid'.  Returns NULL if there are no entries.
+ */
 static dns_dispentry_t *
 linear_first(dns_qid_t *qid) {
 	dns_dispentry_t *ret;
@@ -323,6 +326,10 @@ linear_first(dns_qid_t *qid) {
 	return (NULL);
 }
 
+/*
+ * Find the next entry after 'resp' in 'qid'.  Return NULL if there are
+ * no more entries.
+ */
 static dns_dispentry_t *
 linear_next(dns_qid_t *qid, dns_dispentry_t *resp) {
 	dns_dispentry_t *ret;
@@ -390,6 +397,10 @@ destroy_disp(dns_dispatch_t **dispp) {
 }
 
 
+/*
+ * Find an entry for query ID 'id' and socket address 'dest' in 'qid'.
+ * Return NULL if no such entry exists.
+ */
 static dns_dispentry_t *
 bucket_search(dns_qid_t *qid, isc_sockaddr_t *dest, dns_messageid_t id,
 	      unsigned int bucket)
@@ -1122,10 +1133,6 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	*mgrp = mgr;
 	return (ISC_R_SUCCESS);
 
-#if 0
- kill_dpool:
-	isc_mempool_destroy(&mgr->dpool);
-#endif
  kill_rpool:
 	isc_mempool_destroy(&mgr->rpool);
  kill_epool:
