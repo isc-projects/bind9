@@ -92,22 +92,21 @@ create_view(isc_mem_t *mctx)
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
+	rootdb = NULL;
 	result = dns_rootns_create(mctx, &rootdb);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 	dns_view_sethints(view, rootdb);
+	dns_db_detach(&rootdb);
 
 	dns_view_freeze(view);
 
-	dns_db_detach(&rootdb);
 
 	return (ISC_R_SUCCESS);
 
 out:
 	if (view != NULL)
 		dns_view_detach(&view);
-
-	dns_db_detach(&rootdb);
 
 	return (result);
 }
