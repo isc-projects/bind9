@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.173 2001/06/15 23:28:26 gson Exp $ */
+/* $Id: client.c,v 1.174 2001/06/28 02:39:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1421,7 +1421,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	if (client->message->rdclass == 0) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "message class could not be determined");
 		ns_client_dumpmessage(client,
 				      "message class could not be determined");
@@ -1468,7 +1468,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		dns_rdataclass_format(client->message->rdclass, classname,
 				      sizeof(classname));
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
 		ns_client_dumpmessage(client, "no matching view in class");
 		ns_client_error(client, DNS_R_REFUSED);
@@ -2296,7 +2296,7 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 			len += 1024;
 		} else if (result == ISC_R_SUCCESS)
 		        ns_client_log(client, NS_LOGCATEGORY_UNMATCHED,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_INFO,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 				      "%s\n%.*s", reason,
 				       (int)isc_buffer_usedlength(&buffer),
 				       buf);
