@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.22 1999/10/26 19:31:51 bwelling Exp $
+ * $Id: tsig.c,v 1.23 1999/10/27 17:51:38 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -67,10 +67,11 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   isc_mem_t *mctx, dns_tsigkey_t **key)
 {
 	isc_buffer_t b, nameb;
-	char namestr[1024];
+	char namestr[1025];
 	isc_uint16_t alg;
 	dns_tsigkey_t *tkey;
 	isc_result_t ret;
+	isc_region_t r;
 
 	REQUIRE(key != NULL);
 	REQUIRE(*key == NULL);
@@ -103,10 +104,14 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		goto cleanup_name;
 	dns_name_downcase(&tkey->algorithm, &tkey->algorithm, NULL);
 
-	isc_buffer_init(&nameb, namestr, sizeof(namestr), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&nameb, namestr, sizeof(namestr) - 1,
+			ISC_BUFFERTYPE_TEXT);
 	ret = dns_name_totext(name, ISC_FALSE, &nameb);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_algorithm;
+
+	isc_buffer_used(&nameb, &r);
+	namestr[r.length] = '\0';
 
 	if (length > 0) {
 		dns_tsigkey_t *tmp;
