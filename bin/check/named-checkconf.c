@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.28 2004/03/05 04:57:20 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.28.18.1 2005/03/03 04:53:40 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,8 @@
 
 #include <isc/commandline.h>
 #include <isc/dir.h>
+#include <isc/entropy.h>
+#include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -35,6 +37,7 @@
 
 #include <bind9/check.h>
 
+#include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/result.h>
 
@@ -203,6 +206,7 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	int exit_status = 0;
+	isc_entropy_t *ectx = NULL;
 	isc_boolean_t load_zones = ISC_FALSE;
 	
 	while ((c = isc_commandline_parse(argc, argv, "djt:vz")) != EOF) {
@@ -252,6 +256,10 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(setup_logging(mctx, &logc) == ISC_R_SUCCESS);
 
+	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)
+		      == ISC_R_SUCCESS);
+
 	dns_result_register();
 
 	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
@@ -279,6 +287,9 @@ main(int argc, char **argv) {
 	cfg_parser_destroy(&parser);
 
 	isc_log_destroy(&logc);
+
+	isc_hash_destroy();
+	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
 
