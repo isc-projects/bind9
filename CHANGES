@@ -1,4 +1,7 @@
-1371	[bug]		notify-source-v6, transfer-source-v6 and
+1374.	[func]		dns_adb_dump() now logs the lame zones associated
+			with each server.
+
+1371.	[bug]		notify-source-v6, transfer-source-v6 and
 			query-source-v6 with explict addresses and using the
 			same ports as named was listening on could interfere
 			with nameds ability to answer queries sent to those

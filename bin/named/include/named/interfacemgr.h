@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.23.24.1 2003/08/20 06:05:48 marka Exp $ */
+/* $Id: interfacemgr.h,v 1.23.24.2 2003/08/21 04:47:43 marka Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -118,6 +118,20 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose);
  * This should be called once on server startup and then
  * periodically according to the 'interface-interval' option
  * in named.conf.
+ */
+
+void
+ns_interfacemgr_adjust(ns_interfacemgr_t *mgr, ns_listenlist_t *list,
+		       isc_boolean_t verbose);
+/*
+ * Similar to ns_interfacemgr_scan(), but this function also tries to see the
+ * need for an explicit listen-on when a list element in 'list' is going to
+ * override an already-listening a wildcard interface.
+ *
+ * This function does not update localhost and localnets ACLs.
+ *
+ * This should be called once on server startup, after configuring views and
+ * zones.
  */
 
 void
