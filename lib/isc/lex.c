@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.73 2002/02/21 00:44:14 bwelling Exp $ */
+/* $Id: lex.c,v 1.74 2002/02/21 20:04:01 gson Exp $ */
 
 #include <config.h>
 
@@ -56,7 +56,6 @@ struct isc_lex {
 	isc_mem_t *			mctx;
 	size_t				max_token;
 	char *				data;
-	unsigned int			options;
 	unsigned int			comments;
 	isc_boolean_t			comment_ok;
 	isc_boolean_t			last_was_eol;
