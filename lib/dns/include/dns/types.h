@@ -62,11 +62,6 @@ typedef enum {
 	dns_bitlabel_1 = 1
 } dns_bitlabel_t;
 
-typedef enum {
-	dns_addmode_replace = 0,
-	dns_addmode_merge = 1
-} dns_addmode_t;
-
 #include <dns/enumtype.h>
 enum {
 	dns_rdatatype_none = 0,
