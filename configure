@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.288 
+# From configure.in Revision: 1.289 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -2020,7 +2020,7 @@ fi
 echo "$ac_t""$ac_cv_type_ssize_t" 1>&6
 if test $ac_cv_type_ssize_t = no; then
   cat >> confdefs.h <<\EOF
-#define ssize_t unsigned
+#define ssize_t int
 EOF
 
 fi
