@@ -43,7 +43,8 @@ typedef unsigned int isc_result_t;
 #define ISC_R_CANCELED			20
 #define ISC_R_TASKNOSEND		21
 #define ISC_R_TASKSHUTTINGDOWN		22	/* task is shutting down */
-#define ISC_R_LASTENTRY			22	/* last entry in the list */
+#define ISC_R_NOTFOUND			23
+#define ISC_R_LASTENTRY			23	/* last entry in the list */
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 

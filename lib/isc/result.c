@@ -43,6 +43,7 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"operation canceled",			/* 20 */
 	"sending events is not allowed",	/* 21 */
 	"task is shutting down",		/* 22 */
+	"Not found",				/* 23 */
 };
 
 char *
