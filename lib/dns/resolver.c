@@ -1483,16 +1483,19 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	aname = NULL;
 	anodep = NULL;
 	ardataset = NULL;
-	event = ISC_LIST_HEAD(fctx->events);
-	if (event != NULL) {
-		adbp = &event->db;
-		aname = dns_fixedname_name(&event->foundname);
-		result = dns_name_concatenate(name, NULL, aname, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto unlock;
-		anodep = &event->node;
-		ardataset = event->rdataset;
-	}
+	if (!HAVE_ANSWER(fctx)) {
+		event = ISC_LIST_HEAD(fctx->events);
+		if (event != NULL) {
+			adbp = &event->db;
+			aname = dns_fixedname_name(&event->foundname);
+			result = dns_name_concatenate(name, NULL, aname, NULL);
+			if (result != ISC_R_SUCCESS)
+				goto unlock;
+			anodep = &event->node;
+			ardataset = event->rdataset;
+		}
+	} else
+		event = NULL;
 
 	node = NULL;
 	result = dns_db_findnode(res->view->cachedb, name, ISC_TRUE,
@@ -1535,13 +1538,15 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	} else
 		goto unlock;
 
-	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
-	if (event != NULL) {
-		event->result = eresult;
-		dns_db_attach(res->view->cachedb, adbp);
-		*anodep = node;
-		node = NULL;
-		clone_results(fctx);
+	if (!HAVE_ANSWER(fctx)) {
+		fctx->attributes |= FCTX_ATTR_HAVEANSWER;
+		if (event != NULL) {
+			event->result = eresult;
+			dns_db_attach(res->view->cachedb, adbp);
+			*anodep = node;
+			node = NULL;
+			clone_results(fctx);
+		}
 	}
 
  unlock:
@@ -1732,6 +1737,16 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 		 */
 		qname = oqname;
 		aa = ISC_FALSE;
+		/*
+		 * If the current qname is not a subdomain of the query
+		 * domain, there's no point in looking at the authority
+		 * section without doing DNSSEC validation.
+		 *
+		 * Until we do that validation, we'll just return success
+		 * in this case.
+		 */
+		if (!dns_name_issubdomain(qname, &fctx->domain))
+			return (ISC_R_SUCCESS);
 	}
 	
 	/*
@@ -1843,14 +1858,8 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	/*
 	 * If we found both NS and SOA, they should be the same name.
 	 */
-	if (ns_name != NULL && soa_name != NULL) {
-		if (ns_name != soa_name)
-			return (DNS_R_FORMERR);
-		/*
-		 * Don't cache the NS RRs.
-		 */
-		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
-	}
+	if (ns_name != NULL && soa_name != NULL && ns_name != soa_name)
+		return (DNS_R_FORMERR);
 
 	/*
 	 * Do we have a referral?  (We only want to follow a referral if
@@ -1880,6 +1889,13 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 		fctx->attributes |= FCTX_ATTR_WANTCACHE;
 		return (DNS_R_DELEGATION);
 	}
+
+	/*
+	 * Since we're not doing a referral, we don't want to cache any
+	 * NS RRs we may have found.
+	 */
+	if (ns_name != NULL)
+		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
 
 	if (negative_response)
 		fctx->attributes |= FCTX_ATTR_WANTNCACHE;
