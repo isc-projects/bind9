@@ -355,7 +355,7 @@ int		lwres_getaddrinfo(const char *, const char *,
 int		lwres_getnameinfo(const struct sockaddr *, size_t, char *,
 				 size_t, char *, size_t, int);
 void		lwres_freeaddrinfo(struct addrinfo *);
-const char	*lwres_gai_strerror(int);
+char		*lwres_gai_strerror(int);
 
 struct hostent	*lwres_gethostbyaddr(const char *, int, int);
 struct hostent	*lwres_gethostbyname(const char *);
