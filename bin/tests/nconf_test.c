@@ -41,7 +41,7 @@ zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, void *uap)
 	(void) ctx;
 	(void) uap;
 	
-	dns_c_zone_getname(zone, &zname);
+	dns_c_zone_getname(NULL, zone, &zname);
 
 	fprintf(stderr, "handling zone %s\n", zname);
 
@@ -94,7 +94,7 @@ int main (int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mem) == ISC_R_SUCCESS);
 
-	if (dns_c_parse_namedconf(conffile, mem, &configctx, &callbacks) !=
+	if (dns_c_parse_namedconf(NULL, conffile, mem, &configctx, &callbacks) !=
 	    ISC_R_SUCCESS) {
 		fprintf(stderr, "parse_configuration failed.\n");
 		exit(1);
@@ -115,7 +115,7 @@ int main (int argc, char **argv) {
 		}
 	}
 	
-	dns_c_ctx_print(outfp, 0, configctx);
+	dns_c_ctx_print(NULL, outfp, 0, configctx);
 
 #if 0
 	/* Test the acl expansion */
@@ -133,7 +133,7 @@ int main (int argc, char **argv) {
 		fclose(outfp);
 	}
 
-	dns_c_ctx_delete(&configctx);
+	dns_c_ctx_delete(NULL, &configctx);
 	isc_mem_destroy(&mem);
 
 	return (0);
