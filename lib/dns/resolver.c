@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.139 2000/06/26 21:46:25 explorer Exp $ */
+/* $Id: resolver.c,v 1.140 2000/06/28 16:30:29 explorer Exp $ */
 
 #include <config.h>
 
@@ -95,7 +95,7 @@
  * This defines the maximum number of restarts we will permit before we
  * disable EDNS0 on the query.
  */
-#define NOEDNS0_RESTARTS		4
+#define NOEDNS0_RESTARTS		3
 
 typedef struct fetchctx fetchctx_t;
 
@@ -873,7 +873,7 @@ resquery_send(resquery_t *query) {
 	 */
 	if (fctx->restarts > NOEDNS0_RESTARTS) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
-		FCTXTRACE("Too many restarts, disabling EDNS0");
+		FCTXTRACE("too many restarts, disabling EDNS0");
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -1517,12 +1517,12 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 		isc_netaddr_fromsockaddr(&na, sa);
 		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("Ignoring IPv6 mapped IPV4 address: ", buf);
+		FCTXTRACE2("ignoring IPv6 mapped IPV4 address: ", buf);
 	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
 		isc_netaddr_fromsockaddr(&na, sa);
 		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("Ignoring IPv6 compatibility IPV4 address: ", buf);
+		FCTXTRACE2("ignoring IPv6 compatibility IPV4 address: ", buf);
 	}
 }
 
