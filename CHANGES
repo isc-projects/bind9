@@ -1,3 +1,6 @@
+1155.	[func]		Recover from master files being removed from under
+			us.
+
 1154.	[bug]		When scanning interfaces skip the interface
 			if address no address is configured.  [RT #2176]
 
