@@ -151,6 +151,10 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
 
 	isc_mem_put(rbt->mctx, rbt, sizeof(*rbt));
 
+#ifdef ISC_MEM_DEBUG
+	isc_mem_stats(rbt->mctx, stderr);
+#endif
+
 	*rbtp = NULL;
 }
 
@@ -159,7 +163,7 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
  */
 
 dns_result_t
-dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
+dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 	dns_rbtnode_t **root, *current, *child, *new_node, *new_current, *parent;
 	dns_name_t add_name, current_name, new_name, tmp_name;
 	int compared, add_labels, current_labels, keep_labels, start_label;
@@ -407,7 +411,7 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
  * the down pointer for the found node.
  */
 dns_rbtnode_t *
-dns_rbt_find_node(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **up) {
+dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **up) {
 	dns_rbtnode_t *current;
 	dns_name_t *search_name, *new_search_name, *current_name;
 	dns_name_t holder1, holder2;
@@ -511,10 +515,10 @@ dns_rbt_find_node(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **up) {
 }
 
 void *
-dns_rbt_find_name(dns_rbt_t *rbt, dns_name_t *name) {
+dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name) {
 	dns_rbtnode_t *node;
 
-	node = dns_rbt_find_node(rbt, name, NULL);
+	node = dns_rbt_findnode(rbt, name, NULL);
 
 	if (node != NULL && DATA(node) != NULL)
 		return(DATA(node));
@@ -552,7 +556,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name) {
 
 	REQUIRE(dns_name_isabsolute(name));
 
-	node = dns_rbt_find_node(rbt, name, &up);
+	node = dns_rbt_findnode(rbt, name, &up);
 
 	if (node != NULL) {
 		if (DOWN(node))
@@ -959,9 +963,16 @@ dns_rbt_deletenode(isc_mem_t *mctx,
 	isc_mem_put(mctx, node, sizeof(*node) + NAMELEN(node));
 }
 
+/*
+ * This should only be used on the root of a tree, because no color fixup
+ * is done at all.
+ */
 static void
 dns_rbt_deletetree(isc_mem_t *mctx,
 		    dns_rbtnode_t *node, dns_rbtnode_t **root) {
+
+	if (node == NULL)
+		return;
 
 	if (LEFT(node) != NULL)
 		dns_rbt_deletetree(mctx, LEFT(node), root);
@@ -970,7 +981,9 @@ dns_rbt_deletetree(isc_mem_t *mctx,
 	if (DOWN(node) != NULL)
 		dns_rbt_deletetree(mctx, DOWN(node), &DOWN(node));
 
-	dns_rbt_deletenode(mctx, node, root);
+	isc_mem_put(mctx, node, sizeof(*node) + NAMELEN(node));
+
+	*root = NULL;
 }
 
 /**
@@ -1055,7 +1068,7 @@ cmp_names_for_depth(dns_name_t *a, dns_name_t *b) {
 }
 
 /*
- * This is meant only to be passed to RBT_INSERT by dns_rbt_add_name.
+ * This is meant only to be passed to RBT_INSERT by dns_rbt_addname.
  * Since it is known it will not be called if there any suffixes
  * in common, only the topmost label needs to be compared.
  *
