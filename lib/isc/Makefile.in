@@ -28,7 +28,8 @@ CINCLUDES =	-I./unix/include \
 CDEFINES =
 CWARNINGS =
 
-UNIXOBJS =	unix/app.@O@ unix/time.@O@ unix/stdtime.@O@ \
+UNIXOBJS =	@ISC_ISCIPV6_O@ \
+		unix/app.@O@ unix/time.@O@ unix/stdtime.@O@ \
 		unix/socket.@O@ unix/interfaceiter.@O@ unix/net.@O@
 
 NLSOBJS =	nls/msgcat.@O@
