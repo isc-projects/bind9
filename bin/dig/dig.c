@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.40 2000/06/06 18:49:01 mws Exp $ */
+/* $Id: dig.c,v 1.41 2000/06/06 22:50:41 mws Exp $ */
 
 #include <config.h>
 
@@ -68,6 +68,9 @@ extern char keynametext[MXNAME];
 extern char keysecret[MXNAME];
 extern dns_tsigkey_t *key;
 extern isc_boolean_t validated;
+
+extern isc_boolean_t debugging;
+extern isc_boolean_t isc_mem_debugging;
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
@@ -943,6 +946,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else if (strncmp(rv[0], "-h", 2) == 0) {
 			show_usage();
 			exit (exitcode);
+		} else if (strcmp(rv[0], "-memdebug") == 0) {
+			isc_mem_debugging = ISC_TRUE;
+		} else if (strcmp(rv[0], "-debug") == 0) {
+			debugging = ISC_TRUE;
 		} else if (strncmp(rv[0], "-x", 2) == 0) {
 			/*
 			 *XXXMWS Only works for ipv4 now.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.42 2000/06/06 18:49:02 mws Exp $ */
+/* $Id: dighost.c,v 1.43 2000/06/06 22:50:43 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -90,6 +90,9 @@ isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
 
+extern isc_boolean_t isc_mem_debugging;
+isc_boolean_t debugging = ISC_FALSE;
+
 static void
 cancel_lookup(dig_lookup_t *lookup);
 
@@ -139,31 +142,25 @@ fatal(const char *format, ...) {
 	dighost_shutdown();
 	free_lists(exitcode);
 	if (mctx != NULL) {
-#ifdef MEMDEBUG
-		isc_mem_stats(mctx, stderr);
-#endif
+		if (isc_mem_debugging)
+			isc_mem_stats(mctx, stderr);
 		isc_mem_destroy(&mctx);
 	}
 #endif
 	exit(exitcode);
 }
 
-#ifdef DEBUG
 void
 debug(const char *format, ...) {
 	va_list args;
 
-	va_start(args, format);	
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, "\n");
+	if (debugging) {
+		va_start(args, format);	
+		vfprintf(stderr, format, args);
+		va_end(args);
+		fprintf(stderr, "\n");
+	}
 }
-#else
-void
-debug(const char *format, ...) {
-	UNUSED(format);
-}
-#endif
 
 void
 check_result(isc_result_t result, const char *msg) {
@@ -1007,12 +1004,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	dns_name_totext(lookup->name, ISC_FALSE, &b);
 	isc_buffer_usedregion (&b, &r);
 	trying((int)r.length, (char *)r.base, lookup);
-#ifdef DEBUG
 	if (dns_name_isabsolute(lookup->name))
 		debug ("This is an absolute name.");
 	else
 		debug ("This is a relative name (which is wrong).");
-#endif
 
 	if (lookup->rctext[0] == 0)
 		strcpy(lookup->rctext, "IN");
@@ -1073,6 +1068,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (key != NULL) {
 		result = dns_message_settsigkey(lookup->sendmsg, key);
 		check_result(result, "dns_message_settsigkey");
+		lookup->tsigctx = NULL;
+		lookup->querysig = NULL;
 	}
 
 	debug ("Starting to render the message");
@@ -1503,7 +1500,15 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	 */
 	
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
+	if (result != ISC_R_SUCCESS) {
+		puts("; Transfer failed.");
+		query->working = ISC_FALSE;
+		cancel_lookup(query->lookup);
+		return;
+	}
+#ifdef NEVER
 	check_result(result, "dns_message_firstname");
+#endif
 	do {
 		dns_message_currentname(msg, DNS_SECTION_ANSWER,
 					&name);
@@ -1636,7 +1641,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	char abspace[MXNAME];
 	isc_region_t r;
 	dig_lookup_t *n;
-	isc_buffer_t *sigbuf = NULL;
 	
 	UNUSED (task);
 
@@ -1682,14 +1686,21 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		check_result(result, "dns_message_create");
 		
 		if ((key != NULL) && !query->lookup->doing_xfr) {
-			result = dns_message_getquerytsig(
-						     query->lookup->sendmsg,
-						     mctx, &sigbuf);
-			check_result(result,"dns_message_getquerytsig");
-			result = dns_message_setquerytsig(msg, sigbuf);
+			if (query->lookup->querysig == NULL) {
+				result = dns_message_getquerytsig(
+					     query->lookup->sendmsg,
+					     mctx, &query->lookup->querysig);
+				check_result(result,
+					     "dns_message_getquerytsig");
+			}
+			result = dns_message_setquerytsig(msg,
+						 query->lookup->querysig);
 			check_result(result, "dns_message_setquerytsig");
 			result = dns_message_settsigkey(msg, key);
 			check_result(result, "dns_message_settsigkey");
+			msg->tsigctx = query->lookup->tsigctx;
+			if (query->lookup->tsigctx != NULL) 
+				msg->tcp_continuation = 1;
 		}
 		debug ("Before parse starts");
 		result = dns_message_parse(msg, b, ISC_TRUE);
@@ -1718,9 +1729,19 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					dns_result_totext(result));
 				validated = ISC_FALSE;
 			}
-			isc_buffer_free(&sigbuf);
+			query->lookup->tsigctx = msg->tsigctx;
+			if (query->lookup->querysig != NULL) {
+				debug ("Freeing buffer %lx",
+				       query->lookup->querysig);
+				isc_buffer_free(&query->lookup->querysig);
+			}
+			result = dns_message_getquerytsig(
+						     query->lookup->sendmsg,
+						     mctx,
+						     &query->lookup->querysig);
+			check_result(result,"dns_message_getquerytsig");
 		}
-		debug ("After parse has started");
+		debug ("After parse");
 		if (query->lookup->xfr_q == NULL)
 			query->lookup->xfr_q = query;
 		if (query->lookup->xfr_q == query) {
@@ -1763,10 +1784,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			printmessage (query, msg, ISC_TRUE);
 		}
 		
-#ifdef DEBUG
 		if (query->lookup->pending)
 			debug("Still pending.");
-#endif
 		if (query->lookup->doing_xfr) {
 			if (query != query->lookup->xfr_q) {
 				dns_message_destroy (&msg);
@@ -1880,11 +1899,9 @@ do_lookup_udp(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_result_t result;
 
-#ifdef DEBUG
 	debug("do_lookup_udp()");
 	if (lookup->tcp_mode)
 		debug("I'm starting UDP with tcp_mode set!!!");
-#endif
 	lookup->pending = ISC_TRUE;
 
 	for (query = ISC_LIST_HEAD(lookup->q);
@@ -1992,6 +2009,11 @@ free_lists(int _exitcode) {
 			dns_message_destroy (&l->sendmsg);
 		if (l->timer != NULL)
 			isc_timer_detach (&l->timer);
+		if (l->querysig != NULL) {
+			debug ("Freeing buffer %lx", l->querysig);
+			isc_buffer_free(&l->querysig);
+		}
+
 		ptr = l;
 		l = ISC_LIST_NEXT(l, link);
 		isc_mem_free(mctx, ptr);
@@ -2038,9 +2060,8 @@ free_lists(int _exitcode) {
 		dns_tsigkeyring_destroy(&keyring);
 	}
 
-#ifdef MEMDEBUG
-	isc_mem_stats(mctx, stderr);
-#endif
+	if (isc_mem_debugging)
+		isc_mem_stats(mctx, stderr);
 	isc_app_finish();
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);	

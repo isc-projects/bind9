@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.20 2000/06/06 18:49:06 mws Exp $ */
+/* $Id: dig.h,v 1.21 2000/06/06 22:50:44 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -31,6 +31,7 @@
 #include <isc/list.h>
 #include <isc/print.h>
 #include <dns/rdatalist.h>
+#include <dst/dst.h>
 
 #define MXSERV 4
 #define MXNAME 256
@@ -104,6 +105,8 @@ struct dig_lookup {
 	isc_uint32_t ixfr_serial;
 	isc_buffer_t rdatabuf;
 	char rdatastore[MXNAME];
+	dst_context_t *tsigctx;
+	isc_buffer_t *querysig;
 };
 
 struct dig_query {
