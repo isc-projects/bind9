@@ -6,3 +6,5 @@ validate.sh
 nominum-docbook-html.dsl
 nominum-docbook-print.dsl
 catalog
+HTML.index
+HTML.manifest
