@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.173 2001/01/18 00:26:34 bwelling Exp $ */
+/* $Id: message.c,v 1.174 2001/01/27 02:28:33 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1981,6 +1981,16 @@ dns_message_renderreset(dns_message_t *msg) {
 				rds->attributes &= ~DNS_RDATASETATTR_RENDERED;
 			}
 		}
+	}
+	if (msg->tsigname != NULL)
+		dns_message_puttempname(msg, &msg->tsigname);
+	if (msg->tsig != NULL) {
+		dns_rdataset_disassociate(msg->tsig);
+		dns_message_puttemprdataset(msg, &msg->tsig);
+	}
+	if (msg->sig0 != NULL) {
+		dns_rdataset_disassociate(msg->sig0);
+		dns_message_puttemprdataset(msg, &msg->sig0);
 	}
 }
 

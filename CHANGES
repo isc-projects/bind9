@@ -1,4 +1,7 @@
 
+ 712.	[bug]		Sending a large signed update message caused an
+			assertion failure. [RT #718]
+
  711.	[bug]		The libisc and liblwres implementations of
 			inet_ntop contained an off by one error.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.53 2001/01/23 19:50:10 bwelling Exp $ */
+/* $Id: request.c,v 1.54 2001/01/27 02:28:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -788,6 +788,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	isc_mem_t *mctx;
 	dns_messageid_t	id;
 	isc_boolean_t tcp;
+	isc_boolean_t setkey = ISC_TRUE;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(message != NULL);
@@ -850,7 +851,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto cleanup;
 
 	message->id = id;
-	dns_message_settsigkey(message, request->tsigkey);
+	if (setkey)
+		dns_message_settsigkey(message, request->tsigkey);
 	result = req_render(message, &request->query, options, mctx);
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
@@ -862,6 +864,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		dns_dispatch_detach(&request->dispatch);
 		socket = NULL;
 		options |= DNS_REQUESTOPT_TCP;
+		setkey = ISC_FALSE;
 		goto use_tcp;
 	}
 	if (result != ISC_R_SUCCESS)
