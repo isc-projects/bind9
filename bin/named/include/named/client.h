@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.51 2001/01/29 19:49:51 bwelling Exp $ */
+/* $Id: client.h,v 1.52 2001/02/12 21:45:37 bwelling Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -110,6 +110,8 @@ struct ns_client {
 	isc_boolean_t 		timerset;
 	dns_message_t *		message;
 	unsigned char *		sendbuf;
+	isc_socketevent_t *	sendevent;
+	isc_socketevent_t *	recvevent;
 	unsigned char *		recvbuf;
 	dns_rdataset_t *	opt;
 	isc_uint16_t		udpsize;

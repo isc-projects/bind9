@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.147 2001/02/12 20:26:11 bwelling Exp $ */
+/* $Id: client.c,v 1.148 2001/02/12 21:45:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -233,6 +233,8 @@ client_free(ns_client_t *client) {
 	ns_query_free(client);
 	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 	isc_mem_put(client->mctx, client->recvbuf, RECV_BUFFER_SIZE);
+	isc_event_free((isc_event_t **)&client->sendevent);
+	isc_event_free((isc_event_t **)&client->recvevent);
 	isc_timer_detach(&client->timer);
 
 	if (client->tcpbuf != NULL)
@@ -626,6 +628,7 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	client = sevent->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
+	REQUIRE(sevent == client->sendevent);
 
 	UNUSED(task);
 
@@ -645,8 +648,6 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
 		client->tcpbuf = NULL;
 	}
-
-	isc_event_free(&event);
 
 	if (exit_check(client))
 		return;
@@ -738,10 +739,14 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	CTRACE("sendto");
 	
-	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
-				   client, address, pktinfo);
-	if (result == ISC_R_SUCCESS) {
+	result = isc_socket_sendto2(socket, &r, client->task,
+				    address, pktinfo,
+				    client->sendevent, ISC_SOCKFLAG_IMMEDIATE);
+	if (result == ISC_R_SUCCESS || result == ISC_R_INPROGRESS) {
 		client->nsends++;
+		if (result == ISC_R_SUCCESS)
+			client_senddone(client->task,
+					(isc_event_t *)client->sendevent);
 	}
 	return (result);
 }
@@ -1156,6 +1161,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		INSIST(!TCP_CLIENT(client));
 		sevent = (isc_socketevent_t *)event;
+		REQUIRE(sevent == client->recvevent);
 		isc_buffer_init(&tbuffer, sevent->region.base, sevent->n);
 		isc_buffer_add(&tbuffer, sevent->n);
 		buffer = &tbuffer;
@@ -1459,8 +1465,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
  cleanup_serverlock:
 	dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 	RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
-
-	isc_event_free(&event);
 }
 
 static void
@@ -1540,9 +1544,25 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	if  (client->sendbuf == NULL)
 		goto cleanup_message;
 
+	client->sendevent = (isc_socketevent_t *)
+			    isc_event_allocate(manager->mctx, client,
+					       ISC_SOCKEVENT_SENDDONE,
+					       client_senddone, client,
+					       sizeof(isc_socketevent_t));
+	if (client->sendevent == NULL)
+		goto cleanup_sendbuf;
+
 	client->recvbuf = isc_mem_get(manager->mctx, RECV_BUFFER_SIZE);
 	if  (client->recvbuf == NULL)
-		goto cleanup_sendbuf;
+		goto cleanup_sendevent;
+
+	client->recvevent = (isc_socketevent_t *)
+			    isc_event_allocate(manager->mctx, client,
+					       ISC_SOCKEVENT_RECVDONE,
+					       client_request, client,
+					       sizeof(isc_socketevent_t));
+	if (client->recvevent == NULL)
+		goto cleanup_recvbuf;
 
 	client->magic = NS_CLIENT_MAGIC;
 	client->mctx = manager->mctx;
@@ -1592,7 +1612,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	 */
 	result = ns_query_init(client);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_recvbuf;
+		goto cleanup_recvevent;
 
 	CTRACE("create");
 
@@ -1600,8 +1620,14 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 
 	return (ISC_R_SUCCESS);
 
+ cleanup_recvevent:
+	isc_event_free((isc_event_t **)&client->recvevent);
+
  cleanup_recvbuf:
 	isc_mem_put(manager->mctx, client->recvbuf, RECV_BUFFER_SIZE);
+
+ cleanup_sendevent:
+	isc_event_free((isc_event_t **)&client->sendevent);
 
  cleanup_sendbuf:
 	isc_mem_put(manager->mctx, client->sendbuf, SEND_BUFFER_SIZE);
@@ -1792,8 +1818,8 @@ client_udprecv(ns_client_t *client) {
 
 	r.base = client->recvbuf;
 	r.length = RECV_BUFFER_SIZE;
-	result = isc_socket_recv(client->udpsocket, &r, 1,
-				 client->task, client_request, client);
+	result = isc_socket_recv2(client->udpsocket, &r, 1,
+				  client->task, client->recvevent, 0);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_socket_recv() failed: %s",
