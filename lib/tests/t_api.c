@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.52 2004/03/05 05:13:39 marka Exp $ */
+/* $Id: t_api.c,v 1.53 2004/06/21 05:36:40 marka Exp $ */
 
 #include <config.h>
 
@@ -389,6 +389,9 @@ t_result(int result) {
 			break;
 		case T_UNTESTED:
 			p = "UNTESTED";
+			break;
+		case T_THREADONLY:
+			p = "THREADONLY";
 			break;
 		default:
 			p = "UNKNOWN";
