@@ -25,3 +25,5 @@ dispatch_tcp_test
 sdig
 nxtify
 serial_test
+signer
+zone_test
