@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.23 2000/11/07 23:49:16 mws Exp $ */
+/* $Id: omapi.c,v 1.24 2000/11/08 01:36:12 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -134,7 +134,6 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 			      REGION_FMT(&region));
 		result = omapi_object_passsetvalue(handle, name, value);
 	}
-		
 
 	return (result);
 }
