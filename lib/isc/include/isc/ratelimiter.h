@@ -61,8 +61,8 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval);
 void
 isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t perint);
 /*
- * Set the number of events procesed per interval timer tic.
- * If 'perint' is zero it is trated as 1.
+ * Set the number of events processed per interval timer tick.
+ * If 'perint' is zero it is treated as 1.
  */
 
 isc_result_t
