@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.20 2000/08/01 01:22:08 tale Exp $ */
+/* $Id: aclconf.c,v 1.21 2000/08/11 01:53:47 gson Exp $ */
 
 #include <config.h>
 
+#include <isc/mem.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -75,7 +76,7 @@ convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
 	result = dns_acl_fromconfig(cacl->ipml, cctx, ctx, mctx, &dacl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	dacl->name = aclname;
+	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
 	ISC_LIST_APPEND(ctx->named_acl_cache, dacl, nextincache);
 	dns_acl_attach(dacl, target);
 	return (ISC_R_SUCCESS);

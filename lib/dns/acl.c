@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.13 2000/08/01 01:22:07 tale Exp $ */
+/* $Id: acl.c,v 1.14 2000/08/11 01:53:46 gson Exp $ */
 
 #include <config.h>
 
@@ -242,6 +242,8 @@ destroy(dns_acl_t *dacl) {
 	if (dacl->elements != NULL)
 		isc_mem_put(dacl->mctx, dacl->elements,
 			    dacl->alloc * sizeof(dns_aclelement_t));
+	if (dacl->name != NULL)
+		isc_mem_free(dacl->mctx, dacl->name);
 	dacl->magic = 0;
 	isc_mem_put(dacl->mctx, dacl, sizeof(*dacl));
 }
