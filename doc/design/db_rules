@@ -14,9 +14,16 @@ Reference Safety						[DBREF]
 		by the caller.
 
 
+Database Type							[DBTYP]
+
+	Every database is either a zone database or a cache database.  This
+	type is chosen when the database is created and cannot be altered.
+
+
 Basic Versioning						[DBVER]
 
-	The rdata contents of a committed version do not change.
+	The rdata contents of a committed version in a zone database
+	do not change.
 
 
 Database Future Version						[DBFUV]
@@ -31,7 +38,13 @@ Database Future Version						[DBFUV]
 
 Node Lookups							[DBNLU]
 
-	XXX
+	A node lookup shall return:
+
+	1)	A node handle if the node was found.
+
+	2)	A result code.
+
+	3)	Ancestor information. (XXX MORE INFO XXX)
 
 
 Zone Node Lookups						[DBZNL]
