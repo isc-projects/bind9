@@ -23,6 +23,7 @@
 #include <stddef.h>
 
 #include <isc/app.h>
+#include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/commandline.h>
@@ -109,9 +110,63 @@ early_fatal(char *format, ...) {
 	} else {
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
+		fflush(stderr);
 	}
 	va_end(args);
 
+	exit(1);
+}
+
+static void
+assertion_failed(char *file, int line, isc_assertiontype_t type, char *cond) {
+	/*
+	 * Handle assertion failures.
+	 */
+
+	if (ns_g_lctx != NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			      "%s:%d: %s(%s) failed", file, line,
+			      isc_assertion_typetotext(type), cond);
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			       "exiting (due assertion failure)");
+	} else {
+		fprintf(stderr, "%s:%d: %s(%s) failed\n",
+			file, line, isc_assertion_typetotext(type), cond);
+		fflush(stderr);
+	}
+
+	if (ns_g_coreok)
+		abort();
+	exit(1);
+}
+
+static void
+library_fatal_error(char *file, int line, char *format, va_list args) {
+	/*
+	 * Handle isc_error_fatal() calls from our libraries.
+	 */
+
+	if (ns_g_lctx != NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			      "%s:%d: fatal error", file, line);
+		isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			       format, args);
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			      "exiting (due to fatal error in library)");
+	} else {
+		fprintf(stderr, "%s:%d: fatal error: ", file, line);
+		vfprintf(stderr, format, args);
+		fprintf(stderr, "\n");
+		fflush(stderr);
+	}
+
+	if (ns_g_coreok)
+		abort();
 	exit(1);
 }
 
@@ -284,6 +339,9 @@ main(int argc, char *argv[]) {
 #ifdef HAVE_LINUX_CAPABILITY_H
 	linux_dropprivs();
 #endif
+
+	isc_assertion_setcallback(assertion_failed);
+	isc_error_setfatal(library_fatal_error);
 
 	result = isc_app_start();
 	if (result != ISC_R_SUCCESS)
