@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.14 1999/10/26 15:25:36 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.15 1999/10/28 02:25:22 halley Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -84,6 +84,15 @@ static isc_log_t               *logcontext;
 static isc_result_t     tmpres;
 static int              debug_lexer;
  
+static void             parser_error(isc_boolean_t lasttoken,
+                                     const char *fmt, ...);
+static void             parser_warning(isc_boolean_t lasttoken,
+                                       const char *fmt, ...);
+static void             parser_complain(isc_boolean_t is_warning,
+                                        isc_boolean_t last_token,
+                                        const char *format, va_list args);
+static isc_boolean_t    unit_to_uint32(char *in, isc_uint32_t *out);
+static void             yyerror(const char *);
 
 %}
 
@@ -3238,16 +3247,8 @@ any_string: L_STRING
 
 %%
 
-static void             parser_error(isc_boolean_t lasttoken,
-                                     const char *fmt, ...);
-static void             parser_warning(isc_boolean_t lasttoken,
-                                       const char *fmt, ...);
-static void             parser_complain(isc_boolean_t is_warning,
-                                        isc_boolean_t last_token,
-                                        const char *format, va_list args);
 static int              intuit_token(const char *string);
 
-static isc_boolean_t    unit_to_uint32(char *in, isc_uint32_t *out);
 static isc_boolean_t    is_ip4addr(const char *string, struct in_addr *addr);
 static isc_boolean_t    is_ip6addr(const char *string, struct in6_addr *addr);
 static isc_result_t     keyword_init(void);
@@ -3256,14 +3257,11 @@ static int              token_value(isc_token_t *token,
                                     isc_symtab_t *symtable);
 static void             init_action(void);
 
-
-static void             yyerror(const char *);
 static int              yylex(void);
 int                     yyparse(void);
 
-
-YYSTYPE                 lastyylval;
-int                     lasttoken;
+static YYSTYPE		lastyylval;
+static int		lasttoken;
 
 
 /*
