@@ -1977,7 +1977,7 @@ is not to limit the size of the file.</P
 ><P
 >If you use the <B
 CLASS="command"
->version</B
+>versions</B
 > log file option,
 then <B
 CLASS="command"
@@ -2022,7 +2022,14 @@ CLASS="acronym"
 >BIND</SPAN
 > releases.</P
 ><P
->Example usage of the size and versions options:</P
+>Example usage of the <B
+CLASS="command"
+>size</B
+> and
+<B
+CLASS="command"
+>versions</B
+> options:</P
 ><PRE
 CLASS="programlisting"
 >channel "an_example_channel" {
@@ -2139,18 +2146,8 @@ CLASS="option"
 or by running <B
 CLASS="command"
 >rndc trace</B
->. <DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->the latter
-method is not yet implemented.</P
-></BLOCKQUOTE
-></DIV
-> The global debug level
+>.
+The global debug level
 can be set to zero, and debugging mode turned off, by running <B
 CLASS="command"
 >ndc
@@ -2667,8 +2664,8 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >Lame servers.  These are misconfigurations
-in remote servers, discovered by BIND 9 while it is trying to use
-those servers during reolution.
+in remote servers, discovered by BIND 9 when trying to query
+those servers during resolution.
 </P
 ></TD
 ></TR
