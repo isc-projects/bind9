@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.69 2000/12/01 20:47:15 gson Exp $ */
+/* $Id: nsupdate.c,v 1.70 2000/12/01 21:37:33 gson Exp $ */
 
 #include <config.h>
 
@@ -1611,7 +1611,6 @@ main(int argc, char **argv) {
 
 	(void)isc_app_run();
 
-        fprintf(stdout, "\n");
         cleanup();
 
 	isc_app_finish();
