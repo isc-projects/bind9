@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: run.sh,v 1.33 2000/08/01 01:14:24 tale Exp $
+# $Id: run.sh,v 1.34 2000/11/22 18:31:27 gson Exp $
 
 #
 # Run a system test.
@@ -100,14 +100,15 @@ status=`expr $status + $?`
 
 if [ $status != 0 ]; then
 	echo "R:FAIL"
+	# Don't clean up - we need the evidence.
 else
 	echo "R:PASS"
-fi
 
-# Cleanup
-if test -f $test/clean.sh
-then
-   ( cd $test && sh clean.sh "$@" )
+	# Clean up.
+	if test -f $test/clean.sh
+	then
+	   ( cd $test && sh clean.sh "$@" )
+	fi
 fi
 
 echo "E:$test:`date`"
