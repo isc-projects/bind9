@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+# Copyright (C) 1998-2000  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -24,6 +24,7 @@ require 5.002;
 my %owner2filename = (
     "" => "util/COPYRIGHT",
     "NAI" => "util/COPYRIGHT.NAI",
+    "BRIEF" => "util/COPYRIGHT.BRIEF",
     "PORTION" => "util/COPYRIGHT.PORTION",
 );
 
@@ -60,28 +61,55 @@ while (<>) {
 	
     next if $type eq "X";
 
-    # XXXTALE lib/isc/commandline.c should probably also have special handling.
-
     $before_copyright = "";
     $c_comment = 0;
     $shell_comment = 0;
     $m4_comment = 0;
+    $html_comment = 0;
+    $zone_comment = 0;
+    $man_comment = 0;
+    $start_comment = "";
+    $end_comment = "";
     $first = "";
-    if ($type eq "C") {
+    if ($type =~ /^(C|YACC|CONF-C)/) {
 	$c_comment = 1;
+        $start_comment = "/*\n";
 	$prefix = " * ";
-    } elsif ($type eq "SH" || $type eq "PERL" || $type eq "MAKE") {
+        $end_comment = " */\n";
+    } elsif ($type =~ /^(SH|PERL|MAKE|CONF-SH)/) {
 	$shell_comment = 1;
 	$prefix = "# ";
+    } elsif ($type eq "ZONE") {
+	$zone_comment = 1;
+	$prefix = "; ";
+    } elsif ($type eq "MAN") {
+	$man_comment = 1;
+	$prefix = ".\\\" ";
     } elsif ($type eq "M4") {
 	$m4_comment = 1;
 	$prefix = "dnl ";
+    } elsif ($type eq "HTML") {
+	$html_comment = 1;
+        $start_comment = "<!--\n";
+	$prefix = " - ";
+        $end_comment = "-->\n";
+    } elsif ($type eq "TXT") {
+        $prefix = "";
     } else {
 	print "$file: type '$type' not supported yet; skipping\n";
 	next;
     }
     open(SOURCE, "<$file") || die "can't open $file: $!";
     $_ = <SOURCE>;
+    if ($type eq "YACC") {
+	unless ($_ eq "%{\n") {
+          print "$file: unexpected yacc file start (expected \"%{\\n\")\n";
+          close(SOURCE);
+          next;
+        }
+	$before_copyright = "$_";
+        $_ = <SOURCE>;
+    }
     if ($c_comment && /^\/\*/) {
 	$_ = <SOURCE>;
 	if ($_ !~ /[Cc]opyright/) {
@@ -100,9 +128,7 @@ while (<>) {
 	if (/^\#\!/) {
 	    $before_copyright = "$_#\n";
 	    $_ = <SOURCE>;
-	    if ($_ eq "#\n") {
-		$_ = <SOURCE>;
-	    }
+            $_ = <SOURCE> if $_ eq "#\n";
 	}
 	if (/^\#/) {
 	    if ($_ !~ /[Cc]opyright/) {
@@ -119,37 +145,97 @@ while (<>) {
 	} else {
 	    $first = $_;
 	}
-    } elsif ($m4_comment && /^dnl /) {
+    } elsif (($m4_comment || $zone_comment || $man_comment) &&
+             /^\Q$prefix\E/) {
+        ($nonspaceprefix = $prefix) =~ s/\s+$//;
+
+        while (/^\Q$nonspaceprefix\E\s*$/) {
+            $_ = <SOURCE>;
+        }
+
 	if ($_ !~ /[Cc]opyright/) {
 	    print "$file: non-copyright comment\n";
 	    close(SOURCE);
 	    next;
 	}
 	while (<SOURCE>) {
-	    if ($_ !~ /^dnl /) {
+	    if ($_ !~ /^\Q$prefix\E/) {
 		$first = $_;
 		last;
 	    }
 	}
+    } elsif ($html_comment) {
+        if (/^<!DOCTYPE/) {
+          $before_copyright = $_;
+          $_ = <SOURCE>;
+        }
+        if (/^<!/) {
+          $_ = <SOURCE> if $_ eq "<!--\n";
+          if ($_ !~ /[Cc]opyright/) {
+	    print "$file: non-copyright comment\n";
+	    close(SOURCE);
+	    next;
+          }
+          while (defined($_)) {
+              last if s/.*-->//;
+              $_ = <SOURCE>;
+          }
+          print "$file: unterminated comment\n" unless defined($_);
+          if ($_ ne "\n") {
+              $first = $_;
+          } else {
+              $first = <SOURCE>;
+          }
+        } else {
+          $first = $_;
+        }
+    } elsif ($type eq "TXT") {
+        if ($_ =~ /[Cc]opyright/) {
+            $/ = "";            # paragraph at a time
+            while (<SOURCE>) {
+                # Not very maintainable, but suitable enough for now.
+                last unless
+                  /See COPYRIGHT in the source root/ ||
+                  /Permission to use, copy, modify, and distribute / ||
+                  /THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET /;
+            }
+            $/ = "\n";
+        } 
+        $first = $_;
     } else {
 	$first = $_;
     }
+
+    $first = "" if ! defined($first);
+
     open(TARGET, ">$file.new") || die "can't open $file.new: $!";
     if ($before_copyright ne "") {
 	print TARGET $before_copyright;
     }
-    if ($c_comment) {
-	print TARGET "/*\n";
+    if ($start_comment) {
+	print TARGET $start_comment;
     }
 
     $years = "";    
-    $first_year = 1;
+    $last_year = 0;
+    $anchor_year = 0;
     foreach $year (@years) {
-	if (! $first_year) {
-	    $years .= ", ";
-	}
-	$years .= "$year";
-	$first_year = 0;
+        if ($last_year != 0 && $year == $last_year + 1) {
+            if ($year > $anchor_year + 1) {
+                substr($years, $anchor_end) = "-$year";
+            } else {
+                $years .= ", $year";
+            }
+        } else {
+            $years .= $last_year == 0 ? "$year" : ", $year";
+            if ($anchor_year != 0) {
+                print "$file: noncontiguous year: $year != $last_year + 1\n";
+            }
+            $anchor_year = $year;
+            $anchor_end = length($years);
+        }
+
+        $last_year = $year;
     }
 
     ($firstline, @otherlines) = @$textp;
@@ -161,13 +247,13 @@ while (<>) {
     foreach $_ (@otherlines) {
 	print TARGET "${prefix}$_";
     }
-    if ($c_comment) {
-	print TARGET " */\n";
+    if ($end_comment) {
+	print TARGET $end_comment;
     }
     if ($first eq "") {
 	$first = <SOURCE>;
     }
-    if ($first ne "") {
+    if (defined($first)) {
 	if ($first !~ /^\s*$/) {
 	    print TARGET "\n";
 	}
@@ -180,6 +266,11 @@ while (<>) {
     close(SOURCE);
     $mode = (stat $file)[2]&511;
     chmod $mode, "$file.new";
-    rename("$file", "$file.bak") || die "rename($file, $file.bak): $!";
-    rename("$file.new", "$file") || die "rename($file.new, $file): $!";
+
+    if (system("cmp -s $file.new $file") == 0) {
+        unlink("$file.new");
+    } else {
+        rename("$file", "$file.bak") || die "rename($file, $file.bak): $!";
+        rename("$file.new", "$file") || die "rename($file.new, $file): $!";
+    }
 }
