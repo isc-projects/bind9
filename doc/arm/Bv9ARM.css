@@ -24,7 +24,7 @@ H1.1Level, H2.1Level, H3.1Level, H4.1Level, H5.1Level, H6.1Level {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
 P.1LevelContinued {
 	text-align: left;
@@ -40,23 +40,7 @@ P.1LevelContinued {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
-}
-THROW AWAY.1LevelTOC {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 14.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 12.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
+	font-family: Times;
 }
 H1.2Level, H2.2Level, H3.2Level, H4.2Level, H5.2Level, H6.2Level {
 	text-align: left;
@@ -72,7 +56,7 @@ H1.2Level, H2.2Level, H3.2Level, H4.2Level, H5.2Level, H6.2Level {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
 LI.2Level-bullet1 {
 	text-align: left;
@@ -106,37 +90,21 @@ LI.2Level-bullet2 {
 	text-transform: none;
 	font-family: Times;
 }
-PRE.2Level-fixed {
+P.2Level-fixed {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 3.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 63.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
+	font-size: 11.000000pt;
+	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
-}
-PRE.2Level-fixed1 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 3.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 63.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #ff00ff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
+	font-family: Courier New;
 }
 LI.2Level-numList1 {
 	text-align: left;
@@ -184,54 +152,6 @@ P.2LevelContinued {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
-}
-P.2LevelContinued1 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 13.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 63.000000pt;
-	font-size: 11.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Times New Roman;
-}
-P.2LevelContinued2 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 13.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 63.000000pt;
-	font-size: 11.000000pt;
-	font-weight: medium;
-	font-style: Italic;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Times;
-}
-THROW AWAY.2LevelTOC {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 12.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
 	font-family: Times;
 }
 H1.3Level, H2.3Level, H3.3Level, H4.3Level, H5.3Level, H6.3Level {
@@ -248,39 +168,39 @@ H1.3Level, H2.3Level, H3.3Level, H4.3Level, H5.3Level, H6.3Level {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
-PRE.3Level-fixed {
+P.3Level-fixed {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 3.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 99.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
+	font-size: 9.000000pt;
+	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
-P.3Level-fixed1 {
+P.3Level-fixed-special {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 3.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 99.000000pt;
-	font-size: 10.000000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
 	font-style: Regular;
-	color: #ff00ff;
+	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
 P.3LevelContinued {
 	text-align: left;
@@ -296,9 +216,9 @@ P.3LevelContinued {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
+	font-family: Times;
 }
-P.3LevelContinued1 {
+H1.3LevelContinued1, H2.3LevelContinued1, H3.3LevelContinued1, H4.3LevelContinued1, H5.3LevelContinued1, H6.3LevelContinued1 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 13.000000pt;
@@ -312,55 +232,7 @@ P.3LevelContinued1 {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times;
-}
-P.3LevelContinued2 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 11.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 99.000000pt;
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #ff00ff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
-}
-P.3LevelContinued21 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 11.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 99.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Courier New;
-}
-THROW AWAY.3LevelTOC {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 12.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Times;
+	font-family: Times New Roman;
 }
 H1.4Level, H2.4Level, H3.4Level, H4.4Level, H5.4Level, H6.4Level {
 	text-align: left;
@@ -376,9 +248,9 @@ H1.4Level, H2.4Level, H3.4Level, H4.4Level, H5.4Level, H6.4Level {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
-LI.4Level-bullet1 {
+H1.4Level-bullet1, H2.4Level-bullet1, H3.4Level-bullet1, H4.4Level-bullet1, H5.4Level-bullet1, H6.4Level-bullet1 {
 	text-align: left;
 	text-indent: 72.000000pt;
 	margin-top: 13.000000pt;
@@ -410,53 +282,37 @@ LI.4Level-bullet2 {
 	text-transform: none;
 	font-family: Times;
 }
-PRE.4Level-fixed {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 3.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 144.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
-}
-PRE.4Level-fixed1 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 3.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 144.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Courier;
-}
-PRE.4Level-fixedSmall {
+P.4Level-fixed {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 2.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 144.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
+	font-size: 9.000000pt;
+	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
+}
+P.4Level-fixedSmall {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 2.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 126.000000pt;
+	font-size: 9.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier New;
 }
 P.4LevelContinued {
 	text-align: left;
@@ -472,25 +328,9 @@ P.4LevelContinued {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
-}
-THROW AWAY.4LevelTOC {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 12.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
 	font-family: Times;
 }
-THROW AWAY.ActiveTOC {
+P.ActiveTOC {
 	text-align: justify;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -504,7 +344,7 @@ THROW AWAY.ActiveTOC {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
+	font-family: Times;
 }
 H1.AppendixLevel1, H2.AppendixLevel1, H3.AppendixLevel1, H4.AppendixLevel1, H5.AppendixLevel1, H6.AppendixLevel1 {
 	text-align: left;
@@ -522,7 +362,7 @@ H1.AppendixLevel1, H2.AppendixLevel1, H3.AppendixLevel1, H4.AppendixLevel1, H5.A
 	text-transform: none;
 	font-family: Arial;
 }
-THROW AWAY.AppendixLevel1TOC {
+P.AppendixLevel1TOC {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 14.000000pt;
@@ -554,7 +394,7 @@ H1.AppendixLevel2, H2.AppendixLevel2, H3.AppendixLevel2, H4.AppendixLevel2, H5.A
 	text-transform: none;
 	font-family: Arial;
 }
-THROW AWAY.AppendixLevel2TOC {
+P.AppendixLevel2TOC {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -586,7 +426,7 @@ H1.AppendixLevel3, H2.AppendixLevel3, H3.AppendixLevel3, H4.AppendixLevel3, H5.A
 	text-transform: none;
 	font-family: Arial;
 }
-THROW AWAY.AppendixLevel3TOC {
+P.AppendixLevel3TOC {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -618,7 +458,7 @@ P.Bib2 {
 	text-transform: none;
 	font-family: Times New Roman;
 }
-P.Bib3 {
+P.Bib31 {
 	text-align: left;
 	text-indent: -9.000000pt;
 	margin-top: 4.000000pt;
@@ -634,7 +474,7 @@ P.Bib3 {
 	text-transform: none;
 	font-family: Times New Roman;
 }
-P.Bib31 {
+P.Biblio {
 	text-align: left;
 	text-indent: -9.000000pt;
 	margin-top: 4.000000pt;
@@ -648,7 +488,7 @@ P.Bib31 {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times;
+	font-family: Times New Roman;
 }
 P.Body {
 	text-align: left;
@@ -667,6 +507,22 @@ P.Body {
 	font-family: Times;
 }
 P.Body1 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 10.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier New;
+}
+P.Body11 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 6.000000pt;
@@ -696,7 +552,7 @@ P.CellBody {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
+	font-family: Times;
 }
 P.CellBody-fixedfont {
 	text-align: left;
@@ -705,14 +561,14 @@ P.CellBody-fixedfont {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Medium;
+	font-size: 6.000000pt;
+	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
 P.CellBody-fixedfontLG {
 	text-align: left;
@@ -721,32 +577,48 @@ P.CellBody-fixedfontLG {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Medium;
+	font-size: 8.000000pt;
+	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
-P.CellBody-fixedfontLG1 {
+H1.CellBody1, H2.CellBody1, H3.CellBody1, H4.CellBody1, H5.CellBody1, H6.CellBody1 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Medium;
+	font-size: 9.000000pt;
+	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
-P.CellBody1 {
+H1.CellBody2, H2.CellBody2, H3.CellBody2, H4.CellBody2, H5.CellBody2, H6.CellBody2 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 11.000000pt;
+	font-weight: medium;
+	font-style: Italic;
+	color: #ff00ff;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+H1.CellBody3, H2.CellBody3, H3.CellBody3, H4.CellBody3, H5.CellBody3, H6.CellBody3 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -762,167 +634,119 @@ P.CellBody1 {
 	text-transform: none;
 	font-family: Times;
 }
-P.CellBody11 {
+H1.CellBody4, H2.CellBody4, H3.CellBody4, H4.CellBody4, H5.CellBody4, H6.CellBody4 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 11.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
-}
-P.CellBody2 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 11.000000pt;
+	font-size: 9.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
-H1.CellBody21, H2.CellBody21, H3.CellBody21, H4.CellBody21, H5.CellBody21, H6.CellBody21 {
+H1.CellBody5, H2.CellBody5, H3.CellBody5, H4.CellBody5, H5.CellBody5, H6.CellBody5 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 11.000000pt;
-	font-weight: Medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Courier;
-}
-P.CellBody3 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 11.000000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
-	font-style: Oblique;
+	font-style: Italic;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
-P.CellBody4 {
+H1.CellBody6, H2.CellBody6, H3.CellBody6, H4.CellBody6, H5.CellBody6, H6.CellBody6 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 11.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Courier;
-}
-P.CellBody5 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 11.000000pt;
+	font-size: 9.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
-P.CellBody6 {
+P.CellBody7 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
-	font-style: Oblique;
+	font-style: Italic;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
-P.comment {
+P.CellBody8 {
 	text-align: left;
 	text-indent: 0.000000pt;
-	margin-top: 13.000000pt;
+	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
-	margin-left: 144.000000pt;
+	margin-left: 0.000000pt;
 	font-size: 11.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
-	text-decoration: none;
+	text-decoration: underline ;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
-}
-P.Comment {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #ff00ff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
+	font-family: Times;
 }
 THROW AWAY.Footer {
-	text-align: justify;
+	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
 	font-style: Regular;
-	color: #ffffff;
+	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
+	font-family: Arial;
 }
-THROW AWAY.Footer1 {
+P.Footer1 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 9.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Helvetica;
+}
+P.Header {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -936,39 +760,7 @@ THROW AWAY.Footer1 {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
-}
-THROW AWAY.Header {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
-}
-H1.Header1, H2.Header1, H3.Header1, H4.Header1, H5.Header1, H6.Header1 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
 P.Mapping-Table-Cell {
 	text-align: left;
@@ -1002,104 +794,8 @@ P.Mapping-Table-Cell1 {
 	text-transform: none;
 	font-family: Times;
 }
-P.Mapping-Table-Cell10 {
-	text-align: justify;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #ffffff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Arial;
-}
 P.Mapping-Table-Cell11 {
-	text-align: justify;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 11.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #ffffff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Arial;
-}
-P.Mapping-Table-Cell12 {
-	text-align: justify;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #ffffff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Arial;
-}
-P.Mapping-Table-Cell13 {
-	text-align: justify;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #ffffff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Arial;
-}
-P.Mapping-Table-Cell14 {
-	text-align: justify;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 14.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #ffffff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Times New Roman;
-}
-P.Mapping-Table-Cell15 {
-	text-align: justify;
-	text-indent: 0.000000pt;
-	margin-top: 0.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 0.000000pt;
-	font-size: 12.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #ffffff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Times New Roman;
-}
-P.Mapping-Table-Cell16 {
-	text-align: justify;
+	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
@@ -1108,7 +804,7 @@ P.Mapping-Table-Cell16 {
 	font-size: 18.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
-	color: #ffffff;
+	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
@@ -1156,13 +852,29 @@ P.Mapping-Table-Cell31 {
 	font-size: 14.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
-	color: #000000;
+	color: #ffffff;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
 	font-family: Helvetica;
 }
-P.Mapping-Table-Cell32 {
+P.Mapping-Table-Cell310 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 9.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #ffffff;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier;
+}
+P.Mapping-Table-Cell311 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -1170,15 +882,15 @@ P.Mapping-Table-Cell32 {
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
 	font-size: 11.000000pt;
-	font-weight: Bold;
+	font-weight: medium;
 	font-style: Regular;
-	color: #000000;
+	color: #ffffff;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Times;
 }
-P.Mapping-Table-Cell33 {
+P.Mapping-Table-Cell312 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -1194,7 +906,7 @@ P.Mapping-Table-Cell33 {
 	text-transform: none;
 	font-family: Helvetica;
 }
-P.Mapping-Table-Cell4 {
+P.Mapping-Table-Cell313 {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -1204,14 +916,14 @@ P.Mapping-Table-Cell4 {
 	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
-	color: #ffffff;
+	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Times;
 }
-P.Mapping-Table-Cell5 {
-	text-align: justify;
+P.Mapping-Table-Cell314 {
+	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
@@ -1220,14 +932,46 @@ P.Mapping-Table-Cell5 {
 	font-size: 14.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
-	color: #ffffff;
+	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
 	font-family: Arial;
 }
-P.Mapping-Table-Cell6 {
-	text-align: justify;
+P.Mapping-Table-Cell315 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 11.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Arial;
+}
+P.Mapping-Table-Cell316 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 9.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier New;
+}
+P.Mapping-Table-Cell32 {
+	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
@@ -1240,10 +984,74 @@ P.Mapping-Table-Cell6 {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Arial;
+	font-family: Helvetica;
 }
-P.Mapping-Table-Cell7 {
-	text-align: justify;
+P.Mapping-Table-Cell33 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 11.000000pt;
+	font-weight: medium;
+	font-style: Italic;
+	color: #ffffff;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+P.Mapping-Table-Cell34 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 10.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #ffffff;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Helvetica;
+}
+P.Mapping-Table-Cell35 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 11.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #ffffff;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier;
+}
+P.Mapping-Table-Cell36 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 11.000000pt;
+	font-weight: medium;
+	font-style: Oblique;
+	color: #ffffff;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier;
+}
+P.Mapping-Table-Cell37 {
+	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
@@ -1256,26 +1064,42 @@ P.Mapping-Table-Cell7 {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
+	font-family: Courier;
 }
-P.Mapping-Table-Cell8 {
-	text-align: justify;
+P.Mapping-Table-Cell38 {
+	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 10.000000pt;
+	font-size: 11.000000pt;
 	font-weight: Bold;
-	font-style: Italic;
+	font-style: Regular;
 	color: #ffffff;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Helvetica;
 }
-P.Mapping-Table-Cell9 {
-	text-align: justify;
+P.Mapping-Table-Cell39 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 9.000000pt;
+	font-weight: medium;
+	font-style: Oblique;
+	color: #ffffff;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Helvetica;
+}
+P.Mapping-Table-Cell4 {
+	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
 	margin-bottom: 0.000000pt;
@@ -1306,7 +1130,7 @@ P.Mapping-Table-Title {
 	text-transform: none;
 	font-family: Times;
 }
-H1.Subhead2, H2.Subhead2, H3.Subhead2, H4.Subhead2, H5.Subhead2, H6.Subhead2 {
+LI.Subhead2 {
 	text-align: left;
 	text-indent: 63.000000pt;
 	margin-top: 12.000000pt;
@@ -1320,39 +1144,7 @@ H1.Subhead2, H2.Subhead2, H3.Subhead2, H4.Subhead2, H5.Subhead2, H6.Subhead2 {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
-}
-LI.Subhead2-noBullet {
-	text-align: left;
-	text-indent: -55.799988pt;
-	margin-top: 12.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 118.799988pt;
-	font-size: 10.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #0000ff;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Helvetica;
-}
-H1.Subhead4, H2.Subhead4, H3.Subhead4, H4.Subhead4, H5.Subhead4, H6.Subhead4 {
-	text-align: left;
-	text-indent: 0.000000pt;
-	margin-top: 12.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 144.000000pt;
-	font-size: 12.000000pt;
-	font-weight: Bold;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Times;
+	font-family: Arial;
 }
 H1.Title, H2.Title, H3.Title, H4.Title, H5.Title, H6.Title {
 	text-align: center;
@@ -1370,15 +1162,17 @@ H1.Title, H2.Title, H3.Title, H4.Title, H5.Title, H6.Title {
 	text-transform: none;
 	font-family: Arial;
 }
-EM.CharFmt {
-	text-decoration: underline ;
-}
 EM.CharFmt1 {
-	font-family: Courier;
 }
 EM.Command {
-	font-size: 7.000000pt;
-	font-family: Courier;
+	font-size: 9.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier New;
 }
 EM.Comment {
 	font-size: 11.000000pt;
@@ -1390,71 +1184,103 @@ EM.Comment {
 	text-transform: none;
 	font-family: Times;
 }
-EM.Comment21 {
-	font-size: 10.000000pt;
-	font-style: Italic;
-	color: #ff00ff;
-	font-family: Arial;
-}
 EM.doc-title {
+	font-size: 10.000000pt;
+	font-weight: medium;
 	font-style: Italic;
-}
-EM.doc-title1 {
-	font-style: Italic;
-	font-family: Times New Roman;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
 }
 EM.Emphasis {
 	font-style: Italic;
 }
+EM.Emphasis-underline {
+	font-size: 11.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: underline ;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+EM.EquationVariables {
+	font-style: Italic;
+}
 EM.grammar_literal {
-	font-size: 10.000000pt;
+	font-size: 9.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Courier;
+	font-family: Courier New;
 }
-KBD.Literal-user-input {
+TT.Literal-user-input {
+	font-size: 9.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier New;
 }
 EM.Optional-meta-syntax {
-	font-size: 11.000000pt;
+	font-size: 9.000000pt;
 	font-weight: medium;
 	font-style: Italic;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier New;
 }
 EM.pathname {
 	font-size: 10.000000pt;
 	font-style: Italic;
 }
 EM.production_target {
-	font-size: 10.000000pt;
+	font-size: 9.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Arial;
 }
 CODE.Program-Process {
-	font-size: 12.000000pt;
+	font-size: 9.000000pt;
 	font-weight: Bold;
-	font-family: Courier;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Courier New;
 }
 EM.URL {
 	font-size: 11.000000pt;
 	font-weight: medium;
 	font-style: Italic;
-	font-family: Times New Roman;
-}
-EM.variable {
-	font-size: 11.000000pt;
-	font-weight: medium;
-	font-style: Oblique;
 	color: #000000;
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Helvetica;
+	font-family: Times;
+}
+EM.variable {
+	font-size: 9.000000pt;
+	font-weight: medium;
+	font-style: Italic;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Arial;
 }
