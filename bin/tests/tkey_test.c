@@ -56,6 +56,10 @@
 	} \
 }
 
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK (unsigned long)0x7F000001UL
+#endif
+
 static void buildquery(void);
 static void buildquery2(void);
 
