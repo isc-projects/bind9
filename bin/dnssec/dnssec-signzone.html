@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.html,v 1.12 2004/06/11 03:03:12 marka Exp $ -->
+<!-- $Id: dnssec-signzone.html,v 1.13 2004/08/23 00:05:44 marka Exp $ -->
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >dnssec-signzone</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.73
-"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -35,10 +35,10 @@ ALINK="#0000FF"
 ><H1
 ><A
 NAME="AEN1"
+></A
 ><SPAN
 CLASS="APPLICATION"
 >dnssec-signzone</SPAN
-></A
 ></H1
 ><DIV
 CLASS="REFNAMEDIV"
@@ -62,120 +62,96 @@ NAME="AEN13"
 ><B
 CLASS="COMMAND"
 >dnssec-signzone</B
->  [<TT
+>  [<VAR
 CLASS="OPTION"
->-a</TT
->] [<TT
+>-a</VAR
+>] [<VAR
 CLASS="OPTION"
->-c <TT
+>-c <VAR
 CLASS="REPLACEABLE"
-><I
->class</I
-></TT
-></TT
->] [<TT
+>class</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-d <TT
+>-d <VAR
 CLASS="REPLACEABLE"
-><I
->directory</I
-></TT
-></TT
->] [<TT
+>directory</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-e <TT
+>-e <VAR
 CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
-></TT
->] [<TT
+>end-time</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-f <TT
+>-f <VAR
 CLASS="REPLACEABLE"
-><I
->output-file</I
-></TT
-></TT
->] [<TT
+>output-file</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-g</TT
->] [<TT
+>-g</VAR
+>] [<VAR
 CLASS="OPTION"
->-h</TT
->] [<TT
+>-h</VAR
+>] [<VAR
 CLASS="OPTION"
->-k <TT
+>-k <VAR
 CLASS="REPLACEABLE"
-><I
->key</I
-></TT
-></TT
->] [<TT
+>key</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-l <TT
+>-l <VAR
 CLASS="REPLACEABLE"
-><I
->domain</I
-></TT
-></TT
->] [<TT
+>domain</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-i <TT
+>-i <VAR
 CLASS="REPLACEABLE"
-><I
->interval</I
-></TT
-></TT
->] [<TT
+>interval</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-n <TT
+>-n <VAR
 CLASS="REPLACEABLE"
-><I
->nthreads</I
-></TT
-></TT
->] [<TT
+>nthreads</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-o <TT
+>-o <VAR
 CLASS="REPLACEABLE"
-><I
->origin</I
-></TT
-></TT
->] [<TT
+>origin</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-p</TT
->] [<TT
+>-p</VAR
+>] [<VAR
 CLASS="OPTION"
->-r <TT
+>-r <VAR
 CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
-></TT
->] [<TT
+>randomdev</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-s <TT
+>-s <VAR
 CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
-></TT
->] [<TT
+>start-time</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-t</TT
->] [<TT
+>-t</VAR
+>] [<VAR
 CLASS="OPTION"
->-v <TT
+>-v <VAR
 CLASS="REPLACEABLE"
-><I
->level</I
-></TT
-></TT
->] [<TT
+>level</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-z</TT
+>-z</VAR
 >] {zonefile} [key...]</P
 ></DIV
 ><DIV
@@ -220,11 +196,9 @@ CLASS="VARIABLELIST"
 	  </P
 ></DD
 ><DT
->-c <TT
+>-c <VAR
 CLASS="REPLACEABLE"
-><I
->class</I
-></TT
+>class</VAR
 ></DT
 ><DD
 ><P
@@ -232,11 +206,9 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-k <TT
+>-k <VAR
 CLASS="REPLACEABLE"
-><I
->key</I
-></TT
+>key</VAR
 ></DT
 ><DD
 ><P
@@ -245,11 +217,9 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-l <TT
+>-l <VAR
 CLASS="REPLACEABLE"
-><I
->domain</I
-></TT
+>domain</VAR
 ></DT
 ><DD
 ><P
@@ -258,11 +228,9 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-d <TT
+>-d <VAR
 CLASS="REPLACEABLE"
-><I
->directory</I
-></TT
+>directory</VAR
 ></DT
 ><DD
 ><P
@@ -270,9 +238,9 @@ CLASS="REPLACEABLE"
 CLASS="FILENAME"
 >keyset</TT
 > files in
-	       <TT
+	       <VAR
 CLASS="OPTION"
->directory</TT
+>directory</VAR
 > as the directory 
 	  </P
 ></DD
@@ -285,11 +253,9 @@ CLASS="OPTION"
 	  </P
 ></DD
 ><DT
->-s <TT
+>-s <VAR
 CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
+>start-time</VAR
 ></DT
 ><DD
 ><P
@@ -299,43 +265,39 @@ CLASS="REPLACEABLE"
 	       in YYYYMMDDHHMMSS notation; 20000530144500 denotes
 	       14:45:00 UTC on May 30th, 2000.  A relative start time is
 	       indicated by +N, which is N seconds from the current time.
-	       If no <TT
+	       If no <VAR
 CLASS="OPTION"
->start-time</TT
+>start-time</VAR
 > is specified, the current
 	       time minus 1 hour (to allow for clock skew) is used.
 	  </P
 ></DD
 ><DT
->-e <TT
+>-e <VAR
 CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
+>end-time</VAR
 ></DT
 ><DD
 ><P
 >	       Specify the date and time when the generated RRSIG records
-	       expire.  As with <TT
+	       expire.  As with <VAR
 CLASS="OPTION"
->start-time</TT
+>start-time</VAR
 >, an absolute
 	       time is indicated in YYYYMMDDHHMMSS notation.  A time relative
 	       to the start time is indicated with +N, which is N seconds from
 	       the start time.  A time relative to the current time is
-	       indicated with now+N.  If no <TT
+	       indicated with now+N.  If no <VAR
 CLASS="OPTION"
->end-time</TT
+>end-time</VAR
 > is
 	       specified, 30 days from the start time is used as a default.
 	  </P
 ></DD
 ><DT
->-f <TT
+>-f <VAR
 CLASS="REPLACEABLE"
-><I
->output-file</I
-></TT
+>output-file</VAR
 ></DT
 ><DD
 ><P
@@ -359,18 +321,16 @@ CLASS="COMMAND"
 	  </P
 ></DD
 ><DT
->-i <TT
+>-i <VAR
 CLASS="REPLACEABLE"
-><I
->interval</I
-></TT
+>interval</VAR
 ></DT
 ><DD
 ><P
 >	       When a previously signed zone is passed as input, records
-	       may be resigned.  The <TT
+	       may be resigned.  The <VAR
 CLASS="OPTION"
->interval</TT
+>interval</VAR
 > option
 	       specifies the cycle interval as an offset from the current
 	       time (in seconds).  If a RRSIG record expires after the
@@ -380,12 +340,12 @@ CLASS="OPTION"
 ><P
 >	       The default cycle interval is one quarter of the difference
 	       between the signature end and start times.  So if neither
-	       <TT
+	       <VAR
 CLASS="OPTION"
->end-time</TT
-> or <TT
+>end-time</VAR
+> or <VAR
 CLASS="OPTION"
->start-time</TT
+>start-time</VAR
 >
 	       are specified, <B
 CLASS="COMMAND"
@@ -398,11 +358,9 @@ CLASS="COMMAND"
 	  </P
 ></DD
 ><DT
->-n <TT
+>-n <VAR
 CLASS="REPLACEABLE"
-><I
->ncpus</I
-></TT
+>ncpus</VAR
 ></DT
 ><DD
 ><P
@@ -411,11 +369,9 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-o <TT
+>-o <VAR
 CLASS="REPLACEABLE"
-><I
->origin</I
-></TT
+>origin</VAR
 ></DT
 ><DD
 ><P
@@ -434,11 +390,9 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-r <TT
+>-r <VAR
 CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
+>randomdev</VAR
 ></DT
 ><DD
 ><P
@@ -469,11 +423,9 @@ CLASS="FILENAME"
 	  </P
 ></DD
 ><DT
->-v <TT
+>-v <VAR
 CLASS="REPLACEABLE"
-><I
->level</I
-></TT
+>level</VAR
 ></DT
 ><DD
 ><P
@@ -515,11 +467,9 @@ NAME="AEN181"
 ><H2
 >EXAMPLE</H2
 ><P
->        The following command signs the <TT
+>        The following command signs the <KBD
 CLASS="USERINPUT"
-><B
->example.com</B
-></TT
+>example.com</KBD
 >
 	zone with the DSA key generated in the <B
 CLASS="COMMAND"
@@ -531,20 +481,16 @@ CLASS="FILENAME"
 >keyset</TT
 > files associated with child zones,
 	they must be in the current directory.
-	<TT
+	<KBD
 CLASS="USERINPUT"
-><B
->example.com</B
-></TT
+>example.com</KBD
 >, the following command would be
 	issued:
     </P
 ><P
->        <TT
+>        <KBD
 CLASS="USERINPUT"
-><B
->dnssec-signzone -o example.com db.example.com Kexample.com.+003+26160</B
-></TT
+>dnssec-signzone -o example.com db.example.com Kexample.com.+003+26160</KBD
 >
     </P
 ><P

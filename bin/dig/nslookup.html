@@ -14,16 +14,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nslookup.html,v 1.2 2004/08/21 09:49:57 marka Exp $ -->
+<!-- $Id: nslookup.html,v 1.3 2004/08/23 00:05:43 marka Exp $ -->
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >nslookup</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.73
-"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -34,8 +34,8 @@ ALINK="#0000FF"
 ><H1
 ><A
 NAME="AEN1"
->nslookup</A
-></H1
+></A
+>nslookup</H1
 ><DIV
 CLASS="REFNAMEDIV"
 ><A
@@ -55,9 +55,9 @@ NAME="AEN11"
 ><B
 CLASS="COMMAND"
 >nslookup</B
->  [<TT
+>  [<VAR
 CLASS="OPTION"
->-option</TT
+>-option</VAR
 >] [name | -] [server]</P
 ></DIV
 ><DIV
@@ -116,11 +116,11 @@ arguments and are prefixed with a hyphen.  For example, to
 change the default query type to host information, and the initial timeout to 10 seconds, type:
 <DIV
 CLASS="INFORMALEXAMPLE"
+><P
+></P
 ><A
 NAME="AEN33"
 ></A
-><P
-></P
 ><PRE
 CLASS="PROGRAMLISTING"
 >nslookup -query=hinfo  -timeout=10</PRE
@@ -158,128 +158,118 @@ search list is used to qualify the name.</P
 the name.</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->server</TT
-> <TT
+>server</CODE
+> <VAR
 CLASS="REPLACEABLE"
-><I
->domain</I
-></TT
+>domain</VAR
 ></DT
 ><DD
 ><P
 ></P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->lserver</TT
-> <TT
+>lserver</CODE
+> <VAR
 CLASS="REPLACEABLE"
-><I
->domain</I
-></TT
+>domain</VAR
 ></DT
 ><DD
 ><P
->Change the default server to <TT
+>Change the default server to <VAR
 CLASS="REPLACEABLE"
-><I
->domain</I
-></TT
->; <TT
+>domain</VAR
+>; <CODE
 CLASS="CONSTANT"
->lserver</TT
+>lserver</CODE
 > uses the initial
-server to look up information about <TT
+server to look up information about <VAR
 CLASS="REPLACEABLE"
-><I
->domain</I
-></TT
->, while <TT
+>domain</VAR
+>, while <CODE
 CLASS="CONSTANT"
->server</TT
+>server</CODE
 > uses
 the current default server.  If an authoritative answer can't be
 found, the names of servers that might have the answer are
 returned.</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->root</TT
+>root</CODE
 ></DT
 ><DD
 ><P
 >not implemented</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->finger</TT
+>finger</CODE
 ></DT
 ><DD
 ><P
 >not implemented</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->ls</TT
+>ls</CODE
 ></DT
 ><DD
 ><P
 >not implemented</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->view</TT
+>view</CODE
 ></DT
 ><DD
 ><P
 >not implemented</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->help</TT
+>help</CODE
 ></DT
 ><DD
 ><P
 >not implemented</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->?</TT
+>?</CODE
 ></DT
 ><DD
 ><P
 >not implemented</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->exit</TT
+>exit</CODE
 ></DT
 ><DD
 ><P
 >Exits the program.</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->set</TT
-> <TT
+>set</CODE
+> <VAR
 CLASS="REPLACEABLE"
-><I
 >keyword[<SPAN
 CLASS="OPTIONAL"
 >=value</SPAN
->]</I
-></TT
+>]</VAR
 ></DT
 ><DD
 ><P
@@ -291,9 +281,9 @@ the lookups.  Valid keywords are:
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->all</TT
+>all</CODE
 ></DT
 ><DD
 ><P
@@ -306,14 +296,12 @@ CLASS="COMMAND"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->class=</TT
-><TT
+>class=</CODE
+><VAR
 CLASS="REPLACEABLE"
-><I
->value</I
-></TT
+>value</VAR
 ></DT
 ><DD
 ><P
@@ -324,36 +312,36 @@ CLASS="REPLACEABLE"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->IN</TT
+>IN</CODE
 ></DT
 ><DD
 ><P
 >the Internet class</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->CH</TT
+>CH</CODE
 ></DT
 ><DD
 ><P
 >the Chaos class</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->HS</TT
+>HS</CODE
 ></DT
 ><DD
 ><P
 >the Hesiod class</P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->ANY</TT
+>ANY</CODE
 ></DT
 ><DD
 ><P
@@ -369,17 +357,15 @@ CLASS="CONSTANT"
    </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
-><TT
+><VAR
 CLASS="REPLACEABLE"
-><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</I
-></TT
->debug</TT
+>]</VAR
+>debug</CODE
 ></DT
 ><DD
 ><P
@@ -395,17 +381,15 @@ CLASS="OPTIONAL"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
-><TT
+><VAR
 CLASS="REPLACEABLE"
-><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</I
-></TT
->d2</TT
+>]</VAR
+>d2</CODE
 ></DT
 ><DD
 ><P
@@ -418,37 +402,31 @@ CLASS="OPTIONAL"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->domain=</TT
-><TT
+>domain=</CODE
+><VAR
 CLASS="REPLACEABLE"
-><I
->name</I
-></TT
+>name</VAR
 ></DT
 ><DD
 ><P
->  Sets the search list to <TT
+>  Sets the search list to <VAR
 CLASS="REPLACEABLE"
-><I
->name</I
-></TT
+>name</VAR
 >.
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
-><TT
+><VAR
 CLASS="REPLACEABLE"
-><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</I
-></TT
->search</TT
+>]</VAR
+>search</CODE
 ></DT
 ><DD
 ><P
@@ -462,22 +440,18 @@ CLASS="OPTIONAL"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->port=</TT
-><TT
+>port=</CODE
+><VAR
 CLASS="REPLACEABLE"
-><I
->value</I
-></TT
+>value</VAR
 ></DT
 ><DD
 ><P
->  Change the default TCP/UDP name server port to <TT
+>  Change the default TCP/UDP name server port to <VAR
 CLASS="REPLACEABLE"
-><I
->value</I
-></TT
+>value</VAR
 >.
   </P
 ><P
@@ -485,28 +459,24 @@ CLASS="REPLACEABLE"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->querytype=</TT
-><TT
+>querytype=</CODE
+><VAR
 CLASS="REPLACEABLE"
-><I
->value</I
-></TT
+>value</VAR
 ></DT
 ><DD
 ><P
 ></P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->type=</TT
-><TT
+>type=</CODE
+><VAR
 CLASS="REPLACEABLE"
-><I
->value</I
-></TT
+>value</VAR
 ></DT
 ><DD
 ><P
@@ -517,17 +487,15 @@ CLASS="REPLACEABLE"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
-><TT
+><VAR
 CLASS="REPLACEABLE"
-><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</I
-></TT
->recurse</TT
+>]</VAR
+>recurse</CODE
 ></DT
 ><DD
 ><P
@@ -539,14 +507,12 @@ CLASS="OPTIONAL"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->retry=</TT
-><TT
+>retry=</CODE
+><VAR
 CLASS="REPLACEABLE"
-><I
->number</I
-></TT
+>number</VAR
 ></DT
 ><DD
 ><P
@@ -554,14 +520,12 @@ CLASS="REPLACEABLE"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
->timeout=</TT
-><TT
+>timeout=</CODE
+><VAR
 CLASS="REPLACEABLE"
-><I
->number</I
-></TT
+>number</VAR
 ></DT
 ><DD
 ><P
@@ -570,17 +534,15 @@ CLASS="REPLACEABLE"
   </P
 ></DD
 ><DT
-><TT
+><CODE
 CLASS="CONSTANT"
-><TT
+><VAR
 CLASS="REPLACEABLE"
-><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</I
-></TT
->vc</TT
+>]</VAR
+>vc</CODE
 ></DT
 ><DD
 ><P
