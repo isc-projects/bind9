@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.74 2000/07/11 17:35:49 mws Exp $ */
+/* $Id: dighost.c,v 1.75 2000/07/11 17:49:02 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1786,7 +1786,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						      NULL,
 						      &query->lookup->interval,
 						      ISC_FALSE);
-				check_result(result, "isc_timer_create");
+				check_result(result, "isc_timer_reset");
 			}
 		}
 		if (query->lookup->xfr_q == query) {
