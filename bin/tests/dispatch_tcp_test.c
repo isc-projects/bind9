@@ -25,7 +25,6 @@
 #include <isc/app.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
-#include <isc/inet.h>
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -182,8 +181,8 @@ start_response(void)
 #endif
 	from.type.sin.sin_port = htons(53);
 	from.type.sa.sa_family = AF_INET;
-	RUNTIME_CHECK(isc_inet_aton("204.152.184.97",
-				    &from.type.sin.sin_addr) == 1);
+	RUNTIME_CHECK(inet_aton("204.152.184.97",
+				&from.type.sin.sin_addr) == 1);
 
 	msg = NULL;
 	result = dns_message_create(mctx, &msg, DNS_MESSAGE_INTENTRENDER);
