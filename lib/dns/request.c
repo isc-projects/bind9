@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.57 2001/02/13 21:06:25 gson Exp $ */
+/* $Id: request.c,v 1.58 2001/03/05 21:15:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/util.h>
 
 #include <dns/acl.h>
+#include <dns/compress.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/log.h>
@@ -935,6 +936,8 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	isc_result_t result;
 	isc_region_t r;
 	isc_boolean_t tcp = ISC_FALSE;
+	dns_compress_t cctx;
+	isc_boolean_t cleanup_cctx = ISC_FALSE;
 
 	REQUIRE(bufferp != NULL && *bufferp == NULL);
 
@@ -947,10 +950,15 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	result = dns_compress_init(&cctx, -1, mctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	cleanup_cctx = ISC_TRUE;
+
 	/*
 	 * Render message.
 	 */
-	result = dns_message_renderbegin(message, buf1);
+	result = dns_message_renderbegin(message, &cctx, buf1);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_message_rendersection(message, DNS_SECTION_QUESTION, 0);
@@ -968,6 +976,9 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	result = dns_message_renderend(message);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+
+	dns_compress_invalidate(&cctx);
+	cleanup_cctx = ISC_FALSE;
 
 	/*
 	 * Copy rendered message to exact sized buffer.
@@ -1001,6 +1012,8 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 		isc_buffer_free(&buf1);
 	if (buf2 != NULL)
 		isc_buffer_free(&buf2);
+	if (cleanup_cctx)
+		dns_compress_invalidate(&cctx);
 	return (result);
 }
 

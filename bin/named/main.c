@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.103 2001/01/11 23:46:10 bwelling Exp $ */
+/* $Id: main.c,v 1.104 2001/03/05 21:15:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -56,6 +56,7 @@
  * Include header files for database drivers here.
  */
 /* #include "xxdb.h" */
+#include "pgsqldb.h"
 
 static isc_boolean_t	want_stats = ISC_FALSE;
 static const char *	program_name = "named";
@@ -496,6 +497,7 @@ setup(void) {
 	 * Add calls to register sdb drivers here.
 	 */
 	/* xxdb_init(); */
+	pgsqldb_init();
 
 	ns_server_create(ns_g_mctx, &ns_g_server);
 
@@ -517,6 +519,7 @@ cleanup(void) {
 	 * Add calls to unregister sdb drivers here.
 	 */
 	/* xxdb_clear(); */
+	pgsqldb_clear();
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");

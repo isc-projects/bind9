@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.95 2001/02/26 03:52:30 marka Exp $ */
+/* $Id: xfrout.c,v 1.96 2001/03/05 21:15:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1263,6 +1263,8 @@ sendstream(xfrout_ctx_t *xfr) {
 	dns_rdata_t *msgrdata = NULL;
 	dns_rdatalist_t *msgrdl = NULL;
 	dns_rdataset_t *msgrds = NULL;
+	dns_compress_t cctx;
+	isc_boolean_t cleanup_cctx = ISC_FALSE;
 
 	int n_rrs;
 
@@ -1448,10 +1450,14 @@ sendstream(xfrout_ctx_t *xfr) {
 	}
 
 	if ((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0) {
-		CHECK(dns_message_renderbegin(msg, &xfr->txbuf));
+		CHECK(dns_compress_init(&cctx, -1, xfr->mctx));
+		cleanup_cctx = ISC_TRUE;
+		CHECK(dns_message_renderbegin(msg, &cctx, &xfr->txbuf));
 		CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
 		CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
 		CHECK(dns_message_renderend(msg));
+		dns_compress_invalidate(&cctx);
+		cleanup_cctx = ISC_FALSE;
 
 		isc_buffer_usedregion(&xfr->txbuf, &used);
 		isc_buffer_putuint16(&xfr->txlenbuf, used.length);
@@ -1497,6 +1503,8 @@ sendstream(xfrout_ctx_t *xfr) {
 	if (tcpmsg != NULL)
 		dns_message_destroy(&tcpmsg);
 
+	if (cleanup_cctx)
+		dns_compress_invalidate(&cctx);
 	/*
 	 * Make sure to release any locks held by database
 	 * iterators before returning from the event handler.

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.68 2001/03/04 21:21:19 bwelling Exp $
+# $Id: Makefile.in,v 1.69 2001/03/05 21:15:34 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -26,10 +26,10 @@ top_srcdir =	@top_srcdir@
 #
 # Add database drivers here.
 #
-DBDRIVER_OBJS =
-DBDRIVER_SRCS =
+DBDRIVER_OBJS = pgsqldb.o
+DBDRIVER_SRCS = pgsqldb.c
 DBDRIVER_INCLUDES =
-DBDRIVER_LIBS =
+DBDRIVER_LIBS = -lpq
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
 		${LWRES_INCLUDES} ${OMAPI_INCLUDES} ${DNS_INCLUDES} \

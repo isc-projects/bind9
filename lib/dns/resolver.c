@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.206 2001/02/28 21:19:53 bwelling Exp $ */
+/* $Id: resolver.c,v 1.207 2001/03/05 21:15:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -854,6 +854,8 @@ resquery_send(resquery_t *query) {
 	dns_peer_t *peer = NULL;
 	isc_boolean_t bogus;
 	isc_boolean_t aborted = ISC_FALSE;
+	dns_compress_t cctx;
+	isc_boolean_t cleanup_cctx = ISC_FALSE;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -926,7 +928,13 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Convert the question to wire format.
 	 */
-	result = dns_message_renderbegin(fctx->qmessage, &query->buffer);
+	result = dns_compress_init(&cctx, -1, fctx->res->mctx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_message;
+	cleanup_cctx = ISC_TRUE;
+
+	result = dns_message_renderbegin(fctx->qmessage, &cctx,
+					 &query->buffer);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 
@@ -1003,6 +1011,9 @@ resquery_send(resquery_t *query) {
 	result = dns_message_renderend(fctx->qmessage);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
+
+	dns_compress_invalidate(&cctx);
+	cleanup_cctx = ISC_FALSE;
 
 	if (dns_message_gettsigkey(fctx->qmessage) != NULL) {
 		dns_tsigkey_attach(dns_message_gettsigkey(fctx->qmessage),
@@ -1083,6 +1094,9 @@ resquery_send(resquery_t *query) {
 	return (ISC_R_SUCCESS);
 
  cleanup_message:
+	if (cleanup_cctx)
+		dns_compress_invalidate(&cctx);
+
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.114 2001/02/09 06:04:51 marka Exp $ */
+/* $Id: xfrin.c,v 1.115 2001/03/05 21:15:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -219,7 +219,7 @@ static void maybe_free(dns_xfrin_ctx_t *xfr);
 static void
 xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg);
 static isc_result_t
-render(dns_message_t *msg, isc_buffer_t *buf);
+render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
 
 static void
 xfrin_logv(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
@@ -795,10 +795,14 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 /* XXX the resolver could use this, too */
 
 static isc_result_t
-render(dns_message_t *msg, isc_buffer_t *buf) {
+render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
+	dns_compress_t cctx;
+	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_result_t result;
 
-	CHECK(dns_message_renderbegin(msg, buf));
+	CHECK(dns_compress_init(&cctx, -1, mctx));
+	cleanup_cctx = ISC_TRUE;
+	CHECK(dns_message_renderbegin(msg, &cctx, buf));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0));
@@ -806,6 +810,8 @@ render(dns_message_t *msg, isc_buffer_t *buf) {
 	CHECK(dns_message_renderend(msg));
 	result = ISC_R_SUCCESS;
  failure:
+ 	if (cleanup_cctx)
+	 	dns_compress_invalidate(&cctx);
 	return (result);
 }
 
@@ -952,7 +958,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	xfr->id++;
 	msg->id = xfr->id;
 
-	CHECK(render(msg, &xfr->qbuffer));
+	CHECK(render(msg, xfr->mctx, &xfr->qbuffer));
 
 	/*
 	 * Free the last tsig, if there is one.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.54 2001/01/09 21:41:48 bwelling Exp $ */
+/* $Id: wire_test.c,v 1.55 2001/03/05 21:15:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -62,10 +62,11 @@ main(int argc, char *argv[]) {
 	int n;
 	FILE *f;
 	isc_boolean_t need_close = ISC_FALSE;
-	unsigned char b[1000];
-	char s[1000];
+	unsigned char b[4000];
+	char s[4000];
 	dns_message_t *message;
 	isc_result_t result;
+	dns_compress_t cctx;
 	isc_mem_t *mctx;
 
 	mctx = NULL;
@@ -126,7 +127,7 @@ main(int argc, char *argv[]) {
 	CHECKRESULT(result, "dns_message_create failed");
 
 	result = dns_message_parse(message, &source, 0);
-	CHECKRESULT(result, "dns_message_parse failed");
+/*	CHECKRESULT(result, "dns_message_parse failed");*/
 
 	result = printmessage(message);
 	CHECKRESULT(result, "printmessage() failed");
@@ -145,6 +146,9 @@ main(int argc, char *argv[]) {
 	for (i = 0 ; i < DNS_SECTION_MAX ; i++)
 		message->counts[i] = 0;  /* Another hack XXX */
 
+	result = dns_compress_init(&cctx, -1, mctx);
+	CHECKRESULT(result, "dns_compress_init() failed");
+
 	result = dns_message_renderbegin(message, &source);
 	CHECKRESULT(result, "dns_message_renderbegin() failed");
 
@@ -161,6 +165,8 @@ main(int argc, char *argv[]) {
 	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL) failed");
 
 	dns_message_renderend(message);
+
+	dns_compress_invalidate(&cctx);
 
 	message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
 	dns_message_destroy(&message);

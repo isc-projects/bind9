@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.94 2001/02/23 01:52:18 bwelling Exp $ */
+/* $Id: message.h,v 1.95 2001/03/05 21:15:47 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -182,7 +182,6 @@ struct dns_message {
 
 	int				state;
 	unsigned int			from_to_wire : 2;
-	unsigned int			need_cctx_cleanup : 1;
 	unsigned int			header_ok : 1;
 	unsigned int			question_ok : 1;
 	unsigned int			tcp_continuation : 1;
@@ -196,7 +195,7 @@ struct dns_message {
 	unsigned int			reserved; /* reserved space (render) */
 
 	isc_buffer_t		       *buffer;
-	dns_compress_t			cctx;
+	dns_compress_t		       *cctx;
 
 	isc_mem_t		       *mctx;
 	isc_mempool_t		       *namepool;
@@ -417,10 +416,14 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  */
 
 isc_result_t
-dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
+dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
+			isc_buffer_t *buffer);
 /*
  * Begin rendering on a message.  Only one call can be made to this function
  * per message.
+ *
+ * The compression context is "owned" by the message library until
+ * dns_message_renderend() is called.  It must be invalidated by the caller.
  *
  * The buffer is "owned" by the message library until dns_message_renderend()
  * is called.
@@ -428,6 +431,8 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  * Requires:
  *
  *	'msg' be valid.
+ *
+ *	'cctx' be valid.
  *
  *	'buffer' is a valid buffer.
  *
@@ -438,7 +443,6 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOSPACE		-- output buffer is too small
- *	Anything that dns_compress_init() can return.
  */
 
 isc_result_t

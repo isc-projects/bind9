@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.184 2001/03/05 20:12:49 bwelling Exp $ */
+/* $Id: message.c,v 1.185 2001/03/05 21:15:41 bwelling Exp $ */
 
 /***
  *** Imports
@@ -366,7 +366,6 @@ msginitprivate(dns_message_t *m) {
 	m->sig_reserved = 0;
 	m->reserved = 0;
 	m->buffer = NULL;
-	m->need_cctx_cleanup = 0;
 }
 
 static inline void
@@ -586,9 +585,6 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 		msgblock = next_msgblock;
 	}
 
-	if (msg->need_cctx_cleanup == 1)
-		dns_compress_invalidate(&msg->cctx);
-
 	if (msg->tsigkey != NULL) {
 		dns_tsigkey_detach(&msg->tsigkey);
 		msg->tsigkey = NULL;
@@ -733,6 +729,8 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	ISC_LIST_APPEND(m->scratchpad, dynbuf, link);
+
+	m->cctx = NULL;
 
 	*msgp = m;
 	return (ISC_R_SUCCESS);
@@ -1591,14 +1589,17 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 }
 
 isc_result_t
-dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer) {
+dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
+			isc_buffer_t *buffer)
+{
 	isc_region_t r;
-	isc_result_t result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(buffer != NULL);
 	REQUIRE(msg->buffer == NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
+
+	msg->cctx = cctx;
 
 	/*
 	 * Erase the contents of this buffer.
@@ -1614,11 +1615,6 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer) {
 
 	if (r.length < msg->reserved)
 		return (ISC_R_NOSPACE);
-
-	result = dns_compress_init(&msg->cctx, -1, msg->mctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	msg->need_cctx_cleanup = 1;
 
 	/*
 	 * Reserve enough space for the header in this buffer.
@@ -1775,7 +1771,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				count = 0;
 				result = dns_rdataset_towiresorted(rdataset,
 							  name,
-							  &msg->cctx,
+							  msg->cctx,
 							  msg->buffer,
 							  msg->order,
 							  msg->order_arg,
@@ -1798,7 +1794,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				 */
 				if (result != ISC_R_SUCCESS) {
 					INSIST(st.used < 65536);
-					dns_compress_rollback(&msg->cctx,
+					dns_compress_rollback(msg->cctx,
 							(isc_uint16_t)st.used);
 					*(msg->buffer) = st;  /* rollback */
 					msg->buffer->length += msg->reserved;
@@ -1900,7 +1896,7 @@ dns_message_renderend(dns_message_t *msg) {
 		 */
 		count = 0;
 		result = dns_rdataset_towire(msg->opt, dns_rootname,
-					     &msg->cctx, msg->buffer, &count);
+					     msg->cctx, msg->buffer, &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -1923,7 +1919,7 @@ dns_message_renderend(dns_message_t *msg) {
 		msg->buffer = buf;
 		isc_buffer_clear(msg->buffer);
 		isc_buffer_add(msg->buffer, DNS_MESSAGE_HEADERLEN);
-		dns_compress_rollback(&msg->cctx, 0);
+		dns_compress_rollback(msg->cctx, 0);
 		result = dns_message_rendersection(msg, DNS_SECTION_QUESTION,
 						   0);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
@@ -1941,7 +1937,7 @@ dns_message_renderend(dns_message_t *msg) {
 			return (result);
 		count = 0;
 		result = dns_rdataset_towire(msg->tsig, msg->tsigname,
-					     &msg->cctx, msg->buffer, &count);
+					     msg->cctx, msg->buffer, &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -1963,7 +1959,7 @@ dns_message_renderend(dns_message_t *msg) {
 		 * be set in a message being rendered.
 		 */
 		result = dns_rdataset_towire(msg->sig0, dns_rootname,
-					     &msg->cctx, msg->buffer, &count);
+					     msg->cctx, msg->buffer, &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -1975,9 +1971,6 @@ dns_message_renderend(dns_message_t *msg) {
 	dns_message_renderheader(msg, &tmpbuf);
 
 	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
-
-	dns_compress_invalidate(&msg->cctx);
-	msg->need_cctx_cleanup = 0;
 
 	return (ISC_R_SUCCESS);
 }

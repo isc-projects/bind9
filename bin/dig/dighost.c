@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.194 2001/02/24 20:53:26 bwelling Exp $ */
+/* $Id: dighost.c,v 1.195 2001/03/05 21:15:32 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1264,6 +1264,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_region_t r;
 	isc_buffer_t b;
+	dns_compress_t cctx;
 	char store[MXNAME];
 
 	REQUIRE(lookup != NULL);
@@ -1439,9 +1440,13 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->sendspace == NULL)
 		fatal("memory allocation failure");
 
+	result = dns_compress_init(&cctx, -1, mctx);
+	check_result(result, "dns_compress_init");
+
 	debug("starting to render the message");
 	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
-	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
+	result = dns_message_renderbegin(lookup->sendmsg, &cctx,
+					 &lookup->sendbuf);
 	check_result(result, "dns_message_renderbegin");
 #ifndef DNS_OPT_NEWCODES_LIVE
 	if (lookup->udpsize > 0 || lookup->dnssec) {
@@ -1450,7 +1455,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	    lookup->zonename[0] != 0 || lookup->viewname[0] != 0) {
 		dns_fixedname_t fname;
 		isc_buffer_t namebuf, *wirebuf = NULL;
-		dns_compress_t cctx;
+		dns_compress_t zcctx;
 		dns_optlist_t optlist;
 		dns_optattr_t optattr[2];
 #endif /* DNS_OPT_NEWCODES_LIVE */
@@ -1474,12 +1479,12 @@ setup_lookup(dig_lookup_t *lookup) {
 						   dns_rootname, ISC_FALSE,
 						   NULL);
 			check_result(result, "; illegal zone option");
-			result = dns_compress_init(&cctx, 0, mctx);
+			result = dns_compress_init(&zcctx, 0, mctx);
 			check_result(result, "dns_compress_init");
 			result = isc_buffer_allocate(mctx, &wirebuf,
 						     MXNAME);
 			check_result(result, "isc_buffer_allocate");
-			result = dns_name_towire(&(fname.name), &cctx,
+			result = dns_name_towire(&(fname.name), &zcctx,
 						 wirebuf);
 			check_result(result, "dns_name_towire");
 			optattr[optlist.used].value.base =
@@ -1487,7 +1492,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			optattr[optlist.used].value.length =
 				isc_buffer_usedlength(wirebuf);
 			optlist.used++;
-			dns_compress_invalidate(&cctx);
+			dns_compress_invalidate(&zcctx);
 		}
 		if (lookup->viewname[0] != 0) {
 			optattr[optlist.used].code = DNS_OPTCODE_VIEW;
@@ -1515,6 +1520,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	result = dns_message_renderend(lookup->sendmsg);
 	check_result(result, "dns_message_renderend");
 	debug("done rendering");
+
+	dns_compress_invalidate(&cctx);
 
 	/*
 	 * Force TCP mode if the request is larger than 512 bytes.
@@ -2678,7 +2685,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 			fatal("Couldn't find server '%s': %s",
 			      host, gai_strerror(result));
 		}
-		memcpy(&sockaddr->type.sa,res->ai_addr, res->ai_addrlen);
+		memcpy(&sockaddr->type.sa, res->ai_addr, res->ai_addrlen);
 		sockaddr->length = res->ai_addrlen;
 		isc_sockaddr_setport(sockaddr, port);
 		freeaddrinfo(res);

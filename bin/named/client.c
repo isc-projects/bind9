@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.154 2001/02/23 22:38:28 bwelling Exp $ */
+/* $Id: client.c,v 1.155 2001/03/05 21:15:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -803,6 +803,8 @@ ns_client_send(ns_client_t *client) {
 	isc_buffer_t buffer;
 	isc_buffer_t tcpbuffer;
 	isc_region_t r;
+	dns_compress_t cctx;
+	isc_boolean_t cleanup_cctx = ISC_FALSE;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -818,7 +820,12 @@ ns_client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
-	result = dns_message_renderbegin(client->message, &buffer);
+	result = dns_compress_init(&cctx, -1, client->mctx);
+	if (result != ISC_R_SUCCESS)
+		goto done;
+	cleanup_cctx = ISC_TRUE;
+
+	result = dns_message_renderbegin(client->message, &cctx, &buffer);
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	if (client->opt != NULL) {
@@ -864,6 +871,11 @@ ns_client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
+	if (cleanup_cctx) {
+		dns_compress_invalidate(&cctx);
+		cleanup_cctx = ISC_FALSE;
+	}
+
 	if (TCP_CLIENT(client)) {
 		isc_buffer_usedregion(&buffer, &r);
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
@@ -879,6 +891,10 @@ ns_client_send(ns_client_t *client) {
 		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
 		client->tcpbuf = NULL;
 	}
+
+	if (cleanup_cctx)
+		dns_compress_invalidate(&cctx);
+
 	ns_client_next(client, result);
 }
 

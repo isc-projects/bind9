@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.5 2001/01/09 21:41:39 bwelling Exp $ */
+/* $Id: sig0_test.c,v 1.6 2001/03/05 21:15:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -136,6 +136,7 @@ buildquery(void) {
 	isc_buffer_t namesrc, namedst;
 	unsigned char namedata[256];
 	isc_sockaddr_t sa;
+	dns_compress_t cctx;
 
 	query = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
@@ -162,6 +163,8 @@ buildquery(void) {
 
 	isc_buffer_init(&qbuffer, qdata, sizeof(qdata));
 
+	result = dns_compress_init(&cctx, -1, mctx);
+	CHECK("dns_compress_init", result);
 	result = dns_message_renderbegin(query, &qbuffer);
 	CHECK("dns_message_renderbegin", result);
 	result = dns_message_rendersection(query, DNS_SECTION_QUESTION, 0);
@@ -174,6 +177,7 @@ buildquery(void) {
 	CHECK("dns_message_rendersection(add)", result);
 	result = dns_message_renderend(query);
 	CHECK("dns_message_renderend", result);
+	dns_compress_invalidate(&cctx);
 
 	isc_buffer_init(&outbuf, output, sizeof(output));
 	result = dns_message_totext(query, 0, &outbuf);
