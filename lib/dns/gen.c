@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.40 2000/04/25 21:10:33 explorer Exp $ */
+/* $Id: gen.c,v 1.41 2000/04/26 17:27:01 explorer Exp $ */
 
 #include <config.h>
 
@@ -429,8 +429,12 @@ HASH(char *string)
 	unsigned char a, b;
 
 	n = strlen(string);
-	a = tolower(string[0]);
-	b = tolower(string[n - 1]);
+	if (n == 0) {
+		fprintf(stderr, "n == 0?\n");
+		exit(1);
+	}
+	a = tolower((unsigned char)string[0]);
+	b = tolower((unsigned char)string[n - 1]);
 
 	return ((a + n) * b) % 256;
 }
@@ -650,6 +654,8 @@ main(int argc, char **argv) {
 			 */
 			for (j = i ; j <= 255 ; j++) {
 				ttn2 = &typenames[j];
+				if (ttn->sorted != 0)
+					continue;
 				if (hash == HASH(ttn2->typename)) {
 					printf("\t\t\tif (strcasecmp(\"%s\", (_typename)) == 0) { \\\n"
 					       "\t\t\t\tif ((typeattr[%u].flags & DNS_RDATATYPEATTR_RESERVED) != 0) \\\n"
