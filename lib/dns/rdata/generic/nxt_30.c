@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.16 1999/09/15 23:03:31 explorer Exp $ */
+ /* $Id: nxt_30.c,v 1.17 1999/10/08 21:26:42 tale Exp $ */
 
  /* RFC 2065 */
 
@@ -35,7 +35,7 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_rdatatype_t covered;
 	dns_rdatatype_t maxcovered = 0;
 	isc_boolean_t first = ISC_TRUE;
-	unsigned int n;
+	long n;
 
 	REQUIRE(type == 30);
 
@@ -55,7 +55,10 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				  ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
-		covered = strtol(token.value.as_pointer, &e, 10);
+		n = strtol(token.value.as_pointer, &e, 10);
+		if (n  < 0 || n > 65535)
+			return (DNS_R_RANGE);
+		covered = (dns_rdatatype_t)n;
 		if (*e == 0)
 			(void) NULL;
 		else if (dns_rdatatype_fromtext(&covered, 
@@ -100,9 +103,10 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	for (i = 0 ; i < sr.length ; i++) {
 		if (sr.base[i] != 0)
 			for (j = 0; j < 8; j++)
-				if ((sr.base[i] & (0x80>>j)) != 0) {
+				if ((sr.base[i] & (0x80 >> j)) != 0) {
 					result = dns_rdatatype_totext(
-							i * 8 + j, target);
+						  (dns_rdatatype_t)(i * 8 + j),
+						  target);
 					if (result == DNS_R_SUCCESS) {
 						RETERR(str_totext(" ",
 								  target));
