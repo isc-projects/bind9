@@ -45,10 +45,11 @@ BIND 9
 
 
 
-BIND 9.1.0rc1
+BIND 9.1.0
 
-	BIND 9.1.0rc1 is a release candidate for BIND 9.1.0.
-	It fixes a number of bugs in 9.1.0b3.
+	BIND 9.1.0 is the first release of BIND 9.1.  Compared
+	to 9.0, BIND 9.1 has a number of new features as well
+	as numerous bug fixes and cleanups.
 
 	Features added since 9.0.x include:
 
@@ -81,8 +82,6 @@ BIND 9.1.0rc1
 
 	Cryptographic operations are now based on the OpenSSL
 	library instead of DNSsafe.
-
-	Numerous bugs have been fixed.
 
 	BIND 9.1.0 is primarily a name server software distribution.
 	In addition to the name server, it also includes a new
