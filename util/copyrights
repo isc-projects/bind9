@@ -15,7 +15,7 @@
 ./bin/dig/.cvsignore				X	2000
 ./bin/dnssec/Makefile.in			MAKE	2000
 ./bin/dnssec/dnssec-keygen.c			C	1999,2000
-./bin/dnssec/dnssec-makekeyset.			C	2000
+./bin/dnssec/dnssec-makekeyset.c		C	2000
 ./bin/dnssec/dnssec-signkey.c			C	2000
 ./bin/dnssec/dnssec-signzone.c			C	1999,2000
 ./bin/dnssec/dnssectool.c			C	2000
@@ -159,7 +159,7 @@
 ./bin/tests/lex_test.c				C	1998,1999,2000
 ./bin/tests/lfsr_test.c				C	1999,2000
 ./bin/tests/log_test.c				C	1999,2000
-./bin/tests/lwres_conftest.c			C	2000
+./bin/tests/lwresconf_test.c			C	2000
 ./bin/tests/lwres_test.c			C	2000
 ./bin/tests/master-b9t.cron			X	1999,2000
 ./bin/tests/master/.cvsignore			X	1999,2000
@@ -262,7 +262,6 @@
 ./bin/tests/rbt_test.out			X	1999,2000
 ./bin/tests/rbt_test.txt			X	1999,2000
 ./bin/tests/rdata_test.c			C	1998,1999,2000
-./bin/tests/res_test.c				C	1999,2000
 ./bin/tests/resolv.conf.sample			X	2000
 ./bin/tests/rwlock_test.c			C	1998,1999,2000
 ./bin/tests/serial_test.c			C	1999,2000
