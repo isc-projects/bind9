@@ -8,7 +8,6 @@ rt4687		review		explorer
 rt4898		review		explorer
 rt4715		review		explorer
 peter		private		peter		(hostname.bind for 9.2.x)
-ksk		review		explorer
 openssl_stub	open		marka
 chroot		open		marka
 edns_size	open		marka
@@ -21,6 +20,7 @@ ds_12		closed
 ipv6-improvements closed
 ipv6-scope	closed
 ipv6_6to4	closed
+ksk		closed
 marka_google	closed
 rt3445		closed
 rt3502		closed
