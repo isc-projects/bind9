@@ -1,3 +1,9 @@
+ 309.	[bug]		When sending a referral, the server did not look
+			for name server addresses as glue in the zone
+			holding the NS RRset in the case where this zone
+			was not the same as the one where it looked for
+			name server addresses as authoritative data.
+
  308.	[bug]		Treat a SOA record not at top of zone as an error
 			when loading a zone. (RT #154)
 
