@@ -43,10 +43,9 @@ my $c1 = readfile($ARGV[0]);
 my $c2 = readfile($ARGV[1]);
 
 foreach my $c (sort {$a <=> $b} keys %$c1) {
-	if ($c1->{$c}->{category} eq "bug" && !exists($c2->{$c})) {
-		print $c1->{$c}->{text};
-	}
-	if ($c1->{$c}->{category} eq "port" && !exists($c2->{$c})) {
+	my $category = $c1->{$c}->{category};
+	if (($category eq "bug" || $category eq "port") &&
+	    !exists($c2->{$c})) {
 		print $c1->{$c}->{text};
 	}
 }
