@@ -131,9 +131,19 @@ typedef isc_event_t intev_t;
 #endif
 
 /*
+ * Check to see if we have even basic support for cracking messages from
+ * the control data returned from/sent via recvmsg()/sendmsg().
+ */
+#if defined(USE_CMSG) && (!defined(CMSG_LEN) || !defined(CMSG_SPACE))
+#undef USE_CMSG
+#endif
+
+/*
  * Total cmsg space needed for all of the above bits.
  */
+#ifdef USE_CMSG
 #define TOTAL_SPACE	(PKTINFO_SPACE + TIMESTAMP_SPACE)
+#endif
 
 struct isc_socket {
 	/* Not locked. */
