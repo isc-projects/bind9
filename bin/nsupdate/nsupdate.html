@@ -485,6 +485,29 @@ will attempt determine the correct zone to update based on the rest of the input
 ><P
 ><B
 CLASS="COMMAND"
+>class</B
+>  {classname}</P
+></DT
+><DD
+><P
+>Specify the default class.
+If no <TT
+CLASS="PARAMETER"
+><I
+>class</I
+></TT
+> is specified the default class is
+<TT
+CLASS="PARAMETER"
+><I
+>IN</I
+></TT
+>.</P
+></DD
+><DT
+><P
+><B
+CLASS="COMMAND"
 >key</B
 >  {name} {secret}</P
 ></DT
@@ -586,8 +609,7 @@ CLASS="PARAMETER"
 >class</I
 ></TT
 >
-is omitted, IN (internet) is assumed.
-&#13;</P
+is omitted, IN (internet) is assumed.</P
 ></DD
 ><DT
 ><P
@@ -797,16 +819,27 @@ CLASS="COMMAND"
 ><P
 >Sends the current message.  This is equivalent to entering a blank line.</P
 ></DD
+><DT
+><P
+><B
+CLASS="COMMAND"
+>answer</B
+> </P
+></DT
+><DD
+><P
+>Displays the answer.</P
+></DD
 ></DL
 ></DIV
 >&#13;</P
 ><P
->Lines beginning with a semicolon are comments, and are ignored.</P
+>Lines beginning with a semicolon are comments and are ignored.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN240"
+NAME="AEN255"
 ></A
 ><H2
 >EXAMPLES</H2
@@ -835,7 +868,7 @@ CLASS="PROGRAMLISTING"
 ># nsupdate
 &#62; update delete oldhost.example.com A
 &#62; update add newhost.example.com 86400 A 172.16.1.1
-&#62;</PRE
+&#62; send</PRE
 ></P
 ><P
 >Any A records for
@@ -856,7 +889,7 @@ CLASS="PROGRAMLISTING"
 ># nsupdate
 &#62; prereq nxdomain nickname.example.com
 &#62; update add nickname.example.com 86400 CNAME somehost.example.com
-&#62;</PRE
+&#62; send</PRE
 ></P
 ><P
 >The prerequisite condition gets the name server to check that there
@@ -877,7 +910,7 @@ RRSIG, DNSKEY and NSEC records.)</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN253"
+NAME="AEN268"
 ></A
 ><H2
 >FILES</H2
@@ -933,7 +966,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN277"
+NAME="AEN292"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -1005,7 +1038,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN300"
+NAME="AEN315"
 ></A
 ><H2
 >BUGS</H2
