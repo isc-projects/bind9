@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.148 2000/11/13 21:33:55 bwelling Exp $ */
+/* $Id: query.c,v 1.149 2000/11/14 03:30:53 gson Exp $ */
 
 #include <config.h>
 
@@ -44,6 +44,7 @@
 #include <named/client.h>
 #include <named/log.h>
 #include <named/server.h>
+#include <named/sortlist.h>
 #include <named/xfrout.h>
 
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
@@ -2218,23 +2219,12 @@ rdata_tonetaddr(dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
  * sortlist statement.
  */
 static int
-sortlist_order_2element(dns_rdata_t *rdata, void *arg) {
-	dns_acl_t *sortacl = (dns_acl_t *) arg;
+query_sortlist_order_2element(dns_rdata_t *rdata, void *arg) {
 	isc_netaddr_t netaddr;
-	int match;
 
 	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS)
 		return (INT_MAX);
-
-	(void)dns_acl_match(&netaddr, NULL, sortacl,
-			    &ns_g_server->aclenv,
-			    &match, NULL);
-	if (match > 0)
-		return (match);
-	else if (match < 0)
-		return (INT_MAX - (-match));
-	else
-		return (INT_MAX / 2);
+	return (ns_sortlist_addrorder2(&netaddr, arg));
 }
 
 /*
@@ -2242,83 +2232,38 @@ sortlist_order_2element(dns_rdata_t *rdata, void *arg) {
  * of a 1-element top-level sortlist statement.
  */
 static int
-sortlist_order_1element(dns_rdata_t *rdata, void *arg) {
-	dns_aclelement_t *matchelt = (dns_aclelement_t *) arg;
+query_sortlist_order_1element(dns_rdata_t *rdata, void *arg) {
 	isc_netaddr_t netaddr;
 
 	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS)
 		return (INT_MAX);
-
-	if (dns_aclelement_match(&netaddr, NULL, matchelt,
-				 &ns_g_server->aclenv,
-				 NULL)) {
-		return (0);
-	} else {
-		return (INT_MAX);
-	}
+	return (ns_sortlist_addrorder1(&netaddr, arg));
 }
 
 /*
- * Find the sortlist element that applies to 'client' and set up
+ * Find the sortlist statement that applies to 'client' and set up
  * the sortlist info in in client->message appropriately.
  */
 static void
-setup_sortlist(ns_client_t *client) {
+setup_query_sortlist(ns_client_t *client) {
 	isc_netaddr_t netaddr;
-	dns_acl_t *acl = client->view->sortlist;
-	unsigned int i;
-
-	if (acl == NULL)
-		goto dont_sort;
-
+	dns_rdatasetorderfunc_t order;
+	void *order_arg = NULL;
+	
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-
-	for (i = 0; i < acl->length; i++) {
-		/*
-		 * 'e' refers to the current 'top level statement'
-		 * in the sortlist (see ARM).
-		 */
-		dns_aclelement_t *e = &acl->elements[i];
-		dns_aclelement_t *matchelt = NULL;
-		dns_acl_t *inner;
-
-		if (e->type != dns_aclelementtype_nestedacl)
-			goto dont_sort;
-
-		inner = e->u.nestedacl;
-
-		if (inner->length < 1 || inner->length > 2)
-			goto dont_sort;
-
-		if (inner->elements[0].negative)
-			goto dont_sort;
-
-		if (dns_aclelement_match(&netaddr, client->signer,
-					 &inner->elements[0],
-					 &ns_g_server->aclenv,
-					 &matchelt)) {
-			if (inner->length == 2) {
-				dns_aclelement_t *elt1 = &inner->elements[1];
-				if (elt1->type != dns_aclelementtype_nestedacl)
-					goto dont_sort;
-				dns_message_setsortorder(client->message,
-						 sortlist_order_2element,
-						 elt1->u.nestedacl);
-				return;
-			} else {
-				INSIST(matchelt != NULL);
-				dns_message_setsortorder(client->message,
-						 sortlist_order_1element,
-						 matchelt);
-				return;
-			}
-		}
+	switch (setup_sortlist(client->view->sortlist,
+			       &netaddr, &order_arg)) {
+	case NS_SORTLISTTYPE_1ELEMENT:
+		order = query_sortlist_order_1element;
+		break;
+	case NS_SORTLISTTYPE_2ELEMENT:
+		order = query_sortlist_order_2element;
+		break;
+	case NS_SORTLISTTYPE_NONE:
+		order = NULL;
+		break;
 	}
-
-	/* No match; don't sort. */
- dont_sort:
-	dns_message_setsortorder(client->message, NULL, NULL);
-	return;
+	dns_message_setsortorder(client->message, order, order_arg);
 }
 
 static void
@@ -3275,7 +3220,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * auth-nxdomain config option says so, then render and
 		 * send the response.
 		 */
-		setup_sortlist(client);
+		setup_query_sortlist(client);
 
 		if (client->message->rcode == dns_rcode_nxdomain &&
 		    client->view->auth_nxdomain == ISC_TRUE)
