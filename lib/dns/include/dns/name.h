@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.83 2000/12/28 00:42:58 bwelling Exp $ */
+/* $Id: name.h,v 1.84 2000/12/29 21:54:52 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1242,6 +1242,7 @@ ISC_LANG_ENDDECLS
 
 #define dns_name_init(n, o)		DNS_NAME_INIT(n, o)
 #define dns_name_reset(n)		DNS_NAME_RESET(n)
+#define dns_name_setbuffer(n, b)	DNS_NAME_SETBUFFER(n, b)
 #define dns_name_countlabels(n)		DNS_NAME_COUNTLABELS(n)
 #define dns_name_isabsolute(n)		DNS_NAME_ISABSOLUTE(n)
 
