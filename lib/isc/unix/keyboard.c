@@ -53,7 +53,13 @@ isc_keyboard_open(isc_keyboard_t *keyboard) {
 
 	current_mode = keyboard->saved_mode;
 
-	cfmakeraw(&current_mode);
+	current_mode.c_iflag &=
+			~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+	current_mode.c_oflag &= ~OPOST;
+	current_mode.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+	current_mode.c_cflag &= ~(CSIZE|PARENB);
+	current_mode.c_cflag |= CS8;
+
 	current_mode.c_cc[VMIN] = 1;
 	current_mode.c_cc[VTIME] = 0;
 	if (tcsetattr(fd, TCSAFLUSH, &current_mode) < 0) {
