@@ -415,7 +415,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 			goto out;
 		}
 		val->attributes |= VALATTR_FOUNDNONEXISTENCE;
- out:
+	out: ;
 	}
 
 	isc_event_free(&event);
