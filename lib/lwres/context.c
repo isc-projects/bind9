@@ -198,7 +198,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	fd_set readfds;
 	struct timeval timeout;
 
-	timeout.tv_sec = LWRES_DEFAULT_TIMEOUT;
+	timeout.tv_sec = ctx->timeout;
 	timeout.tv_usec = 0;
 
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);

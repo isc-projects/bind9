@@ -25,7 +25,7 @@
 #define CTXMALLOC(len)		ctx->malloc(ctx->arg, (len))
 #define CTXFREE(addr, len)	ctx->free(ctx->arg, (addr), (len))
 
-#define LWRES_DEFAULT_TIMEOUT	10	/* 10 seconds for a reply */
+#define LWRES_DEFAULT_TIMEOUT	20	/* 20 seconds for a reply */
 
 /*
  * Not all the attributes here are actually settable by the application at
