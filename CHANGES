@@ -1,3 +1,9 @@
+1185.	[bug]		libbind: don't assume statp->_u._ext.ext is valid
+			unless RES_INIT is set when calling res_*init().
+
+1184.	[bug]		libbind: call res_ndestroy() if RES_INIT is set
+			when res_*init() is called.
+
 1183.	[bug]		Handle ENOSR error when writing to the internal
 			control pipe. [RT #2395]
 
