@@ -84,19 +84,29 @@ static void (*free_func)(void *)            = free;
 /* XXX use correct function pointer types */
 #ifdef CRYPTO_MDEBUG
   /* use default functions from mem_dbg.c */
-  static void (*malloc_debug_func)()= (void (*)())CRYPTO_dbg_malloc;
-  static void (*realloc_debug_func)()= (void (*)())CRYPTO_dbg_realloc;
-  static void (*free_debug_func)()= (void (*)())CRYPTO_dbg_free;
-  static void (*set_debug_options_func)()= (void (*)())CRYPTO_dbg_set_options;
-  static long (*get_debug_options_func)()= (long (*)())CRYPTO_dbg_get_options;
+  static void (*malloc_debug_func)(void *, int, const char *, int, int)
+	  = (void (*)())CRYPTO_dbg_malloc;
+  static void (*realloc_debug_func)(void *, void *, int, const char *, int,int)
+	  = (void (*)())CRYPTO_dbg_realloc;
+  static void (*free_debug_func)(void *, int)
+	  = (void (*)())CRYPTO_dbg_free;
+  static void (*set_debug_options_func)(long)
+	  = (void (*)())CRYPTO_dbg_set_options;
+  static long (*get_debug_options_func)(void)
+	  = (long (*)())CRYPTO_dbg_get_options;
 #else
   /* applications can use CRYPTO_malloc_debug_init() to select above case
    * at run-time */
-  static void (*malloc_debug_func)()= NULL;
-  static void (*realloc_debug_func)()= NULL;
-  static void (*free_debug_func)()= NULL;
-  static void (*set_debug_options_func)()= NULL;
-  static long (*get_debug_options_func)()= NULL;
+  static void (*malloc_debug_func)(void *, int, const char *, int, int)
+	  = NULL;
+  static void (*realloc_debug_func)(void *, void *, int, const char *, int,int)
+	  = NULL;
+  static void (*free_debug_func)(void *, int)
+	  = NULL;
+  static void (*set_debug_options_func)(long)
+	  = NULL;
+  static long (*get_debug_options_func)(void)
+	  = NULL;
 #endif
 
 
