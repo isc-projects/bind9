@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.73 2001/03/27 19:37:23 halley Exp $
+# $Id: Makefile.in,v 1.74 2001/06/01 00:45:00 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -121,4 +121,4 @@ installdirs:
 install:: named lwresd installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} named ${DESTDIR}${sbindir}
 	(cd ${DESTDIR}${sbindir}; rm -f lwresd; @LN@ named lwresd)
-	for m in ${MANPAGES}; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8; done
+	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man8; done
