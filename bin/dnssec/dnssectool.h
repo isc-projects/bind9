@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.15 2001/08/08 22:54:16 gson Exp $ */
+/* $Id: dnssectool.h,v 1.16 2001/09/21 00:17:01 bwelling Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -68,6 +68,9 @@ void
 cleanup_entropy(isc_entropy_t **ectx);
 
 isc_stdtime_t
-strtotime(char *str, isc_int64_t now, isc_int64_t base);
+strtotime(const char *str, isc_int64_t now, isc_int64_t base);
+
+dns_rdataclass_t
+strtoclass(const char *str);
 
 #endif /* DNSSEC_DNSSECTOOL_H */

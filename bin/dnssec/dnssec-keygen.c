@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.53 2001/09/19 23:05:11 gson Exp $ */
+/* $Id: dnssec-keygen.c,v 1.54 2001/09/21 00:16:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -120,7 +120,7 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:c:eg:n:t:p:s:hr:v:")) != -1)
+					   "a:b:c:eg:n:t:p:s:r:v:h")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -145,13 +145,9 @@ main(int argc, char **argv) {
 			break;
 		case 'n':
 			nametype = isc_commandline_argument;
-			if (nametype == NULL)
-				fatal("out of memory");
 			break;
 		case 't':
 			type = isc_commandline_argument;
-			if (type == NULL)
-				fatal("out of memory");
 			break;
 		case 'p':
 			protocol = strtol(isc_commandline_argument, &endp, 10);
@@ -271,14 +267,7 @@ main(int argc, char **argv) {
 	else
 		fatal("invalid nametype %s", nametype);
 
-	if (classname != NULL) {
-		r.base = classname;
-		r.length = strlen(classname);
-		ret = dns_rdataclass_fromtext(&rdclass, &r);
-		if (ret != ISC_R_SUCCESS)
-			fatal("unknown class %s",classname);
-	} else 
-		rdclass = dns_rdataclass_in;
+	rdclass = strtoclass(classname);
 
 	flags |= signatory;
 

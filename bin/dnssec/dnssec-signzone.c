@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.144 2001/09/21 00:02:20 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.145 2001/09/21 00:16:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1515,7 +1515,6 @@ main(int argc, char *argv[]) {
 	isc_boolean_t free_output = ISC_FALSE;
 	int tempfilelen;
 	dns_rdataclass_t rdclass;
-	isc_textregion_t r;
 	isc_task_t **tasks = NULL;
 	masterstyle = &dns_master_style_explicitttl;
 
@@ -1628,14 +1627,7 @@ main(int argc, char *argv[]) {
 		ntasks = isc_os_ncpus();
 	vbprintf(4, "using %d cpus\n", ntasks);
 
-	if (classname != NULL) {
-		r.base = classname;
-		r.length = strlen(classname);
-		result = dns_rdataclass_fromtext(&rdclass, &r);
-		if (result != ISC_R_SUCCESS)
-			fatal("unknown class %s",classname);
-	} else
-		rdclass = dns_rdataclass_in;
+	rdclass = strtoclass(classname);
 
 	setup_logging(verbose, mctx, &log);
 

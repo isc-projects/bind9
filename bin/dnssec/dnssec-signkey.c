@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.54 2001/09/19 23:05:13 gson Exp $ */
+/* $Id: dnssec-signkey.c,v 1.55 2001/09/21 00:16:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -173,7 +173,6 @@ main(int argc, char *argv[]) {
 	dns_rdata_sig_t sig;
 	isc_result_t result;
 	isc_buffer_t b;
-	isc_textregion_t tr;
 	isc_log_t *log = NULL;
 	keynode_t *keynode;
 	isc_boolean_t pseudorandom = ISC_FALSE;
@@ -233,14 +232,7 @@ main(int argc, char *argv[]) {
 	if (argc < 2)
 		usage();
 
-	if (classname != NULL) {
-		tr.base = classname;
-		tr.length = strlen(classname);
-		result = dns_rdataclass_fromtext(&rdclass, &tr);
-		if (result != ISC_R_SUCCESS)
-			fatal("unknown class %s",classname);
-	} else
-		rdclass = dns_rdataclass_in;
+	rdclass = strtoclass(classname);
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.34 2001/09/19 23:05:15 gson Exp $ */
+/* $Id: dnssectool.c,v 1.35 2001/09/21 00:17:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdatastruct.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
@@ -260,7 +261,7 @@ cleanup_entropy(isc_entropy_t **ectx) {
 }
 
 isc_stdtime_t
-strtotime(char *str, isc_int64_t now, isc_int64_t base) {
+strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 	isc_int64_t val, offset;
 	isc_result_t result;
 	char *endp;
@@ -288,4 +289,20 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 	}
 
 	return ((isc_stdtime_t) val);
+}
+
+dns_rdataclass_t
+strtoclass(const char *str) {
+	isc_consttextregion_t r;
+	dns_rdataclass_t rdclass;
+	isc_result_t ret;
+
+	if (str == NULL)
+		return dns_rdataclass_in;
+	r.base = str;
+	r.length = strlen(str);
+	ret = dns_rdataclass_fromtext(&rdclass, (isc_textregion_t *)&r);
+	if (ret != ISC_R_SUCCESS)
+		fatal("unknown class %s", str);
+	return (rdclass);
 }
