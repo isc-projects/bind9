@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.47 2000/06/08 21:18:24 mws Exp $ */
+/* $Id: dighost.c,v 1.48 2000/06/12 19:33:30 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -41,6 +41,9 @@ extern int h_errno;
 #include <isc/util.h>
 #include <isc/base64.h>
 #include <isc/lex.h>
+#include <isc/lang.h>
+#include <isc/types.h>
+#include <isc/entropy.h>
 
 #include <dns/message.h>
 #include <dns/name.h>
@@ -53,6 +56,8 @@ extern int h_errno;
 #include <dns/rdatastruct.h>
 #include <dns/tsig.h>
 
+#include <dst/dst.h>
+
 #include <dig/dig.h>
 
 ISC_LIST(dig_lookup_t) lookup_list;
@@ -61,7 +66,7 @@ ISC_LIST(dig_searchlist_t) search_list;
 
 isc_boolean_t have_ipv6 = ISC_FALSE, specified_source = ISC_FALSE,
 	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE,
-	qr = ISC_FALSE;
+	qr = ISC_FALSE, is_dst_up = ISC_FALSE;
 #ifdef TWIDDLE
 isc_boolean_t twiddle = ISC_FALSE;
 #endif
@@ -90,6 +95,7 @@ dns_tsig_keyring_t *keyring = NULL;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
+isc_entropy_t *entp = NULL;
 
 extern isc_boolean_t isc_mem_debugging;
 isc_boolean_t debugging = ISC_FALSE;
@@ -574,6 +580,13 @@ setup_libs(void) {
 
 	result = isc_socketmgr_create (mctx, &socketmgr);
 	check_result(result, "isc_socketmgr_create");
+
+	result = isc_entropy_create (mctx, &entp);
+	check_result(result, "isc_entropy_create");
+
+	result = dst_lib_init (mctx, entp, 0);
+	check_result(result, "dst_lib_init");
+	is_dst_up = ISC_TRUE;
 }
 
 static void
@@ -2066,6 +2079,16 @@ free_lists(int _exitcode) {
 	if (keyring != NULL) {
 		debug ("Freeing keyring %lx", keyring);
 		dns_tsigkeyring_destroy(&keyring);
+	}
+
+	if (is_dst_up) {
+		debug ("Destroy DST lib");
+		dst_lib_destroy();
+		is_dst_up = ISC_FALSE;
+	}
+	if (entp != NULL) {
+		debug ("Detach from entropy");
+		isc_entropy_detach(&entp);
 	}
 
 	if (isc_mem_debugging)
