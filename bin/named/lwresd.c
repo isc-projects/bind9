@@ -290,25 +290,16 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 	sock = NULL;
 	result = isc_socket_create(ns_g_socketmgr, AF_INET, isc_sockettype_udp,
 				   &sock);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-			      NS_LOGMODULE_LWRESD, ISC_LOG_ERROR,
-			      "failed to create socket: %s",
-			      isc_result_totext(result));
-		return;
-	}
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to create socket", result);
 
 	lh_addr.s_addr = htonl(INADDR_LOOPBACK);
 	isc_sockaddr_fromin(&localhost, &lh_addr, LWRES_UDP_PORT);
 
 	result = isc_socket_bind(sock, &localhost);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-			      NS_LOGMODULE_LWRESD, ISC_LOG_ERROR,
-			      "binding lwres protocol socket to port %d: %s",
-			      LWRES_UDP_PORT, isc_result_totext(result));
 		isc_socket_detach(&sock);
-		return;
+		fatal("failed to bind lwresd protocol socket", result);
 	}
 
 	lwresd = isc_mem_get(mctx, sizeof(*lwresd));
