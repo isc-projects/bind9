@@ -37,13 +37,15 @@
 #include <dns/rdatasetiter.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/dbtable.h>
+#include <dns/zone.h>
+#include <dns/zt.h>
 #include <dns/message.h>
 #include <dns/rdatastruct.h>
 #include <dns/journal.h>
 #include <dns/view.h>
 #include <dns/dnssec.h>
 #include <dns/nxt.h>
+#include <dns/events.h>
 
 #include <named/globals.h>
 #include <named/client.h>
@@ -91,9 +93,26 @@ typedef struct rr rr_t;
 
 struct rr {
 	/* dns_name_t name; */
-	isc_uint32_t ttl;
-	dns_rdata_t rdata;
+	isc_uint32_t 		ttl;
+	dns_rdata_t 		rdata;
 };
+
+typedef struct update_event update_event_t;
+
+struct update_event {
+	ISC_EVENT_COMMON(update_event_t);
+	dns_zone_t 		*zone;
+	dns_result_t		result;
+	
+};
+
+/**************************************************************************/
+/*
+ * Forward declarations.
+ */
+
+static void update_action(isc_task_t *task, isc_event_t *event);
+static void updatedone_action(isc_task_t *task, isc_event_t *event);
 
 /**************************************************************************/
 
@@ -1183,7 +1202,7 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 
 		/*
 		 * The iterator may hold the tree lock, and
-		 * rrset_exists() cals dns_db_findnode() which
+		 * rrset_exists() calls dns_db_findnode() which
 		 * may try to reacquire it.  To avoid deadlock
 		 * we must pause the iterator first.
 		 */
@@ -1622,29 +1641,60 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
  */
 
 static dns_result_t
-ns_req_update(ns_client_t *client,
-	      dns_message_t *request, dns_message_t **responsep) 
+send_update_event(ns_client_t *client, dns_zone_t *zone) {
+	dns_result_t result;
+	update_event_t *event = NULL;
+	event = (update_event_t *)
+		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
+				   update_action, client, sizeof(*event));
+	if (event == NULL)
+		FAIL(DNS_R_NOMEMORY);
+	event->zone = zone;
+	event->result = DNS_R_SUCCESS;
+
+	isc_task_send(dns_zone_gettask(zone), (isc_event_t **) &event);
+ failure:
+	if (event != NULL)
+		isc_event_free((isc_event_t **) &event);
+	return (result);
+}
+
+static void
+respond(ns_client_t *client, dns_result_t result) {
+	int msg_result;
+	dns_message_t *response = NULL;
+	msg_result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTRENDER,
+					&response);
+	if (msg_result != DNS_R_SUCCESS)
+		goto msg_failure;
+	
+	response->id = client->message->id;
+	response->rcode = (result == DNS_R_SUCCESS ?
+		dns_rcode_noerror : dns_result_torcode(result));
+	response->flags = client->message->flags;
+	response->flags |= DNS_MESSAGEFLAG_QR;
+
+	dns_message_destroy(&client->message);
+	client->message = response;
+	ns_client_send(client);
+	return;
+	
+ msg_failure:
+	printf("could not send update response: %s\n",
+	       isc_result_totext(msg_result));
+	ns_client_next(client, msg_result);
+}
+
+void
+ns_update_start(ns_client_t *client)
 {
-	dns_result_t result, render_result;
+	dns_message_t *request = client->message;
+	dns_result_t result;
 	dns_name_t *zonename;
 	dns_rdataset_t *zone_rdataset;
-	dns_db_t *db = NULL;
-	dns_dbversion_t *oldver = NULL;
-	dns_dbversion_t *ver = NULL;
+	dns_zone_t *zone = NULL;
 	dns_rdataclass_t zoneclass;
-	dns_message_t *response = NULL;
-	dns_diff_t diff; 	/* Pending updates. */
-	dns_diff_t temp; 	/* Pending RR existence assertions. */
-	unsigned int response_rcode = dns_rcode_noerror;
-	isc_boolean_t soa_serial_changed = ISC_FALSE;
-	isc_mem_t *mctx = client->mctx;
-	dns_rdatatype_t covers;
 	
-	dns_diff_init(mctx, &diff);
-	dns_diff_init(mctx, &temp);
-	
-	printf("got update request\n");
-
 	/*
 	 * Interpret the zone section.
 	 */
@@ -1674,23 +1724,65 @@ ns_req_update(ns_client_t *client,
 		FAILMSG(DNS_R_FORMERR,
 			"update zone section contains multiple RRs");
 
-	/* XXX check that the zone is a master zone,
-	   forward request if slave */
-
-	/* XXX we should get a class-specific dbtable from the view */
-
-	result = dns_dbtable_find(client->view->dbtable, zonename, &db);
+	result = dns_zt_find(client->view->zonetable, zonename, NULL, &zone);
 	if (result != DNS_R_SUCCESS)
 		FAILMSG(DNS_R_NOTAUTH,
 			"not authoritative for update zone");
 
-	printf("zone section checked out OK\n");
+	switch(dns_zone_gettype(zone)) {
+	case dns_zone_master:
+		CHECK(send_update_event(client, zone)); 
+		break;	/* OK. */
+	case dns_zone_slave:
+		FAILMSG(DNS_R_NOTIMP,
+			"update forwarding is not yet implemented"); /* XXX */
+	default:
+		FAILMSG(DNS_R_NOTAUTH,
+			"not authoritative for update zone");
+	}
+	INSIST(0);
+	return;
+	
+ failure:
+	/*
+	 * We failed without having sent an update event to the zone.
+	 * We are still in the client task context, so we can 
+	 * simply give an error response without switching tasks.
+	 */
+	respond(client, result);
+}
 
-	/* Create a new database version. */
+static void
+update_action(isc_task_t *task, isc_event_t *event)
+{
+	update_event_t *uev = (update_event_t *) event;
+	dns_zone_t *zone = uev->zone;
+	ns_client_t *client = (ns_client_t *) event->arg;
 
-	/* XXX should queue an update event here if someone else
-	   has a writable version open */
-	   
+	dns_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *oldver = NULL;
+	dns_dbversion_t *ver = NULL;
+	dns_diff_t diff; 	/* Pending updates. */
+	dns_diff_t temp; 	/* Pending RR existence assertions. */
+	isc_boolean_t soa_serial_changed = ISC_FALSE;
+	isc_mem_t *mctx = client->mctx;
+	dns_rdatatype_t covers;
+	dns_message_t *request = client->message;
+	dns_rdataclass_t zoneclass;
+	dns_name_t *zonename;
+		
+	INSIST(event->type == DNS_EVENT_UPDATE);
+	INSIST(task == dns_zone_gettask(zone));
+
+	printf("dequeued update request\n");
+
+	dns_diff_init(mctx, &diff);
+	dns_diff_init(mctx, &temp);
+
+	CHECK(dns_zone_getdb(zone, &db));
+	zonename = dns_db_origin(db);
+	zoneclass = dns_db_class(db);
 	dns_db_currentversion(db, &oldver);
 	CHECK(dns_db_newversion(db, &ver));
 	
@@ -2020,7 +2112,6 @@ ns_req_update(ns_client_t *client,
 	printf("commit\n");
 	dns_db_closeversion(db, &ver, ISC_TRUE);
 	result = DNS_R_SUCCESS;
-	response_rcode = dns_rcode_noerror;
 	goto common;
 	
  failure:
@@ -2030,8 +2121,6 @@ ns_req_update(ns_client_t *client,
 		printf("rollback\n");	
 		dns_db_closeversion(db, &ver, ISC_FALSE);
 	}
-
-	response_rcode = dns_result_torcode(result);
 
  common:
 	dns_diff_clear(&temp);
@@ -2044,39 +2133,25 @@ ns_req_update(ns_client_t *client,
 		dns_db_detach(&db);
 	
 	/*
-	 * Construct the response message.
-	 */
-	render_result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
-					   &response);
-	if (render_result != DNS_R_SUCCESS)
-		goto render_failure;
-
-	response->id = request->id;
-	response->rcode = response_rcode;
-	response->flags = request->flags;
-	response->flags |= DNS_MESSAGEFLAG_QR;
-
-	*responsep = response;
-
-	goto render_success;
-	
- render_failure:
-	if (response != NULL)
-		dns_message_destroy(&response);
-
- render_success:
-	/*
 	 * If we could send a response, we have succeded, even if it
 	 * was a failure response.
 	 */
-	return (render_result);
+	uev->result = result;
+	uev->type = DNS_EVENT_UPDATEDONE;
+	uev->action = updatedone_action;
+	isc_task_send(client->task, &event);
+	INSIST(event == NULL);
 }
 
-void
-ns_update_start(ns_client_t *client) {
-	dns_message_t *response = NULL;
-	ns_req_update(client, client->message, &response);
-	dns_message_destroy(&client->message);
-	client->message = response;
-	ns_client_send(client);
+static void
+updatedone_action(isc_task_t *task, isc_event_t *event)
+{
+	update_event_t *uev = (update_event_t *) event;
+	ns_client_t *client = (ns_client_t *) event->arg;	
+
+	INSIST(event->type == DNS_EVENT_UPDATEDONE);
+	INSIST(task == client->task);
+
+	respond(client, uev->result);
+	isc_event_free(&event);
 }
