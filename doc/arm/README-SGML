@@ -1,6 +1,6 @@
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.6 2000/09/20 01:20:26 scanner Exp $
+Version: $Id: README-SGML,v 1.7 2000/10/18 01:17:45 scanner Exp $
 
 The entire ARM is in the single file:
 
@@ -155,17 +155,64 @@ HOW TO RENDER A DOCUMENT AS HTML or TeX:
 
 o Generate html doc with:
 
-jade -d ./nominum-docbook-html.dsl \
+openjade -d ./nominum-docbook-html.dsl \
      -t sgml \
      -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
      Bv9ARM-book.xml
 
+On NetBSD there is no port for "openjade" however "jade" does still
+work. However you need to specify the "catalog" file to use for style
+sheets on the command line AND you need to have a default "catalog"
+mapping where to find various DTDs. It seems that "jade" installed out
+of the box on NetBSD does not use a globally defined "catalog" file
+for mapping PUBLIC identifiers in to SYSTEM identifiers.
+
+So you need to have a "catalog" file in your current working directory
+that has in it this: (these are probably more entries than you need!)
+
+     CATALOG "/usr/pkg/share/sgml/iso8879/catalog"
+     CATALOG "/usr/pkg/share/sgml/docbook/2.4.1/catalog"
+     CATALOG "/usr/pkg/share/sgml/docbook/3.0/catalog"
+     CATALOG "/usr/pkg/share/sgml/docbook/3.1/catalog"
+     CATALOG "/usr/pkg/share/sgml/jade/catalog"
+     CATALOG "/usr/local/share/xml/catalog"
+
+(These would all be "/usr/local" on FreeBSD)
+
+So the command for jade on NetBSD will look like this:
+
+jade -v -c /usr/pkg/share/sgml/catalog -t sgml \
+     -d ./nominum-docbook-html.dsl \
+     /usr/pkg/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
+     ./Bv9ARM-book.xml
+
+Furthermore, since the style sheet subset we define has in it a hard
+coded path to the style sheet is based on you need to modify the
+second line of this file (this needs to be done via configure so we
+are not tripping over each other.)
+
+Where on FreeBSD the second line reads:
+
+<!ENTITY dbstyle SYSTEM "/usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl" CDATA DSSSL>
+
+On NetBSD it needs to read:
+
+<!ENTITY dbstyle SYSTEM "/usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl" CDATA DSSSL>
+
+NOTE: This is usually solved by having this style sheet modification
+be installed in a system directory and have it reference the style
+sheet it is based on via a relative path.
+
 o Generate TeX documentation:
 
-jade -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl \
+openjade -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl \
      -t tex \
      -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
      Bv9ARM-book.xml
+
+If you have "jade" installed instead of "openjade" then use that as
+the command. There is little difference, openjade has some bug fixes
+and is in more active development.
 
 To convert the resulting TeX file in to a DVI file you need to do:
 
