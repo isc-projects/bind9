@@ -12,7 +12,7 @@ do
 		newer=0
 		for j in $old
 		do
-			if test $j > $i
+			if test $j ">" $i
 			then
 				 newer=1
 			fi
