@@ -70,7 +70,7 @@ typedef struct stack_st
 	int sorted;
 
 	int num_alloc;
-	int (*comp)();
+	int (*comp)(char **, char **);
 	} STACK;
 
 

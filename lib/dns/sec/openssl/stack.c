@@ -265,7 +265,7 @@ void sk_zero(STACK *st)
 	st->num=0;
 	}
 
-void sk_pop_free(STACK *st, void (*func)())
+void sk_pop_free(STACK *st, void (*func)(char *))
 	{
 	int i;
 
