@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.10 2004/06/04 03:45:15 marka Exp $ */
+/* $Id: update.c,v 1.88.2.11 2004/06/20 23:44:35 marka Exp $ */
 
 #include <config.h>
 
@@ -1979,6 +1979,9 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 	case dns_zone_slave:
 		if (dns_zone_getforwardacl(zone) == NULL) {
 			result = DNS_R_NOTIMP;
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+				      "update forwarding denied");
 			goto failure;
 		}
 		CHECK(ns_client_checkacl(client, "update forwarding",
