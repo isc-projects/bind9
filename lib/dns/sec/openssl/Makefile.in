@@ -20,7 +20,7 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	-I${srcdir}/include
 
 CDEFINES =	-DMFUNC @DST_PRIVATEOPENSSL@
-CWARNINGS =
+CWARNINGS =	@IRIX_DNSSEC_WARNINGS_HACK@
 
 LIBS =		@LIBS@
 

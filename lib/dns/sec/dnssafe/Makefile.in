@@ -22,7 +22,7 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	-I${srcdir} ${ISC_INCLUDES}
 
 CDEFINES =
-CWARNINGS =
+CWARNINGS =	@IRIX_DNSSEC_WARNINGS_HACK@
 
 LIBS =		@LIBS@
 
