@@ -1,3 +1,6 @@
+1832.	[bug]		named fails to return BADKEY on unknown TSIG algorithm.
+			[RT #13620]
+
 1830.	[bug]		adb lame cache has sence of test reversed. [RT #13600]
 
 1828.	[bug]		isc_rwlock_init() failed to properly cleanup if it
