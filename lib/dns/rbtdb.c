@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.166 2001/06/04 19:33:06 tale Exp $ */
+/* $Id: rbtdb.c,v 1.167 2001/06/04 20:57:25 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -57,7 +57,12 @@
 #define RBTDB_MAGIC			ISC_MAGIC('R', 'B', 'D', '4')
 #endif
 
-#define VALID_RBTDB(rbtdb)		ISC_MAGIC_VALID(rbtdb, RBTDB_MAGIC)
+/*
+ * Note that "impmagic" is not the first four bytes of the struct, so
+ * ISC_MAGIC_VALID cannot be used.
+ */
+#define VALID_RBTDB(rbtdb)	((rbtdb) != NULL && \
+				 (rbtdb)->common.impmagic == RBTDB_MAGIC)
 
 #ifdef DNS_RBTDB_VERSION64
 typedef isc_uint64_t			rbtdb_serial_t;
