@@ -1,3 +1,5 @@
+1429.	[bug]		Prevent the cache getting locked to old servers.
+
 1428.	[placeholder] 
 
 1427.	[bug]		Race condition in adb with threaded build.
