@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.37 2004/10/07 02:15:14 marka Exp $ */
+/* $Id: namedconf.c,v 1.38 2004/10/14 00:49:34 marka Exp $ */
 
 #include <config.h>
 
@@ -70,12 +70,13 @@ static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_bracketed_aml;
 static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
-static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
 static cfg_type_t cfg_type_bracketed_sockaddrlist;
+static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_destinationlist;
 static cfg_type_t cfg_type_dialuptype;
+static cfg_type_t cfg_type_ixfrdifftype;
 static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_logfile;
 static cfg_type_t cfg_type_logging;
@@ -729,6 +730,7 @@ view_clauses[] = {
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
 	   CFG_CLAUSEFLAG_MULTI },
+	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -760,7 +762,6 @@ zone_clauses[] = {
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
-	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
@@ -807,6 +808,7 @@ zone_only_clauses[] = {
 	 * the zone options and the global/view options.  Ugh.
 	 */
 	{ "check-names", &cfg_type_checkmode, 0 },
+	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -1171,6 +1173,16 @@ parse_notify_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 static cfg_type_t cfg_type_notifytype = {
 	"notifytype", parse_notify_type, cfg_print_ustring, doc_enum_or_other,
  	&cfg_rep_string, notify_enums,
+};
+
+static const char *ixfrdiff_enums[] = { "master", "slave", NULL };
+static isc_result_t
+parse_ixfrdiff_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+        return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static cfg_type_t cfg_type_ixfrdifftype = {
+        "ixfrdiff", parse_ixfrdiff_type, cfg_print_ustring, doc_enum_or_other,
+        &cfg_rep_string, ixfrdiff_enums,
 };
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };

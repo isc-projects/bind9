@@ -167,7 +167,8 @@
 
 1685.	[bug]		Change #1679 loop tests weren't quite right.
 
-1684.	[placeholder]	rt10704
+1684.	[func]		ixfr-from-differences now takes master and slave in
+			addition to yes and no at the options and view levels.
 
 1683.	[bug]		dig +sigchase could leak memory. [RT #11445]
 
