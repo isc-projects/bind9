@@ -54,6 +54,7 @@
 
 #include <dns/result.h>
 
+#include <named/listenlist.h>
 #include <named/types.h>
 
 /***
@@ -113,6 +114,13 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr);
  * in named.conf.
  */
 
+void
+ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr,
+			    ns_listenlist_t *value);
+/*
+ * Set the "listen-on" list of 'mgr' to 'value'.
+ * The previous listen-on list is freed.
+ */
 
 void
 ns_interface_attach(ns_interface_t *source,

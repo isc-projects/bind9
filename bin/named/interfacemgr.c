@@ -37,6 +37,7 @@
 
 #include <named/client.h>
 #include <named/globals.h>
+#include <named/listenlist.h>
 #include <named/log.h>
 #include <named/interfacemgr.h>
 
@@ -52,6 +53,7 @@ struct ns_interfacemgr {
 	isc_socketmgr_t *	socketmgr;	/* Socket manager. */
 	ns_clientmgr_t *	clientmgr;	/* Client manager. */
 	unsigned int		generation;	/* Current generation no. */
+	ns_listenlist_t *	listenon;
 	ISC_LIST(ns_interface_t) interfaces;	/* List of interfaces. */
 };
 
@@ -74,28 +76,37 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		return (DNS_R_NOMEMORY);
 
 	result = isc_mutex_init(&mgr->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, mgr, sizeof(*mgr));
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	mgr->mctx = mctx;
 	mgr->taskmgr = taskmgr;
 	mgr->socketmgr = socketmgr;
 	mgr->clientmgr = clientmgr;
 	mgr->generation = 1;
+	mgr->listenon = NULL;
 	ISC_LIST_INIT(mgr->interfaces);
 
+	result = ns_listenlist_default(mctx, ns_g_port,
+				       &mgr->listenon);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+	
 	mgr->references = 1;
 	mgr->magic = IFMGR_MAGIC;
 	*mgrp = mgr;
 	return (DNS_R_SUCCESS);
+
+ cleanup:
+	isc_mem_put(mctx, mgr, sizeof(*mgr));
+	return (result);
 }
 
 static void
 ns_interfacemgr_destroy(ns_interfacemgr_t *mgr)
 {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+	ns_listenlist_detach(&mgr->listenon);
 	isc_mutex_destroy(&mgr->lock);
 	mgr->magic = 0;
 	isc_mem_put(mgr->mctx, mgr, sizeof *mgr);
@@ -447,8 +458,8 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 	while (result == ISC_R_SUCCESS) {
 		ns_interface_t *ifp;
 		isc_interface_t interface;
-		isc_sockaddr_t listen_addr;
-
+		ns_listenelt_t *le;
+		
 		/*
 		 * XXX insert code to match against named.conf
 		 * "listen-on" statements here.  Also build list of
@@ -458,36 +469,60 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		result = isc_interfaceiter_current(iter, &interface);
 		if (result != ISC_R_SUCCESS)
 			break;
-		
-		isc_sockaddr_fromin(&listen_addr,
-				    &interface.address.type.in,
-				    ns_g_port);
 
-		ifp = find_matching_interface(mgr, &listen_addr);
-		if (ifp != NULL) {
-			ifp->generation = mgr->generation;
-		} else {
+		for (le = ISC_LIST_HEAD(mgr->listenon->elts);
+		     le != NULL;
+		     le = ISC_LIST_NEXT(le, link))
+		{
+			int match;
+			isc_sockaddr_t listen_addr;
 			char buf[128];
 			const char *addrstr;
 
+			/*
+			 * Construct a socket address for this IP/port
+			 * combination.
+			 */
+			isc_sockaddr_fromin(&listen_addr,
+					    &interface.address.type.in,
+					    le->port);
+
+			/*
+			 * Construct a human-readable version of same.
+			 */
 			addrstr = inet_ntop(listen_addr.type.sin.sin_family,
 					    &listen_addr.type.sin.sin_addr,
 					    buf, sizeof(buf));
 			if (addrstr == NULL)
 				addrstr = "(bad address)";
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-				      NS_LOGMODULE_INTERFACEMGR,
-				      ISC_LOG_INFO,
-				"listening on IPv4 interface %s, %s port %u",
-				      interface.name, addrstr,
-				      ntohs(listen_addr.type.sin.sin_port));
-		
-			result = ns_interface_setup(mgr, &listen_addr, &ifp);
-			if (result != DNS_R_SUCCESS) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "creating IPv4 interface %s "
-					 "failed; interface ignored",
-					 interface.name);
+
+			/*
+			 * See if the address matches the listen-on statement;
+			 * if not, ignore the interface.
+			 */
+			result = dns_acl_match(&listen_addr, NULL,
+					       le->acl, &match, NULL);
+			if (match <= 0)
+				continue;
+			
+			ifp = find_matching_interface(mgr, &listen_addr);
+			if (ifp != NULL) {
+				ifp->generation = mgr->generation;
+			} else {
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
+					      NS_LOGMODULE_INTERFACEMGR,
+					      ISC_LOG_INFO,
+					      "listening on IPv4 interface %s, %s port %u",
+					      interface.name, addrstr,
+					      ntohs(listen_addr.type.sin.sin_port));
+				
+				result = ns_interface_setup(mgr, &listen_addr, &ifp);
+				if (result != DNS_R_SUCCESS) {
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
+							 "creating IPv4 interface %s "
+							 "failed; interface ignored",
+							 interface.name);
+				}
 				/* Continue. */
 			}
 
@@ -565,4 +600,14 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 		 * Continue anyway.
 		 */
 	}
+}
+
+void
+ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr,
+			    ns_listenlist_t *value)
+{
+	LOCK(&mgr->lock);
+	ns_listenlist_detach(&mgr->listenon);
+	ns_listenlist_attach(value, &mgr->listenon);
+	UNLOCK(&mgr->lock);
 }

@@ -59,12 +59,13 @@
 #include <dns/tsig.h>
 #include <dns/tkey.h>
 
-#include <named/types.h>
 #include <named/globals.h>
+#include <named/interfacemgr.h>
+#include <named/listenlist.h>
 #include <named/log.h>
 #include <named/rootns.h>
 #include <named/server.h>
-#include <named/interfacemgr.h>
+#include <named/types.h>
 
 typedef struct {
 	isc_mem_t *		mctx;
@@ -458,6 +459,31 @@ load_configuration(const char *filename, ns_server_t *server) {
 
 	configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
 			     dns_c_ctx_gettransferacl, &server->transferacl);
+
+
+	/*
+	 * Configure the interface manager according to the "listen-on"
+	 * statement.
+	 */
+	{
+		dns_c_lstnlist_t *clistenon = NULL;
+		ns_listenlist_t *listenon = NULL;
+
+		(void) dns_c_ctx_getlistenlist(configctx, &clistenon);
+		if (clistenon != NULL) {
+			result = ns_listenlist_fromconfig(clistenon,
+							  configctx,
+							  &aclconfctx,
+							  ns_g_mctx, &listenon);
+		} else {
+			/* Not specified, use default. */
+			result = ns_listenlist_default(ns_g_mctx, ns_g_port,
+						       &listenon);
+		}
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		ns_interfacemgr_setlistenon(server->interfacemgr, listenon);
+		ns_listenlist_detach(&listenon);
+	}
 
 	/*
 	 * If we haven't created any views, create a default view for class
