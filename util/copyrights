@@ -251,7 +251,6 @@
 ./bin/tests/sock_test.c				C	1998,1999,2000
 ./bin/tests/sockaddr/.cvsignore			X	1999,2000
 ./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000
-./bin/tests/sockaddr/sockaddr/t_sockaddr.c	C	1999,2000
 ./bin/tests/sockaddr/t_sockaddr.c		C	1999,2000
 ./bin/tests/sym_test.c				C	1998,1999,2000
 ./bin/tests/t_api.pl				PERL	1999,2000
@@ -692,7 +691,6 @@
 ./lib/isc/unix/stdtime.c			C	1999,2000
 ./lib/isc/unix/time.c				C	1998,1999,2000
 ./lib/isc/unix/ufile.c				C	2000
-./lib/isc/util.h				C	1998,1999,2000
 ./lib/isc/version.c				C	1998,1999,2000
 ./lib/isc/win32/.cvsignore			X	1999,2000
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000
@@ -723,6 +721,7 @@
 ./lib/lwres/assert_p.h				C	2000
 ./lib/lwres/context.c				C	2000
 ./lib/lwres/context_p.h				C	2000
+./lib/lwres/gai_strerror.c                      C       2000
 ./lib/lwres/getaddrinfo.c			PORTION	1999,2000
 ./lib/lwres/gethost.c				C	2000
 ./lib/lwres/getipnode.c				C	1999,2000
@@ -741,7 +740,6 @@
 ./lib/lwres/include/lwres/result.h		C	2000
 ./lib/lwres/lwbuffer.c				C	2000
 ./lib/lwres/lwpacket.c				C	2000
-./lib/lwres/lwres.c				C	2000
 ./lib/lwres/lwres_gabn.c			C	2000
 ./lib/lwres/lwres_gnba.c			C	2000
 ./lib/lwres/lwres_noop.c			C	2000
