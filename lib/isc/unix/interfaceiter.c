@@ -38,12 +38,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/types.h>
-#include <isc/inet.h>
 #include <isc/interfaceiter.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
 
 #define IFITER_MAGIC		0x49464954U	/* IFIT. */	
 #define VALID_IFITER(t)		((t) != NULL && (t)->magic == IFITER_MAGIC)
