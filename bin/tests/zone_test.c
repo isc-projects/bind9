@@ -23,6 +23,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/app.h>
+#include <isc/socket.h>
 #include <isc/timer.h>
 
 #include <dns/db.h>
