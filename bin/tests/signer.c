@@ -975,15 +975,14 @@ usage() {
 
 	fprintf(stderr, "\n");
 
-	fprintf(stderr, "Signing Keys:\n");
+	fprintf(stderr, "Signing Keys: ");
+	fprintf(stderr, "(default: all zone keys that have private keys)\n");
 	fprintf(stderr, "\tid:\t\t");
 	fprintf(stderr, "zone key with matching keyid\n");
 	fprintf(stderr, "\tid/alg:\t\t");
 	fprintf(stderr, "zone key with matching keyid and algorithm\n");
 	fprintf(stderr, "\tname/id/alg:\t");
 	fprintf(stderr, "key with matching name, keyid and algorithm\n");
-	fprintf(stderr, "\tnone:\t\t");
-	fprintf(stderr, "all zone keys that have private keys\n");
 	exit(0);
 }
 
@@ -1062,6 +1061,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'h':
+		default:
 			usage();
 
 		}
@@ -1091,7 +1091,7 @@ main(int argc, char *argv[]) {
 	argv += isc_commandline_index;
 
 	if (argc < 1)
-		check_result(ISC_R_FAILURE, "No zones specified");
+		usage();
 
 	file = isc_mem_strdup(mctx, argv[0]);
 	if (file == NULL)
