@@ -61,12 +61,12 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
 		case dns_c_cat_default:
 		        /*
 			 * For now, the default category is the only
-			 * one that works
+			 * one that works.
 			 */
 			 cat = ISC_LOGCATEGORY_DEFAULT;
 			 break;
 		default:
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "ignoring unsupported logging category");
 			continue;
@@ -74,8 +74,13 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
 		
 		result = isc_log_usechannel(lctx, channelname, cat,
 					    NULL); /* XXX module */
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "logging channel %s: %s", channelname,
+				      isc_result_totext(result));
 			return (result);
+		}
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -104,7 +109,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 			(void) dns_c_logchan_getpath(cchan, &path);
 			if (path == NULL) {
 				isc_log_write(ns_g_lctx,
-					      NS_LOGCATEGORY_GENERAL,
+					      DNS_LOGCATEGORY_CONFIG,
 					      NS_LOGMODULE_SERVER,
 					      ISC_LOG_ERROR,
 					      "file log channel has "
