@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.209 2001/07/22 18:09:46 bwelling Exp $ */
+/* $Id: dighost.c,v 1.210 2001/07/26 03:15:05 mayer Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -70,14 +70,14 @@
 #ifdef HAVE_GETADDRINFO
 #ifdef HAVE_GAISTRERROR
 #define USE_GETADDRINFO
-#define HAVE_H_ERRNO
 #endif
 #endif
 #endif
 
-#ifndef HAVE_H_ERRNO
-#define HAVE_H_ERRNO
+#ifndef USE_GETADDRINFO
+#ifndef ISC_PLATFORM_NONSTDHERRNO
 extern int h_errno;
+#endif
 #endif
 
 ISC_LIST(dig_lookup_t) lookup_list;

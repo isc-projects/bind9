@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.70 2001/07/23 16:32:40 gson Exp $ */
+/* $Id: rndc.c,v 1.71 2001/07/26 03:15:11 mayer Exp $ */
 
 /*
  * Principal Author: DCL
@@ -56,14 +56,14 @@
 #ifdef HAVE_GETADDRINFO
 #ifdef HAVE_GAISTRERROR
 #define USE_GETADDRINFO
-#define HAVE_H_ERRNO
 #endif
 #endif
 #endif
 
-#ifndef HAVE_H_ERRNO
-#define HAVE_H_ERRNO
+#ifndef USE_GETADDRINFO
+#ifndef ISC_PLATFORM_NONSTDHERRNO
 extern int h_errno;
+#endif
 #endif
 
 char *progname;
@@ -369,7 +369,8 @@ main(int argc, char **argv) {
 	int ch;
 	int i;
 
-	admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";
+	admin_conffile = RNDC_SYSCONFPATH;
+	
 	isc_app_start();
 
 	result = isc_file_progname(*argv, program, sizeof(program));

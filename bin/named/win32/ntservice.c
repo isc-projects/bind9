@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.2 2001/07/18 18:42:48 gson Exp $ */
+/* $Id: ntservice.c,v 1.3 2001/07/26 03:15:08 mayer Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -62,7 +62,7 @@ int bindmain()
 
 	/* Command line users should put -f in the options */
 	while (argv[i]) {
-		if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "/f")) {
+		if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "-g")) {
 			foreground = TRUE;
 			break;
 		}

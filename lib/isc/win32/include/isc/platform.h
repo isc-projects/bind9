@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.4 2001/07/12 05:58:28 mayer Exp $ */
+/* $Id: platform.h,v 1.5 2001/07/26 03:15:15 mayer Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -47,6 +47,11 @@
 #define ISC_PLATFORM_USEDECLSPEC 1
 
 /*
+ * Define this here for now as winsock2.h defines h_errno
+ * and we don't want to redeclare it.
+ */
+#define ISC_PLATFORM_NONSTDHERRNO
+ /*
  * Set up a macro for importing and exporting from the DLL
  */
 
@@ -72,12 +77,6 @@
 #define LIBDNS_EXTERNAL_DATA __declspec( dllexport )
 #else
 #define LIBDNS_EXTERNAL_DATA __declspec( dllimport )
-#endif
-
-#ifdef LIBLWRES_EXPORTS
-#define LIBLWRES_EXTERNAL_DATA __declspec( dllexport )
-#else
-#define LIBLWRES_EXTERNAL_DATA __declspec( dllimport )
 #endif
 
 #endif /* ISC_PLATFORM_H */

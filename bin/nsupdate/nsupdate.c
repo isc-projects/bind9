@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.101 2001/07/22 06:11:44 mayer Exp $ */
+/* $Id: nsupdate.c,v 1.102 2001/07/26 03:15:10 mayer Exp $ */
 
 #include <config.h>
 
@@ -70,13 +70,14 @@
 #ifdef HAVE_GETADDRINFO
 #ifdef HAVE_GAISTRERROR
 #define USE_GETADDRINFO
-#define HAVE_H_ERRNO
 #endif
 #endif
 #endif
 
-#ifndef HAVE_H_ERRNO
+#ifndef USE_GETADDRINFO
+#ifndef ISC_PLATFORM_NONSTDHERRNO
 extern int h_errno;
+#endif
 #endif
 
 #define MAXCMD (4 * 1024)

@@ -15,16 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.67 2001/07/22 06:03:05 mayer Exp $ */
+/* $Id: host.c,v 1.68 2001/07/26 03:15:06 mayer Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
 #include <limits.h>
-
-#ifndef HAVE_H_ERRNO
-#define HAVE_H_ERRNO
-extern int h_errno;
-#endif
 
 #include <isc/app.h>
 #include <isc/commandline.h>
@@ -43,6 +38,10 @@ extern int h_errno;
 #include <dns/rdatatype.h>
 
 #include <dig/dig.h>
+
+#ifndef ISC_PLATFORM_NONSTDHERRNO
+extern int h_errno;
+#endif
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;

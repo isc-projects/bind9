@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.12 2001/07/22 06:22:28 mayer Exp $ */
+/* $Id: gen-win32.h,v 1.13 2001/07/26 03:15:12 mayer Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -83,15 +83,14 @@
 #include <isc/boolean.h>
 #include <isc/lang.h>
 
-/* Index into parent argv vector. */
-/* Argument associated with option. */
-char *isc_commandline_argument;
-int isc_commandline_index = 1;
-isc_commandline_option;
- char *isc_commandline_argument;
-char *isc_commandline_progname;
-isc_boolean_t isc_commandline_errprint = ISC_TRUE;
-isc_boolean_t isc_commandline_reset = ISC_TRUE;
+int isc_commandline_index = 1;		/* Index into parent argv vector. */
+int isc_commandline_option;		/* Character checked for validity. */
+
+char *isc_commandline_argument;		/* Argument associated with option. */
+char *isc_commandline_progname;		/* For printing error messages. */
+
+isc_boolean_t isc_commandline_errprint = ISC_TRUE;/* Print error messages. */
+isc_boolean_t isc_commandline_reset = ISC_TRUE; /* Reset processing. */
 
 #define	BADOPT	'?'
 #define	BADARG	':'

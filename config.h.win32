@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.5 2001/07/23 17:37:48 gson Exp $ */
+/* $Id: config.h.win32,v 1.6 2001/07/26 03:15:03 mayer Exp $ */
 
 /*
  * win32 configuration file
@@ -172,18 +172,8 @@ typedef long off_t;
  * Set up the Version Information
  */
 #include <versions.h>
-/*
- * Information about where this are on disk
- */
-#define NS_LOCALSTATEDIR	"dns/bin"
-#define NS_SYSCONFDIR		"dns/etc"
 
-/*
- * DO NOT REMOVE TRAILING COMMENT, even though it is not conformant
- * to C standards
- */
-#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); /* Done */
-/* We actually are using the CryptAPI and not a device */
+/* We actually are using the CryptAPI and not a device */ 
 #define PATH_RANDOMDEV		"CryptAPI"
 
 #include <stddef.h>
