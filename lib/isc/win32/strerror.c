@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.4 2002/02/20 03:35:46 marka Exp $ */
+/* $Id: strerror.c,v 1.5 2002/08/01 03:52:14 mayer Exp $ */
 
 #include <config.h>
 
@@ -74,7 +74,7 @@ isc__strerror(int num, char *buf, size_t size) {
 		snprintf(buf, size, "%s", msg);
 	else
 		snprintf(buf, size, "Unknown error: %u", unum);
-	if(freebuf == TRUE) {
+	if(freebuf && msg != NULL) {
 		LocalFree(msg);
 	}
 	UNLOCK(&isc_strerror_lock);
