@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_timers.c,v 1.2.2.2 2004/03/09 09:17:35 marka Exp $";
+static const char rcsid[] = "$Id: ev_timers.c,v 1.2.2.3 2004/03/17 00:40:15 marka Exp $";
 #endif
 
 /* Import. */
@@ -180,10 +180,10 @@ evSetTimer(evContext opaqueCtx,
 		 (long)due.tv_sec, due.tv_nsec,
 		 (long)inter.tv_sec, inter.tv_nsec);
 
-	if (due.tv_sec < 0 || due.tv_nsec < 0)
+	if (due.tv_sec < 0 || due.tv_nsec > BILLION)
 		EV_ERR(EINVAL);
 
-	if (inter.tv_sec < 0 || inter.tv_nsec < 0)
+	if (inter.tv_sec < 0 || inter.tv_nsec > BILLION)
 		EV_ERR(EINVAL);
 
 	/* due={0,0} is a magic cookie meaning "now." */
@@ -254,6 +254,8 @@ evConfigTimer(evContext opaqueCtx,
 	evTimer *timer = id.opaque;
 	int result=0;
 
+	UNUSED(value);
+
 	if (heap_element(ctx->timers, timer->index) != timer)
 		EV_ERR(ENOENT);
 
@@ -283,10 +285,10 @@ evResetTimer(evContext opaqueCtx,
 	if (heap_element(ctx->timers, timer->index) != timer)
 		EV_ERR(ENOENT);
 
-	if (due.tv_sec < 0 || due.tv_nsec < 0)
+	if (due.tv_sec < 0 || due.tv_nsec > BILLION)
 		EV_ERR(EINVAL);
 
-	if (inter.tv_sec < 0 || inter.tv_nsec < 0)
+	if (inter.tv_sec < 0 || inter.tv_nsec > BILLION)
 		EV_ERR(EINVAL);
 
 	old_due = timer->due;

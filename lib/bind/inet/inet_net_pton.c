@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_net_pton.c,v 1.4.2.2 2004/03/09 09:17:27 marka Exp $";
+static const char rcsid[] = "$Id: inet_net_pton.c,v 1.4.2.3 2004/03/17 00:40:11 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -70,7 +70,7 @@ inet_net_pton_ipv4(const char *src, u_char *dst, size_t size) {
 	    && isascii((unsigned char)(src[1]))
 	    && isxdigit((unsigned char)(src[1]))) {
 		/* Hexadecimal: Eat nybble string. */
-		if (size <= 0)
+		if (size <= 0U)
 			goto emsgsize;
 		dirty = 0;
 		src++;	/* skip x or X. */
@@ -84,14 +84,14 @@ inet_net_pton_ipv4(const char *src, u_char *dst, size_t size) {
 			else
 				tmp = (tmp << 4) | n;
 			if (++dirty == 2) {
-				if (size-- <= 0)
+				if (size-- <= 0U)
 					goto emsgsize;
 				*dst++ = (u_char) tmp;
 				dirty = 0;
 			}
 		}
 		if (dirty) {  /* Odd trailing nybble? */
-			if (size-- <= 0)
+			if (size-- <= 0U)
 				goto emsgsize;
 			*dst++ = (u_char) (tmp << 4);
 		}
@@ -108,7 +108,7 @@ inet_net_pton_ipv4(const char *src, u_char *dst, size_t size) {
 					goto enoent;
 			} while ((ch = *src++) != '\0' &&
 				 isascii(ch) && isdigit(ch));
-			if (size-- <= 0)
+			if (size-- <= 0U)
 				goto emsgsize;
 			*dst++ = (u_char) tmp;
 			if (ch == '\0' || ch == '/')
@@ -171,7 +171,7 @@ inet_net_pton_ipv4(const char *src, u_char *dst, size_t size) {
 	}
 	/* Extend network to cover the actual mask. */
 	while (bits > ((dst - odst) * 8)) {
-		if (size-- <= 0)
+		if (size-- <= 0U)
 			goto emsgsize;
 		*dst++ = '\0';
 	}
