@@ -81,8 +81,8 @@ static void	t_sighandler();
 static int	T_int;
 
 static void
-t_sighandler() {
-	T_int = 1;
+t_sighandler(int sig) {
+	T_int = sig;
 }
 
 int
@@ -235,6 +235,8 @@ main(int argc, char **argv)
 				else if (T_pid > 0) {
 
 					T_int = 0;
+					sa.sa_handler = t_sighandler;
+					(void) sigaction(SIGALRM, &sa, NULL);
 					alarm(T_timeout);
 
 					deadpid = (pid_t) -1;
@@ -248,13 +250,18 @@ main(int argc, char **argv)
 							}
 						}
 						else if ((deadpid == -1) && (errno == EINTR) && T_int) {
-							t_info("the test case was interrupted\n");
+							t_info("the test case was interrupted %d\n", T_int);
 							kill(T_pid, SIGTERM);
 							t_result(T_UNRESOLVED);
-							break;
+							T_int = 0;
 						}
+						else if ((deadpid == -1) &&
+							 ((errno == ECHILD) || (errno == ESRCH)))
+							break;
 					}
 
+					sa.sa_handler = SIG_IGN;
+					(void) sigaction(SIGALRM, &sa, NULL);
 					alarm(0);
 				}
 				else {
@@ -270,10 +277,7 @@ main(int argc, char **argv)
 		++tnum;
 	}
 
-	/* output end stanza to journal */
-	sprintf(T_buf, "%s:", argv[0]);
-	len = strlen(T_buf);
-	(void) t_getdate(T_buf + len, T_BIGBUF - len);
+	(void) t_getdate(T_buf, T_BIGBUF);
 	t_putinfo("E", T_buf);
 
 	return(0);
