@@ -163,9 +163,8 @@ library_unexpected_error(char *file, int line, char *format, va_list args) {
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named [[-c cachefile] ...] [[-z zonefile] ...]\n");
-	fprintf(stderr,
-		"             [-p port] [-s] [-N number of cpus]\n");
+		"usage: named [-c conffile] [-d debuglevel] [-f] [-N number_of_cpus]\n"
+		"             [-p port] ] [-s] [-t chrootdir] [-u username]\n");
 }
 
 static void 
@@ -175,10 +174,9 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "b:c:d:fN:p:st:u:x:")) !=
+					   "c:d:fN:p:st:u:x:")) !=
 	       -1) {
 		switch (ch) {
-		case 'b':
 		case 'c':
 			ns_g_conffile = isc_commandline_argument;
 			break;
@@ -216,6 +214,7 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_cachefile = isc_commandline_argument;
 			break;
 		case '?':
+			usage();
 			ns_main_earlyfatal("unknown option `-%c'",
 					   isc_commandline_option);
 		default:
@@ -226,7 +225,7 @@ parse_command_line(int argc, char *argv[]) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc > 1) {
+	if (argc > 0) {
 		usage();
 		ns_main_earlyfatal("extra command line arguments");
 	}
