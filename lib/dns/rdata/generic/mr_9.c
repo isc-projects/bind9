@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.37 2001/03/16 22:52:50 bwelling Exp $ */
+/* $Id: mr_9.c,v 1.38 2001/07/16 03:06:18 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -34,6 +34,7 @@ fromtext_mr(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));

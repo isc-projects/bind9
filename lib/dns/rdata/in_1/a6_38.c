@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.44 2001/03/16 22:53:10 bwelling Exp $ */
+/* $Id: a6_38.c,v 1.45 2001/07/16 03:06:39 marka Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -41,6 +41,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	/*
 	 * Prefix length.

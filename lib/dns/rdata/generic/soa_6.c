@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.51 2001/03/16 22:53:02 bwelling Exp $ */
+/* $Id: soa_6.c,v 1.52 2001/07/16 03:06:31 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -36,6 +36,7 @@ fromtext_soa(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	origin = (origin != NULL) ? origin : dns_rootname;
 

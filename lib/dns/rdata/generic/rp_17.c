@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.34 2001/03/16 22:52:59 bwelling Exp $ */
+/* $Id: rp_17.c,v 1.35 2001/07/16 03:06:27 marka Exp $ */
 
 /* RFC 1183 */
 
@@ -35,6 +35,7 @@ fromtext_rp(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	origin = (origin != NULL) ? origin : dns_rootname;
 

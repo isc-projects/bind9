@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.36 2001/03/16 22:53:00 bwelling Exp $ */
+/* $Id: rt_21.c,v 1.37 2001/07/16 03:06:28 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -36,6 +36,7 @@ fromtext_rt(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.35 2001/03/16 22:53:18 bwelling Exp $ */
+/* $Id: srv_33.c,v 1.36 2001/07/16 03:06:49 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -37,6 +37,7 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	/*
 	 * Priority.

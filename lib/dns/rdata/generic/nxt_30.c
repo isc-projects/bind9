@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.48 2001/03/16 22:52:56 bwelling Exp $ */
+/* $Id: nxt_30.c,v 1.49 2001/07/16 03:06:23 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -46,6 +46,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	/*
 	 * Next domain.

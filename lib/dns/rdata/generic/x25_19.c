@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.30 2001/06/21 04:00:43 marka Exp $ */
+/* $Id: x25_19.c,v 1.31 2001/07/16 03:06:36 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -37,6 +37,7 @@ fromtext_x25(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      ISC_FALSE));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.43 2001/06/21 04:00:47 marka Exp $ */
+/* $Id: wks_11.c,v 1.44 2001/07/16 03:06:51 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -62,7 +62,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 
 	isc_buffer_availableregion(target, &region);
-	if (inet_aton(token.value.as_pointer, &addr) != 1)
+	if (getquad(token.value.as_pointer, &addr, lexer, callbacks) != 1)
 		RETTOK(DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
 		return (ISC_R_NOSPACE);

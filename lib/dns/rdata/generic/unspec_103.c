@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.27 2001/06/21 04:00:42 marka Exp $ */
+/* $Id: unspec_103.c,v 1.28 2001/07/16 03:06:35 marka Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -31,6 +31,7 @@ fromtext_unspec(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(callbacks);
 
 	return (atob_tobuffer(lexer, target));
 }

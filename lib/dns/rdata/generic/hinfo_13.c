@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.36 2001/06/21 04:00:32 marka Exp $ */
+/* $Id: hinfo_13.c,v 1.37 2001/07/16 03:06:06 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -35,6 +35,7 @@ fromtext_hinfo(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(callbacks);
 
 	REQUIRE(type == 13);
 

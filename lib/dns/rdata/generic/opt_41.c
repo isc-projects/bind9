@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.24 2001/06/21 04:00:37 marka Exp $ */
+/* $Id: opt_41.c,v 1.25 2001/07/16 03:06:24 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -42,6 +42,7 @@ fromtext_opt(ARGS_FROMTEXT) {
 	UNUSED(origin);
 	UNUSED(downcase);
 	UNUSED(target);
+	UNUSED(callbacks);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

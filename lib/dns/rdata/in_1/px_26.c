@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.33 2001/03/16 22:53:17 bwelling Exp $ */
+/* $Id: px_26.c,v 1.34 2001/07/16 03:06:48 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -37,6 +37,7 @@ fromtext_in_px(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	/*
 	 * Preference.

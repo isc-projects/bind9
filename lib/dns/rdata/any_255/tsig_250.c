@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.51 2001/06/21 04:00:28 marka Exp $ */
+/* $Id: tsig_250.c,v 1.52 2001/07/16 03:05:58 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -40,6 +40,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	/*
 	 * Algorithm Name.

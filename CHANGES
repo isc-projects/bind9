@@ -1,3 +1,7 @@
+ 936.	[func]		Warn when non dotted decimal quad's are used.
+			[RT #1084]
+
+ 935.	[bug]		inet_pton failed to reject leading zeros.
 
  934.	[port]		Deal with systems where accept() spuriously returns
 			ECONNRESET.

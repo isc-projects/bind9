@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.34 2001/06/21 04:00:36 marka Exp $ */
+/* $Id: null_10.c,v 1.35 2001/07/16 03:06:22 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -34,6 +34,7 @@ fromtext_null(ARGS_FROMTEXT) {
 	UNUSED(origin);
 	UNUSED(downcase);
 	UNUSED(target);
+	UNUSED(callbacks);
 
 	return (DNS_R_SYNTAX);
 }

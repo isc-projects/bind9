@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.35 2001/03/16 22:53:12 bwelling Exp $ */
+/* $Id: aaaa_28.c,v 1.36 2001/07/16 03:06:41 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -41,6 +41,7 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 	UNUSED(origin);
 	UNUSED(downcase);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));

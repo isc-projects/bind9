@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.38 2001/03/16 22:52:33 bwelling Exp $ */
+/* $Id: afsdb_18.c,v 1.39 2001/07/16 03:06:00 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -36,6 +36,7 @@ fromtext_afsdb(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	/*
 	 * Subtype.

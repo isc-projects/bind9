@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.30 2001/07/09 08:07:41 marka Exp $ */
+/* $Id: net.h,v 1.31 2001/07/16 03:06:53 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -252,6 +252,7 @@ isc_net_ntop(int af, const void *src, char *dst, size_t size);
 #ifdef ISC_PLATFORM_NEEDPTON
 int
 isc_net_pton(int af, const char *src, void *dst);
+#undef inet_pton
 #define inet_pton isc_net_pton
 #endif
 

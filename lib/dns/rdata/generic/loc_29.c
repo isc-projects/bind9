@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.29 2001/03/16 22:52:43 bwelling Exp $ */
+/* $Id: loc_29.c,v 1.30 2001/07/16 03:06:10 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -56,6 +56,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(callbacks);
 
 	/*
 	 * Defaults.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.36 2001/06/21 04:00:41 marka Exp $ */
+/* $Id: txt_16.c,v 1.37 2001/07/16 03:06:33 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -35,6 +35,7 @@ fromtext_txt(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(callbacks);
 
 	strings = 0;
 	for (;;) {

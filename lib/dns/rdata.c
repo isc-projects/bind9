@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.144 2001/07/06 20:15:08 gson Exp $ */
+/* $Id: rdata.c,v 1.145 2001/07/16 03:05:57 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -60,7 +60,8 @@
 
 #define ARGS_FROMTEXT	int rdclass, dns_rdatatype_t type, \
 			isc_lex_t *lexer, dns_name_t *origin, \
-			isc_boolean_t downcase, isc_buffer_t *target
+			isc_boolean_t downcase, isc_buffer_t *target, \
+			dns_rdatacallbacks_t *callbacks
 
 #define ARGS_TOTEXT	dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, \
 			isc_buffer_t *target
@@ -178,6 +179,25 @@ fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
 static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	     isc_buffer_t *target);
+
+static inline int
+getquad(const void *src, struct in_addr *dst,
+	isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks)
+{
+	int result;
+	struct in_addr *tmp;
+
+	result = inet_aton(src, dst);
+	if (result == 1 && callbacks != NULL &&
+	    inet_pton(AF_INET, src, &tmp) != 1) {
+		(*callbacks->warn)(callbacks, "%s:%lu: warning \"%s\" "
+			           "is not a decimal dotted quad",
+				   isc_lex_getsourcename(lexer),
+				   isc_lex_getsourceline(lexer),
+				   src);
+	}
+	return (result);
+}
 
 static inline isc_result_t
 name_duporclone(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.62 2001/07/06 17:35:04 gson Exp $ */
+/* $Id: gen.c,v 1.63 2001/07/16 03:05:56 marka Exp $ */
 
 #include <config.h>
 
@@ -34,7 +34,7 @@
 #include "gen-unix.h"
 #endif
 
-#define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target"
+#define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target, callbacks"
 #define FROMTEXTCLASS "rdclass"
 #define FROMTEXTTYPE "type"
 #define FROMTEXTDEF "result = DNS_R_UNKNOWN"

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.29 2001/06/21 04:00:33 marka Exp $ */
+/* $Id: isdn_20.c,v 1.30 2001/07/16 03:06:08 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -36,6 +36,7 @@ fromtext_isdn(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(callbacks);
 
 	/* ISDN-address */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.39 2001/06/21 04:00:30 marka Exp $ */
+/* $Id: cert_37.c,v 1.40 2001/07/16 03:06:01 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -38,6 +38,7 @@ fromtext_cert(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(callbacks);
 
 	/*
 	 * Cert type.
