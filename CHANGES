@@ -2,6 +2,9 @@
 			xfrout_ctx_destroy() being called with a
 			partially initialized structure.
 			
+1594.	[bug]		'rndc dumpdb' could prevent named from answering
+			queries while the dump was in progress.  [RT #10565]
+
 1593.	[bug]		rndc should return "unknown command" to unknown
 			commands. [RT# 10642]
 
