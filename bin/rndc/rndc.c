@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.28 2000/11/08 19:20:03 mws Exp $ */
+/* $Id: rndc.c,v 1.29 2000/11/25 03:27:54 mws Exp $ */
 
 /*
  * Principal Author: DCL
@@ -315,7 +315,7 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vv:y:z:"))
+	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vy:"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
@@ -345,14 +345,8 @@ main(int argc, char **argv) {
 		case 'V':
 			verbose = ISC_TRUE;
 			break;
-		case 'v':
-			viewname = isc_commandline_argument;
-			break;
 		case 'y':
 			keyname = isc_commandline_argument;
-			break;
-		case 'z':
-			zonename = isc_commandline_argument;
 			break;
 		case '?':
 			usage();
@@ -480,17 +474,22 @@ main(int argc, char **argv) {
 	 */
 	ndc_g_ndc.waitresult = ISC_R_SUCCESS;
 
-	while ((args = *argv++) != NULL &&
-	       result == ISC_R_SUCCESS &&
-	       ndc_g_ndc.waitresult == ISC_R_SUCCESS) {
+	if (*argv != NULL &&
+	    result == ISC_R_SUCCESS &&
+	    ndc_g_ndc.waitresult == ISC_R_SUCCESS) {
+
+		args = *argv;
 
 		/* Skip leading white space. */
 		args += strspn(args, " \t\r\n");
 
 		/* Extract command */
 		len = strcspn(args, " \t\r\n");
-		if (len == 0)
-			continue;
+		if (len == 0) {
+			fprintf(stderr, "%s: unexpected error parsing "
+				"command: got %s\n", progname, args);
+			exit(1);	
+		}
 		command = isc_mem_get(mctx, len + 1);
 		if (command == NULL)
 			DO("isc_mem_get", ISC_R_NOMEMORY);
@@ -511,6 +510,18 @@ main(int argc, char **argv) {
 
 		} else if (strcmp(command, "reload") == 0) {
 			char omapiargs[DNS_NAME_MAXTEXT];
+			if (argc > 0) {
+				argc--;
+				argv++;
+				if (argv != NULL)
+					zonename = *argv;
+			}
+			if (argc > 0) {
+				argc--;
+				argv++;
+				if (argv != NULL)
+					viewname = *argv;
+			}
 			omapiargs[0]=0;
 			if (zonename != NULL) {	
 				strncat(omapiargs, "Z", 1);
@@ -534,6 +545,18 @@ main(int argc, char **argv) {
 			result = send_command(omapimgr, command, omapiargs);
 		} else if (strcmp(command, "refresh") == 0) {
 			char omapiargs[DNS_NAME_MAXTEXT];
+			if (argc > 0) {
+				argc--;
+				argv++;
+				if (argv != NULL)
+					zonename = *argv;
+			}
+			if (argc > 0) {
+				argc--;
+				argv++;
+				if (argv != NULL)
+					viewname = *argv;
+			}
 			omapiargs[0]=0;
 			if (zonename != NULL) {	
 				strncat(omapiargs, "Z", 1);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.253 2000/11/23 02:26:37 gson Exp $ */
+/* $Id: server.c,v 1.254 2000/11/25 03:27:53 mws Exp $ */
 
 #include <config.h>
 
@@ -2113,7 +2113,7 @@ zone_from_args(char *args, dns_zone_t **zone) {
 	dns_fixedname_t name;
 	isc_result_t result;
 	isc_buffer_t buf;
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 
 	input = args;
 	ptr = next_token(&input, " \t");
