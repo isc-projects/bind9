@@ -55,9 +55,6 @@
 
 #include <isc/mem.h>
 
-/* XXX these next two are needed by rdatatype.h. It should be fixed to
- * include them itself.
- */
 #include <isc/buffer.h>
 #include <dns/result.h>
 
@@ -116,46 +113,49 @@ struct dns_c_view
 	dns_c_ipmatchlist_t    *allowupdateforwarding;
 	dns_c_ipmatchlist_t    *transferacl;
 	dns_c_ipmatchlist_t    *recursionacl;
-	dns_c_ipmatchlist_t    *blackhole;
 	dns_c_ipmatchlist_t    *sortlist;
 	dns_c_ipmatchlist_t    *topology;
 	dns_c_ipmatchlist_t    *matchclients;
 
-	dns_c_rrsolist_t       *ordering;
+	dns_c_rrsolist_t       *ordering; /* XXX not parsed yet */
 	
 	dns_severity_t	       *check_names[DNS_C_TRANSCOUNT];
 	
 	/*
-	 * These following boolean and int32 variables are not yet handled
-	 * by the parser.
+	 * XXX to implement now.
 	 */
 	isc_boolean_t	       *auth_nx_domain;
-	isc_boolean_t	       *dialup;
-	isc_boolean_t	       *fetch_glue;
-	isc_boolean_t	       *has_old_clients;
-	isc_boolean_t	       *host_statistics;
-	isc_boolean_t	       *multiple_cnames;
-	isc_boolean_t	       *notify;
 	isc_boolean_t	       *recursion;
-	isc_boolean_t	       *rfc2308_type1;
-	isc_boolean_t	       *use_id_pool;
-	isc_boolean_t	       *fake_iquery;
-	isc_boolean_t	       *use_ixfr;
 	isc_boolean_t	       *provide_ixfr;
 	isc_boolean_t	       *request_ixfr;
+	isc_boolean_t	       *fetch_glue;
+	isc_boolean_t	       *notify;
+	isc_boolean_t	       *rfc2308_type1;
 
-	isc_int32_t	       *clean_interval;
-	isc_int32_t	       *lamettl;
-	isc_int32_t	       *max_log_size_ixfr;
-	isc_int32_t	       *max_ncache_ttl;
-	isc_int32_t	       *max_transfer_time_in;
+	isc_sockaddr_t	       *query_source;
+	isc_sockaddr_t	       *query_source_v6;
+	isc_sockaddr_t	       *transfer_source;
+	isc_sockaddr_t	       *transfer_source_v6;
+
 	isc_int32_t	       *max_transfer_time_out;
-	isc_int32_t	       *max_transfer_idle_in;
 	isc_int32_t	       *max_transfer_idle_out;
-	isc_int32_t	       *stats_interval;
-	isc_int32_t	       *transfers_in;
-	isc_int32_t	       *transfers_out;
+	isc_int32_t	       *clean_interval;
+	isc_int32_t	       *min_roots;
+	isc_int32_t	       *lamettl;
+	isc_int32_t	       *max_ncache_ttl;
+
+	dns_transfer_format_t  *transfer_format;
+
+#if 0	
+	/*
+	 * To implement later.
+	 */
+	isc_int32_t	       *max_transfer_time_in;
+	isc_int32_t	       *max_transfer_idle_in;
 	isc_int32_t	       *transfers_per_ns;
+	isc_int32_t	       *serial_queries;
+
+#endif
 
 	ISC_LINK(dns_c_view_t)	next;
 };
@@ -181,6 +181,7 @@ isc_result_t	dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
 					   dns_c_view_t **retval);
 isc_result_t	dns_c_viewtable_rmviewbyname(dns_c_viewtable_t *viewtable,
 					     const char *name);
+isc_result_t	dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable);
 
 
 
@@ -205,32 +206,13 @@ isc_result_t	dns_c_view_setforward(dns_c_view_t *view,
 				     dns_c_forw_t newval);
 isc_result_t	dns_c_view_unsetforward(dns_c_view_t *view);
 
+
 isc_result_t	dns_c_view_setforwarders(dns_c_view_t *view,
 					 dns_c_iplist_t *ipl,
 					 isc_boolean_t deepcopy);
 isc_result_t	dns_c_view_unsetforwarders(dns_c_view_t *view);
 isc_result_t	dns_c_view_getforwarders(dns_c_view_t *view,
 					 dns_c_iplist_t **ipl);
-
-
-isc_result_t	dns_c_view_getordering(dns_c_view_t *view,
-				       dns_c_rrsolist_t **olist);
-isc_result_t	dns_c_view_setordering(dns_c_view_t *view,
-				       isc_boolean_t copy,
-				       dns_c_rrsolist_t *olist);
-isc_result_t	dns_c_view_unsetordering(dns_c_view_t *view,
-					 dns_c_rrsolist_t **olist);
-
-
-isc_result_t	dns_c_view_setchecknames(dns_c_view_t *view,
-					 dns_c_trans_t transtype,
-					 dns_severity_t newval);
-isc_result_t	dns_c_view_getchecknames(dns_c_view_t *view,
-					 dns_c_trans_t transtype,
-					 dns_severity_t *retval);
-isc_result_t	dns_c_view_unsetchecknames(dns_c_view_t *view,
-					   dns_c_trans_t transtype);
-
 
 
 isc_result_t	dns_c_view_getallowquery(dns_c_view_t *view,
@@ -244,15 +226,15 @@ isc_result_t	dns_c_view_unsetallowquery(dns_c_view_t *view);
 isc_result_t	dns_c_view_getallowupdateforwarding(dns_c_view_t *view,
 						   dns_c_ipmatchlist_t **rval);
 isc_result_t	dns_c_view_setallowupdateforwarding(dns_c_view_t *view,
-						    dns_c_ipmatchlist_t *newval);
+						  dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsetallowupdateforwarding(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getblackhole(dns_c_view_t *view,
-					dns_c_ipmatchlist_t **rval);
-isc_result_t	dns_c_view_setblackhole(dns_c_view_t *view,
-					dns_c_ipmatchlist_t *newval);
-isc_result_t	dns_c_view_unsetblackhole(dns_c_view_t *view);
+isc_result_t	dns_c_view_gettransferacl(dns_c_view_t *view,
+					  dns_c_ipmatchlist_t **rval);
+isc_result_t	dns_c_view_settransferacl(dns_c_view_t *view,
+					  dns_c_ipmatchlist_t *newval);
+isc_result_t	dns_c_view_unsettransferacl(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_getrecursionacl(dns_c_view_t *view,
@@ -283,11 +265,24 @@ isc_result_t	dns_c_view_setmatchclients(dns_c_view_t *view,
 isc_result_t	dns_c_view_unsetmatchclients(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_gettransferacl(dns_c_view_t *view,
-					  dns_c_ipmatchlist_t **rval);
-isc_result_t	dns_c_view_settransferacl(dns_c_view_t *view,
-					  dns_c_ipmatchlist_t *newval);
-isc_result_t	dns_c_view_unsettransferacl(dns_c_view_t *view);
+isc_result_t	dns_c_view_getordering(dns_c_view_t *view,
+				       dns_c_rrsolist_t **olist);
+isc_result_t	dns_c_view_setordering(dns_c_view_t *view,
+				       isc_boolean_t copy,
+				       dns_c_rrsolist_t *olist);
+isc_result_t	dns_c_view_unsetordering(dns_c_view_t *view,
+					 dns_c_rrsolist_t **olist);
+
+
+isc_result_t	dns_c_view_setchecknames(dns_c_view_t *view,
+					 dns_c_trans_t transtype,
+					 dns_severity_t newval);
+isc_result_t	dns_c_view_getchecknames(dns_c_view_t *view,
+					 dns_c_trans_t transtype,
+					 dns_severity_t *retval);
+isc_result_t	dns_c_view_unsetchecknames(dns_c_view_t *view,
+					   dns_c_trans_t transtype);
+
 
 
 isc_result_t	dns_c_view_getauthnxdomain(dns_c_view_t *view,
@@ -297,18 +292,25 @@ isc_result_t	dns_c_view_setauthnxdomain(dns_c_view_t *view,
 isc_result_t	dns_c_view_unsetauthnxdomain(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getdialup(dns_c_view_t *view,
-				     isc_boolean_t *retval);
-isc_result_t	dns_c_view_setdialup(dns_c_view_t *view,
-				     isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetdialup(dns_c_view_t *view);
+isc_result_t	dns_c_view_getrecursion(dns_c_view_t *view,
+					isc_boolean_t *retval);
+isc_result_t	dns_c_view_setrecursion(dns_c_view_t *view,
+					isc_boolean_t newval);
+isc_result_t	dns_c_view_unsetrecursion(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getfakeiquery(dns_c_view_t *view,
-					 isc_boolean_t *retval);
-isc_result_t	dns_c_view_setfakeiquery(dns_c_view_t *view,
-					 isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetfakeiquery(dns_c_view_t *view);
+isc_result_t	dns_c_view_getprovideixfr(dns_c_view_t *view,
+					isc_boolean_t *retval);
+isc_result_t	dns_c_view_setprovideixfr(dns_c_view_t *view,
+					isc_boolean_t newval);
+isc_result_t	dns_c_view_unsetprovideixfr(dns_c_view_t *view);
+
+
+isc_result_t	dns_c_view_getrequestixfr(dns_c_view_t *view,
+					isc_boolean_t *retval);
+isc_result_t	dns_c_view_setrequestixfr(dns_c_view_t *view,
+					isc_boolean_t newval);
+isc_result_t	dns_c_view_unsetrequestixfr(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_getfetchglue(dns_c_view_t *view,
@@ -318,53 +320,11 @@ isc_result_t	dns_c_view_setfetchglue(dns_c_view_t *view,
 isc_result_t	dns_c_view_unsetfetchglue(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_gethasoldclients(dns_c_view_t *view,
-					    isc_boolean_t *retval);
-isc_result_t	dns_c_view_sethasoldclients(dns_c_view_t *view,
-					    isc_boolean_t newval);
-isc_result_t	dns_c_view_unsethasoldclients(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_gethoststatistics(dns_c_view_t *view,
-					     isc_boolean_t *retval);
-isc_result_t	dns_c_view_sethoststatistics(dns_c_view_t *view,
-					     isc_boolean_t newval);
-isc_result_t	dns_c_view_unsethoststatistics(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_getmultiplecnames(dns_c_view_t *view,
-					     isc_boolean_t *retval);
-isc_result_t	dns_c_view_setmultiplecnames(dns_c_view_t *view,
-					     isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetmultiplecnames(dns_c_view_t *view);
-
-
 isc_result_t	dns_c_view_getnotify(dns_c_view_t *view,
 				     isc_boolean_t *retval);
 isc_result_t	dns_c_view_setnotify(dns_c_view_t *view,
 				     isc_boolean_t newval);
 isc_result_t	dns_c_view_unsetnotify(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_getprovideixfr(dns_c_view_t *view,
-					  isc_boolean_t *retval);
-isc_result_t	dns_c_view_setprovideixfr(dns_c_view_t *view,
-					  isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetprovideixfr(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_getrecursion(dns_c_view_t *view,
-					isc_boolean_t *retval);
-isc_result_t	dns_c_view_setrecursion(dns_c_view_t *view,
-					isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetrecursion(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_getrequestixfr(dns_c_view_t *view,
-					  isc_boolean_t *retval);
-isc_result_t	dns_c_view_setrequestixfr(dns_c_view_t *view,
-					  isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetrequestixfr(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_getrfc2308type1(dns_c_view_t *view,
@@ -374,53 +334,33 @@ isc_result_t	dns_c_view_setrfc2308type1(dns_c_view_t *view,
 isc_result_t	dns_c_view_unsetrfc2308type1(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getuseidpool(dns_c_view_t *view,
-					isc_boolean_t *retval);
-isc_result_t	dns_c_view_setuseidpool(dns_c_view_t *view,
-					isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetuseidpool(dns_c_view_t *view);
+
+isc_result_t dns_c_view_settransfersource(dns_c_view_t *view,
+					  isc_sockaddr_t transfer_source);
+isc_result_t dns_c_view_gettransfersource(dns_c_view_t *view,
+					  isc_sockaddr_t *transfer_source);
+isc_result_t dns_c_view_unsettransfersource(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getuseixfr(dns_c_view_t *view,
-				      isc_boolean_t *retval);
-isc_result_t	dns_c_view_setuseixfr(dns_c_view_t *view,
-				      isc_boolean_t newval);
-isc_result_t	dns_c_view_unsetuseixfr(dns_c_view_t *view);
+isc_result_t dns_c_view_settransfersourcev6(dns_c_view_t *view,
+					    isc_sockaddr_t transfer_source_v6);
+isc_result_t dns_c_view_gettransfersourcev6(dns_c_view_t *view,
+					   isc_sockaddr_t *transfer_source_v6);
+isc_result_t dns_c_view_unsettransfersourcev6(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getcleaninterval(dns_c_view_t *view,
-					    isc_int32_t *retval);
-isc_result_t	dns_c_view_setcleaninterval(dns_c_view_t *view,
-					    isc_int32_t newval);
-isc_result_t	dns_c_view_unsetcleaninterval(dns_c_view_t *view);
+isc_result_t dns_c_view_setquerysource(dns_c_view_t *view,
+				       isc_sockaddr_t query_source);
+isc_result_t dns_c_view_getquerysource(dns_c_view_t *view,
+				       isc_sockaddr_t *query_source);
+isc_result_t dns_c_view_unsetquerysource(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getlamettl(dns_c_view_t *view,
-				      isc_int32_t *retval);
-isc_result_t	dns_c_view_setlamettl(dns_c_view_t *view,
-				      isc_int32_t newval);
-isc_result_t	dns_c_view_unsetlamettl(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_getmaxlogsizeixfr(dns_c_view_t *view,
-					     isc_int32_t *retval);
-isc_result_t	dns_c_view_setmaxlogsizeixfr(dns_c_view_t *view,
-					     isc_int32_t newval);
-isc_result_t	dns_c_view_unsetmaxlogsizeixfr(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_getmaxncachettl(dns_c_view_t *view,
-					   isc_int32_t *retval);
-isc_result_t	dns_c_view_setmaxncachettl(dns_c_view_t *view,
-					   isc_int32_t newval);
-isc_result_t	dns_c_view_unsetmaxncachettl(dns_c_view_t *view);
-
-
-isc_result_t	dns_c_view_getmaxtransferidlein(dns_c_view_t *view,
-						isc_int32_t *retval);
-isc_result_t	dns_c_view_setmaxtransferidlein(dns_c_view_t *view,
-						isc_int32_t newval);
-isc_result_t	dns_c_view_unsetmaxtransferidlein(dns_c_view_t *view);
+isc_result_t dns_c_view_setquerysourcev6(dns_c_view_t *view,
+					 isc_sockaddr_t query_source_v6);
+isc_result_t dns_c_view_getquerysourcev6(dns_c_view_t *view,
+					 isc_sockaddr_t *query_source_v6);
+isc_result_t dns_c_view_unsetquerysourcev6(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_getmaxtransferidleout(dns_c_view_t *view,
@@ -430,13 +370,6 @@ isc_result_t	dns_c_view_setmaxtransferidleout(dns_c_view_t *view,
 isc_result_t	dns_c_view_unsetmaxtransferidleout(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getmaxtransfertimein(dns_c_view_t *view,
-						isc_int32_t *retval);
-isc_result_t	dns_c_view_setmaxtransfertimein(dns_c_view_t *view,
-						isc_int32_t newval);
-isc_result_t	dns_c_view_unsetmaxtransfertimein(dns_c_view_t *view);
-
-
 isc_result_t	dns_c_view_getmaxtransfertimeout(dns_c_view_t *view,
 						 isc_int32_t *retval);
 isc_result_t	dns_c_view_setmaxtransfertimeout(dns_c_view_t *view,
@@ -444,25 +377,66 @@ isc_result_t	dns_c_view_setmaxtransfertimeout(dns_c_view_t *view,
 isc_result_t	dns_c_view_unsetmaxtransfertimeout(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_getstatsinterval(dns_c_view_t *view,
+isc_result_t	dns_c_view_getcleaninterval(dns_c_view_t *view,
 					    isc_int32_t *retval);
-isc_result_t	dns_c_view_setstatsinterval(dns_c_view_t *view,
+isc_result_t	dns_c_view_setcleaninterval(dns_c_view_t *view,
 					    isc_int32_t newval);
-isc_result_t	dns_c_view_unsetstatsinterval(dns_c_view_t *view);
+isc_result_t	dns_c_view_unsetcleaninterval(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_gettransfersin(dns_c_view_t *view,
-					  isc_int32_t *retval);
-isc_result_t	dns_c_view_settransfersin(dns_c_view_t *view,
-					  isc_int32_t newval);
-isc_result_t	dns_c_view_unsettransfersin(dns_c_view_t *view);
+isc_result_t	dns_c_view_getminroots(dns_c_view_t *view,
+				      isc_int32_t *retval);
+isc_result_t	dns_c_view_setminroots(dns_c_view_t *view,
+				      isc_int32_t newval);
+isc_result_t	dns_c_view_unsetminroots(dns_c_view_t *view);
 
 
-isc_result_t	dns_c_view_gettransfersout(dns_c_view_t *view,
+isc_result_t	dns_c_view_getlamettl(dns_c_view_t *view,
+				      isc_int32_t *retval);
+isc_result_t	dns_c_view_setlamettl(dns_c_view_t *view,
+				      isc_int32_t newval);
+isc_result_t	dns_c_view_unsetlamettl(dns_c_view_t *view);
+
+
+isc_result_t	dns_c_view_getmaxncachettl(dns_c_view_t *view,
 					   isc_int32_t *retval);
-isc_result_t	dns_c_view_settransfersout(dns_c_view_t *view,
+isc_result_t	dns_c_view_setmaxncachettl(dns_c_view_t *view,
 					   isc_int32_t newval);
-isc_result_t	dns_c_view_unsettransfersout(dns_c_view_t *view);
+isc_result_t	dns_c_view_unsetmaxncachettl(dns_c_view_t *view);
+
+
+isc_result_t dns_c_view_settransferformat(dns_c_view_t *view,
+					  dns_transfer_format_t tformat);
+isc_result_t dns_c_view_gettransferformat(dns_c_view_t *view,
+					  dns_transfer_format_t *tformat);
+isc_result_t dns_c_view_unsettransferformat(dns_c_view_t *cfg);
+
+
+
+
+
+
+
+
+
+#if 0
+
+/*
+ * XXX waiting to server to implement these items before enabling them
+ */
+
+isc_result_t	dns_c_view_getmaxtransfertimein(dns_c_view_t *view,
+						isc_int32_t *retval);
+isc_result_t	dns_c_view_setmaxtransfertimein(dns_c_view_t *view,
+						isc_int32_t newval);
+isc_result_t	dns_c_view_unsetmaxtransfertimein(dns_c_view_t *view);
+
+
+isc_result_t	dns_c_view_getmaxtransferidlein(dns_c_view_t *view,
+						isc_int32_t *retval);
+isc_result_t	dns_c_view_setmaxtransferidlein(dns_c_view_t *view,
+						isc_int32_t newval);
+isc_result_t	dns_c_view_unsetmaxtransferidlein(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_gettransfersperns(dns_c_view_t *view,
@@ -471,6 +445,15 @@ isc_result_t	dns_c_view_settransfersperns(dns_c_view_t *view,
 					     isc_int32_t newval);
 isc_result_t	dns_c_view_unsettransfersperns(dns_c_view_t *view);
 
+isc_result_t	dns_c_view_getserialqueries(dns_c_view_t *view,
+				      isc_int32_t *retval);
+isc_result_t	dns_c_view_setserialqueries(dns_c_view_t *view,
+				      isc_int32_t newval);
+isc_result_t	dns_c_view_unsetserialqueries(dns_c_view_t *view);
+
+
+
+#endif
 
 
 
