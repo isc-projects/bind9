@@ -1,3 +1,5 @@
+1839.	[bug]		<isc/hash.h> was not being installed.
+
 1836.	[cleanup]	Silence compiler warnings in hash_test.c.
 
 1835.	[bug]		Update dnssec-signzone's usage message. [RT #13657]
