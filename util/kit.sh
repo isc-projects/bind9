@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.28 2004/06/03 02:45:03 marka Exp $
+# $Id: kit.sh,v 1.29 2004/12/13 02:06:53 marka Exp $
 
 # Make a release kit
 #
@@ -125,6 +125,17 @@ find . -name .cvsignore -print | xargs rm
 chmod +x configure install-sh mkinstalldirs \
 	 lib/bind/configure lib/bind/mkinstalldirs \
 	 bin/tests/system/ifconfig.sh
+
+# Fix files which should be using DOS style newlines
+windirs=`find lib bin -type d -name win32`
+windirs="$windirs win32utils"
+winnames="-name *.mak -or -name *.dsp -or -name *.dsw -or -name *.txt -or -name *.bat"
+for f in `find $windirs -type f \( $winnames \) -print`
+do
+	awk '{sub("\r$", "", $0); printf("%s\r\n", $0);}' < $f > tmp
+	touch -r $f tmp
+	mv tmp $f
+done
 
 cd .. || exit 1
 
