@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.79 2000/10/27 21:56:57 bwelling Exp $ */
+/* $Id: message.h,v 1.80 2000/11/10 03:13:03 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -55,16 +55,23 @@
  * Notes on using the gettemp*() and puttemp*() functions:
  *
  * These functions return items (names, rdatasets, etc) allocated from some
- * internal state of the dns_message_t.  These items must be put back into
- * the dns_message_t in one of two ways.  Assume a name was allocated via
+ * internal state of the dns_message_t.
+ *
+ * Names and rdatasets must be put back into the dns_message_t in
+ * one of two ways.  Assume a name was allocated via
  * dns_message_gettempname():
  *
  *	(1) insert it into a section, using dns_message_addname().
  *
  *	(2) return it to the message using dns_message_puttempname().
  *
- * The same applies to rdata, rdatasets, and rdatalists which were
- * allocated using this group of functions.
+ * The same applies to rdatasets.
+ *
+ * On the other hand, rdatalists and rdatas allocated using
+ * dns_message_gettemp*() will always be freed automatically
+ * when the message is reset or destroyed; calling dns_message_puttemp*()
+ * on these is optional and serves only to enable the item to be reused
+ * multiple times during the lifetime of the message.
  *
  * Buffers allocated using isc_buffer_allocate() can be automatically freed
  * as well by giving the buffer to the message using dns_message_takebuffer().
@@ -220,6 +227,9 @@ struct dns_message {
 	isc_region_t		       *query;
 	isc_region_t		       *saved;
 	isc_buffer_t		       *rawmessge;
+
+	dns_rdatasetorderfunc_t		order;
+	void *				order_arg;
 };
 
 /***
@@ -747,8 +757,8 @@ isc_result_t
 dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
 /*
  * Return a rdata that can be used for any temporary purpose, including
- * inserting into the message's linked lists.  The storage associated with
- * this rdata will be destroyed when the message is destroyed or reset.
+ * inserting into the message's linked lists.  The rdata will be freed
+ * when the message is destroyed or reset.
  *
  * Requires:
  *	msg be a valid message
@@ -764,8 +774,9 @@ isc_result_t
 dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
 /*
  * Return a rdataset that can be used for any temporary purpose, including
- * inserting into the message's linked lists.  The storage associated with
- * this rdataset will be destroyed when the message is destroyed or reset.
+ * inserting into the message's linked lists. The name must be returned
+ * to the message code using dns_message_puttempname() or inserted into
+ * one of the message's sections before the message is destroyed.
  *
  * Requires:
  *	msg be a valid message
@@ -781,8 +792,8 @@ isc_result_t
 dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
 /*
  * Return a rdatalist that can be used for any temporary purpose, including
- * inserting into the message's linked lists.  The storage associated with
- * this rdatalist will be destroyed when the message is destroyed or reset.
+ * inserting into the message's linked lists.  The rdatalist will be
+ * destroyed when the message is destroyed or reset.
  *
  * Requires:
  *	msg be a valid message
