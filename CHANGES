@@ -1,3 +1,5 @@
+1390.	[func]		host now supports ixfr.
+
 1386.	[bug]		named-checkzone -z stopped on errors in a zone.
 			[RT #3653]
 
