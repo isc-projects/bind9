@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.76 2001/08/06 04:25:03 marka Exp $ */
+/* $Id: rndc.c,v 1.77 2001/08/06 11:40:46 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -202,9 +202,9 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	if (ccmsg.result == ISC_R_EOF)
 		fatal("connection to remote host closed\n"
 		      "This may indicate that the remote server is using "
-		      "an older version of the\n"
-		      "command protocol, this host is not authorized "
-		      "to connect, or the key is invalid.");
+		      "an older version of \n"
+		      "the command protocol, this host is not authorized "
+		      "to connect,\nor the key is invalid.");
 
 	if (ccmsg.result != ISC_R_SUCCESS)
 		fatal("recv failed: %s", isc_result_totext(ccmsg.result));
@@ -352,12 +352,14 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	 * The parser will output its own errors, so DO() is not used.
 	 */
 	result = cfg_parse_file(*pctxp, conffile, conftype, &config);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not load rndc configuration");
 
 	if (!key_only)
 		(void)cfg_map_get(config, "options", &options);
 
 	if (key_only && servername == NULL)
-		servername = "localhost";
+		servername = "127.0.0.1";
 	else if (servername == NULL && options != NULL) {
 		cfg_obj_t *defserverobj = NULL;
 		(void)cfg_map_get(options, "default-server", &defserverobj);
