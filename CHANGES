@@ -29,7 +29,7 @@
  679.	[bug]		$INCLUDE could leak memory and file descriptors on
 			reload. [RT #639]
 
- 678.	[bug]		"tranfer-format one-answer;" could trigger an assertion
+ 678.	[bug]		"transfer-format one-answer;" could trigger an assertion
 			failure. [RT #646]
 
  677.	[bug]		dnssec-signzone would occasionally use the wrong ttl
