@@ -30,14 +30,14 @@
  *	This module deals with low-level byte streams.  Errors in any of
  *	the functions are likely to crash the server or corrupt memory.
  *
+ *	If the caller passes invalid memory references, these functions are
+ *	likely to crash the server or corrupt memory.
+ *
  * Resources:
  *	None.
  *
  * Security:
- *
- *	Very little range checking is done in these functions for rdata
- *	copied in or out.  It is assumed that the caller knows what is
- *	going on.
+ *	None.
  *
  * Standards:
  *	None.
@@ -77,26 +77,16 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  *	<XXX others>
  */
 
-
-dns_result_t
-dns_rdataslab_tordataset(dns_rdataset_t *rdataset, isc_region_t *region,
-			 unsigned int reservelen);
+unsigned int
+dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
 /*
- * Unslabify a rdataset.  The slab is not deallocated.
+ * Return the total size of an rdataslab.
  *
  * Requires:
- *	'rdataset' is valid.
- *
- *	'region' points to a region of memory that contains the slabified
- *	data at offset 'reservelen'.
- *
- * Ensures:
- *	'rdataset' contains the structure version of data in 'region'.
+ *	'slab' points to a slab.
  *
  * Returns:
- *	DNS_R_SUCCESS		- successful completion
- *	DNS_R_NOMEM		- no memory.
- *	<XXX others>
+ *	The number of bytes in the slab, including the reservelen.
  */
 
 #endif /* DNS_RDATADLAB_H */

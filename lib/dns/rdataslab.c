@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.1 1999/01/27 08:44:10 explorer Exp $ */
+/* $Id: rdataslab.c,v 1.2 1999/02/06 00:07:08 halley Exp $ */
 
 #include <config.h>
 
@@ -104,14 +104,22 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
-dns_rdataslab_tordataset(dns_rdataset_t *rdataset, isc_region_t *region,
-			   unsigned int reservelen)
-{
-	/* XXX shut up compiler */
-	rdataset = rdataset;
-	region = region;
-	reservelen = reservelen;
+unsigned int
+dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
+	unsigned int count, length;
+	unsigned char *current;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	REQUIRE(slab != NULL);
+
+	current = slab + reservelen;
+	count = *current++ * 256;
+	count += *current++;
+	while (count > 0) {
+		count--;
+		length = *current++ * 256;
+		length += *current++;
+		current += length;
+	}
+	
+	return ((unsigned int)(current - slab));
 }
