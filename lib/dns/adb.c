@@ -3665,8 +3665,33 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		}
 
 		/*
-		 * XXXRTH  Handle CNAME/DNAME.
+		 * Handle CNAME/DNAME.
 		 */
+		if (dev->result == DNS_R_CNAME || dev->result == DNS_R_DNAME) {
+			dev->rdataset->ttl = ISC_MAX(dev->rdataset->ttl,
+						     ADB_CACHE_MINIMUM);
+			clean_target(adb, &name->target);
+			name->expire_target = INT_MAX;
+			result = set_target(adb, &name->name,
+					  dns_fixedname_name(&dev->foundname),
+					    dev->rdataset,
+					    &name->target);
+			if (result == ISC_R_SUCCESS) {
+				DP(NCACHE_LEVEL,
+				  "adb A6 fetch name %p: caching alias target",
+				   name);
+				name->expire_target = dev->rdataset->ttl + now;
+				if (FETCH_FIRSTA6(fetch)) {
+					/*
+					 * Make this name 'pokeable', since
+					 * we've learned that this name is an
+					 * alias.
+					 */
+					name->flags |= NAME_NEEDS_POKE;
+				}
+			}
+			goto out;
+		}
 
 		if (FETCH_USEHINTS(fetch))
 			use_hints = ISC_TRUE;
