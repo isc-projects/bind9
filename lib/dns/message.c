@@ -1155,6 +1155,8 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     dns_name_t *target, dns_rdatatype_t type,
 		     dns_name_t **name, dns_rdataset_t **rdataset)
 {
+	dns_name_t *foundname;
+	dns_result_t result;
 
 	/*
 	 * XXX These requirements are probably too intensive, especially
@@ -1174,8 +1176,24 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 			REQUIRE(*rdataset == NULL);
 	}
 
-	return (ISC_R_NOTIMPLEMENTED);
-	/* XXX implement */
+	/*
+	 * Search through, looking for the name.
+	 */
+	result = findname(&foundname, target, &msg->sections[section]);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	if (name != NULL)
+		*name = foundname;
+
+	/*
+	 * And now look for the type.
+	 */
+	if (rdataset == NULL)
+		return (DNS_R_SUCCESS);
+
+	result = findtype(rdataset, foundname, type);
+	return (result);
 }
 
 void

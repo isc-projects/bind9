@@ -145,8 +145,8 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent);
  *	structure.
  *
  * Returns:
- *	DNS_R_NOMEMORY		- out of memory
- *	DNS_R_SUCCESS		- success
+ *	DNS_R_NOMEMORY		-- out of memory
+ *	DNS_R_SUCCESS		-- success
  */
 
 void
@@ -245,9 +245,8 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
  *
  * Returns:
  *
- *	DNS_R_NOSPACE		- new buffer is too small
- *
- *	DNS_R_SUCCESS		- all is well.
+ *	DNS_R_NOSPACE		-- new buffer is too small
+ *	DNS_R_SUCCESS		-- all is well.
  */
 
 dns_result_t
