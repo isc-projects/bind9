@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.102 2001/08/30 23:51:45 marka Exp $ */
+/* $Id: xfrout.c,v 1.103 2001/08/31 00:35:18 gson Exp $ */
 
 #include <config.h>
 
@@ -94,7 +94,7 @@
 		dns_rdataclass_format(rdclass, _buf2, sizeof(_buf2)); \
 		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, \
 			   NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO, \
-			   "bad zone transfer request: '%s/%s' %s (%s)", \
+			   "bad zone transfer request: '%s/%s': %s (%s)", \
 		      	   _buf1, _buf2, msg, isc_result_totext(code));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
