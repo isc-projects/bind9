@@ -285,6 +285,36 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 	return (result);
 }
 
+isc_result_t
+dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
+			      dns_name_t *foundname)
+{
+	isc_result_t result;
+	dns_keynode_t *knode;
+	void *data;
+
+	/*
+	 * Search for the deepest match in 'keytable'.
+	 */
+
+	REQUIRE(VALID_KEYTABLE(keytable));
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(foundname != NULL);
+
+	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
+
+	knode = NULL;
+	data = NULL;
+	result = dns_rbt_findname(keytable->table, name, foundname, &data);
+
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+		result = ISC_R_SUCCESS;
+
+	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
+
+	return (result);
+}
+
 void
 dns_keytable_detachkeynode(dns_keytable_t *keytable,
 			   dns_keynode_t **keynodep)

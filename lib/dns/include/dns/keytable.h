@@ -156,6 +156,28 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
  *	Any other result indicates an error.
  */
 
+isc_result_t
+dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
+			      dns_name_t *foundname);
+/*
+ * Search for the deepest match of 'name' in 'keytable'.
+ *
+ * Requires:
+ *
+ *	'keytable' is a valid keytable.
+ *
+ *	'name' is a valid absolute name.
+ *
+ *	'foundname' is a name with a dedicated buffer.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
+ *
+ *	Any other result indicates an error.
+ */
+
 void
 dns_keytable_detachkeynode(dns_keytable_t *keytable,
 			   dns_keynode_t **keynodep);
