@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.32 2000/05/08 14:37:00 tale Exp $
+ * $Id: dst_api.c,v 1.33 2000/05/10 18:54:04 gson Exp $
  */
 
 #include <config.h>
@@ -990,7 +990,7 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 
 	ret = isc_lex_openfile(lex, filename);
 	if (ret != ISC_R_SUCCESS) {
-		if (ret == ISC_R_FAILURE)
+		if (ret == ISC_R_FILENOTFOUND)
 			ret = ISC_R_NOTFOUND;
 		goto cleanup;
 	}
