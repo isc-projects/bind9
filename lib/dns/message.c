@@ -1178,7 +1178,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				attributes = DNS_NAMEATTR_CNAME;
 			else if (covers == dns_rdatatype_dname)
 				attributes = DNS_NAMEATTR_DNAME;
-			else if (covers == 0) {
+			else if (covers == 0 &&
+				 sectionid == DNS_SECTION_ADDITIONAL)
+			{
 				if (msg->sig0 != NULL) {
 					result = DNS_R_FORMERR;
 					goto cleanup;
@@ -1198,7 +1200,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    skip_name_search) {
 			if (rdtype != dns_rdatatype_opt &&
 			    rdtype != dns_rdatatype_tsig &&
-			    !(rdtype == dns_rdatatype_sig && covers == 0))
+			    !(rdtype == dns_rdatatype_sig && covers == 0 &&
+			      sectionid == DNS_SECTION_ADDITIONAL))
 			{
 				ISC_LIST_APPEND(*section, name, link);
 				free_name = ISC_FALSE;
@@ -1337,7 +1340,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		/*
 		 * If this is an SIG(0) or TSIG record, remember it.
 		 */
-		if (rdtype == dns_rdatatype_sig && covers == 0) {
+		if (rdtype == dns_rdatatype_sig && covers == 0 &&
+		    sectionid == DNS_SECTION_ADDITIONAL)
+		{
 			msg->sig0 = rdataset;
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
@@ -2316,6 +2321,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(msg->sig0, &rdata);
 
+		if (rdata.length == 0)
+			return (ISC_R_UNEXPECTEDEND);
 		result = dns_rdata_tostruct(&rdata, &sig, msg->mctx);
 		if (result != ISC_R_SUCCESS)
 			return (result);
