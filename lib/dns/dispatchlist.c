@@ -55,6 +55,9 @@ struct dns_dispatchlist {
 #define SHUTTINGDOWN		0x00000001U
 #define IS_SHUTTINGDOWN(l)	(((l)->state & SHUTTINGDOWN) != 0)
 
+#define IS_PRIVATE(dle)	(((dle)->attributes & DNS_DISPATCHLISTATTR_PRIVATE) \
+			 != 0)
+
 #define DNS_DISPATCHLIST_MAGIC		ISC_MAGIC('D', 'l', 's', 't')
 #define DNS_DISPATCHLIST_VALID(a) \
 	ISC_MAGIC_VALID(a, DNS_DISPATCHLIST_MAGIC)
@@ -134,7 +137,7 @@ dns_dispatchlist_destroy(dns_dispatchlist_t **listp)
 
 	REQUIRE(listp != NULL);
 	REQUIRE(DNS_DISPATCHLIST_VALID(*listp));
-	RUNTIME_CHECK(destory_ok(*listp));
+	RUNTIME_CHECK(destroy_ok(*listp));
 
 	list = *listp;
 	*listp = NULL;
@@ -188,7 +191,12 @@ dns_dispatchlist_delete(dns_dispatchlist_t *list, dns_dispatch_t *disp)
 {
 	dns__dle_t *dle;
 	isc_result_t result;
+	isc_boolean_t killit;
 
+	REQUIRE(DNS_DISPATCHLIST_VALID(list));
+	REQUIRE(disp != NULL);
+
+	LOCK(&list->lock);
 	dle = ISC_LIST_HEAD(list->list);
 	while (dle != NULL) {
 		if (dle->disp == disp)
@@ -203,16 +211,53 @@ dns_dispatchlist_delete(dns_dispatchlist_t *list, dns_dispatch_t *disp)
 
 	ISC_LIST_UNLINK(list->list, dle, link);
 	dns_dispatch_detach(&dle->disp);
+
+	isc_mem_put(list->mctx, dle, sizeof(dns__dle_t));
+
 	result = ISC_R_SUCCESS;
 
  out:
 	killit = destroy_ok(list);
 	UNLOCK(&list->lock);
+
+	if (killit)
+		destroy(&list);
+
 	return (result);
 }
+
+#define ATTRMATCH(_a1, _a2, _mask) (((_a1) & (_mask)) == ((_a2) & (_mask)))
 
 isc_result_t
 dns_dispatchlist_find(dns_dispatchlist_t *list, unsigned int attributes,
 		      unsigned int mask, dns_dispatch_t **dispp)
 {
+	dns__dle_t *dle;
+	isc_result_t result;
+
+	REQUIRE(DNS_DISPATCHLIST_VALID(list));
+	REQUIRE(dispp != NULL && *dispp == NULL);
+
+	LOCK(&list->lock);
+	dle = ISC_LIST_HEAD(list->list);
+	while (dle != NULL) {
+		if (!IS_PRIVATE(dle)
+		    && ATTRMATCH(dle->attributes, attributes, mask))
+			break;
+		dle = ISC_LIST_NEXT(dle, link);
+	}
+
+	if (dle == NULL) {
+		result = ISC_R_NOTFOUND;
+		goto out;
+	}
+
+	dns_dispatch_attach(dle->disp, dispp);
+
+	result = ISC_R_SUCCESS;
+
+ out:
+	UNLOCK(&list->lock);
+
+	return (result);
 }

@@ -61,10 +61,15 @@
  *
  * Values with the mask 0xffff0000 are application defined.
  * Values with the mask 0x0000ffff are library defined.
+ *
+ * Insane values (like setting both TCP and UDP) are not caught.  Don't
+ * do that.
  */
-#define DNS_DISPATCHLISTATTR_TCP	0x00000001U
-#define DNS_DISPATCHLISTATTR_UDP	0x00000002U
-#define DNS_DISPATCHLISTATTR_PRIVATE	0x00000004U
+#define DNS_DISPATCHLISTATTR_PRIVATE	0x00000001U
+#define DNS_DISPATCHLISTATTR_TCP	0x00000002U
+#define DNS_DISPATCHLISTATTR_UDP	0x00000004U
+#define DNS_DISPATCHLISTATTR_IPV4	0x00000008U
+#define DNS_DISPATCHLISTATTR_IPV6	0x00000010U
 
 ISC_LANG_BEGINDECLS
 
@@ -81,7 +86,7 @@ dns_dispatchlist_create(isc_mem_t *mctx, dns_dispatchlist_t **listp);
  * Returns:
  *	ISC_R_SUCCESS	-- all ok
  *
- *	anythign else	-- failure
+ *	anything else	-- failure
  */
 
 
