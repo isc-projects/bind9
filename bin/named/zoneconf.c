@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.43 2000/06/22 21:54:57 tale Exp $ */
+/* $Id: zoneconf.c,v 1.44 2000/07/21 18:47:22 mws Exp $ */
 
 #include <config.h>
 
@@ -267,7 +267,13 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		iplist = NULL;
 		result = dns_c_zone_getmasterips(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
-			result = dns_zone_setmasters(zone, iplist->ips,
+#if 0
+			result = dns_zone_setmasterswithkeys(zone,
+							     iplist->ips,
+							     iplist->keys,
+							     iplist->nextidx);
+#endif
+		        result = dns_zone_setmasters(zone, iplist->ips,
 						     iplist->nextidx);
 		else
 			result = dns_zone_setmasters(zone, NULL, 0);
@@ -275,7 +281,8 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_getmaxtranstimein(czone, &uintval);
 		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransfertimein(cctx, &uintval);
+			result = dns_c_ctx_getmaxtransfertimein(cctx,
+								&uintval);
 		if (result != ISC_R_SUCCESS)
 			uintval = MAX_XFER_TIME;
 		dns_zone_setmaxxfrin(zone, uintval);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.158 2000/07/20 19:34:16 bwelling Exp $ */
+/* $Id: zone.c,v 1.159 2000/07/21 18:47:20 mws Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
+#include <dns/name.h>
 #include <dns/peer.h>
 #include <dns/rcode.h>
 #include <dns/rdatalist.h>
@@ -121,6 +122,7 @@ struct dns_zone {
 	isc_uint32_t		expire;
 	isc_uint32_t		minimum;
 	isc_sockaddr_t		*masters;
+	dns_name_t              **masterkeynames;
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
 	isc_sockaddr_t		masteraddr;
@@ -1251,35 +1253,90 @@ isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		    isc_uint32_t count)
 {
+	isc_result_t result;
+
+	result = dns_zone_setmasterswithkeys(zone, masters, NULL, count);
+	return (result);
+}
+
+isc_result_t
+dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
+			    dns_name_t **keynames, isc_uint32_t count)
+{
 	isc_sockaddr_t *new;
+	dns_name_t **newname;
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE((masters == NULL && count == 0) ||
 		(masters != NULL && count != 0));
+	if (keynames != NULL) {
+		REQUIRE(count != 0);
+	}
 	
 	LOCK(&zone->lock);
 	if (zone->masters != NULL) {
 		isc_mem_put(zone->mctx, zone->masters,
 			    zone->masterscnt * sizeof *new);
 		zone->masters = NULL;
-		zone->masterscnt = 0;
 	}
+	if (zone->masterkeynames != NULL) {
+		for (i = 0; i < zone->masterscnt; i++)
+			dns_name_free(zone->masterkeynames[i],
+				      zone->mctx);
+		isc_mem_put(zone->mctx, zone->masterkeynames,
+			    zone->masterscnt * sizeof *newname);
+		zone->masterkeynames = NULL;
+	}
+	zone->masterscnt = 0;
 	if (masters == NULL)
 		goto unlock;
 
-	new = isc_mem_get(zone->mctx, count * sizeof *new);
+	new = isc_mem_get(zone->mctx,
+			  count * sizeof (isc_sockaddr_t));
 	if (new == NULL) {
-		UNLOCK(&zone->lock);
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_NOMEMORY;
+		goto unlock;
 	}
 	memcpy(new, masters, count * sizeof *new);
 	zone->masters = new;
 	zone->masterscnt = count;
 	zone->flags &= ~DNS_ZONEFLG_NOMASTERS;
 
+	if (keynames != NULL) {
+		newname = isc_mem_get(zone->mctx,
+				      count * sizeof (dns_name_t*));
+		if (newname == NULL) {
+			result = ISC_R_NOMEMORY;
+			isc_mem_put(zone->mctx, zone->masters,
+				    count * sizeof *new);
+			goto unlock;
+		}
+		memset(newname, 0, count * sizeof (dns_name_t*));
+		for (i = 0; i < count; i++) {
+			if (keynames[i] != NULL) {
+				result = dns_name_dup(keynames[i], zone->mctx,
+						      newname[i]);
+				if (result != ISC_R_SUCCESS) {
+					for (i = 0; i < count; i++)
+						if (newname[i] != NULL)
+							dns_name_free(
+							       newname[i],
+							       zone->mctx);
+					isc_mem_put(zone->mctx, zone->masters,
+						    count * sizeof *new);
+					isc_mem_put(zone->mctx, newname,
+						    count * sizeof *newname);
+					goto unlock;
+				}
+			}
+		}
+		zone->masterkeynames = newname;
+	}
  unlock:
 	UNLOCK(&zone->lock);
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 isc_result_t
@@ -3932,8 +3989,28 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Determine if we should attempt to sign the request with TSIG.
+	 * First, look for a tsig key in the master statement, then
+	 * try for a server key.
 	 */
-	if (peer != NULL && dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS) {
+	if ((zone->masterkeynames != NULL) &&
+	    (zone->masterkeynames[zone->curmaster] != NULL)) {
+		dns_view_t *view = dns_zone_getview(zone);
+		keyname = zone->masterkeynames[zone->curmaster];
+		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
+					  view->statickeys);
+		if (result == ISC_R_NOTFOUND)
+			result = dns_tsigkey_find(&tsigkey, keyname, NULL,
+						  view->dynamickeys);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+			zone_log(zone, me, ISC_LOG_ERROR,
+				 "error getting tsig keys "
+				 "for zone transfer: %s",
+				 isc_result_totext(result));
+			goto cleanup;
+		}
+	}
+	else if (peer != NULL &&
+		 dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS) {
 		dns_view_t *view = dns_zone_getview(zone);
 		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
 					  view->statickeys);

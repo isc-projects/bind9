@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.59 2000/06/22 21:56:25 tale Exp $ */
+/* $Id: zone.h,v 1.60 2000/07/21 18:47:23 mws Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -351,6 +351,9 @@ dns_zone_maintenance(dns_zone_t *zone);
 isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		    isc_uint32_t count);
+isc_result_t
+dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
+			    dns_name_t **keynames, isc_uint32_t count);
 /*
  *	Set the list of master servers for the zone.
  *
@@ -358,12 +361,17 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
  *	'zone' to be a valid zone.
  *	'masters' array of isc_sockaddr_t with port set or NULL.
  *	'count' the number of masters.
+ *      'keynames' array of dns_name_t's for tsig keys or NULL.
+ *
+ *      dns_zone_setmasters() is just a wrapper to setmasterswithkeys(),
+ *      passing NULL in the keynames field.
  *
  * 	If 'masters' is NULL then 'count' must be zero.
  *
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOMEMORY
+ *      Any result dns_name_dup() can return, if keynames!=NULL
  */
 
 isc_result_t
