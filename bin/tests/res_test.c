@@ -83,7 +83,7 @@ done(isc_task_t *task, isc_event_t *event) {
 	     fetch = next_fetch) {
 		next_fetch = ISC_LIST_NEXT(fetch, link);
 		if (fetch->private == event->sender &&
-		    fetch->tag == event->tag)
+		    fetch == event->tag)
 			break;
 	}
 	INSIST(fetch != NULL);
