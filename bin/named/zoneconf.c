@@ -29,6 +29,8 @@
 
 /* XXX copied from zone.c */
 #define MAX_XFER_TIME (2*3600)	/* Documented default is 2 hours. */
+#define DNS_DEFAULT_IDLEIN 3600		/* 1 hour */
+#define DNS_DEFAULT_IDLEOUT 3600	/* 1 hour */
 
 /*
  * Convenience function for configuring a single zone ACL.
@@ -243,10 +245,20 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			dns_zone_clearmasters(zone);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setmaxxfrin(zone, maxxfr);
-		else
-			dns_zone_setmaxxfrin(zone, MAX_XFER_TIME);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransfertimein(cctx, &maxxfr);
+			if (result != ISC_R_SUCCESS)
+				maxxfr = MAX_XFER_TIME;
+		}
+		dns_zone_setmaxxfrin(zone, maxxfr);
+
+		result = dns_c_zone_getmaxtransidlein(czone, &maxxfr);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransferidlein(cctx, &maxxfr);
+			if (result != ISC_R_SUCCESS)
+				maxxfr = DNS_DEFAULT_IDLEIN;
+		}
+		dns_zone_setidlein(zone, maxxfr);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS) {
@@ -256,12 +268,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			}
 		}
 		dns_zone_setxfrsource4(zone, &sockaddr);
-
-		result = dns_c_zone_getmaxtransidlein(czone, &idle);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setidlein(zone, idle);
-		else
-			dns_zone_setidlein(zone, 0);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result == ISC_R_SUCCESS)
@@ -316,10 +322,20 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			dns_zone_clearmasters(zone);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setmaxxfrin(zone, maxxfr);
-		else
-			dns_zone_setmaxxfrin(zone, MAX_XFER_TIME);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransfertimein(cctx, &maxxfr);
+			if (result != ISC_R_SUCCESS)
+				maxxfr = MAX_XFER_TIME;
+		}
+		dns_zone_setmaxxfrin(zone, maxxfr);
+
+		result = dns_c_zone_getmaxtransidlein(czone, &maxxfr);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_getmaxtransferidlein(cctx, &maxxfr);
+			if (result != ISC_R_SUCCESS)
+				maxxfr = DNS_DEFAULT_IDLEIN;
+		}
+		dns_zone_setidlein(zone, maxxfr);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS) {
@@ -329,14 +345,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			}
 		}
 		dns_zone_setxfrsource4(zone, &sockaddr);
-
-		result = dns_c_zone_getmaxtransidlein(czone, &idle);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setidlein(zone, idle);
-		else
-			dns_zone_setidlein(zone, 0);
-
-		break;
 
 	case dns_c_zone_hint:
 		dns_zone_settype(zone, dns_zone_hint);
