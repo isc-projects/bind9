@@ -168,54 +168,6 @@ SOURCE=.\res\BINDInstall.ico
 
 SOURCE=.\res\BINDInstall.rc2
 # End Source File
-# Begin Source File
-
-SOURCE=.\res\check.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock1.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock2.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock3.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock4.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock5.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock6.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock7.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\clock8.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\cursor1.cur
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\icon1.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\x.ico
-# End Source File
 # End Group
 # Begin Source File
 
