@@ -23,6 +23,9 @@
 
  471.	[bug]		nsupdate didn't compile on HP/UX 10.20
 
+ 387.	[func]		Add dns_byaddr_createptrname(), which converts
+			an address into the name used by a PTR query.
+
 	--- 9.0.0 released ---
 
  463.	[bug]		nsupdate sent malformed SOA queries to the second
