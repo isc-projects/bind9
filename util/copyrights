@@ -82,6 +82,8 @@
 ./bin/rndc/rndc.c				C	2000
 ./bin/rndc/rndc.conf				CONF-C	2000
 ./bin/tests/.cvsignore				X	1999,2000
+./bin/tests/Kchild.example.+003+04017.key	X	2000
+./bin/tests/Kchild.example.+003+04017.private	X	2000
 ./bin/tests/Kclient.+002+02982.key		X	1999,2000
 ./bin/tests/Kclient.+002+02982.private		X	1999,2000
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000
@@ -305,6 +307,7 @@
 ./bin/tests/rwlock_test.c			C	1998,1999,2000
 ./bin/tests/serial_test.c			C	1999,2000
 ./bin/tests/shutdown_test.c			C	1998,1999,2000
+./bin/tests/sig0_test.c				C	2000
 ./bin/tests/sock_test.c				C	1998,1999,2000
 ./bin/tests/sockaddr/.cvsignore			X	1999,2000
 ./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000
