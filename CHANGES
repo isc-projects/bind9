@@ -1,3 +1,5 @@
+1178.	[bug]		Follow and cache (if appropriate) A6 and other
+			data chains to completion in the additional section.
 
 	--- 9.2.1rc2 released ---
 
