@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.129 2000/09/12 18:45:32 explorer Exp $ */
+/* $Id: query.c,v 1.130 2000/09/12 19:27:10 explorer Exp $ */
 
 #include <config.h>
 
@@ -558,7 +558,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		result = ns_client_checkacl(client, "query", queryacl,
 					    ISC_TRUE,
-					    log ? ISC_LOG_ERROR : ISC_LOG_DEBUG(3));
+					    log ? ISC_LOG_INFO : ISC_LOG_DEBUG(3));
 
 		if (queryacl == client->view->queryacl) {
 			if (result == ISC_R_SUCCESS) {
@@ -649,7 +649,7 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 		result = ns_client_checkacl(client, "query",
 					    client->view->queryacl,
 					    ISC_TRUE,
-					    log ? ISC_LOG_ERROR : ISC_LOG_DEBUG(3));
+					    log ? ISC_LOG_INFO : ISC_LOG_DEBUG(3));
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We were allowed by the default
