@@ -370,6 +370,7 @@
 ./bin/tests/net/netaddr_multicast.c		C	2000,2001,2004
 ./bin/tests/net/sockaddr_multicast.c		C	2000,2001,2004
 ./bin/tests/net/testsuite.h			C	2000,2001,2004
+./bin/tests/nsecify.c				C	1999,2000,2001,2003,2004
 ./bin/tests/nxtify.c				C	1999,2000,2001,2003,2004
 ./bin/tests/printmsg.c				C	1998,1999,2000,2001,2004
 ./bin/tests/printmsg.h				C	1998,1999,2000,2001,2004
@@ -415,7 +416,7 @@
 ./bin/tests/sym_test.c				C	1998,1999,2000,2001,2004
 ./bin/tests/system/.cvsignore			X	2000,2001
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004
-./bin/tests/system/README			TXT.BRIEF	2000,2001
+./bin/tests/system/README			TXT.BRIEF	2000,2001,2004
 ./bin/tests/system/cacheclean/clean.sh		SH	2001,2004
 ./bin/tests/system/cacheclean/dig.batch		X	2001
 ./bin/tests/system/cacheclean/knowngood.dig.out	X	2001
@@ -460,11 +461,13 @@
 ./bin/tests/system/digcomp.pl			PERL	2000,2001,2004
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004
+./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004
 ./bin/tests/system/dnssec/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004
 ./bin/tests/system/dnssec/ns2/.cvsignore	X	2000,2001
+./bin/tests/system/dnssec/ns2/dst.example.db.in	ZONE	2004
 ./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004
 ./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004
@@ -472,7 +475,9 @@
 ./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004
 ./bin/tests/system/dnssec/ns3/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns3/bogus.example.db.in	ZONE	2000,2001,2004
+./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004
 ./bin/tests/system/dnssec/ns3/insecure.example.db	ZONE	2000,2001,2004
+./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001,2002,2004
 ./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004
 ./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004
@@ -481,6 +486,7 @@
 ./bin/tests/system/dnssec/ns5/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001,2004
+./bin/tests/system/dnssec/ns6/named.conf	CONF-C	2004
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004
@@ -488,17 +494,17 @@
 ./bin/tests/system/forward/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/forward/ns1/example.db	X	2000,2001
 ./bin/tests/system/forward/ns1/named.conf	CONF-C	2000,2001,2004
-./bin/tests/system/forward/ns1/root.db		ZONE	2000,2001
+./bin/tests/system/forward/ns1/root.db		ZONE	2000,2001,2004
 ./bin/tests/system/forward/ns2/.cvsignore	X	2000,2001
 ./bin/tests/system/forward/ns2/example.db	X	2000,2001
 ./bin/tests/system/forward/ns2/named.conf	CONF-C	2000,2001,2004
-./bin/tests/system/forward/ns2/root.db		ZONE	2000,2001
+./bin/tests/system/forward/ns2/root.db		ZONE	2000,2001,2004
 ./bin/tests/system/forward/ns3/.cvsignore	X	2000,2001
 ./bin/tests/system/forward/ns3/named.conf	CONF-C	2000,2001,2004
-./bin/tests/system/forward/ns3/root.db		ZONE	2000,2001
+./bin/tests/system/forward/ns3/root.db		ZONE	2000,2001,2004
 ./bin/tests/system/forward/ns4/.cvsignore	X	2000,2001
 ./bin/tests/system/forward/ns4/named.conf	CONF-C	2000,2001,2004
-./bin/tests/system/forward/ns4/root.db		ZONE	2000,2001
+./bin/tests/system/forward/ns4/root.db		ZONE	2000,2001,2004
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004
 ./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004
 ./bin/tests/system/glue/clean.sh		SH	2000,2001,2004
@@ -1564,6 +1570,7 @@
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004
+./lib/dns/ds.c					C	2002,2003,2004
 ./lib/dns/forward.c				C	2000,2001,2004
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004
 ./lib/dns/gen-win32.h				C	1999,2000,2001,2004
@@ -1586,6 +1593,7 @@
 ./lib/dns/include/dns/diff.h			C	2000,2001,2004
 ./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004
+./lib/dns/include/dns/ds.h			C	2002,2004
 ./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001,2004
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004
@@ -1601,6 +1609,7 @@
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004
+./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004
 ./lib/dns/include/dns/nxt.h			C	1999,2000,2001,2004
 ./lib/dns/include/dns/opcode.h			C	2002,2004
 ./lib/dns/include/dns/order.h			C	2002,2004
@@ -1649,6 +1658,7 @@
 ./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004
+./lib/dns/nsec.c				C	1999,2000,2001,2003,2004
 ./lib/dns/nxt.c					C	1999,2000,2001,2003,2004
 ./lib/dns/order.c				C	2002,2004
 ./lib/dns/peer.c				C	2000,2001,2003,2004
@@ -1669,6 +1679,10 @@
 ./lib/dns/rdata/generic/cname_5.h		C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/dname_39.c		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001,2004
+./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004
+./lib/dns/rdata/generic/dnskey_48.h		C	2003,2004
+./lib/dns/rdata/generic/ds_43.c			C	2002,2004
+./lib/dns/rdata/generic/ds_43.h			C	2002,2004
 ./lib/dns/rdata/generic/gpos_27.c		C	1999,2000,2001,2002,2004
 ./lib/dns/rdata/generic/gpos_27.h		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/hinfo_13.c		C	1998,1999,2000,2001,2002,2004
@@ -1695,6 +1709,8 @@
 ./lib/dns/rdata/generic/mx_15.h			C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004
+./lib/dns/rdata/generic/nsec_47.c		C	2003,2004
+./lib/dns/rdata/generic/nsec_47.h		C	2003,2004
 ./lib/dns/rdata/generic/null_10.c		C	1998,1999,2000,2001,2002,2004
 ./lib/dns/rdata/generic/null_10.h		C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/nxt_30.c		C	1999,2000,2001,2002,2003,2004
@@ -1707,6 +1723,8 @@
 ./lib/dns/rdata/generic/ptr_12.h		C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/rp_17.c			C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/rp_17.h			C	1999,2000,2001,2004
+./lib/dns/rdata/generic/rrsig_46.c		C	2003,2004
+./lib/dns/rdata/generic/rrsig_46.h		C	2003,2004
 ./lib/dns/rdata/generic/rt_21.c			C	1999,2000,2001,2003,2004
 ./lib/dns/rdata/generic/rt_21.h			C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/sig_24.c		C	1999,2000,2001,2002,2003,2004
@@ -2285,9 +2303,9 @@
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004
 ./version					X	1999,2000,2001
 ./win32utils/BINDBuild.dsw			X	2001
-./win32utils/BuildAll.bat			BAT	2001,2003
-./win32utils/BuildSetup.bat			BAT	2001,2002,2003
-./win32utils/dnsheadergen.bat			BAT	2001,2003
+./win32utils/BuildAll.bat			BAT	2001,2003,2004
+./win32utils/BuildSetup.bat			BAT	2001,2002,2003,2004
+./win32utils/dnsheadergen.bat			BAT	2001,2003,2004
 ./win32utils/makedefs.pl			PERL	2001,2004
 ./win32utils/makeversion.pl			PERL	2001,2004
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004
