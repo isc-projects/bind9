@@ -1,7 +1,7 @@
-Internet Draft                                             Dan Oscarsson
-draft-ietf-idn-udns-02.txt                                 Telia ProSoft
-Updates: RFC 2181, 1035, 1034, 2535                        24 February
-2001 Expires: 24 August 2001
+Internet Draft                                            Dan Oscarsson
+draft-ietf-idn-udns-03.txt                                Telia ProSoft
+Updates: RFC 2181, 1035, 1034, 2535                       19 August 2001
+Expires: 19 February 2002
 
    Using the Universal Character Set in the Domain Name System (UDNS)
 
@@ -31,14 +31,11 @@ Abstract
    Since the Domain Name System (DNS) [RFC1035] was created there have
    been a desire to use other characters than ASCII in domain names.
    Lately this desire have grown very strong and several groups have
-   started to experiment with non-ASCII names.
-
-   This document defines how the Universal Character Set (UCS)
-   [ISO10646] is to be used in DNS.
-
-   It includes both a transition scheme for older software supporting
-   non-ASCII handling in applications only, as well as how to use UCS in
-   labels and having more than 63 octets in a label.
+   started to experiment with non-ASCII names.  This document defines
+   how the Universal Character Set (UCS) [ISO10646] is to be used in
+   DNS.  It includes both a transition scheme for older software
+   supporting non-ASCII handling in applications only, as well as how to
+   use UCS in labels and having more than 63 octets in a label.
 
 
 1. Introduction
@@ -46,17 +43,17 @@ Abstract
    While the need for non-ASCII domain names have existed since the
    creation of the DNS, the need have increased very much during the
    last few years. Currently there are at least two implementations
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 1]
-
-Internet Draft               Universal DNS              24 February 2001
-
-
    using UTF-8 in use, and others using other methods.
 
    To avoid several different implementations of non-ASCII names in DNS
+
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 1]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
    that do not work together, and to avoid breaking the current ASCII
    only DNS, there is an immediate need to standardise how DNS shall
    handle non-ASCII names.
@@ -83,6 +80,8 @@ Internet Draft               Universal DNS              24 February 2001
 
 1.2 Previous versions of this document
 
+   This version contains just minor corrections to the 4:th version.
+
    The third version of this document included a way to return both
    ASCII and non-ASCII versions of a name. As this could not be
    guaranteed to work it has been removed.
@@ -102,15 +101,15 @@ Internet Draft               Universal DNS              24 February 2001
    format of zone files or how to enter or display domain names are not
    part of the protocol.
 
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 2]
-
-Internet Draft               Universal DNS              24 February 2001
-
-
    The update of the protocol defined here can be used immediately as it
+
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 2]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
    is fully compatible with the DNS of today.
 
    For a long time there will be software understanding UCS in DNS and
@@ -122,7 +121,7 @@ Internet Draft               Universal DNS              24 February 2001
 
     - UDNS unaware client, UDNS aware DNS server
     - UDNS aware client, UDNS unaware DNS server
-    - UDNS aware client, UDNS unaware DNS server
+    - UDNS aware client, UDNS aware DNS server
 
 
 2.1 Fundamentals
@@ -161,9 +160,10 @@ Internet Draft               Universal DNS              24 February 2001
 
 
 
-Dan Oscarsson           Expires: 24 August 2001                 [Page 3]
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 3]
 
-Internet Draft               Universal DNS              24 February 2001
+Internet Draft               Universal DNS                19 August 2001
 
 
    To handle form-insensitivity it is here defined the Binary Comparison
@@ -202,10 +202,26 @@ Internet Draft               Universal DNS              24 February 2001
    document.  Typical definitions that are suitable are [SACE] and
    [RACE].
 
+   The reason that the BCF form of the label is used is to support
+   solutions where only applications know about non-ASCII labels. By
+   using BCF the server need not know about UCS and can just do binary
+   matching so it can be handled in old servers. Though due to the fact
+   that BCF destroys information contained in the original form of a
+   label it is impossible to return the original form to a client using
+   BCE.
+
 2.1.4 Long names
 
    The current DNS protocol limits a label to 63 octets. As UTF-8 take
    more than one octet for some characters, an UTF-8 name cannot have 63
+
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 4]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
    characters in a label like an ASCII name can. For example a name
    using Hangul would have a maximum of 21 characters.
 
@@ -214,14 +230,6 @@ Internet Draft               Universal DNS              24 February 2001
    simplify implementations.
 
    To support longer names a long label type is defined using [RFC2671]
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 4]
-
-Internet Draft               Universal DNS              24 February 2001
-
-
    as extended label 0b000011 (the label type will be assigned by IANA
    and may not be the number used here).
 
@@ -262,6 +270,14 @@ Internet Draft               Universal DNS              24 February 2001
       others.
 
    The effect of the above is:
+
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 5]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
     - only servers handling authorative data must implement form-
       insensitive matching of names. And they need only implement the
       subset needed for the subset of characters of UCS they support in
@@ -270,14 +286,6 @@ Internet Draft               Universal DNS              24 February 2001
       resolver <-> server <-> authorative server.
       While form-insensitive matching can be complex and CPU consuming,
       the server in the middle will do caching with only simple and fast
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 5]
-
-Internet Draft               Universal DNS              24 February 2001
-
-
       binary matching. So the impact of complex matching rules should
       not slow down DNS very much.
 
@@ -319,6 +327,13 @@ Internet Draft               Universal DNS              24 February 2001
 
 2.3.3 non-UDNS aware client
 
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 6]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
    A non-UDNS aware client will send ASCII or whatever is sent from an
    application. It can be BCE which will for the client just be ASCII
    text.
@@ -326,14 +341,6 @@ Internet Draft               Universal DNS              24 February 2001
 2.3.4 UDNS aware server
 
    An UDNS aware server MUST handle all in this document and follow:
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 6]
-
-Internet Draft               Universal DNS              24 February 2001
-
-
     - If an incoming query contains a long label the answer may contain
       a long label and the client is identified as being UDNS aware.
     - If the query comes from a non-UDNS aware client and the answer
@@ -375,20 +382,20 @@ Internet Draft               Universal DNS              24 February 2001
    in ASCII or by tagged character sets should be avoided.
 
    DNS do not only have domain names in them, for example e-mail
+
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 7]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
    addresses are also included. So an e-mail address would be expected
    to be changed to include non-ASCII both before and after the @-sign.
 
    Software need to be updated to follow the user interface
    recommendations given above, so that a human will see the characters
    in their local character set, if possible.
-
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 7]
-
-Internet Draft               Universal DNS              24 February 2001
-
 
 4. Security Considerations
 
@@ -431,6 +438,14 @@ Internet Draft               Universal DNS              24 February 2001
 
    [UTR15]    M. Davis and M. Duerst, "Unicode Normalization Forms",
               Unicode Technical Report #15, Nov 1999,
+
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 8]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
               http://www.unicode.org/unicode/reports/tr15/.
 
    [UTR21]    M. Davis, "Case Mappings", Unicode Technical Report #21,
@@ -438,14 +453,6 @@ Internet Draft               Universal DNS              24 February 2001
 
    [UDATA]    The Unicode Character Database,
               ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt.
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 8]
-
-Internet Draft               Universal DNS              24 February 2001
-
-
               The database is described in
               ftp://ftp.unicode.org/Public/UNIDATA/
               UnicodeCharacterDatabase.html.
@@ -488,20 +495,19 @@ Internet Draft               Universal DNS              24 February 2001
 
 
 
+
+
+Dan Oscarsson          Expires: 19 February 2002                [Page 9]
+
+Internet Draft               Universal DNS                19 August 2001
+
+
 Author's Address
 
    Dan Oscarsson
    Telia ProSoft AB
    Box 85
    201 20 Malmo
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                 [Page 9]
-
-Internet Draft               Universal DNS              24 February 2001
-
-
    Sweden
 
    E-mail: Dan.Oscarsson@trab.se
@@ -547,11 +553,5 @@ Internet Draft               Universal DNS              24 February 2001
 
 
 
-
-
-
-
-
-
-Dan Oscarsson           Expires: 24 August 2001                [Page 10]
+Dan Oscarsson          Expires: 19 February 2002               [Page 10]
 

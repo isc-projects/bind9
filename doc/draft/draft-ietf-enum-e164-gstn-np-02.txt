@@ -2,9 +2,9 @@
 
                                                             Mark Foster 
 Internet Draft                                              Tom McGarry 
-Document: <draft-ietf-enum-e164-gstn-np-01.txt>                James Yu 
+Document: <draft-ietf-enum-e164-gstn-np-02.txt>                James Yu 
                                                           NeuStar, Inc. 
-Category: Informational                                February 9, 2001 
+Category: Informational                                October 19, 2001 
  
  
               Number Portability in the GSTN: An Overview 
@@ -56,9 +56,9 @@ Status of this Memo
    the later to the former.  In addition, there are various regulatory 
 
   
-<Foster,McGarry,Yu>   Informational - Expiration in August 9, 2001  [1] 
+<Foster,McGarry,Yu>   Informational - Expiration in April 19, 2002   1 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    constraints that establish relevant parameters for NP 
@@ -115,9 +115,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    NP changes the fundamental nature of a dialed E.164 number from a 
    hierarchical physical routing address to a virtual address.  NP 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     2 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     2 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    implementations attempt to encapsulate the impacts to the GSTN and 
@@ -153,7 +153,7 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    constraints, as well as the need for interoperation with the 
    existing GSTN NP implementations, are relevant topics for numerous 
    areas of IP telephony work-in-progress at IETF. 
-
+    
    This document describes three types of number portability and the 
    four schemes that have been standardized to support SPNP for 
    geographic E.164 numbersspecifically.  Following that, specific 
@@ -174,9 +174,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
     
     
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     3 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     3 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
 3. Abbreviations and Acronyms 
@@ -233,9 +233,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    PCS     Personal Communication Services 
    PNTI    Ported Number Translation Indicator 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     4 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     4 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    PODP    Public Office Dialing Plan 
@@ -292,9 +292,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    old telephone service to Integrated Services Digital Network (ISDN) 
    services) while keeping the same phone number is called service 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     5 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     5 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    portability.  Another aspect of service portability is to allow the 
@@ -351,9 +351,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    below on number pooling, as this enhancement to NP further 
 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     6 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     6 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    bifurcates the role of donor network into two (the number range or 
@@ -410,9 +410,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    (3) The Originating Network uses the routing number to route the 
        call to the new serving network. 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     7 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     7 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
  
@@ -469,9 +469,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
        number. 
 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     8 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     8 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    (5) The Originating Network uses the routing number to route the 
@@ -528,9 +528,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
                    
                  Figure 4 - Onward Routing (OR) Scheme. 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     9 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     9 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
  
@@ -587,9 +587,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    Similarly, in other national E.164 numbering plans, number ranges 
    cover a contiguous range of numbers within that range.  Once a 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     10 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     10 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    number within that range has ported away from the donor network, all 
@@ -646,9 +646,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
        of the protocol stack that includes the ANSI MTP Levels 1 
 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     11 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     11 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
        through 3, ANSI SCCP, and ANSI TCAP.  This interface can be used 
@@ -705,9 +705,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
     
    One of the following three interfaces can be used to query an NPDB: 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     12 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     12 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
     
@@ -764,9 +764,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    for the Dropback scheme).  For the ACQ, QoR and Dropback schemes, it 
    is the Originating Network that has the routing information and is 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     13 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     13 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    ready to route the call.  For the OR scheme, it is the donor network 
@@ -823,9 +823,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    been performed.  All the switches in the downstream will not perform 
    the NPDB query if the PNTI bit is set. 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     14 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     14 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
     
@@ -882,9 +882,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    In addition to the addition of the routing prefix to the CdPN 
    parameter, some other information may be added/modified as is listed 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     15 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     15 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    in the draft ITU-T Recommendation Q.769.1 [ISUP].   Those 
@@ -941,9 +941,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    concatenated with the DN in the CdPN parameter. 
     
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     16 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     16 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    If MNP-SRF is supported, the Gateway Mobile Services Switching 
@@ -1000,9 +1000,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    +             + on-switch solution.                                + 
    +-------------+----------------------------------------------------+ 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     17 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     17 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    +   Austria   + Uses onward routing at the donor network.  Routing + 
@@ -1059,9 +1059,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    +             + where "xxxxx" identifies the recipient switch.     + 
 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     18 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     18 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    +             + Telecom Italia uses IN solution and other operators+              
@@ -1118,9 +1118,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
     
     
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     19 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     19 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
 9. Number Conservation Methods Enabled by NP 
@@ -1177,9 +1177,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    assigns individual telephone numbers to operators.  Using the North 
 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     20 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     20 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    American example, one block of 10,000 TNs can be divided into 10,000 
@@ -1236,9 +1236,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
     
     
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     21 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     21 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    IP-based networks can handle the domestic calls between two GSTNs.  
@@ -1259,7 +1259,7 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    dip indicator may not be present because there are cases where 
    routing number is added for routing the call even if NP is not 
    involved.  One issue is how to transport the NP related information 
-   via SIP.  The SIP Universal Resource Locator (URL) is one mechanism.  
+   via SIP.  The SIP Uniform Resource Locator (URL) is one mechanism.  
    Another better choice may be to add an extension to the "tel" URL 
    [TEL] that is also supported by SIP.  If the called directory is +1-
    202-533-1234, and its associated routing number is +1-202-544-0000, 
@@ -1285,7 +1285,7 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    present in the "tel" URL in the SIP INVITE message, it instead of 
    the called directory number should be used for making routing 
    decisions.  If "rn" is not present, then the dialed directory number 
-   can be used as the routing number for making routing decisions.   
+   can be used as the routing number for making routing decisions. 
     
    Telephony Routing Information Protocol (TRIP) [TRIP] is a policy 
    driven inter-administrative domain protocol for advertising the 
@@ -1295,9 +1295,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    routing number, if present, not the called directory number that 
 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     22 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     22 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    should be used to check against the TRIP tables for making the 
@@ -1315,7 +1315,7 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    does not handle the overlap signaling and collect the complete 
    called directory number. 
     
-   The IETF enum working group is defining the use of Domain Name 
+   The IETF enum working group has defined the use of Domain Name 
    System (DNS) for identifying available services associated with a 
    particular E.164 number [ENUM].  [ENUMPO] outlines the principles 
    for the operation of a telephone number service that resolves 
@@ -1351,19 +1351,19 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    be to assign a special routing number so that the call to an end 
    user currently served by an IP entity is routed to the nearest GSTN 
    gateway.  The called directory number then is used to locate the IP-
-   entity that serves that dialed directory number.  Then a mechanism 
-   is developed for the IP-based network to locate the IP entity that 
+   entity that serves that dialed directory number.  Then some 
+   mechanisms are needed for the IP-based network to locate the IP 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     23 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     23 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
-   serves a particular dialed directory number.  Many other types of 
-   networks use E.164 numbers to identify the end users or terminals in 
-   those networks.  Number portability among GSTN, IP-based network and 
-   those various types of networks may also need to be supported in the 
-   future. 
+   entity that serves a particular dialed directory number.  ENUM can 
+   be one of the mechanisms.  Many other types of networks use E.164 
+   numbers to identify the end users or terminals in those networks.  
+   Number portability among GSTN, IP-based network and those various 
+   types of networks may also need to be supported in the future. 
  
 11. References 
  
@@ -1390,12 +1390,12 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    [ENUM] P. Falstrom, "E.164 number and DNS," RFC 2916. 
     
    [ENUMPO] A. Brown and G. Vaudreuil, "ENUM Service Specific 
-        Provisioning: Principles of Operations," April 27, 2000. 
+        Provisioning: Principles of Operations," draft-ietf-enum-
+        operation-02.txt, February 23, 2001. 
      
    [GSM]  GSM 09.02: "Digital cellular telecommunications system (Phase 
         2+); Mobile Application Part (MAP) specification". 
-    
-    
+ 
    [IS41] TIA/EIA IS-756 Rev. A, "TIA/EIA-41-D Enhancements for 
         Wireless Number Portability Phase II (December 1998)"Number 
         Portability Network Support," April 1998. 
@@ -1413,9 +1413,9 @@ Number Portability in the GSTN: An Overview           February 9, 2000
 
 
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     24 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     24 
 
-Number Portability in the GSTN: An Overview           February 9, 2000 
+Number Portability in the GSTN: An Overview          October 19, 2001 
  
  
    [RFC] Scott Bradner, RFC2026, "The Internet Standards Process -- 
@@ -1424,16 +1424,15 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    [TEL] A. Vaha-Sipila, RFC2806, "URLs for Telephone Calls," April 
         2000. 
     
-   [TELNP] J. Yu, draft-yu-tel-url-02.txt, "Extensions to the "tel" and 
+   [TELNP] J. Yu, draft-yu-tel-url-03.txt, "Extensions to the "tel" and 
         "fax" URLs to support Number Portability and Freephone 
-        Service," February 9, 2001. 
+        Service," November 1, 2001. 
  
    [SIP] M. Handley, H. Schulzrinne, E. Schooler and J. Rosenberg, RFC 
         2543, "SIP: Session Initiation Protocl," March 1999. 
     
-   [TRIP] J. Rosenberg, H. Salama and M. Squire, draft-ietf-iptel-trip-
-        02.txt, "Telephony Routing Information Protocol (TRIP)," May 
-        2000. 
+   [TRIP] J. Rosenberg, H. Salama and M. Squire, RFC XXX, "Telephony 
+        Routing Information Protocol (TRIP)," September 2001. 
     
     
 12. Acknowledgments 
@@ -1471,13 +1470,13 @@ Number Portability in the GSTN: An Overview           February 9, 2000
    NeuStar, Inc. 
    1120 Vermont Avenue, NW,  
    Suite 550 
-  
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     25 
-
-Number Portability in the GSTN: An Overview           February 9, 2000 
- 
- 
    Washington, D.C. 20005 
+  
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     25 
+
+Number Portability in the GSTN: An Overview          October 19, 2001 
+ 
+ 
    United States 
     
    Phone: +1-202-533-2814 
@@ -1532,6 +1531,7 @@ Full Copyright Statement
 
 
 
+
   
-<Foster,McGarry,Yu> Informational - Expiration in August 9, 2001     26 
+<Foster,McGarry,Yu> Informational - Expiration in April 19, 2002     26 
 
