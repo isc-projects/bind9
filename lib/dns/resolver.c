@@ -1293,10 +1293,6 @@ fctx_try(fetchctx_t *fctx) {
 
 	REQUIRE(!ADDRWAIT(fctx));
 
-	/*
-	 * XXXRTH  We don't try to handle forwarding yet.
-	 */
-
 	addrinfo = fctx_nextaddress(fctx);
 	if (addrinfo == NULL) {
 		/*
@@ -2218,12 +2214,6 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 	if (external)
 		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
-#if 0
-	/*
-	 * XXXRTH  TEMPORARY FOR TESTING!!!
-	 */
-	rdataset->ttl = 5;
-#endif
 }
 
 static isc_result_t
@@ -3695,14 +3685,6 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 	UNLOCK(&res->lock);
 }
 
-/*
- * XXXRTH  Do we need attach/detach semantics for the resolver and the
- *         adb?  They can't be used separately, and the references to
- *	   them in the view MUST exist until they're both shutdown.
- *	   Using create/destroy is probably better.  Allow attach/detach
- *	   to be done at the view level.
- */
-
 void
 dns_resolver_detach(dns_resolver_t **resp) {
 	dns_resolver_t *res;
@@ -3768,13 +3750,6 @@ log_fetch(dns_name_t *name, dns_rdatatype_t type) {
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
 		      "createfetch: %.*s", (int)r.length, (char *)r.base);
 }
-
-/*
- * XXXRTH  This routine takes an unconscionable number of arguments!
- *
- * Maybe caller should allocate an event and pass that in?  Something must
- * be done!
- */
 
 isc_result_t
 dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
