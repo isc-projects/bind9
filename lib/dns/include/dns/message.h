@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.104 2001/12/06 04:38:49 marka Exp $ */
+/* $Id: message.h,v 1.105 2001/12/08 02:14:46 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -618,7 +618,7 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section);
  *
  * Returns:
  *	ISC_R_SUCCESS		-- All is well.
- *	ISC_R_NOMORE		-- No names in given section.
+ *	ISC_R_NOMORE		-- No more names in given section.
  */
 
 void
