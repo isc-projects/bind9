@@ -8,6 +8,11 @@
 			caused the fetch to fail with a SERVFAIL result.
 			[RT #588, #597, #605, #607]
 
+ 647.	[bug]		Resolver queries sent after following multiple
+			referrals had excessively long retransmission
+			timeouts due to incorrectly counting the referrals
+			as "restarts".
+
  646.	[bug]		The UnixWare ISC_PLATFORM_FIXIN6INADDR fix in isc/net.h
 			didn't _cleanly_ fix the problem it was trying to fix.
 
