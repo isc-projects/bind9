@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.14 2000/12/06 00:30:30 tale Exp $ */
+/* $Id: net.c,v 1.15 2000/12/19 01:36:50 bwelling Exp $ */
 
 #include <config.h>
 
 #include <errno.h>
 #include <unistd.h>
 
+#include <isc/log.h>
 #include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/once.h>
@@ -39,6 +40,7 @@ static isc_result_t	ipv6_result = ISC_R_NOTFOUND;
 static isc_result_t
 try_proto(int domain) {
 	int s;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	s = socket(domain, SOCK_STREAM, 0);
 	if (s == -1) {
@@ -64,9 +66,53 @@ try_proto(int domain) {
 			return (ISC_R_UNEXPECTED);
 		}
 	}
-	close (s);
 
-	return (ISC_R_SUCCESS);
+#ifdef ISC_PLATFORM_HAVEIPV6
+#ifdef WANT_IPV6
+#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
+	if (domain == PF_INET6) {
+		struct sockaddr_in6 sin6;
+		unsigned int len;
+
+		/*
+		 * Check to see if IPv6 is broken, as is common on Linux.
+		 */
+		len = sizeof(struct sockaddr_in6);
+		if (getsockname(s, &sin6, (void *)&len) < 0) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				      "Retrieving the address of an IPv6 "
+				      "socket from the kernel failed.");
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				      "IPv6 support is disabled.");
+			result = ISC_R_NOTFOUND;
+		} else {
+			if (len == sizeof(struct sockaddr_in6))
+				result = ISC_R_SUCCESS;
+			else {
+				isc_log_write(isc_lctx,
+					      ISC_LOGCATEGORY_GENERAL,
+					      ISC_LOGMODULE_SOCKET,
+					      ISC_LOG_ERROR,
+					      "IPv6 structures in kernel and "
+					      "user space do not match.");
+				isc_log_write(isc_lctx,
+					      ISC_LOGCATEGORY_GENERAL,
+					      ISC_LOGMODULE_SOCKET,
+					      ISC_LOG_ERROR,
+					      "IPv6 support is disabled.");
+				result = ISC_R_NOTFOUND;
+			}
+		}
+	}
+#endif
+#endif
+#endif
+
+	close(s);
+
+	return (result);
 }
 
 static void
