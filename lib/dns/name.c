@@ -2094,39 +2094,60 @@ dns_result_t
 dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		     isc_buffer_t *target)
 {
-	unsigned char *ndata;
-	unsigned char *offsets;
+	unsigned char *ndata, *offsets;
+	unsigned int nrem, labels, prefix_length, length, offset;
+	isc_boolean_t copy_prefix = ISC_TRUE;
+	isc_boolean_t copy_suffix = ISC_TRUE;
+	isc_boolean_t saw_bitstring = ISC_FALSE;
+	isc_boolean_t absolute = ISC_FALSE;
+	dns_name_t tmp_name;
 	dns_offsets_t odata;
-	unsigned int nrem;
-	unsigned int labels;
-	unsigned int count;
 
 	/*
-	 * Concatenate 'prefix' and 'suffix', storing the result in 'target'.
+	 * Concatenate 'prefix' and 'suffix'.
 	 */
 
-	REQUIRE(VALID_NAME(prefix));
-	if (prefix->labels != 0 &&
-	    (prefix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
-		REQUIRE(suffix == NULL);
-	if (suffix != NULL)
-		REQUIRE(VALID_NAME(suffix));
-	REQUIRE(VALID_NAME(name));
+	REQUIRE(prefix == NULL || VALID_NAME(prefix));
+	REQUIRE(suffix == NULL || VALID_NAME(suffix));
+	REQUIRE(name == NULL || VALID_NAME(name));
+	if (prefix == NULL || prefix->labels == 0)
+		copy_prefix = ISC_FALSE;
+	if (suffix == NULL || suffix->labels == 0)
+		copy_suffix = ISC_FALSE;
+	if (copy_prefix &&
+	    (prefix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0) {
+		absolute = ISC_TRUE;
+		REQUIRE(!copy_suffix);
+	}
+	if (name == NULL) {
+		dns_name_init(&tmp_name, odata);
+		name = &tmp_name;
+	}
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
-		isc_buffer_clear(target);
+		isc_buffer_clear(name->buffer);
 	}
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
 
 	/*
-	 * Invalidate 'name'.
+	 * IMPORTANT NOTE
+	 *
+	 * If the most-signficant label in prefix is a bitstring,
+	 * and the least-signficant label in suffix is a bitstring,
+	 * it's possible that compaction could convert them into
+	 * one label.  If this happens, then the final size will
+	 * be three bytes less than nrem.
+	 *
+	 * We do not check for this special case, and handling it is
+	 * a little messy; we can't just concatenate and compact,
+	 * because we may only have 255 bytes but might need 258 bytes
+	 * temporarily.  There are ways to do this with only 255 bytes,
+	 * which will be implemented later.
+	 *
+	 * For now, we simply reject these few cases as being too
+	 * long.
 	 */
-	name->magic = 0;
-	name->ndata = NULL;
-	name->length = 0;
-	name->labels = 0;
-	name->attributes = 0;
 
 	/*
 	 * Set up.
@@ -2135,39 +2156,91 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	ndata = (unsigned char *)target->base + target->used;
 	if (nrem > 255)
 		nrem = 255;
-
-	/*
-	 * Copy prefix.
-	 */
-	count = prefix->length;
-	labels = prefix->labels;
-	if (count > nrem)
-		return (DNS_R_NOSPACE);
-	memcpy(ndata, prefix->ndata, count);
-	nrem -= count;
-	ndata += count;
-
-	/*
-	 * Append suffix.
-	 */
-	if (suffix != NULL) {
-		count = suffix->length;
+	length = 0;
+	prefix_length = 0;
+	labels = 0;
+	if (copy_prefix) {
+		prefix_length = prefix->length;
+		length += prefix_length;
+		labels += prefix->labels;
+	}
+	if (copy_suffix) {
+		length += suffix->length;
 		labels += suffix->labels;
-		if (count > nrem)
-			return (DNS_R_NOSPACE);
-		memcpy(ndata, suffix->ndata, count);
-		ndata += count;
+	}
+	if (length > nrem) {
+		/*
+		 * Invalidate 'name'.
+		 */
+		name->magic = 0;
+		name->ndata = NULL;
+		name->length = 0;
+		name->labels = 0;
+		name->attributes = 0;
+		return (DNS_R_NOSPACE);
 	}
 
-	name->magic = NAME_MAGIC;
-	name->ndata = (unsigned char *)target->base + target->used;
-	name->labels = labels;
-	name->length = ndata - name->ndata;
+	if (copy_suffix) {
+		if ((suffix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
+			absolute = ISC_TRUE;
+		if (copy_prefix &&
+		    suffix->ndata[0] == DNS_LABELTYPE_BITSTRING) {
+			/*
+			 * We only need to call compact() if both the
+			 * least-significant label of the suffix and the
+			 * most-significant label of the prefix are both
+			 * bitstrings.
+			 *
+			 * A further possible optimization, which we don't do,
+			 * is to not compact() if the suffix bitstring is
+			 * full.  It will usually not be full, so I don't
+			 * think this is worth it.
+			 */
+			if (prefix->offsets != NULL) {
+				offset = prefix->offsets[prefix->labels - 1];
+				if (prefix->ndata[offset] ==
+				    DNS_LABELTYPE_BITSTRING)
+					saw_bitstring = ISC_TRUE;
+			} else {
+				/*
+				 * We don't have an offsets table for prefix,
+				 * and rather than spend the effort to make it
+				 * we'll just compact(), which doesn't cost
+				 * more than computing the offsets table if
+				 * there is no bitstring in prefix.
+				 */
+				saw_bitstring = ISC_TRUE;
+			}
+		}
+		if (suffix == name && suffix->buffer == target)
+			memmove(ndata + prefix_length, suffix->ndata,
+				suffix->length);
+		else
+			memcpy(ndata + prefix_length, suffix->ndata,
+			       suffix->length);
+	}
 
-	INIT_OFFSETS(name, offsets, odata);
-	if (name->length > 0) {
-		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_TRUE);
-		compact(name, offsets);
+	/*
+	 * If 'prefix' and 'name' are the same object, and the object has
+	 * a dedicated buffer, and we're using it, then we don't have to
+	 * copy anything.
+	 */
+	if (copy_prefix && (prefix != name || prefix->buffer != target))
+		memcpy(ndata, prefix->ndata, prefix_length);
+
+	name->ndata = ndata;
+	name->labels = labels;
+	name->length = length;
+	if (absolute)
+		name->attributes = DNS_NAMEATTR_ABSOLUTE;
+	else
+		name->attributes = 0;
+
+	if (name->labels > 0 && (name->offsets != NULL || saw_bitstring)) {
+		INIT_OFFSETS(name, offsets, odata);
+		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_FALSE);
+		if (saw_bitstring)
+			compact(name, offsets);
 	}
 
 	isc_buffer_add(target, name->length);

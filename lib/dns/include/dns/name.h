@@ -713,23 +713,30 @@ dns_result_t dns_name_totext(dns_name_t *name,
 dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
 				  dns_name_t *name, isc_buffer_t *target);
 /*
- *	Concatenate 'prefix' and 'suffix', storing the result in 'target'.
+ *	Concatenate 'prefix' and 'suffix'.
  *
  * Requires:
- *	'prefix' is a valid name.
  *
- *	If 'prefix' is absolute, 'suffix' must be NULL.
+ *	'prefix' is a valid name or NULL.
  *
- *	'suffix' is a valid name or NULL
+ *	'suffix' is a valid name or NULL.
  *
- *	'name' is a valid name or NULL
+ *	'name' is a valid name or NULL.
  *
  *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY, or 
  *	'target' is NULL and 'name' has a dedicated buffer.
  *
+ *	If 'prefix' is absolute, 'suffix' must be NULL or the empty name.
+ *
  * Ensures:
+ *
  *	On success,
- *	 	If 'target' is not NULL, 'name' is attached to it.
+ *	 	If 'target' is not NULL and 'name' is not NULL, then 'name'
+ *		is attached to it.
+ *
+ *		Any bitstring labels are in canonical form.
+ *
+ *		The used space in target is updated.
  *
  * Returns:
  *	DNS_R_SUCCESS
