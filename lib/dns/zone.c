@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.372 2002/07/19 02:34:56 marka Exp $ */
+/* $Id: zone.c,v 1.373 2002/07/26 06:27:30 marka Exp $ */
 
 #include <config.h>
 
@@ -1338,6 +1338,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_stub) {
 			isc_time_t t;
+			isc_uint32_t delay;
 
 			result = isc_file_getmodtime(zone->journal, &t);
 			if (result != ISC_R_SUCCESS)
@@ -1349,7 +1350,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			else
 				DNS_ZONE_TIME_ADD(&now, zone->retry,
 						  &zone->expiretime);
-			zone->refreshtime = now;
+
+			delay = isc_random_jitter(zone->retry,
+						  (zone->retry * 3) / 4);
+			DNS_ZONE_TIME_ADD(&now, delay, &zone->refreshtime);
+			if (isc_time_compare(&zone->refreshtime,
+					     &zone->expiretime) >= 0)
+				zone->refreshtime = now;
 		}
 		break;
 	default:
