@@ -335,7 +335,11 @@ int setpassent(int stayopen);
 #endif
 
 #define gettimeofday isc__gettimeofday
+#ifdef NEED_GETTIMEOFDAY
+int isc__gettimeofday(struct timeval *tvp, struct _TIMEZONE *tzp);
+#else
 int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
+#endif
 
 int getnetgrent(const char **machinep, const char **userp,
 		const char **domainp);
