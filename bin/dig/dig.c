@@ -60,7 +60,8 @@ extern int h_errno;
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 
-extern isc_boolean_t tcp_mode, recurse, have_ipv6, show_details;
+extern isc_boolean_t tcp_mode, have_ipv6, show_details,
+	usesearch;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -75,6 +76,7 @@ extern isc_buffer_t rootbuf;
 extern int sendcount;
 extern int ndots;
 extern int tries;
+extern char fixeddomain[MXNAME];
 #ifdef TWIDDLE
 extern isc_boolean_t twiddle;
 #endif
@@ -83,7 +85,7 @@ isc_boolean_t short_form = ISC_FALSE;
 isc_boolean_t ns_search_only = ISC_FALSE;
 isc_boolean_t comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
-	section_additional = ISC_TRUE;
+	section_additional = ISC_TRUE, recurse = ISC_TRUE;
 
 static char *opcodetext[] = {
 	"QUERY",
@@ -136,11 +138,16 @@ show_usage() {
 "                 -x dot-notation     (shortcut for in-addr lookups)\n"
 "                 -f filename         (batch mode)\n"
 "                 -p port             (specify port number)\n"
+"                 -t type             (specify query type)\n"
+"                 -c class            (specify query class)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
-"                 +time=###           (Set query timeout) [30]\n"
-"                 +tries=###          (Set number of UDP attempts) [2]\n"
-"                 +[no]rec            (Recursive mode)\n"
+"                 +[no]tcp            (TCP mode, alternate syntax)\n"
+"                 +time=###           (Set query timeout) [5]\n"
+"                 +tries=###          (Set number of UDP attempts) [3]\n"
+"                 +domain=###         (Set default domainname)\n"
+"                 +[no]search         (Set whether to use searchlist)\n"
+"                 +[no]recursive      (Recursive mode)\n"
 "                 +[no]details        (Show details of all requests)\n"
 "                 +[no]nssearch       (Search for info on all authorative\n"
 "                                      nameservers for the domain.)\n"
@@ -453,6 +460,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	int adrs[4];
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
+		debug ("Main parsing %s", argv[0]);
 		if ((strncmp(argv[0],"@",1) == 0)
 		    && (!is_batchfile)) {
 			srv=isc_mem_allocate(mctx, sizeof(struct dig_server));
@@ -466,6 +474,18 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else if ((strcmp(argv[0],"+novc") == 0)
 			   && (!is_batchfile)) {
 			tcp_mode = ISC_FALSE;
+		} else if ((strcmp(argv[0],"+tcp") == 0)
+			   && (!is_batchfile)) {
+			tcp_mode = ISC_TRUE;
+		} else if ((strcmp(argv[0],"+notcp") == 0)
+			   && (!is_batchfile)) {
+			tcp_mode = ISC_FALSE;
+		} else if (strncmp(argv[0],"+domain=",8) == 0) {
+			strncpy (fixeddomain, &argv[0][8], MXNAME);
+		} else if (strncmp(argv[0],"+sea",4) == 0) {
+			usesearch = ISC_TRUE;
+		} else if (strncmp(argv[0],"+nosea",6) == 0) {
+			usesearch = ISC_FALSE;
 		} else if (strncmp(argv[0],"+time=",6) == 0) {
 			timeout = atoi(&argv[0][6]);
 			if (timeout <= 0)
@@ -514,6 +534,30 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else if (strncmp(argv[0],"+twiddle",6) == 0) {
 			twiddle = ISC_TRUE;
 #endif
+		} else if (strncmp(argv[0],"-c",2) == 0) {
+ 			if (have_host) {
+				if (argv[0][2]!=0) {
+					strncpy(lookup->rctext,&argv[0][2],
+						MXRD);
+				} else {
+					strncpy(lookup->rctext,argv[1],
+						MXRD);
+					argv++;
+					argc--;
+				}
+			}
+		} else if (strncmp(argv[0],"-t",2) == 0) {
+ 			if (have_host) {
+				if (argv[0][2]!=0) {
+					strncpy(lookup->rttext,&argv[0][2],
+						MXRD);
+				} else {
+					strncpy(lookup->rttext,argv[1],
+						MXRD);
+					argv++;
+					argc--;
+				}
+			}
 		} else if (strncmp(argv[0],"-f",2) == 0) {
 			if (argv[0][2]!=0) {
 				batchname=&argv[0][2];
@@ -564,6 +608,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->ns_search_only = ns_search_only;
 			lookup->doing_xfr = ISC_FALSE;
 			lookup->identify = ISC_FALSE;
+			lookup->recurse = recurse;
 			lookup->retries = tries;
 			lookup->comments = comments;
 			lookup->section_question = section_question;
@@ -578,7 +623,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			argv++;
 			argc--;
 		} else {
-			if (have_host) {
+ 			if (have_host) {
 				ENSURE(lookup != NULL);
 				if (isclass(argv[0])) {
 					strncpy(lookup->rctext,argv[0],
@@ -608,6 +653,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->doing_xfr = ISC_FALSE;
 			lookup->ns_search_only = ns_search_only;
 			lookup->identify = ISC_FALSE;
+			lookup->recurse = recurse;
 			lookup->retries = tries;
 			lookup->comments = comments;
 			lookup->section_question = section_question;
@@ -629,16 +675,17 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			fatal("Couldn't open specified batch file.");
 		}
 		while (fgets(batchline, MXNAME, fp) != 0) {
+			debug ("Batch line %s", batchline);
 			bargc=1;
-			bargv[bargc]=strtok(batchline, " \t");
+			bargv[bargc]=strtok(batchline, " \t\r\n");
 			while (bargv[bargc] != NULL) {
 				bargc++;
-				bargv[bargc]=strtok(NULL, " \t");
+				bargv[bargc]=strtok(NULL, " \t\r\n");
 			}
 			bargc--;
 			bargv[0]="dig";
-			debug("Parsing %d:%s",bargc,bargv[1]);
-			parse_args(ISC_TRUE, bargc, (char**)bargv);
+			debug("Batch parsing %d:%s",bargc,bargv[1]);
+			parse_args(ISC_TRUE, bargc+1, (char**)bargv);
 		}
 	}
 	if (lookup_list.head == NULL) {
@@ -658,6 +705,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->doing_xfr = ISC_FALSE;
 		lookup->ns_search_only = ns_search_only;
 		lookup->identify = ISC_FALSE;
+		lookup->recurse = recurse;
 		lookup->retries = tries;
 		lookup->comments = comments;
 		lookup->section_question = section_question;

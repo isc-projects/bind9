@@ -59,13 +59,13 @@ ISC_LIST(dig_lookup_t) lookup_list;
 ISC_LIST(dig_server_t) server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
-isc_boolean_t tcp_mode = ISC_FALSE, recurse = ISC_TRUE, have_ipv6 = ISC_FALSE,
-	free_now = ISC_FALSE, show_details = ISC_FALSE;
+isc_boolean_t tcp_mode = ISC_FALSE, have_ipv6 = ISC_FALSE,
+	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE;
 #ifdef TWIDDLE
 isc_boolean_t twiddle = ISC_FALSE;
 #endif
-in_port_t port;
-unsigned int timeout;
+in_port_t port = 53;
+unsigned int timeout = 5;
 isc_mem_t *mctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *task = NULL;
@@ -77,7 +77,8 @@ char *rootspace[BUFSIZE];
 isc_buffer_t rootbuf;
 int sendcount = 0;
 int ndots = -1;
-int tries = 2;
+int tries = 3;
+char fixeddomain[MXNAME]="";
 
 static void
 free_lists(void);
@@ -238,6 +239,15 @@ setup_system(void) {
 	dig_lookup_t *l;
 	isc_boolean_t get_servers;
 
+
+	if (fixeddomain[0]!=0) {
+		search = isc_mem_allocate( mctx, sizeof(struct dig_server));
+		if (search == NULL)
+			fatal("Memory allocation failure.");
+		strncpy(search->origin, fixeddomain, MXNAME - 1);
+		ISC_LIST_PREPEND(search_list, search, link);
+	}
+
 	debug ("setup_system()");
 	id = getpid() << 8;
 	get_servers = (server_list.head == NULL);
@@ -278,7 +288,8 @@ setup_system(void) {
 							       ndots);
 						}
 					}
-				} else if (strcasecmp(ptr,"search") == 0) {
+				} else if ((strcasecmp(ptr,"search") == 0)
+					   && usesearch){
 					while ((ptr = strtok(NULL, " \t\r\n"))
 					       != NULL) {
 						search = isc_mem_allocate(
@@ -293,6 +304,26 @@ setup_system(void) {
 							ptr,
 							MXNAME - 1);
 						ISC_LIST_APPEND
+							(search_list,
+							 search,
+							 link);
+					}
+				} else if ((strcasecmp(ptr,"domain") == 0) &&
+					   (fixeddomain[0] == 0 )){
+					while ((ptr = strtok(NULL, " \t\r\n"))
+					       != NULL) {
+						search = isc_mem_allocate(
+						   mctx, sizeof(struct
+								dig_server));
+						if (search == NULL)
+							fatal("Memory "
+							      "allocation "
+							      "failure.");
+						strncpy(search->
+							origin,
+							ptr,
+							MXNAME - 1);
+						ISC_LIST_PREPEND
 							(search_list,
 							 search,
 							 link);
@@ -453,6 +484,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 					lookup->xfr_q = NULL;
 					lookup->doing_xfr = ISC_FALSE;
 					lookup->identify = ISC_TRUE;
+					lookup->recurse = query->lookup->
+						recurse;
 					lookup->ns_search_only = 
 						ISC_FALSE;
 					lookup->use_my_server_list = 
@@ -549,6 +582,7 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	lookup->xfr_q = NULL;
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->identify = query->lookup->identify;
+	lookup->recurse = query->lookup->recurse;
 	lookup->ns_search_only = query->lookup->ns_search_only;
 	lookup->use_my_server_list = query->lookup->use_my_server_list;
 	lookup->origin = ISC_LIST_NEXT(query->lookup->origin,link);
@@ -638,7 +672,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		result = dns_name_fromtext(lookup->oname, &b, &rootorg,
 					   ISC_FALSE, &lookup->onamebuf);
 		if (result != ISC_R_SUCCESS) {
-			dns_message_puttempname(lookup->sendmsg,
+		dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->oname);
@@ -697,8 +731,10 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->sendmsg->id = id++;
 	lookup->sendmsg->opcode = dns_opcode_query;
-	if (recurse)
+	if (lookup->recurse) {
+		debug ("Recursive query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
+	}
 
 	dns_message_addname(lookup->sendmsg, lookup->name,
 			    DNS_SECTION_QUESTION);
@@ -941,7 +977,6 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		fatal ("Length of %X was longer than I can handle!",
 		       length);
 	}
-	/* XXXMWS Fix the above. */
 	/*
 	 * Even though the buffer was already init'ed, we need
 	 * to redo it now, to force the length we want.
@@ -1418,8 +1453,6 @@ main(int argc, char **argv) {
 	for (i=0 ; i<p; i++);
 #endif
 	setup_libs();
-	port = 53;
-	timeout = 10;
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
 	lookup = ISC_LIST_HEAD(lookup_list);

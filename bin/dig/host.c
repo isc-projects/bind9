@@ -61,7 +61,6 @@ extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t tcp_mode,
-	recurse,
 	have_ipv6;
 extern in_port_t port;
 extern unsigned int timeout;
@@ -630,6 +629,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->xfr_q = NULL;
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->identify = ISC_FALSE;
+	lookup->recurse = recursion;
 	lookup->ns_search_only = showallsoa;
 	lookup->use_my_server_list = ISC_FALSE;
 	lookup->retries = tries;

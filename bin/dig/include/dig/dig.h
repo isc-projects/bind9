@@ -49,7 +49,8 @@ struct dig_lookup {
 		doing_xfr,
 		ns_search_only,
 		use_my_server_list,
-		identify;
+		identify,
+		recurse;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */
