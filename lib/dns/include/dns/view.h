@@ -172,7 +172,9 @@ dns_view_createresolver(dns_view_t *view,
 			isc_taskmgr_t *taskmgr, unsigned int ntasks,
 			isc_socketmgr_t *socketmgr,
 			isc_timermgr_t *timermgr,
-			dns_dispatch_t *dispatch);
+			unsigned int options,
+			dns_dispatch_t *dispatchv4,
+			dns_dispatch_t *dispatchv6);
 /*
  * Create a resolver and address database for the view.
  *
@@ -183,7 +185,8 @@ dns_view_createresolver(dns_view_t *view,
  *	'view' does not have a resolver already.
  *
  *	The requirements of dns_resolver_create() apply to 'taskmgr',
- *	'ntasks', 'socketmgr', 'timermgr', and 'dispatch'.
+ *	'ntasks', 'socketmgr', 'timermgr', 'options', 'dispatchv4', and
+ *	'dispatchv6'.
  *
  * Returns:
  *

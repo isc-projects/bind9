@@ -96,7 +96,10 @@ dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
 		    isc_socketmgr_t *socketmgr,
 		    isc_timermgr_t *timermgr,
-		    dns_dispatch_t *dispatch, dns_resolver_t **resp);
+		    unsigned int options,
+		    dns_dispatch_t *dispatchv4,
+		    dns_dispatch_t *dispatchv6,
+		    dns_resolver_t **resp);
 /*
  * Create a resolver.
  *
@@ -104,6 +107,8 @@ dns_resolver_create(dns_view_t *view,
  *
  *	Generally, applications should not create a resolver directly, but
  *	should instead call dns_view_createresolver().
+ *
+ *	No options are currently defined.
  *
  * Requires:
  *
@@ -117,7 +122,9 @@ dns_resolver_create(dns_view_t *view,
  *
  *	'timermgr' is a valid timer manager.
  *
- *	'dispatch' is a valid dispatcher, or is NULL.
+ *	'dispatchv4' is a valid dispatcher with an IPv4 socket, or is NULL.
+ *
+ *	'dispatchv6' is a valid dispatcher with an IPv6 socket, or is NULL.
  *
  *	*resp != NULL && *resp == NULL.
  *
