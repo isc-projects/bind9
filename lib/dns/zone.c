@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.20 1999/10/14 00:46:58 marka Exp $ */
+ /* $Id: zone.c,v 1.21 1999/10/14 03:12:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1375,7 +1375,7 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dpb) {
 
 	LOCK(&zone->lock);
 	if (zone->top == NULL)
-		result = DNS_R_NOTFOUND;
+		result = DNS_R_NOTLOADED;
 	else
 		dns_db_attach(zone->top, dpb);
 	UNLOCK(&zone->lock);
