@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.35 2000/06/22 21:55:31 tale Exp $ */
+/* $Id: confzone.h,v 1.36 2000/07/21 21:25:01 brister Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -79,17 +79,13 @@ typedef struct dns_c_hint_zone		dns_c_hintzone_t;
 typedef struct dns_c_zone		dns_c_zone_t;
 typedef struct dns_c_zonelem		dns_c_zonelem_t;
 
-#if 0
-/* this typedef moved to confcommon.h for confview.h to get at (circular
- * include dependencies between view and zone structures.
- */
-typedef struct dns_c_zone_list		dns_c_zonelist_t;
-#endif
+
 
 struct dns_c_zonelem {
 	dns_c_zone_t	*thezone;
 	ISC_LINK(dns_c_zonelem_t) next;
 };
+
 
 struct dns_c_zone_list {
 	isc_int32_t 		magic;
@@ -97,6 +93,7 @@ struct dns_c_zone_list {
 
 	ISC_LIST(dns_c_zonelem_t)	zones;
 };
+
 
 struct dns_c_master_zone {
 	char		       *file;
@@ -222,6 +219,10 @@ struct dns_c_zone {
 
 ISC_LANG_BEGINDECLS
 
+
+
+/*
+ */
 
 isc_result_t dns_c_zonelist_new(isc_mem_t *mem, dns_c_zonelist_t **zlist);
 isc_result_t dns_c_zonelist_delete(dns_c_zonelist_t **zlist);

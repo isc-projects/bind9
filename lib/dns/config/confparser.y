@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.102 2000/07/18 13:19:27 brister Exp $ */
+/* $Id: confparser.y,v 1.103 2000/07/21 21:24:57 brister Exp $ */
 
 #include <config.h>
 
@@ -443,6 +443,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <text>		channel_name
 %type <text>		domain_name
 %type <text>		key_value
+%type <text>		maybe_key
 %type <kidlist>		control_keys
 %type <kidlist>		keyid_list
 %type <text>		ordering_name
@@ -1646,6 +1647,15 @@ transfer_format: L_ONE_ANSWER
 	;
 
 
+maybe_key: /* nothing */
+	{
+		$$ = NULL;
+	}
+	| L_SEC_KEY any_string
+	{
+		$$ = $2;
+	};
+
 maybe_wild_addr: ip4_address
 	| ip6_address
 	| L_STRING
@@ -1748,7 +1758,7 @@ ip_and_port_element: ip_address maybe_zero_port
 	};
 
 
-ip_and_port_list: ip_and_port_element L_EOS
+ip_and_port_list: ip_and_port_element maybe_key L_EOS
 	{
 		dns_c_iplist_t *list;
 
@@ -1759,24 +1769,32 @@ ip_and_port_list: ip_and_port_element L_EOS
 			YYABORT;
 		}
 
-		tmpres = dns_c_iplist_append(list, $1);
+		tmpres = dns_c_iplist_append(list, $1, $2);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
 			YYABORT;
 		}
 
+		if ($2 != NULL) {
+			isc_mem_free(memctx, $2);
+		}
+		
 		$$ = list;
 	}
-	| ip_and_port_list ip_and_port_element L_EOS
+	| ip_and_port_list ip_and_port_element maybe_key L_EOS
 	{
-		tmpres = dns_c_iplist_append($1, $2);
+		tmpres = dns_c_iplist_append($1, $2, $3);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
 			YYABORT;
 		}
 
+		if ($3 != NULL) {
+			isc_mem_free(memctx, $3);
+		}
+		
 		$$ = $1;
 	}
 	;
@@ -2113,7 +2131,8 @@ forwarders_in_addr_list: forwarders_in_addr L_EOS
 
 forwarders_in_addr: ip_address
 	{
-		tmpres = dns_c_iplist_append(currcfg->options->forwarders, $1);
+		tmpres = dns_c_iplist_append(currcfg->options->forwarders,
+					     $1, NULL);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to add forwarders "
@@ -4945,7 +4964,7 @@ in_addr_list: in_addr_elem L_EOS
 			YYABORT;
 		}
 
-		tmpres = dns_c_iplist_append(list, $1);
+		tmpres = dns_c_iplist_append(list, $1, NULL);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
@@ -4956,7 +4975,7 @@ in_addr_list: in_addr_elem L_EOS
 	}
 	| in_addr_list in_addr_elem L_EOS
 	{
-		tmpres = dns_c_iplist_append($1, $2);
+		tmpres = dns_c_iplist_append($1, $2, NULL);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");

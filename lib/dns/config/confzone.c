@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.47 2000/06/05 09:17:09 brister Exp $ */
+/* $Id: confzone.c,v 1.48 2000/07/21 21:24:59 brister Exp $ */
 
 #include <config.h>
 
@@ -596,7 +596,7 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	
 		
 	/*
-	 * Check for allow-update and update-policty together
+	 * Check for allow-update and update-policy together
 	 */
 	if (zone->ztype == dns_c_zone_master) {
 		tmpres = dns_c_zone_getallowupd(zone, &ipmlist);
@@ -632,6 +632,11 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 			result = ISC_R_FAILURE;
 		}
 	}
+
+
+	/* XXX TODO make sure no 'key' clauses were given on any iplist
+	   except for masters{}; */ 
+		
 
 	return (result);
 }

@@ -1,3 +1,10 @@
+ 341.	[func]		Support 'key' clause in named.conf zone masters 
+			statement:
+
+				masters { 
+					10.0.0.1 port 666 key "foo";
+					10.0.0.2 ;
+				};
 
  340.	[bug]		The top-level COPYRIGHT file was missing from
 			the distribution.
