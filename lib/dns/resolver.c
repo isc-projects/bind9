@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.182 2000/11/15 04:53:06 marka Exp $ */
+/* $Id: resolver.c,v 1.183 2000/11/22 23:16:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -400,6 +400,9 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 	if (query->tsig != NULL)
 		isc_buffer_free(&query->tsig);
+
+	if (query->tsigkey != NULL)
+		dns_tsigkey_detach(&query->tsigkey);
 
 	/*
 	 * Check for any outstanding socket events.  If they exist, cancel
@@ -3932,6 +3935,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	if (query->tsig != NULL) {
 		result = dns_message_setquerytsig(message, query->tsig);
+		if (result != ISC_R_SUCCESS)
+			goto done;
+	}
+
+	if (query->tsigkey) {
+		result = dns_message_settsigkey(message, query->tsigkey);
 		if (result != ISC_R_SUCCESS)
 			goto done;
 	}
