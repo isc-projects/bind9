@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.231 $)
+AC_REVISION($Revision: 1.232 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -200,6 +200,13 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
+AC_MSG_CHECKING(for long long)
+AC_TRY_COMPILE([],[long long i = 0; return (0);],
+	[AC_MSG_RESULT(yes)
+		ISC_PLATFORM_HAVELONGLONG="#define ISC_PLATFORM_HAVELONGLONG 1"],
+	[AC_MSG_RESULT(no)
+		ISC_PLATFORM_HAVELONGLONG="#undef ISC_PLATFORM_HAVELONGLONG"])
+AC_SUBST(ISC_PLATFORM_HAVELONGLONG)
 
 #
 # check if we need to #include sys/select.h explicitly

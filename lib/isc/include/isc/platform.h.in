@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.20 2001/01/23 05:13:24 marka Exp $ */
+/* $Id: platform.h.in,v 1.21 2001/02/21 06:08:31 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -141,6 +141,11 @@
  * Type used for resource limits.
  */
 @ISC_PLATFORM_RLIMITTYPE@
+
+/*
+ * Define if your compiler supports "long long int".
+ */
+@ISC_PLATFORM_HAVELONGLONG@
 
 /*
  * Tell emacs to use C mode for this file.
