@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13 2003/07/18 06:14:30 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.1 2003/08/06 04:30:53 marka Exp $ */
 
 #include <config.h>
 
@@ -741,7 +741,8 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 		sockflags |= ISC_SOCKFLAG_NORETRY;
 	}
 
-	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
+	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0 &&
+	    (client->attributes |= NS_CLIENTATTR_MULTICAST) == 0)
 		pktinfo = &client->pktinfo;
 	else
 		pktinfo = NULL;
@@ -1172,13 +1173,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+	/*
+	 * Silently drop multicast requests for the present.
+	 * XXXMPA look at when/if mDNS spec stabilizes.
+	 */
 	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "multicast request");
-#if 0
-		ns_client_error(client, DNS_R_REFUSED);
-#endif
+			      "dropping multicast request");
+		ns_client_next(client, DNS_R_REFUSED);
 	}
 
 	result = dns_message_peekheader(buffer, &id, &flags);
@@ -1234,6 +1237,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	client->message->rcode = dns_rcode_noerror;
+
+	/* RFC1123 section 6.1.3.2 */
+	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0)
+		client->message->flags &= ~DNS_MESSAGEFLAG_RD;
 
 	/*
 	 * Deal with EDNS.
@@ -1315,8 +1322,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		{
 			if (allowed(&netaddr, view->matchclients) &&
 			    allowed(&destaddr, view->matchdestinations) &&
-			    !((flags & DNS_MESSAGEFLAG_RD) == 0 &&
-			      view->matchrecursiveonly))
+			    !((client->message->flags & DNS_MESSAGEFLAG_RD)
+			      == 0 && view->matchrecursiveonly))
 			{
 				dns_view_attach(view, &client->view);
 				break;

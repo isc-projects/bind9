@@ -1,3 +1,13 @@
+1036.	[func]		Silently drop requests received via multicast as
+			long as there is no final multicast DNS standard.
+
+1035.	[bug]		If we respond to multicast queries (which we
+			currently do not), respond from a unicast address
+			as specified in RFC 1123. [RT #137]
+
+1034.	[bug]		Ignore the RD bit on multicast queries as specified
+			in RFC 1123. [RT #137]
+
 1032.	[func]		hostname.bind/txt/chaos now returns the name of
 			the machine hosting the nameserver.  This is useful
 			in diagnosing problems with anycast servers.
