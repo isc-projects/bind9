@@ -20,7 +20,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.23 2000/06/21 22:20:11 tale Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.23.2.1 2000/06/26 23:08:45 explorer Exp $
  */
 
 #include <config.h>
@@ -176,9 +176,9 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 				return (EAI_SERVICE);
 			port = sp->s_port;
 			if (socktype == 0) {
-				if (strcmp(sp->s_proto, "tcp"))
+				if (strcmp(sp->s_proto, "tcp") == 0)
 					socktype = SOCK_STREAM;
-				else if (strcmp(sp->s_proto, "udp"))
+				else if (strcmp(sp->s_proto, "udp") == 0)
 					socktype = SOCK_DGRAM;
 			}
 		}
@@ -313,6 +313,8 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 						      NULL, 0,
 						      NI_NUMERICHOST) == 0) {
 					ai->ai_canonname = strdup(nbuf);
+					if (ai->ai_canonname == NULL)
+						return (EAI_MEMORY);
 				} else {
 					/* XXX raise error? */
 					ai->ai_canonname = NULL;
@@ -461,8 +463,11 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 			SIN(ai->ai_addr)->sin_port = port;
 			memcpy(&SIN(ai->ai_addr)->sin_addr,
 			       addr->address, 4);
-			if (flags & AI_CANONNAME)
+			if (flags & AI_CANONNAME) {
 				ai->ai_canonname = strdup(by->realname);
+				if (ai->ai_canonname == NULL)
+					ERR(EAI_MEMORY);
+			}
 			addr = LWRES_LIST_NEXT(addr, link);
 		}
 	}
@@ -514,8 +519,11 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 			SIN6(ai->ai_addr)->sin6_port = port;
 			memcpy(&SIN6(ai->ai_addr)->sin6_addr,
 			       addr->address, 16);
-			if (flags & AI_CANONNAME)
+			if (flags & AI_CANONNAME) {
 				ai->ai_canonname = strdup(by->realname);
+				if (ai->ai_canonname == NULL)
+					ERR(EAI_MEMORY);
+			}
 			addr = LWRES_LIST_NEXT(addr, link);
 		}
 	}
