@@ -1,4 +1,8 @@
-1464.	[bug]		Preserve "out of zone" data for outgoing zone 
+1465.	[bug]		isc_base64_decodestring() and isc_base64_tobuffer()
+			failed to check that trailing bits were zero allowing
+			some invalid base64 strings to be accepted.  [RT #5397]
+
+1464.	[bug]		Preserve "out of zone" data for outgoing zone
 			transfers. [RT #5192]
 
 1463.	[bug]		dns_rdata_from{wire,struct}() failed to catch bad
