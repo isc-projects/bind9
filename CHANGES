@@ -1,4 +1,7 @@
   
+1016.	[bug]		Slave zones with no backup file were re-transferred
+			on every server reload.
+
 1015.	[bug]		Log channels that had a "versions" option but no
 			"size" option failed to create numbered log
 			files. [RT #1783]
