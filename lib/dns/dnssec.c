@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.45 2000/07/27 09:46:02 tale Exp $
+ * $Id: dnssec.c,v 1.46 2000/07/31 20:53:56 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -32,6 +32,7 @@
 
 #include <dns/db.h>
 #include <dns/dnssec.h>
+#include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/message.h>
 #include <dns/rdata.h>
