@@ -21,6 +21,30 @@ RBT mark bit (with Brian)
 Support 64-bit offsets and serials in the journal
 (RT #124 "journalling with large files)
 
+Review these changes:
+
+  ================
+  cvs diff -r1.106 -r1.107 lib/dns/name.c
+
+  date: 2000/11/14 23:48:02;  author: tale;  state: Exp;  lines: +27 -11
+
+  Bitstring labels *still* suck.  They didn't somehow magically get less
+  sucky in the past couple of months.  The nerve.
+
+  Anyway, dns_name_split now correctly compacts the preceding bitstring label
+  (if any) when a maximal bitstring is split.
+
+  It also correctly creates the suffix when a maximal bitstring is split.
+  It was doing this incorrectly before, independent of the compaction issue.
+  ================
+  cvs diff -r1.93 -r1.94 lib/dns/rbt.c
+
+  date: 2000/11/14 23:51:24;  author: tale;  state: Exp;  lines: +82 -37
+
+  Cope with the possibility that the prefix of a name split within a
+  bitstring label might have been compacted to have fewer labels than
+  what was expected
+
 
 
 
