@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.205.2.5 $)
+AC_REVISION($Revision: 1.205.2.6 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -232,28 +232,32 @@ AC_SUBST(DNS_OPENSSL_LIBS)
 #
 # was --with-gssapi specified?
 #
-AC_MSG_CHECKING(for GSSAPI library)
-AC_ARG_WITH(gssapi,
-[  --with-gssapi=PATH   Specify path for system-supplied GSSAPI],
-    use_gssapi="$withval", use_gssapi="no")
+#AC_MSG_CHECKING(for GSSAPI library)
+#AC_ARG_WITH(gssapi,
+#[  --with-gssapi=PATH   Specify path for system-supplied GSSAPI],
+#    use_gssapi="$withval", use_gssapi="no")
+#
+#case "$use_gssapi" in
+#	no)
+#		USE_GSSAPI=''
+#		DST_GSSAPI_INC=''
+#		DNS_GSSAPI_LIBS=''
+#		AC_MSG_RESULT(not specified)
+#		;;
+#	yes)
+#		AC_MSG_ERROR([--with-gssapi must specify a path])
+#		;;
+#	*)
+#		USE_GSSAPI='-DGSSAPI'
+#		DST_GSSAPI_INC="-I$use_gssapi/include"
+#		DNS_GSSAPI_LIBS="-L$use_gssapi/lib -lgssapi_krb5"
+#		AC_MSG_RESULT(using gssapi from $use_gssapi/lib and $use_gssapi/include)
+#		;;
+#esac
 
-case "$use_gssapi" in
-	no)
-		USE_GSSAPI=''
-		DST_GSSAPI_INC=''
-		DNS_GSSAPI_LIBS=''
-		AC_MSG_RESULT(not specified)
-		;;
-	yes)
-		AC_MSG_ERROR([--with-gssapi must specify a path])
-		;;
-	*)
-		USE_GSSAPI='-DGSSAPI'
-		DST_GSSAPI_INC="-I$use_gssapi/include"
-		DNS_GSSAPI_LIBS="-L$use_gssapi/lib -lgssapi_krb5"
-		AC_MSG_RESULT(using gssapi from $use_gssapi/lib and $use_gssapi/include)
-		;;
-esac
+USE_GSSAPI=''
+DST_GSSAPI_INC=''
+DNS_GSSAPI_LIBS=''
 
 AC_SUBST(USE_GSSAPI)
 AC_SUBST(DST_GSSAPI_INC)
