@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.95.2.3.2.9 2004/07/20 07:01:57 marka Exp $ */
+/* $Id: name.h,v 1.95.2.3.2.10 2004/08/10 00:41:39 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -572,6 +572,9 @@ dns_name_getlabelsequence(const dns_name_t *source, unsigned int first,
  *
  * Notes:
  *	Numbering starts at 0.
+ *
+ *	Given "rc.vix.com.", the label 0 is "rc", and label 3 is the
+ *	root label.
  *
  *	'target' refers to the same memory as 'source', so 'source'
  *	must not be changed while 'target' is still in use.
