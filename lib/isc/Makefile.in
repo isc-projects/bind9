@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.67 2000/11/07 20:58:04 bwelling Exp $
+# $Id: Makefile.in,v 1.68 2000/11/14 23:43:36 tale Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -35,7 +35,7 @@ UNIXOBJS =	@ISC_ISCIPV6_O@ \
 		unix/app.@O@ unix/dir.@O@ unix/entropy.@O@ \
 		unix/errno2result.@O@ unix/file.@O@ unix/fsaccess.@O@ \
 		unix/interfaceiter.@O@ unix/keyboard.@O@ unix/net.@O@ \
-		unix/os.@O@ unix/socket.@O@ unix/time.@O@ \
+		unix/os.@O@ unix/resource.@O@ unix/socket.@O@ unix/time.@O@ \
 		unix/stdio.@O@ unix/stdtime.@O@
 
 
