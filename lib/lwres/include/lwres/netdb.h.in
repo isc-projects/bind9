@@ -1,0 +1,127 @@
+/*
+ * Copyright (C) 2000  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
+#ifndef lwres_netdb_h
+#define lwres_netdb_h 1
+
+#include <netdb.h>
+
+@ISC_LWRES_NEEDADDRINFO@
+@ISC_LWRES_GETIPNODEPROTO@
+@ISC_LWRES_GETADDRINFOPROTO@
+@ISC_LWRES_GETNAMEINFOPROTO@
+
+#ifdef ISC_LWRES_NEEDADDRINFO
+struct  addrinfo {
+        int             ai_flags;       /* AI_PASSIVE, AI_CANONNAME */
+        int             ai_family;      /* PF_xxx */
+        int             ai_socktype;    /* SOCK_xxx */
+        int             ai_protocol;    /* 0 or IPPROTO_xxx for IPv4 and IPv6 */
+        size_t          ai_addrlen;     /* length of ai_addr */
+        char            *ai_canonname;  /* canonical name for hostname */
+        struct sockaddr *ai_addr;       /* binary address */
+        struct addrinfo *ai_next;       /* next structure in linked list */
+};
+#endif
+
+/*
+ * Error return codes from getaddrinfo()
+ */
+
+#ifndef EAI_ADDRFAMILY
+#define EAI_ADDRFAMILY   1      /* address family for hostname not supported */
+#define EAI_AGAIN        2      /* temporary failure in name resolution */
+#define EAI_BADFLAGS     3      /* invalid value for ai_flags */
+#define EAI_FAIL         4      /* non-recoverable failure in name resolution */
+#define EAI_FAMILY       5      /* ai_family not supported */
+#define EAI_MEMORY       6      /* memory allocation failure */
+#define EAI_NODATA       7      /* no address associated with hostname */
+#define EAI_NONAME       8      /* hostname nor servname provided, or not known */
+#define EAI_SERVICE      9      /* servname not supported for ai_socktype */
+#define EAI_SOCKTYPE    10      /* ai_socktype not supported */
+#define EAI_SYSTEM      11      /* system error returned in errno */
+#define EAI_BADHINTS    12
+#define EAI_PROTOCOL    13
+#define EAI_MAX         14
+#endif
+
+/*
+ * Flag values for getaddrinfo()
+ */
+#ifndef AI_PASSIVE
+#define AI_PASSIVE      0x00000001
+#define AI_CANONNAME    0x00000002
+#define AI_NUMERICHOST  0x00000004
+#define AI_MASK         0x00000007
+#endif
+
+/*
+ * Flag values for getipnodebyname()
+ */
+#ifndef AI_V4MAPPED
+#define AI_V4MAPPED     0x00000008
+#define AI_ALL          0x00000010
+#define AI_ADDRCONFIG   0x00000020
+#define AI_DEFAULT      (AI_V4MAPPED|AI_ADDRCONFIG)
+#endif
+
+/*
+ * Constants for getnameinfo()
+ */
+#ifndef NI_MAXHOST
+#define NI_MAXHOST      1025
+#define NI_MAXSERV      32
+#endif
+
+/*
+ * Flag values for getnameinfo()
+ */
+#ifndef NI_NOFQDN
+#define NI_NOFQDN       0x00000001
+#define NI_NUMERICHOST  0x00000002
+#define NI_NAMEREQD     0x00000004
+#define NI_NUMERICSERV  0x00000008
+#define NI_DGRAM        0x00000010
+#define
+
+#ifdef ISC_LWRES_GETADDRINFOPROTO
+int
+getaddrinfo(const char *hostname, const char *servname,
+        const struct addrinfo *hints, struct addrinfo **res);
+
+void
+freeaddrinfo(struct addrinfo *ai);
+#endif
+
+#ifdef ISC_LWRES_GETNAMEINFOPROTO
+int
+getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
+            size_t hostlen, char *serv, size_t servlen, int flags);
+#endif
+
+#ifdef ISC_LWRES_GETIPNODEPROTO
+struct hostent *
+getipnodebyname(const char *name, int af, int flags, int *error_num);
+
+struct hostent *
+getipnodebyaddr(const void *src, size_t len, int af, int *error_num);
+
+void
+freehostent(struct hostent *);
+#endif
+
+#endif
