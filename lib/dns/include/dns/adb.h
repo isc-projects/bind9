@@ -124,7 +124,7 @@ struct dns_adbfind {
 	unsigned int			query_pending;	/* RO: partial list */
 	unsigned int			partial_result;	/* RO: addrs missing */
 	unsigned int			options;	/* RO: options */
-	ISC_LINK(dns_adbfind_t)	publink;	/* RW: client use */
+	ISC_LINK(dns_adbfind_t)		publink;	/* RW: client use */
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */
@@ -140,8 +140,8 @@ struct dns_adbfind {
 #define DNS_ADBFIND_INET6		0x00000002
 #define DNS_ADBFIND_ADDRESSMASK		0x00000003
 
-#define DNS_ADBFIND_EMPTYEVENT		0x40000000
-#define DNS_ADBFIND_WANTEVENT		0x80000000
+#define DNS_ADBFIND_EMPTYEVENT		0x00000004
+#define DNS_ADBFIND_WANTEVENT		0x00000008
 
 /* dns_adbaddr_t
  *
