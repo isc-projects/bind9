@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.259 2000/11/28 19:58:14 mws Exp $ */
+/* $Id: server.c,v 1.260 2000/11/28 20:08:35 gson Exp $ */
 
 #include <config.h>
 
@@ -2301,9 +2301,6 @@ ns_server_dumpstats(ns_server_t *server) {
 					dns_zonecount_names[i],
 					(long)dns_zone_getcounts(zone, i),
 					viewname, zonestore);
-		} else {
-			fprintf(fp, "nostatistics 0 %s:%s\n",
-				viewname, zonestore);
 		}
 		dns_zone_next(zone, &next);
 		zone = next;
