@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.45 2001/03/27 02:34:36 bwelling Exp $ */
+/* $Id: rndc.c,v 1.46 2001/03/28 00:16:06 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -331,12 +331,14 @@ main(int argc, char **argv) {
 	cfg_obj_t *defkey = NULL;
 	cfg_obj_t *keys = NULL;
 	cfg_obj_t *key = NULL;
+	cfg_obj_t *defport = NULL;
 	cfg_obj_t *secretobj = NULL;
 	cfg_obj_t *algorithmobj = NULL;
 	cfg_listelt_t *elt;
 	const char *keyname = NULL;
 	const char *secretstr;
 	const char *algorithm;
+	isc_boolean_t portset = ISC_FALSE;
 	char secretarray[1024];
 	char *p;
 	size_t argslen;
@@ -373,6 +375,7 @@ main(int argc, char **argv) {
 					progname);
 				exit(1);
 			}
+			portset = ISC_TRUE;
 			break;
 
 		case 's':
@@ -511,6 +514,26 @@ main(int argc, char **argv) {
 	DO("decode base64 secret", isccc_base64_decode(secretstr, &secret));
 	secret.rend = secret.rstart;
 	secret.rstart = secretarray;
+
+	/*
+	 * Find the port to connect to.
+	 */
+	if (portset)
+		;		/* Was set on command line, do nothing. */
+	else if (server != NULL) {
+		DO("get port for server", cfg_map_get(server, "port",
+						      &defport));
+	} else if (options != NULL) {
+		DO("get default port", cfg_map_get(options, "default-port",
+						   &defport));
+	}
+	if (defport != NULL) {
+		remoteport = cfg_obj_asuint32(defport);
+		if (remoteport > 65535) {
+			fprintf(stderr, "%s: port out of range\n", progname);
+			exit(1);
+		}
+	}
 
 	isccc_result_register();
 

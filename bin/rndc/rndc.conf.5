@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: rndc.conf.5,v 1.12 2001/02/07 20:27:40 bwelling Exp $
+.\" $Id: rndc.conf.5,v 1.13 2001/03/28 00:16:09 bwelling Exp $
 
 .Dd Jun 30, 2000
 .Dt RDNC.CONF 5
@@ -54,7 +54,7 @@ statement.
 .Pp
 The
 .Dv options
-statement contains two clauses.
+statement contains three clauses.
 The
 .Dv default-server
 clause
@@ -74,10 +74,21 @@ option is provided on the
 .Xr rndc
 command line, and no
 .Dv key
-clause is found in a a matching
+clause is found in a matching
 .Dv server
 statement, this default key will be used to authenticate the server's
 commands and responses.
+The
+.Dv default-port clause is followed by the port to connect
+to on the remote name server.  If no
+.Fl p
+option is provided on the
+.Xr rndc
+command line, and no
+.Dv port
+clause is found in a matching
+.Dv server
+statement, this default port will be used to connect.
 .Pp
 After the keyword
 .Dv server ,
@@ -85,11 +96,13 @@ the
 .Dv server
 statement is followed by a string which is the hostname or address for a
 name server.
-The statement has a single clause,
-.Dv key .
+The statement has two possible clauses:
+.Dv key
+and
+.Dv port .
 The key name must match the name of a
 .Dv key
-statement in the file.
+statement in the file.  The port number specifies the port to connect to.
 .Pp
 The
 .Dv key
@@ -197,18 +210,6 @@ See the sections on the
 .Dv controls
 statement in the BIND 9 Administrator Reference Manual for
 details.
-.Sh LIMITATIONS
-There is currently no way to specify the port for
-.Xr rndc
-to use.  This will be remedied in future releases by allowing a
-.Dv port
-clause to the
-.Dv server
-statement and a
-.Dv default-port
-clause to the
-.Dv options
-statement.
 .Sh SEE ALSO
 .Xr rndc 8 ,
 .Xr dnssec-keygen 8 ,

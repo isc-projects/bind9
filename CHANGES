@@ -1,3 +1,6 @@
+ 794.	[func]		Implement the "port" and "default-port" statements
+ 			in rndc.conf.
+
  793.	[cleanup]	The DNSSEC tools could create filenames that were
  			illegal or contained shell metacharacters.  They
 			now use a different text encoding of names that

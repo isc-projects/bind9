@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.50 2001/03/26 21:33:07 bwelling Exp $ */
+/* $Id: parser.c,v 1.51 2001/03/28 00:16:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3364,6 +3364,7 @@ static cfg_clausedef_t
 rndcconf_options_clauses[] = {
 	{ "default-server", &cfg_type_astring, 0 },
 	{ "default-key", &cfg_type_astring, 0 },
+	{ "default-port", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -3381,6 +3382,7 @@ static cfg_type_t cfg_type_rndcconf_options = {
 static cfg_clausedef_t
 rndcconf_server_clauses[] = {
 	{ "key", &cfg_type_astring, 0 },
+	{ "port", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 
