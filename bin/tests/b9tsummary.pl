@@ -39,6 +39,12 @@ $BuildProblemsFile	= "buildproblems.html";
 $TestFile	= ".test";
 
 #
+# name of file containing test problems derived from $TestFile
+#
+
+$TestSummaryFile	= "testsummary.html";
+
+#
 # where the host specific builds take place
 #
 
@@ -77,8 +83,11 @@ $Nfbp		= 0;
 # number of other build problems
 $Nobp		= 0;
 
-# number of test problems
-$Ntprobs	= 0;
+# number of fatal test problems
+$Nftp		= 0;
+
+# number of other test problems
+$Notp		= 0;
 
 # flag to signal bad test journal format
 $BadTest	= 0;
@@ -212,37 +221,46 @@ sub doHost {
 	$Ntprobs = 0;
 	$BadTest = 0;
 
-	%buildprobs = &buildCheck("$hostpath") if (-r "$hostpath/$BuildFile");
-	%testprobs = &testCheck("$hostpath") if (-r "$hostpath/$TestFile");
+	if ((-r "$hostpath/$BuildFile") && (-s "$hostpath/$BuildFile")) {
+		%buildprobs = &buildCheck("$hostpath");
+		if ($Nfbp == 0) {
+			$bstatus = "ok";
+			$bcolor = "green";
 
-	#
-	# then print summary data in html format with links to the raw and processed data
-	#
-
-	if (! -r "$hostpath/$BuildFile") {
-		$bcolor = "red";
+			if ((-r "$hostpath/$TestFile") && (-s "$hostpath/$TestFile")) {
+				%testprobs = &testCheck("$hostpath");
+				if ($BadTest) {
+					$tstatus = "inspect ($BadTestReason)";
+					$tcolor = "blue";
+				}
+				else {
+					if ($Nftp) {
+						$tstatus = "fail";
+						$tcolor = "red";
+					}
+					else {
+						$tstatus = "pass";
+						$tcolor = "green";
+					}
+				}
+			}
+			else {
+				$tstatus = "not available (no journal)";
+				$tcolor = "red";
+			}
+		}
+		else {
+			$bstatus = "broken";
+			$tstatus = "not available (build status)";
+			$bcolor = "red";
+			$tcolor = "black";
+		}
+	}
+	else {
 		$bstatus = "not available";
-	}
-	elsif ($Nfbp) {
+		$tstatus = "not available (build status)";
 		$bcolor = "red";
-		$bstatus = "broken";
-	}
-	else {
-		$bcolor = "green";
-		$bstatus = "ok";
-	}
-
-	if ($BadTest) {
-		$tstatus = "not available ($BadTestReason)";
-	}
-	elsif ($bstatus =~ /not available|broken/) {
-		$tstatus = "not available (no results)";
-	}
-	elsif ($Ntprobs) {
-		$tstatus = "broken";
-	}
-	else {
-		$tstatus = "ok";
+		$tcolor = "black";
 	}
 
 	printf(DEBUG "Host %s STATUS: bstatus %s, tstatus %s, badtest %d, reason %s\n", $hostid, $bstatus, $tstatus, $BadTest, $BadTestReason) if ($Debug);
@@ -258,14 +276,14 @@ sub doHost {
 		printf("<A HREF=\"$B9HostURL/$hostid/$BuildFile\"><FONT COLOR=\"%s\">%s</FONT></A>", $bcolor, $bstatus);
 		printf("</TD>\n");
 		printf("\t\t<TD>");
-		printf("<A HREF=\"$B9HostURL/$hostid/$BuildProblemsFile\">%d/%d</A>", $Nfbp, $Nobp);
+		printf("<A HREF=\"$B9HostURL/$hostid/$BuildProblemsFile\"><FONT COLOR=\"%s\">%d/%d</FONT></A>", $bcolor, $Nfbp, $Nobp);
 		printf("</TD>\n");
 	}
 	if ($tstatus =~ /not available/) {
-		printf("\t\t<TD>%s</TD>\n", $tstatus);
+		printf("\t\t<TD><FONT COLOR=\"%s\">%s</FONT></TD>\n", $tcolor, $tstatus);
 	}
 	else {
-		printf("\t\t<TD><A HREF=\"$B9HostURL/$hostid/$TestFile\">%s</A></TD>\n", $tstatus);
+		printf("\t\t<TD><A HREF=\"$B9HostURL/$hostid/$TestSummaryFile\"><FONT COLOR=\"%s\">%s</FONT></A></TD>\n", $tcolor, $tstatus);
 	}
 	printf("\t</TR>\n");
 
@@ -274,6 +292,9 @@ sub doHost {
 	#
 
 	mkdir("$B9HostPath/$hostid", 0755) if (! -d "$B9HostPath/$hostid");
+	`rm -f "$B9HostPath/$hostid/$ConfigFile"`;
+	`rm -f "$B9HostPath/$hostid/$BuildFile"`;
+	`rm -f "$B9HostPath/$hostid/$TestFile"`;
 	`cp "$hostpath/$ConfigFile" "$B9HostPath/$hostid"` if (-r "$hostpath/$ConfigFile");
 	`cp "$hostpath/$BuildFile"  "$B9HostPath/$hostid"` if (-r "$hostpath/$BuildFile");
 	`cp "$hostpath/$TestFile"   "$B9HostPath/$hostid"` if (-r "$hostpath/$TestFile");
@@ -390,16 +411,17 @@ sub buildCheck {
 
 #
 # run thru the test results file for host at $hostpath
+# write the test results file
 # return %probs
 #	format key == funcname:assertion_number, value == test_result
-# set $Ntprobs as a side effect
+# set $Nftp and $Notp as a side effect
 #
 
 sub testCheck {
 	local($hostpath) = @_;
-	local($funcname, $anum, $atext);
-	local(%probs);
-	local($intest, $intestcase, $inassert, $ininfo, $inresult);
+	local($funcname, $anum, $atext, $hostid);
+	local(%probs, @junk, $junk);
+	local($intest, $intestcase, $inassert, $ininfo, $inresult, $ntestsets);
 
 	# initialize the well known test problems array
 	if (-f "$hostpath/$WktpFile") {
@@ -420,73 +442,111 @@ sub testCheck {
 		return;
 	}
 
+	@junk = split(/\//, $hostpath);
+	$hostid = $junk[$#junk];
+
 	$intest = 0;
 
 	open(XXX, "< $hostpath/$TestFile");
+	open(YYY, "> $B9HostPath/$hostid/$TestSummaryFile");
+#	printf(YYY "<HTML>\n<HEAD>\n");
+#	printf(YYY "<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
 
 	while (<XXX>) {
-		next if ($_ !~ /^(S|I|T|A|R):/);
-		$intest = 1 if (/^S:(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/);
+		next unless ($_ =~ /^(S|I|T|A|R|E):/);
+		chop;
+
+		if (/^S:([^:]*):(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/) {
+			$intest = 1;
+			$testname = $1;
+			++$ntestsets;
+			printf(YYY "%s\n<BR>\n", $_);
+			next;
+		}
+
+		if (/^E:(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/) {
+			$intest = 0;
+			printf(YYY "%s\n<BR>\n", $_);
+			next;
+		}
 
 		if (/^T:([^:]*):([^:]*):/) {
 			if ($intest == 0) {
 				$BadTest = 1;
-				$BadTestReason = "T";
+				$BadTestReason = "T$.";
 			}
 			$funcname = $1;
 			$anum = $2;
-
 			$intestcase = 1;
 			$inassert = 0;
 			$ininfo = 0;
 			$inresult = 0;
-
+			($junk = $funcname) =~ s/\//\\\//g;
+			s/$junk/<B>$1<\/B>/;
+			printf(YYY "%s\n<BR>\n", $_);
 			next;
 		}
 		if (/^A:(.*)$/) {
-			if (($intestcase == 0) || ($inresult == 1)) {
+			if (($intest == 0) || ($intestcase == 0) || ($inresult == 1)) {
 				$BadTest = 1;
-				$BadTestReason = "A";
+				$BadTestReason = "A$.";
 			}
+			$atext = $1;
 			$inassert = 1;
-			$atext = 1;
+			s/A:(.*)/A:<FONT COLOR=\"blue\">$1<\/FONT>/;
+			printf(YYY "%s\n<BR>\n", $_);
 			next;
 		}
 		if (/^I:(.*)$/) {
-			if ($inassert == 0) {
+			if (($intest == 0) || ($intestcase == 0) || ($inassert == 0)) {
 				$BadTest = 1;
-				$BadTestReason = "I";
+				$BadTestReason = "I$.";
 			}
 			$ininfo = 1;
+			printf(YYY "%s\n<BR>\n", $_);
 			next;
 		}
 		if (/^R:(.*)$/) {
-			if (($intestcase ==  0) || ($inassert == 0)) {
+			if (($intest == 0) || ($intestcase ==  0) || ($inassert == 0)) {
 				$BadTest = 1;
-				$BadTestReason = "R";
+				$BadTestReason = "R:$intest:$intestcase:$inassert:$.";
 			}
-			$inresult = 1;
-			$intestcase = 0;
-
 			$result = $1;
+			$inresult = 1;
 			if ($result =~ /FAIL|UNRESOLVED|UNINITIATED/) {
 				#
 				# skip if in the (ignorable) well known test problems list
 				#
-				next if defined($wktp{"$funcname:$anum"});
-				$probs{"$funcname:$anum"} = $result;
-				++$Ntprobs;
+				if (defined($wktp{"$funcname:$anum"})) {
+					++$Notp;
+				}
+				else {
+					$probs{"$funcname:$anum"} = $result;
+					++$Nftp;
+					s/(FAIL|UNRESOLVED|UNITIATED)/<FONT COLOR=\"red\">$1<\/FONT>/;
+				}
 			}
+			elsif ($result =~ /PASS|UNTESTED/) {
+					s/(PASS|UNTESTED)/<FONT COLOR=\"green\">$1<\/FONT>/;
+			}
+			printf(YYY "%s\n<BR>\n", $_);
 			next;
 		}
 	}
 	close(XXX);
-	if ($intest == 0) {
+#	printf(YYY "</BODY>\n</HTML>\n");
+	close(YYY);
+
+	if ($ntestsets == 0) {
 		$BadTest = 1;
-		$BadTestReason = "no results";
+		$BadTestReason = "no tests";
 	}
 	return(%probs);
 }
+
+#
+# write the build problems file
+#
 
 sub wbpf {
 	local($hostid, %buildprobs) = @_;
@@ -522,7 +582,7 @@ sub wbpf {
 	}
 
 #	printf(XXX "</BODY>\n</HTML>\n");
-#       printf("<?php include(\"isc-footer.inc\") ?>\n");
+#	printf("<?php include(\"isc-footer.inc\") ?>\n");
 	close(XXX);
 }
 
