@@ -1,3 +1,7 @@
+1111.	[bug]		Multithreaded servers could deadlock processing
+			recursive queries due to a locking hieararchy
+			violation in adb.c. [RT #2017]
+
 1110.	[bug]		dig only accept valid abbreviations of +options.
 			[RT #2003]
 
