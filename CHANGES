@@ -1,3 +1,6 @@
+1768.	[bug]		nsecnoexistnodata() could be called with a non-NSEC
+			rdataset. [RT #12907]
+
 1765.	[bug]		configure --with-openssl=auto failed. [RT #12937]
 
 1764.	[bug]		dns_zone_replacedb failed to emit a error message
