@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.87 2000/12/17 23:43:10 marka Exp $ */
+/* $Id: master.c,v 1.88 2000/12/19 01:32:41 marka Exp $ */
 
 #include <config.h>
 
@@ -1608,7 +1608,6 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 		       void *done_arg, isc_mem_t *mctx)
 {
 	dns_loadctx_t *ctx = NULL;
-	isc_result_t tresult;
 	isc_result_t result;
 	
 	REQUIRE(task != NULL);
@@ -1669,7 +1668,6 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 			 isc_mem_t *mctx)
 {
 	isc_result_t result;
-	isc_result_t tresult;
 	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(stream != NULL);
@@ -1733,7 +1731,6 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 			 isc_mem_t *mctx)
 {
 	isc_result_t result;
-	isc_result_t tresult;
 	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(buffer != NULL);
