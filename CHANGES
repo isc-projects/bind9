@@ -1,3 +1,5 @@
+ 684.	[bug]		memory leak with view forwarders. [RT #656]
+
  683.	[bug]		file leak in isc_lex_openfile().
 
  682.	[bug]		nslookup displayed SOA records incorrectly. [RT #665]
