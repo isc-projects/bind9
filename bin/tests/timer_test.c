@@ -96,7 +96,7 @@ timeout(isc_task_t *task, isc_event_t *event)
 	isc_task_shutdown(task);
 }
 
-void
+int
 main(int argc, char *argv[]) {
 	isc_taskmgr_t *manager = NULL;
 	isc_timermgr_t *timgr = NULL;
@@ -176,4 +176,6 @@ main(int argc, char *argv[]) {
 	printf("Statistics for mctx3:\n");
 	isc_mem_stats(mctx3, stdout);
 	isc_mem_destroy(&mctx3);
+
+	return (0);
 }

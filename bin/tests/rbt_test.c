@@ -254,7 +254,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 #define PRINTERR(r)	if (r != DNS_R_SUCCESS) \
 				printf("... %s\n", dns_result_totext(r));
 
-void
+int
 main (int argc, char **argv) {
 	char *command, *arg, *whitespace, buffer[1024];
 	dns_name_t *name, *foundname;
@@ -447,5 +447,5 @@ main (int argc, char **argv) {
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
 
-	exit(0);
+	return (0);
 }

@@ -86,7 +86,7 @@ run2(void *arg) {
 	return (NULL);
 }
 
-void
+int
 main(int argc, char *argv[]) {
 	unsigned int nworkers;
 	unsigned int i;
@@ -122,4 +122,6 @@ main(int argc, char *argv[]) {
 		(void)isc_thread_join(workers[i], NULL);
 
 	isc_rwlock_destroy(&lock);
+
+	return (0);
 }

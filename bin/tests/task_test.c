@@ -61,7 +61,7 @@ my_tick(isc_task_t *task, isc_event_t *event)
 	isc_event_free(&event);
 }
 
-void
+int
 main(int argc, char *argv[]) {
 	isc_taskmgr_t *manager = NULL;
 	isc_task_t *t1 = NULL, *t2 = NULL;
@@ -189,4 +189,6 @@ main(int argc, char *argv[]) {
 	
 	isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
+
+	return (0);
 }
