@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.262 2004/12/21 10:45:15 jinmei Exp $ */
+/* $Id: query.c,v 1.263 2005/03/15 01:29:09 marka Exp $ */
 
 #include <config.h>
 
@@ -2886,6 +2886,34 @@ query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
                 query_releasename(client, &fname);
 }
 
+static inline void
+answer_in_glue(ns_client_t *client, dns_rdatatype_t qtype) {
+	dns_name_t *name;
+	dns_message_t *msg;
+	dns_section_t section = DNS_SECTION_ADDITIONAL;
+	dns_rdataset_t *rdataset = NULL;
+
+	msg = client->message;
+	for (name = ISC_LIST_HEAD(msg->sections[section]);
+	     name != NULL;
+	     name = ISC_LIST_NEXT(name, link))
+		if (dns_name_equal(name, client->query.qname)) {
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link))
+				if (rdataset->type == qtype)
+					break;
+			break;
+		}
+	if (rdataset != NULL) {
+		ISC_LIST_UNLINK(msg->sections[section], name, link);
+		ISC_LIST_PREPEND(msg->sections[section], name, link);
+		ISC_LIST_UNLINK(name->list, rdataset, link);
+		ISC_LIST_PREPEND(name->list, rdataset, link);
+		rdataset->attributes |= DNS_RDATASETATTR_REQUIREDGLUE;
+	}
+}
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
@@ -3905,6 +3933,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * send the response.
 		 */
 		setup_query_sortlist(client);
+
+		/*
+		 * If this is a referral and the answer to the question
+		 * is in the glue sort it to the start of the additional
+		 * section.
+		 */
+		if (client->message->counts[DNS_SECTION_ANSWER] == 0 &&
+		    client->message->rcode == dns_rcode_noerror &&
+		    (qtype == dns_rdatatype_a || qtype == dns_rdatatype_aaaa))
+			answer_in_glue(client, qtype);
 
 		if (client->message->rcode == dns_rcode_nxdomain &&
 		    client->view->auth_nxdomain == ISC_TRUE)
