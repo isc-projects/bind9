@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.59 2001/07/02 17:48:27 gson Exp $ */
+/* $Id: parser.c,v 1.60 2001/07/03 07:43:02 marka Exp $ */
 
 #include <config.h>
 
@@ -2333,17 +2333,16 @@ parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 						   1, symval,
 						   isc_symexists_reject);
 				if (result != ISC_R_SUCCESS) {
+					parser_error(pctx, LOG_NEAR,
+						     "isc_symtab_define(%s) "
+						     " failed", clause->name);
 					isc_mem_put(pctx->mctx, list,
 						    sizeof(cfg_list_t));
 					goto cleanup;
 				}
-			} else if (result == ISC_R_SUCCESS) {
-				listobj = symval.as_pointer;
 			} else {
-				parser_error(pctx, LOG_NEAR,
-					     "isc_symtab_define() failed",
-					     clause->name);
-				goto cleanup;
+				INSIST(result == ISC_R_SUCCESS);
+				listobj = symval.as_pointer;
 			}
 
 			elt = NULL;
