@@ -135,7 +135,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	plen = strlen(pbuf);
 
 	isc_buffer_available(target, &avail);
-	if (alen + 1 + plen + 1 < avail.length)
+	if (alen + 1 + plen + 1 > avail.length)
 		return (ISC_R_NOSPACE);
 	    
 	isc_buffer_putmem(target, abuf, alen);
