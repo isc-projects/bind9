@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.226 2002/05/27 00:40:22 marka Exp $ */
+/* $Id: socket.c,v 1.227 2002/06/03 06:31:16 marka Exp $ */
 
 #include <config.h>
 
@@ -1338,13 +1338,11 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		case EPROTONOSUPPORT:
 		case EPFNOSUPPORT:
 		case EAFNOSUPPORT:
-#ifdef LINUX
 		/*
 		 * Linux 2.2 (and maybe others) return EINVAL instead of
 		 * EAFNOSUPPORT.
 		 */
 		case EINVAL:
-#endif
 			return (ISC_R_FAMILYNOSUPPORT);
 
 		default:

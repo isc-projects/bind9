@@ -1,3 +1,6 @@
+1217.	[port]		linux: make handling EINVAL from socket() no longer
+			conditional on #ifdef LINUX.
+
 1216.	[bug]		isc_log_closefilelogs() needed to lock the log
 			context.
 
