@@ -79,6 +79,7 @@
  * To use this option, '(' and ')' must be special characters.
  */
 #define ISC_LEXOPT_DNSMULTILINE		0x20	/* Handle '(' and ')'. */
+#define ISC_LEXOPT_NOMORE		0x40	/* Want "no more" token. */
 
 /*
  * Various commenting styles, which may be changed at any time with
@@ -110,7 +111,8 @@ typedef enum {
 	isc_tokentype_eol = 4,
 	isc_tokentype_eof = 5,
 	isc_tokentype_initialws = 6,
-	isc_tokentype_special = 7
+	isc_tokentype_special = 7,
+	isc_tokentype_nomore = 8
 } isc_tokentype_t;
 
 typedef union {
@@ -257,13 +259,14 @@ isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer);
  *	ISC_R_NOMEMORY			Out of memory
  */
 
-void
+isc_result_t
 isc_lex_close(isc_lex_t *lex);
 /*
  * Close the most recently opened object (i.e. file or buffer).
  *
- * Requires:
- *	A file or buffer is open.
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			No more input sources
  */
 
 isc_result_t
@@ -284,7 +287,12 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp);
  *	ISC_R_SUCCESS
  *	ISC_R_UNEXPECTEDEND
  *	ISC_R_NOSPACE
- *	ISC_R_EOF
+ *
+ *	These two results are returned only if their corresponding lexer
+ *	options are not set.
+ *
+ *	ISC_R_EOF			End of input source
+ *	ISC_R_NOMORE			No more input sources
  */
 
 void

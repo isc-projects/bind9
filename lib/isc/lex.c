@@ -31,6 +31,7 @@ typedef struct inputsource {
 	isc_result_t			result;
 	isc_boolean_t			is_file;
 	isc_boolean_t			need_close;
+	isc_boolean_t			at_eof;
 	isc_boolean_t			have_token;
 	isc_token_t			token;
 	unsigned int			char_count;
@@ -173,6 +174,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 	source->result = ISC_R_SUCCESS;
 	source->is_file = is_file;
 	source->need_close = need_close;
+	source->at_eof = ISC_FALSE;
 	source->have_token = ISC_FALSE;
 	source->token.type = isc_tokentype_unknown;
 	source->token.value.as_pointer = NULL;
@@ -244,7 +246,7 @@ isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer) {
 	return (new_source(lex, ISC_FALSE, ISC_FALSE, buffer, name));
 }
 
-void
+isc_result_t
 isc_lex_close(isc_lex_t *lex) {
 	inputsource *source;
 
@@ -253,8 +255,10 @@ isc_lex_close(isc_lex_t *lex) {
 	 */
 
 	REQUIRE(VALID_LEX(lex));
+
 	source = HEAD(lex->sources);
-	REQUIRE(source != NULL);
+	if (source == NULL)
+		return (ISC_R_NOMORE);
 	
 	UNLINK(lex->sources, source, link);
 	if (source->is_file) {
@@ -264,6 +268,8 @@ isc_lex_close(isc_lex_t *lex) {
 	}
 	isc_mem_free(lex->mctx, source->name);
 	isc_mem_put(lex->mctx, source, sizeof *source);
+
+	return (ISC_R_SUCCESS);
 }
 
 typedef enum {
@@ -302,8 +308,18 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 
 	REQUIRE(VALID_LEX(lex));
 	source = HEAD(lex->sources);
-	REQUIRE(source != NULL);
 	REQUIRE(tokenp != NULL);
+
+	if (source == NULL) {
+		if ((options & ISC_LEXOPT_NOMORE) != 0) {
+			tokenp->type = isc_tokentype_nomore;
+			return (ISC_R_SUCCESS);
+		}
+		return (ISC_R_NOMORE);
+	}
+
+	if (source->result != ISC_R_SUCCESS)
+		return (source->result);
 
 	if (source->have_token) {
 		*tokenp = source->token;
@@ -311,8 +327,16 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (source->char_count == 0 && source->result != ISC_R_SUCCESS)
-		return (source->result);
+	if (source->char_count == 0 && source->at_eof) {
+		if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
+		    lex->paren_count != 0)
+			return (ISC_R_UNBALANCED);
+		if ((options & ISC_LEXOPT_EOF) != 0) {
+			tokenp->type = isc_tokentype_eof;
+			return (ISC_R_SUCCESS);
+		}
+		return (ISC_R_EOF);
+	}
 
 	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0) {
 		if (lex->paren_count > 0)
@@ -328,10 +352,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		if (source->char_count > 0) {
 			source->char_count--;
 			c = source->chars[source->char_count];
-		} else if (source->result != ISC_R_SUCCESS) {
-			if (source->result != ISC_R_EOF)
-				return (source->result);
-			c = EOF;
 		} else if (source->is_file) {
 			stream = source->input;
 
@@ -341,14 +361,14 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					source->result = ISC_R_IOERROR;
 					return (source->result);
 				}
-				source->result = ISC_R_EOF;
+				source->at_eof = ISC_TRUE;
 			}
 		} else {
 			buffer = source->input;
 
 			if (buffer->current == buffer->used) {
 				c = EOF;
-				source->result = ISC_R_EOF;
+				source->at_eof = ISC_TRUE;
 			} else {
 				c = *((char *)buffer->base + buffer->current);
 				buffer->current++;
@@ -387,6 +407,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		case lexstate_start:
 			if (c == EOF) {
 				lex->last_was_eol = ISC_FALSE;
+				if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
+				    lex->paren_count != 0)
+						return (ISC_R_UNBALANCED);
 				if ((options & ISC_LEXOPT_EOF) == 0)
 					return (ISC_R_EOF);
 				tokenp->type = isc_tokentype_eof;
