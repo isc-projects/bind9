@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.317 $)
+AC_REVISION($Revision: 1.318 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1652,7 +1652,24 @@ fi
 AC_SUBST($1)
 ])
 
-NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees, docbook/dsssl-stylesheets)
+#
+# Look for the SGML catalog.
+# Its location varies, so far we have seen:
+#
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/catalog
+# 	FreeBSD	/usr/local/share/sgml/docbook/catalog
+#	Linux	/usr/local/share/dsssl/docbook/catalog
+#		/usr/share/sgml/docbook/dsssl-stylesheets/catalog
+#
+catalogpath=""
+for d in $sgmltrees 
+do
+	for s in docbook docbook/dsssl-stylesheets
+	do
+		catalogpath="$catalogpath $d/$s"
+	done
+done
+NOM_PATH_FILE(SGMLCATALOG, catalog, $catalogpath)
 
 #
 # Look for the HTML stylesheet html/docbook.dsl, used for
