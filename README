@@ -134,8 +134,7 @@ Building
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
 
-		Slackware Linux 7.0 with 2.4.0-test6 kernel and glibc 2.1.3
-		Slackware Linux 7.0.1 with glibc 2.1.3
+		Slackware Linux 7.x
 		OpenBSD 2.6, 2.8, -current
 		UnixWare 7.1.1
 		HP-UX 10.20
