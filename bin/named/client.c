@@ -63,16 +63,16 @@
 
 #define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE
-#define CTRACE(m)	isc_log_write(ns_g_lctx, \
+#define CTRACE(m)	ns_client_log(client, \
 				      NS_LOGCATEGORY_CLIENT, \
 				      NS_LOGMODULE_CLIENT, \
 				      ISC_LOG_DEBUG(3), \
-				      "client %p: %s", client, (m))
+				      "%s", (m))
 #define MTRACE(m)	isc_log_write(ns_g_lctx, \
 				      NS_LOGCATEGORY_GENERAL, \
 				      NS_LOGMODULE_CLIENT, \
 				      ISC_LOG_DEBUG(3), \
-				      "clientmgr %p: %s", manager, (m))
+				      "clientmgr @%p: %s", manager, (m))
 #else
 #define CTRACE(m)	((void)(m))
 #define MTRACE(m)	((void)(m))
@@ -286,7 +286,7 @@ set_timeout(ns_client_t *client, unsigned int seconds) {
 	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
 				 &interval, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, NS_LOGCATEGORY_CLIENT,
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "setting timouet: %s",
 			      isc_result_totext(result));
@@ -385,6 +385,8 @@ exit_check(ns_client_t *client) {
 
 		(void) isc_timer_reset(client->timer, isc_timertype_inactive,
 				       NULL, NULL, ISC_TRUE);
+
+		client->peeraddr_valid = ISC_FALSE;
 
 		client->state = NS_CLIENTSTATE_READY;
 
@@ -548,7 +550,7 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	CTRACE("next");
 	
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request failed: %s", isc_result_totext(result));
 	}
@@ -806,7 +808,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view;
 	dns_rdataset_t *opt;
 	isc_boolean_t ra; 	/* Recursion available. */
-	char peerbuf[256];
 
 	REQUIRE(event != NULL);
 	client = event->arg;
@@ -831,6 +832,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		buffer = &devent->buffer;
 		result = devent->result;
 		client->peeraddr = devent->addr;
+		client->peeraddr_valid = ISC_TRUE;
 		if ((devent->attributes & DNS_DISPATCHATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
 			client->pktinfo = devent->pktinfo;
@@ -850,12 +852,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		client->nreads--;
 	}
 
-	sockaddr_format(&client->peeraddr, peerbuf, sizeof(peerbuf));	
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-		      "client %p: %s request from %s",
-		      client, TCP_CLIENT(client) ? "TCP" : "UDP",
-		      peerbuf);
+		      "%s request",
+		      TCP_CLIENT(client) ? "TCP" : "UDP");
 
 	if (exit_check(client))
 		goto cleanup_serverlock;
@@ -976,21 +976,21 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_name_init(&client->signername, NULL);
 	result = dns_message_signer(client->message, &client->signername);
 	if (result == DNS_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request has valid signature");
 		client->signer = &client->signername;
 	} else if (result == DNS_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request is not signed");
 	} else if (result == DNS_R_NOIDENTITY) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request is signed by a nonauthoritative key");
 	} else {
 		/* There is a signature, but it is bad. */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "request has invalid signature: %s",
 			      isc_result_totext(result));
@@ -1155,6 +1155,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->tcpquota = NULL;
 	client->recursionquota = NULL;
 	client->interface = NULL;
+	client->peeraddr_valid = ISC_FALSE;
 	ISC_LINK_INIT(client, link);
 	client->list = NULL;
 
@@ -1224,7 +1225,6 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client = event->arg;
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
 	isc_result_t result;
-	char peerbuf[256];
 	
 	REQUIRE(event->type == ISC_SOCKEVENT_NEWCONN);
 	REQUIRE(NS_CLIENT_VALID(client));
@@ -1232,8 +1232,6 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->state == NS_CLIENTSTATE_READY);
 	
-	CTRACE("newconn");
-
 	INSIST(client->naccepts == 1);
 	client->naccepts--;
 
@@ -1252,11 +1250,10 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 
 		(void) isc_socket_getpeername(client->tcpsocket,
 					      &client->peeraddr);
-		sockaddr_format(&client->peeraddr, peerbuf, sizeof(peerbuf));
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-			      "client %p: TCP connection from %s",
-			      client, peerbuf);
+		client->peeraddr_valid = ISC_TRUE;
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			   NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			   "new TCP connection");
 	} else {
 		/*
 		 * XXXRTH  What should we do?  We're trying to accept but
@@ -1268,9 +1265,9 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		 *	   Going idle is probably the right thing if the
 		 *	   I/O was canceled.
 		 */
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-			      "client %p: accept failed: %s", client,
+			      "accept failed: %s",
 			      isc_result_totext(nevent->result));
 	}
 	
@@ -1294,7 +1291,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_SUCCESS)
 			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
 				      "no more TCP clients: %s",
 				      isc_result_totext(result));
@@ -1522,7 +1519,7 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 							 client,
 							 &client->dispentry);
 			if (result != ISC_R_SUCCESS) {
-				isc_log_write(dns_lctx,
+				ns_client_log(client,
 					      DNS_LOGCATEGORY_SECURITY,
 					      NS_LOGMODULE_CLIENT,
 					      ISC_LOG_DEBUG(3),
@@ -1583,15 +1580,44 @@ ns_client_checkacl(ns_client_t  *client,
 	goto deny; /* Negative match or no match. */
 
  allow:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+	ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 		      "%s approved", opname);
 	return (DNS_R_SUCCESS);
 
  deny:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+	ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 		      "%s denied", opname);
 	return (DNS_R_REFUSED);
+}
+
+static void
+ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
+	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+{
+	char msgbuf[2048];
+	char peerbuf[256];
+
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+
+	if (client->peeraddr_valid) {
+		sockaddr_format(&client->peeraddr, peerbuf, sizeof peerbuf);
+		isc_log_write(ns_g_lctx, category, module, level,
+			      "client %s: %s", peerbuf, msgbuf);
+	} else {
+		isc_log_write(ns_g_lctx, category, module, level,
+			      "client @%p: %s", client, msgbuf);
+	}
+}
+
+void
+ns_client_log(ns_client_t *client, isc_logcategory_t *category,
+	   isc_logmodule_t *module, int level, const char *fmt, ...)
+{
+        va_list ap;
+	va_start(ap, fmt);
+	ns_client_logv(client, category, module, level, fmt, ap);
+	va_end(ap);
 }
 
