@@ -1048,7 +1048,7 @@ parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts)
 static isc_result_t
 parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
 {
-	isc_result_t res;
+	isc_result_t res = ISC_R_FAILURE;
 	char *servername = NULL;
 	char *keyname = NULL;
 	char *hostname = NULL;
@@ -1204,7 +1204,7 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server)
 static isc_result_t
 parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys)
 {
-	isc_result_t res;
+	isc_result_t res = ISC_R_FAILURE;
 	dns_c_ndcctx_t *ctx = pctx->thecontext;
 	dns_c_kdef_t *key = NULL;
 	isc_mem_t *mem;
