@@ -673,6 +673,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->trace = showallsoa;
 	lookup->trace_root = ISC_FALSE;
 	lookup->tcp_mode = tcpmode;
+	lookup->new_search = ISC_TRUE;
 	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;

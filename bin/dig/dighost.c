@@ -276,6 +276,7 @@ dig_lookup_t
 	looknew->section_answer = lookold->section_answer;
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
+	looknew->new_search = ISC_FALSE;
 	ISC_LIST_INIT(looknew->my_server_list);
 	ISC_LIST_INIT(looknew->q);
 
@@ -764,6 +765,8 @@ setup_lookup(dig_lookup_t *lookup) {
 				    &lookup->sendmsg);
 	check_result(result, "dns_message_create");
 
+	if (lookup->new_search)
+		lookup_counter = 0;
 
 	result = dns_message_gettempname(lookup->sendmsg, &lookup->name);
 	check_result(result, "dns_message_gettempname");

@@ -74,7 +74,8 @@ struct dig_lookup {
 		section_question,
 		section_answer,
 		section_authority,
-		section_additional;
+		section_additional,
+		new_search;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */

@@ -203,9 +203,8 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 
 }
 
-isc_result_t
+static isc_result_t
 say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
-	isc_region_t r, r2;
 	isc_result_t result;
 	isc_uint64_t diff;
 	isc_time_t now;
@@ -233,7 +232,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 	     isc_buffer_t *buf, dig_query_t *query)
 {
@@ -241,13 +240,13 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 	dns_rdataset_t *rdataset;
 	isc_buffer_t target;
 	isc_result_t result, loopresult;
-	isc_region_t r;
 	dns_name_t empty_name;
 	char t[4096];
 	isc_boolean_t first;
-	isc_boolean_t no_rdata;
 	dns_rdata_t rdata;
 	
+	UNUSED (flags);
+
 	dns_name_init(&empty_name, NULL);
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	if (result == ISC_R_NOMORE)
@@ -962,6 +961,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->section_answer = section_answer;
 			lookup->section_authority = section_authority;
 			lookup->section_additional = section_additional;
+			lookup->new_search = ISC_TRUE;
 			ISC_LIST_INIT(lookup->q);
 			lookup->origin = NULL;
 			ISC_LIST_INIT(lookup->my_server_list);
@@ -1019,6 +1019,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->section_answer = section_answer;
 			lookup->section_authority = section_authority;
 			lookup->section_additional = section_additional;
+			lookup->new_search = ISC_TRUE;
 			ISC_LIST_INIT(lookup->q);
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			lookup->origin = NULL;
@@ -1086,6 +1087,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->section_answer = section_answer;
 		lookup->section_authority = section_authority;
 		lookup->section_additional = section_additional;
+		lookup->new_search = ISC_TRUE;
 		ISC_LIST_INIT(lookup->q);
 		ISC_LIST_INIT(lookup->my_server_list);
 		strcpy(lookup->textname, ".");

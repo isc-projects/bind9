@@ -665,6 +665,7 @@ addlookup(char *opt) {
 	lookup->section_answer = section_answer;
 	lookup->section_authority = section_authority;
 	lookup->section_additional = section_additional;
+	lookup->new_search = ISC_TRUE;
 	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;
