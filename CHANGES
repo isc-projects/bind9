@@ -1,3 +1,6 @@
+1654.	[bug]		isc_result_totext() contained array bounds read
+			error.
+
 1650.	[bug]		dig, nslookup: flush standard out after each command.
 
 1649.	[bug]		Silence "unexpected non-minimal diff" message.
