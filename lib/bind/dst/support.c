@@ -1,4 +1,4 @@
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.1 2001/03/29 06:31:33 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.2 2001/04/03 00:48:09 bwelling Exp $";
 
 
 /*
@@ -33,62 +33,6 @@ static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/
 #include "dst_internal.h"
 
 #include "port_after.h"
-/*
- * dst_s_conv_bignum_u8_to_b64
- *	This function converts binary data stored as a u_char[] to a
- *	base-64 string.  Leading zeroes are discarded.  If a header is
- *	supplied, it is prefixed to the input prior to encoding.  The
- *	output is \n\0 terminated (the \0 is not included in output length).
- * Parameters
- *     out_buf   binary data to convert
- *     header    character string to prefix to the output (label)
- *     bin_data  binary data
- *     bin_len   size of binary data
- * Return
- *     -1     not enough space in output work area
- *	0     no output
- *     >0     number of bytes written to output work area
- */
-
-int
-dst_s_conv_bignum_u8_to_b64(char *out_buf, const int out_len,
-			    const char *header, const u_char *bin_data,
-			    const int bin_len)
-{
-	const u_char *bp = bin_data;
-	char *op = out_buf;
-	int lenh = 0, len64 = 0;
-	int local_in_len = bin_len;
-	int local_out_len = out_len;
-
-	if (bin_data == NULL || bin_len <= 0)	/* no data no */
-		return (0);
-
-	if (out_buf == NULL || out_len <= 0)	/* no output_work area */
-		return (-1);
-
-	/* suppress leading \0  */
-	for (; (*bp == 0x0) && (local_in_len > 0); local_in_len--)
-		bp++;
-
-	if (header) {		/* add header to output string */
-		lenh = strlen(header);
-		if (lenh < out_len)
-			memcpy(op, header, lenh);
-		else
-			return (-1);
-		local_out_len -= lenh;
-		op += lenh;
-	}
-	len64 = b64_ntop(bp, local_in_len, op, local_out_len - 2);
-	if (len64 < 0)
-		return (-1);
-	op += len64++;
-	*(op++) = '\n';		/* put CR in the output */
-	*op = '\0';		/* make sure output is 0 terminated */
-	return (lenh + len64);
-}
-
 
 /*
  * dst_s_verify_str()
@@ -120,59 +64,6 @@ dst_s_verify_str(const char **buf, const char *str)
 	(*buf) += s;		/* advance pointer */
 	return (1);
 }
-
-
-/*
- * dst_s_conv_bignum_b64_to_u8
- *     Read a line of base-64 encoded string from the input buffer,
- *     convert it to binary, and store it in an output area.  The
- *     input buffer is read until reaching a newline marker or the
- *     end of the buffer.  The binary data is stored in the last X
- *     number of bytes of the output area where X is the size of the
- *     binary output.  If the operation is successful, the input buffer
- *     pointer is advanced.  This procedure does not do network to host
- *     byte order conversion.
- * Parameters
- *     buf     Pointer to encoded input string. Pointer is updated if
- *	   function is successfull.
- *     loc     Output area.
- *     loclen  Size in bytes of output area.
- * Return
- *	>0      Return = number of bytes of binary data stored in loc.
- *	 0      Failure.
- */
-
-int
-dst_s_conv_bignum_b64_to_u8(const char **buf, u_char *loc, const int loclen)
-{
-	int blen;
-	char *bp;
-	u_char bstr[RAW_KEY_SIZE];
-
-	if (buf == NULL || *buf == NULL) {	/* error checks */
-		EREPORT(("dst_s_conv_bignum_b64_to_u8: null input buffer.\n"));
-		return (0);
-	}
-	bp = strchr(*buf, '\n');	/* find length of input line */
-	if (bp != NULL)
-		*bp = (u_char) NULL;
-
-	blen = b64_pton(*buf, bstr, sizeof(bstr));
-	if (blen <= 0) {
-		EREPORT(("dst_s_conv_bignum_b64_to_u8: decoded value is null.\n"));
-		return (0);
-	}
-	else if (loclen < blen) {
-		EREPORT(("dst_s_conv_bignum_b64_to_u8: decoded value is longer than output buffer.\n"));
-		return (0);
-	}
-	if (bp)
-		*buf = bp;	/* advancing buffer past \n */
-	memset(loc, 0, loclen - blen);	/* clearing unused output area */
-	memcpy(loc + loclen - blen, bstr, blen);	/* write last blen bytes  */
-	return (blen);
-}
-
 
 /*
  * dst_s_calculate_bits

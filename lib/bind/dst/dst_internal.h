@@ -116,14 +116,6 @@ int dst_cylink_init(void);
 
 int dst_eay_dss_init(void);
 
-/* support functions */
-/* base64 to bignum conversion routines */
-int       dst_s_conv_bignum_u8_to_b64( char *out_buf, const int out_len, 
-			               const char *header,
-				       const u_int8_t *bin_data,
-				       const int bin_len);
-int       dst_s_conv_bignum_b64_to_u8( const char **buf, u_int8_t *loc,
-				       const int loclen) ;
 /* from higher level support routines */
 int       dst_s_calculate_bits( const u_int8_t *str, const int max_bits); 
 int       dst_s_verify_str( const char **buf, const char *str);
