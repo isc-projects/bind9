@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.85 2002/08/12 18:25:25 mayer Exp $ */
+/* $Id: host.c,v 1.86 2002/09/20 06:26:10 jinmei Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -54,6 +54,7 @@ extern char *progname;
 extern isc_task_t *global_task;
 
 static isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
+static int seen_error = -1;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -344,9 +345,16 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_rdataset_t *opt, *tsig = NULL;
 	dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
+	int force_error;
 
 	UNUSED(headers);
 
+	/*
+	 * We get called multiple times.
+	 * Preserve any existing error status.
+	 */
+	force_error = (seen_error == 1) ? 1 : 0;
+	seen_error = 1;
 	if (listed_server) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
@@ -465,7 +473,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				     sizeof(typestr));
 		printf("%s has no %s record\n", namestr, typestr);
 	}
-
+	seen_error = force_error;
 	return (result);
 }
 
@@ -629,6 +637,6 @@ main(int argc, char **argv) {
 	cancel_all();
 	destroy_libs();
 	isc_app_finish();
-	return (0);
+	return ((seen_error == 0) ? 0 : 1);
 }
 
