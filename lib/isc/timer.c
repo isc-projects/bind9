@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.68 2002/09/08 18:35:55 explorer Exp $ */
+/* $Id: timer.c,v 1.69 2002/09/09 06:01:06 marka Exp $ */
 
 #include <config.h>
 
@@ -788,7 +788,13 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 
 void
 isc_timermgr_poke(isc_timermgr_t *manager) {
+#ifdef ISC_PLATFORM_USETHREADS
+	REQUIRE(VALID_MANAGER(manager));
+
 	SIGNAL(&manager->wakeup);
+#else
+	UNUSED(manager);
+#endif
 }
 
 void
