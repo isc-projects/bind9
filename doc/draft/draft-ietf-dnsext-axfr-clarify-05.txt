@@ -1,7 +1,9 @@
 
+
+
 INTERNET-DRAFT                                      Andreas Gustafsson
-draft-ietf-dnsext-axfr-clarify-04.txt                     Nominum Inc.
-                                                            March 2002
+draft-ietf-dnsext-axfr-clarify-05.txt                     Nominum Inc.
+                                                         November 2002
 
 
                DNS Zone Transfer Protocol Clarifications
@@ -50,9 +52,9 @@ Abstract
 
 
 
-Expires September 2002                                          [Page 1]
+Expires May 2003                                                [Page 1]
 
-draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
+draft-ietf-dnsext-axfr-clarify-05.txt                      November 2002
 
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
@@ -106,9 +108,9 @@ draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
 
 
 
-Expires September 2002                                          [Page 2]
+Expires May 2003                                                [Page 2]
 
-draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
+draft-ietf-dnsext-axfr-clarify-05.txt                      November 2002
 
 
    DNS message size.  In the case of a small zone, this can cause the
@@ -162,9 +164,9 @@ draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
 
 
 
-Expires September 2002                                          [Page 3]
+Expires May 2003                                                [Page 3]
 
-draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
+draft-ietf-dnsext-axfr-clarify-05.txt                      November 2002
 
 
    any combination of messages with and without a question section.
@@ -218,9 +220,9 @@ draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
 
 
 
-Expires September 2002                                          [Page 4]
+Expires May 2003                                                [Page 4]
 
-draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
+draft-ietf-dnsext-axfr-clarify-05.txt                      November 2002
 
 
    send, and slave implementations expect to receive, the zone's SOA RR
@@ -274,9 +276,9 @@ References
 
 
 
-Expires September 2002                                          [Page 5]
+Expires May 2003                                                [Page 5]
 
-draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
+draft-ietf-dnsext-axfr-clarify-05.txt                      November 2002
 
 
    [RFC1035] - Domain Names - Implementation and Specifications, P.
@@ -330,9 +332,9 @@ Full Copyright Statement
 
 
 
-Expires September 2002                                          [Page 6]
+Expires May 2003                                                [Page 6]
 
-draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
+draft-ietf-dnsext-axfr-clarify-05.txt                      November 2002
 
 
    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
@@ -386,5 +388,6 @@ draft-ietf-dnsext-axfr-clarify-04.txt                         March 2002
 
 
 
-Expires September 2002                                          [Page 7]
+Expires May 2003                                                [Page 7]
 
+
