@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.28 2000/04/28 17:29:25 explorer Exp $ */
+/* $Id: log.c,v 1.29 2000/05/03 21:09:33 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -153,7 +153,12 @@ struct isc_log {
  * Used when ISC_LOG_PRINTLEVEL is enabled for a channel.
  */
 static const char *log_level_strings[] = {
-	"debug", "info", "notice", "warning", "error", "critical"
+	"debug",
+	"info",
+	"notice",
+	"warning",
+	"error",
+	"critical"
 };
 
 /*
@@ -161,7 +166,12 @@ static const char *log_level_strings[] = {
  * XXXDCL This will need modification for NT.
  */
 static const int syslog_map[] = {
-	LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING, LOG_ERR, LOG_CRIT
+	LOG_DEBUG,
+	LOG_INFO,
+	LOG_NOTICE,
+	LOG_WARNING,
+	LOG_ERR,
+	LOG_CRIT
 };
 
 /*
@@ -179,11 +189,24 @@ isc_logcategory_t isc_categories[] = {
 };
 
 /*
+ * See above comment for categories, and apply it to modules.
+ */
+isc_logmodule_t isc_modules[] = {
+	{ "socket", 0 },
+	{ NULL, 0 }
+};
+
+/*
  * This essentially constant structure must be filled in at run time,
  * because its channel member is pointed to a channel that is created
  * dynamically with isc_log_createchannel.
  */
 static isc_logchannellist_t default_channel;
+
+/*
+ * libisc logs to this context.
+ */
+isc_log_t *isc_lctx = NULL;
 
 /*
  * Forward declarations.
@@ -255,6 +278,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 		lctx->magic = LCTX_MAGIC;
 
 		isc_log_registercategories(lctx, isc_categories);
+		isc_log_registermodules(lctx, isc_modules);
 		result = isc_logconfig_create(lctx, &lcfg);
 
 	} else
@@ -784,6 +808,14 @@ isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 	 * Contract checking is done in isc_log_doit().
 	 */
 	isc_log_doit(lctx, category, module, level, ISC_TRUE, format, args);
+}
+
+void
+isc_log_setcontext(isc_log_t *lctx)
+{
+	REQUIRE(isc_lctx == NULL);
+
+	isc_lctx = lctx;
 }
 
 void

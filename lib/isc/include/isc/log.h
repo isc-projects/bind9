@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.18 2000/04/28 00:36:55 tale Exp $ */
+/* $Id: log.h,v 1.19 2000/05/03 21:09:34 explorer Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -119,18 +119,24 @@ typedef union isc_logdestination {
 } isc_logdestination_t;
 
 /*
- * The built-in categories of libisc.a.  Currently only one is available,
- * the category named "default".
+ * The built-in categories of libisc.
  *
  * Each library registering categories should provide library_LOGCATEGORY_name
  * definitions with indexes into its isc_logcategory structure corresponding to
- * the order of the names.  This should also be done for modules, but currently
- * libisc.a has no defined modules.
+ * the order of the names.
  */
 extern isc_logcategory_t isc_categories[];
+extern isc_log_t *isc_lctx;
+extern isc_logmodule_t isc_modules[];
 
+/*
+ * Do not log directly to DEFAULT.  Use another category.  When in doubt,
+ * use GENERAL.
+ */
 #define ISC_LOGCATEGORY_DEFAULT	(&isc_categories[0])
 #define ISC_LOGCATEGORY_GENERAL	(&isc_categories[1])
+
+#define ISC_LOGMODULE_SOCKET (&isc_modules[0])
 
 isc_result_t
 isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
@@ -742,6 +748,16 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name);
  *	A pointer to the _first_ isc_logmodule_t structure used by "name".
  *
  *	NULL if no module exists by that name.
+ */
+
+void
+isc_log_setcontext(isc_log_t *lctx);
+/*
+ * Sets the context used by the libisc for logging.
+ *
+ * Requires:
+ *	lctx be a valid context.
+ *	This function must not have been previously called.
  */
 
 ISC_LANG_ENDDECLS
