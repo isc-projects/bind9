@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.42 2001/02/24 23:05:07 bwelling Exp $ */
+/* $Id: config.h.in,v 1.43 2001/07/04 00:34:41 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -92,6 +92,9 @@
 /* define if flockfile() is available */
 #undef HAVE_FLOCKFILE
 
+/* define if getc_unlocked() is available */
+#undef HAVE_GETCUNLOCKED
+
 /* define if rlim_t is defined via sys/types.h or sys/resource.h */
 #undef HAVE_RLIM_T
 
@@ -131,6 +134,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if pthread_attr_getstacksize() is available */
 #undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
+
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
 
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H

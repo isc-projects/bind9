@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.33 2001/01/18 22:21:22 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.34 2001/07/04 00:34:40 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -80,6 +80,9 @@
 
 /* define if flockfile() is available */
 #undef HAVE_FLOCKFILE
+
+/* define if getc_unlocked() is available */
+#undef HAVE_GETCUNLOCKED
 
 /* define if rlim_t is defined via sys/types.h or sys/resource.h */
 #undef HAVE_RLIM_T

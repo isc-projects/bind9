@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.265 $)
+AC_REVISION($Revision: 1.266 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -650,9 +650,11 @@ AC_SUBST(ISC_THREAD_DIR)
 
 #
 # flockfile is usually provided by pthreads, but we may want to use it
-# even if compiled with --disable-threads.
+# even if compiled with --disable-threads.  getc_unlocked might also not
+# be defined.
 #
 AC_CHECK_FUNC(flockfile, AC_DEFINE(HAVE_FLOCKFILE),)
+AC_CHECK_FUNC(getc_unlocked, AC_DEFINE(HAVE_GETCUNLOCKED),)
 
 # 
 # Indicate what the final decision was regarding threads.

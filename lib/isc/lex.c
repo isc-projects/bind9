@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.63 2001/06/04 19:33:22 tale Exp $ */
+/* $Id: lex.c,v 1.64 2001/07/04 00:34:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -427,7 +427,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			if (source->is_file) {
 				stream = source->input;
 
-#ifdef HAVE_FLOCKFILE
+#if defined(HAVE_FLOCKFILE) && defined(HAVE_GETCUNLOCKED)
 				c = getc_unlocked(stream);
 #else
 				c = getc(stream);
