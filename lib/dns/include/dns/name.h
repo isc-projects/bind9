@@ -190,7 +190,7 @@ struct dns_name {
 	unsigned char *			offsets;
 	isc_buffer_t *			buffer;
 	ISC_LINK(dns_name_t)		link;
-	ISC_LIST(dns_rdatalist_t)	list;
+	ISC_LIST(dns_rdataset_t)	list;
 };
 
 #define DNS_NAMEATTR_ABSOLUTE		0x01
