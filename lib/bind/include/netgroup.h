@@ -1,5 +1,6 @@
 #ifndef netgroup_h
 #define netgroup_h
+#ifndef __GLIBC__
 
 /*
  * The standard is crazy.  These values "belong" to getnetgrent() and
@@ -15,5 +16,5 @@ void setnetgrent __P((const char *));
 void endnetgrent __P((void));
 
 int innetgr __P((const char *, const char *, const char *, const char *));
-
+#endif
 #endif
