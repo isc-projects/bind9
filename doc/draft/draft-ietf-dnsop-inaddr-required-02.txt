@@ -1,9 +1,17 @@
+
+
+
+
+
+
 INTERNET-DRAFT                                                  D. Senie
 Category: BCP                                     Amaranth Networks Inc.
-Expires in six months                                      February 2001
+Expires in six months                                          July 2001
 
                      Requiring DNS IN-ADDR Mapping
-                  draft-ietf-dnsop-inaddr-required-01.txt
+               draft-ietf-dnsop-inaddr-required-02.txt.
+
+
 
 Status of this Memo
 
@@ -26,8 +34,12 @@ Status of this Memo
    time. It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   To view the list Internet-Draft Shadow Directories, see
-   http://www.ietf.org/shadow.html.
+     The list of current Internet-Drafts can be accessed at
+     http://www.ietf.org/1id-abstracts.html
+
+     The list of Internet-Draft Shadow Directories can be accessed at
+     http://www.ietf.org/shadow.html.
+
 
 Copyright Notice
 
@@ -56,7 +68,7 @@ Senie                                                           [Page 1]
 
 
 
-Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
+Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
 
 
    From the early days of the Domain Name Service [RFC 883] a special
@@ -116,7 +128,7 @@ Senie                                                           [Page 2]
 
 
 
-Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
+Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
 
 
    export of that software is prohibited to some locales.  Credit card
@@ -137,7 +149,7 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
 
    Many web servers look up the IN-ADDR of visitors to be used in log
    analysis.  This adds to the server load, but in the case of IN-ADDR
-   unavailability, it can lead to delayed web page accesses for users.
+   unavailability, it can lead to delayed responses for users.
 
    Traceroutes with descriptive IN-ADDR naming proves useful when
    debugging problems spanning large areas. When this information is
@@ -146,27 +158,27 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
 
 4. Requirements
 
+   Applications SHOULD NOT rely on IN-ADDR for proper operation. The use
+   of IN-ADDR, sometimes in conjunction with a lookup of the name
+   resulting from the PTR record adds no real security, can lead to
+   erroneous results and generally just increases load on DNS servers.
+   Further, in cases where address block holders fail to properly
+   configure IN-ADDR, users of those blocks are penalized.
+
    All IP address space which is assigned and in use SHOULD be resolved
-   by IN-ADDR records. Internet providers and other users to whom a
-   block of addresses are delegated SHOULD provide for lookup of host
-   names from IP addresses. This may be provided directly or by
-   delegation to the user of the address block. The ISP is responsible
-   for one or the other. In the event of delegation, the user is
-   responsible for resolution.
+   by IN-ADDR records. All PTR records MUST use canonical names.
+
+   Internet providers and other users to whom a block of addresses are
+   delegated SHOULD provide for lookup of host names from IP addresses.
+   This may be provided directly or by delegation to the user of the
+   address block. The ISP is responsible for one or the other. In the
+   event of delegation, the user is responsible for resolution.
 
    Only IP addresses not presently in use within a block, or which are
    not valid for use (zeros or ones broadcast addresses) are permitted
    to have no mapping.  It should be noted that due to CIDR, many
    addresses which appear to be otherwise valid host addresses may
    actually be zeroes or ones broadcast addresses. As such, attempting
-   to audit a site's degree of compliance can only be done with a
-   knowledge of the internal routing structure of the site. However, any
-   host which originates an IP packet necessarily will have a valid host
-   address, and must therefore have an IN-ADDR mapping.
-
-   Regional Registries and any Local Registries to whom they delegate
-   SHOULD establish and convey a policy to those to whom they delegate
-   blocks that IN-ADDR mappings are required. Internet providers and end
 
 
 
@@ -176,15 +188,23 @@ Senie                                                           [Page 3]
 
 
 
-Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
+Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
 
 
+   to audit a site's degree of compliance can only be done with a
+   knowledge of the internal routing structure of the site. However, any
+   host which originates an IP packet necessarily will have a valid host
+   address, and must therefore have an IN-ADDR mapping.
+
+   Regional Registries and any Local Registries to whom they delegate
+   SHOULD establish and convey a policy to those to whom they delegate
+   blocks that IN-ADDR mappings are required. Internet providers and end
    users with address blocks must verify their own internal networks are
    properly represented in IN-ADDR records, either by providing that
    service themselves, or delegating it to others.
 
    Those to whom blocks have been delegated SHOULD convey a policy to
-   degegatees requiring that they too provide IN-ADDR records and
+   delegatees requiring that they too provide IN-ADDR records and
    require and delegations below to do the same. ISPs may wish to
    provide IN-ADDR records for their clients if the customers are unable
    to provide this for themselves.
@@ -195,6 +215,11 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
    argued that lack of PTR record capabilities provides a degree of
    anonimity, this is really not valid. Trace routes, whois lookups and
    other sources will still provide methods for discovering identity.
+
+   By recommending applications avoid using IN-ADDR as a security
+   mechanism this document points out that this practice, despite its
+   use by many applications, is an ineffective form of security.
+   Applications should use better mechanisms of authentication.
 
 6. References
 
@@ -214,6 +239,18 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
    [RFC2050] K. Hubbard, et. al., "Internet Registry IP Allocation
    Guidelines", RFC2050, BCP 12, Novebmer 1996.
 
+
+
+
+Senie                                                           [Page 4]
+
+
+
+
+
+Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
+
+
    [ARIN] "ISP Guidelines for Requesting Initial IP Address Space," date
    unknown, http://www.arin.net/regserv/initial-isp.html
 
@@ -226,18 +263,6 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
 
 
 7. Acknowledgements
-
-
-
-
-Senie                                                           [Page 4]
-
-
-
-
-
-Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
-
 
    Thanks to Peter Koch and Gary Miller for their input, and to many
    people who encouraged me to write this document.
@@ -277,17 +302,6 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping        February 2001
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 Senie                                                           [Page 5]
+
+

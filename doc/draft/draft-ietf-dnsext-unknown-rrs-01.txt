@@ -1,6 +1,6 @@
 INTERNET-DRAFT                                       Andreas Gustafsson
-draft-ietf-dnsext-unknown-rrs-00.txt                       Nominum Inc.
-                                                          November 2000
+draft-ietf-dnsext-unknown-rrs-01.txt                       Nominum Inc.
+                                                              July 2001
 
 
                     Handling of Unknown DNS RR Types
@@ -49,9 +49,9 @@ Abstract
 
 
 
-Expires May 2001                                                [Page 1]
+Expires January 2002                                            [Page 1]
 
-draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
+draft-ietf-dnsext-unknown-rrs-01.txt                           July 2001
 
 
    fully realized.  This memo proposes changes to name servers and to
@@ -67,12 +67,16 @@ draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
    In this document, a "well known" RR type means one defined in
    RFC1035.
 
-   An "RR of unknown type" is an RR type whose RDATA format is not known
-   to the DNS implementation at hand, and which therefore cannot be
-   converted to a type-specific text format, compressed, or otherwise
-   handled in any type-specific way.  This includes the case where the
-   RR's type is recognized but its RDATA format is class specific and
-   the RR is of a class for which the format is not known.
+   An "RR of unknown type" is an RR whose RDATA format is not known to
+   the DNS implementation at hand, such that it cannot be converted to a
+   type-specific text format, compressed, or otherwise handled in a
+   type-specific way, and whose type is not an assigned QTYPE or Meta-
+   TYPE in RFC2929 section 3.1 nor within the range reserved in that
+   section for assignment only to QTYPEs and Meta-TYPEs.
+
+   In the case of a type whose RDATA format is class specific, an RR is
+   considered to be of unknown type when the RDATA format for that
+   combination of type and class is not known.
 
 3. Transparency
 
@@ -98,18 +102,18 @@ draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
    type, and SHOULD also decompress RRs of type RP, AFSDB, RT, SIG, PX,
    NXT, NAPTR, and SRV (although the SRV RR is clearly defined to not
    allow compression of the target field, some existing name servers
+
+
+
+Expires January 2002                                            [Page 2]
+
+draft-ietf-dnsext-unknown-rrs-01.txt                           July 2001
+
+
    compress it anyway).
 
    Future specifications for new RR types that contain domain names
    within their RDATA MUST NOT allow the use of name compression for
-
-
-
-Expires May 2001                                                [Page 2]
-
-draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
-
-
    those names, and SHOULD explicitly state that the embedded domain
    names MUST NOT be compressed.
 
@@ -154,18 +158,18 @@ draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
    effectively treated as an unknown type for the purpose of parsing the
    RDATA text representation, all further processing by the server MUST
    treat it as a known type and take into account any applicable type-
+
+
+
+Expires January 2002                                            [Page 3]
+
+draft-ietf-dnsext-unknown-rrs-01.txt                           July 2001
+
+
    specific rules regarding compression, canonicalization, etc.
 
    The following are examples of RRs represented in this manner,
    illustrating various combinations of generic and type-specific
-
-
-
-Expires May 2001                                                [Page 3]
-
-draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
-
-
    encodings for the different fields of the master file format:
 
      a.example.   CLASS32     TYPE731         \# 6 abcd (
@@ -198,7 +202,7 @@ draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
    the canonical form, domain names embedded in the RDATA are converted
    to lower case.
 
-   To ensure backwards compatilbility, this canonical form remains
+   To ensure backwards compatibility, this canonical form remains
    unchanged for any RR types defined in RFC2931 or earlier.  That is,
    the domain names embedded in RRs of type NS, MD, MF, CNAME, SOA, MB,
    MG, MR, PTR, HINFO, MINFO, MX, HINFO, RP, AFSDB, RT, SIG, PX, NXT,
@@ -211,29 +215,28 @@ draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
    the octet sequence is the canonical form as revised by this
    specification.
 
+
+
+Expires January 2002                                            [Page 4]
+
+draft-ietf-dnsext-unknown-rrs-01.txt                           July 2001
+
+
 8. Additional Section Processing
 
    Unknown RR types cause no additional section processing.  Future RR
-
-
-
-Expires May 2001                                                [Page 4]
-
-draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
-
-
    type specifications MAY specify type-specific additional section
    processing rules, but any such processing MUST be optional as it can
    only be performed by servers for which the RR type in case is known.
 
-   9. IANA Considerations
+9. IANA Considerations
 
    The IANA is hereby requested to verify that specifications for new RR
    types requesting an RR type number comply with this specification.
-   In particular, the IANA MUST NOT assign numbers to RR types whose
+   In particular, the IANA MUST NOT assign numbers to new RR types whose
    specification allows embedded domain names to be compressed.
 
-   10. Security Considerations
+10. Security Considerations
 
    This specification is not believed to cause any new security
    problems, nor to solve any existing ones.
@@ -250,10 +253,13 @@ References
    Requirement Levels", BCP 14, RFC 2119, March 1997.
 
    [RFC2136] Dynamic Updates in the Domain Name System (DNS UPDATE).  P.
-   Vixie, Ed., S. Thomson, Y. Rekhter, J. Bound. April 1997.
+   Vixie, Ed., S. Thomson, Y. Rekhter, J. Bound, April 1997.
 
-   [RFC2535] Domain Name System Security Extensions. D. Eastlake.  March
+   [RFC2535] Domain Name System Security Extensions. D. Eastlake, March
    1999.
+
+   [RFC2929] Domain Name System (DNS) IANA Considerations.  D. Eastlake,
+   E. Brunner-Williams, B. Manning, September 2000.
 
 Author's Address
 
@@ -263,22 +269,21 @@ Author's Address
    Redwood City, CA 94063
    USA
 
-   Phone: +1 650 779 6004
+   Phone: +1 650 381 6004
+
+
+
+Expires January 2002                                            [Page 5]
+
+draft-ietf-dnsext-unknown-rrs-01.txt                           July 2001
+
 
    Email: Andreas.Gustafsson@nominum.com
 
 
 Full Copyright Statement
 
-
-
-
-Expires May 2001                                                [Page 5]
-
-draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
-
-
-   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -324,10 +329,5 @@ draft-ietf-dnsext-unknown-rrs-00.txt                       November 2000
 
 
 
-
-
-
-
-
-Expires May 2001                                                [Page 6]
+Expires January 2002                                            [Page 6]
 

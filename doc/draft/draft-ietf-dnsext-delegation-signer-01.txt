@@ -1,0 +1,618 @@
+
+
+
+
+
+
+  DNSEXT Working Group                                Olafur Gudmundsson
+  INTERNET-DRAFT                                               July 2001
+  <draft-ietf-dnsext-delegation-signer-01.txt>
+
+  Updates: RFC 1035, RFC 2535, RFC 3008.
+
+
+                  Delegation Signer record in parent.
+
+
+Status of this Memo
+
+  This document is an Internet-Draft and is in full conformance with all
+  provisions of Section 10 of RFC2026.
+
+  Internet-Drafts are working documents of the Internet Engineering Task
+  Force (IETF), its areas, and its working groups.  Note that other
+  groups may also distribute working documents as Internet-Drafts.
+
+  Internet-Drafts are draft documents valid for a maximum of six months
+  and may be updated, replaced, or obsoleted by other documents at any
+  time.  It is inappropriate to use Internet-Drafts as reference
+  material or to cite them other than as ``work in progress.''
+
+  The list of current Internet-Drafts can be accessed at
+  http://www.ietf.org/ietf/1id-abstracts.txt
+
+  The list of Internet-Draft Shadow Directories can be accessed at
+  http://www.ietf.org/shadow.html
+
+  Comments should be sent to the authors or the DNSEXT WG mailing list
+  namedroppers@ops.ietf.org
+
+  This draft expires on January 15, 2002.
+
+  Copyright Notice
+
+  Copyright (C) The Internet Society (2001).  All rights reserved.
+
+
+
+Abstract
+
+  One of the biggest problems in DNS occur when records of the same type
+  can appear on both sides of an delegation. If the contents of these
+  sets differs clients can get confused.  RFC2535 KEY records follows
+  the same model as for NS records, parent is responsible for the
+  records but the child is responsible for the contents. This document
+
+
+
+Gudmundsson               Expires January 2002                  [Page 1]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+  proposes to store a different record in the parent that specifies
+  which one of the child's keys are authorized to sign the child's KEY
+  set. This change is not backwards compatible with RFC2535 but
+  simplifies DNSSEC operation.
+
+
+1 - Introduction
+
+  Familiarity with the DNS system [RFC1035], DNS security extensions
+  [RFC2535] and DNSSEC terminology [RFC3090] is important.
+
+  When the same data can reside in two administratively different DNS
+  zones sources it is common that the data gets out of sync. NS record
+  in a zone indicates that there is a delegation at this name and the NS
+  record lists the authorative servers for the real zone. Based on
+  actual measurements 10-30% of all delegations in the Internet have
+  differing NS sets at parent and child. There are number of reasons for
+  this, including lack of communication between parent and child and
+  bogus name-servers being listed to meet registrar requirements.
+
+  DNSSEC [RFC2535,RFC3008,RFC3090] specifies that child must have its
+  KEY set signed by the parent to create a verifiable chain of KEYs.
+  There is some debate, where the signed KEY set should reside,
+  parent[Parent] or child[RFC2535]. If the KEY set resides at the child,
+  frequent communication is needed between the two parties, to transmit
+  key sets up to parent and then the signed set or signatures down to
+  child. If the KEY set resides at the parent[Parent] the communication
+  is reduced having only child send updated key sets to parent.
+  DNSSEC[RFC2535] requires that the parent store NULL key set for
+  unsecure children, this complicates resolution process as in many
+  cases as servers for both parent and child need to be queried for KEY
+  set the [Parent] proposal simplifies this.
+
+  Further complication of the DNSSEC KEY model is that KEY record is
+  used to store DNS zone keys and public keys for other protocols. This
+  can lead to large key sets at delegation points. There are number of
+  potential problems with this including:
+  1. KEY set may become quite large if many applications/protocols store
+  their keys at the zone apex. Example of protocols are IPSEC, HTTP,
+  SMTP, SSH etc.
+  2. Key set may require frequent updates.
+  3. Probability of compromised/lost keys increases and triggers
+  emergency key rollover.
+  4. Parent may refuse sign key sets with NON DNS zone keys.
+  5. Parent may not have QoS on key changes that meets child's
+  expectations.
+
+
+
+
+
+Gudmundsson               Expires January 2002                  [Page 2]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+  Given these and other reasons there is good reason to explore
+  alternatives to using only KEY records to create chain of trust.
+
+  Some of these problems can be reduced or eliminated by operational
+  rules or protocol changes. To reduce the number of keys at apex, rule
+  to require applications to store their KEY records at the SRV name for
+  that application is one possibility. Another is to restrict KEY record
+  to DNS keys only and create a new type for all non DNS keys. Third
+  possible solution is to ban the storage of non DNS related keys at
+  zone apex. There are other possible solutions but they are outside the
+  scope of this document.
+
+1.1 - Delegation Signer Record model
+
+  This document proposes an alternative to the KEY record chain of
+  trust, that uses a special record that can only reside at the parent.
+  This record will identify the key(s) that child will use to self sign
+  its own KEY set.
+
+  The chain of trust is now established by verifying the parent KEY set,
+  the DS set from the parent and then the KEY set at the child. This is
+  cryptographically equivalent to just using KEY records.
+
+  Communication between the parent and child is reduced as the parent
+  only needs to know of changes in DNS zone KEY(s) used to sign the apex
+  KEY set. If other KEY records are stored at the zone apex, the parent
+  does not need to be aware of them.
+
+  This approach has the advantage that it minimizes the communication
+  between the parent and child and the child is the authority for the
+  KEY set with full control over the contents. This enables each to
+  operate and maintain each zone independent of each other. Thus if
+  child wants to have frequent key rollover for its DNS keys parent does
+  not need to be aware of it as the child can use one key to only sign
+  its apex KEY set and other keys to sign the other record sets in the
+  zone. The child can just as well use the same key to sign all records
+  in its zone.
+
+  Another advantage is that this model fits well with slow rollout of
+  DNSSEC and islands of security model. In the islands of security model
+  someone that trusts "good.example." preconfigures a key from
+  "good.example." as a trusted keys and from then on trusts any data
+  that is signed by that key or has a chain of trust to that key.  If
+  "example." starts advertising DS records "good.example." does not have
+  to change operations, by suspending self-signing. If DS records can
+  also be used to identify trusted keys instead of KEY records.
+
+
+
+
+
+Gudmundsson               Expires January 2002                  [Page 3]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+  The main disadvantage of this approach is double the number of
+  signatures that need to be verified for the each delegation KEY set.
+  There is no impact on verifying other record sets.
+
+
+1.2 - Reserved words
+
+  The key words "MUST", "MUST NOT", "SHOULD", and "MAY" in this document
+  are to be interpreted as described in RFC2119.
+
+
+
+2 - DS (Delegation KEY signer) record:
+
+2.1 Protocol change
+
+  DS record MUST only appear at secure delegations in the parent zone.
+  The record lists the child's keys that SHOULD sign the child's key
+  set.  Insecure delegation MUST NOT have a DS record, the presence of
+  DS record SHOULD be considered a hint that the child might be secure.
+  Resolver MUST only trust KEY records that match a DS record.
+  NOTE: It has been suggested that NULL DS record for insecure children
+  is better than no record. The advantage is to have authenticated
+  denial of child's security status, the drawback is for large
+  delegating zones there will be many NULL DS records. If parent uses
+  NXT records adding NXT record to the authority section in the cases
+  when no DS record exists at delegation will give the same result as
+  NULL DS record.
+  WG please comment on which approach is better.
+
+  Updates RFC2535 sections 2.3.4 and 3.4, as well as RFC3008 section
+  2.7: Delegating zones MUST NOT store KEY records for delegations. The
+  only records that can appear at delegation in parent are NS, SIG, NXT
+  and DS.
+
+  Zone MUST self sign its apex KEY set, it SHOULD sign it with a key
+  that corresponds to a DS record in the parent. The KEY used to sign
+  the apex KEY RRset CAN sign other RRsets in the zone.
+
+  If child apex KEY RRset is not signed with one of the keys specified
+  in the DS record the child is locally secure[RFC3090] and SHOULD only
+  be considered secure the resolver has been instructed to trust the key
+  used, via preconfiguration.
+
+  Authorative server answering a query, that has the OK bit set[OKbit],
+  MUST include the DS set in the additional section if the answer is a
+  referral and there is space. Caching servers SHOULD return the DS
+  record in the additional section under the same condition.
+
+
+
+Gudmundsson               Expires January 2002                  [Page 4]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+2.1.1 - Comments on protocol change
+
+  Over the years there has been various discussions on that the
+  delegation model in DNS is broken as there is no real good way to
+  assert if delegation exists. In RFC2535 version of DNSSEC the
+  authentication of a delegation is the NS bit in the NXT bitmap at the
+  delegation point. Something more explicit is needed and the DS record
+  addresses this for secure delegations.
+
+  DS record is the first DNS record to be only stored at the upper side
+  of a delegation. NS records appear at both sides as do SIG and NXT.
+  All other records can only appear at the lower side. This will cause
+  some problems as servers authorative for parent may reject DS record
+  even if the server understands unknown types, or not hand them out
+  unless explicitly asked. Similarly a nameserver acting as a
+  authorative for child and as a caching recursive server may never
+  return the DS record.  A caching server does not care from which side
+  DS record comes from and thus should not have to be changed if it
+  supports unknown types.  Different TTL values on the childs NS set and
+  parents DS set may cause the DS set to expire before the NS set. In
+  this case an non-DS aware server would ask the child server for the DS
+  set and get NXDOMAIN answer. DS aware server will know to ask the
+  parent for the DS record.
+
+  Secure resolvers need to know about the DS record and how to interpret
+  it.  In the worst case, introducing the DS record, doubles the
+  signatures that need to be checked to validate a KEY set.
+  Note: The working group must determine if the tradeoff between more
+  work in resolvers is justified by the operational simplification of
+  this model. The author think this is a small price to pay to have a
+  cleaner delegations structure. One argument put forward is that DNS
+  should be optimized for read when ever possible, and on the face of it
+  adding the DS record makes reading data from DNS more expensive. The
+  operational complexities and legal hurdles that KEY records in parents
+  or children make prevent DNSSEC to ever get deployed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gudmundsson               Expires January 2002                  [Page 5]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+2.2 Wire format of DS record
+
+  The DS record consists of algorithm, size, key tag and SHA-1 digest of
+  the public key KEY record allowed to sign the child's delegation.
+
+                          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |           key tag             |               size            |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  algorithm    |              SHA-1 digest                     |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                (20 bytes)                                     |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                                                               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+     |                                                               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+     |                                                               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+     |               |
+     +-+-+-+-+-+-+-+-+
+
+  The key tag is calculated as specified in RFC2535, the size is the
+  size of the public key in bits as specified in the document specifying
+  the algorithm. Algorithm MUST be an algorithm number assigned in the
+  range 1..251.  The SHA-1 digest is calculated over the canonical name
+  of the delegation followed by the RDATA of the KEY record.
+  The size of the DS RDATA is 25 bytes, regardless of the key size.
+  NOTE: if 160 bits is to large the SHA-1 digest can be shortened but
+  that weakens the overall security of the system.
+
+2.2.1 Justifications for fields
+
+  The algorithm and size fields are here to allow resolvers to quickly
+  identify the candidate KEY records to examine. Key Tag is to allow
+  quick check if this is a good candidate.  The key tag is redundant but
+  provides some greater assurance than SHA-1 digest on its own. SHA-1 is
+  a strong cryptographic checksum, it is hard for attacker to generate a
+  KEY record that has the same SHA-1 digest. Making sure that the KEY
+  record is a valid public key is much harder. Combining the name of the
+  key and the key data as input to the digest provides stronger
+  assurance of the binding.  Combining the SHA-1 with the other fields
+  makes the task of the attacker is as hard breaking the public key.
+  Even if someone creates a database of all SHA-1 key hashes seen so
+  far, the addition of the name renders that database useless for
+  attacks against random zones.
+
+
+
+
+Gudmundsson               Expires January 2002                  [Page 6]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+2.3 Presentation format of DS record
+
+  The presentation format of DS record consists of 2 numbers, followed
+  by either the name of the signature algorithm or the algorithm number.
+  The digest is to be presented in hex.
+
+2.4 Justifications for compact format
+
+  This format allows concise representation of the keys that child will
+  use, thus keeping down the size of the answer for the delegation,
+  reducing the probability of packet overflow. The SHA-1 hash is strong
+  enough to uniquely identify the key. This is similar to the PGP
+  footprint.
+
+  Each DS record has RDATA size of 25, regardless of the size of the
+  keys, keeping the answers from the parent smaller than if public key
+  was used. The smallest currently defined KEY record RDATA is 70 bytes.
+
+  Compact DS format is also better suited to list trusted keys for
+  islands of security in configuration files.
+
+2.5 Transition issues for installed base
+
+  RFC2535 compliant resolver will assume that all DS secured delegations
+  are locally secure. This is a bad thing, thus it might be necessary
+  for a transition period to support both DS and SIG@Child. The cost is
+  one more signatures in the answer and that early adopters have to
+  cumbersome communications that DS is supposed to solve.
+
+  Resolvers will not get confused as they will select signatures with
+  the KEY they trust and ignore the other one.
+
+3 Resolver Example
+
+  To create a chain of trust resolver goes from trusted KEY to DS to
+  KEY.
+
+  Assume the key for domain example. is trusted.  In zone "example." we
+  have
+  example.        KEY     <stuff>
+  secure.example. DS      tag=12345 size=1024 alg=dsa <foofoo>
+  secure.example. NS      ns1.secure.example.
+                  NS      ns1.secure.example. s
+  secure.example. NXT     NS SIG NXT DS tail.example.
+  secure.example. SIG(NXT)
+  secure.example. SIG(DS)
+
+
+
+
+
+Gudmundsson               Expires January 2002                  [Page 7]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+  In zone "secure.example." we have
+  secure.example. SOA      <soa stuff>
+  secure.example. NS       ns1.secure.example.
+                  NS       ns1.secure.example.
+  secure.example. KEY      <tag=12345 size=1024 alg=dsa>
+                  KEY      <tag=54321 size=512 alg=rsa/sha1>
+                  KEY      <tag=32145 size=1024 alg=dsa>
+  secure.example. SIG(KEY) <key-tag=12345 size=1024 alg=dsa>
+  secure.example. SIG(SOA) <key-tag=54321 size=512 alg=rsa/sha1>
+  secure.example. SIG(NS)  <key-tag=54321 size=512 alg=rsa/sha1>
+
+  In this example the trusted key for example signs the DS record for
+  "secure.example.", making that a trusted record. The DS record states
+  what key is supposed to sign the KEY record at secure.example.  In
+  this example "secure.example." has three different KEY records and the
+  one corresponding to the KEY identified in the DS record signs the KEY
+  set, thus the key set is validated and trusted.  Note that one of the
+  other keys in the keyset actually signs the zone data, and resolvers
+  will trust the signatures as the key appears in the KEY set.
+
+  This example has only one DS record for the child but there no reason
+  to outlaw multiple DS records. More than one DS record is needed
+  during signing key rollover. It is strongly recommended that the DS
+  set be kept small.
+
+3.1 Resolver cost estimates for DS records
+
+  From a RFC2535 resolver point of view for each delegation followed to
+  chase down an answer one KEY record has to be verified and possibly
+  some other records based on policy, for example the contents of the NS
+  set. Once the resolver gets to the appropriate delegation validating
+  the answer may require verifying one or more signatures. For a simple
+  A record lookup requires at least N delegations to be verified and 1
+  RRset. For a DS enabled resolver the cost is 2N+1.  For MX record the
+  cost where the target of the MX record is in the same zone as the MX
+  record the costs are N+2 and 2N+2. In the case of negative answer the
+  same holds ratios hold true.
+  Resolver may require an extra query to get the DS record but and this
+  may add to the overall cost of the query, but this is never worse than
+  chasing down NULL KEY records from the parent in RFC2535 DNSSEC.
+  DS adds processing overhead on resolvers, increases the size of
+  delegation answers. DS requires much less storage in large delegation
+  zones than SIG@Parent.
+
+
+
+
+
+
+
+
+Gudmundsson               Expires January 2002                  [Page 8]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+4 Acknowledgments
+
+
+  Number of people have over the last few years contributed number of
+  ideas that are captured in this document. The core idea of using one
+  key to that has only the role of signing a key set, comes from
+  discussions with Bill Manning and Perry Metzger on how to put in a
+  single root key in all resolver that lives for a long time.  Brian
+  Wellington, Dan Massey, Edward Lewis, Havard Eidnes, Jakob Schlyter,
+  Mark Kosters, Miek Gieben, Roy Arens, Scott Rosen have provided
+  usefull comments.
+
+4 - Security Considerations:
+
+  This document proposes a change to the validation chain of KEY records
+  in DNS. The change in is not believed to reduce security in the
+  overall system, in RFC2535 DNSSEC child must communicate keys to
+  parent and prudent parents will require some authentication on that
+  handshake. The modified protocol will require same authentication but
+  allows the child to exert more local control over its own KEY set.
+
+  In the representation of DS record, there is a possibility that an
+  attacker can generate an valid KEY that matches all the checks thus
+  starting to forge data from the child. This is considered impractical
+  as on average more than 2**80 keys must be generated before one is
+  found that will match.
+
+  DS record is a change to DNSSEC protocol and there is some installed
+  base of implementations, as well as text books on how to set up
+  secured delegations. Implementations that do not understand DS record
+  will not be able to follow the KEY to DS to KEY chain and consider all
+  zone secured that way insecure.
+
+5 - IANA Considerations:
+
+  IANA needs to allocate RR type code for DS from the standard RR type
+  space.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gudmundsson               Expires January 2002                  [Page 9]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+References:
+
+[RFC1035]  P. Mockapetris, ``Domain Names - Implementation and
+           Specification'', STD 13, RFC 1035, November 1987.
+
+
+[RFC2535]  D. Eastlake, ``Domain Name System Security Extensions'', RFC
+           2535, March 1999.
+
+[RFC3008]  B. Wellington, ``Domain Name System Security (DNSSEC) Signing
+           Authority'', RFC 3008, November 2000.
+
+[RFC3090]  E. Lewis `` DNS Security Extension Clarification on Zone
+           Status'', RFC 3090, March 2001.
+
+[OKbit]    D. Conrad, ``Indicating Resolver Support of DNSSEC'', work in
+           progress <draft-ietf-dnsext-dnssec-okbit-02.txt>, April 2001.
+
+[Parent]   R. Gieben, T. Lindgreen, ``Parent stores the child's zone
+           KEYs'', work in progress <draft-ietf-dnsext-parent-stores-
+           zones-keys-01.txt>, May 2001.
+
+Author Address
+
+     Olafur Gudmundsson
+     3826 Legation Street, NW
+     Washington, DC,  20015
+     USA
+     <ogud@ogud.com>
+
+Appendix A: Changes from Prior versions
+
+Changes from version 00
+  Changed name from DK to DS based on working group comments.
+  Dropped verbose format based on WG comments.
+  Added text about TTL issue/problem in caching servers.
+  Added text about islands of security and clarified the cost impact.
+  Major editing of arguments and some reordering of text for clarity.
+  Added section on transition issues.
+
+
+
+
+
+
+
+
+
+
+
+
+Gudmundsson               Expires January 2002                 [Page 10]
+
+INTERNET-DRAFT          Delegation Signer Record               July 2001
+
+
+Full Copyright Statement
+
+  Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+  This document and translations of it may be copied and furnished to
+  others, and derivative works that comment on or otherwise explain it
+  or assist in its implementation may be prepared, copied, published and
+  distributed, in whole or in part, without restriction of any kind,
+  provided that the above copyright notice and this paragraph are
+  included on all such copies and derivative works.  However, this
+  document itself may not be modified in any way, such as by removing
+  the copyright notice or references to the Internet Society or other
+  Internet organizations, except as needed for the purpose of developing
+  Internet standards in which case the procedures for copyrights defined
+  in the Internet Standards process must be followed, or as required to
+  translate it into languages other than English.
+
+  The limited permissions granted above are perpetual and will not be
+  revoked by the Internet Society or its successors or assigns.
+
+  This document and the information contained herein is provided on an
+  "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+  TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT
+  NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN
+  WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+  MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gudmundsson               Expires January 2002                 [Page 11]

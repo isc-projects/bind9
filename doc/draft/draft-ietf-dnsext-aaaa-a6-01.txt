@@ -1,11 +1,13 @@
 
+
+
 Internet Engineering Task Force                 Jun-ichiro itojun Hagino
 INTERNET-DRAFT                                   IIJ Research Laboratory
-Expires: November 27, 2001                                  May 27, 2001
+Expires: January 19, 2002                                  July 19, 2001
 
 
            Comparison of AAAA and A6 (do we really need A6?)
-                    draft-ietf-dnsext-aaaa-a6-00.txt
+                    draft-ietf-dnsext-aaaa-a6-01.txt
 
 Status of this Memo
 
@@ -22,26 +24,23 @@ and may be updated, replaced, or obsoleted by other documents at any
 time.  It is inappropriate to use Internet-Drafts as reference material
 or to cite them other than as ``work in progress.''
 
-     The list of current Internet-Drafts can be accessed at
-     http://www.ietf.org/1id-abstracts.html
-
-     The list of Internet-Draft Shadow Directories can be accessed at
-     http://www.ietf.org/shadow.html.
+To view the list Internet-Draft Shadow Directories, see
+http://www.ietf.org/shadow.html.
 
 Distribution of this memo is unlimited.
 
 The internet-draft will expire in 6 months.  The date of expiration will
-be November 27, 2001.
+be January 19, 2002.
 
 
 Abstract
 
-At this moment, there are two resource record types defined for holding
-IPv6 address in the DNS database; AAAA [Thomson, 1995] and A6 [Crawford,
-2000] .  AAAA has been used for IPv6 network operation since 1996.
-Questions arose whether we really need A6 or not, or whether it is
-really possible to migrate to A6 or not.  Some says AAAA is enough and
-A6 is not necessary.  Some says A6 is necessary and AAAA should get
+At this moment, there are two DNS resource record types defined for
+holding IPv6 address in the DNS database; AAAA [Thomson, 1995] and A6
+[Crawford, 2000] .  AAAA has been used for IPv6 network operation since
+1996.  Questions arose whether we really need A6 or not, or whether it
+is really possible to migrate to A6 or not.  Some says AAAA is enough
+and A6 is not necessary.  Some says A6 is necessary and AAAA should get
 deprecated.
 
 The draft tries to understand pros and cons between these two record
@@ -56,10 +55,10 @@ working group minutes for more details.
 
 
 
-HAGINO                 Expires: November 27, 2001               [Page 1]
+HAGINO                  Expires: January 19, 2002               [Page 1]
 
 
-DRAFT                   Comparison of AAAA and A6               May 2001
+DRAFT                   Comparison of AAAA and A6              July 2001
 
 1.  A brief summary of the IPv6 resource record types
 
@@ -115,10 +114,10 @@ records.  Here is an example taken from RFC2874:
 
 
 
-HAGINO                 Expires: November 27, 2001               [Page 2]
+HAGINO                  Expires: January 19, 2002               [Page 2]
 
 
-DRAFT                   Comparison of AAAA and A6               May 2001
+DRAFT                   Comparison of AAAA and A6              July 2001
 
      $ORIGIN X.EXAMPLE.
      N            A6 64 ::1234:5678:9ABC:DEF0 SUBNET-1.IP6
@@ -174,22 +173,23 @@ and as resolver libraries.  On the contrary, the author knows of only
 one DNS server/resolver implementation that supports A6; BIND9.
 
 
-HAGINO                 Expires: November 27, 2001               [Page 3]
+HAGINO                  Expires: January 19, 2002               [Page 3]
 
 
-DRAFT                   Comparison of AAAA and A6               May 2001
+DRAFT                   Comparison of AAAA and A6              July 2001
 
 Almost all of the IPv6-ready operating systems ship with BIND4 or BIND8
-resolver library.  Even for the implementations that use resolver
-library other than BIND, they only support AAAA.  Therefore, they cannot
-query A6 records (unless aplications gets linked with BIND9 libraries
-explicitly).
+resolver library.  [need to check situations with resolver libraries
+based on non-BIND code] Therefore, they cannot query A6 records (unless
+applications gets linked with BIND9 libraries explicitly).
 
 2.2.  IPv6 network
 
 IPv6 network has been deployed widely since 1996.  Though many of the
 participants consider it to be experimental, commercial IPv6 services
-has been deployed since around 1999, especially in asian countries.
+has been deployed since around 1999, especially in Asian countries.
+Even today, there are numerous IPv6 networks operated just as serious as
+IPv4.
 
 2.3.  DNS database
 
@@ -223,21 +223,21 @@ non-fragmented A6 records, and AAAA synthesis.
 
 AAAA records have been used on IPv6 network (also known as 6bone) since
 it has started in 1996 and has been working just fine ever since.  AAAA
-record is a straight extension of A records; it needs a single query-
+record is a straight extension of A record; it needs a single query-
 response roundtrip to resolve a name into an IPv6 address.
 
 A6 was proposed to add network renumbering friendliness to AAAA.  With
 AAAA, a full 128bit IPv6 address needs to be supplied in a DNS resource
 record.  Therefore, in the event of network renumber, administrators
 need to update the whole DNS zone file with the new IPv6 address
-prefixes.  We will discuss the issues with renumbering in a dedicated
 
 
-HAGINO                 Expires: November 27, 2001               [Page 4]
+HAGINO                  Expires: January 19, 2002               [Page 4]
 
 
-DRAFT                   Comparison of AAAA and A6               May 2001
+DRAFT                   Comparison of AAAA and A6              July 2001
 
+prefixes.  We will discuss the issues with renumbering in a dedicated
 section.
 
 3.2.  Fragmented A6 records
@@ -257,22 +257,29 @@ there will be more query roundtrips.  There are only few possibilities
 to query fragments in parallel.  In the above example, we can resolve
 A.NET.IP6.C.NET and A.NET.IP6.D.NET in parallel, but not others.
 
-If the DNS record TTL is smaller than the communication delays between
-the querier and the DNS servers, the querier will not be able to
-reassemble a complete IPv6 record.  With the following records, you
-cannot reassemble an IPv6 address if the delay is larger than 1 second.
-By the time you get the topmost 64 bits in the address, the lowermost 64
-bits get invalidated.  If the querier tries to query lowermost 64 bits
-again, the querier can go into an infinite loop (see the section on
-security considration).  [BIND 9.2.0snap: resolver does not go into
-infinite loop, meaning that BIND 9.2.0snap resolver does not really
-honor DNS record TTL during A6 reassembly]
+At this moment, there is very little documents available, regarding to
+the relationship between DNS record TTL and the query delays.  For
+example, if the DNS record TTL is smaller than the communication delays
+between the querier and the DNS servers, what should happen?
 
-     ; resolver can go into an infinite loop if RTT > 1 second
-     $ORIGIN X.EXAMPLE.
-     $TTL 1
-     N            A6 64 ::1234:5678:9ABC:DEF0 SUBNET-1.IP6
-     SUBNET-1.IP6 A6 0  2345:00C1:CA11:1::
+o If we compute DNS record TTL based on the wallclock on the DNS server
+  side, the DNS records are already expired and the querier will not be
+  able to reassemble a complete IPv6 record.  Worse, by setting up
+  records with very low TTL, we can let recursive DNS resolvers to go
+  into infinite loop by letting them chase a wrong A6 chain (see the
+  section on security considration) [BIND 9.2.0snap: resolver does not
+  go into infinite loop, meaning that BIND 9.2.0snap resolver does not
+  really honor DNS record TTL during A6 reassembly].
+
+o If we compute it starting from the time the querier got the record, we
+  will have some jitter in TTL computation among multiple queriers.  If
+  the query delays are long enough, the querier would end up having
+  inconsistent A6 fragments, and the IPv6 address can be bogus after
+  reassembly.  With record types other than A6, we had no such problem,
+  since we have never tried to reassemble an address out of multiple DNS
+  records (with CNAME chain chasing a similar problem can arise, but the
+  failure mode is much simpler to diagnose as the records are considered
+  as an atomic entity).
 
 Some says that caches will avoid querying fragmented A6s again and
 again.  However, most of the library resolver implementations do not
@@ -281,6 +288,14 @@ nameserver will not be decreased by the cached records.  The TTL problem
 (see above) is unavoidable for the library resolver without cache.  [XXX
 will they interpret TTL field?  BIND8 resolver does not]
 
+
+
+
+HAGINO                  Expires: January 19, 2002               [Page 5]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
+
 If some of the fragments are DNSSEC-signed and some are not, how should
 we treat that address?  RFC2874 section 6 briefly talks about it, not
 sure if complete answer is given.
@@ -288,14 +303,6 @@ sure if complete answer is given.
 It is much harder to implement A6 fragment reassemble code, than to
 implement AAAA record resolver.  AAAA record resolver can be implemented
 as a straight extension of A record resolver.
-
-
-
-
-HAGINO                 Expires: November 27, 2001               [Page 5]
-
-
-DRAFT                   Comparison of AAAA and A6               May 2001
 
 o It is much harder to design timeout handling for the A6 reassembly.
   There would be multiple timeout parameters, including (1) communcation
@@ -318,9 +325,9 @@ In RFC2874, a suggestion is made to use limited number of fragments per
 an IPv6 address.  However, there is no protocol limitation defined.  The
 lack makes it easier for malicious parties to impose DoS attacks using
 lots of A6 fragments (see the section on security consideration).  [BIND
-9.2.0snap: The implementation limits the number of fragments to be
-smaller than 16; It is not a protocol limitation but an implementation
-choice.  Not sure if it is the right choice or not]
+9.2.0snap: The implementation limits the number of fragments within an
+A6 chain to be smaller than 16; It is not a protocol limitation but an
+implementation choice.  Not sure if it is the right choice or not]
 
 With fragmented A6 records, in multi-prefix network configuration, it is
 not possible for us to limit the address on the DNS database to the
@@ -330,6 +337,23 @@ the following example.  Even if we would like to advertise only
 to do so.  It becomes mandatory for us to define the whole IPv6 address
 by using ``A6 0'' for N.X.EXAMPLE, and in effect, the benefit of A6
 (renumber friendliness) goes away.
+
+
+
+
+
+
+
+
+
+
+
+
+
+HAGINO                  Expires: January 19, 2002               [Page 6]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
 
      ; with the following record we would advertise both records
      $ORIGIN X.EXAMPLE.
@@ -349,13 +373,6 @@ by using ``A6 0'' for N.X.EXAMPLE, and in effect, the benefit of A6
 A6 resource record type and A6 fragment/reassembly were introduced to
 help administrators on network renumber.  When network gets renumbered,
 the administrator needs to update A6 fragment for the higher address
-
-
-HAGINO                 Expires: November 27, 2001               [Page 6]
-
-
-DRAFT                   Comparison of AAAA and A6               May 2001
-
 bits (prefixes) only.  Again, we will discuss the issues with
 renumbering in a dedicated section.
 
@@ -368,7 +385,7 @@ fragmented A6 records when we find a need for A6.
 
 >From the packet format point of view, the approach has no benefit
 against AAAA.  Rather, there is a one-byte overhead to every
-(unfragmented) A6 record compared to an AAAA record.
+(unfragmented) A6 record compared to a AAAA record.
 
 If the nameserver/resolver programs hardcode A6 processing to handle no
 fragments, there will be no future possibility for us to introduce
@@ -387,14 +404,22 @@ At this moment, end hosts support AAAA records only.  Some people would
 like to see A6 deployment in DNS databases even with the lack of end
 hosts support.  To workaround the deployment issues of A6, the following
 approach is proposed in IETF50 dnsext working group slot.  It is called
-``AAAA synthesis'':
+``AAAA synthesis'' [Austein, 2001] :
+
+
+
+
+HAGINO                  Expires: January 19, 2002               [Page 7]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
 
 o Deploy A6 DNS records worldwide.  The proposal was not specific about
   whether we would deploy fragmented A6 records, or non-fragmented A6
   records (``A6 0'').
 
 o When a host queries AAAA record to a DNS server, the DNS server
-  queries A6 fragments, reassemble it, and respond with an AAAA record.
+  queries A6 fragments, reassemble it, and respond with a AAAA record.
 
 The approach needs to be diagnosed/specified in far more detail.  For
 example, the following questions need to be answered:
@@ -408,12 +433,6 @@ o What TTL should the synthesized AAAA record have?  [BIND 9.2.0snap
 o Which nameserver should synthesize the AAAA record, in the DNS
   recursize query chain?  Is the synthesis mandatory for every DNS
   server implementation?
-
-
-HAGINO                 Expires: November 27, 2001               [Page 7]
-
-
-DRAFT                   Comparison of AAAA and A6               May 2001
 
 o What should we do if the A6 reassembly takes too much time?
 
@@ -445,7 +464,14 @@ o Query AAAA records.
 o Query A records.
 
 o Sort the result based on destination address ordering rule.  An
-  example of the ordering rule is presented as a draft [Draves, 2000] .
+  example of the ordering rule is presented as a draft [Draves, 2001] .
+
+
+
+HAGINO                  Expires: January 19, 2002               [Page 8]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
 
 o Contact the destination addresses in sequence.
 
@@ -467,13 +493,6 @@ connectivity today.  If ISPs do assign static IPv6 address block to the
 customers, there is no need to renumber customer network that frequently
 (unless the customer decides to switch the upstream ISPs that often).
 NOTE: Roaming dialup users, like those who carry laptop computers
-
-
-HAGINO                 Expires: November 27, 2001               [Page 8]
-
-
-DRAFT                   Comparison of AAAA and A6               May 2001
-
 worldwide, seems to have a different issue from stationary dialup users.
 See [Hagino, 2000] for more discussions.
 
@@ -494,17 +513,32 @@ presentation by JINMEI Tatsuya regarding to site renumbering experiment.
 It is recommend to read through the IETF49 minutes and slides.  [XXX
 Fred Baker had a draft on this - where?]  For the network renumbering to
 be successful, no configuration files should have hardcoded (numeric) IP
-addresses.  It is a very hard requrement to meet.  We fail to satisfy
+addresses.  It is a very hard requirement to meet.  We fail to satisfy
 this in many of the network renumbering events, and the failure causes a
 lot of troubles.
 
 At this moment there is no mechanism defined for ISPs to renumber
-downstream customers at will.  Router renumbering protocol [Crawford,
-2000] is defined only for a single administrative domain (customers will
-not want to share IPsec authentication key for routers, with the
-upstream ISP).  Even though it may sound interesting for ISPs, it would
-cause a lot of (social and political) issues in doing so, so the author
-would say it is rather unrealistic to pursue this route.
+downstream customers at will.  Even though it may sound interesting for
+ISPs, it would cause a lot of (social and political) issues in doing so,
+so the author would say it is rather unrealistic to pursue this route.
+The only possible candidate, router renumbering protocol [Crawford,
+2000] does not really fit into the situation.  The protocol is defined
+using IPsec authentication over site-local multicast packets.  It would
+be cumbersome to run router renumbering protocol across multiple
+
+
+HAGINO                  Expires: January 19, 2002               [Page 9]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
+
+administrative domains, as (1) customers will not want to share IPsec
+authentication key for routers with the upstream ISP, and (2) customer
+network will be administered as a separate site from the upstream ISP
+(Even though router renumbering protocol could be used with unicast
+addresess, it is not realistic to assume that we can maintain the list
+of IPv6 addresses for all the routers in both customers' and ISPs'
+networks).
 
 A6 was designed to help administators update zone files during network
 renumbering events.  Even with AAAA, zone file modification itself is
@@ -516,7 +550,10 @@ renumbering the network.  With A6, we need to sign upper bits only with
 DNSSEC keys.  Therefore, A6 will impose less zone signing cost on the
 event of network renumbering.  As seen above, it is questionable if we
 renumber network that often, so it is questionable if A6 brings us an
-overall benefit.
+overall benefit.  Note, however, even if we use A6 to facilitate more
+frequent renumbering and lower signing cost, all glue records has to be
+installed as non-fragmented A6 records (``A6 0''), and required to be
+signed again on renumbering events.
 
 
 5.  Security consideration
@@ -526,13 +563,6 @@ a brief summary:
 
 o There will be a higher delay imposed by query/reply roundtrips for
   fragmented A6 records.  This could affect every services that relies
-
-
-HAGINO                 Expires: November 27, 2001               [Page 9]
-
-
-DRAFT                   Comparison of AAAA and A6               May 2001
-
   upon DNS records.
 
 o There is no upper limit defined for the number of A6 fragments for
@@ -554,17 +584,24 @@ We would like to go into more details for some of these.
 
 When a DNS server is configured for AAAA synthesis, malicious parties
 can impose DoS attacks using the interaction between DNS TTL and query
+
+
+HAGINO                  Expires: January 19, 2002              [Page 10]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
+
 delays.  The attack can chew CPU time and/or memory, as well as some
 network bandwidth on a victim nameserver, by the following steps:
 
-o Bad guy configures a record with very complex A6 chain, onto some
-  nameservers.  (bad guy has to have controls over the servers).  The
-  nameservers can be located anywhere in the world.  The A6 chain should
-  have a very low TTL (like 1 or 0 seconds).  The attack works better if
-  we have higher delays between the victim nameservers and the
+o A bad guy configures a record with very complex A6 chain, onto some
+  nameservers.  (the bad guy has to have controls over the servers).
+  The nameservers can be located anywhere in the world.  The A6 chain
+  should have a very low TTL (like 1 or 0 seconds).  The attack works
+  better if we have higher delays between the victim nameservers and the
   nameservers that serve A6 fragments.
 
-o Bad guy queries the record using AAAA request, to the victim
+o The bad guy queries the record using AAAA request, to the victim
   nameserver.
 
 o The victim nameserver will try to reassemble A6 fragments.  During the
@@ -573,6 +610,10 @@ o The victim nameserver will try to reassemble A6 fragments.  During the
   process.  The nameserver will need to query a lot of A6 fragments
   (more traffic).  The server can go into an infinite loop, if it tries
   to query the expired A6 fragments again.
+
+Note, however, this problem could be considered as a problem in
+recursize resolvers in general (like CNAME and NS chasing); A6 and AAAA
+synthesis makes the problem more apparent, and more complex to diagnose.
 
 To remedy this problem, we have a couple of solutions:
 
@@ -583,14 +624,6 @@ To remedy this problem, we have a couple of solutions:
     Deployment issues with existing IPv6 hosts get much harder.
 
 (3) Impose a protocol limitation to the number of A6 fragments.
-
-
-
-
-HAGINO                 Expires: November 27, 2001              [Page 10]
-
-
-DRAFT                   Comparison of AAAA and A6               May 2001
 
 (4) Do not query the expired records in A6 chain again.  In other words,
     implement resolvers that ignore TTL on DNS records.  Not sure if it
@@ -610,15 +643,22 @@ believes that we need to pick one of them.
 Given the unlikeliness of frequent network renumbering, the author
 believes that the A6's benefit in lower zone signing cost is not
 significant.  The benefit of A6 (in zone signing cost) is much less than
+
+
+HAGINO                  Expires: January 19, 2002              [Page 11]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
+
 the expected complication that will be imposed by A6 operations.
 
 >From the above discussions, the author suggests to keep AAAA and
-deprecate A6.  The author believes that A6 can cause a lot of problem
-than the benefits it may have.  A6 will make IPv6 DNS operation more
-complicated and vulnerable to attacks.  AAAA is proven to work right in
-our IPv6 network operation since 1996.  AAAA has been working just fine
-in existing IPv6 networks, and the author believes that it will in the
-coming days.
+deprecate A6 (move A6 document to historic state).  The author believes
+that A6 can cause a lot of problem than the benefits it may have.  A6
+will make IPv6 DNS operation more complicated and vulnerable to attacks.
+AAAA is proven to work right in our IPv6 network operation since 1996.
+AAAA has been working just fine in existing IPv6 networks, and the
+author believes that it will in the coming days.
 
 
 
@@ -633,9 +673,13 @@ M. Crawford, C. Huitema, and S. Thomson, "DNS Extensions to Support IPv6
 Address Aggregation and Renumbering" in RFC2874 (July 2000).
 ftp://ftp.isi.edu/in-notes/rfc2874.txt.
 
-Draves, 2000.
-Richard Draves, "Default Address Selection for IPv6," Internet Draft
-(November 2000). work in progress material.
+Austein, 2001.
+R. Austein, "Tradeoffs in DNS support for IPv6" in draft-ietf-dnsext-
+ipv6-dns-tradeoffs-00.txt (July 2001). work in progress material.
+
+Draves, 2001.
+Richard Draves, "Default Address Selection for IPv6" in draft-ietf-
+ipngwg-default-addr-select-04.txt (May 2001). work in progress material.
 
 Hagino, 2000.
 Jun-ichiro Hagino and Kazu Yamamoto, "Requirements for IPv6 dialup PPP
@@ -644,13 +688,6 @@ work in progress material.
 
 Crawford, 2000.
 Matt Crawford, "Router Renumbering for IPv6" in RFC2894 (August 2000).
-
-
-HAGINO                 Expires: November 27, 2001              [Page 11]
-
-
-DRAFT                   Comparison of AAAA and A6               May 2001
-
 ftp://ftp.isi.edu/in-notes/rfc2894.txt.
 
 Thomson, 1998.
@@ -662,6 +699,15 @@ Change history
 
 none.
 
+
+
+
+
+
+HAGINO                  Expires: January 19, 2002              [Page 12]
+
+
+DRAFT                   Comparison of AAAA and A6              July 2001
 
 Acknowledgements
 
@@ -705,5 +751,17 @@ Author's address
 
 
 
-HAGINO                 Expires: November 27, 2001              [Page 12]
+
+
+
+
+
+
+
+
+
+
+
+
+HAGINO                  Expires: January 19, 2002              [Page 13]
 

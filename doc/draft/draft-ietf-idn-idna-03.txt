@@ -1,6 +1,6 @@
 Internet Draft                                     Patrik Faltstrom
-draft-ietf-idn-idna-02.txt                                    Cisco
-June 16, 2001                                          Paul Hoffman
+draft-ietf-idn-idna-03.txt                                    Cisco
+July 20, 2001                                          Paul Hoffman
 Expires in six months                                    IMC & VPNC
 
              Internationalizing Host Names In Applications (IDNA)
@@ -148,14 +148,14 @@ An IDNA-aware application can accept and display internationalized host
 names in two formats: the internationalized character set(s) supported
 by the application, and in an ACE. Applications MAY allow ACE input and
 output, but are not encouraged to do so except as an interface for
-advanced users, possibly for debugging. ACE encoding is opaque and ugly,
-and should thus only be exposed to users who absolutely need it. The
-optional use, especially during a transition period, of ACE encodings in
-the user interface is described in section 3. Since ACE can be rendered
-either as the encoded ASCII glyphs or the proper decoded character
-glyphs, the rendering engine for an application SHOULD have an option
-for the user to select the preferred display; if it does, rendering the
-ACE SHOULD NOT be the default.
+special purposes, possibly for debugging. ACE encoding is opaque and
+ugly, and should thus only be exposed to users who absolutely need it.
+The optional use, especially during a transition period, of ACE
+encodings in the user interface is described in section 3. Because name
+parts encoded with ACE can be rendered either as the encoded ASCII
+characters or the proper decoded characters, the application MAY have an
+option for the user to select the preferred method of display; if it
+does, rendering the ACE SHOULD NOT be the default.
 
 Host names are often stored and transported in many places. For example,
 they are part of documents such as mail messages and web pages. They are
@@ -165,9 +165,13 @@ and the body content in HTTP.
 
 In protocols and document formats that define how to handle
 specification or negotiation of charsets, IDN host name parts can be
-given in any charset allowed by the protocol or document format. If a
+encoded in any charset allowed by the protocol or document format. If a
 protocol or document format only allows one charset, IDN host name parts
-must be given in that charset.
+must be given in that charset. In any place where a protocol or document
+format allows transmition of the characters in IDN host name parts, IDN
+host name parts SHOULD be transmitted using whatever character encoding
+and escape mechanism that the protocol or document format uses at that
+place.
 
 All protocols that have host names as protocol elements already have the
 capacity for handling host names in the ASCII charset. Thus, IDN host
@@ -190,7 +194,7 @@ name parts encoded in ACE from the resolver.
 IDNA-aware applications MUST be able to work with both
 non-internationalized host name parts (those that conform to [STD13] and
 [STD3]) and internationalized host name parts. An IDNA-aware application
-that is resolving a non-internationalized host name parts MUST NOT do
+that is resolving a non-internationalized host name part MUST NOT do
 any preparation or conversion to ACE on any non-internationalized name
 part.
 
@@ -227,11 +231,19 @@ characters in the decoded name, such as if the name contains characters
 that the output system cannot display, the application SHOULD show the
 name in ACE format instead of displaying the name with the replacement
 character (U+FFFD). This is to make it easier for the user to transfer
-the name correctly to other programs using copy-and-paste techniques.
-Programs that by default show the ACE form when they cannot show all the
-characters in a name part SHOULD also have a mechanism to show the name
-with as many characters as possible and replacement characters in the
-positions where characters cannot be displayed.
+the name correctly to other programs. Programs that by default show the
+ACE form when they cannot show all the characters in a name part SHOULD
+also have a mechanism to show the name with as many characters as
+possible and replacement characters in the positions where characters
+cannot be displayed. In many cases, the application doesn't know exactly
+what the underlying rendering engine can or cannot display.
+
+In addition to the condition above, if an application decodes an ACE
+name but finds that the decoded name was not properly prepared according
+to [NAMEPREP] (for example, if it has illegal characters in it), the
+application SHOULD show the name in ACE format and SHOULD NOT display
+the name in its decoded form. This is to avoid security issues described
+in [NAMEPREP].
 
 2.1.5 Automatic detection of ACE
 
@@ -240,7 +252,7 @@ the host name is in ACE. This is possible by verifying the prefix in
 each of the labels, and seeing whether or not the label is in ACE. This
 MUST be done regardless of whether or not the communication channel used
 (such as keyboard input, cut and paste, application protocol,
-application payload, and so on) has negotiated ACE.
+application payload, and so on) is encoding with ACE.
 
 The reason for this requirement is that many applications are not
 ACE-aware. Applications that are not ACE-aware will send host names in
@@ -249,14 +261,11 @@ has the characters that are valid in [STD13] as a subset.
 
 2.1.6 Bidirectional text
 
-In IDNA, bidirectional text is entered and displayed exactly as it is
-specified in ISO/IEC 10646. Both ISO/IEC 10646 and the Unicode standard
-have extensive discussion of how to deal with bidirectional text. Any
-input mechanism and display mechanism that handles characters from
-bidirectional scripts should already conform to those specifications.
-Note that the formatting characters that manually change the direction
-of display are prohibited by nameprep, thus making the task for input
-and display mechanisms easier.
+In IDNA, text storage and display follows the rules in the Unicode standard
+[Unicode3.1]. In particular, all Unicode text is stored in logical order;
+the Unicode standard has an extensive discussion of how to deal with reorder
+glyphs for display when dealing with bidirectional text such as Arabic or
+Hebrew. See [UAX9] for more information.
 
 
 3. Name Server Considerations
@@ -329,24 +338,30 @@ and Support" (RFC 1123), STD 3, October 1989.
 1034) and "Domain names - implementation and specification" (RFC 1035,
 STD 13, November 1987.
 
+[UAX9] Unicode Standard Annex #9, The Bidirectional Algorithm.
+http://www.unicode.org/unicode/reports/tr9/
 
-B. Changes from the -01 draft
+[Unicode3.1] The Unicode Standard, Version 3.1.0: The Unicode
+Consortium. The Unicode Standard, Version 3.0. Reading, MA,
+Addison-Wesley Developers Press, 2000. ISBN 0-201-61633-5, as amended
+by: Unicode Standard Annex #27: Unicode 3.1
+<http://www.unicode.org/unicode/reports/tr27/tr27-4.html>.
 
-1.1: Revised whole section to deal with more proposals.
 
-2.1: Clarified the ASCII art
 
-2.1.1: Changed the section title. Added the last three paragraphs.
+B. Changes from the -02 draft
 
-2.1.4: Added the second paragraph.
+Editorial changes throughout
 
-2.1.6: Added this section.
+2.1.1: Major changes to the second paragraph. Added major text to fourth
+paragraph.
 
-2.1.5: Added this section.
+2.1.4: Added to the end of the second paragraph. Added the third
+paragraph.
 
-3: Added note in the last sentence of second paragraph.
+2.1.6: Complete change.
 
-5: Added second and third paragraphs.
+6: Added [Unicode3.1] and [UAX9].
 
 
 C. Authors' Addresses
@@ -354,8 +369,7 @@ C. Authors' Addresses
 Patrik Faltstrom
 Cisco Systems
 Arstaangsvagen 31 J
-S-117 43 Stockholm
-Sweden
+S-117 43 Stockholm  Sweden
 paf@cisco.com
 
 Paul Hoffman
