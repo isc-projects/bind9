@@ -1,4 +1,3 @@
- 397.	[cleanup]	dns_zone_setdbtype now has const char **dbargv.
 
  396.	[doc]		There is now a man page for "nsupdate" 
 			in doc/man/bin/nsupdate.8.
