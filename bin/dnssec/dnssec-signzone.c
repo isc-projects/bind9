@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.146 2001/10/04 23:48:16 gson Exp $ */
+/* $Id: dnssec-signzone.c,v 1.147 2001/10/18 00:40:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -66,6 +66,9 @@ int verbose;
 
 #define BUFSIZE 2048
 
+#define SIGNER_MODE_RFC2535 0
+#define SIGNER_MODE_OPTIN 1
+
 typedef struct signer_key_struct signer_key_t;
 
 struct signer_key_struct {
@@ -109,6 +112,7 @@ static dns_dbversion_t *gversion;	/* The database version */
 static dns_dbiterator_t *gdbiter;	/* The database iterator */
 static dns_name_t *gorigin;		/* The database origin */
 static dns_dbnode_t *gnode = NULL;	/* The "current" database node */
+static dns_fixedname_t flastzonecut;
 static dns_name_t *lastzonecut;
 static isc_task_t *master = NULL;
 static unsigned int ntasks = 0;
@@ -1081,6 +1085,8 @@ cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
  */
 static void
 presign(void) {
+	dns_fixedname_t ftname;
+	dns_name_t *tname;
 	isc_result_t result;
 
 	gdbiter = NULL;
@@ -1090,7 +1096,16 @@ presign(void) {
 	result = dns_dbiterator_first(gdbiter);
 	check_result(result, "dns_dbiterator_first()");
 
+	dns_fixedname_init(&flastzonecut);
 	lastzonecut = NULL;
+
+	dns_fixedname_init(&ftname);
+	tname = dns_fixedname_name(&ftname);
+
+	gnode = NULL;
+	result = next_nonglue(tname, &gnode, gorigin, NULL);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to iterate through the zone");
 
 	zonettl = soattl();
 }
@@ -1100,10 +1115,6 @@ presign(void) {
  */
 static void
 postsign(void) {
-	if (lastzonecut != NULL) {
-		dns_name_free(lastzonecut, mctx);
-		isc_mem_put(mctx, lastzonecut, sizeof(dns_name_t));
-	}
 	dns_dbiterator_destroy(&gdbiter);
 }
 
@@ -1124,18 +1135,6 @@ getnextname(dns_name_t *name, dns_name_t *nextname, dns_dbnode_t **nodep) {
 		goto out;
 	}
 
-	if (gnode == NULL) {
-		dns_fixedname_t ftname;
-		dns_name_t *tname;
-
-		dns_fixedname_init(&ftname);
-		tname = dns_fixedname_name(&ftname);
-
-		result = next_nonglue(tname, &gnode, gorigin, lastzonecut);
-		if (result != ISC_R_SUCCESS)
-			fatal("failed to iterate through the zone");
-	}
-
 	nextnode = NULL;
 	curnode = NULL;
 	dns_dbiterator_current(gdbiter, &curnode, name);
@@ -1148,18 +1147,9 @@ getnextname(dns_name_t *name, dns_name_t *nextname, dns_dbnode_t **nodep) {
 					     &nsset, NULL);
 		if (result == ISC_R_SUCCESS) {
 			dns_rdataset_disassociate(&nsset);
-
-			if (lastzonecut != NULL)
-				dns_name_free(lastzonecut, mctx);
-			else {
-				lastzonecut = isc_mem_get(mctx,
-							  sizeof(dns_name_t));
-				if (lastzonecut == NULL)
-					fatal("out of memory");
-			}
-			dns_name_init(lastzonecut, NULL);
-			result = dns_name_dup(name, mctx, lastzonecut);
-			check_result(result, "dns_name_dup()");
+			lastzonecut = dns_fixedname_name(&flastzonecut);
+			dns_name_reset(lastzonecut);
+			dns_name_copy(name, lastzonecut, NULL);
 		}
 	}
 	result = dns_dbiterator_next(gdbiter);
