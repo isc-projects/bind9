@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.115 2000/05/14 23:23:37 gson Exp $ */
+/* $Id: zone.c,v 1.116 2000/05/17 19:45:31 gson Exp $ */
 
 #include <config.h>
 
@@ -93,8 +93,7 @@ struct dns_zone {
 	dns_zonemgr_t		*zmgr;
 	ISC_LINK(dns_zone_t)	link;		/* Used by zmgr. */
 	isc_timer_t		*timer;
-	unsigned int		erefs;
-	unsigned int		irefs;
+	unsigned int		refs;
 	dns_name_t		origin;
 	char 			*dbname;
 	char			*journal;
@@ -178,6 +177,7 @@ struct dns_zone {
 
 struct dns_zonemgr {
 	isc_mem_t *		mctx;
+	int			refs;
 	isc_taskmgr_t *		taskmgr;
 	isc_timermgr_t *	timermgr;
 	isc_socketmgr_t *	socketmgr;
@@ -223,7 +223,6 @@ static void zone_expire(dns_zone_t *zone);
 static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 			           isc_boolean_t dump);
 static isc_result_t default_journal(dns_zone_t *zone);
-static void releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 static void xfrdone(dns_zone_t *zone, isc_result_t result);
 static void zone_shutdown(isc_task_t *, isc_event_t *);
 
@@ -247,15 +246,18 @@ static isc_result_t zone_dump(dns_zone_t *);
 static void got_transfer_quota(isc_task_t *task, isc_event_t *event);
 static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 static void zmgr_resume_xfrs(dns_zonemgr_t *zmgr);
-     
+static void zonemgr_free(dns_zonemgr_t *zmgr);
+
+
+
 #define PRINT_ZONE_REF(zone) \
 	do { \
 		char *s = NULL; \
 		isc_result_t r; \
 		r = dns_zone_tostr(zone, zone->mctx, &s); \
 		if (r == ISC_R_SUCCESS) { \
-			printf("%p: %s: erefs = %d\n", zone, s, \
-			       zone->erefs); \
+			printf("%p: %s: refs = %d\n", zone, s, \
+			       zone->refs); \
 			isc_mem_free(zone->mctx, s); \
 		} \
 	} while (0)
@@ -302,8 +304,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->db = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
-	zone->erefs = 1;		/* Implicit attach. */
-	zone->irefs = 0;
+	zone->refs = 1;		/* Implicit attach. */
 	dns_name_init(&zone->origin, NULL);
 	zone->dbname = NULL;
 	zone->journalsize = -1;
@@ -364,7 +365,7 @@ zone_free(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	LOCK(&zone->lock);
-	REQUIRE(zone->erefs == 0);
+	REQUIRE(zone->refs == 0);
 	zone->flags |= DNS_ZONE_F_EXITING;
 	UNLOCK(&zone->lock);
 
@@ -379,13 +380,14 @@ zone_free(dns_zone_t *zone) {
 		dns_request_cancel(zone->request);	/* XXXMPA */
 		dns_request_destroy(&zone->request);	/* XXXMPA */
 	}
+
+	INSIST(zone->statelist == NULL);
+	
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
 	if (zone->zmgr)
 		dns_zonemgr_releasezone(zone->zmgr, zone);
 	
-	INSIST(zone->statelist == NULL);
-
 	/* Unmanaged objects */
 	if (zone->dbname != NULL)
 		isc_mem_free(zone->mctx, zone->dbname);
@@ -484,7 +486,7 @@ dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
 
 void
 dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
-	zone->view = view;
+	dns_view_weakattach(view, &zone->view);
 }
      
 
@@ -856,93 +858,74 @@ dns_zone_load(dns_zone_t *zone) {
 
 static void
 exit_check(dns_zone_t *zone) {
-	if (zone->irefs == 0 && DNS_ZONE_FLAG(zone, DNS_ZONE_F_EXITING))
+	if (zone->refs == 0)
 		zone_free(zone);
+}
+
+void
+dns_zone_shutdown(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK(&zone->lock);
+	REQUIRE(zone->refs > 0);
+
+	if (zone->task != NULL) {	
+		/*
+		 * This zone is being managed.  Post
+		 * its control event and let it clean
+		 * up synchronously in the context of
+		 * its task.
+		 */
+		isc_event_t *ev = &zone->ctlevent;
+		isc_task_send(zone->task, &ev);
+	} else {
+		/*
+		 * Unmanaged zones should not have non-null views;
+		 * we have no way of detaching from the view here
+		 * without causing deadlock because this code is called
+		 * with the view already locked.
+		 */
+		INSIST(zone->view != NULL);
+	}
+	UNLOCK(&zone->lock);
+}
+
+static void
+zone_attach(dns_zone_t *source, dns_zone_t **target) {
+	REQUIRE(DNS_ZONE_VALID(source));
+	REQUIRE(target != NULL && *target == NULL);
+	source->refs++;
+	INSIST(source->refs != 0xffffffffU);
+	*target = source;
 }
 
 void
 dns_zone_attach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(DNS_ZONE_VALID(source));
-	REQUIRE(target != NULL && *target == NULL);
+
 	LOCK(&source->lock);
-	REQUIRE(source->erefs > 0);
-	source->erefs++;
-	INSIST(source->erefs != 0xffffffffU);
+	zone_attach(source, target);
 	UNLOCK(&source->lock);
-	*target = source;
+}
+
+static void
+zone_detach(dns_zone_t **zonep) {
+	dns_zone_t *zone;
+
+	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
+	zone = *zonep;
+	REQUIRE(zone->refs > 0);
+	zone->refs--;
+	*zonep = NULL;
 }
 
 void
 dns_zone_detach(dns_zone_t **zonep) {
 	dns_zone_t *zone;
-	isc_boolean_t free_now = ISC_FALSE;
-	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
-	zone = *zonep;
-	LOCK(&zone->lock);
-	REQUIRE(zone->erefs > 0);
-	zone->erefs--;
-	if (zone->erefs == 0) {
-		if (zone->task != NULL) {
-			/*
-			 * This zone is being managed.  Post
-			 * its control event and let it clean
-			 * up synchronously in the context of
-			 * its task.
-			 */
-			isc_event_t *ev = &zone->ctlevent;
-			isc_task_send(zone->task, &ev);
-		} else {
-			/*
-			 * This zone is not being managed; it has
-			 * no task and can have no outstanding
-			 * events.  Free it immediately.
-			 */
-			free_now = ISC_TRUE;
-		}
-	}
-	UNLOCK(&zone->lock);
-	if (free_now)
-		zone_free(zone);
-	*zonep = NULL;
-}
-
-static void
-zone_iattach(dns_zone_t *source, dns_zone_t **target) {
-	REQUIRE(DNS_ZONE_VALID(source));
-	REQUIRE(target != NULL && *target == NULL);
-	source->irefs++;
-	INSIST(source->irefs != 0xffffffffU);
-	*target = source;
-}
-
-void
-dns_zone_iattach(dns_zone_t *source, dns_zone_t **target) {
-	REQUIRE(DNS_ZONE_VALID(source));
-
-	LOCK(&source->lock);
-	zone_iattach(source, target);
-	UNLOCK(&source->lock);
-}
-
-static void
-zone_idetach(dns_zone_t **zonep) {
-	dns_zone_t *zone;
-
-	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
-	zone = *zonep;
-	REQUIRE(zone->irefs > 0);
-	zone->irefs--;
-	*zonep = NULL;
-}
-
-void
-dns_zone_idetach(dns_zone_t **zonep) {
-	dns_zone_t *zone;
 
 	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
 	zone = *zonep;
 	LOCK(&zone->lock);
-	zone_idetach(zonep);
+	zone_detach(zonep);
 	UNLOCK(&zone->lock);
 	exit_check(zone);
 }
@@ -1483,7 +1466,8 @@ notify_destroy(notify_t *notify) {
 	if (notify->zone != NULL) {
 		if (ISC_LINK_LINKED(notify, link))
 			ISC_LIST_UNLINK(notify->zone->notifies, notify, link);
-		zone_idetach(&notify->zone);
+		zone_detach(&notify->zone);
+		/* XXXAG exit_check */
 	}
 	if (notify->find != NULL)
 		dns_adb_destroyfind(&notify->find);
@@ -1530,7 +1514,7 @@ process_adb_event(isc_task_t *task, isc_event_t *ev) {
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 	result = ev->ev_type;
 	isc_event_free(&ev);
-	dns_zone_iattach(notify->zone, &zone);
+	dns_zone_attach(notify->zone, &zone);
 	if (result == DNS_EVENT_ADBNOMOREADDRESSES) {
 		LOCK(&notify->zone->lock);
 		notify_send(notify);
@@ -1546,7 +1530,7 @@ process_adb_event(isc_task_t *task, isc_event_t *ev) {
 	notify_destroy(notify);
 	UNLOCK(&zone->lock);
  detach:
-	dns_zone_idetach(&zone);
+	dns_zone_detach(&zone);
 }
 
 static void
@@ -1559,7 +1543,7 @@ notify_find_address(notify_t *notify) {
 	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET |
 		  DNS_ADBFIND_INET6 | DNS_ADBFIND_RETURNLAME;
 
-	dns_zone_iattach(notify->zone, &zone);
+	dns_zone_attach(notify->zone, &zone);
 	result = dns_adb_createfind(zone->view->adb,
 				    zone->task,
 				    process_adb_event, notify,
@@ -1571,13 +1555,13 @@ notify_find_address(notify_t *notify) {
 		LOCK(&zone->lock);
 		notify_destroy(notify);
 		UNLOCK(&zone->lock);
-		dns_zone_idetach(&zone);
+		dns_zone_detach(&zone);
 		return;
 	}
 
 	/* More addresses pending? */
 	if ((notify->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
-		dns_zone_idetach(&zone);
+		dns_zone_detach(&zone);
 		return;
 	}
 
@@ -1585,7 +1569,7 @@ notify_find_address(notify_t *notify) {
 	LOCK(&zone->lock);
 	notify_send(notify);
 	UNLOCK(&zone->lock);
-	dns_zone_idetach(&zone);
+	dns_zone_detach(&zone);
 }
 
 
@@ -1621,7 +1605,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&notify->zone->lock);
-	zone_iattach(notify->zone, &zone);
+	zone_attach(notify->zone, &zone);
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ||
 	     DNS_ZONE_FLAG(notify->zone, DNS_ZONE_F_EXITING)) {
 		result = ISC_R_CANCELED;
@@ -1640,7 +1624,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		notify_destroy(notify);
 	UNLOCK(&zone->lock);
-	dns_zone_idetach(&zone);
+	dns_zone_detach(&zone);
 	isc_event_free(&event);
 }
 
@@ -1670,7 +1654,7 @@ notify_send(notify_t *notify) {
 		result = notify_create(notify->mctx, &new);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		zone_iattach(notify->zone, &new->zone);
+		zone_attach(notify->zone, &new->zone);
 		ISC_LIST_APPEND(new->zone->notifies, new, link);
 		new->dst = dst;
 		result = notify_send_queue(new);
@@ -1729,7 +1713,7 @@ dns_zone_notify(dns_zone_t *zone) {
 		result = notify_create(zone->mctx, &notify);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup0;
-		dns_zone_iattach(zone, &notify->zone);
+		dns_zone_attach(zone, &notify->zone);
 		notify->dst = zone->notify[i];
 		if (isc_sockaddr_getport(&notify->dst) == 0)
 			isc_sockaddr_setport(&notify->dst, 53); /* XXX */
@@ -1810,7 +1794,7 @@ dns_zone_notify(dns_zone_t *zone) {
 			dns_rdata_freestruct(&ns);
 			continue;
 		}
-		dns_zone_iattach(zone, &notify->zone);
+		dns_zone_attach(zone, &notify->zone);
 		result = dns_name_dup(&ns.name, zone->mctx, &notify->ns);
 		dns_rdata_freestruct(&ns);
 		if (result != ISC_R_SUCCESS) {
@@ -2050,7 +2034,7 @@ queue_soa_query(dns_zone_t *zone) {
 		cancel_refresh(zone);
 		return;
 	}
-	dns_zone_iattach(zone, &dummy);	/*
+	dns_zone_attach(zone, &dummy);	/*
 					 * Attach so that we won't clean up
 					 * until the event is delivered.
 					 */
@@ -2058,7 +2042,7 @@ queue_soa_query(dns_zone_t *zone) {
 	e->ev_sender = zone;
 	result = isc_ratelimiter_enqueue(zone->zmgr->rl, &e);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_idetach(&dummy);
+		dns_zone_detach(&dummy);
 		isc_event_free(&e);
 		cancel_refresh(zone);
 	}
@@ -2084,7 +2068,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_EXITING))
 			cancel_refresh(zone);
 		isc_event_free(&event);
-		dns_zone_idetach(&zone);
+		dns_zone_detach(&zone);
 		return;
 	}
 
@@ -2139,7 +2123,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	}
 	dns_message_destroy(&message);
 	isc_event_free(&event);
-	dns_zone_idetach(&zone);
+	dns_zone_detach(&zone);
 	return;
 
  cleanup:
@@ -2151,7 +2135,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		dns_message_destroy(&message);
 	cancel_refresh(zone);
 	isc_event_free(&event);
-	dns_zone_idetach(&zone);
+	dns_zone_detach(&zone);
 	return;
 }
 
@@ -2167,7 +2151,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
 	INSIST(event->ev_type == DNS_EVENT_ZONECONTROL);
-	INSIST(zone->erefs == 0);
 	zone_log(zone, "zone_shutdown", ISC_LOG_DEBUG(3), "shutting down");
 	LOCK(&zone->lock);
 	zone->flags |= DNS_ZONE_F_EXITING;
@@ -2199,6 +2182,10 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 		if (notify->request != NULL)
 			dns_request_cancel(notify->request);
 	}
+
+	if (zone->view != NULL)
+		dns_view_weakdetach(&zone->view);
+	    
 	exit_check(zone);
 }
 
@@ -2862,13 +2849,13 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 
-	dns_zone_iattach(notify->zone, &zone);
+	dns_zone_attach(notify->zone, &zone);
 	DNS_ENTER;
 	isc_event_free(&event);
 	LOCK(&zone->lock);
 	notify_destroy(notify);
 	UNLOCK(&zone->lock);
-	dns_zone_idetach(&zone);
+	dns_zone_detach(&zone);
 }
 
 
@@ -3091,13 +3078,14 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);	
 	ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = NULL;
-	zmgr_resume_xfrs(zone->zmgr);
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_EXITING))
+		zmgr_resume_xfrs(zone->zmgr);
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	
 	/*
 	 * Retry with a different server if necessary.
 	 */
-	if (again)
+	if (again && !DNS_ZONE_FLAG(zone, DNS_ZONE_F_EXITING))
 		queue_soa_query(zone);
 }
 
@@ -3226,10 +3214,15 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 				  tsigkey, zone->mctx,
 				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
 				  zone->task, xfrdone, &zone->xfr);
+ cleanup:
+	/*
+	 * Any failure in this function is handled like a failed
+	 * zone transfer.  This ensures that we get removed from
+	 * zmgr->xfrin_in_progress.
+	 */
 	if (result != ISC_R_SUCCESS)
 		xfrdone(zone, result);
-
- cleanup:
+	
 	isc_event_free(&event);
 
 	dns_zone_detach(&zone);
@@ -3254,6 +3247,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	if (zmgr == NULL)
 		return (ISC_R_NOMEMORY);
 	zmgr->mctx = NULL;
+	zmgr->refs = 1;
 	isc_mem_attach(mctx, &zmgr->mctx);
 	zmgr->taskmgr = taskmgr;
 	zmgr->timermgr = timermgr;
@@ -3339,6 +3333,13 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 					   ISC_FALSE),
 			     &zone->task);
 
+	/*
+	 * Set the task name.  The tag will arbitrarily point to one
+	 * of the zones sharing the task (in practice, the one
+	 * to be managed last).
+	 */
+	isc_task_setname(zone->task, "zone", zone);
+
 	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive,
 				  NULL, NULL,
 				  zmgr->task, zone_timer, zone,
@@ -3346,8 +3347,9 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
 
-	zone->zmgr = zmgr;
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
+	zone->zmgr = zmgr;
+	zmgr->refs++;
 
 	goto unlock;
 
@@ -3360,24 +3362,41 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	return (result);
 }
 
-static void
-releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
-	/*
-	 * Caller to lock zone and zmgr
-	 */
-	ISC_LIST_UNLINK(zmgr->zones, zone, link);
-	zone->zmgr = NULL;
-}
-
 void
 dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
+	isc_boolean_t free_now = ISC_FALSE;
+	
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	LOCK(&zone->lock);
-	releasezone(zmgr, zone);
+
+	ISC_LIST_UNLINK(zmgr->zones, zone, link);
+	zone->zmgr = NULL;
+	zmgr->refs--;
+	if (zmgr->refs == 0)
+		free_now = ISC_TRUE;
+	
 	UNLOCK(&zone->lock);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+
+	if (free_now)
+		zonemgr_free(zmgr);
+}
+
+void
+dns_zonemgr_detach(dns_zonemgr_t **zmgrp) {
+	dns_zonemgr_t *zmgr = *zmgrp;
+	isc_boolean_t free_now = ISC_FALSE;
+	
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+	zmgr->refs--;
+	if (zmgr->refs == 0)
+		free_now = ISC_TRUE;
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+
+	if (free_now)
+		zonemgr_free(zmgr);
 }
 
 isc_result_t
@@ -3397,39 +3416,28 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 
 void
 dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
-	if (zmgr->rl)
-		isc_ratelimiter_destroy(&zmgr->rl);
+	isc_ratelimiter_shutdown(zmgr->rl);
+}
+
+static void
+zonemgr_free(dns_zonemgr_t *zmgr) {
+	isc_mem_t *mctx;
+
+	INSIST(zmgr->refs == 0);
+	INSIST(ISC_LIST_EMPTY(zmgr->zones));
+
 	if (zmgr->task != NULL)
 		isc_task_destroy(&zmgr->task);
 	if (zmgr->zonetasks != NULL)
 		isc_taskpool_destroy(&zmgr->zonetasks);
-}
 
-void
-dns_zonemgr_destroy(dns_zonemgr_t **zmgrp) {
-	isc_mem_t *mctx;
-	dns_zonemgr_t *zmgr = *zmgrp;
-	dns_zone_t *zone;
-
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	zone = ISC_LIST_HEAD(zmgr->zones);
-	while (zone != NULL) {
-		LOCK(&zone->lock);
-		releasezone(zmgr, zone);
-		UNLOCK(&zone->lock);
-		zone = ISC_LIST_HEAD(zmgr->zones);
-	}
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-
-	/* Probably done already, but does not hurt to repeat. */
-	dns_zonemgr_shutdown(zmgr);
+	isc_ratelimiter_destroy(&zmgr->rl);
 
 	isc_rwlock_destroy(&zmgr->conflock);
 	isc_rwlock_destroy(&zmgr->rwlock);
 	mctx = zmgr->mctx;
 	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
 	isc_mem_detach(&mctx);
-	*zmgrp = NULL;
 }
 
 void
@@ -3584,14 +3592,12 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	ISC_LIST_UNLINK(zmgr->waiting_for_xfrin, zone, statelink);
 	ISC_LIST_APPEND(zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = &zmgr->xfrin_in_progress;
-	isc_task_send(zone->task, &e);
 	/*
 	 * Make sure the zone does not go away before it has processed
 	 * the event; in effect, the event is attached to the zone.
-	 * We must use erefs rather than irefs because accesses
-	 * to irefs are not locked.
 	 */
-	zone->erefs++;
+	zone->refs++;
+	isc_task_send(zone->task, &e);
 	UNLOCK(&zone->lock);
 	
 	return (ISC_R_SUCCESS);

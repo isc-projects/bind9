@@ -201,30 +201,6 @@ dns_zone_detach(dns_zone_t **zonep);
  */
 
 void
-dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
-/*
- *	Attach 'zone' to 'target' incrementing its internal 
- * 	reference count.  This is intended for use by operations
- * 	such as zone transfers that need to prevent the zone
- * 	object from being freed but not from shutting down.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- *	'target' to be non NULL and '*target' to be NULL.
- */
-
-void
-dns_zone_idetach(dns_zone_t **zonep);
-/*
- *	Detach from a zone decrementing its internal reference count.
- *	If there are no more internal or external references to the
- * 	zone, it will be freed.
- *
- * Require:
- *	'zonep' to point to a valid initalised zone.
- */
-
-void
 dns_zone_setflag(dns_zone_t *zone, unsigned int flags, isc_boolean_t value);
 /*
  *	Sets ('value' == 'ISC_TRUE') / clears ('value' == 'IS_FALSE')
@@ -811,6 +787,12 @@ dns_zone_getmctx(dns_zone_t *zone);
 dns_zonemgr_t *
 dns_zone_getmgr(dns_zone_t *zone);
 
+void
+dns_zone_shutdown(dns_zone_t *zone);
+/*
+ * Initiate shutdown for a zone.
+ */
+
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
@@ -845,15 +827,16 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
 void
 dns_zonemgr_shutdown(dns_zonemgr_t *zmgr);
 /*
- * Shut down and detach the task of the zone manager.
+ * Shut down the zone manager.
  */
 
 void
-dns_zonemgr_destroy(dns_zonemgr_t **zmgrp);
+dns_zonemgr_detach(dns_zonemgr_t **zmgrp);
 /*
- * Destroy a zone manager.
+ * Detach from a zone manager.
  *
  * Requires:
+ *
  *	'*zmgrp' is a valid, non-NULL zone manager pointer.
  * Ensures:
  *	'*zmgrp' is NULL.

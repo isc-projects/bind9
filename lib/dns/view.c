@@ -121,6 +121,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->frozen = ISC_FALSE;
 	view->task = NULL;
 	view->references = 1;
+	view->weakrefs = 0;
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
 			    DNS_VIEWATTR_REQSHUTDOWN);
 	view->statickeys = NULL;
@@ -188,31 +189,11 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	return (result);
 }
 
-void
-dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
-
-	/*
-	 * Attach '*targetp' to 'source'.
-	 */
-
-	REQUIRE(DNS_VIEW_VALID(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	LOCK(&source->lock);
-
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references != 0);
-
-	UNLOCK(&source->lock);
-
-	*targetp = source;
-}
-
 static inline void
 destroy(dns_view_t *view) {
 	REQUIRE(!ISC_LINK_LINKED(view, link));
 	REQUIRE(view->references == 0);
+	REQUIRE(view->weakrefs == 0);
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
 	REQUIRE(REQSHUTDOWN(view));
@@ -257,21 +238,34 @@ all_done(dns_view_t *view) {
 	 * Caller must be holding the view lock.
 	 */
 
-	if (view->references == 0 && RESSHUTDOWN(view) &&
-	    ADBSHUTDOWN(view) && REQSHUTDOWN(view))
+	if (view->references == 0 && view->weakrefs == 0 &&
+	    RESSHUTDOWN(view) && ADBSHUTDOWN(view) && REQSHUTDOWN(view))
 		return (ISC_TRUE);
 
 	return (ISC_FALSE);
 }
 
 void
+dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
+
+	REQUIRE(DNS_VIEW_VALID(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	LOCK(&source->lock);
+
+	INSIST(source->references > 0);
+	source->references++;
+	INSIST(source->references != 0);
+
+	UNLOCK(&source->lock);
+
+	*targetp = source;
+}
+
+void
 dns_view_detach(dns_view_t **viewp) {
 	dns_view_t *view;
 	isc_boolean_t done = ISC_FALSE;
-
-	/*
-	 * Detach '*viewp' from its view.
-	 */
 
 	REQUIRE(viewp != NULL);
 	view = *viewp;
@@ -288,8 +282,45 @@ dns_view_detach(dns_view_t **viewp) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
+		dns_zt_shutdown(view->zonetable);
 		done = all_done(view);
 	}
+	UNLOCK(&view->lock);
+
+	*viewp = NULL;
+
+	if (done)
+		destroy(view);
+}
+
+void
+dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
+
+	REQUIRE(DNS_VIEW_VALID(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+
+	LOCK(&source->lock);
+	source->weakrefs++;
+	UNLOCK(&source->lock);
+
+	*targetp = source;
+}
+
+void
+dns_view_weakdetach(dns_view_t **viewp) {
+	dns_view_t *view;
+	isc_boolean_t done = ISC_FALSE;
+
+	REQUIRE(viewp != NULL);
+	view = *viewp;
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	LOCK(&view->lock);
+
+	INSIST(view->weakrefs > 0);
+	view->weakrefs--;
+	done = all_done(view);
+
 	UNLOCK(&view->lock);
 
 	*viewp = NULL;

@@ -110,6 +110,7 @@ struct dns_view {
 	dns_acl_t *			matchclients;
 	/* Locked by lock. */
 	unsigned int			references;
+	unsigned int			weakrefs;
 	unsigned int			attributes;
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view)	link;
@@ -165,10 +166,44 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp);
  * Ensures:
  *
  *	*targetp is attached to source.
+ *
+ *	While *targetp is attached, the view will not shut down.
  */
 
 void
 dns_view_detach(dns_view_t **viewp);
+/*
+ * Detach '*viewp' from its view.
+ *
+ * Requires:
+ *
+ *	'viewp' points to a valid dns_view_t *
+ *
+ * Ensures:
+ *
+ *	*viewp is NULL.
+ */
+
+void
+dns_view_weakattach(dns_view_t *source, dns_view_t **targetp);
+/*
+ * Weakly attach '*targetp' to 'source'.
+ *
+ * Requires:
+ *
+ *	'source' is a valid, frozen view.
+ *
+ *	'targetp' points to a NULL dns_view_t *.
+ *
+ * Ensures:
+ *
+ *	*targetp is attached to source.
+ *
+ * 	While *targetp is attached, the view will not be freed.
+ */
+
+void
+dns_view_weakdetach(dns_view_t **targetp);
 /*
  * Detach '*viewp' from its view.
  *
@@ -179,10 +214,6 @@ dns_view_detach(dns_view_t **viewp);
  * Ensures:
  *
  *	*viewp is NULL.
- *
- *	If '*viewp' is the last reference to the view,
- *
- *		All resources used by the view will be freed.
  */
 
 isc_result_t

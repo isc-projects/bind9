@@ -524,7 +524,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
  * there is no "version" configuration option.
  */
 static isc_result_t
-create_version_view(dns_c_ctx_t *cctx, dns_view_t **viewp) {
+create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
+{
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_zone_t *zone = NULL;
@@ -564,6 +565,7 @@ create_version_view(dns_c_ctx_t *cctx, dns_view_t **viewp) {
 
 	CHECK(dns_zone_create(&zone, ns_g_mctx));
 	CHECK(dns_zone_setorigin(zone, &origin));
+	CHECK(dns_zonemgr_managezone(zmgr, zone));
 
 	CHECK(dns_db_create(ns_g_mctx, "rbt", &origin, ISC_FALSE,
 			    dns_rdataclass_ch, 0, NULL, &db));
@@ -1253,7 +1255,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Create (or recreate) the version view.
 	 */
 	view = NULL;
-	CHECK(create_version_view(cctx, &view));
+	CHECK(create_version_view(cctx, server->zonemgr, &view));
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
 	view = NULL;
 
@@ -1447,9 +1449,12 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_dispatch_detach(&server->querysrc_dispatchv6);
 	ns_clientmgr_destroy(&server->clientmgr);
 	isc_timer_detach(&server->interface_timer);
+
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
+
 	dns_zonemgr_shutdown(server->zonemgr);
+	dns_zonemgr_detach(&server->zonemgr);
 	
 	isc_task_detach(&server->task);
 
@@ -1550,9 +1555,6 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_event_free(&server->reload_event);
 	
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
-
-	dns_zonemgr_destroy(&server->zonemgr);
-	server->zonemgr = NULL;
 
 	dns_db_detach(&server->in_roothints);
 	
