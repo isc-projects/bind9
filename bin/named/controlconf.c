@@ -15,15 +15,21 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.8 2001/05/14 18:23:39 halley Exp $ */
+/* $Id: controlconf.c,v 1.9 2001/05/31 10:36:05 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
+#include <isc/file.h>
+#include <isc/fsaccess.h>
 #include <isc/mem.h>
+#include <isc/netaddr.h>
+#include <isc/print.h>
+#include <isc/random.h>
 #include <isc/result.h>
+#include <isc/stdio.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/timer.h>
@@ -39,7 +45,10 @@
 #include <isccc/sexpr.h>
 #include <isccc/util.h>
 
+#include <dns/keyvalues.h>
 #include <dns/result.h>
+
+#include <dst/dst.h>
 
 #include <named/control.h>
 #include <named/log.h>
@@ -90,6 +99,17 @@ struct controllistener {
 	controlconnectionlist_t		connections;
 	ISC_LINK(controllistener_t)	link;
 };
+
+static struct {
+	char		name[64];
+	char		secret[192];
+	cfg_parser_t   *parser;
+	cfg_obj_t      *config;
+	isc_sockaddr_t  address; /* Last channel that needed automagic. */
+} automagic_key;
+
+#define NS_AUTOKEY_BITS 128
+#define NS_AUTOKEY_NAME "control_autokey"
 
 struct ns_controls {
 	ns_server_t			*server;
@@ -167,6 +187,7 @@ maybe_free_connection(controlconnection_t *conn) {
 static void
 shutdown_listener(controllistener_t *listener) {
 	isc_boolean_t destroy = ISC_TRUE;
+	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
 	listener->exiting = ISC_TRUE;
 
@@ -185,6 +206,10 @@ shutdown_listener(controllistener_t *listener) {
 		destroy = ISC_FALSE;
 	}
 
+	isc_sockaddr_format(&listener->address, socktext, sizeof(socktext));
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
+		      "stopping command channel on %s", socktext);
 	if (destroy)
 		free_listener(listener);
 }
@@ -342,7 +367,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	}
 
 	isc_buffer_init(&text, textarray, sizeof(textarray));
-
 	eresult = ns_control_docommand(request, &text);
 
 	isc_stdtime_get(&now);
@@ -557,7 +581,7 @@ cfgkeylist_find(cfg_obj_t *keylist, const char *keyname, cfg_obj_t **objp) {
 
 static isc_result_t
 controlkeylist_fromcfg(cfg_obj_t *keylist, isc_mem_t *mctx,
-		     controlkeylist_t *keyids)
+		       controlkeylist_t *keyids)
 {
 	cfg_listelt_t *element;
 	char *newstr = NULL;
@@ -676,6 +700,282 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
 	}
 }
 
+static isc_result_t
+make_automagic_key(isc_mem_t *mctx) {
+	unsigned char key_rawsecret[32];
+	unsigned char key_txtsecret[32];
+	isc_buffer_t key_rawbuffer;
+	isc_buffer_t key_txtbuffer;
+	isc_region_t key_rawregion;
+	isc_uint32_t key_id;
+	isc_result_t result;
+	dst_key_t *key = NULL;
+
+	/*
+	 * First generate a secret.
+	 */
+	result = dst_key_generate(dns_rootname, DST_ALG_HMACMD5,
+				  NS_AUTOKEY_BITS, 0, 0, DNS_KEYPROTO_ANY,
+				  dns_rdataclass_in, mctx, &key);
+
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_init(&key_rawbuffer, &key_rawsecret,
+				sizeof(key_rawsecret));
+		result = dst_key_tobuffer(key, &key_rawbuffer);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_init(&key_txtbuffer, &key_txtsecret,
+				sizeof(key_txtsecret));
+		isc_buffer_usedregion(&key_rawbuffer, &key_rawregion);
+		result = isc_base64_totext(&key_rawregion, -1, "\0",
+					   &key_txtbuffer);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		unsigned int len = isc_buffer_usedlength(&key_txtbuffer);
+
+		INSIST(len < sizeof(automagic_key.secret));
+
+		memcpy(automagic_key.secret, isc_buffer_base(&key_txtbuffer),
+		       len);
+		automagic_key.secret[len] = '\0';
+
+		/*
+		 * Make a random name for the key and generate the config
+		 * file statement for it.
+		 */
+		isc_random_get(&key_id);
+		len = snprintf(automagic_key.name, sizeof(automagic_key.name),
+			       NS_AUTOKEY_NAME ".%u", key_id);
+		INSIST(len < sizeof(automagic_key.name));
+	}
+
+	if (key != NULL)
+		dst_key_free(&key);
+
+	if (result != ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+			      "could not generate control channel key: %s",
+			      isc_result_totext(result));
+
+	return (result);
+}
+
+static void
+format_automagic_keycfg(isc_buffer_t *conf) {
+	unsigned int len;
+
+	len = snprintf(isc_buffer_base(conf), isc_buffer_length(conf),
+		       "key \"%s\" {\n"
+				"\talgorithm hmac-md5;\n"
+				"\tsecret \"%s\";\n"
+		       "};\n",
+		       automagic_key.name, automagic_key.secret);
+
+	INSIST(len < isc_buffer_length(conf));
+
+	isc_buffer_add(conf, len);
+}
+
+static isc_result_t
+parse_automagic_key(isc_mem_t *mctx) {
+	unsigned int len;
+	char cfg_data[512];
+	isc_buffer_t cfg_buffer;
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_obj_t *cfg = NULL;
+	cfg_parser_t *parser = NULL;
+
+	if (automagic_key.name[0] == '\0')
+		result = make_automagic_key(mctx);
+
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * Fake up a configuration with a dummy inet control
+		 * to grab the keylist tuple.
+		 */
+		isc_buffer_init(&cfg_buffer, cfg_data, sizeof(cfg_data));
+		format_automagic_keycfg(&cfg_buffer);
+		len = snprintf(isc_buffer_used(&cfg_buffer),
+			       isc_buffer_availablelength(&cfg_buffer),
+			       "controls { inet 127.0.0.1 allow { localhost; }"
+			       "			  keys { %s; }; };",
+			       automagic_key.name);
+		INSIST(len < isc_buffer_availablelength(&cfg_buffer));
+		isc_buffer_add(&cfg_buffer, len);
+
+		result = cfg_parser_create(mctx, ns_g_lctx, &parser);
+	}
+
+	if (result == ISC_R_SUCCESS)
+		result = cfg_parse_buffer(parser, &cfg_buffer,
+					  &cfg_type_namedconf, &cfg);
+
+	if (result == ISC_R_SUCCESS) {
+		automagic_key.parser = parser;
+		automagic_key.config = cfg;
+	} else {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+			      "could not parse autogenerated "
+			      "control channel key: %s",
+			      isc_result_totext(result));
+
+		if (parser != NULL)
+			cfg_parser_destroy(&parser);
+	}
+
+	return (result);
+}
+
+static void
+finalize_automagic_key(void) {
+	int fsaccess;
+	int i;
+	FILE *fp;
+	isc_result_t result;
+
+	(void)isc_file_remove(ns_g_autorndckeyfile);
+
+	if (automagic_key.parser != NULL) {
+		/*
+		 * An automagic key was parsed, so some channel needed it.
+		 * Try to write the rndc.conf file.
+		 */
+		char cfg_data[512];
+		char nettext[ISC_NETADDR_FORMATSIZE];
+		isc_buffer_t cfg_buffer;
+		isc_netaddr_t netaddr;
+
+
+		result = isc_stdio_open(ns_g_autorndckeyfile, "w", &fp);
+
+		if (result == ISC_R_SUCCESS) {
+			fsaccess = 0;
+			isc_fsaccess_add(ISC_FSACCESS_OWNER, ISC_FSACCESS_READ,
+					 &fsaccess);
+			result = isc_fsaccess_set(ns_g_autorndckeyfile,
+						  fsaccess);
+
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_CONTROL,
+					      ISC_LOG_WARNING,
+					      "could not set owner-only "
+					      "access on %s: %s: "
+					      "server control key might be "
+					      "exposed to local users",
+					      ns_g_autorndckeyfile,
+					      isc_result_totext(result));
+			}
+
+			isc_buffer_init(&cfg_buffer, cfg_data,
+					sizeof(cfg_data));
+			format_automagic_keycfg(&cfg_buffer);
+
+			isc_netaddr_fromsockaddr(&netaddr,
+						 &automagic_key.address);
+			isc_netaddr_format(&netaddr, nettext, sizeof(nettext));
+
+			i = fputs(isc_buffer_base(&cfg_buffer), fp);
+
+			if (i != EOF)
+				i = fprintf(fp, "options {\n"
+					    "\tdefault-server %s;\n"
+					    "\tdefault-port %hu;\n"
+					    "\tdefault-key \"%s\";\n"
+					    "};\n",
+					    nettext,
+					    isc_sockaddr_getport(
+						       &automagic_key.address),
+					    automagic_key.name);
+
+			if (i == EOF)
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_CONTROL,
+					      ISC_LOG_WARNING,
+					      "could not write %s",
+					      ns_g_autorndckeyfile);
+
+			result = isc_stdio_close(fp);
+			if (result != ISC_R_SUCCESS)
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_CONTROL,
+					      ISC_LOG_WARNING,
+					      "error closing %s: %s",
+					      ns_g_autorndckeyfile,
+					      isc_result_totext(result));
+		}
+
+		cfg_obj_destroy(automagic_key.parser, &automagic_key.config);
+		cfg_parser_destroy(&automagic_key.parser);
+	}
+}
+			
+static void
+get_key_info(isc_mem_t *mctx, cfg_obj_t *config, cfg_obj_t *control,
+	     cfg_obj_t **global_keylistp, cfg_obj_t **control_keylistp,
+	     isc_boolean_t *explicit_key)
+{
+	cfg_obj_t *control_keylist = NULL;
+	cfg_obj_t *global_keylist = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(global_keylistp != NULL && *global_keylistp == NULL);
+	REQUIRE(control_keylistp != NULL && *control_keylistp == NULL);
+
+	control_keylist = cfg_tuple_get(control, "keys");
+
+	if (cfg_obj_isvoid(control_keylist) ||
+	    cfg_list_first(control_keylist) == NULL) {
+		cfg_obj_t *controls = NULL;
+		cfg_obj_t *inet = NULL;
+
+		if (automagic_key.parser == NULL)
+			result = parse_automagic_key(mctx);
+
+		if (result == ISC_R_SUCCESS) {
+			config = automagic_key.config;
+
+			/*
+			 * All of these should succeed.
+			 */
+			(void)cfg_map_get(config, "key", &global_keylist);
+			INSIST(global_keylist != NULL);
+
+			(void)cfg_map_get(config, "controls", &controls);
+			INSIST(controls != NULL);
+			(void)cfg_map_get(cfg_listelt_value
+					  (cfg_list_first(controls)),
+					  "inet", &inet);
+			INSIST(inet != NULL);
+			control_keylist =
+				cfg_tuple_get(cfg_listelt_value
+					      (cfg_list_first(inet)), "keys");
+			INSIST(control_keylist != NULL);
+		}
+
+		*explicit_key = ISC_FALSE;
+
+	} else {
+		result = cfg_map_get(config, "key", &global_keylist);
+		*explicit_key = config != automagic_key.config
+				       ? ISC_TRUE : ISC_FALSE;
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		*global_keylistp = global_keylist;
+		*control_keylistp = control_keylist;
+	} else
+		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			    "no key statements for use by control channel");
+}
+
 static void
 update_listener(ns_controls_t *cp,
 		controllistener_t **listenerp, cfg_obj_t *control,
@@ -684,10 +984,12 @@ update_listener(ns_controls_t *cp,
 {
 	controllistener_t *listener;
 	cfg_obj_t *allow;
-	cfg_obj_t *keylist;
+	cfg_obj_t *global_keylist = NULL;
+	cfg_obj_t *control_keylist = NULL;
 	dns_acl_t *new_acl = NULL;
 	controlkeylist_t keys;
-	isc_result_t result;
+	isc_boolean_t explicit_key;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	for (listener = ISC_LIST_HEAD(cp->listeners);
 	     listener != NULL;
@@ -704,7 +1006,58 @@ update_listener(ns_controls_t *cp,
 	 * There is already a listener for this sockaddr.
 	 * Update the access list and key information.
 	 *
-	 * First, keep the old access list unless a new one can be made.
+	 * First try to deal with the key situation.  There are a few
+	 * possibilities:
+	 *  (a)	It had an explicit keylist and still has an explicit keylist.
+	 *  (b)	It had an automagic key and now has an explicit keylist.
+	 *  (c)	It had an explicit keylist and now needs an automagic key.
+	 *  (d) It has an automagic key and still needs the automagic key.
+	 *
+	 * (c) and (d) are the annoying ones.  The caller needs to know
+	 * that it should use the automagic configuration for key information
+	 * in place of the named.conf configuration.
+	 *
+	 * XXXDCL There is one other hazard that has not been dealt with,
+	 * the problem that if a key change is being caused by a control
+	 * channel reload, then the response will be with the new key
+	 * and not able to be decrypted by the client.  For this reason,
+	 * the automagic key is not regenerated on each reload.
+	 */
+	get_key_info(listener->mctx, config, control,
+		     &global_keylist, &control_keylist, &explicit_key);
+
+	if (control_keylist != NULL) {
+		INSIST(global_keylist != NULL);
+
+		ISC_LIST_INIT(keys);
+		result = controlkeylist_fromcfg(control_keylist,
+						listener->mctx, &keys);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		free_controlkeylist(&listener->keys, listener->mctx);
+		listener->keys = keys;
+		register_keys(control, global_keylist, &listener->keys,
+			      listener->mctx, socktext);
+
+		if (! explicit_key)
+			automagic_key.address = listener->address;
+
+	} else if (global_keylist != NULL)
+		/*
+		 * This message might be a little misleading since the
+		 * "new keys" might in fact be identical to the old ones,
+		 * but tracking whether they are identical just for the
+		 * sake of avoiding this message would be too much trouble.
+		 */
+		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			    "couldn't install new keys for "
+			    "command channel %s: %s",
+			    socktext, isc_result_totext(result));
+
+
+	/*
+	 * Now, keep the old access list unless a new one can be made.
 	 */
 	allow = cfg_tuple_get(control, "allow");
 	result = ns_acl_fromconfig(allow, config, aclconfctx,
@@ -720,19 +1073,6 @@ update_listener(ns_controls_t *cp,
 			    "command channel %s: %s",
 			    socktext, isc_result_totext(result));
 
-	keylist = cfg_tuple_get(control, "keys");
-	ISC_LIST_INIT(keys);
-	result = controlkeylist_fromcfg(keylist, listener->mctx, &keys);
-	if (result != ISC_R_SUCCESS)
-		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
-			    "couldn't install new keys for "
-			    "command channel %s: %s",
-			    socktext, isc_result_totext(result));
-	else {
-		free_controlkeylist(&listener->keys, listener->mctx);
-		listener->keys = keys;
-	}
-
 	*listenerp = listener;
 }
 
@@ -744,8 +1084,10 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 	isc_mem_t *mctx = cp->server->mctx;
 	controllistener_t *listener;
 	cfg_obj_t *allow;
-	cfg_obj_t *keys;
+	cfg_obj_t *global_keylist = NULL;
+	cfg_obj_t *control_keylist = NULL;
 	dns_acl_t *new_acl = NULL;
+	isc_boolean_t explicit_key;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	listener = isc_mem_get(mctx, sizeof(*listener));
@@ -777,12 +1119,23 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		dns_acl_attach(new_acl, &listener->acl);
 		dns_acl_detach(&new_acl);
 
-		keys = cfg_tuple_get(control, "keys");
-		result = controlkeylist_fromcfg(keys, listener->mctx,
-					      &listener->keys);
-		if (result != ISC_R_SUCCESS)
+		get_key_info(listener->mctx, config, control,
+			     &global_keylist, &control_keylist, &explicit_key);
+
+		if (control_keylist != NULL)
+			result = controlkeylist_fromcfg(control_keylist,
+							listener->mctx,
+							&listener->keys);
+		if (result == ISC_R_SUCCESS) {
+			register_keys(control, global_keylist, &listener->keys,
+				      listener->mctx, socktext);
+
+			if (! explicit_key)
+				automagic_key.address = listener->address;
+
+		} else
 			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
-				    "couldn't install new keys for "
+				    "couldn't install keys for "
 				    "command channel %s: %s",
 				    socktext, isc_result_totext(result));
 	}
@@ -811,7 +1164,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		result = control_accept(listener);
 
 	if (result == ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
 			      "command channel listening on %s", socktext);
 		*listenerp = listener;
@@ -833,14 +1186,12 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 }
 
 isc_result_t
-ns_controls_configure(ns_controls_t *cp,
-		      cfg_obj_t *config,
+ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 		      ns_aclconfctx_t *aclconfctx)
 {
 	controllistener_t *listener;
 	controllistenerlist_t new_listeners;
 	cfg_obj_t *controlslist = NULL;
-	cfg_obj_t *keylist = NULL;
 	cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
@@ -860,16 +1211,9 @@ ns_controls_configure(ns_controls_t *cp,
 	 * address-in-use error.
 	 */
 	if (controlslist != NULL) {
-		(void)cfg_map_get(config, "key", &keylist);
-		if (keylist == NULL)
-			cfg_obj_log(controlslist, ns_g_lctx, ISC_LOG_WARNING,
-				    "no key statements for use by "
-				    "control channels");
-
 		for (element = cfg_list_first(controlslist);
 		     element != NULL;
-		     element = cfg_list_next(element))
-		{
+		     element = cfg_list_next(element)) {
 			cfg_obj_t *controls;
 			cfg_obj_t *inetcontrols = NULL;
 
@@ -880,8 +1224,7 @@ ns_controls_configure(ns_controls_t *cp,
 
 			for (element2 = cfg_list_first(inetcontrols);
 			     element2 != NULL;
-			     element2 = cfg_list_next(element2))
-			{
+			     element2 = cfg_list_next(element2)) {
 				cfg_obj_t *control;
 				cfg_obj_t *obj;
 				isc_sockaddr_t *addr;
@@ -893,9 +1236,6 @@ ns_controls_configure(ns_controls_t *cp,
 				 *
 				 * "unix" phrases have been reported as
 				 * unsupported by the parser.
-				 *
-				 * The keylist == NULL case was already warned
-				 * about a few lines above.
 				 */
 				control = cfg_listelt_value(element2);
 
@@ -908,31 +1248,8 @@ ns_controls_configure(ns_controls_t *cp,
 				isc_sockaddr_format(addr, socktext,
 						    sizeof(socktext));
 
-				obj = cfg_tuple_get(control, "keys");
-
-				if (cfg_obj_isvoid(obj)) {
-					cfg_obj_log(obj, ns_g_lctx,
-						    ISC_LOG_ERROR,
-						    "no keys clause in "
-						    "control channel %s",
-						    socktext);
-					continue;
-				}
-
-				if (cfg_list_first(obj) == NULL) {
-					cfg_obj_log(obj, ns_g_lctx,
-						    ISC_LOG_ERROR,
-						    "no keys specified in "
-						    "control channel %s",
-						    socktext);
-					continue;
-				}
-
-				if (keylist == NULL)
-					continue;
-
 				isc_log_write(ns_g_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
+					      NS_LOGCATEGORY_GENERAL,
 					      NS_LOGMODULE_CONTROL,
 					      ISC_LOG_DEBUG(9),
 					      "processing control channel %s",
@@ -952,28 +1269,32 @@ ns_controls_configure(ns_controls_t *cp,
 					/*
 					 * This is a new listener.
 					 */
-					add_listener(cp, &listener,
-						     control,
+					add_listener(cp, &listener, control,
 						     config, addr, aclconfctx,
 						     socktext);
-	
-				if (listener != NULL) {
-					register_keys(control, keylist,
-						      &listener->keys,
-						      listener->mctx,
-						      socktext);
 
+				if (listener != NULL)
 					ISC_LIST_APPEND(new_listeners,
 							listener, link);
-				}
 			}
 		}
+
+		finalize_automagic_key();
+	} else {
+		isc_result_t result;
+
+		result = parse_automagic_key(cp->server->mctx);
+
+		if (result == ISC_R_SUCCESS)
+			ns_controls_configure(cp, automagic_key.config,
+					     aclconfctx);
 	}
+
 
 	/*
 	 * ns_control_shutdown() will stop whatever is on the global listeners
-	 * list, which currently only has whatever sockaddrs were in the previous
-	 * configuration (if any) that do not remain in the current
+	 * list, which currently only has whatever sockaddrs were in the
+	 * previous configuration (if any) that do not remain in the current
 	 * configuration.
 	 */
 	ns_controls_shutdown(cp);
