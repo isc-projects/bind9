@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.96 2003/01/18 03:18:31 marka Exp $ */
+/* $Id: result.h,v 1.97 2003/02/27 00:19:04 marka Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -134,8 +134,9 @@
 #define DNS_R_UNEXPECTEDOPCODE		(ISC_RESULTCLASS_DNS + 90)
 #define DNS_R_CHASEDSSERVERS		(ISC_RESULTCLASS_DNS + 91)
 #define DNS_R_EMPTYNAME			(ISC_RESULTCLASS_DNS + 92)
+#define DNS_R_EMPTYWILD			(ISC_RESULTCLASS_DNS + 93)
 
-#define DNS_R_NRESULTS			93	/* Number of results */
+#define DNS_R_NRESULTS			94	/* Number of results */
 
 /*
  * DNS wire format rcodes.

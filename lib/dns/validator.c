@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.111 2003/01/18 03:18:30 marka Exp $ */
+/* $Id: validator.c,v 1.112 2003/02/27 00:19:04 marka Exp $ */
 
 #include <config.h>
 
@@ -441,7 +441,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 	isc_boolean_t isnxdomain;
 	isc_result_t result;
 	dns_namereln_t relation;
-	unsigned int labels, bits;
+	unsigned int olabels, nlabels, labels, bits;
 
 	INSIST(DNS_MESSAGE_VALID(val->event->message));
 
@@ -459,7 +459,8 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 	dns_rdataset_current(nxtset, &rdata);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "looking for relevant nxt");
-	order = dns_name_compare(val->event->name, nxtname);
+	relation = dns_name_fullcompare(val->event->name, nxtname,
+					&order, &olabels, &bits);
 	if (order == 0) {
 		/*
 		 * The names are the same.  Look for the type present bit.
@@ -495,16 +496,39 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			relation = dns_name_fullcompare(&nxt.next,
 						        val->event->name,
-							&order, &labels, &bits);
-			dns_rdata_freestruct(&nxt);
-			if (order <= 0 || relation != dns_namereln_subdomain) {
+							&order, &nlabels,
+							&bits);
+			if (order > 0 && relation == dns_namereln_subdomain) {
+				dns_rdata_freestruct(&nxt);
 				validator_log(val, ISC_LOG_DEBUG(3),
-					      "missing NXT record at name");
-				return (ISC_FALSE);
-			}
-			validator_log(val, ISC_LOG_DEBUG(3),
 				      "nxt proves empty node, ok");
-			return (ISC_TRUE);
+				return (ISC_TRUE);
+			}
+			/*
+			 * Look for empty wildcard matches.
+			 */
+			labels = dns_name_countlabels(&nxt.next);
+			if (nlabels >= olabels && nlabels + 1 < labels) {
+				dns_name_t wild;
+				dns_name_init(&wild, NULL);
+				dns_name_getlabelsequence(&nxt.next,
+							  labels - 1 - nlabels,
+							  nlabels + 1,
+							  &wild);
+				if (dns_name_iswildcard(&wild)) {
+					dns_rdata_freestruct(&nxt);
+					validator_log(val, ISC_LOG_DEBUG(3),
+					      "nxt proves empty wildcard, ok");
+					return (ISC_TRUE);
+				}
+			}
+			/*
+			 * We are not a empty name.
+			 */
+			dns_rdata_freestruct(&nxt);
+			validator_log(val, ISC_LOG_DEBUG(3),
+					      "missing NXT record at name");
+			return (ISC_FALSE);
 		}
 		if (dns_name_issubdomain(val->event->name, nxtname) &&
 		    dns_nxt_typepresent(&rdata, dns_rdatatype_ns) &&
@@ -524,7 +548,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 			return (ISC_FALSE);
 		dns_rdata_reset(&rdata);
 		relation = dns_name_fullcompare(&nxt.next, val->event->name,
-						&order, &labels, &bits);
+						&order, &nlabels, &bits);
 		if (order <= 0) {
 			/*
 			 * The NXT next name is less than the nonexistent

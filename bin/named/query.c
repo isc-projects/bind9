@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.242 2003/01/31 12:07:56 marka Exp $ */
+/* $Id: query.c,v 1.243 2003/02/27 00:19:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1899,7 +1899,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		 */
 		if (result == ISC_R_SUCCESS && ispositive)
 			break;
-		if (result == DNS_R_NXDOMAIN) {
+		if (result == DNS_R_NXDOMAIN || result == DNS_R_EMPTYNAME) {
 			if (!ispositive &&
 			    dns_name_issubdomain(name, fname))
 				done = ISC_TRUE;
@@ -2269,6 +2269,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
 	unsigned int options;
+	isc_boolean_t empty_wild;
 
 	CTRACE("query_find");
 
@@ -2292,6 +2293,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	version = NULL;
 	zone = NULL;
 	need_wildcardproof = ISC_FALSE;
+	empty_wild = ISC_FALSE;
 	options = 0;
 
 	if (event != NULL) {
@@ -2745,6 +2747,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 						    &rdataset, &sigrdataset);
 		}
 		goto cleanup;
+	case DNS_R_EMPTYWILD:
+		empty_wild = ISC_TRUE;
+		/* FALLTHROUGH */
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
@@ -2792,7 +2797,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		/*
 		 * Set message rcode.
 		 */
-		client->message->rcode = dns_rcode_nxdomain;
+		if (empty_wild)
+			client->message->rcode = dns_rcode_noerror;
+		else
+			client->message->rcode = dns_rcode_nxdomain;
 		goto cleanup;
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
