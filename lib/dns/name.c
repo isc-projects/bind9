@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.111 2000/12/29 00:59:39 bwelling Exp $ */
+/* $Id: name.c,v 1.112 2001/01/03 00:05:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -27,9 +27,9 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
-#include <dns/name.h>
 #include <dns/compress.h>
+#include <dns/name.h>
+#include <dns/result.h>
 
 #define VALID_NAME(n)	ISC_MAGIC_VALID(n, DNS_NAME_MAGIC)
 
@@ -308,16 +308,7 @@ dns_name_init(dns_name_t *name, unsigned char *offsets) {
 	/*
 	 * Initialize 'name'.
 	 */
-
-	name->magic = DNS_NAME_MAGIC;
-	name->ndata = NULL;
-	name->length = 0;
-	name->labels = 0;
-	name->attributes = 0;
-	name->offsets = offsets;
-	name->buffer = NULL;
-	ISC_LINK_INIT(name, link);
-	ISC_LIST_INIT(name->list);
+	DNS_NAME_INIT(name, offsets);
 }
 
 void
@@ -325,9 +316,7 @@ dns_name_reset(dns_name_t *name) {
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(BINDABLE(name));
 
-	MAKE_EMPTY(name);
-	if (name->buffer != NULL)
-		isc_buffer_clear(name->buffer);
+	DNS_NAME_RESET(name);
 }
 
 void
@@ -882,7 +871,7 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname) {
 	REQUIRE(labels > 0);
 	REQUIRE(dns_name_iswildcard(wname));
 
-	dns_name_init(&tname, NULL);
+	DNS_NAME_INIT(&tname, NULL);
 	dns_name_getlabelsequence(wname, 1, labels - 1, &tname);
 	if (dns_name_fullcompare(name, &tname, &order, &nlabels, &nbits) ==
 	    dns_namereln_subdomain)
@@ -2401,12 +2390,12 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 	 * has one.
 	 */
 	if (name->offsets == NULL) {
-		dns_name_init(&clname, clo);
+		DNS_NAME_INIT(&clname, clo);
 		dns_name_clone(name, &clname);
 		name = &clname;
 	}
-	dns_name_init(&gp, po);
-	dns_name_init(&gs, so);
+	DNS_NAME_INIT(&gp, po);
+	DNS_NAME_INIT(&gs, so);
 
 	offset = target->used;	/*XXX*/
 
@@ -2483,7 +2472,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		REQUIRE(!copy_suffix);
 	}
 	if (name == NULL) {
-		dns_name_init(&tmp_name, odata);
+		DNS_NAME_INIT(&tmp_name, odata);
 		name = &tmp_name;
 	}
 	if (target == NULL && name->buffer != NULL) {
@@ -3083,7 +3072,7 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(digest != NULL);
 
-	dns_name_init(&downname, NULL);
+	DNS_NAME_INIT(&downname, NULL);
 	isc_buffer_init(&buffer, data, sizeof(data));
 
 	result = dns_name_downcase(name, &downname, &buffer);
@@ -3153,3 +3142,53 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
 	} else
 		snprintf(cp, size, "<unknown>");
 }
+
+isc_result_t
+dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
+	unsigned char *ndata, *offsets;
+	dns_offsets_t odata;
+
+	/*
+	 * Make dest a copy of source.
+	 */
+
+	REQUIRE(VALID_NAME(source));
+	REQUIRE(VALID_NAME(dest));
+	REQUIRE(target != NULL || dest->buffer != NULL);
+
+	if (target == NULL) {
+		target = dest->buffer;
+		isc_buffer_clear(dest->buffer);
+	}
+
+	REQUIRE(BINDABLE(dest));
+
+	/*
+	 * Set up.
+	 */
+	if (target->length - target->used < source->length)
+		return (ISC_R_NOSPACE);
+
+	ndata = (unsigned char *)target->base + target->used;
+	dest->ndata = target->base;
+
+	memcpy(ndata, source->ndata, source->length);
+
+	dest->ndata = ndata;
+	dest->labels = source->labels;
+	dest->length = source->length;
+	if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
+		dest->attributes = DNS_NAMEATTR_ABSOLUTE;
+	else
+		dest->attributes = 0;
+
+	if (dest->labels > 0 && dest->offsets != NULL) {
+		INIT_OFFSETS(dest, offsets, odata);
+		set_offsets(dest, offsets, NULL);
+	}
+
+	isc_buffer_add(target, dest->length);
+
+	return (ISC_R_SUCCESS);
+}
+

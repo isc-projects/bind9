@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.163 2000/12/27 23:01:25 marka Exp $ */
+/* $Id: query.c,v 1.164 2001/01/03 00:05:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1378,7 +1378,7 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 			goto cleanup;
 	}
 
-	if (dns_name_concatenate(name, NULL, fname, NULL) != ISC_R_SUCCESS)
+	if (dns_name_copy(name, fname, NULL) != ISC_R_SUCCESS)
 		goto cleanup;
 	dns_rdataset_clone(rdataset, crdataset);
 	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset))
@@ -2375,7 +2375,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			goto cleanup;
 		}
 		tname = dns_fixedname_name(&event->foundname);
-		result = dns_name_concatenate(tname, NULL, fname, NULL);
+		result = dns_name_copy(tname, fname, NULL);
 		if (result != ISC_R_SUCCESS) {
 			count_query(zone, is_zone, dns_statscounter_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
@@ -2539,8 +2539,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			 * dns_name_concatenate() can fail (though it shouldn't
 			 * ever do so since we should have enough space).
 			 */
-			result = dns_name_concatenate(client->query.qname,
-						      NULL, fname, NULL);
+			result = dns_name_copy(client->query.qname,
+					       fname, NULL);
 			if (result != ISC_R_SUCCESS) {
 				count_query(zone, is_zone, dns_statscounter_failure);
 				QUERY_ERROR(DNS_R_SERVFAIL);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.96 2000/12/11 19:24:16 bwelling Exp $ */
+/* $Id: rbt.c,v 1.97 2001/01/03 00:05:11 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2296,8 +2296,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 		if (chain->level_count > 0)
 			result = chain_name(chain, origin, ISC_FALSE);
 		else
-			result = dns_name_concatenate(NULL, dns_rootname,
-						      origin, NULL);
+			result = dns_name_copy(dns_rootname, origin, NULL);
 	}
 
 	return (result);

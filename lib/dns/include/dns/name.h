@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.84 2000/12/29 21:54:52 bwelling Exp $ */
+/* $Id: name.h,v 1.85 2001/01/03 00:05:15 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1224,6 +1224,30 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size);
  * Includes space for the terminating NULL.
  */
 
+isc_result_t
+dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
+/*
+ * Makes 'dest' refer to a copy of the name in 'source'.  The data are
+ * either copied to 'target' or the dedicated buffer in 'dest'.
+ *
+ * Requires:
+ * 	'source' is a valid name.
+ *
+ * 	'dest' is an initialized name with a dedicated buffer.
+ *
+ * 	'target' is NULL or an initialized buffer.
+ *
+ * 	Either dest has a dedicated buffer or target != NULL.
+ *
+ * Ensures:
+ *
+ *	On success, the used space in target is updated.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
+ */
+
 ISC_LANG_ENDDECLS
 
 /***
@@ -1237,14 +1261,6 @@ ISC_LANG_ENDDECLS
  *
  * WARNING:  No assertion checking is done for these macros.
  */
-
-#ifdef DNS_NAME_USEINLINE
-
-#define dns_name_init(n, o)		DNS_NAME_INIT(n, o)
-#define dns_name_reset(n)		DNS_NAME_RESET(n)
-#define dns_name_setbuffer(n, b)	DNS_NAME_SETBUFFER(n, b)
-#define dns_name_countlabels(n)		DNS_NAME_COUNTLABELS(n)
-#define dns_name_isabsolute(n)		DNS_NAME_ISABSOLUTE(n)
 
 #define DNS_NAME_INIT(n, o) \
 do { \
@@ -1277,6 +1293,14 @@ do { \
 
 #define DNS_NAME_COUNTLABELS(n) \
 	((n)->labels)
+
+#ifdef DNS_NAME_USEINLINE
+
+#define dns_name_init(n, o)		DNS_NAME_INIT(n, o)
+#define dns_name_reset(n)		DNS_NAME_RESET(n)
+#define dns_name_setbuffer(n, b)	DNS_NAME_SETBUFFER(n, b)
+#define dns_name_countlabels(n)		DNS_NAME_COUNTLABELS(n)
+#define dns_name_isabsolute(n)		DNS_NAME_ISABSOLUTE(n)
 
 #endif /* DNS_NAME_USEINLINE */
 

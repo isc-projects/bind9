@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.191 2001/01/02 20:46:07 gson Exp $ */
+/* $Id: resolver.c,v 1.192 2001/01/03 00:05:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2318,7 +2318,7 @@ clone_results(fetchctx_t *fctx) {
 	     event != NULL;
 	     event = ISC_LIST_NEXT(event, ev_link)) {
 		name = dns_fixedname_name(&event->foundname);
-		result = dns_name_concatenate(hname, NULL, name, NULL);
+		result = dns_name_copy(hname, name, NULL);
 		if (result != ISC_R_SUCCESS)
 			event->result = result;
 		else
@@ -2570,8 +2570,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	if (hevent != NULL) {
 		hevent->result = eresult;
-		dns_name_concatenate(vevent->name, NULL,
-		     dns_fixedname_name(&hevent->foundname), NULL);
+		dns_name_copy(vevent->name,
+			      dns_fixedname_name(&hevent->foundname), NULL);
 		dns_db_attach(fctx->res->view->cachedb, &hevent->db);
 		hevent->node = node;
 		node = NULL;
@@ -2641,7 +2641,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 		if (event != NULL) {
 			adbp = &event->db;
 			aname = dns_fixedname_name(&event->foundname);
-			result = dns_name_concatenate(name, NULL, aname, NULL);
+			result = dns_name_copy(name, aname, NULL);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			anodep = &event->node;
@@ -3074,7 +3074,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		if (event != NULL) {
 			adbp = &event->db;
 			aname = dns_fixedname_name(&event->foundname);
-			result = dns_name_concatenate(name, NULL, aname, NULL);
+			result = dns_name_copy(name, aname, NULL);
 			if (result != ISC_R_SUCCESS)
 				goto unlock;
 			anodep = &event->node;
@@ -3763,9 +3763,8 @@ answer_response(fetchctx_t *fctx) {
 						 * result fits in a fixedname.
 						 */
 						dns_fixedname_init(&fqname);
-						result = dns_name_concatenate(
+						result = dns_name_copy(
 						  dns_fixedname_name(&dname),
-						  NULL,
 						  dns_fixedname_name(&fqname),
 						  NULL);
 						if (result != ISC_R_SUCCESS)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.139 2000/12/07 23:37:52 marka Exp $ */
+/* $Id: rbtdb.c,v 1.140 2001/01/03 00:05:12 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1102,8 +1102,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * is, we need to remember the node name.
 			 */
 			zcname = dns_fixedname_name(&search->zonecut_name);
-			RUNTIME_CHECK(dns_name_concatenate(name, NULL, zcname,
-							   NULL) ==
+			RUNTIME_CHECK(dns_name_copy(name, zcname, NULL) ==
 				      ISC_R_SUCCESS);
 			search->copy_name = ISC_TRUE;
 		}
@@ -1185,7 +1184,7 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	 */
 	if (foundname != NULL && search->copy_name) {
 		zcname = dns_fixedname_name(&search->zonecut_name);
-		result = dns_name_concatenate(zcname, NULL, foundname, NULL);
+		result = dns_name_copy(zcname, foundname, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -1622,8 +1621,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 */
 			result = find_wildcard(&search, &node);
 			if (result == ISC_R_SUCCESS) {
-				result = dns_name_concatenate(name, NULL,
-							      foundname, NULL);
+				result = dns_name_copy(name, foundname, NULL);
 				if (result != ISC_R_SUCCESS)
 					goto tree_exit;
 				wild = ISC_TRUE;
@@ -2156,8 +2154,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 			if (foundname != NULL) {
 				dns_name_init(&name, NULL);
 				dns_rbt_namefromnode(node, &name);
-				result = dns_name_concatenate(&name, NULL,
-							      foundname, NULL);
+				result = dns_name_copy(&name, foundname, NULL);
 				while (result == ISC_R_SUCCESS && i > 0) {
 					i--;
 					level_node = search->chain.levels[i];
@@ -4687,5 +4684,5 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	if (rbtdbiter->result != ISC_R_SUCCESS)
 		return (rbtdbiter->result);
 
-	return (dns_name_concatenate(origin, NULL, name, NULL));
+	return (dns_name_copy(origin, name, NULL));
 }
