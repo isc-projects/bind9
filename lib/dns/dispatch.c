@@ -20,10 +20,10 @@
 #include <stdlib.h>
 
 #include <isc/lfsr.h>
-#include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -124,7 +124,7 @@ struct dns_dispatch {
 #define VALID_DISPATCHMGR(e)	ISC_MAGIC_VALID((e), DNS_DISPATCHMGR_MAGIC)
 
 /*
- * statics.
+ * Statics.
  */
 static dns_dispentry_t *bucket_search(dns_dispatch_t *, isc_sockaddr_t *,
 				      dns_messageid_t, unsigned int);
@@ -155,16 +155,14 @@ static dns_dispentry_t *linear_next(dns_dispatch_t *disp,
  * The resulting string is guaranteed to be null-terminated.
  */
 static void
-sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
-{
+sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
 	isc_buffer_init(&buf, array, size);
 	result = isc_sockaddr_totext(sa, &buf);
 	if (result != ISC_R_SUCCESS) {
-		snprintf(array, size,
-			 "<unknown address, family %u>",
+		snprintf(array, size, "<unknown address, family %u>",
 			 sa->type.sa.sa_family);
 		array[size - 1] = '\0';
 	}
@@ -227,8 +225,7 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
  * Return an unpredictable message ID.
  */
 static isc_uint32_t
-dns_randomid(dns_dispatch_t *disp)
-{
+dns_randomid(dns_dispatch_t *disp) {
 	isc_uint32_t id;
 
 	id = isc_lfsr_generate32(&disp->qid_lfsr1, &disp->qid_lfsr2);
@@ -240,8 +237,7 @@ dns_randomid(dns_dispatch_t *disp)
  * Return a hash of the destination and message id.
  */
 static isc_uint32_t
-dns_hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, isc_uint32_t id)
-{
+dns_hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, isc_uint32_t id) {
 	unsigned int ret;
 
 	ret = isc_sockaddr_hash(dest, ISC_TRUE);
@@ -259,8 +255,7 @@ static dns_dispatchmethods_t dns_wire_methods = {
 };
 
 static dns_dispentry_t *
-linear_first(dns_dispatch_t *disp)
-{
+linear_first(dns_dispatch_t *disp) {
 	dns_dispentry_t *ret;
 	unsigned int bucket;
 
@@ -277,8 +272,7 @@ linear_first(dns_dispatch_t *disp)
 }
 
 static dns_dispentry_t *
-linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispentry_t *ret;
 	unsigned int bucket;
 
@@ -304,8 +298,7 @@ linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp)
  * locked.
  */
 static void
-destroy_disp(dns_dispatch_t *disp)
-{
+destroy_disp(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
 	dns_dispatchmgr_t *mgr;
 
@@ -373,8 +366,7 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 }
 
 static void
-free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
-{
+free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
 	isc_sockettype_t socktype;
 
 	INSIST(buf != NULL && len != 0);
@@ -400,8 +392,7 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 }
 
 static void *
-allocate_buffer(dns_dispatch_t *disp, unsigned int len)
-{
+allocate_buffer(dns_dispatch_t *disp, unsigned int len) {
 	void *temp;
 
 	INSIST(len > 0);
@@ -418,8 +409,7 @@ allocate_buffer(dns_dispatch_t *disp, unsigned int len)
 }
 
 static inline void
-free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev)
-{
+free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev) {
 	if (disp->failsafe_ev == ev) {
 		INSIST(disp->shutdown_out == 1);
 		disp->shutdown_out = 0;
@@ -431,8 +421,7 @@ free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev)
 }
 
 static inline dns_dispatchevent_t *
-allocate_event(dns_dispatch_t *disp)
-{
+allocate_event(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
 
 	ev = isc_mempool_get(disp->epool);
@@ -464,8 +453,7 @@ allocate_event(dns_dispatch_t *disp)
  *	restart.
  */
 static void
-udp_recv(isc_task_t *task, isc_event_t *ev_in)
-{
+udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	dns_dispatch_t *disp = ev_in->ev_arg;
 	dns_messageid_t id;
@@ -648,8 +636,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
  *	restart.
  */
 static void
-tcp_recv(isc_task_t *task, isc_event_t *ev_in)
-{
+tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatch_t *disp = ev_in->ev_arg;
 	dns_tcpmsg_t *tcpmsg = &disp->tcpmsg;
 	dns_messageid_t id;
@@ -820,8 +807,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
  * disp must be locked.
  */
 static void
-startrecv(dns_dispatch_t *disp)
-{
+startrecv(dns_dispatch_t *disp) {
 	isc_sockettype_t socktype;
 	isc_result_t res;
 	isc_region_t region;
@@ -883,8 +869,7 @@ startrecv(dns_dispatch_t *disp)
  * Mgr must be locked when calling this function.
  */
 static isc_boolean_t
-destroy_mgr_ok(dns_dispatchmgr_t *mgr)
-{
+destroy_mgr_ok(dns_dispatchmgr_t *mgr) {
 	if (!MGR_IS_SHUTTINGDOWN(mgr))
 		return (ISC_FALSE);
 	if (!ISC_LIST_EMPTY(mgr->list))
@@ -897,8 +882,7 @@ destroy_mgr_ok(dns_dispatchmgr_t *mgr)
  * Mgr must be unlocked when calling this function.
  */
 static void
-destroy_mgr(dns_dispatchmgr_t **mgrp)
-{
+destroy_mgr(dns_dispatchmgr_t **mgrp) {
 	isc_mem_t *mctx;
 	dns_dispatchmgr_t *mgr;
 
@@ -921,8 +905,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp)
  */
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
-{
+dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp) {
 	dns_dispatchmgr_t *mgr;
 	isc_result_t result;
 
@@ -951,8 +934,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 
 
 void
-dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp)
-{
+dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 	dns_dispatchmgr_t *mgr;
 	isc_boolean_t killit;
 
@@ -975,8 +957,7 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp)
 #define ATTRMATCH(_a1, _a2, _mask) (((_a1) & (_mask)) == ((_a2) & (_mask)))
 
 static isc_boolean_t
-local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr)
-{
+local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
 	in_port_t port;
 
 	if (addr == NULL)
@@ -990,8 +971,7 @@ local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr)
 }
 
 static isc_boolean_t
-remote_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr)
-{
+remote_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
 	if (addr == NULL)
 		return (ISC_TRUE);
 
@@ -1232,8 +1212,7 @@ dns_dispatch_create(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 }
 
 void
-dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp)
-{
+dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp) {
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
@@ -1244,10 +1223,8 @@ dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp)
 	*dispp = disp;
 }
 
-
 void
-dns_dispatch_detach(dns_dispatch_t **dispp)
-{
+dns_dispatch_detach(dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp;
 	isc_boolean_t killit;
 	dns_dispatchmgr_t *mgr;
@@ -1650,8 +1627,7 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
 }
 
 static void
-do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
 
 	INSIST(resp->item_out == ISC_FALSE);
@@ -1676,8 +1652,7 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 }
 
 static void
-do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
 
 	INSIST(resp->item_out == ISC_FALSE);
@@ -1701,8 +1676,7 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 }
 
 static void
-do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
 
 	if (disp->shutdown_out == 1)
@@ -1764,16 +1738,14 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 }
 
 isc_socket_t *
-dns_dispatch_getsocket(dns_dispatch_t *disp)
-{
+dns_dispatch_getsocket(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
 
 	return (disp->socket);
 }
 
 void
-dns_dispatch_cancel(dns_dispatch_t *disp)
-{
+dns_dispatch_cancel(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
 
 	LOCK(&disp->lock);
@@ -1806,8 +1778,7 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
 
 #if 0
 void
-dns_dispatchmgr_dump(dns_dispatchmgr_t *mgr)
-{
+dns_dispatchmgr_dump(dns_dispatchmgr_t *mgr) {
 	dns_dispatch_t *disp;
 	char foo[1024];
 
