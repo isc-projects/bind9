@@ -79,6 +79,10 @@
  */
 @ISC_PLATFORM_NEEDVSNPRINTF@
 
+/*
+ * Defined if sizeof(long long int) == sizeof(long int).
+ */
+@ISC_PLATFORM_LONGLONGEQUALLONG@
 
 /*
  * Tell emacs to use C mode for this file.

@@ -3369,16 +3369,41 @@ fi
 
 
 
+echo $ac_n "checking for sizeof(long long int) == sizeof(long int)""... $ac_c" 1>&6
+echo "configure:3374: checking for sizeof(long long int) == sizeof(long int)" >&5
+if test "$cross_compiling" = yes; then
+  echo "$ac_t""default yes" 1>&6
+	ISC_PLATFORM_LONGLONGEQUALLONG="#define ISC_PLATFORM_LONGLONGEQUALLONG 1"
+else
+  cat > conftest.$ac_ext <<EOF
+#line 3380 "configure"
+#include "confdefs.h"
+main() { exit(!(sizeof(long long int) == sizeof(long int))); }
+EOF
+if { (eval echo configure:3384: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+then
+  echo "$ac_t""yes" 1>&6
+	ISC_PLATFORM_LONGLONGEQUALLONG="#define ISC_PLATFORM_LONGLONGEQUALLONG 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -fr conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_PLATFORM_LONGLONGEQUALLONG="#undef ISC_PLATFORM_LONGLONGEQUALLONG"
+fi
+rm -fr conftest*
+fi
+
 
 
 
 echo $ac_n "checking for chroot""... $ac_c" 1>&6
-echo "configure:3377: checking for chroot" >&5
+echo "configure:3402: checking for chroot" >&5
 if eval "test \"`echo '$''{'ac_cv_func_chroot'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3382 "configure"
+#line 3407 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char chroot(); below.  */
@@ -3401,7 +3426,7 @@ chroot();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3405: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3430: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_chroot=yes"
 else
@@ -3427,17 +3452,17 @@ for ac_hdr in linux/capability.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:3431: checking for $ac_hdr" >&5
+echo "configure:3456: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3436 "configure"
+#line 3461 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:3441: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:3466: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -3747,6 +3772,7 @@ s%@ISC_PLATFORM_NEEDSTRSEP@%$ISC_PLATFORM_NEEDSTRSEP%g
 s%@ISC_PLATFORM_NEEDVSNPRINTF@%$ISC_PLATFORM_NEEDVSNPRINTF%g
 s%@ISC_EXTRA_OBJS@%$ISC_EXTRA_OBJS%g
 s%@ISC_EXTRA_SRCS@%$ISC_EXTRA_SRCS%g
+s%@ISC_PLATFORM_LONGLONGEQUALLONG@%$ISC_PLATFORM_LONGLONGEQUALLONG%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
 s%@BIND9_ISC_BUILDINCLUDE@%$BIND9_ISC_BUILDINCLUDE%g
 s%@BIND9_DNS_BUILDINCLUDE@%$BIND9_DNS_BUILDINCLUDE%g
