@@ -1,7 +1,7 @@
 aCopyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.50 2001/11/22 00:35:36 gson Exp $
+$Id: release,v 1.51 2001/11/25 01:56:01 gson Exp $
 
 Preparing a bind9 release
 
@@ -170,9 +170,11 @@ release.
    On the 9.[1-2] release branch or mainline, use the
    "util/kit.sh" script.
 
- - Build bind9 from the kit on at least one machine
-   and test it.  Run it as a caching name server.
-   If you can, try resolving some IPv6 addresses and
+ - Build bind9 from the kit on ns-ext (phred)
+   and ns-int (rc), install it, and let it run for
+   a day keeping an eye on it for any problems.
+
+ - If you can, try resolving some IPv6 addresses and
    doing queries over IPv6.
 
  - If problems are found at this stage, fix them, move the
