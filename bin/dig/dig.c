@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.177 2002/05/22 04:58:29 marka Exp $ */
+/* $Id: dig.c,v 1.178 2002/05/29 05:30:59 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -232,8 +232,8 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		time(&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
 		if (query->lookup->doing_xfr) {
-			printf(";; XFR size: %d records\n",
-			       query->rr_count);
+			printf(";; XFR size: %u records (messages %u)\n",
+			       query->rr_count, query->msg_count);
 		} else {
 			printf(";; MSG SIZE  rcvd: %d\n", bytes);
 
