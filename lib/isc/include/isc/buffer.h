@@ -549,6 +549,18 @@ isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length);
  *
  *	'base' points to 'length' bytes of valid memory.
  *
+ */
+
+isc_result_t
+isc_buffer_putstr(isc_buffer_t *b, const char *source);
+/*
+ * Copy 'length' bytes of memory at 'base' into 'b'.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	'source' to be a valid NULL terminated string.
+ *
  * Returns:
  *
  *	ISC_R_SUCCESS
