@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.30 2002/11/26 03:16:31 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.31 2003/02/24 01:46:11 marka Exp $ */
 
 #include <config.h>
 
@@ -143,10 +143,7 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 
 	REQUIRE(VALID_IFITER(iter));
 
-	iter->pos = 0;
-#ifdef HAVE_TRUCLUSTER
-	iter->clua_context = 0;
-#endif
+	internal_first(iter);
 	for (;;) {
 		result = internal_current(iter);
 		if (result != ISC_R_IGNORE)

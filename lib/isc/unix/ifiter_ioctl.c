@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.36 2002/12/27 03:29:37 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.37 2003/02/24 01:46:11 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -49,6 +49,9 @@
 #define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'T')
 #define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
+#define ISC_IF_INET6_SZ \
+	 sizeof("00000000000000000000000000000001 01 80 10 80       lo\n")
+
 struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */
 	isc_mem_t		*mctx;
@@ -62,6 +65,12 @@ struct isc_interfaceiter {
 	unsigned int		bufsize;	/* Bytes allocated. */
 #ifdef HAVE_TRUCLUSTER
 	int			clua_context;	/* Cluster alias context */
+#endif
+#ifdef	__linux
+	FILE *			proc;
+	char			entry[ISC_IF_INET6_SZ];
+	isc_result_t		valid;
+	isc_boolean_t		first;
 #endif
 	unsigned int		pos;		/* Current offset in
 						   SIOCGLIFCONF data */
@@ -317,6 +326,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 #ifdef HAVE_TRUCLUSTER
 	iter->clua_context = -1;
 #endif
+#ifdef __linux
+	iter->proc = fopen("/proc/net/if_inet6", "r");
+	iter->valid = ISC_R_FAILURE;
+	iter->first = ISC_FALSE;
+#endif
 	iter->pos = (unsigned int) -1;
 	iter->result = ISC_R_FAILURE;
 
@@ -361,6 +375,76 @@ internal_current_clusteralias(isc_interfaceiter_t *iter) {
 }
 #endif
 
+#ifdef __linux
+static isc_result_t
+linux_if_inet6_next(isc_interfaceiter_t *iter) {
+	if (iter->proc != NULL &&
+	    fgets(iter->entry, sizeof(iter->entry), iter->proc) != NULL)
+		iter->valid = ISC_R_SUCCESS;
+	else
+		iter->valid = ISC_R_NOMORE;
+	return (iter->valid);
+}
+
+static void
+linux_if_inet6_first(isc_interfaceiter_t *iter) {
+	if (iter->proc != NULL) {
+		rewind(iter->proc);
+		(void)linux_if_inet6_next(iter);
+	} else
+		iter->valid = ISC_R_NOMORE;
+	iter->first = ISC_FALSE;
+}
+
+static isc_result_t
+linux_if_inet6_current(isc_interfaceiter_t *iter) {
+	char address[33];
+	char name[IF_NAMESIZE+1];
+	struct in6_addr addr6;
+	int ifindex, prefix, flag3, flag4;
+	int res;
+	unsigned int i;
+
+	if (iter->valid != ISC_R_SUCCESS)
+		return (iter->valid);
+	if (iter->proc == NULL)
+		return (ISC_R_FAILURE);
+
+	res = sscanf(iter->entry, "%32[a-f0-9] %x %x %x %x %16s\n",
+		     address, &ifindex, &prefix, &flag3, &flag4, name);
+	if (res != 6)
+		return (ISC_R_FAILURE);
+	if (strlen(address) != 32)
+		return (ISC_R_FAILURE);
+	for (i = 0; i < 16 ; i++) {
+		unsigned char byte;
+		static const char hex[] = "0123456789abcdef";
+		byte = ((index(hex, address[i * 2]) - hex) << 4) |
+		       (index(hex, address[i * 2 + 1]) - hex);
+		addr6.s6_addr[i] = byte;
+	}
+	iter->current.af = AF_INET6;
+	iter->current.flags = INTERFACE_F_UP;
+	isc_netaddr_fromin6(&iter->current.address, &addr6);
+	if (isc_netaddr_islinklocal(&iter->current.address)) {
+		isc_netaddr_setzone(&iter->current.address,
+				    (isc_uint32_t)ifindex);
+	}
+	for (i = 0; i < 16 ; i++) {
+		if (prefix > 8) {
+			addr6.s6_addr[i] = 0xff;
+			prefix -= 8;
+		} else {
+			addr6.s6_addr[i] = (0xff << (8 - prefix)) & 0xff;
+			prefix = 0;
+		}
+	}
+	isc_netaddr_fromin6(&iter->current.netmask, &addr6);
+	strncpy(iter->current.name, name, sizeof(iter->current.name));
+	return (ISC_R_SUCCESS);
+}
+#endif
+
 /*
  * Get information about the current interface to iter->current.
  * If successful, return ISC_R_SUCCESS.
@@ -379,9 +463,19 @@ internal_current4(isc_interfaceiter_t *iter) {
 	struct if_laddrreq if_laddrreq;
 	int i, bits;
 #endif
+#ifdef __linux
+	isc_result_t result;
+#endif
 
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
+
+#ifdef __linux
+	result = linux_if_inet6_current(iter);
+	if (result != ISC_R_NOMORE)
+		return (result);
+	iter->first = ISC_TRUE;
+#endif
 
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 
@@ -735,6 +829,12 @@ internal_next4(isc_interfaceiter_t *iter) {
 	if (internal_current_clusteralias(iter) == ISC_R_SUCCESS)
 		return (ISC_R_SUCCESS);
 #endif
+#ifdef __linux
+	if (linux_if_inet6_next(iter) == ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
+	if (!iter->first)
+		return (ISC_R_SUCCESS);
+#endif
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 
 #ifdef ISC_PLATFORM_HAVESALEN
@@ -786,4 +886,18 @@ internal_next(isc_interfaceiter_t *iter) {
 static void
 internal_destroy(isc_interfaceiter_t *iter) {
 	(void) close(iter->socket);
+#ifdef __linux
+	fclose(iter->proc);
+#endif
+}
+
+static
+void internal_first(isc_interfaceiter_t *iter) {
+	iter->pos = 0;
+#ifdef HAVE_TRUCLUSTER
+	iter->clua_context = 0;
+#endif
+#ifdef __linux
+	linux_if_inet6_first(iter);
+#endif
 }

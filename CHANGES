@@ -1,3 +1,5 @@
+1430.	[port]		linux: IPv6 interface scanning support.
+
 1429.	[bug]		Prevent the cache getting locked to old servers.
 
 1428.	[placeholder] 
