@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: digcomp.pl,v 1.5 2000/07/07 21:43:49 bwelling Exp $
+# $Id: digcomp.pl,v 1.6 2000/07/07 22:13:21 bwelling Exp $
 
 # Compare two files, each with the output from dig, for differences.
 # Ignore "unimportant" differences, like ordering of NS lines, TTL's,
@@ -33,6 +33,9 @@ $rcode2 = "none";
 open(FILE1, $file1) || die("$! $file1");
 while (<FILE1>) {
   chomp;
+  if (/^;.+status:\s+(\S+).+$/) {
+    $rcode1 = $1;
+  }
   next if (/^;/);
   if (/^(\S+)\s+\S+\s+(\S+)\s+(\S+)\s+(.+)$/) {
     $name = $1;
@@ -53,9 +56,6 @@ while (<FILE1>) {
       $entry{"$name ; $class.$type ; $value"} = $_;
     }
   }
-  elsif (/^;.+status:\s+(\S+).+$/) {
-    $rcode1 = $1;
-  }
 }
 close (FILE1);
 
@@ -64,6 +64,9 @@ $printed = 0;
 open(FILE2, $file2) || die("$! $file2");
 while (<FILE2>) {
   chomp;
+  if (/^;.+status:\s+(\S+).+$/) {
+    $rcode2 = $1;
+  }
   next if (/^;/);
   if (/^(\S+)\s+\S+\s+(\S+)\s+(\S+)\s+(.+)$/) {
     $name = $1;
@@ -83,9 +86,6 @@ while (<FILE2>) {
       $status = 1;
     }
   }
-  elsif (/^;.+status:\s+(\S+).+$/) {
-    $rcode2 = $1;
-  }
 }
 close (FILE2);
 
@@ -100,7 +100,7 @@ foreach $key (keys(%entry)) {
   }
 }
 
-if ($rcode1 != $rcode2) {
+if ($rcode1 !~ $rcode2) {
 	print ("< status: $rcode1\n");
 	print ("> status: $rcode2\n");
 }
