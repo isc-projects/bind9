@@ -17,8 +17,8 @@ and install.
 
 
 Index: README.idnkit
---- /dev/null	Tue Apr 13 09:53:48 2004
-+++ README.idnkit	Tue Apr 13 09:34:36 2004
+--- /dev/null	Thu Apr 29 11:15:03 2004
++++ README.idnkit	Thu Apr 29 11:05:40 2004
 @@ -0,0 +1,113 @@
 +
 +			BIND-9 IDN patch
@@ -139,7 +139,7 @@ RCS file: /proj/cvs/prod/bind9/configure,v
 retrieving revision 1.284.2.28
 diff -U2 -r1.284.2.28 configure
 --- configure	10 Mar 2004 03:25:48 -0000	1.284.2.28
-+++ configure	12 Apr 2004 23:58:50 -0000
++++ configure	29 Apr 2004 01:16:48 -0000
 @@ -466,5 +466,5 @@
  #endif"
  
@@ -699,7 +699,7 @@ RCS file: /proj/cvs/prod/bind9/configure.in,v
 retrieving revision 1.294.2.31
 diff -U2 -r1.294.2.31 configure.in
 --- configure.in	10 Mar 2004 03:24:06 -0000	1.294.2.31
-+++ configure.in	12 Apr 2004 23:58:53 -0000
++++ configure.in	29 Apr 2004 01:16:52 -0000
 @@ -1756,4 +1756,80 @@
  
  #
@@ -787,7 +787,7 @@ RCS file: /proj/cvs/prod/bind9/config.h.in,v
 retrieving revision 1.47.2.8
 diff -U2 -r1.47.2.8 config.h.in
 --- config.h.in	15 Mar 2004 05:00:23 -0000	1.47.2.8
-+++ config.h.in	12 Apr 2004 23:58:54 -0000
++++ config.h.in	29 Apr 2004 01:16:52 -0000
 @@ -17,5 +17,5 @@
   */
  
@@ -823,7 +823,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
 retrieving revision 1.25.2.2
 diff -U2 -r1.25.2.2 Makefile.in
 --- bin/dig/Makefile.in	9 Mar 2004 06:09:10 -0000	1.25.2.2
-+++ bin/dig/Makefile.in	12 Apr 2004 23:58:54 -0000
++++ bin/dig/Makefile.in	29 Apr 2004 01:16:52 -0000
 @@ -37,5 +37,5 @@
  DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
  
@@ -837,7 +837,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
 retrieving revision 1.14.2.5
 diff -U2 -r1.14.2.5 dig.1
 --- bin/dig/dig.1	15 Mar 2004 04:44:38 -0000	1.14.2.5
-+++ bin/dig/dig.1	12 Apr 2004 23:58:55 -0000
++++ bin/dig/dig.1	29 Apr 2004 01:16:53 -0000
 @@ -355,4 +355,15 @@
  will not print the initial query when it looks up the NS records for
  isc.org.
@@ -860,7 +860,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
 retrieving revision 1.4.2.8
 diff -U2 -r1.4.2.8 dig.docbook
 --- bin/dig/dig.docbook	9 Mar 2004 06:09:12 -0000	1.4.2.8
-+++ bin/dig/dig.docbook	12 Apr 2004 23:58:57 -0000
++++ bin/dig/dig.docbook	29 Apr 2004 01:16:55 -0000
 @@ -530,4 +530,19 @@
  
  <refsect1>
@@ -884,10 +884,10 @@ diff -U2 -r1.4.2.8 dig.docbook
 Index: bin/dig/dighost.c
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
-retrieving revision 1.221.2.21
-diff -U2 -r1.221.2.21 dighost.c
---- bin/dig/dighost.c	8 Apr 2004 01:25:23 -0000	1.221.2.21
-+++ bin/dig/dighost.c	12 Apr 2004 23:59:02 -0000
+retrieving revision 1.221.2.22
+diff -U2 -r1.221.2.22 dighost.c
+--- bin/dig/dighost.c	15 Apr 2004 06:53:18 -0000	1.221.2.22
++++ bin/dig/dighost.c	29 Apr 2004 01:17:00 -0000
 @@ -33,4 +33,15 @@
  #include <limits.h>
  
@@ -1019,7 +1019,7 @@ diff -U2 -r1.221.2.21 dighost.c
 +#endif
  		}
  		if (result != ISC_R_SUCCESS) {
-@@ -2720,2 +2805,100 @@
+@@ -2722,2 +2807,100 @@
  		isc_mem_destroy(&mctx);
  }
 +
@@ -1126,7 +1126,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.2
 diff -U2 -r1.11.2.2 host.1
 --- bin/dig/host.1	15 Mar 2004 04:44:38 -0000	1.11.2.2
-+++ bin/dig/host.1	12 Apr 2004 23:59:03 -0000
++++ bin/dig/host.1	29 Apr 2004 01:17:01 -0000
 @@ -122,4 +122,15 @@
  will be set to the number of seconds given by the hardware's maximum
  value for an integer quantity.
@@ -1149,7 +1149,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
 retrieving revision 1.2.2.3
 diff -U2 -r1.2.2.3 host.docbook
 --- bin/dig/host.docbook	9 Mar 2004 06:09:13 -0000	1.2.2.3
-+++ bin/dig/host.docbook	12 Apr 2004 23:59:03 -0000
++++ bin/dig/host.docbook	29 Apr 2004 01:17:01 -0000
 @@ -182,4 +182,19 @@
  
  <refsect1>
@@ -1176,7 +1176,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
 retrieving revision 1.127.2.9
 diff -U2 -r1.127.2.9 name.c
 --- lib/dns/name.c	9 Mar 2004 06:11:03 -0000	1.127.2.9
-+++ lib/dns/name.c	12 Apr 2004 23:59:09 -0000
++++ lib/dns/name.c	29 Apr 2004 01:17:07 -0000
 @@ -196,4 +196,11 @@
  dns_name_t *dns_wildcardname = &wild;
  
@@ -1221,7 +1221,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
 retrieving revision 1.95.2.5
 diff -U2 -r1.95.2.5 name.h
 --- lib/dns/include/dns/name.h	9 Mar 2004 06:11:19 -0000	1.95.2.5
-+++ lib/dns/include/dns/name.h	12 Apr 2004 23:59:11 -0000
++++ lib/dns/include/dns/name.h	29 Apr 2004 01:17:09 -0000
 @@ -220,4 +220,15 @@
  #define DNS_NAME_MAXWIRE 255
  
