@@ -56,8 +56,9 @@
 1036.	[func]		Silently drop requests received via multicast as
 			long as there is no final multicast DNS standard.
 
-1035.	[bug]		Respond to multicast queries from a unicast address,
-			RFC 1123. [RT #137]
+1035.	[bug]		If we respond to multicast queries (which we
+			currently do not), respond from a unicast address
+			as specified in RFC 1123. [RT #137]
 
 1034.	[bug]		Multicast queries must not have RD set, RFC 1123.
 			FORMERR those that do.  [RT #137]
