@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.249 2004/01/14 02:06:48 marka Exp $ */
+/* $Id: query.c,v 1.250 2004/01/21 15:44:24 marka Exp $ */
 
 #include <config.h>
 
@@ -1675,6 +1675,7 @@ query_addbestns(ns_client_t *client) {
 			query_keepname(client, fname, dbuf);
 			zdb = db;
 			zfname = fname;
+			fname = NULL;
 			zrdataset = rdataset;
 			rdataset = NULL;
 			zsigrdataset = sigrdataset;
@@ -2678,6 +2679,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_keepname(client, fname, dbuf);
 				zdb = db;
 				zfname = fname;
+				fname = NULL;
 				zrdataset = rdataset;
 				rdataset = NULL;
 				zsigrdataset = sigrdataset;
