@@ -85,4 +85,16 @@ In a mainline working tree, do something like this:
   cvs tag -b -r v9_0_base v9_0 file
 
 
-$Id: cvs,v 1.6 2001/01/09 21:47:00 bwelling Exp $
+Importing contrib source from vendor release
+
+As an example, here's how queryperf was imported:
+
+  cd /tmp
+  cvs -d shell.nominum.com:/proj/cvs/nominum export -rHEAD queryperf
+  cd queryperf
+  cvs -d rc.isc.org:/proj/cvs/isc import bind9/contrib/queryperf \
+	NOMINUM NOMINUM_20010710
+
+
+
+$Id: cvs,v 1.7 2001/07/12 02:08:12 gson Exp $
