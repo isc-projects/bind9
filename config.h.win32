@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.4 2001/07/22 05:54:22 mayer Exp $ */
+/* $Id: config.h.win32,v 1.5 2001/07/23 17:37:48 gson Exp $ */
 
 /*
  * win32 configuration file
@@ -155,7 +155,7 @@
 #define utime _utime
 #define utimbuf _utimbuf
 
-//#define EAFNOSUPPORT EINVAL
+/* #define EAFNOSUPPORT EINVAL */
 #define chmod _chmod
 #define getpid _getpid
 #define getppid _getpid	/* WARNING!!! For now this gets the same pid */
@@ -182,7 +182,7 @@ typedef long off_t;
  * DO NOT REMOVE TRAILING COMMENT, even though it is not conformant
  * to C standards
  */
-#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); // Done
+#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); /* Done */
 /* We actually are using the CryptAPI and not a device */
 #define PATH_RANDOMDEV		"CryptAPI"
 
