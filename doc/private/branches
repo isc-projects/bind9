@@ -16,6 +16,7 @@ openssl_stub	open		marka
 chroot		open		marka
 rt5299		open		marka
 rt5456		review		explorer
+rt9976		open		jakob
 
 a6_remove	closed
 adb_race	closed		explorer
