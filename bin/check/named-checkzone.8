@@ -19,7 +19,7 @@
 named-checkzone \- zone file validity checking tool
 .SH SYNOPSIS
 .sp
-\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  \fBzonename\fR \fBfilename\fR
+\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-j\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  \fBzonename\fR \fBfilename\fR
 .SH "DESCRIPTION"
 .PP
 \fBnamed-checkzone\fR checks the syntax and integrity of
@@ -38,6 +38,9 @@ Quiet mode - exit code only.
 \fB-v\fR
 Print the version of the \fBnamed-checkzone\fR
 program and exit.
+.TP
+\fB-j\fR
+When loading the zone file read the journal if it exists.
 .TP
 \fB-c \fIclass\fB\fR
 Specify the class of the zone. If not specified "IN" is assumed.

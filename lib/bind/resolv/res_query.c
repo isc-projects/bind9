@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_query.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_query.c,v 1.2 2001/04/03 06:42:33 marka Exp $";
+static const char rcsid[] = "$Id: res_query.c,v 1.2.2.2 2002/07/14 04:26:59 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -132,8 +132,8 @@ again:
 	n = res_nmkquery(statp, QUERY, name, class, type, NULL, 0, NULL,
 			 buf, sizeof(buf));
 #ifdef RES_USE_EDNS0
-	if (n > 0 && (statp->options & RES_USE_EDNS0) != 0 &&
-	    (statp->_flags & RES_F_EDNS0ERR) == 0)
+	if (n > 0 && (statp->_flags & RES_F_EDNS0ERR) == 0 &&
+	    (statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC)) != 0)
 		n = res_nopt(statp, n, buf, sizeof(buf), anslen);
 #endif
 	if (n <= 0) {
@@ -148,7 +148,7 @@ again:
 	if (n < 0) {
 #ifdef RES_USE_EDNS0
 		/* if the query choked with EDNS0, retry without EDNS0 */
-		if ((statp->options & RES_USE_EDNS0) != 0 &&
+		if ((statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC)) != 0 &&
 		    ((oflags ^ statp->_flags) & RES_F_EDNS0ERR) != 0) {
 			statp->_flags |= RES_F_EDNS0ERR;
 			if (statp->options & RES_DEBUG)
@@ -212,6 +212,7 @@ res_nsearch(res_state statp,
 	int trailing_dot, ret, saved_herrno;
 	int got_nodata = 0, got_servfail = 0, root_on_list = 0;
 	int tried_as_is = 0;
+	int searched = 0;
 
 	errno = 0;
 	RES_SET_H_ERRNO(statp, HOST_NOT_FOUND);  /* True if we never query. */
@@ -255,6 +256,7 @@ res_nsearch(res_state statp,
 		for (domain = (const char * const *)statp->dnsrch;
 		     *domain && !done;
 		     domain++) {
+			searched = 1;
 
 			if (domain[0][0] == '\0' ||
 			    (domain[0][0] == '.' && domain[0][1] == '\0'))
@@ -312,11 +314,11 @@ res_nsearch(res_state statp,
 	}
 
 	/*
-	 * If the name has any dots at all, and no earlier 'as-is' query 
-	 * for the name, and "." is not on the search list, then try an as-is
-	 * query now.
+	 * If the query has not already been tried as is then try it
+	 * unless RES_NOTLDQUERY is set and there were no dots.
 	 */
-	if (statp->ndots && !(tried_as_is || root_on_list)) {
+	if ((dots || !searched || (statp->options & RES_NOTLDQUERY) == 0) &&
+	    !(tried_as_is || root_on_list)) {
 		ret = res_nquerydomain(statp, name, NULL, class, type,
 				       answer, anslen);
 		if (ret > 0)

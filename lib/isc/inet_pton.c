@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996-2001  Internet Software Consortium.
+ * Copyright (C) 1996-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: inet_pton.c,v 1.10 2001/07/16 03:06:52 marka Exp $";
+	"$Id: inet_pton.c,v 1.10.2.2 2002/03/26 00:55:06 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -51,11 +51,7 @@ static int inet_pton6(const char *src, unsigned char *dst);
  *	Paul Vixie, 1996.
  */
 int
-isc_net_pton(af, src, dst)
-	int af;
-	const char *src;
-	void *dst;
-{
+isc_net_pton(int af, const char *src, void *dst) {
 	switch (af) {
 	case AF_INET:
 		return (inet_pton4(src, dst));
@@ -79,10 +75,7 @@ isc_net_pton(af, src, dst)
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton4(src, dst)
-	const char *src;
-	unsigned char *dst;
-{
+inet_pton4(const char *src, unsigned char *dst) {
 	static const char digits[] = "0123456789";
 	int saw_digit, octets, ch;
 	unsigned char tmp[NS_INADDRSZ], *tp;
@@ -134,10 +127,7 @@ inet_pton4(src, dst)
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton6(src, dst)
-	const char *src;
-	unsigned char *dst;
-{
+inet_pton6(const char *src, unsigned char *dst) {
 	static const char xdigits_l[] = "0123456789abcdef",
 			  xdigits_u[] = "0123456789ABCDEF";
 	unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;

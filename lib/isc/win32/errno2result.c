@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,13 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.4 2001/07/17 20:29:24 gson Exp $ */
+/* $Id: errno2result.c,v 1.4.2.2 2002/02/20 02:17:28 marka Exp $ */
 
 #include <config.h>
 
 #include <winsock2.h>
 #include "errno2result.h"
 #include <isc/result.h>
+#include <isc/strerror.h>
+#include <isc/util.h>
 
 /*
  * Convert a POSIX errno value into an isc_result_t.  The
@@ -31,6 +33,8 @@
  */
 isc_result_t
 isc__errno2result(int posixerrno) {
+	char strbuf[ISC_STRERRORSIZE];
+
 	switch (posixerrno) {
 	case ENOTDIR:
 	case WSAELOOP:
@@ -53,6 +57,11 @@ isc__errno2result(int posixerrno) {
 	case EMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
 	default:
+		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "unable to convert errno "
+				 "to isc_result: %d: %s",
+				 posixerrno, strbuf);
 		/*
 		 * XXXDCL would be nice if perhaps this function could
 		 * return the system's error string, so the caller

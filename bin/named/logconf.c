@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.30 2001/05/28 05:16:57 marka Exp $ */
+/* $Id: logconf.c,v 1.30.2.3 2001/10/11 02:03:20 marka Exp $ */
 
 #include <config.h>
 
@@ -74,7 +74,7 @@ category_fromconf(cfg_obj_t *ccat, isc_logconfig_t *lctx) {
 		result = isc_log_usechannel(lctx, channelname, category,
 					    module);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+			isc_log_write(ns_g_lctx, CFG_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s': %s", channelname,
 				      isc_result_totext(result));
@@ -134,7 +134,7 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
 		cfg_obj_t *versionsobj = cfg_tuple_get(fileobj, "versions");
 		isc_int32_t versions = ISC_LOG_ROLLNEVER;
-		isc_offset_t size = ISC_OFFSET_MAXIMUM;
+		isc_offset_t size = 0;
 
 		type = ISC_LOG_TOFILE;
 		
@@ -221,7 +221,7 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		 */
 		result = isc_stdio_open(dest.file.name, "a", &fp);
 		if (result != ISC_R_SUCCESS)
-			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+			isc_log_write(ns_g_lctx, CFG_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s' file '%s': %s",
 				      channelname, dest.file.name,
@@ -267,12 +267,12 @@ ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt) {
 		CHECK(category_fromconf(category, logconf));
 		if (!default_set) {
 			cfg_obj_t *catname = cfg_tuple_get(category, "name");
-			if (strcmp(cfg_obj_asstring(catname), "default"))
+			if (strcmp(cfg_obj_asstring(catname), "default") == 0)
 				default_set = ISC_TRUE;
 		}
 		if (!unmatched_set) {
 			cfg_obj_t *catname = cfg_tuple_get(category, "name");
-			if (strcmp(cfg_obj_asstring(catname), "unmatched"))
+			if (strcmp(cfg_obj_asstring(catname), "unmatched") == 0)
 				unmatched_set = ISC_TRUE;
 		}
 	}

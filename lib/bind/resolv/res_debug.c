@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.3 2001/06/21 08:26:22 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.4 2002/07/14 04:26:56 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -187,7 +187,12 @@ do_section(const res_state statp,
 				ns_rr_name(rr),
 				p_type(ns_rr_type(rr)),
 				p_class(ns_rr_class(rr)));
-		else {
+		else if (section == ns_s_ar && ns_rr_type(rr) == ns_t_opt) {
+			u_int32_t ttl = ns_rr_ttl(rr);
+			fprintf(file,
+				"; EDNS: version: %u, udp=%u, flags=%04x\n",
+				(ttl>>16)&0xff, ns_rr_class(rr), ttl&0xffff);
+		} else {
 			n = ns_sprintrr(handle, &rr, NULL, NULL,
 					buf, buflen);
 			if (n < 0) {
@@ -616,6 +621,12 @@ p_option(u_long option) {
 #ifdef RES_USE_DNAME
 	case RES_USE_DNAME:	return "dname";
 #endif
+#ifdef RES_USE_DNSSEC
+	case RES_USE_DNSSEC:	return "dnssec";
+#endif
+#ifdef RES_NOTLDQUERY
+	case RES_NOTLDQUERY:	return "no-tld-query";
+#endif
 
 				/* XXX nonreentrant */
 	default:		sprintf(nbuf, "?0x%lx?", (u_long)option);
@@ -672,12 +683,10 @@ precsize_ntoa(prec)
 
 /* converts ascii size/precision X * 10**Y(cm) to 0xXY.  moves pointer. */
 static u_int8_t
-precsize_aton(strptr)
-	char **strptr;
-{
+precsize_aton(const char **strptr) {
 	unsigned int mval = 0, cmval = 0;
 	u_int8_t retval = 0;
-	char *cp;
+	const char *cp;
 	int exponent;
 	int mantissa;
 
@@ -714,11 +723,8 @@ precsize_aton(strptr)
 
 /* converts ascii lat/lon to unsigned encoded 32-bit number.  moves pointer. */
 static u_int32_t
-latlon2ul(latlonstrptr,which)
-	char **latlonstrptr;
-	int *which;
-{
-	char *cp;
+latlon2ul(const char **latlonstrptr, int *which) {
+	const char *cp;
 	u_int32_t retval;
 	int deg = 0, min = 0, secs = 0, secsfrac = 0;
 
@@ -1083,37 +1089,45 @@ p_secstodate (u_long secs) {
 }
 
 u_int16_t
-res_nametoclass(const char *buf, int *success) {
+res_nametoclass(const char *buf, int *successp) {
 	unsigned long result;
 	char *endptr;
+	int success;
 
-	result = sym_ston(__p_class_syms, buf, success);
+	result = sym_ston(__p_class_syms, buf, &success);
 	if (success)
-		return (result);
+		goto done;
 
 	if (strncasecmp(buf, "CLASS", 5) != 0 ||
 	    !isdigit((unsigned char)buf[5]))
-		return (result);
-	result = strtoul(buf, &endptr, 10);
+		goto done;
+	result = strtoul(buf + 5, &endptr, 10);
 	if (*endptr == '\0' && result <= 0xffff)
-		*success = 1;
+		success = 1;
+ done:
+	if (successp)
+		*successp = success;
 	return (result);
 }
 
 u_int16_t
-res_nametotype(const char *buf, int *success) {
+res_nametotype(const char *buf, int *successp) {
 	unsigned long result;
 	char *endptr;
+	int success;
 
-	result = sym_ston(__p_type_syms, buf, success);
+	result = sym_ston(__p_type_syms, buf, &success);
 	if (success)
-		return (result);
+		goto done;
 
 	if (strncasecmp(buf, "type", 4) != 0 ||
 	    !isdigit((unsigned char)buf[4]))
-		return (result);
-	result = strtoul(buf, &endptr, 10);
+		goto done;
+	result = strtoul(buf + 4, &endptr, 10);
 	if (*endptr == '\0' && result <= 0xffff)
-		*success = 1;
+		success = 1;
+ done:
+	if (successp)
+		*successp = success;
 	return (result);
 }

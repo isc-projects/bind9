@@ -44,10 +44,26 @@ BIND 9
 		Nominum, Inc.
 
 
-BIND 9.2.0rc1
+BIND 9.2.2 (release candidate 1)
 
-	BIND 9.2.0rc1 is a release candidate for BIND 9.2.0.
-	BIND 9.2.0 has a number of new features over 9.1,
+	BIND 9.2.1 is a maintenance release, containing fixes for
+	a number of bugs in 9.2.1 but no new features.
+
+	libbind: from BIND 8.3.3. [CERT CA-2002-19]
+	Mimimum OpenSSL version now 0.9.6e. [CERT CA-2002-23]
+
+BIND 9.2.1
+
+	BIND 9.2.1 is a maintenance release, containing fixes for
+	a number of bugs in 9.2.0 but no new features.
+
+	NOTE: dig, nslookup name. now report "Not Implemented" as
+	NOTIMP rather than NOTIMPL.  This will have impact on scripts
+	that are looking for NOTIMPL.
+
+BIND 9.2.0
+
+	BIND 9.2.0 introduces a number of new features over 9.1,
 	including:
 
 	  - The size of the cache can now be limited using the
@@ -126,6 +142,11 @@ BIND 9.2.0rc1
 		This is due to a bug in "/dev/random" and impacts the
 		server's DNSSEC support.
 
+		OS X 10.1.4 (Darwin 5.4) reports errors like
+		"fcntl(3, F_SETFL, 4): Operation not supported by device".
+		This is due to a bug in "/dev/random" and impacts the
+		server's DNSSEC support.
+
 		--with-libtool does not work on AIX.
 
 	A bug in the Windows 2000 DNS server can cause zone transfers
@@ -147,12 +168,15 @@ Building
 		COMPAQ Tru64 UNIX 4.0D
 		COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
 		FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1
-		HP-UX 11
+		HP-UX 11.x, x < 11
 		IRIX64 6.5
 		NetBSD 1.5
 		Red Hat Linux 6.0, 6.1, 6.2, 7.0
 		Solaris 2.6, 7, 8
 		Windows NT/W2K
+
+	HP-UX 11.11 is not yet supported due to its incompatible
+	SIOCGLIFCONF ioctl.
 
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
@@ -161,9 +185,13 @@ Building
 		SuSE Linux 7.0
 		Slackware Linux 7.x, 8.0
 	        Red Hat Linux 7.1
-		OpenBSD 2.6, 2.8, -current
+		Debian GNU/Linux 2.2 and 3.0
+		OpenBSD 2.6, 2.8, 2.9
 		UnixWare 7.1.1
 		HP-UX 10.20
+		BSD/OS 4.2
+		OpenUNIX 8
+		Mac OS X 10.1
 
 	To build, just
 
@@ -195,7 +223,8 @@ Building
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 
-	To build with DNSSEC support, you must have OpenSSL 0.9.5a
+	For the server to support DNSSEC, you need to build it
+	with crypto support.  You must have OpenSSL 0.9.5a
 	or newer installed and specify "--with-openssl" on the
 	configure command line.  If OpenSSL is installed under
 	a nonstandard prefix, you can tell configure where to
@@ -236,6 +265,9 @@ Building
 	should also "make depend".  If you're using Emacs, you might find
 	"make tags" helpful.
 
+	If you need to re-run configure please run "make distclean" first.
+	This will ensure that all the option changes take.
+
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
 
@@ -260,6 +292,9 @@ Documentation
 	notes in doc/misc/migration.  If you are upgrading from
 	BIND 4, read doc/misc/migration-4to9.
 
+	Frequently asked questions and their answers can be found in
+	FAQ.
+
 
 Bug Reports and Mailing Lists
 
@@ -270,11 +305,15 @@ Bug Reports and Mailing Lists
 	To join the BIND 9 Users mailing list, send mail to
 
 		bind9-users-request@isc.org
+ 
+	archives of which can be found via
+
+		http://www.isc.org/ml-archives/
 
 	If you're planning on making changes to the BIND 9 source
-	code, you might want to join the BIND 9 Workers mailing list.
+	code, you might want to join the BIND Workers mailing list.
 	Send mail to
 
-		bind9-workers-request@isc.org
+		bind-workers-request@isc.org
 
 

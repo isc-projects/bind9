@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.10 2001/03/17 01:53:01 bwelling Exp $ */
+/* $Id: zonetodb.c,v 1.12.4.2 2002/08/05 06:57:08 marka Exp $ */
+
+#include <stdlib.h>
+#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -29,6 +32,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatatype.h>
 #include <dns/result.h>
 
 #include <pgsql/libpq-fe.h>
@@ -151,6 +155,8 @@ main(int argc, char **argv) {
 	dbname = argv[3];
 	dbtable = argv[4];
 
+	dns_result_register();
+
 	mctx = NULL;
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
@@ -168,6 +174,8 @@ main(int argc, char **argv) {
 	check_result(result, "dns_db_create");
 
 	result = dns_db_load(db, zonefile);
+	if (result == DNS_R_SEENINCLUDE)
+		result = ISC_R_SUCCESS;
 	check_result(result, "dns_db_load");
 
 	printf("Connecting to '%s'\n", dbname);
@@ -269,4 +277,5 @@ main(int argc, char **argv) {
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx);
 	closeandexit(0);
+	exit(0);
 }

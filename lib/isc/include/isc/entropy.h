@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.h,v 1.23 2001/06/22 17:05:53 tale Exp $ */
+/* $Id: entropy.h,v 1.23.2.1 2001/09/06 00:14:18 gson Exp $ */
 
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
@@ -112,12 +112,12 @@ typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
  * For use with isc_entropy_usebestsource().
  *
  * _KEYBOARDYES
- *	Always use the keyboard as an entropy source.
+ *	Use the keyboard as the only entropy source.
  * _KEYBOARDNO
  *	Never use the keyboard as an entropy source.
  * _KEYBOARDMAYBE
  *	Use the keyboard as an entropy source only if opening the
- *	random device or supplied filename fails.
+ *	random device fails.
  */
 #define ISC_ENTROPY_KEYBOARDYES		1
 #define ISC_ENTROPY_KEYBOARDNO		2

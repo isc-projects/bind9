@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.19 2001/01/09 21:59:09 bwelling Exp $ */
+/* $Id: time.h,v 1.19.2.1 2001/09/05 00:38:13 gson Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -83,23 +83,6 @@ struct isc_time {
 };
 
 extern isc_time_t *isc_time_epoch;
-
-void
-isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds);
-/*
- * Set 't' to a particular number of seconds + nanoseconds since the epoch.
- *
- * Notes:
- *	This call is equivalent to:
- *
- *	isc_time_settoepoch(t);
- *	isc_interval_set(i, seconds, nanoseconds);
- *	isc_time_add(t, i, t);
- *
- * Requires:
- *	't' is a valid pointer.
- *	nanoseconds < 1000000000.
- */
 
 void
 isc_time_settoepoch(isc_time_t *t);
@@ -230,39 +213,6 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2);
  */
 
 isc_uint32_t
-isc_time_seconds(isc_time_t *t);
-/*
- * Return the number of seconds since the epoch stored in a time structure.
- *
- * Requires:
- *
- *	't' is a valid pointer.
- */
-
-isc_result_t
-isc_time_secondsastimet(isc_time_t *t, time_t *secondsp);
-/*
- * Ensure the number of seconds in an isc_time_t is representable by a time_t.
- *
- * Notes:
- *	The number of seconds stored in an isc_time_t might be larger
- *	than the number of seconds a time_t is able to handle.  Since
- *	time_t is mostly opaque according to the ANSI/ISO standard
- *	(essentially, all you can be sure of is that it is an arithmetic type,
- *	not even necessarily integral), it can be tricky to ensure that
- *	the isc_time_t is in the range a time_t can handle.  Use this
- *	function in place of isc_time_seconds() any time you need to set a
- *	time_t from an isc_time_t.
- *
- * Requires:
- *	't' is a valid pointer.
- *
- * Returns:
- *	Success
- *	Out of range
- */
-
-isc_uint32_t
 isc_time_nanoseconds(isc_time_t *t);
 /*
  * Return the number of nanoseconds stored in a time structure.
@@ -277,6 +227,20 @@ isc_time_nanoseconds(isc_time_t *t);
  *
  * Ensures:
  *	The returned value is less than 1*10^9.
+ */
+
+void
+isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
+/*
+ * Format the time 't' into the buffer 'buf' of length 'len',
+ * using a format like "Aug 30 04:06:47.997" and the local time zone.
+ * If the text does not fit in the buffer, the result is indeterminate,
+ * but is always guaranteed to be null terminated.
+ *
+ *  Requires:
+ *      'len' > 0
+ *      'buf' points to an array of at least len chars
+ *
  */
 
 ISC_LANG_ENDDECLS

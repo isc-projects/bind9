@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194 2001/07/10 20:09:24 gson Exp $ */
+/* $Id: message.c,v 1.194.2.8 2002/02/28 05:17:49 marka Exp $ */
 
 /***
  *** Imports
@@ -23,19 +23,17 @@
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
-#include <isc/buffer.h>
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
-#ifdef DNS_OPT_NEWCODES
-#include <dns/opt.h>
-#endif /* DNS_OPT_NEWCODES */
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -118,7 +116,7 @@ static const char *rcodetext[] = {
 	"FORMERR",
 	"SERVFAIL",
 	"NXDOMAIN",
-	"NOTIMPL",
+	"NOTIMP",
 	"REFUSED",
 	"YXDOMAIN",
 	"YXRRSET",
@@ -1173,7 +1171,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * If there was no question section, we may not yet have
 		 * established a class.  Do so now.
 		 */
-		if (msg->state == DNS_SECTION_ANY) {
+		if (msg->state == DNS_SECTION_ANY &&
+		    rdtype != dns_rdatatype_opt &&	/* class is UDP SIZE */
+		    rdtype != dns_rdatatype_tsig &&	/* class is ANY */
+		    rdtype != dns_rdatatype_tkey) {	/* class is undefined */
 			msg->rdclass = rdclass;
 			msg->state = DNS_SECTION_QUESTION;
 		}
@@ -1494,12 +1495,14 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	isc_uint16_t tmpflags;
 	isc_buffer_t origsource;
 	isc_boolean_t seen_problem;
+	isc_boolean_t ignore_tc;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(source != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 
 	seen_problem = ISC_FALSE;
+	ignore_tc = ISC_TF(options & DNS_MESSAGEPARSE_IGNORETRUNCATION);
 
 	origsource = *source;
 
@@ -1531,6 +1534,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 
 	ret = getquestions(source, msg, &dctx, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1540,6 +1545,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->question_ok = 1;
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1548,6 +1555,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return (ret);
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1556,6 +1565,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return (ret);
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1571,6 +1582,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 			      r.length);
 	}
 
+ truncated:
 	if ((options & DNS_MESSAGEPARSE_CLONEBUFFER) == 0)
 		isc_buffer_usedregion(&origsource, &msg->saved);
 	else {
@@ -1583,6 +1595,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		msg->free_saved = 1;
 	}
 
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		return (DNS_R_RECOVERABLE);
 	if (seen_problem == ISC_TRUE)
 		return (DNS_R_RECOVERABLE);
 	return (ISC_R_SUCCESS);
@@ -2766,7 +2780,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 		dns_rdataset_init(&keyset);
 		if (view == NULL)
-			return DNS_R_KEYUNAUTHORIZED;
+			return (DNS_R_KEYUNAUTHORIZED);
 		result = dns_view_simplefind(view, &sig.signer,
 					     dns_rdatatype_key, 0, 0,
 					     ISC_FALSE, &keyset, NULL);
@@ -2892,9 +2906,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_rdataset_t *ps = NULL;
 	dns_name_t *name = NULL;
 	isc_result_t result;
-#ifndef DNS_OPT_NEWCODES
 	char buf[sizeof("1234567890")];
-#endif /* DNS_OPT_NEWCODES */
+	isc_uint32_t mbz;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
@@ -2905,23 +2918,27 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		ps = dns_message_getopt(msg);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
-#ifdef DNS_OPT_NEWCODES
-		result = dns_opt_totext(ps, target, flags);
-#else /* DNS_OPT_NEWCODES */
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
 		ADD_STRING(target, "; EDNS: version: ");
-		sprintf(buf, "%4u",
-			(unsigned int)((ps->ttl &
+		snprintf(buf, sizeof(buf), "%u",
+			 (unsigned int)((ps->ttl &
 					0x00ff0000 >> 16)));
 		ADD_STRING(target, buf);
-		ADD_STRING(target, ", udp=");
-		sprintf(buf, "%7u\n",
-			(unsigned int)ps->rdclass);
+		ADD_STRING(target, ", flags:");
+		if ((ps->ttl & DNS_MESSAGEEXTFLAG_DO) != 0)
+			ADD_STRING(target, " do");
+		mbz = ps->ttl & ~DNS_MESSAGEEXTFLAG_DO & 0xffff;
+		if (mbz != 0) {
+			ADD_STRING(target, "; MBZ: ");
+			snprintf(buf, sizeof(buf), "%.4x ", mbz);
+			ADD_STRING(target, buf);
+			ADD_STRING(target, ", udp: ");
+		} else
+			ADD_STRING(target, "; udp: ");
+		snprintf(buf, sizeof(buf), "%u\n", (unsigned int)ps->rdclass);
 		ADD_STRING(target, buf);
-		result = ISC_R_SUCCESS;
-#endif /* DNS_OPT_NEWCODES */
-		return (result);
+		return (ISC_R_SUCCESS);
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);
 		if (ps == NULL)

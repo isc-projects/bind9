@@ -1,4 +1,4 @@
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: lookup.tcl,v 1.7 2001/01/09 21:46:24 bwelling Exp $
+# $Id: lookup.tcl,v 1.7.4.2 2002/08/05 06:57:08 marka Exp $
 
 #
 # Sample lookup procedure for tcldb

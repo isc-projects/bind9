@@ -1,4 +1,4 @@
-/* $Id: api.h,v 1.1 2001/06/09 00:29:55 tale Exp $ */
+/* $Id: api.h,v 1.1.2.1 2002/02/08 12:12:51 marka Exp $ */
 /*
  * Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
  *  
@@ -8,8 +8,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -83,7 +83,7 @@
  */
 #define MDN_ENCODE_APP	\
 	(MDN_LOCALCONV|MDN_DELIMMAP|MDN_LOCALMAP|MDN_NAMEPREP|MDN_IDNCONV)
-#define MDN_DECODE_APP	(MDN_IDNCONV|MDN_LOCALCONV)
+#define MDN_DECODE_APP	(MDN_IDNCONV|MDN_NAMEPREP|MDN_LOCALCONV)
 
 /*
  * Initialize the whole library, and load configuration from the default
@@ -175,7 +175,10 @@ mdn_encodename(int actions, const char *from, char *to, size_t tolen);
  * a bitwise-or of the following flags:
  *
  *   MDN_IDNCONV	-- perform IDN encoding to UTF-8 conversion (step 1)
- *   MDN_LOCALCONV	-- perform UTF-8 to local encoding conversion (step 2)
+ *   MDN_NAMEPREP	-- perform NAMEPREP for verification (step 2)
+ *   MDN_UNASCHECK	-- perform optional unassigned codepoint check for
+ *			   verification (also step 2)
+ *   MDN_LOCALCONV	-- perform UTF-8 to local encoding conversion (step 3)
  *
  * Note that if no flags are specified, 'mdn_decodename' does nothing
  * but copying the given name verbatim.
@@ -215,6 +218,8 @@ mdn_decodename(int actions, const char *from, char *to, size_t tolen);
 	mdn_decodename(MDN_IDNCONV, from, to, tolen)
 #define mdn_utf8tolocal(from, to, tolen) \
 	mdn_decodename(MDN_LOCALCONV, from, to, tolen)
+#define mdn_nameprepcheck(from, to, tolen) \
+	mdn_decodename(MDN_NAMEPREP, from, to, tolen)
 
 #define mdn_localtoidn(from, to, tolen) \
 	mdn_encodename(MDN_ENCODE_APP, from, to, tolen)

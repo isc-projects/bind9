@@ -1,4 +1,4 @@
-/* $Id: dllstub.c,v 1.1 2001/06/09 00:30:55 tale Exp $ */
+/* $Id: dllstub.c,v 1.1.2.1 2002/02/08 12:16:21 marka Exp $ */
 
 SOCKET   PASCAL
 accept(SOCKET a0, struct sockaddr* a1, int* a2)

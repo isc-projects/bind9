@@ -1,4 +1,4 @@
-/* $Id: amcacer.h,v 1.1 2001/06/09 00:29:55 tale Exp $ */
+/* $Id: amcacer.h,v 1.1.2.1 2002/02/08 12:12:46 marka Exp $ */
 /*
  * Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
  *  
@@ -8,8 +8,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -63,8 +63,8 @@
 /*
  * AMC-ACE-R Converter.
  *
- * See Internet Draft draft-ietf-idn-amc-ace-r-00.txt (but not yet
- * published at the time of this writing) for details.
+ * See Internet Draft draft-ietf-idn-amc-ace-r-01.txt for details.
+ * Note that -01 has some imcompatible changes over -00 spec.
  */
 
 #include <mdn/result.h>

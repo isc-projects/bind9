@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70 2001/08/08 22:54:51 gson Exp $ */
+/* $Id: log.c,v 1.70.2.5 2002/07/11 03:39:06 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -302,9 +302,12 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 		if (lcfgp != NULL)
 			*lcfgp = lcfg;
 
-	} else
+	} else {
+		if (lcfg != NULL)
+			isc_logconfig_destroy(&lcfg);
 		if (lctx != NULL)
 			isc_log_destroy(&lctx);
+	}
 
 	return (result);
 }
@@ -938,6 +941,8 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
 
 	REQUIRE(VALID_CONTEXT(lctx));
 
+	LOCK(&lctx->lock);
+
 	lctx->debug_level = level;
 	/*
 	 * Close ISC_LOG_DEBUGONLY channels if level is zero.
@@ -952,6 +957,7 @@ isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
 				(void)fclose(FILE_STREAM(channel));
 				FILE_STREAM(channel) = NULL;
 			}
+	UNLOCK(&lctx->lock);
 }
 
 unsigned int
@@ -980,6 +986,8 @@ isc_log_settag(isc_logconfig_t *lcfg, const char *tag) {
 	REQUIRE(VALID_CONFIG(lcfg));
 
 	if (tag != NULL && *tag != '\0') {
+		if (lcfg->tag != NULL)
+			isc_mem_free(lcfg->lctx->mctx, lcfg->tag);
 		lcfg->tag = isc_mem_strdup(lcfg->lctx->mctx, tag);
 		if (lcfg->tag == NULL)
 			return (ISC_R_NOMEMORY);
@@ -1012,6 +1020,7 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 
 	REQUIRE(VALID_CONTEXT(lctx));
 
+	LOCK(&lctx->lock);
 	for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
 	     channel != NULL;
 	     channel = ISC_LIST_NEXT(channel, link))
@@ -1021,6 +1030,7 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 			(void)fclose(FILE_STREAM(channel));
 			FILE_STREAM(channel) = NULL;
 		}
+	UNLOCK(&lctx->lock);
 }
 
 /****
@@ -1346,7 +1356,6 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
-	isc_time_t isctime;
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
@@ -1438,37 +1447,13 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
 		    time_string[0] == '\0') {
-			time_t now;
+		    isc_time_t isctime;
 
-			result = isc_time_now(&isctime);
+		    result = isc_time_now(&isctime);
 			if (result == ISC_R_SUCCESS)
-				result = isc_time_secondsastimet(&isctime,
-								 &now);
-
-			if (result == ISC_R_SUCCESS) {
-				unsigned int len;
-				struct tm *timeptr;
-
-				timeptr = localtime(&now);
-				/*
-				 * Emulate syslog's time format,
-				 * with milliseconds.
-				 *
-				 * It would be nice if the format
-				 * were configurable.
-				 */
-				strftime(time_string, sizeof(time_string),
-					 "%b %d %X", timeptr);
-
-				len = strlen(time_string);
-
-				snprintf(time_string + len,
-					 sizeof(time_string) - len,
-					 ".%03u ",
-					 isc_time_nanoseconds(&isctime)
-					 / 1000000);
-
-			} else
+				isc_time_formattimestamp(&isctime, time_string,
+							 sizeof(time_string));
+			else
 				/*
 				 * "Should never happen."
 				 */
@@ -1476,7 +1461,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 					 isc_msgcat_get(isc_msgcat,
 						      ISC_MSGSET_LOG,
 						      ISC_MSG_BADTIME,
-						      "Bad 00 99:99:99.999 "));
+						      "Bad 00 99:99:99.999"));
 
 		}
 
@@ -1662,8 +1647,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			/* FALLTHROUGH */
 
 		case ISC_LOG_TOFILEDESC:
-			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s%s\n",
+			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s%s%s\n",
 				printtime     ? time_string	: "",
+				printtime     ? " "		: "",
 				printtag      ? lcfg->tag	: "",
 				printtag      ? ": "		: "",
 				printcategory ? category->name	: "",

@@ -1,4 +1,4 @@
-/* $Id: logmacro.h,v 1.9 2000/09/20 02:47:29 ishisone Exp $ */
+/* $Id: logmacro.h,v 1.1 2002/01/02 02:46:32 marka Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -8,8 +8,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -65,16 +65,16 @@
 #define FATAL(x)	mdn_log_fatal x
 #define ERROR(x)	mdn_log_error x
 #define WARNING(x)	mdn_log_warning x
-#define INFO(x)		mdn_log_info x
+#define INFO(x)		LOG_AT_LEVEL(mdn_log_level_info, mdn_log_info, x)
+#define TRACE(x)	LOG_AT_LEVEL(mdn_log_level_trace, mdn_log_trace, x)
 
 #ifdef DEBUG
-#define TRACE(x)	mdn_log_trace x
-#define DUMP(x)		mdn_log_dump x
+#define DUMP(x)		LOG_AT_LEVEL(mdn_log_level_dump, mdn_log_dump, x)
 #else
-#define TRACE(x)
 #define DUMP(x)
 #endif /* DEBUG */
 
+#define LOG_AT_LEVEL(lv, fun, x) do {if (LOGLEVEL >= (lv)) fun x; } while (0)
 #define LOGLEVEL	mdn_log_getlevel()
 
 #endif /* MDN_LOGMACRO_H */

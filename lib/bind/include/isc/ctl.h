@@ -19,7 +19,7 @@
  */
 
 /*
- * $Id: ctl.h,v 1.1 2001/03/29 06:31:35 marka Exp $
+ * $Id: ctl.h,v 1.1.2.1 2002/07/11 23:32:30 marka Exp $
  */
 
 #include <sys/types.h>
@@ -62,7 +62,12 @@ struct ctl_verb {
 
 #define	ctl_logger	__ctl_logger
 
+#ifdef __GNUC__
+void			ctl_logger(enum ctl_severity, const char *, ...)
+				__attribute__((__format__(__printf__, 2, 3)));
+#else
 void			ctl_logger(enum ctl_severity, const char *, ...);
+#endif
 
 /* Client symbols. */
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.31 2001/07/16 03:06:53 marka Exp $ */
+/* $Id: net.h,v 1.31.2.2 2001/11/22 00:22:02 gson Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -138,7 +138,8 @@
 #endif
 
 #ifndef IN6_IS_ADDR_LOOPBACK
-#define IN6_IS_ADDR_LOOPBACK(a)	IN6_IS_ADDR_EQUAL(a, &in6addr_loopback)
+#define IN6_IS_ADDR_LOOPBACK(x) \
+	(memcmp((x)->s6_addr, in6addr_loopback.s6_addr, 16) == 0)
 #endif
 #endif
 
@@ -167,6 +168,9 @@ struct in6_pktinfo {
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 extern const struct in6_addr isc_net_in6addrany;
 #define in6addr_any isc_net_in6addrany
+#endif
+
+#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 extern const struct in6_addr isc_net_in6addrloop;
 #define in6addr_loopback isc_net_in6addrloop
 #endif

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.12 2001/08/09 02:55:41 mayer Exp $ */
+/* $Id: ntpaths.h,v 1.12.2.1 2001/09/04 19:36:33 gson Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -49,6 +49,8 @@ enum NtPaths {
 #define NAMED_CONFFILE isc_ntpaths_get(NAMED_CONF_PATH)
 #define RNDC_CONFFILE isc_ntpaths_get(RNDC_CONF_PATH)
 #define RNDC_KEYFILE isc_ntpaths_get(RNDC_KEY_PATH)
+#define RESOLV_CONF isc_ntpaths_get(RESOLV_CONF_PATH)
+
 
 /*
  * Information about where the files are on disk

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157 2001/08/23 04:39:31 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.7 2002/03/12 03:55:57 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -111,7 +111,7 @@ static const char *rcodetext[] = {
 	"FORMERR",
 	"SERVFAIL",
 	"NXDOMAIN",
-	"NOTIMPL",
+	"NOTIMP",
 	"REFUSED",
 	"YXDOMAIN",
 	"YXRRSET",
@@ -137,7 +137,7 @@ print_usage(FILE *fp) {
 }
 
 static void
-usage() {
+usage(void) {
 	print_usage(stderr);
 	fputs("\nUse \"dig -h\" (or \"dig -h | more\") "
 	      "for complete list of options\n", stderr);
@@ -156,9 +156,11 @@ help(void) {
 "                 -x dot-notation     (shortcut for in-addr lookups)\n"
 "                 -n                  (nibble form for reverse IPv6 lookups)\n"
 "                 -f filename         (batch mode)\n"
+"                 -b address          (bind to source address)\n"
 "                 -p port             (specify port number)\n"
 "                 -t type             (specify query type)\n"
 "                 -c class            (specify query class)\n"
+"                 -k keyfile          (specify tsig key file)\n"
 "                 -y name:key         (specify named base64 tsig key)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
@@ -167,6 +169,7 @@ help(void) {
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
+"                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]defname        (Ditto)\n"
 "                 +[no]recursive      (Recursive mode)\n"
@@ -177,17 +180,17 @@ help(void) {
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
-"                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]cmd            (Control display of command line)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]question       (Control display of question)\n"
 "                 +[no]answer         (Control display of answer)\n"
 "                 +[no]authority      (Control display of authority)\n"
 "                 +[no]additional     (Control display of additional)\n"
+"                 +[no]stats          (Control display of statistics)\n"
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
-"                 +qr                 (Print question before sending)\n"
+"                 +[no]qr             (Print question before sending)\n"
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
@@ -651,6 +654,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->section_answer = state;
 			lookup->section_additional = state;
 			lookup->comments = state;
+			lookup->stats = state;
+			printcmd = state;
 			break;
 		case 'n': /* answer */
 			lookup->section_answer = state;
@@ -790,6 +795,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			if (state) {
 				printcmd = ISC_FALSE;
 				lookup->section_additional = ISC_FALSE;
+				lookup->section_answer = ISC_TRUE;
 				lookup->section_authority = ISC_FALSE;
 				lookup->section_question = ISC_FALSE;
 				lookup->comments = ISC_FALSE;
@@ -852,32 +858,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'v':
-#ifdef DNS_OPT_NEWCODES_LIVE
-		switch (cmd[1]) {
-		default:
-		case 'c': /* vc, and default */
-#endif /* DNS_OPT_NEWCODES_LIVE */
-			if (!is_batchfile)
-				lookup->tcp_mode = state;
-			break;
-#ifdef DNS_OPT_NEWCODES_LIVE
-		case 'i': /* view */
-			if (value == NULL)
-				goto need_value;
-			if (!state)
-				goto invalid_option;
-			strncpy(lookup->viewname, value, MXNAME);
-			break;
-		}
+		if (!is_batchfile)
+			lookup->tcp_mode = state;
 		break;
-	case 'z': /* zone */
-		if (value == NULL)
-			goto need_value;
-		if (!state)
-			goto invalid_option;
-		strncpy(lookup->zonename, value, MXNAME);
-		break;
-#endif /* DNS_OPT_NEWCODES_LIVE */
 	default:
 	invalid_option:
 	need_value:

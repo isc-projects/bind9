@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90 2001/06/08 19:37:29 bwelling Exp $ */
+/* $Id: result.c,v 1.90.2.5 2002/03/26 00:55:00 marka Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,14 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"unknown protocol",		       /* 75 DNS_R_UNKNOWNPROTO	     */
 	"clocks are unsynchronized",	       /* 76 DNS_R_CLOCKSKEW	     */
-	"IXFR failed"			       /* 77 DNS_R_BADIXFR	     */
+	"IXFR failed",			       /* 77 DNS_R_BADIXFR	     */
+	"<unused 78>",			       /* 78 unused		     */
+	"no valid KEY",			       /* 79 DNS_R_NOVALIDKEY	     */
+
+	"obsolete",			       /* 80 DNS_R_OBSOLETE	     */
+	"already frozen",		       /* 81 DNS_R_FROZEN	     */
+	"unknown flag",			       /* 82 DNS_R_UNKNOWNFLAG	     */
+	"expected a response"		       /* 83 DNS_R_EXPECTEDRESPONSE  */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
@@ -228,6 +235,7 @@ dns_result_torcode(isc_result_t result) {
 		rcode = dns_rcode_refused;
 		break;
 	case DNS_R_TSIGVERIFYFAILURE:
+	case DNS_R_CLOCKSKEW:
 		rcode = dns_rcode_notauth;
 		break;
 	default:

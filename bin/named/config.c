@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001  Internet Software Consortium.
+ * Copyright (C) 2001, 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11 2001/08/07 01:58:54 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4 2002/03/20 20:32:41 marka Exp $ */
 
 #include <config.h>
 
@@ -181,6 +181,7 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		   dns_rdataclass_t *classp) {
 	char *str;
 	isc_textregion_t r;
+	isc_result_t result;
 
 	if (!cfg_obj_isstring(classobj)) {
 		*classp = defclass;
@@ -189,7 +190,11 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 	str = cfg_obj_asstring(classobj);
 	r.base = str;
 	r.length = strlen(str);
-	return (dns_rdataclass_fromtext(classp, &r));
+	result = dns_rdataclass_fromtext(classp, &r);
+	if (result != ISC_R_SUCCESS)
+		cfg_obj_log(classobj, ns_g_lctx, ISC_LOG_ERROR,
+			    "unknown class '%s'", str);
+	return (result);
 }
 
 dns_zonetype_t
@@ -198,11 +203,11 @@ ns_config_getzonetype(cfg_obj_t *zonetypeobj) {
 	char *str;
 
 	str = cfg_obj_asstring(zonetypeobj);
-	if (strcmp(str, "master") == 0)
+	if (strcasecmp(str, "master") == 0)
 		ztype = dns_zone_master;
-	else if (strcmp(str, "slave") == 0)
+	else if (strcasecmp(str, "slave") == 0)
 		ztype = dns_zone_slave;
-	else if (strcmp(str, "stub") == 0)
+	else if (strcasecmp(str, "stub") == 0)
 		ztype = dns_zone_stub;
 	else
 		INSIST(0);
@@ -413,11 +418,6 @@ ns_config_getport(cfg_obj_t *config, in_port_t *portp) {
 	cfg_obj_t *portobj = NULL;
 	isc_result_t result;
 	int i;
-
-	if (ns_g_port != 0) {
-		*portp = ns_g_port;
-		return (ISC_R_SUCCESS);
-	}
 
 	cfg_map_get(config, "options", &options);
 	i = 0;

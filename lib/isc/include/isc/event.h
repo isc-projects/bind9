@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.h,v 1.24 2001/01/09 21:56:52 bwelling Exp $ */
+/* $Id: event.h,v 1.24.2.2 2002/08/05 06:57:14 marka Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
@@ -88,7 +88,7 @@ isc_event_t *
 isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 		   isc_taskaction_t action, const void *arg, size_t size);
 /*
- * Allocate and initalise in a structure with initial elements
+ * Allocate and initialize in a structure with initial elements
  * defined by:
  *
  *	struct {
@@ -101,7 +101,7 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
  *	'action' to be non NULL
  *
  * Returns:
- *	a pointer to a initalised structure of the requested size.
+ *	a pointer to a initialized structure of the requested size.
  *	NULL if unable to allocate memory.
  */
 

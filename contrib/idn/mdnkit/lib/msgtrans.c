@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: msgtrans.c,v 1.24 2001/02/21 05:54:17 m-kasahr Exp $";
+static char *rcsid = "$Id: msgtrans.c,v 1.1 2002/01/02 02:46:45 marka Exp $";
 #endif
 
 /*
@@ -12,8 +12,8 @@ static char *rcsid = "$Id: msgtrans.c,v 1.24 2001/02/21 05:54:17 m-kasahr Exp $"
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -92,28 +92,17 @@ static char *rcsid = "$Id: msgtrans.c,v 1.24 2001/02/21 05:54:17 m-kasahr Exp $"
 #include <mdn/dn.h>
 #include <mdn/debug.h>
 
-/*
- * Name translation instructions.
- *
- * For query, perform
- *   1. local encoding to UTF-8 conversion
- *   2. delimiter mapping
- *   3. local mapping
- *   4. nameprep
- *   5. UTF-8 to IDN encoding conversion
- *
- * For reply,
- *   1. IDN encoding to UTF-8 conversion
- *   2. UTF-8 to local encoding conversion
- *
- * See mdn/res.h for the mnemonic.
- */
-#define INSN_QUERY	"ldMNI"
-#define INSN_REPLY	"iL"
-
 #define DNS_HEADER_SIZE		12
 #define DNAME_SIZE		512
 #define RRFORMAT_HASH_SIZE	47
+
+/*
+ * Translation directions.
+ */
+enum {
+	transdir_query = 0,
+	transdir_reply = 1
+};
 
 /*
  * DNS opcodes.
@@ -165,7 +154,7 @@ enum {
 };
 
 typedef struct msgtrans_ctx {
-	char *insn;		/* name translation instruction */
+	int transdir;		/* direction of translation */
 	const char *in;		/* input message */
 	size_t in_len;		/* length of it */
 	const char *in_ptr;	/* current pointer */
@@ -208,6 +197,35 @@ static struct rrformat {
 	{ 0,		0,		NULL },
 };
 static struct rrformat	*rrformathash[RRFORMAT_HASH_SIZE];
+
+/*
+ * Name translation instructions.
+ *
+ * For query, perform
+ *   1. local encoding to UTF-8 conversion
+ *   2. delimiter mapping
+ *   3. local mapping
+ *   4. nameprep
+ *   5. UTF-8 to IDN encoding conversion
+ *
+ * For reply,
+ *   1. IDN encoding to UTF-8 conversion
+ *   2. UTF-8 to local encoding conversion
+ *
+ * See mdn/res.h for the mnemonic.
+ */
+static const char *trans_insn[] = {
+	"ldMNI",	/* insn for QUERY (transdir_query) */
+	"i!NL",		/* insn for REPLY (transdir_reply) */
+};
+
+/*
+ * Labels of translation directions, used for log messages.
+ */
+static const char *trans_labels[] = {
+	"QUERY",	/* QUERY (transdir_query) */
+	"REPLY",	/* REPLY (transdir_reply) */
+};
 
 static mdn_result_t	copy_header(msgtrans_ctx_t *ctx);
 static mdn_result_t	translate_question(msgtrans_ctx_t *ctx);
@@ -348,17 +366,33 @@ translate_question(msgtrans_ctx_t *ctx) {
 	if ((r = get_domainname(ctx, qname, sizeof(qname))) != mdn_success)
 		return (r);
 
+	INFO(("request of QNAME %s translation: name=\"%s\"\n",
+	      trans_labels[ctx->transdir], mdn_debug_xstring(qname, 256)));
+
 	/* Translate QNAME. */
-	r = mdn_res_nameconv(ctx->conf, ctx->insn, qname,
+	r = mdn_res_nameconv(ctx->conf, trans_insn[ctx->transdir], qname,
 			     qname_translated, sizeof(qname_translated));
 	if (r != mdn_success)
-		return (r);
-
-	if ((r = put_domainname(ctx, qname_translated)) != mdn_success)
-		return (r);
+		goto failure;
+	r = put_domainname(ctx, qname_translated);
+	if (r != mdn_success)
+		goto failure;
 
 	/* Copy QTYPE and QCLASS */
-	return (copy_message(ctx, 4));
+	r = copy_message(ctx, 4);
+	if (r != mdn_success)
+		goto failure;
+
+	INFO(("result of QNAME %s translation: name=\"%s\"\n",
+	      trans_labels[ctx->transdir],
+	      mdn_debug_xstring(qname_translated, 256)));
+
+	return (mdn_success);
+
+failure:
+	INFO(("QNAME %s translation failed, %s\n",
+	      trans_labels[ctx->transdir], mdn_result_tostring(r)));
+	return (r);
 }
 
 static mdn_result_t
@@ -373,18 +407,23 @@ translate_rr(msgtrans_ctx_t *ctx) {
 	if ((r = get_domainname(ctx, dname, sizeof(dname))) != mdn_success)
 		return (r);
 
+	INFO(("request of RR NAME %s translation: name=\"%s\"\n",
+	      trans_labels[ctx->transdir], mdn_debug_xstring(dname, 256)));
+
 	/* Translate NAME. */
-	r = mdn_res_nameconv(ctx->conf, ctx->insn, dname,
+	r = mdn_res_nameconv(ctx->conf, trans_insn[ctx->transdir], dname,
 			     dname_translated, sizeof(dname_translated));
 	if (r != mdn_success)
-		return (r);
-
-	if ((r = put_domainname(ctx, dname_translated)) != mdn_success)
-		return (r);
+		goto failure;
+	r = put_domainname(ctx, dname_translated);
+	if (r != mdn_success)
+		goto failure;
 
 	/* Get TYPE and CLASS */
-	if (ctx->in_remain < 10)
-		return (mdn_invalid_message);
+	if (ctx->in_remain < 10) {
+		r = mdn_invalid_message;
+		goto failure;
+	}
 	p = (unsigned char *)ctx->in_ptr;
 #define GET16(off)	((p[off]<<8)+p[(off)+1])
 	rr_type = GET16(0);
@@ -393,23 +432,33 @@ translate_rr(msgtrans_ctx_t *ctx) {
 #undef GET16
 
 	/* Copy TYPE, CLASS, TTL and RDLENGTH. */
-	if ((r = copy_message(ctx, 10)) != mdn_success)
-		return (r);
+	r = copy_message(ctx, 10);
+	if (r != mdn_success)
+		goto failure;
 
 	/* Remember the current output length. */
 	length_before = output_length(ctx);
 
 	/* Translate RDATA. */
 	r = translate_rdata(ctx, rr_type, rr_class, rr_length);
+	if (r != mdn_success)
+		goto failure;
 
-	if (r == mdn_success) {
-		/* Reset RDLENGTH */
-		rr_length = output_length(ctx) - length_before;
-		ctx->out[length_before - 2] = (rr_length >> 8) & 0xff;
-		ctx->out[length_before - 1] = rr_length & 0xff;
-	}
+	/* Reset RDLENGTH */
+	rr_length = output_length(ctx) - length_before;
+	ctx->out[length_before - 2] = (rr_length >> 8) & 0xff;
+	ctx->out[length_before - 1] = rr_length & 0xff;
+
+	INFO(("result of RR NAME %s translation: name=\"%s\"\n",
+	      trans_labels[ctx->transdir],
+	      mdn_debug_xstring(dname_translated, 256)));
 
 	return (r);
+
+failure:
+	INFO(("RR NAME %s translation failed, %s\n",
+	      trans_labels[ctx->transdir], mdn_result_tostring(r)));
+	return (r);	
 }
 
 static mdn_result_t
@@ -510,16 +559,27 @@ translate_domain(msgtrans_ctx_t *ctx) {
 	if ((r = get_domainname(ctx, dname, sizeof(dname))) != mdn_success)
 		return (r);
 
+	INFO(("request of RDATA %s translation: name=\"%s\"\n",
+	      trans_labels[ctx->transdir], mdn_debug_xstring(dname, 256)));
+
 	/* Translate NAME. */
-	r = mdn_res_nameconv(ctx->conf, ctx->insn, dname,
+	r = mdn_res_nameconv(ctx->conf, trans_insn[ctx->transdir], dname,
 			     dname_translated, sizeof(dname_translated));
 	if (r != mdn_success)
-		return (r);
-
+		goto failure;
 	if ((r = put_domainname(ctx, dname_translated)) != mdn_success)
-		return (r);
+		goto failure;
+
+	INFO(("result of RDATA %s translation: name=\"%s\"\n",
+	      trans_labels[ctx->transdir],
+	      mdn_debug_xstring(dname_translated, 256)));
 
 	return (mdn_success);
+
+failure:
+	INFO(("RDATA %s translation failed, %s\n",
+	      trans_labels[ctx->transdir], mdn_result_tostring(r)));
+	return (r);	
 }
 
 static mdn_result_t
@@ -554,7 +614,7 @@ static void
 ctx_init(msgtrans_ctx_t *ctx, mdn_resconf_t conf, mdn_msgheader_t *header,
 	 const char *msg, size_t msglen, char *outbuf, size_t outbufsize)
 {
-	ctx->insn = (header->qr == 0) ? INSN_QUERY : INSN_REPLY;
+	ctx->transdir = (header->qr == 0) ? transdir_query : transdir_reply;
 	ctx->in = ctx->in_ptr = msg;
 	ctx->in_len = ctx->in_remain = msglen;
 	ctx->out = ctx->out_ptr = outbuf;

@@ -32,7 +32,7 @@ rem Generate header files for lib/dns
 call dnsheadergen.bat
 
 echo Ensure that the OpenSSL sources are at the same level in
-echo the directory tree and is named openssl-0.9.6b or libdns
+echo the directory tree and is named openssl-0.9.6e or libdns
 echo will not build. 
 
 rem Make sure that the Build directories are there.
@@ -42,12 +42,15 @@ if NOT Exist ..\Build\Release mkdir ..\Build\Release
 
 echo Copying the ARM and the Installation Notes.
  
+copy ..\COPYRIGHT ..\Build\Release
 copy readme1st.txt ..\Build\Release
 copy ..\doc\arm\*.html ..\Build\Release
+copy ..\CHANGES ..\Build\Release
+copy ..\FAQ ..\Build\Release
 
 echo Copying the OpenSSL DLL.
 
-copy ..\..\openssl-0.9.6b\out32dll\libeay32.dll ..\Build\Release\
+copy ..\..\openssl-0.9.6e\out32dll\libeay32.dll ..\Build\Release\
 
 
 rem Done

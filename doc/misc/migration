@@ -60,6 +60,7 @@ query-source as in BIND 8.
 
 Multiple classes have to be put into explicit views for each class.
 
+
 2. Zone File Compatibility
 
 2.1. Strict RFC1035 Interpretation of TTLs in Zone Files
@@ -116,6 +117,7 @@ line.
 
 $GENERATE: The "$$" construct for getting a literal $ into a domain
 name is deprecated.  Use \$ instead.
+
 
 3. Interoperability Impact of New Protocol Features
 
@@ -184,10 +186,23 @@ be upgraded.
 
 5. Server Administration Tools
 
+5.1 Ndc Replaced by Rndc
+
 The "ndc" program has been replaced by "rndc", which is capable of
-remote operation.  Unlike ndc, rndc requires a configuration file; 
-see the man pages in bin/rndc/rndc.1 and bin/rndc/rndc.conf.5 for
-details.  Some of the ndc commands are still unimplemented in rndc.
+remote operation.  Unlike ndc, rndc requires a configuration file.
+The easiest way to generate a configuration file is to run
+"rndc-confgen -a"; see the man pages for rndc(8), rndc-confgen(8),
+and rndc.conf(5) for details.
+
+5.2. Nsupdate Differences
+
+The BIND 8 implementation of nsupdate had an undocumented feature
+where an update request would be broken down into multiple requests
+based upon the discovered zones that contained the records.  This
+behaviour has not been implemented in BIND 9.  Each update request
+must pertain to a single zone, but it is still possible to do multiple
+updates in a single invocation of nsupdate by terminating each update
+with an empty line or a "send" command.
 
 
 6. No Information Leakage between Zones
@@ -228,4 +243,4 @@ necessary, the umask should be set explicitly in the script used to
 start the named process.
 
 
-$Id: migration,v 1.37 2001/06/28 23:28:34 gson Exp $
+$Id: migration,v 1.37.2.1 2001/09/21 17:49:58 gson Exp $

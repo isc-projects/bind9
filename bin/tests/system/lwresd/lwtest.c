@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.22 2001/02/05 23:09:05 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.22.2.2 2002/08/05 06:57:07 marka Exp $ */
 
 #include <config.h>
 
@@ -500,8 +500,9 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 			char outbuf[16];
 			(void)inet_ntop(af, ai->ai_addr,
 					outbuf, sizeof(outbuf));
-			printf("I:getaddrinfo(%s) returned %db, "
-			       "expected %db\n", name, ai->ai_addrlen, len);
+			printf("I:getaddrinfo(%s) returned %lub, "
+			       "expected %ub\n", name,
+				(unsigned long)ai->ai_addrlen, len);
 			fails++;
 			freeaddrinfo(ai);
 			return;

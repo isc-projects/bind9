@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.15 2001/03/28 02:12:37 m-kasahr Exp $
+# $Id: Makefile.in,v 1.1 2002/01/02 02:47:01 marka Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -7,8 +7,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is permitted
@@ -75,22 +75,29 @@ MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
 SHELL   = @SHELL@
 LIBTOOL = @LIBTOOL@
 
+ICONVINC = @ICONVINC@
+ICONVLIB = @ICONVLIB@
+MDNLIB = ../../lib/libmdn.la
+
 OPTS =
-INCS = -I$(srcdir)/../../include -I../../include
+INCS = -I$(srcdir)/../../include -I../../include $(ICONVINC)
 DEFS =
 
 CFLAGS = $(OPTS) $(INCS) $(DEFS) @CFLAGS@
+LDFLAGS = $(OPTS) @LDFLAGS@
 
 SRCS = mdnconv.c util.c
 OBJS = mdnconv.o util.o
 
-ICONVLIB = @ICONVLIB@
-MDNLIB = ../../lib/libmdn.la
-
-all: mdnconv
+all: mdnconv mdnslookup
 
 mdnconv: $(OBJS) $(MDNLIB)
-	$(LIBTOOL) --mode=link $(CC) -o $@ $(OBJS) $(MDNLIB) $(ICONVLIB)
+	$(LIBTOOL) --mode=link $(CC) $(LDFLAGS) -o $@ \
+		$(OBJS) $(MDNLIB) $(ICONVLIB)
+
+mdnslookup: $(srcdir)/mdnslookup.in
+	sed -e 's%[@]bindir[@]%$(bindir)%' $(srcdir)/mdnslookup.in > mdnslookup
+	chmod 0755 mdnslookup
 
 install: install-prog install-man
 
@@ -103,5 +110,5 @@ install-man:
 	$(INSTALL_DATA) $(srcdir)/mdnconv.1 $(mandir)/man1
 
 clean:
-	rm -f *.o mdnconv *.core core *~
+	rm -f *.o mdnconv mdnslookup *.core core *~
 	rm -fr .libs/

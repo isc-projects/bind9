@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.28 2001/03/14 19:33:00 halley Exp $ */
+/* $Id: query.h,v 1.28.2.3 2002/02/08 03:57:17 marka Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -46,6 +46,9 @@ struct ns_query {
 	unsigned int			fetchoptions;
 	dns_db_t *			gluedb;
 	dns_db_t *			authdb;
+	dns_zone_t *			authzone;
+	isc_boolean_t			authdbset;
+	isc_boolean_t			isreferral;
 	dns_fetch_t *			fetch;
 	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;

@@ -15,13 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.35 2001/07/14 01:55:04 gson Exp $ */
+/* $Id: acconfig.h,v 1.35.2.1 2001/10/22 23:28:07 gson Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
  *** it does not get installed.
  ***/
 @TOP@
+
+/* define to `int' if <sys/types.h> doesn't define.  */
+#undef ssize_t
 
 /* define on DEC OSF to enable 4.4BSD style sa_len support */
 #undef _SOCKADDR_LEN
@@ -43,6 +46,9 @@
 
 /* define if sysconf() is available */
 #undef HAVE_SYSCONF
+
+/* define if sysctlbyname() is available */
+#undef HAVE_SYSCTLBYNAME
 
 /* define if catgets() is available */
 #undef HAVE_CATGETS
@@ -120,3 +126,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if pthread_attr_getstacksize() is available */
 #undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
+
+/* define if you have strerror in the C library. */
+#undef HAVE_STRERROR

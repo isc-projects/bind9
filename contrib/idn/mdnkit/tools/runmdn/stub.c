@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: stub.c,v 1.1 2001/06/09 00:30:51 tale Exp $";
+static char *rcsid = "$Id: stub.c,v 1.1.2.1 2002/02/08 12:15:38 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: stub.c,v 1.1 2001/06/09 00:30:51 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -195,8 +195,8 @@ mdn_stub_gethostbyname2(const char *name, int af) {
 
 #ifdef HAVE_GETHOSTBYADDR
 struct hostent *
-mdn_stub_gethostbyaddr(const char *addr, GHBA_ADDRLEN_T len, int type) {
-	static struct hostent *(*fp)(const char *name,
+mdn_stub_gethostbyaddr(GHBA_ADDR_T addr, GHBA_ADDRLEN_T len, int type) {
+	static struct hostent *(*fp)(GHBA_ADDR_T name,
 				     GHBA_ADDRLEN_T len, int type);
 
 	if (fp == NULL)
@@ -247,11 +247,11 @@ mdn_stub_gethostbyname2_r(const char *name, int af, struct hostent *result,
 
 #ifdef HAVE_GETHOSTBYADDR_R
 int
-mdn_stub_gethostbyaddr_r(const char *addr, GHBA_ADDRLEN_T len, int type,
+mdn_stub_gethostbyaddr_r(GHBA_ADDR_T addr, GHBA_ADDRLEN_T len, int type,
 			 struct hostent *result, char *buffer,
 			 size_t buflen, struct hostent **rp, int *errp)
 {
-	static int (*fp)(const char *addr, GHBA_ADDRLEN_T len, int type,
+	static int (*fp)(GHBA_ADDR_T addr, GHBA_ADDRLEN_T len, int type,
 			 struct hostent *result, char *buffer,
 			 size_t buflen, struct hostent **rp, int *errp);
 
@@ -284,11 +284,11 @@ mdn_stub_gethostbyname_r(const char *name, struct hostent *result,
 
 #ifdef HAVE_GETHOSTBYADDR_R
 struct hostent *
-mdn_stub_gethostbyaddr_r(const char *addr, int len, int type,
+mdn_stub_gethostbyaddr_r(GHBA_ADDR_T addr, int len, int type,
 			 struct hostent *result, char *buffer,
 			 int buflen, int *errp)
 {
-	static struct hostent *(*fp)(const char *addr, int len, int type,
+	static struct hostent *(*fp)(GHBA_ADDR_T addr, int len, int type,
 				     struct hostent *result, char *buffer,
 				     int buflen, int *errp);
 
@@ -372,14 +372,13 @@ mdn_stub_freeaddrinfo(struct addrinfo *aip) {
 
 #ifdef HAVE_GETNAMEINFO
 int
-mdn_stub_getnameinfo(const struct sockaddr *sa, socklen_t salen,
-		     char *host, size_t hostlen, char *serv, size_t servlen,
-		     int flags)
-{
-	static int (*fp)(const struct sockaddr *sa, socklen_t salen,
-			 char *host, size_t hostlen,
-			 char *serv, size_t servlen,
-			 int flags);
+mdn_stub_getnameinfo(const struct sockaddr *sa, GNI_SALEN_T salen,
+		     char *host, GNI_HOSTLEN_T hostlen,
+		     char *serv, GNI_SERVLEN_T servlen, GNI_FLAGS_T flags) {
+	static int (*fp)(const struct sockaddr *sa, GNI_SALEN_T salen,
+			 char *host, GNI_HOSTLEN_T hostlen,
+			 char *serv, GNI_SERVLEN_T servlen,
+			 GNI_FLAGS_T flags);
 
 	if (fp == NULL)
 		fp = get_func_addr("getnameinfo");

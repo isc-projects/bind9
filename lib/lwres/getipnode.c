@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.30 2001/07/18 02:37:08 mayer Exp $ */
+/* $Id: getipnode.c,v 1.30.2.3 2002/08/08 21:29:07 marka Exp $ */
 
 #include <config.h>
 
@@ -137,13 +137,22 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	if (v4 == 1 || v6 == 1) {
 		char *addr_list[2];
 		char *aliases[1];
+		char mappedname[sizeof("::ffff:123.123.123.123")];
 		union {
 			const char *const_name;
 			char *deconst_name;
 		} u;
 
 		u.const_name = name;
-		he.h_name = u.deconst_name;
+		if (v4 == 1 && af == AF_INET6) {
+			strcpy(mappedname, "::ffff:");
+			lwres_net_ntop(AF_INET, (char *)&in4,
+				       mappedname + sizeof("::ffff:") - 1,
+				       sizeof(mappedname) - sizeof("::ffff:")
+				       + 1);
+			he.h_name = mappedname;
+		} else
+			he.h_name = u.deconst_name;
 		he.h_addr_list = addr_list;
 		he.h_addr_list[0] = (v4 == 1) ? (char *)&in4 : (char *)&in6;
 		he.h_addr_list[1] = NULL;

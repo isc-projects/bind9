@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.20 2001/07/17 20:29:26 gson Exp $ */
+/* $Id: file.c,v 1.20.2.4 2002/03/26 00:55:11 marka Exp $ */
 
 #include <config.h>
 
@@ -105,7 +105,7 @@ gettemp(char *path, int *doopen) {
 	/*NOTREACHED*/
 }
 
-int
+static int
 mkstemp(char *path) {
 	int fd;
 
@@ -200,53 +200,53 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 
 isc_result_t
 isc_file_getmodtime(const char *file, isc_time_t *time) {
-	isc_result_t result;
-	struct stat stats;
+	int fh;
 
 	REQUIRE(file != NULL);
 	REQUIRE(time != NULL);
 
-	result = file_stats(file, &stats);
+	if ((fh = open(file, _O_RDONLY | _O_BINARY)) < 0)
+		return (isc__errno2result(errno));
 
-	if (result == ISC_R_SUCCESS)
-		/*
-		 * XXXDCL some operating systems provide nanoseconds, too,
-		 * such as BSD/OS via st_mtimespec.
-		 */
-		isc_time_set(time, stats.st_mtime, 0);
-
-	return (result);
+	if (!GetFileTime((HANDLE) _get_osfhandle(fh),
+			 NULL,
+			 NULL,
+			 &time->absolute))
+	{
+		close(fh);
+                errno = EINVAL;
+                return (isc__errno2result(errno));
+        }
+	close(fh);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 isc_file_settime(const char *file, isc_time_t *time) {
-	struct utimbuf timem;
+	int fh;
 
 	REQUIRE(file != NULL && time != NULL);
 
-	/*
-	 * tv_sec is at least a 32 bit quantity on all platforms we're
-	 * dealing with, but it is signed on most (all?) of them,
-	 * so we need to make sure the high bit isn't set.  This unfortunately
-	 * loses when either:
-	 *   * tv_sec becomes a signed 64 bit integer but long is 32 bits
-	 *	and isc_time_seconds > LONG_MAX, or
-	 *   * isc_time_seconds is changed to be > 32 bits but long is 32 bits
-	 *      and isc_time_seconds has at least 33 significant bits.
-	 */
-	timem.actime = timem.modtime = (long)isc_time_seconds(time);
-
-	/*
-	 * Here is the real check for the high bit being set.
-	 */
-	if ((timem.actime &
-	     (1UL << (sizeof(timem.actime) * CHAR_BIT - 1))) != 0)
-		return (ISC_R_RANGE);
-
-	if (utime(file, &timem) < 0)
+	if ((fh = open(file, _O_RDWR | _O_BINARY)) < 0)
 		return (isc__errno2result(errno));
 
-	return (ISC_R_SUCCESS);
+        /*
+	 * Set the date via the filedate system call and return.  Failing
+         * this call implies the new file times are not supported by the
+         * underlying file system.
+         */
+	if (!SetFileTime((HANDLE) _get_osfhandle(fh),
+			 NULL,
+			 &time->absolute,
+			 &time->absolute))
+	{
+		close(fh);
+                errno = EINVAL;
+                return (isc__errno2result(errno));
+        }
+
+	close(fh);
+        return (ISC_R_SUCCESS);
 
 }
 
@@ -302,6 +302,8 @@ isc_file_renameunique(const char *file, char *templet) {
 	fd = mkstemp(templet);
 	if (fd == -1)
 		result = isc__errno2result(errno);
+	else
+		close(fd);
 
 	if (result == ISC_R_SUCCESS) {
 		res = isc_file_safemovefile(file, templet);
@@ -310,8 +312,6 @@ isc_file_renameunique(const char *file, char *templet) {
 			(void)unlink(templet);
 		}
 	}
-	if (fd != -1)
-		close(fd);
 	return (result);
 }
 

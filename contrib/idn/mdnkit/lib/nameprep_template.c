@@ -1,4 +1,4 @@
-/* $Id: nameprep_template.c,v 1.1 2001/06/09 00:30:19 tale Exp $ */
+/* $Id: nameprep_template.c,v 1.1.2.1 2002/02/08 12:14:11 marka Exp $ */
 
 /*
  * Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
@@ -9,8 +9,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -86,7 +86,7 @@
 
 #endif /* NAMEPREP_TEMPLATE_INIT */
 
-static char *
+static const char *
 compose_sym2(nameprep_map_, VERSION) (unsigned long v) {
 	int idx0 = IDX0(MAP, v);
 	int idx1 = IDX1(MAP, v);
@@ -99,7 +99,7 @@ compose_sym2(nameprep_map_, VERSION) (unsigned long v) {
 	offset = TABLE[IMAP[IMAP[idx0] + idx1]].tbl[idx2];
 	if (offset == 0)
 		return (NULL);	/* no mapping */
-	return (char *)(DATA + offset);
+	return (const char *)(DATA + offset);
 #undef IMAP
 #undef TABLE
 #undef DATA
@@ -110,7 +110,7 @@ compose_sym2(nameprep_prohibited_, VERSION) (unsigned long v) {
 	int idx0 = IDX0(PROH, v);
 	int idx1 = IDX1(PROH, v);
 	int idx2 = IDX2(PROH, v);
-	unsigned char *bm;
+	const unsigned char *bm;
 
 #define IMAP	compose_sym3(nameprep_, VERSION, _prohibited_imap)
 #define BITMAP	compose_sym3(nameprep_, VERSION, _prohibited_bitmap)
@@ -125,7 +125,7 @@ compose_sym2(nameprep_unassigned_, VERSION) (unsigned long v) {
 	int idx0 = IDX0(UNAS, v);
 	int idx1 = IDX1(UNAS, v);
 	int idx2 = IDX2(UNAS, v);
-	unsigned char *bm;
+	const unsigned char *bm;
 
 #define IMAP	compose_sym3(nameprep_, VERSION, _unassigned_imap)
 #define BITMAP	compose_sym3(nameprep_, VERSION, _unassigned_bitmap)

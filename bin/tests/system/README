@@ -34,7 +34,7 @@ root name server and is listed in the hints file of the others.
 To enable all servers to run on the same machine, they bind to
 separate virtual IP address on the loopback interface.  ns1 runs on
 10.53.0.1, ns2 on 10.53.0.2, etc.  Before running any tests, you must
-set up these addresses by running "ifconfig.sh start".
+set up these addresses by running "ifconfig.sh up" as root.
 
 The servers use port 5300 instead of the usual port 53, so they can be
 run without root privileges once the interfaces have been set up.
@@ -48,4 +48,4 @@ The tests can be run individually like this:
 To run all the tests, just type "make test".
 
 
-$Id: README,v 1.9 2000/12/19 19:21:06 gson Exp $
+$Id: README,v 1.9.4.2 2001/09/17 21:43:09 gson Exp $

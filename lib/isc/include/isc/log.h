@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.39 2001/07/12 05:58:23 mayer Exp $ */
+/* $Id: log.h,v 1.39.2.2 2002/08/05 06:57:15 marka Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -309,7 +309,7 @@ isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
  *	after registration.
  *
  *	The value of the id integer in each structure is overwritten
- *	by this function, and so id need not be initalized to any particular
+ *	by this function, and so id need not be initialized to any particular
  *	value prior to the function call.
  *
  *	A subsequent call to isc_log_registercategories with the same
@@ -347,7 +347,7 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
  *	after registration.
  *
  *	The value of the id integer in each structure is overwritten
- *	by this function, and so id need not be initalized to any particular
+ *	by this function, and so id need not be initialized to any particular
  *	value prior to the function call.
  *
  *	A subsequent call to isc_log_registermodules with the same

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.20 2001/08/27 17:21:56 gson Exp $ */
+/* $Id: rootns.c,v 1.20.2.1 2001/10/03 22:30:17 gson Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,9 @@ in_rootns(dns_rdataset_t *rootns, dns_name_t *name) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_ns_t ns;
 	
+	if (!dns_rdataset_isassociated(rootns))
+		return (ISC_R_NOTFOUND);
+
 	result = dns_rdataset_first(rootns);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(rootns, &rdata);
@@ -145,16 +148,12 @@ check_hints(dns_db_t *db) {
 	name = dns_fixedname_name(&fixname);
 
 	dns_rdataset_init(&rootns);
-	result = dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns, 0,
-			     now, NULL, name, &rootns, NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	(void)dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns, 0,
+			  now, NULL, name, &rootns, NULL);
 	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_dbiterator_first(dbiter);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 	while (result == ISC_R_SUCCESS) {
 		result = dns_dbiterator_current(dbiter, &node, name);
 		if (result != ISC_R_SUCCESS)

@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: resconf.c,v 1.25 2001/04/16 02:25:17 m-kasahr Exp $";
+static char *rcsid = "$Id: resconf.c,v 1.1 2002/01/02 02:46:46 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: resconf.c,v 1.25 2001/04/16 02:25:17 m-kasahr Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -95,7 +95,6 @@ struct mdn_resconf {
 	char *local_encoding;
 	mdn_converter_t local_converter;
 	mdn_converter_t idn_converter;
-	mdn_converter_t alternate_converter;
 	mdn_normalizer_t normalizer;
 	mdn_checker_t prohibit_checker;
 	mdn_checker_t unassigned_checker;
@@ -106,8 +105,6 @@ struct mdn_resconf {
 };
 
 static mdn_result_t	parse_conf(mdn_resconf_t ctx, FILE *fp);
-static mdn_result_t	parse_alternate_encoding(mdn_resconf_t ctx,
-						 char *args, int lineno);
 static mdn_result_t	parse_delimiter_map(mdn_resconf_t ctx, char *args,
 					    int lineno);
 static mdn_result_t	parse_encoding_alias_file(mdn_resconf_t ctx,
@@ -168,7 +165,6 @@ mdn_resconf_create(mdn_resconf_t *ctxp) {
 	ctx->local_encoding = NULL;
 	ctx->local_converter = NULL;
 	ctx->idn_converter = NULL;
-	ctx->alternate_converter = NULL;
 	ctx->normalizer = NULL;
 	ctx->prohibit_checker = NULL;
 	ctx->unassigned_checker = NULL;
@@ -217,6 +213,8 @@ mdn_resconf_loadfile(mdn_resconf_t ctx, const char *file) {
 
 void
 mdn_resconf_destroy(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_destroy()\n"));
 	TRACE(("mdn_resconf_destroy: update reference count (%d->%d)\n",
 	    ctx->reference_count, ctx->reference_count - 1));
@@ -242,15 +240,17 @@ mdn_resconf_incrref(mdn_resconf_t ctx) {
 
 mdn_converter_t
 mdn_resconf_getalternateconverter(mdn_resconf_t ctx) {
-	TRACE(("mdn_resconf_alternateconverter()\n"));
+	assert(ctx != NULL);
 
-	if (ctx->alternate_converter != NULL)
-		mdn_converter_incrref(ctx->alternate_converter);
-	return (ctx->alternate_converter);
+	TRACE(("mdn_resconf_getalternateconverter()\n"));
+
+	return (mdn_resconf_getidnconverter(ctx));
 }
 
 mdn_delimitermap_t
 mdn_resconf_getdelimitermap(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getdelimitermap()\n"));
 
 	if (ctx->delimiter_mapper != NULL)
@@ -260,6 +260,8 @@ mdn_resconf_getdelimitermap(mdn_resconf_t ctx) {
 
 mdn_converter_t
 mdn_resconf_getidnconverter(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getidnconverter()\n"));
 
 	if (ctx->idn_converter != NULL)
@@ -269,6 +271,8 @@ mdn_resconf_getidnconverter(mdn_resconf_t ctx) {
 
 mdn_converter_t
 mdn_resconf_getlocalconverter(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getlocalconverter()\n"));
 
 	if (update_local_converter(ctx) != mdn_success)
@@ -279,6 +283,8 @@ mdn_resconf_getlocalconverter(mdn_resconf_t ctx) {
 
 mdn_mapselector_t
 mdn_resconf_getlocalmapselector(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getlocalmapselector()\n"));
 
 	if (ctx->local_mapper != NULL)
@@ -288,6 +294,8 @@ mdn_resconf_getlocalmapselector(mdn_resconf_t ctx) {
 
 mdn_mapper_t
 mdn_resconf_getmapper(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getmapper()\n"));
 
 	if (ctx->mapper != NULL)
@@ -297,6 +305,8 @@ mdn_resconf_getmapper(mdn_resconf_t ctx) {
 
 mdn_normalizer_t
 mdn_resconf_getnormalizer(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getnormalizer()\n"));
 
 	if (ctx->normalizer != NULL)
@@ -306,6 +316,8 @@ mdn_resconf_getnormalizer(mdn_resconf_t ctx) {
 
 mdn_checker_t
 mdn_resconf_getprohibitchecker(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getprohibitchecker()\n"));
 
 	if (ctx->prohibit_checker != NULL)
@@ -315,6 +327,8 @@ mdn_resconf_getprohibitchecker(mdn_resconf_t ctx) {
 
 mdn_checker_t
 mdn_resconf_getunassignedchecker(mdn_resconf_t ctx) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_getunassignedchecker()\n"));
 
 	if (ctx->unassigned_checker != NULL)
@@ -325,38 +339,44 @@ mdn_resconf_getunassignedchecker(mdn_resconf_t ctx) {
 void
 mdn_resconf_setalternateconverter(mdn_resconf_t ctx,
 				  mdn_converter_t alternate_converter) {
-	TRACE(("mdn_resconf_setalternateconverter()\n"));
+	assert(ctx != NULL);
 
-	if (ctx->alternate_converter != NULL)
-		mdn_converter_destroy(ctx->alternate_converter);
-	ctx->alternate_converter = alternate_converter;
-	mdn_converter_incrref(ctx->alternate_converter);
+	TRACE(("mdn_resconf_setalternateconverter()\n"));
 }
 
 void
 mdn_resconf_setdelimitermap(mdn_resconf_t ctx,
 			    mdn_delimitermap_t delimiter_mapper) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setdelimitermap()\n"));
+
 	if (ctx->delimiter_mapper != NULL)
 		mdn_delimitermap_destroy(ctx->delimiter_mapper);
 	ctx->delimiter_mapper = delimiter_mapper;
-	mdn_delimitermap_incrref(ctx->delimiter_mapper);
+	if (delimiter_mapper != NULL)
+		mdn_delimitermap_incrref(ctx->delimiter_mapper);
 }
 
 void
 mdn_resconf_setidnconverter(mdn_resconf_t ctx, 
 			    mdn_converter_t idn_converter) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setidnconverter()\n"));
 
 	if (ctx->idn_converter != NULL)
 		mdn_converter_destroy(ctx->idn_converter);
 	ctx->idn_converter = idn_converter;
-	mdn_converter_incrref(ctx->idn_converter);
+	if (idn_converter != NULL)
+		mdn_converter_incrref(ctx->idn_converter);
 }
 
 void
 mdn_resconf_setlocalconverter(mdn_resconf_t ctx,
 				  mdn_converter_t local_converter) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setlocalconverter()\n"));
 
 	if (ctx->local_converter != NULL)
@@ -371,53 +391,69 @@ mdn_resconf_setlocalconverter(mdn_resconf_t ctx,
 void
 mdn_resconf_setlocalmapselector(mdn_resconf_t ctx,
 				mdn_mapselector_t local_mapper) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setlocalmapselector()\n"));
 
 	if (ctx->local_mapper != NULL)
 		mdn_mapselector_destroy(ctx->local_mapper);
 	ctx->local_mapper = local_mapper;
-	mdn_mapselector_incrref(ctx->local_mapper);
+	if (local_mapper != NULL)
+		mdn_mapselector_incrref(ctx->local_mapper);
 }
 
 void
 mdn_resconf_setmapper(mdn_resconf_t ctx, mdn_mapper_t mapper) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setmapper()\n"));
 
 	if (ctx->mapper != NULL)
 		mdn_mapper_destroy(ctx->mapper);
 	ctx->mapper = mapper;
-	mdn_mapper_incrref(ctx->mapper);
+	if (mapper != NULL)
+		mdn_mapper_incrref(ctx->mapper);
 }
 
 void
 mdn_resconf_setnormalizer(mdn_resconf_t ctx, mdn_normalizer_t normalizer) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setnormalizer()\n"));
 
 	if (ctx->normalizer != NULL)
 		mdn_normalizer_destroy(ctx->normalizer);
 	ctx->normalizer = normalizer;
-	mdn_normalizer_incrref(ctx->normalizer);
+	if (normalizer != NULL)
+		mdn_normalizer_incrref(ctx->normalizer);
 }
 
 void
 mdn_resconf_setprohibitchecker(mdn_resconf_t ctx,
 			       mdn_checker_t prohibit_checker) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setprohibitchecker()\n"));
 
 	if (ctx->prohibit_checker != NULL)
 		mdn_checker_destroy(ctx->prohibit_checker);
 	ctx->prohibit_checker = prohibit_checker;
-	mdn_checker_incrref(ctx->prohibit_checker);
+	if (prohibit_checker != NULL)
+		mdn_checker_incrref(ctx->prohibit_checker);
 }
 
 void
 mdn_resconf_setunassignedchecker(mdn_resconf_t ctx,
 				 mdn_checker_t unassigned_checker) {
+	assert(ctx != NULL);
+
 	TRACE(("mdn_resconf_setunassignedchecker()\n"));
+
 	if (ctx->unassigned_checker != NULL)
 		mdn_checker_destroy(ctx->unassigned_checker);
 	ctx->unassigned_checker = unassigned_checker;
-	mdn_checker_incrref(ctx->unassigned_checker);
+	if (unassigned_checker != NULL)
+		mdn_checker_incrref(ctx->unassigned_checker);
 }
 
 mdn_result_t
@@ -517,26 +553,10 @@ failure:
 mdn_result_t
 mdn_resconf_setalternateconvertername(mdn_resconf_t ctx, const char *name,
 				      int flags) {
-	mdn_converter_t alternate_converter;
-	mdn_result_t r;
-
 	assert(ctx != NULL && name != NULL);
 
 	TRACE(("mdn_resconf_setalternateconvertername(name=%s, flags=%d)\n",
 	      name, flags));
-
-	r = mdn_converter_create(name, &alternate_converter, flags);
-	if (r != mdn_success)
-		return (r);
-
-	if (!mdn_converter_isasciicompatible(alternate_converter)) {
-		mdn_converter_destroy(alternate_converter);
-		return (mdn_invalid_name);
-	}
-
-	if (ctx->alternate_converter != NULL)
-		mdn_converter_destroy(ctx->alternate_converter);
-	ctx->alternate_converter = alternate_converter;
 
 	return (mdn_success);
 }
@@ -742,16 +762,14 @@ parse_conf(mdn_resconf_t ctx, FILE *fp) {
 	char *argv[3];
 	int argc;
 	mdn_result_t r;
-	char *alternate_encoding_args = NULL;
-	int alternate_encoding_lineno = 0;
 	char *idn_encoding_args = NULL;
 	int idn_encoding_lineno = 0;
 	char *nameprep = NULL;
 
 	/*
-	 * Parse config file.  parsing of 'alternate-encoding' and
-	 * 'idn-encoding' lines are postponed because
-	 * 'alias-file' line must be processed before them.
+	 * Parse config file.  parsing of 'idn-encoding' line is
+	 * postponed because 'alias-file' line must be processed
+	 * before them.
 	 */
 	while (fgets(line, sizeof(line), fp) != NULL) {
 		char *newline;
@@ -776,13 +794,7 @@ parse_conf(mdn_resconf_t ctx, FILE *fp) {
 		}
 
 		if (strcmp(argv[0], "alternate-encoding") == 0) {
-			r = mystrdup(argv[1], &alternate_encoding_args);
-			if (r != mdn_success) {
-				mdn_log_error("mdnres: %s, line %d\n",
-					      mdn_result_tostring(r), lineno);
-			}
-			alternate_encoding_lineno = lineno;
-
+			continue;
 		} else if (strcmp(argv[0], "delimiter-map") == 0) {
 			r = parse_delimiter_map(ctx, argv[1], lineno);
 
@@ -858,12 +870,6 @@ parse_conf(mdn_resconf_t ctx, FILE *fp) {
 		}
 	}
 
-	if (alternate_encoding_args != NULL) {
-		r = parse_alternate_encoding(ctx, alternate_encoding_args,
-					     alternate_encoding_lineno);
-		if (r != mdn_success)
-			return (r);
-	}
 	if (idn_encoding_args != NULL) {
 		r = parse_idn_encoding(ctx, idn_encoding_args,
 				       idn_encoding_lineno);
@@ -872,40 +878,6 @@ parse_conf(mdn_resconf_t ctx, FILE *fp) {
 	}
 
 	return (mdn_success);
-}
-
-static mdn_result_t
-parse_alternate_encoding(mdn_resconf_t ctx, char *args, int lineno) {
-	mdn_result_t r;
-	char *argv[MAX_CONF_LINE_ARGS + 1];
-	int argc;
-
-	argc = split_args(args, argv, MAX_CONF_LINE_ARGS + 1);
-
-	if (argc != 1) {
-		mdn_log_error("mdnres: wrong # of args for "
-			      "alternate-encoding, line %d\n", lineno);
-		return (mdn_invalid_syntax);
-	}
-
-	r = mdn_converter_create(argv[0], &ctx->alternate_converter,
-				 MDN_CONVERTER_DELAYEDOPEN);
-	if (r != mdn_success) {
-		mdn_log_error("mdnres: cannot create alternate-encodng "
-			      "converter, %s, line %d\n", 
-			      mdn_result_tostring(r), lineno);
-		return (mdn_invalid_syntax);
-	}
-
-	if (!mdn_converter_isasciicompatible(ctx->alternate_converter)) {
-		mdn_log_error("mdnres: alternate encoding must be "
-			      "ASCII-compatible, line %d\n", lineno);
-		mdn_converter_destroy(ctx->alternate_converter);
-		ctx->alternate_converter = NULL;
-		return (mdn_invalid_name);
-	}
-
-	return (r);
 }
 
 static mdn_result_t
@@ -1269,42 +1241,14 @@ resetconf(mdn_resconf_t ctx) {
 	free(ctx->local_encoding);
 	ctx->local_encoding = NULL;
 
-	if (ctx->local_converter != NULL) {
-		mdn_converter_destroy(ctx->local_converter);
-		ctx->local_converter = NULL;
-	}
-	if (ctx->idn_converter != NULL) {
-		mdn_converter_destroy(ctx->idn_converter);
-		ctx->idn_converter = NULL;
-	}
-	if (ctx->alternate_converter != NULL) {
-		mdn_converter_destroy(ctx->alternate_converter);
-		ctx->alternate_converter = NULL;
-	}
-	if (ctx->normalizer != NULL) {
-		mdn_normalizer_destroy(ctx->normalizer);
-		ctx->normalizer = NULL;
-	}
-	if (ctx->prohibit_checker != NULL) {
-		mdn_checker_destroy(ctx->prohibit_checker);
-		ctx->prohibit_checker = NULL;
-	}
-	if (ctx->unassigned_checker != NULL) {
-		mdn_checker_destroy(ctx->unassigned_checker);
-		ctx->unassigned_checker = NULL;
-	}
-	if (ctx->mapper != NULL) {
-		mdn_mapper_destroy(ctx->mapper);
-		ctx->mapper = NULL;
-	}
-	if (ctx->local_mapper != NULL) {
-		mdn_mapselector_destroy(ctx->local_mapper);
-		ctx->local_mapper = NULL;
-	}
-	if (ctx->delimiter_mapper != NULL) {
-		mdn_delimitermap_destroy(ctx->delimiter_mapper);
-		ctx->delimiter_mapper = NULL;
-	}
+	mdn_resconf_setlocalconverter(ctx, NULL);
+	mdn_resconf_setidnconverter(ctx, NULL);
+	mdn_resconf_setdelimitermap(ctx, NULL);
+	mdn_resconf_setlocalmapselector(ctx, NULL);
+	mdn_resconf_setmapper(ctx, NULL);
+	mdn_resconf_setnormalizer(ctx, NULL);
+	mdn_resconf_setprohibitchecker(ctx, NULL);
+	mdn_resconf_setunassignedchecker(ctx, NULL);
 }
 
 static mdn_result_t

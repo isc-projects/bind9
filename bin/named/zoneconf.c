@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87 2001/08/07 01:58:58 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4 2001/11/13 01:15:33 gson Exp $ */
 
 #include <config.h>
 
@@ -482,7 +482,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	 */
 	if (ztype == dns_zone_master) {
 		dns_acl_t *updateacl;
-		RETERR(configure_zone_acl(zconfig, NULL, config,
+		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update", ac, zone,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
@@ -503,21 +503,11 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		dns_zone_setsigvalidityinterval(zone,
 						cfg_obj_asuint32(obj) * 86400);
 	} else if (ztype == dns_zone_slave) {
-		RETERR(configure_zone_acl(zconfig, NULL, config,
+		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update-forwarding", ac, zone,
 					  dns_zone_setforwardacl,
 					  dns_zone_clearforwardacl));
 	}
-
-	obj = NULL;
-	result = ns_config_get(maps, "transfer-source", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj));
-
-	obj = NULL;
-	result = ns_config_get(maps, "transfer-source-v6", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj));
 
 	/*
 	 * Configure slave functionality.
@@ -571,6 +561,16 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setminretrytime(zone, cfg_obj_asuint32(obj));
 
+		obj = NULL;
+		result = ns_config_get(maps, "transfer-source", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "transfer-source-v6", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj));
+
 		break;
 
 	default:
@@ -599,9 +599,10 @@ ns_zone_reusable(dns_zone_t *zone, cfg_obj_t *zconfig) {
 	else
 		cfilename = NULL;
 	zfilename = dns_zone_getfile(zone);
-	if (cfilename == NULL || zfilename == NULL ||
-	    strcmp(cfilename, zfilename) != 0)
-		return (ISC_FALSE);
+	if (!((cfilename == NULL && zfilename == NULL) ||
+	      (cfilename != NULL && zfilename != NULL &&
+	       strcmp(cfilename, zfilename) == 0)))
+	    return (ISC_FALSE);
 
 	return (ISC_TRUE);
 }

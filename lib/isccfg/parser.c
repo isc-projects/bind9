@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70 2001/08/08 20:52:34 gson Exp $ */
+/* $Id: parser.c,v 1.70.2.14 2002/02/08 03:57:47 marka Exp $ */
 
 #include <config.h>
 
@@ -454,6 +454,7 @@ static cfg_type_t cfg_type_void;
 static cfg_type_t cfg_type_optional_class;
 static cfg_type_t cfg_type_destinationlist;
 static cfg_type_t cfg_type_size;
+static cfg_type_t cfg_type_sizenodefault;
 static cfg_type_t cfg_type_negated;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_unsupported;
@@ -817,12 +818,12 @@ options_clauses[] = {
 	{ "files", &cfg_type_size, 0 },
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
-	{ "host-statistics", &cfg_type_boolean, 0 },
+	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
 	{ "interface-interval", &cfg_type_uint32, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
-	{ "memstatistics-file", &cfg_type_qstring, 0 },
+	{ "memstatistics-file", &cfg_type_qstring, CFG_CLAUSEFLAG_NOTIMP },
 	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "pid-file", &cfg_type_qstring, 0 },
@@ -856,8 +857,6 @@ options_clauses[] = {
 
 static cfg_clausedef_t
 view_clauses[] = {
-	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
-	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
@@ -877,19 +876,13 @@ view_clauses[] = {
 	 */
 	{ "query-source", &cfg_type_querysource4, 0 },
 	{ "query-source-v6", &cfg_type_querysource6, 0 },
-	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
-	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "cleaning-interval", &cfg_type_uint32, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "lame-ttl", &cfg_type_uint32, 0 },
 	{ "max-ncache-ttl", &cfg_type_uint32, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
-	{ "transfer-format", &cfg_type_ustring, 0 },
-	/*
-	 * XXX "default" should not be accepted as a size in
-	 * max-cache-size.
-	 */
-	{ "max-cache-size", &cfg_type_size, 0 },
+	{ "transfer-format", &cfg_type_transferformat, 0 },
+	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
@@ -915,12 +908,16 @@ static cfg_clausedef_t
 zone_clauses[] = {
 	{ "allow-query", &cfg_type_bracketed_aml, 0 },
 	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
+	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
+	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
 	{ "notify", &cfg_type_notifytype, 0 },
+	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
+	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "also-notify", &cfg_type_portiplist, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
-	{ "maintain-ixfr-base", &cfg_type_boolean, 0 },
+	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
@@ -945,7 +942,6 @@ static cfg_clausedef_t
 zone_only_clauses[] = {
 	{ "type", &cfg_type_zonetype, 0 },
 	{ "allow-update", &cfg_type_bracketed_aml, 0 },
-	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "file", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
@@ -1363,11 +1359,13 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret)
 	pctx->seen_eof = ISC_FALSE;
 	pctx->ungotten = ISC_FALSE;
 	pctx->errors = 0;
+	pctx->warnings = 0;
 	pctx->open_files = NULL;
 	pctx->closed_files = NULL;
 	pctx->line = 0;
 	pctx->callback = NULL;
 	pctx->callbackarg = NULL;
+	pctx->token.type = isc_tokentype_unknown;
 
 	memset(specials, 0, sizeof(specials));
 	specials['{'] = 1;
@@ -1684,13 +1682,23 @@ static cfg_type_t cfg_type_sizeval = {
  * A size, "unlimited", or "default".
  */
 
-static const char *size_enums[] = { "unlimited", "default", NULL };
 static isc_result_t
 parse_size(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_sizeval, ret));
 }
+
+static const char *size_enums[] = { "unlimited", "default", NULL };
 static cfg_type_t cfg_type_size = {
 	"size", parse_size, print_ustring, &cfg_rep_string, size_enums
+};
+
+/*
+ * A size or "unlimited", but not "default".
+ */
+static const char *sizenodefault_enums[] = { "unlimited", NULL };
+static cfg_type_t cfg_type_sizenodefault = {
+	"size_no_default", parse_size, print_ustring, &cfg_rep_string,
+	sizenodefault_enums
 };
 
 /*
@@ -1837,7 +1845,7 @@ check_enum(cfg_parser_t *pctx, cfg_obj_t *obj, const char *const *enums) {
 	const char *s = obj->value.string.base;
 	if (is_enum(s, enums))
 		return (ISC_R_SUCCESS);
-	parser_error(pctx, LOG_NEAR, "'%s' unexpected", s);
+	parser_error(pctx, 0, "'%s' unexpected", s);
 	return (ISC_R_UNEXPECTEDTOKEN);
 }
 
@@ -2773,14 +2781,16 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 			}
 		}
 	}
-	return (ISC_R_NOTFOUND); /* XXX */
+	return (ISC_R_UNEXPECTEDTOKEN);
 }
 
 static isc_result_t
 get_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 	isc_result_t result;
 	CHECK(cfg_gettoken(pctx, 0));
-	CHECK(token_addr(pctx, flags, na));
+	result = token_addr(pctx, flags, na);
+	if (result == ISC_R_UNEXPECTEDTOKEN)
+		parser_error(pctx, LOG_NEAR, "expected IP address");
  cleanup:
 	return (result);
 }
@@ -2936,7 +2946,6 @@ parse_netaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	*ret = obj;
 	return (ISC_R_SUCCESS);
  cleanup:
-	parser_error(pctx, LOG_NEAR, "expected IP address");
 	CLEANUP_OBJ(obj);
 	return (result);
 }
@@ -2951,10 +2960,22 @@ parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	cfg_obj_t *obj = NULL;
 	isc_result_t result;
 	isc_netaddr_t netaddr;
-	unsigned int prefixlen;
+	unsigned int addrlen, prefixlen;
 	UNUSED(type);
 
 	CHECK(get_addr(pctx, V4OK|V4PREFIXOK|V6OK, &netaddr));
+	switch (netaddr.family) {
+	case AF_INET:
+		addrlen = 32;
+		break;
+	case AF_INET6:
+		addrlen = 128;
+		break;
+	default:
+		addrlen = 0;
+		INSIST(0);
+		break;
+	}
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_special &&
 	    pctx->token.value.as_char == '/') {
@@ -2966,19 +2987,13 @@ parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			return (ISC_R_UNEXPECTEDTOKEN);
 		}
 		prefixlen = pctx->token.value.as_ulong;
-	} else {
-		switch (netaddr.family) {
-		case AF_INET:
-			prefixlen = 32;
-			break;
-		case AF_INET6:
-			prefixlen = 128;
-			break;
-		default:
-			prefixlen = 0;
-			INSIST(0);
-			break;
+		if (prefixlen > addrlen) {
+			parser_error(pctx, LOG_NOPREP,
+				     "invalid prefix length");
+			return (ISC_R_RANGE);
 		}
+	} else {
+		prefixlen = addrlen;
 	}
 	CHECK(create_cfgobj(pctx, &cfg_type_netprefix, &obj));
 	obj->value.netprefix.address = netaddr;
@@ -3494,6 +3509,7 @@ cfg_gettoken(cfg_parser_t *pctx, int options) {
 	options |= (ISC_LEXOPT_EOF | ISC_LEXOPT_NOMORE);
 
  redo:
+	pctx->token.type = isc_tokentype_unknown;
 	result = isc_lex_gettoken(pctx->lexer, options, &pctx->token);
 	pctx->ungotten = ISC_FALSE;
 	pctx->line = isc_lex_getsourceline(pctx->lexer);
@@ -3526,6 +3542,11 @@ cfg_gettoken(cfg_parser_t *pctx, int options) {
 	case ISC_R_NOSPACE:
 		/* More understandable than "ran out of space". */
 		parser_error(pctx, LOG_NEAR, "token too big");
+		break;
+
+	case ISC_R_IOERROR:
+		parser_error(pctx, 0, "%s",
+				 isc_result_totext(result));
 		break;
 
 	default:
@@ -3638,6 +3659,9 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 
 		if (pctx->token.type == isc_tokentype_eof) {
 			snprintf(tokenbuf, sizeof(tokenbuf), "end of file");
+		} else if (pctx->token.type == isc_tokentype_unknown) {
+			flags = 0;
+			tokenbuf[0] = '\0';
 		} else {
 			isc_lex_getlasttokentext(pctx->lexer,
 						 &pctx->token, &r);
@@ -3762,7 +3786,7 @@ free_noop(cfg_parser_t *pctx, cfg_obj_t *obj) {
 /*
  * Data and functions for printing grammar summaries.
  */
-struct flagtext {
+static struct flagtext {
 	unsigned int flag;
 	const char *text;
 } flagtexts[] = {
@@ -3811,6 +3835,11 @@ print_grammar(cfg_printer_t *pctx, const cfg_type_t *type) {
 		const cfg_clausedef_t * const *clauseset;
 		const cfg_clausedef_t *clause;
 
+		if (type->parse == parse_named_map) {
+			print_grammar(pctx, &cfg_type_astring);
+			print(pctx, " ", 1);
+		}
+		
 		print_open(pctx);
 
 		for (clauseset = type->of; *clauseset != NULL; clauseset++) {

@@ -7,8 +7,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -57,7 +57,7 @@
  */
 
 #ifndef lint
-static char *rcsid = "$Id: translate.c,v 1.1 2001/06/09 00:30:35 tale Exp $";
+static char *rcsid = "$Id: translate.c,v 1.1.2.1 2002/02/08 12:15:01 marka Exp $";
 #endif
 
 #include <config.h>
@@ -149,7 +149,7 @@ translate_initialize(void)
      */
     if (!config_query_value(KW_CLIENT_ENCODING, &ac, &av, &lineNo)) {
 	WARN("\"%s\" not found in the configuration file\n",
-	    KW_ALTERNATE_ENCODING);
+	    KW_CLIENT_ENCODING);
 	return FALSE;
     }
     if (ac != 2) {

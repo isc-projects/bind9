@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_mkquery.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_mkquery.c,v 1.1 2001/03/29 06:31:59 marka Exp $";
+static const char rcsid[] = "$Id: res_mkquery.c,v 1.1.2.1 2002/07/14 04:26:57 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -216,6 +216,7 @@ res_nopt(statp, n0, buf, buflen, anslen)
 {
 	register HEADER *hp;
 	register u_char *cp;
+	u_int16_t flags = 0;
 
 #ifdef DEBUG
 	if ((statp->options & RES_DEBUG) != 0)
@@ -238,7 +239,14 @@ res_nopt(statp, n0, buf, buflen, anslen)
 	cp += INT16SZ;
 	*cp++ = NOERROR;	/* extended RCODE */
 	*cp++ = 0;		/* EDNS version */
-	__putshort(0, cp);	/* MBZ */
+	if (statp->options & RES_USE_DNSSEC) {
+#ifdef DEBUG
+		if (statp->options & RES_DEBUG)
+			printf(";; res_opt()... ENDS0 DNSSEC\n");
+#endif
+		flags |= NS_OPT_DNSSEC_OK;
+	}
+	__putshort(flags, cp);
 	cp += INT16SZ;
 	__putshort(0, cp);	/* RDLEN */
 	cp += INT16SZ;

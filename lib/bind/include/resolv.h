@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.7 2001/06/25 00:30:46 marka Exp $
+ *	$Id: resolv.h,v 1.7.2.10 2002/08/02 03:19:36 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -156,7 +156,11 @@ struct __res_state_ext;
 struct __res_state {
 	int	retrans;	 	/* retransmition time interval */
 	int	retry;			/* number of times to retransmit */
+#ifdef sun
+	u_int	options;		/* option flags - see below. */
+#else
 	u_long	options;		/* option flags - see below. */
+#endif
 	int	nscount;		/* number of name servers */
 	struct sockaddr_in
 		nsaddr_list[MAXNS];	/* address of name server */
@@ -164,7 +168,11 @@ struct __res_state {
 	u_short	id;			/* current message id */
 	char	*dnsrch[MAXDNSRCH+1];	/* components of domain to search */
 	char	defdname[256];		/* default domain (deprecated) */
+#ifdef sun
+	u_int	pfcode;			/* RES_PRF_ flags - see below. */
+#else
 	u_long	pfcode;			/* RES_PRF_ flags - see below. */
+#endif
 	unsigned ndots:4;		/* threshold for initial abs. query */
 	unsigned nsort:4;		/* number of elements in sort_list[] */
 	char	unused[3];
@@ -177,8 +185,10 @@ struct __res_state {
 	int	res_h_errno;		/* last one set for this context */
 	int	_vcsock;		/* PRIVATE: for res_send VC i/o */
 	u_int	_flags;			/* PRIVATE: see below */
+	u_int	_pad;			/* make _u 64 bit aligned */
 	union {
-		char	pad[52];	/* On an i386 this means 512b total. */
+		/* On an 32-bit arch this means 512b total. */
+		char	pad[72 - 4*sizeof (int) - 2*sizeof (void *)];
 		struct {
 			u_int16_t		nscount;
 			u_int16_t		nstimes[MAXNS];	/* ms. */
@@ -196,9 +206,9 @@ union res_sockaddr_union {
 	struct sockaddr_in6	sin6;
 #endif
 #ifdef ISC_ALIGN64
-	int64_t			__align;        /* 64bit alignment */
+	int64_t			__align64;	/* 64bit alignment */
 #else
-	int32_t			__align;        /* 32bit alignment */
+	int32_t			__align32;	/* 32bit alignment */
 #endif
 	char			__space[128];   /* max size */
 };
@@ -210,8 +220,10 @@ union res_sockaddr_union {
 #define	RES_F_CONN	0x00000002	/* socket is connected */
 #define	RES_F_EDNS0ERR	0x00000004	/* EDNS0 caused errors */
 
-/* res_findzonecut() options */
+/* res_findzonecut2() options */
 #define	RES_EXHAUSTIVE	0x00000001	/* always do all queries */
+#define	RES_IPV4ONLY	0x00000002	/* IPv4 only */
+#define	RES_IPV6ONLY	0x00000004	/* IPv6 only */
 
 /*
  * Resolver options (keep these in synch with res_debug.c, please)
@@ -235,11 +247,14 @@ union res_sockaddr_union {
 #define	RES_KEEPTSIG	0x00010000	/* do not strip TSIG records */
 #define	RES_BLAST	0x00020000	/* blast all recursive servers */
 #define RES_NO_NIBBLE	0x00040000	/* disable IPv6 nibble mode reverse */
-#define RES_NO_BITSTRING 0x00080000	/* disable IPv6 bits tring mode reverse */
+#define RES_NO_BITSTRING 0x00080000	/* disable IPv6 bitstring mode reverse */
+#define RES_NOTLDQUERY	0x00100000	/* don't unqualified name as a tld */
+#define RES_USE_DNSSEC	0x00200000	/* use DNSSEC using OK bit in OPT */
 /* KAME extensions: use higher bit to avoid conflict with ISC use */
-#define RES_USE_EDNS0	0x40000000	/* use EDNS0 if configured */
-#define RES_USE_A6	0x20000000	/* use A6 */
 #define RES_USE_DNAME	0x10000000	/* use DNAME */
+#define RES_USE_A6	0x20000000	/* use A6 */
+#define RES_USE_EDNS0	0x40000000	/* use EDNS0 if configured */
+#define RES_NO_NIBBLE2	0x80000000	/* disable alternate nibble lookup */
 
 #define RES_DEFAULT	(RES_RECURSE | RES_DEFNAMES | RES_DNSRCH)
 
@@ -261,7 +276,8 @@ union res_sockaddr_union {
 #define RES_PRF_QUERY	0x00001000
 #define RES_PRF_REPLY	0x00002000
 #define RES_PRF_INIT	0x00004000
-/*			0x00008000	*/
+#define RES_PRF_TRUNC	0x00008000
+/*			0x00010000	*/
 
 /* Things involving an internal (static) resolver context. */
 #ifdef _REENTRANT
@@ -349,6 +365,7 @@ extern const struct res_sym __p_rcode_syms[];
 #define putshort		__putshort
 #define res_dnok		__res_dnok
 #define res_findzonecut		__res_findzonecut
+#define res_findzonecut2	__res_findzonecut2
 #define res_hnok		__res_hnok
 #define res_hostalias		__res_hostalias
 #define res_mailok		__res_mailok
@@ -439,6 +456,9 @@ int		res_nsendsigned __P((res_state, const u_char *, int,
 				     ns_tsig_key *, u_char *, int));
 int		res_findzonecut __P((res_state, const char *, ns_class, int,
 				     char *, size_t, struct in_addr *, int));
+int		res_findzonecut2 __P((res_state, const char *, ns_class, int,
+				      char *, size_t,
+				      union res_sockaddr_union *, int));
 void		res_nclose __P((res_state));
 int		res_nopt __P((res_state, int, u_char *, int, int));
 void		res_send_setqhook __P((res_send_qhook hook));
@@ -450,6 +470,7 @@ const char *	res_protocolname __P((int num));
 void		res_destroyprotolist __P((void));
 void		res_buildprotolist __P((void));
 const char *	res_get_nibblesuffix __P((res_state));
+const char *	res_get_nibblesuffix2 __P((res_state));
 const char *	res_get_bitstringsuffix __P((res_state));
 void		res_ndestroy __P((res_state));
 u_int16_t	res_nametoclass __P((const char *buf, int *success));

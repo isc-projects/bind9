@@ -1,11 +1,24 @@
 
 				mDNkit
 		  -- 多言語ドメイン名ツールキット --
-			    バージョン 2.1
+			   バージョン 2.2.3
        (社) 日本ネットワークインフォメーションセンター (JPNIC)
 
 
-* 概要
+このファイルの目次:
+
+  1. 概要
+  2. ディレクトリ構成
+  3. パッチの当て方
+  4. 本キットが対応しているシステム
+  5. 本キットに関する最新情報、問い合わせについて
+
+コンパイルおよびインストール方法については、INSTALL.ja というファイルを
+ご覧下さい。このバージョンでの主な変更点に付いては、(英文ですが) NEWS 
+というファイルをご覧下さい。
+
+
+1. 概要
 
 mDNkit とは多言語ドメイン名を扱うためのツールキットです。多言語ドメイ
 ン名を扱うためには、次のような機能が要求されます。
@@ -140,12 +153,14 @@ mDNkit とは多言語ドメイン名を扱うためのツールキットです。多言語ドメイ
    +----------------+           +---------+------------+           +------+
 
 
-* ディレクトリ構成
+2. ディレクトリ構成
 
 配布キットのディレクトリ構成と、主要なファイルを示します。
 
   	README			英語版の README
 	README.ja		このファイル
+	INSTALL			英語版の INSTALL
+	INSTALL.ja		コンパイルとインストール方法
 	DISTFILES		配布されるファイル一覧
 	NEWS			主な変更
 	ChangeLog		変更詳細
@@ -168,173 +183,9 @@ mDNkit とは多言語ドメイン名を扱うためのツールキットです。多言語ドメイ
 	wsock/			mDN ラッパーソース
 
 
-* コンパイルおよびインストール
+4. パッチの当て方
 
-0. 前準備
-  
-もしあなたの使用しているシステムのライブラリに iconv() がない場合、あ
-るいはあっても UTF-8 を扱うことができない場合にはあらかじめ iconv() を
-インストールしておいてください。iconv() の実装は、例えば LGPL のものが
-
-	http://clisp.cons.org/~haible/packages-libiconv.html
-
-から入手可能です。
-
-*注意*
-  上記実装の最新版 (libiconv-1.6.1) は NetBSD 1.5 との組合わせで問題が
-  あり、コンパイル時にエラーが発生します。このバグを修正するためのパッ
-  チが patch/libiconv ディレクトリの下に用意されていますので、この問題
-  に遭遇した場合にはパッチを当ててから再インストールしてください。なお、
-  パッチの当て方はパッチファイルの先頭に書かれています。
-
-1. configure スクリプトの実行
-
-トップディレクトリにある configure スクリプトを実行してください。
-
-	% ./configure
-
-configure スクリプトにはいくつかのオプションを指定することができます。
-mdn に直接関係するものは次の通りです。
-
-    --with-iconv=LIB
-	libc に iconv が入っていない場合 (上記のパッケージを入れた
-	場合など) に、iconv のライブラリを指定します。例えば
-
-		--with-iconv="-L/usr/local/lib -liconv"
-
-	のように指定します。もし iconv が共有ライブラリになっている
-	場合には、-R オプションも指定して
-
-		--with-iconv="-L/usr/local/lib -R/usr/local/lib -liconv"
-
-	とする必要があるかもしれません。
-
-    --with-iconv-sofile=PATH
-	mDNkit に含まれている runmdn コマンドは、iconv() が libc の一
-	部として提供されないときに、iconv() を含む共有ライブラリへのパ
-	ス名を知る必要があります。mDNkit は、--with-iconv オプションの
-	記述を基にパス名を検索しますが、これに失敗したときに、以下のよ
-	うに共有ライブラリを指定することができます。
-
-		--with-iconv-sofile=/usr/local/lib/libiconvv.so.2.0
-
-    --with-utf8=NAME
-	iconv に utf-8 エンコーディングを指定する場合、本ライブラリは
-	デフォルトでは "UTF-8" という名前を指定します。もしあなたの
-	システムの iconv が "UTF-8" という名前を受け付けない場合には、
-	代りの名前を指定します。例えば "UTF-8" ではなく "utf8" の
-	場合には次のように指定します。
-
-		--with-utf8=utf8
-
-    --with-preference=PREFERENCE
-	mDNkit のサンプルコンフィギュレーションファイル (mdn.conf.sample) 
-	の設定を PREFERENCE 向けのものにします。またこのオプションを指定
-	するとデフォルトのコンフィギュレーションファイル (mdn.conf) が
-	インストールされます。ただしファイルがすでに存在している場合には
-	インストールしません。
-	現在のところ、指定できる PREFERENCE は "jp" のみです。
-
-    --with-race-prefix=PREFIX
-    --with-brace-suffix=SUFFIX
-    --with-lace-prefix=PREFIX
-    --with-dude-prefix=PREFIX
-	RACE (Row-based ASCII-Compatible Encoding)、BRACE (Bi-mode
-	Row-based ASCII-Compatible Encoding)、 LACE (Length-based
-	ASCII Compatible Encoding) および DUDE (Differential Unicode
-	Domain Encoding) はいずれも DNS プロトコル上で使用される多言語
-	ドメイン名に関して提案されているエンコーディング方式です。通常
-	の ASCII ドメイン名とこれらによってエンコードされたドメイン名
-	を区別するために、固定の接頭辞 (BRACE の場合には接尾辞) が用い
-	られます。
-	mDNkit では現在のインターネットドラフトで定義されている接頭辞
-	あるいは接尾辞を使用するようになっていますが、今後のドラフトで
-	変わるかもしれません。そこで、これらのオプションを用いて指定で
-	きるようになっています。
-
-    --with-altdude-prefix=PREFIX
-    --with-altdude-suffix=SUFFIX
-    --with-amc-ace-m-prefix=PREFIX
-    --with-amc-ace-m-suffix=SUFFIX
-    --with-amc-ace-o-prefix=PREFIX
-    --with-amc-ace-o-suffix=SUFFIX
-    --with-amc-ace-r-prefix=PREFIX
-	AltDUDE、AMC-ACE-M、AMC-ACE-O および AMC-ACE-R も RACE などと
-	同様に多言語ドメインのエンコーディングとして提案されているもの
-	です。ただしこれらのエンコーディングは RACE など上にあげたもの
-	と異なり、インターネットドラフトでは特定の接頭辞、接尾辞が定義
-	されていません。mDNkit ではデフォルトの接頭辞/接尾辞を設定して
-	ありますが、ここにあげたオプションを使用すれば別のものに変更す
-	ることが可能です。
-	AltDUDE、AMC-ACE-M および AMC-ACE-O については、接頭辞、接尾辞
-	のどちらを指定することも可能です。もし接頭辞と接尾辞の両方が指
-	定された場合には、接頭辞の指定が優先されます。
-
-    --sbindir=DIR
-	DNS プロキシサーバをインストールするディレクトリを指定します。
-	デフォルトでは /usr/local/sbin です。
-
-    --bindir=DIR
-	コードセットコンバータ mdnconv をインストールするディレクトリを
-	指定します。デフォルトでは /usr/local/bin です。
-
-    --sysconfdir=DIR
-	DNS プロキシサーバの設定ファイルをインストールするディレクトリを
-	指定します。デフォルトでは /usr/local/etc です。
-
-    --mandir=DIR
-	オンラインマニュアルのインストールディレクトリを指定します。
-	デフォルトでは /usr/local/man です。
-
---with-iconv オプションではライブラリだけを指定します。もしインクルー
-ドファイル iconv.h がデフォルトのインクルードファイルのパスにインストー
-ルされていない場合、あるいは他に C コンパイラへのオプションを指定した
-い場合には環境変数 CFLAGS を使用してください。例えば
-
-	% CFLAGS=-I/usr/local/include ./configure ...
-				(sh 系のシェルの場合)
-	% setenv CFLAGS -I/usr/local/include; ./configure ...
-				(csh 系のシェルの場合)
-
-とします。
-
-configure には他にも多くのオプションがありますが、残りは一般的なオプショ
-ンなので説明は省きます。
-
-	% ./configure --help
-
-を実行するとオプションの一覧が表示されます。
-
-2. コンパイル
-
-configure を実行すると Makefile などが生成されますので、続けて makeを
-実行してコンパイルします。
-
-	% make
-
-3. インストール
-
-スーパユーザになってインストールします。
-
-	% su
-	# make install
-
-4. Configuration and usage
-
-インストールされるツール (mdnsproxy、mdnconv、runmdn) の使い方、設定方
-法に関してはオンラインマニュアルをご覧ください。mdnconv と runmdn につ
-いては、mDNkit のリゾルバ設定ファイル mdn.conf のマニュアルも参照して
-ください。
-
-	% man mdnsproxy
-	% man mdnconv
-	% man runmdn
-	% man mdn.conf
-
-
-* パッチの当て方
-
-この配布キットには、bind-9.1.1、bind-8.2.3 および squid-2.4-STABLE1 に
+この配布キットには、bind-9.1.3、bind-8.2.3 および squid-2.4-STABLE1 に
 対するパッチが含まれています。パッチの当て方は、パッチファイルの先頭に
 書かれていますのでそちらを参照してください。
 
@@ -344,13 +195,60 @@ Solaris では、システム付属の patch コマンドが正常に動作しないことがあ
 てください。
 
 
-* 本キットに関する最新情報、問い合わせについて
+5. 本キットが対応しているシステム
+
+正常にインストールできることが確認できているのは、次のシステムです。
+
+    ------------------------------------------------------------------
+    OS                      iconv              configure のオプション
+    ==================================================================
+    FreeBSD 4.4-RELEASE     GNU libiconv       --with-libiconv
+    Intel                   1.6.1
+    -------------------------------------------------------------------
+    FreeBSD 3.5.1-RELEASE   GNU libiconv       --with-libiconv
+    Intel                   1.7
+    -------------------------------------------------------------------
+    NetBSD 1.5.2            GNU libiconv       --with-libiconv
+    Intel                   1.7
+    ------------------------------------------------------------------
+    Red Hat Linux 7.1       標準ライブラリ     なし
+    Intel                   (glibc)
+    ------------------------------------------------------------------
+    Red Hat Linux 7.0       標準ライブラリ     なし
+    Intel                   (glibc)
+    -------------------------------------------------------------------
+    Debian/GNU Linux 2.2r3  標準ライブラリ     なし
+    Intel                   (glibc)
+    ------------------------------------------------------------------
+    Solaris 2.6             標準ライブラリ     なし
+    Sparc                   (libc)
+    ------------------------------------------------------------------
+    Windows 2000            GNU libiconv       --with-libiconv
+    (cygwin-1.3.2) *1       1.7
+    -------------------------------------------------------------------
+
+    *1: 動作するのは mdnconv だけです。
+
+本キットが対応している/していないシステムに関する最新の情報は、次のと
+ころから辿れる mDNkit FAQ のページに記されています。
+
+	http://www.nic.ad.jp/jp/research/idn/
+
+
+6. 本キットに関する最新情報、問い合わせについて
 
 本キットに関する最新情報については、
-http://www.nic.ad.jp/jp/research/idn/ を参照してください
 
+	http://www.nic.ad.jp/jp/research/idn/
+
+を参照してください
 本キットに関するバグレポートおよびコメントは、それぞれ 
-mdnkit-bugs@nic.ad.jp および idn-cmt@nic.ad.jp へお願いします。
+
+	mdnkit-bugs@nic.ad.jp
+および
+	idn-cmt@nic.ad.jp
+
+へお願いします。
 
 
-; $Id: README.ja,v 1.29 2001/06/01 01:13:46 ishisone Exp $
+; $Id: README.ja,v 1.1 2002/01/02 02:46:21 marka Exp $

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.8 2001/04/18 02:07:32 ishisone Exp $ */
+/* $Id: acconfig.h,v 1.1 2002/01/02 02:46:21 marka Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -8,8 +8,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -60,12 +60,6 @@
 
 /* Define as an appropriate type (ex. int) if your system doesn't have. */
 #undef BOOL
-
-/* Define if the prototype of gethost*_r is glibc flavor. */
-#undef GETHOST_R_GLIBC_FLAVOR
-
-/* Define as the type of the 2nd argument of gethostbyaddr. */
-#undef GHBA_ADDRLEN_T
 
 @BOTTOM@
 /* Define as the pathname of the shared libc object if your system has one. */

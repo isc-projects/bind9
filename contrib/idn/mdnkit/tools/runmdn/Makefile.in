@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.32 2001/05/22 03:00:23 m-kasahr Exp $
+# $Id: Makefile.in,v 1.1 2002/01/02 02:47:03 marka Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -7,8 +7,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is permitted
@@ -55,13 +55,14 @@
 #    Conditions hereby agrees and consent to the personal and exclusive
 #    jurisdiction and venue of Tokyo District Court of Japan.
 
-LIB_CURRENT=7
-LIB_REVISION=0
-LIB_AGE=0
+LIB_CURRENT = 7
+LIB_REVISION = 3
+LIB_AGE = 0
 
 .SUFFIXES: .lo
 
 top_builddir = ../..
+subdir = tools/runmdn
 
 srcdir  = @srcdir@
 VPATH   = @srcdir@
@@ -81,9 +82,12 @@ MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
 SHELL   = @SHELL@
 LIBTOOL = @LIBTOOL@
 
+ICONVINC = @ICONVINC@
+ICONVLIB = @ICONVLIB@
+
 OPTS    =
-INCS    = -I$(srcdir)/../../include -I../../include
-DEFS    =
+INCS    = -I$(srcdir)/../../include -I../../include $(ICONVINC)
+DEFS    = 
 CFLAGS  = $(INCS) $(OPTS) $(DEFS) @CFLAGS@
 LDFLAGS = @LDFLAGS@
 
@@ -99,6 +103,9 @@ MDNOBJS  = \
 	$(MDNDIR)/amcacem.lo \
 	$(MDNDIR)/amcaceo.lo \
 	$(MDNDIR)/amcacer.lo \
+	$(MDNDIR)/amcacev.lo \
+	$(MDNDIR)/amcacew.lo \
+	$(MDNDIR)/amcacez.lo \
 	$(MDNDIR)/api.lo \
 	$(MDNDIR)/brace.lo \
 	$(MDNDIR)/checker.lo \
@@ -112,6 +119,7 @@ MDNOBJS  = \
 	$(MDNDIR)/lace.lo \
 	$(MDNDIR)/localencoding.lo \
 	$(MDNDIR)/log.lo \
+	$(MDNDIR)/mace.lo \
 	$(MDNDIR)/mapper.lo \
 	$(MDNDIR)/mapselector.lo \
 	$(MDNDIR)/nameprep.lo \
@@ -131,12 +139,10 @@ MDNOBJS  = \
 	$(MDNDIR)/util.lo \
 	$(MDNDIR)/version.lo
 
-ICONVLIB = @ICONVLIB@
-
 .c.lo:
 	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -c $<
 
-all: $(LIB).la
+all: $(LIB).la runmdn
 
 rtresolver.lo: $(srcdir)/resolver.c
 	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -DFOR_RUNMDN -o $@ \
@@ -146,6 +152,11 @@ $(LIB).la: $(OBJS)
 	$(LIBTOOL) --mode=link $(LD) $(LDFLAGS) -o $@ \
 		-version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE) \
 		-module -rpath $(libdir) $(OBJS) $(LIBDL)
+
+runmdn: $(srcdir)/runmdn.in
+	cd $(top_builddir) && \
+		CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= CONFIG_LINKS= \
+		$(SHELL) ./config.status
 
 install: install-lib install-script install-man
 

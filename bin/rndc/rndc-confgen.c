@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9 2001/08/27 23:55:16 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.4 2001/11/30 01:10:09 gson Exp $ */
 
 #include <config.h>
 
@@ -66,7 +66,7 @@ Usage:\n\
 [-s addr] [-t chrootdir] [-u user]\n\
   -a:		generate just the key clause and write it to keyfile (%s)\n\
   -b bits:	from 1 through 512, default %d; total length of the secret\n\
-  -c keyfile:	specify a alterate keyfile (requires -a)\n\
+  -c keyfile:	specify an alternate key file (requires -a)\n\
   -k keyname:	the name as it will be used  in named.conf and rndc.conf\n\
   -p port:	the port named will listen on and rndc will connect to\n\
   -r randomfile: a file containing random data\n\
@@ -139,7 +139,8 @@ main(int argc, char **argv) {
 	int keysize;
 	int entropy_flags = 0;
 	int open_keyboard = ISC_ENTROPY_KEYBOARDMAYBE;
-	struct in_addr addr;
+	struct in_addr addr4_dummy;
+	struct in6_addr addr6_dummy;
 	char *chrootdir = NULL;
 	char *user = NULL;
 	isc_boolean_t keyonly = ISC_FALSE;
@@ -197,9 +198,9 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			serveraddr = isc_commandline_argument;
-			if (inet_aton(serveraddr, &addr) == 0)
+			if (inet_pton(AF_INET, serveraddr, &addr4_dummy) != 1 &&
+			    inet_pton(AF_INET6, serveraddr, &addr6_dummy) != 1)
 				fatal("-s should be an IPv4 or IPv6 address");
-				
 			break;
 		case 't':
 			chrootdir = isc_commandline_argument;
@@ -230,6 +231,10 @@ main(int argc, char **argv) {
 
 	DO("create entropy context", isc_entropy_create(mctx, &ectx));
 
+	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
+		randomfile = NULL;
+		open_keyboard = ISC_ENTROPY_KEYBOARDYES;
+	}
 	DO("start entropy source", isc_entropy_usebestsource(ectx,
 							     &entropy_source,
 							     randomfile,
@@ -275,8 +280,9 @@ main(int argc, char **argv) {
 			char *buf;
 			len = strlen(chrootdir) + strlen(keyfile) + 2;
 			buf = isc_mem_get(mctx, len);
-			if (buf != NULL) {
-				fprintf(stderr, "isc_mem_get(%d) failed\n", len);
+			if (buf == NULL) {
+				fprintf(stderr, "isc_mem_get(%d) failed\n",
+					len);
 				goto cleanup;
 			}
 			snprintf(buf, len, "%s/%s", chrootdir, keyfile);

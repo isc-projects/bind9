@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2001  Internet Software Consortium.
+ * Copyright (C) 1997-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.18 2001/01/09 21:57:08 bwelling Exp $ */
+/* $Id: list.h,v 1.18.2.2 2002/08/05 06:57:14 marka Exp $ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
@@ -33,11 +33,13 @@
 	do { (list).head = NULL; (list).tail = NULL; } while (0)
 
 #define ISC_LINK(type) struct { type *prev, *next; }
-#define ISC_LINK_INIT(elt, link) \
+#define ISC_LINK_INIT_TYPE(elt, link, type) \
 	do { \
-		(elt)->link.prev = (void *)(-1); \
-		(elt)->link.next = (void *)(-1); \
+		(elt)->link.prev = (type *)(-1); \
+		(elt)->link.next = (type *)(-1); \
 	} while (0)
+#define ISC_LINK_INIT(elt, link) \
+	ISC_LINK_INIT_TYPE(elt, link, void)
 #define ISC_LINK_LINKED(elt, link) ((void *)((elt)->link.prev) != (void *)(-1))
 
 #define ISC_LIST_HEAD(list) ((list).head)
@@ -84,7 +86,7 @@
 #define ISC_LIST_INITANDAPPEND(list, elt, link) \
 		__ISC_LIST_APPENDUNSAFE(list, elt, link)
 
-#define __ISC_LIST_UNLINKUNSAFE(list, elt, link) \
+#define __ISC_LIST_UNLINKUNSAFE_TYPE(list, elt, link, type) \
 	do { \
 		if ((elt)->link.next != NULL) \
 			(elt)->link.next->link.prev = (elt)->link.prev; \
@@ -94,15 +96,20 @@
 			(elt)->link.prev->link.next = (elt)->link.next; \
 		else \
 			(list).head = (elt)->link.next; \
-		(elt)->link.prev = (void *)(-1); \
-		(elt)->link.next = (void *)(-1); \
+		(elt)->link.prev = (type *)(-1); \
+		(elt)->link.next = (type *)(-1); \
 	} while (0)
 
-#define ISC_LIST_UNLINK(list, elt, link) \
+#define __ISC_LIST_UNLINKUNSAFE(list, elt, link) \
+	__ISC_LIST_UNLINKUNSAFE_TYPE(list, elt, link, void)
+
+#define ISC_LIST_UNLINK_TYPE(list, elt, link, type) \
 	do { \
 		ISC_LINK_INSIST(ISC_LINK_LINKED(elt, link)); \
-		__ISC_LIST_UNLINKUNSAFE(list, elt, link); \
+		__ISC_LIST_UNLINKUNSAFE_TYPE(list, elt, link, type); \
 	} while (0)
+#define ISC_LIST_UNLINK(list, elt, link) \
+	ISC_LIST_UNLINK_TYPE(list, elt, link, void)
 
 #define ISC_LIST_PREV(elt, link) ((elt)->link.prev)
 #define ISC_LIST_NEXT(elt, link) ((elt)->link.next)
@@ -161,8 +168,13 @@
 #define ISC_LIST_ENQUEUE(list, elt, link) ISC_LIST_APPEND(list, elt, link)
 #define __ISC_LIST_ENQUEUEUNSAFE(list, elt, link) \
 	__ISC_LIST_APPENDUNSAFE(list, elt, link)
-#define ISC_LIST_DEQUEUE(list, elt, link) ISC_LIST_UNLINK(list, elt, link)
+#define ISC_LIST_DEQUEUE(list, elt, link) \
+	 ISC_LIST_UNLINK_TYPE(list, elt, link, void)
+#define ISC_LIST_DEQUEUE_TYPE(list, elt, link, type) \
+	 ISC_LIST_UNLINK_TYPE(list, elt, link, type)
 #define __ISC_LIST_DEQUEUEUNSAFE(list, elt, link) \
-	__ISC_LIST_UNLINKUNSAFE(list, elt, link)
+	__ISC_LIST_UNLINKUNSAFE_TYPE(list, elt, link, void)
+#define __ISC_LIST_DEQUEUEUNSAFE_TYPE(list, elt, link, type) \
+	__ISC_LIST_UNLINKUNSAFE_TYPE(list, elt, link, type)
 
 #endif /* ISC_LIST_H */

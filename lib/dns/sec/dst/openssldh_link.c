@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.38 2001/07/10 04:01:16 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.38.2.2 2001/12/19 01:29:34 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -28,6 +28,7 @@
 
 #include <ctype.h>
 
+#include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -167,7 +168,7 @@ openssldh_generate(dst_key_t *key, int generator) {
 static isc_boolean_t
 openssldh_isprivate(const dst_key_t *key) {
 	DH *dh = (DH *) key->opaque;
-        return (ISC_TF(dh != NULL && dh->priv_key != NULL));
+	return (ISC_TF(dh != NULL && dh->priv_key != NULL));
 }
 
 static isc_boolean_t
@@ -374,42 +375,60 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 static isc_result_t
 openssldh_tofile(const dst_key_t *key, const char *directory) {
-	int cnt = 0;
+	int i;
 	DH *dh;
 	dst_private_t priv;
-	unsigned char bufs[4][128];
+	unsigned char *bufs[4];
+	isc_result_t result;
 
 	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
 
 	dh = (DH *) key->opaque;
 
-	priv.elements[cnt].tag = TAG_DH_PRIME;
-	priv.elements[cnt].length = BN_num_bytes(dh->p);
-	BN_bn2bin(dh->p, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	for (i = 0; i < 4; i++) {
+		bufs[i] = isc_mem_get(key->mctx, BN_num_bytes(dh->p));
+		if (bufs[i] == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto fail;
+		}
+	}
 
-	priv.elements[cnt].tag = TAG_DH_GENERATOR;
-	priv.elements[cnt].length = BN_num_bytes(dh->g);
-	BN_bn2bin(dh->g, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	i = 0;
 
-	priv.elements[cnt].tag = TAG_DH_PRIVATE;
-	priv.elements[cnt].length = BN_num_bytes(dh->priv_key);
-	BN_bn2bin(dh->priv_key, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_DH_PRIME;
+	priv.elements[i].length = BN_num_bytes(dh->p);
+	BN_bn2bin(dh->p, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.elements[cnt].tag = TAG_DH_PUBLIC;
-	priv.elements[cnt].length = BN_num_bytes(dh->pub_key);
-	BN_bn2bin(dh->pub_key, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt];
-	cnt++;
+	priv.elements[i].tag = TAG_DH_GENERATOR;
+	priv.elements[i].length = BN_num_bytes(dh->g);
+	BN_bn2bin(dh->g, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
 
-	priv.nelements = cnt;
-	return (dst__privstruct_writefile(key, &priv, directory));
+	priv.elements[i].tag = TAG_DH_PRIVATE;
+	priv.elements[i].length = BN_num_bytes(dh->priv_key);
+	BN_bn2bin(dh->priv_key, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
+
+	priv.elements[i].tag = TAG_DH_PUBLIC;
+	priv.elements[i].length = BN_num_bytes(dh->pub_key);
+	BN_bn2bin(dh->pub_key, bufs[i]);
+	priv.elements[i].data = bufs[i];
+	i++;
+
+	priv.nelements = i;
+	result = dst__privstruct_writefile(key, &priv, directory);
+ fail:
+	for (i = 0; i < 4; i++) {
+		if (bufs[i] == NULL)
+			break;
+		isc_mem_put(key->mctx, bufs[i], BN_num_bytes(dh->p));
+	}
+	return (result);
 }
 
 static isc_result_t
@@ -454,7 +473,7 @@ openssldh_fromfile(dst_key_t *key, const char *filename) {
 			case TAG_DH_PUBLIC:
 				dh->pub_key = bn;
 				break;
-                }
+		}
 	}
 	dst__privstruct_free(&priv, mctx);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218 2001/07/11 01:19:56 halley Exp $ */
+/* $Id: resolver.c,v 1.218.2.12 2002/07/15 02:28:07 marka Exp $ */
 
 #include <config.h>
 
@@ -407,6 +407,25 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		dns_adb_adjustsrtt(fctx->adb, query->addrinfo, rtt, factor);
 	}
 
+	/*
+	 * Age RTTs of servers not tried.
+	 */
+	if (finish != NULL) {
+		dns_adbfind_t *find;
+		dns_adbaddrinfo_t *addrinfo;
+
+		factor = DNS_ADB_RTTADJAGE;
+                for (find = ISC_LIST_HEAD(fctx->finds);
+		     find != NULL;
+		     find = ISC_LIST_NEXT(find, publink))
+			for (addrinfo = ISC_LIST_HEAD(find->list);
+			     addrinfo != NULL;
+			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
+				if (UNMARKED(addrinfo))
+					dns_adb_adjustsrtt(fctx->adb, addrinfo,
+							   0, factor);
+	}
+
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
 
@@ -591,24 +610,6 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 		}
 	} else if (sevent->result != ISC_R_SUCCESS)
 		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
-
-	isc_event_free(&event);
-}
-
-static void
-resquery_aborted(isc_task_t *task, isc_event_t *event) {
-	resquery_t *query = event->ev_arg;
-
-	REQUIRE(event->ev_type == DNS_EVENT_QUERYABORTED);
-
-	QTRACE("blackholed");
-
-	UNUSED(task);
-
-	/*
-	 * Treat this as a "no response" to cause the RTT estimate to go up.
-	 */
-	fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
 
 	isc_event_free(&event);
 }
@@ -865,11 +866,8 @@ resquery_send(resquery_t *query) {
 	isc_buffer_t *buffer;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
-	dns_acl_t *blackhole;
 	dns_peer_t *peer = NULL;
 	isc_boolean_t useedns;
-	isc_boolean_t bogus;
-	isc_boolean_t aborted = ISC_FALSE;
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 
@@ -1082,36 +1080,6 @@ resquery_send(resquery_t *query) {
 	if ((query->options & DNS_FETCHOPT_TCP) == 0)
 		address = &query->addrinfo->sockaddr;
 	isc_buffer_usedregion(buffer, &r);
-
-
-	blackhole = dns_dispatchmgr_getblackhole(query->dispatchmgr);
-	if (blackhole != NULL) {
-		int match;
-
-		if (dns_acl_match(&ipaddr, NULL, blackhole,
-				  &fctx->res->view->aclenv,
-				  &match, NULL) == ISC_R_SUCCESS &&
-		    match > 0)
-			aborted = ISC_TRUE;
-	}
-
-	if (peer != NULL &&
-	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
-	    bogus)
-		aborted = ISC_TRUE;
-
-	if (aborted) {
-		isc_event_t *event;
-		event = isc_event_allocate(fctx->res->mctx, NULL,
-					   DNS_EVENT_QUERYABORTED,
-					   resquery_aborted, query,
-					   sizeof(isc_event_t));
-		if (event == NULL)
-			return (ISC_R_NOMEMORY);
-		isc_task_send(task, &event);
-		result = ISC_R_SUCCESS;
-		goto cleanup_message;
-	}
 
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
@@ -1670,23 +1638,56 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 	isc_netaddr_t na;
 	char buf[ISC_NETADDR_FORMATSIZE];
 	isc_sockaddr_t *sa;
+	isc_boolean_t aborted = ISC_FALSE;
+	isc_boolean_t bogus;
+	dns_acl_t *blackhole;
+	isc_netaddr_t ipaddr;
+	dns_peer_t *peer = NULL;
+	dns_resolver_t *res;
+	const char *msg = NULL;
 
 	sa = &addr->sockaddr;
 
-	if (sa->type.sa.sa_family != AF_INET6)
+	res = fctx->res;
+	isc_netaddr_fromsockaddr(&ipaddr, sa);
+	blackhole = dns_dispatchmgr_getblackhole(res->dispatchmgr);
+	(void) dns_peerlist_peerbyaddr(res->view->peers, &ipaddr, &peer);
+	
+	if (blackhole != NULL) {
+		int match;
+
+		if (dns_acl_match(&ipaddr, NULL, blackhole,
+				  &res->view->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+			aborted = ISC_TRUE;
+	}
+
+	if (peer != NULL &&
+	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
+	    bogus)
+		aborted = ISC_TRUE;
+
+	if (aborted) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring blackholed / bogus server: ";
+	} else if (sa->type.sa.sa_family != AF_INET6) {
+		return;
+	} else if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring IPv6 mapped IPV4 address: ";
+	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring IPv6 compatibility IPV4 address: ";
+	} else
 		return;
 
-	if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
-		isc_netaddr_fromsockaddr(&na, sa);
-		isc_netaddr_format(&na, buf, sizeof buf);
-		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("ignoring IPv6 mapped IPV4 address: ", buf);
-	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
-		isc_netaddr_fromsockaddr(&na, sa);
-		isc_netaddr_format(&na, buf, sizeof buf);
-		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("ignoring IPv6 compatibility IPV4 address: ", buf);
-	}
+	if (!isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3)))
+		return;
+
+	isc_netaddr_fromsockaddr(&na, sa);
+	isc_netaddr_format(&na, buf, sizeof buf);
+	FCTXTRACE2(msg, buf);
 }
 
 static inline dns_adbaddrinfo_t *
@@ -1942,8 +1943,6 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("doshutdown");
 
-	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
-
 	/*
 	 * An fctx that is shutting down is no longer in ADDRWAIT mode.
 	 */
@@ -1967,6 +1966,8 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	fctx_stopeverything(fctx, ISC_FALSE);
 
 	LOCK(&res->buckets[bucketnum].lock);
+
+	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
 
 	INSIST(fctx->state == fetchstate_active ||
 	       fctx->state == fetchstate_done);
@@ -2445,6 +2446,7 @@ clone_results(fetchctx_t *fctx) {
 #define ANSWERSIG(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWERSIG) != 0)
 #define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
 #define CHAINING(r)	(((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
+#define CHASE(r)	(((r)->attributes & DNS_RDATASETATTR_CHASE) != 0)
 
 
 /*
@@ -3258,6 +3260,13 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 			rdataset->ttl = 1;
 	} else
 		rdataset->trust = dns_trust_additional;
+	/*
+	 * Avoid infinite loops by only marking new rdatasets.
+	 */
+	if (!CACHE(rdataset)) {
+		name->attributes |= DNS_NAMEATTR_CHASE;
+		rdataset->attributes |= DNS_RDATASETATTR_CHASE;
+	}
 	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 	if (external)
 		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
@@ -3280,56 +3289,64 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 	else
 		gluing = ISC_FALSE;
 	name = NULL;
-	rdataset = NULL;
 	result = dns_message_findname(fctx->rmessage, DNS_SECTION_ADDITIONAL,
 				      addname, dns_rdatatype_any, 0, &name,
 				      NULL);
 	if (result == ISC_R_SUCCESS) {
 		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
-		if (type == dns_rdatatype_a) {
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-				if (rdataset->type == dns_rdatatype_sig)
-					rtype = rdataset->covers;
-				else
-					rtype = rdataset->type;
-				if (rtype == dns_rdatatype_a ||
-				    rtype == dns_rdatatype_aaaa ||
-				    rtype == dns_rdatatype_a6)
-					mark_related(name, rdataset, external,
-						     gluing);
-				/*
-				 * XXXRTH  Need to do a controlled recursion
-				 *	   on the A6 prefix names to mark
-				 *	   any additional data related to them.
-				 *
-				 *	   Ick.
-				 */
-			}
-		} else {
-			result = dns_message_findtype(name, type, 0,
-						      &rdataset);
-			if (result == ISC_R_SUCCESS) {
-				mark_related(name, rdataset, external, gluing);
-				/*
-				 * Do we have its SIG too?
-				 */
-				result = dns_message_findtype(name,
-						      dns_rdatatype_sig,
-						      type, &rdataset);
-				if (result == ISC_R_SUCCESS)
-					mark_related(name, rdataset, external,
-						     gluing);
-			}
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (rdataset->type == dns_rdatatype_sig)
+				rtype = rdataset->covers;
+			else
+				rtype = rdataset->type;
+			if ((type == dns_rdatatype_a && 
+			     (rtype == dns_rdatatype_a ||
+			      rtype == dns_rdatatype_aaaa ||
+			      rtype == dns_rdatatype_a6)) ||
+			    type == rtype)
+				mark_related(name, rdataset, external,
+					     gluing);
 		}
-		/*
-		 * XXXRTH  Some other stuff still needs to be marked.
-		 *         See query.c.
-		 */
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static void
+chase_additional(fetchctx_t *fctx) {
+	isc_boolean_t rescan;
+	dns_section_t section = DNS_SECTION_ADDITIONAL;
+	isc_result_t result;
+
+ again:
+	rescan = ISC_FALSE;
+	
+	for (result = dns_message_firstname(fctx->rmessage, section);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(fctx->rmessage, section)) {
+		dns_name_t *name = NULL;
+		dns_rdataset_t *rdataset;
+		dns_message_currentname(fctx->rmessage, DNS_SECTION_ADDITIONAL,
+					&name);
+		if ((name->attributes & DNS_NAMEATTR_CHASE) == 0)
+			continue;
+		name->attributes &= ~DNS_NAMEATTR_CHASE;
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (CHASE(rdataset)) {
+				rdataset->attributes &= ~DNS_RDATASETATTR_CHASE;
+				(void)dns_rdataset_additionaldata(rdataset,
+								  check_related,
+								  fctx);
+				rescan = ISC_TRUE;
+			}
+		}
+	}
+	if (rescan)
+		goto again;
 }
 
 static inline isc_result_t
@@ -3627,7 +3644,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	if (ns_name != NULL)
 		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
 
-	if (negative_response)
+	if (negative_response && oqname == NULL)
 		fctx->attributes |= FCTX_ATTR_WANTNCACHE;
 
 	return (ISC_R_SUCCESS);
@@ -3640,7 +3657,7 @@ answer_response(fetchctx_t *fctx) {
 	dns_name_t *name, *qname, tname;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t done, external, chaining, aa, found, want_chaining;
-	isc_boolean_t have_answer, found_cname, found_type;
+	isc_boolean_t have_answer, found_cname, found_type, wanted_chaining;
 	unsigned int aflag;
 	dns_rdatatype_t type;
 	dns_fixedname_t dname, fqname;
@@ -3672,6 +3689,7 @@ answer_response(fetchctx_t *fctx) {
 		dns_message_currentname(message, DNS_SECTION_ANSWER, &name);
 		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
 		if (dns_name_equal(name, qname)) {
+			wanted_chaining = ISC_FALSE;
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -3792,7 +3810,7 @@ answer_response(fetchctx_t *fctx) {
 					 * CNAME chaining.
 					 */
 					if (want_chaining) {
-						chaining = ISC_TRUE;
+						wanted_chaining = ISC_TRUE;
 						name->attributes |=
 							DNS_NAMEATTR_CHAINING;
 						rdataset->attributes |=
@@ -3804,12 +3822,27 @@ answer_response(fetchctx_t *fctx) {
 				 * We could add an "else" clause here and
 				 * log that we're ignoring this rdataset.
 				 */
+				
+				/*
+				 * If wanted_chaining is true, we've done
+				 * some chaining as the result of processing
+				 * this node, and thus we need to set
+				 * chaining to true.
+				 *
+				 * We don't set chaining inside of the
+				 * rdataset loop because doing that would
+				 * cause us to ignore the signatures of
+				 * CNAMEs.
+				 */
+				if (wanted_chaining)
+					chaining = ISC_TRUE;
 			}
 		} else {
 			/*
 			 * Look for a DNAME (or its SIG).  Anything else is
 			 * ignored.
 			 */
+			wanted_chaining = ISC_FALSE;
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -3905,7 +3938,7 @@ answer_response(fetchctx_t *fctx) {
 						  NULL);
 						if (result != ISC_R_SUCCESS)
 							return (result);
-						chaining = ISC_TRUE;
+						wanted_chaining = ISC_TRUE;
 						name->attributes |=
 							DNS_NAMEATTR_CHAINING;
 						rdataset->attributes |=
@@ -3915,6 +3948,8 @@ answer_response(fetchctx_t *fctx) {
 					}
 				}
 			}
+			if (wanted_chaining)
+				chaining = ISC_TRUE;
 		}
 		result = dns_message_nextname(message, DNS_SECTION_ANSWER);
 	}
@@ -4046,6 +4081,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	resend = ISC_FALSE;
 	truncated = ISC_FALSE;
 	finish = NULL;
+
+	if (fctx->res->exiting) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto done;
+	}
 
 	fctx->timeouts = 0;
 
@@ -4230,25 +4270,28 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_nxdomain) {
-		if (message->rcode == dns_rcode_formerr) {
-			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-				/*
-				 * It's very likely they don't like EDNS0.
-				 *
-				 * XXXRTH  We should check if the question
-				 *         we're asking requires EDNS0, and
-				 *         if so, we should bail out.
-				 */
-				options |= DNS_FETCHOPT_NOEDNS0;
-				resend = ISC_TRUE;
-				/*
-				 * Remember that they don't like EDNS0.
-				 */
-				dns_adb_changeflags(fctx->adb,
-						    query->addrinfo,
+		if ((message->rcode == dns_rcode_formerr ||
+		     message->rcode == dns_rcode_notimp ||
+		     message->rcode == dns_rcode_servfail) &&
+		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			/*
+			 * It's very likely they don't like EDNS0.
+			 *
+			 * XXXRTH  We should check if the question
+			 *         we're asking requires EDNS0, and
+			 *         if so, we should bail out.
+			 */
+			options |= DNS_FETCHOPT_NOEDNS0;
+			resend = ISC_TRUE;
+			/*
+			 * Remember that they don't like EDNS0.
+			 */
+			if (message->rcode != dns_rcode_servfail)
+				dns_adb_changeflags(fctx->adb, query->addrinfo,
 						    DNS_FETCHOPT_NOEDNS0,
 						    DNS_FETCHOPT_NOEDNS0);
-			} else if (ISFORWARDER(query->addrinfo)) {
+		} else if (message->rcode == dns_rcode_formerr) {
+			if (ISFORWARDER(query->addrinfo)) {
 				/*
 				 * This forwarder doesn't understand us,
 				 * but other forwarders might.  Keep trying.
@@ -4359,6 +4402,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		keep_trying = ISC_TRUE;
 		goto done;
 	}
+
+	/*
+	 * Follow A6 and other additional section data chains.
+	 */
+	chase_additional(fctx);
 
 	/*
 	 * Cache the cacheable parts of the message.  This may also cause

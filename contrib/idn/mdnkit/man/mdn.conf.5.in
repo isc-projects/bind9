@@ -1,4 +1,4 @@
-.\" $Id: mdn.conf.5.in,v 1.1 2001/06/09 00:30:33 tale Exp $"
+.\" $Id: mdn.conf.5.in,v 1.1.2.1 2002/02/08 12:14:43 marka Exp $"
 .\"
 .\" Copyright (c) 2000,2001 Japan Network Information Center.
 .\" All rights reserved.
@@ -9,8 +9,8 @@
 .\" 
 .\" The following License Terms and Conditions apply, unless a different
 .\" license is obtained from Japan Network Information Center ("JPNIC"),
-.\" a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-.\" Tokyo, Japan.
+.\" a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+.\" Chiyoda-ku, Tokyo 101-0047, Japan.
 .\" 
 .\" 1. Use, Modification and Redistribution (including distribution of any
 .\"    modified or derived work) in source and/or binary forms is permitted
@@ -101,9 +101,6 @@ specifies the parameters for these tasks, such as:
 the encoding of internationalized domain names (IDN encoding).
 .IP \- 2
 NAMEPREP schemes.
-.IP \- 2
-the alternative encoding which is used in case the domain name in
-the IDN encoding cannot be convertible to the local encoding.
 .RE
 .\"
 .SH SYNTAX
@@ -135,23 +132,11 @@ The syntax of this entry is:
 names can be specified.
 .RS 2
 .IP "\(bu" 2
+``AMC-ACE-Z''
+.IP "\(bu" 2
 ``RACE''
 .IP "\(bu" 2
-``BRACE''
-.IP "\(bu" 2
-``LACE''
-.IP "\(bu" 2
 ``DUDE''
-.IP "\(bu" 2
-``UTF-6''
-.IP "\(bu" 2
-``AltDUDE''
-.IP "\(bu" 2
-``AMC-ACE-M''
-.IP "\(bu" 2
-``AMC-ACE-O''
-.IP "\(bu" 2
-``AMC-ACE-R''
 .IP "\(bu" 2
 ``UTF-8''
 .IP "\(bu" 2
@@ -185,13 +170,17 @@ the following
 can be specified.
 .RS 2
 .IP "\(bu" 2
-``nameprep-02''
-.br
-This version refers to Internet Draft ``draft-ietf-idn-nameprep-02.txt''.
-.IP "\(bu" 2
 ``nameprep-03''
 .br
 This version refers to Internet Draft ``draft-ietf-idn-nameprep-03.txt''.
+.IP "\(bu" 2
+``nameprep-05''
+.br
+This version refers to Internet Draft ``draft-ietf-idn-nameprep-05.txt''.
+.IP "\(bu" 2
+``nameprep-06''
+.br
+This version refers to Internet Draft ``draft-ietf-idn-nameprep-06.txt''.
 .RE
 .PP
 The NAMEPREP process consists of the following 3 subprocesses.
@@ -240,11 +229,14 @@ The syntax of this entry is:
 specifies the mapping scheme, and currently available schemes are:
 .RS 2
 .TP 4
-\f(CWnameprep-02\fP
-Specify mapping defined by NAMEPREP-02 draft.
-.TP 4
 \f(CWnameprep-03\fP
 Specify mapping defined by NAMEPREP-03 draft.
+.TP 4
+\f(CWnameprep-05\fP
+Specify mapping defined by NAMEPREP-05 draft.
+.TP 4
+\f(CWnameprep-06\fP
+Specify mapping defined by NAMEPREP-06 draft.
 .TP 4
 \f(CWfilemap:\fP\fIpathname\fP
 Specify mapping defined by the file \fIpathname\fP.
@@ -271,37 +263,24 @@ is the normalization scheme, and following shows the currently available
 schemes:
 .RS 2
 .TP 4
-\f(CWnameprep-02\fP
-Synonim for \f(CWunicode-form-kc\fR.
-.TP 4
 \f(CWnameprep-03\fP
-Synonim for \f(CWunicode-form-kc\fR.
+Synonim for \f(CWunicode-form-kc/3.0.1\fR.
 .TP 4
-\f(CWascii-lowercase\fP
-Convert ASCII uppercase letters to lowercase.
+\f(CWnameprep-05\fP
+Synonim for \f(CWunicode-form-kc/3.1.0\fR.
 .TP 4
-\f(CWascii-uppercase\fP
-Convert ASCII lowercase letters to uppercase.
-.TP 4
-\f(CWunicode-lowercase\fP
-Convert Unicode uppercase letters to lowercase, based on ``Unicode
-Technical Report #21: Case Mappings''.
-Note that only locale-independent conversion is supported.
-.TP 4
-\f(CWunicode-uppercase\fP
-Convert Unicode lowercase letters to uppercase, based on ``Unicode
-Technical Report #21: Case Mappings''.
-Note that only locale-independent conversion is supported.
-.TP 4
-\f(CWunicode-foldcase\fP
-Perform Unicode case-folding for case-less string matching,
-which is also defined by ``Unicode Technical Report #21: Case Mappings''.
-.TP 4
-\f(CWunicode-form-c\fP
-Perform Unicode normalization called ``Unicode Normalization Form C''.
+\f(CWnameprep-06\fP
+Synonim for \f(CWunicode-form-kc/3.1.0\fR.
 .TP 4
 \f(CWunicode-form-kc\fP
-Perform Unicode normalization called ``Unicode Normalization Form KC''.
+Perform Unicode normalization called ``Unicode Normalization Form KC'',
+defined by the latest standard.
+.TP 4
+\f(CWunicode-form-kc/3.0.1\fP
+Perform Unicode Normalization Form KC defined by Unicode 3.0.1.
+.TP 4
+\f(CWunicode-form-kc/3.1.0\fP
+Perform Unicode Normalization Form KC defined by Unicode 3.1.0.
 .RE
 .PP
 More than one
@@ -324,11 +303,14 @@ specifies the set of prohibited characters.  Currently following sets
 can be specified.
 .RS 2
 .TP 4
-\f(CWnameprep-02\fP
-Specify set of prohibited characters defined by NAMEPREP-02 draft.
-.TP 4
 \f(CWnameprep-03\fP
 Specify set of prohibited characters defined by NAMEPREP-03 draft.
+.TP 4
+\f(CWnameprep-05\fP
+Specify set of prohibited characters defined by NAMEPREP-05 draft.
+.TP 4
+\f(CWnameprep-06\fP
+Specify set of prohibited characters defined by NAMEPREP-06 draft.
 .TP 4
 \f(CWfileset:\fP\fIpathname\fP
 Specify set of prohibited characters defined by the file \fIpathname\fP.
@@ -355,11 +337,14 @@ specifies the set of unassigned characters.  Currently following sets
 can be specified.
 .RS 2
 .TP 4
-\f(CWnameprep-02\fP
-Specify set of unassigned characters defined by NAMEPREP-02 draft.
-.TP 4
 \f(CWnameprep-03\fP
 Specify set of unassigned characters defined by NAMEPREP-03 draft.
+.TP 4
+\f(CWnameprep-05\fP
+Specify set of unassigned characters defined by NAMEPREP-05 draft.
+.TP 4
+\f(CWnameprep-06\fP
+Specify set of unassigned characters defined by NAMEPREP-06 draft.
 .TP 4
 \f(CWfileset:\fP\fIpathname\fP
 Specify set of unassigned characters defined by the file \fIpathname\fP.
@@ -370,31 +355,6 @@ When more than one
 .IR set s
 are specified, a character is considered unassigned if it belongs to
 any one of those sets.
-.\"
-.SH "ALTERNATE-ENCODING ENTRY"
-mDNkit provides local codeset coversion feature, and in domain name
-decoding process, multilingual domain names are converted to the
-local codeset the application is using.
-However, it is possible that the conversion fails because some
-characters in the domain names have no mapping to the local codeset.
-This occurs, for example, when a Japanese application using Japanese
-codeset receives a DNS reply containing Chinese characters which
-are not included in the Japanese character set.
-.PP
-Alternative encoding entry specifies the codeset name to be used
-instead of the local codeset in case the above problem happens.
-.PP
-The syntax of this entry is:
-.PP
-.RS 4
-.nf
-\f(CWalternate-encoding \fP\fIencoding\fP
-.fi
-.RE
-.PP
-.I encoding
-is the name of the codeset.  It must be an ASCII-compatible
-encoding (ACE) such as ``RACE''.
 .\"
 .SH "ENCODING-ALIAS-FILE ENTRY"
 Encoding alias entry specifies the file containing codeset name aliases.
@@ -577,11 +537,8 @@ The following shows a sample configuration file.
 # Use RACE as the IDN encoding.
 idn-encoding RACE
 
-# Use draft-ietf-idn-nameprep-03.txt as NAMEPREP.
-nameprep nameprep-03
-
-# Use BRACE as the alternative encoding.
-alternate-encoding BRACE
+# Use draft-ietf-idn-nameprep-06.txt as NAMEPREP.
+nameprep nameprep-06
 
 # Regard U+3002 (IDEOGRAPHIC FULL STOP) and U+FF0E
 # (FULLWIDTH FULL STOP) as the domain component delimiter

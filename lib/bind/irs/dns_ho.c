@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.5 2001/07/02 00:44:50 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.6 2002/07/14 04:31:43 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -74,6 +74,7 @@ static const char rcsid[] = "$Id: dns_ho.c,v 1.5 2001/07/02 00:44:50 marka Exp $
 #include <resolv.h>
 #include <stdio.h>
 #include <string.h>
+#include <syslog.h>
 
 #include <isc/memcluster.h>
 #include <irs.h>
@@ -161,7 +162,7 @@ static struct addrinfo * ho_addrinfo(struct irs_ho *this, const char *name,
 				     const struct addrinfo *pai);
 
 static void		map_v4v6_hostent(struct hostent *hp, char **bp,
-					 int *len);
+					 char *ep);
 static void		addrsort(res_state, char **, int);
 static struct hostent *	gethostans(struct irs_ho *this,
 				   const u_char *ansbuf, int anslen,
@@ -256,47 +257,55 @@ ho_byname2(struct irs_ho *this, const char *name, int af)
 	char tmp[NS_MAXDNAME];
 	const char *cp;
 	struct addrinfo ai;
-	struct dns_res_target q, q2, *p;
+	struct dns_res_target *q, *q2, *p;
 	int querystate = RESQRY_FAIL;
 
 	if (init(this) == -1)
 		return (NULL);
 
-	memset(&q, 0, sizeof(q2));
-	memset(&q2, 0, sizeof(q2));
+	q = memget(sizeof(*q));
+	q2 = memget(sizeof(*q2));
+	if (q == NULL || q2 == NULL) {
+		RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
+		errno = ENOMEM;
+		goto cleanup;
+	}
+	memset(q, 0, sizeof(q));
+	memset(q2, 0, sizeof(q2));
 
 	switch (af) {
 	case AF_INET:
 		size = INADDRSZ;
-		q.qclass = C_IN;
-		q.qtype = T_A;
-		q.answer = q.qbuf.buf;
-		q.anslen = sizeof(q.qbuf);
-		q.action = RESTGT_DOALWAYS;
+		q->qclass = C_IN;
+		q->qtype = T_A;
+		q->answer = q->qbuf.buf;
+		q->anslen = sizeof(q->qbuf);
+		q->action = RESTGT_DOALWAYS;
 		break;
 	case AF_INET6:
 		size = IN6ADDRSZ;
-		q.qclass = C_IN;
-		q.qtype = ns_t_a6;
-		q.answer = q.qbuf.buf;
-		q.anslen = sizeof(q.qbuf);
-		q.next = &q2;
+		q->qclass = C_IN;
+		q->qtype = ns_t_a6;
+		q->answer = q->qbuf.buf;
+		q->anslen = sizeof(q->qbuf);
+		q->next = q2;
 #ifdef RES_USE_A6
 		if ((pvt->res->options & RES_USE_A6) == 0)
-			q.action = RESTGT_IGNORE;
+			q->action = RESTGT_IGNORE;
 		else
 #endif
-			q.action = RESTGT_DOALWAYS;
-		q2.qclass = C_IN;
-		q2.qtype = T_AAAA;
-		q2.answer = q2.qbuf.buf;
-		q2.anslen = sizeof(q2.qbuf);
-		q2.action = RESTGT_AFTERFAILURE;
+			q->action = RESTGT_DOALWAYS;
+		q2->qclass = C_IN;
+		q2->qtype = T_AAAA;
+		q2->answer = q2->qbuf.buf;
+		q2->anslen = sizeof(q2->qbuf);
+		q2->action = RESTGT_AFTERFAILURE;
 		break;
 	default:
 		RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
 		errno = EAFNOSUPPORT;
-		return (NULL);
+		hp = NULL;
+		goto cleanup;
 	}
 
 	/*
@@ -308,7 +317,7 @@ ho_byname2(struct irs_ho *this, const char *name, int af)
 						      tmp, sizeof tmp)))
 		name = cp;
 
-	for (p = &q; p; p = p->next) {
+	for (p = q; p; p = p->next) {
 		switch(p->action) {
 		case RESTGT_DOALWAYS:
 			break;
@@ -331,13 +340,18 @@ ho_byname2(struct irs_ho *this, const char *name, int af)
 		if ((hp = gethostans(this, p->answer, n, name, p->qtype,
 				     af, size, NULL,
 				     (const struct addrinfo *)&ai)) != NULL)
-			return(hp); /* no more loop is necessary */
+			goto cleanup;	/* no more loop is necessary */
 
 		querystate = RESQRY_FAIL;
 		continue;
 	}
 
-	return(hp);		/* should be NULL */
+ cleanup:
+	if (q != NULL)
+		memput(q, sizeof(*q));
+	if (q2 != NULL)
+		memput(q2, sizeof(*q2));
+	return(hp);
 }
 
 static struct hostent *
@@ -346,17 +360,24 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 	struct pvt *pvt = (struct pvt *)this->private;
 	const u_char *uaddr = addr;
 	char *qp;
-	struct hostent *hp;
+	struct hostent *hp = NULL;
 	struct addrinfo ai;
-	struct dns_res_target q, q2, *p;
+	struct dns_res_target *q, *q2, *p;
 	int n, size;
 	int querystate = RESQRY_FAIL;
 	
 	if (init(this) == -1)
 		return (NULL);
 
-	memset(&q, 0, sizeof(q2));
-	memset(&q2, 0, sizeof(q2));
+	q = memget(sizeof(*q));
+	q2 = memget(sizeof(*q2));
+	if (q == NULL || q2 == NULL) {
+		RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
+		errno = ENOMEM;
+		goto cleanup;
+	}
+	memset(q, 0, sizeof(q));
+	memset(q2, 0, sizeof(q2));
 
 	if (af == AF_INET6 && len == IN6ADDRSZ &&
 	    (!memcmp(uaddr, mapped, sizeof mapped) ||
@@ -371,45 +392,44 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 	switch (af) {
 	case AF_INET:
 		size = INADDRSZ;
-		q.qclass = C_IN;
-		q.qtype = T_PTR;
-		q.answer = q.qbuf.buf;
-		q.anslen = sizeof(q.qbuf);
-		q.action = RESTGT_DOALWAYS;
+		q->qclass = C_IN;
+		q->qtype = T_PTR;
+		q->answer = q->qbuf.buf;
+		q->anslen = sizeof(q->qbuf);
+		q->action = RESTGT_DOALWAYS;
 		break;
 	case AF_INET6:
 		size = IN6ADDRSZ;
-		q.qclass = C_IN;
-		q.qtype = T_PTR;
-		q.answer = q.qbuf.buf;
-		q.anslen = sizeof(q.qbuf);
-		q.next = &q2;
-		if ((pvt->res->options & RES_NO_BITSTRING) != 0)
-			q.action = RESTGT_IGNORE;
+		q->qclass = C_IN;
+		q->qtype = T_PTR;
+		q->answer = q->qbuf.buf;
+		q->anslen = sizeof(q->qbuf);
+		q->next = q2;
+		q->action = RESTGT_DOALWAYS;
+		q2->qclass = C_IN;
+		q2->qtype = T_PTR;
+		q2->answer = q2->qbuf.buf;
+		q2->anslen = sizeof(q2->qbuf);
+		if ((pvt->res->options & RES_NO_NIBBLE2) != 0)
+			q2->action = RESTGT_IGNORE;
 		else
-			q.action = RESTGT_DOALWAYS;
-		q2.qclass = C_IN;
-		q2.qtype = T_PTR;
-		q2.answer = q2.qbuf.buf;
-		q2.anslen = sizeof(q2.qbuf);
-		if ((pvt->res->options & RES_NO_NIBBLE) != 0)
-			q2.action = RESTGT_IGNORE;
-		else
-			q2.action = RESTGT_AFTERFAILURE;
+			q2->action = RESTGT_AFTERFAILURE;
 		break;
 	default:
 		errno = EAFNOSUPPORT;
 		RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
-		return (NULL);
+		hp = NULL;
+		goto cleanup;
 	}
 	if (size > len) {
 		errno = EINVAL;
 		RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
-		return (NULL);
+		hp = NULL;
+		goto cleanup;
 	}
 	switch (af) {
 	case AF_INET:
-		qp = q.qname;
+		qp = q->qname;
 		(void) sprintf(qp, "%u.%u.%u.%u.in-addr.arpa",
 			       (uaddr[3] & 0xff),
 			       (uaddr[2] & 0xff),
@@ -417,16 +437,8 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 			       (uaddr[0] & 0xff));
 		break;
 	case AF_INET6:
-		if (q.action != RESTGT_IGNORE) {
-			qp = q.qname;
-			qp += SPRINTF((qp, "\\[x"));
-			for (n = 0; n < IN6ADDRSZ; n++)
-				qp += SPRINTF((qp, "%02x", uaddr[n]));
-			SPRINTF((qp, "/128].%s",
-				 res_get_bitstringsuffix(pvt->res)));
-		}
-		if (q2.action != RESTGT_IGNORE) {
-			qp = q2.qname;
+		if (q->action != RESTGT_IGNORE) {
+			qp = q->qname;
 			for (n = IN6ADDRSZ - 1; n >= 0; n--) {
 				qp += SPRINTF((qp, "%x.%x.",
 					       uaddr[n] & 0xf,
@@ -434,12 +446,21 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 			}
 			strcpy(qp, res_get_nibblesuffix(pvt->res));
 		}
+		if (q2->action != RESTGT_IGNORE) {
+			qp = q2->qname;
+			for (n = IN6ADDRSZ - 1; n >= 0; n--) {
+				qp += SPRINTF((qp, "%x.%x.",
+					       uaddr[n] & 0xf,
+					       (uaddr[n] >> 4) & 0xf));
+			}
+			strcpy(qp, res_get_nibblesuffix2(pvt->res));
+		}
 		break;
 	default:
 		abort();
 	}
 
-	for (p = &q; p; p = p->next) {
+	for (p = q; p; p = p->next) {
 		switch(p->action) {
 		case RESTGT_DOALWAYS:
 			break;
@@ -477,10 +498,16 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 		}
 
 		RES_SET_H_ERRNO(pvt->res, NETDB_SUCCESS);
-		return (hp);	/* no more loop is necessary. */
+		goto cleanup;	/* no more loop is necessary. */
 	}
+	hp = NULL; /* H_ERRNO was set by subroutines */
 
-	return(NULL);		/* H_ERRNO was set by subroutines */
+ cleanup:
+	if (q != NULL)
+		memput(q, sizeof(*q));
+	if (q2 != NULL)
+		memput(q2, sizeof(*q2));
+	return(hp);
 }
 
 static struct hostent *
@@ -536,74 +563,83 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 	int n;
 	char tmp[NS_MAXDNAME];
 	const char *cp;
-	struct dns_res_target q, q2, q3, *p;
+	struct dns_res_target *q, *q2, *q3, *p;
 	struct addrinfo sentinel, *cur;
 	int querystate = RESQRY_FAIL;
 
 	if (init(this) == -1)
 		return (NULL);
 
-	memset(&q, 0, sizeof(q2));
-	memset(&q2, 0, sizeof(q2));
-	memset(&q3, 0, sizeof(q3));
 	memset(&sentinel, 0, sizeof(sentinel));
 	cur = &sentinel;
+
+	q = memget(sizeof(*q));
+	q2 = memget(sizeof(*q2));
+	q3 = memget(sizeof(*q3));
+	if (q == NULL || q2 == NULL || q3 == NULL) {
+		RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
+		errno = ENOMEM;
+		goto cleanup;
+	}
+	memset(q, 0, sizeof(q2));
+	memset(q2, 0, sizeof(q2));
+	memset(q3, 0, sizeof(q3));
 
 	switch (pai->ai_family) {
 	case AF_UNSPEC:
 		/* prefer IPv6 */
-		q.qclass = C_IN;
-		q.qtype = ns_t_a6;
-		q.answer = q.qbuf.buf;
-		q.anslen = sizeof(q.qbuf);
-		q.next = &q2;
+		q->qclass = C_IN;
+		q->qtype = ns_t_a6;
+		q->answer = q->qbuf.buf;
+		q->anslen = sizeof(q->qbuf);
+		q->next = q2;
 #ifdef RES_USE_A6
 		if ((pvt->res->options & RES_USE_A6) == 0)
-			q.action = RESTGT_IGNORE;
+			q->action = RESTGT_IGNORE;
 		else
 #endif
-			q.action = RESTGT_DOALWAYS;
-		q2.qclass = C_IN;
-		q2.qtype = T_AAAA;
-		q2.answer = q2.qbuf.buf;
-		q2.anslen = sizeof(q2.qbuf);
-		q2.next = &q3;
+			q->action = RESTGT_DOALWAYS;
+		q2->qclass = C_IN;
+		q2->qtype = T_AAAA;
+		q2->answer = q2->qbuf.buf;
+		q2->anslen = sizeof(q2->qbuf);
+		q2->next = q3;
 		/* try AAAA only when A6 query fails */
-		q2.action = RESTGT_AFTERFAILURE;
-		q3.qclass = C_IN;
-		q3.qtype = T_A;
-		q3.answer = q3.qbuf.buf;
-		q3.anslen = sizeof(q3.qbuf);
-		q3.action = RESTGT_DOALWAYS;
+		q2->action = RESTGT_AFTERFAILURE;
+		q3->qclass = C_IN;
+		q3->qtype = T_A;
+		q3->answer = q3->qbuf.buf;
+		q3->anslen = sizeof(q3->qbuf);
+		q3->action = RESTGT_DOALWAYS;
 		break;
 	case AF_INET:
-		q.qclass = C_IN;
-		q.qtype = T_A;
-		q.answer = q.qbuf.buf;
-		q.anslen = sizeof(q.qbuf);
-		q.action = RESTGT_DOALWAYS;
+		q->qclass = C_IN;
+		q->qtype = T_A;
+		q->answer = q->qbuf.buf;
+		q->anslen = sizeof(q->qbuf);
+		q->action = RESTGT_DOALWAYS;
 		break;
 	case AF_INET6:
-		q.qclass = C_IN;
-		q.qtype = ns_t_a6;
-		q.answer = q.qbuf.buf;
-		q.anslen = sizeof(q.qbuf);
-		q.next = &q2;
+		q->qclass = C_IN;
+		q->qtype = ns_t_a6;
+		q->answer = q->qbuf.buf;
+		q->anslen = sizeof(q->qbuf);
+		q->next = q2;
 #ifdef RES_USE_A6
 		if ((pvt->res->options & RES_USE_A6) == 0)
-			q.action = RESTGT_IGNORE;
+			q->action = RESTGT_IGNORE;
 		else
 #endif
-			q.action = RESTGT_DOALWAYS;
-		q2.qclass = C_IN;
-		q2.qtype = T_AAAA;
-		q2.answer = q2.qbuf.buf;
-		q2.anslen = sizeof(q2.qbuf);
-		q2.action = RESTGT_AFTERFAILURE;
+			q->action = RESTGT_DOALWAYS;
+		q2->qclass = C_IN;
+		q2->qtype = T_AAAA;
+		q2->answer = q2->qbuf.buf;
+		q2->anslen = sizeof(q2->qbuf);
+		q2->action = RESTGT_AFTERFAILURE;
 		break;
 	default:
 		RES_SET_H_ERRNO(pvt->res, NO_RECOVERY); /* better error? */
-		return(NULL);
+		goto cleanup;
 	}
 
 	/*
@@ -615,7 +651,7 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 						      tmp, sizeof tmp)))
 		name = cp;
 
-	for (p = &q; p; p = p->next) {
+	for (p = q; p; p = p->next) {
 		struct addrinfo *ai;
 
 		switch(p->action) {
@@ -647,6 +683,13 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 			querystate = RESQRY_FAIL;
 	}
 
+ cleanup:
+	if (q != NULL)
+		memput(q, sizeof(*q));
+	if (q2 != NULL)
+		memput(q2, sizeof(*q2));
+	if (q3 != NULL)
+		memput(q3, sizeof(*q3));
 	return(sentinel.ai_next);
 }
 
@@ -1037,7 +1080,7 @@ gethostans(struct irs_ho *this,
 	   struct addrinfo **ret_aip, const struct addrinfo *pai)
 {
 	struct pvt *pvt = (struct pvt *)this->private;
-	int type, class, buflen, ancount, qdcount, n, haveanswer, had_error;
+	int type, class, ancount, qdcount, n, haveanswer, had_error;
 	int error = NETDB_SUCCESS, arcount;
 	int (*name_ok)(const char *);
 	const HEADER *hp;
@@ -1046,7 +1089,7 @@ gethostans(struct irs_ho *this,
 	const u_char *cp;
 	const char *tname;
 	const char *hname;
-	char *bp, **ap, **hap;
+	char *bp, *ep, **ap, **hap;
 	char tbuf[MAXDNAME+1];
 	struct addrinfo sentinel, *cur, ai;
 	const u_char *arp = NULL;
@@ -1089,13 +1132,13 @@ gethostans(struct irs_ho *this,
 	qdcount = ntohs(hp->qdcount);
 	arcount = ntohs(hp->arcount);
 	bp = pvt->hostbuf;
-	buflen = sizeof pvt->hostbuf;
+	ep = pvt->hostbuf + sizeof(pvt->hostbuf);
 	cp = ansbuf + HFIXEDSZ;
 	if (qdcount != 1) {
 		RES_SET_H_ERRNO(pvt->res, NO_RECOVERY);
 		return (NULL);
 	}
-	n = dn_expand(ansbuf, eom, cp, bp, buflen);
+	n = dn_expand(ansbuf, eom, cp, bp, ep - bp);
 	if (n < 0 || !maybe_ok(pvt->res, bp, name_ok)) {
 		RES_SET_H_ERRNO(pvt->res, NO_RECOVERY);
 		return (NULL);
@@ -1119,7 +1162,6 @@ gethostans(struct irs_ho *this,
 		pvt->host.h_name = bp;
 		hname = bp;
 		bp += n;
-		buflen -= n;
 		/* The qname can be abbreviated, but hname is now absolute. */
 		qname = pvt->host.h_name;
 	}
@@ -1132,7 +1174,7 @@ gethostans(struct irs_ho *this,
 	haveanswer = 0;
 	had_error = 0;
 	while (ancount-- > 0 && cp < eom && !had_error) {
-		n = dn_expand(ansbuf, eom, cp, bp, buflen);
+		n = dn_expand(ansbuf, eom, cp, bp, ep - bp);
 		if (n < 0 || !maybe_ok(pvt->res, bp, name_ok)) {
 			had_error++;
 			continue;
@@ -1153,8 +1195,15 @@ gethostans(struct irs_ho *this,
 		eor = cp + n;
 		if ((qtype == T_A || qtype == T_AAAA || qtype == ns_t_a6 ||
 		     qtype == T_ANY) && type == T_CNAME) {
-			if (ap >= &pvt->host_aliases[MAXALIASES-1])
-				continue;
+			if (haveanswer) {
+				int level = LOG_CRIT;
+#ifdef LOG_SECURITY
+				level |= LOG_SECURITY;
+#endif
+				syslog(level,
+ "gethostans: possible attempt to exploit buffer overflow while looking up %s",
+					*qname ? qname : ".");
+			}
 			n = dn_expand(ansbuf, eor, cp, tbuf, sizeof tbuf);
 			if (n < 0 || !maybe_ok(pvt->res, tbuf, name_ok)) {
 				had_error++;
@@ -1162,13 +1211,14 @@ gethostans(struct irs_ho *this,
 			}
 			cp += n;
 			/* Store alias. */
+			if (ap >= &pvt->host_aliases[MAXALIASES-1])
+				continue;
 			*ap++ = bp;
 			n = strlen(bp) + 1;	/* for the \0 */
 			bp += n;
-			buflen -= n;
 			/* Get canonical name. */
 			n = strlen(tbuf) + 1;	/* for the \0 */
-			if (n > buflen || n > MAXHOSTNAMELEN) {
+			if (n > (ep - bp) || n > MAXHOSTNAMELEN) {
 				had_error++;
 				continue;
 			}
@@ -1176,7 +1226,6 @@ gethostans(struct irs_ho *this,
 			pvt->host.h_name = bp;
 			hname = bp;
 			bp += n;
-			buflen -= n;
 			continue;
 		}
 		if (type == ns_t_dname) {
@@ -1212,7 +1261,7 @@ gethostans(struct irs_ho *this,
 			cp += n;
 
 			n = strlen(t) + 1; /* for the \0 */
-			if (n > buflen) {
+			if (n > (ep - bp)) {
 				had_error++;
 				continue;
 			}
@@ -1222,7 +1271,6 @@ gethostans(struct irs_ho *this,
 			else
 				hname = bp;
 			bp += n;
-			buflen -= n;
 
 			continue;
 		}
@@ -1248,14 +1296,13 @@ gethostans(struct irs_ho *this,
 			}
 			/* Get canonical name. */
 			n = strlen(tbuf) + 1;	/* for the \0 */
-			if (n > buflen) {
+			if (n > (ep - bp)) {
 				had_error++;
 				continue;
 			}
 			strcpy(bp, tbuf);
 			tname = bp;
 			bp += n;
-			buflen -= n;
 			continue;
 		}
 		if (qtype == T_ANY) {
@@ -1279,7 +1326,7 @@ gethostans(struct irs_ho *this,
 				cp += n;
 				continue;
 			}
-			n = dn_expand(ansbuf, eor, cp, bp, buflen);
+			n = dn_expand(ansbuf, eor, cp, bp, ep - bp);
 			if (n < 0 || !maybe_hnok(pvt->res, bp) ||
 			    n >= MAXHOSTNAMELEN) {
 				had_error++;
@@ -1297,7 +1344,6 @@ gethostans(struct irs_ho *this,
 			if (n != -1) {
 				n = strlen(bp) + 1;	/* for the \0 */
 				bp += n;
-				buflen -= n;
 			}
 			break;
 		case ns_t_a6: {
@@ -1397,10 +1443,10 @@ gethostans(struct irs_ho *this,
 				pvt->host.h_name = bp;
 				hname = bp;
 				bp += nn;
-				buflen -= nn;
 			}
 			/* Ensure alignment. */
-			bp += sizeof(align) - ((u_long)bp % sizeof(align));
+			bp = (char *)(((u_long)bp + (sizeof(align) - 1)) &
+				      ~(sizeof(align) - 1));
 			/* Avoid overflows. */
 			if (bp + n >= &pvt->hostbuf[sizeof pvt->hostbuf]) {
 				had_error++;
@@ -1421,6 +1467,8 @@ gethostans(struct irs_ho *this,
 						had_error++;
 						break;
 					}
+					if (m == 0)
+						continue;
 					if (hap < &pvt->h_addr_ptrs[MAXADDRS-1])
 						hap++;
 
@@ -1448,15 +1496,14 @@ gethostans(struct irs_ho *this,
 					 haveanswer);
 			if (pvt->host.h_name == NULL) {
 				n = strlen(qname) + 1;	/* for the \0 */
-				if (n > buflen || n >= MAXHOSTNAMELEN)
+				if (n > (ep - bp) || n >= MAXHOSTNAMELEN)
 					goto no_recovery;
 				strcpy(bp, qname);
 				pvt->host.h_name = bp;
 				bp += n;
-				buflen -= n;
 			}
 			if (pvt->res->options & RES_USE_INET6)
-				map_v4v6_hostent(&pvt->host, &bp, &buflen);
+				map_v4v6_hostent(&pvt->host, &bp, ep);
 			RES_SET_H_ERRNO(pvt->res, NETDB_SUCCESS);
 			return (&pvt->host);
 		} else {
@@ -1491,6 +1538,8 @@ add_hostent(struct pvt *pvt, char *bp, char **hap, struct addrinfo *ai)
 {
 	int addrlen;
 	char *addrp;
+	const char **tap;
+	char *obp = bp;
 
 	switch(ai->ai_addr->sa_family) {
 	case AF_INET6:
@@ -1505,30 +1554,30 @@ add_hostent(struct pvt *pvt, char *bp, char **hap, struct addrinfo *ai)
 		return(-1);	/* abort? */
 	}
 
-	bp += sizeof(align) - ((u_long)bp % sizeof(align));
+	/* Ensure alignment. */
+	bp = (char *)(((u_long)bp + (sizeof(align) - 1)) &
+		      ~(sizeof(align) - 1));
+	/* Avoid overflows. */
 	if (bp + addrlen >= &pvt->hostbuf[sizeof pvt->hostbuf])
 		return(-1);
 	if (hap >= &pvt->h_addr_ptrs[MAXADDRS-1])
-		return(addrlen); /* fail, but not treat it as an error. */
-#if 0
+		return(0); /* fail, but not treat it as an error. */
+
 	/* Suppress duplicates. */
 	for (tap = (const char **)pvt->h_addr_ptrs;
 	     *tap != NULL;
 	     tap++)
-		if (memcmp(*tap, cp, n) == 0)
+		if (memcmp(*tap, addrp, addrlen) == 0)
 			break;
-	if (*tap != NULL) {
-		cp += n;
-		continue;
-	}
-#endif
+	if (*tap != NULL)
+		return (0);
 
 	memcpy(*hap = bp, addrp, addrlen);
-	return(addrlen);
+	return((bp + addrlen) - obp);
 }
 
 static void
-map_v4v6_hostent(struct hostent *hp, char **bpp, int *lenp) {
+map_v4v6_hostent(struct hostent *hp, char **bpp, char *ep) {
 	char **ap;
 
 	if (hp->h_addrtype != AF_INET || hp->h_length != INADDRSZ)
@@ -1536,19 +1585,20 @@ map_v4v6_hostent(struct hostent *hp, char **bpp, int *lenp) {
 	hp->h_addrtype = AF_INET6;
 	hp->h_length = IN6ADDRSZ;
 	for (ap = hp->h_addr_list; *ap; ap++) {
-		int i = sizeof(align) - ((u_long)*bpp % sizeof(align));
+		int i = (u_long)*bpp % sizeof(align);
 
-		if (*lenp < (i + IN6ADDRSZ)) {
+		if (i != 0)
+			i = sizeof(align) - i;
+
+		if ((ep - *bpp) < (i + IN6ADDRSZ)) {
 			/* Out of memory.  Truncate address list here. */
 			*ap = NULL;
 			return;
 		}
 		*bpp += i;
-		*lenp -= i;
 		map_v4v6_address(*ap, *bpp);
 		*ap = *bpp;
 		*bpp += IN6ADDRSZ;
-		*lenp -= IN6ADDRSZ;
 	}
 }
 

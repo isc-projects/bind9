@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65 2001/08/08 22:54:39 gson Exp $ */
+/* $Id: gen.c,v 1.65.2.2 2002/03/26 00:54:54 marka Exp $ */
 
 #include <config.h>
 
@@ -666,9 +666,11 @@ main(int argc, char **argv) {
 		 * Here, walk the list from top to bottom, calculating
 		 * the hash (mod 256) for each name.
 		 */
-		fprintf(stdout, "#define RDATATYPE_COMPARE(_s, _d, _tn, _tp) \\\n");
+		fprintf(stdout, "#define RDATATYPE_COMPARE(_s, _d, _tn, _n, _tp) \\\n");
 		fprintf(stdout, "\tdo { \\\n");
-		fprintf(stdout, "\t\tif (strcasecmp(_s,(_tn)) == 0) { \\\n");
+		fprintf(stdout, "\t\tif (sizeof(_s) - 1 == _n && \\\n"
+				"\t\t    strncasecmp(_s,(_tn),"
+				"(sizeof(_s) - 1)) == 0) { \\\n");
 		fprintf(stdout, "\t\t\tif ((typeattr[_d].flags & "
 		       		  "DNS_RDATATYPEATTR_RESERVED) != 0) \\\n");
 		fprintf(stdout, "\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n");
@@ -677,8 +679,8 @@ main(int argc, char **argv) {
 		fprintf(stdout, "\t\t} \\\n");
 		fprintf(stdout, "\t} while (0)\n\n");
 
-		fprintf(stdout, "#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) "
-		       "\\\n");
+		fprintf(stdout, "#define RDATATYPE_FROMTEXT_SW(_hash,"
+				"_typename,_length,_typep) \\\n");
 		fprintf(stdout, "\tswitch (_hash) { \\\n");
 		for (i = 0 ; i <= 255 ; i++) {
 			ttn = &typenames[i];
@@ -703,7 +705,7 @@ main(int argc, char **argv) {
 				if (hash == HASH(ttn2->typename)) {
 					fprintf(stdout, "\t\t\tRDATATYPE_COMPARE"
 					       "(\"%s\", %u, "
-					       "_typename, _typep); \\\n",
+					       "_typename, _length, _typep); \\\n",
 					       ttn2->typename, j);
 					ttn2->sorted = 1;
 				}

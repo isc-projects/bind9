@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106 2001/08/27 21:47:00 gson Exp $ */
+/* $Id: zone.h,v 1.106.2.5 2002/07/11 05:44:08 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -44,6 +44,8 @@ typedef enum {
 #define DNS_ZONEOPT_CHILDREN	0x00000004U	/* perform child checks */
 #define DNS_ZONEOPT_NOTIFY	0x00000008U	/* perform NOTIFY */
 #define DNS_ZONEOPT_MANYERRORS	0x00000010U	/* return many errors on load */
+#define DNS_ZONEOPT_NOMERGE	0x00000040U	/* don't merge journal */
+
 #ifndef NOMINUM_PUBLIC
 /*
  * Nominum specific options build down.
@@ -214,7 +216,7 @@ dns_zone_loadnew(dns_zone_t *zone);
 /*
  *	Cause the database to be loaded from its backing store.
  *	Confirm that the mimimum requirements for the zone type are
- *	met, otherwise DNS_R_BADZONE is return.
+ *	met, otherwise DNS_R_BADZONE is returned.
  *
  *	dns_zone_loadnew() only loads zones that are not yet loaded.
  *	dns_zone_load() also loads zones that are already loaded and
@@ -421,15 +423,12 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		       isc_uint32_t count);
 /*
  *	Set the list of additional servers to be notified when
- *	a zone changes.	 To clear the list use 'notify = NULL'
- *	and 'count = 0'.
+ *	a zone changes.	 To clear the list use 'count = 0'.
  *
  * Require:
  *	'zone' to be a valid zone.
- *	'notify' to be non NULL.
- *	'count' the number of notify.
- *
- * 	If 'notify' is NULL then 'count' must be zero.
+ *	'notify' to be non-NULL if count != 0.
+ *	'count' to be the number of notifyees
  *
  * Returns:
  *	ISC_R_SUCCESS
@@ -1175,7 +1174,7 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
  */
 
 void
-dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, int value);
+dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, isc_uint32_t value);
 /*
  *	Set the maximum number of simultanious transfers in allowed by
  *	the zone manager.
@@ -1184,7 +1183,7 @@ dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, int value);
  *	'zmgr' to be a valid zone manager.
  */
 
-int
+isc_uint32_t
 dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr);
 /*
  *	Return the the maximum number of simultanious transfers in allowed.
@@ -1194,7 +1193,7 @@ dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr);
  */
 
 void
-dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, int value);
+dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, isc_uint32_t value);
 /*
  *	Set the number of zone transfers allowed per nameserver.
  *
@@ -1202,7 +1201,7 @@ dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, int value);
  *	'zmgr' to be a valid zone manager
  */
 
-int
+isc_uint32_t
 dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
 /*
  *	Return the number of transfers allowed per nameserver.

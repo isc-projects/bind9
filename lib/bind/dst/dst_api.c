@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4 2001/04/03 06:42:17 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6 2002/07/12 00:17:19 marka Exp $";
 #endif
 
 /*
@@ -213,7 +213,6 @@ dst_compare_keys(const DST_KEY *key1, const DST_KEY *key2)
  *	Then data is hashed (SIG_MODE_UPDATE).  Finally the signature
  *	itself is created (SIG_MODE_FINAL).  This function can be called
  *	once with INIT, UPDATE and FINAL modes all set, or it can be
-
  *	called separately with a different mode set for each step.  The
  *	UPDATE step can be repeated.
  * Parameters
@@ -431,7 +430,7 @@ dst_s_write_private_key(const DST_KEY *key)
 		int nn;
 		if ((nn = fwrite(encoded_block, 1, len, fp)) != len) {
 			EREPORT(("dst_write_private_key(): Write failure on %s %d != %d errno=%d\n",
-				 file, out_len, nn, errno));
+				 file, len, nn, errno));
 			return (-5);
 		}
 		fclose(fp);
@@ -453,7 +452,7 @@ dst_s_write_private_key(const DST_KEY *key)
  *		      filename of the key file to be read.
  *  Returns
  *	NULL	    If the key does not exist or no name is supplied.
- *	NON-NULL	Initalized key structure if the key exists.
+ *	NON-NULL	Initialized key structure if the key exists.
  */
 
 static DST_KEY *
@@ -553,7 +552,7 @@ dst_s_read_public_key(const char *in_name, const u_int16_t in_id, int in_alg)
 	enckey[--len] = '\0';
 
 	/* remove leading spaces */
-	for (notspace = (char *) enckey; isspace((unsigned char)*notspace); len--)
+	for (notspace = (char *) enckey; isspace((*notspace)&0xff); len--)
 		notspace++;
 
 	dlen = b64_pton(notspace, deckey, sizeof(deckey));
@@ -587,6 +586,7 @@ dst_s_write_public_key(const DST_KEY *key)
 	u_char out_key[RAW_KEY_SIZE];
 	char enc_key[RAW_KEY_SIZE];
 	int len = 0;
+	int mode;
 
 	memset(out_key, 0, sizeof(out_key));
 	if (key == NULL) {
@@ -602,8 +602,10 @@ dst_s_write_public_key(const DST_KEY *key)
 			 key->dk_key_name, key->dk_id, PUBLIC_KEY));
 		return (0);
 	}
+	/* XXX in general this should be a check for symmetric keys */
+	mode = (key->dk_alg == KEY_HMAC_MD5) ? 0600 : 0644;
 	/* create public key file */
-	if ((fp = dst_s_fopen(filename, "w+", 0644)) == NULL) {
+	if ((fp = dst_s_fopen(filename, "w+", mode)) == NULL) {
 		EREPORT(("DST_write_public_key: open of file:%s failed (errno=%d)\n",
 			 filename, errno));
 		return (0);
@@ -655,6 +657,7 @@ dst_dnskey_to_key(const char *in_name, const u_char *rdata, const int len)
 
 	if (in_name == NULL)
 		return (NULL);
+	key_st->dk_id = dst_s_dns_key_id(rdata, len);
 	key_st->dk_flags = dst_s_get_int16(rdata);
 	key_st->dk_proto = (u_int16_t) rdata[DST_KEY_PROT];
 	if (key_st->dk_flags & DST_EXTEND_FLAG) {
@@ -758,6 +761,8 @@ dst_buffer_to_key(const char *key_name,		/* name of the key */
 {
 	
 	DST_KEY *dkey = NULL; 
+	int dnslen;
+	u_char dns[2048];
 
 	if (!dst_check_algorithm(alg)) { /* make sure alg is available */
 		EREPORT(("dst_buffer_to_key(): Algorithm %d not suppored\n", alg));
@@ -769,14 +774,17 @@ dst_buffer_to_key(const char *key_name,		/* name of the key */
 
 	if (dkey == NULL)
 		return (NULL);
-	if (dkey->dk_func != NULL && dkey->dk_func->from_dns_key != NULL) {
-		if (dkey->dk_func->from_dns_key(dkey, key_buf, key_len) < 0) {
-			EREPORT(("dst_buffer_to_key(): dst_buffer_to_hmac failed\n"));
-			return (dst_free_key(dkey));
-		}
-		return (dkey);
+	if (dkey->dk_func == NULL || dkey->dk_func->from_dns_key == NULL)
+		return NULL;
+
+	if (dkey->dk_func->from_dns_key(dkey, key_buf, key_len) < 0) {
+		EREPORT(("dst_buffer_to_key(): dst_buffer_to_hmac failed\n"));
+		return (dst_free_key(dkey));
 	}
-	return (NULL);
+
+	dnslen = dst_key_to_dnskey(dkey, dns, sizeof(dns));
+	dkey->dk_id = dst_s_dns_key_id(dns, dnslen);
+	return (dkey);
 }
 
 int 
@@ -814,10 +822,12 @@ dst_s_read_private_key_file(char *name, DST_KEY *pk_key, u_int16_t in_id,
 			    int in_alg)
 {
 	int cnt, alg, len, major, minor, file_major, file_minor;
-	int id;
+	int ret, id;
 	char filename[PATH_MAX];
 	u_char in_buff[RAW_KEY_SIZE], *p;
 	FILE *fp;
+	int dnslen;
+	u_char dns[2048];
 
 	if (name == NULL || pk_key == NULL) {
 		EREPORT(("dst_read_private_key_file(): No key name given\n"));
@@ -884,9 +894,12 @@ dst_s_read_private_key_file(char *name, DST_KEY *pk_key, u_int16_t in_id,
 	if (pk_key->dk_func == NULL || pk_key->dk_func->from_file_fmt == NULL)
 		goto fail;
 
-	id = pk_key->dk_func->from_file_fmt(pk_key, (char *)p, &in_buff[len] - p);
-	if (id < 0)
+	ret = pk_key->dk_func->from_file_fmt(pk_key, (char *)p, &in_buff[len] - p);
+	if (ret < 0)
 		goto fail;
+
+	dnslen = dst_key_to_dnskey(pk_key, dns, sizeof(dns));
+	id = dst_s_dns_key_id(dns, dnslen);
 
 	/* Make sure the actual key tag matches the input tag used in the filename
 	 */
@@ -940,6 +953,9 @@ dst_generate_key(const char *name, const int bits, const int exp,
 {
 	DST_KEY *new_key = NULL;
 	int res;
+	int dnslen;
+	u_char dns[2048];
+
 	if (name == NULL)
 		return (NULL);
 
@@ -964,6 +980,13 @@ dst_generate_key(const char *name, const int bits, const int exp,
 			 new_key->dk_key_size, exp));
 		return (dst_free_key(new_key));
 	}
+
+	dnslen = dst_key_to_dnskey(new_key, dns, sizeof(dns));
+	if (dnslen != UNSUPPORTED_KEYALG)
+		new_key->dk_id = dst_s_dns_key_id(dns, dnslen);
+	else
+		new_key->dk_id = 0;
+
 	return (new_key);
 }
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2001  Internet Software Consortium.
+# Copyright (C) 2001, 2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.8 2001/07/26 21:15:48 gson Exp $
+# $Id: Makefile.in,v 1.8.2.2 2002/02/12 06:05:51 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -26,6 +26,7 @@ MANOBJS = Bv9ARM.html
 distclean::
 	rm -f validate.sh
 	rm -f nominum-docbook-html.dsl nominum-docbook-print.dsl
+	rm -f HTML.index HTML.manifest
 
 doc man:: ${MANOBJS}
 

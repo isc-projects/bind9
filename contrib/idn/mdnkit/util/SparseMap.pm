@@ -1,4 +1,4 @@
-# $Id: SparseMap.pm,v 1.1 2001/06/09 00:30:51 tale Exp $
+# $Id: SparseMap.pm,v 1.1.2.1 2002/02/08 12:15:42 marka Exp $
 #
 # Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
 #
@@ -8,8 +8,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is under this
@@ -220,7 +220,7 @@ sub cprog_imap {
 	$idcol = 4;
 	$idwid = 10;
     }
-    $prog = "static unsigned $idtype ${name}_imap[] = {\n";
+    $prog = "static const unsigned $idtype ${name}_imap[] = {\n";
     $i = 0;
     foreach my $v (@indirect) {
 	if ($i % $idcol == 0) {
@@ -426,7 +426,7 @@ sub cprog_dmap {
     my $bmsize = 1 << ($self->{BITS}->[-1] - 3);
 
     $prog = <<"END";
-static struct {
+static const struct {
 	unsigned char bm[$bmsize];
 } ${name}_bitmap[] = {
 END
@@ -541,7 +541,7 @@ sub cprog_dmap {
     $idwid = decimalwidth($min) if decimalwidth($min) > $idwid;
 
     $prog = <<"END";
-static struct {
+static const struct {
 	$idtype tbl[$tblsize];
 } ${name}_table[] = {
 END

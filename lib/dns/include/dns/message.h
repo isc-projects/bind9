@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.100 2001/08/28 03:58:17 marka Exp $ */
+/* $Id: message.h,v 1.100.2.3 2002/02/19 22:13:00 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -100,6 +100,7 @@
 #define DNS_MESSAGEEXTFLAG_DO		0x8000U
 
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD)
+#define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
 
 #define DNS_MESSAGE_HEADERLEN		12 /* 6 isc_uint16_t's */
 
@@ -152,6 +153,8 @@ typedef int dns_messagetextflag_t;
 						   occurs */
 #define DNS_MESSAGEPARSE_CLONEBUFFER	0x0004	/* save a copy of the
 						   source buffer */
+#define DNS_MESSAGEPARSE_IGNORETRUNCATION 0x0008 /* trucation errors are
+						  * not fatal. */
 
 /*
  * Control behavior of rendering
@@ -398,6 +401,9 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * If DNS_MESSAGEPARSE_BESTEFFORT is set, errors in message content will
  * not be considered FORMERRs.  If the entire message can be parsed, it
  * will be returned and DNS_R_RECOVERABLE will be returned.
+ *
+ * If DNS_MESSAGEPARSE_IGNORETRUNCATION is set then return as many complete
+ * RR's as possible, DNS_R_RECOVERABLE will be returned.
  *
  * OPT and TSIG records are always handled specially, regardless of the
  * 'preserve_order' setting.

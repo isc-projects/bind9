@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.11 2001/07/10 18:25:44 gson Exp $ */
+/* $Id: getrrset.c,v 1.11.2.2 2002/08/05 06:57:16 marka Exp $ */
 
 #include <config.h>
 
@@ -175,6 +175,7 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	}
 
 	lwres_grbnresponse_free(lwrctx, &response);
+	lwres_conf_clear(lwrctx);
 	lwres_context_destroy(&lwrctx);
 	*res = rrset;
 	return (ERRSET_SUCCESS);
@@ -183,10 +184,11 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 		lwres_freerrset(rrset);
 	if (response != NULL)
 		lwres_grbnresponse_free(lwrctx, &response);
-	if (lwrctx != NULL)
+	if (lwrctx != NULL) {
+		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
+	}
 	return (result);
-
 }
 
 void

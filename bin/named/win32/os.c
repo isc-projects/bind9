@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.5 2001/08/09 23:44:13 mayer Exp $ */
+/* $Id: os.c,v 1.5.2.3 2002/08/08 19:15:19 mayer Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -34,6 +34,7 @@
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
+//#include <isc/ntfile.h>
 #include <isc/ntpaths.h>
 
 #include <named/main.h>
@@ -130,21 +131,21 @@ ns_os_minprivs(void) {
 static int
 safe_open(const char *filename, isc_boolean_t append) {
 	int fd;
-        struct stat sb;
+	struct stat sb;
 
-        if (stat(filename, &sb) == -1) {
-                if (errno != ENOENT)
+	if (stat(filename, &sb) == -1) {
+		if (errno != ENOENT)
 			return (-1);
-        } else if ((sb.st_mode & S_IFREG) == 0)
+	} else if ((sb.st_mode & S_IFREG) == 0)
 		return (-1);
 
 	if (append)
 		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND,
-		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	else {
 		(void)unlink(filename);
 		fd = open(filename, O_WRONLY|O_CREAT|O_EXCL,
-		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	}
 	return (fd);
 }
@@ -159,42 +160,62 @@ cleanup_pidfile(void) {
 }
 
 void
-ns_os_writepidfile(const char *filename) {
-        int fd;
+ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
+	int fd;
 	FILE *lockfile;
 	size_t len;
 	pid_t pid;
+	void (*report)(const char *, ...);
 
 	/*
 	 * The caller must ensure any required synchronization.
 	 */
 
+	report = first_time ? ns_main_earlyfatal : ns_main_earlywarning;
+
 	cleanup_pidfile();
 
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
-	if (pidfile == NULL)
-                ns_main_earlyfatal("couldn't malloc '%s': %s",
-				   filename, strerror(errno));
+	if (pidfile == NULL) {
+		(*report)("couldn't malloc '%s': %s", filename,
+			  strerror(errno));
+		return;
+	}
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
-        fd = safe_open(filename, ISC_FALSE);
-        if (fd < 0)
-                ns_main_earlyfatal("couldn't open pid file '%s': %s",
-				   filename, strerror(errno));
-        lockfile = fdopen(fd, "w");
-        if (lockfile == NULL)
-		ns_main_earlyfatal("could not fdopen() pid file '%s': %s",
-				   filename, strerror(errno));
+	fd = safe_open(filename, ISC_FALSE);
+	if (fd < 0) {
+		(*report)("couldn't open pid file '%s': %s", filename,
+			  strerror(errno));
+		free(pidfile);
+		pidfile = NULL;
+		return;
+	}
+	lockfile = fdopen(fd, "w");
+	if (lockfile == NULL) {
+		(*report)("could not fdopen() pid file '%s': %s", filename,
+			  strerror(errno));
+		(void)close(fd);
+		cleanup_pidfile();
+		return;
+	}
 
-		pid = getpid();
-        if (fprintf(lockfile, "%ld\n", (long)pid) < 0)
-                ns_main_earlyfatal("fprintf() to pid file '%s' failed",
-				   filename);
-        if (fflush(lockfile) == EOF)
-                ns_main_earlyfatal("fflush() to pid file '%s' failed",
-				   filename);
+	pid = getpid();
+
+	if (fprintf(lockfile, "%ld\n", (long)pid) < 0) {
+		(*report)("fprintf() to pid file '%s' failed", filename);
+		(void)fclose(lockfile);
+		cleanup_pidfile();
+		return;
+	}
+	if (fflush(lockfile) == EOF) {
+		(*report)("fflush() to pid file '%s' failed", filename);
+		(void)fclose(lockfile);
+		cleanup_pidfile();
+		return;
+	}
 	(void)fclose(lockfile);
 }
 
