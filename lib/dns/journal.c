@@ -1263,19 +1263,17 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	 */
 	if (xhdr.serial0 != pos->serial) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-				 "%s: journal file corrupt: "
-				 "expected serial %u, got %u",
-				 j->filename,
-				 pos->serial, xhdr.serial0);
+			      "%s: journal file corrupt: "
+			      "expected serial %u, got %u",
+			      j->filename, pos->serial, xhdr.serial0);
 		return (ISC_R_UNEXPECTED);
 	}
 
 	/*
 	 * Check for offset wraparound.
 	 */
-	if (xhdr.size + sizeof(journal_rawxhdr_t) > ISC_OFFSET_MAXIMUM ||
-           ISC_OFFSET_MAXIMUM - xhdr.size - sizeof(journal_rawxhdr_t)
-           < pos->offset) {
+	if ((isc_offset_t)(pos->offset + sizeof(journal_rawxhdr_t) + xhdr.size)
+	    < pos->offset) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: offset too large", j->filename);
 		return (ISC_R_UNEXPECTED);		
