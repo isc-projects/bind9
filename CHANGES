@@ -1,3 +1,5 @@
+1206.	[bug]		SERVFAIL and NOTIMP responses to a EDNS should trigger
+			a non-EDNS retry.
 
 	--- 9.2.1rc1 released ---
 
