@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.5 2003/08/11 05:42:52 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.6 2003/08/12 07:10:27 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -39,7 +39,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <isccc/alist.h>
 #include <isccc/base64.h>

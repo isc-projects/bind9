@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001, 2002  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21 2003/04/17 03:26:58 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.1 2003/08/12 07:10:29 marka Exp $ */
 
 #include <config.h>
 
@@ -29,8 +29,6 @@
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
 #include <isccfg/log.h>
-
-#define TOKEN_STRING(pctx) (pctx->token.value.as_textregion.base)
 
 /* Check a return value. */
 #define CHECK(op) 						\
@@ -66,44 +64,42 @@ doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 static void
 doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 
-static cfg_type_t cfg_type_acl;
-static cfg_type_t cfg_type_addrmatchelt;
-static cfg_type_t cfg_type_bracketed_aml;
-static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
-static cfg_type_t cfg_type_bracketed_sockaddrlist;
-static cfg_type_t cfg_type_controls;
-static cfg_type_t cfg_type_controls_sockaddr;
-static cfg_type_t cfg_type_destinationlist;
-static cfg_type_t cfg_type_dialuptype;
-static cfg_type_t cfg_type_key;
-static cfg_type_t cfg_type_logfile;
-static cfg_type_t cfg_type_logging;
-static cfg_type_t cfg_type_logseverity;
-static cfg_type_t cfg_type_lwres;
-static cfg_type_t cfg_type_masterselement;
-static cfg_type_t cfg_type_nameportiplist;
-static cfg_type_t cfg_type_negated;
-static cfg_type_t cfg_type_notifytype;
-static cfg_type_t cfg_type_optional_class;
-static cfg_type_t cfg_type_optional_facility;
-static cfg_type_t cfg_type_optional_facility;
-static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
-static cfg_type_t cfg_type_options;
+static cfg_type_t cfg_type_bracketed_aml;
+static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_portiplist;
+static cfg_type_t cfg_type_bracketed_sockaddrlist;
+static cfg_type_t cfg_type_optional_keyref;
+static cfg_type_t cfg_type_options;
+static cfg_type_t cfg_type_view;
+static cfg_type_t cfg_type_viewopts;
+static cfg_type_t cfg_type_key;
+static cfg_type_t cfg_type_server;
+static cfg_type_t cfg_type_controls;
+static cfg_type_t cfg_type_bracketed_sockaddrkeylist;
 static cfg_type_t cfg_type_querysource4;
 static cfg_type_t cfg_type_querysource6;
 static cfg_type_t cfg_type_querysource;
-static cfg_type_t cfg_type_server;
-static cfg_type_t cfg_type_server_key_kludge;
-static cfg_type_t cfg_type_size;
-static cfg_type_t cfg_type_sizenodefault;
 static cfg_type_t cfg_type_sockaddr4wild;
 static cfg_type_t cfg_type_sockaddr6wild;
-static cfg_type_t cfg_type_view;
-static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
+static cfg_type_t cfg_type_logging;
+static cfg_type_t cfg_type_optional_facility;
+static cfg_type_t cfg_type_optional_class;
+static cfg_type_t cfg_type_destinationlist;
+static cfg_type_t cfg_type_size;
+static cfg_type_t cfg_type_sizenodefault;
+static cfg_type_t cfg_type_negated;
+static cfg_type_t cfg_type_addrmatchelt;
+static cfg_type_t cfg_type_server_key_kludge;
+static cfg_type_t cfg_type_optional_facility;
+static cfg_type_t cfg_type_logseverity;
+static cfg_type_t cfg_type_logfile;
+static cfg_type_t cfg_type_lwres;
+static cfg_type_t cfg_type_controls_sockaddr;
+static cfg_type_t cfg_type_notifytype;
+static cfg_type_t cfg_type_dialuptype;
 
 /* tkey-dhkey */
 
@@ -139,48 +135,38 @@ static cfg_tuplefielddef_t acl_fields[] = {
 static cfg_type_t cfg_type_acl = {
 	"acl", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, acl_fields };
 
-/* masters */
-static cfg_tuplefielddef_t masters_fields[] = {
-	{ "name", &cfg_type_astring, 0 },
-	{ "port", &cfg_type_optional_port, 0 },
-	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
-	{ NULL, NULL, 0 }
-};
-
-static cfg_type_t cfg_type_masters = {
-	"masters", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple, masters_fields };
 
 /*
  * "sockaddrkeylist", a list of socket addresses with optional keys
  * and an optional default port, as used in the masters option.
  * E.g.,
- *   "port 1234 { mymasters; 10.0.0.1 key foo; 1::2 port 69; }"
+ *   "port 1234 { 10.0.0.1 key foo; 1::2 port 69; }"
  */
 
-static cfg_tuplefielddef_t namesockaddrkey_fields[] = {
-	{ "masterselement", &cfg_type_masterselement, 0 },
+static cfg_tuplefielddef_t sockaddrkey_fields[] = {
+	{ "sockaddr", &cfg_type_sockaddr, 0 },
 	{ "key", &cfg_type_optional_keyref, 0 },
 	{ NULL, NULL, 0 },
 };
 
-static cfg_type_t cfg_type_namesockaddrkey = {
-	"namesockaddrkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
-	namesockaddrkey_fields
+static cfg_type_t cfg_type_sockaddrkey = {
+	"sockaddrkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
+	sockaddrkey_fields
 };
 
-static cfg_type_t cfg_type_bracketed_namesockaddrkeylist = {
-	"bracketed_namesockaddrkeylist", cfg_parse_bracketed_list,
-	cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_namesockaddrkey
+static cfg_type_t cfg_type_bracketed_sockaddrkeylist = {
+	"bracketed_sockaddrkeylist", cfg_parse_bracketed_list,
+	cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_sockaddrkey
 };
 
-static cfg_tuplefielddef_t namesockaddrkeylist_fields[] = {
+static cfg_tuplefielddef_t sockaddrkeylist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
+	{ "addresses", &cfg_type_bracketed_sockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
-static cfg_type_t cfg_type_namesockaddrkeylist = {
+static cfg_type_t cfg_type_sockaddrkeylist = {
 	"sockaddrkeylist", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
-	namesockaddrkeylist_fields
+	sockaddrkeylist_fields
 };
 
 /*
@@ -434,7 +420,7 @@ parse_qstringornone(cfg_parser_t *pctx, const cfg_type_t *type,
 	isc_result_t result;
 	CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
 	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(TOKEN_STRING(pctx), "none") == 0)
+	    strcasecmp(pctx->token.value.as_pointer, "none") == 0)
 		return (cfg_create_obj(pctx, &cfg_type_none, ret));
 	cfg_ungettoken(pctx);
 	return (cfg_parse_qstring(pctx, type, ret));
@@ -452,81 +438,6 @@ static cfg_type_t cfg_type_qstringornone = {
 	"qstringornone", parse_qstringornone, NULL, doc_qstringornone, NULL, NULL };
 
 /*
- * keyword hostname
- */
-
-static void
-print_hostname(cfg_printer_t *pctx, cfg_obj_t *obj) {
-	UNUSED(obj);
-	cfg_print_chars(pctx, "hostname", 4);
-}
-
-static cfg_type_t cfg_type_hostname = {
-	"hostname", NULL, print_hostname, NULL, &cfg_rep_boolean, NULL
-};
-
-/*
- * "server-id" arguement.
- */
-
-static isc_result_t
-parse_serverid(cfg_parser_t *pctx, const cfg_type_t *type,
-		    cfg_obj_t **ret)
-{
-	isc_result_t result;
-	CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
-	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(TOKEN_STRING(pctx), "none") == 0)
-		return (cfg_create_obj(pctx, &cfg_type_none, ret));
-	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(TOKEN_STRING(pctx), "hostname") == 0) {
-		return (cfg_create_obj(pctx, &cfg_type_hostname, ret));
-	}
-	cfg_ungettoken(pctx);
-	return (cfg_parse_qstring(pctx, type, ret));
- cleanup:
-	return (result);
-}
-
-static void
-doc_serverid(cfg_printer_t *pctx, const cfg_type_t *type) {
-	UNUSED(type);
-	cfg_print_chars(pctx, "( <quoted_string> | none | hostname )", 26);
-}
-
-static cfg_type_t cfg_type_serverid = {
-	"serverid", parse_serverid, NULL, doc_serverid, NULL, NULL };
-
-/*
- * Port list.
- */
-static isc_result_t
-parse_port(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
-	
-	UNUSED(type);
-
-	CHECK(cfg_parse_uint32(pctx, NULL, ret));
-	if ((*ret)->value.uint32 > 0xffff) {
-		cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid port");
-		cfg_obj_destroy(pctx, ret);
-		result = ISC_R_RANGE;
-	}
- cleanup:
-	return (result);
-}
-
-static cfg_type_t cfg_type_port = {
-	"port", parse_port, NULL, cfg_doc_terminal,
-	NULL, NULL
-};
-
-static cfg_type_t cfg_type_bracketed_portlist = {
-	"bracketed_sockaddrlist", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_port
-};
-
-/*
  * Clauses that can be found within the top level of the named.conf
  * file only.
  */
@@ -535,7 +446,6 @@ namedconf_clauses[] = {
 	{ "options", &cfg_type_options, 0 },
 	{ "controls", &cfg_type_controls, CFG_CLAUSEFLAG_MULTI },
 	{ "acl", &cfg_type_acl, CFG_CLAUSEFLAG_MULTI },
-	{ "masters", &cfg_type_masters, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
 	{ "lwres", &cfg_type_lwres, CFG_CLAUSEFLAG_MULTI },
@@ -551,7 +461,12 @@ namedconf_or_view_clauses[] = {
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
+#ifdef ISC_RFC2535
 	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
+#else
+	{ "trusted-keys", &cfg_type_trustedkeys,
+		CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_OBSOLETE },
+#endif
 	{ NULL, NULL, 0 }
 };
 
@@ -560,8 +475,6 @@ namedconf_or_view_clauses[] = {
  */
 static cfg_clausedef_t
 options_clauses[] = {
-	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
-	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "coresize", &cfg_type_size, 0 },
 	{ "datasize", &cfg_type_size, 0 },
@@ -578,22 +491,21 @@ options_clauses[] = {
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
+	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
 	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
-	{ "recursing-file", &cfg_type_qstring, 0 },
 	{ "random-device", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
+	{ "rrset-order", &cfg_type_rrsetorder, CFG_CLAUSEFLAG_NOTIMP },
 	{ "serial-queries", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
-	{ "server-id", &cfg_type_serverid, 0 },
 	{ "stacksize", &cfg_type_size, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
 	{ "statistics-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_NYI },
 	{ "tcp-clients", &cfg_type_uint32, 0 },
-	{ "tcp-listen-queue", &cfg_type_uint32, 0 },
 	{ "tkey-dhkey", &cfg_type_tkey_dhkey, 0 },
 	{ "tkey-gssapi-credential", &cfg_type_qstring, 0 },
 	{ "tkey-domain", &cfg_type_qstring, 0 },
@@ -615,14 +527,12 @@ options_clauses[] = {
 static cfg_clausedef_t
 view_clauses[] = {
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
-	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
-	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "allow-v6-synthesis", &cfg_type_bracketed_aml, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
 	{ "minimal-responses", &cfg_type_boolean, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
-	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
@@ -645,10 +555,6 @@ view_clauses[] = {
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
-	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
-	{ "preferred-glue", &cfg_type_astring, 0 },
-	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
-	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -683,6 +589,8 @@ zone_clauses[] = {
 	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
+	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
 	{ "max-transfer-time-in", &cfg_type_uint32, 0 },
 	{ "max-transfer-time-out", &cfg_type_uint32, 0 },
@@ -692,15 +600,8 @@ zone_clauses[] = {
 	{ "min-retry-time", &cfg_type_uint32, 0 },
 	{ "max-refresh-time", &cfg_type_uint32, 0 },
 	{ "min-refresh-time", &cfg_type_uint32, 0 },
-	{ "multi-master", &cfg_type_boolean, 0 },
 	{ "sig-validity-interval", &cfg_type_uint32, 0 },
-	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
-	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
-	{ "alt-transfer-source", &cfg_type_sockaddr4wild, 0 },
-	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
-	{ "use-alt-transfer-source", &cfg_type_boolean, 0 },
 	{ "zone-statistics", &cfg_type_boolean, 0 },
-	{ "key-directory", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -715,7 +616,7 @@ zone_only_clauses[] = {
 	{ "file", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "masters", &cfg_type_namesockaddrkeylist, 0 },
+	{ "masters", &cfg_type_sockaddrkeylist, 0 },
 	{ "pubkey", &cfg_type_pubkey,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "update-policy", &cfg_type_updatepolicy, 0 },
@@ -928,11 +829,7 @@ parse_sizeval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
 
 	CHECK(cfg_gettoken(pctx, 0));
-	if (pctx->token.type != isc_tokentype_string) {
-		result = ISC_R_UNEXPECTEDTOKEN;
-		goto cleanup;
-	}
-	CHECK(parse_unitstring(TOKEN_STRING(pctx), &val));
+	CHECK(parse_unitstring(pctx->token.value.as_pointer, &val));
 
 	CHECK(cfg_create_obj(pctx, &cfg_type_uint64, &obj));
 	obj->value.uint64 = val;
@@ -988,7 +885,7 @@ parse_maybe_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
 
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(TOKEN_STRING(pctx), kw->name) == 0) {
+	    strcasecmp(pctx->token.value.as_pointer, kw->name) == 0) {
 		CHECK(cfg_gettoken(pctx, 0));
 		CHECK(kw->type->parse(pctx, kw->type, &obj));
 		obj->type = type; /* XXX kludge */
@@ -1014,7 +911,7 @@ parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
         isc_result_t result;
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
-	    cfg_is_enum(TOKEN_STRING(pctx), enumtype->of)) {
+	    cfg_is_enum(pctx->token.value.as_pointer, enumtype->of)) {
 		CHECK(cfg_parse_enum(pctx, enumtype, ret));
 	} else {
 		CHECK(cfg_parse_obj(pctx, othertype, ret));
@@ -1193,22 +1090,19 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
-			if (strcasecmp(TOKEN_STRING(pctx),
+			if (strcasecmp(pctx->token.value.as_pointer,
 				       "address") == 0)
 			{
 				/* read "address" */
 				CHECK(cfg_gettoken(pctx, 0)); 
-				CHECK(cfg_parse_rawaddr(pctx,
-						flags | CFG_ADDR_WILDOK,
-							&netaddr));
+				CHECK(cfg_parse_rawaddr(pctx, flags|CFG_ADDR_WILDOK, &netaddr));
 				have_address++;
-			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
+			} else if (strcasecmp(pctx->token.value.as_pointer,
+					      "port") == 0)
 			{
 				/* read "port" */
 				CHECK(cfg_gettoken(pctx, 0)); 
-				CHECK(cfg_parse_rawport(pctx,
-							CFG_ADDR_WILDOK,
-							&port));
+				CHECK(cfg_parse_rawport(pctx, CFG_ADDR_WILDOK, &port));
 				have_port++;
 			} else {
 				cfg_parser_error(pctx, CFG_LOG_NEAR,
@@ -1279,7 +1173,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) 
 	if (pctx->token.type == isc_tokentype_string ||
 	    pctx->token.type == isc_tokentype_qstring) {
 		if (pctx->token.type == isc_tokentype_string &&
-		    (strcasecmp(TOKEN_STRING(pctx), "key") == 0)) {
+		    (strcasecmp(pctx->token.value.as_pointer, "key") == 0)) {
 			CHECK(cfg_parse_obj(pctx, &cfg_type_keyref, ret));
 		} else {
 			if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK |
@@ -1358,6 +1252,7 @@ static cfg_type_t cfg_type_controls_sockaddr = {
 	"controls_sockaddr", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &controls_sockaddr_flags
 };
+
 
 /*
  * Handle the special kludge syntax of the "keys" clause in the "server"
@@ -1443,7 +1338,7 @@ parse_logseverity(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(TOKEN_STRING(pctx), "debug") == 0) {
+	    strcasecmp(pctx->token.value.as_pointer, "debug") == 0) {
 		CHECK(cfg_gettoken(pctx, 0)); /* read "debug" */
 		CHECK(cfg_peektoken(pctx, ISC_LEXOPT_NUMBER));
 		if (pctx->token.type == isc_tokentype_number) {
@@ -1507,12 +1402,12 @@ parse_logfile(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
 			CHECK(cfg_gettoken(pctx, 0));		
-			if (strcasecmp(TOKEN_STRING(pctx),
+			if (strcasecmp(pctx->token.value.as_pointer,
 				       "versions") == 0 &&
 			    obj->value.tuple[1] == NULL) {
 				CHECK(cfg_parse_obj(pctx, fields[1].type,
 					    &obj->value.tuple[1]));
-			} else if (strcasecmp(TOKEN_STRING(pctx),
+			} else if (strcasecmp(pctx->token.value.as_pointer,
 					      "size") == 0 &&
 				   obj->value.tuple[2] == NULL) {
 				CHECK(cfg_parse_obj(pctx, fields[2].type,
@@ -1680,144 +1575,4 @@ rndckey_clausesets[] = {
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndckey = {
 	"rndckey", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
 	&cfg_rep_map, rndckey_clausesets
-};
-
-static cfg_tuplefielddef_t nameport_fields[] = {
-	{ "name", &cfg_type_astring, 0 },
-	{ "port", &cfg_type_optional_port, 0 },
-	{ NULL, NULL, 0 }
-};
-static cfg_type_t cfg_type_nameport = {
-	"nameport", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
-	&cfg_rep_tuple, nameport_fields
-};
-
-static void
-doc_sockaddrnameport(cfg_printer_t *pctx, const cfg_type_t *type) {
-	UNUSED(type);
-	cfg_print_chars(pctx, "( ", 2);
-	cfg_print_cstr(pctx, "<quoted_string>");
-	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
-	cfg_print_chars(pctx, " | ", 3);
-	cfg_print_cstr(pctx, "<ipv4_address>");
-	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
-	cfg_print_chars(pctx, " | ", 3);
-	cfg_print_cstr(pctx, "<ipv6_address>");
-	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
-	cfg_print_chars(pctx, " )", 2);
-}
-
-static isc_result_t
-parse_sockaddrnameport(cfg_parser_t *pctx, const cfg_type_t *type,
-		       cfg_obj_t **ret)
-{
-        isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	UNUSED(type);
-
-	CHECK(cfg_peektoken(pctx, CFG_LEXOPT_QSTRING));
-	if (pctx->token.type == isc_tokentype_string ||
-	    pctx->token.type == isc_tokentype_qstring) {
-		if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V6OK))
-			CHECK(cfg_parse_sockaddr(pctx, &cfg_type_sockaddr, ret));
-		else {
-			const cfg_tuplefielddef_t *fields =
-						   cfg_type_nameport.of;	
-			CHECK(cfg_create_tuple(pctx, &cfg_type_nameport,
-					       &obj));	
-			CHECK(cfg_parse_obj(pctx, fields[0].type,
-					    &obj->value.tuple[0]));
-			CHECK(cfg_parse_obj(pctx, fields[1].type,
-					    &obj->value.tuple[1]));
-			*ret = obj;
-			obj = NULL;
-		}
-	} else {
-		cfg_parser_error(pctx, CFG_LOG_NEAR,
-			     "expected IP address or hostname");
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
- cleanup:
-	CLEANUP_OBJ(obj);	
-	return (result);
-}
-
-static cfg_type_t cfg_type_sockaddrnameport = {
-	"sockaddrnameport_element", parse_sockaddrnameport, NULL,
-	 doc_sockaddrnameport, NULL, NULL
-};
-
-static cfg_type_t cfg_type_bracketed_sockaddrnameportlist = {
-	"bracketed_sockaddrnameportlist", cfg_parse_bracketed_list,
-	cfg_print_bracketed_list, cfg_doc_bracketed_list,
-	&cfg_rep_list, &cfg_type_sockaddrnameport
-};
-
-/*
- * A list of socket addresses or name with an optional default port,
- * as used in the dual-stack-servers option.  E.g.,
- * "port 1234 { dual-stack-servers.net; 10.0.0.1; 1::2 port 69; }"
- */
-static cfg_tuplefielddef_t nameportiplist_fields[] = {
-	{ "port", &cfg_type_optional_port, 0 },
-	{ "addresses", &cfg_type_bracketed_sockaddrnameportlist, 0 },
-	{ NULL, NULL, 0 }
-};
-
-static cfg_type_t cfg_type_nameportiplist = {
-	"nameportiplist", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
-	&cfg_rep_tuple, nameportiplist_fields
-};
-
-/*
- * masters element.
- */
-
-static void
-doc_masterselement(cfg_printer_t *pctx, const cfg_type_t *type) {
-	UNUSED(type);
-	cfg_print_chars(pctx, "( ", 2);
-	cfg_print_cstr(pctx, "<masters>");
-	cfg_print_chars(pctx, " | ", 3);
-	cfg_print_cstr(pctx, "<ipv4_address>");
-	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
-	cfg_print_chars(pctx, " | ", 3);
-	cfg_print_cstr(pctx, "<ipv6_address>");
-	cfg_print_chars(pctx, " ", 1);
-	cfg_print_cstr(pctx, "[port <integer>]");
-	cfg_print_chars(pctx, " )", 2);
-}
-
-static isc_result_t
-parse_masterselement(cfg_parser_t *pctx, const cfg_type_t *type,
-		     cfg_obj_t **ret)
-{
-        isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	UNUSED(type);
-
-	CHECK(cfg_peektoken(pctx, CFG_LEXOPT_QSTRING));
-	if (pctx->token.type == isc_tokentype_string ||
-	    pctx->token.type == isc_tokentype_qstring) {
-		if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V6OK))
-			CHECK(cfg_parse_sockaddr(pctx, &cfg_type_sockaddr, ret));
-		else
-			CHECK(cfg_parse_astring(pctx, &cfg_type_astring, ret));
-	} else {
-		cfg_parser_error(pctx, CFG_LOG_NEAR,
-			     "expected IP address or masters name");
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
- cleanup:
-	CLEANUP_OBJ(obj);	
-	return (result);
-}
-
-static cfg_type_t cfg_type_masterselement = {
-	"masters_element", parse_masterselement, NULL,
-	 doc_masterselement, NULL, NULL
 };

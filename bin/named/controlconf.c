@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.9.2.1 2003/08/04 04:20:08 marka Exp $ */
+/* $Id: controlconf.c,v 1.28.2.9.2.2 2003/08/12 07:10:26 marka Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <bind9/check.h>
 

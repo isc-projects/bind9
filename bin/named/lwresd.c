@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.37.2.2.2.1 2003/08/11 05:28:09 marka Exp $ */
+/* $Id: lwresd.c,v 1.37.2.2.2.2 2003/08/12 07:10:26 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -38,7 +38,7 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <dns/log.h>
 #include <dns/result.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001, 2002  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.h,v 1.2 2002/02/20 03:35:53 marka Exp $ */
+/* $Id: namedconf.h,v 1.2.202.1 2003/08/12 07:10:30 marka Exp $ */
 
 #ifndef ISCCFG_NAMEDCONF_H
 #define ISCCFG_NAMEDCONF_H 1

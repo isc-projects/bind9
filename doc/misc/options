@@ -106,11 +106,11 @@ acl <string> { <address_match_element>; ... };
 
 logging {
         channel <string> {
-                file <logfile>;
+                file <log_file>;
                 syslog <optional_facility>;
                 null;
                 stderr;
-                severity <logseverity>;
+                severity <log_severity>;
                 print-time <boolean>;
                 print-severity <boolean>;
                 print-category <boolean>;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.4 2003/08/11 05:28:09 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.5 2003/08/12 07:10:26 marka Exp $ */
 
 #include <config.h>
 
@@ -30,7 +30,7 @@
 #include <isc/sockaddr.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <dns/fixedname.h>
 #include <dns/name.h>

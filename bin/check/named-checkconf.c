@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.12.12.2 2003/08/04 04:20:06 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.12.12.3 2003/08/12 07:10:25 marka Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <bind9/check.h>
 
