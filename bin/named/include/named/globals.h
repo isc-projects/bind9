@@ -54,6 +54,11 @@ EXTERN unsigned int		ns_g_port		INIT(5544);
 EXTERN dns_viewlist_t		ns_g_viewlist;
 EXTERN isc_rwlock_t		ns_g_viewlock;
 
+/*
+ * Default root nameserver hints.
+ */
+EXTERN dns_db_t *		ns_g_rootns		INIT(NULL);
+
 /* XXXRTH  These are temporary. */
 EXTERN ns_dbinfolist_t		ns_g_dbs;
 
