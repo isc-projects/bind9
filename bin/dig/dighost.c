@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.244 2002/05/29 05:31:02 marka Exp $ */
+/* $Id: dighost.c,v 1.245 2002/07/10 01:03:14 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2216,7 +2216,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				       "expected ID %u, got %u\n",
 				       l->sendmsg->id, id);
 			else
-				printf(";; ERROR: runt message\n");
+				printf(";; ERROR: short (< header size) message\n");
 			isc_event_free(&event);
 			clear_query(query);
 			check_next_lookup(l);
@@ -2227,7 +2227,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			printf(";; Warning: ID mismatch: "
 			       "expected ID %u, got %u\n", l->sendmsg->id, id);
 		else
-			printf(";; Warning: runt message received\n");
+			printf(";; Warning: short (< header size) message received\n");
 		match = ISC_FALSE;
 	}
 
