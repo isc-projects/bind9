@@ -175,6 +175,7 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 
 	REQUIRE(VALID_SYMTAB(symtab));
 	REQUIRE(key != NULL);
+	REQUIRE(type != 0);
 
 	FIND(symtab, key, type, bucket, elt);
 
