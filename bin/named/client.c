@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.155 2001/03/05 21:15:35 bwelling Exp $ */
+/* $Id: client.c,v 1.156 2001/03/06 01:24:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -231,7 +231,6 @@ client_free(ns_client_t *client) {
 	INSIST(client->recursionquota == NULL);
 
 	ns_query_free(client);
-	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 	isc_mem_put(client->mctx, client->recvbuf, RECV_BUFFER_SIZE);
 	isc_event_free((isc_event_t **)&client->sendevent);
 	isc_event_free((isc_event_t **)&client->recvevent);
@@ -658,7 +657,7 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 static isc_result_t
 client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 		    isc_buffer_t *tcpbuffer, isc_uint32_t length,
-		    unsigned char **datap)
+		    unsigned char *sendbuf, unsigned char **datap)
 {
 	unsigned char *data;
 	isc_uint32_t bufsize;
@@ -686,7 +685,7 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 			isc_buffer_putuint16(buffer, length);
 		}
 	} else {
-		data = client->sendbuf;
+		data = sendbuf;
 		if (client->udpsize < SEND_BUFFER_SIZE)
 			bufsize = client->udpsize;
 		else
@@ -713,6 +712,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	isc_socket_t *socket;
 	isc_netaddr_t netaddr;
 	int match;
+	unsigned int sockflags = ISC_SOCKFLAG_IMMEDIATE;
 
 	if (TCP_CLIENT(client)) {
 		socket = client->tcpsocket;
@@ -728,6 +728,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 				  NULL, &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
 			return (DNS_R_BLACKHOLED);
+		sockflags |= ISC_SOCKFLAG_NORETRY;
 	}
 
 	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
@@ -741,7 +742,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	
 	result = isc_socket_sendto2(socket, &r, client->task,
 				    address, pktinfo,
-				    client->sendevent, ISC_SOCKFLAG_IMMEDIATE);
+				    client->sendevent, sockflags);
 	if (result == ISC_R_SUCCESS || result == ISC_R_INPROGRESS) {
 		client->nsends++;
 		if (result == ISC_R_SUCCESS)
@@ -759,6 +760,7 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	isc_buffer_t buffer;
 	isc_region_t r;
 	isc_region_t *mr;
+	unsigned char sendbuf[SEND_BUFFER_SIZE];
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -770,7 +772,8 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 		goto done;
 	}
 
-	result = client_allocsendbuf(client, &buffer, NULL, mr->length, &data);
+	result = client_allocsendbuf(client, &buffer, NULL, mr->length,
+				     sendbuf, &data);
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
@@ -805,6 +808,7 @@ ns_client_send(ns_client_t *client) {
 	isc_region_t r;
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
+	unsigned char sendbuf[SEND_BUFFER_SIZE];
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -816,7 +820,8 @@ ns_client_send(ns_client_t *client) {
 	/*
 	 * XXXRTH  The following doesn't deal with TCP buffer resizing.
 	 */
-	result = client_allocsendbuf(client, &buffer, &tcpbuffer, 0, &data);
+	result = client_allocsendbuf(client, &buffer, &tcpbuffer, 0,
+				     sendbuf, &data);
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
@@ -1538,11 +1543,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 		goto cleanup_timer;
 
 	/* XXXRTH  Hardwired constants */
-	client->sendbuf = isc_mem_get(manager->mctx, SEND_BUFFER_SIZE);
-	if  (client->sendbuf == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_message;
-	}
 
 	client->sendevent = (isc_socketevent_t *)
 			    isc_event_allocate(manager->mctx, client,
@@ -1551,7 +1551,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 					       sizeof(isc_socketevent_t));
 	if (client->sendevent == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto cleanup_sendbuf;
+		goto cleanup_message;
 	}
 
 	client->recvbuf = isc_mem_get(manager->mctx, RECV_BUFFER_SIZE);
@@ -1633,9 +1633,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 
  cleanup_sendevent:
 	isc_event_free((isc_event_t **)&client->sendevent);
-
- cleanup_sendbuf:
-	isc_mem_put(manager->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 
 	client->magic = 0;
 
