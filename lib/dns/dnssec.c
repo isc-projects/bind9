@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.50 2000/08/21 23:22:01 gson Exp $
+ * $Id: dnssec.c,v 1.51 2000/09/12 09:57:28 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -142,7 +142,7 @@ dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
 	dns_rdata_toregion(rdata, &r);
 	isc_buffer_init(&b, r.base, r.length);
 	isc_buffer_add(&b, r.length);
-	return (dst_key_fromdns(name, &b, mctx, key));
+	return (dst_key_fromdns(name, rdata->rdclass, &b, mctx, key));
 }
 
 isc_result_t

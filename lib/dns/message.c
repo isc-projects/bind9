@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.145 2000/09/11 05:55:23 marka Exp $ */
+/* $Id: message.c,v 1.146 2000/09/12 09:57:30 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2646,8 +2646,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			isc_buffer_init(&b, rdata.data, rdata.length);
 			isc_buffer_add(&b, rdata.length);
 
-			result = dst_key_fromdns(&sig.signer, &b, view->mctx,
-						 &key);
+			result = dst_key_fromdns(&sig.signer, rdata.rdclass,
+						 &b, view->mctx, &key);
 			if (result != ISC_R_SUCCESS)
 				continue;
 			if (dst_key_alg(key) != sig.algorithm ||

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_test.c,v 1.33 2000/09/02 01:17:18 bwelling Exp $ */
+/* $Id: dst_test.c,v 1.34 2000/09/12 09:58:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,8 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 	       isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;
-	ret = dst_key_fromdns(dst_key_name(key), &buf1, mctx, &newkey);
+	ret = dst_key_fromdns(dst_key_name(key), dns_rdataclass_in,
+			      &buf1, mctx, &newkey);
 	printf("fromdns(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
@@ -216,7 +217,8 @@ generate(int alg, isc_mem_t *mctx) {
 	isc_result_t ret;
 	dst_key_t *key = NULL;
 
-	ret = dst_key_generate(dns_rootname, alg, 512, 0, 0, 0, mctx, &key);
+	ret = dst_key_generate(dns_rootname, alg, 512, 0, 0, 0,
+			       dns_rdataclass_in, mctx, &key);
 	printf("generate(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;

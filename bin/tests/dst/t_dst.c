@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.39 2000/09/02 01:17:20 bwelling Exp $ */
+/* $Id: t_dst.c,v 1.40 2000/09/12 09:58:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -318,7 +318,8 @@ generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 	isc_result_t ret;
 	dst_key_t *key = NULL;
 
-	ret = dst_key_generate(dns_rootname, alg, size, 0, 0, 0, mctx, &key);
+	ret = dst_key_generate(dns_rootname, alg, size, 0, 0, 0,
+			       dns_rdataclass_in, mctx, &key);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_generate(%d) returned: %s\n", alg,
 		       dst_result_totext(ret));

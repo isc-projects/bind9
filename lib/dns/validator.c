@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.78 2000/09/08 14:18:17 bwelling Exp $ */
+/* $Id: validator.c,v 1.79 2000/09/12 09:57:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -606,8 +606,8 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 		 * The key name is unimportant, so we can avoid any name/text
 		 * conversion.
 		 */
-		result = dst_key_fromdns(dns_rootname, &b, val->view->mctx,
-					 &key);
+		result = dst_key_fromdns(dns_rootname, rdata.rdclass, &b,
+					 val->view->mctx, &key);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		if (dst_key_isnullkey(key))
@@ -651,8 +651,8 @@ get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
 		isc_buffer_init(&b, rdata.data, rdata.length);
 		isc_buffer_add(&b, rdata.length);
 		INSIST(val->key == NULL);
-		result = dst_key_fromdns(&siginfo->signer, &b, val->view->mctx,
-					 &val->key);
+		result = dst_key_fromdns(&siginfo->signer, rdata.rdclass, &b,
+					 val->view->mctx, &val->key);
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 		if (siginfo->algorithm ==

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.88 2000/09/08 07:51:28 bwelling Exp $
+ * $Id: tsig.c,v 1.89 2000/09/12 09:57:31 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -235,6 +235,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		result = dst_key_frombuffer(name, DST_ALG_HMACMD5,
 					    DNS_KEYOWNER_ENTITY,
 					    DNS_KEYPROTO_DNSSEC,
+					    dns_rdataclass_in,
 					    &b, mctx, &dstkey);
 		if (result != ISC_R_SUCCESS)
 			return (result);

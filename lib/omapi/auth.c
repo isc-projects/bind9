@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.13 2000/08/26 01:42:30 bwelling Exp $ */
+/* $Id: auth.c,v 1.14 2000/09/12 09:59:28 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -147,8 +147,8 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 					   ISC_FALSE, &dstb);
 		if (result == ISC_R_SUCCESS)
 			result = dst_key_frombuffer(&dnsname, dst_algorithm,
-						    0, 0, &secret,
-						    omapi_mctx, key);
+						    0, 0, dns_rdataclass_in,
+						    &secret, omapi_mctx, key);
 	}
 
 	UNLOCK(&mutex);
