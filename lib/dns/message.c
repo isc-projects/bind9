@@ -1261,7 +1261,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			rdataset = next_rdataset;
 		}
 
-		ISC_LIST_UNLINK(*section, name, link);
 		name = next_name;
 	}
 
