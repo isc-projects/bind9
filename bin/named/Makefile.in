@@ -1,0 +1,33 @@
+
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+top_srcdir =	@top_srcdir@
+
+CINCLUDES =	-I${srcdir}/../../lib/isc/unix/include \
+		-I${srcdir}/../../lib/isc/pthreads/include \
+		-I${srcdir}/../../lib/isc/include \
+		-I${srcdir}/../../lib/dns/include \
+		-I${srcdir}/../..
+
+CDEFINES =
+CWARNINGS =
+
+DEPLIBS =	../../lib/dns/libdns.a \
+		../../lib/isc/libisc.a
+LIBS =		${DEPLIBS} \
+		@LIBS@
+
+TARGETS =	named
+
+OBJS =		server.o wire_test.o
+
+@BIND9_MAKE_RULES@
+
+wire_test.o: ../tests/wire_test.c
+	${CC} -c -o wire_test.o -DNOMAIN ${CINCLUDES} ${CFLAGS} ../tests/wire_test.c
+
+named: ${OBJS} ${DEPLIBS}
+	${CC} -o $@ ${OBJS} ${LIBS}
+
+clean distclean::
+	rm -f ${TARGETS} $.o
