@@ -22,6 +22,8 @@
 # to just growing as a multi-tentacled thing as various messages
 # were either added or selectively silenced.
 
+# XXX many warnings should not be made unless the header will be a public file
+
 use strict;
 use vars qw($debug);
 
@@ -39,7 +41,7 @@ my @files = @ARGV;
 
 # Outer loop runs once for each file.
 for (<>) {
-  my ($file, $tmpfile, $elided);
+  my ($file, $tmpfile, $objfile);
 
   $file = shift @files;
 
@@ -50,8 +52,19 @@ for (<>) {
 
   die "$0: $file: no such file\n" unless -f $file;
 
+  # header file fragments; ignore
+  # XXX rdatastruct itself is moderately tricky.
+  next if $file =~ m%/rdatastruct(pre|suf)\.h$%;
+
+  # From external sources; ignore.
+  next if $file =~ m%lib/dns/sec/(dnssafe|openssl)%m;
+
+  # Totally wrong platform; ignore.
+  next if $file =~ m%lib/isc/win32%;
+
   ($tmpfile = $file) =~ s%(.*/)?%/tmp/%;
   $tmpfile =~ s/\.h$/.c/;
+  ($objfile = $tmpfile) =~ s/\.c$/\.o/;;
 
   $file =~ m%(.*/)?(.*)/(.*)\.h%;
   my $symbol = uc "\Q$2_$3_H\E";
@@ -62,73 +75,97 @@ for (<>) {
            (.*\n)+
            \#endif\ /\*\ $symbol\ \*/\n
            \n*\Z%mx) {
-      warn "$file has non-conforming wrapper for symbol $symbol\n";
+      print "$file has non-conforming wrapper for symbol $symbol\n"
+        unless $file =~ m%confparser_p\.h%;
   }
 
-  my $nocomment = '^(?!.\*)';
+  my $nocomment = '^(?!\s+/?\*)';
 
   # check use of macros without having included proper header for them.
 
   if (/^(ISC_LANG_(BEGIN|END)DECLS)$/m && ! m%^#include <isc/lang\.h>$%m) {
-    warn "$file has $1 without <isc/lang.h>\n";
+    print "$file has $1 without <isc/lang.h>\n";
   }
 
   if (/$nocomment.*ISC_EVENTCLASS_/m && ! m%^#include <isc/eventclass\.h>%m) {
-    warn "$file has ISC_EVENTCLASS_ without <isc/eventclass.h>\n"
+    print "$file has ISC_EVENTCLASS_ without <isc/eventclass.h>\n"
       unless $file =~ m%isc/eventclass.h%;
   }
 
   if (/$nocomment.*ISC_RESULTCLASS_/m &&
       ! m%^#include <isc/resultclass\.h>%m) {
-    warn "$file has ISC_RESULTCLASS_ without <isc/resultclass.h>\n"
+    print "$file has ISC_RESULTCLASS_ without <isc/resultclass.h>\n"
       unless $file =~ m%isc/resultclass.h%;
   }
 
   if (/$nocomment.*ISC_(TRUE|FALSE|TF)\W/m &&
       ! m%^#include <isc/(types|boolean).h>%m) {
-    warn "$file has ISC_TRUE/FALSE/TF without <isc/(boolean|types).h>\n"
+    print "$file has ISC_TRUE/FALSE/TF without <isc/(boolean|types).h>\n"
       unless $file =~ m%isc/boolean.h%;
   }
 
   if (/$nocomment.*ISC_PLATFORM_/m &&
       ! m%^#include <isc/platform.h>%m) {
-    warn "$file has ISC_PLATFORM_ without <isc/platform.h>\n"
+    print "$file has ISC_PLATFORM_ without <isc/platform.h>\n"
       unless $file =~ m%isc/platform.h%;
+  }
+
+  if ($file !~ m%isc/magic\.h$%) {
+    print "$file has ISC_MAGIC_VALID without <isc/magic.h>\n"
+      if /$nocomment.*ISC_MAGIC_VALID/m && ! m%^#include <isc/magic.h>%m;
+
+    print "$file could use ISC_MAGIC_VALID\n" if /^$nocomment.*->magic ==/m;
   }
 
   if (/$nocomment.*(ISC|DNS|DST)_R_/m &&
       ! m%^#include <\L$1\E/result.h>%m) {
-    warn "$file has $1_R_ without <\L$1\E/result.h>\n"
+    print "$file has $1_R_ without <\L$1\E/result.h>\n"
       unless $file =~ m%\L$1\E/result.h%m;
   }
 
   if (/^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\([^;]*\);)/m &&
       ! m%^#include <isc/lang.h>%m) {
-    warn "$file has declarations without <isc/lang.h>\n";
+    print "$file has declarations without <isc/lang.h>\n";
+  }
+
+  #
+  # First see whether it can be compiled without any additional includes.
+  # Only bother doing this for files that will be installed as public
+  # headers (thus weeding out, for example, all of the dns/rdata/*/*.h)
+  #
+  if ($file =~ m%/include/% && system("cp $file $tmpfile") == 0) {
+    if (compile($tmpfile, $objfile) != 0) {
+      print "$file does not compile stand-alone\n";
+    }
   }
 
   my $prefix = '';
-  my ($prefix_extend, $body);
+  my ($elided, $comment, $prefix_extend, $body);
   while (1) {
     eval {
-      #     1             23         4            5           67
-      if (m%(\A\Q$prefix\E((.*\n)*?))(\#include .*(<.*?>).*\n)((.*\n)*)%) {
+      #     1             23         4            5      6      78
+      if (m%(\A\Q$prefix\E((.*\n)*?))(\#include .*(<.*?>)(.*)\n)((.*\n)*)%) {
         $elided = $5;
         $prefix_extend = $2 . $4;
-        $body = $1 . $6;
+        $comment = $6;
+        $body = $1 . $7;
       } else {
         $elided = "";           # stop processing this file.
       }
     };
 
     if ($@ ne "") {
-      warn "$file processing failed: $@\n";
+      print "$file processing failed: $@\n";
       last;
     }
 
     last if $elided eq "";
 
     print STDERR "$file checking $elided\n" if $debug;
+
+    # Can mark in the header file when a #include should stay even
+    # though it might not appear that way otherwise.
+    next if $comment =~ /require|provide|extend|define|contract/i;
 
     #
     # Special exceptions.
@@ -138,25 +175,15 @@ for (<>) {
     if (($file =~ m%isc/log\.h$% && $elided eq "<syslog.h>") ||
         ($file =~ m%isc/print\.h$% && $elided =~ /^<std(arg|def)\.h>$/) ||
         ($file =~ m%isc/string\.h$% && $elided eq "<string.h>") ||
-        ($file =~ m%isc/net\.h$% &&
-         $elided =~ m%<(sys/socket|netinet6?/in6?|arpa/inet|isc/ipv6)\.h>%) ||
         ($file =~ m%isc/types\.h$% &&
          $elided =~ m%^<isc/(boolean|int|offset)\.h>$%) ||
         ($file =~ m%isc/netdb\.h$% &&
-         $elided =~ m%^<(netdb|isc/net)\.h>$%) ||
-        ($file =~ m%isc/util\.h$% &&
-         $elided =~ m%^<(stdio|isc/(assertions|error|list))\.h>$%)) {
+         $elided =~ m%^<(netdb|isc/net)\.h>$%)) {
       next;
     }
 
     if ($elided =~ m%^<(isc|dns|dst)/result.h>$%) {
       my $dir = $1;
-
-      if ($file =~ m%/result\.h$% && $dir eq "isc") {
-        # This is ok; other result.h files provide isc/result.h explicitly,
-        # even though they (usually) don't need it themselves.
-        next;
-      }
 
       if (! /$nocomment.*\U$dir\E_R_/m) {
         unless ($dir eq "isc" && /$nocomment.*isc_result_t/m) {
@@ -164,55 +191,70 @@ for (<>) {
           # isc_result_t ... but not both isc/result.h and isc/types.h.
           # The later check will determine isc/result.h to be redundant,
           # so only the ISC_R_ aspect has to be pointed out.
-          warn "$file has <$dir/result.h> without \U$dir\E_R_\n";
+          print "$file has <$dir/result.h> without \U$dir\E_R_\n";
           next;
         }
+      } else {
+        # There is an {foo}_R_; this is a necessary include.
+        next;
       }
     }
 
     if ($elided eq "<isc/lang.h>") {
       if (! /^ISC_LANG_BEGINDECLS$/m) {
-        warn "$file includes <isc/lang.h> but has no ISC_LANG_BEGINDECLS\n";
+        print "$file includes <isc/lang.h> but has no ISC_LANG_BEGINDECLS\n";
       } elsif (! /^ISC_LANG_ENDDECLS$/m) {
-        warn "$file has ISC_LANG_BEGINDECLS but no ISC_LANG_ENDDECLS\n";
+        print "$file has ISC_LANG_BEGINDECLS but no ISC_LANG_ENDDECLS\n";
       } elsif (! /^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\()/m) {
-        warn "$file has <isc/lang.h> apparently not function declarations\n";
+        print "$file has <isc/lang.h> apparently not function declarations\n";
       }
       next;
     }
 
     if ($elided eq "<isc/eventclass.h>") {
       if (! /$nocomment.*ISC_EVENTCLASS_/m) {
-        warn "$file has <isc/eventclass.h> without ISC_EVENTCLASS_\n";
+        print "$file has <isc/eventclass.h> without ISC_EVENTCLASS_\n";
       }
       next;
     }
 
     if ($elided eq "<isc/resultclass.h>") {
       if (! /$nocomment.*ISC_RESULTCLASS_/m) {
-        warn "$file has <isc/resultclass.h> without ISC_RESULTCLASS_\n";
+        print "$file has <isc/resultclass.h> without ISC_RESULTCLASS_\n";
       }
       next;
     }
 
-    if ($elided eq "<isc/types.h>") {
-      if (! /^$nocomment.*isc_\S+_t\s/m) {
-        warn "$file has <isc/types.h> but apparently no isc_*_t uses\n";
+    if ($elided =~ "<(isc|dns)/types.h>") {
+      my $dir = $1;
+      if (! /^$nocomment.*$dir\_\S+\_t\s/m) {
+        print "$file has <$dir/types.h> but apparently no $dir\_*_t uses\n";
+      } elsif ($dir ne "isc" && m%^#include <isc/types.h>%m) {
+        print "$file has <$dir/types.h> and redundant <isc/types.h>\n";
       }
+      # ... otherwise the types.h file is needed for the relevant _t types
+      # it defines, even if this header file accidentally picks it up by
+      # including another header that itself included types.h.
+      # So skip the elision test in any event.
+      # XXX would be good to test for files that need types.h but don't
+      # include it.
       next;
     }
 
     if ($elided eq "<isc/boolean.h>") {
-      if (! /^$nocomment.*ISC_(TRUE|FALSE|TF)\W/m &&
-          ! /^$nocomment.*isc_boolean_t/m) {
-        warn "$file has <isc/boolean.h>, no ISC_TRUE/FALSE/TF/isc_boolean_t\n";
-      }
-      next;
+      next if /^$nocomment.*ISC_(TRUE|FALSE|TF)\W/m;
     }
 
     if ($elided eq "<isc/platform.h>") {
       if (! /^$nocomment.*ISC_PLATFORM_/m) {
-        warn "$file has <isc/platform.h> but no ISC_PLATFORM_\n";
+        print "$file has <isc/platform.h> but no ISC_PLATFORM_\n";
+      }
+      next;
+    }
+
+    if ($elided eq "<isc/magic.h>") {
+      if (! /^$nocomment.*ISC_MAGIC_VALID/m) {
+        print "$file has <isc/magic.h> but no ISC_MAGIC_VALID\n";
       }
       next;
     }
@@ -221,26 +263,33 @@ for (<>) {
     print TMP "$body";
     close(TMP);
 
-    my $objfile = $tmpfile;
-    $objfile =~ s/\.c$/\.o/;
+    print "$file elided $elided, compiling\n" if $debug;
 
-    warn "$file elided $elided, compiling\n" if $debug;
-
-    my $stderr = $debug ? "" : "2>/dev/null";
-
-    #XXX -Iflags are a pain.  this needs mending.
-    system("cc " .
-           "-Ilib/isc/include -Ilib/isc/unix/include " .
-           "-Ilib/isc/pthreads/include " .
-           "-Ilib/dns/include " .
-           "-Ilib/dns/sec/dst/include " .
-           "-c $tmpfile -o $objfile $stderr");
-
-    print "$file does not need $elided\n" if ($? == 0);
-
-    unlink($tmpfile, $objfile);
+    if (compile($tmpfile, $objfile) == 0) {
+      print "$file does not need $elided\n";
+    }
 
   } continue {
     $prefix .= $prefix_extend;
   }
+}
+
+sub
+compile() {
+  my ($source, $objfile) = @_;
+
+  my $stderr = $debug ? "" : "2>/dev/null";
+
+  #XXX -Iflags are a pain.  this needs mending.
+  system("cc " .
+         "-Ilib/isc/include -Ilib/isc/unix/include " .
+         "-Ilib/isc/pthreads/include " .
+         "-Ilib/dns/include " .
+         "-Ilib/dns/sec/dst/include " .
+         "-Ilib/omapi/include " .
+         "-c $source -o $objfile $stderr");
+
+  unlink($source, $objfile);
+
+  return ($?);
 }
