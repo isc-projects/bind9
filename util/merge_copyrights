@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: merge_copyrights,v 1.11 2000/06/28 03:18:41 tale Exp $
+# $Id: merge_copyrights,v 1.12 2000/06/28 22:00:38 tale Exp $
 
 %file_types = ();
 %file_years = ();
@@ -46,25 +46,31 @@ while (<FILES>) {
              %x);
 
     if (!$file_types{$_}) {
-	if ($_ =~ /\.(c|h|css)$/) {
+	# Strip any .in extension to find out the file's real type.
+	# .in files are processed by configure to produce the target file.
+	($base = $_) =~ s/\.in$//;
+
+	if ($base =~ /\.(c|h|css)$/) {
 	    $file_types{$_} = "C";
-        } elsif ($_ =~ /\.y$/) {
+        } elsif ($base =~ /\.y$/) {
 	    $file_types{$_} = "YACC";
-        } elsif ($_ =~ /\.pl$/i) {
+        } elsif ($base =~ /\.pl$/i) {
 	    $file_types{$_} = "PERL";
-        } elsif ($_ =~ /\.sh$/) {
+        } elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
-        } elsif ($_ =~ /\.html$/) {
+        } elsif ($base =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
-        } elsif ($_ =~ /\.(man|[0-9])$/) {
+        } elsif ($base =~ /\.(man|[0-9])$/) {
 	    $file_types{$_} = "MAN";
-	} elsif ($_ =~ /\/Makefile\.in$/) {
+	} elsif ($base =~ /\/Makefile$/) {
 	    $file_types{$_} = "MAKE";
-	} elsif ($_ =~ /\/named.?\.conf$/) {
+	} elsif ($base =~ /\/named.?\.conf$/) {
 	    $file_types{$_} = "CONF-C";
-	} elsif ($_ =~ /\.(db|hint)(\.in)?$/) {
+	} elsif ($base =~ /\/resolv.?\.conf$/) {
+	    $file_types{$_} = "CONF-SH";
+	} elsif ($base =~ /\.(db|hint)$/) {
 	    $file_types{$_} = "ZONE";
-	} elsif ($_ =~ /(\/\.cvsignore|\.gif|\.jpg)$/i) {
+	} elsif ($base =~ /(\/\.cvsignore|\.gif|\.jpg)$/i) {
 	    $file_types{$_} = "X";
 	} else {
 	    $file_types{$_} = "?";
