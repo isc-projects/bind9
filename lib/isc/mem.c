@@ -69,9 +69,11 @@
  * Types.
  */
 
-typedef struct {
-	void *			next;
-} element;
+typedef struct element element;
+
+struct element {
+	element *		next;
+};
 
 typedef struct {
 	/*
@@ -355,7 +357,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 	curr = new;
 	next = curr + ctx->mem_target;
 	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
-		((element *)curr)->next = next;
+		((element *)curr)->next = (element *)next;
 		curr = next;
 		next += ctx->mem_target;
 	}
@@ -443,7 +445,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 		curr = new;
 		next = curr + new_size;
 		for (i = 0; i < (frags - 1); i++) {
-			((element *)curr)->next = next;
+			((element *)curr)->next = (element *)next;
 			curr = next;
 			next += new_size;
 		}
