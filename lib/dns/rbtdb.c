@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.123 2000/09/06 02:39:57 explorer Exp $ */
+/* $Id: rbtdb.c,v 1.124 2000/09/06 23:16:14 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1168,19 +1168,12 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rdataset->private3 = raw;
 	count = raw[0] * 256 + raw[1];
 	raw += 2;
-	if (count == 0) {
-		rdataset->private4 = (void *)0;
-		rdataset->private5 = NULL;
-	} else {
-		/*
-		 * The private4 field is the number of rdata beyond
-		 * the cursor position, so we decrement the total
-		 * count by one before storing it.
-		 */
-		count--;
-		rdataset->private4 = (void *)count;
-		rdataset->private5 = raw;
-	}
+	
+	/*
+	 * Reset iterator state.
+	 */
+	rdataset->private4 = NULL;
+	rdataset->private5 = NULL;
 }
 
 static inline isc_result_t
