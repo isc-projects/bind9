@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.30 1999/11/04 06:12:40 halley Exp $ */
+ /* $Id: master.c,v 1.31 1999/11/30 02:20:24 gson Exp $ */
 
 #include <config.h>
 
@@ -594,7 +594,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				result = DNS_R_UNEXPECTED;
 				goto cleanup;
 			}
-			isc_buffer_consumed(&buffer, &region);
+			isc_buffer_used(&buffer, &region);
 			len1 = region.length;
 			isc_buffer_init(&buffer, buf2, sizeof buf2,
 					ISC_BUFFERTYPE_TEXT);
@@ -606,10 +606,10 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				result = DNS_R_UNEXPECTED;
 				goto cleanup;
 			}
-			isc_buffer_consumed(&buffer, &region);
+			isc_buffer_used(&buffer, &region);
 			len2 = region.length;
 			(*callbacks->error)(callbacks,
-			       "%s: %s:%d class (%*s) != zone class (%*s)\n",
+			       "%s: %s:%d class (%.*s) != zone class (%.*s)\n",
 					    "dns_master_load",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex),
