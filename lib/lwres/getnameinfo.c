@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.19 2000/06/28 21:43:46 bwelling Exp $ */
+/* $Id: getnameinfo.c,v 1.20 2000/06/28 21:55:33 bwelling Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -277,7 +277,6 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 				ERR(ENI_MEMORY);
 			strcpy(host, numaddr);
 		}
-		lwres_context_destroy(&lwrctx);
 	}
 	result = SUCCESS;
  cleanup:
