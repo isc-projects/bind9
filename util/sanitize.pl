@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.6 2000/09/26 23:17:32 bwelling Exp $
+# $Id: sanitize.pl,v 1.7 2000/09/27 17:15:59 mws Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -23,30 +23,30 @@
 # sanitized.
 #
 # In normal mode, check file, removing code between
-#      #ifndef NOMINUM_PUBLIC
+#      #ifndef NOMINUM_key
 # and the accompanying #else or #endif.  Similarly, code in an #else
 # clause after an #ifndef test will be removed.  The #else or #endif's
 # must appear as:
-#      #else /* NOMINUM_PUBLIC */
-#      #endif /* NOMINUM_PUBLIC */
+#      #else /* NOMINUM_key */
+#      #endif /* NOMINUM_key */
 # Balance is tested.
-# Non-.c/.h files are tested for the existance of NOMINUM_PUBLIC anywhere
+# Non-.c/.h files are tested for the existance of NOMINUM_anything anywhere
 # in the file, and a warning is generated, unless the string
-# NOMINUM_IGNORE appears before NOMINUM_PUBLIC.
+# NOMINUM_IGNORE appears before NOMINUM_.
 
-# If the string NOMINUM_PUBLIC_DELETE is present, delete the file.
+# If the string NOMINUM_key_DELETE is present, delete the file.
 
 # Usage:
-#  ./sanitize.pl -c   - Check syntax only, don't change anything
-#  ./sanitize.pl -i   - Reverse sense of sanitize.
-#  ./sanitize.pl -    - Work as a pipe, sanitizing stdin to stdout.
-#  ./sanitize.pl file - Sanitize the specified file.
+#  ./sanitize.pl -c     - Check syntax only, don't change anything
+#  ./sanitize.pl -kkey  - Sanitize against key
+#  ./sanitize.pl -ikey  - Reverse sense of sanitize.
+#  ./sanitize.pl -      - Work as a pipe, sanitizing stdin to stdout.
+#  ./sanitize.pl file   - Sanitize the specified file.
 
 $makechange = 1;
-$state = 0;
-$showon = 1;
 $debug = 0;
 $deletefile = 0;
+$curkey = 0;
 
 # States:
 #    0 - Outside of test, include code
@@ -58,8 +58,15 @@ foreach $arg (@ARGV) {
 	if (/^-c$/i) {
 		$makechange = 0;
 	}
-	elsif (/^-i$/i) {
-		$showon = 2;
+	elsif (/^-k(.*)$/i) {
+		$showon[$curkeys] = 1;
+		$state[$curkeys] = 0;
+		$key[$curkeys++] = $1;
+	}
+	elsif (/^-i(.*)$/i) {
+		$showon[$curkeys] = 2;
+		$state[$curkeys] = 0;
+		$key[$curkeys++] = $1;
 	}
 	elsif (/^-$/i) {
 		&runfile("-","-");
@@ -89,81 +96,109 @@ sub runfile($) {
 			unlink($_[1]);
 			break;
 		}
-		elsif (/NOMINUM_PUBLIC_DELETE/) {
-			close(INFILE);
-			close(OUTFILE);
-			unlink($_[1]);
-			$deletefile = 1;
-			break;
-		}
-		elsif (/\#ifdef.+NOMINUM_PUBLIC/) {
-			if ($state != 0) {
-				print(STDERR "*** ERROR in file $_[0]".
-				      "line $.: ".
-				      "#ifdef within unterminated if[n]def\n");
+		$masterstate = 0;
+		for ($i = 0 ; $i < $curkeys; $i++) {
+			if (/NOMINUM_$key[$i]_DELETE/) {
 				close(INFILE);
-				close(OUTFILE) if ($makechange);
+				close(OUTFILE);
 				unlink($_[1]);
+				$deletefile = 1;
 				break;
 			}
-			$state = 1;
-		}
-		elsif (/\#ifndef.+NOMINUM_PUBLIC/) {
-			if ($state != 0) {
-				print(STDERR "*** ERROR in file $_[0] ".
-				      "line $.: ".
-				      "#ifndef within unterminated if[n]def\n");
-				close(INFILE);
-				close(OUTFILE) if ($makechange);
-				unlink($_[1]);
-				break;
+			elsif (/\#ifdef.+NOMINUM_$key[$i]/) {
+				if ($state[$i] != 0) {
+					print(STDERR "*** ERROR in file ".
+					      "$_[0] line $.: ".
+					      "#ifdef within unterminated ".
+					      "if[n]def ($key[$i])\n");
+					close(INFILE);
+					close(OUTFILE) if ($makechange);
+					unlink($_[1]);
+					goto bailout;
+				}
+				$state[$i] = 1;
+				goto doneline;
 			}
-			$state = 2;
-		}
-		elsif (/\#else.+NOMINUM_PUBLIC/) {
-			if ($state == 0) {
-				print(STDERR "*** ERROR in file $_[0] ".
-				      "line $.: ".
-				      "#else without matching ".
-				      "#if[n]def.\n");
-				close(INFILE);
-				close(OUTFILE) if ($makechange);
-				unlink($_[1]);
-				break;
+			elsif (/\#ifndef.+NOMINUM_$key[$i]/) {
+				if ($state[$i] != 0) {
+					print(STDERR "*** ERROR in file ".
+					      "$_[0] line $.: ".
+					      "#ifndef within unterminated ".
+					      "if[n]def ($key[$i])\n");
+					close(INFILE);
+					close(OUTFILE) if ($makechange);
+					unlink($_[1]);
+					break;
+				}
+				$state[$i] = 2;
+				goto doneline;
+
 			}
-			if ($state == 1) {
-				$state = 2;
-			} else {
-				$state = 1;
+			elsif (/\#else.+NOMINUM_$key[$i]/) {
+				if ($state[$i] == 0) {
+					print(STDERR "*** ERROR in file ".
+					      "$_[0] line $.: ".
+					      "#else without matching ".
+					      "#if[n]def. ($key[$i])\n");
+					close(INFILE);
+					close(OUTFILE) if ($makechange);
+					unlink($_[1]);
+					break;
+				}
+				$masterstate++
+					if ($state[$i]!=$showon[$i]);
+				if ($state[$i] == 1) {
+					$state[$i] = 2;
+				} else {
+					$state[$i] = 1;
+				}
+				goto doneline;
+			}
+			elsif (/\#endif.+NOMINUM_$key[$i]/) {
+				if ($state[$i] == 0) {
+					print(STDERR "*** ERROR in file ".
+					      "$_[0] line $.: ".
+					      "#endif without matching ".
+					      "#if[n]def. ($key[$i])\n");
+					close(INFILE);
+					close(OUTFILE) if ($makechange);
+					unlink($_[1]);
+					break;
+				}
+				$masterstate++
+					if ($state[$i]!=$showon[$i]);
+				$state[$i] = 0;
+				goto doneline;
 			}
 		}
-		elsif (/\#endif.+NOMINUM_PUBLIC/) {
-			if ($state == 0) {
-				print(STDERR "*** ERROR in file $_[0] line $.: ".
-				      "#endif without matching ".
-				      "#if[n]def.\n");
-				close(INFILE);
-				close(OUTFILE) if ($makechange);
-				unlink($_[1]);
-				break;
-			}
-			$state = 0;
-		}
-		elsif (/NOMINUM_PUBLIC/) {
+		if (/NOMINUM_/) {
 			print(STDERR "*** WARNING in file $_[0] line $.: ".
-			      "NOMINUM_PUBLIC outside of ".
+			      "NOMINUM_ outside of ".
 			      "#ifdef/#else/#endif.\n");
 		}
-		else {
-			if (($state == 0) || ($state == $showon)) {
-				print(OUTFILE) if ($makechange);
+	      doneline:
+		for ($i = 0 ; $i < $curkeys; $i++) {
+			if (($state[i] != 0) &&
+			    ($state[i] != $showon[$i])) {
+				$masterstate++;
+				break;
 			}
 		}
+		if (($masterstate == 0) && $makechange) {
+			print(OUTFILE);
+		}
 	}
-	if ($state != 0) {
-		print(STDERR "*** ERROR in file $_[0]: ".
-		      "file ended with unterminated test.\n");
-	} else {
+      bailout:
+	$masterstate = 0;
+	for ($i = 0 ; $i < $curkeys; $i++) {
+		if ($state[i] != 0) {
+			print(STDERR "*** ERROR in file $_[0]: ".
+			      "file ended with unterminated test.  ".
+			      "$key[$i]\n");
+			$masterstate++;
+		}
+	}
+	if ($masterstate == 0) {
 		close(INFILE);
 		close(OUTFILE) if ($makechange);
 		if (($_[0] ne "-") && ($makechange)) {
