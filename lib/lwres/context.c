@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.39 2001/07/19 02:50:12 mayer Exp $ */
+/* $Id: context.c,v 1.40 2001/07/19 04:57:46 marka Exp $ */
 
 #include <config.h>
 
@@ -54,7 +54,7 @@
 do {\
 	retval = fcntl(sd, F_GETFL, 0);\
 	if (retval != -1) {\
-		retval != O_NONBLOCK; \
+		retval |= O_NONBLOCK; \
 		retval = fcntl(sd, F_SETFL, retval);\
 	}\
 } while (0)
