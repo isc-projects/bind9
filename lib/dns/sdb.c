@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.15 2000/11/16 22:33:48 bwelling Exp $ */
+/* $Id: sdb.c,v 1.16 2000/11/17 01:27:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1166,7 +1166,7 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 	}
 	sdb->dbdata = NULL;
 	if (imp->methods->create != NULL) {
-		result = imp->methods->create(sdb->zone, argc - 1, argv + 1,
+		result = imp->methods->create(sdb->zone, argc, argv,
 					      imp->driverdata, &sdb->dbdata);
 		if (result != ISC_R_SUCCESS) {
 			destroy(sdb);
