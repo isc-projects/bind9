@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.10 2000/08/01 01:14:37 tale Exp $
+# $Id: sign.sh,v 1.11 2000/11/22 20:37:47 bwelling Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -32,15 +32,15 @@ keyname=`$KEYGEN -a RSA -b 768 -n zone -r $RANDFILE $zone`
 
 cp ../ns2/keyset-example. .
 
-$KEYSIGNER -r $RANDFILE keyset-example. $keyname
+$KEYSIGNER -r $RANDFILE keyset-example. $keyname > /dev/null
 
 cat signedkey-example. >> ../ns2/example.db.signed
 
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname
+$KEYSETTOOL -r $RANDFILE -t 3600 $keyname > /dev/null
 
 cat $infile $keyname.key > $zonefile
 
-$SIGNER -r $RANDFILE -o $zone $zonefile
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a trusted key.
 

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.10 2000/08/01 01:14:50 tale Exp $
+# $Id: sign.sh,v 1.11 2000/11/22 20:37:50 bwelling Exp $
 
 RANDFILE=../random.data
 
@@ -25,11 +25,11 @@ zonefile=secure.example.db
 
 keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key
+$KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key > /dev/null
 
 cat $infile $keyname.key >$zonefile
 
-$SIGNER -r $RANDFILE -o $zone $zonefile
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
 
 zone=bogus.example.
 infile=bogus.example.db.in
@@ -37,8 +37,8 @@ zonefile=bogus.example.db
 
 keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key
+$KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key > /dev/null
 
 cat $infile $keyname.key >$zonefile
 
-$SIGNER -r $RANDFILE -o $zone $zonefile
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null

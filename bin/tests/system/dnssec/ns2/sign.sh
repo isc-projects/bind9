@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.13 2000/08/01 01:14:43 tale Exp $
+# $Id: sign.sh,v 1.14 2000/11/22 20:37:48 bwelling Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -35,7 +35,7 @@ keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
 cp ../ns3/keyset-secure.example. .
 
-$KEYSIGNER -r $RANDFILE keyset-secure.example. $keyname
+$KEYSIGNER -r $RANDFILE keyset-secure.example. $keyname > /dev/null
 
 # This will leave two copies of the child's zone key in the signed db file;
 # that shouldn't cause any problems.
@@ -43,17 +43,17 @@ cat signedkey-secure.example. >>../ns3/secure.example.db.signed
 
 cp ../ns3/keyset-bogus.example. .
 
-$KEYSIGNER -r $RANDFILE keyset-bogus.example. $keyname
+$KEYSIGNER -r $RANDFILE keyset-bogus.example. $keyname > /dev/null
 
 # This will leave two copies of the child's zone key in the signed db file;
 # that shouldn't cause any problems.
 cat signedkey-bogus.example. >>../ns3/bogus.example.db.signed
 
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname
+$KEYSETTOOL -r $RANDFILE -t 3600 $keyname > /dev/null
 
 cat $infile $keyname.key >$zonefile
 
-$SIGNER -r $RANDFILE -o $zone $zonefile
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Sign the privately secure file
 
@@ -65,4 +65,4 @@ privkeyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $privzone`
 
 cat $privinfile $privkeyname.key >$privzonefile
 
-$SIGNER -r $RANDFILE -o $privzone $privzonefile
+$SIGNER -r $RANDFILE -o $privzone $privzonefile > /dev/null
