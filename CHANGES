@@ -1,3 +1,5 @@
+ 182.	[cleanup]	New commandline parameters for dnssec tools
+
  181.	[func]		Added dst_key_buildfilename and dst_key_parsefilename
 
  180.   [func]          New isc_result_t ISC_R_RANGE.  Supersedes DNS_R_RANGE.
