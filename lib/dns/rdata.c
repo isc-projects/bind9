@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.130 2000/11/20 21:29:41 bwelling Exp $ */
+/* $Id: rdata.c,v 1.131 2000/11/20 21:41:53 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -566,8 +566,7 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 					ISC_FALSE);
 	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
 		return (ISC_R_RANGE);
-	result = isc_buffer_allocate(mctx, &buf,
-				     isc_buffer_availablelength(target));
+	result = isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	
