@@ -1,2 +1,4 @@
 Makefile
 t_net
+*.lo
+.libs

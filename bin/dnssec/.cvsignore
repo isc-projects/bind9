@@ -3,3 +3,5 @@ dnssec-keygen
 dnssec-makekeyset
 dnssec-signkey
 dnssec-signzone
+*.lo
+.libs

@@ -3,3 +3,4 @@ dst_test
 t_dst
 .libs
 randomfile
+*.lo

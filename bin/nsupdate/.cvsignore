@@ -1,2 +1,4 @@
 Makefile
 nsupdate
+*.lo
+.libs

@@ -2,3 +2,5 @@ Makefile
 dig
 host
 nslookup
+*.lo
+.libs
