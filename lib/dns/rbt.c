@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.66 1999/10/31 15:25:11 tale Exp $ */
+/* $Id: rbt.c,v 1.67 1999/11/03 00:17:11 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2030,7 +2030,7 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 * at the top level tree, because "." is declared as the origin
 		 * for the second level tree.
 		 */
-		if (origin &&
+		if (origin != NULL &&
 		    (chain->level_count > 0 || OFFSETLEN(predecessor) > 1))
 			new_origin = ISC_TRUE;
 	}
