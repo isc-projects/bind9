@@ -1,3 +1,15 @@
+
+ 432.	[func]		Added refresh/retry jitter.  This is currently
+			hard-coded to be no more than 20% of the SOA
+			provided time or 10 minutes, whichever is less.
+
+ 431.	[func]		Log at ISC_LOG_INFO when a zone is successfully
+			loaded.
+
+ 430.	[bug]		Rewrote the lightweight resolver client management
+			code to handle shutdown correctly and general
+			cleanup.
+
  429.	[bug]		The space reserved for a TSIG record in a response
 			was 2 bytes too short, leading to message
 			generation failures.
