@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.95 2002/02/20 03:34:21 marka Exp $ */
+/* $Id: result.c,v 1.96 2002/03/05 00:06:02 marka Exp $ */
 
 #include <config.h>
 
@@ -233,6 +233,7 @@ dns_result_torcode(isc_result_t result) {
 		rcode = dns_rcode_refused;
 		break;
 	case DNS_R_TSIGVERIFYFAILURE:
+	case DNS_R_CLOCKSKEW:
 		rcode = dns_rcode_notauth;
 		break;
 	default:
