@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.60 2001/04/12 21:04:14 tale Exp $ */
+/* $Id: log.c,v 1.61 2001/04/25 23:59:44 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -219,8 +219,8 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 static isc_result_t
 sync_channellist(isc_logconfig_t *lcfg);
 
-static unsigned int
-greatest_version(isc_logchannel_t *channel);
+static isc_result_t
+greatest_version(isc_logchannel_t *channel, unsigned int *greatest);
 
 static isc_result_t
 roll_log(isc_logchannel_t *channel);
@@ -1095,8 +1095,8 @@ sync_channellist(isc_logconfig_t *lcfg) {
 	return (ISC_R_SUCCESS);
 }
 
-static unsigned int
-greatest_version(isc_logchannel_t *channel) {
+static isc_result_t
+greatest_version(isc_logchannel_t *channel, unsigned int *greatestp) {
 	/* XXXDCL HIGHLY NT */
 	char *basename, *digit_end;
 	const char *dirname;
@@ -1121,11 +1121,20 @@ greatest_version(isc_logchannel_t *channel) {
 	}
 	basenamelen = strlen(basename);
 
-
 	isc_dir_init(&dir);
 	result = isc_dir_open(&dir, dirname);
+
+	/*
+	 * Replace the file separator if it was taken out.
+	 */
+	if (basename != FILE_NAME(channel))
+		*(basename - 1) = '/';
+
+	/*
+	 * Return if the directory open failed.
+	 */
 	if (result != ISC_R_SUCCESS)
-		return (0); /* ... and roll_log will likely report an error. */
+		return (result);
 
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
 		if (dir.entry.length > basenamelen &&
@@ -1140,10 +1149,9 @@ greatest_version(isc_logchannel_t *channel) {
 	}
 	isc_dir_close(&dir);
 
-	if (basename != FILE_NAME(channel))
-		*--basename = '/';
+	*greatestp = ++greatest;
 
-	return (++greatest);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1152,6 +1160,7 @@ roll_log(isc_logchannel_t *channel) {
 	char current[FILENAME_MAX + 1];
 	char new[FILENAME_MAX + 1];
 	const char *path;
+	isc_result_t result;
 
 	/*
 	 * Do nothing (not even excess version trimming) if ISC_LOG_ROLLNEVER
@@ -1169,7 +1178,9 @@ roll_log(isc_logchannel_t *channel) {
 	 * though the file names are 0 based, so an oldest log of log.1
 	 * is a greatest_version of 2.
 	 */
-	greatest = greatest_version(channel);
+	result = greatest_version(channel, (unsigned int *)&greatest);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Now greatest should be set to the highest version number desired.
