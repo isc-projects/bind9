@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.257 2003/07/25 04:02:54 marka Exp $ */
+/* $Id: dighost.c,v 1.258 2004/01/12 03:39:29 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -66,6 +66,14 @@
 #include <bind9/getaddresses.h>
 
 #include <dig/dig.h>
+
+#if ! defined(NS_INADDRSZ)
+#define NS_INADDRSZ	 4
+#endif
+
+#if ! defined(NS_IN6ADDRSZ)
+#define NS_IN6ADDRSZ	16
+#endif
 
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
@@ -416,7 +424,20 @@ add_nameserver(lwres_conf_t *confdata, const char *addr, int af) {
 	if (confdata->nsnext >= LWRES_CONFMAXNAMESERVERS)
 		return (ISC_R_FAILURE);
 
-	if (lwres_net_pton(af, addr, &confdata->nameservers[i]) == 1) {
+	switch (af) {
+	case AF_INET:
+		confdata->nameservers[i].family = LWRES_ADDRTYPE_V4;
+		confdata->nameservers[i].length = NS_INADDRSZ;
+		break;
+	case AF_INET6:
+		confdata->nameservers[i].family = LWRES_ADDRTYPE_V6;
+		confdata->nameservers[i].length = NS_IN6ADDRSZ;
+		break;
+	default:
+		return (ISC_R_FAILURE);
+	}
+
+	if (lwres_net_pton(af, addr, &confdata->nameservers[i].address) == 1) {
 		confdata->nsnext++;
 		return (ISC_R_SUCCESS);
 	}
@@ -734,9 +755,16 @@ setup_system(void) {
 
 	/* If we don't find a nameserver fall back to localhost */
 	if (lwconf->nsnext == 0) {
-		lwresult = add_nameserver(lwconf, "127.0.0.1", AF_INET);
-		if(lwresult != ISC_R_SUCCESS)
-			fatal("add_nameserver failed");
+		if (have_ipv4) {
+			lwresult = add_nameserver(lwconf, "127.0.0.1", AF_INET);
+			if(lwresult != ISC_R_SUCCESS)
+				fatal("add_nameserver failed");
+		}
+		if (have_ipv6) {
+			lwresult = add_nameserver(lwconf, "::1", AF_INET6);
+			if(lwresult != ISC_R_SUCCESS)
+				fatal("add_nameserver failed");
+		}
 	}
 
 	if (ISC_LIST_EMPTY(server_list))
