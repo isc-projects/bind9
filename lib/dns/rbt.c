@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.41 1999/04/16 21:01:58 tale Exp $ */
+/* $Id: rbt.c,v 1.42 1999/04/17 15:19:45 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -795,9 +795,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			
 				search_name = tmp_name;
 
-				ADD_ANCESTOR(chain, NULL);
-				ADD_LEVEL(chain, current);
-
 				/*
 				 * This might be the closest enclosing name.
 				 */
@@ -812,14 +809,15 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * caller wants to do.
 				 */
 				if (callback != NULL && CALLBACK(current)) {
+					chain->end = current;
 					result = chain_name(chain,
 							    callback_name,
-							    ISC_FALSE);
-
+							    ISC_TRUE);
 					if (result != DNS_R_SUCCESS) {
 						dns_rbtnodechain_reset(chain);
 						return (result);
 					}
+					chain->end = NULL;
 
 					result = (callback)(current,
 							    callback_name,
@@ -838,6 +836,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				/*
 				 * Search in the next tree level.
 				 */
+				ADD_ANCESTOR(chain, NULL);
+				ADD_LEVEL(chain, current);
+
 				current = DOWN(current);
 
 			} else {
