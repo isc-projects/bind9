@@ -1,5 +1,28 @@
-/* config.h.  Generated automatically by configure.  */
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/*
+ * Copyright (C) 2001  Internet Software Consortium.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+ * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+/* $Id: config.h.win32,v 1.4 2001/07/22 05:54:22 mayer Exp $ */
+
+/*
+ * win32 configuration file
+ * All definitions, declarations, macros and includes are
+ * specific to the requirements of the Windows NT and Windows 2000
+ * platforms
+ */
 
 /* Define to empty if the keyword does not work.  */
 /* #undef const */
@@ -78,6 +101,9 @@
 /* Define if you have the socket library (-lsocket).  */
 /* #undef HAVE_LIBSOCKET */
 
+/* Define if you have h_errno */
+#define HAVE_H_ERRNO
+
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */
 #define S_IFCHR  _S_IFCHR        /* character special */
@@ -95,8 +121,7 @@
 #define O_TRUNC         _O_TRUNC
 #define O_EXCL          _O_EXCL
 
-/* 
- * open() under unix allows setting of read/write permissions
+/* open() under unix allows setting of read/write permissions
  * at the owner, group and other levels.  These don't exist in NT
  * We'll just map them all to the NT equivalent 
  */
@@ -130,7 +155,7 @@
 #define utime _utime
 #define utimbuf _utimbuf
 
-/* #define EAFNOSUPPORT EINVAL */
+//#define EAFNOSUPPORT EINVAL
 #define chmod _chmod
 #define getpid _getpid
 #define getppid _getpid	/* WARNING!!! For now this gets the same pid */
@@ -144,12 +169,8 @@ typedef int ssize_t;
 typedef long off_t;
 
 /*
- * This is where the system needs to look for the files
+ * Set up the Version Information
  */
-/*
- * Set up the NT Path Information
- */
-/* #include <isc/ntpaths.h> */
 #include <versions.h>
 /*
  * Information about where this are on disk
@@ -161,13 +182,20 @@ typedef long off_t;
  * DO NOT REMOVE TRAILING COMMENT, even though it is not conformant
  * to C standards
  */
-#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); /* Done */
+#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); // Done
 /* We actually are using the CryptAPI and not a device */
 #define PATH_RANDOMDEV		"CryptAPI"
 
 #include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
+
+/*
+ * Applications may need to get the configuration path
+ */
+#ifndef _USRDLL
+#include <isc/ntpaths.h>
+#endif
 
 /*
  * Outside of lib isc we need to redefine these functions
