@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.36.4.2 2001/02/07 02:41:47 gson Exp $ */
+/* $Id: connection.c,v 1.36.4.3 2001/03/27 00:14:52 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -47,7 +47,7 @@ get_address(const char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
 	/*
 	 * Is this an IPv6 numeric address?
 	 */
-	if (isc_net_probeipv6 == ISC_R_SUCCESS &&
+	if (isc_net_probeipv6() == ISC_R_SUCCESS &&
 	    inet_pton(AF_INET6, hostname, &in6) == 1)
 		isc_sockaddr_fromin6(sockaddr, &in6, port);
 

@@ -1,6 +1,8 @@
 
 	--- 9.1.1 released ---
 
+ 791.	[bug]		The command channel now works over IPv6.
+
  790.	[bug]		Wildcards created using dynamic update or IXFR
 			could fail to match. [RT #1111]
 

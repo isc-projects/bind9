@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.31.4.1 2001/01/09 22:52:59 bwelling Exp $ */
+/* $Id: listener.c,v 1.31.4.2 2001/03/27 00:14:54 bwelling Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -321,7 +321,7 @@ omapi_listener_listen(omapi_object_t *manager, isc_sockaddr_t *addr,
 	 * Create a socket on which to listen.
 	 */
 	listener->socket = NULL;
-	result = isc_socket_create(omapi_socketmgr, PF_INET,
+	result = isc_socket_create(omapi_socketmgr, isc_sockaddr_pf(addr),
 				   isc_sockettype_tcp, &listener->socket);
 
 	if (result == ISC_R_SUCCESS)
