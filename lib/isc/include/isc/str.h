@@ -15,16 +15,25 @@
  * SOFTWARE.
  */
 
-#ifndef ISC_INT_H
-#define ISC_INT_H 1
+ /* $Id: str.h,v 1.1 1999/02/05 04:57:20 marka Exp $ */
 
-typedef char				isc_int8_t;
-typedef unsigned char			isc_uint8_t;
-typedef short				isc_int16_t;
-typedef unsigned short			isc_uint16_t;
-typedef int				isc_int32_t;
-typedef unsigned int			isc_uint32_t;
-typedef long long			isc_int64_t;
-typedef unsigned long long		isc_uint64_t;
+#ifndef ISC_STR_H
+#define ISC_STR_H 1
+#include <isc/types.h>
+
+isc_uint64_t isc_strtouq(char *source, char **endp, int base);
+
+/*
+ * Convert the string pointed to by 'source' to isc_uint64_t.
+ * 
+ * On successful conversion 'endp' points to the first character
+ * after conversion is complete.
+ * 
+ * 'base': 0 or 2..36
+ *
+ * If base is 0 the base is computed from the string type.
+ *
+ * On error 'endp' points to 'source'.
+ */
 
 #endif /* ISC_INT_H */

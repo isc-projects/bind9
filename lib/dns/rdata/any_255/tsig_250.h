@@ -15,12 +15,13 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.h,v 1.1 1999/02/04 01:06:40 marka Exp $ */
+ /* $Id: tsig_250.h,v 1.2 1999/02/05 04:57:19 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
 #ifndef RDATA_ANY_255_TSIG_250_H
 #define RDATA_ANY_255_TSIG_250_H
+#include <isc/str.h>
 
 static dns_result_t
 fromtext_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -29,7 +30,7 @@ fromtext_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
 {
 	isc_token_t token;
 	dns_name_t name;
-	unsigned long long sigtime;
+	isc_uint64_t sigtime;
 	isc_buffer_t buffer;
 	char *e;
 
@@ -46,7 +47,7 @@ fromtext_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* Time Signed: 48 bits */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	sigtime = strtouq(token.value.as_pointer, &e, 10);
+	sigtime = isc_strtouq(token.value.as_pointer, &e, 10);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
@@ -99,7 +100,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	unsigned long long sigtime;
+	isc_uint64_t sigtime;
 	unsigned short n;
 
 	REQUIRE(rdata->type == 250);
@@ -116,8 +117,8 @@ totext_any_tsig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_consume(&sr, name_length(&name));
 
 	/* Time Signed */
-	sigtime = ((unsigned long long)sr.base[0] << 40) |
-		  ((unsigned long long)sr.base[1] << 32) |
+	sigtime = ((isc_uint64_t)sr.base[0] << 40) |
+		  ((isc_uint64_t)sr.base[1] << 32) |
 		  (sr.base[2] << 24) | (sr.base[3] << 16) |
 		  (sr.base[4] << 8) | sr.base[5];
 	isc_region_consume(&sr, 6);

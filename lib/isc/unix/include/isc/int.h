@@ -24,5 +24,7 @@ typedef short				isc_int16_t;
 typedef unsigned short			isc_uint16_t;
 typedef int				isc_int32_t;
 typedef unsigned int			isc_uint32_t;
+typedef long long			isc_int64_t;
+typedef unsigned long long		isc_uint64_t;
 
 #endif /* ISC_INT_H */

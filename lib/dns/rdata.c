@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.26 1999/02/05 00:05:44 marka Exp $ */
+ /* $Id: rdata.c,v 1.27 1999/02/05 04:57:19 marka Exp $ */
 
 #include <config.h>
 
@@ -55,12 +55,12 @@ static isc_boolean_t	buffer_empty(isc_buffer_t *source);
 static void		buffer_fromregion(isc_buffer_t *buffer,
 					  isc_region_t *region,
 					  unsigned int type);
-static dns_result_t	uint32_tobuffer(unsigned long value,
+static dns_result_t	uint32_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
-static dns_result_t	uint16_tobuffer(unsigned long value,
+static dns_result_t	uint16_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
-static unsigned long	uint32_fromregion(isc_region_t *region);
-static unsigned short	uint16_fromregion(isc_region_t *region);
+static isc_uint32_t	uint32_fromregion(isc_region_t *region);
+static isc_uint16_t	uint16_fromregion(isc_region_t *region);
 static dns_result_t	gettoken(isc_lex_t *lexer, isc_token_t *token,
 				 isc_tokentype_t expect, isc_boolean_t eol);
 static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
@@ -708,7 +708,7 @@ buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region,
 }
 
 static dns_result_t
-uint32_tobuffer(unsigned long value, isc_buffer_t *target) {
+uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	isc_buffer_available(target, &region);
@@ -723,7 +723,7 @@ uint32_tobuffer(unsigned long value, isc_buffer_t *target) {
 }
 
 static dns_result_t
-uint16_tobuffer(unsigned long value, isc_buffer_t *target) {
+uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	if (value > 0xffff)
@@ -737,7 +737,7 @@ uint16_tobuffer(unsigned long value, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-static unsigned long
+static isc_uint32_t
 uint32_fromregion(isc_region_t *region) {
 	unsigned long value;
 	
@@ -749,7 +749,7 @@ uint32_fromregion(isc_region_t *region) {
 	return(value);
 }
 
-static unsigned short
+static isc_uint16_t
 uint16_fromregion(isc_region_t *region) {
 	
 	INSIST(region->length >= 2);
@@ -943,9 +943,9 @@ static int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 static dns_result_t
 time_totext(unsigned long value, isc_buffer_t *target) {
-	long long start;
-	long long base;
-	long long t;
+	isc_int64_t start;
+	isc_int64_t base;
+	isc_int64_t t;
 	struct tm tm;
 	char buf[sizeof "YYYYMMDDHHMMSS"];
 	int secs;
@@ -1056,11 +1056,11 @@ static const char atob_digits[86] =
 
 
 struct state {
-	int32_t Ceor;
-	int32_t Csum;
-	int32_t Crot;
-	int32_t word;
-	int32_t bcount;
+	isc_int32_t Ceor;
+	isc_int32_t Csum;
+	isc_int32_t Crot;
+	isc_int32_t word;
+	isc_int32_t bcount;
 };
 
 #define Ceor state->Ceor
@@ -1150,7 +1150,7 @@ putbyte(int c, isc_buffer_t *target, struct state *state) {
 
 static dns_result_t
 atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
-	int32_t oeor, osum, orot;
+	isc_int32_t oeor, osum, orot;
 	struct state statebuf, *state= &statebuf;
 	isc_token_t token;
 	char c;
@@ -1223,7 +1223,7 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 			isc_buffer_add(target, 1);
 		} else {
 		    register int tmp = 0;
-		    register int32_t tmpword = word;
+		    register isc_int32_t tmpword = word;
 			
 		    if (tmpword < 0) {	
 			   /* Because some don't support u_long */
