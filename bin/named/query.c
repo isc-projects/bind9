@@ -54,8 +54,6 @@
 #include <named/server.h>
 #include <named/xfrout.h>
 
-#include "../../isc/util.h"		/* XXX */
-
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)
 #define USECACHE(c)		(((c)->query.attributes & \
