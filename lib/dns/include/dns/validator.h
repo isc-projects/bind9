@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.22 2002/07/15 03:27:44 marka Exp $ */
+/* $Id: validator.h,v 1.23 2003/04/10 02:06:51 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -51,6 +51,7 @@
 #include <isc/event.h>
 #include <isc/mutex.h>
 
+#include <dns/fixedname.h>
 #include <dns/types.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h> /* for dns_rdata_sig_t */

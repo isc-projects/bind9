@@ -15,15 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.2 2002/02/20 03:35:52 marka Exp $ */
+/* $Id: grammar.h,v 1.3 2003/04/10 02:06:51 marka Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
 
+#include <isc/lex.h>
 #include <isc/netaddr.h>
 #include <isc/sockaddr.h>
 #include <isc/region.h>
 #include <isc/types.h>
+
+#include <isccfg/cfg.h>
 
 /*
  * Definitions shared between the configuration parser
