@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.13 2000/06/23 21:05:21 tale Exp $ */
+/* $Id: omapi.h,v 1.14 2000/07/10 11:22:59 tale Exp $ */
 
 /*
  * Definitions for the object management API and protocol.
@@ -114,10 +114,20 @@ omapi_protocol_connect(omapi_object_t *object, const char *server,
 void
 omapi_protocol_disconnect(omapi_object_t *handle, isc_boolean_t force);
 
+/*
+ * XXXDCL The use of one void *arg for all three callbacks/taskactions is
+ * questionable.
+ */
 isc_result_t
 omapi_protocol_listen(omapi_object_t *mgr, isc_sockaddr_t *addr,
-		      dns_acl_t *acl, int backlog,
-		      isc_taskaction_t destroy_action, void *destroy_arg);
+		      isc_boolean_t ((*verify_connection)
+				     (isc_sockaddr_t *incoming,
+				      void *connect_arg)),
+		      isc_boolean_t ((*verify_key)
+				     (const char *name,
+				      unsigned int algorithm,
+				      void *key_arg)),
+		      isc_taskaction_t destroy_action, void *arg);
 
 /*
  * Public functions defined in connection.c.
@@ -152,8 +162,14 @@ omapi_connection_puthandle(omapi_object_t *connection, omapi_object_t *object);
  */
 isc_result_t
 omapi_listener_listen(omapi_object_t *mgr, isc_sockaddr_t *addr,
-		      dns_acl_t *acl, unsigned int backlog,
-		      isc_taskaction_t destroy_action, void *destroy_arg);
+		      isc_boolean_t ((*verify_connection)
+				     (isc_sockaddr_t *incoming,
+				      void *connect_arg)),
+		      isc_boolean_t ((*verify_key)
+				     (const char *name,
+				      unsigned int algorithm,
+				      void *key_arg)),
+		      isc_taskaction_t destroy_action, void *arg);
 
 void
 omapi_listener_shutdown(omapi_object_t *mgr);

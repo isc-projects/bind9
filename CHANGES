@@ -1,10 +1,14 @@
+ 317.	[func]		Use callbacks from libomapi to determine if a
+			new connection is valid, and if a key requested
+			to be used with that connection is valid.
+
  316.	[bug]		Generate a warning if we detect an unexpected <eof>
 			but treat as <eol><eof>.
 
  315.	[bug]		Handle non-empty blanks lines. (RT #163)
 
- 314.	[func]		Inet controls named.conf statement can now have 
-			any non-negative number of keys specified.
+ 314.	[func]		The named.conf controls statement can now have 
+			more than one key specified for the inet clause.
 
  313.	[bug]		When parsing resolv.conf, don't terminate on an
 			error.  Instead, parse as much as possible, but
@@ -81,6 +85,8 @@
 			root directory, so the administrator does not need to
 			keep a copy of the user and group databases in the
 			chroot'ed environment.  Suggested by Hakan Olsson.
+
+	--- 9.0.0b5 released ---
 
  298.	[bug]		A mutex deadlock occurred during shutdown of the
 			interface manager under certain conditions.
