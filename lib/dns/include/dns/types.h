@@ -26,6 +26,7 @@
  * include the appropriate .h file too.
  */
 
+#include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/region.h>
 #include <isc/int.h>
@@ -39,6 +40,7 @@ typedef ISC_LIST(dns_name_t)			dns_namelist_t;
 typedef struct dns_fixedname			dns_fixedname_t;
 typedef struct dns_db				dns_db_t;
 typedef void					dns_dbnode_t;
+typedef void					dns_dbload_t;
 typedef void					dns_dbversion_t;
 typedef struct dns_dbiterator			dns_dbiterator_t;
 typedef unsigned char				dns_offsets_t[128];
@@ -152,6 +154,13 @@ enum {
 	dns_opcode_notify = 4,
 	dns_opcode_update = 5		/* dynamic update */
 };
+
+/*
+ * Functions.
+ */
+
+typedef isc_result_t
+(*dns_addrdatasetfunc_t)(void *, dns_name_t *, dns_rdataset_t *);
 
 ISC_LANG_ENDDECLS
 
