@@ -1424,6 +1424,13 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 	return (result);
 }
 
+static inline isc_boolean_t
+rootname(dns_name_t *name) {
+	if (dns_name_countlabels(name) == 1 && dns_name_isabsolute(name))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
 static inline isc_result_t
 find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 dns_name_t *foundname, dns_rdataset_t *rdataset,
@@ -1504,6 +1511,8 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 * that we're looking at one.  For now, we
 				 * do nothing.
 				 */
+				if (rootname(name))
+					origin = NULL;
 				result = dns_name_concatenate(name,
 							      origin,
 							      foundname, NULL);
@@ -4458,13 +4467,6 @@ dbiterator_next(dns_dbiterator_t *iterator) {
 		rbtdbiter->result = result;
 
 	return (result);
-}
-
-static inline isc_boolean_t
-rootname(dns_name_t *name) {
-	if (dns_name_countlabels(name) == 1 && dns_name_isabsolute(name))
-		return (ISC_TRUE);
-	return (ISC_FALSE);
 }
 
 static isc_result_t
