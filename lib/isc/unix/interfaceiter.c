@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.29 2002/10/28 02:16:21 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.30 2002/11/26 03:16:31 marka Exp $ */
 
 #include <config.h>
 
@@ -63,6 +63,9 @@ static void
 get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 	struct sockaddr_in6 *sa6;
 
+	/* clear any remaining value for safety */
+	memset(dst, 0, sizeof(*dst));
+
 	dst->family = family;
 	switch (family) {
 	case AF_INET:
@@ -77,9 +80,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 #ifdef ISC_PLATFORM_HAVESCOPEID
 		if (sa6->sin6_scope_id != 0)
 			isc_netaddr_setzone(dst, sa6->sin6_scope_id);
-		else 
-#endif
-		{
+		else {
 			/*
 			 * BSD variants embed scope zone IDs in the 128bit
 			 * address as a kernel internal form.  Unfortunately,
@@ -105,6 +106,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 				}
 			}
 		}
+#endif
 		break;
 	default:
 		INSIST(0);
