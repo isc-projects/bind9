@@ -35,6 +35,7 @@
 #include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/compress.h>
 #include <dns/db.h>
 
@@ -72,6 +73,39 @@ freename(isc_mem_t *mctx, dns_name_t *name) {
 	dns_name_invalidate(name);
 }
 
+static void
+print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
+	isc_buffer_t text;
+	char t[1000];
+	dns_result_t result;
+	isc_region_t r;
+
+	isc_buffer_init(&text, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+	result = dns_rdataset_totext(rdataset, name, ISC_FALSE, &text);
+	isc_buffer_used(&text, &r);
+	if (result == DNS_R_SUCCESS)
+		printf("%.*s", (int)r.length, (char *)r.base);
+	else
+		printf("%s\n", dns_result_totext(result));
+}
+
+static void
+print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter) {
+	dns_result_t result;
+	dns_rdataset_t rdataset;
+
+	dns_rdataset_init(&rdataset);
+	result = dns_rdatasetiter_first(rdsiter);
+	while (result == DNS_R_SUCCESS) {
+		dns_rdatasetiter_current(rdsiter, &rdataset);
+		print_rdataset(name, &rdataset);
+		dns_rdataset_disassociate(&rdataset);
+		result = dns_rdatasetiter_next(rdsiter);
+	}
+	if (result != DNS_R_NOMORE)
+		printf("%s\n", dns_result_totext(result));
+}
+
 int
 main(int argc, char *argv[]) {
 	isc_mem_t *mctx = NULL;
@@ -81,12 +115,10 @@ main(int argc, char *argv[]) {
 	dns_name_t name, base, *origin;
 	dns_offsets_t offsets;
 	size_t len;
-	isc_buffer_t source, target, text;
+	isc_buffer_t source, target;
 	char s[1000];
-	char t[1000];
 	char b[255];
 	dns_rdataset_t rdataset;
-	isc_region_t r;
 	char basetext[1000];
 	char dbtype[128];
 	int ch;
@@ -99,6 +131,7 @@ main(int argc, char *argv[]) {
 	dns_dbversion_t *wversion = NULL;
 	dns_dbversion_t *rversions[100];
 	int i, rcount = 0, v;
+	dns_rdatasetiter_t *rdsiter;
 
 	strcpy(basetext, "");
 	strcpy(dbtype, "rbt");
@@ -280,45 +313,51 @@ main(int argc, char *argv[]) {
 			if (printnode)
 				dns_db_printnode(db, node, stdout);
 			dns_rdataset_init(&rdataset);
-			result = dns_db_findrdataset(db, node, version, type,
-						     &rdataset);
-			if (result == DNS_R_NOTFOUND)
-				printf("type %d rdataset not found\n", type);
-			else if (result != DNS_R_SUCCESS)
-				printf("%s\n", dns_result_totext(result));
-			else {
-				isc_buffer_init(&text, t, sizeof t,
-						ISC_BUFFERTYPE_TEXT);
-				result = dns_rdataset_totext(&rdataset,
-							     &name,
-							     ISC_FALSE,
-							     &text);
-				isc_buffer_used(&text, &r);
+			if (type == dns_rdatatype_any) {
+				rdsiter = NULL;
+				result = dns_db_allrdatasets(db, node,
+							     version,
+							     &rdsiter);
 				if (result == DNS_R_SUCCESS)
-					printf("%.*s", (int)r.length,
-					       (char *)r.base);
+					print_rdatasets(&name, rdsiter);
 				else
 					printf("%s\n",
 					       dns_result_totext(result));
-				if (addmode) {
-					rdataset.ttl++;
-					result = dns_db_addrdataset(db,
-								    node,
-								    version,
-								    &rdataset);
-					if (result != DNS_R_SUCCESS)
-						printf("%s\n",
+				dns_rdatasetiter_destroy(&rdsiter);
+			} else {
+				result = dns_db_findrdataset(db, node,
+							     version, type,
+							     &rdataset);
+				if (result == DNS_R_NOTFOUND)
+					printf("type %d rdataset not found\n",
+					       type);
+				else if (result != DNS_R_SUCCESS)
+					printf("%s\n",
+					       dns_result_totext(result));
+				else {
+					print_rdataset(&name, &rdataset);
+					if (addmode) {
+						rdataset.ttl++;
+						result =
+							dns_db_addrdataset(db,
+								   node,
+								   version,
+								   &rdataset);
+						if (result != DNS_R_SUCCESS)
+							printf("%s\n",
 						  dns_result_totext(result));
-				} else if (delmode) {
-					result = dns_db_deleterdataset(db,
-								       node,
-								       version,
-								       type);
-					if (result != DNS_R_SUCCESS)
-						printf("%s\n",
+					} else if (delmode) {
+						result =
+						    dns_db_deleterdataset(db,
+								   node,
+								   version,
+								   type);
+						if (result != DNS_R_SUCCESS)
+							printf("%s\n",
 						  dns_result_totext(result));
+					}
+					dns_rdataset_disassociate(&rdataset);
 				}
-				dns_rdataset_disassociate(&rdataset);
 			}
 			dns_db_detachnode(db, &node);
 		}
