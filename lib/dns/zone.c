@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.10 2004/10/06 05:41:56 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.11 2004/10/26 02:06:49 marka Exp $ */
 
 #include <config.h>
 
@@ -2200,7 +2200,6 @@ zone_expire(dns_zone_t *zone) {
 	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
 	zone->retry = DNS_ZONE_DEFAULTRETRY;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
 	zone_unload(zone);
 }
 
@@ -2555,6 +2554,7 @@ zone_unload(dns_zone_t *zone) {
 
 	dns_db_detach(&zone->db);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADED);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
 }
 
 void
@@ -5213,12 +5213,30 @@ static isc_result_t
 zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	dns_dbversion_t *ver;
 	isc_result_t result;
+	unsigned int soacount = 0;
+	unsigned int nscount = 0;
 
 	/*
 	 * 'zone' locked by caller.
 	 */
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
+
+	result = zone_get_from_db(db, &zone->origin, &nscount, &soacount,
+				  NULL, NULL, NULL, NULL, NULL);
+	if (result == ISC_R_SUCCESS) {
+		if (soacount != 1) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "has %d SOA records", soacount);
+			result = DNS_R_BADZONE;
+		}
+		if (nscount == 0) {
+			dns_zone_log(zone, ISC_LOG_ERROR, "has no NS records");
+			result = DNS_R_BADZONE;
+		}
+	}
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	ver = NULL;
 	dns_db_currentversion(db, &ver);
@@ -5369,10 +5387,19 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 					     "transferred zone "
 					     "has %d SOA record%s", soacount,
 					     (soacount != 0) ? "s" : "");
-			if (nscount == 0)
+			if (nscount == 0) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transferred zone "
 					     "has no NS records");
+				if (DNS_ZONE_FLAG(zone,
+						  DNS_ZONEFLG_HAVETIMERS)) {
+					zone->refresh = DNS_ZONE_DEFAULTREFRESH;
+					zone->retry = DNS_ZONE_DEFAULTRETRY;
+				}
+				DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
+				zone_unload(zone);
+				goto next_master;
+			}
 			zone->serial = serial;
 			zone->refresh = RANGE(refresh, zone->minrefresh,
 					      zone->maxrefresh);
@@ -5447,6 +5474,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		goto same_master;
 
 	default:
+	next_master:
 		zone->curmaster++;
 	same_master:
 		if (zone->curmaster >= zone->masterscnt) {

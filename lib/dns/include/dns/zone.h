@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126 2004/03/05 05:09:47 marka Exp $ */
+/* $Id: zone.h,v 1.126.18.1 2004/10/26 02:06:49 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -971,6 +971,13 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump);
  *
  * Requires:
  *	'zone' to be a valid zone.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_BADZONE	zone failed basic consistancy checks:
+ *			* a single SOA must exist
+ *			* some NS records must exist.
+ *	Others
  */
 
 isc_uint32_t
