@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2003  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.17 2004/01/26 23:47:04 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.18 2004/03/04 05:48:23 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -800,23 +800,28 @@ isc_result_t
 socket_event_add(isc_socket_t *sock, long type) {
 	int stat;
 	WSAEVENT hEvent;
+	char strbuf[ISC_STRERRORSIZE];
+	const char *msg;
 
 	REQUIRE(sock != NULL);
 
 	hEvent = WSACreateEvent();
 	if (hEvent == WSA_INVALID_EVENT) {
 		stat = WSAGetLastError();
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSACreateEvent: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed"),
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSACreateEvent: %s: %s",
+				 msg, strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 	if (WSAEventSelect(sock->fd, hEvent, type) != 0) {
 		stat = WSAGetLastError();
-		WSACloseEvent(hEvent);
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s: %s",
+				 msg, strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 	sock->hEvent = hEvent;
@@ -918,7 +923,7 @@ internal_sendmsg(isc_socket_t *sock, IoCompletionInfo *lpo,
 			case WSA_IO_INCOMPLETE :
 			case WSA_WAIT_IO_COMPLETION :
 			case WSA_IO_PENDING :
-				break ;
+				break;
 
 			default :
 				return (-1);
@@ -963,7 +968,7 @@ internal_recvmsg(isc_socket_t *sock, IoCompletionInfo *lpo,
 			case WSA_IO_INCOMPLETE :
 			case WSA_WAIT_IO_COMPLETION :
 			case WSA_IO_PENDING :
-					break ;
+					break;
 
 			default :
 					return (-1);
@@ -1023,7 +1028,7 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 			       msgcat, msgset, message,
 			       "socket %p: %s", sock, msgbuf);
 	} else {
-		isc_sockaddr_format(address, peerbuf, sizeof peerbuf);
+		isc_sockaddr_format(address, peerbuf, sizeof(peerbuf));
 		isc_log_iwrite(isc_lctx, category, module, level,
 			       msgcat, msgset, message,
 			       "socket %p %s: %s", sock, peerbuf, msgbuf);
@@ -1109,7 +1114,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	size_t write_count;
 	size_t skip_count;
 
-	memset(msg, 0, sizeof (*msg));
+	memset(msg, 0, sizeof(*msg));
 
 	if (sock->type == isc_sockettype_udp) {
 		msg->msg_name = (void *)&dev->address.type.sa;
@@ -1195,7 +1200,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	isc_region_t available;
 	size_t read_count;
 
-	memset(msg, 0, sizeof (struct msghdr));
+	memset(msg, 0, sizeof(struct msghdr));
 
 	if (sock->type == isc_sockettype_udp) {
 		memset(&dev->address, 0, sizeof(dev->address));
@@ -1281,7 +1286,7 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 	ev = (isc_socketevent_t *)isc_event_allocate(sock->manager->mctx,
 						     sock, eventtype,
 						     action, arg,
-						     sizeof (*ev));
+						     sizeof(*ev));
 
 	if (ev == NULL)
 		return (NULL);
@@ -1305,7 +1310,7 @@ dump_msg(struct msghdr *msg, isc_socket_t *sock) {
 	printf("MSGHDR %p, Socket #: %u\n", msg, sock->fd);
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
-	for (i = 0 ; i < (unsigned int)msg->msg_iovlen ; i++)
+	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
 		printf("\t\t%d\tbase %p, len %d\n", i,
 		       msg->msg_iov[i].buf,
 		       msg->msg_iov[i].len);
@@ -1691,7 +1696,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	isc_socket_t *sock;
 	isc_result_t ret;
 
-	sock = isc_mem_get(manager->mctx, sizeof *sock);
+	sock = isc_mem_get(manager->mctx, sizeof(*sock));
 
 	if (sock == NULL)
 		return (ISC_R_NOMEMORY);
@@ -1871,7 +1876,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		/* 2292bis */
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
-				   (void *)&on, sizeof (on)) < 0)) {
+				   (void *)&on, sizeof(on)) < 0)) {
 			isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_RECVPKTINFO) "
@@ -1886,7 +1891,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		/* 2292 */
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
-				   (void *)&on, sizeof (on)) < 0)) {
+				   (void *)&on, sizeof(on)) < 0)) {
 			isc__strerror(WSAGetLaastError(), strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_PKTINFO) %s: %s",
@@ -1903,7 +1908,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		if (pf == AF_INET6) {
 			(void)setsockopt(sock->fd, IPPROTO_IPV6,
 					 IPV6_USE_MIN_MTU,
-					 (void *)&on, sizeof (on));
+					 (void *)&on, sizeof(on));
 		}
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
@@ -2101,6 +2106,22 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 	 */
 	dev = ISC_LIST_HEAD(sock->accept_list);
 	if (dev == NULL) {
+		isc_sockaddr_t from;
+		/*
+		 * This should only happen if WSAEventSelect() fails
+		 * below or in isc_socket_cancel().
+		 */
+		addrlen = sizeof(from.type);
+		fd = accept(sock->fd, &from.type.sa, &addrlen);
+		if (fd != INVALID_SOCKET) {
+			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&from, addrbuf, sizeof(addrbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "sock->accept_list empty: "
+					 "dropping TCP request from %s",
+					 addrbuf);
+			(void)closesocket(fd);
+		}
 		UNLOCK(&sock->lock);
 		return;
 	}
@@ -2110,7 +2131,7 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 	 * EAGAIN or EINTR, the event wait will be notified again since
 	 * the event will be reset on return to caller.
 	 */
-	addrlen = sizeof dev->newsocket->address.type;
+	addrlen = sizeof(dev->newsocket->address.type);
 	memset(&dev->newsocket->address.type.sa, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
@@ -2164,6 +2185,21 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 	 */
 	ISC_LIST_UNLINK(sock->accept_list, dev, ev_link);
 
+	/*
+	 * Stop listing for connects.
+	 */
+	if (ISC_LIST_EMPTY(sock->accept_list) &&
+	    WSAEventSelect(sock->fd, sock->hEvent, FD_CLOSE) != 0) {
+		int stat;
+		const char *msg;
+		stat = WSAGetLastError();
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s: %s",
+				 msg, strbuf);
+	}
+
 	UNLOCK(&sock->lock);
 
 	if (fd != INVALID_SOCKET) {
@@ -2186,6 +2222,23 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 		dev->newsocket->fd = fd;
 		dev->newsocket->bound = 1;
 		dev->newsocket->connected = 1;
+
+		/*
+		 * The accept socket inherits the listen socket's
+		 * selected events. Remove this socket from all events
+		 * as it is handled by IOCP. (Joe Quanaim, lucent.com)
+		 */
+		if (WSAEventSelect(dev->newsocket->fd, 0, 0) != 0) {
+			/* this is an unlikely but non-fatal error */
+			int stat;
+			const char *msg;
+			stat = WSAGetLastError();
+			isc__strerror(stat, strbuf, sizeof(strbuf));
+			msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+					     ISC_MSG_FAILED, "failed");
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "WSAEventSelect: %s: %s", msg, strbuf);
+		}
 
 		/*
 		 * Save away the remote address
@@ -2599,7 +2652,7 @@ event_wait(void *uap) {
 		if (wsock == NULL)
 			continue;
 
-		if (WSAEnumNetworkEvents(wsock->fd, 0,
+		if (WSAEnumNetworkEvents(wsock->fd, wsock->hEvent,
 			&NetworkEvents) == SOCKET_ERROR) {
 			err = WSAGetLastError();
 			isc__strerror(err, strbuf, sizeof(strbuf));
@@ -2610,7 +2663,6 @@ event_wait(void *uap) {
 		}
 
 		if(NetworkEvents.lNetworkEvents == 0 ) {
-			WSAResetEvent(wsock->hEvent);
 			continue;
 		}
 
@@ -2646,8 +2698,6 @@ event_wait(void *uap) {
 				internal_connect(wsock, event_errno);
 			}
 		}
-		if (wsock->hEvent != NULL)
-			WSAResetEvent(wsock->hEvent);
 	}
 
 	manager_log(manager, TRACE,
@@ -2684,7 +2734,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	}
 	if (isc_condition_init(&manager->shutdown_ok) != ISC_R_SUCCESS) {
 		DESTROYLOCK(&manager->lock);
-		isc_mem_put(mctx, manager, sizeof (*manager));
+		isc_mem_put(mctx, manager, sizeof(*manager));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_condition_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -2802,7 +2852,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
 	mctx= manager->mctx;
-	isc_mem_put(mctx, manager, sizeof *manager);
+	isc_mem_put(mctx, manager, sizeof(*manager));
 
 	isc_mem_detach(&mctx);
 
@@ -3160,7 +3210,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 		return (ISC_R_FAMILYMISMATCH);
 	}
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
-		       sizeof on) < 0) {
+		       sizeof(on)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d) %s", sock->fd,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -3242,7 +3292,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 	sock->listener = 1;
 
 	/* Add the socket to the list of events to accept */
-	retstat = socket_event_add(sock, FD_ACCEPT | FD_CLOSE);
+	retstat = socket_event_add(sock, FD_CLOSE);
 	if (retstat != ISC_R_SUCCESS) {
 		UNLOCK(&sock->lock);
 		if (retstat != ISC_R_NOSPACE) {
@@ -3287,7 +3337,7 @@ isc_socket_accept(isc_socket_t *sock,
 	 */
 	dev = (isc_socket_newconnev_t *)
 		isc_event_allocate(manager->mctx, task, ISC_SOCKEVENT_NEWCONN,
-				   action, arg, sizeof (*dev));
+				   action, arg, sizeof(*dev));
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3310,6 +3360,26 @@ isc_socket_accept(isc_socket_t *sock,
 	dev->ev_sender = ntask;
 	dev->newsocket = nsock;
 
+	/*
+	 * Wait for connects.
+	 */
+	if (ISC_LIST_EMPTY(sock->accept_list) &&
+	    WSAEventSelect(sock->fd, sock->hEvent, FD_ACCEPT | FD_CLOSE) != 0) {
+		char strbuf[ISC_STRERRORSIZE];
+		int stat;
+		const char *msg;
+		stat = WSAGetLastError();
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s: %s",
+				 msg, strbuf);
+		isc_task_detach(&ntask);
+		isc_socket_detach(&nsock);
+		isc_event_free((isc_event_t **)&dev);
+		UNLOCK(&sock->lock);
+		return (ISC_R_UNEXPECTED);
+	}
 	/*
 	 * Enqueue the event
 	 */
@@ -3350,7 +3420,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	dev = (isc_socket_connev_t *)isc_event_allocate(manager->mctx, sock,
 							ISC_SOCKEVENT_CONNECT,
 							action,	arg,
-							sizeof (*dev));
+							sizeof(*dev));
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -3484,7 +3554,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 
 	ret = ISC_R_SUCCESS;
 
-	len = sizeof addressp->type;
+	len = sizeof(addressp->type);
 	if (getsockname(sock->fd, &addressp->type.sa, (void *)&len) < 0) {
 		isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "getsockname: %s",
@@ -3594,6 +3664,18 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 			}
 
 			dev = next;
+		}
+		if (sock->hEvent != NULL &&
+		    WSAEventSelect(sock->fd, sock->hEvent, FD_CLOSE) != 0) {
+			char strbuf[ISC_STRERRORSIZE];
+			int stat;
+			const char *msg;
+			stat = WSAGetLastError();
+			isc__strerror(stat, strbuf, sizeof(strbuf));
+			msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+					     ISC_MSG_FAILED, "failed");
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "WSAEventSelect: %s: %s", msg, strbuf);
 		}
 	}
 
