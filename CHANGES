@@ -1,6 +1,8 @@
 1463.	[bug]		dns_rdata_from{wire,struct}() failed to catch bad
 			NXT bit maps. [RT #5577]
 
+1461.	[bug]		Remove deadlock from rbtdb code. [RT #5599]
+
 1460.	[bug]		inet_pton() failed to reject certain malformed
 			IPv6 literals.
 

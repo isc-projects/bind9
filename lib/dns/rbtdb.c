@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.9 2003/05/15 04:52:04 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.10 2003/05/15 06:08:40 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -795,10 +795,10 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 * we only do a trylock.
 		 */
 		if (lock == isc_rwlocktype_read)
-			RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-
-		result = isc_rwlock_trylock(&rbtdb->tree_lock,
-					    isc_rwlocktype_write);
+			result = isc_rwlock_tryupgrade(&rbtdb->tree_lock);
+		else
+			result = isc_rwlock_trylock(&rbtdb->tree_lock,
+						    isc_rwlocktype_write);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS ||
 			      result == ISC_R_LOCKBUSY);
  
@@ -829,12 +829,13 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	/*
 	 * Relock a read lock, or unlock the write lock if no lock was held.
 	 */
-	if (lock != isc_rwlocktype_write)
+	if (lock == isc_rwlocktype_none)
 		if (write_locked)
 			RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 
 	if (lock == isc_rwlocktype_read)
-		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+		if (write_locked)
+			isc_rwlock_downgrade(&rbtdb->tree_lock);
 }
 
 static inline void
