@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.34 2000/04/14 20:13:43 explorer Exp $ */
+/* $Id: gen.c,v 1.35 2000/04/14 22:42:24 explorer Exp $ */
 
 #include <config.h>
 
@@ -616,13 +616,13 @@ main(int argc, char **argv) {
 				break;
 			case 251:
 				printf("\t{ \"IXFR\", "
-				       METANOTQUESTION " }%s\n",
+				       METAQUESTIONONLY " }%s\n",
 				       PRINT_COMMA(i));
 				special = 1;
 				break;
 			case 252:
 				printf("\t{ \"AXFR\", "
-				       METANOTQUESTION " }%s\n",
+				       METAQUESTIONONLY " }%s\n",
 				       PRINT_COMMA(i));
 				special = 1;
 				break;
