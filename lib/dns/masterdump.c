@@ -226,8 +226,11 @@ static isc_result_t
 totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	isc_result_t result;
 	
-	ctx->style = *style;
 	REQUIRE(style->tab_width != 0);
+
+	ctx->style = *style;
+	ctx->class_printed = ISC_FALSE;
+	
 	dns_fixedname_init(&ctx->origin_fixname);
 
 	/*
@@ -271,8 +274,9 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 		ctx->linebreak = NULL;
 	}
 
-	ctx->class_printed = ISC_FALSE;
 	ctx->origin = NULL;
+	ctx->current_ttl = 0;
+	ctx->current_ttl_valid = ISC_FALSE;
 	
 	return (ISC_R_SUCCESS);
 }
