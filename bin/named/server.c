@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.304 2001/03/14 21:53:23 halley Exp $ */
+/* $Id: server.c,v 1.305 2001/03/15 19:39:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1972,11 +1972,11 @@ load_configuration(const char *filename, ns_server_t *server,
  cleanup:
 	ns_aclconfctx_destroy(&aclconfctx);
 
-	if (config != NULL)
-		cfg_obj_destroy(parser, &config);
-
-	if (parser != NULL)
+	if (parser != NULL) {
+		if (config != NULL)
+			cfg_obj_destroy(parser, &config);
 		cfg_parser_destroy(&parser);
+	}
 
 	if (view != NULL)
 		dns_view_detach(&view);
