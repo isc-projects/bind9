@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.2 2001/01/09 22:44:31 bwelling Exp $ */
+/* $Id: zone.c,v 1.283.2.3 2001/01/11 18:38:58 gson Exp $ */
 
 #include <config.h>
 
@@ -362,7 +362,7 @@ static void queue_xfrin(dns_zone_t *zone);
 static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
 static void zone_iattach(dns_zone_t *source, dns_zone_t **target);
-void zone_idetach(dns_zone_t **zonep);
+static void zone_idetach(dns_zone_t **zonep);
 static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 				   isc_boolean_t dump);
 static isc_result_t default_journal(dns_zone_t *zone);
@@ -1503,7 +1503,7 @@ zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 		 "eref = %d, irefs = %d", source->erefs, source->irefs);
 }
 
-void
+static void
 zone_idetach(dns_zone_t **zonep) {
 	dns_zone_t *zone;
 
