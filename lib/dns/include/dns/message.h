@@ -165,16 +165,16 @@ struct dns_message {
 	dns_compress_t			cctx;
 
 	isc_mem_t		       *mctx;
+	isc_mempool_t		       *namepool;
+	isc_mempool_t		       *rdspool;
+
 	isc_bufferlist_t		scratchpad;
 	isc_bufferlist_t		cleanup;
 
-	isc_mempool_t		       *namepool;
 	ISC_LIST(dns_msgblock_t)	rdatas;
-	ISC_LIST(dns_msgblock_t)	rdatasets;
 	ISC_LIST(dns_msgblock_t)	rdatalists;
 
 	ISC_LIST(dns_rdata_t)		freerdata;
-	ISC_LIST(dns_rdataset_t)	freerdataset;
 	ISC_LIST(dns_rdatalist_t)	freerdatalist;
 
 	dns_rcode_t			tsigstatus;
