@@ -33,6 +33,7 @@
 #include <isc/socket.h>
 #include <isc/timer.h>
 #include <isc/app.h>
+#include <isc/dir.h>
 
 #include <dns/confparser.h>
 #include <dns/types.h>
@@ -326,6 +327,19 @@ load_configuration(const char *filename) {
 	view = NULL;
 	dns_view_attach(version_view, &view);
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
+
+	/*
+	 * Change directory.
+	 */
+	if (configctx->options != NULL &&
+	    configctx->options->directory != NULL) {
+		result = isc_dir_chdir(configctx->options->directory);
+		if (result != ISC_R_SUCCESS)
+			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+					"change directory to '%s' failed: %s",
+					configctx->options->directory,
+					isc_result_totext(result));
+	}
 
 	/*
 	 * Load zones.
