@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwpacket.c,v 1.9 2000/06/22 21:59:33 tale Exp $ */
+/* $Id: lwpacket.c,v 1.10 2000/06/27 18:01:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -65,6 +65,11 @@ lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt) {
 		return (LWRES_R_UNEXPECTEDEND);
 
 	pkt->length = lwres_buffer_getuint32(b);
+	/*
+	 * XXXBEW/MLG Checking that the buffer is long enough probably
+	 * shouldn't be done here, since this function is supposed to just
+	 * parse the header.
+	 */
 	if (pkt->length > space)
 		return (LWRES_R_UNEXPECTEDEND);
 	pkt->version = lwres_buffer_getuint16(b);
