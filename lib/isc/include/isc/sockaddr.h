@@ -41,6 +41,10 @@ isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
 isc_boolean_t
 isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
 
+isc_boolean_t
+isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
+			  unsigned int prefixlen);
+
 unsigned int
 isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
 

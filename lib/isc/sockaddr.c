@@ -67,7 +67,7 @@ isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
 
 
 /*
- * compare just the addresses (ignore ports)
+ * Compare just the addresses (ignore ports)
  */
 isc_boolean_t
 isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
@@ -76,11 +76,6 @@ isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
 
 	if (a->length != b->length)
 		return (ISC_FALSE);
-
-	/*
-	 * We don't just memcmp because the sin_zero field isn't always
-	 * zero.
-	 */
 
 	if (a->type.sa.sa_family != b->type.sa.sa_family)
 		return (ISC_FALSE);
@@ -97,6 +92,64 @@ isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
 		break;
 	default:
 		if (memcmp(&a->type, &b->type, a->length) != 0)
+			return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
+}
+
+/*
+ * Compare just a prefix of the addresses (ignore ports and
+ * low address bits)
+ */
+
+isc_boolean_t
+isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
+			  unsigned int prefixlen)
+{
+	unsigned char *pa, *pb;
+	unsigned int nbytes, nbits;
+	
+	REQUIRE(a != NULL && b != NULL);
+
+	if (a->length != b->length)
+		return (ISC_FALSE);
+
+	if (a->type.sa.sa_family != b->type.sa.sa_family)
+		return (ISC_FALSE);
+
+	switch (a->type.sa.sa_family) {
+	case AF_INET:
+		pa = (unsigned char *) &a->type.sin.sin_addr;
+		pb = (unsigned char *) &b->type.sin.sin_addr;
+		break;
+	case AF_INET6:
+		pa = ((unsigned char *) &a->type.sin6.sin6_addr);
+		pb = ((unsigned char *) &b->type.sin6.sin6_addr);
+		break;
+	default:
+		pa = pb = NULL; /* Avoid silly compiler warning. */
+		return (ISC_FALSE); /* XXX got a better idea? */
+	}
+
+	/* Don't crash if we get a pattern like 10.0.0.1/9999999. */
+	if (prefixlen > a->length * 8)
+		prefixlen = a->length * 8;
+
+	nbytes = prefixlen / 8;
+	nbits = prefixlen % 8;
+
+	if (nbytes > 0) {
+		if (memcmp(pa, pb, nbytes) != 0)
+			return (ISC_FALSE);
+	}
+	if (nbits > 0) {
+		unsigned int bytea, byteb, mask;
+		INSIST(nbytes < a->length);
+		INSIST(nbits < 8);
+		bytea = pa[nbytes];
+		byteb = pb[nbytes];
+		mask = (0xFF << (8-nbits)) & 0xFF;
+		if ((bytea & mask) != (byteb & mask))
 			return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
