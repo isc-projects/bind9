@@ -91,10 +91,17 @@ main(int argc, char *argv[]) {
 	char dbtype[128];
 	int ch;
 	dns_rdatatype_t type = 2;
+	isc_boolean_t printnode = ISC_FALSE;
+	isc_boolean_t addmode = ISC_FALSE;
+	isc_boolean_t verbose = ISC_FALSE;
+	dns_dbversion_t *version = NULL;
+	dns_dbversion_t *wversion = NULL;
+	dns_dbversion_t *rversions[100];
+	int i, rcount = 0, v;
 
 	strcpy(basetext, "");
 	strcpy(dbtype, "rbt");
-	while ((ch = getopt(argc, argv, "z:d:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "z:d:t:pv")) != -1) {
 		switch (ch) {
 		case 'z':
 			strcpy(basetext, optarg);
@@ -104,6 +111,12 @@ main(int argc, char *argv[]) {
 			break;
 		case 't':
 			type = atoi(optarg);
+			break;
+		case 'p':
+			printnode = ISC_TRUE;
+			break;
+		case 'v':
+			verbose = ISC_TRUE;
 			break;
 		}
 	}
@@ -141,9 +154,100 @@ main(int argc, char *argv[]) {
 	}
 	printf("loaded\n");
 
+	for (i = 0; i < 100; i++)
+		rversions[i] = NULL;
 	while (gets(s) != NULL) {
+		if (verbose) {
+			if (wversion != NULL)
+				printf("future version (%p)\n", wversion);
+			for (i = 0; i < rcount; i++)
+				if (rversions[i] != NULL)
+					printf("open version %d (%p)\n", i,
+					       rversions[i]);
+		}
 		dns_name_init(&name, offsets);
 		len = strlen(s);
+		if (strcmp(s, "!R") == 0) {
+			if (rcount == 100) {
+				printf("too many open versions\n");
+				continue;
+			}
+			dns_db_currentversion(db, &rversions[rcount]);
+			printf("opened version %d\n", rcount);
+			version = rversions[rcount];
+			rcount++;
+			continue;
+		} else if (strcmp(s, "!W") == 0) {
+			if (wversion != NULL) {
+				printf("using existing future version\n");
+				version = wversion;
+				continue;
+			}
+			result = dns_db_newversion(db, &wversion);
+			if (result != DNS_R_SUCCESS)
+				printf("%s\n", dns_result_totext(result));
+			else
+				printf("newversion\n");
+			version = wversion;
+			continue;
+		} else if (strcmp(s, "!C") == 0) {
+			addmode = ISC_FALSE;
+			if (version == NULL)
+				continue;
+			if (version == wversion) {
+				printf("closing future version\n");
+				wversion = NULL;
+			} else {
+				for (i = 0; i < rcount; i++) {
+					if (version == rversions[i]) {
+						rversions[i] = NULL;
+					  printf("closing open version %d\n",
+						 i);
+						break;
+					}
+				}
+			}
+			dns_db_closeversion(db, &version, ISC_TRUE);
+			continue;
+		} else if (strcmp(s, "!X") == 0) {
+			addmode = ISC_FALSE;
+			if (version == NULL)
+				continue;
+			if (version == wversion) {
+				printf("aborting future version\n");
+				wversion = NULL;
+			} else {
+				for (i = 0; i < rcount; i++) {
+					if (version == rversions[i]) {
+						rversions[i] = NULL;
+					  printf("closing open version %d\n",
+						 i);
+						break;
+					}
+				}
+			}
+			dns_db_closeversion(db, &version, ISC_FALSE);
+			continue;
+		} else if (strcmp(s, "!A") == 0) {
+			if (addmode)
+				addmode = ISC_FALSE;
+			else
+				addmode = ISC_TRUE;
+			printf("addmode = %s\n", addmode ? "TRUE" : "FALSE");
+			continue;
+		} else if (strstr(s, "!V") == s) {
+			v = atoi(&s[2]);
+			if (v >= rcount) {
+				printf("unknown open version %d\n", v);
+				continue;
+			} else if (rversions[v] == NULL) {
+				printf("version %d is not open\n", v);
+				continue;
+			}
+			printf("switching to open version %d\n", v);
+			version = rversions[v];
+			continue;
+		}
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
 		isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
@@ -161,8 +265,10 @@ main(int argc, char *argv[]) {
 			printf("%s\n", dns_result_totext(result));
 		else {
 			printf("success\n");
+			if (printnode)
+				dns_db_printnode(db, node, stdout);
 			dns_rdataset_init(&rdataset);
-			result = dns_db_findrdataset(db, node, NULL, type,
+			result = dns_db_findrdataset(db, node, version, type,
 						     &rdataset);
 			if (result == DNS_R_NOTFOUND)
 				printf("type %d rdataset not found\n", type);
@@ -182,6 +288,16 @@ main(int argc, char *argv[]) {
 				else
 					printf("%s\n",
 					       dns_result_totext(result));
+				if (addmode) {
+					rdataset.ttl++;
+					result = dns_db_addrdataset(db,
+								    node,
+								    version,
+								    &rdataset);
+					if (result != DNS_R_SUCCESS)
+						printf("%s\n",
+						  dns_result_totext(result));
+				}
 				dns_rdataset_disassociate(&rdataset);
 			}
 			dns_db_detachnode(db, &node);
