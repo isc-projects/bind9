@@ -1,3 +1,5 @@
+ 937.	[bug]		A race when shutting down a zone could trigger a
+			INSIST() failure. [RT #1034]
 
  936.	[func]		Warn about IPv4 addresses that are not complete
 			dotted quads. [RT #1084]
