@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.23 2000/05/05 05:50:04 marka Exp $ */
+/* $Id: rp_17.c,v 1.24 2000/05/22 12:37:54 marka Exp $ */
 
 /* RFC 1183 */
 
@@ -173,13 +173,18 @@ static inline isc_result_t
 fromstruct_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_rp_t *rp = source;
+	isc_region_t region;
 
 	REQUIRE(type == 17);
+	REQUIRE(source != NULL);
+	REQUIRE(rp->common.rdtype == type);
+	REQUIRE(rp->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&rp->mail, &region);
+	RETERR(isc_buffer_copyregion(target, &region));
+	dns_name_toregion(&rp->text, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

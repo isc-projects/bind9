@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.26 2000/05/05 05:50:03 marka Exp $ */
+/* $Id: ptr_12.c,v 1.27 2000/05/22 12:37:53 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -129,13 +129,16 @@ static inline isc_result_t
 fromstruct_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	dns_rdata_ptr_t *ptr = source;
+	isc_region_t region;
+
 	REQUIRE(type == 12);
+	REQUIRE(source != NULL);
+	REQUIRE(ptr->common.rdtype == type);
+	REQUIRE(ptr->common.rdclass == rdclass);
 
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&ptr->ptr, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

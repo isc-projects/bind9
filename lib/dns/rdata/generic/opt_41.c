@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.13 2000/05/17 03:39:29 marka Exp $ */
+/* $Id: opt_41.c,v 1.14 2000/05/22 12:37:51 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -166,13 +166,31 @@ static inline isc_result_t
 fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	dns_rdata_opt_t *opt = source;
+	isc_region_t region;
+	isc_uint8_t length;
+
 	REQUIRE(type == 41);
+	REQUIRE(source != NULL);
+	REQUIRE(opt->common.rdtype == type);
+	REQUIRE(opt->common.rdclass == rdclass);
+	REQUIRE((opt->options != NULL && opt->length != 0) ||
+		(opt->options == NULL && opt->length == 0));
 
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	region.base = opt->options;
+	region.length = opt->length;
+	while (region.length >= 4) {
+		isc_region_consume(&region, 2);	/* opt */
+		length = uint16_fromregion(&region);
+		isc_region_consume(&region, 2);
+		if (region.length < length)
+			return (ISC_R_UNEXPECTEDEND);
+		isc_region_consume(&region, length);
+	}
+	if (region.length != 0)
+		return (ISC_R_UNEXPECTEDEND);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return (mem_tobuffer(target, opt->options, opt->length));
 }
 
 static inline isc_result_t

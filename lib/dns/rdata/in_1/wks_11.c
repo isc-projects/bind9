@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.30 2000/05/19 02:07:16 marka Exp $ */
+/* $Id: wks_11.c,v 1.31 2000/05/22 12:38:12 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -240,13 +240,19 @@ static inline isc_result_t
 fromstruct_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		  isc_buffer_t *target)
 {
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_in_wks_t *wks = source;
+	isc_uint32_t a;
 
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
+	REQUIRE(source != NULL);
+	REQUIRE(wks->common.rdtype == type);
+	REQUIRE(wks->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	a = ntohl(wks->in_addr.s_addr);
+	RETERR(uint32_tobuffer(a, target));
+	RETERR(uint16_tobuffer(wks->protocol, target));
+	return (mem_tobuffer(target, wks->map, wks->map_len));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.34 2000/05/15 21:14:25 tale Exp $ */
+/* $Id: nxt_30.c,v 1.35 2000/05/22 12:37:50 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -201,15 +201,16 @@ static inline isc_result_t
 fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	dns_rdata_nxt_t *nxt = source;
 
 	REQUIRE(type == 30);
+	REQUIRE(source != NULL);
+	REQUIRE(nxt->common.rdtype == type);
+	REQUIRE(nxt->common.rdclass == rdclass);
+	REQUIRE((nxt->nxt != NULL && nxt->len != 0) ||
+		(nxt->nxt == NULL && nxt->len == 0));
 
-	UNUSED(rdclass);
-
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	return (mem_tobuffer(target, nxt->nxt, nxt->len));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.27 2000/05/05 05:49:55 marka Exp $ */
+/* $Id: minfo_14.c,v 1.28 2000/05/22 12:37:44 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -175,24 +175,27 @@ static inline isc_result_t
 fromstruct_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
+	dns_rdata_minfo_t *minfo = source;
+	isc_region_t region;
 
 	REQUIRE(type == 14);
+	REQUIRE(source != NULL);
+	REQUIRE(minfo->common.rdtype == type);
+	REQUIRE(minfo->common.rdclass == rdclass);
 
-	UNUSED(rdclass);
-
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&minfo->rmailbox, &region);
+	RETERR(isc_buffer_copyregion(target, &region));
+	dns_name_toregion(&minfo->emailbox, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t
 tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
-	isc_region_t region;
-	isc_result_t result;
 	dns_rdata_minfo_t *minfo = target;
+	isc_region_t region;
 	dns_name_t name;
+	isc_result_t result;
 
 	REQUIRE(rdata->type == 14);
 	REQUIRE(target != NULL);

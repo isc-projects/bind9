@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.28 2000/05/19 13:28:36 marka Exp $ */
+/* $Id: naptr_35.c,v 1.29 2000/05/22 12:38:08 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -303,13 +303,31 @@ static inline isc_result_t
 fromstruct_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target)
 {
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_in_naptr_t *naptr = source;
+	isc_region_t region;
 
 	REQUIRE(type == 35);
 	REQUIRE(rdclass == 1);
+	REQUIRE(source != NULL);
+	REQUIRE(naptr->common.rdtype == type);
+	REQUIRE(naptr->common.rdclass == rdclass);
+	REQUIRE((naptr->flags == NULL && naptr->flags_len == 0) ||
+		(naptr->flags != NULL && naptr->flags_len != 0));
+	REQUIRE((naptr->service == NULL && naptr->service_len == 0) ||
+		(naptr->service != NULL && naptr->service_len != 0));
+	REQUIRE((naptr->regexp == NULL && naptr->regexp_len == 0) ||
+		(naptr->regexp != NULL && naptr->regexp_len != 0));
 
-	return (ISC_R_NOTIMPLEMENTED);
+	RETERR(uint16_tobuffer(naptr->order, target));
+	RETERR(uint16_tobuffer(naptr->preference, target));
+	RETERR(uint8_tobuffer(naptr->flags_len, target));
+	RETERR(mem_tobuffer(target, naptr->flags, naptr->flags_len));
+	RETERR(uint8_tobuffer(naptr->service_len, target));
+	RETERR(mem_tobuffer(target, naptr->service, naptr->service_len));
+	RETERR(uint8_tobuffer(naptr->regexp_len, target));
+	RETERR(mem_tobuffer(target, naptr->regexp, naptr->regexp_len));
+	dns_name_toregion(&naptr->replacement, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

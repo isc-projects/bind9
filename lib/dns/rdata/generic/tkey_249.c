@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.33 2000/05/15 21:14:28 tale Exp $ */
+/* $Id: tkey_249.c,v 1.34 2000/05/22 12:37:59 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -339,16 +339,16 @@ static inline isc_result_t
 fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		void *source, isc_buffer_t *target)
 {
-	isc_region_t tr;
-	dns_rdata_tkey_t *tkey;
-
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_tkey_t *tkey = source;
 
 	REQUIRE(type == 249);
-	
-	tkey = (dns_rdata_tkey_t *)source;
+	REQUIRE(source != NULL);
+	REQUIRE(tkey->common.rdtype == type);
+	REQUIRE(tkey->common.rdclass == rdclass);
+	REQUIRE((tkey->key == NULL && tkey->keylen == 0) ||
+		(tkey->key != NULL && tkey->keylen != 0));
+	REQUIRE((tkey->other == NULL && tkey->otherlen == 0) ||
+		(tkey->other != NULL && tkey->otherlen != 0));
 
 	/*
 	 * Algorithm Name.
@@ -383,13 +383,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/*
 	 * Key.
 	 */
-	if (tkey->keylen > 0) {
-		isc_buffer_availableregion(target, &tr);
-		if (tr.length < tkey->keylen)
-			return (ISC_R_NOSPACE);
-		memcpy(tr.base, tkey->key, tkey->keylen);
-		isc_buffer_add(target, tkey->keylen);
-	}
+	RETERR(mem_tobuffer(target, tkey->key, tkey->keylen));
 
 	/*
 	 * Other size: 16 bits.
@@ -399,15 +393,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/*
 	 * Other data.
 	 */
-	if (tkey->otherlen > 0) {
-		isc_buffer_availableregion(target, &tr);
-		if (tr.length < tkey->otherlen)
-			return (ISC_R_NOSPACE);
-		memcpy(tr.base, tkey->other, tkey->otherlen);
-		isc_buffer_add(target, tkey->otherlen);
-	}
-
-	return (ISC_R_SUCCESS);
+	return (mem_tobuffer(target, tkey->other, tkey->otherlen));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.28 2000/05/05 05:49:51 marka Exp $ */
+/* $Id: mb_7.c,v 1.29 2000/05/22 12:37:40 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -127,13 +127,16 @@ static inline isc_result_t
 fromstruct_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_mb_t *mb = source;
+	isc_region_t region;
 
 	REQUIRE(type == 7);
+	REQUIRE(source != NULL);
+	REQUIRE(mb->common.rdtype == type);
+	REQUIRE(mb->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&mb->mb, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

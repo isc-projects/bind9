@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.19 2000/05/19 13:05:51 marka Exp $ */
+/* $Id: gpos_27.c,v 1.20 2000/05/22 12:37:33 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -118,15 +118,19 @@ static inline isc_result_t
 fromstruct_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		isc_buffer_t *target)
 {
+	dns_rdata_gpos_t *gpos = source;
 
 	REQUIRE(type == 27);
+	REQUIRE(source != NULL);
+	REQUIRE(gpos->common.rdtype == type);
+	REQUIRE(gpos->common.rdclass == rdclass);
 
-	UNUSED(rdclass);
-
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	RETERR(uint8_tobuffer(gpos->long_len, target));
+	RETERR(mem_tobuffer(target, gpos->longitude, gpos->long_len));
+	RETERR(uint8_tobuffer(gpos->lat_len, target));
+	RETERR(mem_tobuffer(target, gpos->latitude, gpos->lat_len));
+	RETERR(uint8_tobuffer(gpos->alt_len, target));
+	return (mem_tobuffer(target, gpos->altitude, gpos->alt_len));
 }
 
 static inline isc_result_t

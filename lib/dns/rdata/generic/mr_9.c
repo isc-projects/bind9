@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.25 2000/05/05 05:49:56 marka Exp $ */
+/* $Id: mr_9.c,v 1.26 2000/05/22 12:37:46 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -126,13 +126,16 @@ static inline isc_result_t
 fromstruct_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
+	dns_rdata_mr_t *mr = source;
+	isc_region_t region;
+
 	REQUIRE(type == 9);
+	REQUIRE(source != NULL);
+	REQUIRE(mr->common.rdtype == type);
+	REQUIRE(mr->common.rdclass == rdclass);
 
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&mr->mr, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

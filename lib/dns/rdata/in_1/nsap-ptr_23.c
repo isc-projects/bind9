@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.20 2000/05/05 23:20:06 marka Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.21 2000/05/22 12:38:09 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -131,14 +131,17 @@ static inline isc_result_t
 fromstruct_in_nsap_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		       void *source, isc_buffer_t *target)
 {
+	dns_rdata_in_nsap_ptr_t *nsap_ptr = source;
+	isc_region_t region;
 
 	REQUIRE(type == 23);
 	REQUIRE(rdclass == 1);
+	REQUIRE(source != NULL);
+	REQUIRE(nsap_ptr->common.rdtype == type);
+	REQUIRE(nsap_ptr->common.rdclass == rdclass);
 
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&nsap_ptr->owner, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

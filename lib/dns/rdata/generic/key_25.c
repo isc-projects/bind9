@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.24 2000/05/05 05:49:47 marka Exp $ */
+/* $Id: key_25.c,v 1.25 2000/05/22 12:37:37 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -165,16 +165,12 @@ static inline isc_result_t
 fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
-	dns_rdata_key_t *key;
-	isc_region_t tr;
-
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_key_t *key = source;
 
 	REQUIRE(type == 25);
-	
-	key = (dns_rdata_key_t *) source;
+	REQUIRE(source != NULL);
+	REQUIRE(key->common.rdtype == type);
+	REQUIRE(key->common.rdclass == rdclass);
 
 	/* Flags */
 	RETERR(uint16_tobuffer(key->flags, target));
@@ -186,15 +182,7 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	RETERR(uint8_tobuffer(key->algorithm, target));
 
 	/* Data */
-	if (key->datalen > 0) {
-		isc_buffer_availableregion(target, &tr);
-		if (tr.length < key->datalen)
-			return (ISC_R_NOSPACE);
-		memcpy(tr.base, key->data, key->datalen);
-		isc_buffer_add(target, key->datalen);
-	}
-
-	return (ISC_R_SUCCESS);
+	return (mem_tobuffer(target, key->data, key->datalen));
 }
 
 static inline isc_result_t

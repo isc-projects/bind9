@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.37 2000/05/19 13:04:45 marka Exp $ */
+/* $Id: tsig_250.c,v 1.38 2000/05/22 12:37:28 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -336,13 +336,14 @@ static inline isc_result_t
 fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target)
 {
+	dns_rdata_any_tsig_t *tsig = source;
 	isc_region_t tr;
-	dns_rdata_any_tsig_t *tsig;
 
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
-	
-	tsig = (dns_rdata_any_tsig_t *)source;
+	REQUIRE(source != NULL);
+	REQUIRE(tsig->common.rdclass == rdclass);
+	REQUIRE(tsig->common.rdtype == type);
 
 	/*
 	 * Algorithm Name.
@@ -374,13 +375,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/*
 	 * Signature.
 	 */
-	if (tsig->siglen > 0) {
-		isc_buffer_availableregion(target, &tr);
-		if (tr.length < tsig->siglen)
-			return (ISC_R_NOSPACE);
-		memcpy(tr.base, tsig->signature, tsig->siglen);
-		isc_buffer_add(target, tsig->siglen);
-	}
+	RETERR(mem_tobuffer(target, tsig->signature, tsig->siglen));
 
 	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 2 + 2 + 2)
@@ -404,15 +399,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/*
 	 * Other Data.
 	 */
-	if (tsig->otherlen > 0) {
-		isc_buffer_availableregion(target, &tr);
-		if (tr.length < tsig->otherlen)
-			return (ISC_R_NOSPACE);
-		memcpy(tr.base, tsig->other, tsig->otherlen);
-		isc_buffer_add(target, tsig->otherlen);
-	}
-
-	return (ISC_R_SUCCESS);
+	return (mem_tobuffer(target, tsig->other, tsig->otherlen));
 }
 
 static inline isc_result_t

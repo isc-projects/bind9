@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.23 2000/05/05 05:50:00 marka Exp $ */
+/* $Id: null_10.c,v 1.24 2000/05/22 12:37:49 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -101,13 +101,16 @@ static inline isc_result_t
 fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	        isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_null_t *null = source;
 
 	REQUIRE(type == 10);
+	REQUIRE(source != NULL);
+	REQUIRE(null->common.rdtype == type);
+	REQUIRE(null->common.rdclass == rdclass);
+	REQUIRE((null->data != NULL && null->length != 0) ||
+		(null->data == NULL && null->length == 0));
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return (mem_tobuffer(target, null->data, null->length));
 }
 
 static inline isc_result_t

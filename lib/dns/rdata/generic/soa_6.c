@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.37 2000/05/18 05:46:52 marka Exp $ */
+/* $Id: soa_6.c,v 1.38 2000/05/22 12:37:58 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -256,13 +256,23 @@ static inline isc_result_t
 fromstruct_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_soa_t *soa = source;
+	isc_region_t region;
 
 	REQUIRE(type == 6);
+	REQUIRE(source != NULL);
+	REQUIRE(soa->common.rdtype == type);
+	REQUIRE(soa->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&soa->origin, &region);
+	RETERR(isc_buffer_copyregion(target, &region));
+	dns_name_toregion(&soa->mname, &region);
+	RETERR(isc_buffer_copyregion(target, &region));
+	RETERR(uint32_tobuffer(soa->serial, target));
+	RETERR(uint32_tobuffer(soa->refresh, target));
+	RETERR(uint32_tobuffer(soa->retry, target));
+	RETERR(uint32_tobuffer(soa->expire, target));
+	return (uint32_tobuffer(soa->minimum, target));
 }
 
 static inline isc_result_t

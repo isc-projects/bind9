@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.28 2000/05/05 05:49:53 marka Exp $ */
+/* $Id: mf_4.c,v 1.29 2000/05/22 12:37:42 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -129,15 +129,16 @@ static inline isc_result_t
 fromstruct_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
+	dns_rdata_mf_t *mf = source;
+	isc_region_t region;
 
 	REQUIRE(type == 4);
+	REQUIRE(source != NULL);
+	REQUIRE(mf->common.rdtype == type);
+	REQUIRE(mf->common.rdclass == rdclass);
 
-	UNUSED(rdclass);
-
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&mf->mf, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.29 2000/05/18 06:27:07 marka Exp $ */
+/* $Id: ns_2.c,v 1.30 2000/05/22 12:37:48 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -127,13 +127,16 @@ static inline isc_result_t
 fromstruct_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_ns_t *ns = source;
+	isc_region_t region;
 
 	REQUIRE(type == 2);
+	REQUIRE(source != NULL);
+	REQUIRE(ns->common.rdtype == type);
+	REQUIRE(ns->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&ns->name, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

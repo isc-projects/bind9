@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.19 2000/05/15 21:14:22 tale Exp $ */
+/* $Id: loc_29.c,v 1.20 2000/05/22 12:37:38 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -615,13 +615,43 @@ static inline isc_result_t
 fromstruct_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
                isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_loc_t *loc = source;
+	isc_uint8_t c;
 
 	REQUIRE(type == 29);
+	REQUIRE(source != NULL);
+	REQUIRE(loc->common.rdtype == type);
+	REQUIRE(loc->common.rdclass == rdclass);
 	
-	return (ISC_R_NOTIMPLEMENTED);
+	if (loc->v.v0.version != 0)
+		return (ISC_R_NOTIMPLEMENTED);
+	RETERR(uint8_tobuffer(loc->v.v0.version, target));
+
+	c = loc->v.v0.size;
+	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
+		return (ISC_R_RANGE);
+	RETERR(uint8_tobuffer(loc->v.v0.size, target));
+
+	c = loc->v.v0.horizontal;
+	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
+		return (ISC_R_RANGE);
+	RETERR(uint8_tobuffer(loc->v.v0.horizontal, target));
+
+	c = loc->v.v0.vertical;
+	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
+		return (ISC_R_RANGE);
+	RETERR(uint8_tobuffer(loc->v.v0.vertical, target));
+
+	if (loc->v.v0.latitude < (0x80000000UL - 90 * 3600000) ||
+	    loc->v.v0.latitude > (0x80000000UL + 90 * 3600000))
+		return (ISC_R_RANGE);
+	RETERR(uint32_tobuffer(loc->v.v0.latitude, target));
+
+	if (loc->v.v0.longitude < (0x80000000UL - 180 * 3600000) ||
+	    loc->v.v0.longitude > (0x80000000UL + 180 * 3600000))
+		return (ISC_R_RANGE);
+	RETERR(uint32_tobuffer(loc->v.v0.longitude, target));
+	return (uint32_tobuffer(loc->v.v0.altitude, target));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.24 2000/05/15 21:14:35 tale Exp $ */
+/* $Id: srv_33.c,v 1.25 2000/05/22 12:38:11 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -220,13 +220,20 @@ static inline isc_result_t
 fromstruct_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		  isc_buffer_t *target)
 {
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_in_srv_t *srv = source;
+	isc_region_t region;
 
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
+	REQUIRE(source != NULL);
+	REQUIRE(srv->common.rdtype == type);
+	REQUIRE(srv->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	RETERR(uint16_tobuffer(srv->priority, target));
+	RETERR(uint16_tobuffer(srv->weight, target));
+	RETERR(uint16_tobuffer(srv->port, target));
+	dns_name_toregion(&srv->target, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

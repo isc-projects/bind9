@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.31 2000/05/15 21:14:31 tale Exp $ */
+ /* $Id: a6_38.c,v 1.32 2000/05/22 12:38:05 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -267,10 +267,13 @@ fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
 	dns_rdata_in_a6_t *a6 = source;
-	unsigned char prefixlen;
-	unsigned char octets;
+	isc_region_t region;
+	int octets;
+	isc_uint8_t bits;
+	isc_uint8_t first;
+	isc_uint8_t mask;
 
-	REQUIRE(type == 1);
+	REQUIRE(type == 38);
 	REQUIRE(rdclass == 1);
 	REQUIRE(source != NULL);
 	REQUIRE(a6->common.rdtype == type);
@@ -279,21 +282,28 @@ fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	if (a6->prefixlen > 128)
 		return (ISC_R_RANGE);
 
-	prefixlen = a6->prefixlen;
-	RETERR(mem_tobuffer(target, &prefixlen, 1));
+	RETERR(uint8_tobuffer(a6->prefixlen, target));
 
+	/* Suffix */
 	if (a6->prefixlen != 128) {
-		/* XXX fix this! */
+		octets = 16 - a6->prefixlen / 8;
+		bits = a6->prefixlen % 8;
+		if (bits != 0) {
+			mask = 0xffU >> bits;
+			first = a6->in6_addr.s6_addr[16 - octets] & mask;
+			RETERR(uint8_tobuffer(first, target));
+			octets--;
+		}
+		if (octets > 0)
+			RETERR(mem_tobuffer(target,
+					    a6->in6_addr.s6_addr + 16 - octets,
+					    octets));
 	}
 
-	octets = 16 - prefixlen / 8;
-
-	/*
-	 * XXXDCL shut up IRIX compiler until this function is finished.
-	 */
-	UNUSED(octets);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	if (a6->prefixlen == 0)
+		return (ISC_R_SUCCESS);
+	dns_name_toregion(&a6->prefix, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

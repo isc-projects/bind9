@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.25 2000/05/05 05:50:10 marka Exp $ */
+/* $Id: txt_16.c,v 1.26 2000/05/22 12:38:00 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -127,13 +127,28 @@ static inline isc_result_t
 fromstruct_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_txt_t *txt = source;
+	isc_region_t region;
+	isc_uint8_t length;
 
 	REQUIRE(type == 16);
+	REQUIRE(source != NULL);
+	REQUIRE(txt->common.rdtype == type);
+	REQUIRE(txt->common.rdclass == rdclass);
+	REQUIRE((txt->txt == NULL && txt->txt_len == 0) ||
+		(txt->txt != NULL && txt->txt_len != 0));
 
-	return (ISC_R_NOTIMPLEMENTED);
+	region.base = txt->txt;
+	region.length = txt->txt_len;
+	while (region.length > 0) {
+		length = uint8_fromregion(&region);
+		isc_region_consume(&region, 1);
+		if (region.length <= length)
+			return (ISC_R_UNEXPECTEDEND);
+		isc_region_consume(&region, length);
+	}
+
+	return (mem_tobuffer(target, txt->txt, txt->txt_len));
 }
 
 static inline isc_result_t

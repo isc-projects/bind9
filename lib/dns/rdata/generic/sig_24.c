@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.40 2000/05/19 02:03:56 marka Exp $ */
+/* $Id: sig_24.c,v 1.41 2000/05/22 12:37:56 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -343,15 +343,15 @@ static inline isc_result_t
 fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
-	isc_region_t tr;
-	dns_rdata_sig_t *sig;
+	dns_rdata_sig_t *sig = source;
 
 	REQUIRE(type == 24);
+	REQUIRE(source != NULL);
+	REQUIRE(sig->common.rdtype == type);
+	REQUIRE(sig->common.rdclass == rdclass);
+	REQUIRE((sig->signature != NULL && sig->siglen != 0) ||
+		(sig->signature == NULL && sig->siglen == 0));
 	
-	UNUSED(rdclass);
-
-	sig = (dns_rdata_sig_t *)source;
-
 	/*
 	 * Type covered.
 	 */
@@ -395,15 +395,7 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	/*
 	 * Signature.
 	 */
-	if (sig->siglen > 0) {
-		isc_buffer_availableregion(target, &tr);
-		if (tr.length < sig->siglen)
-			return (ISC_R_NOSPACE);
-		memcpy(tr.base, sig->signature, sig->siglen);
-		isc_buffer_add(target, sig->siglen);
-	}
-
-	return (ISC_R_SUCCESS);
+	return (mem_tobuffer(target, sig->signature, sig->siglen));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.21 2000/05/05 05:49:43 marka Exp $ */
+/* $Id: dname_39.c,v 1.22 2000/05/22 12:37:32 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -130,13 +130,16 @@ static inline isc_result_t
 fromstruct_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_dname_t *dname = source;
+	isc_region_t region;
 
 	REQUIRE(type == 39);
+	REQUIRE(source != NULL);
+	REQUIRE(dname->common.rdtype == type);
+	REQUIRE(dname->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&dname->dname, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

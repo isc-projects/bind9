@@ -18,7 +18,7 @@
 #ifndef GENERIC_LOC_29_H
 #define GENERIC_LOC_29_H 1
 
-/* $Id: loc_29.h,v 1.10 2000/05/05 05:49:49 marka Exp $ */
+/* $Id: loc_29.h,v 1.11 2000/05/22 12:37:39 marka Exp $ */
 
 /* RFC 1876 */
 
@@ -27,9 +27,9 @@ typedef struct dns_rdata_loc_0 {
 	isc_uint8_t	size;
 	isc_uint8_t	horizontal;
 	isc_uint8_t	vertical;	
-	isc_int32_t	latitude;
-	isc_int32_t	longitude;
-	isc_int32_t	altitude;
+	isc_uint32_t	latitude;
+	isc_uint32_t	longitude;
+	isc_uint32_t	altitude;
 } dns_rdata_loc_0_t;
 
 typedef struct dns_rdata_loc {

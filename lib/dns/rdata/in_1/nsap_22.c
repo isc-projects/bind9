@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.20 2000/05/08 16:12:29 tale Exp $ */
+/* $Id: nsap_22.c,v 1.21 2000/05/22 12:38:10 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -147,14 +147,17 @@ static inline isc_result_t
 fromstruct_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		   void *source, isc_buffer_t *target)
 {
+	dns_rdata_in_nsap_t *nsap = source;
 
 	REQUIRE(type == 22);
 	REQUIRE(rdclass == 1);
+	REQUIRE(source != NULL);
+	REQUIRE(nsap->common.rdtype == type);
+	REQUIRE(nsap->common.rdclass == rdclass);
+	REQUIRE((nsap->nsap == NULL && nsap->nsap_len == 0) ||
+		(nsap->nsap != NULL && nsap->nsap_len != 0));
 
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	return (mem_tobuffer(target, nsap->nsap, nsap->nsap_len));
 }
 
 static inline isc_result_t

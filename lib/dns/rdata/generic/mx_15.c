@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.35 2000/05/15 21:14:24 tale Exp $ */
+/* $Id: mx_15.c,v 1.36 2000/05/22 12:37:47 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -156,14 +156,17 @@ static inline isc_result_t
 fromstruct_mx(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
+	dns_rdata_mx_t *mx = source;
+	isc_region_t region;
+
 	REQUIRE(type == 15);
+	REQUIRE(source != NULL);
+	REQUIRE(mx->common.rdtype == type);
+	REQUIRE(mx->common.rdclass == rdclass);
 
-	UNUSED(rdclass);
-
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	RETERR(uint16_tobuffer(mx->pref, target));
+	dns_name_toregion(&mx->mx, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

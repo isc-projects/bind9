@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.24 2000/05/05 05:49:45 marka Exp $ */
+/* $Id: hinfo_13.c,v 1.25 2000/05/22 12:37:34 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -108,13 +108,17 @@ static inline isc_result_t
 fromstruct_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_hinfo_t *hinfo = source;
 
 	REQUIRE(type == 13);
+	REQUIRE(source != NULL);
+	REQUIRE(hinfo->common.rdtype == type);
+	REQUIRE(hinfo->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	RETERR(uint8_tobuffer(hinfo->cpu_len, target));
+	RETERR(mem_tobuffer(target, hinfo->cpu, hinfo->cpu_len));
+	RETERR(uint8_tobuffer(hinfo->os_len, target));
+	return (mem_tobuffer(target, hinfo->os, hinfo->os_len));
 }
 
 static inline isc_result_t

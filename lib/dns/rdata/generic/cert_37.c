@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.28 2000/05/19 02:02:11 marka Exp $ */
+/* $Id: cert_37.c,v 1.29 2000/05/22 12:37:30 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -166,14 +166,18 @@ static inline isc_result_t
 fromstruct_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		isc_buffer_t *target)
 {
+	dns_rdata_cert_t *cert = source;
 
 	REQUIRE(type == 37);
+	REQUIRE(source != NULL);
+	REQUIRE(cert->common.rdtype == type);
+	REQUIRE(cert->common.rdclass == rdclass);
 	
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	RETERR(uint16_tobuffer(cert->type, target));
+	RETERR(uint16_tobuffer(cert->key_tag, target));
+	RETERR(uint8_tobuffer(cert->algorithm, target));
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return (mem_tobuffer(target, cert->certificate, cert->length));
 }
 
 static inline isc_result_t

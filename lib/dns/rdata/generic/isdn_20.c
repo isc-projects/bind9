@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.18 2000/05/05 05:49:46 marka Exp $ */
+/* $Id: isdn_20.c,v 1.19 2000/05/22 12:37:36 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -115,13 +115,17 @@ static inline isc_result_t
 fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_isdn_t *isdn = source;
 
 	REQUIRE(type == 20);
+	REQUIRE(source != NULL);
+	REQUIRE(isdn->common.rdtype == type);
+	REQUIRE(isdn->common.rdclass == rdclass);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	RETERR(uint8_tobuffer(isdn->isdn_len, target));
+	RETERR(mem_tobuffer(target, isdn->isdn, isdn->isdn_len));
+	RETERR(uint8_tobuffer(isdn->subaddress_len, target));
+	return (mem_tobuffer(target, isdn->subaddress, isdn->subaddress_len));
 }
 
 static inline isc_result_t

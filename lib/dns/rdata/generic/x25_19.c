@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.19 2000/05/19 02:12:56 marka Exp $ */
+/* $Id: x25_19.c,v 1.20 2000/05/22 12:38:02 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -109,13 +109,22 @@ static inline isc_result_t
 fromstruct_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
+	dns_rdata_x25_t *x25 = source;
+	isc_uint8_t i;
 
 	REQUIRE(type == 19);
+	REQUIRE(source != NULL);
+	REQUIRE(x25->common.rdtype == type);
+	REQUIRE(x25->common.rdclass == rdclass);
+	REQUIRE((x25->x25 == NULL && x25->x25_len == 0) ||
+		(x25->x25 != NULL && x25->x25_len != 0));
 
-	return (ISC_R_NOTIMPLEMENTED);
+	for (i = 0; i < x25->x25_len; i++)
+		if (!isdigit(x25->x25[i] & 0xff))
+			return (ISC_R_RANGE);
+
+	RETERR(uint8_tobuffer(x25->x25_len, target));
+	return (mem_tobuffer(target, x25->x25, x25->x25_len));
 }
 
 static inline isc_result_t

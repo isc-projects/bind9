@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.22 2000/05/04 22:19:20 gson Exp $ */
+/* $Id: proforma.c,v 1.23 2000/05/22 12:37:52 marka Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -90,10 +90,15 @@ compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static inline isc_result_t
 fromstruct_#(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target) {
+	     isc_buffer_t *target)
+{
+	dns_rdata_#_t *# = source;
 
 	REQUIRE(type == #);
 	REQUIRE(rdclass == #);
+	REQUIRE(source != NULL);
+	REQUIRE(#->common.rdtype == type);
+	REQUIRE(#->common.rdclass == rdclass);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.29 2000/05/05 05:49:42 marka Exp $ */
+/* $Id: cname_5.c,v 1.30 2000/05/22 12:37:31 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -129,14 +129,16 @@ static inline isc_result_t
 fromstruct_cname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
+	dns_rdata_cname_t *cname = source;
+	isc_region_t region;
 
 	REQUIRE(type == 5);
+	REQUIRE(source != NULL);
+	REQUIRE(cname->common.rdtype == type);
+	REQUIRE(cname->common.rdclass == rdclass);
 
-	UNUSED(rdclass);
-	UNUSED(source);
-	UNUSED(target);
-
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_toregion(&cname->cname, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t

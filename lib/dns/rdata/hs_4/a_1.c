@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.12 2000/05/19 13:27:45 marka Exp $ */
+/* $Id: a_1.c,v 1.13 2000/05/22 12:38:03 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -141,14 +141,18 @@ static inline isc_result_t
 fromstruct_hs_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	        isc_buffer_t *target)
 {
+	dns_rdata_hs_a_t *a = source;
+	isc_uint32_t n;
 
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 4);
+	REQUIRE(source != NULL);
+	REQUIRE(a->common.rdtype == type);
+	REQUIRE(a->common.rdclass == rdclass);
 
-	UNUSED(source);
-	UNUSED(target);
+	n = ntohl(a->in_addr.s_addr);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return (uint32_tobuffer(n, target));
 }
 
 static inline isc_result_t
