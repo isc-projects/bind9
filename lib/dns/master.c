@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.41 2000/03/22 17:46:34 gson Exp $ */
+/* $Id: master.c,v 1.42 2000/03/22 17:50:34 gson Exp $ */
 
 #include <config.h>
 
@@ -287,7 +287,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					goto cleanup;
 				if (ttl > 0x7fffffffUL) {
 					(callbacks->warn)(callbacks,
-		"dns_master_load: %s:%d: $TTL %lu > MAXTTL, setting TTL to 0",
+		"dns_master_load: %s:%d: $TTL %lu > MAXTTL, setting $TTL to 0",
 						isc_lex_getsourcename(lex),
 						isc_lex_getsourceline(lex),
 						ttl);
@@ -526,7 +526,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				== DNS_R_SUCCESS) {
 			if (ttl > 0x7fffffffUL) {
 				(callbacks->warn)(callbacks,
-	"dns_master_load: %s:%d: TTL %lu > maxtll, setting ttl to 0",
+	"dns_master_load: %s:%d: TTL %lu > MAXTTL, setting TTL to 0",
 					isc_lex_getsourcename(lex),
 					isc_lex_getsourceline(lex),
 					ttl);
