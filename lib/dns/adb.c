@@ -1148,16 +1148,8 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			handle->name_bucket = bucket;
 			ISC_LIST_APPEND(adbname->handles, handle, link);
 			attach_to_task = ISC_TRUE;
-		} else {
-			/*
-			 * We are done with this name, so release the lock
-			 * here.  Then, lock the adb itself, and add the
-			 * handle to the list of handles given out.
-			 */
-			UNLOCK(&adb->namelocks[bucket]);
-			bucket = DNS_ADB_INVALIDBUCKET;
 		}
-			
+
 		result = ISC_R_SUCCESS;
 		goto out;
 	}
@@ -1200,8 +1192,10 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * If the name isn't on a list it means we allocated it here, and it
 	 * should be killed.
 	 */
-	if (adbname != NULL && !ISC_LINK_LINKED(adbname, link))
+	if (adbname != NULL) {
+		INSIST(!ISC_LINK_LINKED(adbname, link));
 		free_adbname(adb, &adbname);
+	}
 
 	/*
 	 * "goto out" if the handle will be returned to the caller.  This
