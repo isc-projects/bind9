@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.138 2001/01/02 04:24:52 gson Exp $ */
+/* $Id: rdata.c,v 1.139 2001/01/04 23:43:52 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -626,7 +626,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	char *name;
 	unsigned long line;
 	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
-	isc_result_t iresult;
+	isc_result_t tresult;
 
 	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == ISC_TRUE);
 	if (rdata != NULL) {
@@ -663,24 +663,10 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	do {
 		name = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
-		iresult = isc_lex_gettoken(lexer, options, &token);
-		if (iresult != ISC_R_SUCCESS) {
-			if (result == ISC_R_SUCCESS) {
-				switch (iresult) {
-				case ISC_R_NOMEMORY:
-					result = ISC_R_NOMEMORY;
-					break;
-				case ISC_R_NOSPACE:
-					result = ISC_R_NOSPACE;
-					break;
-				default:
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-					    "isc_lex_gettoken() failed: %s",
-					    isc_result_totext(iresult));
-					result = ISC_R_UNEXPECTED;
-					break;
-				}
-			}
+		tresult = isc_lex_gettoken(lexer, options, &token);
+		if (tresult != ISC_R_SUCCESS) {
+			if (result == ISC_R_SUCCESS)
+				result = tresult;
 			if (callback != NULL)
 				fromtext_error(callback, callbacks, name,
 					       line, NULL, result);

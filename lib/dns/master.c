@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.89 2000/12/28 02:31:20 marka Exp $ */
+/* $Id: master.c,v 1.90 2001/01/04 23:43:53 marka Exp $ */
 
 #include <config.h>
 
@@ -247,10 +247,13 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 		case ISC_R_NOMEMORY:
 			return (ISC_R_NOMEMORY);
 		default:
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				"isc_lex_gettoken() failed: %s",
-				isc_result_totext(result));
-			return (ISC_R_UNEXPECTED);
+			(*callbacks->error)(callbacks,
+					    "dns_master_load: %s:%lu:"
+					    " isc_lex_gettoken() failed: %s",
+					    isc_lex_getsourcename(lex),
+					    isc_lex_getsourceline(lex),
+					    isc_result_totext(result));
+			return (result);
 		}
 		/*NOTREACHED*/
 	}
@@ -1896,7 +1899,7 @@ commit(dns_rdatacallbacks_t *callbacks, isc_lex_t *lex,
 				  "ignoring out-of-zone data",
 				  "dns_master_load",
 				  isc_lex_getsourcename(lex),
-				  isc_lex_getsourceline(lex));
+				  isc_lex_getsourceline(lex) - 1);
 		ignore = ISC_TRUE;
 	}
 	do {
