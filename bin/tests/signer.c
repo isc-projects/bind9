@@ -49,6 +49,7 @@
 #include <dns/nxt.h>
 #include <dns/time.h>
 #include <dns/zone.h>
+#include <dns/log.h>
 
 #include <dst/dst.h>
 
@@ -937,6 +938,8 @@ usage() {
 	fprintf(stderr, "\t\tcycle period - regenerate if < cycle from end ( (end-start)/4 )\n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
+	fprintf(stderr, "\t-l\n");
+	fprintf(stderr, "\t\tturn on logging to standard output\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
 	fprintf(stderr, "\t-f outfile:\n");
@@ -968,13 +971,14 @@ main(int argc, char *argv[]) {
 	dns_dbversion_t *version;
 	signer_key_t *key;
 	isc_result_t result;
+	isc_log_t *log = NULL;
 
 	dns_result_register();
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:h")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:hl")) != -1)
 	{
 		switch (ch) {
 		case 's':
@@ -1003,6 +1007,17 @@ main(int argc, char *argv[]) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				check_result(ISC_R_FAILURE, "strtol()");
+			break;
+
+		case 'l':
+			RUNTIME_CHECK(isc_log_create(mctx, &log) == 
+				      ISC_R_SUCCESS);
+			RUNTIME_CHECK(dns_log_init(log) == ISC_R_SUCCESS);
+	
+			RUNTIME_CHECK(isc_log_usechannel(log, "default_stderr",
+							 NULL, NULL)
+				      == ISC_R_SUCCESS);
+			dns_lctx = log;
 			break;
 
 		case 'o':
