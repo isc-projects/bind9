@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.97 2001/07/12 05:58:20 mayer Exp $ */
+/* $Id: mem.c,v 1.98 2001/07/17 10:02:46 marka Exp $ */
 
 #include <config.h>
 
@@ -182,11 +182,12 @@ struct isc_mempool {
 #define ADD_TRACE(a, b, c, d, e)
 #define DELETE_TRACE(a, b, c, d, e)
 #else
-#define ADD_TRACE(a, b, c, d, e)	add_trace_entry(a, b, c, d, e)
+#define ADD_TRACE(a, b, c, d, e) \
+	do { if (b != NULL) add_trace_entry(a, b, c, d, e); } while (0)
 #define DELETE_TRACE(a, b, c, d, e)	delete_trace_entry(a, b, c, d, e)
 
 #define MEM_TRACE	((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
-#define MEM_RECORD	((ctx->debugging & ISC_MEM_DEBUGRECORD) != 0)
+#define MEM_RECORD	((mctx->debugging & ISC_MEM_DEBUGRECORD) != 0)
 
 static void
 print_active(isc_mem_t *ctx, FILE *out);
@@ -983,7 +984,8 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
 	ptr = mem_get(ctx, size);
 	LOCK(&ctx->lock);
-	mem_getstats(ctx, size);
+	if (ptr)
+		mem_getstats(ctx, size);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -1047,7 +1049,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 
 #if ISC_MEM_TRACKLINES
 static void
-print_active(isc_mem_t *ctx, FILE *out) {
+print_active(isc_mem_t *mctx, FILE *out) {
 	if (MEM_RECORD) {
 		debuglink_t *dl;
 		unsigned int i;
@@ -1056,7 +1058,7 @@ print_active(isc_mem_t *ctx, FILE *out) {
 					    ISC_MSG_DUMPALLOC,
 					    "Dump of all outstanding "
 					    "memory allocations:\n"));
-		dl = ISC_LIST_HEAD(ctx->debuglist);
+		dl = ISC_LIST_HEAD(mctx->debuglist);
 		if (dl == NULL)
 			fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 						    ISC_MSG_NONE,
@@ -1187,7 +1189,8 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
 	si = isc__mem_allocateunlocked(ctx, size);
 	LOCK(&ctx->lock);
-	mem_getstats(ctx, si[-1].u.size);
+	if (si != NULL)
+		mem_getstats(ctx, si[-1].u.size);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 #if ISC_MEM_TRACKLINES
