@@ -7,8 +7,6 @@
 #include <isc/list.h>
 #include <isc/memcluster.h>
 
-#include <isc/mutex.h>
-#include <isc/condition.h>
 #include <isc/boolean.h>
 
 

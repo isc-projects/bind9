@@ -4,6 +4,9 @@
 #include <isc/assertions.h>
 
 #include <isc/thread.h>
+#include <isc/mutex.h>
+#include <isc/condition.h>
+
 #include <isc/task.h>
 
 
