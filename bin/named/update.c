@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.80 2001/01/09 21:40:07 bwelling Exp $ */
+/* $Id: update.c,v 1.81 2001/01/18 23:31:03 gson Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <dns/journal.h>
 #include <dns/message.h>
 #include <dns/nxt.h>
+#include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/ssu.h>
@@ -55,28 +56,14 @@
 /**************************************************************************/
 
 /*
- * Convenience macro of common isc_log_write() arguments
- * to use in reportings server errors.
+ * Log level for tracing dynamic update protocol requests.
  */
-#define UPDATE_ERROR_LOGARGS \
-	ns_g_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE, \
-	ISC_LOG_ERROR
+#define LOGLEVEL_PROTOCOL	ISC_LOG_INFO
 
 /*
- * Convenience macro of common isc_log_write() arguments
- * to use in tracing dynamic update protocol requests.
+ * Log level for low-level debug tracing.
  */
-#define UPDATE_PROTOCOL_LOGARGS \
-	ns_g_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE, \
-	ISC_LOG_INFO
-
-/*
- * Convenience macro of common isc_log_write() arguments
- * to use in low-level debug tracing.
- */
-#define UPDATE_DEBUG_LOGARGS \
-	ns_g_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE, \
-	ISC_LOG_DEBUG(8)
+#define LOGLEVEL_DEBUG 		ISC_LOG_DEBUG(8)
 
 /*
  * Check an operation for failure.  These macros all assume that
@@ -111,8 +98,8 @@
 #define FAILC(code, msg) \
 	do {							\
 		result = (code);				\
-		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
-			      "dynamic update failed: %s (%s)",	\
+		update_log(client, zone, LOGLEVEL_PROTOCOL,   	\
+			      "update failed: %s (%s)",		\
 		      	      msg, isc_result_totext(result));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
@@ -125,8 +112,8 @@
 #define FAILS(code, msg) \
 	do {							\
 		result = (code);				\
-		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
-			      "dynamic update error: %s: %s", 	\
+		update_log(client, zone, LOGLEVEL_PROTOCOL,		\
+			      "error: %s: %s", 			\
 			      msg, isc_result_totext(result));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
@@ -161,6 +148,36 @@ static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
 static void forward_done(isc_task_t *task, isc_event_t *event);
 
 /**************************************************************************/
+
+static void
+update_log(ns_client_t *client, dns_zone_t *zone,
+	   int level, const char *fmt, ...)
+{
+	va_list ap;
+	char message[4096];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+
+	if (client == NULL || zone == NULL)
+		return;
+
+	if (isc_log_wouldlog(ns_g_lctx, level) == ISC_FALSE)
+		return;
+
+	dns_name_format(dns_zone_getorigin(zone), namebuf,
+			sizeof(namebuf));
+	dns_rdataclass_format(dns_zone_getclass(zone), classbuf,
+			      sizeof(classbuf));
+
+	va_start(ap, fmt);
+	vsnprintf(message, sizeof message, fmt, ap);
+	va_end(ap);
+
+	ns_client_log(client, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
+		      level, "updating zone %s/%s: %s",
+		      namebuf, classbuf, message);
+}
+
 /*
  * Update a single RR in version 'ver' of 'db' and log the
  * update in 'diff'.
@@ -2093,7 +2110,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		FAILC(result, "'RRset exists (value dependent)' "
 		      "prerequisite not satisfied");
 
-	isc_log_write(UPDATE_DEBUG_LOGARGS, "prerequisites are OK");
+	update_log(client, zone, LOGLEVEL_DEBUG,
+		   "prerequisites are OK");
 
 	/*
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
@@ -2149,10 +2167,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				FAILC(DNS_R_FORMERR,
 				      "meta-RR in update");
 		} else {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
-				      NS_LOGMODULE_UPDATE, ISC_LOG_WARNING,
-				      "update RR has incorrect class %d",
-				      update_class);
+			update_log(client, zone, ISC_LOG_WARNING,
+				   "update RR has incorrect class %d",
+				   update_class);
 			FAIL(DNS_R_FORMERR);
 		}
 		/*
@@ -2192,7 +2209,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_NOMORE)
 		FAIL(result);
 
-	isc_log_write(UPDATE_DEBUG_LOGARGS, "update section prescan OK");
+	update_log(client, zone, LOGLEVEL_DEBUG,
+		   "update section prescan OK");
 
 	/*
 	 * Process the Update Section.
@@ -2217,10 +2235,11 @@ update_action(isc_task_t *task, isc_event_t *event) {
 								      name,
 								      &flag));
 				if (flag) {
-					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-						      "attempt to add CNAME "
-						      "alongside non-CNAME "
-						      "ignored");
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "attempt to add CNAME "
+						   "alongside non-CNAME "
+						   "ignored");
 					continue;
 				}
 			} else {
@@ -2230,9 +2249,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				if (flag &&
 				    ! dns_rdatatype_isdnssec(rdata.type))
 				{
-					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-					      "attempt to add non-CNAME "
-					      "alongside CNAME ignored");
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "attempt to add non-CNAME "
+						   "alongside CNAME ignored");
 					continue;
 				}
 			}
@@ -2242,24 +2262,27 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						   dns_rdatatype_soa, 0,
 						   &flag));
 				if (! flag) {
-					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-						      "attempt to create 2nd "
-						      "SOA ignored");
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "attempt to create 2nd "
+						   "SOA ignored");
 					continue;
 				}
 				CHECK(check_soa_increment(db, ver, &rdata,
 							  &ok));
 				if (! ok) {
-					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-						      "SOA update failed to "
-						      "increment serial, "
-						      "ignoring it");
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "SOA update failed to "
+						   "increment serial, "
+						   "ignoring it");
 					continue;
 				}
 				soa_serial_changed = ISC_TRUE;
 			}
 			
-			isc_log_write(UPDATE_PROTOCOL_LOGARGS, "adding an RR");
+			update_log(client, zone,
+				   LOGLEVEL_PROTOCOL, "adding an RR");
 
 			/* Prepare the affected RRset for the addition. */
 			{
@@ -2289,8 +2312,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			}
 		} else if (update_class == dns_rdataclass_any) {
 			if (rdata.type == dns_rdatatype_any) {
-				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-					      "delete all rrsets from a name");
+				update_log(client, zone,
+					   LOGLEVEL_PROTOCOL,
+					   "delete all rrsets from a name");
 				if (dns_name_equal(name, zonename)) {
 					CHECK(delete_if(type_not_soa_nor_ns_p,
 							db, ver, name,
@@ -2304,13 +2328,15 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			} else if (dns_name_equal(name, zonename) &&
 				   (rdata.type == dns_rdatatype_soa ||
 				    rdata.type == dns_rdatatype_ns)) {
-				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-					      "attempt to delete all SOA "
-					      "or NS records ignored");
+				update_log(client, zone,
+					   LOGLEVEL_PROTOCOL,
+					   "attempt to delete all SOA "
+					   "or NS records ignored");
 				continue;
 			} else {
-				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-					      "deleting an rrset");
+				update_log(client, zone,
+					   LOGLEVEL_PROTOCOL,
+					   "deleting an rrset");
 				CHECK(delete_if(true_p, db, ver, name,
 						rdata.type, covers, &rdata,
 						&diff));
@@ -2322,9 +2348,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			 */
 			if (dns_name_equal(name, zonename)) {
 				if (rdata.type == dns_rdatatype_soa) {
-					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-						      "attempt to delete SOA "
-						      "ignored");
+					update_log(client, zone,
+						   LOGLEVEL_PROTOCOL,
+						   "attempt to delete SOA "
+						   "ignored");
 					continue;
 				}
 				if (rdata.type == dns_rdatatype_ns) {
@@ -2333,16 +2360,18 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						       dns_rdatatype_ns,
 						       0, &count));
 					if (count == 1) {
-						isc_log_write(
-						UPDATE_PROTOCOL_LOGARGS,
-						      "attempt to delete last "
-						      "NS ignored");
+						update_log(client, zone,
+							   LOGLEVEL_PROTOCOL,
+							   "attempt to "
+							   "delete last "
+							   "NS ignored");
 						continue;
 					}
 				}
 			}
-			isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-				      "deleting an RR");
+			update_log(client, zone,
+				   LOGLEVEL_PROTOCOL,
+				   "deleting an RR");
 			CHECK(delete_if(rr_equal_p, db, ver, name,
 					rdata.type, covers, &rdata, &diff));
 		}
@@ -2371,17 +2400,17 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			result = update_signatures(mctx, db, oldver, ver,
 			   &diff, dns_zone_getsigvalidityinterval(zone));
 			if (result != ISC_R_SUCCESS) {
-				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
-					      NS_LOGMODULE_UPDATE,
-					      ISC_LOG_ERROR,
-					      "SIG/NXT update failed: %s",
-					      isc_result_totext(result));
+				update_log(client, zone,
+					   ISC_LOG_ERROR,
+					   "SIG/NXT update failed: %s",
+					   isc_result_totext(result));
 				goto failure;
 			}
 		}
 
-		isc_log_write(UPDATE_DEBUG_LOGARGS, "writing journal %s",
-			      dns_zone_getjournal(zone));
+		update_log(client, zone, LOGLEVEL_DEBUG,
+			   "writing journal %s",
+			   dns_zone_getjournal(zone));
 
 		journal = NULL;
 		result = dns_journal_open(mctx, dns_zone_getjournal(zone),
@@ -2403,7 +2432,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 *         to handle databases that need two-phase commit, but this
 	 *	   isn't a priority.
 	 */
-	isc_log_write(UPDATE_DEBUG_LOGARGS, "committing update transaction");
+	update_log(client, zone, LOGLEVEL_DEBUG,
+		   "committing update transaction");
 	dns_db_closeversion(db, &ver, ISC_TRUE);
 
 	/*
@@ -2415,7 +2445,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Notify slaves of the change we just made.
 	 */
 	dns_zone_notify(zone);
-
 	result = ISC_R_SUCCESS;
 	goto common;
 
@@ -2424,8 +2453,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * The reason for failure should have been logged at this point.
 	 */
 	if (ver != NULL) {
-		isc_log_write(UPDATE_DEBUG_LOGARGS,
-			      "rolling back");
+		update_log(client, zone, LOGLEVEL_DEBUG, 
+			   "rolling back");
 		dns_db_closeversion(db, &ver, ISC_FALSE);
 	}
 
@@ -2559,3 +2588,5 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 		isc_event_free((isc_event_t **)&event);
 	return (result);
 }
+
+
