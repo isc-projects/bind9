@@ -1594,7 +1594,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	 * Caller must be holding the tree lock.
 	 */
 
-	i = search->chain.level_count;
+	i = search->chain.level_matches;
 	while (i > 0) {
 		i--;
 		node = search->chain.levels[i];
