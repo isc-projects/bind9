@@ -1,3 +1,6 @@
+1072.	[bug]		The TCP client quota could be exceeded when
+			recursion occurred. [RT #1937]
+
 1191.   [bug]           A dynamic update removing the last non-apex name in
 			a secure zone would fail. [RT #2399]
 

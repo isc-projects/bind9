@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.4 2002/01/24 04:22:57 marka Exp $ */
+/* $Id: query.c,v 1.198.2.5 2002/01/24 23:09:15 marka Exp $ */
 
 #include <config.h>
 
@@ -2093,12 +2093,15 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	 * amount of time.  If this client is currently responsible
 	 * for handling incoming queries, set up a new client
 	 * object to handle them while we are waiting for a
-	 * response.
+	 * response.  There is no need to replace TCP clients
+	 * because those have already been replaced when the
+	 * connection was accepted (if allowed by the TCP quota).
 	 */
 	if (! client->mortal) {
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS &&
+		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
