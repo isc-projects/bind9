@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.18 2000/07/05 18:49:01 bwelling Exp $
+# $Id: tests.sh,v 1.19 2000/07/05 20:56:11 bwelling Exp $
 
 #
 # Perform tests
@@ -87,6 +87,7 @@ status=`expr $status + $?`
 
 rm -f ns2/example.db
 kill -TERM `cat ns2/named.pid`
+sleep 6
 
 if [ -f ns2/named.pid ]; then
 	echo "I: ns2 didn't die when sent a SIGTERM"
