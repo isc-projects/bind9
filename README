@@ -45,6 +45,10 @@ BIND 9
 
 
 
+BIND 9.1.3-P3
+
+	Fix a false positive with delegation-only.
+
 BIND 9.1.3-P2
 
 	Fix problems identified with delegation-only.
