@@ -944,7 +944,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	*nodep = (dns_dbnode_t *)node;
 
-	return (result);
+	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
