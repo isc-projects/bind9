@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.26 2000/10/05 22:27:52 bwelling Exp $ */
+/* $Id: getnameinfo.c,v 1.27 2000/11/02 01:10:22 marka Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -238,7 +238,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			}
 		}
 #endif
-		if (strlen(numaddr) > hostlen)
+		if (strlen(numaddr) + 1 > hostlen)
 			ERR(ENI_MEMORY);
 		strcpy(host, numaddr);
 	} else {
