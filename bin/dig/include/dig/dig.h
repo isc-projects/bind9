@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.86 2004/09/06 01:24:44 marka Exp $ */
+/* $Id: dig.h,v 1.87 2004/10/07 02:21:48 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -176,6 +176,7 @@ isc_boolean_t	sigchase;
 	dst_context_t *tsigctx;
 	isc_buffer_t *querysig;
 	isc_uint32_t msgcounter;
+	dns_fixedname_t fdomain;
 };
 
 struct dig_query {
