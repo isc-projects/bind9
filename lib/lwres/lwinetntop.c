@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: lwinetntop.c,v 1.7 2001/01/25 19:39:47 bwelling Exp $";
+	"$Id: lwinetntop.c,v 1.8 2001/01/25 20:10:02 gson Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -181,7 +181,7 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size) {
 	/*
 	 * Check for overflow, copy, and we're done.
 	 */
-	if ((size_t)(tp - tmp) >= size) {
+	if ((size_t)(tp - tmp) > size) {
 		errno = ENOSPC;
 		return (NULL);
 	}
