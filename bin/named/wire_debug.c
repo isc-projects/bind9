@@ -123,6 +123,7 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	isc_uint16_t status;
 	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
+	isc_boolean_t authoritative = ISC_TRUE;
 
 	count = 0;
 	status = 0;
@@ -158,6 +159,11 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	 * Look it up in the database.  XXX Uses many hard coded bits.
 	 */
 
+	if (!dns_name_issubdomain(&name, dns_db_origin(db))) {
+		status = 3;  /* NXDOMAIN */
+		authoritative = ISC_FALSE;
+		goto out;
+	}
 	node = NULL;
 	result = dns_db_findnode(db, &name, ISC_FALSE, &node);
 	if (result == DNS_R_NOTFOUND) {
@@ -192,7 +198,9 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	isc_buffer_putuint16(target, message.id);
 
 	message.flags |= DNS_FLAG_QR;
-	message.flags &= ~(DNS_FLAG_AA | DNS_FLAG_TC | DNS_FLAG_RA);
+	if (authoritative)
+		message.flags |= DNS_FLAG_AA;
+	message.flags &= ~(DNS_FLAG_TC | DNS_FLAG_RA);
 	message.flags &= ~(DNS_RCODE_MASK);
 	message.flags |= status;
 	isc_buffer_putuint16(target, message.flags);
@@ -222,7 +230,7 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 		if (result != DNS_R_SUCCESS) { /* Should just return fail? */
 			oldused = target->used;
 			target->used = 2;  /* Hack! XXX */
-			message.flags &= ~(DNS_RCODE_MASK);
+			message.flags &= ~(DNS_FLAG_AA|DNS_RCODE_MASK);
 			message.flags |= 2; /* SERVFAIL */
 			isc_buffer_putuint16(target, message.flags);
 			target->used = oldused;
