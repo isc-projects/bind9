@@ -340,7 +340,7 @@ setup_system(void) {
 	isc_buffer_t secretsrc;
 	isc_buffer_t secretbuf;
 	int secretsize;
-	char *secretstore;
+	unsigned char *secretstore;
 	isc_lex_t *lex = NULL;
 	isc_stdtime_t now;
 	
