@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.174 2000/08/03 21:24:49 marka Exp $ */
+/* $Id: zone.c,v 1.175 2000/08/04 13:26:48 explorer Exp $ */
 
 #include <config.h>
 
@@ -712,6 +712,9 @@ dns_zone_load(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
+	zone_log(zone, me, ISC_LOG_DEBUG(2),
+		 "number of nodes in database: %u",
+		 dns_db_nodecount(db));
 	zone->loadtime = loadtime;
 
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "loaded");

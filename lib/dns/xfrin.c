@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.87 2000/08/01 01:23:07 tale Exp $ */
+/* $Id: xfrin.c,v 1.88 2000/08/04 13:26:47 explorer Exp $ */
 
 #include <config.h>
 
@@ -296,6 +296,9 @@ axfr_commit(dns_xfrin_ctx_t *xfr) {
 
 	CHECK(axfr_apply(xfr));
 	CHECK(dns_db_endload(xfr->db, &xfr->axfr.add_private));
+	xfrin_log(xfr, ISC_LOG_DEBUG(2),
+		  "number of nodes in database: %u",
+		  dns_db_nodecount(xfr->db));
 	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, ISC_TRUE));
 
 	result = ISC_R_SUCCESS;
@@ -373,6 +376,9 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
 	if (xfr->ver != NULL) {
 		/* XXX enter ready-to-commit state here */
 		CHECK(dns_journal_commit(xfr->ixfr.journal));
+		xfrin_log(xfr, ISC_LOG_DEBUG(2),
+			  "number of nodes in database: %u",
+			  dns_db_nodecount(xfr->db));
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_TRUE);
 	}
 	result = ISC_R_SUCCESS;
