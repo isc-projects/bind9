@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.35 2000/05/22 12:37:50 marka Exp $ */
+/* $Id: nxt_30.c,v 1.36 2000/06/01 18:26:25 tale Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -31,10 +31,7 @@
 #define RRTYPE_NXT_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
 static inline isc_result_t
-fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_lex_t *lexer, dns_name_t *origin,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_nxt(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -88,9 +85,7 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-	   isc_buffer_t *target) 
-{
+totext_nxt(ARGS_TOTEXT) {
 	isc_region_t sr;
 	unsigned int i, j;
 	dns_name_t name;
@@ -130,10 +125,7 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_buffer_t *source, dns_decompress_t *dctx,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_nxt(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 
@@ -156,7 +148,7 @@ fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_nxt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_nxt(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 
@@ -173,7 +165,7 @@ towire_nxt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_nxt(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 	dns_name_t name1;
@@ -198,9 +190,7 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	       isc_buffer_t *target)
-{
+fromstruct_nxt(ARGS_FROMSTRUCT) {
 	dns_rdata_nxt_t *nxt = source;
 
 	REQUIRE(type == 30);
@@ -214,7 +204,7 @@ fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_nxt(ARGS_TOSTRUCT) {
 	dns_rdata_nxt_t *nxt = target;
 	isc_region_t r;
 
@@ -239,7 +229,7 @@ tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_nxt(void *source) {
+freestruct_nxt(ARGS_FREESTRUCT) {
 	dns_rdata_nxt_t *nxt = source;
 
 	REQUIRE(source != NULL);
@@ -254,9 +244,7 @@ freestruct_nxt(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_nxt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		   void *arg)
-{
+additionaldata_nxt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 30);
 
 	UNUSED(rdata);
@@ -267,7 +255,7 @@ additionaldata_nxt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_nxt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_nxt(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
 	isc_result_t result;

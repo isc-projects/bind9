@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.28 2000/05/22 12:37:44 marka Exp $ */
+/* $Id: minfo_14.c,v 1.29 2000/06/01 18:26:18 tale Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -25,10 +25,7 @@
 #define RRTYPE_MINFO_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	       isc_lex_t *lexer, dns_name_t *origin,
-	       isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_minfo(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -51,9 +48,7 @@ fromtext_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_minfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	     isc_buffer_t *target) 
-{
+totext_minfo(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -85,10 +80,7 @@ totext_minfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	       isc_buffer_t *source, dns_decompress_t *dctx,
-	       isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_minfo(ARGS_FROMWIRE) {
         dns_name_t rmail;
         dns_name_t email;
         
@@ -106,8 +98,7 @@ fromwire_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_minfo(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -133,8 +124,7 @@ towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 }
 
 static inline int
-compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_minfo(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 	dns_name_t name1;
@@ -172,9 +162,7 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 }
 
 static inline isc_result_t
-fromstruct_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-		 isc_buffer_t *target)
-{
+fromstruct_minfo(ARGS_FROMSTRUCT) {
 	dns_rdata_minfo_t *minfo = source;
 	isc_region_t region;
 
@@ -190,8 +178,7 @@ fromstruct_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_minfo(ARGS_TOSTRUCT) {
 	dns_rdata_minfo_t *minfo = target;
 	isc_region_t region;
 	dns_name_t name;
@@ -226,8 +213,7 @@ tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_minfo(void *source)
-{
+freestruct_minfo(ARGS_FREESTRUCT) {
 	dns_rdata_minfo_t *minfo = source;
 
 	REQUIRE(source != NULL);
@@ -242,9 +228,7 @@ freestruct_minfo(void *source)
 }
 
 static inline isc_result_t
-additionaldata_minfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		     void *arg)
-{
+additionaldata_minfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 14);
 
 	UNUSED(rdata);
@@ -255,8 +239,7 @@ additionaldata_minfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_minfo(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_minfo(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
 	isc_result_t result;

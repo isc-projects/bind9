@@ -40,17 +40,17 @@ struct dns_rdatacallbacks {
 	/*
 	 * dns_load_master / dns_rdata_fromtext call this to issue a error.
 	 */
-	void		(*error)(struct dns_rdatacallbacks *, char *, ...);
+	void	(*error)(struct dns_rdatacallbacks *, const char *, ...);
 	/*
 	 * dns_load_master / dns_rdata_fromtext call this to issue a warning.
 	 */
-	void		(*warn)(struct dns_rdatacallbacks *, char *, ...);
+	void	(*warn)(struct dns_rdatacallbacks *, const char *, ...);
 	/*
 	 * Private data handles for use by the above callback functions.
 	 */
-	void		*add_private;
-	void		*error_private;
-	void		*warn_private;
+	void	*add_private;
+	void	*error_private;
+	void	*warn_private;
 };
 
 /***

@@ -273,7 +273,7 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
  */
 
 isc_result_t
-dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
+dns_zone_setdbtype(dns_zone_t *zone, const char *db_type);
 /*
  *	Sets the database type. Current database types are: "rbt", "rbt64".
  *	'db_type' is not checked to see if it is a valid database type. 

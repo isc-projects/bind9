@@ -24,8 +24,8 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_rdatatype_fromtext(dns_rdatatype_t *typep,
-				    isc_textregion_t *source);
+isc_result_t
+dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNS rdata type.
  *
@@ -40,8 +40,8 @@ isc_result_t dns_rdatatype_fromtext(dns_rdatatype_t *typep,
  *	ISC_R_NOTIMPLEMENTED		type is known, but not implemented
  */
 
-isc_result_t dns_rdatatype_totext(dns_rdatatype_t type,
-				  isc_buffer_t *target);
+isc_result_t
+dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target);
 /*
  * Put a textual representation of type 'type' into 'target'.
  *

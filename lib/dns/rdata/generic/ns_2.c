@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.30 2000/05/22 12:37:48 marka Exp $ */
+/* $Id: ns_2.c,v 1.31 2000/06/01 18:26:22 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -25,10 +25,7 @@
 #define RRTYPE_NS_ATTRIBUTES (DNS_RDATATYPEATTR_ZONECUTAUTH)
 
 static inline isc_result_t
-fromtext_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	    isc_lex_t *lexer, dns_name_t *origin,
-	    isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_ns(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -46,9 +43,7 @@ fromtext_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_ns(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	  isc_buffer_t *target) 
-{
+totext_ns(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -68,10 +63,7 @@ totext_ns(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	    isc_buffer_t *source, dns_decompress_t *dctx,
-	    isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_ns(ARGS_FROMWIRE) {
         dns_name_t name;
 
 	UNUSED(rdclass);
@@ -85,7 +77,7 @@ fromwire_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_ns(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_ns(ARGS_TOWIRE) {
 	dns_name_t name;
 	isc_region_t region;
 
@@ -101,7 +93,7 @@ towire_ns(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_ns(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_ns(ARGS_COMPARE) {
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
@@ -124,9 +116,7 @@ compare_ns(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	      isc_buffer_t *target)
-{
+fromstruct_ns(ARGS_FROMSTRUCT) {
 	dns_rdata_ns_t *ns = source;
 	isc_region_t region;
 
@@ -140,7 +130,7 @@ fromstruct_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_ns(ARGS_TOSTRUCT) {
 	isc_region_t region;
 	dns_rdata_ns_t *ns = target;
 	dns_name_t name;
@@ -162,7 +152,7 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_ns(void *source) {
+freestruct_ns(ARGS_FREESTRUCT) {
 	dns_rdata_ns_t *ns = source;
 
 	REQUIRE(source != NULL);
@@ -175,9 +165,7 @@ freestruct_ns(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_ns(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		  void *arg)
-{
+additionaldata_ns(ARGS_ADDLDATA) {
 	dns_name_t name;
 	isc_region_t region;
 
@@ -191,7 +179,7 @@ additionaldata_ns(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_ns(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_ns(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
 

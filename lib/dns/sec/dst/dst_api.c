@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.41 2000/05/24 23:13:28 bwelling Exp $
+ * $Id: dst_api.c,v 1.42 2000/06/01 18:26:52 tale Exp $
  */
 
 #include <config.h>
@@ -759,8 +759,9 @@ dst_key_isnullkey(const dst_key_t *key) {
 }
 
 isc_result_t
-dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out) {
-	char *suffix;
+dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out)
+{
+	const char *suffix;
 	unsigned int len;
 	isc_result_t result;
 

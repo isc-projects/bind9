@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confrrset.c,v 1.13 2000/05/08 14:35:35 tale Exp $ */
+/* $Id: confrrset.c,v 1.14 2000/06/01 18:25:46 tale Exp $ */
 
 #include <config.h>
 
@@ -82,9 +82,9 @@ dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval) {
 }
 
 isc_result_t
-dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res,
-	       dns_rdataclass_t oclass,
-	       dns_rdatatype_t otype, char *name, dns_c_ordering_t ordering)
+dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res, dns_rdataclass_t oclass,
+	       dns_rdatatype_t otype, const char *name,
+	       dns_c_ordering_t ordering)
 {
 	dns_c_rrso_t *newo;
 

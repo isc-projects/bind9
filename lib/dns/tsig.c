@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.67 2000/05/31 23:58:34 bwelling Exp $
+ * $Id: tsig.c,v 1.68 2000/06/01 18:25:38 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -829,7 +829,6 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	dns_tsigkey_t *tsigkey;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
-	isc_mem_t *mctx;
 	isc_uint16_t addcount, id;
 	isc_boolean_t has_tsig = ISC_FALSE;
 
@@ -839,8 +838,6 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(msg->tcp_continuation == 1);
 	REQUIRE(is_response(msg));
 	REQUIRE(msg->querytsig != NULL);
-
-	mctx = msg->mctx;
 
 	tsigkey = dns_message_gettsigkey(msg);
 
@@ -1041,19 +1038,19 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 }
 
 static void
-dns_tsig_inithmac() {
-	isc_region_t r;
-	char *str = "\010HMAC-MD5\007SIG-ALG\003REG\003INT";
+dns_tsig_inithmac(void) {
+	isc_constregion_t r;
+	const char *str = "\010HMAC-MD5\007SIG-ALG\003REG\003INT";
+
 	dns_name_init(&hmacmd5_name, NULL);
-	r.base = (unsigned char *)str;
+	r.base = str;
 	r.length = strlen(str) + 1;
-	dns_name_fromregion(&hmacmd5_name, &r);
+	dns_name_fromregion(&hmacmd5_name, (isc_region_t *)&r);
 	dns_tsig_hmacmd5_name = &hmacmd5_name;
 }
 
 isc_result_t
-dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring)
-{
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring) {
 	isc_result_t ret;
 	
 	REQUIRE(mctx != NULL);

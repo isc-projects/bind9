@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.31 2000/05/22 12:38:12 marka Exp $ */
+/* $Id: wks_11.c,v 1.32 2000/06/01 18:26:51 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -31,10 +31,7 @@
 #define RRTYPE_WKS_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		isc_lex_t *lexer, dns_name_t *origin,
-		isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_in_wks(ARGS_FROMTEXT) {
 	isc_token_t token;
 	isc_region_t region;
 	struct in_addr addr;
@@ -45,7 +42,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	unsigned char bm[8*1024]; /* 64k bits */
 	long port;
 	long maxport = -1;
-	char *ps = NULL;
+	const char *ps = NULL;
 	unsigned int n;
 	char service[32];
 	int i;
@@ -135,9 +132,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	      isc_buffer_t *target) 
-{
+totext_in_wks(ARGS_TOTEXT) {
 	isc_region_t sr;
 	isc_region_t tr;
 	unsigned short proto;
@@ -178,10 +173,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		isc_buffer_t *source, dns_decompress_t *dctx,
-		isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_in_wks(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	isc_region_t tr;
 
@@ -209,7 +201,7 @@ fromwire_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_in_wks(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_in_wks(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	UNUSED(cctx);
@@ -222,7 +214,7 @@ towire_in_wks(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_in_wks(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_in_wks(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -237,9 +229,7 @@ compare_in_wks(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-		  isc_buffer_t *target)
-{
+fromstruct_in_wks(ARGS_FROMSTRUCT) {
 	dns_rdata_in_wks_t *wks = source;
 	isc_uint32_t a;
 
@@ -256,7 +246,7 @@ fromstruct_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_in_wks(ARGS_TOSTRUCT) {
 	dns_rdata_in_wks_t *wks = target;
 	isc_uint32_t n;
 	isc_region_t region;
@@ -286,7 +276,7 @@ tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_in_wks(void *source) {
+freestruct_in_wks(ARGS_FREESTRUCT) {
 	dns_rdata_in_wks_t *wks = source;
 
 	REQUIRE(source != NULL);
@@ -302,9 +292,7 @@ freestruct_in_wks(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_in_wks(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		      void *arg)
-{
+additionaldata_in_wks(ARGS_ADDLDATA) {
 	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
@@ -316,7 +304,7 @@ additionaldata_in_wks(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_in_wks(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_in_wks(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 11);

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.16 2000/05/15 23:14:11 bwelling Exp $
+ * $Id: dst_parse.c,v 1.17 2000/06/01 18:26:53 tale Exp $
  */
 
 #include <config.h>
@@ -48,7 +48,7 @@
 
 struct parse_map {
 	int value;
-	char *tag;
+	const char *tag;
 };
 
 static struct parse_map map[] = {
@@ -89,7 +89,7 @@ find_value(const char *s, const int alg) {
 	}
 }
 
-static char *
+static const char *
 find_tag(const int value) {
 	int i;
 
@@ -362,7 +362,7 @@ dst_s_write_private_key_file(const dst_key_t *key, const dst_private_t *priv) {
 	for (i = 0; i < priv->nelements; i++) {
 		isc_buffer_t b;
 		isc_region_t r;
-		char *s;
+		const char *s;
 
 		s = find_tag(priv->elements[i].tag);
 

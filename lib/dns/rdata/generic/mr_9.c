@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.26 2000/05/22 12:37:46 marka Exp $ */
+/* $Id: mr_9.c,v 1.27 2000/06/01 18:26:20 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -25,10 +25,7 @@
 #define RRTYPE_MR_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	    isc_lex_t *lexer, dns_name_t *origin,
-	    isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_mr(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -46,8 +43,7 @@ fromtext_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_mr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, isc_buffer_t *target)
-{
+totext_mr(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -67,10 +63,7 @@ totext_mr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, isc_buffer_t *target)
 }
 
 static inline isc_result_t
-fromwire_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	    isc_buffer_t *source, dns_decompress_t *dctx,
-	    isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_mr(ARGS_FROMWIRE) {
         dns_name_t name;
 
 	REQUIRE(type == 9);
@@ -84,7 +77,7 @@ fromwire_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_mr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_mr(ARGS_TOWIRE) {
 	dns_name_t name;
 	isc_region_t region;
 
@@ -100,7 +93,7 @@ towire_mr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_mr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_mr(ARGS_COMPARE) {
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
@@ -123,9 +116,7 @@ compare_mr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	      isc_buffer_t *target)
-{
+fromstruct_mr(ARGS_FROMSTRUCT) {
 	dns_rdata_mr_t *mr = source;
 	isc_region_t region;
 
@@ -139,7 +130,7 @@ fromstruct_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_mr(ARGS_TOSTRUCT) {
 	isc_region_t region;
 	dns_rdata_mr_t *mr = target;
 	dns_name_t name;
@@ -161,7 +152,7 @@ tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_mr(void *source) {
+freestruct_mr(ARGS_FREESTRUCT) {
 	dns_rdata_mr_t *mr = source;
 
 	REQUIRE(source != NULL);
@@ -174,9 +165,7 @@ freestruct_mr(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_mr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		  void *arg)
-{
+additionaldata_mr(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 9);
 
 	UNUSED(rdata);
@@ -187,7 +176,7 @@ additionaldata_mr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_mr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_mr(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
 

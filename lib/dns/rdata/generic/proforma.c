@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.23 2000/05/22 12:37:52 marka Exp $ */
+/* $Id: proforma.c,v 1.24 2000/06/01 18:26:27 tale Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -23,9 +23,7 @@
 #define RRTYPE_#_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	   isc_lex_t *lexer, dns_name_t *origin,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+fromtext_#(ARGS_FROMTEXT) {
 	isc_token_t token;
 
 	REQUIRE(type == #);
@@ -37,9 +35,7 @@ fromtext_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_#(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	 isc_buffer_t *target) 
-{
+totext_#(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
@@ -48,9 +44,7 @@ totext_#(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	   isc_buffer_t *source, dns_decompress_t *dctx,
-	   isc_boolean_t downcase, isc_buffer_t *target) {
+fromwire_#(ARGS_FROMWIRE) {
 
 	REQUIRE(type == #);
 	REQUIRE(rdclass == #);
@@ -62,7 +56,7 @@ fromwire_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_#(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
@@ -74,7 +68,7 @@ towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_#(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -89,9 +83,7 @@ compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_#(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	     isc_buffer_t *target)
-{
+fromstruct_#(ARGS_FROMSTRUCT) {
 	dns_rdata_#_t *# = source;
 
 	REQUIRE(type == #);
@@ -104,7 +96,7 @@ fromstruct_#(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_#(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_#(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
@@ -113,7 +105,7 @@ tostruct_#(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_#(void *source) {
+freestruct_#(ARGS_FREESTRUCT) {
 	dns_rdata_#_t *# = source;
 
 	REQUIRE(source != NULL);
@@ -123,9 +115,7 @@ freestruct_#(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_#(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		 void *arg)
-{
+additionaldata_#(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
 
@@ -136,7 +126,7 @@ additionaldata_#(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_#(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_#(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == #);

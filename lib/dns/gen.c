@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.46 2000/05/09 22:22:11 tale Exp $ */
+/* $Id: gen.c,v 1.47 2000/06/01 18:25:30 tale Exp $ */
 
 #include <config.h>
 
@@ -151,13 +151,21 @@ struct ttnam {
 	unsigned int sorted;
 } typenames[256];
 
-char *	upper(char *);
-char *	funname(char *, char *);
-void	doswitch(char *, char *, char *, char *, char *, char *);
-void	dodecl(char *, char *, char *);
-void	add(int, char *, int, char *, char *);
-void	sd(int, char *, char *, char);
-void	insert_into_typenames(int, char *, char *);
+char *
+upper(char *);
+char *
+funname(char *, char *);
+void
+doswitch(const char *, const char *, const char *, const char *,
+	 const char *, const char *);
+void
+dodecl(char *, char *, char *);
+void
+add(int, const char *, int, const char *, const char *);
+void
+sd(int, const char *, const char *, char);
+void
+insert_into_typenames(int, const char *, const char *);
 
 /*
  * If you use more than 10 of these in, say, a printf(), you'll have problems.
@@ -195,15 +203,15 @@ funname(char *s, char *buf) {
 }
 
 void
-doswitch(char *name, char *function, char *args,
-	 char *tsw, char *csw, char *res)
+doswitch(const char *name, const char *function, const char *args,
+	 const char *tsw, const char *csw, const char *res)
 {
 	struct tt *tt;
 	int first = 1;
 	int lasttype = 0;
 	int subswitch = 0;
 	char buf1[11], buf2[11];
-	char *result = " result =";
+	const char *result = " result =";
 
 	if (res == NULL)
 		result = "";
@@ -286,8 +294,7 @@ dodecl(char *type, char *function, char *args) {
 }
 
 void
-insert_into_typenames(int type, char *typename, char *attr)
-{
+insert_into_typenames(int type, const char *typename, const char *attr) {
 	struct ttnam *ttn;
 	int c;
 	char tmp[256];
@@ -335,7 +342,9 @@ insert_into_typenames(int type, char *typename, char *attr)
 }
 
 void
-add(int rdclass, char *classname, int type, char *typename, char *dirname) {
+add(int rdclass, const char *classname, int type, const char *typename,
+    const char *dirname)
+{
 	struct tt *newtt = (struct tt *)malloc(sizeof *newtt);
 	struct tt *tt, *oldtt;
 	struct cc *newcc;
@@ -409,7 +418,7 @@ add(int rdclass, char *classname, int type, char *typename, char *dirname) {
 }
 
 void
-sd(int rdclass, char *classname, char *dirname, char filetype) {
+sd(int rdclass, const char *classname, const char *dirname, char filetype) {
 	char buf[sizeof "0123456789_65535.h"];
 	char fmt[sizeof "%10[-0-9a-z]_%d.h"];
 	int type;
@@ -436,8 +445,7 @@ sd(int rdclass, char *classname, char *dirname, char filetype) {
 }
 
 static unsigned int
-HASH(char *string)
-{
+HASH(char *string) {
 	unsigned int n;
 	unsigned char a, b;
 
@@ -617,7 +625,7 @@ main(int argc, char **argv) {
 		insert_into_typenames(255, "any", METAQUESTIONONLY);
 
 		printf("\ntypedef struct {\n");
-		printf("\tchar *name;\n");
+		printf("\tconst char *name;\n");
 		printf("\tunsigned int flags;\n");
 		printf("} typeattr_t;\n");
 		printf("static typeattr_t typeattr[] = {\n");

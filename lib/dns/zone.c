@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.134 2000/06/01 00:30:54 explorer Exp $ */
+/* $Id: zone.c,v 1.135 2000/06/01 18:25:40 tale Exp $ */
 
 #include <config.h>
 
@@ -465,7 +465,7 @@ dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
 }
 
 isc_result_t
-dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
+dns_zone_setdbtype(dns_zone_t *zone, const char *db_type) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));

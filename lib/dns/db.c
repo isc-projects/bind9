@@ -35,7 +35,7 @@
  ***/
 
 typedef struct {
-	char *			name;	
+	const char *		name;	
 	isc_result_t		(*create)(isc_mem_t *mctx, dns_name_t *name,
 					  isc_boolean_t cache,
 					  dns_rdataclass_t rdclass,
@@ -67,7 +67,7 @@ static impinfo_t implementations[] = {
  ***/
 
 isc_result_t
-dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
+dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
 	      isc_boolean_t cache, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp)
 {

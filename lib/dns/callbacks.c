@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: callbacks.c,v 1.7 2000/05/08 14:34:27 tale Exp $ */
+/* $Id: callbacks.c,v 1.8 2000/06/01 18:25:26 tale Exp $ */
 
 #include <config.h>
 
@@ -24,14 +24,17 @@
 #include <dns/callbacks.h>
 #include <dns/log.h>
 
-static void stdio_error_warn_callback(dns_rdatacallbacks_t *, char *, ...);
+static void
+stdio_error_warn_callback(dns_rdatacallbacks_t *, const char *, ...);
 
 /*
  * Private
  */
 
 static void
-stdio_error_warn_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+stdio_error_warn_callback(dns_rdatacallbacks_t *callbacks,
+			  const char *fmt, ...)
+{
 	va_list ap;
 
 	UNUSED(callbacks);
@@ -43,7 +46,7 @@ stdio_error_warn_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
 }
 
 static void
-isclog_error_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+isclog_error_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...) {
 	va_list ap;
 
 	UNUSED(callbacks);
@@ -56,7 +59,7 @@ isclog_error_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
 }
 
 static void
-isclog_warn_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+isclog_warn_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...) {
 	va_list ap;
 
 	UNUSED(callbacks);

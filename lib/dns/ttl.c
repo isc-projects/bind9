@@ -43,12 +43,13 @@ static isc_result_t bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl);
  * Helper for dns_ttl_totext().
  */
 static isc_result_t
-ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
+ttlfmt(unsigned int t, const char *s, isc_boolean_t verbose,
        isc_boolean_t space, isc_buffer_t *target)
 {
 	char tmp[60];
 	size_t len;
 	isc_region_t region;
+
 	if (verbose)
 		len = snprintf(tmp, sizeof(tmp), "%s%u %s%s",
 			       space ? " " : "",
@@ -63,6 +64,7 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 		return (ISC_R_NOSPACE);
 	memcpy(region.base, tmp, len);
 	isc_buffer_add(target, len);
+
 	return (ISC_R_SUCCESS);
 }
 

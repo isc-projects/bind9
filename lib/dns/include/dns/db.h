@@ -189,7 +189,7 @@ struct dns_db {
  ***/
 
 isc_result_t
-dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
+dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
 	      isc_boolean_t cache, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp);
 /*

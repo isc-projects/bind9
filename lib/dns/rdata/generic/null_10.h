@@ -18,12 +18,12 @@
 #ifndef GENERIC_NULL_10_H
 #define GENERIC_NULL_10_H 1
 
-/* $Id: null_10.h,v 1.15 2000/04/29 02:01:46 tale Exp $ */
+/* $Id: null_10.h,v 1.16 2000/06/01 18:26:24 tale Exp $ */
 
 typedef struct dns_rdata_null {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
-	isc_int16_t		length;
+	isc_uint16_t		length;
 	unsigned char		*data;
 } dns_rdata_null_t;
 

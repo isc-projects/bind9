@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.33 2000/05/22 12:38:06 marka Exp $ */
+/* $Id: a_1.c,v 1.34 2000/06/01 18:26:41 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -29,10 +29,7 @@
 #define RRTYPE_A_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      isc_lex_t *lexer, dns_name_t *origin,
-	      isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_in_a(ARGS_FROMTEXT) {
 	isc_token_t token;
 	struct in_addr addr;
 	isc_region_t region;
@@ -56,9 +53,7 @@ fromtext_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	    isc_buffer_t *target) 
-{
+totext_in_a(ARGS_TOTEXT) {
 	isc_region_t region;
 
 	UNUSED(tctx);
@@ -77,10 +72,7 @@ totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_in_a(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 
@@ -104,7 +96,7 @@ fromwire_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_in_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_in_a(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	UNUSED(cctx);
@@ -121,7 +113,7 @@ towire_in_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_in_a(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -136,9 +128,7 @@ compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	        isc_buffer_t *target)
-{
+fromstruct_in_a(ARGS_FROMSTRUCT) {
 	dns_rdata_in_a_t *a = source;
 	isc_uint32_t n;
 
@@ -155,7 +145,7 @@ fromstruct_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 
 static inline isc_result_t
-tostruct_in_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_in_a(ARGS_TOSTRUCT) {
 	dns_rdata_in_a_t *a = target;
 	isc_uint32_t n;
 	isc_region_t region;
@@ -177,7 +167,7 @@ tostruct_in_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_in_a(void *source) {
+freestruct_in_a(ARGS_FREESTRUCT) {
 	dns_rdata_in_a_t *a = source;
 
 	REQUIRE(source != NULL);
@@ -186,9 +176,7 @@ freestruct_in_a(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_in_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		    void *arg)
-{
+additionaldata_in_a(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
 
@@ -200,7 +188,7 @@ additionaldata_in_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_in_a(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_in_a(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 1);

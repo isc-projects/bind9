@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.38 2000/05/22 12:37:58 marka Exp $ */
+/* $Id: soa_6.c,v 1.39 2000/06/01 18:26:33 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -25,10 +25,7 @@
 #define RRTYPE_SOA_ATTRIBUTES (DNS_RDATATYPEATTR_SINGLETON)
 
 static inline isc_result_t
-fromtext_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_lex_t *lexer, dns_name_t *origin,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_soa(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -64,14 +61,12 @@ fromtext_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (ISC_R_SUCCESS);
 }
 
-static char *soa_fieldnames[5] = {
+static const char *soa_fieldnames[5] = {
 	"serial", "refresh", "retry", "expire", "minimum"
 };
 
 static inline isc_result_t
-totext_soa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	   isc_buffer_t *target) 
-{
+totext_soa(ARGS_TOTEXT) {
 	isc_region_t dregion;
 	dns_name_t mname;
 	dns_name_t rname;
@@ -137,10 +132,7 @@ totext_soa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_buffer_t *source, dns_decompress_t *dctx,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_soa(ARGS_FROMWIRE) {
         dns_name_t mname;
         dns_name_t rname;
 	isc_region_t sregion;
@@ -174,8 +166,7 @@ fromwire_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_soa(ARGS_TOWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 	dns_name_t mname;
@@ -208,8 +199,7 @@ towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 }
 
 static inline int
-compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_soa(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 	dns_name_t name1;
@@ -253,9 +243,7 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 }
 
 static inline isc_result_t
-fromstruct_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	       isc_buffer_t *target)
-{
+fromstruct_soa(ARGS_FROMSTRUCT) {
 	dns_rdata_soa_t *soa = source;
 	isc_region_t region;
 
@@ -276,8 +264,7 @@ fromstruct_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_soa(ARGS_TOSTRUCT) {
 	isc_region_t region;
 	dns_rdata_soa_t *soa = target;
 	dns_name_t name;
@@ -330,8 +317,7 @@ tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_soa(void *source)
-{
+freestruct_soa(ARGS_FREESTRUCT) {
 	dns_rdata_soa_t *soa = source;
 
 	REQUIRE(source != NULL);
@@ -346,9 +332,7 @@ freestruct_soa(void *source)
 }
 
 static inline isc_result_t
-additionaldata_soa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		   void *arg)
-{
+additionaldata_soa(ARGS_ADDLDATA) {
 	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
@@ -359,8 +343,7 @@ additionaldata_soa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_soa(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_soa(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.40 2000/06/01 16:47:25 gson Exp $ */
+/* $Id: tsig_250.c,v 1.41 2000/06/01 18:26:01 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -26,10 +26,7 @@
 	(DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION)
 
 static inline isc_result_t
-fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		  isc_lex_t *lexer, dns_name_t *origin,
-		  isc_boolean_t downcase, isc_buffer_t *target)
-{
+	fromtext_any_tsig(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_uint64_t sigtime;
@@ -122,9 +119,7 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-		isc_buffer_t *target) 
-{
+totext_any_tsig(ARGS_TOTEXT) {
 	isc_region_t sr;
 	isc_region_t sigr;
 	char buf[sizeof "281474976710655 "];	
@@ -236,10 +231,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		  isc_buffer_t *source, dns_decompress_t *dctx,
-		  isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_any_tsig(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 	unsigned long n;
@@ -299,9 +291,7 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx,
-		isc_buffer_t *target)
-{
+towire_any_tsig(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 
@@ -318,7 +308,7 @@ towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx,
 }
 
 static inline int
-compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_any_tsig(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 	dns_name_t name1;
@@ -345,9 +335,7 @@ compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    void *source, isc_buffer_t *target)
-{
+fromstruct_any_tsig(ARGS_FROMSTRUCT) {
 	dns_rdata_any_tsig_t *tsig = source;
 	isc_region_t tr;
 
@@ -415,7 +403,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_any_tsig(ARGS_TOSTRUCT) {
 	dns_rdata_any_tsig_t *tsig;
 	dns_name_t alg;
 	isc_region_t sr;
@@ -515,7 +503,7 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_any_tsig(void *source) {
+freestruct_any_tsig(ARGS_FREESTRUCT) {
 	dns_rdata_any_tsig_t *tsig = (dns_rdata_any_tsig_t *) source;
 
 	REQUIRE(source != NULL);
@@ -534,9 +522,7 @@ freestruct_any_tsig(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-			void *arg)
-{
+additionaldata_any_tsig(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
 
@@ -548,7 +534,7 @@ additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_any_tsig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_any_tsig(ARGS_DIGEST) {
 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);

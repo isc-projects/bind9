@@ -414,8 +414,7 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 
 
 static void
-DP(int level, char *format, ...)
-{
+DP(int level, const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -3005,7 +3004,7 @@ print_namehook_list(FILE *f, dns_adbname_t *n) {
 }
 
 static inline void
-print_fetch(FILE *f, dns_adbfetch_t *ft, char *type) {
+print_fetch(FILE *f, dns_adbfetch_t *ft, const char *type) {
 	fprintf(f, "\t\tFetch(%s): %p -> { nh %p, entry %p, fetch %p }\n",
 		type, ft, ft->namehook, ft->entry, ft->fetch);
 }

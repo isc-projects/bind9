@@ -72,14 +72,14 @@
  * Text representation of the different items, for message_totext
  * functions.
  */
-static char *sectiontext[] = {
+static const char *sectiontext[] = {
 	"QUESTION",
 	"ANSWER",
 	"AUTHORITY",
 	"ADDITIONAL"
 };
 
-static char *opcodetext[] = {
+static const char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
 	"STATUS",
@@ -98,7 +98,7 @@ static char *opcodetext[] = {
 	"RESERVED15"
 };
 
-static char *rcodetext[] = {
+static const char *rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
@@ -824,9 +824,12 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	if (msg->opcode == dns_opcode_update && rdatalen == 0) {
 		/*
 		 * When the rdata is empty, the data pointer is never
-		 * dereferenced, but it must still be non-NULL.
+		 * dereferenced, but it must still be non-NULL.  Casting
+		 * 1 rather than "" avoids warnings about discarding
+		 * the const attribute of a string, for compilers that
+		 * would warn about such things.
 		 */
-		rdata->data = (unsigned char *)""; 
+		rdata->data = (unsigned char *)1; 
 		rdata->length = 0;
 		rdata->rdclass = rdclass;
 		rdata->type = rdtype;

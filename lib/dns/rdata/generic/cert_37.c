@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.29 2000/05/22 12:37:30 marka Exp $ */
+/* $Id: cert_37.c,v 1.30 2000/06/01 18:26:04 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -27,10 +27,7 @@
 #define RRTYPE_CERT_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      isc_lex_t *lexer, dns_name_t *origin,
-	      isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_cert(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_secalg_t secalg;
 	dns_cert_t cert;
@@ -67,9 +64,7 @@ fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-	    isc_buffer_t *target) 
-{
+totext_cert(ARGS_TOTEXT) {
 	isc_region_t sr;
 	char buf[sizeof "64000 "];
 	unsigned int n;
@@ -116,10 +111,7 @@ totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_cert(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(type == 37);
@@ -137,7 +129,7 @@ fromwire_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_cert(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_cert(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 37);
@@ -149,7 +141,7 @@ towire_cert(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_cert(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_cert(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -163,9 +155,7 @@ compare_cert(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-		isc_buffer_t *target)
-{
+fromstruct_cert(ARGS_FROMSTRUCT) {
 	dns_rdata_cert_t *cert = source;
 
 	REQUIRE(type == 37);
@@ -181,7 +171,7 @@ fromstruct_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_cert(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_cert(ARGS_TOSTRUCT) {
 	dns_rdata_cert_t *cert = target;
 	isc_region_t region;
 
@@ -215,10 +205,10 @@ tostruct_cert(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_cert(void *target) {
-	dns_rdata_cert_t *cert = target;
+freestruct_cert(ARGS_FREESTRUCT) {
+	dns_rdata_cert_t *cert = source;
 
-	REQUIRE(target != NULL && target != NULL);
+	REQUIRE(cert != NULL);
 	REQUIRE(cert->common.rdtype == 37);
 
 	if (cert->mctx == NULL)
@@ -230,9 +220,7 @@ freestruct_cert(void *target) {
 }
 
 static inline isc_result_t
-additionaldata_cert(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		    void *arg)
-{
+additionaldata_cert(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 37);
 
 	UNUSED(rdata);
@@ -243,7 +231,7 @@ additionaldata_cert(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_cert(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_cert(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 37);

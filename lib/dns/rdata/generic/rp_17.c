@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.24 2000/05/22 12:37:54 marka Exp $ */
+/* $Id: rp_17.c,v 1.25 2000/06/01 18:26:29 tale Exp $ */
 
 /* RFC 1183 */
 
@@ -25,10 +25,7 @@
 #define RRTYPE_RP_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	    isc_lex_t *lexer, dns_name_t *origin,
-	    isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_rp(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -52,9 +49,7 @@ fromtext_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_rp(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	  isc_buffer_t *target) 
-{
+totext_rp(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -85,10 +80,7 @@ totext_rp(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	    isc_buffer_t *source, dns_decompress_t *dctx,
-	    isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_rp(ARGS_FROMWIRE) {
         dns_name_t rmail;
         dns_name_t email;
 
@@ -106,8 +98,7 @@ fromwire_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_rp(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -132,8 +123,7 @@ towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 }
 
 static inline int
-compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_rp(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 	dns_name_t name1;
@@ -170,9 +160,7 @@ compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 }
 
 static inline isc_result_t
-fromstruct_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	      isc_buffer_t *target)
-{
+fromstruct_rp(ARGS_FROMSTRUCT) {
 	dns_rdata_rp_t *rp = source;
 	isc_region_t region;
 
@@ -188,8 +176,7 @@ fromstruct_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_rp(ARGS_TOSTRUCT) {
 	isc_result_t result;
 	isc_region_t region;
 	dns_rdata_rp_t *rp = target;
@@ -224,8 +211,7 @@ tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_rp(void *source)
-{
+freestruct_rp(ARGS_FREESTRUCT) {
 	dns_rdata_rp_t *rp = source;
 
 	REQUIRE(source != NULL);
@@ -240,9 +226,7 @@ freestruct_rp(void *source)
 }
 
 static inline isc_result_t
-additionaldata_rp(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		  void *arg)
-{
+additionaldata_rp(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 17);
 
 	UNUSED(rdata);
@@ -253,8 +237,7 @@ additionaldata_rp(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_rp(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_rp(ARGS_DIGEST) {
 	isc_region_t r;
 	dns_name_t name;
 

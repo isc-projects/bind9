@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.21 2000/05/24 05:09:27 tale Exp $ */
+/* $Id: gpos_27.c,v 1.22 2000/06/01 18:26:08 tale Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -27,10 +27,7 @@
 #define RRTYPE_GPOS_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      isc_lex_t *lexer, dns_name_t *origin,
-	      isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_gpos(ARGS_FROMTEXT) {
 	isc_token_t token;
 	int i;
 
@@ -49,9 +46,7 @@ fromtext_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_gpos(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	    isc_buffer_t *target) 
-{
+totext_gpos(ARGS_TOTEXT) {
 	isc_region_t region;
 	int i;
 
@@ -71,10 +66,7 @@ totext_gpos(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      isc_buffer_t *source, dns_decompress_t *dctx,
-	      isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_gpos(ARGS_FROMWIRE) {
 	int i;
 
 	REQUIRE(type == 27);
@@ -89,8 +81,7 @@ fromwire_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_gpos(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_gpos(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 27);
 
@@ -100,8 +91,7 @@ towire_gpos(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 }
 
 static inline int
-compare_gpos(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_gpos(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 	
@@ -115,9 +105,7 @@ compare_gpos(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 }
 
 static inline isc_result_t
-fromstruct_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-		isc_buffer_t *target)
-{
+fromstruct_gpos(ARGS_FROMSTRUCT) {
 	dns_rdata_gpos_t *gpos = source;
 
 	REQUIRE(type == 27);
@@ -134,8 +122,7 @@ fromstruct_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_gpos(ARGS_TOSTRUCT) {
 	dns_rdata_gpos_t *gpos = target;
 	isc_region_t region;
 
@@ -193,8 +180,7 @@ tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_gpos(void *source)
-{
+freestruct_gpos(ARGS_FREESTRUCT) {
 	dns_rdata_gpos_t *gpos = source;
 
 	REQUIRE(source != NULL);
@@ -213,9 +199,7 @@ freestruct_gpos(void *source)
 }
 
 static inline isc_result_t
-additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		    void *arg)
-{
+additionaldata_gpos(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 27);
 
 	UNUSED(rdata);
@@ -226,8 +210,7 @@ additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_gpos(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_gpos(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 27);

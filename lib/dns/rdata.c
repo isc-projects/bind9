@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.97 2000/05/25 00:46:28 bwelling Exp $ */
+/* $Id: rdata.c,v 1.98 2000/06/01 18:25:34 tale Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -47,6 +47,34 @@
 		return (_r); \
 	} while (0)
 
+#define ARGS_FROMTEXT	int rdclass, int type, \
+			isc_lex_t *lexer, dns_name_t *origin, \
+			isc_boolean_t downcase, isc_buffer_t *target
+
+#define ARGS_TOTEXT	dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, \
+			isc_buffer_t *target
+
+#define ARGS_FROMWIRE	int rdclass, int type, \
+			isc_buffer_t *source, dns_decompress_t *dctx, \
+			isc_boolean_t downcase, isc_buffer_t *target
+
+#define ARGS_TOWIRE	dns_rdata_t *rdata, dns_compress_t *cctx, \
+			isc_buffer_t *target
+
+#define ARGS_COMPARE	const dns_rdata_t *rdata1, const dns_rdata_t *rdata2
+
+#define ARGS_FROMSTRUCT	int rdclass, int type, \
+			void *source, isc_buffer_t *target
+
+#define ARGS_TOSTRUCT	dns_rdata_t *rdata, void *target, isc_mem_t *mctx
+
+#define ARGS_FREESTRUCT void *source
+
+#define ARGS_ADDLDATA	dns_rdata_t *rdata, dns_additionaldatafunc_t add, \
+			void *arg
+
+#define ARGS_DIGEST	dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg
+
 /*
  * Context structure for the totext_ functions.  
  * Contains formatting options for rdata-to-text
@@ -56,7 +84,7 @@ typedef struct dns_rdata_textctx {
 	dns_name_t *origin;	/* Current origin, or NULL. */
 	unsigned int flags;	/* DNS_STYLEFLAG_* */
 	unsigned int width;	/* Width of rdata column. */
-  	char *linebreak;	/* Line break string. */
+  	const char *linebreak;	/* Line break string. */
 } dns_rdata_textctx_t;
 
 static isc_result_t
@@ -75,7 +103,7 @@ static unsigned int
 name_length(dns_name_t *name);
 
 static isc_result_t
-str_totext(char *source, isc_buffer_t *target);
+str_totext(const char *source, isc_buffer_t *target);
 
 static isc_boolean_t
 buffer_empty(isc_buffer_t *source);
@@ -127,12 +155,12 @@ static isc_result_t
 atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target);
 
 static void
-default_fromtext_callback(dns_rdatacallbacks_t *callbacks, char *, ...);
+default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *, ...);
 
 static void
-fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
-	       dns_rdatacallbacks_t *callbacks, char *name, unsigned long line,
-	       isc_token_t *token, isc_result_t result);
+fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
+	       dns_rdatacallbacks_t *callbacks, const char *name,
+	       unsigned long line, isc_token_t *token, isc_result_t result);
 
 static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
@@ -230,8 +258,8 @@ static const char decdigits[] = "0123456789";
 
 struct tbl {
 	unsigned int	value;
-	char	*name;
-	int	flags;
+	const char	*name;
+	int		flags;
 };
 
 static struct tbl rcodes[] = { RCODENAMES ERCODENAMES };
@@ -241,7 +269,7 @@ static struct tbl secalgs[] = { SECALGNAMES };
 static struct tbl secprotos[] = { SECPROTONAMES };
 
 static struct keyflag {
-	char *name;
+	const char *name;
 	unsigned int value;
 	unsigned int mask;
 } keyflags[] = {
@@ -301,7 +329,7 @@ dns_rdata_init(dns_rdata_t *rdata) {
  ***/
 
 int
-dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2) {
 	int result = 0;
 	isc_boolean_t use_default = ISC_FALSE;
 
@@ -348,7 +376,7 @@ dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 }
 
 void
-dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r) {
+dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r) {
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(r != NULL);
@@ -445,7 +473,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	char *name;
 	unsigned long line;
-	void (*callback)(dns_rdatacallbacks_t *, char *, ...);
+	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
 	isc_result_t iresult;
 
 	REQUIRE(origin == NULL || dns_name_isabsolute(origin) == ISC_TRUE);
@@ -1163,7 +1191,7 @@ return_false:
 }
 
 static isc_result_t
-str_totext(char *source, isc_buffer_t *target) {
+str_totext(const char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
 
@@ -1625,7 +1653,9 @@ btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
 
 
 static void
-default_fromtext_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
+			  ...)
+{
 	va_list ap;
 
 	UNUSED(callbacks);
@@ -1636,9 +1666,9 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
 }
 
 static void
-fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
-	       dns_rdatacallbacks_t *callbacks, char *name, unsigned long line,
-	       isc_token_t *token, isc_result_t result)
+fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
+	       dns_rdatacallbacks_t *callbacks, const char *name,
+	       unsigned long line, isc_token_t *token, isc_result_t result)
 {
 	if (name == NULL)
 		name = "UNKNOWN";

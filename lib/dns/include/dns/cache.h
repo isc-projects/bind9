@@ -62,7 +62,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t 
 dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
-		 char *db_type, unsigned int db_argc, char **db_argv,
+		 const char *db_type, unsigned int db_argc, char **db_argv,
 		 dns_cache_t **cachep);
 /*
  * Create a new DNS cache.  

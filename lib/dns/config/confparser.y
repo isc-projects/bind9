@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.85 2000/05/31 13:09:57 brister Exp $ */
+/* $Id: confparser.y,v 1.86 2000/06/01 18:25:45 tale Exp $ */
 
 #include <config.h>
 
@@ -126,7 +126,7 @@ static void		parser_complain(isc_boolean_t is_warning,
 					isc_boolean_t last_token,
 					const char *format, va_list args);
 static isc_boolean_t	unit_to_uint32(char *in, isc_uint32_t *out);
-static char *		token_to_keyword(int token);
+static const char *	token_to_keyword(int token);
 static void		yyerror(const char *);
 static dns_peerlist_t	*currentpeerlist(dns_c_ctx_t *cfg,
 					 isc_boolean_t createIfNeeded);
@@ -2429,7 +2429,7 @@ category_name: any_string
 	}
 	| L_DEFAULT
 	{
-		char *name = token_to_keyword(L_DEFAULT);
+		const char *name = token_to_keyword(L_DEFAULT);
 
 		REQUIRE(name != NULL);
 
@@ -2437,7 +2437,7 @@ category_name: any_string
 	}
 	| L_NOTIFY
 	{
-		char *name = token_to_keyword(L_NOTIFY);
+		const char *name = token_to_keyword(L_NOTIFY);
 
 		REQUIRE(name != NULL);
 
@@ -4881,7 +4881,7 @@ static int		lasttoken;
  */
 struct token
 {
-	char *token;
+	const char *token;
 	int yaccval;
 };
 
@@ -5160,7 +5160,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 				      ISC_LEXCOMMENT_CPLUSPLUS |
 				      ISC_LEXCOMMENT_SHELL));
 
-	res = isc_lex_openfile(mylexer, (char *)filename); /* remove const */
+	res = isc_lex_openfile(mylexer, filename);
 	if (res != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -5324,9 +5324,11 @@ yylex(void)
 static char *
 token_to_text(int token, YYSTYPE lval) {
 	static char buffer[1024];
-	char *tk;
+	const char *tk;
 
-	/* Yacc keeps token numbers above 128, it seems. */
+	/*
+	 * Yacc keeps token numbers above 128, it seems.
+	 */
 	if (token < 128) {
 		if (token == 0)
 			strncpy(buffer, "<end of file>", sizeof buffer);
@@ -5383,9 +5385,8 @@ token_to_text(int token, YYSTYPE lval) {
 	return (buffer);
 }
 
-static char *
-token_to_keyword(int token)
-{
+static const char *
+token_to_keyword(int token) {
 	int i;
 
 	for (i = 0 ; keyword_tokens[i].token != NULL ; i++) {

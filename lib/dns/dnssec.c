@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.40 2000/05/30 22:30:39 bwelling Exp $
+ * $Id: dnssec.c,v 1.41 2000/06/01 18:25:29 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -92,7 +92,8 @@ digest_callback(void *arg, isc_region_t *data) {
  */
 static int
 rdata_compare_wrapper(const void *rdata1, const void *rdata2) {
-	return dns_rdata_compare((dns_rdata_t *)rdata1, (dns_rdata_t *)rdata2);
+	return (dns_rdata_compare((const dns_rdata_t *)rdata1,
+				  (const dns_rdata_t *)rdata2));
 }
 
 /*

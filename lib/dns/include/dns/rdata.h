@@ -139,7 +139,8 @@ struct dns_rdata {
  *** Initialization
  ***/
 
-void dns_rdata_init(dns_rdata_t *rdata);
+void
+dns_rdata_init(dns_rdata_t *rdata);
 /*
  * Make 'rdata' empty.
  *
@@ -151,7 +152,8 @@ void dns_rdata_init(dns_rdata_t *rdata);
  *** Comparisons
  ***/
 
-int dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2);
+int
+dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2);
 /*
  * Determine the relative ordering under the DNSSEC order relation of
  * 'rdata1' and 'rdata2'.
@@ -172,9 +174,9 @@ int dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2);
  *** Conversions
  ***/
 
-void dns_rdata_fromregion(dns_rdata_t *rdata,
-			  dns_rdataclass_t rdclass, dns_rdatatype_t type,
-			  isc_region_t *r);
+void
+dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+		     dns_rdatatype_t type, isc_region_t *r);
 /*
  * Make 'rdata' refer to region 'r'.
  *
@@ -183,15 +185,16 @@ void dns_rdata_fromregion(dns_rdata_t *rdata,
  *	The data in 'r' is properly formatted for whatever type it is.
  */
 
-void dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r);
+void
+dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r);
 /*
  * Make 'r' refer to 'rdata'.
  */
 
-isc_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
-				dns_rdataclass_t rdclass, dns_rdatatype_t type,
-				isc_buffer_t *source,
-				dns_decompress_t *dctx,
+isc_result_t
+dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+		   dns_rdatatype_t type, isc_buffer_t *source,
+		   dns_decompress_t *dctx,
 				isc_boolean_t downcase,
 				isc_buffer_t *target);
 /*
@@ -233,9 +236,9 @@ isc_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-isc_result_t dns_rdata_towire(dns_rdata_t *rdata,
-			      dns_compress_t *cctx,
-			      isc_buffer_t *target);
+isc_result_t
+dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
+		 isc_buffer_t *target);
 /*
  * Convert 'rdata' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
@@ -262,13 +265,11 @@ isc_result_t dns_rdata_towire(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-isc_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
-				dns_rdataclass_t rdclass, dns_rdatatype_t type,
-				isc_lex_t *lexer,
-				dns_name_t *origin,
-				isc_boolean_t downcase,
-				isc_buffer_t *target,
-				dns_rdatacallbacks_t *callbacks);
+isc_result_t
+dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+		   dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin,
+		   isc_boolean_t downcase, isc_buffer_t *target,
+		   dns_rdatacallbacks_t *callbacks);
 /*
  * Convert the textual representation of a DNS rdata into uncompressed wire
  * form stored in the target region.  Tokens constituting the text of the rdata
@@ -308,8 +309,8 @@ isc_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-isc_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
-			      isc_buffer_t *target);
+isc_result_t
+dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.
  * The text will consist of a single line, with fields separated by
@@ -341,9 +342,9 @@ isc_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
  *	Resource Limit: Not enough space
  */
 
-isc_result_t dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
-				 unsigned int flags, unsigned int width,
-				 char *linebreak, isc_buffer_t *target);
+isc_result_t
+dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin, unsigned int flags,
+		    unsigned int width, char *linebreak, isc_buffer_t *target);
 /*
  * Like dns_rdata_totext, but do formatted output suitable for 
  * database dumps.  This is intended for use by dns_db_dump();
@@ -367,11 +368,9 @@ isc_result_t dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
  * output is selected. 
  */
 
-isc_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
-				  dns_rdataclass_t rdclass,
-				  dns_rdatatype_t type,
-				  void *source,
-				  isc_buffer_t *target);
+isc_result_t
+dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+		     dns_rdatatype_t type, void *source, isc_buffer_t *target);
 /*
  * Convert the C structure representation of an rdata into uncompressed wire
  * format in 'target'.
@@ -401,8 +400,8 @@ isc_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-isc_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target,
-				isc_mem_t *mctx);
+isc_result_t
+dns_rdata_tostruct(dns_rdata_t *rdata, void *target, isc_mem_t *mctx);
 /*
  * Convert an rdata into its C structure representation.
  *	
@@ -421,8 +420,8 @@ isc_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target,
  *	Resource Limit: Not enough memory
  */
 
-void dns_rdata_freestruct(void *source);
-
+void
+dns_rdata_freestruct(void *source);
 /*
  * Free dynamic memory attached to 'source' (if any).
  *
@@ -432,7 +431,8 @@ void dns_rdata_freestruct(void *source);
  *	dns_rdata_tostruct().
  */
 
-isc_boolean_t dns_rdatatype_ismeta(dns_rdatatype_t type);
+isc_boolean_t
+dns_rdatatype_ismeta(dns_rdatatype_t type);
 /*
  * Return true iff the rdata type 'type' is a meta-type
  * like ANY or AXFR.
@@ -442,7 +442,8 @@ isc_boolean_t dns_rdatatype_ismeta(dns_rdatatype_t type);
  *
  */
 
-isc_boolean_t dns_rdatatype_issingleton(dns_rdatatype_t type);
+isc_boolean_t
+dns_rdatatype_issingleton(dns_rdatatype_t type);
 /*
  * Return true iff the rdata type 'type' is a singleton type,
  * like CNAME or SOA.
@@ -452,7 +453,8 @@ isc_boolean_t dns_rdatatype_issingleton(dns_rdatatype_t type);
  *
  */
 
-isc_boolean_t dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
+isc_boolean_t
+dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
 /*
  * Return true iff the rdata class 'rdclass' is a meta-class
  * like ANY or NONE.
@@ -462,7 +464,8 @@ isc_boolean_t dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
  *
  */
 
-isc_boolean_t dns_rdatatype_isdnssec(dns_rdatatype_t type);
+isc_boolean_t
+dns_rdatatype_isdnssec(dns_rdatatype_t type);
 /*
  * Return true iff 'type' is one of the DNSSEC
  * rdata types that may exist alongside a CNAME record.
@@ -471,7 +474,8 @@ isc_boolean_t dns_rdatatype_isdnssec(dns_rdatatype_t type);
  * 	'type' is a valid rdata type.
  */
 
-isc_boolean_t dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
+isc_boolean_t
+dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
 /*
  * Return true iff rdata of type 'type' is considered authoritative
  * data (not glue) in the NXT chain when it occurs in the parent zone
@@ -482,7 +486,8 @@ isc_boolean_t dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
  *
  */
 
-isc_boolean_t dns_rdatatype_isknown(dns_rdatatype_t type);
+isc_boolean_t
+dns_rdatatype_isknown(dns_rdatatype_t type);
 /*
  * Return true iff the rdata type 'type' is known.
  *

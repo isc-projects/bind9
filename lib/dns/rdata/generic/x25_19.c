@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.20 2000/05/22 12:38:02 marka Exp $ */
+/* $Id: x25_19.c,v 1.21 2000/06/01 18:26:37 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -27,10 +27,7 @@
 #define RRTYPE_X25_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_lex_t *lexer, dns_name_t *origin,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_x25(ARGS_FROMTEXT) {
 	isc_token_t token;
 	unsigned int i;
 
@@ -50,9 +47,7 @@ fromtext_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_x25(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	   isc_buffer_t *target) 
-{
+totext_x25(ARGS_TOTEXT) {
 	isc_region_t region;
 
 	UNUSED(tctx);
@@ -64,10 +59,7 @@ totext_x25(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_buffer_t *source, dns_decompress_t *dctx,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_x25(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
 	UNUSED(dctx);
@@ -83,7 +75,7 @@ fromwire_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_x25(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_x25(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 19);
@@ -92,7 +84,7 @@ towire_x25(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_x25(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_x25(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 	
@@ -106,9 +98,7 @@ compare_x25(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	       isc_buffer_t *target)
-{
+fromstruct_x25(ARGS_FROMSTRUCT) {
 	dns_rdata_x25_t *x25 = source;
 	isc_uint8_t i;
 
@@ -128,7 +118,7 @@ fromstruct_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_x25(ARGS_TOSTRUCT) {
 	dns_rdata_x25_t *x25 = target;
 	isc_region_t r;
 
@@ -154,7 +144,7 @@ tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_x25(void *source) {
+freestruct_x25(ARGS_FREESTRUCT) {
 	dns_rdata_x25_t *x25 = source;
 	REQUIRE(source != NULL);
 	REQUIRE(x25->common.rdtype == 19);
@@ -168,9 +158,7 @@ freestruct_x25(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_x25(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		   void *arg)
-{
+additionaldata_x25(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 19);
 
 	UNUSED(rdata);
@@ -181,7 +169,7 @@ additionaldata_x25(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_x25(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_x25(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 19);

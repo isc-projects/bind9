@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.35 2000/05/25 00:46:32 bwelling Exp $ */
+/* $Id: tkey_249.c,v 1.36 2000/06/01 18:26:34 tale Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -29,10 +29,7 @@
 #define RRTYPE_TKEY_ATTRIBUTES (DNS_RDATATYPEATTR_META)
 
 static inline isc_result_t
-fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		  isc_lex_t *lexer, dns_name_t *origin,
-		  isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_tkey(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_rcode_t rcode;
 	dns_name_t name;
@@ -118,9 +115,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	    isc_buffer_t *target) 
-{
+totext_tkey(ARGS_TOTEXT) {
 	isc_region_t sr, dr;
 	char buf[sizeof "4294967295 "];	
 	unsigned long n;
@@ -231,10 +226,7 @@ totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		  isc_buffer_t *source, dns_decompress_t *dctx,
-		  isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_tkey(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	unsigned long n;
 	dns_name_t name;
@@ -289,7 +281,7 @@ fromwire_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_tkey(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_tkey(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 
@@ -309,7 +301,7 @@ towire_tkey(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_tkey(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 	dns_name_t name1;
@@ -337,9 +329,7 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		void *source, isc_buffer_t *target)
-{
+fromstruct_tkey(ARGS_FROMSTRUCT) {
 	dns_rdata_tkey_t *tkey = source;
 
 	REQUIRE(type == 249);
@@ -398,7 +388,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_tkey(ARGS_TOSTRUCT) {
 	dns_rdata_tkey_t *tkey = target;
 	dns_name_t alg;
 	isc_region_t sr;
@@ -490,7 +480,7 @@ tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_tkey(void *source) {
+freestruct_tkey(ARGS_FREESTRUCT) {
 	dns_rdata_tkey_t *tkey = (dns_rdata_tkey_t *) source;
 
 	REQUIRE(source != NULL);
@@ -507,9 +497,7 @@ freestruct_tkey(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		    void *arg)
-{
+additionaldata_tkey(ARGS_ADDLDATA) {
 	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
@@ -520,8 +508,7 @@ additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_tkey(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_tkey(ARGS_DIGEST) {
 	UNUSED(rdata);
 	UNUSED(digest);
 	UNUSED(arg);

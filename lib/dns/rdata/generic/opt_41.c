@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.14 2000/05/22 12:37:51 marka Exp $ */
+/* $Id: opt_41.c,v 1.15 2000/06/01 18:26:26 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -29,10 +29,7 @@
 			       DNS_RDATATYPEATTR_NOTQUESTION)
 
 static inline isc_result_t
-fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_lex_t *lexer, dns_name_t *origin,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+			       fromtext_opt(ARGS_FROMTEXT) {
 	/*
 	 * OPT records do not have a text format.
 	 */
@@ -49,9 +46,7 @@ fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	   isc_buffer_t *target) 
-{
+totext_opt(ARGS_TOTEXT) {
 	isc_region_t r;
 	isc_region_t or;
 	isc_uint16_t option;
@@ -93,10 +88,7 @@ totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	     isc_buffer_t *source, dns_decompress_t *dctx,
-	     isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_opt(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 	isc_uint16_t length;
@@ -139,7 +131,7 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_opt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_opt(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 41);
 
@@ -149,7 +141,7 @@ towire_opt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_opt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_opt(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -163,9 +155,7 @@ compare_opt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-	       isc_buffer_t *target)
-{
+fromstruct_opt(ARGS_FROMSTRUCT) {
 	dns_rdata_opt_t *opt = source;
 	isc_region_t region;
 	isc_uint8_t length;
@@ -194,7 +184,7 @@ fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_opt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_opt(ARGS_TOSTRUCT) {
 	dns_rdata_opt_t *opt = target;
 	isc_region_t r;
 
@@ -220,7 +210,7 @@ tostruct_opt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_opt(void *source) {
+freestruct_opt(ARGS_FREESTRUCT) {
 	dns_rdata_opt_t *opt = source;
 
 	REQUIRE(source != NULL);
@@ -235,9 +225,7 @@ freestruct_opt(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_opt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		   void *arg)
-{
+additionaldata_opt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 41);
 
 	UNUSED(rdata);
@@ -248,7 +236,7 @@ additionaldata_opt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_opt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_opt(ARGS_DIGEST) {
 
 	/*
 	 * OPT records are not digested.

@@ -110,7 +110,8 @@ dns_c_rrsolist_append(dns_c_rrsolist_t *dest, dns_c_rrsolist_t *src);
 
 isc_result_t
 dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res, dns_rdataclass_t oclass,
-	       dns_rdatatype_t otype, char *name, dns_c_ordering_t ordering);
+	       dns_rdatatype_t otype, const char *name,
+	       dns_c_ordering_t ordering);
 
 isc_result_t
 dns_c_rrso_delete(dns_c_rrso_t **order);

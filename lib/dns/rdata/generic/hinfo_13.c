@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.25 2000/05/22 12:37:34 marka Exp $ */
+/* $Id: hinfo_13.c,v 1.26 2000/06/01 18:26:09 tale Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -27,10 +27,7 @@
 #define RRTYPE_HINFO_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	       isc_lex_t *lexer, dns_name_t *origin,
-	       isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromtext_hinfo(ARGS_FROMTEXT) {
 	isc_token_t token;
 	int i;
 
@@ -49,9 +46,7 @@ fromtext_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_hinfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	     isc_buffer_t *target) 
-{
+totext_hinfo(ARGS_TOTEXT) {
 	isc_region_t region;
 
 	UNUSED(tctx);
@@ -65,10 +60,7 @@ totext_hinfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static inline isc_result_t
-fromwire_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	       isc_buffer_t *source, dns_decompress_t *dctx,
-	       isc_boolean_t downcase, isc_buffer_t *target)
-{
+fromwire_hinfo(ARGS_FROMWIRE) {
 
 	UNUSED(dctx);
 	UNUSED(rdclass);
@@ -81,7 +73,7 @@ fromwire_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_hinfo(ARGS_TOWIRE) {
 
 	UNUSED(cctx);
 
@@ -91,7 +83,7 @@ towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_hinfo(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 	
@@ -105,9 +97,7 @@ compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static inline isc_result_t
-fromstruct_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
-		 isc_buffer_t *target)
-{
+fromstruct_hinfo(ARGS_FROMSTRUCT) {
 	dns_rdata_hinfo_t *hinfo = source;
 
 	REQUIRE(type == 13);
@@ -122,7 +112,7 @@ fromstruct_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_hinfo(ARGS_TOSTRUCT) {
 	dns_rdata_hinfo_t *hinfo = target;
 	isc_region_t region;
 
@@ -162,7 +152,7 @@ tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 }
 
 static inline void
-freestruct_hinfo(void *source) {
+freestruct_hinfo(ARGS_FREESTRUCT) {
 	dns_rdata_hinfo_t *hinfo = source;
 
 	REQUIRE(source != NULL);
@@ -178,9 +168,7 @@ freestruct_hinfo(void *source) {
 }
 
 static inline isc_result_t
-additionaldata_hinfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		     void *arg)
-{
+additionaldata_hinfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == 13);
 
 	UNUSED(add);
@@ -191,7 +179,7 @@ additionaldata_hinfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_hinfo(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_hinfo(ARGS_DIGEST) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 13);

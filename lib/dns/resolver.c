@@ -1798,7 +1798,6 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 
 	res = fctx->res;
 	bucketnum = fctx->bucketnum;
-	UNUSED(task);
 
 	FCTXTRACE("start");
 
@@ -1833,11 +1832,13 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		fctx->state = fetchstate_active;
 		/*
 		 * Reset the control event for later use in shutting down
-		 * the fctx.
+		 * the fctx.  "task" is set as the sender only to satisfy
+		 * the requirement that the sender is non-null, but it is not
+		 * used by the event receiver.
 		 */
 		ISC_EVENT_INIT(event, sizeof(*event), 0, NULL,
 			       DNS_EVENT_FETCHCONTROL, fctx_doshutdown, fctx,
-			       (void *)fctx_doshutdown, NULL, NULL);
+			       task, NULL, NULL);
 	}
 
 	UNLOCK(&res->buckets[bucketnum].lock);
@@ -2791,7 +2792,7 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 }
 
 static isc_result_t
-check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
+check_related(void *arg, dns_name_t *addname, int type) {
 	fetchctx_t *fctx = arg;
 	isc_result_t result;
 	dns_name_t *name;
@@ -4532,12 +4533,15 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	if (new_fctx) {
 		if (result == ISC_R_SUCCESS) {
 			/*
-			 * Launch this fctx.
+			 * Launch this fctx.  "task" is set as the sender only
+			 * to satisfy * the requirement that the sender is
+			 * non-null, but it is not * used by the event
+			 * receiver.
 			 */
 			event = &fctx->control_event;
 			ISC_EVENT_INIT(event, sizeof(*event), 0, NULL,
 				       DNS_EVENT_FETCHCONTROL,
-				       fctx_start, fctx, (void *)fctx_create,
+				       fctx_start, fctx, task,
 				       NULL, NULL);
 			isc_task_send(res->buckets[bucketnum].task, &event);
 		} else {
