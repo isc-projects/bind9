@@ -63,7 +63,7 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 
-dns_result_t 
+isc_result_t 
 dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
 		 char *db_type, unsigned int db_argc, char **db_argv,
@@ -152,7 +152,7 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp);
  */
 
 
-dns_result_t
+isc_result_t
 dns_cache_setfilename(dns_cache_t *cahce, char *filename);
 /*
  * If 'filename' is non-NULL, make the cache persistent.
@@ -166,7 +166,7 @@ dns_cache_setfilename(dns_cache_t *cahce, char *filename);
  *	Various file-related failures
  */
 
-dns_result_t
+isc_result_t
 dns_cache_load(dns_cache_t *cache);
 /*
  * If the cache has a file name, load the cache contents from the file.
@@ -187,7 +187,7 @@ dns_cache_load(dns_cache_t *cache);
  *      Various failures depending on the database implementation type
  */
 
-dns_result_t
+isc_result_t
 dns_cache_dump(dns_cache_t *cache);
 /*
  * If the cache has a file name, write the cache contents to disk,
@@ -207,7 +207,7 @@ dns_cache_dump(dns_cache_t *cache);
  *      Various failures depending on the database implementation type
  */
 
-dns_result_t
+isc_result_t
 dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now);
 /*
  * Force immediate cleaning of the cache, freeing all rdatasets
