@@ -163,7 +163,7 @@ library_unexpected_error(char *file, int line, char *format, va_list args) {
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named [-c conffile] [-d debuglevel] [-f] [-N number_of_cpus]\n"
+		"usage: named [-c conffile] [-d debuglevel] [-f[f]] [-N number_of_cpus]\n"
 		"             [-p port] [-s] [-t chrootdir] [-u username]\n");
 }
 
@@ -184,6 +184,8 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_debuglevel = atoi(isc_commandline_argument);
 			break;
 		case 'f':
+			if (ns_g_foreground == ISC_TRUE)
+				ns_g_logstderr = ISC_TRUE;
 			ns_g_foreground = ISC_TRUE;
 			break;
 		case 'N':

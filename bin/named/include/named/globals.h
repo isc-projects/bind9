@@ -75,6 +75,7 @@ EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
 EXTERN const char *		ns_g_chrootdir		INIT(NULL);
 EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
+EXTERN isc_boolean_t		ns_g_logstderr		INIT(ISC_FALSE);
 
 EXTERN char *			ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
 							     "/run/named.pid");

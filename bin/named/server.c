@@ -929,7 +929,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Configure the logging system.
 	 */
-	{
+	if (ns_g_logstderr) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "ignoring named.conf logging statement "
+			      "due to -ff option");
+	} else {
 		dns_c_logginglist_t *clog = NULL;
 		isc_logconfig_t *logc = NULL;
 

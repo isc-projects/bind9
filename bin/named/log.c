@@ -87,7 +87,7 @@ ns_log_init(void) {
 	/*
 	 * Create and install the default channel.
 	 */
-	if (ns_g_foreground) {
+	if (ns_g_logstderr) {
 		destination.file.stream = stderr;
 		destination.file.name = NULL;
 		destination.file.versions = ISC_LOG_ROLLNEVER;
