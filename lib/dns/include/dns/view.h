@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.73.2.4 2003/07/22 04:03:46 marka Exp $ */
+/* $Id: view.h,v 1.73.2.5 2003/09/17 05:20:03 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -118,6 +118,7 @@ struct dns_view {
 	in_port_t			dstport;
 	dns_aclenv_t			aclenv;
 	isc_boolean_t			flush;
+	dns_namelist_t *		delonly;
 
 	/*
 	 * Configurable data for server use only,
@@ -699,6 +700,35 @@ dns_view_flushcache(dns_view_t *view);
  *	ISC_R_SUCCESS
  *	ISC_R_NOMEMORY
  */
+
+isc_result_t
+dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
+/*
+ * Add the given name to the delegation only table.
+ *
+ * Requires:
+ *	'view' is valid.
+ *	'name' is valid.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ */
+
+isc_boolean_t
+dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
+/*
+ * Check if 'name' is in the delegation only table.
+ *
+ * Requires:
+ *	'view' is valid.
+ *	'name' is valid.
+ *
+ * Returns:
+ *	ISC_TRUE if the name is is the table.
+ *	ISC_FALSE othewise.
+ */
+
 
 ISC_LANG_ENDDECLS
 

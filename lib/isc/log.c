@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.8 2003/07/22 04:03:47 marka Exp $ */
+/* $Id: log.c,v 1.70.2.9 2003/09/17 05:20:04 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1729,8 +1729,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				syslog_level = syslog_map[-level];
 
 			syslog(FACILITY(channel) | syslog_level,
-			       "%s%s%s%s%s%s%s%s%s",
+			       "%s%s%s%s%s%s%s%s%s%s",
 			       printtime     ? time_string	: "",
+			       printtime     ? " "		: "",
 			       printtag      ? lcfg->tag	: "",
 			       printtag      ? ": "		: "",
 			       printcategory ? category->name	: "",

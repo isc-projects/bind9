@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15 2003/07/25 03:31:41 marka Exp $ */
+/* $Id: server.c,v 1.339.2.16 2003/09/17 05:20:00 marka Exp $ */
 
 #include <config.h>
 
@@ -1264,6 +1264,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	cfg_obj_t *typeobj = NULL;
 	cfg_obj_t *forwarders = NULL;
 	cfg_obj_t *forwardtype = NULL;
+	cfg_obj_t *only = NULL;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
@@ -1365,6 +1366,14 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	}
 
 	/*
+	 * "delegation-only zones" aren't zones either.
+	 */
+	if (strcasecmp(ztypestr, "delegation-only") == 0) {
+		result = dns_view_adddelegationonly(view, origin);
+		goto cleanup;
+	}
+
+	/*
 	 * Check for duplicates in the new zone table.
 	 */
 	result = dns_view_findzone(view, origin, &dupzone);
@@ -1429,6 +1438,16 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		cfg_map_get(zoptions, "forward", &forwardtype);
 		CHECK(configure_forward(config, view, origin, forwarders,
 					forwardtype));
+	}
+
+	/*
+	 * Stub and forward zones may also refer to delegation only points.
+	 */
+	only = NULL;
+	if (cfg_map_get(zoptions, "delegation-only", &only) == ISC_R_SUCCESS)
+	{
+		if (cfg_obj_asboolean(only))
+			CHECK(dns_view_adddelegationonly(view, origin));
 	}
 
 	/*
