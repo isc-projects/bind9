@@ -46,7 +46,8 @@ omapi_protocol_connect(omapi_object_t *h, const char *server_name,
 	isc_result_t result;
 	omapi_protocol_t *obj = NULL;
 
-	REQUIRE(server_name != NULL);
+	REQUIRE(h != NULL && server_name != NULL);
+	REQUIRE(port != 0);
 
 	result = omapi_object_create((omapi_object_t **)&obj,
 				     omapi_type_protocol, sizeof(*obj));
@@ -62,9 +63,6 @@ omapi_protocol_connect(omapi_object_t *h, const char *server_name,
 	 * and protocol objects in the event of an error.
 	 */
 	OBJECT_DEREF(&obj);
-
-	if (port == 0)
-		port = OMAPI_PROTOCOL_PORT;
 
 	result = connect_toserver(h->outer, server_name, port);
 
@@ -189,8 +187,8 @@ send_intro(omapi_object_t *h, unsigned int ver) {
  * Set up a listener for the omapi protocol.
  */
 isc_result_t
-omapi_protocol_listen(omapi_object_t *manager, int port, int max) {
-	return (omapi_listener_listen((omapi_object_t *)manager, port, max));
+omapi_protocol_listen(omapi_object_t *manager, isc_sockaddr_t *addr, int max) {
+	return (omapi_listener_listen((omapi_object_t *)manager, addr, max));
 }
 
 isc_result_t
