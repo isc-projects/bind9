@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.91 2000/06/05 22:08:47 brister Exp $ */
+/* $Id: confparser.y,v 1.92 2000/06/08 05:26:38 explorer Exp $ */
 
 #include <config.h>
 
@@ -470,7 +470,7 @@ include_stmt: L_INCLUDE L_QSTRING L_EOS
 	{
 		tmpres = isc_lex_openfile(mylexer, $2);
 		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE ,"can't open file %s: %s",
+			parser_error(ISC_FALSE, "can't open file %s: %s",
 				     $2, isc_result_totext(tmpres));
 			YYABORT;
 		}
