@@ -1,3 +1,7 @@
+1714.	[bug]		dig/host/nslookup were only trying the first
+			address when a nameserver was specified by name.
+			[RT #12286]
+
 1712.	[bug]		Missing FULLCHECK for "trusted-key" in dig.
 
 1711.	[func]		'rndc unfreeze' has been deprecated by 'rndc thaw'.
