@@ -1,3 +1,9 @@
+
+
+
+Frequently Asked Questions about BIND 9
+
+
 Q: Why doesn't -u work on Linux 2.2.x?
 
 A: Linux threads do not fully implement the Posix threads (pthreads) standard.
