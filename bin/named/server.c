@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.308 2001/03/22 00:06:56 bwelling Exp $ */
+/* $Id: server.c,v 1.309 2001/03/26 21:32:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -711,6 +711,11 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 
 	/*
+	 * Copy the aclenv object.
+	 */
+	dns_aclenv_copy(&view->aclenv, &ns_g_server->aclenv);
+
+	/*
 	 * Configure the "match-clients" ACL.
 	 */
 	CHECK(configure_view_acl(vconfig, config, "match-clients", actx,
@@ -1404,6 +1409,8 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 
 static void
 scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
+	isc_boolean_t match_mapped = server->aclenv.match_mapped;
+
 	ns_interfacemgr_scan(server->interfacemgr, verbose);
 	/*
 	 * Update the "localhost" and "localnets" ACLs to match the
@@ -1411,6 +1418,8 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 	 */
 	dns_aclenv_copy(&server->aclenv,
 			ns_interfacemgr_getaclenv(server->interfacemgr));
+
+	server->aclenv.match_mapped = match_mapped;
 }
 
 /*
@@ -1634,6 +1643,10 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (server->blackholeacl != NULL)
 		dns_dispatchmgr_setblackhole(ns_g_dispatchmgr,
 					     server->blackholeacl);
+
+	result = ns_config_get(maps, "match-mapped-addresses", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	server->aclenv.match_mapped = cfg_obj_asboolean(obj);
 
 	/*
 	 * Configure the zone manager.

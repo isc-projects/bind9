@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.314 2001/03/26 21:11:33 bwelling Exp $ */
+/* $Id: zone.c,v 1.315 2001/03/26 21:33:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3968,8 +3968,11 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 */
 	isc_netaddr_fromsockaddr(&netaddr, from);
 	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
-	    dns_acl_match(&netaddr, NULL, zone->notify_acl, NULL, &match,
-			  NULL) == ISC_R_SUCCESS && match > 0) {
+	    dns_acl_match(&netaddr, NULL, zone->notify_acl,
+		    	  &zone->view->aclenv,
+			  &match, NULL) == ISC_R_SUCCESS &&
+	    match > 0)
+	{
 		/* Accept notify. */
 	} else if (i >= zone->masterscnt) {
 		UNLOCK_ZONE(zone);

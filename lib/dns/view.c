@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.97 2001/03/14 21:53:27 halley Exp $ */
+/* $Id: view.c,v 1.98 2001/03/26 21:33:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -160,6 +160,11 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dynkeys;
+
+	result = dns_aclenv_init(view->mctx, &view->aclenv);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_peerlist;
+
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
 		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown,
@@ -175,6 +180,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_peerlist:
+	dns_peerlist_detach(&view->peers);
 
  cleanup_dynkeys:
 	dns_tsigkeyring_destroy(&view->dynamickeys);
@@ -245,6 +253,7 @@ destroy(dns_view_t *view) {
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
+	dns_aclenv_destroy(&view->aclenv);
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->name);

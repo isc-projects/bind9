@@ -1,4 +1,8 @@
 
+ 788.	[feature]	Add the "match-mapped-addresses" options, which
+ 			causes IPv6 v4mapped addresses to be treated as
+			IPv4 addresses for the purpose of acl matching.
+
  787.	[bug]		The DNSSEC tools failed to downcase domain
 			names when mapping them into file names.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.160 2001/03/19 20:52:19 gson Exp $ */
+/* $Id: client.c,v 1.161 2001/03/26 21:32:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -736,7 +736,8 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 		if (ns_g_server->blackholeacl != NULL &&
 		    dns_acl_match(&netaddr, NULL,
 			    	  ns_g_server->blackholeacl,
-				  NULL, &match, NULL) == ISC_R_SUCCESS &&
+				  &ns_g_server->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
 			return (DNS_R_BLACKHOLED);
 		sockflags |= ISC_SOCKFLAG_NORETRY;

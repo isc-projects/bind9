@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.15 2001/02/02 02:48:46 gson Exp $ */
+/* $Id: netaddr.c,v 1.16 2001/03/26 21:33:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -256,4 +256,15 @@ isc_netaddr_ismulticast(isc_netaddr_t *na) {
 	default:
 		return (ISC_FALSE);  /* XXXMLG ? */
 	}
+}
+
+void
+isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s) {
+	REQUIRE(s->family == AF_INET6);
+	REQUIRE(IN6_IS_ADDR_V4MAPPED(&s->type.in6));
+
+	memset(t, 0, sizeof *t);
+	t->family = AF_INET;
+	memcpy(&t->type.in, (const char *)&s->type.in6 + 12, 4);
+	return;
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.7 2001/03/20 21:54:29 bwelling Exp $ */
+/* $Id: config.c,v 1.8 2001/03/26 21:32:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -56,6 +56,7 @@ options {\n\
 	interface-interval 3600;\n\
 	listen-on {any;};\n\
 	listen-on-v6 {none;};\n\
+	match-mapped-addresses no;\n\
 	memstatistics-file \"named.memstats\";\n\
 	multiple-cnames no;\n\
 #	named-xfer <obsolete>;\n\

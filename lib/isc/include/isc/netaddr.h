@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.17 2001/02/02 02:48:47 gson Exp $ */
+/* $Id: netaddr.h,v 1.18 2001/03/26 21:33:06 bwelling Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -111,6 +111,13 @@ isc_netaddr_ismulticast(isc_netaddr_t *na);
 /*
  * Returns ISC_TRUE if the address is a multicast address
  */
+
+void
+isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s);
+/*
+ * Convert an IPv6 v4mapped address into an IPv4 address.
+ */
+
 
 ISC_LANG_ENDDECLS
 

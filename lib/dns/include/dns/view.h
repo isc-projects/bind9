@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.68 2001/03/14 21:53:28 halley Exp $ */
+/* $Id: view.h,v 1.69 2001/03/26 21:33:04 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -70,6 +70,7 @@
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 
+#include <dns/acl.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -115,6 +116,7 @@ struct dns_view {
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
+	dns_aclenv_t			aclenv;
 
 	/*
 	 * Configurable data for server use only,

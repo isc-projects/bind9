@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.213 2001/03/20 22:13:00 gson Exp $ */
+/* $Id: resolver.c,v 1.214 2001/03/26 21:32:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1092,7 +1092,8 @@ resquery_send(resquery_t *query) {
 		int match;
 
 		if (dns_acl_match(&ipaddr, NULL, blackhole,
-				  NULL, &match, NULL) == ISC_R_SUCCESS &&
+				  &fctx->res->view->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
 			aborted = ISC_TRUE;
 	}
