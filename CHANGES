@@ -1,3 +1,9 @@
+
+ 663.	[func]		Accept a size_spec, not just an integer, in the
+			(unimplemented and ignored) max-ixfr-log-size option
+			for compatibility with recent versions of BIND 8.
+			[RT #613]
+
  662.	[bug]		dns_rdata_fromtext() failed to log certain errors.
 
  661.	[bug]		Certain UDP IXFR requests caused an assertion failure

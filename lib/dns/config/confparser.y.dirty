@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.45 2001/01/05 22:12:50 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.46 2001/01/08 19:27:19 gson Exp $ */
 
 #include <config.h>
 
@@ -1560,7 +1560,7 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-	| L_MAX_LOG_SIZE_IXFR L_INTEGER
+	| L_MAX_LOG_SIZE_IXFR size_spec
 	{
 		tmpres = dns_c_ctx_setmaxlogsizeixfr(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
