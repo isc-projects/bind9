@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.47 $)
+AC_REVISION($Revision: 1.48 $)
 
 AC_PREREQ(2.13)
 
@@ -278,29 +278,6 @@ found_rt_iflist
 	[AC_MSG_RESULT(no)])
 
 dnl
-dnl IPv6
-dnl
-AC_MSG_CHECKING(for IPv6 structures)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>],
-[struct sockaddr_in6 sin6; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_NET_HAVEIPV6="#define ISC_NET_HAVEIPV6 1"],
-	[AC_MSG_RESULT(no)
-	ISC_NET_HAVEIPV6="#undef ISC_NET_HAVEIPV6"
-	ISC_IPV6_H="ipv6.h"
-	ISC_IPV6_O="ipv6.o"
-	ISC_ISCIPV6_O="unix/ipv6.o"
-	ISC_IPV6_C="ipv6.c"])
-AC_SUBST(ISC_NET_HAVEIPV6)
-AC_SUBST(ISC_IPV6_H)
-AC_SUBST(ISC_IPV6_O)
-AC_SUBST(ISC_ISCIPV6_O)
-AC_SUBST(ISC_IPV6_C)
-
-dnl
 dnl GNU libtool support
 dnl
 AC_ARG_WITH(libtool,
@@ -322,6 +299,32 @@ case $use_libtool in
 esac
 AC_SUBST(O)
 AC_SUBST(A)
+
+dnl
+dnl IPv6
+dnl
+dnl We do this checking after libtool so that we can put
+dnl the right suffix on the files.
+dnl
+AC_MSG_CHECKING(for IPv6 structures)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>],
+[struct sockaddr_in6 sin6; return (0);],
+	[AC_MSG_RESULT(yes)
+	ISC_NET_HAVEIPV6="#define ISC_NET_HAVEIPV6 1"],
+	[AC_MSG_RESULT(no)
+	ISC_NET_HAVEIPV6="#undef ISC_NET_HAVEIPV6"
+	ISC_IPV6_H="ipv6.h"
+	ISC_IPV6_O="ipv6.o"
+	ISC_ISCIPV6_O="unix/ipv6.o"
+	ISC_IPV6_C="ipv6.c"])
+AC_SUBST(ISC_NET_HAVEIPV6)
+AC_SUBST(ISC_IPV6_H)
+AC_SUBST(ISC_IPV6_O)
+AC_SUBST(ISC_ISCIPV6_O)
+AC_SUBST(ISC_IPV6_C)
 
 dnl
 dnl Check for network functions that are often missing.  We do this
