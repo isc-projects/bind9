@@ -564,9 +564,11 @@
 ./lib/isc/win32/include/isc/int.h		C	1999
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999
 ./lib/isc/win32/include/isc/once.h		C	1999
+./lib/isc/win32/include/isc/stdtime.h		C	1999
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999
 ./lib/isc/win32/include/isc/time.h		C	1998,1999
 ./lib/isc/win32/once.c				C	1999
+./lib/isc/win32/stdtime.c			C	1999
 ./lib/isc/win32/thread.c			C	1998,1999
 ./lib/isc/win32/time.c				C	1998,1999
 ./lib/tests/.cvsignore				X	1999
