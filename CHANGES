@@ -1,3 +1,5 @@
+1354.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
+
 1354.	[doc]		lwres man pages had illegal nroff.
 
 1353.	[contrib]	sdb/ldap to version 0.9.

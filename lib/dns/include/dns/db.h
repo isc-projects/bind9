@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.69 2002/07/19 03:50:42 marka Exp $ */
+/* $Id: db.h,v 1.70 2002/08/06 01:50:28 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -187,7 +187,6 @@ struct dns_db {
 #define DNS_DBFIND_PENDINGOK		0x08
 #define DNS_DBFIND_NOEXACT		0x10
 #define DNS_DBFIND_FORCENXT		0x20
-#define DNS_DBFIND_INDICATEWILD		0x40
 
 /*
  * Options that can be specified for dns_db_addrdataset().

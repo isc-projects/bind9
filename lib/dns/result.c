@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.101 2002/07/19 03:50:42 marka Exp $ */
+/* $Id: result.c,v 1.102 2002/08/06 01:50:28 marka Exp $ */
 
 #include <config.h>
 
@@ -128,8 +128,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
 	"no valid DS",			       /* 84 DNS_R_NOVALIDDS	     */
 	
-	"NS is an address",		       /* 85 DNS_R_NSISADDRESS	     */
- 	"wildcard"			       /* 86 DNS_R_WILDCARD	     */
+	"NS is an address"		       /* 85 DNS_R_NSISADDRESS	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
