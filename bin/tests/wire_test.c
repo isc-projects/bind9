@@ -370,18 +370,12 @@ printquestions(dns_namelist_t *section) {
 			printf(";;\t%.*s, type = ", (int)target.used,
 			       (char *)target.base);
 			isc_buffer_clear(&target);
-			if (rdatalist->type == 255) {
-				/* XXX HACK */
-				memcpy(target.base, "ANY", 3);
-				isc_buffer_add(&target, 3);
-			} else {
-				result = dns_rdatatype_totext(rdatalist->type,
-							      &target);
-				if (result != DNS_R_SUCCESS) {
-					printf("%s\n",
-					       dns_result_totext(result));
-					exit(16);
-				}
+			result = dns_rdatatype_totext(rdatalist->type, 
+						      &target);
+			if (result != DNS_R_SUCCESS) {
+				printf("%s\n",
+				       dns_result_totext(result));
+				exit(16);
 			}
 			printf("%.*s, class = ", (int)target.used,
 			       (char *)target.base);
