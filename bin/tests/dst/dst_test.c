@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_test.c,v 1.34 2000/09/12 09:58:44 bwelling Exp $ */
+/* $Id: dst_test.c,v 1.35 2000/09/19 19:08:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -245,9 +245,6 @@ main(void) {
 	dns_result_register();
 
 	isc_entropy_create(mctx, &ectx);
-#ifdef PATH_RANDOMDEV
-	isc_entropy_createfilesource(ectx, PATH_RANDOMDEV);
-#endif
 	isc_entropy_createfilesource(ectx, "randomfile");
 	dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
 
