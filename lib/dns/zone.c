@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.280 2000/12/20 01:27:50 gson Exp $ */
+/* $Id: zone.c,v 1.281 2000/12/22 02:43:42 marka Exp $ */
 
 #include <config.h>
 
@@ -3338,6 +3338,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	dns_tsigkey_t *key = NULL;
 	isc_uint32_t options;
 	isc_sockaddr_t src;
+	isc_boolean_t cancel = ISC_TRUE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3345,14 +3346,13 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 
 	DNS_ENTER;
 
+	LOCK_ZONE(zone);
 	if (((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0) ||
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) ||
 	    zone->view->requestmgr == NULL) {
-		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-			cancel_refresh(zone);
-		isc_event_free(&event);
-		dns_zone_idetach(&zone);
-		return;
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
+			cancel = ISC_FALSE;
+		goto cleanup;
 	}
 
 	/*
@@ -3362,11 +3362,9 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	LOCK_ZONE(zone);
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
 	zone->masteraddr = zone->masters[zone->curmaster];
-	UNLOCK_ZONE(zone);
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	(void)dns_view_getpeertsig(zone->view, &masterip, &key);
@@ -3384,15 +3382,13 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	}
-	LOCK_ZONE(zone);
 	zone_iattach(zone, &dummy);
 	result = dns_request_createvia(zone->view->requestmgr, message,
 				       &src, &zone->masteraddr, options, key,
 				       15 /* XXX */, zone->task,
 				       refresh_callback, zone, &zone->request);
-	UNLOCK_ZONE(zone);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_idetach(&dummy);
+		zone_idetach(&dummy);
 		zone_log(zone, me, ISC_LOG_DEBUG(1),
 			 "dns_request_createvia failed: %s",
 			 dns_result_totext(result));
@@ -3400,16 +3396,15 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	}
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
-	dns_message_destroy(&message);
-	isc_event_free(&event);
-	dns_zone_idetach(&zone);
-	return;
+	cancel = ISC_FALSE;
 
  cleanup:
 	if (message != NULL)
 		dns_message_destroy(&message);
-	cancel_refresh(zone);
+	if (cancel)
+		cancel_refresh(zone);
 	isc_event_free(&event);
+	UNLOCK_ZONE(zone);
 	dns_zone_idetach(&zone);
 	return;
 }
