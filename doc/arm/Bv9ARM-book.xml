@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.85 2001/01/16 21:11:32 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.86 2001/01/16 22:59:37 gson Exp $ -->
 
 <book>
 
@@ -3915,7 +3915,7 @@ servers as set globally) you need to respecify the global forwarders.</para>
 specified using a "hint zone". When the server starts up, it uses
 the root hints to find a root nameserver and get the most recent
 list of root nameservers. If no hint zone is specified for class
-IN, the server users a compiled-in default set of root servers hints.
+IN, the server uses a compiled-in default set of root servers hints.
 Classes other than IN have no built-in defaults hints.</para></entry>
 </row>
 </tbody>
