@@ -32,7 +32,7 @@
 
 /*
  *      from nameser.h	8.1 (Berkeley) 6/2/93
- *	$Id: nameser_compat.h,v 1.1.2.4 2004/03/09 09:17:25 marka Exp $
+ *	$Id: nameser_compat.h,v 1.1.2.5 2004/07/01 04:42:04 marka Exp $
  */
 
 #ifndef _ARPA_NAMESER_COMPAT_
@@ -65,7 +65,7 @@
     defined(__hppa) || defined(__hp9000) || \
     defined(__hp9000s300) || defined(__hp9000s700) || \
     defined(__hp3000s900) || defined(__hpux) || defined(MPE) || \
-    defined (BIT_ZERO_ON_LEFT) || defined(m68k) || \
+    defined (BIT_ZERO_ON_LEFT) || defined(m68k) || defined(__sparc) ||  \
     (defined(__Lynx__) && \
      (defined(__68k__) || defined(__sparc__) || defined(__powerpc__)))
 #define BYTE_ORDER	BIG_ENDIAN
