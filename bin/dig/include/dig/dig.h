@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.34 2000/07/14 16:35:30 mws Exp $ */
+/* $Id: dig.h,v 1.35 2000/07/14 17:57:27 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -221,6 +221,12 @@ make_server(const char *servname);
 void
 clone_server_list(dig_serverlist_t src, 
 		  dig_serverlist_t *dest);
+
+void
+cancel_all(void);
+
+void
+destroy_libs(void);
 
 /*
  * Routines needed in dig.c and host.c.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.40 2000/07/14 16:35:27 mws Exp $ */
+/* $Id: host.c,v 1.41 2000/07/14 17:57:26 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -677,22 +677,9 @@ main(int argc, char **argv) {
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();
-	/*
-	 * XXXMWS This code should really NOT be bypassed.  However,
-	 * until the proper code can be added to handle SIGTERM/INT
-	 * correctly, just exit out "hard" and deal as best we can.
-	 */
-#if 0
-	if (taskmgr != NULL) {
-		debug("freeing taskmgr");
-		isc_taskmgr_destroy(&taskmgr);
-        }
-	if (isc_mem_debugging)
-		isc_mem_stats(mctx, stderr);
+	cancel_all();
+	destroy_libs();
 	isc_app_finish();
-	if (mctx != NULL)
-		isc_mem_destroy(&mctx);	
-#endif
 	return (0);
 }
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.66 2000/07/14 16:35:25 mws Exp $ */
+/* $Id: dig.c,v 1.67 2000/07/14 17:57:23 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -66,6 +66,7 @@ extern dns_tsigkey_t *key;
 extern isc_boolean_t validated;
 extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
+extern isc_boolean_t free_now;
 
 extern isc_boolean_t debugging;
 extern isc_boolean_t isc_mem_debugging;
@@ -539,7 +540,7 @@ reorder_args(int argc, char *argv[]) {
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_boolean_t have_host = ISC_FALSE;
-	dig_server_t *srv = NULL;
+	dig_server_t *srv = NULL, *s, *s2;
 	dig_lookup_t *lookup = NULL;
 	static dig_lookup_t *default_lookup = NULL;
 	char *batchname = NULL;
@@ -926,8 +927,20 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		strcpy(lookup->rttext, "NS");
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
-	if (!is_batchfile)
+	if (!is_batchfile) {
 		printgreeting(argc, argv);
+		s = ISC_LIST_HEAD(default_lookup->my_server_list);
+		while (s != NULL) {
+			debug("freeing server %p belonging to %p",
+			      s, default_lookup);
+			s2 = s;
+			s = ISC_LIST_NEXT(s, link);
+			ISC_LIST_DEQUEUE(default_lookup->my_server_list, 
+					 (dig_server_t *)s2, link);
+			isc_mem_free(mctx, s2);
+		}
+		isc_mem_free(mctx, default_lookup);
+	}
 }
 
 int
@@ -946,22 +959,9 @@ main(int argc, char **argv) {
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();
-	/*
-	 * XXXMWS This code should really NOT be bypassed.  However,
-	 * until the proper code can be added to handle SIGTERM/INT
-	 * correctly, just exit out "hard" and deal as best we can.
-	 */
-#if 0
-	if (taskmgr != NULL) {
-		debug("Freeing taskmgr");
-		isc_taskmgr_destroy(&taskmgr);
-        }
-	if (isc_mem_debugging)
-		isc_mem_stats(mctx, stderr);
-	if (mctx != NULL)
-		isc_mem_destroy(&mctx);	
+	cancel_all();
+	destroy_libs();
 	isc_app_finish();
-#endif
 	return (exitcode);
 }
 
