@@ -257,10 +257,11 @@ dns_c_view_print(isc_log_t *lctx,
 	if (view->allowquery != NULL) {
 		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow-query ");
-		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
+		dns_c_ipmatchlist_print(lctx, fp, indent + 2,
 					view->allowquery);
 	}
-	/* XXX rest of view fields */
+
+	/* XXXJAB rest of view fields */
 
 	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "};\n");
@@ -347,3 +348,16 @@ dns_c_view_delete(isc_log_t *lctx,
 }
 
 	
+isc_result_t
+dns_c_view_getname(isc_log_t *lctx, dns_c_view_t *view, const char **retval)
+{
+	(void) lctx;
+	
+	REQUIRE(view != NULL);
+	REQUIRE(retval != NULL);
+
+	*retval = view->name;
+
+	return (ISC_R_SUCCESS);
+}
+
