@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/region.h>
 
@@ -35,41 +36,25 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/compress.h>
-
-#define DNS_FLAG_QR		0x8000U
-#define DNS_FLAG_AA		0x0400U
-#define DNS_FLAG_TC		0x0200U
-#define DNS_FLAG_RD		0x0100U
-#define DNS_FLAG_RA		0x0080U
-
-#define DNS_OPCODE_MASK		0x7000U
-#define DNS_OPCODE_SHIFT	11
-#define DNS_RCODE_MASK		0x000FU
-
-typedef struct dns_message {
-	unsigned int		id;
-	unsigned int		flags;
-	unsigned int		qcount;
-	unsigned int		ancount;
-	unsigned int		aucount;
-	unsigned int		adcount;
-	dns_namelist_t		question;
-	dns_namelist_t		answer;
-	dns_namelist_t		authority;
-	dns_namelist_t		additional;
-} dns_message_t;
-
-#define MAX_PREALLOCATED	100
+#include <dns/message.h>
 
 dns_decompress_t dctx;
 unsigned int rdcount, rlcount, ncount;
-dns_name_t names[MAX_PREALLOCATED];
-dns_rdata_t rdatas[MAX_PREALLOCATED];
-dns_rdatalist_t lists[MAX_PREALLOCATED];
 
 void getmessage(dns_message_t *message, isc_buffer_t *source,
 		isc_buffer_t *target);
 dns_result_t printmessage(dns_message_t *message);
+
+static inline void
+CHECKRESULT(dns_result_t result, char *msg)
+{
+	if (result != DNS_R_SUCCESS) {
+		printf("%s: %s\n", msg, dns_result_totext(result));
+
+		exit(1);
+	}
+}
+
 
 #ifdef NOISY
 static void
@@ -96,232 +81,6 @@ fromhex(char c) {
 	printf("bad input format: %02x\n", c);
 	exit(3);
 	/* NOTREACHED */
-}
-
-static isc_uint16_t
-getshort(isc_buffer_t *buffer) {
-	isc_region_t r;
-
-	isc_buffer_remaining(buffer, &r);
-	if (r.length < 2) {
-		printf("not enough input\n");
-		exit(5);
-	}
-
-	return (isc_buffer_getuint16(buffer));
-}
-
-static unsigned int
-getname(dns_name_t *name, isc_buffer_t *source, isc_buffer_t *target) {
-	unsigned char c[255];
-	dns_result_t result;
-	isc_buffer_t text;
-	unsigned int current;
-#ifdef NOISY
-	isc_region_t r;
-#endif
-
-	isc_buffer_init(&text, c, 255, ISC_BUFFERTYPE_TEXT);
-	dns_name_init(name, NULL);
-
-	current = source->current;
-	if (dns_decompress_edns(&dctx) > 1 || !dns_decompress_strict(&dctx))
-		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL);
-	else
-		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
-	result = dns_name_fromwire(name, source, &dctx, ISC_FALSE, target);
-				   
-#ifdef NOISY
-	if (result == DNS_R_SUCCESS) {
-		dns_name_toregion(name, &r);
-		print_wirename(&r);
-		printf("%u labels, %u bytes.\n",
-		       dns_name_countlabels(name),
-		       r.length);
-		result = dns_name_totext(name, ISC_FALSE, &text);
-		if (result == DNS_R_SUCCESS) {
-			isc_buffer_used(&text, &r);
-			printf("%.*s\n", (int)r.length, r.base);
-		} else
-			printf("%s\n", dns_result_totext(result));
-	} else
-		printf("%s\n", dns_result_totext(result));
-#else
-	if (result != DNS_R_SUCCESS)
-		printf("%s\n", dns_result_totext(result));
-#endif
-
-	return (source->current - current);
-}
-
-static void
-getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
-	     isc_buffer_t *target)
-{
-	unsigned int type, rdclass;
-	dns_name_t *name, *curr;
-	dns_rdatalist_t *rdatalist;
-	isc_region_t r;
-
-	ISC_LIST_INIT(*section);
-	while (count > 0) {
-		count--;
-
-		if (ncount == MAX_PREALLOCATED) {
-			printf("out of names\n");
-			exit(1);
-		}
-		name = &names[ncount++];
-
-		isc_buffer_remaining(source, &r);
-		isc_buffer_setactive(source, r.length);
-		(void)getname(name, source, target);
-		for (curr = ISC_LIST_HEAD(*section);
-		     curr != NULL;
-		     curr = ISC_LIST_NEXT(curr, link)) {
-			if (dns_name_compare(curr, name) == 0) {
-				ncount--;
-				name = curr;
-				break;
-			}
-		}
-		if (name != curr)
-			ISC_LIST_APPEND(*section, name, link);
-		type = getshort(source);
-		rdclass = getshort(source);
-		for (rdatalist = ISC_LIST_HEAD(name->list);
-		     rdatalist != NULL;
-		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			if (rdatalist->rdclass == rdclass &&
-			    rdatalist->type == type)
-				break;
-		}
-		if (rdatalist == NULL) {
-			if (rlcount == MAX_PREALLOCATED) {
-				printf("out of rdatalists\n");
-				exit(1);
-			}
-			rdatalist = &lists[rlcount++];
-			rdatalist->rdclass = rdclass;
-			rdatalist->type = type;
-			rdatalist->ttl = 0;
-			ISC_LIST_INIT(rdatalist->rdata);
-			ISC_LIST_APPEND(name->list, rdatalist, link);
-		} else
-			printf(";; duplicate question\n");
-	}
-}
-
-static void
-getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
-	   isc_buffer_t *target)
-{
-	unsigned int type, rdclass, ttl, rdlength;
-	isc_region_t r;
-	dns_name_t *name, *curr;
-	dns_rdata_t *rdata;
-	dns_rdatalist_t *rdatalist;
-	dns_result_t result;
-
-	ISC_LIST_INIT(*section);
-	while (count > 0) {
-		count--;
-		
-		if (ncount == MAX_PREALLOCATED) {
-			printf("out of names\n");
-			exit(1);
-		}
-		name = &names[ncount++];
-		isc_buffer_remaining(source, &r);
-		isc_buffer_setactive(source, r.length);
-		(void)getname(name, source, target);
-		for (curr = ISC_LIST_HEAD(*section);
-		     curr != NULL;
-		     curr = ISC_LIST_NEXT(curr, link)) {
-			if (dns_name_compare(curr, name) == 0) {
-				ncount--;
-				name = curr;
-				break;
-			}
-		}
-		if (name != curr)
-			ISC_LIST_APPEND(*section, name, link);
-		type = getshort(source);
-		rdclass = getshort(source);
-		ttl = getshort(source);
-		ttl *= 65536;
-		ttl += getshort(source);
-		rdlength = getshort(source);
-		isc_buffer_remaining(source, &r);
-		if (r.length < rdlength) {
-			printf("unexpected end of rdata\n");
-			exit(7);
-		}
-		isc_buffer_setactive(source, rdlength);
-		if (rdcount == MAX_PREALLOCATED) {
-			printf("out of rdata\n");
-			exit(1);
-		}
-		rdata = &rdatas[rdcount++];
-		dns_decompress_localinit(&dctx, name, source);
-		result = dns_rdata_fromwire(rdata, rdclass, type,
-					    source, &dctx, ISC_FALSE,
-					    target);
-		dns_decompress_localinvalidate(&dctx);
-		if (result != DNS_R_SUCCESS) {
-			printf("%s\n", dns_result_totext(result));
-			exit(1);
-		}
-		for (rdatalist = ISC_LIST_HEAD(name->list);
-		     rdatalist != NULL;
-		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			if (rdatalist->rdclass == rdclass &&
-			    rdatalist->type == type)
-				break;
-		}
-		if (rdatalist == NULL) {
-			if (rlcount == MAX_PREALLOCATED) {
-				printf("out of rdatalists\n");
-				exit(1);
-			}
-			rdatalist = &lists[rlcount++];
-			rdatalist->rdclass = rdclass;
-			rdatalist->type = type;
-			rdatalist->ttl = ttl;
-			ISC_LIST_INIT(rdatalist->rdata);
-			ISC_LIST_APPEND(name->list, rdatalist, link);
-		} else {
-			if (ttl < rdatalist->ttl)
-				rdatalist->ttl = ttl;
-		}
-
-		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	}
-}
-
-void
-getmessage(dns_message_t *message, isc_buffer_t *source,
-	   isc_buffer_t *target)
-{
-	isc_region_t r;
-
-	message->id = getshort(source);
-	message->flags = getshort(source);
-	message->qcount = getshort(source);
-	message->ancount = getshort(source);
-	message->aucount = getshort(source);
-	message->adcount = getshort(source);
-
-	dns_decompress_init(&dctx, -1, ISC_FALSE);
-	getquestions(source, &message->question, message->qcount, target);
-	getsection(source, &message->answer, message->ancount, target);
-	getsection(source, &message->authority, message->aucount, target);
-	getsection(source, &message->additional, message->adcount, target);
-	dns_decompress_invalidate(&dctx);
-
-	isc_buffer_remaining(source, &r);
-	if (r.length != 0)
-		printf("extra data at end of packet.\n");
 }
 
 static char *opcodetext[] = {
@@ -362,85 +121,50 @@ static char *rcodetext[] = {
 	"RESERVED15"
 };
 
-static void
-printquestions(dns_namelist_t *section) {
-	dns_name_t *name;
-	dns_rdatalist_t *rdatalist;
-	char t[1000];
-	isc_buffer_t target;
-	dns_result_t result;
-
-	printf(";; QUERY SECTION:\n");
-	for (name = ISC_LIST_HEAD(*section);
-	     name != NULL;
-	     name = ISC_LIST_NEXT(name, link)) {
-		isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
-		result = dns_name_totext(name, ISC_FALSE, &target);
-		if (result != DNS_R_SUCCESS) {
-			printf("%s\n", dns_result_totext(result));
-			exit(15);
-		}
-		for (rdatalist = ISC_LIST_HEAD(name->list);
-		     rdatalist != NULL;
-		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			printf(";;\t%.*s, type = ", (int)target.used,
-			       (char *)target.base);
-			isc_buffer_clear(&target);
-			result = dns_rdatatype_totext(rdatalist->type, 
-						      &target);
-			if (result != DNS_R_SUCCESS) {
-				printf("%s\n",
-				       dns_result_totext(result));
-				exit(16);
-			}
-			printf("%.*s, class = ", (int)target.used,
-			       (char *)target.base);
-			isc_buffer_clear(&target);
-			result = dns_rdataclass_totext(rdatalist->rdclass,
-						       &target);
-			if (result != DNS_R_SUCCESS) {
-				printf("%s\n", dns_result_totext(result));
-				exit(17);
-			}
-			printf("%.*s\n", (int)target.used,
-			       (char *)target.base);
-		}
-	}
-}
-
 static dns_result_t
-printsection(dns_namelist_t *section, char *section_name) {
+printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
+{
 	dns_name_t *name, *print_name;
-	dns_rdatalist_t *rdatalist;
-	dns_rdataset_t rdataset;
+	dns_rdataset_t *rdataset;
 	isc_buffer_t target;
 	dns_result_t result;
 	isc_region_t r;
 	dns_name_t empty_name;
 	char t[1000];
 	isc_boolean_t first;
+	isc_boolean_t no_rdata;
 
-	dns_rdataset_init(&rdataset);
-	dns_name_init(&empty_name, NULL);
+	if (sectionid == DNS_SECTION_QUESTION)
+		no_rdata = ISC_TRUE;
+	else
+		no_rdata = ISC_FALSE;
+
 	printf("\n;; %s SECTION:\n", section_name);
-	for (name = ISC_LIST_HEAD(*section);
-	     name != NULL;
-	     name = ISC_LIST_NEXT(name, link)) {
+
+	dns_name_init(&empty_name, NULL);
+
+	result = dns_message_firstname(msg, sectionid);
+	if (result == DNS_R_NOMORE)
+		return (DNS_R_SUCCESS);
+	else if (result != DNS_R_SUCCESS)
+		return (result);
+
+	for (;;) {
+		name = NULL;
+		dns_message_currentname(msg, sectionid, &name);
+
 		isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
 		first = ISC_TRUE;
 		print_name = name;
-		for (rdatalist = ISC_LIST_HEAD(name->list);
-		     rdatalist != NULL;
-		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			result = dns_rdatalist_tordataset(rdatalist,
-							  &rdataset);
+
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			result = dns_rdataset_totext(rdataset, print_name,
+						     ISC_FALSE, &target,
+						     no_rdata);
 			if (result != DNS_R_SUCCESS)
 				return (result);
-			result = dns_rdataset_totext(&rdataset, print_name,
-						     ISC_FALSE, &target);
-			if (result != DNS_R_SUCCESS)
-				return (result);
-			dns_rdataset_disassociate(&rdataset);
 #ifdef USEINITALWS
 			if (first) {
 				print_name = &empty_name;
@@ -450,53 +174,75 @@ printsection(dns_namelist_t *section, char *section_name) {
 		}
 		isc_buffer_used(&target, &r);
 		printf("%.*s", (int)r.length, (char *)r.base);
+
+		result = dns_message_nextname(msg, sectionid);
+		if (result == DNS_R_NOMORE)
+			break;
+		else if (result != DNS_R_SUCCESS)
+			return (result);
 	}
 	
 	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
-printmessage(dns_message_t *message) {
+printmessage(dns_message_t *msg) {
 	isc_boolean_t did_flag = ISC_FALSE;
-	unsigned int opcode, rcode;
 	dns_result_t result;
 
-	opcode = (message->flags & DNS_OPCODE_MASK) >> DNS_OPCODE_SHIFT;
-	rcode = message->flags & DNS_RCODE_MASK;
+	result = DNS_R_UNEXPECTED;
+
 	printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
-	       opcodetext[opcode], rcodetext[rcode], message->id);
+	       opcodetext[msg->opcode], rcodetext[msg->rcode], msg->id);
+
 	printf(";; flags: ");
-	if ((message->flags & DNS_FLAG_QR) != 0) {
+	if ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) {
 		printf("qr");
 		did_flag = ISC_TRUE;
 	}
-	if ((message->flags & DNS_FLAG_AA) != 0) {
+	if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0) {
 		printf("%saa", did_flag ? " " : "");
 		did_flag = ISC_TRUE;
 	}
-	if ((message->flags & DNS_FLAG_TC) != 0) {
+	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
 		printf("%stc", did_flag ? " " : "");
 		did_flag = ISC_TRUE;
 	}
-	if ((message->flags & DNS_FLAG_RD) != 0) {
+	if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0) {
 		printf("%srd", did_flag ? " " : "");
 		did_flag = ISC_TRUE;
 	}
-	if ((message->flags & DNS_FLAG_RA) != 0) {
+	if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0) {
 		printf("%sra", did_flag ? " " : "");
 		did_flag = ISC_TRUE;
 	}
 	printf("; QUERY: %u, ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
-	       message->qcount, message->ancount, message->aucount,
-	       message->adcount);
-	printquestions(&message->question);
-	result = printsection(&message->answer, "ANSWER");
+	       msg->counts[DNS_SECTION_QUESTION],
+	       msg->counts[DNS_SECTION_ANSWER],
+	       msg->counts[DNS_SECTION_AUTHORITY],
+	       msg->counts[DNS_SECTION_ADDITIONAL]);
+	printf("; PSEUDOSECTIONS: OPT: %u, TSIG: %u\n",
+	       msg->counts[DNS_SECTION_OPT],
+	       msg->counts[DNS_SECTION_TSIG]);
+
+	result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION");
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	result = printsection(&message->authority, "AUTHORITY");
+	result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER");
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	result = printsection(&message->additional, "ADDITIONAL");
+	result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY");
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = printsection(msg, DNS_SECTION_ADDITIONAL, "ADDITIONAL");
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = printsection(msg, DNS_SECTION_OPT, "PSEUDOSECTION OPT");
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = printsection(msg, DNS_SECTION_TSIG, "PSEUDOSECTION TSIG");
+	if (result != DNS_R_SUCCESS)
+		return (result);
 
 	return (result);
 }
@@ -506,16 +252,19 @@ int
 main(int argc, char *argv[]) {
 	char *rp, *wp;
 	unsigned char *bp;
-	isc_buffer_t source, target;
+	isc_buffer_t source;
 	size_t len, i;
 	int n;
 	FILE *f;
 	isc_boolean_t need_close = ISC_FALSE;
 	unsigned char b[1000];
 	char s[1000];
-	char t[5000];
-	dns_message_t message;
+	dns_message_t *message;
+	dns_message_t *message2;
 	dns_result_t result;
+	isc_mem_t *mctx;
+
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	
 	if (argc > 1) {
 		f = fopen(argv[1], "r");
@@ -562,19 +311,26 @@ main(int argc, char *argv[]) {
 	if (need_close)
 		fclose(f);
 
-	rdcount = 0;
-	rlcount = 0;
-	ncount = 0;
-
+	f = fopen("foo", "w");
+	fwrite(b, bp - b, 1, f);
+	fclose(f);
 
 	isc_buffer_init(&source, b, sizeof b, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, bp - b);
-	isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_BINARY);
-	getmessage(&message, &source, &target);
-	result = printmessage(&message);
-	if (result != DNS_R_SUCCESS)
-		printf("printmessage() failed: %s\n",
-		       dns_result_totext(result));
+
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	CHECKRESULT(result, "dns_message_create failed");
+
+	result = dns_message_parse(message, &source);
+	CHECKRESULT(result, "dns_message_parse failed");
+
+	result = printmessage(message);
+	CHECKRESULT(result, "printmessage() failed");
+
+	dns_message_destroy(&message);
+
+	isc_mem_stats(mctx, stdout);
+	isc_mem_destroy(&mctx);
 
 	return (0);
 }

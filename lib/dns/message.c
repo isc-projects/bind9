@@ -27,6 +27,7 @@
 #include <isc/assertions.h>
 #include <isc/boolean.h>
 #include <isc/region.h>
+#include <isc/types.h>
 
 #include <dns/message.h>
 #include <dns/rdataset.h>
@@ -74,6 +75,7 @@ struct dns_msgblock {
 
 static inline void
 msgblock_free(isc_mem_t *, dns_msgblock_t *);
+
 #define msgblock_get(block, type) \
 	((type *)msgblock_internalget(block, sizeof(type)))
 
@@ -375,6 +377,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 				dns_rdataset_disassociate(rds);
 				rds = next_rds;
 			}
+			name = next_name;
 		}
 	}
 
@@ -508,7 +511,7 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent)
 				     RDATASET_COUNT);
 	if (msgblock == NULL)
 		goto cleanup4;
-	ISC_LIST_APPEND(m->rdatas, msgblock, link);
+	ISC_LIST_APPEND(m->rdatasets, msgblock, link);
 
 	if (intent == DNS_MESSAGE_INTENT_PARSE) {
 		msgblock = msgblock_allocate(mctx, sizeof(dns_rdatalist_t),
@@ -518,6 +521,7 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent)
 		ISC_LIST_APPEND(m->rdatalists, msgblock, link);
 	}
 
+	*msg = m;
 	return (DNS_R_SUCCESS);
 
 	/*
@@ -569,9 +573,11 @@ findname(dns_name_t **foundname, dns_name_t *target, dns_namelist_t *section)
 {
 	dns_name_t *curr;
 
+	printf("-----\n");
 	for (curr = ISC_LIST_TAIL(*section) ;
 	     curr != NULL ;
 	     curr = ISC_LIST_PREV(curr, link)) {
+		printf("curr = %p\n", curr);
 		if (dns_name_compare(curr, target) == 0) {
 			if (foundname != NULL)
 				*foundname = curr;
@@ -641,6 +647,41 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	return (DNS_R_UNEXPECTED);  /* should never get here... XXXMLG */
 }
 
+static dns_result_t
+getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
+	 dns_decompress_t *dctx, dns_rdataclass_t rdclass,
+	 dns_rdatatype_t rdtype, unsigned int rdatalen, dns_rdata_t *rdata)
+{
+	isc_buffer_t *scratch;
+	dns_result_t result;
+	unsigned int tries;
+
+	scratch = currentbuffer(msg);
+
+	isc_buffer_setactive(source, rdatalen);
+	dns_decompress_localinit(dctx, name, source);
+
+	tries = 0;
+	while (tries < 2) {
+		result = dns_rdata_fromwire(rdata, rdclass, rdtype,
+					    source, dctx, ISC_FALSE,
+					    scratch);
+
+		if (result == DNS_R_NOSPACE) {
+			tries++;
+
+			result = newbuffer(msg);
+			if (result != DNS_R_SUCCESS)
+				return (result);
+
+			scratch = currentbuffer(msg);
+		} else {
+			return (result);
+		}
+	}
+
+	return (DNS_R_UNEXPECTED);  /* should never get here... XXXMLG */
+}
 
 static dns_result_t
 getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
@@ -666,6 +707,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		/*
 		 * Parse the name out of this packet.
 		 */
+		isc_buffer_remaining(source, &r);
+		isc_buffer_setactive(source, r.length);
 		result = getname(name, source, msg, dctx);
 		if (result != DNS_R_SUCCESS)
 			return (result);
@@ -679,17 +722,24 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		result = findname(&name2, name, section);
 
 		/*
-		 * If it is a new name, append to the section.  Note that
+		 * If it is the first name in the section, accept it.
+		 *
+		 * If it is not, but is not the same as the name already
+		 * in the question section, append to the section.  Note that
 		 * here in the question section this is illegal, so return
 		 * FORMERR.  In the future, check the opcode to see if
 		 * this should be legal or not.  In either case we no longer
 		 * need this name pointer.
 		 */
-		releasename(msg, name);
-		if (result != DNS_R_SUCCESS)
-			return (DNS_R_FORMERR);
-		name = name2;
-		ISC_LIST_APPEND(*section, name, link);
+		if (result != DNS_R_SUCCESS) {
+			if (ISC_LIST_EMPTY(*section)) {
+				ISC_LIST_APPEND(*section, name, link);
+			} else {
+				return (DNS_R_FORMERR);
+			}
+		} else {
+			name = name2;
+		}
 
 		/*
 		 * Get type and class.
@@ -734,6 +784,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		rdatalist->ttl = 0;
 		ISC_LIST_INIT(rdatalist->rdata);
 
+		dns_rdataset_init(rdataset);
 		result = dns_rdatalist_tordataset(rdatalist, rdataset);
 		if (result != DNS_R_SUCCESS)
 			return (result);
@@ -758,6 +809,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_result_t result;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
+	dns_rdata_t *rdata;
 	dns_ttl_t ttl;
 	dns_namelist_t *section;
 
@@ -771,6 +823,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		/*
 		 * Parse the name out of this packet.
 		 */
+		isc_buffer_remaining(source, &r);
+		isc_buffer_setactive(source, r.length);
 		result = getname(name, source, msg, dctx);
 		if (result != DNS_R_SUCCESS)
 			return (result);
@@ -789,10 +843,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (result == DNS_R_SUCCESS) {
 			releasename(msg, name);
 			name = name2;
+		} else {
+			ISC_LIST_APPEND(*section, name, link);
 		}
-		name = name2;
-		ISC_LIST_APPEND(msg->sections[DNS_SECTION_QUESTION],
-				name, link);
 
 		/*
 		 * Get type, class, ttl, and rdatalen.  Verify that at least
@@ -831,42 +884,51 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		result = findtype(&rdataset, name, rdtype);
 
 		/*
-		 * Oh hurt me...  I need to add this name to the rdatalist,
-		 * but I have to cheat to get at that given the rdataset...
-		 *
-		 * This sucks.  XXXMLG stop point, code below probably wrong.
+		 * If we found an rdataset that matches, we need to
+		 * append this rdata to that set.  If we did not, we need
+		 * to create a new rdatalist, store the important bits there,
+		 * convert it to an rdataset, and link the latter to the name.
+		 * Yuck.
 		 */
-#if 0
 		if (result != DNS_R_SUCCESS) {
 			rdataset = newrdataset(msg);
 			if (rdataset == NULL)
 				return (DNS_R_NOMEMORY);
+			rdatalist = newrdatalist(msg);
+			if (rdatalist == NULL)
+				return (DNS_R_NOMEMORY);
 
-			ISC_LIST_APPEND(section, rdataset, 
-			
-			return (DNS_R_FORMERR);
-#endif
+			rdatalist->type = rdtype;
+			rdatalist->rdclass = rdclass;
+			rdatalist->ttl = ttl;
+			ISC_LIST_INIT(rdatalist->rdata);
+
+			dns_rdataset_init(rdataset);
+			dns_rdatalist_tordataset(rdatalist, rdataset);
+
+			ISC_LIST_APPEND(name->list, rdataset, link);
+		}
 
 		/*
-		 * Allocate a new rdatalist, rdata.
+		 * Read the rdata from the wire format.
 		 */
-		rdatalist = newrdatalist(msg);
-		rdataset = newrdataset(msg);
-
-		/*
-		 * Convert rdatalist to rdataset, and attach the latter to
-		 * the name.
-		 */
-		rdatalist->type = rdtype;
-		rdatalist->rdclass = rdclass;
-		rdatalist->ttl = 0;
-		ISC_LIST_INIT(rdatalist->rdata);
-
-		result = dns_rdatalist_tordataset(rdatalist, rdataset);
+		rdata = newrdata(msg);
+		if (rdata == NULL)
+			return (DNS_R_NOMEMORY);
+		result = getrdata(name, source, msg, dctx,
+				  rdclass, rdtype, rdatalen, rdata);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 
-		ISC_LIST_APPEND(name->list, rdataset, link);
+		/*
+		 * XXX Perform a totally ugly hack here to pull
+		 * the rdatalist out of the private field in the rdataset,
+		 * and append this rdata to the rdatalist's linked list
+		 * of rdata.
+		 */
+		rdatalist = (dns_rdatalist_t *)(rdataset->private1);
+
+		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	}
 	
 	return (DNS_R_SUCCESS);
@@ -878,16 +940,21 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
 	isc_region_t r;
 	dns_decompress_t dctx;
 	dns_result_t ret;
+	isc_uint16_t tmpflags;
 
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(source != NULL);
 
 	isc_buffer_remaining(source, &r);
-	if (r.length >= DNS_MESSAGE_HEADER_LEN)
+	if (r.length < DNS_MESSAGE_HEADER_LEN)
 		return (DNS_R_UNEXPECTEDEND);
 
 	msg->id = isc_buffer_getuint16(source);
-	msg->flags = isc_buffer_getuint16(source);
+	tmpflags = isc_buffer_getuint16(source);
+	msg->opcode = ((tmpflags & DNS_MESSAGE_OPCODE_MASK)
+		       >> DNS_MESSAGE_OPCODE_SHIFT);
+	msg->rcode = (tmpflags & DNS_MESSAGE_RCODE_MASK);
+	msg->flags = (tmpflags & ~DNS_MESSAGE_FLAG_MASK);
 	msg->counts[DNS_SECTION_QUESTION] = isc_buffer_getuint16(source);
 	msg->counts[DNS_SECTION_ANSWER] = isc_buffer_getuint16(source);
 	msg->counts[DNS_SECTION_AUTHORITY] = isc_buffer_getuint16(source);
@@ -910,6 +977,10 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
 	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL);
 	if (ret != DNS_R_SUCCESS)
 		return (ret);
+
+	isc_buffer_remaining(source, &r);
+	if (r.length != 0)
+		return (DNS_R_FORMERR);
 
 	/*
 	 * XXXMLG Need to check the tsig(s) here...
@@ -1024,7 +1095,7 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
 {
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(VALID_NAMED_SECTION(section));
-	REQUIRE(name != NULL && name == NULL);
+	REQUIRE(name != NULL && *name == NULL);
 	REQUIRE(msg->cursors[section] != NULL);
 
 	*name = msg->cursors[section];
