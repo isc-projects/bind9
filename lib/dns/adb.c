@@ -1004,7 +1004,7 @@ destroy(dns_adb_t *adb)
  */
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *taskmgr,
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb)
 {
 	dns_adb_t *adb;

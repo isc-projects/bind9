@@ -186,7 +186,7 @@ struct dns_adbaddrinfo {
 
 isc_result_t
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
-	       dns_adb_t **newadb);
+	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb);
 /*
  * Create a new ADB.
  *
