@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.151 2000/07/24 20:10:26 gson Exp $ */
+/* $Id: resolver.c,v 1.152 2000/07/24 23:55:19 gson Exp $ */
 
 #include <config.h>
 
@@ -3276,6 +3276,7 @@ answer_response(fetchctx_t *fctx) {
 	 * part of the answer and should be cached.
 	 */
 
+	done = ISC_FALSE;
 	chaining = ISC_FALSE;
 	have_answer = ISC_FALSE;
 	want_chaining = ISC_FALSE;
