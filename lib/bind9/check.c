@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.26 2002/03/04 05:07:06 marka Exp $ */
+/* $Id: check.c,v 1.27 2002/03/04 05:24:33 marka Exp $ */
 
 #include <config.h>
 
@@ -469,8 +469,8 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 
 				isc_netaddr_fromsockaddr(&na, s2);
 				isc_buffer_init(&target, buf, sizeof(buf) - 1);
-				INSIST(isc_netaddr_totext(&na, &target)
-				       == ISC_R_SUCCESS);
+				RUNTIME_CHECK(isc_netaddr_totext(&na, &target)
+					      == ISC_R_SUCCESS);
 				buf[isc_buffer_usedlength(&target)] = '\0';
 
 				cfg_obj_log(v2, logctx, ISC_LOG_ERROR,
