@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.1 2001/07/10 18:25:50 gson Exp $ */
+/* $Id: net.h,v 1.2 2001/07/10 19:54:01 gson Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -54,6 +54,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>		/* Contractual promise. */
+#include <sys/time.h>
 #include <sys/un.h>
 
 #include <netinet/in.h>		/* Contractual promise. */
