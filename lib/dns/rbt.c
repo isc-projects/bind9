@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.29 1999/03/18 21:32:51 tale Exp $ */
+/* $Id: rbt.c,v 1.30 1999/03/30 01:56:01 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -74,12 +74,10 @@ struct dns_rbtnodechain {
 	 * a conceptually very large number (which I have not bothered to
 	 * compute) of logical levels because splitting can potentially occur
 	 * at each bit.  However, DNSSEC restricts the number of "logical"
-	 * labels in a name to 255, meaning only 256 pointers are needed
+	 * labels in a name to 255, meaning only 254 pointers are needed
 	 * in the worst case.
-	 *
-	 * XXX DCL something in here should probably check for the 255 limit.
 	 */
-	dns_rbtnode_t *		levels[256];
+	dns_rbtnode_t *		levels[254];
 	int			level_count;
 };
 
@@ -161,7 +159,10 @@ dns_name_t
 Name(dns_rbtnode_t *node) {
 	dns_name_t name;
 
-	NODENAME(node, &name);
+	if (node == NULL)
+		dns_name_init(&name, NULL);
+	else
+		NODENAME(node, &name);
 
 	return (name);
 }
@@ -398,6 +399,18 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				INSIST(compared == dns_namereln_commonancestor
 				       || compared == dns_namereln_contains);
 
+				/*
+				 * Ensure the number of levels in the tree
+				 * does not exceed the number of logical
+				 * levels allowed by DNSSEC.
+				 *
+				 * XXX DCL need a better error result?
+				 */
+				if (chain.level_count ==
+				    (sizeof(chain.levels) / 
+				     sizeof(*chain.levels)))
+				    return (DNS_R_NOSPACE);
+
 				/* XXX DCL handle bitstrings.
 				 * When common_bits is non-zero, the last label
 				 * in common (eg, vix in a.vix.com vs
@@ -606,8 +619,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	unsigned int current_labels, common_labels, common_bits;
 	unsigned int first_common_label, foundname_labels;
 	int order;
-
-	/* XXX DCL optimize skipping the root node? */
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(FAST_ISABSOLUTE(name));
@@ -880,7 +891,8 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 * match in the first layer.  Should it be a requirement that
 	 * that the name to be deleted have data?  For now, it is.
 	 *
-	 * XXX DCL how to ->dirty, ->locknum and ->references figure in?
+	 * ->dirty, ->locknum and ->references are ignored; they are
+	 * solely the province of rbtdb.c.
 	 */
 	result = dns_rbt_findnode(rbt, name, NULL, &node, &chain);
 
@@ -1021,7 +1033,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	isc_region_t region;
 	unsigned int labels;
 
-	REQUIRE(name->offsets != NULL);	/* XXX DCL direct access to name. */
+	REQUIRE(name->offsets != NULL);
 
 	dns_name_toregion(name, &region);
 	labels = FAST_COUNTLABELS(name);
@@ -1053,7 +1065,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * of labels, whether the name is absolute or not, the name itself,
 	 * and the name's offsets table.
 	 *
-	 * XXX DCL
+	 * XXX RTH
 	 *	The offsets table could be made smaller by eliminating the
 	 *	first offset, which is always 0.  This requires changes to
 	 * 	lib/dns/name.c.
@@ -1061,8 +1073,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	NAMELEN(node) = region.length;
 	PADBYTES(node) = 0;
 	OFFSETLEN(node) = labels;
-	if (FAST_ISABSOLUTE(name))
-		ATTRS(node) |= DNS_NAMEATTR_ABSOLUTE;
+	ATTRS(node) = name->attributes;
 
 	memcpy(NAME(node), region.base, region.length);
 	memcpy(OFFSETS(node), name->offsets, labels);
@@ -1242,7 +1253,6 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 /*
  * This is the real workhorse of the insertion code, because it does the
  * true red/black tree on a single level.
- * XXX DCL move this into addnode?
  */
 static void
 dns_rbt_addonlevel(dns_rbtnode_t *node,
@@ -1581,7 +1591,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
  *
  * NOTE: No root pointer maintenance is done, because the function is only
  * used for two cases:
- * + deleting everything DOWN from a node that is itself being deleted
+ * + deleting everything DOWN from a node that is itself being deleted, and
  * + deleting the entire tree of trees from dns_rbt_destroy.
  * In each case, the root pointer is no longer relevant, so there
  * is no need for a root parameter to this function.
