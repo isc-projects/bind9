@@ -1,3 +1,7 @@
+1604.	[bug]		A xfrout_ctx_create() failure would result in
+			xfrout_ctx_destroy() being called with a
+			partially initialized structure.
+			
 1593.	[bug]		rndc should return "unknown command" to unknown
 			commands. [RT# 10642]
 
