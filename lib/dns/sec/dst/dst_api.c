@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.89 2001/09/15 00:01:48 bwelling Exp $
+ * $Id: dst_api.c,v 1.90 2001/11/06 03:02:48 bwelling Exp $
  */
 
 #include <config.h>
@@ -1017,10 +1017,8 @@ computeid(dst_key_t *key) {
 
 	isc_buffer_init(&dnsbuf, dns_array, sizeof(dns_array));
 	ret = dst_key_todns(key, &dnsbuf);
-	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(&key);
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
-	}
 
 	isc_buffer_usedregion(&dnsbuf, &r);
 	key->key_id = dst_region_computeid(&r, key->key_alg);
