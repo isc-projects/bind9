@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.122 2001/09/07 00:36:52 marka Exp $ */
+/* $Id: main.c,v 1.123 2001/09/14 12:34:03 marka Exp $ */
 
 #include <config.h>
 
@@ -68,6 +68,27 @@ static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
 static char    		saved_command_line[512];
+
+static void
+ns_main_earlywarning(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+
+static void
+ns_main_earlywarning(const char *format, ...) {
+	va_list args;
+
+	va_start(args, format);
+	if (ns_g_lctx != NULL) {
+		isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			       NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
+			       format, args);
+	} else {
+		fprintf(stderr, "%s: ", program_name);
+		vfprintf(stderr, format, args);
+		fprintf(stderr, "\n");
+		fflush(stderr);
+	}
+	va_end(args);
+}
 
 void
 ns_main_earlyfatal(const char *format, ...) {
@@ -611,6 +632,18 @@ main(int argc, char *argv[]) {
 	isccc_result_register();
 
 	parse_command_line(argc, argv);
+
+	/*
+	 * Warn about common configuration error.
+	 */
+	if (ns_g_chrootdir != NULL) {
+		int len = strlen(ns_g_chrootdir);
+		if (strncmp(ns_g_chrootdir, ns_g_conffile, len) == 0 &&
+		    (ns_g_conffile[len] == '/' || ns_g_conffile[len] == '\\'))
+			ns_main_earlywarning("config filename (-c %s) contains "
+					     "chroot path (-t %s)",
+					     ns_g_conffile, ns_g_chrootdir);
+	}
 
 	result = isc_mem_create(0, 0, &ns_g_mctx);
 	if (result != ISC_R_SUCCESS)

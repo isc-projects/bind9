@@ -1,3 +1,6 @@
+ 996.	[func]		Issue warning if the configuration filename contains
+			the chroot path.
+
  995.	[bug]		dig, host, nslookup: using a raw IPv6 address as a
 			target address should be fatal on a IPv4 only system.
 
