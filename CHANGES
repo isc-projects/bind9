@@ -1,3 +1,6 @@
+1750.	[port]		lib/bind/make/rules.in:subdirs was not bash friendly.
+			[RT #12864]
+
 1747.	[bug]		BIND 8 compatability: named/named-checkconf failed
 			to parse "host-statistics-max" in named.conf.
 
