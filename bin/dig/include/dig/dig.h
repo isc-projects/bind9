@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.6.2.7 2004/09/06 01:33:06 marka Exp $ */
+/* $Id: dig.h,v 1.71.2.6.2.8 2005/03/31 02:43:41 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -35,7 +35,7 @@
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 
-#define MXSERV 6
+#define MXSERV 20
 #define MXNAME (DNS_NAME_MAXTEXT+1)
 #define MXRD 32
 #define BUFSIZE 512
