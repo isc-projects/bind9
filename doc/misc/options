@@ -43,7 +43,6 @@ options {
         use-id-pool <boolean>; // obsolete
         use-ixfr <boolean>;
         version <quoted_string>;
-        allow-notify { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... };
         sortlist { <address_match_element>; ... };
@@ -59,8 +58,6 @@ options {
         additional-from-cache <boolean>;
         query-source <querysource4>;
         query-source-v6 <querysource6>;
-        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         cleaning-interval <integer>;
         min-roots <integer>; // not implemented
         lame-ttl <integer>;
@@ -73,7 +70,10 @@ options {
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
+        allow-notify { <address_match_element>; ... };
         notify <notifytype>;
+        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
         dialup <dialuptype>;
@@ -143,7 +143,12 @@ view <string> <optional_class> {
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
+                allow-notify { <address_match_element>; ... };
                 notify <notifytype>;
+                notify-source ( <ipv4_address> | * ) [ port ( <integer> | *
+                    ) ];
+                notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer>
+                    | * ) ];
                 also-notify [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ]; ... };
                 dialup <dialuptype>;
@@ -179,7 +184,6 @@ view <string> <optional_class> {
         };
         trusted-keys { <string> <integer> <integer> <integer>
             <quoted_string>; ... };
-        allow-notify { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... };
         sortlist { <address_match_element>; ... };
@@ -195,8 +199,6 @@ view <string> <optional_class> {
         additional-from-cache <boolean>;
         query-source <querysource4>;
         query-source-v6 <querysource6>;
-        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         cleaning-interval <integer>;
         min-roots <integer>; // not implemented
         lame-ttl <integer>;
@@ -209,7 +211,10 @@ view <string> <optional_class> {
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
+        allow-notify { <address_match_element>; ... };
         notify <notifytype>;
+        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
         dialup <dialuptype>;
@@ -261,7 +266,10 @@ zone <string> <optional_class> {
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
+        allow-notify { <address_match_element>; ... };
         notify <notifytype>;
+        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
         dialup <dialuptype>;
