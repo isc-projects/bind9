@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.164 $)
+AC_REVISION($Revision: 1.165 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -34,6 +34,7 @@ AC_PROG_INSTALL
 AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
+AC_SUBST(CCOPT)
 
 AC_PATH_PROG(AR, ar)
 ARFLAGS="cruv"
@@ -370,10 +371,12 @@ if test "X$GCC" = "Xyes"; then
 	case "$host" in
 		*-freebsd*)
 			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
 			;;
 		*-openbsd*)
 			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
 			;;
 		*-solaris*)
 			LIBS="$LIBS -lthread"
@@ -386,15 +389,18 @@ else
 	case "$host" in
 		*-dec-osf*)
 			CC="$CC -std -pthread"
+			CCOPT="$CCOPT -std -pthread"
 			MKDEPCC="$CC"
 			;;
 		*-solaris*)
 			CC="$CC -mt"
+			CCOPT="$CCOPT -mt"
 			MKDEPCC="$CC"
 			MKDEPCFLAGS="-xM"
 			;;
 		*-hp-hpux*)
 			CC="$CC -Ae -z +w1"
+			CCOPT="CCOPT -Ae -z"
                         LIBS="-Wl,+vnocompatwarnings $LIBS"
 			MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 			;;
@@ -414,6 +420,7 @@ else
 			;;
 		*-UnixWare*)
 			CC="$CC -Kthread -w"
+			CCOPT="$CCOPT -Kthread"
 			MKDEPCC="$CC"
 			YACC="yacc"	# bison calls alloca, avoid on UnixWare
 			;;
