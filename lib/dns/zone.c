@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.265 2000/12/01 23:49:55 gson Exp $ */
+/* $Id: zone.c,v 1.266 2000/12/02 05:29:15 gson Exp $ */
 
 #include <config.h>
 
@@ -4805,12 +4805,10 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_peer_t *peer = NULL;
 	dns_tsigkey_t *tsigkey = NULL;
-	dns_name_t *keyname = NULL;
 	char mastertext[256];
 	dns_rdatatype_t xfrtype;
 	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t masterip;
-	dns_view_t *view = NULL;
 
 	UNUSED(task);
 
@@ -4873,8 +4871,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	 */
 	if ((zone->masterkeynames != NULL) &&
 	    (zone->masterkeynames[zone->curmaster] != NULL)) {
-		view = dns_zone_getview(zone);
-		keyname = zone->masterkeynames[zone->curmaster];
+		dns_view_t *view = dns_zone_getview(zone);
+		dns_name_t *keyname = zone->masterkeynames[zone->curmaster];
 		result = dns_view_gettsig(view, keyname, &tsigkey);
 	}
 #endif /* NOMINUM_PUBLIC */
