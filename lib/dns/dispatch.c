@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101 2001/08/08 22:54:38 gson Exp $ */
+/* $Id: dispatch.c,v 1.102 2001/09/20 16:48:20 gson Exp $ */
 
 #include <config.h>
 
@@ -903,6 +903,7 @@ startrecv(dns_dispatch_t *disp) {
 			do_cancel(disp, NULL);
 			return;
 		}
+		INSIST(disp->recv_pending == 0);
 		disp->recv_pending = 1;
 		break;
 
@@ -915,6 +916,7 @@ startrecv(dns_dispatch_t *disp) {
 			do_cancel(disp, NULL);
 			return;
 		}
+		INSIST(disp->recv_pending == 0);
 		disp->recv_pending = 1;
 		break;
 	}
