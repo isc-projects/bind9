@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.108 2000/09/19 01:27:22 gson Exp $ */
+/* $Id: rdata.c,v 1.109 2000/09/26 19:37:06 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -454,6 +454,12 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	isc_buffer_t st;
 
 	REQUIRE(rdata != NULL);
+
+	/*
+	 * Some DynDNS meta-RRs have empty rdata.
+	 */
+	if (rdata->length == 0)
+		return (ISC_R_SUCCESS);
 
 	st = *target;
 
