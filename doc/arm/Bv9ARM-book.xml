@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.54 2000/11/28 21:10:20 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.55 2000/11/28 21:20:51 gson Exp $ -->
 
 <book>
 
@@ -2866,50 +2866,6 @@ for the global forwarding options to be overridden in a variety
 of ways. You can set particular domains to use different forwarders,
 or have a different <command>forward only/first</command> behavior,
 or not forward at all, see <xref linkend="zone_statement_grammar"/>.</para></sect3>
-<sect3 id="name_checking"><title>Name Checking</title>
-<para>The server can check domain names based upon their expected
-client contexts. For example, a domain name used as a hostname can
-be checked for compliance with the RFCs defining valid hostnames.</para>
-<para>Three checking methods are available:</para>
-<para><informaltable colsep = "0" rowsep = "0"><tgroup cols = "2"
-    colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
-<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.797in"/>
-<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "3.703in"/>
-<tbody>
-<row rowsep = "0">
-<entry colname = "1"><para><command>ignore</command></para></entry>
-<entry colname = "2"><para>No checking is done.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para><command>warn</command></para></entry>
-<entry colname = "2"><para>Names are checked against their expected
-client contexts. Invalid names are logged, but processing continues normally.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para><command>fail</command></para></entry>
-<entry colname = "2"><para>Names are checked against their expected
-client contexts. Invalid names are logged, and the offending data
-is rejected.</para></entry>
-</row>
-</tbody>
-</tgroup></informaltable></para>
-<para>The server can check names in three areas: master zone files,
-slave zone files, and in responses to queries the server has initiated.
-If <command>check-names response fail</command> has been specified,
-and answering the client's question would require sending an invalid
-name to the client, the server will send a REFUSED response code
-to the client.</para>
-<para>The defaults are:</para>
-<programlisting>    check-names master fail;
-    check-names slave warn;
-    check-names response ignore;
-</programlisting>
-<para><command>check-names</command> may also be specified in the <command>zone</command> statement,
-in which case it overrides the <command>options check-names</command> statement.
-When used in a <command>zone</command> statement, the area is not
-specified because it can be deduced from the zone type.</para>
-        <note>
-<para>Name checking is not yet implemented in <acronym>BIND</acronym> 9.</para></note></sect3>
 <sect3 id="access_control"><title>Access Control</title>
 <para>Access to the server can be restricted based on the IP address
 of the requesting system. See <xref linkend="address_match_lists"/> for
@@ -3814,10 +3770,13 @@ The default is the empty list.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>check-names</command></para></entry>
-                <entry colname = "2"><para>See <xref
-                                                     linkend="name_checking"/>.</para>
-<note>
-                    <simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+<entry colname = "2"><para>
+This option was used in BIND 8 to restrict the character set of
+domain names in master files and/or DNS responses received from the
+netowrk.  BIND 9 does not restrict the character set of domain names
+and does not implement the <command>check-names</command> option.
+</para>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>database</command></para></entry>
