@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.conf.html,v 1.6.18.4 2004/06/18 06:00:24 marka Exp $ -->
+<!-- $Id: rndc.conf.html,v 1.6.18.5 2004/07/23 06:08:28 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -114,7 +114,7 @@ CLASS="FILENAME"
 >        The <TT
 CLASS="OPTION"
 >options</TT
-> statement contains three clauses.
+> statement contains five clauses.
 	The <TT
 CLASS="OPTION"
 >default-server</TT
@@ -164,6 +164,16 @@ CLASS="OPTION"
 >server</TT
 > statement, this default port
 	will be used to connect.
+	The <TT
+CLASS="OPTION"
+>default-source-address</TT
+> and
+	<TT
+CLASS="OPTION"
+>default-source-address-v6</TT
+> clauses which
+	can be used to set the IPv4 and IPv6 source addresses
+	respectively.
     </P
 ><P
 >	After the <TT
@@ -190,6 +200,15 @@ CLASS="OPTION"
 >
 	clause is supplied these addresses will be used instead of
 	the server name.  Each address can take a optional port.
+	If an <TT
+CLASS="OPTION"
+>source-address</TT
+> or <TT
+CLASS="OPTION"
+>source-address-v6</TT
+>
+	of supplied then these will be used to specify the IPv4 and IPv6
+	source addresses respectively. 
     </P
 ><P
 >        The <TT
@@ -235,7 +254,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN56"
+NAME="AEN60"
 ></A
 ><H2
 >EXAMPLE</H2
@@ -338,7 +357,7 @@ CLASS="USERINPUT"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN77"
+NAME="AEN81"
 ></A
 ><H2
 >NAME SERVER CONFIGURATION</H2
@@ -362,7 +381,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN83"
+NAME="AEN87"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -397,7 +416,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN96"
+NAME="AEN100"
 ></A
 ><H2
 >AUTHOR</H2

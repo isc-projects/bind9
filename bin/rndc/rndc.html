@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.html,v 1.8.18.3 2004/06/03 04:17:55 marka Exp $ -->
+<!-- $Id: rndc.html,v 1.8.18.4 2004/07/23 06:08:28 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -64,6 +64,14 @@ CLASS="COMMAND"
 >rndc</B
 >  [<TT
 CLASS="OPTION"
+>-b <TT
+CLASS="REPLACEABLE"
+><I
+>source-address</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
 >-c <TT
 CLASS="REPLACEABLE"
 ><I
@@ -110,7 +118,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN34"
+NAME="AEN37"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -165,7 +173,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN46"
+NAME="AEN49"
 ></A
 ><H2
 >OPTIONS</H2
@@ -174,6 +182,26 @@ NAME="AEN46"
 ><DIV
 CLASS="VARIABLELIST"
 ><DL
+><DT
+>-b <TT
+CLASS="REPLACEABLE"
+><I
+>source-address</I
+></TT
+></DT
+><DD
+><P
+>	      Use <TT
+CLASS="REPLACEABLE"
+><I
+>source-address</I
+></TT
+>
+	      as the source address for the connection to the server.
+	      Multiple instances are permitted to allow setting of both
+	      the IPv4 and IPv6 source addresses.
+	  </P
+></DD
 ><DT
 >-c <TT
 CLASS="REPLACEABLE"
@@ -341,7 +369,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN94"
+NAME="AEN103"
 ></A
 ><H2
 >LIMITATIONS</H2
@@ -369,7 +397,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN102"
+NAME="AEN111"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -411,7 +439,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN118"
+NAME="AEN127"
 ></A
 ><H2
 >AUTHOR</H2

@@ -212,7 +212,7 @@ view <string> <optional_class> {
                 zone-statistics <boolean>;
                 key-directory <quoted_string>;
         };
-        server <netaddr> {
+        server ( <ipv4_address> | <ipv6_address> ) {
                 bogus <boolean>;
                 provide-ixfr <boolean>;
                 request-ixfr <boolean>;
@@ -367,7 +367,7 @@ zone <string> <optional_class> {
         key-directory <quoted_string>;
 };
 
-server <netaddr> {
+server ( <ipv4_address> | <ipv6_address> ) {
         bogus <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;

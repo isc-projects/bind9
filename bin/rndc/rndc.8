@@ -13,14 +13,14 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: rndc.8,v 1.26.18.3 2004/06/03 04:17:55 marka Exp $
+.\" $Id: rndc.8,v 1.26.18.4 2004/07/23 06:08:28 marka Exp $
 .\"
 .TH "RNDC" "8" "June 30, 2000" "BIND9" ""
 .SH NAME
 rndc \- name server control utility
 .SH SYNOPSIS
 .sp
-\fBrndc\fR [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-k \fIkey-file\fB\fR ]  [ \fB-s \fIserver\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-V\fR ]  [ \fB-y \fIkey_id\fB\fR ]  \fBcommand\fR
+\fBrndc\fR [ \fB-b \fIsource-address\fB\fR ]  [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-k \fIkey-file\fB\fR ]  [ \fB-s \fIserver\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-V\fR ]  [ \fB-y \fIkey_id\fB\fR ]  \fBcommand\fR
 .SH "DESCRIPTION"
 .PP
 \fBrndc\fR controls the operation of a name
@@ -46,6 +46,12 @@ server.
 determine how to contact the name server and decide what
 algorithm and key it should use.
 .SH "OPTIONS"
+.TP
+\fB-b \fIsource-address\fB\fR
+Use \fIsource-address\fR
+as the source address for the connection to the server.
+Multiple instances are permitted to allow setting of both
+the IPv4 and IPv6 source addresses.
 .TP
 \fB-c \fIconfig-file\fB\fR
 Use \fIconfig-file\fR
