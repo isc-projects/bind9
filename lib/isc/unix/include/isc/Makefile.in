@@ -30,7 +30,7 @@ installdirs:
 	if [ ! -d ${DESTDIR}${includedir} ]; then \
 		mkdir ${DESTDIR}${includedir} ; \
 	fi
-	if [ ! -d ${DESTDIR)${includedir}/isc ]; then \
+	if [ ! -d ${DESTDIR}${includedir}/isc ]; then \
 		mkdir ${DESTDIR}${includedir}/isc ; \
 	fi
 
