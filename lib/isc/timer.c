@@ -99,9 +99,11 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	/*
 	 * Compute the new due time.
 	 */
-	if (timer->type == isc_timertype_ticker)
-		isc_time_add(now, &timer->interval, &due);
-	else {
+	if (timer->type == isc_timertype_ticker) {
+		result = isc_time_add(now, &timer->interval, &due);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	} else {
 		if (isc_time_isepoch(&timer->idle))
 			due = timer->expires;
 		else if (isc_time_isepoch(&timer->expires))
@@ -265,10 +267,14 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 
 	timer->manager = manager;
 	timer->references = 1;
-	if (type == isc_timertype_once && !isc_interval_iszero(interval))
-		isc_time_add(&now, interval, &timer->idle);
-	else
+
+	if (type == isc_timertype_once && !isc_interval_iszero(interval)) {
+		result = isc_time_add(&now, interval, &timer->idle);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	} else
 		isc_time_settoepoch(&timer->idle);
+
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;
@@ -374,15 +380,20 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;
-	if (type == isc_timertype_once && !isc_interval_iszero(interval))
-		isc_time_add(&now, interval, &timer->idle);
-	else
+	if (type == isc_timertype_once && !isc_interval_iszero(interval)) {
+		result = isc_time_add(&now, interval, &timer->idle);
+	} else {
 		isc_time_settoepoch(&timer->idle);
-	if (type == isc_timertype_inactive) {
-		deschedule(timer);
 		result = ISC_R_SUCCESS;
-	} else
-		result = schedule(timer, &now, ISC_TRUE);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		if (type == isc_timertype_inactive) {
+			deschedule(timer);
+			result = ISC_R_SUCCESS;
+		} else
+			result = schedule(timer, &now, ISC_TRUE);
+	}
 
 	UNLOCK(&timer->lock);
 	UNLOCK(&manager->lock);
@@ -417,13 +428,13 @@ isc_timer_touch(isc_timer_t *timer) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_time_now() failed: %s",
 				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-	isc_time_add(&now, &timer->interval, &timer->idle);
+		result = ISC_R_UNEXPECTED;
+	} else
+		result = isc_time_add(&now, &timer->interval, &timer->idle);
 
 	UNLOCK(&timer->lock);
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 void
