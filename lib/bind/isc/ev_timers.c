@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_timers.c,v 1.1 2001/03/29 06:31:54 marka Exp $";
+static const char rcsid[] = "$Id: ev_timers.c,v 1.2 2001/06/27 03:55:46 marka Exp $";
 #endif
 
 /* Import. */
@@ -201,7 +201,7 @@ evClearTimer(evContext opaqueCtx, evTimerID id) {
 	}
 
 	if (heap_element(ctx->timers, del->index) != del)
-		ERR(ENOENT);
+		EV_ERR(ENOENT);
 
 	if (heap_delete(ctx->timers, del->index) < 0)
 		return (-1);
@@ -229,7 +229,7 @@ evResetTimer(evContext opaqueCtx,
 	int result=0;
 
 	if (heap_element(ctx->timers, timer->index) != timer)
-		ERR(ENOENT);
+		EV_ERR(ENOENT);
 
 	old_due = timer->due;
 

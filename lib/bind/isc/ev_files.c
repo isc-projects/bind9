@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_files.c,v 1.1 2001/03/29 06:31:54 marka Exp $";
+static const char rcsid[] = "$Id: ev_files.c,v 1.2 2001/06/27 03:55:45 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -56,9 +56,9 @@ evSelectFD(evContext opaqueCtx,
 		 "evSelectFD(ctx %#x, fd %d, mask 0x%x, func %#x, uap %#x)\n",
 		 ctx, fd, eventmask, func, uap);
 	if (eventmask == 0 || (eventmask & ~EV_MASK_ALL) != 0)
-		ERR(EINVAL);
+		EV_ERR(EINVAL);
 	if (fd > ctx->highestFD)
-		ERR(EINVAL);
+		EV_ERR(EINVAL);
 	OK(mode = fcntl(fd, F_GETFL, NULL));	/* side effect: validate fd. */
 
 	/*
@@ -84,7 +84,7 @@ evSelectFD(evContext opaqueCtx,
 	 * same context.
 	 */
 	if (id != NULL && FindFD(ctx, fd, eventmask) != NULL)
-		ERR(ETOOMANYREFS);
+		EV_ERR(ETOOMANYREFS);
 
 	/* Allocate and fill. */
 	OKNEW(id);
@@ -166,7 +166,7 @@ evDeselectFD(evContext opaqueCtx, evFileID opaqueID) {
 	/* Get the mode.  Unless the file has been closed, errors are bad. */
 	mode = fcntl(del->fd, F_GETFL, NULL);
 	if (mode == -1 && errno != EBADF)
-		ERR(errno);
+		EV_ERR(errno);
 
 	/* Remove from the list of files. */
 	if (del->prev != NULL)
