@@ -64,18 +64,17 @@
 /***
  *** Imports.
  ***/
-#include <config.h>
+#include <isc/platform.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#ifdef HAVE_NETINET6_IN6_H
+#ifdef ISC_PLATFORM_HAVENETINET6IN6H
 #include <netinet6/in6.h>
 #endif
 
-#include <isc/platform.h>
 #include <isc/result.h>
 
 #ifndef AF_INET6
