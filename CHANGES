@@ -1,3 +1,6 @@
+1205.	[bug]		OPT, TSIG and TKEY cannot be used to set the "class"
+			of the message. [RT #2449]
+
 1204.	[bug]		libbind: res_nupdate() failed to update the name
 			servers addresses before sending the update.
 

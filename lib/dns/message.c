@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.207 2002/02/12 02:10:32 marka Exp $ */
+/* $Id: message.c,v 1.208 2002/02/18 04:20:53 marka Exp $ */
 
 /***
  *** Imports
@@ -1170,7 +1170,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * If there was no question section, we may not yet have
 		 * established a class.  Do so now.
 		 */
-		if (msg->state == DNS_SECTION_ANY) {
+		if (msg->state == DNS_SECTION_ANY &&
+		    rdtype != dns_rdatatype_opt &&	/* class is UDP SIZE */
+		    rdtype != dns_rdatatype_tsig &&	/* class is ANY */
+		    rdtype != dns_rdatatype_tkey) {	/* class is undefined */
 			msg->rdclass = rdclass;
 			msg->state = DNS_SECTION_QUESTION;
 		}
