@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112.2.2 2002/03/20 19:24:34 marka Exp $
+ * $Id: tsig.c,v 1.112.2.3 2002/03/26 00:55:01 marka Exp $
  */
 
 #include <config.h>

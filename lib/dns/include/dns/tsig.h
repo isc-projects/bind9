@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.40.2.1 2002/03/20 19:24:37 marka Exp $ */
+/* $Id: tsig.h,v 1.40.2.2 2002/03/26 00:55:04 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1

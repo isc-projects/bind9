@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001  Internet Software Consortium.
+ * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.h,v 1.2.2.1 2002/02/27 07:20:25 marka Exp $ */
+/* $Id: strerror.h,v 1.2.2.2 2002/03/26 00:55:12 marka Exp $ */
 
 #ifndef ISC_STRERROR_H
 #define ISC_STRERROR_H
