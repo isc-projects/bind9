@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.16.2.2.8.2 2004/03/08 09:05:15 marka Exp $
+# $Id: merge_copyrights,v 1.16.2.2.8.3 2004/08/16 23:58:57 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -51,7 +51,10 @@ while (<FILES>) {
 	# .in files are processed by configure to produce the target file.
 	($base = $_) =~ s/\.in$//;
 
-	if ($base =~ /\.(c|h|css)$/) {
+	# Contributed code should maintain its own copyright.
+	if ($base =~ /\.\/contrib\//) {
+	     $file_types{$_} = "X";
+	} elsif ($base =~ /\.(c|h|css)$/) {
 	    $file_types{$_} = "C";
         } elsif ($base =~ /\.y$/) {
 	    $file_types{$_} = "YACC";
@@ -59,6 +62,8 @@ while (<FILES>) {
 	    $file_types{$_} = "PERL";
         } elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
+        } elsif ($base =~ /\.docbook$/) {
+	    $file_types{$_} = "SGML";
         } elsif ($base =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
         } elsif ($base =~ /\.(man|[0-9])$/) {
