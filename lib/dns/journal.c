@@ -176,7 +176,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	node = NULL;
 	result = dns_db_findnode(db, zonename, ISC_FALSE, &node);
 	if (result != DNS_R_SUCCESS)
-		return (result);
+		goto nonode;
 	
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0,
@@ -194,9 +194,12 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 				      &rdata, tp);
 
 	dns_rdataset_disassociate(&rdataset);
+	return (ISC_R_SUCCESS);
+
  freenode:
 	dns_db_detachnode(db, &node);
-	
+ nonode:
+	UNEXPECTED_ERROR(__FILE__, __LINE__, "missing SOA");
 	return (result);
 }
 
