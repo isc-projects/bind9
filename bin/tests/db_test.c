@@ -20,6 +20,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>	/* XXX Naughty. */
 
 #include <isc/assertions.h>
 #include <isc/error.h>
@@ -86,23 +87,44 @@ main(int argc, char *argv[]) {
 	char b[255];
 	dns_rdataset_t rdataset;
 	isc_region_t r;
+	char basetext[1000];
+	int ch;
+	dns_rdatatype_t type = 2;
 
-	if (argc < 2) {
+	strcpy(basetext, "");
+	while ((ch = getopt(argc, argv, "z:t:")) != -1) {
+		switch (ch) {
+		case 'z':
+			strcpy(basetext, optarg);
+			break;
+		case 't':
+			type = atoi(optarg);
+			break;
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
+
+	if (argc < 1) {
 		fprintf(stderr, "usage: db_test filename\n");
 		exit(1);
 	}
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	makename(mctx, "vix.com.", &base, NULL);
+	if (strcmp(basetext, "") == 0)
+		strcpy(basetext, "vix.com.");
+	makename(mctx, basetext, &base, NULL);
 
 	db = NULL;
 	result = dns_db_create(mctx, "rbt", &base, ISC_FALSE, 1, 0, NULL,
 			       &db);
 	RUNTIME_CHECK(result == DNS_R_SUCCESS);
 	
-	origin = dns_rootname;
-	result = dns_db_load(db, argv[1]);
+	origin = &base;
+	printf("loading %s\n", argv[0]);
+	result = dns_db_load(db, argv[0]);
 	if (result != DNS_R_SUCCESS) {
 		printf("couldn't load master file: %s\n",
 		       dns_result_totext(result));
@@ -130,10 +152,10 @@ main(int argc, char *argv[]) {
 		else {
 			printf("success\n");
 			dns_rdataset_init(&rdataset);
-			result = dns_db_findrdataset(db, node, NULL, 2,
+			result = dns_db_findrdataset(db, node, NULL, type,
 						     &rdataset);
 			if (result == DNS_R_NOTFOUND)
-				printf("type 2 rdataset not found\n");
+				printf("type %d rdataset not found\n", type);
 			else if (result != DNS_R_SUCCESS)
 				printf("%s\n", dns_result_totext(result));
 			else {
