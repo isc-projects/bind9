@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.32 2001/11/27 01:56:28 gson Exp $ */
+/* $Id: getipnode.c,v 1.33 2002/05/27 06:54:46 marka Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
@@ -373,19 +374,194 @@ lwres_freehostent(struct hostent *he) {
  *	-1 on failure.
  */
 
+#if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR) && \
+    !defined(IRIX_EMUL_IOCTL_SIOCGIFCONF) 
+
+#ifdef __hpux
+#define lifc_len iflc_len
+#define lifc_buf iflc_buf
+#define lifc_req iflc_req
+#define LIFCONF if_laddrconf
+#else
+#define ISC_HAVE_LIFC_FAMILY 1
+#define ISC_HAVE_LIFC_FLAGS 1
+#define LIFCONF lifconf
+#endif
+ 
+#ifdef __hpux
+#define lifr_addr iflr_addr
+#define lifr_name iflr_name
+#define lifr_dstaddr iflr_dstaddr
+#define lifr_flags iflr_flags
+#define ss_family sa_family
+#define LIFREQ if_laddrreq
+#else
+#define LIFREQ lifreq
+#endif
+
+static int
+scan_interfaces6(int *have_v4, int *have_v6) {
+	struct LIFCONF lifc;
+	struct LIFREQ lifreq;
+	struct in_addr in4;
+	struct in6_addr in6;
+	char *buf = NULL, *cp, *cplim;
+	static unsigned int bufsiz = 4095;
+	int s, cpsize, n;
+
+	/*
+	 * Set to zero.  Used as loop terminators below.
+	 */
+	*have_v4 = *have_v6 = 0;
+
+	/*
+	 * Get interface list from system.
+	 */
+	if ((s = socket(AF_INET6, SOCK_DGRAM, 0)) == -1)
+		goto err_ret;
+
+	/*
+	 * Grow buffer until large enough to contain all interface
+	 * descriptions.
+	 */
+	for (;;) {
+		buf = malloc(bufsiz);
+		if (buf == NULL)
+			goto err_ret;
+#ifdef ISC_HAVE_LIFC_FAMILY
+		lifc.lifc_family = AF_UNSPEC;	/* request all families */
+#endif
+#ifdef ISC_HAVE_LIFC_FLAGS
+		lifc.lifc_flags = 0;
+#endif
+		lifc.lifc_len = bufsiz;
+		lifc.lifc_buf = buf;
+		if ((n = ioctl(s, SIOCGLIFCONF, (char *)&lifc)) != -1) {
+			/*
+			 * Some OS's just return what will fit rather
+			 * than set EINVAL if the buffer is too small
+			 * to fit all the interfaces in.  If 
+			 * lifc.lifc_len is too near to the end of the
+			 * buffer we will grow it just in case and
+			 * retry.
+			 */
+			if (lifc.lifc_len + 2 * sizeof(lifreq) < bufsiz)
+				break;
+		}
+		if ((n == -1) && errno != EINVAL)
+			goto err_ret;
+
+		if (bufsiz > 1000000)
+			goto err_ret;
+
+		free(buf);
+		bufsiz += 4096;
+	}
+
+	/*
+	 * Parse system's interface list.
+	 */
+	cplim = buf + lifc.lifc_len;    /* skip over if's with big ifr_addr's */
+	for (cp = buf;
+	     (*have_v4 == 0 || *have_v6 == 0) && cp < cplim;
+	     cp += cpsize) {
+		memcpy(&lifreq, cp, sizeof(lifreq));
+#ifdef LWRES_PLATFORM_HAVESALEN
+#ifdef FIX_ZERO_SA_LEN
+		if (lifreq.lifr_addr.sa_len == 0)
+			lifreq.lifr_addr.sa_len = 16;
+#endif
+#ifdef HAVE_MINIMUM_IFREQ
+		cpsize = sizeof(lifreq);
+		if (lifreq.lifr_addr.sa_len > sizeof(struct sockaddr))
+			cpsize += (int)lifreq.lifr_addr.sa_len -
+				(int)(sizeof(struct sockaddr));
+#else
+		cpsize = sizeof(lifreq.lifr_name) + lifreq.lifr_addr.sa_len;
+#endif /* HAVE_MINIMUM_IFREQ */
+#elif defined SIOCGIFCONF_ADDR
+		cpsize = sizeof(lifreq);
+#else
+		cpsize = sizeof(lifreq.lifr_name);
+		/* XXX maybe this should be a hard error? */
+		if (ioctl(s, SIOCGLIFADDR, (char *)&lifreq) < 0)
+			continue;
+#endif
+		switch (lifreq.lifr_addr.ss_family) {
+		case AF_INET:
+			if (*have_v4 == 0) {
+				memcpy(&in4,
+				       &((struct sockaddr_in *)
+				       &lifreq.lifr_addr)->sin_addr,
+				       sizeof(in4));
+				if (in4.s_addr == INADDR_ANY)
+					break;
+				n = ioctl(s, SIOCGLIFFLAGS, (char *)&lifreq);
+				if (n < 0)
+					break;
+				if ((lifreq.lifr_flags & IFF_UP) == 0)
+					break;
+				*have_v4 = 1;
+			} 
+			break;
+		case AF_INET6:
+			if (*have_v6 == 0) {
+				memcpy(&in6,
+				       &((struct sockaddr_in6 *)
+				       &lifreq.lifr_addr)->sin6_addr, 
+				       sizeof(in6));
+				if (memcmp(&in6, &in6addr_any,
+					   sizeof(in6)) == 0)
+					break;
+				n = ioctl(s, SIOCGLIFFLAGS, (char *)&lifreq);
+				if (n < 0)
+					break;
+				if ((lifreq.lifr_flags & IFF_UP) == 0)
+					break;
+				*have_v6 = 1;
+			}
+			break;
+		}
+	}
+	if (buf != NULL)
+		free(buf);
+	close(s);
+	return (0);
+ err_ret:
+	if (buf != NULL)
+		free(buf);
+	if (s != -1)
+		close(s);
+	return (-1);
+}
+#endif
+
 static int
 scan_interfaces(int *have_v4, int *have_v6) {
-#if 1
+#if !defined(SIOCGIFCONF) || !defined(SIOCGIFADDR)
 	*have_v4 = *have_v6 = 1;
 	return (0);
 #else
 	struct ifconf ifc;
-	struct ifreq ifreq;
+	union {
+		char _pad[256];		/* leave space for IPv6 addresses */
+		struct ifreq ifreq;
+	} u;
 	struct in_addr in4;
 	struct in6_addr in6;
 	char *buf = NULL, *cp, *cplim;
-	static int bufsiz = 4095;
-	int s, cpsize, n;
+	static unsigned int bufsiz = 4095;
+	int s, n;
+	size_t cpsize;
+
+#if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR) && \
+    !defined(IRIX_EMUL_IOCTL_SIOCGIFCONF) 
+	/*
+	 * Try to scan the interfaces using IPv6 ioctls().
+	 */
+	if (!scan_interfaces6(have_v4, have_v6))
+		return (0);
+#endif
 
 	/*
 	 * Set to zero.  Used as loop terminators below.
@@ -421,12 +597,12 @@ scan_interfaces(int *have_v4, int *have_v6) {
 			/*
 			 * Some OS's just return what will fit rather
 			 * than set EINVAL if the buffer is too small
-			 * to fit all the interfaces in.  If
+			 * to fit all the interfaces in.  If 
 			 * ifc.ifc_len is too near to the end of the
 			 * buffer we will grow it just in case and
 			 * retry.
 			 */
-			if (ifc.ifc_len + 2 * sizeof(ifreq) < bufsiz)
+			if (ifc.ifc_len + 2 * sizeof(u.ifreq) < bufsiz)
 				break;
 		}
 #endif
@@ -447,58 +623,60 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	for (cp = buf;
 	     (*have_v4 == 0 || *have_v6 == 0) && cp < cplim;
 	     cp += cpsize) {
-		memcpy(&ifreq, cp, sizeof(ifreq));
+		memcpy(&u.ifreq, cp, sizeof(u.ifreq));
 #ifdef LWRES_PLATFORM_HAVESALEN
 #ifdef FIX_ZERO_SA_LEN
-		if (ifreq.ifr_addr.sa_len == 0)
-			ifreq.ifr_addr.sa_len = IN6ADDRSZ;
+		if (u.ifreq.ifr_addr.sa_len == 0)
+			u.ifreq.ifr_addr.sa_len = 16;
 #endif
 #ifdef HAVE_MINIMUM_IFREQ
-		cpsize = sizeof(ifreq);
-		if (ifreq.ifr_addr.sa_len > sizeof(struct sockaddr))
-			cpsize += (int)ifreq.ifr_addr.sa_len -
+		cpsize = sizeof(u.ifreq);
+		if (u.ifreq.ifr_addr.sa_len > sizeof(struct sockaddr))
+			cpsize += (int)u.ifreq.ifr_addr.sa_len -
 				(int)(sizeof(struct sockaddr));
 #else
-		cpsize = sizeof(ifreq.ifr_name) + ifreq.ifr_addr.sa_len;
+		cpsize = sizeof(u.ifreq.ifr_name) + u.ifreq.ifr_addr.sa_len;
 #endif /* HAVE_MINIMUM_IFREQ */
+		if (cpsize > sizeof(u.ifreq) && cpsize <= sizeof(u))
+			memcpy(&u.ifreq, cp, cpsize);
 #elif defined SIOCGIFCONF_ADDR
-		cpsize = sizeof(ifreq);
+		cpsize = sizeof(u.ifreq);
 #else
-		cpsize = sizeof(ifreq.ifr_name);
+		cpsize = sizeof(u.ifreq.ifr_name);
 		/* XXX maybe this should be a hard error? */
-		if (ioctl(s, SIOCGIFADDR, (char *)&ifreq) < 0)
+		if (ioctl(s, SIOCGIFADDR, (char *)&u.ifreq) < 0)
 			continue;
-#endif /* LWRES_PLATFORM_HAVESALEN */
-		switch (ifreq.ifr_addr.sa_family) {
+#endif
+		switch (u.ifreq.ifr_addr.sa_family) {
 		case AF_INET:
 			if (*have_v4 == 0) {
 				memcpy(&in4,
 				       &((struct sockaddr_in *)
-				       &ifreq.ifr_addr)->sin_addr,
+				       &u.ifreq.ifr_addr)->sin_addr,
 				       sizeof(in4));
 				if (in4.s_addr == INADDR_ANY)
 					break;
-				n = ioctl(s, SIOCGIFFLAGS, (char *)&ifreq);
+				n = ioctl(s, SIOCGIFFLAGS, (char *)&u.ifreq);
 				if (n < 0)
 					break;
-				if ((ifreq.ifr_flags & IFF_UP) == 0)
+				if ((u.ifreq.ifr_flags & IFF_UP) == 0)
 					break;
 				*have_v4 = 1;
-			}
+			} 
 			break;
 		case AF_INET6:
 			if (*have_v6 == 0) {
 				memcpy(&in6,
 				       &((struct sockaddr_in6 *)
-				       &ifreq.ifr_addr)->sin6_addr,
+				       &u.ifreq.ifr_addr)->sin6_addr,
 				       sizeof(in6));
 				if (memcmp(&in6, &in6addr_any,
 					   sizeof(in6)) == 0)
 					break;
-				n = ioctl(s, SIOCGIFFLAGS, (char *)&ifreq);
+				n = ioctl(s, SIOCGIFFLAGS, (char *)&u.ifreq);
 				if (n < 0)
 					break;
-				if ((ifreq.ifr_flags & IFF_UP) == 0)
+				if ((u.ifreq.ifr_flags & IFF_UP) == 0)
 					break;
 				*have_v6 = 1;
 			}

@@ -1,3 +1,6 @@
+1205.	[func]		lwres: probe the system to see what address families
+			are currently in use.
+
 1204.	[bug]		The RTT estimate on unused servers was not aged.
 			[RT #2569]
 
