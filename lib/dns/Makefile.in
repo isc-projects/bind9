@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.106 2000/10/04 18:47:15 bwelling Exp $
+# $Id: Makefile.in,v 1.107 2000/10/06 17:08:11 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,6 +47,7 @@ DSTOBJS =	sec/dst/dst_api.@O@ \
 		sec/dst/dst_lib.@O@ sec/dst/dst_parse.@O@ \
 		sec/dst/dst_result.@O@ sec/dst/gssapi_link.@O@ \
 		sec/dst/hmac_link.@O@ sec/dst/openssl_link.@O@ \
+		sec/dst/gssapictx.@O@ \
 		sec/dst/openssldh_link.@O@ sec/dst/opensslrsa_link.@O@
 
 OPENSSLOBJS =	sec/openssl/a_bitstr.@O@ sec/openssl/a_bytes.@O@ \
