@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_nw.c,v 1.3.2.6 2004/03/17 00:40:12 marka Exp $";
+static const char rcsid[] = "$Id: dns_nw.c,v 1.3.2.7 2004/05/17 07:46:42 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -349,12 +349,7 @@ get1101answer(struct irs_nw *this,
 				RES_SET_H_ERRNO(pvt->res, NO_RECOVERY);
 				return (NULL);
 			}
-#ifdef HAVE_STRLCPY
-			strlcpy(bp, name, ep - bp);
-			pvt->net.n_name = bp;
-#else
-			pvt->net.n_name = strcpy(bp, name);
-#endif
+			pvt->net.n_name = strcpy(bp, name);	/* (checked) */
 			bp += n;
 		}
 		break;
