@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.47 2001/01/09 22:00:36 bwelling Exp $ */
+/* $Id: t_api.c,v 1.48 2001/07/11 18:51:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -724,8 +724,10 @@ t_eval(const char *filename, int (*func)(char **), int nargs) {
 	int		result;
 	int		nfails;
 	int		nprobs;
+	int		npass;
 	char		*tokens[T_MAXTOKS + 1];
 
+	npass = 0;
 	nfails = 0;
 	nprobs = 0;
 
@@ -745,11 +747,18 @@ t_eval(const char *filename, int (*func)(char **), int nargs) {
 			cnt = t_bustline(p, tokens);
 			if (cnt == nargs) {
 				result = func(tokens);
-				if (result != T_PASS) {
-					if (result == T_FAIL)
-						++nfails;
-					else
-						++nprobs;
+				switch (result) {
+				case T_PASS:
+					++npass;
+					break;
+				case T_FAIL:
+					++nfails;
+					break;
+				case T_UNTESTED:
+					break;
+				default:
+					++nprobs;
+					break;
 				}
 			} else {
 				t_info("bad format in %s at line %d\n",
@@ -767,10 +776,12 @@ t_eval(const char *filename, int (*func)(char **), int nargs) {
 
 	result = T_UNRESOLVED;
 
-	if ((nfails == 0) && (nprobs == 0))
+	if (nfails == 0 && nprobs == 0 && npass > 0)
 		result = T_PASS;
-	else if (nfails)
+	else if (nfails > 0)
 		result = T_FAIL;
+	else if (npass == 0)
+		result = T_UNTESTED;
 
 	return (result);
 }
