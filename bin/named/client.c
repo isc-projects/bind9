@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.134 2000/12/02 04:30:08 gson Exp $ */
+/* $Id: client.c,v 1.135 2000/12/02 05:57:16 gson Exp $ */
 
 #include <config.h>
 
@@ -1245,12 +1245,12 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 */
 		client->udpsize = opt->rdclass;
 
+#ifdef DNS_OPT_NEWCODES
 		/*
 		 * Get the flags out of the OPT record.
 		 */
 		client->extflags = DNS_OPT_FLAGS(opt);
 						     
-#ifdef DNS_OPT_NEWCODES
 		/*
 		 * Set up the rest of the opt stuff
 		 */
@@ -1261,7 +1261,12 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 */
 		if (client->opt_zone != NULL)
 			client->query.dboptions |= DNS_DBFIND_GLUEOK;
-#endif /* DNS_OPT_NEWCODES */
+#else /* DNS_OPT_NEWCODES */
+		/*
+		 * Get the flags out of the OPT record.
+		 */
+		client->extflags = opt->ttl & 0xFFFF;
+#endif /* DNS_OPT_NEWCODES */		
 
 		/*
 		 * Create an OPT for our reply.
