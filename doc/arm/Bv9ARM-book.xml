@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.92 2001/01/24 18:28:47 brister Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.93 2001/01/25 19:54:55 gson Exp $ -->
 
 <book>
 
@@ -2612,12 +2612,14 @@ block with each option set to its default will be used.<informaltable
 <colspec colname = "1" colnum = "1" colsep = "0" colwidth = "1.591in"/>
 <colspec colname = "2" colnum = "2" colsep = "0" colwidth = "3.159in"/>
 <tbody>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>version</command></para></entry>
 <entry colname = "2"><para>The version the server should report
 via a query of name <filename>version.bind</filename> in class <command>chaos</command>.
 The default is the real version number of this server.</para></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>directory</command></para></entry>
 <entry colname = "2"><para>The working directory of the server.
@@ -2628,6 +2630,7 @@ If a directory is not specified, the working directory defaults
 to `<filename>.</filename>', the directory from which the server
 was started. The directory specified should be an absolute path.</para></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>named-xfer</command></para></entry>
                   <entry colname = "2"><para>
@@ -2637,6 +2640,7 @@ It was used in <acronym>BIND</acronym> 8 to specify the pathname to the <command
 needed; its functionality is built into the name server.</para>
 </entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>tkey-domain</command></para></entry>
 <entry colname = "2"><para>The domain appended to the names of all
@@ -2649,6 +2653,7 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
 the <command>domainname</command> should be the server's domain
 name.</para></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>tkey-dhkey</command></para></entry>
 <entry colname = "2"><para>The Diffie-Hellman key used by the server
@@ -2657,6 +2662,7 @@ of <command>TKEY</command>. The server must be able to load the
 public and private keys from files in the working directory. In
 most cases, the keyname should be the server's host name.</para></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>dump-file</command></para></entry>
 <entry colname = "2"><para>The pathname of the file the server dumps
@@ -2670,6 +2676,7 @@ If not specified, the default is <filename>named_dump.db</filename>.</para>
 usage statistics to on exit. If not specified, the default is <filename>named.memstats</filename>.</para>
 <note><simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>pid-file</command></para></entry>
 <entry colname = "2"><para>The pathname of the file the server writes
@@ -2679,6 +2686,7 @@ dependent, but is usually
 The pid-file is used by programs that want to send signals to the running
 nameserver.</para></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>statistics-file</command></para></entry>
 <entry colname = "2"><para>The pathname of the file the server appends statistics
@@ -2687,6 +2695,7 @@ If not specified, the default is <filename>named.stats</filename> in the
 server's current directory.  The format of the file is described
 in <xref linkend="statsfile"/></para></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>port</command></para></entry>
 <entry colname = "2"><para>
@@ -2700,6 +2709,9 @@ any other options that take port numbers or IP addresses,
 to ensure that the port value takes effect for all addresses
 used by the server.</para>
 </entry>
+</row>
+
+<row rowsep = "0">
 <entry colname = "1"><para><command>random-device</command></para></entry>
 <entry colname = "2"><para>
 The source of entropy to be used by the server.  Entropy is primarily needed
