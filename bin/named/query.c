@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.154 2000/11/23 01:18:34 gson Exp $ */
+/* $Id: query.c,v 1.155 2000/11/23 01:32:45 gson Exp $ */
 
 #include <config.h>
 
@@ -3242,7 +3242,7 @@ log_query(ns_client_t *client) {
 	char typename[DNS_RDATATYPE_FORMATSIZE];
 	char classname[DNS_RDATACLASS_FORMATSIZE];
 	dns_rdataset_t *rdataset;
-	int level = ISC_LOG_DEBUG(1);
+	int level = ISC_LOG_INFO;
 
 	if (! isc_log_wouldlog(ns_g_lctx, level))
 		return;
@@ -3253,7 +3253,7 @@ log_query(ns_client_t *client) {
 	dns_rdataclass_format(rdataset->rdclass, classname, sizeof(classname));
 	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
 
-	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
 		      level, "query: %s %s %s", namebuf, classname, typename);
 }
 

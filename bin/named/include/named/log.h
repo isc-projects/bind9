@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.15 2000/08/01 01:12:07 tale Exp $ */
+/* $Id: log.h,v 1.16 2000/11/23 01:32:46 gson Exp $ */
 
 #ifndef NAMED_LOG_H
 #define NAMED_LOG_H 1
@@ -31,6 +31,7 @@
 #define NS_LOGCATEGORY_CLIENT		(&ns_g_categories[1])
 #define NS_LOGCATEGORY_NETWORK		(&ns_g_categories[2])
 #define NS_LOGCATEGORY_UPDATE		(&ns_g_categories[3])
+#define NS_LOGCATEGORY_QUERIES		(&ns_g_categories[4])
 
 /*
  * Backwards compatibility.

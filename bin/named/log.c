@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.24 2000/09/26 22:12:13 bwelling Exp $ */
+/* $Id: log.c,v 1.25 2000/11/23 01:32:44 gson Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@ static isc_logcategory_t categories[] = {
 	{ "client",	 		0 },
 	{ "network",	 		0 },
 	{ "update",	 		0 },
+	{ "queries",	 		0 },
 	{ NULL, 			0 }
 };
 
