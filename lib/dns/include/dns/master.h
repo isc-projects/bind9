@@ -40,8 +40,6 @@ dns_master_loadfile(const char *master_file,
 		    dns_name_t *origin,
 		    dns_rdataclass_t zclass,
 		    isc_boolean_t age_ttl,
-		    int *soacount,
-		    int *nscount,
 		    dns_rdatacallbacks_t *callbacks,
 		    isc_mem_t *mctx);
 
@@ -51,8 +49,6 @@ dns_master_loadstream(FILE *stream,
 		      dns_name_t *origin,
 		      dns_rdataclass_t zclass,
 		      isc_boolean_t age_ttl,
-		      int *soacount,
-		      int *nscount,
 		      dns_rdatacallbacks_t *callbacks,
 		      isc_mem_t *mctx);
 
@@ -62,8 +58,6 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
 		      dns_name_t *origin,
 		      dns_rdataclass_t zclass,
 		      isc_boolean_t age_ttl,
-		      int *soacount,
-		      int *nscount,
 		      dns_rdatacallbacks_t *callbacks,
 		      isc_mem_t *mctx);
 
@@ -84,8 +78,6 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
  *	'master_file' to point to a valid string.
  *	'top' to point to a valid name.
  *	'origin' to point to a valid name.
- *	'soacount' to point to a int.
- *	'nscount' to point to a int.
  *	'callbacks->commit' to point ta a valid function.
  *	'callbacks->error' to point ta a valid function.
  *	'callbacks->warn' to point ta a valid function.

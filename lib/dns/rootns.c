@@ -67,7 +67,6 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	isc_result_t result, eresult;
 	isc_buffer_t source;
 	size_t len;
-	int soacount, nscount;
 	dns_rdatacallbacks_t callbacks;
 	dns_db_t *db = NULL;
 	
@@ -93,10 +92,9 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		 * Load the hints from the specified filename.
 		 */
 		result = dns_master_loadfile(filename, &db->origin,
-					       &db->origin,
-					       db->rdclass, ISC_FALSE,
-					       &soacount, &nscount, &callbacks,
-					       db->mctx);
+					     &db->origin,
+					     db->rdclass, ISC_FALSE,
+					     &callbacks, db->mctx);
 	} else if (rdclass == dns_rdataclass_in) {
 		/*
 		 * Default to using the Internet root servers.
@@ -104,8 +102,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		result = dns_master_loadbuffer(&source, &db->origin,
 					       &db->origin,
 					       db->rdclass, ISC_FALSE,
-					       &soacount, &nscount, &callbacks,
-					       db->mctx);
+					       &callbacks, db->mctx);
 	} else
 		result = ISC_R_NOTFOUND;
 	eresult = dns_db_endload(db, &callbacks.add_private);

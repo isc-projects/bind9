@@ -1,3 +1,6 @@
+ 241.	[cleanup]	nscount and soacount have been removed from the
+			dns_master_*() arguement lists.
+
  240.	[func]		databases now come in three flavours: zone, cache
 			and stub.
 

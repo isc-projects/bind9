@@ -71,8 +71,6 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 	isc_buffer_t		source;
 	isc_buffer_t		target;
 	unsigned char		name_buf[BUFLEN];
-	int			soacount;
-	int			nscount;
 	dns_rdatacallbacks_t	callbacks;
 	dns_rdataclass_t	rdataclass;
 	isc_textregion_t	textregion;
@@ -119,8 +117,6 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 						&dns_origin,
 						rdataclass,
 						ISC_TRUE,
-						&soacount,
-						&nscount,
 						&callbacks,
 						T1_mctx);
 

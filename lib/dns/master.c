@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.53 2000/05/24 15:07:55 tale Exp $ */
+/* $Id: master.c,v 1.54 2000/06/07 03:30:00 marka Exp $ */
 
 #include <config.h>
 
@@ -87,8 +87,8 @@ typedef struct {
 
 static isc_result_t
 loadfile(const char *master_file, dns_name_t *top, dns_name_t *origin,
-	 dns_rdataclass_t zclass, isc_boolean_t age_ttl, int *soacount,
-	 int *nscount, dns_rdatacallbacks_t *callbacks, loadctx_t *ctx,
+	 dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+	 dns_rdatacallbacks_t *callbacks, loadctx_t *ctx,
 	 isc_mem_t *mctx);
 
 static isc_result_t
@@ -170,8 +170,7 @@ loadctx_init(loadctx_t *ctx) {
 static isc_result_t
 load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-     int *soacount, int *nscount, dns_rdatacallbacks_t *callbacks,
-     loadctx_t *ctx, isc_mem_t *mctx)
+     dns_rdatacallbacks_t *callbacks, loadctx_t *ctx, isc_mem_t *mctx)
 {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type, covers;
@@ -224,8 +223,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	REQUIRE(callbacks->add != NULL);
 	REQUIRE(callbacks->error != NULL);
 	REQUIRE(callbacks->warn != NULL);
-	REQUIRE(nscount != NULL);
-	REQUIRE(soacount != NULL);
 	REQUIRE(mctx != NULL);
 
 	dns_name_init(&current_name, NULL);
@@ -353,8 +350,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 							  &origin_name,
 							  zclass,
 							  age_ttl,
-							  soacount,
-							  nscount,
 							  callbacks,
 							  ctx,
 							  mctx);
@@ -454,8 +449,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 						  &new_name,
 						  zclass,
 						  age_ttl,
-						  soacount,
-						  nscount,
 						  callbacks,
 						  ctx,
 						  mctx);
@@ -842,13 +835,9 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 }
 
 static isc_result_t
-loadfile(const char *master_file, dns_name_t *top,
-	 dns_name_t *origin,
+loadfile(const char *master_file, dns_name_t *top, dns_name_t *origin,
 	 dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-	 int *soacount, int *nscount,
-	 dns_rdatacallbacks_t *callbacks,
-	 loadctx_t *ctx,
-	 isc_mem_t *mctx)
+	 dns_rdatacallbacks_t *callbacks, loadctx_t *ctx, isc_mem_t *mctx)
 {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
@@ -865,30 +854,26 @@ loadfile(const char *master_file, dns_name_t *top,
 		return (result);
 	}
 
-	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
-		     callbacks, ctx, mctx));
+	return (load(lex, top, origin, zclass, age_ttl, callbacks, ctx, mctx));
 }
 
 isc_result_t
 dns_master_loadfile(const char *master_file, dns_name_t *top,
 		    dns_name_t *origin,
 		    dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-		    int *soacount, int *nscount,
-		    dns_rdatacallbacks_t *callbacks,
-		    isc_mem_t *mctx)
+		    dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	loadctx_t ctx;
 
 	loadctx_init(&ctx);
 	return (loadfile(master_file, top, origin, zclass, age_ttl,
-			 soacount, nscount, callbacks, &ctx, mctx));
+			 callbacks, &ctx, mctx));
 }
 
 
 isc_result_t
 dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 		      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-		      int *soacount, int *nscount,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
@@ -909,7 +894,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 		return (result);
 	}
 
-	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
+	return (load(lex, top, origin, zclass, age_ttl,
 		     callbacks, &ctx, mctx));
 }
 
@@ -917,7 +902,6 @@ isc_result_t
 dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 		      dns_name_t *origin, dns_rdataclass_t zclass,
 		      isc_boolean_t age_ttl,
-		      int *soacount, int *nscount,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
@@ -938,7 +922,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 		return (result);
 	}
 
-	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
+	return (load(lex, top, origin, zclass, age_ttl,
 		     callbacks, &ctx, mctx));
 }
 

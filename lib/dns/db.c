@@ -236,7 +236,6 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 isc_result_t
 dns_db_load(dns_db_t *db, const char *filename) {
 	isc_result_t result, eresult;
-	int soacount, nscount;
 	dns_rdatacallbacks_t callbacks;
 	isc_boolean_t age_ttl = ISC_FALSE;
 
@@ -255,7 +254,7 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_master_loadfile(filename, &db->origin, &db->origin,
-				     db->rdclass, age_ttl, &soacount, &nscount,
+				     db->rdclass, age_ttl,
 				     &callbacks, db->mctx);
 	eresult = dns_db_endload(db, &callbacks.add_private);
 	/*
