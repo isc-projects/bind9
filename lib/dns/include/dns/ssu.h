@@ -10,6 +10,11 @@
 
 ISC_LANG_BEGINDECLS
 
+#define DNS_SSUMATCHTYPE_NAME 0
+#define DNS_SSUMATCHTYPE_SUBDOMAIN 1
+#define DNS_SSUMATCHTYPE_WILDCARD 2
+#define DNS_SSUMATCHTYPE_SELF 3
+
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
 /*
@@ -36,8 +41,9 @@ dns_ssutable_destroy(dns_ssutable_t **table);
 
 isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
-		     dns_name_t *identity, dns_name_t *name, isc_boolean_t self,
-		     unsigned int ntypes, dns_rdatatype_t *types);
+		     dns_name_t *identity, unsigned int matchtype,
+		     dns_name_t *name, unsigned int ntypes,
+		     dns_rdatatype_t *types);
 /*
  *	Adds a new rule to a simple-secure-update rule table.  The rule
  *	either grants or denies update privileges of an identity (or set of
@@ -45,14 +51,8 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
  *	at that name.
  *
  *	Notes:
- *		If 'identity' or 'name' is NULL, that field is not checked
- *		when processing this rule.
- *
- *		'identity' or 'name' may be wildcard names, which are
- *		expanded for rule processing.
- *
- *		If 'self' is true, this rule only matches if the name to be
- *		updated matches the signing identity.
+ *		If 'matchtype' is SELF, this rule only matches if the name
+ *		to be updated matches the signing identity.
  *
  *		If 'ntypes' is 0, this rule applies to all types except
  *		NS, SOA, SIG, and NXT.
@@ -62,9 +62,9 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
  *
  *	Requires:
  *		'table' is a valid SSU table
- *		'identity' is either NULL or a valid absolute name
- *		'name' is either NULL or a valid absolute name
- *		If 'self' is true, 'name' must be NULL
+ *		'identity' is a valid absolute name
+ *		'matchtype' must be one of the defined constants.
+ *		'name' is a valid absolute name
  *		If 'ntypes' > 0, 'types' must not be NULL
  *
  *	Returns:
