@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.167 2002/03/20 17:12:29 marka Exp $ */
+/* $Id: rdata.c,v 1.168 2002/03/20 22:06:07 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1069,12 +1069,12 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 		if (source->length > 5 &&
 		    source->length < (5 + sizeof("65000")) &&
-		    strncasecmp("class", source->base, 4) == 0) {
+		    strncasecmp("class", source->base, 5) == 0) {
 			char buf[sizeof("65000")];
 			char *endp;
 			int val;
 
-			strncpy(buf, source->base + 4, sizeof(buf));
+			strncpy(buf, source->base + 5, sizeof(buf));
 			buf[sizeof(buf) - 1] = '\0';
 			val = strtol(buf, &endp, 10);
 			if (*endp == '\0' && val >= 0 && val <= 0xffff) {
