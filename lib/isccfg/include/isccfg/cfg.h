@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.11 2001/02/22 23:59:28 bwelling Exp $ */
+/* $Id: cfg.h,v 1.12 2001/02/23 00:15:55 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -138,6 +138,19 @@ cfg_parser_destroy(cfg_parser_t **pctxp);
  * Destroy a configuration parser.
  */
 
+isc_boolean_t
+cfg_obj_isvoid(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of void type (e.g., an optional 
+ * value not specified).
+ */
+
+isc_boolean_t
+cfg_obj_ismap(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of a map type.
+ */
+
 isc_result_t
 cfg_map_get(cfg_obj_t *mapobj, const char* name, cfg_obj_t **obj);
 /*
@@ -167,6 +180,12 @@ cfg_map_getname(cfg_obj_t *mapobj);
  *	or NULL if the map object does not have a name.
  */
 
+isc_boolean_t
+cfg_obj_istuple(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of a map type.
+ */
+
 cfg_obj_t *
 cfg_tuple_get(cfg_obj_t *tupleobj, const char* name);
 /*
@@ -179,6 +198,12 @@ cfg_tuple_get(cfg_obj_t *tupleobj, const char* name);
  *	fields of said tuple type.
  */
 
+isc_boolean_t
+cfg_obj_isuint32(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of integer type.
+ */
+
 isc_uint32_t
 cfg_obj_asuint32(cfg_obj_t *obj);
 /*
@@ -189,6 +214,12 @@ cfg_obj_asuint32(cfg_obj_t *obj);
  *
  * Returns:
  *      A 32-bit unsigned integer.
+ */
+
+isc_boolean_t
+cfg_obj_isstring(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of string type.
  */
 
 char *
@@ -205,6 +236,12 @@ cfg_obj_asstring(cfg_obj_t *obj);
  */
 
 isc_boolean_t
+cfg_obj_isboolean(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of a boolean type.
+ */
+
+isc_boolean_t
 cfg_obj_asboolean(cfg_obj_t *obj);
 /*
  * Returns the value of a configuration object of a boolean type.
@@ -214,6 +251,12 @@ cfg_obj_asboolean(cfg_obj_t *obj);
  *
  * Returns:
  *      A boolean value.
+ */
+
+isc_boolean_t
+cfg_obj_issockaddr(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of sockaddr type.
  */
 
 isc_sockaddr_t *
@@ -227,6 +270,12 @@ cfg_obj_assockaddr(cfg_obj_t *obj);
  * Returns:
  *      A pointer to a sockaddr.  The sockaddr must be copied by the caller
  *      if necessary.
+ */
+
+isc_boolean_t
+cfg_obj_islist(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of list type.
  */
 
 cfg_listelt_t *

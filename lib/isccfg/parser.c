@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.19 2001/02/22 23:59:27 bwelling Exp $ */
+/* $Id: parser.c,v 1.20 2001/02/23 00:15:53 gson Exp $ */
 
 #include <config.h>
 
@@ -387,6 +387,7 @@ cfg_rep_t cfg_rep_void = { "void", free_noop };
  */
 
 static cfg_type_t cfg_type_boolean;
+static cfg_type_t cfg_type_boolean_or_ustring;
 static cfg_type_t cfg_type_uint32;
 static cfg_type_t cfg_type_qstring;
 static cfg_type_t cfg_type_astring;
@@ -429,7 +430,7 @@ static cfg_type_t cfg_type_server_key_kludge;
 static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_lwres;
-
+static cfg_type_t cfg_type_boolean_or_ustring;
 
 /*
  * Configuration type definitions.
@@ -837,9 +838,9 @@ static cfg_clausedef_t
 zone_clauses[] = {
 	{ "allow-query", &cfg_type_bracketed_aml, 0 },
 	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
-	{ "notify", &cfg_type_ustring, 0 },
+	{ "notify", &cfg_type_boolean_or_ustring, 0 },
 	{ "also-notify", &cfg_type_portiplist, 0 },
-	{ "dialup", &cfg_type_ustring, 0 },
+	{ "dialup", &cfg_type_boolean_or_ustring, 0 },
 	{ "forward", &cfg_type_ustring, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, 0 },
@@ -1134,6 +1135,12 @@ free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj) {
 		    nfields * sizeof(cfg_obj_t *));
 }
 
+isc_boolean_t
+cfg_obj_istuple(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_tuple));
+}
+
 cfg_obj_t *
 cfg_tuple_get(cfg_obj_t *tupleobj, const char* name) {
 	unsigned int i;
@@ -1368,31 +1375,6 @@ cfg_parser_destroy(cfg_parser_t **pctxp) {
 	*pctxp = NULL;
 }
 
-isc_result_t
-cfg_map_get(cfg_obj_t *mapobj, const char* name, cfg_obj_t **obj) {
-	isc_result_t result;
-	isc_symvalue_t val;
-	cfg_map_t *map;
-	
-	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
-	REQUIRE(name != NULL);
-	REQUIRE(obj != NULL && *obj == NULL);
-
-	map = &mapobj->value.map;
-	
-	result = isc_symtab_lookup(map->symtab, name, MAP_SYM, &val);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	*obj = val.as_pointer;
-	return (ISC_R_SUCCESS);
-}
-
-cfg_obj_t *
-cfg_map_getname(cfg_obj_t *mapobj) {
-	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
-	return (mapobj->value.map.id);
-}
-
 /*
  * void
  */
@@ -1407,6 +1389,13 @@ print_void(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	UNUSED(pctx);
 	UNUSED(obj);
 }
+
+isc_boolean_t
+cfg_obj_isvoid(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_void));
+}
+
 static cfg_type_t cfg_type_void = {
 	"void", parse_void, print_void, &cfg_rep_void, NULL };
 
@@ -1449,6 +1438,12 @@ print_uint(cfg_printer_t *pctx, unsigned int u) {
 static void
 print_uint32(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	print_uint(pctx, obj->value.uint32);
+}
+
+isc_boolean_t
+cfg_obj_isuint32(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_uint32));
 }
 
 isc_uint32_t
@@ -1592,6 +1587,12 @@ free_string(cfg_parser_t *pctx, cfg_obj_t *obj) {
 		    obj->value.string.length + 1);
 }
 
+isc_boolean_t
+cfg_obj_isstring(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_string));
+}
+
 char *
 cfg_obj_asstring(cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_string);
@@ -1599,15 +1600,15 @@ cfg_obj_asstring(cfg_obj_t *obj) {
 }
 
 isc_boolean_t
+cfg_obj_isboolean(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_boolean));
+}
+
+isc_boolean_t
 cfg_obj_asboolean(cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_boolean);
 	return (obj->value.boolean);
-}
-
-isc_sockaddr_t *
-cfg_obj_assockaddr(cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddr);
-	return (&obj->value.sockaddr);
 }
 
 /* Quoted string only */
@@ -1634,7 +1635,9 @@ static cfg_type_t cfg_type_size = {
  * boolean
  */
 static isc_result_t
-parse_boolean(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+parse_boolean_like(cfg_parser_t *pctx, cfg_type_t *type,
+		   cfg_obj_t **ret, isc_boolean_t accept_string)
+{
         isc_result_t result;
 	isc_boolean_t value;
 	cfg_obj_t *obj = NULL;
@@ -1645,7 +1648,7 @@ parse_boolean(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 		return (result);
 
 	if (pctx->token.type != isc_tokentype_string)
-		goto bad_boolean;
+		goto no_string;
 
 	if ((strcasecmp(pctx->token.value.as_pointer, "true") == 0) ||
 	    (strcasecmp(pctx->token.value.as_pointer, "yes") == 0) ||
@@ -1665,11 +1668,29 @@ parse_boolean(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (result);
 
  bad_boolean:
+	if (accept_string)
+		return (create_string(pctx,
+				      pctx->token.value.as_pointer,
+				      &cfg_type_ustring,
+				      ret));
+ no_string:
 	parser_error(pctx, LOG_NEAR, "boolean expected");
 	return (ISC_R_UNEXPECTEDTOKEN);
 
  cleanup:
 	return (result);
+}
+
+static isc_result_t
+parse_boolean(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_boolean_like(pctx, type, ret, ISC_FALSE));
+}
+
+static isc_result_t
+parse_boolean_or_ustring(cfg_parser_t *pctx, cfg_type_t *type,
+			cfg_obj_t **ret)
+{
+	return (parse_boolean_like(pctx, type, ret, ISC_TRUE));
 }
 
 static void
@@ -1683,9 +1704,14 @@ print_boolean(cfg_printer_t *pctx, cfg_obj_t *obj) {
 static cfg_type_t cfg_type_boolean = {
 	"boolean", parse_boolean, print_boolean, &cfg_rep_boolean, NULL };
 
+static cfg_type_t cfg_type_boolean_or_ustring = {
+	"boolean_or_string", parse_boolean_or_ustring, NULL, NULL, NULL };
+
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 static cfg_type_t cfg_type_optional_keyref = {
-	"optional_keyref", parse_optional_keyvalue, print_optional_keyvalue, &cfg_rep_string, &key_kw };
+	"optional_keyref", parse_optional_keyvalue, print_optional_keyvalue,
+	&cfg_rep_string, &key_kw
+};
 
 
 /*
@@ -1859,6 +1885,12 @@ print_spacelist(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	}
 }
 
+isc_boolean_t
+cfg_obj_islist(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_list));
+}
+
 cfg_listelt_t *
 cfg_list_first(cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_list);
@@ -1880,6 +1912,240 @@ cfg_listelt_value(cfg_listelt_t *elt) {
 /*
  * Maps.
  */
+
+/*
+ * Parse a map body.  That's something like
+ *
+ *   "foo 1; bar { glub; }; zap true; zap false;"
+ *
+ * i.e., a sequence of option names followed by values and
+ * terminated by semicolons.  Used for the top level of
+ * the named.conf syntax, as well as for the body of the
+ * options, view, zone, and other statements.
+ */
+static isc_result_t
+parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
+{
+	cfg_clausedef_t **clausesets = type->of;
+	isc_result_t result;
+	cfg_clausedef_t **clauseset;
+	cfg_clausedef_t *clause;
+	cfg_obj_t *value = NULL;
+	cfg_obj_t *obj = NULL;
+	cfg_obj_t *eltobj = NULL;
+	cfg_obj_t *includename = NULL;
+	isc_symvalue_t symval;
+	cfg_list_t *list = NULL;
+
+	CHECK(create_map(pctx, type, &obj));
+
+	obj->value.map.clausesets = clausesets;
+
+	for (;;) {
+		cfg_listelt_t *elt;
+
+	redo:
+		/*
+		 * Parse the option name and see if it is known.
+		 */
+		CHECK(cfg_gettoken(pctx, 0));
+
+		if (pctx->token.type != isc_tokentype_string) {
+			cfg_ungettoken(pctx);
+			break;
+		}
+
+		/*
+		 * We accept "include" statements wherever a map body
+		 * clause can occur.
+		 */
+		if (strcasecmp(pctx->token.value.as_pointer, "include") == 0) {
+			/*
+			 * Turn the file name into a temporary configuration
+			 * object just so that it is not overwritten by the
+			 * semicolon token.
+			 */
+			CHECK(parse(pctx, &cfg_type_qstring, &includename));
+			CHECK(parse_semicolon(pctx));
+			CHECK(parser_openfile(pctx, includename->
+					      value.string.base));
+			 cfg_obj_destroy(pctx, &includename);
+			 goto redo;
+		}
+
+		clause = NULL;
+		for (clauseset = clausesets; *clauseset != NULL; clauseset++) {
+			for (clause = *clauseset;
+			     clause->name != NULL;
+			     clause++) {
+				if (strcasecmp(pctx->token.value.as_pointer,
+					   clause->name) == 0)
+					goto done;
+			}
+		}
+	done:
+		if (clause == NULL || clause->name == NULL) {
+			parser_error(pctx, LOG_NOPREP, "unknown option");
+			/*
+			 * Try to recover by parsing this option as an unknown
+			 * option and discarding it.
+			 */
+			 CHECK(parse(pctx, &cfg_type_unsupported, &eltobj));
+			 cfg_obj_destroy(pctx, &eltobj);
+			 CHECK(parse_semicolon(pctx));
+			 continue;
+		}
+
+		/* Clause is known. */
+
+		/* Issue warnings if appropriate */
+		if ((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0)
+			parser_warning(pctx, 0, "option '%s' is obsolete",
+				       clause->name);
+		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0)
+			parser_warning(pctx, 0, "option '%s' is "
+				       "not implemented",
+				       clause->name);
+		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0)
+			parser_warning(pctx, 0, "option '%s' is "
+				       "not yet implemented", clause->name);
+		/*
+		 * Don't log options with CFG_CLAUSEFLAG_NEWDEFAULT
+		 * set here - we need to log the *lack* of such an option,
+		 * not its presence.
+		 */
+
+		/* See if the clause already has a value; if not create one. */
+		result = isc_symtab_lookup(obj->value.map.symtab,
+					   clause->name, 0, &symval);
+
+		if ((clause->flags & CFG_CLAUSEFLAG_MULTI) != 0) {
+			/* Multivalued clause */
+			cfg_obj_t *listobj = NULL;
+			if (result == ISC_R_NOTFOUND) {
+				CHECK(create_list(pctx,
+						  &cfg_type_implicitlist,
+						  &listobj));
+				symval.as_pointer = listobj;
+				result = isc_symtab_define(obj->value.
+						   map.symtab,
+						   clause->name,
+						   1, symval,
+						   isc_symexists_reject);
+				if (result != ISC_R_SUCCESS) {
+					isc_mem_put(pctx->mctx, list,
+						    sizeof(cfg_list_t));
+					goto cleanup;
+				}
+			} else if (result == ISC_R_SUCCESS) {
+				listobj = symval.as_pointer;
+			} else {
+				parser_error(pctx, LOG_NEAR,
+					     "isc_symtab_define() failed",
+					     clause->name);
+				goto cleanup;
+			}
+
+			elt = NULL;
+			CHECK(parse_list_elt(pctx, clause->type, &elt));
+			CHECK(parse_semicolon(pctx));
+
+			ISC_LIST_APPEND(listobj->value.list, elt, link);
+		} else {
+			/* Single-valued clause */
+			if (result == ISC_R_NOTFOUND) {
+				isc_boolean_t callback =
+					ISC_TF((clause->flags &
+						CFG_CLAUSEFLAG_CALLBACK) != 0);
+				CHECK(parse_symtab_elt(pctx, clause->name,
+						       clause->type,
+						       obj->value.map.symtab,
+						       callback));
+				CHECK(parse_semicolon(pctx));
+			} else if (result == ISC_R_SUCCESS) {
+				parser_error(pctx, LOG_NEAR, "'%s' redefined",
+					     clause->name);
+				goto cleanup;
+			} else {
+				parser_error(pctx, LOG_NEAR,
+					     "isc_symtab_define() failed");
+				goto cleanup;
+			}
+		}
+	}
+
+
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	CLEANUP_OBJ(value);
+	CLEANUP_OBJ(obj);
+	CLEANUP_OBJ(eltobj);
+	CLEANUP_OBJ(includename);
+	return (result);
+}
+
+static isc_result_t
+parse_symtab_elt(cfg_parser_t *pctx, const char *name,
+		 cfg_type_t *elttype, isc_symtab_t *symtab,
+		 isc_boolean_t callback)
+{
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	isc_symvalue_t symval;
+
+	CHECK(parse(pctx, elttype, &obj));
+
+	if (callback && pctx->callback != NULL)
+		CHECK(pctx->callback(name, obj, pctx->callbackarg));
+	
+	symval.as_pointer = obj;
+	CHECK(isc_symtab_define(symtab, name,
+				1, symval,
+				isc_symexists_reject));
+	obj = NULL;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+/*
+ * Parse a map; e.g., "{ foo 1; bar { glub; }; zap true; zap false; }"
+ */
+static isc_result_t
+parse_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
+{
+	isc_result_t result;
+	CHECK(parse_special(pctx, '{'));
+	CHECK(parse_mapbody(pctx, type, ret));
+	CHECK(parse_special(pctx, '}'));
+ cleanup:
+	return (result);
+}
+
+/*
+ * Parse a named map; e.g., "name { foo 1; }".  Used for the "key", "server",
+ * and "channel" statements.
+ */
+static isc_result_t
+parse_named_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
+{
+	isc_result_t result;
+	cfg_obj_t *idobj = NULL;
+	cfg_obj_t *mapobj = NULL;
+
+	CHECK(parse_astring(pctx, NULL, &idobj));
+	CHECK(parse_map(pctx, type, &mapobj));
+	mapobj->value.map.id = idobj;
+	idobj = NULL;
+	*ret = mapobj;
+ cleanup:
+	CLEANUP_OBJ(idobj);
+	return (result);
+}
 
 static void
 print_mapbody(cfg_printer_t *pctx, cfg_obj_t *obj) {
@@ -1943,6 +2209,38 @@ print_map(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	print_mapbody(pctx, obj);
 	print_close(pctx);
 }
+
+isc_boolean_t
+cfg_obj_ismap(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_map));
+}
+
+isc_result_t
+cfg_map_get(cfg_obj_t *mapobj, const char* name, cfg_obj_t **obj) {
+	isc_result_t result;
+	isc_symvalue_t val;
+	cfg_map_t *map;
+	
+	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	REQUIRE(name != NULL);
+	REQUIRE(obj != NULL && *obj == NULL);
+
+	map = &mapobj->value.map;
+	
+	result = isc_symtab_lookup(map->symtab, name, MAP_SYM, &val);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	*obj = val.as_pointer;
+	return (ISC_R_SUCCESS);
+}
+
+cfg_obj_t *
+cfg_map_getname(cfg_obj_t *mapobj) {
+	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	return (mapobj->value.map.id);
+}
+
 
 /* Parse an arbitrary token, storing its raw text representation. */
 static isc_result_t
@@ -2529,6 +2827,18 @@ print_sockaddr(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	}
 }
 
+isc_boolean_t
+cfg_obj_issockaddr(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_sockaddr));
+}
+
+isc_sockaddr_t *
+cfg_obj_assockaddr(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddr);
+	return (&obj->value.sockaddr);
+}
+
 /* An IPv4/IPv6 address with optional port, "*" accepted as wildcard. */
 static cfg_type_t cfg_type_sockaddr4wild = {
 	"sockaddr4wild", parse_sockaddr4wild, print_sockaddr,
@@ -2725,241 +3035,6 @@ cfg_type_t cfg_type_rndcconf = {
 	"rndcconf", parse_mapbody, print_mapbody, &cfg_rep_map,
 	rndcconf_clausesets
 };
-
-/*
- * Parse a map body.  That's something like
- *
- *   "foo 1; bar { glub; }; zap true; zap false;"
- *
- * i.e., a sequence of option names followed by values and
- * terminated by semicolons.  Used for the top level of
- * the named.conf syntax, as well as for the body of the
- * options, view, zone, and other statements.
- */
-static isc_result_t
-parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
-{
-	cfg_clausedef_t **clausesets = type->of;
-	isc_result_t result;
-	cfg_clausedef_t **clauseset;
-	cfg_clausedef_t *clause;
-	cfg_obj_t *value = NULL;
-	cfg_obj_t *obj = NULL;
-	cfg_obj_t *eltobj = NULL;
-	cfg_obj_t *includename = NULL;
-	isc_symvalue_t symval;
-	cfg_list_t *list = NULL;
-
-	CHECK(create_map(pctx, type, &obj));
-
-	obj->value.map.clausesets = clausesets;
-
-	for (;;) {
-		cfg_listelt_t *elt;
-
-	redo:
-		/*
-		 * Parse the option name and see if it is known.
-		 */
-		CHECK(cfg_gettoken(pctx, 0));
-
-		if (pctx->token.type != isc_tokentype_string) {
-			cfg_ungettoken(pctx);
-			break;
-		}
-
-		/*
-		 * We accept "include" statements wherever a map body
-		 * clause can occur.
-		 */
-		if (strcasecmp(pctx->token.value.as_pointer, "include") == 0) {
-			/*
-			 * Turn the file name into a temporary configuration
-			 * object just so that it is not overwritten by the
-			 * semicolon token.
-			 */
-			CHECK(parse(pctx, &cfg_type_qstring, &includename));
-			CHECK(parse_semicolon(pctx));
-			CHECK(parser_openfile(pctx, includename->
-					      value.string.base));
-			 cfg_obj_destroy(pctx, &includename);
-			 goto redo;
-		}
-
-		clause = NULL;
-		for (clauseset = clausesets; *clauseset != NULL; clauseset++) {
-			for (clause = *clauseset;
-			     clause->name != NULL;
-			     clause++) {
-				if (strcasecmp(pctx->token.value.as_pointer,
-					   clause->name) == 0)
-					goto done;
-			}
-		}
-	done:
-		if (clause == NULL || clause->name == NULL) {
-			parser_error(pctx, LOG_NOPREP, "unknown option");
-			/*
-			 * Try to recover by parsing this option as an unknown
-			 * option and discarding it.
-			 */
-			 CHECK(parse(pctx, &cfg_type_unsupported, &eltobj));
-			 cfg_obj_destroy(pctx, &eltobj);
-			 CHECK(parse_semicolon(pctx));
-			 continue;
-		}
-
-		/* Clause is known. */
-
-		/* Issue warnings if appropriate */
-		if ((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0)
-			parser_warning(pctx, 0, "option '%s' is obsolete",
-				       clause->name);
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0)
-			parser_warning(pctx, 0, "option '%s' is "
-				       "not implemented",
-				       clause->name);
-		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0)
-			parser_warning(pctx, 0, "option '%s' is "
-				       "not yet implemented", clause->name);
-		/*
-		 * Don't log options with CFG_CLAUSEFLAG_NEWDEFAULT
-		 * set here - we need to log the *lack* of such an option,
-		 * not its presence.
-		 */
-
-		/* See if the clause already has a value; if not create one. */
-		result = isc_symtab_lookup(obj->value.map.symtab,
-					   clause->name, 0, &symval);
-
-		if ((clause->flags & CFG_CLAUSEFLAG_MULTI) != 0) {
-			/* Multivalued clause */
-			cfg_obj_t *listobj = NULL;
-			if (result == ISC_R_NOTFOUND) {
-				CHECK(create_list(pctx,
-						  &cfg_type_implicitlist,
-						  &listobj));
-				symval.as_pointer = listobj;
-				result = isc_symtab_define(obj->value.
-						   map.symtab,
-						   clause->name,
-						   1, symval,
-						   isc_symexists_reject);
-				if (result != ISC_R_SUCCESS) {
-					isc_mem_put(pctx->mctx, list,
-						    sizeof(cfg_list_t));
-					goto cleanup;
-				}
-			} else if (result == ISC_R_SUCCESS) {
-				listobj = symval.as_pointer;
-			} else {
-				parser_error(pctx, LOG_NEAR,
-					     "isc_symtab_define() failed",
-					     clause->name);
-				goto cleanup;
-			}
-
-			elt = NULL;
-			CHECK(parse_list_elt(pctx, clause->type, &elt));
-			CHECK(parse_semicolon(pctx));
-
-			ISC_LIST_APPEND(listobj->value.list, elt, link);
-		} else {
-			/* Single-valued clause */
-			if (result == ISC_R_NOTFOUND) {
-				isc_boolean_t callback =
-					ISC_TF((clause->flags &
-						CFG_CLAUSEFLAG_CALLBACK) != 0);
-				CHECK(parse_symtab_elt(pctx, clause->name,
-						       clause->type,
-						       obj->value.map.symtab,
-						       callback));
-				CHECK(parse_semicolon(pctx));
-			} else if (result == ISC_R_SUCCESS) {
-				parser_error(pctx, LOG_NEAR, "'%s' redefined",
-					     clause->name);
-				goto cleanup;
-			} else {
-				parser_error(pctx, LOG_NEAR,
-					     "isc_symtab_define() failed");
-				goto cleanup;
-			}
-		}
-	}
-
-
-	*ret = obj;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	CLEANUP_OBJ(value);
-	CLEANUP_OBJ(obj);
-	CLEANUP_OBJ(eltobj);
-	CLEANUP_OBJ(includename);
-	return (result);
-}
-
-static isc_result_t
-parse_symtab_elt(cfg_parser_t *pctx, const char *name,
-		 cfg_type_t *elttype, isc_symtab_t *symtab,
-		 isc_boolean_t callback)
-{
-	isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	isc_symvalue_t symval;
-
-	CHECK(parse(pctx, elttype, &obj));
-
-	if (callback && pctx->callback != NULL)
-		CHECK(pctx->callback(name, obj, pctx->callbackarg));
-	
-	symval.as_pointer = obj;
-	CHECK(isc_symtab_define(symtab, name,
-				1, symval,
-				isc_symexists_reject));
-	obj = NULL;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	CLEANUP_OBJ(obj);
-	return (result);
-}
-
-/*
- * Parse a map; e.g., "{ foo 1; bar { glub; }; zap true; zap false; }"
- */
-static isc_result_t
-parse_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
-{
-	isc_result_t result;
-	CHECK(parse_special(pctx, '{'));
-	CHECK(parse_mapbody(pctx, type, ret));
-	CHECK(parse_special(pctx, '}'));
- cleanup:
-	return (result);
-}
-
-/*
- * Parse a named map; e.g., "name { foo 1; }".  Used for the "key", "server",
- * and "channel" statements.
- */
-static isc_result_t
-parse_named_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
-{
-	isc_result_t result;
-	cfg_obj_t *idobj = NULL;
-	cfg_obj_t *mapobj = NULL;
-
-	CHECK(parse_astring(pctx, NULL, &idobj));
-	CHECK(parse_map(pctx, type, &mapobj));
-	mapobj->value.map.id = idobj;
-	idobj = NULL;
-	*ret = mapobj;
- cleanup:
-	CLEANUP_OBJ(idobj);
-	return (result);
-}
-
 
 static isc_result_t
 cfg_gettoken(cfg_parser_t *pctx, int options) {
