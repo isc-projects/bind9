@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.83 2001/02/09 19:05:22 gson Exp $ */
+/* $Id: mem.c,v 1.84 2001/02/09 19:08:11 gson Exp $ */
 
 #include <config.h>
 
@@ -593,8 +593,9 @@ mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 #endif
 #if ISC_MEM_FILL
 	memset(mem, 0xde, size); /* Mnemonic for "dead". */
+#else
+	UNUSED(size);
 #endif
-
 	(ctx->memfree)(ctx->arg, mem);
 }
 
