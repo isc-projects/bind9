@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.20 2001/02/02 18:53:02 sjacob Exp $
+# $Id: Makefile.in,v 1.21 2001/02/28 11:33:23 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -72,4 +72,4 @@ install:: dig host nslookup installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${bindir}
 	${LIBTOOL} ${INSTALL_PROGRAM} host ${DESTDIR}${bindir}
 	${LIBTOOL} ${INSTALL_PROGRAM} nslookup ${DESTDIR}${bindir}
-	for m in ${MANPAGES}; do ${INSTALL_PROGRAM} $$m ${DESTDIR}${mandir}/man1; done
+	for m in ${MANPAGES}; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man1; done
