@@ -15,14 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.38 2004/03/05 05:12:46 marka Exp $ */
+/* $Id: lwconfig.c,v 1.39 2004/06/28 06:23:05 jakob Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
  ***
  *** entry points are:
  ***	lwres_conf_init(lwres_context_t *ctx)
- ***		intializes data structure for subsequent config parsing.
+ ***		initializes data structure for subsequent config parsing.
  ***
  ***	lwres_conf_parse(lwres_context_t *ctx, const char *filename)
  ***		parses a file and fills in the data structure.
