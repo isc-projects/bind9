@@ -1,3 +1,5 @@
+1494.	[security]	Turn on RSA BLINDING as a precaution.
+
 1493.	[placeholder]
 
 1492.	[cleanup]	Preserve rwlock quota context when upgrading /

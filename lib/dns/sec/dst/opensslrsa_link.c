@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.25 2002/12/13 02:51:41 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.26 2003/07/24 06:08:20 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -42,9 +42,15 @@
 
 #if OPENSSL_VERSION_NUMBER < 0x0090601fL
 #define SET_FLAGS(rsa) \
-	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
+	do { \
+	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE); \
+	(rsa)->flags |= RSA_FLAG_BLINDING; \
+	} while (0)
 #else
-#define SET_FLAGS(rsa) do { } while (0);
+#define SET_FLAGS(rsa) \
+	do { \
+		(rsa)->flags |= RSA_FLAG_BLINDING; \
+	} while (0)
 #endif
 
 static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
