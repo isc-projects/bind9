@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.77 2000/11/02 05:18:33 marka Exp $ */
+/* $Id: master.c,v 1.78 2000/11/08 00:18:18 gson Exp $ */
 
 #include <config.h>
 
@@ -1515,7 +1515,8 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 isc_result_t
 dns_master_loadfilequota(const char *master_file, dns_name_t *top,
 			 dns_name_t *origin, dns_rdataclass_t zclass,
-			 isc_boolean_t age_ttl, dns_rdatacallbacks_t *callbacks,			 isc_task_t *task, dns_loaddonefunc_t done,
+			 isc_boolean_t age_ttl, dns_rdatacallbacks_t *callbacks,
+			 isc_task_t *task, dns_loaddonefunc_t done,
 			 void *done_arg, dns_loadmgr_t *lmgr,
 			 dns_loadctx_t **ctxp, isc_mem_t *mctx)
 {
