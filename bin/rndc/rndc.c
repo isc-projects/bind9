@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.69 2001/07/23 02:58:22 mayer Exp $ */
+/* $Id: rndc.c,v 1.70 2001/07/23 16:32:40 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -369,7 +369,8 @@ main(int argc, char **argv) {
 	int ch;
 	int i;
 
-	admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";	isc_app_start();
+	admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";
+	isc_app_start();
 
 	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS)
