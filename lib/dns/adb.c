@@ -1725,7 +1725,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 */
 	if (WANTEVENT(find->options)
 	    && QUERYPENDING(wanted_addresses, adbname->query_pending)
-	    && (WANTEMPTYEVENT(find->options) ? HAVE_ADDRS(find) : 1)) {
+	    && (WANTEMPTYEVENT(find->options) ? !HAVE_ADDRS(find) : 1)) {
 		find->adbname = adbname;
 		find->name_bucket = bucket;
 		ISC_LIST_APPEND(adbname->finds, find, plink);
