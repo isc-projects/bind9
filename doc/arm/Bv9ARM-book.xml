@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.168 2001/10/16 22:18:59 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.169 2001/10/24 23:00:22 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2160,7 +2160,7 @@ Usage</title>
 
       <para>The following ACLs are built-in:</para>
 
-      <informaltable colsep = "0"  rowsep = "0"><tgroup cols = "2"
+<informaltable colsep = "0"  rowsep = "0"><tgroup cols = "2"
     colsep = "0" rowsep = "0" tgroupstyle = "3Level-table">
 <colspec colname = "1" colnum = "1" colsep = "0" colwidth = "1.130in"/>
 <colspec colname = "2" colnum = "2" colsep = "0" colwidth = "4.000in"/>
@@ -2175,18 +2175,27 @@ Usage</title>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>localhost</command></para></entry>
-<entry colname = "2"><para>Matches the IP addresses of all interfaces
-on the system.</para></entry>
+<entry colname = "2"><para>Matches the IPv4 addresses of all network
+interfaces on the system.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>localnets</command></para></entry>
-<entry colname = "2"><para>Matches any host on a network for which
+<entry colname = "2"><para>Matches any host on an IPv4 network for which
 the system has an interface.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
-    </sect2>
-    <sect2>
+
+<para>The <command>localhost</command> and <command>localnets</command>
+ACLs do not currently support IPv6 (that is,
+<command>localhost</command> does not match the host's IPv6 addresses,
+and <command>localnets</command> does not match the host's attached
+IPv6 networks) due to the lack of a standard method of determining the
+complete set of local IPv6 addresses for a host.
+</para>
+
+</sect2>
+<sect2>
       <title><command>controls</command> Statement Grammar</title>
 <programlisting><command>controls</command> {
    inet ( ip_addr | * ) <optional> port ip_port </optional> allow { <replaceable> address_match_list </replaceable> }
