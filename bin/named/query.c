@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.208 2001/10/25 00:13:37 gson Exp $ */
+/* $Id: query.c,v 1.209 2001/10/25 01:50:15 gson Exp $ */
 
 #include <config.h>
 
@@ -2131,8 +2131,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		if (result == ISC_R_SOFTQUOTA) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "killing oldest recursive client: %s",
-				      isc_result_totext(result));
+				      "recursive-clients limit exceeded, "
+				      "aborting oldest query");
 			killoldest = ISC_TRUE;
 			result = ISC_R_SUCCESS;
 		}
