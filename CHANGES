@@ -1,3 +1,5 @@
+1683.	[bug]		dig +sigchase could leak memory. [RT #11445]
+
 1681.	[bug]		Only set SO_REUSEADDR when a port is specified in
 			isc_socket_bind(). [RT #11742]
 
