@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.2 2000/11/18 03:01:14 bwelling Exp $ */
+/* $Id: getrrset.c,v 1.3 2000/11/28 01:50:46 gson Exp $ */
 
 #include <config.h>
 
@@ -45,6 +45,28 @@ lwresult_to_result(lwres_result_t lwresult) {
 	case LWRES_R_NOMEMORY:	return (ERRSET_NOMEMORY);
 	default:		return (ERRSET_FAIL);
 	}
+}
+
+/*
+ * malloc / calloc functions that guarantee to only
+ * return NULL if there is an error, like they used
+ * to before the ANSI C committee broke them.
+ */
+
+static void *
+sane_malloc(size_t size) {
+	if (size == 0)
+		size = 1;
+	return (malloc(size));
+}
+
+static void *
+sane_calloc(size_t number, size_t size) {
+	size_t len = number * size;
+	void *mem  = sane_malloc(len);
+	if (mem != NULL)
+		memset(mem, 0, len);
+	return (mem);
 }
 
 int
@@ -86,7 +108,7 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 		goto fail;
 	}
 
-	rrset = malloc(sizeof(struct rrsetinfo));
+	rrset = sane_malloc(sizeof(struct rrsetinfo));
 	if (rrset == NULL) {
 		result = ERRSET_NOMEMORY;
 		goto fail;
@@ -101,7 +123,7 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	rrset->rri_nsigs = 0;
 	rrset->rri_sigs = NULL;
 
-	rrset->rri_name = malloc(response->realnamelen + 1);
+	rrset->rri_name = sane_malloc(response->realnamelen + 1);
 	if (rrset->rri_name == NULL) {
 		result = ERRSET_NOMEMORY;
 		goto fail;
@@ -115,7 +137,7 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 		rrset->rri_flags |= RRSET_AUTHORITATIVE;
 
 	rrset->rri_nrdatas = response->nrdatas;
-	rrset->rri_rdatas = calloc(rrset->rri_nrdatas,
+	rrset->rri_rdatas = sane_calloc(rrset->rri_nrdatas,
 				   sizeof(struct rdatainfo));
 	if (rrset->rri_rdatas == NULL) {
 		result = ERRSET_NOMEMORY;
@@ -124,7 +146,7 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	for (i = 0; i < rrset->rri_nrdatas; i++) {
 		rrset->rri_rdatas[i].rdi_length = response->rdatalen[i];
 		rrset->rri_rdatas[i].rdi_data =
-				malloc(rrset->rri_rdatas[i].rdi_length);
+				sane_malloc(rrset->rri_rdatas[i].rdi_length);
 		if (rrset->rri_rdatas[i].rdi_data == NULL) {
 			result = ERRSET_NOMEMORY;
 			goto fail;
@@ -133,7 +155,8 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 		       rrset->rri_rdatas[i].rdi_length);
 	}
 	rrset->rri_nsigs = response->nsigs;
-	rrset->rri_sigs = calloc(rrset->rri_nsigs, sizeof(struct rdatainfo));
+	rrset->rri_sigs = sane_calloc(rrset->rri_nsigs,
+				      sizeof(struct rdatainfo));
 	if (rrset->rri_sigs == NULL) {
 		result = ERRSET_NOMEMORY;
 		goto fail;
@@ -141,7 +164,7 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	for (i = 0; i < rrset->rri_nsigs; i++) {
 		rrset->rri_sigs[i].rdi_length = response->siglen[i];
 		rrset->rri_sigs[i].rdi_data =
-				malloc(rrset->rri_sigs[i].rdi_length);
+				sane_malloc(rrset->rri_sigs[i].rdi_length);
 		if (rrset->rri_sigs[i].rdi_data == NULL) {
 			result = ERRSET_NOMEMORY;
 			goto fail;
