@@ -15,16 +15,32 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-if (@ARGV == 0) {
-    die "usage: update_copyrights <copyright_text>";
+require 5.002;
+
+# Map copyright owners to the files containing copyright messages.
+# The first line of the copyright message is not in the file;
+# it is constructed by this script.  
+
+my %owner2filename = (
+    "" => "util/COPYRIGHT",
+    "NAI" => "util/COPYRIGHT.NAI"
+);
+
+# Map each copyright owner name to a reference to an array containing
+# the lines of the copyright message.
+
+my %owner2text = ();
+
+foreach $owner (keys %owner2filename) {
+    my $f = $owner2filename{$owner};
+    open(COPYRIGHT, "<$f") || die "can't open $f: $!";
+    @copyright_text = <COPYRIGHT>;
+    close(COPYRIGHT);
+    $owner2text{$owner} = [ @copyright_text ];
 }
-@copyright_text = ();
-open(COPYRIGHT, "<$ARGV[0]") || die "can't open $ARGV[0]: $!";
-@copyright_text = <>;
-close(COPYRIGHT);
 
 while (<>) {
-    ($file, $type, $years_list) = split(/\s+/);
+    ($file, $typeandowner, $years_list) = split(/\s+/);
     @years = split(/,/, $years_list);
 
     if ( ! -f $file ) {
@@ -32,15 +48,18 @@ while (<>) {
 	next;
     }
 
-    next if $type eq "X";
+    my ($type, $owner) = split(/\./, $typeandowner);
+    $owner = "" if !defined $owner;
 
-    if ($type =~ /\.NAI$/) {
-	# XXX Not handled yet; co-copyrighted with Network Associates.
-	# lib/isc/commandline.c should probably also have special handling.
-	print "$file: co-copyrighted with Network Associates; ",
-              "update manually\n";
+    $textp = $owner2text{$owner};
+    if (!defined $textp) {
+	print "$file: unknown copyright owner $owner\n";
 	next;
     }
+	
+    next if $type eq "X";
+
+    # XXXTALE lib/isc/commandline.c should probably also have special handling.
 
     $before_copyright = "";
     $c_comment = 0;
@@ -121,18 +140,24 @@ while (<>) {
     if ($c_comment) {
 	print TARGET "/*\n";
     }
-    print TARGET "${prefix}Copyright (C) ";
+
+    $years = "";    
     $first_year = 1;
     foreach $year (@years) {
 	if (! $first_year) {
-	    print TARGET ", ";
+	    $years .= ", ";
 	}
-	print TARGET "$year";
+	$years .= "$year";
 	$first_year = 0;
     }
-    print TARGET "  Internet Software Consortium.\n";
-    print TARGET "$prefix\n";
-    foreach $_ (@copyright_text) {
+
+    ($firstline, @otherlines) = @$textp;
+
+    $firstline =~ s/\@YEARS\@/$years/;
+
+    print TARGET "$prefix$firstline";
+    
+    foreach $_ (@otherlines) {
 	print TARGET "${prefix}$_";
     }
     if ($c_comment) {
