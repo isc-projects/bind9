@@ -206,6 +206,34 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 }
 
 void
+isc_sockaddr_any(isc_sockaddr_t *sockaddr)
+{
+	memset(sockaddr, 0, sizeof *sockaddr);
+	sockaddr->type.sin.sin_family = AF_INET;
+#ifdef ISC_PLATFORM_HAVESALEN
+	sockaddr->type.sin.sin_len = sizeof sockaddr->type.sin;
+#endif
+	sockaddr->type.sin.sin_addr.s_addr = INADDR_ANY;
+	sockaddr->type.sin.sin_port = 0;
+	sockaddr->length = sizeof sockaddr->type.sin;
+	ISC_LINK_INIT(sockaddr, link);
+}
+
+void
+isc_sockaddr_any6(isc_sockaddr_t *sockaddr)
+{
+	memset(sockaddr, 0, sizeof *sockaddr);
+	sockaddr->type.sin6.sin6_family = AF_INET6;
+#ifdef ISC_PLATFORM_HAVESALEN
+	sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
+#endif
+	sockaddr->type.sin6.sin6_addr = in6addr_any;
+	sockaddr->type.sin6.sin6_port = 0;
+	sockaddr->length = sizeof sockaddr->type.sin;
+	ISC_LINK_INIT(sockaddr, link);
+}
+
+void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		    in_port_t port)
 {

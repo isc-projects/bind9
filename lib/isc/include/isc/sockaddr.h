@@ -50,6 +50,12 @@ unsigned int
 isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
 
 void
+isc_sockaddr_any(isc_sockaddr_t *sockaddr);
+
+void
+isc_sockaddr_any6(isc_sockaddr_t *sockaddr);
+
+void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		    in_port_t port);
 
