@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.35 2003/07/21 01:14:18 marka Exp $ */
+/* $Id: rwlock.c,v 1.36 2003/07/23 03:18:56 marka Exp $ */
 
 #include <config.h>
 
@@ -298,7 +298,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			}
 		}
 	}
-	INSIST(rwl->original == isc_rwlock_none);
+	INSIST(rwl->original == isc_rwlocktype_none);
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
