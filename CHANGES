@@ -30,6 +30,8 @@
 			in named.conf prior to reference.  They can be
 			defined after being referenced.
 
+1820.	[bug]		Gracefully handle acl loops. [RT #13659]
+
 1815.	[bug]		nsupdate triggered a REQUIRE if the server was set
 			without also setting the zone and it encountered
 			a CNAME and was using TSIG.  [RT #13086]
