@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.9.4.2.8.1 2004/03/06 13:16:12 marka Exp $ */
+/* $Id: dirdb.c,v 1.9.4.2.8.2 2004/03/08 09:04:22 marka Exp $ */
 
 /*
  * A simple database driver that returns basic information about

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2003  Internet Software Consortium.
+ * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_openssl.h,v 1.1.202.2 2004/03/06 08:14:20 marka Exp $ */
+/* $Id: dst_openssl.h,v 1.1.202.3 2004/03/08 09:04:45 marka Exp $ */
 
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
