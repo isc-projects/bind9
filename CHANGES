@@ -113,7 +113,7 @@
 1074.	[bug]		Running out of memory in dump_rdataset() could
 			cause an assertion failure. [RT #1946]
 
-1073.	[bug]		The adb cache should also be space driven.
+1073.	[bug]		The ADB cache cleaning should also be space driven.
 			[RT #1915, #1938]
 
 1072.	[bug]		The TCP client quota could be exceeded when
