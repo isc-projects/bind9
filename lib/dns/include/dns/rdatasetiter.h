@@ -32,8 +32,8 @@
  * it, an implementation of the class is required.  This implementation is
  * supplied by the database.
  *
- * It is the client's responsibility to call dns_db_detachnode() on all
- * nodes returned.
+ * It is the client's responsibility to call dns_rdataset_disassociate() 
+ * on all rdatasets returned.
  *
  * XXX <more> XXX
  *
