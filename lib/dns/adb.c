@@ -137,13 +137,6 @@ struct dns_adb {
 	isc_mutex_t			entrylocks[DNS_ADBENTRYLIST_LENGTH];
 };
 
-/*
- * XXX:  This has a pointer to the adb it came from.  It shouldn't need
- * this, but I can't think of how to get rid of it.  In particular, since
- * events have but one "arg" value, and that is currently used for the name
- * pointer in fetches, we need a way to get to the fetch contexts as well
- * as the adb itself.
- */
 struct dns_adbname {
 	unsigned int			magic;
 	dns_name_t			name;
@@ -1957,6 +1950,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (WANTEVENT(options)) {
 		REQUIRE(task != NULL);
 	}
+	REQUIRE((options & DNS_ADBFIND_ADDRESSMASK) != 0);
 
 	attach_to_task = ISC_FALSE;
 	result = ISC_R_UNEXPECTED;
@@ -2002,7 +1996,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	bucket = DNS_ADB_INVALIDBUCKET;
 	adbname = find_name_and_lock(adb, name, &bucket);
 	if (adb->name_sd[bucket]) {
-		DP(1, "lookup:  returning ISC_R_SHUTTINGDOWN");
+		DP(1, "dns_adb_createfind:  returning ISC_R_SHUTTINGDOWN");
 		free_adbfind(adb, &find);
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
@@ -2036,7 +2030,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = dbfind_name(find, zone, adbname, bucket, now,
 				     dns_rdatatype_a);
 		if (result == ISC_R_SUCCESS) {
-			DP(1, "lookup:  Found A for name %p in db",
+			DP(1, "dns_adb_createfind:  Found A for name %p in db",
 			   adbname);
 			goto v6;
 		}
@@ -2046,7 +2040,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		result = fetch_name_v4(adbname, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(1, "lookup:  Started A fetch for name %p",
+			DP(1,
+			   "dns_adb_createfind:  Started A fetch for name %p",
 			   adbname);
 			adbname->query_pending |= DNS_ADBFIND_INET;
 			goto v6;
@@ -2059,7 +2054,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	    && WANT_INET6(wanted_addresses)) {
 		result = dbfind_a6(find, zone, adbname, bucket, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(1, "lookup:  Found A6 for name %p", adbname);
+			DP(1, "dns_adb_createfind:  Found A6 for name %p",
+			   adbname);
 			goto copy;
 		}
 
@@ -2068,7 +2064,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		result = fetch_name_a6(adbname, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(1, "lookup:  Started A6 fetch for name %p",
+			DP(1,
+			   "dns_adb_createfind:  Started A6 fetch for name %p",
 			   adbname);
 			adbname->query_pending |= DNS_ADBFIND_INET6;
 			goto copy;
