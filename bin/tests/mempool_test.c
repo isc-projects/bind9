@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -36,6 +36,10 @@ main(int argc, char *argv[])
 	void *tmp;
 	isc_mempool_t *mp1, *mp2;
 	unsigned int i, j;
+
+	/* Silence annoying compiler warning. */
+	(void)argc;
+	(void)argv;
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
