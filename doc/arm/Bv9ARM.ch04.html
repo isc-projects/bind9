@@ -118,7 +118,7 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ></DT
 ><DT
 >4.9. <A
-HREF="Bv9ARM.ch04.html#AEN1013"
+HREF="Bv9ARM.ch04.html#AEN1015"
 >IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1091,11 +1091,11 @@ NAME="AEN928"
 ><SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9 partially supports DNSSEC SIG(0) transaction
-    signatures as specified in RFC 2535.  SIG(0) uses public/private
-    keys to authenticate messages.  Access control is performed in the
-    same manner as TSIG keys; privileges can be granted or denied
-    based on the key name.</P
+> 9 partially supports DNSSEC SIG(0)
+    transaction signatures as specified in RFC 2535 and RFC2931.  SIG(0)
+    uses public/private keys to authenticate messages.  Access control
+    is performed in the same manner as TSIG keys; privileges can be
+    granted or denied based on the key name.</P
 ><P
 >When a SIG(0) signed message is received, it will only be
     verified if the key is known and trusted by the server; the server
@@ -1104,11 +1104,14 @@ CLASS="acronym"
 >SIG(0) signing of multiple-message TCP streams is not
     supported.</P
 ><P
-><SPAN
+>The only tool shipped with <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9 does not ship with any tools that generate SIG(0)
-    signed messages.</P
+> 9 that
+    generates SIG(0) signed messages is <B
+CLASS="command"
+>nsupdate</B
+>.</P
 ></DIV
 ><DIV
 CLASS="sect1"
@@ -1134,12 +1137,16 @@ CLASS="acronym"
 > 9 ships
     with several tools
     that are used in this process, which are explained in more detail
-    below.  In all cases, the "<TT
+    below.  In all cases, the <TT
 CLASS="option"
 >-h</TT
->" option prints a
+> option prints a
     full list of parameters.  Note that the DNSSEC tools require the
-    keyset and signedkey files to be in the working directory, and
+    keyset and signedkey files to be in the working directory or the
+    directory specified by the <TT
+CLASS="option"
+>-h</TT
+> option, and
     that the tools shipped with BIND 9.0.x are not fully compatible
     with the current ones.</P
 ><P
@@ -1156,7 +1163,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN945"
+NAME="AEN947"
 >4.8.1. Generating Keys</A
 ></H2
 ><P
@@ -1236,7 +1243,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN965"
+NAME="AEN967"
 >4.8.2. Creating a Keyset</A
 ></H2
 ><P
@@ -1289,7 +1296,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN977"
+NAME="AEN979"
 >4.8.3. Signing the Child's Keyset</A
 ></H2
 ><P
@@ -1339,7 +1346,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN990"
+NAME="AEN992"
 >4.8.4. Signing the Zone</A
 ></H2
 ><P
@@ -1401,7 +1408,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1006"
+NAME="AEN1008"
 >4.8.5. Configuring Servers</A
 ></H2
 ><P
@@ -1429,7 +1436,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN1013"
+NAME="AEN1015"
 >4.9. IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1496,7 +1503,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1030"
+NAME="AEN1032"
 >4.9.1. Address Lookups Using AAAA Records</A
 ></H2
 ><P
@@ -1518,7 +1525,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1035"
+NAME="AEN1037"
 >4.9.2. Address Lookups Using A6 Records</A
 ></H2
 ><P
@@ -1538,7 +1545,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1039"
+NAME="AEN1041"
 >4.9.2.1. A6 Chains</A
 ></H3
 ><P
@@ -1584,7 +1591,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1050"
+NAME="AEN1052"
 >4.9.2.2. A6 Records for DNS Servers</A
 ></H3
 ><P
@@ -1614,7 +1621,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1056"
+NAME="AEN1058"
 >4.9.3. Address to Name Lookups Using Nibble Format</A
 ></H2
 ><P
@@ -1645,7 +1652,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1063"
+NAME="AEN1065"
 >4.9.4. Address to Name Lookups Using Binary Label Format</A
 ></H2
 ><P
@@ -1672,7 +1679,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1070"
+NAME="AEN1072"
 >4.9.5. Using DNAME for Delegation of IPv6 Reverse Addresses</A
 ></H2
 ><P
