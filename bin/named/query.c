@@ -1264,66 +1264,6 @@ query_checktype(dns_rdatatype_t type) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline void
-query_a6additional(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
-		   dns_dbversion_t *version, dns_name_t *name)
-{
-	dns_name_t *fname, *tname;
-	dns_rdatatype_t type;
-	dns_rdataset_t *rdataset;
-	dns_rdatasetiter_t *rdsiter;
-	isc_result_t result;
-
-	/*
-	 * Doing an A6 query causes type A and type AAAA additional section
-	 * processing for QNAME, which we handle here.
-	 *
-	 * XXXRTH  This will probably not be required in the next
-	 *         dns-lookups draft, and we'll remove it when the
-	 *	   draft comes out.
-	 */
-
-	fname = NULL;
-	result = dns_message_gettempname(client->message, &fname);
-	if (result != ISC_R_SUCCESS)
-		return;
-	dns_name_init(fname, NULL);
-	dns_name_clone(name, fname);
-	rdsiter = NULL;
-	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
-	if (result != ISC_R_SUCCESS)
-		return;
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
-		rdataset = query_newrdataset(client);
-		if (rdataset == NULL)
-			break;
-		dns_rdatasetiter_current(rdsiter, rdataset);
-		type = rdataset->type;
-		if (type == dns_rdatatype_sig)
-			type = rdataset->covers;
-		if (type == dns_rdatatype_a || type == dns_rdatatype_aaaa) {
-			tname = fname;
-			query_addrrset(client, &tname, &rdataset, NULL,
-				       NULL, DNS_SECTION_ADDITIONAL,
-				       ISC_FALSE);
-			if (rdataset != NULL) {
-				/*
-				 * We've already got this one.
-				 */
-				query_putrdataset(client, &rdataset);
-			}
-		} else {
-			/*
-			 * We're not interested in this rdataset.
-			 */
-			query_putrdataset(client, &rdataset);
-		}
-		result = dns_rdatasetiter_next(rdsiter);
-	}
-	dns_rdatasetiter_destroy(&rdsiter);
-}
-
 static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
@@ -2109,26 +2049,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		client->query.qrdataset->attributes |=
 			DNS_RDATASETATTR_ANSWERED;
-
-		/*
-		 * A6 records cause type A and AAAA additional
-		 * section processign for the QNAME.
-		 *
-		 * XXXRTH  This will probably not be required in the next
-		 *         dns-lookups draft, and we'll remove it when the
-		 *	   draft comes out.
-		 */
-		if (qtype == dns_rdatatype_a6) {
-			if (!clear_fname) {
-				/*
-				 * We haven't used fname yet, but we're going
-				 * to need it now.
-				 */
-				query_keepname(client, fname, dbuf);
-				clear_fname = ISC_TRUE;
-			}
-			query_a6additional(client, db, node, version, fname);
-		}
 
 		if (clear_fname)
 			fname = NULL;
