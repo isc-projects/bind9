@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.28 2001/03/06 23:02:03 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.29 2001/04/02 22:33:31 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -64,11 +64,6 @@
 #if ! defined(NS_IN6ADDRSZ)
 #define NS_IN6ADDRSZ	16
 #endif
-
-
-extern int lwres_net_pton(int af, const char *src, void *dst);
-extern const char *lwres_net_ntop(int af, const void *src, char *dst,
-				  size_t size);
 
 static lwres_result_t
 lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp);
@@ -435,7 +430,7 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 	unsigned char addrbuff[NS_IN6ADDRSZ];
 	unsigned int len;
 
-	if (lwres_net_pton(AF_INET, buffer, &addrbuff) == 1) {
+	if (lwres_net_aton(buffer, &addrbuff) == 1) {
 		unsigned char zeroaddress[] = {0, 0, 0, 0};
 		unsigned char loopaddress[] = {127, 0, 0, 1};
 		if (memcmp(addrbuff, zeroaddress, 4) == 0)
