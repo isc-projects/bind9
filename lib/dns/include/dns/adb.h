@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.61 2001/01/09 21:52:16 bwelling Exp $ */
+/* $Id: adb.h,v 1.62 2001/01/22 22:51:23 gson Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -183,7 +183,6 @@ struct dns_adbaddrinfo {
 	int				goodness;	/* [rw] */
 	unsigned int			srtt;		/* [rw] microseconds */
 	unsigned int			flags;		/* [rw] */
-	isc_stdtime_t			avoid_bitstring; /* [rw] 0 == don't */
 	dns_adbentry_t		       *entry;		/* private */
 	ISC_LINK(dns_adbaddrinfo_t)	publink;
 };
@@ -537,18 +536,6 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  * Set the flags as given by:
  *
  *	newflags = (oldflags & ~mask) | (bits & mask);
- *
- * Requires:
- *
- *	adb be valid.
- *
- *	addr be valid.
- */
-void
-dns_adb_setavoidbitstring(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-			  isc_stdtime_t when);
-/*
- * Set the avoid_bitstring timer to "when".  A "when" of 0 disables it.
  *
  * Requires:
  *

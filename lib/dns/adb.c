@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.163 2001/01/09 21:50:38 bwelling Exp $ */
+/* $Id: adb.c,v 1.164 2001/01/22 22:51:22 gson Exp $ */
 
 /*
  * Implementation notes
@@ -263,7 +263,6 @@ struct dns_adbentry {
 	unsigned int			srtt;
 	isc_sockaddr_t			sockaddr;
 	isc_stdtime_t			expires;
-	isc_stdtime_t			avoid_bitstring;
 
 	ISC_LIST(dns_adbzoneinfo_t)	zoneinfo;
 	ISC_LINK(dns_adbentry_t)	plink;
@@ -298,7 +297,7 @@ static void dump_adb(dns_adb_t *, FILE *, isc_boolean_t debug);
 static void print_dns_name(FILE *, dns_name_t *);
 static void print_namehook_list(FILE *, const char *legend,
 				dns_adbnamehooklist_t *list,
-				isc_stdtime_t now, isc_boolean_t debug);
+				isc_boolean_t debug);
 static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline void dec_adb_irefcnt(dns_adb_t *);
@@ -1418,7 +1417,6 @@ new_adbentry(dns_adb_t *adb) {
 	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
 	e->expires = 0;
-	e->avoid_bitstring = 0;
 	ISC_LIST_INIT(e->zoneinfo);
 	ISC_LINK_INIT(e, plink);
 
@@ -1713,7 +1711,6 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	ai->goodness = entry->goodness;
 	ai->srtt = entry->srtt;
 	ai->flags = entry->flags;
-	ai->avoid_bitstring = entry->avoid_bitstring;
 	ai->entry = entry;
 	ISC_LINK_INIT(ai, publink);
 
@@ -1868,13 +1865,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *zone,
 			bucket = entry->lock_bucket;
 			LOCK(&adb->entrylocks[bucket]);
 
-			/*
-			 * Check for avoid bitstring timeout.
-			 */
-			if (entry->avoid_bitstring > 0
-			    && entry->avoid_bitstring < now)
-				entry->avoid_bitstring = 0;
-
 			if (!FIND_RETURNLAME(find)
 			    && entry_is_bad_for_zone(adb, entry, zone, now)) {
 				find->options |= DNS_ADBFIND_LAMEPRUNED;
@@ -1904,13 +1894,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *zone,
 			entry = namehook->entry;
 			bucket = entry->lock_bucket;
 			LOCK(&adb->entrylocks[bucket]);
-
-			/*
-			 * Check for avoid bitstring timeout.
-			 */
-			if (entry->avoid_bitstring > 0
-			    && entry->avoid_bitstring < now)
-				entry->avoid_bitstring = 0;
 
 			if (entry_is_bad_for_zone(adb, entry, zone, now))
 				goto nextv6;
@@ -2970,8 +2953,8 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 			fprintf(f, " [err4 %u] [err6 %u]\n",
 				name->fetch_err, name->fetch6_err);
 
-			print_namehook_list(f, "v4", &name->v4, now, debug);
-			print_namehook_list(f, "v6", &name->v6, now, debug);
+			print_namehook_list(f, "v4", &name->v4, debug);
+			print_namehook_list(f, "v6", &name->v6, debug);
 
 			if (debug)
 				print_fetch_list(f, name);
@@ -2991,7 +2974,7 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 }
 
 static void
-dump_entry(FILE *f, dns_adbentry_t *entry, isc_stdtime_t now, isc_boolean_t debug)
+dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug)
 {
 	char addrbuf[ISC_NETADDR_FORMATSIZE];
 	isc_netaddr_t netaddr;
@@ -3005,10 +2988,6 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_stdtime_t now, isc_boolean_t debu
 			entry->goodness);
 			
 	fprintf(f, ";\t%s [srtt %u]", addrbuf, entry->srtt);
-
-	if (entry->avoid_bitstring != 0)
-		fprintf(f, " [avoid_bitstring %d]",
-			entry->avoid_bitstring - now);
 	fprintf(f, "\n");
 }
 
@@ -3055,9 +3034,8 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
 			tmpp = "BadAddress";
 
 		fprintf(f, "\t\tentry %p, flags %08x goodness %d"
-			" srtt %u addr %s avoid_bitstring %u\n",
-			ai->entry, ai->flags, ai->goodness, ai->srtt, tmpp,
-			ai->avoid_bitstring);
+			" srtt %u addr %s\n",
+			ai->entry, ai->flags, ai->goodness, ai->srtt, tmpp);
 
 		ai = ISC_LIST_NEXT(ai, publink);
 	}
@@ -3077,7 +3055,7 @@ print_dns_name(FILE *f, dns_name_t *name) {
 
 static void
 print_namehook_list(FILE *f, const char *legend, dns_adbnamehooklist_t *list,
-		    isc_stdtime_t now, isc_boolean_t debug)
+		    isc_boolean_t debug)
 {
 	dns_adbnamehook_t *nh;
 
@@ -3087,7 +3065,7 @@ print_namehook_list(FILE *f, const char *legend, dns_adbnamehooklist_t *list,
 	{
 		if (debug)
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
-		dump_entry(f, nh->entry, now, debug);
+		dump_entry(f, nh->entry, debug);
 	}
 }
 
@@ -4002,24 +3980,6 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	UNLOCK(&adb->entrylocks[bucket]);
 }
 
-void
-dns_adb_setavoidbitstring(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-			  isc_stdtime_t when)
-{
-	int bucket;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
-
-	addr->entry->avoid_bitstring = when;
-	addr->avoid_bitstring = when;
-
-	UNLOCK(&adb->entrylocks[bucket]);
-}
-
 isc_result_t
 dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
 		     dns_adbaddrinfo_t **addrp, isc_stdtime_t now)
@@ -4033,8 +3993,7 @@ dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(addrp != NULL && *addrp == NULL);
 
-	if (now == 0)
-		isc_stdtime_get(&now);
+	UNUSED(now);
 
 	result = ISC_R_SUCCESS;
 	bucket = DNS_ADB_INVALIDBUCKET;
@@ -4057,12 +4016,6 @@ dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
 		DP(50, "findaddrinfo: new entry %p", entry);
 	} else
 		DP(50, "findaddrinfo: found entry %p", entry);
-
-	/*
-	 * Check for avoid bitstring timeout.
-	 */
-	if (entry->avoid_bitstring > 0 && entry->avoid_bitstring < now)
-		entry->avoid_bitstring = 0;
 
 	port = isc_sockaddr_getport(sa);
 	addr = new_adbaddrinfo(adb, entry, port);
