@@ -448,7 +448,6 @@ struct dns_errormap {
 	{	DNS_R_NXDOMAIN,		"DNS_R_NXDOMAIN"	},
 	{	DNS_R_NXRDATASET,	"DNS_R_NXRDATASET"	},
 	{	DNS_R_BADDB,		"DNS_R_BADDB"		},
-	{	DNS_R_LASTENTRY,	"DNS_R_LASTENTRY"	},
 	{	(dns_result_t) 0,	NULL			}
 };
 
