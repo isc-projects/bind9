@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.4.4.1 2001/01/09 22:48:25 bwelling Exp $
+ * $Id: gssapi_link.c,v 1.4.4.2 2001/05/10 21:14:16 gson Exp $
  */
 
 #ifdef GSSAPI
@@ -182,6 +182,12 @@ gssapi_isprivate(const dst_key_t *key) {
         return (ISC_TRUE);
 }
 
+static isc_boolean_t
+gssapi_issymmetric(const dst_key_t *key) {
+	UNUSED(key);
+        return (ISC_TRUE);
+}
+
 static void
 gssapi_destroy(dst_key_t *key) {
 	UNUSED(key);
@@ -199,6 +205,7 @@ static dst_func_t gssapi_functions = {
 	NULL, /* paramcompare */
 	gssapi_generate,
 	gssapi_isprivate,
+	gssapi_issymetric,
 	gssapi_destroy,
 	NULL, /* todns */
 	NULL, /* fromdns */

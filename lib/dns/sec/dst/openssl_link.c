@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.39.4.2 2001/04/10 01:10:25 gson Exp $
+ * $Id: openssl_link.c,v 1.39.4.3 2001/05/10 21:14:18 gson Exp $
  */
 #if defined(OPENSSL)
 
@@ -212,6 +212,11 @@ static isc_boolean_t
 openssldsa_isprivate(const dst_key_t *key) {
 	DSA *dsa = (DSA *) key->opaque;
         return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
+}
+
+static isc_boolean_t
+openssldsa_issymmetric(void) {
+        return (ISC_FALSE);
 }
 
 static void
@@ -427,6 +432,7 @@ static dst_func_t openssldsa_functions = {
 	NULL, /* paramcompare */
 	openssldsa_generate,
 	openssldsa_isprivate,
+	openssldsa_issymmetric,
 	openssldsa_destroy,
 	openssldsa_todns,
 	openssldsa_fromdns,

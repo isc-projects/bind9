@@ -2,6 +2,9 @@
  822.	[bug]		Sending nxrrset prerequisites would crash nsupdate.
  			[RT #1248]
 
+ 669.	[bug]		dnssec-keygen now makes the public key file
+			non-world-readable for symmetric keys. [RT #403]
+
 	--- 9.1.2 released ---
 
 	--- 9.1.2rc1 released ---
