@@ -1,4 +1,7 @@
- 186	[func]		dns_request_getresponse() has an additional arguement
+ 187.	[func]		isc_ratelimter_enqueue() has an additional arguement
+			'task'.
+
+ 186.	[func]		dns_request_getresponse() has an additional arguement
 			'preserve_order'.
 
  185.   [bug]           Fixed up handling of ISC_MEMCLUSTER_LEGACY.  Several
