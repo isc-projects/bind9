@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.196 2004/09/06 01:24:42 marka Exp $ */
+/* $Id: dig.c,v 1.197 2004/09/06 06:22:35 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1021,7 +1021,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->stats = ISC_FALSE;
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
-				lookup->section_question = ISC_FALSE;
+					lookup->section_question = ISC_FALSE;
 				}
 				break;
 			case 'i': /* tries */
