@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.11 2000/05/05 05:50:02 marka Exp $ */
+/* $Id: opt_41.c,v 1.12 2000/05/13 22:33:29 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -24,7 +24,9 @@
 #ifndef RDATA_GENERIC_OPT_41_C
 #define RDATA_GENERIC_OPT_41_C
 
-#define RRTYPE_OPT_ATTRIBUTES (DNS_RDATATYPEATTR_SINGLETON | DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION)
+#define RRTYPE_OPT_ATTRIBUTES (DNS_RDATATYPEATTR_SINGLETON | \
+			       DNS_RDATATYPEATTR_META | \
+			       DNS_RDATATYPEATTR_NOTQUESTION)
 
 static inline isc_result_t
 fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
@@ -70,7 +72,7 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_region_t sregion;
 	isc_region_t tregion;
-	isc_uint16_t option, length;
+	isc_uint16_t length;
 	unsigned int total;
 
 	REQUIRE(type == 41);
@@ -84,7 +86,10 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	while (sregion.length != 0) {
 		if (sregion.length < 4)
 			return (ISC_R_UNEXPECTEDEND);
-		option = uint16_fromregion(&sregion);
+		/*
+		 * Eat the 16bit option code.  There is nothing to
+		 * be done with it currently.
+		 */
 		isc_region_consume(&sregion, 2);
 		length = uint16_fromregion(&sregion);
 		isc_region_consume(&sregion, 2);
