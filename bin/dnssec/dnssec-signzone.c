@@ -46,6 +46,7 @@
 #include <dns/keyvalues.h>
 #include <dns/nxt.h>
 #include <dns/time.h>
+#include <dns/zone.h>
 
 #include <dst/dst.h>
 
@@ -199,7 +200,7 @@ expecttofindkey(dns_name_t *name, dns_db_t *db, dns_dbversion_t *version) {
 			return ISC_FALSE;
 		default:
 			check_result(result, "dns_db_find");
-			return ISC_FALSE; /* removess a warning */
+			return ISC_FALSE; /* removes a warning */
 	}
 }
 
@@ -627,7 +628,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 }
 
 static void
-loadzone(char *file, char *origin, dns_db_t **db, dns_dbversion_t **version) {
+loadzone(char *file, char *origin, dns_zone_t **zone) {
 	isc_buffer_t b, b2;
 	unsigned char namedata[1024];
 	int len;
@@ -644,12 +645,33 @@ loadzone(char *file, char *origin, dns_db_t **db, dns_dbversion_t **version) {
 	result = dns_name_fromtext(&name, &b, dns_rootname, ISC_FALSE, &b2);
 	check_result(result, "dns_name_fromtext()");
 
-	result = dns_db_create(mctx, "rbt", &name, ISC_FALSE,
-			       dns_rdataclass_in, 0, NULL, db);
-	check_result(result, "dns_db_create()");
+	result = dns_zone_create(zone, mctx);
+	check_result(result, "dns_zone_create()");
 
-	result = dns_db_load(*db, file);
-	check_result(result, "dns_db_load()");
+	dns_zone_settype(*zone, dns_zone_master);
+
+	result = dns_zone_setdbtype(*zone, "rbt");
+	check_result(result, "dns_zone_setdbtype()");
+
+	result = dns_zone_setdatabase(*zone, file);
+	check_result(result, "dns_zone_setdatabase()");
+
+	result = dns_zone_setorigin(*zone, &name);
+	check_result(result, "dns_zone_origin()");
+
+	dns_zone_setclass(*zone, dns_rdataclass_in); /* XXX */
+
+	result = dns_zone_load(*zone);
+	check_result(result, "dns_zone_load()");
+}
+
+static void
+getdb(dns_zone_t *zone, dns_db_t **db, dns_dbversion_t **version) {
+	isc_result_t result;
+
+	*db = NULL;
+	result = dns_zone_getdb(zone, db);
+	check_result(result, "dns_zone_getdb()");
 
 	result = dns_db_newversion(*db, version);
 	check_result(result, "dns_db_newversion()");
@@ -687,6 +709,20 @@ loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 	dns_db_detachnode(db, &node);
 }
 
+static void
+dumpzone(dns_zone_t *zone, char *filename) {
+	isc_result_t result;
+	FILE *fp;
+
+	fp = fopen(filename, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "failure opening %s\n", filename);
+		exit(-1);
+	}
+	result = dns_zone_dump(zone, fp);
+	check_result(result, "dns_zone_dump");
+	fclose(fp);
+}
 
 static isc_stdtime_t
 strtotime(char *str, isc_int64_t now, isc_int64_t base) {
@@ -755,6 +791,7 @@ main(int argc, char *argv[]) {
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *endp;
 	int verbose = 0;
+	dns_zone_t *zone;
 	dns_db_t *db;
 	dns_dbversion_t *version;
 	signer_key_t *key;
@@ -866,9 +903,12 @@ main(int argc, char *argv[]) {
 			strcat(origin, ".");
 	}
 
+	zone = NULL;
+	loadzone(file, origin, &zone);
+
 	db = NULL;
 	version = NULL;
-	loadzone(file, origin, &db, &version);
+	getdb(zone, &db, &version);
 
 	ISC_LIST_INIT(keylist);
 	loadzonekeys(db, version);
@@ -957,9 +997,9 @@ main(int argc, char *argv[]) {
 
 	/* should we update the SOA serial? */
 	dns_db_closeversion(db, &version, ISC_TRUE);
-	result = dns_db_dump(db, NULL, output);
-	check_result(result, "dns_db_dump");
+	dumpzone(zone, output);
 	dns_db_detach(&db);
+	dns_zone_detach(&zone);
 
 	key = ISC_LIST_HEAD(keylist);
 	while (key != NULL) {
@@ -973,7 +1013,7 @@ main(int argc, char *argv[]) {
 	isc_mem_free(mctx, file);
 	isc_mem_free(mctx, output);
 
-	isc_mem_stats(mctx, stdout);
+/*	isc_mem_stats(mctx, stdout);*/
 	isc_mem_destroy(&mctx);
 
 	return (0);
