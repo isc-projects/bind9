@@ -709,6 +709,28 @@ options_callback(dns_c_ctx_t *cctx, void *uap) {
 	return (ISC_R_SUCCESS);
 }
 
+
+static void 
+scan_interfaces(ns_server_t *server) {
+	ns_interfacemgr_scan(server->interfacemgr);
+	dns_aclenv_copy(&server->aclenv,
+			ns_interfacemgr_getaclenv(server->interfacemgr));
+}
+
+/*
+ * This event callback is invoked to do periodic network
+ * interface scanning.
+ */
+static void
+interface_timer_tick(isc_task_t *task, isc_event_t *event) {
+	ns_server_t *server = (ns_server_t *) event->arg;	
+	UNUSED(task);
+	isc_event_free(&event);
+	RWLOCK(&server->conflock, isc_rwlocktype_write);
+	scan_interfaces(server);
+	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
+}
+
 static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
@@ -722,7 +744,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_aclconfctx_t aclconfctx;
 	dns_dispatch_t *dispatch;
 	char *pidfilename;
-
+	isc_int32_t interface_interval;
+	
 	dns_aclconfctx_init(&aclconfctx);
 
 	RWLOCK(&server->conflock, isc_rwlocktype_write);
@@ -806,10 +829,23 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * to configure the query source, since the dispatcher we use might
 	 * be shared with an interface.
 	 */
-	ns_interfacemgr_scan(server->interfacemgr);
-	dns_aclenv_copy(&server->aclenv,
-			ns_interfacemgr_getaclenv(server->interfacemgr));
-	
+	scan_interfaces(server);
+
+	/*
+	 * Arrange for further interface scanning to occur periodically
+	 * as specified by the "interface-interval" option.
+	 */
+	interface_interval = 3600; /* Default is 1 hour. */
+	(void) dns_c_ctx_getinterfaceinterval(configctx, &interface_interval);
+	if (interface_interval == 0) {
+		isc_timer_reset(server->interface_timer, isc_timertype_inactive,
+				NULL, NULL, ISC_TRUE);
+	} else {
+		isc_interval_t interval;
+		isc_interval_set(&interval, interface_interval, 0);
+		isc_timer_reset(server->interface_timer, isc_timertype_ticker,
+				NULL, &interval, ISC_FALSE);
+	}
 
 	dispatch = NULL;
 	CHECK(configure_server_querysource(configctx, server, &dispatch));
@@ -900,7 +936,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_write);
-	RWUNLOCK(&server->conflock, isc_rwlocktype_write);	
+	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
 	return (result);
 }
 
@@ -950,6 +986,12 @@ run_server(isc_task_t *task, isc_event_t *event) {
 					  &server->interfacemgr),
 		   "creating interface manager");
 
+	CHECKFATAL(isc_timer_create(ns_g_timermgr, isc_timertype_inactive,
+				    NULL, NULL, server->task,
+				    interface_timer_tick,
+				    server, &server->interface_timer),
+		   "creating interface timer");
+
 	CHECKFATAL(load_configuration(ns_g_conffile, server, ISC_TRUE),
 		   "loading configuration");
 
@@ -983,6 +1025,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	if (server->querysrc_dispatch != NULL)
 		dns_dispatch_detach(&server->querysrc_dispatch);
 	ns_clientmgr_destroy(&server->clientmgr);
+	isc_timer_detach(&server->interface_timer);
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
 	dns_zonemgr_shutdown(server->zonemgr);
@@ -1067,6 +1110,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(isc_app_onrun(ns_g_mctx, server->task, run_server, server),
 		   "isc_app_onrun");
 
+	server->interface_timer = NULL;
+	/*
+	 * Create a timer for periodic interface scanning.
+	 */
 	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				      ns_g_socketmgr, &server->zonemgr),
 		   "dns_zonemgr_create");
@@ -1090,7 +1137,7 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	dns_zonemgr_destroy(&server->zonemgr);
 	server->zonemgr = NULL;
-	
+
 	dns_db_detach(&server->roothints);
 	
 	if (server->queryacl != NULL)

@@ -82,7 +82,7 @@ options {
   [ stacksize size_spec ; ]				    No
   [ cleaning-interval number; ]				    Yes
   [ heartbeat-interval number; ]			    No
-  [ interface-interval number; ]			    No
+  [ interface-interval number; ]			    Yes
   [ statistics-interval number; ]			    No
   [ topology { address_match_list }; ]			    No
   [ sortlist { address_match_list }; ]			    No
