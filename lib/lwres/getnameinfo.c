@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.18.2.2 2000/07/03 17:09:30 gson Exp $ */
+/* $Id: getnameinfo.c,v 1.18.2.3 2000/07/10 20:53:41 gson Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -112,7 +112,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	struct afd *afd;
 	struct servent *sp;
 	unsigned short port;
-#ifdef ISC_PLATFORM_HAVESALEN
+#ifdef LWRES_PLATFORM_HAVESALEN
 	size_t len;
 #endif
 	int family, i;
@@ -135,7 +135,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	if (sa == NULL)
 		ERR(ENI_NOSOCKET);
 
-#ifdef ISC_PLATFORM_HAVESALEN
+#ifdef LWRES_PLATFORM_HAVESALEN
 	len = sa->sa_len;
 	if (len != salen)
 		ERR(ENI_SALEN);
