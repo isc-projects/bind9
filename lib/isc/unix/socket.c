@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.10 1998/11/26 00:10:33 explorer Exp $ */
+/* $Id: socket.c,v 1.11 1998/11/26 00:29:12 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -39,10 +39,18 @@
 /*
  * Debugging
  */
+#define TRACE_WATCHER	0x0001
+#define TRACE_LISTEN	0x0002
+#define TRACE_CONNECT	0x0004
+#define TRACE_RECV	0x0008
+#define TRACE_SEND    	0x0010
+#define TRACE_MANAGER	0x0020
+
 #if 1
-#define XTRACE(a)	printf a
-#define XENTER(a)	printf("ENTER %s\n", (a))
-#define XEXIT(a)	printf("EXIT %s\n", (a))
+int trace_level = TRACE_CONNECT | TRACE_MANAGER;
+#define XTRACE(l, a)	if (l & trace_level) printf a
+#define XENTER(l, a)	if (l & trace_level) printf("ENTER %s\n", (a))
+#define XEXIT(l, a)	if (l & trace_level) printf("EXIT %s\n", (a))
 #else
 #define XTRACE(a)
 #define XENTER(a)
@@ -152,7 +160,6 @@ select_poke(isc_socketmgr_t mgr, int msg)
 {
 	int cc;
 
-	XTRACE(("Poking watcher with data %d\n", msg));
 	cc = write(mgr->pipe_fds[1], &msg, sizeof(int));
 	if (cc < 0)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -227,8 +234,8 @@ done_event_destroy(isc_event_t ev)
 
 	REQUIRE(sock->references > 0);
 	sock->references--;
-	XTRACE(("done_event_destroy: sock %p, ref cnt == %d\n",
-		sock, sock->references));
+	XTRACE(TRACE_MANAGER, ("done_event_destroy: sock %p, ref cnt == %d\n",
+			       sock, sock->references));
 
 	if (sock->references == 0)
 		kill_socket = ISC_TRUE;
@@ -249,7 +256,8 @@ destroy(isc_socket_t *sockp)
 	isc_socket_t sock = *sockp;
 	isc_socketmgr_t manager = sock->manager;
 
-	XTRACE(("destroy sockp = %p, sock = %p\n", sockp, sock));
+	XTRACE(TRACE_MANAGER,
+	       ("destroy sockp = %p, sock = %p\n", sockp, sock));
 
 	LOCK(&manager->lock);
 
@@ -281,7 +289,7 @@ allocate_socket(isc_socketmgr_t manager, isc_sockettype_t type,
 		return (NULL);
 
 	sock->magic = SOCKET_MAGIC;
-	sock->references = 1;
+	sock->references = 0;
 
 	sock->manager = manager;
 	sock->type = type;
@@ -328,6 +336,7 @@ free_socket(isc_socket_t *socketp)
 	REQUIRE(sock->references == 0);
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(!sock->listener);
+	REQUIRE(!sock->connecting);
 	REQUIRE(!sock->pending_read);
 	REQUIRE(!sock->pending_write);
 	REQUIRE(EMPTY(sock->read_list));
@@ -363,7 +372,7 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
-	XENTER("isc_socket_create");
+	XENTER(TRACE_MANAGER, "isc_socket_create");
 
 	
 	ret = allocate_socket(manager, type, &sock);
@@ -417,11 +426,10 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 
 	UNLOCK(&manager->lock);
 
-	sock->references++;
-
+	sock->references = 1;
 	*socketp = sock;
 
-	XEXIT("isc_socket_create");
+	XEXIT(TRACE_MANAGER, "isc_socket_create");
 
 	return (ISC_R_SUCCESS);
 }
@@ -456,7 +464,7 @@ isc_socket_detach(isc_socket_t *socketp)
 	sock = *socketp;
 	REQUIRE(VALID_SOCKET(sock));
 
-	XENTER("isc_socket_detach");
+	XENTER(TRACE_MANAGER, "isc_socket_detach");
 
 	LOCK(&sock->lock);
 	REQUIRE(sock->references > 0);
@@ -468,7 +476,7 @@ isc_socket_detach(isc_socket_t *socketp)
 	if (kill_socket)
 		destroy(&sock);
 
-	XEXIT("isc_socket_detach");
+	XEXIT(TRACE_MANAGER, "isc_socket_detach");
 
 	*socketp = NULL;
 }
@@ -494,8 +502,8 @@ dispatch_read(isc_socket_t sock)
 
 	sock->pending_read = ISC_TRUE;
 
-	XTRACE(("dispatch_read:  posted event %p to task %p\n",
-		ev, iev->task));
+	XTRACE(TRACE_WATCHER, ("dispatch_read:  posted event %p to task %p\n",
+			       ev, iev->task));
 
 	INSIST(isc_task_send(iev->task, &ev) == ISC_R_SUCCESS);
 }
@@ -622,7 +630,8 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	iev = (isc_socket_ncintev_t)ev;
 
 	LOCK(&sock->lock);
-	XTRACE(("internal_accept called, locked parent sock %p\n", sock));
+	XTRACE(TRACE_LISTEN,
+	       ("internal_accept called, locked parent sock %p\n", sock));
 
 	REQUIRE(sock->pending_read);
 	REQUIRE(sock->listener);
@@ -654,7 +663,7 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	fd = accept(sock->fd, &addr, &addrlen);
 	if (fd < 0) {
 		if (errno == EAGAIN) {
-			XTRACE(("internal_accept: EAGAIN\n"));
+			XTRACE(TRACE_LISTEN, ("internal_accept: EAGAIN\n"));
 			sock->pending_read = ISC_FALSE;
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
@@ -667,8 +676,8 @@ internal_accept(isc_task_t task, isc_event_t ev)
 		 * changed, thanks to broken OSs trying to overload what
 		 * accept does.
 		 */
-		XTRACE(("internal_accept: accept returned %s\n",
-			strerror(errno)));
+		XTRACE(TRACE_LISTEN, ("internal_accept: accept returned %s\n",
+				      strerror(errno)));
 		sock->pending_read = ISC_FALSE;
 		select_poke(sock->manager, sock->fd);
 		UNLOCK(&sock->lock);
@@ -685,8 +694,8 @@ internal_accept(isc_task_t task, isc_event_t ev)
 
 	dev->newsocket->fd = fd;
 
-	XTRACE(("internal_accept: newsock %p, fd %d\n",
-		dev->newsocket, fd));
+	XTRACE(TRACE_LISTEN, ("internal_accept: newsock %p, fd %d\n",
+			      dev->newsocket, fd));
 
 	sock->addrlength = addrlen;
 	memcpy(&sock->address, &addr, addrlen);
@@ -731,7 +740,8 @@ internal_read(isc_task_t task, isc_event_t ev)
 	INSIST(sock->pending_read == ISC_TRUE);
 	sock->pending_read = ISC_FALSE;
 
-	XTRACE(("internal_read: sock %p, fd %d\n", sock, sock->fd));
+	XTRACE(TRACE_RECV,
+	       ("internal_read: sock %p, fd %d\n", sock, sock->fd));
 
 	/*
 	 * Pull the first entry off the list, and look at it.  If it is
@@ -790,7 +800,8 @@ internal_read(isc_task_t task, isc_event_t ev)
 			dev->addrlength = addrlen;
 		}			
 
-		XTRACE(("internal_read:  read(%d) %d\n", sock->fd, cc));
+		XTRACE(TRACE_RECV,
+		       ("internal_read:  read(%d) %d\n", sock->fd, cc));
 
 		/*
 		 * check for error or block condition
@@ -882,7 +893,8 @@ internal_write(isc_task_t task, isc_event_t ev)
 	INSIST(sock->pending_write == ISC_TRUE);
 	sock->pending_write = ISC_FALSE;
 
-	XTRACE(("internal_write: sock %p, fd %d\n", sock, sock->fd));
+	XTRACE(TRACE_SEND,
+	       ("internal_write: sock %p, fd %d\n", sock, sock->fd));
 
 	/*
 	 * Pull the first entry off the list, and look at it.  If it is
@@ -934,7 +946,8 @@ internal_write(isc_task_t task, isc_event_t ev)
 			cc = send(sock->fd, dev->region.base + dev->n,
 				  write_count, 0);
 
-		XTRACE(("internal_write:  send(%d) %d\n", sock->fd, cc));
+		XTRACE(TRACE_SEND,
+		       ("internal_write:  send(%d) %d\n", sock->fd, cc));
 
 		/*
 		 * check for error or block condition
@@ -1035,7 +1048,8 @@ watcher(void *uap)
 
 			cc = select(maxfd, &readfds, &writefds, NULL,
 				    NULL);
-			XTRACE(("select(%d, ...) == %d, errno %d\n",
+			XTRACE(TRACE_WATCHER,
+			       ("select(%d, ...) == %d, errno %d\n",
 				maxfd, cc, errno));
 			if (cc < 0) {
 				if (errno != EINTR)
@@ -1048,8 +1062,6 @@ watcher(void *uap)
 		} while (cc < 0);
 
 
-		XTRACE(("watcher got manager lock\n"));
-
 		/*
 		 * Process reads on internal, control fd.
 		 */
@@ -1057,7 +1069,8 @@ watcher(void *uap)
 			while (1) {
 				msg = select_readmsg(manager);
 
-				XTRACE(("watcher got message %d\n", msg));
+				XTRACE(TRACE_WATCHER,
+				       ("watcher got message %d\n", msg));
 
 				/*
 				 * Nothing to read?
@@ -1085,7 +1098,8 @@ watcher(void *uap)
 
 					sock = manager->fds[msg];
 					LOCK(&sock->lock);
-					XTRACE(("watcher locked socket %p\n",
+					XTRACE(TRACE_WATCHER,
+					       ("watcher locked socket %p\n",
 						sock));
 
 					/*
@@ -1101,11 +1115,13 @@ watcher(void *uap)
 					    || sock->pending_read) {
 						FD_CLR(sock->fd,
 						       &manager->read_fds);
-						XTRACE(("watch cleared r\n"));
+						XTRACE(TRACE_WATCHER,
+						       ("watch cleared r\n"));
 					} else {
 						FD_SET(sock->fd,
 						       &manager->read_fds);
-						XTRACE(("watch set r\n"));
+						XTRACE(TRACE_WATCHER,
+						       ("watch set r\n"));
 					}
 
 					iev = HEAD(sock->write_list);
@@ -1114,11 +1130,13 @@ watcher(void *uap)
 					    && !sock->connecting) {
 						FD_CLR(sock->fd,
 						       &manager->write_fds);
-						XTRACE(("watch cleared w\n"));
+						XTRACE(TRACE_WATCHER,
+						       ("watch cleared w\n"));
 					} else {
 						FD_SET(sock->fd,
 						       &manager->write_fds);
-						XTRACE(("watch set w\n"));
+						XTRACE(TRACE_WATCHER,
+						       ("watch set w\n"));
 					}
 
 					UNLOCK(&sock->lock);
@@ -1135,7 +1153,8 @@ watcher(void *uap)
 				sock = manager->fds[i];
 				unlock_sock = ISC_FALSE;
 				if (FD_ISSET(i, &readfds)) {
-					XTRACE(("watcher r on %d, sock %p\n",
+					XTRACE(TRACE_WATCHER,
+					       ("watcher r on %d, sock %p\n",
 						i, manager->fds[i]));
 					unlock_sock = ISC_TRUE;
 					LOCK(&sock->lock);
@@ -1146,7 +1165,8 @@ watcher(void *uap)
 					FD_CLR(i, &manager->read_fds);
 				}
 				if (FD_ISSET(i, &writefds)) {
-					XTRACE(("watcher w on %d, sock %p\n",
+					XTRACE(TRACE_WATCHER,
+					       ("watcher w on %d, sock %p\n",
 						i, manager->fds[i]));
 					if (!unlock_sock) {
 						unlock_sock = ISC_TRUE;
@@ -1178,7 +1198,7 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
-	XENTER("isc_socketmgr_create");
+	XENTER(TRACE_MANAGER, "isc_socketmgr_create");
 
 	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
@@ -1236,7 +1256,7 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 
 	*managerp = manager;
 
-	XEXIT("isc_socketmgr_create (normal)");
+	XEXIT(TRACE_MANAGER, "isc_socketmgr_create (normal)");
 	return (ISC_R_SUCCESS);
 }
 
@@ -1416,7 +1436,8 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 		ENQUEUE(sock->read_list, iev, link);
 	}
 
-	XTRACE(("isc_socket_recv: posted ievent %p, dev %p, task %p\n",
+	XTRACE(TRACE_RECV,
+	       ("isc_socket_recv: posted ievent %p, dev %p, task %p\n",
 		iev, iev->done_ev, task));
 
 	UNLOCK(&sock->lock);
@@ -1576,7 +1597,8 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 		ENQUEUE(sock->write_list, iev, link);
 	}
 
-	XTRACE(("isc_socket_send: posted ievent %p, dev %p, task %p\n",
+	XTRACE(TRACE_SEND,
+	       ("isc_socket_send: posted ievent %p, dev %p, task %p\n",
 		iev, iev->done_ev, task));
 
 	UNLOCK(&sock->lock);
@@ -1681,7 +1703,7 @@ isc_socket_accept(isc_socket_t sock,
 	isc_socket_t nsock;
 	isc_result_t ret;
 
-	XENTER("isc_socket_accept");
+	XENTER(TRACE_LISTEN, "isc_socket_accept");
 	REQUIRE(VALID_SOCKET(sock));
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
@@ -1729,6 +1751,7 @@ isc_socket_accept(isc_socket_t sock,
 	 */
 	isc_task_attach(task, &ntask);
 	sock->references++;
+	nsock->references++;
 
 	sock->listener = ISC_TRUE;
 
@@ -1762,7 +1785,7 @@ isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addr, int addrlen,
 	isc_socketmgr_t manager;
 	int cc;
 
-	XENTER("isc_socket_connect");
+	XENTER(TRACE_CONNECT, "isc_socket_connect");
 	REQUIRE(VALID_SOCKET(sock));
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
@@ -1829,7 +1852,7 @@ isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addr, int addrlen,
 
  queue:
 
-	XTRACE(("queueing connect internal event\n"));
+	XTRACE(TRACE_CONNECT, ("queueing connect internal event\n"));
 	/*
 	 * Attach to to task
 	 */
@@ -1876,7 +1899,8 @@ internal_connect(isc_task_t task, isc_event_t ev)
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	XTRACE(("internal_connect called, locked parent sock %p\n", sock));
+	XTRACE(TRACE_CONNECT,
+	       ("internal_connect called, locked parent sock %p\n", sock));
 
 	REQUIRE(sock->connecting);
 	REQUIRE(sock->connect_ev != NULL);
@@ -1913,7 +1937,7 @@ internal_connect(isc_task_t task, isc_event_t ev)
 		 * fd and pretend nothing strange happened.
 		 */
 		if (errno == EAGAIN || errno == EINPROGRESS) {
-			XTRACE(("internal_connect: EAGAIN\n"));
+			XTRACE(TRACE_CONNECT, ("internal_connect: EAGAIN\n"));
 			sock->connecting = ISC_TRUE;
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
