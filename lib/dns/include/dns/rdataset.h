@@ -189,8 +189,8 @@ dns_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
-		    isc_buffer_t *target,
-		    isc_boolean_t no_rdata_or_ttl);
+		    isc_boolean_t no_rdata_or_ttl,
+		    isc_buffer_t *target);
 /*
  * Convert 'rdataset' to text format, storing the result in 'target'.
  *
@@ -215,9 +215,9 @@ dns_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
+		    isc_boolean_t no_rdata_or_ttl,
 		    isc_buffer_t *target,
-		    unsigned int *countp,
-		    isc_boolean_t no_rdata_or_ttl);
+		    unsigned int *countp);
 /*
  * Convert 'rdataset' to wire format, compressing names as specified
  * in cctx, and storing the result in 'target'.

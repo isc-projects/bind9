@@ -1150,8 +1150,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			count = 0;
 
 			result = dns_rdataset_towire(rdataset, name,
-						     &msg->cctx, &subbuffer,
-						     &count, no_render_rdata);
+						     &msg->cctx,
+						     no_render_rdata,
+						     &subbuffer, &count);
 
 			/*
 			 * If out of space, record stats on what we rendered

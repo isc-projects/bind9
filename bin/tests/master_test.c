@@ -45,8 +45,8 @@ print_dataset(dns_rdatacallbacks_t *callbacks, dns_name_t *owner,
 	callbacks = callbacks;	/*unused*/
 
 	isc_buffer_init(&target, buf, 64*1024, ISC_BUFFERTYPE_TEXT);
-	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, &target,
-				     ISC_FALSE);
+	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
+				     &target);
 	if (result == DNS_R_SUCCESS)
 		fprintf(stdout, "%.*s\n", (int)target.used,
 					  (char*)target.base);

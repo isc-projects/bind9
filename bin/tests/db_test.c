@@ -82,8 +82,8 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_region_t r;
 
 	isc_buffer_init(&text, t, sizeof t, ISC_BUFFERTYPE_TEXT);
-	result = dns_rdataset_totext(rdataset, name, ISC_FALSE, &text,
-				     ISC_FALSE);
+	result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
+				     &text);
 	isc_buffer_used(&text, &r);
 	if (result == DNS_R_SUCCESS)
 		printf("%.*s", (int)r.length, (char *)r.base);

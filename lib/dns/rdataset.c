@@ -160,8 +160,8 @@ dns_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
-		    isc_buffer_t *target,
-		    isc_boolean_t no_rdata_or_ttl)
+		    isc_boolean_t no_rdata_or_ttl,
+		    isc_buffer_t *target)
 {
 	dns_result_t result;
 	unsigned int common_start, common_length, length, ntabs, ttabs;
@@ -281,9 +281,9 @@ dns_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
+		    isc_boolean_t no_rdata_or_ttl,
 		    isc_buffer_t *target,
-		    unsigned int *countp,
-		    isc_boolean_t no_rdata_or_ttl)
+		    unsigned int *countp)
 {
 	dns_rdata_t rdata;
 	isc_region_t r;

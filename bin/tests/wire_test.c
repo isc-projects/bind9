@@ -160,8 +160,8 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			result = dns_rdataset_totext(rdataset, print_name,
-						     ISC_FALSE, &target,
-						     no_rdata);
+						     ISC_FALSE, no_rdata,
+						     &target);
 			if (result != DNS_R_SUCCESS)
 				return (result);
 #ifdef USEINITALWS
