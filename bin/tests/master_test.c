@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/buffer.h>
@@ -70,7 +69,7 @@ main(int argc, char *argv[]) {
 			exit(1);
 		}
 				
-		memset(&callbacks, 0, sizeof callbacks);
+		dns_rdatacallbacks_init(&callbacks);
 		callbacks.commit = print_dataset;
 		
 		result = dns_master_load(argv[1], &origin, &origin, 1,

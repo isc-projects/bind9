@@ -466,7 +466,7 @@ load(dns_db_t *db, char *filename) {
 	 *	REQUIRE(!rbtdb->loaded);
 	 */
 
-	memset(&callbacks, 0, sizeof callbacks);
+	dns_rdatacallbacks_init(&callbacks);
 	callbacks.commit = add_rdataset_callback;
 	callbacks.commit_private = rbtdb;
 

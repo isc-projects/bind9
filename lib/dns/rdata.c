@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.31 1999/02/10 03:39:29 halley Exp $ */
+ /* $Id: rdata.c,v 1.32 1999/02/10 05:25:37 marka Exp $ */
 
 #include <config.h>
 
@@ -316,6 +316,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	char *name;
 	int line;
 	void (*callback)(dns_rdatacallbacks_t *, char *, ...);
+	isc_result_t iresult;
 
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
@@ -340,10 +341,21 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	do {
 		name = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
-		if (isc_lex_gettoken(lexer, options, &token)
-		    != ISC_R_SUCCESS) {
-			if (result == DNS_R_SUCCESS)
-				result = DNS_R_UNEXPECTED;
+		iresult = isc_lex_gettoken(lexer, options, &token);
+		if (iresult != ISC_R_SUCCESS) {
+			if (result == DNS_R_SUCCESS) {
+				switch (iresult) {
+				case ISC_R_NOSPACE:
+					result = DNS_R_NOSPACE;
+					break;
+				default:
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
+					    "isc_lex_gettoken() failed: %s\n",
+					    isc_result_totext(result));
+					result = DNS_R_UNEXPECTED;
+					break;
+				}
+			}
 			if (callback != NULL)
 				fromtext_error(callback, callbacks, name,
 					       line, NULL, result);

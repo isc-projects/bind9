@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.10 1999/02/09 08:02:19 marka Exp $ */
+ /* $Id: master.c,v 1.11 1999/02/10 05:25:36 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/assertions.h>
+#include <isc/error.h>
 
 #include <dns/master.h>
 #include <dns/types.h>
@@ -52,23 +53,38 @@ static dns_rdata_t	*grow_rdata(int, dns_rdata_t *, int,
 #define GETTOKEN(lexer, options, token, eol) \
 	do { \
 		unsigned int __o; \
+		isc_result_t __r; \
 		isc_token_t *__t = (token); \
 		__o = (options) | ISC_LEXOPT_EOL | ISC_LEXOPT_EOF | \
 			ISC_LEXOPT_DNSMULTILINE; \
-		if (isc_lex_gettoken(lexer, __o, __t) \
+		if ((__r = isc_lex_gettoken(lexer, __o, __t)) \
 				!= ISC_R_SUCCESS) { \
-			result = DNS_R_UNEXPECTED; \
-			goto cleanup; \
+			switch (__r) { \
+			case ISC_R_NOMEMORY: \
+				result = DNS_R_NOMEMORY; \
+				break; \
+			default: \
+				UNEXPECTED_ERROR(__FILE__, __LINE__, \
+					"isc_lex_gettoken() failed: %s\n", \
+					isc_result_totext(__r)); \
+				result = DNS_R_UNEXPECTED; \
+				goto cleanup; \
+			} \
+			goto error_cleanup; \
 		} \
 		if (eol != ISC_TRUE) \
 			if (__t->type == isc_tokentype_eol || \
 			    __t->type == isc_tokentype_eof) { \
+				(*callbacks->error)(callbacks, \
+			     "dns_load_master: %s:%d unexpected end of %s\n", \
+					   master_file, \
+					   isc_lex_getsourceline(lex), \
+					   (__t->type == isc_tokentype_eol) ? \
+						"line" : "file"); \
 				result = DNS_R_UNEXPECTEDEND; \
 				goto cleanup; \
 			} \
 	} while (0)
-
-
 
 dns_result_t
 dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
@@ -77,8 +93,8 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 {
 	dns_rdataclass_t class;
 	dns_rdatatype_t type;
-	unsigned long ttl = 0;
-	unsigned long default_ttl = 0;
+	isc_uint32_t ttl = 0;
+	isc_uint32_t default_ttl = 0;
 	dns_name_t current_name;
 	dns_name_t glue_name;
 	dns_name_t new_name;
@@ -96,6 +112,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 	isc_token_t token;
 	isc_lex_t *lex = NULL;
 	dns_result_t result = DNS_R_UNEXPECTED; 
+	isc_result_t iresult;
 	rdatalist_head_t glue_list;
 	rdatalist_head_t current_list;
 	dns_rdatalist_t *this;
@@ -123,14 +140,30 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 	isc_buffer_t name;
 	isc_lexspecials_t specials;
 
+	REQUIRE(master_file != NULL);
+	REQUIRE(top != NULL);
+	REQUIRE(origin != NULL);
+	REQUIRE(callbacks != NULL);
+	REQUIRE(callbacks->commit != NULL);
+	REQUIRE(callbacks->error != NULL);
+	REQUIRE(callbacks->warn != NULL);
+	REQUIRE(nscount != NULL);
+	REQUIRE(soacount != NULL);
+	REQUIRE(mctx != NULL);
+
 	dns_name_init(&current_name, NULL);
 	dns_name_init(&glue_name, NULL);
 
 	ISC_LIST_INIT(glue_list);
 	ISC_LIST_INIT(current_list);
 
-	if (isc_lex_create(mctx, 256, &lex) != ISC_R_SUCCESS)
+	iresult = isc_lex_create(mctx, 256, &lex);
+	if (iresult != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_lex_create() failed: %s\n",
+				 isc_result_totext(iresult));
 		goto cleanup;
+	}
 
 	memset(specials, 0, sizeof specials);
 	specials['('] = 1;
@@ -139,14 +172,18 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 	isc_lex_setspecials(lex, specials);
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
-	if (isc_lex_openfile(lex, master_file) != ISC_R_SUCCESS)
+	iresult = isc_lex_openfile(lex, master_file);
+	if (iresult != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_lex_openfile(%s) failed: %s\n",
+				 master_file, isc_result_totext(iresult));
 		goto cleanup;
-
+	}
 
 	target_mem = isc_mem_get(mctx, target_size);
 	if (target_mem == NULL) {
-		result = DNS_R_NOSPACE;
-		goto cleanup;
+		result = DNS_R_NOMEMORY;
+		goto error_cleanup;
 	}
 	isc_buffer_init(&target, target_mem, target_size,
 			ISC_BUFFERTYPE_BINARY);
@@ -170,7 +207,12 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 
 		if (token.type == isc_tokentype_initialws) {
 			if (!current_known) {
-				result = DNS_R_UNKNOWN;
+				(*callbacks->error)(callbacks,
+					"%s: %s:%d: No current owner name\n",
+						"dns_load_master",
+						master_file,
+						isc_lex_getsourceline(lex));
+				result = DNS_R_NOOWNER;
 				goto cleanup;
 			}
 			/* still working on the same name */
@@ -188,8 +230,12 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 					 ISC_FALSE);
 				ttl = token.value.as_ulong;
 				if (ttl > 0x7fffffff) {
-					result = DNS_R_RANGE;
-					goto cleanup;
+					(callbacks->warn)(callbacks,
+		"dns_load_master: %s:%d $TTL %lu > MAXTLL, setting TTL to 0\n",
+						master_file,
+						isc_lex_getsourceline(lex),
+						ttl);
+					ttl = 0;
 				}
 				default_ttl = ttl;
 				ttl_known = ISC_TRUE;
@@ -203,6 +249,10 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 					isc_mem_free(mctx, include_file);
 				include_file = isc_mem_strdup(mctx,
 						token.value.as_pointer);
+				if (include_file == NULL) {
+					result = DNS_R_NOMEMORY;
+					goto error_cleanup;
+				}
 				GETTOKEN(lex, 0, &token, ISC_TRUE);
 				if (token.type == isc_tokentype_eol ||
 				    token.type == isc_tokentype_eof) {
@@ -240,7 +290,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 					  &origin_name, ISC_FALSE, &name);
 
 			if (result != DNS_R_SUCCESS)
-				goto cleanup;
+				goto error_cleanup;
 			if (finish_origin) {
 				if (origin_in_use != -1)
 					name_in_use[origin_in_use] = ISC_FALSE;
@@ -316,6 +366,11 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 				}
 			}
 		} else {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+	     "%s:%d: isc_lex_gettoken() returned unexpeced token type (%d)\n",
+					 master_file,
+					 isc_lex_getsourceline(lex),
+					 token.type);
 			result = DNS_R_UNEXPECTED;
 			goto cleanup;
 		}
@@ -328,18 +383,28 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 		if (token.type == isc_tokentype_number) {
 			ttl = token.value.as_ulong;
 			if (ttl > 0x7fffffff) {
-				result = DNS_R_RANGE;
-				goto cleanup;
+				(callbacks->warn)(callbacks,
+	"dns_load_master: %s:%d TTL %lu > maxtll, setting ttl to 0\n",
+					master_file,
+					isc_lex_getsourceline(lex),
+					ttl);
+				ttl = 0;
 			}
 			ttl_known = ISC_TRUE;
 			GETTOKEN(lex, 0, &token, ISC_FALSE);
 		} else if (!ttl_known && !default_ttl_known) {
-			result = DNS_R_UNEXPECTED;
+			(*callbacks->error)(callbacks,
+					    "%s: %s:%d no TTL specified\n",
+					    "dns_load_master", master_file,
+					    isc_lex_getsourceline(lex));
+			result = DNS_R_NOTTL;
 			goto cleanup;
 		} else if (default_ttl_known)
 			ttl = default_ttl;
 
 		if (token.type != isc_tokentype_string) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+			"isc_lex_gettoken() returned unexpected token type\n");
 			result = DNS_R_UNEXPECTED;
 			goto cleanup;
 		}
@@ -349,6 +414,8 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			GETTOKEN(lex, 0, &token, ISC_FALSE);
 
 		if (token.type !=  isc_tokentype_string) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+			"isc_lex_gettoken() returned unexpected token type\n");
 			result = DNS_R_UNEXPECTED;
 			goto cleanup;
 		}
@@ -359,7 +426,42 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			goto cleanup;
 
 		if (class != 0 && class != zclass) {
-			result = DNS_R_UNEXPECTED;
+			char buf1[32];
+			char buf2[32];
+			unsigned int len1, len2;
+			isc_buffer_t buffer;
+			isc_region_t region;
+
+			isc_buffer_init(&buffer, buf1, sizeof buf1,
+					ISC_BUFFERTYPE_TEXT);
+			result = dns_rdataclass_totext(class, &buffer);
+			if (result != DNS_R_SUCCESS) {
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+					"dns_rdataclass_totext() failed: %s",
+						 dns_result_totext(result));
+				result = DNS_R_UNEXPECTED;
+				goto cleanup;
+			}
+			isc_buffer_consumed(&buffer, &region);
+			len1 = region.length;
+			isc_buffer_init(&buffer, buf2, sizeof buf2,
+					ISC_BUFFERTYPE_TEXT);
+			result = dns_rdataclass_totext(class, &buffer);
+			if (result != DNS_R_SUCCESS) {
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+					"dns_rdataclass_totext() failed: %s",
+						 dns_result_totext(result));
+				result = DNS_R_UNEXPECTED;
+				goto cleanup;
+			}
+			isc_buffer_consumed(&buffer, &region);
+			len2 = region.length;
+			(*callbacks->error)(callbacks,
+			       "%s: %s:%d class (%*s) != zone class (%*s)\n",
+					    "dns_load_master", master_file, 
+					    isc_lex_getsourceline(lex),
+					    len1, buf1, len2, buf2);
+			result = DNS_R_BADCLASS;
 			goto cleanup;
 		}
 
@@ -396,8 +498,8 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 						       &glue_list,
 						       mctx);
 				if (new_rdatalist == NULL) {
-					result = DNS_R_NOSPACE;
-					goto cleanup;
+					result = DNS_R_NOMEMORY;
+					goto error_cleanup;
 				}
 				rdatalist = new_rdatalist;
 				rdatalist_size += 32;
@@ -412,14 +514,22 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 				ISC_LIST_PREPEND(glue_list, this, link);
 			else
 				ISC_LIST_PREPEND(current_list, this, link);
+		} else if (this->ttl != ttl) {
+			(*callbacks->warn)(callbacks,
+				   "%s: %s:%d: TTL set to ealier TTL (%lu)\n",
+					   "dns_load_master", master_file,
+					   isc_lex_getsourceline(lex),
+					   this->ttl);
+			ttl = this->ttl;
 		}
+
 		if (rdcount == rdata_size) {
 			new_rdata = grow_rdata(rdata_size + 512, rdata,
 					       rdata_size, &current_list,
 					       &glue_list, mctx);
 			if (new_rdata == NULL) {
-				result = DNS_R_NOSPACE;
-				goto cleanup;
+				result = DNS_R_NOMEMORY;
+				goto error_cleanup;
 			}
 			rdata_size += 512;
 			rdata = new_rdata;
@@ -457,7 +567,13 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 	result = commit(callbacks, &glue_list, &glue_name);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	result = DNS_R_SUCCESS;
+	else
+		result = DNS_R_SUCCESS;
+	goto cleanup;
+
+ error_cleanup:
+	(*callbacks->error)(callbacks, "dns_load_master: %s\n",
+			    dns_result_totext(result));
 
  cleanup:
 	if (lex != NULL) {
