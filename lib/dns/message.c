@@ -941,6 +941,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
 
 		ISC_LIST_APPEND(name->list, rdataset, link);
+		rdataset = NULL;
 	}
 
 	return (ISC_R_SUCCESS);

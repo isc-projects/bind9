@@ -1,3 +1,6 @@
+ 141.	[bug]		Corrupt requests with multiple questions could
+			cause an assertion failure.
+
  140.   [cleanup]       <isc/time.h> does not need <time.h> or <isc/result.h>.
 
  139.   [cleanup]       <isc/net.h> now includes <isc/types.h> instead of
