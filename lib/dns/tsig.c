@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.87 2000/09/07 20:34:04 bwelling Exp $
+ * $Id: tsig.c,v 1.88 2000/09/08 07:51:28 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -183,7 +183,7 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 
 	tkey->magic = TSIG_MAGIC;
 
-	if (dst_key_size(dstkey) < 64) {
+	if (dstkey != NULL && dst_key_size(dstkey) < 64) {
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof(namestr));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
