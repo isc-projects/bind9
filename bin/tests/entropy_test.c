@@ -16,34 +16,58 @@
  */
 
 #include <isc/entropy.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 #include <isc/string.h>
 
 #include <stdio.h>
 
 static void
-hex_dump(char *msg, void *data, unsigned int len) {
+hex_dump(char *msg, void *data, unsigned int length) {
         unsigned int len;
+	unsigned char *base;
 
-        printf("DUMP of %d bytes:  %s\n", len, msg);
-        for (len = 0 ; len < r.length ; len++) {
+	base = data;
+
+        printf("DUMP of %d bytes:  %s\n", length, msg);
+        for (len = 0 ; len < length ; len++) {
                 if (len % 16 == 0)
                         printf("\n");
-                printf("%02x ", r.base[len]);
+                printf("%02x ", base[len]);
         }
         printf("\n");
 }
 
+static void
+CHECK(const char *msg, isc_result_t result) {
+	if (result != ISC_R_SUCCESS) {
+		printf("FAILURE:  %s\n", msg);
+		exit(1);
+	}
+}
+
 int
 main(int argc, char **argv) {
-	isc_sha1_t sha1;
-	isc_md5_t md5;
-	unsigned char digest[20];
+	isc_mem_t *mctx;
 	unsigned char buffer[1024];
-	const unsigned char *s;
+	isc_entropy_t *ent;
+	isc_entropysource_t *devrandom;
 
 	UNUSED(argc);
 	UNUSED(argv);
 
+	mctx = NULL;
+	CHECK("isc_mem_create()",
+	      isc_mem_create(0, 0, &mctx));
+
+	ent = NULL;
+	CHECK("isc_entropy_create()",
+	      isc_entropy_create(mctx, &ent));
+
+	devrandom = NULL;
+	CHECK("isc_entropy_createfilesource()",
+	      isc_entropy_createfilesource(ent, "/dev/random",
+					   0, &devrandom));
+	
 	return (0);
 }

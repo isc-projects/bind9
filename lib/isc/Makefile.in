@@ -30,7 +30,8 @@ CWARNINGS =
 
 # Alphabetically
 UNIXOBJS =	@ISC_ISCIPV6_O@ \
-		unix/app.@O@ unix/dir.@O@ unix/errno2result.@O@ unix/file.@O@ \
+		unix/app.@O@ unix/dir.@O@ unix/entropy.@O@ \
+		unix/errno2result.@O@ unix/file.@O@ \
 		unix/interfaceiter.@O@ unix/net.@O@ unix/socket.@O@ \
 		unix/time.@O@ unix/stdio.@O@ unix/stdtime.@O@
 
