@@ -246,8 +246,6 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
-	
-
 	cache = NULL;
 	RUNTIME_CHECK(dns_cache_create(mctx, taskmgr, timermgr,
 				       dns_rdataclass_in, "rbt", 0, NULL,
