@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.224 2001/09/12 00:22:53 gson Exp $ */
+/* $Id: dighost.c,v 1.225 2001/09/14 06:31:40 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2512,15 +2512,16 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 
 	debug("get_address()");
 
-	/*
-	 * Assume we have v4 if we don't have v6, since setup_libs
-	 * fatal()'s out if we don't have either.
-	 */
-	if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
+	if (inet_pton(AF_INET6, host, &in6) == 1) {
+		if (!have_ipv6)
+			fatal("Protocol family INET6 not supported '%s'", host);
 		isc_sockaddr_fromin6(sockaddr, &in6, port);
-	else if (inet_pton(AF_INET, host, &in4) == 1)
-		isc_sockaddr_fromin(sockaddr, &in4, port);
-	else {
+	} else if (inet_pton(AF_INET, host, &in4) == 1) {
+		if (have_ipv4)
+			isc_sockaddr_fromin(sockaddr, &in4, port);
+		else
+			isc_sockaddr_v6fromin(sockaddr, &in4, port);
+	} else {
 #ifdef USE_GETADDRINFO
 		memset(&hints, 0, sizeof(hints));
 		if (!have_ipv6)
