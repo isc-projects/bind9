@@ -487,6 +487,7 @@ addlookup(char *opt) {
 	lookup->udpsize = bufsize;
 	lookup->nsfound = 0;
 	lookup->comments = comments;
+	lookup->tcp_mode = tcpmode;
 	lookup->stats = stats;
 	lookup->section_question = section_question;
 	lookup->section_answer = section_answer;
@@ -503,6 +504,7 @@ static void
 flush_server_list() {
 	dig_server_t *s, *ps;
 
+	debug ("flush_lookup_list()");
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
 		ps = s;
@@ -669,8 +671,11 @@ main(int argc, char **argv) {
 		if (ISC_LIST_HEAD(lookup_list) != NULL) {
 			busy = ISC_TRUE;
 			start_lookup();
+			while (busy) {
+				result = isc_condition_wait(&cond, &lock);
+				check_result(result, "isc_condition_wait");
+			}
 			flush_lookup_list();
-
 		}
 	}
 

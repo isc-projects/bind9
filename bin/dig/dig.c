@@ -37,7 +37,7 @@ extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t have_ipv6, show_details,
-	usesearch, trace, qr;
+	usesearch, qr;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -112,9 +112,10 @@ static char *rcodetext[] = {
 static void
 show_usage() {
 	fputs (
-"Usage:  dig [@server] [domain] [q-type] [q-class] {q-opt} {d-opt}\n"
-"where:  server,\n"
-"        domain	  are in the Domain Name System\n"
+"Usage:  dig [@global-server] [domain] [q-type] [q-class] {q-opt}\n"
+"        {global-d-opt} host [@local-server] {local-d-opt}\n"
+"        [ host [@local-server] {local-d-opt} [...]]\n"
+"Where:  domain	  are in the Domain Name System\n"
 "        q-class  is one of (in,chaos,...) [default: in]\n"
 "        q-type   is one of (a,any,mx,ns,soa,hinfo,axfr,txt,...) [default:a]\n"
 "        q-opt    is one of:\n"
@@ -152,6 +153,8 @@ show_usage() {
 "                 +[no]identify       (ID responders in short answers)\n"
 "        Available but not yet completed:\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
+"        global d-opts and servers (before host name) affect all queries.\n"
+"        local d-opts and servers (after host name) affect only that lookup.\n"
 , stderr);
 }				
 
@@ -540,6 +543,14 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	int rc;
 	char **rv;
 
+	/*
+	 * The semantics for parsing the args is a bit complex; if
+	 * we don't have a host yet, make the arg apply globally,
+	 * otherwise make it apply to the latest host.  This is
+	 * a bit different than the previous versions, but should
+	 * form a consistent user interface.
+	 */
+
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
@@ -563,148 +574,307 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 		} else if ((strcmp(rv[0], "+vc") == 0)
 			   && (!is_batchfile)) {
-			tcpmode = ISC_TRUE;
+			if (have_host)
+				lookup->tcp_mode = ISC_TRUE;
+			else
+				tcpmode = ISC_TRUE;
 		} else if ((strcmp(rv[0], "+novc") == 0)
 			   && (!is_batchfile)) {
-			tcpmode = ISC_FALSE;
+			if (have_host)
+				lookup->tcp_mode = ISC_FALSE;
+			else
+				tcpmode = ISC_FALSE;
 		} else if ((strcmp(rv[0], "+tcp") == 0)
 			   && (!is_batchfile)) {
-			tcpmode = ISC_TRUE;
+			if (have_host)
+				lookup->tcp_mode = ISC_TRUE;
+			else
+				tcpmode = ISC_TRUE;
 		} else if ((strcmp(rv[0], "+notcp") == 0)
 			   && (!is_batchfile)) {
-			tcpmode = ISC_FALSE;
+			if (have_host)
+				lookup->tcp_mode = ISC_FALSE;
+			else
+				tcpmode = ISC_FALSE;
 		} else if (strncmp(rv[0], "+domain=", 8) == 0) {
+			/* Global option always */
 			strncpy (fixeddomain, &rv[0][8], MXNAME);
 		} else if (strncmp(rv[0], "+sea", 4) == 0) {
+			/* Global option always */
 			usesearch = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nosea", 6) == 0) {
 			usesearch = ISC_FALSE;
 		} else if (strncmp(rv[0], "+defn", 5) == 0) {
-			defname = ISC_TRUE;
+			if (have_host)
+				lookup->defname = ISC_TRUE;
+			else
+				defname = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nodefn", 7) == 0) {
-			defname = ISC_FALSE;
+			if (have_host)
+				lookup->defname = ISC_FALSE;
+			else
+				defname = ISC_FALSE;
 		} else if (strncmp(rv[0], "+time=", 6) == 0) {
+			/* Global option always */
 			timeout = atoi(&rv[0][6]);
 			if (timeout <= 0)
 				timeout = 1;
 		} else if (strncmp(rv[0], "+tries=", 7) == 0) {
-			tries = atoi(&rv[0][7]);
-			if (tries <= 0)
-				tries = 1;
-		} else if (strncmp(rv[0], "+buf=", 5) == 0) {
-			bufsize = atoi(&rv[0][5]);
-			if (bufsize <= 0)
-				bufsize = 0;
-			if (bufsize > COMMSIZE)
-				bufsize = COMMSIZE;
-		} else if (strncmp(rv[0], "+bufsize=", 9) == 0) {
-			bufsize = atoi(&rv[0][9]);
-			if (bufsize <= 0)
-				bufsize = 0;
-			if (bufsize > COMMSIZE)
-				bufsize = COMMSIZE;
-		} else if (strncmp(rv[0], "+ndots=", 7) == 0) {
-			ndots = atoi(&rv[0][7]);
-			if (timeout <= 0)
-				timeout = 1;
-		} else if (strncmp(rv[0], "+rec", 4) == 0) {
-			recurse = ISC_TRUE;
-		} else if (strncmp(rv[0], "+norec", 6) == 0) {
-			recurse = ISC_FALSE;
-		} else if (strncmp(rv[0], "+aa", 3) == 0) {
-			aaonly = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noaa", 5) == 0) {
-			aaonly = ISC_FALSE;
-		} else if (strncmp(rv[0], "+ns", 3) == 0) {
-			ns_search_only = ISC_TRUE;
-			recurse = ISC_FALSE;
-			identify = ISC_TRUE;
-			short_form = ISC_TRUE;
-			identify = ISC_TRUE;
-			if (!forcecomment)
-				comments = ISC_FALSE;
-			section_additional = ISC_FALSE;
-			section_authority = ISC_FALSE;
-			section_question = ISC_FALSE;
-		} else if (strncmp(rv[0], "+nons", 6) == 0) {
-			ns_search_only = ISC_FALSE;
-		} else if (strncmp(rv[0], "+tr", 3) == 0) {
-			trace = ISC_TRUE;
-			recurse = ISC_FALSE;
-			identify = ISC_TRUE;
-			if (!forcecomment) {
-				comments = ISC_FALSE;
-				stats = ISC_FALSE;
+			if (have_host) {
+				lookup->retries = atoi(&rv[0][7]);
+				if (lookup->retries <= 0)
+					lookup->retries = 1;
+			} else {
+				tries = atoi(&rv[0][7]);
+				if (tries <= 0)
+					tries = 1;
 			}
-			section_additional = ISC_FALSE;
-			section_authority = ISC_FALSE;
-			section_question = ISC_FALSE;
-			show_details = ISC_TRUE;
+		} else if (strncmp(rv[0], "+buf=", 5) == 0) {
+			if (have_host) {
+				lookup->udpsize = atoi(&rv[0][5]);
+				if (lookup->udpsize <= 0)
+					lookup->udpsize = 0;
+				if (lookup->udpsize > COMMSIZE)
+					lookup->udpsize = COMMSIZE;
+			} else {
+				bufsize = atoi(&rv[0][5]);
+				if (bufsize <= 0)
+					bufsize = 0;
+				if (bufsize > COMMSIZE)
+					bufsize = COMMSIZE;
+			}
+		} else if (strncmp(rv[0], "+bufsize=", 9) == 0) {
+			if (have_host) {
+				lookup->udpsize = atoi(&rv[0][9]);
+				if (lookup->udpsize <= 0)
+					lookup->udpsize = 0;
+				if (lookup->udpsize > COMMSIZE)
+					lookup->udpsize = COMMSIZE;
+			} else {
+				bufsize = atoi(&rv[0][9]);
+				if (bufsize <= 0)
+					bufsize = 0;
+				if (bufsize > COMMSIZE)
+					bufsize = COMMSIZE;
+			}
+		} else if (strncmp(rv[0], "+ndots=", 7) == 0) {
+			/* Global option always */
+			ndots = atoi(&rv[0][7]);
+			if (ndots < 0)
+				ndots = 0;
+		} else if (strncmp(rv[0], "+rec", 4) == 0) {
+			if (have_host)
+				lookup->recurse = ISC_TRUE;
+			else
+				recurse = ISC_TRUE;
+		} else if (strncmp(rv[0], "+norec", 6) == 0) {
+			if (have_host)
+				lookup->recurse = ISC_FALSE;
+			else
+				recurse = ISC_FALSE;
+		} else if (strncmp(rv[0], "+aa", 3) == 0) {
+			if (have_host) 
+				lookup->aaonly = ISC_TRUE;
+			else
+				aaonly = ISC_TRUE;
+		} else if (strncmp(rv[0], "+noaa", 5) == 0) {
+			if (have_host) 
+				lookup->aaonly = ISC_FALSE;
+			else
+				aaonly = ISC_FALSE;
+		} else if (strncmp(rv[0], "+ns", 3) == 0) {
+			if (have_host) {
+				lookup->ns_search_only = ISC_TRUE;
+				lookup->recurse = ISC_FALSE;
+				lookup->identify = ISC_TRUE;
+				lookup->trace = ISC_TRUE;
+				if (!forcecomment)
+					lookup->comments = ISC_FALSE;
+				lookup->section_additional = ISC_FALSE;
+				lookup->section_authority = ISC_FALSE;
+				lookup->section_question = ISC_FALSE;
+			} else {
+				ns_search_only = ISC_TRUE;
+				recurse = ISC_FALSE;
+				identify = ISC_TRUE;
+				if (!forcecomment)
+					comments = ISC_FALSE;
+				section_additional = ISC_FALSE;
+				section_authority = ISC_FALSE;
+				section_question = ISC_FALSE;
+			}
+		} else if (strncmp(rv[0], "+nons", 6) == 0) {
+			if (have_host)
+				lookup->ns_search_only = ISC_FALSE;
+			else
+				ns_search_only = ISC_FALSE;
+		} else if (strncmp(rv[0], "+tr", 3) == 0) {
+			if (have_host) {
+				lookup->trace = ISC_TRUE;
+				lookup->trace_root = ISC_TRUE;
+				lookup->recurse = ISC_FALSE;
+				lookup->identify = ISC_TRUE;
+				if (!forcecomment) {
+					lookup->comments = ISC_FALSE;
+					lookup->stats = ISC_FALSE;
+				}
+				lookup->section_additional = ISC_FALSE;
+				lookup->section_authority = ISC_FALSE;
+				lookup->section_question = ISC_FALSE;
+				show_details = ISC_TRUE;
+			} else {
+				trace = ISC_TRUE;
+				recurse = ISC_FALSE;
+				identify = ISC_TRUE;
+				if (!forcecomment) {
+					comments = ISC_FALSE;
+					stats = ISC_FALSE;
+				}
+				section_additional = ISC_FALSE;
+				section_authority = ISC_FALSE;
+				section_question = ISC_FALSE;
+				show_details = ISC_TRUE;
+			}
 		} else if (strncmp(rv[0], "+notr", 6) == 0) {
-			trace = ISC_FALSE;
+			if (have_host) {
+				lookup->trace = ISC_FALSE;
+				lookup->trace_root = ISC_FALSE;
+			}
+			else
+				trace = ISC_FALSE;
 		} else if (strncmp(rv[0], "+det", 4) == 0) {
 			show_details = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nodet", 6) == 0) {
 			show_details = ISC_FALSE;
 		} else if (strncmp(rv[0], "+sho", 4) == 0) {
 			short_form = ISC_TRUE;
-			if (!forcecomment) {
-				comments = ISC_FALSE;
-				stats = ISC_FALSE;
-			}
 			printcmd = ISC_FALSE;
-			section_additional = ISC_FALSE;
-			section_authority = ISC_FALSE;
-			section_question = ISC_FALSE;
+			if (have_host) {
+				lookup->section_additional = ISC_FALSE;
+				lookup->section_authority = ISC_FALSE;
+				lookup->section_question = ISC_FALSE;
+				if (!forcecomment) {
+					lookup->comments = ISC_FALSE;
+					lookup->stats = ISC_FALSE;
+				}
+			} else {
+				section_additional = ISC_FALSE;
+				section_authority = ISC_FALSE;
+				section_question = ISC_FALSE;
+				if (!forcecomment) {
+					comments = ISC_FALSE;
+					stats = ISC_FALSE;
+				}
+			}
 		} else if (strncmp(rv[0], "+nosho", 6) == 0) {
 			short_form = ISC_FALSE;
 		} else if (strncmp(rv[0], "+id", 3) == 0) {
-			identify = ISC_TRUE;
+			if (have_host)
+				lookup->identify = ISC_TRUE;
+			else
+				identify = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noid", 5) == 0) {
-			identify = ISC_FALSE;
+			if (have_host)
+				lookup->identify = ISC_FALSE;
+			else
+				identify = ISC_FALSE;
 		} else if (strncmp(rv[0], "+com", 4) == 0) {
-			comments = ISC_TRUE;
+			if (have_host)
+				lookup->comments = ISC_TRUE;
+			else
+				comments = ISC_TRUE;
 			forcecomment = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nocom", 6) == 0) {
-			comments = ISC_FALSE;
+			if (have_host) {
+				lookup->comments = ISC_FALSE;
+				lookup->stats = ISC_FALSE;
+			} else {
+				comments = ISC_FALSE;
+				stats = ISC_FALSE;
+			}
 			forcecomment = ISC_FALSE;
-			stats = ISC_FALSE;
 		} else if (strncmp(rv[0], "+sta", 4) == 0) {
-			stats = ISC_TRUE;
+			if (have_host)
+				lookup->stats = ISC_TRUE;
+			else
+				stats = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nosta", 6) == 0) {
-			stats = ISC_FALSE;
+			if (have_host)
+				lookup->stats = ISC_FALSE;
+			else
+				stats = ISC_FALSE;
 		} else if (strncmp(rv[0], "+qr", 3) == 0) {
 			qr = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noqr", 5) == 0) {
 			qr = ISC_FALSE;
 		} else if (strncmp(rv[0], "+que", 4) == 0) {
-			section_question = ISC_TRUE;
+			if (have_host)
+				lookup->section_question = ISC_TRUE;
+			else
+				section_question = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noque", 6) == 0) {
-			section_question = ISC_FALSE;
+			if (have_host)
+				lookup->section_question = ISC_FALSE;
+			else
+				section_question = ISC_FALSE;
 		} else if (strncmp(rv[0], "+ans", 4) == 0) {
-			section_answer = ISC_TRUE;
+			if (have_host)
+				lookup->section_answer = ISC_TRUE;
+			else
+				section_answer = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noans", 6) == 0) {
-			section_answer = ISC_FALSE;
+			if (have_host)
+				lookup->section_answer = ISC_FALSE;
+			else
+				section_answer = ISC_FALSE;
 		} else if (strncmp(rv[0], "+add", 4) == 0) {
-			section_additional = ISC_TRUE;
+			if (have_host)
+				lookup->section_additional = ISC_TRUE;
+			else
+				section_additional = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noadd", 6) == 0) {
-			section_additional = ISC_FALSE;
+			if (have_host)
+				lookup->section_additional = ISC_FALSE;
+			else
+				section_additional = ISC_FALSE;
 		} else if (strncmp(rv[0], "+aut", 4) == 0) {
-			section_authority = ISC_TRUE;
+			if (have_host)
+				lookup->section_authority = ISC_TRUE;
+			else
+				section_authority = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noaut", 6) == 0) {
-			section_authority = ISC_FALSE;
+			if (have_host)
+				lookup->section_authority = ISC_FALSE;
+			else
+				section_authority = ISC_FALSE;
 		} else if (strncmp(rv[0], "+all", 4) == 0) {
-			section_question = ISC_TRUE;
-			section_authority = ISC_TRUE;
-			section_answer = ISC_TRUE;
-			section_additional = ISC_TRUE;
-			comments = ISC_TRUE;
+			if (have_host) {
+				lookup->section_question = ISC_TRUE;
+				lookup->section_authority = ISC_TRUE;
+				lookup->section_answer = ISC_TRUE;
+				lookup->section_additional = ISC_TRUE;
+				lookup->comments = ISC_TRUE;
+			} else {
+				section_question = ISC_TRUE;
+				section_authority = ISC_TRUE;
+				section_answer = ISC_TRUE;
+				section_additional = ISC_TRUE;
+				comments = ISC_TRUE;
+			}
 		} else if (strncmp(rv[0], "+noall", 6) == 0) {
-			section_question = ISC_FALSE;
-			section_authority = ISC_FALSE;
-			section_answer = ISC_FALSE;
-			section_additional = ISC_FALSE;
-			comments = ISC_FALSE;
+			if (have_host) {
+				lookup->section_question = ISC_FALSE;
+				lookup->section_authority = ISC_FALSE;
+				lookup->section_answer = ISC_FALSE;
+				lookup->section_additional = ISC_FALSE;
+				lookup->comments = ISC_FALSE;
+			} else {
+				section_question = ISC_FALSE;
+				section_authority = ISC_FALSE;
+				section_answer = ISC_FALSE;
+				section_additional = ISC_FALSE;
+				comments = ISC_FALSE;
+			}
 
 #ifdef TWIDDLE
 		} else if (strncmp(rv[0], "+twiddle", 6) == 0) {

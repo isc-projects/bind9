@@ -296,16 +296,16 @@ dig_lookup_t
 			}
 		}
 	}
-	debug ("Before insertion, init@%ld "
-	       "-> %ld, new@%ld "
-	       "-> %ld", (long int)lookold,
+	debug ("Before insertion, init@%lx "
+	       "-> %lx, new@%lx "
+	       "-> %lx", (long int)lookold,
 	       (long int)lookold->link.next,
 	       (long int)looknew, (long int)looknew->
 	       link.next);
 	ISC_LIST_INSERTAFTER(lookup_list, lookold, looknew, link);
 	debug ("After insertion, init -> "
-	       "%ld, new = %ld, "
-	       "new -> %ld", (long int)lookold,
+	       "%lx, new = %lx, "
+	       "new -> %lx", (long int)lookold,
 	       (long int)looknew, (long int)looknew->
 	       link.next);
 	return (looknew);
@@ -493,6 +493,7 @@ add_opt (dns_message_t *msg, isc_uint16_t udpsize) {
 	dns_rdata_t *rdata = NULL;
 	isc_result_t result;
 
+	debug ("add_opt()");
 	result = dns_message_gettemprdataset(msg, &rdataset);
 	check_result (result, "dns_message_gettemprdataset");
 	dns_rdataset_init (rdataset);
@@ -500,7 +501,8 @@ add_opt (dns_message_t *msg, isc_uint16_t udpsize) {
 	check_result (result, "dns_message_gettemprdatalist");
 	result = dns_message_gettemprdata(msg, &rdata);
 	check_result (result, "dns_message_gettemprdata");
-
+	
+	debug ("Setting udp size of %d", udpsize);
 	rdatalist->type = dns_rdatatype_opt;
 	rdatalist->covers = 0;
 	rdatalist->rdclass = udpsize;
@@ -920,6 +922,8 @@ setup_lookup(dig_lookup_t *lookup) {
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
 		if (query == NULL)
 			fatal("Memory allocation failure in %s:%d", __FILE__, __LINE__);
+		debug ("Create query %lx linked to lookup %lx",
+		       (long int)query, (long int)lookup);
 		query->lookup = lookup;
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
@@ -991,8 +995,12 @@ send_udp(dig_lookup_t *lookup) {
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
+		debug ("Working on lookup %lx, query %lx",
+		       (long int)query->lookup, (long int)query);
 		ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);
 		query->working = ISC_TRUE;
+		debug ("recving with lookup=%lx, query=%lx",
+		       (long int)query->lookup, (long int)query);
 		result = isc_socket_recvv(query->sock, &query->recvlist, 1,
 					  task, recv_done, query);
 		check_result(result, "isc_socket_recvv");
@@ -1135,6 +1143,8 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_init(&query->recvbuf, query->recvspace, length);
 	ENSURE(ISC_LIST_EMPTY(query->recvlist));
 	ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);
+	debug ("recving with lookup=%lx, query=%lx",
+	       (long int)query->lookup, (long int)query);
 	result = isc_socket_recvv(query->sock, &query->recvlist, length, task,
 				  recv_done, query);
 	check_result(result, "isc_socket_recvv");
@@ -1267,7 +1277,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	
 	UNUSED (task);
 
-	debug("recv_done()");
+	query = event->ev_arg;
+	debug("recv_done(lookup=%lx, query=%lx)",
+	      (long int)query->lookup, (long int)query);
 
 	if (free_now) {
 		debug("Bailing out, since freeing now.");
@@ -1279,7 +1291,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	debug("In recv_done, counter down to %d", sendcount);
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	sevent = (isc_socketevent_t *)event;
-	query = event->ev_arg;
 
 	if (!query->lookup->pending && !query->lookup->ns_search_only) {
 
@@ -1526,6 +1537,7 @@ do_lookup(dig_lookup_t *lookup) {
 
 	REQUIRE (lookup != NULL);
 
+	debug ("do_lookup()");
 	if (lookup->tcp_mode)
 		do_lookup_tcp(lookup);
 	else
