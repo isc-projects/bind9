@@ -42,10 +42,10 @@ typedef struct dns_rbt dns_rbt_t;
 #define DNS_RBT_LOCKLENGTH			11
 #define DNS_RBT_REFLENGTH			20
 
-typedef struct dns_rbt_node {
-	struct dns_rbt_node *left;
-	struct dns_rbt_node *right;
-	struct dns_rbt_node *down;
+typedef struct dns_rbtnode {
+	struct dns_rbtnode *left;
+	struct dns_rbtnode *right;
+	struct dns_rbtnode *down;
 	/*
 	 * We'd like to find a better place for the single bit of color	
 	 * information.  We can't pack it into the bitfield below, however,
@@ -138,8 +138,9 @@ void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  *
  */
 
-dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name,
-				dns_rbtnodechain_t *chain);
+dns_result_t dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name,
+			       dns_rbtnode_t **node,
+			       dns_rbtnodechain_t *chain);
 /*
  * Find the node for 'name'.
  *
@@ -148,7 +149,7 @@ dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name,
  *	has a non-NULL data pointer.
  */
 
-void *dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name);
+dns_result_t dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, void **data);
 /*
  * Return the data pointer associated with 'name'.
  *

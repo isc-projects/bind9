@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.4 1999/02/26 00:25:12 marka Exp $ */
+ /* $Id: compress.c,v 1.5 1999/03/04 21:03:29 tale Exp $ */
 
 #include <config.h>
 
@@ -436,7 +436,6 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 
 	labels = count = dns_name_countlabels(name);
 	start = 0;
-	data = NULL;
 	bits = 0;
 
 	dns_name_init(&tmpname, NULL);
@@ -445,8 +444,12 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	/* Don't look for the root label (count == 1). */
 	while (count > 1) {
 		dns_name_getlabelsequence(name, start, count, &tmpname);
-		data = dns_rbt_findname(root, &tmpname);
-		if (data != NULL)
+		data = NULL;
+		result = dns_rbt_findname(root, &tmpname, (void *)&data);
+		/* XXX @@@ is this right, Mark?
+		   note that for data to be non-null, then result can
+		   be DNS_R_SUCCESS or DNS_R_PARTIALMATCH */
+		if (result == DNS_R_SUCCESS && data != NULL)
 			break;
 		count--;
 		start++;
@@ -476,8 +479,10 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 						&tmpname, workspace);
 			if (result != DNS_R_SUCCESS)
 				continue;
-			data = dns_rbt_findname(root, &tmpname);
-			if (data != NULL)
+			data = NULL;
+			result = dns_rbt_findname(root, &tmpname, (void *)&data);
+			/* XXX @@@ is this right, Mark? */
+			if (result == DNS_R_SUCCESS && data != NULL)
 				break;
 			if (bits == 1)
 				bits = 0;

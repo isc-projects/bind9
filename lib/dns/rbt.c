@@ -240,8 +240,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_result_t result;
 	dns_rbtnodechain_t chain;
 	isc_region_t r;
-	int add_labels, current_labels, keep_labels, start_label, order;
+	unsigned int add_labels, current_labels, keep_labels, start_label;
 	unsigned int common_labels, common_bits;
+	int order;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(FAST_ISABSOLUTE(name));
@@ -315,6 +316,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			}
 
 		} else {
+			/* @@@ handle bitstrings */
+
 			/*
 			 * This name has some suffix in common with the
 			 * name at the current node.  If the name at
@@ -538,21 +541,25 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
  * If second argument "up" is non-NULL, set it to the node that has
  * the down pointer for the found node.
  */
-dns_rbtnode_t *
-dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnodechain_t *chain) {
+dns_result_t
+dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
+		 dns_rbtnodechain_t *chain)
+{
 	dns_rbtnode_t *current;
 	dns_name_t *search_name, *new_search_name, *current_name;
 	dns_name_t holder1, holder2;
 	dns_namereln_t compared;
+	dns_result_t result;
 	dns_offsets_t holder1_offsets, holder2_offsets;
-	int current_labels, keep_labels, order;
-	unsigned int common_labels, common_bits;
 	isc_region_t r;
+	unsigned int current_labels, keep_labels, common_labels, common_bits;
+	int order;
 
 	/* @@@ optimize skipping the root node? */
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(FAST_ISABSOLUTE(name));
+	REQUIRE(node != NULL && *node == NULL);
 
 	dns_name_init(&holder1, holder1_offsets);
 	dns_name_init(&holder2, holder2_offsets);
@@ -576,7 +583,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnodechain_t *chain) {
 		chain->level_count = 0;
 
 		if (get_ancestor_mem(rbt->mctx, chain) != DNS_R_SUCCESS)
-			return (NULL);
+			return (DNS_R_NOMEMORY);
 
 		ADD_ANCESTOR(chain, NULL);
 	}
@@ -596,7 +603,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnodechain_t *chain) {
 		if (chain != NULL &&
 		    chain->ancestor_count == chain->ancestor_maxitems &&
 		    get_ancestor_mem(rbt->mctx, chain) != DNS_R_SUCCESS)
-				return (NULL);
+				return (DNS_R_NOMEMORY);
 
 		/*
 		 * Standard binary search tree movement.
@@ -655,35 +662,54 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnodechain_t *chain) {
 				}
 
 				/*
+				 * This might be the closest enclosing name.
+				 */
+				*node = current;
+
+				/*
 				 * Search in the next tree level.
 				 */
 				current = DOWN(current);
 
-			} else
+			} else {
 				/*
 				 * Though there is a suffix in common, it
 				 * has no down pointer, so the name does
 				 * not exist.
 				 */
 				current = NULL;
+			}
 		}
 	}
 
-	return (current);
+	if (current != NULL) {
+		*node = current;
+		result = DNS_R_SUCCESS;
+	} else if (*node != NULL) {
+		result = DNS_R_PARTIALMATCH;
+	} else {
+		result = DNS_R_NOTFOUND;
+	}
+
+	return (result);
 }
 
-void *
-dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name) {
-	dns_rbtnode_t *node;
+dns_result_t
+dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, void **data) {
+	dns_rbtnode_t *node = NULL;
+	dns_result_t result;
 
 	REQUIRE(VALID_RBT(rbt));
+	REQUIRE(data != NULL && *data == NULL);
 
-	node = dns_rbt_findnode(rbt, name, NULL);
+	result = dns_rbt_findnode(rbt, name, &node, NULL);
 
 	if (node != NULL && DATA(node) != NULL)
-		return(DATA(node));
+		*data = DATA(node);
 	else
-		return(NULL);
+		result = DNS_R_NOTFOUND;
+		
+	return (result);
 }
 
 /*
@@ -691,7 +717,7 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name) {
  */
 dns_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
-	dns_rbtnode_t *node;
+	dns_rbtnode_t *node = NULL;
 	dns_result_t result;
 	dns_rbtnodechain_t chain;
 
@@ -711,8 +737,10 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 *
 	 * @@@ how to ->dirty, ->locknum and ->references figure in?
 	 */
+	result = dns_rbt_findnode(rbt, name, &node, &chain);
 
-	node = dns_rbt_findnode(rbt, name, &chain);
+	if (result != DNS_R_SUCCESS)
+		return (DNS_R_NOTFOUND);
 
 	/*
 	 * The guts of this routine are in a separate function (which

@@ -669,7 +669,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 
 static dns_result_t
 findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
-	 dns_dbnode_t **nodep) {
+	 dns_dbnode_t **nodep)
+{
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node = NULL;
 	dns_name_t foundname;
@@ -681,9 +682,9 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	dns_name_init(&foundname, NULL);
 	RWLOCK(&rbtdb->tree_lock, locktype);
-	node = dns_rbt_findnode(rbtdb->tree, name, NULL);
+	result = dns_rbt_findnode(rbtdb->tree, name, &node, NULL);
  again:
-	if (node != NULL) {
+	if (result == DNS_R_SUCCESS) {
 		locknum = node->locknum;
 		LOCK(&rbtdb->node_locks[locknum].lock);
 		if (node->references == 0)
