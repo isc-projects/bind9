@@ -59,7 +59,6 @@
 
 #include <isc/lang.h>
 #include <isc/types.h>
-#include <isc/result.h>
 
 ISC_LANG_BEGINDECLS
 
