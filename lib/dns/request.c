@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.67 2001/10/18 06:09:37 marka Exp $ */
+/* $Id: request.c,v 1.68 2001/10/23 23:10:14 gson Exp $ */
 
 #include <config.h>
 
@@ -1288,10 +1288,12 @@ req_timeout(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	if (event->ev_type == ISC_TIMEREVENT_TICK) {
-		result = req_send(request, task, &request->destaddr);
-		if (result != ISC_R_SUCCESS) {
-			req_cancel(request);
-			send_if_done(request, result);
+		if (! DNS_REQUEST_SENDING(request)) {
+			result = req_send(request, task, &request->destaddr);
+			if (result != ISC_R_SUCCESS) {
+				req_cancel(request);
+				send_if_done(request, result);
+			}
 		}
 	} else {
 		request->flags |= DNS_REQUEST_F_TIMEDOUT;
