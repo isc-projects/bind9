@@ -48,8 +48,10 @@
 			TKEY queries with an owner name other than the root
 			could cause an assertion failure. [RT #1866, #1869]
 
-1037.	[bug]		We failed to reject some self inconsistant answers.
-			[RT #1862]
+1037.	[bug]		Negative responses whose authority section contain
+			SOA or NS records whose owner names are not equal
+			equal to or parents of the query name should be
+			rejected. [RT #1862]
 
 1036.	[func]		Temporally drop requests received via multicast.
 
