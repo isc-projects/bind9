@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.8 2002/06/03 00:34:55 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.9 2002/06/28 05:00:55 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -1195,8 +1195,6 @@ gethostans(struct irs_ho *this,
 		eor = cp + n;
 		if ((qtype == T_A || qtype == T_AAAA || qtype == ns_t_a6 ||
 		     qtype == T_ANY) && type == T_CNAME) {
-			if (ap >= &pvt->host_aliases[MAXALIASES-1])
-				continue;
 			n = dn_expand(ansbuf, eor, cp, tbuf, sizeof tbuf);
 			if (n < 0 || !maybe_ok(pvt->res, tbuf, name_ok)) {
 				had_error++;
@@ -1204,6 +1202,8 @@ gethostans(struct irs_ho *this,
 			}
 			cp += n;
 			/* Store alias. */
+			if (ap >= &pvt->host_aliases[MAXALIASES-1])
+				continue;
 			*ap++ = bp;
 			n = strlen(bp) + 1;	/* for the \0 */
 			bp += n;
