@@ -1150,6 +1150,48 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size);
  *
  */
 
+/***
+ *** High Peformance Macros
+ ***/
+
+/*
+ * WARNING:  Use of these macros by applications may require recompilation
+ *           of the application in some situations where calling the function
+ *           would not.
+ *
+ * WARNING:  No assertion checking is done for these macros.
+ */
+
+#ifdef DNS_NAME_USEINLINE
+
+#define dns_name_init(n, o)		DNS_NAME_INIT(n, o)
+#define dns_name_countlabels(n)		DNS_NAME_COUNTLABELS(n)
+#define dns_name_isabsolute(n)		DNS_NAME_ISABSOLUTE(n)
+
+#define DNS_NAME_INIT(n, o) \
+do { \
+	(n)->magic = DNS_NAME_MAGIC; \
+	(n)->ndata = NULL; \
+	(n)->length = 0; \
+	(n)->labels = 0; \
+	(n)->attributes = 0; \
+	(n)->offsets = (o); \
+	(n)->buffer = NULL; \
+	ISC_LINK_INIT((n), link); \
+	ISC_LIST_INIT((n)->list); \
+} while (0)
+
+#define DNS_NAME_SETBUFFER(n, b) \
+	(n)->buffer = (b)
+
+#define DNS_NAME_ISABSOLUTE(n) \
+	(((n)->attributes & DNS_NAMEATTR_ABSOLUTE) ? ISC_TRUE : ISC_FALSE)
+
+#define DNS_NAME_COUNTLABELS(n) \
+	((n)->labels)
+
+#endif /* DNS_NAME_USEINLINE */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NAME_H */
