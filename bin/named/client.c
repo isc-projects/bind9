@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.17 2004/09/26 22:38:45 marka Exp $ */
+/* $Id: client.c,v 1.176.2.18 2005/03/15 00:46:37 marka Exp $ */
 
 #include <config.h>
 
@@ -1501,8 +1501,7 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
-{
+client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	ns_client_t *client;
 	isc_result_t result;
 
