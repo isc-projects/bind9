@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.65 2001/05/02 00:03:12 bwelling Exp $
+ * $Id: dnssec.c,v 1.66 2001/05/10 06:05:54 bwelling Exp $
  */
 
 
@@ -502,7 +502,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 		result = dst_key_fromfile(dst_key_name(pubkey),
 					  dst_key_id(pubkey),
 					  dst_key_alg(pubkey),
-					  DST_TYPE_PRIVATE,
+					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  NULL,
 					  mctx, &keys[count]);
 		if (result == DST_R_INVALIDPRIVATEKEY)
