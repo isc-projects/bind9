@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.17 2000/12/29 18:19:52 bwelling Exp $ */
+/* $Id: mutex.h,v 1.18 2001/01/04 22:37:37 neild Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -24,8 +24,6 @@
 #include <stdio.h>
 
 #include <isc/result.h>		/* for ISC_R_ codes */
-
-typedef pthread_mutex_t	isc_mutex_t;
 
 /* XXX We could do fancier error handling... */
 
@@ -36,31 +34,67 @@ typedef pthread_mutex_t	isc_mutex_t;
  * waiting to obtain the lock.
  */
 #ifndef ISC_MUTEX_PROFILE
-#define ISC_MUTEX_PROFILE 0
+#define ISC_MUTEX_PROFILE 1
 #endif
 
+#if ISC_MUTEX_PROFILE
+typedef struct isc_mutex_stats isc_mutex_stats_t;
+
+typedef struct {
+	pthread_mutex_t		mutex;	/* The actual mutex. */
+	isc_mutex_stats_t *	stats;	/* Mutex statistics. */
+} isc_mutex_t;
+#else
+typedef pthread_mutex_t	isc_mutex_t;
+#endif
+
+
+#if ISC_MUTEX_PROFILE
+#define isc_mutex_init(mp) \
+	isc_mutex_init_profile((mp), __FILE__, __LINE__)
+#else
 #define isc_mutex_init(mp) \
 	((pthread_mutex_init((mp), NULL) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#endif
 
 #if ISC_MUTEX_PROFILE
 #define isc_mutex_lock(mp) \
-	isc_mutex_lockprofile((mp), __FILE__, __LINE__)
+	isc_mutex_lock_profile((mp), __FILE__, __LINE__)
 #else
 #define isc_mutex_lock(mp) \
 	((pthread_mutex_lock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 #endif
 
+#if ISC_MUTEX_PROFILE
+#define isc_mutex_unlock(mp) \
+	isc_mutex_unlock_profile((mp), __FILE__, __LINE__)
+#else
 #define isc_mutex_unlock(mp) \
 	((pthread_mutex_unlock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#endif
+
+#if ISC_MUTEX_PROFILE
+#define isc_mutex_trylock(mp) \
+	((pthread_mutex_trylock((&(mp)->mutex)) == 0) ? \
+	 ISC_R_SUCCESS : ISC_R_LOCKBUSY)
+#else
 #define isc_mutex_trylock(mp) \
 	((pthread_mutex_trylock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_LOCKBUSY)
+#endif
+
+#if ISC_MUTEX_PROFILE
+#define isc_mutex_destroy(mp) \
+	((pthread_mutex_destroy((&(mp)->mutex)) == 0) ? \
+	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#else
 #define isc_mutex_destroy(mp) \
 	((pthread_mutex_destroy((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#endif
 
 #if ISC_MUTEX_PROFILE
 #define isc_mutex_stats(fp) isc_mutex_statsprofile(fp);
@@ -71,7 +105,11 @@ typedef pthread_mutex_t	isc_mutex_t;
 #if ISC_MUTEX_PROFILE
 
 isc_result_t
-isc_mutex_lockprofile(isc_mutex_t *mp, const char * _file, int _line);
+isc_mutex_init_profile(isc_mutex_t *mp, const char * _file, int _line);
+isc_result_t
+isc_mutex_lock_profile(isc_mutex_t *mp, const char * _file, int _line);
+isc_result_t
+isc_mutex_unlock_profile(isc_mutex_t *mp, const char * _file, int _line);
 
 void
 isc_mutex_statsprofile(FILE *fp);
