@@ -36,6 +36,10 @@ typedef void *		dst_context_t;
 #define DST_ALG_EXPAND		255
 #define DST_MAX_ALGS		DST_ALG_HMACSHA1
 
+/* DST algorithm codes */
+#define DST_DIGEST_MD5		258
+#define DST_DIGEST_SHA1		259
+
 /* 'Mode' passed into dst_sign() and dst_verify() */
 #define DST_SIGMODE_INIT	1	/* initialize digest */
 #define DST_SIGMODE_UPDATE	2	/* add data to digest */
@@ -95,6 +99,24 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 dst_result_t
 dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	   isc_region_t *data, isc_region_t *sig);
+
+/* Digest a block of data.
+ *
+ * Requires:
+ *	"mode" is some combination of DST_SIGMODE_INIT, DST_SIGMODE_UPDATE,
+ *		and DST_SIGMODE_FINAL.
+ *	"alg" is a valid digest algorithm
+ *	"context" contains a value appropriate for the value of "mode".
+ *	"data" is a valid region.
+ *	"digest" is a valid buffer.
+ *
+ * Ensures:
+ *	All allocated memory will be freed after the FINAL call.  "digest"
+ *	will contain a digest if all operations completed successfully.
+ */
+dst_result_t
+dst_digest(const unsigned int mode, const unsigned int alg,
+	   dst_context_t *context, isc_region_t *data, isc_buffer_t *digest);
 
 /*
  * dst_computesecret

@@ -105,6 +105,13 @@ int		dst_s_build_filename(char *filename, const char *name,
 				     const char *suffix, 
 				     size_t filename_length);
 
+
+/* digest functions */
+dst_result_t	dst_s_md5(const unsigned int mode, void **context,
+			  isc_region_t *data, isc_buffer_t *digest,
+			  isc_mem_t *mctx);
+
+
 /* memory allocators using the DST memory pool */
 void *		dst_mem_alloc(size_t size);
 void		dst_mem_free(void *ptr);

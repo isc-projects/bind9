@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.9 1999/10/08 13:08:56 bwelling Exp $
+ * $Id: hmac_link.c,v 1.10 1999/10/18 21:35:46 bwelling Exp $
  */
 
 #include <config.h>
@@ -41,11 +41,16 @@
 #define HMAC_LEN	64
 #define HMAC_IPAD	0x36
 #define HMAC_OPAD	0x5c
-#define MD5_LEN		16
 
 #define MD5Init MD5_Init
 #define MD5Update MD5_Update
 #define MD5Final MD5_Final
+
+#define RETERR(x) { \
+	ret = (x); \
+	if (ret != ISC_R_SUCCESS) \
+		return (ret); \
+	} while (0)
 
 typedef struct hmackey {
 	unsigned char ipad[64], opad[64];
@@ -122,47 +127,38 @@ dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
 		 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
 {
 	isc_region_t r;
-	MD5_CTX *ctx = NULL;
+	isc_result_t ret;
 	
-	if (mode & DST_SIGMODE_INIT) { 
-		ctx = (MD5_CTX *) isc_mem_get(mctx, sizeof(MD5_CTX));
-		if (ctx == NULL)
-			return (DST_R_NOMEMORY);
-	}
-	else if (context != NULL) 
-		ctx = (MD5_CTX *) *context;
-	REQUIRE (ctx != NULL);
-
 	if (mode & DST_SIGMODE_INIT) {
 		HMAC_Key *hkey = key->opaque;
 
-		MD5Init(ctx);
-		MD5Update(ctx, hkey->ipad, HMAC_LEN);
+		r.base = hkey->ipad;
+		r.length = HMAC_LEN;
+		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
 	}
-
-	if ((mode & DST_SIGMODE_UPDATE))
-		MD5Update(ctx, data->base, data->length);
-
+	if (mode & DST_SIGMODE_UPDATE) {
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, data, NULL,
+				 mctx));
+	}
 	if (mode & DST_SIGMODE_FINAL) {
 		HMAC_Key *hkey = key->opaque;
+		unsigned char digest[MD5_DIGEST_LENGTH];
+		isc_buffer_t b;
 
-		isc_buffer_available(sig, &r);
-		if (r.length < MD5_LEN)
-			return DST_R_NOSPACE;
+		isc_buffer_init(&b, digest, sizeof(digest),
+				ISC_BUFFERTYPE_BINARY);
 
-		MD5Final(r.base, ctx);
+		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
 
-		/* perform outer MD5 */
-		MD5Init(ctx);
-		MD5Update(ctx, hkey->opad, HMAC_LEN);
-		MD5Update(ctx, r.base, MD5_LEN);
-		MD5Final(r.base, ctx);
-		isc_buffer_add(sig, MD5_LEN);
-
-		isc_mem_put(mctx, ctx, sizeof(MD5_CTX));
+		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
+		r.base = hkey->opad;
+		r.length = HMAC_LEN;
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
+		isc_buffer_used(&b, &r);
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
+		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, sig, mctx));
 	}
-	else
-		*context = ctx;
 
 	return (DST_R_SUCCESS);
 }
@@ -189,49 +185,43 @@ static dst_result_t
 dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
 {
-	MD5_CTX *ctx = NULL;
+	isc_region_t r;
+	isc_result_t ret;
 	
-	if (mode & DST_SIGMODE_INIT) { 
-		ctx = (MD5_CTX *) isc_mem_get(mctx, sizeof(MD5_CTX));
-		if (ctx == NULL)
-			return (DST_R_NOMEMORY);
-	}
-	else if (context != NULL) 
-		ctx = (MD5_CTX *) *context;
-	REQUIRE (ctx != NULL);
-
 	if (mode & DST_SIGMODE_INIT) {
 		HMAC_Key *hkey = key->opaque;
 
-		MD5Init(ctx);
-		MD5Update(ctx, hkey->ipad, HMAC_LEN);
+		r.base = hkey->ipad;
+		r.length = HMAC_LEN;
+		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
 	}
-
-	if ((mode & DST_SIGMODE_UPDATE))
-		MD5Update(ctx, data->base, data->length);
-
+	if (mode & DST_SIGMODE_UPDATE) {
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, data, NULL,
+				 mctx));
+	}
 	if (mode & DST_SIGMODE_FINAL) {
-		u_char digest[MD5_LEN];
 		HMAC_Key *hkey = key->opaque;
+		unsigned char digest[MD5_DIGEST_LENGTH];
+		isc_buffer_t b;
 
-		if (sig->length < MD5_LEN)
-			return (DST_R_VERIFYFINALFAILURE);
+		isc_buffer_init(&b, digest, sizeof(digest),
+				ISC_BUFFERTYPE_BINARY);
 
-		MD5Final(digest, ctx);
+		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
 
-		/* perform outer MD5 */
-		MD5Init(ctx);
-		MD5Update(ctx, hkey->opad, HMAC_LEN);
-		MD5Update(ctx, digest, MD5_LEN);
-		MD5Final(digest, ctx);
+		RETERR(dst_s_md5(DST_SIGMODE_INIT, context, NULL, NULL, mctx));
+		r.base = hkey->opad;
+		r.length = HMAC_LEN;
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
+		isc_buffer_used(&b, &r);
+		RETERR(dst_s_md5(DST_SIGMODE_UPDATE, context, &r, NULL, mctx));
+		isc_buffer_clear(&b);
+		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, &b, mctx));
 
-		isc_mem_put(mctx, ctx, sizeof(MD5_CTX));
-
-		if (memcmp(digest, sig->base, MD5_LEN) != 0)
+		if (memcmp(digest, sig->base, MD5_DIGEST_LENGTH) != 0)
 			return (DST_R_VERIFYFINALFAILURE);
 	}
-	else
-		*context = ctx;
 
 	return (DST_R_SUCCESS);
 }
@@ -317,14 +307,14 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	if (r.length > HMAC_LEN) {
 		MD5_CTX ctx;
-		unsigned char digest[MD5_LEN];
+		unsigned char digest[MD5_DIGEST_LENGTH];
 
 		MD5Init(&ctx);
 		MD5Update(&ctx, r.base, r.length);
 		MD5Final(digest, &ctx);
-		memcpy(hkey->ipad, digest, MD5_LEN);
-		memcpy(hkey->opad, digest, MD5_LEN);
-		keylen = MD5_LEN;
+		memcpy(hkey->ipad, digest, MD5_DIGEST_LENGTH);
+		memcpy(hkey->opad, digest, MD5_DIGEST_LENGTH);
+		keylen = MD5_DIGEST_LENGTH;
 	}
 	else {
 		memcpy(hkey->ipad, r.base, r.length);

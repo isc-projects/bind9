@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.14 1999/10/14 18:32:49 bwelling Exp $
+ * $Id: dst_api.c,v 1.15 1999/10/18 21:35:46 bwelling Exp $
  */
 
 #include <config.h>
@@ -179,6 +179,48 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	return (key->func->verify(mode, key, (void **)context, data, sig,
 				  key->mctx));
 }
+
+/*
+ *  dst_digest
+ *	An incremental digest function.  Data is digested in steps.
+ *	First the context must be initialized (DST_SIGMODE_INIT).
+ *	Then data is hashed (DST_SIGMODE_UPDATE).  Finally the digest
+ *	is generated (DST_SIGMODE_FINAL).  This function can be called
+ *	once with DST_SIGMODE_ALL set, or it can be called separately
+ *	for each step.  The UPDATE step may be repeated.
+ *  Parameters
+ *	mode		A bit mask specifying operation(s) to be performed.
+ *			  DST_SIGMODE_INIT	Initialize digest
+ *			  DST_SIGMODE_UPDATE	Add data to digest
+ *			  DST_SIGMODE_FINAL	Complete digest
+ *			  DST_SIGMODE_ALL	Perform all operations
+ *	alg		The digest algorithm to use
+ *	context		The state of the operation
+ *	data		The data to be digested.
+ *	sig		The sdigest.
+ *  Returns
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
+ */
+dst_result_t
+dst_digest(const unsigned int mode, const unsigned int alg,
+           dst_context_t *context, isc_region_t *data, isc_buffer_t *digest)
+{
+	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
+
+	if ((mode & DST_SIGMODE_UPDATE) != 0)
+		REQUIRE(data != NULL && data->base != NULL);
+
+	if ((mode & DST_SIGMODE_FINAL) != 0)
+		REQUIRE(digest != NULL);
+
+	if (alg != DST_DIGEST_MD5)
+		return (DST_R_UNSUPPORTEDALG);
+
+	return (dst_s_md5(mode, context, data, digest, dst_memory_pool));
+}
+
 
 /*
  * dst_computesecret
