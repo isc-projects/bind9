@@ -1,3 +1,8 @@
+ 390.	[func]		The function dns_zone_setdbtype() now takes
+			an argc/argv style vector of words and sets 
+			both the zone database type and its arguments,
+			making the functions dns_zone_adddbarg()
+			and dns_zone_cleardbargs() unnecessary.
 
  389.	[bug]		Attempting to send a reqeust over IPv6 using 
 			dns_request_create() on a system without IPv6
@@ -19,12 +24,6 @@
 
  383.	[func]		When writing a master file, print the SOA and NS
 			records (and their SIGs) before other records.
-
- 382.	[func]		The function dns_zone_setdbtype() now takes
-			an argc/argv style vector of words and sets 
-			both the zone database type and its arguments,
-			making the functions dns_zone_adddbarg()
-			and dns_zone_cleardbargs() unnecessary.
 
  382.	[bug]		named -u failed on Debian Linux.
 
