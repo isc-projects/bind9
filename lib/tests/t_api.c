@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.39 2000/06/22 22:00:21 tale Exp $ */
+/* $Id: t_api.c,v 1.40 2000/07/04 03:59:54 marka Exp $ */
 
 #include <config.h>
 
@@ -620,6 +620,7 @@ struct dns_errormap {
 	{ DNS_R_NXRRSET,		"DNS_R_NXRRSET"		},
 	{ DNS_R_BADDB,			"DNS_R_BADDB"		},
 	{ DNS_R_ZONECUT,		"DNS_R_ZONECUT"		},
+	{ DNS_R_NOTZONETOP,		"DNS_R_NOTZONETOP"	},
 	{ (isc_result_t)0, NULL }
 };
 
