@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: data.c,v 1.17 2000/08/01 01:32:50 tale Exp $ */
+/* $Id: data.c,v 1.18 2000/10/11 21:19:00 marka Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -204,7 +204,7 @@ omapi_data_strdup(isc_mem_t *mctx, omapi_data_t *t) {
 	REQUIRE(t->type == omapi_datatype_string ||
 		t->type == omapi_datatype_data);
 
-	s = isc_mem_get(mctx, t->u.buffer.len + 1);
+	s = isc_mem_allocate(mctx, t->u.buffer.len + 1);
 	if (s != NULL) {
 		memcpy(s, t->u.buffer.value, t->u.buffer.len);
 		s[t->u.buffer.len] = '\0';

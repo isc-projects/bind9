@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.31 2000/08/01 01:32:58 tale Exp $ */
+/* $Id: protocol.c,v 1.32 2000/10/11 21:19:01 marka Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -566,7 +566,8 @@ dispatch_messages(omapi_protocol_t *protocol,
 			break;
 
 		omapi_string_dereference(&protocol->name);
-		omapi_data_dereference(&protocol->value);
+		if (protocol->value != NULL)
+			omapi_data_dereference(&protocol->value);
 
 		goto need_name_length;
 
@@ -746,8 +747,7 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 		if (result != ISC_R_SUCCESS) {
 			if (p->key != NULL)
 				dst_key_free(&p->key);
-			isc_mem_put(omapi_mctx, p->authname,
-				    strlen(p->authname) + 1);
+			isc_mem_free(omapi_mctx, p->authname);
 			p->authname = NULL;
 			p->algorithm = 0;
 			p->key = NULL;
@@ -781,7 +781,7 @@ protocol_destroy(omapi_object_t *h) {
 		OBJECT_DEREF(&p->authinfo);
 
 	if (p->authname != NULL) {
-		isc_mem_put(omapi_mctx, p->authname, strlen(p->authname) + 1);
+		isc_mem_free(omapi_mctx, p->authname);
 		p->authname = NULL;
 	}
 
