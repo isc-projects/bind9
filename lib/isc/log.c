@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.55.2.2 2001/04/28 01:16:26 gson Exp $ */
+/* $Id: log.c,v 1.55.2.3 2001/05/18 16:35:57 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <time.h>
 
+#include <sys/types.h>	/* dev_t FreeBSD 2.1 */
 #include <sys/stat.h>
 
 #include <isc/dir.h>
