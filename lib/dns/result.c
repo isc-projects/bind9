@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.5 2002/03/26 00:55:00 marka Exp $ */
+/* $Id: result.c,v 1.90.2.6 2003/05/14 05:47:23 marka Exp $ */
 
 #include <config.h>
 
@@ -125,7 +125,19 @@ static const char *text[DNS_R_NRESULTS] = {
 	"obsolete",			       /* 80 DNS_R_OBSOLETE	     */
 	"already frozen",		       /* 81 DNS_R_FROZEN	     */
 	"unknown flag",			       /* 82 DNS_R_UNKNOWNFLAG	     */
-	"expected a response"		       /* 83 DNS_R_EXPECTEDRESPONSE  */
+	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
+	"reserved DNS 84",
+
+	"reserved DNS 85",
+	"reserved DNS 86",
+	"reserved DNS 87",
+	"reserved DNS 88",
+	"reserved DNS 89",
+
+	"reserved DNS 90",
+	"reserved DNS 91",
+	"reserved DNS 92",
+	"empty name"				/* 93 DNS_R_EMPTYNAME */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

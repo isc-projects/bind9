@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.9 2003/03/06 04:38:15 marka Exp $ */
+/* $Id: query.c,v 1.198.2.10 2003/05/14 05:47:21 marka Exp $ */
 
 #include <config.h>
 
@@ -2782,6 +2782,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			}
 		}
 		goto cleanup;
+	case DNS_R_EMPTYNAME:
+		result = DNS_R_NXRRSET;
+		/* FALLTHROUGH */
 	case DNS_R_NXRRSET:
 		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {

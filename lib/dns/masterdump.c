@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.2 2001/10/30 01:53:24 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.3 2003/05/14 05:47:21 marka Exp $ */
 
 #include <config.h>
 
@@ -186,7 +186,7 @@ static char spaces[N_SPACES+1] = "          ";
 #define N_TABS 10
 static char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
 
-
+#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
 /*
  * Output tabs and spaces to go from column '*current' to
@@ -457,7 +457,10 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 */
 		INDENT_TO(rdata_column);
 		if (rdataset->type == 0) {
-			RETERR(str_totext(";-$\n", target));
+			if (NXDOMAIN(rdataset))
+				RETERR(str_totext(";-$NXDOMAIN\n", target));
+			else
+				RETERR(str_totext(";-$NXRRSET\n", target));
 		} else {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			isc_region_t r;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.16 2003/05/13 04:53:09 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.17 2003/05/14 05:47:24 marka Exp $ */
 
 #include <config.h>
 
@@ -1763,7 +1763,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
                 int new, tmp;
                 new = fcntl(fd, F_DUPFD, 20);
                 tmp = errno;
-                (void)close(sock->fd);
+                (void)close(fd);
                 errno = tmp;
                 fd = new;
         }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.41.2.2 2002/04/23 02:28:52 marka Exp $ */
+/* $Id: rdataset.h,v 1.41.2.3 2003/05/14 05:47:23 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -129,6 +129,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_FIXEDORDER	0x0400
 #define DNS_RDATASETATTR_RANDOMIZE	0x0800
 #define DNS_RDATASETATTR_CHASE		0x1000		/* Used by resolver. */
+#define DNS_RDATASETATTR_NXDOMAIN	0x2000
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
