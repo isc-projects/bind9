@@ -3796,7 +3796,7 @@ dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 			new_goodness = old_goodness + goodness_adjustment;
 	} else {
 		if (old_goodness < INT_MIN - goodness_adjustment)
-			new_goodness = INT_MAX;
+			new_goodness = INT_MIN;
 		else
 			new_goodness = old_goodness + goodness_adjustment;
 	}
