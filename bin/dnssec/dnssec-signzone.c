@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.81 2000/06/22 21:49:04 tale Exp $ */
+/* $Id: dnssec-signzone.c,v 1.81.2.1 2000/08/02 21:05:31 gson Exp $ */
 
 #include <config.h>
 
@@ -1011,7 +1011,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		nextnode = NULL;
 		curnode = NULL;
 		dns_dbiterator_current(dbiter, &curnode, curname);
-		if (!dns_name_equal(name, dns_db_origin(db))) {
+		if (!dns_name_equal(curname, dns_db_origin(db))) {
 			dns_rdatasetiter_t *rdsiter = NULL;
 			dns_rdataset_t set;
 

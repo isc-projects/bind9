@@ -4,6 +4,8 @@
  362.	[bug]		rndc no longer aborts if the configuration file is
 			missing an options statement. [RT #209]
 
+ 359.	[bug]		dnssec-signzone occasionally signed glue records.
+
  354.	[doc]		Man pages for the dnssec tools are now included in
 			the distribution, in doc/man/dnssec.
 
