@@ -18,14 +18,10 @@
 #include <config.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_SOCKIO_H
 #include <sys/sockio.h>
 #endif
-#include <net/if.h>
-#include <arpa/inet.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,9 +32,12 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/interfaceiter.h>
+
+#include <net/if.h>		/* Must follow <isc/net.h>. */
 
 /* Common utility functions */
 

@@ -42,15 +42,15 @@ isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
 
 void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
-		    unsigned int port);
+		    in_port_t port);
 
 void
 isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
-		     unsigned int port);
+		     in_port_t port);
 
 void
 isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
-		      unsigned int port);
+		      in_port_t port);
 
 int
 isc_sockaddr_pf(isc_sockaddr_t *sockaddr);

@@ -147,7 +147,7 @@ isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 
 void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
-		    unsigned int port)
+		    in_port_t port)
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin.sin_family = AF_INET;
@@ -162,7 +162,7 @@ isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
 
 void
 isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
-		     unsigned int port)
+		     in_port_t port)
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin6.sin6_family = AF_INET6;
@@ -177,7 +177,7 @@ isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
 
 void
 isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
-		      unsigned int port)
+		      in_port_t port)
 {
 	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin6.sin6_family = AF_INET6;

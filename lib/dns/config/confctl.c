@@ -18,9 +18,9 @@
 #include <config.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
 
 #include <isc/assertions.h>
+#include <isc/net.h>
 
 #include <dns/confctl.h>
 #include <dns/confcommon.h>

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.9 1999/09/28 13:51:18 gson Exp $ */
+ /* $Id: xfrin.c,v 1.10 1999/10/02 02:54:12 tale Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/timer.h>
+#include <isc/net.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -178,7 +179,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
 	     char *addrstr, /* XXX */
-	     unsigned int port,
+	     in_port_t port,
 	     dns_tsig_key_t *tsigkey,
 	     xfrin_ctx_t **xfrp);
 
@@ -617,7 +618,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
 	     char *addrstr, /* XXX */
-	     unsigned int port,
+	     in_port_t port,
 	     dns_tsig_key_t *tsigkey,
 	     xfrin_ctx_t **xfrp)
 {

@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.5 1999/09/17 14:21:43 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.6 1999/10/02 02:54:14 tale Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -29,9 +29,6 @@ static char rcsid[] = "$Id: confparser.y,v 1.5 1999/09/17 14:21:43 brister Exp $
 #include <errno.h> 
 #include <limits.h>
 #include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <sys/types.h> 
 
 #include <syslog.h>
@@ -42,7 +39,7 @@ static char rcsid[] = "$Id: confparser.y,v 1.5 1999/09/17 14:21:43 brister Exp $
 #include <isc/symtab.h>
 #include <isc/error.h>
 #include <isc/once.h>
-
+#include <isc/net.h>
 
 #include <dns/confparser.h>
 #include <dns/confctx.h>

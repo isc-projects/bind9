@@ -20,6 +20,7 @@
 
 #include <isc/types.h>
 #include <isc/rwlock.h>
+#include <isc/net.h>
 
 #include <dns/types.h>
 
@@ -49,7 +50,7 @@ EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN ns_interfacemgr_t *	ns_g_interfacemgr	INIT(NULL);
 EXTERN ns_clientmgr_t *		ns_g_clientmgr		INIT(NULL);
 EXTERN char *			ns_g_version		INIT(VERSION);
-EXTERN unsigned int		ns_g_port		INIT(5544);
+EXTERN in_port_t		ns_g_port		INIT(5544);
 
 EXTERN dns_viewlist_t		ns_g_viewlist;
 EXTERN isc_rwlock_t		ns_g_viewlock;

@@ -156,7 +156,7 @@ hex_dump(isc_buffer_t *b)
 }
 
 static void
-get_address(char *hostname, unsigned int port, isc_sockaddr_t *sockaddr) {
+get_address(char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
 	struct hostent *he;
@@ -217,7 +217,7 @@ send_done(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char *argv[]) {
 	char *server;
-	unsigned int port;
+	in_port_t port;
 	isc_boolean_t vc, have_name, have_type, edns0;
 	dns_name_t *name;
 	static unsigned char *namedata[512];

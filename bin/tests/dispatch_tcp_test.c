@@ -22,10 +22,13 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <sys/types.h>
+
 #include <isc/app.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/result.h>
@@ -39,13 +42,6 @@
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
 
 #include "printmsg.h"
 

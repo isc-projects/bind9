@@ -58,9 +58,9 @@
 #include <config.h>
 
 #include <sys/types.h>
-#include <netinet/in.h>
 
 #include <isc/mem.h>
+#include <isc/net.h>
 
 #include <dns/confip.h>
 

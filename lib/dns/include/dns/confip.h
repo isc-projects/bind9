@@ -54,11 +54,11 @@
 #include <config.h>
 
 #include <sys/types.h>
-#include <netinet/in.h>
 
 #include <isc/region.h>
 #include <isc/list.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 
 #include <dns/confcommon.h>
 

@@ -124,7 +124,7 @@ struct dns_c_slave_zone
 	isc_boolean_t		maint_ixfr_base;
 	isc_int32_t		max_ixfr_log;
 	dns_c_pubkey_t	       *pubkey;
-	isc_int32_t		master_port;
+	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source;
 	isc_int32_t		max_trans_time_in;
@@ -142,7 +142,7 @@ struct dns_c_stub_zone
 	dns_c_ipmatchlist_t   *allow_transfer; /* should be here??? */
 	isc_boolean_t		dialup;
 	dns_c_pubkey_t	       *pubkey;
-	isc_int32_t		master_port;
+	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source; 
 	isc_int32_t		max_trans_time_in;
@@ -249,7 +249,7 @@ isc_result_t	dns_c_zone_setpubkey(dns_c_zone_t *zone,
 				      dns_c_pubkey_t *pubkey,
 				      isc_boolean_t deepcopy);
 isc_result_t	dns_c_zone_setmasterport(dns_c_zone_t *zone,
-					   isc_int32_t port);
+					   in_port_t port);
 isc_result_t	dns_c_zone_setmasterips(dns_c_zone_t *zone,
 					  dns_c_iplist_t *newval,
 					  isc_boolean_t deepcopy);
@@ -293,7 +293,7 @@ isc_result_t	dns_c_zone_getixfrtmp(dns_c_zone_t *zone,
 isc_result_t	dns_c_zone_getpubkey(dns_c_zone_t *zone,
 				      dns_c_pubkey_t **retval);
 isc_result_t	dns_c_zone_getmasterport(dns_c_zone_t *zone,
-					   isc_int32_t *retval);
+					   in_port_t *retval);
 isc_result_t	dns_c_zone_getmasterips(dns_c_zone_t *zone,
 					  dns_c_iplist_t **retval);
 isc_result_t	dns_c_zone_gettransfersource(dns_c_zone_t *zone,
