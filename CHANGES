@@ -1,4 +1,9 @@
 
+ 987.	[bug]		"dig -help" didn't show "+[no]stats".
+
+ 986.	[bug]		"dig +noall" failed to clear stats and command
+			printing.
+
  980.	[bug]		Incoming zone transfers restarting after an error
 			could trigger an assertion failure. [RT #1692]
 

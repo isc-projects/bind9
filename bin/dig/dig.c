@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.131.2.4 2001/03/14 18:08:48 bwelling Exp $ */
+/* $Id: dig.c,v 1.131.2.5 2001/09/11 01:39:28 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -172,6 +172,7 @@ show_usage(void) {
 "                 +[no]answer         (Control display of answer)\n"
 "                 +[no]authority      (Control display of authority)\n"
 "                 +[no]additional     (Control display of additional)\n"
+"                 +[no]stats          (Control display of statistics)\n"
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
@@ -650,6 +651,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->section_answer = state;
 			lookup->section_additional = state;
 			lookup->comments = state;
+			lookup->stats = state;
+			printcmd = state;
 			break;
 		case 'n': /* answer */
 			lookup->section_answer = state;
