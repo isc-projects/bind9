@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_ntop.c,v 1.4 1999/07/16 00:24:04 halley Exp $";
+static char rcsid[] = "$Id: inet_ntop.c,v 1.5 1999/07/16 00:43:45 halley Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -44,7 +44,7 @@ static const char *inet_ntop6(const unsigned char *src, char *dst,
 #endif
 
 /* char *
- * isc_inet_ntop(af, src, dst, size)
+ * isc_net_ntop(af, src, dst, size)
  *	convert a network format address to presentation format.
  * return:
  *	pointer to presentation format address (`dst'), or NULL (see errno).
@@ -52,7 +52,7 @@ static const char *inet_ntop6(const unsigned char *src, char *dst,
  *	Paul Vixie, 1996.
  */
 const char *
-isc_inet_ntop(int af, const void *src, char *dst, size_t size)
+isc_net_ntop(int af, const void *src, char *dst, size_t size)
 {
 	switch (af) {
 	case AF_INET:
@@ -85,7 +85,7 @@ inet_ntop4(const unsigned char *src, char *dst, size_t size)
 	static const char *fmt = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
 
-	if (sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) > size) {
+	if ((size_t)sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) > size) {
 		errno = ENOSPC;
 		return (NULL);
 	}

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_pton.c,v 1.3 1999/07/16 00:24:04 halley Exp $";
+static char rcsid[] = "$Id: inet_pton.c,v 1.4 1999/07/16 00:43:45 halley Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -39,7 +39,7 @@ static int inet_pton4(const char *src, unsigned char *dst);
 static int inet_pton6(const char *src, unsigned char *dst);
 
 /* int
- * isc_inet_pton(af, src, dst)
+ * isc_net_pton(af, src, dst)
  *	convert from presentation format (which usually means ASCII printable)
  *	to network format (which is usually some kind of binary format).
  * return:
@@ -50,7 +50,7 @@ static int inet_pton6(const char *src, unsigned char *dst);
  *	Paul Vixie, 1996.
  */
 int
-isc_inet_pton(af, src, dst)
+isc_net_pton(af, src, dst)
 	int af;
 	const char *src;
 	void *dst;
