@@ -64,9 +64,14 @@ ns_server_destroy(ns_server_t **serverp);
  * Destroy a server object, freeing its memory.
  */
      
-isc_result_t ns_server_init(void);
+isc_result_t ns_server_setup(void);
 /*
- * Create the singleton names server object of BIND 9.
+ * Perform global server setup.
+ */
+
+void ns_server_cleanup(void);
+/*
+ * Perform global server cleanup
  */
 
 void

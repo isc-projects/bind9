@@ -612,18 +612,16 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_view_detach(&view);
 	}
 
+	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
+
 	dns_tkey_destroy();
 	dns_tsig_destroy();
 
-	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
+	ns_interfacemgr_shutdown(server->interfacemgr);
+	ns_interfacemgr_detach(&server->interfacemgr);	
+	dns_zonemgr_destroy(&ns_g_zonemgr);
 
 	isc_task_detach(&server_task);
-
-	dns_zonemgr_destroy(&ns_g_zonemgr);
-			     
-	ns_rootns_destroy();
-
-	ns_server_destroy(&server);
 
 	isc_event_free(&event);
 }
@@ -677,13 +675,6 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
-	/*
-	 * The interface manager owns tasks, so we have to destroy it before
-	 * we destroy the task manager.
-	 */
-	ns_interfacemgr_shutdown(server->interfacemgr);
-	ns_interfacemgr_detach(&server->interfacemgr);	
-
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 	isc_rwlock_destroy(&server->viewlock);
 	
@@ -703,7 +694,7 @@ ns_server_destroy(ns_server_t **serverp) {
 }
 	
 isc_result_t
-ns_server_init() {
+ns_server_setup(void) {
 	isc_result_t result;
 
 	/*
@@ -749,6 +740,13 @@ ns_server_init() {
 	ns_rootns_destroy();
 
 	return (result);
+}
+
+void
+ns_server_cleanup(void)
+{
+	ns_rootns_destroy();
+	ns_server_destroy(&ns_g_server);
 }
 
 void

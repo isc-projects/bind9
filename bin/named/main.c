@@ -250,7 +250,7 @@ setup() {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
-	result = ns_server_init();
+	result = ns_server_setup();
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("ns_server_init() failed: %s",
 				   isc_result_totext(result));
@@ -259,6 +259,7 @@ setup() {
 static void
 cleanup() {
 	destroy_managers();
+	ns_server_cleanup();
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();
