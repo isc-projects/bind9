@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.146 2000/11/11 00:34:20 gson Exp $ */
+/* $Id: query.c,v 1.147 2000/11/13 20:10:19 bwelling Exp $ */
 
 #include <config.h>
+
+#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/util.h>
