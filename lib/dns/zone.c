@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.14 2000/10/17 18:48:05 gson Exp $ */
+/* $Id: zone.c,v 1.152.2.15 2000/11/13 20:18:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -4196,6 +4196,15 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 	{
 		dns_zone_maintenance(p);
 	}
+
+	/*
+	 * Recent configuration changes may have increased the
+	 * amount of available transfers quota.  Make sure any
+	 * transfers currently blocked on quota get started if
+	 * possible.
+	 */
+	zmgr_resume_xfrs(zmgr);
+
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	return (ISC_R_SUCCESS);
 }
