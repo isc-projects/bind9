@@ -1724,33 +1724,61 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	return (DNS_R_SUCCESS);
 }
 
-void
-dns_name_downcase(dns_name_t *name) {
-	unsigned char *ndata;
+isc_result_t
+dns_name_downcase(dns_name_t *source, dns_name_t *name,
+		  isc_buffer_t *target)
+{
+	unsigned char *sndata, *ndata;
 	unsigned int nlen, count, bytes, labels;
+	isc_buffer_t buffer;
  
-	REQUIRE(VALID_NAME(name));
-	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+	/*
+	 * Downcase 'source'.
+	 */
 
-	ndata = name->ndata;
-	nlen = name->length;
-	labels = name->labels;
+	REQUIRE(VALID_NAME(source));
+	REQUIRE(VALID_NAME(name));
+	if (source == name) {
+		REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+		isc_buffer_init(&buffer, source->ndata, source->length,
+				ISC_BUFFERTYPE_BINARY);
+		target = &buffer;
+		ndata = source->ndata;
+	} else {
+		REQUIRE(BINDABLE(name));
+		if (target == NULL && name->buffer != NULL) {
+			target = name->buffer;
+			isc_buffer_clear(name->buffer);
+		}
+		ndata = (unsigned char *)target->base + target->used;
+		name->ndata = ndata;
+	}
+
+	sndata = source->ndata;
+	nlen = source->length;
+	labels = source->labels;
+
+	if (nlen > (target->length - target->used)) {
+		MAKE_EMPTY(name);
+		return (DNS_R_NOSPACE);
+	}
 
 	while (labels > 0 && nlen > 0) {
 		labels--;
-		count = *ndata++;
+		count = *sndata++;
+		*ndata++ = count;
 		nlen--;
 		if (count < 64) {
 			INSIST(nlen >= count);
 			while (count > 0) {
-				*ndata = maptolower[(*ndata)];
-				ndata++;
+				*ndata++ = maptolower[(*sndata++)];
 				nlen--;
 				count--;
 			}
 		} else if (count == DNS_LABELTYPE_BITSTRING) {
 			INSIST(nlen > 0);
-			count = *ndata++;
+			count = *sndata++;
+			*ndata++ = count;
 			if (count == 0)
 				count = 256;
 			nlen--;
@@ -1758,17 +1786,33 @@ dns_name_downcase(dns_name_t *name) {
 			bytes = count / 8;
 			if (count % 8 != 0)
 				bytes++;
-			INSIST(nlen >= bytes);
 
-			/* Skip this label */
+			INSIST(nlen >= bytes);
 			nlen -= bytes;
-			ndata += bytes;
+			while (bytes > 0) {
+				*ndata++ = *sndata++;
+				bytes--;
+			}
 		} else {
 			FATAL_ERROR(__FILE__, __LINE__,
 				    "Unexpected label type %02x", count);
 			/* Does not return. */
 		}
 	}
+
+	if (source != name) {
+		name->labels = source->labels;
+		name->length = source->length;
+		if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
+			name->attributes = DNS_NAMEATTR_ABSOLUTE;
+		else
+			name->attributes = 0;
+		if (name->labels > 0 && name->offsets != NULL)
+			set_offsets(name, name->offsets, ISC_FALSE, ISC_FALSE,
+				    ISC_FALSE);
+	}
+
+	return (ISC_R_SUCCESS);
 }
 
 static void

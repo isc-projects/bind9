@@ -789,14 +789,30 @@ dns_result_t dns_name_totext(dns_name_t *name,
  *	DNS_R_NOSPACE
  */
 
-void
-dns_name_downcase(dns_name_t *name);
+isc_result_t
+dns_name_downcase(dns_name_t *source, dns_name_t *name,
+		  isc_buffer_t *target);
 /*
- * Convert all uppercase letters in name to lowercase.
+ * Downcase 'source'.
  *
  * Requires:
  *
- *	'name' is a valid name that is not read-only.
+ *	'source' and 'name' are valid names.
+ *
+ *	If source == name, then
+ *
+ *		'source' must not be read-only
+ *
+ *	Otherwise,
+ *
+ *		'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY, or 
+ *		'target' is NULL and 'name' has a dedicated buffer.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOSPACE
+ *
+ *	Note: if source == name, then the result will always be DNS_R_SUCCESS.
  */
 
 dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
