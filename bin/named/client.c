@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.106 2000/08/01 01:11:39 tale Exp $ */
+/* $Id: client.c,v 1.107 2000/08/08 23:56:10 gson Exp $ */
 
 #include <config.h>
 
@@ -1694,7 +1694,7 @@ ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 {
 	va_list ap;
 
-	if (isc_log_wouldlog(ns_g_lctx, level) == ISC_FALSE)
+	if (! isc_log_wouldlog(ns_g_lctx, level))
 		return;
 
 	va_start(ap, fmt);
