@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.19 2001/02/22 18:01:47 gson Exp $ */
+/* $Id: print.c,v 1.20 2001/02/22 18:03:11 gson Exp $ */
 
 #include <config.h>
 
@@ -62,7 +62,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	int plus;
 	int space;
 	int neg;
-	long long tmpi;
+	isc_int64_t tmpi;
 	isc_uint64_t tmpui;
 	unsigned long width;
 	unsigned long precision;
