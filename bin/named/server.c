@@ -628,7 +628,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				  &view->secroots));
 
 	{
-		isc_uint32_t val;
+		isc_int32_t val;
 		result = ISC_R_NOTFOUND;
 		if (cview != NULL)
 			result = dns_c_view_getmaxcachettl(cview, &val);
@@ -639,7 +639,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		view->maxcachettl = val;
 	}
 	{
-		isc_uint32_t val;
+		isc_int32_t val;
 		result = ISC_R_NOTFOUND;
 		if (cview != NULL)
 			result = dns_c_view_getmaxncachettl(cview, &val);
