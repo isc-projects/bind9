@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.1 2001/11/06 19:24:08 gson Exp $
+ * $Id: dst_api.c,v 1.88.2.2 2001/12/19 01:09:56 marka Exp $
  */
 
 #include <config.h>
@@ -900,7 +900,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	isc_region_t r;
 	char filename[ISC_DIR_NAMEMAX];
 	unsigned char key_array[DST_KEY_MAXSIZE];
-	char text_array[DST_KEY_MAXSIZE];
+	char text_array[DST_KEY_MAXTEXTSIZE];
 	char class_array[10];
 	isc_result_t ret;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
