@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.7 2001/11/15 01:29:42 bwelling Exp $ */
+/* $Id: getaddresses.c,v 1.8 2001/11/16 04:41:58 bwelling Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -130,11 +130,12 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 #ifdef NO_DATA
 		case NO_DATA:
 #endif
-#if (defined(NO_ADDRESS) && (!defined(NO_DATA) || (NO_DATA != NO_ADDRESS))
+#if defined(NO_ADDRESS) && (!defined(NO_DATA) || (NO_DATA != NO_ADDRESS))
 		case NO_ADDRESS:
 #endif
 			return (ISC_R_NOTFOUND);
 		default:
+			return (ISC_R_FAILURE);
 		}
 	}
 	if (he->h_addrtype != AF_INET && he->h_addrtype != AF_INET6) {
@@ -156,7 +157,6 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 			isc_sockaddr_fromin6(&addrs[i], in6p, port);
 		}
 	}
-	freehostent(he);
 	*addrcount = i;
 #endif
 	if (*addrcount == 0)
