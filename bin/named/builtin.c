@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.1 2001/11/20 01:14:56 gson Exp $ */
+/* $Id: builtin.c,v 1.2 2002/01/25 03:12:07 marka Exp $ */
 
 /*
  * The built-in "version", "hostname", and "authors" databases.
@@ -105,7 +105,7 @@ do_hostname_lookup(dns_sdblookup_t *lookup) {
 		else
 			return (put_txt(lookup, ns_g_server->hostname));
 	} else {
-		unsigned char buf[256];
+		char buf[256];
 		isc_result_t result = ns_os_gethostname(buf, sizeof(buf));
 		if (result != ISC_R_SUCCESS)
 			return (result);
